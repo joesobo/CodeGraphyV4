@@ -67,29 +67,32 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Load persisted positions from workspace state
+   * Load persisted positions from global state (persists across workspaces for dev)
    */
   private _getPersistedPositions(): NodePositions {
-    return this._context.workspaceState.get<NodePositions>(POSITIONS_KEY) ?? {};
+    // Use globalState for persistence (works in Extension Development Host)
+    const positions = this._context.globalState.get<NodePositions>(POSITIONS_KEY) ?? {};
+    console.log('[CodeGraphy] Loading positions:', Object.keys(positions).length, 'nodes');
+    return positions;
   }
 
   /**
-   * Save positions to workspace state (debounced)
+   * Save positions to global state (debounced)
    */
   private _savePositions(): void {
     // Debounce saves - only save after 500ms of no changes
     if (this._saveTimeout) {
       clearTimeout(this._saveTimeout);
     }
-    this._saveTimeout = setTimeout(() => {
+    this._saveTimeout = setTimeout(async () => {
       const positions: NodePositions = {};
       for (const node of this._graphData.nodes) {
         if (node.x !== undefined && node.y !== undefined) {
           positions[node.id] = { x: node.x, y: node.y };
         }
       }
-      this._context.workspaceState.update(POSITIONS_KEY, positions);
-      console.log('[CodeGraphy] Positions saved');
+      await this._context.globalState.update(POSITIONS_KEY, positions);
+      console.log('[CodeGraphy] Positions saved:', Object.keys(positions).length, 'nodes');
     }, 500);
   }
 
