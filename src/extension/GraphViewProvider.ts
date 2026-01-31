@@ -1,9 +1,15 @@
 import * as vscode from 'vscode';
+import {
+  IGraphData,
+  ExtensionToWebviewMessage,
+  WebviewToExtensionMessage,
+} from '../shared/types';
 
 export class GraphViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'codegraphy.graphView';
 
   private _view?: vscode.WebviewView;
+  private _graphData: IGraphData = { nodes: [], edges: [] };
 
   constructor(private readonly _extensionUri: vscode.Uri) {}
 
@@ -24,23 +30,93 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._setWebviewMessageListener(webviewView.webview);
   }
 
-  public postMessage(message: unknown): void {
+  /**
+   * Update graph data and notify webview
+   */
+  public updateGraphData(data: IGraphData): void {
+    this._graphData = data;
+    this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: data });
+  }
+
+  /**
+   * Get current graph data
+   */
+  public getGraphData(): IGraphData {
+    return this._graphData;
+  }
+
+  /**
+   * Send message to webview
+   */
+  private _sendMessage(message: ExtensionToWebviewMessage): void {
     if (this._view) {
       this._view.webview.postMessage(message);
     }
   }
 
+  /**
+   * Handle messages from webview
+   */
   private _setWebviewMessageListener(webview: vscode.Webview): void {
-    webview.onDidReceiveMessage((message: { type: string; payload?: unknown }) => {
+    webview.onDidReceiveMessage((message: WebviewToExtensionMessage) => {
       switch (message.type) {
-        case 'ready':
-          this.postMessage({ type: 'init', payload: { version: '0.1.0' } });
+        case 'WEBVIEW_READY':
+          // Send current graph data when webview is ready
+          this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
           break;
-        case 'log':
-          console.log('[CodeGraphy Webview]', message.payload);
+
+        case 'NODE_SELECTED':
+          console.log('[CodeGraphy] Node selected:', message.payload.nodeId);
+          break;
+
+        case 'NODE_DOUBLE_CLICKED':
+          this._openFile(message.payload.nodeId);
+          break;
+
+        case 'NODE_POSITION_CHANGED':
+          this._handleNodePositionChanged(
+            message.payload.nodeId,
+            message.payload.x,
+            message.payload.y
+          );
           break;
       }
     });
+  }
+
+  /**
+   * Open a file in the editor
+   */
+  private async _openFile(filePath: string): Promise<void> {
+    try {
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (!workspaceFolder) {
+        vscode.window.showErrorMessage('No workspace folder open');
+        return;
+      }
+
+      const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
+      const document = await vscode.workspace.openTextDocument(fileUri);
+      await vscode.window.showTextDocument(document);
+    } catch (error) {
+      console.error('[CodeGraphy] Failed to open file:', error);
+      vscode.window.showErrorMessage(`Could not open file: ${filePath}`);
+    }
+  }
+
+  /**
+   * Handle node position changes (for persistence)
+   */
+  private _handleNodePositionChanged(nodeId: string, x: number, y: number): void {
+    // Update position in graph data
+    const node = this._graphData.nodes.find((n) => n.id === nodeId);
+    if (node) {
+      node.x = x;
+      node.y = y;
+    }
+
+    // TODO: Persist to workspace state
+    console.log('[CodeGraphy] Node position changed:', nodeId, x, y);
   }
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
