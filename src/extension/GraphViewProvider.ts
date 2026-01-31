@@ -4,6 +4,7 @@ import {
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
 } from '../shared/types';
+import { getMockGraphData } from '../shared/mockData';
 
 export class GraphViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'codegraphy.graphView';
@@ -62,6 +63,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       switch (message.type) {
         case 'WEBVIEW_READY':
           // Send current graph data when webview is ready
+          // If no real data yet, use mock data for development
+          if (this._graphData.nodes.length === 0) {
+            this._graphData = getMockGraphData();
+          }
           this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
           break;
 
