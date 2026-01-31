@@ -55,10 +55,12 @@ orphan.ts (no connections - only visible with showOrphans=true)
 
 ## Expected Counts
 
-| Setting | Nodes | Edges |
-|---------|-------|-------|
-| `showOrphans=true` | 10 | 11 |
-| `showOrphans=false` | 9 | 11 |
+| Setting | Nodes | Edges | Notes |
+|---------|-------|-------|-------|
+| `showOrphans=true` | 14 | 11 | Includes README.md, package.json, tsconfig.json, .gitignore |
+| `showOrphans=false` | 9 | 11 | Only files with connections |
+
+Non-code files (README.md, package.json, etc.) appear as orphans since they have no import connections.
 
 ## How to Test
 

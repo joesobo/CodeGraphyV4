@@ -94,14 +94,8 @@ export class WorkspaceAnalyzer {
       return { nodes: [], edges: [] };
     }
 
-    // Get supported extensions from registry
-    const extensions = this._registry.getSupportedExtensions();
-    if (extensions.length === 0) {
-      console.log('[CodeGraphy] No plugins registered, no extensions supported');
-      return { nodes: [], edges: [] };
-    }
-
-    // Discover files
+    // Discover ALL files (not filtered by extension)
+    // Non-code files will appear as orphans if showOrphans is enabled
     const config = this._config.getAll();
     const discoveryResult = await this._discovery.discover({
       rootPath: workspaceRoot,
@@ -109,7 +103,7 @@ export class WorkspaceAnalyzer {
       include: config.include,
       exclude: config.exclude,
       respectGitignore: config.respectGitignore,
-      extensions,
+      // Don't filter by extensions - we want all files as nodes
     });
 
     if (discoveryResult.limitReached) {
