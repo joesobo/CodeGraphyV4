@@ -1,36 +1,32 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { IGraphData, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
 import { getMockGraphData } from '../shared/mockData';
 
-// Get VSCode API if available
+// Get VSCode API if available (must be called exactly once at module level)
 declare function acquireVsCodeApi(): {
   postMessage: (message: WebviewToExtensionMessage) => void;
   getState: () => unknown;
   setState: (state: unknown) => void;
 };
 
-// Get the API lazily (only when needed)
-function getVsCodeApi() {
+// Acquire the API once at module load (VSCode requirement)
+let vscode: ReturnType<typeof acquireVsCodeApi> | null = null;
+try {
   if (typeof acquireVsCodeApi !== 'undefined') {
-    return acquireVsCodeApi();
+    vscode = acquireVsCodeApi();
   }
-  return null;
+} catch {
+  // Already acquired or not in VSCode context
+  vscode = null;
 }
 
 export default function App(): React.ReactElement {
   const [graphData, setGraphData] = useState<IGraphData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const vsCodeRef = useRef<ReturnType<typeof getVsCodeApi>>(null);
 
   useEffect(() => {
-    // Get VSCode API (cached in ref to avoid multiple calls)
-    if (!vsCodeRef.current) {
-      vsCodeRef.current = getVsCodeApi();
-    }
-    const vscode = vsCodeRef.current;
-
     const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
       const message = event.data;
       
