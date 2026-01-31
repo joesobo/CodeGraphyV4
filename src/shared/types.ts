@@ -67,20 +67,21 @@ export type WebviewToExtensionMessage =
 // File Type Colors
 // ============================================================================
 
+// Pastel color palette for file types
 export const FILE_TYPE_COLORS: Record<string, string> = {
-  '.ts': '#3B82F6',    // Blue
-  '.tsx': '#06B6D4',   // Cyan
-  '.js': '#EAB308',    // Yellow
-  '.jsx': '#F59E0B',   // Amber
-  '.css': '#EC4899',   // Pink
-  '.scss': '#D946EF',  // Magenta
-  '.json': '#22C55E',  // Green
-  '.md': '#6B7280',    // Gray
-  '.html': '#F97316',  // Orange
-  '.svg': '#8B5CF6',   // Purple
+  '.ts': '#93C5FD',    // Soft blue
+  '.tsx': '#67E8F9',   // Soft cyan
+  '.js': '#FDE68A',    // Soft yellow
+  '.jsx': '#FDBA74',   // Soft peach
+  '.css': '#F9A8D4',   // Soft pink
+  '.scss': '#E879F9',  // Soft magenta
+  '.json': '#86EFAC',  // Soft green
+  '.md': '#CBD5E1',    // Soft gray
+  '.html': '#FCA5A5',  // Soft coral
+  '.svg': '#C4B5FD',   // Soft purple
 };
 
-export const DEFAULT_NODE_COLOR = '#64748B'; // Slate
+export const DEFAULT_NODE_COLOR = '#A1A1AA'; // Soft zinc
 
 /**
  * Get color for a file based on its extension

@@ -242,10 +242,15 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
   }, [data]);
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-full"
-      style={{ minHeight: '100vh' }}
-    />
+    <div className="w-full h-full flex items-center justify-center p-2" style={{ minHeight: '100vh' }}>
+      <div
+        ref={containerRef}
+        className="w-full h-full rounded-lg border border-zinc-700"
+        style={{ 
+          minHeight: 'calc(100vh - 16px)',
+          backgroundColor: '#18181b', // zinc-900
+        }}
+      />
+    </div>
   );
 }
