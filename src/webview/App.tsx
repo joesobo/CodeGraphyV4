@@ -66,6 +66,10 @@ export default function App(): React.ReactElement {
     );
   }
 
-  // Graph view
-  return <Graph data={graphData} />;
+  // Graph view - relative container for absolute positioned graph
+  return (
+    <div className="relative w-full h-screen">
+      <Graph data={graphData} />
+    </div>
+  );
 }

@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { GraphViewProvider } from './GraphViewProvider';
 
 export function activate(context: vscode.ExtensionContext): void {
-  const provider = new GraphViewProvider(context.extensionUri);
+  const provider = new GraphViewProvider(context.extensionUri, context);
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(

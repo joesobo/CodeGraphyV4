@@ -6,13 +6,23 @@ import {
 } from '../shared/types';
 import { getMockGraphData } from '../shared/mockData';
 
+const POSITIONS_KEY = 'codegraphy.nodePositions';
+
+interface NodePositions {
+  [nodeId: string]: { x: number; y: number };
+}
+
 export class GraphViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'codegraphy.graphView';
 
   private _view?: vscode.WebviewView;
   private _graphData: IGraphData = { nodes: [], edges: [] };
+  private _saveTimeout?: NodeJS.Timeout;
 
-  constructor(private readonly _extensionUri: vscode.Uri) {}
+  constructor(
+    private readonly _extensionUri: vscode.Uri,
+    private readonly _context: vscode.ExtensionContext
+  ) {}
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
@@ -36,7 +46,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   public updateGraphData(data: IGraphData): void {
     this._graphData = data;
-    this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: data });
+    this._applyPersistedPositions();
+    this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
   }
 
   /**
@@ -56,6 +67,47 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Load persisted positions from workspace state
+   */
+  private _getPersistedPositions(): NodePositions {
+    return this._context.workspaceState.get<NodePositions>(POSITIONS_KEY) ?? {};
+  }
+
+  /**
+   * Save positions to workspace state (debounced)
+   */
+  private _savePositions(): void {
+    // Debounce saves - only save after 500ms of no changes
+    if (this._saveTimeout) {
+      clearTimeout(this._saveTimeout);
+    }
+    this._saveTimeout = setTimeout(() => {
+      const positions: NodePositions = {};
+      for (const node of this._graphData.nodes) {
+        if (node.x !== undefined && node.y !== undefined) {
+          positions[node.id] = { x: node.x, y: node.y };
+        }
+      }
+      this._context.workspaceState.update(POSITIONS_KEY, positions);
+      console.log('[CodeGraphy] Positions saved');
+    }, 500);
+  }
+
+  /**
+   * Apply persisted positions to graph data
+   */
+  private _applyPersistedPositions(): void {
+    const positions = this._getPersistedPositions();
+    for (const node of this._graphData.nodes) {
+      const savedPos = positions[node.id];
+      if (savedPos) {
+        node.x = savedPos.x;
+        node.y = savedPos.y;
+      }
+    }
+  }
+
+  /**
    * Handle messages from webview
    */
   private _setWebviewMessageListener(webview: vscode.Webview): void {
@@ -66,6 +118,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           // If no real data yet, use mock data for development
           if (this._graphData.nodes.length === 0) {
             this._graphData = getMockGraphData();
+            this._applyPersistedPositions();
           }
           this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
           break;
@@ -96,11 +149,22 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     try {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       if (!workspaceFolder) {
-        vscode.window.showErrorMessage('No workspace folder open');
+        // Mock data - show info message
+        vscode.window.showInformationMessage(`Mock file: ${filePath}`);
         return;
       }
 
       const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
+      
+      // Check if file exists
+      try {
+        await vscode.workspace.fs.stat(fileUri);
+      } catch {
+        // File doesn't exist (mock data)
+        vscode.window.showInformationMessage(`Mock file: ${filePath}`);
+        return;
+      }
+
       const document = await vscode.workspace.openTextDocument(fileUri);
       await vscode.window.showTextDocument(document);
     } catch (error) {
@@ -120,8 +184,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       node.y = y;
     }
 
-    // TODO: Persist to workspace state
-    console.log('[CodeGraphy] Node position changed:', nodeId, x, y);
+    // Persist to workspace state (debounced)
+    this._savePositions();
   }
 
   private _getHtmlForWebview(webview: vscode.Webview): string {
