@@ -37,4 +37,17 @@ body {
   .border-subtle {
     border-color: var(--vscode-sideBar-border, var(--color-border));
   }
+  /* Icon fill/stroke utilities */
+  .fill-accent {
+    fill: var(--vscode-textLink-foreground, var(--color-accent));
+  }
+  .fill-secondary {
+    fill: var(--vscode-descriptionForeground, #9ca3af);
+  }
+  .fill-muted {
+    fill: #6b7280;
+  }
+  .stroke-muted {
+    stroke: #4b5563;
+  }
 }
