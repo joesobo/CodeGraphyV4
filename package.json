@@ -78,6 +78,54 @@
           "name": "Graph"
         }
       ]
+    },
+    "configuration": {
+      "title": "CodeGraphy",
+      "properties": {
+        "codegraphy.maxFiles": {
+          "type": "number",
+          "default": 100,
+          "description": "Maximum number of files to analyze. Shows a warning if exceeded."
+        },
+        "codegraphy.include": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": ["**/*"],
+          "description": "Glob patterns for files to include in analysis."
+        },
+        "codegraphy.exclude": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [
+            "**/node_modules/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/out/**",
+            "**/.git/**",
+            "**/coverage/**",
+            "**/*.min.js",
+            "**/*.bundle.js",
+            "**/*.map"
+          ],
+          "description": "Glob patterns for files to exclude from analysis."
+        },
+        "codegraphy.respectGitignore": {
+          "type": "boolean",
+          "default": true,
+          "description": "Also exclude files matched by .gitignore."
+        },
+        "codegraphy.showOrphans": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show files that have no connections (no imports and not imported)."
+        },
+        "codegraphy.plugins": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "description": "List of CodeGraphy plugin extension names to enable (e.g., 'codegraphy-rust')."
+        }
+      }
     }
   },
   "scripts": {
