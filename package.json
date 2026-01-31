@@ -25,6 +25,40 @@
       {
         "command": "codegraphy.open",
         "title": "CodeGraphy: Open"
+      },
+      {
+        "command": "codegraphy.fitView",
+        "title": "CodeGraphy: Fit All Nodes in View"
+      },
+      {
+        "command": "codegraphy.zoomIn",
+        "title": "CodeGraphy: Zoom In"
+      },
+      {
+        "command": "codegraphy.zoomOut",
+        "title": "CodeGraphy: Zoom Out"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "codegraphy.fitView",
+        "key": "0",
+        "when": "codegraphy.graphFocused"
+      },
+      {
+        "command": "codegraphy.zoomIn",
+        "key": "=",
+        "when": "codegraphy.graphFocused"
+      },
+      {
+        "command": "codegraphy.zoomIn",
+        "key": "shift+=",
+        "when": "codegraphy.graphFocused"
+      },
+      {
+        "command": "codegraphy.zoomOut",
+        "key": "-",
+        "when": "codegraphy.graphFocused"
       }
     ],
     "viewsContainers": {

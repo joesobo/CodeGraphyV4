@@ -12,6 +12,32 @@ Visualize your codebase as an interactive 2D force graph. See how files connect 
 - 💾 **Position persistence** — Your graph layout is saved and restored
 - ⚡ **Fast** — Built with Vis Network for smooth physics simulation
 
+## Keyboard Shortcuts
+
+CodeGraphy provides keyboard shortcuts for quick graph navigation. These shortcuts work when the graph view is focused.
+
+| Shortcut | Action |
+|----------|--------|
+| `0` | Fit all nodes in view |
+| `Escape` | Deselect all nodes |
+| `Enter` | Open selected node in editor |
+| `+` / `=` | Zoom in |
+| `-` | Zoom out |
+
+### Customizing Shortcuts
+
+You can customize these shortcuts in VS Code's keyboard settings:
+
+1. Open **File > Preferences > Keyboard Shortcuts** (or `Ctrl+K Ctrl+S`)
+2. Search for "CodeGraphy"
+3. Click the pencil icon next to any command to change its keybinding
+
+Available commands:
+- `codegraphy.open` — Open CodeGraphy panel
+- `codegraphy.fitView` — Fit all nodes in view
+- `codegraphy.zoomIn` — Zoom in
+- `codegraphy.zoomOut` — Zoom out
+
 ## Getting Started
 
 ### Prerequisites

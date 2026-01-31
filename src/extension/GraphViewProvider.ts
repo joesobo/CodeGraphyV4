@@ -125,6 +125,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Send a command to the webview (for keyboard shortcuts)
+   * 
+   * @param command - The command to send (FIT_VIEW, ZOOM_IN, ZOOM_OUT)
+   */
+  public sendCommand(command: 'FIT_VIEW' | 'ZOOM_IN' | 'ZOOM_OUT'): void {
+    this._sendMessage({ type: command });
+  }
+
+  /**
    * Sends a message to the webview.
    * 
    * @param message - Message to send to the webview
