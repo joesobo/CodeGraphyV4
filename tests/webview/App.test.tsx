@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act } from '@testing-library/react';
 import App from '../../src/webview/App';
 
 // Mock window.addEventListener for message handling
@@ -39,7 +39,9 @@ describe('App', () => {
       data: { type: 'init', payload: { version: '0.1.0' } },
     });
 
-    messageListeners.forEach((listener) => listener(initEvent));
+    await act(async () => {
+      messageListeners.forEach((listener) => listener(initEvent));
+    });
 
     expect(await screen.findByText('v0.1.0')).toBeInTheDocument();
   });
