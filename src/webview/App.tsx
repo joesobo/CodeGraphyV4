@@ -1,11 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
-import { IGraphData, ExtensionToWebviewMessage } from '../shared/types';
+import { IGraphData, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
 import { getMockGraphData } from '../shared/mockData';
 
-// Check if running inside VSCode webview
-const isVSCodeWebview = typeof acquireVsCodeApi !== 'undefined';
+// Get VSCode API if available
+declare function acquireVsCodeApi(): {
+  postMessage: (message: WebviewToExtensionMessage) => void;
+  getState: () => unknown;
+  setState: (state: unknown) => void;
+};
+
+// Check if running inside VSCode webview and get API
+const vscode = typeof acquireVsCodeApi !== 'undefined' ? acquireVsCodeApi() : null;
 
 export default function App(): React.ReactElement {
   const [graphData, setGraphData] = useState<IGraphData | null>(null);
@@ -25,11 +32,12 @@ export default function App(): React.ReactElement {
 
     window.addEventListener('message', handleMessage);
 
-    // Only use mock data when developing webview in isolation (npm run dev)
-    // In VSCode, wait for real data from the extension
-    let timeout: ReturnType<typeof setTimeout> | undefined;
-    if (!isVSCodeWebview) {
-      timeout = setTimeout(() => {
+    // Tell extension we're ready to receive data
+    if (vscode) {
+      vscode.postMessage({ type: 'WEBVIEW_READY' });
+    } else {
+      // Standalone dev mode - use mock data after delay
+      setTimeout(() => {
         if (isLoading) {
           console.log('Using mock data for standalone development');
           setGraphData(getMockGraphData());
@@ -40,9 +48,8 @@ export default function App(): React.ReactElement {
 
     return () => {
       window.removeEventListener('message', handleMessage);
-      if (timeout) clearTimeout(timeout);
     };
-  }, [isLoading]);
+  }, []); // Run once on mount
 
   // Loading state
   if (isLoading) {
