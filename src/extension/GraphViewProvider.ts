@@ -1,3 +1,10 @@
+/**
+ * @fileoverview Provides the webview panel for displaying the dependency graph.
+ * Handles communication between the extension and the React webview,
+ * including graph data updates and position persistence.
+ * @module extension/GraphViewProvider
+ */
+
 import * as vscode from 'vscode';
 import {
   IGraphData,
@@ -6,24 +13,71 @@ import {
 } from '../shared/types';
 import { getMockGraphData } from '../shared/mockData';
 
+/** Storage key for persisted node positions in workspace state */
 const POSITIONS_KEY = 'codegraphy.nodePositions';
 
+/**
+ * Map of node IDs to their persisted positions.
+ * Stored in VSCode workspace state for persistence across sessions.
+ */
 interface NodePositions {
   [nodeId: string]: { x: number; y: number };
 }
 
+/**
+ * Provides the webview panel that displays the CodeGraphy dependency graph.
+ * 
+ * This class implements `vscode.WebviewViewProvider` to register as a sidebar
+ * view provider. It manages:
+ * - Webview HTML content generation
+ * - Message passing between extension and webview
+ * - Node position persistence to workspace state
+ * - File opening on node double-click
+ * 
+ * @example
+ * ```typescript
+ * // Registration in extension activation
+ * const provider = new GraphViewProvider(context.extensionUri, context);
+ * context.subscriptions.push(
+ *   vscode.window.registerWebviewViewProvider(
+ *     GraphViewProvider.viewType,
+ *     provider
+ *   )
+ * );
+ * ```
+ */
 export class GraphViewProvider implements vscode.WebviewViewProvider {
+  /** The view type identifier used in package.json contribution */
   public static readonly viewType = 'codegraphy.graphView';
 
+  /** Reference to the webview view, undefined until resolved */
   private _view?: vscode.WebviewView;
+  
+  /** Current graph data being displayed */
   private _graphData: IGraphData = { nodes: [], edges: [] };
+  
+  /** Timeout handle for debounced position saves */
   private _saveTimeout?: NodeJS.Timeout;
 
+  /**
+   * Creates a new GraphViewProvider.
+   * 
+   * @param _extensionUri - URI of the extension's installation directory
+   * @param _context - Extension context for accessing workspace state
+   */
   constructor(
     private readonly _extensionUri: vscode.Uri,
     private readonly _context: vscode.ExtensionContext
   ) {}
 
+  /**
+   * Called by VSCode when the webview view needs to be resolved.
+   * Sets up the webview options, HTML content, and message listeners.
+   * 
+   * @param webviewView - The webview view to resolve
+   * @param _context - Context for the webview view resolution
+   * @param _token - Cancellation token
+   */
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
     _context: vscode.WebviewViewResolveContext,
@@ -42,7 +96,18 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Update graph data and notify webview
+   * Updates the graph data and notifies the webview.
+   * Applies any persisted positions before sending to webview.
+   * 
+   * @param data - New graph data to display
+   * 
+   * @example
+   * ```typescript
+   * provider.updateGraphData({
+   *   nodes: [{ id: 'app.ts', label: 'app.ts', color: '#93C5FD' }],
+   *   edges: []
+   * });
+   * ```
    */
   public updateGraphData(data: IGraphData): void {
     this._graphData = data;
@@ -51,14 +116,18 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Get current graph data
+   * Returns the current graph data being displayed.
+   * 
+   * @returns Current graph data with nodes and edges
    */
   public getGraphData(): IGraphData {
     return this._graphData;
   }
 
   /**
-   * Send message to webview
+   * Sends a message to the webview.
+   * 
+   * @param message - Message to send to the webview
    */
   private _sendMessage(message: ExtensionToWebviewMessage): void {
     if (this._view) {
@@ -67,7 +136,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Load persisted positions from workspace state
+   * Loads persisted node positions from workspace state.
+   * 
+   * @returns Map of node IDs to positions, empty object if none saved
    */
   private _getPersistedPositions(): NodePositions {
     const positions = this._context.workspaceState.get<NodePositions>(POSITIONS_KEY) ?? {};
@@ -76,10 +147,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Save positions to workspace state (debounced)
+   * Saves node positions to workspace state with debouncing.
+   * Waits 500ms after the last call before actually saving to avoid
+   * excessive writes during physics simulation or rapid dragging.
    */
   private _savePositions(): void {
-    // Debounce saves - only save after 500ms of no changes
     if (this._saveTimeout) {
       clearTimeout(this._saveTimeout);
     }
@@ -96,7 +168,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Apply persisted positions to graph data
+   * Applies persisted positions to the current graph data.
+   * Called before sending graph data to webview to restore layout.
    */
   private _applyPersistedPositions(): void {
     const positions = this._getPersistedPositions();
@@ -110,7 +183,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Handle messages from webview
+   * Sets up the message listener for webview-to-extension communication.
+   * Handles all message types defined in WebviewToExtensionMessage.
+   * 
+   * @param webview - The webview to listen to
    */
   private _setWebviewMessageListener(webview: vscode.Webview): void {
     webview.onDidReceiveMessage((message: WebviewToExtensionMessage) => {
@@ -149,7 +225,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Open a file in the editor
+   * Opens a file in the VSCode editor.
+   * Shows an info message for mock files that don't exist on disk.
+   * 
+   * @param filePath - Workspace-relative path to the file
    */
   private async _openFile(filePath: string): Promise<void> {
     try {
@@ -180,25 +259,29 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Handle node position changes (for persistence)
+   * Handles a single node position change from user dragging.
+   * Updates the in-memory graph data and triggers a debounced save.
+   * 
+   * @param nodeId - ID of the moved node
+   * @param x - New X position
+   * @param y - New Y position
    */
   private _handleNodePositionChanged(nodeId: string, x: number, y: number): void {
-    // Update position in graph data
     const node = this._graphData.nodes.find((n) => n.id === nodeId);
     if (node) {
       node.x = x;
       node.y = y;
     }
-
-    // Persist to workspace state (debounced)
     this._savePositions();
   }
 
   /**
-   * Handle bulk positions update (e.g., after physics stabilization)
+   * Handles bulk position updates, typically after physics stabilization.
+   * Updates all node positions in memory and triggers a debounced save.
+   * 
+   * @param positions - Map of node IDs to their new positions
    */
   private _handlePositionsUpdated(positions: Record<string, { x: number; y: number }>): void {
-    // Update all positions in graph data
     for (const node of this._graphData.nodes) {
       const pos = positions[node.id];
       if (pos) {
@@ -206,11 +289,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         node.y = pos.y;
       }
     }
-
-    // Persist to workspace state (debounced)
     this._savePositions();
   }
 
+  /**
+   * Generates the HTML content for the webview.
+   * Includes proper CSP headers and loads the React app bundle.
+   * 
+   * @param webview - The webview to generate HTML for
+   * @returns Complete HTML document as a string
+   */
   private _getHtmlForWebview(webview: vscode.Webview): string {
     const scriptUri = webview.asWebviewUri(
       vscode.Uri.joinPath(this._extensionUri, 'dist', 'webview', 'index.js')
@@ -238,6 +326,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 }
 
+/**
+ * Generates a random nonce for CSP script-src.
+ * Used to allow only specific inline scripts in the webview.
+ * 
+ * @returns 32-character random alphanumeric string
+ */
 function getNonce(): string {
   let text = '';
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
