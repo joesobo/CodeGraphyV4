@@ -89,13 +89,19 @@
         },
         "codegraphy.include": {
           "type": "array",
-          "items": { "type": "string" },
-          "default": ["**/*"],
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/*"
+          ],
           "description": "Glob patterns for files to include in analysis."
         },
         "codegraphy.exclude": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [
             "**/node_modules/**",
             "**/dist/**",
@@ -121,7 +127,9 @@
         },
         "codegraphy.plugins": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "description": "List of CodeGraphy plugin extension names to enable (e.g., 'codegraphy-rust')."
         }
@@ -167,6 +175,8 @@
     "vitest": "^3.0.0"
   },
   "dependencies": {
+    "ignore": "^7.0.5",
+    "minimatch": "^10.1.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "vis-data": "^8.0.3",
