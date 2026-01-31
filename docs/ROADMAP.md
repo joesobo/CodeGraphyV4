@@ -15,120 +15,104 @@
 - Pastel color palette by file type
 - Node interactions (click, double-click, drag)
 - Position persistence to workspace state
+- Keyboard shortcuts (fit, zoom, select)
 - Mock data for development
 - 45 tests covering core functionality
 
 ### 🔜 Phase 3: Plugin API & File Discovery (Next)
-- Plugin interface definition
-- File discovery system
-- TypeScript/JavaScript import detection
-- Python import detection
+- Extension settings (#24)
+- Plugin interface for community plugins
+- File discovery with include/exclude patterns
+- TypeScript Compiler API for import detection
+- Caching with incremental updates
 - Wire real files into graph
 
 ### 📋 Phase 4: Polish & Core Features (Planned)
 - Search/filter functionality
 - Hover highlights
 - File metadata tooltips
-- Directory grouping
 - Theme support
 
 ---
 
 ## Phase 3 Detailed Breakdown
 
-Phase 3 is the **most important phase** — it's where CodeGraphy transforms from a demo with mock data into a real, useful tool. This phase should be broken into smaller, mergeable PRs.
+Phase 3 transforms CodeGraphy from a demo with mock data into a real, useful tool.
 
-### 3.1: Plugin Architecture Foundation
+### Key Decisions
+- **Community Plugins**: Design for external VSCode extension plugins from the start
+- **TypeScript Compiler API**: Use `ts.createSourceFile` for accurate AST-based import detection (not regex)
+- **Caching**: Initial full scan, then incremental updates for changed files only
+- **Filtering**: Whitelist/blacklist patterns, respect .gitignore, max file limit
+
+### 3.0: Extension Settings (#24)
+**Estimated: 1 day**
+
+Add user-configurable settings.
+
+| Setting | Default | Description |
+|---------|---------|-------------|
+| `codegraphy.maxFiles` | `100` | Max files to analyze |
+| `codegraphy.include` | `["**/*"]` | Include patterns |
+| `codegraphy.exclude` | *(node_modules, dist, etc)* | Exclude patterns |
+| `codegraphy.respectGitignore` | `true` | Honor .gitignore |
+| `codegraphy.showOrphans` | `true` | Show unconnected files |
+| `codegraphy.plugins` | `[]` | Community plugin names |
+
+### 3.1: Plugin Architecture Foundation (#12)
 **Estimated: 2-3 days**
 
-Create the plugin system infrastructure without any actual plugins yet.
+Create the plugin system infrastructure.
 
-- [ ] Define `IPlugin` interface
-  ```typescript
-  interface IPlugin {
-    id: string;
-    name: string;
-    version: string;
-    supportedExtensions: string[];
-    detectConnections(file: IFileData, content: string): string[];
-  }
-  ```
+- [ ] Define `IPlugin` interface for community plugins
+- [ ] Plugin manifest format for VSCode extension plugins
 - [ ] Create plugin registry (register/unregister/list)
-- [ ] Create plugin loader
-- [ ] Add plugin configuration schema to package.json
+- [ ] Discover plugins from installed VSCode extensions
 - [ ] Unit tests for plugin system
 
-**Files to create:**
-- `src/core/plugins/types.ts` — Plugin interfaces
-- `src/core/plugins/PluginRegistry.ts` — Registry class
-- `src/core/plugins/PluginLoader.ts` — Loader class
-- `tests/core/plugins/` — Plugin system tests
-
-### 3.2: File Discovery System
+### 3.2: File Discovery System (#13)
 **Estimated: 2-3 days**
 
 Walk the workspace and discover files to analyze.
 
-- [ ] Recursive file traversal
+- [ ] Recursive file traversal with glob patterns
 - [ ] Respect `.gitignore` patterns
-- [ ] Configurable ignore patterns (node_modules, dist, etc.)
+- [ ] Apply include/exclude from settings
+- [ ] Enforce max file limit with warning
 - [ ] File content reading with proper encoding
-- [ ] Watch mode for file changes (future)
-- [ ] Performance: handle large codebases (10k+ files)
 
-**Files to create:**
-- `src/core/discovery/FileDiscovery.ts` — Main discovery class
-- `src/core/discovery/IgnorePatterns.ts` — Gitignore handling
-- `src/core/discovery/types.ts` — Discovery types
-- `tests/core/discovery/` — Discovery tests
-
-### 3.3: TypeScript/JavaScript Plugin
+### 3.3: TypeScript/JavaScript Plugin (#14)
 **Estimated: 3-4 days**
 
-The first real plugin — detects imports in TS/JS files.
+Built-in plugin using TypeScript Compiler API.
 
-- [ ] Parse `import ... from '...'` statements
-- [ ] Parse `require('...')` calls
-- [ ] Parse `import('...')` dynamic imports
+- [ ] Parse imports using `ts.createSourceFile` (AST-based)
+- [ ] Support all import types (ES6, CommonJS, dynamic)
 - [ ] Resolve relative paths (`./`, `../`)
-- [ ] Resolve alias paths (tsconfig paths)
-- [ ] Resolve node_modules imports (optional, configurable)
-- [ ] Handle index files (`./folder` → `./folder/index`)
-- [ ] Handle extension inference (`.ts`, `.tsx`, `.js`, etc.)
+- [ ] Resolve tsconfig/jsconfig paths
+- [ ] Handle index files and extension inference
 
-**Files to create:**
-- `src/plugins/typescript/index.ts` — Plugin entry
-- `src/plugins/typescript/ImportDetector.ts` — Import parsing
-- `src/plugins/typescript/PathResolver.ts` — Path resolution
-- `tests/plugins/typescript/` — Plugin tests
-
-### 3.4: Python Plugin
+### 3.4: Python Plugin (#15)
 **Estimated: 2-3 days**
 
-Second plugin for Python codebases.
+Built-in plugin for Python codebases.
 
-- [ ] Parse `import module` statements
-- [ ] Parse `from module import ...` statements
+- [ ] Parse `import` and `from ... import` statements
 - [ ] Resolve relative imports
 - [ ] Handle `__init__.py` packages
-- [ ] Handle common patterns (Django, Flask structure)
 
-**Files to create:**
-- `src/plugins/python/index.ts` — Plugin entry
-- `src/plugins/python/ImportDetector.ts` — Import parsing
-- `tests/plugins/python/` — Plugin tests
-
-### 3.5: Integration & Wiring
+### 3.5: Integration & Caching (#16)
 **Estimated: 2-3 days**
 
-Connect everything together.
+Connect everything with smart caching.
 
-- [ ] GraphViewProvider calls file discovery on workspace open
-- [ ] Discovered files sent to webview
-- [ ] Real-time updates when files change
-- [ ] Progress indicator during initial scan
-- [ ] Error handling for unreadable files
-- [ ] Configuration UI (enable/disable plugins)
+- [ ] Initial full scan on workspace open
+- [ ] Cache results in workspace state (file path, mtime, connections)
+- [ ] Incremental updates: only re-analyze changed files
+- [ ] File system watcher for real-time updates
+- [ ] Invalidate cache when tsconfig changes
+- [ ] Progress indicator during scan
+- [ ] showOrphans setting filters display
 
 ---
 
@@ -137,98 +121,60 @@ Connect everything together.
 After Phase 3, the tool is functional. Phase 4 adds polish.
 
 ### 4.1: Search & Filter
-**Estimated: 2 days**
-
-- [ ] Search box in webview header
-- [ ] Filter nodes by name (fuzzy match)
-- [ ] Filter by file type
-- [ ] Highlight matching nodes
-- [ ] Clear filter button
+- Search box in webview header
+- Filter nodes by name (fuzzy match)
+- Filter by file type
+- Highlight matching nodes
 
 ### 4.2: Hover Interactions
-**Estimated: 1-2 days**
-
-- [ ] Highlight connected nodes on hover
-- [ ] Dim unconnected nodes
-- [ ] Show connection count badge
-- [ ] Smooth transitions
+- Highlight connected nodes on hover
+- Dim unconnected nodes
+- Show connection count badge
 
 ### 4.3: Node Tooltips
-**Estimated: 1-2 days**
+- Show file path on hover
+- Show import/export count
+- Show file size
 
-- [ ] Show file path on hover
-- [ ] Show file size
-- [ ] Show import/export count
-- [ ] Show last modified date (optional)
-
-### 4.4: Directory Grouping
-**Estimated: 3-4 days**
-
-- [ ] Visual boundaries around directory groups
-- [ ] Collapse/expand directories
-- [ ] Color-code by directory
-- [ ] Group physics (nodes in same dir attract)
-
-### 4.5: Theme & Styling
-**Estimated: 1-2 days**
-
-- [ ] Respect VSCode theme (dark/light)
-- [ ] Custom color schemes
-- [ ] Configurable node sizes
-- [ ] Edge style options
+### 4.4: Theme & Styling
+- Respect VSCode theme (dark/light)
+- Custom color schemes
 
 ---
 
-## Rough Timeline
+## Timeline
 
-| Week | Focus | Deliverable |
-|------|-------|-------------|
-| Week 1 | Phase 3.1-3.2 | Plugin architecture + File discovery |
-| Week 2 | Phase 3.3 | TypeScript plugin working |
-| Week 3 | Phase 3.4-3.5 | Python plugin + Integration |
-| Week 4 | Phase 4.1-4.2 | Search/filter + Hover interactions |
-| Week 5 | Phase 4.3-4.5 | Tooltips + Grouping + Polish |
-| Week 6 | Buffer | Bug fixes, docs, marketplace prep |
+| Week | Focus | Issues |
+|------|-------|--------|
+| Week 1 | Settings + Plugin architecture | #24, #12 |
+| Week 2 | File discovery + TS plugin | #13, #14 |
+| Week 3 | Python plugin + Integration | #15, #16 |
+| Week 4-5 | Phase 4 polish | #4 |
+| Week 6 | Buffer | Bugs, docs, marketplace |
 
-**Target MVP Release: ~6 weeks from now**
+**Target MVP Release: ~6 weeks**
 
 ---
 
-## Smaller Issues / Improvements
+## Completed Improvements
 
-These can be done anytime as quick wins:
+- [x] CI/CD with GitHub Actions
+- [x] CONTRIBUTING.md
+- [x] JSDoc comments on core interfaces
+- [x] Keyboard shortcuts
 
-### Code Quality
-- [ ] Add JSDoc comments to all public interfaces
-- [ ] Create CONTRIBUTING.md
-- [ ] Add code coverage reporting
-- [ ] Set up CI/CD (GitHub Actions)
+## Remaining Improvements
 
-### Documentation
 - [ ] Architecture diagram
-- [ ] Plugin development guide
-- [ ] API reference
-- [ ] Screenshots for README
-
-### Developer Experience
-- [ ] Hot reload for webview during development
-- [ ] Debug logging with configurable levels
-- [ ] Performance profiling utilities
-
-### Bug Fixes / Polish
-- [ ] Handle edge case: file with no connections (orphan nodes)
-- [ ] Handle edge case: circular imports visualization
-- [ ] Better error messages for common issues
-- [ ] Keyboard shortcuts (focus search, reset view)
+- [ ] README screenshots
+- [ ] Plugin developer guide (after Phase 3)
 
 ---
 
 ## Future Ideas (Post-MVP)
 
-- **Graph Layouts**: Alternative layouts (hierarchical, radial, force clusters)
-- **Export**: Export graph as SVG/PNG
-- **Metrics**: Code complexity overlay, file churn, test coverage
-- **History**: See how graph evolved over time (git integration)
-- **Collaboration**: Share graph views with team
-- **Cross-repo**: Visualize monorepo or multi-repo dependencies
+- **Graph Layouts**: Hierarchical, radial, clustered
+- **Export**: SVG/PNG export
+- **Metrics**: Complexity overlay, test coverage
+- **History**: Git integration to see evolution
 - **AI Features**: "Explain this cluster", "Find related files"
