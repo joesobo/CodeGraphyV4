@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useCallback } from 'react';
 import { Network, Options } from 'vis-network';
 import { DataSet } from 'vis-data';
-import { IGraphData, WebviewToExtensionMessage } from '../../shared/types';
+import { IGraphData, IGraphNode, IGraphEdge, WebviewToExtensionMessage } from '../../shared/types';
 
 // Get VSCode API (provided by the extension host)
 declare function acquireVsCodeApi(): {
@@ -10,7 +10,7 @@ declare function acquireVsCodeApi(): {
   setState: (state: unknown) => void;
 };
 
-// Initialize VSCode API once
+// Initialize VSCode API once (must be called only once per webview)
 const vscode = typeof acquireVsCodeApi !== 'undefined' ? acquireVsCodeApi() : null;
 
 interface GraphProps {
@@ -78,9 +78,47 @@ const NETWORK_OPTIONS: Options = {
   },
 };
 
+/**
+ * Convert IGraphNode to Vis Network node format
+ */
+function toVisNode(node: IGraphNode) {
+  return {
+    id: node.id,
+    label: node.label,
+    color: {
+      background: node.color,
+      border: node.color,
+      highlight: {
+        background: node.color,
+        border: '#ffffff',
+      },
+      hover: {
+        background: node.color,
+        border: '#94a3b8',
+      },
+    },
+    x: node.x,
+    y: node.y,
+  };
+}
+
+/**
+ * Convert IGraphEdge to Vis Network edge format
+ */
+function toVisEdge(edge: IGraphEdge) {
+  return {
+    id: edge.id,
+    from: edge.from,
+    to: edge.to,
+  };
+}
+
 export default function Graph({ data }: GraphProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
+  const nodesRef = useRef<DataSet<ReturnType<typeof toVisNode>> | null>(null);
+  const edgesRef = useRef<DataSet<ReturnType<typeof toVisEdge>> | null>(null);
+  const initializedRef = useRef(false);
 
   /**
    * Send message to extension
@@ -89,46 +127,22 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
     if (vscode) {
       vscode.postMessage(message);
     } else {
-      // In development/testing, just log
       console.log('Message to extension:', message);
     }
   }, []);
 
   /**
-   * Initialize the network
+   * Initialize network once
    */
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || initializedRef.current) return;
 
     // Create datasets
-    const nodes = new DataSet(
-      data.nodes.map((node) => ({
-        id: node.id,
-        label: node.label,
-        color: {
-          background: node.color,
-          border: node.color,
-          highlight: {
-            background: node.color,
-            border: '#ffffff',
-          },
-          hover: {
-            background: node.color,
-            border: '#94a3b8',
-          },
-        },
-        x: node.x,
-        y: node.y,
-      }))
-    );
+    const nodes = new DataSet(data.nodes.map(toVisNode));
+    const edges = new DataSet(data.edges.map(toVisEdge));
 
-    const edges = new DataSet(
-      data.edges.map((edge) => ({
-        id: edge.id,
-        from: edge.from,
-        to: edge.to,
-      }))
-    );
+    nodesRef.current = nodes;
+    edgesRef.current = edges;
 
     // Create network
     const network = new Network(
@@ -138,6 +152,7 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
     );
 
     networkRef.current = network;
+    initializedRef.current = true;
 
     // Event handlers
     network.on('click', (params) => {
@@ -171,12 +186,60 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
     // Notify extension that webview is ready
     postMessage({ type: 'WEBVIEW_READY', payload: null });
 
-    // Cleanup
+    // Cleanup on unmount
     return () => {
       network.destroy();
       networkRef.current = null;
+      nodesRef.current = null;
+      edgesRef.current = null;
+      initializedRef.current = false;
     };
-  }, [data, postMessage]);
+  }, []); // Empty deps - only run once on mount
+
+  /**
+   * Update data when props change (after initial mount)
+   */
+  useEffect(() => {
+    if (!initializedRef.current || !nodesRef.current || !edgesRef.current) return;
+
+    // Update nodes
+    const currentNodeIds = new Set(nodesRef.current.getIds());
+    const newNodeIds = new Set(data.nodes.map((n) => n.id));
+
+    // Remove nodes that no longer exist
+    currentNodeIds.forEach((id) => {
+      if (!newNodeIds.has(id as string)) {
+        nodesRef.current?.remove(id);
+      }
+    });
+
+    // Add or update nodes
+    data.nodes.forEach((node) => {
+      if (currentNodeIds.has(node.id)) {
+        nodesRef.current?.update(toVisNode(node));
+      } else {
+        nodesRef.current?.add(toVisNode(node));
+      }
+    });
+
+    // Update edges similarly
+    const currentEdgeIds = new Set(edgesRef.current.getIds());
+    const newEdgeIds = new Set(data.edges.map((e) => e.id));
+
+    currentEdgeIds.forEach((id) => {
+      if (!newEdgeIds.has(id as string)) {
+        edgesRef.current?.remove(id);
+      }
+    });
+
+    data.edges.forEach((edge) => {
+      if (currentEdgeIds.has(edge.id)) {
+        edgesRef.current?.update(toVisEdge(edge));
+      } else {
+        edgesRef.current?.add(toVisEdge(edge));
+      }
+    });
+  }, [data]);
 
   return (
     <div
