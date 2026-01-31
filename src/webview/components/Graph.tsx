@@ -45,7 +45,9 @@ const NETWORK_OPTIONS: Options = {
       },
     },
     smooth: {
+      enabled: true,
       type: 'continuous',
+      roundness: 0.5,
     },
   },
   physics: {
