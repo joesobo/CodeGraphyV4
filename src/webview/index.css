@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #e0e0e0;
+  --color-secondary: #a0a0a0;
+  --color-accent: #60a5fa;
+  --color-bg: #1e1e1e;
+  --color-surface: #252526;
+  --color-border: #3c3c3c;
+}
+
+/* VSCode theme integration */
+body {
+  background-color: var(--vscode-sideBar-background, var(--color-bg));
+  color: var(--vscode-foreground, var(--color-primary));
+  font-family: var(--vscode-font-family, system-ui, -apple-system, sans-serif);
+  font-size: var(--vscode-font-size, 13px);
+  margin: 0;
+  padding: 0;
+}
+
+@layer utilities {
+  .text-primary {
+    color: var(--vscode-foreground, var(--color-primary));
+  }
+  .text-secondary {
+    color: var(--vscode-descriptionForeground, var(--color-secondary));
+  }
+  .text-accent {
+    color: var(--vscode-textLink-foreground, var(--color-accent));
+  }
+  .bg-surface {
+    background-color: var(--vscode-sideBar-background, var(--color-surface));
+  }
+  .border-subtle {
+    border-color: var(--vscode-sideBar-border, var(--color-border));
+  }
+  /* Icon fill/stroke utilities */
+  .fill-accent {
+    fill: var(--vscode-textLink-foreground, var(--color-accent));
+  }
+  .fill-secondary {
+    fill: var(--vscode-descriptionForeground, #9ca3af);
+  }
+  .fill-muted {
+    fill: #6b7280;
+  }
+  .stroke-muted {
+    stroke: #4b5563;
+  }
+}
