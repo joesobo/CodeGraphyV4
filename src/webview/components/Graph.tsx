@@ -7,7 +7,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Network, Options } from 'vis-network';
 import { DataSet } from 'vis-data';
-import { IGraphData, IGraphNode, IGraphEdge, WebviewToExtensionMessage } from '../../shared/types';
+import { IGraphData, IGraphNode, IGraphEdge, WebviewToExtensionMessage, ExtensionToWebviewMessage } from '../../shared/types';
 
 // Get VSCode API (provided by the extension host)
 declare function acquireVsCodeApi(): {
@@ -174,7 +174,37 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
   dataRef.current = data;
 
   /**
-   * Handle keyboard shortcuts
+   * Listen for commands from the extension (for configurable keybindings)
+   */
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
+      const network = networkRef.current;
+      if (!network) return;
+
+      const message = event.data;
+      switch (message.type) {
+        case 'FIT_VIEW':
+          network.fit({ animation: { duration: 300, easingFunction: 'easeInOutQuad' } });
+          break;
+        case 'ZOOM_IN': {
+          const scaleIn = network.getScale();
+          network.moveTo({ scale: scaleIn * 1.2, animation: { duration: 150, easingFunction: 'easeInOutQuad' } });
+          break;
+        }
+        case 'ZOOM_OUT': {
+          const scaleOut = network.getScale();
+          network.moveTo({ scale: scaleOut / 1.2, animation: { duration: 150, easingFunction: 'easeInOutQuad' } });
+          break;
+        }
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  /**
+   * Handle keyboard shortcuts (fallback when graph is focused)
    */
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {

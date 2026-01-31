@@ -183,7 +183,10 @@ export interface IGraphData {
  * ```
  */
 export type ExtensionToWebviewMessage =
-  | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData };
+  | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
+  | { type: 'FIT_VIEW' }
+  | { type: 'ZOOM_IN' }
+  | { type: 'ZOOM_OUT' };
 
 /**
  * Messages sent from the Webview to the Extension.
