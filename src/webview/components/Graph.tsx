@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Graph component that renders the dependency visualization.
+ * Uses Vis Network for force-directed graph layout with physics simulation.
+ * @module webview/components/Graph
+ */
+
 import React, { useEffect, useRef } from 'react';
 import { Network, Options } from 'vis-network';
 import { DataSet } from 'vis-data';
@@ -72,6 +78,10 @@ const NETWORK_OPTIONS: Options = {
     zoomView: true,
     dragView: true,
     dragNodes: true,
+    keyboard: {
+      enabled: true,
+      bindToWindow: false,
+    },
   },
   layout: {
     randomSeed: 42, // Deterministic initial layout
@@ -141,6 +151,16 @@ function sendAllPositions(network: Network, nodeIds: string[]): void {
   postMessage({ type: 'POSITIONS_UPDATED', payload: { positions } });
 }
 
+/**
+ * Graph component that renders the dependency visualization.
+ * 
+ * Keyboard shortcuts:
+ * - `0` or `Ctrl+0` / `Cmd+0`: Fit all nodes in view
+ * - `Escape`: Deselect all nodes
+ * - `Enter`: Open selected node in editor
+ * - `+` / `=`: Zoom in
+ * - `-`: Zoom out
+ */
 export default function Graph({ data }: GraphProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
@@ -148,9 +168,72 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
   const edgesRef = useRef<DataSet<ReturnType<typeof toVisEdge>> | null>(null);
   const initializedRef = useRef(false);
   const dataRef = useRef(data);
+  const selectedNodeRef = useRef<string | null>(null);
 
   // Keep dataRef current
   dataRef.current = data;
+
+  /**
+   * Handle keyboard shortcuts
+   */
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const network = networkRef.current;
+      if (!network) return;
+
+      // Check if user is typing in an input
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      const isMod = event.ctrlKey || event.metaKey;
+
+      switch (event.key) {
+        case '0':
+          // Fit all nodes in view
+          event.preventDefault();
+          network.fit({ animation: { duration: 300, easingFunction: 'easeInOutQuad' } });
+          break;
+
+        case 'Escape':
+          // Deselect all
+          event.preventDefault();
+          network.unselectAll();
+          selectedNodeRef.current = null;
+          break;
+
+        case 'Enter':
+          // Open selected node
+          if (selectedNodeRef.current) {
+            event.preventDefault();
+            postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId: selectedNodeRef.current } });
+          }
+          break;
+
+        case '=':
+        case '+':
+          // Zoom in
+          if (!isMod) {
+            event.preventDefault();
+            const scale = network.getScale();
+            network.moveTo({ scale: scale * 1.2, animation: { duration: 150, easingFunction: 'easeInOutQuad' } });
+          }
+          break;
+
+        case '-':
+          // Zoom out
+          if (!isMod) {
+            event.preventDefault();
+            const scale = network.getScale();
+            network.moveTo({ scale: scale / 1.2, animation: { duration: 150, easingFunction: 'easeInOutQuad' } });
+          }
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   /**
    * Initialize network once
@@ -187,7 +270,10 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
     network.on('click', (params) => {
       if (params.nodes.length > 0) {
         const nodeId = params.nodes[0] as string;
+        selectedNodeRef.current = nodeId;
         postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
+      } else {
+        selectedNodeRef.current = null;
       }
     });
 
@@ -277,6 +363,7 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
       style={{ 
         backgroundColor: '#18181b', // zinc-900
       }}
+      tabIndex={0} // Make focusable for keyboard events
     />
   );
 }
