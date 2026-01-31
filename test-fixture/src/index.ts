@@ -1,9 +1,9 @@
 /**
- * Entry point - imports from multiple modules
+ * Entry point - imports using path aliases
  * Expected: edges to App, api, config
  */
-import { App } from './components/App';
-import { fetchData } from './services/api';
+import { App } from '@components/App';
+import { fetchData } from '@services/api';
 import { config } from './config';
 
 console.log('Starting app with config:', config);

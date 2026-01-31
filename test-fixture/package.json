@@ -1,0 +1,13 @@
+{
+  "name": "codegraphy-test-fixture",
+  "version": "1.0.0",
+  "description": "Test fixture for CodeGraphy development",
+  "private": true,
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
