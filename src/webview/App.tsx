@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { IGraphData, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
@@ -11,14 +11,26 @@ declare function acquireVsCodeApi(): {
   setState: (state: unknown) => void;
 };
 
-// Check if running inside VSCode webview and get API
-const vscode = typeof acquireVsCodeApi !== 'undefined' ? acquireVsCodeApi() : null;
+// Get the API lazily (only when needed)
+function getVsCodeApi() {
+  if (typeof acquireVsCodeApi !== 'undefined') {
+    return acquireVsCodeApi();
+  }
+  return null;
+}
 
 export default function App(): React.ReactElement {
   const [graphData, setGraphData] = useState<IGraphData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const vsCodeRef = useRef<ReturnType<typeof getVsCodeApi>>(null);
 
   useEffect(() => {
+    // Get VSCode API (cached in ref to avoid multiple calls)
+    if (!vsCodeRef.current) {
+      vsCodeRef.current = getVsCodeApi();
+    }
+    const vscode = vsCodeRef.current;
+
     const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
       const message = event.data;
       
@@ -38,11 +50,9 @@ export default function App(): React.ReactElement {
     } else {
       // Standalone dev mode - use mock data after delay
       setTimeout(() => {
-        if (isLoading) {
-          console.log('Using mock data for standalone development');
-          setGraphData(getMockGraphData());
-          setIsLoading(false);
-        }
+        console.log('Using mock data for standalone development');
+        setGraphData(getMockGraphData());
+        setIsLoading(false);
       }, 500);
     }
 
