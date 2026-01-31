@@ -4,6 +4,9 @@ import GraphIcon from './components/GraphIcon';
 import { IGraphData, ExtensionToWebviewMessage } from '../shared/types';
 import { getMockGraphData } from '../shared/mockData';
 
+// Check if running inside VSCode webview
+const isVSCodeWebview = typeof acquireVsCodeApi !== 'undefined';
+
 export default function App(): React.ReactElement {
   const [graphData, setGraphData] = useState<IGraphData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -22,19 +25,22 @@ export default function App(): React.ReactElement {
 
     window.addEventListener('message', handleMessage);
 
-    // For development: use mock data after a short delay
-    // In production, the extension will send GRAPH_DATA_UPDATED
-    const timeout = setTimeout(() => {
-      if (isLoading) {
-        console.log('Using mock data for development');
-        setGraphData(getMockGraphData());
-        setIsLoading(false);
-      }
-    }, 500);
+    // Only use mock data when developing webview in isolation (npm run dev)
+    // In VSCode, wait for real data from the extension
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    if (!isVSCodeWebview) {
+      timeout = setTimeout(() => {
+        if (isLoading) {
+          console.log('Using mock data for standalone development');
+          setGraphData(getMockGraphData());
+          setIsLoading(false);
+        }
+      }, 500);
+    }
 
     return () => {
       window.removeEventListener('message', handleMessage);
-      clearTimeout(timeout);
+      if (timeout) clearTimeout(timeout);
     };
   }, [isLoading]);
 
