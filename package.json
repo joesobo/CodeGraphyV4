@@ -3,7 +3,6 @@
   "displayName": "CodeGraphy",
   "description": "Visualize your codebase as an interactive 2D force graph",
   "version": "0.1.0",
-  "type": "module",
   "publisher": "livetoserveplz",
   "engines": {
     "vscode": "^1.85.0"
