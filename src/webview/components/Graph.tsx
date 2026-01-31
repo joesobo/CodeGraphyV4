@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Network, Options } from 'vis-network';
 import { DataSet } from 'vis-data';
 import { IGraphData, IGraphNode, IGraphEdge, WebviewToExtensionMessage } from '../../shared/types';
@@ -113,41 +113,44 @@ function toVisEdge(edge: IGraphEdge) {
   };
 }
 
+/**
+ * Send message to extension
+ */
+function postMessage(message: WebviewToExtensionMessage): void {
+  if (vscode) {
+    vscode.postMessage(message);
+  } else {
+    console.log('Message to extension:', message);
+  }
+}
+
+/**
+ * Send all current positions to extension for persistence
+ */
+function sendAllPositions(network: Network, nodeIds: string[]): void {
+  const allPositions = network.getPositions(nodeIds);
+  
+  const positions: Record<string, { x: number; y: number }> = {};
+  for (const id of nodeIds) {
+    const pos = allPositions[id];
+    if (pos) {
+      positions[id] = { x: pos.x, y: pos.y };
+    }
+  }
+  
+  postMessage({ type: 'POSITIONS_UPDATED', payload: { positions } });
+}
+
 export default function Graph({ data }: GraphProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
   const nodesRef = useRef<DataSet<ReturnType<typeof toVisNode>> | null>(null);
   const edgesRef = useRef<DataSet<ReturnType<typeof toVisEdge>> | null>(null);
   const initializedRef = useRef(false);
+  const dataRef = useRef(data);
 
-  /**
-   * Send message to extension
-   */
-  const postMessage = useCallback((message: WebviewToExtensionMessage) => {
-    if (vscode) {
-      vscode.postMessage(message);
-    } else {
-      console.log('Message to extension:', message);
-    }
-  }, []);
-
-  /**
-   * Send all current positions to extension for persistence
-   */
-  const sendAllPositions = useCallback((network: Network, nodes: DataSet<ReturnType<typeof toVisNode>>) => {
-    const nodeIds = nodes.getIds() as string[];
-    const allPositions = network.getPositions(nodeIds);
-    
-    const positions: Record<string, { x: number; y: number }> = {};
-    for (const id of nodeIds) {
-      const pos = allPositions[id];
-      if (pos) {
-        positions[id] = { x: pos.x, y: pos.y };
-      }
-    }
-    
-    postMessage({ type: 'POSITIONS_UPDATED', payload: { positions } });
-  }, [postMessage]);
+  // Keep dataRef current
+  dataRef.current = data;
 
   /**
    * Initialize network once
@@ -155,9 +158,11 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
   useEffect(() => {
     if (!containerRef.current || initializedRef.current) return;
 
+    const initialData = dataRef.current;
+
     // Create datasets
-    const nodes = new DataSet(data.nodes.map(toVisNode));
-    const edges = new DataSet(data.edges.map(toVisEdge));
+    const nodes = new DataSet(initialData.nodes.map(toVisNode));
+    const edges = new DataSet(initialData.edges.map(toVisEdge));
 
     nodesRef.current = nodes;
     edgesRef.current = edges;
@@ -175,7 +180,7 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
     // After stabilization, save all positions
     network.on('stabilizationIterationsDone', () => {
       console.log('[CodeGraphy] Stabilization complete, saving positions');
-      sendAllPositions(network, nodes);
+      sendAllPositions(network, nodes.getIds() as string[]);
     });
 
     // Event handlers
