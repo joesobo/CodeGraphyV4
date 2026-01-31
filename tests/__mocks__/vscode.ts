@@ -18,6 +18,17 @@ export const commands = {
   executeCommand: vi.fn(),
 };
 
+export const workspace = {
+  getConfiguration: vi.fn(() => ({
+    get: vi.fn(),
+  })),
+  onDidChangeConfiguration: vi.fn(() => ({ dispose: vi.fn() })),
+  workspaceFolders: undefined,
+  fs: {
+    stat: vi.fn(),
+  },
+};
+
 export const ExtensionContext = class {
   subscriptions: { dispose: () => void }[] = [];
   extensionUri = Uri.file('/test/extension');
