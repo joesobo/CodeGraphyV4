@@ -89,30 +89,14 @@
         },
         "codegraphy.include": {
           "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [
-            "**/*"
-          ],
+          "items": "string",
+          "default": ["**/*"],
           "description": "Glob patterns for files to include in analysis."
         },
         "codegraphy.exclude": {
           "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [
-            "**/node_modules/**",
-            "**/dist/**",
-            "**/build/**",
-            "**/out/**",
-            "**/.git/**",
-            "**/coverage/**",
-            "**/*.min.js",
-            "**/*.bundle.js",
-            "**/*.map"
-          ],
+          "items": "string",
+          "default": ["**/node_modules/**", "**/dist/**", "**/build/**", "**/out/**", "**/.git/**", "**/coverage/**", "**/*.min.js", "**/*.bundle.js", "**/*.map"],
           "description": "Glob patterns for files to exclude from analysis."
         },
         "codegraphy.respectGitignore": {
@@ -127,9 +111,7 @@
         },
         "codegraphy.plugins": {
           "type": "array",
-          "items": {
-            "type": "string"
-          },
+          "items": "string",
           "default": [],
           "description": "List of CodeGraphy plugin extension names to enable (e.g., 'codegraphy-rust')."
         }
