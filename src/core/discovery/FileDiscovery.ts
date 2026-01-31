@@ -193,7 +193,7 @@ export class FileDiscovery {
     
     try {
       entries = await fs.promises.readdir(currentPath, { withFileTypes: true });
-    } catch (error) {
+    } catch {
       // Skip directories we can't read
       return true;
     }

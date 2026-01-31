@@ -8,6 +8,10 @@ describe('Extension', () => {
   let mockContext: {
     subscriptions: { dispose: () => void }[];
     extensionUri: { fsPath: string; path: string };
+    workspaceState: {
+      get: <T>(_key: string) => T | undefined;
+      update: (_key: string, _value: unknown) => Thenable<void>;
+    };
   };
 
   beforeEach(() => {
@@ -15,6 +19,10 @@ describe('Extension', () => {
     mockContext = {
       subscriptions: [],
       extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: () => undefined,
+        update: () => Promise.resolve(),
+      },
     };
   });
 

@@ -57,7 +57,6 @@ const INDEX_FILES = ['index.ts', 'index.tsx', 'index.js', 'index.jsx'];
  * ```
  */
 export class PathResolver {
-  private readonly _workspaceRoot: string;
   private readonly _config: IPathResolverConfig;
   private readonly _baseUrl: string;
 
@@ -68,7 +67,6 @@ export class PathResolver {
    * @param config - Path resolution configuration (from tsconfig.json)
    */
   constructor(workspaceRoot: string, config: IPathResolverConfig = {}) {
-    this._workspaceRoot = workspaceRoot;
     this._config = config;
     this._baseUrl = config.baseUrl
       ? path.resolve(workspaceRoot, config.baseUrl)

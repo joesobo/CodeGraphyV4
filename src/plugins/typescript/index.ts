@@ -10,8 +10,10 @@ import { IPlugin, IConnection } from '../../core/plugins';
 import { ImportDetector } from './ImportDetector';
 import { PathResolver, IPathResolverConfig } from './PathResolver';
 
-export { ImportDetector, IDetectedImport } from './ImportDetector';
-export { PathResolver, IPathResolverConfig } from './PathResolver';
+export { ImportDetector } from './ImportDetector';
+export type { IDetectedImport } from './ImportDetector';
+export { PathResolver } from './PathResolver';
+export type { IPathResolverConfig } from './PathResolver';
 
 /**
  * Built-in plugin for TypeScript and JavaScript files.
