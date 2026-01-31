@@ -18,76 +18,65 @@ interface GraphProps {
 }
 
 /**
- * Check if nodes have saved positions
+ * Vis Network configuration options
  */
-function hasSavedPositions(nodes: IGraphNode[]): boolean {
-  return nodes.some((n) => n.x !== undefined && n.y !== undefined);
-}
-
-/**
- * Get Vis Network options, disabling physics if positions are saved
- */
-function getNetworkOptions(disablePhysics: boolean): Options {
-  return {
-    nodes: {
-      shape: 'dot',
-      size: 16,
-      font: {
-        size: 12,
-        color: '#e2e8f0', // Light text for dark theme
-      },
-      borderWidth: 2,
-      borderWidthSelected: 3,
+const NETWORK_OPTIONS: Options = {
+  nodes: {
+    shape: 'dot',
+    size: 16,
+    font: {
+      size: 12,
+      color: '#e2e8f0', // Light text for dark theme
     },
-    edges: {
-      width: 1,
-      color: {
-        color: '#475569',
-        highlight: '#60a5fa',
-        hover: '#60a5fa',
-      },
-      arrows: {
-        to: {
-          enabled: true,
-          scaleFactor: 0.5,
-        },
-      },
-      smooth: {
+    borderWidth: 2,
+    borderWidthSelected: 3,
+  },
+  edges: {
+    width: 1,
+    color: {
+      color: '#475569',
+      highlight: '#60a5fa',
+      hover: '#60a5fa',
+    },
+    arrows: {
+      to: {
         enabled: true,
-        type: 'continuous',
-        roundness: 0.5,
+        scaleFactor: 0.5,
       },
     },
-    physics: disablePhysics
-      ? { enabled: false }
-      : {
-          enabled: true,
-          solver: 'forceAtlas2Based',
-          forceAtlas2Based: {
-            gravitationalConstant: -50,
-            centralGravity: 0.01,
-            springLength: 100,
-            springConstant: 0.08,
-            damping: 0.4,
-          },
-          stabilization: {
-            enabled: true,
-            iterations: 200,
-            updateInterval: 25,
-          },
-        },
-    interaction: {
-      hover: true,
-      tooltipDelay: 200,
-      zoomView: true,
-      dragView: true,
-      dragNodes: true,
+    smooth: {
+      enabled: true,
+      type: 'continuous',
+      roundness: 0.5,
     },
-    layout: {
-      randomSeed: 42, // Deterministic initial layout
+  },
+  physics: {
+    enabled: true,
+    solver: 'forceAtlas2Based',
+    forceAtlas2Based: {
+      gravitationalConstant: -50,
+      centralGravity: 0.01,
+      springLength: 100,
+      springConstant: 0.08,
+      damping: 0.4,
     },
-  };
-}
+    stabilization: {
+      enabled: true,
+      iterations: 200,
+      updateInterval: 25,
+    },
+  },
+  interaction: {
+    hover: true,
+    tooltipDelay: 200,
+    zoomView: true,
+    dragView: true,
+    dragNodes: true,
+  },
+  layout: {
+    randomSeed: 42, // Deterministic initial layout
+  },
+};
 
 /**
  * Convert IGraphNode to Vis Network node format
@@ -110,8 +99,6 @@ function toVisNode(node: IGraphNode) {
     },
     x: node.x,
     y: node.y,
-    // Fix position if we have saved coordinates
-    fixed: node.x !== undefined && node.y !== undefined ? { x: true, y: true } : undefined,
   };
 }
 
@@ -145,12 +132,28 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
   }, []);
 
   /**
+   * Send all current positions to extension for persistence
+   */
+  const sendAllPositions = useCallback((network: Network, nodes: DataSet<ReturnType<typeof toVisNode>>) => {
+    const nodeIds = nodes.getIds() as string[];
+    const allPositions = network.getPositions(nodeIds);
+    
+    const positions: Record<string, { x: number; y: number }> = {};
+    for (const id of nodeIds) {
+      const pos = allPositions[id];
+      if (pos) {
+        positions[id] = { x: pos.x, y: pos.y };
+      }
+    }
+    
+    postMessage({ type: 'POSITIONS_UPDATED', payload: { positions } });
+  }, [postMessage]);
+
+  /**
    * Initialize network once
    */
   useEffect(() => {
     if (!containerRef.current || initializedRef.current) return;
-
-    const hasPositions = hasSavedPositions(data.nodes);
 
     // Create datasets
     const nodes = new DataSet(data.nodes.map(toVisNode));
@@ -159,24 +162,20 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
     nodesRef.current = nodes;
     edgesRef.current = edges;
 
-    // Create network - disable physics if we have saved positions
+    // Create network
     const network = new Network(
       containerRef.current,
       { nodes, edges },
-      getNetworkOptions(hasPositions)
+      NETWORK_OPTIONS
     );
 
     networkRef.current = network;
     initializedRef.current = true;
 
-    // After stabilization, disable physics and unfix nodes so they can be dragged
+    // After stabilization, save all positions
     network.on('stabilizationIterationsDone', () => {
-      network.setOptions({ physics: { enabled: false } });
-      // Unfix all nodes so they can be dragged
-      const allNodeIds = nodes.getIds();
-      allNodeIds.forEach((id) => {
-        nodes.update({ id, fixed: false });
-      });
+      console.log('[CodeGraphy] Stabilization complete, saving positions');
+      sendAllPositions(network, nodes);
     });
 
     // Event handlers

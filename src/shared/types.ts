@@ -61,6 +61,7 @@ export type WebviewToExtensionMessage =
   | { type: 'NODE_SELECTED'; payload: { nodeId: string } }
   | { type: 'NODE_DOUBLE_CLICKED'; payload: { nodeId: string } }
   | { type: 'NODE_POSITION_CHANGED'; payload: { nodeId: string; x: number; y: number } }
+  | { type: 'POSITIONS_UPDATED'; payload: { positions: Record<string, { x: number; y: number }> } }
   | { type: 'WEBVIEW_READY'; payload: null };
 
 // ============================================================================

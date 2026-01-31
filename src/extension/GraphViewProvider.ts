@@ -67,17 +67,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Load persisted positions from global state (persists across workspaces for dev)
+   * Load persisted positions from workspace state
    */
   private _getPersistedPositions(): NodePositions {
-    // Use globalState for persistence (works in Extension Development Host)
-    const positions = this._context.globalState.get<NodePositions>(POSITIONS_KEY) ?? {};
+    const positions = this._context.workspaceState.get<NodePositions>(POSITIONS_KEY) ?? {};
     console.log('[CodeGraphy] Loading positions:', Object.keys(positions).length, 'nodes');
     return positions;
   }
 
   /**
-   * Save positions to global state (debounced)
+   * Save positions to workspace state (debounced)
    */
   private _savePositions(): void {
     // Debounce saves - only save after 500ms of no changes
@@ -91,7 +90,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           positions[node.id] = { x: node.x, y: node.y };
         }
       }
-      await this._context.globalState.update(POSITIONS_KEY, positions);
+      await this._context.workspaceState.update(POSITIONS_KEY, positions);
       console.log('[CodeGraphy] Positions saved:', Object.keys(positions).length, 'nodes');
     }, 500);
   }
@@ -141,6 +140,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             message.payload.y
           );
           break;
+
+        case 'POSITIONS_UPDATED':
+          this._handlePositionsUpdated(message.payload.positions);
+          break;
       }
     });
   }
@@ -185,6 +188,23 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     if (node) {
       node.x = x;
       node.y = y;
+    }
+
+    // Persist to workspace state (debounced)
+    this._savePositions();
+  }
+
+  /**
+   * Handle bulk positions update (e.g., after physics stabilization)
+   */
+  private _handlePositionsUpdated(positions: Record<string, { x: number; y: number }>): void {
+    // Update all positions in graph data
+    for (const node of this._graphData.nodes) {
+      const pos = positions[node.id];
+      if (pos) {
+        node.x = pos.x;
+        node.y = pos.y;
+      }
     }
 
     // Persist to workspace state (debounced)
