@@ -11,7 +11,6 @@ import {
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
 } from '../shared/types';
-import { getMockGraphData } from '../shared/mockData';
 import { WorkspaceAnalyzer } from './WorkspaceAnalyzer';
 
 /** Storage key for persisted node positions in workspace state */
@@ -154,9 +153,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private async _analyzeAndSendData(): Promise<void> {
     if (!this._analyzer) {
-      // Fallback to mock data if no analyzer
-      this._graphData = getMockGraphData();
-      this._applyPersistedPositions();
+      // No analyzer - send empty data
+      console.log('[CodeGraphy] No analyzer available');
+      this._graphData = { nodes: [], edges: [] };
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
       return;
     }
@@ -172,10 +171,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
                          vscode.workspace.workspaceFolders.length > 0;
 
     if (!hasWorkspace) {
-      // No workspace - use mock data for demo
-      console.log('[CodeGraphy] No workspace open, using mock data');
-      this._graphData = getMockGraphData();
-      this._applyPersistedPositions();
+      // No workspace - send empty data
+      console.log('[CodeGraphy] No workspace open');
+      this._graphData = { nodes: [], edges: [] };
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
       return;
     }
@@ -183,20 +181,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     // Analyze real workspace
     try {
       this._graphData = await this._analyzer.analyze();
-      
-      // If no files found, show mock data
-      if (this._graphData.nodes.length === 0) {
-        console.log('[CodeGraphy] No supported files found, using mock data');
-        this._graphData = getMockGraphData();
-      }
-      
       this._applyPersistedPositions();
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
     } catch (error) {
       console.error('[CodeGraphy] Analysis failed:', error);
-      // Fallback to mock data on error
-      this._graphData = getMockGraphData();
-      this._applyPersistedPositions();
+      // Send empty data on error
+      this._graphData = { nodes: [], edges: [] };
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
     }
   }

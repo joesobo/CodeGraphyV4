@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { IGraphData, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
-import { getMockGraphData } from '../shared/mockData';
 
 // Get VSCode API if available (must be called exactly once at module level)
 declare function acquireVsCodeApi(): {
@@ -43,14 +42,8 @@ export default function App(): React.ReactElement {
     // Tell extension we're ready to receive data
     if (vscode) {
       vscode.postMessage({ type: 'WEBVIEW_READY' });
-    } else {
-      // Standalone dev mode - use mock data after delay
-      setTimeout(() => {
-        console.log('Using mock data for standalone development');
-        setGraphData(getMockGraphData());
-        setIsLoading(false);
-      }, 500);
     }
+    // No mock data fallback - extension will send real data
 
     return () => {
       window.removeEventListener('message', handleMessage);
