@@ -1,5 +1,5 @@
 {
-  "name": "codegraphy-test-fixture",
+  "name": "codegraphy-ts-plugin-example",
   "version": "1.0.0",
   "description": "Test fixture for CodeGraphy development",
   "private": true,

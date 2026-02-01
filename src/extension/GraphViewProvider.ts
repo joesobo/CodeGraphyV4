@@ -103,6 +103,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
+    // Listen for visibility changes (e.g., switching between views)
+    // When view becomes visible again, re-send the graph data
+    webviewView.onDidChangeVisibility(() => {
+      if (webviewView.visible) {
+        console.log('[CodeGraphy] View became visible, re-sending data');
+        this._analyzeAndSendData();
+      }
+    });
+
     // Proactively start analysis - don't rely solely on WEBVIEW_READY
     // The webview might send WEBVIEW_READY before listener is ready, or vice versa
     // This ensures data is always sent

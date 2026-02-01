@@ -10,6 +10,7 @@ import { PluginRegistry, IConnection } from '../core/plugins';
 import { FileDiscovery, IDiscoveredFile } from '../core/discovery';
 import { Configuration } from './Configuration';
 import { createTypeScriptPlugin } from '../plugins/typescript';
+import { createGDScriptPlugin } from '../plugins/godot';
 import { ColorPaletteManager } from '../core/colors';
 import { IGraphData, IGraphNode, IGraphEdge } from '../shared/types';
 
@@ -76,6 +77,10 @@ export class WorkspaceAnalyzer {
     // Register built-in TypeScript plugin
     const tsPlugin = createTypeScriptPlugin();
     this._registry.register(tsPlugin, { builtIn: true });
+
+    // Register built-in GDScript plugin
+    const gdPlugin = createGDScriptPlugin();
+    this._registry.register(gdPlugin, { builtIn: true });
 
     // Collect plugin colors
     for (const pluginInfo of this._registry.list()) {

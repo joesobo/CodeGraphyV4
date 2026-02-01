@@ -1,0 +1,19 @@
+{
+  "codegraphy.maxFiles": 50,
+  "codegraphy.include": ["**/*"],
+  "codegraphy.exclude": [
+    "**/.godot/**",
+    "**/.import/**",
+    "**/*.import",
+    "**/addons/**"
+  ],
+  "codegraphy.respectGitignore": true,
+  "codegraphy.showOrphans": true,
+  "codegraphy.fileColors": {
+    ".gd": "#478CBF",
+    ".tscn": "#6EE7B7",
+    ".tres": "#5EEAD4",
+    ".gdshader": "#A78BFA",
+    "project.godot": "#478CBF"
+  }
+}

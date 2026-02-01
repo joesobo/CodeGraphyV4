@@ -1,0 +1,16 @@
+{
+  "codegraphy.maxFiles": 20,
+  "codegraphy.include": ["**/*"],
+  "codegraphy.exclude": [
+    "**/node_modules/**",
+    "**/.git/**"
+  ],
+  "codegraphy.respectGitignore": true,
+  "codegraphy.showOrphans": true,
+  "codegraphy.fileColors": {
+    ".html": "#E34F26",
+    ".css": "#1572B6",
+    ".json": "#86EFAC",
+    ".md": "#083FA1"
+  }
+}

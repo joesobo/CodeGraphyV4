@@ -66,7 +66,7 @@ Non-code files (README.md, package.json, etc.) appear as orphans since they have
 
 1. Open CodeGraphy repo in VSCode
 2. Press F5 to launch Extension Development Host
-3. In the new window: **File → Open Folder → test-fixture**
+3. In the new window: **File → Open Folder → examples/ts-plugin**
 4. Click the CodeGraphy icon in the activity bar
 5. Compare the graph to the expected structure above
 

@@ -1,0 +1,9 @@
+{
+  "appName": "Sample App",
+  "version": "1.0.0",
+  "debug": false,
+  "settings": {
+    "theme": "dark",
+    "language": "en"
+  }
+}

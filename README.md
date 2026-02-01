@@ -139,7 +139,10 @@ CodeGraphy/
 │   └── webview/       # React app (browser)
 ├── tests/             # Test files
 ├── docs/              # Documentation
-└── test-fixture/      # Sample project for testing
+└── examples/          # Example projects
+    ├── ts-plugin/     # TypeScript plugin demo
+    ├── gdscript/      # GDScript plugin demo
+    └── default/       # Basic file types demo
 ```
 
 ## Roadmap
