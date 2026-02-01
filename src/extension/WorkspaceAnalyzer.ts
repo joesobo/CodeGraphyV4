@@ -112,11 +112,18 @@ export class WorkspaceAnalyzer {
     // Discover ALL files (not filtered by extension)
     // Non-code files will appear as orphans if showOrphans is enabled
     const config = this._config.getAll();
+    
+    // Collect default exclude patterns from all plugins
+    const pluginExcludes = this._collectPluginExcludes();
+    
+    // Merge: plugin defaults + user settings (user patterns take precedence)
+    const mergedExclude = [...new Set([...pluginExcludes, ...config.exclude])];
+    
     const discoveryResult = await this._discovery.discover({
       rootPath: workspaceRoot,
       maxFiles: config.maxFiles,
       include: config.include,
-      exclude: config.exclude,
+      exclude: mergedExclude,
       respectGitignore: config.respectGitignore,
       // Don't filter by extensions - we want all files as nodes
     });
@@ -272,6 +279,22 @@ export class WorkspaceAnalyzer {
     );
 
     return { nodes, edges: filteredEdges };
+  }
+
+  /**
+   * Collects default exclude patterns from all registered plugins.
+   * These are merged with user settings during file discovery.
+   */
+  private _collectPluginExcludes(): string[] {
+    const excludes: string[] = [];
+    
+    for (const pluginInfo of this._registry.list()) {
+      if (pluginInfo.plugin.defaultExclude) {
+        excludes.push(...pluginInfo.plugin.defaultExclude);
+      }
+    }
+    
+    return excludes;
   }
 
   /**

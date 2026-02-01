@@ -47,6 +47,18 @@ export function createTypeScriptPlugin(): IPlugin {
     version: '1.0.0',
     supportedExtensions: ['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs'],
     
+    // Default exclude patterns for TypeScript/JavaScript ecosystem
+    defaultExclude: [
+      '**/node_modules/**',
+      '**/dist/**',
+      '**/build/**',
+      '**/out/**',
+      '**/.next/**',
+      '**/.nuxt/**',
+      '**/coverage/**',
+      '**/.turbo/**',
+    ],
+    
     // Plugin-preferred colors for file extensions and config files
     fileColors: {
       // TypeScript/JavaScript source files

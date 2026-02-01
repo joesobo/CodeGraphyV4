@@ -59,6 +59,11 @@ export interface IPlugin {
    * Optional preferred colors for supported file extensions.
    * These colors override generated colors but can be overridden by user settings.
    * 
+   * Supports three pattern types:
+   * - Extensions: `.ts`, `.md`
+   * - Exact filenames: `project.godot`, `Makefile`
+   * - Glob patterns: `**\/*.test.ts`
+   * 
    * @example
    * ```typescript
    * fileColors: {
@@ -68,6 +73,21 @@ export interface IPlugin {
    * ```
    */
   fileColors?: Record<string, string>;
+  
+  /**
+   * Optional default exclude patterns for this plugin's ecosystem.
+   * These are merged with user-defined exclude patterns.
+   * 
+   * @example
+   * ```typescript
+   * // TypeScript plugin
+   * defaultExclude: ['**\/node_modules\/**', '**\/dist\/**']
+   * 
+   * // Godot plugin  
+   * defaultExclude: ['**\/.godot\/**', '**\/*.import']
+   * ```
+   */
+  defaultExclude?: string[];
   
   /**
    * Detects connections (imports) in a file.
