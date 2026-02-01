@@ -98,9 +98,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       localResourceRoots: [this._extensionUri],
     };
 
+    // Set up message listener BEFORE loading HTML to avoid race condition
+    this._setWebviewMessageListener(webviewView.webview);
+
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    this._setWebviewMessageListener(webviewView.webview);
+    // Proactively start analysis - don't rely solely on WEBVIEW_READY
+    // The webview might send WEBVIEW_READY before listener is ready, or vice versa
+    // This ensures data is always sent
+    this._analyzeAndSendData();
   }
 
   /**
@@ -152,6 +158,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Analyzes the workspace and sends data to webview.
    */
   private async _analyzeAndSendData(): Promise<void> {
+    console.log('[CodeGraphy] _analyzeAndSendData called');
+    
     if (!this._analyzer) {
       // No analyzer - send empty data
       console.log('[CodeGraphy] No analyzer available');
@@ -207,7 +215,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _sendMessage(message: ExtensionToWebviewMessage): void {
     if (this._view) {
+      console.log('[CodeGraphy] Sending message:', message.type);
       this._view.webview.postMessage(message);
+    } else {
+      console.log('[CodeGraphy] Cannot send message, no view:', message.type);
     }
   }
 
