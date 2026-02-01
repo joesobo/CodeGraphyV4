@@ -260,13 +260,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _applyPersistedPositions(): void {
     const positions = this._getPersistedPositions();
+    let applied = 0;
     for (const node of this._graphData.nodes) {
       const savedPos = positions[node.id];
       if (savedPos) {
         node.x = savedPos.x;
         node.y = savedPos.y;
+        applied++;
       }
     }
+    console.log(`[CodeGraphy] Applied ${applied}/${this._graphData.nodes.length} saved positions`);
   }
 
   /**

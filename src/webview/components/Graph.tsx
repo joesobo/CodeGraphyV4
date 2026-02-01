@@ -90,8 +90,10 @@ const NETWORK_OPTIONS: Options = {
 
 /**
  * Convert IGraphNode to Vis Network node format
+ * If node has x,y positions, fix it in place so physics doesn't move it
  */
 function toVisNode(node: IGraphNode) {
+  const hasPosition = node.x !== undefined && node.y !== undefined;
   return {
     id: node.id,
     label: node.label,
@@ -109,6 +111,8 @@ function toVisNode(node: IGraphNode) {
     },
     x: node.x,
     y: node.y,
+    // Fix nodes that have saved positions so physics doesn't move them
+    fixed: hasPosition ? { x: true, y: true } : false,
   };
 }
 
@@ -290,10 +294,22 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
     networkRef.current = network;
     initializedRef.current = true;
 
-    // After stabilization, save all positions
+    // After stabilization, save all positions and fix nodes
     network.on('stabilizationIterationsDone', () => {
       console.log('[CodeGraphy] Stabilization complete, saving positions');
-      sendAllPositions(network, nodes.getIds() as string[]);
+      const nodeIds = nodes.getIds() as string[];
+      sendAllPositions(network, nodeIds);
+      
+      // Fix all nodes so physics doesn't move them anymore
+      const positions = network.getPositions(nodeIds);
+      const updates = nodeIds.map((id) => ({
+        id,
+        fixed: { x: true, y: true },
+        x: positions[id]?.x,
+        y: positions[id]?.y,
+      }));
+      nodes.update(updates);
+      console.log('[CodeGraphy] Fixed', nodeIds.length, 'nodes after stabilization');
     });
 
     // Event handlers
