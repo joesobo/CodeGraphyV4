@@ -11,6 +11,7 @@ import { FileDiscovery, IDiscoveredFile } from '../core/discovery';
 import { Configuration } from './Configuration';
 import { createTypeScriptPlugin } from '../plugins/typescript';
 import { createGDScriptPlugin } from '../plugins/godot';
+import { createPythonPlugin } from '../plugins/python';
 import { ColorPaletteManager } from '../core/colors';
 import { IGraphData, IGraphNode, IGraphEdge } from '../shared/types';
 
@@ -35,7 +36,7 @@ interface IAnalysisCache {
 }
 
 const CACHE_KEY = 'codegraphy.analysisCache';
-const CACHE_VERSION = '1.0.0';
+const CACHE_VERSION = '1.1.1'; // Bumped again after Python path fix
 
 /**
  * Orchestrates workspace analysis.
@@ -81,6 +82,10 @@ export class WorkspaceAnalyzer {
     // Register built-in GDScript plugin
     const gdPlugin = createGDScriptPlugin();
     this._registry.register(gdPlugin, { builtIn: true });
+
+    // Register built-in Python plugin
+    const pyPlugin = createPythonPlugin();
+    this._registry.register(pyPlugin, { builtIn: true });
 
     // Collect plugin colors
     for (const pluginInfo of this._registry.list()) {
