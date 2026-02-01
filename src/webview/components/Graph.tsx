@@ -315,12 +315,8 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
       }
     });
 
-    // Note: We don't save position on dragEnd - physics will settle
-    // and the 'stabilized' event will save all final positions
-    network.on('dragEnd', () => {
-      // Physics will kick in and move nodes to new equilibrium
-      // Positions saved via 'stabilized' event
-    });
+    // Note: No dragEnd handler needed - physics will settle after drag
+    // and the 'stabilized' event handles saving all final positions
 
     // Notify extension that webview is ready
     postMessage({ type: 'WEBVIEW_READY', payload: null });

@@ -294,14 +294,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._openFile(message.payload.nodeId);
           break;
 
-        case 'NODE_POSITION_CHANGED':
-          this._handleNodePositionChanged(
-            message.payload.nodeId,
-            message.payload.x,
-            message.payload.y
-          );
-          break;
-
         case 'POSITIONS_UPDATED':
           this._handlePositionsUpdated(message.payload.positions);
           break;
@@ -341,23 +333,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       console.error('[CodeGraphy] Failed to open file:', error);
       vscode.window.showErrorMessage(`Could not open file: ${filePath}`);
     }
-  }
-
-  /**
-   * Handles a single node position change from user dragging.
-   * Updates the in-memory graph data and triggers a debounced save.
-   * 
-   * @param nodeId - ID of the moved node
-   * @param x - New X position
-   * @param y - New Y position
-   */
-  private _handleNodePositionChanged(nodeId: string, x: number, y: number): void {
-    const node = this._graphData.nodes.find((n) => n.id === nodeId);
-    if (node) {
-      node.x = x;
-      node.y = y;
-    }
-    this._savePositions();
   }
 
   /**
