@@ -41,7 +41,7 @@ export default function App(): React.ReactElement {
 
     // Tell extension we're ready to receive data
     if (vscode) {
-      vscode.postMessage({ type: 'WEBVIEW_READY' });
+      vscode.postMessage({ type: 'WEBVIEW_READY', payload: null });
     }
     // No mock data fallback - extension will send real data
 
