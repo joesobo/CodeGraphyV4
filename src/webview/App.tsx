@@ -1,8 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
-import { IGraphData, ExtensionToWebviewMessage } from '../shared/types';
-import { getMockGraphData } from '../shared/mockData';
+import { IGraphData, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
+
+// Get VSCode API if available (must be called exactly once at module level)
+declare function acquireVsCodeApi(): {
+  postMessage: (message: WebviewToExtensionMessage) => void;
+  getState: () => unknown;
+  setState: (state: unknown) => void;
+};
+
+// Acquire the API once at module load (VSCode requirement)
+let vscode: ReturnType<typeof acquireVsCodeApi> | null = null;
+try {
+  if (typeof acquireVsCodeApi !== 'undefined') {
+    vscode = acquireVsCodeApi();
+  }
+} catch {
+  // Already acquired or not in VSCode context
+  vscode = null;
+}
 
 export default function App(): React.ReactElement {
   const [graphData, setGraphData] = useState<IGraphData | null>(null);
@@ -22,21 +39,16 @@ export default function App(): React.ReactElement {
 
     window.addEventListener('message', handleMessage);
 
-    // For development: use mock data after a short delay
-    // In production, the extension will send GRAPH_DATA_UPDATED
-    const timeout = setTimeout(() => {
-      if (isLoading) {
-        console.log('Using mock data for development');
-        setGraphData(getMockGraphData());
-        setIsLoading(false);
-      }
-    }, 500);
+    // Tell extension we're ready to receive data
+    if (vscode) {
+      vscode.postMessage({ type: 'WEBVIEW_READY', payload: null });
+    }
+    // No mock data fallback - extension will send real data
 
     return () => {
       window.removeEventListener('message', handleMessage);
-      clearTimeout(timeout);
     };
-  }, [isLoading]);
+  }, []); // Run once on mount
 
   // Loading state
   if (isLoading) {

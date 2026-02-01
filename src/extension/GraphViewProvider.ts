@@ -11,7 +11,7 @@ import {
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
 } from '../shared/types';
-import { getMockGraphData } from '../shared/mockData';
+import { WorkspaceAnalyzer } from './WorkspaceAnalyzer';
 
 /** Storage key for persisted node positions in workspace state */
 const POSITIONS_KEY = 'codegraphy.nodePositions';
@@ -59,6 +59,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Timeout handle for debounced position saves */
   private _saveTimeout?: NodeJS.Timeout;
 
+  /** Workspace analyzer for real file discovery */
+  private _analyzer?: WorkspaceAnalyzer;
+
+  /** Whether the analyzer has been initialized */
+  private _analyzerInitialized = false;
+
   /**
    * Creates a new GraphViewProvider.
    * 
@@ -68,7 +74,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   constructor(
     private readonly _extensionUri: vscode.Uri,
     private readonly _context: vscode.ExtensionContext
-  ) {}
+  ) {
+    this._analyzer = new WorkspaceAnalyzer(_context);
+  }
 
   /**
    * Called by VSCode when the webview view needs to be resolved.
@@ -90,9 +98,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       localResourceRoots: [this._extensionUri],
     };
 
+    // Set up message listener BEFORE loading HTML to avoid race condition
+    this._setWebviewMessageListener(webviewView.webview);
+
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
-    this._setWebviewMessageListener(webviewView.webview);
+    // Proactively start analysis - don't rely solely on WEBVIEW_READY
+    // The webview might send WEBVIEW_READY before listener is ready, or vice versa
+    // This ensures data is always sent
+    this._analyzeAndSendData();
   }
 
   /**
@@ -125,6 +139,67 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Re-analyzes the workspace and updates the graph.
+   * Can be called when files change or settings are updated.
+   */
+  public async refresh(): Promise<void> {
+    await this._analyzeAndSendData();
+  }
+
+  /**
+   * Clears the analysis cache and re-analyzes.
+   */
+  public async clearCacheAndRefresh(): Promise<void> {
+    this._analyzer?.clearCache();
+    await this._analyzeAndSendData();
+  }
+
+  /**
+   * Analyzes the workspace and sends data to webview.
+   */
+  private async _analyzeAndSendData(): Promise<void> {
+    console.log('[CodeGraphy] _analyzeAndSendData called');
+    
+    if (!this._analyzer) {
+      // No analyzer - send empty data
+      console.log('[CodeGraphy] No analyzer available');
+      this._graphData = { nodes: [], edges: [] };
+      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+      return;
+    }
+
+    // Initialize analyzer if needed
+    if (!this._analyzerInitialized) {
+      await this._analyzer.initialize();
+      this._analyzerInitialized = true;
+    }
+
+    // Check if workspace is open
+    const hasWorkspace = vscode.workspace.workspaceFolders && 
+                         vscode.workspace.workspaceFolders.length > 0;
+
+    if (!hasWorkspace) {
+      // No workspace - send empty data
+      console.log('[CodeGraphy] No workspace open');
+      this._graphData = { nodes: [], edges: [] };
+      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+      return;
+    }
+
+    // Analyze real workspace
+    try {
+      this._graphData = await this._analyzer.analyze();
+      this._applyPersistedPositions();
+      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+    } catch (error) {
+      console.error('[CodeGraphy] Analysis failed:', error);
+      // Send empty data on error
+      this._graphData = { nodes: [], edges: [] };
+      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+    }
+  }
+
+  /**
    * Send a command to the webview (for keyboard shortcuts)
    * 
    * @param command - The command to send (FIT_VIEW, ZOOM_IN, ZOOM_OUT)
@@ -140,7 +215,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _sendMessage(message: ExtensionToWebviewMessage): void {
     if (this._view) {
+      console.log('[CodeGraphy] Sending message:', message.type);
       this._view.webview.postMessage(message);
+    } else {
+      console.log('[CodeGraphy] Cannot send message, no view:', message.type);
     }
   }
 
@@ -182,13 +260,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _applyPersistedPositions(): void {
     const positions = this._getPersistedPositions();
+    let applied = 0;
     for (const node of this._graphData.nodes) {
       const savedPos = positions[node.id];
       if (savedPos) {
         node.x = savedPos.x;
         node.y = savedPos.y;
+        applied++;
       }
     }
+    console.log(`[CodeGraphy] Applied ${applied}/${this._graphData.nodes.length} saved positions`);
   }
 
   /**
@@ -201,13 +282,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     webview.onDidReceiveMessage((message: WebviewToExtensionMessage) => {
       switch (message.type) {
         case 'WEBVIEW_READY':
-          // Send current graph data when webview is ready
-          // If no real data yet, use mock data for development
-          if (this._graphData.nodes.length === 0) {
-            this._graphData = getMockGraphData();
-            this._applyPersistedPositions();
-          }
-          this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+          // Analyze workspace and send graph data
+          this._analyzeAndSendData();
           break;
 
         case 'NODE_SELECTED':
@@ -216,14 +292,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
         case 'NODE_DOUBLE_CLICKED':
           this._openFile(message.payload.nodeId);
-          break;
-
-        case 'NODE_POSITION_CHANGED':
-          this._handleNodePositionChanged(
-            message.payload.nodeId,
-            message.payload.x,
-            message.payload.y
-          );
           break;
 
         case 'POSITIONS_UPDATED':
@@ -265,23 +333,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       console.error('[CodeGraphy] Failed to open file:', error);
       vscode.window.showErrorMessage(`Could not open file: ${filePath}`);
     }
-  }
-
-  /**
-   * Handles a single node position change from user dragging.
-   * Updates the in-memory graph data and triggers a debounced save.
-   * 
-   * @param nodeId - ID of the moved node
-   * @param x - New X position
-   * @param y - New Y position
-   */
-  private _handleNodePositionChanged(nodeId: string, x: number, y: number): void {
-    const node = this._graphData.nodes.find((n) => n.id === nodeId);
-    if (node) {
-      node.x = x;
-      node.y = y;
-    }
-    this._savePositions();
   }
 
   /**

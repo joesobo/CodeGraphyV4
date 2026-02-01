@@ -90,6 +90,7 @@ const NETWORK_OPTIONS: Options = {
 
 /**
  * Convert IGraphNode to Vis Network node format
+ * Positions are initial positions - physics will verify/adjust them
  */
 function toVisNode(node: IGraphNode) {
   return {
@@ -290,9 +291,9 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
     networkRef.current = network;
     initializedRef.current = true;
 
-    // After stabilization, save all positions
-    network.on('stabilizationIterationsDone', () => {
-      console.log('[CodeGraphy] Stabilization complete, saving positions');
+    // Save positions after ANY physics stabilization (initial or after drag)
+    network.on('stabilized', () => {
+      console.log('[CodeGraphy] Physics stabilized, saving positions');
       sendAllPositions(network, nodes.getIds() as string[]);
     });
 
@@ -314,19 +315,8 @@ export default function Graph({ data }: GraphProps): React.ReactElement {
       }
     });
 
-    network.on('dragEnd', (params) => {
-      if (params.nodes.length > 0) {
-        const nodeId = params.nodes[0] as string;
-        const positions = network.getPositions([nodeId]);
-        const pos = positions[nodeId];
-        if (pos) {
-          postMessage({
-            type: 'NODE_POSITION_CHANGED',
-            payload: { nodeId, x: pos.x, y: pos.y },
-          });
-        }
-      }
-    });
+    // Note: No dragEnd handler needed - physics will settle after drag
+    // and the 'stabilized' event handles saving all final positions
 
     // Notify extension that webview is ready
     postMessage({ type: 'WEBVIEW_READY', payload: null });

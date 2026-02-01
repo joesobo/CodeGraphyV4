@@ -1,14 +1,24 @@
 import * as vscode from 'vscode';
 import { GraphViewProvider } from './GraphViewProvider';
+import { Configuration } from './Configuration';
 
 export function activate(context: vscode.ExtensionContext): void {
   const provider = new GraphViewProvider(context.extensionUri, context);
+  const config = new Configuration();
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       GraphViewProvider.viewType,
       provider
     )
+  );
+
+  // Listen for configuration changes and refresh graph
+  context.subscriptions.push(
+    config.onDidChange(() => {
+      console.log('[CodeGraphy] Configuration changed, refreshing graph');
+      provider.refresh();
+    })
   );
 
   // Register commands

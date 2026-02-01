@@ -8,6 +8,10 @@ describe('Extension', () => {
   let mockContext: {
     subscriptions: { dispose: () => void }[];
     extensionUri: { fsPath: string; path: string };
+    workspaceState: {
+      get: <T>(_key: string) => T | undefined;
+      update: (_key: string, _value: unknown) => Thenable<void>;
+    };
   };
 
   beforeEach(() => {
@@ -15,6 +19,10 @@ describe('Extension', () => {
     mockContext = {
       subscriptions: [],
       extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: () => undefined,
+        update: () => Promise.resolve(),
+      },
     };
   });
 
@@ -40,7 +48,7 @@ describe('Extension', () => {
     it('should add subscriptions to context', () => {
       activate(mockContext as unknown as Parameters<typeof activate>[0]);
 
-      expect(mockContext.subscriptions.length).toBe(5); // view provider + 4 commands
+      expect(mockContext.subscriptions.length).toBe(6); // view provider + 4 commands + config listener
     });
   });
 

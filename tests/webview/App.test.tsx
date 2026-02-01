@@ -60,21 +60,19 @@ describe('App', () => {
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
   });
 
-  it('should load mock data after timeout in development', async () => {
-    vi.useRealTimers(); // Use real timers for this test
+  it('should stay in loading state when in VSCode webview (waiting for real data)', async () => {
+    // In VSCode webview context (acquireVsCodeApi is defined), 
+    // the app waits for real GRAPH_DATA_UPDATED message instead of loading mock data
+    vi.useRealTimers();
     
     render(<App />);
 
     // Initially shows loading
     expect(screen.getByText('Loading graph...')).toBeInTheDocument();
 
-    // Wait for mock data to load (500ms timeout in App.tsx)
-    await waitFor(
-      () => {
-        expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
-      },
-      { timeout: 1000 }
-    );
+    // After 600ms, should still be loading (no mock data in VSCode mode)
+    await new Promise((r) => setTimeout(r, 600));
+    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
   });
 
   it('should render the graph icon', () => {

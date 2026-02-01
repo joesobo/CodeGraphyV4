@@ -1,0 +1,17 @@
+{
+  // CodeGraphy Settings
+  "codegraphy.maxFiles": 100,
+  "codegraphy.include": ["**/*"],
+  "codegraphy.exclude": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.git/**"
+  ],
+  "codegraphy.respectGitignore": true,
+  "codegraphy.showOrphans": true,
+  "codegraphy.plugins": [],
+
+  // TypeScript settings for the fixture
+  "typescript.tsdk": "node_modules/typescript/lib"
+}

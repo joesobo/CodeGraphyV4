@@ -196,7 +196,6 @@ export type ExtensionToWebviewMessage =
  * - `WEBVIEW_READY` - Webview has loaded and is ready for data
  * - `NODE_SELECTED` - User clicked on a node
  * - `NODE_DOUBLE_CLICKED` - User double-clicked to open file
- * - `NODE_POSITION_CHANGED` - User dragged a single node
  * - `POSITIONS_UPDATED` - Bulk position update (after physics stabilization)
  * 
  * @example
@@ -212,7 +211,6 @@ export type ExtensionToWebviewMessage =
 export type WebviewToExtensionMessage =
   | { type: 'NODE_SELECTED'; payload: { nodeId: string } }
   | { type: 'NODE_DOUBLE_CLICKED'; payload: { nodeId: string } }
-  | { type: 'NODE_POSITION_CHANGED'; payload: { nodeId: string; x: number; y: number } }
   | { type: 'POSITIONS_UPDATED'; payload: { positions: Record<string, { x: number; y: number }> } }
   | { type: 'WEBVIEW_READY'; payload: null };
 

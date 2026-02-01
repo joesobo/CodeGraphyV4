@@ -93,10 +93,6 @@ describe('Graph Messages', () => {
     // Test that message types are correctly structured
     const nodeSelectedMsg = { type: 'NODE_SELECTED', payload: { nodeId: 'test.ts' } };
     const nodeDoubleClickedMsg = { type: 'NODE_DOUBLE_CLICKED', payload: { nodeId: 'test.ts' } };
-    const nodePositionChangedMsg = { 
-      type: 'NODE_POSITION_CHANGED', 
-      payload: { nodeId: 'test.ts', x: 100, y: 200 } 
-    };
     const positionsUpdatedMsg = {
       type: 'POSITIONS_UPDATED',
       payload: { positions: { 'test.ts': { x: 100, y: 200 } } },
@@ -106,7 +102,6 @@ describe('Graph Messages', () => {
     // Verify structure
     expect(nodeSelectedMsg.type).toBe('NODE_SELECTED');
     expect(nodeDoubleClickedMsg.type).toBe('NODE_DOUBLE_CLICKED');
-    expect(nodePositionChangedMsg.type).toBe('NODE_POSITION_CHANGED');
     expect(positionsUpdatedMsg.type).toBe('POSITIONS_UPDATED');
     expect(webviewReadyMsg.type).toBe('WEBVIEW_READY');
   });
