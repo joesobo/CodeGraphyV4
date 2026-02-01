@@ -8,13 +8,20 @@ Visualize your codebase as an interactive 2D force graph. See how files connect 
 
 - 🔵 **Force-directed graph** — Files naturally cluster based on their relationships
 - 🎨 **Color-coded by file type** — Instantly identify TypeScript, JavaScript, CSS, JSON, and more
+- 🔍 **Real file analysis** — Parses actual imports using the TypeScript compiler API
 - 🖱️ **Interactive** — Pan, zoom, drag nodes, click to select, double-click to open files
-- 💾 **Position persistence** — Your graph layout is saved and restored
+- 💾 **Position persistence** — Your graph layout is saved and restored between sessions
 - ⚡ **Fast** — Built with Vis Network for smooth physics simulation
+- 🔌 **Extensible** — Plugin architecture for language support
+
+## Quick Start
+
+1. Install the extension (coming to VS Code Marketplace soon)
+2. Open a project with TypeScript/JavaScript files
+3. Click the **CodeGraphy** icon in the activity bar
+4. Explore your codebase visually!
 
 ## Keyboard Shortcuts
-
-CodeGraphy provides keyboard shortcuts for quick graph navigation. These shortcuts work when the graph view is focused.
 
 | Shortcut | Action |
 |----------|--------|
@@ -24,21 +31,37 @@ CodeGraphy provides keyboard shortcuts for quick graph navigation. These shortcu
 | `+` / `=` | Zoom in |
 | `-` | Zoom out |
 
-### Customizing Shortcuts
+Customize shortcuts via **File > Preferences > Keyboard Shortcuts** → search "CodeGraphy".
 
-You can customize these shortcuts in VS Code's keyboard settings:
+## Configuration
 
-1. Open **File > Preferences > Keyboard Shortcuts** (or `Ctrl+K Ctrl+S`)
-2. Search for "CodeGraphy"
-3. Click the pencil icon next to any command to change its keybinding
+Configure CodeGraphy in your workspace settings (`.vscode/settings.json`):
 
-Available commands:
-- `codegraphy.open` — Open CodeGraphy panel
-- `codegraphy.fitView` — Fit all nodes in view
-- `codegraphy.zoomIn` — Zoom in
-- `codegraphy.zoomOut` — Zoom out
+```json
+{
+  "codegraphy.maxFiles": 100,
+  "codegraphy.include": ["src/**/*"],
+  "codegraphy.exclude": ["**/node_modules/**", "**/dist/**"],
+  "codegraphy.showOrphans": true,
+  "codegraphy.respectGitignore": true
+}
+```
 
-## Getting Started
+See [Settings Documentation](./docs/SETTINGS.md) for all options.
+
+## Supported Languages
+
+| Language | Extensions | Status |
+|----------|------------|--------|
+| TypeScript | `.ts`, `.tsx` | ✅ Built-in |
+| JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | ✅ Built-in |
+| Python | `.py` | 🔜 Planned |
+| Go | `.go` | 🔜 Planned |
+| Rust | `.rs` | 🔜 Planned |
+
+Want to add a language? See the [Plugin Development Guide](./docs/PLUGINS.md).
+
+## Development
 
 ### Prerequisites
 
@@ -46,73 +69,69 @@ Available commands:
 - npm
 - VS Code 1.85+
 
-### Installation (Development)
+### Setup
 
 ```bash
-# Clone the repository
 git clone https://github.com/livetoserveplz/CodeGraphy.git
 cd CodeGraphy
-
-# Install dependencies
 npm install
-
-# Build
 npm run build
 ```
 
-### Running the Extension
+### Running
 
 1. Open this folder in VS Code
 2. Press `F5` to launch the Extension Development Host
-3. Click the **CodeGraphy** icon in the activity bar (sidebar)
-4. Explore the interactive graph!
-
-## Development
+3. Click the **CodeGraphy** icon in the sidebar
 
 ### Commands
 
 ```bash
 npm run build         # Build extension and webview
 npm run dev           # Watch mode for development
-npm run test          # Run tests once
-npm run test:watch    # Run tests in watch mode
+npm test              # Run tests
 npm run lint          # Run ESLint
 npm run typecheck     # Run TypeScript type checking
 ```
 
-### Project Structure
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Architecture](./docs/ARCHITECTURE.md) | System design and data flow |
+| [Settings](./docs/SETTINGS.md) | Configuration options |
+| [Plugin Guide](./docs/PLUGINS.md) | How to create language plugins |
+| [Roadmap](./docs/ROADMAP.md) | Development phases and timeline |
+| [Contributing](./CONTRIBUTING.md) | How to contribute |
+| [Philosophy](./docs/PHILOSOPHY.md) | The vision behind CodeGraphy |
+
+## Project Structure
 
 ```
 CodeGraphy/
 ├── src/
-│   ├── extension/     # VSCode extension host code (Node.js)
-│   ├── shared/        # Shared types and utilities
-│   └── webview/       # React app for the sidebar (browser)
+│   ├── core/          # Core systems (discovery, plugins)
+│   ├── extension/     # VSCode extension (Node.js)
+│   ├── plugins/       # Language plugins
+│   ├── shared/        # Shared types
+│   └── webview/       # React app (browser)
 ├── tests/             # Test files
 ├── docs/              # Documentation
-│   ├── PHILOSOPHY.md  # Project philosophy
-│   └── ROADMAP.md     # Development roadmap
-└── assets/            # Icons and static assets
+└── test-fixture/      # Sample project for testing
 ```
-
-## Documentation
-
-- [Philosophy](./docs/PHILOSOPHY.md) — The vision behind CodeGraphy
-- [Roadmap](./docs/ROADMAP.md) — Development phases and timeline
-- [Contributing](./CONTRIBUTING.md) — How to contribute
 
 ## Roadmap
 
 - [x] **Phase 1**: VSCode extension scaffold
 - [x] **Phase 2**: Graph rendering with Vis Network
-- [ ] **Phase 3**: Plugin system & real file discovery
+- [x] **Phase 3**: Plugin system & real file analysis
 - [ ] **Phase 4**: Search, filter, and polish
 
-See the full [ROADMAP.md](./docs/ROADMAP.md) for details.
+See [ROADMAP.md](./docs/ROADMAP.md) for details.
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) for details on the development process and how to submit pull requests.
+Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) first.
 
 ## License
 
