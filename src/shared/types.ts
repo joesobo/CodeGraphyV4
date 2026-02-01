@@ -219,23 +219,16 @@ export type WebviewToExtensionMessage =
 // ============================================================================
 
 /**
- * Pastel color palette mapping file extensions to hex colors.
- * These colors are optimized for visibility on dark backgrounds.
+ * Legacy static color palette for file extensions.
  * 
- * Supported extensions:
- * - `.ts` - Soft blue (#93C5FD)
- * - `.tsx` - Soft cyan (#67E8F9)
- * - `.js` - Soft yellow (#FDE68A)
- * - `.jsx` - Soft peach (#FDBA74)
- * - `.css` - Soft pink (#F9A8D4)
- * - `.scss` - Soft magenta (#E879F9)
- * - `.json` - Soft green (#86EFAC)
- * - `.md` - Soft gray (#CBD5E1)
- * - `.html` - Soft coral (#FCA5A5)
- * - `.svg` - Soft purple (#C4B5FD)
+ * @deprecated Use {@link ColorPaletteManager} for dynamic color generation.
+ * This is kept for backwards compatibility with tests and mock data.
+ * The extension now uses ColorPaletteManager which:
+ * - Generates distinct colors for any number of file types
+ * - Allows plugins to define preferred colors
+ * - Allows users to override colors via settings
  * 
- * @see {@link getFileColor} for retrieving colors
- * @see {@link DEFAULT_NODE_COLOR} for unsupported extensions
+ * @see {@link ColorPaletteManager} for the new dynamic color system
  */
 export const FILE_TYPE_COLORS: Record<string, string> = {
   '.ts': '#93C5FD',    // Soft blue

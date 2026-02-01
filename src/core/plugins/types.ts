@@ -56,6 +56,20 @@ export interface IPlugin {
   supportedExtensions: string[];
   
   /**
+   * Optional preferred colors for supported file extensions.
+   * These colors override generated colors but can be overridden by user settings.
+   * 
+   * @example
+   * ```typescript
+   * fileColors: {
+   *   '.gd': '#A5B4FC',    // Soft indigo for GDScript
+   *   '.tscn': '#6EE7B7',  // Soft emerald for scenes
+   * }
+   * ```
+   */
+  fileColors?: Record<string, string>;
+  
+  /**
    * Detects connections (imports) in a file.
    * 
    * @param filePath - Absolute path to the file being analyzed

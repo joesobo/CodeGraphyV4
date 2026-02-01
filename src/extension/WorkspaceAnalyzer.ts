@@ -10,7 +10,8 @@ import { PluginRegistry, IConnection } from '../core/plugins';
 import { FileDiscovery, IDiscoveredFile } from '../core/discovery';
 import { Configuration } from './Configuration';
 import { createTypeScriptPlugin } from '../plugins/typescript';
-import { IGraphData, IGraphNode, IGraphEdge, FILE_TYPE_COLORS, DEFAULT_NODE_COLOR } from '../shared/types';
+import { ColorPaletteManager } from '../core/colors';
+import { IGraphData, IGraphNode, IGraphEdge } from '../shared/types';
 
 /**
  * Cache entry for a single file's analysis.
@@ -56,6 +57,7 @@ export class WorkspaceAnalyzer {
   private readonly _registry: PluginRegistry;
   private readonly _discovery: FileDiscovery;
   private readonly _context: vscode.ExtensionContext;
+  private readonly _colorPalette: ColorPaletteManager;
   private _cache: IAnalysisCache;
 
   constructor(context: vscode.ExtensionContext) {
@@ -63,6 +65,7 @@ export class WorkspaceAnalyzer {
     this._config = new Configuration();
     this._registry = new PluginRegistry();
     this._discovery = new FileDiscovery();
+    this._colorPalette = new ColorPaletteManager();
     this._cache = this._loadCache();
   }
 
@@ -73,6 +76,13 @@ export class WorkspaceAnalyzer {
     // Register built-in TypeScript plugin
     const tsPlugin = createTypeScriptPlugin();
     this._registry.register(tsPlugin, { builtIn: true });
+
+    // Collect plugin colors
+    for (const pluginInfo of this._registry.list()) {
+      if (pluginInfo.plugin.fileColors) {
+        this._colorPalette.addPluginColors(pluginInfo.plugin.fileColors);
+      }
+    }
 
     // Initialize all plugins
     const workspaceRoot = this._getWorkspaceRoot();
@@ -114,6 +124,13 @@ export class WorkspaceAnalyzer {
     }
 
     console.log(`[CodeGraphy] Discovered ${discoveryResult.files.length} files in ${discoveryResult.durationMs}ms`);
+
+    // Generate color palette for all discovered extensions
+    const extensions = discoveryResult.files.map(f => path.extname(f.relativePath).toLowerCase());
+    this._colorPalette.generateForExtensions(extensions);
+    
+    // Apply user color overrides
+    this._colorPalette.setUserColors(config.fileColors);
 
     // Analyze files (with caching)
     const fileConnections = await this._analyzeFiles(discoveryResult.files, workspaceRoot);
@@ -234,8 +251,7 @@ export class WorkspaceAnalyzer {
         continue;
       }
 
-      const ext = path.extname(filePath).toLowerCase();
-      const color = FILE_TYPE_COLORS[ext] ?? DEFAULT_NODE_COLOR;
+      const color = this._colorPalette.getColorForFile(filePath);
 
       nodes.push({
         id: filePath,

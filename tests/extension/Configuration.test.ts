@@ -23,6 +23,7 @@ describe('Configuration', () => {
       respectGitignore: true,
       showOrphans: true,
       plugins: [],
+      fileColors: {},
     };
 
     // Setup mock to return values from mockConfig
@@ -115,6 +116,7 @@ describe('Configuration', () => {
         respectGitignore: true,
         showOrphans: true,
         plugins: [],
+        fileColors: {},
       });
     });
 

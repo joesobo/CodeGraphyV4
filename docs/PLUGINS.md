@@ -12,29 +12,40 @@ CodeGraphy uses a plugin system to support different programming languages. Each
 
 ## Plugin Interface
 
-All plugins must implement the `ILanguagePlugin` interface:
+All plugins must implement the `IPlugin` interface:
 
 ```typescript
-interface ILanguagePlugin {
-  /** Unique identifier for the plugin */
+interface IPlugin {
+  /** Unique identifier for the plugin (e.g., 'codegraphy.typescript') */
   id: string;
   
   /** Human-readable name */
   name: string;
   
+  /** Semantic version string */
+  version: string;
+  
   /** File extensions this plugin handles (e.g., ['.ts', '.tsx']) */
-  extensions: string[];
+  supportedExtensions: string[];
+  
+  /** Optional: Preferred colors for supported extensions */
+  fileColors?: Record<string, string>;
   
   /** 
    * Detect connections in a source file.
-   * @param filePath - Workspace-relative path to the file
+   * @param filePath - Absolute path to the file
    * @param content - File contents as string
+   * @param workspaceRoot - Absolute path to workspace root
    * @returns Array of detected connections
    */
-  detectConnections(filePath: string, content: string): IDetectedConnection[];
+  detectConnections(
+    filePath: string,
+    content: string,
+    workspaceRoot: string
+  ): Promise<IConnection[]>;
   
   /** Optional: Called once when the plugin is registered */
-  initialize?(): Promise<void>;
+  initialize?(workspaceRoot: string): Promise<void>;
   
   /** Optional: Called when the plugin is unregistered */
   dispose?(): void;
@@ -46,17 +57,43 @@ interface ILanguagePlugin {
 The `detectConnections` method returns an array of connections:
 
 ```typescript
-interface IDetectedConnection {
-  /** The import path as written in the source (e.g., './utils', '@/components') */
-  importPath: string;
+interface IConnection {
+  /** The import specifier as written in the source (e.g., './utils', 'lodash') */
+  specifier: string;
+  
+  /** The resolved absolute file path, or null if unresolved (external package) */
+  resolvedPath: string | null;
   
   /** Type of import */
-  type: 'static' | 'dynamic' | 'require';
-  
-  /** Line number where the import appears (1-indexed) */
-  line: number;
+  type: 'static' | 'dynamic' | 'require' | 'reexport';
 }
 ```
+
+## Plugin Colors
+
+Plugins can declare preferred colors for their file extensions. These colors are used unless the user overrides them in settings.
+
+```typescript
+const myPlugin: IPlugin = {
+  id: 'codegraphy.mylang',
+  name: 'MyLang',
+  version: '1.0.0',
+  supportedExtensions: ['.ml', '.mli'],
+  
+  // Preferred colors for this plugin's file types
+  fileColors: {
+    '.ml': '#E44D26',   // Orange for source files
+    '.mli': '#F7DF1E',  // Yellow for interface files
+  },
+  
+  // ... detectConnections, etc.
+};
+```
+
+**Color priority:**
+1. User settings (`codegraphy.fileColors`) — highest
+2. Plugin `fileColors` — middle
+3. Auto-generated colors — lowest
 
 ## Example: Creating a Python Plugin
 

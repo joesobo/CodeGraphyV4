@@ -39,6 +39,8 @@ export interface ICodeGraphyConfig {
   showOrphans: boolean;
   /** List of plugin extension names to enable */
   plugins: string[];
+  /** User-defined colors for file extensions (overrides plugin/generated colors) */
+  fileColors: Record<string, string>;
 }
 
 /**
@@ -119,6 +121,16 @@ export class Configuration {
   }
 
   /**
+   * User-defined colors for file extensions.
+   * These have highest priority and override plugin/generated colors.
+   * Map of extension (e.g., '.ts') to hex color (e.g., '#93C5FD').
+   * @default {}
+   */
+  get fileColors(): Record<string, string> {
+    return this.config.get<Record<string, string>>('fileColors', {});
+  }
+
+  /**
    * Gets all configuration values as a single object.
    * Useful for passing configuration to other modules.
    * 
@@ -132,6 +144,7 @@ export class Configuration {
       respectGitignore: this.respectGitignore,
       showOrphans: this.showOrphans,
       plugins: this.plugins,
+      fileColors: this.fileColors,
     };
   }
 

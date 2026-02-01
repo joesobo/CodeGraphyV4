@@ -11,6 +11,10 @@
   "codegraphy.respectGitignore": true,
   "codegraphy.showOrphans": true,
   "codegraphy.plugins": [],
+  // Custom file colors (overrides plugin/generated colors)
+  "codegraphy.fileColors": {
+    // Example: ".myext": "#FF5733"
+  },
 
   // TypeScript settings for the fixture
   "typescript.tsdk": "node_modules/typescript/lib"

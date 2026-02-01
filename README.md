@@ -7,7 +7,7 @@ Visualize your codebase as an interactive 2D force graph. See how files connect 
 ## Features
 
 - 🔵 **Force-directed graph** — Files naturally cluster based on their relationships
-- 🎨 **Color-coded by file type** — Instantly identify TypeScript, JavaScript, CSS, JSON, and more
+- 🎨 **Color-coded by file type** — Dynamic color palette that works with any file types, customizable via settings
 - 🔍 **Real file analysis** — Parses actual imports using the TypeScript compiler API
 - 🖱️ **Interactive** — Pan, zoom, drag nodes, click to select, double-click to open files
 - 💾 **Position persistence** — Your graph layout is saved and restored between sessions
@@ -43,9 +43,31 @@ Configure CodeGraphy in your workspace settings (`.vscode/settings.json`):
   "codegraphy.include": ["src/**/*"],
   "codegraphy.exclude": ["**/node_modules/**", "**/dist/**"],
   "codegraphy.showOrphans": true,
-  "codegraphy.respectGitignore": true
+  "codegraphy.respectGitignore": true,
+  "codegraphy.fileColors": {
+    ".custom": "#FF5733"
+  }
 }
 ```
+
+### Custom Colors
+
+Colors are assigned automatically, but you can override any file type:
+
+```json
+{
+  "codegraphy.fileColors": {
+    ".ts": "#3B82F6",
+    ".gitignore": "#6B7280",
+    "Makefile": "#F97316",
+    "**/*.test.ts": "#10B981"
+  }
+}
+```
+
+Supports extensions (`.ts`), exact filenames (`.gitignore`, `Makefile`), and glob patterns (`**/*.test.ts`).
+
+Color priority: **User settings** > **Plugin defaults** > **Auto-generated**
 
 See [Settings Documentation](./docs/SETTINGS.md) for all options.
 
