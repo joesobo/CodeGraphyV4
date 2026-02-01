@@ -1,148 +1,297 @@
 # CodeGraphy Roadmap
 
-## Current Status (January 2026)
+> **Vision:** Make codebase architecture visible, memorable, and actionable.
 
-### ✅ Phase 1: VSCode Extension Scaffold (Complete)
-- Basic extension structure
-- Webview panel with React
-- Tailwind CSS styling
+## Strategic Overview
+
+CodeGraphy transforms how developers understand code. While file systems organize code by location, CodeGraphy reveals the *truth*: how code actually connects. This spatial understanding becomes muscle memory—developers navigate by relationship, not by folder.
+
+### Competitive Positioning
+
+| Tool | Focus | Limitation |
+|------|-------|------------|
+| VSCode's built-in | File tree | No relationship visibility |
+| Madge/dependency-cruiser | CLI output, static images | Not interactive, not integrated |
+| Code City | 3D visualization | Complex, high cognitive load |
+| JetBrains diagrams | UML-style | Formal, not spatial/intuitive |
+| **CodeGraphy** | Spatial intuition, plugin extensibility | *Our opportunity* |
+
+**Our differentiators:**
+1. **Integrated experience** — Lives in VSCode, one click away
+2. **Spatial memory** — Consistent layouts create mental maps
+3. **Plugin architecture** — Community can add any language
+4. **Performance-first** — Handles real-world codebases
+
+---
+
+## Current Status (February 2026)
+
+### ✅ Phase 1: Extension Scaffold (Complete)
+- VSCode extension structure
+- React webview with Tailwind CSS
 - Build pipeline (esbuild + Vite)
 - Testing infrastructure (Vitest)
 
 ### ✅ Phase 2: Graph Rendering (Complete)
-- Vis Network integration
-- Force-directed physics simulation
-- Pastel color palette by file type
+- Vis Network integration with physics simulation
+- Color palette by file type (auto + custom)
 - Node interactions (click, double-click, drag)
-- Position persistence to workspace state
+- Position persistence across sessions
 - Keyboard shortcuts (fit, zoom, select)
-- 45+ tests covering core functionality
 
-### ✅ Phase 3: Plugin API & File Discovery (Complete)
-- Extension settings with Configuration wrapper
+### ✅ Phase 3: Plugin System (Complete)
+- Configuration system with reactive updates
 - Plugin architecture with PluginRegistry
 - File discovery with include/exclude patterns
-- TypeScript Compiler API for accurate import detection
+- TypeScript plugin with TS Compiler API
+- GDScript plugin for Godot projects
 - Path alias resolution from tsconfig.json
-- Caching with mtime-based invalidation
-- Real workspace file analysis
-- 158 tests total
+- Caching with mtime invalidation
+- **158 tests total**
 
-### 🔜 Phase 4: Polish & Core Features (Next)
-- Search/filter functionality
-- Hover highlights
-- File metadata tooltips
-- Theme support
-
----
-
-## Phase 3 Summary (Completed)
-
-Phase 3 transformed CodeGraphy from a demo with mock data into a real, useful tool.
-
-### What Was Built
-
-| Component | Description |
-|-----------|-------------|
-| **FileDiscovery** | Recursive file discovery with glob patterns, .gitignore support |
-| **PluginRegistry** | Plugin registration, extension mapping, graceful error handling |
-| **TypeScript Plugin** | AST-based import detection using `ts.createSourceFile` |
-| **PathResolver** | Resolves relative paths, aliases, and index files |
-| **Configuration** | Type-safe settings wrapper with reactive updates |
-| **WorkspaceAnalyzer** | Coordinates discovery → analysis → graph building |
-
-### Settings Added
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| `codegraphy.maxFiles` | `100` | Max files to analyze |
-| `codegraphy.include` | `["**/*"]` | Include patterns |
-| `codegraphy.exclude` | *(node_modules, dist, etc)* | Exclude patterns |
-| `codegraphy.respectGitignore` | `true` | Honor .gitignore |
-| `codegraphy.showOrphans` | `true` | Show unconnected files |
-| `codegraphy.plugins` | `[]` | External plugin paths (future) |
-
-### Issues Closed
-- #12: Plugin Architecture Foundation
-- #13: File Discovery System
-- #14: TypeScript/JavaScript Plugin
-- #16: Integration & Wiring
-- #24: Extension Settings Configuration
-- #3: Phase 3 (parent issue)
+### 🔄 Phase 4: Polish & UX (In Progress)
+Core usability features before marketplace launch:
+- [ ] Search & filter nodes
+- [ ] Hover highlighting of connections
+- [ ] Node tooltips with metadata
+- [ ] VSCode theme integration
+- [ ] Progress indicators during analysis
+- [ ] Undo/Redo for layout changes (#43)
+- [ ] Node context menu & multi-select (#33)
 
 ---
 
-## Phase 4 Detailed Breakdown
+## Phase 5: Language Ecosystem (Q1 2026)
 
-Phase 4 adds polish and usability improvements.
+**Goal:** Support the most popular languages to maximize user reach.
 
-### 4.1: Search & Filter
-- Search box in webview header
-- Filter nodes by name (fuzzy match)
-- Filter by file type
-- Highlight matching nodes
-- Clear/reset filters
+### Priority Languages
 
-### 4.2: Hover Interactions
-- Highlight connected nodes on hover
-- Dim unconnected nodes
-- Show connection count badge
-- Trace import paths
+| Language | Complexity | Value | Priority |
+|----------|------------|-------|----------|
+| Python | Medium | Very High | 🔴 P0 |
+| C# (General) | Medium | High | 🔴 P0 |
+| Go | Low | High | 🟡 P1 |
+| Rust | Medium | High | 🟡 P1 |
+| Java | Medium | High | 🟡 P1 |
+| Ruby | Low | Medium | 🟢 P2 |
+| C/C++ | High | Medium | 🟢 P2 |
+| PHP | Low | Medium | 🟢 P2 |
 
-### 4.3: Node Tooltips
-- Show full file path on hover
-- Show import/export count
-- Show file size
-- Show last modified time
+### Plugin Development Strategy
 
-### 4.4: Theme & Styling
-- Respect VSCode theme (dark/light)
-- Custom color schemes
-- Adjust physics settings
-- Node size options
+1. **Python** (#28): Use tree-sitter for accurate AST parsing
+   - Handle `import x`, `from x import y`, relative imports
+   - Support virtual environments and `pyproject.toml`
 
-### 4.5: UX Polish
-- Progress indicator during analysis
-- Empty state messaging
-- Error handling improvements
-- Performance optimizations for large graphs
+2. **C# General** (#37): Extend beyond Godot
+   - Parse `using` statements
+   - Handle namespaces and project references
+   - Support `.csproj` for assembly references
 
----
+3. **Godot C#** (#30): Extend GDScript plugin
+   - Resource references in C# files
+   - Cross-language dependencies (GDScript ↔ C#)
 
-## Timeline
+### External Plugin System (Phase 5.5)
 
-| Phase | Status | Duration |
-|-------|--------|----------|
-| Phase 1 | ✅ Complete | 2 days |
-| Phase 2 | ✅ Complete | 3 days |
-| Phase 3 | ✅ Complete | 5 days |
-| Phase 4 | 🔜 Next | ~2 weeks |
-| Marketplace | 📋 Planned | 1 week |
+Enable community plugins:
+```json
+{
+  "codegraphy.plugins": ["@codegraphy/python", "./my-plugin.js"]
+}
+```
 
-**Target Marketplace Release: ~3 weeks**
+- npm-based plugin distribution
+- Plugin manifest format
+- Security sandboxing
+- Hot reload during development
 
 ---
 
-## Documentation Status
+## Phase 6: Power Features (Q2 2026)
 
-- [x] CI/CD with GitHub Actions
-- [x] CONTRIBUTING.md
-- [x] JSDoc comments on core interfaces
-- [x] Keyboard shortcuts
-- [x] Architecture diagram (`docs/ARCHITECTURE.md`)
-- [x] Settings documentation (`docs/SETTINGS.md`)
-- [x] Plugin developer guide (`docs/PLUGINS.md`)
-- [ ] README screenshots (after UI polish)
+**Goal:** Transform CodeGraphy from "nice to have" to "essential tool."
+
+### 6.1: Graph Intelligence
+
+**Dead Code Detection**
+- Identify files with no incoming edges (never imported)
+- Flag exports that are never used
+- "Unused code" overlay mode
+
+**Circular Dependency Detection**
+- Highlight A→B→C→A cycles
+- Suggest break points
+- Track cycle count over time
+
+**Centrality Analysis**
+- Identify "hub" files (many imports)
+- Flag potential refactoring targets
+- Visualize with node size
+
+### 6.2: Git Integration
+
+**History Mode**
+- Slider to view graph at any commit
+- Watch architecture evolve over time
+- "When did this connection appear?"
+
+**Blame Overlay**
+- Color nodes by last author
+- Identify ownership patterns
+- "Who should I ask about this?"
+
+**Change Frequency Heat Map**
+- Hot spots = frequently changed files
+- Correlate with bug density
+- Stability indicator overlay
+
+### 6.3: Export & Sharing
+
+**Static Exports**
+- PNG/SVG for documentation
+- Include in READMEs
+- High-res for presentations
+
+**Interactive HTML Export**
+- Self-contained single file
+- Share with stakeholders
+- Embed in wikis
+
+**Layout Save/Load**
+- Export layout as JSON
+- Share team-agreed arrangements
+- Version control layouts
 
 ---
 
-## Future Ideas (Post-MVP)
+## Phase 7: Collaboration (Q3 2026)
 
-- **More Languages**: Python, Go, Rust, Java, C#
-- **Graph Layouts**: Hierarchical, radial, clustered
-- **Export**: SVG/PNG export of graphs
-- **Metrics**: Complexity overlay, test coverage visualization
-- **History**: Git integration to see codebase evolution
-- **AI Features**: "Explain this cluster", "Find related files"
-- **Multi-root Workspaces**: Support for monorepos
-- **Performance**: Virtual scrolling for very large graphs
+**Goal:** Make CodeGraphy a team tool, not just individual.
+
+### 7.1: Shared Layouts
+
+- `.codegraphy/layout.json` in repo
+- Team-agreed canonical view
+- Merge conflict handling
+
+### 7.2: Annotations
+
+- Add notes to nodes/edges
+- "Here be dragons" warnings
+- Onboarding breadcrumbs
+
+### 7.3: Live Collaboration (Stretch)
+
+- See teammates' cursors
+- Collaborative exploration
+- Pair programming aid
+
+---
+
+## Phase 8: AI-Powered Insights (Q4 2026)
+
+**Goal:** Let AI explain what the graph shows.
+
+### 8.1: Natural Language Queries
+
+> "What does the auth module depend on?"
+> "Find all files that import the database layer"
+> "Why is this file connected to so many others?"
+
+### 8.2: Refactoring Suggestions
+
+- "This cluster could be a separate module"
+- "These files are tightly coupled, consider interface"
+- "This file has too many responsibilities"
+
+### 8.3: Onboarding Assistant
+
+- "Start here" recommendations for new devs
+- Architecture tour generation
+- Auto-generate documentation from structure
+
+---
+
+## Killer Feature Candidates
+
+These could be the "aha" moment that makes CodeGraphy go viral:
+
+### 🎯 1. "Understand in 30 Seconds"
+New to a codebase? Open CodeGraphy and instantly see:
+- Entry points (files with no incoming edges)
+- Core files (highest centrality)
+- Natural module boundaries (clusters)
+- Trouble spots (cycles, high coupling)
+
+### 🎯 2. Test Coverage Overlay
+Import test coverage data, show as node colors:
+- 🟢 Green = well tested
+- 🟡 Yellow = partial
+- 🔴 Red = untested
+Answer: "What's actually covered?" at a glance.
+
+### 🎯 3. "Time Travel" Architecture
+Git history + graph = movie of your architecture evolving.
+- See technical debt accumulate
+- Watch modules form organically
+- "Before/after refactoring" comparisons
+
+### 🎯 4. External Dependency Visualization
+Show node_modules/pip packages as external nodes:
+- See your actual dependency footprint
+- Identify over-relied-upon packages
+- Upgrade impact analysis
+
+---
+
+## Success Metrics
+
+| Milestone | Target | Status |
+|-----------|--------|--------|
+| Marketplace publish | Q1 2026 | 🎯 Next |
+| 1,000 installs | Q1 2026 | Pending |
+| 10,000 installs | Q2 2026 | Pending |
+| 5 community plugins | Q2 2026 | Pending |
+| 4.5+ star rating | Q2 2026 | Pending |
+
+---
+
+## Timeline Summary
+
+```
+2026 Q1    Q2       Q3       Q4
+├────┼────┼────┼────┼────┼────┼────┼────┤
+│ P4 │ P5 │ P6      │ P7 │ P8      │
+│UX  │Lang│Power    │Team│AI       │
+│    │    │Features │    │Insights │
+└────┴────┴─────────┴────┴─────────┘
+     ↑
+     Marketplace Launch
+```
+
+---
+
+## How to Contribute
+
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for development setup.
+
+**High-impact areas:**
+1. **Language plugins** — Pick a language, implement the interface
+2. **UI polish** — Help complete Phase 4 items
+3. **Documentation** — Screenshots, tutorials, examples
+4. **Testing** — Edge cases, performance benchmarks
+
+---
+
+## Open Issues
+
+Track progress on GitHub:
+- [Phase 4 milestone](https://github.com/livetoserveplz/CodeGraphy/issues?q=label:phase-4)
+- [Enhancement requests](https://github.com/livetoserveplz/CodeGraphy/issues?q=label:enhancement)
+
+---
+
+*Last updated: February 2026*
+*This roadmap is a living document. Priorities may shift based on user feedback and community contributions.*
