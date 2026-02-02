@@ -4,25 +4,8 @@
  */
 
 import React, { useState } from 'react';
-import { IPhysicsSettings, WebviewToExtensionMessage } from '../../shared/types';
-
-// Get VSCode API - use lazy initialization to support testing
-declare function acquireVsCodeApi(): {
-  postMessage: (message: WebviewToExtensionMessage) => void;
-};
-
-let vscode: ReturnType<typeof acquireVsCodeApi> | null = null;
-function getVsCodeApi() {
-  if (vscode) return vscode;
-  if (typeof acquireVsCodeApi !== 'undefined') {
-    try {
-      vscode = acquireVsCodeApi();
-    } catch {
-      // Already acquired
-    }
-  }
-  return vscode;
-}
+import { IPhysicsSettings } from '../../shared/types';
+import { postMessage } from '../vscodeApi';
 
 interface PhysicsSettingsProps {
   settings: IPhysicsSettings;
@@ -80,13 +63,6 @@ const SLIDERS: SliderConfig[] = [
     description: 'Motion settling speed',
   },
 ];
-
-function postMessage(message: WebviewToExtensionMessage): void {
-  const api = getVsCodeApi();
-  if (api) {
-    api.postMessage(message);
-  }
-}
 
 export default function PhysicsSettings({ settings, onSettingsChange }: PhysicsSettingsProps): React.ReactElement {
   const [isExpanded, setIsExpanded] = useState(false);

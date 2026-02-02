@@ -6,7 +6,8 @@ import { SearchBar } from './components/SearchBar';
 import { ViewSwitcher } from './components/ViewSwitcher';
 import PhysicsSettings from './components/PhysicsSettings';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
+import { IGraphData, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, ExtensionToWebviewMessage } from '../shared/types';
+import { getVsCodeApi } from './vscodeApi';
 
 /** Default physics settings */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -16,24 +17,6 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
   damping: 0.4,
   centralGravity: 0.01,
 };
-
-// Get VSCode API if available (must be called exactly once at module level)
-declare function acquireVsCodeApi(): {
-  postMessage: (message: WebviewToExtensionMessage) => void;
-  getState: () => unknown;
-  setState: (state: unknown) => void;
-};
-
-// Acquire the API once at module load (VSCode requirement)
-let vscode: ReturnType<typeof acquireVsCodeApi> | null = null;
-try {
-  if (typeof acquireVsCodeApi !== 'undefined') {
-    vscode = acquireVsCodeApi();
-  }
-} catch {
-  // Already acquired or not in VSCode context
-  vscode = null;
-}
 
 /** Fuse.js options for fuzzy search */
 const FUSE_OPTIONS = {
@@ -108,6 +91,7 @@ export default function App(): React.ReactElement {
     window.addEventListener('message', handleMessage);
 
     // Tell extension we're ready to receive data
+    const vscode = getVsCodeApi();
     if (vscode) {
       vscode.postMessage({ type: 'WEBVIEW_READY', payload: null });
     }
