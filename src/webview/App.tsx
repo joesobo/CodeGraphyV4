@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
+import Fuse from 'fuse.js';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
+import { SearchBar } from './components/SearchBar';
+import { useTheme } from './hooks/useTheme';
 import { IGraphData, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
 
 // Get VSCode API if available (must be called exactly once at module level)
@@ -21,10 +24,46 @@ try {
   vscode = null;
 }
 
+/** Fuse.js options for fuzzy search */
+const FUSE_OPTIONS = {
+  keys: ['label', 'id'],
+  threshold: 0.4,
+  ignoreLocation: true,
+};
+
 export default function App(): React.ReactElement {
   const [graphData, setGraphData] = useState<IGraphData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [searchQuery, setSearchQuery] = useState('');
+  const theme = useTheme();
+
+  // Create fuse instance for fuzzy search
+  const fuse = useMemo(() => {
+    if (!graphData) return null;
+    return new Fuse(graphData.nodes, FUSE_OPTIONS);
+  }, [graphData]);
+
+  // Filter graph data based on search
+  const filteredData = useMemo((): IGraphData | null => {
+    if (!graphData) return null;
+    if (!searchQuery.trim()) return graphData;
+    if (!fuse) return graphData;
+
+    // Get matching nodes
+    const results = fuse.search(searchQuery);
+    const matchingNodeIds = new Set(results.map(r => r.item.id));
+
+    // Filter nodes
+    const filteredNodes = graphData.nodes.filter(node => matchingNodeIds.has(node.id));
+
+    // Filter edges - only keep edges where BOTH nodes are visible
+    const filteredEdges = graphData.edges.filter(
+      edge => matchingNodeIds.has(edge.from) && matchingNodeIds.has(edge.to)
+    );
+
+    return { nodes: filteredNodes, edges: filteredEdges };
+  }, [graphData, searchQuery, fuse]);
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
@@ -82,10 +121,24 @@ export default function App(): React.ReactElement {
     );
   }
 
-  // Graph view - relative container for absolute positioned graph
+  // Graph view with search bar
   return (
-    <div className="relative w-full h-screen">
-      <Graph data={graphData} favorites={favorites} />
+    <div className="relative w-full h-screen flex flex-col">
+      {/* Search bar */}
+      <div className="flex-shrink-0 p-2 border-b border-[var(--vscode-panel-border,#3c3c3c)]">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          resultCount={filteredData?.nodes.length}
+          totalCount={graphData.nodes.length}
+          placeholder="Search files... (Ctrl+F)"
+        />
+      </div>
+      
+      {/* Graph */}
+      <div className="flex-1 relative">
+        <Graph data={filteredData || graphData} favorites={favorites} theme={theme} />
+      </div>
     </div>
   );
 }

@@ -51,6 +51,12 @@ export function activate(context: vscode.ExtensionContext): void {
       provider.requestExportPng();
     })
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.clearCache', () => {
+      provider.clearCacheAndRefresh();
+    })
+  );
 }
 
 export function deactivate(): void {

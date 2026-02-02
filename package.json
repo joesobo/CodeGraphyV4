@@ -41,6 +41,10 @@
       {
         "command": "codegraphy.exportPng",
         "title": "CodeGraphy: Export as PNG"
+      },
+      {
+        "command": "codegraphy.clearCache",
+        "title": "CodeGraphy: Clear Cache and Refresh"
       }
     ],
     "keybindings": [

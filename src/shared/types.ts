@@ -252,6 +252,8 @@ export interface IFileInfo {
   incomingCount: number;
   /** Number of outgoing connections (files this imports) */
   outgoingCount: number;
+  /** Number of times this file has been viewed/selected */
+  visits: number;
 }
 
 // ============================================================================
