@@ -12,6 +12,7 @@ import { Configuration } from './Configuration';
 import { createTypeScriptPlugin } from '../plugins/typescript';
 import { createGDScriptPlugin } from '../plugins/godot';
 import { createPythonPlugin } from '../plugins/python';
+import { createCSharpPlugin } from '../plugins/csharp';
 import { ColorPaletteManager } from '../core/colors';
 import { IGraphData, IGraphNode, IGraphEdge } from '../shared/types';
 
@@ -36,7 +37,7 @@ interface IAnalysisCache {
 }
 
 const CACHE_KEY = 'codegraphy.analysisCache';
-const CACHE_VERSION = '1.1.1'; // Bumped again after Python path fix
+const CACHE_VERSION = '1.3.0'; // Bumped for C# PathResolver fix
 
 /**
  * Orchestrates workspace analysis.
@@ -87,6 +88,9 @@ export class WorkspaceAnalyzer {
     const pyPlugin = createPythonPlugin();
     this._registry.register(pyPlugin, { builtIn: true });
 
+    // Register built-in C# plugin
+    const csPlugin = createCSharpPlugin();
+    this._registry.register(csPlugin, { builtIn: true });
     // Collect plugin colors
     for (const pluginInfo of this._registry.list()) {
       if (pluginInfo.plugin.fileColors) {
