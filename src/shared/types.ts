@@ -231,6 +231,22 @@ export interface IAvailableView {
   active: boolean;
 }
 
+/**
+ * Physics settings for the graph simulation.
+ */
+export interface IPhysicsSettings {
+  /** Gravity strength - how strongly nodes pull toward center (negative values) */
+  gravitationalConstant: number;
+  /** Preferred distance between connected nodes */
+  springLength: number;
+  /** Spring stiffness - how strongly connected nodes pull together */
+  springConstant: number;
+  /** How quickly motion settles (0-1) */
+  damping: number;
+  /** Pull toward the center of the viewport (0-1) */
+  centralGravity: number;
+}
+
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
   | { type: 'FIT_VIEW' }
@@ -244,7 +260,8 @@ export type ExtensionToWebviewMessage =
   | { type: 'REQUEST_EXPORT_SVG' }
   | { type: 'REQUEST_EXPORT_JSON' }
   | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } }
-  | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } };
+  | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } }
+  | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings };
 
 /**
  * Messages sent from the Webview to the Extension.
@@ -285,6 +302,9 @@ export type WebviewToExtensionMessage =
   | { type: 'EXPORT_PNG'; payload: { dataUrl: string; filename?: string } }
   | { type: 'EXPORT_SVG'; payload: { svg: string; filename?: string } }
   | { type: 'EXPORT_JSON'; payload: { json: string; filename?: string } }
+  | { type: 'UPDATE_PHYSICS_SETTING'; payload: { key: keyof IPhysicsSettings; value: number } }
+  | { type: 'RESET_PHYSICS_SETTINGS' }
+  | { type: 'GET_PHYSICS_SETTINGS' }
   // Undo/Redo commands from webview keyboard shortcuts
   | { type: 'UNDO' }
   | { type: 'REDO' }

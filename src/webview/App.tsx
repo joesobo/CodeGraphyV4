@@ -4,8 +4,18 @@ import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { SearchBar } from './components/SearchBar';
 import { ViewSwitcher } from './components/ViewSwitcher';
+import PhysicsSettings from './components/PhysicsSettings';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, IAvailableView, BidirectionalEdgeMode, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
+import { IGraphData, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
+
+/** Default physics settings */
+const DEFAULT_PHYSICS: IPhysicsSettings = {
+  gravitationalConstant: -50,
+  springLength: 100,
+  springConstant: 0.08,
+  damping: 0.4,
+  centralGravity: 0.01,
+};
 
 // Get VSCode API if available (must be called exactly once at module level)
 declare function acquireVsCodeApi(): {
@@ -40,6 +50,7 @@ export default function App(): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState('');
   const [availableViews, setAvailableViews] = useState<IAvailableView[]>([]);
   const [activeViewId, setActiveViewId] = useState<string>('codegraphy.file-dependencies');
+  const [physicsSettings, setPhysicsSettings] = useState<IPhysicsSettings>(DEFAULT_PHYSICS);
   const theme = useTheme();
 
   // Create fuse instance for fuzzy search
@@ -87,6 +98,9 @@ export default function App(): React.ReactElement {
         case 'VIEWS_UPDATED':
           setAvailableViews(message.payload.views);
           setActiveViewId(message.payload.activeViewId);
+          break;
+        case 'PHYSICS_SETTINGS_UPDATED':
+          setPhysicsSettings(message.payload);
           break;
       }
     };
@@ -159,6 +173,11 @@ export default function App(): React.ReactElement {
           favorites={favorites} 
           theme={theme}
           bidirectionalMode={bidirectionalMode}
+          physicsSettings={physicsSettings}
+        />
+        <PhysicsSettings 
+          settings={physicsSettings} 
+          onSettingsChange={setPhysicsSettings}
         />
       </div>
     </div>

@@ -13,6 +13,7 @@ import {
   IGraphEdge,
   IFileInfo,
   BidirectionalEdgeMode,
+  IPhysicsSettings,
   WebviewToExtensionMessage,
   ExtensionToWebviewMessage,
   NodeSizeMode,
@@ -47,6 +48,7 @@ interface GraphProps {
   onFavoritesChange?: (favorites: Set<string>) => void;
   theme?: ThemeKind;
   bidirectionalMode?: BidirectionalEdgeMode;
+  physicsSettings?: IPhysicsSettings;
 }
 
 /**
@@ -552,10 +554,19 @@ function sendAllPositions(network: Network, nodeIds: string[]): void {
   postMessage({ type: 'POSITIONS_UPDATED', payload: { positions } });
 }
 
+/** Default physics settings */
+const DEFAULT_PHYSICS: IPhysicsSettings = {
+  gravitationalConstant: -50,
+  springLength: 100,
+  springConstant: 0.08,
+  damping: 0.4,
+  centralGravity: 0.01,
+};
+
 /**
  * Graph component with context menu and multi-select support.
  */
-export default function Graph({ data, favorites = new Set(), theme = 'dark', bidirectionalMode = 'separate' }: GraphProps): React.ReactElement {
+export default function Graph({ data, favorites = new Set(), theme = 'dark', bidirectionalMode = 'separate', physicsSettings = DEFAULT_PHYSICS }: GraphProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
   const nodesRef = useRef<DataSet<ReturnType<typeof toVisNode>> | null>(null);
@@ -1163,6 +1174,26 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
     }
     edgesRef.current.add(processedEdges.map(toVisEdge));
   }, [bidirectionalMode, data.edges]);
+
+  /**
+   * Update physics settings when they change
+   */
+  useEffect(() => {
+    const network = networkRef.current;
+    if (!network) return;
+
+    network.setOptions({
+      physics: {
+        forceAtlas2Based: {
+          gravitationalConstant: physicsSettings.gravitationalConstant,
+          centralGravity: physicsSettings.centralGravity,
+          springLength: physicsSettings.springLength,
+          springConstant: physicsSettings.springConstant,
+          damping: physicsSettings.damping,
+        },
+      },
+    });
+  }, [physicsSettings]);
 
   /**
    * Handle context menu trigger - captures node BEFORE Radix opens menu

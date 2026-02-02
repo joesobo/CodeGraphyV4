@@ -211,6 +211,41 @@
           ],
           "default": "connections",
           "description": "What determines the size of nodes in the graph."
+        },
+        "codegraphy.physics.gravitationalConstant": {
+          "type": "number",
+          "default": -50,
+          "minimum": -500,
+          "maximum": 0,
+          "description": "Gravity strength - how strongly nodes pull toward center. More negative = stronger pull."
+        },
+        "codegraphy.physics.springLength": {
+          "type": "number",
+          "default": 100,
+          "minimum": 10,
+          "maximum": 500,
+          "description": "Preferred distance between connected nodes."
+        },
+        "codegraphy.physics.springConstant": {
+          "type": "number",
+          "default": 0.08,
+          "minimum": 0.01,
+          "maximum": 1,
+          "description": "Spring stiffness - how strongly connected nodes pull together."
+        },
+        "codegraphy.physics.damping": {
+          "type": "number",
+          "default": 0.4,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "How quickly motion settles. Higher = faster settling."
+        },
+        "codegraphy.physics.centralGravity": {
+          "type": "number",
+          "default": 0.01,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Pull toward the center of the viewport."
         }
       }
     }
