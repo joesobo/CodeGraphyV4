@@ -232,6 +232,33 @@ Paths to external plugin files (for future use).
 
 Currently, only built-in plugins are supported. External plugin loading is planned for a future release.
 
+### Physics Settings
+
+Control the physics simulation that arranges nodes in the graph. These can be adjusted via the settings panel (gear icon in graph view) or directly in settings.
+
+```json
+{
+  "codegraphy.physics.gravitationalConstant": -50,
+  "codegraphy.physics.springLength": 100,
+  "codegraphy.physics.springConstant": 0.08,
+  "codegraphy.physics.damping": 0.4,
+  "codegraphy.physics.centralGravity": 0.01
+}
+```
+
+| Setting | Range | Description |
+|---------|-------|-------------|
+| `gravitationalConstant` | -200 to 0 | How strongly nodes repel each other. More negative = more spread out. |
+| `springLength` | 50 to 300 | Preferred distance between connected nodes. |
+| `springConstant` | 0.01 to 0.5 | How strongly edges pull connected nodes together. |
+| `damping` | 0.1 to 1.0 | How quickly motion settles. Higher = faster stabilization. |
+| `centralGravity` | 0 to 0.5 | Pull toward center. Higher = tighter grouping. |
+
+**Tips:**
+- Increase `gravitationalConstant` (less negative) for tighter graphs
+- Increase `springLength` for more space between connected files
+- Increase `damping` if the graph takes too long to settle
+
 ### `codegraphy.fileColors`
 
 Customize the colors used for files in the graph.

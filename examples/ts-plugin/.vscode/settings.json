@@ -18,7 +18,7 @@
   "codegraphy.fileColors": {
     // Example: ".myext": "#FF5733"
   },
-  // Physics tuning (gear icon mirrors these values)
+// Physics simulation settings (adjust via gear icon in graph view)
   "codegraphy.physics.gravitationalConstant": -80,
   "codegraphy.physics.springLength": 140,
   "codegraphy.physics.springConstant": 0.1,
