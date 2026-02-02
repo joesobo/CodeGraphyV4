@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Remove focus rings from graph container and vis-network canvas */
+.graph-container,
+.graph-container *,
+.graph-container canvas {
+  outline: none !important;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.graph-container:focus,
+.graph-container:focus-visible,
+.graph-container canvas:focus,
+.graph-container canvas:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
 :root {
   --color-primary: #e0e0e0;
   --color-secondary: #a0a0a0;

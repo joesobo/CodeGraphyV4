@@ -544,7 +544,7 @@ export default function Graph({ data, favorites = new Set() }: GraphProps): Reac
         <div
           ref={containerRef}
           onContextMenu={handleContextMenu}
-          className="absolute inset-0 rounded-lg border border-zinc-700 m-1 outline-none focus:outline-none"
+          className="graph-container absolute inset-0 rounded-lg border border-zinc-700 m-1 outline-none focus:outline-none"
           style={{ backgroundColor: '#18181b' }}
           tabIndex={0}
         />
