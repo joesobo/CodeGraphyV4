@@ -25,11 +25,15 @@ Visualize your codebase as an interactive 2D force graph. See how files connect 
 
 | Shortcut | Action |
 |----------|--------|
+| `Ctrl+A` / `Cmd+A` | Select all nodes |
+| `Ctrl+Click` | Add/remove node from selection |
+| `Shift+Drag` | Box selection |
 | `0` | Fit all nodes in view |
 | `Escape` | Deselect all nodes |
-| `Enter` | Open selected node in editor |
+| `Enter` | Open selected node(s) in editor |
 | `+` / `=` | Zoom in |
 | `-` | Zoom out |
+| `Right-click` | Open context menu |
 
 Customize shortcuts via **File > Preferences > Keyboard Shortcuts** → search "CodeGraphy".
 
@@ -44,9 +48,20 @@ Configure CodeGraphy in your workspace settings (`.vscode/settings.json`):
   "codegraphy.exclude": ["**/node_modules/**", "**/dist/**"],
   "codegraphy.showOrphans": true,
   "codegraphy.respectGitignore": true,
+  "codegraphy.favorites": ["src/index.ts", "src/core/engine.ts"],
   "codegraphy.fileColors": {
     ".custom": "#FF5733"
   }
+}
+```
+
+### Favorites
+
+Mark important files as favorites to highlight them with a yellow border. Right-click a node and select "Add to Favorites", or configure manually:
+
+```json
+{
+  "codegraphy.favorites": ["src/index.ts", "src/core/engine.ts"]
 }
 ```
 

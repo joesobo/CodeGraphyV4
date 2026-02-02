@@ -99,6 +99,12 @@ export interface IGraphNode {
    */
   x?: number;
   
+  /**
+   * Whether this node is marked as a favorite.
+   * Favorited nodes display with a yellow outline.
+   */
+  favorite?: boolean;
+  
   /** 
    * Persisted Y position from previous session.
    * If undefined, physics will determine initial position.
@@ -186,7 +192,10 @@ export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
   | { type: 'FIT_VIEW' }
   | { type: 'ZOOM_IN' }
-  | { type: 'ZOOM_OUT' };
+  | { type: 'ZOOM_OUT' }
+  | { type: 'FAVORITES_UPDATED'; payload: { favorites: string[] } }
+  | { type: 'THEME_CHANGED'; payload: { kind: 'light' | 'dark' | 'high-contrast' } }
+  | { type: 'FILE_INFO'; payload: IFileInfo };
 
 /**
  * Messages sent from the Webview to the Extension.
@@ -212,7 +221,36 @@ export type WebviewToExtensionMessage =
   | { type: 'NODE_SELECTED'; payload: { nodeId: string } }
   | { type: 'NODE_DOUBLE_CLICKED'; payload: { nodeId: string } }
   | { type: 'POSITIONS_UPDATED'; payload: { positions: Record<string, { x: number; y: number }> } }
-  | { type: 'WEBVIEW_READY'; payload: null };
+  | { type: 'WEBVIEW_READY'; payload: null }
+  // Context menu actions
+  | { type: 'OPEN_FILE'; payload: { path: string } }
+  | { type: 'REVEAL_IN_EXPLORER'; payload: { path: string } }
+  | { type: 'COPY_TO_CLIPBOARD'; payload: { text: string } }
+  | { type: 'DELETE_FILES'; payload: { paths: string[] } }
+  | { type: 'RENAME_FILE'; payload: { path: string } }
+  | { type: 'CREATE_FILE'; payload: { directory: string } }
+  | { type: 'TOGGLE_FAVORITE'; payload: { paths: string[] } }
+  | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
+  | { type: 'REFRESH_GRAPH' }
+  | { type: 'GET_FILE_INFO'; payload: { path: string } };
+
+/**
+ * File information returned from extension for tooltips.
+ */
+export interface IFileInfo {
+  /** File path relative to workspace */
+  path: string;
+  /** File size in bytes */
+  size: number;
+  /** Last modified timestamp (ms since epoch) */
+  lastModified: number;
+  /** Plugin that handles this file type */
+  plugin?: string;
+  /** Number of incoming connections (files that import this) */
+  incomingCount: number;
+  /** Number of outgoing connections (files this imports) */
+  outgoingCount: number;
+}
 
 // ============================================================================
 // File Type Colors

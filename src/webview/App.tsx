@@ -24,6 +24,7 @@ try {
 export default function App(): React.ReactElement {
   const [graphData, setGraphData] = useState<IGraphData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
@@ -33,6 +34,9 @@ export default function App(): React.ReactElement {
         case 'GRAPH_DATA_UPDATED':
           setGraphData(message.payload);
           setIsLoading(false);
+          break;
+        case 'FAVORITES_UPDATED':
+          setFavorites(new Set(message.payload.favorites));
           break;
       }
     };
@@ -81,7 +85,7 @@ export default function App(): React.ReactElement {
   // Graph view - relative container for absolute positioned graph
   return (
     <div className="relative w-full h-screen">
-      <Graph data={graphData} />
+      <Graph data={graphData} favorites={favorites} />
     </div>
   );
 }

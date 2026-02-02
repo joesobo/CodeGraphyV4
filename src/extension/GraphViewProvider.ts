@@ -288,11 +288,13 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * @param webview - The webview to listen to
    */
   private _setWebviewMessageListener(webview: vscode.Webview): void {
-    webview.onDidReceiveMessage((message: WebviewToExtensionMessage) => {
+    webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
       switch (message.type) {
         case 'WEBVIEW_READY':
           // Analyze workspace and send graph data
           this._analyzeAndSendData();
+          // Send current favorites
+          this._sendFavorites();
           break;
 
         case 'NODE_SELECTED':
@@ -305,6 +307,47 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
         case 'POSITIONS_UPDATED':
           this._handlePositionsUpdated(message.payload.positions);
+          break;
+          
+        // Context menu actions
+        case 'OPEN_FILE':
+          this._openFile(message.payload.path);
+          break;
+          
+        case 'REVEAL_IN_EXPLORER':
+          this._revealInExplorer(message.payload.path);
+          break;
+          
+        case 'COPY_TO_CLIPBOARD':
+          this._copyToClipboard(message.payload.text);
+          break;
+          
+        case 'DELETE_FILES':
+          this._deleteFiles(message.payload.paths);
+          break;
+          
+        case 'RENAME_FILE':
+          this._renameFile(message.payload.path);
+          break;
+          
+        case 'CREATE_FILE':
+          this._createFile(message.payload.directory);
+          break;
+          
+        case 'TOGGLE_FAVORITE':
+          this._toggleFavorites(message.payload.paths);
+          break;
+          
+        case 'ADD_TO_EXCLUDE':
+          this._addToExclude(message.payload.patterns);
+          break;
+          
+        case 'REFRESH_GRAPH':
+          await this._analyzeAndSendData();
+          break;
+          
+        case 'GET_FILE_INFO':
+          // TODO: Implement file info for tooltips
           break;
       }
     });
@@ -359,6 +402,171 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       }
     }
     this._savePositions();
+  }
+
+  /**
+   * Reveals a file in the VSCode explorer sidebar.
+   */
+  private async _revealInExplorer(filePath: string): Promise<void> {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) return;
+
+    const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
+    await vscode.commands.executeCommand('revealInExplorer', fileUri);
+  }
+
+  /**
+   * Copies text to the clipboard.
+   */
+  private async _copyToClipboard(text: string): Promise<void> {
+    // Handle absolute path request
+    if (text.startsWith('absolute:')) {
+      const relativePath = text.slice(9);
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (workspaceFolder) {
+        const absolutePath = vscode.Uri.joinPath(workspaceFolder.uri, relativePath).fsPath;
+        await vscode.env.clipboard.writeText(absolutePath);
+        return;
+      }
+    }
+    await vscode.env.clipboard.writeText(text);
+  }
+
+  /**
+   * Deletes files with confirmation.
+   */
+  private async _deleteFiles(paths: string[]): Promise<void> {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) return;
+
+    const count = paths.length;
+    const message = count === 1
+      ? `Are you sure you want to delete "${paths[0]}"?`
+      : `Are you sure you want to delete ${count} files?`;
+
+    const confirm = await vscode.window.showWarningMessage(
+      message,
+      { modal: true },
+      'Delete'
+    );
+
+    if (confirm === 'Delete') {
+      for (const filePath of paths) {
+        const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
+        try {
+          await vscode.workspace.fs.delete(fileUri, { useTrash: true });
+        } catch (error) {
+          vscode.window.showErrorMessage(`Failed to delete ${filePath}: ${error}`);
+        }
+      }
+      // Refresh graph after deletion
+      await this._analyzeAndSendData();
+    }
+  }
+
+  /**
+   * Renames a file with an input dialog (stays in CodeGraphy view).
+   */
+  private async _renameFile(filePath: string): Promise<void> {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) return;
+
+    const oldUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
+    const oldName = filePath.split('/').pop() || filePath;
+    
+    const newName = await vscode.window.showInputBox({
+      prompt: 'Enter new file name',
+      value: oldName,
+      valueSelection: [0, oldName.lastIndexOf('.') > 0 ? oldName.lastIndexOf('.') : oldName.length],
+      ignoreFocusOut: true, // Prevent dialog from closing on mouse move or focus loss
+    });
+
+    if (!newName || newName === oldName) return;
+
+    const newPath = filePath.replace(/[^/]+$/, newName);
+    const newUri = vscode.Uri.joinPath(workspaceFolder.uri, newPath);
+
+    try {
+      await vscode.workspace.fs.rename(oldUri, newUri);
+      // Refresh graph after rename
+      await this._analyzeAndSendData();
+    } catch (error) {
+      vscode.window.showErrorMessage(`Failed to rename: ${error}`);
+    }
+  }
+
+  /**
+   * Creates a new file in the workspace.
+   */
+  private async _createFile(directory: string): Promise<void> {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) return;
+
+    const fileName = await vscode.window.showInputBox({
+      prompt: 'Enter file name',
+      placeHolder: 'newfile.ts',
+      ignoreFocusOut: true, // Prevent dialog from closing on mouse move or focus loss
+    });
+
+    if (fileName) {
+      const filePath = directory === '.' ? fileName : `${directory}/${fileName}`;
+      const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
+      
+      try {
+        await vscode.workspace.fs.writeFile(fileUri, new Uint8Array());
+        const document = await vscode.workspace.openTextDocument(fileUri);
+        await vscode.window.showTextDocument(document);
+        // Refresh graph after creation
+        await this._analyzeAndSendData();
+      } catch (error) {
+        vscode.window.showErrorMessage(`Failed to create file: ${error}`);
+      }
+    }
+  }
+
+  /**
+   * Toggles favorite status for files.
+   */
+  private async _toggleFavorites(paths: string[]): Promise<void> {
+    const config = vscode.workspace.getConfiguration('codegraphy');
+    const favorites = new Set<string>(config.get<string[]>('favorites', []));
+
+    for (const path of paths) {
+      if (favorites.has(path)) {
+        favorites.delete(path);
+      } else {
+        favorites.add(path);
+      }
+    }
+
+    await config.update('favorites', Array.from(favorites), vscode.ConfigurationTarget.Workspace);
+    this._sendFavorites();
+  }
+
+  /**
+   * Sends current favorites to the webview.
+   */
+  private _sendFavorites(): void {
+    const config = vscode.workspace.getConfiguration('codegraphy');
+    const favorites = config.get<string[]>('favorites', []);
+    this._sendMessage({ type: 'FAVORITES_UPDATED', payload: { favorites } });
+  }
+
+  /**
+   * Adds patterns to the exclude list.
+   */
+  private async _addToExclude(patterns: string[]): Promise<void> {
+    const config = vscode.workspace.getConfiguration('codegraphy');
+    const currentExclude = config.get<string[]>('exclude', []);
+    
+    // Convert file paths to glob patterns
+    const newPatterns = patterns.map(p => `**/${p}`);
+    const mergedExclude = [...new Set([...currentExclude, ...newPatterns])];
+
+    await config.update('exclude', mergedExclude, vscode.ConfigurationTarget.Workspace);
+    
+    // Refresh graph after adding excludes
+    await this._analyzeAndSendData();
   }
 
   /**

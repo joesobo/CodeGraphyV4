@@ -7,6 +7,7 @@
   ],
   "codegraphy.respectGitignore": true,
   "codegraphy.showOrphans": true,
+  "codegraphy.favorites": ["index.html"],
   "codegraphy.fileColors": {
     ".html": "#E34F26",
     ".css": "#1572B6",

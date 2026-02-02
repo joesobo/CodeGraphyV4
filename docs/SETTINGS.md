@@ -11,6 +11,7 @@ CodeGraphy provides several settings to customize its behavior. Configure these 
 | `codegraphy.exclude` | string[] | *(see below)* | Glob patterns for files to exclude |
 | `codegraphy.respectGitignore` | boolean | `true` | Honor .gitignore patterns |
 | `codegraphy.showOrphans` | boolean | `true` | Show files with no connections |
+| `codegraphy.favorites` | string[] | `[]` | Favorite file paths (highlighted with yellow border) |
 | `codegraphy.plugins` | string[] | `[]` | Paths to external plugins |
 | `codegraphy.fileColors` | object | `{}` | Custom colors for file extensions |
 
@@ -122,6 +123,30 @@ Controls whether files with no import connections appear in the graph.
 - Only files with at least one connection appear
 - Cleaner graph focused on relationships
 - Useful for large projects with many standalone files
+
+### `codegraphy.favorites`
+
+Mark important files as favorites to highlight them in the graph. Favorited files display with a yellow border, making them easy to spot.
+
+```json
+{
+  "codegraphy.favorites": [
+    "src/index.ts",
+    "src/core/engine.ts",
+    "src/utils/helpers.ts"
+  ]
+}
+```
+
+**Ways to add favorites:**
+- Right-click a node → "Add to Favorites"
+- Manually add paths to this setting
+- Select multiple nodes → right-click → "Add All to Favorites"
+
+Favorites persist across sessions and are useful for:
+- Highlighting entry points
+- Marking frequently-edited files
+- Creating visual anchors in large graphs
 
 ### `codegraphy.plugins`
 
