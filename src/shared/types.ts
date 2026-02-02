@@ -195,7 +195,8 @@ export type ExtensionToWebviewMessage =
   | { type: 'ZOOM_OUT' }
   | { type: 'FAVORITES_UPDATED'; payload: { favorites: string[] } }
   | { type: 'THEME_CHANGED'; payload: { kind: 'light' | 'dark' | 'high-contrast' } }
-  | { type: 'FILE_INFO'; payload: IFileInfo };
+  | { type: 'FILE_INFO'; payload: IFileInfo }
+  | { type: 'REQUEST_EXPORT_PNG' };
 
 /**
  * Messages sent from the Webview to the Extension.
@@ -232,7 +233,8 @@ export type WebviewToExtensionMessage =
   | { type: 'TOGGLE_FAVORITE'; payload: { paths: string[] } }
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
   | { type: 'REFRESH_GRAPH' }
-  | { type: 'GET_FILE_INFO'; payload: { path: string } };
+  | { type: 'GET_FILE_INFO'; payload: { path: string } }
+  | { type: 'EXPORT_PNG'; payload: { dataUrl: string; filename?: string } };
 
 /**
  * File information returned from extension for tooltips.

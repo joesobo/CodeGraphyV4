@@ -158,6 +158,48 @@ function postMessage(message: WebviewToExtensionMessage): void {
 }
 
 /**
+ * Export the graph as PNG and send to extension.
+ */
+function exportAsPng(network: Network): void {
+  try {
+    // Get the canvas from vis-network (access internal canvas via body)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const networkBody = network as any;
+    const canvas = networkBody.body?.container?.querySelector('canvas') as HTMLCanvasElement | null;
+    if (!canvas) {
+      console.error('[CodeGraphy] No canvas found');
+      return;
+    }
+
+    // Create a temporary canvas for export with background
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = canvas.width;
+    exportCanvas.height = canvas.height;
+    const ctx = exportCanvas.getContext('2d');
+    if (!ctx) return;
+
+    // Fill with background color (dark to match graph)
+    ctx.fillStyle = '#18181b';
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+    // Draw the network canvas on top
+    ctx.drawImage(canvas, 0, 0);
+
+    // Convert to data URL
+    const dataUrl = exportCanvas.toDataURL('image/png');
+    
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `codegraphy-${timestamp}.png`;
+
+    // Send to extension for saving
+    postMessage({ type: 'EXPORT_PNG', payload: { dataUrl, filename } });
+  } catch (error) {
+    console.error('[CodeGraphy] Export failed:', error);
+  }
+}
+
+/**
  * Send all current positions to extension for persistence
  */
 function sendAllPositions(network: Network, nodeIds: string[]): void {
@@ -292,6 +334,9 @@ export default function Graph({ data, favorites = new Set() }: GraphProps): Reac
         }
         case 'FAVORITES_UPDATED':
           // Will be handled by parent component
+          break;
+        case 'REQUEST_EXPORT_PNG':
+          exportAsPng(network);
           break;
       }
     };

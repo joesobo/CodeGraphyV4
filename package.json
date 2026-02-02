@@ -37,6 +37,10 @@
       {
         "command": "codegraphy.zoomOut",
         "title": "CodeGraphy: Zoom Out"
+      },
+      {
+        "command": "codegraphy.exportPng",
+        "title": "CodeGraphy: Export as PNG"
       }
     ],
     "keybindings": [

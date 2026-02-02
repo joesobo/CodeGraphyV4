@@ -45,6 +45,12 @@ export function activate(context: vscode.ExtensionContext): void {
       provider.sendCommand('ZOOM_OUT');
     })
   );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.exportPng', () => {
+      provider.requestExportPng();
+    })
+  );
 }
 
 export function deactivate(): void {

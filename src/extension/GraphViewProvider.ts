@@ -218,6 +218,13 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Request the webview to export as PNG.
+   */
+  public requestExportPng(): void {
+    this._sendMessage({ type: 'REQUEST_EXPORT_PNG' });
+  }
+
+  /**
    * Sends a message to the webview.
    * 
    * @param message - Message to send to the webview
@@ -348,6 +355,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           
         case 'GET_FILE_INFO':
           // TODO: Implement file info for tooltips
+          break;
+          
+        case 'EXPORT_PNG':
+          await this._saveExportedPng(message.payload.dataUrl, message.payload.filename);
           break;
       }
     });
@@ -521,6 +532,46 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       } catch (error) {
         vscode.window.showErrorMessage(`Failed to create file: ${error}`);
       }
+    }
+  }
+
+  /**
+   * Save exported PNG to file.
+   */
+  private async _saveExportedPng(dataUrl: string, filename?: string): Promise<void> {
+    try {
+      // Prompt user for save location
+      const defaultFilename = filename || `codegraphy-${Date.now()}.png`;
+      const saveUri = await vscode.window.showSaveDialog({
+        defaultUri: vscode.Uri.file(defaultFilename),
+        filters: { 'PNG Images': ['png'] },
+        saveLabel: 'Export',
+        title: 'Export Graph as PNG',
+      });
+
+      if (!saveUri) return; // User cancelled
+
+      // Convert data URL to binary
+      const base64Data = dataUrl.replace(/^data:image\/png;base64,/, '');
+      const buffer = Buffer.from(base64Data, 'base64');
+
+      // Write file
+      await vscode.workspace.fs.writeFile(saveUri, buffer);
+      
+      // Show success message with option to open
+      const action = await vscode.window.showInformationMessage(
+        `Graph exported to ${saveUri.fsPath}`,
+        'Open File',
+        'Open Folder'
+      );
+
+      if (action === 'Open File') {
+        await vscode.commands.executeCommand('vscode.open', saveUri);
+      } else if (action === 'Open Folder') {
+        await vscode.commands.executeCommand('revealFileInOS', saveUri);
+      }
+    } catch (error) {
+      vscode.window.showErrorMessage(`Failed to export PNG: ${error}`);
     }
   }
 
