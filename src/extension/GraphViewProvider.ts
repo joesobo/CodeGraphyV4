@@ -653,6 +653,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
         }
 
+
         case 'CHANGE_VIEW':
           await this.changeView(message.payload.viewId);
           break;
