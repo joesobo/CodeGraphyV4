@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  fileDependenciesView,
+  connectionsView,
   depthGraphView,
   subfolderView,
   coreViews,
@@ -36,23 +36,23 @@ describe('Core Views', () => {
   describe('coreViews array', () => {
     it('should contain all core views', () => {
       expect(coreViews).toHaveLength(3);
-      expect(coreViews).toContain(fileDependenciesView);
+      expect(coreViews).toContain(connectionsView);
       expect(coreViews).toContain(depthGraphView);
       expect(coreViews).toContain(subfolderView);
     });
   });
 
-  describe('fileDependenciesView', () => {
+  describe('connectionsView', () => {
     it('should have correct metadata', () => {
-      expect(fileDependenciesView.id).toBe('codegraphy.file-dependencies');
-      expect(fileDependenciesView.name).toBe('File Dependencies');
-      expect(fileDependenciesView.icon).toBe('symbol-file');
-      expect(fileDependenciesView.pluginId).toBeUndefined();
+      expect(connectionsView.id).toBe('codegraphy.connections');
+      expect(connectionsView.name).toBe('Connections');
+      expect(connectionsView.icon).toBe('symbol-file');
+      expect(connectionsView.pluginId).toBeUndefined();
     });
 
     it('should pass through data unchanged', () => {
       const context = createContext();
-      const result = fileDependenciesView.transform(sampleGraphData, context);
+      const result = connectionsView.transform(sampleGraphData, context);
 
       expect(result).toBe(sampleGraphData);
       expect(result.nodes).toHaveLength(5);

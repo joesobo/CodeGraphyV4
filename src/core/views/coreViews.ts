@@ -8,13 +8,13 @@ import { IView, IViewContext } from './types';
 import { IGraphData } from '../../shared/types';
 
 /**
- * File Dependencies view - the default view.
+ * Connections view - the default view.
  * Shows all files and their import relationships.
  * This is the current default behavior of CodeGraphy.
  */
-export const fileDependenciesView: IView = {
-  id: 'codegraphy.file-dependencies',
-  name: 'File Dependencies',
+export const connectionsView: IView = {
+  id: 'codegraphy.connections',
+  name: 'Connections',
   icon: 'symbol-file',
   description: 'Shows all files and their import relationships',
   
@@ -165,7 +165,7 @@ export const subfolderView: IView = {
  * Register these on startup.
  */
 export const coreViews: IView[] = [
-  fileDependenciesView,
+  connectionsView,
   depthGraphView,
   subfolderView,
 ];

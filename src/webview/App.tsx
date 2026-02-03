@@ -80,7 +80,7 @@ export default function App(): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchOptions, setSearchOptions] = useState<SearchOptions>(DEFAULT_SEARCH_OPTIONS);
   const [availableViews, setAvailableViews] = useState<IAvailableView[]>([]);
-  const [activeViewId, setActiveViewId] = useState<string>('codegraphy.file-dependencies');
+  const [activeViewId, setActiveViewId] = useState<string>('codegraphy.connections');
   const [depthLimit, setDepthLimit] = useState<number>(1);
   const theme = useTheme();
 

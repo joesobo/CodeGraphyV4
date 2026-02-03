@@ -16,9 +16,9 @@ import { IGraphData } from '../../shared/types';
  * 
  * @example
  * ```typescript
- * const fileDependenciesView: IView = {
- *   id: 'codegraphy.file-dependencies',
- *   name: 'File Dependencies',
+ * const connectionsView: IView = {
+ *   id: 'codegraphy.connections',
+ *   name: 'Connections',
  *   icon: 'symbol-file',
  *   description: 'Shows all files and their import relationships',
  *   
@@ -38,7 +38,7 @@ export interface IView {
   
   /** 
    * Human-readable name for display in the UI.
-   * @example 'File Dependencies', 'Type Graph', 'Depth View'
+   * @example 'Connections', 'Type Graph', 'Depth View'
    */
   name: string;
   
