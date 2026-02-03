@@ -5,7 +5,7 @@
 
 import React, { useState } from 'react';
 import { IPhysicsSettings } from '../../shared/types';
-import { postMessage } from '../vscodeApi';
+import { postMessage } from '../lib/vscodeApi';
 
 interface PhysicsSettingsProps {
   settings: IPhysicsSettings;

@@ -1188,12 +1188,32 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
   }, [bidirectionalMode, data.edges]);
 
   /**
+   * Track previous physics settings to avoid unnecessary simulation restarts.
+   */
+  const prevPhysicsRef = useRef<IPhysicsSettings | null>(null);
+
+  /**
    * Update physics settings when they change.
    * Must restart simulation for changes to take effect after stabilization.
+   * Uses deep comparison to avoid unnecessary restarts (fixes double-refresh issue).
    */
   useEffect(() => {
     const network = networkRef.current;
     if (!network) return;
+
+    // Deep compare with previous settings to avoid unnecessary restarts
+    const prev = prevPhysicsRef.current;
+    const settingsChanged = !prev || 
+      prev.gravitationalConstant !== physicsSettings.gravitationalConstant ||
+      prev.centralGravity !== physicsSettings.centralGravity ||
+      prev.springLength !== physicsSettings.springLength ||
+      prev.springConstant !== physicsSettings.springConstant ||
+      prev.damping !== physicsSettings.damping;
+
+    if (!settingsChanged) return;
+
+    // Store current settings for next comparison
+    prevPhysicsRef.current = { ...physicsSettings };
 
     // Apply new physics settings
     network.setOptions({
