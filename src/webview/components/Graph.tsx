@@ -529,7 +529,6 @@ function exportAsJson(network: Network, data: IGraphData): void {
         position: positions[node.id] || { x: 0, y: 0 },
       })),
       edges: data.edges.map(edge => ({
-        id: edge.id,
         from: edge.from,
         to: edge.to,
       })),
