@@ -1125,23 +1125,31 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   /**
    * Updates a single physics setting.
+   * Uses workspace config if available, falls back to global config.
    */
   private async _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void> {
     const config = vscode.workspace.getConfiguration('codegraphy.physics');
-    await config.update(key, value, vscode.ConfigurationTarget.Workspace);
+    const target = vscode.workspace.workspaceFolders?.length
+      ? vscode.ConfigurationTarget.Workspace
+      : vscode.ConfigurationTarget.Global;
+    await config.update(key, value, target);
     this._sendPhysicsSettings();
   }
 
   /**
    * Resets all physics settings to defaults.
+   * Uses workspace config if available, falls back to global config.
    */
   private async _resetPhysicsSettings(): Promise<void> {
     const config = vscode.workspace.getConfiguration('codegraphy.physics');
-    await config.update('gravitationalConstant', undefined, vscode.ConfigurationTarget.Workspace);
-    await config.update('springLength', undefined, vscode.ConfigurationTarget.Workspace);
-    await config.update('springConstant', undefined, vscode.ConfigurationTarget.Workspace);
-    await config.update('damping', undefined, vscode.ConfigurationTarget.Workspace);
-    await config.update('centralGravity', undefined, vscode.ConfigurationTarget.Workspace);
+    const target = vscode.workspace.workspaceFolders?.length
+      ? vscode.ConfigurationTarget.Workspace
+      : vscode.ConfigurationTarget.Global;
+    await config.update('gravitationalConstant', undefined, target);
+    await config.update('springLength', undefined, target);
+    await config.update('springConstant', undefined, target);
+    await config.update('damping', undefined, target);
+    await config.update('centralGravity', undefined, target);
     this._sendPhysicsSettings();
   }
 

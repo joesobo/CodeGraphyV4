@@ -1176,12 +1176,14 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
   }, [bidirectionalMode, data.edges]);
 
   /**
-   * Update physics settings when they change
+   * Update physics settings when they change.
+   * Must restart simulation for changes to take effect after stabilization.
    */
   useEffect(() => {
     const network = networkRef.current;
     if (!network) return;
 
+    // Apply new physics settings
     network.setOptions({
       physics: {
         forceAtlas2Based: {
@@ -1193,6 +1195,11 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
         },
       },
     });
+
+    // Restart the physics simulation to apply new settings
+    // This is necessary because vis-network doesn't automatically
+    // restart physics when options are changed after stabilization
+    network.startSimulation();
   }, [physicsSettings]);
 
   /**
