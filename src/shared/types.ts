@@ -215,6 +215,22 @@ export interface IGraphData {
 /** Bidirectional edge display mode */
 export type BidirectionalEdgeMode = 'separate' | 'combined';
 
+/**
+ * View information sent to the webview for the view switcher.
+ */
+export interface IAvailableView {
+  /** Unique view identifier */
+  id: string;
+  /** Display name */
+  name: string;
+  /** Codicon icon name */
+  icon: string;
+  /** Description for tooltip */
+  description: string;
+  /** Whether this is the currently active view */
+  active: boolean;
+}
+
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
   | { type: 'FIT_VIEW' }
@@ -227,7 +243,8 @@ export type ExtensionToWebviewMessage =
   | { type: 'REQUEST_EXPORT_PNG' }
   | { type: 'REQUEST_EXPORT_SVG' }
   | { type: 'REQUEST_EXPORT_JSON' }
-  | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } };
+  | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } }
+  | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } };
 
 /**
  * Messages sent from the Webview to the Extension.
@@ -270,7 +287,9 @@ export type WebviewToExtensionMessage =
   | { type: 'EXPORT_JSON'; payload: { json: string; filename?: string } }
   // Undo/Redo commands from webview keyboard shortcuts
   | { type: 'UNDO' }
-  | { type: 'REDO' };
+  | { type: 'REDO' }
+  // View switching
+  | { type: 'CHANGE_VIEW'; payload: { viewId: string } };
 
 /**
  * File information returned from extension for tooltips.

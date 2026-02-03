@@ -8,6 +8,7 @@
 import * as vscode from 'vscode';
 import {
   IGraphData,
+  IAvailableView,
   BidirectionalEdgeMode,
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
@@ -21,12 +22,16 @@ import {
   RenameFileAction,
   CreateFileAction,
 } from './actions';
+import { ViewRegistry, coreViews, IViewContext } from '../core/views';
 
 /** Storage key for persisted node positions in workspace state */
 const POSITIONS_KEY = 'codegraphy.nodePositions';
 
 /** Storage key for file visit counts in workspace state */
 const VISITS_KEY = 'codegraphy.fileVisits';
+
+/** Storage key for selected view per workspace */
+const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
 
 /**
  * Map of node IDs to their persisted positions.
@@ -77,6 +82,20 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Whether the analyzer has been initialized */
   private _analyzerInitialized = false;
 
+  /** View registry for managing available views */
+  private readonly _viewRegistry: ViewRegistry;
+
+  /** Currently active view ID */
+  private _activeViewId: string;
+
+  /** Raw (untransformed) graph data from analysis */
+  private _rawGraphData: IGraphData = { nodes: [], edges: [] };
+
+  /** Current view context */
+  private _viewContext: IViewContext = {
+    activePlugins: new Set(),
+  };
+
   /**
    * Creates a new GraphViewProvider.
    * 
@@ -88,6 +107,25 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     private readonly _context: vscode.ExtensionContext
   ) {
     this._analyzer = new WorkspaceAnalyzer(_context);
+    
+    // Initialize view registry with core views
+    this._viewRegistry = new ViewRegistry();
+    for (const view of coreViews) {
+      this._viewRegistry.register(view, { core: true, isDefault: view.id === 'codegraphy.file-dependencies' });
+    }
+    
+    // Restore selected view from workspace state, or use default
+    const savedViewId = this._context.workspaceState.get<string>(SELECTED_VIEW_KEY);
+    this._activeViewId = savedViewId && this._viewRegistry.get(savedViewId)
+      ? savedViewId
+      : this._viewRegistry.getDefaultViewId() ?? 'codegraphy.file-dependencies';
+  }
+
+  /**
+   * Gets the view registry for external access (e.g., plugin registration).
+   */
+  public get viewRegistry(): ViewRegistry {
+    return this._viewRegistry;
   }
 
   /**
@@ -191,8 +229,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     if (!this._analyzer) {
       // No analyzer - send empty data
       console.log('[CodeGraphy] No analyzer available');
+      this._rawGraphData = { nodes: [], edges: [] };
       this._graphData = { nodes: [], edges: [] };
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+      this._sendAvailableViews();
       return;
     }
 
@@ -209,21 +249,180 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     if (!hasWorkspace) {
       // No workspace - send empty data
       console.log('[CodeGraphy] No workspace open');
+      this._rawGraphData = { nodes: [], edges: [] };
       this._graphData = { nodes: [], edges: [] };
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+      this._sendAvailableViews();
       return;
     }
 
     // Analyze real workspace
     try {
-      this._graphData = await this._analyzer.analyze();
+      this._rawGraphData = await this._analyzer.analyze();
+      
+      // Update view context
+      this._updateViewContext();
+      
+      // Apply view transform
+      this._applyViewTransform();
+      
       this._applyPersistedPositions();
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+      this._sendAvailableViews();
     } catch (error) {
       console.error('[CodeGraphy] Analysis failed:', error);
       // Send empty data on error
+      this._rawGraphData = { nodes: [], edges: [] };
       this._graphData = { nodes: [], edges: [] };
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+      this._sendAvailableViews();
+    }
+  }
+
+  /**
+   * Updates the view context with current state.
+   */
+  private _updateViewContext(): void {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    const activeEditor = vscode.window.activeTextEditor;
+    
+    this._viewContext = {
+      activePlugins: this._getActivePluginIds(),
+      workspaceRoot: workspaceFolder?.uri.fsPath,
+      focusedFile: activeEditor ? this._getRelativePath(activeEditor.document.uri) : undefined,
+    };
+  }
+
+  /**
+   * Gets the set of active plugin IDs from the plugin registry.
+   */
+  private _getActivePluginIds(): Set<string> {
+    // Access the plugin registry from the analyzer
+    const plugins = new Set<string>();
+    if (this._analyzer) {
+      const registry = (this._analyzer as unknown as { _registry?: { list?: () => Array<{ plugin?: { id?: string } }> } })._registry;
+      if (registry?.list) {
+        for (const info of registry.list()) {
+          if (info.plugin?.id) {
+            plugins.add(info.plugin.id);
+          }
+        }
+      }
+    }
+    return plugins;
+  }
+
+  /**
+   * Gets the workspace-relative path for a URI.
+   */
+  private _getRelativePath(uri: vscode.Uri): string | undefined {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) return undefined;
+    
+    const relativePath = vscode.workspace.asRelativePath(uri, false);
+    return relativePath !== uri.fsPath ? relativePath : undefined;
+  }
+
+  /**
+   * Applies the current view's transform to the raw graph data.
+   */
+  private _applyViewTransform(): void {
+    const viewInfo = this._viewRegistry.get(this._activeViewId);
+    
+    if (!viewInfo || !this._viewRegistry.isViewAvailable(this._activeViewId, this._viewContext)) {
+      // Fall back to default view
+      const defaultId = this._viewRegistry.getDefaultViewId();
+      if (defaultId && defaultId !== this._activeViewId) {
+        this._activeViewId = defaultId;
+        this._context.workspaceState.update(SELECTED_VIEW_KEY, defaultId);
+        const defaultView = this._viewRegistry.get(defaultId);
+        if (defaultView) {
+          this._graphData = defaultView.view.transform(this._rawGraphData, this._viewContext);
+          return;
+        }
+      }
+      // No valid view - use raw data
+      this._graphData = this._rawGraphData;
+      return;
+    }
+    
+    this._graphData = viewInfo.view.transform(this._rawGraphData, this._viewContext);
+  }
+
+  /**
+   * Sends the list of available views to the webview.
+   */
+  private _sendAvailableViews(): void {
+    const availableViews = this._viewRegistry.getAvailableViews(this._viewContext);
+    
+    const views: IAvailableView[] = availableViews.map(info => ({
+      id: info.view.id,
+      name: info.view.name,
+      icon: info.view.icon,
+      description: info.view.description,
+      active: info.view.id === this._activeViewId,
+    }));
+    
+    this._sendMessage({
+      type: 'VIEWS_UPDATED',
+      payload: { views, activeViewId: this._activeViewId },
+    });
+  }
+
+  /**
+   * Changes the active view.
+   * 
+   * @param viewId - ID of the view to switch to
+   */
+  public async changeView(viewId: string): Promise<void> {
+    if (!this._viewRegistry.isViewAvailable(viewId, this._viewContext)) {
+      console.warn(`[CodeGraphy] View '${viewId}' is not available`);
+      return;
+    }
+    
+    this._activeViewId = viewId;
+    await this._context.workspaceState.update(SELECTED_VIEW_KEY, viewId);
+    
+    // Re-apply view transform and send updates
+    this._applyViewTransform();
+    this._applyPersistedPositions();
+    this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+    this._sendAvailableViews();
+  }
+
+  /**
+   * Sets the focused file for view context (e.g., for Depth Graph).
+   * 
+   * @param filePath - Relative path to the focused file
+   */
+  public setFocusedFile(filePath: string | undefined): void {
+    this._viewContext.focusedFile = filePath;
+    
+    // Re-apply transform if using a view that depends on focused file
+    const viewInfo = this._viewRegistry.get(this._activeViewId);
+    if (viewInfo?.view.id === 'codegraphy.depth-graph') {
+      this._applyViewTransform();
+      this._applyPersistedPositions();
+      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+      this._sendAvailableViews();
+    }
+  }
+
+  /**
+   * Sets the selected folder for view context (e.g., for Subfolder View).
+   * 
+   * @param folderPath - Relative path to the selected folder
+   */
+  public setSelectedFolder(folderPath: string | undefined): void {
+    this._viewContext.selectedFolder = folderPath;
+    
+    // Re-apply transform if using a view that depends on selected folder
+    const viewInfo = this._viewRegistry.get(this._activeViewId);
+    if (viewInfo?.view.id === 'codegraphy.subfolder') {
+      this._applyViewTransform();
+      this._applyPersistedPositions();
+      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+      this._sendAvailableViews();
     }
   }
 
@@ -453,6 +652,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           }
           break;
         }
+
+        case 'CHANGE_VIEW':
+          await this.changeView(message.payload.viewId);
+          break;
       }
     });
   }
