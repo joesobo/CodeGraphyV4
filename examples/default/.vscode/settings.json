@@ -8,10 +8,16 @@
   "codegraphy.respectGitignore": true,
   "codegraphy.showOrphans": true,
   "codegraphy.favorites": ["index.html"],
+  "codegraphy.nodeSizeBy": "connections",
   "codegraphy.fileColors": {
     ".html": "#E34F26",
     ".css": "#1572B6",
     ".json": "#86EFAC",
     ".md": "#083FA1"
-  }
+  },
+  "codegraphy.physics.gravitationalConstant": -80,
+  "codegraphy.physics.springLength": 140,
+  "codegraphy.physics.springConstant": 0.1,
+  "codegraphy.physics.damping": 0.35,
+  "codegraphy.physics.centralGravity": 0.02
 }

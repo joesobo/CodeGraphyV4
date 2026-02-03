@@ -151,6 +151,23 @@
           },
           "default": [],
           "description": "List of favorite file paths. Favorited files are displayed with a yellow outline in the graph."
+        },
+        "codegraphy.nodeSizeBy": {
+          "type": "string",
+          "enum": [
+            "connections",
+            "file-size",
+            "access-count",
+            "uniform"
+          ],
+          "enumDescriptions": [
+            "More connections = larger node (default)",
+            "Larger files = larger nodes",
+            "Frequently opened files = larger nodes",
+            "All nodes same size"
+          ],
+          "default": "connections",
+          "description": "What determines the size of nodes in the graph."
         }
       }
     }

@@ -14,6 +14,7 @@ import {
   IFileInfo,
   WebviewToExtensionMessage,
   ExtensionToWebviewMessage,
+  NodeSizeMode,
 } from '../../shared/types';
 import {
   ContextMenu,
@@ -113,10 +114,120 @@ const NETWORK_OPTIONS: Options = {
   },
 };
 
+/** Minimum and maximum node sizes */
+const MIN_NODE_SIZE = 10;
+const MAX_NODE_SIZE = 40;
+const DEFAULT_NODE_SIZE = 16;
+
+/**
+ * Calculate node sizes for all nodes based on the sizing mode.
+ * Returns a map of node ID to size.
+ */
+function calculateNodeSizes(
+  nodes: IGraphNode[],
+  edges: { from: string; to: string }[],
+  mode: NodeSizeMode
+): Map<string, number> {
+  const sizes = new Map<string, number>();
+
+  if (mode === 'uniform') {
+    // All nodes same size
+    for (const node of nodes) {
+      sizes.set(node.id, DEFAULT_NODE_SIZE);
+    }
+    return sizes;
+  }
+
+  if (mode === 'connections') {
+    // Size by connection count
+    const connectionCounts = new Map<string, number>();
+    
+    // Count connections for each node
+    for (const node of nodes) {
+      connectionCounts.set(node.id, 0);
+    }
+    for (const edge of edges) {
+      connectionCounts.set(edge.from, (connectionCounts.get(edge.from) ?? 0) + 1);
+      connectionCounts.set(edge.to, (connectionCounts.get(edge.to) ?? 0) + 1);
+    }
+
+    // Find min/max for normalization
+    const counts = Array.from(connectionCounts.values());
+    const minCount = Math.min(...counts, 0);
+    const maxCount = Math.max(...counts, 1);
+    const range = maxCount - minCount || 1;
+
+    // Calculate sizes
+    for (const node of nodes) {
+      const count = connectionCounts.get(node.id) ?? 0;
+      const normalized = (count - minCount) / range;
+      const size = MIN_NODE_SIZE + normalized * (MAX_NODE_SIZE - MIN_NODE_SIZE);
+      sizes.set(node.id, size);
+    }
+    return sizes;
+  }
+
+  if (mode === 'access-count') {
+    // Size by access/visit count (how many times file was opened)
+    const accessCounts = nodes.map(n => n.accessCount ?? 0);
+    const minCount = Math.min(...accessCounts, 0);
+    const maxCount = Math.max(...accessCounts, 1);
+    const range = maxCount - minCount || 1;
+
+    for (const node of nodes) {
+      const count = node.accessCount ?? 0;
+      const normalized = (count - minCount) / range;
+      const size = MIN_NODE_SIZE + normalized * (MAX_NODE_SIZE - MIN_NODE_SIZE);
+      sizes.set(node.id, size);
+    }
+    return sizes;
+  }
+
+  if (mode === 'file-size') {
+    // Size by file size in bytes
+    const fileSizes = nodes
+      .map(n => n.fileSize ?? 0)
+      .filter(s => s > 0);
+
+    if (fileSizes.length === 0) {
+      // No file sizes available, fall back to uniform
+      for (const node of nodes) {
+        sizes.set(node.id, DEFAULT_NODE_SIZE);
+      }
+      return sizes;
+    }
+
+    // Use logarithmic scale for file sizes (to handle large variance)
+    const logSizes = fileSizes.map(s => Math.log10(s + 1));
+    const minLog = Math.min(...logSizes);
+    const maxLog = Math.max(...logSizes);
+    const range = maxLog - minLog || 1;
+
+    for (const node of nodes) {
+      const fileSize = node.fileSize ?? 0;
+      if (fileSize === 0) {
+        sizes.set(node.id, MIN_NODE_SIZE);
+      } else {
+        const logSize = Math.log10(fileSize + 1);
+        const normalized = (logSize - minLog) / range;
+        const size = MIN_NODE_SIZE + normalized * (MAX_NODE_SIZE - MIN_NODE_SIZE);
+        sizes.set(node.id, size);
+      }
+    }
+    return sizes;
+  }
+
+  // Default fallback
+  for (const node of nodes) {
+    sizes.set(node.id, DEFAULT_NODE_SIZE);
+  }
+  return sizes;
+}
+
 /**
  * Convert IGraphNode to Vis Network node format
  */
-function toVisNode(node: IGraphNode, isFavorite: boolean, theme: ThemeKind = 'dark') {
+function toVisNode(node: IGraphNode, isFavorite: boolean, size: number = DEFAULT_NODE_SIZE, theme: ThemeKind = 'dark') {
   const isLight = theme === 'light';
   const nodeColor = isLight ? adjustColorForLightTheme(node.color) : node.color;
   const borderColor = isFavorite ? FAVORITE_BORDER_COLOR : nodeColor;
@@ -125,6 +236,7 @@ function toVisNode(node: IGraphNode, isFavorite: boolean, theme: ThemeKind = 'da
   return {
     id: node.id,
     label: node.label,
+    size,
     color: {
       background: nodeColor,
       border: borderColor,
@@ -363,7 +475,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark' }: G
         case 'FAVORITES_UPDATED':
           // Will be handled by parent component
           break;
-case 'FILE_INFO':
+        case 'FILE_INFO':
           // Cache and update tooltip
           fileInfoCacheRef.current.set(message.payload.path, message.payload);
           setTooltipData(prev => {
@@ -376,6 +488,39 @@ case 'FILE_INFO':
         case 'REQUEST_EXPORT_PNG':
           exportAsPng(network);
           break;
+        case 'NODE_ACCESS_COUNT_UPDATED': {
+          // Update node's access count and recalculate sizes in real-time
+          const { nodeId, accessCount } = message.payload;
+          const currentData = dataRef.current;
+          
+          // Update the node's accessCount in our data reference
+          const nodeIndex = currentData.nodes.findIndex(n => n.id === nodeId);
+          if (nodeIndex !== -1) {
+            currentData.nodes[nodeIndex].accessCount = accessCount;
+            
+            // Only recalculate if we're in access-count mode
+            if (currentData.nodeSizeMode === 'access-count' && nodesRef.current) {
+              // Recalculate all node sizes (normalization may change)
+              const nodeSizes = calculateNodeSizes(
+                currentData.nodes,
+                currentData.edges,
+                'access-count'
+              );
+              
+              // Update all nodes with new sizes
+              currentData.nodes.forEach((node) => {
+                const visNode = toVisNode(
+                  node, 
+                  favoritesRef.current.has(node.id), 
+                  nodeSizes.get(node.id), 
+                  themeRef.current
+                );
+                nodesRef.current?.update(visNode);
+              });
+            }
+          }
+          break;
+        }
       }
     };
 
@@ -461,8 +606,17 @@ case 'FILE_INFO':
     const initialData = dataRef.current;
     const currentFavorites = favoritesRef.current;
 
+    // Calculate node sizes based on sizing mode
+    const nodeSizes = calculateNodeSizes(
+      initialData.nodes,
+      initialData.edges,
+      initialData.nodeSizeMode ?? 'connections'
+    );
+
     // Create datasets
-    const nodes = new DataSet(initialData.nodes.map(n => toVisNode(n, currentFavorites.has(n.id), themeRef.current)));
+    const nodes = new DataSet(initialData.nodes.map(n => 
+      toVisNode(n, currentFavorites.has(n.id), nodeSizes.get(n.id), themeRef.current)
+    ));
     const edges = new DataSet(initialData.edges.map(toVisEdge));
 
     nodesRef.current = nodes;
@@ -569,6 +723,13 @@ case 'FILE_INFO':
 
     const currentFavorites = favoritesRef.current;
 
+    // Calculate node sizes for the updated data
+    const nodeSizes = calculateNodeSizes(
+      data.nodes,
+      data.edges,
+      data.nodeSizeMode ?? 'connections'
+    );
+
     // Update nodes
     const currentNodeIds = new Set(nodesRef.current.getIds());
     const newNodeIds = new Set(data.nodes.map((n) => n.id));
@@ -580,7 +741,7 @@ case 'FILE_INFO':
     });
 
     data.nodes.forEach((node) => {
-      const visNode = toVisNode(node, currentFavorites.has(node.id), themeRef.current);
+      const visNode = toVisNode(node, currentFavorites.has(node.id), nodeSizes.get(node.id), themeRef.current);
       if (currentNodeIds.has(node.id)) {
         nodesRef.current?.update(visNode);
       } else {
@@ -613,11 +774,18 @@ case 'FILE_INFO':
   useEffect(() => {
     if (!nodesRef.current) return;
     
+    // Recalculate sizes to maintain consistency
+    const nodeSizes = calculateNodeSizes(
+      data.nodes,
+      data.edges,
+      data.nodeSizeMode ?? 'connections'
+    );
+    
     data.nodes.forEach((node) => {
-      const visNode = toVisNode(node, favorites.has(node.id), theme);
+      const visNode = toVisNode(node, favorites.has(node.id), nodeSizes.get(node.id), theme);
       nodesRef.current?.update(visNode);
     });
-  }, [favorites, data.nodes, theme]);
+  }, [favorites, data.nodes, data.edges, data.nodeSizeMode, theme]);
 
   /**
    * Handle hover highlighting - dim unconnected nodes
@@ -698,8 +866,15 @@ case 'FILE_INFO':
       const textColor = isLight ? '#1e1e1e' : '#e2e8f0';
       const edgeColor = isLight ? '#94a3b8' : '#475569';
       
+      // Recalculate sizes for reset
+      const nodeSizes = calculateNodeSizes(
+        data.nodes,
+        data.edges,
+        data.nodeSizeMode ?? 'connections'
+      );
+      
       data.nodes.forEach((node) => {
-        const visNode = toVisNode(node, favorites.has(node.id), themeRef.current);
+        const visNode = toVisNode(node, favorites.has(node.id), nodeSizes.get(node.id), themeRef.current);
         nodesDataSet.update({
           ...visNode,
           opacity: 1.0,
@@ -785,7 +960,7 @@ case 'FILE_INFO':
         <div
           ref={containerRef}
           onContextMenu={handleContextMenu}
-className="graph-container absolute inset-0 rounded-lg m-1 outline-none focus:outline-none"
+          className="graph-container absolute inset-0 rounded-lg m-1 outline-none focus:outline-none"
           style={{ backgroundColor: bgColor, borderWidth: 1, borderStyle: 'solid', borderColor }}
           tabIndex={0}
         />

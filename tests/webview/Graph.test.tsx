@@ -500,6 +500,87 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
     // Node-specific items should NOT appear
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
   });
+
+  describe('node sizing', () => {
+    it('should render graph with nodeSizeMode connections (default)', () => {
+      const data: IGraphData = {
+        nodes: [
+          { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
+          { id: 'leaf1.ts', label: 'leaf1.ts', color: '#93C5FD' },
+          { id: 'leaf2.ts', label: 'leaf2.ts', color: '#93C5FD' },
+        ],
+        edges: [
+          { id: 'hub.ts->leaf1.ts', from: 'hub.ts', to: 'leaf1.ts' },
+          { id: 'hub.ts->leaf2.ts', from: 'hub.ts', to: 'leaf2.ts' },
+        ],
+      };
+
+      const { container } = render(<Graph data={data} />);
+      // Graph should render without errors
+      expect(container.querySelector('div')).toBeInTheDocument();
+    });
+
+    it('should render graph with nodeSizeMode uniform', () => {
+      const data: IGraphData = {
+        nodes: [
+          { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
+          { id: 'leaf.ts', label: 'leaf.ts', color: '#93C5FD' },
+        ],
+        edges: [
+          { id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' },
+        ],
+        nodeSizeMode: 'uniform',
+      };
+
+      const { container } = render(<Graph data={data} />);
+      expect(container.querySelector('div')).toBeInTheDocument();
+    });
+
+    it('should render graph with nodeSizeMode file-size', () => {
+      const data: IGraphData = {
+        nodes: [
+          { id: 'large.ts', label: 'large.ts', color: '#93C5FD', fileSize: 10000 },
+          { id: 'small.ts', label: 'small.ts', color: '#93C5FD', fileSize: 100 },
+        ],
+        edges: [],
+        nodeSizeMode: 'file-size',
+      };
+
+      const { container } = render(<Graph data={data} />);
+      expect(container.querySelector('div')).toBeInTheDocument();
+    });
+
+    it('should handle missing file sizes gracefully in file-size mode', () => {
+      const data: IGraphData = {
+        nodes: [
+          { id: 'known.ts', label: 'known.ts', color: '#93C5FD', fileSize: 1000 },
+          { id: 'unknown.ts', label: 'unknown.ts', color: '#93C5FD' }, // No fileSize
+        ],
+        edges: [],
+        nodeSizeMode: 'file-size',
+      };
+
+      const { container } = render(<Graph data={data} />);
+      // Should render without errors even with missing file sizes
+      expect(container.querySelector('div')).toBeInTheDocument();
+    });
+
+    it('should handle access-count mode (falls back to connections for now)', () => {
+      const data: IGraphData = {
+        nodes: [
+          { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
+          { id: 'leaf.ts', label: 'leaf.ts', color: '#93C5FD' },
+        ],
+        edges: [
+          { id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' },
+        ],
+        nodeSizeMode: 'access-count',
+      };
+
+      const { container } = render(<Graph data={data} />);
+      expect(container.querySelector('div')).toBeInTheDocument();
+    });
+  });
 });
 
 describe('Tooltip Behavior', () => {

@@ -6,6 +6,16 @@
  */
 
 // ============================================================================
+// Settings Types
+// ============================================================================
+
+/**
+ * Node size calculation mode.
+ * Determines how node sizes are computed in the graph.
+ */
+export type NodeSizeMode = 'connections' | 'file-size' | 'access-count' | 'uniform';
+
+// ============================================================================
 // File Data (internal representation, what plugins will produce)
 // ============================================================================
 
@@ -110,6 +120,18 @@ export interface IGraphNode {
    * If undefined, physics will determine initial position.
    */
   y?: number;
+  
+  /**
+   * File size in bytes.
+   * Used for 'file-size' node sizing mode.
+   */
+  fileSize?: number;
+  
+  /**
+   * Number of times this file has been opened.
+   * Used for 'access-count' node sizing mode.
+   */
+  accessCount?: number;
 }
 
 /**
@@ -168,6 +190,8 @@ export interface IGraphData {
   nodes: IGraphNode[];
   /** Array of all edges (imports) in the graph */
   edges: IGraphEdge[];
+  /** Node sizing mode setting */
+  nodeSizeMode?: NodeSizeMode;
 }
 
 // ============================================================================
@@ -196,7 +220,8 @@ export type ExtensionToWebviewMessage =
   | { type: 'FAVORITES_UPDATED'; payload: { favorites: string[] } }
   | { type: 'THEME_CHANGED'; payload: { kind: 'light' | 'dark' | 'high-contrast' } }
   | { type: 'FILE_INFO'; payload: IFileInfo }
-  | { type: 'REQUEST_EXPORT_PNG' };
+  | { type: 'REQUEST_EXPORT_PNG' }
+  | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } };
 
 /**
  * Messages sent from the Webview to the Extension.

@@ -5,6 +5,7 @@
  */
 
 import * as vscode from 'vscode';
+import { NodeSizeMode } from '../shared/types';
 
 /**
  * Default exclude patterns for file discovery.
@@ -41,6 +42,8 @@ export interface ICodeGraphyConfig {
   plugins: string[];
   /** User-defined colors for file extensions (overrides plugin/generated colors) */
   fileColors: Record<string, string>;
+  /** What determines node size in the graph */
+  nodeSizeBy: NodeSizeMode;
 }
 
 /**
@@ -131,6 +134,25 @@ export class Configuration {
   }
 
   /**
+   * What determines node size in the graph.
+   * Options: 'connections', 'file-size', 'access-count', 'uniform'
+   * @default 'connections'
+   */
+  get nodeSizeBy(): NodeSizeMode {
+    return this.config.get<NodeSizeMode>('nodeSizeBy', 'connections');
+  }
+
+  /**
+   * Gets a configuration value by key with a default.
+   * @param key - Configuration key (without 'codegraphy.' prefix)
+   * @param defaultValue - Default value if not set
+   * @returns The configuration value or default
+   */
+  get<T>(key: string, defaultValue: T): T {
+    return this.config.get<T>(key, defaultValue);
+  }
+
+  /**
    * Gets all configuration values as a single object.
    * Useful for passing configuration to other modules.
    * 
@@ -145,6 +167,7 @@ export class Configuration {
       showOrphans: this.showOrphans,
       plugins: this.plugins,
       fileColors: this.fileColors,
+      nodeSizeBy: this.nodeSizeBy,
     };
   }
 

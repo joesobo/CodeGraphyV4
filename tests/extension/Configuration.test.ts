@@ -117,6 +117,7 @@ describe('Configuration', () => {
         showOrphans: true,
         plugins: [],
         fileColors: {},
+        nodeSizeBy: 'connections',
       });
     });
 

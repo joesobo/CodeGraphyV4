@@ -12,8 +12,14 @@ CodeGraphy provides several settings to customize its behavior. Configure these 
 | `codegraphy.respectGitignore` | boolean | `true` | Honor .gitignore patterns |
 | `codegraphy.showOrphans` | boolean | `true` | Show files with no connections |
 | `codegraphy.favorites` | string[] | `[]` | Favorite file paths (highlighted with yellow border) |
+| `codegraphy.nodeSizeBy` | string | `"connections"` | What determines node size (`connections`, `file-size`, `access-count`, `uniform`) |
 | `codegraphy.plugins` | string[] | `[]` | Paths to external plugins |
 | `codegraphy.fileColors` | object | `{}` | Custom colors for file extensions |
+| `codegraphy.physics.gravitationalConstant` | number | `-50` | Gravity strength (more negative = stronger pull) |
+| `codegraphy.physics.springLength` | number | `100` | Preferred distance between connected nodes |
+| `codegraphy.physics.springConstant` | number | `0.08` | Spring stiffness (connection strength) |
+| `codegraphy.physics.damping` | number | `0.4` | Motion settling speed (higher = faster) |
+| `codegraphy.physics.centralGravity` | number | `0.01` | Pull toward viewport center |
 
 ## Detailed Documentation
 
@@ -148,6 +154,54 @@ Favorites persist across sessions and are useful for:
 - Marking frequently-edited files
 - Creating visual anchors in large graphs
 
+### `codegraphy.nodeSizeBy`
+
+Controls what determines the size of nodes in the graph visualization.
+
+```json
+{
+  "codegraphy.nodeSizeBy": "connections"
+}
+```
+
+**Available modes:**
+
+| Mode | Description |
+|------|-------------|
+| `connections` | More connections = larger node (default) |
+| `file-size` | Larger files = larger nodes (uses logarithmic scale) |
+| `access-count` | Frequently opened files = larger nodes (placeholder) |
+| `uniform` | All nodes have the same size |
+
+**Mode details:**
+
+- **`connections`** — Nodes with more imports/exports appear larger. Useful for identifying hub files and entry points.
+
+- **`file-size`** — Node size reflects the file's byte size. Uses a logarithmic scale to handle large variance between files. Useful for spotting large files that might need refactoring.
+
+- **`access-count`** — Intended to make frequently-opened files larger. Currently a placeholder that falls back to `connections` mode until visit tracking is implemented.
+
+- **`uniform`** — All nodes display at the same size. Useful when you want to focus on connections without visual weight differences.
+
+**Size range:**
+- Minimum size: 10
+- Maximum size: 40
+- Default size: 16
+
+**Example — Identify large files:**
+```json
+{
+  "codegraphy.nodeSizeBy": "file-size"
+}
+```
+
+**Example — Clean uniform look:**
+```json
+{
+  "codegraphy.nodeSizeBy": "uniform"
+}
+```
+
 ### `codegraphy.plugins`
 
 Paths to external plugin files (for future use).
@@ -216,6 +270,25 @@ CodeGraphy uses a dynamic color system with three priority levels:
   }
 }
 ```
+
+### Physics Settings
+
+Tune the force simulation using the gear icon in the graph view or by setting values directly in `settings.json`:
+
+```json
+{
+  "codegraphy.physics.gravitationalConstant": -80,
+  "codegraphy.physics.springLength": 140,
+  "codegraphy.physics.springConstant": 0.1,
+  "codegraphy.physics.damping": 0.35,
+  "codegraphy.physics.centralGravity": 0.02
+}
+```
+
+**Notes:**
+- `gravitationalConstant` should be negative (more negative = stronger pull).
+- `springLength` controls desired edge length; larger values spread nodes out.
+- `damping` and `centralGravity` range from 0–1.
 
 ## Example Configurations
 

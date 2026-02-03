@@ -24,6 +24,8 @@ interface ICachedFile {
   mtime: number;
   /** Detected connections */
   connections: IConnection[];
+  /** File size in bytes */
+  size?: number;
 }
 
 /**
@@ -37,7 +39,10 @@ interface IAnalysisCache {
 }
 
 const CACHE_KEY = 'codegraphy.analysisCache';
-const CACHE_VERSION = '1.3.0'; // Bumped for C# PathResolver fix
+const CACHE_VERSION = '1.4.0'; // Bumped for file size caching
+
+/** Storage key for file visit counts in workspace state (shared with GraphViewProvider) */
+const VISITS_KEY = 'codegraphy.fileVisits';
 
 /**
  * Orchestrates workspace analysis.
@@ -197,10 +202,13 @@ export class WorkspaceAnalyzer {
     for (const file of files) {
       // Check cache
       const cached = this._cache.files[file.relativePath];
-      const mtime = await this._getFileMtime(file.absolutePath);
+      const stat = await this._getFileStat(file.absolutePath);
 
-      if (cached && cached.mtime === mtime) {
-        // Cache hit
+      if (cached && cached.mtime === stat?.mtime) {
+        // Cache hit - but update size if missing (migration from old cache)
+        if (cached.size === undefined && stat?.size !== undefined) {
+          cached.size = stat.size;
+        }
         results.set(file.relativePath, cached.connections);
         cacheHits++;
         continue;
@@ -217,10 +225,11 @@ export class WorkspaceAnalyzer {
 
       results.set(file.relativePath, connections);
 
-      // Update cache
+      // Update cache with connections and size
       this._cache.files[file.relativePath] = {
-        mtime: mtime ?? 0,
+        mtime: stat?.mtime ?? 0,
         connections,
+        size: stat?.size,
       };
     }
 
@@ -240,6 +249,12 @@ export class WorkspaceAnalyzer {
     const edges: IGraphEdge[] = [];
     const nodeIds = new Set<string>();
     const connectedIds = new Set<string>();
+
+    // Get node size mode from settings
+    const nodeSizeMode = this._config.nodeSizeBy;
+
+    // Get visit counts from workspace state (for access-count mode)
+    const visitCounts = this._context.workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
 
     // First pass: create nodes and track connections
     for (const [filePath, connections] of fileConnections) {
@@ -273,11 +288,14 @@ export class WorkspaceAnalyzer {
       }
 
       const color = this._colorPalette.getColorForFile(filePath);
+      const cached = this._cache.files[filePath];
 
       nodes.push({
         id: filePath,
         label: path.basename(filePath),
         color,
+        fileSize: cached?.size,
+        accessCount: visitCounts[filePath] ?? 0,
       });
     }
 
@@ -287,7 +305,7 @@ export class WorkspaceAnalyzer {
       (e) => nodeIdSet.has(e.from) && nodeIdSet.has(e.to)
     );
 
-    return { nodes, edges: filteredEdges };
+    return { nodes, edges: filteredEdges, nodeSizeMode };
   }
 
   /**
@@ -314,12 +332,12 @@ export class WorkspaceAnalyzer {
   }
 
   /**
-   * Gets the modification time of a file.
+   * Gets file stat (mtime and size).
    */
-  private async _getFileMtime(filePath: string): Promise<number | null> {
+  private async _getFileStat(filePath: string): Promise<{ mtime: number; size: number } | null> {
     try {
       const stat = await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
-      return stat.mtime;
+      return { mtime: stat.mtime, size: stat.size };
     } catch {
       return null;
     }

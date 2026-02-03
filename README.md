@@ -12,6 +12,7 @@ Visualize your codebase as an interactive 2D force graph. See how files connect 
 - 🖱️ **Interactive** — Pan, zoom, drag nodes, click to select, double-click to open files
 - 💾 **Position persistence** — Your graph layout is saved and restored between sessions
 - ⚡ **Fast** — Built with Vis Network for smooth physics simulation
+- ⚙️ **Physics controls** — Tune gravity, link distance, damping, and more from the graph UI
 - 🔌 **Extensible** — Plugin architecture for language support
 
 ## Quick Start
@@ -51,7 +52,12 @@ Configure CodeGraphy in your workspace settings (`.vscode/settings.json`):
   "codegraphy.favorites": ["src/index.ts", "src/core/engine.ts"],
   "codegraphy.fileColors": {
     ".custom": "#FF5733"
-  }
+  },
+  "codegraphy.physics.gravitationalConstant": -80,
+  "codegraphy.physics.springLength": 140,
+  "codegraphy.physics.springConstant": 0.1,
+  "codegraphy.physics.damping": 0.35,
+  "codegraphy.physics.centralGravity": 0.02
 }
 ```
 
@@ -83,6 +89,20 @@ Colors are assigned automatically, but you can override any file type:
 Supports extensions (`.ts`), exact filenames (`.gitignore`, `Makefile`), and glob patterns (`**/*.test.ts`).
 
 Color priority: **User settings** > **Plugin defaults** > **Auto-generated**
+
+### Physics Settings
+
+Adjust the force simulation using the gear icon in the bottom-right of the graph. Settings persist per workspace and can also be set in `settings.json`:
+
+```json
+{
+  "codegraphy.physics.gravitationalConstant": -80,
+  "codegraphy.physics.springLength": 140,
+  "codegraphy.physics.springConstant": 0.1,
+  "codegraphy.physics.damping": 0.35,
+  "codegraphy.physics.centralGravity": 0.02
+}
+```
 
 See [Settings Documentation](./docs/SETTINGS.md) for all options.
 

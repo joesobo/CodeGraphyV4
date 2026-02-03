@@ -11,6 +11,7 @@ export const window = {
   registerWebviewViewProvider: vi.fn(),
   showInformationMessage: vi.fn(),
   showErrorMessage: vi.fn(),
+  onDidChangeActiveTextEditor: vi.fn(() => ({ dispose: vi.fn() })),
 };
 
 export const commands = {
@@ -23,6 +24,13 @@ export const workspace = {
     get: vi.fn(),
   })),
   onDidChangeConfiguration: vi.fn(() => ({ dispose: vi.fn() })),
+  onDidSaveTextDocument: vi.fn(() => ({ dispose: vi.fn() })),
+  createFileSystemWatcher: vi.fn(() => ({
+    onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
+    onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
+    onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+    dispose: vi.fn(),
+  })),
   workspaceFolders: undefined,
   fs: {
     stat: vi.fn(),

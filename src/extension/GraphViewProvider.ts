@@ -668,12 +668,30 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Increments the visit count for a file.
+   * Increments the visit count for a file and notifies the webview.
    */
   private async _incrementVisitCount(filePath: string): Promise<void> {
     const visits = this._context.workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
     visits[filePath] = (visits[filePath] ?? 0) + 1;
     await this._context.workspaceState.update(VISITS_KEY, visits);
+    
+    // Notify webview of the updated access count for real-time node size updates
+    this._sendMessage({ 
+      type: 'NODE_ACCESS_COUNT_UPDATED', 
+      payload: { nodeId: filePath, accessCount: visits[filePath] } 
+    });
+  }
+
+  /**
+   * Tracks a file visit when opened through VS Code (external to CodeGraphy).
+   * Called by the active text editor change listener.
+   */
+  public async trackFileVisit(filePath: string): Promise<void> {
+    // Only track files that are in our graph
+    const nodeExists = this._graphData.nodes.some(n => n.id === filePath);
+    if (nodeExists) {
+      await this._incrementVisitCount(filePath);
+    }
   }
 
   /**

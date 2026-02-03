@@ -11,11 +11,18 @@
   "codegraphy.respectGitignore": true,
   "codegraphy.showOrphans": true,
   "codegraphy.favorites": ["src/index.ts"],
+  "codegraphy.nodeSizeBy": "file-size",
   "codegraphy.plugins": [],
   // Custom file colors (overrides plugin/generated colors)
   "codegraphy.fileColors": {
     // Example: ".myext": "#FF5733"
   },
+  // Physics tuning (gear icon mirrors these values)
+  "codegraphy.physics.gravitationalConstant": -80,
+  "codegraphy.physics.springLength": 140,
+  "codegraphy.physics.springConstant": 0.1,
+  "codegraphy.physics.damping": 0.35,
+  "codegraphy.physics.centralGravity": 0.02,
 
   // TypeScript settings for the fixture
   "typescript.tsdk": "node_modules/typescript/lib"

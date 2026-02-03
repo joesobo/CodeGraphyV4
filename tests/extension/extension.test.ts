@@ -48,7 +48,8 @@ describe('Extension', () => {
     it('should add subscriptions to context', () => {
       activate(mockContext as unknown as Parameters<typeof activate>[0]);
 
-      expect(mockContext.subscriptions.length).toBe(8); // view provider + 6 commands + config listener
+      // view provider + 6 commands + config listener + active editor listener + save listener + file watcher (3 events + watcher)
+      expect(mockContext.subscriptions.length).toBe(13);
     });
   });
 
