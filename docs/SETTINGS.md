@@ -12,6 +12,7 @@ CodeGraphy provides several settings to customize its behavior. Configure these 
 | `codegraphy.respectGitignore` | boolean | `true` | Honor .gitignore patterns |
 | `codegraphy.showOrphans` | boolean | `true` | Show files with no connections |
 | `codegraphy.favorites` | string[] | `[]` | Favorite file paths (highlighted with yellow border) |
+| `codegraphy.bidirectionalEdges` | string | `"separate"` | How to display bidirectional connections |
 | `codegraphy.nodeSizeBy` | string | `"connections"` | What determines node size (`connections`, `file-size`, `access-count`, `uniform`) |
 | `codegraphy.plugins` | string[] | `[]` | Paths to external plugins |
 | `codegraphy.fileColors` | object | `{}` | Custom colors for file extensions |
@@ -153,6 +154,20 @@ Favorites persist across sessions and are useful for:
 - Highlighting entry points
 - Marking frequently-edited files
 - Creating visual anchors in large graphs
+
+### `codegraphy.bidirectionalEdges`
+
+Controls how bidirectional connections are displayed when two files import each other.
+
+```json
+{
+  "codegraphy.bidirectionalEdges": "combined"
+}
+```
+
+**Options:**
+- `separate` (default): two arrows, one in each direction
+- `combined`: a single line with arrowheads on both ends
 
 ### `codegraphy.nodeSizeBy`
 

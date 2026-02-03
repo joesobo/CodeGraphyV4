@@ -10,6 +10,7 @@
   ],
   "codegraphy.respectGitignore": true,
   "codegraphy.showOrphans": true,
+  "codegraphy.bidirectionalEdges": "separate",
   "codegraphy.favorites": ["src/index.ts"],
   "codegraphy.nodeSizeBy": "file-size",
   "codegraphy.plugins": [],

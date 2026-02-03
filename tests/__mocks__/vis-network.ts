@@ -7,9 +7,6 @@ const globalEventHandlers: Map<string, EventHandler[]> = new Map();
 // Keep track of all Network instances for event simulation
 const networkInstances: Network[] = [];
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let addedData: { nodes: any[]; edges: any[] } = { nodes: [], edges: [] };
-
 // Store what getNodeAt should return (for testing context menu behavior)
 let mockNodeAtPosition: string | undefined = undefined;
 

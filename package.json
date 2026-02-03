@@ -152,6 +152,16 @@
           "default": [],
           "description": "List of favorite file paths. Favorited files are displayed with a yellow outline in the graph."
         },
+        "codegraphy.bidirectionalEdges": {
+          "type": "string",
+          "enum": ["separate", "combined"],
+          "default": "separate",
+          "enumDescriptions": [
+            "Show two separate arrows for bidirectional connections",
+            "Show a single bidirectional arrow with arrowheads on both ends"
+          ],
+          "description": "How to display bidirectional connections (when A imports B and B imports A)."
+        },
         "codegraphy.nodeSizeBy": {
           "type": "string",
           "enum": [

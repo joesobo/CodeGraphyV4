@@ -1,6 +1,6 @@
 /**
  * Helper utilities - imports format
- * Expected: edge to format
+ * Expected: bidirectional edge with format (helpers ↔ format)
  */
 import { formatDate } from './format';
 
@@ -9,4 +9,9 @@ export function processData(data: unknown) {
     timestamp: formatDate(new Date()),
     data,
   };
+}
+
+/** Used by format.ts to demonstrate bidirectional edges */
+export function truncate(str: string, maxLength: number): string {
+  return str.length > maxLength ? str.slice(0, maxLength) + '...' : str;
 }

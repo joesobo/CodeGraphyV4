@@ -38,6 +38,8 @@ export interface ICodeGraphyConfig {
   respectGitignore: boolean;
   /** Whether to show orphan nodes (files with no connections) */
   showOrphans: boolean;
+  /** How to display bidirectional connections */
+  bidirectionalEdges: 'separate' | 'combined';
   /** List of plugin extension names to enable */
   plugins: string[];
   /** User-defined colors for file extensions (overrides plugin/generated colors) */
@@ -115,6 +117,14 @@ export class Configuration {
   }
 
   /**
+   * How to display bidirectional connections.
+   * @default 'separate'
+   */
+  get bidirectionalEdges(): 'separate' | 'combined' {
+    return this.config.get<'separate' | 'combined'>('bidirectionalEdges', 'separate');
+  }
+
+  /**
    * List of CodeGraphy plugin extension names to enable.
    * Plugins are VSCode extensions that provide additional language support.
    * @default []
@@ -165,6 +175,7 @@ export class Configuration {
       exclude: this.exclude,
       respectGitignore: this.respectGitignore,
       showOrphans: this.showOrphans,
+      bidirectionalEdges: this.bidirectionalEdges,
       plugins: this.plugins,
       fileColors: this.fileColors,
       nodeSizeBy: this.nodeSizeBy,

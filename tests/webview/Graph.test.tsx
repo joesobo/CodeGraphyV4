@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import Graph from '../../src/webview/components/Graph';
 import { IGraphData } from '../../src/shared/types';
 import { Network } from 'vis-network';

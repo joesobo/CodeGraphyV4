@@ -4,7 +4,7 @@ import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { SearchBar } from './components/SearchBar';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
+import { IGraphData, BidirectionalEdgeMode, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
 
 // Get VSCode API if available (must be called exactly once at module level)
 declare function acquireVsCodeApi(): {
@@ -35,6 +35,7 @@ export default function App(): React.ReactElement {
   const [graphData, setGraphData] = useState<IGraphData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [bidirectionalMode, setBidirectionalMode] = useState<BidirectionalEdgeMode>('separate');
   const [searchQuery, setSearchQuery] = useState('');
   const theme = useTheme();
 
@@ -76,6 +77,9 @@ export default function App(): React.ReactElement {
           break;
         case 'FAVORITES_UPDATED':
           setFavorites(new Set(message.payload.favorites));
+          break;
+        case 'SETTINGS_UPDATED':
+          setBidirectionalMode(message.payload.bidirectionalEdges);
           break;
       }
     };
@@ -137,7 +141,12 @@ export default function App(): React.ReactElement {
       
       {/* Graph */}
       <div className="flex-1 relative">
-        <Graph data={filteredData || graphData} favorites={favorites} theme={theme} />
+        <Graph 
+          data={filteredData || graphData} 
+          favorites={favorites} 
+          theme={theme}
+          bidirectionalMode={bidirectionalMode}
+        />
       </div>
     </div>
   );

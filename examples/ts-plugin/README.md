@@ -29,14 +29,46 @@ index.ts ──────┬──▶ components/App.tsx ──┬──▶ co
                │                         │
                │                         └──▶ components/Header.tsx ──▶ utils/styles.ts
                │
-               ├──▶ services/api.ts ────┬──▶ utils/helpers.ts ──▶ utils/format.ts
-               │                        │
+               ├──▶ services/api.ts ────┬──▶ utils/helpers.ts ◀──▶ utils/format.ts
+               │                        │       (bidirectional)
                │                        └──▶ config.ts
                │
                └──▶ config.ts
 
 orphan.ts (no connections - only visible with showOrphans=true)
 ```
+
+## Bidirectional Edges Demo
+
+This example includes a **circular dependency** between `helpers.ts` and `format.ts` to demonstrate the `bidirectionalEdges` setting.
+
+### The Setting
+
+```jsonc
+// .vscode/settings.json
+{
+  "codegraphy.bidirectionalEdges": "separate"  // or "combined"
+}
+```
+
+### Visual Difference
+
+| Mode | Description | Visualization |
+|------|-------------|---------------|
+| `separate` | Two distinct arrows | `helpers.ts ──▶ format.ts` + `format.ts ──▶ helpers.ts` |
+| `combined` | One double-headed arrow | `helpers.ts ◀──▶ format.ts` |
+
+### When to Use Each Mode
+
+- **`separate`** (default): Best for debugging circular dependencies. Shows the exact import direction for each edge.
+- **`combined`**: Cleaner visualization when you have many bidirectional relationships. Reduces visual clutter.
+
+### Try It
+
+1. Open this project in CodeGraphy
+2. Find the `helpers.ts ↔ format.ts` connection
+3. Toggle `codegraphy.bidirectionalEdges` between `"separate"` and `"combined"`
+4. Observe how the edge rendering changes
 
 ## Files (10 total)
 
@@ -49,16 +81,20 @@ orphan.ts (no connections - only visible with showOrphans=true)
 | `src/components/Button.tsx` | styles | App | — |
 | `src/components/Header.tsx` | styles | App | — |
 | `src/utils/styles.ts` | — | Button, Header | — |
-| `src/utils/helpers.ts` | format | api | — |
-| `src/utils/format.ts` | — | helpers | — |
+| `src/utils/helpers.ts` | format | api, **format** | — |
+| `src/utils/format.ts` | **helpers** | helpers | — |
 | `src/services/api.ts` | helpers, config | index | — |
+
+> **Note:** `helpers.ts ↔ format.ts` form a bidirectional edge (circular dependency) to demo the `bidirectionalEdges` setting.
 
 ## Expected Counts
 
 | Setting | Nodes | Edges | Notes |
 |---------|-------|-------|-------|
-| `showOrphans=true` | 14 | 11 | Includes README.md, package.json, tsconfig.json, .gitignore |
-| `showOrphans=false` | 9 | 11 | Only files with connections |
+| `showOrphans=true` | 14 | 12 | Includes README.md, package.json, tsconfig.json, .gitignore |
+| `showOrphans=false` | 9 | 12 | Only files with connections |
+
+> With `bidirectionalEdges: "combined"`, the helpers↔format edge displays as 1 combined edge instead of 2 separate edges.
 
 Non-code files (README.md, package.json, etc.) appear as orphans since they have no import connections.
 
@@ -78,3 +114,5 @@ Non-code files (README.md, package.json, etc.) appear as orphans since they have
 - [ ] Drag nodes → positions saved
 - [ ] Keyboard shortcuts work (0=fit, +/-=zoom)
 - [ ] Path aliases resolve correctly (@components → src/components)
+- [ ] **Bidirectional edges:** `helpers.ts ↔ format.ts` shows as two arrows with `bidirectionalEdges: "separate"`
+- [ ] **Bidirectional edges:** `helpers.ts ↔ format.ts` shows as one combined arrow with `bidirectionalEdges: "combined"`

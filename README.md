@@ -50,6 +50,7 @@ Configure CodeGraphy in your workspace settings (`.vscode/settings.json`):
   "codegraphy.showOrphans": true,
   "codegraphy.respectGitignore": true,
   "codegraphy.favorites": ["src/index.ts", "src/core/engine.ts"],
+  "codegraphy.bidirectionalEdges": "separate",
   "codegraphy.fileColors": {
     ".custom": "#FF5733"
   },
