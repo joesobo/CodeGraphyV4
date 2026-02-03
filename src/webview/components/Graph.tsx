@@ -14,7 +14,6 @@ import {
   IFileInfo,
   BidirectionalEdgeMode,
   IPhysicsSettings,
-  WebviewToExtensionMessage,
   ExtensionToWebviewMessage,
   NodeSizeMode,
 } from '../../shared/types';
@@ -30,7 +29,7 @@ import { NodeTooltip } from './NodeTooltip';
 import { ThemeKind, adjustColorForLightTheme } from '../hooks/useTheme';
 
 // Import centralized VSCode API (acquireVsCodeApi can only be called once per webview)
-import { getVsCodeApi, postMessage } from '../vscodeApi';
+import { postMessage } from '../vscodeApi';
 
 /** Yellow color for favorites */
 const FAVORITE_BORDER_COLOR = '#EAB308';
