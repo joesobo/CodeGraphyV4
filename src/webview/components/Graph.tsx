@@ -27,9 +27,7 @@ import {
 } from './ui/context-menu';
 import { NodeTooltip } from './NodeTooltip';
 import { ThemeKind, adjustColorForLightTheme } from '../hooks/useTheme';
-
-// Import centralized VSCode API (acquireVsCodeApi can only be called once per webview)
-import { postMessage } from '../vscodeApi';
+import { postMessage } from '../lib/vscodeApi';
 
 /** Yellow color for favorites */
 const FAVORITE_BORDER_COLOR = '#EAB308';
@@ -221,6 +219,27 @@ function calculateNodeSizes(
 }
 
 /**
+ * Calculate opacity based on depth level.
+ * Depth 0 (focused node) = 1.0, depth 1 = 0.85, depth 2 = 0.7, etc.
+ */
+function getDepthOpacity(depthLevel: number | undefined): number {
+  if (depthLevel === undefined) return 1.0;
+  if (depthLevel === 0) return 1.0;
+  // Gradually decrease opacity for deeper nodes
+  return Math.max(0.4, 1.0 - (depthLevel * 0.15));
+}
+
+/**
+ * Calculate size multiplier based on depth level.
+ * Depth 0 (focused node) gets a slight size boost.
+ */
+function getDepthSizeMultiplier(depthLevel: number | undefined): number {
+  if (depthLevel === undefined) return 1.0;
+  if (depthLevel === 0) return 1.3; // Focused node is larger
+  return 1.0;
+}
+
+/**
  * Convert IGraphNode to Vis Network node format
  */
 function toVisNode(node: IGraphNode, isFavorite: boolean, size: number = DEFAULT_NODE_SIZE, theme: ThemeKind = 'dark') {
@@ -229,13 +248,26 @@ function toVisNode(node: IGraphNode, isFavorite: boolean, size: number = DEFAULT
   const borderColor = isFavorite ? FAVORITE_BORDER_COLOR : nodeColor;
   const textColor = isLight ? '#1e1e1e' : '#e2e8f0';
   
+  // Apply depth-based styling
+  const depthOpacity = getDepthOpacity(node.depthLevel);
+  const depthSizeMultiplier = getDepthSizeMultiplier(node.depthLevel);
+  const adjustedSize = size * depthSizeMultiplier;
+  
+  // Apply special border for focused node (depth 0)
+  const isFocusedNode = node.depthLevel === 0;
+  const finalBorderColor = isFocusedNode 
+    ? (isLight ? '#2563eb' : '#60a5fa') // Blue highlight for focused node
+    : borderColor;
+  const finalBorderWidth = isFocusedNode ? 4 : (isFavorite ? 3 : 2);
+  
   return {
     id: node.id,
     label: node.label,
-    size,
+    size: adjustedSize,
+    opacity: depthOpacity,
     color: {
       background: nodeColor,
-      border: borderColor,
+      border: finalBorderColor,
       highlight: {
         background: nodeColor,
         border: isFavorite ? FAVORITE_BORDER_COLOR : (isLight ? '#000000' : '#ffffff'),
@@ -249,7 +281,7 @@ function toVisNode(node: IGraphNode, isFavorite: boolean, size: number = DEFAULT
       color: textColor,
       size: 12,
     },
-    borderWidth: isFavorite ? 3 : 2,
+    borderWidth: finalBorderWidth,
     x: node.x,
     y: node.y,
   };
@@ -333,8 +365,6 @@ function toVisEdge(edge: ProcessedEdge) {
 
   return baseEdge;
 }
-
-// postMessage is imported from vscodeApi.ts
 
 /**
  * Export the graph as PNG and send to extension.
@@ -501,7 +531,6 @@ function exportAsJson(network: Network, data: IGraphData): void {
         position: positions[node.id] || { x: 0, y: 0 },
       })),
       edges: data.edges.map(edge => ({
-        id: edge.id,
         from: edge.from,
         to: edge.to,
       })),

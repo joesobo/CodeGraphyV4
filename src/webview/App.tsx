@@ -4,9 +4,10 @@ import GraphIcon from './components/GraphIcon';
 import { SearchBar, SearchOptions } from './components/SearchBar';
 import { ViewSwitcher } from './components/ViewSwitcher';
 import PhysicsSettings from './components/PhysicsSettings';
+import { DepthSlider } from './components/DepthSlider';
 import { useTheme } from './hooks/useTheme';
 import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, ExtensionToWebviewMessage } from '../shared/types';
-import { getVsCodeApi } from './vscodeApi';
+import { postMessage } from './lib/vscodeApi';
 
 /** Default physics settings */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -91,6 +92,7 @@ export default function App(): React.ReactElement {
   const [availableViews, setAvailableViews] = useState<IAvailableView[]>([]);
   const [activeViewId, setActiveViewId] = useState<string>('codegraphy.connections');
   const [physicsSettings, setPhysicsSettings] = useState<IPhysicsSettings>(DEFAULT_PHYSICS);
+  const [depthLimit, setDepthLimit] = useState<number>(1);
   const theme = useTheme();
 
   // Filter graph data based on search (always uses exact substring matching)
@@ -140,16 +142,16 @@ export default function App(): React.ReactElement {
         case 'PHYSICS_SETTINGS_UPDATED':
           setPhysicsSettings(message.payload);
           break;
+        case 'DEPTH_LIMIT_UPDATED':
+          setDepthLimit(message.payload.depthLimit);
+          break;
       }
     };
 
     window.addEventListener('message', handleMessage);
 
     // Tell extension we're ready to receive data
-    const vscode = getVsCodeApi();
-    if (vscode) {
-      vscode.postMessage({ type: 'WEBVIEW_READY', payload: null });
-    }
+    postMessage({ type: 'WEBVIEW_READY', payload: null });
     // No mock data fallback - extension will send real data
 
     return () => {
@@ -202,9 +204,13 @@ export default function App(): React.ReactElement {
             regexError={regexError}
           />
         </div>
+{activeViewId === 'codegraphy.depth-graph' && (
+          <DepthSlider depthLimit={depthLimit} />
+        )}
         <ViewSwitcher
           views={availableViews}
           activeViewId={activeViewId}
+          onViewChange={setActiveViewId}
         />
       </div>
       

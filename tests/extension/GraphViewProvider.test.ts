@@ -76,6 +76,131 @@ describe('GraphViewProvider', () => {
     vi.clearAllMocks();
   });
 
+  describe('Bug #83: Depth Graph view not working - dropdown switches back', () => {
+    it('should send VIEWS_UPDATED when focused file changes', async () => {
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn(() => ({ dispose: () => {} })),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      // Resolve the webview view
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      // Wait for initial messages
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // Clear the mock to only track new calls
+      mockWebview.postMessage.mockClear();
+
+      // Set focused file (simulating user opening a file)
+      provider.setFocusedFile('src/app.ts');
+
+      // Should have sent VIEWS_UPDATED to inform webview that depth-graph is now available
+      const viewsUpdatedCalls = mockWebview.postMessage.mock.calls.filter(
+        (call: unknown[]) => (call[0] as { type: string }).type === 'VIEWS_UPDATED'
+      );
+      expect(viewsUpdatedCalls.length).toBe(1);
+    });
+
+    it('should send VIEWS_UPDATED when focused file is cleared', async () => {
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn(() => ({ dispose: () => {} })),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // Set focused file first
+      provider.setFocusedFile('src/app.ts');
+      
+      mockWebview.postMessage.mockClear();
+
+      // Clear focused file (simulating user closing all editors)
+      provider.setFocusedFile(undefined);
+
+      // Should have sent VIEWS_UPDATED to inform webview that depth-graph is no longer available
+      const viewsUpdatedCalls = mockWebview.postMessage.mock.calls.filter(
+        (call: unknown[]) => (call[0] as { type: string }).type === 'VIEWS_UPDATED'
+      );
+      expect(viewsUpdatedCalls.length).toBe(1);
+    });
+
+    it('should not send VIEWS_UPDATED when focused file does not change', async () => {
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn(() => ({ dispose: () => {} })),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      await new Promise(resolve => setTimeout(resolve, 50));
+
+      // Set focused file
+      provider.setFocusedFile('src/app.ts');
+      
+      mockWebview.postMessage.mockClear();
+
+      // Set same focused file again (no change)
+      provider.setFocusedFile('src/app.ts');
+
+      // Should NOT have sent VIEWS_UPDATED since nothing changed
+      const viewsUpdatedCalls = mockWebview.postMessage.mock.calls.filter(
+        (call: unknown[]) => (call[0] as { type: string }).type === 'VIEWS_UPDATED'
+      );
+      expect(viewsUpdatedCalls.length).toBe(0);
+    });
+  });
+
   describe('Bug #39: Rename dialog dismisses on mouse move', () => {
     it('should use ignoreFocusOut: true in rename input box to prevent dismissal', async () => {
       // Store the message handler when it's registered

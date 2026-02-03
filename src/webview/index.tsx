@@ -1,9 +1,8 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-// Import vscodeApi FIRST to ensure it acquires the API before any other module
-import { getVsCodeApi } from './vscodeApi';
 import App from './App';
 import './index.css';
+import { getVsCodeApi, postMessage, VsCodeApi } from './lib/vscodeApi';
 
 const container = document.getElementById('root');
 if (container) {
@@ -15,8 +14,8 @@ if (container) {
   );
 }
 
-// The API is already acquired in vscodeApi.ts - just get the reference
-const vscode = getVsCodeApi();
-if (vscode) {
-  vscode.postMessage({ type: 'WEBVIEW_READY', payload: null });
-}
+// Notify extension that webview is ready (legacy message)
+postMessage({ type: 'WEBVIEW_READY', payload: null } as Parameters<typeof postMessage>[0]);
+
+// Export for use in components that may still access window.vscode
+(window as unknown as { vscode: VsCodeApi | null }).vscode = getVsCodeApi();

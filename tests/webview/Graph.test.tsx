@@ -711,8 +711,8 @@ describe('Export Functionality', () => {
       expect(appNode.accessCount).toBe(5);
       expect(appNode.position).toBeDefined();
       
-      // Verify edge structure
-      expect(parsed.edges[0].id).toBe('src/app.ts->src/utils.ts');
+      // Verify edge structure (id removed per #86 - it's redundant since from+to uniquely identifies the edge)
+      expect(parsed.edges[0].id).toBeUndefined();
       expect(parsed.edges[0].from).toBe('src/app.ts');
       expect(parsed.edges[0].to).toBe('src/utils.ts');
     }
