@@ -196,6 +196,7 @@ export default function App(): React.ReactElement {
         <ViewSwitcher
           views={availableViews}
           activeViewId={activeViewId}
+          onViewChange={setActiveViewId}
         />
       </div>
       
