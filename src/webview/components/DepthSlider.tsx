@@ -5,23 +5,7 @@
  */
 
 import React from 'react';
-import { WebviewToExtensionMessage } from '../../shared/types';
-
-// Get VSCode API if available
-declare function acquireVsCodeApi(): {
-  postMessage: (message: WebviewToExtensionMessage) => void;
-  getState: () => unknown;
-  setState: (state: unknown) => void;
-};
-
-let vscode: ReturnType<typeof acquireVsCodeApi> | null = null;
-try {
-  if (typeof acquireVsCodeApi !== 'undefined') {
-    vscode = acquireVsCodeApi();
-  }
-} catch {
-  vscode = null;
-}
+import { postMessage } from '../lib/vscodeApi';
 
 interface DepthSliderProps {
   depthLimit: number;
@@ -44,9 +28,7 @@ export function DepthSlider({ depthLimit, onDepthChange }: DepthSliderProps): Re
     const newDepth = parseInt(event.target.value, 10);
     
     // Notify extension
-    if (vscode) {
-      vscode.postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: newDepth } });
-    }
+    postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: newDepth } });
     
     // Notify local handler if provided
     onDepthChange?.(newDepth);

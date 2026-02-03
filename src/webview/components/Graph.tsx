@@ -13,7 +13,6 @@ import {
   IGraphEdge,
   IFileInfo,
   BidirectionalEdgeMode,
-  WebviewToExtensionMessage,
   ExtensionToWebviewMessage,
   NodeSizeMode,
 } from '../../shared/types';
@@ -27,16 +26,7 @@ import {
 } from './ui/context-menu';
 import { NodeTooltip } from './NodeTooltip';
 import { ThemeKind, adjustColorForLightTheme } from '../hooks/useTheme';
-
-// Get VSCode API (provided by the extension host)
-declare function acquireVsCodeApi(): {
-  postMessage: (message: WebviewToExtensionMessage) => void;
-  getState: () => unknown;
-  setState: (state: unknown) => void;
-};
-
-// Initialize VSCode API once (must be called only once per webview)
-const vscode = typeof acquireVsCodeApi !== 'undefined' ? acquireVsCodeApi() : null;
+import { postMessage } from '../lib/vscodeApi';
 
 /** Yellow color for favorites */
 const FAVORITE_BORDER_COLOR = '#EAB308';
@@ -372,17 +362,6 @@ function toVisEdge(edge: ProcessedEdge) {
   }
 
   return baseEdge;
-}
-
-/**
- * Send message to extension
- */
-function postMessage(message: WebviewToExtensionMessage): void {
-  if (vscode) {
-    vscode.postMessage(message);
-  } else {
-    console.log('Message to extension:', message);
-  }
 }
 
 /**

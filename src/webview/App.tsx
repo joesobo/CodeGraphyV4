@@ -5,25 +5,8 @@ import { SearchBar, SearchOptions } from './components/SearchBar';
 import { ViewSwitcher } from './components/ViewSwitcher';
 import { DepthSlider } from './components/DepthSlider';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
-
-// Get VSCode API if available (must be called exactly once at module level)
-declare function acquireVsCodeApi(): {
-  postMessage: (message: WebviewToExtensionMessage) => void;
-  getState: () => unknown;
-  setState: (state: unknown) => void;
-};
-
-// Acquire the API once at module load (VSCode requirement)
-let vscode: ReturnType<typeof acquireVsCodeApi> | null = null;
-try {
-  if (typeof acquireVsCodeApi !== 'undefined') {
-    vscode = acquireVsCodeApi();
-  }
-} catch {
-  // Already acquired or not in VSCode context
-  vscode = null;
-}
+import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, ExtensionToWebviewMessage } from '../shared/types';
+import { getVsCodeApi, postMessage } from './lib/vscodeApi';
 
 /** Default search options */
 const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
@@ -154,9 +137,7 @@ export default function App(): React.ReactElement {
     window.addEventListener('message', handleMessage);
 
     // Tell extension we're ready to receive data
-    if (vscode) {
-      vscode.postMessage({ type: 'WEBVIEW_READY', payload: null });
-    }
+    postMessage({ type: 'WEBVIEW_READY', payload: null });
     // No mock data fallback - extension will send real data
 
     return () => {
