@@ -6,23 +6,29 @@ declare function acquireVsCodeApi(): {
   setState: (state: unknown) => void;
 };
 
+/** 
+ * Singleton VSCode API instance.
+ * acquireVsCodeApi() can only be called ONCE per webview, so we cache it here.
+ * All components should use getVsCodeApi() or postMessage() from this module.
+ */
 let vscode: ReturnType<typeof acquireVsCodeApi> | null = null;
 
-export function getVsCodeApi(): ReturnType<typeof acquireVsCodeApi> | null {
-  if (vscode) return vscode;
-  if (typeof acquireVsCodeApi !== 'undefined') {
-    try {
-      vscode = acquireVsCodeApi();
-    } catch {
-      vscode = null;
-    }
+// Initialize immediately if available (do this at module load time)
+if (typeof acquireVsCodeApi !== 'undefined') {
+  try {
+    vscode = acquireVsCodeApi();
+  } catch {
+    // Already acquired elsewhere - this shouldn't happen with proper usage
+    vscode = null;
   }
+}
+
+export function getVsCodeApi(): ReturnType<typeof acquireVsCodeApi> | null {
   return vscode;
 }
 
 export function postMessage(message: WebviewToExtensionMessage): void {
-  const api = getVsCodeApi();
-  if (api) {
-    api.postMessage(message);
+  if (vscode) {
+    vscode.postMessage(message);
   }
 }
