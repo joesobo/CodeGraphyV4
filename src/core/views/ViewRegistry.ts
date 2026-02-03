@@ -18,7 +18,7 @@ import { IView, IViewInfo, IViewContext } from './types';
  * const registry = new ViewRegistry();
  * 
  * // Register a core view
- * registry.register(fileDependenciesView, { core: true });
+ * registry.register(connectionsView, { core: true });
  * 
  * // Register a plugin-provided view
  * registry.register(typeGraphView, { core: false });

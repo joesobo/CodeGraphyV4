@@ -5,7 +5,7 @@
 
 export { ViewRegistry } from './ViewRegistry';
 export { 
-  fileDependenciesView, 
+  connectionsView, 
   depthGraphView, 
   subfolderView, 
   coreViews 

@@ -36,7 +36,7 @@ interface ViewSwitcherProps {
  * ```tsx
  * <ViewSwitcher
  *   views={availableViews}
- *   activeViewId="codegraphy.file-dependencies"
+ *   activeViewId="codegraphy.connections"
  *   onViewChange={(id) => console.log('Switched to', id)}
  * />
  * ```
