@@ -394,6 +394,150 @@ function exportAsPng(network: Network): void {
 }
 
 /**
+ * Export the graph as SVG and send to extension.
+ * Recreates the graph visualization as vector graphics.
+ */
+function exportAsSvg(network: Network, nodes: DataSet<ReturnType<typeof toVisNode>>, edges: DataSet<ReturnType<typeof toVisEdge>>): void {
+  try {
+    // Get all node positions
+    const nodeIds = nodes.getIds() as string[];
+    const positions = network.getPositions(nodeIds);
+    
+    // Calculate bounds
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const id of nodeIds) {
+      const pos = positions[id];
+      if (pos) {
+        minX = Math.min(minX, pos.x);
+        minY = Math.min(minY, pos.y);
+        maxX = Math.max(maxX, pos.x);
+        maxY = Math.max(maxY, pos.y);
+      }
+    }
+    
+    // Add padding
+    const padding = 100;
+    minX -= padding;
+    minY -= padding;
+    maxX += padding;
+    maxY += padding;
+    
+    const width = maxX - minX;
+    const height = maxY - minY;
+    
+    // Start building SVG
+    const svgParts: string[] = [];
+    svgParts.push(`<?xml version="1.0" encoding="UTF-8"?>`);
+    svgParts.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${width}" height="${height}">`);
+    svgParts.push(`<rect x="${minX}" y="${minY}" width="${width}" height="${height}" fill="#18181b"/>`);
+    
+    // Add defs for arrow markers
+    svgParts.push(`<defs>`);
+    svgParts.push(`<marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">`);
+    svgParts.push(`<polygon points="0 0, 10 3.5, 0 7" fill="#71717a"/>`);
+    svgParts.push(`</marker>`);
+    svgParts.push(`</defs>`);
+    
+    // Draw edges
+    const edgeItems = edges.get();
+    for (const edge of edgeItems) {
+      const fromPos = positions[edge.from as string];
+      const toPos = positions[edge.to as string];
+      if (fromPos && toPos) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const edgeAny = edge as any;
+        const color = edgeAny.color?.color || '#71717a';
+        svgParts.push(`<line x1="${fromPos.x}" y1="${fromPos.y}" x2="${toPos.x}" y2="${toPos.y}" stroke="${color}" stroke-width="1" marker-end="url(#arrowhead)"/>`);
+      }
+    }
+    
+    // Draw nodes
+    const nodeItems = nodes.get();
+    for (const node of nodeItems) {
+      const pos = positions[node.id as string];
+      if (pos) {
+        const size = (node.size as number) || 16;
+        const color = (node.color as { background?: string })?.background || '#3b82f6';
+        const borderColor = (node.color as { border?: string })?.border || color;
+        const label = (node.label as string) || '';
+        
+        // Draw node circle
+        svgParts.push(`<circle cx="${pos.x}" cy="${pos.y}" r="${size}" fill="${color}" stroke="${borderColor}" stroke-width="2"/>`);
+        
+        // Draw label
+        svgParts.push(`<text x="${pos.x}" y="${pos.y + size + 15}" text-anchor="middle" fill="#fafafa" font-size="12" font-family="sans-serif">${escapeXml(label)}</text>`);
+      }
+    }
+    
+    svgParts.push(`</svg>`);
+    
+    const svg = svgParts.join('\n');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `codegraphy-${timestamp}.svg`;
+    
+    postMessage({ type: 'EXPORT_SVG', payload: { svg, filename } });
+  } catch (error) {
+    console.error('[CodeGraphy] SVG export failed:', error);
+  }
+}
+
+/**
+ * Escape XML special characters
+ */
+function escapeXml(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+/**
+ * Export the graph layout as JSON and send to extension.
+ * Includes node positions, metadata, and edge information.
+ */
+function exportAsJson(network: Network, data: IGraphData): void {
+  try {
+    // Get all current positions from the network
+    const nodeIds = data.nodes.map(n => n.id);
+    const positions = network.getPositions(nodeIds);
+    
+    // Build export structure
+    const exportData = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      nodes: data.nodes.map(node => ({
+        id: node.id,
+        label: node.label,
+        color: node.color,
+        fileSize: node.fileSize,
+        accessCount: node.accessCount,
+        position: positions[node.id] || { x: 0, y: 0 },
+      })),
+      edges: data.edges.map(edge => ({
+        id: edge.id,
+        from: edge.from,
+        to: edge.to,
+      })),
+      metadata: {
+        totalNodes: data.nodes.length,
+        totalEdges: data.edges.length,
+        nodeSizeMode: data.nodeSizeMode,
+      },
+    };
+    
+    const json = JSON.stringify(exportData, null, 2);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const filename = `codegraphy-layout-${timestamp}.json`;
+    
+    postMessage({ type: 'EXPORT_JSON', payload: { json, filename } });
+  } catch (error) {
+    console.error('[CodeGraphy] JSON export failed:', error);
+  }
+}
+
+/**
  * Send all current positions to extension for persistence
  */
 function sendAllPositions(network: Network, nodeIds: string[]): void {
@@ -559,6 +703,14 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
           break;
         case 'REQUEST_EXPORT_PNG':
           exportAsPng(network);
+          break;
+        case 'REQUEST_EXPORT_SVG':
+          if (nodesRef.current && edgesRef.current) {
+            exportAsSvg(network, nodesRef.current, edgesRef.current);
+          }
+          break;
+        case 'REQUEST_EXPORT_JSON':
+          exportAsJson(network, dataRef.current);
           break;
         case 'NODE_ACCESS_COUNT_UPDATED': {
           // Update node's access count and recalculate sizes in real-time

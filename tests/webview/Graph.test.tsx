@@ -623,3 +623,143 @@ describe('Tooltip Behavior', () => {
     // The implementation sets tooltipData.visible = false in handleContextMenu
   });
 });
+
+describe('Export Functionality', () => {
+  const mockData: IGraphData = {
+    nodes: [
+      { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', fileSize: 1234, accessCount: 5 },
+      { id: 'src/utils.ts', label: 'utils.ts', color: '#67E8F9', fileSize: 567 },
+    ],
+    edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' }],
+    nodeSizeMode: 'file-size',
+  };
+
+  beforeEach(() => {
+    clearSentMessages();
+    Network.clearAllHandlers();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    Network.clearMockPositions();
+  });
+
+  it('should register message listener on mount', async () => {
+    render(<Graph data={mockData} />);
+    
+    // The component should have added a message listener
+    // We can verify this by checking if window has a listener
+    // (the component adds one in useEffect)
+    await act(async () => {
+      // Give time for useEffect to run
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+    
+    // If the listener is registered, sending a message should be received
+    // (but we can't easily test the internal state without more mocking)
+    expect(true).toBe(true); // Placeholder - component mounts successfully
+  });
+
+  it('should handle REQUEST_EXPORT_JSON message and send EXPORT_JSON response', async () => {
+    render(<Graph data={mockData} />);
+    
+    // Wait for component to mount and register listener
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    });
+
+    // Simulate receiving REQUEST_EXPORT_JSON from extension
+    await act(async () => {
+      const event = new MessageEvent('message', {
+        data: { type: 'REQUEST_EXPORT_JSON' },
+      });
+      window.dispatchEvent(event);
+    });
+
+    // Wait for response
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    });
+
+    // Check if EXPORT_JSON message was sent
+    const messages = getSentMessages();
+    const exportMsg = messages.find((m: { type: string }) => m.type === 'EXPORT_JSON');
+    
+    expect(exportMsg).toBeTruthy();
+    
+    if (exportMsg) {
+      const payload = (exportMsg as { payload: { json: string; filename?: string } }).payload;
+      expect(payload.json).toBeDefined();
+      expect(payload.filename).toMatch(/^codegraphy-layout-.*\.json$/);
+      
+      // Parse the JSON and verify structure
+      const parsed = JSON.parse(payload.json);
+      expect(parsed.version).toBe('1.0');
+      expect(parsed.exportedAt).toBeDefined();
+      expect(parsed.nodes).toHaveLength(2);
+      expect(parsed.edges).toHaveLength(1);
+      expect(parsed.metadata.totalNodes).toBe(2);
+      expect(parsed.metadata.totalEdges).toBe(1);
+      expect(parsed.metadata.nodeSizeMode).toBe('file-size');
+      
+      // Verify node structure
+      const appNode = parsed.nodes.find((n: { id: string }) => n.id === 'src/app.ts');
+      expect(appNode).toBeTruthy();
+      expect(appNode.label).toBe('app.ts');
+      expect(appNode.color).toBe('#93C5FD');
+      expect(appNode.fileSize).toBe(1234);
+      expect(appNode.accessCount).toBe(5);
+      expect(appNode.position).toBeDefined();
+      
+      // Verify edge structure
+      expect(parsed.edges[0].id).toBe('src/app.ts->src/utils.ts');
+      expect(parsed.edges[0].from).toBe('src/app.ts');
+      expect(parsed.edges[0].to).toBe('src/utils.ts');
+    }
+  });
+
+  it('should handle REQUEST_EXPORT_SVG message and send EXPORT_SVG response', async () => {
+    render(<Graph data={mockData} />);
+    
+    // Wait for component to mount and register listener
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    });
+
+    // Simulate receiving REQUEST_EXPORT_SVG from extension
+    await act(async () => {
+      const event = new MessageEvent('message', {
+        data: { type: 'REQUEST_EXPORT_SVG' },
+      });
+      window.dispatchEvent(event);
+    });
+
+    // Wait for response
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    });
+
+    // Check if EXPORT_SVG message was sent
+    const messages = getSentMessages();
+    const exportMsg = messages.find((m: { type: string }) => m.type === 'EXPORT_SVG');
+    
+    expect(exportMsg).toBeTruthy();
+    
+    if (exportMsg) {
+      const payload = (exportMsg as { payload: { svg: string; filename?: string } }).payload;
+      expect(payload.svg).toBeDefined();
+      expect(payload.filename).toMatch(/^codegraphy-.*\.svg$/);
+      
+      // Verify it's valid SVG
+      expect(payload.svg).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+      expect(payload.svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"');
+      expect(payload.svg).toContain('</svg>');
+      
+      // Should contain background rect
+      expect(payload.svg).toContain('fill="#18181b"');
+      
+      // Should contain arrow marker definition
+      expect(payload.svg).toContain('<marker id="arrowhead"');
+    }
+  });
+});

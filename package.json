@@ -51,6 +51,14 @@
         "title": "CodeGraphy: Export as PNG"
       },
       {
+        "command": "codegraphy.exportSvg",
+        "title": "CodeGraphy: Export as SVG"
+      },
+      {
+        "command": "codegraphy.exportJson",
+        "title": "CodeGraphy: Export Layout as JSON"
+      },
+      {
         "command": "codegraphy.clearCache",
         "title": "CodeGraphy: Clear Cache and Refresh"
       }

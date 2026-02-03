@@ -129,6 +129,18 @@ export function activate(context: vscode.ExtensionContext): void {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.exportSvg', () => {
+      provider.requestExportSvg();
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.exportJson', () => {
+      provider.requestExportJson();
+    })
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand('codegraphy.clearCache', () => {
       provider.clearCacheAndRefresh();
     })

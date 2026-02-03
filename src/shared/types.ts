@@ -225,6 +225,8 @@ export type ExtensionToWebviewMessage =
   | { type: 'FILE_INFO'; payload: IFileInfo }
   | { type: 'SETTINGS_UPDATED'; payload: { bidirectionalEdges: BidirectionalEdgeMode } }
   | { type: 'REQUEST_EXPORT_PNG' }
+  | { type: 'REQUEST_EXPORT_SVG' }
+  | { type: 'REQUEST_EXPORT_JSON' }
   | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } };
 
 /**
@@ -264,6 +266,8 @@ export type WebviewToExtensionMessage =
   | { type: 'REFRESH_GRAPH' }
   | { type: 'GET_FILE_INFO'; payload: { path: string } }
   | { type: 'EXPORT_PNG'; payload: { dataUrl: string; filename?: string } }
+  | { type: 'EXPORT_SVG'; payload: { svg: string; filename?: string } }
+  | { type: 'EXPORT_JSON'; payload: { json: string; filename?: string } }
   // Undo/Redo commands from webview keyboard shortcuts
   | { type: 'UNDO' }
   | { type: 'REDO' };
