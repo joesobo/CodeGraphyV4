@@ -18,5 +18,5 @@ if (container) {
 // The API is already acquired in vscodeApi.ts - just get the reference
 const vscode = getVsCodeApi();
 if (vscode) {
-  vscode.postMessage({ type: 'ready' });
+  vscode.postMessage({ type: 'WEBVIEW_READY', payload: null });
 }
