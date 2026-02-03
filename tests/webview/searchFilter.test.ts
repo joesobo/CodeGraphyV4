@@ -77,6 +77,20 @@ describe('filterNodesAdvanced', () => {
       expect(result.matchingIds.has('src/test/App.test.tsx')).toBe(true);
     });
 
+    it('should NOT match files that do not contain the search term (regression test for PR #82)', () => {
+      // Bug: searching "readme" was showing Header.tsx due to fuzzy matching
+      const nodesWithHeader: IGraphNode[] = [
+        { id: 'src/components/Header.tsx', label: 'Header.tsx', color: '#3B82F6' },
+        { id: 'README.md', label: 'README.md', color: '#3B82F6' },
+        { id: 'docs/readme.txt', label: 'readme.txt', color: '#3B82F6' },
+      ];
+      const result = filterNodesAdvanced(nodesWithHeader, 'readme', noOptions);
+      expect(result.matchingIds.has('README.md')).toBe(true);
+      expect(result.matchingIds.has('docs/readme.txt')).toBe(true);
+      expect(result.matchingIds.has('src/components/Header.tsx')).toBe(false); // Should NOT match!
+      expect(result.matchingIds.size).toBe(2);
+    });
+
     it('should match substrings', () => {
       const result = filterNodesAdvanced(testNodes, 'help', noOptions);
       expect(result.matchingIds.size).toBe(1);

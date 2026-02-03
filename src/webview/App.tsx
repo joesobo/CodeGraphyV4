@@ -1,5 +1,4 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
-import Fuse from 'fuse.js';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { SearchBar, SearchOptions } from './components/SearchBar';
@@ -24,13 +23,6 @@ try {
   // Already acquired or not in VSCode context
   vscode = null;
 }
-
-/** Fuse.js options for fuzzy search */
-const FUSE_OPTIONS = {
-  keys: ['label', 'id'],
-  threshold: 0.4,
-  ignoreLocation: true,
-};
 
 /** Default search options */
 const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
@@ -107,34 +99,15 @@ export default function App(): React.ReactElement {
   const [activeViewId, setActiveViewId] = useState<string>('codegraphy.file-dependencies');
   const theme = useTheme();
 
-  // Create fuse instance for fuzzy search (used when no advanced options are active)
-  const fuse = useMemo(() => {
-    if (!graphData) return null;
-    return new Fuse(graphData.nodes, FUSE_OPTIONS);
-  }, [graphData]);
-
-  // Determine if we should use advanced filtering (any option enabled)
-  const useAdvancedFilter = searchOptions.matchCase || searchOptions.wholeWord || searchOptions.regex;
-
-  // Filter graph data based on search
+  // Filter graph data based on search (always uses exact substring matching)
   const { filteredData, regexError } = useMemo((): { filteredData: IGraphData | null; regexError: string | null } => {
     if (!graphData) return { filteredData: null, regexError: null };
     if (!searchQuery.trim()) return { filteredData: graphData, regexError: null };
 
-    let matchingNodeIds: Set<string>;
-    let error: string | null = null;
-
-    if (useAdvancedFilter) {
-      // Use advanced filtering
-      const result = filterNodesAdvanced(graphData.nodes, searchQuery, searchOptions);
-      matchingNodeIds = result.matchingIds;
-      error = result.regexError;
-    } else {
-      // Use fuzzy search
-      if (!fuse) return { filteredData: graphData, regexError: null };
-      const results = fuse.search(searchQuery);
-      matchingNodeIds = new Set(results.map(r => r.item.id));
-    }
+    // Use exact substring/regex matching (not fuzzy search)
+    const result = filterNodesAdvanced(graphData.nodes, searchQuery, searchOptions);
+    const matchingNodeIds = result.matchingIds;
+    const error = result.regexError;
 
     // Filter nodes
     const filteredNodes = graphData.nodes.filter(node => matchingNodeIds.has(node.id));
@@ -145,7 +118,7 @@ export default function App(): React.ReactElement {
     );
 
     return { filteredData: { nodes: filteredNodes, edges: filteredEdges }, regexError: error };
-  }, [graphData, searchQuery, fuse, useAdvancedFilter, searchOptions]);
+  }, [graphData, searchQuery, searchOptions]);
 
   const handleSearchOptionsChange = useCallback((newOptions: SearchOptions) => {
     setSearchOptions(newOptions);
