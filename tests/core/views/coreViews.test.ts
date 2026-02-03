@@ -76,7 +76,7 @@ describe('Core Views', () => {
       expect(result.edges).toHaveLength(0);
     });
 
-    it('should return focused file and immediate connections', () => {
+    it('should return focused file and immediate connections with default depth 1', () => {
       const context = createContext({ focusedFile: 'src/app.ts' });
       const result = depthGraphView.transform(sampleGraphData, context);
 
@@ -91,12 +91,100 @@ describe('Core Views', () => {
       expect(result.edges).toHaveLength(3);
     });
 
-    it('should filter to only 1-hop connections', () => {
+    it('should filter to only 1-hop connections with default depth', () => {
       // format.ts is 2 hops from app.ts (app -> helpers -> format)
       const context = createContext({ focusedFile: 'src/app.ts' });
       const result = depthGraphView.transform(sampleGraphData, context);
 
       expect(result.nodes.map(n => n.id)).not.toContain('src/utils/format.ts');
+    });
+
+    it('should include 2-hop nodes when depthLimit is 2', () => {
+      // format.ts is 2 hops from app.ts (app -> helpers -> format)
+      const context = createContext({ focusedFile: 'src/app.ts', depthLimit: 2 });
+      const result = depthGraphView.transform(sampleGraphData, context);
+
+      // Should now include format.ts
+      expect(result.nodes).toHaveLength(5);
+      expect(result.nodes.map(n => n.id)).toContain('src/utils/format.ts');
+      
+      // Should include the edge from helpers to format
+      expect(result.edges).toHaveLength(4);
+    });
+
+    it('should annotate nodes with depthLevel', () => {
+      const context = createContext({ focusedFile: 'src/app.ts', depthLimit: 2 });
+      const result = depthGraphView.transform(sampleGraphData, context);
+
+      // Check depth levels
+      const appNode = result.nodes.find(n => n.id === 'src/app.ts');
+      expect(appNode?.depthLevel).toBe(0); // Focused node
+
+      const helpersNode = result.nodes.find(n => n.id === 'src/utils/helpers.ts');
+      expect(helpersNode?.depthLevel).toBe(1); // 1 hop
+
+      const formatNode = result.nodes.find(n => n.id === 'src/utils/format.ts');
+      expect(formatNode?.depthLevel).toBe(2); // 2 hops
+    });
+
+    it('should work with depth 3 to include all nodes in chain', () => {
+      // Create a longer chain for testing
+      const chainData: IGraphData = {
+        nodes: [
+          { id: 'a', label: 'a', color: '#fff' },
+          { id: 'b', label: 'b', color: '#fff' },
+          { id: 'c', label: 'c', color: '#fff' },
+          { id: 'd', label: 'd', color: '#fff' },
+        ],
+        edges: [
+          { id: 'a->b', from: 'a', to: 'b' },
+          { id: 'b->c', from: 'b', to: 'c' },
+          { id: 'c->d', from: 'c', to: 'd' },
+        ],
+      };
+
+      const context = createContext({ focusedFile: 'a', depthLimit: 3 });
+      const result = depthGraphView.transform(chainData, context);
+
+      // All nodes should be included
+      expect(result.nodes).toHaveLength(4);
+      expect(result.nodes.map(n => n.id)).toEqual(expect.arrayContaining(['a', 'b', 'c', 'd']));
+
+      // Check depth levels
+      expect(result.nodes.find(n => n.id === 'a')?.depthLevel).toBe(0);
+      expect(result.nodes.find(n => n.id === 'b')?.depthLevel).toBe(1);
+      expect(result.nodes.find(n => n.id === 'c')?.depthLevel).toBe(2);
+      expect(result.nodes.find(n => n.id === 'd')?.depthLevel).toBe(3);
+    });
+
+    it('should handle depth 1 explicitly', () => {
+      const context = createContext({ focusedFile: 'src/app.ts', depthLimit: 1 });
+      const result = depthGraphView.transform(sampleGraphData, context);
+
+      // Same as default, should not include format.ts
+      expect(result.nodes).toHaveLength(4);
+      expect(result.nodes.map(n => n.id)).not.toContain('src/utils/format.ts');
+    });
+
+    it('should handle focused file not in graph', () => {
+      const context = createContext({ focusedFile: 'nonexistent.ts', depthLimit: 1 });
+      const result = depthGraphView.transform(sampleGraphData, context);
+
+      // Should return empty since the focused file doesn't exist
+      expect(result.nodes).toHaveLength(0);
+      expect(result.edges).toHaveLength(0);
+    });
+
+    it('should traverse bidirectionally (both imports and imported-by)', () => {
+      // helpers.ts is imported by app.ts and imports format.ts
+      // Starting from helpers.ts at depth 1, we should see both app.ts and format.ts
+      const context = createContext({ focusedFile: 'src/utils/helpers.ts', depthLimit: 1 });
+      const result = depthGraphView.transform(sampleGraphData, context);
+
+      expect(result.nodes).toHaveLength(3);
+      expect(result.nodes.map(n => n.id)).toContain('src/utils/helpers.ts');
+      expect(result.nodes.map(n => n.id)).toContain('src/app.ts'); // imports helpers
+      expect(result.nodes.map(n => n.id)).toContain('src/utils/format.ts'); // imported by helpers
     });
 
     it('should be unavailable when no file is focused', () => {
@@ -107,6 +195,14 @@ describe('Core Views', () => {
     it('should be available when a file is focused', () => {
       const context = createContext({ focusedFile: 'src/app.ts' });
       expect(depthGraphView.isAvailable?.(context)).toBe(true);
+    });
+
+    it('should preserve nodeSizeMode in output', () => {
+      const dataWithMode: IGraphData = { ...sampleGraphData, nodeSizeMode: 'file-size' };
+      const context = createContext({ focusedFile: 'src/app.ts', depthLimit: 1 });
+      const result = depthGraphView.transform(dataWithMode, context);
+
+      expect(result.nodeSizeMode).toBe('file-size');
     });
   });
 

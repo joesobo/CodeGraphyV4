@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { getVsCodeApi, postMessage, VsCodeApi } from './lib/vscodeApi';
 
 const container = document.getElementById('root');
 if (container) {
@@ -13,15 +14,8 @@ if (container) {
   );
 }
 
-// Notify extension that webview is ready
-declare const acquireVsCodeApi: () => {
-  postMessage: (message: unknown) => void;
-  getState: () => unknown;
-  setState: (state: unknown) => void;
-};
+// Notify extension that webview is ready (legacy message)
+postMessage({ type: 'WEBVIEW_READY', payload: null } as Parameters<typeof postMessage>[0]);
 
-const vscode = acquireVsCodeApi();
-vscode.postMessage({ type: 'ready' });
-
-// Export for use in components
-(window as unknown as { vscode: ReturnType<typeof acquireVsCodeApi> }).vscode = vscode;
+// Export for use in components that may still access window.vscode
+(window as unknown as { vscode: VsCodeApi | null }).vscode = getVsCodeApi();
