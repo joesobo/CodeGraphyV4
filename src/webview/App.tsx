@@ -3,8 +3,9 @@ import Fuse from 'fuse.js';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { SearchBar } from './components/SearchBar';
+import { ViewSwitcher } from './components/ViewSwitcher';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, BidirectionalEdgeMode, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
+import { IGraphData, IAvailableView, BidirectionalEdgeMode, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
 
 // Get VSCode API if available (must be called exactly once at module level)
 declare function acquireVsCodeApi(): {
@@ -37,6 +38,8 @@ export default function App(): React.ReactElement {
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [bidirectionalMode, setBidirectionalMode] = useState<BidirectionalEdgeMode>('separate');
   const [searchQuery, setSearchQuery] = useState('');
+  const [availableViews, setAvailableViews] = useState<IAvailableView[]>([]);
+  const [activeViewId, setActiveViewId] = useState<string>('codegraphy.file-dependencies');
   const theme = useTheme();
 
   // Create fuse instance for fuzzy search
@@ -80,6 +83,10 @@ export default function App(): React.ReactElement {
           break;
         case 'SETTINGS_UPDATED':
           setBidirectionalMode(message.payload.bidirectionalEdges);
+          break;
+        case 'VIEWS_UPDATED':
+          setAvailableViews(message.payload.views);
+          setActiveViewId(message.payload.activeViewId);
           break;
       }
     };
@@ -125,17 +132,23 @@ export default function App(): React.ReactElement {
     );
   }
 
-  // Graph view with search bar
+  // Graph view with search bar and view switcher
   return (
     <div className="relative w-full h-screen flex flex-col">
-      {/* Search bar */}
-      <div className="flex-shrink-0 p-2 border-b border-[var(--vscode-panel-border,#3c3c3c)]">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          resultCount={filteredData?.nodes.length}
-          totalCount={graphData.nodes.length}
-          placeholder="Search files... (Ctrl+F)"
+      {/* Header with search bar and view switcher */}
+      <div className="flex-shrink-0 p-2 border-b border-[var(--vscode-panel-border,#3c3c3c)] flex items-center gap-2">
+        <div className="flex-1">
+          <SearchBar
+            value={searchQuery}
+            onChange={setSearchQuery}
+            resultCount={filteredData?.nodes.length}
+            totalCount={graphData.nodes.length}
+            placeholder="Search files... (Ctrl+F)"
+          />
+        </div>
+        <ViewSwitcher
+          views={availableViews}
+          activeViewId={activeViewId}
         />
       </div>
       
