@@ -39,6 +39,14 @@
         "title": "CodeGraphy: Zoom Out"
       },
       {
+        "command": "codegraphy.undo",
+        "title": "CodeGraphy: Undo"
+      },
+      {
+        "command": "codegraphy.redo",
+        "title": "CodeGraphy: Redo"
+      },
+      {
         "command": "codegraphy.exportPng",
         "title": "CodeGraphy: Export as PNG"
       },
@@ -67,6 +75,23 @@
         "command": "codegraphy.zoomOut",
         "key": "-",
         "when": "codegraphy.graphFocused"
+      },
+      {
+        "command": "codegraphy.undo",
+        "key": "ctrl+z",
+        "mac": "cmd+z",
+        "when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
+      },
+      {
+        "command": "codegraphy.redo",
+        "key": "ctrl+shift+z",
+        "mac": "cmd+shift+z",
+        "when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
+      },
+      {
+        "command": "codegraphy.redo",
+        "key": "ctrl+y",
+        "when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
       }
     ],
     "viewsContainers": {

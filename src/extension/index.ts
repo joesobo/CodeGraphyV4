@@ -99,6 +99,29 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
+  // Undo/Redo commands
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.undo', async () => {
+      const description = await provider.undo();
+      if (description) {
+        vscode.window.showInformationMessage(`Undo: ${description}`);
+      } else {
+        vscode.window.showInformationMessage('Nothing to undo');
+      }
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.redo', async () => {
+      const description = await provider.redo();
+      if (description) {
+        vscode.window.showInformationMessage(`Redo: ${description}`);
+      } else {
+        vscode.window.showInformationMessage('Nothing to redo');
+      }
+    })
+  );
+
   context.subscriptions.push(
     vscode.commands.registerCommand('codegraphy.exportPng', () => {
       provider.requestExportPng();

@@ -13,6 +13,14 @@ import {
   WebviewToExtensionMessage,
 } from '../shared/types';
 import { WorkspaceAnalyzer } from './WorkspaceAnalyzer';
+import { getUndoManager } from './UndoManager';
+import {
+  ToggleFavoriteAction,
+  AddToExcludeAction,
+  DeleteFilesAction,
+  RenameFileAction,
+  CreateFileAction,
+} from './actions';
 
 /** Storage key for persisted node positions in workspace state */
 const POSITIONS_KEY = 'codegraphy.nodePositions';
@@ -107,9 +115,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
+    // Set context for keybindings - initial state
+    vscode.commands.executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
+
     // Listen for visibility changes (e.g., switching between views)
     // When view becomes visible again, re-send the graph data
     webviewView.onDidChangeVisibility(() => {
+      // Update keybinding context
+      vscode.commands.executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
+      
       if (webviewView.visible) {
         console.log('[CodeGraphy] View became visible, re-sending data');
         this._analyzeAndSendData();
@@ -220,6 +234,36 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   public sendCommand(command: 'FIT_VIEW' | 'ZOOM_IN' | 'ZOOM_OUT'): void {
     this._sendMessage({ type: command });
+  }
+
+  /**
+   * Undoes the last action.
+   * @returns Description of undone action, or undefined if nothing to undo
+   */
+  public async undo(): Promise<string | undefined> {
+    return getUndoManager().undo();
+  }
+
+  /**
+   * Redoes the last undone action.
+   * @returns Description of redone action, or undefined if nothing to redo
+   */
+  public async redo(): Promise<string | undefined> {
+    return getUndoManager().redo();
+  }
+
+  /**
+   * Checks if undo is available.
+   */
+  public canUndo(): boolean {
+    return getUndoManager().canUndo();
+  }
+
+  /**
+   * Checks if redo is available.
+   */
+  public canRedo(): boolean {
+    return getUndoManager().canRedo();
   }
 
   /**
@@ -367,6 +411,26 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         case 'EXPORT_PNG':
           await this._saveExportedPng(message.payload.dataUrl, message.payload.filename);
           break;
+          
+        case 'UNDO': {
+          const undoDesc = await this.undo();
+          if (undoDesc) {
+            vscode.window.showInformationMessage(`Undo: ${undoDesc}`);
+          } else {
+            vscode.window.showInformationMessage('Nothing to undo');
+          }
+          break;
+        }
+        
+        case 'REDO': {
+          const redoDesc = await this.redo();
+          if (redoDesc) {
+            vscode.window.showInformationMessage(`Redo: ${redoDesc}`);
+          } else {
+            vscode.window.showInformationMessage('Nothing to redo');
+          }
+          break;
+        }
       }
     });
   }
@@ -454,7 +518,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Deletes files with confirmation.
+   * Deletes files with confirmation (with undo support).
    */
   private async _deleteFiles(paths: string[]): Promise<void> {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -472,29 +536,24 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     );
 
     if (confirm === 'Delete') {
-      for (const filePath of paths) {
-        const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
-        try {
-          await vscode.workspace.fs.delete(fileUri, { useTrash: true });
-        } catch (error) {
-          vscode.window.showErrorMessage(`Failed to delete ${filePath}: ${error}`);
-        }
-      }
-      // Refresh graph after deletion
-      await this._analyzeAndSendData();
+      const action = new DeleteFilesAction(
+        paths,
+        workspaceFolder.uri,
+        () => this._analyzeAndSendData()
+      );
+      await getUndoManager().execute(action);
     }
   }
 
   /**
-   * Renames a file with an input dialog (stays in CodeGraphy view).
+   * Renames a file with an input dialog (with undo support).
    */
   private async _renameFile(filePath: string): Promise<void> {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) return;
 
-    const oldUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
     const oldName = filePath.split('/').pop() || filePath;
-    
+
     const newName = await vscode.window.showInputBox({
       prompt: 'Enter new file name',
       value: oldName,
@@ -505,19 +564,22 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     if (!newName || newName === oldName) return;
 
     const newPath = filePath.replace(/[^/]+$/, newName);
-    const newUri = vscode.Uri.joinPath(workspaceFolder.uri, newPath);
 
     try {
-      await vscode.workspace.fs.rename(oldUri, newUri);
-      // Refresh graph after rename
-      await this._analyzeAndSendData();
+      const action = new RenameFileAction(
+        filePath,
+        newPath,
+        workspaceFolder.uri,
+        () => this._analyzeAndSendData()
+      );
+      await getUndoManager().execute(action);
     } catch (error) {
       vscode.window.showErrorMessage(`Failed to rename: ${error}`);
     }
   }
 
   /**
-   * Creates a new file in the workspace.
+   * Creates a new file in the workspace (with undo support).
    */
   private async _createFile(directory: string): Promise<void> {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -531,14 +593,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     if (fileName) {
       const filePath = directory === '.' ? fileName : `${directory}/${fileName}`;
-      const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
-      
+
       try {
-        await vscode.workspace.fs.writeFile(fileUri, new Uint8Array());
-        const document = await vscode.workspace.openTextDocument(fileUri);
-        await vscode.window.showTextDocument(document);
-        // Refresh graph after creation
-        await this._analyzeAndSendData();
+        const action = new CreateFileAction(
+          filePath,
+          workspaceFolder.uri,
+          () => this._analyzeAndSendData()
+        );
+        await getUndoManager().execute(action);
       } catch (error) {
         vscode.window.showErrorMessage(`Failed to create file: ${error}`);
       }
@@ -586,22 +648,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Toggles favorite status for files.
+   * Toggles favorite status for files (with undo support).
    */
   private async _toggleFavorites(paths: string[]): Promise<void> {
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const favorites = new Set<string>(config.get<string[]>('favorites', []));
-
-    for (const path of paths) {
-      if (favorites.has(path)) {
-        favorites.delete(path);
-      } else {
-        favorites.add(path);
-      }
-    }
-
-    await config.update('favorites', Array.from(favorites), vscode.ConfigurationTarget.Workspace);
-    this._sendFavorites();
+    const action = new ToggleFavoriteAction(paths, () => this._sendFavorites());
+    await getUndoManager().execute(action);
   }
 
   /**
@@ -708,20 +759,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Adds patterns to the exclude list.
+   * Adds patterns to the exclude list (with undo support).
    */
   private async _addToExclude(patterns: string[]): Promise<void> {
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const currentExclude = config.get<string[]>('exclude', []);
-    
-    // Convert file paths to glob patterns
-    const newPatterns = patterns.map(p => `**/${p}`);
-    const mergedExclude = [...new Set([...currentExclude, ...newPatterns])];
-
-    await config.update('exclude', mergedExclude, vscode.ConfigurationTarget.Workspace);
-    
-    // Refresh graph after adding excludes
-    await this._analyzeAndSendData();
+    const action = new AddToExcludeAction(patterns, () => this._analyzeAndSendData());
+    await getUndoManager().execute(action);
   }
 
   /**

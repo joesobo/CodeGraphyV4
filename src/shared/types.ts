@@ -263,7 +263,10 @@ export type WebviewToExtensionMessage =
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
   | { type: 'REFRESH_GRAPH' }
   | { type: 'GET_FILE_INFO'; payload: { path: string } }
-  | { type: 'EXPORT_PNG'; payload: { dataUrl: string; filename?: string } };
+  | { type: 'EXPORT_PNG'; payload: { dataUrl: string; filename?: string } }
+  // Undo/Redo commands from webview keyboard shortcuts
+  | { type: 'UNDO' }
+  | { type: 'REDO' };
 
 /**
  * File information returned from extension for tooltips.

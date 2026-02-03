@@ -662,6 +662,31 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
             network.moveTo({ scale: scale / 1.2, animation: { duration: 150, easingFunction: 'easeInOutQuad' } });
           }
           break;
+
+        case 'z':
+        case 'Z':
+          if (isMod) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (event.shiftKey) {
+              // Ctrl+Shift+Z = Redo
+              postMessage({ type: 'REDO' });
+            } else {
+              // Ctrl+Z = Undo
+              postMessage({ type: 'UNDO' });
+            }
+          }
+          break;
+
+        case 'y':
+        case 'Y':
+          if (isMod) {
+            // Ctrl+Y = Redo (Windows convention)
+            event.preventDefault();
+            event.stopPropagation();
+            postMessage({ type: 'REDO' });
+          }
+          break;
       }
     };
 
