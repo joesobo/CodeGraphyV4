@@ -13,6 +13,7 @@ import {
   IGraphEdge,
   IFileInfo,
   BidirectionalEdgeMode,
+  IPhysicsSettings,
   ExtensionToWebviewMessage,
   NodeSizeMode,
 } from '../../shared/types';
@@ -37,6 +38,7 @@ interface GraphProps {
   onFavoritesChange?: (favorites: Set<string>) => void;
   theme?: ThemeKind;
   bidirectionalMode?: BidirectionalEdgeMode;
+  physicsSettings?: IPhysicsSettings;
 }
 
 /**
@@ -564,10 +566,19 @@ function sendAllPositions(network: Network, nodeIds: string[]): void {
   postMessage({ type: 'POSITIONS_UPDATED', payload: { positions } });
 }
 
+/** Default physics settings */
+const DEFAULT_PHYSICS: IPhysicsSettings = {
+  gravitationalConstant: -50,
+  springLength: 100,
+  springConstant: 0.08,
+  damping: 0.4,
+  centralGravity: 0.01,
+};
+
 /**
  * Graph component with context menu and multi-select support.
  */
-export default function Graph({ data, favorites = new Set(), theme = 'dark', bidirectionalMode = 'separate' }: GraphProps): React.ReactElement {
+export default function Graph({ data, favorites = new Set(), theme = 'dark', bidirectionalMode = 'separate', physicsSettings = DEFAULT_PHYSICS }: GraphProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
   const nodesRef = useRef<DataSet<ReturnType<typeof toVisNode>> | null>(null);
@@ -1175,6 +1186,53 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
     }
     edgesRef.current.add(processedEdges.map(toVisEdge));
   }, [bidirectionalMode, data.edges]);
+
+  /**
+   * Track previous physics settings to avoid unnecessary simulation restarts.
+   */
+  const prevPhysicsRef = useRef<IPhysicsSettings | null>(null);
+
+  /**
+   * Update physics settings when they change.
+   * Must restart simulation for changes to take effect after stabilization.
+   * Uses deep comparison to avoid unnecessary restarts (fixes double-refresh issue).
+   */
+  useEffect(() => {
+    const network = networkRef.current;
+    if (!network) return;
+
+    // Deep compare with previous settings to avoid unnecessary restarts
+    const prev = prevPhysicsRef.current;
+    const settingsChanged = !prev || 
+      prev.gravitationalConstant !== physicsSettings.gravitationalConstant ||
+      prev.centralGravity !== physicsSettings.centralGravity ||
+      prev.springLength !== physicsSettings.springLength ||
+      prev.springConstant !== physicsSettings.springConstant ||
+      prev.damping !== physicsSettings.damping;
+
+    if (!settingsChanged) return;
+
+    // Store current settings for next comparison
+    prevPhysicsRef.current = { ...physicsSettings };
+
+    // Apply new physics settings
+    network.setOptions({
+      physics: {
+        forceAtlas2Based: {
+          gravitationalConstant: physicsSettings.gravitationalConstant,
+          centralGravity: physicsSettings.centralGravity,
+          springLength: physicsSettings.springLength,
+          springConstant: physicsSettings.springConstant,
+          damping: physicsSettings.damping,
+        },
+      },
+    });
+
+    // Restart the physics simulation to apply new settings
+    // This is necessary because vis-network doesn't automatically
+    // restart physics when options are changed after stabilization
+    network.startSimulation();
+  }, [physicsSettings]);
 
   /**
    * Handle context menu trigger - captures node BEFORE Radix opens menu

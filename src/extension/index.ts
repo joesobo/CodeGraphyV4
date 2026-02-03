@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { GraphViewProvider } from './GraphViewProvider';
-import { Configuration } from './Configuration';
 
 export function activate(context: vscode.ExtensionContext): void {
   const provider = new GraphViewProvider(context.extensionUri, context);
-  const config = new Configuration();
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
@@ -14,11 +12,22 @@ export function activate(context: vscode.ExtensionContext): void {
     )
   );
 
-  // Listen for configuration changes and refresh graph
+  // Listen for configuration changes
+  // Physics-only changes should not trigger full re-analysis
   context.subscriptions.push(
-    config.onDidChange(() => {
-      console.log('[CodeGraphy] Configuration changed, refreshing graph');
-      provider.refresh();
+    vscode.workspace.onDidChangeConfiguration((event) => {
+      if (event.affectsConfiguration('codegraphy.physics')) {
+        // Physics settings changed - only update physics, no full refresh
+        // This handles external config changes (editing settings.json directly)
+        // Note: Slider changes already send physics updates via UPDATE_PHYSICS_SETTING,
+        // but this ensures external changes also work
+        console.log('[CodeGraphy] Physics configuration changed');
+        provider.refreshPhysicsSettings();
+      } else if (event.affectsConfiguration('codegraphy')) {
+        // Other codegraphy settings changed - full refresh
+        console.log('[CodeGraphy] Configuration changed, refreshing graph');
+        provider.refresh();
+      }
     })
   );
 

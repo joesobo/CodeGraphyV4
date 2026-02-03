@@ -3,10 +3,20 @@ import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { SearchBar, SearchOptions } from './components/SearchBar';
 import { ViewSwitcher } from './components/ViewSwitcher';
+import PhysicsSettings from './components/PhysicsSettings';
 import { DepthSlider } from './components/DepthSlider';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, ExtensionToWebviewMessage } from '../shared/types';
+import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, ExtensionToWebviewMessage } from '../shared/types';
 import { postMessage } from './lib/vscodeApi';
+
+/** Default physics settings */
+const DEFAULT_PHYSICS: IPhysicsSettings = {
+  gravitationalConstant: -50,
+  springLength: 100,
+  springConstant: 0.08,
+  damping: 0.4,
+  centralGravity: 0.01,
+};
 
 /** Default search options */
 const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
@@ -81,6 +91,7 @@ export default function App(): React.ReactElement {
   const [searchOptions, setSearchOptions] = useState<SearchOptions>(DEFAULT_SEARCH_OPTIONS);
   const [availableViews, setAvailableViews] = useState<IAvailableView[]>([]);
   const [activeViewId, setActiveViewId] = useState<string>('codegraphy.connections');
+  const [physicsSettings, setPhysicsSettings] = useState<IPhysicsSettings>(DEFAULT_PHYSICS);
   const [depthLimit, setDepthLimit] = useState<number>(1);
   const theme = useTheme();
 
@@ -127,6 +138,9 @@ export default function App(): React.ReactElement {
         case 'VIEWS_UPDATED':
           setAvailableViews(message.payload.views);
           setActiveViewId(message.payload.activeViewId);
+          break;
+        case 'PHYSICS_SETTINGS_UPDATED':
+          setPhysicsSettings(message.payload);
           break;
         case 'DEPTH_LIMIT_UPDATED':
           setDepthLimit(message.payload.depthLimit);
@@ -207,6 +221,11 @@ export default function App(): React.ReactElement {
           favorites={favorites} 
           theme={theme}
           bidirectionalMode={bidirectionalMode}
+          physicsSettings={physicsSettings}
+        />
+        <PhysicsSettings 
+          settings={physicsSettings} 
+          onSettingsChange={setPhysicsSettings}
         />
       </div>
     </div>

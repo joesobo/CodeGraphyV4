@@ -10,6 +10,7 @@ import {
   IGraphData,
   IAvailableView,
   BidirectionalEdgeMode,
+  IPhysicsSettings,
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
 } from '../shared/types';
@@ -23,6 +24,15 @@ import {
   CreateFileAction,
 } from './actions';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
+
+/** Default physics settings */
+const DEFAULT_PHYSICS: IPhysicsSettings = {
+  gravitationalConstant: -50,
+  springLength: 100,
+  springConstant: 0.08,
+  damping: 0.4,
+  centralGravity: 0.01,
+};
 
 /** Storage key for persisted node positions in workspace state */
 const POSITIONS_KEY = 'codegraphy.nodePositions';
@@ -217,6 +227,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   public async refresh(): Promise<void> {
     await this._analyzeAndSendData();
     this._sendSettings();
+    this._sendPhysicsSettings();
+  }
+
+  /**
+   * Sends physics settings to the webview without re-analyzing.
+   * Used when only physics settings change (not file/graph changes).
+   */
+  public refreshPhysicsSettings(): void {
+    this._sendPhysicsSettings();
   }
 
   /**
@@ -619,6 +638,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._sendFavorites();
           // Send current settings
           this._sendSettings();
+          // Send physics settings
+          this._sendPhysicsSettings();
           break;
 
         case 'NODE_SELECTED':
@@ -684,6 +705,21 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           
         case 'EXPORT_JSON':
           await this._saveExportedJson(message.payload.json, message.payload.filename);
+          break;
+          
+        case 'GET_PHYSICS_SETTINGS':
+          this._sendPhysicsSettings();
+          break;
+          
+        case 'UPDATE_PHYSICS_SETTING':
+          await this._updatePhysicsSetting(
+            message.payload.key,
+            message.payload.value
+          );
+          break;
+          
+        case 'RESET_PHYSICS_SETTINGS':
+          await this._resetPhysicsSettings()
           break;
 
         case 'UNDO': {
@@ -1130,6 +1166,62 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private async _addToExclude(patterns: string[]): Promise<void> {
     const action = new AddToExcludeAction(patterns, () => this._analyzeAndSendData());
     await getUndoManager().execute(action);
+  }
+
+  /**
+   * Gets the current physics settings from configuration.
+   */
+  private _getPhysicsSettings(): IPhysicsSettings {
+    const config = vscode.workspace.getConfiguration('codegraphy.physics');
+    return {
+      gravitationalConstant: config.get<number>('gravitationalConstant', DEFAULT_PHYSICS.gravitationalConstant),
+      springLength: config.get<number>('springLength', DEFAULT_PHYSICS.springLength),
+      springConstant: config.get<number>('springConstant', DEFAULT_PHYSICS.springConstant),
+      damping: config.get<number>('damping', DEFAULT_PHYSICS.damping),
+      centralGravity: config.get<number>('centralGravity', DEFAULT_PHYSICS.centralGravity),
+    };
+  }
+
+  /**
+   * Sends current physics settings to the webview.
+   */
+  private _sendPhysicsSettings(): void {
+    const settings = this._getPhysicsSettings();
+    this._sendMessage({ type: 'PHYSICS_SETTINGS_UPDATED', payload: settings });
+  }
+
+  /**
+   * Updates a single physics setting.
+   * Uses workspace config if available, falls back to global config.
+   * Note: We don't call _sendPhysicsSettings() here because:
+   * 1. The slider already has immediate feedback via onSettingsChange
+   * 2. The config change listener will send the update for external changes
+   */
+  private async _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void> {
+    const config = vscode.workspace.getConfiguration('codegraphy.physics');
+    const target = vscode.workspace.workspaceFolders?.length
+      ? vscode.ConfigurationTarget.Workspace
+      : vscode.ConfigurationTarget.Global;
+    await config.update(key, value, target);
+    // Config change listener handles sending PHYSICS_SETTINGS_UPDATED
+  }
+
+  /**
+   * Resets all physics settings to defaults.
+   * Uses workspace config if available, falls back to global config.
+   * Note: Config change listener handles sending PHYSICS_SETTINGS_UPDATED
+   */
+  private async _resetPhysicsSettings(): Promise<void> {
+    const config = vscode.workspace.getConfiguration('codegraphy.physics');
+    const target = vscode.workspace.workspaceFolders?.length
+      ? vscode.ConfigurationTarget.Workspace
+      : vscode.ConfigurationTarget.Global;
+    await config.update('gravitationalConstant', undefined, target);
+    await config.update('springLength', undefined, target);
+    await config.update('springConstant', undefined, target);
+    await config.update('damping', undefined, target);
+    await config.update('centralGravity', undefined, target);
+    // Config change listener handles sending PHYSICS_SETTINGS_UPDATED
   }
 
   /**

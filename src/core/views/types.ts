@@ -31,7 +31,7 @@ import { IGraphData } from '../../shared/types';
  */
 export interface IView {
   /** 
-   * Unique identifier for the view (e.g., 'codegraphy.file-dependencies').
+   * Unique identifier for the view (e.g., 'codegraphy.connections').
    * Should be namespaced to avoid conflicts.
    */
   id: string;
