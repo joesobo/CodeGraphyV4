@@ -5,23 +5,8 @@
  */
 
 import React from 'react';
-import { IAvailableView, WebviewToExtensionMessage } from '../../shared/types';
-
-// Get VSCode API if available
-declare function acquireVsCodeApi(): {
-  postMessage: (message: WebviewToExtensionMessage) => void;
-  getState: () => unknown;
-  setState: (state: unknown) => void;
-};
-
-let vscode: ReturnType<typeof acquireVsCodeApi> | null = null;
-try {
-  if (typeof acquireVsCodeApi !== 'undefined') {
-    vscode = acquireVsCodeApi();
-  }
-} catch {
-  vscode = null;
-}
+import { IAvailableView } from '../../shared/types';
+import { postMessage } from '../lib/vscodeApi';
 
 interface ViewSwitcherProps {
   views: IAvailableView[];
@@ -51,9 +36,7 @@ export function ViewSwitcher({ views, activeViewId, onViewChange }: ViewSwitcher
     const viewId = event.target.value;
     
     // Notify extension
-    if (vscode) {
-      vscode.postMessage({ type: 'CHANGE_VIEW', payload: { viewId } });
-    }
+    postMessage({ type: 'CHANGE_VIEW', payload: { viewId } });
     
     // Notify local handler if provided
     onViewChange?.(viewId);

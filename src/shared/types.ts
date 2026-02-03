@@ -132,6 +132,13 @@ export interface IGraphNode {
    * Used for 'access-count' node sizing mode.
    */
   accessCount?: number;
+  
+  /**
+   * Distance from the focused node in the depth graph view.
+   * 0 = the focused node, 1 = direct neighbors, 2 = two hops away, etc.
+   * Used for visual styling (opacity, size) in depth graph view.
+   */
+  depthLevel?: number;
 }
 
 /**
@@ -244,7 +251,8 @@ export type ExtensionToWebviewMessage =
   | { type: 'REQUEST_EXPORT_SVG' }
   | { type: 'REQUEST_EXPORT_JSON' }
   | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } }
-  | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } };
+  | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } }
+  | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } };
 
 /**
  * Messages sent from the Webview to the Extension.
@@ -289,7 +297,9 @@ export type WebviewToExtensionMessage =
   | { type: 'UNDO' }
   | { type: 'REDO' }
   // View switching
-  | { type: 'CHANGE_VIEW'; payload: { viewId: string } };
+  | { type: 'CHANGE_VIEW'; payload: { viewId: string } }
+  // Depth graph settings
+  | { type: 'CHANGE_DEPTH_LIMIT'; payload: { depthLimit: number } };
 
 /**
  * File information returned from extension for tooltips.

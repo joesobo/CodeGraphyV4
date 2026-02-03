@@ -3,26 +3,10 @@ import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { SearchBar, SearchOptions } from './components/SearchBar';
 import { ViewSwitcher } from './components/ViewSwitcher';
+import { DepthSlider } from './components/DepthSlider';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
-
-// Get VSCode API if available (must be called exactly once at module level)
-declare function acquireVsCodeApi(): {
-  postMessage: (message: WebviewToExtensionMessage) => void;
-  getState: () => unknown;
-  setState: (state: unknown) => void;
-};
-
-// Acquire the API once at module load (VSCode requirement)
-let vscode: ReturnType<typeof acquireVsCodeApi> | null = null;
-try {
-  if (typeof acquireVsCodeApi !== 'undefined') {
-    vscode = acquireVsCodeApi();
-  }
-} catch {
-  // Already acquired or not in VSCode context
-  vscode = null;
-}
+import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, ExtensionToWebviewMessage } from '../shared/types';
+import { postMessage } from './lib/vscodeApi';
 
 /** Default search options */
 const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
@@ -97,6 +81,7 @@ export default function App(): React.ReactElement {
   const [searchOptions, setSearchOptions] = useState<SearchOptions>(DEFAULT_SEARCH_OPTIONS);
   const [availableViews, setAvailableViews] = useState<IAvailableView[]>([]);
   const [activeViewId, setActiveViewId] = useState<string>('codegraphy.file-dependencies');
+  const [depthLimit, setDepthLimit] = useState<number>(1);
   const theme = useTheme();
 
   // Filter graph data based on search (always uses exact substring matching)
@@ -143,15 +128,16 @@ export default function App(): React.ReactElement {
           setAvailableViews(message.payload.views);
           setActiveViewId(message.payload.activeViewId);
           break;
+        case 'DEPTH_LIMIT_UPDATED':
+          setDepthLimit(message.payload.depthLimit);
+          break;
       }
     };
 
     window.addEventListener('message', handleMessage);
 
     // Tell extension we're ready to receive data
-    if (vscode) {
-      vscode.postMessage({ type: 'WEBVIEW_READY', payload: null });
-    }
+    postMessage({ type: 'WEBVIEW_READY', payload: null });
     // No mock data fallback - extension will send real data
 
     return () => {
@@ -204,9 +190,13 @@ export default function App(): React.ReactElement {
             regexError={regexError}
           />
         </div>
+{activeViewId === 'codegraphy.depth-graph' && (
+          <DepthSlider depthLimit={depthLimit} />
+        )}
         <ViewSwitcher
           views={availableViews}
           activeViewId={activeViewId}
+          onViewChange={setActiveViewId}
         />
       </div>
       
