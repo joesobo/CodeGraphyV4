@@ -6,7 +6,7 @@ import { ViewSwitcher } from './components/ViewSwitcher';
 import { DepthSlider } from './components/DepthSlider';
 import { useTheme } from './hooks/useTheme';
 import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, ExtensionToWebviewMessage } from '../shared/types';
-import { getVsCodeApi, postMessage } from './lib/vscodeApi';
+import { postMessage } from './lib/vscodeApi';
 
 /** Default search options */
 const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
