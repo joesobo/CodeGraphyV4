@@ -227,6 +227,27 @@ function calculateNodeSizes(
 }
 
 /**
+ * Calculate opacity based on depth level.
+ * Depth 0 (focused node) = 1.0, depth 1 = 0.85, depth 2 = 0.7, etc.
+ */
+function getDepthOpacity(depthLevel: number | undefined): number {
+  if (depthLevel === undefined) return 1.0;
+  if (depthLevel === 0) return 1.0;
+  // Gradually decrease opacity for deeper nodes
+  return Math.max(0.4, 1.0 - (depthLevel * 0.15));
+}
+
+/**
+ * Calculate size multiplier based on depth level.
+ * Depth 0 (focused node) gets a slight size boost.
+ */
+function getDepthSizeMultiplier(depthLevel: number | undefined): number {
+  if (depthLevel === undefined) return 1.0;
+  if (depthLevel === 0) return 1.3; // Focused node is larger
+  return 1.0;
+}
+
+/**
  * Convert IGraphNode to Vis Network node format
  */
 function toVisNode(node: IGraphNode, isFavorite: boolean, size: number = DEFAULT_NODE_SIZE, theme: ThemeKind = 'dark') {
@@ -235,13 +256,26 @@ function toVisNode(node: IGraphNode, isFavorite: boolean, size: number = DEFAULT
   const borderColor = isFavorite ? FAVORITE_BORDER_COLOR : nodeColor;
   const textColor = isLight ? '#1e1e1e' : '#e2e8f0';
   
+  // Apply depth-based styling
+  const depthOpacity = getDepthOpacity(node.depthLevel);
+  const depthSizeMultiplier = getDepthSizeMultiplier(node.depthLevel);
+  const adjustedSize = size * depthSizeMultiplier;
+  
+  // Apply special border for focused node (depth 0)
+  const isFocusedNode = node.depthLevel === 0;
+  const finalBorderColor = isFocusedNode 
+    ? (isLight ? '#2563eb' : '#60a5fa') // Blue highlight for focused node
+    : borderColor;
+  const finalBorderWidth = isFocusedNode ? 4 : (isFavorite ? 3 : 2);
+  
   return {
     id: node.id,
     label: node.label,
-    size,
+    size: adjustedSize,
+    opacity: depthOpacity,
     color: {
       background: nodeColor,
-      border: borderColor,
+      border: finalBorderColor,
       highlight: {
         background: nodeColor,
         border: isFavorite ? FAVORITE_BORDER_COLOR : (isLight ? '#000000' : '#ffffff'),
@@ -255,7 +289,7 @@ function toVisNode(node: IGraphNode, isFavorite: boolean, size: number = DEFAULT
       color: textColor,
       size: 12,
     },
-    borderWidth: isFavorite ? 3 : 2,
+    borderWidth: finalBorderWidth,
     x: node.x,
     y: node.y,
   };

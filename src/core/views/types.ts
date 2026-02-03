@@ -108,6 +108,13 @@ export interface IViewContext {
    * Workspace root path (absolute).
    */
   workspaceRoot?: string;
+  
+  /**
+   * Maximum depth for depth-limited views (e.g., Depth Graph).
+   * Controls how many hops from the focused node to include.
+   * Default is 1 (direct neighbors only).
+   */
+  depthLimit?: number;
 }
 
 /**

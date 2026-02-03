@@ -4,6 +4,7 @@ import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { SearchBar } from './components/SearchBar';
 import { ViewSwitcher } from './components/ViewSwitcher';
+import { DepthSlider } from './components/DepthSlider';
 import { useTheme } from './hooks/useTheme';
 import { IGraphData, IAvailableView, BidirectionalEdgeMode, ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../shared/types';
 
@@ -40,6 +41,7 @@ export default function App(): React.ReactElement {
   const [searchQuery, setSearchQuery] = useState('');
   const [availableViews, setAvailableViews] = useState<IAvailableView[]>([]);
   const [activeViewId, setActiveViewId] = useState<string>('codegraphy.file-dependencies');
+  const [depthLimit, setDepthLimit] = useState<number>(1);
   const theme = useTheme();
 
   // Create fuse instance for fuzzy search
@@ -87,6 +89,9 @@ export default function App(): React.ReactElement {
         case 'VIEWS_UPDATED':
           setAvailableViews(message.payload.views);
           setActiveViewId(message.payload.activeViewId);
+          break;
+        case 'DEPTH_LIMIT_UPDATED':
+          setDepthLimit(message.payload.depthLimit);
           break;
       }
     };
@@ -146,6 +151,9 @@ export default function App(): React.ReactElement {
             placeholder="Search files... (Ctrl+F)"
           />
         </div>
+{activeViewId === 'codegraphy.depth-graph' && (
+          <DepthSlider depthLimit={depthLimit} />
+        )}
         <ViewSwitcher
           views={availableViews}
           activeViewId={activeViewId}

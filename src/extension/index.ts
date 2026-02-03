@@ -22,7 +22,8 @@ export function activate(context: vscode.ExtensionContext): void {
     })
   );
 
-  // Track file visits when active editor changes (for access-count mode)
+  // Track file visits and update focused file when active editor changes
+  // (for access-count mode and depth graph view)
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor(async (editor) => {
       if (editor && editor.document.uri.scheme === 'file') {
@@ -37,8 +38,13 @@ export function activate(context: vscode.ExtensionContext): void {
             // Normalize to forward slashes for consistency
             const normalizedPath = relativePath.replace(/\\/g, '/');
             await provider.trackFileVisit(normalizedPath);
+            // Update focused file for depth graph view
+            provider.setFocusedFile(normalizedPath);
           }
         }
+      } else {
+        // No editor or external file - clear focused file
+        provider.setFocusedFile(undefined);
       }
     })
   );

@@ -33,6 +33,12 @@ const VISITS_KEY = 'codegraphy.fileVisits';
 /** Storage key for selected view per workspace */
 const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
 
+/** Storage key for depth limit per workspace */
+const DEPTH_LIMIT_KEY = 'codegraphy.depthLimit';
+
+/** Default depth limit for depth graph view */
+const DEFAULT_DEPTH_LIMIT = 1;
+
 /**
  * Map of node IDs to their persisted positions.
  * Stored in VSCode workspace state for persistence across sessions.
@@ -94,6 +100,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Current view context */
   private _viewContext: IViewContext = {
     activePlugins: new Set(),
+    depthLimit: DEFAULT_DEPTH_LIMIT,
   };
 
   /**
@@ -285,11 +292,13 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _updateViewContext(): void {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     const activeEditor = vscode.window.activeTextEditor;
+    const savedDepthLimit = this._context.workspaceState.get<number>(DEPTH_LIMIT_KEY);
     
     this._viewContext = {
       activePlugins: this._getActivePluginIds(),
       workspaceRoot: workspaceFolder?.uri.fsPath,
       focusedFile: activeEditor ? this._getRelativePath(activeEditor.document.uri) : undefined,
+      depthLimit: savedDepthLimit ?? DEFAULT_DEPTH_LIMIT,
     };
   }
 
@@ -367,6 +376,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       type: 'VIEWS_UPDATED',
       payload: { views, activeViewId: this._activeViewId },
     });
+    
+    // Also send current depth limit for depth graph view
+    this._sendMessage({
+      type: 'DEPTH_LIMIT_UPDATED',
+      payload: { depthLimit: this._viewContext.depthLimit ?? DEFAULT_DEPTH_LIMIT },
+    });
   }
 
   /**
@@ -406,6 +421,37 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
       this._sendAvailableViews();
     }
+  }
+
+  /**
+   * Sets the depth limit for depth graph view.
+   * 
+   * @param depthLimit - Maximum number of hops from the focused node
+   */
+  public async setDepthLimit(depthLimit: number): Promise<void> {
+    // Clamp to valid range (1-10)
+    const clampedDepth = Math.max(1, Math.min(10, depthLimit));
+    this._viewContext.depthLimit = clampedDepth;
+    
+    await this._context.workspaceState.update(DEPTH_LIMIT_KEY, clampedDepth);
+    
+    // Notify webview of the new depth limit
+    this._sendMessage({ type: 'DEPTH_LIMIT_UPDATED', payload: { depthLimit: clampedDepth } });
+    
+    // Re-apply transform if using depth graph view
+    const viewInfo = this._viewRegistry.get(this._activeViewId);
+    if (viewInfo?.view.id === 'codegraphy.depth-graph') {
+      this._applyViewTransform();
+      this._applyPersistedPositions();
+      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+    }
+  }
+
+  /**
+   * Gets the current depth limit.
+   */
+  public getDepthLimit(): number {
+    return this._viewContext.depthLimit ?? DEFAULT_DEPTH_LIMIT;
   }
 
   /**
@@ -656,6 +702,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
         case 'CHANGE_VIEW':
           await this.changeView(message.payload.viewId);
+          break;
+          
+        case 'CHANGE_DEPTH_LIMIT':
+          await this.setDepthLimit(message.payload.depthLimit);
           break;
       }
     });
