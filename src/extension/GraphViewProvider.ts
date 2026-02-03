@@ -121,14 +121,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     // Initialize view registry with core views
     this._viewRegistry = new ViewRegistry();
     for (const view of coreViews) {
-      this._viewRegistry.register(view, { core: true, isDefault: view.id === 'codegraphy.file-dependencies' });
+      this._viewRegistry.register(view, { core: true, isDefault: view.id === 'codegraphy.connections' });
     }
     
     // Restore selected view from workspace state, or use default
     const savedViewId = this._context.workspaceState.get<string>(SELECTED_VIEW_KEY);
     this._activeViewId = savedViewId && this._viewRegistry.get(savedViewId)
       ? savedViewId
-      : this._viewRegistry.getDefaultViewId() ?? 'codegraphy.file-dependencies';
+      : this._viewRegistry.getDefaultViewId() ?? 'codegraphy.connections';
   }
 
   /**
@@ -220,6 +220,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   public async refresh(): Promise<void> {
     await this._analyzeAndSendData();
     this._sendSettings();
+    this._sendPhysicsSettings();
+  }
+
+  /**
+   * Sends physics settings to the webview without re-analyzing.
+   * Used when only physics settings change (not file/graph changes).
+   */
+  public refreshPhysicsSettings(): void {
+    this._sendPhysicsSettings();
   }
 
   /**
@@ -1126,6 +1135,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /**
    * Updates a single physics setting.
    * Uses workspace config if available, falls back to global config.
+   * Note: We don't call _sendPhysicsSettings() here because:
+   * 1. The slider already has immediate feedback via onSettingsChange
+   * 2. The config change listener will send the update for external changes
    */
   private async _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void> {
     const config = vscode.workspace.getConfiguration('codegraphy.physics');
@@ -1133,12 +1145,13 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       ? vscode.ConfigurationTarget.Workspace
       : vscode.ConfigurationTarget.Global;
     await config.update(key, value, target);
-    this._sendPhysicsSettings();
+    // Config change listener handles sending PHYSICS_SETTINGS_UPDATED
   }
 
   /**
    * Resets all physics settings to defaults.
    * Uses workspace config if available, falls back to global config.
+   * Note: Config change listener handles sending PHYSICS_SETTINGS_UPDATED
    */
   private async _resetPhysicsSettings(): Promise<void> {
     const config = vscode.workspace.getConfiguration('codegraphy.physics');
@@ -1150,7 +1163,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     await config.update('springConstant', undefined, target);
     await config.update('damping', undefined, target);
     await config.update('centralGravity', undefined, target);
-    this._sendPhysicsSettings();
+    // Config change listener handles sending PHYSICS_SETTINGS_UPDATED
   }
 
   /**
