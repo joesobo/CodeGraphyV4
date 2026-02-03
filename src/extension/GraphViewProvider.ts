@@ -111,14 +111,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     // Initialize view registry with core views
     this._viewRegistry = new ViewRegistry();
     for (const view of coreViews) {
-      this._viewRegistry.register(view, { core: true, isDefault: view.id === 'codegraphy.file-dependencies' });
+      this._viewRegistry.register(view, { core: true, isDefault: view.id === 'codegraphy.connections' });
     }
     
     // Restore selected view from workspace state, or use default
     const savedViewId = this._context.workspaceState.get<string>(SELECTED_VIEW_KEY);
     this._activeViewId = savedViewId && this._viewRegistry.get(savedViewId)
       ? savedViewId
-      : this._viewRegistry.getDefaultViewId() ?? 'codegraphy.file-dependencies';
+      : this._viewRegistry.getDefaultViewId() ?? 'codegraphy.connections';
   }
 
   /**
