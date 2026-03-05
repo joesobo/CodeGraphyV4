@@ -39,6 +39,7 @@ interface GraphProps {
   theme?: ThemeKind;
   bidirectionalMode?: BidirectionalEdgeMode;
   physicsSettings?: IPhysicsSettings;
+  nodeSizeMode?: NodeSizeMode;
 }
 
 /**
@@ -512,12 +513,12 @@ function escapeXml(text: string): string {
  * Export the graph layout as JSON and send to extension.
  * Includes node positions, metadata, and edge information.
  */
-function exportAsJson(network: Network, data: IGraphData): void {
+function exportAsJson(network: Network, data: IGraphData, nodeSizeMode: NodeSizeMode): void {
   try {
     // Get all current positions from the network
     const nodeIds = data.nodes.map(n => n.id);
     const positions = network.getPositions(nodeIds);
-    
+
     // Build export structure
     const exportData = {
       version: '1.0',
@@ -537,7 +538,7 @@ function exportAsJson(network: Network, data: IGraphData): void {
       metadata: {
         totalNodes: data.nodes.length,
         totalEdges: data.edges.length,
-        nodeSizeMode: data.nodeSizeMode,
+        nodeSizeMode,
       },
     };
     
@@ -578,7 +579,7 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
 /**
  * Graph component with context menu and multi-select support.
  */
-export default function Graph({ data, favorites = new Set(), theme = 'dark', bidirectionalMode = 'separate', physicsSettings = DEFAULT_PHYSICS }: GraphProps): React.ReactElement {
+export default function Graph({ data, favorites = new Set(), theme = 'dark', bidirectionalMode = 'separate', physicsSettings = DEFAULT_PHYSICS, nodeSizeMode = 'connections' }: GraphProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
   const nodesRef = useRef<DataSet<ReturnType<typeof toVisNode>> | null>(null);
@@ -587,7 +588,8 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
   const dataRef = useRef(data);
   const favoritesRef = useRef(favorites);
   const bidirectionalModeRef = useRef(bidirectionalMode);
-  
+  const nodeSizeModeRef = useRef(nodeSizeMode);
+
   // Selection state
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
   const [isBackgroundContext, setIsBackgroundContext] = useState(false);
@@ -613,6 +615,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
   dataRef.current = data;
   favoritesRef.current = favorites;
   bidirectionalModeRef.current = bidirectionalMode;
+  nodeSizeModeRef.current = nodeSizeMode;
   selectedNodesRef.current = selectedNodes;
   themeRef.current = theme;
 
@@ -733,7 +736,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
           }
           break;
         case 'REQUEST_EXPORT_JSON':
-          exportAsJson(network, dataRef.current);
+          exportAsJson(network, dataRef.current, nodeSizeModeRef.current);
           break;
         case 'NODE_ACCESS_COUNT_UPDATED': {
           // Update node's access count and recalculate sizes in real-time
@@ -746,7 +749,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
             currentData.nodes[nodeIndex].accessCount = accessCount;
             
             // Only recalculate if we're in access-count mode
-            if (currentData.nodeSizeMode === 'access-count' && nodesRef.current) {
+            if (nodeSizeModeRef.current === 'access-count' && nodesRef.current) {
               // Recalculate all node sizes (normalization may change)
               const nodeSizes = calculateNodeSizes(
                 currentData.nodes,
@@ -883,7 +886,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
     const nodeSizes = calculateNodeSizes(
       initialData.nodes,
       initialData.edges,
-      initialData.nodeSizeMode ?? 'connections'
+      nodeSizeModeRef.current
     );
 
     // Create datasets
@@ -906,9 +909,21 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
     networkRef.current = network;
     initializedRef.current = true;
 
-    // Save positions after physics stabilization
+    // After stabilization, fully disable physics so hover/DataSet updates
+    // cannot restart the simulation (Obsidian-style: nodes only move on drag).
     network.on('stabilized', () => {
+      network.setOptions({ physics: { enabled: false } });
       sendAllPositions(network, nodes.getIds() as string[]);
+    });
+
+    // Re-enable physics when the user starts dragging a node, so connected
+    // nodes spring naturally. Physics will be disabled again on the next
+    // 'stabilized' event that fires after the drag settles.
+    network.on('dragStart', (params: { nodes: string[] }) => {
+      if (params.nodes.length > 0) {
+        network.setOptions({ physics: { enabled: true } });
+        network.startSimulation();
+      }
     });
 
     // Handle selection changes
@@ -1001,7 +1016,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
     const nodeSizes = calculateNodeSizes(
       data.nodes,
       data.edges,
-      data.nodeSizeMode ?? 'connections'
+      nodeSizeMode
     );
 
     // Update nodes
@@ -1041,7 +1056,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
         edgesRef.current?.add(toVisEdge(edge));
       }
     });
-  }, [data]);
+  }, [data, nodeSizeMode]);
 
   /**
    * Update node styling when favorites change
@@ -1053,14 +1068,14 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
     const nodeSizes = calculateNodeSizes(
       data.nodes,
       data.edges,
-      data.nodeSizeMode ?? 'connections'
+      nodeSizeMode
     );
     
     data.nodes.forEach((node) => {
       const visNode = toVisNode(node, favorites.has(node.id), nodeSizes.get(node.id), theme);
       nodesRef.current?.update(visNode);
     });
-  }, [favorites, data.nodes, data.edges, data.nodeSizeMode, theme]);
+  }, [favorites, data.nodes, data.edges, nodeSizeMode, theme]);
 
   /**
    * Handle hover highlighting - dim unconnected nodes
@@ -1145,7 +1160,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
       const nodeSizes = calculateNodeSizes(
         data.nodes,
         data.edges,
-        data.nodeSizeMode ?? 'connections'
+        nodeSizeMode
       );
       
       data.nodes.forEach((node) => {
@@ -1169,7 +1184,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
         });
       });
     }
-  }, [hoveredNode, data, favorites, theme]);
+  }, [hoveredNode, data, favorites, theme, nodeSizeMode]);
 
   /**
    * Update edges when bidirectional mode changes
@@ -1215,9 +1230,11 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
     // Store current settings for next comparison
     prevPhysicsRef.current = { ...physicsSettings };
 
-    // Apply new physics settings
+    // Apply new physics settings, re-enabling physics so the layout re-runs.
+    // The 'stabilized' handler will disable physics again once it settles.
     network.setOptions({
       physics: {
+        enabled: true,
         forceAtlas2Based: {
           gravitationalConstant: physicsSettings.gravitationalConstant,
           centralGravity: physicsSettings.centralGravity,
@@ -1227,10 +1244,6 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
         },
       },
     });
-
-    // Restart the physics simulation to apply new settings
-    // This is necessary because vis-network doesn't automatically
-    // restart physics when options are changed after stabilization
     network.startSimulation();
   }, [physicsSettings]);
 

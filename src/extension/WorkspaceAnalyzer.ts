@@ -14,7 +14,8 @@ import { createGDScriptPlugin } from '../plugins/godot';
 import { createPythonPlugin } from '../plugins/python';
 import { createCSharpPlugin } from '../plugins/csharp';
 import { ColorPaletteManager } from '../core/colors';
-import { IGraphData, IGraphNode, IGraphEdge } from '../shared/types';
+import { IGraphData, IGraphNode, IGraphEdge, DEFAULT_NODE_COLOR } from '../shared/types';
+import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
 
 /**
  * Cache entry for a single file's analysis.
@@ -39,7 +40,7 @@ interface IAnalysisCache {
 }
 
 const CACHE_KEY = 'codegraphy.analysisCache';
-const CACHE_VERSION = '1.4.0'; // Bumped for file size caching
+const CACHE_VERSION = '1.6.0'; // Bumped for edge deduplication fix
 
 /** Storage key for file visit counts in workspace state (shared with GraphViewProvider) */
 const VISITS_KEY = 'codegraphy.fileVisits';
@@ -113,10 +114,24 @@ export class WorkspaceAnalyzer {
   }
 
   /**
+   * Returns default filter patterns declared by all registered plugins.
+   * These are shown in the Settings Panel as read-only "plugin defaults".
+   */
+  getPluginFilterPatterns(): string[] {
+    const patterns: string[] = [];
+    for (const pluginInfo of this._registry.list()) {
+      if (pluginInfo.plugin.defaultFilterPatterns) {
+        patterns.push(...pluginInfo.plugin.defaultFilterPatterns);
+      }
+    }
+    return [...new Set(patterns)];
+  }
+
+  /**
    * Analyzes the workspace and returns graph data.
    * Uses caching for performance.
    */
-  async analyze(): Promise<IGraphData> {
+  async analyze(filterPatterns: string[] = []): Promise<IGraphData> {
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       console.log('[CodeGraphy] No workspace folder open');
@@ -126,13 +141,16 @@ export class WorkspaceAnalyzer {
     // Discover ALL files (not filtered by extension)
     // Non-code files will appear as orphans if showOrphans is enabled
     const config = this._config.getAll();
-    
+
     // Collect default exclude patterns from all plugins
     const pluginExcludes = this._collectPluginExcludes();
-    
-    // Merge: plugin defaults + user settings (user patterns take precedence)
-    const mergedExclude = [...new Set([...pluginExcludes, ...config.exclude])];
-    
+
+    // Collect plugin-declared filter patterns (user-visible defaults)
+    const pluginFilterPatterns = this.getPluginFilterPatterns();
+
+    // Merge: hardcoded defaults + plugin excludes + plugin filter patterns + user filter patterns
+    const mergedExclude = [...new Set([...DEFAULT_EXCLUDE_PATTERNS, ...pluginExcludes, ...pluginFilterPatterns, ...filterPatterns])];
+
     const discoveryResult = await this._discovery.discover({
       rootPath: workspaceRoot,
       maxFiles: config.maxFiles,
@@ -151,12 +169,9 @@ export class WorkspaceAnalyzer {
 
     console.log(`[CodeGraphy] Discovered ${discoveryResult.files.length} files in ${discoveryResult.durationMs}ms`);
 
-    // Generate color palette for all discovered extensions
-    const extensions = discoveryResult.files.map(f => path.extname(f.relativePath).toLowerCase());
-    this._colorPalette.generateForExtensions(extensions);
-    
-    // Apply user color overrides
-    this._colorPalette.setUserColors(config.fileColors);
+    // Pre-analysis pass: let plugins build workspace-wide indexes before per-file analysis.
+    // Needed for cross-file references that require seeing all files first (e.g. GDScript class_name).
+    await this._preAnalyzePlugins(discoveryResult.files, workspaceRoot);
 
     // Analyze files (with caching)
     const fileConnections = await this._analyzeFiles(discoveryResult.files, workspaceRoot);
@@ -186,6 +201,31 @@ export class WorkspaceAnalyzer {
    */
   dispose(): void {
     this._registry.disposeAll();
+  }
+
+  /**
+   * Pre-analysis pass: calls preAnalyze on any plugin that implements it.
+   * Reads all files for each plugin's supported extensions so the plugin can
+   * build workspace-wide indexes (e.g. the GDScript class_name → file map).
+   */
+  private async _preAnalyzePlugins(files: IDiscoveredFile[], workspaceRoot: string): Promise<void> {
+    for (const pluginInfo of this._registry.list()) {
+      const plugin = pluginInfo.plugin;
+      if (!plugin.preAnalyze) continue;
+
+      const supportedFiles: Array<{ absolutePath: string; relativePath: string; content: string }> = [];
+      for (const file of files) {
+        const ext = path.extname(file.relativePath).toLowerCase();
+        if (plugin.supportedExtensions.includes(ext)) {
+          const content = await this._discovery.readContent(file);
+          supportedFiles.push({ absolutePath: file.absolutePath, relativePath: file.relativePath, content });
+        }
+      }
+
+      if (supportedFiles.length > 0) {
+        await plugin.preAnalyze(supportedFiles, workspaceRoot);
+      }
+    }
   }
 
   /**
@@ -249,9 +289,7 @@ export class WorkspaceAnalyzer {
     const edges: IGraphEdge[] = [];
     const nodeIds = new Set<string>();
     const connectedIds = new Set<string>();
-
-    // Get node size mode from settings
-    const nodeSizeMode = this._config.nodeSizeBy;
+    const edgeIds = new Set<string>();
 
     // Get visit counts from workspace state (for access-count mode)
     const visitCounts = this._context.workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
@@ -263,18 +301,23 @@ export class WorkspaceAnalyzer {
       for (const conn of connections) {
         if (conn.resolvedPath) {
           const targetRelative = path.relative(workspaceRoot, conn.resolvedPath);
-          
+
           // Only create edge if target is in our discovered files
           if (fileConnections.has(targetRelative)) {
             connectedIds.add(filePath);
             connectedIds.add(targetRelative);
 
+            // Deduplicate: a file may import the same target via multiple
+            // mechanisms (e.g. extends path + class_name usage)
             const edgeId = `${filePath}->${targetRelative}`;
-            edges.push({
-              id: edgeId,
-              from: filePath,
-              to: targetRelative,
-            });
+            if (!edgeIds.has(edgeId)) {
+              edgeIds.add(edgeId);
+              edges.push({
+                id: edgeId,
+                from: filePath,
+                to: targetRelative,
+              });
+            }
           }
         }
       }
@@ -287,7 +330,7 @@ export class WorkspaceAnalyzer {
         continue;
       }
 
-      const color = this._colorPalette.getColorForFile(filePath);
+      const color = DEFAULT_NODE_COLOR;
       const cached = this._cache.files[filePath];
 
       nodes.push({
@@ -305,7 +348,7 @@ export class WorkspaceAnalyzer {
       (e) => nodeIdSet.has(e.from) && nodeIdSet.has(e.to)
     );
 
-    return { nodes, edges: filteredEdges, nodeSizeMode };
+    return { nodes, edges: filteredEdges };
   }
 
   /**

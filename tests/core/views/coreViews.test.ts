@@ -197,13 +197,6 @@ describe('Core Views', () => {
       expect(depthGraphView.isAvailable?.(context)).toBe(true);
     });
 
-    it('should preserve nodeSizeMode in output', () => {
-      const dataWithMode: IGraphData = { ...sampleGraphData, nodeSizeMode: 'file-size' };
-      const context = createContext({ focusedFile: 'src/app.ts', depthLimit: 1 });
-      const result = depthGraphView.transform(dataWithMode, context);
-
-      expect(result.nodeSizeMode).toBe('file-size');
-    });
   });
 
   describe('subfolderView', () => {
@@ -259,12 +252,5 @@ describe('Core Views', () => {
       expect(subfolderView.isAvailable?.(context)).toBe(true);
     });
 
-    it('should preserve nodeSizeMode in output', () => {
-      const dataWithMode: IGraphData = { ...sampleGraphData, nodeSizeMode: 'file-size' };
-      const context = createContext({ selectedFolder: 'src' });
-      const result = subfolderView.transform(dataWithMode, context);
-
-      expect(result.nodeSizeMode).toBe('file-size');
-    });
   });
 });

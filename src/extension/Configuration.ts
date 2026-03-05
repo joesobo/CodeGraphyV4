@@ -5,7 +5,6 @@
  */
 
 import * as vscode from 'vscode';
-import { NodeSizeMode } from '../shared/types';
 
 /**
  * Default exclude patterns for file discovery.
@@ -32,8 +31,6 @@ export interface ICodeGraphyConfig {
   maxFiles: number;
   /** Glob patterns for files to include */
   include: string[];
-  /** Glob patterns for files to exclude */
-  exclude: string[];
   /** Whether to respect .gitignore patterns */
   respectGitignore: boolean;
   /** Whether to show orphan nodes (files with no connections) */
@@ -42,10 +39,6 @@ export interface ICodeGraphyConfig {
   bidirectionalEdges: 'separate' | 'combined';
   /** List of plugin extension names to enable */
   plugins: string[];
-  /** User-defined colors for file extensions (overrides plugin/generated colors) */
-  fileColors: Record<string, string>;
-  /** What determines node size in the graph */
-  nodeSizeBy: NodeSizeMode;
 }
 
 /**
@@ -93,14 +86,6 @@ export class Configuration {
   }
 
   /**
-   * Glob patterns for files to exclude from analysis.
-   * @default DEFAULT_EXCLUDE_PATTERNS
-   */
-  get exclude(): string[] {
-    return this.config.get<string[]>('exclude', [...DEFAULT_EXCLUDE_PATTERNS]);
-  }
-
-  /**
    * Whether to also exclude files matched by .gitignore.
    * @default true
    */
@@ -134,25 +119,6 @@ export class Configuration {
   }
 
   /**
-   * User-defined colors for file extensions.
-   * These have highest priority and override plugin/generated colors.
-   * Map of extension (e.g., '.ts') to hex color (e.g., '#93C5FD').
-   * @default {}
-   */
-  get fileColors(): Record<string, string> {
-    return this.config.get<Record<string, string>>('fileColors', {});
-  }
-
-  /**
-   * What determines node size in the graph.
-   * Options: 'connections', 'file-size', 'access-count', 'uniform'
-   * @default 'connections'
-   */
-  get nodeSizeBy(): NodeSizeMode {
-    return this.config.get<NodeSizeMode>('nodeSizeBy', 'connections');
-  }
-
-  /**
    * Gets a configuration value by key with a default.
    * @param key - Configuration key (without 'codegraphy.' prefix)
    * @param defaultValue - Default value if not set
@@ -172,13 +138,10 @@ export class Configuration {
     return {
       maxFiles: this.maxFiles,
       include: this.include,
-      exclude: this.exclude,
       respectGitignore: this.respectGitignore,
       showOrphans: this.showOrphans,
       bidirectionalEdges: this.bidirectionalEdges,
       plugins: this.plugins,
-      fileColors: this.fileColors,
-      nodeSizeBy: this.nodeSizeBy,
     };
   }
 

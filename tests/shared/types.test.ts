@@ -6,6 +6,7 @@ import {
   IGraphNode,
   IGraphEdge,
   IGraphData,
+  IGroup,
 } from '../../src/shared/types';
 
 describe('File Type Colors', () => {
@@ -115,5 +116,14 @@ describe('Graph Types', () => {
     };
     expect(emptyData.nodes).toHaveLength(0);
     expect(emptyData.edges).toHaveLength(0);
+  });
+});
+
+describe('IGroup', () => {
+  it('should be a valid interface with required fields', () => {
+    const group: IGroup = { id: 'abc', pattern: 'src/**', color: '#3B82F6' };
+    expect(group.id).toBe('abc');
+    expect(group.pattern).toBe('src/**');
+    expect(group.color).toBe('#3B82F6');
   });
 });

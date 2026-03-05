@@ -19,11 +19,9 @@ describe('Configuration', () => {
     mockConfig = {
       maxFiles: 100,
       include: ['**/*'],
-      exclude: [...DEFAULT_EXCLUDE_PATTERNS],
       respectGitignore: true,
       showOrphans: true,
       plugins: [],
-      fileColors: {},
     };
 
     // Setup mock to return values from mockConfig
@@ -43,11 +41,6 @@ describe('Configuration', () => {
     it('should return default include pattern', () => {
       const config = new Configuration();
       expect(config.include).toEqual(['**/*']);
-    });
-
-    it('should return default exclude patterns', () => {
-      const config = new Configuration();
-      expect(config.exclude).toEqual(DEFAULT_EXCLUDE_PATTERNS);
     });
 
     it('should return default respectGitignore as true', () => {
@@ -79,12 +72,6 @@ describe('Configuration', () => {
       expect(config.include).toEqual(['src/**/*', 'lib/**/*']);
     });
 
-    it('should return custom exclude patterns', () => {
-      mockConfig.exclude = ['**/test/**'];
-      const config = new Configuration();
-      expect(config.exclude).toEqual(['**/test/**']);
-    });
-
     it('should return custom respectGitignore', () => {
       mockConfig.respectGitignore = false;
       const config = new Configuration();
@@ -112,13 +99,10 @@ describe('Configuration', () => {
       expect(all).toEqual({
         maxFiles: 100,
         include: ['**/*'],
-        exclude: DEFAULT_EXCLUDE_PATTERNS,
         respectGitignore: true,
         showOrphans: true,
-        plugins: [],
-        fileColors: {},
         bidirectionalEdges: 'separate',
-        nodeSizeBy: 'connections',
+        plugins: [],
       });
     });
 

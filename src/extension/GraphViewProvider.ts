@@ -11,6 +11,7 @@ import {
   IAvailableView,
   BidirectionalEdgeMode,
   IPhysicsSettings,
+  IGroup,
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
 } from '../shared/types';
@@ -42,6 +43,12 @@ const VISITS_KEY = 'codegraphy.fileVisits';
 
 /** Storage key for selected view per workspace */
 const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
+
+/** Storage key for groups in workspace state */
+const GROUPS_KEY = 'codegraphy.groups';
+
+/** Storage key for filter patterns in workspace state */
+const FILTER_PATTERNS_KEY = 'codegraphy.filterPatterns';
 
 /** Storage key for depth limit per workspace */
 const DEPTH_LIMIT_KEY = 'codegraphy.depthLimit';
@@ -98,6 +105,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Whether the analyzer has been initialized */
   private _analyzerInitialized = false;
 
+  /** Whether an analysis is already in progress (prevents concurrent runs) */
+  private _analyzing = false;
+
   /** View registry for managing available views */
   private readonly _viewRegistry: ViewRegistry;
 
@@ -112,6 +122,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     activePlugins: new Set(),
     depthLimit: DEFAULT_DEPTH_LIMIT,
   };
+
+  /** Groups for client-side file coloring */
+  private _groups: IGroup[] = [];
+
+  /** Filter patterns passed to analysis (extension-side exclusions) */
+  private _filterPatterns: string[] = [];
 
   /**
    * Creates a new GraphViewProvider.
@@ -178,17 +194,17 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     webviewView.onDidChangeVisibility(() => {
       // Update keybinding context
       vscode.commands.executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
-      
+
       if (webviewView.visible) {
         console.log('[CodeGraphy] View became visible, re-sending data');
         this._analyzeAndSendData();
       }
     });
 
-    // Proactively start analysis - don't rely solely on WEBVIEW_READY
-    // The webview might send WEBVIEW_READY before listener is ready, or vice versa
-    // This ensures data is always sent
-    this._analyzeAndSendData();
+    // Do NOT proactively call _analyzeAndSendData() here.
+    // The webview iframe has not loaded yet, so any postMessage sent now is silently
+    // dropped. Initial data delivery is handled by the WEBVIEW_READY handler below,
+    // which fires once the React app has mounted and is ready to receive messages.
   }
 
   /**
@@ -250,6 +266,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Analyzes the workspace and sends data to webview.
    */
   private async _analyzeAndSendData(): Promise<void> {
+    if (this._analyzing) return;
+    this._analyzing = true;
+    try {
+      await this._doAnalyzeAndSendData();
+    } finally {
+      this._analyzing = false;
+    }
+  }
+
+  private async _doAnalyzeAndSendData(): Promise<void> {
     if (!this._analyzer) {
       // No analyzer - send empty data
       this._rawGraphData = { nodes: [], edges: [] };
@@ -280,7 +306,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     // Analyze real workspace
     try {
-      this._rawGraphData = await this._analyzer.analyze();
+      this._rawGraphData = await this._analyzer.analyze(this._filterPatterns);
       
       // Update view context
       this._updateViewContext();
@@ -622,6 +648,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
       switch (message.type) {
         case 'WEBVIEW_READY':
+          // Load groups and filter patterns (VS Code settings > workspace state)
+          this._loadGroupsAndFilterPatterns();
           // Analyze workspace and send graph data
           this._analyzeAndSendData();
           // Send current favorites
@@ -630,6 +658,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._sendSettings();
           // Send physics settings
           this._sendPhysicsSettings();
+          // Send groups and filter patterns
+          this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
+          this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
           break;
 
         case 'NODE_SELECTED':
@@ -734,10 +765,39 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         case 'CHANGE_VIEW':
           await this.changeView(message.payload.viewId);
           break;
-          
+
         case 'CHANGE_DEPTH_LIMIT':
           await this.setDepthLimit(message.payload.depthLimit);
           break;
+
+        case 'UPDATE_GROUPS': {
+          this._groups = message.payload.groups;
+          // Save to workspace state to avoid triggering onDidChangeConfiguration
+          await this._context.workspaceState.update(GROUPS_KEY, this._groups);
+          this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
+          break;
+        }
+
+        case 'UPDATE_FILTER_PATTERNS': {
+          this._filterPatterns = message.payload.patterns;
+          const filterTarget = vscode.workspace.workspaceFolders?.length
+            ? vscode.ConfigurationTarget.Workspace
+            : vscode.ConfigurationTarget.Global;
+          await vscode.workspace.getConfiguration('codegraphy').update('filterPatterns', this._filterPatterns, filterTarget);
+          this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
+          // onDidChangeConfiguration fires after config.update and calls refresh() → _analyzeAndSendData().
+          // this._filterPatterns is already set above, so that refresh uses the correct patterns.
+          break;
+        }
+
+        case 'UPDATE_SHOW_ORPHANS': {
+          const target = vscode.workspace.workspaceFolders?.length
+            ? vscode.ConfigurationTarget.Workspace
+            : vscode.ConfigurationTarget.Global;
+          await vscode.workspace.getConfiguration('codegraphy').update('showOrphans', message.payload.showOrphans, target);
+          // Config change listener in index.ts handles re-analysis
+          break;
+        }
       }
     });
   }
@@ -1046,6 +1106,24 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Loads groups and filter patterns with VS Code settings taking priority over workspace state.
+   */
+  private _loadGroupsAndFilterPatterns(): void {
+    const config = vscode.workspace.getConfiguration('codegraphy');
+    // Use inspect() to distinguish explicitly-set values from schema defaults.
+    // config.get() returns the schema default ([]) even when the user hasn't set
+    // anything, making the workspace state fallback unreachable via nullish coalescing.
+    const groupsInspect = config.inspect<IGroup[]>('groups');
+    const patternsInspect = config.inspect<string[]>('filterPatterns');
+
+    const vsGroups = groupsInspect?.workspaceValue ?? groupsInspect?.globalValue;
+    const vsFilterPatterns = patternsInspect?.workspaceValue ?? patternsInspect?.globalValue;
+
+    this._groups = vsGroups ?? this._context.workspaceState.get<IGroup[]>(GROUPS_KEY) ?? [];
+    this._filterPatterns = vsFilterPatterns ?? this._context.workspaceState.get<string[]>(FILTER_PATTERNS_KEY) ?? [];
+  }
+
+  /**
    * Sends current favorites to the webview.
    */
   private _sendFavorites(): void {
@@ -1060,7 +1138,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _sendSettings(): void {
     const config = vscode.workspace.getConfiguration('codegraphy');
     const bidirectionalEdges = config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate');
-    this._sendMessage({ type: 'SETTINGS_UPDATED', payload: { bidirectionalEdges } });
+    const showOrphans = config.get<boolean>('showOrphans', true);
+    this._sendMessage({ type: 'SETTINGS_UPDATED', payload: { bidirectionalEdges, showOrphans } });
   }
 
   /**
@@ -1234,7 +1313,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src ${webview.cspSource};">
   <link href="${styleUri}" rel="stylesheet">
   <title>CodeGraphy</title>
 </head>

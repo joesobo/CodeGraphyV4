@@ -528,10 +528,9 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
         edges: [
           { id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' },
         ],
-        nodeSizeMode: 'uniform',
       };
 
-      const { container } = render(<Graph data={data} />);
+      const { container } = render(<Graph data={data} nodeSizeMode="uniform" />);
       expect(container.querySelector('div')).toBeInTheDocument();
     });
 
@@ -542,10 +541,9 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
           { id: 'small.ts', label: 'small.ts', color: '#93C5FD', fileSize: 100 },
         ],
         edges: [],
-        nodeSizeMode: 'file-size',
       };
 
-      const { container } = render(<Graph data={data} />);
+      const { container } = render(<Graph data={data} nodeSizeMode="file-size" />);
       expect(container.querySelector('div')).toBeInTheDocument();
     });
 
@@ -556,10 +554,9 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
           { id: 'unknown.ts', label: 'unknown.ts', color: '#93C5FD' }, // No fileSize
         ],
         edges: [],
-        nodeSizeMode: 'file-size',
       };
 
-      const { container } = render(<Graph data={data} />);
+      const { container } = render(<Graph data={data} nodeSizeMode="file-size" />);
       // Should render without errors even with missing file sizes
       expect(container.querySelector('div')).toBeInTheDocument();
     });
@@ -573,10 +570,9 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
         edges: [
           { id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' },
         ],
-        nodeSizeMode: 'access-count',
       };
 
-      const { container } = render(<Graph data={data} />);
+      const { container } = render(<Graph data={data} nodeSizeMode="access-count" />);
       expect(container.querySelector('div')).toBeInTheDocument();
     });
   });
@@ -631,7 +627,6 @@ describe('Export Functionality', () => {
       { id: 'src/utils.ts', label: 'utils.ts', color: '#67E8F9', fileSize: 567 },
     ],
     edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' }],
-    nodeSizeMode: 'file-size',
   };
 
   beforeEach(() => {
@@ -645,7 +640,7 @@ describe('Export Functionality', () => {
   });
 
   it('should register message listener on mount', async () => {
-    render(<Graph data={mockData} />);
+    render(<Graph data={mockData} nodeSizeMode="file-size" />);
     
     // The component should have added a message listener
     // We can verify this by checking if window has a listener
@@ -661,7 +656,7 @@ describe('Export Functionality', () => {
   });
 
   it('should handle REQUEST_EXPORT_JSON message and send EXPORT_JSON response', async () => {
-    render(<Graph data={mockData} />);
+    render(<Graph data={mockData} nodeSizeMode="file-size" />);
     
     // Wait for component to mount and register listener
     await act(async () => {

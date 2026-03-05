@@ -9,7 +9,7 @@
  */
 
 /** Types of GDScript references */
-export type GDScriptReferenceType = 'preload' | 'load' | 'extends' | 'class_name';
+export type GDScriptReferenceType = 'preload' | 'load' | 'extends' | 'class_name' | 'class_name_usage';
 
 /** Raw detected reference from GDScript */
 export interface IGDScriptReference {
@@ -84,6 +84,15 @@ export class GDScriptImportDetector {
   }
 
   /**
+   * Detect potential class_name usages in a single line.
+   * Called separately by the plugin (not from detect()) so it can filter results
+   * against the pre-built class_name map before storing connections.
+   */
+  detectClassNameUsagesInLine(line: string, lineNumber: number): IGDScriptReference[] {
+    return this.detectClassNameUsages(line, lineNumber);
+  }
+
+  /**
    * Detect preload() calls.
    * Matches: preload("res://path/to/file.gd")
    */
@@ -141,7 +150,7 @@ export class GDScriptImportDetector {
   /**
    * Detect extends statements with file paths.
    * Matches: extends "res://scripts/base.gd"
-   * Ignores: extends Node2D (built-in classes)
+   * Ignores: extends Node2D (built-in classes, handled by detectClassNameUsages)
    */
   private detectExtends(line: string, lineNumber: number): IGDScriptReference | null {
     // Match extends "..." or extends '...'
@@ -161,6 +170,76 @@ export class GDScriptImportDetector {
     }
 
     return null;
+  }
+
+  /**
+   * Detect usages of class names defined via `class_name` in other files.
+   *
+   * Covers the most common patterns in GDScript:
+   *   - extends ClassName           (unquoted — by class_name)
+   *   - var x: ClassName            (type annotation)
+   *   - const X: ClassName          (type annotation)
+   *   - @export var x: ClassName    (exported property)
+   *   - func f(p: ClassName)        (parameter type)
+   *   - func f() -> ClassName       (return type)
+   *   - ClassName.something         (static / constructor access)
+   *
+   * Only identifiers that start with an uppercase letter are considered,
+   * matching GDScript's class_name convention and reducing false positives.
+   * The resolver will silently discard any name not in its class_name map.
+   */
+  detectClassNameUsages(line: string, lineNumber: number): IGDScriptReference[] {
+    const references: IGDScriptReference[] = [];
+    const seen = new Set<string>();
+
+    const push = (name: string) => {
+      if (!seen.has(name)) {
+        seen.add(name);
+        references.push({
+          resPath: name,
+          referenceType: 'class_name_usage',
+          importType: 'static',
+          line: lineNumber,
+          isDeclaration: false,
+        });
+      }
+    };
+
+    const trimmed = line.trim();
+
+    // extends ClassName  (no quotes — class_name-based inheritance)
+    const extendsMatch = trimmed.match(/^extends\s+([A-Z]\w*)\s*(?:#.*)?$/);
+    if (extendsMatch) {
+      push(extendsMatch[1]);
+    }
+
+    // Type annotations: var/const/@export var/@onready var name: ClassName
+    // Also catches function parameters: func f(p: ClassName)
+    const typeAnnotationRegex = /\w+\s*:\s*([A-Z]\w*)/g;
+    let match;
+    while ((match = typeAnnotationRegex.exec(line)) !== null) {
+      push(match[1]);
+    }
+
+    // Return type: -> ClassName
+    const returnTypeMatch = line.match(/->\s*([A-Z]\w*)/);
+    if (returnTypeMatch) {
+      push(returnTypeMatch[1]);
+    }
+
+    // Static / constructor access: ClassName.something or ClassName.new()
+    const staticAccessRegex = /\b([A-Z]\w*)\s*\./g;
+    while ((match = staticAccessRegex.exec(line)) !== null) {
+      push(match[1]);
+    }
+
+    // Type-check and cast: if x is ClassName / x as ClassName
+    const isAsRegex = /\b(?:is|as)\s+([A-Z]\w*)/g;
+    while ((match = isAsRegex.exec(line)) !== null) {
+      push(match[1]);
+    }
+
+    return references;
   }
 
   /**

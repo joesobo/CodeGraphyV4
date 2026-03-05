@@ -46,9 +46,12 @@ export class GDScriptPlugin implements IPlugin {
     '**/addons/**',
   ];
 
+  readonly defaultFilterPatterns = [
+    '**/*.uid', // Godot 4 resource UID files (auto-generated, rarely useful in graph)
+  ];
+
   private detector: GDScriptImportDetector;
   private resolver: GDScriptPathResolver | null = null;
-
   constructor() {
     this.detector = new GDScriptImportDetector();
   }
@@ -60,6 +63,38 @@ export class GDScriptPlugin implements IPlugin {
   async initialize(workspaceRoot: string): Promise<void> {
     this.resolver = new GDScriptPathResolver(workspaceRoot);
     console.log('[CodeGraphy] GDScript plugin initialized');
+  }
+
+  /**
+   * Pre-analysis pass: scan all .gd files to build the class_name → file map.
+   *
+   * This must run before per-file detectConnections calls because:
+   * 1. Files may be processed in any order — global.gd before round_manager.gd.
+   * 2. Cached files skip detectConnections, so their class_names would never register.
+   *
+   * After this call, resolver.resolve("RoundManager") returns the correct file path.
+   */
+  async preAnalyze(
+    files: Array<{ absolutePath: string; relativePath: string; content: string }>,
+    workspaceRoot: string
+  ): Promise<void> {
+    if (!this.resolver) {
+      this.resolver = new GDScriptPathResolver(workspaceRoot);
+    }
+
+    // Rebuild map from scratch on every analysis run to stay consistent
+    this.resolver.clearClassNames();
+
+    for (const { relativePath, content } of files) {
+      const refs = this.detector.detect(content);
+      for (const ref of refs) {
+        if (ref.isDeclaration) {
+          this.resolver.registerClassName(ref.resPath, relativePath);
+        }
+      }
+    }
+
+    console.log(`[CodeGraphy] GDScript class_name map: ${this.resolver.getClassNameMap().size} entries`);
   }
 
   /**
@@ -89,16 +124,15 @@ export class GDScriptPlugin implements IPlugin {
     for (const ref of rawReferences) {
       // Skip class_name declarations (they're not imports)
       if (ref.isDeclaration) {
-        // Register the class_name for other files to reference
+        // Re-register in case preAnalyze wasn't called (e.g. unit tests)
         this.resolver.registerClassName(ref.resPath, relativeFilePath);
         continue;
       }
 
       // Resolve the path
       const resolvedRelative = this.resolver.resolve(ref.resPath, relativeFilePath);
-      
+
       if (resolvedRelative) {
-        // Convert back to absolute path
         const resolvedAbsolute = path.join(workspaceRoot, resolvedRelative).replace(/\\/g, '/');
         connections.push({
           specifier: ref.resPath,
@@ -106,12 +140,35 @@ export class GDScriptPlugin implements IPlugin {
           type: ref.importType,
         });
       } else {
-        // Keep unresolved (might be user:// or class_name ref)
+        // Keep unresolved res:// / user:// paths as-is (external or user data).
         connections.push({
           specifier: ref.resPath,
           resolvedPath: null,
           type: ref.importType,
         });
+      }
+    }
+
+    // Detect class_name usages (type annotations, extends by name, static calls).
+    // These are checked separately against the class_name map; unresolved hits are
+    // silently dropped (they're just false positives from the uppercase heuristic).
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const lineWithoutComment = lines[i].split('#')[0];
+      if (!lineWithoutComment.trim()) continue;
+
+      const usageRefs = this.detector.detectClassNameUsagesInLine(lineWithoutComment, i + 1);
+      for (const ref of usageRefs) {
+        const resolvedRelative = this.resolver.resolve(ref.resPath, relativeFilePath);
+        if (resolvedRelative) {
+          const resolvedAbsolute = path.join(workspaceRoot, resolvedRelative).replace(/\\/g, '/');
+          connections.push({
+            specifier: ref.resPath,
+            resolvedPath: resolvedAbsolute,
+            type: ref.importType,
+          });
+        }
+        // Unresolved class_name_usage = built-in Godot type or false positive, discard.
       }
     }
 

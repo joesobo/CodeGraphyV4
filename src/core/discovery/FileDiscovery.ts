@@ -172,8 +172,8 @@ export class FileDiscovery {
     // Normalize path separators for cross-platform matching
     const normalizedPath = relativePath.replace(/\\/g, '/');
     
-    return patterns.some((pattern) => 
-      minimatch(normalizedPath, pattern, { dot: true })
+    return patterns.some((pattern) =>
+      minimatch(normalizedPath, pattern, { dot: true, matchBase: true })
     );
   }
 

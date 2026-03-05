@@ -22,6 +22,8 @@ export const commands = {
 export const workspace = {
   getConfiguration: vi.fn(() => ({
     get: vi.fn(),
+    inspect: vi.fn(() => undefined),
+    update: vi.fn(),
   })),
   onDidChangeConfiguration: vi.fn(() => ({ dispose: vi.fn() })),
   onDidSaveTextDocument: vi.fn(() => ({ dispose: vi.fn() })),

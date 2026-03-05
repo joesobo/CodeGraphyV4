@@ -103,7 +103,6 @@ export const depthGraphView: IView = {
     return {
       nodes: filteredNodes,
       edges: filteredEdges,
-      nodeSizeMode: data.nodeSizeMode,
     };
   },
   
@@ -150,7 +149,6 @@ export const subfolderView: IView = {
     return {
       nodes: filteredNodes,
       edges: filteredEdges,
-      nodeSizeMode: data.nodeSizeMode,
     };
   },
   

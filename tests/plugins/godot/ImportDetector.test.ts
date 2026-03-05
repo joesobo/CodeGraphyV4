@@ -199,6 +199,76 @@ func shoot():
     });
   });
 
+  describe('class_name usage detection', () => {
+    it('should detect extends by class_name (no quotes)', () => {
+      const refs = detector.detectClassNameUsagesInLine('extends RoundManager', 1);
+      expect(refs).toHaveLength(1);
+      expect(refs[0].resPath).toBe('RoundManager');
+      expect(refs[0].referenceType).toBe('class_name_usage');
+      expect(refs[0].isDeclaration).toBe(false);
+    });
+
+    it('should detect type-annotated variable', () => {
+      const refs = detector.detectClassNameUsagesInLine('var round_manager: RoundManager', 1);
+      expect(refs).toHaveLength(1);
+      expect(refs[0].resPath).toBe('RoundManager');
+    });
+
+    it('should detect type-annotated const', () => {
+      const refs = detector.detectClassNameUsagesInLine('const MANAGER: RoundManager = null', 1);
+      expect(refs).toHaveLength(1);
+      expect(refs[0].resPath).toBe('RoundManager');
+    });
+
+    it('should detect return type annotation', () => {
+      const refs = detector.detectClassNameUsagesInLine('func get_manager() -> RoundManager:', 1);
+      const names = refs.map(r => r.resPath);
+      expect(names).toContain('RoundManager');
+    });
+
+    it('should detect static access', () => {
+      const refs = detector.detectClassNameUsagesInLine('\tRoundManager.new()', 1);
+      const names = refs.map(r => r.resPath);
+      expect(names).toContain('RoundManager');
+    });
+
+    it('should detect "is" type check', () => {
+      const refs = detector.detectClassNameUsagesInLine('if x is SpiritCapSpawner:', 1);
+      const names = refs.map(r => r.resPath);
+      expect(names).toContain('SpiritCapSpawner');
+    });
+
+    it('should detect "as" cast', () => {
+      const refs = detector.detectClassNameUsagesInLine('var casted = x as FairyRingSpawner', 1);
+      const names = refs.map(r => r.resPath);
+      expect(names).toContain('FairyRingSpawner');
+    });
+
+    it('should not flag lowercase identifiers', () => {
+      const refs = detector.detectClassNameUsagesInLine('var x: int = 0', 1);
+      expect(refs.map(r => r.resPath)).not.toContain('int');
+    });
+
+    it('should deduplicate multiple hits on the same name in one line', () => {
+      const refs = detector.detectClassNameUsagesInLine('var x: RoundManager = RoundManager.new()', 1);
+      const names = refs.map(r => r.resPath);
+      expect(names.filter(n => n === 'RoundManager')).toHaveLength(1);
+    });
+
+    it('should detect class_name usages via detectClassNameUsagesInLine on each line', () => {
+      const lines = [
+        'extends Node',
+        'var round_manager: RoundManager',
+      ];
+      const usages = lines.flatMap((line, i) =>
+        detector.detectClassNameUsagesInLine(line.split('#')[0], i + 1)
+      );
+      expect(usages.some(r => r.resPath === 'RoundManager')).toBe(true);
+      // 'Node' starts with uppercase but is also detected — filtering is the resolver's job
+      expect(usages.some(r => r.referenceType === 'class_name_usage')).toBe(true);
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle empty file', () => {
       const refs = detector.detect('');

@@ -136,22 +136,6 @@
           ],
           "description": "Glob patterns for files to include in analysis."
         },
-        "codegraphy.exclude": {
-          "type": "array",
-          "items": "string",
-          "default": [
-            "**/node_modules/**",
-            "**/dist/**",
-            "**/build/**",
-            "**/out/**",
-            "**/.git/**",
-            "**/coverage/**",
-            "**/*.min.js",
-            "**/*.bundle.js",
-            "**/*.map"
-          ],
-          "description": "Glob patterns for files to exclude from analysis."
-        },
         "codegraphy.respectGitignore": {
           "type": "boolean",
           "default": true,
@@ -168,15 +152,6 @@
           "default": [],
           "description": "List of CodeGraphy plugin extension names to enable (e.g., 'codegraphy-rust')."
         },
-        "codegraphy.fileColors": {
-          "type": "object",
-          "default": {},
-          "description": "Custom colors for file extensions. Maps extension (e.g., '.ts') to hex color (e.g., '#93C5FD'). Overrides plugin and generated colors.",
-          "additionalProperties": {
-            "type": "string",
-            "pattern": "^#[0-9A-Fa-f]{6}$"
-          }
-        },
         "codegraphy.favorites": {
           "type": "array",
           "items": {
@@ -187,30 +162,16 @@
         },
         "codegraphy.bidirectionalEdges": {
           "type": "string",
-          "enum": ["separate", "combined"],
+          "enum": [
+            "separate",
+            "combined"
+          ],
           "default": "separate",
           "enumDescriptions": [
             "Show two separate arrows for bidirectional connections",
             "Show a single bidirectional arrow with arrowheads on both ends"
           ],
           "description": "How to display bidirectional connections (when A imports B and B imports A)."
-        },
-        "codegraphy.nodeSizeBy": {
-          "type": "string",
-          "enum": [
-            "connections",
-            "file-size",
-            "access-count",
-            "uniform"
-          ],
-          "enumDescriptions": [
-            "More connections = larger node (default)",
-            "Larger files = larger nodes",
-            "Frequently opened files = larger nodes",
-            "All nodes same size"
-          ],
-          "default": "connections",
-          "description": "What determines the size of nodes in the graph."
         },
         "codegraphy.physics.gravitationalConstant": {
           "type": "number",
@@ -246,6 +207,34 @@
           "minimum": 0,
           "maximum": 1,
           "description": "Pull toward the center of the viewport."
+        },
+        "codegraphy.groups": {
+          "type": "array",
+          "default": [],
+          "description": "Color groups for matching files. Each entry has a glob pattern and a hex color. Takes priority over workspace state groups.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "pattern": {
+                "type": "string"
+              },
+              "color": {
+                "type": "string",
+                "pattern": "^#[0-9A-Fa-f]{6}$"
+              }
+            }
+          }
+        },
+        "codegraphy.filterPatterns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Glob patterns for files to exclude from the graph (applied at discovery). Replaces codegraphy.exclude."
         }
       }
     }

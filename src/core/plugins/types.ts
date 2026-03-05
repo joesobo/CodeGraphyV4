@@ -76,18 +76,35 @@ export interface IPlugin {
   
   /**
    * Optional default exclude patterns for this plugin's ecosystem.
-   * These are merged with user-defined exclude patterns.
-   * 
+   * Applied at file discovery time — files matching these patterns are never
+   * read or analyzed. Not shown in the Settings Panel.
+   *
+   * Use for build artifacts, caches, and directories that should never appear.
+   *
    * @example
    * ```typescript
-   * // TypeScript plugin
-   * defaultExclude: ['**\/node_modules\/**', '**\/dist\/**']
-   * 
-   * // Godot plugin  
+   * // Godot plugin
    * defaultExclude: ['**\/.godot\/**', '**\/*.import']
    * ```
    */
   defaultExclude?: string[];
+
+  /**
+   * Optional default filter patterns for this plugin's ecosystem.
+   * Applied at the same level as user-defined filter patterns (file discovery)
+   * but surfaced in the Settings Panel as read-only "plugin defaults" so users
+   * can see what is being filtered and why.
+   *
+   * Use for generated files that users might want to know about but rarely
+   * want cluttering their graph (e.g., *.uid in Godot 4, *.d.ts in TypeScript).
+   *
+   * @example
+   * ```typescript
+   * // Godot plugin
+   * defaultFilterPatterns: ['**\/*.uid']
+   * ```
+   */
+  defaultFilterPatterns?: string[];
   
   /**
    * Detects connections (imports) in a file.
@@ -106,11 +123,25 @@ export interface IPlugin {
   /**
    * Optional initialization hook called when the plugin is loaded.
    * Use this to set up any required state or resources.
-   * 
+   *
    * @param workspaceRoot - Absolute path to the workspace root
    */
   initialize?(workspaceRoot: string): Promise<void>;
-  
+
+  /**
+   * Optional pre-analysis hook called once before per-file detectConnections calls.
+   * Receives all discovered files matching this plugin's extensions with their content.
+   * Use this to build workspace-wide indexes that require seeing all files before
+   * resolving cross-file references (e.g., class_name maps in GDScript).
+   *
+   * @param files - All discovered files for this plugin's extensions
+   * @param workspaceRoot - Absolute path to the workspace root
+   */
+  preAnalyze?(
+    files: Array<{ absolutePath: string; relativePath: string; content: string }>,
+    workspaceRoot: string
+  ): Promise<void>;
+
   /**
    * Optional cleanup hook called when the plugin is unloaded.
    * Use this to release any resources.

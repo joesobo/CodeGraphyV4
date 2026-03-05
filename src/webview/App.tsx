@@ -1,12 +1,11 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import { minimatch } from 'minimatch';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { SearchBar, SearchOptions } from './components/SearchBar';
-import { ViewSwitcher } from './components/ViewSwitcher';
-import PhysicsSettings from './components/PhysicsSettings';
-import { DepthSlider } from './components/DepthSlider';
+import SettingsPanel from './components/SettingsPanel';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, ExtensionToWebviewMessage } from '../shared/types';
+import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, IGroup, NodeSizeMode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
 import { postMessage } from './lib/vscodeApi';
 
 /** Default physics settings */
@@ -93,6 +92,11 @@ export default function App(): React.ReactElement {
   const [activeViewId, setActiveViewId] = useState<string>('codegraphy.connections');
   const [physicsSettings, setPhysicsSettings] = useState<IPhysicsSettings>(DEFAULT_PHYSICS);
   const [depthLimit, setDepthLimit] = useState<number>(1);
+  const [groups, setGroups] = useState<IGroup[]>([]);
+  const [filterPatterns, setFilterPatterns] = useState<string[]>([]);
+  const [pluginFilterPatterns, setPluginFilterPatterns] = useState<string[]>([]);
+  const [nodeSizeMode, setNodeSizeMode] = useState<NodeSizeMode>('connections');
+  const [showOrphans, setShowOrphans] = useState<boolean>(true);
   const theme = useTheme();
 
   // Filter graph data based on search (always uses exact substring matching)
@@ -116,6 +120,24 @@ export default function App(): React.ReactElement {
     return { filteredData: { nodes: filteredNodes, edges: filteredEdges }, regexError: error };
   }, [graphData, searchQuery, searchOptions]);
 
+  // Apply group colors to filtered data
+  const coloredData = useMemo((): IGraphData | null => {
+    const base = filteredData;
+    if (!base) return null;
+    if (groups.length === 0) return base;
+
+    const coloredNodes = base.nodes.map(node => {
+      for (const group of groups) {
+        if (minimatch(node.id, group.pattern, { matchBase: true })) {
+          return { ...node, color: group.color };
+        }
+      }
+      return { ...node, color: DEFAULT_NODE_COLOR };
+    });
+
+    return { ...base, nodes: coloredNodes };
+  }, [filteredData, groups]);
+
   const handleSearchOptionsChange = useCallback((newOptions: SearchOptions) => {
     setSearchOptions(newOptions);
   }, []);
@@ -134,6 +156,14 @@ export default function App(): React.ReactElement {
           break;
         case 'SETTINGS_UPDATED':
           setBidirectionalMode(message.payload.bidirectionalEdges);
+          setShowOrphans(message.payload.showOrphans);
+          break;
+        case 'GROUPS_UPDATED':
+          setGroups(message.payload.groups);
+          break;
+        case 'FILTER_PATTERNS_UPDATED':
+          setFilterPatterns(message.payload.patterns);
+          setPluginFilterPatterns(message.payload.pluginPatterns);
           break;
         case 'VIEWS_UPDATED':
           setAvailableViews(message.payload.views);
@@ -174,58 +204,63 @@ export default function App(): React.ReactElement {
 
   // No data state
   if (!graphData || graphData.nodes.length === 0) {
+    const hint = graphData && !showOrphans
+      ? 'All files are hidden. Try enabling "Show Orphans" in Settings → Filters.'
+      : 'Open a folder to visualize its structure.';
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <div className="flex items-center gap-3 mb-4">
           <GraphIcon className="w-10 h-10" />
           <h1 className="text-2xl font-bold text-primary">CodeGraphy</h1>
         </div>
-        <p className="text-secondary text-center">
-          No files found. Open a folder to visualize its structure.
-        </p>
+        <p className="text-secondary text-center">No files found. {hint}</p>
       </div>
     );
   }
 
-  // Graph view with search bar and view switcher
+  // Graph view with search bar
   return (
     <div className="relative w-full h-screen flex flex-col">
-      {/* Header with search bar and view switcher */}
-      <div className="flex-shrink-0 p-2 border-b border-[var(--vscode-panel-border,#3c3c3c)] flex items-center gap-2">
-        <div className="flex-1">
-          <SearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-            options={searchOptions}
-            onOptionsChange={handleSearchOptionsChange}
-            resultCount={filteredData?.nodes.length}
-            totalCount={graphData.nodes.length}
-            placeholder="Search files... (Ctrl+F)"
-            regexError={regexError}
-          />
-        </div>
-{activeViewId === 'codegraphy.depth-graph' && (
-          <DepthSlider depthLimit={depthLimit} />
-        )}
-        <ViewSwitcher
-          views={availableViews}
-          activeViewId={activeViewId}
-          onViewChange={setActiveViewId}
+      {/* Header with search bar */}
+      <div className="flex-shrink-0 p-2 border-b border-[var(--vscode-panel-border,#3c3c3c)]">
+        <SearchBar
+          value={searchQuery}
+          onChange={setSearchQuery}
+          options={searchOptions}
+          onOptionsChange={handleSearchOptionsChange}
+          resultCount={filteredData?.nodes.length}
+          totalCount={graphData.nodes.length}
+          placeholder="Search files... (Ctrl+F)"
+          regexError={regexError}
         />
       </div>
-      
+
       {/* Graph */}
       <div className="flex-1 relative">
-        <Graph 
-          data={filteredData || graphData} 
-          favorites={favorites} 
+        <Graph
+          data={coloredData || graphData}
+          favorites={favorites}
           theme={theme}
           bidirectionalMode={bidirectionalMode}
           physicsSettings={physicsSettings}
+          nodeSizeMode={nodeSizeMode}
         />
-        <PhysicsSettings 
-          settings={physicsSettings} 
+        <SettingsPanel
+          settings={physicsSettings}
           onSettingsChange={setPhysicsSettings}
+          groups={groups}
+          onGroupsChange={setGroups}
+          filterPatterns={filterPatterns}
+          onFilterPatternsChange={setFilterPatterns}
+          pluginFilterPatterns={pluginFilterPatterns}
+          showOrphans={showOrphans}
+          onShowOrphansChange={setShowOrphans}
+          nodeSizeMode={nodeSizeMode}
+          onNodeSizeModeChange={setNodeSizeMode}
+          availableViews={availableViews}
+          activeViewId={activeViewId}
+          onViewChange={setActiveViewId}
+          depthLimit={depthLimit}
         />
       </div>
     </div>

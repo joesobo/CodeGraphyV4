@@ -197,8 +197,6 @@ export interface IGraphData {
   nodes: IGraphNode[];
   /** Array of all edges (imports) in the graph */
   edges: IGraphEdge[];
-  /** Node sizing mode setting */
-  nodeSizeMode?: NodeSizeMode;
 }
 
 // ============================================================================
@@ -254,6 +252,18 @@ export interface IPhysicsSettings {
   centralGravity: number;
 }
 
+
+/**
+ * A user-defined color group — matches files by glob pattern and assigns a color.
+ */
+export interface IGroup {
+  /** Unique identifier (crypto.randomUUID()) */
+  id: string;
+  /** Glob pattern, e.g. "src/**", "*.test.ts" */
+  pattern: string;
+  /** Hex color string, e.g. "#3B82F6" */
+  color: string;
+}
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
   | { type: 'FIT_VIEW' }
@@ -262,14 +272,16 @@ export type ExtensionToWebviewMessage =
   | { type: 'FAVORITES_UPDATED'; payload: { favorites: string[] } }
   | { type: 'THEME_CHANGED'; payload: { kind: 'light' | 'dark' | 'high-contrast' } }
   | { type: 'FILE_INFO'; payload: IFileInfo }
-  | { type: 'SETTINGS_UPDATED'; payload: { bidirectionalEdges: BidirectionalEdgeMode } }
+  | { type: 'SETTINGS_UPDATED'; payload: { bidirectionalEdges: BidirectionalEdgeMode; showOrphans: boolean } }
   | { type: 'REQUEST_EXPORT_PNG' }
   | { type: 'REQUEST_EXPORT_SVG' }
   | { type: 'REQUEST_EXPORT_JSON' }
   | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } }
   | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } }
   | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings }
-  | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } };
+  | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }
+  | { type: 'GROUPS_UPDATED'; payload: { groups: IGroup[] } }
+  | { type: 'FILTER_PATTERNS_UPDATED'; payload: { patterns: string[]; pluginPatterns: string[] } };
 
 /**
  * Messages sent from the Webview to the Extension.
@@ -319,7 +331,11 @@ export type WebviewToExtensionMessage =
   // View switching
   | { type: 'CHANGE_VIEW'; payload: { viewId: string } }
   // Depth graph settings
-  | { type: 'CHANGE_DEPTH_LIMIT'; payload: { depthLimit: number } };
+  | { type: 'CHANGE_DEPTH_LIMIT'; payload: { depthLimit: number } }
+  // Settings panel
+  | { type: 'UPDATE_GROUPS'; payload: { groups: IGroup[] } }
+  | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
+  | { type: 'UPDATE_SHOW_ORPHANS'; payload: { showOrphans: boolean } };
 
 /**
  * File information returned from extension for tooltips.

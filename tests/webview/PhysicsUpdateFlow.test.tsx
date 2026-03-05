@@ -64,12 +64,6 @@ describe('Physics Update Flow', () => {
         <Graph data={mockData} physicsSettings={initialSettings} />
       );
 
-      // Get the network instance that was created (it's stored via the mock)
-      // Access through the Network class mock's instance tracking
-      const networkInstance = (Network as unknown as { 
-        // Access setOptions and startSimulation from the last created instance
-      });
-      
       // The Graph component should have created a Network instance
       // We can verify behavior by checking that it doesn't crash and rerenders correctly
 
@@ -129,7 +123,7 @@ describe('Physics Update Flow', () => {
       });
 
       // Find and click the physics settings button
-      const settingsButton = screen.getByTitle('Physics Settings');
+      const settingsButton = screen.getByTitle('Settings');
       fireEvent.click(settingsButton);
 
       // Find the sliders
@@ -174,7 +168,7 @@ describe('Physics Update Flow', () => {
       });
 
       // Open physics settings panel
-      const settingsButton = screen.getByTitle('Physics Settings');
+      const settingsButton = screen.getByTitle('Settings');
       fireEvent.click(settingsButton);
 
       // Check initial gravity value
@@ -224,7 +218,7 @@ describe('Physics Update Flow', () => {
       });
 
       // Open physics settings panel
-      const settingsButton = screen.getByTitle('Physics Settings');
+      const settingsButton = screen.getByTitle('Settings');
       fireEvent.click(settingsButton);
 
       // Clear any previous messages
