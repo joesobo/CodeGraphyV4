@@ -250,11 +250,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Analyzes the workspace and sends data to webview.
    */
   private async _analyzeAndSendData(): Promise<void> {
-    console.log('[CodeGraphy] _analyzeAndSendData called');
-    
     if (!this._analyzer) {
       // No analyzer - send empty data
-      console.log('[CodeGraphy] No analyzer available');
       this._rawGraphData = { nodes: [], edges: [] };
       this._graphData = { nodes: [], edges: [] };
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
@@ -274,7 +271,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     if (!hasWorkspace) {
       // No workspace - send empty data
-      console.log('[CodeGraphy] No workspace open');
       this._rawGraphData = { nodes: [], edges: [] };
       this._graphData = { nodes: [], edges: [] };
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
@@ -565,10 +561,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _sendMessage(message: ExtensionToWebviewMessage): void {
     if (this._view) {
-      console.log('[CodeGraphy] Sending message:', message.type);
       this._view.webview.postMessage(message);
-    } else {
-      console.log('[CodeGraphy] Cannot send message, no view:', message.type);
     }
   }
 
@@ -578,9 +571,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * @returns Map of node IDs to positions, empty object if none saved
    */
   private _getPersistedPositions(): NodePositions {
-    const positions = this._context.workspaceState.get<NodePositions>(POSITIONS_KEY) ?? {};
-    console.log('[CodeGraphy] Loading positions:', Object.keys(positions).length, 'nodes');
-    return positions;
+    return this._context.workspaceState.get<NodePositions>(POSITIONS_KEY) ?? {};
   }
 
   /**
@@ -600,7 +591,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         }
       }
       await this._context.workspaceState.update(POSITIONS_KEY, positions);
-      console.log('[CodeGraphy] Positions saved:', Object.keys(positions).length, 'nodes');
     }, 500);
   }
 
@@ -610,16 +600,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _applyPersistedPositions(): void {
     const positions = this._getPersistedPositions();
-    let applied = 0;
+
     for (const node of this._graphData.nodes) {
       const savedPos = positions[node.id];
       if (savedPos) {
         node.x = savedPos.x;
         node.y = savedPos.y;
-        applied++;
+
       }
     }
-    console.log(`[CodeGraphy] Applied ${applied}/${this._graphData.nodes.length} saved positions`);
+
   }
 
   /**
@@ -643,7 +633,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
 
         case 'NODE_SELECTED':
-          console.log('[CodeGraphy] Node selected:', message.payload.nodeId);
           break;
 
         case 'NODE_DOUBLE_CLICKED':
@@ -719,7 +708,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
           
         case 'RESET_PHYSICS_SETTINGS':
-          await this._resetPhysicsSettings()
+          await this._resetPhysicsSettings();
           break;
 
         case 'UNDO': {
@@ -741,7 +730,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           }
           break;
         }
-
 
         case 'CHANGE_VIEW':
           await this.changeView(message.payload.viewId);
