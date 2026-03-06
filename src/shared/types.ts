@@ -307,7 +307,6 @@ export type ExtensionToWebviewMessage =
 export type WebviewToExtensionMessage =
   | { type: 'NODE_SELECTED'; payload: { nodeId: string } }
   | { type: 'NODE_DOUBLE_CLICKED'; payload: { nodeId: string } }
-  | { type: 'POSITIONS_UPDATED'; payload: { positions: Record<string, { x: number; y: number }> } }
   | { type: 'WEBVIEW_READY'; payload: null }
   // Context menu actions
   | { type: 'OPEN_FILE'; payload: { path: string } }

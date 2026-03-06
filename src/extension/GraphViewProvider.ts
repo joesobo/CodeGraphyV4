@@ -35,9 +35,6 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
   centralGravity: 0.01,
 };
 
-/** Storage key for persisted node positions in workspace state */
-const POSITIONS_KEY = 'codegraphy.nodePositions';
-
 /** Storage key for file visit counts in workspace state */
 const VISITS_KEY = 'codegraphy.fileVisits';
 
@@ -55,14 +52,6 @@ const DEPTH_LIMIT_KEY = 'codegraphy.depthLimit';
 
 /** Default depth limit for depth graph view */
 const DEFAULT_DEPTH_LIMIT = 1;
-
-/**
- * Map of node IDs to their persisted positions.
- * Stored in VSCode workspace state for persistence across sessions.
- */
-interface NodePositions {
-  [nodeId: string]: { x: number; y: number };
-}
 
 /**
  * Provides the webview panel that displays the CodeGraphy dependency graph.
@@ -96,9 +85,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Current graph data being displayed */
   private _graphData: IGraphData = { nodes: [], edges: [] };
   
-  /** Timeout handle for debounced position saves */
-  private _saveTimeout?: NodeJS.Timeout;
-
   /** Workspace analyzer for real file discovery */
   private _analyzer?: WorkspaceAnalyzer;
 
@@ -223,7 +209,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   public updateGraphData(data: IGraphData): void {
     this._graphData = data;
-    this._applyPersistedPositions();
+
     this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
   }
 
@@ -314,7 +300,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       // Apply view transform
       this._applyViewTransform();
       
-      this._applyPersistedPositions();
+  
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
       this._sendAvailableViews();
     } catch (error) {
@@ -441,7 +427,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     
     // Re-apply view transform and send updates
     this._applyViewTransform();
-    this._applyPersistedPositions();
+
     this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
     this._sendAvailableViews();
   }
@@ -466,7 +452,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const viewInfo = this._viewRegistry.get(this._activeViewId);
     if (viewInfo?.view.id === 'codegraphy.depth-graph') {
       this._applyViewTransform();
-      this._applyPersistedPositions();
+  
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
     }
   }
@@ -490,7 +476,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const viewInfo = this._viewRegistry.get(this._activeViewId);
     if (viewInfo?.view.id === 'codegraphy.depth-graph') {
       this._applyViewTransform();
-      this._applyPersistedPositions();
+  
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
     }
   }
@@ -514,7 +500,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const viewInfo = this._viewRegistry.get(this._activeViewId);
     if (viewInfo?.view.id === 'codegraphy.subfolder') {
       this._applyViewTransform();
-      this._applyPersistedPositions();
+  
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
       this._sendAvailableViews();
     }
@@ -527,6 +513,27 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   public sendCommand(command: 'FIT_VIEW' | 'ZOOM_IN' | 'ZOOM_OUT'): void {
     this._sendMessage({ type: command });
+  }
+
+  // ── Test helpers ─────────────────────────────────────────────────────────
+
+  /**
+   * Send an arbitrary message to the webview (for e2e tests).
+   * Mirrors what the extension sends, e.g. to simulate WEBVIEW_READY.
+   */
+  public sendToWebview(message: unknown): void {
+    this._view?.webview.postMessage(message);
+  }
+
+  /**
+   * Register a handler for messages sent FROM the webview (for e2e tests).
+   * Returns a disposable so tests can clean up.
+   */
+  public onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable {
+    if (!this._view) {
+      return { dispose: () => {} };
+    }
+    return this._view.webview.onDidReceiveMessage(handler);
   }
 
   /**
@@ -592,53 +599,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Loads persisted node positions from workspace state.
-   * 
-   * @returns Map of node IDs to positions, empty object if none saved
-   */
-  private _getPersistedPositions(): NodePositions {
-    return this._context.workspaceState.get<NodePositions>(POSITIONS_KEY) ?? {};
-  }
-
-  /**
-   * Saves node positions to workspace state with debouncing.
-   * Waits 500ms after the last call before actually saving to avoid
-   * excessive writes during physics simulation or rapid dragging.
-   */
-  private _savePositions(): void {
-    if (this._saveTimeout) {
-      clearTimeout(this._saveTimeout);
-    }
-    this._saveTimeout = setTimeout(async () => {
-      const positions: NodePositions = {};
-      for (const node of this._graphData.nodes) {
-        if (node.x !== undefined && node.y !== undefined) {
-          positions[node.id] = { x: node.x, y: node.y };
-        }
-      }
-      await this._context.workspaceState.update(POSITIONS_KEY, positions);
-    }, 500);
-  }
-
-  /**
-   * Applies persisted positions to the current graph data.
-   * Called before sending graph data to webview to restore layout.
-   */
-  private _applyPersistedPositions(): void {
-    const positions = this._getPersistedPositions();
-
-    for (const node of this._graphData.nodes) {
-      const savedPos = positions[node.id];
-      if (savedPos) {
-        node.x = savedPos.x;
-        node.y = savedPos.y;
-
-      }
-    }
-
-  }
-
-  /**
    * Sets up the message listener for webview-to-extension communication.
    * Handles all message types defined in WebviewToExtensionMessage.
    * 
@@ -670,10 +630,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._openFile(message.payload.nodeId);
           break;
 
-        case 'POSITIONS_UPDATED':
-          this._handlePositionsUpdated(message.payload.positions);
-          break;
-          
         // Context menu actions
         case 'OPEN_FILE':
           this._openFile(message.payload.path);
@@ -846,23 +802,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       console.error('[CodeGraphy] Failed to open file:', error);
       vscode.window.showErrorMessage(`Could not open file: ${filePath}`);
     }
-  }
-
-  /**
-   * Handles bulk position updates, typically after physics stabilization.
-   * Updates all node positions in memory and triggers a debounced save.
-   * 
-   * @param positions - Map of node IDs to their new positions
-   */
-  private _handlePositionsUpdated(positions: Record<string, { x: number; y: number }>): void {
-    for (const node of this._graphData.nodes) {
-      const pos = positions[node.id];
-      if (pos) {
-        node.x = pos.x;
-        node.y = pos.y;
-      }
-    }
-    this._savePositions();
   }
 
   /**

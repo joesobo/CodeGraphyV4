@@ -5,3 +5,4 @@ dist/
 coverage/
 *.log
 .DS_Store
+dist-e2e/

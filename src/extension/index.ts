@@ -1,8 +1,19 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { GraphViewProvider } from './GraphViewProvider';
+import type { IGraphData } from '../shared/types';
 
-export function activate(context: vscode.ExtensionContext): void {
+/** Public API returned by activate() — usable from e2e tests. */
+export interface CodeGraphyAPI {
+  /** Current graph data (nodes + edges) after the last analysis. */
+  getGraphData(): IGraphData;
+  /** Send a raw message to the webview panel (mirrors extension→webview channel). */
+  sendToWebview(message: unknown): void;
+  /** Listen for messages sent from the webview. Returns a disposable. */
+  onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
+}
+
+export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   const provider = new GraphViewProvider(context.extensionUri, context);
 
   context.subscriptions.push(
@@ -160,6 +171,12 @@ export function activate(context: vscode.ExtensionContext): void {
       provider.clearCacheAndRefresh();
     })
   );
+
+  return {
+    getGraphData: () => provider.getGraphData(),
+    sendToWebview: (message) => provider.sendToWebview(message),
+    onWebviewMessage: (handler) => provider.onWebviewMessage(handler),
+  };
 }
 
 export function deactivate(): void {

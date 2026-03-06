@@ -2,6 +2,7 @@ import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
+import mochaPlugin from 'eslint-plugin-mocha';
 import globals from 'globals';
 
 export default tseslint.config(
@@ -38,7 +39,27 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
   },
+  // Mocha rules for e2e test files
   {
-    ignores: ['dist/**', 'node_modules/**'],
+    files: ['src/e2e/**/*.ts'],
+    plugins: { mocha: mochaPlugin },
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...mochaPlugin.configs.recommended.languageOptions.globals,
+      },
+    },
+    rules: {
+      ...mochaPlugin.configs.recommended.rules,
+      'mocha/no-mocha-arrows': 'error',
+      'mocha/no-identical-title': 'error',
+      'mocha/no-exclusive-tests': 'error',
+      'mocha/no-pending-tests': 'warn',
+      // e2e files group related suites together — allow multiple per file
+      'mocha/max-top-level-suites': 'off',
+    },
+  },
+  {
+    ignores: ['dist/**', 'dist-e2e/**', 'node_modules/**'],
   }
 );

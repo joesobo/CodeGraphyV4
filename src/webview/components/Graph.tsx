@@ -554,20 +554,6 @@ function exportAsJson(network: Network, data: IGraphData, nodeSizeMode: NodeSize
   }
 }
 
-/**
- * Send all current positions to extension for persistence
- */
-function sendAllPositions(network: Network, nodeIds: string[]): void {
-  const allPositions = network.getPositions(nodeIds);
-  const positions: Record<string, { x: number; y: number }> = {};
-  for (const id of nodeIds) {
-    const pos = allPositions[id];
-    if (pos) {
-      positions[id] = { x: pos.x, y: pos.y };
-    }
-  }
-  postMessage({ type: 'POSITIONS_UPDATED', payload: { positions } });
-}
 
 /** Default physics settings */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -914,59 +900,60 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
     networkRef.current = network;
     initializedRef.current = true;
 
-    // After stabilization, fully disable physics so hover/DataSet updates
-    // cannot restart the simulation (Obsidian-style: nodes only move on drag).
+    // Only disable physics when NOT in a drag. This is critical: enabling physics
+    // on an already-stable graph fires 'stabilized' immediately — if we don't
+    // guard here, physics gets disabled before the first drag frame runs.
     network.on('stabilized', () => {
-      network.setOptions({ physics: { enabled: false } });
-      sendAllPositions(network, nodes.getIds() as string[]);
-    });
-
-    // Re-enable physics when the user starts dragging a node, but only
-    // simulate the dragged node and its direct neighbors. All other nodes
-    // are frozen (physics: false per-node) to eliminate lag on large graphs.
-    // Physics will be disabled again on the next 'stabilized' event.
-    network.on('dragStart', (params: { nodes: string[] }) => {
-      if (params.nodes.length > 0) {
-        isDraggingRef.current = true;
-        const draggedId = params.nodes[0];
-
-        // Build set of neighbors (1 hop)
-        const activeNodes = new Set<string>([draggedId]);
-        const currentEdges = edgesRef.current;
-        if (currentEdges) {
-          (currentEdges.getIds() as string[]).forEach(eid => {
-            const edge = currentEdges.get(eid);
-            if (edge) {
-              if (edge.from === draggedId) activeNodes.add(edge.to as string);
-              if (edge.to === draggedId) activeNodes.add(edge.from as string);
-            }
-          });
-        }
-
-        // Freeze all non-neighbor nodes
-        const currentNodes = nodesRef.current;
-        if (currentNodes) {
-          const freezeUpdates = (currentNodes.getIds() as string[])
-            .filter(id => !activeNodes.has(id))
-            .map(id => ({ id, physics: false }));
-          if (freezeUpdates.length > 0) currentNodes.update(freezeUpdates);
-        }
-
-        network.setOptions({ physics: { enabled: true } });
-        network.startSimulation();
+      if (!isDraggingRef.current) {
+        network.setOptions({ physics: { enabled: false } });
       }
     });
 
-    // Restore all nodes to physics-enabled, then re-disable global physics
-    // once the layout settles after drag.
+    // Enable physics BEFORE Vis Network processes the drag. Vis Network decides
+    // its drag mode (node vs view-pan) on the first mousemove after mousedown.
+    // If physics was disabled then, it commits to single-node mode with no force
+    // propagation. We set isDraggingRef FIRST so the immediate 'stabilized' that
+    // fires on an already-stable graph doesn't re-disable physics.
+    const canvas = containerRef.current?.querySelector('canvas');
+    const handleMouseDown = (e: MouseEvent) => {
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const nodeId = network.getNodeAt({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+      if (nodeId !== undefined) {
+        isDraggingRef.current = true;   // guard BEFORE enabling physics
+        network.setOptions({ physics: { enabled: true } });
+        network.startSimulation();
+      }
+    };
+    canvas?.addEventListener('mousedown', handleMouseDown);
+
+    // Click without drag (mousedown → mouseup, no move): reset the guard and
+    // stop physics so the graph doesn't keep running after a plain click.
+    network.on('click', () => {
+      if (isDraggingRef.current) {
+        isDraggingRef.current = false;
+        network.setOptions({ physics: { enabled: false } });
+      }
+    });
+
+    // dragStart just confirms an actual drag is in progress (guard already set).
+    network.on('dragStart', (params: { nodes: string[] }) => {
+      if (params.nodes.length > 0) {
+        isDraggingRef.current = true;
+      }
+    });
+
+    // dragEnd: clear the guard so the next 'stabilized' can disable physics.
+    // Explicitly unfix the node — Vis Network internally fixes it to the cursor
+    // position during drag; without this the node stays pinned and won't settle.
     network.on('dragEnd', (params: { nodes: string[] }) => {
       if (params.nodes.length > 0) {
         isDraggingRef.current = false;
-        const currentNodes = nodesRef.current;
-        if (currentNodes) {
-          const restoreUpdates = (currentNodes.getIds() as string[]).map(id => ({ id, physics: true }));
-          if (restoreUpdates.length > 0) currentNodes.update(restoreUpdates);
-        }
+        const draggedId = params.nodes[0];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (nodesRef.current as any)?.update({ id: draggedId, fixed: false });
+        // Physics is still running here — node drifts to equilibrium, then
+        // 'stabilized' fires and disables it (Obsidian settle-on-release).
       }
     });
 
@@ -1040,6 +1027,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
     postMessage({ type: 'WEBVIEW_READY', payload: null });
 
     return () => {
+      canvas?.removeEventListener('mousedown', handleMouseDown);
       network.destroy();
       networkRef.current = null;
       nodesRef.current = null;
