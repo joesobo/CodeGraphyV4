@@ -281,7 +281,8 @@ export type ExtensionToWebviewMessage =
   | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings }
   | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }
   | { type: 'GROUPS_UPDATED'; payload: { groups: IGroup[] } }
-  | { type: 'FILTER_PATTERNS_UPDATED'; payload: { patterns: string[]; pluginPatterns: string[] } };
+  | { type: 'FILTER_PATTERNS_UPDATED'; payload: { patterns: string[]; pluginPatterns: string[] } }
+  | { type: 'SHOW_ARROWS_UPDATED'; payload: { showArrows: boolean } };
 
 /**
  * Messages sent from the Webview to the Extension.
@@ -335,7 +336,8 @@ export type WebviewToExtensionMessage =
   // Settings panel
   | { type: 'UPDATE_GROUPS'; payload: { groups: IGroup[] } }
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
-  | { type: 'UPDATE_SHOW_ORPHANS'; payload: { showOrphans: boolean } };
+  | { type: 'UPDATE_SHOW_ORPHANS'; payload: { showOrphans: boolean } }
+  | { type: 'UPDATE_SHOW_ARROWS'; payload: { showArrows: boolean } };
 
 /**
  * File information returned from extension for tooltips.

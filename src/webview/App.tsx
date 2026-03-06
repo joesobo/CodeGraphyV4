@@ -97,6 +97,7 @@ export default function App(): React.ReactElement {
   const [pluginFilterPatterns, setPluginFilterPatterns] = useState<string[]>([]);
   const [nodeSizeMode, setNodeSizeMode] = useState<NodeSizeMode>('connections');
   const [showOrphans, setShowOrphans] = useState<boolean>(true);
+  const [showArrows, setShowArrows] = useState<boolean>(true);
   const theme = useTheme();
 
   // Filter graph data based on search (always uses exact substring matching)
@@ -175,6 +176,9 @@ export default function App(): React.ReactElement {
         case 'DEPTH_LIMIT_UPDATED':
           setDepthLimit(message.payload.depthLimit);
           break;
+        case 'SHOW_ARROWS_UPDATED':
+          setShowArrows(message.payload.showArrows);
+          break;
       }
     };
 
@@ -244,6 +248,7 @@ export default function App(): React.ReactElement {
           bidirectionalMode={bidirectionalMode}
           physicsSettings={physicsSettings}
           nodeSizeMode={nodeSizeMode}
+          showArrows={showArrows}
         />
         <SettingsPanel
           settings={physicsSettings}
@@ -261,6 +266,8 @@ export default function App(): React.ReactElement {
           activeViewId={activeViewId}
           onViewChange={setActiveViewId}
           depthLimit={depthLimit}
+          showArrows={showArrows}
+          onShowArrowsChange={setShowArrows}
         />
       </div>
     </div>

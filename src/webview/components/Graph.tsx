@@ -40,6 +40,7 @@ interface GraphProps {
   bidirectionalMode?: BidirectionalEdgeMode;
   physicsSettings?: IPhysicsSettings;
   nodeSizeMode?: NodeSizeMode;
+  showArrows?: boolean;
 }
 
 /**
@@ -95,6 +96,7 @@ const NETWORK_OPTIONS: Options = {
     hover: true,
     tooltipDelay: 200,
     zoomView: true,
+    zoomSpeed: 0.3,
     dragView: true,
     dragNodes: true,
     multiselect: true,
@@ -579,7 +581,7 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
 /**
  * Graph component with context menu and multi-select support.
  */
-export default function Graph({ data, favorites = new Set(), theme = 'dark', bidirectionalMode = 'separate', physicsSettings = DEFAULT_PHYSICS, nodeSizeMode = 'connections' }: GraphProps): React.ReactElement {
+export default function Graph({ data, favorites = new Set(), theme = 'dark', bidirectionalMode = 'separate', physicsSettings = DEFAULT_PHYSICS, nodeSizeMode = 'connections', showArrows = true }: GraphProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
   const nodesRef = useRef<DataSet<ReturnType<typeof toVisNode>> | null>(null);
@@ -589,6 +591,8 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
   const favoritesRef = useRef(favorites);
   const bidirectionalModeRef = useRef(bidirectionalMode);
   const nodeSizeModeRef = useRef(nodeSizeMode);
+  const showArrowsRef = useRef(showArrows);
+  const isDraggingRef = useRef(false);
 
   // Selection state
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
@@ -616,6 +620,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
   favoritesRef.current = favorites;
   bidirectionalModeRef.current = bidirectionalMode;
   nodeSizeModeRef.current = nodeSizeMode;
+  showArrowsRef.current = showArrows;
   selectedNodesRef.current = selectedNodes;
   themeRef.current = theme;
 
@@ -916,13 +921,52 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
       sendAllPositions(network, nodes.getIds() as string[]);
     });
 
-    // Re-enable physics when the user starts dragging a node, so connected
-    // nodes spring naturally. Physics will be disabled again on the next
-    // 'stabilized' event that fires after the drag settles.
+    // Re-enable physics when the user starts dragging a node, but only
+    // simulate the dragged node and its direct neighbors. All other nodes
+    // are frozen (physics: false per-node) to eliminate lag on large graphs.
+    // Physics will be disabled again on the next 'stabilized' event.
     network.on('dragStart', (params: { nodes: string[] }) => {
       if (params.nodes.length > 0) {
+        isDraggingRef.current = true;
+        const draggedId = params.nodes[0];
+
+        // Build set of neighbors (1 hop)
+        const activeNodes = new Set<string>([draggedId]);
+        const currentEdges = edgesRef.current;
+        if (currentEdges) {
+          (currentEdges.getIds() as string[]).forEach(eid => {
+            const edge = currentEdges.get(eid);
+            if (edge) {
+              if (edge.from === draggedId) activeNodes.add(edge.to as string);
+              if (edge.to === draggedId) activeNodes.add(edge.from as string);
+            }
+          });
+        }
+
+        // Freeze all non-neighbor nodes
+        const currentNodes = nodesRef.current;
+        if (currentNodes) {
+          const freezeUpdates = (currentNodes.getIds() as string[])
+            .filter(id => !activeNodes.has(id))
+            .map(id => ({ id, physics: false }));
+          if (freezeUpdates.length > 0) currentNodes.update(freezeUpdates);
+        }
+
         network.setOptions({ physics: { enabled: true } });
         network.startSimulation();
+      }
+    });
+
+    // Restore all nodes to physics-enabled, then re-disable global physics
+    // once the layout settles after drag.
+    network.on('dragEnd', (params: { nodes: string[] }) => {
+      if (params.nodes.length > 0) {
+        isDraggingRef.current = false;
+        const currentNodes = nodesRef.current;
+        if (currentNodes) {
+          const restoreUpdates = (currentNodes.getIds() as string[]).map(id => ({ id, physics: true }));
+          if (restoreUpdates.length > 0) currentNodes.update(restoreUpdates);
+        }
       }
     });
 
@@ -1078,10 +1122,12 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
   }, [favorites, data.nodes, data.edges, nodeSizeMode, theme]);
 
   /**
-   * Handle hover highlighting - dim unconnected nodes
+   * Handle hover highlighting - dim unconnected nodes.
+   * Suppressed during drag to avoid DataSet.update calls interfering with physics.
    */
   useEffect(() => {
     if (!nodesRef.current || !edgesRef.current) return;
+    if (isDraggingRef.current) return;
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const nodesDataSet = nodesRef.current as any;
@@ -1246,6 +1292,21 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
     });
     network.startSimulation();
   }, [physicsSettings]);
+
+  /**
+   * Update edge arrows when showArrows prop changes.
+   */
+  useEffect(() => {
+    const network = networkRef.current;
+    if (!network) return;
+    network.setOptions({
+      edges: {
+        arrows: {
+          to: { enabled: showArrows, scaleFactor: 0.5 },
+        },
+      },
+    });
+  }, [showArrows]);
 
   /**
    * Handle context menu trigger - captures node BEFORE Radix opens menu

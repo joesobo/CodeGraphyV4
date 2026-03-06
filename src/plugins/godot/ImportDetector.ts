@@ -239,6 +239,13 @@ export class GDScriptImportDetector {
       push(match[1]);
     }
 
+    // Typed array/dictionary generics: Array[ClassName], Dictionary[K, ClassName]
+    const genericRegex = /\[([A-Z]\w*)(?:,\s*([A-Z]\w*))?\]/g;
+    while ((match = genericRegex.exec(line)) !== null) {
+      push(match[1]);
+      if (match[2]) push(match[2]);
+    }
+
     return references;
   }
 

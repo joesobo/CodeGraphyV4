@@ -40,7 +40,7 @@ interface IAnalysisCache {
 }
 
 const CACHE_KEY = 'codegraphy.analysisCache';
-const CACHE_VERSION = '1.6.0'; // Bumped for edge deduplication fix
+const CACHE_VERSION = '1.7.0'; // Bumped for GDScript snake_case fallback + Array[] generics
 
 /** Storage key for file visit counts in workspace state (shared with GraphViewProvider) */
 const VISITS_KEY = 'codegraphy.fileVisits';

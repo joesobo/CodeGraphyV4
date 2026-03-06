@@ -140,4 +140,37 @@ describe('GDScriptPathResolver', () => {
       expect(result).toBe('scripts/player.gd');
     });
   });
+
+  describe('snake_case file name fallback', () => {
+    it('should resolve PascalCase class to snake_case .gd file', () => {
+      resolver.registerFile('scripts/spirit_cap_spawner.gd');
+      expect(resolver.resolve('SpiritCapSpawner', 'global.gd')).toBe('scripts/spirit_cap_spawner.gd');
+    });
+
+    it('should resolve simple class name', () => {
+      resolver.registerFile('scripts/player.gd');
+      expect(resolver.resolve('Player', 'global.gd')).toBe('scripts/player.gd');
+    });
+
+    it('should prefer explicit class_name over snake_case fallback', () => {
+      resolver.registerFile('scripts/player.gd');
+      resolver.registerClassName('Player', 'other/player_impl.gd');
+      expect(resolver.resolve('Player', 'global.gd')).toBe('other/player_impl.gd');
+    });
+
+    it('should return null if no matching file found', () => {
+      expect(resolver.resolve('UnknownClass', 'global.gd')).toBeNull();
+    });
+
+    it('should ignore non-.gd files', () => {
+      resolver.registerFile('scenes/player.tscn');
+      expect(resolver.resolve('Player', 'global.gd')).toBeNull();
+    });
+
+    it('should clear file name map on clearClassNames', () => {
+      resolver.registerFile('scripts/player.gd');
+      resolver.clearClassNames();
+      expect(resolver.resolve('Player', 'global.gd')).toBeNull();
+    });
+  });
 });

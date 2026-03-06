@@ -798,6 +798,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           // Config change listener in index.ts handles re-analysis
           break;
         }
+
+        case 'UPDATE_SHOW_ARROWS': {
+          const arrowsTarget = vscode.workspace.workspaceFolders?.length
+            ? vscode.ConfigurationTarget.Workspace
+            : vscode.ConfigurationTarget.Global;
+          await vscode.workspace.getConfiguration('codegraphy').update('showArrows', message.payload.showArrows, arrowsTarget);
+          this._sendMessage({ type: 'SHOW_ARROWS_UPDATED', payload: { showArrows: message.payload.showArrows } });
+          break;
+        }
       }
     });
   }
@@ -1139,7 +1148,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const config = vscode.workspace.getConfiguration('codegraphy');
     const bidirectionalEdges = config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate');
     const showOrphans = config.get<boolean>('showOrphans', true);
+    const showArrows = config.get<boolean>('showArrows', true);
     this._sendMessage({ type: 'SETTINGS_UPDATED', payload: { bidirectionalEdges, showOrphans } });
+    this._sendMessage({ type: 'SHOW_ARROWS_UPDATED', payload: { showArrows } });
   }
 
   /**

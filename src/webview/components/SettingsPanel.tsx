@@ -28,6 +28,8 @@ interface SettingsPanelProps {
   activeViewId: string;
   onViewChange: (viewId: string) => void;
   depthLimit: number;
+  showArrows: boolean;
+  onShowArrowsChange: (show: boolean) => void;
 }
 
 interface SliderConfig {
@@ -140,6 +142,8 @@ export default function SettingsPanel({
   activeViewId,
   onViewChange,
   depthLimit,
+  showArrows,
+  onShowArrowsChange,
 }: SettingsPanelProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const [forcesOpen, setForcesOpen] = useState(true);
@@ -239,6 +243,11 @@ export default function SettingsPanel({
   };
 
   // Display handlers
+  const handleShowArrowsChange = (checked: boolean) => {
+    onShowArrowsChange(checked);
+    postMessage({ type: 'UPDATE_SHOW_ARROWS', payload: { showArrows: checked } });
+  };
+
   const handleViewChange = (viewId: string) => {
     onViewChange(viewId);
     postMessage({ type: 'CHANGE_VIEW', payload: { viewId } });
@@ -462,6 +471,17 @@ export default function SettingsPanel({
             <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen(v => !v)} />
             {displayOpen && (
               <div className="mb-2 space-y-3">
+                {/* Arrows toggle */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showArrows}
+                    onChange={e => handleShowArrowsChange(e.target.checked)}
+                    className="accent-blue-500"
+                  />
+                  <span className="text-xs text-zinc-300">Show Arrows</span>
+                </label>
+
                 {/* Node Size */}
                 <div>
                   <p className="text-xs text-zinc-400 mb-1.5">Node Size</p>

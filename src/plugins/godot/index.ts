@@ -86,6 +86,10 @@ export class GDScriptPlugin implements IPlugin {
     this.resolver.clearClassNames();
 
     for (const { relativePath, content } of files) {
+      // Register file for snake_case fallback resolution
+      this.resolver.registerFile(relativePath);
+
+      // Register explicit class_name declarations
       const refs = this.detector.detect(content);
       for (const ref of refs) {
         if (ref.isDeclaration) {
@@ -94,7 +98,7 @@ export class GDScriptPlugin implements IPlugin {
       }
     }
 
-    console.log(`[CodeGraphy] GDScript class_name map: ${this.resolver.getClassNameMap().size} entries`);
+    console.log(`[CodeGraphy] GDScript class_name map: ${this.resolver.getClassNameMap().size} entries, ${this.resolver.getFileNameMap().size} files indexed`);
   }
 
   /**

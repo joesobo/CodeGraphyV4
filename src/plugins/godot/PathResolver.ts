@@ -19,10 +19,12 @@ import * as path from 'path';
  */
 export class GDScriptPathResolver {
   private classNameMap: Map<string, string> = new Map();
+  /** Maps snake_case base name → workspace-relative path for .gd files */
+  private fileNameMap: Map<string, string> = new Map();
 
   /**
    * Create a new path resolver.
-   * 
+   *
    * @param _workspaceRoot - Absolute path to the workspace/project root (reserved for future use)
    */
   constructor(_workspaceRoot: string) {
@@ -31,7 +33,7 @@ export class GDScriptPathResolver {
 
   /**
    * Register a class_name declaration for reverse lookups.
-   * 
+   *
    * @param className - The declared class name (e.g., "Player")
    * @param filePath - The workspace-relative path to the file
    */
@@ -40,10 +42,23 @@ export class GDScriptPathResolver {
   }
 
   /**
-   * Clear all registered class names.
+   * Register a discovered .gd file so class names without an explicit
+   * `class_name` declaration can be resolved via the snake_case convention.
+   *
+   * @param filePath - Workspace-relative path (e.g., "scripts/spirit_cap_spawner.gd")
+   */
+  registerFile(filePath: string): void {
+    if (!filePath.endsWith('.gd')) return;
+    const base = path.basename(filePath, '.gd'); // e.g. "spirit_cap_spawner"
+    this.fileNameMap.set(base, filePath);
+  }
+
+  /**
+   * Clear all registered class names and file entries.
    */
   clearClassNames(): void {
     this.classNameMap.clear();
+    this.fileNameMap.clear();
   }
 
   /**
@@ -64,7 +79,7 @@ export class GDScriptPathResolver {
       return null;
     }
 
-    // Handle class_name references
+    // Handle class_name references (explicit declaration)
     if (this.classNameMap.has(importPath)) {
       return this.classNameMap.get(importPath) || null;
     }
@@ -72,6 +87,14 @@ export class GDScriptPathResolver {
     // Handle relative paths (rare in GDScript, but possible)
     if (importPath.startsWith('./') || importPath.startsWith('../')) {
       return this.resolveRelativePath(importPath, fromFile);
+    }
+
+    // Fallback: match PascalCase class name to snake_case .gd file by convention.
+    // e.g. "SpiritCapSpawner" → "spirit_cap_spawner.gd"
+    // This handles scripts that are referenced by type but lack a class_name declaration.
+    const snakeName = toSnakeCase(importPath);
+    if (this.fileNameMap.has(snakeName)) {
+      return this.fileNameMap.get(snakeName) || null;
     }
 
     return null;
@@ -108,6 +131,13 @@ export class GDScriptPathResolver {
   }
 
   /**
+   * Get the snake_case file name map (for testing).
+   */
+  getFileNameMap(): Map<string, string> {
+    return new Map(this.fileNameMap);
+  }
+
+  /**
    * Check if a path looks like it could be a Godot resource.
    */
   static isGodotResource(filePath: string): boolean {
@@ -128,4 +158,15 @@ export class GDScriptPathResolver {
   static getSupportedExtensions(): string[] {
     return ['.gd', '.tscn', '.tres', '.gdshader'];
   }
+}
+
+/**
+ * Convert a PascalCase class name to snake_case file name.
+ * e.g. "SpiritCapSpawner" → "spirit_cap_spawner"
+ */
+function toSnakeCase(name: string): string {
+  return name
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    .replace(/([a-z\d])([A-Z])/g, '$1_$2')
+    .toLowerCase();
 }

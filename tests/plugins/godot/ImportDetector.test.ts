@@ -232,6 +232,18 @@ func shoot():
       expect(names).toContain('RoundManager');
     });
 
+    it('should detect Array[ClassName] typed array', () => {
+      const refs = detector.detectClassNameUsagesInLine('var players: Array[Player] = []', 1);
+      const names = refs.map(r => r.resPath);
+      expect(names).toContain('Player');
+    });
+
+    it('should detect Dictionary[Key, ClassName] generic', () => {
+      const refs = detector.detectClassNameUsagesInLine('var map: Dictionary[String, TileManager]', 1);
+      const names = refs.map(r => r.resPath);
+      expect(names).toContain('TileManager');
+    });
+
     it('should detect "is" type check', () => {
       const refs = detector.detectClassNameUsagesInLine('if x is SpiritCapSpawner:', 1);
       const names = refs.map(r => r.resPath);
