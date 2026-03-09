@@ -1,16 +1,16 @@
-# Contributing to CodeGraphy
+# Contributing
 
-Thank you for your interest in contributing to CodeGraphy! This document provides guidelines and information for contributors.
+Thanks for your interest in contributing to CodeGraphy!
 
-## Development Setup
+## Setup
 
 ### Prerequisites
 
-- Node.js 20 or later
+- Node.js 20+
 - npm
-- VS Code (for extension development)
+- VS Code 1.85+
 
-### Getting Started
+### Getting started
 
 1. Fork and clone the repository
 2. Install dependencies:
@@ -21,19 +21,19 @@ Thank you for your interest in contributing to CodeGraphy! This document provide
    ```bash
    npm run build
    ```
-4. Run tests to verify setup:
+4. Run tests to verify:
    ```bash
    npm test
    ```
 
-### Development Workflow
+### Development workflow
 
-1. Create a branch for your feature/fix:
+1. Create a branch:
    ```bash
    git checkout -b feat/your-feature
    ```
 
-2. Start watch mode for development:
+2. Start watch mode:
    ```bash
    npm run dev
    ```
@@ -49,46 +49,23 @@ Thank you for your interest in contributing to CodeGraphy! This document provide
    npm test
    ```
 
-## Project Structure
+## Code style
 
-```
-CodeGraphy/
-├── src/
-│   ├── extension/     # VSCode extension host code (Node.js)
-│   │   ├── index.ts           # Extension entry point
-│   │   └── GraphViewProvider.ts
-│   ├── shared/        # Code shared between extension and webview
-│   │   ├── types.ts           # TypeScript interfaces
-│   │   └── mockData.ts        # Mock data for development
-│   └── webview/       # React app for the sidebar (browser)
-│       ├── App.tsx            # Main React component
-│       └── components/        # React components
-├── tests/             # Test files (mirror src/ structure)
-├── assets/            # Icons and static assets
-├── docs/              # Documentation
-└── dist/              # Build output (gitignored)
-```
-
-## Code Style
-
-- Use TypeScript for all code
-- Follow existing code formatting (Prettier defaults)
-- Use meaningful variable and function names
-- Add JSDoc comments for public interfaces and functions
+- TypeScript for all code
+- Follow existing formatting (Prettier defaults)
+- Meaningful variable and function names
 - Keep functions small and focused
 
-## Commit Messages
+## Commit messages
 
 We use [Conventional Commits](https://www.conventionalcommits.org/):
 
-- `feat:` - New feature
-- `fix:` - Bug fix
-- `docs:` - Documentation changes
-- `style:` - Code style changes (formatting, etc.)
-- `refactor:` - Code changes that neither fix bugs nor add features
-- `test:` - Adding or modifying tests
-- `ci:` - CI/CD changes
-- `chore:` - Other changes that don't modify src or tests
+- `feat:` new feature
+- `fix:` bug fix
+- `docs:` documentation
+- `refactor:` code restructuring
+- `test:` adding or modifying tests
+- `chore:` tooling, deps, CI
 
 Examples:
 ```
@@ -97,15 +74,13 @@ fix: resolve node flickering on data update
 docs: update README with installation instructions
 ```
 
-## Pull Requests
+## Pull requests
 
 1. Create PRs against the `main` branch
-2. Fill out the PR template
-3. Ensure CI passes (lint, typecheck, tests, build)
-4. Request review from maintainers
-5. Address review feedback
+2. Ensure CI passes (lint, typecheck, tests, build)
+3. Request review from maintainers
 
-### PR Checklist
+### PR checklist
 
 - [ ] Tests added/updated for new functionality
 - [ ] Documentation updated if needed
@@ -117,16 +92,16 @@ docs: update README with installation instructions
 
 - Write tests for new functionality
 - Place tests in `tests/` mirroring the `src/` structure
-- Use Vitest for testing
+- Use Vitest with jsdom environment
 - Aim for meaningful coverage, not 100%
 
-Run tests:
 ```bash
-npm test           # Run once
-npm run test:watch # Watch mode
+npm test              # Run once
+npm run test:watch    # Watch mode
+npx vitest run tests/path/to/file.test.ts  # Single file
 ```
 
-## Reporting Issues
+## Reporting issues
 
 When reporting bugs, please include:
 
@@ -137,19 +112,6 @@ When reporting bugs, please include:
 5. Expected vs actual behavior
 6. Screenshots if applicable
 
-## Feature Requests
+## Feature requests
 
-We welcome feature suggestions! Please:
-
-1. Check existing issues first
-2. Describe the use case
-3. Explain why it would benefit users
-4. Consider implementation complexity
-
-## Questions?
-
-- Check the [documentation](./docs/)
-- Open a discussion on GitHub
-- Join our community (coming soon)
-
-Thank you for contributing! 🐳
+We welcome suggestions! Please check existing issues first, describe the use case, and explain why it would benefit users.
