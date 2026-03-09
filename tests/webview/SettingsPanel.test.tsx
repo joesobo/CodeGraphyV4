@@ -3,7 +3,7 @@
  * Covers: filter patterns, color groups, orphan toggle, arrows toggle, node size.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import SettingsPanel from '../../src/webview/components/SettingsPanel';
 import type { IPhysicsSettings, IGroup } from '../../src/shared/types';
 
@@ -136,6 +136,56 @@ describe('SettingsPanel: Quick Actions', () => {
     render(<SettingsPanel {...makeProps()} />);
     fireEvent.click(screen.getByTitle('Reset Graph'));
     expect(sentMessages).toContainEqual({ type: 'REFRESH_GRAPH' });
+  });
+});
+
+describe('SettingsPanel: Physics persistence', () => {
+  beforeEach(() => sentMessages.length = 0);
+
+  it('debounces UPDATE_PHYSICS_SETTING while applying immediate local updates', () => {
+    vi.useFakeTimers();
+    const onSettingsChange = vi.fn();
+    const { container } = renderPanel({ onSettingsChange });
+
+    const repelSlider = Array.from(container.querySelectorAll('input[type="range"]')).find(
+      (el) =>
+        el.getAttribute('min') === '0' &&
+        el.getAttribute('max') === '20' &&
+        el.getAttribute('step') === '1'
+    );
+
+    expect(repelSlider).toBeTruthy();
+
+    fireEvent.change(repelSlider!, { target: { value: '6' } });
+    fireEvent.change(repelSlider!, { target: { value: '7' } });
+    fireEvent.change(repelSlider!, { target: { value: '8' } });
+
+    expect(onSettingsChange).toHaveBeenCalledTimes(3);
+    expect(
+      sentMessages.filter((msg) => (msg as { type?: string }).type === 'UPDATE_PHYSICS_SETTING')
+    ).toHaveLength(0);
+
+    act(() => {
+      vi.advanceTimersByTime(349);
+    });
+    expect(
+      sentMessages.filter((msg) => (msg as { type?: string }).type === 'UPDATE_PHYSICS_SETTING')
+    ).toHaveLength(0);
+
+    act(() => {
+      vi.advanceTimersByTime(1);
+    });
+
+    const physicsMessages = sentMessages.filter(
+      (msg) => (msg as { type?: string }).type === 'UPDATE_PHYSICS_SETTING'
+    );
+    expect(physicsMessages).toHaveLength(1);
+    expect(physicsMessages[0]).toEqual({
+      type: 'UPDATE_PHYSICS_SETTING',
+      payload: { key: 'repelForce', value: 8 },
+    });
+
+    vi.useRealTimers();
   });
 });
 

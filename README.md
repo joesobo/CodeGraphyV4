@@ -37,6 +37,7 @@ See the [Settings Documentation](./docs/SETTINGS.md) for all options.
 | TypeScript | `.ts`, `.tsx` | ✅ Built-in |
 | JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | ✅ Built-in |
 | Godot | `.gd` | ✅ Built-in |
+| Markdown | `.md` | ✅ Built-in |
 | Python | `.py` | 🔜 Planned |
 
 Want to add a language? See the [Plugin Development Guide](./docs/PLUGINS.md).

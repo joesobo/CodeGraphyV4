@@ -4,7 +4,7 @@
  * @module webview/components/SettingsPanel
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { IPhysicsSettings, IGroup, NodeSizeMode, IAvailableView } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
 
@@ -44,6 +44,9 @@ const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
   { value: 'access-count', label: 'Access Count' },
   { value: 'uniform', label: 'Uniform' },
 ];
+
+/** Delay before persisting slider updates to VS Code settings. */
+const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
 
 /** Chevron icon pointing down (open) or right (closed) */
 function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
@@ -118,6 +121,9 @@ export default function SettingsPanel({
   // Filters form state
   const [newFilterPattern, setNewFilterPattern] = useState('');
 
+  const pendingPhysicsValuesRef = useRef<Partial<Record<keyof IPhysicsSettings, number>>>({});
+  const physicsPersistTimersRef = useRef<Partial<Record<keyof IPhysicsSettings, ReturnType<typeof setTimeout>>>>({});
+
   // Groups handlers
   const handleAddGroup = () => {
     if (!newPattern.trim()) return;
@@ -189,10 +195,45 @@ export default function SettingsPanel({
   };
 
   // Forces handlers
+  const flushPhysicsSetting = (key: keyof IPhysicsSettings) => {
+    const pendingValue = pendingPhysicsValuesRef.current[key];
+    if (pendingValue === undefined) return;
+
+    const timer = physicsPersistTimersRef.current[key];
+    if (timer) {
+      clearTimeout(timer);
+      delete physicsPersistTimersRef.current[key];
+    }
+
+    delete pendingPhysicsValuesRef.current[key];
+    postMessage({ type: 'UPDATE_PHYSICS_SETTING', payload: { key, value: pendingValue } });
+  };
+
+  const schedulePhysicsSettingPersist = (key: keyof IPhysicsSettings, value: number) => {
+    pendingPhysicsValuesRef.current[key] = value;
+
+    const existingTimer = physicsPersistTimersRef.current[key];
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    physicsPersistTimersRef.current[key] = setTimeout(() => {
+      flushPhysicsSetting(key);
+    }, PHYSICS_PERSIST_DEBOUNCE_MS);
+  };
+
+  useEffect(() => {
+    return () => {
+      for (const timer of Object.values(physicsPersistTimersRef.current)) {
+        if (timer) clearTimeout(timer);
+      }
+    };
+  }, []);
+
   const handlePhysicsChange = (key: keyof IPhysicsSettings, value: number) => {
     const updated = { ...settings, [key]: value };
     onSettingsChange?.(updated);
-    postMessage({ type: 'UPDATE_PHYSICS_SETTING', payload: { key, value } });
+    schedulePhysicsSettingPersist(key, value);
   };
 
   // Display handlers
@@ -253,6 +294,9 @@ export default function SettingsPanel({
                     step="1"
                     value={settings.repelForce}
                     onChange={e => handlePhysicsChange('repelForce', Number(e.target.value))}
+                    onMouseUp={() => flushPhysicsSetting('repelForce')}
+                    onTouchEnd={() => flushPhysicsSetting('repelForce')}
+                    onBlur={() => flushPhysicsSetting('repelForce')}
                     className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                 </div>
@@ -269,6 +313,9 @@ export default function SettingsPanel({
                     step="0.01"
                     value={settings.centerForce}
                     onChange={e => handlePhysicsChange('centerForce', Number(e.target.value))}
+                    onMouseUp={() => flushPhysicsSetting('centerForce')}
+                    onTouchEnd={() => flushPhysicsSetting('centerForce')}
+                    onBlur={() => flushPhysicsSetting('centerForce')}
                     className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                 </div>
@@ -285,6 +332,9 @@ export default function SettingsPanel({
                     step="10"
                     value={settings.linkDistance}
                     onChange={e => handlePhysicsChange('linkDistance', Number(e.target.value))}
+                    onMouseUp={() => flushPhysicsSetting('linkDistance')}
+                    onTouchEnd={() => flushPhysicsSetting('linkDistance')}
+                    onBlur={() => flushPhysicsSetting('linkDistance')}
                     className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                 </div>
@@ -301,6 +351,9 @@ export default function SettingsPanel({
                     step="0.01"
                     value={settings.linkForce}
                     onChange={e => handlePhysicsChange('linkForce', Number(e.target.value))}
+                    onMouseUp={() => flushPhysicsSetting('linkForce')}
+                    onTouchEnd={() => flushPhysicsSetting('linkForce')}
+                    onBlur={() => flushPhysicsSetting('linkForce')}
                     className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
                   />
                 </div>
