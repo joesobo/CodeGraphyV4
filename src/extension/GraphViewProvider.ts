@@ -50,6 +50,12 @@ const FILTER_PATTERNS_KEY = 'codegraphy.filterPatterns';
 /** Storage key for depth limit per workspace */
 const DEPTH_LIMIT_KEY = 'codegraphy.depthLimit';
 
+/** Storage key for disabled rules in workspace state */
+const DISABLED_RULES_KEY = 'codegraphy.disabledRules';
+
+/** Storage key for disabled plugins in workspace state */
+const DISABLED_PLUGINS_KEY = 'codegraphy.disabledPlugins';
+
 /** Default depth limit for depth graph view */
 const DEFAULT_DEPTH_LIMIT = 1;
 
@@ -115,9 +121,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Filter patterns passed to analysis (extension-side exclusions) */
   private _filterPatterns: string[] = [];
 
+  /** Disabled rule qualified IDs (e.g., "codegraphy.typescript:es6-import") */
+  private _disabledRules: Set<string> = new Set();
+
+  /** Disabled plugin IDs (e.g., "codegraphy.typescript") */
+  private _disabledPlugins: Set<string> = new Set();
+
   /**
    * Creates a new GraphViewProvider.
-   * 
+   *
    * @param _extensionUri - URI of the extension's installation directory
    * @param _context - Extension context for accessing workspace state
    */
@@ -126,18 +138,28 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     private readonly _context: vscode.ExtensionContext
   ) {
     this._analyzer = new WorkspaceAnalyzer(_context);
-    
+
     // Initialize view registry with core views
     this._viewRegistry = new ViewRegistry();
     for (const view of coreViews) {
       this._viewRegistry.register(view, { core: true, isDefault: view.id === 'codegraphy.connections' });
     }
-    
+
     // Restore selected view from workspace state, or use default
     const savedViewId = this._context.workspaceState.get<string>(SELECTED_VIEW_KEY);
     this._activeViewId = savedViewId && this._viewRegistry.get(savedViewId)
       ? savedViewId
       : this._viewRegistry.getDefaultViewId() ?? 'codegraphy.connections';
+
+    // Restore disabled rules and plugins from workspace state
+    const savedDisabledRules = this._context.workspaceState.get<string[]>(DISABLED_RULES_KEY);
+    if (savedDisabledRules) {
+      this._disabledRules = new Set(savedDisabledRules);
+    }
+    const savedDisabledPlugins = this._context.workspaceState.get<string[]>(DISABLED_PLUGINS_KEY);
+    if (savedDisabledPlugins) {
+      this._disabledPlugins = new Set(savedDisabledPlugins);
+    }
   }
 
   /**
@@ -300,8 +322,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     // Analyze real workspace
     try {
-      this._rawGraphData = await this._analyzer.analyze(this._filterPatterns);
-      
+      this._rawGraphData = await this._analyzer.analyze(this._filterPatterns, this._disabledRules, this._disabledPlugins);
+
       // Update view context
       this._updateViewContext();
       
@@ -311,6 +333,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
       this._sendAvailableViews();
+      this._sendPluginStatuses();
     } catch (error) {
       console.error('[CodeGraphy] Analysis failed:', error);
       // Send empty data on error
@@ -318,6 +341,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       this._graphData = { nodes: [], edges: [] };
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
       this._sendAvailableViews();
+      this._sendPluginStatuses();
     }
   }
 
@@ -341,15 +365,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Gets the set of active plugin IDs from the plugin registry.
    */
   private _getActivePluginIds(): Set<string> {
-    // Access the plugin registry from the analyzer
     const plugins = new Set<string>();
     if (this._analyzer) {
-      const registry = (this._analyzer as unknown as { _registry?: { list?: () => Array<{ plugin?: { id?: string } }> } })._registry;
-      if (registry?.list) {
-        for (const info of registry.list()) {
-          if (info.plugin?.id) {
-            plugins.add(info.plugin.id);
-          }
+      for (const info of this._analyzer.registry.list()) {
+        if (info.plugin?.id) {
+          plugins.add(info.plugin.id);
         }
       }
     }
@@ -417,6 +437,32 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       type: 'DEPTH_LIMIT_UPDATED',
       payload: { depthLimit: this._viewContext.depthLimit ?? DEFAULT_DEPTH_LIMIT },
     });
+  }
+
+  /**
+   * Sends plugin statuses to the webview.
+   */
+  private _sendPluginStatuses(): void {
+    if (!this._analyzer) return;
+    const plugins = this._analyzer.getPluginStatuses(this._disabledRules, this._disabledPlugins);
+    this._sendMessage({ type: 'PLUGINS_UPDATED', payload: { plugins } });
+  }
+
+  /**
+   * Rebuilds the graph from cached connections (no re-analysis) and sends updates.
+   * Used for instant rule/plugin toggle response.
+   */
+  private _rebuildAndSend(): void {
+    if (!this._analyzer) return;
+
+    const showOrphans = vscode.workspace.getConfiguration('codegraphy').get<boolean>('showOrphans', true);
+
+    this._rawGraphData = this._analyzer.rebuildGraph(this._disabledRules, this._disabledPlugins, showOrphans);
+    this._updateViewContext();
+    this._applyViewTransform();
+    this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+    this._sendAvailableViews();
+    this._sendPluginStatuses();
   }
 
   /**
@@ -778,6 +824,30 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             : vscode.ConfigurationTarget.Global;
           await vscode.workspace.getConfiguration('codegraphy').update('showLabels', message.payload.showLabels, labelsTarget);
           this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels: message.payload.showLabels } });
+          break;
+        }
+
+        case 'TOGGLE_RULE': {
+          const { qualifiedId, enabled } = message.payload;
+          if (enabled) {
+            this._disabledRules.delete(qualifiedId);
+          } else {
+            this._disabledRules.add(qualifiedId);
+          }
+          await this._context.workspaceState.update(DISABLED_RULES_KEY, [...this._disabledRules]);
+          this._rebuildAndSend();
+          break;
+        }
+
+        case 'TOGGLE_PLUGIN': {
+          const { pluginId, enabled: pluginEnabled } = message.payload;
+          if (pluginEnabled) {
+            this._disabledPlugins.delete(pluginId);
+          } else {
+            this._disabledPlugins.add(pluginId);
+          }
+          await this._context.workspaceState.update(DISABLED_PLUGINS_KEY, [...this._disabledPlugins]);
+          this._rebuildAndSend();
           break;
         }
       }

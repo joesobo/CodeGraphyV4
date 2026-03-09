@@ -9,7 +9,7 @@
  */
 
 import * as path from 'path';
-import type { IPlugin, IConnection } from '../../core/plugins/types';
+import type { IPlugin, IConnection, IRule } from '../../core/plugins/types';
 import { GDScriptImportDetector } from './ImportDetector';
 import { GDScriptPathResolver } from './PathResolver';
 
@@ -48,6 +48,13 @@ export class GDScriptPlugin implements IPlugin {
 
   readonly defaultFilterPatterns = [
     '**/*.uid', // Godot 4 resource UID files (auto-generated, rarely useful in graph)
+  ];
+
+  readonly rules: IRule[] = [
+    { id: 'preload', name: 'Preload', description: 'preload("res://...")' },
+    { id: 'load', name: 'Load', description: 'load(), ResourceLoader.load()' },
+    { id: 'extends', name: 'Extends', description: 'extends "res://..." or ClassName' },
+    { id: 'class-name-usage', name: 'Class Name Usage', description: 'Type annotations, static calls' },
   ];
 
   private detector: GDScriptImportDetector;
@@ -125,6 +132,14 @@ export class GDScriptPlugin implements IPlugin {
     // Get workspace-relative path for the current file
     const relativeFilePath = path.relative(workspaceRoot, filePath).replace(/\\/g, '/');
 
+    // Map GDScript reference types to rule IDs
+    const ruleIdMap: Record<string, string> = {
+      'preload': 'preload',
+      'load': 'load',
+      'extends': 'extends',
+      'class_name_usage': 'class-name-usage',
+    };
+
     for (const ref of rawReferences) {
       // Skip class_name declarations (they're not imports)
       if (ref.isDeclaration) {
@@ -142,6 +157,7 @@ export class GDScriptPlugin implements IPlugin {
           specifier: ref.resPath,
           resolvedPath: resolvedAbsolute,
           type: ref.importType,
+          ruleId: ruleIdMap[ref.referenceType] ?? 'preload',
         });
       } else {
         // Keep unresolved res:// / user:// paths as-is (external or user data).
@@ -149,6 +165,7 @@ export class GDScriptPlugin implements IPlugin {
           specifier: ref.resPath,
           resolvedPath: null,
           type: ref.importType,
+          ruleId: ruleIdMap[ref.referenceType] ?? 'preload',
         });
       }
     }
@@ -170,6 +187,7 @@ export class GDScriptPlugin implements IPlugin {
             specifier: ref.resPath,
             resolvedPath: resolvedAbsolute,
             type: ref.importType,
+            ruleId: 'class-name-usage',
           });
         }
         // Unresolved class_name_usage = built-in Godot type or false positive, discard.

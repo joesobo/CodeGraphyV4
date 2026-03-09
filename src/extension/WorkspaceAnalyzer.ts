@@ -15,7 +15,7 @@ import { createPythonPlugin } from '../plugins/python';
 import { createCSharpPlugin } from '../plugins/csharp';
 import { createMarkdownPlugin } from '../plugins/markdown';
 import { ColorPaletteManager } from '../core/colors';
-import { IGraphData, IGraphNode, IGraphEdge, DEFAULT_NODE_COLOR } from '../shared/types';
+import { IGraphData, IGraphNode, IGraphEdge, DEFAULT_NODE_COLOR, IPluginStatus, IPluginRuleStatus } from '../shared/types';
 import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
 
 /**
@@ -41,7 +41,7 @@ interface IAnalysisCache {
 }
 
 const CACHE_KEY = 'codegraphy.analysisCache';
-const CACHE_VERSION = '1.8.0'; // Bumped for Markdown plugin registration
+const CACHE_VERSION = '1.9.0'; // Bumped for rule-based filtering support
 
 /** Storage key for file visit counts in workspace state (shared with GraphViewProvider) */
 const VISITS_KEY = 'codegraphy.fileVisits';
@@ -69,6 +69,9 @@ export class WorkspaceAnalyzer {
   private readonly _context: vscode.ExtensionContext;
   private readonly _colorPalette: ColorPaletteManager;
   private _cache: IAnalysisCache;
+  private _lastFileConnections: Map<string, IConnection[]> = new Map();
+  private _lastDiscoveredFiles: IDiscoveredFile[] = [];
+  private _lastWorkspaceRoot: string = '';
 
   constructor(context: vscode.ExtensionContext) {
     this._context = context;
@@ -77,6 +80,13 @@ export class WorkspaceAnalyzer {
     this._discovery = new FileDiscovery();
     this._colorPalette = new ColorPaletteManager();
     this._cache = this._loadCache();
+  }
+
+  /**
+   * Exposes the plugin registry for external use (e.g., GraphViewProvider).
+   */
+  get registry(): PluginRegistry {
+    return this._registry;
   }
 
   /**
@@ -137,7 +147,7 @@ export class WorkspaceAnalyzer {
    * Analyzes the workspace and returns graph data.
    * Uses caching for performance.
    */
-  async analyze(filterPatterns: string[] = []): Promise<IGraphData> {
+  async analyze(filterPatterns: string[] = [], disabledRules: Set<string> = new Set(), disabledPlugins: Set<string> = new Set()): Promise<IGraphData> {
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       console.log('[CodeGraphy] No workspace folder open');
@@ -182,8 +192,13 @@ export class WorkspaceAnalyzer {
     // Analyze files (with caching)
     const fileConnections = await this._analyzeFiles(discoveryResult.files, workspaceRoot);
 
+    // Store results for instant rebuilding via rebuildGraph()
+    this._lastFileConnections = fileConnections;
+    this._lastDiscoveredFiles = discoveryResult.files;
+    this._lastWorkspaceRoot = workspaceRoot;
+
     // Build graph data
-    const graphData = this._buildGraphData(fileConnections, workspaceRoot, config.showOrphans);
+    const graphData = this._buildGraphData(fileConnections, workspaceRoot, config.showOrphans, disabledRules, disabledPlugins);
 
     // Save cache
     this._saveCache();
@@ -191,6 +206,104 @@ export class WorkspaceAnalyzer {
     console.log(`[CodeGraphy] Graph built: ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
 
     return graphData;
+  }
+
+  /**
+   * Rebuilds graph data from cached connections without re-analyzing files.
+   * Used for instant graph updates when toggling rules/plugins.
+   */
+  rebuildGraph(disabledRules: Set<string>, disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
+    if (this._lastFileConnections.size === 0) {
+      return { nodes: [], edges: [] };
+    }
+    return this._buildGraphData(
+      this._lastFileConnections,
+      this._lastWorkspaceRoot,
+      showOrphans,
+      disabledRules,
+      disabledPlugins
+    );
+  }
+
+  /**
+   * Computes the status of each registered plugin for the webview's Plugins panel.
+   */
+  getPluginStatuses(disabledRules: Set<string>, disabledPlugins: Set<string>): IPluginStatus[] {
+    const statuses: IPluginStatus[] = [];
+
+    for (const pluginInfo of this._registry.list()) {
+      const plugin = pluginInfo.plugin;
+
+      // Check if any discovered files match this plugin's extensions
+      const matchingFiles = this._lastDiscoveredFiles.filter((f) => {
+        const ext = path.extname(f.relativePath).toLowerCase();
+        return plugin.supportedExtensions.includes(ext);
+      });
+
+      // Count connections per rule for this plugin
+      const ruleConnectionCounts = new Map<string, number>();
+      let totalConnections = 0;
+
+      for (const [filePath, connections] of this._lastFileConnections) {
+        const filePlugin = this._registry.getPluginForFile(
+          path.join(this._lastWorkspaceRoot, filePath)
+        );
+        if (filePlugin?.id !== plugin.id) {
+          continue;
+        }
+
+        for (const conn of connections) {
+          if (conn.resolvedPath) {
+            totalConnections++;
+            if (conn.ruleId) {
+              ruleConnectionCounts.set(
+                conn.ruleId,
+                (ruleConnectionCounts.get(conn.ruleId) ?? 0) + 1
+              );
+            }
+          }
+        }
+      }
+
+      // Determine plugin status
+      let status: 'active' | 'installed' | 'inactive';
+      if (matchingFiles.length === 0) {
+        status = 'inactive';
+      } else if (totalConnections > 0) {
+        status = 'active';
+      } else {
+        status = 'installed';
+      }
+
+      // Build per-rule statuses
+      const rules: IPluginRuleStatus[] = (plugin.rules ?? []).map((rule) => {
+        const qualifiedId = `${plugin.id}:${rule.id}`;
+        return {
+          id: rule.id,
+          qualifiedId,
+          name: rule.name,
+          description: rule.description,
+          enabled: !disabledRules.has(qualifiedId),
+          connectionCount: ruleConnectionCounts.get(rule.id) ?? 0,
+        };
+      });
+
+      statuses.push({
+        id: plugin.id,
+        name: plugin.name,
+        version: plugin.version,
+        supportedExtensions: plugin.supportedExtensions,
+        status,
+        enabled: !disabledPlugins.has(plugin.id),
+        connectionCount: totalConnections,
+        rules,
+      });
+    }
+
+    // Sort by plugin name
+    statuses.sort((a, b) => a.name.localeCompare(b.name));
+
+    return statuses;
   }
 
   /**
@@ -289,7 +402,9 @@ export class WorkspaceAnalyzer {
   private _buildGraphData(
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
-    showOrphans: boolean
+    showOrphans: boolean,
+    disabledRules: Set<string> = new Set(),
+    disabledPlugins: Set<string> = new Set()
   ): IGraphData {
     const nodes: IGraphNode[] = [];
     const edges: IGraphEdge[] = [];
@@ -304,7 +419,23 @@ export class WorkspaceAnalyzer {
     for (const [filePath, connections] of fileConnections) {
       nodeIds.add(filePath);
 
+      // Determine which plugin handles this file (once per file for efficiency)
+      const plugin = this._registry.getPluginForFile(path.join(workspaceRoot, filePath));
+
+      // If the entire plugin is disabled, skip all connections for this file
+      if (plugin && disabledPlugins.has(plugin.id)) {
+        continue;
+      }
+
       for (const conn of connections) {
+        // If this connection has a ruleId, check if the qualified rule is disabled
+        if (plugin && conn.ruleId) {
+          const qualifiedId = `${plugin.id}:${conn.ruleId}`;
+          if (disabledRules.has(qualifiedId)) {
+            continue;
+          }
+        }
+
         if (conn.resolvedPath) {
           const targetRelative = path.relative(workspaceRoot, conn.resolvedPath);
 

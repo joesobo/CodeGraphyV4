@@ -30,14 +30,14 @@ function openSection(label: string) {
 function renderPanel(overrides: Partial<Parameters<typeof SettingsPanel>[0]> = {}) {
   const props = makeProps(overrides);
 
-  // Open the panel
   const result = render(<SettingsPanel {...props} />);
-  fireEvent.click(screen.getByTitle('Settings'));
   return { ...result, props };
 }
 
 function makeProps(overrides: Partial<Parameters<typeof SettingsPanel>[0]> = {}): Parameters<typeof SettingsPanel>[0] {
   return {
+    isOpen: true,
+    onClose: vi.fn(),
     settings: DEFAULT_PHYSICS,
     onSettingsChange: vi.fn(),
     groups: [] as IGroup[],
@@ -132,10 +132,16 @@ describe('SettingsPanel: Filter Patterns', () => {
 describe('SettingsPanel: Quick Actions', () => {
   beforeEach(() => sentMessages.length = 0);
 
-  it('posts REFRESH_GRAPH when reset button is clicked', () => {
-    render(<SettingsPanel {...makeProps()} />);
-    fireEvent.click(screen.getByTitle('Reset Graph'));
-    expect(sentMessages).toContainEqual({ type: 'REFRESH_GRAPH' });
+  it('calls onClose when close button is clicked', () => {
+    const onClose = vi.fn();
+    render(<SettingsPanel {...makeProps({ onClose })} />);
+    fireEvent.click(screen.getByTitle('Close'));
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('returns null when isOpen is false', () => {
+    const { container } = render(<SettingsPanel {...makeProps({ isOpen: false })} />);
+    expect(container.innerHTML).toBe('');
   });
 });
 

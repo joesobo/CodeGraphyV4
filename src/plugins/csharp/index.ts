@@ -55,6 +55,11 @@ export function createCSharpPlugin(): IPlugin {
       '*.generated.cs',
       'AssemblyInfo.cs',
     ],
+
+    rules: [
+      { id: 'using-directive', name: 'Using Directives', description: 'using System; static/global/alias' },
+      { id: 'type-usage', name: 'Type Usage', description: 'new Type(), Type.Method(), : Type' },
+    ],
     
     // Plugin-preferred colors for C# files
     fileColors: {
@@ -130,10 +135,11 @@ export function createCSharpPlugin(): IPlugin {
             specifier,
             resolvedPath,
             type: 'static',
+            ruleId: 'using-directive',
           });
         }
       }
-      
+
       // Also check for intra-namespace type usage (same namespace, no using needed)
       // For each namespace this file declares, look for other files in that namespace
       // that define types we're using
@@ -144,6 +150,7 @@ export function createCSharpPlugin(): IPlugin {
             specifier: `[same namespace: ${ns.name}]`,
             resolvedPath,
             type: 'static',
+            ruleId: 'type-usage',
           });
         }
       }

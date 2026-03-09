@@ -264,6 +264,50 @@ export interface IGroup {
   /** Hex color string, e.g. "#3B82F6" */
   color: string;
 }
+// ============================================================================
+// Plugin Status Types (for Plugins Panel)
+// ============================================================================
+
+/**
+ * Status of an individual plugin rule as seen by the webview.
+ */
+export interface IPluginRuleStatus {
+  /** Rule ID within the plugin */
+  id: string;
+  /** Qualified ID: "pluginId:ruleId" */
+  qualifiedId: string;
+  /** Human-readable name */
+  name: string;
+  /** Short description */
+  description: string;
+  /** Whether this rule is enabled */
+  enabled: boolean;
+  /** Number of connections detected by this rule */
+  connectionCount: number;
+}
+
+/**
+ * Status of a plugin as seen by the webview.
+ */
+export interface IPluginStatus {
+  /** Plugin ID */
+  id: string;
+  /** Human-readable name */
+  name: string;
+  /** Plugin version */
+  version: string;
+  /** File extensions this plugin handles */
+  supportedExtensions: string[];
+  /** Current status */
+  status: 'active' | 'installed' | 'inactive';
+  /** Whether the entire plugin is enabled */
+  enabled: boolean;
+  /** Total connection count */
+  connectionCount: number;
+  /** Per-rule statuses */
+  rules: IPluginRuleStatus[];
+}
+
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
   | { type: 'FIT_VIEW' }
@@ -284,6 +328,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'FILTER_PATTERNS_UPDATED'; payload: { patterns: string[]; pluginPatterns: string[] } }
   | { type: 'SHOW_ARROWS_UPDATED'; payload: { showArrows: boolean } }
   | { type: 'SHOW_LABELS_UPDATED'; payload: { showLabels: boolean } }
+  | { type: 'PLUGINS_UPDATED'; payload: { plugins: IPluginStatus[] } }
   // Test/debug: request node positions + sizes for overlap detection
   | { type: 'GET_NODE_BOUNDS' };
 
@@ -343,6 +388,9 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
   // Physics lifecycle — sent when physics disables after stabilization
   | { type: 'PHYSICS_STABILIZED' }
+  // Plugin toggles
+  | { type: 'TOGGLE_RULE'; payload: { qualifiedId: string; enabled: boolean } }
+  | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; enabled: boolean } }
   // Response to GET_NODE_BOUNDS: positions + radii for all nodes
   | { type: 'NODE_BOUNDS_RESPONSE'; payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> } };
 

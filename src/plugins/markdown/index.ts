@@ -39,6 +39,10 @@ export function createMarkdownPlugin(): IPlugin {
       '.mdx': '#8B5CF6',  // Lighter purple for MDX
     },
 
+    rules: [
+      { id: 'wikilink', name: 'Wikilinks', description: '[[Note Name]], ![[embed]]' },
+    ],
+
     async initialize(workspaceRoot: string): Promise<void> {
       resolverRoot = workspaceRoot;
       console.log('[CodeGraphy] Markdown plugin initialized');
@@ -69,6 +73,7 @@ export function createMarkdownPlugin(): IPlugin {
           specifier: link.alias ? `[[${link.target}|${link.alias}]]` : `[[${link.target}]]`,
           resolvedPath,
           type: 'static',
+          ruleId: 'wikilink',
         });
       }
 

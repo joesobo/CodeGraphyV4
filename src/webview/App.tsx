@@ -4,8 +4,9 @@ import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { SearchBar, SearchOptions } from './components/SearchBar';
 import SettingsPanel from './components/SettingsPanel';
+import PluginsPanel from './components/PluginsPanel';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, IGroup, NodeSizeMode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
+import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, IGroup, NodeSizeMode, IPluginStatus, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
 import { postMessage } from './lib/vscodeApi';
 
 /** Default physics settings (user-facing normalized values) */
@@ -100,6 +101,8 @@ export default function App(): React.ReactElement {
   const [showArrows, setShowArrows] = useState<boolean>(true);
   const [showLabels, setShowLabels] = useState<boolean>(true);
   const [graphMode, setGraphMode] = useState<'2d' | '3d'>('2d');
+  const [pluginStatuses, setPluginStatuses] = useState<IPluginStatus[]>([]);
+  const [activePanel, setActivePanel] = useState<'none' | 'settings' | 'plugins'>('none');
   const theme = useTheme();
 
   // Filter graph data based on search (always uses exact substring matching)
@@ -184,6 +187,9 @@ export default function App(): React.ReactElement {
         case 'SHOW_LABELS_UPDATED':
           setShowLabels(message.payload.showLabels);
           break;
+        case 'PLUGINS_UPDATED':
+          setPluginStatuses(message.payload.plugins);
+          break;
       }
     };
 
@@ -257,32 +263,81 @@ export default function App(): React.ReactElement {
           showLabels={showLabels}
           graphMode={graphMode}
         />
-        <SettingsPanel
-          settings={physicsSettings}
-          onSettingsChange={setPhysicsSettings}
-          groups={groups}
-          onGroupsChange={setGroups}
-          filterPatterns={filterPatterns}
-          onFilterPatternsChange={setFilterPatterns}
-          pluginFilterPatterns={pluginFilterPatterns}
-          showOrphans={showOrphans}
-          onShowOrphansChange={setShowOrphans}
-          nodeSizeMode={nodeSizeMode}
-          onNodeSizeModeChange={setNodeSizeMode}
-          availableViews={availableViews}
-          activeViewId={activeViewId}
-          onViewChange={setActiveViewId}
-          depthLimit={depthLimit}
-          showArrows={showArrows}
-          onShowArrowsChange={setShowArrows}
-          showLabels={showLabels}
-          onShowLabelsChange={(value) => {
-            setShowLabels(value);
-            postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: value } });
-          }}
-          graphMode={graphMode}
-          onGraphModeChange={setGraphMode}
-        />
+        <div className="absolute bottom-2 right-2 z-10">
+          {activePanel !== 'none' ? (
+            <>
+              <PluginsPanel
+                isOpen={activePanel === 'plugins'}
+                onClose={() => setActivePanel('none')}
+                plugins={pluginStatuses}
+              />
+              <SettingsPanel
+                isOpen={activePanel === 'settings'}
+                onClose={() => setActivePanel('none')}
+                settings={physicsSettings}
+                onSettingsChange={setPhysicsSettings}
+                groups={groups}
+                onGroupsChange={setGroups}
+                filterPatterns={filterPatterns}
+                onFilterPatternsChange={setFilterPatterns}
+                pluginFilterPatterns={pluginFilterPatterns}
+                showOrphans={showOrphans}
+                onShowOrphansChange={setShowOrphans}
+                nodeSizeMode={nodeSizeMode}
+                onNodeSizeModeChange={setNodeSizeMode}
+                availableViews={availableViews}
+                activeViewId={activeViewId}
+                onViewChange={setActiveViewId}
+                depthLimit={depthLimit}
+                showArrows={showArrows}
+                onShowArrowsChange={setShowArrows}
+                showLabels={showLabels}
+                onShowLabelsChange={(value) => {
+                  setShowLabels(value);
+                  postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: value } });
+                }}
+                graphMode={graphMode}
+                onGraphModeChange={setGraphMode}
+              />
+            </>
+          ) : (
+            <div className="flex items-center gap-1.5">
+              {/* Refresh button */}
+              <button
+                onClick={() => postMessage({ type: 'REFRESH_GRAPH' })}
+                className="bg-zinc-800/80 hover:bg-zinc-700/90 backdrop-blur-sm rounded-lg border border-zinc-700 p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                title="Reset Graph"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v6h6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 20v-6h-6" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 10A8 8 0 0010 4M4 14a8 8 0 0010 6" />
+                </svg>
+              </button>
+              {/* Plugins button (puzzle piece icon) */}
+              <button
+                onClick={() => setActivePanel('plugins')}
+                className="bg-zinc-800/80 hover:bg-zinc-700/90 backdrop-blur-sm rounded-lg border border-zinc-700 p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                title="Plugins"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
+                </svg>
+              </button>
+              {/* Settings button (gear icon) */}
+              <button
+                onClick={() => setActivePanel('settings')}
+                className="bg-zinc-800/80 hover:bg-zinc-700/90 backdrop-blur-sm rounded-lg border border-zinc-700 p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
+                title="Settings"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
