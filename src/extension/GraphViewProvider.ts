@@ -466,6 +466,38 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Intelligently rebuilds graph only when the toggled rule/plugin has connections.
+   * If the rule/plugin has 0 connections, only the plugin statuses are updated
+   * since the graph wouldn't visually change.
+   */
+  private _smartRebuild(kind: 'rule' | 'plugin', id: string): void {
+    if (!this._analyzer) return;
+
+    const statuses = this._analyzer.getPluginStatuses(this._disabledRules, this._disabledPlugins);
+    let hasConnections = false;
+
+    if (kind === 'plugin') {
+      const plugin = statuses.find(p => p.id === id);
+      hasConnections = (plugin?.connectionCount ?? 0) > 0;
+    } else {
+      for (const plugin of statuses) {
+        const rule = plugin.rules.find(r => r.qualifiedId === id);
+        if (rule) {
+          hasConnections = rule.connectionCount > 0;
+          break;
+        }
+      }
+    }
+
+    if (hasConnections) {
+      this._rebuildAndSend();
+    } else {
+      // No connections affected — just update the toggle UI
+      this._sendMessage({ type: 'PLUGINS_UPDATED', payload: { plugins: statuses } });
+    }
+  }
+
+  /**
    * Changes the active view.
    * 
    * @param viewId - ID of the view to switch to
@@ -835,7 +867,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             this._disabledRules.add(qualifiedId);
           }
           await this._context.workspaceState.update(DISABLED_RULES_KEY, [...this._disabledRules]);
-          this._rebuildAndSend();
+          this._smartRebuild('rule', qualifiedId);
           break;
         }
 
@@ -847,7 +879,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             this._disabledPlugins.add(pluginId);
           }
           await this._context.workspaceState.update(DISABLED_PLUGINS_KEY, [...this._disabledPlugins]);
-          this._rebuildAndSend();
+          this._smartRebuild('plugin', pluginId);
           break;
         }
       }
