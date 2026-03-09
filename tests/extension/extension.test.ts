@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 
 // Import after mock is set up
 import { activate, deactivate } from '../../src/extension/index';
+import { GraphViewProvider } from '../../src/extension/GraphViewProvider';
 
 describe('Extension', () => {
   let mockContext: {
@@ -51,6 +52,40 @@ describe('Extension', () => {
       // view provider (1) + config listener (1) + active editor listener (1) + save listener (1) 
       // + file watcher events (2) + file watcher (1) + 10 commands (open, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJson, clearCache)
       expect(mockContext.subscriptions.length).toBe(17);
+    });
+
+    it('should ignore workspace settings saves when deciding graph refresh', async () => {
+      vi.useFakeTimers();
+      const refreshSpy = vi.spyOn(GraphViewProvider.prototype, 'refresh').mockResolvedValue();
+
+      activate(mockContext as unknown as Parameters<typeof activate>[0]);
+
+      const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })
+        .mock.calls[0]?.[0] as (document: { uri?: { fsPath?: string } }) => void;
+      expect(saveListener).toBeTypeOf('function');
+
+      saveListener({ uri: { fsPath: '/test/workspace/.vscode/settings.json' } });
+      vi.advanceTimersByTime(600);
+
+      expect(refreshSpy).not.toHaveBeenCalled();
+      vi.useRealTimers();
+    });
+
+    it('should refresh graph on regular file saves', async () => {
+      vi.useFakeTimers();
+      const refreshSpy = vi.spyOn(GraphViewProvider.prototype, 'refresh').mockResolvedValue();
+
+      activate(mockContext as unknown as Parameters<typeof activate>[0]);
+
+      const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })
+        .mock.calls[0]?.[0] as (document: { uri?: { fsPath?: string } }) => void;
+      expect(saveListener).toBeTypeOf('function');
+
+      saveListener({ uri: { fsPath: '/test/workspace/src/app.ts' } });
+      vi.advanceTimersByTime(600);
+
+      expect(refreshSpy).toHaveBeenCalledTimes(1);
+      vi.useRealTimers();
     });
   });
 

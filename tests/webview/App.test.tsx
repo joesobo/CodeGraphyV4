@@ -60,6 +60,29 @@ describe('App', () => {
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
   });
 
+  it('should send WEBVIEW_READY only once across initial graph load', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sentMessages = (globalThis as any).__vscodeSentMessages as Array<{ type?: string }>;
+    sentMessages.length = 0;
+
+    render(<App />);
+
+    await act(async () => {
+      messageListeners.forEach((listener) => listener(new MessageEvent('message', {
+        data: {
+          type: 'GRAPH_DATA_UPDATED',
+          payload: {
+            nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+            edges: [],
+          },
+        },
+      })));
+    });
+
+    const readyMessages = sentMessages.filter((m) => m.type === 'WEBVIEW_READY');
+    expect(readyMessages).toHaveLength(1);
+  });
+
   it('should stay in loading state when in VSCode webview (waiting for real data)', async () => {
     // In VSCode webview context (acquireVsCodeApi is defined), 
     // the app waits for real GRAPH_DATA_UPDATED message instead of loading mock data
