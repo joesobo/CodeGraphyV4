@@ -1,30 +1,16 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback } from 'react';
 import { minimatch } from 'minimatch';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
-import { SearchBar, SearchOptions } from './components/SearchBar';
+import { SearchBar } from './components/SearchBar';
 import SettingsPanel from './components/SettingsPanel';
 import PluginsPanel from './components/PluginsPanel';
 import { Button } from './components/ui/button';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, IGroup, NodeSizeMode, IPluginStatus, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
+import { IGraphData, IGraphNode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
 import { postMessage } from './lib/vscodeApi';
-
-/** Default physics settings (user-facing normalized values) */
-const DEFAULT_PHYSICS: IPhysicsSettings = {
-  repelForce: 10,
-  linkDistance: 80,
-  linkForce: 0.15,
-  damping: 0.7,
-  centerForce: 0.1,
-};
-
-/** Default search options */
-const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
-  matchCase: false,
-  wholeWord: false,
-  regex: false,
-};
+import { useGraphStore, graphStore } from './store';
+import type { SearchOptions } from './components/SearchBar';
 
 /**
  * Filter nodes using advanced search options.
@@ -39,7 +25,6 @@ function filterNodesAdvanced(
   let regexError: string | null = null;
 
   if (!query.trim()) {
-    // Empty query = all nodes match
     nodes.forEach(node => matchingIds.add(node.id));
     return { matchingIds, regexError };
   }
@@ -47,7 +32,6 @@ function filterNodesAdvanced(
   let pattern: RegExp | null = null;
 
   if (options.regex) {
-    // Build regex from query
     try {
       const flags = options.matchCase ? '' : 'i';
       pattern = new RegExp(query, flags);
@@ -56,7 +40,6 @@ function filterNodesAdvanced(
       return { matchingIds, regexError };
     }
   } else if (options.wholeWord) {
-    // Build word boundary regex
     const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const flags = options.matchCase ? '' : 'i';
     pattern = new RegExp(`\\b${escaped}\\b`, flags);
@@ -69,7 +52,6 @@ function filterNodesAdvanced(
     if (pattern) {
       isMatch = pattern.test(searchText);
     } else {
-      // Simple substring match
       const normalizedText = options.matchCase ? searchText : searchText.toLowerCase();
       const normalizedQuery = options.matchCase ? query : query.toLowerCase();
       isMatch = normalizedText.includes(normalizedQuery);
@@ -84,43 +66,32 @@ function filterNodesAdvanced(
 }
 
 export default function App(): React.ReactElement {
-  const [graphData, setGraphData] = useState<IGraphData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [bidirectionalMode, setBidirectionalMode] = useState<BidirectionalEdgeMode>('separate');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchOptions, setSearchOptions] = useState<SearchOptions>(DEFAULT_SEARCH_OPTIONS);
-  const [availableViews, setAvailableViews] = useState<IAvailableView[]>([]);
-  const [activeViewId, setActiveViewId] = useState<string>('codegraphy.connections');
-  const [physicsSettings, setPhysicsSettings] = useState<IPhysicsSettings>(DEFAULT_PHYSICS);
-  const [depthLimit, setDepthLimit] = useState<number>(1);
-  const [groups, setGroups] = useState<IGroup[]>([]);
-  const [filterPatterns, setFilterPatterns] = useState<string[]>([]);
-  const [pluginFilterPatterns, setPluginFilterPatterns] = useState<string[]>([]);
-  const [nodeSizeMode, setNodeSizeMode] = useState<NodeSizeMode>('connections');
-  const [showOrphans, setShowOrphans] = useState<boolean>(true);
-  const [showArrows, setShowArrows] = useState<boolean>(true);
-  const [showLabels, setShowLabels] = useState<boolean>(true);
-  const [graphMode, setGraphMode] = useState<'2d' | '3d'>('2d');
-  const [pluginStatuses, setPluginStatuses] = useState<IPluginStatus[]>([]);
-  const [maxFiles, setMaxFiles] = useState<number>(500);
-  const [activePanel, setActivePanel] = useState<'none' | 'settings' | 'plugins'>('none');
+  // Read state from store
+  const graphData = useGraphStore(s => s.graphData);
+  const isLoading = useGraphStore(s => s.isLoading);
+  const searchQuery = useGraphStore(s => s.searchQuery);
+  const searchOptions = useGraphStore(s => s.searchOptions);
+  const groups = useGraphStore(s => s.groups);
+  const showOrphans = useGraphStore(s => s.showOrphans);
+  const activePanel = useGraphStore(s => s.activePanel);
+
+  // Store actions
+  const setSearchQuery = useGraphStore(s => s.setSearchQuery);
+  const setSearchOptions = useGraphStore(s => s.setSearchOptions);
+  const setActivePanel = useGraphStore(s => s.setActivePanel);
+
   const theme = useTheme();
 
-  // Filter graph data based on search (always uses exact substring matching)
+  // Filter graph data based on search
   const { filteredData, regexError } = useMemo((): { filteredData: IGraphData | null; regexError: string | null } => {
     if (!graphData) return { filteredData: null, regexError: null };
     if (!searchQuery.trim()) return { filteredData: graphData, regexError: null };
 
-    // Use exact substring/regex matching (not fuzzy search)
     const result = filterNodesAdvanced(graphData.nodes, searchQuery, searchOptions);
     const matchingNodeIds = result.matchingIds;
     const error = result.regexError;
 
-    // Filter nodes
     const filteredNodes = graphData.nodes.filter(node => matchingNodeIds.has(node.id));
-
-    // Filter edges - only keep edges where BOTH nodes are visible
     const filteredEdges = graphData.edges.filter(
       edge => matchingNodeIds.has(edge.from) && matchingNodeIds.has(edge.to)
     );
@@ -148,66 +119,21 @@ export default function App(): React.ReactElement {
 
   const handleSearchOptionsChange = useCallback((newOptions: SearchOptions) => {
     setSearchOptions(newOptions);
-  }, []);
+  }, [setSearchOptions]);
 
+  // Listen for extension messages and delegate to store
   useEffect(() => {
     const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
-      const message = event.data;
-      
-      switch (message.type) {
-        case 'GRAPH_DATA_UPDATED':
-          setGraphData(message.payload);
-          setIsLoading(false);
-          break;
-        case 'FAVORITES_UPDATED':
-          setFavorites(new Set(message.payload.favorites));
-          break;
-        case 'SETTINGS_UPDATED':
-          setBidirectionalMode(message.payload.bidirectionalEdges);
-          setShowOrphans(message.payload.showOrphans);
-          break;
-        case 'GROUPS_UPDATED':
-          setGroups(message.payload.groups);
-          break;
-        case 'FILTER_PATTERNS_UPDATED':
-          setFilterPatterns(message.payload.patterns);
-          setPluginFilterPatterns(message.payload.pluginPatterns);
-          break;
-        case 'VIEWS_UPDATED':
-          setAvailableViews(message.payload.views);
-          setActiveViewId(message.payload.activeViewId);
-          break;
-        case 'PHYSICS_SETTINGS_UPDATED':
-          setPhysicsSettings(message.payload);
-          break;
-        case 'DEPTH_LIMIT_UPDATED':
-          setDepthLimit(message.payload.depthLimit);
-          break;
-        case 'SHOW_ARROWS_UPDATED':
-          setShowArrows(message.payload.showArrows);
-          break;
-        case 'SHOW_LABELS_UPDATED':
-          setShowLabels(message.payload.showLabels);
-          break;
-        case 'PLUGINS_UPDATED':
-          setPluginStatuses(message.payload.plugins);
-          break;
-        case 'MAX_FILES_UPDATED':
-          setMaxFiles(message.payload.maxFiles);
-          break;
-      }
+      graphStore.getState().handleExtensionMessage(event.data);
     };
 
     window.addEventListener('message', handleMessage);
-
-    // Tell extension we're ready to receive data
     postMessage({ type: 'WEBVIEW_READY', payload: null });
-    // No mock data fallback - extension will send real data
 
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, []); // Run once on mount
+  }, []);
 
   // Loading state
   if (isLoading) {
@@ -259,14 +185,7 @@ export default function App(): React.ReactElement {
       <div className="flex-1 relative">
         <Graph
           data={coloredData || graphData}
-          favorites={favorites}
           theme={theme}
-          bidirectionalMode={bidirectionalMode}
-          physicsSettings={physicsSettings}
-          nodeSizeMode={nodeSizeMode}
-          showArrows={showArrows}
-          showLabels={showLabels}
-          graphMode={graphMode}
         />
         <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end">
           {activePanel !== 'none' ? (
@@ -274,37 +193,10 @@ export default function App(): React.ReactElement {
               <PluginsPanel
                 isOpen={activePanel === 'plugins'}
                 onClose={() => setActivePanel('none')}
-                plugins={pluginStatuses}
               />
               <SettingsPanel
                 isOpen={activePanel === 'settings'}
                 onClose={() => setActivePanel('none')}
-                settings={physicsSettings}
-                onSettingsChange={setPhysicsSettings}
-                groups={groups}
-                onGroupsChange={setGroups}
-                filterPatterns={filterPatterns}
-                onFilterPatternsChange={setFilterPatterns}
-                pluginFilterPatterns={pluginFilterPatterns}
-                showOrphans={showOrphans}
-                onShowOrphansChange={setShowOrphans}
-                nodeSizeMode={nodeSizeMode}
-                onNodeSizeModeChange={setNodeSizeMode}
-                availableViews={availableViews}
-                activeViewId={activeViewId}
-                onViewChange={setActiveViewId}
-                depthLimit={depthLimit}
-                showArrows={showArrows}
-                onShowArrowsChange={setShowArrows}
-                showLabels={showLabels}
-                onShowLabelsChange={(value) => {
-                  setShowLabels(value);
-                  postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: value } });
-                }}
-                graphMode={graphMode}
-                onGraphModeChange={setGraphMode}
-                maxFiles={maxFiles}
-                onMaxFilesChange={setMaxFiles}
               />
             </>
           ) : (

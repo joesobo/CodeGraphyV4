@@ -5,7 +5,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import SettingsPanel from '../../src/webview/components/SettingsPanel';
-import type { IPhysicsSettings, IGroup } from '../../src/shared/types';
+import { graphStore } from '../../src/webview/store';
+import type { IPhysicsSettings } from '../../src/shared/types';
 
 // Capture postMessage calls from the panel
 const sentMessages: unknown[] = [];
@@ -22,45 +23,36 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
   damping: 0.4,
 };
 
+/** Set store state before rendering */
+function setStoreState(overrides: Record<string, unknown> = {}) {
+  graphStore.setState({
+    physicsSettings: DEFAULT_PHYSICS,
+    groups: [],
+    filterPatterns: [],
+    pluginFilterPatterns: [],
+    showOrphans: true,
+    nodeSizeMode: 'connections',
+    availableViews: [],
+    activeViewId: 'codegraphy.connections',
+    depthLimit: 1,
+    showArrows: true,
+    showLabels: true,
+    graphMode: '2d',
+    maxFiles: 500,
+    ...overrides,
+  });
+}
+
 function openSection(label: string) {
   const btn = screen.getByText(label);
   fireEvent.click(btn);
 }
 
-function renderPanel(overrides: Partial<Parameters<typeof SettingsPanel>[0]> = {}) {
-  const props = makeProps(overrides);
-
-  const result = render(<SettingsPanel {...props} />);
-  return { ...result, props };
-}
-
-function makeProps(overrides: Partial<Parameters<typeof SettingsPanel>[0]> = {}): Parameters<typeof SettingsPanel>[0] {
-  return {
-    isOpen: true,
-    onClose: vi.fn(),
-    settings: DEFAULT_PHYSICS,
-    onSettingsChange: vi.fn(),
-    groups: [] as IGroup[],
-    onGroupsChange: vi.fn(),
-    filterPatterns: [] as string[],
-    onFilterPatternsChange: vi.fn(),
-    pluginFilterPatterns: [] as string[],
-    showOrphans: true,
-    onShowOrphansChange: vi.fn(),
-    nodeSizeMode: 'connections' as const,
-    onNodeSizeModeChange: vi.fn(),
-    availableViews: [],
-    activeViewId: 'codegraphy.connections',
-    onViewChange: vi.fn(),
-    depthLimit: 1,
-    showArrows: true,
-    onShowArrowsChange: vi.fn(),
-    showLabels: true,
-    onShowLabelsChange: vi.fn(),
-    graphMode: '2d' as const,
-    onGraphModeChange: vi.fn(),
-    ...overrides,
-  };
+function renderPanel(storeOverrides: Record<string, unknown> = {}) {
+  setStoreState(storeOverrides);
+  const onClose = vi.fn();
+  const result = render(<SettingsPanel isOpen={true} onClose={onClose} />);
+  return { ...result, onClose };
 }
 
 // ── Filter Patterns ────────────────────────────────────────────────────────
@@ -83,15 +75,14 @@ describe('SettingsPanel: Filter Patterns', () => {
   });
 
   it('adds a new filter pattern and posts UPDATE_FILTER_PATTERNS', () => {
-    const onFilterPatternsChange = vi.fn();
-    renderPanel({ filterPatterns: [], onFilterPatternsChange });
+    renderPanel({ filterPatterns: [] });
     openSection('Filters');
 
     const input = screen.getByPlaceholderText('*.png');
     fireEvent.change(input, { target: { value: '**/*.log' } });
     fireEvent.click(screen.getByText('Add'));
 
-    expect(onFilterPatternsChange).toHaveBeenCalledWith(['**/*.log']);
+    expect(graphStore.getState().filterPatterns).toEqual(['**/*.log']);
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_FILTER_PATTERNS',
       payload: { patterns: ['**/*.log'] },
@@ -99,14 +90,13 @@ describe('SettingsPanel: Filter Patterns', () => {
   });
 
   it('removes a filter pattern and posts UPDATE_FILTER_PATTERNS', () => {
-    const onFilterPatternsChange = vi.fn();
-    renderPanel({ filterPatterns: ['**/*.log'], onFilterPatternsChange });
+    renderPanel({ filterPatterns: ['**/*.log'] });
     openSection('Filters');
 
     const removeBtn = screen.getByTitle('Delete pattern');
     fireEvent.click(removeBtn);
 
-    expect(onFilterPatternsChange).toHaveBeenCalledWith([]);
+    expect(graphStore.getState().filterPatterns).toEqual([]);
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_FILTER_PATTERNS',
       payload: { patterns: [] },
@@ -114,14 +104,13 @@ describe('SettingsPanel: Filter Patterns', () => {
   });
 
   it('shows orphan toggle and posts UPDATE_SHOW_ORPHANS', () => {
-    const onShowOrphansChange = vi.fn();
-    renderPanel({ showOrphans: true, onShowOrphansChange });
+    renderPanel({ showOrphans: true });
     openSection('Filters');
 
     const toggle = screen.getByRole('switch');
     fireEvent.click(toggle);
 
-    expect(onShowOrphansChange).toHaveBeenCalledWith(false);
+    expect(graphStore.getState().showOrphans).toBe(false);
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_SHOW_ORPHANS',
       payload: { showOrphans: false },
@@ -133,14 +122,14 @@ describe('SettingsPanel: Quick Actions', () => {
   beforeEach(() => sentMessages.length = 0);
 
   it('calls onClose when close button is clicked', () => {
-    const onClose = vi.fn();
-    render(<SettingsPanel {...makeProps({ onClose })} />);
+    const { onClose } = renderPanel();
     fireEvent.click(screen.getByTitle('Close'));
     expect(onClose).toHaveBeenCalled();
   });
 
   it('returns null when isOpen is false', () => {
-    const { container } = render(<SettingsPanel {...makeProps({ isOpen: false })} />);
+    setStoreState();
+    const { container } = render(<SettingsPanel isOpen={false} onClose={vi.fn()} />);
     expect(container.innerHTML).toBe('');
   });
 });
@@ -150,8 +139,7 @@ describe('SettingsPanel: Physics persistence', () => {
 
   it('applies local updates on slider interaction and persists physics settings', () => {
     vi.useFakeTimers();
-    const onSettingsChange = vi.fn();
-    renderPanel({ onSettingsChange });
+    renderPanel();
 
     // Radix Slider renders thumbs as span[role="slider"]
     const sliders = screen.getAllByRole('slider');
@@ -167,8 +155,8 @@ describe('SettingsPanel: Physics persistence', () => {
     // Simulate slider value change via keyboard (ArrowRight increments by step)
     fireEvent.keyDown(repelSlider!, { key: 'ArrowRight' });
 
-    // Local state update fired immediately
-    expect(onSettingsChange).toHaveBeenCalledTimes(1);
+    // Local state update fired immediately (store updated)
+    expect(graphStore.getState().physicsSettings.repelForce).toBe(6);
 
     // After debounce period, message is flushed
     act(() => {
@@ -203,32 +191,29 @@ describe('SettingsPanel: Groups', () => {
   });
 
   it('adds a new group and posts UPDATE_GROUPS', () => {
-    const onGroupsChange = vi.fn();
-    renderPanel({ groups: [], onGroupsChange });
+    renderPanel({ groups: [] });
     openSection('Groups');
 
     const patternInput = screen.getByPlaceholderText('src/**');
     fireEvent.change(patternInput, { target: { value: 'src/utils/**' } });
     fireEvent.click(screen.getByText('Add'));
 
-    expect(onGroupsChange).toHaveBeenCalled();
-    const calledWith = onGroupsChange.mock.calls[0][0] as IGroup[];
-    expect(calledWith[0].pattern).toBe('src/utils/**');
+    const groups = graphStore.getState().groups;
+    expect(groups.length).toBe(1);
+    expect(groups[0].pattern).toBe('src/utils/**');
     expect(sentMessages.some((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS')).toBe(true);
   });
 
   it('removes a group and posts UPDATE_GROUPS', () => {
-    const onGroupsChange = vi.fn();
     renderPanel({
       groups: [{ id: 'g1', pattern: 'src/**', color: '#00ff00' }],
-      onGroupsChange,
     });
     openSection('Groups');
 
     const removeBtn = screen.getByTitle('Delete group');
     fireEvent.click(removeBtn);
 
-    expect(onGroupsChange).toHaveBeenCalledWith([]);
+    expect(graphStore.getState().groups).toEqual([]);
     expect(sentMessages.some((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS')).toBe(true);
   });
 });
@@ -246,13 +231,12 @@ describe('SettingsPanel: Arrows toggle', () => {
   });
 
   it('unchecking arrows posts UPDATE_SHOW_ARROWS', () => {
-    const onShowArrowsChange = vi.fn();
-    renderPanel({ showArrows: true, onShowArrowsChange });
+    renderPanel({ showArrows: true });
     openSection('Display');
 
     fireEvent.click(screen.getByRole('switch', { name: /show arrows/i }));
 
-    expect(onShowArrowsChange).toHaveBeenCalledWith(false);
+    expect(graphStore.getState().showArrows).toBe(false);
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_SHOW_ARROWS',
       payload: { showArrows: false },
@@ -260,13 +244,12 @@ describe('SettingsPanel: Arrows toggle', () => {
   });
 
   it('checking arrows when off posts UPDATE_SHOW_ARROWS true', () => {
-    const onShowArrowsChange = vi.fn();
-    renderPanel({ showArrows: false, onShowArrowsChange });
+    renderPanel({ showArrows: false });
     openSection('Display');
 
     fireEvent.click(screen.getByRole('switch', { name: /show arrows/i }));
 
-    expect(onShowArrowsChange).toHaveBeenCalledWith(true);
+    expect(graphStore.getState().showArrows).toBe(true);
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_SHOW_ARROWS',
       payload: { showArrows: true },
@@ -285,18 +268,17 @@ describe('SettingsPanel: Node Size', () => {
     expect(screen.getByRole('radio', { name: /^uniform$/i })).toBeInTheDocument();
   });
 
-  it('selected radio matches nodeSizeMode prop', () => {
+  it('selected radio matches nodeSizeMode from store', () => {
     renderPanel({ nodeSizeMode: 'file-size' });
     openSection('Display');
     expect(screen.getByRole('radio', { name: /^file size$/i })).toBeChecked();
   });
 
-  it('changing node size calls onNodeSizeModeChange', () => {
-    const onNodeSizeModeChange = vi.fn();
-    renderPanel({ nodeSizeMode: 'connections', onNodeSizeModeChange });
+  it('changing node size updates store', () => {
+    renderPanel({ nodeSizeMode: 'connections' });
     openSection('Display');
 
     fireEvent.click(screen.getByRole('radio', { name: /^uniform$/i }));
-    expect(onNodeSizeModeChange).toHaveBeenCalledWith('uniform');
+    expect(graphStore.getState().nodeSizeMode).toBe('uniform');
   });
 });

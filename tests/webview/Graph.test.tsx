@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
 import Graph from '../../src/webview/components/Graph';
 import { IGraphData } from '../../src/shared/types';
+import { graphStore } from '../../src/webview/store';
 import ForceGraph2D from 'react-force-graph-2d';
 
 // Helper to get sent messages from the global mock (set up in tests/setup.ts)
@@ -150,6 +151,7 @@ describe('Context Menu Content and Actions', () => {
   beforeEach(() => {
     clearSentMessages();
     ForceGraph2D.clearAllHandlers();
+    graphStore.setState({ favorites: new Set() });
   });
 
   afterEach(() => {
@@ -201,7 +203,8 @@ describe('Context Menu Content and Actions', () => {
   });
 
   it('should show "Remove from Favorites" for favorited nodes', async () => {
-    const { container } = render(<Graph data={mockData} favorites={mockFavorites} />);
+    graphStore.setState({ favorites: mockFavorites });
+    const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
 
     await act(async () => {
@@ -215,7 +218,8 @@ describe('Context Menu Content and Actions', () => {
   });
 
   it('should show "Add to Favorites" for non-favorited nodes', async () => {
-    const { container } = render(<Graph data={mockData} favorites={mockFavorites} />);
+    graphStore.setState({ favorites: mockFavorites });
+    const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
 
     await act(async () => {
@@ -425,7 +429,8 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
         ],
         edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' }],
       };
-      const { container } = render(<Graph data={data} nodeSizeMode="uniform" />);
+      graphStore.setState({ nodeSizeMode: 'uniform' });
+      const { container } = render(<Graph data={data} />);
       expect(container.querySelector('div')).toBeInTheDocument();
     });
 
@@ -437,7 +442,8 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
         ],
         edges: [],
       };
-      const { container } = render(<Graph data={data} nodeSizeMode="file-size" />);
+      graphStore.setState({ nodeSizeMode: 'file-size' });
+      const { container } = render(<Graph data={data} />);
       expect(container.querySelector('div')).toBeInTheDocument();
     });
 
@@ -449,7 +455,8 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
         ],
         edges: [],
       };
-      const { container } = render(<Graph data={data} nodeSizeMode="file-size" />);
+      graphStore.setState({ nodeSizeMode: 'file-size' });
+      const { container } = render(<Graph data={data} />);
       expect(container.querySelector('div')).toBeInTheDocument();
     });
 
@@ -461,7 +468,8 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
         ],
         edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' }],
       };
-      const { container } = render(<Graph data={data} nodeSizeMode="access-count" />);
+      graphStore.setState({ nodeSizeMode: 'access-count' });
+      const { container } = render(<Graph data={data} />);
       expect(container.querySelector('div')).toBeInTheDocument();
     });
   });
@@ -518,7 +526,8 @@ describe('Export Functionality', () => {
   });
 
   it('should register message listener on mount', async () => {
-    render(<Graph data={mockData} nodeSizeMode="file-size" />);
+    graphStore.setState({ nodeSizeMode: 'file-size' });
+    render(<Graph data={mockData} />);
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, 0));
     });
@@ -526,7 +535,8 @@ describe('Export Functionality', () => {
   });
 
   it('should handle REQUEST_EXPORT_JSON message and send EXPORT_JSON response', async () => {
-    render(<Graph data={mockData} nodeSizeMode="file-size" />);
+    graphStore.setState({ nodeSizeMode: 'file-size' });
+    render(<Graph data={mockData} />);
 
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, 10));

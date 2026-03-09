@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import App from '../../src/webview/App';
+import { graphStore } from '../../src/webview/store';
 
 // Mock window message listeners
 const messageListeners: ((event: MessageEvent) => void)[] = [];
@@ -18,9 +19,37 @@ vi.stubGlobal('removeEventListener', (type: string, listener: (event: MessageEve
   }
 });
 
+/** Reset store to initial state between tests */
+function resetStore() {
+  graphStore.setState({
+    graphData: null,
+    isLoading: true,
+    searchQuery: '',
+    searchOptions: { matchCase: false, wholeWord: false, regex: false },
+    favorites: new Set<string>(),
+    bidirectionalMode: 'separate',
+    showOrphans: true,
+    showArrows: true,
+    showLabels: true,
+    graphMode: '2d',
+    nodeSizeMode: 'connections',
+    physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
+    depthLimit: 1,
+    groups: [],
+    filterPatterns: [],
+    pluginFilterPatterns: [],
+    availableViews: [],
+    activeViewId: 'codegraphy.connections',
+    pluginStatuses: [],
+    activePanel: 'none',
+    maxFiles: 500,
+  });
+}
+
 describe('App', () => {
   beforeEach(() => {
     messageListeners.length = 0;
+    resetStore();
     vi.useFakeTimers();
   });
 
@@ -41,7 +70,6 @@ describe('App', () => {
   it('should render graph after receiving GRAPH_DATA_UPDATED message', async () => {
     render(<App />);
 
-    // Simulate graph data message from extension
     const graphDataEvent = new MessageEvent('message', {
       data: {
         type: 'GRAPH_DATA_UPDATED',
@@ -56,7 +84,6 @@ describe('App', () => {
       messageListeners.forEach((listener) => listener(graphDataEvent));
     });
 
-    // Loading should be gone
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
   });
 
@@ -84,16 +111,12 @@ describe('App', () => {
   });
 
   it('should stay in loading state when in VSCode webview (waiting for real data)', async () => {
-    // In VSCode webview context (acquireVsCodeApi is defined), 
-    // the app waits for real GRAPH_DATA_UPDATED message instead of loading mock data
     vi.useRealTimers();
-    
+
     render(<App />);
 
-    // Initially shows loading
     expect(screen.getByText('Loading graph...')).toBeInTheDocument();
 
-    // After 600ms, should still be loading (no mock data in VSCode mode)
     await new Promise((r) => setTimeout(r, 600));
     expect(screen.getByText('Loading graph...')).toBeInTheDocument();
   });
@@ -115,27 +138,24 @@ function sendMessage(data: unknown) {
 describe('App: message handlers', () => {
   beforeEach(() => {
     messageListeners.length = 0;
+    resetStore();
     vi.useFakeTimers();
   });
   afterEach(() => vi.useRealTimers());
 
-  it('SETTINGS_UPDATED updates physics settings state', async () => {
+  it('SETTINGS_UPDATED updates settings state', async () => {
     render(<App />);
     await act(async () => {
       sendMessage({
         type: 'SETTINGS_UPDATED',
         payload: {
-          filterPatterns: [],
-          pluginFilterPatterns: [],
+          bidirectionalEdges: 'combined',
           showOrphans: false,
-          nodeSizeMode: 'uniform',
-          groups: [],
-          showArrows: false,
         },
       });
     });
-    // If settings applied without error, state updated correctly
-    expect(document.body).toBeInTheDocument();
+    expect(graphStore.getState().bidirectionalMode).toBe('combined');
+    expect(graphStore.getState().showOrphans).toBe(false);
   });
 
   it('SHOW_ARROWS_UPDATED toggles arrows state', async () => {
@@ -143,8 +163,7 @@ describe('App: message handlers', () => {
     await act(async () => {
       sendMessage({ type: 'SHOW_ARROWS_UPDATED', payload: { showArrows: false } });
     });
-    // No crash — state updated
-    expect(document.body).toBeInTheDocument();
+    expect(graphStore.getState().showArrows).toBe(false);
   });
 
   it('FAVORITES_UPDATED message is handled without error', async () => {
@@ -152,18 +171,18 @@ describe('App: message handlers', () => {
     await act(async () => {
       sendMessage({ type: 'FAVORITES_UPDATED', payload: { favorites: ['src/index.ts'] } });
     });
-    expect(document.body).toBeInTheDocument();
+    expect(graphStore.getState().favorites).toEqual(new Set(['src/index.ts']));
   });
 
-  it('FILTER_PATTERNS_UPDATED message is handled without error', async () => {
+  it('FILTER_PATTERNS_UPDATED message is handled', async () => {
     render(<App />);
     await act(async () => {
-      sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { filterPatterns: ['**/*.test.ts'] } });
+      sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: ['**/*.test.ts'], pluginPatterns: [] } });
     });
-    expect(document.body).toBeInTheDocument();
+    expect(graphStore.getState().filterPatterns).toEqual(['**/*.test.ts']);
   });
 
-  it('GROUPS_UPDATED message is handled without error', async () => {
+  it('GROUPS_UPDATED message is handled', async () => {
     render(<App />);
     await act(async () => {
       sendMessage({
@@ -171,33 +190,32 @@ describe('App: message handlers', () => {
         payload: { groups: [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }] },
       });
     });
-    expect(document.body).toBeInTheDocument();
+    expect(graphStore.getState().groups).toEqual([{ id: 'g1', pattern: 'src/**', color: '#ff0000' }]);
   });
 
-  it('PHYSICS_SETTINGS_UPDATED message is handled without error', async () => {
+  it('PHYSICS_SETTINGS_UPDATED message is handled', async () => {
     render(<App />);
+    const physics = {
+      repelForce: 4,
+      centerForce: 0.02,
+      linkDistance: 150,
+      linkForce: 0.05,
+      damping: 0.5,
+    };
     await act(async () => {
       sendMessage({
         type: 'PHYSICS_SETTINGS_UPDATED',
-        payload: {
-          settings: {
-            repelForce: 4,
-            centerForce: 0.02,
-            linkDistance: 150,
-            linkForce: 0.05,
-            damping: 0.5,
-          },
-        },
+        payload: physics,
       });
     });
-    expect(document.body).toBeInTheDocument();
+    expect(graphStore.getState().physicsSettings).toEqual(physics);
   });
 
-  it('DEPTH_LIMIT_UPDATED message is handled without error', async () => {
+  it('DEPTH_LIMIT_UPDATED message is handled', async () => {
     render(<App />);
     await act(async () => {
       sendMessage({ type: 'DEPTH_LIMIT_UPDATED', payload: { depthLimit: 3 } });
     });
-    expect(document.body).toBeInTheDocument();
+    expect(graphStore.getState().depthLimit).toBe(3);
   });
 });
