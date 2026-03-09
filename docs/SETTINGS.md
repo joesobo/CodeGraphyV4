@@ -1,28 +1,29 @@
 # Settings
 
-CodeGraphy is configured through two complementary mechanisms:
+CodeGraphy can be configured in two ways:
 
-- **Settings Panel** — the gear icon inside the graph view. Changes apply immediately and are stored in workspace state. Use this for day-to-day adjustments.
-- **`settings.json`** — standard VS Code settings for file discovery and advanced configuration. When `codegraphy.groups` or `codegraphy.filterPatterns` are explicitly set here, they take priority over the Settings Panel values.
+- **Settings Panel** (the gear icon in the graph view). Changes apply immediately and are stored in workspace state. Good for day-to-day tweaking.
+- **`settings.json`** (standard VS Code settings). Better for team-shared configuration. When `codegraphy.groups` or `codegraphy.filterPatterns` are set here, they take priority over Settings Panel values.
 
-## VS Code Settings Reference
+## VS Code settings reference
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `codegraphy.maxFiles` | number | `100` | Maximum files to analyze |
+| `codegraphy.maxFiles` | number | `500` | Maximum files to analyze |
 | `codegraphy.include` | string[] | `["**/*"]` | Glob patterns for files to include |
 | `codegraphy.filterPatterns` | string[] | `[]` | Glob patterns for files to exclude (appended to built-in excludes) |
 | `codegraphy.respectGitignore` | boolean | `true` | Honor `.gitignore` patterns |
 | `codegraphy.showOrphans` | boolean | `true` | Show files with no connections |
+| `codegraphy.showLabels` | boolean | `true` | Show file name labels on nodes |
 | `codegraphy.bidirectionalEdges` | string | `"separate"` | How to display bidirectional connections |
 | `codegraphy.favorites` | string[] | `[]` | Favorite file paths (highlighted with yellow border) |
-| `codegraphy.groups` | object[] | `[]` | Color groups: `{ id, pattern, color }` — takes priority over Settings Panel groups |
+| `codegraphy.groups` | object[] | `[]` | Color groups: `{ id, pattern, color }` |
 | `codegraphy.plugins` | string[] | `[]` | Paths to external plugin files |
-| `codegraphy.physics.gravitationalConstant` | number | `-50` | Gravity strength |
-| `codegraphy.physics.springLength` | number | `100` | Preferred distance between connected nodes |
-| `codegraphy.physics.springConstant` | number | `0.08` | Spring stiffness |
-| `codegraphy.physics.damping` | number | `0.4` | Motion settling speed |
-| `codegraphy.physics.centralGravity` | number | `0.01` | Pull toward viewport center |
+| `codegraphy.physics.repelForce` | number | `10` | Node repulsion strength (0-20) |
+| `codegraphy.physics.linkDistance` | number | `80` | Preferred distance between connected nodes (30-500) |
+| `codegraphy.physics.linkForce` | number | `0.15` | Spring stiffness (0-1) |
+| `codegraphy.physics.damping` | number | `0.7` | Motion settling speed (0-1) |
+| `codegraphy.physics.centerForce` | number | `0.1` | Pull toward viewport center (0-1) |
 
 ## Settings Panel
 
@@ -34,35 +35,31 @@ Adjusts the physics simulation in real time.
 
 | Control | Range | Description |
 |---------|-------|-------------|
-| Gravity | -500 to 0 | How strongly nodes repel each other. More negative = more spread out. |
-| Link Distance | 10 to 500 | Preferred distance between connected nodes. |
-| Link Strength | 0.01 to 1 | How strongly edges pull connected nodes together. |
-| Center Pull | 0 to 1 | Pull toward the viewport center. |
-| Damping | 0 to 1 | How quickly motion settles. Higher = faster stabilization. |
-
-**Reset to Defaults** restores all physics values to the defaults above.
-
-Physics values can also be set in `settings.json` via the `codegraphy.physics.*` keys. Settings Panel values override `settings.json` physics after the first manual adjustment.
+| Repel Force | 0-20 | How strongly nodes push apart. Higher values spread nodes out more. |
+| Center Force | 0-1 | Pull toward the viewport center. |
+| Link Distance | 30-500 | Preferred distance between connected nodes in pixels. |
+| Link Force | 0-1 | How strongly edges pull connected nodes together. |
 
 ### Groups
 
-Assigns colors to files based on glob patterns. All nodes are grey (`#A1A1AA`) by default — groups are how you add color.
+Assigns colors to files based on glob patterns. All nodes are grey (`#A1A1AA`) by default. Groups are how you add color.
 
-- **Add a group**: enter a glob pattern and pick a hex color, then click Add.
-- **Delete a group**: click the × button next to any group.
+- Enter a glob pattern and pick a hex color, then click Add.
+- Click the x button next to any group to delete it.
 - Groups are matched in order; the first matching group wins.
+- Drag groups to reorder priority.
 - Changes sync back to the extension immediately.
 
-Patterns use the same glob syntax as `codegraphy.include`. Both simple extension patterns (`*.ts`) and full path patterns (`src/components/**`) are supported.
+Patterns use the same glob syntax as `codegraphy.include`. Both simple extension patterns (`*.ts`) and full path patterns (`src/components/**`) work.
 
 **Example groups:**
 ```
-Pattern: src/**    Color: #3B82F6   (blue — all source files)
-Pattern: *.test.*  Color: #10B981   (green — test files)
-Pattern: *.md      Color: #6B7280   (grey — documentation)
+Pattern: src/**    Color: #3B82F6   (blue, all source files)
+Pattern: *.test.*  Color: #10B981   (green, test files)
+Pattern: *.md      Color: #6B7280   (grey, documentation)
 ```
 
-To share groups across a team, add them to `settings.json` instead:
+To share groups across a team, add them to `settings.json`:
 ```json
 {
   "codegraphy.groups": [
@@ -74,19 +71,20 @@ To share groups across a team, add them to `settings.json` instead:
 
 ### Filters
 
-Controls which files appear in the graph. These are applied during file discovery (extension-side), not as a visual filter.
+Controls which files appear in the graph. These are applied during file discovery, not as a visual filter.
 
-- **Show Orphans** — toggle to show/hide files with no import connections. Equivalent to `codegraphy.showOrphans`.
-- **File Blacklist** — glob patterns for files to exclude entirely. Patterns support `matchBase`, so `*.png` excludes PNG files at any directory depth.
+- **Show Orphans** toggles files with no import connections. Equivalent to `codegraphy.showOrphans`.
+- **Max Files** limits how many files are analyzed. Equivalent to `codegraphy.maxFiles`.
+- **Exclude patterns** are glob patterns for files to hide entirely. Patterns support `matchBase`, so `*.png` excludes PNG files at any depth.
 
-Blacklist patterns are the same as `codegraphy.filterPatterns`. They are appended to the built-in excludes (`node_modules`, `dist`, `build`, etc.).
+Exclude patterns are appended to the built-in excludes (`node_modules`, `dist`, `build`, etc.).
 
-**Common blacklist patterns:**
+**Common exclude patterns:**
 ```
-*.png        — all PNG images
-*.svg        — all SVG files
-**/*.test.*  — all test files
-vendor/**    — a vendor directory
+*.png           all PNG images
+*.svg           all SVG files
+**/*.test.*     all test files
+vendor/**       a vendor directory
 ```
 
 To version-control filter patterns, add them to `settings.json`:
@@ -98,37 +96,40 @@ To version-control filter patterns, add them to `settings.json`:
 
 ### Display
 
-- **Node Size** — what determines node size in the graph:
-  - `connections` (default) — more connections = larger node
-  - `file-size` — larger file = larger node (logarithmic scale)
-  - `access-count` — frequently opened files = larger node
-  - `uniform` — all nodes the same size
-- **View** — switch between available graph views (see below).
-- **Depth** — when Depth Graph view is active, controls how many hops from the focused file to display (1–5).
+- **Show Arrows** toggles directional arrows on edges.
+- **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
+- **Graph Mode** switches between 2D (canvas) and 3D (WebGL) rendering.
+- **Node Size** determines what controls node size:
+  - `connections` (default): more connections = larger node
+  - `file-size`: larger files = larger nodes (logarithmic scale)
+  - `access-count`: frequently opened files = larger nodes
+  - `uniform`: all nodes the same size
+- **View** switches between graph views (see below).
+- **Depth** controls how many hops from the focused file to display (1-5) when using the Depth Graph view.
 
-## Graph Views
+## Graph views
 
 | View | Description |
 |------|-------------|
 | Connections | Default. Shows all files and their import connections. |
-| Depth Graph | Shows only files within N hops of the currently focused file in the editor. Requires an open editor tab. |
-| Subfolder View | Shows only files within the right-clicked folder. Activated via Explorer context menu. |
+| Depth Graph | Shows files within N hops of the currently focused file. Requires an open editor tab. |
+| Subfolder View | Shows files within a specific folder. Activated via Explorer context menu. |
 
-## File Discovery Settings
+## File discovery settings
 
 ### `codegraphy.maxFiles`
 
-Limits the number of files analyzed to prevent performance issues in large repositories.
+Limits the number of files analyzed to prevent performance issues in large repos.
 
 ```json
-{ "codegraphy.maxFiles": 200 }
+{ "codegraphy.maxFiles": 1000 }
 ```
 
-When the limit is exceeded, a warning appears and only the first N files are processed. Use `include` and `filterPatterns` to narrow scope rather than raising this limit indefinitely.
+When the limit is hit, a warning appears and only the first N files are processed. Use `include` and `filterPatterns` to narrow scope rather than raising this indefinitely.
 
 ### `codegraphy.include`
 
-Glob patterns determining which files to discover. All patterns are relative to the workspace root.
+Glob patterns for which files to discover, relative to the workspace root.
 
 ```json
 {
@@ -137,14 +138,14 @@ Glob patterns determining which files to discover. All patterns are relative to 
 ```
 
 Common patterns:
-- `**/*` — all files (default)
-- `src/**/*` — only files in `src/`
-- `**/*.ts` — only TypeScript files
-- `{src,lib}/**/*` — multiple directories
+- `**/*` all files (default)
+- `src/**/*` only files in `src/`
+- `**/*.ts` only TypeScript files
+- `{src,lib}/**/*` multiple directories
 
 ### `codegraphy.filterPatterns`
 
-Glob patterns for files to exclude, appended to built-in excludes. Supports `matchBase` so simple patterns like `*.png` match files at any depth.
+Glob patterns for files to exclude, appended to built-in excludes. Supports `matchBase` so `*.png` matches at any depth.
 
 **Built-in excludes (always applied):**
 ```
@@ -164,7 +165,7 @@ Glob patterns for files to exclude, appended to built-in excludes. Supports `mat
 }
 ```
 
-Unlike the old `codegraphy.exclude`, you do not need to repeat the built-in excludes — your patterns are merged with them.
+Your patterns are merged with the built-ins, so you don't need to repeat them.
 
 ### `codegraphy.respectGitignore`
 
@@ -182,10 +183,10 @@ Controls how mutual imports (A imports B and B imports A) are drawn.
 { "codegraphy.bidirectionalEdges": "combined" }
 ```
 
-- `separate` (default) — two arrows, one in each direction
-- `combined` — a single line with arrowheads on both ends
+- `separate` (default): two arrows, one in each direction
+- `combined`: a single line with arrowheads on both ends
 
-## Example Configurations
+## Example configurations
 
 ### Small TypeScript project
 ```json
@@ -199,7 +200,7 @@ Controls how mutual imports (A imports B and B imports A) are drawn.
 ### Large monorepo (focus on one package)
 ```json
 {
-  "codegraphy.maxFiles": 500,
+  "codegraphy.maxFiles": 1000,
   "codegraphy.include": ["packages/my-package/src/**/*"],
   "codegraphy.filterPatterns": ["**/*.test.ts", "**/*.spec.ts"]
 }
@@ -224,34 +225,32 @@ Controls how mutual imports (A imports B and B imports A) are drawn.
 }
 ```
 
-## Workspace vs User Settings
+## Workspace vs user settings
 
 | Level | File | Use for |
 |-------|------|---------|
 | User | `~/.config/Code/User/settings.json` | Personal defaults across all projects |
-| Workspace | `.vscode/settings.json` | Project-specific config; can be committed to version control |
+| Workspace | `.vscode/settings.json` | Project-specific config, committable to version control |
 
 Workspace settings override user settings. We recommend committing `include`, `filterPatterns`, and `groups` to `.vscode/settings.json` so the whole team sees the same graph.
 
 ## Troubleshooting
 
 **Graph is empty**
-1. Check `codegraphy.include` patterns match your files
+1. Check that `codegraphy.include` patterns match your files
 2. Verify files aren't excluded by `filterPatterns`, `.gitignore`, or the built-in excludes
-3. Ensure `codegraphy.maxFiles` is high enough
+3. Make sure `codegraphy.maxFiles` is high enough
 
 **Nodes are all grey**
-- No groups are configured. Add groups in the Settings Panel (Groups section) or via `codegraphy.groups` in `settings.json`.
 
-**`*.png` filter not working**
-- Patterns support `matchBase`, so `*.png` should match files at any depth. If using `settings.json`, ensure `codegraphy.filterPatterns` contains the pattern (not the old `codegraphy.exclude`).
+No groups are configured. Add groups in the Settings Panel or via `codegraphy.groups` in `settings.json`.
 
 **Too many files**
-1. Add exclusion patterns to the Filters section of the Settings Panel or to `codegraphy.filterPatterns`
+1. Add exclusion patterns in the Filters section or `codegraphy.filterPatterns`
 2. Narrow `codegraphy.include` to specific directories
 3. Lower `codegraphy.maxFiles`
 
 **Missing connections**
-1. Ensure the file type has a supported plugin (TypeScript/JS, Godot)
+1. Make sure the file type has a supported plugin (TypeScript/JS, Python, C#, GDScript, Markdown)
 2. Check that imported files are within the `include` patterns
 3. `node_modules` imports are intentionally excluded

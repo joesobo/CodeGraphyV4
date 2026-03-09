@@ -1,6 +1,6 @@
 # Keyboard Shortcuts
 
-## Graph Navigation (in-graph shortcuts)
+## Graph navigation
 
 These shortcuts work when the graph view is focused and no text input is active.
 
@@ -16,9 +16,9 @@ These shortcuts work when the graph view is focused and no text input is active.
 | `Shift+Drag` | Box selection |
 | `Right-click` | Open context menu |
 
-## VS Code Commands
+## VS Code commands
 
-These are registered as VS Code commands and appear in the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`). They can be rebound in **File > Preferences > Keyboard Shortcuts** — search "CodeGraphy".
+These are registered as VS Code commands and appear in the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift+P`). You can rebind them in **File > Preferences > Keyboard Shortcuts** by searching for "CodeGraphy".
 
 | Default Shortcut | Command | When |
 |-----------------|---------|------|
@@ -29,9 +29,9 @@ These are registered as VS Code commands and appear in the Command Palette (`Ctr
 | `Ctrl+Shift+Z` / `Cmd+Shift+Z` | Redo | CodeGraphy panel visible, no text input |
 | `Ctrl+Y` | Redo (alternate) | CodeGraphy panel visible, no text input |
 
-The Undo/Redo shortcuts only fire when the CodeGraphy activity bar panel is active and no editor or input field has focus — so they won't conflict with normal editor undo/redo.
+Undo/Redo only fire when the CodeGraphy panel is active and no editor or input field has focus, so they won't conflict with normal editor undo/redo.
 
-## Customizing Shortcuts
+## Customizing shortcuts
 
 Open **File > Preferences > Keyboard Shortcuts** (or `Ctrl+K Ctrl+S`) and search for "CodeGraphy" to see and rebind any command.
 
@@ -47,22 +47,9 @@ You can also edit `keybindings.json` directly:
 ]
 ```
 
-Available commands:
+See [Commands](./COMMANDS.md) for the full list of command IDs.
 
-| Command ID | Description |
-|-----------|-------------|
-| `codegraphy.open` | Open CodeGraphy |
-| `codegraphy.fitView` | Fit all nodes in view |
-| `codegraphy.zoomIn` | Zoom in |
-| `codegraphy.zoomOut` | Zoom out |
-| `codegraphy.undo` | Undo last graph action |
-| `codegraphy.redo` | Redo last undone action |
-| `codegraphy.exportPng` | Export graph as PNG |
-| `codegraphy.exportSvg` | Export graph as SVG |
-| `codegraphy.exportJson` | Export layout as JSON |
-| `codegraphy.clearCache` | Clear analysis cache and refresh |
-
-## `when` Clause Contexts
+## `when` clause contexts
 
 | Context | Active when |
 |---------|-------------|

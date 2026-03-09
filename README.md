@@ -1,96 +1,58 @@
 # CodeGraphy
 
-[![CI](https://github.com/livetoserveplz/CodeGraphy/actions/workflows/ci.yml/badge.svg)](https://github.com/livetoserveplz/CodeGraphy/actions/workflows/ci.yml)
+See your codebase. Understand it spatially.
 
-Visualize your codebase as an interactive 2D force graph. See how files connect through imports and dependencies.
+CodeGraphy turns file dependencies into an interactive force graph inside VS Code. Files become nodes, imports become edges, and your project's structure reveals itself.
 
-## Features
+## Why
 
-- **Force-directed graph** — Files naturally cluster based on their relationships
-- **Color groups** — Assign colors to files using glob patterns; all nodes start grey and groups add meaning
-- **Real file analysis** — Parses actual imports using the TypeScript compiler API
-- **Interactive** — Pan, zoom, drag nodes, click to select, double-click to open files
-- **Fast** — Built with Vis Network for smooth physics simulation
-- **Settings Panel** — Tune physics, manage groups, filter files, and switch views from the graph UI
-- **Extensible** — Plugin architecture for language support
+Reading code is linear. Codebases aren't. CodeGraphy gives you a bird's-eye view of how files connect so you can spot clusters, find entry points, and understand architecture at a glance.
 
-## Quick Start
+## What you get
 
-1. Install the extension (coming to VS Code Marketplace soon)
-2. Open a project with TypeScript/JavaScript files
-3. Click the **CodeGraphy** icon in the activity bar
-4. Explore your codebase visually!
+**A live dependency graph.** Open any project and watch it map itself. Files naturally cluster based on their relationships. Drag nodes, zoom in, search, and the graph responds instantly.
 
-## Keyboard Shortcuts
+**Five languages built in.** TypeScript, JavaScript, Python, C#, GDScript, and Markdown are all supported out of the box. Each plugin detects imports using proper parsers, not regex guesses. You can toggle individual detection rules on or off from the Plugins panel.
 
-See the [Keybindings Reference](./docs/KEYBINDINGS.md) for all shortcuts and how to customize them.
+**Multiple perspectives.** Switch between views to see your project differently:
+- **Connections** shows the full dependency graph
+- **Depth Graph** radiates outward from any file, 1 to 5 hops deep
+- **Subfolder** scopes the graph to a single directory
 
-## Configuration
+**Make it yours.** Assign colors to files with glob patterns. Tune the physics. Filter out noise. Switch between 2D and 3D. Export as PNG, SVG, or JSON.
 
-See the [Settings Documentation](./docs/SETTINGS.md) for all options.
+**Work from the graph.** Right-click any node to open, rename, delete, or favorite files, all with full undo/redo. Double-click to jump straight to the source.
 
-## Supported Languages
+## Quick start
 
-| Language | Extensions | Status |
-|----------|------------|--------|
-| TypeScript | `.ts`, `.tsx` | ✅ Built-in |
-| JavaScript | `.js`, `.jsx`, `.mjs`, `.cjs` | ✅ Built-in |
-| Godot | `.gd` | ✅ Built-in |
-| Markdown | `.md` | ✅ Built-in |
-| Python | `.py` | 🔜 Planned |
+1. Install CodeGraphy from the VS Code Marketplace
+2. Click the **CodeGraphy** icon in the activity bar
+3. Explore
 
-Want to add a language? See the [Plugin Development Guide](./docs/PLUGINS.md).
+## Language support
 
-## Development
+| Plugin | Extensions | Detection |
+|--------|-----------|-----------|
+| TypeScript / JavaScript | `.ts` `.tsx` `.js` `.jsx` `.mjs` `.cjs` | ES6 imports, CommonJS, dynamic imports, re-exports |
+| Python | `.py` `.pyi` | `import`, `from ... import`, relative imports |
+| C# | `.cs` | `using` directives, type usage |
+| GDScript | `.gd` | `preload`, `load`, `extends`, `class_name` |
+| Markdown | `.md` `.mdx` | `[[wikilinks]]` with aliases, paths, and embeds |
 
-### Prerequisites
-
-- Node.js 20+
-- npm
-- VS Code 1.85+
-
-### Setup
-
-```bash
-git clone https://github.com/livetoserveplz/CodeGraphy.git
-cd CodeGraphy
-npm install
-npm run build
-```
-
-### Running
-
-1. Open this folder in VS Code
-2. Press `F5` to launch the Extension Development Host
-3. Click the **CodeGraphy** icon in the sidebar
-
-### Commands
-
-```bash
-npm run build         # Build extension and webview
-npm run dev           # Watch mode for development
-npm test              # Run tests
-npm run lint          # Run ESLint
-npm run typecheck     # Run TypeScript type checking
-```
+Want to add a language? See the [Plugin Guide](./docs/PLUGINS.md).
 
 ## Documentation
 
-| Document | Description |
-|----------|-------------|
+| | |
+|---|---|
+| [Settings](./docs/SETTINGS.md) | Physics, groups, filters, display options |
+| [Commands](./docs/COMMANDS.md) | Command palette reference |
+| [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts |
+| [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, tooltips, panels |
 | [Architecture](./docs/ARCHITECTURE.md) | System design and data flow |
-| [Settings](./docs/SETTINGS.md) | Configuration options |
-| [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts reference |
-| [Plugin Guide](./docs/PLUGINS.md) | How to create language plugins |
-| [Contributing](./CONTRIBUTING.md) | How to contribute |
-| [Philosophy](./docs/PHILOSOPHY.md) | The vision behind CodeGraphy |
-
-## Contributing
-
-Contributions are welcome! Please read our [Contributing Guide](./CONTRIBUTING.md) first.
+| [Plugin Guide](./docs/PLUGINS.md) | Create language plugins |
+| [Contributing](./CONTRIBUTING.md) | Development setup and guidelines |
 
 ## License
 
 MIT
-
----

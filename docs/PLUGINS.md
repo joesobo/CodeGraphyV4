@@ -1,31 +1,30 @@
 # Plugin Development Guide
 
-This guide explains how to create language plugins for CodeGraphy.
+This guide covers how to create language plugins for CodeGraphy.
 
 ## Overview
 
-CodeGraphy uses a plugin system to support different programming languages. Each plugin is responsible for:
+Each plugin is responsible for:
 
 1. Declaring which file extensions it supports
 2. Detecting connections (imports/dependencies) in source files
 3. Declaring detection rules that users can toggle individually
 
-## Plugin Structure
+## Plugin structure
 
 Every plugin follows the same directory layout:
 
 ```
 src/plugins/my-language/
   manifest.json        # Static metadata (id, name, rules, colors, etc.)
-  index.ts             # Thin orchestrator — loads manifest, calls rules
+  index.ts             # Thin orchestrator that loads manifest and calls rules
   PathResolver.ts      # Path resolution logic
   rules/
     rule-a.ts          # One file per detection rule
     rule-b.ts
-  README.md            # Short plugin documentation
 ```
 
-See `src/plugins/typescript/` for the canonical reference implementation.
+See `src/plugins/typescript/` for the reference implementation.
 
 ## manifest.json
 
@@ -59,9 +58,9 @@ All static plugin metadata lives in `manifest.json`:
 | `fileColors` | No | Preferred colors for file types (extensions, filenames, or globs) |
 | `rules` | No | Detection rules users can toggle in the Plugins panel |
 
-**Color priority:** User settings > Plugin `fileColors` > Auto-generated colors.
+Color priority: User settings > Plugin `fileColors` > Auto-generated colors.
 
-## Rule Files
+## Rule files
 
 Each rule file in `rules/` exports a `detect()` function and a default `IRuleDetector` object:
 
@@ -99,7 +98,7 @@ export default rule;
 
 Every `IConnection` returned by a rule **must** set `ruleId` to the rule's id from `manifest.json`.
 
-## IConnection Interface
+## IConnection interface
 
 ```typescript
 interface IConnection {
@@ -109,12 +108,12 @@ interface IConnection {
   resolvedPath: string | null;
   /** Type of import */
   type: 'static' | 'dynamic' | 'require' | 'reexport';
-  /** Rule that detected this connection — must match a rule id in manifest.json */
+  /** Rule that detected this connection, must match a rule id in manifest.json */
   ruleId?: string;
 }
 ```
 
-## index.ts Orchestrator
+## index.ts orchestrator
 
 The orchestrator loads metadata from `manifest.json` and delegates detection to rule modules:
 
@@ -130,7 +129,6 @@ export function createMyLanguagePlugin(): IPlugin {
   let resolver: PathResolver | null = null;
 
   return {
-    // All metadata from manifest.json
     id: manifest.id,
     name: manifest.name,
     version: manifest.version,
@@ -166,9 +164,9 @@ export function createMyLanguagePlugin(): IPlugin {
 export default createMyLanguagePlugin;
 ```
 
-## IPlugin Interface
+## IPlugin interface
 
-The full `IPlugin` interface (from `src/core/plugins/types.ts`):
+The full interface from `src/core/plugins/types.ts`:
 
 ```typescript
 interface IPlugin {
@@ -198,19 +196,19 @@ interface IPlugin {
 }
 ```
 
-## Optional Hooks
+## Optional hooks
 
 ### preAnalyze
 
 Called once before `detectConnections` runs on individual files. Receives all discovered files for your plugin's extensions. Use this to build workspace-wide indexes needed for cross-file resolution.
 
-Example: The GDScript plugin uses `preAnalyze` to build a `class_name` map so `extends Player` can resolve to the file that declares `class_name Player`.
+For example, the GDScript plugin uses `preAnalyze` to build a `class_name` map so `extends Player` can resolve to the file that declares `class_name Player`.
 
 ### initialize / dispose
 
-Called when the plugin is loaded/unloaded. Use for one-time setup and cleanup.
+Called when the plugin is loaded or unloaded. Use for one-time setup and cleanup.
 
-## Registering a Plugin
+## Registering a plugin
 
 Built-in plugins are registered in the extension entry point:
 
@@ -223,7 +221,7 @@ const registry = new PluginRegistry();
 registry.register(createTypeScriptPlugin(), { builtIn: true });
 ```
 
-## Built-in Plugins
+## Built-in plugins
 
 | Plugin | Extensions | Rules |
 |--------|-----------|-------|
@@ -233,15 +231,14 @@ registry.register(createTypeScriptPlugin(), { builtIn: true });
 | [GDScript](../src/plugins/godot/) | `.gd` | Preload, Load, Extends, Class Name Usage |
 | [Markdown](../src/plugins/markdown/) | `.md` `.mdx` | Wikilinks |
 
-## Best Practices
+## Best practices
 
 1. **Use proper parsers** when available (e.g., TypeScript Compiler API). Fall back to regex for simpler languages.
 2. **Set `ruleId`** on every connection so users can toggle individual detection rules.
-3. **Keep rule files focused** — one detection pattern per file.
+3. **Keep rule files focused** with one detection pattern per file.
 4. **Use `defaultFilters`** for build artifacts and caches that should never appear in the graph.
-5. **Test via the plugin interface** — call `createXxxPlugin()` and test `detectConnections()` directly.
+5. **Test via the plugin interface** by calling `createXxxPlugin()` and testing `detectConnections()` directly.
 
-## Need Help?
+## Need help?
 
-- Check existing plugins in `src/plugins/` — TypeScript is the reference implementation
-- Open an issue on GitHub
+Check existing plugins in `src/plugins/` (TypeScript is the reference implementation) or open an issue on GitHub.

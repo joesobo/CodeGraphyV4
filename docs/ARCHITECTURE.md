@@ -1,200 +1,140 @@
-# CodeGraphy Architecture
+# Architecture
 
-This document describes the high-level architecture of CodeGraphy.
+CodeGraphy is a VS Code extension that visualizes file dependencies as an interactive graph. It has two independent build targets that communicate via `postMessage`.
 
-## Overview
-
-CodeGraphy is a VSCode extension that visualizes file dependencies as an interactive graph. It consists of three main layers:
+## Layers
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        VSCode Extension                          │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐  │
-│  │ GraphViewProvider│  │WorkspaceAnalyzer│  │  Configuration  │  │
-│  └────────┬────────┘  └────────┬────────┘  └────────┬────────┘  │
-│           │                    │                    │            │
-│           │    ┌───────────────┴───────────────┐    │            │
-│           │    │                               │    │            │
-│           ▼    ▼                               ▼    │            │
-│  ┌─────────────────────────────────────────────────────────────┐│
-│  │                      Core Layer                              ││
-│  │  ┌─────────────────┐          ┌─────────────────┐           ││
-│  │  │  FileDiscovery  │          │  PluginRegistry │           ││
-│  │  └─────────────────┘          └────────┬────────┘           ││
-│  │                                        │                     ││
-│  │                               ┌────────┴────────┐           ││
-│  │                               │     Plugins     │           ││
-│  │                               │  ┌───────────┐  │           ││
-│  │                               │  │TypeScript │  │           ││
-│  │                               │  │  Plugin   │  │           ││
-│  │                               │  └───────────┘  │           ││
-│  │                               └─────────────────┘           ││
-│  └─────────────────────────────────────────────────────────────┘│
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              │ Messages
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                         Webview (React)                          │
-│  ┌─────────────────┐          ┌─────────────────┐               │
-│  │       App       │────────▶│      Graph      │               │
-│  └─────────────────┘          └─────────────────┘               │
-│                                       │                          │
-│                                       ▼                          │
-│                               ┌─────────────────┐               │
-│                               │   Vis Network   │               │
-│                               └─────────────────┘               │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────┐
+│                     VS Code Extension                        │
+│  ┌──────────────────┐  ┌──────────────────┐  ┌───────────┐   │
+│  │GraphViewProvider │  │WorkspaceAnalyzer │  │  Config   │   │
+│  └────────┬─────────┘  └────────┬─────────┘  └─────┬─────┘   │
+│           │                     │                   │        │
+│           ▼                     ▼                   │        │
+│  ┌──────────────────────────────────────────────────────────┐│
+│  │                       Core Layer                         ││
+│  │  ┌──────────────┐  ┌───────────────┐  ┌──────────────┐   ││
+│  │  │FileDiscovery │  │PluginRegistry │  │ ViewRegistry │   ││
+│  │  └──────────────┘  └───────┬───────┘  └──────────────┘   ││
+│  │                            │                             ││
+│  │                    ┌───────┴───────┐                     ││
+│  │                    │   Plugins     │                     ││
+│  │                    └───────────────┘                     ││
+│  └──────────────────────────────────────────────────────────┘│
+└──────────────────────────────────────────────────────────────┘
+                           │
+                           │ postMessage
+                           ▼
+┌──────────────────────────────────────────────────────────────┐
+│                     Webview (React)                          │
+│  ┌──────┐  ┌────────────────┐  ┌──────────────────────────┐  │
+│  │ App  │──│     Graph      │  │ Settings / Plugins Panel │  │
+│  └──────┘  └────────┬───────┘  └──────────────────────────┘  │
+│                     │                                        │
+│             react-force-graph                                │
+│             (2D canvas / 3D WebGL)                           │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-## Components
+## Extension layer (`src/extension/`)
 
-### Extension Layer
+**`index.ts`** registers commands, file watchers, and the webview provider on activation.
 
-#### GraphViewProvider
-- Implements `WebviewViewProvider` for the sidebar panel
-- Manages webview lifecycle and HTML content
-- Handles bidirectional messaging with the webview
-- Persists node positions in workspace state
+**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, and view transformations.
 
-#### WorkspaceAnalyzer
-- Coordinates the analysis pipeline
-- Manages file-level caching with mtime invalidation
-- Builds graph data from discovered files and connections
-- Responds to configuration changes
+**`WorkspaceAnalyzer.ts`** orchestrates file discovery and plugin analysis. Builds `IGraphData` from discovered files and connections. Uses mtime-based caching to skip unchanged files. Supports instant graph rebuilds from cached data when toggling rules.
 
-#### Configuration
-- Type-safe wrapper around VSCode settings
-- Provides reactive updates via `onDidChange`
-- Validates and provides defaults for all settings
+**`Configuration.ts`** is a type-safe wrapper around VS Code settings with reactive `onDidChange` updates.
 
-### Core Layer
+**`UndoManager.ts`** maintains an undo/redo stack for graph actions (delete, rename, create, favorite, exclude).
 
-#### FileDiscovery
-- Recursively discovers files using glob patterns
-- Respects `.gitignore` via the `ignore` package
-- Enforces file limits with warnings
-- Returns file metadata (path, extension, content)
+**`actions/`** has one file per reversible action.
 
-#### PluginRegistry
-- Registers and manages language plugins
-- Maps file extensions to appropriate plugins
-- Provides plugin lookup by file path
-- Handles plugin initialization and disposal
+## Core layer (`src/core/`)
 
-#### Plugins
-Language-specific plugins that implement the `ILanguagePlugin` interface:
+**`discovery/FileDiscovery.ts`** recursively discovers files using glob patterns, respects `.gitignore`, and enforces the max file limit.
 
-- **TypeScript Plugin**: Analyzes `.ts`, `.tsx`, `.js`, `.jsx` files
-  - `ImportDetector`: Parses imports using TypeScript compiler API
-  - `PathResolver`: Resolves import paths to actual files
+**`plugins/PluginRegistry.ts`** maps file extensions to `IPlugin` instances and handles initialization/disposal.
 
-### Webview Layer
+**`colors/ColorPaletteManager.ts`** generates distinct colors for file types with a three-tier priority system: user settings > plugin defaults > auto-generated.
 
-#### App
-- React application entry point
-- Manages loading states and data flow
-- Handles messages from the extension
+**`views/ViewRegistry.ts`** manages graph views. Three built-in views: Connections (pass-through), Depth Graph (BFS from focused file), and Subfolder View.
 
-#### Graph
-- Renders the dependency graph using Vis Network
-- Implements physics-based force layout
-- Handles user interactions (click, drag, zoom)
-- Sends position updates back to extension
+## Plugin layer (`src/plugins/`)
 
-## Data Flow
+Each plugin implements `IPlugin` from `src/core/plugins/types.ts`. Five built-in plugins:
 
-### Initial Load
+- **typescript/** handles `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs` using the TypeScript Compiler API for AST-based import detection
+- **python/** handles `.py`, `.pyi` with regex-based detection of `import` and `from` statements
+- **csharp/** handles `.cs` with `using` directive and type usage detection
+- **godot/** handles `.gd` with `preload`, `load`, `extends`, and `class_name` detection
+- **markdown/** handles `.md`, `.mdx` with `[[wikilink]]` detection
+
+Each plugin declares detection rules in a `manifest.json` and sets `ruleId` on every connection so users can toggle rules individually.
+
+## Webview layer (`src/webview/`)
+
+**`App.tsx`** listens for `ExtensionToWebviewMessage` events, manages all UI state, and renders the graph with panels.
+
+**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI.
+
+**`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings. Built with shadcn/ui components.
+
+**`components/PluginsPanel.tsx`** shows all registered plugins with per-rule toggle switches and live connection counts.
+
+**`components/SearchBar.tsx`** provides search with match case, whole word, and regex modes.
+
+## Shared types (`src/shared/types.ts`)
+
+Defines the message protocol and data types shared across both build targets:
+
+- `IFileData` for raw plugin output (path, name, extension, imports)
+- `IGraphNode` / `IGraphEdge` / `IGraphData` for graph rendering
+- `ExtensionToWebviewMessage` and `WebviewToExtensionMessage` union types for the message protocol
+
+## Data flow
+
+### Initial load
 ```
 1. User opens CodeGraphy panel
-2. GraphViewProvider creates webview with HTML
+2. GraphViewProvider creates webview
 3. Webview mounts React app, sends WEBVIEW_READY
 4. GraphViewProvider triggers WorkspaceAnalyzer
 5. WorkspaceAnalyzer:
-   a. FileDiscovery finds all files
+   a. FileDiscovery finds files
    b. PluginRegistry analyzes each file
    c. Builds nodes (files) and edges (imports)
    d. Applies persisted positions
-6. GraphViewProvider sends GRAPH_DATA_UPDATED
-7. Graph component renders with Vis Network
+6. GraphViewProvider sends GRAPH_DATA_UPDATED + PLUGINS_UPDATED
+7. Graph component renders with react-force-graph
 8. Physics simulation runs until stable
-9. Graph sends POSITIONS_UPDATED
-10. GraphViewProvider persists positions
 ```
 
-### File Change
+### File change
 ```
-1. VSCode file watcher detects change
-2. WorkspaceAnalyzer invalidates cache for file
+1. VS Code file watcher detects change
+2. WorkspaceAnalyzer invalidates cache for that file
 3. Re-analyzes affected file
 4. Sends updated graph data to webview
-5. Graph incrementally updates (preserves positions)
+5. Graph updates incrementally, preserving positions
 ```
 
-### User Interaction
+### Rule toggle
 ```
-Click node     → NODE_SELECTED     → Log to console
-Double-click   → NODE_DOUBLE_CLICKED → Open file in editor
-Drag node      → Physics resettles → POSITIONS_UPDATED → Save positions
-Keyboard (0)   → Fit all nodes in view
-Keyboard (+/-) → Zoom in/out
-```
-
-## File Structure
-
-```
-src/
-├── core/                    # Core functionality
-│   ├── discovery/           # File discovery system
-│   │   ├── FileDiscovery.ts
-│   │   ├── types.ts
-│   │   └── index.ts
-│   └── plugins/             # Plugin system
-│       ├── PluginRegistry.ts
-│       ├── types.ts
-│       └── index.ts
-├── extension/               # VSCode extension
-│   ├── index.ts             # Extension entry point
-│   ├── GraphViewProvider.ts # Webview provider
-│   ├── WorkspaceAnalyzer.ts # Analysis coordinator
-│   └── Configuration.ts     # Settings wrapper
-├── plugins/                 # Language plugins
-│   └── typescript/          # TypeScript/JavaScript
-│       ├── index.ts         # Plugin definition
-│       ├── ImportDetector.ts
-│       └── PathResolver.ts
-├── shared/                  # Shared types
-│   ├── types.ts             # Graph data types
-│   └── mockData.ts          # Test data
-└── webview/                 # React webview
-    ├── index.tsx            # Entry point
-    ├── App.tsx              # Main component
-    └── components/
-        └── Graph.tsx        # Vis Network wrapper
+1. User toggles a rule in the Plugins panel
+2. Webview sends TOGGLE_RULE message
+3. GraphViewProvider updates disabled rules set
+4. If the rule has connections: rebuild graph from cached data (no re-analysis)
+5. Sends GRAPH_DATA_UPDATED + PLUGINS_UPDATED
 ```
 
-## Key Design Decisions
+## Key design decisions
 
-### Plugin Architecture
-Plugins are decoupled from core logic, enabling:
-- Easy addition of new language support
-- Community-contributed plugins (future)
-- Independent testing of language-specific code
+**Plugin architecture.** Plugins are decoupled from the core, making it straightforward to add new languages, test them independently, and eventually support community-contributed plugins.
 
-### TypeScript Compiler API
-Using `ts.createSourceFile` instead of regex for parsing:
-- Accurate handling of all import syntaxes
-- Proper string literal parsing
-- Support for dynamic imports
+**TypeScript Compiler API.** The TypeScript plugin uses `ts.createSourceFile` instead of regex, giving accurate handling of all import syntaxes including dynamic imports and re-exports.
 
-### Position Persistence
-Node positions are saved after physics stabilization:
-- Stored in VSCode workspace state
-- Applied as initial positions on reload
-- Physics verifies stability (minimal movement)
+**Position persistence.** Node positions are saved in VS Code workspace state after physics stabilization, so the graph layout is consistent across sessions.
 
-### Incremental Updates
-Graph updates preserve existing positions:
-- Only changed nodes are re-analyzed
-- Cache invalidation based on file mtime
-- Smooth visual transitions
+**Cached rebuilds.** Rule and plugin toggles rebuild the graph from cached connection data rather than re-analyzing files, making toggles feel instant.
