@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { IPluginStatus } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
+import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
 import { Switch } from './ui/switch';
 import { ScrollArea } from './ui/scroll-area';
@@ -11,7 +11,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collap
 interface PluginsPanelProps {
   isOpen: boolean;
   onClose: () => void;
-  plugins: IPluginStatus[];
 }
 
 function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
@@ -27,7 +26,8 @@ function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
   );
 }
 
-export default function PluginsPanel({ isOpen, onClose, plugins }: PluginsPanelProps): React.ReactElement | null {
+export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
+  const plugins = useGraphStore(s => s.pluginStatuses);
   const [expandedPlugins, setExpandedPlugins] = useState<Set<string>>(new Set());
 
   if (!isOpen) return null;

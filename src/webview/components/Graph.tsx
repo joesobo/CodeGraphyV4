@@ -16,10 +16,10 @@ import {
   IGraphNode,
   IGraphEdge,
   IFileInfo,
-  BidirectionalEdgeMode,
   IPhysicsSettings,
   ExtensionToWebviewMessage,
   NodeSizeMode,
+  BidirectionalEdgeMode,
 } from '../../shared/types';
 import {
   ContextMenu,
@@ -32,6 +32,7 @@ import {
 import { NodeTooltip } from './NodeTooltip';
 import { ThemeKind, adjustColorForLightTheme } from '../hooks/useTheme';
 import { postMessage } from '../lib/vscodeApi';
+import { useGraphStore } from '../store';
 
 /** Yellow color for favorites */
 const FAVORITE_BORDER_COLOR = '#EAB308';
@@ -43,16 +44,7 @@ const DEFAULT_NODE_SIZE = 16;
 
 interface GraphProps {
   data: IGraphData;
-  favorites?: Set<string>;
-  onFavoritesChange?: (favorites: Set<string>) => void;
   theme?: ThemeKind;
-  bidirectionalMode?: BidirectionalEdgeMode;
-  physicsSettings?: IPhysicsSettings;
-  nodeSizeMode?: NodeSizeMode;
-  showArrows?: boolean;
-  showLabels?: boolean;
-  /** '2d' uses canvas via react-force-graph-2d; '3d' uses WebGL via react-force-graph-3d */
-  graphMode?: '2d' | '3d';
 }
 
 /** Default physics settings (user-facing normalized values) */
@@ -211,15 +203,16 @@ function escapeXml(text: string): string {
 
 export default function Graph({
   data,
-  favorites = new Set(),
   theme = 'dark',
-  bidirectionalMode = 'separate',
-  physicsSettings = DEFAULT_PHYSICS,
-  nodeSizeMode = 'connections',
-  showArrows = true,
-  showLabels = true,
-  graphMode = '2d',
 }: GraphProps): React.ReactElement {
+  // Read state from store
+  const favorites = useGraphStore(s => s.favorites);
+  const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
+  const physicsSettings = useGraphStore(s => s.physicsSettings);
+  const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
+  const showArrows = useGraphStore(s => s.showArrows);
+  const showLabels = useGraphStore(s => s.showLabels);
+  const graphMode = useGraphStore(s => s.graphMode);
   const containerRef = useRef<HTMLDivElement>(null);
   const fg2dRef = useRef<FG2DMethods<FGNode, FGLink> | undefined>(undefined);
   const fg3dRef = useRef<FG3DMethods<FGNode, FGLink> | undefined>(undefined);
