@@ -6,7 +6,7 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { IDetectedUsing, IDetectedNamespace } from './ImportDetector';
+import { IDetectedUsing, IDetectedNamespace } from './parser';
 
 /**
  * Configuration for C# path resolution.

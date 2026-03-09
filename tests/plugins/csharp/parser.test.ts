@@ -1,16 +1,14 @@
 /**
- * @fileoverview Tests for C# ImportDetector.
+ * @fileoverview Tests for C# parser utilities.
  */
 
 import { describe, it, expect } from 'vitest';
-import { ImportDetector } from '../../../src/plugins/csharp/ImportDetector';
+import { parseContent, extractUsedTypes } from '../../../src/plugins/csharp/parser';
 
-describe('C# ImportDetector', () => {
-  const detector = new ImportDetector();
-
-  describe('using directives', () => {
+describe('C# parser', () => {
+  describe('parseContent – using directives', () => {
     it('should detect simple using', () => {
-      const { usings } = detector.detect('using System;');
+      const { usings } = parseContent('using System;');
       expect(usings).toHaveLength(1);
       expect(usings[0]).toMatchObject({
         namespace: 'System',
@@ -20,7 +18,7 @@ describe('C# ImportDetector', () => {
     });
 
     it('should detect nested namespace using', () => {
-      const { usings } = detector.detect('using System.Collections.Generic;');
+      const { usings } = parseContent('using System.Collections.Generic;');
       expect(usings).toHaveLength(1);
       expect(usings[0].namespace).toBe('System.Collections.Generic');
     });
@@ -29,7 +27,7 @@ describe('C# ImportDetector', () => {
       const code = `using System;
 using System.Linq;
 using System.Collections.Generic;`;
-      const { usings } = detector.detect(code);
+      const { usings } = parseContent(code);
       expect(usings).toHaveLength(3);
       expect(usings.map(u => u.namespace)).toEqual([
         'System',
@@ -39,7 +37,7 @@ using System.Collections.Generic;`;
     });
 
     it('should detect using static', () => {
-      const { usings } = detector.detect('using static System.Math;');
+      const { usings } = parseContent('using static System.Math;');
       expect(usings).toHaveLength(1);
       expect(usings[0]).toMatchObject({
         namespace: 'System.Math',
@@ -49,7 +47,7 @@ using System.Collections.Generic;`;
     });
 
     it('should detect global using', () => {
-      const { usings } = detector.detect('global using System;');
+      const { usings } = parseContent('global using System;');
       expect(usings).toHaveLength(1);
       expect(usings[0]).toMatchObject({
         namespace: 'System',
@@ -59,7 +57,7 @@ using System.Collections.Generic;`;
     });
 
     it('should detect global using static', () => {
-      const { usings } = detector.detect('global using static System.Console;');
+      const { usings } = parseContent('global using static System.Console;');
       expect(usings).toHaveLength(1);
       expect(usings[0]).toMatchObject({
         namespace: 'System.Console',
@@ -69,7 +67,7 @@ using System.Collections.Generic;`;
     });
 
     it('should detect using alias', () => {
-      const { usings } = detector.detect('using Json = Newtonsoft.Json;');
+      const { usings } = parseContent('using Json = Newtonsoft.Json;');
       expect(usings).toHaveLength(1);
       expect(usings[0]).toMatchObject({
         namespace: 'Newtonsoft.Json',
@@ -82,15 +80,15 @@ using System.Collections.Generic;`;
       const code = `using System;
 
 using System.Linq;`;
-      const { usings } = detector.detect(code);
+      const { usings } = parseContent(code);
       expect(usings[0].line).toBe(1);
       expect(usings[1].line).toBe(3);
     });
   });
 
-  describe('namespace declarations', () => {
+  describe('parseContent – namespace declarations', () => {
     it('should detect block-scoped namespace', () => {
-      const { namespaces } = detector.detect('namespace MyApp.Services {');
+      const { namespaces } = parseContent('namespace MyApp.Services {');
       expect(namespaces).toHaveLength(1);
       expect(namespaces[0]).toMatchObject({
         name: 'MyApp.Services',
@@ -99,7 +97,7 @@ using System.Linq;`;
     });
 
     it('should detect file-scoped namespace', () => {
-      const { namespaces } = detector.detect('namespace MyApp.Services;');
+      const { namespaces } = parseContent('namespace MyApp.Services;');
       expect(namespaces).toHaveLength(1);
       expect(namespaces[0]).toMatchObject({
         name: 'MyApp.Services',
@@ -108,17 +106,17 @@ using System.Linq;`;
     });
 
     it('should detect namespace without brace on same line', () => {
-      const { namespaces } = detector.detect('namespace MyApp.Services\n{');
+      const { namespaces } = parseContent('namespace MyApp.Services\n{');
       expect(namespaces).toHaveLength(1);
       expect(namespaces[0].name).toBe('MyApp.Services');
     });
   });
 
-  describe('comments', () => {
+  describe('parseContent – comments', () => {
     it('should ignore single-line comments', () => {
       const code = `// using System;
 using System.Linq;`;
-      const { usings } = detector.detect(code);
+      const { usings } = parseContent(code);
       expect(usings).toHaveLength(1);
       expect(usings[0].namespace).toBe('System.Linq');
     });
@@ -126,7 +124,7 @@ using System.Linq;`;
     it('should ignore multi-line comments', () => {
       const code = `/* using System; */
 using System.Linq;`;
-      const { usings } = detector.detect(code);
+      const { usings } = parseContent(code);
       expect(usings).toHaveLength(1);
       expect(usings[0].namespace).toBe('System.Linq');
     });
@@ -136,20 +134,20 @@ using System.Linq;`;
 using System;
 */
 using System.Linq;`;
-      const { usings } = detector.detect(code);
+      const { usings } = parseContent(code);
       expect(usings).toHaveLength(1);
       expect(usings[0].namespace).toBe('System.Linq');
     });
 
     it('should ignore inline comments', () => {
       const code = `using System; // core namespace`;
-      const { usings } = detector.detect(code);
+      const { usings } = parseContent(code);
       expect(usings).toHaveLength(1);
       expect(usings[0].namespace).toBe('System');
     });
   });
 
-  describe('real-world examples', () => {
+  describe('parseContent – real-world examples', () => {
     it('should parse typical C# file header', () => {
       const code = `using System;
 using System.Collections.Generic;
@@ -164,13 +162,13 @@ namespace MyApp.Controllers;
 public class HomeController
 {
 }`;
-      const { usings, namespaces } = detector.detect(code);
-      
+      const { usings, namespaces } = parseContent(code);
+
       expect(usings).toHaveLength(7);
       expect(usings.map(u => u.namespace)).toContain('System');
       expect(usings.map(u => u.namespace)).toContain('MyApp.Models');
       expect(usings.map(u => u.namespace)).toContain('MyApp.Services');
-      
+
       expect(namespaces).toHaveLength(1);
       expect(namespaces[0].name).toBe('MyApp.Controllers');
       expect(namespaces[0].isFileScoped).toBe(true);
@@ -181,16 +179,16 @@ public class HomeController
 global using System.Collections.Generic;
 global using System.Linq;
 global using Microsoft.Extensions.DependencyInjection;`;
-      
-      const { usings } = detector.detect(code);
+
+      const { usings } = parseContent(code);
       expect(usings).toHaveLength(4);
       expect(usings.every(u => u.isGlobal)).toBe(true);
     });
   });
 
-  describe('edge cases', () => {
+  describe('parseContent – edge cases', () => {
     it('should handle empty content', () => {
-      const { usings, namespaces } = detector.detect('');
+      const { usings, namespaces } = parseContent('');
       expect(usings).toHaveLength(0);
       expect(namespaces).toHaveLength(0);
     });
@@ -202,9 +200,52 @@ public class Program
 {
     public static void Main() { }
 }`;
-      const { usings, namespaces } = detector.detect(code);
+      const { usings, namespaces } = parseContent(code);
       expect(usings).toHaveLength(0);
       expect(namespaces).toHaveLength(1);
+    });
+  });
+
+  describe('extractUsedTypes', () => {
+    it('should detect new expressions', () => {
+      const types = extractUsedTypes('var x = new UserService(config);');
+      expect(types.has('UserService')).toBe(true);
+    });
+
+    it('should detect static access', () => {
+      const types = extractUsedTypes('ApiService.CallEndpoint();');
+      expect(types.has('ApiService')).toBe(true);
+    });
+
+    it('should detect inheritance', () => {
+      const types = extractUsedTypes('public class Foo : BaseService');
+      expect(types.has('BaseService')).toBe(true);
+    });
+
+    it('should detect generic type arguments', () => {
+      const types = extractUsedTypes('List<UserModel> users;');
+      expect(types.has('UserModel')).toBe(true);
+    });
+
+    it('should detect type declarations', () => {
+      const types = extractUsedTypes('ApiService service = new ApiService();');
+      expect(types.has('ApiService')).toBe(true);
+    });
+
+    it('should ignore types inside comments', () => {
+      const types = extractUsedTypes('// var x = new FakeType()\nvar y = new RealType();');
+      expect(types.has('FakeType')).toBe(false);
+      expect(types.has('RealType')).toBe(true);
+    });
+
+    it('should ignore types inside strings', () => {
+      const types = extractUsedTypes('var msg = "new FakeType()";');
+      expect(types.has('FakeType')).toBe(false);
+    });
+
+    it('should return empty set for empty content', () => {
+      const types = extractUsedTypes('');
+      expect(types.size).toBe(0);
     });
   });
 });
