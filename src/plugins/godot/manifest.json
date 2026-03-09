@@ -1,0 +1,29 @@
+{
+  "id": "codegraphy.gdscript",
+  "name": "GDScript (Godot)",
+  "version": "1.0.0",
+  "supportedExtensions": [".gd"],
+  "defaultExclude": [
+    "**/.godot/**",
+    "**/.import/**",
+    "**/*.import",
+    "**/.mono/**",
+    "**/addons/**"
+  ],
+  "defaultFilterPatterns": [
+    "**/*.uid"
+  ],
+  "fileColors": {
+    ".gd": "#478CBF",
+    ".tscn": "#6EE7B7",
+    ".tres": "#5EEAD4",
+    ".gdshader": "#A78BFA",
+    "project.godot": "#478CBF"
+  },
+  "rules": [
+    { "id": "preload", "name": "Preload", "description": "preload(\"res://...\")" },
+    { "id": "load", "name": "Load", "description": "load(), ResourceLoader.load()" },
+    { "id": "extends", "name": "Extends", "description": "extends \"res://...\" or ClassName" },
+    { "id": "class-name-usage", "name": "Class Name Usage", "description": "Type annotations, static calls" }
+  ]
+}
