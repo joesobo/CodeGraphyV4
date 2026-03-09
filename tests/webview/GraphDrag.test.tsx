@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 import Graph from '../../src/webview/components/Graph';
 import { IGraphData } from '../../src/shared/types';
+import { graphStore } from '../../src/webview/store';
 import ForceGraph2D, { mockMethods } from 'react-force-graph-2d';
 
 const mockData: IGraphData = {
@@ -12,10 +13,25 @@ const mockData: IGraphData = {
   edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' }],
 };
 
+/** Reset store to defaults, with optional overrides */
+function setStore(overrides: Record<string, unknown> = {}) {
+  graphStore.setState({
+    favorites: new Set<string>(),
+    bidirectionalMode: 'separate',
+    physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
+    nodeSizeMode: 'connections',
+    showArrows: true,
+    showLabels: true,
+    graphMode: '2d',
+    ...overrides,
+  });
+}
+
 describe('Graph: force-graph rendering', () => {
   beforeEach(() => {
     ForceGraph2D.clearAllHandlers();
     vi.clearAllMocks();
+    setStore();
   });
 
   it('renders ForceGraph2D in 2D mode (default)', () => {
@@ -32,37 +48,45 @@ describe('Graph: force-graph rendering', () => {
   });
 
   it('disables arrow when showArrows=false', () => {
-    render(<Graph data={mockData} showArrows={false} />);
+    setStore({ showArrows: false });
+    render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
     expect(props.linkDirectionalArrowLength).toBe(0);
   });
 
   it('enables arrow when showArrows=true (default)', () => {
-    render(<Graph data={mockData} showArrows={true} />);
+    setStore({ showArrows: true });
+    render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
     expect(props.linkDirectionalArrowLength).toBeGreaterThan(0);
   });
 
   it('passes d3VelocityDecay from physicsSettings.damping', () => {
-    render(<Graph data={mockData} physicsSettings={{
-      repelForce: 12,
-      linkDistance: 120,
-      linkForce: 0.1,
-      damping: 0.7,
-      centerForce: 0.05,
-    }} />);
+    setStore({
+      physicsSettings: {
+        repelForce: 12,
+        linkDistance: 120,
+        linkForce: 0.1,
+        damping: 0.7,
+        centerForce: 0.05,
+      },
+    });
+    render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
     expect(props.d3VelocityDecay).toBe(0.7);
   });
 
   it('uses per-node center pull forces (forceX/forceY) instead of centroid forceCenter', () => {
-    render(<Graph data={mockData} physicsSettings={{
-      repelForce: 10,
-      linkDistance: 80,
-      linkForce: 0.15,
-      damping: 0.7,
-      centerForce: 1,
-    }} />);
+    setStore({
+      physicsSettings: {
+        repelForce: 10,
+        linkDistance: 80,
+        linkForce: 0.15,
+        damping: 0.7,
+        centerForce: 1,
+      },
+    });
+    render(<Graph data={mockData} />);
 
     expect(mockMethods.d3Force).toHaveBeenCalledWith('forceX');
     expect(mockMethods.d3Force).toHaveBeenCalledWith('forceY');
@@ -106,10 +130,11 @@ describe('Graph: force-graph rendering', () => {
 describe('Graph: 3D mode', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setStore({ graphMode: '3d' });
   });
 
   it('renders ForceGraph3D when graphMode is 3d', () => {
-    const { getByTestId } = render(<Graph data={mockData} graphMode="3d" />);
+    const { getByTestId } = render(<Graph data={mockData} />);
     expect(getByTestId('force-graph-3d')).toBeInTheDocument();
   });
 });
