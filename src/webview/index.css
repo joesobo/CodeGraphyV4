@@ -18,19 +18,40 @@
   box-shadow: none !important;
 }
 
-:root {
-  --color-primary: #e0e0e0;
-  --color-secondary: #a0a0a0;
-  --color-accent: #60a5fa;
-  --color-bg: #1e1e1e;
-  --color-surface: #252526;
-  --color-border: #3c3c3c;
+@layer base {
+  :root {
+    /* shadcn/ui CSS variables — dark theme mapped to VS Code */
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 6% 14%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 5% 17%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 4% 16%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 4% 16%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 4% 22%;
+    --input: 240 4% 22%;
+    --ring: 217 91% 60%;
+    --radius: 0.5rem;
+  }
+
+  * {
+    @apply border-border;
+  }
 }
 
 /* VSCode theme integration */
 body {
-  background-color: var(--vscode-sideBar-background, var(--color-bg));
-  color: var(--vscode-foreground, var(--color-primary));
+  background-color: var(--vscode-sideBar-background, hsl(var(--background)));
+  color: var(--vscode-foreground, hsl(var(--foreground)));
   font-family: var(--vscode-font-family, system-ui, -apple-system, sans-serif);
   font-size: var(--vscode-font-size, 13px);
   margin: 0;
@@ -39,23 +60,23 @@ body {
 
 @layer utilities {
   .text-primary {
-    color: var(--vscode-foreground, var(--color-primary));
+    color: var(--vscode-foreground, hsl(var(--foreground)));
   }
   .text-secondary {
-    color: var(--vscode-descriptionForeground, var(--color-secondary));
+    color: var(--vscode-descriptionForeground, hsl(var(--muted-foreground)));
   }
-  .text-accent {
-    color: var(--vscode-textLink-foreground, var(--color-accent));
+  .text-link {
+    color: var(--vscode-textLink-foreground, hsl(var(--primary)));
   }
   .bg-surface {
-    background-color: var(--vscode-sideBar-background, var(--color-surface));
+    background-color: var(--vscode-sideBar-background, hsl(var(--background)));
   }
   .border-subtle {
-    border-color: var(--vscode-sideBar-border, var(--color-border));
+    border-color: var(--vscode-sideBar-border, hsl(var(--border)));
   }
   /* Icon fill/stroke utilities */
-  .fill-accent {
-    fill: var(--vscode-textLink-foreground, var(--color-accent));
+  .fill-link {
+    fill: var(--vscode-textLink-foreground, hsl(var(--primary)));
   }
   .fill-secondary {
     fill: var(--vscode-descriptionForeground, #9ca3af);

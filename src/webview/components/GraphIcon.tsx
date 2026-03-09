@@ -15,7 +15,7 @@ export default function GraphIcon({ className = 'w-10 h-10' }: GraphIconProps): 
       strokeLinejoin="round"
     >
       {/* Central node */}
-      <circle cx="12" cy="12" r="3" className="fill-accent" />
+      <circle cx="12" cy="12" r="3" className="fill-link" />
 
       {/* Outer nodes */}
       <circle cx="4" cy="6" r="2" className="fill-secondary" />

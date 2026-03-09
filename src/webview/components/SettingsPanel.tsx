@@ -7,6 +7,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { IPhysicsSettings, IGroup, NodeSizeMode, IAvailableView } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
+import { cn } from '../lib/utils';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Switch } from './ui/switch';
+import { Slider } from './ui/slider';
+import { ScrollArea } from './ui/scroll-area';
 
 interface SettingsPanelProps {
   // Panel visibility
@@ -39,8 +46,6 @@ interface SettingsPanelProps {
   onGraphModeChange: (mode: '2d' | '3d') => void;
 }
 
-
-
 const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
   { value: 'connections', label: 'Connections' },
   { value: 'file-size', label: 'File Size' },
@@ -51,11 +56,10 @@ const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
 /** Delay before persisting slider updates to VS Code settings. */
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
 
-/** Chevron icon pointing down (open) or right (closed) */
 function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
   return (
     <svg
-      className={`w-3.5 h-3.5 text-zinc-400 transition-transform ${open ? 'rotate-90' : ''}`}
+      className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', open && 'rotate-90')}
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -65,7 +69,6 @@ function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
   );
 }
 
-/** Accordion section header */
 function SectionHeader({
   title,
   open,
@@ -78,9 +81,9 @@ function SectionHeader({
   return (
     <button
       onClick={onToggle}
-      className="w-full flex items-center justify-between py-2 px-1 text-left hover:bg-zinc-700/40 rounded transition-colors"
+      className="w-full flex items-center justify-between py-2 px-1 text-left hover:bg-accent rounded transition-colors"
     >
-      <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wider">{title}</span>
+      <span className="text-xs font-semibold uppercase tracking-wider">{title}</span>
       <ChevronIcon open={open} />
     </button>
   );
@@ -188,10 +191,9 @@ export default function SettingsPanel({
   };
 
   // Filters handlers
-  const handleShowOrphansToggle = () => {
-    const next = !showOrphans;
-    onShowOrphansChange(next);
-    postMessage({ type: 'UPDATE_SHOW_ORPHANS', payload: { showOrphans: next } });
+  const handleShowOrphansToggle = (checked: boolean) => {
+    onShowOrphansChange(checked);
+    postMessage({ type: 'UPDATE_SHOW_ORPHANS', payload: { showOrphans: checked } });
   };
 
   const handleAddFilterPattern = () => {
@@ -253,369 +255,350 @@ export default function SettingsPanel({
     postMessage({ type: 'CHANGE_VIEW', payload: { viewId } });
   };
 
-  const handleDepthChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newDepth = parseInt(event.target.value, 10);
+  const handleDepthChange = (value: number[]) => {
+    const newDepth = value[0];
     postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: newDepth } });
   };
 
   return (
-        <div className="bg-zinc-800/95 backdrop-blur-sm rounded-lg border border-zinc-700 w-72 shadow-lg max-h-[calc(100vh-4rem)] flex flex-col">
-          {/* Panel header */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-700 flex-shrink-0">
-            <span className="text-sm font-medium text-zinc-200">Settings</span>
-            <button
-              onClick={onClose}
-              className="text-zinc-400 hover:text-zinc-200 p-1"
-              title="Close"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
+    <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-[calc(100vh-4rem)] flex flex-col">
+      {/* Panel header */}
+      <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
+        <span className="text-sm font-medium">Settings</span>
+        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </Button>
+      </div>
 
-          {/* Scrollable content */}
-          <div className="overflow-y-auto flex-1 px-3 pb-3">
+      {/* Scrollable content */}
+      <ScrollArea className="flex-1">
+        <div className="px-3 pb-3">
 
-            {/* Forces section */}
-            <SectionHeader title="Forces" open={forcesOpen} onToggle={() => setForcesOpen(v => !v)} />
-            {forcesOpen && (
-              <div className="mb-2 space-y-3 pt-1">
-                {/* Repel Force */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-zinc-300">Repel Force</span>
-                    <span className="text-xs text-zinc-400 font-mono">{settings.repelForce}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="20"
-                    step="1"
-                    value={settings.repelForce}
-                    onChange={e => handlePhysicsChange('repelForce', Number(e.target.value))}
-                    onMouseUp={() => flushPhysicsSetting('repelForce')}
-                    onTouchEnd={() => flushPhysicsSetting('repelForce')}
-                    onBlur={() => flushPhysicsSetting('repelForce')}
-                    className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                  />
+          {/* Forces section */}
+          <SectionHeader title="Forces" open={forcesOpen} onToggle={() => setForcesOpen(v => !v)} />
+          {forcesOpen && (
+            <div className="mb-2 space-y-3 pt-1">
+              {/* Repel Force */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-xs">Repel Force</Label>
+                  <span className="text-xs text-muted-foreground font-mono">{settings.repelForce}</span>
                 </div>
-                {/* Center Force */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-zinc-300" title="Pulls nodes toward the graph's origin point (0,0 in simulation space). Higher values keep the graph compact and centered; 0 disables the force.">Center Force</span>
-                    <span className="text-xs text-zinc-400 font-mono">{settings.centerForce.toFixed(2)}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={settings.centerForce}
-                    onChange={e => handlePhysicsChange('centerForce', Number(e.target.value))}
-                    onMouseUp={() => flushPhysicsSetting('centerForce')}
-                    onTouchEnd={() => flushPhysicsSetting('centerForce')}
-                    onBlur={() => flushPhysicsSetting('centerForce')}
-                    className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                  />
-                </div>
-                {/* Link Distance */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-zinc-300">Link Distance</span>
-                    <span className="text-xs text-zinc-400 font-mono">{settings.linkDistance}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="30"
-                    max="500"
-                    step="10"
-                    value={settings.linkDistance}
-                    onChange={e => handlePhysicsChange('linkDistance', Number(e.target.value))}
-                    onMouseUp={() => flushPhysicsSetting('linkDistance')}
-                    onTouchEnd={() => flushPhysicsSetting('linkDistance')}
-                    onBlur={() => flushPhysicsSetting('linkDistance')}
-                    className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                  />
-                </div>
-                {/* Link Force */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs text-zinc-300">Link Force</span>
-                    <span className="text-xs text-zinc-400 font-mono">{settings.linkForce.toFixed(2)}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={settings.linkForce}
-                    onChange={e => handlePhysicsChange('linkForce', Number(e.target.value))}
-                    onMouseUp={() => flushPhysicsSetting('linkForce')}
-                    onTouchEnd={() => flushPhysicsSetting('linkForce')}
-                    onBlur={() => flushPhysicsSetting('linkForce')}
-                    className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                  />
-                </div>
+                <Slider
+                  min={0}
+                  max={20}
+                  step={1}
+                  value={[settings.repelForce]}
+                  onValueChange={(v) => handlePhysicsChange('repelForce', v[0])}
+                  onValueCommit={() => flushPhysicsSetting('repelForce')}
+                />
               </div>
-            )}
+              {/* Center Force */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-xs" title="Pulls nodes toward the graph's origin point. Higher values keep the graph compact and centered; 0 disables the force.">Center Force</Label>
+                  <span className="text-xs text-muted-foreground font-mono">{settings.centerForce.toFixed(2)}</span>
+                </div>
+                <Slider
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={[settings.centerForce]}
+                  onValueChange={(v) => handlePhysicsChange('centerForce', v[0])}
+                  onValueCommit={() => flushPhysicsSetting('centerForce')}
+                />
+              </div>
+              {/* Link Distance */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-xs">Link Distance</Label>
+                  <span className="text-xs text-muted-foreground font-mono">{settings.linkDistance}</span>
+                </div>
+                <Slider
+                  min={30}
+                  max={500}
+                  step={10}
+                  value={[settings.linkDistance]}
+                  onValueChange={(v) => handlePhysicsChange('linkDistance', v[0])}
+                  onValueCommit={() => flushPhysicsSetting('linkDistance')}
+                />
+              </div>
+              {/* Link Force */}
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label className="text-xs">Link Force</Label>
+                  <span className="text-xs text-muted-foreground font-mono">{settings.linkForce.toFixed(2)}</span>
+                </div>
+                <Slider
+                  min={0}
+                  max={1}
+                  step={0.01}
+                  value={[settings.linkForce]}
+                  onValueChange={(v) => handlePhysicsChange('linkForce', v[0])}
+                  onValueCommit={() => flushPhysicsSetting('linkForce')}
+                />
+              </div>
+            </div>
+          )}
 
-            {/* Groups section */}
-            <SectionHeader title="Groups" open={groupsOpen} onToggle={() => setGroupsOpen(v => !v)} />
-            {groupsOpen && (
-              <div className="mb-2 space-y-2">
-                {/* Existing groups */}
-                {groups.length === 0 ? (
-                  <p className="text-xs text-zinc-500 py-1">No groups. All nodes use the default grey color.</p>
-                ) : (
-                  <ul className="space-y-1">
-                    {groups.map((group, index) => (
-                      <li
-                        key={group.id}
-                        draggable
-                        onDragStart={() => handleGroupDragStart(index)}
-                        onDragOver={(e) => handleGroupDragOver(e, index)}
-                        onDrop={(e) => handleGroupDrop(e, index)}
-                        onDragEnd={handleGroupDragEnd}
-                        className={`flex items-center gap-2 rounded transition-colors ${
-                          dragOverIndex === index && dragIndex !== index
-                            ? 'bg-zinc-700/60 outline outline-1 outline-blue-500/50'
-                            : dragIndex === index
-                            ? 'opacity-40'
-                            : ''
-                        }`}
+          {/* Groups section */}
+          <SectionHeader title="Groups" open={groupsOpen} onToggle={() => setGroupsOpen(v => !v)} />
+          {groupsOpen && (
+            <div className="mb-2 space-y-2">
+              {groups.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-1">No groups. All nodes use the default grey color.</p>
+              ) : (
+                <ul className="space-y-1">
+                  {groups.map((group, index) => (
+                    <li
+                      key={group.id}
+                      draggable
+                      onDragStart={() => handleGroupDragStart(index)}
+                      onDragOver={(e) => handleGroupDragOver(e, index)}
+                      onDrop={(e) => handleGroupDrop(e, index)}
+                      onDragEnd={handleGroupDragEnd}
+                      className={cn(
+                        'flex items-center gap-2 rounded transition-colors',
+                        dragOverIndex === index && dragIndex !== index && 'bg-accent outline outline-1 outline-primary/50',
+                        dragIndex === index && 'opacity-40'
+                      )}
+                    >
+                      <svg className="w-3 h-3 text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 22a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+                      </svg>
+                      <span
+                        className="w-4 h-4 rounded-sm flex-shrink-0 border"
+                        style={{ backgroundColor: group.color }}
+                      />
+                      <span className="text-xs flex-1 truncate font-mono">{group.pattern}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
+                        onClick={() => handleDeleteGroup(group.id)}
+                        title="Delete group"
                       >
-                        {/* Drag handle */}
-                        <svg className="w-3 h-3 text-zinc-600 flex-shrink-0 cursor-grab active:cursor-grabbing" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 22a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
-                        <span
-                          className="w-4 h-4 rounded-sm flex-shrink-0 border border-zinc-600"
-                          style={{ backgroundColor: group.color }}
-                        />
-                        <span className="text-xs text-zinc-300 flex-1 truncate font-mono">{group.pattern}</span>
-                        <button
-                          onClick={() => handleDeleteGroup(group.id)}
-                          className="text-zinc-500 hover:text-red-400 flex-shrink-0"
-                          title="Delete group"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                {/* Add group form */}
-                <div className="flex items-center gap-1.5 pt-1">
-                  <input
-                    type="text"
-                    value={newPattern}
-                    onChange={e => setNewPattern(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddGroup()}
-                    placeholder="src/**"
-                    className="flex-1 bg-zinc-700 border border-zinc-600 rounded px-2 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500 min-w-0"
-                  />
-                  <input
-                    type="color"
-                    value={newColor}
-                    onChange={e => setNewColor(e.target.value)}
-                    className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent p-0"
-                    title="Pick color"
-                  />
-                  <button
-                    onClick={handleAddGroup}
-                    disabled={!newPattern.trim()}
-                    className="text-xs text-zinc-200 bg-zinc-700 hover:bg-zinc-600 border border-zinc-600 rounded px-2 py-1 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
-                  >
-                    Add
-                  </button>
-                </div>
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {/* Add group form */}
+              <div className="flex items-center gap-1.5 pt-1">
+                <Input
+                  value={newPattern}
+                  onChange={e => setNewPattern(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddGroup()}
+                  placeholder="src/**"
+                  className="flex-1 h-7 text-xs min-w-0"
+                />
+                <input
+                  type="color"
+                  value={newColor}
+                  onChange={e => setNewColor(e.target.value)}
+                  className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent p-0"
+                  title="Pick color"
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={handleAddGroup}
+                  disabled={!newPattern.trim()}
+                >
+                  Add
+                </Button>
               </div>
-            )}
+            </div>
+          )}
 
-            {/* Filters section */}
-            <SectionHeader title="Filters" open={filtersOpen} onToggle={() => setFiltersOpen(v => !v)} />
-            {filtersOpen && (
-              <div className="mb-2 space-y-2">
-                {/* Show Orphans toggle */}
-                <div className="flex items-center justify-between py-0.5">
-                  <label className="text-xs text-zinc-300">Show Orphans</label>
-                  <button
-                    onClick={handleShowOrphansToggle}
-                    className={`relative w-8 h-4.5 rounded-full transition-colors ${showOrphans ? 'bg-blue-500' : 'bg-zinc-600'}`}
-                    role="switch"
-                    aria-checked={showOrphans}
-                  >
-                    <span
-                      className={`absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white shadow transition-transform ${showOrphans ? 'translate-x-4' : 'translate-x-0.5'}`}
-                    />
-                  </button>
-                </div>
+          {/* Filters section */}
+          <SectionHeader title="Filters" open={filtersOpen} onToggle={() => setFiltersOpen(v => !v)} />
+          {filtersOpen && (
+            <div className="mb-2 space-y-2">
+              {/* Show Orphans toggle */}
+              <div className="flex items-center justify-between py-0.5">
+                <Label htmlFor="show-orphans" className="text-xs">Show Orphans</Label>
+                <Switch
+                  id="show-orphans"
+                  checked={showOrphans}
+                  onCheckedChange={handleShowOrphansToggle}
+                />
+              </div>
 
-                {/* Plugin default filter patterns (read-only) */}
-                {pluginFilterPatterns.length > 0 && (
-                  <>
-                    <p className="text-xs text-zinc-500">Plugin defaults (read-only)</p>
-                    <ul className="space-y-1">
-                      {pluginFilterPatterns.map(pattern => (
-                        <li key={pattern} className="flex items-center gap-2 opacity-60">
-                          <svg className="w-3 h-3 text-zinc-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                          </svg>
-                          <span className="text-xs text-zinc-400 flex-1 truncate font-mono">{pattern}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </>
-                )}
-                {/* User blacklist patterns */}
-                <p className="text-xs text-zinc-500">Custom (exclude from graph)</p>
-                {filterPatterns.length === 0 ? (
-                  <p className="text-xs text-zinc-500">No patterns.</p>
-                ) : (
+              {/* Plugin default filter patterns (read-only) */}
+              {pluginFilterPatterns.length > 0 && (
+                <>
+                  <p className="text-xs text-muted-foreground">Plugin defaults (read-only)</p>
                   <ul className="space-y-1">
-                    {filterPatterns.map(pattern => (
-                      <li key={pattern} className="flex items-center gap-2">
-                        <span className="text-xs text-zinc-300 flex-1 truncate font-mono">{pattern}</span>
-                        <button
-                          onClick={() => handleDeleteFilterPattern(pattern)}
-                          className="text-zinc-500 hover:text-red-400 flex-shrink-0"
-                          title="Delete pattern"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
+                    {pluginFilterPatterns.map(pattern => (
+                      <li key={pattern} className="flex items-center gap-2 opacity-60">
+                        <svg className="w-3 h-3 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span className="text-xs text-muted-foreground flex-1 truncate font-mono">{pattern}</span>
                       </li>
                     ))}
                   </ul>
-                )}
-                <div className="flex items-center gap-1.5 pt-1">
-                  <input
-                    type="text"
-                    value={newFilterPattern}
-                    onChange={e => setNewFilterPattern(e.target.value)}
-                    onKeyDown={e => e.key === 'Enter' && handleAddFilterPattern()}
-                    placeholder="*.png"
-                    className="flex-1 bg-zinc-700 border border-zinc-600 rounded px-2 py-1 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:border-blue-500 min-w-0"
-                  />
-                  <button
-                    onClick={handleAddFilterPattern}
-                    disabled={!newFilterPattern.trim()}
-                    className="text-xs text-zinc-200 bg-zinc-700 hover:bg-zinc-600 border border-zinc-600 rounded px-2 py-1 disabled:opacity-40 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                </>
+              )}
+              {/* User blacklist patterns */}
+              <p className="text-xs text-muted-foreground">Custom (exclude from graph)</p>
+              {filterPatterns.length === 0 ? (
+                <p className="text-xs text-muted-foreground">No patterns.</p>
+              ) : (
+                <ul className="space-y-1">
+                  {filterPatterns.map(pattern => (
+                    <li key={pattern} className="flex items-center gap-2">
+                      <span className="text-xs flex-1 truncate font-mono">{pattern}</span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
+                        onClick={() => handleDeleteFilterPattern(pattern)}
+                        title="Delete pattern"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <div className="flex items-center gap-1.5 pt-1">
+                <Input
+                  value={newFilterPattern}
+                  onChange={e => setNewFilterPattern(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleAddFilterPattern()}
+                  placeholder="*.png"
+                  className="flex-1 h-7 text-xs min-w-0"
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="h-7 px-2 text-xs"
+                  onClick={handleAddFilterPattern}
+                  disabled={!newFilterPattern.trim()}
+                >
+                  Add
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Display section */}
+          <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen(v => !v)} />
+          {displayOpen && (
+            <div className="mb-2 space-y-3">
+              {/* Arrows toggle */}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="show-arrows" className="text-xs">Show Arrows</Label>
+                <Switch
+                  id="show-arrows"
+                  checked={showArrows}
+                  onCheckedChange={handleShowArrowsChange}
+                />
+              </div>
+
+              {/* Labels toggle */}
+              <div className="flex items-center justify-between">
+                <Label htmlFor="show-labels" className="text-xs">Show Labels</Label>
+                <Switch
+                  id="show-labels"
+                  checked={showLabels}
+                  onCheckedChange={onShowLabelsChange}
+                />
+              </div>
+
+              {/* Graph Mode */}
+              <div className="flex items-center justify-between py-0.5">
+                <Label className="text-xs">Graph Mode</Label>
+                <div className="flex gap-1">
+                  <Button
+                    variant={graphMode === '2d' ? 'default' : 'secondary'}
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => onGraphModeChange('2d')}
                   >
-                    Add
-                  </button>
+                    2D
+                  </Button>
+                  <Button
+                    variant={graphMode === '3d' ? 'default' : 'secondary'}
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={() => onGraphModeChange('3d')}
+                  >
+                    3D
+                  </Button>
                 </div>
               </div>
-            )}
 
-            {/* Display section */}
-            <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen(v => !v)} />
-            {displayOpen && (
-              <div className="mb-2 space-y-3">
-                {/* Arrows toggle */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showArrows}
-                    onChange={e => handleShowArrowsChange(e.target.checked)}
-                    className="accent-blue-500"
-                  />
-                  <span className="text-xs text-zinc-300">Show Arrows</span>
-                </label>
-
-                {/* Labels toggle */}
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={showLabels}
-                    onChange={e => onShowLabelsChange(e.target.checked)}
-                    className="accent-blue-500"
-                  />
-                  <span className="text-xs text-zinc-300">Show Labels</span>
-                </label>
-
-                {/* Graph Mode */}
-                <div className="flex items-center justify-between py-0.5">
-                  <span className="text-xs text-zinc-300">Graph Mode</span>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => onGraphModeChange('2d')}
-                      className={`text-xs px-2 py-0.5 rounded transition-colors ${graphMode === '2d' ? 'bg-blue-500 text-white' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`}
-                    >
-                      2D
-                    </button>
-                    <button
-                      onClick={() => onGraphModeChange('3d')}
-                      className={`text-xs px-2 py-0.5 rounded transition-colors ${graphMode === '3d' ? 'bg-blue-500 text-white' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`}
-                    >
-                      3D
-                    </button>
-                  </div>
+              {/* Node Size */}
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">Node Size</Label>
+                <div className="space-y-1">
+                  {NODE_SIZE_OPTIONS.map(opt => (
+                    <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="nodeSizeMode"
+                        value={opt.value}
+                        checked={nodeSizeMode === opt.value}
+                        onChange={() => onNodeSizeModeChange(opt.value)}
+                        className="accent-primary"
+                      />
+                      <span className="text-xs">{opt.label}</span>
+                    </label>
+                  ))}
                 </div>
+              </div>
 
-                {/* Node Size */}
+              {/* View */}
+              {availableViews.length > 0 && (
                 <div>
-                  <p className="text-xs text-zinc-400 mb-1.5">Node Size</p>
+                  <Label className="text-xs text-muted-foreground mb-1.5 block">View</Label>
                   <div className="space-y-1">
-                    {NODE_SIZE_OPTIONS.map(opt => (
-                      <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
+                    {availableViews.map(view => (
+                      <label key={view.id} className="flex items-center gap-2 cursor-pointer">
                         <input
                           type="radio"
-                          name="nodeSizeMode"
-                          value={opt.value}
-                          checked={nodeSizeMode === opt.value}
-                          onChange={() => onNodeSizeModeChange(opt.value)}
-                          className="accent-blue-500"
+                          name="activeView"
+                          value={view.id}
+                          checked={activeViewId === view.id}
+                          onChange={() => handleViewChange(view.id)}
+                          className="accent-primary"
                         />
-                        <span className="text-xs text-zinc-300">{opt.label}</span>
+                        <span className="text-xs">{view.name}</span>
                       </label>
                     ))}
                   </div>
-                </div>
-
-                {/* View */}
-                {availableViews.length > 0 && (
-                  <div>
-                    <p className="text-xs text-zinc-400 mb-1.5">View</p>
-                    <div className="space-y-1">
-                      {availableViews.map(view => (
-                        <label key={view.id} className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="activeView"
-                            value={view.id}
-                            checked={activeViewId === view.id}
-                            onChange={() => handleViewChange(view.id)}
-                            className="accent-blue-500"
-                          />
-                          <span className="text-xs text-zinc-300">{view.name}</span>
-                        </label>
-                      ))}
+                  {/* Inline depth slider when Depth Graph is selected */}
+                  {activeViewId === 'codegraphy.depth-graph' && (
+                    <div className="flex items-center gap-2 mt-2 pl-4">
+                      <Label className="text-xs text-muted-foreground">Depth:</Label>
+                      <Slider
+                        min={1}
+                        max={5}
+                        step={1}
+                        value={[depthLimit]}
+                        onValueChange={handleDepthChange}
+                        className="w-20"
+                      />
+                      <span className="text-xs text-muted-foreground min-w-[1rem] text-center">{depthLimit}</span>
                     </div>
-                    {/* Inline depth slider when Depth Graph is selected */}
-                    {activeViewId === 'codegraphy.depth-graph' && (
-                      <div className="flex items-center gap-2 mt-2 pl-4">
-                        <label className="text-xs text-zinc-400">Depth:</label>
-                        <input
-                          type="range"
-                          min="1"
-                          max="5"
-                          value={depthLimit}
-                          onChange={handleDepthChange}
-                          className="w-20 h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                        />
-                        <span className="text-xs text-zinc-400 min-w-[1rem] text-center">{depthLimit}</span>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
         </div>
+      </ScrollArea>
+    </div>
   );
 }
