@@ -5,8 +5,9 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IPhysicsSettings, IGroup, NodeSizeMode, IAvailableView } from '../../shared/types';
+import { IPhysicsSettings, NodeSizeMode } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
+import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -16,37 +17,8 @@ import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
 
 interface SettingsPanelProps {
-  // Panel visibility
   isOpen: boolean;
   onClose: () => void;
-  // Forces
-  settings: IPhysicsSettings;
-  onSettingsChange?: (settings: IPhysicsSettings) => void;
-  // Groups
-  groups: IGroup[];
-  onGroupsChange: (groups: IGroup[]) => void;
-  // Filters
-  filterPatterns: string[];
-  onFilterPatternsChange: (patterns: string[]) => void;
-  pluginFilterPatterns: string[];
-  showOrphans: boolean;
-  onShowOrphansChange: (showOrphans: boolean) => void;
-  // Display
-  nodeSizeMode: NodeSizeMode;
-  onNodeSizeModeChange: (mode: NodeSizeMode) => void;
-  availableViews: IAvailableView[];
-  activeViewId: string;
-  onViewChange: (viewId: string) => void;
-  depthLimit: number;
-  showArrows: boolean;
-  onShowArrowsChange: (show: boolean) => void;
-  showLabels: boolean;
-  onShowLabelsChange: (show: boolean) => void;
-  graphMode: '2d' | '3d';
-  onGraphModeChange: (mode: '2d' | '3d') => void;
-  // Files
-  maxFiles: number;
-  onMaxFilesChange: (maxFiles: number) => void;
 }
 
 const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
@@ -95,30 +67,33 @@ function SectionHeader({
 export default function SettingsPanel({
   isOpen,
   onClose,
-  settings,
-  onSettingsChange,
-  groups,
-  onGroupsChange,
-  filterPatterns,
-  onFilterPatternsChange,
-  pluginFilterPatterns,
-  showOrphans,
-  onShowOrphansChange,
-  nodeSizeMode,
-  onNodeSizeModeChange,
-  availableViews,
-  activeViewId,
-  onViewChange,
-  depthLimit,
-  showArrows,
-  onShowArrowsChange,
-  showLabels,
-  onShowLabelsChange,
-  graphMode,
-  onGraphModeChange,
-  maxFiles,
-  onMaxFilesChange,
 }: SettingsPanelProps): React.ReactElement | null {
+  // Read state from store
+  const settings = useGraphStore(s => s.physicsSettings);
+  const setPhysicsSettings = useGraphStore(s => s.setPhysicsSettings);
+  const groups = useGraphStore(s => s.groups);
+  const setGroups = useGraphStore(s => s.setGroups);
+  const filterPatterns = useGraphStore(s => s.filterPatterns);
+  const setFilterPatterns = useGraphStore(s => s.setFilterPatterns);
+  const pluginFilterPatterns = useGraphStore(s => s.pluginFilterPatterns);
+  const showOrphans = useGraphStore(s => s.showOrphans);
+  const setShowOrphans = useGraphStore(s => s.setShowOrphans);
+  const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
+  const setNodeSizeMode = useGraphStore(s => s.setNodeSizeMode);
+  const availableViews = useGraphStore(s => s.availableViews);
+  const activeViewId = useGraphStore(s => s.activeViewId);
+  const setActiveViewId = useGraphStore(s => s.setActiveViewId);
+  const depthLimit = useGraphStore(s => s.depthLimit);
+  const showArrows = useGraphStore(s => s.showArrows);
+  const setShowArrows = useGraphStore(s => s.setShowArrows);
+  const showLabels = useGraphStore(s => s.showLabels);
+  const setShowLabels = useGraphStore(s => s.setShowLabels);
+  const graphMode = useGraphStore(s => s.graphMode);
+  const setGraphMode = useGraphStore(s => s.setGraphMode);
+  const maxFiles = useGraphStore(s => s.maxFiles);
+  const setMaxFiles = useGraphStore(s => s.setMaxFiles);
+
+  // Local UI state
   const [forcesOpen, setForcesOpen] = useState(true);
   const [groupsOpen, setGroupsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -149,11 +124,11 @@ export default function SettingsPanel({
   // Groups handlers
   const handleAddGroup = () => {
     if (!newPattern.trim()) return;
-    const updated: IGroup[] = [
+    const updated = [
       ...groups,
       { id: crypto.randomUUID(), pattern: newPattern.trim(), color: newColor },
     ];
-    onGroupsChange(updated);
+    setGroups(updated);
     postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
     setNewPattern('');
     setNewColor('#3B82F6');
@@ -161,7 +136,7 @@ export default function SettingsPanel({
 
   const handleDeleteGroup = (id: string) => {
     const updated = groups.filter(g => g.id !== id);
-    onGroupsChange(updated);
+    setGroups(updated);
     postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
   };
 
@@ -184,7 +159,7 @@ export default function SettingsPanel({
     const updated = [...groups];
     const [moved] = updated.splice(dragIndex, 1);
     updated.splice(targetIndex, 0, moved);
-    onGroupsChange(updated);
+    setGroups(updated);
     postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
     setDragIndex(null);
     setDragOverIndex(null);
@@ -197,28 +172,28 @@ export default function SettingsPanel({
 
   // Filters handlers
   const handleShowOrphansToggle = (checked: boolean) => {
-    onShowOrphansChange(checked);
+    setShowOrphans(checked);
     postMessage({ type: 'UPDATE_SHOW_ORPHANS', payload: { showOrphans: checked } });
   };
 
   const handleAddFilterPattern = () => {
     if (!newFilterPattern.trim()) return;
     const updated = [...filterPatterns, newFilterPattern.trim()];
-    onFilterPatternsChange(updated);
+    setFilterPatterns(updated);
     postMessage({ type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: updated } });
     setNewFilterPattern('');
   };
 
   const handleDeleteFilterPattern = (pattern: string) => {
     const updated = filterPatterns.filter(p => p !== pattern);
-    onFilterPatternsChange(updated);
+    setFilterPatterns(updated);
     postMessage({ type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: updated } });
   };
 
   // Max files handler
   const handleMaxFilesCommit = (value: number) => {
     const clamped = Math.max(1, value);
-    onMaxFilesChange(clamped);
+    setMaxFiles(clamped);
     postMessage({ type: 'UPDATE_MAX_FILES', payload: { maxFiles: clamped } });
   };
 
@@ -252,18 +227,23 @@ export default function SettingsPanel({
 
   const handlePhysicsChange = (key: keyof IPhysicsSettings, value: number) => {
     const updated = { ...settings, [key]: value };
-    onSettingsChange?.(updated);
+    setPhysicsSettings(updated);
     schedulePhysicsSettingPersist(key, value);
   };
 
   // Display handlers
   const handleShowArrowsChange = (checked: boolean) => {
-    onShowArrowsChange(checked);
+    setShowArrows(checked);
     postMessage({ type: 'UPDATE_SHOW_ARROWS', payload: { showArrows: checked } });
   };
 
+  const handleShowLabelsChange = (checked: boolean) => {
+    setShowLabels(checked);
+    postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: checked } });
+  };
+
   const handleViewChange = (viewId: string) => {
-    onViewChange(viewId);
+    setActiveViewId(viewId);
     postMessage({ type: 'CHANGE_VIEW', payload: { viewId } });
   };
 
@@ -465,7 +445,7 @@ export default function SettingsPanel({
                     value={maxFiles}
                     onChange={e => {
                       const v = parseInt(e.target.value, 10);
-                      if (!isNaN(v)) onMaxFilesChange(v);
+                      if (!isNaN(v)) setMaxFiles(v);
                     }}
                     onBlur={e => handleMaxFilesCommit(parseInt(e.target.value, 10) || 1)}
                     onKeyDown={e => e.key === 'Enter' && handleMaxFilesCommit(parseInt((e.target as HTMLInputElement).value, 10) || 1)}
@@ -566,7 +546,7 @@ export default function SettingsPanel({
                 <Switch
                   id="show-labels"
                   checked={showLabels}
-                  onCheckedChange={onShowLabelsChange}
+                  onCheckedChange={handleShowLabelsChange}
                 />
               </div>
 
@@ -578,7 +558,7 @@ export default function SettingsPanel({
                     variant={graphMode === '2d' ? 'default' : 'secondary'}
                     size="sm"
                     className="h-6 px-2 text-xs"
-                    onClick={() => onGraphModeChange('2d')}
+                    onClick={() => setGraphMode('2d')}
                   >
                     2D
                   </Button>
@@ -586,7 +566,7 @@ export default function SettingsPanel({
                     variant={graphMode === '3d' ? 'default' : 'secondary'}
                     size="sm"
                     className="h-6 px-2 text-xs"
-                    onClick={() => onGraphModeChange('3d')}
+                    onClick={() => setGraphMode('3d')}
                   >
                     3D
                   </Button>
@@ -604,7 +584,7 @@ export default function SettingsPanel({
                         name="nodeSizeMode"
                         value={opt.value}
                         checked={nodeSizeMode === opt.value}
-                        onChange={() => onNodeSizeModeChange(opt.value)}
+                        onChange={() => setNodeSizeMode(opt.value)}
                         className="accent-primary"
                       />
                       <span className="text-xs">{opt.label}</span>

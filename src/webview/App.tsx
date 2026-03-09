@@ -75,7 +75,7 @@ export default function App(): React.ReactElement {
   const showOrphans = useGraphStore(s => s.showOrphans);
   const activePanel = useGraphStore(s => s.activePanel);
 
-  // Values passed through to children (will be removed when children read from store directly)
+  // Values passed through to children (will be removed when Graph reads from store directly)
   const favorites = useGraphStore(s => s.favorites);
   const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
   const physicsSettings = useGraphStore(s => s.physicsSettings);
@@ -84,27 +84,11 @@ export default function App(): React.ReactElement {
   const showLabels = useGraphStore(s => s.showLabels);
   const graphMode = useGraphStore(s => s.graphMode);
   const pluginStatuses = useGraphStore(s => s.pluginStatuses);
-  const filterPatterns = useGraphStore(s => s.filterPatterns);
-  const pluginFilterPatterns = useGraphStore(s => s.pluginFilterPatterns);
-  const availableViews = useGraphStore(s => s.availableViews);
-  const activeViewId = useGraphStore(s => s.activeViewId);
-  const depthLimit = useGraphStore(s => s.depthLimit);
-  const maxFiles = useGraphStore(s => s.maxFiles);
 
   // Store actions
   const setSearchQuery = useGraphStore(s => s.setSearchQuery);
   const setSearchOptions = useGraphStore(s => s.setSearchOptions);
   const setActivePanel = useGraphStore(s => s.setActivePanel);
-  const setPhysicsSettings = useGraphStore(s => s.setPhysicsSettings);
-  const setGroups = useGraphStore(s => s.setGroups);
-  const setFilterPatterns = useGraphStore(s => s.setFilterPatterns);
-  const setShowOrphans = useGraphStore(s => s.setShowOrphans);
-  const setNodeSizeMode = useGraphStore(s => s.setNodeSizeMode);
-  const setActiveViewId = useGraphStore(s => s.setActiveViewId);
-  const setShowArrows = useGraphStore(s => s.setShowArrows);
-  const setShowLabels = useGraphStore(s => s.setShowLabels);
-  const setGraphMode = useGraphStore(s => s.setGraphMode);
-  const setMaxFiles = useGraphStore(s => s.setMaxFiles);
 
   const theme = useTheme();
 
@@ -231,32 +215,6 @@ export default function App(): React.ReactElement {
               <SettingsPanel
                 isOpen={activePanel === 'settings'}
                 onClose={() => setActivePanel('none')}
-                settings={physicsSettings}
-                onSettingsChange={setPhysicsSettings}
-                groups={groups}
-                onGroupsChange={setGroups}
-                filterPatterns={filterPatterns}
-                onFilterPatternsChange={setFilterPatterns}
-                pluginFilterPatterns={pluginFilterPatterns}
-                showOrphans={showOrphans}
-                onShowOrphansChange={setShowOrphans}
-                nodeSizeMode={nodeSizeMode}
-                onNodeSizeModeChange={setNodeSizeMode}
-                availableViews={availableViews}
-                activeViewId={activeViewId}
-                onViewChange={setActiveViewId}
-                depthLimit={depthLimit}
-                showArrows={showArrows}
-                onShowArrowsChange={setShowArrows}
-                showLabels={showLabels}
-                onShowLabelsChange={(value) => {
-                  setShowLabels(value);
-                  postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: value } });
-                }}
-                graphMode={graphMode}
-                onGraphModeChange={setGraphMode}
-                maxFiles={maxFiles}
-                onMaxFilesChange={setMaxFiles}
               />
             </>
           ) : (
