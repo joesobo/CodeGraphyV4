@@ -1,12 +1,16 @@
 /**
  * @fileoverview Graph component that renders the dependency visualization.
- * Uses Vis Network for force-directed graph layout with physics simulation.
+ * Uses react-force-graph-2d (2D canvas) or react-force-graph-3d (WebGL) based on graphMode prop.
  * @module webview/components/Graph
  */
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { Network, Options } from 'vis-network';
-import { DataSet } from 'vis-data';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
+import ForceGraph2D from 'react-force-graph-2d';
+import type { ForceGraphMethods as FG2DMethods, NodeObject, LinkObject } from 'react-force-graph-2d';
+import ForceGraph3D from 'react-force-graph-3d';
+import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
+import SpriteText from 'three-spritetext';
+import { forceCollide } from 'd3-force';
 import {
   IGraphData,
   IGraphNode,
@@ -32,6 +36,11 @@ import { postMessage } from '../lib/vscodeApi';
 /** Yellow color for favorites */
 const FAVORITE_BORDER_COLOR = '#EAB308';
 
+/** Minimum and maximum node sizes */
+const MIN_NODE_SIZE = 10;
+const MAX_NODE_SIZE = 40;
+const DEFAULT_NODE_SIZE = 16;
+
 interface GraphProps {
   data: IGraphData;
   favorites?: Set<string>;
@@ -41,85 +50,46 @@ interface GraphProps {
   physicsSettings?: IPhysicsSettings;
   nodeSizeMode?: NodeSizeMode;
   showArrows?: boolean;
+  showLabels?: boolean;
+  /** '2d' uses canvas via react-force-graph-2d; '3d' uses WebGL via react-force-graph-3d */
+  graphMode?: '2d' | '3d';
 }
 
-/**
- * Vis Network configuration options
- */
-const NETWORK_OPTIONS: Options = {
-  nodes: {
-    shape: 'dot',
-    size: 16,
-    font: {
-      size: 12,
-      color: '#e2e8f0',
-    },
-    borderWidth: 2,
-    borderWidthSelected: 3,
-  },
-  edges: {
-    width: 1,
-    color: {
-      color: '#475569',
-      highlight: '#60a5fa',
-      hover: '#60a5fa',
-    },
-    arrows: {
-      to: {
-        enabled: true,
-        scaleFactor: 0.5,
-      },
-    },
-    smooth: {
-      enabled: true,
-      type: 'continuous',
-      roundness: 0.5,
-    },
-  },
-  physics: {
-    enabled: true,
-    solver: 'forceAtlas2Based',
-    forceAtlas2Based: {
-      gravitationalConstant: -50,
-      centralGravity: 0.01,
-      springLength: 100,
-      springConstant: 0.08,
-      damping: 0.4,
-    },
-    stabilization: {
-      enabled: true,
-      iterations: 200,
-      updateInterval: 25,
-    },
-  },
-  interaction: {
-    hover: true,
-    tooltipDelay: 200,
-    zoomView: true,
-    zoomSpeed: 0.3,
-    dragView: true,
-    dragNodes: true,
-    multiselect: true,
-    selectConnectedEdges: false,
-    keyboard: {
-      enabled: true,
-      bindToWindow: false,
-    },
-  },
-  layout: {
-    randomSeed: 42,
-  },
+/** Default physics settings (user-facing normalized values) */
+const DEFAULT_PHYSICS: IPhysicsSettings = {
+  repelForce: 10,
+  linkDistance: 80,
+  linkForce: 0.15,
+  damping: 0.7,
+  centerForce: 0.1,
 };
 
-/** Minimum and maximum node sizes */
-const MIN_NODE_SIZE = 10;
-const MAX_NODE_SIZE = 40;
-const DEFAULT_NODE_SIZE = 16;
+/** Map normalized repelForce (0–20) to d3 forceManyBody strength (0 to -500) */
+function toD3Repel(repelForce: number): number {
+  return -(repelForce / 20) * 500;
+}
 
-/**
- * Calculate node sizes for all nodes based on the sizing mode.
- * Returns a map of node ID to size.
- */
+// ─── Internal node/link types ──────────────────────────────────────────────
+
+type FGNode = NodeObject & {
+  id: string;
+  label: string;
+  size: number;
+  color: string;
+  borderColor: string;
+  borderWidth: number;
+  baseOpacity: number;
+  isFavorite: boolean;
+};
+
+type FGLink = LinkObject & {
+  id: string;
+  bidirectional: boolean;
+  baseColor?: string;
+};
+
+// ─── Pure helpers ──────────────────────────────────────────────────────────
+
 function calculateNodeSizes(
   nodes: IGraphNode[],
   edges: { from: string; to: string }[],
@@ -128,183 +98,85 @@ function calculateNodeSizes(
   const sizes = new Map<string, number>();
 
   if (mode === 'uniform') {
-    // All nodes same size
-    for (const node of nodes) {
-      sizes.set(node.id, DEFAULT_NODE_SIZE);
-    }
+    for (const node of nodes) sizes.set(node.id, DEFAULT_NODE_SIZE);
     return sizes;
   }
 
   if (mode === 'connections') {
-    // Size by connection count
-    const connectionCounts = new Map<string, number>();
-    
-    // Count connections for each node
-    for (const node of nodes) {
-      connectionCounts.set(node.id, 0);
-    }
+    const counts = new Map<string, number>();
+    for (const node of nodes) counts.set(node.id, 0);
     for (const edge of edges) {
-      connectionCounts.set(edge.from, (connectionCounts.get(edge.from) ?? 0) + 1);
-      connectionCounts.set(edge.to, (connectionCounts.get(edge.to) ?? 0) + 1);
+      counts.set(edge.from, (counts.get(edge.from) ?? 0) + 1);
+      counts.set(edge.to, (counts.get(edge.to) ?? 0) + 1);
     }
-
-    // Find min/max for normalization
-    const counts = Array.from(connectionCounts.values());
-    const minCount = Math.min(...counts, 0);
-    const maxCount = Math.max(...counts, 1);
-    const range = maxCount - minCount || 1;
-
-    // Calculate sizes
+    const vals = Array.from(counts.values());
+    const min = Math.min(...vals, 0);
+    const max = Math.max(...vals, 1);
+    const range = max - min || 1;
     for (const node of nodes) {
-      const count = connectionCounts.get(node.id) ?? 0;
-      const normalized = (count - minCount) / range;
-      const size = MIN_NODE_SIZE + normalized * (MAX_NODE_SIZE - MIN_NODE_SIZE);
-      sizes.set(node.id, size);
+      const c = counts.get(node.id) ?? 0;
+      sizes.set(node.id, MIN_NODE_SIZE + ((c - min) / range) * (MAX_NODE_SIZE - MIN_NODE_SIZE));
     }
     return sizes;
   }
 
   if (mode === 'access-count') {
-    // Size by access/visit count (how many times file was opened)
-    const accessCounts = nodes.map(n => n.accessCount ?? 0);
-    const minCount = Math.min(...accessCounts, 0);
-    const maxCount = Math.max(...accessCounts, 1);
-    const range = maxCount - minCount || 1;
-
+    const vals = nodes.map(n => n.accessCount ?? 0);
+    const min = Math.min(...vals, 0);
+    const max = Math.max(...vals, 1);
+    const range = max - min || 1;
     for (const node of nodes) {
-      const count = node.accessCount ?? 0;
-      const normalized = (count - minCount) / range;
-      const size = MIN_NODE_SIZE + normalized * (MAX_NODE_SIZE - MIN_NODE_SIZE);
-      sizes.set(node.id, size);
+      const c = node.accessCount ?? 0;
+      sizes.set(node.id, MIN_NODE_SIZE + ((c - min) / range) * (MAX_NODE_SIZE - MIN_NODE_SIZE));
     }
     return sizes;
   }
 
   if (mode === 'file-size') {
-    // Size by file size in bytes
-    const fileSizes = nodes
-      .map(n => n.fileSize ?? 0)
-      .filter(s => s > 0);
-
+    const fileSizes = nodes.map(n => n.fileSize ?? 0).filter(s => s > 0);
     if (fileSizes.length === 0) {
-      // No file sizes available, fall back to uniform
-      for (const node of nodes) {
-        sizes.set(node.id, DEFAULT_NODE_SIZE);
-      }
+      for (const node of nodes) sizes.set(node.id, DEFAULT_NODE_SIZE);
       return sizes;
     }
-
-    // Use logarithmic scale for file sizes (to handle large variance)
     const logSizes = fileSizes.map(s => Math.log10(s + 1));
     const minLog = Math.min(...logSizes);
     const maxLog = Math.max(...logSizes);
     const range = maxLog - minLog || 1;
-
     for (const node of nodes) {
-      const fileSize = node.fileSize ?? 0;
-      if (fileSize === 0) {
+      const fs = node.fileSize ?? 0;
+      if (fs === 0) {
         sizes.set(node.id, MIN_NODE_SIZE);
       } else {
-        const logSize = Math.log10(fileSize + 1);
-        const normalized = (logSize - minLog) / range;
-        const size = MIN_NODE_SIZE + normalized * (MAX_NODE_SIZE - MIN_NODE_SIZE);
-        sizes.set(node.id, size);
+        const logS = Math.log10(fs + 1);
+        sizes.set(node.id, MIN_NODE_SIZE + ((logS - minLog) / range) * (MAX_NODE_SIZE - MIN_NODE_SIZE));
       }
     }
     return sizes;
   }
 
-  // Default fallback
-  for (const node of nodes) {
-    sizes.set(node.id, DEFAULT_NODE_SIZE);
-  }
+  for (const node of nodes) sizes.set(node.id, DEFAULT_NODE_SIZE);
   return sizes;
 }
 
-/**
- * Calculate opacity based on depth level.
- * Depth 0 (focused node) = 1.0, depth 1 = 0.85, depth 2 = 0.7, etc.
- */
 function getDepthOpacity(depthLevel: number | undefined): number {
   if (depthLevel === undefined) return 1.0;
   if (depthLevel === 0) return 1.0;
-  // Gradually decrease opacity for deeper nodes
-  return Math.max(0.4, 1.0 - (depthLevel * 0.15));
+  return Math.max(0.4, 1.0 - depthLevel * 0.15);
 }
 
-/**
- * Calculate size multiplier based on depth level.
- * Depth 0 (focused node) gets a slight size boost.
- */
 function getDepthSizeMultiplier(depthLevel: number | undefined): number {
   if (depthLevel === undefined) return 1.0;
-  if (depthLevel === 0) return 1.3; // Focused node is larger
+  if (depthLevel === 0) return 1.3;
   return 1.0;
 }
 
-/**
- * Convert IGraphNode to Vis Network node format
- */
-function toVisNode(node: IGraphNode, isFavorite: boolean, size: number = DEFAULT_NODE_SIZE, theme: ThemeKind = 'dark') {
-  const isLight = theme === 'light';
-  const nodeColor = isLight ? adjustColorForLightTheme(node.color) : node.color;
-  const borderColor = isFavorite ? FAVORITE_BORDER_COLOR : nodeColor;
-  const textColor = isLight ? '#1e1e1e' : '#e2e8f0';
-  
-  // Apply depth-based styling
-  const depthOpacity = getDepthOpacity(node.depthLevel);
-  const depthSizeMultiplier = getDepthSizeMultiplier(node.depthLevel);
-  const adjustedSize = size * depthSizeMultiplier;
-  
-  // Apply special border for focused node (depth 0)
-  const isFocusedNode = node.depthLevel === 0;
-  const finalBorderColor = isFocusedNode 
-    ? (isLight ? '#2563eb' : '#60a5fa') // Blue highlight for focused node
-    : borderColor;
-  const finalBorderWidth = isFocusedNode ? 4 : (isFavorite ? 3 : 2);
-  
-  return {
-    id: node.id,
-    label: node.label,
-    size: adjustedSize,
-    opacity: depthOpacity,
-    color: {
-      background: nodeColor,
-      border: finalBorderColor,
-      highlight: {
-        background: nodeColor,
-        border: isFavorite ? FAVORITE_BORDER_COLOR : (isLight ? '#000000' : '#ffffff'),
-      },
-      hover: {
-        background: nodeColor,
-        border: isFavorite ? FAVORITE_BORDER_COLOR : (isLight ? '#64748b' : '#94a3b8'),
-      },
-    },
-    font: {
-      color: textColor,
-      size: 12,
-    },
-    borderWidth: finalBorderWidth,
-    x: node.x,
-    y: node.y,
-  };
-}
-
-/** Edge with bidirectional info */
 interface ProcessedEdge extends IGraphEdge {
   bidirectional?: boolean;
 }
 
-/**
- * Process edges to combine bidirectional ones if mode is 'combined'.
- * Returns processed edges with bidirectional flag.
- */
 function processEdges(edges: IGraphEdge[], mode: BidirectionalEdgeMode): ProcessedEdge[] {
-  if (mode === 'separate') {
-    return edges.map(e => ({ ...e, bidirectional: false }));
-  }
+  if (mode === 'separate') return edges.map(e => ({ ...e, bidirectional: false }));
 
-  // Build a set of edge keys for quick lookup
   const edgeSet = new Set(edges.map(e => `${e.from}->${e.to}`));
   const processed: ProcessedEdge[] = [];
   const seen = new Set<string>();
@@ -312,196 +184,20 @@ function processEdges(edges: IGraphEdge[], mode: BidirectionalEdgeMode): Process
   for (const edge of edges) {
     const key = `${edge.from}->${edge.to}`;
     const reverseKey = `${edge.to}->${edge.from}`;
-
-    if (seen.has(key) || seen.has(reverseKey)) {
-      continue; // Already processed as part of a bidirectional pair
-    }
-
+    if (seen.has(key) || seen.has(reverseKey)) continue;
     if (edgeSet.has(reverseKey)) {
-      // This is a bidirectional connection - combine them
-      // Use lexicographically smaller 'from' to ensure consistency
       const [nodeA, nodeB] = [edge.from, edge.to].sort();
-      processed.push({
-        id: `${nodeA}<->${nodeB}`,
-        from: nodeA,
-        to: nodeB,
-        bidirectional: true,
-      });
+      processed.push({ id: `${nodeA}<->${nodeB}`, from: nodeA, to: nodeB, bidirectional: true });
       seen.add(key);
       seen.add(reverseKey);
     } else {
-      // Regular unidirectional edge
       processed.push({ ...edge, bidirectional: false });
       seen.add(key);
     }
   }
-
   return processed;
 }
 
-/**
- * Convert IGraphEdge to Vis Network edge format
- */
-function toVisEdge(edge: ProcessedEdge) {
-  const baseEdge = {
-    id: edge.id,
-    from: edge.from,
-    to: edge.to,
-  };
-
-  if (edge.bidirectional) {
-    // Bidirectional edge: arrows on both ends, different color
-    return {
-      ...baseEdge,
-      arrows: {
-        to: { enabled: true, scaleFactor: 0.5 },
-        from: { enabled: true, scaleFactor: 0.5 },
-      },
-      color: {
-        color: '#60a5fa', // Blue for bidirectional
-        highlight: '#93c5fd',
-        hover: '#93c5fd',
-      },
-      width: 2, // Thicker for visibility
-    };
-  }
-
-  return baseEdge;
-}
-
-/**
- * Export the graph as PNG and send to extension.
- */
-function exportAsPng(network: Network): void {
-  try {
-    // Get the canvas from vis-network (access internal canvas via body)
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const networkBody = network as any;
-    const canvas = networkBody.body?.container?.querySelector('canvas') as HTMLCanvasElement | null;
-    if (!canvas) {
-      console.error('[CodeGraphy] No canvas found');
-      return;
-    }
-
-    // Create a temporary canvas for export with background
-    const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = canvas.width;
-    exportCanvas.height = canvas.height;
-    const ctx = exportCanvas.getContext('2d');
-    if (!ctx) return;
-
-    // Fill with background color (dark to match graph)
-    ctx.fillStyle = '#18181b';
-    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-
-    // Draw the network canvas on top
-    ctx.drawImage(canvas, 0, 0);
-
-    // Convert to data URL
-    const dataUrl = exportCanvas.toDataURL('image/png');
-    
-    // Generate filename with timestamp
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const filename = `codegraphy-${timestamp}.png`;
-
-    // Send to extension for saving
-    postMessage({ type: 'EXPORT_PNG', payload: { dataUrl, filename } });
-  } catch (error) {
-    console.error('[CodeGraphy] Export failed:', error);
-  }
-}
-
-/**
- * Export the graph as SVG and send to extension.
- * Recreates the graph visualization as vector graphics.
- */
-function exportAsSvg(network: Network, nodes: DataSet<ReturnType<typeof toVisNode>>, edges: DataSet<ReturnType<typeof toVisEdge>>): void {
-  try {
-    // Get all node positions
-    const nodeIds = nodes.getIds() as string[];
-    const positions = network.getPositions(nodeIds);
-    
-    // Calculate bounds
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const id of nodeIds) {
-      const pos = positions[id];
-      if (pos) {
-        minX = Math.min(minX, pos.x);
-        minY = Math.min(minY, pos.y);
-        maxX = Math.max(maxX, pos.x);
-        maxY = Math.max(maxY, pos.y);
-      }
-    }
-    
-    // Add padding
-    const padding = 100;
-    minX -= padding;
-    minY -= padding;
-    maxX += padding;
-    maxY += padding;
-    
-    const width = maxX - minX;
-    const height = maxY - minY;
-    
-    // Start building SVG
-    const svgParts: string[] = [];
-    svgParts.push(`<?xml version="1.0" encoding="UTF-8"?>`);
-    svgParts.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${width}" height="${height}">`);
-    svgParts.push(`<rect x="${minX}" y="${minY}" width="${width}" height="${height}" fill="#18181b"/>`);
-    
-    // Add defs for arrow markers
-    svgParts.push(`<defs>`);
-    svgParts.push(`<marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">`);
-    svgParts.push(`<polygon points="0 0, 10 3.5, 0 7" fill="#71717a"/>`);
-    svgParts.push(`</marker>`);
-    svgParts.push(`</defs>`);
-    
-    // Draw edges
-    const edgeItems = edges.get();
-    for (const edge of edgeItems) {
-      const fromPos = positions[edge.from as string];
-      const toPos = positions[edge.to as string];
-      if (fromPos && toPos) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const edgeAny = edge as any;
-        const color = edgeAny.color?.color || '#71717a';
-        svgParts.push(`<line x1="${fromPos.x}" y1="${fromPos.y}" x2="${toPos.x}" y2="${toPos.y}" stroke="${color}" stroke-width="1" marker-end="url(#arrowhead)"/>`);
-      }
-    }
-    
-    // Draw nodes
-    const nodeItems = nodes.get();
-    for (const node of nodeItems) {
-      const pos = positions[node.id as string];
-      if (pos) {
-        const size = (node.size as number) || 16;
-        const color = (node.color as { background?: string })?.background || '#3b82f6';
-        const borderColor = (node.color as { border?: string })?.border || color;
-        const label = (node.label as string) || '';
-        
-        // Draw node circle
-        svgParts.push(`<circle cx="${pos.x}" cy="${pos.y}" r="${size}" fill="${color}" stroke="${borderColor}" stroke-width="2"/>`);
-        
-        // Draw label
-        svgParts.push(`<text x="${pos.x}" y="${pos.y + size + 15}" text-anchor="middle" fill="#fafafa" font-size="12" font-family="sans-serif">${escapeXml(label)}</text>`);
-      }
-    }
-    
-    svgParts.push(`</svg>`);
-    
-    const svg = svgParts.join('\n');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const filename = `codegraphy-${timestamp}.svg`;
-    
-    postMessage({ type: 'EXPORT_SVG', payload: { svg, filename } });
-  } catch (error) {
-    console.error('[CodeGraphy] SVG export failed:', error);
-  }
-}
-
-/**
- * Escape XML special characters
- */
 function escapeXml(text: string): string {
   return text
     .replace(/&/g, '&amp;')
@@ -511,346 +207,600 @@ function escapeXml(text: string): string {
     .replace(/'/g, '&apos;');
 }
 
-/**
- * Export the graph layout as JSON and send to extension.
- * Includes node positions, metadata, and edge information.
- */
-function exportAsJson(network: Network, data: IGraphData, nodeSizeMode: NodeSizeMode): void {
-  try {
-    // Get all current positions from the network
-    const nodeIds = data.nodes.map(n => n.id);
-    const positions = network.getPositions(nodeIds);
+// ─── Graph component ────────────────────────────────────────────────────────
 
-    // Build export structure
-    const exportData = {
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      nodes: data.nodes.map(node => ({
-        id: node.id,
-        label: node.label,
-        color: node.color,
-        fileSize: node.fileSize,
-        accessCount: node.accessCount,
-        position: positions[node.id] || { x: 0, y: 0 },
-      })),
-      edges: data.edges.map(edge => ({
-        from: edge.from,
-        to: edge.to,
-      })),
-      metadata: {
-        totalNodes: data.nodes.length,
-        totalEdges: data.edges.length,
-        nodeSizeMode,
-      },
-    };
-    
-    const json = JSON.stringify(exportData, null, 2);
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    const filename = `codegraphy-layout-${timestamp}.json`;
-    
-    postMessage({ type: 'EXPORT_JSON', payload: { json, filename } });
-  } catch (error) {
-    console.error('[CodeGraphy] JSON export failed:', error);
-  }
-}
-
-
-/** Default physics settings */
-const DEFAULT_PHYSICS: IPhysicsSettings = {
-  gravitationalConstant: -50,
-  springLength: 100,
-  springConstant: 0.08,
-  damping: 0.4,
-  centralGravity: 0.01,
-};
-
-/**
- * Graph component with context menu and multi-select support.
- */
-export default function Graph({ data, favorites = new Set(), theme = 'dark', bidirectionalMode = 'separate', physicsSettings = DEFAULT_PHYSICS, nodeSizeMode = 'connections', showArrows = true }: GraphProps): React.ReactElement {
+export default function Graph({
+  data,
+  favorites = new Set(),
+  theme = 'dark',
+  bidirectionalMode = 'separate',
+  physicsSettings = DEFAULT_PHYSICS,
+  nodeSizeMode = 'connections',
+  showArrows = true,
+  showLabels = true,
+  graphMode = '2d',
+}: GraphProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
-  const networkRef = useRef<Network | null>(null);
-  const nodesRef = useRef<DataSet<ReturnType<typeof toVisNode>> | null>(null);
-  const edgesRef = useRef<DataSet<ReturnType<typeof toVisEdge>> | null>(null);
-  const initializedRef = useRef(false);
-  const dataRef = useRef(data);
-  const favoritesRef = useRef(favorites);
-  const bidirectionalModeRef = useRef(bidirectionalMode);
-  const nodeSizeModeRef = useRef(nodeSizeMode);
-  const showArrowsRef = useRef(showArrows);
-  const isDraggingRef = useRef(false);
+  const fg2dRef = useRef<FG2DMethods<FGNode, FGLink> | undefined>(undefined);
+  const fg3dRef = useRef<FG3DMethods<FGNode, FGLink> | undefined>(undefined);
 
-  // Selection state
+  // Refs that canvas callbacks read from (no re-render needed for these)
+  const highlightedNodeRef = useRef<string | null>(null);
+  const highlightedNeighborsRef = useRef<Set<string>>(new Set());
+  const selectedNodesSetRef = useRef<Set<string>>(new Set());
+  const themeRef = useRef(theme);
+  const showArrowsRef = useRef(showArrows);
+  const favoritesRef = useRef(favorites);
+  const graphDataRef = useRef<{ nodes: FGNode[]; links: FGLink[] }>({ nodes: [], links: [] });
+  const contextTargetRef = useRef<string[]>([]);
+  const dataRef = useRef(data);
+  const nodeSizeModeRef = useRef(nodeSizeMode);
+  const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
+  const physicsInitialisedRef = useRef(false);
+  const prevPhysicsRef = useRef<IPhysicsSettings | null>(null);
+  const lastClickRef = useRef<{ nodeId: string; time: number } | null>(null);
+  const showLabelsRef = useRef(showLabels);
+  /** Stores 3D SpriteText objects by node id so we can toggle visibility without rebuilding */
+  const spritesRef = useRef<Map<string, SpriteText>>(new Map());
+
+  // Keep refs current on every render
+  themeRef.current = theme;
+  showArrowsRef.current = showArrows;
+  showLabelsRef.current = showLabels;
+  favoritesRef.current = favorites;
+  dataRef.current = data;
+  nodeSizeModeRef.current = nodeSizeMode;
+
+  // React state (triggers re-renders only where needed)
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
   const [isBackgroundContext, setIsBackgroundContext] = useState(false);
-  const selectedNodesRef = useRef(selectedNodes);
-  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
-  
-  // Context menu target (set synchronously on right-click)
-  const contextTargetRef = useRef<string[]>([]);
-  
-  // Tooltip state
   const [tooltipData, setTooltipData] = useState<{
     visible: boolean;
     position: { x: number; y: number };
     path: string;
     info: IFileInfo | null;
   }>({ visible: false, position: { x: 0, y: 0 }, path: '', info: null });
-  const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-  const themeRef = useRef(theme);
-  
-  // Keep refs current
-  dataRef.current = data;
-  favoritesRef.current = favorites;
-  bidirectionalModeRef.current = bidirectionalMode;
-  nodeSizeModeRef.current = nodeSizeMode;
-  showArrowsRef.current = showArrows;
-  selectedNodesRef.current = selectedNodes;
-  themeRef.current = theme;
+  // ── Build graphData for force-graph ─────────────────────────────────────
+  // Only rebuilds when topology changes (data or bidirectionalMode).
+  // Visual-only changes (theme, favorites, nodeSizeMode) update nodes in-place
+  // via a separate effect to avoid restarting the physics simulation.
 
-  /**
-   * Handle context menu actions
-   */
+  const graphData = useMemo(() => {
+    const nodeSizes = calculateNodeSizes(data.nodes, data.edges, nodeSizeModeRef.current);
+    const isLight = themeRef.current === 'light';
+    const favs = favoritesRef.current;
+
+    const nodes: FGNode[] = data.nodes.map(n => {
+      const rawColor = isLight ? adjustColorForLightTheme(n.color) : n.color;
+      const isFavorite = favs.has(n.id);
+      const isFocused = n.depthLevel === 0;
+      const size = (nodeSizes.get(n.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(n.depthLevel);
+      const borderColor = isFocused
+        ? (isLight ? '#2563eb' : '#60a5fa')
+        : isFavorite
+        ? FAVORITE_BORDER_COLOR
+        : rawColor;
+      const borderWidth = isFocused ? 4 : isFavorite ? 3 : 2;
+
+      return {
+        id: n.id,
+        label: n.label,
+        size,
+        color: rawColor,
+        borderColor,
+        borderWidth,
+        baseOpacity: getDepthOpacity(n.depthLevel),
+        isFavorite,
+        // seed positions from persisted data
+        x: n.x,
+        y: n.y,
+      } as FGNode;
+    });
+
+    const processedEdges = processEdges(data.edges, bidirectionalMode);
+    const links: FGLink[] = processedEdges.map(e => ({
+      id: e.id,
+      source: e.from,
+      target: e.to,
+      bidirectional: e.bidirectional ?? false,
+      baseColor: e.bidirectional ? '#60a5fa' : undefined,
+    } as FGLink));
+
+    graphDataRef.current = { nodes, links };
+    return { nodes, links };
+  }, [data, bidirectionalMode]);
+
+  // ── 2D canvas rendering callbacks ────────────────────────────────────────
+
+  const nodeCanvasObject = useCallback((
+    node: FGNode,
+    ctx: CanvasRenderingContext2D,
+    globalScale: number
+  ) => {
+    const highlighted = highlightedNodeRef.current;
+    const isHighlighted = !highlighted ||
+      node.id === highlighted ||
+      highlightedNeighborsRef.current.has(node.id);
+    const isSelected = selectedNodesSetRef.current.has(node.id);
+    const opacity = isHighlighted ? (node.baseOpacity ?? 1.0) : 0.15;
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+
+    // Fill circle
+    ctx.beginPath();
+    ctx.arc(node.x!, node.y!, node.size, 0, 2 * Math.PI, false);
+    ctx.fillStyle = node.color;
+    ctx.fill();
+
+    // Border
+    const borderColor = isSelected
+      ? (themeRef.current === 'light' ? '#000000' : '#ffffff')
+      : node.borderColor;
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = (isSelected ? Math.max(node.borderWidth, 3) : node.borderWidth) / globalScale;
+    ctx.stroke();
+
+    // Label
+    if (showLabelsRef.current) {
+      const labelPx = 12 / globalScale;
+      if (labelPx >= 1) {
+        ctx.font = `${labelPx}px Sans-Serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        const isLight = themeRef.current === 'light';
+        ctx.fillStyle = isHighlighted
+          ? (isLight ? '#1e1e1e' : '#e2e8f0')
+          : (isLight ? '#9ca3af' : '#4a5568');
+        ctx.fillText(node.label, node.x!, node.y! + node.size + 2 / globalScale);
+      }
+    }
+
+    ctx.restore();
+  }, []);
+
+  const nodePointerAreaPaint = useCallback((
+    node: FGNode,
+    color: string,
+    ctx: CanvasRenderingContext2D
+  ) => {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(node.x!, node.y!, node.size + 2, 0, 2 * Math.PI, false);
+    ctx.fill();
+  }, []);
+
+  /** Custom renderer for bidirectional links only — draws arrows on both ends. */
+  const linkCanvasObject = useCallback((
+    link: FGLink,
+    ctx: CanvasRenderingContext2D,
+    globalScale: number
+  ) => {
+    const src = link.source as FGNode;
+    const tgt = link.target as FGNode;
+    if (!src?.x || !src?.y || !tgt?.x || !tgt?.y) return;
+
+    const highlighted = highlightedNodeRef.current;
+    const isConnected = !highlighted || src.id === highlighted || tgt.id === highlighted;
+    const isLight = themeRef.current === 'light';
+
+    ctx.save();
+    ctx.globalAlpha = isConnected ? 1 : 0.15;
+
+    const lw = 2 / globalScale;
+    ctx.lineWidth = lw;
+    ctx.strokeStyle = isConnected ? '#60a5fa' : (isLight ? '#d4d4d4' : '#2d3748');
+
+    // Shorten line to not overlap node circles
+    const dx = tgt.x - src.x;
+    const dy = tgt.y - src.y;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < 1) { ctx.restore(); return; }
+    const nx = dx / dist;
+    const ny = dy / dist;
+    const startX = src.x + nx * src.size;
+    const startY = src.y + ny * src.size;
+    const endX = tgt.x - nx * tgt.size;
+    const endY = tgt.y - ny * tgt.size;
+
+    ctx.beginPath();
+    ctx.moveTo(startX, startY);
+    ctx.lineTo(endX, endY);
+    ctx.stroke();
+
+    if (showArrowsRef.current) {
+      const arrowLen = 6 / globalScale;
+      const arrowAngle = Math.PI / 6;
+      // Arrow at target end
+      const angle1 = Math.atan2(ny, nx);
+      ctx.beginPath();
+      ctx.moveTo(endX, endY);
+      ctx.lineTo(endX - arrowLen * Math.cos(angle1 - arrowAngle), endY - arrowLen * Math.sin(angle1 - arrowAngle));
+      ctx.moveTo(endX, endY);
+      ctx.lineTo(endX - arrowLen * Math.cos(angle1 + arrowAngle), endY - arrowLen * Math.sin(angle1 + arrowAngle));
+      ctx.stroke();
+      // Arrow at source end
+      const angle2 = Math.atan2(-ny, -nx);
+      ctx.beginPath();
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(startX - arrowLen * Math.cos(angle2 - arrowAngle), startY - arrowLen * Math.sin(angle2 - arrowAngle));
+      ctx.moveTo(startX, startY);
+      ctx.lineTo(startX - arrowLen * Math.cos(angle2 + arrowAngle), startY - arrowLen * Math.sin(angle2 + arrowAngle));
+      ctx.stroke();
+    }
+
+    ctx.restore();
+  }, []);
+
+  // ── Link color/width for unidirectional edges ────────────────────────────
+
+  const getLinkColor = useCallback((link: FGLink) => {
+    const src = link.source as FGNode;
+    const tgt = link.target as FGNode;
+    const srcId = typeof link.source === 'string' ? link.source : src?.id;
+    const tgtId = typeof link.target === 'string' ? link.target : tgt?.id;
+    const highlighted = highlightedNodeRef.current;
+    const isLight = themeRef.current === 'light';
+    if (!highlighted) return link.baseColor ?? (isLight ? '#94a3b8' : '#475569');
+    const isConnected = srcId === highlighted || tgtId === highlighted;
+    if (isConnected) return '#60a5fa';
+    return isLight ? '#e2e8f0' : '#2d3748';
+  }, []);
+
+  const getLinkWidth = useCallback((link: FGLink) => {
+    const srcId = typeof link.source === 'string' ? link.source : (link.source as FGNode)?.id;
+    const tgtId = typeof link.target === 'string' ? link.target : (link.target as FGNode)?.id;
+    const highlighted = highlightedNodeRef.current;
+    if (!highlighted) return link.bidirectional ? 2 : 1;
+    return (srcId === highlighted || tgtId === highlighted) ? 2 : 1;
+  }, []);
+
+  // ── 3D label sprite (using three-spritetext per official example) ───────────
+
+  const node3DLabelObject = useCallback((node: FGNode) => {
+    const sprite = new SpriteText(node.label);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (sprite as any).visible = showLabelsRef.current;
+    sprite.color = '#ffffff';
+    sprite.textHeight = 6;
+    sprite.offsetY = (node.size / DEFAULT_NODE_SIZE) * 8 + 4; // shift above node sphere
+    spritesRef.current.set(node.id, sprite);
+    return sprite;
+  }, []);
+
+  // ── 3D color function ────────────────────────────────────────────────────
+
+  const [highlightVersion, setHighlightVersion] = useState(0);
+  const node3DColor = useCallback((node: FGNode) => {
+    const highlighted = highlightedNodeRef.current;
+    const isHighlighted = !highlighted ||
+      node.id === highlighted ||
+      highlightedNeighborsRef.current.has(node.id);
+    if (!isHighlighted) return 'rgba(100,100,100,0.3)';
+    const isSelected = selectedNodesSetRef.current.has(node.id);
+    return isSelected ? '#ffffff' : node.color;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightVersion]);
+
+  // ── Highlight helpers ────────────────────────────────────────────────────
+
+  const setHighlight = useCallback((nodeId: string | null) => {
+    highlightedNodeRef.current = nodeId;
+    if (nodeId) {
+      const neighbors = new Set<string>();
+      for (const link of graphDataRef.current.links) {
+        const srcId = typeof link.source === 'string' ? link.source : (link.source as FGNode)?.id;
+        const tgtId = typeof link.target === 'string' ? link.target : (link.target as FGNode)?.id;
+        if (srcId === nodeId) neighbors.add(tgtId);
+        if (tgtId === nodeId) neighbors.add(srcId);
+      }
+      highlightedNeighborsRef.current = neighbors;
+    } else {
+      highlightedNeighborsRef.current = new Set();
+    }
+    if (graphMode === '3d') setHighlightVersion(v => v + 1);
+  }, [graphMode]);
+
+  // ── Node interaction callbacks ───────────────────────────────────────────
+
+  const handleNodeClick = useCallback((node: FGNode, event: MouseEvent) => {
+    const nodeId = node.id;
+    const now = Date.now();
+    const last = lastClickRef.current;
+
+    // Detect double-click (two clicks on the same node within 300ms)
+    if (last && last.nodeId === nodeId && now - last.time < 300) {
+      lastClickRef.current = null;
+      fileInfoCacheRef.current.delete(nodeId);
+      postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
+      return;
+    }
+    lastClickRef.current = { nodeId, time: now };
+
+    if (event.ctrlKey || event.shiftKey || event.metaKey) {
+      // Multi-select
+      const next = new Set(selectedNodesSetRef.current);
+      if (next.has(nodeId)) next.delete(nodeId);
+      else next.add(nodeId);
+      selectedNodesSetRef.current = next;
+      setSelectedNodes([...next]);
+    } else {
+      // Single select — toggle highlight
+      if (highlightedNodeRef.current === nodeId) {
+        setHighlight(null);
+        selectedNodesSetRef.current = new Set();
+        setSelectedNodes([]);
+      } else {
+        setHighlight(nodeId);
+        selectedNodesSetRef.current = new Set([nodeId]);
+        setSelectedNodes([nodeId]);
+        postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
+      }
+    }
+  }, [setHighlight]);
+
+  const handleBackgroundClick = useCallback(() => {
+    setHighlight(null);
+    selectedNodesSetRef.current = new Set();
+    setSelectedNodes([]);
+  }, [setHighlight]);
+
+  const handleNodeHover = useCallback((node: FGNode | null) => {
+    if (tooltipTimeoutRef.current) clearTimeout(tooltipTimeoutRef.current);
+
+    if (!node) {
+      setTooltipData(prev => ({ ...prev, visible: false }));
+      return;
+    }
+
+    const nodeId = node.id;
+    tooltipTimeoutRef.current = setTimeout(() => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const canvas = containerRef.current?.querySelector('canvas') as any;
+      const rect = canvas?.getBoundingClientRect?.() ?? { left: 0, top: 0 };
+      const x = (node.x ?? 0) + rect.left;
+      const y = (node.y ?? 0) + rect.top;
+
+      const cached = fileInfoCacheRef.current.get(nodeId);
+      setTooltipData({
+        visible: true,
+        position: { x, y },
+        path: nodeId,
+        info: cached || null,
+      });
+      if (!cached) postMessage({ type: 'GET_FILE_INFO', payload: { path: nodeId } });
+    }, 500);
+  }, []);
+
+  // ── Context menu ─────────────────────────────────────────────────────────
+
+  const handleNodeRightClick = useCallback((node: FGNode) => {
+    const nodeId = node.id;
+    if (!selectedNodesSetRef.current.has(nodeId)) {
+      selectedNodesSetRef.current = new Set([nodeId]);
+      setSelectedNodes([nodeId]);
+      contextTargetRef.current = [nodeId];
+    } else {
+      contextTargetRef.current = [...selectedNodesSetRef.current];
+    }
+    setIsBackgroundContext(false);
+  }, []);
+
+  const handleBackgroundRightClick = useCallback(() => {
+    contextTargetRef.current = [];
+    setIsBackgroundContext(true);
+  }, []);
+
+  const handleContextMenu = useCallback(() => {
+    // Tooltip cleanup only — context is already set by onNodeRightClick/onBackgroundRightClick
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+      tooltipTimeoutRef.current = null;
+    }
+    setTooltipData(prev => ({ ...prev, visible: false }));
+  }, []);
+
   const handleContextAction = useCallback((action: string, paths?: string[]) => {
-    // Use contextTargetRef (set at click time) to avoid React state timing issues
     const targetPaths = paths || contextTargetRef.current;
-    
+
     switch (action) {
       case 'open':
         targetPaths.forEach(path => {
-          // Clear cache so visit count is refreshed on next hover
           fileInfoCacheRef.current.delete(path);
           postMessage({ type: 'OPEN_FILE', payload: { path } });
         });
         break;
-        
       case 'reveal':
-        if (targetPaths.length > 0) {
+        if (targetPaths.length > 0)
           postMessage({ type: 'REVEAL_IN_EXPLORER', payload: { path: targetPaths[0] } });
-        }
         break;
-        
       case 'copyRelative':
         postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: targetPaths.join('\n') } });
         break;
-        
       case 'copyAbsolute':
-        // Extension will handle converting to absolute
         postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: `absolute:${targetPaths[0]}` } });
         break;
-        
       case 'toggleFavorite':
         postMessage({ type: 'TOGGLE_FAVORITE', payload: { paths: targetPaths } });
         break;
-        
-      case 'focus':
-        if (networkRef.current && targetPaths.length > 0) {
-          networkRef.current.focus(targetPaths[0], {
-            scale: 1.5,
-            animation: { duration: 300, easingFunction: 'easeInOutQuad' },
-          });
+      case 'focus': {
+        const nodeId = targetPaths[0];
+        const node = graphDataRef.current.nodes.find(n => n.id === nodeId);
+        if (node && graphMode === '2d') {
+          (fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined)?.centerAt(node.x ?? 0, node.y ?? 0, 300);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (fg2dRef.current as any)?.zoom?.(1.5, 300);
+        } else if (node && graphMode === '3d') {
+          fg3dRef.current?.zoomToFit(300, 20, n => (n as FGNode).id === nodeId);
         }
         break;
-        
+      }
       case 'addToExclude':
         postMessage({ type: 'ADD_TO_EXCLUDE', payload: { patterns: targetPaths } });
         break;
-        
       case 'rename':
-        if (targetPaths.length > 0) {
+        if (targetPaths.length > 0)
           postMessage({ type: 'RENAME_FILE', payload: { path: targetPaths[0] } });
-        }
         break;
-        
       case 'delete':
         postMessage({ type: 'DELETE_FILES', payload: { paths: targetPaths } });
         break;
-        
       case 'refresh':
         postMessage({ type: 'REFRESH_GRAPH' });
         break;
-        
       case 'fitView':
-        networkRef.current?.fit({ animation: { duration: 300, easingFunction: 'easeInOutQuad' } });
+        if (graphMode === '2d') (fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined)?.zoomToFit(300, 20);
+        else fg3dRef.current?.zoomToFit(300, 20);
         break;
-        
       case 'createFile':
         postMessage({ type: 'CREATE_FILE', payload: { directory: '.' } });
         break;
     }
-  }, []); // contextTargetRef is stable, no deps needed
+  }, [graphMode]);
 
-  /**
-   * Listen for commands from the extension
-   */
+  // ── Physics stop ─────────────────────────────────────────────────────────
+
+  const handleEngineStop = useCallback(() => {
+    postMessage({ type: 'PHYSICS_STABILIZED' });
+  }, []);
+
+  // ── Message listener ─────────────────────────────────────────────────────
+
   useEffect(() => {
     const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
-      const network = networkRef.current;
-      if (!network) return;
-
       const message = event.data;
       switch (message.type) {
         case 'FIT_VIEW':
-          network.fit({ animation: { duration: 300, easingFunction: 'easeInOutQuad' } });
+          if (graphMode === '2d') (fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined)?.zoomToFit(300, 20);
+          else fg3dRef.current?.zoomToFit(300, 20);
           break;
         case 'ZOOM_IN': {
-          const scaleIn = network.getScale();
-          network.moveTo({ scale: scaleIn * 1.2, animation: { duration: 150, easingFunction: 'easeInOutQuad' } });
+          if (graphMode === '2d') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const fg = fg2dRef.current as any;
+            const current = fg?.zoom?.() ?? 1;
+            fg?.zoom?.(current * 1.2, 150);
+          }
           break;
         }
         case 'ZOOM_OUT': {
-          const scaleOut = network.getScale();
-          network.moveTo({ scale: scaleOut / 1.2, animation: { duration: 150, easingFunction: 'easeInOutQuad' } });
+          if (graphMode === '2d') {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const fg = fg2dRef.current as any;
+            const current = fg?.zoom?.() ?? 1;
+            fg?.zoom?.(current / 1.2, 150);
+          }
           break;
         }
         case 'FAVORITES_UPDATED':
-          // Will be handled by parent component
           break;
         case 'FILE_INFO':
-          // Cache and update tooltip
           fileInfoCacheRef.current.set(message.payload.path, message.payload);
-          setTooltipData(prev => {
-            if (prev.path === message.payload.path) {
-              return { ...prev, info: message.payload };
-            }
-            return prev;
-          });
+          setTooltipData(prev =>
+            prev.path === message.payload.path ? { ...prev, info: message.payload } : prev
+          );
           break;
+        case 'GET_NODE_BOUNDS': {
+          const nodes = graphDataRef.current.nodes;
+          const bounds = nodes.map(n => ({
+            id: n.id,
+            x: (n as FGNode & { x?: number }).x ?? 0,
+            y: (n as FGNode & { y?: number }).y ?? 0,
+            size: n.size,
+          }));
+          postMessage({ type: 'NODE_BOUNDS_RESPONSE', payload: { nodes: bounds } });
+          break;
+        }
         case 'REQUEST_EXPORT_PNG':
-          exportAsPng(network);
+          exportAsPng(containerRef.current);
           break;
         case 'REQUEST_EXPORT_SVG':
-          if (nodesRef.current && edgesRef.current) {
-            exportAsSvg(network, nodesRef.current, edgesRef.current);
-          }
+          exportAsSvg(graphDataRef.current.nodes, dataRef.current.edges);
           break;
         case 'REQUEST_EXPORT_JSON':
-          exportAsJson(network, dataRef.current, nodeSizeModeRef.current);
+          exportAsJson(graphDataRef.current.nodes, dataRef.current, nodeSizeModeRef.current);
           break;
         case 'NODE_ACCESS_COUNT_UPDATED': {
-          // Update node's access count and recalculate sizes in real-time
           const { nodeId, accessCount } = message.payload;
-          const currentData = dataRef.current;
-          
-          // Update the node's accessCount in our data reference
-          const nodeIndex = currentData.nodes.findIndex(n => n.id === nodeId);
-          if (nodeIndex !== -1) {
-            currentData.nodes[nodeIndex].accessCount = accessCount;
-            
-            // Only recalculate if we're in access-count mode
-            if (nodeSizeModeRef.current === 'access-count' && nodesRef.current) {
-              // Recalculate all node sizes (normalization may change)
-              const nodeSizes = calculateNodeSizes(
-                currentData.nodes,
-                currentData.edges,
-                'access-count'
-              );
-              
-              // Update all nodes with new sizes
-              currentData.nodes.forEach((node) => {
-                const visNode = toVisNode(
-                  node, 
-                  favoritesRef.current.has(node.id), 
-                  nodeSizes.get(node.id), 
-                  themeRef.current
-                );
-                nodesRef.current?.update(visNode);
-              });
-            }
-          }
+          const nodeIndex = dataRef.current.nodes.findIndex(n => n.id === nodeId);
+          if (nodeIndex !== -1) dataRef.current.nodes[nodeIndex].accessCount = accessCount;
           break;
         }
       }
     };
-
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [graphMode]);
 
-  /**
-   * Handle keyboard shortcuts
-   */
+  // ── Keyboard shortcuts ────────────────────────────────────────────────────
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      const network = networkRef.current;
-      if (!network) return;
-
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
+      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
       const isMod = event.ctrlKey || event.metaKey;
 
       switch (event.key) {
         case '0':
           event.preventDefault();
-          network.fit({ animation: { duration: 300, easingFunction: 'easeInOutQuad' } });
+          if (graphMode === '2d') (fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined)?.zoomToFit(300, 20);
+          else fg3dRef.current?.zoomToFit(300, 20);
           break;
-
         case 'Escape':
           event.preventDefault();
-          network.unselectAll();
+          setHighlight(null);
+          selectedNodesSetRef.current = new Set();
           setSelectedNodes([]);
           break;
-
         case 'Enter':
           if (selectedNodes.length > 0) {
             event.preventDefault();
             selectedNodes.forEach(nodeId => {
-              // Clear cache so visit count is refreshed on next hover
               fileInfoCacheRef.current.delete(nodeId);
               postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
             });
           }
           break;
-
         case 'a':
           if (isMod) {
             event.preventDefault();
-            const allIds = nodesRef.current?.getIds() as string[] || [];
-            network.selectNodes(allIds);
+            const allIds = graphDataRef.current.nodes.map(n => n.id);
+            selectedNodesSetRef.current = new Set(allIds);
             setSelectedNodes(allIds);
           }
           break;
-
         case '=':
         case '+':
-          if (!isMod) {
+          if (!isMod && graphMode === '2d') {
             event.preventDefault();
-            const scale = network.getScale();
-            network.moveTo({ scale: scale * 1.2, animation: { duration: 150, easingFunction: 'easeInOutQuad' } });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const fg = fg2dRef.current as any;
+            const s = fg?.zoom?.() ?? 1;
+            fg?.zoom?.(s * 1.2, 150);
           }
           break;
-
         case '-':
-          if (!isMod) {
+          if (!isMod && graphMode === '2d') {
             event.preventDefault();
-            const scale = network.getScale();
-            network.moveTo({ scale: scale / 1.2, animation: { duration: 150, easingFunction: 'easeInOutQuad' } });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const fg = fg2dRef.current as any;
+            const s = fg?.zoom?.() ?? 1;
+            fg?.zoom?.(s / 1.2, 150);
           }
           break;
-
         case 'z':
         case 'Z':
           if (isMod) {
             event.preventDefault();
             event.stopPropagation();
-            if (event.shiftKey) {
-              // Ctrl+Shift+Z = Redo
-              postMessage({ type: 'REDO' });
-            } else {
-              // Ctrl+Z = Undo
-              postMessage({ type: 'UNDO' });
-            }
+            postMessage({ type: event.shiftKey ? 'REDO' : 'UNDO' });
           }
           break;
-
         case 'y':
         case 'Y':
           if (isMod) {
-            // Ctrl+Y = Redo (Windows convention)
             event.preventDefault();
             event.stopPropagation();
             postMessage({ type: 'REDO' });
@@ -858,502 +808,168 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
           break;
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNodes]);
+  }, [selectedNodes, graphMode, setHighlight]);
 
-  /**
-   * Initialize network once
-   */
+  // ── Physics settings update ───────────────────────────────────────────────
+
   useEffect(() => {
-    if (!containerRef.current || initializedRef.current) return;
+    const fg = graphMode === '2d'
+      ? (fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined)
+      : fg3dRef.current;
+    if (!fg || !physicsInitialisedRef.current) return;
 
-    const initialData = dataRef.current;
-    const currentFavorites = favoritesRef.current;
-    const currentMode = bidirectionalModeRef.current;
-
-    // Calculate node sizes based on sizing mode
-    const nodeSizes = calculateNodeSizes(
-      initialData.nodes,
-      initialData.edges,
-      nodeSizeModeRef.current
-    );
-
-    // Create datasets
-    const nodes = new DataSet(initialData.nodes.map(n => 
-      toVisNode(n, currentFavorites.has(n.id), nodeSizes.get(n.id), themeRef.current)
-    ));
-    const processedEdges = processEdges(initialData.edges, currentMode);
-    const edges = new DataSet(processedEdges.map(toVisEdge));
-
-    nodesRef.current = nodes;
-    edgesRef.current = edges;
-
-    // Create network
-    const network = new Network(
-      containerRef.current,
-      { nodes, edges },
-      NETWORK_OPTIONS
-    );
-
-    networkRef.current = network;
-    initializedRef.current = true;
-
-    // Only disable physics when NOT in a drag. This is critical: enabling physics
-    // on an already-stable graph fires 'stabilized' immediately — if we don't
-    // guard here, physics gets disabled before the first drag frame runs.
-    network.on('stabilized', () => {
-      if (!isDraggingRef.current) {
-        network.setOptions({ physics: { enabled: false } });
-      }
-    });
-
-    // Enable physics BEFORE Vis Network processes the drag. Vis Network decides
-    // its drag mode (node vs view-pan) on the first mousemove after mousedown.
-    // If physics was disabled then, it commits to single-node mode with no force
-    // propagation. We set isDraggingRef FIRST so the immediate 'stabilized' that
-    // fires on an already-stable graph doesn't re-disable physics.
-    const canvas = containerRef.current?.querySelector('canvas');
-    const handleMouseDown = (e: MouseEvent) => {
-      if (!canvas) return;
-      const rect = canvas.getBoundingClientRect();
-      const nodeId = network.getNodeAt({ x: e.clientX - rect.left, y: e.clientY - rect.top });
-      if (nodeId !== undefined) {
-        isDraggingRef.current = true;   // guard BEFORE enabling physics
-        network.setOptions({ physics: { enabled: true } });
-        network.startSimulation();
-      }
-    };
-    canvas?.addEventListener('mousedown', handleMouseDown);
-
-    // Click without drag (mousedown → mouseup, no move): reset the guard and
-    // stop physics so the graph doesn't keep running after a plain click.
-    network.on('click', () => {
-      if (isDraggingRef.current) {
-        isDraggingRef.current = false;
-        network.setOptions({ physics: { enabled: false } });
-      }
-    });
-
-    // dragStart just confirms an actual drag is in progress (guard already set).
-    network.on('dragStart', (params: { nodes: string[] }) => {
-      if (params.nodes.length > 0) {
-        isDraggingRef.current = true;
-      }
-    });
-
-    // dragEnd: clear the guard so the next 'stabilized' can disable physics.
-    // Explicitly unfix the node — Vis Network internally fixes it to the cursor
-    // position during drag; without this the node stays pinned and won't settle.
-    network.on('dragEnd', (params: { nodes: string[] }) => {
-      if (params.nodes.length > 0) {
-        isDraggingRef.current = false;
-        const draggedId = params.nodes[0];
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (nodesRef.current as any)?.update({ id: draggedId, fixed: false });
-        // Physics is still running here — node drifts to equilibrium, then
-        // 'stabilized' fires and disables it (Obsidian settle-on-release).
-      }
-    });
-
-    // Handle selection changes
-    network.on('select', (params) => {
-      setSelectedNodes(params.nodes as string[]);
-    });
-
-    network.on('click', (params) => {
-      if (params.nodes.length > 0) {
-        const nodeId = params.nodes[0] as string;
-        postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
-      }
-    });
-
-    network.on('doubleClick', (params) => {
-      if (params.nodes.length > 0) {
-        const nodeId = params.nodes[0] as string;
-        // Clear cache so visit count is refreshed on next hover
-        fileInfoCacheRef.current.delete(nodeId);
-        postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
-      }
-    });
-
-    // Note: Context menu logic is handled by onContextMenu on the container div
-    // This fires before Radix opens the menu, fixing the timing issue where
-    // first Ctrl+click showed background menu instead of node menu.
-
-    // Handle hover for highlighting connected nodes and tooltips
-    network.on('hoverNode', (params) => {
-      const nodeId = params.node as string;
-      setHoveredNode(nodeId);
-      
-      // Show tooltip after delay
-      if (tooltipTimeoutRef.current) {
-        clearTimeout(tooltipTimeoutRef.current);
-      }
-      
-      tooltipTimeoutRef.current = setTimeout(() => {
-        const position = params.event.center || { x: params.event.clientX || 0, y: params.event.clientY || 0 };
-        
-        // Check cache first
-        const cached = fileInfoCacheRef.current.get(nodeId);
-        
-        setTooltipData({
-          visible: true,
-          position: { x: position.x, y: position.y },
-          path: nodeId,
-          info: cached || null,
-        });
-        
-        // Request file info if not cached
-        if (!cached) {
-          postMessage({ type: 'GET_FILE_INFO', payload: { path: nodeId } });
-        }
-      }, 500); // 500ms delay before showing tooltip
-    });
-
-    network.on('blurNode', () => {
-      setHoveredNode(null);
-      
-      // Clear tooltip timeout and hide
-      if (tooltipTimeoutRef.current) {
-        clearTimeout(tooltipTimeoutRef.current);
-        tooltipTimeoutRef.current = null;
-      }
-      setTooltipData(prev => ({ ...prev, visible: false }));
-    });
-
-    // Notify extension that webview is ready
-    postMessage({ type: 'WEBVIEW_READY', payload: null });
-
-    return () => {
-      canvas?.removeEventListener('mousedown', handleMouseDown);
-      network.destroy();
-      networkRef.current = null;
-      nodesRef.current = null;
-      edgesRef.current = null;
-      initializedRef.current = false;
-    };
-  }, []);
-
-  /**
-   * Update data when props change
-   */
-  useEffect(() => {
-    if (!initializedRef.current || !nodesRef.current || !edgesRef.current) return;
-
-    const currentFavorites = favoritesRef.current;
-
-    // Calculate node sizes for the updated data
-    const nodeSizes = calculateNodeSizes(
-      data.nodes,
-      data.edges,
-      nodeSizeMode
-    );
-
-    // Update nodes
-    const currentNodeIds = new Set(nodesRef.current.getIds());
-    const newNodeIds = new Set(data.nodes.map((n) => n.id));
-
-    currentNodeIds.forEach((id) => {
-      if (!newNodeIds.has(id as string)) {
-        nodesRef.current?.remove(id);
-      }
-    });
-
-    data.nodes.forEach((node) => {
-      const visNode = toVisNode(node, currentFavorites.has(node.id), nodeSizes.get(node.id), themeRef.current);
-      if (currentNodeIds.has(node.id)) {
-        nodesRef.current?.update(visNode);
-      } else {
-        nodesRef.current?.add(visNode);
-      }
-    });
-
-    // Update edges (with bidirectional processing)
-    const processedEdges = processEdges(data.edges, bidirectionalModeRef.current);
-    const currentEdgeIds = new Set(edgesRef.current.getIds());
-    const newEdgeIds = new Set(processedEdges.map((e) => e.id));
-
-    currentEdgeIds.forEach((id) => {
-      if (!newEdgeIds.has(id as string)) {
-        edgesRef.current?.remove(id);
-      }
-    });
-
-    processedEdges.forEach((edge) => {
-      if (currentEdgeIds.has(edge.id)) {
-        edgesRef.current?.update(toVisEdge(edge));
-      } else {
-        edgesRef.current?.add(toVisEdge(edge));
-      }
-    });
-  }, [data, nodeSizeMode]);
-
-  /**
-   * Update node styling when favorites change
-   */
-  useEffect(() => {
-    if (!nodesRef.current) return;
-    
-    // Recalculate sizes to maintain consistency
-    const nodeSizes = calculateNodeSizes(
-      data.nodes,
-      data.edges,
-      nodeSizeMode
-    );
-    
-    data.nodes.forEach((node) => {
-      const visNode = toVisNode(node, favorites.has(node.id), nodeSizes.get(node.id), theme);
-      nodesRef.current?.update(visNode);
-    });
-  }, [favorites, data.nodes, data.edges, nodeSizeMode, theme]);
-
-  /**
-   * Handle hover highlighting - dim unconnected nodes.
-   * Suppressed during drag to avoid DataSet.update calls interfering with physics.
-   */
-  useEffect(() => {
-    if (!nodesRef.current || !edgesRef.current) return;
-    if (isDraggingRef.current) return;
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const nodesDataSet = nodesRef.current as any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const edgesDataSet = edgesRef.current as any;
-
-    if (hoveredNode) {
-      // Find connected nodes
-      const connectedNodeIds = new Set<string>([hoveredNode]);
-      
-      data.edges.forEach((edge) => {
-        if (edge.from === hoveredNode) {
-          connectedNodeIds.add(edge.to);
-        }
-        if (edge.to === hoveredNode) {
-          connectedNodeIds.add(edge.from);
-        }
-      });
-
-      // Theme-aware colors
-      const isLight = themeRef.current === 'light';
-      const activeTextColor = isLight ? '#1e1e1e' : '#e2e8f0';
-      const dimTextColor = isLight ? '#9ca3af' : '#4a5568';
-      const highlightBorder = isLight ? '#000000' : '#ffffff';
-      const hoverBorder = isLight ? '#64748b' : '#94a3b8';
-      const dimEdgeColor = isLight ? '#d4d4d4' : '#2d3748';
-
-      // Update node opacity
-      data.nodes.forEach((node) => {
-        const isConnected = connectedNodeIds.has(node.id);
-        const isFavorite = favorites.has(node.id);
-        const nodeColor = isLight ? adjustColorForLightTheme(node.color) : node.color;
-        
-        nodesDataSet.update({
-          id: node.id,
-          opacity: isConnected ? 1.0 : 0.2,
-          font: {
-            color: isConnected ? activeTextColor : dimTextColor,
-            size: 12,
-          },
-          color: {
-            background: nodeColor,
-            border: isFavorite ? FAVORITE_BORDER_COLOR : nodeColor,
-            highlight: {
-              background: nodeColor,
-              border: isFavorite ? FAVORITE_BORDER_COLOR : highlightBorder,
-            },
-            hover: {
-              background: nodeColor,
-              border: isFavorite ? FAVORITE_BORDER_COLOR : hoverBorder,
-            },
-          },
-        });
-      });
-
-      // Update edge opacity
-      data.edges.forEach((edge) => {
-        const isConnected = edge.from === hoveredNode || edge.to === hoveredNode;
-        edgesDataSet.update({
-          id: edge.id,
-          color: {
-            color: isConnected ? '#60a5fa' : dimEdgeColor,
-            highlight: '#60a5fa',
-            hover: '#60a5fa',
-          },
-          width: isConnected ? 2 : 1,
-        });
-      });
-    } else {
-      // Reset all nodes and edges to normal
-      const isLight = themeRef.current === 'light';
-      const textColor = isLight ? '#1e1e1e' : '#e2e8f0';
-      const edgeColor = isLight ? '#94a3b8' : '#475569';
-      
-      // Recalculate sizes for reset
-      const nodeSizes = calculateNodeSizes(
-        data.nodes,
-        data.edges,
-        nodeSizeMode
-      );
-      
-      data.nodes.forEach((node) => {
-        const visNode = toVisNode(node, favorites.has(node.id), nodeSizes.get(node.id), themeRef.current);
-        nodesDataSet.update({
-          ...visNode,
-          opacity: 1.0,
-          font: { color: textColor, size: 12 },
-        });
-      });
-
-      data.edges.forEach((edge) => {
-        edgesDataSet.update({
-          id: edge.id,
-          color: {
-            color: edgeColor,
-            highlight: '#60a5fa',
-            hover: '#60a5fa',
-          },
-          width: 1,
-        });
-      });
-    }
-  }, [hoveredNode, data, favorites, theme, nodeSizeMode]);
-
-  /**
-   * Update edges when bidirectional mode changes
-   */
-  useEffect(() => {
-    if (!edgesRef.current || !initializedRef.current) return;
-
-    // Clear and rebuild edges with new mode
-    const processedEdges = processEdges(data.edges, bidirectionalMode);
-    // Use remove + add instead of clear (which may not be available in all DataSet versions)
-    const currentIds = edgesRef.current.getIds();
-    if (currentIds.length > 0) {
-      edgesRef.current.remove(currentIds);
-    }
-    edgesRef.current.add(processedEdges.map(toVisEdge));
-  }, [bidirectionalMode, data.edges]);
-
-  /**
-   * Track previous physics settings to avoid unnecessary simulation restarts.
-   */
-  const prevPhysicsRef = useRef<IPhysicsSettings | null>(null);
-
-  /**
-   * Update physics settings when they change.
-   * Must restart simulation for changes to take effect after stabilization.
-   * Uses deep comparison to avoid unnecessary restarts (fixes double-refresh issue).
-   */
-  useEffect(() => {
-    const network = networkRef.current;
-    if (!network) return;
-
-    // Deep compare with previous settings to avoid unnecessary restarts
     const prev = prevPhysicsRef.current;
-    const settingsChanged = !prev || 
-      prev.gravitationalConstant !== physicsSettings.gravitationalConstant ||
-      prev.centralGravity !== physicsSettings.centralGravity ||
-      prev.springLength !== physicsSettings.springLength ||
-      prev.springConstant !== physicsSettings.springConstant ||
+    const changed = !prev ||
+      prev.repelForce !== physicsSettings.repelForce ||
+      prev.centerForce !== physicsSettings.centerForce ||
+      prev.linkDistance !== physicsSettings.linkDistance ||
+      prev.linkForce !== physicsSettings.linkForce ||
       prev.damping !== physicsSettings.damping;
-
-    if (!settingsChanged) return;
-
-    // Store current settings for next comparison
+    if (!changed) return;
     prevPhysicsRef.current = { ...physicsSettings };
 
-    // Apply new physics settings, re-enabling physics so the layout re-runs.
-    // The 'stabilized' handler will disable physics again once it settles.
-    network.setOptions({
-      physics: {
-        enabled: true,
-        forceAtlas2Based: {
-          gravitationalConstant: physicsSettings.gravitationalConstant,
-          centralGravity: physicsSettings.centralGravity,
-          springLength: physicsSettings.springLength,
-          springConstant: physicsSettings.springConstant,
-          damping: physicsSettings.damping,
-        },
-      },
-    });
-    network.startSimulation();
-  }, [physicsSettings]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chargeForce = fg.d3Force('charge') as any;
+    if (chargeForce) chargeForce.strength(toD3Repel(physicsSettings.repelForce));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const d3LinkForce = fg.d3Force('link') as any;
+    if (d3LinkForce) {
+      d3LinkForce.distance(physicsSettings.linkDistance);
+      d3LinkForce.strength(physicsSettings.linkForce);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const d3CenterForce = fg.d3Force('center') as any;
+    if (d3CenterForce) d3CenterForce.strength(physicsSettings.centerForce);
+    fg.d3ReheatSimulation();
+  }, [physicsSettings, graphMode]);
 
-  /**
-   * Update edge arrows when showArrows prop changes.
-   */
+  // ── In-place visual update (no simulation restart) ───────────────────────
+  // When nodeSizeMode, favorites, or theme changes, update existing node
+  // objects directly so physics positions are preserved.
+
   useEffect(() => {
-    const network = networkRef.current;
-    if (!network) return;
-    network.setOptions({
-      edges: {
-        arrows: {
-          to: { enabled: showArrows, scaleFactor: 0.5 },
-        },
-      },
+    const nodes = graphDataRef.current.nodes;
+    if (nodes.length === 0) return;
+
+    const dataNodeMap = new Map(dataRef.current.nodes.map(n => [n.id, n]));
+    const sizes = calculateNodeSizes(dataRef.current.nodes, dataRef.current.edges, nodeSizeMode);
+    const isLight = theme === 'light';
+
+    for (const node of nodes) {
+      const dn = dataNodeMap.get(node.id);
+      if (!dn) continue;
+      const rawColor = isLight ? adjustColorForLightTheme(dn.color) : dn.color;
+      const isFav = favorites.has(node.id);
+      const isFocused = dn.depthLevel === 0;
+      node.size = (sizes.get(node.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(dn.depthLevel);
+      node.color = rawColor;
+      node.isFavorite = isFav;
+      node.borderColor = isFocused
+        ? (isLight ? '#2563eb' : '#60a5fa')
+        : isFav
+        ? FAVORITE_BORDER_COLOR
+        : rawColor;
+      node.borderWidth = isFocused ? 4 : isFav ? 3 : 2;
+    }
+
+    // Both 2D (canvas) and 3D (Three.js) run continuous render loops — in-place
+    // node mutations are picked up automatically on the next frame, no refresh() needed.
+  }, [nodeSizeMode, favorites, theme]);
+
+  // ── 3D label visibility toggle (no prop change = no node rebuild) ─────────
+
+  useEffect(() => {
+    for (const sprite of spritesRef.current.values()) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (sprite as any).visible = showLabels;
+    }
+  }, [showLabels]);
+
+  // ── Container size tracking ───────────────────────────────────────────────
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(entries => {
+      const e = entries[0];
+      if (e) setContainerSize({ width: e.contentRect.width, height: e.contentRect.height });
     });
-  }, [showArrows]);
-
-  /**
-   * Handle context menu trigger - captures node BEFORE Radix opens menu
-   * 
-   * Both right-click and Ctrl+click should behave the same way:
-   * - Context menu is based on what's under the mouse, NOT what's selected
-   * - Node under mouse → node menu for that node
-   * - Background → background menu
-   * - No multi-select via Ctrl+click (use Shift+click/drag for that)
-   */
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    const network = networkRef.current;
-    const container = containerRef.current;
-    if (!network || !container) return;
-
-    // Hide tooltip when opening context menu
-    if (tooltipTimeoutRef.current) {
-      clearTimeout(tooltipTimeoutRef.current);
-      tooltipTimeoutRef.current = null;
-    }
-    setTooltipData(prev => ({ ...prev, visible: false }));
-
-    // Get pointer position relative to the container
-    const rect = container.getBoundingClientRect();
-    const domPoint = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-    const nodeId = network.getNodeAt(domPoint) as string | undefined;
-
-    // Both right-click and Ctrl+click behave the same:
-    // Menu is based on what's under the mouse
-    if (nodeId) {
-      // Clicked on a node - show node menu for this specific node
-      if (!selectedNodesRef.current.includes(nodeId)) {
-        // Node not in selection: select just this one
-        network.selectNodes([nodeId]);
-        setSelectedNodes([nodeId]);
-        contextTargetRef.current = [nodeId];
-      } else {
-        // Node already selected: use current selection
-        contextTargetRef.current = [...selectedNodesRef.current];
-      }
-      setIsBackgroundContext(false);
-    } else {
-      // Clicked on background - show background menu
-      contextTargetRef.current = [];
-      setIsBackgroundContext(true);
-    }
+    ro.observe(el);
+    // Initial size
+    setContainerSize({ width: el.clientWidth, height: el.clientHeight });
+    return () => ro.disconnect();
   }, []);
 
-  // Use contextTargetRef for menu display (set synchronously on right-click)
-  // For node menus, use the context target (what's under the mouse)
-  // For background menus, contextTargetRef is empty and that's correct
+  // ── WEBVIEW_READY on mount ────────────────────────────────────────────────
+
+  useEffect(() => {
+    postMessage({ type: 'WEBVIEW_READY', payload: null });
+  }, []);
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  const isLight = theme === 'light';
+  const bgColor = isLight ? '#f5f5f5' : '#18181b';
+  const borderColor = isLight ? '#d4d4d4' : 'rgb(63, 63, 70)';
+
   const menuTargets = contextTargetRef.current;
   const isMultiSelect = menuTargets.length > 1;
   const allFavorited = menuTargets.length > 0 && menuTargets.every(id => favorites.has(id));
 
-  const isLight = theme === 'light';
-  const bgColor = isLight ? '#f5f5f5' : '#18181b';
-  const borderColor = isLight ? '#d4d4d4' : 'rgb(63, 63, 70)'; // zinc-700
-  
+  // Shared force-graph props
+  const sharedProps = {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    graphData: graphData as any,
+    width: containerSize.width || undefined,
+    height: containerSize.height || undefined,
+    onNodeClick: handleNodeClick as (node: NodeObject, event: MouseEvent) => void,
+    onNodeRightClick: handleNodeRightClick as unknown as (node: NodeObject, event: MouseEvent) => void,
+    onBackgroundClick: handleBackgroundClick,
+    onBackgroundRightClick: handleBackgroundRightClick,
+    onEngineStop: handleEngineStop,
+    d3VelocityDecay: physicsSettings.damping,
+    d3AlphaDecay: 0.0228,
+    warmupTicks: 0,
+    cooldownTicks: 500,
+    nodeId: 'id' as const,
+    onNodeHover: handleNodeHover as (node: NodeObject | null) => void,
+  };
+
+  const initPhysics = useCallback((instance: FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>) => {
+    if (physicsInitialisedRef.current) return;
+    physicsInitialisedRef.current = true;
+    prevPhysicsRef.current = { ...DEFAULT_PHYSICS };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const chargeForce = instance.d3Force('charge') as any;
+    if (chargeForce) chargeForce.strength(toD3Repel(physicsSettings.repelForce));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const d3LinkForce = instance.d3Force('link') as any;
+    if (d3LinkForce) {
+      d3LinkForce.distance(physicsSettings.linkDistance);
+      d3LinkForce.strength(physicsSettings.linkForce);
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const d3CenterForce = instance.d3Force('center') as any;
+    if (d3CenterForce) d3CenterForce.strength(physicsSettings.centerForce);
+    // Add collision force to prevent nodes overlapping
+    instance.d3Force('collision', forceCollide((node: FGNode) => node.size + 4));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handle2DRef = useCallback((instance: FG2DMethods<FGNode, FGLink> | undefined) => {
+    if (!instance) return;
+    fg2dRef.current = instance;
+    initPhysics(instance);
+  }, [initPhysics]);
+
+  const handle3DRef = useCallback((instance: FG3DMethods<FGNode, FGLink> | undefined) => {
+    if (!instance) return;
+    fg3dRef.current = instance;
+    initPhysics(instance);
+  }, [initPhysics]);
+
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>
@@ -1363,12 +979,48 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
           className="graph-container absolute inset-0 rounded-lg m-1 outline-none focus:outline-none"
           style={{ backgroundColor: bgColor, borderWidth: 1, borderStyle: 'solid', borderColor }}
           tabIndex={0}
-        />
+        >
+          {graphMode === '2d' ? (
+            <ForceGraph2D
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ref={handle2DRef as any}
+              {...sharedProps}
+              backgroundColor={bgColor}
+              nodeCanvasObject={nodeCanvasObject as (node: NodeObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
+              nodeCanvasObjectMode={() => 'replace'}
+              nodePointerAreaPaint={nodePointerAreaPaint as (node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => void}
+              linkColor={getLinkColor as (link: LinkObject) => string}
+              linkWidth={getLinkWidth as (link: LinkObject) => number}
+              linkDirectionalArrowLength={showArrows ? 6 : 0}
+              linkDirectionalArrowRelPos={1}
+              linkDirectionalArrowColor={getLinkColor as (link: LinkObject) => string}
+              linkCanvasObject={linkCanvasObject as (link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
+              linkCanvasObjectMode={(link) => (link as FGLink).bidirectional ? 'replace' : undefined}
+              autoPauseRedraw={false}
+            />
+          ) : (
+            <ForceGraph3D
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              ref={handle3DRef as any}
+              {...sharedProps}
+              backgroundColor={bgColor}
+              nodeColor={node3DColor as (node: NodeObject) => string}
+              nodeVal={(node) => (node as FGNode).size / DEFAULT_NODE_SIZE}
+              nodeLabel=""
+              nodeThreeObjectExtend={true}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              nodeThreeObject={node3DLabelObject as (node: NodeObject) => any}
+              linkColor={getLinkColor as (link: LinkObject) => string}
+              linkWidth={getLinkWidth as (link: LinkObject) => number}
+              linkDirectionalArrowLength={showArrows ? 6 : 0}
+              linkDirectionalArrowRelPos={1}
+            />
+          )}
+        </div>
       </ContextMenuTrigger>
-      
+
       <ContextMenuContent className="w-64">
         {isBackgroundContext ? (
-          // Background context menu
           <>
             <ContextMenuItem onClick={() => handleContextAction('createFile')}>
               New File...
@@ -1383,60 +1035,46 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
             </ContextMenuItem>
           </>
         ) : (
-          // Node context menu
           <>
             <ContextMenuItem onClick={() => handleContextAction('open')}>
               {isMultiSelect ? `Open ${menuTargets.length} Files` : 'Open File'}
             </ContextMenuItem>
-            
             {!isMultiSelect && (
               <ContextMenuItem onClick={() => handleContextAction('reveal')}>
                 Reveal in Explorer
               </ContextMenuItem>
             )}
-
             <ContextMenuSeparator />
-
             <ContextMenuItem onClick={() => handleContextAction('copyRelative')}>
               {isMultiSelect ? 'Copy Relative Paths' : 'Copy Relative Path'}
             </ContextMenuItem>
-            
             {!isMultiSelect && (
               <ContextMenuItem onClick={() => handleContextAction('copyAbsolute')}>
                 Copy Absolute Path
               </ContextMenuItem>
             )}
-
             <ContextMenuSeparator />
-
             <ContextMenuItem onClick={() => handleContextAction('toggleFavorite')}>
               {allFavorited
                 ? (isMultiSelect ? 'Remove All from Favorites' : 'Remove from Favorites')
-                : (isMultiSelect ? 'Add All to Favorites' : 'Add to Favorites')
-              }
+                : (isMultiSelect ? 'Add All to Favorites' : 'Add to Favorites')}
             </ContextMenuItem>
-
             {!isMultiSelect && (
               <ContextMenuItem onClick={() => handleContextAction('focus')}>
                 Focus Node
               </ContextMenuItem>
             )}
-
             <ContextMenuSeparator />
-
             <ContextMenuItem onClick={() => handleContextAction('addToExclude')}>
               {isMultiSelect ? 'Add All to Exclude' : 'Add to Exclude'}
             </ContextMenuItem>
-
             <ContextMenuSeparator />
-
             {!isMultiSelect && (
               <ContextMenuItem onClick={() => handleContextAction('rename')}>
                 Rename...
               </ContextMenuItem>
             )}
-            
-            <ContextMenuItem 
+            <ContextMenuItem
               className="text-red-400 focus:text-red-300"
               onClick={() => handleContextAction('delete')}
             >
@@ -1445,8 +1083,7 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
           </>
         )}
       </ContextMenuContent>
-      
-      {/* Tooltip */}
+
       <NodeTooltip
         path={tooltipData.path}
         size={tooltipData.info?.size}
@@ -1460,4 +1097,109 @@ export default function Graph({ data, favorites = new Set(), theme = 'dark', bid
       />
     </ContextMenu>
   );
+}
+
+// ─── Export helpers ─────────────────────────────────────────────────────────
+
+function exportAsPng(container: HTMLDivElement | null): void {
+  try {
+    const canvas = container?.querySelector('canvas') as HTMLCanvasElement | null;
+    if (!canvas) { console.error('[CodeGraphy] No canvas found'); return; }
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = canvas.width;
+    exportCanvas.height = canvas.height;
+    const ctx = exportCanvas.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = '#18181b';
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+    ctx.drawImage(canvas, 0, 0);
+    const dataUrl = exportCanvas.toDataURL('image/png');
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    postMessage({ type: 'EXPORT_PNG', payload: { dataUrl, filename: `codegraphy-${timestamp}.png` } });
+  } catch (error) {
+    console.error('[CodeGraphy] Export failed:', error);
+  }
+}
+
+function exportAsSvg(nodes: FGNode[], originalEdges: IGraphEdge[]): void {
+  try {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const n of nodes) {
+      const x = (n as FGNode & { x?: number }).x ?? 0;
+      const y = (n as FGNode & { y?: number }).y ?? 0;
+      minX = Math.min(minX, x); minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+    }
+    if (!isFinite(minX)) { minX = -100; minY = -100; maxX = 100; maxY = 100; }
+    const pad = 100;
+    minX -= pad; minY -= pad; maxX += pad; maxY += pad;
+    const width = maxX - minX;
+    const height = maxY - minY;
+
+    const parts: string[] = [
+      `<?xml version="1.0" encoding="UTF-8"?>`,
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${width}" height="${height}">`,
+      `<rect x="${minX}" y="${minY}" width="${width}" height="${height}" fill="#18181b"/>`,
+      `<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">`,
+      `<polygon points="0 0, 10 3.5, 0 7" fill="#71717a"/></marker></defs>`,
+    ];
+
+    const posMap = new Map(nodes.map(n => [n.id, { x: (n as FGNode & { x?: number }).x ?? 0, y: (n as FGNode & { y?: number }).y ?? 0 }]));
+
+    for (const edge of originalEdges) {
+      const from = posMap.get(edge.from);
+      const to = posMap.get(edge.to);
+      if (from && to) {
+        parts.push(`<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="#71717a" stroke-width="1" marker-end="url(#arrowhead)"/>`);
+      }
+    }
+
+    for (const n of nodes) {
+      const pos = posMap.get(n.id);
+      if (pos) {
+        parts.push(`<circle cx="${pos.x}" cy="${pos.y}" r="${n.size}" fill="${n.color}" stroke="${n.borderColor}" stroke-width="2"/>`);
+        parts.push(`<text x="${pos.x}" y="${pos.y + n.size + 15}" text-anchor="middle" fill="#fafafa" font-size="12" font-family="sans-serif">${escapeXml(n.label)}</text>`);
+      }
+    }
+
+    parts.push(`</svg>`);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    postMessage({ type: 'EXPORT_SVG', payload: { svg: parts.join('\n'), filename: `codegraphy-${timestamp}.svg` } });
+  } catch (error) {
+    console.error('[CodeGraphy] SVG export failed:', error);
+  }
+}
+
+function exportAsJson(nodes: FGNode[], data: IGraphData, nodeSizeMode: NodeSizeMode): void {
+  try {
+    const exportData = {
+      version: '1.0',
+      exportedAt: new Date().toISOString(),
+      nodes: data.nodes.map(node => {
+        const fgNode = nodes.find(n => n.id === node.id);
+        return {
+          id: node.id,
+          label: node.label,
+          color: node.color,
+          fileSize: node.fileSize,
+          accessCount: node.accessCount,
+          position: {
+            x: (fgNode as (FGNode & { x?: number }) | undefined)?.x ?? 0,
+            y: (fgNode as (FGNode & { y?: number }) | undefined)?.y ?? 0,
+          },
+        };
+      }),
+      edges: data.edges.map(edge => ({ from: edge.from, to: edge.to })),
+      metadata: {
+        totalNodes: data.nodes.length,
+        totalEdges: data.edges.length,
+        nodeSizeMode,
+      },
+    };
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    postMessage({ type: 'EXPORT_JSON', payload: { json: JSON.stringify(exportData, null, 2), filename: `codegraphy-layout-${timestamp}.json` } });
+  } catch (error) {
+    console.error('[CodeGraphy] JSON export failed:', error);
+  }
 }

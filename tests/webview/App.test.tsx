@@ -158,10 +158,10 @@ describe('App: message handlers', () => {
         type: 'PHYSICS_SETTINGS_UPDATED',
         payload: {
           settings: {
-            gravitationalConstant: -100,
-            centralGravity: 0.02,
-            springLength: 150,
-            springConstant: 0.05,
+            repelForce: 4,
+            centerForce: 0.02,
+            linkDistance: 150,
+            linkForce: 0.05,
             damping: 0.5,
           },
         },

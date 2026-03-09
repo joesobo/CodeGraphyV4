@@ -15,10 +15,10 @@ vi.mock('../../src/webview/lib/vscodeApi', () => ({
 }));
 
 const DEFAULT_PHYSICS: IPhysicsSettings = {
-  gravitationalConstant: -50,
-  centralGravity: 0.01,
-  springLength: 100,
-  springConstant: 0.08,
+  repelForce: 5,
+  centerForce: 0.01,
+  linkDistance: 100,
+  linkForce: 0.08,
   damping: 0.4,
 };
 
@@ -46,6 +46,10 @@ function renderPanel(overrides: Partial<Parameters<typeof SettingsPanel>[0]> = {
     depthLimit: 1,
     showArrows: true,
     onShowArrowsChange: vi.fn(),
+    showLabels: true,
+    onShowLabelsChange: vi.fn(),
+    graphMode: '2d' as const,
+    onGraphModeChange: vi.fn(),
     ...overrides,
   };
 

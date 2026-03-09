@@ -15,11 +15,11 @@ declare const globalThis: {
 
 describe('PhysicsSettings', () => {
   const defaultSettings: IPhysicsSettings = {
-    gravitationalConstant: -50,
-    springLength: 100,
-    springConstant: 0.08,
+    repelForce: 5,
+    linkDistance: 100,
+    linkForce: 0.08,
     damping: 0.4,
-    centralGravity: 0.01,
+    centerForce: 0.01,
   };
 
   beforeEach(() => {
@@ -57,10 +57,10 @@ describe('PhysicsSettings', () => {
       fireEvent.click(screen.getByTitle('Physics Settings'));
       
       // Check for labels
-      expect(screen.getByText('Gravity')).toBeInTheDocument();
+      expect(screen.getByText('Repel Force')).toBeInTheDocument();
       expect(screen.getByText('Link Distance')).toBeInTheDocument();
-      expect(screen.getByText('Link Strength')).toBeInTheDocument();
-      expect(screen.getByText('Center Pull')).toBeInTheDocument();
+      expect(screen.getByText('Link Force')).toBeInTheDocument();
+      expect(screen.getByText('Center Force')).toBeInTheDocument();
       expect(screen.getByText('Damping')).toBeInTheDocument();
     });
 
@@ -113,53 +113,53 @@ describe('PhysicsSettings', () => {
       // Find gravity slider (first one)
       const sliders = screen.getAllByRole('slider');
       
-      // Change first slider (gravity)
-      fireEvent.change(sliders[0], { target: { value: '-100' } });
-      
+      // Change first slider (repel force)
+      fireEvent.change(sliders[0], { target: { value: '10' } });
+
       // Should call onSettingsChange
       expect(onSettingsChange).toHaveBeenCalledWith({
         ...defaultSettings,
-        gravitationalConstant: -100,
+        repelForce: 10,
       });
     });
 
-    it('should update springLength when second slider changes', () => {
+    it('should update linkDistance when second slider changes', () => {
       const onSettingsChange = vi.fn();
       render(
-        <PhysicsSettings 
-          settings={defaultSettings} 
-          onSettingsChange={onSettingsChange} 
+        <PhysicsSettings
+          settings={defaultSettings}
+          onSettingsChange={onSettingsChange}
         />
       );
-      
+
       fireEvent.click(screen.getByTitle('Physics Settings'));
-      
+
       const sliders = screen.getAllByRole('slider');
       fireEvent.change(sliders[1], { target: { value: '200' } });
-      
+
       expect(onSettingsChange).toHaveBeenCalledWith({
         ...defaultSettings,
-        springLength: 200,
+        linkDistance: 200,
       });
     });
 
-    it('should update springConstant when third slider changes', () => {
+    it('should update linkForce when third slider changes', () => {
       const onSettingsChange = vi.fn();
       render(
-        <PhysicsSettings 
-          settings={defaultSettings} 
-          onSettingsChange={onSettingsChange} 
+        <PhysicsSettings
+          settings={defaultSettings}
+          onSettingsChange={onSettingsChange}
         />
       );
-      
+
       fireEvent.click(screen.getByTitle('Physics Settings'));
-      
+
       const sliders = screen.getAllByRole('slider');
       fireEvent.change(sliders[2], { target: { value: '0.5' } });
-      
+
       expect(onSettingsChange).toHaveBeenCalledWith({
         ...defaultSettings,
-        springConstant: 0.5,
+        linkForce: 0.5,
       });
     });
   });
@@ -167,11 +167,11 @@ describe('PhysicsSettings', () => {
   describe('value display', () => {
     it('should display current values', () => {
       const settings: IPhysicsSettings = {
-        gravitationalConstant: -75,
-        springLength: 150,
-        springConstant: 0.12,
+        repelForce: 8,
+        linkDistance: 150,
+        linkForce: 0.12,
         damping: 0.5,
-        centralGravity: 0.05,
+        centerForce: 0.05,
       };
       
       render(<PhysicsSettings settings={settings} />);
@@ -180,7 +180,7 @@ describe('PhysicsSettings', () => {
       fireEvent.click(screen.getByTitle('Physics Settings'));
       
       // Check displayed values (formatted)
-      expect(screen.getByText('-75')).toBeInTheDocument();
+      expect(screen.getByText('8')).toBeInTheDocument();
       expect(screen.getByText('150')).toBeInTheDocument();
       expect(screen.getByText('0.12')).toBeInTheDocument();
       expect(screen.getByText('0.50')).toBeInTheDocument();
@@ -189,41 +189,41 @@ describe('PhysicsSettings', () => {
 
     it('should update displayed value when settings change', () => {
       const { rerender } = render(<PhysicsSettings settings={defaultSettings} />);
-      
+
       fireEvent.click(screen.getByTitle('Physics Settings'));
-      
+
       // Initial value
-      expect(screen.getByText('-50')).toBeInTheDocument();
-      
+      expect(screen.getByText('5')).toBeInTheDocument();
+
       // Update settings
-      const newSettings = { ...defaultSettings, gravitationalConstant: -200 };
+      const newSettings = { ...defaultSettings, repelForce: 15 };
       rerender(<PhysicsSettings settings={newSettings} />);
-      
-      expect(screen.getByText('-200')).toBeInTheDocument();
+
+      expect(screen.getByText('15')).toBeInTheDocument();
     });
   });
 
   describe('VSCode message sending', () => {
     it('should send UPDATE_PHYSICS_SETTING message when slider changes', () => {
       render(<PhysicsSettings settings={defaultSettings} />);
-      
+
       // Expand panel
       fireEvent.click(screen.getByTitle('Physics Settings'));
-      
-      // Change first slider (gravity)
+
+      // Change first slider (repel force)
       const sliders = screen.getAllByRole('slider');
-      fireEvent.change(sliders[0], { target: { value: '-100' } });
-      
+      fireEvent.change(sliders[0], { target: { value: '10' } });
+
       // Should have sent message to VSCode
       const messages = globalThis.__vscodeSentMessages || [];
       const updateMessage = messages.find(
         (m: unknown) => (m as { type: string }).type === 'UPDATE_PHYSICS_SETTING'
       );
-      
+
       expect(updateMessage).toBeDefined();
       expect(updateMessage).toEqual({
         type: 'UPDATE_PHYSICS_SETTING',
-        payload: { key: 'gravitationalConstant', value: -100 },
+        payload: { key: 'repelForce', value: 10 },
       });
     });
 
@@ -253,10 +253,10 @@ describe('PhysicsSettings', () => {
       
       const sliders = screen.getAllByRole('slider');
       const expectedKeys = [
-        'gravitationalConstant',
-        'springLength',
-        'springConstant',
-        'centralGravity',
+        'repelForce',
+        'linkDistance',
+        'linkForce',
+        'centerForce',
         'damping',
       ];
       

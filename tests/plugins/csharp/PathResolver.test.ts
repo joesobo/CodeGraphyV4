@@ -4,7 +4,6 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import * as fs from 'fs';
-import * as path from 'path';
 import { PathResolver } from '../../../src/plugins/csharp/PathResolver';
 import { IDetectedUsing, IDetectedNamespace } from '../../../src/plugins/csharp/ImportDetector';
 
@@ -46,12 +45,6 @@ describe('C# PathResolver', () => {
     const normalized = relativePath.replace(/\\/g, '/');
     const fullPath = `${workspaceRoot}/${normalized}`;
     existingFiles.add(fullPath);
-  }
-
-  function addDir(relativePath: string): void {
-    const normalized = relativePath.replace(/\\/g, '/');
-    const fullPath = `${workspaceRoot}/${normalized}`;
-    existingDirs.add(fullPath);
   }
 
   function createUsing(namespace: string, options: Partial<IDetectedUsing> = {}): IDetectedUsing {

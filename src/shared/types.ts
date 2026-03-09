@@ -240,16 +240,16 @@ export interface IAvailableView {
  * Physics settings for the graph simulation.
  */
 export interface IPhysicsSettings {
-  /** Gravity strength - how strongly nodes pull toward center (negative values) */
-  gravitationalConstant: number;
-  /** Preferred distance between connected nodes */
-  springLength: number;
-  /** Spring stiffness - how strongly connected nodes pull together */
-  springConstant: number;
-  /** How quickly motion settles (0-1) */
+  /** Node repulsion strength (0 = no repel, 20 = max repel). Mapped to d3 forceManyBody. */
+  repelForce: number;
+  /** Preferred distance between connected nodes in pixels (30–500). */
+  linkDistance: number;
+  /** Spring stiffness — how strongly connected nodes pull together (0–1). */
+  linkForce: number;
+  /** How quickly motion settles (0–1). Higher = less jitter after drag. */
   damping: number;
-  /** Pull toward the center of the viewport (0-1) */
-  centralGravity: number;
+  /** Pull toward the viewport center (0 = none, 1 = max). */
+  centerForce: number;
 }
 
 
@@ -282,7 +282,10 @@ export type ExtensionToWebviewMessage =
   | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }
   | { type: 'GROUPS_UPDATED'; payload: { groups: IGroup[] } }
   | { type: 'FILTER_PATTERNS_UPDATED'; payload: { patterns: string[]; pluginPatterns: string[] } }
-  | { type: 'SHOW_ARROWS_UPDATED'; payload: { showArrows: boolean } };
+  | { type: 'SHOW_ARROWS_UPDATED'; payload: { showArrows: boolean } }
+  | { type: 'SHOW_LABELS_UPDATED'; payload: { showLabels: boolean } }
+  // Test/debug: request node positions + sizes for overlap detection
+  | { type: 'GET_NODE_BOUNDS' };
 
 /**
  * Messages sent from the Webview to the Extension.
@@ -336,7 +339,12 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_GROUPS'; payload: { groups: IGroup[] } }
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
   | { type: 'UPDATE_SHOW_ORPHANS'; payload: { showOrphans: boolean } }
-  | { type: 'UPDATE_SHOW_ARROWS'; payload: { showArrows: boolean } };
+  | { type: 'UPDATE_SHOW_ARROWS'; payload: { showArrows: boolean } }
+  | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
+  // Physics lifecycle — sent when physics disables after stabilization
+  | { type: 'PHYSICS_STABILIZED' }
+  // Response to GET_NODE_BOUNDS: positions + radii for all nodes
+  | { type: 'NODE_BOUNDS_RESPONSE'; payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> } };
 
 /**
  * File information returned from extension for tooltips.

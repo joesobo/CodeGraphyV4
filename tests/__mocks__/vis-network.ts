@@ -10,6 +10,11 @@ const networkInstances: Network[] = [];
 // Store what getNodeAt should return (for testing context menu behavior)
 let mockNodeAtPosition: string | undefined = undefined;
 
+// Store the last constructor options for testing
+let lastConstructorOptions: unknown = undefined;
+// Store last created instance for direct access in tests
+let lastInstance: Network | undefined = undefined;
+
 // Store position-to-node mappings for more realistic testing
 const mockNodePositions: Map<string, string> = new Map();
 
@@ -23,8 +28,16 @@ export class Network {
   private instanceHandlers: Map<string, EventHandler[]> = new Map();
   private selectedNodes: string[] = [];
 
-  constructor() {
+  constructor(container?: Element, _data?: unknown, options?: unknown) {
     networkInstances.push(this);
+    lastConstructorOptions = options;
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    lastInstance = this;
+    // Create a canvas so Graph.tsx's querySelector('canvas') finds it during tests
+    if (container) {
+      const canvas = document.createElement('canvas');
+      container.appendChild(canvas);
+    }
   }
 
   on = vi.fn((eventName: string, handler: EventHandler) => {
@@ -119,6 +132,18 @@ export class Network {
     });
     networkInstances.length = 0;
     mockNodeAtPosition = undefined;
+    lastConstructorOptions = undefined;
+    lastInstance = undefined;
+  }
+
+  // Static helper to get the options passed to the last constructor call
+  static getLastConstructorOptions(): unknown {
+    return lastConstructorOptions;
+  }
+
+  // Static helper to get the last created Network instance
+  static getLastInstance(): Network | undefined {
+    return lastInstance;
   }
 
   // Static helper to mock what getNodeAt returns (for context menu tests)

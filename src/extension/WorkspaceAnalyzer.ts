@@ -13,6 +13,7 @@ import { createTypeScriptPlugin } from '../plugins/typescript';
 import { createGDScriptPlugin } from '../plugins/godot';
 import { createPythonPlugin } from '../plugins/python';
 import { createCSharpPlugin } from '../plugins/csharp';
+import { createMarkdownPlugin } from '../plugins/markdown';
 import { ColorPaletteManager } from '../core/colors';
 import { IGraphData, IGraphNode, IGraphEdge, DEFAULT_NODE_COLOR } from '../shared/types';
 import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
@@ -40,7 +41,7 @@ interface IAnalysisCache {
 }
 
 const CACHE_KEY = 'codegraphy.analysisCache';
-const CACHE_VERSION = '1.7.0'; // Bumped for GDScript snake_case fallback + Array[] generics
+const CACHE_VERSION = '1.8.0'; // Bumped for Markdown plugin registration
 
 /** Storage key for file visit counts in workspace state (shared with GraphViewProvider) */
 const VISITS_KEY = 'codegraphy.fileVisits';
@@ -97,6 +98,11 @@ export class WorkspaceAnalyzer {
     // Register built-in C# plugin
     const csPlugin = createCSharpPlugin();
     this._registry.register(csPlugin, { builtIn: true });
+
+    // Register built-in Markdown plugin
+    const mdPlugin = createMarkdownPlugin();
+    this._registry.register(mdPlugin, { builtIn: true });
+
     // Collect plugin colors
     for (const pluginInfo of this._registry.list()) {
       if (pluginInfo.plugin.fileColors) {

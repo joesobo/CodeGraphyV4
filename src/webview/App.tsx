@@ -8,13 +8,13 @@ import { useTheme } from './hooks/useTheme';
 import { IGraphData, IGraphNode, IAvailableView, BidirectionalEdgeMode, IPhysicsSettings, IGroup, NodeSizeMode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
 import { postMessage } from './lib/vscodeApi';
 
-/** Default physics settings */
+/** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
-  gravitationalConstant: -50,
-  springLength: 100,
-  springConstant: 0.08,
-  damping: 0.4,
-  centralGravity: 0.01,
+  repelForce: 10,
+  linkDistance: 80,
+  linkForce: 0.15,
+  damping: 0.7,
+  centerForce: 0.1,
 };
 
 /** Default search options */
@@ -98,6 +98,8 @@ export default function App(): React.ReactElement {
   const [nodeSizeMode, setNodeSizeMode] = useState<NodeSizeMode>('connections');
   const [showOrphans, setShowOrphans] = useState<boolean>(true);
   const [showArrows, setShowArrows] = useState<boolean>(true);
+  const [showLabels, setShowLabels] = useState<boolean>(true);
+  const [graphMode, setGraphMode] = useState<'2d' | '3d'>('2d');
   const theme = useTheme();
 
   // Filter graph data based on search (always uses exact substring matching)
@@ -179,6 +181,9 @@ export default function App(): React.ReactElement {
         case 'SHOW_ARROWS_UPDATED':
           setShowArrows(message.payload.showArrows);
           break;
+        case 'SHOW_LABELS_UPDATED':
+          setShowLabels(message.payload.showLabels);
+          break;
       }
     };
 
@@ -249,6 +254,8 @@ export default function App(): React.ReactElement {
           physicsSettings={physicsSettings}
           nodeSizeMode={nodeSizeMode}
           showArrows={showArrows}
+          showLabels={showLabels}
+          graphMode={graphMode}
         />
         <SettingsPanel
           settings={physicsSettings}
@@ -268,6 +275,13 @@ export default function App(): React.ReactElement {
           depthLimit={depthLimit}
           showArrows={showArrows}
           onShowArrowsChange={setShowArrows}
+          showLabels={showLabels}
+          onShowLabelsChange={(value) => {
+            setShowLabels(value);
+            postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: value } });
+          }}
+          graphMode={graphMode}
+          onGraphModeChange={setGraphMode}
         />
       </div>
     </div>

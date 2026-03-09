@@ -30,59 +30,13 @@ interface SettingsPanelProps {
   depthLimit: number;
   showArrows: boolean;
   onShowArrowsChange: (show: boolean) => void;
+  showLabels: boolean;
+  onShowLabelsChange: (show: boolean) => void;
+  graphMode: '2d' | '3d';
+  onGraphModeChange: (mode: '2d' | '3d') => void;
 }
 
-interface SliderConfig {
-  key: keyof IPhysicsSettings;
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  description: string;
-}
 
-const SLIDERS: SliderConfig[] = [
-  {
-    key: 'gravitationalConstant',
-    label: 'Gravity',
-    min: -500,
-    max: 0,
-    step: 10,
-    description: 'Pull toward center',
-  },
-  {
-    key: 'springLength',
-    label: 'Link Distance',
-    min: 10,
-    max: 500,
-    step: 10,
-    description: 'Distance between nodes',
-  },
-  {
-    key: 'springConstant',
-    label: 'Link Strength',
-    min: 0.01,
-    max: 1,
-    step: 0.01,
-    description: 'Connection stiffness',
-  },
-  {
-    key: 'centralGravity',
-    label: 'Center Pull',
-    min: 0,
-    max: 1,
-    step: 0.01,
-    description: 'Pull toward viewport center',
-  },
-  {
-    key: 'damping',
-    label: 'Damping',
-    min: 0,
-    max: 1,
-    step: 0.05,
-    description: 'Motion settling speed',
-  },
-];
 
 const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
   { value: 'connections', label: 'Connections' },
@@ -144,6 +98,10 @@ export default function SettingsPanel({
   depthLimit,
   showArrows,
   onShowArrowsChange,
+  showLabels,
+  onShowLabelsChange,
+  graphMode,
+  onGraphModeChange,
 }: SettingsPanelProps): React.ReactElement {
   const [isOpen, setIsOpen] = useState(false);
   const [forcesOpen, setForcesOpen] = useState(true);
@@ -159,18 +117,6 @@ export default function SettingsPanel({
 
   // Filters form state
   const [newFilterPattern, setNewFilterPattern] = useState('');
-
-  // Forces handlers
-  const handleSliderChange = (key: keyof IPhysicsSettings, value: number) => {
-    if (onSettingsChange) {
-      onSettingsChange({ ...settings, [key]: value });
-    }
-    postMessage({ type: 'UPDATE_PHYSICS_SETTING', payload: { key, value } });
-  };
-
-  const handleReset = () => {
-    postMessage({ type: 'RESET_PHYSICS_SETTINGS' });
-  };
 
   // Groups handlers
   const handleAddGroup = () => {
@@ -242,6 +188,13 @@ export default function SettingsPanel({
     postMessage({ type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: updated } });
   };
 
+  // Forces handlers
+  const handlePhysicsChange = (key: keyof IPhysicsSettings, value: number) => {
+    const updated = { ...settings, [key]: value };
+    onSettingsChange?.(updated);
+    postMessage({ type: 'UPDATE_PHYSICS_SETTING', payload: { key, value } });
+  };
+
   // Display handlers
   const handleShowArrowsChange = (checked: boolean) => {
     onShowArrowsChange(checked);
@@ -282,36 +235,71 @@ export default function SettingsPanel({
             {/* Forces section */}
             <SectionHeader title="Forces" open={forcesOpen} onToggle={() => setForcesOpen(v => !v)} />
             {forcesOpen && (
-              <div className="space-y-3 mb-2">
-                {SLIDERS.map(({ key, label, min, max, step, description }) => (
-                  <div key={key} className="space-y-1">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs text-zinc-300" title={description}>
-                        {label}
-                      </label>
-                      <span className="text-xs text-zinc-500 font-mono">
-                        {typeof settings[key] === 'number'
-                          ? (settings[key] as number).toFixed(step < 1 ? 2 : 0)
-                          : settings[key]}
-                      </span>
-                    </div>
-                    <input
-                      type="range"
-                      min={min}
-                      max={max}
-                      step={step}
-                      value={settings[key]}
-                      onChange={(e) => handleSliderChange(key, parseFloat(e.target.value))}
-                      className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
-                    />
+              <div className="mb-2 space-y-3 pt-1">
+                {/* Repel Force */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-zinc-300">Repel Force</span>
+                    <span className="text-xs text-zinc-400 font-mono">{settings.repelForce}</span>
                   </div>
-                ))}
-                <button
-                  onClick={handleReset}
-                  className="w-full text-xs text-zinc-400 hover:text-zinc-200 py-1.5 border border-zinc-600 rounded hover:border-zinc-500 transition-colors"
-                >
-                  Reset to Defaults
-                </button>
+                  <input
+                    type="range"
+                    min="0"
+                    max="20"
+                    step="1"
+                    value={settings.repelForce}
+                    onChange={e => handlePhysicsChange('repelForce', Number(e.target.value))}
+                    className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                </div>
+                {/* Center Force */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-zinc-300" title="Pulls nodes toward the graph's origin point (0,0 in simulation space). Higher values keep the graph compact and centered; 0 disables the force.">Center Force</span>
+                    <span className="text-xs text-zinc-400 font-mono">{settings.centerForce.toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={settings.centerForce}
+                    onChange={e => handlePhysicsChange('centerForce', Number(e.target.value))}
+                    className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                </div>
+                {/* Link Distance */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-zinc-300">Link Distance</span>
+                    <span className="text-xs text-zinc-400 font-mono">{settings.linkDistance}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="30"
+                    max="500"
+                    step="10"
+                    value={settings.linkDistance}
+                    onChange={e => handlePhysicsChange('linkDistance', Number(e.target.value))}
+                    className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                </div>
+                {/* Link Force */}
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs text-zinc-300">Link Force</span>
+                    <span className="text-xs text-zinc-400 font-mono">{settings.linkForce.toFixed(2)}</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={settings.linkForce}
+                    onChange={e => handlePhysicsChange('linkForce', Number(e.target.value))}
+                    className="w-full h-1.5 bg-zinc-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                  />
+                </div>
               </div>
             )}
 
@@ -481,6 +469,36 @@ export default function SettingsPanel({
                   />
                   <span className="text-xs text-zinc-300">Show Arrows</span>
                 </label>
+
+                {/* Labels toggle */}
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showLabels}
+                    onChange={e => onShowLabelsChange(e.target.checked)}
+                    className="accent-blue-500"
+                  />
+                  <span className="text-xs text-zinc-300">Show Labels</span>
+                </label>
+
+                {/* Graph Mode */}
+                <div className="flex items-center justify-between py-0.5">
+                  <span className="text-xs text-zinc-300">Graph Mode</span>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => onGraphModeChange('2d')}
+                      className={`text-xs px-2 py-0.5 rounded transition-colors ${graphMode === '2d' ? 'bg-blue-500 text-white' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`}
+                    >
+                      2D
+                    </button>
+                    <button
+                      onClick={() => onGraphModeChange('3d')}
+                      className={`text-xs px-2 py-0.5 rounded transition-colors ${graphMode === '3d' ? 'bg-blue-500 text-white' : 'bg-zinc-700 text-zinc-300 hover:bg-zinc-600'}`}
+                    >
+                      3D
+                    </button>
+                  </div>
+                </div>
 
                 {/* Node Size */}
                 <div>

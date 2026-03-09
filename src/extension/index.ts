@@ -28,14 +28,18 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   context.subscriptions.push(
     vscode.workspace.onDidChangeConfiguration((event) => {
       if (event.affectsConfiguration('codegraphy.physics')) {
-        // Physics settings changed - only update physics, no full refresh
-        // This handles external config changes (editing settings.json directly)
-        // Note: Slider changes already send physics updates via UPDATE_PHYSICS_SETTING,
-        // but this ensures external changes also work
-        console.log('[CodeGraphy] Physics configuration changed');
+        // Physics settings: only update physics, no re-analysis
         provider.refreshPhysicsSettings();
+      } else if (
+        event.affectsConfiguration('codegraphy.showArrows') ||
+        event.affectsConfiguration('codegraphy.showLabels') ||
+        event.affectsConfiguration('codegraphy.bidirectionalEdges')
+      ) {
+        // Display-only settings: resend display settings, no re-analysis or position reset
+        provider.refreshSettings();
       } else if (event.affectsConfiguration('codegraphy')) {
-        // Other codegraphy settings changed - full refresh
+        // All other codegraphy settings (filterPatterns, showOrphans, maxFiles, etc.)
+        // require re-analysis because they affect which files/nodes are in the graph
         console.log('[CodeGraphy] Configuration changed, refreshing graph');
         provider.refresh();
       }

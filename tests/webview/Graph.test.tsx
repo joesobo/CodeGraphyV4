@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
 import Graph from '../../src/webview/components/Graph';
 import { IGraphData } from '../../src/shared/types';
-import { Network } from 'vis-network';
+import ForceGraph2D from 'react-force-graph-2d';
 
 // Helper to get sent messages from the global mock (set up in tests/setup.ts)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -29,6 +29,7 @@ describe('Graph', () => {
 
   beforeEach(() => {
     clearSentMessages();
+    ForceGraph2D.clearAllHandlers();
   });
 
   afterEach(() => {
@@ -46,15 +47,12 @@ describe('Graph', () => {
     const graphContainer = container.querySelector('div');
     expect(graphContainer).toHaveClass('absolute', 'inset-0', 'rounded-lg', 'm-1');
     expect(graphContainer).toHaveStyle({ backgroundColor: '#18181b' });
-    // Border is now inline style for theme support
     expect(graphContainer).toHaveStyle({ borderWidth: '1px', borderStyle: 'solid' });
   });
 
-  it('should initialize vis-network on mount', () => {
-    // The Network constructor should be called with nodes and edges
-    const { container } = render(<Graph data={mockData} />);
-    // Network initialization happens - we verify the container is set up
-    expect(container.querySelector('div')).toBeInTheDocument();
+  it('should render ForceGraph2D on mount', () => {
+    render(<Graph data={mockData} />);
+    expect(screen.getByTestId('force-graph-2d')).toBeInTheDocument();
   });
 
   it('should handle empty graph data', () => {
@@ -91,19 +89,17 @@ describe('Graph Messages', () => {
   });
 
   it('should define correct message types', () => {
-    // Test that message types are correctly structured
     const nodeSelectedMsg = { type: 'NODE_SELECTED', payload: { nodeId: 'test.ts' } };
     const nodeDoubleClickedMsg = { type: 'NODE_DOUBLE_CLICKED', payload: { nodeId: 'test.ts' } };
     const webviewReadyMsg = { type: 'WEBVIEW_READY', payload: null };
 
-    // Verify structure
     expect(nodeSelectedMsg.type).toBe('NODE_SELECTED');
     expect(nodeDoubleClickedMsg.type).toBe('NODE_DOUBLE_CLICKED');
     expect(webviewReadyMsg.type).toBe('WEBVIEW_READY');
   });
 });
 
-describe('Bug #39: Ctrl+click context menu behavior', () => {
+describe('Bug #39: Context menu behavior', () => {
   const mockData: IGraphData = {
     nodes: [
       { id: 'a.ts', label: 'a.ts', color: '#93C5FD' },
@@ -115,31 +111,15 @@ describe('Bug #39: Ctrl+click context menu behavior', () => {
 
   beforeEach(() => {
     clearSentMessages();
-    Network.clearAllHandlers();
+    ForceGraph2D.clearAllHandlers();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('should register select event handler for tracking selection', () => {
-    render(<Graph data={mockData} />);
-    
-    // Verify select event is registered
-    const registeredEvents = Network.getRegisteredEvents();
-    expect(registeredEvents).toContain('select');
-  });
-
-  /**
-   * Bug #39 fix: Context menu logic is now in React's onContextMenu handler
-   * instead of vis-network's oncontext event. This ensures the node under
-   * the pointer is captured BEFORE Radix opens the menu, fixing the issue
-   * where first Ctrl+click showed background menu instead of node menu.
-   */
   it('should render container with onContextMenu handler', () => {
     const { container } = render(<Graph data={mockData} />);
-    
-    // The container div should exist (context menu logic is now handled via React)
     const graphContainer = container.querySelector('[tabindex="0"]');
     expect(graphContainer).toBeTruthy();
   });
@@ -148,44 +128,11 @@ describe('Bug #39: Ctrl+click context menu behavior', () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
     expect(graphContainer).toBeTruthy();
-    
-    // Simulate right-click via React - the onContextMenu handler processes it
-    // before Radix opens the menu, ensuring correct node targeting
-    await act(async () => {
-      const event = new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
-        clientX: 100,
-        clientY: 100,
-      });
-      graphContainer!.dispatchEvent(event);
-    });
-    
-    // No errors means handler executed successfully
-    // The actual menu display is handled by Radix
-  });
 
-  it('should handle Ctrl+click context menu same as right-click', async () => {
-    const { container } = render(<Graph data={mockData} />);
-    const graphContainer = container.querySelector('[tabindex="0"]');
-    expect(graphContainer).toBeTruthy();
-    
-    // Simulate Ctrl+click - should behave same as right-click
-    // (no multi-select, menu based on mouse position)
     await act(async () => {
-      const event = new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
-        clientX: 100,
-        clientY: 100,
-        ctrlKey: true,
-        metaKey: false,
-      });
+      const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 100, clientY: 100 });
       graphContainer!.dispatchEvent(event);
     });
-    
-    // No errors means handler executed successfully
-    // Ctrl+click behaves same as right-click: menu based on mouse position
   });
 });
 
@@ -202,36 +149,29 @@ describe('Context Menu Content and Actions', () => {
 
   beforeEach(() => {
     clearSentMessages();
-    Network.clearAllHandlers();
-    // Configure mock to return node at specific position
-    Network.setMockNodeAtPosition({ x: 100, y: 100 }, 'src/app.ts');
-    Network.setMockNodeAtPosition({ x: 200, y: 200 }, 'src/utils.ts');
+    ForceGraph2D.clearAllHandlers();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    Network.clearMockPositions();
+    ForceGraph2D.clearMockPositions();
   });
 
   it('should show background menu items when right-clicking empty space', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
-    // Right-click on empty space (no node at position 300, 300)
+
     await act(async () => {
+      ForceGraph2D.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer!, { clientX: 300, clientY: 300 });
     });
 
-    // Wait for menu to appear
     await waitFor(() => {
       expect(screen.getByText('New File...')).toBeInTheDocument();
     });
 
-    // Verify background menu items
     expect(screen.getByText('Refresh Graph')).toBeInTheDocument();
     expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
-    
-    // Node-specific items should NOT be present
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
   });
@@ -239,18 +179,16 @@ describe('Context Menu Content and Actions', () => {
   it('should show node menu items when right-clicking a node', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
-    // Right-click on node position
+
     await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
       fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
     });
 
-    // Wait for menu to appear
     await waitFor(() => {
       expect(screen.getByText('Open File')).toBeInTheDocument();
     });
 
-    // Verify node menu items
     expect(screen.getByText('Reveal in Explorer')).toBeInTheDocument();
     expect(screen.getByText('Copy Relative Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
@@ -258,8 +196,6 @@ describe('Context Menu Content and Actions', () => {
     expect(screen.getByText('Add to Exclude')).toBeInTheDocument();
     expect(screen.getByText('Rename...')).toBeInTheDocument();
     expect(screen.getByText('Delete File')).toBeInTheDocument();
-    
-    // Background items should NOT be present
     expect(screen.queryByText('New File...')).not.toBeInTheDocument();
     expect(screen.queryByText('Refresh Graph')).not.toBeInTheDocument();
   });
@@ -267,9 +203,9 @@ describe('Context Menu Content and Actions', () => {
   it('should show "Remove from Favorites" for favorited nodes', async () => {
     const { container } = render(<Graph data={mockData} favorites={mockFavorites} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
-    // Right-click on favorited node (app.ts at 100,100)
+
     await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
       fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
     });
 
@@ -281,9 +217,9 @@ describe('Context Menu Content and Actions', () => {
   it('should show "Add to Favorites" for non-favorited nodes', async () => {
     const { container } = render(<Graph data={mockData} favorites={mockFavorites} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
-    // Right-click on non-favorited node (utils.ts at 200,200)
+
     await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/utils.ts' });
       fireEvent.contextMenu(graphContainer!, { clientX: 200, clientY: 200 });
     });
 
@@ -295,9 +231,9 @@ describe('Context Menu Content and Actions', () => {
   it('should send OPEN_FILE message when clicking Open File', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
-    // Right-click on node
+
     await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
       fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
     });
 
@@ -305,12 +241,10 @@ describe('Context Menu Content and Actions', () => {
       expect(screen.getByText('Open File')).toBeInTheDocument();
     });
 
-    // Click the menu item
     await act(async () => {
       fireEvent.click(screen.getByText('Open File'));
     });
 
-    // Verify message was sent
     const messages = getSentMessages();
     const openMsg = messages.find((m: { type: string }) => m.type === 'OPEN_FILE');
     expect(openMsg).toBeTruthy();
@@ -320,9 +254,9 @@ describe('Context Menu Content and Actions', () => {
   it('should send TOGGLE_FAVORITE message when clicking favorite option', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
-    // Right-click on node
+
     await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
       fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
     });
 
@@ -343,9 +277,9 @@ describe('Context Menu Content and Actions', () => {
   it('should send REFRESH_GRAPH message when clicking Refresh Graph', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
-    // Right-click on empty space
+
     await act(async () => {
+      ForceGraph2D.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer!, { clientX: 300, clientY: 300 });
     });
 
@@ -364,8 +298,9 @@ describe('Context Menu Content and Actions', () => {
   it('should send DELETE_FILES message when clicking Delete File', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
+
     await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
       fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
     });
 
@@ -395,103 +330,73 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
 
   beforeEach(() => {
     clearSentMessages();
-    Network.clearAllHandlers();
-    Network.setMockNodeAtPosition({ x: 100, y: 100 }, 'nodeA.ts');
-    Network.setMockNodeAtPosition({ x: 200, y: 200 }, 'nodeB.ts');
+    ForceGraph2D.clearAllHandlers();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    Network.clearMockPositions();
+    ForceGraph2D.clearMockPositions();
   });
 
-  /**
-   * Critical bug fix test: Context menu should be based on mouse position,
-   * NOT on what's currently selected. If node A is selected and you 
-   * right-click on the background, you should get background menu.
-   */
   it('should show background menu when right-clicking background even if node is selected', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
-    // First, select nodeA by clicking on it
+
+    // First select nodeA
     await act(async () => {
-      // Trigger the select handler through vis-network mock
-      const selectHandler = Network.getHandler('select');
-      if (selectHandler) {
-        selectHandler({ nodes: ['nodeA.ts'], edges: [] });
-      }
+      ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
     });
 
-    // Now right-click on empty background (not on any node)
+    // Right-click on background
     await act(async () => {
+      ForceGraph2D.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer!, { clientX: 500, clientY: 500 });
     });
 
-    // Should show BACKGROUND menu, not node menu
     await waitFor(() => {
       expect(screen.getByText('New File...')).toBeInTheDocument();
     });
-    
-    // Node-specific items should NOT appear
+
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
   });
 
   it('should show node menu for clicked node even if different node is selected', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
+
     // Select nodeA
     await act(async () => {
-      const selectHandler = Network.getHandler('select');
-      if (selectHandler) {
-        selectHandler({ nodes: ['nodeA.ts'], edges: [] });
-      }
+      ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
     });
 
-    // Right-click on nodeB (different node)
+    // Right-click on nodeB
     await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'nodeB.ts' });
       fireEvent.contextMenu(graphContainer!, { clientX: 200, clientY: 200 });
     });
 
-    // Should show node menu
     await waitFor(() => {
       expect(screen.getByText('Open File')).toBeInTheDocument();
     });
   });
 
-  /**
-   * Ctrl+click should behave exactly like right-click.
-   * This means: no multi-select, menu based on mouse position.
-   */
   it('should show background menu when Ctrl+clicking background even if node is selected', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
-    // First, select nodeA
+
     await act(async () => {
-      const selectHandler = Network.getHandler('select');
-      if (selectHandler) {
-        selectHandler({ nodes: ['nodeA.ts'], edges: [] });
-      }
+      ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
     });
 
-    // Ctrl+click on empty background (not on any node)
     await act(async () => {
-      fireEvent.contextMenu(graphContainer!, { 
-        clientX: 500, 
-        clientY: 500,
-        ctrlKey: true,
-      });
+      ForceGraph2D.simulateBackgroundRightClick();
+      fireEvent.contextMenu(graphContainer!, { clientX: 500, clientY: 500, ctrlKey: true });
     });
 
-    // Should show BACKGROUND menu, not node menu
-    // Ctrl+click behaves same as right-click
     await waitFor(() => {
       expect(screen.getByText('New File...')).toBeInTheDocument();
     });
-    
-    // Node-specific items should NOT appear
+
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
   });
 
@@ -508,9 +413,7 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
           { id: 'hub.ts->leaf2.ts', from: 'hub.ts', to: 'leaf2.ts' },
         ],
       };
-
       const { container } = render(<Graph data={data} />);
-      // Graph should render without errors
       expect(container.querySelector('div')).toBeInTheDocument();
     });
 
@@ -520,11 +423,8 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
           { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
           { id: 'leaf.ts', label: 'leaf.ts', color: '#93C5FD' },
         ],
-        edges: [
-          { id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' },
-        ],
+        edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' }],
       };
-
       const { container } = render(<Graph data={data} nodeSizeMode="uniform" />);
       expect(container.querySelector('div')).toBeInTheDocument();
     });
@@ -537,7 +437,6 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
         ],
         edges: [],
       };
-
       const { container } = render(<Graph data={data} nodeSizeMode="file-size" />);
       expect(container.querySelector('div')).toBeInTheDocument();
     });
@@ -546,27 +445,22 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
       const data: IGraphData = {
         nodes: [
           { id: 'known.ts', label: 'known.ts', color: '#93C5FD', fileSize: 1000 },
-          { id: 'unknown.ts', label: 'unknown.ts', color: '#93C5FD' }, // No fileSize
+          { id: 'unknown.ts', label: 'unknown.ts', color: '#93C5FD' },
         ],
         edges: [],
       };
-
       const { container } = render(<Graph data={data} nodeSizeMode="file-size" />);
-      // Should render without errors even with missing file sizes
       expect(container.querySelector('div')).toBeInTheDocument();
     });
 
-    it('should handle access-count mode (falls back to connections for now)', () => {
+    it('should handle access-count mode', () => {
       const data: IGraphData = {
         nodes: [
           { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
           { id: 'leaf.ts', label: 'leaf.ts', color: '#93C5FD' },
         ],
-        edges: [
-          { id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' },
-        ],
+        edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' }],
       };
-
       const { container } = render(<Graph data={data} nodeSizeMode="access-count" />);
       expect(container.querySelector('div')).toBeInTheDocument();
     });
@@ -575,43 +469,32 @@ describe('Context Menu: Mouse Position vs Selection (Bug Fix)', () => {
 
 describe('Tooltip Behavior', () => {
   const mockData: IGraphData = {
-    nodes: [
-      { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
-    ],
+    nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' }],
     edges: [],
   };
 
   beforeEach(() => {
     clearSentMessages();
-    Network.clearAllHandlers();
-    Network.setMockNodeAtPosition({ x: 100, y: 100 }, 'src/app.ts');
+    ForceGraph2D.clearAllHandlers();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    Network.clearMockPositions();
+    ForceGraph2D.clearMockPositions();
   });
 
   it('should hide tooltip when context menu opens', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
-    
-    // Opening context menu should hide any visible tooltip
-    // (The tooltip visibility is controlled by state that gets set to false
-    // in handleContextMenu before the menu opens)
+
     await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
       fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
     });
 
-    // Wait for context menu to appear
     await waitFor(() => {
       expect(screen.getByText('Open File')).toBeInTheDocument();
     });
-
-    // Tooltip should not be visible (we can't easily test the internal state,
-    // but we can verify the context menu opened successfully which means
-    // the handler ran and should have hidden the tooltip)
-    // The implementation sets tooltipData.visible = false in handleContextMenu
   });
 });
 
@@ -626,63 +509,48 @@ describe('Export Functionality', () => {
 
   beforeEach(() => {
     clearSentMessages();
-    Network.clearAllHandlers();
+    ForceGraph2D.clearAllHandlers();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
-    Network.clearMockPositions();
+    ForceGraph2D.clearMockPositions();
   });
 
   it('should register message listener on mount', async () => {
     render(<Graph data={mockData} nodeSizeMode="file-size" />);
-    
-    // The component should have added a message listener
-    // We can verify this by checking if window has a listener
-    // (the component adds one in useEffect)
     await act(async () => {
-      // Give time for useEffect to run
       await new Promise(resolve => setTimeout(resolve, 0));
     });
-    
-    // If the listener is registered, sending a message should be received
-    // (but we can't easily test the internal state without more mocking)
-    expect(true).toBe(true); // Placeholder - component mounts successfully
+    expect(true).toBe(true);
   });
 
   it('should handle REQUEST_EXPORT_JSON message and send EXPORT_JSON response', async () => {
     render(<Graph data={mockData} nodeSizeMode="file-size" />);
-    
-    // Wait for component to mount and register listener
+
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, 10));
     });
 
-    // Simulate receiving REQUEST_EXPORT_JSON from extension
     await act(async () => {
-      const event = new MessageEvent('message', {
-        data: { type: 'REQUEST_EXPORT_JSON' },
-      });
+      const event = new MessageEvent('message', { data: { type: 'REQUEST_EXPORT_JSON' } });
       window.dispatchEvent(event);
     });
 
-    // Wait for response
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, 50));
     });
 
-    // Check if EXPORT_JSON message was sent
     const messages = getSentMessages();
     const exportMsg = messages.find((m: { type: string }) => m.type === 'EXPORT_JSON');
-    
+
     expect(exportMsg).toBeTruthy();
-    
+
     if (exportMsg) {
       const payload = (exportMsg as { payload: { json: string; filename?: string } }).payload;
       expect(payload.json).toBeDefined();
       expect(payload.filename).toMatch(/^codegraphy-layout-.*\.json$/);
-      
-      // Parse the JSON and verify structure
+
       const parsed = JSON.parse(payload.json);
       expect(parsed.version).toBe('1.0');
       expect(parsed.exportedAt).toBeDefined();
@@ -691,8 +559,7 @@ describe('Export Functionality', () => {
       expect(parsed.metadata.totalNodes).toBe(2);
       expect(parsed.metadata.totalEdges).toBe(1);
       expect(parsed.metadata.nodeSizeMode).toBe('file-size');
-      
-      // Verify node structure
+
       const appNode = parsed.nodes.find((n: { id: string }) => n.id === 'src/app.ts');
       expect(appNode).toBeTruthy();
       expect(appNode.label).toBe('app.ts');
@@ -700,8 +567,7 @@ describe('Export Functionality', () => {
       expect(appNode.fileSize).toBe(1234);
       expect(appNode.accessCount).toBe(5);
       expect(appNode.position).toBeDefined();
-      
-      // Verify edge structure (id removed per #86 - it's redundant since from+to uniquely identifies the edge)
+
       expect(parsed.edges[0].id).toBeUndefined();
       expect(parsed.edges[0].from).toBe('src/app.ts');
       expect(parsed.edges[0].to).toBe('src/utils.ts');
@@ -710,45 +576,33 @@ describe('Export Functionality', () => {
 
   it('should handle REQUEST_EXPORT_SVG message and send EXPORT_SVG response', async () => {
     render(<Graph data={mockData} />);
-    
-    // Wait for component to mount and register listener
+
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, 10));
     });
 
-    // Simulate receiving REQUEST_EXPORT_SVG from extension
     await act(async () => {
-      const event = new MessageEvent('message', {
-        data: { type: 'REQUEST_EXPORT_SVG' },
-      });
+      const event = new MessageEvent('message', { data: { type: 'REQUEST_EXPORT_SVG' } });
       window.dispatchEvent(event);
     });
 
-    // Wait for response
     await act(async () => {
       await new Promise(resolve => setTimeout(resolve, 50));
     });
 
-    // Check if EXPORT_SVG message was sent
     const messages = getSentMessages();
     const exportMsg = messages.find((m: { type: string }) => m.type === 'EXPORT_SVG');
-    
+
     expect(exportMsg).toBeTruthy();
-    
+
     if (exportMsg) {
       const payload = (exportMsg as { payload: { svg: string; filename?: string } }).payload;
       expect(payload.svg).toBeDefined();
       expect(payload.filename).toMatch(/^codegraphy-.*\.svg$/);
-      
-      // Verify it's valid SVG
       expect(payload.svg).toContain('<?xml version="1.0" encoding="UTF-8"?>');
       expect(payload.svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"');
       expect(payload.svg).toContain('</svg>');
-      
-      // Should contain background rect
       expect(payload.svg).toContain('fill="#18181b"');
-      
-      // Should contain arrow marker definition
       expect(payload.svg).toContain('<marker id="arrowhead"');
     }
   });

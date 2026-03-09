@@ -10,7 +10,6 @@ import { describe, it, expect, beforeAll } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createCSharpPlugin } from '../../../src/plugins/csharp';
-import { IConnection } from '../../../src/core/plugins/types';
 
 const CSHARP_EXAMPLE_ROOT = path.join(__dirname, '../../../examples/csharp-plugin');
 

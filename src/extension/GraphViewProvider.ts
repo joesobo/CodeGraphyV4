@@ -26,13 +26,13 @@ import {
 } from './actions';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
 
-/** Default physics settings */
+/** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
-  gravitationalConstant: -50,
-  springLength: 100,
-  springConstant: 0.08,
-  damping: 0.4,
-  centralGravity: 0.01,
+  repelForce: 10,
+  linkDistance: 80,
+  linkForce: 0.15,
+  damping: 0.7,
+  centerForce: 0.1,
 };
 
 /** Storage key for file visit counts in workspace state */
@@ -238,6 +238,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   public refreshPhysicsSettings(): void {
     this._sendPhysicsSettings();
+  }
+
+  /**
+   * Sends display settings (arrows, labels, bidirectional, etc.) to the webview
+   * without re-analyzing the workspace. Used for display-only config changes.
+   */
+  public refreshSettings(): void {
+    this._sendSettings();
   }
 
   /**
@@ -763,6 +771,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._sendMessage({ type: 'SHOW_ARROWS_UPDATED', payload: { showArrows: message.payload.showArrows } });
           break;
         }
+
+        case 'UPDATE_SHOW_LABELS': {
+          const labelsTarget = vscode.workspace.workspaceFolders?.length
+            ? vscode.ConfigurationTarget.Workspace
+            : vscode.ConfigurationTarget.Global;
+          await vscode.workspace.getConfiguration('codegraphy').update('showLabels', message.payload.showLabels, labelsTarget);
+          this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels: message.payload.showLabels } });
+          break;
+        }
       }
     });
   }
@@ -1088,8 +1105,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const bidirectionalEdges = config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate');
     const showOrphans = config.get<boolean>('showOrphans', true);
     const showArrows = config.get<boolean>('showArrows', true);
+    const showLabels = config.get<boolean>('showLabels', true);
     this._sendMessage({ type: 'SETTINGS_UPDATED', payload: { bidirectionalEdges, showOrphans } });
     this._sendMessage({ type: 'SHOW_ARROWS_UPDATED', payload: { showArrows } });
+    this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels } });
   }
 
   /**
@@ -1191,11 +1210,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _getPhysicsSettings(): IPhysicsSettings {
     const config = vscode.workspace.getConfiguration('codegraphy.physics');
     return {
-      gravitationalConstant: config.get<number>('gravitationalConstant', DEFAULT_PHYSICS.gravitationalConstant),
-      springLength: config.get<number>('springLength', DEFAULT_PHYSICS.springLength),
-      springConstant: config.get<number>('springConstant', DEFAULT_PHYSICS.springConstant),
+      repelForce: config.get<number>('repelForce', DEFAULT_PHYSICS.repelForce),
+      linkDistance: config.get<number>('linkDistance', DEFAULT_PHYSICS.linkDistance),
+      linkForce: config.get<number>('linkForce', DEFAULT_PHYSICS.linkForce),
       damping: config.get<number>('damping', DEFAULT_PHYSICS.damping),
-      centralGravity: config.get<number>('centralGravity', DEFAULT_PHYSICS.centralGravity),
+      centerForce: config.get<number>('centerForce', DEFAULT_PHYSICS.centerForce),
     };
   }
 
@@ -1233,11 +1252,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const target = vscode.workspace.workspaceFolders?.length
       ? vscode.ConfigurationTarget.Workspace
       : vscode.ConfigurationTarget.Global;
-    await config.update('gravitationalConstant', undefined, target);
-    await config.update('springLength', undefined, target);
-    await config.update('springConstant', undefined, target);
+    await config.update('repelForce', undefined, target);
+    await config.update('linkDistance', undefined, target);
+    await config.update('linkForce', undefined, target);
     await config.update('damping', undefined, target);
-    await config.update('centralGravity', undefined, target);
+    await config.update('centerForce', undefined, target);
     // Config change listener handles sending PHYSICS_SETTINGS_UPDATED
   }
 

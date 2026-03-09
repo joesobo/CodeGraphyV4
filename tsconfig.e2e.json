@@ -9,7 +9,8 @@
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
-    "noEmit": false
+    "noEmit": false,
+    "types": ["mocha", "node"]
   },
   "include": ["src/e2e/**/*", "src/shared/types.ts"],
   "exclude": ["node_modules"]

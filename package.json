@@ -1,307 +1,313 @@
 {
-  "name": "codegraphy",
-  "displayName": "CodeGraphy",
-  "description": "Visualize your codebase as an interactive 2D force graph",
-  "version": "0.1.0",
-  "publisher": "joesobo",
-  "engines": {
-    "vscode": "^1.85.0"
-  },
-  "categories": [
-    "Visualization",
-    "Other"
-  ],
-  "keywords": [
-    "graph",
-    "visualization",
-    "dependencies",
-    "imports",
-    "codebase"
-  ],
-  "activationEvents": [],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "codegraphy.open",
-        "title": "CodeGraphy: Open"
-      },
-      {
-        "command": "codegraphy.fitView",
-        "title": "CodeGraphy: Fit All Nodes in View"
-      },
-      {
-        "command": "codegraphy.zoomIn",
-        "title": "CodeGraphy: Zoom In"
-      },
-      {
-        "command": "codegraphy.zoomOut",
-        "title": "CodeGraphy: Zoom Out"
-      },
-      {
-        "command": "codegraphy.undo",
-        "title": "CodeGraphy: Undo"
-      },
-      {
-        "command": "codegraphy.redo",
-        "title": "CodeGraphy: Redo"
-      },
-      {
-        "command": "codegraphy.exportPng",
-        "title": "CodeGraphy: Export as PNG"
-      },
-      {
-        "command": "codegraphy.exportSvg",
-        "title": "CodeGraphy: Export as SVG"
-      },
-      {
-        "command": "codegraphy.exportJson",
-        "title": "CodeGraphy: Export Layout as JSON"
-      },
-      {
-        "command": "codegraphy.clearCache",
-        "title": "CodeGraphy: Clear Cache and Refresh"
-      }
-    ],
-    "keybindings": [
-      {
-        "command": "codegraphy.fitView",
-        "key": "0",
-        "when": "codegraphy.graphFocused"
-      },
-      {
-        "command": "codegraphy.zoomIn",
-        "key": "=",
-        "when": "codegraphy.graphFocused"
-      },
-      {
-        "command": "codegraphy.zoomIn",
-        "key": "shift+=",
-        "when": "codegraphy.graphFocused"
-      },
-      {
-        "command": "codegraphy.zoomOut",
-        "key": "-",
-        "when": "codegraphy.graphFocused"
-      },
-      {
-        "command": "codegraphy.undo",
-        "key": "ctrl+z",
-        "mac": "cmd+z",
-        "when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
-      },
-      {
-        "command": "codegraphy.redo",
-        "key": "ctrl+shift+z",
-        "mac": "cmd+shift+z",
-        "when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
-      },
-      {
-        "command": "codegraphy.redo",
-        "key": "ctrl+y",
-        "when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
-      }
-    ],
-    "viewsContainers": {
-      "activitybar": [
-        {
-          "id": "codegraphy",
-          "title": "CodeGraphy",
-          "icon": "assets/icon.svg"
-        }
-      ]
-    },
-    "views": {
-      "codegraphy": [
-        {
-          "type": "webview",
-          "id": "codegraphy.graphView",
-          "name": "Graph"
-        }
-      ]
-    },
-    "configuration": {
-      "title": "CodeGraphy",
-      "properties": {
-        "codegraphy.maxFiles": {
-          "type": "number",
-          "default": 100,
-          "description": "Maximum number of files to analyze. Shows a warning if exceeded."
-        },
-        "codegraphy.include": {
-          "type": "array",
-          "items": "string",
-          "default": [
-            "**/*"
-          ],
-          "description": "Glob patterns for files to include in analysis."
-        },
-        "codegraphy.respectGitignore": {
-          "type": "boolean",
-          "default": true,
-          "description": "Also exclude files matched by .gitignore."
-        },
-        "codegraphy.showOrphans": {
-          "type": "boolean",
-          "default": true,
-          "description": "Show files that have no connections (no imports and not imported)."
-        },
-        "codegraphy.plugins": {
-          "type": "array",
-          "items": "string",
-          "default": [],
-          "description": "List of CodeGraphy plugin extension names to enable (e.g., 'codegraphy-rust')."
-        },
-        "codegraphy.favorites": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [],
-          "description": "List of favorite file paths. Favorited files are displayed with a yellow outline in the graph."
-        },
-        "codegraphy.bidirectionalEdges": {
-          "type": "string",
-          "enum": [
-            "separate",
-            "combined"
-          ],
-          "default": "separate",
-          "enumDescriptions": [
-            "Show two separate arrows for bidirectional connections",
-            "Show a single bidirectional arrow with arrowheads on both ends"
-          ],
-          "description": "How to display bidirectional connections (when A imports B and B imports A)."
-        },
-        "codegraphy.physics.gravitationalConstant": {
-          "type": "number",
-          "default": -50,
-          "minimum": -500,
-          "maximum": 0,
-          "description": "Gravity strength - how strongly nodes pull toward center. More negative = stronger pull."
-        },
-        "codegraphy.physics.springLength": {
-          "type": "number",
-          "default": 100,
-          "minimum": 10,
-          "maximum": 500,
-          "description": "Preferred distance between connected nodes."
-        },
-        "codegraphy.physics.springConstant": {
-          "type": "number",
-          "default": 0.08,
-          "minimum": 0.01,
-          "maximum": 1,
-          "description": "Spring stiffness - how strongly connected nodes pull together."
-        },
-        "codegraphy.physics.damping": {
-          "type": "number",
-          "default": 0.4,
-          "minimum": 0,
-          "maximum": 1,
-          "description": "How quickly motion settles. Higher = faster settling."
-        },
-        "codegraphy.physics.centralGravity": {
-          "type": "number",
-          "default": 0.01,
-          "minimum": 0,
-          "maximum": 1,
-          "description": "Pull toward the center of the viewport."
-        },
-        "codegraphy.groups": {
-          "type": "array",
-          "default": [],
-          "description": "Color groups for matching files. Each entry has a glob pattern and a hex color. Takes priority over workspace state groups.",
-          "items": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "pattern": {
-                "type": "string"
-              },
-              "color": {
-                "type": "string",
-                "pattern": "^#[0-9A-Fa-f]{6}$"
-              }
-            }
-          }
-        },
-        "codegraphy.filterPatterns": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "default": [],
-          "description": "Glob patterns for files to exclude from the graph (applied at discovery). Replaces codegraphy.exclude."
-        }
-      }
-    }
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run build",
-    "build": "npm run build:extension && npm run build:webview",
-    "build:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
-    "build:webview": "vite build",
-    "watch": "concurrently \"npm run watch:extension\" \"npm run watch:webview\"",
-    "watch:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --watch",
-    "watch:webview": "vite build --watch",
-    "dev": "npm run watch",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "lint": "eslint src",
-    "typecheck": "tsc --noEmit",
-    "prepare": "husky",
-    "test:e2e": "npm run build:e2e && node dist-e2e/e2e/runTest.js",
-    "build:e2e": "npm run build && tsc -p tsconfig.e2e.json"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.0.0",
-    "@testing-library/jest-dom": "^6.2.0",
-    "@testing-library/react": "^14.1.2",
-    "@types/glob": "^8.1.0",
-    "@types/mocha": "^10.0.10",
-    "@types/node": "^20.11.0",
-    "@types/react": "^18.2.48",
-    "@types/react-dom": "^18.2.18",
-    "@types/vscode": "^1.85.0",
-    "@vitejs/plugin-react": "^4.2.1",
-    "@vscode/test-electron": "^2.5.2",
-    "autoprefixer": "^10.4.17",
-    "concurrently": "^8.2.2",
-    "esbuild": "^0.25.0",
-    "eslint": "^9.0.0",
-    "eslint-plugin-mocha": "^11.2.0",
-    "eslint-plugin-react": "^7.37.0",
-    "eslint-plugin-react-hooks": "^5.0.0",
-    "glob": "^13.0.6",
-    "globals": "^15.0.0",
-    "husky": "^9.0.0",
-    "jsdom": "^25.0.0",
-    "lint-staged": "^15.0.0",
-    "mocha": "^11.7.5",
-    "postcss": "^8.4.33",
-    "tailwindcss": "^3.4.1",
-    "typescript": "^5.3.3",
-    "typescript-eslint": "^8.0.0",
-    "vite": "^6.2.0",
-    "vitest": "^3.0.0"
-  },
-  "dependencies": {
-    "@radix-ui/react-context-menu": "^2.2.16",
-    "@radix-ui/react-slot": "^1.2.4",
-    "@radix-ui/react-tooltip": "^1.2.8",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "distinct-colors": "^3.0.0",
-    "fuse.js": "^7.1.0",
-    "ignore": "^7.0.5",
-    "minimatch": "^10.1.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "tailwind-merge": "^3.4.0",
-    "vis-data": "^8.0.3",
-    "vis-network": "^10.0.2"
-  }
+	"name": "codegraphy",
+	"displayName": "CodeGraphy",
+	"description": "Visualize your codebase as an interactive 2D force graph",
+	"version": "0.1.0",
+	"publisher": "joesobo",
+	"engines": {
+		"vscode": "^1.85.0"
+	},
+	"categories": [
+		"Visualization",
+		"Other"
+	],
+	"keywords": [
+		"graph",
+		"visualization",
+		"dependencies",
+		"imports",
+		"codebase"
+	],
+	"activationEvents": [],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "codegraphy.open",
+				"title": "CodeGraphy: Open"
+			},
+			{
+				"command": "codegraphy.fitView",
+				"title": "CodeGraphy: Fit All Nodes in View"
+			},
+			{
+				"command": "codegraphy.zoomIn",
+				"title": "CodeGraphy: Zoom In"
+			},
+			{
+				"command": "codegraphy.zoomOut",
+				"title": "CodeGraphy: Zoom Out"
+			},
+			{
+				"command": "codegraphy.undo",
+				"title": "CodeGraphy: Undo"
+			},
+			{
+				"command": "codegraphy.redo",
+				"title": "CodeGraphy: Redo"
+			},
+			{
+				"command": "codegraphy.exportPng",
+				"title": "CodeGraphy: Export as PNG"
+			},
+			{
+				"command": "codegraphy.exportSvg",
+				"title": "CodeGraphy: Export as SVG"
+			},
+			{
+				"command": "codegraphy.exportJson",
+				"title": "CodeGraphy: Export Layout as JSON"
+			},
+			{
+				"command": "codegraphy.clearCache",
+				"title": "CodeGraphy: Clear Cache and Refresh"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "codegraphy.fitView",
+				"key": "0",
+				"when": "codegraphy.graphFocused"
+			},
+			{
+				"command": "codegraphy.zoomIn",
+				"key": "=",
+				"when": "codegraphy.graphFocused"
+			},
+			{
+				"command": "codegraphy.zoomIn",
+				"key": "shift+=",
+				"when": "codegraphy.graphFocused"
+			},
+			{
+				"command": "codegraphy.zoomOut",
+				"key": "-",
+				"when": "codegraphy.graphFocused"
+			},
+			{
+				"command": "codegraphy.undo",
+				"key": "ctrl+z",
+				"mac": "cmd+z",
+				"when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
+			},
+			{
+				"command": "codegraphy.redo",
+				"key": "ctrl+shift+z",
+				"mac": "cmd+shift+z",
+				"when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
+			},
+			{
+				"command": "codegraphy.redo",
+				"key": "ctrl+y",
+				"when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "codegraphy",
+					"title": "CodeGraphy",
+					"icon": "assets/icon.svg"
+				}
+			]
+		},
+		"views": {
+			"codegraphy": [
+				{
+					"type": "webview",
+					"id": "codegraphy.graphView",
+					"name": "Graph"
+				}
+			]
+		},
+		"configuration": {
+			"title": "CodeGraphy",
+			"properties": {
+				"codegraphy.maxFiles": {
+					"type": "number",
+					"default": 100,
+					"description": "Maximum number of files to analyze. Shows a warning if exceeded."
+				},
+				"codegraphy.include": {
+					"type": "array",
+					"items": "string",
+					"default": [
+						"**/*"
+					],
+					"description": "Glob patterns for files to include in analysis."
+				},
+				"codegraphy.respectGitignore": {
+					"type": "boolean",
+					"default": true,
+					"description": "Also exclude files matched by .gitignore."
+				},
+				"codegraphy.showOrphans": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show files that have no connections (no imports and not imported)."
+				},
+				"codegraphy.plugins": {
+					"type": "array",
+					"items": "string",
+					"default": [],
+					"description": "List of CodeGraphy plugin extension names to enable (e.g., 'codegraphy-rust')."
+				},
+				"codegraphy.favorites": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "List of favorite file paths. Favorited files are displayed with a yellow outline in the graph."
+				},
+				"codegraphy.bidirectionalEdges": {
+					"type": "string",
+					"enum": [
+						"separate",
+						"combined"
+					],
+					"default": "separate",
+					"enumDescriptions": [
+						"Show two separate arrows for bidirectional connections",
+						"Show a single bidirectional arrow with arrowheads on both ends"
+					],
+					"description": "How to display bidirectional connections (when A imports B and B imports A)."
+				},
+				"codegraphy.physics.repelForce": {
+					"type": "number",
+					"default": 10,
+					"minimum": 0,
+					"maximum": 20,
+					"description": "Node repulsion strength (0 = no repel, 20 = max repel)."
+				},
+				"codegraphy.physics.linkDistance": {
+					"type": "number",
+					"default": 80,
+					"minimum": 30,
+					"maximum": 500,
+					"description": "Preferred distance between connected nodes in pixels."
+				},
+				"codegraphy.physics.linkForce": {
+					"type": "number",
+					"default": 0.15,
+					"minimum": 0,
+					"maximum": 1,
+					"description": "Spring stiffness — how strongly connected nodes pull together (0–1)."
+				},
+				"codegraphy.physics.damping": {
+					"type": "number",
+					"default": 0.7,
+					"minimum": 0,
+					"maximum": 1,
+					"description": "How quickly motion settles. Higher = less jitter after dragging."
+				},
+				"codegraphy.physics.centerForce": {
+					"type": "number",
+					"default": 0.1,
+					"minimum": 0,
+					"maximum": 1,
+					"description": "Pull toward the viewport center (0 = none, 1 = max)."
+				},
+				"codegraphy.groups": {
+					"type": "array",
+					"default": [],
+					"description": "Color groups for matching files. Each entry has a glob pattern and a hex color. Takes priority over workspace state groups.",
+					"items": {
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "string"
+							},
+							"pattern": {
+								"type": "string"
+							},
+							"color": {
+								"type": "string",
+								"pattern": "^#[0-9A-Fa-f]{6}$"
+							}
+						}
+					}
+				},
+				"codegraphy.filterPatterns": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "Glob patterns for files to exclude from the graph (applied at discovery). Replaces codegraphy.exclude."
+				},
+				"codegraphy.showLabels": {
+					"type": "boolean",
+					"default": true,
+					"description": "Show file name labels on graph nodes."
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run build",
+		"build": "npm run build:extension && npm run build:webview",
+		"build:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+		"build:webview": "vite build",
+		"watch": "concurrently \"npm run watch:extension\" \"npm run watch:webview\"",
+		"watch:extension": "esbuild src/extension/index.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --watch",
+		"watch:webview": "vite build --watch",
+		"dev": "npm run watch",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"lint": "eslint src",
+		"typecheck": "tsc --noEmit",
+		"prepare": "husky",
+		"test:e2e": "npm run build:e2e && node dist-e2e/e2e/runTest.js",
+		"build:e2e": "npm run build && tsc -p tsconfig.e2e.json"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.0.0",
+		"@testing-library/jest-dom": "^6.2.0",
+		"@testing-library/react": "^14.1.2",
+		"@types/glob": "^8.1.0",
+		"@types/mocha": "^10.0.10",
+		"@types/node": "^20.11.0",
+		"@types/react": "^18.2.48",
+		"@types/react-dom": "^18.2.18",
+		"@types/vscode": "^1.85.0",
+		"@vitejs/plugin-react": "^4.2.1",
+		"@vscode/test-electron": "^2.5.2",
+		"autoprefixer": "^10.4.17",
+		"concurrently": "^8.2.2",
+		"esbuild": "^0.25.0",
+		"eslint": "^9.0.0",
+		"eslint-plugin-mocha": "^11.2.0",
+		"eslint-plugin-react": "^7.37.0",
+		"eslint-plugin-react-hooks": "^5.0.0",
+		"glob": "^13.0.6",
+		"globals": "^15.0.0",
+		"husky": "^9.0.0",
+		"jsdom": "^25.0.0",
+		"lint-staged": "^15.0.0",
+		"mocha": "^11.7.5",
+		"postcss": "^8.4.33",
+		"tailwindcss": "^3.4.1",
+		"typescript": "^5.3.3",
+		"typescript-eslint": "^8.0.0",
+		"vite": "^6.2.0",
+		"vitest": "^3.0.0"
+	},
+	"dependencies": {
+		"@radix-ui/react-context-menu": "^2.2.16",
+		"@radix-ui/react-slot": "^1.2.4",
+		"@radix-ui/react-tooltip": "^1.2.8",
+		"@types/d3-force": "^3.0.10",
+		"clsx": "^2.1.1",
+		"d3-force": "^3.0.0",
+		"distinct-colors": "^3.0.0",
+		"ignore": "^7.0.5",
+		"minimatch": "^10.1.1",
+		"react": "^18.2.0",
+		"react-dom": "^18.2.0",
+		"react-force-graph-2d": "^1.29.1",
+		"react-force-graph-3d": "^1.29.1",
+		"tailwind-merge": "^3.4.0",
+		"three-spritetext": "^1.10.0"
+	}
 }

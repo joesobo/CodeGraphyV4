@@ -11,7 +11,6 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { createPythonPlugin } from '../../../src/plugins/python';
 import { createTypeScriptPlugin } from '../../../src/plugins/typescript';
-import { IConnection } from '../../../src/core/plugins/types';
 
 const PYTHON_EXAMPLE_ROOT = path.join(__dirname, '../../../examples/python-plugin');
 

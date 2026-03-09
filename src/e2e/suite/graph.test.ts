@@ -80,6 +80,104 @@ suite('Graph: Workspace Analysis', function () {
   });
 });
 
+// Helper: returns a promise that resolves with the first webview message
+// matching the given type, or rejects after timeoutMs.
+function waitForMessage(
+  api: CodeGraphyAPI,
+  type: string,
+  timeoutMs: number
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`Timed out waiting for webview message: ${type}`)),
+      timeoutMs
+    );
+    const disposable = api.onWebviewMessage((msg: unknown) => {
+      if ((msg as { type: string }).type === type) {
+        clearTimeout(timer);
+        disposable.dispose();
+        resolve(msg);
+      }
+    });
+  });
+}
+
+suite('Graph: Physics Stabilization', function () {
+  this.timeout(30_000);
+
+  // This test catches the class of bug where physics settings cause the graph
+  // to never stabilize (e.g. avoidOverlap: 1.0 creates persistent border forces
+  // that keep velocity above minVelocity indefinitely). If PHYSICS_STABILIZED
+  // never arrives, the graph is jittering and the test fails.
+  test('graph physics stabilizes within 10 seconds of opening', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+
+    return new Promise<void>((resolve, reject) => {
+      const timeout = setTimeout(
+        () => reject(new Error('Physics never stabilized — graph may be jittering')),
+        10_000
+      );
+
+      const disposable = api.onWebviewMessage((msg: unknown) => {
+        const message = msg as { type: string };
+        if (message.type === 'PHYSICS_STABILIZED') {
+          clearTimeout(timeout);
+          disposable.dispose();
+          resolve();
+        }
+      });
+    });
+  });
+});
+
+suite('Graph: No Node Overlap After Stabilization', function () {
+  this.timeout(30_000);
+
+  // This test catches physics settings that leave nodes visually overlapping
+  // in dense graphs. It waits for PHYSICS_STABILIZED, then requests the actual
+  // canvas positions and radii from the webview and computes pairwise distances.
+  // Two nodes overlap when dist(centers) < radius_a + radius_b.
+  test('no two nodes overlap after physics stabilizes', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+
+    // Wait for physics to stabilize (fails if it never does — see jitter test)
+    await waitForMessage(api, 'PHYSICS_STABILIZED', 15_000);
+
+    // Small settling buffer so positions are fully committed
+    await sleep(500);
+
+    // Request node positions + sizes from the webview
+    const boundsPromise = waitForMessage(api, 'NODE_BOUNDS_RESPONSE', 5_000);
+    api.sendToWebview({ type: 'GET_NODE_BOUNDS' });
+    const boundsMsg = await boundsPromise as { type: string; payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> } };
+
+    const nodes = boundsMsg.payload.nodes;
+    assert.ok(nodes.length > 0, 'Expected at least one node');
+
+    // Check every pair for overlap
+    const overlapping: string[] = [];
+    for (let i = 0; i < nodes.length; i++) {
+      for (let j = i + 1; j < nodes.length; j++) {
+        const a = nodes[i];
+        const b = nodes[j];
+        const dist = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
+        const minDist = a.size + b.size;
+        if (dist < minDist) {
+          overlapping.push(`"${path.basename(a.id)}" ↔ "${path.basename(b.id)}" (dist=${dist.toFixed(1)}, need≥${minDist})`);
+        }
+      }
+    }
+
+    assert.strictEqual(
+      overlapping.length,
+      0,
+      `${overlapping.length} overlapping node pair(s):\n  ${overlapping.join('\n  ')}`
+    );
+  });
+});
+
 suite('Graph: Webview Messaging', function () {
   this.timeout(30_000);
 
