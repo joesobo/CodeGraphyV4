@@ -5,8 +5,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
-import { PathResolver } from '../../../src/plugins/python/PathResolver';
-import { IDetectedImport } from '../../../src/plugins/python/ImportDetector';
+import { PathResolver, IDetectedImport } from '../../../src/plugins/python/PathResolver';
 
 // Mock fs module
 vi.mock('fs');
