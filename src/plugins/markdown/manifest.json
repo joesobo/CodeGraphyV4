@@ -1,0 +1,15 @@
+{
+  "id": "codegraphy.markdown",
+  "name": "Markdown",
+  "version": "1.0.0",
+  "supportedExtensions": [".md", ".mdx"],
+  "defaultExclude": [],
+  "defaultFilterPatterns": [],
+  "fileColors": {
+    ".md": "#7C3AED",
+    ".mdx": "#8B5CF6"
+  },
+  "rules": [
+    { "id": "wikilink", "name": "Wikilinks", "description": "[[Note Name]], ![[embed]]" }
+  ]
+}
