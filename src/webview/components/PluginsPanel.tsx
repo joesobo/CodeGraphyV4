@@ -3,7 +3,6 @@ import { IPluginStatus } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
 import { cn } from '../lib/utils';
 import { Switch } from './ui/switch';
-import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Button } from './ui/button';
@@ -27,12 +26,6 @@ function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
     </svg>
   );
 }
-
-const STATUS_VARIANT: Record<string, 'default' | 'secondary' | 'outline'> = {
-  active: 'default',
-  installed: 'secondary',
-  inactive: 'outline',
-};
 
 export default function PluginsPanel({ isOpen, onClose, plugins }: PluginsPanelProps): React.ReactElement | null {
   const [expandedPlugins, setExpandedPlugins] = useState<Set<string>>(new Set());
@@ -76,10 +69,10 @@ export default function PluginsPanel({ isOpen, onClose, plugins }: PluginsPanelP
           ) : (
             plugins.map((plugin, index) => {
               const isExpanded = expandedPlugins.has(plugin.id);
-              const isInactive = plugin.status === 'inactive';
+              const dimmed = !plugin.enabled;
 
               return (
-                <div key={plugin.id} className={cn(isInactive && 'opacity-50')}>
+                <div key={plugin.id} className={cn(dimmed && 'opacity-50')}>
                   <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(plugin.id)}>
                     {/* Plugin header */}
                     <div className="flex items-center gap-2 py-2.5">
@@ -92,18 +85,10 @@ export default function PluginsPanel({ isOpen, onClose, plugins }: PluginsPanelP
                       <Switch
                         checked={plugin.enabled}
                         onCheckedChange={(val) => handleTogglePlugin(plugin.id, val)}
-                        disabled={isInactive}
                         className="scale-[0.8] origin-left"
                       />
 
                       <span className="text-xs flex-1 truncate">{plugin.name}</span>
-
-                      <Badge
-                        variant={STATUS_VARIANT[plugin.status] ?? 'outline'}
-                        className="text-[10px] px-1.5 py-0 h-4"
-                      >
-                        {plugin.status}
-                      </Badge>
 
                       <span className="text-xs text-muted-foreground flex-shrink-0 tabular-nums">
                         {plugin.connectionCount}
@@ -147,21 +132,10 @@ export default function PluginsPanel({ isOpen, onClose, plugins }: PluginsPanelP
                               </span>
                             </div>
                           ))}
-
-                          {plugin.supportedExtensions.length > 0 && (
-                            <div className="pt-1 text-[10px] text-muted-foreground">
-                              Extensions: {plugin.supportedExtensions.map(ext => `.${ext}`).join(', ')}
-                            </div>
-                          )}
                         </div>
                       ) : (
                         <div className="ml-5 mb-2">
                           <p className="text-xs text-muted-foreground">No rules declared.</p>
-                          {plugin.supportedExtensions.length > 0 && (
-                            <div className="pt-1 text-[10px] text-muted-foreground">
-                              Extensions: {plugin.supportedExtensions.map(ext => `.${ext}`).join(', ')}
-                            </div>
-                          )}
                         </div>
                       )}
                     </CollapsibleContent>
