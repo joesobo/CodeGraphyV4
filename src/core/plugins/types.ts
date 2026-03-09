@@ -6,6 +6,42 @@
  */
 
 /**
+ * Represents a detection rule declared by a plugin.
+ * Rules describe categories of connections a plugin can detect.
+ */
+export interface IRule {
+  /** Unique identifier within the plugin (e.g., 'es6-import', 'preload') */
+  id: string;
+  /** Human-readable name (e.g., 'ES6 Imports') */
+  name: string;
+  /** Short description (e.g., 'import x from "y", import { a } from "y"') */
+  description: string;
+}
+
+/**
+ * Interface for a rule detection module.
+ * Each rule file in a plugin's rules/ folder exports a detect function matching this shape.
+ */
+export interface IRuleDetector<TContext = unknown> {
+  /** Rule ID — must match the corresponding entry in manifest.json */
+  id: string;
+
+  /**
+   * Detect connections for this rule.
+   *
+   * @param content - File content as string
+   * @param filePath - Absolute path to the file
+   * @param context - Plugin-specific context (e.g., PathResolver instance)
+   * @returns Array of connections. Each MUST have ruleId set to this rule's id.
+   */
+  detect(
+    content: string,
+    filePath: string,
+    context: TContext
+  ): IConnection[];
+}
+
+/**
  * Represents a detected connection (import) from one file to another.
  */
 export interface IConnection {
@@ -15,6 +51,8 @@ export interface IConnection {
   resolvedPath: string | null;
   /** The type of import */
   type: 'static' | 'dynamic' | 'require' | 'reexport';
+  /** The rule that detected this connection (e.g., 'es6-import'). Optional for backward compat. */
+  ruleId?: string;
 }
 
 /**
@@ -55,6 +93,13 @@ export interface IPlugin {
   /** File extensions this plugin can handle (e.g., ['.ts', '.tsx']) */
   supportedExtensions: string[];
   
+  /**
+   * Optional detection rules this plugin supports.
+   * Each rule describes a category of connections the plugin can detect.
+   * Used by the Plugins panel to let users toggle individual rule types.
+   */
+  rules?: IRule[];
+
   /**
    * Optional preferred colors for supported file extensions.
    * These colors override generated colors but can be overridden by user settings.
