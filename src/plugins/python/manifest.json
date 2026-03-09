@@ -3,7 +3,7 @@
   "name": "Python",
   "version": "1.0.0",
   "supportedExtensions": [".py", ".pyi"],
-  "defaultExclude": [
+  "defaultFilters": [
     "**/venv/**",
     "**/.venv/**",
     "**/env/**",
@@ -18,7 +18,6 @@
     "**/build/**",
     "**/.eggs/**"
   ],
-  "defaultFilterPatterns": [],
   "fileColors": {
     ".py": "#3776AB",
     ".pyi": "#3776AB",

@@ -3,7 +3,7 @@
   "name": "TypeScript/JavaScript",
   "version": "1.0.0",
   "supportedExtensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"],
-  "defaultExclude": [
+  "defaultFilters": [
     "**/node_modules/**",
     "**/dist/**",
     "**/build/**",
@@ -13,7 +13,6 @@
     "**/coverage/**",
     "**/.turbo/**"
   ],
-  "defaultFilterPatterns": [],
   "fileColors": {
     ".ts": "#3178C6",
     ".tsx": "#61DAFB",
