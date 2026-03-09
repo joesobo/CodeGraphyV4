@@ -6,7 +6,23 @@
 
 import * as path from 'path';
 import * as fs from 'fs';
-import { IDetectedImport } from './ImportDetector';
+/**
+ * Represents a detected import in a Python source file.
+ */
+export interface IDetectedImport {
+  /** The module name/path as written (e.g., 'os', 'mypackage.utils') */
+  module: string;
+  /** Items imported (for 'from x import y') */
+  names?: string[];
+  /** Whether this is a relative import (starts with .) */
+  isRelative: boolean;
+  /** Number of parent levels for relative imports (e.g., '..' = 2) */
+  relativeLevel: number;
+  /** The type of import statement */
+  type: 'import' | 'from';
+  /** Line number where the import appears (1-indexed) */
+  line: number;
+}
 
 /**
  * Configuration for Python path resolution.
