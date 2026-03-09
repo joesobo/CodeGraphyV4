@@ -55,6 +55,20 @@ describe('Graph: force-graph rendering', () => {
     expect(props.d3VelocityDecay).toBe(0.7);
   });
 
+  it('uses per-node center pull forces (forceX/forceY) instead of centroid forceCenter', () => {
+    render(<Graph data={mockData} physicsSettings={{
+      repelForce: 10,
+      linkDistance: 80,
+      linkForce: 0.15,
+      damping: 0.7,
+      centerForce: 1,
+    }} />);
+
+    expect(mockMethods.d3Force).toHaveBeenCalledWith('forceX');
+    expect(mockMethods.d3Force).toHaveBeenCalledWith('forceY');
+    expect(mockMethods.d3Force).not.toHaveBeenCalledWith('center');
+  });
+
   it('sends PHYSICS_STABILIZED when onEngineStop fires', () => {
     render(<Graph data={mockData} />);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

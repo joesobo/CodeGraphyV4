@@ -10,7 +10,7 @@ import type { ForceGraphMethods as FG2DMethods, NodeObject, LinkObject } from 'r
 import ForceGraph3D from 'react-force-graph-3d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import SpriteText from 'three-spritetext';
-import { forceCollide } from 'd3-force';
+import { forceCollide, forceX, forceY } from 'd3-force';
 import {
   IGraphData,
   IGraphNode,
@@ -840,8 +840,11 @@ export default function Graph({
       d3LinkForce.strength(physicsSettings.linkForce);
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const d3CenterForce = fg.d3Force('center') as any;
-    if (d3CenterForce) d3CenterForce.strength(physicsSettings.centerForce);
+    const d3ForceX = fg.d3Force('forceX') as any;
+    if (d3ForceX) d3ForceX.strength(physicsSettings.centerForce);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const d3ForceY = fg.d3Force('forceY') as any;
+    if (d3ForceY) d3ForceY.strength(physicsSettings.centerForce);
     fg.d3ReheatSimulation();
   }, [physicsSettings, graphMode]);
 
@@ -944,9 +947,9 @@ export default function Graph({
       d3LinkForce.distance(physicsSettings.linkDistance);
       d3LinkForce.strength(physicsSettings.linkForce);
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const d3CenterForce = instance.d3Force('center') as any;
-    if (d3CenterForce) d3CenterForce.strength(physicsSettings.centerForce);
+    // Pull each node toward origin (0,0) instead of just translating the centroid.
+    instance.d3Force('forceX', forceX(0).strength(physicsSettings.centerForce));
+    instance.d3Force('forceY', forceY(0).strength(physicsSettings.centerForce));
     // Add collision force to prevent nodes overlapping
     instance.d3Force('collision', forceCollide((node: FGNode) => node.size + 4));
   // eslint-disable-next-line react-hooks/exhaustive-deps
