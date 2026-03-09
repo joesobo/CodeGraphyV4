@@ -71,10 +71,10 @@ export class Configuration {
   /**
    * Maximum number of files to analyze.
    * Shows a warning if the workspace exceeds this limit.
-   * @default 100
+   * @default 500
    */
   get maxFiles(): number {
-    return this.config.get<number>('maxFiles', 100);
+    return this.config.get<number>('maxFiles', 500);
   }
 
   /**

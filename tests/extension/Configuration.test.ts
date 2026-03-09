@@ -17,7 +17,7 @@ describe('Configuration', () => {
   beforeEach(() => {
     // Reset mock config to defaults
     mockConfig = {
-      maxFiles: 100,
+      maxFiles: 500,
       include: ['**/*'],
       respectGitignore: true,
       showOrphans: true,
@@ -33,9 +33,9 @@ describe('Configuration', () => {
   });
 
   describe('default values', () => {
-    it('should return default maxFiles of 100', () => {
+    it('should return default maxFiles of 500', () => {
       const config = new Configuration();
-      expect(config.maxFiles).toBe(100);
+      expect(config.maxFiles).toBe(500);
     });
 
     it('should return default include pattern', () => {
@@ -97,7 +97,7 @@ describe('Configuration', () => {
       const all: ICodeGraphyConfig = config.getAll();
 
       expect(all).toEqual({
-        maxFiles: 100,
+        maxFiles: 500,
         include: ['**/*'],
         respectGitignore: true,
         showOrphans: true,

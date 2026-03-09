@@ -9,7 +9,7 @@
 export interface IDiscoveryOptions {
   /** Absolute path to the workspace root */
   rootPath: string;
-  /** Maximum number of files to discover (default: 100) */
+  /** Maximum number of files to discover (default: 500) */
   maxFiles?: number;
   /** Glob patterns for files to include (default: ['**\/*']) */
   include?: string[];

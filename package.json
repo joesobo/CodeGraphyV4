@@ -125,7 +125,7 @@
 			"properties": {
 				"codegraphy.maxFiles": {
 					"type": "number",
-					"default": 100,
+					"default": 500,
 					"description": "Maximum number of files to analyze. Shows a warning if exceeded."
 				},
 				"codegraphy.include": {

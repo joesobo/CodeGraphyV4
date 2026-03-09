@@ -329,6 +329,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'SHOW_ARROWS_UPDATED'; payload: { showArrows: boolean } }
   | { type: 'SHOW_LABELS_UPDATED'; payload: { showLabels: boolean } }
   | { type: 'PLUGINS_UPDATED'; payload: { plugins: IPluginStatus[] } }
+  | { type: 'MAX_FILES_UPDATED'; payload: { maxFiles: number } }
   // Test/debug: request node positions + sizes for overlap detection
   | { type: 'GET_NODE_BOUNDS' };
 
@@ -391,6 +392,7 @@ export type WebviewToExtensionMessage =
   // Plugin toggles
   | { type: 'TOGGLE_RULE'; payload: { qualifiedId: string; enabled: boolean } }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; enabled: boolean } }
+  | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
   // Response to GET_NODE_BOUNDS: positions + radii for all nodes
   | { type: 'NODE_BOUNDS_RESPONSE'; payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> } };
 

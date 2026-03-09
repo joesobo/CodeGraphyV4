@@ -103,6 +103,7 @@ export default function App(): React.ReactElement {
   const [showLabels, setShowLabels] = useState<boolean>(true);
   const [graphMode, setGraphMode] = useState<'2d' | '3d'>('2d');
   const [pluginStatuses, setPluginStatuses] = useState<IPluginStatus[]>([]);
+  const [maxFiles, setMaxFiles] = useState<number>(500);
   const [activePanel, setActivePanel] = useState<'none' | 'settings' | 'plugins'>('none');
   const theme = useTheme();
 
@@ -191,6 +192,9 @@ export default function App(): React.ReactElement {
         case 'PLUGINS_UPDATED':
           setPluginStatuses(message.payload.plugins);
           break;
+        case 'MAX_FILES_UPDATED':
+          setMaxFiles(message.payload.maxFiles);
+          break;
       }
     };
 
@@ -264,7 +268,7 @@ export default function App(): React.ReactElement {
           showLabels={showLabels}
           graphMode={graphMode}
         />
-        <div className="absolute bottom-2 right-2 z-10">
+        <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end">
           {activePanel !== 'none' ? (
             <>
               <PluginsPanel
@@ -299,6 +303,8 @@ export default function App(): React.ReactElement {
                 }}
                 graphMode={graphMode}
                 onGraphModeChange={setGraphMode}
+                maxFiles={maxFiles}
+                onMaxFilesChange={setMaxFiles}
               />
             </>
           ) : (

@@ -44,6 +44,9 @@ interface SettingsPanelProps {
   onShowLabelsChange: (show: boolean) => void;
   graphMode: '2d' | '3d';
   onGraphModeChange: (mode: '2d' | '3d') => void;
+  // Files
+  maxFiles: number;
+  onMaxFilesChange: (maxFiles: number) => void;
 }
 
 const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
@@ -113,6 +116,8 @@ export default function SettingsPanel({
   onShowLabelsChange,
   graphMode,
   onGraphModeChange,
+  maxFiles,
+  onMaxFilesChange,
 }: SettingsPanelProps): React.ReactElement | null {
   const [forcesOpen, setForcesOpen] = useState(true);
   const [groupsOpen, setGroupsOpen] = useState(false);
@@ -210,6 +215,13 @@ export default function SettingsPanel({
     postMessage({ type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: updated } });
   };
 
+  // Max files handler
+  const handleMaxFilesCommit = (value: number) => {
+    const clamped = Math.max(1, value);
+    onMaxFilesChange(clamped);
+    postMessage({ type: 'UPDATE_MAX_FILES', payload: { maxFiles: clamped } });
+  };
+
   // Forces handlers
   const flushPhysicsSetting = (key: keyof IPhysicsSettings) => {
     const pendingValue = pendingPhysicsValuesRef.current[key];
@@ -261,7 +273,7 @@ export default function SettingsPanel({
   };
 
   return (
-    <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-[calc(100vh-4rem)] flex flex-col">
+    <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
       {/* Panel header */}
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <span className="text-sm font-medium">Settings</span>
@@ -273,7 +285,7 @@ export default function SettingsPanel({
       </div>
 
       {/* Scrollable content */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="px-3 pb-3">
 
           {/* Forces section */}
@@ -429,6 +441,48 @@ export default function SettingsPanel({
                   checked={showOrphans}
                   onCheckedChange={handleShowOrphansToggle}
                 />
+              </div>
+
+              {/* Max Files */}
+              <div className="flex items-center justify-between py-0.5">
+                <Label className="text-xs">Max Files</Label>
+                <div className="flex items-center gap-0.5">
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => handleMaxFilesCommit(Math.max(1, maxFiles - 100))}
+                    disabled={maxFiles <= 1}
+                    title="Decrease by 100"
+                  >
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
+                    </svg>
+                  </Button>
+                  <Input
+                    type="text"
+                    inputMode="numeric"
+                    value={maxFiles}
+                    onChange={e => {
+                      const v = parseInt(e.target.value, 10);
+                      if (!isNaN(v)) onMaxFilesChange(v);
+                    }}
+                    onBlur={e => handleMaxFilesCommit(parseInt(e.target.value, 10) || 1)}
+                    onKeyDown={e => e.key === 'Enter' && handleMaxFilesCommit(parseInt((e.target as HTMLInputElement).value, 10) || 1)}
+                    className="h-6 w-14 text-xs text-center px-1"
+                  />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-6 w-6"
+                    onClick={() => handleMaxFilesCommit(maxFiles + 100)}
+                    title="Increase by 100"
+                  >
+                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                  </Button>
+                </div>
               </div>
 
               {/* Plugin default filter patterns (read-only) */}

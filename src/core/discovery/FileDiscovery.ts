@@ -62,7 +62,7 @@ export class FileDiscovery {
     
     const {
       rootPath,
-      maxFiles = 100,
+      maxFiles = 500,
       include = ['**/*'],
       exclude = [],
       respectGitignore = true,
