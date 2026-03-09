@@ -10,7 +10,6 @@ Visualize your codebase as an interactive 2D force graph. See how files connect 
 - **Color groups** — Assign colors to files using glob patterns; all nodes start grey and groups add meaning
 - **Real file analysis** — Parses actual imports using the TypeScript compiler API
 - **Interactive** — Pan, zoom, drag nodes, click to select, double-click to open files
-- **Position persistence** — Your graph layout is saved and restored between sessions
 - **Fast** — Built with Vis Network for smooth physics simulation
 - **Settings Panel** — Tune physics, manage groups, filter files, and switch views from the graph UI
 - **Extensible** — Plugin architecture for language support

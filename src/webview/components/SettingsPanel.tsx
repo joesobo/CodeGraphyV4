@@ -9,6 +9,9 @@ import { IPhysicsSettings, IGroup, NodeSizeMode, IAvailableView } from '../../sh
 import { postMessage } from '../lib/vscodeApi';
 
 interface SettingsPanelProps {
+  // Panel visibility
+  isOpen: boolean;
+  onClose: () => void;
   // Forces
   settings: IPhysicsSettings;
   onSettingsChange?: (settings: IPhysicsSettings) => void;
@@ -84,6 +87,8 @@ function SectionHeader({
 }
 
 export default function SettingsPanel({
+  isOpen,
+  onClose,
   settings,
   onSettingsChange,
   groups,
@@ -105,8 +110,7 @@ export default function SettingsPanel({
   onShowLabelsChange,
   graphMode,
   onGraphModeChange,
-}: SettingsPanelProps): React.ReactElement {
-  const [isOpen, setIsOpen] = useState(false);
+}: SettingsPanelProps): React.ReactElement | null {
   const [forcesOpen, setForcesOpen] = useState(true);
   const [groupsOpen, setGroupsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
@@ -123,6 +127,16 @@ export default function SettingsPanel({
 
   const pendingPhysicsValuesRef = useRef<Partial<Record<keyof IPhysicsSettings, number>>>({});
   const physicsPersistTimersRef = useRef<Partial<Record<keyof IPhysicsSettings, ReturnType<typeof setTimeout>>>>({});
+
+  useEffect(() => {
+    return () => {
+      for (const timer of Object.values(physicsPersistTimersRef.current)) {
+        if (timer) clearTimeout(timer);
+      }
+    };
+  }, []);
+
+  if (!isOpen) return null;
 
   // Groups handlers
   const handleAddGroup = () => {
@@ -222,14 +236,6 @@ export default function SettingsPanel({
     }, PHYSICS_PERSIST_DEBOUNCE_MS);
   };
 
-  useEffect(() => {
-    return () => {
-      for (const timer of Object.values(physicsPersistTimersRef.current)) {
-        if (timer) clearTimeout(timer);
-      }
-    };
-  }, []);
-
   const handlePhysicsChange = (key: keyof IPhysicsSettings, value: number) => {
     const updated = { ...settings, [key]: value };
     onSettingsChange?.(updated);
@@ -252,19 +258,13 @@ export default function SettingsPanel({
     postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: newDepth } });
   };
 
-  const handleManualRefresh = () => {
-    postMessage({ type: 'REFRESH_GRAPH' });
-  };
-
   return (
-    <div className="absolute bottom-2 right-2 z-10">
-      {isOpen ? (
         <div className="bg-zinc-800/95 backdrop-blur-sm rounded-lg border border-zinc-700 w-72 shadow-lg max-h-[calc(100vh-4rem)] flex flex-col">
           {/* Panel header */}
           <div className="flex items-center justify-between px-3 py-2 border-b border-zinc-700 flex-shrink-0">
             <span className="text-sm font-medium text-zinc-200">Settings</span>
             <button
-              onClick={() => setIsOpen(false)}
+              onClick={onClose}
               className="text-zinc-400 hover:text-zinc-200 p-1"
               title="Close"
             >
@@ -617,36 +617,5 @@ export default function SettingsPanel({
             )}
           </div>
         </div>
-      ) : (
-        <div className="flex items-center gap-1.5">
-          <button
-            onClick={handleManualRefresh}
-            className="bg-zinc-800/80 hover:bg-zinc-700/90 backdrop-blur-sm rounded-lg border border-zinc-700 p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-            title="Reset Graph"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v6h6" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 20v-6h-6" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 10A8 8 0 0010 4M4 14a8 8 0 0010 6" />
-            </svg>
-          </button>
-          <button
-            onClick={() => setIsOpen(true)}
-            className="bg-zinc-800/80 hover:bg-zinc-700/90 backdrop-blur-sm rounded-lg border border-zinc-700 p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
-            title="Settings"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
-        </div>
-      )}
-    </div>
   );
 }
