@@ -3,8 +3,7 @@
   "name": "Markdown",
   "version": "1.0.0",
   "supportedExtensions": [".md", ".mdx"],
-  "defaultExclude": [],
-  "defaultFilterPatterns": [],
+  "defaultFilters": [],
   "fileColors": {
     ".md": "#7C3AED",
     ".mdx": "#8B5CF6"

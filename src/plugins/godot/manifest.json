@@ -3,14 +3,12 @@
   "name": "GDScript (Godot)",
   "version": "1.0.0",
   "supportedExtensions": [".gd"],
-  "defaultExclude": [
+  "defaultFilters": [
     "**/.godot/**",
     "**/.import/**",
     "**/*.import",
     "**/.mono/**",
-    "**/addons/**"
-  ],
-  "defaultFilterPatterns": [
+    "**/addons/**",
     "**/*.uid"
   ],
   "fileColors": {

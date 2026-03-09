@@ -3,7 +3,7 @@
   "name": "C#",
   "version": "1.0.0",
   "supportedExtensions": [".cs"],
-  "defaultExclude": [
+  "defaultFilters": [
     "**/bin/**",
     "**/obj/**",
     "**/.vs/**",
@@ -13,7 +13,6 @@
     "**/*.generated.cs",
     "**/AssemblyInfo.cs"
   ],
-  "defaultFilterPatterns": [],
   "fileColors": {
     ".cs": "#512BD4",
     ".csx": "#512BD4",

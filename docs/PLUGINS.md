@@ -37,8 +37,7 @@ All static plugin metadata lives in `manifest.json`:
   "name": "My Language",
   "version": "1.0.0",
   "supportedExtensions": [".ml", ".mli"],
-  "defaultExclude": ["**/build/**", "**/.cache/**"],
-  "defaultFilterPatterns": [],
+  "defaultFilters": ["**/build/**", "**/.cache/**"],
   "fileColors": {
     ".ml": "#E44D26",
     ".mli": "#F7DF1E"
@@ -56,8 +55,7 @@ All static plugin metadata lives in `manifest.json`:
 | `name` | Yes | Human-readable display name |
 | `version` | Yes | Semantic version string |
 | `supportedExtensions` | Yes | File extensions this plugin handles |
-| `defaultExclude` | No | Glob patterns for files to never analyze |
-| `defaultFilterPatterns` | No | Glob patterns for files to filter from the graph |
+| `defaultFilters` | No | Glob patterns for files to exclude from analysis |
 | `fileColors` | No | Preferred colors for file types (extensions, filenames, or globs) |
 | `rules` | No | Detection rules users can toggle in the Plugins panel |
 
@@ -137,8 +135,7 @@ export function createMyLanguagePlugin(): IPlugin {
     name: manifest.name,
     version: manifest.version,
     supportedExtensions: manifest.supportedExtensions,
-    defaultExclude: manifest.defaultExclude,
-    defaultFilterPatterns: manifest.defaultFilterPatterns,
+    defaultFilters: manifest.defaultFilters,
     rules: manifest.rules,
     fileColors: manifest.fileColors,
 
@@ -181,8 +178,7 @@ interface IPlugin {
   supportedExtensions: string[];
   rules?: IRule[];
   fileColors?: Record<string, string>;
-  defaultExclude?: string[];
-  defaultFilterPatterns?: string[];
+  defaultFilters?: string[];
 
   detectConnections(
     filePath: string,
@@ -242,7 +238,7 @@ registry.register(createTypeScriptPlugin(), { builtIn: true });
 1. **Use proper parsers** when available (e.g., TypeScript Compiler API). Fall back to regex for simpler languages.
 2. **Set `ruleId`** on every connection so users can toggle individual detection rules.
 3. **Keep rule files focused** — one detection pattern per file.
-4. **Use `defaultExclude`** for build artifacts and caches that should never appear in the graph.
+4. **Use `defaultFilters`** for build artifacts and caches that should never appear in the graph.
 5. **Test via the plugin interface** — call `createXxxPlugin()` and test `detectConnections()` directly.
 
 ## Need Help?

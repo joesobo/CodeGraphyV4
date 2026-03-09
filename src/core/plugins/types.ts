@@ -120,36 +120,20 @@ export interface IPlugin {
   fileColors?: Record<string, string>;
   
   /**
-   * Optional default exclude patterns for this plugin's ecosystem.
-   * Applied at file discovery time — files matching these patterns are never
-   * read or analyzed. Not shown in the Settings Panel.
-   *
-   * Use for build artifacts, caches, and directories that should never appear.
-   *
-   * @example
-   * ```typescript
-   * // Godot plugin
-   * defaultExclude: ['**\/.godot\/**', '**\/*.import']
-   * ```
-   */
-  defaultExclude?: string[];
-
-  /**
    * Optional default filter patterns for this plugin's ecosystem.
-   * Applied at the same level as user-defined filter patterns (file discovery)
-   * but surfaced in the Settings Panel as read-only "plugin defaults" so users
-   * can see what is being filtered and why.
+   * Merged with user-defined filter patterns at file discovery time —
+   * files matching these patterns are excluded from analysis.
    *
-   * Use for generated files that users might want to know about but rarely
-   * want cluttering their graph (e.g., *.uid in Godot 4, *.d.ts in TypeScript).
+   * Use for build artifacts, caches, generated files, and directories
+   * that should not appear in the graph.
    *
    * @example
    * ```typescript
    * // Godot plugin
-   * defaultFilterPatterns: ['**\/*.uid']
+   * defaultFilters: ['**\/.godot\/**', '**\/*.import', '**\/*.uid']
    * ```
    */
-  defaultFilterPatterns?: string[];
+  defaultFilters?: string[];
   
   /**
    * Detects connections (imports) in a file.

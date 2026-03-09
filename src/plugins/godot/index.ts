@@ -48,8 +48,7 @@ export function createGDScriptPlugin(): IPlugin {
     name: manifest.name,
     version: manifest.version,
     supportedExtensions: manifest.supportedExtensions,
-    defaultExclude: manifest.defaultExclude,
-    defaultFilterPatterns: manifest.defaultFilterPatterns,
+    defaultFilters: manifest.defaultFilters,
     rules: manifest.rules,
     fileColors: manifest.fileColors,
 
