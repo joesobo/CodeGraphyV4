@@ -75,16 +75,6 @@ export default function App(): React.ReactElement {
   const showOrphans = useGraphStore(s => s.showOrphans);
   const activePanel = useGraphStore(s => s.activePanel);
 
-  // Values passed through to children (will be removed when Graph reads from store directly)
-  const favorites = useGraphStore(s => s.favorites);
-  const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
-  const physicsSettings = useGraphStore(s => s.physicsSettings);
-  const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
-  const showArrows = useGraphStore(s => s.showArrows);
-  const showLabels = useGraphStore(s => s.showLabels);
-  const graphMode = useGraphStore(s => s.graphMode);
-  const pluginStatuses = useGraphStore(s => s.pluginStatuses);
-
   // Store actions
   const setSearchQuery = useGraphStore(s => s.setSearchQuery);
   const setSearchOptions = useGraphStore(s => s.setSearchOptions);
@@ -195,14 +185,7 @@ export default function App(): React.ReactElement {
       <div className="flex-1 relative">
         <Graph
           data={coloredData || graphData}
-          favorites={favorites}
           theme={theme}
-          bidirectionalMode={bidirectionalMode}
-          physicsSettings={physicsSettings}
-          nodeSizeMode={nodeSizeMode}
-          showArrows={showArrows}
-          showLabels={showLabels}
-          graphMode={graphMode}
         />
         <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end">
           {activePanel !== 'none' ? (
@@ -210,7 +193,6 @@ export default function App(): React.ReactElement {
               <PluginsPanel
                 isOpen={activePanel === 'plugins'}
                 onClose={() => setActivePanel('none')}
-                plugins={pluginStatuses}
               />
               <SettingsPanel
                 isOpen={activePanel === 'settings'}
