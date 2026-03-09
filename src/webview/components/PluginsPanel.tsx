@@ -50,7 +50,7 @@ export default function PluginsPanel({ isOpen, onClose, plugins }: PluginsPanelP
   };
 
   return (
-    <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-[calc(100vh-4rem)] flex flex-col">
+    <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <span className="text-sm font-medium">Plugins</span>

@@ -707,6 +707,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           // Send groups and filter patterns
           this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
           this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
+          this._sendMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles: vscode.workspace.getConfiguration('codegraphy').get<number>('maxFiles', 500) } });
           break;
 
         case 'NODE_SELECTED':
@@ -856,6 +857,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             : vscode.ConfigurationTarget.Global;
           await vscode.workspace.getConfiguration('codegraphy').update('showLabels', message.payload.showLabels, labelsTarget);
           this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels: message.payload.showLabels } });
+          break;
+        }
+
+        case 'UPDATE_MAX_FILES': {
+          const target = vscode.workspace.workspaceFolders?.length
+            ? vscode.ConfigurationTarget.Workspace
+            : vscode.ConfigurationTarget.Global;
+          await vscode.workspace.getConfiguration('codegraphy').update('maxFiles', message.payload.maxFiles, target);
+          // Config change listener will trigger re-analysis automatically
           break;
         }
 

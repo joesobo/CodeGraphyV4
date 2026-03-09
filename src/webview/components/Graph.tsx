@@ -344,17 +344,21 @@ export default function Graph({
     ctx.lineWidth = (isSelected ? Math.max(node.borderWidth, 3) : node.borderWidth) / globalScale;
     ctx.stroke();
 
-    // Label
+    // Label — fades in smoothly as user zooms in
     if (showLabelsRef.current) {
       const labelPx = 12 / globalScale;
-      if (labelPx >= 1) {
+      // Start appearing at globalScale ~1.0, fully visible at ~2.0
+      const labelOpacity = Math.min(1, Math.max(0, (globalScale - 0.8) / 1.2));
+      if (labelOpacity > 0.01) {
         ctx.font = `${labelPx}px Sans-Serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'top';
         const isLight = themeRef.current === 'light';
-        ctx.fillStyle = isHighlighted
+        const baseColor = isHighlighted
           ? (isLight ? '#1e1e1e' : '#e2e8f0')
           : (isLight ? '#9ca3af' : '#4a5568');
+        ctx.globalAlpha = opacity * labelOpacity;
+        ctx.fillStyle = baseColor;
         ctx.fillText(node.label, node.x!, node.y! + node.size + 2 / globalScale);
       }
     }
