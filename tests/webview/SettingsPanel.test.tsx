@@ -28,7 +28,16 @@ function openSection(label: string) {
 }
 
 function renderPanel(overrides: Partial<Parameters<typeof SettingsPanel>[0]> = {}) {
-  const props = {
+  const props = makeProps(overrides);
+
+  // Open the panel
+  const result = render(<SettingsPanel {...props} />);
+  fireEvent.click(screen.getByTitle('Settings'));
+  return { ...result, props };
+}
+
+function makeProps(overrides: Partial<Parameters<typeof SettingsPanel>[0]> = {}): Parameters<typeof SettingsPanel>[0] {
+  return {
     settings: DEFAULT_PHYSICS,
     onSettingsChange: vi.fn(),
     groups: [] as IGroup[],
@@ -52,14 +61,6 @@ function renderPanel(overrides: Partial<Parameters<typeof SettingsPanel>[0]> = {
     onGraphModeChange: vi.fn(),
     ...overrides,
   };
-
-  // Open the panel
-  const result = render(<SettingsPanel {...props} />);
-  // The panel has an outer toggle button – click the gear/settings icon
-  const allButtons = result.container.querySelectorAll('button');
-  // First button opens the whole panel
-  fireEvent.click(allButtons[0]);
-  return { ...result, props };
 }
 
 // ── Filter Patterns ────────────────────────────────────────────────────────
@@ -125,6 +126,16 @@ describe('SettingsPanel: Filter Patterns', () => {
       type: 'UPDATE_SHOW_ORPHANS',
       payload: { showOrphans: false },
     });
+  });
+});
+
+describe('SettingsPanel: Quick Actions', () => {
+  beforeEach(() => sentMessages.length = 0);
+
+  it('posts REFRESH_GRAPH when reset button is clicked', () => {
+    render(<SettingsPanel {...makeProps()} />);
+    fireEvent.click(screen.getByTitle('Reset Graph'));
+    expect(sentMessages).toContainEqual({ type: 'REFRESH_GRAPH' });
   });
 });
 

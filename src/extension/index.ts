@@ -13,6 +13,23 @@ export interface CodeGraphyAPI {
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
 }
 
+/**
+ * Returns true when a saved document should not trigger graph re-analysis.
+ * We skip workspace/config saves to avoid graph resets while changing settings.
+ */
+function shouldIgnoreSaveForGraphRefresh(document: vscode.TextDocument): boolean {
+  const filePath = document.uri?.fsPath;
+  if (!filePath) return false;
+
+  const normalized = filePath.replace(/\\/g, '/');
+  return (
+    normalized.endsWith('/.vscode/settings.json') ||
+    normalized.endsWith('/.vscode/tasks.json') ||
+    normalized.endsWith('/.vscode/launch.json') ||
+    normalized.endsWith('.code-workspace')
+  );
+}
+
 export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   const provider = new GraphViewProvider(context.extensionUri, context);
 
@@ -77,7 +94,10 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   // Debounce to avoid excessive refreshes during rapid saves
   let saveTimeout: NodeJS.Timeout | undefined;
   context.subscriptions.push(
-    vscode.workspace.onDidSaveTextDocument(() => {
+    vscode.workspace.onDidSaveTextDocument((document) => {
+      if (shouldIgnoreSaveForGraphRefresh(document)) {
+        return;
+      }
       if (saveTimeout) {
         clearTimeout(saveTimeout);
       }

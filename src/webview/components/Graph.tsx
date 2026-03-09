@@ -902,12 +902,6 @@ export default function Graph({
     return () => ro.disconnect();
   }, []);
 
-  // ── WEBVIEW_READY on mount ────────────────────────────────────────────────
-
-  useEffect(() => {
-    postMessage({ type: 'WEBVIEW_READY', payload: null });
-  }, []);
-
   // ── Render ────────────────────────────────────────────────────────────────
 
   const isLight = theme === 'light';
