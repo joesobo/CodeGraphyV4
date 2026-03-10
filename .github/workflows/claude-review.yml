@@ -1,0 +1,23 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [labeled]
+
+permissions:
+  pull-requests: write
+  contents: read
+
+jobs:
+  claude-review:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'claude-review'
+    steps:
+      - uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          label_trigger: "claude-review"
+          prompt: |
+            Review this pull request for bugs and CLAUDE.md compliance.
+            Focus on real issues — skip nitpicks, style concerns, and
+            things a linter or typechecker would catch.
