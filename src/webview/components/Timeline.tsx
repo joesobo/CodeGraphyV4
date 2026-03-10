@@ -43,7 +43,30 @@ function generateDateTicks(minTs: number, maxTs: number, maxTicks: number = 7): 
   return ticks;
 }
 
+/**
+ * Find the index of the last commit whose timestamp <= the given time.
+ * Returns -1 if time is before all commits.
+ */
+function findCommitIndexAtTime(commits: { timestamp: number }[], time: number): number {
+  let lo = 0;
+  let hi = commits.length - 1;
+  let result = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (commits[mid].timestamp <= time) {
+      result = mid;
+      lo = mid + 1;
+    } else {
+      hi = mid - 1;
+    }
+  }
+  return result;
+}
+
 const TRACK_HEIGHT = 24;
+
+/** Playback rate: at speed=1, 1 real second = 1 day of repo time */
+const SECONDS_PER_DAY = 86400;
 
 export default function Timeline(): React.ReactElement | null {
   const timelineActive = useGraphStore((s) => s.timelineActive);
@@ -63,7 +86,17 @@ export default function Timeline(): React.ReactElement | null {
 
   const [openTooltipSha, setOpenTooltipSha] = useState<string | null>(null);
 
-  // Current commit index
+  // Smooth playback state
+  // playbackTime is a unix timestamp representing the current position in repo time.
+  // During playback it advances smoothly; when stopped it tracks the current commit.
+  const [playbackTime, setPlaybackTime] = useState<number | null>(null);
+  const rafRef = useRef<number | null>(null);
+  const lastFrameTimeRef = useRef<number>(0);
+  const lastSentCommitIndexRef = useRef<number>(-1);
+  const playbackSpeedRef = useRef(playbackSpeed);
+  playbackSpeedRef.current = playbackSpeed;
+
+  // Current commit index (discrete, based on currentCommitSha from store)
   const currentIndex = useMemo(() => {
     if (!currentCommitSha || timelineCommits.length === 0) return 0;
     const idx = timelineCommits.findIndex((c) => c.sha === currentCommitSha);
@@ -72,12 +105,78 @@ export default function Timeline(): React.ReactElement | null {
 
   const isAtEnd = currentIndex === timelineCommits.length - 1;
 
-  // Cleanup debounce timer on unmount
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, []);
+
+  // ── Webview-driven playback via requestAnimationFrame ──────────────────
+
+  useEffect(() => {
+    if (!isPlaying || timelineCommits.length === 0) {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+      return;
+    }
+
+    const maxTs = timelineCommits[timelineCommits.length - 1].timestamp;
+
+    const tick = (now: number) => {
+      const delta = lastFrameTimeRef.current > 0 ? now - lastFrameTimeRef.current : 0;
+      lastFrameTimeRef.current = now;
+
+      setPlaybackTime((prev) => {
+        if (prev === null) return prev;
+
+        // Advance: deltaMs (real) * speed * (seconds-per-day / 1000ms)
+        const newTime = prev + (delta / 1000) * playbackSpeedRef.current * SECONDS_PER_DAY;
+
+        // Check if we've crossed any new commit boundaries
+        const commitIdx = findCommitIndexAtTime(timelineCommits, newTime);
+        if (commitIdx > lastSentCommitIndexRef.current && commitIdx >= 0) {
+          lastSentCommitIndexRef.current = commitIdx;
+          const commit = timelineCommits[commitIdx];
+          postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: commit.sha } });
+        }
+
+        // Reached the end
+        if (newTime >= maxTs) {
+          setIsPlaying(false);
+          return maxTs;
+        }
+
+        return newTime;
+      });
+
+      rafRef.current = requestAnimationFrame(tick);
+    };
+
+    lastFrameTimeRef.current = 0; // Reset so first frame has delta=0
+    rafRef.current = requestAnimationFrame(tick);
+
+    return () => {
+      if (rafRef.current) {
+        cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [isPlaying, timelineCommits, setIsPlaying]);
+
+  // Sync playbackTime to currentCommitSha when not playing (e.g., after scrub or jump)
+  useEffect(() => {
+    if (isPlaying) return;
+    if (!currentCommitSha || timelineCommits.length === 0) return;
+    const commit = timelineCommits.find((c) => c.sha === currentCommitSha);
+    if (commit) {
+      setPlaybackTime(commit.timestamp);
+      lastSentCommitIndexRef.current = timelineCommits.indexOf(commit);
+    }
+  }, [currentCommitSha, timelineCommits, isPlaying]);
 
   // Jump to commit by finding nearest commit to a click position on the track
   const jumpToPositionOnTrack = useCallback(
@@ -104,6 +203,8 @@ export default function Timeline(): React.ReactElement | null {
       }
 
       const commit = timelineCommits[nearestIdx];
+      setPlaybackTime(commit.timestamp);
+      lastSentCommitIndexRef.current = nearestIdx;
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = setTimeout(() => {
         postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: commit.sha } });
@@ -115,10 +216,14 @@ export default function Timeline(): React.ReactElement | null {
   // Mouse handlers for scrubbing on the timeline track
   const handleTrackMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      // Stop playback when scrubbing
+      if (isPlaying) {
+        setIsPlaying(false);
+      }
       isDraggingRef.current = true;
       jumpToPositionOnTrack(e.clientX);
     },
-    [jumpToPositionOnTrack],
+    [jumpToPositionOnTrack, isPlaying, setIsPlaying],
   );
 
   useEffect(() => {
@@ -143,19 +248,29 @@ export default function Timeline(): React.ReactElement | null {
   const handlePlayPause = useCallback(() => {
     if (isPlaying) {
       setIsPlaying(false);
-      postMessage({ type: 'PAUSE_TIMELINE' });
     } else {
+      // If at the end, jump to start first
+      if (isAtEnd && timelineCommits.length > 0) {
+        const firstCommit = timelineCommits[0];
+        setPlaybackTime(firstCommit.timestamp);
+        lastSentCommitIndexRef.current = -1;
+        postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: firstCommit.sha } });
+      }
       setIsPlaying(true);
-      postMessage({ type: 'PLAY_TIMELINE', payload: { speed: playbackSpeed } });
     }
-  }, [isPlaying, playbackSpeed, setIsPlaying]);
+  }, [isPlaying, isAtEnd, timelineCommits, setIsPlaying]);
 
-  // Jump to latest commit
+  // Jump to latest commit (also stops playback)
   const handleJumpToEnd = useCallback(() => {
     if (timelineCommits.length === 0) return;
+    if (isPlaying) {
+      setIsPlaying(false);
+    }
     const lastCommit = timelineCommits[timelineCommits.length - 1];
+    setPlaybackTime(lastCommit.timestamp);
+    lastSentCommitIndexRef.current = timelineCommits.length - 1;
     postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: lastCommit.sha } });
-  }, [timelineCommits]);
+  }, [timelineCommits, isPlaying, setIsPlaying]);
 
   // Index repo
   const handleIndexRepo = useCallback(() => {
@@ -235,6 +350,14 @@ export default function Timeline(): React.ReactElement | null {
   const timeRange = maxTimestamp - minTimestamp || 1;
   const dateTicks = generateDateTicks(minTimestamp, maxTimestamp);
 
+  // Indicator position: smooth playbackTime when available, else current commit's timestamp
+  const indicatorTime = playbackTime ?? (
+    currentCommitSha
+      ? (timelineCommits.find((c) => c.sha === currentCommitSha)?.timestamp ?? minTimestamp)
+      : minTimestamp
+  );
+  const indicatorPosition = Math.max(0, Math.min(100, ((indicatorTime - minTimestamp) / timeRange) * 100));
+
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex-shrink-0 border-t border-border" data-testid="timeline">
@@ -269,10 +392,9 @@ export default function Timeline(): React.ReactElement | null {
             }}
             onMouseDown={handleTrackMouseDown}
           >
-            {/* Commit lines */}
+            {/* Commit lines (all uniform — the indicator is separate) */}
             {timelineCommits.map((commit) => {
               const position = ((commit.timestamp - minTimestamp) / timeRange) * 100;
-              const isCurrent = commit.sha === currentCommitSha;
 
               return (
                 <Tooltip key={commit.sha} open={openTooltipSha === commit.sha} onOpenChange={(open) => {
@@ -283,8 +405,8 @@ export default function Timeline(): React.ReactElement | null {
                       className="absolute top-[1px] bottom-[1px] -translate-x-1/2"
                       style={{
                         left: `${position}%`,
-                        width: isCurrent ? 4 : 2,
-                        zIndex: isCurrent ? 10 : 1,
+                        width: 2,
+                        zIndex: 1,
                       }}
                       onMouseEnter={() => setOpenTooltipSha(commit.sha)}
                       onMouseLeave={() => setOpenTooltipSha(null)}
@@ -292,10 +414,8 @@ export default function Timeline(): React.ReactElement | null {
                       <div
                         className="w-full h-full"
                         style={{
-                          backgroundColor: isCurrent
-                            ? 'var(--vscode-focusBorder, #007fd4)'
-                            : 'var(--vscode-foreground, #ccc)',
-                          opacity: isCurrent ? 1 : 0.4,
+                          backgroundColor: 'var(--vscode-foreground, #ccc)',
+                          opacity: 0.4,
                         }}
                       />
                     </div>
@@ -318,6 +438,23 @@ export default function Timeline(): React.ReactElement | null {
                 </Tooltip>
               );
             })}
+
+            {/* Smooth playback indicator — separate from commit lines */}
+            <div
+              className="absolute top-0 bottom-0 -translate-x-1/2 pointer-events-none"
+              style={{
+                left: `${indicatorPosition}%`,
+                width: 3,
+                zIndex: 20,
+              }}
+            >
+              <div
+                className="w-full h-full"
+                style={{
+                  backgroundColor: 'var(--vscode-focusBorder, #007fd4)',
+                }}
+              />
+            </div>
           </div>
 
           {/* Current button — pill shape */}

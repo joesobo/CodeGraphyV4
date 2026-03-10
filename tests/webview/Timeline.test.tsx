@@ -122,7 +122,7 @@ describe('Timeline', () => {
     expect(screen.getByTitle('Play')).toBeInTheDocument();
   });
 
-  it('sends PLAY_TIMELINE when play button is clicked', () => {
+  it('sets isPlaying to true when play button is clicked', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -136,10 +136,9 @@ describe('Timeline', () => {
     fireEvent.click(playBtn);
 
     expect(graphStore.getState().isPlaying).toBe(true);
-    expect(sentMessages).toContainEqual({ type: 'PLAY_TIMELINE', payload: { speed: 1 } });
   });
 
-  it('sends PAUSE_TIMELINE when pause button is clicked', () => {
+  it('sets isPlaying to false when pause button is clicked', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -153,7 +152,42 @@ describe('Timeline', () => {
     fireEvent.click(pauseBtn);
 
     expect(graphStore.getState().isPlaying).toBe(false);
-    expect(sentMessages).toContainEqual({ type: 'PAUSE_TIMELINE' });
+  });
+
+  it('jumps to first commit when play is pressed at the end', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[2].sha, // last commit
+      isPlaying: false,
+    });
+    render(<Timeline />);
+
+    fireEvent.click(screen.getByTitle('Play'));
+
+    expect(graphStore.getState().isPlaying).toBe(true);
+    expect(sentMessages).toContainEqual({
+      type: 'JUMP_TO_COMMIT',
+      payload: { sha: MOCK_COMMITS[0].sha },
+    });
+  });
+
+  it('Current button stops playback', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[0].sha,
+      isPlaying: true,
+    });
+    render(<Timeline />);
+
+    fireEvent.click(screen.getByText('Current'));
+
+    expect(graphStore.getState().isPlaying).toBe(false);
+    expect(sentMessages).toContainEqual({
+      type: 'JUMP_TO_COMMIT',
+      payload: { sha: MOCK_COMMITS[2].sha },
+    });
   });
 
   it('Current button jumps to last commit', () => {
@@ -238,7 +272,7 @@ describe('Timeline', () => {
     expect(track.style.backgroundColor).toContain('--vscode-editor-background');
   });
 
-  it('current commit indicator uses focus border color', () => {
+  it('has a separate smooth playback indicator using focus border color', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -246,15 +280,12 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    // Find all commit line inner divs (the colored bars)
+    // The smooth indicator is a separate pointer-events-none element
     const timeline = screen.getByTestId('timeline');
-    const commitLines = timeline.querySelectorAll('[class*="cursor-pointer"] > div > div');
-
-    // At least one should use focusBorder color for the current commit
-    const currentLine = Array.from(commitLines).find(
-      (el) => (el as HTMLElement).style.backgroundColor?.includes('--vscode-focusBorder')
-    );
-    expect(currentLine).toBeTruthy();
+    const indicator = timeline.querySelector('[class*="pointer-events-none"]') as HTMLElement;
+    expect(indicator).toBeTruthy();
+    const bar = indicator?.querySelector('div') as HTMLElement;
+    expect(bar?.style.backgroundColor).toContain('--vscode-focusBorder');
   });
 
   it('play button has accessible size (h-4 w-4)', () => {
@@ -287,7 +318,7 @@ describe('Timeline', () => {
 
   // ── Playback speed preserved across play/pause ──────────────────────
 
-  it('uses current playback speed when starting playback', () => {
+  it('starts playback with isPlaying set correctly', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -299,10 +330,8 @@ describe('Timeline', () => {
 
     fireEvent.click(screen.getByTitle('Play'));
 
-    expect(sentMessages).toContainEqual({
-      type: 'PLAY_TIMELINE',
-      payload: { speed: 2.5 },
-    });
+    // Playback is now webview-driven via requestAnimationFrame
+    expect(graphStore.getState().isPlaying).toBe(true);
   });
 
   // ── PLAYBACK_ENDED store handler ────────────────────────────────────
