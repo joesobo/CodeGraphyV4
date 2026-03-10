@@ -59,6 +59,17 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
         // require re-analysis because they affect which files/nodes are in the graph
         console.log('[CodeGraphy] Configuration changed, refreshing graph');
         provider.refresh();
+        // Invalidate timeline cache when settings that affect analysis change
+        if (
+          event.affectsConfiguration('codegraphy.filterPatterns') ||
+          event.affectsConfiguration('codegraphy.timeline.maxCommits')
+        ) {
+          provider.invalidateTimelineCache();
+        }
+        // Send updated playback speed to webview (display-only, no cache invalidation)
+        if (event.affectsConfiguration('codegraphy.timeline.playbackSpeed')) {
+          provider.sendPlaybackSpeed();
+        }
       }
     })
   );

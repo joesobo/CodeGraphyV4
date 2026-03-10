@@ -138,6 +138,32 @@ describe('Configuration', () => {
     });
   });
 
+  describe('timeline settings', () => {
+    it('should return default timelineMaxCommits of 500', () => {
+      mockConfig['timeline.maxCommits'] = 500;
+      const config = new Configuration();
+      expect(config.timelineMaxCommits).toBe(500);
+    });
+
+    it('should return custom timelineMaxCommits', () => {
+      mockConfig['timeline.maxCommits'] = 1000;
+      const config = new Configuration();
+      expect(config.timelineMaxCommits).toBe(1000);
+    });
+
+    it('should return default timelinePlaybackSpeed of 1.0', () => {
+      mockConfig['timeline.playbackSpeed'] = 1.0;
+      const config = new Configuration();
+      expect(config.timelinePlaybackSpeed).toBe(1.0);
+    });
+
+    it('should return custom timelinePlaybackSpeed', () => {
+      mockConfig['timeline.playbackSpeed'] = 2.5;
+      const config = new Configuration();
+      expect(config.timelinePlaybackSpeed).toBe(2.5);
+    });
+  });
+
   describe('DEFAULT_EXCLUDE_PATTERNS', () => {
     it('should include node_modules', () => {
       expect(DEFAULT_EXCLUDE_PATTERNS).toContain('**/node_modules/**');

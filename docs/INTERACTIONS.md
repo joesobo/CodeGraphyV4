@@ -65,6 +65,20 @@ Toggle entire plugins or individual detection rules. Shows live connection count
 
 Triggers a full graph re-analysis and layout reset.
 
+## Timeline
+
+The timeline bar appears below the graph after indexing. See [Timeline](./TIMELINE.md) for full details.
+
+| Action | Effect |
+|--------|--------|
+| Click track | Jump to that point in time |
+| Drag track | Scrub through time |
+| Play/Pause | Toggle automatic playback |
+| Current | Jump to latest commit |
+| Double-click node | Preview file at current commit (read-only) |
+
+During timeline mode, destructive context menu actions (Delete, Rename, Create File, Add to Exclude) are hidden.
+
 ## Export
 
 Export the current graph via the Command Palette:

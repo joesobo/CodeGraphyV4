@@ -7,6 +7,8 @@ import {
   IGraphEdge,
   IGraphData,
   IGroup,
+  ICommitInfo,
+  ITimelineData,
 } from '../../src/shared/types';
 
 describe('File Type Colors', () => {
@@ -125,5 +127,49 @@ describe('IGroup', () => {
     expect(group.id).toBe('abc');
     expect(group.pattern).toBe('src/**');
     expect(group.color).toBe('#3B82F6');
+  });
+});
+
+describe('Timeline Types', () => {
+  it('should allow creating valid ICommitInfo', () => {
+    const commit: ICommitInfo = {
+      sha: 'abc123def456789012345678901234567890abcd',
+      timestamp: 1700000000,
+      message: 'feat: add timeline',
+      author: 'Test User',
+      parents: ['parent123'],
+    };
+    expect(commit.sha).toHaveLength(40);
+    expect(commit.timestamp).toBe(1700000000);
+    expect(commit.message).toBe('feat: add timeline');
+    expect(commit.author).toBe('Test User');
+    expect(commit.parents).toEqual(['parent123']);
+  });
+
+  it('should allow ICommitInfo with empty parents (root commit)', () => {
+    const rootCommit: ICommitInfo = {
+      sha: '0000000000000000000000000000000000000000',
+      timestamp: 1600000000,
+      message: 'Initial commit',
+      author: 'Author',
+      parents: [],
+    };
+    expect(rootCommit.parents).toHaveLength(0);
+  });
+
+  it('should allow creating valid ITimelineData', () => {
+    const commit: ICommitInfo = {
+      sha: 'abc123def456789012345678901234567890abcd',
+      timestamp: 1700000000,
+      message: 'test',
+      author: 'Author',
+      parents: [],
+    };
+    const timeline: ITimelineData = {
+      commits: [commit],
+      currentSha: commit.sha,
+    };
+    expect(timeline.commits).toHaveLength(1);
+    expect(timeline.currentSha).toBe(commit.sha);
   });
 });
