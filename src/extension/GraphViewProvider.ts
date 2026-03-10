@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 import {
   IGraphData,
   IAvailableView,
@@ -16,6 +17,7 @@ import {
   WebviewToExtensionMessage,
 } from '../shared/types';
 import { WorkspaceAnalyzer } from './WorkspaceAnalyzer';
+import { GitHistoryAnalyzer } from './GitHistoryAnalyzer';
 import { getUndoManager } from './UndoManager';
 import {
   ToggleFavoriteAction,
@@ -25,6 +27,7 @@ import {
   CreateFileAction,
 } from './actions';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
+import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
 
 /** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -129,6 +132,18 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   /** Disabled plugin IDs (e.g., "codegraphy.typescript") */
   private _disabledPlugins: Set<string> = new Set();
+
+  /** Git history analyzer for timeline feature */
+  private _gitAnalyzer?: GitHistoryAnalyzer;
+
+  /** SHA of the currently displayed commit */
+  private _currentCommitSha?: string;
+
+  /** Whether the timeline mode is active */
+  private _timelineActive = false;
+
+  /** Abort controller for timeline indexing */
+  private _indexingController?: AbortController;
 
   /**
    * Creates a new GraphViewProvider.
@@ -778,18 +793,33 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
           this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
           this._sendMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles: vscode.workspace.getConfiguration('codegraphy').get<number>('maxFiles', 500) } });
+          // Send cached timeline data if available
+          this._sendCachedTimeline();
+          // Send timeline playback speed
+          this._sendMessage({
+            type: 'PLAYBACK_SPEED_UPDATED',
+            payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
+          });
           break;
 
         case 'NODE_SELECTED':
           break;
 
         case 'NODE_DOUBLE_CLICKED':
-          this._openFile(message.payload.nodeId);
+          if (this._timelineActive && this._currentCommitSha) {
+            this._previewFileAtCommit(this._currentCommitSha, message.payload.nodeId);
+          } else {
+            this._openFile(message.payload.nodeId);
+          }
           break;
 
         // Context menu actions
         case 'OPEN_FILE':
-          this._openFile(message.payload.path);
+          if (this._timelineActive && this._currentCommitSha) {
+            this._previewFileAtCommit(this._currentCommitSha, message.payload.path);
+          } else {
+            this._openFile(message.payload.path);
+          }
           break;
           
         case 'REVEAL_IN_EXPLORER':
@@ -801,15 +831,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
           
         case 'DELETE_FILES':
-          this._deleteFiles(message.payload.paths);
+          if (!this._timelineActive) this._deleteFiles(message.payload.paths);
           break;
-          
+
         case 'RENAME_FILE':
-          this._renameFile(message.payload.path);
+          if (!this._timelineActive) this._renameFile(message.payload.path);
           break;
-          
+
         case 'CREATE_FILE':
-          this._createFile(message.payload.directory);
+          if (!this._timelineActive) this._createFile(message.payload.directory);
           break;
           
         case 'TOGGLE_FAVORITE':
@@ -817,7 +847,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
           
         case 'ADD_TO_EXCLUDE':
-          this._addToExclude(message.payload.patterns);
+          if (!this._timelineActive) this._addToExclude(message.payload.patterns);
           break;
           
         case 'REFRESH_GRAPH':
@@ -962,6 +992,25 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._smartRebuild('plugin', pluginId);
           break;
         }
+
+        // Timeline commands
+        case 'INDEX_REPO':
+          this._indexRepository();
+          break;
+
+        case 'JUMP_TO_COMMIT':
+          await this._jumpToCommit(message.payload.sha);
+          break;
+
+        // Playback is now driven by the webview via JUMP_TO_COMMIT.
+        // These messages are kept for protocol compatibility but are no-ops.
+        case 'PLAY_TIMELINE':
+        case 'PAUSE_TIMELINE':
+          break;
+
+        case 'PREVIEW_FILE_AT_COMMIT':
+          this._previewFileAtCommit(message.payload.sha, message.payload.filePath);
+          break;
       }
     });
   }
@@ -969,9 +1018,219 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /**
    * Opens a file in the VSCode editor.
    * Shows an info message for mock files that don't exist on disk.
-   * 
+   *
    * @param filePath - Workspace-relative path to the file
    */
+
+  // ── Timeline methods ─────────────────────────────────────────────────────
+
+  /**
+   * Indexes the git repository history and enables the timeline.
+   */
+  private async _indexRepository(): Promise<void> {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) {
+      vscode.window.showErrorMessage('No workspace folder open');
+      return;
+    }
+
+    // Check if this is a git repo
+    try {
+      const { execFile } = await import('child_process');
+      const { promisify } = await import('util');
+      const execFileAsync = promisify(execFile);
+      await execFileAsync('git', ['rev-parse', '--git-dir'], { cwd: workspaceFolder.uri.fsPath });
+    } catch {
+      vscode.window.showErrorMessage('This workspace is not a git repository');
+      return;
+    }
+
+    // Cancel any existing indexing
+    this._indexingController?.abort();
+    const controller = new AbortController();
+    this._indexingController = controller;
+
+    // Initialize analyzer if needed
+    if (!this._analyzer) return;
+    if (!this._analyzerInitialized) {
+      await this._analyzer.initialize();
+      this._analyzerInitialized = true;
+    }
+
+    // Create GitHistoryAnalyzer lazily with merged exclude patterns
+    if (!this._gitAnalyzer) {
+      const pluginFilters = this._analyzer.getPluginFilterPatterns();
+      const mergedExclude = [
+        ...new Set([...DEFAULT_EXCLUDE_PATTERNS, ...pluginFilters, ...this._filterPatterns]),
+      ];
+      this._gitAnalyzer = new GitHistoryAnalyzer(
+        this._context,
+        this._analyzer.registry,
+        workspaceFolder.uri.fsPath,
+        mergedExclude
+      );
+    }
+
+    try {
+      const maxCommits = vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.maxCommits', 500);
+      const commits = await this._gitAnalyzer.indexHistory(
+        (phase, current, total) => {
+          this._sendMessage({
+            type: 'INDEX_PROGRESS',
+            payload: { phase, current, total },
+          });
+        },
+        controller.signal,
+        maxCommits
+      );
+
+      if (commits.length === 0) {
+        vscode.window.showInformationMessage('No commits found to index');
+        return;
+      }
+
+      this._timelineActive = true;
+      const latestSha = commits[commits.length - 1].sha;
+      this._currentCommitSha = latestSha;
+
+      this._sendMessage({
+        type: 'TIMELINE_DATA',
+        payload: { commits, currentSha: latestSha },
+      });
+
+      // Load the latest commit's graph data
+      await this._jumpToCommit(latestSha);
+    } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return;
+      console.error('[CodeGraphy] Indexing failed:', error);
+      vscode.window.showErrorMessage(`Timeline indexing failed: ${error}`);
+      this._sendMessage({ type: 'CACHE_INVALIDATED' });
+    }
+  }
+
+  /**
+   * Loads graph data for a specific commit and sends it to the webview.
+   */
+  private async _jumpToCommit(sha: string): Promise<void> {
+    if (!this._gitAnalyzer) return;
+
+    const rawGraphData = await this._gitAnalyzer.getGraphDataForCommit(sha);
+    this._currentCommitSha = sha;
+
+    // Apply display-time filtering: disabled plugins/rules, then showOrphans
+    let edges = rawGraphData.edges;
+
+    if (this._disabledPlugins.size > 0 || this._disabledRules.size > 0) {
+      const registry = this._analyzer?.registry;
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (registry && workspaceFolder) {
+        const wsRoot = workspaceFolder.uri.fsPath;
+        edges = edges.filter((edge) => {
+          const plugin = registry.getPluginForFile(
+            path.join(wsRoot, edge.from)
+          );
+          if (!plugin) return true;
+          // Filter out edges from disabled plugins
+          if (this._disabledPlugins.has(plugin.id)) return false;
+          // Filter out edges from disabled rules using cached ruleId
+          if (edge.ruleId && this._disabledRules.has(`${plugin.id}:${edge.ruleId}`)) return false;
+          return true;
+        });
+      }
+    }
+
+    const showOrphans = vscode.workspace
+      .getConfiguration('codegraphy')
+      .get<boolean>('showOrphans', true);
+
+    let graphData: IGraphData = { nodes: rawGraphData.nodes, edges };
+    if (!showOrphans) {
+      const connectedIds = new Set<string>();
+      for (const edge of edges) {
+        connectedIds.add(edge.from);
+        connectedIds.add(edge.to);
+      }
+      graphData = {
+        nodes: rawGraphData.nodes.filter((n) => connectedIds.has(n.id)),
+        edges,
+      };
+    }
+
+    this._graphData = graphData;
+
+    this._sendMessage({
+      type: 'COMMIT_GRAPH_DATA',
+      payload: { sha, graphData },
+    });
+  }
+
+  // Playback is now driven entirely by the webview's requestAnimationFrame loop.
+  // The webview sends JUMP_TO_COMMIT messages when the smooth time cursor
+  // crosses commit boundaries.
+
+  /**
+   * Opens a file at a specific commit in read-only preview.
+   */
+  private async _previewFileAtCommit(sha: string, filePath: string): Promise<void> {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (!workspaceFolder) return;
+
+    try {
+      const absolutePath = vscode.Uri.joinPath(workspaceFolder.uri, filePath).fsPath;
+      const gitUri = vscode.Uri.parse(
+        `git:${absolutePath}?${JSON.stringify({ path: absolutePath, ref: sha })}`
+      );
+      const doc = await vscode.workspace.openTextDocument(gitUri);
+      await vscode.window.showTextDocument(doc, { preview: true });
+    } catch (error) {
+      console.error('[CodeGraphy] Failed to preview file at commit:', error);
+    }
+  }
+
+  /**
+   * Sends cached timeline data to the webview (called on WEBVIEW_READY).
+   */
+  private _sendCachedTimeline(): void {
+    if (!this._gitAnalyzer) return;
+
+    const commits = this._gitAnalyzer.getCachedCommitList();
+    if (commits && commits.length > 0) {
+      this._timelineActive = true;
+      const latestSha = commits[commits.length - 1].sha;
+      this._currentCommitSha = latestSha;
+
+      this._sendMessage({
+        type: 'TIMELINE_DATA',
+        payload: { commits, currentSha: latestSha },
+      });
+    }
+  }
+
+  /**
+   * Sends the current playback speed setting to the webview.
+   */
+  public sendPlaybackSpeed(): void {
+    this._sendMessage({
+      type: 'PLAYBACK_SPEED_UPDATED',
+      payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
+    });
+  }
+
+  /**
+   * Invalidates the timeline cache and notifies the webview.
+   */
+  public async invalidateTimelineCache(): Promise<void> {
+    this._timelineActive = false;
+    this._currentCommitSha = undefined;
+
+    if (this._gitAnalyzer) {
+      await this._gitAnalyzer.invalidateCache();
+      this._gitAnalyzer = undefined; // Force recreation with current patterns
+    }
+
+    this._sendMessage({ type: 'CACHE_INVALIDATED' });
+  }
+
   private async _openFile(filePath: string): Promise<void> {
     try {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];

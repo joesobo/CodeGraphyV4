@@ -213,6 +213,9 @@ export default function Graph({
   const showArrows = useGraphStore(s => s.showArrows);
   const showLabels = useGraphStore(s => s.showLabels);
   const graphMode = useGraphStore(s => s.graphMode);
+  const timelineActive = useGraphStore(s => s.timelineActive);
+  const timelineActiveRef = useRef(timelineActive);
+  timelineActiveRef.current = timelineActive;
   const containerRef = useRef<HTMLDivElement>(null);
   const fg2dRef = useRef<FG2DMethods<FGNode, FGLink> | undefined>(undefined);
   const fg3dRef = useRef<FG3DMethods<FGNode, FGLink> | undefined>(undefined);
@@ -266,6 +269,13 @@ export default function Graph({
     const isLight = themeRef.current === 'light';
     const favs = favoritesRef.current;
 
+    // During timeline playback, preserve positions from previous simulation frame.
+    // d3-force mutates node objects in-place with x/y/vx/vy, so graphDataRef has
+    // the latest simulation positions even though we're creating new objects here.
+    const prevPositions = timelineActiveRef.current
+      ? new Map(graphDataRef.current.nodes.map(n => [n.id, { x: n.x, y: n.y }]))
+      : null;
+
     const nodes: FGNode[] = data.nodes.map(n => {
       const rawColor = isLight ? adjustColorForLightTheme(n.color) : n.color;
       const isFavorite = favs.has(n.id);
@@ -278,6 +288,8 @@ export default function Graph({
         : rawColor;
       const borderWidth = isFocused ? 4 : isFavorite ? 3 : 2;
 
+      // Use persisted data position, or carry over simulation position for timeline
+      const prev = prevPositions?.get(n.id);
       return {
         id: n.id,
         label: n.label,
@@ -287,11 +299,29 @@ export default function Graph({
         borderWidth,
         baseOpacity: getDepthOpacity(n.depthLevel),
         isFavorite,
-        // seed positions from persisted data
-        x: n.x,
-        y: n.y,
+        x: n.x ?? prev?.x,
+        y: n.y ?? prev?.y,
       } as FGNode;
     });
+
+    // For truly new nodes during timeline, seed their position near a connected node
+    if (prevPositions && prevPositions.size > 0) {
+      const nodePositionMap = new Map(nodes.map(n => [n.id, n]));
+      for (const node of nodes) {
+        if (node.x === undefined && node.y === undefined) {
+          // Find a connected edge
+          const edge = data.edges.find(e => e.from === node.id || e.to === node.id);
+          if (edge) {
+            const neighborId = edge.from === node.id ? edge.to : edge.from;
+            const neighbor = nodePositionMap.get(neighborId);
+            if (neighbor?.x !== undefined && neighbor?.y !== undefined) {
+              node.x = neighbor.x + (Math.random() - 0.5) * 40;
+              node.y = neighbor.y + (Math.random() - 0.5) * 40;
+            }
+          }
+        }
+      }
+    }
 
     const processedEdges = processEdges(data.edges, bidirectionalMode);
     const links: FGLink[] = processedEdges.map(e => ({
@@ -305,6 +335,20 @@ export default function Graph({
     graphDataRef.current = { nodes, links };
     return { nodes, links };
   }, [data, bidirectionalMode]);
+
+  // During timeline playback, dampen the simulation alpha after data changes
+  // so existing nodes barely move when new nodes are added/removed.
+  useEffect(() => {
+    if (!timelineActive) return;
+    const fg = fg2dRef.current;
+    if (fg) {
+      // Let force-graph process the new data first, then dampen alpha
+      requestAnimationFrame(() => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (fg as any).d3Alpha?.(0.05);
+      });
+    }
+  }, [data, timelineActive]);
 
   // ── 2D canvas rendering callbacks ────────────────────────────────────────
 
@@ -926,7 +970,7 @@ export default function Graph({
     d3VelocityDecay: physicsSettings.damping,
     d3AlphaDecay: 0.0228,
     warmupTicks: 0,
-    cooldownTicks: 500,
+    cooldownTicks: timelineActive ? 50 : 500,
     nodeId: 'id' as const,
     onNodeHover: handleNodeHover as (node: NodeObject | null) => void,
   };
@@ -1016,10 +1060,14 @@ export default function Graph({
       <ContextMenuContent className="w-64">
         {isBackgroundContext ? (
           <>
-            <ContextMenuItem onClick={() => handleContextAction('createFile')}>
-              New File...
-            </ContextMenuItem>
-            <ContextMenuSeparator />
+            {!timelineActive && (
+              <>
+                <ContextMenuItem onClick={() => handleContextAction('createFile')}>
+                  New File...
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+              </>
+            )}
             <ContextMenuItem onClick={() => handleContextAction('refresh')}>
               Refresh Graph
             </ContextMenuItem>
@@ -1033,7 +1081,7 @@ export default function Graph({
             <ContextMenuItem onClick={() => handleContextAction('open')}>
               {isMultiSelect ? `Open ${menuTargets.length} Files` : 'Open File'}
             </ContextMenuItem>
-            {!isMultiSelect && (
+            {!isMultiSelect && !timelineActive && (
               <ContextMenuItem onClick={() => handleContextAction('reveal')}>
                 Reveal in Explorer
               </ContextMenuItem>
@@ -1058,22 +1106,26 @@ export default function Graph({
                 Focus Node
               </ContextMenuItem>
             )}
-            <ContextMenuSeparator />
-            <ContextMenuItem onClick={() => handleContextAction('addToExclude')}>
-              {isMultiSelect ? 'Add All to Exclude' : 'Add to Exclude'}
-            </ContextMenuItem>
-            <ContextMenuSeparator />
-            {!isMultiSelect && (
-              <ContextMenuItem onClick={() => handleContextAction('rename')}>
-                Rename...
-              </ContextMenuItem>
+            {!timelineActive && (
+              <>
+                <ContextMenuSeparator />
+                <ContextMenuItem onClick={() => handleContextAction('addToExclude')}>
+                  {isMultiSelect ? 'Add All to Exclude' : 'Add to Exclude'}
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                {!isMultiSelect && (
+                  <ContextMenuItem onClick={() => handleContextAction('rename')}>
+                    Rename...
+                  </ContextMenuItem>
+                )}
+                <ContextMenuItem
+                  className="text-red-400 focus:text-red-300"
+                  onClick={() => handleContextAction('delete')}
+                >
+                  {isMultiSelect ? `Delete ${menuTargets.length} Files` : 'Delete File'}
+                </ContextMenuItem>
+              </>
             )}
-            <ContextMenuItem
-              className="text-red-400 focus:text-red-300"
-              onClick={() => handleContextAction('delete')}
-            >
-              {isMultiSelect ? `Delete ${menuTargets.length} Files` : 'Delete File'}
-            </ContextMenuItem>
           </>
         )}
       </ContextMenuContent>

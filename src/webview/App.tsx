@@ -5,6 +5,7 @@ import GraphIcon from './components/GraphIcon';
 import { SearchBar } from './components/SearchBar';
 import SettingsPanel from './components/SettingsPanel';
 import PluginsPanel from './components/PluginsPanel';
+import Timeline from './components/Timeline';
 import { Button } from './components/ui/button';
 import { useTheme } from './hooks/useTheme';
 import { IGraphData, IGraphNode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
@@ -73,6 +74,7 @@ export default function App(): React.ReactElement {
   const searchOptions = useGraphStore(s => s.searchOptions);
   const groups = useGraphStore(s => s.groups);
   const showOrphans = useGraphStore(s => s.showOrphans);
+  const timelineActive = useGraphStore(s => s.timelineActive);
   const activePanel = useGraphStore(s => s.activePanel);
 
   // Store actions
@@ -148,8 +150,8 @@ export default function App(): React.ReactElement {
     );
   }
 
-  // No data state
-  if (!graphData || graphData.nodes.length === 0) {
+  // No data state — skip during timeline mode (empty graph at early commits is valid)
+  if (!timelineActive && (!graphData || graphData.nodes.length === 0)) {
     const hint = graphData && !showOrphans
       ? 'All files are hidden. Try enabling "Show Orphans" in Settings → Filters.'
       : 'Open a folder to visualize its structure.';
@@ -164,6 +166,9 @@ export default function App(): React.ReactElement {
     );
   }
 
+  // During timeline, graphData may be null/empty before first commit data arrives
+  const effectiveGraphData = graphData ?? { nodes: [], edges: [] };
+
   // Graph view with search bar
   return (
     <div className="relative w-full h-screen flex flex-col">
@@ -175,7 +180,7 @@ export default function App(): React.ReactElement {
           options={searchOptions}
           onOptionsChange={handleSearchOptionsChange}
           resultCount={filteredData?.nodes.length}
-          totalCount={graphData.nodes.length}
+          totalCount={effectiveGraphData.nodes.length}
           placeholder="Search files... (Ctrl+F)"
           regexError={regexError}
         />
@@ -184,7 +189,7 @@ export default function App(): React.ReactElement {
       {/* Graph */}
       <div className="flex-1 relative">
         <Graph
-          data={coloredData || graphData}
+          data={coloredData || effectiveGraphData}
           theme={theme}
         />
         <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end">
@@ -244,6 +249,9 @@ export default function App(): React.ReactElement {
           )}
         </div>
       </div>
+
+      {/* Timeline */}
+      <Timeline />
     </div>
   );
 }
