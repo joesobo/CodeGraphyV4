@@ -119,6 +119,18 @@ export class PluginRegistry {
     else console.log(...args);
   };
 
+  /** Last graph sent through workspace-ready lifecycle (for late-registration replay). */
+  private _lastWorkspaceReadyGraph?: IGraphData;
+
+  /** Whether workspace-ready lifecycle has fired at least once. */
+  private _workspaceReadyNotified = false;
+
+  /** Whether webview-ready lifecycle has fired at least once. */
+  private _webviewReadyNotified = false;
+
+  /** Tracks plugins that have already run initialize(). */
+  private readonly _initializedPlugins = new Set<string>();
+
   /**
    * Configure plugin API subsystems.
    * Call this before registering plugins to enable scoped API provisioning.
@@ -209,6 +221,9 @@ export class PluginRegistry {
 
     // Emit plugin:registered event
     this._eventBus?.emit('plugin:registered', { pluginId: plugin.id });
+
+    // Replay readiness hooks for plugins registered after initial readiness.
+    this._replayReadinessForPlugin(info);
 
     console.log(`[CodeGraphy] Registered plugin: ${plugin.name} (${plugin.id})`);
   }
@@ -311,6 +326,7 @@ export class PluginRegistry {
     }
 
     this._plugins.delete(pluginId);
+    this._initializedPlugins.delete(pluginId);
 
     // Emit plugin:unregistered event
     this._eventBus?.emit('plugin:unregistered', { pluginId });
@@ -433,20 +449,23 @@ export class PluginRegistry {
    * @param workspaceRoot - Workspace root path
    */
   async initializeAll(workspaceRoot: string): Promise<void> {
-    const promises = Array.from(this._plugins.values()).map(async (info) => {
-      if (info.plugin.initialize) {
-        try {
-          await info.plugin.initialize(workspaceRoot);
-        } catch (error) {
-          console.error(
-            `[CodeGraphy] Error initializing plugin ${info.plugin.id}:`,
-            error
-          );
-        }
-      }
-    });
+    this._workspaceRoot = workspaceRoot;
+    const promises = Array.from(this._plugins.values()).map((info) =>
+      this._initializePlugin(info, workspaceRoot)
+    );
 
     await Promise.all(promises);
+  }
+
+  /**
+   * Initializes one registered plugin if it has not already been initialized.
+   * Useful for plugins registered after startup.
+   */
+  async initializePlugin(pluginId: string, workspaceRoot: string): Promise<void> {
+    this._workspaceRoot = workspaceRoot;
+    const info = this._plugins.get(pluginId);
+    if (!info) return;
+    await this._initializePlugin(info, workspaceRoot);
   }
 
   /**
@@ -464,14 +483,10 @@ export class PluginRegistry {
    * Notify all plugins that the workspace is ready with initial graph data.
    */
   notifyWorkspaceReady(graph: IGraphData): void {
+    this._workspaceReadyNotified = true;
+    this._lastWorkspaceReadyGraph = graph;
     for (const info of this._plugins.values()) {
-      if (info.plugin.onWorkspaceReady) {
-        try {
-          info.plugin.onWorkspaceReady(graph);
-        } catch (error) {
-          console.error(`[CodeGraphy] Error in onWorkspaceReady for ${info.plugin.id}:`, error);
-        }
-      }
+      this._notifyWorkspaceReadyForPlugin(info, graph);
     }
   }
 
@@ -527,14 +542,9 @@ export class PluginRegistry {
    * Notify all plugins that the webview is ready.
    */
   notifyWebviewReady(): void {
+    this._webviewReadyNotified = true;
     for (const info of this._plugins.values()) {
-      if (info.plugin.onWebviewReady) {
-        try {
-          info.plugin.onWebviewReady();
-        } catch (error) {
-          console.error(`[CodeGraphy] Error in onWebviewReady for ${info.plugin.id}:`, error);
-        }
-      }
+      this._notifyWebviewReadyForPlugin(info);
     }
   }
 
@@ -554,5 +564,65 @@ export class PluginRegistry {
       return '';
     }
     return filePath.slice(lastDot).toLowerCase();
+  }
+
+  /**
+   * Runs initialize() once per plugin.
+   */
+  private async _initializePlugin(info: IPluginInfoV2, workspaceRoot: string): Promise<void> {
+    const pluginId = info.plugin.id;
+    if (this._initializedPlugins.has(pluginId)) return;
+    this._initializedPlugins.add(pluginId);
+
+    if (!info.plugin.initialize) {
+      return;
+    }
+
+    try {
+      await info.plugin.initialize(workspaceRoot);
+    } catch (error) {
+      this._initializedPlugins.delete(pluginId);
+      console.error(
+        `[CodeGraphy] Error initializing plugin ${pluginId}:`,
+        error
+      );
+    }
+  }
+
+  /**
+   * Replays readiness hooks for a late-registered plugin, similar to Obsidian's
+   * "run now if already ready" behavior.
+   */
+  private _replayReadinessForPlugin(info: IPluginInfoV2): void {
+    if (this._workspaceReadyNotified && this._lastWorkspaceReadyGraph) {
+      this._notifyWorkspaceReadyForPlugin(info, this._lastWorkspaceReadyGraph);
+    }
+    if (this._webviewReadyNotified) {
+      this._notifyWebviewReadyForPlugin(info);
+    }
+  }
+
+  /**
+   * Safely invokes onWorkspaceReady for one plugin.
+   */
+  private _notifyWorkspaceReadyForPlugin(info: IPluginInfoV2, graph: IGraphData): void {
+    if (!info.plugin.onWorkspaceReady) return;
+    try {
+      info.plugin.onWorkspaceReady(graph);
+    } catch (error) {
+      console.error(`[CodeGraphy] Error in onWorkspaceReady for ${info.plugin.id}:`, error);
+    }
+  }
+
+  /**
+   * Safely invokes onWebviewReady for one plugin.
+   */
+  private _notifyWebviewReadyForPlugin(info: IPluginInfoV2): void {
+    if (!info.plugin.onWebviewReady) return;
+    try {
+      info.plugin.onWebviewReady();
+    } catch (error) {
+      console.error(`[CodeGraphy] Error in onWebviewReady for ${info.plugin.id}:`, error);
+    }
   }
 }

@@ -526,6 +526,53 @@ describe('GraphViewProvider', () => {
       expect((injectCall[0] as { payload: { styles: string[] } }).payload.styles[0]).toContain('test-plugin.css');
     });
 
+    it('fires onWebviewReady once even if WEBVIEW_READY is received multiple times', async () => {
+      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
+      const onWebviewReady = vi.fn();
+
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+          messageHandler = handler;
+          return { dispose: () => {} };
+        }),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      provider.registerExternalPlugin({
+        id: 'test.webview-ready-once',
+        name: 'Webview Ready Once',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        detectConnections: async () => [],
+        onWebviewReady,
+      });
+
+      expect(messageHandler).not.toBeNull();
+      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+
+      expect(onWebviewReady).toHaveBeenCalledTimes(1);
+    });
+
     it('resolves Tier-2 relative assets against the registering extension root', async () => {
       let messageHandler: ((message: unknown) => Promise<void>) | null = null;
 

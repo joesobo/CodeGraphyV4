@@ -123,6 +123,27 @@ describe('PluginRegistry v2', () => {
       expect(registry.size).toBe(1);
       warnSpy.mockRestore();
     });
+
+    it('replays onWorkspaceReady for plugins registered after readiness', () => {
+      const { registry } = createConfiguredRegistry();
+      const graph: IGraphData = { nodes: [{ id: 'a', label: 'a', color: '#fff' }], edges: [] };
+      registry.notifyWorkspaceReady(graph);
+
+      const latePlugin = createV2Plugin('late-workspace-ready');
+      registry.register(latePlugin);
+
+      expect(latePlugin.onWorkspaceReady).toHaveBeenCalledWith(graph);
+    });
+
+    it('replays onWebviewReady for plugins registered after webview readiness', () => {
+      const { registry } = createConfiguredRegistry();
+      registry.notifyWebviewReady();
+
+      const latePlugin = createV2Plugin('late-webview-ready');
+      registry.register(latePlugin);
+
+      expect(latePlugin.onWebviewReady).toHaveBeenCalledOnce();
+    });
   });
 
   describe('lifecycle hooks', () => {
@@ -163,6 +184,19 @@ describe('PluginRegistry v2', () => {
 
       expect(() => registry.register(plugin)).not.toThrow();
       expect(() => registry.unregister(plugin.id)).not.toThrow();
+    });
+
+    it('initializes a late-registered plugin exactly once', async () => {
+      const { registry } = createConfiguredRegistry();
+      const initialize = vi.fn().mockResolvedValue(undefined);
+      const plugin = createV2Plugin('late-init', { initialize });
+
+      registry.register(plugin);
+      await registry.initializePlugin(plugin.id, '/workspace');
+      await registry.initializePlugin(plugin.id, '/workspace');
+
+      expect(initialize).toHaveBeenCalledTimes(1);
+      expect(initialize).toHaveBeenCalledWith('/workspace');
     });
   });
 

@@ -70,6 +70,8 @@ Every `api.on()`, `api.register*()`, and `api.decorateNode/Edge()` call returns 
 
 Called once the workspace has been analyzed and graph data is available. The plugin can now query nodes/edges and attach initial decorations.
 
+If a plugin is registered after this phase already happened, CodeGraphy immediately replays `onWorkspaceReady` with the latest graph snapshot (Obsidian-style "run now if already ready").
+
 ```typescript
 onWorkspaceReady(graph: IGraphData) {
   for (const node of graph.nodes) {
@@ -85,7 +87,7 @@ onWorkspaceReady(graph: IGraphData) {
 
 Called when the webview panel becomes visible. For Tier 2 plugins, this means their contributed JS/CSS has been injected and the `CodeGraphyWebviewAPI` is available in the webview context.
 
-This hook is called again if the user closes and reopens the CodeGraphy panel.
+If a plugin is registered after the webview is already ready, CodeGraphy immediately replays `onWebviewReady` for that plugin.
 
 ### 5. onUnload()
 

@@ -112,6 +112,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Whether the analyzer has been initialized */
   private _analyzerInitialized = false;
 
+  /** In-flight analyzer initialization promise (deduplicates concurrent starts). */
+  private _analyzerInitPromise?: Promise<void>;
+
   /** Abort controller for the currently running analysis (if any). */
   private _analysisController?: AbortController;
 
@@ -162,6 +165,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   /** Whether this is the first analysis (for notifyWorkspaceReady) */
   private _firstAnalysis = true;
+
+  /** Whether webview-ready lifecycle has already fired. */
+  private _webviewReadyNotified = false;
 
   /** Abort controller for timeline indexing */
   private _indexingController?: AbortController;
@@ -384,9 +390,17 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     // Initialize analyzer if needed
     if (!this._analyzerInitialized) {
-      await this._analyzer.initialize();
+      if (!this._analyzerInitPromise) {
+        this._analyzerInitPromise = this._analyzer.initialize()
+          .then(() => {
+            this._analyzerInitialized = true;
+          })
+          .finally(() => {
+            this._analyzerInitPromise = undefined;
+          });
+      }
+      await this._analyzerInitPromise;
       if (this._isAnalysisStale(signal, requestId)) return;
-      this._analyzerInitialized = true;
     }
 
     // Add plugin-provided default file colors into groups (once per group id).
@@ -997,10 +1011,19 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       }
 
       this._analyzer.registry.register(plugin as import('../core/plugins/types').IPlugin);
+      if (this._analyzerInitialized) {
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+        if (workspaceRoot) {
+          void this._analyzer.registry.initializePlugin(pluginId, workspaceRoot);
+        }
+      }
       this._refreshWebviewResourceRoots();
       this._sendPluginStatuses();
       this._sendContextMenuItems();
       this._sendPluginWebviewInjections();
+      if (this._analyzerInitialized) {
+        void this._analyzeAndSendData();
+      }
     }
   }
 
@@ -1100,8 +1123,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             type: 'PLAYBACK_SPEED_UPDATED',
             payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
           });
-          // Notify v2 plugins that the webview is ready
-          this._analyzer?.registry.notifyWebviewReady();
+          // Notify plugins once, similar to Obsidian's layout-ready replay model.
+          if (!this._webviewReadyNotified) {
+            this._webviewReadyNotified = true;
+            this._analyzer?.registry.notifyWebviewReady();
+          }
           // Send current decorations and context menu items
           this._sendDecorations();
           this._sendContextMenuItems();

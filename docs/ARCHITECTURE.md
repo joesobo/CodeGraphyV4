@@ -41,7 +41,7 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **`index.ts`** registers commands, file watchers, and the webview provider on activation.
 
-**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, view transformations, and latest-wins analysis cancellation.
+**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, view transformations, and latest-wins analysis cancellation. It deduplicates analyzer initialization races and emits `notifyWebviewReady()` once, while late-registered plugins are initialized/reanalyzed immediately when possible.
 
 **`WorkspaceAnalyzer.ts`** orchestrates file discovery and plugin analysis. Builds `IGraphData` from discovered files and connections. Uses mtime-based caching to skip unchanged files. Supports instant graph rebuilds from cached data when toggling rules.
 
@@ -55,7 +55,7 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **`discovery/FileDiscovery.ts`** recursively discovers files using glob patterns, respects `.gitignore`, and enforces the max file limit.
 
-**`plugins/PluginRegistry.ts`** maps file extensions to `IPlugin` instances and handles initialization/disposal. It provisions a scoped `CodeGraphyAPI`, runs lifecycle hooks (`onLoad`, `onPreAnalyze`, `onPostAnalyze`, etc.), and manages webview message delivery.
+**`plugins/PluginRegistry.ts`** maps file extensions to `IPlugin` instances and handles initialization/disposal. It provisions a scoped `CodeGraphyAPI`, runs lifecycle hooks (`onLoad`, `onPreAnalyze`, `onPostAnalyze`, etc.), and manages webview message delivery. Lifecycle readiness is replayed for late-registered plugins (`onWorkspaceReady`, `onWebviewReady`) and `initialize()` is guarded to run once per plugin.
 
 **`colors/ColorPaletteManager.ts`** generates distinct colors for file types with a three-tier priority system: user settings > plugin defaults > auto-generated.
 
