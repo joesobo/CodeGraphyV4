@@ -3,7 +3,7 @@
  * Positioned relative to the hovered node's screen coordinates.
  */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { cn } from '../lib/utils';
 import { Separator } from './ui/separator';
 
@@ -61,24 +61,29 @@ export function NodeTooltip({
   position,
   visible,
 }: NodeTooltipProps): React.ReactElement | null {
+  const ref = useRef<HTMLDivElement>(null);
+
   if (!visible) return null;
 
-  const tooltipWidth = 280;
-  const tooltipHeight = 160;
+  const maxWidth = 280;
   const offset = 12;
 
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 
+  // Use measured dimensions when available, fall back to estimates
+  const actualW = ref.current?.offsetWidth ?? maxWidth;
+  const actualH = ref.current?.offsetHeight ?? 160;
+
   // Position to the right of the node by default, flip if it would overflow
   let left = position.x + offset;
   let top = position.y + offset;
 
-  if (left + tooltipWidth > viewportWidth - offset) {
-    left = position.x - tooltipWidth - offset;
+  if (left + actualW > viewportWidth - offset) {
+    left = position.x - actualW - offset;
   }
-  if (top + tooltipHeight > viewportHeight - offset) {
-    top = position.y - tooltipHeight - offset;
+  if (top + actualH > viewportHeight - offset) {
+    top = position.y - actualH - offset;
   }
 
   left = Math.max(offset, left);
@@ -86,7 +91,8 @@ export function NodeTooltip({
 
   return (
     <div
-      style={{ position: 'fixed', left, top, zIndex: 1000, maxWidth: tooltipWidth }}
+      ref={ref}
+      style={{ position: 'fixed', left, top, zIndex: 1000, maxWidth }}
       className={cn(
         'rounded-md border shadow-md pointer-events-none',
         'bg-[var(--vscode-editorHoverWidget-background,#252526)]',
