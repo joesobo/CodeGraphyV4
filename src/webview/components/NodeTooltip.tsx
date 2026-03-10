@@ -1,7 +1,7 @@
 /**
  * @fileoverview Rich tooltip component for graph nodes.
- * Uses Floating UI to position relative to a virtual anchor at the node's
- * screen coordinates, with automatic flip/shift for viewport edges.
+ * Uses Floating UI to position relative to the node's screen bounding circle,
+ * with automatic flip/shift for viewport edges.
  */
 
 import React, { useEffect, useMemo } from 'react';
@@ -30,8 +30,8 @@ interface NodeTooltipProps {
   plugin?: string;
   /** Number of times this file has been visited/opened */
   visits?: number;
-  /** Position to show tooltip (screen coordinates of node edge) */
-  position: { x: number; y: number };
+  /** Node bounding circle in screen coordinates */
+  nodeRect: { x: number; y: number; radius: number };
   /** Whether tooltip is visible */
   visible: boolean;
 }
@@ -66,22 +66,25 @@ export function NodeTooltip({
   outgoingCount,
   plugin,
   visits,
-  position,
+  nodeRect,
   visible,
 }: NodeTooltipProps): React.ReactElement | null {
-  // Virtual element anchored at the node's screen position
-  const virtualEl = useMemo(() => ({
-    getBoundingClientRect: () => ({
-      x: position.x,
-      y: position.y,
-      width: 0,
-      height: 0,
-      top: position.y,
-      left: position.x,
-      right: position.x,
-      bottom: position.y,
-    }),
-  }), [position.x, position.y]);
+  // Virtual element representing the node's bounding circle as a rect
+  const virtualEl = useMemo(() => {
+    const r = nodeRect.radius;
+    return {
+      getBoundingClientRect: () => ({
+        x: nodeRect.x - r,
+        y: nodeRect.y - r,
+        width: r * 2,
+        height: r * 2,
+        top: nodeRect.y - r,
+        left: nodeRect.x - r,
+        right: nodeRect.x + r,
+        bottom: nodeRect.y + r,
+      }),
+    };
+  }, [nodeRect.x, nodeRect.y, nodeRect.radius]);
 
   const { refs, floatingStyles } = useFloating({
     open: visible,
@@ -94,7 +97,7 @@ export function NodeTooltip({
     whileElementsMounted: autoUpdate,
   });
 
-  // Update the virtual reference whenever position changes
+  // Update the virtual reference whenever node position/size changes
   useEffect(() => {
     refs.setReference(virtualEl);
   }, [refs, virtualEl]);
@@ -110,7 +113,6 @@ export function NodeTooltip({
         'bg-[var(--vscode-editorHoverWidget-background,#252526)]',
         'border-[var(--vscode-editorHoverWidget-border,#454545)]',
         'text-[var(--vscode-editorHoverWidget-foreground,#cccccc)]',
-        'animate-in fade-in-0 zoom-in-95 duration-100'
       )}
     >
       {/* Header — file path */}
