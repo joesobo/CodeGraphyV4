@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createTypeScriptPlugin } from '../../../src/plugins/typescript';
+import { createTypeScriptPlugin } from '..';
 import * as path from 'path';
 import * as os from 'os';
 

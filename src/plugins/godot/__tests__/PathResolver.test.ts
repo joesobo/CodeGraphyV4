@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { GDScriptPathResolver } from '../../../src/plugins/godot/PathResolver';
+import { GDScriptPathResolver } from '../PathResolver';
 
 describe('GDScriptPathResolver', () => {
   let resolver: GDScriptPathResolver;
