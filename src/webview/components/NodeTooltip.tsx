@@ -1,9 +1,17 @@
 /**
  * @fileoverview Rich tooltip component for graph nodes.
- * Positioned relative to the hovered node's screen coordinates.
+ * Uses Floating UI to position relative to a virtual anchor at the node's
+ * screen coordinates, with automatic flip/shift for viewport edges.
  */
 
-import React, { useRef } from 'react';
+import React, { useEffect, useMemo } from 'react';
+import {
+  useFloating,
+  offset,
+  flip,
+  shift,
+  autoUpdate,
+} from '@floating-ui/react';
 import { cn } from '../lib/utils';
 import { Separator } from './ui/separator';
 
@@ -22,7 +30,7 @@ interface NodeTooltipProps {
   plugin?: string;
   /** Number of times this file has been visited/opened */
   visits?: number;
-  /** Position to show tooltip (screen coordinates) */
+  /** Position to show tooltip (screen coordinates of node edge) */
   position: { x: number; y: number };
   /** Whether tooltip is visible */
   visible: boolean;
@@ -61,38 +69,42 @@ export function NodeTooltip({
   position,
   visible,
 }: NodeTooltipProps): React.ReactElement | null {
-  const ref = useRef<HTMLDivElement>(null);
+  // Virtual element anchored at the node's screen position
+  const virtualEl = useMemo(() => ({
+    getBoundingClientRect: () => ({
+      x: position.x,
+      y: position.y,
+      width: 0,
+      height: 0,
+      top: position.y,
+      left: position.x,
+      right: position.x,
+      bottom: position.y,
+    }),
+  }), [position.x, position.y]);
+
+  const { refs, floatingStyles } = useFloating({
+    open: visible,
+    placement: 'right-start',
+    middleware: [
+      offset(8),
+      flip({ fallbackPlacements: ['left-start', 'right-end', 'left-end'] }),
+      shift({ padding: 8 }),
+    ],
+    whileElementsMounted: autoUpdate,
+  });
+
+  // Update the virtual reference whenever position changes
+  useEffect(() => {
+    refs.setReference(virtualEl);
+  }, [refs, virtualEl]);
 
   if (!visible) return null;
 
-  const maxWidth = 280;
-  const offset = 12;
-
-  const viewportWidth = window.innerWidth;
-  const viewportHeight = window.innerHeight;
-
-  // Use measured dimensions when available, fall back to estimates
-  const actualW = ref.current?.offsetWidth ?? maxWidth;
-  const actualH = ref.current?.offsetHeight ?? 160;
-
-  // Position to the right of the node by default, flip if it would overflow
-  let left = position.x + offset;
-  let top = position.y + offset;
-
-  if (left + actualW > viewportWidth - offset) {
-    left = position.x - actualW - offset;
-  }
-  if (top + actualH > viewportHeight - offset) {
-    top = position.y - actualH - offset;
-  }
-
-  left = Math.max(offset, left);
-  top = Math.max(offset, top);
-
   return (
     <div
-      ref={ref}
-      style={{ position: 'fixed', left, top, zIndex: 1000, maxWidth }}
+      ref={refs.setFloating}
+      style={{ ...floatingStyles, zIndex: 1000, maxWidth: 280 }}
       className={cn(
         'rounded-md border shadow-md pointer-events-none',
         'bg-[var(--vscode-editorHoverWidget-background,#252526)]',
