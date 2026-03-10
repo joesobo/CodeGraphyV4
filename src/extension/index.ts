@@ -143,6 +143,12 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.openInEditor', () => {
+      provider.openInEditor();
+    })
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand('codegraphy.fitView', () => {
       provider.sendCommand('FIT_VIEW');
     })
