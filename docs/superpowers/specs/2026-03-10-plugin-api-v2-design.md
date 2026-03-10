@@ -193,8 +193,8 @@ A published `codegraphy.schema.json` provides autocomplete and validation.
 
 1. **Discovery** — VS Code activates the plugin extension. Plugin calls `codegraphy.registerPlugin(manifest, plugin)`.
 2. **onLoad(api)** — Core validates API version compatibility, then calls `onLoad` with the full `CodeGraphyAPI`. Plugin registers event handlers, commands, views, context menu items.
-3. **onWorkspaceReady(graph)** — Workspace has been analyzed. Graph data is available. Plugin can query nodes/edges, attach initial decorations. Late-registered plugins are replayed immediately with the latest graph snapshot.
-4. **onWebviewReady()** — First time the webview is ready. Tier 2 plugins' JS/CSS have been injected. Late-registered plugins are replayed immediately if readiness already occurred.
+3. **onWorkspaceReady(graph)** — Workspace has been analyzed. Graph data is available. Plugin can query nodes/edges, attach initial decorations. Late-registered plugins are replayed with the latest graph snapshot (deferred until plugin `initialize()` completes when applicable).
+4. **onWebviewReady()** — First time the webview is ready. Tier 2 plugins' JS/CSS injections are dispatched before this fires. Late-registered plugins are replayed after injection dispatch (and after `initialize()` when applicable) if readiness already occurred.
 5. **onUnload()** — Plugin deactivating. All registered Disposables are auto-cleaned. Plugin can do final cleanup if needed.
 
 ### Recurring Hooks

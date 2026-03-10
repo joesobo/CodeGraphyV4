@@ -573,6 +573,74 @@ describe('GraphViewProvider', () => {
       expect(onWebviewReady).toHaveBeenCalledTimes(1);
     });
 
+    it('replays late onWebviewReady after Tier-2 injection dispatch', async () => {
+      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
+      const onWebviewReady = vi.fn();
+      const initialize = vi.fn().mockResolvedValue(undefined);
+
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+          messageHandler = handler;
+          return { dispose: () => {} };
+        }),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      expect(messageHandler).not.toBeNull();
+      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      mockWebview.postMessage.mockClear();
+
+      provider.registerExternalPlugin({
+        id: 'test.late-webview-order',
+        name: 'Late Webview Order',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        detectConnections: async () => [],
+        initialize,
+        onWebviewReady,
+        webviewContributions: {
+          scripts: ['dist/webview/plugins/late-order.js'],
+        },
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      const postedMessages = mockWebview.postMessage.mock.calls.map(
+        (call: unknown[]) => call[0] as { type?: string; payload?: { pluginId?: string } }
+      );
+      const firstInjectIndex = postedMessages.findIndex(
+        (msg) => msg.type === 'PLUGIN_WEBVIEW_INJECT' && msg.payload?.pluginId === 'test.late-webview-order'
+      );
+      expect(firstInjectIndex).toBeGreaterThanOrEqual(0);
+
+      const injectOrder = mockWebview.postMessage.mock.invocationCallOrder[firstInjectIndex];
+      expect(onWebviewReady).toHaveBeenCalledTimes(1);
+      const onWebviewReadyOrder = onWebviewReady.mock.invocationCallOrder[0];
+      expect(injectOrder).toBeLessThan(onWebviewReadyOrder);
+      expect(initialize).toHaveBeenCalledTimes(1);
+    });
+
     it('resolves Tier-2 relative assets against the registering extension root', async () => {
       let messageHandler: ((message: unknown) => Promise<void>) | null = null;
 

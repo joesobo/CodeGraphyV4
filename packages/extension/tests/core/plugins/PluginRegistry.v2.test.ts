@@ -144,6 +144,24 @@ describe('PluginRegistry v2', () => {
 
       expect(latePlugin.onWebviewReady).toHaveBeenCalledOnce();
     });
+
+    it('supports deferred readiness replay for late-registered plugins', () => {
+      const { registry } = createConfiguredRegistry();
+      const graph: IGraphData = { nodes: [{ id: 'b', label: 'b', color: '#fff' }], edges: [] };
+      registry.notifyWorkspaceReady(graph);
+      registry.notifyWebviewReady();
+
+      const latePlugin = createV2Plugin('late-deferred');
+      registry.register(latePlugin, { deferReadinessReplay: true });
+
+      expect(latePlugin.onWorkspaceReady).not.toHaveBeenCalled();
+      expect(latePlugin.onWebviewReady).not.toHaveBeenCalled();
+
+      registry.replayReadinessForPlugin(latePlugin.id);
+
+      expect(latePlugin.onWorkspaceReady).toHaveBeenCalledWith(graph);
+      expect(latePlugin.onWebviewReady).toHaveBeenCalledOnce();
+    });
   });
 
   describe('lifecycle hooks', () => {
