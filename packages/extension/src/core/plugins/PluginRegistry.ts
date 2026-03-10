@@ -11,6 +11,48 @@ import { CodeGraphyAPIImpl, GraphDataProvider, CommandRegistrar, WebviewMessageS
 import { ViewRegistry } from '../views/ViewRegistry';
 import { IGraphData } from '../../shared/types';
 
+const CORE_PLUGIN_API_VERSION = '2.0.0';
+const WEBVIEW_PLUGIN_API_VERSION = '1.0.0';
+
+interface ISemver {
+  major: number;
+  minor: number;
+  patch: number;
+}
+
+function parseSemver(input: string): ISemver | undefined {
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(input.trim());
+  if (!match) return undefined;
+  return {
+    major: Number(match[1]),
+    minor: Number(match[2]),
+    patch: Number(match[3]),
+  };
+}
+
+function compareSemver(a: ISemver, b: ISemver): number {
+  if (a.major !== b.major) return a.major - b.major;
+  if (a.minor !== b.minor) return a.minor - b.minor;
+  return a.patch - b.patch;
+}
+
+function satisfiesSemverRange(version: string, range: string): boolean {
+  const target = parseSemver(version);
+  if (!target) return false;
+
+  const normalized = range.trim();
+  if (normalized.startsWith('^')) {
+    const min = parseSemver(normalized.slice(1));
+    if (!min) return false;
+    const maxExclusive: ISemver = { major: min.major + 1, minor: 0, patch: 0 };
+    return compareSemver(target, min) >= 0 && compareSemver(target, maxExclusive) < 0;
+  }
+
+  const exact = parseSemver(normalized);
+  if (!exact) return false;
+  return compareSemver(target, exact) === 0;
+}
+
 /**
  * Registry for managing CodeGraphy plugins.
  * 
@@ -120,6 +162,10 @@ export class PluginRegistry {
     // Detect v2 plugin by presence of apiVersion field
     const apiVersion = (plugin as unknown as { apiVersion?: unknown }).apiVersion;
     const isV2 = typeof apiVersion === 'string';
+    if (isV2) {
+      this._assertCoreApiCompatibility(plugin.id, apiVersion);
+      this._warnOnWebviewApiMismatch(plugin);
+    }
 
     const info: IPluginInfoV2 = {
       plugin,
@@ -168,6 +214,56 @@ export class PluginRegistry {
     this._eventBus?.emit('plugin:registered', { pluginId: plugin.id });
 
     console.log(`[CodeGraphy] Registered plugin: ${plugin.name} (${plugin.id})`);
+  }
+
+  /**
+   * Enforces compatibility between plugin apiVersion and host core API version.
+   * Throws when incompatible.
+   */
+  private _assertCoreApiCompatibility(pluginId: string, range: string): void {
+    if (satisfiesSemverRange(CORE_PLUGIN_API_VERSION, range)) {
+      return;
+    }
+
+    const normalized = range.trim();
+    const host = parseSemver(CORE_PLUGIN_API_VERSION);
+    const base = normalized.startsWith('^')
+      ? parseSemver(normalized.slice(1))
+      : parseSemver(normalized);
+
+    if (!host || !base) {
+      throw new Error(
+        `Plugin '${pluginId}' declares invalid apiVersion '${range}'. ` +
+        `Use '^${CORE_PLUGIN_API_VERSION}' or an exact semver string.`
+      );
+    }
+
+    if (base.major > host.major) {
+      throw new Error(
+        `Plugin '${pluginId}' requires future CodeGraphy Plugin API '${range}', ` +
+        `but host provides '${CORE_PLUGIN_API_VERSION}'.`
+      );
+    }
+
+    throw new Error(
+      `Plugin '${pluginId}' targets unsupported CodeGraphy Plugin API '${range}'. ` +
+      `Host provides '${CORE_PLUGIN_API_VERSION}'.`
+    );
+  }
+
+  /**
+   * Warns when a plugin declares Tier-2 webview contributions with an incompatible
+   * webview API range. This is non-fatal to preserve forward compatibility.
+   */
+  private _warnOnWebviewApiMismatch(plugin: IPlugin): void {
+    if (!plugin.webviewContributions || !plugin.webviewApiVersion) return;
+    if (satisfiesSemverRange(WEBVIEW_PLUGIN_API_VERSION, plugin.webviewApiVersion)) return;
+
+    console.warn(
+      `[CodeGraphy] Plugin '${plugin.id}' declares incompatible webviewApiVersion ` +
+      `'${plugin.webviewApiVersion}' (host: '${WEBVIEW_PLUGIN_API_VERSION}'). ` +
+      `Webview contributions may not behave as expected.`
+    );
   }
 
   /**

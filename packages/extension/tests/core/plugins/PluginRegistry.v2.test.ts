@@ -112,6 +112,47 @@ describe('PluginRegistry v2', () => {
       const info = registry.get(plugin.id) as { isV2: boolean };
       expect(info.isV2).toBe(false);
     });
+
+    it('rejects a plugin targeting a future core API major', () => {
+      const { registry } = createConfiguredRegistry();
+      const plugin = createV2Plugin('future-plugin', { apiVersion: '^3.0.0' });
+
+      expect(() => registry.register(plugin)).toThrow(/future CodeGraphy Plugin API/);
+      expect(registry.size).toBe(0);
+    });
+
+    it('rejects a plugin targeting an unsupported older core API major', () => {
+      const { registry } = createConfiguredRegistry();
+      const plugin = createV2Plugin('legacy-plugin', { apiVersion: '^1.0.0' });
+
+      expect(() => registry.register(plugin)).toThrow(/unsupported CodeGraphy Plugin API/);
+      expect(registry.size).toBe(0);
+    });
+
+    it('rejects malformed apiVersion strings', () => {
+      const { registry } = createConfiguredRegistry();
+      const plugin = createV2Plugin('bad-range-plugin', { apiVersion: 'latest' });
+
+      expect(() => registry.register(plugin)).toThrow(/invalid apiVersion/);
+      expect(registry.size).toBe(0);
+    });
+
+    it('warns on incompatible webviewApiVersion but still registers', () => {
+      const { registry } = createConfiguredRegistry();
+      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+      const plugin = createV2Plugin('webview-mismatch', {
+        webviewApiVersion: '^2.0.0',
+        webviewContributions: { scripts: ['dist/webview.js'] },
+      });
+
+      registry.register(plugin);
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('incompatible webviewApiVersion')
+      );
+      expect(registry.size).toBe(1);
+      warnSpy.mockRestore();
+    });
   });
 
   describe('onLoad lifecycle', () => {
