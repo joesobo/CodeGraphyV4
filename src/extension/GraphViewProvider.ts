@@ -12,7 +12,6 @@ import {
   BidirectionalEdgeMode,
   IPhysicsSettings,
   IGroup,
-  ICommitInfo,
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
 } from '../shared/types';
@@ -136,17 +135,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Git history analyzer for timeline feature */
   private _gitAnalyzer?: GitHistoryAnalyzer;
 
-  /** Commits in the current timeline */
-  private _timelineCommits: ICommitInfo[] = [];
-
   /** SHA of the currently displayed commit */
   private _currentCommitSha?: string;
-
-  /** Timer for playback mode */
-  private _playbackTimer?: ReturnType<typeof setInterval>;
-
-  /** Current playback index */
-  private _playbackIndex = 0;
 
   /** Whether the timeline mode is active */
   private _timelineActive = false;
@@ -1006,12 +996,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           await this._jumpToCommit(message.payload.sha);
           break;
 
+        // Playback is now driven by the webview via JUMP_TO_COMMIT.
+        // These messages are kept for protocol compatibility but are no-ops.
         case 'PLAY_TIMELINE':
-          this._startPlayback(message.payload.speed);
-          break;
-
         case 'PAUSE_TIMELINE':
-          this._pausePlayback();
           break;
 
         case 'PREVIEW_FILE_AT_COMMIT':
@@ -1093,7 +1081,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         return;
       }
 
-      this._timelineCommits = commits;
       this._timelineActive = true;
       const latestSha = commits[commits.length - 1].sha;
       this._currentCommitSha = latestSha;
@@ -1147,55 +1134,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     });
   }
 
-  /**
-   * Starts time-proportional playback through the timeline.
-   */
-  private _startPlayback(speed: number): void {
-    this._pausePlayback();
-
-    if (this._timelineCommits.length === 0) return;
-
-    // Find current index
-    this._playbackIndex = this._timelineCommits.findIndex(
-      (c) => c.sha === this._currentCommitSha
-    );
-    if (this._playbackIndex === -1) this._playbackIndex = 0;
-
-    const tick = async () => {
-      this._playbackIndex++;
-      if (this._playbackIndex >= this._timelineCommits.length) {
-        this._pausePlayback();
-        this._sendMessage({ type: 'PLAYBACK_ENDED' });
-        return;
-      }
-
-      const current = this._timelineCommits[this._playbackIndex];
-      const prev = this._timelineCommits[this._playbackIndex - 1];
-      const gapSeconds = current.timestamp - prev.timestamp;
-      // Time-proportional: ~1 day per second at speed=1
-      const intervalMs = Math.max(50, Math.min(3000, (gapSeconds / 86400) * (1000 / speed)));
-
-      await this._jumpToCommit(current.sha);
-
-      // Schedule next tick with variable interval (only if not paused during await)
-      if (this._playbackTimer !== undefined) {
-        this._playbackTimer = setTimeout(tick, intervalMs) as unknown as ReturnType<typeof setInterval>;
-      }
-    };
-
-    // Mark as playing and start immediately with the next commit
-    this._playbackTimer = setTimeout(tick, 0) as unknown as ReturnType<typeof setInterval>;
-  }
-
-  /**
-   * Pauses timeline playback.
-   */
-  private _pausePlayback(): void {
-    if (this._playbackTimer) {
-      clearTimeout(this._playbackTimer as unknown as number);
-      this._playbackTimer = undefined;
-    }
-  }
+  // Playback is now driven entirely by the webview's requestAnimationFrame loop.
+  // The webview sends JUMP_TO_COMMIT messages when the smooth time cursor
+  // crosses commit boundaries.
 
   /**
    * Opens a file at a specific commit in read-only preview.
@@ -1224,7 +1165,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     const commits = this._gitAnalyzer.getCachedCommitList();
     if (commits && commits.length > 0) {
-      this._timelineCommits = commits;
       this._timelineActive = true;
       const latestSha = commits[commits.length - 1].sha;
       this._currentCommitSha = latestSha;
@@ -1240,9 +1180,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Invalidates the timeline cache and notifies the webview.
    */
   public async invalidateTimelineCache(): Promise<void> {
-    this._pausePlayback();
     this._timelineActive = false;
-    this._timelineCommits = [];
     this._currentCommitSha = undefined;
 
     if (this._gitAnalyzer) {
