@@ -27,6 +27,10 @@
 				"title": "CodeGraphy: Open"
 			},
 			{
+				"command": "codegraphy.openInEditor",
+				"title": "CodeGraphy: Open in Editor"
+			},
+			{
 				"command": "codegraphy.fitView",
 				"title": "CodeGraphy: Fit All Nodes in View"
 			},
