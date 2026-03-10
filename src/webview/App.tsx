@@ -192,7 +192,7 @@ export default function App(): React.ReactElement {
           data={coloredData || effectiveGraphData}
           theme={theme}
         />
-        <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end">
+        <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
           {activePanel !== 'none' ? (
             <>
               <PluginsPanel
