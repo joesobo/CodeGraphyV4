@@ -795,6 +795,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._sendMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles: vscode.workspace.getConfiguration('codegraphy').get<number>('maxFiles', 500) } });
           // Send cached timeline data if available
           this._sendCachedTimeline();
+          // Send timeline playback speed
+          this._sendMessage({
+            type: 'PLAYBACK_SPEED_UPDATED',
+            payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
+          });
           break;
 
         case 'NODE_SELECTED':
@@ -1067,6 +1072,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     }
 
     try {
+      const maxCommits = vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.maxCommits', 500);
       const commits = await this._gitAnalyzer.indexHistory(
         (phase, current, total) => {
           this._sendMessage({
@@ -1074,7 +1080,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             payload: { phase, current, total },
           });
         },
-        controller.signal
+        controller.signal,
+        maxCommits
       );
 
       if (commits.length === 0) {
@@ -1196,6 +1203,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         payload: { commits, currentSha: latestSha },
       });
     }
+  }
+
+  /**
+   * Sends the current playback speed setting to the webview.
+   */
+  public sendPlaybackSpeed(): void {
+    this._sendMessage({
+      type: 'PLAYBACK_SPEED_UPDATED',
+      payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
+    });
   }
 
   /**

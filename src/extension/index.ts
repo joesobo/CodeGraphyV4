@@ -62,9 +62,13 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
         // Invalidate timeline cache when settings that affect analysis change
         if (
           event.affectsConfiguration('codegraphy.filterPatterns') ||
-          event.affectsConfiguration('codegraphy.timeline')
+          event.affectsConfiguration('codegraphy.timeline.maxCommits')
         ) {
           provider.invalidateTimelineCache();
+        }
+        // Send updated playback speed to webview (display-only, no cache invalidation)
+        if (event.affectsConfiguration('codegraphy.timeline.playbackSpeed')) {
+          provider.sendPlaybackSpeed();
         }
       }
     })

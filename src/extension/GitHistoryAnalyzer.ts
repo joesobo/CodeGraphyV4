@@ -168,9 +168,10 @@ export class GitHistoryAnalyzer {
    */
   async indexHistory(
     onProgress: (phase: string, current: number, total: number) => void,
-    signal: AbortSignal
+    signal: AbortSignal,
+    maxCommits: number = 500
   ): Promise<ICommitInfo[]> {
-    const commits = await this.getCommitList(500, signal);
+    const commits = await this.getCommitList(maxCommits, signal);
     if (commits.length === 0) {
       return [];
     }
