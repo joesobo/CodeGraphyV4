@@ -12,7 +12,7 @@ export interface CodeGraphyAPI {
   /** Listen for messages sent from the webview. Returns a disposable. */
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   /** Register an external v2 plugin. */
-  registerPlugin(plugin: unknown): void;
+  registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;
 }
 
 /**
@@ -226,7 +226,8 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
     getGraphData: () => provider.getGraphData(),
     sendToWebview: (message) => provider.sendToWebview(message),
     onWebviewMessage: (handler) => provider.onWebviewMessage(handler),
-    registerPlugin: (plugin: unknown) => provider.registerExternalPlugin(plugin),
+    registerPlugin: (plugin: unknown, options?: { extensionUri?: vscode.Uri | string }) =>
+      provider.registerExternalPlugin(plugin, options),
   };
 }
 

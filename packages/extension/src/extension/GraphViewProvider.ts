@@ -67,6 +67,10 @@ const DISABLED_PLUGINS_KEY = 'codegraphy.disabledPlugins';
 /** Default depth limit for depth graph view */
 const DEFAULT_DEPTH_LIMIT = 1;
 
+interface IExternalPluginRegistrationOptions {
+  extensionUri?: vscode.Uri | string;
+}
+
 /**
  * Provides the webview panel that displays the CodeGraphy dependency graph.
  * 
@@ -162,6 +166,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Abort controller for timeline indexing */
   private _indexingController?: AbortController;
 
+  /** Source extension roots for externally registered plugins (Tier-2 assets). */
+  private readonly _pluginExtensionUris = new Map<string, vscode.Uri>();
+
   /**
    * Creates a new GraphViewProvider.
    *
@@ -248,7 +255,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     webviewView.webview.options = {
       enableScripts: true,
-      localResourceRoots: [this._extensionUri],
+      localResourceRoots: this._getLocalResourceRoots(),
     };
 
     // Set up message listener BEFORE loading HTML to avoid race condition
@@ -652,10 +659,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       if (!contributions) continue;
 
       const scripts = (contributions.scripts ?? []).map((asset) =>
-        this._resolveWebviewAssetPath(asset)
+        this._resolveWebviewAssetPath(asset, pluginInfo.plugin.id)
       );
       const styles = (contributions.styles ?? []).map((asset) =>
-        this._resolveWebviewAssetPath(asset)
+        this._resolveWebviewAssetPath(asset, pluginInfo.plugin.id)
       );
 
       if (scripts.length === 0 && styles.length === 0) continue;
@@ -676,15 +683,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Absolute URLs are passed through; relative/absolute file paths are converted
    * to webview URIs when possible.
    */
-  private _resolveWebviewAssetPath(assetPath: string): string {
+  private _resolveWebviewAssetPath(assetPath: string, pluginId?: string): string {
     // Already a URI (e.g. https://..., vscode-webview://...)
     if (/^[a-z][a-z0-9+.-]*:\/\//i.test(assetPath)) {
       return assetPath;
     }
 
+    const pluginRoot = pluginId ? this._pluginExtensionUris.get(pluginId) : undefined;
     const fileUri = path.isAbsolute(assetPath)
       ? vscode.Uri.file(assetPath)
-      : vscode.Uri.joinPath(this._extensionUri, assetPath);
+      : vscode.Uri.joinPath(pluginRoot ?? this._extensionUri, assetPath);
 
     const webview = this._view?.webview ?? this._panels[0]?.webview;
     if (!webview) {
@@ -708,6 +716,57 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     // Test mocks may provide plain URI objects without a useful toString().
     const pathLike = webviewUri as { path?: string; fsPath?: string } | null;
     return pathLike?.path ?? pathLike?.fsPath ?? String(webviewUri);
+  }
+
+  /**
+   * Returns all local resource roots allowed for webviews.
+   * Includes CodeGraphy and any externally-registered plugin extension roots.
+   */
+  private _getLocalResourceRoots(): vscode.Uri[] {
+    const roots = new Map<string, vscode.Uri>();
+    roots.set(this._uriKey(this._extensionUri), this._extensionUri);
+    for (const uri of this._pluginExtensionUris.values()) {
+      roots.set(this._uriKey(uri), uri);
+    }
+    return [...roots.values()];
+  }
+
+  /**
+   * Stable key helper for URI map de-duplication across real VS Code URIs and test mocks.
+   */
+  private _uriKey(uri: vscode.Uri): string {
+    const candidate = uri as unknown as { fsPath?: string; path?: string; toString(): string };
+    return candidate.fsPath ?? candidate.path ?? candidate.toString();
+  }
+
+  /**
+   * Applies the current resource roots to all active webviews.
+   */
+  private _refreshWebviewResourceRoots(): void {
+    const localResourceRoots = this._getLocalResourceRoots();
+    if (this._view) {
+      this._view.webview.options = {
+        ...this._view.webview.options,
+        localResourceRoots,
+      };
+    }
+    for (const panel of this._panels) {
+      panel.webview.options = {
+        ...panel.webview.options,
+        localResourceRoots,
+      };
+    }
+  }
+
+  /**
+   * Normalizes an external plugin extension URI from API input.
+   */
+  private _normalizeExternalExtensionUri(uri: vscode.Uri | string | undefined): vscode.Uri | undefined {
+    if (!uri) return undefined;
+    if (typeof uri === 'string') {
+      return vscode.Uri.file(uri);
+    }
+    return uri;
   }
 
   /**
@@ -876,7 +935,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       vscode.ViewColumn.Active,
       {
         enableScripts: true,
-        localResourceRoots: [this._extensionUri],
+        localResourceRoots: this._getLocalResourceRoots(),
         retainContextWhenHidden: true,
       }
     );
@@ -929,9 +988,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /**
    * Registers an external v2 plugin.
    */
-  public registerExternalPlugin(plugin: unknown): void {
+  public registerExternalPlugin(plugin: unknown, options?: IExternalPluginRegistrationOptions): void {
     if (this._analyzer && typeof plugin === 'object' && plugin !== null && 'id' in plugin) {
+      const pluginId = String((plugin as { id: unknown }).id);
+      const sourceUri = this._normalizeExternalExtensionUri(options?.extensionUri);
+      if (sourceUri) {
+        this._pluginExtensionUris.set(pluginId, sourceUri);
+      }
+
       this._analyzer.registry.register(plugin as import('../core/plugins/types').IPlugin);
+      this._refreshWebviewResourceRoots();
       this._sendPluginStatuses();
       this._sendContextMenuItems();
       this._sendPluginWebviewInjections();

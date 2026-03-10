@@ -525,5 +525,68 @@ describe('GraphViewProvider', () => {
       expect((injectCall[0] as { payload: { scripts: string[] } }).payload.scripts[0]).toContain('test-plugin.js');
       expect((injectCall[0] as { payload: { styles: string[] } }).payload.styles[0]).toContain('test-plugin.css');
     });
+
+    it('resolves Tier-2 relative assets against the registering extension root', async () => {
+      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
+
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+          messageHandler = handler;
+          return { dispose: () => {} };
+        }),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      provider.registerExternalPlugin(
+        {
+          id: 'test.external-webview-plugin',
+          name: 'External Webview Plugin',
+          version: '1.0.0',
+          apiVersion: '^2.0.0',
+          supportedExtensions: ['.ts'],
+          detectConnections: async () => [],
+          webviewContributions: {
+            scripts: ['dist/webview/plugins/external.js'],
+          },
+        },
+        {
+          extensionUri: vscode.Uri.file('/test/external-extension'),
+        }
+      );
+
+      expect(messageHandler).not.toBeNull();
+      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      const injectCall = mockWebview.postMessage.mock.calls.find(
+        (call: unknown[]) => (call[0] as { type?: string }).type === 'PLUGIN_WEBVIEW_INJECT'
+      );
+      expect(injectCall).toBeDefined();
+
+      const payload = (injectCall[0] as { payload: { scripts: string[] } }).payload;
+      expect(payload.scripts[0]).toContain('/test/external-extension/dist/webview/plugins/external.js');
+
+      const roots = (mockWebview.options as { localResourceRoots?: Array<{ path?: string; fsPath?: string }> }).localResourceRoots;
+      expect(roots?.some((r) => r.fsPath === '/test/extension')).toBe(true);
+      expect(roots?.some((r) => r.fsPath === '/test/external-extension')).toBe(true);
+    });
   });
 });
