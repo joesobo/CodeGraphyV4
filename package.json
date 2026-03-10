@@ -240,6 +240,20 @@
 					"type": "boolean",
 					"default": true,
 					"description": "Show file name labels on graph nodes."
+				},
+				"codegraphy.timeline.maxCommits": {
+					"type": "number",
+					"default": 500,
+					"minimum": 10,
+					"maximum": 5000,
+					"description": "Maximum number of commits to index for the timeline feature."
+				},
+				"codegraphy.timeline.playbackSpeed": {
+					"type": "number",
+					"default": 1.0,
+					"minimum": 0.1,
+					"maximum": 10.0,
+					"description": "Timeline playback speed multiplier (1.0 = ~1 day per second)."
 				}
 			}
 		}

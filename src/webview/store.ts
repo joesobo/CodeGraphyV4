@@ -8,6 +8,7 @@ import type {
   IGroup,
   NodeSizeMode,
   IPluginStatus,
+  ICommitInfo,
   ExtensionToWebviewMessage,
 } from '../shared/types';
 import type { SearchOptions } from './components/SearchBar';
@@ -66,6 +67,15 @@ export interface GraphState {
   activePanel: 'none' | 'settings' | 'plugins';
   maxFiles: number;
 
+  // Timeline
+  timelineActive: boolean;
+  timelineCommits: ICommitInfo[];
+  currentCommitSha: string | null;
+  isIndexing: boolean;
+  indexProgress: { phase: string; current: number; total: number } | null;
+  isPlaying: boolean;
+  playbackSpeed: number;
+
   // Actions
   setSearchQuery: (query: string) => void;
   setSearchOptions: (options: SearchOptions) => void;
@@ -80,6 +90,8 @@ export interface GraphState {
   setShowLabels: (show: boolean) => void;
   setActiveViewId: (id: string) => void;
   setMaxFiles: (max: number) => void;
+  setPlaybackSpeed: (speed: number) => void;
+  setIsPlaying: (playing: boolean) => void;
   handleExtensionMessage: (message: ExtensionToWebviewMessage) => void;
 }
 
@@ -107,6 +119,13 @@ export function createGraphStore() {
     pluginStatuses: [],
     activePanel: 'none',
     maxFiles: 500,
+    timelineActive: false,
+    timelineCommits: [],
+    currentCommitSha: null,
+    isIndexing: false,
+    indexProgress: null,
+    isPlaying: false,
+    playbackSpeed: 1.0,
 
     // Actions
     setSearchQuery: (query) => set({ searchQuery: query }),
@@ -122,6 +141,8 @@ export function createGraphStore() {
     setShowLabels: (show) => set({ showLabels: show }),
     setActiveViewId: (id) => set({ activeViewId: id }),
     setMaxFiles: (max) => set({ maxFiles: max }),
+    setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
+    setIsPlaying: (playing) => set({ isPlaying: playing }),
 
     handleExtensionMessage: (message) => {
       switch (message.type) {
@@ -169,6 +190,33 @@ export function createGraphStore() {
           break;
         case 'MAX_FILES_UPDATED':
           set({ maxFiles: message.payload.maxFiles });
+          break;
+        case 'INDEX_PROGRESS':
+          set({ isIndexing: true, indexProgress: message.payload });
+          break;
+        case 'TIMELINE_DATA':
+          set({
+            isIndexing: false,
+            indexProgress: null,
+            timelineActive: true,
+            timelineCommits: message.payload.commits,
+            currentCommitSha: message.payload.currentSha,
+          });
+          break;
+        case 'COMMIT_GRAPH_DATA':
+          set({
+            currentCommitSha: message.payload.sha,
+            graphData: message.payload.graphData,
+            isLoading: false,
+          });
+          break;
+        case 'CACHE_INVALIDATED':
+          set({
+            timelineActive: false,
+            timelineCommits: [],
+            currentCommitSha: null,
+            isPlaying: false,
+          });
           break;
       }
     },

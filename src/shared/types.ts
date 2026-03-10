@@ -200,6 +200,36 @@ export interface IGraphData {
 }
 
 // ============================================================================
+// Timeline Types
+// ============================================================================
+
+/**
+ * Information about a single git commit for the timeline feature.
+ */
+export interface ICommitInfo {
+  /** Full 40-character SHA */
+  sha: string;
+  /** Unix timestamp in seconds */
+  timestamp: number;
+  /** First line of the commit message */
+  message: string;
+  /** Author name */
+  author: string;
+  /** Parent commit SHAs */
+  parents: string[];
+}
+
+/**
+ * Timeline data sent to the webview after indexing.
+ */
+export interface ITimelineData {
+  /** Commits ordered oldest-first */
+  commits: ICommitInfo[];
+  /** SHA of the currently displayed commit */
+  currentSha: string;
+}
+
+// ============================================================================
 // Message Protocol (Extension <-> Webview)
 // ============================================================================
 
@@ -330,6 +360,11 @@ export type ExtensionToWebviewMessage =
   | { type: 'SHOW_LABELS_UPDATED'; payload: { showLabels: boolean } }
   | { type: 'PLUGINS_UPDATED'; payload: { plugins: IPluginStatus[] } }
   | { type: 'MAX_FILES_UPDATED'; payload: { maxFiles: number } }
+  // Timeline messages
+  | { type: 'INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
+  | { type: 'TIMELINE_DATA'; payload: ITimelineData }
+  | { type: 'COMMIT_GRAPH_DATA'; payload: { sha: string; graphData: IGraphData } }
+  | { type: 'CACHE_INVALIDATED' }
   // Test/debug: request node positions + sizes for overlap detection
   | { type: 'GET_NODE_BOUNDS' };
 
@@ -393,6 +428,12 @@ export type WebviewToExtensionMessage =
   | { type: 'TOGGLE_RULE'; payload: { qualifiedId: string; enabled: boolean } }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; enabled: boolean } }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
+  // Timeline commands
+  | { type: 'INDEX_REPO' }
+  | { type: 'JUMP_TO_COMMIT'; payload: { sha: string } }
+  | { type: 'PLAY_TIMELINE'; payload: { speed: number } }
+  | { type: 'PAUSE_TIMELINE' }
+  | { type: 'PREVIEW_FILE_AT_COMMIT'; payload: { sha: string; filePath: string } }
   // Response to GET_NODE_BOUNDS: positions + radii for all nodes
   | { type: 'NODE_BOUNDS_RESPONSE'; payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> } };
 

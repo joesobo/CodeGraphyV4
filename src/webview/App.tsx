@@ -5,6 +5,7 @@ import GraphIcon from './components/GraphIcon';
 import { SearchBar } from './components/SearchBar';
 import SettingsPanel from './components/SettingsPanel';
 import PluginsPanel from './components/PluginsPanel';
+import Timeline from './components/Timeline';
 import { Button } from './components/ui/button';
 import { useTheme } from './hooks/useTheme';
 import { IGraphData, IGraphNode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
@@ -244,6 +245,9 @@ export default function App(): React.ReactElement {
           )}
         </div>
       </div>
+
+      {/* Timeline */}
+      <Timeline />
     </div>
   );
 }
