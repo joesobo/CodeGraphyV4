@@ -213,6 +213,7 @@ export default function Graph({
   const showArrows = useGraphStore(s => s.showArrows);
   const showLabels = useGraphStore(s => s.showLabels);
   const graphMode = useGraphStore(s => s.graphMode);
+  const timelineActive = useGraphStore(s => s.timelineActive);
   const containerRef = useRef<HTMLDivElement>(null);
   const fg2dRef = useRef<FG2DMethods<FGNode, FGLink> | undefined>(undefined);
   const fg3dRef = useRef<FG3DMethods<FGNode, FGLink> | undefined>(undefined);
@@ -1016,10 +1017,14 @@ export default function Graph({
       <ContextMenuContent className="w-64">
         {isBackgroundContext ? (
           <>
-            <ContextMenuItem onClick={() => handleContextAction('createFile')}>
-              New File...
-            </ContextMenuItem>
-            <ContextMenuSeparator />
+            {!timelineActive && (
+              <>
+                <ContextMenuItem onClick={() => handleContextAction('createFile')}>
+                  New File...
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+              </>
+            )}
             <ContextMenuItem onClick={() => handleContextAction('refresh')}>
               Refresh Graph
             </ContextMenuItem>
@@ -1033,7 +1038,7 @@ export default function Graph({
             <ContextMenuItem onClick={() => handleContextAction('open')}>
               {isMultiSelect ? `Open ${menuTargets.length} Files` : 'Open File'}
             </ContextMenuItem>
-            {!isMultiSelect && (
+            {!isMultiSelect && !timelineActive && (
               <ContextMenuItem onClick={() => handleContextAction('reveal')}>
                 Reveal in Explorer
               </ContextMenuItem>
@@ -1058,22 +1063,26 @@ export default function Graph({
                 Focus Node
               </ContextMenuItem>
             )}
-            <ContextMenuSeparator />
-            <ContextMenuItem onClick={() => handleContextAction('addToExclude')}>
-              {isMultiSelect ? 'Add All to Exclude' : 'Add to Exclude'}
-            </ContextMenuItem>
-            <ContextMenuSeparator />
-            {!isMultiSelect && (
-              <ContextMenuItem onClick={() => handleContextAction('rename')}>
-                Rename...
-              </ContextMenuItem>
+            {!timelineActive && (
+              <>
+                <ContextMenuSeparator />
+                <ContextMenuItem onClick={() => handleContextAction('addToExclude')}>
+                  {isMultiSelect ? 'Add All to Exclude' : 'Add to Exclude'}
+                </ContextMenuItem>
+                <ContextMenuSeparator />
+                {!isMultiSelect && (
+                  <ContextMenuItem onClick={() => handleContextAction('rename')}>
+                    Rename...
+                  </ContextMenuItem>
+                )}
+                <ContextMenuItem
+                  className="text-red-400 focus:text-red-300"
+                  onClick={() => handleContextAction('delete')}
+                >
+                  {isMultiSelect ? `Delete ${menuTargets.length} Files` : 'Delete File'}
+                </ContextMenuItem>
+              </>
             )}
-            <ContextMenuItem
-              className="text-red-400 focus:text-red-300"
-              onClick={() => handleContextAction('delete')}
-            >
-              {isMultiSelect ? `Delete ${menuTargets.length} Files` : 'Delete File'}
-            </ContextMenuItem>
           </>
         )}
       </ContextMenuContent>

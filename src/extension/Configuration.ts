@@ -119,6 +119,22 @@ export class Configuration {
   }
 
   /**
+   * Maximum number of commits to index for the timeline.
+   * @default 500
+   */
+  get timelineMaxCommits(): number {
+    return this.config.get<number>('timeline.maxCommits', 500);
+  }
+
+  /**
+   * Timeline playback speed multiplier.
+   * @default 1.0
+   */
+  get timelinePlaybackSpeed(): number {
+    return this.config.get<number>('timeline.playbackSpeed', 1.0);
+  }
+
+  /**
    * Gets a configuration value by key with a default.
    * @param key - Configuration key (without 'codegraphy.' prefix)
    * @param defaultValue - Default value if not set
