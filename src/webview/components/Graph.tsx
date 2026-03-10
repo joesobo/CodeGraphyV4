@@ -591,7 +591,7 @@ export default function Graph({
     setSelectedNodes([]);
   }, [setHighlight]);
 
-  /** Convert a graph-space node position to screen coordinates. */
+  /** Convert a graph-space node position to screen coordinates, offset by the node's screen radius. */
   const nodeToScreenCoords = useCallback((node: FGNode): { x: number; y: number } | null => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fg = fg2dRef.current as any;
@@ -600,7 +600,9 @@ export default function Graph({
 
     const screen = fg.graph2ScreenCoords(node.x ?? 0, node.y ?? 0);
     const rect = canvas.getBoundingClientRect();
-    return { x: screen.x + rect.left, y: screen.y + rect.top };
+    const zoom: number = fg.zoom?.() ?? 1;
+    const screenRadius = (node.size ?? DEFAULT_NODE_SIZE) * zoom;
+    return { x: screen.x + rect.left + screenRadius, y: screen.y + rect.top - screenRadius };
   }, []);
 
   /** RAF loop that keeps the tooltip anchored to the hovered node. */
