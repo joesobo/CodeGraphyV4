@@ -33,8 +33,8 @@ import type { ICommand, IContextMenuItem } from './commands';
  *   async detectConnections() { return []; },
  *
  *   onLoad(api) {
- *     const sub = api.on('nodeClick', ({ nodeId }) => {
- *       api.log('info', `Clicked: ${nodeId}`);
+ *     const sub = api.on('graph:nodeClick', ({ node }) => {
+ *       api.log('info', `Clicked: ${node.id}`);
  *     });
  *     // store sub for cleanup in onUnload
  *   }

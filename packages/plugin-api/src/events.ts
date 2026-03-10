@@ -1,301 +1,231 @@
 /**
- * @fileoverview Typed event payloads for the CodeGraphy event bus.
- * Plugins subscribe to events via `api.on(event, handler)`.
- *
- * Events are grouped into categories:
- * - **Graph interaction** (12) — user actions on the graph canvas
- * - **Analysis** (4) — workspace analysis lifecycle
- * - **Workspace** (6) — file system and settings changes
- * - **Views** (6) — view switching and lifecycle
- * - **Plugin** (6) — plugin system events
- * - **Timeline** (4) — git timeline feature events
- *
+ * @fileoverview Canonical event payload contract for the CodeGraphy plugin API.
+ * Event keys and payloads mirror the extension host runtime exactly.
  * @module @codegraphy/plugin-api/events
  */
 
-import type { IGraphData, IGraphNode, IGraphEdge } from './graph';
-import type { NodeDecoration, EdgeDecoration } from './decorations';
+/** Lightweight graph node reference used in event payloads. */
+export interface GraphNodeRef {
+  id: string;
+  label?: string;
+}
+
+/** Lightweight graph edge reference used in event payloads. */
+export interface GraphEdgeRef {
+  id: string;
+  from?: string;
+  to?: string;
+}
+
+/** Shared 2D coordinate payload. */
+export interface Point2D {
+  x: number;
+  y: number;
+}
 
 // ============================================================================
 // Graph Interaction Events (12)
 // ============================================================================
 
-/** Payload when a node is clicked. */
 export interface NodeClickPayload {
-  nodeId: string;
-  node: IGraphNode;
+  node: { id: string; label: string };
+  event: Point2D;
 }
 
-/** Payload when a node is double-clicked (opens file). */
 export interface NodeDoubleClickPayload {
-  nodeId: string;
-  node: IGraphNode;
+  node: { id: string; label: string };
+  event: Point2D;
 }
 
-/** Payload when a node is right-clicked. */
-export interface NodeContextMenuPayload {
-  nodeId: string;
-  node: IGraphNode;
-  /** Screen coordinates where the menu was triggered. */
-  position: { x: number; y: number };
-}
-
-/** Payload when node hover begins. */
+/**
+ * Hover payload mirrors runtime behavior:
+ * when hover ends, `node` is `null`.
+ */
 export interface NodeHoverPayload {
-  nodeId: string;
-  node: IGraphNode;
+  node: { id: string; label: string } | null;
 }
 
-/** Payload when node hover ends. */
 export interface NodeHoverEndPayload {
-  nodeId: string;
+  node: { id: string; label: string };
 }
 
-/** Payload when an edge is clicked. */
-export interface EdgeClickPayload {
-  edgeId: string;
-  edge: IGraphEdge;
-}
-
-/** Payload when an edge is hovered. */
-export interface EdgeHoverPayload {
-  edgeId: string;
-  edge: IGraphEdge;
-}
-
-/** Payload when edge hover ends. */
-export interface EdgeHoverEndPayload {
-  edgeId: string;
-}
-
-/** Payload when the canvas (background) is clicked. */
-export interface CanvasClickPayload {
-  /** Canvas coordinates of the click. */
-  position: { x: number; y: number };
-}
-
-/** Payload when a node is dragged to a new position. */
-export interface NodeDragPayload {
-  nodeId: string;
-  position: { x: number; y: number };
-}
-
-/** Payload when the selection changes (one or more nodes). */
 export interface SelectionChangePayload {
-  /** IDs of all currently selected nodes. Empty if selection was cleared. */
-  selectedNodeIds: string[];
+  nodes: Array<{ id: string }>;
+  edges: Array<{ id: string }>;
 }
 
-/** Payload when the viewport zoom or pan changes. */
-export interface ViewportChangePayload {
-  /** Current zoom level (1 = 100%). */
-  zoom: number;
-  /** Center of the viewport in graph coordinates. */
-  center: { x: number; y: number };
+export interface EdgeClickPayload {
+  edge: { id: string; from: string; to: string };
+  event: Point2D;
 }
+
+export interface EdgeHoverPayload {
+  edge: { id: string; from: string; to: string };
+  event: Point2D;
+}
+
+export interface DragEndPayload {
+  nodes: Array<{ id: string }>;
+  positions: Record<string, Point2D>;
+}
+
+export interface ZoomPayload {
+  level: number;
+  center: Point2D;
+}
+
+export interface StabilizedPayload {
+  iterations: number;
+}
+
+export interface ContextMenuPayload {
+  node?: { id: string };
+  edge?: { id: string };
+  position: Point2D;
+}
+
+/** Background click currently does not include coordinates in runtime. */
+export type BackgroundClickPayload = Record<string, never>;
 
 // ============================================================================
 // Analysis Events (4)
 // ============================================================================
 
-/** Payload when analysis starts. */
-export interface AnalysisStartPayload {
-  /** Number of files to analyze. */
+export interface AnalysisStartedPayload {
   fileCount: number;
 }
 
-/** Payload when analysis completes successfully. */
-export interface AnalysisCompletePayload {
-  /** The complete graph data produced by analysis. */
-  graph: IGraphData;
-  /** Analysis duration in milliseconds. */
-  durationMs: number;
-}
-
-/** Payload when analysis encounters an error. */
-export interface AnalysisErrorPayload {
-  /** Error message. */
-  message: string;
-  /** Original error, if available. */
-  error?: unknown;
-}
-
-/** Payload for incremental analysis progress. */
-export interface AnalysisProgressPayload {
-  /** Number of files analyzed so far. */
-  current: number;
-  /** Total files to analyze. */
-  total: number;
-  /** Phase label (e.g., 'discovering', 'analyzing', 'building graph'). */
-  phase: string;
-}
-
-// ============================================================================
-// Workspace Events (6)
-// ============================================================================
-
-/** Payload when a file is created, changed, or deleted. */
-export interface FileChangePayload {
-  /** Absolute path of the affected file. */
+export interface AnalysisFileProcessedPayload {
   filePath: string;
-  /** Type of change. */
-  changeType: 'created' | 'changed' | 'deleted';
+  connections: Array<{ specifier: string; resolvedPath: string | null }>;
 }
 
-/** Payload when a file is renamed. */
-export interface FileRenamePayload {
-  /** Previous absolute path. */
+export interface AnalysisCompletedPayload {
+  graph: {
+    nodes: Array<{ id: string }>;
+    edges: Array<{ id: string }>;
+  };
+  duration: number;
+}
+
+export interface AnalysisErrorPayload {
+  error: Error;
+  filePath?: string;
+}
+
+// ============================================================================
+// Workspace / Files Events (6)
+// ============================================================================
+
+export interface WorkspaceFileCreatedPayload {
+  filePath: string;
+}
+
+export interface WorkspaceFileDeletedPayload {
+  filePath: string;
+}
+
+export interface WorkspaceFileRenamedPayload {
   oldPath: string;
-  /** New absolute path. */
   newPath: string;
 }
 
-/** Payload when the active editor changes. */
-export interface ActiveEditorChangePayload {
-  /** Absolute path of the newly active file, or null if no editor is open. */
-  filePath: string | null;
+export interface WorkspaceFileChangedPayload {
+  filePath: string;
 }
 
-/** Payload when a CodeGraphy setting changes. */
-export interface SettingChangePayload {
-  /** The setting key that changed (e.g., 'codegraphy.showOrphans'). */
+export interface WorkspaceConfigChangedPayload {
   key: string;
-  /** The new value. */
   value: unknown;
-  /** The previous value. */
-  previousValue: unknown;
+  old: unknown;
 }
 
-/** Payload when the workspace root changes. */
-export interface WorkspaceChangePayload {
-  /** New workspace root absolute path. */
-  workspaceRoot: string;
-}
-
-/** Payload when the color theme changes. */
-export interface ThemeChangePayload {
-  /** New theme kind. */
-  kind: 'light' | 'dark' | 'high-contrast';
+export interface WorkspaceActiveEditorChangedPayload {
+  filePath?: string;
 }
 
 // ============================================================================
-// View Events (6)
+// Views & Navigation Events (6)
 // ============================================================================
 
-/** Payload when the active view is about to change. */
-export interface ViewWillChangePayload {
-  /** Current view ID. */
-  currentViewId: string;
-  /** View ID being switched to. */
-  nextViewId: string;
-}
-
-/** Payload when the active view has changed. */
-export interface ViewDidChangePayload {
-  /** Previous view ID. */
-  previousViewId: string;
-  /** New active view ID. */
-  activeViewId: string;
-}
-
-/** Payload when a new view is registered. */
-export interface ViewRegisteredPayload {
-  /** The registered view's ID. */
+export interface ViewChangedPayload {
   viewId: string;
-  /** Human-readable name. */
-  name: string;
+  previousId?: string;
 }
 
-/** Payload when a view is unregistered. */
-export interface ViewUnregisteredPayload {
-  viewId: string;
+export interface ViewFocusChangedPayload {
+  filePath?: string;
 }
 
-/** Payload when the depth limit changes (depth graph view). */
-export interface DepthLimitChangePayload {
-  depthLimit: number;
+export interface ViewFolderChangedPayload {
+  folderPath?: string;
 }
 
-/** Payload when the focused file changes (depth graph view). */
-export interface FocusedFileChangePayload {
-  /** Relative path of the focused file, or null if cleared. */
-  filePath: string | null;
+export interface ViewDepthChangedPayload {
+  depth: number;
+}
+
+export interface ViewSearchChangedPayload {
+  query: string;
+  results: string[];
+}
+
+export interface ViewPhysicsChangedPayload {
+  settings: Record<string, number>;
 }
 
 // ============================================================================
-// Plugin Events (6)
+// Plugin Ecosystem Events (6)
 // ============================================================================
 
-/** Payload when a plugin is loaded. */
-export interface PluginLoadedPayload {
-  pluginId: string;
-  pluginName: string;
-  version: string;
-}
-
-/** Payload when a plugin is unloaded. */
-export interface PluginUnloadedPayload {
+export interface PluginRegisteredPayload {
   pluginId: string;
 }
 
-/** Payload when a plugin is enabled or disabled. */
-export interface PluginTogglePayload {
+export interface PluginUnregisteredPayload {
   pluginId: string;
-  enabled: boolean;
 }
 
-/** Payload when a plugin rule is toggled. */
-export interface RuleTogglePayload {
-  /** Qualified ID: "pluginId:ruleId". */
+export interface PluginEnabledPayload {
+  pluginId: string;
+}
+
+export interface PluginDisabledPayload {
+  pluginId: string;
+}
+
+export interface PluginRuleToggledPayload {
   qualifiedId: string;
   enabled: boolean;
 }
 
-/** Payload when a node decoration is applied. */
-export interface DecorationAppliedPayload {
-  nodeId?: string;
-  edgeId?: string;
-  decoration: NodeDecoration | EdgeDecoration;
-  pluginId: string;
-}
-
-/** Payload when decorations are cleared. */
-export interface DecorationsClearedPayload {
-  pluginId: string;
+export interface PluginMessagePayload {
+  from: string;
+  to?: string;
+  data: unknown;
 }
 
 // ============================================================================
 // Timeline Events (4)
 // ============================================================================
 
-/** Payload when timeline indexing progress updates. */
-export interface TimelineIndexProgressPayload {
-  phase: string;
-  current: number;
-  total: number;
+export interface TimelineCommitSelectedPayload {
+  hash: string;
+  date: string;
+  author: string;
 }
 
-/** Payload when timeline indexing completes. */
-export interface TimelineReadyPayload {
-  /** Total number of commits indexed. */
-  commitCount: number;
-  /** SHA of the current (HEAD) commit. */
-  currentSha: string;
-}
-
-/** Payload when the timeline jumps to a specific commit. */
-export interface TimelineCommitChangePayload {
-  /** SHA of the commit being displayed. */
-  sha: string;
-  /** Graph data for that commit snapshot. */
-  graph: IGraphData;
-}
-
-/** Payload when timeline playback starts, pauses, or ends. */
-export interface TimelinePlaybackPayload {
-  state: 'playing' | 'paused' | 'ended';
-  /** Current playback speed multiplier. */
+export interface TimelinePlaybackStartedPayload {
   speed: number;
+}
+
+export interface TimelinePlaybackStoppedPayload {
+  commitHash: string;
+}
+
+export interface TimelineRangeChangedPayload {
+  start: string;
+  end: string;
 }
 
 // ============================================================================
@@ -303,57 +233,60 @@ export interface TimelinePlaybackPayload {
 // ============================================================================
 
 /**
- * Master mapping from event names to their payload types.
- * Used by `api.on<E>()` / `api.once<E>()` for full type safety.
+ * Canonical mapping from event names to payload types.
+ * These keys intentionally match the runtime EventBus in the extension host.
  */
 export interface EventPayloads {
   // Graph interaction (12)
-  nodeClick: NodeClickPayload;
-  nodeDoubleClick: NodeDoubleClickPayload;
-  nodeContextMenu: NodeContextMenuPayload;
-  nodeHover: NodeHoverPayload;
-  nodeHoverEnd: NodeHoverEndPayload;
-  edgeClick: EdgeClickPayload;
-  edgeHover: EdgeHoverPayload;
-  edgeHoverEnd: EdgeHoverEndPayload;
-  canvasClick: CanvasClickPayload;
-  nodeDrag: NodeDragPayload;
-  selectionChange: SelectionChangePayload;
-  viewportChange: ViewportChangePayload;
+  'graph:nodeClick': NodeClickPayload;
+  'graph:nodeDoubleClick': NodeDoubleClickPayload;
+  'graph:nodeHover': NodeHoverPayload;
+  'graph:nodeHoverEnd': NodeHoverEndPayload;
+  'graph:selectionChanged': SelectionChangePayload;
+  'graph:edgeClick': EdgeClickPayload;
+  'graph:edgeHover': EdgeHoverPayload;
+  'graph:dragEnd': DragEndPayload;
+  'graph:zoom': ZoomPayload;
+  'graph:stabilized': StabilizedPayload;
+  'graph:contextMenu': ContextMenuPayload;
+  'graph:backgroundClick': BackgroundClickPayload;
 
   // Analysis (4)
-  analysisStart: AnalysisStartPayload;
-  analysisComplete: AnalysisCompletePayload;
-  analysisError: AnalysisErrorPayload;
-  analysisProgress: AnalysisProgressPayload;
+  'analysis:started': AnalysisStartedPayload;
+  'analysis:fileProcessed': AnalysisFileProcessedPayload;
+  'analysis:completed': AnalysisCompletedPayload;
+  'analysis:error': AnalysisErrorPayload;
 
-  // Workspace (6)
-  fileChange: FileChangePayload;
-  fileRename: FileRenamePayload;
-  activeEditorChange: ActiveEditorChangePayload;
-  settingChange: SettingChangePayload;
-  workspaceChange: WorkspaceChangePayload;
-  themeChange: ThemeChangePayload;
+  // Workspace / files (6)
+  'workspace:fileCreated': WorkspaceFileCreatedPayload;
+  'workspace:fileDeleted': WorkspaceFileDeletedPayload;
+  'workspace:fileRenamed': WorkspaceFileRenamedPayload;
+  'workspace:fileChanged': WorkspaceFileChangedPayload;
+  'workspace:configChanged': WorkspaceConfigChangedPayload;
+  'workspace:activeEditorChanged': WorkspaceActiveEditorChangedPayload;
 
-  // Views (6)
-  viewWillChange: ViewWillChangePayload;
-  viewDidChange: ViewDidChangePayload;
-  viewRegistered: ViewRegisteredPayload;
-  viewUnregistered: ViewUnregisteredPayload;
-  depthLimitChange: DepthLimitChangePayload;
-  focusedFileChange: FocusedFileChangePayload;
+  // Views & navigation (6)
+  'view:changed': ViewChangedPayload;
+  'view:focusChanged': ViewFocusChangedPayload;
+  'view:folderChanged': ViewFolderChangedPayload;
+  'view:depthChanged': ViewDepthChangedPayload;
+  'view:searchChanged': ViewSearchChangedPayload;
+  'view:physicsChanged': ViewPhysicsChangedPayload;
 
-  // Plugin (6)
-  pluginLoaded: PluginLoadedPayload;
-  pluginUnloaded: PluginUnloadedPayload;
-  pluginToggle: PluginTogglePayload;
-  ruleToggle: RuleTogglePayload;
-  decorationApplied: DecorationAppliedPayload;
-  decorationsCleared: DecorationsClearedPayload;
+  // Plugin ecosystem (6)
+  'plugin:registered': PluginRegisteredPayload;
+  'plugin:unregistered': PluginUnregisteredPayload;
+  'plugin:enabled': PluginEnabledPayload;
+  'plugin:disabled': PluginDisabledPayload;
+  'plugin:ruleToggled': PluginRuleToggledPayload;
+  'plugin:message': PluginMessagePayload;
 
   // Timeline (4)
-  timelineIndexProgress: TimelineIndexProgressPayload;
-  timelineReady: TimelineReadyPayload;
-  timelineCommitChange: TimelineCommitChangePayload;
-  timelinePlayback: TimelinePlaybackPayload;
+  'timeline:commitSelected': TimelineCommitSelectedPayload;
+  'timeline:playbackStarted': TimelinePlaybackStartedPayload;
+  'timeline:playbackStopped': TimelinePlaybackStoppedPayload;
+  'timeline:rangeChanged': TimelineRangeChangedPayload;
 }
+
+/** Union of all event names. */
+export type EventName = keyof EventPayloads;

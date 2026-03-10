@@ -35,6 +35,7 @@ import { NodeTooltip } from './NodeTooltip';
 import { ThemeKind, adjustColorForLightTheme } from '../hooks/useTheme';
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
+import { WebviewPluginHost } from '../pluginHost';
 
 /** Yellow color for favorites */
 const FAVORITE_BORDER_COLOR = '#EAB308';
@@ -49,6 +50,7 @@ interface GraphProps {
   theme?: ThemeKind;
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
+  pluginHost?: WebviewPluginHost;
 }
 
 /** Default physics settings (user-facing normalized values) */
@@ -166,6 +168,14 @@ function getDepthSizeMultiplier(depthLevel: number | undefined): number {
   return 1.0;
 }
 
+function getNodeType(filePath: string): string {
+  const dotIndex = filePath.lastIndexOf('.');
+  if (dotIndex === -1 || dotIndex === filePath.length - 1) {
+    return '*';
+  }
+  return filePath.slice(dotIndex).toLowerCase();
+}
+
 interface ProcessedEdge extends IGraphEdge {
   bidirectional?: boolean;
 }
@@ -210,6 +220,7 @@ export default function Graph({
   theme = 'dark',
   nodeDecorations,
   edgeDecorations,
+  pluginHost,
 }: GraphProps): React.ReactElement {
   // Read state from store
   const favorites = useGraphStore(s => s.favorites);
@@ -269,7 +280,14 @@ export default function Graph({
     nodeRect: { x: number; y: number; radius: number };
     path: string;
     info: IFileInfo | null;
-  }>({ visible: false, nodeRect: { x: 0, y: 0, radius: 0 }, path: '', info: null });
+    pluginSections: Array<{ title: string; content: string }>;
+  }>({
+    visible: false,
+    nodeRect: { x: 0, y: 0, radius: 0 },
+    path: '',
+    info: null,
+    pluginSections: [],
+  });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
   // ── Build graphData for force-graph ─────────────────────────────────────
@@ -416,8 +434,24 @@ export default function Graph({
       }
     }
 
+    if (pluginHost) {
+      const renderer = pluginHost.getNodeRenderer(getNodeType(node.id)) ?? pluginHost.getNodeRenderer('*');
+      if (renderer) {
+        try {
+          renderer({
+            node,
+            ctx,
+            globalScale,
+            decoration: deco,
+          });
+        } catch (error) {
+          console.error('[CodeGraphy] Plugin node renderer error:', error);
+        }
+      }
+    }
+
     ctx.restore();
-  }, []);
+  }, [pluginHost]);
 
   const nodePointerAreaPaint = useCallback((
     node: FGNode,
@@ -661,7 +695,7 @@ export default function Graph({
     if (!node) {
       hoveredNodeRef.current = null;
       stopTooltipTracking();
-      setTooltipData(prev => ({ ...prev, visible: false }));
+      setTooltipData(prev => ({ ...prev, visible: false, pluginSections: [] }));
       sendGraphInteraction('graph:nodeHover', { node: null });
       return;
     }
@@ -671,6 +705,21 @@ export default function Graph({
     const nodeId = node.id;
     tooltipTimeoutRef.current = setTimeout(() => {
       const rect = getNodeScreenRect(node) ?? { x: 0, y: 0, radius: 0 };
+      const snapshot = dataRef.current;
+      const baseNode =
+        snapshot.nodes.find((n) => n.id === nodeId) ??
+        { id: node.id, label: node.label, color: node.color };
+      const connectedEdges = snapshot.edges.filter((edge) => edge.from === nodeId || edge.to === nodeId);
+      const neighborIds = new Set<string>();
+      for (const edge of connectedEdges) {
+        neighborIds.add(edge.from === nodeId ? edge.to : edge.from);
+      }
+      const neighbors = snapshot.nodes.filter((n) => neighborIds.has(n.id));
+      const pluginTooltip = pluginHost?.getTooltipContent({
+        node: baseNode,
+        neighbors,
+        edges: connectedEdges,
+      });
 
       const cached = fileInfoCacheRef.current.get(nodeId);
       setTooltipData({
@@ -678,12 +727,13 @@ export default function Graph({
         nodeRect: rect,
         path: nodeId,
         info: cached || null,
+        pluginSections: pluginTooltip?.sections ?? [],
       });
       if (!cached) postMessage({ type: 'GET_FILE_INFO', payload: { path: nodeId } });
 
       startTooltipTracking();
     }, 500);
-  }, [getNodeScreenRect, startTooltipTracking, stopTooltipTracking, sendGraphInteraction]);
+  }, [getNodeScreenRect, pluginHost, startTooltipTracking, stopTooltipTracking, sendGraphInteraction]);
 
   // Cleanup tooltip RAF on unmount
   useEffect(() => stopTooltipTracking, [stopTooltipTracking]);
@@ -715,7 +765,7 @@ export default function Graph({
     }
     hoveredNodeRef.current = null;
     stopTooltipTracking();
-    setTooltipData(prev => ({ ...prev, visible: false }));
+    setTooltipData(prev => ({ ...prev, visible: false, pluginSections: [] }));
   }, [stopTooltipTracking]);
 
   const handleContextAction = useCallback((action: string, paths?: string[]) => {
@@ -1020,6 +1070,25 @@ export default function Graph({
     return () => ro.disconnect();
   }, []);
 
+  const renderPluginOverlays = useCallback((ctx: CanvasRenderingContext2D, globalScale: number) => {
+    if (!pluginHost) return;
+    const overlays = pluginHost.getOverlays();
+    if (overlays.length === 0) return;
+
+    for (const overlay of overlays) {
+      try {
+        overlay.fn({
+          ctx,
+          width: ctx.canvas.width,
+          height: ctx.canvas.height,
+          globalScale,
+        });
+      } catch (error) {
+        console.error('[CodeGraphy] Plugin overlay renderer error:', error);
+      }
+    }
+  }, [pluginHost]);
+
   // ── Render ────────────────────────────────────────────────────────────────
 
   const isLight = theme === 'light';
@@ -1108,6 +1177,7 @@ export default function Graph({
               linkDirectionalArrowColor={getLinkColor as (link: LinkObject) => string}
               linkCanvasObject={linkCanvasObject as (link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
               linkCanvasObjectMode={(link) => (link as FGLink).bidirectional ? 'replace' : undefined}
+              onRenderFramePost={renderPluginOverlays}
               autoPauseRedraw={false}
             />
           ) : (
@@ -1214,6 +1284,7 @@ export default function Graph({
         visits={tooltipData.info?.visits}
         nodeRect={tooltipData.nodeRect}
         visible={tooltipData.visible}
+        extraSections={tooltipData.pluginSections}
       />
     </ContextMenu>
   );

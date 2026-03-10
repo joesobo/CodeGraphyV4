@@ -89,6 +89,15 @@ export interface IPlugin {
   
   /** Semantic version string */
   version: string;
+
+  /**
+   * Optional semver range for v2 plugins.
+   * Presence of this field marks the plugin as v2.
+   */
+  apiVersion?: string;
+
+  /** Optional semver range for webview-side API compatibility. */
+  webviewApiVersion?: string;
   
   /** File extensions this plugin can handle (e.g., ['.ts', '.tsx']) */
   supportedExtensions: string[];
@@ -134,6 +143,15 @@ export interface IPlugin {
    * ```
    */
   defaultFilters?: string[];
+
+  /**
+   * Optional Tier-2 webview contributions to inject when the webview is ready.
+   * Paths may be absolute URLs or extension-relative asset paths.
+   */
+  webviewContributions?: {
+    scripts?: string[];
+    styles?: string[];
+  };
   
   /**
    * Detects connections (imports) in a file.

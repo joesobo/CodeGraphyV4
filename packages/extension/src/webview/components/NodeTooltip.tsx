@@ -34,6 +34,8 @@ interface NodeTooltipProps {
   nodeRect: { x: number; y: number; radius: number };
   /** Whether tooltip is visible */
   visible: boolean;
+  /** Optional plugin-contributed sections */
+  extraSections?: Array<{ title: string; content: string }>;
 }
 
 function formatSize(bytes: number): string {
@@ -68,6 +70,7 @@ export function NodeTooltip({
   visits,
   nodeRect,
   visible,
+  extraSections = [],
 }: NodeTooltipProps): React.ReactElement | null {
   // Virtual element representing the node's bounding circle as a rect
   const virtualEl = useMemo(() => {
@@ -132,6 +135,22 @@ export function NodeTooltip({
         {(visits ?? 0) > 0 && <Row label="Visits" value={String(visits)} />}
         {plugin && <Row label="Plugin" value={plugin} />}
       </div>
+
+      {extraSections.length > 0 && (
+        <>
+          <Separator className="bg-[var(--vscode-editorHoverWidget-border,#454545)]" />
+          <div className="px-3 py-1.5 space-y-1 text-[11px]">
+            {extraSections.map((section, index) => (
+              <div key={`${section.title}-${index}`}>
+                <p className="font-semibold text-[var(--vscode-textLink-foreground,#3794ff)]">
+                  {section.title}
+                </p>
+                <p className="font-mono whitespace-pre-wrap break-words">{section.content}</p>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

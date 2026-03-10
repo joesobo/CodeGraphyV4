@@ -642,6 +642,75 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Sends Tier-2 webview asset injections for plugins that declare contributions.
+   */
+  private _sendPluginWebviewInjections(): void {
+    if (!this._analyzer) return;
+
+    for (const pluginInfo of this._analyzer.registry.list()) {
+      const contributions = pluginInfo.plugin.webviewContributions;
+      if (!contributions) continue;
+
+      const scripts = (contributions.scripts ?? []).map((asset) =>
+        this._resolveWebviewAssetPath(asset)
+      );
+      const styles = (contributions.styles ?? []).map((asset) =>
+        this._resolveWebviewAssetPath(asset)
+      );
+
+      if (scripts.length === 0 && styles.length === 0) continue;
+
+      this._sendMessage({
+        type: 'PLUGIN_WEBVIEW_INJECT',
+        payload: {
+          pluginId: pluginInfo.plugin.id,
+          scripts,
+          styles,
+        },
+      });
+    }
+  }
+
+  /**
+   * Resolves an asset path for webview consumption.
+   * Absolute URLs are passed through; relative/absolute file paths are converted
+   * to webview URIs when possible.
+   */
+  private _resolveWebviewAssetPath(assetPath: string): string {
+    // Already a URI (e.g. https://..., vscode-webview://...)
+    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(assetPath)) {
+      return assetPath;
+    }
+
+    const fileUri = path.isAbsolute(assetPath)
+      ? vscode.Uri.file(assetPath)
+      : vscode.Uri.joinPath(this._extensionUri, assetPath);
+
+    const webview = this._view?.webview ?? this._panels[0]?.webview;
+    if (!webview) {
+      return fileUri.toString();
+    }
+
+    const webviewUri = webview.asWebviewUri(fileUri) as unknown;
+    if (typeof webviewUri === 'string') {
+      return webviewUri;
+    }
+    if (
+      webviewUri &&
+      typeof (webviewUri as { toString?: () => string }).toString === 'function'
+    ) {
+      const text = (webviewUri as { toString: () => string }).toString();
+      if (text && text !== '[object Object]') {
+        return text;
+      }
+    }
+
+    // Test mocks may provide plain URI objects without a useful toString().
+    const pathLike = webviewUri as { path?: string; fsPath?: string } | null;
+    return pathLike?.path ?? pathLike?.fsPath ?? String(webviewUri);
+  }
+
+  /**
    * Rebuilds the graph from cached connections (no re-analysis) and sends updates.
    * Used for instant rule/plugin toggle response.
    */
@@ -863,6 +932,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   public registerExternalPlugin(plugin: unknown): void {
     if (this._analyzer && typeof plugin === 'object' && plugin !== null && 'id' in plugin) {
       this._analyzer.registry.register(plugin as import('../core/plugins/types').IPlugin);
+      this._sendPluginStatuses();
+      this._sendContextMenuItems();
+      this._sendPluginWebviewInjections();
     }
   }
 
@@ -967,6 +1039,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           // Send current decorations and context menu items
           this._sendDecorations();
           this._sendContextMenuItems();
+          this._sendPluginWebviewInjections();
           break;
 
         case 'NODE_SELECTED':
@@ -1181,7 +1254,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
         case 'GRAPH_INTERACTION': {
           const { event, data } = message.payload;
-          this._eventBus.emit(event as EventName, data as EventPayloads[EventName]);
+          if (event.startsWith('plugin:')) {
+            const [, pluginId, ...typeParts] = event.split(':');
+            if (pluginId && typeParts.length > 0) {
+              const api = this._analyzer?.registry.getPluginAPI(pluginId);
+              api?.deliverWebviewMessage({ type: typeParts.join(':'), data });
+            }
+          } else {
+            this._eventBus.emit(event as EventName, data as EventPayloads[EventName]);
+          }
           break;
         }
 

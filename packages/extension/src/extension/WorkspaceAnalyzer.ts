@@ -373,6 +373,17 @@ export class WorkspaceAnalyzer {
   ): Promise<void> {
     throwIfAborted(signal);
 
+    const contentByRelativePath = new Map<string, string>();
+    const getFileContent = async (file: IDiscoveredFile): Promise<string> => {
+      const cached = contentByRelativePath.get(file.relativePath);
+      if (cached !== undefined) {
+        return cached;
+      }
+      const content = await this._discovery.readContent(file);
+      contentByRelativePath.set(file.relativePath, content);
+      return content;
+    };
+
     for (const pluginInfo of this._registry.list()) {
       throwIfAborted(signal);
 
@@ -385,7 +396,7 @@ export class WorkspaceAnalyzer {
 
         const ext = path.extname(file.relativePath).toLowerCase();
         if (plugin.supportedExtensions.includes(ext)) {
-          const content = await this._discovery.readContent(file);
+          const content = await getFileContent(file);
           supportedFiles.push({ absolutePath: file.absolutePath, relativePath: file.relativePath, content });
         }
       }
@@ -396,9 +407,14 @@ export class WorkspaceAnalyzer {
       }
     }
 
-    // Notify v2 plugins of pre-analyze phase (content omitted; v2 plugins can read files via API)
+    // Notify v2 plugins of pre-analyze phase with full file content.
+    const v2Files = await Promise.all(files.map(async (file) => ({
+      absolutePath: file.absolutePath,
+      relativePath: file.relativePath,
+      content: await getFileContent(file),
+    })));
     await this._registry.notifyPreAnalyze(
-      files.map(f => ({ absolutePath: f.absolutePath, relativePath: f.relativePath, content: '' })),
+      v2Files,
       workspaceRoot
     );
   }

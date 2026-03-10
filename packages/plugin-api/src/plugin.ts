@@ -57,7 +57,7 @@ export interface IAnalysisFile {
  *   supportedExtensions: [],
  *   async detectConnections() { return []; },
  *   onLoad(api) {
- *     api.on('analysisComplete', ({ graph }) => {
+ *     api.on('analysis:completed', ({ graph }) => {
  *       // decorate nodes with coverage data
  *     });
  *   }
@@ -81,6 +81,9 @@ export interface IPlugin {
    * - Set to `'^2.0.0'` for v2 plugins that use lifecycle hooks and the API.
    */
   apiVersion?: string;
+
+  /** Optional semver range for the webview-side API contract. */
+  webviewApiVersion?: string;
 
   /** File extensions this plugin can handle (e.g., `['.ts', '.tsx']`). */
   supportedExtensions: string[];
@@ -109,6 +112,15 @@ export interface IPlugin {
    * files matching these patterns are excluded from analysis.
    */
   defaultFilters?: string[];
+
+  /**
+   * Optional Tier-2 webview contributions injected by the host.
+   * Asset paths may be absolute URLs or extension-relative paths.
+   */
+  webviewContributions?: {
+    scripts?: string[];
+    styles?: string[];
+  };
 
   // ---------------------------------------------------------------------------
   // v1 core method (required)

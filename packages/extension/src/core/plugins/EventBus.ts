@@ -5,65 +5,9 @@
  */
 
 import { Disposable, toDisposable } from './Disposable';
+import type { EventPayloads, EventName } from '../../../../plugin-api/src/events';
 
-/**
- * All event payloads for the plugin event system.
- * Each key is an event name, each value is the payload type.
- */
-export interface EventPayloads {
-  // ── Graph Interaction (12 events) ──
-  'graph:nodeClick': { node: { id: string; label: string }; event: { x: number; y: number } };
-  'graph:nodeDoubleClick': { node: { id: string; label: string }; event: { x: number; y: number } };
-  'graph:nodeHover': { node: { id: string; label: string }; event: { x: number; y: number } };
-  'graph:nodeHoverEnd': { node: { id: string; label: string } };
-  'graph:selectionChanged': { nodes: Array<{ id: string }>; edges: Array<{ id: string }> };
-  'graph:edgeClick': { edge: { id: string; from: string; to: string }; event: { x: number; y: number } };
-  'graph:edgeHover': { edge: { id: string; from: string; to: string }; event: { x: number; y: number } };
-  'graph:dragEnd': { nodes: Array<{ id: string }>; positions: Record<string, { x: number; y: number }> };
-  'graph:zoom': { level: number; center: { x: number; y: number } };
-  'graph:stabilized': { iterations: number };
-  'graph:contextMenu': { node?: { id: string }; edge?: { id: string }; position: { x: number; y: number } };
-  'graph:backgroundClick': { position: { x: number; y: number } };
-
-  // ── Analysis Pipeline (4 events) ──
-  'analysis:started': { fileCount: number };
-  'analysis:fileProcessed': { filePath: string; connections: Array<{ specifier: string; resolvedPath: string | null }> };
-  'analysis:completed': { graph: { nodes: Array<{ id: string }>; edges: Array<{ id: string }> }; duration: number };
-  'analysis:error': { error: Error; filePath?: string };
-
-  // ── Workspace / Files (6 events) ──
-  'workspace:fileCreated': { filePath: string };
-  'workspace:fileDeleted': { filePath: string };
-  'workspace:fileRenamed': { oldPath: string; newPath: string };
-  'workspace:fileChanged': { filePath: string };
-  'workspace:configChanged': { key: string; value: unknown; old: unknown };
-  'workspace:activeEditorChanged': { filePath?: string };
-
-  // ── Views & Navigation (6 events) ──
-  'view:changed': { viewId: string; previousId?: string };
-  'view:focusChanged': { filePath?: string };
-  'view:folderChanged': { folderPath?: string };
-  'view:depthChanged': { depth: number };
-  'view:searchChanged': { query: string; results: string[] };
-  'view:physicsChanged': { settings: Record<string, number> };
-
-  // ── Plugin Ecosystem (6 events) ──
-  'plugin:registered': { pluginId: string };
-  'plugin:unregistered': { pluginId: string };
-  'plugin:enabled': { pluginId: string };
-  'plugin:disabled': { pluginId: string };
-  'plugin:ruleToggled': { qualifiedId: string; enabled: boolean };
-  'plugin:message': { from: string; to?: string; data: unknown };
-
-  // ── Timeline (4 events) ──
-  'timeline:commitSelected': { hash: string; date: string; author: string };
-  'timeline:playbackStarted': { speed: number };
-  'timeline:playbackStopped': { commitHash: string };
-  'timeline:rangeChanged': { start: string; end: string };
-}
-
-/** Union of all event names */
-export type EventName = keyof EventPayloads;
+export type { EventPayloads, EventName };
 
 /** Handler function for a specific event */
 type EventHandler<E extends EventName> = (payload: EventPayloads[E]) => void;

@@ -55,7 +55,7 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **`discovery/FileDiscovery.ts`** recursively discovers files using glob patterns, respects `.gitignore`, and enforces the max file limit.
 
-**`plugins/PluginRegistry.ts`** maps file extensions to `IPlugin` instances and handles initialization/disposal.
+**`plugins/PluginRegistry.ts`** maps file extensions to `IPlugin` instances and handles initialization/disposal. For v2 plugins, it provisions a scoped `CodeGraphyAPI`, runs lifecycle hooks (`onLoad`, `onPreAnalyze`, `onPostAnalyze`, etc.), and manages webview message delivery.
 
 **`colors/ColorPaletteManager.ts`** generates distinct colors for file types with a three-tier priority system: user settings > plugin defaults > auto-generated.
 
@@ -73,11 +73,21 @@ Each plugin implements `IPlugin` from `src/core/plugins/types.ts`. Five built-in
 
 Each plugin declares detection rules in a `manifest.json` and sets `ruleId` on every connection so users can toggle rules individually.
 
+## Plugin API package (`packages/plugin-api/`)
+
+**`src/events.ts`** is the canonical event contract (`EventName`/`EventPayloads`) shared by plugin authors and the extension runtime.
+
+**`src/api.ts`** defines the host-side v2 API surface (`CodeGraphyAPI`) used by plugins.
+
+**`src/plugin.ts`** defines plugin metadata and lifecycle contracts, including Tier-2 webview contributions (`webviewContributions`, `webviewApiVersion`).
+
+**`src/webview/*`** defines the webview-side plugin API types (renderers, helpers, message bridge types).
+
 ## Webview layer (`src/webview/`)
 
-**`App.tsx`** listens for `ExtensionToWebviewMessage` events, manages all UI state, and renders the graph with panels.
+**`App.tsx`** listens for `ExtensionToWebviewMessage` events, manages all UI state, and renders the graph with panels. It also hosts the Tier-2 runtime (`WebviewPluginHost`), handles `PLUGIN_WEBVIEW_INJECT`, dynamically loads plugin scripts/styles, and routes plugin-scoped messages.
 
-**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI.
+**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI. Exposes plugin hooks for custom node renderers, overlay rendering, and tooltip section contributions.
 
 **`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings. Built with shadcn/ui components. Group colors combine user-defined entries with plugin-provided default `fileColors`.
 
@@ -107,8 +117,20 @@ Defines the message protocol and data types shared across both build targets:
    c. Builds nodes (files) and edges (imports)
    d. Applies persisted positions
 6. GraphViewProvider sends GRAPH_DATA_UPDATED + PLUGINS_UPDATED
-7. Graph component renders with react-force-graph
-8. Physics simulation runs until stable
+7. GraphViewProvider sends DECORATIONS_UPDATED + CONTEXT_MENU_ITEMS + PLUGIN_WEBVIEW_INJECT
+8. App loads plugin Tier-2 assets and registers plugin render/message hooks
+9. Graph component renders with react-force-graph
+10. Physics simulation runs until stable
+```
+
+### Plugin Tier-2 messaging
+```
+1. Plugin webview script sends api.sendMessage({ type, data })
+2. Webview posts GRAPH_INTERACTION with event "plugin:<pluginId>:<type>"
+3. GraphViewProvider routes plugin-prefixed events to that plugin's API instance
+4. Extension-side plugin handles onWebviewMessage callbacks
+5. Extension plugin replies via api.sendWebviewMessage(...)
+6. App receives "plugin:<pluginId>:<type>" and dispatches to pluginHost handlers
 ```
 
 ### File change

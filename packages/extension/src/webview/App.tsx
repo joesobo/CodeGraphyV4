@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useMemo, useCallback, useRef } from 'react';
 import { minimatch } from 'minimatch';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
@@ -12,6 +12,21 @@ import { IGraphData, IGraphNode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage }
 import { postMessage } from './lib/vscodeApi';
 import { useGraphStore, graphStore } from './store';
 import type { SearchOptions } from './components/SearchBar';
+import { WebviewPluginHost } from './pluginHost';
+import type { CodeGraphyWebviewAPI } from './pluginHost/types';
+
+interface PluginWebviewModule {
+  activate?: (api: CodeGraphyWebviewAPI) => void | Promise<void>;
+  default?: ((api: CodeGraphyWebviewAPI) => void | Promise<void>) | {
+    activate?: (api: CodeGraphyWebviewAPI) => void | Promise<void>;
+  };
+}
+
+interface PluginInjectPayload {
+  pluginId: string;
+  scripts: string[];
+  styles: string[];
+}
 
 /**
  * Filter nodes using advanced search options.
@@ -67,6 +82,11 @@ function filterNodesAdvanced(
 }
 
 export default function App(): React.ReactElement {
+  const pluginHostRef = useRef<WebviewPluginHost>(new WebviewPluginHost());
+  const pluginApisRef = useRef<Map<string, CodeGraphyWebviewAPI>>(new Map());
+  const loadedStylesRef = useRef<Set<string>>(new Set());
+  const activatedScriptKeysRef = useRef<Set<string>>(new Set());
+
   // Read state from store
   const graphData = useGraphStore(s => s.graphData);
   const isLoading = useGraphStore(s => s.isLoading);
@@ -125,10 +145,91 @@ export default function App(): React.ReactElement {
     setSearchOptions(newOptions);
   }, [setSearchOptions]);
 
+  const getPluginApi = useCallback((pluginId: string): CodeGraphyWebviewAPI => {
+    const existing = pluginApisRef.current.get(pluginId);
+    if (existing) {
+      return existing;
+    }
+
+    const api = pluginHostRef.current.createAPI(pluginId, postMessage);
+    pluginApisRef.current.set(pluginId, api);
+    return api;
+  }, []);
+
+  const activatePluginScript = useCallback(async (pluginId: string, script: string): Promise<void> => {
+    const activationKey = `${pluginId}::${script}`;
+    if (activatedScriptKeysRef.current.has(activationKey)) {
+      return;
+    }
+
+    const mod = (await import(/* @vite-ignore */ script)) as PluginWebviewModule;
+    const candidate = mod.activate ?? mod.default;
+    const activate = typeof candidate === 'function'
+      ? candidate
+      : (candidate && typeof candidate === 'object' && 'activate' in candidate
+          ? candidate.activate
+          : undefined);
+
+    if (typeof activate !== 'function') {
+      console.warn(`[CodeGraphy] Webview plugin script "${script}" has no activate(api) export`);
+      return;
+    }
+
+    await activate(getPluginApi(pluginId));
+    activatedScriptKeysRef.current.add(activationKey);
+  }, [getPluginApi]);
+
+  const injectPluginAssets = useCallback(async (payload: PluginInjectPayload): Promise<void> => {
+    for (const style of payload.styles) {
+      if (loadedStylesRef.current.has(style)) continue;
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = style;
+      document.head.appendChild(link);
+      loadedStylesRef.current.add(style);
+    }
+
+    for (const script of payload.scripts) {
+      try {
+        await activatePluginScript(payload.pluginId, script);
+      } catch (error) {
+        console.error(`[CodeGraphy] Failed to activate webview plugin script "${script}":`, error);
+      }
+    }
+  }, [activatePluginScript]);
+
   // Listen for extension messages and delegate to store
   useEffect(() => {
-    const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
-      graphStore.getState().handleExtensionMessage(event.data);
+    const handleMessage = (event: MessageEvent<unknown>) => {
+      const raw = event.data as { type?: unknown; payload?: unknown; data?: unknown };
+      if (!raw || typeof raw !== 'object' || typeof raw.type !== 'string') {
+        return;
+      }
+
+      if (raw.type === 'PLUGIN_WEBVIEW_INJECT') {
+        const payload = raw.payload as PluginInjectPayload;
+        if (payload && typeof payload.pluginId === 'string') {
+          void injectPluginAssets({
+            pluginId: payload.pluginId,
+            scripts: Array.isArray(payload.scripts) ? payload.scripts : [],
+            styles: Array.isArray(payload.styles) ? payload.styles : [],
+          });
+        }
+        return;
+      }
+
+      if (raw.type.startsWith('plugin:')) {
+        const [, pluginId, ...typeParts] = raw.type.split(':');
+        if (pluginId && typeParts.length > 0) {
+          pluginHostRef.current.deliverMessage(pluginId, {
+            type: typeParts.join(':'),
+            data: raw.data,
+          });
+        }
+        return;
+      }
+
+      graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
     };
 
     window.addEventListener('message', handleMessage);
@@ -137,7 +238,7 @@ export default function App(): React.ReactElement {
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, []);
+  }, [injectPluginAssets]);
 
   // Loading state
   if (isLoading) {
@@ -195,6 +296,7 @@ export default function App(): React.ReactElement {
           theme={theme}
           nodeDecorations={nodeDecorations}
           edgeDecorations={edgeDecorations}
+          pluginHost={pluginHostRef.current}
         />
         <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
           {activePanel !== 'none' ? (

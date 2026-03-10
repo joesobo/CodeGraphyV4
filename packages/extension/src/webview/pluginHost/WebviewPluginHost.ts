@@ -16,6 +16,14 @@ import type {
   CodeGraphyWebviewAPI,
 } from './types';
 
+type GraphInteractionMessage = {
+  type: 'GRAPH_INTERACTION';
+  payload: {
+    event: string;
+    data: unknown;
+  };
+};
+
 /**
  * Manages Tier 2 plugin scripts and their registrations.
  * Each plugin gets a scoped API instance.
@@ -33,7 +41,7 @@ export class WebviewPluginHost {
   /**
    * Create a scoped API for a plugin.
    */
-  createAPI(pluginId: string, postMessage: (msg: unknown) => void): CodeGraphyWebviewAPI {
+  createAPI(pluginId: string, postMessage: (msg: GraphInteractionMessage) => void): CodeGraphyWebviewAPI {
     return {
       getContainer: () => this._getOrCreateContainer(pluginId),
       registerNodeRenderer: (type, fn) => this._registerNodeRenderer(pluginId, type, fn),

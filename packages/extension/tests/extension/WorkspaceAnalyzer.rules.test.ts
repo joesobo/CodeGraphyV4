@@ -301,4 +301,57 @@ describe('WorkspaceAnalyzer rules', () => {
       expect(nodeIds).not.toContain('src/orphan.ts');
     });
   });
+
+  describe('v2 pre-analyze payload', () => {
+    it('passes full file content to notifyPreAnalyze', async () => {
+      const analyzerPriv = analyzer as unknown as {
+        _discovery: {
+          readContent: (file: { relativePath: string }) => Promise<string>;
+        };
+        _registry: {
+          list: () => unknown[];
+          notifyPreAnalyze: (files: unknown[], workspaceRoot: string) => Promise<void>;
+        };
+        _preAnalyzePlugins: (
+          files: Array<{ absolutePath: string; relativePath: string }>,
+          workspaceRoot: string,
+        ) => Promise<void>;
+      };
+      const files = [
+        { absolutePath: '/test/workspace/src/a.ts', relativePath: 'src/a.ts' },
+        { absolutePath: '/test/workspace/src/b.py', relativePath: 'src/b.py' },
+      ];
+
+      analyzerPriv._discovery = {
+        readContent: vi.fn(async (file: { relativePath: string }) => {
+          if (file.relativePath === 'src/a.ts') return "import './b'";
+          return 'print("b")';
+        }),
+      };
+
+      const notifyPreAnalyze = vi.fn(async () => {});
+      analyzerPriv._registry = {
+        list: vi.fn(() => []),
+        notifyPreAnalyze,
+      };
+
+      await analyzerPriv._preAnalyzePlugins(files, '/test/workspace');
+
+      expect(notifyPreAnalyze).toHaveBeenCalledTimes(1);
+      const [payload, workspaceRoot] = notifyPreAnalyze.mock.calls[0];
+      expect(workspaceRoot).toBe('/test/workspace');
+      expect(payload).toEqual([
+        {
+          absolutePath: '/test/workspace/src/a.ts',
+          relativePath: 'src/a.ts',
+          content: "import './b'",
+        },
+        {
+          absolutePath: '/test/workspace/src/b.py',
+          relativePath: 'src/b.py',
+          content: 'print("b")',
+        },
+      ]);
+    });
+  });
 });

@@ -118,7 +118,8 @@ export class PluginRegistry {
     }
 
     // Detect v2 plugin by presence of apiVersion field
-    const isV2 = 'apiVersion' in plugin && typeof (plugin as Record<string, unknown>).apiVersion === 'string';
+    const apiVersion = (plugin as unknown as { apiVersion?: unknown }).apiVersion;
+    const isV2 = typeof apiVersion === 'string';
 
     const info: IPluginInfoV2 = {
       plugin,

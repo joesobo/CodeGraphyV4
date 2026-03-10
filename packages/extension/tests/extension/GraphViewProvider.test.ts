@@ -410,4 +410,120 @@ describe('GraphViewProvider', () => {
       expect(groups.some(g => g.id === 'plugin:codegraphy.python:.py' && g.color === '#3776AB')).toBe(true);
     });
   });
+
+  describe('plugin API v2 webview bridge', () => {
+    it('routes plugin-scoped GRAPH_INTERACTION messages to onWebviewMessage handlers', async () => {
+      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
+      const pluginWebviewHandler = vi.fn();
+
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+          messageHandler = handler;
+          return { dispose: () => {} };
+        }),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      provider.registerExternalPlugin({
+        id: 'test.plugin',
+        name: 'Test Plugin',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        detectConnections: async () => [],
+        onLoad: (api: { onWebviewMessage: (handler: (msg: { type: string; data: unknown }) => void) => void }) => {
+          api.onWebviewMessage(pluginWebviewHandler);
+        },
+      });
+
+      expect(messageHandler).not.toBeNull();
+      await messageHandler!({
+        type: 'GRAPH_INTERACTION',
+        payload: {
+          event: 'plugin:test.plugin:ping',
+          data: { ok: true },
+        },
+      });
+
+      expect(pluginWebviewHandler).toHaveBeenCalledWith({ type: 'ping', data: { ok: true } });
+    });
+
+    it('sends PLUGIN_WEBVIEW_INJECT when a plugin declares webviewContributions', async () => {
+      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
+
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+          messageHandler = handler;
+          return { dispose: () => {} };
+        }),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      provider.registerExternalPlugin({
+        id: 'test.webview-plugin',
+        name: 'Webview Plugin',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        detectConnections: async () => [],
+        webviewContributions: {
+          scripts: ['dist/webview/plugins/test-plugin.js'],
+          styles: ['dist/webview/plugins/test-plugin.css'],
+        },
+      });
+
+      expect(messageHandler).not.toBeNull();
+      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      const injectCall = mockWebview.postMessage.mock.calls.find(
+        (call: unknown[]) => (call[0] as { type?: string }).type === 'PLUGIN_WEBVIEW_INJECT'
+      );
+      expect(injectCall).toBeDefined();
+      expect(injectCall[0]).toMatchObject({
+        type: 'PLUGIN_WEBVIEW_INJECT',
+        payload: {
+          pluginId: 'test.webview-plugin',
+        },
+      });
+      expect((injectCall[0] as { payload: { scripts: string[] } }).payload.scripts[0]).toContain('test-plugin.js');
+      expect((injectCall[0] as { payload: { styles: string[] } }).payload.styles[0]).toContain('test-plugin.css');
+    });
+  });
 });
