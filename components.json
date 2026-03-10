@@ -5,7 +5,7 @@
   "tsx": true,
   "tailwind": {
     "config": "tailwind.config.cjs",
-    "css": "src/webview/index.css",
+    "css": "packages/extension/src/webview/index.css",
     "baseColor": "zinc",
     "cssVariables": true,
     "prefix": ""

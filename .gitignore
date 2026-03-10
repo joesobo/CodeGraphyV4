@@ -7,3 +7,5 @@ coverage/
 .DS_Store
 dist-e2e/
 .worktrees/
+.playwright-mcp/
+.superpowers/

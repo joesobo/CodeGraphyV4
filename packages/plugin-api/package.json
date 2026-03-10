@@ -1,0 +1,8 @@
+{
+  "name": "@codegraphy/plugin-api",
+  "version": "2.0.0",
+  "description": "Type definitions for CodeGraphy plugins",
+  "types": "src/index.ts",
+  "files": ["src"],
+  "license": "MIT"
+}

@@ -41,7 +41,7 @@ export default tseslint.config(
   },
   // Mocha rules for e2e test files
   {
-    files: ['src/e2e/**/*.ts'],
+    files: ['packages/extension/src/e2e/**/*.ts'],
     plugins: { mocha: mochaPlugin },
     languageOptions: {
       globals: {

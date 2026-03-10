@@ -1,0 +1,39 @@
+{
+  "$schema": "../../codegraphy.schema.json",
+  "id": "codegraphy.csharp",
+  "name": "C#",
+  "version": "1.0.0",
+  "apiVersion": "^2.0.0",
+  "tier": 1,
+  "supportedExtensions": [".cs"],
+  "defaultFilters": [
+    "**/bin/**",
+    "**/obj/**",
+    "**/.vs/**",
+    "**/packages/**",
+    "**/TestResults/**",
+    "**/*.Designer.cs",
+    "**/*.generated.cs",
+    "**/AssemblyInfo.cs"
+  ],
+  "fileColors": {
+    ".cs": "#512BD4",
+    ".csx": "#512BD4",
+    ".csproj": "#512BD4",
+    ".sln": "#854CC7",
+    ".props": "#6B7280",
+    ".targets": "#6B7280",
+    "Directory.Build.props": "#6B7280",
+    "Directory.Build.targets": "#6B7280",
+    "global.json": "#512BD4",
+    "nuget.config": "#004880",
+    ".editorconfig": "#6B7280",
+    "appsettings.json": "#F7DF1E",
+    "appsettings.Development.json": "#F7DF1E",
+    "launchSettings.json": "#F7DF1E"
+  },
+  "rules": [
+    { "id": "using-directive", "name": "Using Directives", "description": "using System; static/global/alias" },
+    { "id": "type-usage", "name": "Type Usage", "description": "new Type(), Type.Method(), : Type" }
+  ]
+}
