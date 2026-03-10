@@ -253,7 +253,7 @@
 					"default": 1,
 					"minimum": 0.1,
 					"maximum": 10,
-					"description": "Timeline playback speed multiplier (1.0 = ~1 day per second)."
+					"description": "Timeline playback speed multiplier (1.0 = ~2 days per second)."
 				}
 			}
 		}

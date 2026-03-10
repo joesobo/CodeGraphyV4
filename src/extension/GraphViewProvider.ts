@@ -1104,6 +1104,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       if (error instanceof Error && error.name === 'AbortError') return;
       console.error('[CodeGraphy] Indexing failed:', error);
       vscode.window.showErrorMessage(`Timeline indexing failed: ${error}`);
+      this._sendMessage({ type: 'CACHE_INVALIDATED' });
     }
   }
 
