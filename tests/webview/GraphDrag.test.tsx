@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render } from '@testing-library/react';
+import { render, act } from '@testing-library/react';
 import Graph from '../../src/webview/components/Graph';
 import { IGraphData } from '../../src/shared/types';
 import { graphStore } from '../../src/webview/store';
@@ -99,7 +99,9 @@ describe('Graph: force-graph rendering', () => {
     const sentMessages: unknown[] = (globalThis as any).__vscodeSentMessages;
     const before = sentMessages.length;
 
-    ForceGraph2D.simulateEngineStop();
+    act(() => {
+      ForceGraph2D.simulateEngineStop();
+    });
 
     const after = sentMessages.length;
     expect(after).toBeGreaterThan(before);
@@ -113,7 +115,9 @@ describe('Graph: force-graph rendering', () => {
     const sentMessages: unknown[] = (globalThis as any).__vscodeSentMessages;
     const before = sentMessages.length;
 
-    ForceGraph2D.simulateNodeClick({ id: 'a.ts' });
+    act(() => {
+      ForceGraph2D.simulateNodeClick({ id: 'a.ts' });
+    });
 
     const after = sentMessages.length;
     expect(after).toBeGreaterThan(before);

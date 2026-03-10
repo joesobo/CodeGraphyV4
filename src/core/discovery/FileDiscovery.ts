@@ -25,6 +25,18 @@ const DEFAULT_EXCLUDE = [
   '**/*.map',
 ];
 
+function createAbortError(): Error {
+  const error = new Error('Discovery aborted');
+  error.name = 'AbortError';
+  return error;
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw createAbortError();
+  }
+}
+
 /**
  * Discovers source files in a workspace.
  * 
@@ -67,7 +79,10 @@ export class FileDiscovery {
       exclude = [],
       respectGitignore = true,
       extensions = [],
+      signal,
     } = options;
+
+    throwIfAborted(signal);
 
     // Combine default and custom exclude patterns
     const allExclude = [...DEFAULT_EXCLUDE, ...exclude];
@@ -84,6 +99,8 @@ export class FileDiscovery {
       rootPath,
       rootPath,
       (relativePath, absolutePath) => {
+        throwIfAborted(signal);
+
         // Check if we've hit the limit
         if (files.length >= maxFiles) {
           limitReached = true;
@@ -122,7 +139,8 @@ export class FileDiscovery {
         totalFound++;
         
         return true; // Continue walking
-      }
+      },
+      signal
     );
 
     const durationMs = Date.now() - startTime;
@@ -187,8 +205,11 @@ export class FileDiscovery {
   private async _walkDirectory(
     rootPath: string,
     currentPath: string,
-    onFile: (relativePath: string, absolutePath: string) => boolean
+    onFile: (relativePath: string, absolutePath: string) => boolean,
+    signal?: AbortSignal
   ): Promise<boolean> {
+    throwIfAborted(signal);
+
     let entries: fs.Dirent[];
     
     try {
@@ -199,6 +220,8 @@ export class FileDiscovery {
     }
 
     for (const entry of entries) {
+      throwIfAborted(signal);
+
       const absolutePath = path.join(currentPath, entry.name);
       const relativePath = path.relative(rootPath, absolutePath);
 
@@ -213,7 +236,7 @@ export class FileDiscovery {
         }
         
         // Recurse into directory
-        const shouldContinue = await this._walkDirectory(rootPath, absolutePath, onFile);
+        const shouldContinue = await this._walkDirectory(rootPath, absolutePath, onFile, signal);
         if (!shouldContinue) {
           return false;
         }

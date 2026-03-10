@@ -41,7 +41,7 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **`index.ts`** registers commands, file watchers, and the webview provider on activation.
 
-**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, and view transformations.
+**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, view transformations, and latest-wins analysis cancellation.
 
 **`WorkspaceAnalyzer.ts`** orchestrates file discovery and plugin analysis. Builds `IGraphData` from discovered files and connections. Uses mtime-based caching to skip unchanged files. Supports instant graph rebuilds from cached data when toggling rules.
 
@@ -79,7 +79,7 @@ Each plugin declares detection rules in a `manifest.json` and sets `ruleId` on e
 
 **`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI.
 
-**`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings. Built with shadcn/ui components.
+**`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings. Built with shadcn/ui components. Group colors combine user-defined entries with plugin-provided default `fileColors`.
 
 **`components/PluginsPanel.tsx`** shows all registered plugins with per-rule toggle switches and live connection counts.
 
@@ -114,8 +114,8 @@ Defines the message protocol and data types shared across both build targets:
 ### File change
 ```
 1. VS Code file watcher detects change
-2. WorkspaceAnalyzer invalidates cache for that file
-3. Re-analyzes affected file
+2. GraphViewProvider cancels any in-flight analysis and starts a new one
+3. WorkspaceAnalyzer re-runs discovery/analysis with cache reuse
 4. Sends updated graph data to webview
 5. Graph updates incrementally, preserving positions
 ```

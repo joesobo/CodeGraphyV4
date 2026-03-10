@@ -112,8 +112,9 @@ export default function SettingsPanel({
   const physicsPersistTimersRef = useRef<Partial<Record<keyof IPhysicsSettings, ReturnType<typeof setTimeout>>>>({});
 
   useEffect(() => {
+    const timersRef = physicsPersistTimersRef;
     return () => {
-      for (const timer of Object.values(physicsPersistTimersRef.current)) {
+      for (const timer of Object.values(timersRef.current)) {
         if (timer) clearTimeout(timer);
       }
     };

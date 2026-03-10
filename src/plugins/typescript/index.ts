@@ -7,6 +7,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import * as ts from 'typescript';
 import { IPlugin, IConnection } from '../../core/plugins';
 import { PathResolver, IPathResolverConfig } from './PathResolver';
 import manifest from './manifest.json';
@@ -45,7 +46,6 @@ export function createTypeScriptPlugin(): IPlugin {
     defaultFilters: manifest.defaultFilters,
     rules: manifest.rules,
     fileColors: manifest.fileColors,
-
     async initialize(workspaceRoot: string): Promise<void> {
       const config = loadTsConfig(workspaceRoot);
       resolver = new PathResolver(workspaceRoot, config);
@@ -92,12 +92,13 @@ function loadTsConfig(workspaceRoot: string): IPathResolverConfig {
     try {
       if (fs.existsSync(configPath)) {
         const content = fs.readFileSync(configPath, 'utf-8');
-        // Remove comments (simple approach for JSON with comments)
-        const jsonContent = content
-          .replace(/\/\*[\s\S]*?\*\//g, '') // Block comments
-          .replace(/\/\/.*/g, ''); // Line comments
+        const parsed = ts.parseConfigFileTextToJson(configPath, content);
+        if (parsed.error) {
+          const message = ts.flattenDiagnosticMessageText(parsed.error.messageText, '\n');
+          throw new Error(message);
+        }
 
-        const config = JSON.parse(jsonContent);
+        const config = parsed.config ?? {};
         const compilerOptions = config.compilerOptions || {};
 
         return {

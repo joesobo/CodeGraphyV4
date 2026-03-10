@@ -97,8 +97,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Whether the analyzer has been initialized */
   private _analyzerInitialized = false;
 
-  /** Whether an analysis is already in progress (prevents concurrent runs) */
-  private _analyzing = false;
+  /** Abort controller for the currently running analysis (if any). */
+  private _analysisController?: AbortController;
+
+  /** Monotonic analysis request counter; latest request wins. */
+  private _analysisRequestId = 0;
 
   /** View registry for managing available views */
   private readonly _viewRegistry: ViewRegistry;
@@ -282,16 +285,28 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Analyzes the workspace and sends data to webview.
    */
   private async _analyzeAndSendData(): Promise<void> {
-    if (this._analyzing) return;
-    this._analyzing = true;
+    // Cancel current run and immediately prioritize the latest refresh request.
+    this._analysisController?.abort();
+    const controller = new AbortController();
+    this._analysisController = controller;
+    const requestId = ++this._analysisRequestId;
+
     try {
-      await this._doAnalyzeAndSendData();
+      await this._doAnalyzeAndSendData(controller.signal, requestId);
+    } catch (error) {
+      if (!this._isAbortError(error)) {
+        console.error('[CodeGraphy] Analysis failed:', error);
+      }
     } finally {
-      this._analyzing = false;
+      if (this._analysisController === controller) {
+        this._analysisController = undefined;
+      }
     }
   }
 
-  private async _doAnalyzeAndSendData(): Promise<void> {
+  private async _doAnalyzeAndSendData(signal: AbortSignal, requestId: number): Promise<void> {
+    if (this._isAnalysisStale(signal, requestId)) return;
+
     if (!this._analyzer) {
       // No analyzer - send empty data
       this._rawGraphData = { nodes: [], edges: [] };
@@ -304,7 +319,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     // Initialize analyzer if needed
     if (!this._analyzerInitialized) {
       await this._analyzer.initialize();
+      if (this._isAnalysisStale(signal, requestId)) return;
       this._analyzerInitialized = true;
+    }
+
+    // Add plugin-provided default file colors into groups (once per group id).
+    if (this._mergePluginFileColorGroups()) {
+      await this._context.workspaceState.update(GROUPS_KEY, this._groups);
+      if (this._isAnalysisStale(signal, requestId)) return;
+      this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
     }
 
     // Check if workspace is open
@@ -322,7 +345,13 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     // Analyze real workspace
     try {
-      this._rawGraphData = await this._analyzer.analyze(this._filterPatterns, this._disabledRules, this._disabledPlugins);
+      this._rawGraphData = await this._analyzer.analyze(
+        this._filterPatterns,
+        this._disabledRules,
+        this._disabledPlugins,
+        signal
+      );
+      if (this._isAnalysisStale(signal, requestId)) return;
 
       // Update view context
       this._updateViewContext();
@@ -335,6 +364,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       this._sendAvailableViews();
       this._sendPluginStatuses();
     } catch (error) {
+      if (this._isAbortError(error) || this._isAnalysisStale(signal, requestId)) {
+        return;
+      }
       console.error('[CodeGraphy] Analysis failed:', error);
       // Send empty data on error
       this._rawGraphData = { nodes: [], edges: [] };
@@ -343,6 +375,44 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       this._sendAvailableViews();
       this._sendPluginStatuses();
     }
+  }
+
+  private _isAnalysisStale(signal: AbortSignal, requestId: number): boolean {
+    return signal.aborted || requestId !== this._analysisRequestId;
+  }
+
+  private _isAbortError(error: unknown): boolean {
+    return error instanceof Error && error.name === 'AbortError';
+  }
+
+  /**
+   * Merges plugin fileColors into the groups list as defaults.
+   * Group IDs are deterministic: plugin:<pluginId>:<pattern>
+   */
+  private _mergePluginFileColorGroups(): boolean {
+    if (!this._analyzer) return false;
+
+    const existingIds = new Set(this._groups.map(g => g.id));
+    const existingPatternColor = new Set(this._groups.map(g => `${g.pattern}::${g.color}`));
+    let changed = false;
+
+    for (const pluginInfo of this._analyzer.registry.list()) {
+      const fileColors = pluginInfo.plugin.fileColors;
+      if (!fileColors) continue;
+
+      for (const [pattern, color] of Object.entries(fileColors)) {
+        const id = `plugin:${pluginInfo.plugin.id}:${pattern}`;
+        if (existingIds.has(id) || existingPatternColor.has(`${pattern}::${color}`)) {
+          continue;
+        }
+        this._groups.push({ id, pattern, color });
+        existingIds.add(id);
+        existingPatternColor.add(`${pattern}::${color}`);
+        changed = true;
+      }
+    }
+
+    return changed;
   }
 
   /**
@@ -1244,14 +1314,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       }
 
       // Get plugin name
-      let plugin: string | undefined;
-      if (this._analyzer) {
-        const registry = (this._analyzer as unknown as { _registry?: { getPluginForFile?: (path: string) => { plugin?: { name?: string } } | undefined } })._registry;
-        if (registry?.getPluginForFile) {
-          const pluginInfo = registry.getPluginForFile(filePath);
-          plugin = pluginInfo?.plugin?.name;
-        }
+      if (this._analyzer && !this._analyzerInitialized) {
+        await this._analyzer.initialize();
+        this._analyzerInitialized = true;
       }
+      const plugin = this._analyzer?.getPluginNameForFile(filePath);
 
       // Get visit count
       const visits = this._getVisitCount(filePath);

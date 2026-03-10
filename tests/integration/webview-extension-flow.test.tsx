@@ -38,16 +38,6 @@ describe('Webview-Extension Integration', () => {
     postMessageSpy.mockClear();
   });
 
-  // Note: WEBVIEW_READY is sent via module-level vscode API which is hard to mock.
-  // The real extension test is manual - check Developer Tools console for the message.
-  it.skip('should send WEBVIEW_READY on mount (manual test)', async () => {
-    await act(async () => {
-      render(<App />);
-    });
-    
-    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'WEBVIEW_READY' });
-  });
-
   it('should show loading state until GRAPH_DATA_UPDATED is received', async () => {
     render(<App />);
     

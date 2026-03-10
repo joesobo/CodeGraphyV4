@@ -14,7 +14,6 @@ import { createGDScriptPlugin } from '../plugins/godot';
 import { createPythonPlugin } from '../plugins/python';
 import { createCSharpPlugin } from '../plugins/csharp';
 import { createMarkdownPlugin } from '../plugins/markdown';
-import { ColorPaletteManager } from '../core/colors';
 import { IGraphData, IGraphNode, IGraphEdge, DEFAULT_NODE_COLOR, IPluginStatus, IPluginRuleStatus } from '../shared/types';
 import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
 
@@ -46,6 +45,18 @@ const CACHE_VERSION = '1.9.0'; // Bumped for rule-based filtering support
 /** Storage key for file visit counts in workspace state (shared with GraphViewProvider) */
 const VISITS_KEY = 'codegraphy.fileVisits';
 
+function createAbortError(): Error {
+  const error = new Error('Analysis aborted');
+  error.name = 'AbortError';
+  return error;
+}
+
+function throwIfAborted(signal?: AbortSignal): void {
+  if (signal?.aborted) {
+    throw createAbortError();
+  }
+}
+
 /**
  * Orchestrates workspace analysis.
  * 
@@ -67,7 +78,6 @@ export class WorkspaceAnalyzer {
   private readonly _registry: PluginRegistry;
   private readonly _discovery: FileDiscovery;
   private readonly _context: vscode.ExtensionContext;
-  private readonly _colorPalette: ColorPaletteManager;
   private _cache: IAnalysisCache;
   private _lastFileConnections: Map<string, IConnection[]> = new Map();
   private _lastDiscoveredFiles: IDiscoveredFile[] = [];
@@ -78,7 +88,6 @@ export class WorkspaceAnalyzer {
     this._config = new Configuration();
     this._registry = new PluginRegistry();
     this._discovery = new FileDiscovery();
-    this._colorPalette = new ColorPaletteManager();
     this._cache = this._loadCache();
   }
 
@@ -113,13 +122,6 @@ export class WorkspaceAnalyzer {
     const mdPlugin = createMarkdownPlugin();
     this._registry.register(mdPlugin, { builtIn: true });
 
-    // Collect plugin colors
-    for (const pluginInfo of this._registry.list()) {
-      if (pluginInfo.plugin.fileColors) {
-        this._colorPalette.addPluginColors(pluginInfo.plugin.fileColors);
-      }
-    }
-
     // Initialize all plugins
     const workspaceRoot = this._getWorkspaceRoot();
     if (workspaceRoot) {
@@ -146,7 +148,14 @@ export class WorkspaceAnalyzer {
    * Analyzes the workspace and returns graph data.
    * Uses caching for performance.
    */
-  async analyze(filterPatterns: string[] = [], disabledRules: Set<string> = new Set(), disabledPlugins: Set<string> = new Set()): Promise<IGraphData> {
+  async analyze(
+    filterPatterns: string[] = [],
+    disabledRules: Set<string> = new Set(),
+    disabledPlugins: Set<string> = new Set(),
+    signal?: AbortSignal
+  ): Promise<IGraphData> {
+    throwIfAborted(signal);
+
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       console.log('[CodeGraphy] No workspace folder open');
@@ -169,8 +178,11 @@ export class WorkspaceAnalyzer {
       include: config.include,
       exclude: mergedExclude,
       respectGitignore: config.respectGitignore,
+      signal,
       // Don't filter by extensions - we want all files as nodes
     });
+
+    throwIfAborted(signal);
 
     if (discoveryResult.limitReached) {
       vscode.window.showWarningMessage(
@@ -183,10 +195,12 @@ export class WorkspaceAnalyzer {
 
     // Pre-analysis pass: let plugins build workspace-wide indexes before per-file analysis.
     // Needed for cross-file references that require seeing all files first (e.g. GDScript class_name).
-    await this._preAnalyzePlugins(discoveryResult.files, workspaceRoot);
+    await this._preAnalyzePlugins(discoveryResult.files, workspaceRoot, signal);
 
     // Analyze files (with caching)
-    const fileConnections = await this._analyzeFiles(discoveryResult.files, workspaceRoot);
+    const fileConnections = await this._analyzeFiles(discoveryResult.files, workspaceRoot, signal);
+
+    throwIfAborted(signal);
 
     // Store results for instant rebuilding via rebuildGraph()
     this._lastFileConnections = fileConnections;
@@ -303,6 +317,16 @@ export class WorkspaceAnalyzer {
   }
 
   /**
+   * Gets the plugin display name for a workspace-relative file path.
+   */
+  getPluginNameForFile(relativePath: string): string | undefined {
+    const workspaceRoot = this._lastWorkspaceRoot || this._getWorkspaceRoot();
+    if (!workspaceRoot) return undefined;
+    const plugin = this._registry.getPluginForFile(path.join(workspaceRoot, relativePath));
+    return plugin?.name;
+  }
+
+  /**
    * Clears the analysis cache.
    */
   clearCache(): void {
@@ -323,13 +347,23 @@ export class WorkspaceAnalyzer {
    * Reads all files for each plugin's supported extensions so the plugin can
    * build workspace-wide indexes (e.g. the GDScript class_name → file map).
    */
-  private async _preAnalyzePlugins(files: IDiscoveredFile[], workspaceRoot: string): Promise<void> {
+  private async _preAnalyzePlugins(
+    files: IDiscoveredFile[],
+    workspaceRoot: string,
+    signal?: AbortSignal
+  ): Promise<void> {
+    throwIfAborted(signal);
+
     for (const pluginInfo of this._registry.list()) {
+      throwIfAborted(signal);
+
       const plugin = pluginInfo.plugin;
       if (!plugin.preAnalyze) continue;
 
       const supportedFiles: Array<{ absolutePath: string; relativePath: string; content: string }> = [];
       for (const file of files) {
+        throwIfAborted(signal);
+
         const ext = path.extname(file.relativePath).toLowerCase();
         if (plugin.supportedExtensions.includes(ext)) {
           const content = await this._discovery.readContent(file);
@@ -338,6 +372,7 @@ export class WorkspaceAnalyzer {
       }
 
       if (supportedFiles.length > 0) {
+        throwIfAborted(signal);
         await plugin.preAnalyze(supportedFiles, workspaceRoot);
       }
     }
@@ -348,13 +383,18 @@ export class WorkspaceAnalyzer {
    */
   private async _analyzeFiles(
     files: IDiscoveredFile[],
-    workspaceRoot: string
+    workspaceRoot: string,
+    signal?: AbortSignal
   ): Promise<Map<string, IConnection[]>> {
+    throwIfAborted(signal);
+
     const results = new Map<string, IConnection[]>();
     let cacheHits = 0;
     let cacheMisses = 0;
 
     for (const file of files) {
+      throwIfAborted(signal);
+
       // Check cache
       const cached = this._cache.files[file.relativePath];
       const stat = await this._getFileStat(file.absolutePath);
@@ -371,7 +411,9 @@ export class WorkspaceAnalyzer {
 
       // Cache miss - analyze file
       cacheMisses++;
+      throwIfAborted(signal);
       const content = await this._discovery.readContent(file);
+      throwIfAborted(signal);
       const connections = await this._registry.analyzeFile(
         file.absolutePath,
         content,

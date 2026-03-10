@@ -91,4 +91,17 @@ describe('TypeScript Plugin Integration', () => {
     expect(edges.some(e => e.from === 'src/index.ts')).toBe(true);
     expect(edges.some(e => e.to === 'src/config.ts')).toBe(true);
   });
+
+  it('resolves tsconfig path aliases with slash patterns (e.g. "@/*", "@components/*")', async () => {
+    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
+    const content = fs.readFileSync(filePath, 'utf-8');
+
+    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
+    const resolvedRels = connections
+      .filter(c => c.resolvedPath !== null)
+      .map(c => path.relative(workspaceRoot, c.resolvedPath!).replace(/\\/g, '/'));
+
+    expect(resolvedRels).toContain('src/components/App.tsx');
+    expect(resolvedRels).toContain('src/services/api.ts');
+  });
 });

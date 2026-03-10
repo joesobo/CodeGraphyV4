@@ -19,6 +19,8 @@ export interface IDiscoveryOptions {
   respectGitignore?: boolean;
   /** File extensions to include (e.g., ['.ts', '.js']). If empty, all extensions allowed. */
   extensions?: string[];
+  /** Abort signal for cancelling long-running discovery */
+  signal?: AbortSignal;
 }
 
 /**
