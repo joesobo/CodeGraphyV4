@@ -237,22 +237,22 @@ export default function Timeline(): React.ReactElement | null {
 
   return (
     <TooltipProvider delayDuration={150}>
-      <div className="flex-shrink-0" data-testid="timeline">
+      <div className="flex-shrink-0 border-t border-border" data-testid="timeline">
         {/* Main timeline row: play/pause | track | current button */}
         <div className="flex items-center gap-0 px-3 pt-1.5 pb-0">
-          {/* Play/Pause button — compact, inline */}
+          {/* Play/Pause button */}
           <button
             onClick={handlePlayPause}
-            className="flex-shrink-0 mr-2 text-[var(--vscode-descriptionForeground,#999)] hover:text-[var(--vscode-foreground,#ccc)] transition-colors"
+            className="flex-shrink-0 mr-2 p-0.5 rounded text-[var(--vscode-descriptionForeground,#999)] hover:text-[var(--vscode-foreground,#ccc)] transition-colors"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
-              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                 <rect x="4" y="3" width="6" height="18" />
                 <rect x="14" y="3" width="6" height="18" />
               </svg>
             ) : (
-              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             )}
@@ -261,10 +261,11 @@ export default function Timeline(): React.ReactElement | null {
           {/* Timeline track */}
           <div
             ref={trackRef}
-            className="flex-1 relative cursor-pointer select-none"
+            className="flex-1 relative cursor-pointer select-none rounded-sm"
             style={{
               height: TRACK_HEIGHT,
-              backgroundColor: '#000',
+              backgroundColor: 'var(--vscode-editor-background, #1e1e1e)',
+              border: '1px solid var(--vscode-panel-border, #333)',
             }}
             onMouseDown={handleTrackMouseDown}
           >
@@ -282,7 +283,7 @@ export default function Timeline(): React.ReactElement | null {
                       className="absolute top-[1px] bottom-[1px] -translate-x-1/2"
                       style={{
                         left: `${position}%`,
-                        width: isCurrent ? 3 : 2,
+                        width: isCurrent ? 4 : 2,
                         zIndex: isCurrent ? 10 : 1,
                       }}
                       onMouseEnter={() => setOpenTooltipSha(commit.sha)}
@@ -291,8 +292,10 @@ export default function Timeline(): React.ReactElement | null {
                       <div
                         className="w-full h-full"
                         style={{
-                          backgroundColor: '#fff',
-                          opacity: isCurrent ? 1 : 0.6,
+                          backgroundColor: isCurrent
+                            ? 'var(--vscode-focusBorder, #007fd4)'
+                            : 'var(--vscode-foreground, #ccc)',
+                          opacity: isCurrent ? 1 : 0.4,
                         }}
                       />
                     </div>

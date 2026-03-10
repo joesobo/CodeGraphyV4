@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
 import { execFile } from 'child_process';
+import { minimatch } from 'minimatch';
 import { PluginRegistry } from '../core/plugins/PluginRegistry';
 import { IGraphData, IGraphNode, IGraphEdge, ICommitInfo, getFileColor } from '../shared/types';
 
@@ -28,15 +29,27 @@ export class GitHistoryAnalyzer {
   private readonly _context: vscode.ExtensionContext;
   private readonly _registry: PluginRegistry;
   private readonly _workspaceRoot: string;
+  private readonly _excludePatterns: string[];
 
   constructor(
     context: vscode.ExtensionContext,
     registry: PluginRegistry,
-    workspaceRoot: string
+    workspaceRoot: string,
+    excludePatterns: string[] = []
   ) {
     this._context = context;
     this._registry = registry;
     this._workspaceRoot = workspaceRoot;
+    this._excludePatterns = excludePatterns;
+  }
+
+  /**
+   * Tests whether a file path should be excluded based on configured patterns.
+   */
+  private _shouldExclude(filePath: string): boolean {
+    return this._excludePatterns.some((pattern) =>
+      minimatch(filePath, pattern, { matchBase: true })
+    );
   }
 
   /**
@@ -247,9 +260,10 @@ export class GitHistoryAnalyzer {
     const output = await this.execGit(['ls-tree', '-r', '--name-only', sha], signal);
     const allFiles = output.trim().split('\n').filter(Boolean);
 
-    // Filter to files supported by plugins
+    // Filter to files supported by plugins AND not excluded by patterns
     const supportedExts = new Set(this._registry.getSupportedExtensions());
     const files = allFiles.filter((f) => {
+      if (this._shouldExclude(f)) return false;
       const ext = path.extname(f).toLowerCase();
       return supportedExts.has(ext);
     });
@@ -373,6 +387,9 @@ export class GitHistoryAnalyzer {
     edgeSet: Set<string>,
     signal: AbortSignal
   ): Promise<void> {
+    // Skip files matching exclude patterns
+    if (this._shouldExclude(filePath)) return;
+
     if (!this._registry.supportsFile(filePath)) {
       // Still add as a node even if no plugin supports it
       if (!nodeMap.has(filePath)) {

@@ -184,4 +184,31 @@ describe('GraphStore: Timeline', () => {
     expect(store.getState().searchQuery).toBe('test-query');
     expect(store.getState().showArrows).toBe(false);
   });
+
+  // ── PLAYBACK_ENDED ─────────────────────────────────────────────────
+
+  it('handles PLAYBACK_ENDED message', () => {
+    store.setState({ isPlaying: true });
+
+    store.getState().handleExtensionMessage({ type: 'PLAYBACK_ENDED' });
+
+    expect(store.getState().isPlaying).toBe(false);
+  });
+
+  it('PLAYBACK_ENDED does not affect timeline state', () => {
+    store.setState({
+      isPlaying: true,
+      timelineActive: true,
+      currentCommitSha: 'abc123',
+      timelineCommits: [
+        { sha: 'abc123', timestamp: 1000, message: 'commit', author: 'a', parents: [] },
+      ],
+    });
+
+    store.getState().handleExtensionMessage({ type: 'PLAYBACK_ENDED' });
+
+    expect(store.getState().isPlaying).toBe(false);
+    expect(store.getState().timelineActive).toBe(true);
+    expect(store.getState().currentCommitSha).toBe('abc123');
+  });
 });

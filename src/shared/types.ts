@@ -365,6 +365,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'TIMELINE_DATA'; payload: ITimelineData }
   | { type: 'COMMIT_GRAPH_DATA'; payload: { sha: string; graphData: IGraphData } }
   | { type: 'CACHE_INVALIDATED' }
+  | { type: 'PLAYBACK_ENDED' }
   // Test/debug: request node positions + sizes for overlap detection
   | { type: 'GET_NODE_BOUNDS' };
 

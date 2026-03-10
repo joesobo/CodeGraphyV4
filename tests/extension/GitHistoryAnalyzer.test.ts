@@ -540,6 +540,115 @@ describe('GitHistoryAnalyzer', () => {
   });
 
   // =========================================================================
+  // Exclude patterns
+  // =========================================================================
+
+  describe('exclude patterns', () => {
+    it('should filter out excluded files during full commit analysis', async () => {
+      const analyzerWithExcludes = new GitHistoryAnalyzer(
+        context as never,
+        registry,
+        workspaceRoot,
+        ['assets/**', '**/node_modules/**']
+      );
+
+      mockGitCommands([
+        { match: 'rev-parse', stdout: 'main\n' },
+        {
+          match: 'log',
+          stdout: 'sha1|1|first|A|\n',
+        },
+        {
+          match: 'ls-tree',
+          stdout: 'src/index.ts\nsrc/utils.ts\nassets/logo.ts\nnode_modules/lib/index.ts\n',
+        },
+        { match: /show sha1:/, stdout: '' },
+      ]);
+
+      await analyzerWithExcludes.indexHistory(vi.fn(), liveAbortSignal());
+
+      // Only non-excluded files should be analyzed
+      const analyzeCalls = registry.analyzeFile.mock.calls;
+      const analyzedPaths = analyzeCalls.map((c) => c[0] as string);
+      for (const p of analyzedPaths) {
+        expect(p).not.toMatch(/assets\//);
+        expect(p).not.toMatch(/node_modules\//);
+      }
+
+      // Check cached graph doesn't contain excluded nodes
+      const writeCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[0];
+      const graph = JSON.parse(writeCallArgs[1] as string) as IGraphData;
+      const nodeIds = graph.nodes.map((n) => n.id);
+      expect(nodeIds).toContain('src/index.ts');
+      expect(nodeIds).toContain('src/utils.ts');
+      expect(nodeIds).not.toContain('assets/logo.ts');
+      expect(nodeIds).not.toContain('node_modules/lib/index.ts');
+    });
+
+    it('should skip excluded files when handling Added in diff', async () => {
+      const analyzerWithExcludes = new GitHistoryAnalyzer(
+        context as never,
+        registry,
+        workspaceRoot,
+        ['assets/**']
+      );
+
+      mockGitCommands([
+        { match: 'rev-parse', stdout: 'main\n' },
+        {
+          match: 'log',
+          stdout: 'sha2|2|second|A|sha1\nsha1|1|first|B|\n',
+        },
+        { match: 'ls-tree', stdout: 'src/a.ts\n' },
+        { match: /show sha1:/, stdout: '' },
+        {
+          match: /diff --name-status/,
+          stdout: 'A\tassets/sprite.ts\nA\tsrc/b.ts\n',
+        },
+        { match: /show sha2:/, stdout: '' },
+      ]);
+
+      await analyzerWithExcludes.indexHistory(vi.fn(), liveAbortSignal());
+
+      // Check that assets/sprite.ts is not in the second commit's graph
+      const secondCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[1];
+      const graph = JSON.parse(secondCallArgs[1] as string) as IGraphData;
+      const nodeIds = graph.nodes.map((n) => n.id);
+      expect(nodeIds).toContain('src/a.ts');
+      expect(nodeIds).toContain('src/b.ts');
+      expect(nodeIds).not.toContain('assets/sprite.ts');
+    });
+
+    it('should work with matchBase option for simple glob patterns', async () => {
+      const analyzerWithExcludes = new GitHistoryAnalyzer(
+        context as never,
+        registry,
+        workspaceRoot,
+        ['*.test.ts']
+      );
+
+      mockGitCommands([
+        { match: 'rev-parse', stdout: 'main\n' },
+        { match: 'log', stdout: 'sha1|1|first|A|\n' },
+        {
+          match: 'ls-tree',
+          stdout: 'src/index.ts\nsrc/index.test.ts\ntests/utils.test.ts\n',
+        },
+        { match: /show sha1:/, stdout: '' },
+      ]);
+
+      await analyzerWithExcludes.indexHistory(vi.fn(), liveAbortSignal());
+
+      const writeCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[0];
+      const graph = JSON.parse(writeCallArgs[1] as string) as IGraphData;
+      const nodeIds = graph.nodes.map((n) => n.id);
+      expect(nodeIds).toContain('src/index.ts');
+      expect(nodeIds).not.toContain('src/index.test.ts');
+      expect(nodeIds).not.toContain('tests/utils.test.ts');
+    });
+  });
+
+  // =========================================================================
   // Abort signal
   // =========================================================================
 

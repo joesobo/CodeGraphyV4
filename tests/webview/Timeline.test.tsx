@@ -221,4 +221,102 @@ describe('Timeline', () => {
     const { container } = render(<Timeline />);
     expect(container.innerHTML).toBe('');
   });
+
+  // ── UI styling tests ────────────────────────────────────────────────
+
+  it('timeline track uses theme-aware background', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[0].sha,
+    });
+    render(<Timeline />);
+
+    const track = screen.getByTestId('timeline').querySelector('[class*="cursor-pointer"]') as HTMLElement;
+    expect(track).toBeTruthy();
+    // Should use VS Code theme variable, not hardcoded #000
+    expect(track.style.backgroundColor).toContain('--vscode-editor-background');
+  });
+
+  it('current commit indicator uses focus border color', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[1].sha,
+    });
+    render(<Timeline />);
+
+    // Find all commit line inner divs (the colored bars)
+    const timeline = screen.getByTestId('timeline');
+    const commitLines = timeline.querySelectorAll('[class*="cursor-pointer"] > div > div');
+
+    // At least one should use focusBorder color for the current commit
+    const currentLine = Array.from(commitLines).find(
+      (el) => (el as HTMLElement).style.backgroundColor?.includes('--vscode-focusBorder')
+    );
+    expect(currentLine).toBeTruthy();
+  });
+
+  it('play button has accessible size (h-4 w-4)', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[0].sha,
+      isPlaying: false,
+    });
+    render(<Timeline />);
+
+    const playBtn = screen.getByTitle('Play');
+    const svg = playBtn.querySelector('svg');
+    expect(svg).toBeTruthy();
+    expect(svg?.classList.contains('h-4')).toBe(true);
+    expect(svg?.classList.contains('w-4')).toBe(true);
+  });
+
+  it('timeline wrapper has border-t for visual separation', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[0].sha,
+    });
+    render(<Timeline />);
+
+    const timeline = screen.getByTestId('timeline');
+    expect(timeline.className).toContain('border-t');
+  });
+
+  // ── Playback speed preserved across play/pause ──────────────────────
+
+  it('uses current playback speed when starting playback', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[0].sha,
+      isPlaying: false,
+      playbackSpeed: 2.5,
+    });
+    render(<Timeline />);
+
+    fireEvent.click(screen.getByTitle('Play'));
+
+    expect(sentMessages).toContainEqual({
+      type: 'PLAY_TIMELINE',
+      payload: { speed: 2.5 },
+    });
+  });
+
+  // ── PLAYBACK_ENDED store handler ────────────────────────────────────
+
+  it('PLAYBACK_ENDED message sets isPlaying to false', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[0].sha,
+      isPlaying: true,
+    });
+
+    graphStore.getState().handleExtensionMessage({ type: 'PLAYBACK_ENDED' });
+
+    expect(graphStore.getState().isPlaying).toBe(false);
+  });
 });

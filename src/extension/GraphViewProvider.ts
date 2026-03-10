@@ -27,6 +27,7 @@ import {
   CreateFileAction,
 } from './actions';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
+import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
 
 /** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -1002,7 +1003,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
 
         case 'JUMP_TO_COMMIT':
-          this._jumpToCommit(message.payload.sha);
+          await this._jumpToCommit(message.payload.sha);
           break;
 
         case 'PLAY_TIMELINE':
@@ -1062,12 +1063,17 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       this._analyzerInitialized = true;
     }
 
-    // Create GitHistoryAnalyzer lazily
+    // Create GitHistoryAnalyzer lazily with merged exclude patterns
     if (!this._gitAnalyzer) {
+      const pluginFilters = this._analyzer.getPluginFilterPatterns();
+      const mergedExclude = [
+        ...new Set([...DEFAULT_EXCLUDE_PATTERNS, ...pluginFilters, ...this._filterPatterns]),
+      ];
       this._gitAnalyzer = new GitHistoryAnalyzer(
         this._context,
         this._analyzer.registry,
-        workspaceFolder.uri.fsPath
+        workspaceFolder.uri.fsPath,
+        mergedExclude
       );
     }
 
@@ -1112,8 +1118,27 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private async _jumpToCommit(sha: string): Promise<void> {
     if (!this._gitAnalyzer) return;
 
-    const graphData = await this._gitAnalyzer.getGraphDataForCommit(sha);
+    const rawGraphData = await this._gitAnalyzer.getGraphDataForCommit(sha);
     this._currentCommitSha = sha;
+
+    // Apply display-time filtering (showOrphans)
+    const showOrphans = vscode.workspace
+      .getConfiguration('codegraphy')
+      .get<boolean>('showOrphans', true);
+
+    let graphData = rawGraphData;
+    if (!showOrphans) {
+      const connectedIds = new Set<string>();
+      for (const edge of rawGraphData.edges) {
+        connectedIds.add(edge.from);
+        connectedIds.add(edge.to);
+      }
+      graphData = {
+        nodes: rawGraphData.nodes.filter((n) => connectedIds.has(n.id)),
+        edges: rawGraphData.edges,
+      };
+    }
+
     this._graphData = graphData;
 
     this._sendMessage({
@@ -1136,10 +1161,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     );
     if (this._playbackIndex === -1) this._playbackIndex = 0;
 
-    const tick = () => {
+    const tick = async () => {
       this._playbackIndex++;
       if (this._playbackIndex >= this._timelineCommits.length) {
         this._pausePlayback();
+        this._sendMessage({ type: 'PLAYBACK_ENDED' });
         return;
       }
 
@@ -1149,14 +1175,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       // Time-proportional: ~1 day per second at speed=1
       const intervalMs = Math.max(50, Math.min(3000, (gapSeconds / 86400) * (1000 / speed)));
 
-      this._jumpToCommit(current.sha);
+      await this._jumpToCommit(current.sha);
 
-      // Schedule next tick with variable interval
-      this._playbackTimer = setTimeout(tick, intervalMs) as unknown as ReturnType<typeof setInterval>;
+      // Schedule next tick with variable interval (only if not paused during await)
+      if (this._playbackTimer !== undefined) {
+        this._playbackTimer = setTimeout(tick, intervalMs) as unknown as ReturnType<typeof setInterval>;
+      }
     };
 
-    // Start immediately with the next commit
-    tick();
+    // Mark as playing and start immediately with the next commit
+    this._playbackTimer = setTimeout(tick, 0) as unknown as ReturnType<typeof setInterval>;
   }
 
   /**
@@ -1219,6 +1247,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     if (this._gitAnalyzer) {
       await this._gitAnalyzer.invalidateCache();
+      this._gitAnalyzer = undefined; // Force recreation with current patterns
     }
 
     this._sendMessage({ type: 'CACHE_INVALIDATED' });

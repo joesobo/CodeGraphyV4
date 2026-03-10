@@ -218,6 +218,9 @@ export function createGraphStore() {
             isPlaying: false,
           });
           break;
+        case 'PLAYBACK_ENDED':
+          set({ isPlaying: false });
+          break;
       }
     },
   }));
