@@ -2,6 +2,8 @@
 
 This guide covers how to create language plugins for CodeGraphy.
 
+![Plugins panel](./media/plugins-panel.png)
+
 ## Overview
 
 Each plugin is responsible for:

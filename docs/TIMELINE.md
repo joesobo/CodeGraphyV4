@@ -2,7 +2,7 @@
 
 The timeline lets you visualize how your codebase's dependency graph evolved over git history.
 
-![Timeline](./timeline-screenshot.png)
+![Timeline](./media/timeline-playback.gif)
 
 ## Getting started
 

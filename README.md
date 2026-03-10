@@ -4,6 +4,8 @@ See your codebase. Understand it spatially.
 
 CodeGraphy turns file dependencies into an interactive force graph inside VS Code. Files become nodes, imports become edges, and your project's structure reveals itself.
 
+![CodeGraphy dependency graph](./docs/media/node-drag.gif)
+
 ## Why
 
 Reading code is linear. Codebases aren't. CodeGraphy gives you a bird's-eye view of how files connect so you can spot clusters, find entry points, and understand architecture at a glance.
@@ -21,11 +23,17 @@ Reading code is linear. Codebases aren't. CodeGraphy gives you a bird's-eye view
 
 **Git timeline.** Index your repo's history and watch the dependency graph evolve over time. Scrub through commits, play back changes at adjustable speed, and see how your architecture grew.
 
-![Timeline](./docs/timeline-screenshot.png)
+![Timeline playback](./docs/media/timeline-playback.gif)
 
 **Make it yours.** Assign colors to files with glob patterns. Tune the physics. Filter out noise. Switch between 2D and 3D. Export as PNG, SVG, or JSON.
 
+| 2D | 3D |
+|:--:|:--:|
+| ![2D graph](./docs/media/hero-graph.png) | ![3D graph](./docs/media/graph-3d.png) |
+
 **Work from the graph.** Right-click any node to open, rename, delete, or favorite files, all with full undo/redo. Double-click to jump straight to the source.
+
+![Context menu](./docs/media/context-menu.png)
 
 ## Quick start
 

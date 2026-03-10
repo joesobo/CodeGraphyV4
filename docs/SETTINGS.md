@@ -38,6 +38,8 @@ Timeline indexing also respects `codegraphy.filterPatterns` and plugin/rule togg
 
 Open by clicking the gear icon in the bottom-right corner of the graph view. It has four collapsible sections.
 
+![Settings panel](./media/settings-panel.png)
+
 ### Forces
 
 Adjusts the physics simulation in real time.
@@ -123,6 +125,8 @@ To version-control filter patterns, add them to `settings.json`:
 | Connections | Default. Shows all files and their import connections. |
 | Depth Graph | Shows files within N hops of the currently focused file. Requires an open editor tab. |
 | Subfolder View | Shows files within a specific folder. Activated via Explorer context menu. |
+
+![Depth graph](./media/depth-graph.png)
 
 ## File discovery settings
 

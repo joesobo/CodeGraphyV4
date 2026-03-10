@@ -1,5 +1,7 @@
 # Graph Interactions
 
+![Search filtering](./media/search.gif)
+
 ## Nodes
 
 | Action | Effect |
@@ -37,6 +39,8 @@ Right-click a node or a selection of nodes to access file actions:
 
 Undoable actions support `Ctrl+Z` / `Cmd+Z` to undo and `Ctrl+Shift+Z` / `Cmd+Shift+Z` to redo.
 
+![Context menu](./media/context-menu.png)
+
 ## Tooltips
 
 Hover any node to see:
@@ -60,6 +64,8 @@ Four collapsible sections: Forces, Groups, Filters, and Display. See [Settings](
 ### Plugins (puzzle icon)
 
 Toggle entire plugins or individual detection rules. Shows live connection counts per rule. See [Plugins](./PLUGINS.md) for plugin development.
+
+![Plugins panel](./media/plugins-panel.png)
 
 ### Refresh (arrow icon)
 
