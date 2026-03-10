@@ -1,0 +1,6 @@
+{
+  "name": "@codegraphy/plugin-godot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CodeGraphy godot plugin"
+}

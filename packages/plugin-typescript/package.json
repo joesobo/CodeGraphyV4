@@ -1,0 +1,6 @@
+{
+  "name": "@codegraphy/plugin-typescript",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CodeGraphy typescript plugin"
+}
