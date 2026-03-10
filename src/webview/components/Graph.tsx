@@ -232,6 +232,8 @@ export default function Graph({
   const dataRef = useRef(data);
   const nodeSizeModeRef = useRef(nodeSizeMode);
   const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const hoveredNodeRef = useRef<FGNode | null>(null);
+  const tooltipRafRef = useRef<number | null>(null);
   const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
   const physicsInitialisedRef = useRef(false);
   const prevPhysicsRef = useRef<IPhysicsSettings | null>(null);
@@ -589,32 +591,69 @@ export default function Graph({
     setSelectedNodes([]);
   }, [setHighlight]);
 
+  /** Convert a graph-space node position to screen coordinates. */
+  const nodeToScreenCoords = useCallback((node: FGNode): { x: number; y: number } | null => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fg = fg2dRef.current as any;
+    const canvas = containerRef.current?.querySelector('canvas');
+    if (!fg?.graph2ScreenCoords || !canvas) return null;
+
+    const screen = fg.graph2ScreenCoords(node.x ?? 0, node.y ?? 0);
+    const rect = canvas.getBoundingClientRect();
+    return { x: screen.x + rect.left, y: screen.y + rect.top };
+  }, []);
+
+  /** RAF loop that keeps the tooltip anchored to the hovered node. */
+  const startTooltipTracking = useCallback(() => {
+    const tick = () => {
+      const node = hoveredNodeRef.current;
+      if (!node) return;
+      const pos = nodeToScreenCoords(node);
+      if (pos) {
+        setTooltipData(prev => prev.visible ? { ...prev, position: pos } : prev);
+      }
+      tooltipRafRef.current = requestAnimationFrame(tick);
+    };
+    tooltipRafRef.current = requestAnimationFrame(tick);
+  }, [nodeToScreenCoords]);
+
+  const stopTooltipTracking = useCallback(() => {
+    if (tooltipRafRef.current !== null) {
+      cancelAnimationFrame(tooltipRafRef.current);
+      tooltipRafRef.current = null;
+    }
+  }, []);
+
   const handleNodeHover = useCallback((node: FGNode | null) => {
     if (tooltipTimeoutRef.current) clearTimeout(tooltipTimeoutRef.current);
 
     if (!node) {
+      hoveredNodeRef.current = null;
+      stopTooltipTracking();
       setTooltipData(prev => ({ ...prev, visible: false }));
       return;
     }
 
+    hoveredNodeRef.current = node;
     const nodeId = node.id;
     tooltipTimeoutRef.current = setTimeout(() => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const canvas = containerRef.current?.querySelector('canvas') as any;
-      const rect = canvas?.getBoundingClientRect?.() ?? { left: 0, top: 0 };
-      const x = (node.x ?? 0) + rect.left;
-      const y = (node.y ?? 0) + rect.top;
+      const pos = nodeToScreenCoords(node) ?? { x: 0, y: 0 };
 
       const cached = fileInfoCacheRef.current.get(nodeId);
       setTooltipData({
         visible: true,
-        position: { x, y },
+        position: pos,
         path: nodeId,
         info: cached || null,
       });
       if (!cached) postMessage({ type: 'GET_FILE_INFO', payload: { path: nodeId } });
+
+      startTooltipTracking();
     }, 500);
-  }, []);
+  }, [nodeToScreenCoords, startTooltipTracking, stopTooltipTracking]);
+
+  // Cleanup tooltip RAF on unmount
+  useEffect(() => stopTooltipTracking, [stopTooltipTracking]);
 
   // ── Context menu ─────────────────────────────────────────────────────────
 
@@ -641,8 +680,10 @@ export default function Graph({
       clearTimeout(tooltipTimeoutRef.current);
       tooltipTimeoutRef.current = null;
     }
+    hoveredNodeRef.current = null;
+    stopTooltipTracking();
     setTooltipData(prev => ({ ...prev, visible: false }));
-  }, []);
+  }, [stopTooltipTracking]);
 
   const handleContextAction = useCallback((action: string, paths?: string[]) => {
     const targetPaths = paths || contextTargetRef.current;

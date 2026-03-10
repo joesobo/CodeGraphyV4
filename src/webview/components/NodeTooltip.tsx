@@ -1,10 +1,11 @@
 /**
  * @fileoverview Rich tooltip component for graph nodes.
- * Shows file information on hover.
+ * Positioned relative to the hovered node's screen coordinates.
  */
 
 import React from 'react';
 import { cn } from '../lib/utils';
+import { Separator } from './ui/separator';
 
 interface NodeTooltipProps {
   /** File path relative to workspace */
@@ -21,43 +22,34 @@ interface NodeTooltipProps {
   plugin?: string;
   /** Number of times this file has been visited/opened */
   visits?: number;
-  /** Position to show tooltip */
+  /** Position to show tooltip (screen coordinates) */
   position: { x: number; y: number };
   /** Whether tooltip is visible */
   visible: boolean;
 }
 
-/**
- * Format file size to human readable string
- */
 function formatSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-/**
- * Format timestamp to relative time string
- */
 function formatRelativeTime(timestamp: number): string {
   const now = Date.now();
   const diff = now - timestamp;
-  
+
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
   const days = Math.floor(diff / 86400000);
-  
+
   if (minutes < 1) return 'just now';
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 7) return `${days}d ago`;
-  
+
   return new Date(timestamp).toLocaleDateString();
 }
 
-/**
- * Rich tooltip showing file information.
- */
 export function NodeTooltip({
   path,
   size,
@@ -71,106 +63,64 @@ export function NodeTooltip({
 }: NodeTooltipProps): React.ReactElement | null {
   if (!visible) return null;
 
-  // Tooltip dimensions (approximate, actual size may vary)
-  const tooltipWidth = 300;
-  const tooltipHeight = 150;
-  const padding = 10;
+  const tooltipWidth = 280;
+  const tooltipHeight = 160;
+  const offset = 12;
 
-  // Get viewport dimensions
   const viewportWidth = window.innerWidth;
   const viewportHeight = window.innerHeight;
 
-  // Calculate position, keeping tooltip within viewport
-  let left = position.x + padding;
-  let top = position.y + padding;
+  // Position to the right of the node by default, flip if it would overflow
+  let left = position.x + offset;
+  let top = position.y + offset;
 
-  // Check right edge - if tooltip would overflow, position to left of cursor
-  if (left + tooltipWidth > viewportWidth - padding) {
-    left = position.x - tooltipWidth - padding;
+  if (left + tooltipWidth > viewportWidth - offset) {
+    left = position.x - tooltipWidth - offset;
+  }
+  if (top + tooltipHeight > viewportHeight - offset) {
+    top = position.y - tooltipHeight - offset;
   }
 
-  // Check bottom edge - if tooltip would overflow, position above cursor
-  if (top + tooltipHeight > viewportHeight - padding) {
-    top = position.y - tooltipHeight - padding;
-  }
-
-  // Ensure tooltip doesn't go off left or top edges
-  left = Math.max(padding, left);
-  top = Math.max(padding, top);
-
-  const tooltipStyle: React.CSSProperties = {
-    position: 'fixed',
-    left,
-    top,
-    zIndex: 1000,
-    maxWidth: tooltipWidth,
-  };
+  left = Math.max(offset, left);
+  top = Math.max(offset, top);
 
   return (
     <div
-      style={tooltipStyle}
+      style={{ position: 'fixed', left, top, zIndex: 1000, maxWidth: tooltipWidth }}
       className={cn(
-        'px-3 py-2 rounded-md shadow-lg',
+        'rounded-md border shadow-md pointer-events-none',
         'bg-[var(--vscode-editorHoverWidget-background,#252526)]',
-        'border border-[var(--vscode-editorHoverWidget-border,#454545)]',
+        'border-[var(--vscode-editorHoverWidget-border,#454545)]',
         'text-[var(--vscode-editorHoverWidget-foreground,#cccccc)]',
-        'text-xs font-mono',
         'animate-in fade-in-0 zoom-in-95 duration-100'
       )}
     >
-      {/* File path */}
-      <div className="font-semibold text-[var(--vscode-textLink-foreground,#3794ff)] mb-1 break-all">
-        {path}
+      {/* Header — file path */}
+      <div className="px-3 pt-2 pb-1.5">
+        <p className="text-xs font-semibold text-[var(--vscode-textLink-foreground,#3794ff)] break-all leading-snug">
+          {path}
+        </p>
       </div>
+
+      <Separator className="bg-[var(--vscode-editorHoverWidget-border,#454545)]" />
 
       {/* Stats */}
-      <div className="space-y-0.5 text-[var(--vscode-descriptionForeground,#8c8c8c)]">
-        {/* Size */}
-        {size !== undefined && (
-          <div className="flex justify-between gap-4">
-            <span>Size:</span>
-            <span className="text-[var(--vscode-editorHoverWidget-foreground,#cccccc)]">
-              {formatSize(size)}
-            </span>
-          </div>
-        )}
-
-        {/* Last modified */}
-        {lastModified !== undefined && (
-          <div className="flex justify-between gap-4">
-            <span>Modified:</span>
-            <span className="text-[var(--vscode-editorHoverWidget-foreground,#cccccc)]">
-              {formatRelativeTime(lastModified)}
-            </span>
-          </div>
-        )}
-
-        {/* Connections */}
-        <div className="flex justify-between gap-4">
-          <span>Connections:</span>
-          <span className="text-[var(--vscode-editorHoverWidget-foreground,#cccccc)]">
-            {outgoingCount} imports • {incomingCount} imported by
-          </span>
-        </div>
-
-        {/* Visits */}
-        <div className="flex justify-between gap-4">
-          <span>Visits:</span>
-          <span className="text-[var(--vscode-editorHoverWidget-foreground,#cccccc)]">
-            {visits ?? 0}
-          </span>
-        </div>
-
-        {/* Plugin */}
-        {plugin && (
-          <div className="flex justify-between gap-4">
-            <span>Plugin:</span>
-            <span className="text-[var(--vscode-editorHoverWidget-foreground,#cccccc)]">
-              {plugin}
-            </span>
-          </div>
-        )}
+      <div className="px-3 py-1.5 space-y-0.5 text-[11px] font-mono">
+        <Row label="Connections" value={`${outgoingCount} out \u00B7 ${incomingCount} in`} />
+        {size !== undefined && <Row label="Size" value={formatSize(size)} />}
+        {lastModified !== undefined && <Row label="Modified" value={formatRelativeTime(lastModified)} />}
+        {(visits ?? 0) > 0 && <Row label="Visits" value={String(visits)} />}
+        {plugin && <Row label="Plugin" value={plugin} />}
       </div>
+    </div>
+  );
+}
+
+function Row({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between gap-3">
+      <span className="text-[var(--vscode-descriptionForeground,#8c8c8c)]">{label}</span>
+      <span className="text-[var(--vscode-editorHoverWidget-foreground,#cccccc)] text-right">{value}</span>
     </div>
   );
 }
