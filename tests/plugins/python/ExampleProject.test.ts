@@ -8,7 +8,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { createPythonPlugin } from '../../../src/plugins/python';
 
-const EXAMPLE_ROOT = path.join(__dirname, '../../../examples/python-plugin');
+const EXAMPLE_ROOT = path.join(__dirname, '../../../src/plugins/python/examples');
 
 describe('Python Example Project', () => {
   const plugin = createPythonPlugin();

@@ -11,7 +11,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { createCSharpPlugin } from '../../../src/plugins/csharp';
 
-const CSHARP_EXAMPLE_ROOT = path.join(__dirname, '../../../examples/csharp-plugin');
+const CSHARP_EXAMPLE_ROOT = path.join(__dirname, '../../../src/plugins/csharp/examples');
 
 describe('C# Plugin Integration', () => {
   const csharpPlugin = createCSharpPlugin();

@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import { createPythonPlugin } from '../../../src/plugins/python';
 import { createTypeScriptPlugin } from '../../../src/plugins/typescript';
 
-const PYTHON_EXAMPLE_ROOT = path.join(__dirname, '../../../examples/python-plugin');
+const PYTHON_EXAMPLE_ROOT = path.join(__dirname, '../../../src/plugins/python/examples');
 
 describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
   const pythonPlugin = createPythonPlugin();

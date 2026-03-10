@@ -1,6 +1,6 @@
 /**
  * @fileoverview Integration tests for the Godot GDScript plugin.
- * Uses the example GDScript project in examples/gdscript to verify
+ * Uses the example GDScript project in src/plugins/godot/examples to verify
  * that the plugin detects connections end-to-end.
  */
 
@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { createGDScriptPlugin as createGodotPlugin } from '../../../src/plugins/godot';
 
-const GDSCRIPT_ROOT = path.join(__dirname, '../../../examples/gdscript');
+const GDSCRIPT_ROOT = path.join(__dirname, '../../../src/plugins/godot/examples');
 
 describe('Godot GDScript Plugin Integration', () => {
   const plugin = createGodotPlugin();

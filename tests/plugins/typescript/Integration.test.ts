@@ -1,6 +1,6 @@
 /**
  * @fileoverview Integration tests for the TypeScript plugin.
- * Uses the example TypeScript project in examples/ts-plugin to verify
+ * Uses the example TypeScript project in src/plugins/typescript/examples to verify
  * that the plugin detects connections end-to-end, matching what
  * WorkspaceAnalyzer would produce.
  */
@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { createTypeScriptPlugin } from '../../../src/plugins/typescript';
 
-const TS_EXAMPLE_ROOT = path.join(__dirname, '../../../examples/ts-plugin');
+const TS_EXAMPLE_ROOT = path.join(__dirname, '../../../src/plugins/typescript/examples');
 
 describe('TypeScript Plugin Integration', () => {
   const plugin = createTypeScriptPlugin();
