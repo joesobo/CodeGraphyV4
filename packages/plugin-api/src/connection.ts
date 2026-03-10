@@ -46,6 +46,6 @@ export interface IConnection {
   resolvedPath: string | null;
   /** The type of import */
   type: 'static' | 'dynamic' | 'require' | 'reexport';
-  /** The rule that detected this connection (e.g., 'es6-import'). Optional for backward compat. */
+  /** The rule that detected this connection (e.g., 'es6-import'). */
   ruleId?: string;
 }

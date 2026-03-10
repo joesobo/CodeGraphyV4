@@ -51,7 +51,7 @@ export interface IConnection {
   resolvedPath: string | null;
   /** The type of import */
   type: 'static' | 'dynamic' | 'require' | 'reexport';
-  /** The rule that detected this connection (e.g., 'es6-import'). Optional for backward compat. */
+  /** The rule that detected this connection (e.g., 'es6-import'). */
   ruleId?: string;
 }
 
@@ -68,6 +68,7 @@ export interface IConnection {
  *   id: 'codegraphy.typescript',
  *   name: 'TypeScript',
  *   version: '1.0.0',
+ *   apiVersion: '^2.0.0',
  *   supportedExtensions: ['.ts', '.tsx', '.js', '.jsx'],
  *   
  *   async detectConnections(filePath, content) {
@@ -90,11 +91,8 @@ export interface IPlugin {
   /** Semantic version string */
   version: string;
 
-  /**
-   * Optional semver range for v2 plugins.
-   * Presence of this field marks the plugin as v2.
-   */
-  apiVersion?: string;
+  /** Required semver range for Plugin API compatibility (e.g., '^2.0.0'). */
+  apiVersion: string;
 
   /** Optional semver range for webview-side API compatibility. */
   webviewApiVersion?: string;
@@ -194,6 +192,33 @@ export interface IPlugin {
    * Use this to release any resources.
    */
   dispose?(): void;
+
+  /**
+   * Called when the plugin is loaded and the host API is available.
+   * Plugins use this to register events, commands, views, and decorations.
+   */
+  onLoad?(api: import('./CodeGraphyAPI').CodeGraphyAPIImpl): void;
+
+  /** Called once after the initial workspace graph is ready. */
+  onWorkspaceReady?(graph: import('../../shared/types').IGraphData): void;
+
+  /** Called when the webview is ready to receive plugin messages. */
+  onWebviewReady?(): void;
+
+  /** Called before each analysis pass. */
+  onPreAnalyze?(
+    files: Array<{ absolutePath: string; relativePath: string; content: string }>,
+    workspaceRoot: string
+  ): Promise<void>;
+
+  /** Called after each full analysis pass. */
+  onPostAnalyze?(graph: import('../../shared/types').IGraphData): void;
+
+  /** Called when the graph is rebuilt from cache without re-analysis. */
+  onGraphRebuild?(graph: import('../../shared/types').IGraphData): void;
+
+  /** Called before plugin teardown. */
+  onUnload?(): void;
 }
 
 /**

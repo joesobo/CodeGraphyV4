@@ -28,8 +28,7 @@ At this point the core validates the plugin's `apiVersion` from its `codegraphy.
 
 - Compatible version range: proceed.
 - Future version: error with clear message.
-- Deprecated version: warning + compatibility shim if available.
-- Unsupported version: reject with migration link.
+- Unsupported/deprecated version: reject registration with a migration message.
 
 ### 2. onLoad(api)
 

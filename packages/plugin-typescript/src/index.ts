@@ -42,6 +42,7 @@ export function createTypeScriptPlugin(): IPlugin {
     id: manifest.id,
     name: manifest.name,
     version: manifest.version,
+    apiVersion: manifest.apiVersion,
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
     rules: manifest.rules,

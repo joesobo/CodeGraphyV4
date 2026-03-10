@@ -480,8 +480,7 @@ Versioned **separately** from the core API. Weaker stability guarantees — brea
 On `registerPlugin()`, the core checks the manifest's `apiVersion` range:
 - **Compatible** → proceed normally.
 - **Plugin targets future version** → error with clear message ("Plugin requires CodeGraphy API ≥3.0, but this version provides 2.x").
-- **Plugin targets deprecated version** → warning + compatibility shim if possible.
-- **Plugin targets unsupported version** → reject with migration link.
+- **Plugin targets deprecated/unsupported version** → reject registration with migration guidance.
 
 ### Types Package Versioning
 
@@ -507,7 +506,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register plugin
   const plugin: IPlugin = {
-    // Connection detection (same as v1)
+    // Connection detection
     detectConnections(filePath, content, workspaceRoot) {
       return detectImports(filePath, content, workspaceRoot);
     },

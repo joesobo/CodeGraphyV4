@@ -55,21 +55,21 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **`discovery/FileDiscovery.ts`** recursively discovers files using glob patterns, respects `.gitignore`, and enforces the max file limit.
 
-**`plugins/PluginRegistry.ts`** maps file extensions to `IPlugin` instances and handles initialization/disposal. For v2 plugins, it provisions a scoped `CodeGraphyAPI`, runs lifecycle hooks (`onLoad`, `onPreAnalyze`, `onPostAnalyze`, etc.), and manages webview message delivery.
+**`plugins/PluginRegistry.ts`** maps file extensions to `IPlugin` instances and handles initialization/disposal. It provisions a scoped `CodeGraphyAPI`, runs lifecycle hooks (`onLoad`, `onPreAnalyze`, `onPostAnalyze`, etc.), and manages webview message delivery.
 
 **`colors/ColorPaletteManager.ts`** generates distinct colors for file types with a three-tier priority system: user settings > plugin defaults > auto-generated.
 
 **`views/ViewRegistry.ts`** manages graph views. Three built-in views: Connections (pass-through), Depth Graph (BFS from focused file), and Subfolder View.
 
-## Plugin layer (`src/plugins/`)
+## Plugin layer (`packages/plugin-*/`)
 
 Each plugin implements `IPlugin` from `src/core/plugins/types.ts`. Five built-in plugins:
 
-- **typescript/** handles `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs` using the TypeScript Compiler API for AST-based import detection
-- **python/** handles `.py`, `.pyi` with regex-based detection of `import` and `from` statements
-- **csharp/** handles `.cs` with `using` directive and type usage detection
-- **godot/** handles `.gd` with `preload`, `load`, `extends`, and `class_name` detection
-- **markdown/** handles `.md`, `.mdx` with `[[wikilink]]` detection
+- **plugin-typescript/** handles `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs` using the TypeScript Compiler API for AST-based import detection
+- **plugin-python/** handles `.py`, `.pyi` with regex-based detection of `import` and `from` statements
+- **plugin-csharp/** handles `.cs` with `using` directive and type usage detection
+- **plugin-godot/** handles `.gd` with `preload`, `load`, `extends`, and `class_name` detection
+- **plugin-markdown/** handles `.md`, `.mdx` with `[[wikilink]]` detection
 
 Each plugin declares detection rules in `codegraphy.json` and sets `ruleId` on every connection so users can toggle rules individually.
 

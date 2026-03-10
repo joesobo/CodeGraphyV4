@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PluginRegistry, IPlugin, IConnection } from '../../../src/core/plugins';
+import { EventBus } from '@/core/plugins/EventBus';
+import { DecorationManager } from '@/core/plugins/DecorationManager';
+import { ViewRegistry } from '@/core/views/ViewRegistry';
 
 // Helper to create a mock plugin
 function createMockPlugin(overrides: Partial<IPlugin> = {}): IPlugin {
@@ -7,6 +10,7 @@ function createMockPlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     id: 'test.plugin',
     name: 'Test Plugin',
     version: '1.0.0',
+    apiVersion: '^2.0.0',
     supportedExtensions: ['.test'],
     detectConnections: vi.fn().mockResolvedValue([]),
     ...overrides,
@@ -18,6 +22,15 @@ describe('PluginRegistry', () => {
 
   beforeEach(() => {
     registry = new PluginRegistry();
+    registry.configureV2({
+      eventBus: new EventBus(),
+      decorationManager: new DecorationManager(),
+      viewRegistry: new ViewRegistry(),
+      graphProvider: () => ({ nodes: [], edges: [] }),
+      commandRegistrar: () => ({ dispose: () => {} }),
+      webviewSender: () => {},
+      workspaceRoot: '/workspace',
+    });
   });
 
   describe('register', () => {

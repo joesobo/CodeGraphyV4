@@ -78,12 +78,10 @@ function satisfiesSemverRange(version: string, range: string): boolean {
  * );
  * ```
  */
-/** Extended plugin info that includes v2 API instance */
+/** Extended plugin info that includes scoped plugin API instance. */
 export interface IPluginInfoV2 extends IPluginInfo {
-  /** Scoped API instance for v2 plugins */
+  /** Scoped API instance for the plugin (present when v2 subsystems are configured). */
   api?: CodeGraphyAPIImpl;
-  /** Whether this is a v2 plugin (has apiVersion) */
-  isV2: boolean;
 }
 
 export class PluginRegistry {
@@ -93,28 +91,28 @@ export class PluginRegistry {
   /** Map of file extension to plugin IDs that support it */
   private readonly _extensionMap = new Map<string, string[]>();
 
-  /** EventBus for v2 plugin event system */
+  /** EventBus for plugin event system */
   private _eventBus?: EventBus;
 
-  /** DecorationManager for v2 plugin decorations */
+  /** DecorationManager for plugin decorations */
   private _decorationManager?: DecorationManager;
 
-  /** ViewRegistry for v2 plugin views */
+  /** ViewRegistry for plugin views */
   private _viewRegistry?: ViewRegistry;
 
-  /** Graph data provider for v2 API */
+  /** Graph data provider for plugin API */
   private _graphProvider?: GraphDataProvider;
 
-  /** Command registrar for v2 API */
+  /** Command registrar for plugin API */
   private _commandRegistrar?: CommandRegistrar;
 
-  /** Webview message sender for v2 API */
+  /** Webview message sender for plugin API */
   private _webviewSender?: WebviewMessageSender;
 
-  /** Workspace root for v2 API */
+  /** Workspace root for plugin API */
   private _workspaceRoot?: string;
 
-  /** Log function for v2 API */
+  /** Log function for plugin API */
   private _logFn: (level: string, ...args: unknown[]) => void = (level, ...args) => {
     if (level === 'error') console.error(...args);
     else if (level === 'warn') console.warn(...args);
@@ -122,7 +120,8 @@ export class PluginRegistry {
   };
 
   /**
-   * Configure v2 subsystems. Must be called before registering v2 plugins.
+   * Configure plugin API subsystems.
+   * Call this before registering plugins to enable scoped API provisioning.
    */
   configureV2(options: {
     eventBus: EventBus;
@@ -159,23 +158,23 @@ export class PluginRegistry {
       throw new Error(`Plugin with ID '${plugin.id}' is already registered`);
     }
 
-    // Detect v2 plugin by presence of apiVersion field
-    const apiVersion = (plugin as unknown as { apiVersion?: unknown }).apiVersion;
-    const isV2 = typeof apiVersion === 'string';
-    if (isV2) {
-      this._assertCoreApiCompatibility(plugin.id, apiVersion);
-      this._warnOnWebviewApiMismatch(plugin);
+    const apiVersion = plugin.apiVersion;
+    if (typeof apiVersion !== 'string') {
+      throw new Error(
+        `Plugin '${plugin.id}' must declare a string apiVersion (for example '^${CORE_PLUGIN_API_VERSION}').`
+      );
     }
+
+    this._assertCoreApiCompatibility(plugin.id, apiVersion);
+    this._warnOnWebviewApiMismatch(plugin);
 
     const info: IPluginInfoV2 = {
       plugin,
       builtIn: options.builtIn ?? false,
       sourceExtension: options.sourceExtension,
-      isV2,
     };
 
-    // For v2 plugins, create a scoped API and call onLoad
-    if (isV2 && this._eventBus && this._decorationManager && this._viewRegistry) {
+    if (this._eventBus && this._decorationManager && this._viewRegistry) {
       const api = new CodeGraphyAPIImpl(
         plugin.id,
         this._eventBus,
@@ -189,11 +188,9 @@ export class PluginRegistry {
       );
       info.api = api;
 
-      // Call onLoad lifecycle hook
-      const v2Plugin = plugin as IPlugin & { onLoad?(api: CodeGraphyAPIImpl): void };
-      if (v2Plugin.onLoad) {
+      if (plugin.onLoad) {
         try {
-          v2Plugin.onLoad(api);
+          plugin.onLoad(api);
         } catch (error) {
           console.error(`[CodeGraphy] Error in onLoad for plugin ${plugin.id}:`, error);
         }
@@ -279,20 +276,17 @@ export class PluginRegistry {
       return false;
     }
 
-    // For v2 plugins: call onUnload, then dispose the scoped API
-    if (info.isV2 && info.api) {
-      const v2Plugin = info.plugin as IPlugin & { onUnload?(): void };
-      if (v2Plugin.onUnload) {
-        try {
-          v2Plugin.onUnload();
-        } catch (error) {
-          console.error(`[CodeGraphy] Error in onUnload for plugin ${pluginId}:`, error);
-        }
+    if (info.plugin.onUnload) {
+      try {
+        info.plugin.onUnload();
+      } catch (error) {
+        console.error(`[CodeGraphy] Error in onUnload for plugin ${pluginId}:`, error);
       }
-      info.api.disposeAll();
     }
 
-    // Call dispose if available (v1 compatibility)
+    info.api?.disposeAll();
+
+    // Call dispose if available.
     if (info.plugin.dispose) {
       try {
         info.plugin.dispose();
@@ -464,18 +458,16 @@ export class PluginRegistry {
     }
   }
 
-  // ── v2 Lifecycle Notifications ──
+  // ── Lifecycle Notifications ──
 
   /**
-   * Notify all v2 plugins that the workspace is ready with initial graph data.
+   * Notify all plugins that the workspace is ready with initial graph data.
    */
   notifyWorkspaceReady(graph: IGraphData): void {
     for (const info of this._plugins.values()) {
-      if (!info.isV2) continue;
-      const v2Plugin = info.plugin as IPlugin & { onWorkspaceReady?(graph: IGraphData): void };
-      if (v2Plugin.onWorkspaceReady) {
+      if (info.plugin.onWorkspaceReady) {
         try {
-          v2Plugin.onWorkspaceReady(graph);
+          info.plugin.onWorkspaceReady(graph);
         } catch (error) {
           console.error(`[CodeGraphy] Error in onWorkspaceReady for ${info.plugin.id}:`, error);
         }
@@ -484,20 +476,16 @@ export class PluginRegistry {
   }
 
   /**
-   * Notify all v2 plugins before an analysis pass.
+   * Notify all plugins before an analysis pass.
    */
   async notifyPreAnalyze(
     files: Array<{ absolutePath: string; relativePath: string; content: string }>,
     workspaceRoot: string
   ): Promise<void> {
     for (const info of this._plugins.values()) {
-      if (!info.isV2) continue;
-      const v2Plugin = info.plugin as IPlugin & {
-        onPreAnalyze?(files: Array<{ absolutePath: string; relativePath: string; content: string }>, workspaceRoot: string): Promise<void>;
-      };
-      if (v2Plugin.onPreAnalyze) {
+      if (info.plugin.onPreAnalyze) {
         try {
-          await v2Plugin.onPreAnalyze(files, workspaceRoot);
+          await info.plugin.onPreAnalyze(files, workspaceRoot);
         } catch (error) {
           console.error(`[CodeGraphy] Error in onPreAnalyze for ${info.plugin.id}:`, error);
         }
@@ -506,15 +494,13 @@ export class PluginRegistry {
   }
 
   /**
-   * Notify all v2 plugins after an analysis pass.
+   * Notify all plugins after an analysis pass.
    */
   notifyPostAnalyze(graph: IGraphData): void {
     for (const info of this._plugins.values()) {
-      if (!info.isV2) continue;
-      const v2Plugin = info.plugin as IPlugin & { onPostAnalyze?(graph: IGraphData): void };
-      if (v2Plugin.onPostAnalyze) {
+      if (info.plugin.onPostAnalyze) {
         try {
-          v2Plugin.onPostAnalyze(graph);
+          info.plugin.onPostAnalyze(graph);
         } catch (error) {
           console.error(`[CodeGraphy] Error in onPostAnalyze for ${info.plugin.id}:`, error);
         }
@@ -523,15 +509,13 @@ export class PluginRegistry {
   }
 
   /**
-   * Notify all v2 plugins that the graph was rebuilt without re-analysis.
+   * Notify all plugins that the graph was rebuilt without re-analysis.
    */
   notifyGraphRebuild(graph: IGraphData): void {
     for (const info of this._plugins.values()) {
-      if (!info.isV2) continue;
-      const v2Plugin = info.plugin as IPlugin & { onGraphRebuild?(graph: IGraphData): void };
-      if (v2Plugin.onGraphRebuild) {
+      if (info.plugin.onGraphRebuild) {
         try {
-          v2Plugin.onGraphRebuild(graph);
+          info.plugin.onGraphRebuild(graph);
         } catch (error) {
           console.error(`[CodeGraphy] Error in onGraphRebuild for ${info.plugin.id}:`, error);
         }
@@ -540,15 +524,13 @@ export class PluginRegistry {
   }
 
   /**
-   * Notify all v2 plugins that the webview is ready.
+   * Notify all plugins that the webview is ready.
    */
   notifyWebviewReady(): void {
     for (const info of this._plugins.values()) {
-      if (!info.isV2) continue;
-      const v2Plugin = info.plugin as IPlugin & { onWebviewReady?(): void };
-      if (v2Plugin.onWebviewReady) {
+      if (info.plugin.onWebviewReady) {
         try {
-          v2Plugin.onWebviewReady();
+          info.plugin.onWebviewReady();
         } catch (error) {
           console.error(`[CodeGraphy] Error in onWebviewReady for ${info.plugin.id}:`, error);
         }
@@ -557,7 +539,7 @@ export class PluginRegistry {
   }
 
   /**
-   * Get the scoped API for a v2 plugin (used by GraphViewProvider for message routing).
+   * Get the scoped API for a plugin (used by GraphViewProvider for message routing).
    */
   getPluginAPI(pluginId: string): CodeGraphyAPIImpl | undefined {
     return this._plugins.get(pluginId)?.api;

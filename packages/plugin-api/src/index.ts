@@ -4,8 +4,8 @@
  * This package provides the canonical type definitions for building
  * CodeGraphy plugins. It defines:
  *
- * - {@link IPlugin} — the v2 plugin interface (backward-compatible with v1)
- * - {@link CodeGraphyAPI} — the host API passed to v2 plugins
+ * - {@link IPlugin} — the plugin interface (apiVersion is required)
+ * - {@link CodeGraphyAPI} — the host API passed to plugins via onLoad
  * - {@link CodeGraphyWebviewAPI} — the webview-side API for custom rendering
  * - Graph, decoration, event, view, and command types
  *

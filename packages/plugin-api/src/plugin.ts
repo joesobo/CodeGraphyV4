@@ -1,13 +1,8 @@
 /**
  * @fileoverview The IPlugin interface — the canonical plugin contract.
  *
- * This is a v2-compatible interface that remains fully backward-compatible
- * with v1 plugins. The `apiVersion` field distinguishes them:
- *
- * - **v1 plugin**: omits `apiVersion`. Only `detectConnections` and the
- *   optional v1 hooks (`initialize`, `preAnalyze`, `dispose`) are called.
- * - **v2 plugin**: sets `apiVersion` to `'^2.0.0'`. Receives the full
- *   {@link CodeGraphyAPI} via `onLoad(api)` and can use lifecycle hooks.
+ * Plugin API v2 is required. Every plugin must declare `apiVersion`
+ * and is validated by the host at registration time.
  *
  * @module @codegraphy/plugin-api/plugin
  */
@@ -31,25 +26,11 @@ export interface IAnalysisFile {
 /**
  * The main plugin interface for CodeGraphy.
  *
- * All plugins — both v1 (built-in) and v2 (community / advanced) — implement
- * this single interface. The `apiVersion` field determines which lifecycle
- * hooks the host will call.
+ * All plugins implement this single interface and must declare `apiVersion`.
  *
  * @example
  * ```typescript
- * // v1 plugin (backward-compatible, no apiVersion)
- * const simplePlugin: IPlugin = {
- *   id: 'codegraphy.markdown',
- *   name: 'Markdown',
- *   version: '1.0.0',
- *   supportedExtensions: ['.md'],
- *   async detectConnections(filePath, content) {
- *     return parseMarkdownLinks(content);
- *   }
- * };
- *
- * // v2 plugin (uses lifecycle hooks and the API)
- * const advancedPlugin: IPlugin = {
+ * const plugin: IPlugin = {
  *   id: 'myplugin.coverage',
  *   name: 'Coverage Overlay',
  *   version: '0.1.0',
@@ -76,11 +57,8 @@ export interface IPlugin {
 
   /**
    * Semver range indicating which Plugin API version this plugin targets.
-   *
-   * - Omit for v1 plugins (backward-compatible).
-   * - Set to `'^2.0.0'` for v2 plugins that use lifecycle hooks and the API.
    */
-  apiVersion?: string;
+  apiVersion: string;
 
   /** Optional semver range for the webview-side API contract. */
   webviewApiVersion?: string;
@@ -123,7 +101,7 @@ export interface IPlugin {
   };
 
   // ---------------------------------------------------------------------------
-  // v1 core method (required)
+  // Core analysis contract
   // ---------------------------------------------------------------------------
 
   /**
@@ -141,7 +119,7 @@ export interface IPlugin {
   ): Promise<IConnection[]>;
 
   // ---------------------------------------------------------------------------
-  // v1 optional hooks
+  // Optional analysis hooks
   // ---------------------------------------------------------------------------
 
   /**
@@ -164,12 +142,12 @@ export interface IPlugin {
   dispose?(): void;
 
   // ---------------------------------------------------------------------------
-  // v2 lifecycle hooks (only called when apiVersion is set)
+  // Lifecycle hooks
   // ---------------------------------------------------------------------------
 
   /**
    * Called when the plugin is loaded and the host API is available.
-   * This is the primary entry point for v2 plugins to register
+   * This is the primary entry point for plugins to register
    * event handlers, views, commands, and decorations.
    */
   onLoad?(api: CodeGraphyAPI): void;
@@ -187,7 +165,7 @@ export interface IPlugin {
 
   /**
    * Called before per-file analysis begins.
-   * Similar to `preAnalyze` but only invoked for v2 plugins.
+   * Similar to `preAnalyze` but reserved for post-onLoad plugin workflows.
    */
   onPreAnalyze?(
     files: IAnalysisFile[],

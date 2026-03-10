@@ -45,11 +45,11 @@ import type {
 Defined in `plugin.ts`.
 
 Key points:
-- `apiVersion?: string` is optional. Presence marks a plugin as v2.
+- `apiVersion: string` is required (for example `'^2.0.0'`).
 - `webviewApiVersion?: string` and `webviewContributions?: { scripts?: string[]; styles?: string[] }` support Tier 2.
 - `detectConnections(filePath, content, workspaceRoot)` is required.
-- v1 hooks: `initialize`, `preAnalyze`, `dispose`.
-- v2 hooks: `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
+- Optional analysis hooks: `initialize`, `preAnalyze`, `dispose`.
+- Lifecycle hooks: `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
 ### `IAnalysisFile`
 
@@ -91,9 +91,9 @@ Main groups:
 
 ### Decorations (`decorations.ts`)
 
-- `NodeDecoration` (label/color/border/badge/tooltip/metadata style)
-- `EdgeDecoration` (color/width/dashes/particles/label/metadata style)
-- `TooltipSection` (`heading`, `lines`)
+- `NodeDecoration`: `badge`, `border`, `tooltip.sections`, `label`, `size`, `opacity`, `color`, `icon`, `group`, `priority`
+- `EdgeDecoration`: `color`, `width`, `style`, `label`, `particles`, `opacity`, `curvature`, `priority`
+- `TooltipSection`: `title`, `content`
 
 ### Views and Commands
 
