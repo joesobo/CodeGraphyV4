@@ -155,24 +155,31 @@ export interface IGraphNode {
  * ```
  */
 export interface IGraphEdge {
-  /** 
+  /**
    * Unique edge identifier.
    * Format: "fromPath->toPath"
    * @example 'src/App.tsx->src/Button.tsx'
    */
   id: string;
-  
-  /** 
+
+  /**
    * Source node ID (the importing file).
    * @example 'src/App.tsx'
    */
   from: string;
-  
-  /** 
+
+  /**
    * Target node ID (the imported file).
    * @example 'src/Button.tsx'
    */
   to: string;
+
+  /**
+   * The rule that detected this connection (e.g., 'es6-import').
+   * Used for filtering by disabled rules in timeline mode.
+   * Only present on edges produced by the timeline cache.
+   */
+  ruleId?: string;
 }
 
 /**

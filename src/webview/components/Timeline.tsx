@@ -65,8 +65,8 @@ function findCommitIndexAtTime(commits: { timestamp: number }[], time: number): 
 
 const TRACK_HEIGHT = 24;
 
-/** Playback rate: at speed=1, 1 real second = 1 day of repo time */
-const SECONDS_PER_DAY = 86400;
+/** Playback rate: at speed=1, 1 real second = 2 days of repo time */
+const SECONDS_PER_DAY = 172800;
 
 export default function Timeline(): React.ReactElement | null {
   const timelineActive = useGraphStore((s) => s.timelineActive);
@@ -124,6 +124,12 @@ export default function Timeline(): React.ReactElement | null {
       return;
     }
 
+    // If a start-from time was set (e.g., restarting from end), apply it
+    if (startFromTimeRef.current !== null) {
+      setPlaybackTime(startFromTimeRef.current);
+      startFromTimeRef.current = null;
+    }
+
     const maxTs = timelineCommits[timelineCommits.length - 1].timestamp;
 
     const tick = (now: number) => {
@@ -167,9 +173,13 @@ export default function Timeline(): React.ReactElement | null {
     };
   }, [isPlaying, timelineCommits, setIsPlaying]);
 
-  // Sync playbackTime to currentCommitSha when not playing (e.g., after scrub or jump)
+  // Track whether the user is actively scrubbing (to prevent sync effect from overwriting)
+  const userScrubActiveRef = useRef(false);
+
+  // Sync playbackTime to currentCommitSha when not playing and not scrubbing
   useEffect(() => {
     if (isPlaying) return;
+    if (userScrubActiveRef.current) return;
     if (!currentCommitSha || timelineCommits.length === 0) return;
     const commit = timelineCommits.find((c) => c.sha === currentCommitSha);
     if (commit) {
@@ -178,7 +188,8 @@ export default function Timeline(): React.ReactElement | null {
     }
   }, [currentCommitSha, timelineCommits, isPlaying]);
 
-  // Jump to commit by finding nearest commit to a click position on the track
+  // Jump to any point on the timeline track (not just nearest commit)
+  const scrubResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const jumpToPositionOnTrack = useCallback(
     (clientX: number) => {
       const track = trackRef.current;
@@ -191,23 +202,25 @@ export default function Timeline(): React.ReactElement | null {
       const maxTs = timelineCommits[timelineCommits.length - 1].timestamp;
       const targetTs = minTs + ratio * (maxTs - minTs);
 
-      // Find nearest commit by timestamp
-      let nearestIdx = 0;
-      let nearestDist = Infinity;
-      for (let i = 0; i < timelineCommits.length; i++) {
-        const dist = Math.abs(timelineCommits[i].timestamp - targetTs);
-        if (dist < nearestDist) {
-          nearestDist = dist;
-          nearestIdx = i;
-        }
-      }
+      // Mark scrub active to prevent sync effect from overwriting position
+      userScrubActiveRef.current = true;
+      if (scrubResetTimerRef.current) clearTimeout(scrubResetTimerRef.current);
 
-      const commit = timelineCommits[nearestIdx];
-      setPlaybackTime(commit.timestamp);
-      lastSentCommitIndexRef.current = nearestIdx;
+      // Set indicator to exact time position
+      setPlaybackTime(targetTs);
+
+      // Find last commit whose timestamp <= targetTs
+      const commitIdx = findCommitIndexAtTime(timelineCommits, targetTs);
+      const effectiveIdx = Math.max(0, commitIdx);
+      lastSentCommitIndexRef.current = effectiveIdx;
+
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = setTimeout(() => {
-        postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: commit.sha } });
+        postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: timelineCommits[effectiveIdx].sha } });
+        // Clear scrub guard after response has time to arrive
+        scrubResetTimerRef.current = setTimeout(() => {
+          userScrubActiveRef.current = false;
+        }, 200);
       }, 50);
     },
     [timelineCommits],
@@ -244,6 +257,9 @@ export default function Timeline(): React.ReactElement | null {
     };
   }, [jumpToPositionOnTrack]);
 
+  // Ref to signal the playback effect to start from a specific time
+  const startFromTimeRef = useRef<number | null>(null);
+
   // Play/pause toggle
   const handlePlayPause = useCallback(() => {
     if (isPlaying) {
@@ -252,9 +268,11 @@ export default function Timeline(): React.ReactElement | null {
       // If at the end, jump to start first
       if (isAtEnd && timelineCommits.length > 0) {
         const firstCommit = timelineCommits[0];
-        setPlaybackTime(firstCommit.timestamp);
         lastSentCommitIndexRef.current = -1;
         postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: firstCommit.sha } });
+        // Store start time in ref so the playback effect picks it up
+        startFromTimeRef.current = firstCommit.timestamp;
+        setPlaybackTime(firstCommit.timestamp);
       }
       setIsPlaying(true);
     }

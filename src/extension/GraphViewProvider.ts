@@ -6,6 +6,7 @@
  */
 
 import * as vscode from 'vscode';
+import * as path from 'path';
 import {
   IGraphData,
   IAvailableView,
@@ -1108,21 +1109,42 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const rawGraphData = await this._gitAnalyzer.getGraphDataForCommit(sha);
     this._currentCommitSha = sha;
 
-    // Apply display-time filtering (showOrphans)
+    // Apply display-time filtering: disabled plugins/rules, then showOrphans
+    let edges = rawGraphData.edges;
+
+    if (this._disabledPlugins.size > 0 || this._disabledRules.size > 0) {
+      const registry = this._analyzer?.registry;
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+      if (registry && workspaceFolder) {
+        const wsRoot = workspaceFolder.uri.fsPath;
+        edges = edges.filter((edge) => {
+          const plugin = registry.getPluginForFile(
+            path.join(wsRoot, edge.from)
+          );
+          if (!plugin) return true;
+          // Filter out edges from disabled plugins
+          if (this._disabledPlugins.has(plugin.id)) return false;
+          // Filter out edges from disabled rules using cached ruleId
+          if (edge.ruleId && this._disabledRules.has(`${plugin.id}:${edge.ruleId}`)) return false;
+          return true;
+        });
+      }
+    }
+
     const showOrphans = vscode.workspace
       .getConfiguration('codegraphy')
       .get<boolean>('showOrphans', true);
 
-    let graphData = rawGraphData;
+    let graphData: IGraphData = { nodes: rawGraphData.nodes, edges };
     if (!showOrphans) {
       const connectedIds = new Set<string>();
-      for (const edge of rawGraphData.edges) {
+      for (const edge of edges) {
         connectedIds.add(edge.from);
         connectedIds.add(edge.to);
       }
       graphData = {
         nodes: rawGraphData.nodes.filter((n) => connectedIds.has(n.id)),
-        edges: rawGraphData.edges,
+        edges,
       };
     }
 

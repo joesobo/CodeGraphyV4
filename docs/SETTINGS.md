@@ -25,6 +25,15 @@ CodeGraphy can be configured in two ways:
 | `codegraphy.physics.damping` | number | `0.7` | Motion settling speed (0-1) |
 | `codegraphy.physics.centerForce` | number | `0.1` | Pull toward viewport center (0-1) |
 
+## Timeline settings
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `codegraphy.timeline.maxCommits` | number | `500` | Maximum commits to index (10-5000) |
+| `codegraphy.timeline.playbackSpeed` | number | `1.0` | Playback speed multiplier (0.1-10.0) |
+
+Timeline indexing also respects `codegraphy.filterPatterns` and plugin/rule toggle states. See [Timeline](./TIMELINE.md) for details.
+
 ## Settings Panel
 
 Open by clicking the gear icon in the bottom-right corner of the graph view. It has four collapsible sections.

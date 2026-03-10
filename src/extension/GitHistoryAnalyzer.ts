@@ -15,7 +15,7 @@ import { IGraphData, IGraphNode, IGraphEdge, ICommitInfo, getFileColor } from '.
 
 const COMMITS_STATE_KEY = 'codegraphy.timelineCommits';
 const CACHE_VERSION_KEY = 'codegraphy.timelineCacheVersion';
-const CACHE_VERSION = '1.0.0';
+const CACHE_VERSION = '1.1.0';
 
 /**
  * Service that analyzes git history and builds per-commit graph data
@@ -295,7 +295,9 @@ export class GitHistoryAnalyzer {
           const edgeId = `${filePath}->${targetRelative}`;
           if (!edgeIds.has(edgeId)) {
             edgeIds.add(edgeId);
-            edges.push({ id: edgeId, from: filePath, to: targetRelative });
+            const edge: IGraphEdge = { id: edgeId, from: filePath, to: targetRelative };
+            if (conn.ruleId) edge.ruleId = conn.ruleId;
+            edges.push(edge);
           }
         }
       }
@@ -538,7 +540,9 @@ export class GitHistoryAnalyzer {
         const edgeId = `${filePath}->${targetRelative}`;
         if (!edgeSet.has(edgeId)) {
           edgeSet.add(edgeId);
-          edges.push({ id: edgeId, from: filePath, to: targetRelative });
+          const edge: IGraphEdge = { id: edgeId, from: filePath, to: targetRelative };
+          if (conn.ruleId) edge.ruleId = conn.ruleId;
+          edges.push(edge);
         }
       }
     }

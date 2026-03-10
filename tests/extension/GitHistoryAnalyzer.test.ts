@@ -730,7 +730,7 @@ describe('GitHistoryAnalyzer', () => {
     });
 
     it('should return true when correct cache version is stored', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.0.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.1.0');
       expect(analyzer.hasCachedTimeline()).toBe(true);
     });
 
@@ -749,7 +749,7 @@ describe('GitHistoryAnalyzer', () => {
       const commits = [
         { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
       ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.0.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.1.0');
       context._stateStore.set('codegraphy.timelineCommits', commits);
 
       expect(analyzer.getCachedCommitList()).toEqual(commits);
