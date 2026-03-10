@@ -1,0 +1,226 @@
+# Plugin Lifecycle
+
+![Plugin Lifecycle Diagram](./diagrams/plugin-lifecycle.excalidraw)
+
+[Open in Excalidraw](https://excalidraw.com/#json=E_nILqzLfKdU_NKoiu92k,chSfru6ee8Hp_697-H8Vsw)
+
+## One-Time Phases
+
+Every plugin goes through these phases exactly once, in order:
+
+### 1. Discovery
+
+The plugin's VS Code extension activates. It grabs CodeGraphy's exported API and calls `registerPlugin()`.
+
+```typescript
+import * as vscode from 'vscode';
+
+export async function activate(context: vscode.ExtensionContext) {
+  const cg = vscode.extensions.getExtension('codegraphy.codegraphy');
+  if (!cg) return;
+
+  const api = cg.isActive ? cg.exports : await cg.activate();
+  api.registerPlugin(myPlugin);
+}
+```
+
+At this point the core validates the plugin's `apiVersion` from its `codegraphy.json` manifest:
+
+- Compatible version range: proceed.
+- Future version: error with clear message.
+- Deprecated version: warning + compatibility shim if available.
+- Unsupported version: reject with migration link.
+
+### 2. onLoad(api)
+
+The core calls `onLoad` with the full `CodeGraphyAPI` object. This is where the plugin sets up everything it needs:
+
+```typescript
+onLoad(api: CodeGraphyAPI) {
+  // Subscribe to events
+  api.on('graph:nodeClick', (e) => { /* ... */ });
+
+  // Register commands
+  api.registerCommand({
+    id: 'my-plugin.doThing',
+    title: 'Do Thing',
+    action: () => { /* ... */ },
+  });
+
+  // Register context menu items
+  api.registerContextMenuItem({
+    label: 'View Details',
+    when: 'node',
+    action: (node) => { /* ... */ },
+  });
+
+  // Register a custom view
+  api.registerView({
+    id: 'my-plugin.custom-view',
+    name: 'My View',
+    icon: 'graph',
+    description: 'A custom graph view',
+    transform(data, context) { return data; },
+  });
+}
+```
+
+Every `api.on()`, `api.register*()`, and `api.decorateNode/Edge()` call returns a `Disposable`. See [Auto-Cleanup](#auto-cleanup-disposable-pattern) below.
+
+### 3. onWorkspaceReady(graph)
+
+Called once the workspace has been analyzed and graph data is available. The plugin can now query nodes/edges and attach initial decorations.
+
+```typescript
+onWorkspaceReady(graph: IGraphData) {
+  for (const node of graph.nodes) {
+    const metrics = computeMetrics(node);
+    api.decorateNode(node.id, {
+      badge: { text: `${metrics.complexity}`, color: '#f07070' },
+    });
+  }
+}
+```
+
+### 4. onWebviewReady()
+
+Called when the webview panel becomes visible. For Tier 2 plugins, this means their contributed JS/CSS has been injected and the `CodeGraphyWebviewAPI` is available in the webview context.
+
+This hook is called again if the user closes and reopens the CodeGraphy panel.
+
+### 5. onUnload()
+
+Called when the plugin is deactivating. All registered Disposables are auto-cleaned before this runs. Use this only for cleanup that the Disposable pattern doesn't cover.
+
+```typescript
+onUnload() {
+  // Optional: close external connections, flush caches, etc.
+}
+```
+
+## Recurring Hooks
+
+These hooks are called multiple times during the plugin's lifetime:
+
+### onPreAnalyze(files, workspaceRoot)
+
+Called before each analysis pass with the full list of discovered files. Use this to build workspace-wide indexes needed for cross-file resolution.
+
+```typescript
+onPreAnalyze(files, workspaceRoot) {
+  // Build a lookup map, parse config files, etc.
+  this.fileIndex = new Map();
+  for (const f of files) {
+    this.fileIndex.set(f.relativePath, f);
+  }
+}
+```
+
+**Example:** The GDScript plugin uses this to build a `class_name` map so `extends Player` resolves to the correct file. The Markdown plugin builds a file index for wikilink resolution.
+
+### onPostAnalyze(graph)
+
+Called after analysis completes with the full graph data. Use this to attach decorations, compute metrics, or update badges based on the latest graph state.
+
+```typescript
+onPostAnalyze(graph: IGraphData) {
+  for (const node of graph.nodes) {
+    api.decorateNode(node.id, computeDecorations(node));
+  }
+}
+```
+
+### onGraphRebuild(graph)
+
+Called when the graph is rebuilt without re-analysis (e.g., when a user toggles a rule or plugin). The cached connection data is used to rebuild the graph. Plugins should re-apply their decorations since the node set may have changed.
+
+```typescript
+onGraphRebuild(graph: IGraphData) {
+  // Same logic as onPostAnalyze — re-apply decorations
+  api.clearDecorations();
+  for (const node of graph.nodes) {
+    api.decorateNode(node.id, computeDecorations(node));
+  }
+}
+```
+
+## Auto-Cleanup (Disposable Pattern)
+
+Inspired by Obsidian's `register()` pattern and VS Code's `Disposable` system. Every registration returns a `Disposable`:
+
+```typescript
+interface Disposable {
+  dispose(): void;
+}
+```
+
+When `onUnload` fires, **all** Disposables registered by that plugin are automatically disposed. Event subscriptions are removed, commands are unregistered, views are removed, decorations are cleared, and webview contributions are torn down. No manual cleanup needed.
+
+```typescript
+onLoad(api: CodeGraphyAPI) {
+  // All of these auto-clean on unload:
+  api.on('graph:nodeClick', handler);
+  api.registerView(myView);
+  api.registerCommand(myCommand);
+  api.registerContextMenuItem(myMenuItem);
+  api.decorateNode('file.ts', decoration);
+
+  // Manual disposal if needed during runtime:
+  const sub = api.on('analysis:completed', handler);
+  sub.dispose(); // removes just this subscription
+}
+```
+
+## Full Lifecycle Example
+
+```typescript
+import type { IPlugin, CodeGraphyAPI, IGraphData } from '@codegraphy/plugin-api';
+
+export function createMetricsPlugin(): IPlugin {
+  let api: CodeGraphyAPI;
+
+  return {
+    id: 'codegraphy-metrics',
+    apiVersion: '^2.0.0',
+
+    detectConnections(filePath, content, workspaceRoot) {
+      return []; // This plugin doesn't detect connections
+    },
+
+    onLoad(_api) {
+      api = _api;
+
+      api.on('workspace:fileChanged', (e) => {
+        // Re-compute metrics for changed file
+        const node = api.getNode(e.filePath);
+        if (node) {
+          api.decorateNode(node.id, computeDecorations(node));
+        }
+      });
+
+      api.registerContextMenuItem({
+        label: 'View Metrics',
+        when: 'node',
+        action: (node) => showMetricsPanel(node),
+      });
+    },
+
+    onPostAnalyze(graph) {
+      for (const node of graph.nodes) {
+        api.decorateNode(node.id, computeDecorations(node));
+      }
+    },
+
+    onGraphRebuild(graph) {
+      api.clearDecorations();
+      for (const node of graph.nodes) {
+        api.decorateNode(node.id, computeDecorations(node));
+      }
+    },
+
+    onUnload() {
+      // Everything auto-cleaned
+    },
+  };
+}
+```
