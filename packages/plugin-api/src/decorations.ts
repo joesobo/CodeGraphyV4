@@ -10,26 +10,34 @@
  * All properties are optional — only specified properties override the defaults.
  */
 export interface NodeDecoration {
-  /** Override the node label text. */
-  label?: string;
-  /** Override the node fill color (hex string). */
-  color?: string;
-  /** Override the node border color (hex string). */
-  borderColor?: string;
-  /** Border width in pixels. */
-  borderWidth?: number;
-  /** Node opacity (0–1). */
+  badge?: {
+    text: string;
+    color?: string;
+    bgColor?: string;
+    position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left';
+    tooltip?: string;
+  };
+  border?: {
+    color: string;
+    width?: number;
+    style?: 'solid' | 'dashed' | 'dotted';
+  };
+  tooltip?: {
+    sections: TooltipSection[];
+  };
+  label?: {
+    text?: string;
+    sublabel?: string;
+    color?: string;
+  };
+  size?: {
+    scale?: number;
+  };
   opacity?: number;
-  /** Size multiplier relative to the default size. 1 = normal. */
-  sizeMultiplier?: number;
-  /** Badge text displayed in the top-right corner (e.g., "3", "!"). */
-  badge?: string;
-  /** Badge background color (hex string). */
-  badgeColor?: string;
-  /** Tooltip sections appended to the default tooltip. */
-  tooltip?: TooltipSection[];
-  /** Arbitrary metadata attached to the node (not rendered). */
-  metadata?: Record<string, unknown>;
+  color?: string;
+  icon?: string;
+  group?: string;
+  priority?: number;
 }
 
 /**
@@ -41,18 +49,12 @@ export interface EdgeDecoration {
   color?: string;
   /** Edge width in pixels. */
   width?: number;
-  /** Edge opacity (0–1). */
+  style?: 'solid' | 'dashed' | 'dotted';
+  label?: { text: string; color?: string };
+  particles?: { count?: number; color?: string; speed?: number };
   opacity?: number;
-  /** Dash pattern (e.g., [5, 3] for 5px dash, 3px gap). Empty array or undefined = solid. */
-  dashes?: number[];
-  /** Label text displayed on the edge. */
-  label?: string;
-  /** Whether to show an animated particle traveling along the edge. */
-  particles?: boolean;
-  /** Particle color (hex string). Only used when {@link particles} is true. */
-  particleColor?: string;
-  /** Arbitrary metadata attached to the edge (not rendered). */
-  metadata?: Record<string, unknown>;
+  curvature?: number;
+  priority?: number;
 }
 
 /**
@@ -60,8 +62,6 @@ export interface EdgeDecoration {
  * Tooltip sections from decorations are appended after the default tooltip content.
  */
 export interface TooltipSection {
-  /** Section heading. */
-  heading: string;
-  /** Lines of text within this section. */
-  lines: string[];
+  title: string;
+  content: string;
 }
