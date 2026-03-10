@@ -1,6 +1,6 @@
 /**
  * @fileoverview GDScript (Godot) plugin for CodeGraphy.
- * Thin orchestrator that loads metadata from manifest.json and delegates
+ * Thin orchestrator that loads metadata from codegraphy.json and delegates
  * detection to individual rule modules in rules/.
  * @module plugins/godot
  */
@@ -9,7 +9,7 @@ import * as path from 'path';
 import type { IPlugin, IConnection } from '../../extension/src/core/plugins/types';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration } from './parser';
-import manifest from './manifest.json';
+import manifest from '../codegraphy.json';
 
 // Rule detect functions
 import { detect as detectPreload } from './rules/preload';

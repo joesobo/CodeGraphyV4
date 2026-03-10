@@ -23,7 +23,7 @@ export interface IRule {
  * Each rule file in a plugin's rules/ folder exports a detect function matching this shape.
  */
 export interface IRuleDetector<TContext = unknown> {
-  /** Rule ID — must match the corresponding entry in manifest.json */
+  /** Rule ID — must match the corresponding entry in codegraphy.json */
   id: string;
 
   /**

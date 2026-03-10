@@ -71,7 +71,7 @@ Each plugin implements `IPlugin` from `src/core/plugins/types.ts`. Five built-in
 - **godot/** handles `.gd` with `preload`, `load`, `extends`, and `class_name` detection
 - **markdown/** handles `.md`, `.mdx` with `[[wikilink]]` detection
 
-Each plugin declares detection rules in a `manifest.json` and sets `ruleId` on every connection so users can toggle rules individually.
+Each plugin declares detection rules in `codegraphy.json` and sets `ruleId` on every connection so users can toggle rules individually.
 
 ## Plugin API package (`packages/plugin-api/`)
 

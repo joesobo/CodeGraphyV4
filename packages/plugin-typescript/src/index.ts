@@ -1,6 +1,6 @@
 /**
  * @fileoverview TypeScript/JavaScript plugin for CodeGraphy.
- * Thin orchestrator that loads metadata from manifest.json and delegates
+ * Thin orchestrator that loads metadata from codegraphy.json and delegates
  * detection to individual rule modules in rules/.
  * @module plugins/typescript
  */
@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as ts from 'typescript';
 import { IPlugin, IConnection } from '../../extension/src/core/plugins';
 import { PathResolver, IPathResolverConfig } from './PathResolver';
-import manifest from './manifest.json';
+import manifest from '../codegraphy.json';
 
 // Rule detect functions
 import { detect as detectEs6Import } from './rules/es6-import';

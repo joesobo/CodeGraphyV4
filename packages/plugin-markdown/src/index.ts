@@ -1,13 +1,13 @@
 /**
  * @fileoverview Markdown plugin for CodeGraphy.
- * Thin orchestrator that loads metadata from manifest.json and delegates
+ * Thin orchestrator that loads metadata from codegraphy.json and delegates
  * detection to individual rule modules in rules/.
  * @module plugins/markdown
  */
 
 import { IPlugin, IConnection } from '../../extension/src/core/plugins';
 import { PathResolver } from './PathResolver';
-import manifest from './manifest.json';
+import manifest from '../codegraphy.json';
 
 // Rule detect functions
 import { detect as detectWikilink } from './rules/wikilink';
