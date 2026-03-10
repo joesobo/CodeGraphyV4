@@ -162,6 +162,22 @@ describe('PluginRegistry v2', () => {
       expect(latePlugin.onWorkspaceReady).toHaveBeenCalledWith(graph);
       expect(latePlugin.onWebviewReady).toHaveBeenCalledOnce();
     });
+
+    it('replays onWorkspaceReady with the latest analyzed/rebuilt graph snapshot', () => {
+      const { registry } = createConfiguredRegistry();
+      const initial: IGraphData = { nodes: [{ id: 'initial', label: 'initial', color: '#fff' }], edges: [] };
+      const analyzed: IGraphData = { nodes: [{ id: 'analyzed', label: 'analyzed', color: '#fff' }], edges: [] };
+      const rebuilt: IGraphData = { nodes: [{ id: 'rebuilt', label: 'rebuilt', color: '#fff' }], edges: [] };
+
+      registry.notifyWorkspaceReady(initial);
+      registry.notifyPostAnalyze(analyzed);
+      registry.notifyGraphRebuild(rebuilt);
+
+      const latePlugin = createV2Plugin('late-latest-snapshot');
+      registry.register(latePlugin);
+
+      expect(latePlugin.onWorkspaceReady).toHaveBeenCalledWith(rebuilt);
+    });
   });
 
   describe('lifecycle hooks', () => {

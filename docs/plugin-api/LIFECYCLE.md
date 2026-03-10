@@ -87,6 +87,8 @@ onWorkspaceReady(graph: IGraphData) {
 
 Called when the webview panel becomes visible. For Tier 2 plugins, this means their contributed JS/CSS has been injected and the `CodeGraphyWebviewAPI` is available in the webview context.
 
+When a workspace is open, this runs after the first `onWorkspaceReady` dispatch.
+
 If a plugin is registered after the webview is already ready, CodeGraphy replays `onWebviewReady` for that plugin after Tier-2 injection dispatch and (when applicable) `initialize()` completion.
 
 ### 5. onUnload()

@@ -166,6 +166,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** Whether this is the first analysis (for notifyWorkspaceReady) */
   private _firstAnalysis = true;
 
+  /** Resolves when first workspace-ready lifecycle dispatch has occurred. */
+  private _resolveFirstWorkspaceReady?: () => void;
+
+  /** Promise that settles when first workspace-ready lifecycle dispatch has occurred. */
+  private readonly _firstWorkspaceReadyPromise: Promise<void>;
+
   /** Whether webview-ready lifecycle has already fired. */
   private _webviewReadyNotified = false;
 
@@ -185,6 +191,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     private readonly _extensionUri: vscode.Uri,
     private readonly _context: vscode.ExtensionContext
   ) {
+    this._firstWorkspaceReadyPromise = new Promise<void>((resolve) => {
+      this._resolveFirstWorkspaceReady = resolve;
+    });
+
     this._analyzer = new WorkspaceAnalyzer(_context);
 
     // Initialize view registry with core views
@@ -448,10 +458,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
       // Notify v2 plugins of lifecycle events
       this._analyzer.registry.notifyPostAnalyze(this._graphData);
-      if (this._firstAnalysis) {
-        this._firstAnalysis = false;
-        this._analyzer.registry.notifyWorkspaceReady(this._graphData);
-      }
+      this._markWorkspaceReady(this._graphData);
     } catch (error) {
       if (this._isAbortError(error) || this._isAnalysisStale(signal, requestId)) {
         return;
@@ -463,7 +470,19 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
       this._sendAvailableViews();
       this._sendPluginStatuses();
+      this._markWorkspaceReady(this._graphData);
     }
+  }
+
+  /**
+   * Marks first workspace-ready lifecycle as complete and resolves waiters.
+   */
+  private _markWorkspaceReady(graph: IGraphData): void {
+    if (!this._firstAnalysis) return;
+    this._firstAnalysis = false;
+    this._analyzer?.registry.notifyWorkspaceReady(graph);
+    this._resolveFirstWorkspaceReady?.();
+    this._resolveFirstWorkspaceReady = undefined;
   }
 
   private _isAnalysisStale(signal: AbortSignal, requestId: number): boolean {
@@ -1121,7 +1140,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _setWebviewMessageListener(webview: vscode.Webview): void {
     webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
       switch (message.type) {
-        case 'WEBVIEW_READY':
+        case 'WEBVIEW_READY': {
           // Load groups and filter patterns (VS Code settings > workspace state)
           this._loadGroupsAndFilterPatterns();
           // Analyze workspace and send graph data
@@ -1147,12 +1166,17 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._sendDecorations();
           this._sendContextMenuItems();
           this._sendPluginWebviewInjections();
+          const hasWorkspace = (vscode.workspace.workspaceFolders?.length ?? 0) > 0;
+          if (hasWorkspace && this._firstAnalysis) {
+            await this._firstWorkspaceReadyPromise;
+          }
           // Notify plugins once, after Tier-2 injections are dispatched.
           if (!this._webviewReadyNotified) {
             this._webviewReadyNotified = true;
             this._analyzer?.registry.notifyWebviewReady();
           }
           break;
+        }
 
         case 'NODE_SELECTED':
           break;
