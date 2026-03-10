@@ -2,6 +2,12 @@
 
 CodeGraphy is a VS Code extension that visualizes file dependencies as an interactive graph. It has two independent build targets that communicate via `postMessage`.
 
+## Monorepo Tooling
+
+**`turbo.json`** defines monorepo task orchestration for `build`, `lint`, `typecheck`, `test`, and local watch/dev tasks.
+
+**Root `package.json`** routes those top-level scripts through Turborepo (`turbo run ...`) while each workspace package declares its own task scripts.
+
 ## Layers
 
 ```

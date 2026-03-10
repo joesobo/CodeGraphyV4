@@ -2,5 +2,12 @@
   "name": "@codegraphy/plugin-godot",
   "version": "1.0.0",
   "private": true,
-  "description": "CodeGraphy godot plugin"
+  "description": "CodeGraphy godot plugin",
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy/plugin-api": "^2.0.0"
+  }
 }
