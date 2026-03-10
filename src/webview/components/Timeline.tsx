@@ -2,10 +2,10 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useGraphStore } from '../store';
 import { postMessage } from '../lib/vscodeApi';
 import { Button } from './ui/button';
-import type { ICommitInfo } from '../../shared/types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 
 /**
- * Format a Unix timestamp (seconds) as a short date string.
+ * Format a Unix timestamp as "Mon D, YYYY".
  */
 function formatDate(timestamp: number): string {
   const d = new Date(timestamp * 1000);
@@ -13,33 +13,38 @@ function formatDate(timestamp: number): string {
 }
 
 /**
- * Format a Unix timestamp (seconds) as a full date+time string.
+ * Format a Unix timestamp as abbreviated month + day label for the axis.
  */
-function formatDateTime(timestamp: number): string {
+function formatAxisLabel(timestamp: number): string {
   const d = new Date(timestamp * 1000);
-  return d.toLocaleString(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  });
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 /**
  * Truncate a commit message to a given max length.
  */
-function truncateMessage(message: string, maxLen: number = 60): string {
+function truncateMessage(message: string, maxLen: number = 50): string {
   if (message.length <= maxLen) return message;
   return message.slice(0, maxLen - 3) + '...';
 }
 
-const SPEED_OPTIONS = [0.5, 1, 2, 5];
-
 /**
- * Timeline component rendered below the graph canvas.
- * Shows a horizontal commit timeline with playback controls.
+ * Generate evenly-spaced date tick marks for the timeline axis.
  */
+function generateDateTicks(minTs: number, maxTs: number, maxTicks: number = 8): number[] {
+  const range = maxTs - minTs;
+  if (range <= 0) return [minTs];
+
+  const step = range / (maxTicks + 1);
+  const ticks: number[] = [];
+  for (let i = 1; i <= maxTicks; i++) {
+    ticks.push(minTs + step * i);
+  }
+  return ticks;
+}
+
+const TIMELINE_BAR_HEIGHT = 28;
+
 export default function Timeline(): React.ReactElement | null {
   const timelineActive = useGraphStore((s) => s.timelineActive);
   const timelineCommits = useGraphStore((s) => s.timelineCommits);
@@ -50,55 +55,91 @@ export default function Timeline(): React.ReactElement | null {
   const playbackSpeed = useGraphStore((s) => s.playbackSpeed);
   const graphData = useGraphStore((s) => s.graphData);
 
-  const setPlaybackSpeed = useGraphStore((s) => s.setPlaybackSpeed);
   const setIsPlaying = useGraphStore((s) => s.setIsPlaying);
 
-  const [hoveredCommit, setHoveredCommit] = useState<ICommitInfo | null>(null);
-  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-
+  const trackRef = useRef<HTMLDivElement>(null);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isDraggingRef = useRef(false);
 
-  // Current commit index in the commits array
+  const [openTooltipSha, setOpenTooltipSha] = useState<string | null>(null);
+
+  // Current commit index
   const currentIndex = useMemo(() => {
     if (!currentCommitSha || timelineCommits.length === 0) return 0;
     const idx = timelineCommits.findIndex((c) => c.sha === currentCommitSha);
     return idx >= 0 ? idx : 0;
   }, [currentCommitSha, timelineCommits]);
 
-  // Current commit info
-  const currentCommit = useMemo(() => {
-    if (timelineCommits.length === 0) return null;
-    return timelineCommits[currentIndex] ?? null;
-  }, [timelineCommits, currentIndex]);
+  const isAtEnd = currentIndex === timelineCommits.length - 1;
 
   // Cleanup debounce timer on unmount
   useEffect(() => {
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
   }, []);
 
-  // Handle slider change with debounce
-  const handleSliderChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const idx = parseInt(e.target.value, 10);
-      const commit = timelineCommits[idx];
-      if (!commit) return;
+  // Jump to commit by finding nearest commit to a click position on the track
+  const jumpToPositionOnTrack = useCallback(
+    (clientX: number) => {
+      const track = trackRef.current;
+      if (!track || timelineCommits.length === 0) return;
 
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
+      const rect = track.getBoundingClientRect();
+      const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+
+      const minTs = timelineCommits[0].timestamp;
+      const maxTs = timelineCommits[timelineCommits.length - 1].timestamp;
+      const targetTs = minTs + ratio * (maxTs - minTs);
+
+      // Find nearest commit by timestamp
+      let nearestIdx = 0;
+      let nearestDist = Infinity;
+      for (let i = 0; i < timelineCommits.length; i++) {
+        const dist = Math.abs(timelineCommits[i].timestamp - targetTs);
+        if (dist < nearestDist) {
+          nearestDist = dist;
+          nearestIdx = i;
+        }
       }
 
+      const commit = timelineCommits[nearestIdx];
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       debounceTimerRef.current = setTimeout(() => {
         postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: commit.sha } });
-      }, 100);
+      }, 50);
     },
     [timelineCommits],
   );
 
-  // Handle play/pause toggle
+  // Mouse handlers for scrubbing on the timeline track
+  const handleTrackMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      isDraggingRef.current = true;
+      jumpToPositionOnTrack(e.clientX);
+    },
+    [jumpToPositionOnTrack],
+  );
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isDraggingRef.current) {
+        jumpToPositionOnTrack(e.clientX);
+      }
+    };
+    const handleMouseUp = () => {
+      isDraggingRef.current = false;
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [jumpToPositionOnTrack]);
+
+  // Play/pause toggle
   const handlePlayPause = useCallback(() => {
     if (isPlaying) {
       setIsPlaying(false);
@@ -109,48 +150,24 @@ export default function Timeline(): React.ReactElement | null {
     }
   }, [isPlaying, playbackSpeed, setIsPlaying]);
 
-  // Handle speed change
-  const handleSpeedChange = useCallback(
-    (speed: number) => {
-      setPlaybackSpeed(speed);
-      if (isPlaying) {
-        // Re-send play with new speed
-        postMessage({ type: 'PLAY_TIMELINE', payload: { speed } });
-      }
-    },
-    [isPlaying, setPlaybackSpeed],
-  );
+  // Jump to latest commit
+  const handleJumpToEnd = useCallback(() => {
+    if (timelineCommits.length === 0) return;
+    const lastCommit = timelineCommits[timelineCommits.length - 1];
+    postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: lastCommit.sha } });
+  }, [timelineCommits]);
 
-  // Handle refresh (re-index)
-  const handleRefresh = useCallback(() => {
-    postMessage({ type: 'INDEX_REPO' });
-  }, []);
-
-  // Handle index repo
+  // Index repo
   const handleIndexRepo = useCallback(() => {
     postMessage({ type: 'INDEX_REPO' });
   }, []);
 
-  // Commit dot hover handlers
-  const handleDotMouseEnter = useCallback(
-    (commit: ICommitInfo, e: React.MouseEvent) => {
-      setHoveredCommit(commit);
-      setTooltipPos({ x: e.clientX, y: e.clientY });
-    },
-    [],
-  );
-
-  const handleDotMouseLeave = useCallback(() => {
-    setHoveredCommit(null);
-  }, []);
-
-  // State 1: No timeline, not indexing - show nothing or "Index Repo" button
+  // State 1: No timeline, not indexing
   if (!timelineActive && !isIndexing) {
-    // Only show the "Index Repo" button if there's graph data loaded
     if (!graphData) return null;
 
     return (
-      <div className="flex-shrink-0 border-t border-[var(--vscode-panel-border,#3c3c3c)] p-2 flex items-center justify-center">
+      <div className="flex-shrink-0 border-t border-border p-2 flex items-center justify-center">
         <Button variant="outline" size="sm" onClick={handleIndexRepo} title="Index repository git history">
           <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -167,9 +184,9 @@ export default function Timeline(): React.ReactElement | null {
       indexProgress.total > 0 ? Math.round((indexProgress.current / indexProgress.total) * 100) : 0;
 
     return (
-      <div className="flex-shrink-0 border-t border-[var(--vscode-panel-border,#3c3c3c)] p-3">
+      <div className="flex-shrink-0 border-t border-border p-3">
         <div className="flex items-center gap-2 mb-1">
-          <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4 animate-spin text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -177,29 +194,26 @@ export default function Timeline(): React.ReactElement | null {
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
             />
           </svg>
-          <span className="text-xs text-[var(--vscode-descriptionForeground,#999)]">
+          <span className="text-xs text-muted-foreground">
             {indexProgress.phase} ({indexProgress.current}/{indexProgress.total})
           </span>
         </div>
-        <div className="w-full h-1.5 bg-[var(--vscode-progressBar-background,#333)] rounded-full overflow-hidden">
+        <div className="w-full h-1.5 rounded-full overflow-hidden bg-muted">
           <div
-            className="h-full bg-[var(--vscode-progressBar-background,#0078d4)] rounded-full transition-all duration-200"
-            style={{
-              width: `${progressPercent}%`,
-              backgroundColor: 'var(--vscode-progressBar-background, #0078d4)',
-            }}
+            className="h-full rounded-full transition-all duration-200 bg-primary"
+            style={{ width: `${progressPercent}%` }}
           />
         </div>
       </div>
     );
   }
 
-  // State 2 (indexing but no progress data yet)
+  // State 2b: Indexing but no progress data yet
   if (isIndexing) {
     return (
-      <div className="flex-shrink-0 border-t border-[var(--vscode-panel-border,#3c3c3c)] p-3">
+      <div className="flex-shrink-0 border-t border-border p-3">
         <div className="flex items-center gap-2">
-          <svg className="h-4 w-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="h-4 w-4 animate-spin text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -207,7 +221,7 @@ export default function Timeline(): React.ReactElement | null {
               d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
             />
           </svg>
-          <span className="text-xs text-[var(--vscode-descriptionForeground,#999)]">Indexing repository...</span>
+          <span className="text-xs text-muted-foreground">Indexing repository...</span>
         </div>
       </div>
     );
@@ -219,154 +233,142 @@ export default function Timeline(): React.ReactElement | null {
   const minTimestamp = timelineCommits[0].timestamp;
   const maxTimestamp = timelineCommits[timelineCommits.length - 1].timestamp;
   const timeRange = maxTimestamp - minTimestamp || 1;
+  const dateTicks = generateDateTicks(minTimestamp, maxTimestamp);
+
+  // Compute position for the scrub indicator
+  const currentPosition = ((timelineCommits[currentIndex].timestamp - minTimestamp) / timeRange) * 100;
 
   return (
-    <div className="flex-shrink-0 border-t border-[var(--vscode-panel-border,#3c3c3c)] p-2" data-testid="timeline">
-      {/* Current commit info */}
-      {currentCommit && (
-        <div className="flex items-center gap-2 mb-2 px-1">
-          <span className="text-xs font-mono text-[var(--vscode-descriptionForeground,#999)]">
-            {currentCommit.sha.slice(0, 7)}
-          </span>
-          <span className="text-xs text-[var(--vscode-foreground,#ccc)] truncate flex-1">
-            {truncateMessage(currentCommit.message)}
-          </span>
-          <span className="text-xs text-[var(--vscode-descriptionForeground,#999)] flex-shrink-0">
-            {formatDate(currentCommit.timestamp)}
-          </span>
-        </div>
-      )}
+    <TooltipProvider delayDuration={200}>
+      <div className="flex-shrink-0 border-t border-border bg-[var(--vscode-sideBar-background,hsl(var(--background)))]" data-testid="timeline">
+        {/* Main timeline row: play/pause | track | current button */}
+        <div className="flex items-center gap-0 px-2 py-1.5">
+          {/* Play/Pause button */}
+          <button
+            onClick={handlePlayPause}
+            className="flex-shrink-0 p-1 mr-2 text-muted-foreground hover:text-foreground transition-colors"
+            title={isPlaying ? 'Pause' : 'Play'}
+          >
+            {isPlaying ? (
+              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="5" y="3" width="4" height="18" />
+                <rect x="15" y="3" width="4" height="18" />
+              </svg>
+            ) : (
+              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z" />
+              </svg>
+            )}
+          </button>
 
-      {/* Timeline track with dots */}
-      <div className="relative h-6 mx-1 mb-1">
-        {/* Horizontal line */}
-        <div className="absolute top-1/2 left-0 right-0 h-px bg-[var(--vscode-panel-border,#555)] -translate-y-1/2" />
-
-        {/* Commit dots */}
-        {timelineCommits.map((commit) => {
-          const position = ((commit.timestamp - minTimestamp) / timeRange) * 100;
-          const isCurrent = commit.sha === currentCommitSha;
-
-          return (
+          {/* Timeline track area */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Track bar with commit lines */}
             <div
-              key={commit.sha}
-              className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
-              style={{ left: `${position}%` }}
-              onMouseEnter={(e) => handleDotMouseEnter(commit, e)}
-              onMouseLeave={handleDotMouseLeave}
+              ref={trackRef}
+              className="relative cursor-pointer select-none"
+              style={{ height: TIMELINE_BAR_HEIGHT }}
+              onMouseDown={handleTrackMouseDown}
             >
+              {/* Background bar */}
+              <div className="absolute inset-0 rounded-sm bg-[var(--vscode-editor-background,hsl(var(--muted)))]" />
+
+              {/* Commit lines */}
+              {timelineCommits.map((commit) => {
+                const position = ((commit.timestamp - minTimestamp) / timeRange) * 100;
+                const isCurrent = commit.sha === currentCommitSha;
+
+                return (
+                  <Tooltip key={commit.sha} open={openTooltipSha === commit.sha} onOpenChange={(open) => {
+                    setOpenTooltipSha(open ? commit.sha : null);
+                  }}>
+                    <TooltipTrigger asChild>
+                      <div
+                        className="absolute top-0 bottom-0 -translate-x-1/2"
+                        style={{
+                          left: `${position}%`,
+                          width: isCurrent ? 3 : 2,
+                          zIndex: isCurrent ? 10 : 1,
+                        }}
+                        onMouseEnter={() => setOpenTooltipSha(commit.sha)}
+                        onMouseLeave={() => setOpenTooltipSha(null)}
+                      >
+                        <div
+                          className="w-full h-full transition-opacity"
+                          style={{
+                            backgroundColor: isCurrent
+                              ? 'var(--vscode-foreground, hsl(var(--foreground)))'
+                              : 'var(--vscode-foreground, hsl(var(--foreground)))',
+                            opacity: isCurrent ? 1 : 0.35,
+                          }}
+                        />
+                      </div>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="top"
+                      sideOffset={8}
+                      className="bg-[var(--vscode-editorHoverWidget-background,hsl(var(--popover)))] border border-[var(--vscode-editorHoverWidget-border,hsl(var(--border)))] text-[var(--vscode-editorHoverWidget-foreground,hsl(var(--popover-foreground)))] px-3 py-2 max-w-xs"
+                    >
+                      <div className="font-mono text-xs text-muted-foreground mb-0.5">
+                        {commit.sha.slice(0, 7)}
+                      </div>
+                      <div className="text-sm leading-snug mb-1">
+                        {truncateMessage(commit.message, 80)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {commit.author} &middot; {formatDate(commit.timestamp)}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+
+              {/* Current position indicator (bright line) */}
               <div
-                className={`rounded-full transition-all ${
-                  isCurrent
-                    ? 'w-2.5 h-2.5 bg-[var(--vscode-focusBorder,#007fd4)]'
-                    : 'w-1.5 h-1.5 bg-[var(--vscode-descriptionForeground,#888)] hover:bg-[var(--vscode-foreground,#ccc)] hover:w-2 hover:h-2'
-                }`}
+                className="absolute top-0 bottom-0 pointer-events-none"
+                style={{
+                  left: `${currentPosition}%`,
+                  width: 2,
+                  transform: 'translateX(-50%)',
+                  backgroundColor: 'var(--vscode-focusBorder, hsl(var(--primary)))',
+                  zIndex: 20,
+                }}
               />
             </div>
-          );
-        })}
-      </div>
 
-      {/* Slider */}
-      <div className="px-1 mb-2">
-        <input
-          type="range"
-          min={0}
-          max={timelineCommits.length - 1}
-          value={currentIndex}
-          onChange={handleSliderChange}
-          className="w-full h-1 appearance-none cursor-pointer rounded-full
-            bg-[var(--vscode-panel-border,#555)]
-            [&::-webkit-slider-thumb]:appearance-none
-            [&::-webkit-slider-thumb]:w-3
-            [&::-webkit-slider-thumb]:h-3
-            [&::-webkit-slider-thumb]:rounded-full
-            [&::-webkit-slider-thumb]:bg-[var(--vscode-focusBorder,#007fd4)]
-            [&::-webkit-slider-thumb]:cursor-pointer
-            [&::-moz-range-thumb]:w-3
-            [&::-moz-range-thumb]:h-3
-            [&::-moz-range-thumb]:rounded-full
-            [&::-moz-range-thumb]:bg-[var(--vscode-focusBorder,#007fd4)]
-            [&::-moz-range-thumb]:border-0
-            [&::-moz-range-thumb]:cursor-pointer"
-          data-testid="timeline-slider"
-        />
-      </div>
-
-      {/* Controls */}
-      <div className="flex items-center gap-2 px-1">
-        {/* Play/Pause */}
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handlePlayPause} title={isPlaying ? 'Pause' : 'Play'}>
-          {isPlaying ? (
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-              <rect x="6" y="4" width="4" height="16" rx="1" />
-              <rect x="14" y="4" width="4" height="16" rx="1" />
-            </svg>
-          ) : (
-            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M8 5v14l11-7z" />
-            </svg>
-          )}
-        </Button>
-
-        {/* Speed selector */}
-        <div className="flex items-center gap-1">
-          {SPEED_OPTIONS.map((speed) => (
-            <button
-              key={speed}
-              onClick={() => handleSpeedChange(speed)}
-              className={`text-xs px-1.5 py-0.5 rounded transition-colors ${
-                playbackSpeed === speed
-                  ? 'bg-[var(--vscode-focusBorder,#007fd4)] text-white'
-                  : 'text-[var(--vscode-descriptionForeground,#999)] hover:text-[var(--vscode-foreground,#ccc)]'
-              }`}
-              title={`${speed}x speed`}
-            >
-              {speed}x
-            </button>
-          ))}
-        </div>
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Refresh button */}
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleRefresh} title="Re-index repository">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v6h6" />
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 20v-6h-6" />
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M20 10A8 8 0 0010 4M4 14a8 8 0 0010 6"
-            />
-          </svg>
-        </Button>
-      </div>
-
-      {/* Tooltip */}
-      {hoveredCommit && (
-        <div
-          className="fixed z-50 px-2 py-1.5 rounded shadow-lg text-xs
-            bg-[var(--vscode-editorHoverWidget-background,#2d2d30)]
-            border border-[var(--vscode-editorHoverWidget-border,#454545)]
-            text-[var(--vscode-editorHoverWidget-foreground,#ccc)]
-            pointer-events-none"
-          style={{
-            left: tooltipPos.x + 8,
-            top: tooltipPos.y - 60,
-          }}
-        >
-          <div className="font-medium mb-0.5">{truncateMessage(hoveredCommit.message, 80)}</div>
-          <div className="text-[var(--vscode-descriptionForeground,#999)]">
-            {hoveredCommit.author} &middot; {formatDateTime(hoveredCommit.timestamp)}
+            {/* Date axis labels */}
+            <div className="relative h-4 mt-0.5">
+              {dateTicks.map((ts, i) => {
+                const position = ((ts - minTimestamp) / timeRange) * 100;
+                return (
+                  <span
+                    key={i}
+                    className="absolute text-[10px] text-muted-foreground -translate-x-1/2 select-none"
+                    style={{ left: `${position}%` }}
+                  >
+                    {formatAxisLabel(ts)}
+                  </span>
+                );
+              })}
+              {/* "Now" label at end */}
+              <span className="absolute right-0 text-[10px] text-muted-foreground select-none">
+                Now
+              </span>
+            </div>
           </div>
-          <div className="font-mono text-[var(--vscode-descriptionForeground,#999)]">
-            {hoveredCommit.sha.slice(0, 7)}
-          </div>
+
+          {/* Current button */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-shrink-0 ml-2 h-6 px-2.5 text-xs"
+            onClick={handleJumpToEnd}
+            disabled={isAtEnd}
+          >
+            Current
+          </Button>
         </div>
-      )}
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
