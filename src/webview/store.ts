@@ -210,12 +210,17 @@ export function createGraphStore() {
             isLoading: false,
           });
           break;
+        case 'PLAYBACK_SPEED_UPDATED':
+          set({ playbackSpeed: message.payload.speed });
+          break;
         case 'CACHE_INVALIDATED':
           set({
             timelineActive: false,
             timelineCommits: [],
             currentCommitSha: null,
             isPlaying: false,
+            isIndexing: false,
+            indexProgress: null,
           });
           break;
         case 'PLAYBACK_ENDED':

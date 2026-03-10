@@ -371,6 +371,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
   | { type: 'TIMELINE_DATA'; payload: ITimelineData }
   | { type: 'COMMIT_GRAPH_DATA'; payload: { sha: string; graphData: IGraphData } }
+  | { type: 'PLAYBACK_SPEED_UPDATED'; payload: { speed: number } }
   | { type: 'CACHE_INVALIDATED' }
   | { type: 'PLAYBACK_ENDED' }
   // Test/debug: request node positions + sizes for overlap detection
