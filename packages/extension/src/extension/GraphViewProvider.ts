@@ -1010,20 +1010,40 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         this._pluginExtensionUris.set(pluginId, sourceUri);
       }
 
-      this._analyzer.registry.register(plugin as import('../core/plugins/types').IPlugin);
-      if (this._analyzerInitialized) {
+      const shouldDeferReadinessReplay = !this._firstAnalysis || this._webviewReadyNotified;
+      this._analyzer.registry.register(plugin as import('../core/plugins/types').IPlugin, {
+        deferReadinessReplay: shouldDeferReadinessReplay,
+      });
+
+      const initializePromise = (async () => {
         const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-        if (workspaceRoot) {
-          void this._analyzer.registry.initializePlugin(pluginId, workspaceRoot);
+        if (!workspaceRoot) return;
+
+        if (this._analyzerInitialized) {
+          await this._analyzer!.registry.initializePlugin(pluginId, workspaceRoot);
+          return;
         }
-      }
+
+        // Analyzer startup may already be in flight (triggered by WEBVIEW_READY).
+        // Wait for it so late-registered plugins are initialized before replay.
+        if (this._analyzerInitPromise) {
+          await this._analyzerInitPromise;
+          await this._analyzer!.registry.initializePlugin(pluginId, workspaceRoot);
+        }
+      })();
+
       this._refreshWebviewResourceRoots();
       this._sendPluginStatuses();
       this._sendContextMenuItems();
       this._sendPluginWebviewInjections();
-      if (this._analyzerInitialized) {
-        void this._analyzeAndSendData();
-      }
+      void initializePromise.finally(() => {
+        if (shouldDeferReadinessReplay) {
+          this._analyzer?.registry.replayReadinessForPlugin(pluginId);
+        }
+        if (this._analyzerInitialized) {
+          void this._analyzeAndSendData();
+        }
+      });
     }
   }
 
@@ -1123,15 +1143,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             type: 'PLAYBACK_SPEED_UPDATED',
             payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
           });
-          // Notify plugins once, similar to Obsidian's layout-ready replay model.
-          if (!this._webviewReadyNotified) {
-            this._webviewReadyNotified = true;
-            this._analyzer?.registry.notifyWebviewReady();
-          }
           // Send current decorations and context menu items
           this._sendDecorations();
           this._sendContextMenuItems();
           this._sendPluginWebviewInjections();
+          // Notify plugins once, after Tier-2 injections are dispatched.
+          if (!this._webviewReadyNotified) {
+            this._webviewReadyNotified = true;
+            this._analyzer?.registry.notifyWebviewReady();
+          }
           break;
 
         case 'NODE_SELECTED':

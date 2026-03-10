@@ -164,7 +164,12 @@ export class PluginRegistry {
    */
   register(
     plugin: IPlugin,
-    options: { builtIn?: boolean; sourceExtension?: string } = {}
+    options: {
+      builtIn?: boolean;
+      sourceExtension?: string;
+      /** If true, caller manually triggers late-readiness replay via replayReadinessForPlugin(). */
+      deferReadinessReplay?: boolean;
+    } = {}
   ): void {
     if (this._plugins.has(plugin.id)) {
       throw new Error(`Plugin with ID '${plugin.id}' is already registered`);
@@ -223,7 +228,11 @@ export class PluginRegistry {
     this._eventBus?.emit('plugin:registered', { pluginId: plugin.id });
 
     // Replay readiness hooks for plugins registered after initial readiness.
-    this._replayReadinessForPlugin(info);
+    // Some call sites intentionally defer this to control ordering
+    // (for example: initialize -> inject webview assets -> replay).
+    if (!options.deferReadinessReplay) {
+      this._replayReadinessForPlugin(info);
+    }
 
     console.log(`[CodeGraphy] Registered plugin: ${plugin.name} (${plugin.id})`);
   }
@@ -553,6 +562,16 @@ export class PluginRegistry {
    */
   getPluginAPI(pluginId: string): CodeGraphyAPIImpl | undefined {
     return this._plugins.get(pluginId)?.api;
+  }
+
+  /**
+   * Replays readiness hooks for one already-registered plugin.
+   * Used when a caller needs explicit ordering around late registration.
+   */
+  replayReadinessForPlugin(pluginId: string): void {
+    const info = this._plugins.get(pluginId);
+    if (!info) return;
+    this._replayReadinessForPlugin(info);
   }
 
   /**
