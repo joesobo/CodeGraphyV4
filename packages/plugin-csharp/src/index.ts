@@ -84,7 +84,7 @@ export function createCSharpPlugin(): IPlugin {
       ];
     },
 
-    dispose(): void {
+    onUnload(): void {
       resolver = null;
     },
   };

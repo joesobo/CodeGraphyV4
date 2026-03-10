@@ -72,28 +72,6 @@ export type {
   TimelinePlaybackStartedPayload,
   TimelinePlaybackStoppedPayload,
   TimelineRangeChangedPayload,
-  // Legacy aliases kept for source compatibility with prior v2 drafts
-  AnalysisStartedPayload as AnalysisStartPayload,
-  AnalysisCompletedPayload as AnalysisCompletePayload,
-  WorkspaceFileChangedPayload as FileChangePayload,
-  WorkspaceFileRenamedPayload as FileRenamePayload,
-  WorkspaceActiveEditorChangedPayload as ActiveEditorChangePayload,
-  WorkspaceConfigChangedPayload as SettingChangePayload,
-  WorkspaceConfigChangedPayload as WorkspaceChangePayload,
-  ViewChangedPayload as ViewDidChangePayload,
-  ViewChangedPayload as ViewWillChangePayload,
-  ViewDepthChangedPayload as DepthLimitChangePayload,
-  ViewFocusChangedPayload as FocusedFileChangePayload,
-  PluginRegisteredPayload as PluginLoadedPayload,
-  PluginUnregisteredPayload as PluginUnloadedPayload,
-  PluginEnabledPayload as PluginTogglePayload,
-  PluginRuleToggledPayload as RuleTogglePayload,
-  TimelineCommitSelectedPayload as TimelineCommitChangePayload,
-  TimelineCommitSelectedPayload as TimelineReadyPayload,
-  TimelinePlaybackStartedPayload as TimelinePlaybackPayload,
-  AnalysisFileProcessedPayload as AnalysisProgressPayload,
-  // Workspace
-  // No explicit theme event is currently emitted by runtime EventBus.
 } from './events';
 
 // Plugin interface

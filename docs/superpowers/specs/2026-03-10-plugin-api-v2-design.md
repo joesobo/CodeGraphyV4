@@ -559,9 +559,9 @@ All 5 built-in plugins migrate to use `registerPlugin()` — the same API as thi
 |--------|-------|-----------|
 | TypeScript | Largest — 4 rules, 23 colors, AST, tsconfig | Gold standard reference |
 | Python | Small — 2 rules, regex | Simple plugin baseline |
-| C# | Medium — namespace resolution | Cross-file preAnalyze |
-| GDScript | Medium — res:// paths, class_name | preAnalyze index building |
-| Markdown | Small — wikilinks | File index + preAnalyze |
+| C# | Medium — namespace resolution | Cross-file `onPreAnalyze` |
+| GDScript | Medium — res:// paths, class_name | `onPreAnalyze` index building |
+| Markdown | Small — wikilinks | File index + `onPreAnalyze` |
 
 Built-in plugins ship bundled with the extension but use the same registration path. This guarantees we dogfood the API — if a built-in plugin can't do something, the API is missing a capability.
 

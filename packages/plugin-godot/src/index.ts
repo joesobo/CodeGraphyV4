@@ -58,7 +58,7 @@ export function createGDScriptPlugin(): IPlugin {
       console.log('[CodeGraphy] GDScript plugin initialized');
     },
 
-    async preAnalyze(
+    async onPreAnalyze(
       files: Array<{ absolutePath: string; relativePath: string; content: string }>,
       workspaceRoot: string
     ): Promise<void> {
@@ -86,7 +86,7 @@ export function createGDScriptPlugin(): IPlugin {
       const relativeFilePath = path.relative(workspaceRoot, filePath).replace(/\\/g, '/');
       const ctx = { resolver, workspaceRoot, relativeFilePath };
 
-      // Register class_name declarations from this file (in case preAnalyze wasn't called)
+      // Register class_name declarations from this file (in case onPreAnalyze did not run yet)
       const lines = content.split('\n');
       for (let i = 0; i < lines.length; i++) {
         const ref = detectClassNameDeclaration(lines[i], i + 1);
@@ -101,7 +101,7 @@ export function createGDScriptPlugin(): IPlugin {
       ];
     },
 
-    dispose(): void {
+    onUnload(): void {
       resolver?.clearClassNames();
       resolver = null;
     },

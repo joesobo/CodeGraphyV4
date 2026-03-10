@@ -75,7 +75,7 @@ export function createPythonPlugin(): IPlugin {
       ];
     },
 
-    dispose(): void {
+    onUnload(): void {
       resolver = null;
     },
   };

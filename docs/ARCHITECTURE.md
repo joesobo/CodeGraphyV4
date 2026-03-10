@@ -79,7 +79,7 @@ Each plugin declares detection rules in `codegraphy.json` and sets `ruleId` on e
 
 **`src/api.ts`** defines the host-side v2 API surface (`CodeGraphyAPI`) used by plugins.
 
-**`src/plugin.ts`** defines plugin metadata and lifecycle contracts, including Tier-2 webview contributions (`webviewContributions`, `webviewApiVersion`).
+**`src/plugin.ts`** defines plugin metadata and lifecycle contracts (`initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`), including Tier-2 webview contributions (`webviewContributions`, `webviewApiVersion`).
 
 **`src/webview/*`** defines the webview-side plugin API types (renderers, helpers, message bridge types).
 

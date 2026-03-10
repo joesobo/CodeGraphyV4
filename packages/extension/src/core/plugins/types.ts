@@ -174,26 +174,6 @@ export interface IPlugin {
   initialize?(workspaceRoot: string): Promise<void>;
 
   /**
-   * Optional pre-analysis hook called once before per-file detectConnections calls.
-   * Receives all discovered files matching this plugin's extensions with their content.
-   * Use this to build workspace-wide indexes that require seeing all files before
-   * resolving cross-file references (e.g., class_name maps in GDScript).
-   *
-   * @param files - All discovered files for this plugin's extensions
-   * @param workspaceRoot - Absolute path to the workspace root
-   */
-  preAnalyze?(
-    files: Array<{ absolutePath: string; relativePath: string; content: string }>,
-    workspaceRoot: string
-  ): Promise<void>;
-
-  /**
-   * Optional cleanup hook called when the plugin is unloaded.
-   * Use this to release any resources.
-   */
-  dispose?(): void;
-
-  /**
    * Called when the plugin is loaded and the host API is available.
    * Plugins use this to register events, commands, views, and decorations.
    */

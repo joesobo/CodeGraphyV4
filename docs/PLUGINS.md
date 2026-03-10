@@ -167,7 +167,7 @@ export function createMyLanguagePlugin(): IPlugin {
       ];
     },
 
-    dispose(): void {
+    onUnload(): void {
       resolver = null;
     },
   };
@@ -198,25 +198,25 @@ interface IPlugin {
 
   initialize?(workspaceRoot: string): Promise<void>;
 
-  /** Called once before per-file detection with all discovered files */
-  preAnalyze?(
+  /** Called before each analysis pass with discovered files */
+  onPreAnalyze?(
     files: Array<{ absolutePath: string; relativePath: string; content: string }>,
     workspaceRoot: string
   ): Promise<void>;
 
-  dispose?(): void;
+  onUnload?(): void;
 }
 ```
 
 ## Optional hooks
 
-### preAnalyze
+### onPreAnalyze
 
 Called once before `detectConnections` runs on individual files. Receives all discovered files for your plugin's extensions. Use this to build workspace-wide indexes needed for cross-file resolution.
 
-For example, the GDScript plugin uses `preAnalyze` to build a `class_name` map so `extends Player` can resolve to the file that declares `class_name Player`.
+For example, the GDScript plugin uses `onPreAnalyze` to build a `class_name` map so `extends Player` can resolve to the file that declares `class_name Player`.
 
-### initialize / dispose
+### initialize / onUnload
 
 Called when the plugin is loaded or unloaded. Use for one-time setup and cleanup.
 

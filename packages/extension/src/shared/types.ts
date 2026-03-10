@@ -508,8 +508,6 @@ export type WebviewToExtensionMessage =
   // Timeline commands
   | { type: 'INDEX_REPO' }
   | { type: 'JUMP_TO_COMMIT'; payload: { sha: string } }
-  | { type: 'PLAY_TIMELINE'; payload: { speed: number } }
-  | { type: 'PAUSE_TIMELINE' }
   | { type: 'PREVIEW_FILE_AT_COMMIT'; payload: { sha: string; filePath: string } }
   // Response to GET_NODE_BOUNDS: positions + radii for all nodes
   | { type: 'NODE_BOUNDS_RESPONSE'; payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> } }

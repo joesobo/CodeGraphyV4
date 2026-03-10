@@ -18,5 +18,5 @@ Detects dependencies in GDScript files by parsing preload/load calls, extends st
 ## Path Resolution
 
 - `res://` paths map directly to workspace-relative paths
-- Class names resolved via `class_name` declarations registered during `preAnalyze`
+- Class names resolved via `class_name` declarations registered during `onPreAnalyze`
 - PascalCase to snake_case fallback for scripts without explicit `class_name`

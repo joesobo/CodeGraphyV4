@@ -48,8 +48,7 @@ Key points:
 - `apiVersion: string` is required (for example `'^2.0.0'`).
 - `webviewApiVersion?: string` and `webviewContributions?: { scripts?: string[]; styles?: string[] }` support Tier 2.
 - `detectConnections(filePath, content, workspaceRoot)` is required.
-- Optional analysis hooks: `initialize`, `preAnalyze`, `dispose`.
-- Lifecycle hooks: `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
+- Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
 ### `IAnalysisFile`
 

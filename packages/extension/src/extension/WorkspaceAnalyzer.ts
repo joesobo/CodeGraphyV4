@@ -362,9 +362,8 @@ export class WorkspaceAnalyzer {
   }
 
   /**
-   * Pre-analysis pass: calls preAnalyze on any plugin that implements it.
-   * Reads all files for each plugin's supported extensions so the plugin can
-   * build workspace-wide indexes (e.g. the GDScript class_name → file map).
+   * Pre-analysis pass: dispatches onPreAnalyze to registered plugins.
+   * Reads file content once and shares it with all plugins.
    */
   private async _preAnalyzePlugins(
     files: IDiscoveredFile[],
@@ -384,30 +383,6 @@ export class WorkspaceAnalyzer {
       return content;
     };
 
-    for (const pluginInfo of this._registry.list()) {
-      throwIfAborted(signal);
-
-      const plugin = pluginInfo.plugin;
-      if (!plugin.preAnalyze) continue;
-
-      const supportedFiles: Array<{ absolutePath: string; relativePath: string; content: string }> = [];
-      for (const file of files) {
-        throwIfAborted(signal);
-
-        const ext = path.extname(file.relativePath).toLowerCase();
-        if (plugin.supportedExtensions.includes(ext)) {
-          const content = await getFileContent(file);
-          supportedFiles.push({ absolutePath: file.absolutePath, relativePath: file.relativePath, content });
-        }
-      }
-
-      if (supportedFiles.length > 0) {
-        throwIfAborted(signal);
-        await plugin.preAnalyze(supportedFiles, workspaceRoot);
-      }
-    }
-
-    // Notify v2 plugins of pre-analyze phase with full file content.
     const v2Files = await Promise.all(files.map(async (file) => ({
       absolutePath: file.absolutePath,
       relativePath: file.relativePath,

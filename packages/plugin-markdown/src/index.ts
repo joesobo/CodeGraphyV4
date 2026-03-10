@@ -45,7 +45,7 @@ export function createMarkdownPlugin(): IPlugin {
       console.log('[CodeGraphy] Markdown plugin initialized');
     },
 
-    async preAnalyze(
+    async onPreAnalyze(
       files: Array<{
         absolutePath: string;
         relativePath: string;
@@ -67,10 +67,6 @@ export function createMarkdownPlugin(): IPlugin {
       _workspaceRoot: string
     ): Promise<IConnection[]> {
       return detectWikilink(content, filePath, { resolver });
-    },
-
-    dispose(): void {
-      // nothing to clean up
     },
   };
 }

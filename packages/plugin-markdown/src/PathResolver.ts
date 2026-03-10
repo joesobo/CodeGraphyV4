@@ -26,7 +26,7 @@ export class PathResolver {
 
   /**
    * Build an index of all .md files in the workspace for fast lookup.
-   * Call this once via preAnalyze before resolving links.
+   * Call this once via onPreAnalyze before resolving links.
    */
   buildIndex(files: Array<{ absolutePath: string }>): void {
     this.fileIndex.clear();

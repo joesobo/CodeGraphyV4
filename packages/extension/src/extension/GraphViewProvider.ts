@@ -493,6 +493,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     return error instanceof Error && error.name === 'AbortError';
   }
 
+  private _getConfigTarget(): vscode.ConfigurationTarget {
+    return vscode.workspace.workspaceFolders?.length
+      ? vscode.ConfigurationTarget.Workspace
+      : vscode.ConfigurationTarget.Global;
+  }
+
   /**
    * Merges plugin fileColors into the groups list as defaults.
    * Group IDs are deterministic: plugin:<pluginId>:<pattern>
@@ -1292,9 +1298,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
         case 'UPDATE_FILTER_PATTERNS': {
           this._filterPatterns = message.payload.patterns;
-          const filterTarget = vscode.workspace.workspaceFolders?.length
-            ? vscode.ConfigurationTarget.Workspace
-            : vscode.ConfigurationTarget.Global;
+          const filterTarget = this._getConfigTarget();
           await vscode.workspace.getConfiguration('codegraphy').update('filterPatterns', this._filterPatterns, filterTarget);
           this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
           // onDidChangeConfiguration fires after config.update and calls refresh() → _analyzeAndSendData().
@@ -1303,36 +1307,28 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         }
 
         case 'UPDATE_SHOW_ORPHANS': {
-          const target = vscode.workspace.workspaceFolders?.length
-            ? vscode.ConfigurationTarget.Workspace
-            : vscode.ConfigurationTarget.Global;
+          const target = this._getConfigTarget();
           await vscode.workspace.getConfiguration('codegraphy').update('showOrphans', message.payload.showOrphans, target);
           // Config change listener in index.ts handles re-analysis
           break;
         }
 
         case 'UPDATE_SHOW_ARROWS': {
-          const arrowsTarget = vscode.workspace.workspaceFolders?.length
-            ? vscode.ConfigurationTarget.Workspace
-            : vscode.ConfigurationTarget.Global;
+          const arrowsTarget = this._getConfigTarget();
           await vscode.workspace.getConfiguration('codegraphy').update('showArrows', message.payload.showArrows, arrowsTarget);
           this._sendMessage({ type: 'SHOW_ARROWS_UPDATED', payload: { showArrows: message.payload.showArrows } });
           break;
         }
 
         case 'UPDATE_SHOW_LABELS': {
-          const labelsTarget = vscode.workspace.workspaceFolders?.length
-            ? vscode.ConfigurationTarget.Workspace
-            : vscode.ConfigurationTarget.Global;
+          const labelsTarget = this._getConfigTarget();
           await vscode.workspace.getConfiguration('codegraphy').update('showLabels', message.payload.showLabels, labelsTarget);
           this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels: message.payload.showLabels } });
           break;
         }
 
         case 'UPDATE_MAX_FILES': {
-          const target = vscode.workspace.workspaceFolders?.length
-            ? vscode.ConfigurationTarget.Workspace
-            : vscode.ConfigurationTarget.Global;
+          const target = this._getConfigTarget();
           await vscode.workspace.getConfiguration('codegraphy').update('maxFiles', message.payload.maxFiles, target);
           // Config change listener will trigger re-analysis automatically
           break;
@@ -1369,12 +1365,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
         case 'JUMP_TO_COMMIT':
           await this._jumpToCommit(message.payload.sha);
-          break;
-
-        // Playback is now driven by the webview via JUMP_TO_COMMIT.
-        // These messages are kept for protocol compatibility but are no-ops.
-        case 'PLAY_TIMELINE':
-        case 'PAUSE_TIMELINE':
           break;
 
         case 'PREVIEW_FILE_AT_COMMIT':
@@ -2075,9 +2065,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private async _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void> {
     const config = vscode.workspace.getConfiguration('codegraphy.physics');
-    const target = vscode.workspace.workspaceFolders?.length
-      ? vscode.ConfigurationTarget.Workspace
-      : vscode.ConfigurationTarget.Global;
+    const target = this._getConfigTarget();
     await config.update(key, value, target);
     // Config change listener handles sending PHYSICS_SETTINGS_UPDATED
   }
@@ -2089,9 +2077,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private async _resetPhysicsSettings(): Promise<void> {
     const config = vscode.workspace.getConfiguration('codegraphy.physics');
-    const target = vscode.workspace.workspaceFolders?.length
-      ? vscode.ConfigurationTarget.Workspace
-      : vscode.ConfigurationTarget.Global;
+    const target = this._getConfigTarget();
     await config.update('repelForce', undefined, target);
     await config.update('linkDistance', undefined, target);
     await config.update('linkForce', undefined, target);

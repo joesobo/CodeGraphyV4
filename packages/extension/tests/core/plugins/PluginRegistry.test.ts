@@ -95,14 +95,14 @@ describe('PluginRegistry', () => {
       expect(result).toBe(false);
     });
 
-    it('should call dispose on the plugin', () => {
-      const dispose = vi.fn();
-      const plugin = createMockPlugin({ dispose });
+    it('should call onUnload on the plugin', () => {
+      const onUnload = vi.fn();
+      const plugin = createMockPlugin({ onUnload });
       registry.register(plugin);
 
       registry.unregister(plugin.id);
 
-      expect(dispose).toHaveBeenCalled();
+      expect(onUnload).toHaveBeenCalled();
     });
 
     it('should remove plugin from extension map', () => {
@@ -308,18 +308,18 @@ describe('PluginRegistry', () => {
   });
 
   describe('disposeAll', () => {
-    it('should dispose and remove all plugins', () => {
-      const dispose1 = vi.fn();
-      const dispose2 = vi.fn();
-      const plugin1 = createMockPlugin({ id: 'first', dispose: dispose1 });
-      const plugin2 = createMockPlugin({ id: 'second', dispose: dispose2 });
+    it('should unload and remove all plugins', () => {
+      const onUnload1 = vi.fn();
+      const onUnload2 = vi.fn();
+      const plugin1 = createMockPlugin({ id: 'first', onUnload: onUnload1 });
+      const plugin2 = createMockPlugin({ id: 'second', onUnload: onUnload2 });
       registry.register(plugin1);
       registry.register(plugin2);
 
       registry.disposeAll();
 
-      expect(dispose1).toHaveBeenCalled();
-      expect(dispose2).toHaveBeenCalled();
+      expect(onUnload1).toHaveBeenCalled();
+      expect(onUnload2).toHaveBeenCalled();
       expect(registry.size).toBe(0);
     });
   });

@@ -191,16 +191,24 @@ export class PluginRegistry {
       sourceExtension: options.sourceExtension,
     };
 
-    if (this._eventBus && this._decorationManager && this._viewRegistry) {
+    if (
+      this._eventBus &&
+      this._decorationManager &&
+      this._viewRegistry &&
+      this._graphProvider &&
+      this._commandRegistrar &&
+      this._webviewSender &&
+      this._workspaceRoot !== undefined
+    ) {
       const api = new CodeGraphyAPIImpl(
         plugin.id,
         this._eventBus,
         this._decorationManager,
         this._viewRegistry,
-        this._graphProvider ?? (() => ({ nodes: [], edges: [] })),
-        this._commandRegistrar ?? (() => ({ dispose: () => {} })),
-        this._webviewSender ?? (() => {}),
-        this._workspaceRoot ?? '',
+        this._graphProvider,
+        this._commandRegistrar,
+        this._webviewSender,
+        this._workspaceRoot,
         this._logFn,
       );
       info.api = api;
@@ -309,15 +317,6 @@ export class PluginRegistry {
     }
 
     info.api?.disposeAll();
-
-    // Call dispose if available.
-    if (info.plugin.dispose) {
-      try {
-        info.plugin.dispose();
-      } catch (error) {
-        console.error(`[CodeGraphy] Error disposing plugin ${pluginId}:`, error);
-      }
-    }
 
     // Remove from extension map
     for (const ext of info.plugin.supportedExtensions) {

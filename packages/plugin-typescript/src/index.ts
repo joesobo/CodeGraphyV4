@@ -74,7 +74,7 @@ export function createTypeScriptPlugin(): IPlugin {
       ];
     },
 
-    dispose(): void {
+    onUnload(): void {
       resolver = null;
     },
   };

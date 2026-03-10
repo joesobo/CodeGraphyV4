@@ -128,19 +128,6 @@ export interface IPlugin {
    */
   initialize?(workspaceRoot: string): Promise<void>;
 
-  /**
-   * Pre-analysis hook called once before per-file `detectConnections` calls.
-   * Receives all discovered files matching this plugin's extensions.
-   * Use to build workspace-wide indexes.
-   */
-  preAnalyze?(files: IAnalysisFile[], workspaceRoot: string): Promise<void>;
-
-  /**
-   * Cleanup hook called when the plugin is unloaded.
-   * Release any held resources.
-   */
-  dispose?(): void;
-
   // ---------------------------------------------------------------------------
   // Lifecycle hooks
   // ---------------------------------------------------------------------------
@@ -165,7 +152,6 @@ export interface IPlugin {
 
   /**
    * Called before per-file analysis begins.
-   * Similar to `preAnalyze` but reserved for post-onLoad plugin workflows.
    */
   onPreAnalyze?(
     files: IAnalysisFile[],
