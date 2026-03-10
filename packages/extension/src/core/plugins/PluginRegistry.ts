@@ -521,6 +521,7 @@ export class PluginRegistry {
    * Notify all plugins after an analysis pass.
    */
   notifyPostAnalyze(graph: IGraphData): void {
+    this._lastWorkspaceReadyGraph = graph;
     for (const info of this._plugins.values()) {
       if (info.plugin.onPostAnalyze) {
         try {
@@ -536,6 +537,7 @@ export class PluginRegistry {
    * Notify all plugins that the graph was rebuilt without re-analysis.
    */
   notifyGraphRebuild(graph: IGraphData): void {
+    this._lastWorkspaceReadyGraph = graph;
     for (const info of this._plugins.values()) {
       if (info.plugin.onGraphRebuild) {
         try {

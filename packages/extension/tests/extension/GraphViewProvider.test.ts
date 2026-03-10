@@ -4,6 +4,8 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as vscode from 'vscode';
+import type { WorkspaceAnalyzer } from '../../src/extension/WorkspaceAnalyzer';
+import type { IGraphData } from '../../src/shared/types';
 
 // Capture showInputBox calls to verify options
 interface InputBoxCall {
@@ -571,6 +573,176 @@ describe('GraphViewProvider', () => {
       await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
 
       expect(onWebviewReady).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls onWorkspaceReady before onWebviewReady on initial load', async () => {
+      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
+      const onWorkspaceReady = vi.fn();
+      const onWebviewReady = vi.fn();
+
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+          messageHandler = handler;
+          return { dispose: () => {} };
+        }),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      provider.registerExternalPlugin({
+        id: 'test.initial-order',
+        name: 'Initial Order',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        detectConnections: async () => [],
+        onWorkspaceReady,
+        onWebviewReady,
+      });
+
+      expect(messageHandler).not.toBeNull();
+      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      expect(onWorkspaceReady).toHaveBeenCalledTimes(1);
+      expect(onWebviewReady).toHaveBeenCalledTimes(1);
+      expect(onWorkspaceReady.mock.invocationCallOrder[0]).toBeLessThan(onWebviewReady.mock.invocationCallOrder[0]);
+    });
+
+    it('keeps workspace->webview lifecycle order for plugins registered during first analysis', async () => {
+      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
+      const onWorkspaceReady = vi.fn();
+      const onWebviewReady = vi.fn();
+      const firstAnalyze = deferredPromise<IGraphData>();
+      let analyzeCalls = 0;
+
+      const analyzer = (provider as unknown as { _analyzer: WorkspaceAnalyzer })._analyzer;
+      vi.spyOn(analyzer, 'analyze').mockImplementation(async () => {
+        analyzeCalls += 1;
+        if (analyzeCalls === 1) {
+          return firstAnalyze.promise;
+        }
+        return { nodes: [], edges: [] };
+      });
+
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+          messageHandler = handler;
+          return { dispose: () => {} };
+        }),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      expect(messageHandler).not.toBeNull();
+      const readyPromise = messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      provider.registerExternalPlugin({
+        id: 'test.mid-first-analysis',
+        name: 'Mid First Analysis',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        detectConnections: async () => [],
+        onWorkspaceReady,
+        onWebviewReady,
+      });
+
+      firstAnalyze.resolve({ nodes: [], edges: [] });
+      await readyPromise;
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      expect(onWorkspaceReady).toHaveBeenCalledTimes(1);
+      expect(onWebviewReady).toHaveBeenCalledTimes(1);
+      expect(onWorkspaceReady.mock.invocationCallOrder[0]).toBeLessThan(onWebviewReady.mock.invocationCallOrder[0]);
+    });
+
+    it('replays workspace->webview lifecycle order for plugins registered after both phases', async () => {
+      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
+      const onWorkspaceReady = vi.fn();
+      const onWebviewReady = vi.fn();
+
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+          messageHandler = handler;
+          return { dispose: () => {} };
+        }),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      expect(messageHandler).not.toBeNull();
+      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      provider.registerExternalPlugin({
+        id: 'test.late-both-order',
+        name: 'Late Both Order',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        detectConnections: async () => [],
+        onWorkspaceReady,
+        onWebviewReady,
+      });
+
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      expect(onWorkspaceReady).toHaveBeenCalledTimes(1);
+      expect(onWebviewReady).toHaveBeenCalledTimes(1);
+      expect(onWorkspaceReady.mock.invocationCallOrder[0]).toBeLessThan(onWebviewReady.mock.invocationCallOrder[0]);
     });
 
     it('replays late onWebviewReady after Tier-2 injection dispatch', async () => {
