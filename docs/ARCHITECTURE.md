@@ -103,6 +103,14 @@ Defines the message protocol and data types shared across both build targets:
 - `IGraphNode` / `IGraphEdge` / `IGraphData` for graph rendering
 - `ExtensionToWebviewMessage` and `WebviewToExtensionMessage` union types for the message protocol
 
+## Plugin API docs (`docs/plugin-api/`)
+
+**`EVENTS.md`** documents canonical event names/payloads from `packages/plugin-api/src/events.ts`.
+
+**`TYPES.md`** documents the exported type surface from `@codegraphy/plugin-api` and `@codegraphy/plugin-api/webview`.
+
+**`diagrams/*.excalidraw`** contains editable Excalidraw sources for lifecycle, event system, and type-surface diagrams.
+
 ## Data flow
 
 ### Initial load

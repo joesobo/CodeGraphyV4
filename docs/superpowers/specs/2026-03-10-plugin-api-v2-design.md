@@ -19,14 +19,34 @@ Redesign CodeGraphy's plugin system from a narrow connection-detection interface
 
 ## Diagrams
 
-- **[Plugin Lifecycle](https://excalidraw.com/#json=E_nILqzLfKdU_NKoiu92k,chSfru6ee8Hp_697-H8Vsw)** — One-time phases, recurring hooks, and auto-cleanup pattern ([source](../../plugin-api/diagrams/plugin-lifecycle.excalidraw))
-- **[Event System](https://excalidraw.com/#json=7Nef_ISmAmCGlUbpy9dR9,U80qLewwC0CVSl7u0fVkpg)** — Hub-and-spoke view of all 30+ events across 6 categories ([source](../../plugin-api/diagrams/event-system.excalidraw))
+- **Plugin Lifecycle** — One-time phases, recurring hooks, and auto-cleanup pattern ([source](../../plugin-api/diagrams/plugin-lifecycle.excalidraw))
+- **Event System** — Hub-and-spoke view of event categories and payload contracts ([source](../../plugin-api/diagrams/event-system.excalidraw))
+- **Type Surface** — How `@codegraphy/plugin-api` modules map to extension/webview runtime structures ([source](../../plugin-api/diagrams/type-surface.excalidraw))
 
 ## Detailed Documentation
 
 - **[Lifecycle](../../plugin-api/LIFECYCLE.md)** — Full lifecycle guide with code examples
 - **[Events](../../plugin-api/EVENTS.md)** — Complete event catalog with usage examples
 - **[Types](../../plugin-api/TYPES.md)** — All TypeScript types and interfaces
+
+## Implementation Status (2026-03-10)
+
+### Implemented
+
+- Canonical event naming (colon-style keys) and shared `EventPayloads`/`EventName`.
+- v2 lifecycle dispatch (`onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`).
+- Tier-2 message bridge (`plugin:<pluginId>:<type>`) and webview injection plumbing.
+- `@codegraphy/plugin-api` type package exports for core, events, plugin, and webview type entry points.
+
+### Partially Implemented
+
+- Tier-2 external asset loading works for contributed scripts/styles that resolve in the current webview context, but extension-relative resolution and resource roots still need hardening for third-party extension paths.
+
+### Not Yet Implemented
+
+- Semver compatibility enforcement on registration (`apiVersion` / `webviewApiVersion` range checks).
+- Full adoption of `codegraphy.json` manifest as the single runtime source of truth.
+- Alignment pass ensuring every host/runtime command/context/decorations contract exactly matches the public type package.
 
 ---
 
