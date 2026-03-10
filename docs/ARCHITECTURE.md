@@ -41,7 +41,7 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **`index.ts`** registers commands, file watchers, and the webview provider on activation.
 
-**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, view transformations, and latest-wins analysis cancellation. It deduplicates analyzer initialization races and emits `notifyWebviewReady()` once after dispatching Tier-2 injections and first workspace-ready completion (when a workspace exists), while late-registered plugins can defer lifecycle replay until initialization/injection ordering is satisfied.
+**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, view transformations, and latest-wins analysis cancellation. It deduplicates analyzer initialization races, emits `notifyWebviewReady()` once after Tier-2 injection dispatch and first workspace-ready completion (when a workspace exists), and supports deferred late-registration lifecycle replay ordering.
 
 **`WorkspaceAnalyzer.ts`** orchestrates file discovery and plugin analysis. Builds `IGraphData` from discovered files and connections. Uses mtime-based caching to skip unchanged files. Supports instant graph rebuilds from cached data when toggling rules.
 

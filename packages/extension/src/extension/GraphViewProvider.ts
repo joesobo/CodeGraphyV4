@@ -1022,48 +1022,50 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Registers an external v2 plugin.
    */
   public registerExternalPlugin(plugin: unknown, options?: IExternalPluginRegistrationOptions): void {
-    if (this._analyzer && typeof plugin === 'object' && plugin !== null && 'id' in plugin) {
-      const pluginId = String((plugin as { id: unknown }).id);
-      const sourceUri = this._normalizeExternalExtensionUri(options?.extensionUri);
-      if (sourceUri) {
-        this._pluginExtensionUris.set(pluginId, sourceUri);
+    if (!this._analyzer || typeof plugin !== 'object' || plugin === null || !('id' in plugin)) {
+      return;
+    }
+
+    const analyzer = this._analyzer;
+    const pluginId = String((plugin as { id: unknown }).id);
+    const sourceUri = this._normalizeExternalExtensionUri(options?.extensionUri);
+    if (sourceUri) {
+      this._pluginExtensionUris.set(pluginId, sourceUri);
+    }
+
+    const shouldDeferReadinessReplay = !this._firstAnalysis || this._webviewReadyNotified;
+    analyzer.registry.register(plugin as import('../core/plugins/types').IPlugin, {
+      deferReadinessReplay: shouldDeferReadinessReplay,
+    });
+
+    const initializePromise = (async () => {
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+      if (!workspaceRoot) return;
+
+      if (this._analyzerInitialized) {
+        await analyzer.registry.initializePlugin(pluginId, workspaceRoot);
+        return;
       }
 
-      const shouldDeferReadinessReplay = !this._firstAnalysis || this._webviewReadyNotified;
-      this._analyzer.registry.register(plugin as import('../core/plugins/types').IPlugin, {
-        deferReadinessReplay: shouldDeferReadinessReplay,
-      });
+      // If startup is already running, finish it before initializing this plugin.
+      if (this._analyzerInitPromise) {
+        await this._analyzerInitPromise;
+        await analyzer.registry.initializePlugin(pluginId, workspaceRoot);
+      }
+    })();
 
-      const initializePromise = (async () => {
-        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-        if (!workspaceRoot) return;
-
-        if (this._analyzerInitialized) {
-          await this._analyzer!.registry.initializePlugin(pluginId, workspaceRoot);
-          return;
-        }
-
-        // Analyzer startup may already be in flight (triggered by WEBVIEW_READY).
-        // Wait for it so late-registered plugins are initialized before replay.
-        if (this._analyzerInitPromise) {
-          await this._analyzerInitPromise;
-          await this._analyzer!.registry.initializePlugin(pluginId, workspaceRoot);
-        }
-      })();
-
-      this._refreshWebviewResourceRoots();
-      this._sendPluginStatuses();
-      this._sendContextMenuItems();
-      this._sendPluginWebviewInjections();
-      void initializePromise.finally(() => {
-        if (shouldDeferReadinessReplay) {
-          this._analyzer?.registry.replayReadinessForPlugin(pluginId);
-        }
-        if (this._analyzerInitialized) {
-          void this._analyzeAndSendData();
-        }
-      });
-    }
+    this._refreshWebviewResourceRoots();
+    this._sendPluginStatuses();
+    this._sendContextMenuItems();
+    this._sendPluginWebviewInjections();
+    void initializePromise.finally(() => {
+      if (shouldDeferReadinessReplay) {
+        analyzer.registry.replayReadinessForPlugin(pluginId);
+      }
+      if (this._analyzerInitialized) {
+        void this._analyzeAndSendData();
+      }
+    });
   }
 
   /**
@@ -1141,36 +1143,27 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
       switch (message.type) {
         case 'WEBVIEW_READY': {
-          // Load groups and filter patterns (VS Code settings > workspace state)
           this._loadGroupsAndFilterPatterns();
-          // Analyze workspace and send graph data
           this._analyzeAndSendData();
-          // Send current favorites
           this._sendFavorites();
-          // Send current settings
           this._sendSettings();
-          // Send physics settings
           this._sendPhysicsSettings();
-          // Send groups and filter patterns
           this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
           this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
           this._sendMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles: vscode.workspace.getConfiguration('codegraphy').get<number>('maxFiles', 500) } });
-          // Send cached timeline data if available
           this._sendCachedTimeline();
-          // Send timeline playback speed
           this._sendMessage({
             type: 'PLAYBACK_SPEED_UPDATED',
             payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
           });
-          // Send current decorations and context menu items
           this._sendDecorations();
           this._sendContextMenuItems();
           this._sendPluginWebviewInjections();
           const hasWorkspace = (vscode.workspace.workspaceFolders?.length ?? 0) > 0;
+          // Keep lifecycle ordering deterministic for workspace-backed sessions.
           if (hasWorkspace && this._firstAnalysis) {
             await this._firstWorkspaceReadyPromise;
           }
-          // Notify plugins once, after Tier-2 injections are dispatched.
           if (!this._webviewReadyNotified) {
             this._webviewReadyNotified = true;
             this._analyzer?.registry.notifyWebviewReady();

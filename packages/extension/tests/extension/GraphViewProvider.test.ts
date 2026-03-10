@@ -414,10 +414,8 @@ describe('GraphViewProvider', () => {
   });
 
   describe('plugin API v2 webview bridge', () => {
-    it('routes plugin-scoped GRAPH_INTERACTION messages to onWebviewMessage handlers', async () => {
+    const createResolvedWebview = () => {
       let messageHandler: ((message: unknown) => Promise<void>) | null = null;
-      const pluginWebviewHandler = vi.fn();
-
       const mockWebview = {
         options: {},
         html: '',
@@ -443,6 +441,19 @@ describe('GraphViewProvider', () => {
         {} as vscode.WebviewViewResolveContext,
         { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
       );
+
+      return {
+        mockWebview,
+        getMessageHandler: () => {
+          expect(messageHandler).not.toBeNull();
+          return messageHandler!;
+        },
+      };
+    };
+
+    it('routes plugin-scoped GRAPH_INTERACTION messages to onWebviewMessage handlers', async () => {
+      const pluginWebviewHandler = vi.fn();
+      const { getMessageHandler } = createResolvedWebview();
 
       provider.registerExternalPlugin({
         id: 'test.plugin',
@@ -456,8 +467,7 @@ describe('GraphViewProvider', () => {
         },
       });
 
-      expect(messageHandler).not.toBeNull();
-      await messageHandler!({
+      await getMessageHandler()({
         type: 'GRAPH_INTERACTION',
         payload: {
           event: 'plugin:test.plugin:ping',
@@ -469,33 +479,7 @@ describe('GraphViewProvider', () => {
     });
 
     it('sends PLUGIN_WEBVIEW_INJECT when a plugin declares webviewContributions', async () => {
-      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
-
-      const mockWebview = {
-        options: {},
-        html: '',
-        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
-          messageHandler = handler;
-          return { dispose: () => {} };
-        }),
-        postMessage: vi.fn(),
-        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
-        cspSource: 'test-csp',
-      };
-
-      const mockView = {
-        webview: mockWebview,
-        visible: true,
-        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
-        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
-        show: vi.fn(),
-      };
-
-      provider.resolveWebviewView(
-        mockView as unknown as vscode.WebviewView,
-        {} as vscode.WebviewViewResolveContext,
-        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
-      );
+      const { mockWebview, getMessageHandler } = createResolvedWebview();
 
       provider.registerExternalPlugin({
         id: 'test.webview-plugin',
@@ -510,8 +494,7 @@ describe('GraphViewProvider', () => {
         },
       });
 
-      expect(messageHandler).not.toBeNull();
-      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
       await new Promise(resolve => setTimeout(resolve, 20));
 
       const injectCall = mockWebview.postMessage.mock.calls.find(
@@ -529,34 +512,8 @@ describe('GraphViewProvider', () => {
     });
 
     it('fires onWebviewReady once even if WEBVIEW_READY is received multiple times', async () => {
-      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
       const onWebviewReady = vi.fn();
-
-      const mockWebview = {
-        options: {},
-        html: '',
-        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
-          messageHandler = handler;
-          return { dispose: () => {} };
-        }),
-        postMessage: vi.fn(),
-        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
-        cspSource: 'test-csp',
-      };
-
-      const mockView = {
-        webview: mockWebview,
-        visible: true,
-        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
-        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
-        show: vi.fn(),
-      };
-
-      provider.resolveWebviewView(
-        mockView as unknown as vscode.WebviewView,
-        {} as vscode.WebviewViewResolveContext,
-        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
-      );
+      const { getMessageHandler } = createResolvedWebview();
 
       provider.registerExternalPlugin({
         id: 'test.webview-ready-once',
@@ -568,43 +525,17 @@ describe('GraphViewProvider', () => {
         onWebviewReady,
       });
 
-      expect(messageHandler).not.toBeNull();
-      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
-      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      const handler = getMessageHandler();
+      await handler({ type: 'WEBVIEW_READY', payload: null });
+      await handler({ type: 'WEBVIEW_READY', payload: null });
 
       expect(onWebviewReady).toHaveBeenCalledTimes(1);
     });
 
     it('calls onWorkspaceReady before onWebviewReady on initial load', async () => {
-      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
       const onWorkspaceReady = vi.fn();
       const onWebviewReady = vi.fn();
-
-      const mockWebview = {
-        options: {},
-        html: '',
-        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
-          messageHandler = handler;
-          return { dispose: () => {} };
-        }),
-        postMessage: vi.fn(),
-        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
-        cspSource: 'test-csp',
-      };
-
-      const mockView = {
-        webview: mockWebview,
-        visible: true,
-        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
-        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
-        show: vi.fn(),
-      };
-
-      provider.resolveWebviewView(
-        mockView as unknown as vscode.WebviewView,
-        {} as vscode.WebviewViewResolveContext,
-        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
-      );
+      const { getMessageHandler } = createResolvedWebview();
 
       provider.registerExternalPlugin({
         id: 'test.initial-order',
@@ -617,8 +548,7 @@ describe('GraphViewProvider', () => {
         onWebviewReady,
       });
 
-      expect(messageHandler).not.toBeNull();
-      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
       await new Promise(resolve => setTimeout(resolve, 20));
 
       expect(onWorkspaceReady).toHaveBeenCalledTimes(1);
@@ -627,7 +557,6 @@ describe('GraphViewProvider', () => {
     });
 
     it('keeps workspace->webview lifecycle order for plugins registered during first analysis', async () => {
-      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
       const onWorkspaceReady = vi.fn();
       const onWebviewReady = vi.fn();
       const firstAnalyze = deferredPromise<IGraphData>();
@@ -641,35 +570,9 @@ describe('GraphViewProvider', () => {
         }
         return { nodes: [], edges: [] };
       });
+      const { getMessageHandler } = createResolvedWebview();
 
-      const mockWebview = {
-        options: {},
-        html: '',
-        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
-          messageHandler = handler;
-          return { dispose: () => {} };
-        }),
-        postMessage: vi.fn(),
-        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
-        cspSource: 'test-csp',
-      };
-
-      const mockView = {
-        webview: mockWebview,
-        visible: true,
-        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
-        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
-        show: vi.fn(),
-      };
-
-      provider.resolveWebviewView(
-        mockView as unknown as vscode.WebviewView,
-        {} as vscode.WebviewViewResolveContext,
-        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
-      );
-
-      expect(messageHandler).not.toBeNull();
-      const readyPromise = messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      const readyPromise = getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
       await new Promise(resolve => setTimeout(resolve, 0));
 
       provider.registerExternalPlugin({
@@ -693,38 +596,11 @@ describe('GraphViewProvider', () => {
     });
 
     it('replays workspace->webview lifecycle order for plugins registered after both phases', async () => {
-      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
       const onWorkspaceReady = vi.fn();
       const onWebviewReady = vi.fn();
+      const { getMessageHandler } = createResolvedWebview();
 
-      const mockWebview = {
-        options: {},
-        html: '',
-        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
-          messageHandler = handler;
-          return { dispose: () => {} };
-        }),
-        postMessage: vi.fn(),
-        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
-        cspSource: 'test-csp',
-      };
-
-      const mockView = {
-        webview: mockWebview,
-        visible: true,
-        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
-        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
-        show: vi.fn(),
-      };
-
-      provider.resolveWebviewView(
-        mockView as unknown as vscode.WebviewView,
-        {} as vscode.WebviewViewResolveContext,
-        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
-      );
-
-      expect(messageHandler).not.toBeNull();
-      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
       await new Promise(resolve => setTimeout(resolve, 20));
 
       provider.registerExternalPlugin({
@@ -746,38 +622,11 @@ describe('GraphViewProvider', () => {
     });
 
     it('replays late onWebviewReady after Tier-2 injection dispatch', async () => {
-      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
       const onWebviewReady = vi.fn();
       const initialize = vi.fn().mockResolvedValue(undefined);
+      const { mockWebview, getMessageHandler } = createResolvedWebview();
 
-      const mockWebview = {
-        options: {},
-        html: '',
-        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
-          messageHandler = handler;
-          return { dispose: () => {} };
-        }),
-        postMessage: vi.fn(),
-        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
-        cspSource: 'test-csp',
-      };
-
-      const mockView = {
-        webview: mockWebview,
-        visible: true,
-        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
-        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
-        show: vi.fn(),
-      };
-
-      provider.resolveWebviewView(
-        mockView as unknown as vscode.WebviewView,
-        {} as vscode.WebviewViewResolveContext,
-        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
-      );
-
-      expect(messageHandler).not.toBeNull();
-      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
       await new Promise(resolve => setTimeout(resolve, 20));
 
       mockWebview.postMessage.mockClear();
@@ -814,33 +663,7 @@ describe('GraphViewProvider', () => {
     });
 
     it('resolves Tier-2 relative assets against the registering extension root', async () => {
-      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
-
-      const mockWebview = {
-        options: {},
-        html: '',
-        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
-          messageHandler = handler;
-          return { dispose: () => {} };
-        }),
-        postMessage: vi.fn(),
-        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
-        cspSource: 'test-csp',
-      };
-
-      const mockView = {
-        webview: mockWebview,
-        visible: true,
-        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
-        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
-        show: vi.fn(),
-      };
-
-      provider.resolveWebviewView(
-        mockView as unknown as vscode.WebviewView,
-        {} as vscode.WebviewViewResolveContext,
-        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
-      );
+      const { mockWebview, getMessageHandler } = createResolvedWebview();
 
       provider.registerExternalPlugin(
         {
@@ -859,8 +682,7 @@ describe('GraphViewProvider', () => {
         }
       );
 
-      expect(messageHandler).not.toBeNull();
-      await messageHandler!({ type: 'WEBVIEW_READY', payload: null });
+      await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
       await new Promise(resolve => setTimeout(resolve, 20));
 
       const injectCall = mockWebview.postMessage.mock.calls.find(
