@@ -4,12 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { GDScriptPathResolver } from '../../../src/plugins/godot/PathResolver';
-import { detect as detectPreload } from '../../../src/plugins/godot/rules/preload';
-import { detect as detectLoad } from '../../../src/plugins/godot/rules/load';
-import { detect as detectExtends } from '../../../src/plugins/godot/rules/extends';
-import { detect as detectClassNameUsage, detectUsagesInLine } from '../../../src/plugins/godot/rules/class-name-usage';
-import type { GDScriptRuleContext } from '../../../src/plugins/godot/parser';
+import { GDScriptPathResolver } from '../PathResolver';
+import { detect as detectPreload } from '../rules/preload';
+import { detect as detectLoad } from '../rules/load';
+import { detect as detectExtends } from '../rules/extends';
+import { detect as detectClassNameUsage, detectUsagesInLine } from '../rules/class-name-usage';
+import type { GDScriptRuleContext } from '../parser';
 
 describe('GDScript rules', () => {
   let resolver: GDScriptPathResolver;

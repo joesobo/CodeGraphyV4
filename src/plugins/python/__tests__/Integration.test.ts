@@ -9,10 +9,10 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createPythonPlugin } from '../../../src/plugins/python';
-import { createTypeScriptPlugin } from '../../../src/plugins/typescript';
+import { createPythonPlugin } from '..';
+import { createTypeScriptPlugin } from '../../typescript';
 
-const PYTHON_EXAMPLE_ROOT = path.join(__dirname, '../../../examples/python-plugin');
+const PYTHON_EXAMPLE_ROOT = path.join(__dirname, '../examples');
 
 describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
   const pythonPlugin = createPythonPlugin();

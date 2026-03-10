@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseContent, extractUsedTypes } from '../../../src/plugins/csharp/parser';
+import { parseContent, extractUsedTypes } from '../parser';
 
 describe('C# parser', () => {
   describe('parseContent – using directives', () => {
