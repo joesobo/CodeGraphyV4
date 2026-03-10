@@ -95,37 +95,31 @@ describe('Timeline', () => {
 
   // ── State 3: Timeline ready ────────────────────────────────────────────
 
-  it('shows timeline controls when timeline is active', () => {
+  it('shows timeline with Current button when timeline is active', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
-      currentCommitSha: MOCK_COMMITS[2].sha,
+      currentCommitSha: MOCK_COMMITS[1].sha,
       graphData: MOCK_GRAPH_DATA,
     });
     render(<Timeline />);
 
-    // Should show the timeline area
     expect(screen.getByTestId('timeline')).toBeInTheDocument();
-    // Should show the slider
-    expect(screen.getByTestId('timeline-slider')).toBeInTheDocument();
-    // Should show current commit info (short sha)
-    expect(screen.getByText('ccc333c')).toBeInTheDocument();
-    // Should show commit message
-    expect(screen.getByText('Fix bug in feature X')).toBeInTheDocument();
+    expect(screen.getByText('Current')).toBeInTheDocument();
+    // "Now" label at end of axis
+    expect(screen.getByText('Now')).toBeInTheDocument();
   });
 
-  it('shows speed selector buttons', () => {
+  it('shows play button when not playing', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
       currentCommitSha: MOCK_COMMITS[0].sha,
+      isPlaying: false,
     });
     render(<Timeline />);
 
-    expect(screen.getByText('0.5x')).toBeInTheDocument();
-    expect(screen.getByText('1x')).toBeInTheDocument();
-    expect(screen.getByText('2x')).toBeInTheDocument();
-    expect(screen.getByText('5x')).toBeInTheDocument();
+    expect(screen.getByTitle('Play')).toBeInTheDocument();
   });
 
   it('sends PLAY_TIMELINE when play button is clicked', () => {
@@ -162,41 +156,7 @@ describe('Timeline', () => {
     expect(sentMessages).toContainEqual({ type: 'PAUSE_TIMELINE' });
   });
 
-  it('changes speed and re-sends PLAY_TIMELINE if playing', () => {
-    resetStore({
-      timelineActive: true,
-      timelineCommits: MOCK_COMMITS,
-      currentCommitSha: MOCK_COMMITS[0].sha,
-      isPlaying: true,
-      playbackSpeed: 1,
-    });
-    render(<Timeline />);
-
-    fireEvent.click(screen.getByText('2x'));
-
-    expect(graphStore.getState().playbackSpeed).toBe(2);
-    expect(sentMessages).toContainEqual({ type: 'PLAY_TIMELINE', payload: { speed: 2 } });
-  });
-
-  it('changes speed without sending PLAY_TIMELINE when paused', () => {
-    resetStore({
-      timelineActive: true,
-      timelineCommits: MOCK_COMMITS,
-      currentCommitSha: MOCK_COMMITS[0].sha,
-      isPlaying: false,
-      playbackSpeed: 1,
-    });
-    render(<Timeline />);
-
-    fireEvent.click(screen.getByText('5x'));
-
-    expect(graphStore.getState().playbackSpeed).toBe(5);
-    // Should NOT have sent a PLAY_TIMELINE message
-    const playMessages = sentMessages.filter((m) => (m as { type: string }).type === 'PLAY_TIMELINE');
-    expect(playMessages).toHaveLength(0);
-  });
-
-  it('debounces JUMP_TO_COMMIT on slider change', () => {
+  it('Current button jumps to last commit', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -204,27 +164,27 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    const slider = screen.getByTestId('timeline-slider');
-    fireEvent.change(slider, { target: { value: '2' } });
+    fireEvent.click(screen.getByText('Current'));
 
-    // Before debounce fires, no JUMP_TO_COMMIT yet
-    const jumpBefore = sentMessages.filter((m) => (m as { type: string }).type === 'JUMP_TO_COMMIT');
-    expect(jumpBefore).toHaveLength(0);
-
-    // After debounce period
-    act(() => {
-      vi.advanceTimersByTime(150);
-    });
-
-    const jumpAfter = sentMessages.filter((m) => (m as { type: string }).type === 'JUMP_TO_COMMIT');
-    expect(jumpAfter).toHaveLength(1);
-    expect(jumpAfter[0]).toEqual({
+    expect(sentMessages).toContainEqual({
       type: 'JUMP_TO_COMMIT',
       payload: { sha: MOCK_COMMITS[2].sha },
     });
   });
 
-  it('sends INDEX_REPO when refresh button is clicked', () => {
+  it('Current button is disabled when already at the last commit', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[2].sha,
+    });
+    render(<Timeline />);
+
+    const btn = screen.getByText('Current');
+    expect(btn).toBeDisabled();
+  });
+
+  it('sends JUMP_TO_COMMIT on track click (debounced)', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -232,10 +192,24 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    const refreshBtn = screen.getByTitle('Re-index repository');
-    fireEvent.click(refreshBtn);
+    // Simulate clicking in the middle of the track
+    const track = screen.getByTestId('timeline').querySelector('[class*="cursor-pointer"]') as HTMLElement;
+    if (track) {
+      // Mock getBoundingClientRect
+      vi.spyOn(track, 'getBoundingClientRect').mockReturnValue({
+        left: 0, right: 300, width: 300, top: 0, bottom: 28, height: 28,
+        x: 0, y: 0, toJSON: () => {},
+      });
+      fireEvent.mouseDown(track, { clientX: 150 });
+    }
 
-    expect(sentMessages).toContainEqual({ type: 'INDEX_REPO' });
+    // After debounce
+    act(() => {
+      vi.advanceTimersByTime(100);
+    });
+
+    const jumpMessages = sentMessages.filter((m) => (m as { type: string }).type === 'JUMP_TO_COMMIT');
+    expect(jumpMessages.length).toBeGreaterThanOrEqual(1);
   });
 
   it('returns null when timeline active but no commits', () => {
