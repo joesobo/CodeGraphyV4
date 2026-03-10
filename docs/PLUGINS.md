@@ -1,5 +1,14 @@
 # Plugin Development Guide
 
+> **Plugin API v2 is in development.** The new API expands plugins beyond connection detection into a full extensibility platform (decorations, events, views, commands, webview injection). See the v2 docs:
+>
+> - **[Lifecycle](./plugin-api/LIFECYCLE.md)** — Plugin lifecycle phases and hooks
+> - **[Events](./plugin-api/EVENTS.md)** — 30+ typed events plugins can subscribe to
+> - **[Types](./plugin-api/TYPES.md)** — Full TypeScript API reference
+> - **[Design Spec](./superpowers/specs/2026-03-10-plugin-api-v2-design.md)** — Architecture and design decisions
+>
+> The guide below covers the **current v1 API** for language connection detection.
+
 This guide covers how to create language plugins for CodeGraphy.
 
 ![Plugins panel](./media/plugins-panel.png)
