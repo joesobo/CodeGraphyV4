@@ -19,6 +19,10 @@ Reading code is linear. Codebases aren't. CodeGraphy gives you a bird's-eye view
 - **Depth Graph** radiates outward from any file, 1 to 5 hops deep
 - **Subfolder** scopes the graph to a single directory
 
+**Git timeline.** Index your repo's history and watch the dependency graph evolve over time. Scrub through commits, play back changes at adjustable speed, and see how your architecture grew.
+
+![Timeline](./docs/timeline-screenshot.png)
+
 **Make it yours.** Assign colors to files with glob patterns. Tune the physics. Filter out noise. Switch between 2D and 3D. Export as PNG, SVG, or JSON.
 
 **Work from the graph.** Right-click any node to open, rename, delete, or favorite files, all with full undo/redo. Double-click to jump straight to the source.
@@ -45,6 +49,7 @@ Want to add a language? See the [Plugin Guide](./docs/PLUGINS.md).
 
 | | |
 |---|---|
+| [Timeline](./docs/TIMELINE.md) | Git history playback and scrubbing |
 | [Settings](./docs/SETTINGS.md) | Physics, groups, filters, display options |
 | [Commands](./docs/COMMANDS.md) | Command palette reference |
 | [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts |
