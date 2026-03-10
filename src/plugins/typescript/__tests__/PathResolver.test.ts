@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
-import { PathResolver } from '../../../src/plugins/typescript/PathResolver';
+import { PathResolver } from '../PathResolver';
 
 describe('PathResolver', () => {
   let tempDir: string;

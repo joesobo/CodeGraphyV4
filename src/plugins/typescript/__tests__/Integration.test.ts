@@ -8,9 +8,9 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createTypeScriptPlugin } from '../../../src/plugins/typescript';
+import { createTypeScriptPlugin } from '..';
 
-const TS_EXAMPLE_ROOT = path.join(__dirname, '../../../src/plugins/typescript/examples');
+const TS_EXAMPLE_ROOT = path.join(__dirname, '../examples');
 
 describe('TypeScript Plugin Integration', () => {
   const plugin = createTypeScriptPlugin();

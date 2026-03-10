@@ -7,9 +7,9 @@
 import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createGDScriptPlugin as createGodotPlugin } from '../../../src/plugins/godot';
+import { createGDScriptPlugin as createGodotPlugin } from '..';
 
-const GDSCRIPT_ROOT = path.join(__dirname, '../../../src/plugins/godot/examples');
+const GDSCRIPT_ROOT = path.join(__dirname, '../examples');
 
 describe('Godot GDScript Plugin Integration', () => {
   const plugin = createGodotPlugin();

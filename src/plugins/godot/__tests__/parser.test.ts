@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { detectClassNameDeclaration, isResPath } from '../../../src/plugins/godot/parser';
+import { detectClassNameDeclaration, isResPath } from '../parser';
 
 describe('GDScript parser', () => {
   describe('isResPath', () => {
