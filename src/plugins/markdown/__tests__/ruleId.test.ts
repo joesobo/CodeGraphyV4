@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { createMarkdownPlugin } from '../../../src/plugins/markdown';
+import { createMarkdownPlugin } from '..';
 import * as path from 'path';
 import * as os from 'os';
 

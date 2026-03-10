@@ -4,8 +4,8 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import * as fs from 'fs';
-import { PathResolver } from '../../../src/plugins/csharp/PathResolver';
-import { IDetectedUsing, IDetectedNamespace } from '../../../src/plugins/csharp/parser';
+import { PathResolver } from '../PathResolver';
+import { IDetectedUsing, IDetectedNamespace } from '../parser';
 
 // Mock fs module
 vi.mock('fs');

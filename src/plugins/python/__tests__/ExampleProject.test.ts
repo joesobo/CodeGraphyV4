@@ -6,9 +6,9 @@
 import { describe, it, expect } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createPythonPlugin } from '../../../src/plugins/python';
+import { createPythonPlugin } from '..';
 
-const EXAMPLE_ROOT = path.join(__dirname, '../../../examples/python-plugin');
+const EXAMPLE_ROOT = path.join(__dirname, '../examples');
 
 describe('Python Example Project', () => {
   const plugin = createPythonPlugin();
