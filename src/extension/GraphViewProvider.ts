@@ -88,8 +88,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /** The view type identifier used in package.json contribution */
   public static readonly viewType = 'codegraphy.graphView';
 
-  /** Reference to the webview view, undefined until resolved */
+  /** Reference to the sidebar webview view, undefined until resolved */
   private _view?: vscode.WebviewView;
+
+  /** Active editor panels (opened via "Open in Editor") */
+  private _panels: vscode.WebviewPanel[] = [];
   
   /** Current graph data being displayed */
   private _graphData: IGraphData = { nodes: [], edges: [] };
@@ -686,14 +689,49 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._sendMessage({ type: command });
   }
 
+  /**
+   * Opens CodeGraphy in a main editor panel (alongside code tabs).
+   * Creates a WebviewPanel in the active editor column.
+   */
+  public openInEditor(): void {
+    const panel = vscode.window.createWebviewPanel(
+      GraphViewProvider.viewType,
+      'CodeGraphy',
+      vscode.ViewColumn.Active,
+      {
+        enableScripts: true,
+        localResourceRoots: [this._extensionUri],
+        retainContextWhenHidden: true,
+      }
+    );
+
+    panel.iconPath = vscode.Uri.joinPath(this._extensionUri, 'assets', 'icon.svg');
+
+    // Set up message listener before loading HTML
+    this._setWebviewMessageListener(panel.webview);
+
+    panel.webview.html = this._getHtmlForWebview(panel.webview);
+
+    // Track panel
+    this._panels.push(panel);
+
+    // Clean up when panel is closed
+    panel.onDidDispose(() => {
+      this._panels = this._panels.filter(p => p !== panel);
+    });
+  }
+
   // ── Test helpers ─────────────────────────────────────────────────────────
 
   /**
-   * Send an arbitrary message to the webview (for e2e tests).
+   * Send an arbitrary message to all webviews (for e2e tests).
    * Mirrors what the extension sends, e.g. to simulate WEBVIEW_READY.
    */
   public sendToWebview(message: unknown): void {
     this._view?.webview.postMessage(message);
+    for (const panel of this._panels) {
+      panel.webview.postMessage(message);
+    }
   }
 
   /**
@@ -759,13 +797,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Sends a message to the webview.
-   * 
-   * @param message - Message to send to the webview
+   * Sends a message to all active webviews (sidebar + editor panels).
+   *
+   * @param message - Message to send to the webviews
    */
   private _sendMessage(message: ExtensionToWebviewMessage): void {
     if (this._view) {
       this._view.webview.postMessage(message);
+    }
+    for (const panel of this._panels) {
+      panel.webview.postMessage(message);
     }
   }
 
