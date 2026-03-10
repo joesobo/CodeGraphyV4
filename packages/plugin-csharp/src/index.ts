@@ -1,6 +1,6 @@
 /**
  * @fileoverview C# plugin for CodeGraphy.
- * Thin orchestrator that loads metadata from manifest.json and delegates
+ * Thin orchestrator that loads metadata from codegraphy.json and delegates
  * detection to individual rule modules in rules/.
  * @module plugins/csharp
  */
@@ -8,7 +8,7 @@
 import { IPlugin, IConnection } from '../../extension/src/core/plugins';
 import { PathResolver, ICSharpPathResolverConfig } from './PathResolver';
 import { parseContent, extractUsedTypes, CSharpRuleContext } from './parser';
-import manifest from './manifest.json';
+import manifest from '../codegraphy.json';
 
 // Rule detect functions
 import { detect as detectUsingDirective } from './rules/using-directive';
