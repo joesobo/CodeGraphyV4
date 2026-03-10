@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import type { IPlugin, IConnection } from '../../extension/src/core/plugins/types';
+import type { IPlugin, IConnection } from '@codegraphy/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration } from './parser';
 import manifest from '../codegraphy.json';

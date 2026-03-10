@@ -4,7 +4,7 @@
  * @module plugins/csharp/rules/using-directive
  */
 
-import type { IConnection, IRuleDetector } from '../../../extension/src/core/plugins/types';
+import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
 import type { CSharpRuleContext } from '../parser';
 
 /** Detects using directive connections: using System; using static X; global using X; */

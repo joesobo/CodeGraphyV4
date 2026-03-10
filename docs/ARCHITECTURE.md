@@ -63,7 +63,7 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 ## Plugin layer (`packages/plugin-*/`)
 
-Each plugin implements `IPlugin` from `src/core/plugins/types.ts`. Five built-in plugins:
+Each plugin implements `IPlugin` from `@codegraphy/plugin-api`. Five built-in plugins:
 
 - **plugin-typescript/** handles `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs` using the TypeScript Compiler API for AST-based import detection
 - **plugin-python/** handles `.py`, `.pyi` with regex-based detection of `import` and `from` statements

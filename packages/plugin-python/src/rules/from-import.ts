@@ -4,7 +4,7 @@
  * @module plugins/python/rules/from-import
  */
 
-import type { IConnection, IRuleDetector } from '../../../extension/src/core/plugins/types';
+import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
 import { preprocessMultilineImports, isCommentOrString } from '../preprocess';
 import type { PythonRuleContext } from '../preprocess';
 

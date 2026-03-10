@@ -5,8 +5,7 @@
  */
 
 import * as ts from 'typescript';
-import { IConnection } from '../../../extension/src/core/plugins';
-import type { IRuleDetector } from '../../../extension/src/core/plugins/types';
+import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
 import type { PathResolver } from '../PathResolver';
 
 /** Context provided by the TypeScript plugin orchestrator */

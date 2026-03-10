@@ -5,7 +5,7 @@
  * @module plugins/markdown
  */
 
-import { IPlugin, IConnection } from '../../extension/src/core/plugins';
+import type { IPlugin, IConnection } from '@codegraphy/plugin-api';
 import { PathResolver } from './PathResolver';
 import manifest from '../codegraphy.json';
 

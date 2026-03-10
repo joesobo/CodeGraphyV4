@@ -5,7 +5,7 @@
  * @module plugins/csharp
  */
 
-import { IPlugin, IConnection } from '../../extension/src/core/plugins';
+import type { IPlugin, IConnection } from '@codegraphy/plugin-api';
 import { PathResolver, ICSharpPathResolverConfig } from './PathResolver';
 import { parseContent, extractUsedTypes, CSharpRuleContext } from './parser';
 import manifest from '../codegraphy.json';

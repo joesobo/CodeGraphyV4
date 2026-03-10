@@ -8,7 +8,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as ts from 'typescript';
-import { IPlugin, IConnection } from '../../extension/src/core/plugins';
+import type { IPlugin, IConnection } from '@codegraphy/plugin-api';
 import { PathResolver, IPathResolverConfig } from './PathResolver';
 import manifest from '../codegraphy.json';
 

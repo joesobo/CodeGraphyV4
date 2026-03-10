@@ -5,7 +5,7 @@
  * @module plugins/markdown/rules/wikilink
  */
 
-import type { IConnection, IRuleDetector } from '../../../extension/src/core/plugins/types';
+import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
 import type { PathResolver } from '../PathResolver';
 
 /** Shared context for Markdown rules */

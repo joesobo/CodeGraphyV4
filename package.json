@@ -16,8 +16,11 @@
 		"dev": "npm run watch",
 		"test": "vitest run --config packages/extension/vitest.config.ts",
 		"test:watch": "vitest --config packages/extension/vitest.config.ts",
-		"lint": "eslint packages/extension/src packages/plugin-*/src",
-		"typecheck": "tsc --noEmit -p packages/extension/tsconfig.json",
+		"lint": "eslint packages/extension/src packages/plugin-api/src packages/plugin-*/src",
+		"typecheck": "npm run typecheck:extension && npm run typecheck:plugin-api && npm run typecheck:plugins",
+		"typecheck:extension": "tsc --noEmit -p packages/extension/tsconfig.json",
+		"typecheck:plugin-api": "tsc --noEmit -p packages/plugin-api/tsconfig.json",
+		"typecheck:plugins": "tsc --noEmit -p tsconfig.plugins.json",
 		"prepare": "husky",
 		"test:e2e": "npm run build:e2e && node dist-e2e/e2e/runTest.js",
 		"build:e2e": "npm run build && tsc -p packages/extension/tsconfig.e2e.json"
