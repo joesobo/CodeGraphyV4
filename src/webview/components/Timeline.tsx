@@ -31,7 +31,7 @@ function truncateMessage(message: string, maxLen: number = 50): string {
 /**
  * Generate evenly-spaced date tick marks for the timeline axis.
  */
-function generateDateTicks(minTs: number, maxTs: number, maxTicks: number = 8): number[] {
+function generateDateTicks(minTs: number, maxTs: number, maxTicks: number = 7): number[] {
   const range = maxTs - minTs;
   if (range <= 0) return [minTs];
 
@@ -43,7 +43,7 @@ function generateDateTicks(minTs: number, maxTs: number, maxTicks: number = 8): 
   return ticks;
 }
 
-const TIMELINE_BAR_HEIGHT = 28;
+const TRACK_HEIGHT = 24;
 
 export default function Timeline(): React.ReactElement | null {
   const timelineActive = useGraphStore((s) => s.timelineActive);
@@ -235,138 +235,124 @@ export default function Timeline(): React.ReactElement | null {
   const timeRange = maxTimestamp - minTimestamp || 1;
   const dateTicks = generateDateTicks(minTimestamp, maxTimestamp);
 
-  // Compute position for the scrub indicator
-  const currentPosition = ((timelineCommits[currentIndex].timestamp - minTimestamp) / timeRange) * 100;
-
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className="flex-shrink-0 border-t border-border bg-[var(--vscode-sideBar-background,hsl(var(--background)))]" data-testid="timeline">
+    <TooltipProvider delayDuration={150}>
+      <div className="flex-shrink-0" data-testid="timeline">
         {/* Main timeline row: play/pause | track | current button */}
-        <div className="flex items-center gap-0 px-2 py-1.5">
-          {/* Play/Pause button */}
+        <div className="flex items-center gap-0 px-3 pt-1.5 pb-0">
+          {/* Play/Pause button — compact, inline */}
           <button
             onClick={handlePlayPause}
-            className="flex-shrink-0 p-1 mr-2 text-muted-foreground hover:text-foreground transition-colors"
+            className="flex-shrink-0 mr-2 text-[var(--vscode-descriptionForeground,#999)] hover:text-[var(--vscode-foreground,#ccc)] transition-colors"
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
-              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
-                <rect x="5" y="3" width="4" height="18" />
-                <rect x="15" y="3" width="4" height="18" />
+              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
+                <rect x="4" y="3" width="6" height="18" />
+                <rect x="14" y="3" width="6" height="18" />
               </svg>
             ) : (
-              <svg className="h-3.5 w-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             )}
           </button>
 
-          {/* Timeline track area */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Track bar with commit lines */}
-            <div
-              ref={trackRef}
-              className="relative cursor-pointer select-none"
-              style={{ height: TIMELINE_BAR_HEIGHT }}
-              onMouseDown={handleTrackMouseDown}
-            >
-              {/* Background bar */}
-              <div className="absolute inset-0 rounded-sm bg-[var(--vscode-editor-background,hsl(var(--muted)))]" />
+          {/* Timeline track */}
+          <div
+            ref={trackRef}
+            className="flex-1 relative cursor-pointer select-none"
+            style={{
+              height: TRACK_HEIGHT,
+              backgroundColor: '#000',
+            }}
+            onMouseDown={handleTrackMouseDown}
+          >
+            {/* Commit lines */}
+            {timelineCommits.map((commit) => {
+              const position = ((commit.timestamp - minTimestamp) / timeRange) * 100;
+              const isCurrent = commit.sha === currentCommitSha;
 
-              {/* Commit lines */}
-              {timelineCommits.map((commit) => {
-                const position = ((commit.timestamp - minTimestamp) / timeRange) * 100;
-                const isCurrent = commit.sha === currentCommitSha;
-
-                return (
-                  <Tooltip key={commit.sha} open={openTooltipSha === commit.sha} onOpenChange={(open) => {
-                    setOpenTooltipSha(open ? commit.sha : null);
-                  }}>
-                    <TooltipTrigger asChild>
-                      <div
-                        className="absolute top-0 bottom-0 -translate-x-1/2"
-                        style={{
-                          left: `${position}%`,
-                          width: isCurrent ? 3 : 2,
-                          zIndex: isCurrent ? 10 : 1,
-                        }}
-                        onMouseEnter={() => setOpenTooltipSha(commit.sha)}
-                        onMouseLeave={() => setOpenTooltipSha(null)}
-                      >
-                        <div
-                          className="w-full h-full transition-opacity"
-                          style={{
-                            backgroundColor: isCurrent
-                              ? 'var(--vscode-foreground, hsl(var(--foreground)))'
-                              : 'var(--vscode-foreground, hsl(var(--foreground)))',
-                            opacity: isCurrent ? 1 : 0.35,
-                          }}
-                        />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="top"
-                      sideOffset={8}
-                      className="bg-[var(--vscode-editorHoverWidget-background,hsl(var(--popover)))] border border-[var(--vscode-editorHoverWidget-border,hsl(var(--border)))] text-[var(--vscode-editorHoverWidget-foreground,hsl(var(--popover-foreground)))] px-3 py-2 max-w-xs"
+              return (
+                <Tooltip key={commit.sha} open={openTooltipSha === commit.sha} onOpenChange={(open) => {
+                  setOpenTooltipSha(open ? commit.sha : null);
+                }}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="absolute top-[1px] bottom-[1px] -translate-x-1/2"
+                      style={{
+                        left: `${position}%`,
+                        width: isCurrent ? 3 : 2,
+                        zIndex: isCurrent ? 10 : 1,
+                      }}
+                      onMouseEnter={() => setOpenTooltipSha(commit.sha)}
+                      onMouseLeave={() => setOpenTooltipSha(null)}
                     >
-                      <div className="font-mono text-xs text-muted-foreground mb-0.5">
-                        {commit.sha.slice(0, 7)}
-                      </div>
-                      <div className="text-sm leading-snug mb-1">
-                        {truncateMessage(commit.message, 80)}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {commit.author} &middot; {formatDate(commit.timestamp)}
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-
-              {/* Current position indicator (bright line) */}
-              <div
-                className="absolute top-0 bottom-0 pointer-events-none"
-                style={{
-                  left: `${currentPosition}%`,
-                  width: 2,
-                  transform: 'translateX(-50%)',
-                  backgroundColor: 'var(--vscode-focusBorder, hsl(var(--primary)))',
-                  zIndex: 20,
-                }}
-              />
-            </div>
-
-            {/* Date axis labels */}
-            <div className="relative h-4 mt-0.5">
-              {dateTicks.map((ts, i) => {
-                const position = ((ts - minTimestamp) / timeRange) * 100;
-                return (
-                  <span
-                    key={i}
-                    className="absolute text-[10px] text-muted-foreground -translate-x-1/2 select-none"
-                    style={{ left: `${position}%` }}
+                      <div
+                        className="w-full h-full"
+                        style={{
+                          backgroundColor: '#fff',
+                          opacity: isCurrent ? 1 : 0.6,
+                        }}
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    sideOffset={8}
+                    className="bg-[var(--vscode-editorHoverWidget-background,#2d2d30)] border border-[var(--vscode-editorHoverWidget-border,#454545)] text-[var(--vscode-editorHoverWidget-foreground,#ccc)] px-3 py-2 max-w-xs rounded-md"
                   >
-                    {formatAxisLabel(ts)}
-                  </span>
-                );
-              })}
-              {/* "Now" label at end */}
-              <span className="absolute right-0 text-[10px] text-muted-foreground select-none">
-                Now
-              </span>
-            </div>
+                    <div className="font-mono text-xs text-[var(--vscode-descriptionForeground,#999)] mb-0.5">
+                      {commit.sha.slice(0, 7)}
+                    </div>
+                    <div className="text-sm leading-snug mb-1">
+                      {truncateMessage(commit.message, 80)}
+                    </div>
+                    <div className="text-xs text-[var(--vscode-descriptionForeground,#999)]">
+                      {commit.author} &middot; {formatDate(commit.timestamp)}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              );
+            })}
           </div>
 
-          {/* Current button */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-shrink-0 ml-2 h-6 px-2.5 text-xs"
+          {/* Current button — pill shape */}
+          <button
             onClick={handleJumpToEnd}
             disabled={isAtEnd}
+            className="flex-shrink-0 ml-2 px-2.5 py-0.5 text-[11px] rounded-[3px] border transition-colors
+              border-[var(--vscode-panel-border,#555)] text-[var(--vscode-descriptionForeground,#999)]
+              hover:text-[var(--vscode-foreground,#ccc)] hover:border-[var(--vscode-foreground,#999)]
+              disabled:opacity-40 disabled:cursor-default disabled:hover:text-[var(--vscode-descriptionForeground,#999)] disabled:hover:border-[var(--vscode-panel-border,#555)]"
           >
             Current
-          </Button>
+          </button>
+        </div>
+
+        {/* Date axis labels — tight below the track */}
+        <div className="relative px-3 pb-1.5" style={{ marginLeft: 22 }}>
+          <div className="relative h-3.5">
+            {dateTicks.map((ts, i) => {
+              const position = ((ts - minTimestamp) / timeRange) * 100;
+              return (
+                <span
+                  key={i}
+                  className="absolute text-[10px] leading-none text-[var(--vscode-descriptionForeground,#777)] -translate-x-1/2 select-none"
+                  style={{ left: `${position}%`, top: 2 }}
+                >
+                  {formatAxisLabel(ts)}
+                </span>
+              );
+            })}
+            {/* "Now" label at end */}
+            <span
+              className="absolute text-[10px] leading-none text-[var(--vscode-descriptionForeground,#777)] select-none"
+              style={{ right: 56, top: 2 }}
+            >
+              Now
+            </span>
+          </div>
         </div>
       </div>
     </TooltipProvider>
