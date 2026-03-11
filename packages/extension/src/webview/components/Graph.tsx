@@ -40,7 +40,8 @@ import { WebviewPluginHost } from '../pluginHost';
 /** Yellow color for favorites */
 const FAVORITE_BORDER_COLOR = '#EAB308';
 const DIRECTIONAL_ARROW_LENGTH_2D = 12;
-const DIRECTIONAL_ARROW_GAP_2D = 2;
+const DIRECTION_AUTO_COLOR_LIGHT = '#000000';
+const DIRECTION_AUTO_COLOR_DARK = '#FFFFFF';
 
 /** Minimum and maximum node sizes */
 const MIN_NODE_SIZE = 10;
@@ -67,6 +68,11 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
 /** Map normalized repelForce (0–20) to d3 forceManyBody strength (0 to -500) */
 function toD3Repel(repelForce: number): number {
   return -(repelForce / 20) * 500;
+}
+
+function resolveDirectionColor(theme: ThemeKind, directionColor: string): string {
+  if (/^#[0-9A-F]{6}$/i.test(directionColor)) return directionColor;
+  return theme === 'light' ? DIRECTION_AUTO_COLOR_LIGHT : DIRECTION_AUTO_COLOR_DARK;
 }
 
 // ─── Internal node/link types ──────────────────────────────────────────────
@@ -230,6 +236,7 @@ export default function Graph({
   const physicsSettings = useGraphStore(s => s.physicsSettings);
   const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
   const directionMode = useGraphStore(s => s.directionMode);
+  const directionColor = useGraphStore(s => s.directionColor);
   const particleSpeed = useGraphStore(s => s.particleSpeed);
   const particleSize = useGraphStore(s => s.particleSize);
   const showLabels = useGraphStore(s => s.showLabels);
@@ -247,6 +254,7 @@ export default function Graph({
   const selectedNodesSetRef = useRef<Set<string>>(new Set());
   const themeRef = useRef(theme);
   const directionModeRef = useRef(directionMode);
+  const directionColorRef = useRef(directionColor);
   const favoritesRef = useRef(favorites);
   const graphDataRef = useRef<{ nodes: FGNode[]; links: FGLink[] }>({ nodes: [], links: [] });
   const contextTargetRef = useRef<string[]>([]);
@@ -269,6 +277,7 @@ export default function Graph({
   // Keep refs current on every render
   themeRef.current = theme;
   directionModeRef.current = directionMode;
+  directionColorRef.current = directionColor;
   showLabelsRef.current = showLabels;
   favoritesRef.current = favorites;
   dataRef.current = data;
@@ -499,10 +508,8 @@ export default function Graph({
     if (dist < 1) { ctx.restore(); return; }
     const nx = dx / dist;
     const ny = dy / dist;
-    // Keep arrowheads clear of node circles so they stay visible at any zoom.
-    const arrowInset = DIRECTIONAL_ARROW_LENGTH_2D * 0.7 + DIRECTIONAL_ARROW_GAP_2D / globalScale;
-    const startInset = src.size + arrowInset;
-    const endInset = tgt.size + arrowInset;
+    const startInset = src.size;
+    const endInset = tgt.size;
     if (dist <= startInset + endInset) {
       ctx.restore();
       return;
@@ -523,6 +530,7 @@ export default function Graph({
       const arrowVertexLen = arrowLen * 0.2;
       const px = -ny;
       const py = nx;
+      const directionalColor = resolveDirectionColor(themeRef.current, directionColorRef.current);
 
       // Arrow at target end (src -> tgt)
       const tailX1 = endX - nx * arrowLen;
@@ -535,7 +543,7 @@ export default function Graph({
       ctx.lineTo(vertexX1, vertexY1);
       ctx.lineTo(tailX1 - px * arrowHalfWidth, tailY1 - py * arrowHalfWidth);
       ctx.closePath();
-      ctx.fillStyle = ctx.strokeStyle as string;
+      ctx.fillStyle = directionalColor;
       ctx.fill();
 
       // Arrow at source end (tgt -> src)
@@ -551,6 +559,7 @@ export default function Graph({
       ctx.lineTo(vertexX2, vertexY2);
       ctx.lineTo(tailX2 - px * arrowHalfWidth, tailY2 - py * arrowHalfWidth);
       ctx.closePath();
+      ctx.fillStyle = directionalColor;
       ctx.fill();
     }
 
@@ -580,50 +589,12 @@ export default function Graph({
     return edgeDeco?.particles?.count ?? 3;
   }, []);
 
-  const getArrowRelPos = useCallback((link: LinkObject): number => {
-    const edge = link as FGLink;
-    const src = typeof edge.source === 'object' ? edge.source as FGNode : null;
-    const tgt = typeof edge.target === 'object' ? edge.target as FGNode : null;
-    if (!src || !tgt || src.x == null || src.y == null || tgt.x == null || tgt.y == null) return 0.5;
-
-    const dx = tgt.x - src.x;
-    const dy = tgt.y - src.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 1) return 0.5;
-
-    const targetRadius = tgt.size ?? DEFAULT_NODE_SIZE;
-    const offset = targetRadius + DIRECTIONAL_ARROW_LENGTH_2D * 0.7 + DIRECTIONAL_ARROW_GAP_2D;
-    const relPos = 1 - offset / dist;
-    return Math.max(0.2, Math.min(0.95, relPos));
+  const getArrowColor = useCallback((_link: LinkObject): string => {
+    return resolveDirectionColor(themeRef.current, directionColorRef.current);
   }, []);
 
-  const getArrowColor = useCallback((link: LinkObject): string => {
-    const edge = link as FGLink;
-    const edgeDeco = edgeDecorationsRef.current?.[edge.id];
-    if (edgeDeco?.color) return edgeDeco.color;
-    const srcId = typeof edge.source === 'string' ? edge.source : (edge.source as FGNode)?.id;
-    const tgtId = typeof edge.target === 'string' ? edge.target : (edge.target as FGNode)?.id;
-    const highlighted = highlightedNodeRef.current;
-    const isLight = themeRef.current === 'light';
-    if (!highlighted) return isLight ? '#64748b' : '#93c5fd';
-    return (srcId === highlighted || tgtId === highlighted)
-      ? '#60a5fa'
-      : (isLight ? '#94a3b8' : '#64748b');
-  }, []);
-
-  const getParticleColor = useCallback((link: LinkObject): string => {
-    const edge = link as FGLink;
-    const edgeDeco = edgeDecorationsRef.current?.[edge.id];
-    if (edgeDeco?.particles?.color) return edgeDeco.particles.color;
-    if (edgeDeco?.color) return edgeDeco.color;
-    const srcId = typeof edge.source === 'string' ? edge.source : (edge.source as FGNode)?.id;
-    const tgtId = typeof edge.target === 'string' ? edge.target : (edge.target as FGNode)?.id;
-    const highlighted = highlightedNodeRef.current;
-    const isLight = themeRef.current === 'light';
-    if (!highlighted) return isLight ? '#2563eb' : '#38bdf8';
-    return (srcId === highlighted || tgtId === highlighted)
-      ? '#0ea5e9'
-      : (isLight ? '#60a5fa' : '#93c5fd');
+  const getParticleColor = useCallback((_link: LinkObject): string => {
+    return resolveDirectionColor(themeRef.current, directionColorRef.current);
   }, []);
 
   const getLinkWidth = useCallback((link: FGLink) => {
@@ -1145,7 +1116,7 @@ export default function Graph({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fg2d = fg as any;
     fg2d.linkDirectionalArrowLength?.(directionMode === 'arrows' ? DIRECTIONAL_ARROW_LENGTH_2D : 0);
-    fg2d.linkDirectionalArrowRelPos?.(getArrowRelPos);
+    fg2d.linkDirectionalArrowRelPos?.(1);
     fg2d.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
     fg2d.linkDirectionalParticleWidth?.(particleSize);
     fg2d.linkDirectionalParticleSpeed?.(particleSpeed);
@@ -1153,7 +1124,7 @@ export default function Graph({
     fg2d.linkDirectionalParticleColor?.(getParticleColor);
     fg.d3ReheatSimulation();
     fg.resumeAnimation?.();
-  }, [graphMode, directionMode, particleSpeed, particleSize, getArrowColor, getParticleColor, getLinkParticles, getArrowRelPos]);
+  }, [graphMode, directionMode, particleSpeed, particleSize, getArrowColor, getParticleColor, getLinkParticles]);
 
   // ── Container size tracking ───────────────────────────────────────────────
 
@@ -1273,7 +1244,7 @@ export default function Graph({
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
               linkDirectionalArrowLength={directionMode === 'arrows' ? DIRECTIONAL_ARROW_LENGTH_2D : 0}
-              linkDirectionalArrowRelPos={getArrowRelPos}
+              linkDirectionalArrowRelPos={1}
               linkDirectionalArrowColor={getArrowColor}
               linkDirectionalParticles={directionMode === 'particles' ? getLinkParticles : 0}
               linkDirectionalParticleWidth={particleSize}
@@ -1303,10 +1274,11 @@ export default function Graph({
               linkWidth={getLinkWidth as (link: LinkObject) => number}
               linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
               linkDirectionalArrowRelPos={1}
+              linkDirectionalArrowColor={getArrowColor}
               linkDirectionalParticles={directionMode === 'particles' ? getLinkParticles : 0}
               linkDirectionalParticleWidth={particleSize}
               linkDirectionalParticleSpeed={particleSpeed}
-              linkDirectionalParticleColor={getLinkColor as (link: LinkObject) => string}
+              linkDirectionalParticleColor={getParticleColor}
             />
           )}
         </div>

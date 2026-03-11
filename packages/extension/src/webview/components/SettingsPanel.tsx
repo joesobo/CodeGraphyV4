@@ -9,6 +9,7 @@ import { IPhysicsSettings, NodeSizeMode, DirectionMode } from '../../shared/type
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
+import { useTheme } from '../hooks/useTheme';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -30,6 +31,12 @@ const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
 
 /** Delay before persisting slider updates to VS Code settings. */
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
+const DIRECTION_AUTO_COLOR_LIGHT = '#000000';
+const DIRECTION_AUTO_COLOR_DARK = '#FFFFFF';
+
+function isHexColor(value: string): boolean {
+  return /^#[0-9A-F]{6}$/i.test(value);
+}
 
 function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
   return (
@@ -68,6 +75,8 @@ export default function SettingsPanel({
   isOpen,
   onClose,
 }: SettingsPanelProps): React.ReactElement | null {
+  const theme = useTheme();
+
   // Read state from store
   const settings = useGraphStore(s => s.physicsSettings);
   const setPhysicsSettings = useGraphStore(s => s.setPhysicsSettings);
@@ -85,7 +94,9 @@ export default function SettingsPanel({
   const setActiveViewId = useGraphStore(s => s.setActiveViewId);
   const depthLimit = useGraphStore(s => s.depthLimit);
   const directionMode = useGraphStore(s => s.directionMode);
+  const directionColor = useGraphStore(s => s.directionColor);
   const setDirectionMode = useGraphStore(s => s.setDirectionMode);
+  const setDirectionColor = useGraphStore(s => s.setDirectionColor);
   const showLabels = useGraphStore(s => s.showLabels);
   const setShowLabels = useGraphStore(s => s.setShowLabels);
   const graphMode = useGraphStore(s => s.graphMode);
@@ -276,6 +287,20 @@ export default function SettingsPanel({
   const handleDirectionModeChange = (mode: DirectionMode) => {
     setDirectionMode(mode);
     postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
+  };
+
+  const autoDirectionColor = theme === 'light' ? DIRECTION_AUTO_COLOR_LIGHT : DIRECTION_AUTO_COLOR_DARK;
+  const resolvedDirectionColor = isHexColor(directionColor) ? directionColor : autoDirectionColor;
+
+  const handleDirectionColorChange = (value: string) => {
+    const normalized = value.toUpperCase();
+    setDirectionColor(normalized);
+    postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: normalized } });
+  };
+
+  const handleDirectionColorAuto = () => {
+    setDirectionColor('auto');
+    postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: 'auto' } });
   };
 
   const handleParticleSpeedChange = (value: number) => {
@@ -608,6 +633,31 @@ export default function SettingsPanel({
                     onClick={() => handleDirectionModeChange('none')}
                   >
                     None
+                  </Button>
+                </div>
+              </div>
+
+              {/* Direction color */}
+              <div>
+                <Label htmlFor="direction-color" className="text-xs text-muted-foreground mb-1.5 block">Direction Color</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="direction-color"
+                    type="color"
+                    value={resolvedDirectionColor}
+                    onChange={(e) => handleDirectionColorChange(e.target.value)}
+                    className="h-7 w-10 p-1"
+                  />
+                  <span className="text-[11px] text-muted-foreground font-mono flex-1">
+                    {directionColor === 'auto' ? `Auto (${resolvedDirectionColor})` : resolvedDirectionColor}
+                  </span>
+                  <Button
+                    variant={directionColor === 'auto' ? 'default' : 'secondary'}
+                    size="sm"
+                    className="h-6 px-2 text-xs"
+                    onClick={handleDirectionColorAuto}
+                  >
+                    Auto
                   </Button>
                 </div>
               </div>

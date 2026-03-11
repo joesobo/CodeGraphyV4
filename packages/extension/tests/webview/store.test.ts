@@ -15,6 +15,7 @@ describe('GraphStore', () => {
     expect(state.searchQuery).toBe('');
     expect(state.favorites).toEqual(new Set());
     expect(state.directionMode).toBe('arrows');
+    expect(state.directionColor).toBe('auto');
     expect(state.particleSpeed).toBe(0.005);
     expect(state.particleSize).toBe(4);
     expect(state.showLabels).toBe(true);
@@ -55,9 +56,10 @@ describe('GraphStore', () => {
   it('handles DIRECTION_SETTINGS_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'DIRECTION_SETTINGS_UPDATED',
-      payload: { directionMode: 'particles', particleSpeed: 0.01, particleSize: 6 },
+      payload: { directionMode: 'particles', directionColor: '#00FF00', particleSpeed: 0.01, particleSize: 6 },
     });
     expect(store.getState().directionMode).toBe('particles');
+    expect(store.getState().directionColor).toBe('#00FF00');
     expect(store.getState().particleSpeed).toBe(0.01);
     expect(store.getState().particleSize).toBe(6);
   });

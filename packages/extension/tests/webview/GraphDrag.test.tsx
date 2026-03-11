@@ -32,6 +32,7 @@ function setStore(overrides: Record<string, unknown> = {}) {
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     nodeSizeMode: 'connections',
     directionMode: 'arrows',
+    directionColor: 'auto',
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -72,14 +73,7 @@ describe('Graph: force-graph rendering', () => {
     render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
     expect(props.linkDirectionalArrowLength).toBeGreaterThan(0);
-    expect(props.linkDirectionalArrowRelPos).toEqual(expect.any(Function));
-
-    const relPos = props.linkDirectionalArrowRelPos({
-      source: { id: 'a.ts', x: 0, y: 0, size: 10 },
-      target: { id: 'b.ts', x: 100, y: 0, size: 10 },
-    });
-    expect(relPos).toBeGreaterThan(0.2);
-    expect(relPos).toBeLessThan(0.95);
+    expect(props.linkDirectionalArrowRelPos).toBe(1);
   });
 
   it('imperatively syncs 2D directional settings when mode changes', () => {
@@ -95,7 +89,7 @@ describe('Graph: force-graph rendering', () => {
     });
 
     expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(0);
-    expect(mockMethods.linkDirectionalArrowRelPos).toHaveBeenLastCalledWith(expect.any(Function));
+    expect(mockMethods.linkDirectionalArrowRelPos).toHaveBeenLastCalledWith(1);
     expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(expect.any(Function));
     expect(mockMethods.linkDirectionalParticleSpeed).toHaveBeenLastCalledWith(0.005);
     expect(mockMethods.d3ReheatSimulation).toHaveBeenCalledTimes(1);
@@ -106,6 +100,23 @@ describe('Graph: force-graph rendering', () => {
 
     expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(12);
     expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(0);
+  });
+
+  it('uses theme-aware default direction colors and supports custom direction color', () => {
+    setStore({ directionColor: 'auto' });
+    render(<Graph data={mockData} />);
+    let props = ForceGraph2D.getLastProps();
+
+    expect(props.linkDirectionalArrowColor({})).toBe('#FFFFFF');
+    expect(props.linkDirectionalParticleColor({})).toBe('#FFFFFF');
+
+    act(() => {
+      graphStore.setState({ directionColor: '#00FF00' });
+    });
+
+    props = ForceGraph2D.getLastProps();
+    expect(props.linkDirectionalArrowColor({})).toBe('#00FF00');
+    expect(props.linkDirectionalParticleColor({})).toBe('#00FF00');
   });
 
   it('draws bidirectional arrows when coordinates include 0', () => {
