@@ -109,6 +109,14 @@ Defines the message protocol and data types shared across both build targets:
 - `IGraphNode` / `IGraphEdge` / `IGraphData` for graph rendering
 - `ExtensionToWebviewMessage` and `WebviewToExtensionMessage` union types for the message protocol
 
+## Product docs (`docs/*.md`)
+
+**`SETTINGS.md`** documents VS Code/user settings, including plugin/rule toggle persistence keys (`codegraphy.disabledPlugins`, `codegraphy.disabledRules`).
+
+**`INTERACTIONS.md`** documents graph gestures, context menus, and panel behavior.
+
+**`TIMELINE.md`** documents git-history indexing/playback behavior and cache invalidation conditions.
+
 ## Plugin API docs (`docs/plugin-api/`)
 
 **`EVENTS.md`** documents canonical event names/payloads from `packages/plugin-api/src/events.ts`.
