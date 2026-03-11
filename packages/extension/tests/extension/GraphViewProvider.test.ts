@@ -411,6 +411,28 @@ describe('GraphViewProvider', () => {
       expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts' && g.color === '#3178C6')).toBe(true);
       expect(groups.some(g => g.id === 'plugin:codegraphy.python:*.py' && g.color === '#3776AB')).toBe(true);
     });
+
+    it('prunes stale plugin groups that no longer match current manifests', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const providerAny = provider as any;
+      // Seed with a stale plugin group that doesn't match any current plugin entry
+      providerAny._groups = [
+        { id: 'plugin:codegraphy.typescript:.ts', pattern: '.ts', color: '#3178C6' },
+        { id: 'user-group-1', pattern: 'src/**', color: '#FF0000' },
+      ];
+      await providerAny._analyzer.initialize();
+
+      const changed = providerAny._mergePluginFileColorGroups();
+      expect(changed).toBe(true);
+
+      const groups = providerAny._groups as Array<{ id: string; pattern: string; color: string }>;
+      // Stale plugin group should be removed
+      expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:.ts')).toBe(false);
+      // User group should be preserved
+      expect(groups.some(g => g.id === 'user-group-1')).toBe(true);
+      // Fresh plugin groups should be added
+      expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts')).toBe(true);
+    });
   });
 
   describe('plugin API v2 webview bridge', () => {
