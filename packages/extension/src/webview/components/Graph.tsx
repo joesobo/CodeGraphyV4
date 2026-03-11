@@ -26,6 +26,7 @@ import {
   NodeShape2D,
   NodeShape3D,
 } from '../../shared/types';
+import { computeLinkCurvature } from '../lib/linkCurvature';
 import { drawShape } from '../lib/shapes2D';
 import { getImage } from '../lib/imageCache';
 import { createNodeMesh, createImageSprite } from '../lib/shapes3D';
@@ -100,6 +101,7 @@ type FGLink = LinkObject & {
   id: string;
   bidirectional: boolean;
   baseColor?: string;
+  curvature?: number;
 };
 
 // ─── Pure helpers ──────────────────────────────────────────────────────────
@@ -392,6 +394,9 @@ export default function Graph({
       bidirectional: e.bidirectional ?? false,
       baseColor: e.bidirectional ? '#60a5fa' : undefined,
     } as FGLink));
+
+    // Compute curvature for overlapping links so parallel edges fan apart
+    computeLinkCurvature(links);
 
     graphDataRef.current = { nodes, links };
     return { nodes, links };
@@ -1321,6 +1326,7 @@ export default function Graph({
               linkDirectionalParticleWidth={particleSize}
               linkDirectionalParticleSpeed={particleSpeed}
               linkDirectionalParticleColor={getParticleColor}
+              linkCurvature={(link) => (link as FGLink).curvature ?? 0}
               linkCanvasObject={linkCanvasObject as (link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
               linkCanvasObjectMode={(link) => {
                 const bidirectional = Boolean((link as FGLink).bidirectional);
@@ -1349,6 +1355,8 @@ export default function Graph({
               linkDirectionalParticleWidth={particleSize}
               linkDirectionalParticleSpeed={particleSpeed}
               linkDirectionalParticleColor={getParticleColor}
+              linkCurvature={(link) => (link as FGLink).curvature ?? 0}
+              linkCurveRotation="rotation"
             />
           )}
         </div>

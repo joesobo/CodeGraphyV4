@@ -222,8 +222,10 @@ Controls how mutual imports (A imports B and B imports A) are drawn.
 { "codegraphy.bidirectionalEdges": "combined" }
 ```
 
-- `separate` (default): two arrows, one in each direction
+- `separate` (default): two arrows, one in each direction (overlapping links are automatically curved apart)
 - `combined`: a single line with arrowheads on both ends
+
+This setting is also accessible from the SettingsPanel **Display** section.
 
 ## Example configurations
 

@@ -403,6 +403,47 @@ describe('SettingsPanel: Direction mode', () => {
 
 });
 
+// ── Display: Bidirectional mode ──────────────────────────────────────────────
+
+describe('SettingsPanel: Bidirectional mode', () => {
+  beforeEach(() => sentMessages.length = 0);
+
+  it('renders bidirectional mode buttons with correct one selected', () => {
+    renderPanel({ bidirectionalMode: 'separate' });
+    openSection('Display');
+    const separateBtn = screen.getByRole('button', { name: /^Separate$/i });
+    const combinedBtn = screen.getByRole('button', { name: /^Combined$/i });
+    expect(separateBtn).toBeInTheDocument();
+    expect(combinedBtn).toBeInTheDocument();
+  });
+
+  it('clicking Combined posts UPDATE_BIDIRECTIONAL_MODE and updates store', () => {
+    renderPanel({ bidirectionalMode: 'separate' });
+    openSection('Display');
+
+    fireEvent.click(screen.getByRole('button', { name: /^Combined$/i }));
+
+    expect(graphStore.getState().bidirectionalMode).toBe('combined');
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_BIDIRECTIONAL_MODE',
+      payload: { bidirectionalMode: 'combined' },
+    });
+  });
+
+  it('clicking Separate posts UPDATE_BIDIRECTIONAL_MODE and updates store', () => {
+    renderPanel({ bidirectionalMode: 'combined' });
+    openSection('Display');
+
+    fireEvent.click(screen.getByRole('button', { name: /^Separate$/i }));
+
+    expect(graphStore.getState().bidirectionalMode).toBe('separate');
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_BIDIRECTIONAL_MODE',
+      payload: { bidirectionalMode: 'separate' },
+    });
+  });
+});
+
 // ── Display: Node Size ─────────────────────────────────────────────────────
 
 describe('SettingsPanel: Node Size', () => {

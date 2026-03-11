@@ -10,6 +10,8 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **Root `package.json`** routes top-level scripts through Turborepo (`turbo run ...`) and uses `pnpm` filters for package-specific scripts.
 
+**`.github/workflows/ci.yml`** runs the primary GitHub Actions CI pipeline on pushes and pull requests to `main` with two jobs: monorepo validation (lint, typecheck, test, build) and Playwright browser smoke tests with uploaded artifacts.
+
 **Root `.gitignore`** defines repository-level ignore rules, including local automation artifacts (`.playwright-cli/`, `.playwright-mcp/`, `.worktrees/`, `.turbo/`).
 
 **Root `CLAUDE.md`** stores repository-specific operator guidance for Claude Code, including the persistent-profile Playwright workflow for GitHub PR attachment uploads.
@@ -99,9 +101,9 @@ Each plugin declares detection rules in `codegraphy.json` and sets `ruleId` on e
 
 **`App.tsx`** listens for `ExtensionToWebviewMessage` events, manages all UI state, and renders the graph with panels. It also hosts the Tier-2 runtime (`WebviewPluginHost`), handles `PLUGIN_WEBVIEW_INJECT`, dynamically loads plugin scripts/styles, and routes plugin-scoped messages.
 
-**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI. In 2D mode, `drawShape()` from `lib/shapes2D.ts` renders six shape types (circle, square, diamond, triangle, hexagon, star); in 3D mode, `createNodeMesh()` from `lib/shapes3D.ts` builds corresponding Three.js geometries (sphere, cube, octahedron, cone, dodecahedron, icosahedron). Image overlays use `lib/imageCache.ts` for async-loaded 2D canvas images and `THREE.Sprite` billboards in 3D. Directional indicators (arrows/particles) are imperatively synced so they update immediately without manual refresh; force-graph radius math aligns with custom node radii so arrows terminate on node borders. Exposes plugin hooks for custom node renderers, overlay rendering, and tooltip section contributions.
+**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI. In 2D mode, `drawShape()` from `lib/shapes2D.ts` renders six shape types (circle, square, diamond, triangle, hexagon, star); in 3D mode, `createNodeMesh()` from `lib/shapes3D.ts` builds corresponding Three.js geometries (sphere, cube, octahedron, cone, dodecahedron, icosahedron). Image overlays use `lib/imageCache.ts` for async-loaded 2D canvas images and `THREE.Sprite` billboards in 3D. Directional indicators (arrows/particles) are imperatively synced so they update immediately without manual refresh; force-graph radius math aligns with custom node radii so arrows terminate on node borders. Overlapping links between the same node pair are automatically curved apart via `computeLinkCurvature()` from `lib/linkCurvature.ts`. Exposes plugin hooks for custom node renderers, overlay rendering, and tooltip section contributions.
 
-**`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings (all collapsed by default). Built with shadcn/ui components. Groups combine three layers: user-defined entries, built-in defaults (common file types), and plugin-provided default `fileColors`. Each group can set color, 2D shape, 3D shape, and an optional image overlay. Plugin/built-in groups can be individually disabled via eye toggles; overriding a default group creates a user copy that takes priority via first-match-wins ordering. Display settings include direction mode, particle controls, and a direction color picker (hex).
+**`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings (all collapsed by default). Built with shadcn/ui components. Groups combine three layers: user-defined entries, built-in defaults (common file types), and plugin-provided default `fileColors`. Each group can set color, 2D shape, 3D shape, and an optional image overlay. Plugin/built-in groups can be individually disabled via eye toggles; overriding a default group creates a user copy that takes priority via first-match-wins ordering. Display settings include direction mode, bidirectional edge mode (separate/combined), particle controls, and a direction color picker (hex).
 
 **`components/ui/slider.tsx`** is the shared slider primitive wrapper for the webview. It centralizes slider affordances so enabled controls show a pointer cursor and disabled controls expose a non-interactive cursor state.
 
@@ -125,6 +127,12 @@ Defines the message protocol and data types shared across both build targets:
 **`INTERACTIONS.md`** documents graph gestures, context menus, and panel behavior.
 
 **`TIMELINE.md`** documents git-history indexing/playback behavior and cache invalidation conditions.
+
+## Browser E2E (`tests/playwright/`)
+
+**`playwright.config.ts`** configures browser smoke testing against a built webview bundle served by `tests/playwright/webview-server.mjs`, and publishes HTML artifacts (`playwright-report/`, `test-results/`).
+
+**`tests/playwright/webview-smoke.spec.ts`** verifies the webview shell boots in a plain browser context (outside VS Code host) and renders the expected empty-state UI.
 
 ## Plugin API docs (`docs/plugin-api/`)
 

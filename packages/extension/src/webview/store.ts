@@ -106,6 +106,7 @@ export interface GraphState {
   setDirectionColor: (color: string) => void;
   setParticleSpeed: (speed: number) => void;
   setParticleSize: (size: number) => void;
+  setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
   setActiveViewId: (id: string) => void;
   setMaxFiles: (max: number) => void;
@@ -168,6 +169,7 @@ export function createGraphStore() {
     setDirectionColor: (color) => set({ directionColor: color }),
     setParticleSpeed: (speed) => set({ particleSpeed: speed }),
     setParticleSize: (size) => set({ particleSize: size }),
+    setBidirectionalMode: (mode) => set({ bidirectionalMode: mode }),
     setShowLabels: (show) => set({ showLabels: show }),
     setActiveViewId: (id) => set({ activeViewId: id }),
     setMaxFiles: (max) => set({ maxFiles: max }),

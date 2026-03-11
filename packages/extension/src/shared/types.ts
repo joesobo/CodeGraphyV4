@@ -534,6 +534,7 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_GROUPS'; payload: { groups: IGroup[] } }
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
   | { type: 'UPDATE_SHOW_ORPHANS'; payload: { showOrphans: boolean } }
+  | { type: 'UPDATE_BIDIRECTIONAL_MODE'; payload: { bidirectionalMode: BidirectionalEdgeMode } }
   | { type: 'UPDATE_DIRECTION_MODE'; payload: { directionMode: DirectionMode } }
   | { type: 'UPDATE_DIRECTION_COLOR'; payload: { directionColor: string } }
   | { type: 'UPDATE_PARTICLE_SETTING'; payload: { key: 'particleSpeed' | 'particleSize'; value: number } }
