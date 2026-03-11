@@ -109,13 +109,13 @@ describe('Graph: force-graph rendering', () => {
     expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(0);
   });
 
-  it('uses theme-aware default direction colors and supports custom direction color', () => {
+  it('uses edge-matching default direction colors and supports custom direction color', () => {
     setStore({ directionColor: 'auto' });
     render(<Graph data={mockData} />);
     let props = ForceGraph2D.getLastProps();
 
-    expect(props.linkDirectionalArrowColor({})).toBe('#FFFFFF');
-    expect(props.linkDirectionalParticleColor({})).toBe('#FFFFFF');
+    expect(props.linkDirectionalArrowColor({})).toBe(props.linkColor({}));
+    expect(props.linkDirectionalParticleColor({})).toBe(props.linkColor({}));
 
     act(() => {
       graphStore.setState({ directionColor: '#00FF00' });

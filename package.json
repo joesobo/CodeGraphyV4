@@ -301,7 +301,7 @@
 					"type": "string",
 					"default": "auto",
 					"pattern": "^(auto|#[0-9A-Fa-f]{6})$",
-					"description": "Directional indicator color. Use \"auto\" for theme-based color (white on dark themes, black on light themes) or a hex color."
+					"description": "Directional indicator color. Use \"auto\" to match edge color or set a hex color."
 				},
 				"codegraphy.particleSpeed": {
 					"type": "number",

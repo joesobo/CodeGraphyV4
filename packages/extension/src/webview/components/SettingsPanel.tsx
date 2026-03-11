@@ -31,8 +31,8 @@ const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
 
 /** Delay before persisting slider updates to VS Code settings. */
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
-const DIRECTION_AUTO_COLOR_LIGHT = '#000000';
-const DIRECTION_AUTO_COLOR_DARK = '#FFFFFF';
+const DIRECTION_AUTO_COLOR_LIGHT = '#94A3B8';
+const DIRECTION_AUTO_COLOR_DARK = '#475569';
 const PARTICLE_SPEED_MIN_INTERNAL = 0.0005;
 const PARTICLE_SPEED_MAX_INTERNAL = 0.005;
 const PARTICLE_SPEED_MIN_DISPLAY = 1;
