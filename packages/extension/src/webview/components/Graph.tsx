@@ -474,7 +474,7 @@ export default function Graph({
   ) => {
     const src = link.source as FGNode;
     const tgt = link.target as FGNode;
-    if (!src?.x || !src?.y || !tgt?.x || !tgt?.y) return;
+    if (src?.x == null || src?.y == null || tgt?.x == null || tgt?.y == null) return;
 
     const highlighted = highlightedNodeRef.current;
     const isConnected = !highlighted || src.id === highlighted || tgt.id === highlighted;
@@ -1064,12 +1064,14 @@ export default function Graph({
     }
   }, [showLabels]);
 
-  // react-force-graph 2D caches directional rendering internals; force an
-  // explicit redraw so direction mode changes are visible immediately.
+  // Direction mode changes in 2D can require reheating the simulation for
+  // arrow/particle visuals to update immediately without manual refresh.
   useEffect(() => {
     if (graphMode !== '2d') return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (fg2dRef.current as any)?.refresh?.();
+    const fg = fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined;
+    if (!fg) return;
+    fg.d3ReheatSimulation();
+    fg.resumeAnimation?.();
   }, [graphMode, directionMode, particleSpeed, particleSize]);
 
   // ── Container size tracking ───────────────────────────────────────────────
