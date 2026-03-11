@@ -176,13 +176,13 @@ describe('GraphStore: Timeline', () => {
     store.setState({
       timelineActive: true,
       searchQuery: 'test-query',
-      showArrows: false,
+      directionMode: 'none',
     });
 
     store.getState().handleExtensionMessage({ type: 'CACHE_INVALIDATED' });
 
     expect(store.getState().searchQuery).toBe('test-query');
-    expect(store.getState().showArrows).toBe(false);
+    expect(store.getState().directionMode).toBe('none');
   });
 
   // ── PLAYBACK_ENDED ─────────────────────────────────────────────────
