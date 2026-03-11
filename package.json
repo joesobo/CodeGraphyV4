@@ -286,6 +286,31 @@
 					"default": true,
 					"description": "Show file name labels on graph nodes."
 				},
+				"codegraphy.directionMode": {
+					"type": "string",
+					"enum": ["arrows", "particles", "none"],
+					"default": "arrows",
+					"enumDescriptions": [
+						"Static arrowheads at link endpoints",
+						"Animated dots flowing along links",
+						"No directional indicator"
+					],
+					"description": "How to indicate import direction on graph edges."
+				},
+				"codegraphy.particleSpeed": {
+					"type": "number",
+					"default": 0.005,
+					"minimum": 0.001,
+					"maximum": 0.05,
+					"description": "Speed of directional particles (ratio of link length per frame)."
+				},
+				"codegraphy.particleSize": {
+					"type": "number",
+					"default": 4,
+					"minimum": 1,
+					"maximum": 10,
+					"description": "Size (width) of directional particles in pixels."
+				},
 				"codegraphy.timeline.maxCommits": {
 					"type": "number",
 					"default": 500,
