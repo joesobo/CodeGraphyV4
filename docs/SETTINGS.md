@@ -132,7 +132,7 @@ To version-control filter patterns, add them to `settings.json`:
 ### Display
 
 - **Direction** switches between arrows, particles, and none.
-- **Direction Color** controls directional indicator color. `Auto` matches the edge color.
+- **Direction Color** controls directional indicator color (hex only, `#RRGGBB`).
 - **Particle Speed** uses a normalized UI scale from `1` to `10` (mapped to internal `0.0005` to `0.005`).
 - **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
 - **Graph Mode** switches between 2D (canvas) and 3D (WebGL) rendering.
