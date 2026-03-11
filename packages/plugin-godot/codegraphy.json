@@ -15,7 +15,7 @@
     "**/*.uid"
   ],
   "fileColors": {
-    "*.gd": { "color": "#478CBF", "shape2D": "diamond" },
+    "*.gd": { "color": "#478CBF", "shape2D": "diamond", "image": "assets/godot.svg" },
     "*.tscn": { "color": "#6EE7B7", "shape2D": "hexagon" },
     "*.tres": "#5EEAD4",
     "*.gdshader": { "color": "#A78BFA", "shape2D": "triangle" },

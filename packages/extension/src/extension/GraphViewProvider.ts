@@ -502,6 +502,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       : vscode.ConfigurationTarget.Global;
   }
 
+  /** Map of built-in plugin IDs to their package directory names. */
+  private static readonly _builtInPluginDirs: Record<string, string> = {
+    'codegraphy.typescript': 'plugin-typescript',
+    'codegraphy.gdscript': 'plugin-godot',
+    'codegraphy.python': 'plugin-python',
+    'codegraphy.csharp': 'plugin-csharp',
+    'codegraphy.markdown': 'plugin-markdown',
+  };
+
   /**
    * Merges plugin fileColors into the groups list as defaults.
    * Group IDs are deterministic: plugin:<pluginId>:<pattern>
@@ -517,9 +526,21 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       const fileColors = pluginInfo.plugin.fileColors;
       if (!fileColors) continue;
 
+      // Ensure built-in plugins have their package root registered for asset resolution
+      const pluginId = pluginInfo.plugin.id;
+      if (pluginInfo.builtIn && !this._pluginExtensionUris.has(pluginId)) {
+        const dirName = GraphViewProvider._builtInPluginDirs[pluginId];
+        if (dirName) {
+          this._pluginExtensionUris.set(
+            pluginId,
+            vscode.Uri.joinPath(this._extensionUri, 'packages', dirName)
+          );
+        }
+      }
+
       for (const [pattern, value] of Object.entries(fileColors)) {
         const color = typeof value === 'string' ? value : value.color;
-        const id = `plugin:${pluginInfo.plugin.id}:${pattern}`;
+        const id = `plugin:${pluginId}:${pattern}`;
         if (existingIds.has(id) || existingPatternColor.has(`${pattern}::${color}`)) {
           continue;
         }
@@ -1138,18 +1159,32 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   /**
    * Sends GROUPS_UPDATED with imagePath resolved to imageUrl.
+   * Plugin groups (id starts with "plugin:") resolve images relative to
+   * the plugin/extension root; user groups resolve relative to the workspace.
    */
   private _sendGroupsUpdated(): void {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     const resolved = this._groups.map(g => {
       if (!g.imagePath) return g;
-      const imageUri = workspaceFolder
-        ? vscode.Uri.joinPath(workspaceFolder.uri, g.imagePath)
-        : null;
-      const webview = this._view?.webview ?? this._panels[0]?.webview;
-      const imageUrl = imageUri && webview
-        ? webview.asWebviewUri(imageUri).toString()
-        : undefined;
+
+      let imageUrl: string | undefined;
+
+      // Plugin groups: resolve via _resolveWebviewAssetPath (extension or plugin root)
+      const pluginMatch = g.id.match(/^plugin:([^:]+):/);
+      if (pluginMatch) {
+        const pluginId = pluginMatch[1];
+        imageUrl = this._resolveWebviewAssetPath(g.imagePath, pluginId);
+      } else {
+        // User groups: resolve relative to the workspace folder
+        const imageUri = workspaceFolder
+          ? vscode.Uri.joinPath(workspaceFolder.uri, g.imagePath)
+          : null;
+        const webview = this._view?.webview ?? this._panels[0]?.webview;
+        imageUrl = imageUri && webview
+          ? webview.asWebviewUri(imageUri).toString()
+          : undefined;
+      }
+
       return { ...g, imageUrl };
     });
     this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: resolved } });
