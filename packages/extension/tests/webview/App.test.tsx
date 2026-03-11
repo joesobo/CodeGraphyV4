@@ -30,6 +30,7 @@ function resetStore() {
     bidirectionalMode: 'separate',
     showOrphans: true,
     directionMode: 'arrows',
+    directionColor: '#475569',
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -163,9 +164,10 @@ describe('App: message handlers', () => {
   it('DIRECTION_SETTINGS_UPDATED updates direction mode state', async () => {
     render(<App />);
     await act(async () => {
-      sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode: 'particles', particleSpeed: 0.01, particleSize: 6 } });
+      sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode: 'particles', directionColor: '#00FF00', particleSpeed: 0.01, particleSize: 6 } });
     });
     expect(graphStore.getState().directionMode).toBe('particles');
+    expect(graphStore.getState().directionColor).toBe('#00FF00');
     expect(graphStore.getState().particleSpeed).toBe(0.01);
     expect(graphStore.getState().particleSize).toBe(6);
   });

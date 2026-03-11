@@ -30,6 +30,27 @@ const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
 
 /** Delay before persisting slider updates to VS Code settings. */
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
+const DEFAULT_DIRECTION_COLOR = '#475569';
+const PARTICLE_SPEED_MIN_INTERNAL = 0.0005;
+const PARTICLE_SPEED_MAX_INTERNAL = 0.005;
+const PARTICLE_SPEED_MIN_DISPLAY = 1;
+const PARTICLE_SPEED_MAX_DISPLAY = 10;
+
+function isHexColor(value: string): boolean {
+  return /^#[0-9A-F]{6}$/i.test(value);
+}
+
+function particleSpeedToDisplay(speed: number): number {
+  const clamped = Math.min(PARTICLE_SPEED_MAX_INTERNAL, Math.max(PARTICLE_SPEED_MIN_INTERNAL, speed));
+  const ratio = (clamped - PARTICLE_SPEED_MIN_INTERNAL) / (PARTICLE_SPEED_MAX_INTERNAL - PARTICLE_SPEED_MIN_INTERNAL);
+  return PARTICLE_SPEED_MIN_DISPLAY + ratio * (PARTICLE_SPEED_MAX_DISPLAY - PARTICLE_SPEED_MIN_DISPLAY);
+}
+
+function particleSpeedFromDisplay(level: number): number {
+  const clamped = Math.min(PARTICLE_SPEED_MAX_DISPLAY, Math.max(PARTICLE_SPEED_MIN_DISPLAY, level));
+  const ratio = (clamped - PARTICLE_SPEED_MIN_DISPLAY) / (PARTICLE_SPEED_MAX_DISPLAY - PARTICLE_SPEED_MIN_DISPLAY);
+  return Number((PARTICLE_SPEED_MIN_INTERNAL + ratio * (PARTICLE_SPEED_MAX_INTERNAL - PARTICLE_SPEED_MIN_INTERNAL)).toFixed(6));
+}
 
 function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
   return (
@@ -85,7 +106,9 @@ export default function SettingsPanel({
   const setActiveViewId = useGraphStore(s => s.setActiveViewId);
   const depthLimit = useGraphStore(s => s.depthLimit);
   const directionMode = useGraphStore(s => s.directionMode);
+  const directionColor = useGraphStore(s => s.directionColor);
   const setDirectionMode = useGraphStore(s => s.setDirectionMode);
+  const setDirectionColor = useGraphStore(s => s.setDirectionColor);
   const showLabels = useGraphStore(s => s.showLabels);
   const setShowLabels = useGraphStore(s => s.setShowLabels);
   const graphMode = useGraphStore(s => s.graphMode);
@@ -278,9 +301,19 @@ export default function SettingsPanel({
     postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
   };
 
-  const handleParticleSpeedChange = (value: number) => {
-    setParticleSpeed(value);
-    scheduleParticleSettingPersist('particleSpeed', value);
+  const resolvedDirectionColor = isHexColor(directionColor) ? directionColor : DEFAULT_DIRECTION_COLOR;
+  const displayParticleSpeed = particleSpeedToDisplay(particleSpeed);
+
+  const handleDirectionColorChange = (value: string) => {
+    const normalized = value.toUpperCase();
+    setDirectionColor(normalized);
+    postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: normalized } });
+  };
+
+  const handleParticleSpeedChange = (level: number) => {
+    const normalized = particleSpeedFromDisplay(level);
+    setParticleSpeed(normalized);
+    scheduleParticleSettingPersist('particleSpeed', normalized);
   };
 
   const handleParticleSizeChange = (value: number) => {
@@ -612,19 +645,36 @@ export default function SettingsPanel({
                 </div>
               </div>
 
+              {/* Direction color */}
+              <div>
+                <Label htmlFor="direction-color" className="text-xs text-muted-foreground mb-1.5 block">Direction Color</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="direction-color"
+                    type="color"
+                    value={resolvedDirectionColor}
+                    onChange={(e) => handleDirectionColorChange(e.target.value)}
+                    className="h-7 w-10 p-1"
+                  />
+                  <span className="text-[11px] text-muted-foreground font-mono flex-1">
+                    {resolvedDirectionColor}
+                  </span>
+                </div>
+              </div>
+
               {/* Particle settings (visible only when mode is 'particles') */}
               {directionMode === 'particles' && (
                 <div className="space-y-3 pl-2 border-l border-border">
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <Label className="text-xs">Particle Speed</Label>
-                      <span className="text-xs text-muted-foreground font-mono">{particleSpeed.toFixed(3)}</span>
+                      <span className="text-xs text-muted-foreground font-mono">{Math.round(displayParticleSpeed)}</span>
                     </div>
                     <Slider
-                      min={0.001}
-                      max={0.05}
-                      step={0.001}
-                      value={[particleSpeed]}
+                      min={PARTICLE_SPEED_MIN_DISPLAY}
+                      max={PARTICLE_SPEED_MAX_DISPLAY}
+                      step={1}
+                      value={[displayParticleSpeed]}
                       onValueChange={(v) => handleParticleSpeedChange(v[0])}
                       onValueCommit={() => flushParticleSetting('particleSpeed')}
                     />
