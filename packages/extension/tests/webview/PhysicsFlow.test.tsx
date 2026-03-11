@@ -97,6 +97,7 @@ describe('Physics flow', () => {
     });
 
     fireEvent.click(screen.getByTitle('Settings'));
+    fireEvent.click(screen.getByText('Forces'));
 
     const sliders = screen.getAllByRole('slider');
     const repelSlider = sliders.find(
@@ -121,4 +122,3 @@ describe('Physics flow', () => {
     });
   });
 });
-
