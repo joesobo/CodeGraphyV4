@@ -559,7 +559,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         const color = typeof value === 'string' ? value : value.color;
         const id = `plugin:${pluginId}:${pattern}`;
         if (addedIds.has(id)) continue;
-        const group: IGroup = { id, pattern, color, isPluginDefault: true };
+        const group: IGroup = { id, pattern, color, isPluginDefault: true, pluginName: pluginInfo.plugin.name };
         if (typeof value === 'object') {
           if (value.shape2D) group.shape2D = value.shape2D;
           if (value.shape3D) group.shape3D = value.shape3D;
@@ -1516,6 +1516,25 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             'hiddenPluginGroups',
             [...this._hiddenPluginGroupIds],
             hideTarget
+          );
+          this._computeMergedGroups();
+          this._sendGroupsUpdated();
+          break;
+        }
+
+        case 'HIDE_ALL_PLUGIN_GROUPS': {
+          const prefix = `plugin:${message.payload.pluginId}:`;
+          const allDefaults = this._getPluginDefaultGroups();
+          for (const g of allDefaults) {
+            if (g.id.startsWith(prefix)) {
+              this._hiddenPluginGroupIds.add(g.id);
+            }
+          }
+          const hideAllTarget = this._getConfigTarget();
+          await vscode.workspace.getConfiguration('codegraphy').update(
+            'hiddenPluginGroups',
+            [...this._hiddenPluginGroupIds],
+            hideAllTarget
           );
           this._computeMergedGroups();
           this._sendGroupsUpdated();

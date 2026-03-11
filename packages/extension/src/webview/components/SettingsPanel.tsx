@@ -123,6 +123,7 @@ export default function SettingsPanel({
   const [newColor, setNewColor] = useState('#3B82F6');
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [expandedPluginIds, setExpandedPluginIds] = useState<Set<string>>(new Set());
 
   // Filters form state
   const [newFilterPattern, setNewFilterPattern] = useState('');
@@ -157,6 +158,16 @@ export default function SettingsPanel({
   const userGroups = groups.filter(g => !g.isPluginDefault);
   const pluginGroups = groups.filter(g => g.isPluginDefault);
 
+  // Group plugin defaults by plugin name
+  const pluginSections = pluginGroups.reduce<Record<string, { pluginId: string; pluginName: string; groups: IGroup[] }>>((acc, g) => {
+    const match = g.id.match(/^plugin:([^:]+):/);
+    const pluginId = match?.[1] ?? 'unknown';
+    const pluginName = g.pluginName ?? pluginId;
+    if (!acc[pluginId]) acc[pluginId] = { pluginId, pluginName, groups: [] };
+    acc[pluginId].groups.push(g);
+    return acc;
+  }, {});
+
   // Groups handlers — only send user groups in UPDATE_GROUPS
   const sendUserGroups = (updated: IGroup[]) => {
     postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
@@ -177,6 +188,27 @@ export default function SettingsPanel({
     sendUserGroups(updatedUser);
   };
 
+  /** Override a plugin default: hide the original and create a user copy with changes. */
+  const handleOverridePluginGroup = (group: IGroup, updates: Partial<IGroup>) => {
+    const newId = crypto.randomUUID();
+    const override: IGroup = {
+      id: newId,
+      pattern: group.pattern,
+      color: group.color,
+      shape2D: group.shape2D,
+      shape3D: group.shape3D,
+      imagePath: group.imagePath,
+      imageUrl: group.imageUrl,
+      ...updates,
+    };
+    // Hide the original plugin default
+    postMessage({ type: 'HIDE_PLUGIN_GROUP', payload: { groupId: group.id } });
+    // Add the overridden copy as a user group
+    const updatedUser = [...userGroups, override];
+    sendUserGroups(updatedUser);
+    setExpandedGroupId(newId);
+  };
+
   const handlePickImage = (groupId: string) => {
     postMessage({ type: 'PICK_GROUP_IMAGE', payload: { groupId } });
   };
@@ -190,12 +222,12 @@ export default function SettingsPanel({
     sendUserGroups(updatedUser);
   };
 
-  const handleHidePluginGroup = (groupId: string) => {
-    postMessage({ type: 'HIDE_PLUGIN_GROUP', payload: { groupId } });
+  const handleHideAllPluginGroups = (pluginId: string) => {
+    postMessage({ type: 'HIDE_ALL_PLUGIN_GROUPS', payload: { pluginId } });
   };
 
-  const handleResetPluginDefaults = () => {
-    postMessage({ type: 'RESET_PLUGIN_DEFAULTS', payload: {} });
+  const handleResetPluginDefaults = (pluginId?: string) => {
+    postMessage({ type: 'RESET_PLUGIN_DEFAULTS', payload: { pluginId } });
   };
 
   const handleGroupDragStart = (index: number) => {
@@ -434,52 +466,123 @@ export default function SettingsPanel({
           <SectionHeader title="Groups" open={groupsOpen} onToggle={() => setGroupsOpen(v => !v)} />
           {groupsOpen && (
             <div className="mb-2 space-y-2">
-              {/* Plugin default groups (read-only) */}
-              {pluginGroups.length > 0 && (
-                <>
-                  <p className="text-xs text-muted-foreground">Plugin defaults</p>
-                  <ul className="space-y-1">
-                    {pluginGroups.map(group => (
-                      <li key={group.id} className="flex items-center gap-2 opacity-80">
-                        <svg className="w-3 h-3 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              {/* Plugin default groups — collapsible per-plugin */}
+              {Object.values(pluginSections).map(({ pluginId, pluginName, groups: pgGroups }) => {
+                const isPluginExpanded = expandedPluginIds.has(pluginId);
+                const togglePlugin = () => setExpandedPluginIds(prev => {
+                  const next = new Set(prev);
+                  if (next.has(pluginId)) next.delete(pluginId); else next.add(pluginId);
+                  return next;
+                });
+                return (
+                  <div key={pluginId}>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={togglePlugin}
+                        className="flex items-center gap-1.5 flex-1 min-w-0 py-0.5 text-left hover:bg-accent rounded transition-colors px-1"
+                      >
+                        <ChevronIcon open={isPluginExpanded} />
+                        <span className="text-[11px] font-medium truncate">{pluginName}</span>
+                        <span className="text-[10px] text-muted-foreground">({pgGroups.length})</span>
+                      </button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
+                        onClick={() => handleHideAllPluginGroups(pluginId)}
+                        title={`Hide all ${pluginName} groups`}
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
                         </svg>
-                        <span
-                          className="w-4 h-4 rounded-sm flex-shrink-0 border"
-                          style={{ backgroundColor: group.color }}
-                        />
-                        <span className="text-xs flex-1 truncate font-mono">{group.pattern}</span>
-                        {group.imageUrl && (
-                          <img src={group.imageUrl} alt="" className="w-4 h-4 object-cover rounded-sm flex-shrink-0" />
-                        )}
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
-                          onClick={() => handleHidePluginGroup(group.id)}
-                          title="Hide plugin default"
-                        >
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
-                          </svg>
-                        </Button>
-                      </li>
-                    ))}
-                  </ul>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-2 text-[10px] text-muted-foreground"
-                    onClick={handleResetPluginDefaults}
-                    title="Restore any hidden plugin defaults"
-                  >
-                    Reset hidden
-                  </Button>
-                </>
-              )}
+                      </Button>
+                    </div>
+                    {isPluginExpanded && (
+                      <ul className="space-y-1 ml-2 mt-1">
+                        {pgGroups.map(group => {
+                          const isExpanded = expandedGroupId === group.id;
+                          return (
+                            <li key={group.id} className={cn('rounded transition-colors', isExpanded && 'bg-accent/50 p-1.5')}>
+                              <div
+                                className="flex items-center gap-2 cursor-pointer"
+                                onClick={() => setExpandedGroupId(isExpanded ? null : group.id)}
+                              >
+                                <span
+                                  className="w-4 h-4 rounded-sm flex-shrink-0 border"
+                                  style={{ backgroundColor: group.color }}
+                                />
+                                <span className="text-xs flex-1 truncate font-mono">{group.pattern}</span>
+                                {group.imageUrl && (
+                                  <img src={group.imageUrl} alt="" className="w-4 h-4 object-cover rounded-sm flex-shrink-0" />
+                                )}
+                                <ChevronIcon open={isExpanded} />
+                              </div>
+                              {/* Expanded editor — editing creates a user override */}
+                              {isExpanded && (
+                                <div className="mt-2 space-y-2 pl-4">
+                                  <p className="text-[10px] text-muted-foreground italic">Editing will create a custom override</p>
+                                  {/* Color */}
+                                  <div className="flex items-center gap-2">
+                                    <Label className="text-[10px] text-muted-foreground">Color</Label>
+                                    <input
+                                      type="color"
+                                      value={group.color}
+                                      onChange={e => handleOverridePluginGroup(group, { color: e.target.value })}
+                                      className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0"
+                                    />
+                                  </div>
+                                  {/* 2D Shape */}
+                                  <div>
+                                    <Label className="text-[10px] text-muted-foreground">2D Shape</Label>
+                                    <select
+                                      value={group.shape2D ?? 'circle'}
+                                      onChange={e => handleOverridePluginGroup(group, { shape2D: e.target.value as NodeShape2D })}
+                                      className="w-full h-6 text-xs bg-background border rounded px-1"
+                                    >
+                                      {SHAPE_2D_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  {/* 3D Shape */}
+                                  <div>
+                                    <Label className="text-[10px] text-muted-foreground">3D Shape</Label>
+                                    <select
+                                      value={group.shape3D ?? 'sphere'}
+                                      onChange={e => handleOverridePluginGroup(group, { shape3D: e.target.value as NodeShape3D })}
+                                      className="w-full h-6 text-xs bg-background border rounded px-1"
+                                    >
+                                      {SHAPE_3D_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              )}
+                            </li>
+                          );
+                        })}
+                        <li>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-5 px-1.5 text-[10px] text-muted-foreground"
+                            onClick={() => handleResetPluginDefaults(pluginId)}
+                            title={`Restore hidden ${pluginName} groups`}
+                          >
+                            Reset hidden
+                          </Button>
+                        </li>
+                      </ul>
+                    )}
+                  </div>
+                );
+              })}
 
               {/* User custom groups (editable) */}
-              <p className="text-xs text-muted-foreground">Custom</p>
+              {(userGroups.length > 0 || Object.keys(pluginSections).length > 0) && (
+                <p className="text-xs text-muted-foreground">Custom</p>
+              )}
               {userGroups.length === 0 ? (
                 <p className="text-xs text-muted-foreground py-1">No custom groups.</p>
               ) : (
