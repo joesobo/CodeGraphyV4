@@ -518,9 +518,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _mergePluginFileColorGroups(): boolean {
     if (!this._analyzer) return false;
 
-    const existingIds = new Set(this._groups.map(g => g.id));
-    const existingPatternColor = new Set(this._groups.map(g => `${g.pattern}::${g.color}`));
-    let changed = false;
+    // Build set of valid plugin group IDs from current plugin manifests
+    const validPluginIds = new Set<string>();
 
     for (const pluginInfo of this._analyzer.registry.list()) {
       const fileColors = pluginInfo.plugin.fileColors;
@@ -537,6 +536,28 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           );
         }
       }
+
+      for (const pattern of Object.keys(fileColors)) {
+        validPluginIds.add(`plugin:${pluginId}:${pattern}`);
+      }
+    }
+
+    // Prune stale plugin groups that no longer match any current manifest entry
+    const beforeLen = this._groups.length;
+    this._groups = this._groups.filter(g =>
+      !g.id.startsWith('plugin:') || validPluginIds.has(g.id)
+    );
+    let changed = this._groups.length !== beforeLen;
+
+    // Add new plugin groups
+    const existingIds = new Set(this._groups.map(g => g.id));
+    const existingPatternColor = new Set(this._groups.map(g => `${g.pattern}::${g.color}`));
+
+    for (const pluginInfo of this._analyzer.registry.list()) {
+      const fileColors = pluginInfo.plugin.fileColors;
+      if (!fileColors) continue;
+
+      const pluginId = pluginInfo.plugin.id;
 
       for (const [pattern, value] of Object.entries(fileColors)) {
         const color = typeof value === 'string' ? value : value.color;
