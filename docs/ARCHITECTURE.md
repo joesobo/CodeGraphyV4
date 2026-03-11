@@ -99,6 +99,8 @@ Each plugin declares detection rules in `codegraphy.json` and sets `ruleId` on e
 
 **`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings. Built with shadcn/ui components. Group colors combine user-defined entries with plugin-provided default `fileColors`.
 
+**`components/ui/slider.tsx`** is the shared slider primitive wrapper for the webview. It centralizes slider affordances so enabled controls show a pointer cursor and disabled controls expose a non-interactive cursor state.
+
 **`components/PluginsPanel.tsx`** shows all registered plugins with per-rule toggle switches and live connection counts.
 
 **`components/SearchBar.tsx`** provides search with match case, whole word, and regex modes.
