@@ -1064,15 +1064,24 @@ export default function Graph({
     }
   }, [showLabels]);
 
-  // Direction mode changes in 2D can require reheating the simulation for
-  // arrow/particle visuals to update immediately without manual refresh.
+  // Sync direction visuals imperatively in 2D; the React wrapper can keep
+  // stale directional settings until methods are invoked on the graph instance.
   useEffect(() => {
     if (graphMode !== '2d') return;
     const fg = fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined;
     if (!fg) return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const fg2d = fg as any;
+    fg2d.linkDirectionalArrowLength?.(directionMode === 'arrows' ? 6 : 0);
+    fg2d.linkDirectionalArrowRelPos?.(0.88);
+    fg2d.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
+    fg2d.linkDirectionalParticleWidth?.(particleSize);
+    fg2d.linkDirectionalParticleSpeed?.(particleSpeed);
+    fg2d.linkDirectionalArrowColor?.(getLinkColor);
+    fg2d.linkDirectionalParticleColor?.(getLinkColor);
     fg.d3ReheatSimulation();
     fg.resumeAnimation?.();
-  }, [graphMode, directionMode, particleSpeed, particleSize]);
+  }, [graphMode, directionMode, particleSpeed, particleSize, getLinkColor, getLinkParticles]);
 
   // ── Container size tracking ───────────────────────────────────────────────
 
@@ -1192,7 +1201,7 @@ export default function Graph({
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
               linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
-              linkDirectionalArrowRelPos={1}
+              linkDirectionalArrowRelPos={0.88}
               linkDirectionalArrowColor={getLinkColor as (link: LinkObject) => string}
               linkDirectionalParticles={getLinkParticles}
               linkDirectionalParticleWidth={particleSize}
