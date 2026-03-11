@@ -9,5 +9,8 @@ dist-e2e/
 .worktrees/
 .playwright-mcp/
 .playwright-cli/
+playwright-report/
+test-results/
+blob-report/
 .superpowers/
 .turbo/
