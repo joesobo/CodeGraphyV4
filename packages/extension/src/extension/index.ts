@@ -65,6 +65,13 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
       ) {
         // Display-only settings: resend display settings, no re-analysis or position reset
         provider.refreshSettings();
+      } else if (
+        event.affectsConfiguration('codegraphy.groups') ||
+        event.affectsConfiguration('codegraphy.hiddenPluginGroups')
+      ) {
+        // Groups/hidden groups: already handled by the webview message handlers
+        // (UPDATE_GROUPS, TOGGLE_PLUGIN_GROUP_DISABLED, etc.) which call _sendGroupsUpdated() directly.
+        // No re-analysis needed — skip to avoid double refresh.
       } else if (event.affectsConfiguration('codegraphy')) {
         // All other codegraphy settings (filterPatterns, showOrphans, maxFiles, etc.)
         // require re-analysis because they affect which files/nodes are in the graph

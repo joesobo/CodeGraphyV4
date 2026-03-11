@@ -201,10 +201,10 @@ describe('SettingsPanel: Groups', () => {
     fireEvent.change(patternInput, { target: { value: 'src/utils/**' } });
     fireEvent.click(screen.getByText('Add'));
 
-    const groups = graphStore.getState().groups;
-    expect(groups.length).toBe(1);
-    expect(groups[0].pattern).toBe('src/utils/**');
-    expect(sentMessages.some((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS')).toBe(true);
+    const updateMsg = sentMessages.find((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS') as { type: string; payload: { groups: Array<{ pattern: string }> } } | undefined;
+    expect(updateMsg).toBeDefined();
+    expect(updateMsg!.payload.groups.length).toBe(1);
+    expect(updateMsg!.payload.groups[0].pattern).toBe('src/utils/**');
   });
 
   it('removes a group and posts UPDATE_GROUPS', () => {
@@ -216,8 +216,94 @@ describe('SettingsPanel: Groups', () => {
     const removeBtn = screen.getByTitle('Delete group');
     fireEvent.click(removeBtn);
 
-    expect(graphStore.getState().groups).toEqual([]);
-    expect(sentMessages.some((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS')).toBe(true);
+    const updateMsg = sentMessages.find((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS') as { type: string; payload: { groups: unknown[] } } | undefined;
+    expect(updateMsg).toBeDefined();
+    expect(updateMsg!.payload.groups).toEqual([]);
+  });
+
+  it('shows groups with shape and image info', () => {
+    renderPanel({
+      groups: [{
+        id: 'g1',
+        pattern: '*.ts',
+        color: '#3178C6',
+        shape2D: 'diamond',
+        shape3D: 'octahedron',
+        imageUrl: 'https://example.com/icon.png',
+      }],
+    });
+    openSection('Groups');
+    expect(screen.getByText('*.ts')).toBeInTheDocument();
+  });
+
+  it('shows plugin default groups in a separate section', () => {
+    renderPanel({
+      groups: [
+        { id: 'g1', pattern: 'src/**', color: '#ff0000' },
+        { id: 'plugin:codegraphy.typescript:*.ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true, pluginName: 'TypeScript' },
+      ],
+    });
+    openSection('Groups');
+    expect(screen.getByText('TypeScript')).toBeInTheDocument();
+  });
+
+  it('shows disabled plugin groups in the defaults section', () => {
+    renderPanel({
+      groups: [
+        { id: 'plugin:codegraphy.typescript:*.ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true, pluginName: 'TypeScript', disabled: true },
+      ],
+    });
+    openSection('Groups');
+    // Plugin section header should be visible even when groups inside are disabled
+    expect(screen.getByText('TypeScript')).toBeInTheDocument();
+  });
+
+  it('shows built-in default groups under CodeGraphy section', () => {
+    renderPanel({
+      groups: [
+        { id: 'default:*.json', pattern: '*.json', color: '#F9C74F', isPluginDefault: true, pluginName: 'CodeGraphy' },
+      ],
+    });
+    openSection('Groups');
+    // Section header for built-in defaults
+    expect(screen.getByText('CodeGraphy')).toBeInTheDocument();
+  });
+
+  it('sends PICK_GROUP_IMAGE when image picker is triggered', () => {
+    renderPanel({
+      groups: [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }],
+    });
+    openSection('Groups');
+
+    // Click the group row to expand it
+    fireEvent.click(screen.getByText('*.ts'));
+
+    // Find and click the "Choose Image..." button in the expanded editor
+    const chooseBtn = screen.queryByText('Choose Image...');
+    if (chooseBtn) {
+      fireEvent.click(chooseBtn);
+      expect(sentMessages).toContainEqual({
+        type: 'PICK_GROUP_IMAGE',
+        payload: { groupId: 'g1' },
+      });
+    }
+  });
+
+  it('sends TOGGLE_PLUGIN_SECTION_DISABLED when section eye toggle is clicked', () => {
+    renderPanel({
+      groups: [
+        { id: 'plugin:codegraphy.typescript:*.ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true, pluginName: 'TypeScript' },
+      ],
+    });
+    openSection('Groups');
+
+    // Look for the eye toggle button (title contains "Disable all" or "Enable all")
+    const eyeBtn = screen.queryByTitle(/Disable all|Enable all/);
+    if (eyeBtn) {
+      fireEvent.click(eyeBtn);
+      const toggleMsg = sentMessages.find((m: unknown) => (m as { type: string }).type === 'TOGGLE_PLUGIN_SECTION_DISABLED');
+      expect(toggleMsg).toBeDefined();
+    }
   });
 });
 

@@ -197,6 +197,14 @@
                     "default": [],
                     "description": "Disabled plugin IDs. Managed by the Plugins panel."
                 },
+                "codegraphy.hiddenPluginGroups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Plugin default group IDs that have been hidden. Managed by the Groups panel."
+                },
                 "codegraphy.favorites": {
                     "type": "array",
                     "items": {
@@ -256,7 +264,7 @@
 				"codegraphy.groups": {
 					"type": "array",
 					"default": [],
-					"description": "Color groups for matching files. Each entry has a glob pattern and a hex color. Takes priority over workspace state groups.",
+					"description": "Groups for matching files. Each entry defines a glob pattern with color, shape, and optional image.",
 					"items": {
 						"type": "object",
 						"properties": {
@@ -269,6 +277,22 @@
 							"color": {
 								"type": "string",
 								"pattern": "^#[0-9A-Fa-f]{6}$"
+							},
+							"shape2D": {
+								"type": "string",
+								"enum": ["circle", "square", "diamond", "triangle", "hexagon", "star"]
+							},
+							"shape3D": {
+								"type": "string",
+								"enum": ["sphere", "cube", "octahedron", "cone", "dodecahedron", "icosahedron"]
+							},
+							"imagePath": {
+								"type": "string",
+								"description": "Workspace-relative path to image (e.g. .codegraphy/assets/icon.png)"
+							},
+							"disabled": {
+								"type": "boolean",
+								"description": "Whether this group is disabled (hidden from color/shape matching)"
 							}
 						}
 					}
@@ -390,6 +414,7 @@
 		"react-force-graph-2d": "^1.29.1",
 		"react-force-graph-3d": "^1.29.1",
 		"tailwind-merge": "^3.4.0",
+		"three": "^0.183.0",
 		"three-spritetext": "^1.10.0",
 		"zustand": "^5.0.11"
 	},

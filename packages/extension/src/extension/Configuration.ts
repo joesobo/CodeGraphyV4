@@ -5,6 +5,7 @@
  */
 
 import * as vscode from 'vscode';
+import type { IGroup } from '../shared/types';
 
 /**
  * Default exclude patterns for file discovery.
@@ -146,6 +147,14 @@ export class Configuration {
    */
   get timelineMaxCommits(): number {
     return this.config.get<number>('timeline.maxCommits', 500);
+  }
+
+  /**
+   * User-defined groups with pattern, color, shape, and image settings.
+   * @default []
+   */
+  get groups(): IGroup[] {
+    return this.config.get<IGroup[]>('groups', []);
   }
 
   /**

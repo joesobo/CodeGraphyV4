@@ -116,15 +116,23 @@ export interface IPlugin {
    * - Exact filenames: `project.godot`, `Makefile`
    * - Glob patterns: `**\/*.test.ts`
    * 
+   * Values can be a color string or an object with color, shape, and image options.
+   *
    * @example
    * ```typescript
    * fileColors: {
-   *   '.gd': '#A5B4FC',    // Soft indigo for GDScript
-   *   '.tscn': '#6EE7B7',  // Soft emerald for scenes
+   *   '.gd': '#A5B4FC',    // Simple color string
+   *   '.tscn': { color: '#6EE7B7', shape2D: 'hexagon', shape3D: 'dodecahedron' },
+   *   'project.godot': { color: '#478CBF', shape2D: 'star', image: 'assets/icon.png' },
    * }
    * ```
    */
-  fileColors?: Record<string, string>;
+  fileColors?: Record<string, string | {
+    color: string;
+    shape2D?: import('../../shared/types').NodeShape2D;
+    shape3D?: import('../../shared/types').NodeShape3D;
+    image?: string;  // relative path from plugin root
+  }>;
   
   /**
    * Optional default filter patterns for this plugin's ecosystem.

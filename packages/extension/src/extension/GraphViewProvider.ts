@@ -50,9 +50,6 @@ const VISITS_KEY = 'codegraphy.fileVisits';
 /** Storage key for selected view per workspace */
 const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
 
-/** Storage key for groups in workspace state */
-const GROUPS_KEY = 'codegraphy.groups';
-
 /** Storage key for filter patterns in workspace state */
 const FILTER_PATTERNS_KEY = 'codegraphy.filterPatterns';
 
@@ -145,8 +142,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     depthLimit: DEFAULT_DEPTH_LIMIT,
   };
 
-  /** Groups for client-side file coloring */
+  /** Groups for client-side file coloring (computed merged result) */
   private _groups: IGroup[] = [];
+
+  /** User-defined groups (persisted to settings.json) */
+  private _userGroups: IGroup[] = [];
+
+  /** Plugin default group IDs that the user has hidden */
+  private _hiddenPluginGroupIds = new Set<string>();
 
   /** Filter patterns passed to analysis (extension-side exclusions) */
   private _filterPatterns: string[] = [];
@@ -424,12 +427,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       if (this._isAnalysisStale(signal, requestId)) return;
     }
 
-    // Add plugin-provided default file colors into groups (once per group id).
-    if (this._mergePluginFileColorGroups()) {
-      await this._context.workspaceState.update(GROUPS_KEY, this._groups);
-      if (this._isAnalysisStale(signal, requestId)) return;
-      this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
-    }
+    // Recompute merged groups (user groups + visible plugin defaults) and notify webview.
+    this._computeMergedGroups();
+    if (this._isAnalysisStale(signal, requestId)) return;
+    this._sendGroupsUpdated();
 
     // Check if workspace is open
     const hasWorkspace = vscode.workspace.workspaceFolders && 
@@ -510,34 +511,121 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       : vscode.ConfigurationTarget.Global;
   }
 
-  /**
-   * Merges plugin fileColors into the groups list as defaults.
-   * Group IDs are deterministic: plugin:<pluginId>:<pattern>
-   */
-  private _mergePluginFileColorGroups(): boolean {
-    if (!this._analyzer) return false;
+  /** Map of built-in plugin IDs to their package directory names. */
+  private static readonly _builtInPluginDirs: Record<string, string> = {
+    'codegraphy.typescript': 'plugin-typescript',
+    'codegraphy.gdscript': 'plugin-godot',
+    'codegraphy.python': 'plugin-python',
+    'codegraphy.csharp': 'plugin-csharp',
+    'codegraphy.markdown': 'plugin-markdown',
+  };
 
-    const existingIds = new Set(this._groups.map(g => g.id));
-    const existingPatternColor = new Set(this._groups.map(g => `${g.pattern}::${g.color}`));
-    let changed = false;
+  /** Built-in default groups for common file types (independent of plugins). */
+  private static readonly _builtInDefaultGroups: Array<{ pattern: string; color: string }> = [
+    { pattern: '.gitignore', color: '#F97583' },
+    { pattern: '*.json', color: '#F9C74F' },
+    { pattern: '*.png', color: '#90BE6D' },
+    { pattern: '*.svg', color: '#43AA8B' },
+    { pattern: '*.md', color: '#577590' },
+    { pattern: '*.jpeg', color: '#90BE6D' },
+    { pattern: '.vscode/settings.json', color: '#277ACC' },
+  ];
+
+  /**
+   * Eagerly registers built-in plugin asset roots so that plugin image paths
+   * always resolve correctly regardless of analyzer timing.
+   */
+  private _registerBuiltInPluginRoots(): void {
+    for (const [pluginId, dirName] of Object.entries(GraphViewProvider._builtInPluginDirs)) {
+      if (!this._pluginExtensionUris.has(pluginId)) {
+        this._pluginExtensionUris.set(
+          pluginId,
+          vscode.Uri.joinPath(this._extensionUri, 'packages', dirName)
+        );
+      }
+    }
+  }
+
+  /**
+   * Returns plugin-provided default file color groups.
+   * Group IDs are deterministic: plugin:<pluginId>:<pattern>
+   * Sets isPluginDefault: true on each group.
+   * Does NOT modify this._groups — caller is responsible for merging.
+   */
+  private _getPluginDefaultGroups(): IGroup[] {
+    if (!this._analyzer) return [];
+
+    const result: IGroup[] = [];
+    const addedIds = new Set<string>();
 
     for (const pluginInfo of this._analyzer.registry.list()) {
+      // Skip disabled plugins entirely — they shouldn't show up in the groups panel
+      if (this._disabledPlugins.has(pluginInfo.plugin.id)) continue;
+
       const fileColors = pluginInfo.plugin.fileColors;
       if (!fileColors) continue;
 
-      for (const [pattern, color] of Object.entries(fileColors)) {
-        const id = `plugin:${pluginInfo.plugin.id}:${pattern}`;
-        if (existingIds.has(id) || existingPatternColor.has(`${pattern}::${color}`)) {
-          continue;
+      // Ensure built-in plugins have their package root registered for asset resolution
+      const pluginId = pluginInfo.plugin.id;
+      if (pluginInfo.builtIn && !this._pluginExtensionUris.has(pluginId)) {
+        const dirName = GraphViewProvider._builtInPluginDirs[pluginId];
+        if (dirName) {
+          this._pluginExtensionUris.set(
+            pluginId,
+            vscode.Uri.joinPath(this._extensionUri, 'packages', dirName)
+          );
         }
-        this._groups.push({ id, pattern, color });
-        existingIds.add(id);
-        existingPatternColor.add(`${pattern}::${color}`);
-        changed = true;
+      }
+
+      for (const [pattern, value] of Object.entries(fileColors)) {
+        const color = typeof value === 'string' ? value : value.color;
+        const id = `plugin:${pluginId}:${pattern}`;
+        if (addedIds.has(id)) continue;
+        const group: IGroup = { id, pattern, color, isPluginDefault: true, pluginName: pluginInfo.plugin.name };
+        if (typeof value === 'object') {
+          if (value.shape2D) group.shape2D = value.shape2D;
+          if (value.shape3D) group.shape3D = value.shape3D;
+          if (value.image) {
+            group.imagePath = value.image;
+          }
+        }
+        result.push(group);
+        addedIds.add(id);
       }
     }
 
-    return changed;
+    return result;
+  }
+
+  /** Returns built-in default groups (common file types, independent of plugins). */
+  private _getBuiltInDefaultGroups(): IGroup[] {
+    return GraphViewProvider._builtInDefaultGroups.map(({ pattern, color }) => ({
+      id: `default:${pattern}`,
+      pattern,
+      color,
+      isPluginDefault: true,
+      pluginName: 'CodeGraphy',
+    }));
+  }
+
+  /**
+   * Computes the merged groups list: user groups + built-in defaults + plugin defaults.
+   * Disabled groups are marked but still included (visible in settings).
+   */
+  private _computeMergedGroups(): void {
+    const applyDisabledState = (g: IGroup): IGroup => {
+      // Section key is everything before the last colon:
+      // "default:*.json" → "default", "plugin:codegraphy.csharp:*.cs" → "plugin:codegraphy.csharp"
+      const lastColon = g.id.lastIndexOf(':');
+      const sectionKey = lastColon > 0 ? g.id.slice(0, lastColon) : undefined;
+      const isDisabled = this._hiddenPluginGroupIds.has(g.id)
+        || (sectionKey !== undefined && this._hiddenPluginGroupIds.has(sectionKey));
+      return { ...g, disabled: isDisabled || undefined };
+    };
+
+    const builtInDefaults = this._getBuiltInDefaultGroups().map(applyDisabledState);
+    const pluginDefaults = this._getPluginDefaultGroups().map(applyDisabledState);
+    this._groups = [...this._userGroups, ...builtInDefaults, ...pluginDefaults];
   }
 
   /**
@@ -772,6 +860,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     roots.set(this._uriKey(this._extensionUri), this._extensionUri);
     for (const uri of this._pluginExtensionUris.values()) {
       roots.set(this._uriKey(uri), uri);
+    }
+    // Add workspace folders so .codegraphy/assets/ images can be served
+    for (const folder of vscode.workspace.workspaceFolders ?? []) {
+      roots.set(this._uriKey(folder.uri), folder.uri);
     }
     return [...roots.values()];
   }
@@ -1132,6 +1224,48 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Sends GROUPS_UPDATED with imagePath resolved to imageUrl.
+   *
+   * imagePath formats:
+   * - Plugin groups (id starts with "plugin:"): relative to plugin root
+   * - User groups with "plugin:<pluginId>:<path>": inherited from a plugin override,
+   *   resolved via the named plugin root
+   * - User groups with workspace-relative path (e.g. ".codegraphy/assets/icon.png"):
+   *   resolved relative to the workspace folder
+   */
+  private _sendGroupsUpdated(): void {
+    this._registerBuiltInPluginRoots();
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    const webview = this._view?.webview ?? this._panels[0]?.webview;
+    const resolved = this._groups.map(g => {
+      if (!g.imagePath) return g;
+
+      let imageUrl: string | undefined;
+
+      // Plugin groups: resolve via _resolveWebviewAssetPath (extension or plugin root)
+      const pluginMatch = g.id.match(/^plugin:([^:]+):/);
+      if (pluginMatch) {
+        const pluginId = pluginMatch[1];
+        imageUrl = this._resolveWebviewAssetPath(g.imagePath, pluginId);
+      } else {
+        // User groups: check for "plugin:<id>:<path>" format (inherited from plugin override)
+        const inheritedMatch = g.imagePath.match(/^plugin:([^:]+):(.+)$/);
+        if (inheritedMatch) {
+          const [, pluginId, relativePath] = inheritedMatch;
+          imageUrl = this._resolveWebviewAssetPath(relativePath, pluginId);
+        } else if (workspaceFolder && webview) {
+          // Standard workspace-relative path
+          const imageUri = vscode.Uri.joinPath(workspaceFolder.uri, g.imagePath);
+          imageUrl = webview.asWebviewUri(imageUri).toString();
+        }
+      }
+
+      return { ...g, imageUrl };
+    });
+    this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: resolved } });
+  }
+
+  /**
    * Sends a message to all active webviews (sidebar + editor panels).
    *
    * @param message - Message to send to the webviews
@@ -1161,7 +1295,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._sendFavorites();
           this._sendSettings();
           this._sendPhysicsSettings();
-          this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
+          this._sendGroupsUpdated();
           this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
           this._sendMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles: vscode.workspace.getConfiguration('codegraphy').get<number>('maxFiles', 500) } });
           this._sendCachedTimeline();
@@ -1296,10 +1430,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
 
         case 'UPDATE_GROUPS': {
-          this._groups = message.payload.groups;
-          // Save to workspace state to avoid triggering onDidChangeConfiguration
-          await this._context.workspaceState.update(GROUPS_KEY, this._groups);
-          this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
+          // Strip transient/session-only fields before persisting
+          this._userGroups = message.payload.groups.map(({ imageUrl: _iu, isPluginDefault: _ip, pluginName: _pn, ...persistable }) => persistable);
+          const target = this._getConfigTarget();
+          await vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, target);
+          this._computeMergedGroups();
+          this._sendGroupsUpdated();
           break;
         }
 
@@ -1437,6 +1573,81 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
                 console.error(`[CodeGraphy] Plugin context menu action error:`, error);
               }
             }
+          }
+          break;
+        }
+
+        case 'TOGGLE_PLUGIN_GROUP_DISABLED': {
+          const { groupId, disabled } = message.payload;
+          if (disabled) {
+            this._hiddenPluginGroupIds.add(groupId);
+          } else {
+            this._hiddenPluginGroupIds.delete(groupId);
+          }
+          const toggleTarget = this._getConfigTarget();
+          await vscode.workspace.getConfiguration('codegraphy').update(
+            'hiddenPluginGroups',
+            [...this._hiddenPluginGroupIds],
+            toggleTarget
+          );
+          this._computeMergedGroups();
+          this._sendGroupsUpdated();
+          break;
+        }
+
+        case 'TOGGLE_PLUGIN_SECTION_DISABLED': {
+          // Built-in defaults use "default" as section ID; plugins use their ID
+          const rawId = message.payload.pluginId;
+          const sectionKey = rawId === 'default' ? 'default' : `plugin:${rawId}`;
+          if (message.payload.disabled) {
+            // Store just the section-level key
+            this._hiddenPluginGroupIds.add(sectionKey);
+          } else {
+            // Remove section key and any individual group entries under it
+            this._hiddenPluginGroupIds.delete(sectionKey);
+            const prefix = `${sectionKey}:`;
+            for (const id of [...this._hiddenPluginGroupIds]) {
+              if (id.startsWith(prefix)) this._hiddenPluginGroupIds.delete(id);
+            }
+          }
+          const sectionTarget = this._getConfigTarget();
+          await vscode.workspace.getConfiguration('codegraphy').update(
+            'hiddenPluginGroups',
+            [...this._hiddenPluginGroupIds],
+            sectionTarget
+          );
+          this._computeMergedGroups();
+          this._sendGroupsUpdated();
+          break;
+        }
+
+        case 'PICK_GROUP_IMAGE': {
+          const { groupId } = message.payload;
+          const uris = await vscode.window.showOpenDialog({
+            canSelectMany: false,
+            filters: { 'Images': ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif', 'ico'] },
+            openLabel: 'Select Image',
+          });
+          if (!uris || uris.length === 0) break;
+          const selectedUri = uris[0];
+          const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+          if (!workspaceFolder) break;
+
+          const assetsDir = vscode.Uri.joinPath(workspaceFolder.uri, '.codegraphy', 'assets');
+          try { await vscode.workspace.fs.createDirectory(assetsDir); } catch { /* already exists */ }
+
+          const fileName = path.basename(selectedUri.fsPath);
+          const destUri = vscode.Uri.joinPath(assetsDir, fileName);
+          await vscode.workspace.fs.copy(selectedUri, destUri, { overwrite: true });
+
+          const imagePath = `.codegraphy/assets/${fileName}`;
+          const group = this._userGroups.find(g => g.id === groupId);
+          if (group) {
+            group.imagePath = imagePath;
+            const imgTarget = this._getConfigTarget();
+            await vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, imgTarget);
+            this._computeMergedGroups();
+            this._sendGroupsUpdated();
           }
           break;
         }
@@ -1942,6 +2153,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   /**
    * Loads groups and filter patterns with VS Code settings taking priority over workspace state.
+   * User groups are stored in settings.json; plugin default groups are computed dynamically.
+   * Falls back to workspaceState for migration from older persisted data.
    */
   private _loadGroupsAndFilterPatterns(): void {
     const config = vscode.workspace.getConfiguration('codegraphy');
@@ -1954,7 +2167,30 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const vsGroups = groupsInspect?.workspaceValue ?? groupsInspect?.globalValue;
     const vsFilterPatterns = patternsInspect?.workspaceValue ?? patternsInspect?.globalValue;
 
-    this._groups = vsGroups ?? this._context.workspaceState.get<IGroup[]>(GROUPS_KEY) ?? [];
+    if (vsGroups) {
+      // Settings.json has explicit groups — use them as user groups
+      this._userGroups = vsGroups;
+    } else {
+      // Fall back to workspaceState for migration, filtering out plugin groups
+      const legacyGroups = this._context.workspaceState.get<IGroup[]>('codegraphy.groups') ?? [];
+      this._userGroups = legacyGroups.filter(g => !g.id.startsWith('plugin:'));
+
+      // Migrate to settings.json if there were legacy groups
+      if (legacyGroups.length > 0) {
+        const target = this._getConfigTarget();
+        vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, target);
+        this._context.workspaceState.update('codegraphy.groups', undefined);
+      }
+    }
+
+    // Load hidden plugin group IDs from settings
+    this._hiddenPluginGroupIds = new Set(
+      config.get<string[]>('hiddenPluginGroups', [])
+    );
+
+    // Compute merged groups (user + visible plugin defaults)
+    this._computeMergedGroups();
+
     this._filterPatterns = vsFilterPatterns ?? this._context.workspaceState.get<string[]>(FILTER_PATTERNS_KEY) ?? [];
   }
 
@@ -2187,7 +2423,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src ${webview.cspSource};">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src ${webview.cspSource}; img-src ${webview.cspSource};">
   <link href="${styleUri}" rel="stylesheet">
   <title>CodeGraphy</title>
 </head>

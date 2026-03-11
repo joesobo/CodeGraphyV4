@@ -51,7 +51,7 @@ export function createGDScriptPlugin(): IPlugin {
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
     rules: manifest.rules,
-    fileColors: manifest.fileColors,
+    fileColors: manifest.fileColors as IPlugin['fileColors'],
 
     async initialize(workspaceRoot: string): Promise<void> {
       resolver = new GDScriptPathResolver(workspaceRoot);

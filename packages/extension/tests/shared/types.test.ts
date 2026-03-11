@@ -128,6 +128,7 @@ describe('IGroup', () => {
     expect(group.pattern).toBe('src/**');
     expect(group.color).toBe('#3B82F6');
   });
+
 });
 
 describe('Timeline Types', () => {
