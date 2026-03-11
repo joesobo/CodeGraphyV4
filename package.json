@@ -321,11 +321,17 @@
 					],
 					"description": "How to indicate import direction on graph edges."
 				},
+				"codegraphy.directionColor": {
+					"type": "string",
+					"default": "#475569",
+					"pattern": "^#[0-9A-Fa-f]{6}$",
+					"description": "Directional indicator color as a hex value."
+				},
 				"codegraphy.particleSpeed": {
 					"type": "number",
 					"default": 0.005,
-					"minimum": 0.001,
-					"maximum": 0.05,
+					"minimum": 0.0005,
+					"maximum": 0.005,
 					"description": "Speed of directional particles (ratio of link length per frame)."
 				},
 				"codegraphy.particleSize": {

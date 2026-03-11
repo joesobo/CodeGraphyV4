@@ -464,7 +464,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }
   | { type: 'GROUPS_UPDATED'; payload: { groups: IGroup[] } }
   | { type: 'FILTER_PATTERNS_UPDATED'; payload: { patterns: string[]; pluginPatterns: string[] } }
-  | { type: 'DIRECTION_SETTINGS_UPDATED'; payload: { directionMode: DirectionMode; particleSpeed: number; particleSize: number } }
+  | { type: 'DIRECTION_SETTINGS_UPDATED'; payload: { directionMode: DirectionMode; particleSpeed: number; particleSize: number; directionColor: string } }
   | { type: 'SHOW_LABELS_UPDATED'; payload: { showLabels: boolean } }
   | { type: 'PLUGINS_UPDATED'; payload: { plugins: IPluginStatus[] } }
   | { type: 'MAX_FILES_UPDATED'; payload: { maxFiles: number } }
@@ -535,6 +535,7 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
   | { type: 'UPDATE_SHOW_ORPHANS'; payload: { showOrphans: boolean } }
   | { type: 'UPDATE_DIRECTION_MODE'; payload: { directionMode: DirectionMode } }
+  | { type: 'UPDATE_DIRECTION_COLOR'; payload: { directionColor: string } }
   | { type: 'UPDATE_PARTICLE_SETTING'; payload: { key: 'particleSpeed' | 'particleSize'; value: number } }
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
   // Physics lifecycle — sent when physics disables after stabilization

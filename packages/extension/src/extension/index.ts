@@ -57,6 +57,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
         provider.refreshToggleSettings();
       } else if (
         event.affectsConfiguration('codegraphy.directionMode') ||
+        event.affectsConfiguration('codegraphy.directionColor') ||
         event.affectsConfiguration('codegraphy.particleSpeed') ||
         event.affectsConfiguration('codegraphy.particleSize') ||
         event.affectsConfiguration('codegraphy.showLabels') ||
