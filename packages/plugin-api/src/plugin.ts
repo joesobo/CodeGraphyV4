@@ -82,7 +82,12 @@ export interface IPlugin {
    * - Exact filenames: `project.godot`, `Makefile`
    * - Glob patterns: `**\/*.test.ts`
    */
-  fileColors?: Record<string, string>;
+  fileColors?: Record<string, string | {
+    color: string;
+    shape2D?: 'circle' | 'square' | 'diamond' | 'triangle' | 'hexagon' | 'star';
+    shape3D?: 'sphere' | 'cube' | 'octahedron' | 'cone' | 'dodecahedron' | 'icosahedron';
+    image?: string;
+  }>;
 
   /**
    * Default filter patterns for this plugin's ecosystem.

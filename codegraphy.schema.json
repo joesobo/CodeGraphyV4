@@ -70,8 +70,22 @@
     },
     "fileColors": {
       "type": "object",
-      "additionalProperties": { "type": "string" },
-      "description": "Mapping of file extensions or filenames to hex color strings"
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "required": ["color"],
+            "properties": {
+              "color": { "type": "string" },
+              "shape2D": { "type": "string", "enum": ["circle", "square", "diamond", "triangle", "hexagon", "star"] },
+              "shape3D": { "type": "string", "enum": ["sphere", "cube", "octahedron", "cone", "dodecahedron", "icosahedron"] },
+              "image": { "type": "string", "description": "Relative path from plugin root to image file" }
+            }
+          }
+        ]
+      },
+      "description": "Mapping of file extensions or filenames to color strings or shape/image objects"
     },
     "defaultFilters": {
       "type": "array",

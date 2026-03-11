@@ -88,6 +88,10 @@ export interface GraphState {
   isPlaying: boolean;
   playbackSpeed: number;
 
+  // Group editor
+  expandedGroupId: string | null;
+  setExpandedGroupId: (id: string | null) => void;
+
   // Actions
   setSearchQuery: (query: string) => void;
   setSearchOptions: (options: SearchOptions) => void;
@@ -138,6 +142,7 @@ export function createGraphStore() {
     nodeDecorations: {},
     edgeDecorations: {},
     pluginContextMenuItems: [],
+    expandedGroupId: null,
     activePanel: 'none',
     maxFiles: 500,
     timelineActive: false,
@@ -149,6 +154,7 @@ export function createGraphStore() {
     playbackSpeed: 1.0,
 
     // Actions
+    setExpandedGroupId: (id) => set({ expandedGroupId: id }),
     setSearchQuery: (query) => set({ searchQuery: query }),
     setSearchOptions: (options) => set({ searchOptions: options }),
     setActivePanel: (panel) => set({ activePanel: panel }),
