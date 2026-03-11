@@ -15,10 +15,10 @@
     "**/*.uid"
   ],
   "fileColors": {
-    ".gd": "#478CBF",
-    ".tscn": "#6EE7B7",
-    ".tres": "#5EEAD4",
-    ".gdshader": "#A78BFA",
+    "*.gd": "#478CBF",
+    "*.tscn": "#6EE7B7",
+    "*.tres": "#5EEAD4",
+    "*.gdshader": "#A78BFA",
     "project.godot": "#478CBF"
   },
   "rules": [

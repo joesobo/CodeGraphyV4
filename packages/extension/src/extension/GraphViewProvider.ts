@@ -517,13 +517,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       const fileColors = pluginInfo.plugin.fileColors;
       if (!fileColors) continue;
 
-      for (const [rawPattern, color] of Object.entries(fileColors)) {
-        // Convert extension patterns like ".gd" to glob patterns like "*.gd"
-        // so minimatch can match filenames (e.g. "main.gd" matches "*.gd")
-        const pattern = rawPattern.startsWith('.') && !rawPattern.includes('*') && !rawPattern.includes('/')
-          ? `*${rawPattern}`
-          : rawPattern;
-        const id = `plugin:${pluginInfo.plugin.id}:${rawPattern}`;
+      for (const [pattern, color] of Object.entries(fileColors)) {
+        const id = `plugin:${pluginInfo.plugin.id}:${pattern}`;
         if (existingIds.has(id) || existingPatternColor.has(`${pattern}::${color}`)) {
           continue;
         }

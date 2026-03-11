@@ -8,8 +8,8 @@
   "supportedExtensions": [".md", ".mdx"],
   "defaultFilters": [],
   "fileColors": {
-    ".md": "#7C3AED",
-    ".mdx": "#8B5CF6"
+    "*.md": "#7C3AED",
+    "*.mdx": "#8B5CF6"
   },
   "rules": [
     { "id": "wikilink", "name": "Wikilinks", "description": "[[Note Name]], ![[embed]]" }
