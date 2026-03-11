@@ -128,7 +128,7 @@ suite('Settings: Direction Mode', function () {
     const echo = waitForMessage(api, 'DIRECTION_SETTINGS_UPDATED');
     api.sendToWebview({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: 'particles' } });
 
-    const msg = (await echo) as { type: string; payload: { directionMode: string; particleSpeed: number; particleSize: number } };
+    const msg = (await echo) as { type: string; payload: { directionMode: string; directionColor: string; particleSpeed: number; particleSize: number } };
     assert.strictEqual(msg.payload.directionMode, 'particles');
 
     // Cleanup

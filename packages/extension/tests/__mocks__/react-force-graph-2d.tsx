@@ -11,6 +11,13 @@ const mockMethods = {
   zoom: vi.fn(),
   centerAt: vi.fn(),
   refresh: vi.fn(),
+  linkDirectionalArrowLength: vi.fn(),
+  linkDirectionalArrowRelPos: vi.fn(),
+  linkDirectionalArrowColor: vi.fn(),
+  linkDirectionalParticles: vi.fn(),
+  linkDirectionalParticleWidth: vi.fn(),
+  linkDirectionalParticleSpeed: vi.fn(),
+  linkDirectionalParticleColor: vi.fn(),
   d3Force: vi.fn().mockReturnValue({
     strength: vi.fn().mockReturnThis(),
     distance: vi.fn().mockReturnThis(),
