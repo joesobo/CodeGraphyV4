@@ -13,6 +13,17 @@ const mockData: IGraphData = {
   edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' }],
 };
 
+const bidirectionalData: IGraphData = {
+  nodes: [
+    { id: 'a.ts', label: 'a.ts', color: '#93C5FD' },
+    { id: 'b.ts', label: 'b.ts', color: '#67E8F9' },
+  ],
+  edges: [
+    { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
+    { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
+  ],
+};
+
 /** Reset store to defaults, with optional overrides */
 function setStore(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
@@ -63,15 +74,53 @@ describe('Graph: force-graph rendering', () => {
     expect(props.linkDirectionalArrowLength).toBeGreaterThan(0);
   });
 
-  it('forces a 2D redraw when direction mode changes', () => {
+  it('reheats the 2D simulation when direction mode changes', () => {
     render(<Graph data={mockData} />);
-    mockMethods.refresh.mockClear();
+    mockMethods.d3ReheatSimulation.mockClear();
 
     act(() => {
       graphStore.setState({ directionMode: 'particles' });
     });
 
-    expect(mockMethods.refresh).toHaveBeenCalledTimes(1);
+    expect(mockMethods.d3ReheatSimulation).toHaveBeenCalledTimes(1);
+  });
+
+  it('draws bidirectional arrows when coordinates include 0', () => {
+    setStore({ bidirectionalMode: 'combined', directionMode: 'arrows' });
+    render(<Graph data={bidirectionalData} />);
+
+    const props = ForceGraph2D.getLastProps();
+    const drawLink = props.linkCanvasObject as (
+      link: unknown,
+      ctx: CanvasRenderingContext2D,
+      globalScale: number
+    ) => void;
+    const link = props.graphData.links.find((l: { bidirectional?: boolean }) => l.bidirectional);
+    expect(link).toBeTruthy();
+
+    const ctx = {
+      save: vi.fn(),
+      restore: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      globalAlpha: 1,
+      lineWidth: 1,
+      strokeStyle: '#000',
+    } as unknown as CanvasRenderingContext2D;
+
+    drawLink(
+      {
+        ...link,
+        source: { id: 'a.ts', x: 0, y: 10, size: 10 },
+        target: { id: 'b.ts', x: 30, y: 10, size: 10 },
+      },
+      ctx,
+      1
+    );
+
+    expect(ctx.lineTo).toHaveBeenCalled();
   });
 
   it('passes d3VelocityDecay from physicsSettings.damping', () => {
