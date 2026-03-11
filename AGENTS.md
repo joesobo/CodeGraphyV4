@@ -41,6 +41,17 @@ Primary locations:
 - Prefer targeted test runs while iterating, then run full `pnpm run test`.
 - Pre-commit runs lint-staged + typecheck, so keep staged changes clean.
 
+## Trello Task Execution Workflow
+
+When assigned a Trello card, follow this process end-to-end:
+
+1. Discuss before implementation: review the card with the user first, covering implementation approach, risks/concerns, and open questions.
+2. Plan after alignment: create an implementation plan once details are clarified.
+3. Split for parallelization: break work into small, independent tasks that can be delegated to individual subagents where safe.
+4. Use branch + worktree isolation: execute each task in its own branch/worktree.
+5. Commit frequently: commit often, at minimum whenever subagent work is merged into the main task branch.
+6. Deliver via PR: push all commits and open a GitHub PR with a clear description for human review.
+
 ## Playwright PR Image Upload Workflow
 
 Use this flow to attach screenshots/GIFs to PR comments via GitHub UI attachments (without committing media files):
