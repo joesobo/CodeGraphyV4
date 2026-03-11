@@ -1995,7 +1995,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const config = vscode.workspace.getConfiguration('codegraphy');
     const bidirectionalEdges = config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate');
     const showOrphans = config.get<boolean>('showOrphans', true);
-    const directionMode = config.get<string>('directionMode', 'arrows') as DirectionMode;
+    // Migrate legacy showArrows setting → directionMode
+    let directionMode = config.get<string>('directionMode', 'arrows') as DirectionMode;
+    const directionInspect = config.inspect<string>('directionMode');
+    const hasExplicitDirection = directionInspect?.workspaceValue !== undefined || directionInspect?.globalValue !== undefined;
+    if (!hasExplicitDirection) {
+      const legacyShowArrows = config.get<boolean>('showArrows');
+      if (legacyShowArrows === false) {
+        directionMode = 'none';
+      }
+    }
     const particleSpeed = config.get<number>('particleSpeed', 0.005);
     const particleSize = config.get<number>('particleSize', 4);
     const showLabels = config.get<boolean>('showLabels', true);
