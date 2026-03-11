@@ -41,8 +41,6 @@ import { WebviewPluginHost } from '../pluginHost';
 const FAVORITE_BORDER_COLOR = '#EAB308';
 const DIRECTIONAL_ARROW_LENGTH_2D = 12;
 const DIRECTIONAL_ARROW_NODE_GAP_2D = 1.25;
-const DIRECTION_AUTO_COLOR_LIGHT = '#000000';
-const DIRECTION_AUTO_COLOR_DARK = '#FFFFFF';
 
 /** Minimum and maximum node sizes */
 const MIN_NODE_SIZE = 10;
@@ -71,9 +69,8 @@ function toD3Repel(repelForce: number): number {
   return -(repelForce / 20) * 500;
 }
 
-function resolveDirectionColor(theme: ThemeKind, directionColor: string): string {
-  if (/^#[0-9A-F]{6}$/i.test(directionColor)) return directionColor;
-  return theme === 'light' ? DIRECTION_AUTO_COLOR_LIGHT : DIRECTION_AUTO_COLOR_DARK;
+function resolveDirectionColorOverride(directionColor: string): string | null {
+  return /^#[0-9A-F]{6}$/i.test(directionColor) ? directionColor : null;
 }
 
 // ─── Internal node/link types ──────────────────────────────────────────────
@@ -532,7 +529,7 @@ export default function Graph({
       const arrowVertexLen = arrowLen * 0.2;
       const px = -ny;
       const py = nx;
-      const directionalColor = resolveDirectionColor(themeRef.current, directionColorRef.current);
+      const directionalColor = resolveDirectionColorOverride(directionColorRef.current) ?? String(ctx.strokeStyle);
 
       // Arrow at target end (src -> tgt)
       const tailX1 = endX - nx * arrowLen;
@@ -610,12 +607,14 @@ export default function Graph({
   }, []);
 
   const getArrowColor = useCallback((_link: LinkObject): string => {
-    return resolveDirectionColor(themeRef.current, directionColorRef.current);
-  }, []);
+    const edge = _link as FGLink;
+    return resolveDirectionColorOverride(directionColorRef.current) ?? getLinkColor(edge);
+  }, [getLinkColor]);
 
   const getParticleColor = useCallback((_link: LinkObject): string => {
-    return resolveDirectionColor(themeRef.current, directionColorRef.current);
-  }, []);
+    const edge = _link as FGLink;
+    return resolveDirectionColorOverride(directionColorRef.current) ?? getLinkColor(edge);
+  }, [getLinkColor]);
 
   const getLinkWidth = useCallback((link: FGLink) => {
     const edgeDeco = edgeDecorationsRef.current?.[link.id];
