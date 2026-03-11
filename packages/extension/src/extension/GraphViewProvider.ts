@@ -236,15 +236,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       ? savedViewId
       : this._viewRegistry.getDefaultViewId() ?? 'codegraphy.connections';
 
-    // Restore disabled rules and plugins from workspace state
-    const savedDisabledRules = this._context.workspaceState.get<string[]>(DISABLED_RULES_KEY);
-    if (savedDisabledRules) {
-      this._disabledRules = new Set(savedDisabledRules);
-    }
-    const savedDisabledPlugins = this._context.workspaceState.get<string[]>(DISABLED_PLUGINS_KEY);
-    if (savedDisabledPlugins) {
-      this._disabledPlugins = new Set(savedDisabledPlugins);
-    }
+    this._loadDisabledRulesAndPlugins();
   }
 
   /**
@@ -334,6 +326,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Can be called when files change or settings are updated.
    */
   public async refresh(): Promise<void> {
+    this._loadDisabledRulesAndPlugins();
     await this._analyzeAndSendData();
     this._sendSettings();
     this._sendPhysicsSettings();
@@ -353,6 +346,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   public refreshSettings(): void {
     this._sendSettings();
+  }
+
+  /**
+   * Refreshes rule/plugin toggle state from VS Code settings and updates the graph.
+   * Used when users edit disabled toggles directly in settings JSON.
+   */
+  public refreshToggleSettings(): void {
+    if (!this._loadDisabledRulesAndPlugins()) return;
+    this._rebuildAndSend();
   }
 
   /**
@@ -1150,6 +1152,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       switch (message.type) {
         case 'WEBVIEW_READY': {
           this._loadGroupsAndFilterPatterns();
+          this._loadDisabledRulesAndPlugins();
           this._analyzeAndSendData();
           this._sendFavorites();
           this._sendSettings();
@@ -1341,7 +1344,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           } else {
             this._disabledRules.add(qualifiedId);
           }
-          await this._context.workspaceState.update(DISABLED_RULES_KEY, [...this._disabledRules]);
+          const target = this._getConfigTarget();
+          await vscode.workspace.getConfiguration('codegraphy').update('disabledRules', [...this._disabledRules], target);
           this._smartRebuild('rule', qualifiedId);
           break;
         }
@@ -1353,7 +1357,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           } else {
             this._disabledPlugins.add(pluginId);
           }
-          await this._context.workspaceState.update(DISABLED_PLUGINS_KEY, [...this._disabledPlugins]);
+          const target = this._getConfigTarget();
+          await vscode.workspace.getConfiguration('codegraphy').update('disabledPlugins', [...this._disabledPlugins], target);
           this._smartRebuild('plugin', pluginId);
           break;
         }
@@ -1919,6 +1924,45 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     this._groups = vsGroups ?? this._context.workspaceState.get<IGroup[]>(GROUPS_KEY) ?? [];
     this._filterPatterns = vsFilterPatterns ?? this._context.workspaceState.get<string[]>(FILTER_PATTERNS_KEY) ?? [];
+  }
+
+  /**
+   * Loads disabled rule/plugin toggles from VS Code settings.
+   * Falls back to workspace state for migration from older persisted data.
+   *
+   * @returns True when either disabled set changed
+   */
+  private _loadDisabledRulesAndPlugins(): boolean {
+    const config = vscode.workspace.getConfiguration('codegraphy');
+    const rulesInspect = config.inspect<string[]>('disabledRules');
+    const pluginsInspect = config.inspect<string[]>('disabledPlugins');
+
+    const configuredRules = rulesInspect?.workspaceValue ?? rulesInspect?.globalValue;
+    const configuredPlugins = pluginsInspect?.workspaceValue ?? pluginsInspect?.globalValue;
+
+    const nextDisabledRules = new Set(
+      configuredRules ?? this._context.workspaceState.get<string[]>(DISABLED_RULES_KEY) ?? []
+    );
+    const nextDisabledPlugins = new Set(
+      configuredPlugins ?? this._context.workspaceState.get<string[]>(DISABLED_PLUGINS_KEY) ?? []
+    );
+
+    const changed =
+      !this._areSetsEqual(this._disabledRules, nextDisabledRules) ||
+      !this._areSetsEqual(this._disabledPlugins, nextDisabledPlugins);
+
+    this._disabledRules = nextDisabledRules;
+    this._disabledPlugins = nextDisabledPlugins;
+
+    return changed;
+  }
+
+  private _areSetsEqual<T>(a: Set<T>, b: Set<T>): boolean {
+    if (a.size !== b.size) return false;
+    for (const value of a) {
+      if (!b.has(value)) return false;
+    }
+    return true;
   }
 
   /**
