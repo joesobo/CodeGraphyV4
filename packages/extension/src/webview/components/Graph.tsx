@@ -9,6 +9,7 @@ import ForceGraph2D from 'react-force-graph-2d';
 import type { ForceGraphMethods as FG2DMethods, NodeObject, LinkObject } from 'react-force-graph-2d';
 import ForceGraph3D from 'react-force-graph-3d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
+import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
 import { forceCollide, forceX, forceY } from 'd3-force';
 import {
@@ -22,7 +23,12 @@ import {
   BidirectionalEdgeMode,
   NodeDecorationPayload,
   EdgeDecorationPayload,
+  NodeShape2D,
+  NodeShape3D,
 } from '../../shared/types';
+import { drawShape } from '../lib/shapes2D';
+import { getImage } from '../lib/imageCache';
+import { createNodeMesh, createImageSprite } from '../lib/shapes3D';
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -78,6 +84,9 @@ type FGNode = NodeObject & {
   borderWidth: number;
   baseOpacity: number;
   isFavorite: boolean;
+  shape2D?: NodeShape2D;
+  shape3D?: NodeShape3D;
+  imageUrl?: string;
 };
 
 type FGLink = LinkObject & {
@@ -260,6 +269,8 @@ export default function Graph({
   const showLabelsRef = useRef(showLabels);
   /** Stores 3D SpriteText objects by node id so we can toggle visibility without rebuilding */
   const spritesRef = useRef<Map<string, SpriteText>>(new Map());
+  /** Stores 3D mesh refs for highlight color updates */
+  const meshesRef = useRef<Map<string, THREE.Mesh>>(new Map());
 
   const nodeDecorationsRef = useRef(nodeDecorations);
   const edgeDecorationsRef = useRef(edgeDecorations);
@@ -291,6 +302,10 @@ export default function Graph({
     pluginSections: [],
   });
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+  const [imageCacheVersion, setImageCacheVersion] = useState(0);
+  const triggerImageRerender = useCallback(() => {
+    setImageCacheVersion(v => v + 1);
+  }, []);
 
   // ── Build graphData for force-graph ─────────────────────────────────────
   // Only rebuilds when topology changes (data or bidirectionalMode).
@@ -332,6 +347,9 @@ export default function Graph({
         borderWidth,
         baseOpacity: getDepthOpacity(n.depthLevel),
         isFavorite,
+        shape2D: n.shape2D,
+        shape3D: n.shape3D,
+        imageUrl: n.imageUrl,
         x: n.x ?? prev?.x,
         y: n.y ?? prev?.y,
       } as FGNode;
@@ -402,9 +420,9 @@ export default function Graph({
     ctx.save();
     ctx.globalAlpha = opacity;
 
-    // Fill circle
-    ctx.beginPath();
-    ctx.arc(node.x!, node.y!, node.size, 0, 2 * Math.PI, false);
+    // Fill shape
+    const shape = node.shape2D ?? 'circle';
+    drawShape(ctx, shape, node.x!, node.y!, node.size);
     ctx.fillStyle = deco?.color ?? node.color;
     ctx.fill();
 
@@ -415,6 +433,19 @@ export default function Graph({
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = (isSelected ? Math.max(node.borderWidth, 3) : node.borderWidth) / globalScale;
     ctx.stroke();
+
+    // Image overlay (clipped to shape)
+    if (node.imageUrl) {
+      const img = getImage(node.imageUrl, triggerImageRerender);
+      if (img) {
+        ctx.save();
+        drawShape(ctx, shape, node.x!, node.y!, node.size * 0.8);
+        ctx.clip();
+        const imgSize = node.size * 1.2;
+        ctx.drawImage(img, node.x! - imgSize / 2, node.y! - imgSize / 2, imgSize, imgSize);
+        ctx.restore();
+      }
+    }
 
     // Label — fades in smoothly as user zooms in
     const labelText = deco?.label?.text ?? node.label;
@@ -453,7 +484,8 @@ export default function Graph({
     }
 
     ctx.restore();
-  }, [pluginHost]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pluginHost, imageCacheVersion, triggerImageRerender]);
 
   const nodePointerAreaPaint = useCallback((
     node: FGNode,
@@ -461,8 +493,7 @@ export default function Graph({
     ctx: CanvasRenderingContext2D
   ) => {
     ctx.fillStyle = color;
-    ctx.beginPath();
-    ctx.arc(node.x!, node.y!, node.size + 2, 0, 2 * Math.PI, false);
+    drawShape(ctx, node.shape2D ?? 'circle', node.x!, node.y!, node.size + 2);
     ctx.fill();
   }, []);
 
@@ -564,31 +595,59 @@ export default function Graph({
     return (srcId === highlighted || tgtId === highlighted) ? 2 : 1;
   }, []);
 
-  // ── 3D label sprite (using three-spritetext per official example) ───────────
+  // ── 3D node object (shape mesh + label + optional image sprite) ───────────
 
-  const node3DLabelObject = useCallback((node: FGNode) => {
+  const nodeThreeObject = useCallback((node: FGNode) => {
+    const group = new THREE.Group();
+
+    // Shape mesh
+    const shape = node.shape3D ?? 'sphere';
+    const mesh = createNodeMesh(shape, node.color, node.size / DEFAULT_NODE_SIZE * 4);
+    meshesRef.current.set(node.id, mesh);
+    group.add(mesh);
+
+    // Image sprite overlay
+    if (node.imageUrl) {
+      const imgSprite = createImageSprite(node.imageUrl, node.size / DEFAULT_NODE_SIZE * 6);
+      group.add(imgSprite);
+    }
+
+    // Label
     const sprite = new SpriteText(node.label);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (sprite as any).visible = showLabelsRef.current;
     sprite.color = '#ffffff';
     sprite.textHeight = 6;
-    sprite.offsetY = (node.size / DEFAULT_NODE_SIZE) * 8 + 4; // shift above node sphere
+    sprite.offsetY = (node.size / DEFAULT_NODE_SIZE) * 8 + 4;
     spritesRef.current.set(node.id, sprite);
-    return sprite;
+    group.add(sprite);
+
+    return group;
   }, []);
 
   // ── 3D color function ────────────────────────────────────────────────────
 
   const [highlightVersion, setHighlightVersion] = useState(0);
-  const node3DColor = useCallback((node: FGNode) => {
+
+  // Update 3D mesh colors on highlight changes
+  useEffect(() => {
     const highlighted = highlightedNodeRef.current;
-    const isHighlighted = !highlighted ||
-      node.id === highlighted ||
-      highlightedNeighborsRef.current.has(node.id);
-    if (!isHighlighted) return 'rgba(100,100,100,0.3)';
-    const isSelected = selectedNodesSetRef.current.has(node.id);
-    return isSelected ? '#ffffff' : node.color;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    for (const [nodeId, mesh] of meshesRef.current) {
+      const mat = mesh.material as THREE.MeshLambertMaterial;
+      const node = graphDataRef.current.nodes.find(n => n.id === nodeId);
+      if (!node) continue;
+      const isHighlighted = !highlighted ||
+        nodeId === highlighted ||
+        highlightedNeighborsRef.current.has(nodeId);
+      const isSelected = selectedNodesSetRef.current.has(nodeId);
+      if (!isHighlighted) {
+        mat.color.set('#646464');
+        mat.opacity = 0.3;
+      } else {
+        mat.color.set(isSelected ? '#ffffff' : node.color);
+        mat.opacity = 1.0;
+      }
+    }
   }, [highlightVersion]);
 
   // ── Highlight helpers ────────────────────────────────────────────────────
@@ -1199,12 +1258,11 @@ export default function Graph({
               ref={handle3DRef as any}
               {...sharedProps}
               backgroundColor={bgColor}
-              nodeColor={node3DColor as (node: NodeObject) => string}
               nodeVal={(node) => (node as FGNode).size / DEFAULT_NODE_SIZE}
               nodeLabel=""
-              nodeThreeObjectExtend={true}
+              nodeThreeObjectExtend={false}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              nodeThreeObject={node3DLabelObject as (node: NodeObject) => any}
+              nodeThreeObject={nodeThreeObject as (node: NodeObject) => any}
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
               linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}

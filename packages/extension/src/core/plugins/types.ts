@@ -124,7 +124,12 @@ export interface IPlugin {
    * }
    * ```
    */
-  fileColors?: Record<string, string>;
+  fileColors?: Record<string, string | {
+    color: string;
+    shape2D?: import('../../shared/types').NodeShape2D;
+    shape3D?: import('../../shared/types').NodeShape3D;
+    image?: string;  // relative path from plugin root
+  }>;
   
   /**
    * Optional default filter patterns for this plugin's ecosystem.

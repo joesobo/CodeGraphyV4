@@ -16,6 +16,16 @@
 export type NodeSizeMode = 'connections' | 'file-size' | 'access-count' | 'uniform';
 
 /**
+ * Available 2D canvas node shapes.
+ */
+export type NodeShape2D = 'circle' | 'square' | 'diamond' | 'triangle' | 'hexagon' | 'star';
+
+/**
+ * Available 3D WebGL node shapes.
+ */
+export type NodeShape3D = 'sphere' | 'cube' | 'octahedron' | 'cone' | 'dodecahedron' | 'icosahedron';
+
+/**
  * Direction indicator mode for graph edges.
  * Determines how import direction is visualized on connections.
  */
@@ -145,6 +155,13 @@ export interface IGraphNode {
    * Used for visual styling (opacity, size) in depth graph view.
    */
   depthLevel?: number;
+
+  /** 2D canvas shape from group matching */
+  shape2D?: NodeShape2D;
+  /** 3D WebGL shape from group matching */
+  shape3D?: NodeShape3D;
+  /** Webview URI for overlay image from group matching */
+  imageUrl?: string;
 }
 
 /**
@@ -306,6 +323,14 @@ export interface IGroup {
   pattern: string;
   /** Hex color string, e.g. "#3B82F6" */
   color: string;
+  /** 2D canvas shape (defaults to 'circle') */
+  shape2D?: NodeShape2D;
+  /** 3D WebGL shape (defaults to 'sphere') */
+  shape3D?: NodeShape3D;
+  /** Workspace-relative path to image for persistence */
+  imagePath?: string;
+  /** Webview URI for the image (resolved at send-time, not persisted) */
+  imageUrl?: string;
 }
 // ============================================================================
 // Plugin Decoration Payload Types (for webview rendering)
@@ -521,7 +546,8 @@ export type WebviewToExtensionMessage =
   // Plugin API v2: forward graph interactions to extension EventBus
   | { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }
   // Plugin API v2: invoke a plugin context menu action
-  | { type: 'PLUGIN_CONTEXT_MENU_ACTION'; payload: { pluginId: string; index: number; targetId: string; targetType: 'node' | 'edge' } };
+  | { type: 'PLUGIN_CONTEXT_MENU_ACTION'; payload: { pluginId: string; index: number; targetId: string; targetType: 'node' | 'edge' } }
+  | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } };
 
 /**
  * File information returned from extension for tooltips.

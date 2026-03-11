@@ -256,7 +256,7 @@
 				"codegraphy.groups": {
 					"type": "array",
 					"default": [],
-					"description": "Color groups for matching files. Each entry has a glob pattern and a hex color. Takes priority over workspace state groups.",
+					"description": "Groups for matching files. Each entry defines a glob pattern with color, shape, and optional image.",
 					"items": {
 						"type": "object",
 						"properties": {
@@ -269,6 +269,18 @@
 							"color": {
 								"type": "string",
 								"pattern": "^#[0-9A-Fa-f]{6}$"
+							},
+							"shape2D": {
+								"type": "string",
+								"enum": ["circle", "square", "diamond", "triangle", "hexagon", "star"]
+							},
+							"shape3D": {
+								"type": "string",
+								"enum": ["sphere", "cube", "octahedron", "cone", "dodecahedron", "icosahedron"]
+							},
+							"imagePath": {
+								"type": "string",
+								"description": "Workspace-relative path to image (e.g. .codegraphy/assets/icon.png)"
 							}
 						}
 					}

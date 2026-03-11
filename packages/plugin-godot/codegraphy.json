@@ -15,11 +15,11 @@
     "**/*.uid"
   ],
   "fileColors": {
-    "*.gd": "#478CBF",
-    "*.tscn": "#6EE7B7",
+    "*.gd": { "color": "#478CBF", "shape2D": "diamond" },
+    "*.tscn": { "color": "#6EE7B7", "shape2D": "hexagon" },
     "*.tres": "#5EEAD4",
-    "*.gdshader": "#A78BFA",
-    "project.godot": "#478CBF"
+    "*.gdshader": { "color": "#A78BFA", "shape2D": "triangle" },
+    "project.godot": { "color": "#478CBF", "shape2D": "star" }
   },
   "rules": [
     { "id": "preload", "name": "Preload", "description": "preload(\"res://...\")" },

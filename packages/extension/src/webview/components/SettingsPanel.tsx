@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IPhysicsSettings, NodeSizeMode, DirectionMode } from '../../shared/types';
+import { IPhysicsSettings, NodeSizeMode, DirectionMode, IGroup, NodeShape2D, NodeShape3D } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
@@ -20,6 +20,24 @@ interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
 }
+
+const SHAPE_2D_OPTIONS: { value: NodeShape2D; label: string }[] = [
+  { value: 'circle', label: 'Circle' },
+  { value: 'square', label: 'Square' },
+  { value: 'diamond', label: 'Diamond' },
+  { value: 'triangle', label: 'Triangle' },
+  { value: 'hexagon', label: 'Hexagon' },
+  { value: 'star', label: 'Star' },
+];
+
+const SHAPE_3D_OPTIONS: { value: NodeShape3D; label: string }[] = [
+  { value: 'sphere', label: 'Sphere' },
+  { value: 'cube', label: 'Cube' },
+  { value: 'octahedron', label: 'Octahedron' },
+  { value: 'cone', label: 'Cone' },
+  { value: 'dodecahedron', label: 'Dodecahedron' },
+  { value: 'icosahedron', label: 'Icosahedron' },
+];
 
 const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
   { value: 'connections', label: 'Connections' },
@@ -73,6 +91,8 @@ export default function SettingsPanel({
   const setPhysicsSettings = useGraphStore(s => s.setPhysicsSettings);
   const groups = useGraphStore(s => s.groups);
   const setGroups = useGraphStore(s => s.setGroups);
+  const expandedGroupId = useGraphStore(s => s.expandedGroupId);
+  const setExpandedGroupId = useGraphStore(s => s.setExpandedGroupId);
   const filterPatterns = useGraphStore(s => s.filterPatterns);
   const setFilterPatterns = useGraphStore(s => s.setFilterPatterns);
   const pluginFilterPatterns = useGraphStore(s => s.pluginFilterPatterns);
@@ -137,14 +157,30 @@ export default function SettingsPanel({
   // Groups handlers
   const handleAddGroup = () => {
     if (!newPattern.trim()) return;
-    const updated = [
+    const newId = crypto.randomUUID();
+    const updated: IGroup[] = [
       ...groups,
-      { id: crypto.randomUUID(), pattern: newPattern.trim(), color: newColor },
+      { id: newId, pattern: newPattern.trim(), color: newColor },
     ];
     setGroups(updated);
     postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
     setNewPattern('');
     setNewColor('#3B82F6');
+    setExpandedGroupId(newId);
+  };
+
+  const handleUpdateGroup = (id: string, updates: Partial<IGroup>) => {
+    const updated = groups.map(g => g.id === id ? { ...g, ...updates } : g);
+    setGroups(updated);
+    postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
+  };
+
+  const handlePickImage = (groupId: string) => {
+    postMessage({ type: 'PICK_GROUP_IMAGE', payload: { groupId } });
+  };
+
+  const handleClearImage = (groupId: string) => {
+    handleUpdateGroup(groupId, { imagePath: undefined, imageUrl: undefined });
   };
 
   const handleDeleteGroup = (id: string) => {
@@ -394,41 +430,137 @@ export default function SettingsPanel({
                 <p className="text-xs text-muted-foreground py-1">No groups. All nodes use the default grey color.</p>
               ) : (
                 <ul className="space-y-1">
-                  {groups.map((group, index) => (
-                    <li
-                      key={group.id}
-                      draggable
-                      onDragStart={() => handleGroupDragStart(index)}
-                      onDragOver={(e) => handleGroupDragOver(e, index)}
-                      onDrop={(e) => handleGroupDrop(e, index)}
-                      onDragEnd={handleGroupDragEnd}
-                      className={cn(
-                        'flex items-center gap-2 rounded transition-colors',
-                        dragOverIndex === index && dragIndex !== index && 'bg-accent outline outline-1 outline-primary/50',
-                        dragIndex === index && 'opacity-40'
-                      )}
-                    >
-                      <svg className="w-3 h-3 text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 22a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
-                      </svg>
-                      <span
-                        className="w-4 h-4 rounded-sm flex-shrink-0 border"
-                        style={{ backgroundColor: group.color }}
-                      />
-                      <span className="text-xs flex-1 truncate font-mono">{group.pattern}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
-                        onClick={() => handleDeleteGroup(group.id)}
-                        title="Delete group"
+                  {groups.map((group, index) => {
+                    const isExpanded = expandedGroupId === group.id;
+                    return (
+                      <li
+                        key={group.id}
+                        draggable={!isExpanded}
+                        onDragStart={() => handleGroupDragStart(index)}
+                        onDragOver={(e) => handleGroupDragOver(e, index)}
+                        onDrop={(e) => handleGroupDrop(e, index)}
+                        onDragEnd={handleGroupDragEnd}
+                        className={cn(
+                          'rounded transition-colors',
+                          dragOverIndex === index && dragIndex !== index && 'bg-accent outline outline-1 outline-primary/50',
+                          dragIndex === index && 'opacity-40',
+                          isExpanded && 'bg-accent/50 p-1.5'
+                        )}
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </Button>
-                    </li>
-                  ))}
+                        {/* Collapsed row */}
+                        <div
+                          className="flex items-center gap-2 cursor-pointer"
+                          onClick={() => setExpandedGroupId(isExpanded ? null : group.id)}
+                        >
+                          <svg className="w-3 h-3 text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 22a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+                          </svg>
+                          <span
+                            className="w-4 h-4 rounded-sm flex-shrink-0 border"
+                            style={{ backgroundColor: group.color }}
+                          />
+                          <span className="text-xs flex-1 truncate font-mono">{group.pattern}</span>
+                          {group.shape2D && group.shape2D !== 'circle' && (
+                            <span className="text-[10px] text-muted-foreground">{group.shape2D}</span>
+                          )}
+                          {group.imageUrl && (
+                            <img src={group.imageUrl} alt="" className="w-4 h-4 object-cover rounded-sm flex-shrink-0" />
+                          )}
+                          <ChevronIcon open={isExpanded} />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
+                            onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.id); }}
+                            title="Delete group"
+                          >
+                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </Button>
+                        </div>
+
+                        {/* Expanded editor */}
+                        {isExpanded && (
+                          <div className="mt-2 space-y-2 pl-5">
+                            {/* Pattern */}
+                            <div>
+                              <Label className="text-[10px] text-muted-foreground">Pattern</Label>
+                              <Input
+                                value={group.pattern}
+                                onChange={e => handleUpdateGroup(group.id, { pattern: e.target.value })}
+                                className="h-6 text-xs"
+                              />
+                            </div>
+                            {/* Color */}
+                            <div className="flex items-center gap-2">
+                              <Label className="text-[10px] text-muted-foreground">Color</Label>
+                              <input
+                                type="color"
+                                value={group.color}
+                                onChange={e => handleUpdateGroup(group.id, { color: e.target.value })}
+                                className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0"
+                              />
+                            </div>
+                            {/* 2D Shape */}
+                            <div>
+                              <Label className="text-[10px] text-muted-foreground">2D Shape</Label>
+                              <select
+                                value={group.shape2D ?? 'circle'}
+                                onChange={e => handleUpdateGroup(group.id, { shape2D: e.target.value as NodeShape2D })}
+                                className="w-full h-6 text-xs bg-background border rounded px-1"
+                              >
+                                {SHAPE_2D_OPTIONS.map(opt => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </select>
+                            </div>
+                            {/* 3D Shape */}
+                            <div>
+                              <Label className="text-[10px] text-muted-foreground">3D Shape</Label>
+                              <select
+                                value={group.shape3D ?? 'sphere'}
+                                onChange={e => handleUpdateGroup(group.id, { shape3D: e.target.value as NodeShape3D })}
+                                className="w-full h-6 text-xs bg-background border rounded px-1"
+                              >
+                                {SHAPE_3D_OPTIONS.map(opt => (
+                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                ))}
+                              </select>
+                            </div>
+                            {/* Image */}
+                            <div>
+                              <Label className="text-[10px] text-muted-foreground">Image</Label>
+                              <div className="flex items-center gap-1.5">
+                                {group.imageUrl ? (
+                                  <>
+                                    <img src={group.imageUrl} alt="" className="w-8 h-8 object-cover rounded border" />
+                                    <Button
+                                      variant="secondary"
+                                      size="sm"
+                                      className="h-6 px-2 text-[10px]"
+                                      onClick={() => handleClearImage(group.id)}
+                                    >
+                                      Clear
+                                    </Button>
+                                  </>
+                                ) : (
+                                  <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="h-6 px-2 text-[10px]"
+                                    onClick={() => handlePickImage(group.id)}
+                                  >
+                                    Choose Image...
+                                  </Button>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
               {/* Add group form */}

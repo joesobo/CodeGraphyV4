@@ -420,7 +420,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     if (this._mergePluginFileColorGroups()) {
       await this._context.workspaceState.update(GROUPS_KEY, this._groups);
       if (this._isAnalysisStale(signal, requestId)) return;
-      this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
+      this._sendGroupsUpdated();
     }
 
     // Check if workspace is open
@@ -517,12 +517,21 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       const fileColors = pluginInfo.plugin.fileColors;
       if (!fileColors) continue;
 
-      for (const [pattern, color] of Object.entries(fileColors)) {
+      for (const [pattern, value] of Object.entries(fileColors)) {
+        const color = typeof value === 'string' ? value : value.color;
         const id = `plugin:${pluginInfo.plugin.id}:${pattern}`;
         if (existingIds.has(id) || existingPatternColor.has(`${pattern}::${color}`)) {
           continue;
         }
-        this._groups.push({ id, pattern, color });
+        const group: IGroup = { id, pattern, color };
+        if (typeof value === 'object') {
+          if (value.shape2D) group.shape2D = value.shape2D;
+          if (value.shape3D) group.shape3D = value.shape3D;
+          if (value.image) {
+            group.imagePath = value.image;
+          }
+        }
+        this._groups.push(group);
         existingIds.add(id);
         existingPatternColor.add(`${pattern}::${color}`);
         changed = true;
@@ -764,6 +773,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     roots.set(this._uriKey(this._extensionUri), this._extensionUri);
     for (const uri of this._pluginExtensionUris.values()) {
       roots.set(this._uriKey(uri), uri);
+    }
+    // Add workspace folders so .codegraphy/assets/ images can be served
+    for (const folder of vscode.workspace.workspaceFolders ?? []) {
+      roots.set(this._uriKey(folder.uri), folder.uri);
     }
     return [...roots.values()];
   }
@@ -1124,6 +1137,25 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Sends GROUPS_UPDATED with imagePath resolved to imageUrl.
+   */
+  private _sendGroupsUpdated(): void {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    const resolved = this._groups.map(g => {
+      if (!g.imagePath) return g;
+      const imageUri = workspaceFolder
+        ? vscode.Uri.joinPath(workspaceFolder.uri, g.imagePath)
+        : null;
+      const webview = this._view?.webview ?? this._panels[0]?.webview;
+      const imageUrl = imageUri && webview
+        ? webview.asWebviewUri(imageUri).toString()
+        : undefined;
+      return { ...g, imageUrl };
+    });
+    this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: resolved } });
+  }
+
+  /**
    * Sends a message to all active webviews (sidebar + editor panels).
    *
    * @param message - Message to send to the webviews
@@ -1153,7 +1185,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._sendFavorites();
           this._sendSettings();
           this._sendPhysicsSettings();
-          this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
+          this._sendGroupsUpdated();
           this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
           this._sendMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles: vscode.workspace.getConfiguration('codegraphy').get<number>('maxFiles', 500) } });
           this._sendCachedTimeline();
@@ -1291,7 +1323,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._groups = message.payload.groups;
           // Save to workspace state to avoid triggering onDidChangeConfiguration
           await this._context.workspaceState.update(GROUPS_KEY, this._groups);
-          this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: this._groups } });
+          this._sendGroupsUpdated();
           break;
         }
 
@@ -1414,6 +1446,35 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
                 console.error(`[CodeGraphy] Plugin context menu action error:`, error);
               }
             }
+          }
+          break;
+        }
+
+        case 'PICK_GROUP_IMAGE': {
+          const { groupId } = message.payload;
+          const uris = await vscode.window.showOpenDialog({
+            canSelectMany: false,
+            filters: { 'Images': ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif', 'ico'] },
+            openLabel: 'Select Image',
+          });
+          if (!uris || uris.length === 0) break;
+          const selectedUri = uris[0];
+          const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+          if (!workspaceFolder) break;
+
+          const assetsDir = vscode.Uri.joinPath(workspaceFolder.uri, '.codegraphy', 'assets');
+          try { await vscode.workspace.fs.createDirectory(assetsDir); } catch { /* already exists */ }
+
+          const fileName = path.basename(selectedUri.fsPath);
+          const destUri = vscode.Uri.joinPath(assetsDir, fileName);
+          await vscode.workspace.fs.copy(selectedUri, destUri, { overwrite: true });
+
+          const imagePath = `.codegraphy/assets/${fileName}`;
+          const group = this._groups.find(g => g.id === groupId);
+          if (group) {
+            group.imagePath = imagePath;
+            await this._context.workspaceState.update(GROUPS_KEY, this._groups);
+            this._sendGroupsUpdated();
           }
           break;
         }
@@ -2163,7 +2224,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src ${webview.cspSource};">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src ${webview.cspSource}; img-src ${webview.cspSource};">
   <link href="${styleUri}" rel="stylesheet">
   <title>CodeGraphy</title>
 </head>
