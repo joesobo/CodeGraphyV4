@@ -33,9 +33,25 @@ const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
 const DIRECTION_AUTO_COLOR_LIGHT = '#000000';
 const DIRECTION_AUTO_COLOR_DARK = '#FFFFFF';
+const PARTICLE_SPEED_MIN_INTERNAL = 0.0005;
+const PARTICLE_SPEED_MAX_INTERNAL = 0.005;
+const PARTICLE_SPEED_MIN_DISPLAY = 1;
+const PARTICLE_SPEED_MAX_DISPLAY = 10;
 
 function isHexColor(value: string): boolean {
   return /^#[0-9A-F]{6}$/i.test(value);
+}
+
+function particleSpeedToDisplay(speed: number): number {
+  const clamped = Math.min(PARTICLE_SPEED_MAX_INTERNAL, Math.max(PARTICLE_SPEED_MIN_INTERNAL, speed));
+  const ratio = (clamped - PARTICLE_SPEED_MIN_INTERNAL) / (PARTICLE_SPEED_MAX_INTERNAL - PARTICLE_SPEED_MIN_INTERNAL);
+  return PARTICLE_SPEED_MIN_DISPLAY + ratio * (PARTICLE_SPEED_MAX_DISPLAY - PARTICLE_SPEED_MIN_DISPLAY);
+}
+
+function particleSpeedFromDisplay(level: number): number {
+  const clamped = Math.min(PARTICLE_SPEED_MAX_DISPLAY, Math.max(PARTICLE_SPEED_MIN_DISPLAY, level));
+  const ratio = (clamped - PARTICLE_SPEED_MIN_DISPLAY) / (PARTICLE_SPEED_MAX_DISPLAY - PARTICLE_SPEED_MIN_DISPLAY);
+  return Number((PARTICLE_SPEED_MIN_INTERNAL + ratio * (PARTICLE_SPEED_MAX_INTERNAL - PARTICLE_SPEED_MIN_INTERNAL)).toFixed(6));
 }
 
 function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
@@ -291,6 +307,7 @@ export default function SettingsPanel({
 
   const autoDirectionColor = theme === 'light' ? DIRECTION_AUTO_COLOR_LIGHT : DIRECTION_AUTO_COLOR_DARK;
   const resolvedDirectionColor = isHexColor(directionColor) ? directionColor : autoDirectionColor;
+  const displayParticleSpeed = particleSpeedToDisplay(particleSpeed);
 
   const handleDirectionColorChange = (value: string) => {
     const normalized = value.toUpperCase();
@@ -303,9 +320,10 @@ export default function SettingsPanel({
     postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: 'auto' } });
   };
 
-  const handleParticleSpeedChange = (value: number) => {
-    setParticleSpeed(value);
-    scheduleParticleSettingPersist('particleSpeed', value);
+  const handleParticleSpeedChange = (level: number) => {
+    const normalized = particleSpeedFromDisplay(level);
+    setParticleSpeed(normalized);
+    scheduleParticleSettingPersist('particleSpeed', normalized);
   };
 
   const handleParticleSizeChange = (value: number) => {
@@ -668,13 +686,13 @@ export default function SettingsPanel({
                   <div>
                     <div className="flex items-center justify-between mb-1">
                       <Label className="text-xs">Particle Speed</Label>
-                      <span className="text-xs text-muted-foreground font-mono">{particleSpeed.toFixed(3)}</span>
+                      <span className="text-xs text-muted-foreground font-mono">{Math.round(displayParticleSpeed)}</span>
                     </div>
                     <Slider
-                      min={0.001}
-                      max={0.05}
-                      step={0.001}
-                      value={[particleSpeed]}
+                      min={PARTICLE_SPEED_MIN_DISPLAY}
+                      max={PARTICLE_SPEED_MAX_DISPLAY}
+                      step={1}
+                      value={[displayParticleSpeed]}
                       onValueChange={(v) => handleParticleSpeedChange(v[0])}
                       onValueCommit={() => flushParticleSetting('particleSpeed')}
                     />
