@@ -297,6 +297,12 @@
 					],
 					"description": "How to indicate import direction on graph edges."
 				},
+				"codegraphy.directionColor": {
+					"type": "string",
+					"default": "auto",
+					"pattern": "^(auto|#[0-9A-Fa-f]{6})$",
+					"description": "Directional indicator color. Use \"auto\" for theme-based color (white on dark themes, black on light themes) or a hex color."
+				},
 				"codegraphy.particleSpeed": {
 					"type": "number",
 					"default": 0.005,
