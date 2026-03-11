@@ -7,7 +7,7 @@ Thanks for your interest in contributing to CodeGraphy!
 ### Prerequisites
 
 - Node.js 20+
-- npm
+- pnpm 10+
 - VS Code 1.85+
 
 ### Getting started
@@ -15,15 +15,15 @@ Thanks for your interest in contributing to CodeGraphy!
 1. Fork and clone the repository
 2. Install dependencies:
    ```bash
-   npm install
+   pnpm install
    ```
 3. Build the project:
    ```bash
-   npm run build
+   pnpm run build
    ```
 4. Run tests to verify:
    ```bash
-   npm test
+   pnpm test
    ```
 
 ### Development workflow
@@ -35,7 +35,7 @@ Thanks for your interest in contributing to CodeGraphy!
 
 2. Start watch mode:
    ```bash
-   npm run dev
+   pnpm run dev
    ```
 
 3. Press F5 in VS Code to launch the Extension Development Host
@@ -44,9 +44,9 @@ Thanks for your interest in contributing to CodeGraphy!
 
 5. Run all checks before committing:
    ```bash
-   npm run lint
-   npm run typecheck
-   npm test
+   pnpm run lint
+   pnpm run typecheck
+   pnpm test
    ```
 
 ## Code style
@@ -96,9 +96,9 @@ docs: update README with installation instructions
 - Aim for meaningful coverage, not 100%
 
 ```bash
-npm test              # Run once
-npm run test:watch    # Watch mode
-npx vitest run tests/path/to/file.test.ts  # Single file
+pnpm test             # Run once
+pnpm run test:watch   # Watch mode
+pnpm exec vitest run tests/path/to/file.test.ts  # Single file
 ```
 
 ## Reporting issues

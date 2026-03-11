@@ -5,17 +5,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run build          # Build both extension and webview (runs esbuild + vite)
-npm run dev            # Watch mode (concurrently watches extension and webview)
-npm test               # Run tests once with Vitest
-npm run test:watch     # Run tests in watch mode
-npm run lint           # ESLint on src/
-npm run typecheck      # TypeScript type checking (no emit)
+pnpm run build         # Build both extension and webview (runs esbuild + vite)
+pnpm run dev           # Watch mode (concurrently watches extension and webview)
+pnpm test              # Run tests once with Vitest
+pnpm run test:watch    # Run tests in watch mode
+pnpm run lint          # ESLint on src/
+pnpm run typecheck     # TypeScript type checking (no emit)
 ```
 
 To run a single test file:
 ```bash
-npx vitest run tests/path/to/specific.test.ts
+pnpm exec vitest run tests/path/to/specific.test.ts
 ```
 
 Press `F5` in VS Code to launch the Extension Development Host for manual testing.
