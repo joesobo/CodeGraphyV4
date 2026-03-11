@@ -508,24 +508,40 @@ export default function Graph({
     ctx.stroke();
 
     if (directionModeRef.current === 'arrows') {
-      const arrowLen = 6 / globalScale;
-      const arrowAngle = Math.PI / 6;
-      // Arrow at target end
-      const angle1 = Math.atan2(ny, nx);
+      const arrowLen = 12;
+      const arrowHalfWidth = arrowLen / 1.6 / 2;
+      const arrowVertexLen = arrowLen * 0.2;
+      const px = -ny;
+      const py = nx;
+
+      // Arrow at target end (src -> tgt)
+      const tailX1 = endX - nx * arrowLen;
+      const tailY1 = endY - ny * arrowLen;
+      const vertexX1 = endX - nx * arrowVertexLen;
+      const vertexY1 = endY - ny * arrowVertexLen;
       ctx.beginPath();
       ctx.moveTo(endX, endY);
-      ctx.lineTo(endX - arrowLen * Math.cos(angle1 - arrowAngle), endY - arrowLen * Math.sin(angle1 - arrowAngle));
-      ctx.moveTo(endX, endY);
-      ctx.lineTo(endX - arrowLen * Math.cos(angle1 + arrowAngle), endY - arrowLen * Math.sin(angle1 + arrowAngle));
-      ctx.stroke();
-      // Arrow at source end
-      const angle2 = Math.atan2(-ny, -nx);
+      ctx.lineTo(tailX1 + px * arrowHalfWidth, tailY1 + py * arrowHalfWidth);
+      ctx.lineTo(vertexX1, vertexY1);
+      ctx.lineTo(tailX1 - px * arrowHalfWidth, tailY1 - py * arrowHalfWidth);
+      ctx.closePath();
+      ctx.fillStyle = ctx.strokeStyle as string;
+      ctx.fill();
+
+      // Arrow at source end (tgt -> src)
+      const rnx = -nx;
+      const rny = -ny;
+      const tailX2 = startX - rnx * arrowLen;
+      const tailY2 = startY - rny * arrowLen;
+      const vertexX2 = startX - rnx * arrowVertexLen;
+      const vertexY2 = startY - rny * arrowVertexLen;
       ctx.beginPath();
       ctx.moveTo(startX, startY);
-      ctx.lineTo(startX - arrowLen * Math.cos(angle2 - arrowAngle), startY - arrowLen * Math.sin(angle2 - arrowAngle));
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(startX - arrowLen * Math.cos(angle2 + arrowAngle), startY - arrowLen * Math.sin(angle2 + arrowAngle));
-      ctx.stroke();
+      ctx.lineTo(tailX2 + px * arrowHalfWidth, tailY2 + py * arrowHalfWidth);
+      ctx.lineTo(vertexX2, vertexY2);
+      ctx.lineTo(tailX2 - px * arrowHalfWidth, tailY2 - py * arrowHalfWidth);
+      ctx.closePath();
+      ctx.fill();
     }
 
     ctx.restore();
@@ -549,7 +565,6 @@ export default function Graph({
   }, []);
 
   const getLinkParticles = useCallback((link: LinkObject): number => {
-    if (directionModeRef.current !== 'particles') return 0;
     const edge = link as FGLink;
     const edgeDeco = edgeDecorationsRef.current?.[edge.id];
     return edgeDeco?.particles?.count ?? 3;
@@ -1103,7 +1118,7 @@ export default function Graph({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fg2d = fg as any;
     fg2d.linkDirectionalArrowLength?.(directionMode === 'arrows' ? 12 : 0);
-    fg2d.linkDirectionalArrowRelPos?.(0.78);
+    fg2d.linkDirectionalArrowRelPos?.(1);
     fg2d.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
     fg2d.linkDirectionalParticleWidth?.(particleSize);
     fg2d.linkDirectionalParticleSpeed?.(particleSpeed);
@@ -1231,9 +1246,9 @@ export default function Graph({
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
               linkDirectionalArrowLength={directionMode === 'arrows' ? 12 : 0}
-              linkDirectionalArrowRelPos={0.78}
+              linkDirectionalArrowRelPos={1}
               linkDirectionalArrowColor={getArrowColor}
-              linkDirectionalParticles={getLinkParticles}
+              linkDirectionalParticles={directionMode === 'particles' ? getLinkParticles : 0}
               linkDirectionalParticleWidth={particleSize}
               linkDirectionalParticleSpeed={particleSpeed}
               linkDirectionalParticleColor={getParticleColor}
@@ -1261,7 +1276,7 @@ export default function Graph({
               linkWidth={getLinkWidth as (link: LinkObject) => number}
               linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
               linkDirectionalArrowRelPos={1}
-              linkDirectionalParticles={getLinkParticles}
+              linkDirectionalParticles={directionMode === 'particles' ? getLinkParticles : 0}
               linkDirectionalParticleWidth={particleSize}
               linkDirectionalParticleSpeed={particleSpeed}
               linkDirectionalParticleColor={getLinkColor as (link: LinkObject) => string}

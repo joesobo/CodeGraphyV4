@@ -72,7 +72,7 @@ describe('Graph: force-graph rendering', () => {
     render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
     expect(props.linkDirectionalArrowLength).toBeGreaterThan(0);
-    expect(props.linkDirectionalArrowRelPos).toBeLessThan(1);
+    expect(props.linkDirectionalArrowRelPos).toBe(1);
   });
 
   it('imperatively syncs 2D directional settings when mode changes', () => {
@@ -118,7 +118,9 @@ describe('Graph: force-graph rendering', () => {
       beginPath: vi.fn(),
       moveTo: vi.fn(),
       lineTo: vi.fn(),
+      closePath: vi.fn(),
       stroke: vi.fn(),
+      fill: vi.fn(),
       globalAlpha: 1,
       lineWidth: 1,
       strokeStyle: '#000',
