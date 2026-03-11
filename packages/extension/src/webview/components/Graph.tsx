@@ -227,7 +227,7 @@ export default function Graph({
   const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
   const physicsSettings = useGraphStore(s => s.physicsSettings);
   const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
-  const showArrows = useGraphStore(s => s.showArrows);
+  const directionMode = useGraphStore(s => s.directionMode);
   const showLabels = useGraphStore(s => s.showLabels);
   const graphMode = useGraphStore(s => s.graphMode);
   const timelineActive = useGraphStore(s => s.timelineActive);
@@ -242,7 +242,7 @@ export default function Graph({
   const highlightedNeighborsRef = useRef<Set<string>>(new Set());
   const selectedNodesSetRef = useRef<Set<string>>(new Set());
   const themeRef = useRef(theme);
-  const showArrowsRef = useRef(showArrows);
+  const directionModeRef = useRef(directionMode);
   const favoritesRef = useRef(favorites);
   const graphDataRef = useRef<{ nodes: FGNode[]; links: FGLink[] }>({ nodes: [], links: [] });
   const contextTargetRef = useRef<string[]>([]);
@@ -264,7 +264,7 @@ export default function Graph({
 
   // Keep refs current on every render
   themeRef.current = theme;
-  showArrowsRef.current = showArrows;
+  directionModeRef.current = directionMode;
   showLabelsRef.current = showLabels;
   favoritesRef.current = favorites;
   dataRef.current = data;
@@ -504,7 +504,7 @@ export default function Graph({
     ctx.lineTo(endX, endY);
     ctx.stroke();
 
-    if (showArrowsRef.current) {
+    if (directionModeRef.current === 'arrows') {
       const arrowLen = 6 / globalScale;
       const arrowAngle = Math.PI / 6;
       // Arrow at target end
@@ -1172,7 +1172,7 @@ export default function Graph({
               nodePointerAreaPaint={nodePointerAreaPaint as (node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => void}
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
-              linkDirectionalArrowLength={showArrows ? 6 : 0}
+              linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
               linkDirectionalArrowRelPos={1}
               linkDirectionalArrowColor={getLinkColor as (link: LinkObject) => string}
               linkCanvasObject={linkCanvasObject as (link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
@@ -1194,7 +1194,7 @@ export default function Graph({
               nodeThreeObject={node3DLabelObject as (node: NodeObject) => any}
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
-              linkDirectionalArrowLength={showArrows ? 6 : 0}
+              linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
               linkDirectionalArrowRelPos={1}
             />
           )}

@@ -84,8 +84,8 @@ export default function SettingsPanel({
   const activeViewId = useGraphStore(s => s.activeViewId);
   const setActiveViewId = useGraphStore(s => s.setActiveViewId);
   const depthLimit = useGraphStore(s => s.depthLimit);
-  const showArrows = useGraphStore(s => s.showArrows);
-  const setShowArrows = useGraphStore(s => s.setShowArrows);
+  const directionMode = useGraphStore(s => s.directionMode);
+  const setDirectionMode = useGraphStore(s => s.setDirectionMode);
   const showLabels = useGraphStore(s => s.showLabels);
   const setShowLabels = useGraphStore(s => s.setShowLabels);
   const graphMode = useGraphStore(s => s.graphMode);
@@ -234,8 +234,9 @@ export default function SettingsPanel({
 
   // Display handlers
   const handleShowArrowsChange = (checked: boolean) => {
-    setShowArrows(checked);
-    postMessage({ type: 'UPDATE_SHOW_ARROWS', payload: { showArrows: checked } });
+    const mode = checked ? 'arrows' : 'none';
+    setDirectionMode(mode);
+    postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
   };
 
   const handleShowLabelsChange = (checked: boolean) => {
@@ -536,7 +537,7 @@ export default function SettingsPanel({
                 <Label htmlFor="show-arrows" className="text-xs">Show Arrows</Label>
                 <Switch
                   id="show-arrows"
-                  checked={showArrows}
+                  checked={directionMode === 'arrows'}
                   onCheckedChange={handleShowArrowsChange}
                 />
               </div>
