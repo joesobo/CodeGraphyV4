@@ -306,8 +306,8 @@
 				"codegraphy.particleSpeed": {
 					"type": "number",
 					"default": 0.005,
-					"minimum": 0.001,
-					"maximum": 0.05,
+					"minimum": 0.0005,
+					"maximum": 0.005,
 					"description": "Speed of directional particles (ratio of link length per frame)."
 				},
 				"codegraphy.particleSize": {
