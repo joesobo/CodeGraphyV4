@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useCallback, useRef } from 'react';
-import { minimatch } from 'minimatch';
+import { globMatch } from './lib/globMatch';
 import Graph from './components/Graph';
 import GraphIcon from './components/GraphIcon';
 import { SearchBar } from './components/SearchBar';
@@ -131,7 +131,7 @@ export default function App(): React.ReactElement {
 
     const coloredNodes = base.nodes.map(node => {
       for (const group of groups) {
-        if (minimatch(node.id, group.pattern, { matchBase: true })) {
+        if (globMatch(node.id, group.pattern)) {
           return { ...node, color: group.color };
         }
       }
