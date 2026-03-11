@@ -63,6 +63,17 @@ describe('Graph: force-graph rendering', () => {
     expect(props.linkDirectionalArrowLength).toBeGreaterThan(0);
   });
 
+  it('forces a 2D redraw when direction mode changes', () => {
+    render(<Graph data={mockData} />);
+    mockMethods.refresh.mockClear();
+
+    act(() => {
+      graphStore.setState({ directionMode: 'particles' });
+    });
+
+    expect(mockMethods.refresh).toHaveBeenCalledTimes(1);
+  });
+
   it('passes d3VelocityDecay from physicsSettings.damping', () => {
     setStore({
       physicsSettings: {

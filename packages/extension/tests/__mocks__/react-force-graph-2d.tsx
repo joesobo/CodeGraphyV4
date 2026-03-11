@@ -10,6 +10,7 @@ const mockMethods = {
   zoomToFit: vi.fn(),
   zoom: vi.fn(),
   centerAt: vi.fn(),
+  refresh: vi.fn(),
   d3Force: vi.fn().mockReturnValue({
     strength: vi.fn().mockReturnThis(),
     distance: vi.fn().mockReturnThis(),
