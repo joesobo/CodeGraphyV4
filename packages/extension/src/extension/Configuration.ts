@@ -39,6 +39,10 @@ export interface ICodeGraphyConfig {
   bidirectionalEdges: 'separate' | 'combined';
   /** List of plugin extension names to enable */
   plugins: string[];
+  /** List of disabled rule qualified IDs */
+  disabledRules: string[];
+  /** List of disabled plugin IDs */
+  disabledPlugins: string[];
 }
 
 /**
@@ -119,6 +123,24 @@ export class Configuration {
   }
 
   /**
+   * Rule toggle state persisted in VS Code settings.
+   * Entries are qualified IDs in "<pluginId>:<ruleId>" format.
+   * @default []
+   */
+  get disabledRules(): string[] {
+    return this.config.get<string[]>('disabledRules', []);
+  }
+
+  /**
+   * Plugin toggle state persisted in VS Code settings.
+   * Entries are plugin IDs (e.g., "codegraphy.typescript").
+   * @default []
+   */
+  get disabledPlugins(): string[] {
+    return this.config.get<string[]>('disabledPlugins', []);
+  }
+
+  /**
    * Maximum number of commits to index for the timeline.
    * @default 500
    */
@@ -158,6 +180,8 @@ export class Configuration {
       showOrphans: this.showOrphans,
       bidirectionalEdges: this.bidirectionalEdges,
       plugins: this.plugins,
+      disabledRules: this.disabledRules,
+      disabledPlugins: this.disabledPlugins,
     };
   }
 
