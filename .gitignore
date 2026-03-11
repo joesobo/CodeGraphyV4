@@ -8,5 +8,6 @@ coverage/
 dist-e2e/
 .worktrees/
 .playwright-mcp/
+.playwright-cli/
 .superpowers/
 .turbo/

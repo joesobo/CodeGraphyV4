@@ -408,8 +408,8 @@ describe('GraphViewProvider', () => {
       expect(changed).toBe(true);
 
       const groups = providerAny._groups as Array<{ id: string; pattern: string; color: string }>;
-      expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:.ts' && g.color === '#3178C6')).toBe(true);
-      expect(groups.some(g => g.id === 'plugin:codegraphy.python:.py' && g.color === '#3776AB')).toBe(true);
+      expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts' && g.color === '#3178C6')).toBe(true);
+      expect(groups.some(g => g.id === 'plugin:codegraphy.python:*.py' && g.color === '#3776AB')).toBe(true);
     });
   });
 
