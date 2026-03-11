@@ -398,40 +398,141 @@ describe('GraphViewProvider', () => {
   });
 
   describe('plugin fileColors defaults', () => {
-    it('merges plugin fileColors into groups with deterministic IDs', async () => {
+    it('returns plugin default groups with isPluginDefault flag', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const providerAny = provider as any;
-      providerAny._groups = [];
+      providerAny._userGroups = [];
       await providerAny._analyzer.initialize();
 
-      const changed = providerAny._mergePluginFileColorGroups();
-      expect(changed).toBe(true);
-
-      const groups = providerAny._groups as Array<{ id: string; pattern: string; color: string }>;
-      expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts' && g.color === '#3178C6')).toBe(true);
-      expect(groups.some(g => g.id === 'plugin:codegraphy.python:*.py' && g.color === '#3776AB')).toBe(true);
+      const pluginGroups = providerAny._getPluginDefaultGroups() as Array<{ id: string; pattern: string; color: string; isPluginDefault?: boolean }>;
+      expect(pluginGroups.length).toBeGreaterThan(0);
+      expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts' && g.color === '#3178C6')).toBe(true);
+      expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.python:*.py' && g.color === '#3776AB')).toBe(true);
+      expect(pluginGroups.every(g => g.isPluginDefault === true)).toBe(true);
     });
 
-    it('prunes stale plugin groups that no longer match current manifests', async () => {
+    it('computeMergedGroups combines user groups with visible plugin defaults', async () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const providerAny = provider as any;
-      // Seed with a stale plugin group that doesn't match any current plugin entry
-      providerAny._groups = [
-        { id: 'plugin:codegraphy.typescript:.ts', pattern: '.ts', color: '#3178C6' },
+      providerAny._userGroups = [
         { id: 'user-group-1', pattern: 'src/**', color: '#FF0000' },
       ];
+      providerAny._hiddenPluginGroupIds = new Set<string>();
       await providerAny._analyzer.initialize();
 
-      const changed = providerAny._mergePluginFileColorGroups();
-      expect(changed).toBe(true);
+      providerAny._computeMergedGroups();
 
-      const groups = providerAny._groups as Array<{ id: string; pattern: string; color: string }>;
-      // Stale plugin group should be removed
-      expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:.ts')).toBe(false);
+      const groups = providerAny._groups as Array<{ id: string; pattern: string; color: string; isPluginDefault?: boolean }>;
       // User group should be preserved
       expect(groups.some(g => g.id === 'user-group-1')).toBe(true);
-      // Fresh plugin groups should be added
+      // Plugin groups should be added
       expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts')).toBe(true);
+      // Stale plugin groups are not included (they come from _getPluginDefaultGroups fresh)
+      expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:.ts')).toBe(false);
+    });
+
+    it('computeMergedGroups excludes hidden plugin groups', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const providerAny = provider as any;
+      providerAny._userGroups = [];
+      providerAny._hiddenPluginGroupIds = new Set(['plugin:codegraphy.typescript:*.ts']);
+      await providerAny._analyzer.initialize();
+
+      providerAny._computeMergedGroups();
+
+      const groups = providerAny._groups as Array<{ id: string }>;
+      expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts')).toBe(false);
+      // Other plugin groups should still be visible
+      expect(groups.some(g => g.id === 'plugin:codegraphy.python:*.py')).toBe(true);
+    });
+  });
+
+  describe('HIDE_PLUGIN_GROUP and RESET_PLUGIN_DEFAULTS', () => {
+    const createResolvedWebview = () => {
+      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+          messageHandler = handler;
+          return { dispose: () => {} };
+        }),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      return {
+        mockWebview,
+        getMessageHandler: () => {
+          expect(messageHandler).not.toBeNull();
+          return messageHandler!;
+        },
+      };
+    };
+
+    it('hides a plugin group when HIDE_PLUGIN_GROUP is received', async () => {
+      const { getMessageHandler } = createResolvedWebview();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const providerAny = provider as any;
+      providerAny._userGroups = [];
+      providerAny._hiddenPluginGroupIds = new Set<string>();
+      await providerAny._analyzer.initialize();
+
+      const handler = getMessageHandler();
+      await handler({ type: 'HIDE_PLUGIN_GROUP', payload: { groupId: 'plugin:codegraphy.typescript:*.ts' } });
+
+      expect(providerAny._hiddenPluginGroupIds.has('plugin:codegraphy.typescript:*.ts')).toBe(true);
+      const groups = providerAny._groups as Array<{ id: string }>;
+      expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts')).toBe(false);
+    });
+
+    it('resets all hidden plugin groups when RESET_PLUGIN_DEFAULTS is received without pluginId', async () => {
+      const { getMessageHandler } = createResolvedWebview();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const providerAny = provider as any;
+      providerAny._userGroups = [];
+      providerAny._hiddenPluginGroupIds = new Set(['plugin:codegraphy.typescript:*.ts', 'plugin:codegraphy.python:*.py']);
+      await providerAny._analyzer.initialize();
+
+      const handler = getMessageHandler();
+      await handler({ type: 'RESET_PLUGIN_DEFAULTS', payload: {} });
+
+      expect(providerAny._hiddenPluginGroupIds.size).toBe(0);
+      const groups = providerAny._groups as Array<{ id: string }>;
+      expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts')).toBe(true);
+      expect(groups.some(g => g.id === 'plugin:codegraphy.python:*.py')).toBe(true);
+    });
+
+    it('resets hidden groups for a specific plugin when RESET_PLUGIN_DEFAULTS has pluginId', async () => {
+      const { getMessageHandler } = createResolvedWebview();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const providerAny = provider as any;
+      providerAny._userGroups = [];
+      providerAny._hiddenPluginGroupIds = new Set(['plugin:codegraphy.typescript:*.ts', 'plugin:codegraphy.python:*.py']);
+      await providerAny._analyzer.initialize();
+
+      const handler = getMessageHandler();
+      await handler({ type: 'RESET_PLUGIN_DEFAULTS', payload: { pluginId: 'codegraphy.typescript' } });
+
+      // Only typescript hidden group should be reset
+      expect(providerAny._hiddenPluginGroupIds.has('plugin:codegraphy.typescript:*.ts')).toBe(false);
+      // Python hidden group should remain
+      expect(providerAny._hiddenPluginGroupIds.has('plugin:codegraphy.python:*.py')).toBe(true);
     });
   });
 
