@@ -16,6 +16,10 @@ CodeGraphy can be configured in two ways:
 | `codegraphy.showOrphans` | boolean | `true` | Show files with no connections |
 | `codegraphy.showLabels` | boolean | `true` | Show file name labels on nodes |
 | `codegraphy.bidirectionalEdges` | string | `"separate"` | How to display bidirectional connections |
+| `codegraphy.directionMode` | string | `"arrows"` | Direction indicator mode: `arrows`, `particles`, or `none` |
+| `codegraphy.directionColor` | string | `"#475569"` | Direction indicator color (`#RRGGBB`) |
+| `codegraphy.particleSpeed` | number | `0.005` | Particle direction speed (internal range `0.0005`-`0.005`, UI scale `1`-`10`) |
+| `codegraphy.particleSize` | number | `4` | Particle size in pixels |
 | `codegraphy.favorites` | string[] | `[]` | Favorite file paths (highlighted with yellow border) |
 | `codegraphy.groups` | object[] | `[]` | Color groups: `{ id, pattern, color }` |
 | `codegraphy.plugins` | string[] | `[]` | VS Code extension IDs that provide external CodeGraphy plugins |
@@ -127,7 +131,9 @@ To version-control filter patterns, add them to `settings.json`:
 
 ### Display
 
-- **Show Arrows** toggles directional arrows on edges.
+- **Direction** switches between arrows, particles, and none.
+- **Direction Color** controls directional indicator color (hex only, `#RRGGBB`).
+- **Particle Speed** uses a normalized UI scale from `1` to `10` (mapped to internal `0.0005` to `0.005`).
 - **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
 - **Graph Mode** switches between 2D (canvas) and 3D (WebGL) rendering.
 - **Node Size** determines what controls node size:

@@ -67,6 +67,14 @@ const DISABLED_PLUGINS_KEY = 'codegraphy.disabledPlugins';
 
 /** Default depth limit for depth graph view */
 const DEFAULT_DEPTH_LIMIT = 1;
+const DEFAULT_DIRECTION_COLOR = '#475569';
+
+function normalizeDirectionColor(value: string | undefined): string {
+  if (!value) return DEFAULT_DIRECTION_COLOR;
+  const trimmed = value.trim();
+  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toUpperCase();
+  return DEFAULT_DIRECTION_COLOR;
+}
 
 interface IExternalPluginRegistrationOptions {
   extensionUri?: vscode.Uri | string;
@@ -1321,6 +1329,21 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             directionMode: mode,
             particleSpeed: config.get<number>('particleSpeed', 0.005),
             particleSize: config.get<number>('particleSize', 4),
+            directionColor: normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)),
+          }});
+          break;
+        }
+
+        case 'UPDATE_DIRECTION_COLOR': {
+          const target = this._getConfigTarget();
+          const color = normalizeDirectionColor(message.payload.directionColor);
+          await vscode.workspace.getConfiguration('codegraphy').update('directionColor', color, target);
+          const config = vscode.workspace.getConfiguration('codegraphy');
+          this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: {
+            directionMode: config.get<string>('directionMode', 'arrows') as DirectionMode,
+            particleSpeed: config.get<number>('particleSpeed', 0.005),
+            particleSize: config.get<number>('particleSize', 4),
+            directionColor: color,
           }});
           break;
         }
@@ -1993,9 +2016,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const directionMode = config.get<string>('directionMode', 'arrows') as DirectionMode;
     const particleSpeed = config.get<number>('particleSpeed', 0.005);
     const particleSize = config.get<number>('particleSize', 4);
+    const directionColor = normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR));
     const showLabels = config.get<boolean>('showLabels', true);
     this._sendMessage({ type: 'SETTINGS_UPDATED', payload: { bidirectionalEdges, showOrphans } });
-    this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode, particleSpeed, particleSize } });
+    this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode, particleSpeed, particleSize, directionColor } });
     this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels } });
   }
 

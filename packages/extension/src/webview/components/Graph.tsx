@@ -39,6 +39,9 @@ import { WebviewPluginHost } from '../pluginHost';
 
 /** Yellow color for favorites */
 const FAVORITE_BORDER_COLOR = '#EAB308';
+const DEFAULT_DIRECTION_COLOR = '#475569';
+const DIRECTIONAL_ARROW_LENGTH_2D = 12;
+const DIRECTIONAL_ARROW_NODE_GAP_2D = 0;
 
 /** Minimum and maximum node sizes */
 const MIN_NODE_SIZE = 10;
@@ -65,6 +68,10 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
 /** Map normalized repelForce (0–20) to d3 forceManyBody strength (0 to -500) */
 function toD3Repel(repelForce: number): number {
   return -(repelForce / 20) * 500;
+}
+
+function resolveDirectionColor(directionColor: string): string {
+  return /^#[0-9A-F]{6}$/i.test(directionColor) ? directionColor : DEFAULT_DIRECTION_COLOR;
 }
 
 // ─── Internal node/link types ──────────────────────────────────────────────
@@ -228,6 +235,7 @@ export default function Graph({
   const physicsSettings = useGraphStore(s => s.physicsSettings);
   const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
   const directionMode = useGraphStore(s => s.directionMode);
+  const directionColor = useGraphStore(s => s.directionColor);
   const particleSpeed = useGraphStore(s => s.particleSpeed);
   const particleSize = useGraphStore(s => s.particleSize);
   const showLabels = useGraphStore(s => s.showLabels);
@@ -245,6 +253,7 @@ export default function Graph({
   const selectedNodesSetRef = useRef<Set<string>>(new Set());
   const themeRef = useRef(theme);
   const directionModeRef = useRef(directionMode);
+  const directionColorRef = useRef(directionColor);
   const favoritesRef = useRef(favorites);
   const graphDataRef = useRef<{ nodes: FGNode[]; links: FGLink[] }>({ nodes: [], links: [] });
   const contextTargetRef = useRef<string[]>([]);
@@ -267,6 +276,7 @@ export default function Graph({
   // Keep refs current on every render
   themeRef.current = theme;
   directionModeRef.current = directionMode;
+  directionColorRef.current = directionColor;
   showLabelsRef.current = showLabels;
   favoritesRef.current = favorites;
   dataRef.current = data;
@@ -472,9 +482,10 @@ export default function Graph({
     ctx: CanvasRenderingContext2D,
     globalScale: number
   ) => {
+    if (!link.bidirectional || directionModeRef.current !== 'arrows') return;
     const src = link.source as FGNode;
     const tgt = link.target as FGNode;
-    if (!src?.x || !src?.y || !tgt?.x || !tgt?.y) return;
+    if (src?.x == null || src?.y == null || tgt?.x == null || tgt?.y == null) return;
 
     const highlighted = highlightedNodeRef.current;
     const isConnected = !highlighted || src.id === highlighted || tgt.id === highlighted;
@@ -496,10 +507,17 @@ export default function Graph({
     if (dist < 1) { ctx.restore(); return; }
     const nx = dx / dist;
     const ny = dy / dist;
-    const startX = src.x + nx * src.size;
-    const startY = src.y + ny * src.size;
-    const endX = tgt.x - nx * tgt.size;
-    const endY = tgt.y - ny * tgt.size;
+    const nodeGap = DIRECTIONAL_ARROW_NODE_GAP_2D / globalScale;
+    const startInset = src.size + nodeGap;
+    const endInset = tgt.size + nodeGap;
+    if (dist <= startInset + endInset) {
+      ctx.restore();
+      return;
+    }
+    const startX = src.x + nx * startInset;
+    const startY = src.y + ny * startInset;
+    const endX = tgt.x - nx * endInset;
+    const endY = tgt.y - ny * endInset;
 
     ctx.beginPath();
     ctx.moveTo(startX, startY);
@@ -507,24 +525,42 @@ export default function Graph({
     ctx.stroke();
 
     if (directionModeRef.current === 'arrows') {
-      const arrowLen = 6 / globalScale;
-      const arrowAngle = Math.PI / 6;
-      // Arrow at target end
-      const angle1 = Math.atan2(ny, nx);
+      const arrowLen = DIRECTIONAL_ARROW_LENGTH_2D;
+      const arrowHalfWidth = arrowLen / 1.6 / 2;
+      const arrowVertexLen = arrowLen * 0.2;
+      const px = -ny;
+      const py = nx;
+      const directionalColor = resolveDirectionColor(directionColorRef.current);
+
+      // Arrow at target end (src -> tgt)
+      const tailX1 = endX - nx * arrowLen;
+      const tailY1 = endY - ny * arrowLen;
+      const vertexX1 = endX - nx * arrowVertexLen;
+      const vertexY1 = endY - ny * arrowVertexLen;
       ctx.beginPath();
       ctx.moveTo(endX, endY);
-      ctx.lineTo(endX - arrowLen * Math.cos(angle1 - arrowAngle), endY - arrowLen * Math.sin(angle1 - arrowAngle));
-      ctx.moveTo(endX, endY);
-      ctx.lineTo(endX - arrowLen * Math.cos(angle1 + arrowAngle), endY - arrowLen * Math.sin(angle1 + arrowAngle));
-      ctx.stroke();
-      // Arrow at source end
-      const angle2 = Math.atan2(-ny, -nx);
+      ctx.lineTo(tailX1 + px * arrowHalfWidth, tailY1 + py * arrowHalfWidth);
+      ctx.lineTo(vertexX1, vertexY1);
+      ctx.lineTo(tailX1 - px * arrowHalfWidth, tailY1 - py * arrowHalfWidth);
+      ctx.closePath();
+      ctx.fillStyle = directionalColor;
+      ctx.fill();
+
+      // Arrow at source end (tgt -> src)
+      const rnx = -nx;
+      const rny = -ny;
+      const tailX2 = startX - rnx * arrowLen;
+      const tailY2 = startY - rny * arrowLen;
+      const vertexX2 = startX - rnx * arrowVertexLen;
+      const vertexY2 = startY - rny * arrowVertexLen;
       ctx.beginPath();
       ctx.moveTo(startX, startY);
-      ctx.lineTo(startX - arrowLen * Math.cos(angle2 - arrowAngle), startY - arrowLen * Math.sin(angle2 - arrowAngle));
-      ctx.moveTo(startX, startY);
-      ctx.lineTo(startX - arrowLen * Math.cos(angle2 + arrowAngle), startY - arrowLen * Math.sin(angle2 + arrowAngle));
-      ctx.stroke();
+      ctx.lineTo(tailX2 + px * arrowHalfWidth, tailY2 + py * arrowHalfWidth);
+      ctx.lineTo(vertexX2, vertexY2);
+      ctx.lineTo(tailX2 - px * arrowHalfWidth, tailY2 - py * arrowHalfWidth);
+      ctx.closePath();
+      ctx.fillStyle = directionalColor;
+      ctx.fill();
     }
 
     ctx.restore();
@@ -541,17 +577,31 @@ export default function Graph({
     const tgtId = typeof link.target === 'string' ? link.target : tgt?.id;
     const highlighted = highlightedNodeRef.current;
     const isLight = themeRef.current === 'light';
-    if (!highlighted) return link.baseColor ?? (isLight ? '#94a3b8' : '#475569');
+    if (!highlighted) return link.baseColor ?? '#475569';
     const isConnected = srcId === highlighted || tgtId === highlighted;
     if (isConnected) return '#60a5fa';
     return isLight ? '#e2e8f0' : '#2d3748';
   }, []);
 
   const getLinkParticles = useCallback((link: LinkObject): number => {
-    if (directionModeRef.current !== 'particles') return 0;
     const edge = link as FGLink;
     const edgeDeco = edgeDecorationsRef.current?.[edge.id];
     return edgeDeco?.particles?.count ?? 3;
+  }, []);
+
+  const getArrowRelPos = useCallback((_link: LinkObject): number => {
+    // force-graph computes arrow placement against nodeVal/nodeRelSize radii.
+    // With nodeVal/nodeRelSize aligned to node.size, relPos=1 lands arrow tips
+    // exactly on the target node border.
+    return 1;
+  }, []);
+
+  const getArrowColor = useCallback((_link: LinkObject): string => {
+    return resolveDirectionColor(directionColorRef.current);
+  }, []);
+
+  const getParticleColor = useCallback((_link: LinkObject): string => {
+    return resolveDirectionColor(directionColorRef.current);
   }, []);
 
   const getLinkWidth = useCallback((link: FGLink) => {
@@ -1064,13 +1114,24 @@ export default function Graph({
     }
   }, [showLabels]);
 
-  // react-force-graph 2D caches directional rendering internals; force an
-  // explicit redraw so direction mode changes are visible immediately.
+  // Sync direction visuals imperatively in 2D; the React wrapper can keep
+  // stale directional settings until methods are invoked on the graph instance.
   useEffect(() => {
     if (graphMode !== '2d') return;
+    const fg = fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined;
+    if (!fg) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (fg2dRef.current as any)?.refresh?.();
-  }, [graphMode, directionMode, particleSpeed, particleSize]);
+    const fg2d = fg as any;
+    fg2d.linkDirectionalArrowLength?.(directionMode === 'arrows' ? DIRECTIONAL_ARROW_LENGTH_2D : 0);
+    fg2d.linkDirectionalArrowRelPos?.(getArrowRelPos);
+    fg2d.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
+    fg2d.linkDirectionalParticleWidth?.(particleSize);
+    fg2d.linkDirectionalParticleSpeed?.(particleSpeed);
+    fg2d.linkDirectionalArrowColor?.(getArrowColor);
+    fg2d.linkDirectionalParticleColor?.(getParticleColor);
+    fg.d3ReheatSimulation();
+    fg.resumeAnimation?.();
+  }, [graphMode, directionMode, particleSpeed, particleSize, getArrowColor, getParticleColor, getLinkParticles, getArrowRelPos]);
 
   // ── Container size tracking ───────────────────────────────────────────────
 
@@ -1187,17 +1248,25 @@ export default function Graph({
               nodeCanvasObject={nodeCanvasObject as (node: NodeObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
               nodeCanvasObjectMode={() => 'replace'}
               nodePointerAreaPaint={nodePointerAreaPaint as (node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => void}
+              nodeVal={(node) => {
+                const radius = (node as FGNode).size ?? DEFAULT_NODE_SIZE;
+                return Math.max(1, radius * radius);
+              }}
+              nodeRelSize={1}
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
-              linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
-              linkDirectionalArrowRelPos={1}
-              linkDirectionalArrowColor={getLinkColor as (link: LinkObject) => string}
-              linkDirectionalParticles={getLinkParticles}
+              linkDirectionalArrowLength={directionMode === 'arrows' ? DIRECTIONAL_ARROW_LENGTH_2D : 0}
+              linkDirectionalArrowRelPos={getArrowRelPos}
+              linkDirectionalArrowColor={getArrowColor}
+              linkDirectionalParticles={directionMode === 'particles' ? getLinkParticles : 0}
               linkDirectionalParticleWidth={particleSize}
               linkDirectionalParticleSpeed={particleSpeed}
-              linkDirectionalParticleColor={getLinkColor as (link: LinkObject) => string}
+              linkDirectionalParticleColor={getParticleColor}
               linkCanvasObject={linkCanvasObject as (link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
-              linkCanvasObjectMode={(link) => (link as FGLink).bidirectional ? 'replace' : undefined}
+              linkCanvasObjectMode={(link) => {
+                const bidirectional = Boolean((link as FGLink).bidirectional);
+                return bidirectional && directionMode === 'arrows' ? 'replace' : 'after';
+              }}
               onRenderFramePost={renderPluginOverlays}
               autoPauseRedraw={false}
             />
@@ -1217,10 +1286,11 @@ export default function Graph({
               linkWidth={getLinkWidth as (link: LinkObject) => number}
               linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
               linkDirectionalArrowRelPos={1}
-              linkDirectionalParticles={getLinkParticles}
+              linkDirectionalArrowColor={getArrowColor}
+              linkDirectionalParticles={directionMode === 'particles' ? getLinkParticles : 0}
               linkDirectionalParticleWidth={particleSize}
               linkDirectionalParticleSpeed={particleSpeed}
-              linkDirectionalParticleColor={getLinkColor as (link: LinkObject) => string}
+              linkDirectionalParticleColor={getParticleColor}
             />
           )}
         </div>

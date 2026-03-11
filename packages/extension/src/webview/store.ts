@@ -47,6 +47,7 @@ export interface GraphState {
   bidirectionalMode: BidirectionalEdgeMode;
   showOrphans: boolean;
   directionMode: DirectionMode;
+  directionColor: string;
   particleSpeed: number;
   particleSize: number;
   showLabels: boolean;
@@ -98,6 +99,7 @@ export interface GraphState {
   setFilterPatterns: (patterns: string[]) => void;
   setShowOrphans: (show: boolean) => void;
   setDirectionMode: (mode: DirectionMode) => void;
+  setDirectionColor: (color: string) => void;
   setParticleSpeed: (speed: number) => void;
   setParticleSize: (size: number) => void;
   setShowLabels: (show: boolean) => void;
@@ -119,6 +121,7 @@ export function createGraphStore() {
     bidirectionalMode: 'separate',
     showOrphans: true,
     directionMode: 'arrows',
+    directionColor: '#475569',
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -156,6 +159,7 @@ export function createGraphStore() {
     setFilterPatterns: (patterns) => set({ filterPatterns: patterns }),
     setShowOrphans: (show) => set({ showOrphans: show }),
     setDirectionMode: (mode) => set({ directionMode: mode }),
+    setDirectionColor: (color) => set({ directionColor: color }),
     setParticleSpeed: (speed) => set({ particleSpeed: speed }),
     setParticleSize: (size) => set({ particleSize: size }),
     setShowLabels: (show) => set({ showLabels: show }),
@@ -202,6 +206,7 @@ export function createGraphStore() {
         case 'DIRECTION_SETTINGS_UPDATED':
           set({
             directionMode: message.payload.directionMode,
+            directionColor: message.payload.directionColor,
             particleSpeed: message.payload.particleSpeed,
             particleSize: message.payload.particleSize,
           });

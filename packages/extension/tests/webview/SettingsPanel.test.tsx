@@ -36,6 +36,7 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
     activeViewId: 'codegraphy.connections',
     depthLimit: 1,
     directionMode: 'arrows',
+    directionColor: '#475569',
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -277,6 +278,33 @@ describe('SettingsPanel: Direction mode', () => {
     expect(screen.queryByText('Particle Speed')).not.toBeInTheDocument();
     expect(screen.queryByText('Particle Size')).not.toBeInTheDocument();
   });
+
+  it('particle speed slider shows 1-10 scale and persists normalized internal speed', () => {
+    vi.useFakeTimers();
+    renderPanel({ directionMode: 'particles', particleSpeed: 0.0005, particleSize: 4 });
+    openSection('Display');
+
+    const speedSlider = screen.getAllByRole('slider').find(
+      (el) =>
+        el.getAttribute('aria-valuemin') === '1' &&
+        el.getAttribute('aria-valuemax') === '10'
+    );
+    expect(speedSlider).toBeTruthy();
+
+    fireEvent.keyDown(speedSlider!, { key: 'ArrowRight' });
+    expect(graphStore.getState().particleSpeed).toBeCloseTo(0.001, 6);
+
+    act(() => {
+      vi.advanceTimersByTime(350);
+    });
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_PARTICLE_SETTING',
+      payload: { key: 'particleSpeed', value: 0.001 },
+    });
+    vi.useRealTimers();
+  });
+
 });
 
 // ── Display: Node Size ─────────────────────────────────────────────────────
