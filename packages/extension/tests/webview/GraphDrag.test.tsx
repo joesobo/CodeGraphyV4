@@ -20,7 +20,9 @@ function setStore(overrides: Record<string, unknown> = {}) {
     bidirectionalMode: 'separate',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     nodeSizeMode: 'connections',
-    showArrows: true,
+    directionMode: 'arrows',
+    particleSpeed: 0.005,
+    particleSize: 4,
     showLabels: true,
     graphMode: '2d',
     ...overrides,
@@ -47,15 +49,15 @@ describe('Graph: force-graph rendering', () => {
     expect(props.graphData.links).toHaveLength(1);
   });
 
-  it('disables arrow when showArrows=false', () => {
-    setStore({ showArrows: false });
+  it('disables arrow when directionMode=none', () => {
+    setStore({ directionMode: 'none' });
     render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
     expect(props.linkDirectionalArrowLength).toBe(0);
   });
 
-  it('enables arrow when showArrows=true (default)', () => {
-    setStore({ showArrows: true });
+  it('enables arrow when directionMode=arrows (default)', () => {
+    setStore({ directionMode: 'arrows' });
     render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
     expect(props.linkDirectionalArrowLength).toBeGreaterThan(0);

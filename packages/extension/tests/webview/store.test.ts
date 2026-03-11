@@ -14,7 +14,9 @@ describe('GraphStore', () => {
     expect(state.isLoading).toBe(true);
     expect(state.searchQuery).toBe('');
     expect(state.favorites).toEqual(new Set());
-    expect(state.showArrows).toBe(true);
+    expect(state.directionMode).toBe('arrows');
+    expect(state.particleSpeed).toBe(0.005);
+    expect(state.particleSize).toBe(4);
     expect(state.showLabels).toBe(true);
     expect(state.graphMode).toBe('2d');
     expect(state.activePanel).toBe('none');
@@ -50,12 +52,14 @@ describe('GraphStore', () => {
     expect(store.getState().showOrphans).toBe(false);
   });
 
-  it('handles SHOW_ARROWS_UPDATED message', () => {
+  it('handles DIRECTION_SETTINGS_UPDATED message', () => {
     store.getState().handleExtensionMessage({
-      type: 'SHOW_ARROWS_UPDATED',
-      payload: { showArrows: false },
+      type: 'DIRECTION_SETTINGS_UPDATED',
+      payload: { directionMode: 'particles', particleSpeed: 0.01, particleSize: 6 },
     });
-    expect(store.getState().showArrows).toBe(false);
+    expect(store.getState().directionMode).toBe('particles');
+    expect(store.getState().particleSpeed).toBe(0.01);
+    expect(store.getState().particleSize).toBe(6);
   });
 
   it('handles SHOW_LABELS_UPDATED message', () => {

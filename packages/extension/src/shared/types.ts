@@ -15,6 +15,12 @@
  */
 export type NodeSizeMode = 'connections' | 'file-size' | 'access-count' | 'uniform';
 
+/**
+ * Direction indicator mode for graph edges.
+ * Determines how import direction is visualized on connections.
+ */
+export type DirectionMode = 'arrows' | 'particles' | 'none';
+
 // ============================================================================
 // File Data (internal representation, what plugins will produce)
 // ============================================================================
@@ -427,7 +433,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }
   | { type: 'GROUPS_UPDATED'; payload: { groups: IGroup[] } }
   | { type: 'FILTER_PATTERNS_UPDATED'; payload: { patterns: string[]; pluginPatterns: string[] } }
-  | { type: 'SHOW_ARROWS_UPDATED'; payload: { showArrows: boolean } }
+  | { type: 'DIRECTION_SETTINGS_UPDATED'; payload: { directionMode: DirectionMode; particleSpeed: number; particleSize: number } }
   | { type: 'SHOW_LABELS_UPDATED'; payload: { showLabels: boolean } }
   | { type: 'PLUGINS_UPDATED'; payload: { plugins: IPluginStatus[] } }
   | { type: 'MAX_FILES_UPDATED'; payload: { maxFiles: number } }
@@ -497,7 +503,8 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_GROUPS'; payload: { groups: IGroup[] } }
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
   | { type: 'UPDATE_SHOW_ORPHANS'; payload: { showOrphans: boolean } }
-  | { type: 'UPDATE_SHOW_ARROWS'; payload: { showArrows: boolean } }
+  | { type: 'UPDATE_DIRECTION_MODE'; payload: { directionMode: DirectionMode } }
+  | { type: 'UPDATE_PARTICLE_SETTING'; payload: { key: 'particleSpeed' | 'particleSize'; value: number } }
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
   // Physics lifecycle — sent when physics disables after stabilization
   | { type: 'PHYSICS_STABILIZED' }

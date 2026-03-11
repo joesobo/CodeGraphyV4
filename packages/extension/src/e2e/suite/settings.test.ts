@@ -117,23 +117,23 @@ suite('Settings: Orphans', function () {
   });
 });
 
-suite('Settings: Arrows', function () {
+suite('Settings: Direction Mode', function () {
   this.timeout(30_000);
 
-  test('UPDATE_SHOW_ARROWS persists and echoes SHOW_ARROWS_UPDATED', async function() {
+  test('UPDATE_DIRECTION_MODE persists and echoes DIRECTION_SETTINGS_UPDATED', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(1_000);
 
-    const echo = waitForMessage(api, 'SHOW_ARROWS_UPDATED');
-    api.sendToWebview({ type: 'UPDATE_SHOW_ARROWS', payload: { showArrows: false } });
+    const echo = waitForMessage(api, 'DIRECTION_SETTINGS_UPDATED');
+    api.sendToWebview({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: 'particles' } });
 
-    const msg = (await echo) as { type: string; payload: { showArrows: boolean } };
-    assert.strictEqual(msg.payload.showArrows, false);
+    const msg = (await echo) as { type: string; payload: { directionMode: string; particleSpeed: number; particleSize: number } };
+    assert.strictEqual(msg.payload.directionMode, 'particles');
 
     // Cleanup
     const config = vscode.workspace.getConfiguration('codegraphy');
-    await config.update('showArrows', true, vscode.ConfigurationTarget.Workspace);
+    await config.update('directionMode', 'arrows', vscode.ConfigurationTarget.Workspace);
   });
 });
 
