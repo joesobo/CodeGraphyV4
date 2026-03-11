@@ -554,6 +554,20 @@ export default function Graph({
     return edgeDeco?.particles?.count ?? 3;
   }, []);
 
+  const getArrowColor = useCallback((link: LinkObject): string => {
+    const edge = link as FGLink;
+    const edgeDeco = edgeDecorationsRef.current?.[edge.id];
+    if (edgeDeco?.color) return edgeDeco.color;
+    const srcId = typeof edge.source === 'string' ? edge.source : (edge.source as FGNode)?.id;
+    const tgtId = typeof edge.target === 'string' ? edge.target : (edge.target as FGNode)?.id;
+    const highlighted = highlightedNodeRef.current;
+    const isLight = themeRef.current === 'light';
+    if (!highlighted) return isLight ? '#64748b' : '#93c5fd';
+    return (srcId === highlighted || tgtId === highlighted)
+      ? '#60a5fa'
+      : (isLight ? '#94a3b8' : '#64748b');
+  }, []);
+
   const getLinkWidth = useCallback((link: FGLink) => {
     const edgeDeco = edgeDecorationsRef.current?.[link.id];
     if (edgeDeco?.width !== undefined) return edgeDeco.width;
@@ -1072,16 +1086,16 @@ export default function Graph({
     if (!fg) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fg2d = fg as any;
-    fg2d.linkDirectionalArrowLength?.(directionMode === 'arrows' ? 6 : 0);
+    fg2d.linkDirectionalArrowLength?.(directionMode === 'arrows' ? 8 : 0);
     fg2d.linkDirectionalArrowRelPos?.(0.88);
     fg2d.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
     fg2d.linkDirectionalParticleWidth?.(particleSize);
     fg2d.linkDirectionalParticleSpeed?.(particleSpeed);
-    fg2d.linkDirectionalArrowColor?.(getLinkColor);
+    fg2d.linkDirectionalArrowColor?.(getArrowColor);
     fg2d.linkDirectionalParticleColor?.(getLinkColor);
     fg.d3ReheatSimulation();
     fg.resumeAnimation?.();
-  }, [graphMode, directionMode, particleSpeed, particleSize, getLinkColor, getLinkParticles]);
+  }, [graphMode, directionMode, particleSpeed, particleSize, getArrowColor, getLinkColor, getLinkParticles]);
 
   // ── Container size tracking ───────────────────────────────────────────────
 
@@ -1200,9 +1214,9 @@ export default function Graph({
               nodePointerAreaPaint={nodePointerAreaPaint as (node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => void}
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
-              linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
+              linkDirectionalArrowLength={directionMode === 'arrows' ? 8 : 0}
               linkDirectionalArrowRelPos={0.88}
-              linkDirectionalArrowColor={getLinkColor as (link: LinkObject) => string}
+              linkDirectionalArrowColor={getArrowColor}
               linkDirectionalParticles={getLinkParticles}
               linkDirectionalParticleWidth={particleSize}
               linkDirectionalParticleSpeed={particleSpeed}
