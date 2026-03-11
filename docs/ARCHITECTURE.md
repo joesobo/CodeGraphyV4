@@ -47,7 +47,7 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **`index.ts`** registers commands, file watchers, and the webview provider on activation.
 
-**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, view transformations, and latest-wins analysis cancellation. It deduplicates analyzer initialization races, emits `notifyWebviewReady()` once after Tier-2 injection dispatch and first workspace-ready completion (when a workspace exists), and supports deferred late-registration lifecycle replay ordering.
+**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, view transformations, and latest-wins analysis cancellation. Rule/plugin toggle state is persisted to VS Code settings (`codegraphy.disabledRules`, `codegraphy.disabledPlugins`) with workspace-state fallback for migration. It deduplicates analyzer initialization races, emits `notifyWebviewReady()` once after Tier-2 injection dispatch and first workspace-ready completion (when a workspace exists), and supports deferred late-registration lifecycle replay ordering.
 
 **`WorkspaceAnalyzer.ts`** orchestrates file discovery and plugin analysis. Builds `IGraphData` from discovered files and connections. Uses mtime-based caching to skip unchanged files. Supports instant graph rebuilds from cached data when toggling rules.
 
@@ -160,7 +160,7 @@ Defines the message protocol and data types shared across both build targets:
 ```
 1. User toggles a rule in the Plugins panel
 2. Webview sends TOGGLE_RULE message
-3. GraphViewProvider updates disabled rules set
+3. GraphViewProvider updates disabled rules set and persists it to VS Code settings
 4. If the rule has connections: rebuild graph from cached data (no re-analysis)
 5. Sends GRAPH_DATA_UPDATED + PLUGINS_UPDATED
 ```
