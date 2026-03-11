@@ -8,6 +8,6 @@
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
   "dependencies": {
-    "@codegraphy/plugin-api": "^2.0.0"
+    "@codegraphy/plugin-api": "workspace:*"
   }
 }
