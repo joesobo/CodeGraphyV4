@@ -589,22 +589,11 @@ export default function Graph({
     return edgeDeco?.particles?.count ?? 3;
   }, []);
 
-  const getArrowRelPos = useCallback((link: LinkObject): number => {
-    const edge = link as FGLink;
-    const src = typeof edge.source === 'object' ? edge.source as FGNode : null;
-    const tgt = typeof edge.target === 'object' ? edge.target as FGNode : null;
-    if (!src || !tgt || src.x == null || src.y == null || tgt.x == null || tgt.y == null) return 0.98;
-
-    const dx = tgt.x - src.x;
-    const dy = tgt.y - src.y;
-    const dist = Math.hypot(dx, dy);
-    if (dist < 1) return 0.5;
-
-    // Position built-in arrow so its tip sits on the target node border.
-    const targetRadius = tgt.size ?? DEFAULT_NODE_SIZE;
-    const tipInset = targetRadius + DIRECTIONAL_ARROW_NODE_GAP_2D;
-    const relPos = 1 - tipInset / dist;
-    return Math.max(0.2, Math.min(0.98, relPos));
+  const getArrowRelPos = useCallback((_link: LinkObject): number => {
+    // force-graph computes arrow placement against nodeVal/nodeRelSize radii.
+    // With nodeVal/nodeRelSize aligned to node.size, relPos=1 lands arrow tips
+    // exactly on the target node border.
+    return 1;
   }, []);
 
   const getArrowColor = useCallback((_link: LinkObject): string => {
@@ -1259,6 +1248,11 @@ export default function Graph({
               nodeCanvasObject={nodeCanvasObject as (node: NodeObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
               nodeCanvasObjectMode={() => 'replace'}
               nodePointerAreaPaint={nodePointerAreaPaint as (node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => void}
+              nodeVal={(node) => {
+                const radius = (node as FGNode).size ?? DEFAULT_NODE_SIZE;
+                return Math.max(1, radius * radius);
+              }}
+              nodeRelSize={1}
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
               linkDirectionalArrowLength={directionMode === 'arrows' ? DIRECTIONAL_ARROW_LENGTH_2D : 0}

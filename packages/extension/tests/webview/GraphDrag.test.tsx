@@ -79,8 +79,9 @@ describe('Graph: force-graph rendering', () => {
       source: { id: 'a.ts', x: 0, y: 0, size: 10 },
       target: { id: 'b.ts', x: 100, y: 0, size: 10 },
     });
-    expect(relPos).toBeGreaterThan(0.2);
-    expect(relPos).toBeLessThan(0.98);
+    expect(relPos).toBe(1);
+    expect(props.nodeRelSize).toBe(1);
+    expect(props.nodeVal({ size: 10 })).toBe(100);
   });
 
   it('imperatively syncs 2D directional settings when mode changes', () => {
