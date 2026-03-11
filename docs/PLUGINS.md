@@ -26,20 +26,21 @@ Each plugin is responsible for:
 Every plugin follows the same directory layout:
 
 ```
-src/plugins/my-language/
-  manifest.json        # Static metadata (id, name, rules, colors, etc.)
-  index.ts             # Thin orchestrator that loads manifest and calls rules
-  PathResolver.ts      # Path resolution logic
-  rules/
-    rule-a.ts          # One file per detection rule
-    rule-b.ts
+packages/plugin-my-language/
+  codegraphy.json      # Static metadata (id, name, rules, colors, etc.)
+  src/
+    index.ts           # Thin orchestrator that loads metadata and calls rules
+    PathResolver.ts    # Path resolution logic
+    rules/
+      rule-a.ts        # One file per detection rule
+      rule-b.ts
 ```
 
-See `src/plugins/typescript/` for the reference implementation.
+See `packages/plugin-typescript/` for the reference implementation.
 
-## manifest.json
+## codegraphy.json
 
-All static plugin metadata lives in `manifest.json`:
+All static plugin metadata lives in `codegraphy.json`:
 
 ```json
 {
@@ -97,7 +98,7 @@ export function detect(
     specifier: 'the-import-specifier',
     resolvedPath: ctx.resolver.resolve('the-import-specifier', filePath),
     type: 'static',
-    ruleId: 'import-statement',  // Must match the rule id in manifest.json
+    ruleId: 'import-statement',  // Must match the rule id in codegraphy.json
   });
 
   return connections;
@@ -107,7 +108,7 @@ const rule: IRuleDetector<MyContext> = { id: 'import-statement', detect };
 export default rule;
 ```
 
-Every `IConnection` returned by a rule **must** set `ruleId` to the rule's id from `manifest.json`.
+Every `IConnection` returned by a rule **must** set `ruleId` to the rule's id from `codegraphy.json`.
 
 ## IConnection interface
 
@@ -119,19 +120,19 @@ interface IConnection {
   resolvedPath: string | null;
   /** Type of import */
   type: 'static' | 'dynamic' | 'require' | 'reexport';
-  /** Rule that detected this connection, must match a rule id in manifest.json */
+  /** Rule that detected this connection, must match a rule id in codegraphy.json */
   ruleId?: string;
 }
 ```
 
 ## index.ts orchestrator
 
-The orchestrator loads metadata from `manifest.json` and delegates detection to rule modules:
+The orchestrator loads metadata from `codegraphy.json` and delegates detection to rule modules:
 
 ```typescript
 import { IPlugin, IConnection } from '../../core/plugins';
 import { PathResolver } from './PathResolver';
-import manifest from './manifest.json';
+import manifest from '../codegraphy.json';
 
 import { detect as detectImport } from './rules/import-statement';
 import { detect as detectRequire } from './rules/require-call';
@@ -166,7 +167,7 @@ export function createMyLanguagePlugin(): IPlugin {
       ];
     },
 
-    dispose(): void {
+    onUnload(): void {
       resolver = null;
     },
   };
@@ -197,25 +198,25 @@ interface IPlugin {
 
   initialize?(workspaceRoot: string): Promise<void>;
 
-  /** Called once before per-file detection with all discovered files */
-  preAnalyze?(
+  /** Called before each analysis pass with discovered files */
+  onPreAnalyze?(
     files: Array<{ absolutePath: string; relativePath: string; content: string }>,
     workspaceRoot: string
   ): Promise<void>;
 
-  dispose?(): void;
+  onUnload?(): void;
 }
 ```
 
 ## Optional hooks
 
-### preAnalyze
+### onPreAnalyze
 
 Called once before `detectConnections` runs on individual files. Receives all discovered files for your plugin's extensions. Use this to build workspace-wide indexes needed for cross-file resolution.
 
-For example, the GDScript plugin uses `preAnalyze` to build a `class_name` map so `extends Player` can resolve to the file that declares `class_name Player`.
+For example, the GDScript plugin uses `onPreAnalyze` to build a `class_name` map so `extends Player` can resolve to the file that declares `class_name Player`.
 
-### initialize / dispose
+### initialize / onUnload
 
 Called when the plugin is loaded or unloaded. Use for one-time setup and cleanup.
 
@@ -236,11 +237,11 @@ registry.register(createTypeScriptPlugin(), { builtIn: true });
 
 | Plugin | Extensions | Rules |
 |--------|-----------|-------|
-| [TypeScript](../src/plugins/typescript/) | `.ts` `.tsx` `.js` `.jsx` `.mjs` `.cjs` | ES6 Imports, Re-exports, Dynamic Imports, CommonJS Require |
-| [Python](../src/plugins/python/) | `.py` `.pyi` | Standard Imports, From Imports |
-| [C#](../src/plugins/csharp/) | `.cs` | Using Directives, Type Usage |
-| [GDScript](../src/plugins/godot/) | `.gd` | Preload, Load, Extends, Class Name Usage |
-| [Markdown](../src/plugins/markdown/) | `.md` `.mdx` | Wikilinks |
+| [TypeScript](../packages/plugin-typescript/) | `.ts` `.tsx` `.js` `.jsx` `.mjs` `.cjs` | ES6 Imports, Re-exports, Dynamic Imports, CommonJS Require |
+| [Python](../packages/plugin-python/) | `.py` `.pyi` | Standard Imports, From Imports |
+| [C#](../packages/plugin-csharp/) | `.cs` | Using Directives, Type Usage |
+| [GDScript](../packages/plugin-godot/) | `.gd` | Preload, Load, Extends, Class Name Usage |
+| [Markdown](../packages/plugin-markdown/) | `.md` `.mdx` | Wikilinks |
 
 ## Best practices
 
@@ -252,4 +253,4 @@ registry.register(createTypeScriptPlugin(), { builtIn: true });
 
 ## Need help?
 
-Check existing plugins in `src/plugins/` (TypeScript is the reference implementation) or open an issue on GitHub.
+Check existing plugins in `packages/plugin-*/` (TypeScript is the reference implementation) or open an issue on GitHub.

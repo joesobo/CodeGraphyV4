@@ -1,0 +1,13 @@
+{
+  "name": "@codegraphy/plugin-python",
+  "version": "1.0.0",
+  "private": true,
+  "description": "CodeGraphy python plugin",
+  "scripts": {
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "dependencies": {
+    "@codegraphy/plugin-api": "^2.0.0"
+  }
+}

@@ -19,14 +19,34 @@ Redesign CodeGraphy's plugin system from a narrow connection-detection interface
 
 ## Diagrams
 
-- **[Plugin Lifecycle](https://excalidraw.com/#json=E_nILqzLfKdU_NKoiu92k,chSfru6ee8Hp_697-H8Vsw)** — One-time phases, recurring hooks, and auto-cleanup pattern ([source](../../plugin-api/diagrams/plugin-lifecycle.excalidraw))
-- **[Event System](https://excalidraw.com/#json=7Nef_ISmAmCGlUbpy9dR9,U80qLewwC0CVSl7u0fVkpg)** — Hub-and-spoke view of all 30+ events across 6 categories ([source](../../plugin-api/diagrams/event-system.excalidraw))
+- **Plugin Lifecycle** — One-time phases, recurring hooks, and auto-cleanup pattern ([source](../../plugin-api/diagrams/plugin-lifecycle.excalidraw))
+- **Event System** — Hub-and-spoke view of event categories and payload contracts ([source](../../plugin-api/diagrams/event-system.excalidraw))
+- **Type Surface** — How `@codegraphy/plugin-api` modules map to extension/webview runtime structures ([source](../../plugin-api/diagrams/type-surface.excalidraw))
 
 ## Detailed Documentation
 
 - **[Lifecycle](../../plugin-api/LIFECYCLE.md)** — Full lifecycle guide with code examples
 - **[Events](../../plugin-api/EVENTS.md)** — Complete event catalog with usage examples
 - **[Types](../../plugin-api/TYPES.md)** — All TypeScript types and interfaces
+
+## Implementation Status (2026-03-10)
+
+### Implemented
+
+- Canonical event naming (colon-style keys) and shared `EventPayloads`/`EventName`.
+- v2 lifecycle dispatch (`onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`).
+- Tier-2 message bridge (`plugin:<pluginId>:<type>`) and webview injection plumbing.
+- `@codegraphy/plugin-api` type package exports for core, events, plugin, and webview type entry points.
+
+### Partially Implemented
+
+- Tier-2 external asset loading works for contributed scripts/styles that resolve in the current webview context, but extension-relative resolution and resource roots still need hardening for third-party extension paths.
+
+### Not Yet Implemented
+
+- Semver compatibility enforcement on registration (`apiVersion` / `webviewApiVersion` range checks).
+- Full adoption of `codegraphy.json` manifest as the single runtime source of truth.
+- Alignment pass ensuring every host/runtime command/context/decorations contract exactly matches the public type package.
 
 ---
 
@@ -173,8 +193,8 @@ A published `codegraphy.schema.json` provides autocomplete and validation.
 
 1. **Discovery** — VS Code activates the plugin extension. Plugin calls `codegraphy.registerPlugin(manifest, plugin)`.
 2. **onLoad(api)** — Core validates API version compatibility, then calls `onLoad` with the full `CodeGraphyAPI`. Plugin registers event handlers, commands, views, context menu items.
-3. **onWorkspaceReady(graph)** — Workspace has been analyzed. Graph data is available. Plugin can query nodes/edges, attach initial decorations.
-4. **onWebviewReady()** — Webview panel is visible. Tier 2 plugins' JS/CSS have been injected. Called again if webview is reopened.
+3. **onWorkspaceReady(graph)** — Workspace has been analyzed. Graph data is available. Plugin can query nodes/edges, attach initial decorations. Late-registered plugins are replayed with the latest graph snapshot (deferred until plugin `initialize()` completes when applicable).
+4. **onWebviewReady()** — First time the webview is ready. Tier 2 plugins' JS/CSS injections are dispatched before this fires. When a workspace is open, this runs after the first `onWorkspaceReady` dispatch. Late-registered plugins are replayed after injection dispatch (and after `initialize()` when applicable) if readiness already occurred.
 5. **onUnload()** — Plugin deactivating. All registered Disposables are auto-cleaned. Plugin can do final cleanup if needed.
 
 ### Recurring Hooks
@@ -460,8 +480,7 @@ Versioned **separately** from the core API. Weaker stability guarantees — brea
 On `registerPlugin()`, the core checks the manifest's `apiVersion` range:
 - **Compatible** → proceed normally.
 - **Plugin targets future version** → error with clear message ("Plugin requires CodeGraphy API ≥3.0, but this version provides 2.x").
-- **Plugin targets deprecated version** → warning + compatibility shim if possible.
-- **Plugin targets unsupported version** → reject with migration link.
+- **Plugin targets deprecated/unsupported version** → reject registration with migration guidance.
 
 ### Types Package Versioning
 
@@ -487,7 +506,7 @@ export async function activate(context: vscode.ExtensionContext) {
 
   // Register plugin
   const plugin: IPlugin = {
-    // Connection detection (same as v1)
+    // Connection detection
     detectConnections(filePath, content, workspaceRoot) {
       return detectImports(filePath, content, workspaceRoot);
     },
@@ -540,9 +559,9 @@ All 5 built-in plugins migrate to use `registerPlugin()` — the same API as thi
 |--------|-------|-----------|
 | TypeScript | Largest — 4 rules, 23 colors, AST, tsconfig | Gold standard reference |
 | Python | Small — 2 rules, regex | Simple plugin baseline |
-| C# | Medium — namespace resolution | Cross-file preAnalyze |
-| GDScript | Medium — res:// paths, class_name | preAnalyze index building |
-| Markdown | Small — wikilinks | File index + preAnalyze |
+| C# | Medium — namespace resolution | Cross-file `onPreAnalyze` |
+| GDScript | Medium — res:// paths, class_name | `onPreAnalyze` index building |
+| Markdown | Small — wikilinks | File index + `onPreAnalyze` |
 
 Built-in plugins ship bundled with the extension but use the same registration path. This guarantees we dogfood the API — if a built-in plugin can't do something, the API is missing a capability.
 

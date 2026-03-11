@@ -1,0 +1,19 @@
+{
+  "name": "@codegraphy/extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CodeGraphy VS Code extension core",
+  "scripts": {
+    "build": "npm run build:extension && npm run build:webview",
+    "build:extension": "esbuild src/extension/index.ts --bundle --outfile=../../dist/extension.js --external:vscode --format=cjs --platform=node",
+    "build:webview": "cd ../.. && vite build --config packages/extension/vite.config.ts",
+    "watch": "concurrently \"npm run watch:extension\" \"npm run watch:webview\"",
+    "watch:extension": "esbuild src/extension/index.ts --bundle --outfile=../../dist/extension.js --external:vscode --format=cjs --platform=node --watch",
+    "watch:webview": "cd ../.. && vite build --config packages/extension/vite.config.ts --watch",
+    "dev": "npm run watch",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "lint": "eslint src",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

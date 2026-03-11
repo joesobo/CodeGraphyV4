@@ -1,0 +1,17 @@
+{
+  "$schema": "../../codegraphy.schema.json",
+  "id": "codegraphy.markdown",
+  "name": "Markdown",
+  "version": "1.0.0",
+  "apiVersion": "^2.0.0",
+  "tier": 1,
+  "supportedExtensions": [".md", ".mdx"],
+  "defaultFilters": [],
+  "fileColors": {
+    ".md": "#7C3AED",
+    ".mdx": "#8B5CF6"
+  },
+  "rules": [
+    { "id": "wikilink", "name": "Wikilinks", "description": "[[Note Name]], ![[embed]]" }
+  ]
+}

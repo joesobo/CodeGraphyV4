@@ -1,0 +1,103 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://codegraphy.dev/schemas/codegraphy.schema.json",
+  "title": "CodeGraphy Plugin Manifest",
+  "description": "Schema for codegraphy.json plugin manifest files",
+  "type": "object",
+  "required": ["id", "name", "version", "apiVersion", "supportedExtensions"],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Path or URL to the JSON schema for validation"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique plugin identifier (e.g. codegraphy.typescript)"
+    },
+    "name": {
+      "type": "string",
+      "description": "Human-readable plugin name"
+    },
+    "version": {
+      "type": "string",
+      "description": "Semver version of the plugin"
+    },
+    "apiVersion": {
+      "type": "string",
+      "description": "Semver range of the CodeGraphy API this plugin is compatible with"
+    },
+    "tier": {
+      "type": "integer",
+      "enum": [1, 2],
+      "description": "Plugin tier: 1 = built-in, 2 = community"
+    },
+    "supportedExtensions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "File extensions this plugin handles (e.g. [\".ts\", \".tsx\"])"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["connections", "decorations", "events", "views", "commands", "context-menus"]
+      },
+      "description": "Capabilities this plugin provides"
+    },
+    "rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "description"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique rule identifier"
+          },
+          "name": {
+            "type": "string",
+            "description": "Human-readable rule name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Short description of what the rule detects"
+          }
+        }
+      },
+      "description": "Connection detection rules provided by this plugin"
+    },
+    "fileColors": {
+      "type": "object",
+      "additionalProperties": { "type": "string" },
+      "description": "Mapping of file extensions or filenames to hex color strings"
+    },
+    "defaultFilters": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Glob patterns to exclude from file discovery by default"
+    },
+    "webviewApiVersion": {
+      "type": "string",
+      "description": "Semver range of the webview API this plugin targets"
+    },
+    "webviewContributions": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "scripts": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Script files contributed to the webview"
+        },
+        "styles": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Stylesheet files contributed to the webview"
+        }
+      },
+      "description": "Assets this plugin contributes to the webview"
+    }
+  }
+}

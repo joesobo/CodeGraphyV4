@@ -2,6 +2,12 @@
 
 CodeGraphy is a VS Code extension that visualizes file dependencies as an interactive graph. It has two independent build targets that communicate via `postMessage`.
 
+## Monorepo Tooling
+
+**`turbo.json`** defines monorepo task orchestration for `build`, `lint`, `typecheck`, `test`, and local watch/dev tasks.
+
+**Root `package.json`** routes those top-level scripts through Turborepo (`turbo run ...`) while each workspace package declares its own task scripts.
+
 ## Layers
 
 ```
@@ -41,7 +47,7 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **`index.ts`** registers commands, file watchers, and the webview provider on activation.
 
-**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, view transformations, and latest-wins analysis cancellation.
+**`GraphViewProvider.ts`** implements `WebviewViewProvider` for the sidebar panel. Manages webview HTML, bidirectional messaging, position persistence, undo/redo state, plugin/rule toggle state, view transformations, and latest-wins analysis cancellation. It deduplicates analyzer initialization races, emits `notifyWebviewReady()` once after Tier-2 injection dispatch and first workspace-ready completion (when a workspace exists), and supports deferred late-registration lifecycle replay ordering.
 
 **`WorkspaceAnalyzer.ts`** orchestrates file discovery and plugin analysis. Builds `IGraphData` from discovered files and connections. Uses mtime-based caching to skip unchanged files. Supports instant graph rebuilds from cached data when toggling rules.
 
@@ -55,29 +61,39 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **`discovery/FileDiscovery.ts`** recursively discovers files using glob patterns, respects `.gitignore`, and enforces the max file limit.
 
-**`plugins/PluginRegistry.ts`** maps file extensions to `IPlugin` instances and handles initialization/disposal.
+**`plugins/PluginRegistry.ts`** maps file extensions to `IPlugin` instances and handles initialization/disposal. It provisions a scoped `CodeGraphyAPI`, runs lifecycle hooks (`onLoad`, `onPreAnalyze`, `onPostAnalyze`, etc.), and manages webview message delivery. Lifecycle readiness is replayed for late-registered plugins (`onWorkspaceReady`, `onWebviewReady`) with optional deferred replay control, and `initialize()` is guarded to run once per plugin.
 
 **`colors/ColorPaletteManager.ts`** generates distinct colors for file types with a three-tier priority system: user settings > plugin defaults > auto-generated.
 
 **`views/ViewRegistry.ts`** manages graph views. Three built-in views: Connections (pass-through), Depth Graph (BFS from focused file), and Subfolder View.
 
-## Plugin layer (`src/plugins/`)
+## Plugin layer (`packages/plugin-*/`)
 
-Each plugin implements `IPlugin` from `src/core/plugins/types.ts`. Five built-in plugins:
+Each plugin implements `IPlugin` from `@codegraphy/plugin-api`. Five built-in plugins:
 
-- **typescript/** handles `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs` using the TypeScript Compiler API for AST-based import detection
-- **python/** handles `.py`, `.pyi` with regex-based detection of `import` and `from` statements
-- **csharp/** handles `.cs` with `using` directive and type usage detection
-- **godot/** handles `.gd` with `preload`, `load`, `extends`, and `class_name` detection
-- **markdown/** handles `.md`, `.mdx` with `[[wikilink]]` detection
+- **plugin-typescript/** handles `.ts`, `.tsx`, `.js`, `.jsx`, `.mjs`, `.cjs` using the TypeScript Compiler API for AST-based import detection
+- **plugin-python/** handles `.py`, `.pyi` with regex-based detection of `import` and `from` statements
+- **plugin-csharp/** handles `.cs` with `using` directive and type usage detection
+- **plugin-godot/** handles `.gd` with `preload`, `load`, `extends`, and `class_name` detection
+- **plugin-markdown/** handles `.md`, `.mdx` with `[[wikilink]]` detection
 
-Each plugin declares detection rules in a `manifest.json` and sets `ruleId` on every connection so users can toggle rules individually.
+Each plugin declares detection rules in `codegraphy.json` and sets `ruleId` on every connection so users can toggle rules individually.
+
+## Plugin API package (`packages/plugin-api/`)
+
+**`src/events.ts`** is the canonical event contract (`EventName`/`EventPayloads`) shared by plugin authors and the extension runtime.
+
+**`src/api.ts`** defines the host-side v2 API surface (`CodeGraphyAPI`) used by plugins.
+
+**`src/plugin.ts`** defines plugin metadata and lifecycle contracts (`initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`), including Tier-2 webview contributions (`webviewContributions`, `webviewApiVersion`).
+
+**`src/webview/*`** defines the webview-side plugin API types (renderers, helpers, message bridge types).
 
 ## Webview layer (`src/webview/`)
 
-**`App.tsx`** listens for `ExtensionToWebviewMessage` events, manages all UI state, and renders the graph with panels.
+**`App.tsx`** listens for `ExtensionToWebviewMessage` events, manages all UI state, and renders the graph with panels. It also hosts the Tier-2 runtime (`WebviewPluginHost`), handles `PLUGIN_WEBVIEW_INJECT`, dynamically loads plugin scripts/styles, and routes plugin-scoped messages.
 
-**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI.
+**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI. Exposes plugin hooks for custom node renderers, overlay rendering, and tooltip section contributions.
 
 **`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings. Built with shadcn/ui components. Group colors combine user-defined entries with plugin-provided default `fileColors`.
 
@@ -93,6 +109,14 @@ Defines the message protocol and data types shared across both build targets:
 - `IGraphNode` / `IGraphEdge` / `IGraphData` for graph rendering
 - `ExtensionToWebviewMessage` and `WebviewToExtensionMessage` union types for the message protocol
 
+## Plugin API docs (`docs/plugin-api/`)
+
+**`EVENTS.md`** documents canonical event names/payloads from `packages/plugin-api/src/events.ts`.
+
+**`TYPES.md`** documents the exported type surface from `@codegraphy/plugin-api` and `@codegraphy/plugin-api/webview`.
+
+**`diagrams/*.excalidraw`** contains editable Excalidraw sources for lifecycle, event system, and type-surface diagrams.
+
 ## Data flow
 
 ### Initial load
@@ -107,8 +131,20 @@ Defines the message protocol and data types shared across both build targets:
    c. Builds nodes (files) and edges (imports)
    d. Applies persisted positions
 6. GraphViewProvider sends GRAPH_DATA_UPDATED + PLUGINS_UPDATED
-7. Graph component renders with react-force-graph
-8. Physics simulation runs until stable
+7. GraphViewProvider sends DECORATIONS_UPDATED + CONTEXT_MENU_ITEMS + PLUGIN_WEBVIEW_INJECT
+8. App loads plugin Tier-2 assets and registers plugin render/message hooks
+9. Graph component renders with react-force-graph
+10. Physics simulation runs until stable
+```
+
+### Plugin Tier-2 messaging
+```
+1. Plugin webview script sends api.sendMessage({ type, data })
+2. Webview posts GRAPH_INTERACTION with event "plugin:<pluginId>:<type>"
+3. GraphViewProvider routes plugin-prefixed events to that plugin's API instance
+4. Extension-side plugin handles onWebviewMessage callbacks
+5. Extension plugin replies via api.sendWebviewMessage(...)
+6. App receives "plugin:<pluginId>:<type>" and dispatches to pluginHost handlers
 ```
 
 ### File change

@@ -1,0 +1,46 @@
+{
+  "$schema": "../../codegraphy.schema.json",
+  "id": "codegraphy.python",
+  "name": "Python",
+  "version": "1.0.0",
+  "apiVersion": "^2.0.0",
+  "tier": 1,
+  "supportedExtensions": [".py", ".pyi"],
+  "defaultFilters": [
+    "**/venv/**",
+    "**/.venv/**",
+    "**/env/**",
+    "**/.env/**",
+    "**/__pycache__/**",
+    "**/.pytest_cache/**",
+    "**/.mypy_cache/**",
+    "**/.tox/**",
+    "**/eggs/**",
+    "**/*.egg-info/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/.eggs/**"
+  ],
+  "fileColors": {
+    ".py": "#3776AB",
+    ".pyi": "#3776AB",
+    "__init__.py": "#FFD43B",
+    "setup.py": "#FFD43B",
+    "pyproject.toml": "#FFD43B",
+    "requirements.txt": "#3776AB",
+    "requirements-dev.txt": "#3776AB",
+    "Pipfile": "#3776AB",
+    "poetry.lock": "#3776AB",
+    ".flake8": "#4B8BBE",
+    ".pylintrc": "#4B8BBE",
+    "pytest.ini": "#009688",
+    "conftest.py": "#009688",
+    "tox.ini": "#4B8BBE",
+    "mypy.ini": "#4B8BBE",
+    ".pre-commit-config.yaml": "#FAB040"
+  },
+  "rules": [
+    { "id": "standard-import", "name": "Standard Imports", "description": "import module" },
+    { "id": "from-import", "name": "From Imports", "description": "from module import name" }
+  ]
+}
