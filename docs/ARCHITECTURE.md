@@ -121,6 +121,8 @@ Defines the message protocol and data types shared across both build targets:
 
 **`TIMELINE.md`** documents git-history indexing/playback behavior and cache invalidation conditions.
 
+**`assets/*.png`** stores lightweight visual proof artifacts referenced from pull-request discussions when UI behavior needs explicit verification.
+
 ## Plugin API docs (`docs/plugin-api/`)
 
 **`EVENTS.md`** documents canonical event names/payloads from `packages/plugin-api/src/events.ts`.
