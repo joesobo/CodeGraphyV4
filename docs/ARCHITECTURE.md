@@ -10,6 +10,10 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **Root `package.json`** routes top-level scripts through Turborepo (`turbo run ...`) and uses `pnpm` filters for package-specific scripts.
 
+**Root `.gitignore`** defines repository-level ignore rules, including local automation artifacts (`.playwright-cli/`, `.playwright-mcp/`, `.worktrees/`, `.turbo/`).
+
+**Root `CLAUDE.md`** stores repository-specific operator guidance for Claude Code, including the persistent-profile Playwright workflow for GitHub PR attachment uploads.
+
 ## Layers
 
 ```
