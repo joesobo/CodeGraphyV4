@@ -51,3 +51,9 @@ export enum ViewColumn {
   Two = 2,
   Three = 3,
 }
+
+export enum ConfigurationTarget {
+  Global = 1,
+  Workspace = 2,
+  WorkspaceFolder = 3,
+}

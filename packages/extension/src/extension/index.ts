@@ -50,6 +50,12 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
         // Physics settings: only update physics, no re-analysis
         provider.refreshPhysicsSettings();
       } else if (
+        event.affectsConfiguration('codegraphy.disabledRules') ||
+        event.affectsConfiguration('codegraphy.disabledPlugins')
+      ) {
+        // Rule/plugin toggles are applied from cached analysis data.
+        provider.refreshToggleSettings();
+      } else if (
         event.affectsConfiguration('codegraphy.showArrows') ||
         event.affectsConfiguration('codegraphy.showLabels') ||
         event.affectsConfiguration('codegraphy.bidirectionalEdges')

@@ -2,8 +2,8 @@
 
 CodeGraphy can be configured in two ways:
 
-- **Settings Panel** (the gear icon in the graph view). Changes apply immediately and are stored in workspace state. Good for day-to-day tweaking.
-- **`settings.json`** (standard VS Code settings). Better for team-shared configuration. When `codegraphy.groups` or `codegraphy.filterPatterns` are set here, they take priority over Settings Panel values.
+- **Settings Panel** (the gear icon in the graph view). Changes apply immediately. Some values persist in workspace state, while others map directly to VS Code settings.
+- **`settings.json`** (standard VS Code settings). Better for team-shared configuration. Plugin/rule toggles are persisted here (`codegraphy.disabledPlugins`, `codegraphy.disabledRules`).
 
 ## VS Code settings reference
 
@@ -18,12 +18,32 @@ CodeGraphy can be configured in two ways:
 | `codegraphy.bidirectionalEdges` | string | `"separate"` | How to display bidirectional connections |
 | `codegraphy.favorites` | string[] | `[]` | Favorite file paths (highlighted with yellow border) |
 | `codegraphy.groups` | object[] | `[]` | Color groups: `{ id, pattern, color }` |
-| `codegraphy.plugins` | string[] | `[]` | Paths to external plugin files |
+| `codegraphy.plugins` | string[] | `[]` | VS Code extension IDs that provide external CodeGraphy plugins |
+| `codegraphy.disabledRules` | string[] | `[]` | Disabled detection rules as qualified IDs: `<pluginId>:<ruleId>` |
+| `codegraphy.disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
 | `codegraphy.physics.repelForce` | number | `10` | Node repulsion strength (0-20) |
 | `codegraphy.physics.linkDistance` | number | `80` | Preferred distance between connected nodes (30-500) |
 | `codegraphy.physics.linkForce` | number | `0.15` | Spring stiffness (0-1) |
 | `codegraphy.physics.damping` | number | `0.7` | Motion settling speed (0-1) |
 | `codegraphy.physics.centerForce` | number | `0.1` | Pull toward viewport center (0-1) |
+
+## Plugin and rule toggles
+
+The Plugins panel writes toggle state to VS Code settings:
+
+- `codegraphy.disabledPlugins` for whole-plugin toggles
+- `codegraphy.disabledRules` for per-rule toggles (`<pluginId>:<ruleId>`)
+
+Example:
+
+```json
+{
+  "codegraphy.disabledPlugins": ["codegraphy.python"],
+  "codegraphy.disabledRules": ["codegraphy.typescript:dynamic-import"]
+}
+```
+
+These toggles are applied instantly from cached analysis data (no full re-analysis). On older workspaces, CodeGraphy can still read legacy toggle values from workspace state as a fallback.
 
 ## Timeline settings
 
@@ -245,7 +265,7 @@ Controls how mutual imports (A imports B and B imports A) are drawn.
 | User | `~/.config/Code/User/settings.json` | Personal defaults across all projects |
 | Workspace | `.vscode/settings.json` | Project-specific config, committable to version control |
 
-Workspace settings override user settings. We recommend committing `include`, `filterPatterns`, and `groups` to `.vscode/settings.json` so the whole team sees the same graph.
+Workspace settings override user settings. We recommend committing `include`, `filterPatterns`, `groups`, and any shared plugin/rule toggles to `.vscode/settings.json` so the whole team sees the same graph.
 
 ## Troubleshooting
 
@@ -267,3 +287,4 @@ No groups are configured. Add groups in the Settings Panel or via `codegraphy.gr
 1. Make sure the file type has a supported plugin (TypeScript/JS, Python, C#, GDScript, Markdown)
 2. Check that imported files are within the `include` patterns
 3. `node_modules` imports are intentionally excluded
+4. Check `codegraphy.disabledPlugins` and `codegraphy.disabledRules` for an unintended toggle

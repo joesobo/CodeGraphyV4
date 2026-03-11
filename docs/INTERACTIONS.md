@@ -63,7 +63,7 @@ Four collapsible sections: Forces, Groups, Filters, and Display. See [Settings](
 
 ### Plugins (puzzle icon)
 
-Toggle entire plugins or individual detection rules. Shows live connection counts per rule. See [Plugins](./PLUGINS.md) for plugin development.
+Toggle entire plugins or individual detection rules. Shows live connection counts per rule. Toggle state persists in VS Code settings (`codegraphy.disabledPlugins`, `codegraphy.disabledRules`). See [Plugins](./PLUGINS.md) for plugin development.
 
 ![Plugins panel](./media/plugins-panel.png)
 
