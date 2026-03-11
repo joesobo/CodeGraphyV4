@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IPhysicsSettings, NodeSizeMode } from '../../shared/types';
+import { IPhysicsSettings, NodeSizeMode, DirectionMode } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
@@ -111,10 +111,22 @@ export default function SettingsPanel({
   const pendingPhysicsValuesRef = useRef<Partial<Record<keyof IPhysicsSettings, number>>>({});
   const physicsPersistTimersRef = useRef<Partial<Record<keyof IPhysicsSettings, ReturnType<typeof setTimeout>>>>({});
 
+  // Particle settings refs and store reads (must be before early return for hooks rules)
+  const pendingParticleValuesRef = useRef<Partial<Record<'particleSpeed' | 'particleSize', number>>>({});
+  const particlePersistTimersRef = useRef<Partial<Record<'particleSpeed' | 'particleSize', ReturnType<typeof setTimeout>>>>({});
+  const particleSpeed = useGraphStore(s => s.particleSpeed);
+  const setParticleSpeed = useGraphStore(s => s.setParticleSpeed);
+  const particleSize = useGraphStore(s => s.particleSize);
+  const setParticleSize = useGraphStore(s => s.setParticleSize);
+
   useEffect(() => {
     const timersRef = physicsPersistTimersRef;
+    const particleTimersRef = particlePersistTimersRef;
     return () => {
       for (const timer of Object.values(timersRef.current)) {
+        if (timer) clearTimeout(timer);
+      }
+      for (const timer of Object.values(particleTimersRef.current)) {
         if (timer) clearTimeout(timer);
       }
     };
@@ -232,11 +244,48 @@ export default function SettingsPanel({
     schedulePhysicsSettingPersist(key, value);
   };
 
+  // Particle settings debounce (same pattern as physics sliders)
+  const flushParticleSetting = (key: 'particleSpeed' | 'particleSize') => {
+    const pendingValue = pendingParticleValuesRef.current[key];
+    if (pendingValue === undefined) return;
+
+    const timer = particlePersistTimersRef.current[key];
+    if (timer) {
+      clearTimeout(timer);
+      delete particlePersistTimersRef.current[key];
+    }
+
+    delete pendingParticleValuesRef.current[key];
+    postMessage({ type: 'UPDATE_PARTICLE_SETTING', payload: { key, value: pendingValue } });
+  };
+
+  const scheduleParticleSettingPersist = (key: 'particleSpeed' | 'particleSize', value: number) => {
+    pendingParticleValuesRef.current[key] = value;
+
+    const existingTimer = particlePersistTimersRef.current[key];
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+
+    particlePersistTimersRef.current[key] = setTimeout(() => {
+      flushParticleSetting(key);
+    }, PHYSICS_PERSIST_DEBOUNCE_MS);
+  };
+
   // Display handlers
-  const handleShowArrowsChange = (checked: boolean) => {
-    const mode = checked ? 'arrows' : 'none';
+  const handleDirectionModeChange = (mode: DirectionMode) => {
     setDirectionMode(mode);
     postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
+  };
+
+  const handleParticleSpeedChange = (value: number) => {
+    setParticleSpeed(value);
+    scheduleParticleSettingPersist('particleSpeed', value);
+  };
+
+  const handleParticleSizeChange = (value: number) => {
+    setParticleSize(value);
+    scheduleParticleSettingPersist('particleSize', value);
   };
 
   const handleShowLabelsChange = (checked: boolean) => {
@@ -532,15 +581,70 @@ export default function SettingsPanel({
           <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen(v => !v)} />
           {displayOpen && (
             <div className="mb-2 space-y-3">
-              {/* Arrows toggle */}
-              <div className="flex items-center justify-between">
-                <Label htmlFor="show-arrows" className="text-xs">Show Arrows</Label>
-                <Switch
-                  id="show-arrows"
-                  checked={directionMode === 'arrows'}
-                  onCheckedChange={handleShowArrowsChange}
-                />
+              {/* Direction mode toggle */}
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">Direction</Label>
+                <div className="flex gap-1">
+                  <Button
+                    variant={directionMode === 'arrows' ? 'default' : 'secondary'}
+                    size="sm"
+                    className="h-6 px-2 text-xs flex-1"
+                    onClick={() => handleDirectionModeChange('arrows')}
+                  >
+                    Arrows
+                  </Button>
+                  <Button
+                    variant={directionMode === 'particles' ? 'default' : 'secondary'}
+                    size="sm"
+                    className="h-6 px-2 text-xs flex-1"
+                    onClick={() => handleDirectionModeChange('particles')}
+                  >
+                    Particles
+                  </Button>
+                  <Button
+                    variant={directionMode === 'none' ? 'default' : 'secondary'}
+                    size="sm"
+                    className="h-6 px-2 text-xs flex-1"
+                    onClick={() => handleDirectionModeChange('none')}
+                  >
+                    None
+                  </Button>
+                </div>
               </div>
+
+              {/* Particle settings (visible only when mode is 'particles') */}
+              {directionMode === 'particles' && (
+                <div className="space-y-3 pl-2 border-l border-border">
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <Label className="text-xs">Particle Speed</Label>
+                      <span className="text-xs text-muted-foreground font-mono">{particleSpeed.toFixed(3)}</span>
+                    </div>
+                    <Slider
+                      min={0.001}
+                      max={0.05}
+                      step={0.001}
+                      value={[particleSpeed]}
+                      onValueChange={(v) => handleParticleSpeedChange(v[0])}
+                      onValueCommit={() => flushParticleSetting('particleSpeed')}
+                    />
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-1">
+                      <Label className="text-xs">Particle Size</Label>
+                      <span className="text-xs text-muted-foreground font-mono">{particleSize.toFixed(1)}</span>
+                    </div>
+                    <Slider
+                      min={1}
+                      max={10}
+                      step={0.5}
+                      value={[particleSize]}
+                      onValueChange={(v) => handleParticleSizeChange(v[0])}
+                      onValueCommit={() => flushParticleSetting('particleSize')}
+                    />
+                  </div>
+                </div>
+              )}
 
               {/* Labels toggle */}
               <div className="flex items-center justify-between">
