@@ -90,7 +90,6 @@ export default function SettingsPanel({
   const settings = useGraphStore(s => s.physicsSettings);
   const setPhysicsSettings = useGraphStore(s => s.setPhysicsSettings);
   const groups = useGraphStore(s => s.groups);
-  const setGroups = useGraphStore(s => s.setGroups);
   const expandedGroupId = useGraphStore(s => s.expandedGroupId);
   const setExpandedGroupId = useGraphStore(s => s.setExpandedGroupId);
   const filterPatterns = useGraphStore(s => s.filterPatterns);
@@ -154,25 +153,28 @@ export default function SettingsPanel({
 
   if (!isOpen) return null;
 
-  // Groups handlers
+  // Split groups into user-defined and plugin defaults
+  const userGroups = groups.filter(g => !g.isPluginDefault);
+  const pluginGroups = groups.filter(g => g.isPluginDefault);
+
+  // Groups handlers — only send user groups in UPDATE_GROUPS
+  const sendUserGroups = (updated: IGroup[]) => {
+    postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
+  };
+
   const handleAddGroup = () => {
     if (!newPattern.trim()) return;
     const newId = crypto.randomUUID();
-    const updated: IGroup[] = [
-      ...groups,
-      { id: newId, pattern: newPattern.trim(), color: newColor },
-    ];
-    setGroups(updated);
-    postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
+    const updatedUser = [...userGroups, { id: newId, pattern: newPattern.trim(), color: newColor }];
+    sendUserGroups(updatedUser);
     setNewPattern('');
     setNewColor('#3B82F6');
     setExpandedGroupId(newId);
   };
 
   const handleUpdateGroup = (id: string, updates: Partial<IGroup>) => {
-    const updated = groups.map(g => g.id === id ? { ...g, ...updates } : g);
-    setGroups(updated);
-    postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
+    const updatedUser = userGroups.map(g => g.id === id ? { ...g, ...updates } : g);
+    sendUserGroups(updatedUser);
   };
 
   const handlePickImage = (groupId: string) => {
@@ -184,9 +186,16 @@ export default function SettingsPanel({
   };
 
   const handleDeleteGroup = (id: string) => {
-    const updated = groups.filter(g => g.id !== id);
-    setGroups(updated);
-    postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
+    const updatedUser = userGroups.filter(g => g.id !== id);
+    sendUserGroups(updatedUser);
+  };
+
+  const handleHidePluginGroup = (groupId: string) => {
+    postMessage({ type: 'HIDE_PLUGIN_GROUP', payload: { groupId } });
+  };
+
+  const handleResetPluginDefaults = () => {
+    postMessage({ type: 'RESET_PLUGIN_DEFAULTS', payload: {} });
   };
 
   const handleGroupDragStart = (index: number) => {
@@ -205,11 +214,10 @@ export default function SettingsPanel({
       setDragOverIndex(null);
       return;
     }
-    const updated = [...groups];
+    const updated = [...userGroups];
     const [moved] = updated.splice(dragIndex, 1);
     updated.splice(targetIndex, 0, moved);
-    setGroups(updated);
-    postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
+    sendUserGroups(updated);
     setDragIndex(null);
     setDragOverIndex(null);
   };
@@ -426,11 +434,57 @@ export default function SettingsPanel({
           <SectionHeader title="Groups" open={groupsOpen} onToggle={() => setGroupsOpen(v => !v)} />
           {groupsOpen && (
             <div className="mb-2 space-y-2">
-              {groups.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-1">No groups. All nodes use the default grey color.</p>
+              {/* Plugin default groups (read-only) */}
+              {pluginGroups.length > 0 && (
+                <>
+                  <p className="text-xs text-muted-foreground">Plugin defaults</p>
+                  <ul className="space-y-1">
+                    {pluginGroups.map(group => (
+                      <li key={group.id} className="flex items-center gap-2 opacity-80">
+                        <svg className="w-3 h-3 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <span
+                          className="w-4 h-4 rounded-sm flex-shrink-0 border"
+                          style={{ backgroundColor: group.color }}
+                        />
+                        <span className="text-xs flex-1 truncate font-mono">{group.pattern}</span>
+                        {group.imageUrl && (
+                          <img src={group.imageUrl} alt="" className="w-4 h-4 object-cover rounded-sm flex-shrink-0" />
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
+                          onClick={() => handleHidePluginGroup(group.id)}
+                          title="Hide plugin default"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
+                          </svg>
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-2 text-[10px] text-muted-foreground"
+                    onClick={handleResetPluginDefaults}
+                    title="Restore any hidden plugin defaults"
+                  >
+                    Reset hidden
+                  </Button>
+                </>
+              )}
+
+              {/* User custom groups (editable) */}
+              <p className="text-xs text-muted-foreground">Custom</p>
+              {userGroups.length === 0 ? (
+                <p className="text-xs text-muted-foreground py-1">No custom groups.</p>
               ) : (
                 <ul className="space-y-1">
-                  {groups.map((group, index) => {
+                  {userGroups.map((group, index) => {
                     const isExpanded = expandedGroupId === group.id;
                     return (
                       <li

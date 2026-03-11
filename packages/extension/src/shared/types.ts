@@ -331,6 +331,8 @@ export interface IGroup {
   imagePath?: string;
   /** Webview URI for the image (resolved at send-time, not persisted) */
   imageUrl?: string;
+  /** True for plugin-provided default groups (read-only in UI) */
+  isPluginDefault?: boolean;
 }
 // ============================================================================
 // Plugin Decoration Payload Types (for webview rendering)
@@ -547,6 +549,8 @@ export type WebviewToExtensionMessage =
   | { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }
   // Plugin API v2: invoke a plugin context menu action
   | { type: 'PLUGIN_CONTEXT_MENU_ACTION'; payload: { pluginId: string; index: number; targetId: string; targetType: 'node' | 'edge' } }
+  | { type: 'HIDE_PLUGIN_GROUP'; payload: { groupId: string } }
+  | { type: 'RESET_PLUGIN_DEFAULTS'; payload: { pluginId?: string } }
   | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } };
 
 /**

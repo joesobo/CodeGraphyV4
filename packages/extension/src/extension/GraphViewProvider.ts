@@ -50,9 +50,6 @@ const VISITS_KEY = 'codegraphy.fileVisits';
 /** Storage key for selected view per workspace */
 const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
 
-/** Storage key for groups in workspace state */
-const GROUPS_KEY = 'codegraphy.groups';
-
 /** Storage key for filter patterns in workspace state */
 const FILTER_PATTERNS_KEY = 'codegraphy.filterPatterns';
 
@@ -137,8 +134,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     depthLimit: DEFAULT_DEPTH_LIMIT,
   };
 
-  /** Groups for client-side file coloring */
+  /** Groups for client-side file coloring (computed merged result) */
   private _groups: IGroup[] = [];
+
+  /** User-defined groups (persisted to settings.json) */
+  private _userGroups: IGroup[] = [];
+
+  /** Plugin default group IDs that the user has hidden */
+  private _hiddenPluginGroupIds = new Set<string>();
 
   /** Filter patterns passed to analysis (extension-side exclusions) */
   private _filterPatterns: string[] = [];
@@ -416,12 +419,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       if (this._isAnalysisStale(signal, requestId)) return;
     }
 
-    // Add plugin-provided default file colors into groups (once per group id).
-    if (this._mergePluginFileColorGroups()) {
-      await this._context.workspaceState.update(GROUPS_KEY, this._groups);
-      if (this._isAnalysisStale(signal, requestId)) return;
-      this._sendGroupsUpdated();
-    }
+    // Recompute merged groups (user groups + visible plugin defaults) and notify webview.
+    this._computeMergedGroups();
+    if (this._isAnalysisStale(signal, requestId)) return;
+    this._sendGroupsUpdated();
 
     // Check if workspace is open
     const hasWorkspace = vscode.workspace.workspaceFolders && 
@@ -512,14 +513,31 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   };
 
   /**
-   * Merges plugin fileColors into the groups list as defaults.
-   * Group IDs are deterministic: plugin:<pluginId>:<pattern>
+   * Eagerly registers built-in plugin asset roots so that plugin image paths
+   * always resolve correctly regardless of analyzer timing.
    */
-  private _mergePluginFileColorGroups(): boolean {
-    if (!this._analyzer) return false;
+  private _registerBuiltInPluginRoots(): void {
+    for (const [pluginId, dirName] of Object.entries(GraphViewProvider._builtInPluginDirs)) {
+      if (!this._pluginExtensionUris.has(pluginId)) {
+        this._pluginExtensionUris.set(
+          pluginId,
+          vscode.Uri.joinPath(this._extensionUri, 'packages', dirName)
+        );
+      }
+    }
+  }
 
-    // Build set of valid plugin group IDs from current plugin manifests
-    const validPluginIds = new Set<string>();
+  /**
+   * Returns plugin-provided default file color groups.
+   * Group IDs are deterministic: plugin:<pluginId>:<pattern>
+   * Sets isPluginDefault: true on each group.
+   * Does NOT modify this._groups — caller is responsible for merging.
+   */
+  private _getPluginDefaultGroups(): IGroup[] {
+    if (!this._analyzer) return [];
+
+    const result: IGroup[] = [];
+    const addedIds = new Set<string>();
 
     for (const pluginInfo of this._analyzer.registry.list()) {
       const fileColors = pluginInfo.plugin.fileColors;
@@ -537,35 +555,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         }
       }
 
-      for (const pattern of Object.keys(fileColors)) {
-        validPluginIds.add(`plugin:${pluginId}:${pattern}`);
-      }
-    }
-
-    // Prune stale plugin groups that no longer match any current manifest entry
-    const beforeLen = this._groups.length;
-    this._groups = this._groups.filter(g =>
-      !g.id.startsWith('plugin:') || validPluginIds.has(g.id)
-    );
-    let changed = this._groups.length !== beforeLen;
-
-    // Add new plugin groups
-    const existingIds = new Set(this._groups.map(g => g.id));
-    const existingPatternColor = new Set(this._groups.map(g => `${g.pattern}::${g.color}`));
-
-    for (const pluginInfo of this._analyzer.registry.list()) {
-      const fileColors = pluginInfo.plugin.fileColors;
-      if (!fileColors) continue;
-
-      const pluginId = pluginInfo.plugin.id;
-
       for (const [pattern, value] of Object.entries(fileColors)) {
         const color = typeof value === 'string' ? value : value.color;
         const id = `plugin:${pluginId}:${pattern}`;
-        if (existingIds.has(id) || existingPatternColor.has(`${pattern}::${color}`)) {
-          continue;
-        }
-        const group: IGroup = { id, pattern, color };
+        if (addedIds.has(id)) continue;
+        const group: IGroup = { id, pattern, color, isPluginDefault: true };
         if (typeof value === 'object') {
           if (value.shape2D) group.shape2D = value.shape2D;
           if (value.shape3D) group.shape3D = value.shape3D;
@@ -573,14 +567,21 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             group.imagePath = value.image;
           }
         }
-        this._groups.push(group);
-        existingIds.add(id);
-        existingPatternColor.add(`${pattern}::${color}`);
-        changed = true;
+        result.push(group);
+        addedIds.add(id);
       }
     }
 
-    return changed;
+    return result;
+  }
+
+  /**
+   * Computes the merged groups list from user groups + visible plugin defaults.
+   */
+  private _computeMergedGroups(): void {
+    const pluginDefaults = this._getPluginDefaultGroups();
+    const visible = pluginDefaults.filter(g => !this._hiddenPluginGroupIds.has(g.id));
+    this._groups = [...this._userGroups, ...visible];
   }
 
   /**
@@ -1184,6 +1185,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * the plugin/extension root; user groups resolve relative to the workspace.
    */
   private _sendGroupsUpdated(): void {
+    this._registerBuiltInPluginRoots();
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     const resolved = this._groups.map(g => {
       if (!g.imagePath) return g;
@@ -1376,9 +1378,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
 
         case 'UPDATE_GROUPS': {
-          this._groups = message.payload.groups;
-          // Save to workspace state to avoid triggering onDidChangeConfiguration
-          await this._context.workspaceState.update(GROUPS_KEY, this._groups);
+          this._userGroups = message.payload.groups;
+          const target = this._getConfigTarget();
+          await vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, target);
+          this._computeMergedGroups();
           this._sendGroupsUpdated();
           break;
         }
@@ -1506,6 +1509,40 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
         }
 
+        case 'HIDE_PLUGIN_GROUP': {
+          this._hiddenPluginGroupIds.add(message.payload.groupId);
+          const hideTarget = this._getConfigTarget();
+          await vscode.workspace.getConfiguration('codegraphy').update(
+            'hiddenPluginGroups',
+            [...this._hiddenPluginGroupIds],
+            hideTarget
+          );
+          this._computeMergedGroups();
+          this._sendGroupsUpdated();
+          break;
+        }
+
+        case 'RESET_PLUGIN_DEFAULTS': {
+          const { pluginId } = message.payload;
+          if (pluginId) {
+            const prefix = `plugin:${pluginId}:`;
+            for (const id of [...this._hiddenPluginGroupIds]) {
+              if (id.startsWith(prefix)) this._hiddenPluginGroupIds.delete(id);
+            }
+          } else {
+            this._hiddenPluginGroupIds.clear();
+          }
+          const resetTarget = this._getConfigTarget();
+          await vscode.workspace.getConfiguration('codegraphy').update(
+            'hiddenPluginGroups',
+            [...this._hiddenPluginGroupIds],
+            resetTarget
+          );
+          this._computeMergedGroups();
+          this._sendGroupsUpdated();
+          break;
+        }
+
         case 'PICK_GROUP_IMAGE': {
           const { groupId } = message.payload;
           const uris = await vscode.window.showOpenDialog({
@@ -1526,10 +1563,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           await vscode.workspace.fs.copy(selectedUri, destUri, { overwrite: true });
 
           const imagePath = `.codegraphy/assets/${fileName}`;
-          const group = this._groups.find(g => g.id === groupId);
+          const group = this._userGroups.find(g => g.id === groupId);
           if (group) {
             group.imagePath = imagePath;
-            await this._context.workspaceState.update(GROUPS_KEY, this._groups);
+            const imgTarget = this._getConfigTarget();
+            await vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, imgTarget);
+            this._computeMergedGroups();
             this._sendGroupsUpdated();
           }
           break;
@@ -2036,6 +2075,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   /**
    * Loads groups and filter patterns with VS Code settings taking priority over workspace state.
+   * User groups are stored in settings.json; plugin default groups are computed dynamically.
+   * Falls back to workspaceState for migration from older persisted data.
    */
   private _loadGroupsAndFilterPatterns(): void {
     const config = vscode.workspace.getConfiguration('codegraphy');
@@ -2048,7 +2089,30 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const vsGroups = groupsInspect?.workspaceValue ?? groupsInspect?.globalValue;
     const vsFilterPatterns = patternsInspect?.workspaceValue ?? patternsInspect?.globalValue;
 
-    this._groups = vsGroups ?? this._context.workspaceState.get<IGroup[]>(GROUPS_KEY) ?? [];
+    if (vsGroups) {
+      // Settings.json has explicit groups — use them as user groups
+      this._userGroups = vsGroups;
+    } else {
+      // Fall back to workspaceState for migration, filtering out plugin groups
+      const legacyGroups = this._context.workspaceState.get<IGroup[]>('codegraphy.groups') ?? [];
+      this._userGroups = legacyGroups.filter(g => !g.id.startsWith('plugin:'));
+
+      // Migrate to settings.json if there were legacy groups
+      if (legacyGroups.length > 0) {
+        const target = this._getConfigTarget();
+        vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, target);
+        this._context.workspaceState.update('codegraphy.groups', undefined);
+      }
+    }
+
+    // Load hidden plugin group IDs from settings
+    this._hiddenPluginGroupIds = new Set(
+      config.get<string[]>('hiddenPluginGroups', [])
+    );
+
+    // Compute merged groups (user + visible plugin defaults)
+    this._computeMergedGroups();
+
     this._filterPatterns = vsFilterPatterns ?? this._context.workspaceState.get<string[]>(FILTER_PATTERNS_KEY) ?? [];
   }
 

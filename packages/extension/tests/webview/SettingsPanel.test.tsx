@@ -200,10 +200,10 @@ describe('SettingsPanel: Groups', () => {
     fireEvent.change(patternInput, { target: { value: 'src/utils/**' } });
     fireEvent.click(screen.getByText('Add'));
 
-    const groups = graphStore.getState().groups;
-    expect(groups.length).toBe(1);
-    expect(groups[0].pattern).toBe('src/utils/**');
-    expect(sentMessages.some((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS')).toBe(true);
+    const updateMsg = sentMessages.find((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS') as { type: string; payload: { groups: Array<{ pattern: string }> } } | undefined;
+    expect(updateMsg).toBeDefined();
+    expect(updateMsg!.payload.groups.length).toBe(1);
+    expect(updateMsg!.payload.groups[0].pattern).toBe('src/utils/**');
   });
 
   it('removes a group and posts UPDATE_GROUPS', () => {
@@ -215,8 +215,9 @@ describe('SettingsPanel: Groups', () => {
     const removeBtn = screen.getByTitle('Delete group');
     fireEvent.click(removeBtn);
 
-    expect(graphStore.getState().groups).toEqual([]);
-    expect(sentMessages.some((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS')).toBe(true);
+    const updateMsg = sentMessages.find((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS') as { type: string; payload: { groups: unknown[] } } | undefined;
+    expect(updateMsg).toBeDefined();
+    expect(updateMsg!.payload.groups).toEqual([]);
   });
 });
 

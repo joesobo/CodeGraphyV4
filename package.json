@@ -197,6 +197,14 @@
                     "default": [],
                     "description": "Disabled plugin IDs. Managed by the Plugins panel."
                 },
+                "codegraphy.hiddenPluginGroups": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "default": [],
+                    "description": "Plugin default group IDs that have been hidden. Managed by the Groups panel."
+                },
                 "codegraphy.favorites": {
                     "type": "array",
                     "items": {
