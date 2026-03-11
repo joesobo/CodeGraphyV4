@@ -139,7 +139,7 @@ export default function SettingsPanel({
   const setMaxFiles = useGraphStore(s => s.setMaxFiles);
 
   // Local UI state
-  const [forcesOpen, setForcesOpen] = useState(true);
+  const [forcesOpen, setForcesOpen] = useState(false);
   const [groupsOpen, setGroupsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [displayOpen, setDisplayOpen] = useState(false);

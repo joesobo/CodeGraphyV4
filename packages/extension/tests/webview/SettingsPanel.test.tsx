@@ -124,6 +124,15 @@ describe('SettingsPanel: Filter Patterns', () => {
 describe('SettingsPanel: Quick Actions', () => {
   beforeEach(() => sentMessages.length = 0);
 
+  it('keeps Forces section collapsed by default', () => {
+    renderPanel();
+
+    expect(screen.queryByText('Repel Force')).not.toBeInTheDocument();
+
+    openSection('Forces');
+    expect(screen.getByText('Repel Force')).toBeInTheDocument();
+  });
+
   it('calls onClose when close button is clicked', () => {
     const { onClose } = renderPanel();
     fireEvent.click(screen.getByTitle('Close'));
@@ -143,6 +152,7 @@ describe('SettingsPanel: Physics persistence', () => {
   it('applies local updates on slider interaction and persists physics settings', () => {
     vi.useFakeTimers();
     renderPanel();
+    openSection('Forces');
 
     // Radix Slider renders thumbs as span[role="slider"]
     const sliders = screen.getAllByRole('slider');
