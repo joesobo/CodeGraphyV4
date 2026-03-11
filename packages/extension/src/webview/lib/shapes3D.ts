@@ -38,7 +38,14 @@ export function createNodeMesh(shape: NodeShape3D, color: string, size: number):
 export function createImageSprite(textureUrl: string, size: number): THREE.Sprite {
   const texture = new THREE.TextureLoader().load(textureUrl);
   const material = new THREE.SpriteMaterial({ map: texture, transparent: true });
+  // Disable depth test so the sprite renders on top of the mesh (depthTest is
+  // inherited from Material but not in the TS defs for this Three.js version).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (material as any).depthTest = false;
   const sprite = new THREE.Sprite(material);
   sprite.scale.set(size, size, 1);
+  // Ensure sprite draws after opaque meshes (renderOrder is on Object3D).
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  (sprite as any).renderOrder = 1;
   return sprite;
 }

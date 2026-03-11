@@ -131,7 +131,7 @@ export default function App(): React.ReactElement {
 
     const coloredNodes = base.nodes.map(node => {
       for (const group of groups) {
-        if (globMatch(node.id, group.pattern)) {
+        if (!group.disabled && globMatch(node.id, group.pattern)) {
           return {
             ...node,
             color: group.color,

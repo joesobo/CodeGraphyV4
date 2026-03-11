@@ -512,6 +512,17 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     'codegraphy.markdown': 'plugin-markdown',
   };
 
+  /** Built-in default groups for common file types (independent of plugins). */
+  private static readonly _builtInDefaultGroups: Array<{ pattern: string; color: string }> = [
+    { pattern: '.gitignore', color: '#F97583' },
+    { pattern: '*.json', color: '#F9C74F' },
+    { pattern: '*.png', color: '#90BE6D' },
+    { pattern: '*.svg', color: '#43AA8B' },
+    { pattern: '*.md', color: '#577590' },
+    { pattern: '*.jpeg', color: '#90BE6D' },
+    { pattern: '.vscode/settings.json', color: '#277ACC' },
+  ];
+
   /**
    * Eagerly registers built-in plugin asset roots so that plugin image paths
    * always resolve correctly regardless of analyzer timing.
@@ -540,6 +551,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const addedIds = new Set<string>();
 
     for (const pluginInfo of this._analyzer.registry.list()) {
+      // Skip disabled plugins entirely — they shouldn't show up in the groups panel
+      if (this._disabledPlugins.has(pluginInfo.plugin.id)) continue;
+
       const fileColors = pluginInfo.plugin.fileColors;
       if (!fileColors) continue;
 
@@ -575,13 +589,35 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     return result;
   }
 
+  /** Returns built-in default groups (common file types, independent of plugins). */
+  private _getBuiltInDefaultGroups(): IGroup[] {
+    return GraphViewProvider._builtInDefaultGroups.map(({ pattern, color }) => ({
+      id: `default:${pattern}`,
+      pattern,
+      color,
+      isPluginDefault: true,
+      pluginName: 'CodeGraphy',
+    }));
+  }
+
   /**
-   * Computes the merged groups list from user groups + visible plugin defaults.
+   * Computes the merged groups list: user groups + built-in defaults + plugin defaults.
+   * Disabled groups are marked but still included (visible in settings).
    */
   private _computeMergedGroups(): void {
-    const pluginDefaults = this._getPluginDefaultGroups();
-    const visible = pluginDefaults.filter(g => !this._hiddenPluginGroupIds.has(g.id));
-    this._groups = [...this._userGroups, ...visible];
+    const applyDisabledState = (g: IGroup): IGroup => {
+      // Section key is everything before the last colon:
+      // "default:*.json" → "default", "plugin:codegraphy.csharp:*.cs" → "plugin:codegraphy.csharp"
+      const lastColon = g.id.lastIndexOf(':');
+      const sectionKey = lastColon > 0 ? g.id.slice(0, lastColon) : undefined;
+      const isDisabled = this._hiddenPluginGroupIds.has(g.id)
+        || (sectionKey !== undefined && this._hiddenPluginGroupIds.has(sectionKey));
+      return { ...g, disabled: isDisabled || undefined };
+    };
+
+    const builtInDefaults = this._getBuiltInDefaultGroups().map(applyDisabledState);
+    const pluginDefaults = this._getPluginDefaultGroups().map(applyDisabledState);
+    this._groups = [...this._userGroups, ...builtInDefaults, ...pluginDefaults];
   }
 
   /**
@@ -1181,12 +1217,18 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   /**
    * Sends GROUPS_UPDATED with imagePath resolved to imageUrl.
-   * Plugin groups (id starts with "plugin:") resolve images relative to
-   * the plugin/extension root; user groups resolve relative to the workspace.
+   *
+   * imagePath formats:
+   * - Plugin groups (id starts with "plugin:"): relative to plugin root
+   * - User groups with "plugin:<pluginId>:<path>": inherited from a plugin override,
+   *   resolved via the named plugin root
+   * - User groups with workspace-relative path (e.g. ".codegraphy/assets/icon.png"):
+   *   resolved relative to the workspace folder
    */
   private _sendGroupsUpdated(): void {
     this._registerBuiltInPluginRoots();
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    const webview = this._view?.webview ?? this._panels[0]?.webview;
     const resolved = this._groups.map(g => {
       if (!g.imagePath) return g;
 
@@ -1198,14 +1240,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         const pluginId = pluginMatch[1];
         imageUrl = this._resolveWebviewAssetPath(g.imagePath, pluginId);
       } else {
-        // User groups: resolve relative to the workspace folder
-        const imageUri = workspaceFolder
-          ? vscode.Uri.joinPath(workspaceFolder.uri, g.imagePath)
-          : null;
-        const webview = this._view?.webview ?? this._panels[0]?.webview;
-        imageUrl = imageUri && webview
-          ? webview.asWebviewUri(imageUri).toString()
-          : undefined;
+        // User groups: check for "plugin:<id>:<path>" format (inherited from plugin override)
+        const inheritedMatch = g.imagePath.match(/^plugin:([^:]+):(.+)$/);
+        if (inheritedMatch) {
+          const [, pluginId, relativePath] = inheritedMatch;
+          imageUrl = this._resolveWebviewAssetPath(relativePath, pluginId);
+        } else if (workspaceFolder && webview) {
+          // Standard workspace-relative path
+          const imageUri = vscode.Uri.joinPath(workspaceFolder.uri, g.imagePath);
+          imageUrl = webview.asWebviewUri(imageUri).toString();
+        }
       }
 
       return { ...g, imageUrl };
@@ -1378,7 +1422,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
 
         case 'UPDATE_GROUPS': {
-          this._userGroups = message.payload.groups;
+          // Strip transient/session-only fields before persisting
+          this._userGroups = message.payload.groups.map(({ imageUrl: _iu, isPluginDefault: _ip, pluginName: _pn, ...persistable }) => persistable);
           const target = this._getConfigTarget();
           await vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, target);
           this._computeMergedGroups();
@@ -1509,53 +1554,44 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
         }
 
-        case 'HIDE_PLUGIN_GROUP': {
-          this._hiddenPluginGroupIds.add(message.payload.groupId);
-          const hideTarget = this._getConfigTarget();
-          await vscode.workspace.getConfiguration('codegraphy').update(
-            'hiddenPluginGroups',
-            [...this._hiddenPluginGroupIds],
-            hideTarget
-          );
-          this._computeMergedGroups();
-          this._sendGroupsUpdated();
-          break;
-        }
-
-        case 'HIDE_ALL_PLUGIN_GROUPS': {
-          const prefix = `plugin:${message.payload.pluginId}:`;
-          const allDefaults = this._getPluginDefaultGroups();
-          for (const g of allDefaults) {
-            if (g.id.startsWith(prefix)) {
-              this._hiddenPluginGroupIds.add(g.id);
-            }
+        case 'TOGGLE_PLUGIN_GROUP_DISABLED': {
+          const { groupId, disabled } = message.payload;
+          if (disabled) {
+            this._hiddenPluginGroupIds.add(groupId);
+          } else {
+            this._hiddenPluginGroupIds.delete(groupId);
           }
-          const hideAllTarget = this._getConfigTarget();
+          const toggleTarget = this._getConfigTarget();
           await vscode.workspace.getConfiguration('codegraphy').update(
             'hiddenPluginGroups',
             [...this._hiddenPluginGroupIds],
-            hideAllTarget
+            toggleTarget
           );
           this._computeMergedGroups();
           this._sendGroupsUpdated();
           break;
         }
 
-        case 'RESET_PLUGIN_DEFAULTS': {
-          const { pluginId } = message.payload;
-          if (pluginId) {
-            const prefix = `plugin:${pluginId}:`;
+        case 'TOGGLE_PLUGIN_SECTION_DISABLED': {
+          // Built-in defaults use "default" as section ID; plugins use their ID
+          const rawId = message.payload.pluginId;
+          const sectionKey = rawId === 'default' ? 'default' : `plugin:${rawId}`;
+          if (message.payload.disabled) {
+            // Store just the section-level key
+            this._hiddenPluginGroupIds.add(sectionKey);
+          } else {
+            // Remove section key and any individual group entries under it
+            this._hiddenPluginGroupIds.delete(sectionKey);
+            const prefix = `${sectionKey}:`;
             for (const id of [...this._hiddenPluginGroupIds]) {
               if (id.startsWith(prefix)) this._hiddenPluginGroupIds.delete(id);
             }
-          } else {
-            this._hiddenPluginGroupIds.clear();
           }
-          const resetTarget = this._getConfigTarget();
+          const sectionTarget = this._getConfigTarget();
           await vscode.workspace.getConfiguration('codegraphy').update(
             'hiddenPluginGroups',
             [...this._hiddenPluginGroupIds],
-            resetTarget
+            sectionTarget
           );
           this._computeMergedGroups();
           this._sendGroupsUpdated();

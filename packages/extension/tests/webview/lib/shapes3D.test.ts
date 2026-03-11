@@ -185,6 +185,17 @@ describe('shapes3D', () => {
       });
     });
 
+    it('disables depthTest on sprite material so it renders on top', () => {
+      createImageSprite('https://example.com/icon.png', 5);
+      const materialInstance = MockSpriteMaterial.mock.results[0].value;
+      expect(materialInstance.depthTest).toBe(false);
+    });
+
+    it('sets renderOrder to 1 so sprite renders on top of mesh', () => {
+      const sprite = createImageSprite('https://example.com/icon.png', 5);
+      expect(sprite.renderOrder).toBe(1);
+    });
+
     it('sets scale based on size parameter', () => {
       const sprite = createImageSprite('https://example.com/icon.png', 8);
       expect(sprite.scale.set).toHaveBeenCalledWith(8, 8, 1);

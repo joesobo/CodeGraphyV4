@@ -49,6 +49,9 @@ const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
 /** Delay before persisting slider updates to VS Code settings. */
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
 
+/** Delay before persisting color picker changes to avoid rapid updates while dragging. */
+const COLOR_DEBOUNCE_MS = 300;
+
 function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
   return (
     <svg
@@ -124,6 +127,11 @@ export default function SettingsPanel({
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [expandedPluginIds, setExpandedPluginIds] = useState<Set<string>>(new Set());
+  const [customExpanded, setCustomExpanded] = useState(true);
+
+  // Color debounce: immediate visual feedback while dragging, debounced persistence
+  const [localColorOverrides, setLocalColorOverrides] = useState<Record<string, string>>({});
+  const colorDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
   // Filters form state
   const [newFilterPattern, setNewFilterPattern] = useState('');
@@ -142,6 +150,7 @@ export default function SettingsPanel({
   useEffect(() => {
     const timersRef = physicsPersistTimersRef;
     const particleTimersRef = particlePersistTimersRef;
+    const colorTimersRef = colorDebounceRef;
     return () => {
       for (const timer of Object.values(timersRef.current)) {
         if (timer) clearTimeout(timer);
@@ -149,22 +158,32 @@ export default function SettingsPanel({
       for (const timer of Object.values(particleTimersRef.current)) {
         if (timer) clearTimeout(timer);
       }
+      for (const timer of Object.values(colorTimersRef.current)) {
+        if (timer) clearTimeout(timer);
+      }
     };
   }, []);
 
   if (!isOpen) return null;
 
-  // Split groups into user-defined and plugin defaults
+  // Split groups into user-defined and defaults (built-in + plugin)
   const userGroups = groups.filter(g => !g.isPluginDefault);
-  const pluginGroups = groups.filter(g => g.isPluginDefault);
+  const defaultGroups = groups.filter(g => g.isPluginDefault);
 
-  // Group plugin defaults by plugin name
-  const pluginSections = pluginGroups.reduce<Record<string, { pluginId: string; pluginName: string; groups: IGroup[] }>>((acc, g) => {
-    const match = g.id.match(/^plugin:([^:]+):/);
-    const pluginId = match?.[1] ?? 'unknown';
-    const pluginName = g.pluginName ?? pluginId;
-    if (!acc[pluginId]) acc[pluginId] = { pluginId, pluginName, groups: [] };
-    acc[pluginId].groups.push(g);
+  // Group defaults by section: "default" for built-in, plugin ID for plugin groups
+  const defaultSections = defaultGroups.reduce<Record<string, { sectionId: string; sectionName: string; groups: IGroup[] }>>((acc, g) => {
+    let sectionId: string;
+    let sectionName: string;
+    if (g.id.startsWith('default:')) {
+      sectionId = 'default';
+      sectionName = g.pluginName ?? 'CodeGraphy';
+    } else {
+      const match = g.id.match(/^plugin:([^:]+):/);
+      sectionId = match?.[1] ?? 'unknown';
+      sectionName = g.pluginName ?? sectionId;
+    }
+    if (!acc[sectionId]) acc[sectionId] = { sectionId, sectionName, groups: [] };
+    acc[sectionId].groups.push(g);
     return acc;
   }, {});
 
@@ -188,25 +207,60 @@ export default function SettingsPanel({
     sendUserGroups(updatedUser);
   };
 
-  /** Override a plugin default: hide the original and create a user copy with changes. */
+  /** Override a plugin default: create a user copy with changes (original stays visible). */
   const handleOverridePluginGroup = (group: IGroup, updates: Partial<IGroup>) => {
     const newId = crypto.randomUUID();
+    // Encode plugin source into imagePath so the extension can resolve it
+    // from the correct plugin root (e.g. "assets/godot.svg" → "plugin:godot:assets/godot.svg")
+    let inheritedImagePath = group.imagePath;
+    if (inheritedImagePath && !inheritedImagePath.startsWith('plugin:')) {
+      const pluginIdMatch = group.id.match(/^plugin:([^:]+):/);
+      if (pluginIdMatch) {
+        inheritedImagePath = `plugin:${pluginIdMatch[1]}:${inheritedImagePath}`;
+      }
+    }
     const override: IGroup = {
       id: newId,
       pattern: group.pattern,
       color: group.color,
       shape2D: group.shape2D,
       shape3D: group.shape3D,
-      imagePath: group.imagePath,
-      imageUrl: group.imageUrl,
+      imagePath: inheritedImagePath,
       ...updates,
     };
-    // Hide the original plugin default
-    postMessage({ type: 'HIDE_PLUGIN_GROUP', payload: { groupId: group.id } });
-    // Add the overridden copy as a user group
     const updatedUser = [...userGroups, override];
     sendUserGroups(updatedUser);
     setExpandedGroupId(newId);
+  };
+
+  /** Debounced color update for user groups — immediate visual, delayed persistence. */
+  const handleDebouncedColorUpdate = (groupId: string, color: string) => {
+    setLocalColorOverrides(prev => ({ ...prev, [groupId]: color }));
+    if (colorDebounceRef.current[groupId]) clearTimeout(colorDebounceRef.current[groupId]);
+    colorDebounceRef.current[groupId] = setTimeout(() => {
+      handleUpdateGroup(groupId, { color });
+      setLocalColorOverrides(prev => {
+        const next = { ...prev };
+        delete next[groupId];
+        return next;
+      });
+      delete colorDebounceRef.current[groupId];
+    }, COLOR_DEBOUNCE_MS);
+  };
+
+  /** Debounced color override for plugin groups — immediate visual, delayed override creation. */
+  const handleDebouncedPluginColorOverride = (group: IGroup, color: string) => {
+    setLocalColorOverrides(prev => ({ ...prev, [group.id]: color }));
+    if (colorDebounceRef.current[group.id]) clearTimeout(colorDebounceRef.current[group.id]);
+    colorDebounceRef.current[group.id] = setTimeout(() => {
+      handleOverridePluginGroup(group, { color });
+      setLocalColorOverrides(prev => {
+        const next = { ...prev };
+        delete next[group.id];
+        return next;
+      });
+      delete colorDebounceRef.current[group.id];
+    }, COLOR_DEBOUNCE_MS);
   };
 
   const handlePickImage = (groupId: string) => {
@@ -222,12 +276,12 @@ export default function SettingsPanel({
     sendUserGroups(updatedUser);
   };
 
-  const handleHideAllPluginGroups = (pluginId: string) => {
-    postMessage({ type: 'HIDE_ALL_PLUGIN_GROUPS', payload: { pluginId } });
+  const handleTogglePluginGroupDisabled = (groupId: string, disabled: boolean) => {
+    postMessage({ type: 'TOGGLE_PLUGIN_GROUP_DISABLED', payload: { groupId, disabled } });
   };
 
-  const handleResetPluginDefaults = (pluginId?: string) => {
-    postMessage({ type: 'RESET_PLUGIN_DEFAULTS', payload: { pluginId } });
+  const handleTogglePluginSectionDisabled = (pluginId: string, disabled: boolean) => {
+    postMessage({ type: 'TOGGLE_PLUGIN_SECTION_DISABLED', payload: { pluginId, disabled } });
   };
 
   const handleGroupDragStart = (index: number) => {
@@ -466,55 +520,278 @@ export default function SettingsPanel({
           <SectionHeader title="Groups" open={groupsOpen} onToggle={() => setGroupsOpen(v => !v)} />
           {groupsOpen && (
             <div className="mb-2 space-y-2">
-              {/* Plugin default groups — collapsible per-plugin */}
-              {Object.values(pluginSections).map(({ pluginId, pluginName, groups: pgGroups }) => {
-                const isPluginExpanded = expandedPluginIds.has(pluginId);
+              {/* Custom groups (user-defined) — collapsible, placed first for priority */}
+              <div>
+                <button
+                  onClick={() => setCustomExpanded(v => !v)}
+                  className="flex items-center gap-1.5 w-full py-0.5 text-left hover:bg-accent rounded transition-colors px-1"
+                >
+                  <ChevronIcon open={customExpanded} />
+                  <span className="text-[11px] font-medium">Custom</span>
+                  <span className="text-[10px] text-muted-foreground">({userGroups.length})</span>
+                </button>
+                {customExpanded && (
+                  <div className="ml-2 mt-1 space-y-1">
+                    {userGroups.length === 0 ? (
+                      <p className="text-[10px] text-muted-foreground py-1">No custom groups.</p>
+                    ) : (
+                      <ul className="space-y-1">
+                        {userGroups.map((group, index) => {
+                          const isExpanded = expandedGroupId === group.id;
+                          const displayColor = localColorOverrides[group.id] ?? group.color;
+                          return (
+                            <li
+                              key={group.id}
+                              draggable={!isExpanded}
+                              onDragStart={() => handleGroupDragStart(index)}
+                              onDragOver={(e) => handleGroupDragOver(e, index)}
+                              onDrop={(e) => handleGroupDrop(e, index)}
+                              onDragEnd={handleGroupDragEnd}
+                              className={cn(
+                                'rounded transition-colors',
+                                dragOverIndex === index && dragIndex !== index && 'bg-accent outline outline-1 outline-primary/50',
+                                dragIndex === index && 'opacity-40',
+                                isExpanded && 'bg-accent/50 p-1.5',
+                                group.disabled && 'opacity-50'
+                              )}
+                            >
+                              {/* Collapsed row */}
+                              <div
+                                className="flex items-center gap-2 cursor-pointer"
+                                onClick={() => setExpandedGroupId(isExpanded ? null : group.id)}
+                              >
+                                <svg className="w-3 h-3 text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" fill="currentColor" viewBox="0 0 24 24">
+                                  <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 22a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
+                                </svg>
+                                <span
+                                  className="w-4 h-4 rounded-sm flex-shrink-0 border"
+                                  style={{ backgroundColor: displayColor }}
+                                />
+                                <span className="text-xs flex-1 truncate font-mono">{group.pattern}</span>
+                                {group.shape2D && group.shape2D !== 'circle' && (
+                                  <span className="text-[10px] text-muted-foreground">{group.shape2D}</span>
+                                )}
+                                {group.imageUrl && (
+                                  <img src={group.imageUrl} alt="" className="w-4 h-4 object-cover rounded-sm flex-shrink-0" />
+                                )}
+                                {/* Eye toggle */}
+                                <button
+                                  className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+                                  onClick={(e) => { e.stopPropagation(); handleUpdateGroup(group.id, { disabled: !group.disabled }); }}
+                                  title={group.disabled ? 'Enable group' : 'Disable group'}
+                                >
+                                  {group.disabled ? (
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                  )}
+                                </button>
+                                <ChevronIcon open={isExpanded} />
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
+                                  onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.id); }}
+                                  title="Delete group"
+                                >
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </Button>
+                              </div>
+
+                              {/* Expanded editor */}
+                              {isExpanded && (
+                                <div className="mt-2 space-y-2 pl-5">
+                                  {/* Pattern */}
+                                  <div>
+                                    <Label className="text-[10px] text-muted-foreground">Pattern</Label>
+                                    <Input
+                                      value={group.pattern}
+                                      onChange={e => handleUpdateGroup(group.id, { pattern: e.target.value })}
+                                      className="h-6 text-xs"
+                                    />
+                                  </div>
+                                  {/* Color */}
+                                  <div className="flex items-center gap-2">
+                                    <Label className="text-[10px] text-muted-foreground">Color</Label>
+                                    <input
+                                      type="color"
+                                      value={displayColor}
+                                      onChange={e => handleDebouncedColorUpdate(group.id, e.target.value)}
+                                      className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0"
+                                    />
+                                  </div>
+                                  {/* 2D Shape */}
+                                  <div>
+                                    <Label className="text-[10px] text-muted-foreground">2D Shape</Label>
+                                    <select
+                                      value={group.shape2D ?? 'circle'}
+                                      onChange={e => handleUpdateGroup(group.id, { shape2D: e.target.value as NodeShape2D })}
+                                      className="w-full h-6 text-xs bg-background border rounded px-1"
+                                    >
+                                      {SHAPE_2D_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  {/* 3D Shape */}
+                                  <div>
+                                    <Label className="text-[10px] text-muted-foreground">3D Shape</Label>
+                                    <select
+                                      value={group.shape3D ?? 'sphere'}
+                                      onChange={e => handleUpdateGroup(group.id, { shape3D: e.target.value as NodeShape3D })}
+                                      className="w-full h-6 text-xs bg-background border rounded px-1"
+                                    >
+                                      {SHAPE_3D_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  {/* Image */}
+                                  <div>
+                                    <Label className="text-[10px] text-muted-foreground">Image</Label>
+                                    <div className="flex items-center gap-1.5">
+                                      {group.imageUrl ? (
+                                        <>
+                                          <img src={group.imageUrl} alt="" className="w-8 h-8 object-cover rounded border" />
+                                          <Button
+                                            variant="secondary"
+                                            size="sm"
+                                            className="h-6 px-2 text-[10px]"
+                                            onClick={() => handleClearImage(group.id)}
+                                          >
+                                            Clear
+                                          </Button>
+                                        </>
+                                      ) : (
+                                        <Button
+                                          variant="secondary"
+                                          size="sm"
+                                          className="h-6 px-2 text-[10px]"
+                                          onClick={() => handlePickImage(group.id)}
+                                        >
+                                          Choose Image...
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                    {/* Add group form */}
+                    <div className="flex items-center gap-1.5 pt-1">
+                      <Input
+                        value={newPattern}
+                        onChange={e => setNewPattern(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && handleAddGroup()}
+                        placeholder="src/**"
+                        className="flex-1 h-7 text-xs min-w-0"
+                      />
+                      <input
+                        type="color"
+                        value={newColor}
+                        onChange={e => setNewColor(e.target.value)}
+                        className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent p-0"
+                        title="Pick color"
+                      />
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={handleAddGroup}
+                        disabled={!newPattern.trim()}
+                      >
+                        Add
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Default groups — built-in (CodeGraphy) + per-plugin, collapsible */}
+              {Object.values(defaultSections).map(({ sectionId, sectionName, groups: sgGroups }) => {
+                const isPluginExpanded = expandedPluginIds.has(sectionId);
+                const allDisabled = sgGroups.every(g => g.disabled);
                 const togglePlugin = () => setExpandedPluginIds(prev => {
                   const next = new Set(prev);
-                  if (next.has(pluginId)) next.delete(pluginId); else next.add(pluginId);
+                  if (next.has(sectionId)) next.delete(sectionId); else next.add(sectionId);
                   return next;
                 });
                 return (
-                  <div key={pluginId}>
+                  <div key={sectionId} className={cn(allDisabled && 'opacity-50')}>
                     <div className="flex items-center gap-1.5">
                       <button
                         onClick={togglePlugin}
                         className="flex items-center gap-1.5 flex-1 min-w-0 py-0.5 text-left hover:bg-accent rounded transition-colors px-1"
                       >
                         <ChevronIcon open={isPluginExpanded} />
-                        <span className="text-[11px] font-medium truncate">{pluginName}</span>
-                        <span className="text-[10px] text-muted-foreground">({pgGroups.length})</span>
+                        <span className="text-[11px] font-medium truncate">{sectionName}</span>
+                        <span className="text-[10px] text-muted-foreground">({sgGroups.length})</span>
                       </button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
-                        onClick={() => handleHideAllPluginGroups(pluginId)}
-                        title={`Hide all ${pluginName} groups`}
+                      {/* Section-level eye toggle */}
+                      <button
+                        className="flex-shrink-0 text-muted-foreground hover:text-foreground p-0.5"
+                        onClick={() => handleTogglePluginSectionDisabled(sectionId, !allDisabled)}
+                        title={allDisabled ? `Enable all ${sectionName} groups` : `Disable all ${sectionName} groups`}
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
-                        </svg>
-                      </Button>
+                        {allDisabled ? (
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
+                          </svg>
+                        ) : (
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                        )}
+                      </button>
                     </div>
                     {isPluginExpanded && (
                       <ul className="space-y-1 ml-2 mt-1">
-                        {pgGroups.map(group => {
+                        {sgGroups.map(group => {
                           const isExpanded = expandedGroupId === group.id;
+                          const displayColor = localColorOverrides[group.id] ?? group.color;
                           return (
-                            <li key={group.id} className={cn('rounded transition-colors', isExpanded && 'bg-accent/50 p-1.5')}>
+                            <li key={group.id} className={cn('rounded transition-colors', isExpanded && 'bg-accent/50 p-1.5', group.disabled && 'opacity-50')}>
                               <div
                                 className="flex items-center gap-2 cursor-pointer"
                                 onClick={() => setExpandedGroupId(isExpanded ? null : group.id)}
                               >
                                 <span
                                   className="w-4 h-4 rounded-sm flex-shrink-0 border"
-                                  style={{ backgroundColor: group.color }}
+                                  style={{ backgroundColor: displayColor }}
                                 />
                                 <span className="text-xs flex-1 truncate font-mono">{group.pattern}</span>
                                 {group.imageUrl && (
                                   <img src={group.imageUrl} alt="" className="w-4 h-4 object-cover rounded-sm flex-shrink-0" />
                                 )}
+                                {/* Eye toggle */}
+                                <button
+                                  className="flex-shrink-0 text-muted-foreground hover:text-foreground"
+                                  onClick={(e) => { e.stopPropagation(); handleTogglePluginGroupDisabled(group.id, !group.disabled); }}
+                                  title={group.disabled ? 'Enable group' : 'Disable group'}
+                                >
+                                  {group.disabled ? (
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                    </svg>
+                                  )}
+                                </button>
                                 <ChevronIcon open={isExpanded} />
                               </div>
                               {/* Expanded editor — editing creates a user override */}
@@ -526,8 +803,8 @@ export default function SettingsPanel({
                                     <Label className="text-[10px] text-muted-foreground">Color</Label>
                                     <input
                                       type="color"
-                                      value={group.color}
-                                      onChange={e => handleOverridePluginGroup(group, { color: e.target.value })}
+                                      value={displayColor}
+                                      onChange={e => handleDebouncedPluginColorOverride(group, e.target.value)}
                                       className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0"
                                     />
                                   </div>
@@ -562,190 +839,11 @@ export default function SettingsPanel({
                             </li>
                           );
                         })}
-                        <li>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-5 px-1.5 text-[10px] text-muted-foreground"
-                            onClick={() => handleResetPluginDefaults(pluginId)}
-                            title={`Restore hidden ${pluginName} groups`}
-                          >
-                            Reset hidden
-                          </Button>
-                        </li>
                       </ul>
                     )}
                   </div>
                 );
               })}
-
-              {/* User custom groups (editable) */}
-              {(userGroups.length > 0 || Object.keys(pluginSections).length > 0) && (
-                <p className="text-xs text-muted-foreground">Custom</p>
-              )}
-              {userGroups.length === 0 ? (
-                <p className="text-xs text-muted-foreground py-1">No custom groups.</p>
-              ) : (
-                <ul className="space-y-1">
-                  {userGroups.map((group, index) => {
-                    const isExpanded = expandedGroupId === group.id;
-                    return (
-                      <li
-                        key={group.id}
-                        draggable={!isExpanded}
-                        onDragStart={() => handleGroupDragStart(index)}
-                        onDragOver={(e) => handleGroupDragOver(e, index)}
-                        onDrop={(e) => handleGroupDrop(e, index)}
-                        onDragEnd={handleGroupDragEnd}
-                        className={cn(
-                          'rounded transition-colors',
-                          dragOverIndex === index && dragIndex !== index && 'bg-accent outline outline-1 outline-primary/50',
-                          dragIndex === index && 'opacity-40',
-                          isExpanded && 'bg-accent/50 p-1.5'
-                        )}
-                      >
-                        {/* Collapsed row */}
-                        <div
-                          className="flex items-center gap-2 cursor-pointer"
-                          onClick={() => setExpandedGroupId(isExpanded ? null : group.id)}
-                        >
-                          <svg className="w-3 h-3 text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 22a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
-                          </svg>
-                          <span
-                            className="w-4 h-4 rounded-sm flex-shrink-0 border"
-                            style={{ backgroundColor: group.color }}
-                          />
-                          <span className="text-xs flex-1 truncate font-mono">{group.pattern}</span>
-                          {group.shape2D && group.shape2D !== 'circle' && (
-                            <span className="text-[10px] text-muted-foreground">{group.shape2D}</span>
-                          )}
-                          {group.imageUrl && (
-                            <img src={group.imageUrl} alt="" className="w-4 h-4 object-cover rounded-sm flex-shrink-0" />
-                          )}
-                          <ChevronIcon open={isExpanded} />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
-                            onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.id); }}
-                            title="Delete group"
-                          >
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </Button>
-                        </div>
-
-                        {/* Expanded editor */}
-                        {isExpanded && (
-                          <div className="mt-2 space-y-2 pl-5">
-                            {/* Pattern */}
-                            <div>
-                              <Label className="text-[10px] text-muted-foreground">Pattern</Label>
-                              <Input
-                                value={group.pattern}
-                                onChange={e => handleUpdateGroup(group.id, { pattern: e.target.value })}
-                                className="h-6 text-xs"
-                              />
-                            </div>
-                            {/* Color */}
-                            <div className="flex items-center gap-2">
-                              <Label className="text-[10px] text-muted-foreground">Color</Label>
-                              <input
-                                type="color"
-                                value={group.color}
-                                onChange={e => handleUpdateGroup(group.id, { color: e.target.value })}
-                                className="w-6 h-6 rounded cursor-pointer border-0 bg-transparent p-0"
-                              />
-                            </div>
-                            {/* 2D Shape */}
-                            <div>
-                              <Label className="text-[10px] text-muted-foreground">2D Shape</Label>
-                              <select
-                                value={group.shape2D ?? 'circle'}
-                                onChange={e => handleUpdateGroup(group.id, { shape2D: e.target.value as NodeShape2D })}
-                                className="w-full h-6 text-xs bg-background border rounded px-1"
-                              >
-                                {SHAPE_2D_OPTIONS.map(opt => (
-                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                              </select>
-                            </div>
-                            {/* 3D Shape */}
-                            <div>
-                              <Label className="text-[10px] text-muted-foreground">3D Shape</Label>
-                              <select
-                                value={group.shape3D ?? 'sphere'}
-                                onChange={e => handleUpdateGroup(group.id, { shape3D: e.target.value as NodeShape3D })}
-                                className="w-full h-6 text-xs bg-background border rounded px-1"
-                              >
-                                {SHAPE_3D_OPTIONS.map(opt => (
-                                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                              </select>
-                            </div>
-                            {/* Image */}
-                            <div>
-                              <Label className="text-[10px] text-muted-foreground">Image</Label>
-                              <div className="flex items-center gap-1.5">
-                                {group.imageUrl ? (
-                                  <>
-                                    <img src={group.imageUrl} alt="" className="w-8 h-8 object-cover rounded border" />
-                                    <Button
-                                      variant="secondary"
-                                      size="sm"
-                                      className="h-6 px-2 text-[10px]"
-                                      onClick={() => handleClearImage(group.id)}
-                                    >
-                                      Clear
-                                    </Button>
-                                  </>
-                                ) : (
-                                  <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    className="h-6 px-2 text-[10px]"
-                                    onClick={() => handlePickImage(group.id)}
-                                  >
-                                    Choose Image...
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-              {/* Add group form */}
-              <div className="flex items-center gap-1.5 pt-1">
-                <Input
-                  value={newPattern}
-                  onChange={e => setNewPattern(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddGroup()}
-                  placeholder="src/**"
-                  className="flex-1 h-7 text-xs min-w-0"
-                />
-                <input
-                  type="color"
-                  value={newColor}
-                  onChange={e => setNewColor(e.target.value)}
-                  className="w-7 h-7 rounded cursor-pointer border-0 bg-transparent p-0"
-                  title="Pick color"
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
-                  onClick={handleAddGroup}
-                  disabled={!newPattern.trim()}
-                >
-                  Add
-                </Button>
-              </div>
             </div>
           )}
 

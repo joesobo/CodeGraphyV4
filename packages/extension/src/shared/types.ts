@@ -335,6 +335,8 @@ export interface IGroup {
   isPluginDefault?: boolean;
   /** Display name of the plugin that provided this group (set at send-time) */
   pluginName?: string;
+  /** When true, group is visible in settings but not applied to nodes */
+  disabled?: boolean;
 }
 // ============================================================================
 // Plugin Decoration Payload Types (for webview rendering)
@@ -551,9 +553,8 @@ export type WebviewToExtensionMessage =
   | { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }
   // Plugin API v2: invoke a plugin context menu action
   | { type: 'PLUGIN_CONTEXT_MENU_ACTION'; payload: { pluginId: string; index: number; targetId: string; targetType: 'node' | 'edge' } }
-  | { type: 'HIDE_PLUGIN_GROUP'; payload: { groupId: string } }
-  | { type: 'HIDE_ALL_PLUGIN_GROUPS'; payload: { pluginId: string } }
-  | { type: 'RESET_PLUGIN_DEFAULTS'; payload: { pluginId?: string } }
+  | { type: 'TOGGLE_PLUGIN_GROUP_DISABLED'; payload: { groupId: string; disabled: boolean } }
+  | { type: 'TOGGLE_PLUGIN_SECTION_DISABLED'; payload: { pluginId: string; disabled: boolean } }
   | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } };
 
 /**
