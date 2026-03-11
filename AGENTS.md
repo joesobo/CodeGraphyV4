@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (and similar coding agents) for this repository.
+This file provides guidance to coding agents (including Codex) for this repository.
 
 ## Core Commands
 
