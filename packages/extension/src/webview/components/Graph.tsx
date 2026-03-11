@@ -577,7 +577,7 @@ export default function Graph({
     const tgtId = typeof link.target === 'string' ? link.target : tgt?.id;
     const highlighted = highlightedNodeRef.current;
     const isLight = themeRef.current === 'light';
-    if (!highlighted) return link.baseColor ?? (isLight ? '#94a3b8' : '#475569');
+    if (!highlighted) return link.baseColor ?? '#475569';
     const isConnected = srcId === highlighted || tgtId === highlighted;
     if (isConnected) return '#60a5fa';
     return isLight ? '#e2e8f0' : '#2d3748';
