@@ -72,12 +72,20 @@ describe('Graph: force-graph rendering', () => {
     render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
     expect(props.linkDirectionalArrowLength).toBeGreaterThan(0);
-    expect(props.linkDirectionalArrowRelPos).toBe(1);
+    expect(props.linkDirectionalArrowRelPos).toEqual(expect.any(Function));
+
+    const relPos = props.linkDirectionalArrowRelPos({
+      source: { id: 'a.ts', x: 0, y: 0, size: 10 },
+      target: { id: 'b.ts', x: 100, y: 0, size: 10 },
+    });
+    expect(relPos).toBeGreaterThan(0.2);
+    expect(relPos).toBeLessThan(0.95);
   });
 
   it('imperatively syncs 2D directional settings when mode changes', () => {
     render(<Graph data={mockData} />);
     mockMethods.linkDirectionalArrowLength.mockClear();
+    mockMethods.linkDirectionalArrowRelPos.mockClear();
     mockMethods.linkDirectionalParticles.mockClear();
     mockMethods.linkDirectionalParticleSpeed.mockClear();
     mockMethods.d3ReheatSimulation.mockClear();
@@ -87,6 +95,7 @@ describe('Graph: force-graph rendering', () => {
     });
 
     expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(0);
+    expect(mockMethods.linkDirectionalArrowRelPos).toHaveBeenLastCalledWith(expect.any(Function));
     expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(expect.any(Function));
     expect(mockMethods.linkDirectionalParticleSpeed).toHaveBeenLastCalledWith(0.005);
     expect(mockMethods.d3ReheatSimulation).toHaveBeenCalledTimes(1);
@@ -130,7 +139,7 @@ describe('Graph: force-graph rendering', () => {
       {
         ...link,
         source: { id: 'a.ts', x: 0, y: 10, size: 10 },
-        target: { id: 'b.ts', x: 30, y: 10, size: 10 },
+        target: { id: 'b.ts', x: 80, y: 10, size: 10 },
       },
       ctx,
       1
