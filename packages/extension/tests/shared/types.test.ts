@@ -9,6 +9,8 @@ import {
   IGroup,
   ICommitInfo,
   ITimelineData,
+  NodeShape2D,
+  NodeShape3D,
 } from '../../src/shared/types';
 
 describe('File Type Colors', () => {
@@ -127,6 +129,76 @@ describe('IGroup', () => {
     expect(group.id).toBe('abc');
     expect(group.pattern).toBe('src/**');
     expect(group.color).toBe('#3B82F6');
+  });
+
+  it('should accept optional shape and image fields', () => {
+    const group: IGroup = {
+      id: 'g1',
+      pattern: '*.ts',
+      color: '#3178C6',
+      shape2D: 'diamond',
+      shape3D: 'octahedron',
+      imagePath: '.codegraphy/assets/icon.png',
+      imageUrl: 'https://example.com/icon.png',
+    };
+    expect(group.shape2D).toBe('diamond');
+    expect(group.shape3D).toBe('octahedron');
+    expect(group.imagePath).toBe('.codegraphy/assets/icon.png');
+    expect(group.imageUrl).toBe('https://example.com/icon.png');
+  });
+
+  it('should accept optional disabled and plugin metadata fields', () => {
+    const group: IGroup = {
+      id: 'plugin:codegraphy.typescript:*.ts',
+      pattern: '*.ts',
+      color: '#3178C6',
+      isPluginDefault: true,
+      pluginName: 'TypeScript',
+      disabled: true,
+    };
+    expect(group.isPluginDefault).toBe(true);
+    expect(group.pluginName).toBe('TypeScript');
+    expect(group.disabled).toBe(true);
+  });
+
+  it('should have undefined optional fields when not set', () => {
+    const group: IGroup = { id: 'min', pattern: '*', color: '#000000' };
+    expect(group.shape2D).toBeUndefined();
+    expect(group.shape3D).toBeUndefined();
+    expect(group.imagePath).toBeUndefined();
+    expect(group.disabled).toBeUndefined();
+  });
+});
+
+describe('NodeShape2D', () => {
+  it('should include all six 2D shape types', () => {
+    const shapes: NodeShape2D[] = ['circle', 'square', 'diamond', 'triangle', 'hexagon', 'star'];
+    expect(shapes).toHaveLength(6);
+    shapes.forEach(s => expect(typeof s).toBe('string'));
+  });
+});
+
+describe('NodeShape3D', () => {
+  it('should include all six 3D shape types', () => {
+    const shapes: NodeShape3D[] = ['sphere', 'cube', 'octahedron', 'cone', 'dodecahedron', 'icosahedron'];
+    expect(shapes).toHaveLength(6);
+    shapes.forEach(s => expect(typeof s).toBe('string'));
+  });
+});
+
+describe('IGraphNode with shapes', () => {
+  it('should accept optional shape and image fields', () => {
+    const node: IGraphNode = {
+      id: 'src/app.ts',
+      label: 'app.ts',
+      color: '#93C5FD',
+      shape2D: 'hexagon',
+      shape3D: 'dodecahedron',
+      imageUrl: 'https://example.com/icon.png',
+    };
+    expect(node.shape2D).toBe('hexagon');
+    expect(node.shape3D).toBe('dodecahedron');
+    expect(node.imageUrl).toBe('https://example.com/icon.png');
   });
 });
 

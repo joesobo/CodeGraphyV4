@@ -69,7 +69,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
         event.affectsConfiguration('codegraphy.hiddenPluginGroups')
       ) {
         // Groups/hidden groups: already handled by the webview message handlers
-        // (UPDATE_GROUPS, HIDE_PLUGIN_GROUP, etc.) which call _sendGroupsUpdated() directly.
+        // (UPDATE_GROUPS, TOGGLE_PLUGIN_GROUP_DISABLED, etc.) which call _sendGroupsUpdated() directly.
         // No re-analysis needed — skip to avoid double refresh.
       } else if (event.affectsConfiguration('codegraphy')) {
         // All other codegraphy settings (filterPatterns, showOrphans, maxFiles, etc.)

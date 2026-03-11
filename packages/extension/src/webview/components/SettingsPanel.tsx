@@ -133,6 +133,10 @@ export default function SettingsPanel({
   const [localColorOverrides, setLocalColorOverrides] = useState<Record<string, string>>({});
   const colorDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
 
+  // Pattern debounce: immediate visual feedback while typing, debounced persistence
+  const [localPatternOverrides, setLocalPatternOverrides] = useState<Record<string, string>>({});
+  const patternDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+
   // Filters form state
   const [newFilterPattern, setNewFilterPattern] = useState('');
 
@@ -151,6 +155,7 @@ export default function SettingsPanel({
     const timersRef = physicsPersistTimersRef;
     const particleTimersRef = particlePersistTimersRef;
     const colorTimersRef = colorDebounceRef;
+    const patternTimersRef = patternDebounceRef;
     return () => {
       for (const timer of Object.values(timersRef.current)) {
         if (timer) clearTimeout(timer);
@@ -159,6 +164,9 @@ export default function SettingsPanel({
         if (timer) clearTimeout(timer);
       }
       for (const timer of Object.values(colorTimersRef.current)) {
+        if (timer) clearTimeout(timer);
+      }
+      for (const timer of Object.values(patternTimersRef.current)) {
         if (timer) clearTimeout(timer);
       }
     };
@@ -260,6 +268,21 @@ export default function SettingsPanel({
         return next;
       });
       delete colorDebounceRef.current[group.id];
+    }, COLOR_DEBOUNCE_MS);
+  };
+
+  /** Debounced pattern update — immediate visual, delayed persistence. */
+  const handleDebouncedPatternUpdate = (groupId: string, pattern: string) => {
+    setLocalPatternOverrides(prev => ({ ...prev, [groupId]: pattern }));
+    if (patternDebounceRef.current[groupId]) clearTimeout(patternDebounceRef.current[groupId]);
+    patternDebounceRef.current[groupId] = setTimeout(() => {
+      handleUpdateGroup(groupId, { pattern });
+      setLocalPatternOverrides(prev => {
+        const next = { ...prev };
+        delete next[groupId];
+        return next;
+      });
+      delete patternDebounceRef.current[groupId];
     }, COLOR_DEBOUNCE_MS);
   };
 
@@ -612,8 +635,8 @@ export default function SettingsPanel({
                                   <div>
                                     <Label className="text-[10px] text-muted-foreground">Pattern</Label>
                                     <Input
-                                      value={group.pattern}
-                                      onChange={e => handleUpdateGroup(group.id, { pattern: e.target.value })}
+                                      value={localPatternOverrides[group.id] ?? group.pattern}
+                                      onChange={e => handleDebouncedPatternUpdate(group.id, e.target.value)}
                                       className="h-6 text-xs"
                                     />
                                   </div>

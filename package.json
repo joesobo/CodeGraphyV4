@@ -289,6 +289,10 @@
 							"imagePath": {
 								"type": "string",
 								"description": "Workspace-relative path to image (e.g. .codegraphy/assets/icon.png)"
+							},
+							"disabled": {
+								"type": "boolean",
+								"description": "Whether this group is disabled (hidden from color/shape matching)"
 							}
 						}
 					}

@@ -99,9 +99,9 @@ Each plugin declares detection rules in `codegraphy.json` and sets `ruleId` on e
 
 **`App.tsx`** listens for `ExtensionToWebviewMessage` events, manages all UI state, and renders the graph with panels. It also hosts the Tier-2 runtime (`WebviewPluginHost`), handles `PLUGIN_WEBVIEW_INJECT`, dynamically loads plugin scripts/styles, and routes plugin-scoped messages.
 
-**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI. In 2D mode it triggers explicit redraws when directional display settings change so arrows/particles update immediately without a full graph refresh. Exposes plugin hooks for custom node renderers, overlay rendering, and tooltip section contributions.
+**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI. In 2D mode, `drawShape()` from `lib/shapes2D.ts` renders six shape types (circle, square, diamond, triangle, hexagon, star); in 3D mode, `createNodeMesh()` from `lib/shapes3D.ts` builds corresponding Three.js geometries (sphere, cube, octahedron, cone, dodecahedron, icosahedron). Image overlays use `lib/imageCache.ts` for async-loaded 2D canvas images and `THREE.Sprite` billboards in 3D. Exposes plugin hooks for custom node renderers, overlay rendering, and tooltip section contributions.
 
-**`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings. Built with shadcn/ui components. Group colors combine user-defined entries with plugin-provided default `fileColors`.
+**`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings. Built with shadcn/ui components. Groups combine three layers: user-defined entries, built-in defaults (common file types), and plugin-provided default `fileColors`. Each group can set color, 2D shape, 3D shape, and an optional image overlay. Plugin/built-in groups can be individually disabled via eye toggles; overriding a default group creates a user copy that takes priority via first-match-wins ordering.
 
 **`components/ui/slider.tsx`** is the shared slider primitive wrapper for the webview. It centralizes slider affordances so enabled controls show a pointer cursor and disabled controls expose a non-interactive cursor state.
 
@@ -114,7 +114,8 @@ Each plugin declares detection rules in `codegraphy.json` and sets `ruleId` on e
 Defines the message protocol and data types shared across both build targets:
 
 - `IFileData` for raw plugin output (path, name, extension, imports)
-- `IGraphNode` / `IGraphEdge` / `IGraphData` for graph rendering
+- `IGraphNode` / `IGraphEdge` / `IGraphData` for graph rendering (nodes carry optional `shape2D`, `shape3D`, `imageUrl`)
+- `IGroup` for color/shape/image groups with `NodeShape2D` and `NodeShape3D` enums
 - `ExtensionToWebviewMessage` and `WebviewToExtensionMessage` union types for the message protocol
 
 ## Product docs (`docs/*.md`)
