@@ -95,7 +95,7 @@ describe('Graph: force-graph rendering', () => {
       graphStore.setState({ directionMode: 'arrows' });
     });
 
-    expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(8);
+    expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(12);
     expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(0);
   });
 
@@ -135,6 +135,35 @@ describe('Graph: force-graph rendering', () => {
     );
 
     expect(ctx.lineTo).toHaveBeenCalled();
+  });
+
+  it('keeps default link renderer for non-bidirectional links', () => {
+    setStore({ directionMode: 'particles' });
+    render(<Graph data={mockData} />);
+
+    const props = ForceGraph2D.getLastProps();
+    const link = props.graphData.links[0];
+    expect(link.bidirectional).not.toBe(true);
+    expect(props.linkCanvasObjectMode(link)).toBe('after');
+  });
+
+  it('replaces link renderer only for bidirectional arrows mode', () => {
+    setStore({ bidirectionalMode: 'combined', directionMode: 'arrows' });
+    render(<Graph data={bidirectionalData} />);
+
+    let props = ForceGraph2D.getLastProps();
+    let link = props.graphData.links.find((l: { bidirectional?: boolean }) => l.bidirectional);
+    expect(link).toBeTruthy();
+    expect(props.linkCanvasObjectMode(link)).toBe('replace');
+
+    act(() => {
+      graphStore.setState({ directionMode: 'particles' });
+    });
+
+    props = ForceGraph2D.getLastProps();
+    link = props.graphData.links.find((l: { bidirectional?: boolean }) => l.bidirectional);
+    expect(link).toBeTruthy();
+    expect(props.linkCanvasObjectMode(link)).toBe('after');
   });
 
   it('passes d3VelocityDecay from physicsSettings.damping', () => {

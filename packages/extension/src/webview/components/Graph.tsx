@@ -472,6 +472,7 @@ export default function Graph({
     ctx: CanvasRenderingContext2D,
     globalScale: number
   ) => {
+    if (!link.bidirectional || directionModeRef.current !== 'arrows') return;
     const src = link.source as FGNode;
     const tgt = link.target as FGNode;
     if (src?.x == null || src?.y == null || tgt?.x == null || tgt?.y == null) return;
@@ -566,6 +567,21 @@ export default function Graph({
     return (srcId === highlighted || tgtId === highlighted)
       ? '#60a5fa'
       : (isLight ? '#94a3b8' : '#64748b');
+  }, []);
+
+  const getParticleColor = useCallback((link: LinkObject): string => {
+    const edge = link as FGLink;
+    const edgeDeco = edgeDecorationsRef.current?.[edge.id];
+    if (edgeDeco?.particles?.color) return edgeDeco.particles.color;
+    if (edgeDeco?.color) return edgeDeco.color;
+    const srcId = typeof edge.source === 'string' ? edge.source : (edge.source as FGNode)?.id;
+    const tgtId = typeof edge.target === 'string' ? edge.target : (edge.target as FGNode)?.id;
+    const highlighted = highlightedNodeRef.current;
+    const isLight = themeRef.current === 'light';
+    if (!highlighted) return isLight ? '#2563eb' : '#38bdf8';
+    return (srcId === highlighted || tgtId === highlighted)
+      ? '#0ea5e9'
+      : (isLight ? '#60a5fa' : '#93c5fd');
   }, []);
 
   const getLinkWidth = useCallback((link: FGLink) => {
@@ -1086,16 +1102,16 @@ export default function Graph({
     if (!fg) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const fg2d = fg as any;
-    fg2d.linkDirectionalArrowLength?.(directionMode === 'arrows' ? 8 : 0);
-    fg2d.linkDirectionalArrowRelPos?.(0.88);
+    fg2d.linkDirectionalArrowLength?.(directionMode === 'arrows' ? 12 : 0);
+    fg2d.linkDirectionalArrowRelPos?.(0.78);
     fg2d.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
     fg2d.linkDirectionalParticleWidth?.(particleSize);
     fg2d.linkDirectionalParticleSpeed?.(particleSpeed);
     fg2d.linkDirectionalArrowColor?.(getArrowColor);
-    fg2d.linkDirectionalParticleColor?.(getLinkColor);
+    fg2d.linkDirectionalParticleColor?.(getParticleColor);
     fg.d3ReheatSimulation();
     fg.resumeAnimation?.();
-  }, [graphMode, directionMode, particleSpeed, particleSize, getArrowColor, getLinkColor, getLinkParticles]);
+  }, [graphMode, directionMode, particleSpeed, particleSize, getArrowColor, getParticleColor, getLinkParticles]);
 
   // ── Container size tracking ───────────────────────────────────────────────
 
@@ -1214,15 +1230,18 @@ export default function Graph({
               nodePointerAreaPaint={nodePointerAreaPaint as (node: NodeObject, color: string, ctx: CanvasRenderingContext2D) => void}
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
-              linkDirectionalArrowLength={directionMode === 'arrows' ? 8 : 0}
-              linkDirectionalArrowRelPos={0.88}
+              linkDirectionalArrowLength={directionMode === 'arrows' ? 12 : 0}
+              linkDirectionalArrowRelPos={0.78}
               linkDirectionalArrowColor={getArrowColor}
               linkDirectionalParticles={getLinkParticles}
               linkDirectionalParticleWidth={particleSize}
               linkDirectionalParticleSpeed={particleSpeed}
-              linkDirectionalParticleColor={getLinkColor as (link: LinkObject) => string}
+              linkDirectionalParticleColor={getParticleColor}
               linkCanvasObject={linkCanvasObject as (link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
-              linkCanvasObjectMode={(link) => (link as FGLink).bidirectional ? 'replace' : undefined}
+              linkCanvasObjectMode={(link) => {
+                const bidirectional = Boolean((link as FGLink).bidirectional);
+                return bidirectional && directionMode === 'arrows' ? 'replace' : 'after';
+              }}
               onRenderFramePost={renderPluginOverlays}
               autoPauseRedraw={false}
             />
