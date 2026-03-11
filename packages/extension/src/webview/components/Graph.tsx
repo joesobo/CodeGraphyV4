@@ -39,8 +39,9 @@ import { WebviewPluginHost } from '../pluginHost';
 
 /** Yellow color for favorites */
 const FAVORITE_BORDER_COLOR = '#EAB308';
+const DEFAULT_DIRECTION_COLOR = '#475569';
 const DIRECTIONAL_ARROW_LENGTH_2D = 12;
-const DIRECTIONAL_ARROW_NODE_GAP_2D = 1.25;
+const DIRECTIONAL_ARROW_NODE_GAP_2D = 0;
 
 /** Minimum and maximum node sizes */
 const MIN_NODE_SIZE = 10;
@@ -69,8 +70,8 @@ function toD3Repel(repelForce: number): number {
   return -(repelForce / 20) * 500;
 }
 
-function resolveDirectionColorOverride(directionColor: string): string | null {
-  return /^#[0-9A-F]{6}$/i.test(directionColor) ? directionColor : null;
+function resolveDirectionColor(directionColor: string): string {
+  return /^#[0-9A-F]{6}$/i.test(directionColor) ? directionColor : DEFAULT_DIRECTION_COLOR;
 }
 
 // ─── Internal node/link types ──────────────────────────────────────────────
@@ -529,7 +530,7 @@ export default function Graph({
       const arrowVertexLen = arrowLen * 0.2;
       const px = -ny;
       const py = nx;
-      const directionalColor = resolveDirectionColorOverride(directionColorRef.current) ?? String(ctx.strokeStyle);
+      const directionalColor = resolveDirectionColor(directionColorRef.current);
 
       // Arrow at target end (src -> tgt)
       const tailX1 = endX - nx * arrowLen;
@@ -599,22 +600,20 @@ export default function Graph({
     const dist = Math.hypot(dx, dy);
     if (dist < 1) return 0.5;
 
-    // Position built-in arrow so its tip sits just outside the target node border.
+    // Position built-in arrow so its tip sits on the target node border.
     const targetRadius = tgt.size ?? DEFAULT_NODE_SIZE;
     const tipInset = targetRadius + DIRECTIONAL_ARROW_NODE_GAP_2D;
-    const relPos = 1 - (tipInset + DIRECTIONAL_ARROW_LENGTH_2D * 0.5) / dist;
+    const relPos = 1 - tipInset / dist;
     return Math.max(0.2, Math.min(0.98, relPos));
   }, []);
 
   const getArrowColor = useCallback((_link: LinkObject): string => {
-    const edge = _link as FGLink;
-    return resolveDirectionColorOverride(directionColorRef.current) ?? getLinkColor(edge);
-  }, [getLinkColor]);
+    return resolveDirectionColor(directionColorRef.current);
+  }, []);
 
   const getParticleColor = useCallback((_link: LinkObject): string => {
-    const edge = _link as FGLink;
-    return resolveDirectionColorOverride(directionColorRef.current) ?? getLinkColor(edge);
-  }, [getLinkColor]);
+    return resolveDirectionColor(directionColorRef.current);
+  }, []);
 
   const getLinkWidth = useCallback((link: FGLink) => {
     const edgeDeco = edgeDecorationsRef.current?.[link.id];

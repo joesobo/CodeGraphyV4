@@ -32,7 +32,7 @@ function setStore(overrides: Record<string, unknown> = {}) {
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     nodeSizeMode: 'connections',
     directionMode: 'arrows',
-    directionColor: 'auto',
+    directionColor: '#475569',
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -107,23 +107,6 @@ describe('Graph: force-graph rendering', () => {
 
     expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(12);
     expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(0);
-  });
-
-  it('uses edge-matching default direction colors and supports custom direction color', () => {
-    setStore({ directionColor: 'auto' });
-    render(<Graph data={mockData} />);
-    let props = ForceGraph2D.getLastProps();
-
-    expect(props.linkDirectionalArrowColor({})).toBe(props.linkColor({}));
-    expect(props.linkDirectionalParticleColor({})).toBe(props.linkColor({}));
-
-    act(() => {
-      graphStore.setState({ directionColor: '#00FF00' });
-    });
-
-    props = ForceGraph2D.getLastProps();
-    expect(props.linkDirectionalArrowColor({})).toBe('#00FF00');
-    expect(props.linkDirectionalParticleColor({})).toBe('#00FF00');
   });
 
   it('draws bidirectional arrows when coordinates include 0', () => {
