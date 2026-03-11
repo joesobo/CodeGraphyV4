@@ -30,7 +30,7 @@ function resetStore() {
     bidirectionalMode: 'separate',
     showOrphans: true,
     directionMode: 'arrows',
-    directionColor: 'auto',
+    directionColor: '#475569',
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,

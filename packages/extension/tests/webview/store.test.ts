@@ -15,7 +15,7 @@ describe('GraphStore', () => {
     expect(state.searchQuery).toBe('');
     expect(state.favorites).toEqual(new Set());
     expect(state.directionMode).toBe('arrows');
-    expect(state.directionColor).toBe('auto');
+    expect(state.directionColor).toBe('#475569');
     expect(state.particleSpeed).toBe(0.005);
     expect(state.particleSize).toBe(4);
     expect(state.showLabels).toBe(true);

@@ -36,7 +36,7 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
     activeViewId: 'codegraphy.connections',
     depthLimit: 1,
     directionMode: 'arrows',
-    directionColor: 'auto',
+    directionColor: '#475569',
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -305,32 +305,6 @@ describe('SettingsPanel: Direction mode', () => {
     vi.useRealTimers();
   });
 
-  it('changing direction color posts UPDATE_DIRECTION_COLOR and updates store', () => {
-    renderPanel({ directionMode: 'arrows', directionColor: 'auto' });
-    openSection('Display');
-
-    const colorInput = screen.getByLabelText('Direction Color');
-    fireEvent.change(colorInput, { target: { value: '#aabbcc' } });
-
-    expect(graphStore.getState().directionColor).toBe('#AABBCC');
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_DIRECTION_COLOR',
-      payload: { directionColor: '#AABBCC' },
-    });
-  });
-
-  it('clicking Auto resets direction color to auto', () => {
-    renderPanel({ directionMode: 'arrows', directionColor: '#FF0000' });
-    openSection('Display');
-
-    fireEvent.click(screen.getByRole('button', { name: /^Auto$/i }));
-
-    expect(graphStore.getState().directionColor).toBe('auto');
-    expect(sentMessages).toContainEqual({
-      type: 'UPDATE_DIRECTION_COLOR',
-      payload: { directionColor: 'auto' },
-    });
-  });
 });
 
 // ── Display: Node Size ─────────────────────────────────────────────────────

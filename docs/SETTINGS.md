@@ -17,7 +17,7 @@ CodeGraphy can be configured in two ways:
 | `codegraphy.showLabels` | boolean | `true` | Show file name labels on nodes |
 | `codegraphy.bidirectionalEdges` | string | `"separate"` | How to display bidirectional connections |
 | `codegraphy.directionMode` | string | `"arrows"` | Direction indicator mode: `arrows`, `particles`, or `none` |
-| `codegraphy.directionColor` | string | `"auto"` | Direction indicator color (`"auto"` or `#RRGGBB`) |
+| `codegraphy.directionColor` | string | `"#475569"` | Direction indicator color (`#RRGGBB`) |
 | `codegraphy.particleSpeed` | number | `0.005` | Particle direction speed (internal range `0.0005`-`0.005`, UI scale `1`-`10`) |
 | `codegraphy.particleSize` | number | `4` | Particle size in pixels |
 | `codegraphy.favorites` | string[] | `[]` | Favorite file paths (highlighted with yellow border) |

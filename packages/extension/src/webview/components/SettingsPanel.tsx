@@ -9,7 +9,6 @@ import { IPhysicsSettings, NodeSizeMode, DirectionMode } from '../../shared/type
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
-import { useTheme } from '../hooks/useTheme';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -31,8 +30,7 @@ const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
 
 /** Delay before persisting slider updates to VS Code settings. */
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
-const DIRECTION_AUTO_COLOR_LIGHT = '#94A3B8';
-const DIRECTION_AUTO_COLOR_DARK = '#475569';
+const DEFAULT_DIRECTION_COLOR = '#475569';
 const PARTICLE_SPEED_MIN_INTERNAL = 0.0005;
 const PARTICLE_SPEED_MAX_INTERNAL = 0.005;
 const PARTICLE_SPEED_MIN_DISPLAY = 1;
@@ -91,8 +89,6 @@ export default function SettingsPanel({
   isOpen,
   onClose,
 }: SettingsPanelProps): React.ReactElement | null {
-  const theme = useTheme();
-
   // Read state from store
   const settings = useGraphStore(s => s.physicsSettings);
   const setPhysicsSettings = useGraphStore(s => s.setPhysicsSettings);
@@ -305,19 +301,13 @@ export default function SettingsPanel({
     postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
   };
 
-  const autoDirectionColor = theme === 'light' ? DIRECTION_AUTO_COLOR_LIGHT : DIRECTION_AUTO_COLOR_DARK;
-  const resolvedDirectionColor = isHexColor(directionColor) ? directionColor : autoDirectionColor;
+  const resolvedDirectionColor = isHexColor(directionColor) ? directionColor : DEFAULT_DIRECTION_COLOR;
   const displayParticleSpeed = particleSpeedToDisplay(particleSpeed);
 
   const handleDirectionColorChange = (value: string) => {
     const normalized = value.toUpperCase();
     setDirectionColor(normalized);
     postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: normalized } });
-  };
-
-  const handleDirectionColorAuto = () => {
-    setDirectionColor('auto');
-    postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: 'auto' } });
   };
 
   const handleParticleSpeedChange = (level: number) => {
@@ -667,16 +657,8 @@ export default function SettingsPanel({
                     className="h-7 w-10 p-1"
                   />
                   <span className="text-[11px] text-muted-foreground font-mono flex-1">
-                    {directionColor === 'auto' ? `Auto (${resolvedDirectionColor})` : resolvedDirectionColor}
+                    {resolvedDirectionColor}
                   </span>
-                  <Button
-                    variant={directionColor === 'auto' ? 'default' : 'secondary'}
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    onClick={handleDirectionColorAuto}
-                  >
-                    Auto
-                  </Button>
                 </div>
               </div>
 

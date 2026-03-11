@@ -67,13 +67,13 @@ const DISABLED_PLUGINS_KEY = 'codegraphy.disabledPlugins';
 
 /** Default depth limit for depth graph view */
 const DEFAULT_DEPTH_LIMIT = 1;
+const DEFAULT_DIRECTION_COLOR = '#475569';
 
 function normalizeDirectionColor(value: string | undefined): string {
-  if (!value) return 'auto';
+  if (!value) return DEFAULT_DIRECTION_COLOR;
   const trimmed = value.trim();
-  if (trimmed.toLowerCase() === 'auto') return 'auto';
   if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toUpperCase();
-  return 'auto';
+  return DEFAULT_DIRECTION_COLOR;
 }
 
 interface IExternalPluginRegistrationOptions {
@@ -1329,7 +1329,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             directionMode: mode,
             particleSpeed: config.get<number>('particleSpeed', 0.005),
             particleSize: config.get<number>('particleSize', 4),
-            directionColor: normalizeDirectionColor(config.get<string>('directionColor', 'auto')),
+            directionColor: normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)),
           }});
           break;
         }
@@ -2016,7 +2016,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const directionMode = config.get<string>('directionMode', 'arrows') as DirectionMode;
     const particleSpeed = config.get<number>('particleSpeed', 0.005);
     const particleSize = config.get<number>('particleSize', 4);
-    const directionColor = normalizeDirectionColor(config.get<string>('directionColor', 'auto'));
+    const directionColor = normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR));
     const showLabels = config.get<boolean>('showLabels', true);
     this._sendMessage({ type: 'SETTINGS_UPDATED', payload: { bidirectionalEdges, showOrphans } });
     this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode, particleSpeed, particleSize, directionColor } });

@@ -299,9 +299,9 @@
 				},
 				"codegraphy.directionColor": {
 					"type": "string",
-					"default": "auto",
-					"pattern": "^(auto|#[0-9A-Fa-f]{6})$",
-					"description": "Directional indicator color. Use \"auto\" to match edge color or set a hex color."
+					"default": "#475569",
+					"pattern": "^#[0-9A-Fa-f]{6}$",
+					"description": "Directional indicator color as a hex value."
 				},
 				"codegraphy.particleSpeed": {
 					"type": "number",
