@@ -11,6 +11,7 @@ import {
   IGraphData,
   IAvailableView,
   BidirectionalEdgeMode,
+  DirectionMode,
   IPhysicsSettings,
   IGroup,
   ExtensionToWebviewMessage,
@@ -1316,10 +1317,23 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
         }
 
-        case 'UPDATE_SHOW_ARROWS': {
-          const arrowsTarget = this._getConfigTarget();
-          await vscode.workspace.getConfiguration('codegraphy').update('showArrows', message.payload.showArrows, arrowsTarget);
-          this._sendMessage({ type: 'SHOW_ARROWS_UPDATED', payload: { showArrows: message.payload.showArrows } });
+        case 'UPDATE_DIRECTION_MODE': {
+          const target = this._getConfigTarget();
+          const mode = message.payload.directionMode;
+          await vscode.workspace.getConfiguration('codegraphy').update('directionMode', mode, target);
+          const config = vscode.workspace.getConfiguration('codegraphy');
+          this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: {
+            directionMode: mode,
+            particleSpeed: config.get<number>('particleSpeed', 0.005),
+            particleSize: config.get<number>('particleSize', 4),
+          }});
+          break;
+        }
+
+        case 'UPDATE_PARTICLE_SETTING': {
+          const target = this._getConfigTarget();
+          const { key, value } = message.payload;
+          await vscode.workspace.getConfiguration('codegraphy').update(key, value, target);
           break;
         }
 
@@ -1981,10 +1995,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const config = vscode.workspace.getConfiguration('codegraphy');
     const bidirectionalEdges = config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate');
     const showOrphans = config.get<boolean>('showOrphans', true);
-    const showArrows = config.get<boolean>('showArrows', true);
+    const directionMode = config.get<string>('directionMode', 'arrows') as DirectionMode;
+    const particleSpeed = config.get<number>('particleSpeed', 0.005);
+    const particleSize = config.get<number>('particleSize', 4);
     const showLabels = config.get<boolean>('showLabels', true);
     this._sendMessage({ type: 'SETTINGS_UPDATED', payload: { bidirectionalEdges, showOrphans } });
-    this._sendMessage({ type: 'SHOW_ARROWS_UPDATED', payload: { showArrows } });
+    this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode, particleSpeed, particleSize } });
     this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels } });
   }
 

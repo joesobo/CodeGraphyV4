@@ -7,6 +7,7 @@ import type {
   IPhysicsSettings,
   IGroup,
   NodeSizeMode,
+  DirectionMode,
   IPluginStatus,
   ICommitInfo,
   ExtensionToWebviewMessage,
@@ -45,7 +46,9 @@ export interface GraphState {
   // Display
   bidirectionalMode: BidirectionalEdgeMode;
   showOrphans: boolean;
-  showArrows: boolean;
+  directionMode: DirectionMode;
+  particleSpeed: number;
+  particleSize: number;
   showLabels: boolean;
   graphMode: '2d' | '3d';
   nodeSizeMode: NodeSizeMode;
@@ -94,7 +97,9 @@ export interface GraphState {
   setGroups: (groups: IGroup[]) => void;
   setFilterPatterns: (patterns: string[]) => void;
   setShowOrphans: (show: boolean) => void;
-  setShowArrows: (show: boolean) => void;
+  setDirectionMode: (mode: DirectionMode) => void;
+  setParticleSpeed: (speed: number) => void;
+  setParticleSize: (size: number) => void;
   setShowLabels: (show: boolean) => void;
   setActiveViewId: (id: string) => void;
   setMaxFiles: (max: number) => void;
@@ -113,7 +118,9 @@ export function createGraphStore() {
     favorites: new Set<string>(),
     bidirectionalMode: 'separate',
     showOrphans: true,
-    showArrows: true,
+    directionMode: 'arrows',
+    particleSpeed: 0.005,
+    particleSize: 4,
     showLabels: true,
     graphMode: '2d',
     nodeSizeMode: 'connections',
@@ -148,7 +155,9 @@ export function createGraphStore() {
     setGroups: (groups) => set({ groups }),
     setFilterPatterns: (patterns) => set({ filterPatterns: patterns }),
     setShowOrphans: (show) => set({ showOrphans: show }),
-    setShowArrows: (show) => set({ showArrows: show }),
+    setDirectionMode: (mode) => set({ directionMode: mode }),
+    setParticleSpeed: (speed) => set({ particleSpeed: speed }),
+    setParticleSize: (size) => set({ particleSize: size }),
     setShowLabels: (show) => set({ showLabels: show }),
     setActiveViewId: (id) => set({ activeViewId: id }),
     setMaxFiles: (max) => set({ maxFiles: max }),
@@ -190,8 +199,12 @@ export function createGraphStore() {
         case 'DEPTH_LIMIT_UPDATED':
           set({ depthLimit: message.payload.depthLimit });
           break;
-        case 'SHOW_ARROWS_UPDATED':
-          set({ showArrows: message.payload.showArrows });
+        case 'DIRECTION_SETTINGS_UPDATED':
+          set({
+            directionMode: message.payload.directionMode,
+            particleSpeed: message.payload.particleSpeed,
+            particleSize: message.payload.particleSize,
+          });
           break;
         case 'SHOW_LABELS_UPDATED':
           set({ showLabels: message.payload.showLabels });
@@ -259,7 +272,7 @@ const store = createGraphStore();
 
 /**
  * Hook to access the graph store with a selector.
- * Usage: `const showArrows = useGraphStore(s => s.showArrows)`
+ * Usage: `const directionMode = useGraphStore(s => s.directionMode)`
  */
 export function useGraphStore<T>(selector: (state: GraphState) => T): T {
   return useZustandStore(store, selector);

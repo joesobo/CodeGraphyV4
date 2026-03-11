@@ -35,7 +35,9 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
     availableViews: [],
     activeViewId: 'codegraphy.connections',
     depthLimit: 1,
-    showArrows: true,
+    directionMode: 'arrows',
+    particleSpeed: 0.005,
+    particleSize: 4,
     showLabels: true,
     graphMode: '2d',
     maxFiles: 500,
@@ -218,42 +220,62 @@ describe('SettingsPanel: Groups', () => {
   });
 });
 
-// ── Display: Arrows ────────────────────────────────────────────────────────
+// ── Display: Direction mode ─────────────────────────────────────────────────
 
-describe('SettingsPanel: Arrows toggle', () => {
+describe('SettingsPanel: Direction mode', () => {
   beforeEach(() => sentMessages.length = 0);
 
-  it('renders the Show Arrows checkbox checked by default', () => {
-    renderPanel({ showArrows: true });
+  it('renders direction mode buttons with correct one selected', () => {
+    renderPanel({ directionMode: 'arrows', particleSpeed: 0.005, particleSize: 4 });
     openSection('Display');
-    const checkbox = screen.getByRole('switch', { name: /show arrows/i });
-    expect(checkbox).toBeChecked();
+    const arrowsBtn = screen.getByRole('button', { name: /^Arrows$/i });
+    const particlesBtn = screen.getByRole('button', { name: /^Particles$/i });
+    const noneBtn = screen.getByRole('button', { name: /^None$/i });
+    expect(arrowsBtn).toBeInTheDocument();
+    expect(particlesBtn).toBeInTheDocument();
+    expect(noneBtn).toBeInTheDocument();
   });
 
-  it('unchecking arrows posts UPDATE_SHOW_ARROWS', () => {
-    renderPanel({ showArrows: true });
+  it('clicking Particles posts UPDATE_DIRECTION_MODE and updates store', () => {
+    renderPanel({ directionMode: 'arrows', particleSpeed: 0.005, particleSize: 4 });
     openSection('Display');
 
-    fireEvent.click(screen.getByRole('switch', { name: /show arrows/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^Particles$/i }));
 
-    expect(graphStore.getState().showArrows).toBe(false);
+    expect(graphStore.getState().directionMode).toBe('particles');
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_SHOW_ARROWS',
-      payload: { showArrows: false },
+      type: 'UPDATE_DIRECTION_MODE',
+      payload: { directionMode: 'particles' },
     });
   });
 
-  it('checking arrows when off posts UPDATE_SHOW_ARROWS true', () => {
-    renderPanel({ showArrows: false });
+  it('clicking None posts UPDATE_DIRECTION_MODE and updates store', () => {
+    renderPanel({ directionMode: 'arrows', particleSpeed: 0.005, particleSize: 4 });
     openSection('Display');
 
-    fireEvent.click(screen.getByRole('switch', { name: /show arrows/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^None$/i }));
 
-    expect(graphStore.getState().showArrows).toBe(true);
+    expect(graphStore.getState().directionMode).toBe('none');
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_SHOW_ARROWS',
-      payload: { showArrows: true },
+      type: 'UPDATE_DIRECTION_MODE',
+      payload: { directionMode: 'none' },
     });
+  });
+
+  it('particle sliders visible only when mode is particles', () => {
+    renderPanel({ directionMode: 'particles', particleSpeed: 0.005, particleSize: 4 });
+    openSection('Display');
+
+    expect(screen.getByText('Particle Speed')).toBeInTheDocument();
+    expect(screen.getByText('Particle Size')).toBeInTheDocument();
+  });
+
+  it('particle sliders hidden when mode is arrows', () => {
+    renderPanel({ directionMode: 'arrows', particleSpeed: 0.005, particleSize: 4 });
+    openSection('Display');
+
+    expect(screen.queryByText('Particle Speed')).not.toBeInTheDocument();
+    expect(screen.queryByText('Particle Size')).not.toBeInTheDocument();
   });
 });
 

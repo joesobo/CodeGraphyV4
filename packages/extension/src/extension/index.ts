@@ -56,7 +56,9 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
         // Rule/plugin toggles are applied from cached analysis data.
         provider.refreshToggleSettings();
       } else if (
-        event.affectsConfiguration('codegraphy.showArrows') ||
+        event.affectsConfiguration('codegraphy.directionMode') ||
+        event.affectsConfiguration('codegraphy.particleSpeed') ||
+        event.affectsConfiguration('codegraphy.particleSize') ||
         event.affectsConfiguration('codegraphy.showLabels') ||
         event.affectsConfiguration('codegraphy.bidirectionalEdges')
       ) {
