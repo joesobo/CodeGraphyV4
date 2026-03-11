@@ -4,7 +4,7 @@
  * Launches a real VS Code instance with the extension loaded and runs the
  * Mocha test suite against it. Tests have access to the full `vscode` API.
  *
- * Run with: npm run test:e2e
+ * Run with: pnpm run test:e2e
  */
 import * as path from 'path';
 import { runTests } from '@vscode/test-electron';

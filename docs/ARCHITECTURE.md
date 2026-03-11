@@ -6,7 +6,9 @@ CodeGraphy is a VS Code extension that visualizes file dependencies as an intera
 
 **`turbo.json`** defines monorepo task orchestration for `build`, `lint`, `typecheck`, `test`, and local watch/dev tasks.
 
-**Root `package.json`** routes those top-level scripts through Turborepo (`turbo run ...`) while each workspace package declares its own task scripts.
+**`pnpm-workspace.yaml`** defines workspace package boundaries (`packages/*`) for monorepo installs and task execution.
+
+**Root `package.json`** routes top-level scripts through Turborepo (`turbo run ...`) and uses `pnpm` filters for package-specific scripts.
 
 ## Layers
 
