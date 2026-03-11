@@ -29,7 +29,9 @@ function resetStore() {
     favorites: new Set<string>(),
     bidirectionalMode: 'separate',
     showOrphans: true,
-    showArrows: true,
+    directionMode: 'arrows',
+    particleSpeed: 0.005,
+    particleSize: 4,
     showLabels: true,
     graphMode: '2d',
     nodeSizeMode: 'connections',
@@ -158,12 +160,14 @@ describe('App: message handlers', () => {
     expect(graphStore.getState().showOrphans).toBe(false);
   });
 
-  it('SHOW_ARROWS_UPDATED toggles arrows state', async () => {
+  it('DIRECTION_SETTINGS_UPDATED updates direction mode state', async () => {
     render(<App />);
     await act(async () => {
-      sendMessage({ type: 'SHOW_ARROWS_UPDATED', payload: { showArrows: false } });
+      sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode: 'particles', particleSpeed: 0.01, particleSize: 6 } });
     });
-    expect(graphStore.getState().showArrows).toBe(false);
+    expect(graphStore.getState().directionMode).toBe('particles');
+    expect(graphStore.getState().particleSpeed).toBe(0.01);
+    expect(graphStore.getState().particleSize).toBe(6);
   });
 
   it('FAVORITES_UPDATED message is handled without error', async () => {
