@@ -1123,6 +1123,14 @@ export default function Graph({
     }
   }, [showLabels]);
 
+  // react-force-graph 2D caches directional rendering internals; force an
+  // explicit redraw so direction mode changes are visible immediately.
+  useEffect(() => {
+    if (graphMode !== '2d') return;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (fg2dRef.current as any)?.refresh?.();
+  }, [graphMode, directionMode, particleSpeed, particleSize]);
+
   // ── Container size tracking ───────────────────────────────────────────────
 
   useEffect(() => {
