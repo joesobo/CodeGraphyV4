@@ -14,7 +14,7 @@ Reading code is linear. Codebases aren't. CodeGraphy gives you a bird's-eye view
 
 **A live dependency graph.** Open any project and watch it map itself. Files naturally cluster based on their relationships. Drag nodes, zoom in, search, and the graph responds instantly.
 
-**Five languages built in.** TypeScript, JavaScript, Python, C#, GDScript, and Markdown are all supported out of the box. Each plugin detects imports using proper parsers, not regex guesses. You can toggle individual detection rules on or off from the Plugins panel.
+**Five languages built in.** TypeScript, JavaScript, Python, C#, GDScript, and Markdown are all supported out of the box. Each plugin detects imports using proper parsers, not regex guesses. You can toggle individual detection rules on or off from the Plugins panel, and those toggles persist in VS Code settings.
 
 **Multiple perspectives.** Switch between views to see your project differently:
 - **Connections** shows the full dependency graph

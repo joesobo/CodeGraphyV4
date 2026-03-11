@@ -21,6 +21,10 @@ Each plugin is responsible for:
 2. Detecting connections (imports/dependencies) in source files
 3. Declaring detection rules that users can toggle individually
 
+Runtime toggle state is persisted in VS Code settings:
+- `codegraphy.disabledPlugins` for whole-plugin toggles
+- `codegraphy.disabledRules` for per-rule toggles (`<pluginId>:<ruleId>`)
+
 ## Plugin structure
 
 Every plugin follows the same directory layout:

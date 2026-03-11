@@ -55,7 +55,7 @@ During timeline mode, destructive file actions (Delete, Rename, Create File, Add
 
 Timeline data is cached in the extension's storage directory (`context.storageUri/git-cache/`). The cache is automatically invalidated when:
 - Filter patterns change
-- Plugin settings change
+- Disabled plugins or rules change (`codegraphy.disabledPlugins`, `codegraphy.disabledRules`)
 - You click Index Repo again (re-indexes from scratch)
 
 To force a fresh index, click **Index Repo** again.
