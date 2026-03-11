@@ -24,6 +24,7 @@ Thanks for your interest in contributing to CodeGraphy!
 4. Run tests to verify:
    ```bash
    pnpm test
+   pnpm run test:playwright
    ```
 
 ### Development workflow
@@ -47,6 +48,7 @@ Thanks for your interest in contributing to CodeGraphy!
    pnpm run lint
    pnpm run typecheck
    pnpm test
+   pnpm run test:playwright
    ```
 
 ## Code style
@@ -87,6 +89,7 @@ docs: update README with installation instructions
 - [ ] No lint errors
 - [ ] Type checking passes
 - [ ] All tests pass
+- [ ] Playwright smoke tests pass
 
 ## Testing
 
@@ -99,6 +102,8 @@ docs: update README with installation instructions
 pnpm test             # Run once
 pnpm run test:watch   # Watch mode
 pnpm exec vitest run tests/path/to/file.test.ts  # Single file
+pnpm run playwright:install  # Install Playwright browser (one-time per machine)
+pnpm run test:playwright     # Browser smoke test suite
 ```
 
 ## Reporting issues

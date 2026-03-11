@@ -16,8 +16,12 @@
 		"watch:webview": "pnpm --filter @codegraphy/extension run watch:webview",
 		"dev": "pnpm --filter @codegraphy/extension run dev",
 		"test": "turbo run test",
+		"test:playwright": "playwright test",
+		"test:playwright:ui": "playwright test --ui",
+		"playwright:install": "playwright install chromium",
 		"test:watch": "pnpm --filter @codegraphy/extension run test:watch",
-		"lint": "turbo run lint",
+		"lint": "turbo run lint && pnpm run lint:playwright",
+		"lint:playwright": "eslint tests/playwright --max-warnings=0",
 		"typecheck": "turbo run typecheck",
 		"typecheck:extension": "pnpm --filter @codegraphy/extension run typecheck",
 		"typecheck:plugin-api": "pnpm --filter @codegraphy/plugin-api run typecheck",
@@ -359,7 +363,9 @@
 		}
 	},
 	"devDependencies": {
+		"@playwright/test": "^1.58.2",
 		"@eslint/js": "^9.0.0",
+		"eslint-plugin-playwright": "^2.9.0",
 		"@testing-library/jest-dom": "^6.2.0",
 		"@testing-library/react": "^14.1.2",
 		"@types/glob": "^8.1.0",

@@ -3,6 +3,7 @@ import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
 import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import mochaPlugin from 'eslint-plugin-mocha';
+import playwrightPlugin from 'eslint-plugin-playwright';
 import globals from 'globals';
 
 export default tseslint.config(
@@ -57,6 +58,22 @@ export default tseslint.config(
       'mocha/no-pending-tests': 'warn',
       // e2e files group related suites together — allow multiple per file
       'mocha/max-top-level-suites': 'off',
+    },
+  },
+  // Playwright rules for browser smoke/e2e tests
+  {
+    files: ['tests/playwright/**/*.ts'],
+    ...playwrightPlugin.configs['flat/recommended'],
+    rules: {
+      ...playwrightPlugin.configs['flat/recommended'].rules,
+    },
+  },
+  {
+    files: ['tests/playwright/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+      },
     },
   },
   {

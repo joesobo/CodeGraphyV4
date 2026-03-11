@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IPhysicsSettings, NodeSizeMode, DirectionMode, IGroup, NodeShape2D, NodeShape3D } from '../../shared/types';
+import { IPhysicsSettings, NodeSizeMode, DirectionMode, BidirectionalEdgeMode, IGroup, NodeShape2D, NodeShape3D } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
@@ -127,6 +127,8 @@ export default function SettingsPanel({
   const activeViewId = useGraphStore(s => s.activeViewId);
   const setActiveViewId = useGraphStore(s => s.setActiveViewId);
   const depthLimit = useGraphStore(s => s.depthLimit);
+  const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
+  const setBidirectionalMode = useGraphStore(s => s.setBidirectionalMode);
   const directionMode = useGraphStore(s => s.directionMode);
   const directionColor = useGraphStore(s => s.directionColor);
   const setDirectionMode = useGraphStore(s => s.setDirectionMode);
@@ -449,6 +451,11 @@ export default function SettingsPanel({
   };
 
   // Display handlers
+  const handleBidirectionalModeChange = (mode: BidirectionalEdgeMode) => {
+    setBidirectionalMode(mode);
+    postMessage({ type: 'UPDATE_BIDIRECTIONAL_MODE', payload: { bidirectionalMode: mode } });
+  };
+
   const handleDirectionModeChange = (mode: DirectionMode) => {
     setDirectionMode(mode);
     postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
@@ -1051,6 +1058,29 @@ export default function SettingsPanel({
                     onClick={() => handleDirectionModeChange('none')}
                   >
                     None
+                  </Button>
+                </div>
+              </div>
+
+              {/* Bidirectional mode toggle */}
+              <div>
+                <Label className="text-xs text-muted-foreground mb-1.5 block">Bidirectional Edges</Label>
+                <div className="flex gap-1">
+                  <Button
+                    variant={bidirectionalMode === 'separate' ? 'default' : 'secondary'}
+                    size="sm"
+                    className="h-6 px-2 text-xs flex-1"
+                    onClick={() => handleBidirectionalModeChange('separate')}
+                  >
+                    Separate
+                  </Button>
+                  <Button
+                    variant={bidirectionalMode === 'combined' ? 'default' : 'secondary'}
+                    size="sm"
+                    className="h-6 px-2 text-xs flex-1"
+                    onClick={() => handleBidirectionalModeChange('combined')}
+                  >
+                    Combined
                   </Button>
                 </div>
               </div>

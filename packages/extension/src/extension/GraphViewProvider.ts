@@ -1456,6 +1456,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
         }
 
+        case 'UPDATE_BIDIRECTIONAL_MODE': {
+          const target = this._getConfigTarget();
+          const mode = message.payload.bidirectionalMode;
+          await vscode.workspace.getConfiguration('codegraphy').update('bidirectionalEdges', mode, target);
+          // Config change listener sends SETTINGS_UPDATED which updates the store
+          break;
+        }
+
         case 'UPDATE_DIRECTION_MODE': {
           const target = this._getConfigTarget();
           const mode = message.payload.directionMode;
