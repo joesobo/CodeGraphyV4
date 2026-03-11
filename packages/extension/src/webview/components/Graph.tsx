@@ -228,6 +228,8 @@ export default function Graph({
   const physicsSettings = useGraphStore(s => s.physicsSettings);
   const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
   const directionMode = useGraphStore(s => s.directionMode);
+  const particleSpeed = useGraphStore(s => s.particleSpeed);
+  const particleSize = useGraphStore(s => s.particleSize);
   const showLabels = useGraphStore(s => s.showLabels);
   const graphMode = useGraphStore(s => s.graphMode);
   const timelineActive = useGraphStore(s => s.timelineActive);
@@ -543,6 +545,13 @@ export default function Graph({
     const isConnected = srcId === highlighted || tgtId === highlighted;
     if (isConnected) return '#60a5fa';
     return isLight ? '#e2e8f0' : '#2d3748';
+  }, []);
+
+  const getLinkParticles = useCallback((link: LinkObject): number => {
+    if (directionModeRef.current !== 'particles') return 0;
+    const edge = link as FGLink;
+    const edgeDeco = edgeDecorationsRef.current?.[edge.id];
+    return edgeDeco?.particles?.count ?? 3;
   }, []);
 
   const getLinkWidth = useCallback((link: FGLink) => {
@@ -1175,6 +1184,10 @@ export default function Graph({
               linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
               linkDirectionalArrowRelPos={1}
               linkDirectionalArrowColor={getLinkColor as (link: LinkObject) => string}
+              linkDirectionalParticles={getLinkParticles}
+              linkDirectionalParticleWidth={particleSize}
+              linkDirectionalParticleSpeed={particleSpeed}
+              linkDirectionalParticleColor={getLinkColor as (link: LinkObject) => string}
               linkCanvasObject={linkCanvasObject as (link: LinkObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
               linkCanvasObjectMode={(link) => (link as FGLink).bidirectional ? 'replace' : undefined}
               onRenderFramePost={renderPluginOverlays}
@@ -1196,6 +1209,10 @@ export default function Graph({
               linkWidth={getLinkWidth as (link: LinkObject) => number}
               linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
               linkDirectionalArrowRelPos={1}
+              linkDirectionalParticles={getLinkParticles}
+              linkDirectionalParticleWidth={particleSize}
+              linkDirectionalParticleSpeed={particleSpeed}
+              linkDirectionalParticleColor={getLinkColor as (link: LinkObject) => string}
             />
           )}
         </div>
