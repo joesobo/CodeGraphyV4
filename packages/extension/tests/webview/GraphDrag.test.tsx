@@ -95,7 +95,7 @@ describe('Graph: force-graph rendering', () => {
       graphStore.setState({ directionMode: 'arrows' });
     });
 
-    expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(6);
+    expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(8);
     expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(0);
   });
 
