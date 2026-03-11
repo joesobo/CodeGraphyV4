@@ -72,17 +72,31 @@ describe('Graph: force-graph rendering', () => {
     render(<Graph data={mockData} />);
     const props = ForceGraph2D.getLastProps();
     expect(props.linkDirectionalArrowLength).toBeGreaterThan(0);
+    expect(props.linkDirectionalArrowRelPos).toBeLessThan(1);
   });
 
-  it('reheats the 2D simulation when direction mode changes', () => {
+  it('imperatively syncs 2D directional settings when mode changes', () => {
     render(<Graph data={mockData} />);
+    mockMethods.linkDirectionalArrowLength.mockClear();
+    mockMethods.linkDirectionalParticles.mockClear();
+    mockMethods.linkDirectionalParticleSpeed.mockClear();
     mockMethods.d3ReheatSimulation.mockClear();
 
     act(() => {
       graphStore.setState({ directionMode: 'particles' });
     });
 
+    expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(0);
+    expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(expect.any(Function));
+    expect(mockMethods.linkDirectionalParticleSpeed).toHaveBeenLastCalledWith(0.005);
     expect(mockMethods.d3ReheatSimulation).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      graphStore.setState({ directionMode: 'arrows' });
+    });
+
+    expect(mockMethods.linkDirectionalArrowLength).toHaveBeenLastCalledWith(6);
+    expect(mockMethods.linkDirectionalParticles).toHaveBeenLastCalledWith(0);
   });
 
   it('draws bidirectional arrows when coordinates include 0', () => {
