@@ -99,7 +99,7 @@ Each plugin declares detection rules in `codegraphy.json` and sets `ruleId` on e
 
 **`App.tsx`** listens for `ExtensionToWebviewMessage` events, manages all UI state, and renders the graph with panels. It also hosts the Tier-2 runtime (`WebviewPluginHost`), handles `PLUGIN_WEBVIEW_INJECT`, dynamically loads plugin scripts/styles, and routes plugin-scoped messages.
 
-**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI. Exposes plugin hooks for custom node renderers, overlay rendering, and tooltip section contributions.
+**`components/Graph.tsx`** wraps `react-force-graph-2d` and `react-force-graph-3d`. Handles physics simulation, node rendering (canvas callbacks for custom shapes, labels, favorites), user interactions, and context menus via Radix UI. In 2D mode it triggers explicit redraws when directional display settings change so arrows/particles update immediately without a full graph refresh. Exposes plugin hooks for custom node renderers, overlay rendering, and tooltip section contributions.
 
 **`components/SettingsPanel.tsx`** has four accordion sections for physics, groups, filters, and display settings. Built with shadcn/ui components. Group colors combine user-defined entries with plugin-provided default `fileColors`.
 
