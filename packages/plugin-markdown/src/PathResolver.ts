@@ -76,6 +76,6 @@ export class PathResolver {
     const matches = this.fileIndex.get(stem);
     if (!matches || matches.length === 0) return null;
     // If multiple matches, prefer the shortest path (closest to root — Obsidian behavior)
-    return matches.reduce((a, b) => (a.length <= b.length ? a : b));
+    return matches.reduce((shortest, candidate) => (shortest.length <= candidate.length ? shortest : candidate));
   }
 }
