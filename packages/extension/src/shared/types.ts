@@ -31,6 +31,19 @@ export type NodeShape3D = 'sphere' | 'cube' | 'octahedron' | 'cone' | 'dodecahed
  */
 export type DirectionMode = 'arrows' | 'particles' | 'none';
 
+/**
+ * DAG (Directed Acyclic Graph) layout mode.
+ * Controls hierarchical layout of the force graph.
+ * `null` means free-form physics layout (default).
+ */
+export type DagMode = null | 'radialout' | 'td' | 'lr';
+
+/**
+ * Node type for folder view.
+ * 'file' = a source file, 'folder' = a directory container.
+ */
+export type NodeType = 'file' | 'folder';
+
 // ============================================================================
 // File Data (internal representation, what plugins will produce)
 // ============================================================================
@@ -155,6 +168,12 @@ export interface IGraphNode {
    * Used for visual styling (opacity, size) in depth graph view.
    */
   depthLevel?: number;
+
+  /**
+   * Node type for folder view.
+   * 'file' = a source file, 'folder' = a directory container.
+   */
+  nodeType?: NodeType;
 
   /** 2D canvas shape from group matching */
   shape2D?: NodeShape2D;
@@ -490,7 +509,13 @@ export type ExtensionToWebviewMessage =
   // Plugin API v2 messages
   | { type: 'DECORATIONS_UPDATED'; payload: { nodeDecorations: Record<string, NodeDecorationPayload>; edgeDecorations: Record<string, EdgeDecorationPayload> } }
   | { type: 'CONTEXT_MENU_ITEMS'; payload: { items: IPluginContextMenuItem[] } }
-  | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } };
+  | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }
+  | { type: 'FOLDER_NODE_COLOR_UPDATED'; payload: { folderNodeColor: string } }
+  | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } }
+  // Toolbar keyboard shortcuts
+  | { type: 'CYCLE_VIEW' }
+  | { type: 'CYCLE_LAYOUT' }
+  | { type: 'TOGGLE_DIMENSION' };
 
 /**
  * Messages sent from the Webview to the Extension.
@@ -570,7 +595,9 @@ export type WebviewToExtensionMessage =
   | { type: 'PLUGIN_CONTEXT_MENU_ACTION'; payload: { pluginId: string; index: number; targetId: string; targetType: 'node' | 'edge' } }
   | { type: 'TOGGLE_PLUGIN_GROUP_DISABLED'; payload: { groupId: string; disabled: boolean } }
   | { type: 'TOGGLE_PLUGIN_SECTION_DISABLED'; payload: { pluginId: string; disabled: boolean } }
-  | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } };
+  | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } }
+  | { type: 'UPDATE_FOLDER_NODE_COLOR'; payload: { folderNodeColor: string } }
+  | { type: 'UPDATE_DAG_MODE'; payload: { dagMode: DagMode } };
 
 /**
  * File information returned from extension for tooltips.
@@ -626,6 +653,20 @@ export const FILE_TYPE_COLORS: Record<string, string> = {
  * A neutral soft zinc gray that works on dark backgrounds.
  */
 export const DEFAULT_NODE_COLOR = '#A1A1AA'; // Soft zinc
+
+/** Default color for folder nodes in Folder View. Same as DEFAULT_NODE_COLOR. */
+export const DEFAULT_FOLDER_NODE_COLOR = '#A1A1AA';
+
+/** Default color for direction indicators (arrows/particles). */
+export const DEFAULT_DIRECTION_COLOR = '#475569';
+
+/** Validates and normalizes a hex color string, returning the default if invalid. */
+export function normalizeHexColor(value: string | undefined, defaultColor: string): string {
+  if (!value) return defaultColor;
+  const trimmed = value.trim();
+  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toUpperCase();
+  return defaultColor;
+}
 
 /**
  * Get the display color for a file based on its extension.

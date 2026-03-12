@@ -56,7 +56,7 @@ export class DeleteFilesAction implements IUndoableAction {
     
     // Calculate new favorites (remove deleted files)
     const deletedPaths = new Set(this._paths);
-    this._favoritesAfter = this._favoritesBefore.filter(f => !deletedPaths.has(f));
+    this._favoritesAfter = this._favoritesBefore.filter(fav => !deletedPaths.has(fav));
 
     for (const filePath of this._paths) {
       const fileUri = vscode.Uri.joinPath(this._workspaceFolder, filePath);

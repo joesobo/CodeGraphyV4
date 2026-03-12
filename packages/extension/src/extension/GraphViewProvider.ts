@@ -12,6 +12,7 @@ import {
   IAvailableView,
   BidirectionalEdgeMode,
   DirectionMode,
+  DagMode,
   IPhysicsSettings,
   IGroup,
   ExtensionToWebviewMessage,
@@ -19,6 +20,9 @@ import {
   NodeDecorationPayload,
   EdgeDecorationPayload,
   IPluginContextMenuItem,
+  DEFAULT_DIRECTION_COLOR,
+  DEFAULT_FOLDER_NODE_COLOR,
+  normalizeHexColor,
 } from '../shared/types';
 import { EventBus, EventName, EventPayloads } from '../core/plugins/EventBus';
 import { DecorationManager } from '../core/plugins/DecorationManager';
@@ -61,6 +65,9 @@ const FILTER_PATTERNS_KEY = 'codegraphy.filterPatterns';
 /** Storage key for depth limit per workspace */
 const DEPTH_LIMIT_KEY = 'codegraphy.depthLimit';
 
+/** Storage key for DAG layout mode per workspace */
+const DAG_MODE_KEY = 'codegraphy.dagMode';
+
 /** Storage key for disabled rules in workspace state */
 const DISABLED_RULES_KEY = 'codegraphy.disabledRules';
 
@@ -69,13 +76,13 @@ const DISABLED_PLUGINS_KEY = 'codegraphy.disabledPlugins';
 
 /** Default depth limit for depth graph view */
 const DEFAULT_DEPTH_LIMIT = 1;
-const DEFAULT_DIRECTION_COLOR = '#475569';
 
 function normalizeDirectionColor(value: string | undefined): string {
-  if (!value) return DEFAULT_DIRECTION_COLOR;
-  const trimmed = value.trim();
-  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toUpperCase();
-  return DEFAULT_DIRECTION_COLOR;
+  return normalizeHexColor(value, DEFAULT_DIRECTION_COLOR);
+}
+
+function normalizeFolderNodeColor(value: string | undefined): string {
+  return normalizeHexColor(value, DEFAULT_FOLDER_NODE_COLOR);
 }
 
 interface IExternalPluginRegistrationOptions {
@@ -137,6 +144,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   /** Currently active view ID */
   private _activeViewId: string;
+
+  /** Current DAG layout mode (null = free-form physics) */
+  private _dagMode: DagMode = null;
 
   /** Raw (untransformed) graph data from analysis */
   private _rawGraphData: IGraphData = { nodes: [], edges: [] };
@@ -252,6 +262,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._activeViewId = savedViewId && this._viewRegistry.get(savedViewId)
       ? savedViewId
       : this._viewRegistry.getDefaultViewId() ?? 'codegraphy.connections';
+
+    // Restore DAG mode from workspace state
+    this._dagMode = this._context.workspaceState.get<DagMode>(DAG_MODE_KEY) ?? null;
 
     this._loadDisabledRulesAndPlugins();
   }
@@ -640,12 +653,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     const activeEditor = vscode.window.activeTextEditor;
     const savedDepthLimit = this._context.workspaceState.get<number>(DEPTH_LIMIT_KEY);
-    
+    const config = vscode.workspace.getConfiguration('codegraphy');
+
     this._viewContext = {
       activePlugins: this._getActivePluginIds(),
       workspaceRoot: workspaceFolder?.uri.fsPath,
       focusedFile: activeEditor ? this._getRelativePath(activeEditor.document.uri) : undefined,
       depthLimit: savedDepthLimit ?? DEFAULT_DEPTH_LIMIT,
+      folderNodeColor: normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)),
     };
   }
 
@@ -942,7 +957,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     let hasConnections = false;
 
     if (kind === 'plugin') {
-      const plugin = statuses.find(p => p.id === id);
+      const plugin = statuses.find(status => status.id === id);
       hasConnections = (plugin?.connectionCount ?? 0) > 0;
     } else {
       for (const plugin of statuses) {
@@ -1040,29 +1055,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Sets the selected folder for view context (e.g., for Subfolder View).
-   * 
-   * @param folderPath - Relative path to the selected folder
-   */
-  public setSelectedFolder(folderPath: string | undefined): void {
-    this._viewContext.selectedFolder = folderPath;
-    
-    // Re-apply transform if using a view that depends on selected folder
-    const viewInfo = this._viewRegistry.get(this._activeViewId);
-    if (viewInfo?.view.id === 'codegraphy.subfolder') {
-      this._applyViewTransform();
-  
-      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-      this._sendAvailableViews();
-    }
-  }
-
-  /**
    * Send a command to the webview (for keyboard shortcuts)
    * 
    * @param command - The command to send (FIT_VIEW, ZOOM_IN, ZOOM_OUT)
    */
-  public sendCommand(command: 'FIT_VIEW' | 'ZOOM_IN' | 'ZOOM_OUT'): void {
+  public sendCommand(command: 'FIT_VIEW' | 'ZOOM_IN' | 'ZOOM_OUT' | 'CYCLE_VIEW' | 'CYCLE_LAYOUT' | 'TOGGLE_DIMENSION'): void {
     this._sendMessage({ type: command });
   }
 
@@ -1094,7 +1091,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     // Clean up when panel is closed
     panel.onDidDispose(() => {
-      this._panels = this._panels.filter(p => p !== panel);
+      this._panels = this._panels.filter(existingPanel => existingPanel !== panel);
     });
   }
 
@@ -1322,6 +1319,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             type: 'PLAYBACK_SPEED_UPDATED',
             payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
           });
+          this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
+          this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: normalizeFolderNodeColor(vscode.workspace.getConfiguration('codegraphy').get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)) } });
           this._sendDecorations();
           this._sendContextMenuItems();
           this._sendPluginWebviewInjections();
@@ -1456,6 +1455,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           await this.setDepthLimit(message.payload.depthLimit);
           break;
 
+        case 'UPDATE_DAG_MODE':
+          this._dagMode = message.payload.dagMode;
+          await this._context.workspaceState.update(DAG_MODE_KEY, this._dagMode);
+          this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
+          break;
+
         case 'UPDATE_GROUPS': {
           // Strip transient/session-only fields before persisting
           this._userGroups = message.payload.groups.map(({ imageUrl: _iu, isPluginDefault: _ip, pluginName: _pn, ...persistable }) => persistable);
@@ -1516,6 +1521,20 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             particleSize: config.get<number>('particleSize', 4),
             directionColor: color,
           }});
+          break;
+        }
+
+        case 'UPDATE_FOLDER_NODE_COLOR': {
+          const target = this._getConfigTarget();
+          const color = normalizeFolderNodeColor(message.payload.folderNodeColor);
+          await vscode.workspace.getConfiguration('codegraphy').update('folderNodeColor', color, target);
+          this._viewContext.folderNodeColor = color;
+          this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: color } });
+          // Re-apply view transform if folder view is active (updates folder node colors)
+          if (this._activeViewId === 'codegraphy.folder') {
+            this._applyViewTransform();
+            this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+          }
           break;
         }
 
@@ -2137,9 +2156,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     return changed;
   }
 
-  private _areSetsEqual<T>(a: Set<T>, b: Set<T>): boolean {
-    if (a.size !== b.size) return false;
-    for (const value of a) {
+  private _areSetsEqual<T>(setA: Set<T>, b: Set<T>): boolean {
+    if (setA.size !== b.size) return false;
+    for (const value of setA) {
       if (!b.has(value)) return false;
     }
     return true;
@@ -2165,9 +2184,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const particleSpeed = config.get<number>('particleSpeed', 0.005);
     const particleSize = config.get<number>('particleSize', 4);
     const directionColor = normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR));
+    const folderNodeColor = normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR));
     const showLabels = config.get<boolean>('showLabels', true);
+    this._viewContext.folderNodeColor = folderNodeColor;
     this._sendMessage({ type: 'SETTINGS_UPDATED', payload: { bidirectionalEdges, showOrphans } });
     this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode, particleSpeed, particleSize, directionColor } });
+    this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor } });
     this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels } });
   }
 

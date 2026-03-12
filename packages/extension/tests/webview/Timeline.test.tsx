@@ -288,7 +288,7 @@ describe('Timeline', () => {
     expect(bar?.style.backgroundColor).toContain('--vscode-focusBorder');
   });
 
-  it('play button has accessible size (h-4 w-4)', () => {
+  it('play button has accessible size', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -300,8 +300,8 @@ describe('Timeline', () => {
     const playBtn = screen.getByTitle('Play');
     const svg = playBtn.querySelector('svg');
     expect(svg).toBeTruthy();
-    expect(svg?.classList.contains('h-4')).toBe(true);
-    expect(svg?.classList.contains('w-4')).toBe(true);
+    expect(svg?.getAttribute('width')).toBe('16');
+    expect(svg?.getAttribute('height')).toBe('16');
   });
 
   it('timeline wrapper has border-t for visual separation', () => {

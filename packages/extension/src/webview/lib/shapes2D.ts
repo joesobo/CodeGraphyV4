@@ -82,9 +82,9 @@ function drawTriangle(
 
   ctx.beginPath();
   for (let i = 0; i < 3; i++) {
-    const a = startAngle + i * angle;
-    const px = x + size * Math.cos(a);
-    const py = y + size * Math.sin(a);
+    const theta = startAngle + i * angle;
+    const px = x + size * Math.cos(theta);
+    const py = y + size * Math.sin(theta);
     if (i === 0) {
       ctx.moveTo(px, py);
     } else {
@@ -106,9 +106,9 @@ function drawHexagon(
 
   ctx.beginPath();
   for (let i = 0; i < 6; i++) {
-    const a = startAngle + i * angle;
-    const px = x + size * Math.cos(a);
-    const py = y + size * Math.sin(a);
+    const theta = startAngle + i * angle;
+    const px = x + size * Math.cos(theta);
+    const py = y + size * Math.sin(theta);
     if (i === 0) {
       ctx.moveTo(px, py);
     } else {
@@ -134,9 +134,9 @@ function drawStar(
   ctx.beginPath();
   for (let i = 0; i < points * 2; i++) {
     const radius = i % 2 === 0 ? outerRadius : innerRadius;
-    const a = startAngle + i * step;
-    const px = x + radius * Math.cos(a);
-    const py = y + radius * Math.sin(a);
+    const theta = startAngle + i * step;
+    const px = x + radius * Math.cos(theta);
+    const py = y + radius * Math.sin(theta);
     if (i === 0) {
       ctx.moveTo(px, py);
     } else {

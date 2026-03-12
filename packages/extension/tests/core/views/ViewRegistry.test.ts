@@ -254,14 +254,14 @@ describe('ViewRegistry', () => {
 
     it('should respect isAvailable method', () => {
       const view = createMockView({
-        isAvailable: (ctx) => ctx.selectedFolder !== undefined,
+        isAvailable: (ctx) => ctx.focusedFile !== undefined,
       });
       registry.register(view, { core: true });
 
       const contextWithout = createMockContext();
       expect(registry.isViewAvailable(view.id, contextWithout)).toBe(false);
 
-      const contextWith = createMockContext({ selectedFolder: 'src' });
+      const contextWith = createMockContext({ focusedFile: 'src/app.ts' });
       expect(registry.isViewAvailable(view.id, contextWith)).toBe(true);
     });
   });

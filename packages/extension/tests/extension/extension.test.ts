@@ -59,8 +59,8 @@ describe('Extension', () => {
       activate(mockContext as unknown as Parameters<typeof activate>[0]);
 
       // view provider (1) + config listener (1) + active editor listener (1) + save listener (1)
-      // + file watcher events (2) + file watcher (1) + 13 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache)
-      expect(mockContext.subscriptions.length).toBe(20);
+      // + file watcher events (2) + file watcher (1) + 16 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache, cycleView, cycleLayout, toggleDimension)
+      expect(mockContext.subscriptions.length).toBe(23);
     });
 
     it('should ignore workspace settings saves when deciding graph refresh', async () => {

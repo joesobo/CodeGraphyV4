@@ -25,6 +25,7 @@ import {
   EdgeDecorationPayload,
   NodeShape2D,
   NodeShape3D,
+  DEFAULT_DIRECTION_COLOR,
 } from '../../shared/types';
 import { computeLinkCurvature } from '../lib/linkCurvature';
 import { drawShape } from '../lib/shapes2D';
@@ -46,12 +47,11 @@ import { exportAsSvg } from '../lib/export/exportSvg';
 import { exportAsJpeg } from '../lib/export/exportJpeg';
 import { exportAsJson } from '../lib/export/exportJson';
 import { exportAsMarkdown } from '../lib/export/exportMarkdown';
-import { useGraphStore } from '../store';
+import { useGraphStore, graphStore } from '../store';
 import { WebviewPluginHost } from '../pluginHost';
 
 /** Yellow color for favorites */
 const FAVORITE_BORDER_COLOR = '#EAB308';
-const DEFAULT_DIRECTION_COLOR = '#475569';
 const DIRECTIONAL_ARROW_LENGTH_2D = 12;
 const DIRECTIONAL_ARROW_NODE_GAP_2D = 0;
 
@@ -166,8 +166,8 @@ function calculateNodeSizes(
     const max = Math.max(...vals, 1);
     const range = max - min || 1;
     for (const node of nodes) {
-      const c = counts.get(node.id) ?? 0;
-      sizes.set(node.id, MIN_NODE_SIZE + ((c - min) / range) * (MAX_NODE_SIZE - MIN_NODE_SIZE));
+      const count = counts.get(node.id) ?? 0;
+      sizes.set(node.id, MIN_NODE_SIZE + ((count - min) / range) * (MAX_NODE_SIZE - MIN_NODE_SIZE));
     }
     return sizes;
   }
@@ -178,8 +178,8 @@ function calculateNodeSizes(
     const max = Math.max(...vals, 1);
     const range = max - min || 1;
     for (const node of nodes) {
-      const c = node.accessCount ?? 0;
-      sizes.set(node.id, MIN_NODE_SIZE + ((c - min) / range) * (MAX_NODE_SIZE - MIN_NODE_SIZE));
+      const accessCount = node.accessCount ?? 0;
+      sizes.set(node.id, MIN_NODE_SIZE + ((accessCount - min) / range) * (MAX_NODE_SIZE - MIN_NODE_SIZE));
     }
     return sizes;
   }
@@ -267,7 +267,6 @@ export default function Graph({
   edgeDecorations,
   pluginHost,
 }: GraphProps): React.ReactElement {
-  // Read state from store
   const favorites = useGraphStore(s => s.favorites);
   const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
   const physicsSettings = useGraphStore(s => s.physicsSettings);
@@ -278,6 +277,7 @@ export default function Graph({
   const particleSize = useGraphStore(s => s.particleSize);
   const showLabels = useGraphStore(s => s.showLabels);
   const graphMode = useGraphStore(s => s.graphMode);
+  const dagMode = useGraphStore(s => s.dagMode);
   const timelineActive = useGraphStore(s => s.timelineActive);
   const timelineActiveRef = useRef(timelineActive);
   timelineActiveRef.current = timelineActive;
@@ -315,7 +315,6 @@ export default function Graph({
   const nodeDecorationsRef = useRef(nodeDecorations);
   const edgeDecorationsRef = useRef(edgeDecorations);
 
-  // Keep refs current on every render
   themeRef.current = theme;
   directionModeRef.current = directionMode;
   directionColorRef.current = directionColor;
@@ -345,7 +344,7 @@ export default function Graph({
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [imageCacheVersion, setImageCacheVersion] = useState(0);
   const triggerImageRerender = useCallback(() => {
-    setImageCacheVersion(v => v + 1);
+    setImageCacheVersion(prev => prev + 1);
   }, []);
 
   // ── Build graphData for force-graph ─────────────────────────────────────
@@ -401,7 +400,6 @@ export default function Graph({
       const nodePositionMap = new Map(nodes.map(n => [n.id, n]));
       for (const node of nodes) {
         if (node.x === undefined && node.y === undefined) {
-          // Find a connected edge
           const edge = data.edges.find(e => e.from === node.id || e.to === node.id);
           if (edge) {
             const neighborId = edge.from === node.id ? edge.to : edge.from;
@@ -463,13 +461,11 @@ export default function Graph({
     ctx.save();
     ctx.globalAlpha = opacity;
 
-    // Fill shape
     const shape = node.shape2D ?? 'circle';
     drawShape(ctx, shape, node.x!, node.y!, node.size);
     ctx.fillStyle = deco?.color ?? node.color;
     ctx.fill();
 
-    // Border
     const borderColor = isSelected
       ? (themeRef.current === 'light' ? '#000000' : '#ffffff')
       : node.borderColor;
@@ -641,7 +637,7 @@ export default function Graph({
     const tgtId = typeof link.target === 'string' ? link.target : tgt?.id;
     const highlighted = highlightedNodeRef.current;
     const isLight = themeRef.current === 'light';
-    if (!highlighted) return link.baseColor ?? '#475569';
+    if (!highlighted) return link.baseColor ?? DEFAULT_DIRECTION_COLOR;
     const isConnected = srcId === highlighted || tgtId === highlighted;
     if (isConnected) return '#60a5fa';
     return isLight ? '#e2e8f0' : '#2d3748';
@@ -683,19 +679,16 @@ export default function Graph({
   const nodeThreeObject = useCallback((node: FGNode) => {
     const group = new THREE.Group();
 
-    // Shape mesh
     const shape = node.shape3D ?? 'sphere';
     const mesh = createNodeMesh(shape, node.color, node.size / DEFAULT_NODE_SIZE * 4);
     meshesRef.current.set(node.id, mesh);
     group.add(mesh);
 
-    // Image sprite overlay
     if (node.imageUrl) {
       const imgSprite = createImageSprite(node.imageUrl, node.size / DEFAULT_NODE_SIZE * 6);
       group.add(imgSprite);
     }
 
-    // Label
     const sprite = new SpriteText(node.label);
     setSpriteVisible(sprite, showLabelsRef.current);
     sprite.color = '#ffffff';
@@ -748,7 +741,7 @@ export default function Graph({
     } else {
       highlightedNeighborsRef.current = new Set();
     }
-    if (graphMode === '3d') setHighlightVersion(v => v + 1);
+    if (graphMode === '3d') setHighlightVersion(prev => prev + 1);
   }, [graphMode]);
 
   // ── Plugin API v2: forward graph interactions to extension ──────────────
@@ -1134,6 +1127,28 @@ export default function Graph({
             postMessage({ type: 'REDO' });
           }
           break;
+        // Toolbar shortcuts (fallback when VS Code command doesn't fire)
+        case 'v':
+        case 'V':
+          if (!isMod) {
+            event.preventDefault();
+            graphStore.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
+          }
+          break;
+        case 'l':
+        case 'L':
+          if (!isMod) {
+            event.preventDefault();
+            graphStore.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
+          }
+          break;
+        case 't':
+        case 'T':
+          if (!isMod) {
+            event.preventDefault();
+            graphStore.getState().handleExtensionMessage({ type: 'TOGGLE_DIMENSION' });
+          }
+          break;
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -1240,7 +1255,6 @@ export default function Graph({
       if (e) setContainerSize({ width: e.contentRect.width, height: e.contentRect.height });
     });
     ro.observe(el);
-    // Initial size
     setContainerSize({ width: el.clientWidth, height: el.clientHeight });
     return () => ro.disconnect();
   }, []);
@@ -1290,6 +1304,8 @@ export default function Graph({
     cooldownTicks: timelineActive ? 50 : 500,
     nodeId: 'id' as const,
     onNodeHover: handleNodeHover as (node: NodeObject | null) => void,
+    dagMode: dagMode ?? undefined,
+    dagLevelDistance: dagMode ? 60 : undefined,
   };
 
   const initPhysics = useCallback((instance: FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>) => {

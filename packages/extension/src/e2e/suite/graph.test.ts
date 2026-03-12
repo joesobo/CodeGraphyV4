@@ -160,12 +160,12 @@ suite('Graph: No Node Overlap After Stabilization', function () {
     const overlapping: string[] = [];
     for (let i = 0; i < nodes.length; i++) {
       for (let j = i + 1; j < nodes.length; j++) {
-        const a = nodes[i];
-        const b = nodes[j];
-        const dist = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2));
-        const minDist = a.size + b.size;
+        const nodeA = nodes[i];
+        const nodeB = nodes[j];
+        const dist = Math.sqrt(Math.pow(nodeA.x - nodeB.x, 2) + Math.pow(nodeA.y - nodeB.y, 2));
+        const minDist = nodeA.size + nodeB.size;
         if (dist < minDist) {
-          overlapping.push(`"${path.basename(a.id)}" ↔ "${path.basename(b.id)}" (dist=${dist.toFixed(1)}, need≥${minDist})`);
+          overlapping.push(`"${path.basename(nodeA.id)}" ↔ "${path.basename(nodeB.id)}" (dist=${dist.toFixed(1)}, need≥${minDist})`);
         }
       }
     }

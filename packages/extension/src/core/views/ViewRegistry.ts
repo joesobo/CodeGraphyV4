@@ -83,8 +83,8 @@ export class ViewRegistry {
       // If we removed the default view, pick a new one
       if (this._defaultViewId === viewId) {
         const remaining = Array.from(this._views.values());
-        this._defaultViewId = remaining.length > 0 
-          ? remaining.sort((a, b) => a.order - b.order)[0].view.id 
+        this._defaultViewId = remaining.length > 0
+          ? remaining.sort((va, vb) => va.order - vb.order)[0].view.id
           : undefined;
       }
     }
@@ -154,13 +154,13 @@ export class ViewRegistry {
     }
     
     // Sort by registration order (core views first)
-    return available.sort((a, b) => {
+    return available.sort((va, vb) => {
       // Core views come first
-      if (a.core !== b.core) {
-        return a.core ? -1 : 1;
+      if (va.core !== vb.core) {
+        return va.core ? -1 : 1;
       }
       // Then by registration order
-      return a.order - b.order;
+      return va.order - vb.order;
     });
   }
 
@@ -170,7 +170,7 @@ export class ViewRegistry {
    * @returns Array of all view info objects
    */
   list(): IViewInfo[] {
-    return Array.from(this._views.values()).sort((a, b) => a.order - b.order);
+    return Array.from(this._views.values()).sort((va, vb) => va.order - vb.order);
   }
 
   /**

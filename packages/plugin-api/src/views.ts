@@ -10,7 +10,7 @@ import type { IGraphData } from './graph';
  * A view that transforms graph data into a specific visualization.
  *
  * Views can filter, transform, or reorganize the graph data to present
- * a specific perspective on the codebase (e.g., depth graph, subfolder view).
+ * a specific perspective on the codebase (e.g., depth graph, folder view).
  *
  * @example
  * ```typescript
@@ -82,9 +82,6 @@ export interface IViewContext {
   /** Currently focused file path (relative to workspace). */
   focusedFile?: string;
 
-  /** Currently selected folder path (relative to workspace). */
-  selectedFolder?: string;
-
   /** Set of active plugin IDs. */
   activePlugins: Set<string>;
 
@@ -97,4 +94,7 @@ export interface IViewContext {
    * Default is 1 (direct neighbors only).
    */
   depthLimit?: number;
+
+  /** Color for folder nodes in folder view. */
+  folderNodeColor?: string;
 }

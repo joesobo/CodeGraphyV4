@@ -34,8 +34,8 @@ export interface GDScriptRuleContext {
 /**
  * Check if a path is a Godot resource path (res:// or user://).
  */
-export function isResPath(p: string): boolean {
-  return p.startsWith('res://') || p.startsWith('user://');
+export function isResPath(resourcePath: string): boolean {
+  return resourcePath.startsWith('res://') || resourcePath.startsWith('user://');
 }
 
 /**
