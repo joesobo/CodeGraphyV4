@@ -12,7 +12,9 @@ All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift
 | `CodeGraphy: Redo` | Redo last undone action |
 | `CodeGraphy: Export as PNG` | Save the graph as a rasterized image |
 | `CodeGraphy: Export as SVG` | Save the graph as a scalable vector |
-| `CodeGraphy: Export Layout as JSON` | Save node positions for reproducible layouts |
+| `CodeGraphy: Export as JPEG` | Save the graph as a JPEG image |
+| `CodeGraphy: Export Connections as JSON` | Save current graph connection data as structured JSON |
+| `CodeGraphy: Export Connections as Markdown` | Save current graph connection data as markdown |
 | `CodeGraphy: Clear Cache and Refresh` | Clear analysis cache and re-scan the workspace |
 
 ## Command IDs
@@ -29,7 +31,9 @@ For keybinding customization or extension integration:
 | `codegraphy.redo` | Redo |
 | `codegraphy.exportPng` | Export as PNG |
 | `codegraphy.exportSvg` | Export as SVG |
-| `codegraphy.exportJson` | Export Layout as JSON |
+| `codegraphy.exportJpeg` | Export as JPEG |
+| `codegraphy.exportJson` | Export Connections as JSON |
+| `codegraphy.exportMarkdown` | Export Connections as Markdown |
 | `codegraphy.clearCache` | Clear Cache and Refresh |
 
 See [Keybindings](./KEYBINDINGS.md) for default shortcuts and customization.

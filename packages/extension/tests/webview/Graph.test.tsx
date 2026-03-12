@@ -559,28 +559,51 @@ describe('Export Functionality', () => {
     if (exportMsg) {
       const payload = (exportMsg as { payload: { json: string; filename?: string } }).payload;
       expect(payload.json).toBeDefined();
-      expect(payload.filename).toMatch(/^codegraphy-layout-.*\.json$/);
+      expect(payload.filename).toMatch(/^codegraphy-connections-.*\.json$/);
 
       const parsed = JSON.parse(payload.json);
-      expect(parsed.version).toBe('1.0');
+      expect(parsed.format).toBe('codegraphy-export');
+      expect(parsed.version).toBe('2.0');
       expect(parsed.exportedAt).toBeDefined();
-      expect(parsed.nodes).toHaveLength(2);
-      expect(parsed.edges).toHaveLength(1);
-      expect(parsed.metadata.totalNodes).toBe(2);
-      expect(parsed.metadata.totalEdges).toBe(1);
-      expect(parsed.metadata.nodeSizeMode).toBe('file-size');
+      expect(parsed.scope.graph).toBe('current-view');
+      expect(parsed.summary.totalFiles).toBe(2);
+      expect(parsed.summary.totalConnections).toBe(1);
 
-      const appNode = parsed.nodes.find((n: { id: string }) => n.id === 'src/app.ts');
-      expect(appNode).toBeTruthy();
-      expect(appNode.label).toBe('app.ts');
-      expect(appNode.color).toBe('#93C5FD');
-      expect(appNode.fileSize).toBe(1234);
-      expect(appNode.accessCount).toBe(5);
-      expect(appNode.position).toBeDefined();
+      expect(parsed.sections.connections.ungrouped['src/app.ts']).toBeDefined();
+      expect(parsed.sections.connections.ungrouped['src/app.ts'].imports).toEqual({ unattributed: ['src/utils.ts'] });
 
-      expect(parsed.edges[0].id).toBeUndefined();
-      expect(parsed.edges[0].from).toBe('src/app.ts');
-      expect(parsed.edges[0].to).toBe('src/utils.ts');
+      expect(parsed.sections.connections.ungrouped['src/utils.ts']).toBeDefined();
+      expect(parsed.sections.connections.ungrouped['src/utils.ts'].imports).toBeUndefined();
+      expect(parsed.sections.images).toEqual({});
+    }
+  });
+
+  it('should handle REQUEST_EXPORT_MD message and send EXPORT_MD response', async () => {
+    graphStore.setState({ nodeSizeMode: 'file-size' });
+    render(<Graph data={mockData} />);
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    });
+
+    await act(async () => {
+      const event = new MessageEvent('message', { data: { type: 'REQUEST_EXPORT_MD' } });
+      window.dispatchEvent(event);
+    });
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    });
+
+    const messages = getSentMessages();
+    const exportMsg = messages.find((m: { type: string }) => m.type === 'EXPORT_MD');
+
+    expect(exportMsg).toBeTruthy();
+
+    if (exportMsg) {
+      const payload = (exportMsg as { payload: { markdown: string; filename?: string } }).payload;
+      expect(payload.markdown).toContain('# CodeGraphy Export');
+      expect(payload.filename).toMatch(/^codegraphy-connections-.*\.md$/);
     }
   });
 

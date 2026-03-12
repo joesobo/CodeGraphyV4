@@ -88,8 +88,16 @@
 				"title": "CodeGraphy: Export as SVG"
 			},
 			{
+				"command": "codegraphy.exportJpeg",
+				"title": "CodeGraphy: Export as JPEG"
+			},
+			{
 				"command": "codegraphy.exportJson",
-				"title": "CodeGraphy: Export Layout as JSON"
+				"title": "CodeGraphy: Export Connections as JSON"
+			},
+			{
+				"command": "codegraphy.exportMarkdown",
+				"title": "CodeGraphy: Export Connections as Markdown"
 			},
 			{
 				"command": "codegraphy.clearCache",

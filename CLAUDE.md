@@ -21,9 +21,9 @@ pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts te
 pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GraphViewProvider.test.ts
 ```
 
-## Architecture Source Of Truth
+## Architecture Orientation
 
-Read `docs/ARCHITECTURE.md` first. It is the living map of the monorepo.
+There is no dedicated architecture map file in this repo. Start from package boundaries and follow module-local docs/comments.
 
 Primary locations:
 - `packages/extension/src/extension/` (VS Code extension host)

@@ -207,7 +207,7 @@ export interface IGraphEdge {
   /**
    * All qualified rule IDs that detected this connection.
    * Format: "pluginId:ruleId" (e.g., 'codegraphy.typescript:es6-import').
-   * Present on edges from normal analysis; absent from timeline edges.
+   * Present when the source plugin can be identified (normal analysis and timeline analysis).
    */
   ruleIds?: string[];
 }
@@ -462,9 +462,12 @@ export type ExtensionToWebviewMessage =
   | { type: 'THEME_CHANGED'; payload: { kind: 'light' | 'dark' | 'high-contrast' } }
   | { type: 'FILE_INFO'; payload: IFileInfo }
   | { type: 'SETTINGS_UPDATED'; payload: { bidirectionalEdges: BidirectionalEdgeMode; showOrphans: boolean } }
+  // Export requests (extension → webview, triggers export in Graph.tsx)
   | { type: 'REQUEST_EXPORT_PNG' }
   | { type: 'REQUEST_EXPORT_SVG' }
+  | { type: 'REQUEST_EXPORT_JPEG' }
   | { type: 'REQUEST_EXPORT_JSON' }
+  | { type: 'REQUEST_EXPORT_MD' }
   | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } }
   | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } }
   | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings }
@@ -524,9 +527,12 @@ export type WebviewToExtensionMessage =
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
   | { type: 'REFRESH_GRAPH' }
   | { type: 'GET_FILE_INFO'; payload: { path: string } }
+  // Export results (webview → extension, carries export data for save dialog)
   | { type: 'EXPORT_PNG'; payload: { dataUrl: string; filename?: string } }
   | { type: 'EXPORT_SVG'; payload: { svg: string; filename?: string } }
+  | { type: 'EXPORT_JPEG'; payload: { dataUrl: string; filename?: string } }
   | { type: 'EXPORT_JSON'; payload: { json: string; filename?: string } }
+  | { type: 'EXPORT_MD'; payload: { markdown: string; filename?: string } }
   | { type: 'UPDATE_PHYSICS_SETTING'; payload: { key: keyof IPhysicsSettings; value: number } }
   | { type: 'RESET_PHYSICS_SETTINGS' }
   | { type: 'GET_PHYSICS_SETTINGS' }

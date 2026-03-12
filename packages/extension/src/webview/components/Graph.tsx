@@ -41,6 +41,11 @@ import {
 import { NodeTooltip } from './NodeTooltip';
 import { ThemeKind, adjustColorForLightTheme } from '../hooks/useTheme';
 import { postMessage } from '../lib/vscodeApi';
+import { exportAsPng } from '../lib/export/exportPng';
+import { exportAsSvg } from '../lib/export/exportSvg';
+import { exportAsJpeg } from '../lib/export/exportJpeg';
+import { exportAsJson } from '../lib/export/exportJson';
+import { exportAsMarkdown } from '../lib/export/exportMarkdown';
 import { useGraphStore } from '../store';
 import { WebviewPluginHost } from '../pluginHost';
 
@@ -251,15 +256,6 @@ function processEdges(edges: IGraphEdge[], mode: BidirectionalEdgeMode): Process
     }
   }
   return processed;
-}
-
-function escapeXml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
 }
 
 // ─── Graph component ────────────────────────────────────────────────────────
@@ -1037,10 +1033,21 @@ export default function Graph({
           exportAsPng(containerRef.current);
           break;
         case 'REQUEST_EXPORT_SVG':
-          exportAsSvg(graphDataRef.current.nodes, dataRef.current.edges);
+          exportAsSvg(graphDataRef.current.nodes, graphDataRef.current.links, {
+            directionMode: directionModeRef.current,
+            directionColor: directionColorRef.current,
+            showLabels: showLabelsRef.current,
+            theme: themeRef.current,
+          });
+          break;
+        case 'REQUEST_EXPORT_JPEG':
+          exportAsJpeg(containerRef.current);
           break;
         case 'REQUEST_EXPORT_JSON':
-          exportAsJson(graphDataRef.current.nodes, dataRef.current, nodeSizeModeRef.current);
+          exportAsJson(dataRef.current);
+          break;
+        case 'REQUEST_EXPORT_MD':
+          exportAsMarkdown(dataRef.current);
           break;
         case 'NODE_ACCESS_COUNT_UPDATED': {
           const { nodeId, accessCount } = message.payload;
@@ -1484,109 +1491,4 @@ export default function Graph({
       />
     </ContextMenu>
   );
-}
-
-// ─── Export helpers ─────────────────────────────────────────────────────────
-
-function exportAsPng(container: HTMLDivElement | null): void {
-  try {
-    const canvas = container?.querySelector('canvas') as HTMLCanvasElement | null;
-    if (!canvas) { console.error('[CodeGraphy] No canvas found'); return; }
-
-    const exportCanvas = document.createElement('canvas');
-    exportCanvas.width = canvas.width;
-    exportCanvas.height = canvas.height;
-    const ctx = exportCanvas.getContext('2d');
-    if (!ctx) return;
-    ctx.fillStyle = '#18181b';
-    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-    ctx.drawImage(canvas, 0, 0);
-    const dataUrl = exportCanvas.toDataURL('image/png');
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    postMessage({ type: 'EXPORT_PNG', payload: { dataUrl, filename: `codegraphy-${timestamp}.png` } });
-  } catch (error) {
-    console.error('[CodeGraphy] Export failed:', error);
-  }
-}
-
-function exportAsSvg(nodes: FGNode[], originalEdges: IGraphEdge[]): void {
-  try {
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const n of nodes) {
-      const x = (n as FGNode & { x?: number }).x ?? 0;
-      const y = (n as FGNode & { y?: number }).y ?? 0;
-      minX = Math.min(minX, x); minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
-    }
-    if (!isFinite(minX)) { minX = -100; minY = -100; maxX = 100; maxY = 100; }
-    const pad = 100;
-    minX -= pad; minY -= pad; maxX += pad; maxY += pad;
-    const width = maxX - minX;
-    const height = maxY - minY;
-
-    const parts: string[] = [
-      `<?xml version="1.0" encoding="UTF-8"?>`,
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${width}" height="${height}">`,
-      `<rect x="${minX}" y="${minY}" width="${width}" height="${height}" fill="#18181b"/>`,
-      `<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">`,
-      `<polygon points="0 0, 10 3.5, 0 7" fill="#71717a"/></marker></defs>`,
-    ];
-
-    const posMap = new Map(nodes.map(n => [n.id, { x: (n as FGNode & { x?: number }).x ?? 0, y: (n as FGNode & { y?: number }).y ?? 0 }]));
-
-    for (const edge of originalEdges) {
-      const from = posMap.get(edge.from);
-      const to = posMap.get(edge.to);
-      if (from && to) {
-        parts.push(`<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="#71717a" stroke-width="1" marker-end="url(#arrowhead)"/>`);
-      }
-    }
-
-    for (const n of nodes) {
-      const pos = posMap.get(n.id);
-      if (pos) {
-        parts.push(`<circle cx="${pos.x}" cy="${pos.y}" r="${n.size}" fill="${n.color}" stroke="${n.borderColor}" stroke-width="2"/>`);
-        parts.push(`<text x="${pos.x}" y="${pos.y + n.size + 15}" text-anchor="middle" fill="#fafafa" font-size="12" font-family="sans-serif">${escapeXml(n.label)}</text>`);
-      }
-    }
-
-    parts.push(`</svg>`);
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    postMessage({ type: 'EXPORT_SVG', payload: { svg: parts.join('\n'), filename: `codegraphy-${timestamp}.svg` } });
-  } catch (error) {
-    console.error('[CodeGraphy] SVG export failed:', error);
-  }
-}
-
-function exportAsJson(nodes: FGNode[], data: IGraphData, nodeSizeMode: NodeSizeMode): void {
-  try {
-    const exportData = {
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      nodes: data.nodes.map(node => {
-        const fgNode = nodes.find(n => n.id === node.id);
-        return {
-          id: node.id,
-          label: node.label,
-          color: node.color,
-          fileSize: node.fileSize,
-          accessCount: node.accessCount,
-          position: {
-            x: (fgNode as (FGNode & { x?: number }) | undefined)?.x ?? 0,
-            y: (fgNode as (FGNode & { y?: number }) | undefined)?.y ?? 0,
-          },
-        };
-      }),
-      edges: data.edges.map(edge => ({ from: edge.from, to: edge.to })),
-      metadata: {
-        totalNodes: data.nodes.length,
-        totalEdges: data.edges.length,
-        nodeSizeMode,
-      },
-    };
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    postMessage({ type: 'EXPORT_JSON', payload: { json: JSON.stringify(exportData, null, 2), filename: `codegraphy-layout-${timestamp}.json` } });
-  } catch (error) {
-    console.error('[CodeGraphy] JSON export failed:', error);
-  }
 }
