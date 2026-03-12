@@ -559,28 +559,21 @@ describe('Export Functionality', () => {
     if (exportMsg) {
       const payload = (exportMsg as { payload: { json: string; filename?: string } }).payload;
       expect(payload.json).toBeDefined();
-      expect(payload.filename).toMatch(/^codegraphy-layout-.*\.json$/);
+      expect(payload.filename).toMatch(/^codegraphy-connections-.*\.json$/);
 
       const parsed = JSON.parse(payload.json);
+      expect(parsed.format).toBe('codegraphy-connections');
       expect(parsed.version).toBe('1.0');
       expect(parsed.exportedAt).toBeDefined();
-      expect(parsed.nodes).toHaveLength(2);
-      expect(parsed.edges).toHaveLength(1);
-      expect(parsed.metadata.totalNodes).toBe(2);
-      expect(parsed.metadata.totalEdges).toBe(1);
-      expect(parsed.metadata.nodeSizeMode).toBe('file-size');
+      expect(parsed.stats.totalFiles).toBe(2);
+      expect(parsed.stats.totalConnections).toBe(1);
 
-      const appNode = parsed.nodes.find((n: { id: string }) => n.id === 'src/app.ts');
-      expect(appNode).toBeTruthy();
-      expect(appNode.label).toBe('app.ts');
-      expect(appNode.color).toBe('#93C5FD');
-      expect(appNode.fileSize).toBe(1234);
-      expect(appNode.accessCount).toBe(5);
-      expect(appNode.position).toBeDefined();
+      expect(parsed.files['src/app.ts']).toBeDefined();
+      expect(parsed.files['src/app.ts'].extension).toBe('.ts');
+      expect(parsed.files['src/app.ts'].imports).toEqual(['src/utils.ts']);
 
-      expect(parsed.edges[0].id).toBeUndefined();
-      expect(parsed.edges[0].from).toBe('src/app.ts');
-      expect(parsed.edges[0].to).toBe('src/utils.ts');
+      expect(parsed.files['src/utils.ts']).toBeDefined();
+      expect(parsed.files['src/utils.ts'].imports).toEqual([]);
     }
   });
 

@@ -366,9 +366,9 @@ export default function App(): React.ReactElement {
                     Export as JSON
                   </DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => {
-                    const data = graphStore.getState().graphData;
+                    const { graphData: data, groups: storeGroups } = graphStore.getState();
                     if (!data) return;
-                    const markdown = buildMarkdownExport(data);
+                    const markdown = buildMarkdownExport(data, storeGroups);
                     postMessage({ type: 'EXPORT_MD', payload: { markdown } });
                   }}>
                     Export as Markdown

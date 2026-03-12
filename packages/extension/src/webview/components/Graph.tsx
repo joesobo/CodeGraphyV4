@@ -42,7 +42,8 @@ import {
 import { NodeTooltip } from './NodeTooltip';
 import { ThemeKind, adjustColorForLightTheme } from '../hooks/useTheme';
 import { postMessage } from '../lib/vscodeApi';
-import { useGraphStore } from '../store';
+import { buildExportData } from '../lib/exportData';
+import { useGraphStore, graphStore } from '../store';
 import { WebviewPluginHost } from '../pluginHost';
 
 /** Yellow color for favorites */
@@ -1049,7 +1050,7 @@ export default function Graph({
           exportAsJpeg(containerRef.current);
           break;
         case 'REQUEST_EXPORT_JSON':
-          exportAsJson(graphDataRef.current.nodes, dataRef.current, nodeSizeModeRef.current);
+          exportAsJson(dataRef.current);
           break;
         case 'NODE_ACCESS_COUNT_UPDATED': {
           const { nodeId, accessCount } = message.payload;
@@ -1702,34 +1703,12 @@ function exportAsSvg(nodes: FGNode[], links: FGLink[], options: SvgExportOptions
   }
 }
 
-function exportAsJson(nodes: FGNode[], data: IGraphData, nodeSizeMode: NodeSizeMode): void {
+function exportAsJson(data: IGraphData): void {
   try {
-    const exportData = {
-      version: '1.0',
-      exportedAt: new Date().toISOString(),
-      nodes: data.nodes.map(node => {
-        const fgNode = nodes.find(n => n.id === node.id);
-        return {
-          id: node.id,
-          label: node.label,
-          color: node.color,
-          fileSize: node.fileSize,
-          accessCount: node.accessCount,
-          position: {
-            x: (fgNode as (FGNode & { x?: number }) | undefined)?.x ?? 0,
-            y: (fgNode as (FGNode & { y?: number }) | undefined)?.y ?? 0,
-          },
-        };
-      }),
-      edges: data.edges.map(edge => ({ from: edge.from, to: edge.to })),
-      metadata: {
-        totalNodes: data.nodes.length,
-        totalEdges: data.edges.length,
-        nodeSizeMode,
-      },
-    };
+    const { groups } = graphStore.getState();
+    const exportData = buildExportData(data, groups);
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
-    postMessage({ type: 'EXPORT_JSON', payload: { json: JSON.stringify(exportData, null, 2), filename: `codegraphy-layout-${timestamp}.json` } });
+    postMessage({ type: 'EXPORT_JSON', payload: { json: JSON.stringify(exportData, null, 2), filename: `codegraphy-connections-${timestamp}.json` } });
   } catch (error) {
     console.error('[CodeGraphy] JSON export failed:', error);
   }
