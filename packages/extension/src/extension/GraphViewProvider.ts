@@ -12,6 +12,7 @@ import {
   IAvailableView,
   BidirectionalEdgeMode,
   DirectionMode,
+  DagMode,
   IPhysicsSettings,
   IGroup,
   ExtensionToWebviewMessage,
@@ -60,6 +61,9 @@ const FILTER_PATTERNS_KEY = 'codegraphy.filterPatterns';
 
 /** Storage key for depth limit per workspace */
 const DEPTH_LIMIT_KEY = 'codegraphy.depthLimit';
+
+/** Storage key for DAG layout mode per workspace */
+const DAG_MODE_KEY = 'codegraphy.dagMode';
 
 /** Storage key for disabled rules in workspace state */
 const DISABLED_RULES_KEY = 'codegraphy.disabledRules';
@@ -137,6 +141,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   /** Currently active view ID */
   private _activeViewId: string;
+
+  /** Current DAG layout mode (null = free-form physics) */
+  private _dagMode: DagMode = null;
 
   /** Raw (untransformed) graph data from analysis */
   private _rawGraphData: IGraphData = { nodes: [], edges: [] };
@@ -252,6 +259,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._activeViewId = savedViewId && this._viewRegistry.get(savedViewId)
       ? savedViewId
       : this._viewRegistry.getDefaultViewId() ?? 'codegraphy.connections';
+
+    // Restore DAG mode from workspace state
+    this._dagMode = this._context.workspaceState.get<DagMode>(DAG_MODE_KEY) ?? null;
 
     this._loadDisabledRulesAndPlugins();
   }
@@ -1322,6 +1332,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             type: 'PLAYBACK_SPEED_UPDATED',
             payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
           });
+          this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
           this._sendDecorations();
           this._sendContextMenuItems();
           this._sendPluginWebviewInjections();
@@ -1454,6 +1465,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
         case 'CHANGE_DEPTH_LIMIT':
           await this.setDepthLimit(message.payload.depthLimit);
+          break;
+
+        case 'UPDATE_DAG_MODE':
+          this._dagMode = message.payload.dagMode;
+          await this._context.workspaceState.update(DAG_MODE_KEY, this._dagMode);
+          this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
           break;
 
         case 'UPDATE_GROUPS': {
