@@ -1063,7 +1063,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * 
    * @param command - The command to send (FIT_VIEW, ZOOM_IN, ZOOM_OUT)
    */
-  public sendCommand(command: 'FIT_VIEW' | 'ZOOM_IN' | 'ZOOM_OUT'): void {
+  public sendCommand(command: 'FIT_VIEW' | 'ZOOM_IN' | 'ZOOM_OUT' | 'CYCLE_VIEW' | 'CYCLE_LAYOUT' | 'TOGGLE_DIMENSION'): void {
     this._sendMessage({ type: command });
   }
 

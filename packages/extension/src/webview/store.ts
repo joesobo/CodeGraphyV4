@@ -17,6 +17,7 @@ import type {
   IPluginContextMenuItem,
 } from '../shared/types';
 import type { SearchOptions } from './components/SearchBar';
+import { postMessage } from './lib/vscodeApi';
 
 const DEFAULT_PHYSICS: IPhysicsSettings = {
   repelForce: 10,
@@ -124,8 +125,11 @@ export interface GraphState {
   handleExtensionMessage: (message: ExtensionToWebviewMessage) => void;
 }
 
+/** DAG mode cycle order: free-form → radialout → top-down → left-right */
+const DAG_MODE_CYCLE: DagMode[] = [null, 'radialout', 'td', 'lr'];
+
 export function createGraphStore() {
-  return createStore<GraphState>((set) => ({
+  return createStore<GraphState>((set, get) => ({
     // Initial state
     graphData: null,
     isLoading: true,
@@ -294,6 +298,26 @@ export function createGraphStore() {
         case 'FOLDER_NODE_COLOR_UPDATED':
           set({ folderNodeColor: message.payload.folderNodeColor });
           break;
+        case 'CYCLE_VIEW': {
+          const { availableViews, activeViewId } = get();
+          if (availableViews.length === 0) break;
+          const idx = availableViews.findIndex(v => v.id === activeViewId);
+          const next = availableViews[(idx + 1) % availableViews.length];
+          postMessage({ type: 'CHANGE_VIEW', payload: { viewId: next.id } });
+          break;
+        }
+        case 'CYCLE_LAYOUT': {
+          const { dagMode } = get();
+          const idx = DAG_MODE_CYCLE.indexOf(dagMode);
+          const nextMode = DAG_MODE_CYCLE[(idx + 1) % DAG_MODE_CYCLE.length];
+          postMessage({ type: 'UPDATE_DAG_MODE', payload: { dagMode: nextMode } });
+          break;
+        }
+        case 'TOGGLE_DIMENSION': {
+          const { graphMode } = get();
+          set({ graphMode: graphMode === '2d' ? '3d' : '2d' });
+          break;
+        }
       }
     },
   }));

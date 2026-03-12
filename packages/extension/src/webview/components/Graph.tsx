@@ -46,7 +46,7 @@ import { exportAsSvg } from '../lib/export/exportSvg';
 import { exportAsJpeg } from '../lib/export/exportJpeg';
 import { exportAsJson } from '../lib/export/exportJson';
 import { exportAsMarkdown } from '../lib/export/exportMarkdown';
-import { useGraphStore } from '../store';
+import { useGraphStore, graphStore } from '../store';
 import { WebviewPluginHost } from '../pluginHost';
 
 /** Yellow color for favorites */
@@ -1133,6 +1133,28 @@ export default function Graph({
             event.preventDefault();
             event.stopPropagation();
             postMessage({ type: 'REDO' });
+          }
+          break;
+        // Toolbar shortcuts (fallback when VS Code command doesn't fire)
+        case 'v':
+        case 'V':
+          if (!isMod) {
+            event.preventDefault();
+            graphStore.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
+          }
+          break;
+        case 'l':
+        case 'L':
+          if (!isMod) {
+            event.preventDefault();
+            graphStore.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
+          }
+          break;
+        case 't':
+        case 'T':
+          if (!isMod) {
+            event.preventDefault();
+            graphStore.getState().handleExtensionMessage({ type: 'TOGGLE_DIMENSION' });
           }
           break;
       }

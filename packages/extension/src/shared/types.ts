@@ -511,7 +511,11 @@ export type ExtensionToWebviewMessage =
   | { type: 'CONTEXT_MENU_ITEMS'; payload: { items: IPluginContextMenuItem[] } }
   | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }
   | { type: 'FOLDER_NODE_COLOR_UPDATED'; payload: { folderNodeColor: string } }
-  | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } };
+  | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } }
+  // Toolbar keyboard shortcuts
+  | { type: 'CYCLE_VIEW' }
+  | { type: 'CYCLE_LAYOUT' }
+  | { type: 'TOGGLE_DIMENSION' };
 
 /**
  * Messages sent from the Webview to the Extension.

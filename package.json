@@ -102,6 +102,18 @@
 			{
 				"command": "codegraphy.clearCache",
 				"title": "CodeGraphy: Clear Cache and Refresh"
+			},
+			{
+				"command": "codegraphy.cycleView",
+				"title": "CodeGraphy: Cycle View"
+			},
+			{
+				"command": "codegraphy.cycleLayout",
+				"title": "CodeGraphy: Cycle Layout"
+			},
+			{
+				"command": "codegraphy.toggleDimension",
+				"title": "CodeGraphy: Toggle 2D/3D"
 			}
 		],
 		"keybindings": [
@@ -141,6 +153,21 @@
 				"command": "codegraphy.redo",
 				"key": "ctrl+y",
 				"when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
+			},
+			{
+				"command": "codegraphy.cycleView",
+				"key": "v",
+				"when": "codegraphy.graphFocused"
+			},
+			{
+				"command": "codegraphy.cycleLayout",
+				"key": "l",
+				"when": "codegraphy.graphFocused"
+			},
+			{
+				"command": "codegraphy.toggleDimension",
+				"key": "t",
+				"when": "codegraphy.graphFocused"
 			}
 		],
 		"viewsContainers": {
