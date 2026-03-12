@@ -104,6 +104,43 @@ type FGLink = LinkObject & {
   curvature?: number;
 };
 
+type StrengthForce = { strength: (value: number) => unknown };
+type LinkDistanceForce = { distance: (value: number) => unknown; strength: (value: number) => unknown };
+
+type FG2DExtMethods = FG2DMethods<FGNode, FGLink> & {
+  d3Alpha?: (value: number) => unknown;
+  linkDirectionalArrowLength?: (value: number) => unknown;
+  linkDirectionalArrowRelPos?: (value: number | ((link: LinkObject) => number)) => unknown;
+  linkDirectionalParticles?: (value: number | ((link: LinkObject) => number)) => unknown;
+  linkDirectionalParticleWidth?: (value: number) => unknown;
+  linkDirectionalParticleSpeed?: (value: number) => unknown;
+  linkDirectionalArrowColor?: (value: string | ((link: LinkObject) => string)) => unknown;
+  linkDirectionalParticleColor?: (value: string | ((link: LinkObject) => string)) => unknown;
+};
+
+function isObjectRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function hasStrength(force: unknown): force is StrengthForce {
+  return isObjectRecord(force) && typeof force.strength === 'function';
+}
+
+function hasDistanceAndStrength(force: unknown): force is LinkDistanceForce {
+  return isObjectRecord(force) && typeof force.distance === 'function' && typeof force.strength === 'function';
+}
+
+function as2DExtMethods(instance: FG2DMethods<FGNode, FGLink> | undefined): FG2DExtMethods | undefined {
+  return instance as FG2DExtMethods | undefined;
+}
+
+function setSpriteVisible(sprite: SpriteText, visible: boolean): void {
+  (sprite as unknown as { visible: boolean }).visible = visible;
+}
+
+type ForceGraph2DRefObject = React.MutableRefObject<FG2DMethods<NodeObject, LinkObject> | undefined>;
+type ForceGraph3DRefObject = React.MutableRefObject<FG3DMethods<NodeObject, LinkObject> | undefined>;
+
 // ─── Pure helpers ──────────────────────────────────────────────────────────
 
 function calculateNodeSizes(
@@ -270,7 +307,7 @@ export default function Graph({
   const contextTargetRef = useRef<string[]>([]);
   const dataRef = useRef(data);
   const nodeSizeModeRef = useRef(nodeSizeMode);
-  const tooltipTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tooltipTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hoveredNodeRef = useRef<FGNode | null>(null);
   const tooltipRafRef = useRef<number | null>(null);
   const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
@@ -406,12 +443,11 @@ export default function Graph({
   // so existing nodes barely move when new nodes are added/removed.
   useEffect(() => {
     if (!timelineActive) return;
-    const fg = fg2dRef.current;
+    const fg = as2DExtMethods(fg2dRef.current);
     if (fg) {
       // Let force-graph process the new data first, then dampen alpha
       requestAnimationFrame(() => {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        (fg as any).d3Alpha?.(0.05);
+        fg.d3Alpha?.(0.05);
       });
     }
   }, [data, timelineActive]);
@@ -669,8 +705,7 @@ export default function Graph({
 
     // Label
     const sprite = new SpriteText(node.label);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (sprite as any).visible = showLabelsRef.current;
+    setSpriteVisible(sprite, showLabelsRef.current);
     sprite.color = '#ffffff';
     sprite.textHeight = 6;
     sprite.offsetY = (node.size / DEFAULT_NODE_SIZE) * 8 + 4;
@@ -779,14 +814,13 @@ export default function Graph({
 
   /** Returns the node's bounding rect in screen coordinates (accounts for zoom). */
   const getNodeScreenRect = useCallback((node: FGNode): { x: number; y: number; radius: number } | null => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fg = fg2dRef.current as any;
+    const fg = fg2dRef.current;
     const canvas = containerRef.current?.querySelector('canvas');
-    if (!fg?.graph2ScreenCoords || !canvas) return null;
+    if (!fg || !canvas) return null;
 
     const screen = fg.graph2ScreenCoords(node.x ?? 0, node.y ?? 0);
     const rect = canvas.getBoundingClientRect();
-    const zoom: number = fg.zoom?.() ?? 1;
+    const zoom = fg.zoom();
     const radius = (node.size ?? DEFAULT_NODE_SIZE) * zoom;
     return { x: screen.x + rect.left, y: screen.y + rect.top, radius };
   }, []);
@@ -918,9 +952,8 @@ export default function Graph({
         const nodeId = targetPaths[0];
         const node = graphDataRef.current.nodes.find(n => n.id === nodeId);
         if (node && graphMode === '2d') {
-          (fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined)?.centerAt(node.x ?? 0, node.y ?? 0, 300);
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (fg2dRef.current as any)?.zoom?.(1.5, 300);
+          fg2dRef.current?.centerAt(node.x ?? 0, node.y ?? 0, 300);
+          fg2dRef.current?.zoom(1.5, 300);
         } else if (node && graphMode === '3d') {
           fg3dRef.current?.zoomToFit(300, 20, n => (n as FGNode).id === nodeId);
         }
@@ -940,7 +973,7 @@ export default function Graph({
         postMessage({ type: 'REFRESH_GRAPH' });
         break;
       case 'fitView':
-        if (graphMode === '2d') (fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined)?.zoomToFit(300, 20);
+        if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
         else fg3dRef.current?.zoomToFit(300, 20);
         break;
       case 'createFile':
@@ -962,24 +995,26 @@ export default function Graph({
       const message = event.data;
       switch (message.type) {
         case 'FIT_VIEW':
-          if (graphMode === '2d') (fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined)?.zoomToFit(300, 20);
+          if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
           else fg3dRef.current?.zoomToFit(300, 20);
           break;
         case 'ZOOM_IN': {
           if (graphMode === '2d') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const fg = fg2dRef.current as any;
-            const current = fg?.zoom?.() ?? 1;
-            fg?.zoom?.(current * 1.2, 150);
+            const fg = fg2dRef.current;
+            if (fg) {
+              const current = fg.zoom();
+              fg.zoom(current * 1.2, 150);
+            }
           }
           break;
         }
         case 'ZOOM_OUT': {
           if (graphMode === '2d') {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const fg = fg2dRef.current as any;
-            const current = fg?.zoom?.() ?? 1;
-            fg?.zoom?.(current / 1.2, 150);
+            const fg = fg2dRef.current;
+            if (fg) {
+              const current = fg.zoom();
+              fg.zoom(current / 1.2, 150);
+            }
           }
           break;
         }
@@ -1033,7 +1068,7 @@ export default function Graph({
       switch (event.key) {
         case '0':
           event.preventDefault();
-          if (graphMode === '2d') (fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined)?.zoomToFit(300, 20);
+          if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
           else fg3dRef.current?.zoomToFit(300, 20);
           break;
         case 'Escape':
@@ -1063,19 +1098,21 @@ export default function Graph({
         case '+':
           if (!isMod && graphMode === '2d') {
             event.preventDefault();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const fg = fg2dRef.current as any;
-            const s = fg?.zoom?.() ?? 1;
-            fg?.zoom?.(s * 1.2, 150);
+            const fg = fg2dRef.current;
+            if (fg) {
+              const s = fg.zoom();
+              fg.zoom(s * 1.2, 150);
+            }
           }
           break;
         case '-':
           if (!isMod && graphMode === '2d') {
             event.preventDefault();
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const fg = fg2dRef.current as any;
-            const s = fg?.zoom?.() ?? 1;
-            fg?.zoom?.(s / 1.2, 150);
+            const fg = fg2dRef.current;
+            if (fg) {
+              const s = fg.zoom();
+              fg.zoom(s / 1.2, 150);
+            }
           }
           break;
         case 'z':
@@ -1104,7 +1141,7 @@ export default function Graph({
 
   useEffect(() => {
     const fg = graphMode === '2d'
-      ? (fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined)
+      ? fg2dRef.current
       : fg3dRef.current;
     if (!fg || !physicsInitialisedRef.current) return;
 
@@ -1118,21 +1155,17 @@ export default function Graph({
     if (!changed) return;
     prevPhysicsRef.current = { ...physicsSettings };
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const chargeForce = fg.d3Force('charge') as any;
-    if (chargeForce) chargeForce.strength(toD3Repel(physicsSettings.repelForce));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const d3LinkForce = fg.d3Force('link') as any;
-    if (d3LinkForce) {
+    const chargeForce = fg.d3Force('charge');
+    if (hasStrength(chargeForce)) chargeForce.strength(toD3Repel(physicsSettings.repelForce));
+    const d3LinkForce = fg.d3Force('link');
+    if (hasDistanceAndStrength(d3LinkForce)) {
       d3LinkForce.distance(physicsSettings.linkDistance);
       d3LinkForce.strength(physicsSettings.linkForce);
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const d3ForceX = fg.d3Force('forceX') as any;
-    if (d3ForceX) d3ForceX.strength(physicsSettings.centerForce);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const d3ForceY = fg.d3Force('forceY') as any;
-    if (d3ForceY) d3ForceY.strength(physicsSettings.centerForce);
+    const d3ForceX = fg.d3Force('forceX');
+    if (hasStrength(d3ForceX)) d3ForceX.strength(physicsSettings.centerForce);
+    const d3ForceY = fg.d3Force('forceY');
+    if (hasStrength(d3ForceY)) d3ForceY.strength(physicsSettings.centerForce);
     fg.d3ReheatSimulation();
   }, [physicsSettings, graphMode]);
 
@@ -1173,8 +1206,7 @@ export default function Graph({
 
   useEffect(() => {
     for (const sprite of spritesRef.current.values()) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (sprite as any).visible = showLabels;
+      setSpriteVisible(sprite, showLabels);
     }
   }, [showLabels]);
 
@@ -1182,17 +1214,15 @@ export default function Graph({
   // stale directional settings until methods are invoked on the graph instance.
   useEffect(() => {
     if (graphMode !== '2d') return;
-    const fg = fg2dRef.current as FG2DMethods<FGNode, FGLink> | undefined;
+    const fg = as2DExtMethods(fg2dRef.current);
     if (!fg) return;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const fg2d = fg as any;
-    fg2d.linkDirectionalArrowLength?.(directionMode === 'arrows' ? DIRECTIONAL_ARROW_LENGTH_2D : 0);
-    fg2d.linkDirectionalArrowRelPos?.(getArrowRelPos);
-    fg2d.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
-    fg2d.linkDirectionalParticleWidth?.(particleSize);
-    fg2d.linkDirectionalParticleSpeed?.(particleSpeed);
-    fg2d.linkDirectionalArrowColor?.(getArrowColor);
-    fg2d.linkDirectionalParticleColor?.(getParticleColor);
+    fg.linkDirectionalArrowLength?.(directionMode === 'arrows' ? DIRECTIONAL_ARROW_LENGTH_2D : 0);
+    fg.linkDirectionalArrowRelPos?.(getArrowRelPos);
+    fg.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
+    fg.linkDirectionalParticleWidth?.(particleSize);
+    fg.linkDirectionalParticleSpeed?.(particleSpeed);
+    fg.linkDirectionalArrowColor?.(getArrowColor);
+    fg.linkDirectionalParticleColor?.(getParticleColor);
     fg.d3ReheatSimulation();
     fg.resumeAnimation?.();
   }, [graphMode, directionMode, particleSpeed, particleSize, getArrowColor, getParticleColor, getLinkParticles, getArrowRelPos]);
@@ -1243,8 +1273,7 @@ export default function Graph({
 
   // Shared force-graph props
   const sharedProps = {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    graphData: graphData as any,
+    graphData: graphData as unknown as { nodes: NodeObject[]; links: LinkObject[] },
     width: containerSize.width || undefined,
     height: containerSize.height || undefined,
     onNodeClick: handleNodeClick as (node: NodeObject, event: MouseEvent) => void,
@@ -1264,12 +1293,10 @@ export default function Graph({
     if (physicsInitialisedRef.current) return;
     physicsInitialisedRef.current = true;
     prevPhysicsRef.current = { ...DEFAULT_PHYSICS };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const chargeForce = instance.d3Force('charge') as any;
-    if (chargeForce) chargeForce.strength(toD3Repel(physicsSettings.repelForce));
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const d3LinkForce = instance.d3Force('link') as any;
-    if (d3LinkForce) {
+    const chargeForce = instance.d3Force('charge');
+    if (hasStrength(chargeForce)) chargeForce.strength(toD3Repel(physicsSettings.repelForce));
+    const d3LinkForce = instance.d3Force('link');
+    if (hasDistanceAndStrength(d3LinkForce)) {
       d3LinkForce.distance(physicsSettings.linkDistance);
       d3LinkForce.strength(physicsSettings.linkForce);
     }
@@ -1281,17 +1308,12 @@ export default function Graph({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handle2DRef = useCallback((instance: FG2DMethods<FGNode, FGLink> | undefined) => {
-    if (!instance) return;
-    fg2dRef.current = instance;
-    initPhysics(instance);
-  }, [initPhysics]);
-
-  const handle3DRef = useCallback((instance: FG3DMethods<FGNode, FGLink> | undefined) => {
-    if (!instance) return;
-    fg3dRef.current = instance;
-    initPhysics(instance);
-  }, [initPhysics]);
+  useEffect(() => {
+    const instance = graphMode === '2d' ? fg2dRef.current : fg3dRef.current;
+    if (instance) {
+      initPhysics(instance);
+    }
+  }, [graphMode, initPhysics, graphData]);
 
   return (
     <ContextMenu>
@@ -1305,8 +1327,7 @@ export default function Graph({
         >
           {graphMode === '2d' ? (
             <ForceGraph2D
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ref={handle2DRef as any}
+              ref={fg2dRef as unknown as ForceGraph2DRefObject}
               {...sharedProps}
               backgroundColor={bgColor}
               nodeCanvasObject={nodeCanvasObject as (node: NodeObject, ctx: CanvasRenderingContext2D, globalScale: number) => void}
@@ -1337,15 +1358,13 @@ export default function Graph({
             />
           ) : (
             <ForceGraph3D
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              ref={handle3DRef as any}
+              ref={fg3dRef as unknown as ForceGraph3DRefObject}
               {...sharedProps}
               backgroundColor={bgColor}
               nodeVal={(node) => (node as FGNode).size / DEFAULT_NODE_SIZE}
               nodeLabel=""
               nodeThreeObjectExtend={false}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              nodeThreeObject={nodeThreeObject as (node: NodeObject) => any}
+              nodeThreeObject={nodeThreeObject as (node: NodeObject) => THREE.Object3D}
               linkColor={getLinkColor as (link: LinkObject) => string}
               linkWidth={getLinkWidth as (link: LinkObject) => number}
               linkDirectionalArrowLength={directionMode === 'arrows' ? 6 : 0}
