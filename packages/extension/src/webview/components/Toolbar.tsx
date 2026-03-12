@@ -9,8 +9,7 @@ import {
   mdiCircleOutline,
   mdiSphere,
 } from '@mdi/js';
-import { MdiIcon } from './icons/MdiIcon';
-import { DagDefaultIcon, DagRadialIcon, DagTopDownIcon, DagLeftRightIcon } from './icons/DagIcons';
+import { MdiIcon, DagDefaultIcon, DagRadialIcon, DagTopDownIcon, DagLeftRightIcon } from './icons';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
