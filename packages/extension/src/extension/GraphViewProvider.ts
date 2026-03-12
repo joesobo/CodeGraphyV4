@@ -34,6 +34,11 @@ import {
 } from './actions';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
 import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
+import { saveExportedPng } from './export/savePng';
+import { saveExportedSvg } from './export/saveSvg';
+import { saveExportedJpeg } from './export/saveJpeg';
+import { saveExportedJson } from './export/saveJson';
+import { saveExportedMarkdown } from './export/saveMarkdown';
 
 /** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -1231,6 +1236,13 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Request the webview to export connections as Markdown.
+   */
+  public requestExportMarkdown(): void {
+    this._sendMessage({ type: 'REQUEST_EXPORT_MD' });
+  }
+
+  /**
    * Sends GROUPS_UPDATED with imagePath resolved to imageUrl.
    *
    * imagePath formats:
@@ -1382,23 +1394,23 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
           
         case 'EXPORT_PNG':
-          await this._saveExportedPng(message.payload.dataUrl, message.payload.filename);
+          await saveExportedPng(message.payload.dataUrl, message.payload.filename);
           break;
           
         case 'EXPORT_SVG':
-          await this._saveExportedSvg(message.payload.svg, message.payload.filename);
+          await saveExportedSvg(message.payload.svg, message.payload.filename);
           break;
 
         case 'EXPORT_JPEG':
-          await this._saveExportedJpeg(message.payload.dataUrl, message.payload.filename);
+          await saveExportedJpeg(message.payload.dataUrl, message.payload.filename);
           break;
 
         case 'EXPORT_JSON':
-          await this._saveExportedJson(message.payload.json, message.payload.filename);
+          await saveExportedJson(message.payload.json, message.payload.filename);
           break;
 
         case 'EXPORT_MD':
-          await this._saveExportedMd(message.payload.markdown, message.payload.filename);
+          await saveExportedMarkdown(message.payload.markdown, message.payload.filename);
           break;
           
         case 'GET_PHYSICS_SETTINGS':
@@ -2040,206 +2052,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       } catch (error) {
         vscode.window.showErrorMessage(`Failed to create file: ${toErrorMessage(error)}`);
       }
-    }
-  }
-
-  /**
-   * Save exported PNG to file.
-   */
-  private async _saveExportedPng(dataUrl: string, filename?: string): Promise<void> {
-    try {
-      // Prompt user for save location
-      const defaultFilename = filename || `codegraphy-${Date.now()}.png`;
-      // Use workspace folder as default location, fall back to home directory
-      const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-      const defaultUri = workspaceFolder
-        ? vscode.Uri.joinPath(workspaceFolder, defaultFilename)
-        : vscode.Uri.file(defaultFilename);
-      const saveUri = await vscode.window.showSaveDialog({
-        defaultUri,
-        filters: { 'PNG Images': ['png'] },
-        saveLabel: 'Export',
-        title: 'Export Graph as PNG',
-      });
-
-      if (!saveUri) return; // User cancelled
-
-      // Convert data URL to binary
-      const base64Data = dataUrl.replace(/^data:image\/png;base64,/, '');
-      const buffer = Buffer.from(base64Data, 'base64');
-
-      // Write file
-      await vscode.workspace.fs.writeFile(saveUri, buffer);
-      
-      // Show success message with option to open
-      const action = await vscode.window.showInformationMessage(
-        `Graph exported to ${saveUri.fsPath}`,
-        'Open File',
-        'Open Folder'
-      );
-
-      if (action === 'Open File') {
-        await vscode.commands.executeCommand('vscode.open', saveUri);
-      } else if (action === 'Open Folder') {
-        await vscode.commands.executeCommand('revealFileInOS', saveUri);
-      }
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to export PNG: ${toErrorMessage(error)}`);
-    }
-  }
-
-  /**
-   * Save exported JPEG to file.
-   */
-  private async _saveExportedJpeg(dataUrl: string, filename?: string): Promise<void> {
-    try {
-      const defaultFilename = filename || `codegraphy-${Date.now()}.jpg`;
-      const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-      const defaultUri = workspaceFolder
-        ? vscode.Uri.joinPath(workspaceFolder, defaultFilename)
-        : vscode.Uri.file(defaultFilename);
-      const saveUri = await vscode.window.showSaveDialog({
-        defaultUri,
-        filters: { 'JPEG Images': ['jpg', 'jpeg'] },
-        saveLabel: 'Export',
-        title: 'Export Graph as JPEG',
-      });
-
-      if (!saveUri) return;
-
-      const base64Data = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
-      const buffer = Buffer.from(base64Data, 'base64');
-      await vscode.workspace.fs.writeFile(saveUri, buffer);
-
-      const action = await vscode.window.showInformationMessage(
-        `Graph exported to ${saveUri.fsPath}`,
-        'Open File',
-        'Open Folder'
-      );
-
-      if (action === 'Open File') {
-        await vscode.commands.executeCommand('vscode.open', saveUri);
-      } else if (action === 'Open Folder') {
-        await vscode.commands.executeCommand('revealFileInOS', saveUri);
-      }
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to export JPEG: ${toErrorMessage(error)}`);
-    }
-  }
-
-  /**
-   * Save exported SVG to file.
-   */
-  private async _saveExportedSvg(svgContent: string, filename?: string): Promise<void> {
-    try {
-      const defaultFilename = filename || `codegraphy-${Date.now()}.svg`;
-      // Use workspace folder as default location, fall back to home directory
-      const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-      const defaultUri = workspaceFolder
-        ? vscode.Uri.joinPath(workspaceFolder, defaultFilename)
-        : vscode.Uri.file(defaultFilename);
-      const saveUri = await vscode.window.showSaveDialog({
-        defaultUri,
-        filters: { 'SVG Images': ['svg'] },
-        saveLabel: 'Export',
-        title: 'Export Graph as SVG',
-      });
-
-      if (!saveUri) return;
-
-      const buffer = Buffer.from(svgContent, 'utf-8');
-      await vscode.workspace.fs.writeFile(saveUri, buffer);
-
-      const action = await vscode.window.showInformationMessage(
-        `Graph exported to ${saveUri.fsPath}`,
-        'Open File',
-        'Open Folder'
-      );
-
-      if (action === 'Open File') {
-        await vscode.commands.executeCommand('vscode.open', saveUri);
-      } else if (action === 'Open Folder') {
-        await vscode.commands.executeCommand('revealFileInOS', saveUri);
-      }
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to export SVG: ${toErrorMessage(error)}`);
-    }
-  }
-
-  /**
-   * Save exported connections JSON to file.
-   */
-  private async _saveExportedJson(jsonContent: string, filename?: string): Promise<void> {
-    try {
-      const defaultFilename = filename || `codegraphy-${Date.now()}.json`;
-      // Use workspace folder as default location, fall back to home directory
-      const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-      const defaultUri = workspaceFolder
-        ? vscode.Uri.joinPath(workspaceFolder, defaultFilename)
-        : vscode.Uri.file(defaultFilename);
-      const saveUri = await vscode.window.showSaveDialog({
-        defaultUri,
-        filters: { 'JSON Files': ['json'] },
-        saveLabel: 'Export',
-        title: 'Export Graph Connections as JSON',
-      });
-
-      if (!saveUri) return;
-
-      const buffer = Buffer.from(jsonContent, 'utf-8');
-      await vscode.workspace.fs.writeFile(saveUri, buffer);
-
-      const action = await vscode.window.showInformationMessage(
-        `Graph connections exported to ${saveUri.fsPath}`,
-        'Open File',
-        'Open Folder'
-      );
-
-      if (action === 'Open File') {
-        await vscode.commands.executeCommand('vscode.open', saveUri);
-      } else if (action === 'Open Folder') {
-        await vscode.commands.executeCommand('revealFileInOS', saveUri);
-      }
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to export JSON: ${toErrorMessage(error)}`);
-    }
-  }
-
-  /**
-   * Save exported Markdown to file.
-   */
-  private async _saveExportedMd(markdownContent: string, filename?: string): Promise<void> {
-    try {
-      const defaultFilename = filename || `codegraphy-${Date.now()}.md`;
-      const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
-      const defaultUri = workspaceFolder
-        ? vscode.Uri.joinPath(workspaceFolder, defaultFilename)
-        : vscode.Uri.file(defaultFilename);
-      const saveUri = await vscode.window.showSaveDialog({
-        defaultUri,
-        filters: { 'Markdown Files': ['md'] },
-        saveLabel: 'Export',
-        title: 'Export Graph as Markdown',
-      });
-
-      if (!saveUri) return;
-
-      const buffer = Buffer.from(markdownContent, 'utf-8');
-      await vscode.workspace.fs.writeFile(saveUri, buffer);
-
-      const action = await vscode.window.showInformationMessage(
-        `Graph exported to ${saveUri.fsPath}`,
-        'Open File',
-        'Open Folder'
-      );
-
-      if (action === 'Open File') {
-        await vscode.commands.executeCommand('vscode.open', saveUri);
-      } else if (action === 'Open Folder') {
-        await vscode.commands.executeCommand('revealFileInOS', saveUri);
-      }
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to export Markdown: ${toErrorMessage(error)}`);
     }
   }
 

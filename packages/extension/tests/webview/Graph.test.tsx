@@ -578,6 +578,35 @@ describe('Export Functionality', () => {
     }
   });
 
+  it('should handle REQUEST_EXPORT_MD message and send EXPORT_MD response', async () => {
+    graphStore.setState({ nodeSizeMode: 'file-size' });
+    render(<Graph data={mockData} />);
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    });
+
+    await act(async () => {
+      const event = new MessageEvent('message', { data: { type: 'REQUEST_EXPORT_MD' } });
+      window.dispatchEvent(event);
+    });
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 50));
+    });
+
+    const messages = getSentMessages();
+    const exportMsg = messages.find((m: { type: string }) => m.type === 'EXPORT_MD');
+
+    expect(exportMsg).toBeTruthy();
+
+    if (exportMsg) {
+      const payload = (exportMsg as { payload: { markdown: string; filename?: string } }).payload;
+      expect(payload.markdown).toContain('# CodeGraphy Export');
+      expect(payload.filename).toMatch(/^codegraphy-connections-.*\.md$/);
+    }
+  });
+
   it('should handle REQUEST_EXPORT_SVG message and send EXPORT_SVG response', async () => {
     render(<Graph data={mockData} />);
 
