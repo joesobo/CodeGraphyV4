@@ -141,7 +141,7 @@ export default function App(): React.ReactElement {
           };
         }
       }
-      return { ...node, color: DEFAULT_NODE_COLOR };
+      return { ...node, color: node.color || DEFAULT_NODE_COLOR };
     });
 
     return { ...base, nodes: coloredNodes };

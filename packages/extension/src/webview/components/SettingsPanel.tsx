@@ -187,6 +187,9 @@ export default function SettingsPanel({
     };
   }, []);
 
+  const directionColorTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const folderColorTimerRef = useRef<ReturnType<typeof setTimeout>>();
+
   if (!isOpen) return null;
 
   // Split groups into user-defined and defaults (built-in + plugin)
@@ -457,14 +460,20 @@ export default function SettingsPanel({
   const handleDirectionColorChange = (value: string) => {
     const normalized = value.toUpperCase();
     setDirectionColor(normalized);
-    postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: normalized } });
+    clearTimeout(directionColorTimerRef.current);
+    directionColorTimerRef.current = setTimeout(() => {
+      postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: normalized } });
+    }, 150);
   };
 
   const resolvedFolderNodeColor = isHexColor(folderNodeColor) ? folderNodeColor : '#A1A1AA';
   const handleFolderNodeColorChange = (value: string) => {
     const normalized = value.toUpperCase();
     setFolderNodeColor(normalized);
-    postMessage({ type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: normalized } });
+    clearTimeout(folderColorTimerRef.current);
+    folderColorTimerRef.current = setTimeout(() => {
+      postMessage({ type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: normalized } });
+    }, 150);
   };
 
   const handleParticleSpeedChange = (level: number) => {
