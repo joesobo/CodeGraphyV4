@@ -25,6 +25,7 @@ import {
   EdgeDecorationPayload,
   NodeShape2D,
   NodeShape3D,
+  DirectionMode,
 } from '../../shared/types';
 import { computeLinkCurvature } from '../lib/linkCurvature';
 import { drawShape } from '../lib/shapes2D';
@@ -1037,7 +1038,15 @@ export default function Graph({
           exportAsPng(containerRef.current);
           break;
         case 'REQUEST_EXPORT_SVG':
-          exportAsSvg(graphDataRef.current.nodes, dataRef.current.edges);
+          exportAsSvg(graphDataRef.current.nodes, graphDataRef.current.links, {
+            directionMode,
+            directionColor,
+            showLabels: showLabelsRef.current,
+            theme: themeRef.current,
+          });
+          break;
+        case 'REQUEST_EXPORT_JPEG':
+          exportAsJpeg(containerRef.current);
           break;
         case 'REQUEST_EXPORT_JSON':
           exportAsJson(graphDataRef.current.nodes, dataRef.current, nodeSizeModeRef.current);
@@ -1509,46 +1518,181 @@ function exportAsPng(container: HTMLDivElement | null): void {
   }
 }
 
-function exportAsSvg(nodes: FGNode[], originalEdges: IGraphEdge[]): void {
+function exportAsJpeg(container: HTMLDivElement | null): void {
+  try {
+    const canvas = container?.querySelector('canvas') as HTMLCanvasElement | null;
+    if (!canvas) { console.error('[CodeGraphy] No canvas found'); return; }
+
+    const exportCanvas = document.createElement('canvas');
+    exportCanvas.width = canvas.width;
+    exportCanvas.height = canvas.height;
+    const ctx = exportCanvas.getContext('2d');
+    if (!ctx) return;
+    ctx.fillStyle = '#18181b';
+    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+    ctx.drawImage(canvas, 0, 0);
+    const dataUrl = exportCanvas.toDataURL('image/jpeg', 0.92);
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    postMessage({ type: 'EXPORT_JPEG', payload: { dataUrl, filename: `codegraphy-${timestamp}.jpg` } });
+  } catch (error) {
+    console.error('[CodeGraphy] JPEG export failed:', error);
+  }
+}
+
+interface SvgExportOptions {
+  directionMode: DirectionMode;
+  directionColor: string;
+  showLabels: boolean;
+  theme: string;
+}
+
+function svgShapePath(shape: NodeShape2D | undefined, x: number, y: number, size: number): string {
+  switch (shape) {
+    case 'square':
+      return `M${x - size},${y - size}h${size * 2}v${size * 2}h${-size * 2}Z`;
+    case 'diamond':
+      return `M${x},${y - size}L${x + size},${y}L${x},${y + size}L${x - size},${y}Z`;
+    case 'triangle': {
+      const pts = [0, 1, 2].map(i => {
+        const a = -Math.PI / 2 + i * (2 * Math.PI / 3);
+        return `${x + size * Math.cos(a)},${y + size * Math.sin(a)}`;
+      });
+      return `M${pts.join('L')}Z`;
+    }
+    case 'hexagon': {
+      const pts = [0, 1, 2, 3, 4, 5].map(i => {
+        const a = -Math.PI / 2 + i * (2 * Math.PI / 6);
+        return `${x + size * Math.cos(a)},${y + size * Math.sin(a)}`;
+      });
+      return `M${pts.join('L')}Z`;
+    }
+    case 'star': {
+      const pts = [];
+      for (let i = 0; i < 10; i++) {
+        const r = i % 2 === 0 ? size : size * 0.4;
+        const a = -Math.PI / 2 + i * (Math.PI / 5);
+        pts.push(`${x + r * Math.cos(a)},${y + r * Math.sin(a)}`);
+      }
+      return `M${pts.join('L')}Z`;
+    }
+    default: // circle — handled separately
+      return '';
+  }
+}
+
+function exportAsSvg(nodes: FGNode[], links: FGLink[], options: SvgExportOptions): void {
   try {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     for (const n of nodes) {
       const x = (n as FGNode & { x?: number }).x ?? 0;
       const y = (n as FGNode & { y?: number }).y ?? 0;
-      minX = Math.min(minX, x); minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+      minX = Math.min(minX, x - n.size); minY = Math.min(minY, y - n.size);
+      maxX = Math.max(maxX, x + n.size); maxY = Math.max(maxY, y + n.size);
     }
     if (!isFinite(minX)) { minX = -100; minY = -100; maxX = 100; maxY = 100; }
-    const pad = 100;
+    const pad = 50;
     minX -= pad; minY -= pad; maxX += pad; maxY += pad;
     const width = maxX - minX;
     const height = maxY - minY;
 
+    const arrowColor = resolveDirectionColor(options.directionColor);
+    const showArrows = options.directionMode === 'arrows';
+    const bgColor = options.theme === 'light' ? '#ffffff' : '#18181b';
+    const labelColor = options.theme === 'light' ? '#1e1e1e' : '#e2e8f0';
+
     const parts: string[] = [
       `<?xml version="1.0" encoding="UTF-8"?>`,
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${width}" height="${height}">`,
-      `<rect x="${minX}" y="${minY}" width="${width}" height="${height}" fill="#18181b"/>`,
-      `<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">`,
-      `<polygon points="0 0, 10 3.5, 0 7" fill="#71717a"/></marker></defs>`,
+      `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="${minX} ${minY} ${width} ${height}" width="${width}" height="${height}">`,
+      `<rect x="${minX}" y="${minY}" width="${width}" height="${height}" fill="${bgColor}"/>`,
     ];
 
+    if (showArrows) {
+      parts.push(
+        `<defs><marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">`,
+        `<polygon points="0 0, 10 3.5, 0 7" fill="${arrowColor}"/></marker></defs>`,
+      );
+    }
+
+    // Build node position map
     const posMap = new Map(nodes.map(n => [n.id, { x: (n as FGNode & { x?: number }).x ?? 0, y: (n as FGNode & { y?: number }).y ?? 0 }]));
 
-    for (const edge of originalEdges) {
-      const from = posMap.get(edge.from);
-      const to = posMap.get(edge.to);
-      if (from && to) {
-        parts.push(`<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="#71717a" stroke-width="1" marker-end="url(#arrowhead)"/>`);
+    // Links
+    for (const link of links) {
+      const srcId = typeof link.source === 'string' ? link.source : (link.source as FGNode)?.id;
+      const tgtId = typeof link.target === 'string' ? link.target : (link.target as FGNode)?.id;
+      const from = posMap.get(srcId);
+      const to = posMap.get(tgtId);
+      if (!from || !to) continue;
+
+      const color = link.baseColor ?? '#475569';
+      const strokeWidth = link.bidirectional ? 2 : 1;
+      const markerAttr = showArrows ? ' marker-end="url(#arrowhead)"' : '';
+      const curvature = link.curvature ?? 0;
+
+      if (Math.abs(curvature) > 0.001) {
+        // Curved link via quadratic bezier
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const cx = (from.x + to.x) / 2 - curvature * dy;
+        const cy = (from.y + to.y) / 2 + curvature * dx;
+        parts.push(`<path d="M${from.x},${from.y} Q${cx},${cy} ${to.x},${to.y}" fill="none" stroke="${color}" stroke-width="${strokeWidth}"${markerAttr}/>`);
+      } else {
+        parts.push(`<line x1="${from.x}" y1="${from.y}" x2="${to.x}" y2="${to.y}" stroke="${color}" stroke-width="${strokeWidth}"${markerAttr}/>`);
       }
     }
+
+    // Nodes
+    const clipDefs: string[] = [];
+    const imageElements: string[] = [];
 
     for (const n of nodes) {
       const pos = posMap.get(n.id);
-      if (pos) {
-        parts.push(`<circle cx="${pos.x}" cy="${pos.y}" r="${n.size}" fill="${n.color}" stroke="${n.borderColor}" stroke-width="2"/>`);
-        parts.push(`<text x="${pos.x}" y="${pos.y + n.size + 15}" text-anchor="middle" fill="#fafafa" font-size="12" font-family="sans-serif">${escapeXml(n.label)}</text>`);
+      if (!pos) continue;
+
+      const shape = n.shape2D ?? 'circle';
+      const shapePath = svgShapePath(shape, pos.x, pos.y, n.size);
+
+      if (shape === 'circle') {
+        parts.push(`<circle cx="${pos.x}" cy="${pos.y}" r="${n.size}" fill="${n.color}" stroke="${n.borderColor}" stroke-width="${n.borderWidth}"/>`);
+      } else {
+        parts.push(`<path d="${shapePath}" fill="${n.color}" stroke="${n.borderColor}" stroke-width="${n.borderWidth}"/>`);
+      }
+
+      // Image overlay clipped to shape — embed as base64 so the SVG is self-contained
+      if (n.imageUrl) {
+        const img = getImage(n.imageUrl);
+        if (img) {
+          const clipId = `clip-${n.id.replace(/[^a-zA-Z0-9]/g, '_')}`;
+          const imgSize = n.size * 1.2;
+          const clipShape = shape === 'circle'
+            ? `<circle cx="${pos.x}" cy="${pos.y}" r="${n.size * 0.8}"/>`
+            : svgShapePath(shape, pos.x, pos.y, n.size * 0.8);
+          const clipContent = shape === 'circle' ? clipShape : `<path d="${clipShape}"/>`;
+          clipDefs.push(`<clipPath id="${clipId}">${clipContent}</clipPath>`);
+          // Convert to base64 data URI
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth || 64;
+          c.height = img.naturalHeight || 64;
+          const cCtx = c.getContext('2d');
+          if (cCtx) {
+            cCtx.drawImage(img, 0, 0);
+            const dataUri = c.toDataURL('image/png');
+            imageElements.push(`<image href="${dataUri}" x="${pos.x - imgSize / 2}" y="${pos.y - imgSize / 2}" width="${imgSize}" height="${imgSize}" clip-path="url(#${clipId})"/>`);
+          }
+        }
+      }
+
+      // Labels
+      if (options.showLabels) {
+        parts.push(`<text x="${pos.x}" y="${pos.y + n.size + 14}" text-anchor="middle" fill="${labelColor}" font-size="12" font-family="sans-serif">${escapeXml(n.label)}</text>`);
       }
     }
+
+    // Insert clip defs and images
+    if (clipDefs.length > 0) {
+      parts.splice(3, 0, `<defs>${clipDefs.join('')}</defs>`);
+    }
+    parts.push(...imageElements);
 
     parts.push(`</svg>`);
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);

@@ -227,6 +227,12 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.exportJpeg', () => {
+      provider.requestExportJpeg();
+    })
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand('codegraphy.exportJson', () => {
       provider.requestExportJson();
     })

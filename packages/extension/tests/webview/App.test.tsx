@@ -129,6 +129,22 @@ describe('App', () => {
     const svg = document.querySelector('svg');
     expect(svg).toBeInTheDocument();
   });
+
+  it('should render the export button when graph is loaded', async () => {
+    render(<App />);
+    await act(async () => {
+      messageListeners.forEach((listener) => listener(new MessageEvent('message', {
+        data: {
+          type: 'GRAPH_DATA_UPDATED',
+          payload: {
+            nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+            edges: [],
+          },
+        },
+      })));
+    });
+    expect(screen.getByTitle('Export')).toBeInTheDocument();
+  });
 });
 
 // ── Message Handler Coverage ────────────────────────────────────────────────

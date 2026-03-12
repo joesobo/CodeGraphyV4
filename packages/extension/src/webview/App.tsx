@@ -7,9 +7,17 @@ import SettingsPanel from './components/SettingsPanel';
 import PluginsPanel from './components/PluginsPanel';
 import Timeline from './components/Timeline';
 import { Button } from './components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from './components/ui/dropdown-menu';
 import { useTheme } from './hooks/useTheme';
 import { IGraphData, IGraphNode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
 import { postMessage } from './lib/vscodeApi';
+import { buildMarkdownExport } from './lib/exportMd';
 import { useGraphStore, graphStore } from './store';
 import type { SearchOptions } from './components/SearchBar';
 import { WebviewPluginHost } from './pluginHost';
@@ -332,6 +340,41 @@ export default function App(): React.ReactElement {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 10A8 8 0 0010 4M4 14a8 8 0 0010 6" />
                 </svg>
               </Button>
+              {/* Export dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="icon" className="bg-popover/80 backdrop-blur-sm" title="Export">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v12" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11l4 4 4-4" />
+                    </svg>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" side="top">
+                  <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_PNG' }, '*')}>
+                    Export as PNG
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_SVG' }, '*')}>
+                    Export as SVG
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JPEG' }, '*')}>
+                    Export as JPEG
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JSON' }, '*')}>
+                    Export as JSON
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onSelect={() => {
+                    const data = graphStore.getState().graphData;
+                    if (!data) return;
+                    const markdown = buildMarkdownExport(data);
+                    postMessage({ type: 'EXPORT_MD', payload: { markdown } });
+                  }}>
+                    Export as Markdown
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
               {/* Plugins button (puzzle piece icon) */}
               <Button
                 variant="outline"

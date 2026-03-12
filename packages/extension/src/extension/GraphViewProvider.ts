@@ -1219,6 +1219,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /**
    * Request the webview to export layout as JSON.
    */
+  public requestExportJpeg(): void {
+    this._sendMessage({ type: 'REQUEST_EXPORT_JPEG' });
+  }
+
   public requestExportJson(): void {
     this._sendMessage({ type: 'REQUEST_EXPORT_JSON' });
   }
@@ -1381,9 +1385,17 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         case 'EXPORT_SVG':
           await this._saveExportedSvg(message.payload.svg, message.payload.filename);
           break;
-          
+
+        case 'EXPORT_JPEG':
+          await this._saveExportedJpeg(message.payload.dataUrl, message.payload.filename);
+          break;
+
         case 'EXPORT_JSON':
           await this._saveExportedJson(message.payload.json, message.payload.filename);
+          break;
+
+        case 'EXPORT_MD':
+          await this._saveExportedMd(message.payload.markdown, message.payload.filename);
           break;
           
         case 'GET_PHYSICS_SETTINGS':
@@ -2074,6 +2086,45 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
+   * Save exported JPEG to file.
+   */
+  private async _saveExportedJpeg(dataUrl: string, filename?: string): Promise<void> {
+    try {
+      const defaultFilename = filename || `codegraphy-${Date.now()}.jpg`;
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
+      const defaultUri = workspaceFolder
+        ? vscode.Uri.joinPath(workspaceFolder, defaultFilename)
+        : vscode.Uri.file(defaultFilename);
+      const saveUri = await vscode.window.showSaveDialog({
+        defaultUri,
+        filters: { 'JPEG Images': ['jpg', 'jpeg'] },
+        saveLabel: 'Export',
+        title: 'Export Graph as JPEG',
+      });
+
+      if (!saveUri) return;
+
+      const base64Data = dataUrl.replace(/^data:image\/jpeg;base64,/, '');
+      const buffer = Buffer.from(base64Data, 'base64');
+      await vscode.workspace.fs.writeFile(saveUri, buffer);
+
+      const action = await vscode.window.showInformationMessage(
+        `Graph exported to ${saveUri.fsPath}`,
+        'Open File',
+        'Open Folder'
+      );
+
+      if (action === 'Open File') {
+        await vscode.commands.executeCommand('vscode.open', saveUri);
+      } else if (action === 'Open Folder') {
+        await vscode.commands.executeCommand('revealFileInOS', saveUri);
+      }
+    } catch (error) {
+      vscode.window.showErrorMessage(`Failed to export JPEG: ${toErrorMessage(error)}`);
+    }
+  }
+
+  /**
    * Save exported SVG to file.
    */
   private async _saveExportedSvg(svgContent: string, filename?: string): Promise<void> {
@@ -2148,6 +2199,44 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       }
     } catch (error) {
       vscode.window.showErrorMessage(`Failed to export JSON: ${toErrorMessage(error)}`);
+    }
+  }
+
+  /**
+   * Save exported Markdown to file.
+   */
+  private async _saveExportedMd(markdownContent: string, filename?: string): Promise<void> {
+    try {
+      const defaultFilename = filename || `codegraphy-${Date.now()}.md`;
+      const workspaceFolder = vscode.workspace.workspaceFolders?.[0]?.uri;
+      const defaultUri = workspaceFolder
+        ? vscode.Uri.joinPath(workspaceFolder, defaultFilename)
+        : vscode.Uri.file(defaultFilename);
+      const saveUri = await vscode.window.showSaveDialog({
+        defaultUri,
+        filters: { 'Markdown Files': ['md'] },
+        saveLabel: 'Export',
+        title: 'Export Graph as Markdown',
+      });
+
+      if (!saveUri) return;
+
+      const buffer = Buffer.from(markdownContent, 'utf-8');
+      await vscode.workspace.fs.writeFile(saveUri, buffer);
+
+      const action = await vscode.window.showInformationMessage(
+        `Graph exported to ${saveUri.fsPath}`,
+        'Open File',
+        'Open Folder'
+      );
+
+      if (action === 'Open File') {
+        await vscode.commands.executeCommand('vscode.open', saveUri);
+      } else if (action === 'Open Folder') {
+        await vscode.commands.executeCommand('revealFileInOS', saveUri);
+      }
+    } catch (error) {
+      vscode.window.showErrorMessage(`Failed to export Markdown: ${toErrorMessage(error)}`);
     }
   }
 

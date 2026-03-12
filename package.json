@@ -88,6 +88,10 @@
 				"title": "CodeGraphy: Export as SVG"
 			},
 			{
+				"command": "codegraphy.exportJpeg",
+				"title": "CodeGraphy: Export as JPEG"
+			},
+			{
 				"command": "codegraphy.exportJson",
 				"title": "CodeGraphy: Export Layout as JSON"
 			},
