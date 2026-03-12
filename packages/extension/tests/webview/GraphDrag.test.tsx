@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import Graph from '../../src/webview/components/Graph';
-import { IGraphData } from '../../src/shared/types';
+import { IGraphData, DEFAULT_DIRECTION_COLOR } from '../../src/shared/types';
 import { graphStore } from '../../src/webview/store';
 import ForceGraph2D, { mockMethods } from 'react-force-graph-2d';
+import { getSentMessages } from '../helpers/sentMessages';
 
 const mockData: IGraphData = {
   nodes: [
@@ -32,7 +33,7 @@ function setStore(overrides: Record<string, unknown> = {}) {
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     nodeSizeMode: 'connections',
     directionMode: 'arrows',
-    directionColor: '#475569',
+    directionColor: DEFAULT_DIRECTION_COLOR,
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -120,7 +121,7 @@ describe('Graph: force-graph rendering', () => {
       ctx: CanvasRenderingContext2D,
       globalScale: number
     ) => void;
-    const link = props.graphData.links.find((l: { bidirectional?: boolean }) => l.bidirectional);
+    const link = props.graphData.links.find((link: { bidirectional?: boolean }) => link.bidirectional);
     expect(link).toBeTruthy();
 
     const ctx = {
@@ -165,7 +166,7 @@ describe('Graph: force-graph rendering', () => {
     render(<Graph data={bidirectionalData} />);
 
     let props = ForceGraph2D.getLastProps();
-    let link = props.graphData.links.find((l: { bidirectional?: boolean }) => l.bidirectional);
+    let link = props.graphData.links.find((link: { bidirectional?: boolean }) => link.bidirectional);
     expect(link).toBeTruthy();
     expect(props.linkCanvasObjectMode(link)).toBe('replace');
 
@@ -174,7 +175,7 @@ describe('Graph: force-graph rendering', () => {
     });
 
     props = ForceGraph2D.getLastProps();
-    link = props.graphData.links.find((l: { bidirectional?: boolean }) => l.bidirectional);
+    link = props.graphData.links.find((link: { bidirectional?: boolean }) => link.bidirectional);
     expect(link).toBeTruthy();
     expect(props.linkCanvasObjectMode(link)).toBe('after');
   });
@@ -213,33 +214,29 @@ describe('Graph: force-graph rendering', () => {
 
   it('sends PHYSICS_STABILIZED when onEngineStop fires', () => {
     render(<Graph data={mockData} />);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sentMessages: unknown[] = (globalThis as any).__vscodeSentMessages;
-    const before = sentMessages.length;
+    const before = getSentMessages().length;
 
     act(() => {
       ForceGraph2D.simulateEngineStop();
     });
 
-    const after = sentMessages.length;
-    expect(after).toBeGreaterThan(before);
-    const stabilized = sentMessages.find((m: { type: string }) => m.type === 'PHYSICS_STABILIZED');
+    const messages = getSentMessages();
+    expect(messages.length).toBeGreaterThan(before);
+    const stabilized = messages.find(msg => msg.type === 'PHYSICS_STABILIZED');
     expect(stabilized).toBeTruthy();
   });
 
   it('sends NODE_SELECTED when a node is clicked', () => {
     render(<Graph data={mockData} />);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sentMessages: unknown[] = (globalThis as any).__vscodeSentMessages;
-    const before = sentMessages.length;
+    const before = getSentMessages().length;
 
     act(() => {
       ForceGraph2D.simulateNodeClick({ id: 'a.ts' });
     });
 
-    const after = sentMessages.length;
-    expect(after).toBeGreaterThan(before);
-    const selected = sentMessages.find((m: { type: string }) => m.type === 'NODE_SELECTED');
+    const allMessages = getSentMessages();
+    expect(allMessages.length).toBeGreaterThan(before);
+    const selected = allMessages.find(msg => msg.type === 'NODE_SELECTED');
     expect(selected).toBeTruthy();
   });
 

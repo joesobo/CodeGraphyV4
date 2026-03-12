@@ -16,6 +16,7 @@ import type {
   EdgeDecorationPayload,
   IPluginContextMenuItem,
 } from '../shared/types';
+import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_DIRECTION_COLOR } from '../shared/types';
 import type { SearchOptions } from './components/SearchBar';
 import { postMessage } from './lib/vscodeApi';
 
@@ -139,7 +140,7 @@ export function createGraphStore() {
     bidirectionalMode: 'separate',
     showOrphans: true,
     directionMode: 'arrows',
-    directionColor: '#475569',
+    directionColor: DEFAULT_DIRECTION_COLOR,
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -153,7 +154,7 @@ export function createGraphStore() {
     availableViews: [],
     activeViewId: 'codegraphy.connections',
     dagMode: null,
-    folderNodeColor: '#A1A1AA',
+    folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
     pluginStatuses: [],
     nodeDecorations: {},
     edgeDecorations: {},
@@ -301,7 +302,7 @@ export function createGraphStore() {
         case 'CYCLE_VIEW': {
           const { availableViews, activeViewId } = get();
           if (availableViews.length === 0) break;
-          const idx = availableViews.findIndex(v => v.id === activeViewId);
+          const idx = availableViews.findIndex(view => view.id === activeViewId);
           const next = availableViews[(idx + 1) % availableViews.length];
           postMessage({ type: 'CHANGE_VIEW', payload: { viewId: next.id } });
           break;

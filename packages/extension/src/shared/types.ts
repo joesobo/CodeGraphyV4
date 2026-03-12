@@ -654,6 +654,20 @@ export const FILE_TYPE_COLORS: Record<string, string> = {
  */
 export const DEFAULT_NODE_COLOR = '#A1A1AA'; // Soft zinc
 
+/** Default color for folder nodes in Folder View. Same as DEFAULT_NODE_COLOR. */
+export const DEFAULT_FOLDER_NODE_COLOR = '#A1A1AA';
+
+/** Default color for direction indicators (arrows/particles). */
+export const DEFAULT_DIRECTION_COLOR = '#475569';
+
+/** Validates and normalizes a hex color string, returning the default if invalid. */
+export function normalizeHexColor(value: string | undefined, defaultColor: string): string {
+  if (!value) return defaultColor;
+  const trimmed = value.trim();
+  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toUpperCase();
+  return defaultColor;
+}
+
 /**
  * Get the display color for a file based on its extension.
  * 

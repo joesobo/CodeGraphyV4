@@ -5,7 +5,7 @@
  */
 
 import { IView, IViewContext } from './types';
-import { IGraphData } from '../../shared/types';
+import { IGraphData, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/types';
 
 /**
  * Connections view - the default view.
@@ -154,7 +154,7 @@ export const folderView: IView = {
     const folderNodes = Array.from(folderPaths).map(fp => ({
       id: fp,
       label: fp === '(root)' ? '(root)' : fp.split('/').pop()!,
-      color: context.folderNodeColor ?? '#A1A1AA',
+      color: context.folderNodeColor ?? DEFAULT_FOLDER_NODE_COLOR,
       nodeType: 'folder' as const,
     }));
 

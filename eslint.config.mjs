@@ -58,6 +58,7 @@ export default defineConfig(
       'react/prop-types': 'off',
       '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'id-length': ['error', { min: 2, exceptions: ['i', 'j', 'x', 'y', 'z', 'w', 'h', '_', 'e', 'n', 'r', 'g', 'b', 's'] }],
     },
   },
   {

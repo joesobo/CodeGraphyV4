@@ -1,11 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createGraphStore } from '../../src/webview/store';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../src/shared/types';
+import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
 describe('GraphStore', () => {
   let store: ReturnType<typeof createGraphStore>;
 
   beforeEach(() => {
     store = createGraphStore();
+    clearSentMessages();
   });
 
   it('has correct initial state', () => {
@@ -15,7 +18,7 @@ describe('GraphStore', () => {
     expect(state.searchQuery).toBe('');
     expect(state.favorites).toEqual(new Set());
     expect(state.directionMode).toBe('arrows');
-    expect(state.directionColor).toBe('#475569');
+    expect(state.directionColor).toBe(DEFAULT_DIRECTION_COLOR);
     expect(state.particleSpeed).toBe(0.005);
     expect(state.particleSize).toBe(4);
     expect(state.showLabels).toBe(true);
@@ -173,7 +176,7 @@ describe('GraphStore', () => {
 
   it('has correct initial folderNodeColor state', () => {
     const state = store.getState();
-    expect(state.folderNodeColor).toBe('#A1A1AA');
+    expect(state.folderNodeColor).toBe(DEFAULT_FOLDER_NODE_COLOR);
   });
 
   it('handles FOLDER_NODE_COLOR_UPDATED message', () => {
@@ -192,8 +195,7 @@ describe('GraphStore', () => {
     expect(store.getState().graphMode).toBe('2d');
   });
 
-  it('handles CYCLE_VIEW message', () => {
-    // Set up available views
+  it('CYCLE_VIEW advances to next available view', () => {
     store.getState().handleExtensionMessage({
       type: 'VIEWS_UPDATED',
       payload: {
@@ -205,25 +207,71 @@ describe('GraphStore', () => {
       },
     });
     store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
-    // Should have sent a CHANGE_VIEW message
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const messages = (globalThis as any).__vscodeSentMessages;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const changeViewMsg = messages.find((m: any) => m.type === 'CHANGE_VIEW');
-    expect(changeViewMsg).toBeTruthy();
-    expect(changeViewMsg.payload.viewId).toBe('codegraphy.depth-graph');
+    const msg = findMessage('CHANGE_VIEW');
+    expect(msg).toBeTruthy();
+    expect(msg!.payload.viewId).toBe('codegraphy.depth-graph');
   });
 
-  it('handles CYCLE_LAYOUT message', () => {
-    // dagMode starts as null, cycling should go to 'radialout'
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (globalThis as any).__vscodeSentMessages.length = 0;
+  it('CYCLE_VIEW wraps from last view back to first', () => {
+    store.getState().handleExtensionMessage({
+      type: 'VIEWS_UPDATED',
+      payload: {
+        views: [
+          { id: 'codegraphy.connections', name: 'Connections', icon: 'graph', description: '', active: false },
+          { id: 'codegraphy.depth-graph', name: 'Depth Graph', icon: 'target', description: '', active: true },
+        ],
+        activeViewId: 'codegraphy.depth-graph',
+      },
+    });
+    store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
+    const msg = findMessage('CHANGE_VIEW');
+    expect(msg).toBeTruthy();
+    expect(msg!.payload.viewId).toBe('codegraphy.connections');
+  });
+
+  it('CYCLE_VIEW is a no-op when no views available', () => {
+    store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
+    expect(findMessage('CHANGE_VIEW')).toBeUndefined();
+  });
+
+  it('CYCLE_LAYOUT cycles through all DAG modes in order', () => {
+    // null → radialout
     store.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const messages = (globalThis as any).__vscodeSentMessages;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const dagMsg = messages.find((m: any) => m.type === 'UPDATE_DAG_MODE');
-    expect(dagMsg).toBeTruthy();
-    expect(dagMsg.payload.dagMode).toBe('radialout');
+    let msg = findMessage('UPDATE_DAG_MODE');
+    expect(msg!.payload.dagMode).toBe('radialout');
+
+    // Simulate the echo: extension sets dagMode to radialout
+    store.getState().handleExtensionMessage({
+      type: 'DAG_MODE_UPDATED',
+      payload: { dagMode: 'radialout' },
+    });
+
+    // radialout → td
+    clearSentMessages();
+    store.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
+    msg = findMessage('UPDATE_DAG_MODE');
+    expect(msg!.payload.dagMode).toBe('td');
+
+    store.getState().handleExtensionMessage({
+      type: 'DAG_MODE_UPDATED',
+      payload: { dagMode: 'td' },
+    });
+
+    // td → lr
+    clearSentMessages();
+    store.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
+    msg = findMessage('UPDATE_DAG_MODE');
+    expect(msg!.payload.dagMode).toBe('lr');
+
+    store.getState().handleExtensionMessage({
+      type: 'DAG_MODE_UPDATED',
+      payload: { dagMode: 'lr' },
+    });
+
+    // lr → null (wraps around)
+    clearSentMessages();
+    store.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
+    msg = findMessage('UPDATE_DAG_MODE');
+    expect(msg!.payload.dagMode).toBeNull();
   });
 });

@@ -44,7 +44,7 @@ export function ViewSwitcher({ views, activeViewId, onViewChange }: ViewSwitcher
     onViewChange?.(viewId);
   };
 
-  const activeView = views.find(v => v.id === activeViewId);
+  const activeView = views.find(view => view.id === activeViewId);
 
   return (
     <div className="view-switcher flex items-center gap-2">

@@ -129,8 +129,8 @@ suite('Plugin: Favorites', function () {
       );
 
       const disposable = api.onWebviewMessage((msg: unknown) => {
-        const m = msg as { type: string; payload: unknown };
-        if (m.type === 'FAVORITES_UPDATED') {
+        const message = msg as { type: string; payload: unknown };
+        if (message.type === 'FAVORITES_UPDATED') {
           clearTimeout(timer);
           disposable.dispose();
           resolve();

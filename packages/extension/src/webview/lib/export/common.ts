@@ -1,6 +1,5 @@
 import { graphStore } from '../../store';
-
-const DEFAULT_DIRECTION_COLOR = '#475569';
+import { DEFAULT_DIRECTION_COLOR } from '../../../shared/types';
 const EXPORT_BACKGROUND_COLOR = '#18181b';
 
 interface CanvasExportOptions {

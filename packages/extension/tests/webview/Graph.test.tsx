@@ -5,15 +5,7 @@ import { IGraphData } from '../../src/shared/types';
 import { graphStore } from '../../src/webview/store';
 import ForceGraph2D from 'react-force-graph-2d';
 
-// Helper to get sent messages from the global mock (set up in tests/setup.ts)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const getSentMessages = (): unknown[] => (globalThis as any).__vscodeSentMessages;
-
-// Helper to clear sent messages between tests
-const clearSentMessages = (): void => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (globalThis as any).__vscodeSentMessages.length = 0;
-};
+import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
 describe('Graph', () => {
   const mockData: IGraphData = {
@@ -249,10 +241,9 @@ describe('Context Menu Content and Actions', () => {
       fireEvent.click(screen.getByText('Open File'));
     });
 
-    const messages = getSentMessages();
-    const openMsg = messages.find((m: { type: string }) => m.type === 'OPEN_FILE');
+    const openMsg = findMessage('OPEN_FILE');
     expect(openMsg).toBeTruthy();
-    expect((openMsg as { payload: { path: string } }).payload.path).toBe('src/app.ts');
+    expect(openMsg!.payload.path).toBe('src/app.ts');
   });
 
   it('should send TOGGLE_FAVORITE message when clicking favorite option', async () => {
@@ -272,10 +263,9 @@ describe('Context Menu Content and Actions', () => {
       fireEvent.click(screen.getByText('Add to Favorites'));
     });
 
-    const messages = getSentMessages();
-    const favMsg = messages.find((m: { type: string }) => m.type === 'TOGGLE_FAVORITE');
+    const favMsg = findMessage('TOGGLE_FAVORITE');
     expect(favMsg).toBeTruthy();
-    expect((favMsg as { payload: { paths: string[] } }).payload.paths).toContain('src/app.ts');
+    expect(favMsg!.payload.paths).toContain('src/app.ts');
   });
 
   it('should send REFRESH_GRAPH message when clicking Refresh Graph', async () => {
@@ -295,8 +285,7 @@ describe('Context Menu Content and Actions', () => {
       fireEvent.click(screen.getByText('Refresh Graph'));
     });
 
-    const messages = getSentMessages();
-    expect(messages.find((m: { type: string }) => m.type === 'REFRESH_GRAPH')).toBeTruthy();
+    expect(findMessage('REFRESH_GRAPH')).toBeTruthy();
   });
 
   it('should send DELETE_FILES message when clicking Delete File', async () => {
@@ -316,10 +305,9 @@ describe('Context Menu Content and Actions', () => {
       fireEvent.click(screen.getByText('Delete File'));
     });
 
-    const messages = getSentMessages();
-    const deleteMsg = messages.find((m: { type: string }) => m.type === 'DELETE_FILES');
+    const deleteMsg = findMessage('DELETE_FILES');
     expect(deleteMsg).toBeTruthy();
-    expect((deleteMsg as { payload: { paths: string[] } }).payload.paths).toContain('src/app.ts');
+    expect(deleteMsg!.payload.paths).toContain('src/app.ts');
   });
 });
 
@@ -591,31 +579,27 @@ describe('Export Functionality', () => {
       await new Promise(resolve => setTimeout(resolve, 50));
     });
 
-    const messages = getSentMessages();
-    const exportMsg = messages.find((m: { type: string }) => m.type === 'EXPORT_JSON');
-
+    const exportMsg = findMessage('EXPORT_JSON');
     expect(exportMsg).toBeTruthy();
 
-    if (exportMsg) {
-      const payload = (exportMsg as { payload: { json: string; filename?: string } }).payload;
-      expect(payload.json).toBeDefined();
-      expect(payload.filename).toMatch(/^codegraphy-connections-.*\.json$/);
+    const { json, filename } = exportMsg!.payload;
+    expect(json).toBeDefined();
+    expect(filename).toMatch(/^codegraphy-connections-.*\.json$/);
 
-      const parsed = JSON.parse(payload.json);
-      expect(parsed.format).toBe('codegraphy-export');
-      expect(parsed.version).toBe('2.0');
-      expect(parsed.exportedAt).toBeDefined();
-      expect(parsed.scope.graph).toBe('current-view');
-      expect(parsed.summary.totalFiles).toBe(2);
-      expect(parsed.summary.totalConnections).toBe(1);
+    const parsed = JSON.parse(json);
+    expect(parsed.format).toBe('codegraphy-export');
+    expect(parsed.version).toBe('2.0');
+    expect(parsed.exportedAt).toBeDefined();
+    expect(parsed.scope.graph).toBe('current-view');
+    expect(parsed.summary.totalFiles).toBe(2);
+    expect(parsed.summary.totalConnections).toBe(1);
 
-      expect(parsed.sections.connections.ungrouped['src/app.ts']).toBeDefined();
-      expect(parsed.sections.connections.ungrouped['src/app.ts'].imports).toEqual({ unattributed: ['src/utils.ts'] });
+    expect(parsed.sections.connections.ungrouped['src/app.ts']).toBeDefined();
+    expect(parsed.sections.connections.ungrouped['src/app.ts'].imports).toEqual({ unattributed: ['src/utils.ts'] });
 
-      expect(parsed.sections.connections.ungrouped['src/utils.ts']).toBeDefined();
-      expect(parsed.sections.connections.ungrouped['src/utils.ts'].imports).toBeUndefined();
-      expect(parsed.sections.images).toEqual({});
-    }
+    expect(parsed.sections.connections.ungrouped['src/utils.ts']).toBeDefined();
+    expect(parsed.sections.connections.ungrouped['src/utils.ts'].imports).toBeUndefined();
+    expect(parsed.sections.images).toEqual({});
   });
 
   it('should handle REQUEST_EXPORT_MD message and send EXPORT_MD response', async () => {
@@ -635,16 +619,11 @@ describe('Export Functionality', () => {
       await new Promise(resolve => setTimeout(resolve, 50));
     });
 
-    const messages = getSentMessages();
-    const exportMsg = messages.find((m: { type: string }) => m.type === 'EXPORT_MD');
-
+    const exportMsg = findMessage('EXPORT_MD');
     expect(exportMsg).toBeTruthy();
 
-    if (exportMsg) {
-      const payload = (exportMsg as { payload: { markdown: string; filename?: string } }).payload;
-      expect(payload.markdown).toContain('# CodeGraphy Export');
-      expect(payload.filename).toMatch(/^codegraphy-connections-.*\.md$/);
-    }
+    expect(exportMsg!.payload.markdown).toContain('# CodeGraphy Export');
+    expect(exportMsg!.payload.filename).toMatch(/^codegraphy-connections-.*\.md$/);
   });
 
   it('should handle REQUEST_EXPORT_SVG message and send EXPORT_SVG response', async () => {
@@ -663,20 +642,16 @@ describe('Export Functionality', () => {
       await new Promise(resolve => setTimeout(resolve, 50));
     });
 
-    const messages = getSentMessages();
-    const exportMsg = messages.find((m: { type: string }) => m.type === 'EXPORT_SVG');
-
+    const exportMsg = findMessage('EXPORT_SVG');
     expect(exportMsg).toBeTruthy();
 
-    if (exportMsg) {
-      const payload = (exportMsg as { payload: { svg: string; filename?: string } }).payload;
-      expect(payload.svg).toBeDefined();
-      expect(payload.filename).toMatch(/^codegraphy-.*\.svg$/);
-      expect(payload.svg).toContain('<?xml version="1.0" encoding="UTF-8"?>');
-      expect(payload.svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"');
-      expect(payload.svg).toContain('</svg>');
-      expect(payload.svg).toContain('fill="#18181b"');
-      expect(payload.svg).toContain('<marker id="arrowhead"');
-    }
+    const { svg, filename } = exportMsg!.payload;
+    expect(svg).toBeDefined();
+    expect(filename).toMatch(/^codegraphy-.*\.svg$/);
+    expect(svg).toContain('<?xml version="1.0" encoding="UTF-8"?>');
+    expect(svg).toContain('<svg xmlns="http://www.w3.org/2000/svg"');
+    expect(svg).toContain('</svg>');
+    expect(svg).toContain('fill="#18181b"');
+    expect(svg).toContain('<marker id="arrowhead"');
   });
 });

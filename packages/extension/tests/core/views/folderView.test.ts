@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { folderView } from '../../../src/core/views/coreViews';
-import { IGraphData } from '../../../src/shared/types';
+import { IGraphData, DEFAULT_FOLDER_NODE_COLOR } from '../../../src/shared/types';
 import { IViewContext } from '../../../src/core/views/types';
 
 const defaultContext: IViewContext = {
@@ -45,7 +45,7 @@ describe('folderView', () => {
     expect(folderNodes).toHaveLength(1);
     expect(folderNodes[0].id).toBe('src');
     expect(folderNodes[0].label).toBe('src');
-    expect(folderNodes[0].color).toBe('#A1A1AA');
+    expect(folderNodes[0].color).toBe(DEFAULT_FOLDER_NODE_COLOR);
 
     expect(fileNodes).toHaveLength(2);
   });
@@ -221,6 +221,81 @@ describe('folderView', () => {
 
     // No import edge from index.ts to src/app.ts
     expect(result.edges.find(e => e.from === 'index.ts')).toBeUndefined();
+  });
+
+  it('applies DEFAULT_FOLDER_NODE_COLOR to all folder nodes', () => {
+    const input: IGraphData = {
+      nodes: [
+        { id: 'src/components/A.ts', label: 'A.ts', color: '#93C5FD' },
+        { id: 'lib/utils/B.ts', label: 'B.ts', color: '#67E8F9' },
+        { id: 'index.ts', label: 'index.ts', color: '#86EFAC' },
+      ],
+      edges: [],
+    };
+
+    const result = folderView.transform(input, defaultContext);
+    const folderNodes = result.nodes.filter(n => n.nodeType === 'folder');
+
+    expect(folderNodes.length).toBeGreaterThan(0);
+    for (const folder of folderNodes) {
+      expect(folder.color).toBe(DEFAULT_FOLDER_NODE_COLOR);
+    }
+  });
+
+  it('uses custom folderNodeColor from context when provided', () => {
+    const input: IGraphData = {
+      nodes: [{ id: 'src/main.ts', label: 'main.ts', color: '#93C5FD' }],
+      edges: [],
+    };
+
+    const customContext: IViewContext = {
+      activePlugins: new Set(),
+      folderNodeColor: '#FF0000',
+    };
+
+    const result = folderView.transform(input, customContext);
+    const folderNodes = result.nodes.filter(n => n.nodeType === 'folder');
+
+    for (const folder of folderNodes) {
+      expect(folder.color).toBe('#FF0000');
+    }
+  });
+
+  it('removes all file-to-file import edges', () => {
+    const input: IGraphData = {
+      nodes: [
+        { id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' },
+        { id: 'src/b.ts', label: 'b.ts', color: '#93C5FD' },
+        { id: 'lib/c.ts', label: 'c.ts', color: '#93C5FD' },
+      ],
+      edges: [
+        { id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts' },
+        { id: 'src/a.ts->lib/c.ts', from: 'src/a.ts', to: 'lib/c.ts' },
+      ],
+    };
+
+    const result = folderView.transform(input, defaultContext);
+
+    // No edge should have a file node as its source
+    for (const edge of result.edges) {
+      const fromNode = result.nodes.find(n => n.id === edge.from);
+      expect(fromNode!.nodeType).toBe('folder');
+    }
+  });
+
+  it('handles folders with dots in their names', () => {
+    const input: IGraphData = {
+      nodes: [
+        { id: 'src/my.lib/file.ts', label: 'file.ts', color: '#93C5FD' },
+      ],
+      edges: [],
+    };
+
+    const result = folderView.transform(input, defaultContext);
+    const folderIds = result.nodes.filter(n => n.nodeType === 'folder').map(n => n.id).sort();
+
+    expect(folderIds).toEqual(['src', 'src/my.lib']);
+    expect(result.nodes.find(n => n.id === 'src/my.lib')!.label).toBe('my.lib');
   });
 
   it('deduplicates shared folder ancestors across files', () => {

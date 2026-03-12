@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IPhysicsSettings, NodeSizeMode, DirectionMode, BidirectionalEdgeMode, IGroup, NodeShape2D, NodeShape3D } from '../../shared/types';
+import { IPhysicsSettings, NodeSizeMode, DirectionMode, BidirectionalEdgeMode, IGroup, NodeShape2D, NodeShape3D, DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
@@ -50,7 +50,6 @@ const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
 
 /** Delay before persisting slider updates to VS Code settings. */
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
-const DEFAULT_DIRECTION_COLOR = '#475569';
 const PARTICLE_SPEED_MIN_INTERNAL = 0.0005;
 const PARTICLE_SPEED_MAX_INTERNAL = 0.005;
 const PARTICLE_SPEED_MIN_DISPLAY = 1;
@@ -70,6 +69,12 @@ function particleSpeedFromDisplay(level: number): number {
   const clamped = Math.min(PARTICLE_SPEED_MAX_DISPLAY, Math.max(PARTICLE_SPEED_MIN_DISPLAY, level));
   const ratio = (clamped - PARTICLE_SPEED_MIN_DISPLAY) / (PARTICLE_SPEED_MAX_DISPLAY - PARTICLE_SPEED_MIN_DISPLAY);
   return Number((PARTICLE_SPEED_MIN_INTERNAL + ratio * (PARTICLE_SPEED_MAX_INTERNAL - PARTICLE_SPEED_MIN_INTERNAL)).toFixed(6));
+}
+
+function clearTimerRefs(ref: React.MutableRefObject<Partial<Record<string, ReturnType<typeof setTimeout>>>>) {
+  for (const timer of Object.values(ref.current)) {
+    if (timer) clearTimeout(timer);
+  }
 }
 
 /** Delay before persisting color picker changes to avoid rapid updates while dragging. */
@@ -103,7 +108,6 @@ export default function SettingsPanel({
   isOpen,
   onClose,
 }: SettingsPanelProps): React.ReactElement | null {
-  // Read state from store
   const settings = useGraphStore(s => s.physicsSettings);
   const setPhysicsSettings = useGraphStore(s => s.setPhysicsSettings);
   const groups = useGraphStore(s => s.groups);
@@ -172,18 +176,10 @@ export default function SettingsPanel({
     const colorTimersRef = colorDebounceRef;
     const patternTimersRef = patternDebounceRef;
     return () => {
-      for (const timer of Object.values(timersRef.current)) {
-        if (timer) clearTimeout(timer);
-      }
-      for (const timer of Object.values(particleTimersRef.current)) {
-        if (timer) clearTimeout(timer);
-      }
-      for (const timer of Object.values(colorTimersRef.current)) {
-        if (timer) clearTimeout(timer);
-      }
-      for (const timer of Object.values(patternTimersRef.current)) {
-        if (timer) clearTimeout(timer);
-      }
+      clearTimerRefs(timersRef);
+      clearTimerRefs(particleTimersRef);
+      clearTimerRefs(colorTimersRef);
+      clearTimerRefs(patternTimersRef);
     };
   }, []);
 
@@ -369,7 +365,7 @@ export default function SettingsPanel({
   };
 
   const handleDeleteFilterPattern = (pattern: string) => {
-    const updated = filterPatterns.filter(p => p !== pattern);
+    const updated = filterPatterns.filter(pat => pat !== pattern);
     setFilterPatterns(updated);
     postMessage({ type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: updated } });
   };
@@ -466,7 +462,7 @@ export default function SettingsPanel({
     }, 150);
   };
 
-  const resolvedFolderNodeColor = isHexColor(folderNodeColor) ? folderNodeColor : '#A1A1AA';
+  const resolvedFolderNodeColor = isHexColor(folderNodeColor) ? folderNodeColor : DEFAULT_FOLDER_NODE_COLOR;
   const handleFolderNodeColorChange = (value: string) => {
     const normalized = value.toUpperCase();
     setFolderNodeColor(normalized);
@@ -507,7 +503,7 @@ export default function SettingsPanel({
         <div className="px-3 pb-3">
 
           {/* Forces section */}
-          <SectionHeader title="Forces" open={forcesOpen} onToggle={() => setForcesOpen(v => !v)} />
+          <SectionHeader title="Forces" open={forcesOpen} onToggle={() => setForcesOpen(prev => !prev)} />
           {forcesOpen && (
             <div className="mb-2 space-y-3 pt-1">
               {/* Repel Force */}
@@ -521,7 +517,7 @@ export default function SettingsPanel({
                   max={20}
                   step={1}
                   value={[settings.repelForce]}
-                  onValueChange={(v) => handlePhysicsChange('repelForce', v[0])}
+                  onValueChange={(vals) => handlePhysicsChange('repelForce', vals[0])}
                   onValueCommit={() => flushPhysicsSetting('repelForce')}
                 />
               </div>
@@ -536,7 +532,7 @@ export default function SettingsPanel({
                   max={1}
                   step={0.01}
                   value={[settings.centerForce]}
-                  onValueChange={(v) => handlePhysicsChange('centerForce', v[0])}
+                  onValueChange={(vals) => handlePhysicsChange('centerForce', vals[0])}
                   onValueCommit={() => flushPhysicsSetting('centerForce')}
                 />
               </div>
@@ -551,7 +547,7 @@ export default function SettingsPanel({
                   max={500}
                   step={10}
                   value={[settings.linkDistance]}
-                  onValueChange={(v) => handlePhysicsChange('linkDistance', v[0])}
+                  onValueChange={(vals) => handlePhysicsChange('linkDistance', vals[0])}
                   onValueCommit={() => flushPhysicsSetting('linkDistance')}
                 />
               </div>
@@ -566,7 +562,7 @@ export default function SettingsPanel({
                   max={1}
                   step={0.01}
                   value={[settings.linkForce]}
-                  onValueChange={(v) => handlePhysicsChange('linkForce', v[0])}
+                  onValueChange={(vals) => handlePhysicsChange('linkForce', vals[0])}
                   onValueCommit={() => flushPhysicsSetting('linkForce')}
                 />
               </div>
@@ -574,13 +570,13 @@ export default function SettingsPanel({
           )}
 
           {/* Groups section */}
-          <SectionHeader title="Groups" open={groupsOpen} onToggle={() => setGroupsOpen(v => !v)} />
+          <SectionHeader title="Groups" open={groupsOpen} onToggle={() => setGroupsOpen(prev => !prev)} />
           {groupsOpen && (
             <div className="mb-2 space-y-2">
               {/* Custom groups (user-defined) — collapsible, placed first for priority */}
               <div>
                 <button
-                  onClick={() => setCustomExpanded(v => !v)}
+                  onClick={() => setCustomExpanded(prev => !prev)}
                   className="flex items-center gap-1.5 w-full py-0.5 text-left hover:bg-accent rounded transition-colors px-1"
                 >
                   <ChevronIcon open={customExpanded} />
@@ -886,7 +882,7 @@ export default function SettingsPanel({
           )}
 
           {/* Filters section */}
-          <SectionHeader title="Filters" open={filtersOpen} onToggle={() => setFiltersOpen(v => !v)} />
+          <SectionHeader title="Filters" open={filtersOpen} onToggle={() => setFiltersOpen(prev => !prev)} />
           {filtersOpen && (
             <div className="mb-2 space-y-2">
               {/* Show Orphans toggle */}
@@ -918,8 +914,8 @@ export default function SettingsPanel({
                     inputMode="numeric"
                     value={maxFiles}
                     onChange={e => {
-                      const v = parseInt(e.target.value, 10);
-                      if (!isNaN(v)) setMaxFiles(v);
+                      const parsed = parseInt(e.target.value, 10);
+                      if (!isNaN(parsed)) setMaxFiles(parsed);
                     }}
                     onBlur={e => handleMaxFilesCommit(parseInt(e.target.value, 10) || 1)}
                     onKeyDown={e => e.key === 'Enter' && handleMaxFilesCommit(parseInt((e.target as HTMLInputElement).value, 10) || 1)}
@@ -995,7 +991,7 @@ export default function SettingsPanel({
           )}
 
           {/* Display section */}
-          <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen(v => !v)} />
+          <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen(prev => !prev)} />
           {displayOpen && (
             <div className="mb-2 space-y-3">
               {/* Direction mode toggle */}
@@ -1101,7 +1097,7 @@ export default function SettingsPanel({
                       max={PARTICLE_SPEED_MAX_DISPLAY}
                       step={1}
                       value={[displayParticleSpeed]}
-                      onValueChange={(v) => handleParticleSpeedChange(v[0])}
+                      onValueChange={(vals) => handleParticleSpeedChange(vals[0])}
                       onValueCommit={() => flushParticleSetting('particleSpeed')}
                     />
                   </div>
@@ -1115,7 +1111,7 @@ export default function SettingsPanel({
                       max={10}
                       step={0.5}
                       value={[particleSize]}
-                      onValueChange={(v) => handleParticleSizeChange(v[0])}
+                      onValueChange={(vals) => handleParticleSizeChange(vals[0])}
                       onValueCommit={() => flushParticleSetting('particleSize')}
                     />
                   </div>

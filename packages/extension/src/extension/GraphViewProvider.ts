@@ -20,6 +20,9 @@ import {
   NodeDecorationPayload,
   EdgeDecorationPayload,
   IPluginContextMenuItem,
+  DEFAULT_DIRECTION_COLOR,
+  DEFAULT_FOLDER_NODE_COLOR,
+  normalizeHexColor,
 } from '../shared/types';
 import { EventBus, EventName, EventPayloads } from '../core/plugins/EventBus';
 import { DecorationManager } from '../core/plugins/DecorationManager';
@@ -73,22 +76,13 @@ const DISABLED_PLUGINS_KEY = 'codegraphy.disabledPlugins';
 
 /** Default depth limit for depth graph view */
 const DEFAULT_DEPTH_LIMIT = 1;
-const DEFAULT_DIRECTION_COLOR = '#475569';
 
 function normalizeDirectionColor(value: string | undefined): string {
-  if (!value) return DEFAULT_DIRECTION_COLOR;
-  const trimmed = value.trim();
-  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toUpperCase();
-  return DEFAULT_DIRECTION_COLOR;
+  return normalizeHexColor(value, DEFAULT_DIRECTION_COLOR);
 }
 
-const DEFAULT_FOLDER_NODE_COLOR = '#A1A1AA';
-
 function normalizeFolderNodeColor(value: string | undefined): string {
-  if (!value) return DEFAULT_FOLDER_NODE_COLOR;
-  const trimmed = value.trim();
-  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toUpperCase();
-  return DEFAULT_FOLDER_NODE_COLOR;
+  return normalizeHexColor(value, DEFAULT_FOLDER_NODE_COLOR);
 }
 
 interface IExternalPluginRegistrationOptions {
@@ -963,7 +957,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     let hasConnections = false;
 
     if (kind === 'plugin') {
-      const plugin = statuses.find(p => p.id === id);
+      const plugin = statuses.find(status => status.id === id);
       hasConnections = (plugin?.connectionCount ?? 0) > 0;
     } else {
       for (const plugin of statuses) {
@@ -1097,7 +1091,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     // Clean up when panel is closed
     panel.onDidDispose(() => {
-      this._panels = this._panels.filter(p => p !== panel);
+      this._panels = this._panels.filter(existingPanel => existingPanel !== panel);
     });
   }
 
@@ -2162,9 +2156,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     return changed;
   }
 
-  private _areSetsEqual<T>(a: Set<T>, b: Set<T>): boolean {
-    if (a.size !== b.size) return false;
-    for (const value of a) {
+  private _areSetsEqual<T>(setA: Set<T>, b: Set<T>): boolean {
+    if (setA.size !== b.size) return false;
+    for (const value of setA) {
       if (!b.has(value)) return false;
     }
     return true;

@@ -8,11 +8,20 @@ import {
   mdiCogOutline,
   mdiCircleOutline,
   mdiSphere,
+  mdiExport,
 } from '@mdi/js';
 import { MdiIcon, DagDefaultIcon, DagRadialIcon, DagTopDownIcon, DagLeftRightIcon } from './icons';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from './ui/dropdown-menu';
 import { useGraphStore } from '../store';
 import { postMessage } from '../lib/vscodeApi';
 import type { DagMode } from '../../shared/types';
@@ -75,7 +84,6 @@ export default function Toolbar(): React.ReactElement {
           />
         </div>
 
-        {/* View segmented control */}
         {availableViews.length > 0 && (
           <div className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
             {availableViews.map(view => {
@@ -103,7 +111,6 @@ export default function Toolbar(): React.ReactElement {
           </div>
         )}
 
-        {/* DAG layout segmented control */}
         <div className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
           {DAG_MODES.map(({ mode, label, Icon }) => (
             <Tooltip key={label}>
@@ -122,7 +129,6 @@ export default function Toolbar(): React.ReactElement {
           ))}
         </div>
 
-        {/* 2D/3D toggle */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -137,10 +143,8 @@ export default function Toolbar(): React.ReactElement {
           <TooltipContent side="bottom">{graphMode === '2d' ? '2D Mode' : '3D Mode'}</TooltipContent>
         </Tooltip>
 
-        {/* Separator */}
         <div className="w-px h-5 bg-border mx-0.5" />
 
-        {/* Refresh */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -156,7 +160,44 @@ export default function Toolbar(): React.ReactElement {
           <TooltipContent side="bottom">Reset Graph</TooltipContent>
         </Tooltip>
 
-        {/* Plugins */}
+        <DropdownMenu>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+                  title="Export"
+                >
+                  <MdiIcon path={mdiExport} size={16} />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Export</TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent align="end" side="top">
+            <DropdownMenuLabel>Images</DropdownMenuLabel>
+            <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_PNG' }, '*')}>
+              Export as PNG
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_SVG' }, '*')}>
+              Export as SVG
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JPEG' }, '*')}>
+              Export as JPEG
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Connections</DropdownMenuLabel>
+            <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JSON' }, '*')}>
+              Export as JSON
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_MD' }, '*')}>
+              Export as Markdown
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -172,7 +213,6 @@ export default function Toolbar(): React.ReactElement {
           <TooltipContent side="bottom">Plugins</TooltipContent>
         </Tooltip>
 
-        {/* Settings */}
         <Tooltip>
           <TooltipTrigger asChild>
             <Button

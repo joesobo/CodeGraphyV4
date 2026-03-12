@@ -10,16 +10,16 @@ import { MdiIcon } from './icons';
  * Format a Unix timestamp as "Mon D, YYYY".
  */
 function formatDate(timestamp: number): string {
-  const d = new Date(timestamp * 1000);
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 /**
  * Format a Unix timestamp as abbreviated month + day label for the axis.
  */
 function formatAxisLabel(timestamp: number): string {
-  const d = new Date(timestamp * 1000);
-  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  const date = new Date(timestamp * 1000);
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
 }
 
 /**
@@ -101,7 +101,7 @@ export default function Timeline(): React.ReactElement | null {
   // Current commit index (discrete, based on currentCommitSha from store)
   const currentIndex = useMemo(() => {
     if (!currentCommitSha || timelineCommits.length === 0) return 0;
-    const idx = timelineCommits.findIndex((c) => c.sha === currentCommitSha);
+    const idx = timelineCommits.findIndex((commit) => commit.sha === currentCommitSha);
     return idx >= 0 ? idx : 0;
   }, [currentCommitSha, timelineCommits]);
 
@@ -183,7 +183,7 @@ export default function Timeline(): React.ReactElement | null {
     if (isPlaying) return;
     if (userScrubActiveRef.current) return;
     if (!currentCommitSha || timelineCommits.length === 0) return;
-    const commit = timelineCommits.find((c) => c.sha === currentCommitSha);
+    const commit = timelineCommits.find((commit) => commit.sha === currentCommitSha);
     if (commit) {
       setPlaybackTime(commit.timestamp);
       lastSentCommitIndexRef.current = timelineCommits.indexOf(commit);
@@ -357,7 +357,7 @@ export default function Timeline(): React.ReactElement | null {
   // Indicator position: smooth playbackTime when available, else current commit's timestamp
   const indicatorTime = playbackTime ?? (
     currentCommitSha
-      ? (timelineCommits.find((c) => c.sha === currentCommitSha)?.timestamp ?? minTimestamp)
+      ? (timelineCommits.find((commit) => commit.sha === currentCommitSha)?.timestamp ?? minTimestamp)
       : minTimestamp
   );
   const indicatorPosition = Math.max(0, Math.min(100, ((indicatorTime - minTimestamp) / timeRange) * 100));

@@ -30,10 +30,10 @@ function parseSemver(input: string): ISemver | undefined {
   };
 }
 
-function compareSemver(a: ISemver, b: ISemver): number {
-  if (a.major !== b.major) return a.major - b.major;
-  if (a.minor !== b.minor) return a.minor - b.minor;
-  return a.patch - b.patch;
+function compareSemver(left: ISemver, right: ISemver): number {
+  if (left.major !== right.major) return left.major - right.major;
+  if (left.minor !== right.minor) return left.minor - right.minor;
+  return left.patch - right.patch;
 }
 
 function satisfiesSemverRange(version: string, range: string): boolean {
@@ -385,7 +385,7 @@ export class PluginRegistry {
     
     return pluginIds
       .map((id) => this._plugins.get(id)?.plugin)
-      .filter((p): p is IPlugin => p !== undefined);
+      .filter((plugin): plugin is IPlugin => plugin !== undefined);
   }
 
   /**
