@@ -58,7 +58,8 @@
     ".pre-commit-config.yaml": "#FAB040"
   },
   "rules": [
-    { "id": "standard-import", "name": "Standard Imports", "description": "import module" },
-    { "id": "from-import", "name": "From Imports", "description": "from module import name" }
+    { "id": "import-module", "name": "Import Module", "description": "import module statements" },
+    { "id": "from-import-absolute", "name": "From Import (Absolute)", "description": "from package import name" },
+    { "id": "from-import-relative", "name": "From Import (Relative)", "description": "from .package import name" }
   ]
 }
