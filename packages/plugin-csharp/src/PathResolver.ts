@@ -365,7 +365,7 @@ export class PathResolver {
     try {
       const fullPath = path.join(this._workspaceRoot, relativePath);
       const files = fs.readdirSync(fullPath);
-      const csFile = files.find(f => f.endsWith('.cs'));
+      const csFile = files.find(file => file.endsWith('.cs'));
       if (csFile) {
         return path.join(relativePath, csFile);
       }
