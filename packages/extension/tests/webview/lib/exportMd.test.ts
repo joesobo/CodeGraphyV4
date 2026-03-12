@@ -20,8 +20,8 @@ describe('buildMarkdownExport', () => {
         { id: 'src/store.ts', label: 'store.ts', color: '#fff' },
       ],
       edges: [
-        { id: 'src/App.tsx->src/Graph.tsx', from: 'src/App.tsx', to: 'src/Graph.tsx' },
-        { id: 'src/App.tsx->src/store.ts', from: 'src/App.tsx', to: 'src/store.ts' },
+        { id: 'e1', from: 'src/App.tsx', to: 'src/Graph.tsx' },
+        { id: 'e2', from: 'src/App.tsx', to: 'src/store.ts' },
       ],
     };
 
@@ -66,7 +66,7 @@ describe('buildMarkdownExport', () => {
         { id: 'a.ts', label: 'a.ts', color: '#fff' },
         { id: 'b.ts', label: 'b.ts', color: '#fff' },
       ],
-      edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' }],
+      edges: [{ id: 'e1', from: 'a.ts', to: 'b.ts' }],
     };
 
     const result = buildMarkdownExport(data, noGroups);
@@ -113,15 +113,13 @@ describe('buildMarkdownExport', () => {
       nodes: [{ id: 'a.ts', label: 'a.ts', color: '#fff' }],
       edges: [],
     };
-    const plugins: IPluginStatus[] = [
-      {
-        id: 'ts', name: 'TypeScript', version: '1.0.0',
-        supportedExtensions: ['.ts'], status: 'active', enabled: true, connectionCount: 15,
-        rules: [
-          { id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 15 },
-        ],
-      },
-    ];
+    const plugins: IPluginStatus[] = [{
+      id: 'ts', name: 'TypeScript', version: '1.0.0',
+      supportedExtensions: ['.ts'], status: 'active', enabled: true, connectionCount: 15,
+      rules: [
+        { id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 15 },
+      ],
+    }];
 
     const result = buildMarkdownExport(data, noGroups, plugins);
     expect(result).toContain('## Rules');
@@ -130,27 +128,31 @@ describe('buildMarkdownExport', () => {
     expect(result).toContain('15 connections');
   });
 
-  it('shows rule names on imports when ruleIds are present', () => {
+  it('groups imports by rule name under each file', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'a.ts', label: 'a.ts', color: '#fff' },
         { id: 'b.ts', label: 'b.ts', color: '#fff' },
+        { id: 'c.ts', label: 'c.ts', color: '#fff' },
       ],
       edges: [
         { id: 'e1', from: 'a.ts', to: 'b.ts', ruleIds: ['ts:es6'] },
+        { id: 'e2', from: 'a.ts', to: 'c.ts', ruleIds: ['ts:dynamic'] },
       ],
     };
-    const plugins: IPluginStatus[] = [
-      {
-        id: 'ts', name: 'TypeScript', version: '1.0.0',
-        supportedExtensions: ['.ts'], status: 'active', enabled: true, connectionCount: 1,
-        rules: [
-          { id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 },
-        ],
-      },
-    ];
+    const plugins: IPluginStatus[] = [{
+      id: 'ts', name: 'TS', version: '1.0.0',
+      supportedExtensions: ['.ts'], status: 'active', enabled: true, connectionCount: 2,
+      rules: [
+        { id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 },
+        { id: 'dynamic', qualifiedId: 'ts:dynamic', name: 'Dynamic Import', description: '', enabled: true, connectionCount: 1 },
+      ],
+    }];
 
     const result = buildMarkdownExport(data, noGroups, plugins);
-    expect(result).toContain('b.ts (ES6 Import)');
+    expect(result).toContain('*ES6 Import*');
+    expect(result).toContain('    - b.ts');
+    expect(result).toContain('*Dynamic Import*');
+    expect(result).toContain('    - c.ts');
   });
 });

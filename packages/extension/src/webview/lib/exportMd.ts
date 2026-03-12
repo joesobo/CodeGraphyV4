@@ -48,16 +48,32 @@ export function buildMarkdownExport(
 
 function renderFiles(lines: string[], files: Record<string, ExportFile>, data: ExportData) {
   for (const [filePath, file] of Object.entries(files)) {
-    if (file.imports.length > 0) {
-      lines.push(`- **${filePath}**`);
-      for (const imp of file.imports) {
-        const ruleTag = imp.rules?.length
-          ? ` (${imp.rules.map(r => data.rules[r]?.name ?? r).join(', ')})`
-          : '';
-        lines.push(`  - ${imp.file}${ruleTag}`);
-      }
-    } else {
+    const ruleKeys = Object.keys(file.imports);
+    const hasImports = ruleKeys.some(k => file.imports[k].length > 0);
+
+    if (!hasImports) {
       lines.push(`- ${filePath}`);
+      continue;
+    }
+
+    lines.push(`- **${filePath}**`);
+
+    // If all imports are unattributed (empty-string key only), list them flat
+    if (ruleKeys.length === 1 && ruleKeys[0] === '') {
+      for (const target of file.imports['']) {
+        lines.push(`  - ${target}`);
+      }
+      continue;
+    }
+
+    // Group imports by rule
+    for (const [ruleKey, targets] of Object.entries(file.imports)) {
+      if (targets.length === 0) continue;
+      const label = ruleKey ? (data.rules[ruleKey]?.name ?? ruleKey) : 'other';
+      lines.push(`  - *${label}*`);
+      for (const target of targets) {
+        lines.push(`    - ${target}`);
+      }
     }
   }
 }

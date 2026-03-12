@@ -10,13 +10,9 @@ export interface ExportGroup {
   files: Record<string, ExportFile>;
 }
 
-export interface ExportImport {
-  file: string;
-  rules?: string[];
-}
-
+/** imports keyed by rule qualifiedId → list of target file paths */
 export interface ExportFile {
-  imports: ExportImport[];
+  imports: Record<string, string[]>;
 }
 
 export interface ExportRule {
@@ -60,20 +56,26 @@ export function buildExportData(
     }
   }
 
-  // Build imports map (node id → list of {target, ruleIds})
-  const importsMap = new Map<string, ExportImport[]>();
+  // Build imports map: nodeId → Record<ruleKey, targetFiles[]>
+  const importsMap = new Map<string, Record<string, string[]>>();
   for (const edge of graphData.edges) {
-    const imp: ExportImport = { file: edge.to };
+    let ruleKeys: string[];
     if (edge.ruleIds && edge.ruleIds.length > 0) {
-      // Only include ruleIds that are in our active rules
-      const activeRules = edge.ruleIds.filter(r => r in rulesRecord);
-      if (activeRules.length > 0) imp.rules = activeRules;
-    }
-    const list = importsMap.get(edge.from);
-    if (list) {
-      list.push(imp);
+      ruleKeys = edge.ruleIds.filter(r => r in rulesRecord);
+      if (ruleKeys.length === 0) ruleKeys = [''];
     } else {
-      importsMap.set(edge.from, [imp]);
+      ruleKeys = [''];
+    }
+
+    let fileImports = importsMap.get(edge.from);
+    if (!fileImports) {
+      fileImports = {};
+      importsMap.set(edge.from, fileImports);
+    }
+
+    for (const key of ruleKeys) {
+      if (!fileImports[key]) fileImports[key] = [];
+      fileImports[key].push(edge.to);
     }
   }
 
@@ -99,7 +101,7 @@ export function buildExportData(
   const ungroupedFiles: Record<string, ExportFile> = {};
 
   for (const node of sorted) {
-    const file: ExportFile = { imports: importsMap.get(node.id) ?? [] };
+    const file: ExportFile = { imports: importsMap.get(node.id) ?? {} };
     const groupPattern = nodeGroupMap.get(node.id);
 
     if (groupPattern) {

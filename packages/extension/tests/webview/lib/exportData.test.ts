@@ -16,53 +16,72 @@ describe('buildExportData', () => {
     expect(result.rules).toEqual({});
   });
 
-  it('builds node-centric connections from edges', () => {
+  it('builds imports keyed by rule from edges with ruleIds', () => {
     const data: IGraphData = {
       nodes: [
-        { id: 'src/App.tsx', label: 'App.tsx', color: '#fff' },
-        { id: 'src/Graph.tsx', label: 'Graph.tsx', color: '#fff' },
-        { id: 'src/store.ts', label: 'store.ts', color: '#fff' },
+        { id: 'a.ts', label: 'a.ts', color: '#fff' },
+        { id: 'b.ts', label: 'b.ts', color: '#fff' },
+        { id: 'c.ts', label: 'c.ts', color: '#fff' },
       ],
       edges: [
-        { id: 'e1', from: 'src/App.tsx', to: 'src/Graph.tsx' },
-        { id: 'e2', from: 'src/App.tsx', to: 'src/store.ts' },
+        { id: 'e1', from: 'a.ts', to: 'b.ts', ruleIds: ['ts:es6'] },
+        { id: 'e2', from: 'a.ts', to: 'c.ts', ruleIds: ['ts:dynamic'] },
       ],
     };
+    const plugins: IPluginStatus[] = [{
+      id: 'ts', name: 'TS', version: '1.0.0', supportedExtensions: ['.ts'],
+      status: 'active', enabled: true, connectionCount: 2,
+      rules: [
+        { id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 },
+        { id: 'dynamic', qualifiedId: 'ts:dynamic', name: 'Dynamic Import', description: '', enabled: true, connectionCount: 1 },
+      ],
+    }];
 
-    const result = buildExportData(data, noGroups);
-    const appImports = result.ungrouped['src/App.tsx'].imports;
-    expect(appImports).toEqual([
-      { file: 'src/Graph.tsx' },
-      { file: 'src/store.ts' },
-    ]);
-    expect(result.ungrouped['src/Graph.tsx'].imports).toEqual([]);
-    expect(result.ungrouped['src/store.ts'].imports).toEqual([]);
+    const result = buildExportData(data, noGroups, plugins);
+    expect(result.ungrouped['a.ts'].imports).toEqual({
+      'ts:es6': ['b.ts'],
+      'ts:dynamic': ['c.ts'],
+    });
   });
 
-  it('includes ruleIds on imports when edges have them', () => {
+  it('uses empty-string key for edges without ruleIds', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'a.ts', label: 'a.ts', color: '#fff' },
         { id: 'b.ts', label: 'b.ts', color: '#fff' },
       ],
       edges: [
-        { id: 'e1', from: 'a.ts', to: 'b.ts', ruleIds: ['codegraphy.typescript:es6-import'] },
+        { id: 'e1', from: 'a.ts', to: 'b.ts' },
       ],
     };
-    const plugins: IPluginStatus[] = [
-      {
-        id: 'codegraphy.typescript', name: 'TypeScript', version: '1.0.0',
-        supportedExtensions: ['.ts'], status: 'active', enabled: true, connectionCount: 1,
-        rules: [
-          { id: 'es6-import', qualifiedId: 'codegraphy.typescript:es6-import', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 },
-        ],
-      },
-    ];
+
+    const result = buildExportData(data, noGroups);
+    expect(result.ungrouped['a.ts'].imports).toEqual({ '': ['b.ts'] });
+    expect(result.ungrouped['b.ts'].imports).toEqual({});
+  });
+
+  it('groups multiple targets under the same rule key', () => {
+    const data: IGraphData = {
+      nodes: [
+        { id: 'a.ts', label: 'a.ts', color: '#fff' },
+        { id: 'b.ts', label: 'b.ts', color: '#fff' },
+        { id: 'c.ts', label: 'c.ts', color: '#fff' },
+      ],
+      edges: [
+        { id: 'e1', from: 'a.ts', to: 'b.ts', ruleIds: ['ts:es6'] },
+        { id: 'e2', from: 'a.ts', to: 'c.ts', ruleIds: ['ts:es6'] },
+      ],
+    };
+    const plugins: IPluginStatus[] = [{
+      id: 'ts', name: 'TS', version: '1.0.0', supportedExtensions: ['.ts'],
+      status: 'active', enabled: true, connectionCount: 2,
+      rules: [
+        { id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 2 },
+      ],
+    }];
 
     const result = buildExportData(data, noGroups, plugins);
-    expect(result.ungrouped['a.ts'].imports).toEqual([
-      { file: 'b.ts', rules: ['codegraphy.typescript:es6-import'] },
-    ]);
+    expect(result.ungrouped['a.ts'].imports['ts:es6']).toEqual(['b.ts', 'c.ts']);
   });
 
   it('nests files under their matching group', () => {
@@ -178,51 +197,33 @@ describe('buildExportData', () => {
 
   it('includes active rules keyed by qualified ID', () => {
     const data: IGraphData = { nodes: [], edges: [] };
-    const plugins: IPluginStatus[] = [
-      {
-        id: 'codegraphy.typescript',
-        name: 'TypeScript/JavaScript',
-        version: '1.0.0',
-        supportedExtensions: ['.ts', '.tsx'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 50,
-        rules: [
-          { id: 'es6-import', qualifiedId: 'codegraphy.typescript:es6-import', name: 'ES6 Import', description: '', enabled: true, connectionCount: 30 },
-          { id: 'dynamic-import', qualifiedId: 'codegraphy.typescript:dynamic-import', name: 'Dynamic Import', description: '', enabled: true, connectionCount: 20 },
-          { id: 'require', qualifiedId: 'codegraphy.typescript:require', name: 'Require', description: '', enabled: true, connectionCount: 0 },
-        ],
-      },
-    ];
+    const plugins: IPluginStatus[] = [{
+      id: 'codegraphy.typescript', name: 'TypeScript/JavaScript', version: '1.0.0',
+      supportedExtensions: ['.ts', '.tsx'], status: 'active', enabled: true, connectionCount: 50,
+      rules: [
+        { id: 'es6-import', qualifiedId: 'codegraphy.typescript:es6-import', name: 'ES6 Import', description: '', enabled: true, connectionCount: 30 },
+        { id: 'dynamic-import', qualifiedId: 'codegraphy.typescript:dynamic-import', name: 'Dynamic Import', description: '', enabled: true, connectionCount: 20 },
+        { id: 'require', qualifiedId: 'codegraphy.typescript:require', name: 'Require', description: '', enabled: true, connectionCount: 0 },
+      ],
+    }];
 
     const result = buildExportData(data, noGroups, plugins);
     expect(Object.keys(result.rules)).toHaveLength(2);
     expect(result.rules['codegraphy.typescript:es6-import']).toEqual({
       name: 'ES6 Import', plugin: 'TypeScript/JavaScript', connections: 30,
     });
-    expect(result.rules['codegraphy.typescript:dynamic-import']).toEqual({
-      name: 'Dynamic Import', plugin: 'TypeScript/JavaScript', connections: 20,
-    });
-    // 'require' excluded (0 connections)
     expect(result.rules['codegraphy.typescript:require']).toBeUndefined();
   });
 
   it('excludes rules from disabled plugins', () => {
     const data: IGraphData = { nodes: [], edges: [] };
-    const plugins: IPluginStatus[] = [
-      {
-        id: 'codegraphy.typescript',
-        name: 'TypeScript/JavaScript',
-        version: '1.0.0',
-        supportedExtensions: ['.ts'],
-        status: 'active',
-        enabled: false,
-        connectionCount: 10,
-        rules: [
-          { id: 'es6-import', qualifiedId: 'codegraphy.typescript:es6-import', name: 'ES6 Import', description: '', enabled: true, connectionCount: 10 },
-        ],
-      },
-    ];
+    const plugins: IPluginStatus[] = [{
+      id: 'ts', name: 'TS', version: '1.0.0', supportedExtensions: ['.ts'],
+      status: 'active', enabled: false, connectionCount: 10,
+      rules: [
+        { id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 10 },
+      ],
+    }];
 
     const result = buildExportData(data, noGroups, plugins);
     expect(Object.keys(result.rules)).toHaveLength(0);
@@ -230,20 +231,13 @@ describe('buildExportData', () => {
 
   it('excludes disabled rules', () => {
     const data: IGraphData = { nodes: [], edges: [] };
-    const plugins: IPluginStatus[] = [
-      {
-        id: 'codegraphy.typescript',
-        name: 'TypeScript/JavaScript',
-        version: '1.0.0',
-        supportedExtensions: ['.ts'],
-        status: 'active',
-        enabled: true,
-        connectionCount: 10,
-        rules: [
-          { id: 'es6-import', qualifiedId: 'codegraphy.typescript:es6-import', name: 'ES6 Import', description: '', enabled: false, connectionCount: 10 },
-        ],
-      },
-    ];
+    const plugins: IPluginStatus[] = [{
+      id: 'ts', name: 'TS', version: '1.0.0', supportedExtensions: ['.ts'],
+      status: 'active', enabled: true, connectionCount: 10,
+      rules: [
+        { id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: false, connectionCount: 10 },
+      ],
+    }];
 
     const result = buildExportData(data, noGroups, plugins);
     expect(Object.keys(result.rules)).toHaveLength(0);
