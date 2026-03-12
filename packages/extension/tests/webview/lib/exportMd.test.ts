@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildMarkdownExport } from '../../../src/webview/lib/exportMd';
-import type { IGraphData, IGroup } from '../../../src/shared/types';
+import type { IGraphData, IGroup, IPluginStatus } from '../../../src/shared/types';
 
 const noGroups: IGroup[] = [];
 
@@ -73,11 +73,12 @@ describe('buildMarkdownExport', () => {
     expect(result).toContain('2 files, 1 connections');
   });
 
-  it('includes active groups section when groups match nodes', () => {
+  it('groups files under group headings', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'src/App.tsx', label: 'App.tsx', color: '#fff' },
         { id: 'src/utils.ts', label: 'utils.ts', color: '#fff' },
+        { id: 'README.md', label: 'README.md', color: '#fff' },
       ],
       edges: [],
     };
@@ -87,9 +88,10 @@ describe('buildMarkdownExport', () => {
     ];
 
     const result = buildMarkdownExport(data, groups);
-    expect(result).toContain('## Groups');
     expect(result).toContain('`*.tsx`');
     expect(result).toContain('`*.ts`');
+    expect(result).toContain('## Ungrouped');
+    expect(result).toContain('README.md');
   });
 
   it('skips disabled groups', () => {
@@ -102,19 +104,29 @@ describe('buildMarkdownExport', () => {
     ];
 
     const result = buildMarkdownExport(data, groups);
-    expect(result).not.toContain('## Groups');
+    expect(result).not.toContain('`*.tsx`');
+    // File goes to ungrouped
+    expect(result).toContain('## Ungrouped');
   });
 
-  it('shows group tag on nodes that match a group', () => {
+  it('includes rules section with connection counts', () => {
     const data: IGraphData = {
-      nodes: [{ id: 'src/App.tsx', label: 'App.tsx', color: '#fff' }],
+      nodes: [{ id: 'a.ts', label: 'a.ts', color: '#fff' }],
       edges: [],
     };
-    const groups: IGroup[] = [
-      { id: '1', pattern: '*.tsx', color: '#3B82F6' },
+    const plugins: IPluginStatus[] = [
+      {
+        id: 'ts', name: 'TypeScript', version: '1.0.0',
+        supportedExtensions: ['.ts'], status: 'active', enabled: true, connectionCount: 15,
+        rules: [
+          { id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 15 },
+        ],
+      },
     ];
 
-    const result = buildMarkdownExport(data, groups);
-    expect(result).toContain('(`*.tsx`)');
+    const result = buildMarkdownExport(data, noGroups, plugins);
+    expect(result).toContain('## Rules');
+    expect(result).toContain('**ES6 Import** (TypeScript)');
+    expect(result).toContain('15 connections');
   });
 });

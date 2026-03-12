@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildExportData } from '../../../src/webview/lib/exportData';
-import type { IGraphData, IGroup } from '../../../src/shared/types';
+import type { IGraphData, IGroup, IPluginStatus } from '../../../src/shared/types';
 
 const noGroups: IGroup[] = [];
 
@@ -11,8 +11,9 @@ describe('buildExportData', () => {
     expect(result.format).toBe('codegraphy-connections');
     expect(result.version).toBe('1.0');
     expect(result.stats).toEqual({ totalFiles: 0, totalConnections: 0 });
-    expect(result.files).toEqual({});
     expect(result.groups).toEqual({});
+    expect(result.ungrouped).toEqual({});
+    expect(result.rules).toEqual([]);
   });
 
   it('builds node-centric connections from edges', () => {
@@ -29,32 +30,17 @@ describe('buildExportData', () => {
     };
 
     const result = buildExportData(data, noGroups);
-    expect(result.files['src/App.tsx'].imports).toEqual(['src/Graph.tsx', 'src/store.ts']);
-    expect(result.files['src/Graph.tsx'].imports).toEqual([]);
-    expect(result.files['src/store.ts'].imports).toEqual([]);
+    expect(result.ungrouped['src/App.tsx'].imports).toEqual(['src/Graph.tsx', 'src/store.ts']);
+    expect(result.ungrouped['src/Graph.tsx'].imports).toEqual([]);
+    expect(result.ungrouped['src/store.ts'].imports).toEqual([]);
   });
 
-  it('extracts file extensions correctly', () => {
+  it('nests files under their matching group', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'src/App.tsx', label: 'App.tsx', color: '#fff' },
         { id: 'src/utils.ts', label: 'utils.ts', color: '#fff' },
-        { id: 'Makefile', label: 'Makefile', color: '#fff' },
-      ],
-      edges: [],
-    };
-
-    const result = buildExportData(data, noGroups);
-    expect(result.files['src/App.tsx'].extension).toBe('.tsx');
-    expect(result.files['src/utils.ts'].extension).toBe('.ts');
-    expect(result.files['Makefile'].extension).toBe('');
-  });
-
-  it('assigns nodes to their first matching group', () => {
-    const data: IGraphData = {
-      nodes: [
-        { id: 'src/App.tsx', label: 'App.tsx', color: '#fff' },
-        { id: 'src/utils.ts', label: 'utils.ts', color: '#fff' },
+        { id: 'README.md', label: 'README.md', color: '#fff' },
       ],
       edges: [],
     };
@@ -64,8 +50,10 @@ describe('buildExportData', () => {
     ];
 
     const result = buildExportData(data, groups);
-    expect(result.files['src/App.tsx'].group).toBe('*.tsx');
-    expect(result.files['src/utils.ts'].group).toBe('*.ts');
+    expect(result.groups['*.tsx'].files['src/App.tsx']).toBeDefined();
+    expect(result.groups['*.ts'].files['src/utils.ts']).toBeDefined();
+    expect(result.ungrouped['README.md']).toBeDefined();
+    expect(Object.keys(result.ungrouped)).toHaveLength(1);
   });
 
   it('only includes groups that match at least one node', () => {
@@ -94,7 +82,7 @@ describe('buildExportData', () => {
 
     const result = buildExportData(data, groups);
     expect(result.groups).toEqual({});
-    expect(result.files['src/App.tsx'].group).toBeUndefined();
+    expect(result.ungrouped['src/App.tsx']).toBeDefined();
   });
 
   it('omits default shape values from group output', () => {
@@ -143,7 +131,7 @@ describe('buildExportData', () => {
     expect(result.stats.totalConnections).toBe(2);
   });
 
-  it('sorts files alphabetically', () => {
+  it('sorts files alphabetically within groups and ungrouped', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'z.ts', label: 'z.ts', color: '#fff' },
@@ -154,7 +142,74 @@ describe('buildExportData', () => {
     };
 
     const result = buildExportData(data, noGroups);
-    const keys = Object.keys(result.files);
+    const keys = Object.keys(result.ungrouped);
     expect(keys).toEqual(['a.ts', 'm.ts', 'z.ts']);
+  });
+
+  it('includes active rules with connection counts sorted descending', () => {
+    const data: IGraphData = { nodes: [], edges: [] };
+    const plugins: IPluginStatus[] = [
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript/JavaScript',
+        version: '1.0.0',
+        supportedExtensions: ['.ts', '.tsx'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 50,
+        rules: [
+          { id: 'es6-import', qualifiedId: 'codegraphy.typescript:es6-import', name: 'ES6 Import', description: '', enabled: true, connectionCount: 30 },
+          { id: 'dynamic-import', qualifiedId: 'codegraphy.typescript:dynamic-import', name: 'Dynamic Import', description: '', enabled: true, connectionCount: 20 },
+          { id: 'require', qualifiedId: 'codegraphy.typescript:require', name: 'Require', description: '', enabled: true, connectionCount: 0 },
+        ],
+      },
+    ];
+
+    const result = buildExportData(data, noGroups, plugins);
+    expect(result.rules).toHaveLength(2); // 'require' excluded (0 connections)
+    expect(result.rules[0]).toEqual({ name: 'ES6 Import', plugin: 'TypeScript/JavaScript', connections: 30 });
+    expect(result.rules[1]).toEqual({ name: 'Dynamic Import', plugin: 'TypeScript/JavaScript', connections: 20 });
+  });
+
+  it('excludes rules from disabled plugins', () => {
+    const data: IGraphData = { nodes: [], edges: [] };
+    const plugins: IPluginStatus[] = [
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript/JavaScript',
+        version: '1.0.0',
+        supportedExtensions: ['.ts'],
+        status: 'active',
+        enabled: false,
+        connectionCount: 10,
+        rules: [
+          { id: 'es6-import', qualifiedId: 'codegraphy.typescript:es6-import', name: 'ES6 Import', description: '', enabled: true, connectionCount: 10 },
+        ],
+      },
+    ];
+
+    const result = buildExportData(data, noGroups, plugins);
+    expect(result.rules).toHaveLength(0);
+  });
+
+  it('excludes disabled rules', () => {
+    const data: IGraphData = { nodes: [], edges: [] };
+    const plugins: IPluginStatus[] = [
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript/JavaScript',
+        version: '1.0.0',
+        supportedExtensions: ['.ts'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 10,
+        rules: [
+          { id: 'es6-import', qualifiedId: 'codegraphy.typescript:es6-import', name: 'ES6 Import', description: '', enabled: false, connectionCount: 10 },
+        ],
+      },
+    ];
+
+    const result = buildExportData(data, noGroups, plugins);
+    expect(result.rules).toHaveLength(0);
   });
 });

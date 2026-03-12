@@ -1,4 +1,4 @@
-import type { IGraphData, IGroup } from '../../shared/types';
+import type { IGraphData, IGroup, IPluginStatus } from '../../shared/types';
 import { globMatch } from './globMatch';
 
 export interface ExportGroup {
@@ -7,12 +7,17 @@ export interface ExportGroup {
   shape2D?: string;
   shape3D?: string;
   imagePath?: string;
+  files: Record<string, ExportFile>;
 }
 
 export interface ExportFile {
-  extension: string;
-  group?: string;
   imports: string[];
+}
+
+export interface ExportRule {
+  name: string;
+  plugin: string;
+  connections: number;
 }
 
 export interface ExportData {
@@ -20,8 +25,9 @@ export interface ExportData {
   version: '1.0';
   exportedAt: string;
   stats: { totalFiles: number; totalConnections: number };
+  rules: ExportRule[];
   groups: Record<string, ExportGroup>;
-  files: Record<string, ExportFile>;
+  ungrouped: Record<string, ExportFile>;
 }
 
 /**
@@ -30,7 +36,11 @@ export interface ExportData {
  * The output is designed to be useful for AI/LLM agents trying to
  * understand a repository's dependency structure.
  */
-export function buildExportData(graphData: IGraphData, groups: IGroup[]): ExportData {
+export function buildExportData(
+  graphData: IGraphData,
+  groups: IGroup[],
+  pluginStatuses: IPluginStatus[] = [],
+): ExportData {
   // Build imports map (node id → list of target ids)
   const importsMap = new Map<string, string[]>();
   for (const edge of graphData.edges) {
@@ -47,7 +57,6 @@ export function buildExportData(graphData: IGraphData, groups: IGroup[]): Export
 
   // Match each node to its first matching group (first-match-wins, same as rendering)
   const nodeGroupMap = new Map<string, string>();
-  const usedGroupPatterns = new Set<string>();
 
   const sorted = [...graphData.nodes].sort((a, b) => a.id.localeCompare(b.id));
 
@@ -55,38 +64,53 @@ export function buildExportData(graphData: IGraphData, groups: IGroup[]): Export
     for (const group of activeGroups) {
       if (globMatch(node.id, group.pattern)) {
         nodeGroupMap.set(node.id, group.pattern);
-        usedGroupPatterns.add(group.pattern);
         break;
       }
     }
   }
 
-  // Only include groups that actually matched at least one node
+  // Build groups with nested files
   const groupsRecord: Record<string, ExportGroup> = {};
-  for (const group of activeGroups) {
-    if (!usedGroupPatterns.has(group.pattern)) continue;
-    const entry: ExportGroup = {
-      pattern: group.pattern,
-      color: group.color,
-    };
-    if (group.shape2D && group.shape2D !== 'circle') entry.shape2D = group.shape2D;
-    if (group.shape3D && group.shape3D !== 'sphere') entry.shape3D = group.shape3D;
-    if (group.imagePath) entry.imagePath = group.imagePath;
-    groupsRecord[group.pattern] = entry;
+  const ungroupedFiles: Record<string, ExportFile> = {};
+
+  for (const node of sorted) {
+    const file: ExportFile = { imports: importsMap.get(node.id) ?? [] };
+    const groupPattern = nodeGroupMap.get(node.id);
+
+    if (groupPattern) {
+      if (!groupsRecord[groupPattern]) {
+        const group = activeGroups.find(g => g.pattern === groupPattern)!;
+        const entry: ExportGroup = {
+          pattern: group.pattern,
+          color: group.color,
+          files: {},
+        };
+        if (group.shape2D && group.shape2D !== 'circle') entry.shape2D = group.shape2D;
+        if (group.shape3D && group.shape3D !== 'sphere') entry.shape3D = group.shape3D;
+        if (group.imagePath) entry.imagePath = group.imagePath;
+        groupsRecord[groupPattern] = entry;
+      }
+      groupsRecord[groupPattern].files[node.id] = file;
+    } else {
+      ungroupedFiles[node.id] = file;
+    }
   }
 
-  // Build files record
-  const filesRecord: Record<string, ExportFile> = {};
-  for (const node of sorted) {
-    const ext = node.id.includes('.') ? node.id.slice(node.id.lastIndexOf('.')) : '';
-    const entry: ExportFile = {
-      extension: ext,
-      imports: importsMap.get(node.id) ?? [],
-    };
-    const groupPattern = nodeGroupMap.get(node.id);
-    if (groupPattern) entry.group = groupPattern;
-    filesRecord[node.id] = entry;
+  // Build rules from plugin statuses
+  const rules: ExportRule[] = [];
+  for (const plugin of pluginStatuses) {
+    if (!plugin.enabled) continue;
+    for (const rule of plugin.rules) {
+      if (!rule.enabled) continue;
+      if (rule.connectionCount === 0) continue;
+      rules.push({
+        name: rule.name,
+        plugin: plugin.name,
+        connections: rule.connectionCount,
+      });
+    }
   }
+  rules.sort((a, b) => b.connections - a.connections);
 
   return {
     format: 'codegraphy-connections',
@@ -96,7 +120,8 @@ export function buildExportData(graphData: IGraphData, groups: IGroup[]): Export
       totalFiles: graphData.nodes.length,
       totalConnections: graphData.edges.length,
     },
+    rules,
     groups: groupsRecord,
-    files: filesRecord,
+    ungrouped: ungroupedFiles,
   };
 }
