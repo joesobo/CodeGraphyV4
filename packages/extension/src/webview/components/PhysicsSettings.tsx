@@ -6,7 +6,8 @@
 import React, { useState } from 'react';
 import { IPhysicsSettings } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
-import { CloseIcon, GearIcon } from './icons';
+import { mdiClose, mdiCogOutline } from '@mdi/js';
+import { MdiIcon } from './icons';
 
 interface PhysicsSettingsProps {
   settings: IPhysicsSettings;
@@ -92,7 +93,7 @@ export default function PhysicsSettings({ settings, onSettingsChange }: PhysicsS
               className="text-zinc-400 hover:text-zinc-200 p-1"
               title="Close"
             >
-              <CloseIcon className="w-4 h-4" />
+              <MdiIcon path={mdiClose} size={16} />
             </button>
           </div>
 
@@ -133,7 +134,7 @@ export default function PhysicsSettings({ settings, onSettingsChange }: PhysicsS
           className="bg-zinc-800/80 hover:bg-zinc-700/90 backdrop-blur-sm rounded-lg border border-zinc-700 p-2 text-zinc-400 hover:text-zinc-200 transition-colors"
           title="Physics Settings"
         >
-          <GearIcon className="w-5 h-5" />
+          <MdiIcon path={mdiCogOutline} size={20} />
         </button>
       )}
     </div>

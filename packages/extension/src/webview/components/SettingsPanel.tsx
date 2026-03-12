@@ -15,7 +15,8 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
-import { ChevronRightIcon, CloseIcon, DragHandleIcon, EyeIcon, EyeOffIcon, MinusIcon, PlusIcon, LockIcon } from './icons';
+import { mdiChevronRight, mdiClose, mdiDrag, mdiEyeOutline, mdiEyeOffOutline, mdiMinus, mdiPlus, mdiLockOutline } from '@mdi/js';
+import { MdiIcon } from './icons';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -75,7 +76,7 @@ function particleSpeedFromDisplay(level: number): number {
 const COLOR_DEBOUNCE_MS = 300;
 
 const ChevronIcon = ({ open }: { open: boolean }) => (
-  <ChevronRightIcon size={14} className={cn('text-muted-foreground transition-transform', open && 'rotate-90')} />
+  <MdiIcon path={mdiChevronRight} size={14} className={cn('text-muted-foreground transition-transform', open && 'rotate-90')} />
 );
 
 function SectionHeader({
@@ -488,7 +489,7 @@ export default function SettingsPanel({
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <span className="text-sm font-medium">Settings</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
-          <CloseIcon className="h-4 w-4" />
+          <MdiIcon path={mdiClose} size={16} />
         </Button>
       </div>
 
@@ -607,7 +608,7 @@ export default function SettingsPanel({
                                 className="flex items-center gap-2 cursor-pointer"
                                 onClick={() => setExpandedGroupId(isExpanded ? null : group.id)}
                               >
-                                <DragHandleIcon className="text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" />
+                                <MdiIcon path={mdiDrag} size={12} className="text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" />
                                 <span
                                   className="w-4 h-4 rounded-sm flex-shrink-0 border"
                                   style={{ backgroundColor: displayColor }}
@@ -626,9 +627,9 @@ export default function SettingsPanel({
                                   title={group.disabled ? 'Enable group' : 'Disable group'}
                                 >
                                   {group.disabled ? (
-                                    <EyeOffIcon className="w-3.5 h-3.5" />
+                                    <MdiIcon path={mdiEyeOffOutline} size={14} />
                                   ) : (
-                                    <EyeIcon className="w-3.5 h-3.5" />
+                                    <MdiIcon path={mdiEyeOutline} size={14} />
                                   )}
                                 </button>
                                 <ChevronIcon open={isExpanded} />
@@ -639,7 +640,7 @@ export default function SettingsPanel({
                                   onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.id); }}
                                   title="Delete group"
                                 >
-                                  <CloseIcon size={14} className="w-3.5 h-3.5" />
+                                  <MdiIcon path={mdiClose} size={14} />
                                 </Button>
                               </div>
 
@@ -783,9 +784,9 @@ export default function SettingsPanel({
                         title={allDisabled ? `Enable all ${sectionName} groups` : `Disable all ${sectionName} groups`}
                       >
                         {allDisabled ? (
-                          <EyeOffIcon className="w-3.5 h-3.5" />
+                          <MdiIcon path={mdiEyeOffOutline} size={14} />
                         ) : (
-                          <EyeIcon className="w-3.5 h-3.5" />
+                          <MdiIcon path={mdiEyeOutline} size={14} />
                         )}
                       </button>
                     </div>
@@ -815,9 +816,9 @@ export default function SettingsPanel({
                                   title={group.disabled ? 'Enable group' : 'Disable group'}
                                 >
                                   {group.disabled ? (
-                                    <EyeOffIcon className="w-3.5 h-3.5" />
+                                    <MdiIcon path={mdiEyeOffOutline} size={14} />
                                   ) : (
-                                    <EyeIcon className="w-3.5 h-3.5" />
+                                    <MdiIcon path={mdiEyeOutline} size={14} />
                                   )}
                                 </button>
                                 <ChevronIcon open={isExpanded} />
@@ -901,7 +902,7 @@ export default function SettingsPanel({
                     disabled={maxFiles <= 1}
                     title="Decrease by 100"
                   >
-                    <MinusIcon className="h-3 w-3" />
+                    <MdiIcon path={mdiMinus} size={12} />
                   </Button>
                   <Input
                     type="text"
@@ -922,7 +923,7 @@ export default function SettingsPanel({
                     onClick={() => handleMaxFilesCommit(maxFiles + 100)}
                     title="Increase by 100"
                   >
-                    <PlusIcon className="h-3 w-3" />
+                    <MdiIcon path={mdiPlus} size={12} />
                   </Button>
                 </div>
               </div>
@@ -934,7 +935,7 @@ export default function SettingsPanel({
                   <ul className="space-y-1">
                     {pluginFilterPatterns.map(pattern => (
                       <li key={pattern} className="flex items-center gap-2 opacity-60">
-                        <LockIcon className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                        <MdiIcon path={mdiLockOutline} size={12} className="text-muted-foreground flex-shrink-0" />
                         <span className="text-xs text-muted-foreground flex-1 truncate font-mono">{pattern}</span>
                       </li>
                     ))}
@@ -957,7 +958,7 @@ export default function SettingsPanel({
                         onClick={() => handleDeleteFilterPattern(pattern)}
                         title="Delete pattern"
                       >
-                        <CloseIcon size={14} className="w-3.5 h-3.5" />
+                        <MdiIcon path={mdiClose} size={14} />
                       </Button>
                     </li>
                   ))}

@@ -7,7 +7,8 @@
 import React from 'react';
 import { IAvailableView } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
-import { ChevronDownIcon } from './icons';
+import { mdiChevronDown } from '@mdi/js';
+import { MdiIcon } from './icons';
 
 interface ViewSwitcherProps {
   views: IAvailableView[];
@@ -66,7 +67,7 @@ export function ViewSwitcher({ views, activeViewId, onViewChange }: ViewSwitcher
         </select>
         {/* Dropdown arrow icon */}
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-[var(--vscode-dropdown-foreground,#cccccc)]">
-          <ChevronDownIcon className="h-4 w-4" />
+          <MdiIcon path={mdiChevronDown} size={16} />
         </div>
       </div>
     </div>

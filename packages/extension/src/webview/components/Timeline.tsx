@@ -3,7 +3,8 @@ import { useGraphStore } from '../store';
 import { postMessage } from '../lib/vscodeApi';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
-import { ClockIcon, SpinnerIcon, PauseIcon, PlayIcon } from './icons';
+import { mdiClockOutline, mdiRefresh, mdiPause, mdiPlay } from '@mdi/js';
+import { MdiIcon } from './icons';
 
 /**
  * Format a Unix timestamp as "Mon D, YYYY".
@@ -303,7 +304,7 @@ export default function Timeline(): React.ReactElement | null {
     return (
       <div className="flex-shrink-0 border-t border-border p-2 flex items-center justify-center">
         <Button variant="outline" size="sm" onClick={handleIndexRepo} title="Index repository git history">
-          <ClockIcon className="h-4 w-4 mr-1" />
+          <MdiIcon path={mdiClockOutline} size={16} className="mr-1" />
           Index Repo
         </Button>
       </div>
@@ -318,7 +319,7 @@ export default function Timeline(): React.ReactElement | null {
     return (
       <div className="flex-shrink-0 border-t border-border p-3">
         <div className="flex items-center gap-2 mb-1">
-          <SpinnerIcon className="h-4 w-4 animate-spin text-muted-foreground" />
+          <MdiIcon path={mdiRefresh} size={16} className="animate-spin text-muted-foreground" />
           <span className="text-xs text-muted-foreground">
             {indexProgress.phase} ({indexProgress.current}/{indexProgress.total})
           </span>
@@ -338,7 +339,7 @@ export default function Timeline(): React.ReactElement | null {
     return (
       <div className="flex-shrink-0 border-t border-border p-3">
         <div className="flex items-center gap-2">
-          <SpinnerIcon className="h-4 w-4 animate-spin text-muted-foreground" />
+          <MdiIcon path={mdiRefresh} size={16} className="animate-spin text-muted-foreground" />
           <span className="text-xs text-muted-foreground">Indexing repository...</span>
         </div>
       </div>
@@ -373,9 +374,9 @@ export default function Timeline(): React.ReactElement | null {
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
-              <PauseIcon className="h-4 w-4" />
+              <MdiIcon path={mdiPause} size={16} />
             ) : (
-              <PlayIcon className="h-4 w-4" />
+              <MdiIcon path={mdiPlay} size={16} />
             )}
           </button>
 

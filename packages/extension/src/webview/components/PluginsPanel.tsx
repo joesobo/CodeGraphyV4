@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
-import { ChevronRightIcon, CloseIcon } from './icons';
+import { mdiChevronRight, mdiClose } from '@mdi/js';
+import { MdiIcon } from './icons';
 import { Switch } from './ui/switch';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
@@ -15,7 +16,7 @@ interface PluginsPanelProps {
 }
 
 const ChevronIcon = ({ open }: { open: boolean }) => (
-  <ChevronRightIcon size={12} className={cn('text-muted-foreground transition-transform', open && 'rotate-90')} />
+  <MdiIcon path={mdiChevronRight} size={12} className={cn('text-muted-foreground transition-transform', open && 'rotate-90')} />
 );
 
 export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
@@ -47,7 +48,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <span className="text-sm font-medium">Plugins</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
-          <CloseIcon className="h-4 w-4" />
+          <MdiIcon path={mdiClose} size={16} />
         </Button>
       </div>
 

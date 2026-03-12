@@ -5,7 +5,8 @@
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import { cn } from '../lib/utils';
-import { SearchIcon, CloseIcon } from './icons';
+import { mdiMagnify, mdiClose } from '@mdi/js';
+import { MdiIcon } from './icons';
 
 export interface SearchOptions {
   matchCase: boolean;
@@ -128,7 +129,7 @@ export function SearchBar({
       {/* Search input container */}
       <div className="relative flex-1 flex items-center">
         {/* Search icon */}
-        <SearchIcon className="absolute left-3 w-4 h-4 text-[var(--vscode-input-placeholderForeground,#6b7280)]" />
+        <MdiIcon path={mdiMagnify} size={16} className="absolute left-3 text-[var(--vscode-input-placeholderForeground,#6b7280)]" />
 
         {/* Input */}
         <input
@@ -175,7 +176,7 @@ export function SearchBar({
               )}
               title="Clear search (Escape)"
             >
-              <CloseIcon className="w-4 h-4" />
+              <MdiIcon path={mdiClose} size={16} />
             </button>
           )}
         </div>

@@ -1,23 +1,8 @@
 export type { IconProps } from './types';
 
-export { ChevronDownIcon } from './ChevronDownIcon';
-export { ChevronRightIcon } from './ChevronRightIcon';
-export { ClockIcon } from './ClockIcon';
-export { CloseIcon } from './CloseIcon';
 export { DagDefaultIcon } from './DagDefaultIcon';
 export { DagLeftRightIcon } from './DagLeftRightIcon';
 export { DagRadialIcon } from './DagRadialIcon';
 export { DagTopDownIcon } from './DagTopDownIcon';
-export { DragHandleIcon } from './DragHandleIcon';
-export { EyeIcon } from './EyeIcon';
-export { EyeOffIcon } from './EyeOffIcon';
-export { GearIcon } from './GearIcon';
 export { GraphIcon } from './GraphIcon';
-export { LockIcon } from './LockIcon';
 export { MdiIcon } from './MdiIcon';
-export { MinusIcon } from './MinusIcon';
-export { PauseIcon } from './PauseIcon';
-export { PlayIcon } from './PlayIcon';
-export { PlusIcon } from './PlusIcon';
-export { SearchIcon } from './SearchIcon';
-export { SpinnerIcon } from './SpinnerIcon';
