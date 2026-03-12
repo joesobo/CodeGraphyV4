@@ -469,7 +469,7 @@ export class WorkspaceAnalyzer {
     const edges: IGraphEdge[] = [];
     const nodeIds = new Set<string>();
     const connectedIds = new Set<string>();
-    const edgeIds = new Set<string>();
+    const edgeMap = new Map<string, IGraphEdge>();
 
     // Get visit counts from workspace state (for access-count mode)
     const visitCounts = this._context.workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
@@ -506,13 +506,20 @@ export class WorkspaceAnalyzer {
             // Deduplicate: a file may import the same target via multiple
             // mechanisms (e.g. extends path + class_name usage)
             const edgeId = `${filePath}->${targetRelative}`;
-            if (!edgeIds.has(edgeId)) {
-              edgeIds.add(edgeId);
-              edges.push({
+            const qualifiedRuleId = plugin && conn.ruleId ? `${plugin.id}:${conn.ruleId}` : undefined;
+            const existing = edgeMap.get(edgeId);
+            if (!existing) {
+              const edge: IGraphEdge = {
                 id: edgeId,
                 from: filePath,
                 to: targetRelative,
-              });
+              };
+              if (qualifiedRuleId) edge.ruleIds = [qualifiedRuleId];
+              edges.push(edge);
+              edgeMap.set(edgeId, edge);
+            } else if (qualifiedRuleId && (!existing.ruleIds || !existing.ruleIds.includes(qualifiedRuleId))) {
+              if (!existing.ruleIds) existing.ruleIds = [];
+              existing.ruleIds.push(qualifiedRuleId);
             }
           }
         }
