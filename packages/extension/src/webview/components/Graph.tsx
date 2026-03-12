@@ -278,6 +278,7 @@ export default function Graph({
   const particleSize = useGraphStore(s => s.particleSize);
   const showLabels = useGraphStore(s => s.showLabels);
   const graphMode = useGraphStore(s => s.graphMode);
+  const dagMode = useGraphStore(s => s.dagMode);
   const timelineActive = useGraphStore(s => s.timelineActive);
   const timelineActiveRef = useRef(timelineActive);
   timelineActiveRef.current = timelineActive;
@@ -1290,6 +1291,8 @@ export default function Graph({
     cooldownTicks: timelineActive ? 50 : 500,
     nodeId: 'id' as const,
     onNodeHover: handleNodeHover as (node: NodeObject | null) => void,
+    dagMode: dagMode ?? undefined,
+    dagLevelDistance: dagMode ? 60 : undefined,
   };
 
   const initPhysics = useCallback((instance: FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>) => {

@@ -8,6 +8,7 @@ import type {
   IGroup,
   NodeSizeMode,
   DirectionMode,
+  DagMode,
   IPluginStatus,
   ICommitInfo,
   ExtensionToWebviewMessage,
@@ -67,6 +68,9 @@ export interface GraphState {
   availableViews: IAvailableView[];
   activeViewId: string;
 
+  // DAG layout
+  dagMode: DagMode;
+
   // Plugins
   pluginStatuses: IPluginStatus[];
 
@@ -109,6 +113,7 @@ export interface GraphState {
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
   setActiveViewId: (id: string) => void;
+  setDagMode: (mode: DagMode) => void;
   setMaxFiles: (max: number) => void;
   setPlaybackSpeed: (speed: number) => void;
   setIsPlaying: (playing: boolean) => void;
@@ -139,6 +144,7 @@ export function createGraphStore() {
     pluginFilterPatterns: [],
     availableViews: [],
     activeViewId: 'codegraphy.connections',
+    dagMode: null,
     pluginStatuses: [],
     nodeDecorations: {},
     edgeDecorations: {},
@@ -172,6 +178,7 @@ export function createGraphStore() {
     setBidirectionalMode: (mode) => set({ bidirectionalMode: mode }),
     setShowLabels: (show) => set({ showLabels: show }),
     setActiveViewId: (id) => set({ activeViewId: id }),
+    setDagMode: (mode) => set({ dagMode: mode }),
     setMaxFiles: (max) => set({ maxFiles: max }),
     setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
     setIsPlaying: (playing) => set({ isPlaying: playing }),
@@ -274,6 +281,9 @@ export function createGraphStore() {
           break;
         case 'PLUGIN_WEBVIEW_INJECT':
           // Tier 2: will be implemented later
+          break;
+        case 'DAG_MODE_UPDATED':
+          set({ dagMode: message.payload.dagMode });
           break;
       }
     },
