@@ -267,6 +267,41 @@ describe('WorkspaceAnalyzer rules', () => {
       expect(result.edges[0].to).toBe('src/a.ts');
     });
 
+    it('collects multiple ruleIds when different rules detect the same edge', async () => {
+      await analyzer.initialize();
+
+      const fileConnections = new Map<string, { specifier: string; resolvedPath: string | null; type: 'static' | 'dynamic' | 'require' | 'reexport'; ruleId?: string }[]>();
+
+      // Two different rules detect connections to the same target
+      fileConnections.set('src/index.ts', [
+        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' },
+        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'reexport', ruleId: 'reexport' },
+      ]);
+      fileConnections.set('src/utils.ts', []);
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const analyzerAny = analyzer as any;
+      analyzerAny._lastFileConnections = fileConnections;
+      analyzerAny._lastWorkspaceRoot = '/test/workspace';
+      analyzerAny._lastDiscoveredFiles = [
+        { absolutePath: '/test/workspace/src/index.ts', relativePath: 'src/index.ts' },
+        { absolutePath: '/test/workspace/src/utils.ts', relativePath: 'src/utils.ts' },
+      ];
+
+      const result = analyzer.rebuildGraph(new Set(), new Set(), true);
+
+      // Should deduplicate into a single edge
+      expect(result.edges.length).toBe(1);
+      expect(result.edges[0].from).toBe('src/index.ts');
+      expect(result.edges[0].to).toBe('src/utils.ts');
+
+      // Both rules should be recorded
+      expect(result.edges[0].ruleIds).toEqual([
+        'codegraphy.typescript:es6-import',
+        'codegraphy.typescript:reexport',
+      ]);
+    });
+
     it('orphan nodes are hidden when showOrphans is false', async () => {
       await analyzer.initialize();
 
