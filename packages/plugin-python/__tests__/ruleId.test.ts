@@ -11,22 +11,31 @@ describe('Python plugin ruleId', () => {
     await plugin.initialize?.(workspaceRoot);
   });
 
-  it('sets standard-import ruleId for import statements', async () => {
+  it('sets import-module ruleId for import statements', async () => {
     const content = `import os`;
     const connections = await plugin.detectConnections(
       path.join(workspaceRoot, 'test.py'), content, workspaceRoot
     );
     expect(connections.length).toBeGreaterThan(0);
-    expect(connections[0].ruleId).toBe('standard-import');
+    expect(connections[0].ruleId).toBe('import-module');
   });
 
-  it('sets from-import ruleId for from-import statements', async () => {
+  it('sets from-import-absolute ruleId for absolute from-import statements', async () => {
     const content = `from os import path`;
     const connections = await plugin.detectConnections(
       path.join(workspaceRoot, 'test.py'), content, workspaceRoot
     );
     expect(connections.length).toBeGreaterThan(0);
-    expect(connections[0].ruleId).toBe('from-import');
+    expect(connections[0].ruleId).toBe('from-import-absolute');
+  });
+
+  it('sets from-import-relative ruleId for relative from-import statements', async () => {
+    const content = `from .utils import helper`;
+    const connections = await plugin.detectConnections(
+      path.join(workspaceRoot, 'pkg', 'test.py'), content, workspaceRoot
+    );
+    expect(connections.length).toBeGreaterThan(0);
+    expect(connections[0].ruleId).toBe('from-import-relative');
   });
 
   it('every connection has a ruleId', async () => {

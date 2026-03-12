@@ -201,7 +201,7 @@ describe('WorkspaceAnalyzer rules', () => {
       ]);
       fileConnections.set('src/utils.ts', []);
       fileConnections.set('main.py', [
-        { specifier: 'config', resolvedPath: '/test/workspace/config.py', type: 'static', ruleId: 'standard-import' },
+        { specifier: 'config', resolvedPath: '/test/workspace/config.py', type: 'static', ruleId: 'import-module' },
       ]);
       fileConnections.set('config.py', []);
 
@@ -240,7 +240,7 @@ describe('WorkspaceAnalyzer rules', () => {
       fileConnections.set('src/a.ts', []);
       fileConnections.set('src/b.ts', []);
       fileConnections.set('main.py', [
-        { specifier: 'config', resolvedPath: '/test/workspace/config.py', type: 'static', ruleId: 'standard-import' },
+        { specifier: 'config', resolvedPath: '/test/workspace/config.py', type: 'static', ruleId: 'import-module' },
       ]);
       fileConnections.set('config.py', []);
 
