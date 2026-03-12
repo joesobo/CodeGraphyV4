@@ -506,6 +506,46 @@ describe('Tooltip Behavior', () => {
   });
 });
 
+describe('Graph dagMode', () => {
+  const mockData: IGraphData = {
+    nodes: [
+      { id: 'a.ts', label: 'a.ts', color: '#93C5FD' },
+      { id: 'b.ts', label: 'b.ts', color: '#67E8F9' },
+    ],
+    edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' }],
+  };
+
+  beforeEach(() => {
+    ForceGraph2D.clearAllHandlers();
+    graphStore.setState({ dagMode: null });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('passes undefined dagMode when dagMode is null', () => {
+    graphStore.setState({ dagMode: null });
+    render(<Graph data={mockData} />);
+    const lastProps = ForceGraph2D.getLastProps();
+    expect(lastProps.dagMode).toBeUndefined();
+  });
+
+  it('passes dagMode to ForceGraph2D when set', () => {
+    graphStore.setState({ dagMode: 'td' });
+    render(<Graph data={mockData} />);
+    const lastProps = ForceGraph2D.getLastProps();
+    expect(lastProps.dagMode).toBe('td');
+  });
+
+  it('passes dagLevelDistance when dagMode is set', () => {
+    graphStore.setState({ dagMode: 'radialout' });
+    render(<Graph data={mockData} />);
+    const lastProps = ForceGraph2D.getLastProps();
+    expect(lastProps.dagLevelDistance).toBeDefined();
+  });
+});
+
 describe('Export Functionality', () => {
   const mockData: IGraphData = {
     nodes: [
