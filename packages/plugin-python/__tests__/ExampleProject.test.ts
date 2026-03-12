@@ -96,4 +96,42 @@ describe('Python Example Project', () => {
       expect(resolved).toBe('src/utils/format.py');
     });
   });
+
+  describe('member_imports.py imports', () => {
+    it('should resolve "from services import api" to src/services/api.py', async () => {
+      const connections = await getConnections('src/member_imports.py');
+      const apiConn = connections.find(c => c.specifier === 'from services import api');
+      expect(apiConn).toBeDefined();
+
+      const resolved = toRelative(apiConn!.resolvedPath);
+      expect(resolved).toBe('src/services/api.py');
+    });
+
+    it('should resolve "from utils import helpers" to src/utils/helpers.py', async () => {
+      const connections = await getConnections('src/member_imports.py');
+      const helpersConn = connections.find(c => c.specifier === 'from utils import helpers');
+      expect(helpersConn).toBeDefined();
+
+      const resolved = toRelative(helpersConn!.resolvedPath);
+      expect(resolved).toBe('src/utils/helpers.py');
+    });
+
+    it('should keep third-party imports unresolved', async () => {
+      const connections = await getConnections('src/member_imports.py');
+      const requestsConn = connections.find(c => c.specifier === 'from requests import Session');
+      expect(requestsConn).toBeDefined();
+      expect(requestsConn?.resolvedPath).toBeNull();
+    });
+  });
+
+  describe('namespace_consumer.py imports', () => {
+    it('should resolve namespace package import to src/ns_pkg/member.py', async () => {
+      const connections = await getConnections('src/namespace_consumer.py');
+      const namespaceConn = connections.find(c => c.specifier === 'from ns_pkg import member');
+      expect(namespaceConn).toBeDefined();
+
+      const resolved = toRelative(namespaceConn!.resolvedPath);
+      expect(resolved).toBe('src/ns_pkg/member.py');
+    });
+  });
 });

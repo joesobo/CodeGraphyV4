@@ -72,7 +72,10 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     const pyFiles = [
       'src/main.py',
       'src/config.py',
+      'src/member_imports.py',
+      'src/namespace_consumer.py',
       'src/orphan.py',
+      'src/ns_pkg/member.py',
       'src/services/api.py',
       'src/services/__init__.py',
       'src/utils/helpers.py',
