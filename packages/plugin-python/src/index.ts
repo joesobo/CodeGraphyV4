@@ -8,11 +8,13 @@
 import type { IPlugin, IConnection } from '@codegraphy/plugin-api';
 import { PathResolver } from './PathResolver';
 import { loadPythonConfig } from './projectConfig';
+import { assertPythonAstRuntimeAvailable, parsePythonImports } from './astParser';
 import manifest from '../codegraphy.json';
 
 // Rule detect functions
-import { detect as detectStandardImport } from './rules/standard-import';
-import { detect as detectFromImport } from './rules/from-import';
+import { detect as detectImportModule } from './rules/import-module';
+import { detect as detectFromImportAbsolute } from './rules/from-import-absolute';
+import { detect as detectFromImportRelative } from './rules/from-import-relative';
 
 export { PathResolver } from './PathResolver';
 export type { IPythonPathResolverConfig, IDetectedImport } from './PathResolver';
@@ -20,8 +22,8 @@ export type { IPythonPathResolverConfig, IDetectedImport } from './PathResolver'
 /**
  * Built-in plugin for Python files.
  *
- * Uses regex-based parsing to detect Python imports,
- * then resolves them to file paths using Python module resolution rules.
+ * Uses Python AST parsing to detect import statements, then resolves
+ * local imports to file paths using Python module resolution rules.
  *
  * Supports:
  * - Python source files (.py)
@@ -41,6 +43,7 @@ export type { IPythonPathResolverConfig, IDetectedImport } from './PathResolver'
  */
 export function createPythonPlugin(): IPlugin {
   let resolver: PathResolver | null = null;
+  let pythonRuntimeReady = false;
 
   return {
     id: manifest.id,
@@ -53,6 +56,8 @@ export function createPythonPlugin(): IPlugin {
     fileColors: manifest.fileColors,
 
     async initialize(workspaceRoot: string): Promise<void> {
+      assertPythonAstRuntimeAvailable();
+      pythonRuntimeReady = true;
       const config = await loadPythonConfig(workspaceRoot);
       resolver = new PathResolver(workspaceRoot, config);
       console.log('[CodeGraphy] Python plugin initialized');
@@ -63,21 +68,29 @@ export function createPythonPlugin(): IPlugin {
       content: string,
       workspaceRoot: string
     ): Promise<IConnection[]> {
+      if (!pythonRuntimeReady) {
+        assertPythonAstRuntimeAvailable();
+        pythonRuntimeReady = true;
+      }
+
       if (!resolver) {
         const config = await loadPythonConfig(workspaceRoot);
         resolver = new PathResolver(workspaceRoot, config);
       }
 
-      const ctx = { resolver };
+      const imports = parsePythonImports(content);
+      const ctx = { resolver, imports };
 
       return [
-        ...detectStandardImport(content, filePath, ctx),
-        ...detectFromImport(content, filePath, ctx),
+        ...detectImportModule(content, filePath, ctx),
+        ...detectFromImportAbsolute(content, filePath, ctx),
+        ...detectFromImportRelative(content, filePath, ctx),
       ];
     },
 
     onUnload(): void {
       resolver = null;
+      pythonRuntimeReady = false;
     },
   };
 }
