@@ -10,8 +10,13 @@ export interface ExportGroup {
   files: Record<string, ExportFile>;
 }
 
+export interface ExportImport {
+  file: string;
+  rules?: string[];
+}
+
 export interface ExportFile {
-  imports: string[];
+  imports: ExportImport[];
 }
 
 export interface ExportRule {
@@ -25,7 +30,7 @@ export interface ExportData {
   version: '1.0';
   exportedAt: string;
   stats: { totalFiles: number; totalConnections: number };
-  rules: ExportRule[];
+  rules: Record<string, ExportRule>;
   groups: Record<string, ExportGroup>;
   ungrouped: Record<string, ExportFile>;
 }
@@ -41,14 +46,34 @@ export function buildExportData(
   groups: IGroup[],
   pluginStatuses: IPluginStatus[] = [],
 ): ExportData {
-  // Build imports map (node id → list of target ids)
-  const importsMap = new Map<string, string[]>();
+  // Build rules lookup from plugin statuses (qualifiedId → ExportRule)
+  const rulesRecord: Record<string, ExportRule> = {};
+  for (const plugin of pluginStatuses) {
+    if (!plugin.enabled) continue;
+    for (const rule of plugin.rules) {
+      if (!rule.enabled || rule.connectionCount === 0) continue;
+      rulesRecord[rule.qualifiedId] = {
+        name: rule.name,
+        plugin: plugin.name,
+        connections: rule.connectionCount,
+      };
+    }
+  }
+
+  // Build imports map (node id → list of {target, ruleIds})
+  const importsMap = new Map<string, ExportImport[]>();
   for (const edge of graphData.edges) {
+    const imp: ExportImport = { file: edge.to };
+    if (edge.ruleIds && edge.ruleIds.length > 0) {
+      // Only include ruleIds that are in our active rules
+      const activeRules = edge.ruleIds.filter(r => r in rulesRecord);
+      if (activeRules.length > 0) imp.rules = activeRules;
+    }
     const list = importsMap.get(edge.from);
     if (list) {
-      list.push(edge.to);
+      list.push(imp);
     } else {
-      importsMap.set(edge.from, [edge.to]);
+      importsMap.set(edge.from, [imp]);
     }
   }
 
@@ -96,22 +121,6 @@ export function buildExportData(
     }
   }
 
-  // Build rules from plugin statuses
-  const rules: ExportRule[] = [];
-  for (const plugin of pluginStatuses) {
-    if (!plugin.enabled) continue;
-    for (const rule of plugin.rules) {
-      if (!rule.enabled) continue;
-      if (rule.connectionCount === 0) continue;
-      rules.push({
-        name: rule.name,
-        plugin: plugin.name,
-        connections: rule.connectionCount,
-      });
-    }
-  }
-  rules.sort((a, b) => b.connections - a.connections);
-
   return {
     format: 'codegraphy-connections',
     version: '1.0',
@@ -120,7 +129,7 @@ export function buildExportData(
       totalFiles: graphData.nodes.length,
       totalConnections: graphData.edges.length,
     },
-    rules,
+    rules: rulesRecord,
     groups: groupsRecord,
     ungrouped: ungroupedFiles,
   };

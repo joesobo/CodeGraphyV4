@@ -569,7 +569,7 @@ describe('Export Functionality', () => {
       expect(parsed.stats.totalConnections).toBe(1);
 
       expect(parsed.ungrouped['src/app.ts']).toBeDefined();
-      expect(parsed.ungrouped['src/app.ts'].imports).toEqual(['src/utils.ts']);
+      expect(parsed.ungrouped['src/app.ts'].imports).toEqual([{ file: 'src/utils.ts' }]);
 
       expect(parsed.ungrouped['src/utils.ts']).toBeDefined();
       expect(parsed.ungrouped['src/utils.ts'].imports).toEqual([]);

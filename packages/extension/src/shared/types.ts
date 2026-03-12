@@ -203,6 +203,13 @@ export interface IGraphEdge {
    * Only present on edges produced by the timeline cache.
    */
   ruleId?: string;
+
+  /**
+   * All qualified rule IDs that detected this connection.
+   * Format: "pluginId:ruleId" (e.g., 'codegraphy.typescript:es6-import').
+   * Present on edges from normal analysis; absent from timeline edges.
+   */
+  ruleIds?: string[];
 }
 
 /**

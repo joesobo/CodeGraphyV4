@@ -1,5 +1,5 @@
 import type { IGraphData, IGroup, IPluginStatus } from '../../shared/types';
-import { buildExportData, ExportFile } from './exportData';
+import { buildExportData, ExportFile, ExportData } from './exportData';
 
 export function buildMarkdownExport(
   graphData: IGraphData,
@@ -16,44 +16,45 @@ export function buildMarkdownExport(
   ];
 
   // Rules section
-  if (data.rules.length > 0) {
+  const ruleEntries = Object.entries(data.rules);
+  if (ruleEntries.length > 0) {
     lines.push('## Rules', '');
-    for (const rule of data.rules) {
-      lines.push(`- **${rule.name}** (${rule.plugin}) — ${rule.connections} connections`);
+    for (const [id, rule] of ruleEntries) {
+      lines.push(`- **${rule.name}** (\`${id}\`, ${rule.plugin}) — ${rule.connections} connections`);
     }
     lines.push('');
   }
 
   // Groups with nested files
-  const groupEntries = Object.entries(data.groups);
-  if (groupEntries.length > 0) {
-    for (const [pattern, group] of groupEntries) {
-      const parts = [`\`${pattern}\``, group.color];
-      if (group.shape2D) parts.push(group.shape2D);
-      if (group.imagePath) parts.push(`image: ${group.imagePath}`);
-      lines.push(`## ${parts.join(' | ')}`, '');
-      renderFiles(lines, group.files);
-      lines.push('');
-    }
+  for (const [pattern, group] of Object.entries(data.groups)) {
+    const parts = [`\`${pattern}\``, group.color];
+    if (group.shape2D) parts.push(group.shape2D);
+    if (group.imagePath) parts.push(`image: ${group.imagePath}`);
+    lines.push(`## ${parts.join(' | ')}`, '');
+    renderFiles(lines, group.files, data);
+    lines.push('');
   }
 
   // Ungrouped files
   const ungroupedEntries = Object.entries(data.ungrouped);
   if (ungroupedEntries.length > 0) {
     lines.push('## Ungrouped', '');
-    renderFiles(lines, data.ungrouped);
+    renderFiles(lines, data.ungrouped, data);
     lines.push('');
   }
 
   return lines.join('\n');
 }
 
-function renderFiles(lines: string[], files: Record<string, ExportFile>) {
+function renderFiles(lines: string[], files: Record<string, ExportFile>, data: ExportData) {
   for (const [filePath, file] of Object.entries(files)) {
     if (file.imports.length > 0) {
       lines.push(`- **${filePath}**`);
       for (const imp of file.imports) {
-        lines.push(`  - ${imp}`);
+        const ruleTag = imp.rules?.length
+          ? ` (${imp.rules.map(r => data.rules[r]?.name ?? r).join(', ')})`
+          : '';
+        lines.push(`  - ${imp.file}${ruleTag}`);
       }
     } else {
       lines.push(`- ${filePath}`);
