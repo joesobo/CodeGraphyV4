@@ -568,12 +568,11 @@ describe('Export Functionality', () => {
       expect(parsed.stats.totalFiles).toBe(2);
       expect(parsed.stats.totalConnections).toBe(1);
 
-      expect(parsed.files['src/app.ts']).toBeDefined();
-      expect(parsed.files['src/app.ts'].extension).toBe('.ts');
-      expect(parsed.files['src/app.ts'].imports).toEqual(['src/utils.ts']);
+      expect(parsed.ungrouped['src/app.ts']).toBeDefined();
+      expect(parsed.ungrouped['src/app.ts'].imports).toEqual(['src/utils.ts']);
 
-      expect(parsed.files['src/utils.ts']).toBeDefined();
-      expect(parsed.files['src/utils.ts'].imports).toEqual([]);
+      expect(parsed.ungrouped['src/utils.ts']).toBeDefined();
+      expect(parsed.ungrouped['src/utils.ts'].imports).toEqual([]);
     }
   });
 

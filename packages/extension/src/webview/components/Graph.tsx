@@ -1705,8 +1705,8 @@ function exportAsSvg(nodes: FGNode[], links: FGLink[], options: SvgExportOptions
 
 function exportAsJson(data: IGraphData): void {
   try {
-    const { groups } = graphStore.getState();
-    const exportData = buildExportData(data, groups);
+    const { groups, pluginStatuses } = graphStore.getState();
+    const exportData = buildExportData(data, groups, pluginStatuses);
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     postMessage({ type: 'EXPORT_JSON', payload: { json: JSON.stringify(exportData, null, 2), filename: `codegraphy-connections-${timestamp}.json` } });
   } catch (error) {
