@@ -38,6 +38,12 @@ export type DirectionMode = 'arrows' | 'particles' | 'none';
  */
 export type DagMode = null | 'radialout' | 'td' | 'lr';
 
+/**
+ * Node type for folder view.
+ * 'file' = a source file, 'folder' = a directory container.
+ */
+export type NodeType = 'file' | 'folder';
+
 // ============================================================================
 // File Data (internal representation, what plugins will produce)
 // ============================================================================
@@ -167,7 +173,7 @@ export interface IGraphNode {
    * Node type for folder view.
    * 'file' = a source file, 'folder' = a directory container.
    */
-  nodeType?: 'file' | 'folder';
+  nodeType?: NodeType;
 
   /** 2D canvas shape from group matching */
   shape2D?: NodeShape2D;

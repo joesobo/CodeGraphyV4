@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
   connectionsView,
   depthGraphView,
-  subfolderView,
+  folderView,
   coreViews,
 } from '../../../src/core/views';
 import { IGraphData } from '../../../src/shared/types';
@@ -35,10 +35,10 @@ function createContext(overrides: Partial<IViewContext> = {}): IViewContext {
 describe('Core Views', () => {
   describe('coreViews array', () => {
     it('should contain all core views', () => {
-      expect(coreViews).toHaveLength(4);
+      expect(coreViews).toHaveLength(3);
       expect(coreViews).toContain(connectionsView);
       expect(coreViews).toContain(depthGraphView);
-      expect(coreViews).toContain(subfolderView);
+      expect(coreViews).toContain(folderView);
     });
   });
 
@@ -199,58 +199,4 @@ describe('Core Views', () => {
 
   });
 
-  describe('subfolderView', () => {
-    it('should have correct metadata', () => {
-      expect(subfolderView.id).toBe('codegraphy.subfolder');
-      expect(subfolderView.name).toBe('Subfolder View');
-      expect(subfolderView.icon).toBe('folder');
-      expect(subfolderView.pluginId).toBeUndefined();
-    });
-
-    it('should return all data when no folder is selected', () => {
-      const context = createContext({ selectedFolder: undefined });
-      const result = subfolderView.transform(sampleGraphData, context);
-
-      expect(result).toBe(sampleGraphData);
-    });
-
-    it('should filter to only files in selected folder', () => {
-      const context = createContext({ selectedFolder: 'src/utils' });
-      const result = subfolderView.transform(sampleGraphData, context);
-
-      // Only helpers.ts and format.ts are in src/utils
-      expect(result.nodes).toHaveLength(2);
-      expect(result.nodes.map(n => n.id)).toContain('src/utils/helpers.ts');
-      expect(result.nodes.map(n => n.id)).toContain('src/utils/format.ts');
-
-      // Only the edge between helpers and format
-      expect(result.edges).toHaveLength(1);
-    });
-
-    it('should handle folder path without trailing slash', () => {
-      const context = createContext({ selectedFolder: 'src' });
-      const result = subfolderView.transform(sampleGraphData, context);
-
-      // All src files: app.ts, helpers.ts, format.ts, Button.tsx
-      expect(result.nodes).toHaveLength(4);
-    });
-
-    it('should handle folder path with trailing slash', () => {
-      const context = createContext({ selectedFolder: 'src/' });
-      const result = subfolderView.transform(sampleGraphData, context);
-
-      expect(result.nodes).toHaveLength(4);
-    });
-
-    it('should be unavailable when no folder is selected', () => {
-      const context = createContext({ selectedFolder: undefined });
-      expect(subfolderView.isAvailable?.(context)).toBe(false);
-    });
-
-    it('should be available when a folder is selected', () => {
-      const context = createContext({ selectedFolder: 'src' });
-      expect(subfolderView.isAvailable?.(context)).toBe(true);
-    });
-
-  });
 });

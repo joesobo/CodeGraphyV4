@@ -1050,24 +1050,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Sets the selected folder for view context (e.g., for Subfolder View).
-   * 
-   * @param folderPath - Relative path to the selected folder
-   */
-  public setSelectedFolder(folderPath: string | undefined): void {
-    this._viewContext.selectedFolder = folderPath;
-    
-    // Re-apply transform if using a view that depends on selected folder
-    const viewInfo = this._viewRegistry.get(this._activeViewId);
-    if (viewInfo?.view.id === 'codegraphy.subfolder') {
-      this._applyViewTransform();
-  
-      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-      this._sendAvailableViews();
-    }
-  }
-
-  /**
    * Send a command to the webview (for keyboard shortcuts)
    * 
    * @param command - The command to send (FIT_VIEW, ZOOM_IN, ZOOM_OUT)

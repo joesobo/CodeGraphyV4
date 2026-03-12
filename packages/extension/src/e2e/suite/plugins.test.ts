@@ -77,18 +77,18 @@ suite('Plugin: TypeScript', function () {
 suite('Plugin: View switching', function () {
   this.timeout(30_000);
 
-  test('CHANGE_VIEW message switches to Subfolder view', async function() {
+  test('CHANGE_VIEW message switches to Folder view', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(3_000);
 
     // Send the CHANGE_VIEW message
-    api.sendToWebview({ type: 'CHANGE_VIEW', payload: { viewId: 'codegraphy.subfolder' } });
+    api.sendToWebview({ type: 'CHANGE_VIEW', payload: { viewId: 'codegraphy.folder' } });
     await sleep(2_000);
 
-    // The graph should still have nodes (subfolder view doesn't remove all nodes)
+    // The graph should still have nodes (folder view creates folder + file nodes)
     const graphData = api.getGraphData();
-    assert.ok(graphData.nodes.length > 0, 'Subfolder view should still have nodes');
+    assert.ok(graphData.nodes.length > 0, 'Folder view should still have nodes');
   });
 
   test('CHANGE_VIEW back to Connections view works', async function() {

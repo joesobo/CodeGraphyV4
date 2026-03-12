@@ -93,12 +93,6 @@ export interface IViewContext {
   focusedFile?: string;
   
   /**
-   * Currently selected folder path (relative to workspace).
-   * Used by views like Subfolder View that limit scope.
-   */
-  selectedFolder?: string;
-  
-  /**
    * Set of active plugin IDs.
    * Used to determine which plugin-provided views are available.
    */

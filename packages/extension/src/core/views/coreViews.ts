@@ -113,52 +113,6 @@ export const depthGraphView: IView = {
 };
 
 /**
- * Subfolder View - limits the graph to a specific folder.
- * Shows only files within the selected folder and its subfolders.
- * 
- * This is a placeholder implementation.
- */
-export const subfolderView: IView = {
-  id: 'codegraphy.subfolder',
-  name: 'Subfolder View',
-  icon: 'folder',
-  description: 'Limit view to files in a specific folder',
-  
-  transform(data: IGraphData, context: IViewContext): IGraphData {
-    // If no folder is selected, return everything
-    if (!context.selectedFolder) {
-      return data;
-    }
-    
-    const folderPrefix = context.selectedFolder.endsWith('/')
-      ? context.selectedFolder
-      : `${context.selectedFolder}/`;
-    
-    // Filter nodes to only include those in the folder
-    const filteredNodes = data.nodes.filter(
-      node => node.id.startsWith(folderPrefix) || node.id === context.selectedFolder
-    );
-    
-    const nodeIds = new Set(filteredNodes.map(n => n.id));
-    
-    // Filter edges to only include those between filtered nodes
-    const filteredEdges = data.edges.filter(
-      edge => nodeIds.has(edge.from) && nodeIds.has(edge.to)
-    );
-    
-    return {
-      nodes: filteredNodes,
-      edges: filteredEdges,
-    };
-  },
-  
-  isAvailable(context: IViewContext): boolean {
-    // Only available when a folder is selected
-    return context.selectedFolder !== undefined;
-  },
-};
-
-/**
  * Folder View - shows the folder containment hierarchy.
  * Replaces import edges with parent→child containment edges,
  * creating folder nodes for every directory level.
@@ -251,6 +205,5 @@ export const folderView: IView = {
 export const coreViews: IView[] = [
   connectionsView,
   depthGraphView,
-  subfolderView,
   folderView,
 ];
