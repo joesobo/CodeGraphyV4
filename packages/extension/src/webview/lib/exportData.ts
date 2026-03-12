@@ -1,17 +1,15 @@
 import type { IGraphData, IGroup, IPluginStatus } from '../../shared/types';
 import { globMatch } from './globMatch';
 
-export interface ExportGroup {
-  pattern: string;
-  color: string;
-  shape2D?: string;
-  shape3D?: string;
-  imagePath?: string;
-  files: Record<string, ExportFile>;
+export const UNATTRIBUTED_RULE_KEY = 'unattributed';
+
+export interface ExportBuildContext {
+  timelineActive?: boolean;
+  currentCommitSha?: string | null;
 }
 
-/** imports keyed by rule qualifiedId → list of target file paths */
 export interface ExportFile {
+  /** imports keyed by rule qualifiedId (or "unattributed") → list of target file paths */
   imports?: Record<string, string[]>;
 }
 
@@ -21,51 +19,91 @@ export interface ExportRule {
   connections: number;
 }
 
-export interface ExportData {
-  format: 'codegraphy-connections';
-  version: '1.0';
-  exportedAt: string;
-  stats: { totalFiles: number; totalConnections: number };
+export interface ExportGroup {
+  style: {
+    color: string;
+    shape2D?: string;
+    shape3D?: string;
+    image?: string;
+  };
+  files: Record<string, ExportFile>;
+}
+
+export interface ExportConnectionsSection {
   rules: Record<string, ExportRule>;
   groups: Record<string, ExportGroup>;
   ungrouped: Record<string, ExportFile>;
 }
 
+export interface ExportImagesSectionEntry {
+  groups: string[];
+}
+
+export interface ExportData {
+  format: 'codegraphy-export';
+  version: '2.0';
+  exportedAt: string;
+  scope: {
+    graph: 'current-view';
+    timeline: {
+      active: boolean;
+      commitSha: string | null;
+    };
+  };
+  summary: {
+    totalFiles: number;
+    totalConnections: number;
+    totalRules: number;
+    totalGroups: number;
+    totalImages: number;
+  };
+  sections: {
+    connections: ExportConnectionsSection;
+    images: Record<string, ExportImagesSectionEntry>;
+  };
+}
+
+interface RuleMeta {
+  name: string;
+  plugin: string;
+}
+
 /**
  * Build a structured export of the graph's connection data.
  *
- * The output is designed to be useful for AI/LLM agents trying to
- * understand a repository's dependency structure.
+ * The output is designed to be easy for both humans and agents to parse,
+ * while reflecting exactly what is currently rendered in the graph.
  */
 export function buildExportData(
   graphData: IGraphData,
   groups: IGroup[],
   pluginStatuses: IPluginStatus[] = [],
+  context: ExportBuildContext = {},
 ): ExportData {
-  // Build rules lookup from plugin statuses (qualifiedId → ExportRule)
-  const rulesRecord: Record<string, ExportRule> = {};
+  const ruleMetaByQualified: Record<string, RuleMeta> = {};
+  const qualifiedByRuleId = new Map<string, string[]>();
+
+  // Build rule metadata lookup from plugin statuses.
   for (const plugin of pluginStatuses) {
-    if (!plugin.enabled) continue;
     for (const rule of plugin.rules) {
-      if (!rule.enabled || rule.connectionCount === 0) continue;
-      rulesRecord[rule.qualifiedId] = {
+      ruleMetaByQualified[rule.qualifiedId] = {
         name: rule.name,
         plugin: plugin.name,
-        connections: rule.connectionCount,
       };
+      const list = qualifiedByRuleId.get(rule.id);
+      if (list) {
+        list.push(rule.qualifiedId);
+      } else {
+        qualifiedByRuleId.set(rule.id, [rule.qualifiedId]);
+      }
     }
   }
 
-  // Build imports map: nodeId → Record<ruleKey, targetFiles[]>
   const importsMap = new Map<string, Record<string, string[]>>();
+  const ruleConnectionCounts = new Map<string, number>();
+
   for (const edge of graphData.edges) {
-    let ruleKeys: string[];
-    if (edge.ruleIds && edge.ruleIds.length > 0) {
-      ruleKeys = edge.ruleIds.filter(r => r in rulesRecord);
-      if (ruleKeys.length === 0) ruleKeys = [''];
-    } else {
-      ruleKeys = [''];
-    }
+    const ruleKeys = resolveRuleKeys(edge, qualifiedByRuleId);
 
     let fileImports = importsMap.get(edge.from);
     if (!fileImports) {
@@ -76,18 +114,32 @@ export function buildExportData(
     for (const key of ruleKeys) {
       if (!fileImports[key]) fileImports[key] = [];
       fileImports[key].push(edge.to);
+
+      if (key !== UNATTRIBUTED_RULE_KEY) {
+        ruleConnectionCounts.set(key, (ruleConnectionCounts.get(key) ?? 0) + 1);
+      }
     }
   }
 
-  // Active (non-disabled) groups only
+  const rulesRecord: Record<string, ExportRule> = {};
+  const sortedRuleKeys = Array.from(ruleConnectionCounts.keys()).sort();
+  for (const key of sortedRuleKeys) {
+    const meta = ruleMetaByQualified[key];
+    const fallbackName = key.includes(':') ? key.split(':').slice(1).join(':') : key;
+    const fallbackPlugin = key.includes(':') ? key.split(':')[0] : 'unknown';
+    rulesRecord[key] = {
+      name: meta?.name ?? fallbackName,
+      plugin: meta?.plugin ?? fallbackPlugin,
+      connections: ruleConnectionCounts.get(key) ?? 0,
+    };
+  }
+
   const activeGroups = groups.filter(g => !g.disabled);
+  const sortedNodes = [...graphData.nodes].sort((a, b) => a.id.localeCompare(b.id));
 
-  // Match each node to its first matching group (first-match-wins, same as rendering)
+  // Match each node to its first matching group (same first-match-wins semantics as rendering).
   const nodeGroupMap = new Map<string, string>();
-
-  const sorted = [...graphData.nodes].sort((a, b) => a.id.localeCompare(b.id));
-
-  for (const node of sorted) {
+  for (const node of sortedNodes) {
     for (const group of activeGroups) {
       if (globMatch(node.id, group.pattern)) {
         nodeGroupMap.set(node.id, group.pattern);
@@ -96,44 +148,100 @@ export function buildExportData(
     }
   }
 
-  // Build groups with nested files
-  const groupsRecord: Record<string, ExportGroup> = {};
+  const groupedFileMaps = new Map<string, Record<string, ExportFile>>();
   const ungroupedFiles: Record<string, ExportFile> = {};
 
-  for (const node of sorted) {
+  for (const node of sortedNodes) {
     const nodeImports = importsMap.get(node.id);
     const file: ExportFile = nodeImports ? { imports: nodeImports } : {};
     const groupPattern = nodeGroupMap.get(node.id);
 
-    if (groupPattern) {
-      if (!groupsRecord[groupPattern]) {
-        const group = activeGroups.find(g => g.pattern === groupPattern)!;
-        const entry: ExportGroup = {
-          pattern: group.pattern,
-          color: group.color,
-          files: {},
-        };
-        if (group.shape2D && group.shape2D !== 'circle') entry.shape2D = group.shape2D;
-        if (group.shape3D && group.shape3D !== 'sphere') entry.shape3D = group.shape3D;
-        if (group.imagePath) entry.imagePath = group.imagePath;
-        groupsRecord[groupPattern] = entry;
-      }
-      groupsRecord[groupPattern].files[node.id] = file;
-    } else {
+    if (!groupPattern) {
       ungroupedFiles[node.id] = file;
+      continue;
+    }
+
+    const fileMap = groupedFileMaps.get(groupPattern);
+    if (fileMap) {
+      fileMap[node.id] = file;
+    } else {
+      groupedFileMaps.set(groupPattern, { [node.id]: file });
+    }
+  }
+
+  const groupsRecord: Record<string, ExportGroup> = {};
+  const imagesRecord: Record<string, ExportImagesSectionEntry> = {};
+
+  for (const group of activeGroups) {
+    const files = groupedFileMaps.get(group.pattern);
+    if (!files) continue;
+
+    const style: ExportGroup['style'] = {
+      color: group.color,
+    };
+    if (group.shape2D && group.shape2D !== 'circle') style.shape2D = group.shape2D;
+    if (group.shape3D && group.shape3D !== 'sphere') style.shape3D = group.shape3D;
+    if (group.imagePath) style.image = group.imagePath;
+
+    groupsRecord[group.pattern] = {
+      style,
+      files,
+    };
+
+    if (group.imagePath) {
+      if (!imagesRecord[group.imagePath]) {
+        imagesRecord[group.imagePath] = { groups: [] };
+      }
+      imagesRecord[group.imagePath].groups.push(group.pattern);
     }
   }
 
   return {
-    format: 'codegraphy-connections',
-    version: '1.0',
+    format: 'codegraphy-export',
+    version: '2.0',
     exportedAt: new Date().toISOString(),
-    stats: {
+    scope: {
+      graph: 'current-view',
+      timeline: {
+        active: Boolean(context.timelineActive),
+        commitSha: context.timelineActive ? (context.currentCommitSha ?? null) : null,
+      },
+    },
+    summary: {
       totalFiles: graphData.nodes.length,
       totalConnections: graphData.edges.length,
+      totalRules: Object.keys(rulesRecord).length,
+      totalGroups: Object.keys(groupsRecord).length,
+      totalImages: Object.keys(imagesRecord).length,
     },
-    rules: rulesRecord,
-    groups: groupsRecord,
-    ungrouped: ungroupedFiles,
+    sections: {
+      connections: {
+        rules: rulesRecord,
+        groups: groupsRecord,
+        ungrouped: ungroupedFiles,
+      },
+      images: imagesRecord,
+    },
   };
+}
+
+function resolveRuleKeys(
+  edge: { ruleIds?: string[]; ruleId?: string },
+  qualifiedByRuleId: Map<string, string[]>,
+): string[] {
+  if (Array.isArray(edge.ruleIds) && edge.ruleIds.length > 0) {
+    return edge.ruleIds;
+  }
+
+  if (edge.ruleId) {
+    const qualified = qualifiedByRuleId.get(edge.ruleId);
+    if (qualified && qualified.length === 1) {
+      return [qualified[0]];
+    }
+
+    // Keep unqualified ID when metadata is missing or ambiguous.
+    return [edge.ruleId];
+  }
+
+  return [UNATTRIBUTED_RULE_KEY];
 }

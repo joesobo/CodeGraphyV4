@@ -43,6 +43,7 @@ import { NodeTooltip } from './NodeTooltip';
 import { ThemeKind, adjustColorForLightTheme } from '../hooks/useTheme';
 import { postMessage } from '../lib/vscodeApi';
 import { buildExportData } from '../lib/exportData';
+import { buildMarkdownExport } from '../lib/exportMd';
 import { useGraphStore, graphStore } from '../store';
 import { WebviewPluginHost } from '../pluginHost';
 
@@ -1052,6 +1053,9 @@ export default function Graph({
         case 'REQUEST_EXPORT_JSON':
           exportAsJson(dataRef.current);
           break;
+        case 'REQUEST_EXPORT_MD':
+          exportAsMarkdown(dataRef.current);
+          break;
         case 'NODE_ACCESS_COUNT_UPDATED': {
           const { nodeId, accessCount } = message.payload;
           const nodeIndex = dataRef.current.nodes.findIndex(n => n.id === nodeId);
@@ -1706,10 +1710,26 @@ function exportAsSvg(nodes: FGNode[], links: FGLink[], options: SvgExportOptions
 function exportAsJson(data: IGraphData): void {
   try {
     const { groups, pluginStatuses } = graphStore.getState();
-    const exportData = buildExportData(data, groups, pluginStatuses);
+    const exportData = buildExportData(data, groups, pluginStatuses, getExportContext());
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     postMessage({ type: 'EXPORT_JSON', payload: { json: JSON.stringify(exportData, null, 2), filename: `codegraphy-connections-${timestamp}.json` } });
   } catch (error) {
     console.error('[CodeGraphy] JSON export failed:', error);
   }
+}
+
+function exportAsMarkdown(data: IGraphData): void {
+  try {
+    const { groups, pluginStatuses } = graphStore.getState();
+    const markdown = buildMarkdownExport(data, groups, pluginStatuses, getExportContext());
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    postMessage({ type: 'EXPORT_MD', payload: { markdown, filename: `codegraphy-connections-${timestamp}.md` } });
+  } catch (error) {
+    console.error('[CodeGraphy] Markdown export failed:', error);
+  }
+}
+
+function getExportContext(): { timelineActive: boolean; currentCommitSha: string | null } {
+  const { timelineActive, currentCommitSha } = graphStore.getState();
+  return { timelineActive, currentCommitSha };
 }
