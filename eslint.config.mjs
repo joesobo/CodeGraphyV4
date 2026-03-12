@@ -1,3 +1,4 @@
+import { defineConfig, globalIgnores } from 'eslint/config';
 import eslint from '@eslint/js';
 import tseslint from 'typescript-eslint';
 import reactPlugin from 'eslint-plugin-react';
@@ -6,9 +7,24 @@ import mochaPlugin from 'eslint-plugin-mocha';
 import playwrightPlugin from 'eslint-plugin-playwright';
 import globals from 'globals';
 
-export default tseslint.config(
+export default defineConfig(
   eslint.configs.recommended,
-  ...tseslint.configs.recommended,
+  ...tseslint.configs.recommendedTypeChecked,
+  {
+    linterOptions: {
+      reportUnusedDisableDirectives: 'error',
+    },
+    languageOptions: {
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
+    },
+  },
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    ...tseslint.configs.disableTypeChecked,
+  },
   {
     files: ['**/*.{ts,tsx}'],
     plugins: {
@@ -23,6 +39,8 @@ export default tseslint.config(
         ...globals.node,
       },
       parserOptions: {
+        projectService: true,
+        tsconfigRootDir: import.meta.dirname,
         ecmaFeatures: {
           jsx: true,
         },
@@ -37,8 +55,22 @@ export default tseslint.config(
       ...reactPlugin.configs.recommended.rules,
       ...reactHooksPlugin.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
+      '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     },
+  },
+  {
+    files: [
+      'playwright.config.ts',
+      'test-fixtures/**/*.ts',
+      'packages/**/tests/**/*.{ts,tsx}',
+      'packages/**/__tests__/**/*.{ts,tsx}',
+      'packages/**/vite.config.ts',
+      'packages/**/vitest.config.ts',
+      'packages/plugin-typescript/examples/**/*.{ts,tsx}',
+    ],
+    ...tseslint.configs.disableTypeChecked,
   },
   // Mocha rules for e2e test files
   {
@@ -60,7 +92,7 @@ export default tseslint.config(
       'mocha/max-top-level-suites': 'off',
     },
   },
-  // Playwright rules for browser smoke/e2e tests
+  // Playwright rules for browser smoke/e2e tests.
   {
     files: ['tests/playwright/**/*.ts'],
     ...playwrightPlugin.configs['flat/recommended'],
@@ -68,15 +100,15 @@ export default tseslint.config(
       ...playwrightPlugin.configs['flat/recommended'].rules,
     },
   },
-  {
-    files: ['tests/playwright/**/*.mjs'],
-    languageOptions: {
-      globals: {
-        ...globals.node,
-      },
-    },
-  },
-  {
-    ignores: ['dist/**', 'dist-e2e/**', 'node_modules/**'],
-  }
+  globalIgnores([
+    'dist/**',
+    'dist-e2e/**',
+    'node_modules/**',
+    'coverage/**',
+    '.turbo/**',
+    '.worktrees/**',
+    'playwright-report/**',
+    'test-results/**',
+    'blob-report/**',
+  ])
 );

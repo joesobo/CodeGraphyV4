@@ -5,6 +5,18 @@
 import { useState, useEffect } from 'react';
 
 export type ThemeKind = 'light' | 'dark' | 'high-contrast';
+type ThemeChangedMessage = { type: 'THEME_CHANGED'; payload: { kind: ThemeKind } };
+
+function isThemeChangedMessage(data: unknown): data is ThemeChangedMessage {
+  if (!data || typeof data !== 'object') return false;
+  const message = data as { type?: unknown; payload?: { kind?: unknown } };
+  return (
+    message.type === 'THEME_CHANGED' &&
+    (message.payload?.kind === 'light' ||
+      message.payload?.kind === 'dark' ||
+      message.payload?.kind === 'high-contrast')
+  );
+}
 
 /**
  * Detects the current VSCode theme from CSS variables.
@@ -89,10 +101,9 @@ export function useTheme(): ThemeKind {
     });
 
     // Also listen for messages from extension
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data?.type === 'THEME_CHANGED') {
-        setTheme(event.data.payload.kind);
-      }
+    const handleMessage = (event: MessageEvent<unknown>) => {
+      if (!isThemeChangedMessage(event.data)) return;
+      setTheme(event.data.payload.kind);
     };
     
     window.addEventListener('message', handleMessage);

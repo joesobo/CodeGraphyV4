@@ -66,9 +66,9 @@ export class GitHistoryAnalyzer {
         'git',
         args,
         { cwd: this._workspaceRoot, maxBuffer: 10 * 1024 * 1024 },
-        (error, stdout) => {
+        (error: Error | null, stdout: string) => {
           if (error) {
-            reject(error);
+            reject(error instanceof Error ? error : new Error('Git command failed'));
           } else {
             resolve(stdout);
           }

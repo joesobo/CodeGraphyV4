@@ -76,14 +76,14 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
         // All other codegraphy settings (filterPatterns, showOrphans, maxFiles, etc.)
         // require re-analysis because they affect which files/nodes are in the graph
         console.log('[CodeGraphy] Configuration changed, refreshing graph');
-        provider.refresh();
+        void provider.refresh();
         provider.emitEvent('workspace:configChanged', { key: 'codegraphy', value: undefined, old: undefined });
         // Invalidate timeline cache when settings that affect analysis change
         if (
           event.affectsConfiguration('codegraphy.filterPatterns') ||
           event.affectsConfiguration('codegraphy.timeline.maxCommits')
         ) {
-          provider.invalidateTimelineCache();
+          void provider.invalidateTimelineCache();
         }
         // Send updated playback speed to webview (display-only, no cache invalidation)
         if (event.affectsConfiguration('codegraphy.timeline.playbackSpeed')) {
@@ -125,7 +125,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
 
   // Refresh graph when files are saved (for connections and file-size modes)
   // Debounce to avoid excessive refreshes during rapid saves
-  let saveTimeout: NodeJS.Timeout | undefined;
+  let saveTimeout: ReturnType<typeof setTimeout> | undefined;
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((document) => {
       if (shouldIgnoreSaveForGraphRefresh(document)) {
@@ -136,7 +136,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
       }
       saveTimeout = setTimeout(() => {
         console.log('[CodeGraphy] File saved, refreshing graph');
-        provider.refresh();
+        void provider.refresh();
         provider.emitEvent('workspace:fileChanged', { filePath: document.uri.fsPath });
       }, 500);
     })
@@ -147,14 +147,14 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   context.subscriptions.push(
     fileWatcher.onDidCreate((uri) => {
       console.log('[CodeGraphy] File created, refreshing graph');
-      provider.refresh();
+      void provider.refresh();
       provider.emitEvent('workspace:fileCreated', { filePath: uri.fsPath });
     })
   );
   context.subscriptions.push(
     fileWatcher.onDidDelete((uri) => {
       console.log('[CodeGraphy] File deleted, refreshing graph');
-      provider.refresh();
+      void provider.refresh();
       provider.emitEvent('workspace:fileDeleted', { filePath: uri.fsPath });
     })
   );
@@ -234,7 +234,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
 
   context.subscriptions.push(
     vscode.commands.registerCommand('codegraphy.clearCache', () => {
-      provider.clearCacheAndRefresh();
+      void provider.clearCacheAndRefresh();
     })
   );
 

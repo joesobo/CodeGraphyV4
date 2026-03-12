@@ -284,17 +284,17 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
 
     // Set context for keybindings - initial state
-    vscode.commands.executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
+    void vscode.commands.executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
 
     // Listen for visibility changes (e.g., switching between views)
     // When view becomes visible again, re-send the graph data
     webviewView.onDidChangeVisibility(() => {
       // Update keybinding context
-      vscode.commands.executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
+      void vscode.commands.executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
 
       if (webviewView.visible) {
         console.log('[CodeGraphy] View became visible, re-sending data');
-        this._analyzeAndSendData();
+        void this._analyzeAndSendData();
       }
     });
 
@@ -1272,10 +1272,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _sendMessage(message: ExtensionToWebviewMessage): void {
     if (this._view) {
-      this._view.webview.postMessage(message);
+      void this._view.webview.postMessage(message);
     }
     for (const panel of this._panels) {
-      panel.webview.postMessage(message);
+      void panel.webview.postMessage(message);
     }
   }
 
@@ -1291,7 +1291,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         case 'WEBVIEW_READY': {
           this._loadGroupsAndFilterPatterns();
           this._loadDisabledRulesAndPlugins();
-          this._analyzeAndSendData();
+          void this._analyzeAndSendData();
           this._sendFavorites();
           this._sendSettings();
           this._sendPhysicsSettings();
@@ -1323,47 +1323,47 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
         case 'NODE_DOUBLE_CLICKED':
           if (this._timelineActive && this._currentCommitSha) {
-            this._previewFileAtCommit(this._currentCommitSha, message.payload.nodeId);
+            void this._previewFileAtCommit(this._currentCommitSha, message.payload.nodeId);
           } else {
-            this._openFile(message.payload.nodeId);
+            void this._openFile(message.payload.nodeId);
           }
           break;
 
         // Context menu actions
         case 'OPEN_FILE':
           if (this._timelineActive && this._currentCommitSha) {
-            this._previewFileAtCommit(this._currentCommitSha, message.payload.path);
+            void this._previewFileAtCommit(this._currentCommitSha, message.payload.path);
           } else {
-            this._openFile(message.payload.path);
+            void this._openFile(message.payload.path);
           }
           break;
           
         case 'REVEAL_IN_EXPLORER':
-          this._revealInExplorer(message.payload.path);
+          void this._revealInExplorer(message.payload.path);
           break;
           
         case 'COPY_TO_CLIPBOARD':
-          this._copyToClipboard(message.payload.text);
+          void this._copyToClipboard(message.payload.text);
           break;
           
         case 'DELETE_FILES':
-          if (!this._timelineActive) this._deleteFiles(message.payload.paths);
+          if (!this._timelineActive) void this._deleteFiles(message.payload.paths);
           break;
 
         case 'RENAME_FILE':
-          if (!this._timelineActive) this._renameFile(message.payload.path);
+          if (!this._timelineActive) void this._renameFile(message.payload.path);
           break;
 
         case 'CREATE_FILE':
-          if (!this._timelineActive) this._createFile(message.payload.directory);
+          if (!this._timelineActive) void this._createFile(message.payload.directory);
           break;
           
         case 'TOGGLE_FAVORITE':
-          this._toggleFavorites(message.payload.paths);
+          void this._toggleFavorites(message.payload.paths);
           break;
           
         case 'ADD_TO_EXCLUDE':
-          if (!this._timelineActive) this._addToExclude(message.payload.patterns);
+          if (!this._timelineActive) void this._addToExclude(message.payload.patterns);
           break;
           
         case 'REFRESH_GRAPH':
@@ -1371,7 +1371,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
           
         case 'GET_FILE_INFO':
-          this._getFileInfo(message.payload.path);
+          void this._getFileInfo(message.payload.path);
           break;
           
         case 'EXPORT_PNG':
@@ -1541,7 +1541,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
         // Timeline commands
         case 'INDEX_REPO':
-          this._indexRepository();
+          void this._indexRepository();
           break;
 
         case 'JUMP_TO_COMMIT':
@@ -1549,7 +1549,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
 
         case 'PREVIEW_FILE_AT_COMMIT':
-          this._previewFileAtCommit(message.payload.sha, message.payload.filePath);
+          void this._previewFileAtCommit(message.payload.sha, message.payload.filePath);
           break;
 
         case 'GRAPH_INTERACTION': {
@@ -1751,7 +1751,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return;
       console.error('[CodeGraphy] Indexing failed:', error);
-      vscode.window.showErrorMessage(`Timeline indexing failed: ${error}`);
+      vscode.window.showErrorMessage(`Timeline indexing failed: ${toErrorMessage(error)}`);
       this._sendMessage({ type: 'CACHE_INVALIDATED' });
     }
   }
@@ -1995,7 +1995,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       );
       await getUndoManager().execute(action);
     } catch (error) {
-      vscode.window.showErrorMessage(`Failed to rename: ${error}`);
+      vscode.window.showErrorMessage(`Failed to rename: ${toErrorMessage(error)}`);
     }
   }
 
@@ -2023,7 +2023,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         );
         await getUndoManager().execute(action);
       } catch (error) {
-        vscode.window.showErrorMessage(`Failed to create file: ${error}`);
+        vscode.window.showErrorMessage(`Failed to create file: ${toErrorMessage(error)}`);
       }
     }
   }
@@ -2069,7 +2069,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         await vscode.commands.executeCommand('revealFileInOS', saveUri);
       }
     } catch (error) {
-      vscode.window.showErrorMessage(`Failed to export PNG: ${error}`);
+      vscode.window.showErrorMessage(`Failed to export PNG: ${toErrorMessage(error)}`);
     }
   }
 
@@ -2108,7 +2108,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         await vscode.commands.executeCommand('revealFileInOS', saveUri);
       }
     } catch (error) {
-      vscode.window.showErrorMessage(`Failed to export SVG: ${error}`);
+      vscode.window.showErrorMessage(`Failed to export SVG: ${toErrorMessage(error)}`);
     }
   }
 
@@ -2147,7 +2147,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         await vscode.commands.executeCommand('revealFileInOS', saveUri);
       }
     } catch (error) {
-      vscode.window.showErrorMessage(`Failed to export JSON: ${error}`);
+      vscode.window.showErrorMessage(`Failed to export JSON: ${toErrorMessage(error)}`);
     }
   }
 
@@ -2432,12 +2432,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src ${webview.cspSource}; img-src ${webview.cspSource};">
-  <link href="${styleUri}" rel="stylesheet">
+  <link href="${styleUri.toString()}" rel="stylesheet">
   <title>CodeGraphy</title>
 </head>
 <body>
   <div id="root"></div>
-  <script nonce="${nonce}" src="${scriptUri}"></script>
+  <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
 </body>
 </html>`;
   }
@@ -2456,4 +2456,8 @@ function getNonce(): string {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   }
   return text;
+}
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

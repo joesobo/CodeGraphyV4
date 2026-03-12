@@ -33,7 +33,7 @@ function waitForGraphUpdate(api: CodeGraphyAPI, timeoutMs = 15_000): Promise<voi
       timeoutMs
     );
     const disposable = api.onWebviewMessage((msg: unknown) => {
-      const m = msg as { type: string };
+      const m = msg as { type?: string };
       if (m.type === 'GRAPH_DATA_UPDATED') {
         clearTimeout(timer);
         disposable.dispose();
@@ -65,7 +65,7 @@ suite('File Ops: Graph refresh', function () {
 
     const graphData = api.getGraphData();
     assert.ok(
-      graphData.nodes.some((n) => (n.id as string).includes('__e2e_temp__')),
+      graphData.nodes.some((n) => String(n.id).includes('__e2e_temp__')),
       'New file should appear as a graph node'
     );
   });
@@ -83,7 +83,7 @@ suite('File Ops: Graph refresh', function () {
 
     const graphData = api.getGraphData();
     assert.ok(
-      !graphData.nodes.some((n) => (n.id as string).includes('__e2e_temp__')),
+      !graphData.nodes.some((n) => String(n.id).includes('__e2e_temp__')),
       'Deleted file should be removed from graph'
     );
   });
@@ -128,7 +128,7 @@ suite('File Ops: Open file from node', function () {
       return;
     }
 
-    const firstNodeId = graphData.nodes[0].id as string;
+    const firstNodeId = String(graphData.nodes[0].id);
 
     // The webview sends OPEN_FILE when the user clicks a node
     api.sendToWebview({ type: 'OPEN_FILE', payload: { filePath: firstNodeId } });

@@ -5,6 +5,18 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 
+function getExtensionOrThrow(): vscode.Extension<unknown> {
+  const ext = vscode.extensions.getExtension('joesobo.codegraphy');
+  if (!ext) {
+    throw new Error('Extension should be registered with VS Code');
+  }
+  return ext;
+}
+
+function toErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 suite('Extension: Activation', function () {
   this.timeout(30_000);
 
@@ -14,15 +26,14 @@ suite('Extension: Activation', function () {
   });
 
   test('extension activates without error', async function() {
-    const ext = vscode.extensions.getExtension('joesobo.codegraphy');
-    assert.ok(ext);
-    await ext!.activate();
-    assert.strictEqual(ext!.isActive, true, 'Extension should be active after activate()');
+    const ext = getExtensionOrThrow();
+    await ext.activate();
+    assert.strictEqual(ext.isActive, true, 'Extension should be active after activate()');
   });
 
   test('all commands are registered', async function() {
-    const ext = vscode.extensions.getExtension('joesobo.codegraphy');
-    await ext!.activate();
+    const ext = getExtensionOrThrow();
+    await ext.activate();
 
     const all = await vscode.commands.getCommands(true);
     const expected = [
@@ -47,7 +58,7 @@ suite('Extension: Activation', function () {
     try {
       await vscode.commands.executeCommand('codegraphy.open');
     } catch (err) {
-      assert.fail(`codegraphy.open should not throw, but got: ${err}`);
+      assert.fail(`codegraphy.open should not throw, but got: ${toErrorMessage(err)}`);
     }
   });
 });

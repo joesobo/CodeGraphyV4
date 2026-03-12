@@ -7,14 +7,14 @@
  */
 
 /** Source/target reference — string ID or object with optional id. */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type NodeRef = string | number | { id?: string | number; [key: string]: any } | undefined;
+type NodeRef = string | number | { id?: string | number } | undefined;
 
 /** Minimal link shape needed for curvature computation. */
 export interface CurvatureLink {
   source?: NodeRef;
   target?: NodeRef;
   curvature?: number;
+  nodePairId?: string;
 }
 
 function resolveId(ref: NodeRef): string {
@@ -39,8 +39,7 @@ export function computeLinkCurvature<T extends CurvatureLink>(links: T[]): void 
     const sourceId = resolveId(link.source);
     const targetId = resolveId(link.target);
     const pairId = sourceId <= targetId ? `${sourceId}_${targetId}` : `${targetId}_${sourceId}`;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (link as any).nodePairId = pairId;
+    link.nodePairId = pairId;
     const map = sourceId === targetId ? selfLoopLinks : sameNodesLinks;
     if (!map[pairId]) map[pairId] = [];
     map[pairId].push(link);

@@ -42,7 +42,7 @@ suite('Plugin: TypeScript', function () {
 
     // The default fixture workspace contains .ts files
     const tsNodes = graphData.nodes.filter(
-      (n) => typeof n.id === 'string' && (n.id as string).endsWith('.ts')
+      (n) => typeof n.id === 'string' && n.id.endsWith('.ts')
     );
     assert.ok(tsNodes.length > 0, `Expected .ts nodes, found: ${graphData.nodes.map(n => n.id).join(', ')}`);
   });
@@ -63,7 +63,7 @@ suite('Plugin: TypeScript', function () {
 
     const graphData = api.getGraphData();
     for (const node of graphData.nodes) {
-      const id = node.id as string;
+      const id = String(node.id);
       assert.ok(
         !id.startsWith('/') && !id.match(/^[A-Z]:\\/),
         `Node ID should be relative, got: ${id}`
@@ -120,7 +120,7 @@ suite('Plugin: Favorites', function () {
       return;
     }
 
-    const firstNodeId = graphData.nodes[0].id as string;
+    const firstNodeId = String(graphData.nodes[0].id);
 
     return new Promise<void>((resolve, reject) => {
       const timer = setTimeout(

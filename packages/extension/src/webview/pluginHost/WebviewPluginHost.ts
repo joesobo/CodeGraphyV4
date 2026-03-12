@@ -64,9 +64,10 @@ export class WebviewPluginHost {
           handlers = new Set();
           this._messageHandlers.set(pluginId, handlers);
         }
-        handlers.add(handler);
+        const pluginHandlers = handlers;
+        pluginHandlers.add(handler);
         return {
-          dispose: () => handlers!.delete(handler),
+          dispose: () => pluginHandlers.delete(handler),
         };
       },
     };
