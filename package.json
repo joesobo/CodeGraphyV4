@@ -187,41 +187,41 @@
 					"default": true,
 					"description": "Show files that have no connections (no imports and not imported)."
 				},
-                "codegraphy.plugins": {
-                    "type": "array",
-                    "items": "string",
-                    "default": [],
-                    "description": "List of CodeGraphy plugin extension names to enable (e.g., 'codegraphy-rust')."
-                },
-                "codegraphy.disabledRules": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "default": [],
-                    "description": "Disabled plugin rules by qualified ID ('<pluginId>:<ruleId>'). Managed by the Plugins panel."
-                },
-                "codegraphy.disabledPlugins": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "default": [],
-                    "description": "Disabled plugin IDs. Managed by the Plugins panel."
-                },
-                "codegraphy.hiddenPluginGroups": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
-                    "default": [],
-                    "description": "Plugin default group IDs that have been hidden. Managed by the Groups panel."
-                },
-                "codegraphy.favorites": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    },
+				"codegraphy.plugins": {
+					"type": "array",
+					"items": "string",
+					"default": [],
+					"description": "List of CodeGraphy plugin extension names to enable (e.g., 'codegraphy-rust')."
+				},
+				"codegraphy.disabledRules": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "Disabled plugin rules by qualified ID ('<pluginId>:<ruleId>'). Managed by the Plugins panel."
+				},
+				"codegraphy.disabledPlugins": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "Disabled plugin IDs. Managed by the Plugins panel."
+				},
+				"codegraphy.hiddenPluginGroups": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
+					"default": [],
+					"description": "Plugin default group IDs that have been hidden. Managed by the Groups panel."
+				},
+				"codegraphy.favorites": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					},
 					"default": [],
 					"description": "List of favorite file paths. Favorited files are displayed with a yellow outline in the graph."
 				},
@@ -292,11 +292,25 @@
 							},
 							"shape2D": {
 								"type": "string",
-								"enum": ["circle", "square", "diamond", "triangle", "hexagon", "star"]
+								"enum": [
+									"circle",
+									"square",
+									"diamond",
+									"triangle",
+									"hexagon",
+									"star"
+								]
 							},
 							"shape3D": {
 								"type": "string",
-								"enum": ["sphere", "cube", "octahedron", "cone", "dodecahedron", "icosahedron"]
+								"enum": [
+									"sphere",
+									"cube",
+									"octahedron",
+									"cone",
+									"dodecahedron",
+									"icosahedron"
+								]
 							},
 							"imagePath": {
 								"type": "string",
@@ -324,7 +338,11 @@
 				},
 				"codegraphy.directionMode": {
 					"type": "string",
-					"enum": ["arrows", "particles", "none"],
+					"enum": [
+						"arrows",
+						"particles",
+						"none"
+					],
 					"default": "arrows",
 					"enumDescriptions": [
 						"Static arrowheads at link endpoints",
@@ -371,9 +389,8 @@
 		}
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.58.2",
 		"@eslint/js": "^9.0.0",
-		"eslint-plugin-playwright": "^2.9.0",
+		"@playwright/test": "^1.58.2",
 		"@testing-library/jest-dom": "^6.2.0",
 		"@testing-library/react": "^14.1.2",
 		"@types/glob": "^8.1.0",
@@ -389,6 +406,7 @@
 		"esbuild": "^0.25.0",
 		"eslint": "^9.0.0",
 		"eslint-plugin-mocha": "^11.2.0",
+		"eslint-plugin-playwright": "^2.9.0",
 		"eslint-plugin-react": "^7.37.0",
 		"eslint-plugin-react-hooks": "^5.0.0",
 		"glob": "^13.0.6",
@@ -399,14 +417,15 @@
 		"mocha": "^11.7.5",
 		"postcss": "^8.4.33",
 		"tailwindcss": "^3.4.1",
+		"turbo": "^2.5.8",
 		"typescript": "^5.3.3",
 		"typescript-eslint": "^8.0.0",
-		"turbo": "^2.5.8",
 		"vite": "^6.2.0",
 		"vitest": "^3.0.0"
 	},
 	"dependencies": {
 		"@floating-ui/react": "^0.27.19",
+		"@mdi/js": "^7.4.47",
 		"@radix-ui/react-collapsible": "^1.1.12",
 		"@radix-ui/react-context-menu": "^2.2.16",
 		"@radix-ui/react-label": "^2.1.8",

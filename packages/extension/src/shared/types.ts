@@ -31,6 +31,13 @@ export type NodeShape3D = 'sphere' | 'cube' | 'octahedron' | 'cone' | 'dodecahed
  */
 export type DirectionMode = 'arrows' | 'particles' | 'none';
 
+/**
+ * DAG (Directed Acyclic Graph) layout mode.
+ * Controls hierarchical layout of the force graph.
+ * `null` means free-form physics layout (default).
+ */
+export type DagMode = null | 'radialout' | 'td' | 'lr';
+
 // ============================================================================
 // File Data (internal representation, what plugins will produce)
 // ============================================================================
@@ -155,6 +162,12 @@ export interface IGraphNode {
    * Used for visual styling (opacity, size) in depth graph view.
    */
   depthLevel?: number;
+
+  /**
+   * Node type for folder view.
+   * 'file' = a source file, 'folder' = a directory container.
+   */
+  nodeType?: 'file' | 'folder';
 
   /** 2D canvas shape from group matching */
   shape2D?: NodeShape2D;
@@ -490,7 +503,8 @@ export type ExtensionToWebviewMessage =
   // Plugin API v2 messages
   | { type: 'DECORATIONS_UPDATED'; payload: { nodeDecorations: Record<string, NodeDecorationPayload>; edgeDecorations: Record<string, EdgeDecorationPayload> } }
   | { type: 'CONTEXT_MENU_ITEMS'; payload: { items: IPluginContextMenuItem[] } }
-  | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } };
+  | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }
+  | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } };
 
 /**
  * Messages sent from the Webview to the Extension.
@@ -570,7 +584,8 @@ export type WebviewToExtensionMessage =
   | { type: 'PLUGIN_CONTEXT_MENU_ACTION'; payload: { pluginId: string; index: number; targetId: string; targetType: 'node' | 'edge' } }
   | { type: 'TOGGLE_PLUGIN_GROUP_DISABLED'; payload: { groupId: string; disabled: boolean } }
   | { type: 'TOGGLE_PLUGIN_SECTION_DISABLED'; payload: { pluginId: string; disabled: boolean } }
-  | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } };
+  | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } }
+  | { type: 'UPDATE_DAG_MODE'; payload: { dagMode: DagMode } };
 
 /**
  * File information returned from extension for tooltips.
