@@ -109,16 +109,19 @@ type FG2DExtMethods = FG2DMethods<FGNode, FGLink> & {
   linkDirectionalParticleColor?: (value: string | ((link: LinkObject) => string)) => unknown;
 };
 
-function isObjectRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
+function isRecordLike(value: unknown): value is Record<string, unknown> {
+  return (typeof value === 'object' && value !== null) || typeof value === 'function';
 }
 
 function hasStrength(force: unknown): force is StrengthForce {
-  return isObjectRecord(force) && typeof force.strength === 'function';
+  if (!isRecordLike(force)) return false;
+  return typeof (force as { strength?: unknown }).strength === 'function';
 }
 
 function hasDistanceAndStrength(force: unknown): force is LinkDistanceForce {
-  return isObjectRecord(force) && typeof force.distance === 'function' && typeof force.strength === 'function';
+  if (!isRecordLike(force)) return false;
+  const candidate = force as { distance?: unknown; strength?: unknown };
+  return typeof candidate.distance === 'function' && typeof candidate.strength === 'function';
 }
 
 function as2DExtMethods(instance: FG2DMethods<FGNode, FGLink> | undefined): FG2DExtMethods | undefined {
@@ -1302,11 +1305,31 @@ export default function Graph({
   }, []);
 
   useEffect(() => {
-    const instance = graphMode === '2d' ? fg2dRef.current : fg3dRef.current;
-    if (instance) {
-      initPhysics(instance);
-    }
-  }, [graphMode, initPhysics, graphData]);
+    physicsInitialisedRef.current = false;
+    prevPhysicsRef.current = null;
+  }, [graphMode]);
+
+  useEffect(() => {
+    let frame: number | null = null;
+
+    const tryInit = () => {
+      if (physicsInitialisedRef.current) return;
+      const instance = graphMode === '2d' ? fg2dRef.current : fg3dRef.current;
+      if (instance) {
+        initPhysics(instance);
+        return;
+      }
+      frame = requestAnimationFrame(tryInit);
+    };
+
+    tryInit();
+
+    return () => {
+      if (frame !== null) {
+        cancelAnimationFrame(frame);
+      }
+    };
+  }, [graphMode, initPhysics]);
 
   return (
     <ContextMenu>
