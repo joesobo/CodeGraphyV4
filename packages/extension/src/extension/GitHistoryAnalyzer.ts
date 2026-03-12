@@ -282,6 +282,9 @@ export class GitHistoryAnalyzer {
       const content = await this._getFileAtCommit(sha, filePath, signal);
       const absPath = path.join(this._workspaceRoot, filePath);
       const connections = await this._registry.analyzeFile(absPath, content, this._workspaceRoot);
+      const plugin = typeof this._registry.getPluginForFile === 'function'
+        ? this._registry.getPluginForFile(absPath)
+        : undefined;
 
       // Add node
       if (!nodeIds.has(filePath)) {
@@ -297,7 +300,12 @@ export class GitHistoryAnalyzer {
           if (!edgeIds.has(edgeId)) {
             edgeIds.add(edgeId);
             const edge: IGraphEdge = { id: edgeId, from: filePath, to: targetRelative };
-            if (conn.ruleId) edge.ruleId = conn.ruleId;
+            if (conn.ruleId) {
+              edge.ruleId = conn.ruleId;
+              if (plugin) {
+                edge.ruleIds = [`${plugin.id}:${conn.ruleId}`];
+              }
+            }
             edges.push(edge);
           }
         }
@@ -527,6 +535,9 @@ export class GitHistoryAnalyzer {
     const content = await this._getFileAtCommit(sha, filePath, signal);
     const absPath = path.join(this._workspaceRoot, filePath);
     const connections = await this._registry.analyzeFile(absPath, content, this._workspaceRoot);
+    const plugin = typeof this._registry.getPluginForFile === 'function'
+      ? this._registry.getPluginForFile(absPath)
+      : undefined;
 
     // Ensure source node exists
     if (!nodeMap.has(filePath)) {
@@ -542,7 +553,12 @@ export class GitHistoryAnalyzer {
         if (!edgeSet.has(edgeId)) {
           edgeSet.add(edgeId);
           const edge: IGraphEdge = { id: edgeId, from: filePath, to: targetRelative };
-          if (conn.ruleId) edge.ruleId = conn.ruleId;
+          if (conn.ruleId) {
+            edge.ruleId = conn.ruleId;
+            if (plugin) {
+              edge.ruleIds = [`${plugin.id}:${conn.ruleId}`];
+            }
+          }
           edges.push(edge);
         }
       }

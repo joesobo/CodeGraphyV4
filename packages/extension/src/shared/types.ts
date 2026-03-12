@@ -207,7 +207,7 @@ export interface IGraphEdge {
   /**
    * All qualified rule IDs that detected this connection.
    * Format: "pluginId:ruleId" (e.g., 'codegraphy.typescript:es6-import').
-   * Present on edges from normal analysis; absent from timeline edges.
+   * Present when the source plugin can be identified (normal analysis and timeline analysis).
    */
   ruleIds?: string[];
 }
@@ -467,6 +467,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'REQUEST_EXPORT_SVG' }
   | { type: 'REQUEST_EXPORT_JPEG' }
   | { type: 'REQUEST_EXPORT_JSON' }
+  | { type: 'REQUEST_EXPORT_MD' }
   | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } }
   | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } }
   | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings }

@@ -1217,12 +1217,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Request the webview to export layout as JSON.
+   * Request the webview to export as JPEG.
    */
   public requestExportJpeg(): void {
     this._sendMessage({ type: 'REQUEST_EXPORT_JPEG' });
   }
 
+  /**
+   * Request the webview to export connections as JSON.
+   */
   public requestExportJson(): void {
     this._sendMessage({ type: 'REQUEST_EXPORT_JSON' });
   }
@@ -2164,7 +2167,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Save exported JSON layout to file.
+   * Save exported connections JSON to file.
    */
   private async _saveExportedJson(jsonContent: string, filename?: string): Promise<void> {
     try {
@@ -2178,7 +2181,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         defaultUri,
         filters: { 'JSON Files': ['json'] },
         saveLabel: 'Export',
-        title: 'Export Graph Layout as JSON',
+        title: 'Export Graph Connections as JSON',
       });
 
       if (!saveUri) return;
@@ -2187,7 +2190,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       await vscode.workspace.fs.writeFile(saveUri, buffer);
 
       const action = await vscode.window.showInformationMessage(
-        `Graph layout exported to ${saveUri.fsPath}`,
+        `Graph connections exported to ${saveUri.fsPath}`,
         'Open File',
         'Open Folder'
       );

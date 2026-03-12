@@ -562,17 +562,19 @@ describe('Export Functionality', () => {
       expect(payload.filename).toMatch(/^codegraphy-connections-.*\.json$/);
 
       const parsed = JSON.parse(payload.json);
-      expect(parsed.format).toBe('codegraphy-connections');
-      expect(parsed.version).toBe('1.0');
+      expect(parsed.format).toBe('codegraphy-export');
+      expect(parsed.version).toBe('2.0');
       expect(parsed.exportedAt).toBeDefined();
-      expect(parsed.stats.totalFiles).toBe(2);
-      expect(parsed.stats.totalConnections).toBe(1);
+      expect(parsed.scope.graph).toBe('current-view');
+      expect(parsed.summary.totalFiles).toBe(2);
+      expect(parsed.summary.totalConnections).toBe(1);
 
-      expect(parsed.ungrouped['src/app.ts']).toBeDefined();
-      expect(parsed.ungrouped['src/app.ts'].imports).toEqual({ '': ['src/utils.ts'] });
+      expect(parsed.sections.connections.ungrouped['src/app.ts']).toBeDefined();
+      expect(parsed.sections.connections.ungrouped['src/app.ts'].imports).toEqual({ unattributed: ['src/utils.ts'] });
 
-      expect(parsed.ungrouped['src/utils.ts']).toBeDefined();
-      expect(parsed.ungrouped['src/utils.ts'].imports).toBeUndefined();
+      expect(parsed.sections.connections.ungrouped['src/utils.ts']).toBeDefined();
+      expect(parsed.sections.connections.ungrouped['src/utils.ts'].imports).toBeUndefined();
+      expect(parsed.sections.images).toEqual({});
     }
   });
 

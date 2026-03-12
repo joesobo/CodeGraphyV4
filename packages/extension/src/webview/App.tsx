@@ -13,11 +13,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from './components/ui/dropdown-menu';
 import { useTheme } from './hooks/useTheme';
 import { IGraphData, IGraphNode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
 import { postMessage } from './lib/vscodeApi';
-import { buildMarkdownExport } from './lib/exportMd';
 import { useGraphStore, graphStore } from './store';
 import type { SearchOptions } from './components/SearchBar';
 import { WebviewPluginHost } from './pluginHost';
@@ -352,6 +352,7 @@ export default function App(): React.ReactElement {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" side="top">
+                  <DropdownMenuLabel>Images</DropdownMenuLabel>
                   <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_PNG' }, '*')}>
                     Export as PNG
                   </DropdownMenuItem>
@@ -362,15 +363,11 @@ export default function App(): React.ReactElement {
                     Export as JPEG
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Connections</DropdownMenuLabel>
                   <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JSON' }, '*')}>
                     Export as JSON
                   </DropdownMenuItem>
-                  <DropdownMenuItem onSelect={() => {
-                    const { graphData: data, groups: storeGroups, pluginStatuses: plugins } = graphStore.getState();
-                    if (!data) return;
-                    const markdown = buildMarkdownExport(data, storeGroups, plugins);
-                    postMessage({ type: 'EXPORT_MD', payload: { markdown } });
-                  }}>
+                  <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_MD' }, '*')}>
                     Export as Markdown
                   </DropdownMenuItem>
                 </DropdownMenuContent>

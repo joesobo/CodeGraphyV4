@@ -93,7 +93,7 @@
 			},
 			{
 				"command": "codegraphy.exportJson",
-				"title": "CodeGraphy: Export Layout as JSON"
+				"title": "CodeGraphy: Export Connections as JSON"
 			},
 			{
 				"command": "codegraphy.clearCache",
