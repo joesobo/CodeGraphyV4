@@ -123,10 +123,6 @@ export default function SettingsPanel({
   const setShowOrphans = useGraphStore(s => s.setShowOrphans);
   const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
   const setNodeSizeMode = useGraphStore(s => s.setNodeSizeMode);
-  const availableViews = useGraphStore(s => s.availableViews);
-  const activeViewId = useGraphStore(s => s.activeViewId);
-  const setActiveViewId = useGraphStore(s => s.setActiveViewId);
-  const depthLimit = useGraphStore(s => s.depthLimit);
   const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
   const setBidirectionalMode = useGraphStore(s => s.setBidirectionalMode);
   const directionMode = useGraphStore(s => s.directionMode);
@@ -135,8 +131,6 @@ export default function SettingsPanel({
   const setDirectionColor = useGraphStore(s => s.setDirectionColor);
   const showLabels = useGraphStore(s => s.showLabels);
   const setShowLabels = useGraphStore(s => s.setShowLabels);
-  const graphMode = useGraphStore(s => s.graphMode);
-  const setGraphMode = useGraphStore(s => s.setGraphMode);
   const maxFiles = useGraphStore(s => s.maxFiles);
   const setMaxFiles = useGraphStore(s => s.setMaxFiles);
 
@@ -484,16 +478,6 @@ export default function SettingsPanel({
   const handleShowLabelsChange = (checked: boolean) => {
     setShowLabels(checked);
     postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: checked } });
-  };
-
-  const handleViewChange = (viewId: string) => {
-    setActiveViewId(viewId);
-    postMessage({ type: 'CHANGE_VIEW', payload: { viewId } });
-  };
-
-  const handleDepthChange = (value: number[]) => {
-    const newDepth = value[0];
-    postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: newDepth } });
   };
 
   return (
@@ -1146,28 +1130,6 @@ export default function SettingsPanel({
                 />
               </div>
 
-              {/* Graph Mode */}
-              <div className="flex items-center justify-between py-0.5">
-                <Label className="text-xs">Graph Mode</Label>
-                <div className="flex gap-1">
-                  <Button
-                    variant={graphMode === '2d' ? 'default' : 'secondary'}
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    onClick={() => setGraphMode('2d')}
-                  >
-                    2D
-                  </Button>
-                  <Button
-                    variant={graphMode === '3d' ? 'default' : 'secondary'}
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    onClick={() => setGraphMode('3d')}
-                  >
-                    3D
-                  </Button>
-                </div>
-              </div>
 
               {/* Node Size */}
               <div>
@@ -1189,42 +1151,6 @@ export default function SettingsPanel({
                 </div>
               </div>
 
-              {/* View */}
-              {availableViews.length > 0 && (
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">View</Label>
-                  <div className="space-y-1">
-                    {availableViews.map(view => (
-                      <label key={view.id} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="activeView"
-                          value={view.id}
-                          checked={activeViewId === view.id}
-                          onChange={() => handleViewChange(view.id)}
-                          className="accent-primary"
-                        />
-                        <span className="text-xs">{view.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {/* Inline depth slider when Depth Graph is selected */}
-                  {activeViewId === 'codegraphy.depth-graph' && (
-                    <div className="flex items-center gap-2 mt-2 pl-4">
-                      <Label className="text-xs text-muted-foreground">Depth:</Label>
-                      <Slider
-                        min={1}
-                        max={5}
-                        step={1}
-                        value={[depthLimit]}
-                        onValueChange={handleDepthChange}
-                        className="w-20"
-                      />
-                      <span className="text-xs text-muted-foreground min-w-[1rem] text-center">{depthLimit}</span>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </div>

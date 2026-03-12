@@ -35,7 +35,7 @@ function createContext(overrides: Partial<IViewContext> = {}): IViewContext {
 describe('Core Views', () => {
   describe('coreViews array', () => {
     it('should contain all core views', () => {
-      expect(coreViews).toHaveLength(3);
+      expect(coreViews).toHaveLength(4);
       expect(coreViews).toContain(connectionsView);
       expect(coreViews).toContain(depthGraphView);
       expect(coreViews).toContain(subfolderView);
