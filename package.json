@@ -96,6 +96,10 @@
 				"title": "CodeGraphy: Export Connections as JSON"
 			},
 			{
+				"command": "codegraphy.exportMarkdown",
+				"title": "CodeGraphy: Export Connections as Markdown"
+			},
+			{
 				"command": "codegraphy.clearCache",
 				"title": "CodeGraphy: Clear Cache and Refresh"
 			}

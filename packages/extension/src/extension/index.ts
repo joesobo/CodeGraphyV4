@@ -239,6 +239,12 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   );
 
   context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.exportMarkdown', () => {
+      provider.requestExportMarkdown();
+    })
+  );
+
+  context.subscriptions.push(
     vscode.commands.registerCommand('codegraphy.clearCache', () => {
       void provider.clearCacheAndRefresh();
     })
