@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { buildExportData, UNATTRIBUTED_RULE_KEY } from '../../../src/webview/lib/exportData';
+import { buildExportData, UNATTRIBUTED_RULE_KEY } from '../../../src/webview/lib/export/exportJson';
 import type { IGraphData, IGroup, IPluginStatus } from '../../../src/shared/types';
 
 const noGroups: IGroup[] = [];
