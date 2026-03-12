@@ -508,11 +508,25 @@ export class WorkspaceAnalyzer {
             const edgeId = `${filePath}->${targetRelative}`;
             if (!edgeIds.has(edgeId)) {
               edgeIds.add(edgeId);
-              edges.push({
+              const edge: IGraphEdge = {
                 id: edgeId,
                 from: filePath,
                 to: targetRelative,
-              });
+              };
+              if (plugin && conn.ruleId) {
+                edge.ruleIds = [`${plugin.id}:${conn.ruleId}`];
+              }
+              edges.push(edge);
+            } else if (plugin && conn.ruleId) {
+              // Add additional rule to existing edge
+              const existing = edges.find(e => e.id === edgeId);
+              if (existing) {
+                const qualifiedId = `${plugin.id}:${conn.ruleId}`;
+                if (!existing.ruleIds) existing.ruleIds = [];
+                if (!existing.ruleIds.includes(qualifiedId)) {
+                  existing.ruleIds.push(qualifiedId);
+                }
+              }
             }
           }
         }
