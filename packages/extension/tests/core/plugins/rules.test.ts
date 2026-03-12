@@ -40,8 +40,9 @@ describe('Plugin Rules', () => {
     const plugin = createPythonPlugin();
     expect(plugin.rules).toBeDefined();
     const ruleIds = plugin.rules!.map(r => r.id);
-    expect(ruleIds).toContain('standard-import');
-    expect(ruleIds).toContain('from-import');
+    expect(ruleIds).toContain('import-module');
+    expect(ruleIds).toContain('from-import-absolute');
+    expect(ruleIds).toContain('from-import-relative');
   });
 
   it('C# plugin declares rules', () => {

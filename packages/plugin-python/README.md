@@ -1,6 +1,6 @@
 # Python Plugin
 
-Detects Python file-to-file dependencies from import statements.
+Detects Python file-to-file dependencies from import statements using Python AST parsing (`ast`).
 
 ## Supported Extensions
 
@@ -10,8 +10,9 @@ Detects Python file-to-file dependencies from import statements.
 
 | Rule | Description |
 |------|-------------|
-| Standard Imports | `import x`, `import x.y`, `import x as y`, `import a, b` |
-| From Imports | `from x import y`, `from . import y`, `from ..pkg import y` |
+| Import Module | `import x`, `import x.y`, `import x as y`, `import a, b` |
+| From Import (Absolute) | `from x import y`, `from package import module` |
+| From Import (Relative) | `from . import y`, `from ..pkg import y` |
 
 ## Resolution Behavior
 
@@ -20,7 +21,7 @@ Detects Python file-to-file dependencies from import statements.
   - workspace root
   - project source roots discovered from `pyproject.toml` / `setup.cfg`
   - common Python roots: `src`, `lib`, `app`
-- For `from pkg import mod`, the plugin tries `pkg.mod` first, then falls back to `pkg`.
+- For `from pkg import name`, the plugin resolves `pkg.name` when that local module exists; otherwise it targets `pkg` itself.
 - Local namespace packages (no `__init__.py`) are supported when imported members map to real files.
 - `.pyi` stubs are considered during path resolution.
 

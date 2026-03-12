@@ -70,4 +70,19 @@ describe('Python plugin from-import resolution', () => {
     expect(connections[0].specifier).toBe('from requests import Session');
     expect(connections[0].resolvedPath).toBeNull();
   });
+
+  it('maps unresolved imported members to the imported module target', async () => {
+    writeFile('pkg/__init__.py', '');
+    const mainPath = writeFile('main.py', 'from pkg import missing_member\n');
+
+    const plugin = createPythonPlugin();
+    await plugin.initialize?.(workspaceRoot);
+
+    const content = fs.readFileSync(mainPath, 'utf8');
+    const connections = await plugin.detectConnections(mainPath, content, workspaceRoot);
+
+    expect(connections).toHaveLength(1);
+    expect(connections[0].specifier).toBe('from pkg import missing_member');
+    expect(connections[0].resolvedPath).toBe(path.join(workspaceRoot, 'pkg/__init__.py'));
+  });
 });
