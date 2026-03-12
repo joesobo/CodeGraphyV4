@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useCallback, useRef } from 'react';
 import { globMatch } from './lib/globMatch';
 import Graph from './components/Graph';
-import GraphIcon from './components/GraphIcon';
+import { GraphIcon } from './components/icons';
 import { SearchBar } from './components/SearchBar';
 import SettingsPanel from './components/SettingsPanel';
 import PluginsPanel from './components/PluginsPanel';

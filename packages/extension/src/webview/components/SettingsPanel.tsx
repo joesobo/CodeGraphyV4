@@ -15,6 +15,7 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
+import { ChevronRightIcon, CloseIcon, DragHandleIcon, EyeIcon, EyeOffIcon, MinusIcon, PlusIcon, LockIcon } from './icons';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -73,18 +74,9 @@ function particleSpeedFromDisplay(level: number): number {
 /** Delay before persisting color picker changes to avoid rapid updates while dragging. */
 const COLOR_DEBOUNCE_MS = 300;
 
-function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
-  return (
-    <svg
-      className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', open && 'rotate-90')}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}
+const ChevronIcon = ({ open }: { open: boolean }) => (
+  <ChevronRightIcon size={14} className={cn('text-muted-foreground transition-transform', open && 'rotate-90')} />
+);
 
 function SectionHeader({
   title,
@@ -496,9 +488,7 @@ export default function SettingsPanel({
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <span className="text-sm font-medium">Settings</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <CloseIcon className="h-4 w-4" />
         </Button>
       </div>
 
@@ -617,9 +607,7 @@ export default function SettingsPanel({
                                 className="flex items-center gap-2 cursor-pointer"
                                 onClick={() => setExpandedGroupId(isExpanded ? null : group.id)}
                               >
-                                <svg className="w-3 h-3 text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 22a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
-                                </svg>
+                                <DragHandleIcon className="text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" />
                                 <span
                                   className="w-4 h-4 rounded-sm flex-shrink-0 border"
                                   style={{ backgroundColor: displayColor }}
@@ -638,14 +626,9 @@ export default function SettingsPanel({
                                   title={group.disabled ? 'Enable group' : 'Disable group'}
                                 >
                                   {group.disabled ? (
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
-                                    </svg>
+                                    <EyeOffIcon className="w-3.5 h-3.5" />
                                   ) : (
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
+                                    <EyeIcon className="w-3.5 h-3.5" />
                                   )}
                                 </button>
                                 <ChevronIcon open={isExpanded} />
@@ -656,9 +639,7 @@ export default function SettingsPanel({
                                   onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.id); }}
                                   title="Delete group"
                                 >
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
+                                  <CloseIcon size={14} className="w-3.5 h-3.5" />
                                 </Button>
                               </div>
 
@@ -802,14 +783,9 @@ export default function SettingsPanel({
                         title={allDisabled ? `Enable all ${sectionName} groups` : `Disable all ${sectionName} groups`}
                       >
                         {allDisabled ? (
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
-                          </svg>
+                          <EyeOffIcon className="w-3.5 h-3.5" />
                         ) : (
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
+                          <EyeIcon className="w-3.5 h-3.5" />
                         )}
                       </button>
                     </div>
@@ -839,14 +815,9 @@ export default function SettingsPanel({
                                   title={group.disabled ? 'Enable group' : 'Disable group'}
                                 >
                                   {group.disabled ? (
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
-                                    </svg>
+                                    <EyeOffIcon className="w-3.5 h-3.5" />
                                   ) : (
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
+                                    <EyeIcon className="w-3.5 h-3.5" />
                                   )}
                                 </button>
                                 <ChevronIcon open={isExpanded} />
@@ -930,9 +901,7 @@ export default function SettingsPanel({
                     disabled={maxFiles <= 1}
                     title="Decrease by 100"
                   >
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                    </svg>
+                    <MinusIcon className="h-3 w-3" />
                   </Button>
                   <Input
                     type="text"
@@ -953,9 +922,7 @@ export default function SettingsPanel({
                     onClick={() => handleMaxFilesCommit(maxFiles + 100)}
                     title="Increase by 100"
                   >
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
+                    <PlusIcon className="h-3 w-3" />
                   </Button>
                 </div>
               </div>
@@ -967,9 +934,7 @@ export default function SettingsPanel({
                   <ul className="space-y-1">
                     {pluginFilterPatterns.map(pattern => (
                       <li key={pattern} className="flex items-center gap-2 opacity-60">
-                        <svg className="w-3 h-3 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
+                        <LockIcon className="w-3 h-3 text-muted-foreground flex-shrink-0" />
                         <span className="text-xs text-muted-foreground flex-1 truncate font-mono">{pattern}</span>
                       </li>
                     ))}
@@ -992,9 +957,7 @@ export default function SettingsPanel({
                         onClick={() => handleDeleteFilterPattern(pattern)}
                         title="Delete pattern"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <CloseIcon size={14} className="w-3.5 h-3.5" />
                       </Button>
                     </li>
                   ))}

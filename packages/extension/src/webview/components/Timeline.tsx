@@ -3,6 +3,7 @@ import { useGraphStore } from '../store';
 import { postMessage } from '../lib/vscodeApi';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
+import { ClockIcon, SpinnerIcon, PauseIcon, PlayIcon } from './icons';
 
 /**
  * Format a Unix timestamp as "Mon D, YYYY".
@@ -302,9 +303,7 @@ export default function Timeline(): React.ReactElement | null {
     return (
       <div className="flex-shrink-0 border-t border-border p-2 flex items-center justify-center">
         <Button variant="outline" size="sm" onClick={handleIndexRepo} title="Index repository git history">
-          <svg className="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
+          <ClockIcon className="h-4 w-4 mr-1" />
           Index Repo
         </Button>
       </div>
@@ -319,14 +318,7 @@ export default function Timeline(): React.ReactElement | null {
     return (
       <div className="flex-shrink-0 border-t border-border p-3">
         <div className="flex items-center gap-2 mb-1">
-          <svg className="h-4 w-4 animate-spin text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
+          <SpinnerIcon className="h-4 w-4 animate-spin text-muted-foreground" />
           <span className="text-xs text-muted-foreground">
             {indexProgress.phase} ({indexProgress.current}/{indexProgress.total})
           </span>
@@ -346,14 +338,7 @@ export default function Timeline(): React.ReactElement | null {
     return (
       <div className="flex-shrink-0 border-t border-border p-3">
         <div className="flex items-center gap-2">
-          <svg className="h-4 w-4 animate-spin text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-            />
-          </svg>
+          <SpinnerIcon className="h-4 w-4 animate-spin text-muted-foreground" />
           <span className="text-xs text-muted-foreground">Indexing repository...</span>
         </div>
       </div>
@@ -388,14 +373,9 @@ export default function Timeline(): React.ReactElement | null {
             title={isPlaying ? 'Pause' : 'Play'}
           >
             {isPlaying ? (
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                <rect x="4" y="3" width="6" height="18" />
-                <rect x="14" y="3" width="6" height="18" />
-              </svg>
+              <PauseIcon className="h-4 w-4" />
             ) : (
-              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
+              <PlayIcon className="h-4 w-4" />
             )}
           </button>
 
