@@ -1040,8 +1040,8 @@ export default function Graph({
           break;
         case 'REQUEST_EXPORT_SVG':
           exportAsSvg(graphDataRef.current.nodes, graphDataRef.current.links, {
-            directionMode,
-            directionColor,
+            directionMode: directionModeRef.current,
+            directionColor: directionColorRef.current,
             showLabels: showLabelsRef.current,
             theme: themeRef.current,
           });
