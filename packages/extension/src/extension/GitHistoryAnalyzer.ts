@@ -263,9 +263,9 @@ export class GitHistoryAnalyzer {
 
     // Filter to files supported by plugins AND not excluded by patterns
     const supportedExts = new Set(this._registry.getSupportedExtensions());
-    const files = allFiles.filter((f) => {
-      if (this._shouldExclude(f)) return false;
-      const ext = path.extname(f).toLowerCase();
+    const files = allFiles.filter((file) => {
+      if (this._shouldExclude(file)) return false;
+      const ext = path.extname(file).toLowerCase();
       return supportedExts.has(ext);
     });
 

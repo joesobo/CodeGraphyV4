@@ -88,7 +88,7 @@ function extractSetupCfgSourceRoots(content: string): string[] {
   const optionsSection = extractIniSection(content, 'options');
   const packageDirValue = optionsSection ? extractIniValue(optionsSection, 'package_dir') : null;
   if (packageDirValue) {
-    for (const line of packageDirValue.split('\n').map(v => v.trim()).filter(Boolean)) {
+    for (const line of packageDirValue.split('\n').map(val => val.trim()).filter(Boolean)) {
       if (line.startsWith('=')) {
         const normalized = normalizeSourceRoot(line.slice(1).trim());
         if (normalized) roots.add(normalized);
@@ -151,8 +151,8 @@ function extractIniValue(section: string, keyName: string): string | null {
 function splitPathList(rawValue: string): string[] {
   return rawValue
     .split(/\r?\n|,/)
-    .map(v => v.trim())
-    .map(v => v.replace(/^["']|["']$/g, ''))
+    .map(val => val.trim())
+    .map(val => val.replace(/^["']|["']$/g, ''))
     .filter(Boolean);
 }
 

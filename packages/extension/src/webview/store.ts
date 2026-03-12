@@ -8,6 +8,7 @@ import type {
   IGroup,
   NodeSizeMode,
   DirectionMode,
+  DagMode,
   IPluginStatus,
   ICommitInfo,
   ExtensionToWebviewMessage,
@@ -15,7 +16,9 @@ import type {
   EdgeDecorationPayload,
   IPluginContextMenuItem,
 } from '../shared/types';
+import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_DIRECTION_COLOR } from '../shared/types';
 import type { SearchOptions } from './components/SearchBar';
+import { postMessage } from './lib/vscodeApi';
 
 const DEFAULT_PHYSICS: IPhysicsSettings = {
   repelForce: 10,
@@ -67,6 +70,12 @@ export interface GraphState {
   availableViews: IAvailableView[];
   activeViewId: string;
 
+  // DAG layout
+  dagMode: DagMode;
+
+  // Folder node color
+  folderNodeColor: string;
+
   // Plugins
   pluginStatuses: IPluginStatus[];
 
@@ -109,14 +118,19 @@ export interface GraphState {
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
   setActiveViewId: (id: string) => void;
+  setDagMode: (mode: DagMode) => void;
+  setFolderNodeColor: (color: string) => void;
   setMaxFiles: (max: number) => void;
   setPlaybackSpeed: (speed: number) => void;
   setIsPlaying: (playing: boolean) => void;
   handleExtensionMessage: (message: ExtensionToWebviewMessage) => void;
 }
 
+/** DAG mode cycle order: free-form → radialout → top-down → left-right */
+const DAG_MODE_CYCLE: DagMode[] = [null, 'radialout', 'td', 'lr'];
+
 export function createGraphStore() {
-  return createStore<GraphState>((set) => ({
+  return createStore<GraphState>((set, get) => ({
     // Initial state
     graphData: null,
     isLoading: true,
@@ -126,7 +140,7 @@ export function createGraphStore() {
     bidirectionalMode: 'separate',
     showOrphans: true,
     directionMode: 'arrows',
-    directionColor: '#475569',
+    directionColor: DEFAULT_DIRECTION_COLOR,
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -139,6 +153,8 @@ export function createGraphStore() {
     pluginFilterPatterns: [],
     availableViews: [],
     activeViewId: 'codegraphy.connections',
+    dagMode: null,
+    folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
     pluginStatuses: [],
     nodeDecorations: {},
     edgeDecorations: {},
@@ -172,6 +188,8 @@ export function createGraphStore() {
     setBidirectionalMode: (mode) => set({ bidirectionalMode: mode }),
     setShowLabels: (show) => set({ showLabels: show }),
     setActiveViewId: (id) => set({ activeViewId: id }),
+    setDagMode: (mode) => set({ dagMode: mode }),
+    setFolderNodeColor: (color) => set({ folderNodeColor: color }),
     setMaxFiles: (max) => set({ maxFiles: max }),
     setPlaybackSpeed: (speed) => set({ playbackSpeed: speed }),
     setIsPlaying: (playing) => set({ isPlaying: playing }),
@@ -275,6 +293,32 @@ export function createGraphStore() {
         case 'PLUGIN_WEBVIEW_INJECT':
           // Tier 2: will be implemented later
           break;
+        case 'DAG_MODE_UPDATED':
+          set({ dagMode: message.payload.dagMode });
+          break;
+        case 'FOLDER_NODE_COLOR_UPDATED':
+          set({ folderNodeColor: message.payload.folderNodeColor });
+          break;
+        case 'CYCLE_VIEW': {
+          const { availableViews, activeViewId } = get();
+          if (availableViews.length === 0) break;
+          const idx = availableViews.findIndex(view => view.id === activeViewId);
+          const next = availableViews[(idx + 1) % availableViews.length];
+          postMessage({ type: 'CHANGE_VIEW', payload: { viewId: next.id } });
+          break;
+        }
+        case 'CYCLE_LAYOUT': {
+          const { dagMode } = get();
+          const idx = DAG_MODE_CYCLE.indexOf(dagMode);
+          const nextMode = DAG_MODE_CYCLE[(idx + 1) % DAG_MODE_CYCLE.length];
+          postMessage({ type: 'UPDATE_DAG_MODE', payload: { dagMode: nextMode } });
+          break;
+        }
+        case 'TOGGLE_DIMENSION': {
+          const { graphMode } = get();
+          set({ graphMode: graphMode === '2d' ? '3d' : '2d' });
+          break;
+        }
       }
     },
   }));

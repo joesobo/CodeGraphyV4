@@ -4,11 +4,11 @@
  */
 
 export { ViewRegistry } from './ViewRegistry';
-export { 
-  connectionsView, 
-  depthGraphView, 
-  subfolderView, 
-  coreViews 
+export {
+  connectionsView,
+  depthGraphView,
+  folderView,
+  coreViews
 } from './coreViews';
 export type { 
   IView, 

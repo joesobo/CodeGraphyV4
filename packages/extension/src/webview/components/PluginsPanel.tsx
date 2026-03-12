@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
+import { mdiChevronRight, mdiClose } from '@mdi/js';
+import { MdiIcon } from './icons';
 import { Switch } from './ui/switch';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
@@ -13,18 +15,9 @@ interface PluginsPanelProps {
   onClose: () => void;
 }
 
-function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
-  return (
-    <svg
-      className={cn('h-3 w-3 text-muted-foreground transition-transform', open && 'rotate-90')}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}
+const ChevronIcon = ({ open }: { open: boolean }) => (
+  <MdiIcon path={mdiChevronRight} size={12} className={cn('text-muted-foreground transition-transform', open && 'rotate-90')} />
+);
 
 export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
   const plugins = useGraphStore(s => s.pluginStatuses);
@@ -55,9 +48,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <span className="text-sm font-medium">Plugins</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <MdiIcon path={mdiClose} size={16} />
         </Button>
       </div>
 

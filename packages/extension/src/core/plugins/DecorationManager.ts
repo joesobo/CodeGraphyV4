@@ -192,7 +192,7 @@ export class DecorationManager {
       } else {
         // Sort by priority descending (higher priority first)
         const sorted = [...entries].sort(
-          (a, b) => (b.decoration.priority ?? 0) - (a.decoration.priority ?? 0)
+          (entryA, entryB) => (entryB.decoration.priority ?? 0) - (entryA.decoration.priority ?? 0)
         );
         result.set(nodeId, this._mergeNodeDecorations(sorted.map((e) => e.decoration)));
       }
@@ -212,7 +212,7 @@ export class DecorationManager {
         result.set(edgeId, entries[0].decoration);
       } else {
         const sorted = [...entries].sort(
-          (a, b) => (b.decoration.priority ?? 0) - (a.decoration.priority ?? 0)
+          (entryA, entryB) => (entryB.decoration.priority ?? 0) - (entryA.decoration.priority ?? 0)
         );
         result.set(edgeId, this._mergeEdgeDecorations(sorted.map((e) => e.decoration)));
       }
@@ -240,19 +240,19 @@ export class DecorationManager {
     const merged: NodeDecoration = {};
     const tooltipSections: TooltipSection[] = [];
 
-    for (const d of decorations) {
-      if (d.badge && !merged.badge) merged.badge = d.badge;
-      if (d.border && !merged.border) merged.border = d.border;
-      if (d.label && !merged.label) merged.label = d.label;
-      if (d.size && !merged.size) merged.size = d.size;
-      if (d.opacity !== undefined && merged.opacity === undefined) merged.opacity = d.opacity;
-      if (d.color && !merged.color) merged.color = d.color;
-      if (d.icon && !merged.icon) merged.icon = d.icon;
-      if (d.group && !merged.group) merged.group = d.group;
+    for (const dec of decorations) {
+      if (dec.badge && !merged.badge) merged.badge = dec.badge;
+      if (dec.border && !merged.border) merged.border = dec.border;
+      if (dec.label && !merged.label) merged.label = dec.label;
+      if (dec.size && !merged.size) merged.size = dec.size;
+      if (dec.opacity !== undefined && merged.opacity === undefined) merged.opacity = dec.opacity;
+      if (dec.color && !merged.color) merged.color = dec.color;
+      if (dec.icon && !merged.icon) merged.icon = dec.icon;
+      if (dec.group && !merged.group) merged.group = dec.group;
 
       // Tooltip sections are concatenated from all plugins
-      if (d.tooltip?.sections) {
-        tooltipSections.push(...d.tooltip.sections);
+      if (dec.tooltip?.sections) {
+        tooltipSections.push(...dec.tooltip.sections);
       }
     }
 
@@ -269,14 +269,14 @@ export class DecorationManager {
   private _mergeEdgeDecorations(decorations: EdgeDecoration[]): EdgeDecoration {
     const merged: EdgeDecoration = {};
 
-    for (const d of decorations) {
-      if (d.color && !merged.color) merged.color = d.color;
-      if (d.width !== undefined && merged.width === undefined) merged.width = d.width;
-      if (d.style && !merged.style) merged.style = d.style;
-      if (d.label && !merged.label) merged.label = d.label;
-      if (d.particles && !merged.particles) merged.particles = d.particles;
-      if (d.opacity !== undefined && merged.opacity === undefined) merged.opacity = d.opacity;
-      if (d.curvature !== undefined && merged.curvature === undefined) merged.curvature = d.curvature;
+    for (const dec of decorations) {
+      if (dec.color && !merged.color) merged.color = dec.color;
+      if (dec.width !== undefined && merged.width === undefined) merged.width = dec.width;
+      if (dec.style && !merged.style) merged.style = dec.style;
+      if (dec.label && !merged.label) merged.label = dec.label;
+      if (dec.particles && !merged.particles) merged.particles = dec.particles;
+      if (dec.opacity !== undefined && merged.opacity === undefined) merged.opacity = dec.opacity;
+      if (dec.curvature !== undefined && merged.curvature === undefined) merged.curvature = dec.curvature;
     }
 
     return merged;

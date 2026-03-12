@@ -33,8 +33,8 @@ function waitForGraphUpdate(api: CodeGraphyAPI, timeoutMs = 15_000): Promise<voi
       timeoutMs
     );
     const disposable = api.onWebviewMessage((msg: unknown) => {
-      const m = msg as { type?: string };
-      if (m.type === 'GRAPH_DATA_UPDATED') {
+      const message = msg as { type?: string };
+      if (message.type === 'GRAPH_DATA_UPDATED') {
         clearTimeout(timer);
         disposable.dispose();
         resolve();

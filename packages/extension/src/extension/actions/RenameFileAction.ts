@@ -51,8 +51,8 @@ export class RenameFileAction implements IUndoableAction {
       this._favoritesBefore = [...currentFavorites];
       
       // Calculate new favorites state (update path if file was favorited)
-      this._favoritesAfter = currentFavorites.map(f => 
-        f === this._oldPath ? this._newPath : f
+      this._favoritesAfter = currentFavorites.map(fav =>
+        fav === this._oldPath ? this._newPath : fav
       );
       this._hasExecuted = true;
     }

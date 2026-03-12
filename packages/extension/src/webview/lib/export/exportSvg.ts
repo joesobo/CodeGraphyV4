@@ -1,4 +1,5 @@
 import type { DirectionMode, NodeShape2D } from '../../../shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../../shared/types';
 import { getImage } from '../imageCache';
 import { postMessage } from '../vscodeApi';
 import { createExportTimestamp, resolveDirectionColor } from './common';
@@ -182,7 +183,7 @@ function buildPositionMap(nodes: SvgExportNode[]): Map<string, SvgPosition> {
 }
 
 function buildLinkElement(link: SvgExportLink, from: SvgPosition, to: SvgPosition, showArrows: boolean): string {
-  const color = link.baseColor ?? '#475569';
+  const color = link.baseColor ?? DEFAULT_DIRECTION_COLOR;
   const strokeWidth = link.bidirectional ? 2 : 1;
   const markerAttr = showArrows ? ' marker-end="url(#arrowhead)"' : '';
   const curvature = link.curvature ?? 0;

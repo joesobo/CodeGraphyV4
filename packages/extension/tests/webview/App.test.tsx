@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import App from '../../src/webview/App';
 import { graphStore } from '../../src/webview/store';
+import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/types';
 
 // Mock window message listeners
 const messageListeners: ((event: MessageEvent) => void)[] = [];
@@ -30,7 +31,7 @@ function resetStore() {
     bidirectionalMode: 'separate',
     showOrphans: true,
     directionMode: 'arrows',
-    directionColor: '#475569',
+    directionColor: DEFAULT_DIRECTION_COLOR,
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -109,7 +110,7 @@ describe('App', () => {
       })));
     });
 
-    const readyMessages = sentMessages.filter((m) => m.type === 'WEBVIEW_READY');
+    const readyMessages = sentMessages.filter((msg) => msg.type === 'WEBVIEW_READY');
     expect(readyMessages).toHaveLength(1);
   });
 
@@ -151,7 +152,7 @@ describe('App', () => {
 
 function sendMessage(data: unknown) {
   const event = new MessageEvent('message', { data });
-  messageListeners.forEach((l) => l(event));
+  messageListeners.forEach((listener) => listener(event));
 }
 
 describe('App: message handlers', () => {

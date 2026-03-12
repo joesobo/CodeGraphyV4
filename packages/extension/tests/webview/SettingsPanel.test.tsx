@@ -7,6 +7,7 @@ import { render, screen, fireEvent, act } from '@testing-library/react';
 import SettingsPanel from '../../src/webview/components/SettingsPanel';
 import { graphStore } from '../../src/webview/store';
 import type { IPhysicsSettings } from '../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/types';
 
 // Capture postMessage calls from the panel
 const sentMessages: unknown[] = [];
@@ -36,7 +37,7 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
     activeViewId: 'codegraphy.connections',
     depthLimit: 1,
     directionMode: 'arrows',
-    directionColor: '#475569',
+    directionColor: DEFAULT_DIRECTION_COLOR,
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
@@ -211,7 +212,7 @@ describe('SettingsPanel: Groups', () => {
     fireEvent.change(patternInput, { target: { value: 'src/utils/**' } });
     fireEvent.click(screen.getByText('Add'));
 
-    const updateMsg = sentMessages.find((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS') as { type: string; payload: { groups: Array<{ pattern: string }> } } | undefined;
+    const updateMsg = sentMessages.find((msg: unknown) => (msg as { type: string }).type === 'UPDATE_GROUPS') as { type: string; payload: { groups: Array<{ pattern: string }> } } | undefined;
     expect(updateMsg).toBeDefined();
     expect(updateMsg!.payload.groups.length).toBe(1);
     expect(updateMsg!.payload.groups[0].pattern).toBe('src/utils/**');
@@ -226,7 +227,7 @@ describe('SettingsPanel: Groups', () => {
     const removeBtn = screen.getByTitle('Delete group');
     fireEvent.click(removeBtn);
 
-    const updateMsg = sentMessages.find((m: unknown) => (m as { type: string }).type === 'UPDATE_GROUPS') as { type: string; payload: { groups: unknown[] } } | undefined;
+    const updateMsg = sentMessages.find((msg: unknown) => (msg as { type: string }).type === 'UPDATE_GROUPS') as { type: string; payload: { groups: unknown[] } } | undefined;
     expect(updateMsg).toBeDefined();
     expect(updateMsg!.payload.groups).toEqual([]);
   });
@@ -311,7 +312,7 @@ describe('SettingsPanel: Groups', () => {
     const eyeBtn = screen.queryByTitle(/Disable all|Enable all/);
     if (eyeBtn) {
       fireEvent.click(eyeBtn);
-      const toggleMsg = sentMessages.find((m: unknown) => (m as { type: string }).type === 'TOGGLE_PLUGIN_SECTION_DISABLED');
+      const toggleMsg = sentMessages.find((msg: unknown) => (msg as { type: string }).type === 'TOGGLE_PLUGIN_SECTION_DISABLED');
       expect(toggleMsg).toBeDefined();
     }
   });

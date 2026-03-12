@@ -230,7 +230,7 @@ export function fileDataToNodes(files: IFileData[]): IGraphNode[] {
  * ```
  */
 export function fileDataToEdges(files: IFileData[]): IGraphEdge[] {
-  const filePaths = new Set(files.map((f) => f.path));
+  const filePaths = new Set(files.map((file) => file.path));
   const edges: IGraphEdge[] = [];
 
   for (const file of files) {

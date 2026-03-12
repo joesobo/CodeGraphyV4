@@ -25,6 +25,7 @@ CodeGraphy can be configured in two ways:
 | `codegraphy.plugins` | string[] | `[]` | VS Code extension IDs that provide external CodeGraphy plugins |
 | `codegraphy.disabledRules` | string[] | `[]` | Disabled detection rules as qualified IDs: `<pluginId>:<ruleId>` |
 | `codegraphy.disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
+| `codegraphy.folderNodeColor` | string | `"#A1A1AA"` | Color for folder nodes in Folder View (`#RRGGBB`) |
 | `codegraphy.physics.repelForce` | number | `10` | Node repulsion strength (0-20) |
 | `codegraphy.physics.linkDistance` | number | `80` | Preferred distance between connected nodes (30-500) |
 | `codegraphy.physics.linkForce` | number | `0.15` | Spring stiffness (0-1) |
@@ -135,14 +136,14 @@ To version-control filter patterns, add them to `settings.json`:
 - **Direction Color** controls directional indicator color (hex only, `#RRGGBB`).
 - **Particle Speed** uses a normalized UI scale from `1` to `10` (mapped to internal `0.0005` to `0.005`).
 - **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
-- **Graph Mode** switches between 2D (canvas) and 3D (WebGL) rendering.
 - **Node Size** determines what controls node size:
   - `connections` (default): more connections = larger node
   - `file-size`: larger files = larger nodes (logarithmic scale)
   - `access-count`: frequently opened files = larger nodes
   - `uniform`: all nodes the same size
-- **View** switches between graph views (see below).
-- **Depth** controls how many hops from the focused file to display (1-5) when using the Depth Graph view.
+- **Folder Node Color** (only visible in Folder View) sets the hex color for folder nodes (`#RRGGBB`).
+
+View, layout, and 2D/3D controls have moved to the **toolbar** at the top of the graph. Use the `V`, `L`, and `T` keyboard shortcuts or the toolbar buttons directly. See [Keybindings](./KEYBINDINGS.md) for details.
 
 ## Graph views
 
@@ -150,7 +151,7 @@ To version-control filter patterns, add them to `settings.json`:
 |------|-------------|
 | Connections | Default. Shows all files and their import connections. |
 | Depth Graph | Shows files within N hops of the currently focused file. Requires an open editor tab. |
-| Subfolder View | Shows files within a specific folder. Activated via Explorer context menu. |
+| Folder View | Shows directory containment hierarchy as a tree graph. Folder nodes use `codegraphy.folderNodeColor`. |
 
 ![Depth graph](./media/depth-graph.png)
 

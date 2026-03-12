@@ -37,11 +37,11 @@ function waitForMessage(
       timeoutMs
     );
     const disposable = api.onWebviewMessage((msg: unknown) => {
-      const m = msg as { type: string; payload: unknown };
-      if (m.type === type) {
+      const message = msg as { type: string; payload: unknown };
+      if (message.type === type) {
         clearTimeout(timer);
         disposable.dispose();
-        resolve(m);
+        resolve(message);
       }
     });
   });

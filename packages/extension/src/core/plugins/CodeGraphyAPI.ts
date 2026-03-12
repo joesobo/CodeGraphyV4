@@ -87,13 +87,13 @@ export class CodeGraphyAPIImpl {
   // ── Events ──
 
   on<E extends EventName>(event: E, handler: (payload: EventPayloads[E]) => void): Disposable {
-    const d = this._eventBus.on(event, handler, this._pluginId);
-    return this._disposables.add(d);
+    const sub = this._eventBus.on(event, handler, this._pluginId);
+    return this._disposables.add(sub);
   }
 
   once<E extends EventName>(event: E, handler: (payload: EventPayloads[E]) => void): Disposable {
-    const d = this._eventBus.once(event, handler, this._pluginId);
-    return this._disposables.add(d);
+    const sub = this._eventBus.once(event, handler, this._pluginId);
+    return this._disposables.add(sub);
   }
 
   off<E extends EventName>(event: E, handler: (payload: EventPayloads[E]) => void): void {
@@ -103,13 +103,13 @@ export class CodeGraphyAPIImpl {
   // ── Decorations ──
 
   decorateNode(nodeId: string, decoration: NodeDecoration): Disposable {
-    const d = this._decorationManager.decorateNode(this._pluginId, nodeId, decoration);
-    return this._disposables.add(d);
+    const sub = this._decorationManager.decorateNode(this._pluginId, nodeId, decoration);
+    return this._disposables.add(sub);
   }
 
   decorateEdge(edgeId: string, decoration: EdgeDecoration): Disposable {
-    const d = this._decorationManager.decorateEdge(this._pluginId, edgeId, decoration);
-    return this._disposables.add(d);
+    const sub = this._decorationManager.decorateEdge(this._pluginId, edgeId, decoration);
+    return this._disposables.add(sub);
   }
 
   clearDecorations(): void {
@@ -160,11 +160,11 @@ export class CodeGraphyAPIImpl {
 
   registerCommand(command: ICommand): Disposable {
     this._commands.push(command);
-    const d = this._commandRegistrar(command.id, command.action);
+    const registration = this._commandRegistrar(command.id, command.action);
 
     return this._disposables.add(
       toDisposable(() => {
-        d.dispose();
+        registration.dispose();
         const idx = this._commands.indexOf(command);
         if (idx !== -1) this._commands.splice(idx, 1);
       })

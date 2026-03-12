@@ -264,8 +264,8 @@ export class WorkspaceAnalyzer {
       const plugin = pluginInfo.plugin;
 
       // Check if any discovered files match this plugin's extensions
-      const matchingFiles = this._lastDiscoveredFiles.filter((f) => {
-        const ext = path.extname(f.relativePath).toLowerCase();
+      const matchingFiles = this._lastDiscoveredFiles.filter((file) => {
+        const ext = path.extname(file.relativePath).toLowerCase();
         return plugin.supportedExtensions.includes(ext);
       });
 
@@ -330,7 +330,7 @@ export class WorkspaceAnalyzer {
     }
 
     // Sort by plugin name
-    statuses.sort((a, b) => a.name.localeCompare(b.name));
+    statuses.sort((sa, sb) => sa.name.localeCompare(sb.name));
 
     return statuses;
   }
@@ -440,7 +440,7 @@ export class WorkspaceAnalyzer {
 
       this._eventBus?.emit('analysis:fileProcessed', {
         filePath: file.relativePath,
-        connections: connections.map(c => ({ specifier: c.specifier, resolvedPath: c.resolvedPath })),
+        connections: connections.map(conn => ({ specifier: conn.specifier, resolvedPath: conn.resolvedPath })),
       });
 
       // Update cache with connections and size

@@ -155,7 +155,7 @@ export function buildExportData(
   }
 
   const activeGroups = groups.filter(g => !g.disabled);
-  const sortedNodes = [...graphData.nodes].sort((a, b) => a.id.localeCompare(b.id));
+  const sortedNodes = [...graphData.nodes].sort((na, nb) => na.id.localeCompare(nb.id));
 
   // Match each node to its first matching group (same first-match-wins semantics as rendering).
   const nodeGroupMap = new Map<string, string>();

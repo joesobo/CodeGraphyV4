@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IPhysicsSettings, NodeSizeMode, DirectionMode, BidirectionalEdgeMode, IGroup, NodeShape2D, NodeShape3D } from '../../shared/types';
+import { IPhysicsSettings, NodeSizeMode, DirectionMode, BidirectionalEdgeMode, IGroup, NodeShape2D, NodeShape3D, DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
@@ -15,6 +15,8 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
+import { mdiChevronRight, mdiClose, mdiDrag, mdiEyeOutline, mdiEyeOffOutline, mdiMinus, mdiPlus, mdiLockOutline } from '@mdi/js';
+import { MdiIcon } from './icons';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -48,7 +50,6 @@ const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
 
 /** Delay before persisting slider updates to VS Code settings. */
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
-const DEFAULT_DIRECTION_COLOR = '#475569';
 const PARTICLE_SPEED_MIN_INTERNAL = 0.0005;
 const PARTICLE_SPEED_MAX_INTERNAL = 0.005;
 const PARTICLE_SPEED_MIN_DISPLAY = 1;
@@ -70,21 +71,18 @@ function particleSpeedFromDisplay(level: number): number {
   return Number((PARTICLE_SPEED_MIN_INTERNAL + ratio * (PARTICLE_SPEED_MAX_INTERNAL - PARTICLE_SPEED_MIN_INTERNAL)).toFixed(6));
 }
 
+function clearTimerRefs(ref: React.MutableRefObject<Partial<Record<string, ReturnType<typeof setTimeout>>>>) {
+  for (const timer of Object.values(ref.current)) {
+    if (timer) clearTimeout(timer);
+  }
+}
+
 /** Delay before persisting color picker changes to avoid rapid updates while dragging. */
 const COLOR_DEBOUNCE_MS = 300;
 
-function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
-  return (
-    <svg
-      className={cn('h-3.5 w-3.5 text-muted-foreground transition-transform', open && 'rotate-90')}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-    </svg>
-  );
-}
+const ChevronIcon = ({ open }: { open: boolean }) => (
+  <MdiIcon path={mdiChevronRight} size={14} className={cn('text-muted-foreground transition-transform', open && 'rotate-90')} />
+);
 
 function SectionHeader({
   title,
@@ -110,7 +108,6 @@ export default function SettingsPanel({
   isOpen,
   onClose,
 }: SettingsPanelProps): React.ReactElement | null {
-  // Read state from store
   const settings = useGraphStore(s => s.physicsSettings);
   const setPhysicsSettings = useGraphStore(s => s.setPhysicsSettings);
   const groups = useGraphStore(s => s.groups);
@@ -123,10 +120,6 @@ export default function SettingsPanel({
   const setShowOrphans = useGraphStore(s => s.setShowOrphans);
   const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
   const setNodeSizeMode = useGraphStore(s => s.setNodeSizeMode);
-  const availableViews = useGraphStore(s => s.availableViews);
-  const activeViewId = useGraphStore(s => s.activeViewId);
-  const setActiveViewId = useGraphStore(s => s.setActiveViewId);
-  const depthLimit = useGraphStore(s => s.depthLimit);
   const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
   const setBidirectionalMode = useGraphStore(s => s.setBidirectionalMode);
   const directionMode = useGraphStore(s => s.directionMode);
@@ -135,10 +128,11 @@ export default function SettingsPanel({
   const setDirectionColor = useGraphStore(s => s.setDirectionColor);
   const showLabels = useGraphStore(s => s.showLabels);
   const setShowLabels = useGraphStore(s => s.setShowLabels);
-  const graphMode = useGraphStore(s => s.graphMode);
-  const setGraphMode = useGraphStore(s => s.setGraphMode);
   const maxFiles = useGraphStore(s => s.maxFiles);
   const setMaxFiles = useGraphStore(s => s.setMaxFiles);
+  const folderNodeColor = useGraphStore(s => s.folderNodeColor);
+  const setFolderNodeColor = useGraphStore(s => s.setFolderNodeColor);
+  const activeViewId = useGraphStore(s => s.activeViewId);
 
   // Local UI state
   const [forcesOpen, setForcesOpen] = useState(false);
@@ -182,20 +176,15 @@ export default function SettingsPanel({
     const colorTimersRef = colorDebounceRef;
     const patternTimersRef = patternDebounceRef;
     return () => {
-      for (const timer of Object.values(timersRef.current)) {
-        if (timer) clearTimeout(timer);
-      }
-      for (const timer of Object.values(particleTimersRef.current)) {
-        if (timer) clearTimeout(timer);
-      }
-      for (const timer of Object.values(colorTimersRef.current)) {
-        if (timer) clearTimeout(timer);
-      }
-      for (const timer of Object.values(patternTimersRef.current)) {
-        if (timer) clearTimeout(timer);
-      }
+      clearTimerRefs(timersRef);
+      clearTimerRefs(particleTimersRef);
+      clearTimerRefs(colorTimersRef);
+      clearTimerRefs(patternTimersRef);
     };
   }, []);
+
+  const directionColorTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const folderColorTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   if (!isOpen) return null;
 
@@ -376,7 +365,7 @@ export default function SettingsPanel({
   };
 
   const handleDeleteFilterPattern = (pattern: string) => {
-    const updated = filterPatterns.filter(p => p !== pattern);
+    const updated = filterPatterns.filter(pat => pat !== pattern);
     setFilterPatterns(updated);
     postMessage({ type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: updated } });
   };
@@ -467,7 +456,20 @@ export default function SettingsPanel({
   const handleDirectionColorChange = (value: string) => {
     const normalized = value.toUpperCase();
     setDirectionColor(normalized);
-    postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: normalized } });
+    clearTimeout(directionColorTimerRef.current);
+    directionColorTimerRef.current = setTimeout(() => {
+      postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: normalized } });
+    }, 150);
+  };
+
+  const resolvedFolderNodeColor = isHexColor(folderNodeColor) ? folderNodeColor : DEFAULT_FOLDER_NODE_COLOR;
+  const handleFolderNodeColorChange = (value: string) => {
+    const normalized = value.toUpperCase();
+    setFolderNodeColor(normalized);
+    clearTimeout(folderColorTimerRef.current);
+    folderColorTimerRef.current = setTimeout(() => {
+      postMessage({ type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: normalized } });
+    }, 150);
   };
 
   const handleParticleSpeedChange = (level: number) => {
@@ -486,25 +488,13 @@ export default function SettingsPanel({
     postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: checked } });
   };
 
-  const handleViewChange = (viewId: string) => {
-    setActiveViewId(viewId);
-    postMessage({ type: 'CHANGE_VIEW', payload: { viewId } });
-  };
-
-  const handleDepthChange = (value: number[]) => {
-    const newDepth = value[0];
-    postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: newDepth } });
-  };
-
   return (
     <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
       {/* Panel header */}
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
         <span className="text-sm font-medium">Settings</span>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
-          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <MdiIcon path={mdiClose} size={16} />
         </Button>
       </div>
 
@@ -513,7 +503,7 @@ export default function SettingsPanel({
         <div className="px-3 pb-3">
 
           {/* Forces section */}
-          <SectionHeader title="Forces" open={forcesOpen} onToggle={() => setForcesOpen(v => !v)} />
+          <SectionHeader title="Forces" open={forcesOpen} onToggle={() => setForcesOpen(prev => !prev)} />
           {forcesOpen && (
             <div className="mb-2 space-y-3 pt-1">
               {/* Repel Force */}
@@ -527,7 +517,7 @@ export default function SettingsPanel({
                   max={20}
                   step={1}
                   value={[settings.repelForce]}
-                  onValueChange={(v) => handlePhysicsChange('repelForce', v[0])}
+                  onValueChange={(vals) => handlePhysicsChange('repelForce', vals[0])}
                   onValueCommit={() => flushPhysicsSetting('repelForce')}
                 />
               </div>
@@ -542,7 +532,7 @@ export default function SettingsPanel({
                   max={1}
                   step={0.01}
                   value={[settings.centerForce]}
-                  onValueChange={(v) => handlePhysicsChange('centerForce', v[0])}
+                  onValueChange={(vals) => handlePhysicsChange('centerForce', vals[0])}
                   onValueCommit={() => flushPhysicsSetting('centerForce')}
                 />
               </div>
@@ -557,7 +547,7 @@ export default function SettingsPanel({
                   max={500}
                   step={10}
                   value={[settings.linkDistance]}
-                  onValueChange={(v) => handlePhysicsChange('linkDistance', v[0])}
+                  onValueChange={(vals) => handlePhysicsChange('linkDistance', vals[0])}
                   onValueCommit={() => flushPhysicsSetting('linkDistance')}
                 />
               </div>
@@ -572,7 +562,7 @@ export default function SettingsPanel({
                   max={1}
                   step={0.01}
                   value={[settings.linkForce]}
-                  onValueChange={(v) => handlePhysicsChange('linkForce', v[0])}
+                  onValueChange={(vals) => handlePhysicsChange('linkForce', vals[0])}
                   onValueCommit={() => flushPhysicsSetting('linkForce')}
                 />
               </div>
@@ -580,13 +570,13 @@ export default function SettingsPanel({
           )}
 
           {/* Groups section */}
-          <SectionHeader title="Groups" open={groupsOpen} onToggle={() => setGroupsOpen(v => !v)} />
+          <SectionHeader title="Groups" open={groupsOpen} onToggle={() => setGroupsOpen(prev => !prev)} />
           {groupsOpen && (
             <div className="mb-2 space-y-2">
               {/* Custom groups (user-defined) — collapsible, placed first for priority */}
               <div>
                 <button
-                  onClick={() => setCustomExpanded(v => !v)}
+                  onClick={() => setCustomExpanded(prev => !prev)}
                   className="flex items-center gap-1.5 w-full py-0.5 text-left hover:bg-accent rounded transition-colors px-1"
                 >
                   <ChevronIcon open={customExpanded} />
@@ -623,9 +613,7 @@ export default function SettingsPanel({
                                 className="flex items-center gap-2 cursor-pointer"
                                 onClick={() => setExpandedGroupId(isExpanded ? null : group.id)}
                               >
-                                <svg className="w-3 h-3 text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" fill="currentColor" viewBox="0 0 24 24">
-                                  <path d="M8 6a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 14a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4zM8 22a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm8 0a2 2 0 1 0 0-4 2 2 0 0 0 0 4z" />
-                                </svg>
+                                <MdiIcon path={mdiDrag} size={12} className="text-muted-foreground flex-shrink-0 cursor-grab active:cursor-grabbing" />
                                 <span
                                   className="w-4 h-4 rounded-sm flex-shrink-0 border"
                                   style={{ backgroundColor: displayColor }}
@@ -644,14 +632,9 @@ export default function SettingsPanel({
                                   title={group.disabled ? 'Enable group' : 'Disable group'}
                                 >
                                   {group.disabled ? (
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
-                                    </svg>
+                                    <MdiIcon path={mdiEyeOffOutline} size={14} />
                                   ) : (
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
+                                    <MdiIcon path={mdiEyeOutline} size={14} />
                                   )}
                                 </button>
                                 <ChevronIcon open={isExpanded} />
@@ -662,9 +645,7 @@ export default function SettingsPanel({
                                   onClick={(e) => { e.stopPropagation(); handleDeleteGroup(group.id); }}
                                   title="Delete group"
                                 >
-                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
+                                  <MdiIcon path={mdiClose} size={14} />
                                 </Button>
                               </div>
 
@@ -808,14 +789,9 @@ export default function SettingsPanel({
                         title={allDisabled ? `Enable all ${sectionName} groups` : `Disable all ${sectionName} groups`}
                       >
                         {allDisabled ? (
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
-                          </svg>
+                          <MdiIcon path={mdiEyeOffOutline} size={14} />
                         ) : (
-                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
+                          <MdiIcon path={mdiEyeOutline} size={14} />
                         )}
                       </button>
                     </div>
@@ -845,14 +821,9 @@ export default function SettingsPanel({
                                   title={group.disabled ? 'Enable group' : 'Disable group'}
                                 >
                                   {group.disabled ? (
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M3 3l18 18" />
-                                    </svg>
+                                    <MdiIcon path={mdiEyeOffOutline} size={14} />
                                   ) : (
-                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                    </svg>
+                                    <MdiIcon path={mdiEyeOutline} size={14} />
                                   )}
                                 </button>
                                 <ChevronIcon open={isExpanded} />
@@ -911,7 +882,7 @@ export default function SettingsPanel({
           )}
 
           {/* Filters section */}
-          <SectionHeader title="Filters" open={filtersOpen} onToggle={() => setFiltersOpen(v => !v)} />
+          <SectionHeader title="Filters" open={filtersOpen} onToggle={() => setFiltersOpen(prev => !prev)} />
           {filtersOpen && (
             <div className="mb-2 space-y-2">
               {/* Show Orphans toggle */}
@@ -936,17 +907,15 @@ export default function SettingsPanel({
                     disabled={maxFiles <= 1}
                     title="Decrease by 100"
                   >
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 12H4" />
-                    </svg>
+                    <MdiIcon path={mdiMinus} size={12} />
                   </Button>
                   <Input
                     type="text"
                     inputMode="numeric"
                     value={maxFiles}
                     onChange={e => {
-                      const v = parseInt(e.target.value, 10);
-                      if (!isNaN(v)) setMaxFiles(v);
+                      const parsed = parseInt(e.target.value, 10);
+                      if (!isNaN(parsed)) setMaxFiles(parsed);
                     }}
                     onBlur={e => handleMaxFilesCommit(parseInt(e.target.value, 10) || 1)}
                     onKeyDown={e => e.key === 'Enter' && handleMaxFilesCommit(parseInt((e.target as HTMLInputElement).value, 10) || 1)}
@@ -959,9 +928,7 @@ export default function SettingsPanel({
                     onClick={() => handleMaxFilesCommit(maxFiles + 100)}
                     title="Increase by 100"
                   >
-                    <svg className="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
+                    <MdiIcon path={mdiPlus} size={12} />
                   </Button>
                 </div>
               </div>
@@ -973,9 +940,7 @@ export default function SettingsPanel({
                   <ul className="space-y-1">
                     {pluginFilterPatterns.map(pattern => (
                       <li key={pattern} className="flex items-center gap-2 opacity-60">
-                        <svg className="w-3 h-3 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
+                        <MdiIcon path={mdiLockOutline} size={12} className="text-muted-foreground flex-shrink-0" />
                         <span className="text-xs text-muted-foreground flex-1 truncate font-mono">{pattern}</span>
                       </li>
                     ))}
@@ -998,9 +963,7 @@ export default function SettingsPanel({
                         onClick={() => handleDeleteFilterPattern(pattern)}
                         title="Delete pattern"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
+                        <MdiIcon path={mdiClose} size={14} />
                       </Button>
                     </li>
                   ))}
@@ -1028,7 +991,7 @@ export default function SettingsPanel({
           )}
 
           {/* Display section */}
-          <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen(v => !v)} />
+          <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen(prev => !prev)} />
           {displayOpen && (
             <div className="mb-2 space-y-3">
               {/* Direction mode toggle */}
@@ -1102,6 +1065,25 @@ export default function SettingsPanel({
                 </div>
               </div>
 
+              {/* Folder node color — only visible when folder view is active */}
+              {activeViewId === 'codegraphy.folder' && (
+                <div>
+                  <Label htmlFor="folder-node-color" className="text-xs text-muted-foreground mb-1.5 block">Folder Node Color</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="folder-node-color"
+                      type="color"
+                      value={resolvedFolderNodeColor}
+                      onChange={(e) => handleFolderNodeColorChange(e.target.value)}
+                      className="h-7 w-10 p-1"
+                    />
+                    <span className="text-[11px] text-muted-foreground font-mono flex-1">
+                      {resolvedFolderNodeColor}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Particle settings (visible only when mode is 'particles') */}
               {directionMode === 'particles' && (
                 <div className="space-y-3 pl-2 border-l border-border">
@@ -1115,7 +1097,7 @@ export default function SettingsPanel({
                       max={PARTICLE_SPEED_MAX_DISPLAY}
                       step={1}
                       value={[displayParticleSpeed]}
-                      onValueChange={(v) => handleParticleSpeedChange(v[0])}
+                      onValueChange={(vals) => handleParticleSpeedChange(vals[0])}
                       onValueCommit={() => flushParticleSetting('particleSpeed')}
                     />
                   </div>
@@ -1129,7 +1111,7 @@ export default function SettingsPanel({
                       max={10}
                       step={0.5}
                       value={[particleSize]}
-                      onValueChange={(v) => handleParticleSizeChange(v[0])}
+                      onValueChange={(vals) => handleParticleSizeChange(vals[0])}
                       onValueCommit={() => flushParticleSetting('particleSize')}
                     />
                   </div>
@@ -1146,28 +1128,6 @@ export default function SettingsPanel({
                 />
               </div>
 
-              {/* Graph Mode */}
-              <div className="flex items-center justify-between py-0.5">
-                <Label className="text-xs">Graph Mode</Label>
-                <div className="flex gap-1">
-                  <Button
-                    variant={graphMode === '2d' ? 'default' : 'secondary'}
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    onClick={() => setGraphMode('2d')}
-                  >
-                    2D
-                  </Button>
-                  <Button
-                    variant={graphMode === '3d' ? 'default' : 'secondary'}
-                    size="sm"
-                    className="h-6 px-2 text-xs"
-                    onClick={() => setGraphMode('3d')}
-                  >
-                    3D
-                  </Button>
-                </div>
-              </div>
 
               {/* Node Size */}
               <div>
@@ -1189,42 +1149,6 @@ export default function SettingsPanel({
                 </div>
               </div>
 
-              {/* View */}
-              {availableViews.length > 0 && (
-                <div>
-                  <Label className="text-xs text-muted-foreground mb-1.5 block">View</Label>
-                  <div className="space-y-1">
-                    {availableViews.map(view => (
-                      <label key={view.id} className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="radio"
-                          name="activeView"
-                          value={view.id}
-                          checked={activeViewId === view.id}
-                          onChange={() => handleViewChange(view.id)}
-                          className="accent-primary"
-                        />
-                        <span className="text-xs">{view.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                  {/* Inline depth slider when Depth Graph is selected */}
-                  {activeViewId === 'codegraphy.depth-graph' && (
-                    <div className="flex items-center gap-2 mt-2 pl-4">
-                      <Label className="text-xs text-muted-foreground">Depth:</Label>
-                      <Slider
-                        min={1}
-                        max={5}
-                        step={1}
-                        value={[depthLimit]}
-                        onValueChange={handleDepthChange}
-                        className="w-20"
-                      />
-                      <span className="text-xs text-muted-foreground min-w-[1rem] text-center">{depthLimit}</span>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           )}
         </div>

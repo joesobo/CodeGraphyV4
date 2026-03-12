@@ -250,6 +250,25 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
     })
   );
 
+  // Toolbar keyboard shortcuts
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.cycleView', () => {
+      provider.sendCommand('CYCLE_VIEW');
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.cycleLayout', () => {
+      provider.sendCommand('CYCLE_LAYOUT');
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('codegraphy.toggleDimension', () => {
+      provider.sendCommand('TOGGLE_DIMENSION');
+    })
+  );
+
   return {
     getGraphData: () => provider.getGraphData(),
     sendToWebview: (message) => provider.sendToWebview(message),

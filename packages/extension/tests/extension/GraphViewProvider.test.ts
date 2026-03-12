@@ -631,6 +631,95 @@ describe('GraphViewProvider', () => {
     });
   });
 
+  describe('DAG mode', () => {
+    const createResolvedWebview = () => {
+      let messageHandler: ((message: unknown) => Promise<void>) | null = null;
+      const mockWebview = {
+        options: {},
+        html: '',
+        onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+          messageHandler = handler;
+          return { dispose: () => {} };
+        }),
+        postMessage: vi.fn(),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      };
+
+      const mockView = {
+        webview: mockWebview,
+        visible: true,
+        onDidChangeVisibility: vi.fn(() => ({ dispose: () => {} })),
+        onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+        show: vi.fn(),
+      };
+
+      provider.resolveWebviewView(
+        mockView as unknown as vscode.WebviewView,
+        {} as vscode.WebviewViewResolveContext,
+        { isCancellationRequested: false, onCancellationRequested: vi.fn() } as unknown as vscode.CancellationToken
+      );
+
+      return {
+        mockWebview,
+        getMessageHandler: () => {
+          expect(messageHandler).not.toBeNull();
+          return messageHandler!;
+        },
+      };
+    };
+
+    it('sends DAG_MODE_UPDATED on WEBVIEW_READY', async () => {
+      const { mockWebview, getMessageHandler } = createResolvedWebview();
+
+      await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      const dagModeCall = mockWebview.postMessage.mock.calls.find(
+        (call: unknown[]) => (call[0] as { type?: string }).type === 'DAG_MODE_UPDATED'
+      );
+      expect(dagModeCall).toBeDefined();
+      expect((dagModeCall[0] as { payload: { dagMode: unknown } }).payload.dagMode).toBeNull();
+    });
+
+    it('handles UPDATE_DAG_MODE and echoes back DAG_MODE_UPDATED', async () => {
+      const { mockWebview, getMessageHandler } = createResolvedWebview();
+
+      await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      mockWebview.postMessage.mockClear();
+
+      await getMessageHandler()({ type: 'UPDATE_DAG_MODE', payload: { dagMode: 'td' } });
+
+      const dagModeCall = mockWebview.postMessage.mock.calls.find(
+        (call: unknown[]) => (call[0] as { type?: string }).type === 'DAG_MODE_UPDATED'
+      );
+      expect(dagModeCall).toBeDefined();
+      expect((dagModeCall[0] as { payload: { dagMode: string } }).payload.dagMode).toBe('td');
+    });
+
+    it('persists dagMode to workspace state on UPDATE_DAG_MODE', async () => {
+      const updateSpy = vi.fn().mockResolvedValue(undefined);
+      mockContext.workspaceState.update = updateSpy;
+
+      // Re-create provider with spy-equipped context
+      provider = new GraphViewProvider(
+        mockContext.extensionUri,
+        mockContext as unknown as vscode.ExtensionContext
+      );
+
+      const { getMessageHandler } = createResolvedWebview();
+
+      await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
+      await new Promise(resolve => setTimeout(resolve, 20));
+
+      await getMessageHandler()({ type: 'UPDATE_DAG_MODE', payload: { dagMode: 'lr' } });
+
+      expect(updateSpy).toHaveBeenCalledWith('codegraphy.dagMode', 'lr');
+    });
+  });
+
   describe('plugin API v2 webview bridge', () => {
     const createResolvedWebview = () => {
       let messageHandler: ((message: unknown) => Promise<void>) | null = null;
