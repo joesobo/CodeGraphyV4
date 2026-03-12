@@ -133,6 +133,9 @@ export default function SettingsPanel({
   const setShowLabels = useGraphStore(s => s.setShowLabels);
   const maxFiles = useGraphStore(s => s.maxFiles);
   const setMaxFiles = useGraphStore(s => s.setMaxFiles);
+  const folderNodeColor = useGraphStore(s => s.folderNodeColor);
+  const setFolderNodeColor = useGraphStore(s => s.setFolderNodeColor);
+  const activeViewId = useGraphStore(s => s.activeViewId);
 
   // Local UI state
   const [forcesOpen, setForcesOpen] = useState(false);
@@ -462,6 +465,13 @@ export default function SettingsPanel({
     const normalized = value.toUpperCase();
     setDirectionColor(normalized);
     postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: normalized } });
+  };
+
+  const resolvedFolderNodeColor = isHexColor(folderNodeColor) ? folderNodeColor : '#A1A1AA';
+  const handleFolderNodeColorChange = (value: string) => {
+    const normalized = value.toUpperCase();
+    setFolderNodeColor(normalized);
+    postMessage({ type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: normalized } });
   };
 
   const handleParticleSpeedChange = (level: number) => {
@@ -1085,6 +1095,25 @@ export default function SettingsPanel({
                   </span>
                 </div>
               </div>
+
+              {/* Folder node color — only visible when folder view is active */}
+              {activeViewId === 'codegraphy.folder' && (
+                <div>
+                  <Label htmlFor="folder-node-color" className="text-xs text-muted-foreground mb-1.5 block">Folder Node Color</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id="folder-node-color"
+                      type="color"
+                      value={resolvedFolderNodeColor}
+                      onChange={(e) => handleFolderNodeColorChange(e.target.value)}
+                      className="h-7 w-10 p-1"
+                    />
+                    <span className="text-[11px] text-muted-foreground font-mono flex-1">
+                      {resolvedFolderNodeColor}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Particle settings (visible only when mode is 'particles') */}
               {directionMode === 'particles' && (

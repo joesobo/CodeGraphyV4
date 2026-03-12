@@ -125,7 +125,7 @@ export const folderView: IView = {
   icon: 'folder',
   description: 'Shows the folder containment hierarchy',
 
-  transform(data: IGraphData, _context: IViewContext): IGraphData {
+  transform(data: IGraphData, context: IViewContext): IGraphData {
     if (data.nodes.length === 0) {
       return { nodes: [], edges: [] };
     }
@@ -154,7 +154,7 @@ export const folderView: IView = {
     const folderNodes = Array.from(folderPaths).map(fp => ({
       id: fp,
       label: fp === '(root)' ? '(root)' : fp.split('/').pop()!,
-      color: '#A1A1AA',
+      color: context.folderNodeColor ?? '#A1A1AA',
       nodeType: 'folder' as const,
     }));
 

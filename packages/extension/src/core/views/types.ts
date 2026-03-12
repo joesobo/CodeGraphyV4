@@ -109,6 +109,9 @@ export interface IViewContext {
    * Default is 1 (direct neighbors only).
    */
   depthLimit?: number;
+
+  /** Color for folder nodes in folder view. */
+  folderNodeColor?: string;
 }
 
 /**

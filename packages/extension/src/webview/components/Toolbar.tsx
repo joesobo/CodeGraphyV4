@@ -35,7 +35,6 @@ export default function Toolbar(): React.ReactElement {
   const availableViews = useGraphStore(s => s.availableViews);
   const activeViewId = useGraphStore(s => s.activeViewId);
   const dagMode = useGraphStore(s => s.dagMode);
-  const setDagMode = useGraphStore(s => s.setDagMode);
   const graphMode = useGraphStore(s => s.graphMode);
   const setGraphMode = useGraphStore(s => s.setGraphMode);
   const depthLimit = useGraphStore(s => s.depthLimit);
@@ -46,7 +45,6 @@ export default function Toolbar(): React.ReactElement {
   };
 
   const handleDagModeChange = (mode: DagMode) => {
-    setDagMode(mode);
     postMessage({ type: 'UPDATE_DAG_MODE', payload: { dagMode: mode } });
   };
 

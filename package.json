@@ -357,6 +357,12 @@
 					"pattern": "^#[0-9A-Fa-f]{6}$",
 					"description": "Directional indicator color as a hex value."
 				},
+				"codegraphy.folderNodeColor": {
+					"type": "string",
+					"default": "#A1A1AA",
+					"pattern": "^#[0-9A-Fa-f]{6}$",
+					"description": "Color for folder nodes in Folder View (hex format, e.g., #A1A1AA)."
+				},
 				"codegraphy.particleSpeed": {
 					"type": "number",
 					"default": 0.005,
