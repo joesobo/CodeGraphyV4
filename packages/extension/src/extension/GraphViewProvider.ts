@@ -659,12 +659,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     const activeEditor = vscode.window.activeTextEditor;
     const savedDepthLimit = this._context.workspaceState.get<number>(DEPTH_LIMIT_KEY);
-    
+    const config = vscode.workspace.getConfiguration('codegraphy');
+
     this._viewContext = {
       activePlugins: this._getActivePluginIds(),
       workspaceRoot: workspaceFolder?.uri.fsPath,
       focusedFile: activeEditor ? this._getRelativePath(activeEditor.document.uri) : undefined,
       depthLimit: savedDepthLimit ?? DEFAULT_DEPTH_LIMIT,
+      folderNodeColor: normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)),
     };
   }
 
