@@ -510,6 +510,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'DECORATIONS_UPDATED'; payload: { nodeDecorations: Record<string, NodeDecorationPayload>; edgeDecorations: Record<string, EdgeDecorationPayload> } }
   | { type: 'CONTEXT_MENU_ITEMS'; payload: { items: IPluginContextMenuItem[] } }
   | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }
+  | { type: 'FOLDER_NODE_COLOR_UPDATED'; payload: { folderNodeColor: string } }
   | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } };
 
 /**
@@ -591,6 +592,7 @@ export type WebviewToExtensionMessage =
   | { type: 'TOGGLE_PLUGIN_GROUP_DISABLED'; payload: { groupId: string; disabled: boolean } }
   | { type: 'TOGGLE_PLUGIN_SECTION_DISABLED'; payload: { pluginId: string; disabled: boolean } }
   | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } }
+  | { type: 'UPDATE_FOLDER_NODE_COLOR'; payload: { folderNodeColor: string } }
   | { type: 'UPDATE_DAG_MODE'; payload: { dagMode: DagMode } };
 
 /**

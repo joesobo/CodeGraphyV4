@@ -82,6 +82,15 @@ function normalizeDirectionColor(value: string | undefined): string {
   return DEFAULT_DIRECTION_COLOR;
 }
 
+const DEFAULT_FOLDER_NODE_COLOR = '#A1A1AA';
+
+function normalizeFolderNodeColor(value: string | undefined): string {
+  if (!value) return DEFAULT_FOLDER_NODE_COLOR;
+  const trimmed = value.trim();
+  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toUpperCase();
+  return DEFAULT_FOLDER_NODE_COLOR;
+}
+
 interface IExternalPluginRegistrationOptions {
   extensionUri?: vscode.Uri | string;
 }
@@ -1315,6 +1324,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
           });
           this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
+          this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: normalizeFolderNodeColor(vscode.workspace.getConfiguration('codegraphy').get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)) } });
           this._sendDecorations();
           this._sendContextMenuItems();
           this._sendPluginWebviewInjections();
@@ -1515,6 +1525,20 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             particleSize: config.get<number>('particleSize', 4),
             directionColor: color,
           }});
+          break;
+        }
+
+        case 'UPDATE_FOLDER_NODE_COLOR': {
+          const target = this._getConfigTarget();
+          const color = normalizeFolderNodeColor(message.payload.folderNodeColor);
+          await vscode.workspace.getConfiguration('codegraphy').update('folderNodeColor', color, target);
+          this._viewContext.folderNodeColor = color;
+          this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: color } });
+          // Re-apply view transform if folder view is active (updates folder node colors)
+          if (this._activeViewId === 'codegraphy.folder') {
+            this._applyViewTransform();
+            this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
+          }
           break;
         }
 
@@ -2164,9 +2188,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const particleSpeed = config.get<number>('particleSpeed', 0.005);
     const particleSize = config.get<number>('particleSize', 4);
     const directionColor = normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR));
+    const folderNodeColor = normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR));
     const showLabels = config.get<boolean>('showLabels', true);
+    this._viewContext.folderNodeColor = folderNodeColor;
     this._sendMessage({ type: 'SETTINGS_UPDATED', payload: { bidirectionalEdges, showOrphans } });
     this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode, particleSpeed, particleSize, directionColor } });
+    this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor } });
     this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels } });
   }
 
