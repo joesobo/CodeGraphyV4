@@ -6,8 +6,8 @@ import {
   mdiRefresh,
   mdiPuzzleOutline,
   mdiCogOutline,
-  mdiSquareOutline,
-  mdiCubeOutline,
+  mdiCircleOutline,
+  mdiSphere,
 } from '@mdi/js';
 import { MdiIcon } from './icons/MdiIcon';
 import { DagDefaultIcon, DagRadialIcon, DagTopDownIcon, DagLeftRightIcon } from './icons/DagIcons';
@@ -134,7 +134,7 @@ export default function Toolbar(): React.ReactElement {
               className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
               onClick={() => setGraphMode(graphMode === '2d' ? '3d' : '2d')}
             >
-              <MdiIcon path={graphMode === '2d' ? mdiSquareOutline : mdiCubeOutline} size={16} />
+              <MdiIcon path={graphMode === '2d' ? mdiCircleOutline : mdiSphere} size={16} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom">{graphMode === '2d' ? '2D Mode' : '3D Mode'}</TooltipContent>
