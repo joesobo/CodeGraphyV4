@@ -57,7 +57,7 @@ describe('buildExportData', () => {
 
     const result = buildExportData(data, noGroups);
     expect(result.ungrouped['a.ts'].imports).toEqual({ '': ['b.ts'] });
-    expect(result.ungrouped['b.ts'].imports).toEqual({});
+    expect(result.ungrouped['b.ts'].imports).toBeUndefined();
   });
 
   it('groups multiple targets under the same rule key', () => {

@@ -12,7 +12,7 @@ export interface ExportGroup {
 
 /** imports keyed by rule qualifiedId → list of target file paths */
 export interface ExportFile {
-  imports: Record<string, string[]>;
+  imports?: Record<string, string[]>;
 }
 
 export interface ExportRule {
@@ -101,7 +101,8 @@ export function buildExportData(
   const ungroupedFiles: Record<string, ExportFile> = {};
 
   for (const node of sorted) {
-    const file: ExportFile = { imports: importsMap.get(node.id) ?? {} };
+    const nodeImports = importsMap.get(node.id);
+    const file: ExportFile = nodeImports ? { imports: nodeImports } : {};
     const groupPattern = nodeGroupMap.get(node.id);
 
     if (groupPattern) {

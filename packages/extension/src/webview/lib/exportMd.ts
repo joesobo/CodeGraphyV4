@@ -48,14 +48,12 @@ export function buildMarkdownExport(
 
 function renderFiles(lines: string[], files: Record<string, ExportFile>, data: ExportData) {
   for (const [filePath, file] of Object.entries(files)) {
-    const ruleKeys = Object.keys(file.imports);
-    const hasImports = ruleKeys.some(k => file.imports[k].length > 0);
-
-    if (!hasImports) {
+    if (!file.imports) {
       lines.push(`- ${filePath}`);
       continue;
     }
 
+    const ruleKeys = Object.keys(file.imports);
     lines.push(`- **${filePath}**`);
 
     // If all imports are unattributed (empty-string key only), list them flat
