@@ -63,15 +63,6 @@ interface GraphProps {
   pluginHost?: WebviewPluginHost;
 }
 
-/** Default physics settings (user-facing normalized values) */
-const DEFAULT_PHYSICS: IPhysicsSettings = {
-  repelForce: 10,
-  linkDistance: 80,
-  linkForce: 0.15,
-  damping: 0.7,
-  centerForce: 0.1,
-};
-
 /** Map normalized repelForce (0–20) to d3 forceManyBody strength (0 to -500) */
 function toD3Repel(repelForce: number): number {
   return -(repelForce / 20) * 500;
@@ -313,6 +304,8 @@ export default function Graph({
   const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
   const physicsInitialisedRef = useRef(false);
   const prevPhysicsRef = useRef<IPhysicsSettings | null>(null);
+  const physicsSettingsRef = useRef(physicsSettings);
+  physicsSettingsRef.current = physicsSettings;
   const lastClickRef = useRef<{ nodeId: string; time: number } | null>(null);
   const showLabelsRef = useRef(showLabels);
   /** Stores 3D SpriteText objects by node id so we can toggle visibility without rebuilding */
@@ -1292,20 +1285,20 @@ export default function Graph({
   const initPhysics = useCallback((instance: FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>) => {
     if (physicsInitialisedRef.current) return;
     physicsInitialisedRef.current = true;
-    prevPhysicsRef.current = { ...DEFAULT_PHYSICS };
+    const settings = physicsSettingsRef.current;
+    prevPhysicsRef.current = { ...settings };
     const chargeForce = instance.d3Force('charge');
-    if (hasStrength(chargeForce)) chargeForce.strength(toD3Repel(physicsSettings.repelForce));
+    if (hasStrength(chargeForce)) chargeForce.strength(toD3Repel(settings.repelForce));
     const d3LinkForce = instance.d3Force('link');
     if (hasDistanceAndStrength(d3LinkForce)) {
-      d3LinkForce.distance(physicsSettings.linkDistance);
-      d3LinkForce.strength(physicsSettings.linkForce);
+      d3LinkForce.distance(settings.linkDistance);
+      d3LinkForce.strength(settings.linkForce);
     }
     // Pull each node toward origin (0,0) instead of just translating the centroid.
-    instance.d3Force('forceX', forceX(0).strength(physicsSettings.centerForce));
-    instance.d3Force('forceY', forceY(0).strength(physicsSettings.centerForce));
+    instance.d3Force('forceX', forceX(0).strength(settings.centerForce));
+    instance.d3Force('forceY', forceY(0).strength(settings.centerForce));
     // Add collision force to prevent nodes overlapping
     instance.d3Force('collision', forceCollide((node: FGNode) => node.size + 4));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
