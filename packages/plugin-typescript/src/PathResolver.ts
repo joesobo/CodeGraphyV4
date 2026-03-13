@@ -7,6 +7,7 @@
 import * as path from 'path';
 import { isBuiltIn, isBareSpecifier } from './builtins';
 import { resolveFile } from './fileResolver';
+import { resolveWithPaths } from './pathMatcher';
 
 /**
  * Configuration for path resolution, typically loaded from tsconfig.json.
@@ -85,7 +86,7 @@ export class PathResolver {
     }
 
     // Try path aliases first (e.g., @/components)
-    const pathsResolved = this._resolveWithPaths(specifier);
+    const pathsResolved = resolveWithPaths(specifier, this._config.paths, this._baseUrl);
     if (pathsResolved) {
       return pathsResolved;
     }
@@ -108,43 +109,4 @@ export class PathResolver {
     return null;
   }
 
-  /**
-   * Attempts to resolve using tsconfig paths.
-   */
-  private _resolveWithPaths(specifier: string): string | null {
-    const { paths } = this._config;
-    if (!paths) return null;
-
-    for (const [pattern, targets] of Object.entries(paths)) {
-      const match = this._matchPathPattern(specifier, pattern);
-      if (match !== null) {
-        for (const target of targets) {
-          const resolvedTarget = target.replace('*', match);
-          const fullPath = path.resolve(this._baseUrl, resolvedTarget);
-          const resolved = resolveFile(fullPath);
-          if (resolved) {
-            return resolved;
-          }
-        }
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Matches a specifier against a path pattern.
-   * Returns the matched wildcard part, or null if no match.
-   */
-  private _matchPathPattern(specifier: string, pattern: string): string | null {
-    if (pattern.includes('*')) {
-      const [prefix, suffix] = pattern.split('*');
-      if (specifier.startsWith(prefix) && specifier.endsWith(suffix || '')) {
-        return specifier.slice(prefix.length, suffix ? -suffix.length || undefined : undefined);
-      }
-    } else if (specifier === pattern) {
-      return '';
-    }
-    return null;
-  }
 }
