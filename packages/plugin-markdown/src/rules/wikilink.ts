@@ -7,6 +7,11 @@
 
 import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
 import type { PathResolver } from '../PathResolver';
+import {
+  isFenceStart,
+  parseWikilink,
+  stripInlineCode,
+} from './wikilinkHelpers';
 
 /** Shared context for Markdown rules */
 export interface MarkdownRuleContext {
@@ -24,7 +29,7 @@ export interface IDetectedWikilink {
 }
 
 // Matches [[target]] or [[target|alias]] or ![[target]] (embed)
-const WIKILINK_RE = /!?\[\[([^\]|#\n]+)(?:#[^\]|]*)?\|?[^\]]*\]\]/g;
+const WIKILINK_RE = /!?\[\[([^\]\n]+)\]\]/g;
 
 /**
  * Detects Obsidian-style [[wikilinks]] in Markdown files.
@@ -53,38 +58,28 @@ export function detect(
     const line = lines[lineIdx];
 
     // Track fenced code blocks
-    if (/^```|^~~~/.test(line.trimStart())) {
+    if (isFenceStart(line)) {
       inFencedBlock = !inFencedBlock;
       continue;
     }
     if (inFencedBlock) continue;
 
     // Strip inline code before matching
-    const stripped = line.replace(/`[^`]*`/g, '');
+    const stripped = stripInlineCode(line);
 
     WIKILINK_RE.lastIndex = 0;
     let match: RegExpExecArray | null;
     while ((match = WIKILINK_RE.exec(stripped)) !== null) {
-      const full = match[1].trim();
-      // Split on | for alias
-      const pipeIdx = full.indexOf('|');
-      const target = pipeIdx === -1 ? full : full.slice(0, pipeIdx).trim();
-      const alias =
-        pipeIdx === -1
-          ? undefined
-          : full.slice(pipeIdx + 1).trim() || undefined;
+      const parsed = parseWikilink(match[1]);
+      if (!parsed) continue;
 
-      if (target) {
-        const resolvedPath = ctx.resolver.resolve(target, filePath);
-        connections.push({
-          specifier: alias
-            ? `[[${target}|${alias}]]`
-            : `[[${target}]]`,
-          resolvedPath,
-          type: 'static',
-          ruleId: 'wikilink',
-        });
-      }
+      const resolvedPath = ctx.resolver.resolve(parsed.target, filePath);
+      connections.push({
+        specifier: parsed.specifier,
+        resolvedPath,
+        type: 'static',
+        ruleId: 'wikilink',
+      });
     }
   }
 
