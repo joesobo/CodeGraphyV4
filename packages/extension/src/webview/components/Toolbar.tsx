@@ -64,169 +64,173 @@ export default function Toolbar(): React.ReactElement {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex items-center gap-1.5">
-        {/* Depth slider — animated, only visible when Depth view active */}
-        <div
-          className="flex items-center gap-1 overflow-hidden transition-all duration-200 ease-in-out"
-          style={{
-            maxWidth: isDepthView ? '8rem' : '0px',
-            opacity: isDepthView ? 1 : 0,
-          }}
-        >
-          <span className="text-xs text-muted-foreground whitespace-nowrap">{depthLimit}</span>
-          <Slider
-            min={1}
-            max={5}
-            step={1}
-            value={[depthLimit]}
-            onValueChange={handleDepthChange}
-            className="w-16"
-          />
-        </div>
-
-        {availableViews.length > 0 && (
-          <div className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
-            {availableViews.map(view => {
-              const iconPath = VIEW_ICONS[view.id];
-              return (
-                <Tooltip key={view.id}>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant={activeViewId === view.id ? 'default' : 'ghost'}
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => handleViewChange(view.id)}
-                    >
-                      {iconPath ? (
-                        <MdiIcon path={iconPath} size={16} />
-                      ) : (
-                        <span className="text-xs">{view.name[0]}</span>
-                      )}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom">{view.name}</TooltipContent>
-                </Tooltip>
-              );
-            })}
+      <div className="flex items-center justify-between">
+        {/* Left side — toggle icons */}
+        <div className="flex items-center gap-1.5">
+          {/* Depth slider — animated, only visible when Depth view active */}
+          <div
+            className="flex items-center gap-1 overflow-hidden transition-all duration-200 ease-in-out"
+            style={{
+              maxWidth: isDepthView ? '8rem' : '0px',
+              opacity: isDepthView ? 1 : 0,
+            }}
+          >
+            <span className="text-xs text-muted-foreground whitespace-nowrap">{depthLimit}</span>
+            <Slider
+              min={1}
+              max={5}
+              step={1}
+              value={[depthLimit]}
+              onValueChange={handleDepthChange}
+              className="w-16"
+            />
           </div>
-        )}
 
-        <div className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
-          {DAG_MODES.map(({ mode, label, Icon }) => (
-            <Tooltip key={label}>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={dagMode === mode ? 'default' : 'ghost'}
-                  size="icon"
-                  className="h-7 w-7"
-                  onClick={() => handleDagModeChange(mode)}
-                >
-                  <Icon size={16} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">{label}</TooltipContent>
-            </Tooltip>
-          ))}
-        </div>
+          {availableViews.length > 0 && (
+            <div className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
+              {availableViews.map(view => {
+                const iconPath = VIEW_ICONS[view.id];
+                return (
+                  <Tooltip key={view.id}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant={activeViewId === view.id ? 'default' : 'ghost'}
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={() => handleViewChange(view.id)}
+                      >
+                        {iconPath ? (
+                          <MdiIcon path={iconPath} size={16} />
+                        ) : (
+                          <span className="text-xs">{view.name[0]}</span>
+                        )}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom">{view.name}</TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
+          )}
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
-              onClick={() => setGraphMode(graphMode === '2d' ? '3d' : '2d')}
-            >
-              <MdiIcon path={graphMode === '2d' ? mdiCircleOutline : mdiSphere} size={16} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">{graphMode === '2d' ? '2D Mode' : '3D Mode'}</TooltipContent>
-        </Tooltip>
+          <div className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
+            {DAG_MODES.map(({ mode, label, Icon }) => (
+              <Tooltip key={label}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={dagMode === mode ? 'default' : 'ghost'}
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => handleDagModeChange(mode)}
+                  >
+                    <Icon size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{label}</TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
 
-        <div className="w-px h-5 bg-border mx-0.5" />
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
-              onClick={() => postMessage({ type: 'REFRESH_GRAPH' })}
-              title="Refresh Graph"
-            >
-              <MdiIcon path={mdiAutorenew} size={16} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Refresh Graph</TooltipContent>
-        </Tooltip>
-
-        <DropdownMenu>
           <Tooltip>
             <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
-                  title="Export"
-                >
-                  <MdiIcon path={mdiExport} size={16} />
-                </Button>
-              </DropdownMenuTrigger>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+                onClick={() => setGraphMode(graphMode === '2d' ? '3d' : '2d')}
+              >
+                <MdiIcon path={graphMode === '2d' ? mdiCircleOutline : mdiSphere} size={16} />
+              </Button>
             </TooltipTrigger>
-            <TooltipContent side="bottom">Export</TooltipContent>
+            <TooltipContent side="bottom">{graphMode === '2d' ? '2D Mode' : '3D Mode'}</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" side="top">
-            <DropdownMenuLabel>Images</DropdownMenuLabel>
-            <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_PNG' }, '*')}>
-              Export as PNG
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_SVG' }, '*')}>
-              Export as SVG
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JPEG' }, '*')}>
-              Export as JPEG
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuLabel>Connections</DropdownMenuLabel>
-            <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JSON' }, '*')}>
-              Export as JSON
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_MD' }, '*')}>
-              Export as Markdown
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        </div>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
-              onClick={() => setActivePanel('plugins')}
-              title="Plugins"
-            >
-              <MdiIcon path={mdiPuzzleOutline} size={16} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Plugins</TooltipContent>
-        </Tooltip>
+        {/* Right side — action / popup menu buttons */}
+        <div className="flex items-center gap-1.5">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+                onClick={() => postMessage({ type: 'REFRESH_GRAPH' })}
+                title="Refresh Graph"
+              >
+                <MdiIcon path={mdiAutorenew} size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Refresh Graph</TooltipContent>
+          </Tooltip>
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
-              onClick={() => setActivePanel('settings')}
-              title="Settings"
-            >
-              <MdiIcon path={mdiCogOutline} size={16} />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="bottom">Settings</TooltipContent>
-        </Tooltip>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+                    title="Export"
+                  >
+                    <MdiIcon path={mdiExport} size={16} />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Export</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" side="top">
+              <DropdownMenuLabel>Images</DropdownMenuLabel>
+              <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_PNG' }, '*')}>
+                Export as PNG
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_SVG' }, '*')}>
+                Export as SVG
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JPEG' }, '*')}>
+                Export as JPEG
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Connections</DropdownMenuLabel>
+              <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JSON' }, '*')}>
+                Export as JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_MD' }, '*')}>
+                Export as Markdown
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+                onClick={() => setActivePanel('plugins')}
+                title="Plugins"
+              >
+                <MdiIcon path={mdiPuzzleOutline} size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Plugins</TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+                onClick={() => setActivePanel('settings')}
+                title="Settings"
+              >
+                <MdiIcon path={mdiCogOutline} size={16} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Settings</TooltipContent>
+          </Tooltip>
+        </div>
       </div>
     </TooltipProvider>
   );
