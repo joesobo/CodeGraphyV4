@@ -340,6 +340,25 @@ export interface IPhysicsSettings {
 
 
 /**
+ * Complete snapshot of all user-configurable settings.
+ * Used by ResetSettingsAction for state-based undo/redo.
+ */
+export interface ISettingsSnapshot {
+  physics: IPhysicsSettings;
+  groups: IGroup[];
+  filterPatterns: string[];
+  showOrphans: boolean;
+  bidirectionalMode: BidirectionalEdgeMode;
+  directionMode: DirectionMode;
+  directionColor: string;
+  folderNodeColor: string;
+  particleSpeed: number;
+  particleSize: number;
+  showLabels: boolean;
+  nodeSizeMode: NodeSizeMode;
+}
+
+/**
  * A user-defined color group — matches files by glob pattern and assigns a color.
  */
 export interface IGroup {
@@ -512,6 +531,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }
   | { type: 'FOLDER_NODE_COLOR_UPDATED'; payload: { folderNodeColor: string } }
   | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } }
+  | { type: 'NODE_SIZE_MODE_UPDATED'; payload: { nodeSizeMode: NodeSizeMode } }
   // Toolbar keyboard shortcuts
   | { type: 'CYCLE_VIEW' }
   | { type: 'CYCLE_LAYOUT' }
@@ -560,6 +580,7 @@ export type WebviewToExtensionMessage =
   | { type: 'EXPORT_MD'; payload: { markdown: string; filename?: string } }
   | { type: 'UPDATE_PHYSICS_SETTING'; payload: { key: keyof IPhysicsSettings; value: number } }
   | { type: 'RESET_PHYSICS_SETTINGS' }
+  | { type: 'RESET_ALL_SETTINGS'; payload: { nodeSizeMode: NodeSizeMode } }
   | { type: 'GET_PHYSICS_SETTINGS' }
   // Undo/Redo commands from webview keyboard shortcuts
   | { type: 'UNDO' }
