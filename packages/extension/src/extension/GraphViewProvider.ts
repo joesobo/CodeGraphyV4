@@ -83,6 +83,23 @@ const DISABLED_PLUGINS_KEY = 'codegraphy.disabledPlugins';
 /** Default depth limit for depth graph view */
 const DEFAULT_DEPTH_LIMIT = 1;
 
+type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
+
+const TEMPORARY_NODE_OPEN_BEHAVIOR: EditorOpenBehavior = {
+  preview: true,
+  preserveFocus: true,
+};
+
+const PERMANENT_NODE_OPEN_BEHAVIOR: EditorOpenBehavior = {
+  preview: false,
+  preserveFocus: false,
+};
+
+const DEFAULT_TIMELINE_PREVIEW_BEHAVIOR: EditorOpenBehavior = {
+  preview: true,
+  preserveFocus: false,
+};
+
 function normalizeDirectionColor(value: string | undefined): string {
   return normalizeHexColor(value, DEFAULT_DIRECTION_COLOR);
 }
@@ -103,7 +120,7 @@ interface IExternalPluginRegistrationOptions {
  * - Webview HTML content generation
  * - Message passing between extension and webview
  * - Node position persistence to workspace state
- * - File opening on node double-click
+ * - File opening/preview requests from graph interactions
  * 
  * @example
  * ```typescript
@@ -1350,14 +1367,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         }
 
         case 'NODE_SELECTED':
+          void this._openSelectedNode(message.payload.nodeId);
           break;
 
         case 'NODE_DOUBLE_CLICKED':
-          if (this._timelineActive && this._currentCommitSha) {
-            void this._previewFileAtCommit(this._currentCommitSha, message.payload.nodeId);
-          } else {
-            void this._openFile(message.payload.nodeId);
-          }
+          void this._activateNode(message.payload.nodeId);
           break;
 
         // Context menu actions
@@ -1895,10 +1909,30 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   // The webview sends JUMP_TO_COMMIT messages when the smooth time cursor
   // crosses commit boundaries.
 
+  private async _openSelectedNode(nodeId: string): Promise<void> {
+    await this._openNodeInEditor(nodeId, TEMPORARY_NODE_OPEN_BEHAVIOR);
+  }
+
+  private async _activateNode(nodeId: string): Promise<void> {
+    await this._openNodeInEditor(nodeId, PERMANENT_NODE_OPEN_BEHAVIOR);
+  }
+
+  private async _openNodeInEditor(nodeId: string, behavior: EditorOpenBehavior): Promise<void> {
+    if (this._timelineActive && this._currentCommitSha) {
+      await this._previewFileAtCommit(this._currentCommitSha, nodeId, behavior);
+      return;
+    }
+    await this._openFile(nodeId, behavior);
+  }
+
   /**
-   * Opens a file at a specific commit in read-only preview.
+   * Opens a file at a specific commit with the requested editor behavior.
    */
-  private async _previewFileAtCommit(sha: string, filePath: string): Promise<void> {
+  private async _previewFileAtCommit(
+    sha: string,
+    filePath: string,
+    behavior: EditorOpenBehavior = DEFAULT_TIMELINE_PREVIEW_BEHAVIOR
+  ): Promise<void> {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (!workspaceFolder) return;
 
@@ -1908,7 +1942,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         `git:${absolutePath}?${JSON.stringify({ path: absolutePath, ref: sha })}`
       );
       const doc = await vscode.workspace.openTextDocument(gitUri);
-      await vscode.window.showTextDocument(doc, { preview: true });
+      await vscode.window.showTextDocument(doc, behavior);
     } catch (error) {
       console.error('[CodeGraphy] Failed to preview file at commit:', error);
     }
@@ -1958,7 +1992,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._sendMessage({ type: 'CACHE_INVALIDATED' });
   }
 
-  private async _openFile(filePath: string): Promise<void> {
+  private async _openFile(
+    filePath: string,
+    behavior: EditorOpenBehavior = PERMANENT_NODE_OPEN_BEHAVIOR
+  ): Promise<void> {
     try {
       const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
       if (!workspaceFolder) {
@@ -1979,7 +2016,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       }
 
       const document = await vscode.workspace.openTextDocument(fileUri);
-      await vscode.window.showTextDocument(document);
+      await vscode.window.showTextDocument(document, behavior);
       
       // Track visit
       await this._incrementVisitCount(filePath);

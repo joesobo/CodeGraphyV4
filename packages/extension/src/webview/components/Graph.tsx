@@ -66,6 +66,7 @@ const DIRECTIONAL_ARROW_LENGTH_2D = 12;
 const DIRECTIONAL_ARROW_NODE_GAP_2D = 0;
 const RIGHT_CLICK_DRAG_THRESHOLD_PX = 6;
 const RIGHT_CLICK_FALLBACK_DELAY_MS = 40;
+const NODE_DOUBLE_CLICK_THRESHOLD_MS = 450;
 
 /** Minimum and maximum node sizes */
 const MIN_NODE_SIZE = 10;
@@ -813,6 +814,12 @@ export default function Graph({
     if (graphMode === '3d') setHighlightVersion(prev => prev + 1);
   }, [graphMode]);
 
+  const selectOnlyNode = useCallback((nodeId: string) => {
+    setHighlight(nodeId);
+    selectedNodesSetRef.current = new Set([nodeId]);
+    setSelectedNodes([nodeId]);
+  }, [setHighlight]);
+
   // ── Plugin API v2: forward graph interactions to extension ──────────────
 
   const sendGraphInteraction = useCallback((event: string, eventData: unknown) => {
@@ -871,6 +878,33 @@ export default function Graph({
     lastGraphContextEventRef.current = Date.now();
     openContextMenuFromGraphCallback(event);
   }, [openContextMenuFromGraphCallback]);
+
+  const focusNodeById = useCallback((nodeId: string) => {
+    const node = graphDataRef.current.nodes.find(n => n.id === nodeId);
+    if (!node) return;
+
+    if (graphMode === '2d') {
+      fg2dRef.current?.centerAt(node.x ?? 0, node.y ?? 0, 300);
+      fg2dRef.current?.zoom(1.5, 300);
+      return;
+    }
+
+    fg3dRef.current?.zoomToFit(300, 20, n => (n as FGNode).id === nodeId);
+  }, [graphMode]);
+
+  const requestNodeOpenById = useCallback((nodeId: string) => {
+    fileInfoCacheRef.current.delete(nodeId);
+    postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
+  }, []);
+
+  const handleNodeDoubleClick = useCallback((node: FGNode, event: MouseEvent) => {
+    requestNodeOpenById(node.id);
+    focusNodeById(node.id);
+    sendGraphInteraction('graph:nodeDoubleClick', {
+      node: { id: node.id, label: node.label },
+      event: { x: event.clientX, y: event.clientY },
+    });
+  }, [focusNodeById, requestNodeOpenById, sendGraphInteraction]);
 
   const setGraphCursor = useCallback((cursor: GraphCursorStyle) => {
     graphCursorRef.current = cursor;
@@ -946,12 +980,11 @@ export default function Graph({
     const now = Date.now();
     const last = lastClickRef.current;
 
-    // Detect double-click (two clicks on the same node within 300ms)
-    if (last && last.nodeId === nodeId && now - last.time < 300) {
+    // Detect double-click (two clicks on the same node within threshold)
+    if (last && last.nodeId === nodeId && now - last.time < NODE_DOUBLE_CLICK_THRESHOLD_MS) {
       lastClickRef.current = null;
-      fileInfoCacheRef.current.delete(nodeId);
-      postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
-      sendGraphInteraction('graph:nodeDoubleClick', { node: { id: node.id, label: node.label }, event: { x: event.clientX, y: event.clientY } });
+      selectOnlyNode(nodeId);
+      handleNodeDoubleClick(node, event);
       return;
     }
     lastClickRef.current = { nodeId, time: now };
@@ -964,20 +997,12 @@ export default function Graph({
       selectedNodesSetRef.current = next;
       setSelectedNodes([...next]);
     } else {
-      // Single select — toggle highlight
-      if (highlightedNodeRef.current === nodeId) {
-        setHighlight(null);
-        selectedNodesSetRef.current = new Set();
-        setSelectedNodes([]);
-      } else {
-        setHighlight(nodeId);
-        selectedNodesSetRef.current = new Set([nodeId]);
-        setSelectedNodes([nodeId]);
-        postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
-      }
+      // Single select — always keep the node selected and preview-open it.
+      selectOnlyNode(nodeId);
+      postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
     }
     sendGraphInteraction('graph:nodeClick', { node: { id: node.id, label: node.label }, event: { x: event.clientX, y: event.clientY } });
-  }, [isMacPlatform, openNodeContextMenu, setHighlight, sendGraphInteraction]);
+  }, [handleNodeDoubleClick, isMacPlatform, openNodeContextMenu, selectOnlyNode, sendGraphInteraction]);
 
   const handleBackgroundClick = useCallback((event?: MouseEvent) => {
     if (event && isMacControlContextClick(event, isMacPlatform)) {
@@ -1166,13 +1191,7 @@ export default function Graph({
         break;
       case 'focus': {
         const nodeId = targetPaths[0];
-        const node = graphDataRef.current.nodes.find(n => n.id === nodeId);
-        if (node && graphMode === '2d') {
-          fg2dRef.current?.centerAt(node.x ?? 0, node.y ?? 0, 300);
-          fg2dRef.current?.zoom(1.5, 300);
-        } else if (node && graphMode === '3d') {
-          fg3dRef.current?.zoomToFit(300, 20, n => (n as FGNode).id === nodeId);
-        }
+        if (nodeId) focusNodeById(nodeId);
         break;
       }
       case 'addToFilter':
@@ -1196,7 +1215,7 @@ export default function Graph({
         postMessage({ type: 'CREATE_FILE', payload: { directory: '.' } });
         break;
     }
-  }, [graphMode, contextSelection.targets]);
+  }, [focusNodeById, graphMode, contextSelection.targets]);
 
   const handleMenuAction = useCallback((action: GraphContextMenuAction) => {
     if (action.kind === 'builtin') {
@@ -1324,8 +1343,7 @@ export default function Graph({
           if (selectedNodes.length > 0) {
             event.preventDefault();
             selectedNodes.forEach(nodeId => {
-              fileInfoCacheRef.current.delete(nodeId);
-              postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
+              requestNodeOpenById(nodeId);
             });
           }
           break;
@@ -1400,7 +1418,7 @@ export default function Graph({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNodes, graphMode, setHighlight]);
+  }, [selectedNodes, graphMode, requestNodeOpenById, setHighlight]);
 
   // ── Physics settings update ───────────────────────────────────────────────
 

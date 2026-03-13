@@ -43,9 +43,11 @@ The graph preserves node positions across commits — existing nodes stay in pla
 
 Click or drag anywhere on the track to position the time cursor at that exact point. The graph shows the state at the most recent commit before the cursor position. The blue indicator shows the precise time position, which can be between commits.
 
-## Double-click in timeline mode
+## Node click behavior in timeline mode
 
-Double-clicking a node during timeline mode opens a read-only preview of that file at the current commit, using VS Code's built-in git file viewer.
+Single-clicking a node opens that file at the selected commit in temporary preview mode while keeping graph focus.
+
+Double-clicking a node opens that file at the selected commit as a permanent editor tab and focuses the node in the graph.
 
 ## Context menu
 
