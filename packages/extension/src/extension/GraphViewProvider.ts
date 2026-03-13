@@ -15,6 +15,8 @@ import {
   DagMode,
   IPhysicsSettings,
   IGroup,
+  NodeSizeMode,
+  ISettingsSnapshot,
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
   NodeDecorationPayload,
@@ -35,6 +37,7 @@ import {
   DeleteFilesAction,
   RenameFileAction,
   CreateFileAction,
+  ResetSettingsAction,
 } from './actions';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
 import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
@@ -1427,6 +1430,18 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           await this._resetPhysicsSettings();
           break;
 
+        case 'RESET_ALL_SETTINGS': {
+          const snapshot = this._captureSettingsSnapshot(message.payload.nodeSizeMode);
+          const action = new ResetSettingsAction(
+            snapshot,
+            this._getConfigTarget(),
+            (nodeSizeMode) => this._sendAllSettings(nodeSizeMode),
+            () => this._analyzeAndSendData(),
+          );
+          await getUndoManager().execute(action);
+          break;
+        }
+
         case 'UNDO': {
           const undoDesc = await this.undo();
           if (undoDesc) {
@@ -2303,6 +2318,72 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _sendPhysicsSettings(): void {
     const settings = this._getPhysicsSettings();
     this._sendMessage({ type: 'PHYSICS_SETTINGS_UPDATED', payload: settings });
+  }
+
+  /**
+   * Sends all current settings to the webview in a single batch.
+   * Used after reset/undo to ensure the webview is fully in sync.
+   * @param nodeSizeMode - The node size mode to apply (webview-only state)
+   */
+  private _sendAllSettings(nodeSizeMode: NodeSizeMode): void {
+    const config = vscode.workspace.getConfiguration('codegraphy');
+    const physicsSettings = this._getPhysicsSettings();
+
+    this._sendMessage({ type: 'PHYSICS_SETTINGS_UPDATED', payload: physicsSettings });
+    this._sendMessage({ type: 'SETTINGS_UPDATED', payload: {
+      bidirectionalEdges: config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate'),
+      showOrphans: config.get<boolean>('showOrphans', true),
+    }});
+    this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: {
+      directionMode: config.get<string>('directionMode', 'arrows') as DirectionMode,
+      particleSpeed: config.get<number>('particleSpeed', 0.005),
+      particleSize: config.get<number>('particleSize', 4),
+      directionColor: normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)),
+    }});
+    this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: {
+      showLabels: config.get<boolean>('showLabels', true),
+    }});
+
+    const folderColor = normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR));
+    this._viewContext.folderNodeColor = folderColor;
+    this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: folderColor } });
+
+    // Update internal groups state and send to webview
+    this._userGroups = config.get<IGroup[]>('groups', []);
+    this._computeMergedGroups();
+    this._sendGroupsUpdated();
+
+    // Update internal filter patterns and send to webview
+    this._filterPatterns = config.get<string[]>('filterPatterns', []);
+    this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: {
+      patterns: this._filterPatterns,
+      pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [],
+    }});
+
+    // nodeSizeMode is webview-only state
+    this._sendMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode } });
+  }
+
+  /**
+   * Captures the current settings state as a snapshot.
+   * @param nodeSizeMode - Current webview-only nodeSizeMode value
+   */
+  private _captureSettingsSnapshot(nodeSizeMode: NodeSizeMode): ISettingsSnapshot {
+    const config = vscode.workspace.getConfiguration('codegraphy');
+    return {
+      physics: this._getPhysicsSettings(),
+      groups: config.get<IGroup[]>('groups', []),
+      filterPatterns: config.get<string[]>('filterPatterns', []),
+      showOrphans: config.get<boolean>('showOrphans', true),
+      bidirectionalMode: config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate'),
+      directionMode: config.get<string>('directionMode', 'arrows') as DirectionMode,
+      directionColor: normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)),
+      folderNodeColor: normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)),
+      particleSpeed: config.get<number>('particleSpeed', 0.005),
+      particleSize: config.get<number>('particleSize', 4),
+      showLabels: config.get<boolean>('showLabels', true),
+      nodeSizeMode,
+    };
   }
 
   /**
