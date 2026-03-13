@@ -41,6 +41,42 @@ Primary locations:
 - Prefer targeted test runs while iterating, then run full `pnpm run test`.
 - Pre-commit runs lint-staged + typecheck, so keep staged changes clean.
 
+## Changeset Workflow
+
+This project uses [Changesets](https://github.com/changesets/changesets) for versioning and changelog generation.
+
+### When to add a changeset
+
+Add a changeset when a PR includes **user-facing changes**: new features, bug fixes, behavior changes, or removed functionality. Skip changesets for internal refactors, test-only changes, CI updates, or documentation fixes that don't affect the product.
+
+### How to add a changeset
+
+Run `pnpm changeset` and follow the prompts, or create a file manually in `.changeset/`:
+
+```md
+---
+"@codegraphy/extension": minor
+---
+
+Add node size toggle to the toolbar with four sizing modes
+```
+
+Bump types:
+- `patch` — bug fixes, small tweaks
+- `minor` — new features, enhancements
+- `major` — breaking changes
+
+### Writing good changeset descriptions
+
+- Write from the **user's perspective**, not implementation details.
+- One clear sentence describing what changed and why it matters.
+- Good: "Add node size toggle to the toolbar with four sizing modes"
+- Bad: "Refactor NodeSizeToggle.tsx to use postMessage and extract to toolbar/ directory"
+
+### Updating changesets
+
+If a PR is updated after the changeset was written, update the changeset file to reflect the final state of the change. The changeset should describe the PR as merged, not the incremental steps.
+
 ## Trello Task Execution Workflow
 
 When assigned a Trello card, follow this process end-to-end:
