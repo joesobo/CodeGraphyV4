@@ -4,8 +4,9 @@
  * @module plugins/python/PathResolver
  */
 
-import * as path from 'path';
 import * as fs from 'fs';
+import * as path from 'path';
+
 /**
  * Represents a detected import in a Python source file.
  */
@@ -34,26 +35,15 @@ export interface IPythonPathResolverConfig {
   resolveInitFiles?: boolean;
 }
 
+const COMMON_SOURCE_DIRECTORIES = ['src', 'lib', 'app'] as const;
+
 /**
  * Resolves Python module names to file system paths.
- * 
+ *
  * Resolution strategy:
  * 1. For relative imports: resolve relative to the importing file's directory
  * 2. For absolute imports: search in workspace root and source roots
  * 3. Handle __init__.py for package imports
- * 
- * @example
- * ```typescript
- * const resolver = new PathResolver('/workspace');
- * 
- * // Absolute import
- * resolver.resolve({ module: 'mypackage.utils', isRelative: false, ... }, '/workspace/main.py');
- * // => 'mypackage/utils.py' or 'mypackage/utils/__init__.py'
- * 
- * // Relative import
- * resolver.resolve({ module: 'utils', isRelative: true, relativeLevel: 1, ... }, '/workspace/pkg/main.py');
- * // => 'pkg/utils.py'
- * ```
  */
 export class PathResolver {
   private _workspaceRoot: string;
@@ -68,79 +58,45 @@ export class PathResolver {
   }
 
   /**
-   * Resolves a Python import to a workspace-relative file path.
-   * 
+   * Resolves a Python import to an absolute file path.
+   *
    * @param imp - The detected import
    * @param fromFile - The file containing the import (workspace-relative or absolute)
-   * @returns The resolved path (workspace-relative) or null if unresolved
+   * @returns The resolved absolute path or null if unresolved
    */
   resolve(imp: IDetectedImport, fromFile: string): string | null {
-    // Normalize fromFile to workspace-relative
-    const relativeFromFile = fromFile.startsWith(this._workspaceRoot)
-      ? path.relative(this._workspaceRoot, fromFile)
-      : fromFile;
-    
+    const absoluteFromFile = path.isAbsolute(fromFile)
+      ? fromFile
+      : path.join(this._workspaceRoot, fromFile);
+    const relativeFromFile = path.relative(this._workspaceRoot, absoluteFromFile);
     const fromDir = path.dirname(relativeFromFile);
 
-    if (imp.isRelative) {
-      return this._resolveRelative(imp, fromDir);
-    } else {
-      return this._resolveAbsolute(imp);
-    }
+    const modulePath = imp.isRelative
+      ? this._buildRelativeModulePath(imp, fromDir)
+      : path.join(...imp.module.split('.'));
+
+    const candidateRoots = imp.isRelative
+      ? ['']
+      : ['', ...(this._config.sourceRoots ?? []), ...COMMON_SOURCE_DIRECTORIES];
+
+    return this._resolveFromCandidateRoots(modulePath, candidateRoots);
   }
 
-  /**
-   * Resolves a relative import (from . import x, from .. import x).
-   * In Python:
-   * - `.` (level 1) = current package (same directory)
-   * - `..` (level 2) = parent package
-   * - `...` (level 3) = grandparent package
-   */
-  private _resolveRelative(imp: IDetectedImport, fromDir: string): string | null {
-    // Calculate the target directory based on relative level
-    // relativeLevel 1 means current directory, 2 means parent, etc.
-    let targetDir = fromDir;
-    
-    // Go up (relativeLevel - 1) directories since level 1 is current directory
-    for (let i = 1; i < imp.relativeLevel; i++) {
-      targetDir = path.dirname(targetDir);
-      if (targetDir === '.' || targetDir === '') {
-        targetDir = '.';
-        break;
+  private _buildRelativeModulePath(imp: IDetectedImport, fromDir: string): string {
+    const upwardSteps = Math.max(0, imp.relativeLevel - 1);
+    const upwardSegments = Array.from({ length: upwardSteps }, () => '..');
+    const moduleSegments = imp.module ? imp.module.split('.') : [];
+
+    return path.join(fromDir, ...upwardSegments, ...moduleSegments);
+  }
+
+  private _resolveFromCandidateRoots(modulePath: string, candidateRoots: readonly string[]): string | null {
+    for (const root of candidateRoots) {
+      const rootedPath = root ? path.join(root, modulePath) : modulePath;
+      const resolved = this._resolveModulePath(rootedPath);
+      if (resolved) {
+        return resolved;
       }
-    }
-
-    // Build the module path
-    const moduleParts = imp.module ? imp.module.split('.') : [];
-    const modulePath = path.join(targetDir, ...moduleParts);
-
-    return this._resolveModulePath(modulePath);
-  }
-
-  /**
-   * Resolves an absolute import (import x, from x import y).
-   */
-  private _resolveAbsolute(imp: IDetectedImport): string | null {
-    const moduleParts = imp.module.split('.');
-    const modulePath = path.join(...moduleParts);
-
-    // Try workspace root first
-    const resolved = this._resolveModulePath(modulePath);
-    if (resolved) return resolved;
-
-    // Try source roots
-    for (const root of this._config.sourceRoots || []) {
-      const rootPath = path.join(root, modulePath);
-      const resolvedFromRoot = this._resolveModulePath(rootPath);
-      if (resolvedFromRoot) return resolvedFromRoot;
-    }
-
-    // Try common Python source directories
-    const commonDirs = ['src', 'lib', 'app'];
-    for (const dir of commonDirs) {
-      const dirPath = path.join(dir, modulePath);
-      const resolvedFromDir = this._resolveModulePath(dirPath);
-      if (resolvedFromDir) return resolvedFromDir;
     }
 
     return null;
@@ -148,33 +104,22 @@ export class PathResolver {
 
   /**
    * Resolves a module path to an actual file.
-   * Tries: path.py, path/__init__.py
-   * 
-   * Returns ABSOLUTE paths for consistency with other plugins
-   * (WorkspaceAnalyzer expects absolute paths).
+   * Tries: path.py, path/__init__.py, path.pyi
    */
   private _resolveModulePath(modulePath: string): string | null {
-    // Normalize the path
-    const normalized = modulePath.replace(/\\/g, '/');
+    const normalizedPath = modulePath.replace(/\\/g, '/');
+    const candidates: string[] = [`${normalizedPath}.py`];
 
-    // Try direct .py file
-    const pyFile = `${normalized}.py`;
-    if (this._fileExists(pyFile)) {
-      return path.join(this._workspaceRoot, pyFile);
-    }
-
-    // Try __init__.py in package directory
     if (this._config.resolveInitFiles) {
-      const initFile = path.join(normalized, '__init__.py').replace(/\\/g, '/');
-      if (this._fileExists(initFile)) {
-        return path.join(this._workspaceRoot, initFile);
-      }
+      candidates.push(path.posix.join(normalizedPath, '__init__.py'));
     }
 
-    // Try .pyi stub file (for type stubs)
-    const pyiFile = `${normalized}.pyi`;
-    if (this._fileExists(pyiFile)) {
-      return path.join(this._workspaceRoot, pyiFile);
+    candidates.push(`${normalizedPath}.pyi`);
+
+    for (const candidate of candidates) {
+      if (this._fileExists(candidate)) {
+        return path.join(this._workspaceRoot, candidate);
+      }
     }
 
     return null;

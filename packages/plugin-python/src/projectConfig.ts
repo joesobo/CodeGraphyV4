@@ -1,168 +1,46 @@
-import * as fs from 'fs';
-import * as path from 'path';
+import { execFileSync } from 'child_process';
 import type { IPythonPathResolverConfig } from './PathResolver';
+import {
+  normalizeSourceRoot,
+  parseSourceRootsFromRaw,
+  sanitizeSourceRoots,
+} from './projectConfigParser';
+
+const SOURCE_ROOT_DISCOVERY_SCRIPT_BASE64 =
+  'aW1wb3J0IGNvbmZpZ3BhcnNlcgppbXBvcnQganNvbgppbXBvcnQgcGF0aGxpYgppbXBvcnQgcmUKaW1wb3J0IHN5cwoKd29ya3NwYWNlX3Jvb3QgPSBwYXRobGliLlBhdGgoc3lzLmFyZ3ZbMV0pCnNvdXJjZV9yb290cyA9IFtdCgpkZWYgYWRkX3NvdXJjZV9yb290KHJhd192YWx1ZSk6CiAgICBpZiBub3QgaXNpbnN0YW5jZShyYXdfdmFsdWUsIHN0cik6CiAgICAgICAgcmV0dXJuCgogICAgbm9ybWFsaXplZCA9IHJhd192YWx1ZS5zdHJpcCgpLnN0cmlwKCciJykuc3RyaXAoIiciKS5yZXBsYWNlKCJcXCIsICIvIikucnN0cmlwKCIvIikKICAgIGlmIG5vdCBub3JtYWxpemVkIG9yIG5vcm1hbGl6ZWQgPT0gIi4iOgogICAgICAgIHJldHVybgoKICAgIGlmIG5vcm1hbGl6ZWQgbm90IGluIHNvdXJjZV9yb290czoKICAgICAgICBzb3VyY2Vfcm9vdHMuYXBwZW5kKG5vcm1hbGl6ZWQpCgpkZWYgcGFyc2VfcHlwcm9qZWN0KGNvbnRlbnQpOgogICAgZm9yIHdoZXJlX2xpc3QgaW4gcmUuZmluZGl0ZXIociJcYndoZXJlXHMqPVxzKlxbKFteXF1dKilcXSIsIGNvbnRlbnQpOgogICAgICAgIGZvciB3aGVyZV9pdGVtIGluIHJlLmZpbmRpdGVyKHIiWydcIl0oW14nXCJdKylbJ1wiXSIsIHdoZXJlX2xpc3QuZ3JvdXAoMSkpOgogICAgICAgICAgICBhZGRfc291cmNlX3Jvb3Qod2hlcmVfaXRlbS5ncm91cCgxKSkKCiAgICBmb3Igd2hlcmVfc2luZ2xlIGluIHJlLmZpbmRpdGVyKHIiXGJ3aGVyZVxzKj1ccypbJ1wiXShbXidcIl0rKVsnXCJdIiwgY29udGVudCk6CiAgICAgICAgYWRkX3NvdXJjZV9yb290KHdoZXJlX3NpbmdsZS5ncm91cCgxKSkKCiAgICBmb3IgZnJvbV92YWx1ZSBpbiByZS5maW5kaXRlcihyIlxiZnJvbVxzKj1ccypbJ1wiXShbXidcIl0rKVsnXCJdIiwgY29udGVudCk6CiAgICAgICAgYWRkX3NvdXJjZV9yb290KGZyb21fdmFsdWUuZ3JvdXAoMSkpCgogICAgZm9yIHBhY2thZ2VfZGlyX2Jsb2NrIGluIHJlLmZpbmRpdGVyKHIiXGJwYWNrYWdlLWRpclxzKj1ccypceyhbXn1dKilcfSIsIGNvbnRlbnQsIGZsYWdzPXJlLlMpOgogICAgICAgIGZvciBlbnRyeSBpbiBwYWNrYWdlX2Rpcl9ibG9jay5ncm91cCgxKS5zcGxpdCgiLCIpOgogICAgICAgICAgICBtYXRjaCA9IHJlLm1hdGNoKHIiXlxzKlsnXCJdPyhbXidcIl0qKVsnXCJdP1xzKj1ccypbJ1wiXShbXidcIl0rKVsnXCJdXHMqJCIsIGVudHJ5KQogICAgICAgICAgICBpZiBub3QgbWF0Y2g6CiAgICAgICAgICAgICAgICBjb250aW51ZQogICAgICAgICAgICBpZiBtYXRjaC5ncm91cCgxKS5zdHJpcCgpOgogICAgICAgICAgICAgICAgY29udGludWUKICAgICAgICAgICAgYWRkX3NvdXJjZV9yb290KG1hdGNoLmdyb3VwKDIpKQoKZGVmIHBhcnNlX3NldHVwX2NmZyhjb250ZW50KToKICAgIHBhcnNlciA9IGNvbmZpZ3BhcnNlci5Db25maWdQYXJzZXIoaW50ZXJwb2xhdGlvbj1Ob25lKQogICAgcGFyc2VyLnJlYWRfc3RyaW5nKGNvbnRlbnQpCgogICAgaWYgcGFyc2VyLmhhc19vcHRpb24oIm9wdGlvbnMucGFja2FnZXMuZmluZCIsICJ3aGVyZSIpOgogICAgICAgIHdoZXJlX3ZhbHVlID0gcGFyc2VyLmdldCgib3B0aW9ucy5wYWNrYWdlcy5maW5kIiwgIndoZXJlIikKICAgICAgICBmb3IgY2FuZGlkYXRlIGluIHJlLnNwbGl0KHIiXHI/XG58LCIsIHdoZXJlX3ZhbHVlKToKICAgICAgICAgICAgYWRkX3NvdXJjZV9yb290KGNhbmRpZGF0ZSkKCiAgICBpZiBwYXJzZXIuaGFzX29wdGlvbigib3B0aW9ucyIsICJwYWNrYWdlX2RpciIpOgogICAgICAgIHBhY2thZ2VfZGlyX3ZhbHVlID0gcGFyc2VyLmdldCgib3B0aW9ucyIsICJwYWNrYWdlX2RpciIpCiAgICAgICAgZm9yIHJhd19saW5lIGluIHBhY2thZ2VfZGlyX3ZhbHVlLnNwbGl0bGluZXMoKToKICAgICAgICAgICAgbGluZSA9IHJhd19saW5lLnN0cmlwKCkKICAgICAgICAgICAgaWYgbm90IGxpbmUgb3IgbGluZS5zdGFydHN3aXRoKCIjIikgb3IgbGluZS5zdGFydHN3aXRoKCI7Iik6CiAgICAgICAgICAgICAgICBjb250aW51ZQoKICAgICAgICAgICAgaWYgbGluZS5zdGFydHN3aXRoKCI9Iik6CiAgICAgICAgICAgICAgICBhZGRfc291cmNlX3Jvb3QobGluZVsxOl0pCiAgICAgICAgICAgICAgICBjb250aW51ZQoKICAgICAgICAgICAgbWF0Y2ggPSByZS5tYXRjaChyIl5bJ1wiXT8oW14nXCJdKilbJ1wiXT9ccyo9XHMqKC4rKSQiLCBsaW5lKQogICAgICAgICAgICBpZiBub3QgbWF0Y2g6CiAgICAgICAgICAgICAgICBjb250aW51ZQogICAgICAgICAgICBpZiBtYXRjaC5ncm91cCgxKS5zdHJpcCgpOgogICAgICAgICAgICAgICAgY29udGludWUKICAgICAgICAgICAgYWRkX3NvdXJjZV9yb290KG1hdGNoLmdyb3VwKDIpKQoKcHlwcm9qZWN0X3BhdGggPSB3b3Jrc3BhY2Vfcm9vdCAvICJweXByb2plY3QudG9tbCIKaWYgcHlwcm9qZWN0X3BhdGguZXhpc3RzKCk6CiAgICB0cnk6CiAgICAgICAgcGFyc2VfcHlwcm9qZWN0KHB5cHJvamVjdF9wYXRoLnJlYWRfdGV4dChlbmNvZGluZz0idXRmLTgiKSkKICAgIGV4Y2VwdCBFeGNlcHRpb246CiAgICAgICAgcGFzcwoKc2V0dXBfY2ZnX3BhdGggPSB3b3Jrc3BhY2Vfcm9vdCAvICJzZXR1cC5jZmciCmlmIHNldHVwX2NmZ19wYXRoLmV4aXN0cygpOgogICAgdHJ5OgogICAgICAgIHBhcnNlX3NldHVwX2NmZyhzZXR1cF9jZmdfcGF0aC5yZWFkX3RleHQoZW5jb2Rpbmc9InV0Zi04IikpCiAgICBleGNlcHQgRXhjZXB0aW9uOgogICAgICAgIHBhc3MKCnByaW50KGpzb24uZHVtcHMoc291cmNlX3Jvb3RzKSkK';
+
+const PYTHON_SOURCE_ROOT_DISCOVERY_SCRIPT = Buffer.from(
+  SOURCE_ROOT_DISCOVERY_SCRIPT_BASE64,
+  'base64',
+).toString('utf8');
+const SOURCE_ROOT_PARSE_BUFFER_BYTES = 1024 * 1024 * 5;
 
 /**
  * Loads Python project configuration from packaging metadata files.
  * Supports pyproject.toml and setup.cfg source-root discovery.
  */
 export async function loadPythonConfig(workspaceRoot: string): Promise<IPythonPathResolverConfig> {
-  const sourceRoots = new Set<string>();
+  try {
+    const raw = execFileSync('python3', ['-c', PYTHON_SOURCE_ROOT_DISCOVERY_SCRIPT, workspaceRoot], {
+      maxBuffer: SOURCE_ROOT_PARSE_BUFFER_BYTES,
+    });
 
-  const pyprojectPath = path.join(workspaceRoot, 'pyproject.toml');
-  if (fs.existsSync(pyprojectPath)) {
-    try {
-      const pyproject = fs.readFileSync(pyprojectPath, 'utf8');
-      for (const root of extractPyprojectSourceRoots(pyproject)) {
-        sourceRoots.add(root);
-      }
-    } catch (error) {
-      console.warn('[CodeGraphy] Failed to parse pyproject.toml:', error);
-    }
+    return {
+      sourceRoots: parseSourceRootsFromRaw(raw.toString('utf8')),
+      resolveInitFiles: true,
+    };
+  } catch (error) {
+    console.warn('[CodeGraphy] Failed to parse python project config:', error);
+    return {
+      sourceRoots: [],
+      resolveInitFiles: true,
+    };
   }
-
-  const setupCfgPath = path.join(workspaceRoot, 'setup.cfg');
-  if (fs.existsSync(setupCfgPath)) {
-    try {
-      const setupCfg = fs.readFileSync(setupCfgPath, 'utf8');
-      for (const root of extractSetupCfgSourceRoots(setupCfg)) {
-        sourceRoots.add(root);
-      }
-    } catch (error) {
-      console.warn('[CodeGraphy] Failed to parse setup.cfg:', error);
-    }
-  }
-
-  return {
-    sourceRoots: Array.from(sourceRoots),
-    resolveInitFiles: true,
-  };
 }
 
-function extractPyprojectSourceRoots(content: string): string[] {
-  const roots = new Set<string>();
-
-  for (const whereList of content.matchAll(/\bwhere\s*=\s*\[([^\]]*)\]/g)) {
-    for (const raw of whereList[1].matchAll(/["']([^"']+)["']/g)) {
-      const normalized = normalizeSourceRoot(raw[1]);
-      if (normalized) roots.add(normalized);
-    }
-  }
-
-  for (const whereSingle of content.matchAll(/\bwhere\s*=\s*["']([^"']+)["']/g)) {
-    const normalized = normalizeSourceRoot(whereSingle[1]);
-    if (normalized) roots.add(normalized);
-  }
-
-  for (const fromValue of content.matchAll(/\bfrom\s*=\s*["']([^"']+)["']/g)) {
-    const normalized = normalizeSourceRoot(fromValue[1]);
-    if (normalized) roots.add(normalized);
-  }
-
-  for (const packageDirBlock of content.matchAll(/\bpackage-dir\s*=\s*\{([^}]*)\}/gs)) {
-    for (const entry of packageDirBlock[1].split(',')) {
-      const match = entry.match(/^\s*["']?([^"']*)["']?\s*=\s*["']([^"']+)["']\s*$/);
-      if (!match) continue;
-      const key = match[1].trim();
-      if (key.length > 0) continue;
-      const normalized = normalizeSourceRoot(match[2]);
-      if (normalized) roots.add(normalized);
-    }
-  }
-
-  return Array.from(roots);
-}
-
-function extractSetupCfgSourceRoots(content: string): string[] {
-  const roots = new Set<string>();
-
-  const packagesFindSection = extractIniSection(content, 'options.packages.find');
-  const whereValue = packagesFindSection ? extractIniValue(packagesFindSection, 'where') : null;
-  if (whereValue) {
-    for (const candidate of splitPathList(whereValue)) {
-      const normalized = normalizeSourceRoot(candidate);
-      if (normalized) roots.add(normalized);
-    }
-  }
-
-  const optionsSection = extractIniSection(content, 'options');
-  const packageDirValue = optionsSection ? extractIniValue(optionsSection, 'package_dir') : null;
-  if (packageDirValue) {
-    for (const line of packageDirValue.split('\n').map(val => val.trim()).filter(Boolean)) {
-      if (line.startsWith('=')) {
-        const normalized = normalizeSourceRoot(line.slice(1).trim());
-        if (normalized) roots.add(normalized);
-        continue;
-      }
-
-      const match = line.match(/^["']?([^"']*)["']?\s*=\s*(.+)$/);
-      if (!match) continue;
-      const key = match[1].trim();
-      if (key.length > 0) continue;
-      const normalized = normalizeSourceRoot(match[2]);
-      if (normalized) roots.add(normalized);
-    }
-  }
-
-  return Array.from(roots);
-}
-
-function extractIniSection(content: string, sectionName: string): string | null {
-  const escaped = sectionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const regex = new RegExp(`\\[${escaped}\\]([\\s\\S]*?)(?=\\n\\s*\\[|$)`, 'i');
-  const match = content.match(regex);
-  return match ? match[1] : null;
-}
-
-function extractIniValue(section: string, keyName: string): string | null {
-  const lines = section.split(/\r?\n/);
-  const normalizedKey = keyName.toLowerCase();
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#') || trimmed.startsWith(';')) continue;
-
-    const match = line.match(/^\s*([A-Za-z0-9_.-]+)\s*=\s*(.*)$/);
-    if (!match || match[1].toLowerCase() !== normalizedKey) continue;
-
-    const values = [match[2].trim()];
-    let cursor = i + 1;
-    while (cursor < lines.length) {
-      const continuation = lines[cursor];
-      if (!/^\s+/.test(continuation)) break;
-      const continuationTrimmed = continuation.trim();
-      if (
-        continuationTrimmed &&
-        !continuationTrimmed.startsWith('#') &&
-        !continuationTrimmed.startsWith(';')
-      ) {
-        values.push(continuationTrimmed);
-      }
-      cursor++;
-    }
-
-    return values.join('\n');
-  }
-
-  return null;
-}
-
-function splitPathList(rawValue: string): string[] {
-  return rawValue
-    .split(/\r?\n|,/)
-    .map(val => val.trim())
-    .map(val => val.replace(/^["']|["']$/g, ''))
-    .filter(Boolean);
-}
-
-function normalizeSourceRoot(sourceRoot: string): string | null {
-  const normalized = sourceRoot
-    .trim()
-    .replace(/^["']|["']$/g, '')
-    .replace(/\\/g, '/')
-    .replace(/\/+$/, '');
-
-  if (!normalized || normalized === '.') return null;
-  return normalized;
-}
+export const __test = {
+  parseSourceRootsFromRaw,
+  sanitizeSourceRoots,
+  normalizeSourceRoot,
+  PYTHON_SOURCE_ROOT_DISCOVERY_SCRIPT,
+};
