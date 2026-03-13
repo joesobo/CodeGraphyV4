@@ -6,7 +6,8 @@
  */
 
 import * as path from 'path';
-import { toSnakeCase, isGodotResource, getSupportedExtensions } from './godot-utils';
+import { normalizePath } from './parser';
+import { toSnakeCase, isGodotResource, getSupportedExtensions } from './resource-utils';
 
 /**
  * Resolves Godot resource paths to workspace-relative file paths.
@@ -87,13 +88,13 @@ export class GDScriptPathResolver {
 
 	private resolveResPath(resPath: string): string {
 		const relativePath = resPath.slice('res://'.length);
-		return relativePath.replace(/\\/g, '/');
+		return normalizePath(relativePath);
 	}
 
 	private resolveRelativePath(importPath: string, fromFile: string): string {
 		const fromDir = path.dirname(fromFile);
 		const resolved = path.join(fromDir, importPath);
-		return resolved.replace(/\\/g, '/');
+		return normalizePath(resolved);
 	}
 
 	/**

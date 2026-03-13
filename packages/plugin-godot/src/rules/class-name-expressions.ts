@@ -1,7 +1,7 @@
 /**
  * @fileoverview Expression-side regex matchers for class_name usage patterns.
  * Handles: static access, is/as checks, generics.
- * @module plugins/godot/rules/class-name-expr-matchers
+ * @module plugins/godot/rules/class-name-expressions
  */
 
 /** Match static/constructor access: `ClassName.something` */

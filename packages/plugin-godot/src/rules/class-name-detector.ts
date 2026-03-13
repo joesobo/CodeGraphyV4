@@ -1,12 +1,12 @@
 /**
  * @fileoverview Orchestrator for class_name usage detection in a single GDScript line.
- * Individual regex matchers are split across decl-matchers and expr-matchers.
- * @module plugins/godot/rules/class-name-patterns
+ * Individual regex matchers are split across class-name-declarations and class-name-expressions.
+ * @module plugins/godot/rules/class-name-detector
  */
 
 import type { IGDScriptReference } from '../parser';
-import { matchExtendsClass, matchTypeAnnotations, matchReturnType } from './class-name-decl-matchers';
-import { matchStaticAccess, matchIsAs, matchGenerics } from './class-name-expr-matchers';
+import { matchExtendsClass, matchTypeAnnotations, matchReturnType } from './class-name-declarations';
+import { matchStaticAccess, matchIsAs, matchGenerics } from './class-name-expressions';
 
 /**
  * Detect potential class_name usages in a single line.

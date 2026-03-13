@@ -107,6 +107,14 @@ describe('GDScript rules', () => {
       expect(conns[0].specifier).toBe('res://test.gd');
     });
 
+    it('should detect preload with space before parenthesis', () => {
+      const content = 'const X = preload ("res://test.gd")';
+      const conns = detectPreload(content, '/workspace/my-game/scripts/test.gd', ctx);
+
+      expect(conns).toHaveLength(1);
+      expect(conns[0].specifier).toBe('res://test.gd');
+    });
+
     it('should skip line starting with # but process line ending with #', () => {
       const content = 'var x = preload("res://a.gd") #comment\n# preload("res://b.gd")';
       const conns = detectPreload(content, '/workspace/my-game/scripts/test.gd', ctx);
@@ -169,6 +177,14 @@ describe('GDScript rules', () => {
 
     it('should detect load with no space before parenthesis', () => {
       const content = 'var x = load("res://test.gd")';
+      const conns = detectLoad(content, '/workspace/my-game/scripts/test.gd', ctx);
+
+      expect(conns).toHaveLength(1);
+      expect(conns[0].specifier).toBe('res://test.gd');
+    });
+
+    it('should detect load with space before parenthesis', () => {
+      const content = 'var x = load ("res://test.gd")';
       const conns = detectLoad(content, '/workspace/my-game/scripts/test.gd', ctx);
 
       expect(conns).toHaveLength(1);
@@ -290,6 +306,14 @@ describe('GDScript rules', () => {
 
       expect(conns).toHaveLength(1);
       expect(conns[0].specifier).toBe('res://spaced.gd');
+    });
+
+    it('should detect extends with leading whitespace', () => {
+      const content = '  extends "res://base.gd"';
+      const conns = detectExtends(content, '/workspace/my-game/scripts/test.gd', ctx);
+
+      expect(conns).toHaveLength(1);
+      expect(conns[0].specifier).toBe('res://base.gd');
     });
   });
 

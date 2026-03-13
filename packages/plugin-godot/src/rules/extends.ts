@@ -7,7 +7,7 @@
 import * as path from 'path';
 import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
-import { isResPath } from '../parser';
+import { isResPath, normalizePath } from '../parser';
 
 /** Detects extends statements with file paths: extends "res://scripts/base.gd" */
 export function detect(content: string, _filePath: string, ctx: GDScriptRuleContext): IConnection[] {
@@ -25,7 +25,7 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
         const resolved = ctx.resolver.resolve(resPath, ctx.relativeFilePath);
         connections.push({
           specifier: resPath,
-          resolvedPath: resolved ? path.join(ctx.workspaceRoot, resolved).replace(/\\/g, '/') : null,
+          resolvedPath: resolved ? normalizePath(path.join(ctx.workspaceRoot, resolved)) : null,
           type: 'static',
           ruleId: 'extends',
         });

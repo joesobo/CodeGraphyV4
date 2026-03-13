@@ -1,7 +1,7 @@
 /**
- * @fileoverview Godot utility functions.
- * Extracted from PathResolver.ts to keep mutation sites per file under 50.
- * @module plugins/godot/godot-utils
+ * @fileoverview Godot resource utility functions.
+ * Snake-case conversion, resource type checks, and supported extensions.
+ * @module plugins/godot/resource-utils
  */
 
 import * as path from 'path';

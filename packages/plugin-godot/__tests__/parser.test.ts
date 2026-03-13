@@ -3,9 +3,23 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { detectClassNameDeclaration, isResPath } from '../src/parser';
+import { detectClassNameDeclaration, isResPath, normalizePath } from '../src/parser';
 
 describe('GDScript parser', () => {
+  describe('normalizePath', () => {
+    it('should replace backslashes with forward slashes', () => {
+      expect(normalizePath('scripts\\player.gd')).toBe('scripts/player.gd');
+    });
+
+    it('should leave forward slashes unchanged', () => {
+      expect(normalizePath('scripts/player.gd')).toBe('scripts/player.gd');
+    });
+
+    it('should handle multiple backslashes', () => {
+      expect(normalizePath('scripts\\enemies\\boss.gd')).toBe('scripts/enemies/boss.gd');
+    });
+  });
+
   describe('isResPath', () => {
     it('should return true for res:// paths', () => {
       expect(isResPath('res://scripts/player.gd')).toBe(true);
