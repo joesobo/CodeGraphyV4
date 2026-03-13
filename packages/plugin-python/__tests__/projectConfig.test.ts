@@ -68,6 +68,11 @@ describe('projectConfig helpers', () => {
     expect(__test.normalizeSourceRoot('')).toBeNull();
   });
 
+  it('preserves interior quote characters while trimming wrapping quotes', () => {
+    expect(__test.normalizeSourceRoot(`"pkg'core"`)).toBe(`pkg'core`);
+    expect(__test.normalizeSourceRoot(`pkg"core`)).toBe(`pkg"core`);
+  });
+
   it('keeps unique valid source roots in insertion order', () => {
     expect(__test.sanitizeSourceRoots(['src', 'src/', '.', 1, 'backend'])).toEqual([
       'src',

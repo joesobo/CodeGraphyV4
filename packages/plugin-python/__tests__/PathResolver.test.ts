@@ -309,6 +309,17 @@ describe('Python PathResolver', () => {
 
       expect(resolved).toBeNull();
     });
+
+    it('should treat file-system lookup exceptions as explicit missing files', () => {
+      vi.mocked(fs.existsSync).mockImplementation(() => {
+        throw new Error('exists failed');
+      });
+
+      const fileExists = (resolver as unknown as { _fileExists: (relativePath: string) => boolean })
+        ._fileExists;
+
+      expect(fileExists('any.py')).toBe(false);
+    });
   });
 
   describe('source roots', () => {
