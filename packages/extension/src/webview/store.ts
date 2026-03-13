@@ -299,6 +299,9 @@ export function createGraphStore() {
         case 'FOLDER_NODE_COLOR_UPDATED':
           set({ folderNodeColor: message.payload.folderNodeColor });
           break;
+        case 'NODE_SIZE_MODE_UPDATED':
+          set({ nodeSizeMode: message.payload.nodeSizeMode });
+          break;
         case 'CYCLE_VIEW': {
           const { availableViews, activeViewId } = get();
           if (availableViews.length === 0) break;

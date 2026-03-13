@@ -15,8 +15,9 @@ import { Label } from './ui/label';
 import { Switch } from './ui/switch';
 import { Slider } from './ui/slider';
 import { ScrollArea } from './ui/scroll-area';
-import { mdiChevronRight, mdiClose, mdiDrag, mdiEyeOutline, mdiEyeOffOutline, mdiMinus, mdiPlus, mdiLockOutline } from '@mdi/js';
+import { mdiChevronRight, mdiClose, mdiDrag, mdiEyeOutline, mdiEyeOffOutline, mdiMinus, mdiPlus, mdiLockOutline, mdiRefresh } from '@mdi/js';
 import { MdiIcon } from './icons';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -488,15 +489,36 @@ export default function SettingsPanel({
     postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: checked } });
   };
 
+  const handleResetSettings = () => {
+    postMessage({ type: 'RESET_ALL_SETTINGS', payload: { nodeSizeMode } });
+  };
+
   return (
     <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
       {/* Panel header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
-        <span className="text-sm font-medium">Settings</span>
-        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
-          <MdiIcon path={mdiClose} size={16} />
-        </Button>
-      </div>
+      <TooltipProvider delayDuration={300}>
+        <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
+          <span className="text-sm font-medium">Settings</span>
+          <div className="flex items-center gap-0.5">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={handleResetSettings} title="Reset Settings">
+                  <MdiIcon path={mdiRefresh} size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Reset all settings to defaults</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
+                  <MdiIcon path={mdiClose} size={16} />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Close</TooltipContent>
+            </Tooltip>
+          </div>
+        </div>
+      </TooltipProvider>
 
       {/* Scrollable content */}
       <ScrollArea className="flex-1 min-h-0">
