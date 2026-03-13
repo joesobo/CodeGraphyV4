@@ -546,7 +546,7 @@ export type ExtensionToWebviewMessage =
  * Message types:
  * - `WEBVIEW_READY` - Webview has loaded and is ready for data
  * - `NODE_SELECTED` - User clicked on a node
- * - `NODE_DOUBLE_CLICKED` - User double-clicked to open file
+ * - `NODE_DOUBLE_CLICKED` - Open-node request from graph interactions (legacy name)
  * - `POSITIONS_UPDATED` - Bulk position update (after physics stabilization)
  * 
  * @example
