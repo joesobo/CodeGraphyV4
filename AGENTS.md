@@ -65,9 +65,9 @@ Cycle: **Red** (failing test) → **Green** (minimum code to pass) → **Refacto
 
 1. **One concept per test** — if the name has "and", split it. Each test fails for exactly one reason.
 2. **Arrange-Act-Assert** — if any section gets long, the test is doing too much.
-3. **File-per-module** — `preload.ts` → `preload.test.ts`. Split test files past ~200-300 lines.
-4. **Descriptive names** — `conn` not `cn`, `connection` not `c`.
-5. **Test behavior, not implementation** — "should resolve class_name to file path" not "should call registerClassName then check map".
+3. **File-per-module** — each source file gets a matching test file. Split test files past ~200-300 lines.
+4. **Descriptive names** — no abbreviations in test code.
+5. **Test behavior, not implementation** — describe what the code does, not how it does it.
 6. **Code review** — the main mechanism for catching untested edge cases and unclear naming.
 
 #### 3. CRAP ≤ 8
