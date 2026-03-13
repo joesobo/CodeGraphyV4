@@ -8,7 +8,7 @@
 import * as path from 'path';
 import type { IPlugin, IConnection } from '@codegraphy/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
-import { detectClassNameDeclaration } from './parser';
+import { detectClassNameDeclaration, normalizePath } from './parser';
 import manifest from '../codegraphy.json';
 
 // Rule detect functions
@@ -62,8 +62,7 @@ export function createGDScriptPlugin(): IPlugin {
       files: Array<{ absolutePath: string; relativePath: string; content: string }>,
       workspaceRoot: string
     ): Promise<void> {
-      if (!resolver) resolver = new GDScriptPathResolver(workspaceRoot);
-      resolver.clearClassNames();
+      resolver = new GDScriptPathResolver(workspaceRoot);
 
       for (const { relativePath, content } of files) {
         // Register file for snake_case fallback resolution
@@ -83,7 +82,7 @@ export function createGDScriptPlugin(): IPlugin {
     async detectConnections(filePath: string, content: string, workspaceRoot: string): Promise<IConnection[]> {
       if (!resolver) resolver = new GDScriptPathResolver(workspaceRoot);
 
-      const relativeFilePath = path.relative(workspaceRoot, filePath).replace(/\\/g, '/');
+      const relativeFilePath = normalizePath(path.relative(workspaceRoot, filePath));
       const ctx = { resolver, workspaceRoot, relativeFilePath };
 
       // Register class_name declarations from this file (in case onPreAnalyze did not run yet)
