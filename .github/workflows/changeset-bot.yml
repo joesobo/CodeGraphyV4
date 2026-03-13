@@ -1,14 +1,11 @@
-name: Changeset Bot
+name: Changeset Check
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled, unlabeled]
-
-permissions:
-  pull-requests: write
+    types: [opened, synchronize, reopened]
 
 jobs:
-  changeset-bot:
+  changeset-check:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -16,5 +13,13 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Changeset Bot
-        uses: changesets/bot@v1
+      - name: Check for changesets
+        run: |
+          # Find changeset markdown files (excluding README.md)
+          CHANGESETS=$(find .changeset -name '*.md' ! -name 'README.md' 2>/dev/null)
+          if [ -z "$CHANGESETS" ]; then
+            echo "::warning::No changeset found. If this PR includes user-facing changes, run 'pnpm changeset' to add one."
+          else
+            echo "Changesets found:"
+            echo "$CHANGESETS"
+          fi
