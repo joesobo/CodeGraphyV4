@@ -47,6 +47,9 @@ describe('Graph double-click behavior', () => {
 
     expect(methods.centerAt).toHaveBeenCalledWith(0, 0, 300);
     expect(methods.zoom).toHaveBeenCalledWith(1.5, 300);
+    const selectMsg = findMessage('NODE_SELECTED');
+    expect(selectMsg).toBeTruthy();
+    expect(selectMsg!.payload.nodeId).toBe('src/app.ts');
     const openMsg = findMessage('NODE_DOUBLE_CLICKED');
     expect(openMsg).toBeTruthy();
     expect(openMsg!.payload.nodeId).toBe('src/app.ts');
@@ -83,7 +86,7 @@ describe('Graph double-click behavior', () => {
     expect(nodeDoubleClickInteraction).toBeTruthy();
   });
 
-  it('does not focus or open on single click', async () => {
+  it('selects and preview-opens on single click without focus animation', async () => {
     const methods = ForceGraph2D.getMockMethods();
     methods.centerAt.mockClear();
     methods.zoom.mockClear();
@@ -96,7 +99,37 @@ describe('Graph double-click behavior', () => {
 
     expect(methods.centerAt).not.toHaveBeenCalled();
     expect(methods.zoom).not.toHaveBeenCalled();
+    const selectMsg = findMessage('NODE_SELECTED');
+    expect(selectMsg).toBeTruthy();
+    expect(selectMsg!.payload.nodeId).toBe('src/app.ts');
     expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
+  });
+
+  it('keeps the same node selected across repeated single clicks', async () => {
+    vi.useFakeTimers();
+    try {
+      const methods = ForceGraph2D.getMockMethods();
+      methods.centerAt.mockClear();
+      methods.zoom.mockClear();
+
+      render(<Graph data={graphData} />);
+
+      await act(async () => {
+        ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+        vi.advanceTimersByTime(600);
+        ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+      });
+
+      const selectedMessages = getSentMessages().filter(
+        msg => msg.type === 'NODE_SELECTED' && msg.payload.nodeId === 'src/app.ts'
+      );
+      expect(selectedMessages).toHaveLength(2);
+      expect(methods.centerAt).not.toHaveBeenCalled();
+      expect(methods.zoom).not.toHaveBeenCalled();
+      expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('does not treat rapid clicks on different nodes as a double-click', async () => {

@@ -66,6 +66,7 @@ const DIRECTIONAL_ARROW_LENGTH_2D = 12;
 const DIRECTIONAL_ARROW_NODE_GAP_2D = 0;
 const RIGHT_CLICK_DRAG_THRESHOLD_PX = 6;
 const RIGHT_CLICK_FALLBACK_DELAY_MS = 40;
+const NODE_DOUBLE_CLICK_THRESHOLD_MS = 450;
 
 /** Minimum and maximum node sizes */
 const MIN_NODE_SIZE = 10;
@@ -813,6 +814,12 @@ export default function Graph({
     if (graphMode === '3d') setHighlightVersion(prev => prev + 1);
   }, [graphMode]);
 
+  const selectOnlyNode = useCallback((nodeId: string) => {
+    setHighlight(nodeId);
+    selectedNodesSetRef.current = new Set([nodeId]);
+    setSelectedNodes([nodeId]);
+  }, [setHighlight]);
+
   // ── Plugin API v2: forward graph interactions to extension ──────────────
 
   const sendGraphInteraction = useCallback((event: string, eventData: unknown) => {
@@ -973,9 +980,10 @@ export default function Graph({
     const now = Date.now();
     const last = lastClickRef.current;
 
-    // Detect double-click (two clicks on the same node within 300ms)
-    if (last && last.nodeId === nodeId && now - last.time < 300) {
+    // Detect double-click (two clicks on the same node within threshold)
+    if (last && last.nodeId === nodeId && now - last.time < NODE_DOUBLE_CLICK_THRESHOLD_MS) {
       lastClickRef.current = null;
+      selectOnlyNode(nodeId);
       handleNodeDoubleClick(node, event);
       return;
     }
@@ -989,20 +997,12 @@ export default function Graph({
       selectedNodesSetRef.current = next;
       setSelectedNodes([...next]);
     } else {
-      // Single select — toggle highlight
-      if (highlightedNodeRef.current === nodeId) {
-        setHighlight(null);
-        selectedNodesSetRef.current = new Set();
-        setSelectedNodes([]);
-      } else {
-        setHighlight(nodeId);
-        selectedNodesSetRef.current = new Set([nodeId]);
-        setSelectedNodes([nodeId]);
-        postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
-      }
+      // Single select — always keep the node selected and preview-open it.
+      selectOnlyNode(nodeId);
+      postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
     }
     sendGraphInteraction('graph:nodeClick', { node: { id: node.id, label: node.label }, event: { x: event.clientX, y: event.clientY } });
-  }, [handleNodeDoubleClick, isMacPlatform, openNodeContextMenu, setHighlight, sendGraphInteraction]);
+  }, [handleNodeDoubleClick, isMacPlatform, openNodeContextMenu, selectOnlyNode, sendGraphInteraction]);
 
   const handleBackgroundClick = useCallback((event?: MouseEvent) => {
     if (event && isMacControlContextClick(event, isMacPlatform)) {
