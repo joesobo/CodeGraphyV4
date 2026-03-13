@@ -53,9 +53,34 @@ Hover any node to see:
 - Visit count
 - Handling plugin
 
+## Toolbar
+
+The toolbar sits at the bottom of the graph and is split into two sides.
+
+**Left side — toggle controls:**
+
+| Control | Description |
+|---------|-------------|
+| Depth slider | Adjusts depth limit (1-5). Only visible when Depth Graph view is active. |
+| View buttons | Switch between Connections, Depth Graph, and Folder views. |
+| DAG mode buttons | Switch layout: Default (free-form), Radial Out, Top Down, Left to Right. |
+| 2D/3D toggle | Switch between 2D canvas and 3D WebGL rendering. |
+| Node size buttons | Switch node sizing: Connections, File Size, Access Count, or Uniform. |
+
+**Right side — actions:**
+
+| Control | Description |
+|---------|-------------|
+| Refresh | Triggers a full graph re-analysis and layout reset. |
+| Export | Dropdown for exporting as PNG, SVG, JPEG, JSON, or Markdown. |
+| Plugins | Opens the plugins panel. |
+| Settings | Opens the settings panel. |
+
+Node size mode and DAG layout mode persist across sessions (saved to workspace state).
+
 ## Panels
 
-Three buttons appear in the bottom-right corner of the graph. Only one panel is open at a time.
+Panels open from the right side of the graph. Only one panel is open at a time.
 
 ### Settings (gear icon)
 

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Tests for the SettingsPanel component.
- * Covers: filter patterns, color groups, orphan toggle, arrows toggle, node size.
+ * Covers: filter patterns, color groups, orphan toggle, arrows toggle.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -445,32 +445,6 @@ describe('SettingsPanel: Bidirectional mode', () => {
   });
 });
 
-// ── Display: Node Size ─────────────────────────────────────────────────────
-
-describe('SettingsPanel: Node Size', () => {
-  it('renders all node size options', () => {
-    renderPanel();
-    openSection('Display');
-    expect(screen.getByRole('radio', { name: /^connections$/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /^file size$/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /^uniform$/i })).toBeInTheDocument();
-  });
-
-  it('selected radio matches nodeSizeMode from store', () => {
-    renderPanel({ nodeSizeMode: 'file-size' });
-    openSection('Display');
-    expect(screen.getByRole('radio', { name: /^file size$/i })).toBeChecked();
-  });
-
-  it('changing node size updates store', () => {
-    renderPanel({ nodeSizeMode: 'connections' });
-    openSection('Display');
-
-    fireEvent.click(screen.getByRole('radio', { name: /^uniform$/i }));
-    expect(graphStore.getState().nodeSizeMode).toBe('uniform');
-  });
-});
-
 // ── Reset All Settings ──────────────────────────────────────────────────────
 
 describe('SettingsPanel: Reset All Settings', () => {
@@ -482,16 +456,15 @@ describe('SettingsPanel: Reset All Settings', () => {
     expect(resetButton).toBeInTheDocument();
   });
 
-  it('sends RESET_ALL_SETTINGS with current nodeSizeMode when clicked', () => {
-    renderPanel({ nodeSizeMode: 'file-size' });
+  it('sends RESET_ALL_SETTINGS when clicked', () => {
+    renderPanel();
     const resetButton = screen.getByTitle('Reset Settings');
     fireEvent.click(resetButton);
 
     const msg = sentMessages.find(
       (msg: unknown) => (msg as { type: string }).type === 'RESET_ALL_SETTINGS',
-    ) as { type: string; payload: { nodeSizeMode: string } } | undefined;
+    );
 
     expect(msg).toBeDefined();
-    expect(msg!.payload.nodeSizeMode).toBe('file-size');
   });
 });
