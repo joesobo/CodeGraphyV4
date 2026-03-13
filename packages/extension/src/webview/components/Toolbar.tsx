@@ -9,6 +9,10 @@ import {
   mdiCircleOutline,
   mdiSphere,
   mdiExport,
+  mdiHubOutline,
+  mdiFileOutline,
+  mdiCounter,
+  mdiEqual,
 } from '@mdi/js';
 import { MdiIcon, DagDefaultIcon, DagRadialIcon, DagTopDownIcon, DagLeftRightIcon } from './icons';
 import { Button } from './ui/button';
@@ -24,7 +28,7 @@ import {
 } from './ui/dropdown-menu';
 import { useGraphStore } from '../store';
 import { postMessage } from '../lib/vscodeApi';
-import type { DagMode } from '../../shared/types';
+import type { DagMode, NodeSizeMode } from '../../shared/types';
 
 const VIEW_ICONS: Record<string, string> = {
   'codegraphy.connections': mdiGraphOutline,
@@ -39,6 +43,13 @@ const DAG_MODES: { mode: DagMode; label: string; Icon: React.FC<{ size?: number;
   { mode: 'lr', label: 'Left to Right', Icon: DagLeftRightIcon },
 ];
 
+const NODE_SIZE_MODES: { mode: NodeSizeMode; label: string; icon: string }[] = [
+  { mode: 'connections', label: 'Size by Connections', icon: mdiHubOutline },
+  { mode: 'file-size', label: 'Size by File Size', icon: mdiFileOutline },
+  { mode: 'access-count', label: 'Size by Access Count', icon: mdiCounter },
+  { mode: 'uniform', label: 'Uniform Size', icon: mdiEqual },
+];
+
 export default function Toolbar(): React.ReactElement {
   const availableViews = useGraphStore(s => s.availableViews);
   const activeViewId = useGraphStore(s => s.activeViewId);
@@ -46,6 +57,8 @@ export default function Toolbar(): React.ReactElement {
   const graphMode = useGraphStore(s => s.graphMode);
   const setGraphMode = useGraphStore(s => s.setGraphMode);
   const depthLimit = useGraphStore(s => s.depthLimit);
+  const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
+  const setNodeSizeMode = useGraphStore(s => s.setNodeSizeMode);
   const setActivePanel = useGraphStore(s => s.setActivePanel);
 
   const handleViewChange = (viewId: string) => {
@@ -144,6 +157,24 @@ export default function Toolbar(): React.ReactElement {
             </TooltipTrigger>
             <TooltipContent side="bottom">{graphMode === '2d' ? '2D Mode' : '3D Mode'}</TooltipContent>
           </Tooltip>
+
+          <div className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
+            {NODE_SIZE_MODES.map(({ mode, label, icon }) => (
+              <Tooltip key={mode}>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant={nodeSizeMode === mode ? 'default' : 'ghost'}
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={() => setNodeSizeMode(mode)}
+                  >
+                    <MdiIcon path={icon} size={16} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom">{label}</TooltipContent>
+              </Tooltip>
+            ))}
+          </div>
         </div>
 
         {/* Right side — action / popup menu buttons */}
