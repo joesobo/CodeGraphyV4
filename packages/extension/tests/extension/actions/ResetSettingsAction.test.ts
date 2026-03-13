@@ -60,6 +60,22 @@ describe('ResetSettingsAction', () => {
     nodeSizeMode: 'file-size',
   };
 
+  function wireConfigMocks() {
+    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
+      if (section === 'codegraphy.physics') return mockPhysicsConfig;
+      return mockCodegraphyConfig;
+    });
+  }
+
+  function createAction() {
+    return new ResetSettingsAction(
+      NON_DEFAULT_SNAPSHOT,
+      vscode.ConfigurationTarget.Workspace,
+      mockSendAllSettings,
+      mockRefreshGraph,
+    );
+  }
+
   beforeEach(() => {
     vi.clearAllMocks();
     resetUndoManager();
@@ -82,14 +98,9 @@ describe('ResetSettingsAction', () => {
       hiddenPluginGroups: ['group-1', 'group-2'],
     };
 
-    // Create stable config objects (same instance returned on every call per section)
     mockPhysicsConfig = createMockConfig(physicsStore);
     mockCodegraphyConfig = createMockConfig(codegraphyStore);
-
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    wireConfigMocks();
 
     mockSendAllSettings = vi.fn();
     mockRefreshGraph = vi.fn().mockResolvedValue(undefined);
@@ -100,116 +111,60 @@ describe('ResetSettingsAction', () => {
   });
 
   it('has descriptive description', () => {
-    const action = new ResetSettingsAction(
-      NON_DEFAULT_SNAPSHOT,
-      vscode.ConfigurationTarget.Workspace,
-      mockSendAllSettings,
-      mockRefreshGraph,
-    );
-    expect(action.description).toBe('Reset all settings');
+    expect(createAction().description).toBe('Reset all settings');
   });
 
-  it('execute resets physics config keys to undefined', async () => {
-    const action = new ResetSettingsAction(
-      NON_DEFAULT_SNAPSHOT,
-      vscode.ConfigurationTarget.Workspace,
-      mockSendAllSettings,
-      mockRefreshGraph,
-    );
+  it('execute resets all config keys to undefined', async () => {
+    await createAction().execute();
 
-    await action.execute();
+    // Every physics key should be reset
+    for (const call of (mockPhysicsConfig.update as ReturnType<typeof vi.fn>).mock.calls) {
+      expect(call[1]).toBeUndefined();
+    }
+    // Every codegraphy key should be reset
+    for (const call of (mockCodegraphyConfig.update as ReturnType<typeof vi.fn>).mock.calls) {
+      expect(call[1]).toBeUndefined();
+    }
 
-    const physicsConfig = vscode.workspace.getConfiguration('codegraphy.physics');
-    expect(physicsConfig.update).toHaveBeenCalledWith('repelForce', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(physicsConfig.update).toHaveBeenCalledWith('linkDistance', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(physicsConfig.update).toHaveBeenCalledWith('linkForce', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(physicsConfig.update).toHaveBeenCalledWith('damping', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(physicsConfig.update).toHaveBeenCalledWith('centerForce', undefined, vscode.ConfigurationTarget.Workspace);
+    // Stores should be empty (all keys deleted)
+    expect(Object.keys(physicsStore)).toHaveLength(0);
+    expect(Object.keys(codegraphyStore)).toHaveLength(0);
   });
 
-  it('execute resets codegraphy config keys to undefined/defaults', async () => {
-    const action = new ResetSettingsAction(
-      NON_DEFAULT_SNAPSHOT,
-      vscode.ConfigurationTarget.Workspace,
-      mockSendAllSettings,
-      mockRefreshGraph,
-    );
-
-    await action.execute();
-
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    expect(config.update).toHaveBeenCalledWith('groups', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('filterPatterns', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('showOrphans', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('bidirectionalEdges', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('directionMode', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('directionColor', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('folderNodeColor', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('particleSpeed', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('particleSize', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('showLabels', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('maxFiles', undefined, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('hiddenPluginGroups', undefined, vscode.ConfigurationTarget.Workspace);
-  });
-
-  it('execute calls sendAllSettings with default nodeSizeMode', async () => {
-    const action = new ResetSettingsAction(
-      NON_DEFAULT_SNAPSHOT,
-      vscode.ConfigurationTarget.Workspace,
-      mockSendAllSettings,
-      mockRefreshGraph,
-    );
-
-    await action.execute();
+  it('execute sends default nodeSizeMode and refreshes graph', async () => {
+    await createAction().execute();
 
     expect(mockSendAllSettings).toHaveBeenCalledWith('connections');
     expect(mockRefreshGraph).toHaveBeenCalled();
   });
 
   it('undo restores all captured config values', async () => {
-    const action = new ResetSettingsAction(
-      NON_DEFAULT_SNAPSHOT,
-      vscode.ConfigurationTarget.Workspace,
-      mockSendAllSettings,
-      mockRefreshGraph,
-    );
-
+    const action = createAction();
     await action.execute();
-    vi.clearAllMocks();
-    // Re-wire mock to keep returning the same stable config objects after clearAllMocks
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
 
+    // Stores are now empty after execute
+    expect(Object.keys(physicsStore)).toHaveLength(0);
+    expect(Object.keys(codegraphyStore)).toHaveLength(0);
+
+    vi.clearAllMocks();
+    wireConfigMocks();
     await action.undo();
 
-    const physicsConfig = vscode.workspace.getConfiguration('codegraphy.physics');
-    expect(physicsConfig.update).toHaveBeenCalledWith('repelForce', 5, vscode.ConfigurationTarget.Workspace);
-    expect(physicsConfig.update).toHaveBeenCalledWith('linkDistance', 200, vscode.ConfigurationTarget.Workspace);
-    expect(physicsConfig.update).toHaveBeenCalledWith('damping', 0.3, vscode.ConfigurationTarget.Workspace);
-
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    expect(config.update).toHaveBeenCalledWith('groups', NON_DEFAULT_SNAPSHOT.groups, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('showOrphans', false, vscode.ConfigurationTarget.Workspace);
-    expect(config.update).toHaveBeenCalledWith('directionMode', 'particles', vscode.ConfigurationTarget.Workspace);
+    // Stores should be repopulated with original values
+    expect(physicsStore).toEqual(NON_DEFAULT_SNAPSHOT.physics);
+    expect(codegraphyStore['showOrphans']).toBe(false);
+    expect(codegraphyStore['directionMode']).toBe('particles');
+    expect(codegraphyStore['maxFiles']).toBe(1000);
+    expect(codegraphyStore['hiddenPluginGroups']).toEqual(['group-1', 'group-2']);
+    // bidirectionalEdges config key maps to bidirectionalMode snapshot field
+    expect(codegraphyStore['bidirectionalEdges']).toBe('combined');
   });
 
-  it('undo calls sendAllSettings with original nodeSizeMode', async () => {
-    const action = new ResetSettingsAction(
-      NON_DEFAULT_SNAPSHOT,
-      vscode.ConfigurationTarget.Workspace,
-      mockSendAllSettings,
-      mockRefreshGraph,
-    );
-
+  it('undo sends original nodeSizeMode and refreshes graph', async () => {
+    const action = createAction();
     await action.execute();
     vi.clearAllMocks();
-    // Re-wire mock to keep returning the same stable config objects after clearAllMocks
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    wireConfigMocks();
 
     await action.undo();
 
@@ -219,33 +174,20 @@ describe('ResetSettingsAction', () => {
 
   it('works with UndoManager execute → undo → redo', async () => {
     const undoManager = getUndoManager();
-    const action = new ResetSettingsAction(
-      NON_DEFAULT_SNAPSHOT,
-      vscode.ConfigurationTarget.Workspace,
-      mockSendAllSettings,
-      mockRefreshGraph,
-    );
+    const action = createAction();
 
     await undoManager.execute(action);
     expect(mockSendAllSettings).toHaveBeenCalledWith('connections');
 
     vi.clearAllMocks();
-    // Re-wire mock to keep returning the same stable config objects after clearAllMocks
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    wireConfigMocks();
 
     const undoDesc = await undoManager.undo();
     expect(undoDesc).toBe('Reset all settings');
     expect(mockSendAllSettings).toHaveBeenCalledWith('file-size');
 
     vi.clearAllMocks();
-    // Re-wire mock to keep returning the same stable config objects after clearAllMocks
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    wireConfigMocks();
 
     const redoDesc = await undoManager.redo();
     expect(redoDesc).toBe('Reset all settings');
