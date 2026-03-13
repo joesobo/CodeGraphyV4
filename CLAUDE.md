@@ -34,24 +34,86 @@ Primary locations:
 - `packages/plugin-*/src/` (built-in language plugins)
 - `docs/plugin-api/` (plugin API docs + diagrams)
 
-## Testing Guidance
+## Development Workflow (Mandatory)
 
-- Extension and webview tests: `packages/extension/tests/`
-- Plugin tests: `packages/plugin-*/__tests__/`
-- Prefer targeted test runs while iterating, then run full `pnpm run test`.
-- Pre-commit runs lint-staged + typecheck, so keep staged changes clean.
+When assigned a Trello card or any development task, follow this process end-to-end:
 
-## Changeset Workflow
+### Task Setup
 
-This project uses [Changesets](https://github.com/changesets/changesets) for versioning and changelog generation.
+1. **Discuss before implementation:** review the task with the user first, covering implementation approach, risks/concerns, and open questions.
+2. **Plan after alignment:** create an implementation plan once details are clarified.
+3. **Use branch + worktree isolation:** execute work in its own branch/worktree. Split into small, independent tasks that can be delegated to individual subagents where safe.
+4. **Commit frequently:** commit often, at minimum whenever subagent work is merged into the main task branch.
+5. **Deliver via PR:** push all commits and open a GitHub PR with a clear description for human review.
 
-### When to add a changeset
+### Worktree Safety
 
-Add a changeset when a PR includes **user-facing changes**: new features, bug fixes, behavior changes, or removed functionality. Skip changesets for internal refactors, test-only changes, CI updates, or documentation fixes that don't affect the product.
+- Treat the user's currently open worktree as **protected**.
+- Never run `git switch`, `git checkout <branch>`, `git rebase`, or other branch-changing commands in the protected worktree.
+- Before any branch/worktree operations, create and move into a separate agent worktree; do branch switches only there.
+- If a branch was changed in the protected worktree by mistake, immediately restore it and report what happened.
 
-### How to add a changeset
+### Quality Gates (for every new or changed behavior)
 
-Run `pnpm changeset` and follow the prompts, or create a file manually in `.changeset/`:
+#### 1. Acceptance Scenarios + TDD
+
+- For every new or changed behavior, write acceptance scenarios. Ask the user before changing existing scenarios.
+- Confirm the scenarios fail first.
+- Write failing unit tests and make them pass until all scenarios pass.
+- Test locations: extension and webview tests in `packages/extension/tests/`, plugin tests in `packages/plugin-*/__tests__/`.
+- Prefer targeted test runs while iterating, then run full `pnpm run test` before finishing.
+
+#### 2. CRAP Score Check
+
+For every changed module, run CRAP and refactor until CRAP is 8 or less.
+
+CRAP (Change Risk Anti-Patterns) = `comp² × (1 - cov/100)³ + comp`. It combines cyclomatic complexity with code coverage — high-complexity, low-coverage functions score high.
+
+```bash
+# All packages
+pnpm run crap
+
+# Specific package (use folder name under packages/)
+pnpm run crap -- extension
+pnpm run crap -- plugin-typescript
+```
+
+- **Threshold:** CRAP ≤ 8 per function
+- If a function exceeds 8, either add tests to increase coverage or refactor to reduce complexity
+
+#### 3. Differential Mutation Testing
+
+For every changed module, run differential mutation tests — one module at a time. Cover uncovered sites and kill survivors before running the next module.
+
+Mutation testing (via Stryker) introduces small bugs ("mutants") into your code and verifies that tests catch them. Survivors indicate gaps in test assertions. Static initializers are ignored (`ignoreStatic: true`).
+
+```bash
+# All plugins then extension
+pnpm run mutate
+
+# Specific package (use folder name under packages/)
+pnpm run mutate -- extension
+pnpm run mutate -- plugin-typescript
+```
+
+- **Mutation score thresholds:** ≥80% (green), ≥60% (warning), <60% (needs work)
+- **Mutation site threshold:** 50 per file. If a file exceeds 50 mutation sites, it should be split/refactored
+- HTML report generated at `reports/mutation/mutation.html` after each run
+
+#### 4. Lint + Typecheck
+
+Before committing, ensure code passes lint and typecheck. Pre-commit hooks run lint-staged + typecheck automatically, so keep staged changes clean.
+
+```bash
+pnpm run lint
+pnpm run typecheck
+```
+
+#### 5. Changeset
+
+If the PR includes **user-facing changes** (new features, bug fixes, behavior changes, removed functionality), add a changeset. Skip for internal refactors, test-only changes, CI updates, or docs fixes.
+
+Run `pnpm changeset` or create a file manually in `.changeset/`:
 
 ```md
 ---
@@ -61,71 +123,9 @@ Run `pnpm changeset` and follow the prompts, or create a file manually in `.chan
 Add node size toggle to the toolbar with four sizing modes
 ```
 
-Bump types:
-- `patch` — bug fixes, small tweaks
-- `minor` — new features, enhancements
-- `major` — breaking changes
-
-### Writing good changeset descriptions
+Bump types: `patch` (bug fixes), `minor` (new features), `major` (breaking changes).
 
 - Write from the **user's perspective**, not implementation details.
 - One clear sentence describing what changed and why it matters.
-- Good: "Add node size toggle to the toolbar with four sizing modes"
-- Bad: "Refactor NodeSizeToggle.tsx to use postMessage and extract to toolbar/ directory"
+- If a PR is updated after the changeset was written, update the changeset to reflect the final state.
 
-### Updating changesets
-
-If a PR is updated after the changeset was written, update the changeset file to reflect the final state of the change. The changeset should describe the PR as merged, not the incremental steps.
-
-## Trello Task Execution Workflow
-
-When assigned a Trello card, follow this process end-to-end:
-
-1. Discuss before implementation: review the card with the user first, covering implementation approach, risks/concerns, and open questions.
-2. Plan after alignment: create an implementation plan once details are clarified.
-3. Split for parallelization: break work into small, independent tasks that can be delegated to individual subagents where safe.
-4. Use branch + worktree isolation: execute each task in its own branch/worktree.
-5. Commit frequently: commit often, at minimum whenever subagent work is merged into the main task branch.
-6. Deliver via PR: push all commits and open a GitHub PR with a clear description for human review.
-
-## Worktree Safety (Mandatory)
-
-- Treat the user's currently open worktree as protected.
-- Never run `git switch`, `git checkout <branch>`, `git rebase`, or other branch-changing commands in the protected worktree.
-- Before any branch/worktree operations, create and move into a separate agent worktree; do branch switches only there.
-- If a branch was changed in the protected worktree by mistake, immediately restore it and report what happened.
-
-## Playwright PR Image Upload Workflow
-
-Use this flow to attach screenshots/GIFs to PR comments via GitHub UI attachments (without committing media files):
-
-1. Prepare the Playwright CLI wrapper:
-```bash
-export CODEX_HOME="${CODEX_HOME:-$HOME/.codex}"
-export PWCLI="$CODEX_HOME/skills/playwright/scripts/playwright_cli.sh"
-```
-
-2. One-time login using a persistent profile:
-```bash
-mkdir -p "$HOME/.codex/playwright/profiles/github-ui"
-"$PWCLI" open https://github.com/login --persistent --profile "$HOME/.codex/playwright/profiles/github-ui" --headed
-```
-
-3. Reuse that authenticated profile for a PR page:
-```bash
-"$PWCLI" open https://github.com/<owner>/<repo>/pull/<number> --persistent --profile "$HOME/.codex/playwright/profiles/github-ui"
-```
-
-4. Upload a local image into the PR comment box:
-```bash
-"$PWCLI" run-code 'async (page) => {
-  const input = page.locator("form.js-new-comment-form input[type=file]").first();
-  await input.setInputFiles("/absolute/path/to/image.png");
-}'
-```
-
-5. Submit the comment. GitHub inserts a `github.com/user-attachments/...` URL automatically.
-
-Notes:
-- Keep capture artifacts local (`.playwright-cli/`, `output/playwright/`).
-- Do not commit PR proof screenshots unless explicitly requested.

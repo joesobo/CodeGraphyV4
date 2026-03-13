@@ -15,8 +15,10 @@ export default defineConfig({
     ],
     setupFiles: [resolve(__dirname, 'tests/setup.ts')],
     coverage: {
-      reporter: ['text', 'html'],
-      include: ['src/**/*.{ts,tsx}'],
+      provider: 'istanbul',
+      reporter: ['text', 'html', 'json'],
+      reportsDirectory: resolve(root, 'coverage'),
+      include: ['src/**/*.{ts,tsx}', '../plugin-*/src/**/*.ts'],
       exclude: ['src/**/*.d.ts'],
     },
   },
