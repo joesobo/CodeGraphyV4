@@ -15,9 +15,8 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
   const lines = content.split('\n');
 
   for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
-    if (trimmed.startsWith('#')) continue;
     const lineWithoutComment = lines[i].split('#')[0];
+    if (!lineWithoutComment.trim()) continue;
 
     const match = lineWithoutComment.trim().match(/^extends\s+["']([^"']+)["']/);
     if (match) {

@@ -40,6 +40,18 @@ describe('GDScript parser', () => {
       expect(ref!.line).toBe(5);
     });
 
+    it('should detect class_name with multiple spaces (\\s+ not just \\s)', () => {
+      const ref = detectClassNameDeclaration('class_name   Player', 1);
+      expect(ref).not.toBeNull();
+      expect(ref!.resPath).toBe('Player');
+    });
+
+    it('should detect class_name with tab separator', () => {
+      const ref = detectClassNameDeclaration('class_name\tBoss', 1);
+      expect(ref).not.toBeNull();
+      expect(ref!.resPath).toBe('Boss');
+    });
+
     it('should return null for non-class_name lines', () => {
       expect(detectClassNameDeclaration('extends Node2D', 1)).toBeNull();
       expect(detectClassNameDeclaration('var player: Player', 1)).toBeNull();
