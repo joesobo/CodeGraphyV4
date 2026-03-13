@@ -55,6 +55,8 @@ describe('ResetSettingsAction', () => {
     particleSpeed: 0.002,
     particleSize: 8,
     showLabels: false,
+    maxFiles: 1000,
+    hiddenPluginGroups: ['group-1', 'group-2'],
     nodeSizeMode: 'file-size',
   };
 
@@ -76,6 +78,8 @@ describe('ResetSettingsAction', () => {
       particleSpeed: 0.002,
       particleSize: 8,
       showLabels: false,
+      maxFiles: 1000,
+      hiddenPluginGroups: ['group-1', 'group-2'],
     };
 
     // Create stable config objects (same instance returned on every call per section)
@@ -144,6 +148,8 @@ describe('ResetSettingsAction', () => {
     expect(config.update).toHaveBeenCalledWith('particleSpeed', undefined, vscode.ConfigurationTarget.Workspace);
     expect(config.update).toHaveBeenCalledWith('particleSize', undefined, vscode.ConfigurationTarget.Workspace);
     expect(config.update).toHaveBeenCalledWith('showLabels', undefined, vscode.ConfigurationTarget.Workspace);
+    expect(config.update).toHaveBeenCalledWith('maxFiles', undefined, vscode.ConfigurationTarget.Workspace);
+    expect(config.update).toHaveBeenCalledWith('hiddenPluginGroups', undefined, vscode.ConfigurationTarget.Workspace);
   });
 
   it('execute calls sendAllSettings with default nodeSizeMode', async () => {

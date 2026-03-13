@@ -56,6 +56,8 @@ export class ResetSettingsAction implements IUndoableAction {
     await config.update('particleSpeed', undefined, target);
     await config.update('particleSize', undefined, target);
     await config.update('showLabels', undefined, target);
+    await config.update('maxFiles', undefined, target);
+    await config.update('hiddenPluginGroups', undefined, target);
 
     this._sendAllSettings('connections');
     await this._refreshGraph();
@@ -85,6 +87,8 @@ export class ResetSettingsAction implements IUndoableAction {
     await config.update('particleSpeed', before.particleSpeed, target);
     await config.update('particleSize', before.particleSize, target);
     await config.update('showLabels', before.showLabels, target);
+    await config.update('maxFiles', before.maxFiles, target);
+    await config.update('hiddenPluginGroups', before.hiddenPluginGroups, target);
 
     this._sendAllSettings(before.nodeSizeMode);
     await this._refreshGraph();

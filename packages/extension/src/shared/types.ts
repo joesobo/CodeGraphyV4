@@ -356,6 +356,8 @@ export interface ISettingsSnapshot {
   particleSize: number;
   showLabels: boolean;
   nodeSizeMode: NodeSizeMode;
+  maxFiles: number;
+  hiddenPluginGroups: string[];
 }
 
 /**

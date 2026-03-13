@@ -30,6 +30,7 @@ const DEFAULTS = {
   nodeSizeMode: 'connections' as const,
   groups: [] as unknown[],
   filterPatterns: [] as string[],
+  maxFiles: 500,
 };
 
 /** Non-default values representing user changes */
@@ -46,6 +47,7 @@ const MODIFIED = {
   nodeSizeMode: 'file-size' as const,
   groups: [{ id: 'g1', pattern: '*.ts', color: '#3B82F6' }],
   filterPatterns: ['**/*.test.ts'],
+  maxFiles: 1000,
 };
 
 /** Helper to simulate an extension message arriving */
@@ -70,7 +72,7 @@ function setModifiedState() {
     particleSize: MODIFIED.particleSize,
     showLabels: MODIFIED.showLabels,
     graphMode: '2d',
-    maxFiles: 500,
+    maxFiles: MODIFIED.maxFiles,
     bidirectionalMode: MODIFIED.bidirectionalMode,
     folderNodeColor: MODIFIED.folderNodeColor,
   });
@@ -96,6 +98,7 @@ describe('Reset Settings Flow: change → reset → undo', () => {
     expect(state.nodeSizeMode).toBe('file-size');
     expect(state.groups).toHaveLength(1);
     expect(state.filterPatterns).toEqual(['**/*.test.ts']);
+    expect(state.maxFiles).toBe(1000);
 
     // ── STEP 2: Click the Reset button ─────────────────────────────────────
     const resetButton = screen.getByTitle('Reset Settings');
@@ -123,6 +126,7 @@ describe('Reset Settings Flow: change → reset → undo', () => {
       simulateExtensionMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: DEFAULTS.folderNodeColor } });
       simulateExtensionMessage({ type: 'GROUPS_UPDATED', payload: { groups: [] } });
       simulateExtensionMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: [], pluginPatterns: [] } });
+      simulateExtensionMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles: DEFAULTS.maxFiles } });
       simulateExtensionMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode: 'connections' } });
     });
 
@@ -137,6 +141,7 @@ describe('Reset Settings Flow: change → reset → undo', () => {
     expect(state.filterPatterns).toEqual([]);
     expect(state.bidirectionalMode).toBe('separate');
     expect(state.folderNodeColor).toBe(DEFAULT_FOLDER_NODE_COLOR);
+    expect(state.maxFiles).toBe(500);
 
     // ── STEP 4: Simulate Undo — extension sends back original values ───────
     act(() => {
@@ -152,6 +157,7 @@ describe('Reset Settings Flow: change → reset → undo', () => {
       simulateExtensionMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: MODIFIED.folderNodeColor } });
       simulateExtensionMessage({ type: 'GROUPS_UPDATED', payload: { groups: MODIFIED.groups } });
       simulateExtensionMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: MODIFIED.filterPatterns, pluginPatterns: [] } });
+      simulateExtensionMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles: MODIFIED.maxFiles } });
       simulateExtensionMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode: MODIFIED.nodeSizeMode } });
     });
 
@@ -167,5 +173,6 @@ describe('Reset Settings Flow: change → reset → undo', () => {
     expect(state.bidirectionalMode).toBe('combined');
     expect(state.folderNodeColor).toBe('#00FF00');
     expect(state.directionColor).toBe('#FF0000');
+    expect(state.maxFiles).toBe(1000);
   });
 });

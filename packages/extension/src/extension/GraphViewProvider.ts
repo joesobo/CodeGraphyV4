@@ -2348,6 +2348,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._viewContext.folderNodeColor = folderColor;
     this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: folderColor } });
 
+    // Update hidden plugin groups first (affects merged groups output)
+    const hiddenPluginGroups = config.get<string[]>('hiddenPluginGroups', []);
+    this._hiddenPluginGroupIds = new Set(hiddenPluginGroups);
+
     // Update internal groups state and send to webview
     this._userGroups = config.get<IGroup[]>('groups', []);
     this._computeMergedGroups();
@@ -2359,6 +2363,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       patterns: this._filterPatterns,
       pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [],
     }});
+
+    // maxFiles
+    const maxFiles = config.get<number>('maxFiles', 500);
+    this._sendMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles } });
 
     // nodeSizeMode is webview-only state
     this._sendMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode } });
@@ -2382,6 +2390,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       particleSpeed: config.get<number>('particleSpeed', 0.005),
       particleSize: config.get<number>('particleSize', 4),
       showLabels: config.get<boolean>('showLabels', true),
+      maxFiles: config.get<number>('maxFiles', 500),
+      hiddenPluginGroups: config.get<string[]>('hiddenPluginGroups', []),
       nodeSizeMode,
     };
   }
