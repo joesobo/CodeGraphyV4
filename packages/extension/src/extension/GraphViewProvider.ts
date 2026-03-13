@@ -1011,7 +1011,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._viewContext.focusedFile = filePath;
     
     // Always update available views when focused file changes
-    // This ensures the ViewSwitcher dropdown shows the correct options
     // (e.g., Depth Graph is only available when a file is focused)
     if (previousFocusedFile !== filePath) {
       this._sendAvailableViews();

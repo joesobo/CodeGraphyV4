@@ -13,7 +13,7 @@ const VIEW_ICONS: Record<string, string> = {
   'codegraphy.folder': mdiFolderOutline,
 };
 
-export function ViewButtons(): React.ReactElement | null {
+export function ViewButtons(): React.ReactElement {
   const availableViews = useGraphStore(s => s.availableViews);
   const activeViewId = useGraphStore(s => s.activeViewId);
   const depthLimit = useGraphStore(s => s.depthLimit);
