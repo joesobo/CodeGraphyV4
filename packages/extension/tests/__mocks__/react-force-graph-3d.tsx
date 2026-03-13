@@ -19,12 +19,45 @@ const mockMethods = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+let lastProps: Record<string, any> = {};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const ForceGraph3D = React.forwardRef<typeof mockMethods, Record<string, any>>((props, ref) => {
+  lastProps = props;
   React.useImperativeHandle(ref, () => mockMethods, []);
   return <div data-testid="force-graph-3d" />;
 });
 
 ForceGraph3D.displayName = 'ForceGraph3D';
 
+function simulateNodeRightClick(node: { id: string }) {
+  if (lastProps.onNodeRightClick) {
+    lastProps.onNodeRightClick(node, new MouseEvent('contextmenu'));
+  }
+}
+
+function simulateBackgroundRightClick() {
+  if (lastProps.onBackgroundRightClick) {
+    lastProps.onBackgroundRightClick(new MouseEvent('contextmenu'));
+  }
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getLastProps(): Record<string, any> {
+  return lastProps;
+}
+
+function clearAllHandlers() {
+  lastProps = {};
+  vi.clearAllMocks();
+}
+
+const ForceGraph3DWithHelpers = Object.assign(ForceGraph3D, {
+  simulateNodeRightClick,
+  simulateBackgroundRightClick,
+  getLastProps,
+  clearAllHandlers,
+});
+
 export { mockMethods };
-export default ForceGraph3D;
+export default ForceGraph3DWithHelpers;

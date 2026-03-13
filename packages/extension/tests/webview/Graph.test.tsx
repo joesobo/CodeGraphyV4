@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
 import Graph from '../../src/webview/components/Graph';
-import { IGraphData } from '../../src/shared/types';
+import { IGraphData, IPluginContextMenuItem } from '../../src/shared/types';
 import { graphStore } from '../../src/webview/store';
 import ForceGraph2D from 'react-force-graph-2d';
+import ForceGraph3D from 'react-force-graph-3d';
 
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
@@ -27,6 +28,7 @@ describe('Graph', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    graphStore.setState({ graphMode: '2d', timelineActive: false });
   });
 
   it('should render graph container', () => {
@@ -109,6 +111,7 @@ describe('Bug #39: Context menu behavior', () => {
 
   afterEach(() => {
     vi.clearAllMocks();
+    graphStore.setState({ graphMode: '2d', timelineActive: false });
   });
 
   it('should render container with onContextMenu handler', () => {
@@ -129,6 +132,82 @@ describe('Bug #39: Context menu behavior', () => {
   });
 });
 
+describe('Bug #54: context menu should open from graph right-click callbacks', () => {
+  const mockData: IGraphData = {
+    nodes: [
+      { id: 'a.ts', label: 'a.ts', color: '#93C5FD' },
+      { id: 'b.ts', label: 'b.ts', color: '#67E8F9' },
+    ],
+    edges: [],
+  };
+
+  beforeEach(() => {
+    clearSentMessages();
+    ForceGraph2D.clearAllHandlers();
+    ForceGraph3D.clearAllHandlers();
+    graphStore.setState({
+      graphMode: '2d',
+      timelineActive: false,
+      favorites: new Set<string>(),
+    });
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+    graphStore.setState({ graphMode: '2d', timelineActive: false });
+  });
+
+  it('opens background menu in 2d from onBackgroundRightClick alone', async () => {
+    render(<Graph data={mockData} />);
+
+    await act(async () => {
+      ForceGraph2D.simulateBackgroundRightClick();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('New File...')).toBeInTheDocument();
+    });
+  });
+
+  it('opens node menu in 2d from onNodeRightClick alone', async () => {
+    render(<Graph data={mockData} />);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'a.ts' });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Open File')).toBeInTheDocument();
+    });
+  });
+
+  it('opens background menu in 3d from onBackgroundRightClick alone', async () => {
+    graphStore.setState({ graphMode: '3d' });
+    render(<Graph data={mockData} />);
+
+    await act(async () => {
+      ForceGraph3D.simulateBackgroundRightClick();
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('New File...')).toBeInTheDocument();
+    });
+  });
+
+  it('opens node menu in 3d from onNodeRightClick alone', async () => {
+    graphStore.setState({ graphMode: '3d' });
+    render(<Graph data={mockData} />);
+
+    await act(async () => {
+      ForceGraph3D.simulateNodeRightClick({ id: 'a.ts' });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Open File')).toBeInTheDocument();
+    });
+  });
+});
+
 describe('Context Menu Content and Actions', () => {
   const mockData: IGraphData = {
     nodes: [
@@ -143,7 +222,12 @@ describe('Context Menu Content and Actions', () => {
   beforeEach(() => {
     clearSentMessages();
     ForceGraph2D.clearAllHandlers();
-    graphStore.setState({ favorites: new Set() });
+    graphStore.setState({
+      favorites: new Set(),
+      graphMode: '2d',
+      timelineActive: false,
+      pluginContextMenuItems: [],
+    });
   });
 
   afterEach(() => {
@@ -308,6 +392,64 @@ describe('Context Menu Content and Actions', () => {
     const deleteMsg = findMessage('DELETE_FILES');
     expect(deleteMsg).toBeTruthy();
     expect(deleteMsg!.payload.paths).toContain('src/app.ts');
+  });
+
+  it('should render plugin node items and dispatch PLUGIN_CONTEXT_MENU_ACTION', async () => {
+    const pluginItem: IPluginContextMenuItem = {
+      label: 'Plugin Inspect',
+      when: 'node',
+      pluginId: 'acme.plugin',
+      index: 0,
+    };
+    graphStore.setState({ pluginContextMenuItems: [pluginItem] });
+
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Plugin Inspect')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Plugin Inspect'));
+    });
+
+    const pluginMsg = findMessage('PLUGIN_CONTEXT_MENU_ACTION');
+    expect(pluginMsg).toBeTruthy();
+    expect(pluginMsg!.payload).toEqual({
+      pluginId: 'acme.plugin',
+      index: 0,
+      targetId: 'src/app.ts',
+      targetType: 'node',
+    });
+  });
+
+  it('should not show plugin node items on background context', async () => {
+    const pluginItem: IPluginContextMenuItem = {
+      label: 'Plugin Inspect',
+      when: 'node',
+      pluginId: 'acme.plugin',
+      index: 0,
+    };
+    graphStore.setState({ pluginContextMenuItems: [pluginItem] });
+
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateBackgroundRightClick();
+      fireEvent.contextMenu(graphContainer!, { clientX: 300, clientY: 300 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('New File...')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('Plugin Inspect')).not.toBeInTheDocument();
   });
 });
 

@@ -41,6 +41,8 @@ Undoable actions support `Ctrl+Z` / `Cmd+Z` to undo and `Ctrl+Shift+Z` / `Cmd+Sh
 
 ![Context menu](./media/context-menu.png)
 
+Implementation details and the full action/context matrix live in [Context Menu](./CONTEXT_MENU.md).
+
 ## Tooltips
 
 Hover any node to see:
