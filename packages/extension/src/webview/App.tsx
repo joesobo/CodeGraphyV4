@@ -304,22 +304,22 @@ export default function App(): React.ReactElement {
           edgeDecorations={edgeDecorations}
           pluginHost={pluginHostRef.current}
         />
-        <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
-          {activePanel !== 'none' ? (
-            <>
-              <PluginsPanel
-                isOpen={activePanel === 'plugins'}
-                onClose={() => setActivePanel('none')}
-              />
-              <SettingsPanel
-                isOpen={activePanel === 'settings'}
-                onClose={() => setActivePanel('none')}
-              />
-            </>
-          ) : (
+        {activePanel !== 'none' ? (
+          <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
+            <PluginsPanel
+              isOpen={activePanel === 'plugins'}
+              onClose={() => setActivePanel('none')}
+            />
+            <SettingsPanel
+              isOpen={activePanel === 'settings'}
+              onClose={() => setActivePanel('none')}
+            />
+          </div>
+        ) : (
+          <div className="absolute bottom-2 left-2 right-2 z-10 pointer-events-none [&>*]:pointer-events-auto">
             <Toolbar />
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Timeline */}
