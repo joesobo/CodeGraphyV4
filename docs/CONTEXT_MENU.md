@@ -46,6 +46,7 @@ Plugin-contributed items (`CONTEXT_MENU_ITEMS`) are appended for single-node con
 - Supported `when`: `node` and `both`
 - Unsupported in current graph menu: `edge` (edges are not yet context targets)
 - Selection dispatch: clicking a plugin item sends `PLUGIN_CONTEXT_MENU_ACTION`
+- Timeline behavior: plugin items are still shown in timeline mode; only built-in destructive actions are hidden.
 
 ## Event Flow
 

@@ -182,7 +182,9 @@ describe('Bug #54: context menu should open from graph right-click callbacks', (
   });
 
   it('opens background menu in 3d from onBackgroundRightClick alone', async () => {
-    graphStore.setState({ graphMode: '3d' });
+    await act(async () => {
+      graphStore.setState({ graphMode: '3d' });
+    });
     render(<Graph data={mockData} />);
 
     await act(async () => {
@@ -195,7 +197,9 @@ describe('Bug #54: context menu should open from graph right-click callbacks', (
   });
 
   it('opens node menu in 3d from onNodeRightClick alone', async () => {
-    graphStore.setState({ graphMode: '3d' });
+    await act(async () => {
+      graphStore.setState({ graphMode: '3d' });
+    });
     render(<Graph data={mockData} />);
 
     await act(async () => {
@@ -204,6 +208,20 @@ describe('Bug #54: context menu should open from graph right-click callbacks', (
 
     await waitFor(() => {
       expect(screen.getByText('Open File')).toBeInTheDocument();
+    });
+  });
+
+  it('falls back to background menu when only container contextmenu event fires', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+    expect(graphContainer).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.contextMenu(graphContainer!, { clientX: 300, clientY: 300 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('New File...')).toBeInTheDocument();
     });
   });
 });
