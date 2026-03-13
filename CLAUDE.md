@@ -52,6 +52,13 @@ When assigned a Trello card, follow this process end-to-end:
 5. Commit frequently: commit often, at minimum whenever subagent work is merged into the main task branch.
 6. Deliver via PR: push all commits and open a GitHub PR with a clear description for human review.
 
+## Worktree Safety (Mandatory)
+
+- Treat the user's currently open worktree as protected.
+- Never run `git switch`, `git checkout <branch>`, `git rebase`, or other branch-changing commands in the protected worktree.
+- Before any branch/worktree operations, create and move into a separate agent worktree; do branch switches only there.
+- If a branch was changed in the protected worktree by mistake, immediately restore it and report what happened.
+
 ## Playwright PR Image Upload Workflow
 
 Use this flow to attach screenshots/GIFs to PR comments via GitHub UI attachments (without committing media files):
