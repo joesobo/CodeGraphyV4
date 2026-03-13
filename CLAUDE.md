@@ -55,13 +55,27 @@ When assigned a Trello card or any development task, follow this process end-to-
 
 ### Quality Gates (for every new or changed behavior)
 
-#### 1. Acceptance Scenarios + TDD
+#### 1. Acceptance Scenarios + Red-Green-Refactor TDD
 
-- For every new or changed behavior, write acceptance scenarios. Ask the user before changing existing scenarios.
-- Confirm the scenarios fail first.
-- Write failing unit tests and make them pass until all scenarios pass.
+For every new or changed behavior, write acceptance scenarios. Ask the user before changing existing scenarios.
+
+Follow Uncle Bob's Three Laws of TDD strictly:
+
+1. You may not write production code until you have written a failing test.
+2. You may not write more of a test than is sufficient to fail (including compile/type errors).
+3. You may not write more production code than is sufficient to pass the currently failing test.
+
+Apply the **Red-Green-Refactor** cycle in tight iterations:
+
+- **Red:** Write one small failing test (or acceptance scenario). Run it — confirm it fails.
+- **Green:** Write the minimum production code to make it pass. Nothing more.
+- **Refactor:** Clean up the code and tests while keeping everything green. Remove duplication, improve names, simplify structure.
+- Repeat until all acceptance scenarios pass.
+
+Additional rules:
 - Test locations: extension and webview tests in `packages/extension/tests/`, plugin tests in `packages/plugin-*/__tests__/`.
 - Prefer targeted test runs while iterating, then run full `pnpm run test` before finishing.
+- Never skip the Refactor step — it prevents the "just make it pass" code from accumulating into a mess.
 
 #### 2. CRAP Score Check
 
