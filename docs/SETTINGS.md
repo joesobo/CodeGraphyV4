@@ -136,14 +136,9 @@ To version-control filter patterns, add them to `settings.json`:
 - **Direction Color** controls directional indicator color (hex only, `#RRGGBB`).
 - **Particle Speed** uses a normalized UI scale from `1` to `10` (mapped to internal `0.0005` to `0.005`).
 - **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
-- **Node Size** determines what controls node size:
-  - `connections` (default): more connections = larger node
-  - `file-size`: larger files = larger nodes (logarithmic scale)
-  - `access-count`: frequently opened files = larger nodes
-  - `uniform`: all nodes the same size
 - **Folder Node Color** (only visible in Folder View) sets the hex color for folder nodes (`#RRGGBB`).
 
-View, layout, and 2D/3D controls have moved to the **toolbar** at the top of the graph. Use the `V`, `L`, and `T` keyboard shortcuts or the toolbar buttons directly. See [Keybindings](./KEYBINDINGS.md) for details.
+View, layout, node size, and 2D/3D controls are in the **toolbar** at the bottom of the graph. Use the `V`, `L`, and `T` keyboard shortcuts or the toolbar buttons directly. See [Keybindings](./KEYBINDINGS.md) for details.
 
 ## Graph views
 

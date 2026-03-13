@@ -582,7 +582,7 @@ export type WebviewToExtensionMessage =
   | { type: 'EXPORT_MD'; payload: { markdown: string; filename?: string } }
   | { type: 'UPDATE_PHYSICS_SETTING'; payload: { key: keyof IPhysicsSettings; value: number } }
   | { type: 'RESET_PHYSICS_SETTINGS' }
-  | { type: 'RESET_ALL_SETTINGS'; payload: { nodeSizeMode: NodeSizeMode } }
+  | { type: 'RESET_ALL_SETTINGS' }
   | { type: 'GET_PHYSICS_SETTINGS' }
   // Undo/Redo commands from webview keyboard shortcuts
   | { type: 'UNDO' }
@@ -620,7 +620,8 @@ export type WebviewToExtensionMessage =
   | { type: 'TOGGLE_PLUGIN_SECTION_DISABLED'; payload: { pluginId: string; disabled: boolean } }
   | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } }
   | { type: 'UPDATE_FOLDER_NODE_COLOR'; payload: { folderNodeColor: string } }
-  | { type: 'UPDATE_DAG_MODE'; payload: { dagMode: DagMode } };
+  | { type: 'UPDATE_DAG_MODE'; payload: { dagMode: DagMode } }
+  | { type: 'UPDATE_NODE_SIZE_MODE'; payload: { nodeSizeMode: NodeSizeMode } };
 
 /**
  * File information returned from extension for tooltips.

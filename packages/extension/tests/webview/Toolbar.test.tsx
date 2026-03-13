@@ -23,17 +23,17 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
 }
 
 /**
- * Helper to get button groups from the toolbar DOM.
- * Layout: [depth-slider] [view-buttons-group] [dag-buttons-group] [2d/3d] [separator] [refresh] [export] [plugins] [settings]
+ * Helper to get button groups from the toolbar DOM using data-testid attributes.
+ * Layout: [depth-slider] [view-buttons] [dag-buttons] [2d/3d] [node-size-buttons] | [refresh] [export] [plugins] [settings]
  */
 function getButtonGroups(container: HTMLElement) {
-  // The bordered groups contain view and DAG buttons
-  const groups = container.querySelectorAll('.rounded-md.border');
-  const viewGroup = groups[0]; // First bordered group = view buttons
-  const dagGroup = groups[1]; // Second bordered group = DAG buttons
+  const viewGroup = container.querySelector('[data-testid="view-buttons"]');
+  const dagGroup = container.querySelector('[data-testid="dag-buttons"]');
+  const nodeSizeGroup = container.querySelector('[data-testid="node-size-buttons"]');
   return {
     viewButtons: viewGroup ? Array.from(viewGroup.querySelectorAll('button')) : [],
     dagButtons: dagGroup ? Array.from(dagGroup.querySelectorAll('button')) : [],
+    nodeSizeButtons: nodeSizeGroup ? Array.from(nodeSizeGroup.querySelectorAll('button')) : [],
   };
 }
 
@@ -119,9 +119,9 @@ describe('Toolbar', () => {
       const { container } = render(<Toolbar />);
       // The 2D/3D toggle is a standalone outline button after the DAG group
       const outlineButtons = container.querySelectorAll('button');
-      // Find it by process of elimination: not in view/dag group, not title="Refresh Graph"
-      const { viewButtons, dagButtons } = getButtonGroups(container);
-      const groupButtonSet = new Set([...viewButtons, ...dagButtons]);
+      // Find it by process of elimination: not in view/dag/node-size group, not title="..."
+      const { viewButtons, dagButtons, nodeSizeButtons } = getButtonGroups(container);
+      const groupButtonSet = new Set([...viewButtons, ...dagButtons, ...nodeSizeButtons]);
       const standaloneButtons = Array.from(outlineButtons).filter(
         btn => !groupButtonSet.has(btn) && !btn.getAttribute('title')
       );
@@ -134,8 +134,8 @@ describe('Toolbar', () => {
       setDefaultState({ graphMode: '3d' });
       const { container } = render(<Toolbar />);
       const outlineButtons = container.querySelectorAll('button');
-      const { viewButtons, dagButtons } = getButtonGroups(container);
-      const groupButtonSet = new Set([...viewButtons, ...dagButtons]);
+      const { viewButtons, dagButtons, nodeSizeButtons } = getButtonGroups(container);
+      const groupButtonSet = new Set([...viewButtons, ...dagButtons, ...nodeSizeButtons]);
       const standaloneButtons = Array.from(outlineButtons).filter(
         btn => !groupButtonSet.has(btn) && !btn.getAttribute('title')
       );
@@ -165,6 +165,37 @@ describe('Toolbar', () => {
       setDefaultState({ activeViewId: 'codegraphy.depth-graph', depthLimit: 3 });
       render(<Toolbar />);
       expect(screen.getByText('3')).toBeTruthy();
+    });
+  });
+
+  describe('node size mode buttons', () => {
+    it('renders all four node size mode buttons', () => {
+      const { container } = render(<Toolbar />);
+      const { nodeSizeButtons } = getButtonGroups(container);
+      expect(nodeSizeButtons).toHaveLength(4);
+    });
+
+    it('active node size mode button has default variant', () => {
+      setDefaultState({ nodeSizeMode: 'file-size' });
+      const { container } = render(<Toolbar />);
+      const { nodeSizeButtons } = getButtonGroups(container);
+      // file-size is index 1 — should be active (not ghost)
+      expect(nodeSizeButtons[1].className).not.toContain('hover:bg-accent');
+      // Others should be ghost
+      expect(nodeSizeButtons[0].className).toContain('hover:bg-accent');
+      expect(nodeSizeButtons[2].className).toContain('hover:bg-accent');
+      expect(nodeSizeButtons[3].className).toContain('hover:bg-accent');
+    });
+
+    it('sends UPDATE_NODE_SIZE_MODE when a node size button is clicked', () => {
+      setDefaultState({ nodeSizeMode: 'connections' });
+      const { container } = render(<Toolbar />);
+      const { nodeSizeButtons } = getButtonGroups(container);
+      // Click "Uniform" (index 3)
+      fireEvent.click(nodeSizeButtons[3]);
+      const msg = findMessage('UPDATE_NODE_SIZE_MODE');
+      expect(msg).toBeTruthy();
+      expect(msg!.payload.nodeSizeMode).toBe('uniform');
     });
   });
 

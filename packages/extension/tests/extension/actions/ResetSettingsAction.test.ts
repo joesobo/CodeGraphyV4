@@ -35,13 +35,31 @@ function createMockConfig(store: Record<string, unknown>) {
   return { get, update, inspect } as unknown as vscode.WorkspaceConfiguration;
 }
 
+/** Build a mock ExtensionContext with workspaceState. */
+function createMockContext() {
+  const state: Record<string, unknown> = {};
+  return {
+    workspaceState: {
+      get: vi.fn(<T>(key: string, defaultValue?: T): T => {
+        return (key in state ? state[key] : defaultValue) as T;
+      }),
+      update: vi.fn(async (key: string, value: unknown) => {
+        state[key] = value;
+      }),
+    },
+    _state: state,
+  } as unknown as vscode.ExtensionContext & { _state: Record<string, unknown> };
+}
+
 describe('ResetSettingsAction', () => {
   let physicsStore: Record<string, unknown>;
   let codegraphyStore: Record<string, unknown>;
   let mockPhysicsConfig: vscode.WorkspaceConfiguration;
   let mockCodegraphyConfig: vscode.WorkspaceConfiguration;
   let mockSendAllSettings: ReturnType<typeof vi.fn>;
+  let mockSetNodeSizeMode: ReturnType<typeof vi.fn>;
   let mockRefreshGraph: ReturnType<typeof vi.fn>;
+  let mockContext: vscode.ExtensionContext & { _state: Record<string, unknown> };
 
   const NON_DEFAULT_SNAPSHOT: ISettingsSnapshot = {
     physics: { repelForce: 5, linkDistance: 200, linkForce: 0.5, damping: 0.3, centerForce: 0.5 },
@@ -71,7 +89,9 @@ describe('ResetSettingsAction', () => {
     return new ResetSettingsAction(
       NON_DEFAULT_SNAPSHOT,
       vscode.ConfigurationTarget.Workspace,
+      mockContext,
       mockSendAllSettings,
+      mockSetNodeSizeMode,
       mockRefreshGraph,
     );
   }
@@ -102,7 +122,9 @@ describe('ResetSettingsAction', () => {
     mockCodegraphyConfig = createMockConfig(codegraphyStore);
     wireConfigMocks();
 
+    mockContext = createMockContext();
     mockSendAllSettings = vi.fn();
+    mockSetNodeSizeMode = vi.fn();
     mockRefreshGraph = vi.fn().mockResolvedValue(undefined);
   });
 
@@ -131,10 +153,12 @@ describe('ResetSettingsAction', () => {
     expect(Object.keys(codegraphyStore)).toHaveLength(0);
   });
 
-  it('execute sends default nodeSizeMode and refreshes graph', async () => {
+  it('execute resets nodeSizeMode to connections and refreshes graph', async () => {
     await createAction().execute();
 
-    expect(mockSendAllSettings).toHaveBeenCalledWith('connections');
+    expect(mockSetNodeSizeMode).toHaveBeenCalledWith('connections');
+    expect(mockContext._state['codegraphy.nodeSizeMode']).toBe('connections');
+    expect(mockSendAllSettings).toHaveBeenCalled();
     expect(mockRefreshGraph).toHaveBeenCalled();
   });
 
@@ -160,7 +184,7 @@ describe('ResetSettingsAction', () => {
     expect(codegraphyStore['bidirectionalEdges']).toBe('combined');
   });
 
-  it('undo sends original nodeSizeMode and refreshes graph', async () => {
+  it('undo restores original nodeSizeMode and refreshes graph', async () => {
     const action = createAction();
     await action.execute();
     vi.clearAllMocks();
@@ -168,7 +192,9 @@ describe('ResetSettingsAction', () => {
 
     await action.undo();
 
-    expect(mockSendAllSettings).toHaveBeenCalledWith('file-size');
+    expect(mockSetNodeSizeMode).toHaveBeenCalledWith('file-size');
+    expect(mockContext._state['codegraphy.nodeSizeMode']).toBe('file-size');
+    expect(mockSendAllSettings).toHaveBeenCalled();
     expect(mockRefreshGraph).toHaveBeenCalled();
   });
 
@@ -177,20 +203,20 @@ describe('ResetSettingsAction', () => {
     const action = createAction();
 
     await undoManager.execute(action);
-    expect(mockSendAllSettings).toHaveBeenCalledWith('connections');
+    expect(mockSetNodeSizeMode).toHaveBeenCalledWith('connections');
 
     vi.clearAllMocks();
     wireConfigMocks();
 
     const undoDesc = await undoManager.undo();
     expect(undoDesc).toBe('Reset all settings');
-    expect(mockSendAllSettings).toHaveBeenCalledWith('file-size');
+    expect(mockSetNodeSizeMode).toHaveBeenCalledWith('file-size');
 
     vi.clearAllMocks();
     wireConfigMocks();
 
     const redoDesc = await undoManager.redo();
     expect(redoDesc).toBe('Reset all settings');
-    expect(mockSendAllSettings).toHaveBeenCalledWith('connections');
+    expect(mockSetNodeSizeMode).toHaveBeenCalledWith('connections');
   });
 });

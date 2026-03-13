@@ -71,6 +71,9 @@ const DEPTH_LIMIT_KEY = 'codegraphy.depthLimit';
 /** Storage key for DAG layout mode per workspace */
 const DAG_MODE_KEY = 'codegraphy.dagMode';
 
+/** Storage key for node size mode per workspace */
+const NODE_SIZE_MODE_KEY = 'codegraphy.nodeSizeMode';
+
 /** Storage key for disabled rules in workspace state */
 const DISABLED_RULES_KEY = 'codegraphy.disabledRules';
 
@@ -150,6 +153,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   /** Current DAG layout mode (null = free-form physics) */
   private _dagMode: DagMode = null;
+
+  /** Current node size mode */
+  private _nodeSizeMode: NodeSizeMode = 'connections';
 
   /** Raw (untransformed) graph data from analysis */
   private _rawGraphData: IGraphData = { nodes: [], edges: [] };
@@ -268,6 +274,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
     // Restore DAG mode from workspace state
     this._dagMode = this._context.workspaceState.get<DagMode>(DAG_MODE_KEY) ?? null;
+
+    // Restore node size mode from workspace state
+    this._nodeSizeMode = this._context.workspaceState.get<NodeSizeMode>(NODE_SIZE_MODE_KEY) ?? 'connections';
 
     this._loadDisabledRulesAndPlugins();
   }
@@ -1011,7 +1020,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._viewContext.focusedFile = filePath;
     
     // Always update available views when focused file changes
-    // This ensures the ViewSwitcher dropdown shows the correct options
     // (e.g., Depth Graph is only available when a file is focused)
     if (previousFocusedFile !== filePath) {
       this._sendAvailableViews();
@@ -1323,6 +1331,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
             payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
           });
           this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
+          this._sendMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode: this._nodeSizeMode } });
           this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: normalizeFolderNodeColor(vscode.workspace.getConfiguration('codegraphy').get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)) } });
           this._sendDecorations();
           this._sendContextMenuItems();
@@ -1431,11 +1440,13 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
 
         case 'RESET_ALL_SETTINGS': {
-          const snapshot = this._captureSettingsSnapshot(message.payload.nodeSizeMode);
+          const snapshot = this._captureSettingsSnapshot();
           const action = new ResetSettingsAction(
             snapshot,
             this._getConfigTarget(),
-            (nodeSizeMode) => this._sendAllSettings(nodeSizeMode),
+            this._context,
+            () => this._sendAllSettings(),
+            (mode) => { this._nodeSizeMode = mode; },
             () => this._analyzeAndSendData(),
           );
           await getUndoManager().execute(action);
@@ -1474,6 +1485,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._dagMode = message.payload.dagMode;
           await this._context.workspaceState.update(DAG_MODE_KEY, this._dagMode);
           this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
+          break;
+
+        case 'UPDATE_NODE_SIZE_MODE':
+          this._nodeSizeMode = message.payload.nodeSizeMode;
+          await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, this._nodeSizeMode);
+          this._sendMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode: this._nodeSizeMode } });
           break;
 
         case 'UPDATE_GROUPS': {
@@ -2323,9 +2340,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /**
    * Sends all current settings to the webview in a single batch.
    * Used after reset/undo to ensure the webview is fully in sync.
-   * @param nodeSizeMode - The node size mode to apply (webview-only state)
    */
-  private _sendAllSettings(nodeSizeMode: NodeSizeMode): void {
+  private _sendAllSettings(): void {
     const config = vscode.workspace.getConfiguration('codegraphy');
     const physicsSettings = this._getPhysicsSettings();
 
@@ -2368,15 +2384,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const maxFiles = config.get<number>('maxFiles', 500);
     this._sendMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles } });
 
-    // nodeSizeMode is webview-only state
-    this._sendMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode } });
+    // nodeSizeMode is persisted in workspace state
+    this._sendMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode: this._nodeSizeMode } });
   }
 
   /**
    * Captures the current settings state as a snapshot.
-   * @param nodeSizeMode - Current webview-only nodeSizeMode value
    */
-  private _captureSettingsSnapshot(nodeSizeMode: NodeSizeMode): ISettingsSnapshot {
+  private _captureSettingsSnapshot(): ISettingsSnapshot {
     const config = vscode.workspace.getConfiguration('codegraphy');
     return {
       physics: this._getPhysicsSettings(),
@@ -2392,7 +2407,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       showLabels: config.get<boolean>('showLabels', true),
       maxFiles: config.get<number>('maxFiles', 500),
       hiddenPluginGroups: config.get<string[]>('hiddenPluginGroups', []),
-      nodeSizeMode,
+      nodeSizeMode: this._nodeSizeMode,
     };
   }
 
