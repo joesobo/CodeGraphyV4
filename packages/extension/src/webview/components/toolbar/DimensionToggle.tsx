@@ -1,3 +1,9 @@
+/**
+ * @fileoverview 2D/3D dimension toggle button.
+ * Switches the graph renderer between 2D canvas and 3D WebGL modes.
+ * @module webview/components/toolbar/DimensionToggle
+ */
+
 import React from 'react';
 import { mdiCircleOutline, mdiSphere } from '@mdi/js';
 import { MdiIcon } from '../icons';

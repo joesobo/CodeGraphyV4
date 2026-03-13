@@ -112,7 +112,7 @@ export default function SettingsPanel({
   const pluginFilterPatterns = useGraphStore(s => s.pluginFilterPatterns);
   const showOrphans = useGraphStore(s => s.showOrphans);
   const setShowOrphans = useGraphStore(s => s.setShowOrphans);
-  const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
+
   const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
   const setBidirectionalMode = useGraphStore(s => s.setBidirectionalMode);
   const directionMode = useGraphStore(s => s.directionMode);
@@ -482,7 +482,7 @@ export default function SettingsPanel({
   };
 
   const handleResetSettings = () => {
-    postMessage({ type: 'RESET_ALL_SETTINGS', payload: { nodeSizeMode } });
+    postMessage({ type: 'RESET_ALL_SETTINGS' });
   };
 
   return (

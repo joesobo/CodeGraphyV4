@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import type { IUndoableAction } from '../UndoManager';
-import type { ISettingsSnapshot, IPhysicsSettings, NodeSizeMode } from '../../shared/types';
+import type { ISettingsSnapshot, IPhysicsSettings } from '../../shared/types';
 
 /** Physics keys live under `codegraphy.physics.*` */
 const PHYSICS_KEYS: (keyof IPhysicsSettings)[] = [
@@ -33,12 +33,15 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   hiddenPluginGroups: 'hiddenPluginGroups',
 };
 
+/** Storage key for node size mode per workspace */
+const NODE_SIZE_MODE_KEY = 'codegraphy.nodeSizeMode';
+
 /**
  * Action for resetting all settings to defaults.
  * Uses state-based undo — captures full settings snapshot before reset.
  *
  * On execute: resets all VS Code config keys to `undefined` (reverts to
- * package.json defaults) and tells the webview to reset nodeSizeMode.
+ * package.json defaults) and resets nodeSizeMode to 'connections'.
  *
  * On undo: restores every captured config value and the original nodeSizeMode.
  */
@@ -48,7 +51,9 @@ export class ResetSettingsAction implements IUndoableAction {
   constructor(
     private readonly _stateBefore: ISettingsSnapshot,
     private readonly _configTarget: vscode.ConfigurationTarget,
-    private readonly _sendAllSettings: (nodeSizeMode: NodeSizeMode) => void,
+    private readonly _context: vscode.ExtensionContext,
+    private readonly _sendAllSettings: () => void,
+    private readonly _setNodeSizeMode: (mode: ISettingsSnapshot['nodeSizeMode']) => void,
     private readonly _refreshGraph: () => Promise<void>,
   ) {}
 
@@ -64,7 +69,10 @@ export class ResetSettingsAction implements IUndoableAction {
       await config.update(configKey, undefined, target);
     }
 
-    this._sendAllSettings('connections');
+    this._setNodeSizeMode('connections');
+    await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, 'connections');
+
+    this._sendAllSettings();
     await this._refreshGraph();
   }
 
@@ -81,7 +89,10 @@ export class ResetSettingsAction implements IUndoableAction {
       await config.update(configKey, before[snapshotField], target);
     }
 
-    this._sendAllSettings(before.nodeSizeMode);
+    this._setNodeSizeMode(before.nodeSizeMode);
+    await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, before.nodeSizeMode);
+
+    this._sendAllSettings();
     await this._refreshGraph();
   }
 }

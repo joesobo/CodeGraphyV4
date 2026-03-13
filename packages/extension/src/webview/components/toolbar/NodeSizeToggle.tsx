@@ -1,9 +1,16 @@
+/**
+ * @fileoverview Node size mode toggle button group.
+ * Allows switching between connection-based, file-size, access-count, and uniform sizing.
+ * @module webview/components/toolbar/NodeSizeToggle
+ */
+
 import React from 'react';
 import { mdiHubOutline, mdiFileOutline, mdiCounter, mdiEqual } from '@mdi/js';
 import { MdiIcon } from '../icons';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { useGraphStore } from '../../store';
+import { postMessage } from '../../lib/vscodeApi';
 import type { NodeSizeMode } from '../../../shared/types';
 
 const NODE_SIZE_MODES: { mode: NodeSizeMode; label: string; icon: string }[] = [
@@ -15,10 +22,13 @@ const NODE_SIZE_MODES: { mode: NodeSizeMode; label: string; icon: string }[] = [
 
 export function NodeSizeToggle(): React.ReactElement {
   const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
-  const setNodeSizeMode = useGraphStore(s => s.setNodeSizeMode);
+
+  const handleNodeSizeModeChange = (mode: NodeSizeMode) => {
+    postMessage({ type: 'UPDATE_NODE_SIZE_MODE', payload: { nodeSizeMode: mode } });
+  };
 
   return (
-    <div className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
+    <div data-testid="node-size-buttons" className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
       {NODE_SIZE_MODES.map(({ mode, label, icon }) => (
         <Tooltip key={mode}>
           <TooltipTrigger asChild>
@@ -26,7 +36,7 @@ export function NodeSizeToggle(): React.ReactElement {
               variant={nodeSizeMode === mode ? 'default' : 'ghost'}
               size="icon"
               className="h-7 w-7"
-              onClick={() => setNodeSizeMode(mode)}
+              onClick={() => handleNodeSizeModeChange(mode)}
             >
               <MdiIcon path={icon} size={16} />
             </Button>
