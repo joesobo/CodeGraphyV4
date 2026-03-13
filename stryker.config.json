@@ -18,8 +18,8 @@
   "incrementalFile": "reports/mutation/stryker-incremental.json",
   "ignoreStatic": true,
   "thresholds": {
-    "high": 80,
-    "low": 60,
-    "break": null
+    "high": 90,
+    "low": 80,
+    "break": 90
   }
 }
