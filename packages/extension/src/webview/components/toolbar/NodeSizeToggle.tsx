@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { mdiHubOutline, mdiFileOutline, mdiCounter, mdiEqual } from '@mdi/js';
+import { mdiHubOutline, mdiFileOutline, mdiEyeOutline, mdiCircleMultipleOutline } from '@mdi/js';
 import { MdiIcon } from '../icons';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
@@ -16,8 +16,8 @@ import type { NodeSizeMode } from '../../../shared/types';
 const NODE_SIZE_MODES: { mode: NodeSizeMode; label: string; icon: string }[] = [
   { mode: 'connections', label: 'Size by Connections', icon: mdiHubOutline },
   { mode: 'file-size', label: 'Size by File Size', icon: mdiFileOutline },
-  { mode: 'access-count', label: 'Size by Access Count', icon: mdiCounter },
-  { mode: 'uniform', label: 'Uniform Size', icon: mdiEqual },
+  { mode: 'access-count', label: 'Size by Access Count', icon: mdiEyeOutline },
+  { mode: 'uniform', label: 'Uniform Size', icon: mdiCircleMultipleOutline },
 ];
 
 export function NodeSizeToggle(): React.ReactElement {
