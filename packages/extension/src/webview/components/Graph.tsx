@@ -71,6 +71,7 @@ const RIGHT_CLICK_FALLBACK_DELAY_MS = 40;
 const MIN_NODE_SIZE = 10;
 const MAX_NODE_SIZE = 40;
 const DEFAULT_NODE_SIZE = 16;
+type GraphCursorStyle = 'default' | 'pointer';
 
 interface GraphProps {
   data: IGraphData;
@@ -302,6 +303,18 @@ function isMacControlContextClick(event: MouseEvent, isMacPlatform: boolean): bo
   return isMacPlatform && event.button === 0 && event.ctrlKey && !event.metaKey;
 }
 
+function applyCursorToGraphSurface(container: HTMLDivElement, cursor: GraphCursorStyle): void {
+  container.style.cursor = cursor;
+  for (const child of Array.from(container.children)) {
+    if (child instanceof HTMLElement) {
+      child.style.cursor = cursor;
+    }
+  }
+  for (const canvas of Array.from(container.querySelectorAll('canvas'))) {
+    canvas.style.cursor = cursor;
+  }
+}
+
 // ─── Graph component ────────────────────────────────────────────────────────
 
 export default function Graph({
@@ -359,6 +372,7 @@ export default function Graph({
     ctrlKey: boolean;
     moved: boolean;
   } | null>(null);
+  const graphCursorRef = useRef<GraphCursorStyle>('default');
   const showLabelsRef = useRef(showLabels);
   /** Stores 3D SpriteText objects by node id so we can toggle visibility without rebuilding */
   const spritesRef = useRef<Map<string, SpriteText>>(new Map());
@@ -858,6 +872,13 @@ export default function Graph({
     openContextMenuFromGraphCallback(event);
   }, [openContextMenuFromGraphCallback]);
 
+  const setGraphCursor = useCallback((cursor: GraphCursorStyle) => {
+    graphCursorRef.current = cursor;
+    const container = containerRef.current;
+    if (!container) return;
+    applyCursorToGraphSurface(container, cursor);
+  }, []);
+
   const clearRightClickFallbackTimer = useCallback(() => {
     if (rightClickFallbackTimerRef.current !== null) {
       clearTimeout(rightClickFallbackTimerRef.current);
@@ -964,11 +985,12 @@ export default function Graph({
       return;
     }
 
+    setGraphCursor('default');
     setHighlight(null);
     selectedNodesSetRef.current = new Set();
     setSelectedNodes([]);
     sendGraphInteraction('graph:backgroundClick', {});
-  }, [isMacPlatform, openBackgroundContextMenu, setHighlight, sendGraphInteraction]);
+  }, [isMacPlatform, openBackgroundContextMenu, setGraphCursor, setHighlight, sendGraphInteraction]);
 
   const handleLinkClick = useCallback((link: FGLink, event: MouseEvent) => {
     if (!isMacControlContextClick(event, isMacPlatform)) return;
@@ -1013,12 +1035,15 @@ export default function Graph({
     if (tooltipTimeoutRef.current) clearTimeout(tooltipTimeoutRef.current);
 
     if (!node) {
+      setGraphCursor('default');
       hoveredNodeRef.current = null;
       stopTooltipTracking();
       setTooltipData(prev => ({ ...prev, visible: false, pluginSections: [] }));
       sendGraphInteraction('graph:nodeHover', { node: null });
       return;
     }
+
+    setGraphCursor('pointer');
     sendGraphInteraction('graph:nodeHover', { node: { id: node.id, label: node.label } });
 
     hoveredNodeRef.current = node;
@@ -1053,10 +1078,23 @@ export default function Graph({
 
       startTooltipTracking();
     }, 500);
-  }, [getNodeScreenRect, pluginHost, startTooltipTracking, stopTooltipTracking, sendGraphInteraction]);
+  }, [getNodeScreenRect, pluginHost, setGraphCursor, startTooltipTracking, stopTooltipTracking, sendGraphInteraction]);
+
+  const handleMouseLeave = useCallback(() => {
+    setGraphCursor('default');
+  }, [setGraphCursor]);
 
   // Cleanup tooltip RAF on unmount
   useEffect(() => stopTooltipTracking, [stopTooltipTracking]);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      const container = containerRef.current;
+      if (!container) return;
+      applyCursorToGraphSurface(container, graphCursorRef.current);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [graphMode]);
 
   // ── Context menu ─────────────────────────────────────────────────────────
 
@@ -1578,11 +1616,12 @@ export default function Graph({
         <div
           ref={containerRef}
           onContextMenu={handleContextMenu}
+          onMouseLeave={handleMouseLeave}
           onMouseDownCapture={handleMouseDownCapture}
           onMouseMoveCapture={handleMouseMoveCapture}
           onMouseUpCapture={handleMouseUpCapture}
           className="graph-container absolute inset-0 rounded-lg m-1 outline-none focus:outline-none"
-          style={{ backgroundColor: bgColor, borderWidth: 1, borderStyle: 'solid', borderColor }}
+          style={{ backgroundColor: bgColor, borderWidth: 1, borderStyle: 'solid', borderColor, cursor: 'default' }}
           tabIndex={0}
         >
           {graphMode === '2d' ? (
