@@ -173,6 +173,23 @@ describe('Graph context menu (background)', () => {
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
   });
 
+  it('hides New File... in timeline mode on background context', async () => {
+    graphStore.setState({ timelineActive: true });
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateBackgroundRightClick();
+      fireEvent.contextMenu(graphContainer, { clientX: 320, clientY: 300 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Refresh Graph')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
+    expect(screen.queryByText('New File...')).not.toBeInTheDocument();
+  });
+
   it('sends REFRESH_GRAPH message when clicking Refresh Graph', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
@@ -225,6 +242,30 @@ describe('Graph context menu (background)', () => {
 
     await act(async () => {
       ForceGraph2D.simulateBackgroundRightClick();
+      fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Fit All Nodes'));
+    });
+
+    expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20);
+  });
+
+  it('fits view in 3d when clicking Fit All Nodes', async () => {
+    const methods = ForceGraph3D.getMockMethods();
+    methods.zoomToFit.mockClear();
+    graphStore.setState({ graphMode: '3d' });
+
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph3D.simulateBackgroundRightClick();
       fireEvent.contextMenu(graphContainer, { clientX: 300, clientY: 300 });
     });
 

@@ -76,6 +76,10 @@ function clearAllHandlers() {
   vi.clearAllMocks();
 }
 
+function getMockMethods(): typeof mockMethods {
+  return mockMethods;
+}
+
 const ForceGraph3DWithHelpers = Object.assign(ForceGraph3D, {
   simulateNodeClick,
   simulateNodeRightClick,
@@ -84,6 +88,7 @@ const ForceGraph3DWithHelpers = Object.assign(ForceGraph3D, {
   simulateLinkClick,
   simulateLinkRightClick,
   getLastProps,
+  getMockMethods,
   clearAllHandlers,
 });
 

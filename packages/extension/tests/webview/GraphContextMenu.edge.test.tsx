@@ -146,6 +146,23 @@ describe('Graph context menu (edge)', () => {
     expect(screen.queryByText('New File...')).not.toBeInTheDocument();
   });
 
+  it('keeps edge actions available in timeline mode', async () => {
+    graphStore.setState({ timelineActive: true });
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateLinkRightClick(edge);
+      fireEvent.contextMenu(graphContainer, { clientX: 180, clientY: 160 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
+    expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
+  });
+
   it('sends COPY_TO_CLIPBOARD source path when clicking Copy Source Path', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
@@ -247,6 +264,28 @@ describe('Graph context menu (edge)', () => {
       index: 1,
       targetId: 'src/app.ts->src/utils.ts',
       targetType: 'edge',
+    });
+  });
+
+  it('keeps plugin edge items visible in timeline mode', async () => {
+    const pluginItem: IPluginContextMenuItem = {
+      label: 'Edge Timeline Action',
+      when: 'edge',
+      pluginId: 'acme.plugin',
+      index: 3,
+    };
+    graphStore.setState({ timelineActive: true, pluginContextMenuItems: [pluginItem] });
+
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateLinkRightClick(edge);
+      fireEvent.contextMenu(graphContainer, { clientX: 210, clientY: 180 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Edge Timeline Action')).toBeInTheDocument();
     });
   });
 });

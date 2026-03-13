@@ -6,7 +6,7 @@ import { graphStore } from '../../src/webview/store';
 import ForceGraph2D from 'react-force-graph-2d';
 import ForceGraph3D from 'react-force-graph-3d';
 
-import { clearSentMessages, findMessage } from '../helpers/sentMessages';
+import { clearSentMessages, findMessage, getSentMessages } from '../helpers/sentMessages';
 
 function mockMacPlatform() {
   return vi.spyOn(window.navigator, 'platform', 'get').mockReturnValue('MacIntel');
@@ -16,6 +16,18 @@ function getGraphContainer(container: HTMLElement): HTMLElement {
   const graphContainer = container.querySelector('[tabindex="0"]');
   expect(graphContainer).toBeTruthy();
   return graphContainer as HTMLElement;
+}
+
+async function selectTwoNodesForMultiMenu(graphContainer: HTMLElement): Promise<void> {
+  await act(async () => {
+    ForceGraph2D.simulateNodeClick({ id: 'nodeA.ts' });
+    ForceGraph2D.simulateNodeClick({ id: 'nodeB.ts' }, { button: 0, ctrlKey: true });
+  });
+
+  await act(async () => {
+    ForceGraph2D.simulateNodeRightClick({ id: 'nodeA.ts' });
+    fireEvent.contextMenu(graphContainer, { clientX: 180, clientY: 160 });
+  });
 }
 
 const menuData: IGraphData = {
@@ -294,6 +306,30 @@ describe('Graph context menu (node)', () => {
     expect(methods.zoom).toHaveBeenCalledWith(1.5, 300);
   });
 
+  it('focuses node in 3d when clicking Focus Node', async () => {
+    const methods = ForceGraph3D.getMockMethods();
+    methods.zoomToFit.mockClear();
+    graphStore.setState({ graphMode: '3d' });
+
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph3D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Focus Node')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Focus Node'));
+    });
+
+    expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20, expect.any(Function));
+  });
+
   it('sends ADD_TO_EXCLUDE message when clicking Add to Filter', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
@@ -434,6 +470,183 @@ describe('Graph context menu (node)', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Open File')).toBeInTheDocument();
+    });
+  });
+
+  it('shows multi-node actions when opening menu on selected node set', async () => {
+    const { container } = render(<Graph data={selectionData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await selectTwoNodesForMultiMenu(graphContainer);
+
+    await waitFor(() => {
+      expect(screen.getByText('Open 2 Files')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
+    expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
+    expect(screen.getByText('Add All to Filter')).toBeInTheDocument();
+    expect(screen.getByText('Delete 2 Files')).toBeInTheDocument();
+    expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
+    expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
+  });
+
+  it('sends OPEN_FILE for each selected node when clicking Open N Files', async () => {
+    const { container } = render(<Graph data={selectionData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await selectTwoNodesForMultiMenu(graphContainer);
+
+    await waitFor(() => {
+      expect(screen.getByText('Open 2 Files')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Open 2 Files'));
+    });
+
+    const openMessages = getSentMessages().filter(msg => msg.type === 'OPEN_FILE');
+    expect(openMessages).toHaveLength(2);
+    expect(openMessages.map(msg => msg.payload.path)).toEqual(['nodeA.ts', 'nodeB.ts']);
+  });
+
+  it('sends COPY_TO_CLIPBOARD with all selected paths for Copy Relative Paths', async () => {
+    const { container } = render(<Graph data={selectionData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await selectTwoNodesForMultiMenu(graphContainer);
+
+    await waitFor(() => {
+      expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Copy Relative Paths'));
+    });
+
+    const copyMsg = findMessage('COPY_TO_CLIPBOARD');
+    expect(copyMsg).toBeTruthy();
+    expect(copyMsg!.payload.text).toBe('nodeA.ts\nnodeB.ts');
+  });
+
+  it('sends TOGGLE_FAVORITE with all selected paths for Add All to Favorites', async () => {
+    const { container } = render(<Graph data={selectionData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await selectTwoNodesForMultiMenu(graphContainer);
+
+    await waitFor(() => {
+      expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Add All to Favorites'));
+    });
+
+    const favMsg = findMessage('TOGGLE_FAVORITE');
+    expect(favMsg).toBeTruthy();
+    expect(favMsg!.payload.paths).toEqual(['nodeA.ts', 'nodeB.ts']);
+  });
+
+  it('sends ADD_TO_EXCLUDE with all selected paths for Add All to Filter', async () => {
+    const { container } = render(<Graph data={selectionData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await selectTwoNodesForMultiMenu(graphContainer);
+
+    await waitFor(() => {
+      expect(screen.getByText('Add All to Filter')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Add All to Filter'));
+    });
+
+    const addMsg = findMessage('ADD_TO_EXCLUDE');
+    expect(addMsg).toBeTruthy();
+    expect(addMsg!.payload.patterns).toEqual(['nodeA.ts', 'nodeB.ts']);
+  });
+
+  it('sends DELETE_FILES with all selected paths for Delete N Files', async () => {
+    const { container } = render(<Graph data={selectionData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await selectTwoNodesForMultiMenu(graphContainer);
+
+    await waitFor(() => {
+      expect(screen.getByText('Delete 2 Files')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Delete 2 Files'));
+    });
+
+    const deleteMsg = findMessage('DELETE_FILES');
+    expect(deleteMsg).toBeTruthy();
+    expect(deleteMsg!.payload.paths).toEqual(['nodeA.ts', 'nodeB.ts']);
+  });
+
+  it('hides destructive single-node actions in timeline mode', async () => {
+    graphStore.setState({ timelineActive: true });
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Open File')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Copy Relative Path')).toBeInTheDocument();
+    expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
+    expect(screen.getByText('Focus Node')).toBeInTheDocument();
+    expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
+    expect(screen.queryByText('Add to Filter')).not.toBeInTheDocument();
+    expect(screen.queryByText('Rename...')).not.toBeInTheDocument();
+    expect(screen.queryByText('Delete File')).not.toBeInTheDocument();
+  });
+
+  it('hides destructive multi-node actions in timeline mode', async () => {
+    graphStore.setState({ timelineActive: true });
+    const { container } = render(<Graph data={selectionData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await selectTwoNodesForMultiMenu(graphContainer);
+
+    await waitFor(() => {
+      expect(screen.getByText('Open 2 Files')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Copy Relative Paths')).toBeInTheDocument();
+    expect(screen.getByText('Add All to Favorites')).toBeInTheDocument();
+    expect(screen.queryByText('Add All to Filter')).not.toBeInTheDocument();
+    expect(screen.queryByText('Delete 2 Files')).not.toBeInTheDocument();
+  });
+
+  it('keeps plugin node items visible in timeline mode', async () => {
+    const pluginItem: IPluginContextMenuItem = {
+      label: 'Plugin Timeline Action',
+      when: 'node',
+      pluginId: 'acme.plugin',
+      index: 2,
+    };
+    graphStore.setState({ timelineActive: true, pluginContextMenuItems: [pluginItem] });
+
+    const { container } = render(<Graph data={menuData} />);
+    const graphContainer = getGraphContainer(container);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Plugin Timeline Action')).toBeInTheDocument();
     });
   });
 

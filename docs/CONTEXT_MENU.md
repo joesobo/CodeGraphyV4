@@ -75,6 +75,33 @@ This keeps right-click reliable in both 2D and 3D.
 
 ## Tests
 
-- Rule/model tests: `packages/extension/tests/webview/graphContextMenuModel.test.ts`
-- Integration tests (Graph + Radix + action messages): `packages/extension/tests/webview/Graph.test.tsx`
-- Bug regression: `Bug #54` tests in `Graph.test.tsx` ensure menu opens from right-click callbacks in both 2D and 3D.
+- Rule/model tests (typed menu construction + action mapping):
+  - `packages/extension/tests/webview/graphContextMenuModel.test.ts`
+- Integration tests (Graph + Radix + message dispatch), split by runtime context:
+  - `packages/extension/tests/webview/GraphContextMenu.background.test.tsx`
+  - `packages/extension/tests/webview/GraphContextMenu.node.test.tsx`
+  - `packages/extension/tests/webview/GraphContextMenu.edge.test.tsx`
+- Non-context Graph behavior stays in:
+  - `packages/extension/tests/webview/Graph.test.tsx`
+
+### Integration Coverage Matrix
+
+| Behavior | Background | Node | Edge |
+| --- | --- | --- | --- |
+| Right-click opens menu in 2D | Yes | Yes | Yes |
+| Right-click opens menu in 3D | Yes | Yes | Yes |
+| macOS `Ctrl+Click` parity in 2D | Yes | Yes | Yes |
+| macOS `Ctrl+Click` parity in 3D | Yes | Yes | Yes |
+| Timeline filtering rules | Yes (`New File...` hidden) | Yes (destructive actions hidden) | Yes (actions unchanged) |
+| Plugin item visibility + dispatch | Visibility (node items hidden on background) | Visible + dispatch tested | Visible + dispatch tested |
+| Built-in action dispatch coverage | `createFile`, `refresh`, `fitView` (2D + 3D) | Single-node + multi-node actions all tested | `copyEdgeSource`, `copyEdgeTarget`, `copyEdgeBoth` |
+
+### Targeted Test Commands
+
+```bash
+pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts \
+  tests/webview/graphContextMenuModel.test.ts \
+  tests/webview/GraphContextMenu.background.test.tsx \
+  tests/webview/GraphContextMenu.node.test.tsx \
+  tests/webview/GraphContextMenu.edge.test.tsx
+```
