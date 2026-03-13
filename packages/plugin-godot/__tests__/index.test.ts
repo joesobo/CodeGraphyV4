@@ -8,6 +8,11 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createGDScriptPlugin as createGodotPlugin } from '../src';
+import { GDScriptPathResolver } from '../src/PathResolver';
+import { detect as detectPreload } from '../src/rules/preload';
+import { detect as detectLoad } from '../src/rules/load';
+import { detect as detectExtends } from '../src/rules/extends';
+import type { GDScriptRuleContext } from '../src/parser';
 
 const GDSCRIPT_ROOT = path.join(__dirname, '../examples');
 
@@ -164,10 +169,16 @@ var config = load("res://data/config.tres")`;
     expect(conns.some(conn => conn.specifier === 'Player')).toBe(false);
   });
 
-  it('should expose rules and fileColors from manifest', () => {
+  it('should expose rules from manifest', () => {
     const plugin = createGodotPlugin();
+
     expect(plugin.rules).toBeDefined();
     expect(Array.isArray(plugin.rules)).toBe(true);
+  });
+
+  it('should expose fileColors from manifest', () => {
+    const plugin = createGodotPlugin();
+
     expect(plugin.fileColors).toBeDefined();
   });
 
@@ -358,5 +369,51 @@ describe('Godot GDScript Plugin Integration', () => {
 
     // player.gd → scripts/utils/math_helpers.gd is the key in-project edge
     expect(allConnections.some(e => e.from === 'scripts/player.gd' && e.to === 'scripts/utils/math_helpers.gd')).toBe(true);
+  });
+});
+
+describe('all rules combined', () => {
+  let resolver: GDScriptPathResolver;
+  let ctx: GDScriptRuleContext;
+  const workspaceRoot = '/workspace/my-game';
+  const testFile = '/workspace/my-game/scripts/player.gd';
+
+  beforeEach(() => {
+    resolver = new GDScriptPathResolver(workspaceRoot);
+    ctx = {
+      resolver,
+      workspaceRoot,
+      relativeFilePath: 'scripts/test.gd',
+    };
+  });
+
+  it('should detect all connection types in a realistic GDScript file', () => {
+    const content = `extends "res://scripts/character_base.gd"
+
+const Bullet = preload("res://weapons/bullet.tscn")
+const HealthBar = preload("res://ui/health_bar.gd")
+
+@onready var sprite = $Sprite2D
+
+func _ready():
+    var config = load("res://data/player_config.tres")
+
+func shoot():
+    var bullet = Bullet.instantiate()`;
+
+    const preloads = detectPreload(content, testFile, ctx);
+    const loads = detectLoad(content, testFile, ctx);
+    const extendsConns = detectExtends(content, testFile, ctx);
+
+    expect(preloads).toHaveLength(2);
+    expect(preloads[0].specifier).toBe('res://weapons/bullet.tscn');
+    expect(preloads[1].specifier).toBe('res://ui/health_bar.gd');
+
+    expect(loads).toHaveLength(1);
+    expect(loads[0].specifier).toBe('res://data/player_config.tres');
+    expect(loads[0].type).toBe('dynamic');
+
+    expect(extendsConns).toHaveLength(1);
+    expect(extendsConns[0].specifier).toBe('res://scripts/character_base.gd');
   });
 });
