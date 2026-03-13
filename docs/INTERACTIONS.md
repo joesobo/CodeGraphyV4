@@ -12,6 +12,7 @@
 | `Ctrl+Click` (macOS) | Open the context menu (same as right-click) |
 | Drag | Reposition the node (position is saved) |
 | Hover | Show tooltip with file details |
+| Hover cursor | Pointer cursor |
 | `Ctrl+Click` / `Cmd+Click` | Add or remove from selection |
 
 ## Canvas
@@ -20,6 +21,7 @@
 |--------|--------|
 | Drag | Pan the view |
 | Scroll | Zoom in/out |
+| Hover cursor | Default cursor |
 | Right-click | Open background context menu |
 | `Shift+Drag` | Box select multiple nodes |
 
