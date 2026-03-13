@@ -8,3 +8,4 @@ export { AddToExcludeAction } from './AddToExcludeAction';
 export { DeleteFilesAction } from './DeleteFilesAction';
 export { RenameFileAction } from './RenameFileAction';
 export { CreateFileAction } from './CreateFileAction';
+export { ResetSettingsAction } from './ResetSettingsAction';
