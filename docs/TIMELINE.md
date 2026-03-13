@@ -45,7 +45,7 @@ Click or drag anywhere on the track to position the time cursor at that exact po
 
 ## Double-click in timeline mode
 
-Double-clicking a node during timeline mode focuses that node in the graph.
+Double-clicking a node during timeline mode opens a read-only preview of that file at the selected commit and focuses the node in the graph.
 
 ## Context menu
 

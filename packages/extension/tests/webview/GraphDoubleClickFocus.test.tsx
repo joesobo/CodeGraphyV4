@@ -16,7 +16,7 @@ const graphData: IGraphData = {
   edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' }],
 };
 
-describe('Graph double-click focus', () => {
+describe('Graph double-click behavior', () => {
   beforeEach(() => {
     clearSentMessages();
     ForceGraph2D.clearAllHandlers();
@@ -33,7 +33,7 @@ describe('Graph double-click focus', () => {
     vi.clearAllMocks();
   });
 
-  it('focuses node in 2d on double-click and does not post NODE_DOUBLE_CLICKED', async () => {
+  it('focuses and opens node in 2d on double-click', async () => {
     const methods = ForceGraph2D.getMockMethods();
     methods.centerAt.mockClear();
     methods.zoom.mockClear();
@@ -47,7 +47,9 @@ describe('Graph double-click focus', () => {
 
     expect(methods.centerAt).toHaveBeenCalledWith(0, 0, 300);
     expect(methods.zoom).toHaveBeenCalledWith(1.5, 300);
-    expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
+    const openMsg = findMessage('NODE_DOUBLE_CLICKED');
+    expect(openMsg).toBeTruthy();
+    expect(openMsg!.payload.nodeId).toBe('src/app.ts');
 
     const nodeDoubleClickInteraction = getSentMessages().find(
       msg => msg.type === 'GRAPH_INTERACTION' && msg.payload.event === 'graph:nodeDoubleClick'
@@ -55,7 +57,7 @@ describe('Graph double-click focus', () => {
     expect(nodeDoubleClickInteraction).toBeTruthy();
   });
 
-  it('focuses node in 3d on double-click and does not post NODE_DOUBLE_CLICKED', async () => {
+  it('focuses and opens node in 3d on double-click', async () => {
     await act(async () => {
       graphStore.setState({ graphMode: '3d' });
     });
@@ -71,11 +73,66 @@ describe('Graph double-click focus', () => {
     });
 
     expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20, expect.any(Function));
-    expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
+    const openMsg = findMessage('NODE_DOUBLE_CLICKED');
+    expect(openMsg).toBeTruthy();
+    expect(openMsg!.payload.nodeId).toBe('src/app.ts');
 
     const nodeDoubleClickInteraction = getSentMessages().find(
       msg => msg.type === 'GRAPH_INTERACTION' && msg.payload.event === 'graph:nodeDoubleClick'
     );
     expect(nodeDoubleClickInteraction).toBeTruthy();
+  });
+
+  it('does not focus or open on single click', async () => {
+    const methods = ForceGraph2D.getMockMethods();
+    methods.centerAt.mockClear();
+    methods.zoom.mockClear();
+
+    render(<Graph data={graphData} />);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+    });
+
+    expect(methods.centerAt).not.toHaveBeenCalled();
+    expect(methods.zoom).not.toHaveBeenCalled();
+    expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
+  });
+
+  it('does not treat rapid clicks on different nodes as a double-click', async () => {
+    const methods = ForceGraph2D.getMockMethods();
+    methods.centerAt.mockClear();
+    methods.zoom.mockClear();
+
+    render(<Graph data={graphData} />);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+      ForceGraph2D.simulateNodeClick({ id: 'src/utils.ts' }, { button: 0, clientX: 140, clientY: 120 });
+    });
+
+    expect(methods.centerAt).not.toHaveBeenCalled();
+    expect(methods.zoom).not.toHaveBeenCalled();
+    expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
+  });
+
+  it('still focuses and posts open request in timeline mode', async () => {
+    const methods = ForceGraph2D.getMockMethods();
+    methods.centerAt.mockClear();
+    methods.zoom.mockClear();
+    graphStore.setState({ timelineActive: true });
+
+    render(<Graph data={graphData} />);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+    });
+
+    expect(methods.centerAt).toHaveBeenCalledWith(0, 0, 300);
+    expect(methods.zoom).toHaveBeenCalledWith(1.5, 300);
+    const openMsg = findMessage('NODE_DOUBLE_CLICKED');
+    expect(openMsg).toBeTruthy();
+    expect(openMsg!.payload.nodeId).toBe('src/app.ts');
   });
 });

@@ -885,6 +885,20 @@ export default function Graph({
     fg3dRef.current?.zoomToFit(300, 20, n => (n as FGNode).id === nodeId);
   }, [graphMode]);
 
+  const requestNodeOpenById = useCallback((nodeId: string) => {
+    fileInfoCacheRef.current.delete(nodeId);
+    postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
+  }, []);
+
+  const handleNodeDoubleClick = useCallback((node: FGNode, event: MouseEvent) => {
+    requestNodeOpenById(node.id);
+    focusNodeById(node.id);
+    sendGraphInteraction('graph:nodeDoubleClick', {
+      node: { id: node.id, label: node.label },
+      event: { x: event.clientX, y: event.clientY },
+    });
+  }, [focusNodeById, requestNodeOpenById, sendGraphInteraction]);
+
   const setGraphCursor = useCallback((cursor: GraphCursorStyle) => {
     graphCursorRef.current = cursor;
     const container = containerRef.current;
@@ -962,8 +976,7 @@ export default function Graph({
     // Detect double-click (two clicks on the same node within 300ms)
     if (last && last.nodeId === nodeId && now - last.time < 300) {
       lastClickRef.current = null;
-      focusNodeById(nodeId);
-      sendGraphInteraction('graph:nodeDoubleClick', { node: { id: node.id, label: node.label }, event: { x: event.clientX, y: event.clientY } });
+      handleNodeDoubleClick(node, event);
       return;
     }
     lastClickRef.current = { nodeId, time: now };
@@ -989,7 +1002,7 @@ export default function Graph({
       }
     }
     sendGraphInteraction('graph:nodeClick', { node: { id: node.id, label: node.label }, event: { x: event.clientX, y: event.clientY } });
-  }, [focusNodeById, isMacPlatform, openNodeContextMenu, setHighlight, sendGraphInteraction]);
+  }, [handleNodeDoubleClick, isMacPlatform, openNodeContextMenu, setHighlight, sendGraphInteraction]);
 
   const handleBackgroundClick = useCallback((event?: MouseEvent) => {
     if (event && isMacControlContextClick(event, isMacPlatform)) {
@@ -1330,8 +1343,7 @@ export default function Graph({
           if (selectedNodes.length > 0) {
             event.preventDefault();
             selectedNodes.forEach(nodeId => {
-              fileInfoCacheRef.current.delete(nodeId);
-              postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
+              requestNodeOpenById(nodeId);
             });
           }
           break;
@@ -1406,7 +1418,7 @@ export default function Graph({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNodes, graphMode, setHighlight]);
+  }, [selectedNodes, graphMode, requestNodeOpenById, setHighlight]);
 
   // ── Physics settings update ───────────────────────────────────────────────
 
