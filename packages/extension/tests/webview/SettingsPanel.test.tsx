@@ -470,3 +470,28 @@ describe('SettingsPanel: Node Size', () => {
     expect(graphStore.getState().nodeSizeMode).toBe('uniform');
   });
 });
+
+// ── Reset All Settings ──────────────────────────────────────────────────────
+
+describe('SettingsPanel: Reset All Settings', () => {
+  beforeEach(() => sentMessages.length = 0);
+
+  it('renders a reset button in the header', () => {
+    renderPanel();
+    const resetButton = screen.getByTitle('Reset Settings');
+    expect(resetButton).toBeInTheDocument();
+  });
+
+  it('sends RESET_ALL_SETTINGS with current nodeSizeMode when clicked', () => {
+    renderPanel({ nodeSizeMode: 'file-size' });
+    const resetButton = screen.getByTitle('Reset Settings');
+    fireEvent.click(resetButton);
+
+    const msg = sentMessages.find(
+      (msg: unknown) => (msg as { type: string }).type === 'RESET_ALL_SETTINGS',
+    ) as { type: string; payload: { nodeSizeMode: string } } | undefined;
+
+    expect(msg).toBeDefined();
+    expect(msg!.payload.nodeSizeMode).toBe('file-size');
+  });
+});
