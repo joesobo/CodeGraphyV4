@@ -110,7 +110,7 @@ pnpm run mutate -- extension
 pnpm run mutate -- plugin-typescript
 ```
 
-- **Mutation score thresholds:** ≥80% (green), ≥60% (warning), <60% (needs work)
+- **Mutation score thresholds:** ≥90% (green), ≥80% (warning), <80% (needs work)
 - **Mutation site threshold:** 50 per file. If a file exceeds 50 mutation sites, it should be split/refactored
 - HTML report generated at `reports/mutation/mutation.html` after each run
 

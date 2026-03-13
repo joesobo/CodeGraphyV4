@@ -24,6 +24,10 @@ export class PathResolver {
     this.workspaceRoot = workspaceRoot;
   }
 
+  setWorkspaceRoot(workspaceRoot: string): void {
+    this.workspaceRoot = workspaceRoot;
+  }
+
   /**
    * Build an index of all .md files in the workspace for fast lookup.
    * Call this once via onPreAnalyze before resolving links.
@@ -60,10 +64,11 @@ export class PathResolver {
   }
 
   private resolveByPath(target: string): string | null {
+    const normalizedTarget = target.replace(/\\/g, '/');
     // Try with and without .md extension
     const candidates = [
-      path.join(this.workspaceRoot, target),
-      path.join(this.workspaceRoot, target + '.md'),
+      path.join(this.workspaceRoot, normalizedTarget),
+      path.join(this.workspaceRoot, normalizedTarget + '.md'),
     ];
     for (const candidate of candidates) {
       if (fs.existsSync(candidate)) return candidate;

@@ -27,8 +27,7 @@ export type { IDetectedWikilink, MarkdownRuleContext } from './rules/wikilink';
  * - `![[embed]]` — embedded content (treated as link)
  */
 export function createMarkdownPlugin(): IPlugin {
-  const resolver = new PathResolver('');
-  let resolverRoot = '';
+  const resolver = new PathResolver(String());
 
   return {
     id: manifest.id,
@@ -41,8 +40,7 @@ export function createMarkdownPlugin(): IPlugin {
     fileColors: manifest.fileColors,
 
     async initialize(workspaceRoot: string): Promise<void> {
-      resolverRoot = workspaceRoot;
-      console.log('[CodeGraphy] Markdown plugin initialized');
+      resolver.setWorkspaceRoot(workspaceRoot);
     },
 
     async onPreAnalyze(
@@ -53,11 +51,7 @@ export function createMarkdownPlugin(): IPlugin {
       }>,
       workspaceRoot: string
     ): Promise<void> {
-      // Rebuild index with current workspace root (handles refreshes)
-      if (resolverRoot !== workspaceRoot) resolverRoot = workspaceRoot;
-      // PathResolver needs the correct root — recreate if needed
-      (resolver as unknown as { workspaceRoot: string }).workspaceRoot =
-        workspaceRoot;
+      resolver.setWorkspaceRoot(workspaceRoot);
       resolver.buildIndex(files);
     },
 
