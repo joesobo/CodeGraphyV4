@@ -105,6 +105,17 @@ describe('Graph double-click behavior', () => {
     expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
   });
 
+  it('does not open files on modifier multi-select clicks', async () => {
+    render(<Graph data={graphData} />);
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, ctrlKey: true, clientX: 100, clientY: 100 });
+    });
+
+    expect(findMessage('NODE_SELECTED')).toBeUndefined();
+    expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
+  });
+
   it('keeps the same node selected across repeated single clicks', async () => {
     vi.useFakeTimers();
     try {
