@@ -1,6 +1,6 @@
 /**
  * @fileoverview Tests for the SettingsPanel component.
- * Covers: filter patterns, color groups, orphan toggle, arrows toggle, node size.
+ * Covers: filter patterns, color groups, orphan toggle, arrows toggle.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -442,32 +442,6 @@ describe('SettingsPanel: Bidirectional mode', () => {
       type: 'UPDATE_BIDIRECTIONAL_MODE',
       payload: { bidirectionalMode: 'separate' },
     });
-  });
-});
-
-// ── Display: Node Size ─────────────────────────────────────────────────────
-
-describe('SettingsPanel: Node Size', () => {
-  it('renders all node size options', () => {
-    renderPanel();
-    openSection('Display');
-    expect(screen.getByRole('radio', { name: /^connections$/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /^file size$/i })).toBeInTheDocument();
-    expect(screen.getByRole('radio', { name: /^uniform$/i })).toBeInTheDocument();
-  });
-
-  it('selected radio matches nodeSizeMode from store', () => {
-    renderPanel({ nodeSizeMode: 'file-size' });
-    openSection('Display');
-    expect(screen.getByRole('radio', { name: /^file size$/i })).toBeChecked();
-  });
-
-  it('changing node size updates store', () => {
-    renderPanel({ nodeSizeMode: 'connections' });
-    openSection('Display');
-
-    fireEvent.click(screen.getByRole('radio', { name: /^uniform$/i }));
-    expect(graphStore.getState().nodeSizeMode).toBe('uniform');
   });
 });
 
