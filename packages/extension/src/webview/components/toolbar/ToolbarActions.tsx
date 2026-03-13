@@ -1,3 +1,9 @@
+/**
+ * @fileoverview Right-side toolbar action buttons.
+ * Provides refresh, export dropdown, plugins, and settings buttons.
+ * @module webview/components/toolbar/ToolbarActions
+ */
+
 import React from 'react';
 import { mdiAutorenew, mdiPuzzleOutline, mdiCogOutline, mdiExport } from '@mdi/js';
 import { MdiIcon } from '../icons';

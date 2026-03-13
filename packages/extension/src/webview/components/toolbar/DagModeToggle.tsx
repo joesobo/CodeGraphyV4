@@ -1,3 +1,9 @@
+/**
+ * @fileoverview DAG layout mode toggle button group.
+ * Allows switching between free-form, radial, top-down, and left-to-right layouts.
+ * @module webview/components/toolbar/DagModeToggle
+ */
+
 import React from 'react';
 import { DagDefaultIcon, DagRadialIcon, DagTopDownIcon, DagLeftRightIcon } from '../icons';
 import { Button } from '../ui/button';
@@ -21,7 +27,7 @@ export function DagModeToggle(): React.ReactElement {
   };
 
   return (
-    <div className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
+    <div data-testid="dag-buttons" className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
       {DAG_MODES.map(({ mode, label, Icon }) => (
         <Tooltip key={label}>
           <TooltipTrigger asChild>

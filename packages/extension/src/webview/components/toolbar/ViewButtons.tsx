@@ -1,3 +1,9 @@
+/**
+ * @fileoverview View switcher buttons and depth slider.
+ * Renders icon buttons for each available graph view and an animated depth slider.
+ * @module webview/components/toolbar/ViewButtons
+ */
+
 import React from 'react';
 import { mdiGraphOutline, mdiBullseye, mdiFolderOutline } from '@mdi/js';
 import { MdiIcon } from '../icons';
@@ -50,7 +56,7 @@ export function ViewButtons(): React.ReactElement {
       </div>
 
       {availableViews.length > 0 && (
-        <div className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
+        <div data-testid="view-buttons" className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
           {availableViews.map(view => {
             const iconPath = VIEW_ICONS[view.id];
             return (
