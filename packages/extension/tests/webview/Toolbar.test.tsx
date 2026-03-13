@@ -119,7 +119,7 @@ describe('Toolbar', () => {
       const { container } = render(<Toolbar />);
       // The 2D/3D toggle is a standalone outline button after the DAG group
       const outlineButtons = container.querySelectorAll('button');
-      // Find it by process of elimination: not in view/dag group, not title="Reset Graph"
+      // Find it by process of elimination: not in view/dag group, not title="Refresh Graph"
       const { viewButtons, dagButtons } = getButtonGroups(container);
       const groupButtonSet = new Set([...viewButtons, ...dagButtons]);
       const standaloneButtons = Array.from(outlineButtons).filter(
@@ -171,7 +171,7 @@ describe('Toolbar', () => {
   describe('action buttons', () => {
     it('refresh button sends REFRESH_GRAPH', () => {
       render(<Toolbar />);
-      fireEvent.click(screen.getByTitle('Reset Graph'));
+      fireEvent.click(screen.getByTitle('Refresh Graph'));
       expect(findMessage('REFRESH_GRAPH')).toBeTruthy();
     });
 
