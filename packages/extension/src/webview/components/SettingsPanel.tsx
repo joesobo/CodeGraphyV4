@@ -5,7 +5,7 @@
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IPhysicsSettings, NodeSizeMode, DirectionMode, BidirectionalEdgeMode, IGroup, NodeShape2D, NodeShape3D, DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/types';
+import { IPhysicsSettings, DirectionMode, BidirectionalEdgeMode, IGroup, NodeShape2D, NodeShape3D, DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/types';
 import { postMessage } from '../lib/vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from '../lib/utils';
@@ -40,13 +40,6 @@ const SHAPE_3D_OPTIONS: { value: NodeShape3D; label: string }[] = [
   { value: 'cone', label: 'Cone' },
   { value: 'dodecahedron', label: 'Dodecahedron' },
   { value: 'icosahedron', label: 'Icosahedron' },
-];
-
-const NODE_SIZE_OPTIONS: { value: NodeSizeMode; label: string }[] = [
-  { value: 'connections', label: 'Connections' },
-  { value: 'file-size', label: 'File Size' },
-  { value: 'access-count', label: 'Access Count' },
-  { value: 'uniform', label: 'Uniform' },
 ];
 
 /** Delay before persisting slider updates to VS Code settings. */
@@ -120,7 +113,6 @@ export default function SettingsPanel({
   const showOrphans = useGraphStore(s => s.showOrphans);
   const setShowOrphans = useGraphStore(s => s.setShowOrphans);
   const nodeSizeMode = useGraphStore(s => s.nodeSizeMode);
-  const setNodeSizeMode = useGraphStore(s => s.setNodeSizeMode);
   const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
   const setBidirectionalMode = useGraphStore(s => s.setBidirectionalMode);
   const directionMode = useGraphStore(s => s.directionMode);
@@ -1148,27 +1140,6 @@ export default function SettingsPanel({
                   checked={showLabels}
                   onCheckedChange={handleShowLabelsChange}
                 />
-              </div>
-
-
-              {/* Node Size */}
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1.5 block">Node Size</Label>
-                <div className="space-y-1">
-                  {NODE_SIZE_OPTIONS.map(opt => (
-                    <label key={opt.value} className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="nodeSizeMode"
-                        value={opt.value}
-                        checked={nodeSizeMode === opt.value}
-                        onChange={() => setNodeSizeMode(opt.value)}
-                        className="accent-primary"
-                      />
-                      <span className="text-xs">{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
               </div>
 
             </div>

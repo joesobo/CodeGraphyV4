@@ -24,16 +24,18 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
 
 /**
  * Helper to get button groups from the toolbar DOM.
- * Layout: [depth-slider] [view-buttons-group] [dag-buttons-group] [2d/3d] [separator] [refresh] [export] [plugins] [settings]
+ * Layout: [depth-slider] [view-buttons-group] [dag-buttons-group] [2d/3d] [node-size-group] | [refresh] [export] [plugins] [settings]
  */
 function getButtonGroups(container: HTMLElement) {
-  // The bordered groups contain view and DAG buttons
-  const groups = container.querySelectorAll('.rounded-md.border');
+  // Select only div containers (not buttons) with the bordered group styling
+  const groups = container.querySelectorAll('div.rounded-md.border');
   const viewGroup = groups[0]; // First bordered group = view buttons
   const dagGroup = groups[1]; // Second bordered group = DAG buttons
+  const nodeSizeGroup = groups[2]; // Third bordered group = node size buttons
   return {
     viewButtons: viewGroup ? Array.from(viewGroup.querySelectorAll('button')) : [],
     dagButtons: dagGroup ? Array.from(dagGroup.querySelectorAll('button')) : [],
+    nodeSizeButtons: nodeSizeGroup ? Array.from(nodeSizeGroup.querySelectorAll('button')) : [],
   };
 }
 
@@ -120,8 +122,8 @@ describe('Toolbar', () => {
       // The 2D/3D toggle is a standalone outline button after the DAG group
       const outlineButtons = container.querySelectorAll('button');
       // Find it by process of elimination: not in view/dag group, not title="Refresh Graph"
-      const { viewButtons, dagButtons } = getButtonGroups(container);
-      const groupButtonSet = new Set([...viewButtons, ...dagButtons]);
+      const { viewButtons, dagButtons, nodeSizeButtons } = getButtonGroups(container);
+      const groupButtonSet = new Set([...viewButtons, ...dagButtons, ...nodeSizeButtons]);
       const standaloneButtons = Array.from(outlineButtons).filter(
         btn => !groupButtonSet.has(btn) && !btn.getAttribute('title')
       );
@@ -134,8 +136,8 @@ describe('Toolbar', () => {
       setDefaultState({ graphMode: '3d' });
       const { container } = render(<Toolbar />);
       const outlineButtons = container.querySelectorAll('button');
-      const { viewButtons, dagButtons } = getButtonGroups(container);
-      const groupButtonSet = new Set([...viewButtons, ...dagButtons]);
+      const { viewButtons, dagButtons, nodeSizeButtons } = getButtonGroups(container);
+      const groupButtonSet = new Set([...viewButtons, ...dagButtons, ...nodeSizeButtons]);
       const standaloneButtons = Array.from(outlineButtons).filter(
         btn => !groupButtonSet.has(btn) && !btn.getAttribute('title')
       );
@@ -165,6 +167,35 @@ describe('Toolbar', () => {
       setDefaultState({ activeViewId: 'codegraphy.depth-graph', depthLimit: 3 });
       render(<Toolbar />);
       expect(screen.getByText('3')).toBeTruthy();
+    });
+  });
+
+  describe('node size mode buttons', () => {
+    it('renders all four node size mode buttons', () => {
+      const { container } = render(<Toolbar />);
+      const { nodeSizeButtons } = getButtonGroups(container);
+      expect(nodeSizeButtons).toHaveLength(4);
+    });
+
+    it('active node size mode button has default variant', () => {
+      setDefaultState({ nodeSizeMode: 'file-size' });
+      const { container } = render(<Toolbar />);
+      const { nodeSizeButtons } = getButtonGroups(container);
+      // file-size is index 1 — should be active (not ghost)
+      expect(nodeSizeButtons[1].className).not.toContain('hover:bg-accent');
+      // Others should be ghost
+      expect(nodeSizeButtons[0].className).toContain('hover:bg-accent');
+      expect(nodeSizeButtons[2].className).toContain('hover:bg-accent');
+      expect(nodeSizeButtons[3].className).toContain('hover:bg-accent');
+    });
+
+    it('clicking a node size button updates store', () => {
+      setDefaultState({ nodeSizeMode: 'connections' });
+      const { container } = render(<Toolbar />);
+      const { nodeSizeButtons } = getButtonGroups(container);
+      // Click "Uniform" (index 3)
+      fireEvent.click(nodeSizeButtons[3]);
+      expect(graphStore.getState().nodeSizeMode).toBe('uniform');
     });
   });
 
