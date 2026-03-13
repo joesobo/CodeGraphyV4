@@ -79,4 +79,22 @@ describe('isBareSpecifier', () => {
     expect(isBareSpecifier('my-package')).toBe(true);
     expect(isBareSpecifier('@my-scope/my-package')).toBe(true);
   });
+
+  it('should return true for bare specifier with trailing slash', () => {
+    // Distinguishes startsWith('/') mutation: 'react/'.endsWith('/') is true
+    // which would incorrectly return false — the real check is startsWith('/')
+    expect(isBareSpecifier('react/')).toBe(true);
+  });
+
+  it('should return false for hash-prefixed specifiers not matching bare package pattern', () => {
+    // Distinguishes regex anchor ^ mutation: without ^ the regex matches any
+    // substring, so '#/components' would match 'c' inside and return true incorrectly
+    expect(isBareSpecifier('#/components')).toBe(false);
+  });
+
+  it('should return true for package name ending with a dot', () => {
+    // Distinguishes endsWith('.') mutation: 'my-module.' ends with '.' so the
+    // mutated condition fires and returns false instead of the correct true
+    expect(isBareSpecifier('my-module.')).toBe(true);
+  });
 });

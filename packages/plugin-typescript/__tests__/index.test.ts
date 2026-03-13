@@ -5,10 +5,11 @@
  * WorkspaceAnalyzer would produce.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createTypeScriptPlugin } from '../src';
+import * as tsconfig from '../src/tsconfig';
 
 const TS_EXAMPLE_ROOT = path.join(__dirname, '../examples');
 
@@ -119,6 +120,59 @@ describe('createTypeScriptPlugin lifecycle', () => {
     const content = fs.readFileSync(filePath, 'utf-8');
     const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
     expect(connections.length).toBeGreaterThan(0);
+  });
+
+  it('should log during initialization', async () => {
+    // Distinguishes the console.log StringLiteral "" mutation in initialize:
+    // initialize must emit a non-empty log message
+    const plugin = createTypeScriptPlugin();
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    await plugin.initialize?.(workspaceRoot);
+
+    expect(logSpy).toHaveBeenCalled();
+    expect(logSpy.mock.calls[0][0]).not.toBe('');
+    logSpy.mockRestore();
+  });
+
+  it('should not call loadTsConfig again on second detectConnections after initialize', async () => {
+    // Distinguishes the !resolver always-true mutation: after initialize() creates
+    // the resolver, subsequent detectConnections calls must reuse it — not re-run
+    // loadTsConfig on every invocation.
+    const plugin = createTypeScriptPlugin();
+    const loadSpy = vi.spyOn(tsconfig, 'loadTsConfig');
+
+    await plugin.initialize?.(workspaceRoot);
+    const callCountAfterInit = loadSpy.mock.calls.length;
+
+    const filePath = path.join(workspaceRoot, 'src', 'config.ts');
+    const content = fs.readFileSync(filePath, 'utf-8');
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+
+    expect(loadSpy.mock.calls.length).toBe(callCountAfterInit);
+    loadSpy.mockRestore();
+  });
+
+  it('should re-initialize resolver with new workspace root after unload', async () => {
+    // Distinguishes the onUnload BlockStatement {} mutation: if onUnload does NOT
+    // clear resolver to null, detectConnections skips the lazy-init branch and reuses
+    // the stale resolver. We verify loadTsConfig is called again after unload.
+    const plugin = createTypeScriptPlugin();
+    const loadSpy = vi.spyOn(tsconfig, 'loadTsConfig');
+
+    await plugin.initialize?.(workspaceRoot);
+    const callCountAfterInit = loadSpy.mock.calls.length;
+
+    plugin.onUnload?.();
+
+    const filePath = path.join(workspaceRoot, 'src', 'config.ts');
+    const content = fs.readFileSync(filePath, 'utf-8');
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+
+    // After unload, detectConnections must have called loadTsConfig once more
+    expect(loadSpy.mock.calls.length).toBeGreaterThan(callCountAfterInit);
+    loadSpy.mockRestore();
   });
 });
 

@@ -306,4 +306,44 @@ describe('PathResolver', () => {
       expect(result).toBeNull();
     });
   });
+
+  describe('baseUrl not configured', () => {
+    it('should not resolve bare package names against workspace root even if a file with that name exists', () => {
+      // Distinguishes the `this._config.baseUrl` always-true mutation:
+      // without baseUrl configured, a file named 'react.ts' in the workspace root
+      // must NOT be returned — it's a bare specifier (npm package).
+      createFile('react.ts');
+      const fromFile = path.join(tempDir, 'src', 'app.ts');
+      const resolver = new PathResolver(tempDir);
+
+      const result = resolver.resolve('react', fromFile);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('built-in modules with baseUrl configured', () => {
+    it('should return null for built-in modules even when a file with that name exists in baseUrl directory', () => {
+      // Distinguishes the isBuiltIn BlockStatement {} mutation: if the return-null
+      // block after isBuiltIn is emptied, the resolver falls through to the baseUrl
+      // branch and incorrectly finds 'fs.ts', treating a Node built-in as a local file.
+      createFile('src/fs.ts');
+      const fromFile = path.join(tempDir, 'src', 'app.ts');
+      const resolver = new PathResolver(tempDir, { baseUrl: 'src' });
+
+      const result = resolver.resolve('fs', fromFile);
+
+      expect(result).toBeNull();
+    });
+
+    it('should return null for node: prefixed built-ins even with baseUrl configured', () => {
+      createFile('src/node:path.ts');
+      const fromFile = path.join(tempDir, 'src', 'app.ts');
+      const resolver = new PathResolver(tempDir, { baseUrl: 'src' });
+
+      const result = resolver.resolve('node:path', fromFile);
+
+      expect(result).toBeNull();
+    });
+  });
 });

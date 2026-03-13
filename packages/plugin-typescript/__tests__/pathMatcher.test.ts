@@ -28,6 +28,12 @@ describe('matchPathPattern', () => {
   it('should match pattern with only prefix', () => {
     expect(matchPathPattern('#/helpers/parse', '#/*')).toBe('helpers/parse');
   });
+
+  it('should return null when specifier does not equal exact pattern', () => {
+    // Distinguishes the specifier === pattern always-true mutation: a non-matching
+    // exact pattern must return null, not '' (empty string match)
+    expect(matchPathPattern('lodash', 'jquery')).toBeNull();
+  });
 });
 
 describe('resolveWithPaths', () => {
