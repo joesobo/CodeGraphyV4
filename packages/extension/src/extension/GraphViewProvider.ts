@@ -103,7 +103,7 @@ interface IExternalPluginRegistrationOptions {
  * - Webview HTML content generation
  * - Message passing between extension and webview
  * - Node position persistence to workspace state
- * - File opening on node double-click
+ * - File opening/preview requests from graph interactions
  * 
  * @example
  * ```typescript

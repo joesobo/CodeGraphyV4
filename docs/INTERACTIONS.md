@@ -7,7 +7,7 @@
 | Action | Effect |
 |--------|--------|
 | Click | Select the node and reveal the file in the editor |
-| Double-click | Open the file in the editor |
+| Double-click | Focus the node in the graph |
 | Right-click | Open the context menu |
 | `Ctrl+Click` (macOS) | Open the context menu (same as right-click) |
 | Drag | Reposition the node (position is saved) |
@@ -112,7 +112,7 @@ The timeline bar appears below the graph after indexing. See [Timeline](./TIMELI
 | Drag track | Scrub through time |
 | Play/Pause | Toggle automatic playback |
 | Current | Jump to latest commit |
-| Double-click node | Preview file at current commit (read-only) |
+| Double-click node | Focus the node in the graph |
 
 During timeline mode, destructive context menu actions (Delete, Rename, Create File, Add to Filter) are hidden.
 

@@ -872,6 +872,19 @@ export default function Graph({
     openContextMenuFromGraphCallback(event);
   }, [openContextMenuFromGraphCallback]);
 
+  const focusNodeById = useCallback((nodeId: string) => {
+    const node = graphDataRef.current.nodes.find(n => n.id === nodeId);
+    if (!node) return;
+
+    if (graphMode === '2d') {
+      fg2dRef.current?.centerAt(node.x ?? 0, node.y ?? 0, 300);
+      fg2dRef.current?.zoom(1.5, 300);
+      return;
+    }
+
+    fg3dRef.current?.zoomToFit(300, 20, n => (n as FGNode).id === nodeId);
+  }, [graphMode]);
+
   const setGraphCursor = useCallback((cursor: GraphCursorStyle) => {
     graphCursorRef.current = cursor;
     const container = containerRef.current;
@@ -949,8 +962,7 @@ export default function Graph({
     // Detect double-click (two clicks on the same node within 300ms)
     if (last && last.nodeId === nodeId && now - last.time < 300) {
       lastClickRef.current = null;
-      fileInfoCacheRef.current.delete(nodeId);
-      postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
+      focusNodeById(nodeId);
       sendGraphInteraction('graph:nodeDoubleClick', { node: { id: node.id, label: node.label }, event: { x: event.clientX, y: event.clientY } });
       return;
     }
@@ -977,7 +989,7 @@ export default function Graph({
       }
     }
     sendGraphInteraction('graph:nodeClick', { node: { id: node.id, label: node.label }, event: { x: event.clientX, y: event.clientY } });
-  }, [isMacPlatform, openNodeContextMenu, setHighlight, sendGraphInteraction]);
+  }, [focusNodeById, isMacPlatform, openNodeContextMenu, setHighlight, sendGraphInteraction]);
 
   const handleBackgroundClick = useCallback((event?: MouseEvent) => {
     if (event && isMacControlContextClick(event, isMacPlatform)) {
@@ -1166,13 +1178,7 @@ export default function Graph({
         break;
       case 'focus': {
         const nodeId = targetPaths[0];
-        const node = graphDataRef.current.nodes.find(n => n.id === nodeId);
-        if (node && graphMode === '2d') {
-          fg2dRef.current?.centerAt(node.x ?? 0, node.y ?? 0, 300);
-          fg2dRef.current?.zoom(1.5, 300);
-        } else if (node && graphMode === '3d') {
-          fg3dRef.current?.zoomToFit(300, 20, n => (n as FGNode).id === nodeId);
-        }
+        if (nodeId) focusNodeById(nodeId);
         break;
       }
       case 'addToFilter':
@@ -1196,7 +1202,7 @@ export default function Graph({
         postMessage({ type: 'CREATE_FILE', payload: { directory: '.' } });
         break;
     }
-  }, [graphMode, contextSelection.targets]);
+  }, [focusNodeById, graphMode, contextSelection.targets]);
 
   const handleMenuAction = useCallback((action: GraphContextMenuAction) => {
     if (action.kind === 'builtin') {
