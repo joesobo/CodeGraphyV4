@@ -7,7 +7,7 @@
 import * as path from 'path';
 import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
-import { isResPath } from '../parser';
+import { isResPath, normalizePath } from '../parser';
 
 /** Detects preload() calls: preload("res://path/to/file.gd") */
 export function detect(content: string, _filePath: string, ctx: GDScriptRuleContext): IConnection[] {
@@ -16,9 +16,8 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
   const regex = /preload\s*\(\s*["']([^"']+)["']\s*\)/g;
 
   for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
-    if (trimmed.startsWith('#')) continue;
     const lineWithoutComment = lines[i].split('#')[0];
+    if (!lineWithoutComment.trim()) continue;
 
     regex.lastIndex = 0;
     let match;
@@ -28,7 +27,7 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
         const resolved = ctx.resolver.resolve(resPath, ctx.relativeFilePath);
         connections.push({
           specifier: resPath,
-          resolvedPath: resolved ? path.join(ctx.workspaceRoot, resolved).replace(/\\/g, '/') : null,
+          resolvedPath: resolved ? normalizePath(path.join(ctx.workspaceRoot, resolved)) : null,
           type: 'static',
           ruleId: 'preload',
         });
