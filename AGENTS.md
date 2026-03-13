@@ -1,133 +1,117 @@
 # AGENTS.md
 
-This file provides guidance to coding agents (including Codex) for this repository.
-
-## Core Commands
+## Commands
 
 ```bash
-pnpm install
-pnpm run build
-pnpm run dev
-pnpm run test
-pnpm run lint
-pnpm run typecheck
+pnpm install          # install dependencies
+pnpm run build        # build all packages
+pnpm run dev          # start dev mode
+pnpm run test         # run all tests
+pnpm run lint         # lint all packages
+pnpm run typecheck    # type-check all packages
 ```
 
-Common targeted commands:
+Targeted:
 
 ```bash
 pnpm --filter @codegraphy/extension test
 pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/SettingsPanel.test.tsx
-pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GraphViewProvider.test.ts
 ```
 
-## Architecture Orientation
+## Architecture
 
-There is no dedicated architecture map file in this repo. Start from package boundaries and follow module-local docs/comments.
+No dedicated architecture doc. Start from package boundaries:
 
-Primary locations:
-- `packages/extension/src/extension/` (VS Code extension host)
-- `packages/extension/src/core/` (discovery, registry, views, colors)
-- `packages/extension/src/webview/` (React webview UI)
-- `packages/extension/src/shared/` (shared protocol/types)
-- `packages/plugin-api/src/` (plugin API contracts)
-- `packages/plugin-*/src/` (built-in language plugins)
-- `docs/plugin-api/` (plugin API docs + diagrams)
+- `packages/extension/src/extension/` — VS Code extension host
+- `packages/extension/src/core/` — discovery, registry, views, colors
+- `packages/extension/src/webview/` — React webview UI
+- `packages/extension/src/shared/` — shared protocol/types
+- `packages/plugin-api/src/` — plugin API contracts
+- `packages/plugin-*/src/` — built-in language plugins
 
-## Development Workflow (Mandatory)
-
-When assigned a Trello card or any development task, follow this process end-to-end:
+## Development Workflow
 
 ### Task Setup
 
-1. **Discuss before implementation:** review the task with the user first, covering implementation approach, risks/concerns, and open questions.
-2. **Plan after alignment:** create an implementation plan once details are clarified.
-3. **Use branch + worktree isolation:** execute work in its own branch/worktree. Split into small, independent tasks that can be delegated to individual subagents where safe.
-4. **Commit frequently:** commit often, at minimum whenever subagent work is merged into the main task branch.
-5. **Deliver via PR:** push all commits and open a GitHub PR with a clear description for human review.
+1. **Discuss first** — review approach, risks, open questions before implementation.
+2. **Plan** — create an implementation plan once aligned.
+3. **Branch + worktree isolation** — work in its own branch/worktree. Split into small tasks for subagents where safe.
+4. **Commit frequently** — at minimum when subagent work merges in.
+5. **Deliver via PR** — push and open a GitHub PR for human review.
 
 ### Worktree Safety
 
-- Treat the user's currently open worktree as **protected**.
-- Never run `git switch`, `git checkout <branch>`, `git rebase`, or other branch-changing commands in the protected worktree.
-- Before any branch/worktree operations, create and move into a separate agent worktree; do branch switches only there.
-- If a branch was changed in the protected worktree by mistake, immediately restore it and report what happened.
+- The user's open worktree is **protected** — never run `git switch`, `git checkout <branch>`, or `git rebase` there.
+- Create a separate agent worktree for branch operations.
+- If the protected worktree's branch was changed by mistake, restore immediately and report it.
 
-### Quality Gates (for every new or changed behavior)
+### Quality Gates
 
-#### 1. Acceptance Scenarios + Red-Green-Refactor TDD
+#### 1. Red-Green-Refactor TDD
 
-For every new or changed behavior, write acceptance scenarios. Ask the user before changing existing scenarios.
+Write acceptance scenarios for every new/changed behavior. Ask before changing existing scenarios.
 
-Follow Uncle Bob's Three Laws of TDD strictly:
+Three Laws of TDD:
+1. No production code without a failing test.
+2. No more test code than is sufficient to fail.
+3. No more production code than is sufficient to pass.
 
-1. You may not write production code until you have written a failing test.
-2. You may not write more of a test than is sufficient to fail (including compile/type errors).
-3. You may not write more production code than is sufficient to pass the currently failing test.
+Cycle: **Red** (failing test) → **Green** (minimum code to pass) → **Refactor** (clean up, keep green) → repeat.
 
-Apply the **Red-Green-Refactor** cycle in tight iterations:
+- Tests: `packages/extension/tests/` (extension/webview), `packages/plugin-*/__tests__/` (plugins).
+- Prefer targeted test runs while iterating; run full `pnpm run test` before finishing.
 
-- **Red:** Write one small failing test (or acceptance scenario). Run it — confirm it fails.
-- **Green:** Write the minimum production code to make it pass. Nothing more.
-- **Refactor:** Clean up the code and tests while keeping everything green. Remove duplication, improve names, simplify structure.
-- Repeat until all acceptance scenarios pass.
+#### 2. Test Quality
 
-Additional rules:
-- Test locations: extension and webview tests in `packages/extension/tests/`, plugin tests in `packages/plugin-*/__tests__/`.
-- Prefer targeted test runs while iterating, then run full `pnpm run test` before finishing.
-- Never skip the Refactor step — it prevents the "just make it pass" code from accumulating into a mess.
+1. **One concept per test** — if the name has "and", split it. Each test fails for exactly one reason.
+2. **Arrange-Act-Assert** — if any section gets long, the test is doing too much.
+3. **File-per-module** — `preload.ts` → `preload.test.ts`. Split test files past ~200-300 lines.
+4. **Descriptive names** — `conn` not `cn`, `connection` not `c`.
+5. **Test behavior, not implementation** — "should resolve class_name to file path" not "should call registerClassName then check map".
+6. **Code review** — the main mechanism for catching untested edge cases and unclear naming.
 
-#### 2. CRAP Score Check
+#### 3. CRAP ≤ 8
 
-For every changed module, run CRAP and refactor until CRAP is 8 or less.
-
-CRAP (Change Risk Anti-Patterns) = `comp² × (1 - cov/100)³ + comp`. It combines cyclomatic complexity with code coverage — high-complexity, low-coverage functions score high.
+CRAP = `comp² × (1 - cov/100)³ + comp`. High complexity + low coverage = high score.
 
 ```bash
-# All packages
-pnpm run crap
-
-# Specific package (use folder name under packages/)
-pnpm run crap -- extension
-pnpm run crap -- plugin-typescript
+pnpm run crap                    # all packages
+pnpm run crap -- plugin-godot    # specific package
 ```
 
-- **Threshold:** CRAP ≤ 8 per function
-- If a function exceeds 8, either add tests to increase coverage or refactor to reduce complexity
+If a function exceeds 8: add tests to increase coverage or refactor to reduce complexity.
 
-#### 3. Differential Mutation Testing
+#### 4. Mutation Testing ≥ 80%
 
-For every changed module, run differential mutation tests — one module at a time. Cover uncovered sites and kill survivors before running the next module.
-
-Mutation testing (via Stryker) introduces small bugs ("mutants") into your code and verifies that tests catch them. Survivors indicate gaps in test assertions. Static initializers are ignored (`ignoreStatic: true`).
+Stryker introduces small bugs and verifies tests catch them. Run one module at a time — kill survivors before moving on.
 
 ```bash
-# All plugins then extension
-pnpm run mutate
-
-# Specific package (use folder name under packages/)
-pnpm run mutate -- extension
-pnpm run mutate -- plugin-typescript
+pnpm run mutate                    # all packages
+pnpm run mutate -- plugin-godot    # specific package
 ```
 
-- **Mutation score thresholds:** ≥90% (green), ≥80% (warning), <80% (needs work)
-- **Mutation site threshold:** 50 per file. If a file exceeds 50 mutation sites, it should be split/refactored
-- HTML report generated at `reports/mutation/mutation.html` after each run
+- ≥90% green, ≥80% warning, <80% needs work
+- If a file exceeds 50 mutation sites, split/refactor it
+- Report: `reports/mutation/mutation.html`
 
-#### 4. Lint + Typecheck
+#### 5. Lint + Typecheck
 
-Before committing, ensure code passes lint and typecheck. Pre-commit hooks run lint-staged + typecheck automatically, so keep staged changes clean.
+Pre-commit hooks run automatically. Keep staged changes clean.
 
 ```bash
 pnpm run lint
 pnpm run typecheck
 ```
 
-#### 5. Changeset
+#### 6. Changeset
 
-If the PR includes **user-facing changes** (new features, bug fixes, behavior changes, removed functionality), add a changeset. Skip for internal refactors, test-only changes, CI updates, or docs fixes.
+Add for **user-facing changes** only (features, fixes, behavior changes). Skip for refactors, tests, CI, docs.
 
-Run `pnpm changeset` or create a file manually in `.changeset/`:
+```bash
+pnpm changeset
+```
+
+Or create manually in `.changeset/`:
 
 ```md
 ---
@@ -137,8 +121,5 @@ Run `pnpm changeset` or create a file manually in `.changeset/`:
 Add node size toggle to the toolbar with four sizing modes
 ```
 
-Bump types: `patch` (bug fixes), `minor` (new features), `major` (breaking changes).
-
-- Write from the **user's perspective**, not implementation details.
-- One clear sentence describing what changed and why it matters.
-- If a PR is updated after the changeset was written, update the changeset to reflect the final state.
+- `patch` (bug fix), `minor` (feature), `major` (breaking)
+- Write from the user's perspective, not implementation details.
