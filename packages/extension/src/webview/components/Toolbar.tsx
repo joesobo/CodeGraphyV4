@@ -3,7 +3,7 @@ import {
   mdiGraphOutline,
   mdiBullseye,
   mdiFolderOutline,
-  mdiRefresh,
+  mdiAutorenew,
   mdiPuzzleOutline,
   mdiCogOutline,
   mdiCircleOutline,
@@ -152,12 +152,12 @@ export default function Toolbar(): React.ReactElement {
               size="icon"
               className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
               onClick={() => postMessage({ type: 'REFRESH_GRAPH' })}
-              title="Reset Graph"
+              title="Refresh Graph"
             >
-              <MdiIcon path={mdiRefresh} size={16} />
+              <MdiIcon path={mdiAutorenew} size={16} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Reset Graph</TooltipContent>
+          <TooltipContent side="bottom">Refresh Graph</TooltipContent>
         </Tooltip>
 
         <DropdownMenu>
