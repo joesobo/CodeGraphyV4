@@ -1,12 +1,15 @@
 import type { IPluginContextMenuItem } from '../../../shared/types';
 
-export type GraphContextTargetKind = 'background' | 'node';
+export type GraphContextTargetKind = 'background' | 'node' | 'edge';
 
 export type BuiltInContextMenuAction =
   | 'open'
   | 'reveal'
   | 'copyRelative'
   | 'copyAbsolute'
+  | 'copyEdgeSource'
+  | 'copyEdgeTarget'
+  | 'copyEdgeBoth'
   | 'toggleFavorite'
   | 'focus'
   | 'addToExclude'
@@ -37,6 +40,7 @@ export type GraphContextMenuEntry =
 export interface GraphContextSelection {
   kind: GraphContextTargetKind;
   targets: string[];
+  edgeId?: string;
 }
 
 export interface BuildGraphContextMenuOptions {

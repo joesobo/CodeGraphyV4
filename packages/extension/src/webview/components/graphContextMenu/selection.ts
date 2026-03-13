@@ -13,3 +13,11 @@ export function makeNodeContextSelection(
 export function makeBackgroundContextSelection(): GraphContextSelection {
   return { kind: 'background', targets: [] };
 }
+
+export function makeEdgeContextSelection(
+  edgeId: string,
+  sourceId: string,
+  targetId: string
+): GraphContextSelection {
+  return { kind: 'edge', edgeId, targets: [sourceId, targetId] };
+}

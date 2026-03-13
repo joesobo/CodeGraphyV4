@@ -42,6 +42,12 @@ function simulateBackgroundRightClick() {
   }
 }
 
+function simulateLinkRightClick(link: { id: string; from: string; to: string }) {
+  if (lastProps.onLinkRightClick) {
+    lastProps.onLinkRightClick(link, new MouseEvent('contextmenu'));
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getLastProps(): Record<string, any> {
   return lastProps;
@@ -55,6 +61,7 @@ function clearAllHandlers() {
 const ForceGraph3DWithHelpers = Object.assign(ForceGraph3D, {
   simulateNodeRightClick,
   simulateBackgroundRightClick,
+  simulateLinkRightClick,
   getLastProps,
   clearAllHandlers,
 });

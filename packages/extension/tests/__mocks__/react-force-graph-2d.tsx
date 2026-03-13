@@ -70,6 +70,13 @@ function simulateBackgroundRightClick() {
   }
 }
 
+/** Simulate react-force-graph firing onLinkRightClick with a given edge */
+function simulateLinkRightClick(link: { id: string; from: string; to: string }) {
+  if (lastProps.onLinkRightClick) {
+    lastProps.onLinkRightClick(link, new MouseEvent('contextmenu'));
+  }
+}
+
 /** Simulate a node click */
 function simulateNodeClick(node: { id: string }, eventInit?: MouseEventInit) {
   if (lastProps.onNodeClick) {
@@ -137,6 +144,7 @@ function getMockMethods(): typeof mockMethods {
 const ForceGraph2DWithHelpers = Object.assign(ForceGraph2D, {
   simulateNodeRightClick,
   simulateBackgroundRightClick,
+  simulateLinkRightClick,
   simulateNodeClick,
   simulateBackgroundClick,
   simulateNodeHover,
@@ -148,7 +156,7 @@ const ForceGraph2DWithHelpers = Object.assign(ForceGraph2D, {
   getLastProps,
   getMockMethods,
   // Legacy aliases matching old vis-network mock API used in existing tests
-  getRegisteredEvents: () => Object.keys(lastProps).filter(k => k.startsWith('on')),
+  getRegisteredEvents: () => Object.keys(lastProps).filter(key => key.startsWith('on')),
   getHandler: (event: string) => {
     // Map vis-network event names to react-force-graph prop names
     const map: Record<string, string> = {

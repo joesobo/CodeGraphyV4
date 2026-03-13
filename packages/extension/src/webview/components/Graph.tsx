@@ -42,6 +42,7 @@ import {
 import {
   buildGraphContextMenuEntries,
   makeBackgroundContextSelection,
+  makeEdgeContextSelection,
   makeNodeContextSelection,
   type BuiltInContextMenuAction,
   type GraphContextMenuAction,
@@ -104,6 +105,8 @@ type FGNode = NodeObject & {
 
 type FGLink = LinkObject & {
   id: string;
+  from: string;
+  to: string;
   bidirectional: boolean;
   baseColor?: string;
   curvature?: number;
@@ -265,6 +268,32 @@ function processEdges(edges: IGraphEdge[], mode: BidirectionalEdgeMode): Process
     }
   }
   return processed;
+}
+
+function resolveLinkEndpointId(value: unknown): string | null {
+  if (typeof value === 'string') return value;
+  if (!isRecordLike(value)) return null;
+  const maybeId = (value as { id?: unknown }).id;
+  return typeof maybeId === 'string' ? maybeId : null;
+}
+
+function resolveEdgeActionTargetId(
+  linkId: string | undefined,
+  sourceId: string,
+  targetId: string,
+  rawEdges: IGraphEdge[]
+): string {
+  if (linkId && rawEdges.some(edge => edge.id === linkId)) {
+    return linkId;
+  }
+
+  const forward = rawEdges.find(edge => edge.from === sourceId && edge.to === targetId);
+  if (forward) return forward.id;
+
+  const reverse = rawEdges.find(edge => edge.from === targetId && edge.to === sourceId);
+  if (reverse) return reverse.id;
+
+  return linkId ?? `${sourceId}->${targetId}`;
 }
 
 // ─── Graph component ────────────────────────────────────────────────────────
@@ -930,6 +959,17 @@ export default function Graph({
     openContextMenuFromGraphCallback(event);
   }, [openContextMenuFromGraphCallback]);
 
+  const handleLinkRightClick = useCallback((link: FGLink, event: MouseEvent) => {
+    const sourceId = resolveLinkEndpointId(link.from) ?? resolveLinkEndpointId((link as { source?: unknown }).source);
+    const targetId = resolveLinkEndpointId(link.to) ?? resolveLinkEndpointId((link as { target?: unknown }).target);
+    if (!sourceId || !targetId) return;
+
+    const edgeId = resolveEdgeActionTargetId(link.id, sourceId, targetId, dataRef.current.edges);
+    setContextSelection(makeEdgeContextSelection(edgeId, sourceId, targetId));
+    lastGraphContextEventRef.current = Date.now();
+    openContextMenuFromGraphCallback(event);
+  }, [openContextMenuFromGraphCallback]);
+
   const handleContextMenu = useCallback(() => {
     // Context fallback for environments where graph libs swallow right-click callbacks.
     if (Date.now() - lastGraphContextEventRef.current > 150) {
@@ -965,6 +1005,17 @@ export default function Graph({
         break;
       case 'copyAbsolute':
         postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: `absolute:${targetPaths[0]}` } });
+        break;
+      case 'copyEdgeSource':
+        if (targetPaths.length > 0)
+          postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: targetPaths[0] } });
+        break;
+      case 'copyEdgeTarget':
+        if (targetPaths.length > 1)
+          postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: targetPaths[1] } });
+        break;
+      case 'copyEdgeBoth':
+        postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: targetPaths.join('\n') } });
         break;
       case 'toggleFavorite':
         postMessage({ type: 'TOGGLE_FAVORITE', payload: { paths: targetPaths } });
@@ -1354,6 +1405,7 @@ export default function Graph({
     height: containerSize.height || undefined,
     onNodeClick: handleNodeClick as (node: NodeObject, event: MouseEvent) => void,
     onNodeRightClick: handleNodeRightClick as unknown as (node: NodeObject, event: MouseEvent) => void,
+    onLinkRightClick: handleLinkRightClick as unknown as (link: LinkObject, event: MouseEvent) => void,
     onBackgroundClick: handleBackgroundClick,
     onBackgroundRightClick: handleBackgroundRightClick,
     onEngineStop: handleEngineStop,

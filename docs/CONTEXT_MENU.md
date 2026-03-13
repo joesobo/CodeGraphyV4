@@ -6,8 +6,10 @@ This document defines CodeGraphy's context-menu behavior and the files that own 
 
 - Rules/model (split by concern):
   - `packages/extension/src/webview/components/graphContextMenu/backgroundEntries.ts`
+  - `packages/extension/src/webview/components/graphContextMenu/edgeEntries.ts`
   - `packages/extension/src/webview/components/graphContextMenu/nodeEntries.ts`
   - `packages/extension/src/webview/components/graphContextMenu/pluginEntries.ts`
+  - `packages/extension/src/webview/components/graphContextMenu/entryFactories.ts`
   - `packages/extension/src/webview/components/graphContextMenu/selection.ts`
   - `packages/extension/src/webview/components/graphContextMenu/buildGraphContextMenuEntries.ts`
   - `packages/extension/src/webview/components/graphContextMenu/types.ts`
@@ -18,10 +20,11 @@ This document defines CodeGraphy's context-menu behavior and the files that own 
 
 ## Contexts
 
-The menu has two runtime contexts:
+The menu has three runtime contexts:
 
 - `background`: right-click on empty graph space
 - `node`: right-click on a node or selected nodes
+- `edge`: right-click on a rendered edge
 
 Node context supports:
 
@@ -46,18 +49,23 @@ Node context (multi):
 - Always: `Open N Files`, `Copy Relative Paths`, favorite toggle
 - Not timeline: `Add All to Filter`, `Delete N Files`
 
+Edge context:
+
+- Always: `Copy Source Path`, `Copy Target Path`, `Copy Both Paths`
+- Timeline behavior: unchanged (edge actions are non-destructive)
+
 ## Plugin Menu Items
 
-Plugin-contributed items (`CONTEXT_MENU_ITEMS`) are appended for single-node context only.
+Plugin-contributed items (`CONTEXT_MENU_ITEMS`) are appended contextually.
 
-- Supported `when`: `node` and `both`
-- Unsupported in current graph menu: `edge` (edges are not yet context targets)
+- Node context: `when: node | both` (single-node context only)
+- Edge context: `when: edge | both`
 - Selection dispatch: clicking a plugin item sends `PLUGIN_CONTEXT_MENU_ACTION`
 - Timeline behavior: plugin items are still shown in timeline mode; only built-in destructive actions are hidden.
 
 ## Event Flow
 
-1. `react-force-graph` emits `onNodeRightClick` / `onBackgroundRightClick`.
+1. `react-force-graph` emits `onNodeRightClick` / `onLinkRightClick` / `onBackgroundRightClick`.
 2. `Graph` resolves context selection with typed helpers.
 3. `Graph` dispatches a synthetic `contextmenu` event on the container so Radix menu opens even if the graph library swallows native bubbling.
 4. If no graph callback fired recently, container `onContextMenu` falls back to background context.

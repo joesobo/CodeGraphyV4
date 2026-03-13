@@ -447,6 +447,67 @@ describe('Context Menu Content and Actions', () => {
     });
   });
 
+  it('should show edge context menu items when right-clicking an edge', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateLinkRightClick({
+        id: 'src/app.ts->src/utils.ts',
+        from: 'src/app.ts',
+        to: 'src/utils.ts',
+      });
+      fireEvent.contextMenu(graphContainer!, { clientX: 180, clientY: 160 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
+    expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
+    expect(screen.queryByText('Open File')).not.toBeInTheDocument();
+    expect(screen.queryByText('New File...')).not.toBeInTheDocument();
+  });
+
+  it('should dispatch PLUGIN_CONTEXT_MENU_ACTION for edge context menu item', async () => {
+    const pluginItem: IPluginContextMenuItem = {
+      label: 'Edge Inspect',
+      when: 'edge',
+      pluginId: 'acme.plugin',
+      index: 1,
+    };
+    graphStore.setState({ pluginContextMenuItems: [pluginItem] });
+
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateLinkRightClick({
+        id: 'src/app.ts->src/utils.ts',
+        from: 'src/app.ts',
+        to: 'src/utils.ts',
+      });
+      fireEvent.contextMenu(graphContainer!, { clientX: 220, clientY: 210 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Edge Inspect')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Edge Inspect'));
+    });
+
+    const pluginMsg = findMessage('PLUGIN_CONTEXT_MENU_ACTION');
+    expect(pluginMsg).toBeTruthy();
+    expect(pluginMsg!.payload).toEqual({
+      pluginId: 'acme.plugin',
+      index: 1,
+      targetId: 'src/app.ts->src/utils.ts',
+      targetType: 'edge',
+    });
+  });
+
   it('should not show plugin node items on background context', async () => {
     const pluginItem: IPluginContextMenuItem = {
       label: 'Plugin Inspect',

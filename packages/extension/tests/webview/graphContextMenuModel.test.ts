@@ -3,6 +3,7 @@ import type { IPluginContextMenuItem } from '../../src/shared/types';
 import {
   buildGraphContextMenuEntries,
   makeBackgroundContextSelection,
+  makeEdgeContextSelection,
   makeNodeContextSelection,
   type BuiltInContextMenuAction,
   type GraphContextMenuEntry,
@@ -178,9 +179,39 @@ describe('graphContextMenuModel', () => {
       'copyRelative',
       'toggleFavorite',
     ]);
+
+    const edgeSelection = makeEdgeContextSelection('src/a.ts->src/b.ts', 'src/a.ts', 'src/b.ts');
+    const edgeLive = buildGraphContextMenuEntries({
+      selection: edgeSelection,
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pluginItems: [],
+    });
+    expect(menuLabels(edgeLive)).toEqual([
+      'Copy Source Path',
+      'Copy Target Path',
+      'Copy Both Paths',
+    ]);
+    expect(builtInActions(edgeLive)).toEqual([
+      'copyEdgeSource',
+      'copyEdgeTarget',
+      'copyEdgeBoth',
+    ]);
+
+    const edgeTimeline = buildGraphContextMenuEntries({
+      selection: edgeSelection,
+      timelineActive: true,
+      favorites: new Set<string>(),
+      pluginItems: [],
+    });
+    expect(builtInActions(edgeTimeline)).toEqual([
+      'copyEdgeSource',
+      'copyEdgeTarget',
+      'copyEdgeBoth',
+    ]);
   });
 
-  it('supports plugin items only for single-node context and maps action payloads', () => {
+  it('supports plugin items for node/edge contexts and maps action payloads', () => {
     const pluginItems: IPluginContextMenuItem[] = [
       { label: 'Run Rule', when: 'node', pluginId: 'acme', index: 0, group: 'A' },
       { label: 'Inspect', when: 'both', pluginId: 'acme', index: 1, group: 'B' },
@@ -217,5 +248,28 @@ describe('graphContextMenuModel', () => {
       pluginItems,
     });
     expect(menuLabels(multiNodeEntries)).not.toContain('Run Rule');
+
+    const edgeEntries = buildGraphContextMenuEntries({
+      selection: makeEdgeContextSelection('src/app.ts->src/utils.ts', 'src/app.ts', 'src/utils.ts'),
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pluginItems,
+    });
+    expect(menuLabels(edgeEntries)).toContain('Inspect');
+    expect(menuLabels(edgeEntries)).toContain('Edge Only');
+    expect(menuLabels(edgeEntries)).not.toContain('Run Rule');
+
+    const edgeActionEntry = menuItems(edgeEntries).find(entry => entry.label === 'Edge Only');
+    expect(edgeActionEntry?.kind).toBe('item');
+    if (!edgeActionEntry || edgeActionEntry.kind !== 'item') {
+      throw new Error('Expected edge plugin menu item');
+    }
+    expect(edgeActionEntry.action).toEqual({
+      kind: 'plugin',
+      pluginId: 'acme',
+      index: 2,
+      targetId: 'src/app.ts->src/utils.ts',
+      targetType: 'edge',
+    });
   });
 });

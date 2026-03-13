@@ -6,9 +6,21 @@ export function buildPluginEntries(
   selection: GraphContextSelection,
   pluginItems: readonly IPluginContextMenuItem[]
 ): GraphContextMenuEntry[] {
-  if (selection.kind !== 'node' || selection.targets.length !== 1) return [];
-  const targetId = selection.targets[0];
-  const eligibleItems = pluginItems.filter(item => item.when === 'node' || item.when === 'both');
+  let targetId: string | undefined;
+  let targetType: 'node' | 'edge' | undefined;
+  let eligibleItems: IPluginContextMenuItem[] = [];
+
+  if (selection.kind === 'node' && selection.targets.length === 1) {
+    targetId = selection.targets[0];
+    targetType = 'node';
+    eligibleItems = pluginItems.filter(item => item.when === 'node' || item.when === 'both');
+  } else if (selection.kind === 'edge' && selection.edgeId) {
+    targetId = selection.edgeId;
+    targetType = 'edge';
+    eligibleItems = pluginItems.filter(item => item.when === 'edge' || item.when === 'both');
+  }
+
+  if (!targetId || !targetType) return [];
   if (eligibleItems.length === 0) return [];
 
   const entries: GraphContextMenuEntry[] = [separator('plugins-separator')];
@@ -27,7 +39,7 @@ export function buildPluginEntries(
         item.pluginId,
         item.index,
         targetId,
-        'node'
+        targetType
       )
     );
   }

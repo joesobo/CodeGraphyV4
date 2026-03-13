@@ -24,7 +24,7 @@
 
 ## Context menu
 
-Right-click a node or a selection of nodes to access file actions:
+Right-click background, nodes, multi-node selections, or edges to access context-specific actions:
 
 | Action | Description | Undoable |
 |--------|-------------|----------|
@@ -36,6 +36,7 @@ Right-click a node or a selection of nodes to access file actions:
 | Create File | Create a new file in the same directory | Yes |
 | Toggle Favorite | Mark or unmark with yellow outline | Yes |
 | Add to Filter | Hide from graph via filter pattern | Yes |
+| Copy Source/Target/Both Paths (edge) | Copy connected file paths from an edge | - |
 
 Undoable actions support `Ctrl+Z` / `Cmd+Z` to undo and `Ctrl+Shift+Z` / `Cmd+Shift+Z` to redo.
 
