@@ -49,7 +49,7 @@ Double-clicking a node during timeline mode opens a read-only preview of that fi
 
 ## Context menu
 
-During timeline mode, destructive file actions (Delete, Rename, Create File, Add to Exclude) are hidden from the context menu. Non-destructive actions (Open File, Reveal in Explorer, Copy Path, Toggle Favorite) remain available.
+During timeline mode, destructive file actions (Delete, Rename, Create File, Add to Filter) are hidden from the context menu. Non-destructive actions (Open File, Reveal in Explorer, Copy Path, Toggle Favorite) remain available.
 
 ## Cache
 

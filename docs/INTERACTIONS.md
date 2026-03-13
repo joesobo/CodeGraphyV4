@@ -9,9 +9,10 @@
 | Click | Select the node and reveal the file in the editor |
 | Double-click | Open the file in the editor |
 | Right-click | Open the context menu |
+| `Ctrl+Click` (macOS) | Open the context menu (same as right-click) |
 | Drag | Reposition the node (position is saved) |
 | Hover | Show tooltip with file details |
-| `Ctrl+Click` | Add or remove from selection |
+| `Ctrl+Click` / `Cmd+Click` | Add or remove from selection |
 
 ## Canvas
 
@@ -24,7 +25,7 @@
 
 ## Context menu
 
-Right-click a node or a selection of nodes to access file actions:
+Right-click background, nodes, multi-node selections, or edges to access context-specific actions:
 
 | Action | Description | Undoable |
 |--------|-------------|----------|
@@ -35,11 +36,14 @@ Right-click a node or a selection of nodes to access file actions:
 | Rename | Rename file via inline prompt | Yes |
 | Create File | Create a new file in the same directory | Yes |
 | Toggle Favorite | Mark or unmark with yellow outline | Yes |
-| Add to Exclude | Hide from graph via filter pattern | Yes |
+| Add to Filter | Hide from graph via filter pattern | Yes |
+| Copy Source/Target/Both Paths (edge) | Copy connected file paths from an edge | - |
 
 Undoable actions support `Ctrl+Z` / `Cmd+Z` to undo and `Ctrl+Shift+Z` / `Cmd+Shift+Z` to redo.
 
 ![Context menu](./media/context-menu.png)
+
+Implementation details and the full action/context matrix live in [Context Menu](./CONTEXT_MENU.md).
 
 ## Tooltips
 
@@ -108,7 +112,7 @@ The timeline bar appears below the graph after indexing. See [Timeline](./TIMELI
 | Current | Jump to latest commit |
 | Double-click node | Preview file at current commit (read-only) |
 
-During timeline mode, destructive context menu actions (Delete, Rename, Create File, Add to Exclude) are hidden.
+During timeline mode, destructive context menu actions (Delete, Rename, Create File, Add to Filter) are hidden.
 
 ## Export
 
