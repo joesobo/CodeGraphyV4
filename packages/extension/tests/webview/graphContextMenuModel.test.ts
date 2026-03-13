@@ -4,7 +4,7 @@ import {
   buildGraphContextMenuEntries,
   makeBackgroundContextSelection,
   makeNodeContextSelection,
-} from '../../src/webview/components/graphContextMenuModel';
+} from '../../src/webview/components/graphContextMenu';
 
 function menuLabels(entries: ReturnType<typeof buildGraphContextMenuEntries>): string[] {
   return entries.filter(entry => entry.kind === 'item').map(entry => entry.label);

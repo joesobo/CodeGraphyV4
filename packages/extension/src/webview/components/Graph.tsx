@@ -47,7 +47,7 @@ import {
   type GraphContextMenuAction,
   type GraphContextMenuEntry,
   type GraphContextSelection,
-} from './graphContextMenuModel';
+} from './graphContextMenu';
 import { NodeTooltip } from './NodeTooltip';
 import { ThemeKind, adjustColorForLightTheme } from '../hooks/useTheme';
 import { postMessage } from '../lib/vscodeApi';
