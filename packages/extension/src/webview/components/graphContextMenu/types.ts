@@ -12,7 +12,7 @@ export type BuiltInContextMenuAction =
   | 'copyEdgeBoth'
   | 'toggleFavorite'
   | 'focus'
-  | 'addToExclude'
+  | 'addToFilter'
   | 'rename'
   | 'delete'
   | 'refresh'

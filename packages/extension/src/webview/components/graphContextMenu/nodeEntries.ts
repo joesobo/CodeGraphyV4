@@ -49,7 +49,7 @@ export function buildNodeEntries(
   if (!timelineActive) {
     entries.push(separator('node-separator-destructive-1'));
     entries.push(
-      builtInItem('node-add-exclude', isMultiSelect ? 'Add All to Filter' : 'Add to Filter', 'addToExclude')
+      builtInItem('node-add-filter', isMultiSelect ? 'Add All to Filter' : 'Add to Filter', 'addToFilter')
     );
     entries.push(separator('node-separator-destructive-2'));
 

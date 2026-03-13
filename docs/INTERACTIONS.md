@@ -9,9 +9,10 @@
 | Click | Select the node and reveal the file in the editor |
 | Double-click | Open the file in the editor |
 | Right-click | Open the context menu |
+| `Ctrl+Click` (macOS) | Open the context menu (same as right-click) |
 | Drag | Reposition the node (position is saved) |
 | Hover | Show tooltip with file details |
-| `Ctrl+Click` | Add or remove from selection |
+| `Ctrl+Click` / `Cmd+Click` | Add or remove from selection |
 
 ## Canvas
 

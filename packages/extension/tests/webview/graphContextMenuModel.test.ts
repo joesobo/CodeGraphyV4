@@ -107,10 +107,6 @@ describe('graphContextMenuModel', () => {
       pluginItems: [],
     });
     expect(builtInActions(backgroundLive)).toEqual(['createFile', 'refresh', 'fitView']);
-    const fitViewItem = menuItems(backgroundLive).find(
-      entry => entry.action.kind === 'builtin' && entry.action.action === 'fitView'
-    );
-    expect(fitViewItem?.shortcut).toBe('0');
 
     const backgroundTimeline = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -134,7 +130,7 @@ describe('graphContextMenuModel', () => {
       'copyAbsolute',
       'toggleFavorite',
       'focus',
-      'addToExclude',
+      'addToFilter',
       'rename',
       'delete',
     ]);
@@ -164,7 +160,7 @@ describe('graphContextMenuModel', () => {
       'open',
       'copyRelative',
       'toggleFavorite',
-      'addToExclude',
+      'addToFilter',
       'delete',
     ]);
 

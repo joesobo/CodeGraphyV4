@@ -8,6 +8,10 @@ import ForceGraph3D from 'react-force-graph-3d';
 
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
+function mockMacPlatform() {
+  return vi.spyOn(window.navigator, 'platform', 'get').mockReturnValue('MacIntel');
+}
+
 describe('Graph', () => {
   const mockData: IGraphData = {
     nodes: [
@@ -181,6 +185,23 @@ describe('Bug #54: context menu should open from graph right-click callbacks', (
     });
   });
 
+  it('opens node menu in 2d from mac ctrl+click (same as right-click)', async () => {
+    const platformSpy = mockMacPlatform();
+    try {
+      render(<Graph data={mockData} />);
+
+      await act(async () => {
+        ForceGraph2D.simulateNodeClick({ id: 'a.ts' }, { button: 0, ctrlKey: true, clientX: 120, clientY: 90 });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Open File')).toBeInTheDocument();
+      });
+    } finally {
+      platformSpy.mockRestore();
+    }
+  });
+
   it('opens background menu in 3d from onBackgroundRightClick alone', async () => {
     await act(async () => {
       graphStore.setState({ graphMode: '3d' });
@@ -211,6 +232,26 @@ describe('Bug #54: context menu should open from graph right-click callbacks', (
     });
   });
 
+  it('opens node menu in 3d from mac ctrl+click (same as right-click)', async () => {
+    const platformSpy = mockMacPlatform();
+    try {
+      await act(async () => {
+        graphStore.setState({ graphMode: '3d' });
+      });
+      render(<Graph data={mockData} />);
+
+      await act(async () => {
+        ForceGraph3D.simulateNodeClick({ id: 'a.ts' }, { button: 0, ctrlKey: true, clientX: 130, clientY: 95 });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Open File')).toBeInTheDocument();
+      });
+    } finally {
+      platformSpy.mockRestore();
+    }
+  });
+
   it('falls back to background menu when only container contextmenu event fires', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
@@ -223,6 +264,58 @@ describe('Bug #54: context menu should open from graph right-click callbacks', (
     await waitFor(() => {
       expect(screen.getByText('New File...')).toBeInTheDocument();
     });
+  });
+
+  it('opens background menu from right mouse down/up even when graph callback and native contextmenu are missing', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+    expect(graphContainer).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.mouseDown(graphContainer!, { button: 2, clientX: 280, clientY: 260 });
+      fireEvent.mouseUp(graphContainer!, { button: 2, clientX: 280, clientY: 260 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('New File...')).toBeInTheDocument();
+    });
+  });
+
+  it('opens background menu in 2d from mac ctrl+click (same as right-click)', async () => {
+    const platformSpy = mockMacPlatform();
+    try {
+      render(<Graph data={mockData} />);
+
+      await act(async () => {
+        ForceGraph2D.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 300, clientY: 300 });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('New File...')).toBeInTheDocument();
+      });
+    } finally {
+      platformSpy.mockRestore();
+    }
+  });
+
+  it('opens background menu in 3d from mac ctrl+click (same as right-click)', async () => {
+    const platformSpy = mockMacPlatform();
+    try {
+      await act(async () => {
+        graphStore.setState({ graphMode: '3d' });
+      });
+      render(<Graph data={mockData} />);
+
+      await act(async () => {
+        ForceGraph3D.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 320, clientY: 320 });
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('New File...')).toBeInTheDocument();
+      });
+    } finally {
+      platformSpy.mockRestore();
+    }
   });
 });
 
@@ -348,6 +441,146 @@ describe('Context Menu Content and Actions', () => {
     expect(openMsg!.payload.path).toBe('src/app.ts');
   });
 
+  it('should send REVEAL_IN_EXPLORER message when clicking Reveal in Explorer', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Reveal in Explorer')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Reveal in Explorer'));
+    });
+
+    const revealMsg = findMessage('REVEAL_IN_EXPLORER');
+    expect(revealMsg).toBeTruthy();
+    expect(revealMsg!.payload.path).toBe('src/app.ts');
+  });
+
+  it('should send COPY_TO_CLIPBOARD relative path when clicking Copy Relative Path', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Copy Relative Path')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Copy Relative Path'));
+    });
+
+    const copyMsg = findMessage('COPY_TO_CLIPBOARD');
+    expect(copyMsg).toBeTruthy();
+    expect(copyMsg!.payload.text).toBe('src/app.ts');
+  });
+
+  it('should send COPY_TO_CLIPBOARD absolute path when clicking Copy Absolute Path', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Copy Absolute Path'));
+    });
+
+    const copyMsg = findMessage('COPY_TO_CLIPBOARD');
+    expect(copyMsg).toBeTruthy();
+    expect(copyMsg!.payload.text).toBe('absolute:src/app.ts');
+  });
+
+  it('should focus node in 2d when clicking Focus Node', async () => {
+    const methods = ForceGraph2D.getMockMethods();
+    methods.centerAt.mockClear();
+    methods.zoom.mockClear();
+
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Focus Node')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Focus Node'));
+    });
+
+    expect(methods.centerAt).toHaveBeenCalledWith(0, 0, 300);
+    expect(methods.zoom).toHaveBeenCalledWith(1.5, 300);
+  });
+
+  it('should send ADD_TO_EXCLUDE message when clicking Add to Filter', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Add to Filter')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Add to Filter'));
+    });
+
+    const addMsg = findMessage('ADD_TO_EXCLUDE');
+    expect(addMsg).toBeTruthy();
+    expect(addMsg!.payload.patterns).toEqual(['src/app.ts']);
+  });
+
+  it('should send RENAME_FILE message when clicking Rename...', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateNodeRightClick({ id: 'src/app.ts' });
+      fireEvent.contextMenu(graphContainer!, { clientX: 100, clientY: 100 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Rename...')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Rename...'));
+    });
+
+    const renameMsg = findMessage('RENAME_FILE');
+    expect(renameMsg).toBeTruthy();
+    expect(renameMsg!.payload.path).toBe('src/app.ts');
+  });
+
   it('should send TOGGLE_FAVORITE message when clicking favorite option', async () => {
     const { container } = render(<Graph data={mockData} />);
     const graphContainer = container.querySelector('[tabindex="0"]');
@@ -388,6 +621,52 @@ describe('Context Menu Content and Actions', () => {
     });
 
     expect(findMessage('REFRESH_GRAPH')).toBeTruthy();
+  });
+
+  it('should send CREATE_FILE message when clicking New File...', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateBackgroundRightClick();
+      fireEvent.contextMenu(graphContainer!, { clientX: 300, clientY: 300 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('New File...')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('New File...'));
+    });
+
+    const createMsg = findMessage('CREATE_FILE');
+    expect(createMsg).toBeTruthy();
+    expect(createMsg!.payload.directory).toBe('.');
+  });
+
+  it('should fit view in 2d when clicking Fit All Nodes', async () => {
+    const methods = ForceGraph2D.getMockMethods();
+    methods.zoomToFit.mockClear();
+
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateBackgroundRightClick();
+      fireEvent.contextMenu(graphContainer!, { clientX: 300, clientY: 300 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Fit All Nodes'));
+    });
+
+    expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20);
   });
 
   it('should send DELETE_FILES message when clicking Delete File', async () => {
@@ -467,6 +746,134 @@ describe('Context Menu Content and Actions', () => {
     expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
     expect(screen.queryByText('New File...')).not.toBeInTheDocument();
+  });
+
+  it('should show edge context menu items from mac ctrl+click (same as right-click)', async () => {
+    const platformSpy = mockMacPlatform();
+    try {
+      render(<Graph data={mockData} />);
+
+      await act(async () => {
+        ForceGraph2D.simulateLinkClick(
+          { id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' },
+          { button: 0, ctrlKey: true, clientX: 210, clientY: 180 }
+        );
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+      });
+      expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
+      expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
+    } finally {
+      platformSpy.mockRestore();
+    }
+  });
+
+  it('should show edge context menu items from mac ctrl+click in 3d (same as right-click)', async () => {
+    const platformSpy = mockMacPlatform();
+    try {
+      await act(async () => {
+        graphStore.setState({ graphMode: '3d' });
+      });
+      render(<Graph data={mockData} />);
+
+      await act(async () => {
+        ForceGraph3D.simulateLinkClick(
+          { id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' },
+          { button: 0, ctrlKey: true, clientX: 215, clientY: 185 }
+        );
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+      });
+      expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
+      expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
+    } finally {
+      platformSpy.mockRestore();
+    }
+  });
+
+  it('should send COPY_TO_CLIPBOARD source path when clicking Copy Source Path', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateLinkRightClick({
+        id: 'src/app.ts->src/utils.ts',
+        from: 'src/app.ts',
+        to: 'src/utils.ts',
+      });
+      fireEvent.contextMenu(graphContainer!, { clientX: 200, clientY: 180 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Copy Source Path')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Copy Source Path'));
+    });
+
+    const copyMsg = findMessage('COPY_TO_CLIPBOARD');
+    expect(copyMsg).toBeTruthy();
+    expect(copyMsg!.payload.text).toBe('src/app.ts');
+  });
+
+  it('should send COPY_TO_CLIPBOARD target path when clicking Copy Target Path', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateLinkRightClick({
+        id: 'src/app.ts->src/utils.ts',
+        from: 'src/app.ts',
+        to: 'src/utils.ts',
+      });
+      fireEvent.contextMenu(graphContainer!, { clientX: 200, clientY: 180 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Copy Target Path')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Copy Target Path'));
+    });
+
+    const copyMsg = findMessage('COPY_TO_CLIPBOARD');
+    expect(copyMsg).toBeTruthy();
+    expect(copyMsg!.payload.text).toBe('src/utils.ts');
+  });
+
+  it('should send COPY_TO_CLIPBOARD both paths when clicking Copy Both Paths', async () => {
+    const { container } = render(<Graph data={mockData} />);
+    const graphContainer = container.querySelector('[tabindex="0"]');
+
+    await act(async () => {
+      ForceGraph2D.simulateLinkRightClick({
+        id: 'src/app.ts->src/utils.ts',
+        from: 'src/app.ts',
+        to: 'src/utils.ts',
+      });
+      fireEvent.contextMenu(graphContainer!, { clientX: 200, clientY: 180 });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Copy Both Paths')).toBeInTheDocument();
+    });
+
+    clearSentMessages();
+    await act(async () => {
+      fireEvent.click(screen.getByText('Copy Both Paths'));
+    });
+
+    const copyMsg = findMessage('COPY_TO_CLIPBOARD');
+    expect(copyMsg).toBeTruthy();
+    expect(copyMsg!.payload.text).toBe('src/app.ts\nsrc/utils.ts');
   });
 
   it('should dispatch PLUGIN_CONTEXT_MENU_ACTION for edge context menu item', async () => {

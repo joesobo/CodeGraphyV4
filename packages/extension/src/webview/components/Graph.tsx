@@ -64,6 +64,8 @@ import { WebviewPluginHost } from '../pluginHost';
 const FAVORITE_BORDER_COLOR = '#EAB308';
 const DIRECTIONAL_ARROW_LENGTH_2D = 12;
 const DIRECTIONAL_ARROW_NODE_GAP_2D = 0;
+const RIGHT_CLICK_DRAG_THRESHOLD_PX = 6;
+const RIGHT_CLICK_FALLBACK_DELAY_MS = 40;
 
 /** Minimum and maximum node sizes */
 const MIN_NODE_SIZE = 10;
@@ -296,6 +298,10 @@ function resolveEdgeActionTargetId(
   return linkId ?? `${sourceId}->${targetId}`;
 }
 
+function isMacControlContextClick(event: MouseEvent, isMacPlatform: boolean): boolean {
+  return isMacPlatform && event.button === 0 && event.ctrlKey && !event.metaKey;
+}
+
 // ─── Graph component ────────────────────────────────────────────────────────
 
 export default function Graph({
@@ -345,6 +351,14 @@ export default function Graph({
   physicsSettingsRef.current = physicsSettings;
   const lastClickRef = useRef<{ nodeId: string; time: number } | null>(null);
   const lastGraphContextEventRef = useRef<number>(0);
+  const lastContainerContextMenuEventRef = useRef<number>(0);
+  const rightClickFallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const rightMouseDownRef = useRef<{
+    x: number;
+    y: number;
+    ctrlKey: boolean;
+    moved: boolean;
+  } | null>(null);
   const showLabelsRef = useRef(showLabels);
   /** Stores 3D SpriteText objects by node id so we can toggle visibility without rebuilding */
   const spritesRef = useRef<Map<string, SpriteText>>(new Map());
@@ -793,8 +807,121 @@ export default function Graph({
 
   // ── Node interaction callbacks ───────────────────────────────────────────
 
+  const isMacPlatform = useMemo(
+    () => typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.platform),
+    []
+  );
+
+  const openContextMenuFromGraphCallback = useCallback((event?: MouseEvent) => {
+    const container = containerRef.current;
+    if (!container) return;
+    const syntheticContextMenu = new MouseEvent('contextmenu', {
+      bubbles: true,
+      cancelable: true,
+      button: 2,
+      buttons: 2,
+      clientX: event?.clientX ?? 0,
+      clientY: event?.clientY ?? 0,
+      ctrlKey: event?.ctrlKey ?? false,
+    });
+    container.dispatchEvent(syntheticContextMenu);
+  }, []);
+
+  const openNodeContextMenu = useCallback((nodeId: string, event: MouseEvent) => {
+    const nextSelectedNodes = selectedNodesSetRef.current.has(nodeId)
+      ? new Set(selectedNodesSetRef.current)
+      : new Set([nodeId]);
+
+    if (!selectedNodesSetRef.current.has(nodeId)) {
+      selectedNodesSetRef.current = nextSelectedNodes;
+      setSelectedNodes([nodeId]);
+    }
+    setContextSelection(makeNodeContextSelection(nodeId, nextSelectedNodes));
+    lastGraphContextEventRef.current = Date.now();
+    openContextMenuFromGraphCallback(event);
+  }, [openContextMenuFromGraphCallback]);
+
+  const openEdgeContextMenu = useCallback((link: FGLink, event: MouseEvent) => {
+    const sourceId = resolveLinkEndpointId(link.from) ?? resolveLinkEndpointId((link as { source?: unknown }).source);
+    const targetId = resolveLinkEndpointId(link.to) ?? resolveLinkEndpointId((link as { target?: unknown }).target);
+    if (!sourceId || !targetId) return;
+
+    const edgeId = resolveEdgeActionTargetId(link.id, sourceId, targetId, dataRef.current.edges);
+    setContextSelection(makeEdgeContextSelection(edgeId, sourceId, targetId));
+    lastGraphContextEventRef.current = Date.now();
+    openContextMenuFromGraphCallback(event);
+  }, [openContextMenuFromGraphCallback]);
+
+  const openBackgroundContextMenu = useCallback((event: MouseEvent) => {
+    setContextSelection(makeBackgroundContextSelection());
+    lastGraphContextEventRef.current = Date.now();
+    openContextMenuFromGraphCallback(event);
+  }, [openContextMenuFromGraphCallback]);
+
+  const clearRightClickFallbackTimer = useCallback(() => {
+    if (rightClickFallbackTimerRef.current !== null) {
+      clearTimeout(rightClickFallbackTimerRef.current);
+      rightClickFallbackTimerRef.current = null;
+    }
+  }, []);
+
+  const handleMouseDownCapture = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.button !== 2) return;
+    clearRightClickFallbackTimer();
+    rightMouseDownRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      ctrlKey: event.ctrlKey,
+      moved: false,
+    };
+  }, [clearRightClickFallbackTimer]);
+
+  const handleMouseMoveCapture = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    const rightMouseDown = rightMouseDownRef.current;
+    if (!rightMouseDown) return;
+    const dx = event.clientX - rightMouseDown.x;
+    const dy = event.clientY - rightMouseDown.y;
+    if ((dx * dx) + (dy * dy) > (RIGHT_CLICK_DRAG_THRESHOLD_PX * RIGHT_CLICK_DRAG_THRESHOLD_PX)) {
+      rightMouseDown.moved = true;
+    }
+  }, []);
+
+  const handleMouseUpCapture = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.button !== 2) return;
+    const rightMouseDown = rightMouseDownRef.current;
+    rightMouseDownRef.current = null;
+    if (!rightMouseDown || rightMouseDown.moved) return;
+
+    clearRightClickFallbackTimer();
+    rightClickFallbackTimerRef.current = setTimeout(() => {
+      const now = Date.now();
+      const graphCallbackHandledRecently = now - lastGraphContextEventRef.current <= RIGHT_CLICK_FALLBACK_DELAY_MS * 3;
+      const contextMenuHandledRecently = now - lastContainerContextMenuEventRef.current <= RIGHT_CLICK_FALLBACK_DELAY_MS * 3;
+      if (graphCallbackHandledRecently || contextMenuHandledRecently) return;
+
+      // Final fallback when graph libraries swallow right-click callbacks/contextmenu bubbling.
+      const fallbackEvent = new MouseEvent('contextmenu', {
+        bubbles: true,
+        cancelable: true,
+        button: 2,
+        buttons: 2,
+        clientX: rightMouseDown.x,
+        clientY: rightMouseDown.y,
+        ctrlKey: rightMouseDown.ctrlKey,
+      });
+      openBackgroundContextMenu(fallbackEvent);
+    }, RIGHT_CLICK_FALLBACK_DELAY_MS);
+  }, [clearRightClickFallbackTimer, openBackgroundContextMenu]);
+
   const handleNodeClick = useCallback((node: FGNode, event: MouseEvent) => {
     const nodeId = node.id;
+
+    // macOS control-click should mirror right-click context behavior.
+    if (isMacControlContextClick(event, isMacPlatform)) {
+      openNodeContextMenu(nodeId, event);
+      return;
+    }
+
     const now = Date.now();
     const last = lastClickRef.current;
 
@@ -829,14 +956,24 @@ export default function Graph({
       }
     }
     sendGraphInteraction('graph:nodeClick', { node: { id: node.id, label: node.label }, event: { x: event.clientX, y: event.clientY } });
-  }, [setHighlight, sendGraphInteraction]);
+  }, [isMacPlatform, openNodeContextMenu, setHighlight, sendGraphInteraction]);
 
-  const handleBackgroundClick = useCallback(() => {
+  const handleBackgroundClick = useCallback((event?: MouseEvent) => {
+    if (event && isMacControlContextClick(event, isMacPlatform)) {
+      openBackgroundContextMenu(event);
+      return;
+    }
+
     setHighlight(null);
     selectedNodesSetRef.current = new Set();
     setSelectedNodes([]);
     sendGraphInteraction('graph:backgroundClick', {});
-  }, [setHighlight, sendGraphInteraction]);
+  }, [isMacPlatform, openBackgroundContextMenu, setHighlight, sendGraphInteraction]);
+
+  const handleLinkClick = useCallback((link: FGLink, event: MouseEvent) => {
+    if (!isMacControlContextClick(event, isMacPlatform)) return;
+    openEdgeContextMenu(link, event);
+  }, [isMacPlatform, openEdgeContextMenu]);
 
   /** Returns the node's bounding rect in screen coordinates (accounts for zoom). */
   const getNodeScreenRect = useCallback((node: FGNode): { x: number; y: number; radius: number } | null => {
@@ -923,54 +1060,21 @@ export default function Graph({
 
   // ── Context menu ─────────────────────────────────────────────────────────
 
-  const openContextMenuFromGraphCallback = useCallback((event?: MouseEvent) => {
-    const container = containerRef.current;
-    if (!container) return;
-    const syntheticContextMenu = new MouseEvent('contextmenu', {
-      bubbles: true,
-      cancelable: true,
-      button: 2,
-      buttons: 2,
-      clientX: event?.clientX ?? 0,
-      clientY: event?.clientY ?? 0,
-      ctrlKey: event?.ctrlKey ?? false,
-    });
-    container.dispatchEvent(syntheticContextMenu);
-  }, []);
-
   const handleNodeRightClick = useCallback((node: FGNode, event: MouseEvent) => {
-    const nodeId = node.id;
-    const nextSelectedNodes = selectedNodesSetRef.current.has(nodeId)
-      ? new Set(selectedNodesSetRef.current)
-      : new Set([nodeId]);
-
-    if (!selectedNodesSetRef.current.has(nodeId)) {
-      selectedNodesSetRef.current = nextSelectedNodes;
-      setSelectedNodes([nodeId]);
-    }
-    setContextSelection(makeNodeContextSelection(nodeId, nextSelectedNodes));
-    lastGraphContextEventRef.current = Date.now();
-    openContextMenuFromGraphCallback(event);
-  }, [openContextMenuFromGraphCallback]);
+    openNodeContextMenu(node.id, event);
+  }, [openNodeContextMenu]);
 
   const handleBackgroundRightClick = useCallback((event: MouseEvent) => {
-    setContextSelection(makeBackgroundContextSelection());
-    lastGraphContextEventRef.current = Date.now();
-    openContextMenuFromGraphCallback(event);
-  }, [openContextMenuFromGraphCallback]);
+    openBackgroundContextMenu(event);
+  }, [openBackgroundContextMenu]);
 
   const handleLinkRightClick = useCallback((link: FGLink, event: MouseEvent) => {
-    const sourceId = resolveLinkEndpointId(link.from) ?? resolveLinkEndpointId((link as { source?: unknown }).source);
-    const targetId = resolveLinkEndpointId(link.to) ?? resolveLinkEndpointId((link as { target?: unknown }).target);
-    if (!sourceId || !targetId) return;
-
-    const edgeId = resolveEdgeActionTargetId(link.id, sourceId, targetId, dataRef.current.edges);
-    setContextSelection(makeEdgeContextSelection(edgeId, sourceId, targetId));
-    lastGraphContextEventRef.current = Date.now();
-    openContextMenuFromGraphCallback(event);
-  }, [openContextMenuFromGraphCallback]);
+    openEdgeContextMenu(link, event);
+  }, [openEdgeContextMenu]);
 
   const handleContextMenu = useCallback(() => {
+    lastContainerContextMenuEventRef.current = Date.now();
+
     // Context fallback for environments where graph libs swallow right-click callbacks.
     if (Date.now() - lastGraphContextEventRef.current > 150) {
       setContextSelection(makeBackgroundContextSelection());
@@ -985,6 +1089,8 @@ export default function Graph({
     stopTooltipTracking();
     setTooltipData(prev => ({ ...prev, visible: false, pluginSections: [] }));
   }, [stopTooltipTracking]);
+
+  useEffect(() => clearRightClickFallbackTimer, [clearRightClickFallbackTimer]);
 
   const handleContextAction = useCallback((action: BuiltInContextMenuAction, paths?: string[]) => {
     const targetPaths = paths || contextSelection.targets;
@@ -1031,7 +1137,7 @@ export default function Graph({
         }
         break;
       }
-      case 'addToExclude':
+      case 'addToFilter':
         postMessage({ type: 'ADD_TO_EXCLUDE', payload: { patterns: targetPaths } });
         break;
       case 'rename':
@@ -1405,6 +1511,7 @@ export default function Graph({
     height: containerSize.height || undefined,
     onNodeClick: handleNodeClick as (node: NodeObject, event: MouseEvent) => void,
     onNodeRightClick: handleNodeRightClick as unknown as (node: NodeObject, event: MouseEvent) => void,
+    onLinkClick: handleLinkClick as unknown as (link: LinkObject, event: MouseEvent) => void,
     onLinkRightClick: handleLinkRightClick as unknown as (link: LinkObject, event: MouseEvent) => void,
     onBackgroundClick: handleBackgroundClick,
     onBackgroundRightClick: handleBackgroundRightClick,
@@ -1471,6 +1578,9 @@ export default function Graph({
         <div
           ref={containerRef}
           onContextMenu={handleContextMenu}
+          onMouseDownCapture={handleMouseDownCapture}
+          onMouseMoveCapture={handleMouseMoveCapture}
+          onMouseUpCapture={handleMouseUpCapture}
           className="graph-container absolute inset-0 rounded-lg m-1 outline-none focus:outline-none"
           style={{ backgroundColor: bgColor, borderWidth: 1, borderStyle: 'solid', borderColor }}
           tabIndex={0}

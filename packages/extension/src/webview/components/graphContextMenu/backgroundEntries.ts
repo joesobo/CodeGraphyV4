@@ -9,7 +9,7 @@ export function buildBackgroundEntries(timelineActive: boolean): GraphContextMen
   }
   entries.push(
     builtInItem('background-refresh', 'Refresh Graph', 'refresh'),
-    builtInItem('background-fit', 'Fit All Nodes', 'fitView', { shortcut: '0' })
+    builtInItem('background-fit', 'Fit All Nodes', 'fitView')
   );
   return entries;
 }

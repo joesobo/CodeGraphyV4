@@ -36,7 +36,7 @@ Node context supports:
 
 Background context:
 
-- Always: `Refresh Graph`, `Fit All Nodes` (shortcut: `0`)
+- Always: `Refresh Graph`, `Fit All Nodes`
 - Not timeline: `New File...`
 
 Node context (single):
@@ -66,6 +66,7 @@ Plugin-contributed items (`CONTEXT_MENU_ITEMS`) are appended contextually.
 ## Event Flow
 
 1. `react-force-graph` emits `onNodeRightClick` / `onLinkRightClick` / `onBackgroundRightClick`.
+   - On macOS, control-click (`Ctrl+Click`) on node/edge/background is normalized to the same context behavior.
 2. `Graph` resolves context selection with typed helpers.
 3. `Graph` dispatches a synthetic `contextmenu` event on the container so Radix menu opens even if the graph library swallows native bubbling.
 4. If no graph callback fired recently, container `onContextMenu` falls back to background context.

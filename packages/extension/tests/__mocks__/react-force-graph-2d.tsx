@@ -85,9 +85,16 @@ function simulateNodeClick(node: { id: string }, eventInit?: MouseEventInit) {
 }
 
 /** Simulate background click */
-function simulateBackgroundClick() {
+function simulateBackgroundClick(eventInit?: MouseEventInit) {
   if (lastProps.onBackgroundClick) {
-    lastProps.onBackgroundClick(new MouseEvent('click'));
+    lastProps.onBackgroundClick(new MouseEvent('click', eventInit));
+  }
+}
+
+/** Simulate a link click */
+function simulateLinkClick(link: { id: string; from: string; to: string }, eventInit?: MouseEventInit) {
+  if (lastProps.onLinkClick) {
+    lastProps.onLinkClick(link, new MouseEvent('click', eventInit));
   }
 }
 
@@ -147,6 +154,7 @@ const ForceGraph2DWithHelpers = Object.assign(ForceGraph2D, {
   simulateLinkRightClick,
   simulateNodeClick,
   simulateBackgroundClick,
+  simulateLinkClick,
   simulateNodeHover,
   simulateEngineStop,
   setMockNodeAtPosition,

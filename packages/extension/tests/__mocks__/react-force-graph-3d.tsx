@@ -36,9 +36,27 @@ function simulateNodeRightClick(node: { id: string }) {
   }
 }
 
+function simulateNodeClick(node: { id: string }, eventInit?: MouseEventInit) {
+  if (lastProps.onNodeClick) {
+    lastProps.onNodeClick(node, new MouseEvent('click', eventInit));
+  }
+}
+
 function simulateBackgroundRightClick() {
   if (lastProps.onBackgroundRightClick) {
     lastProps.onBackgroundRightClick(new MouseEvent('contextmenu'));
+  }
+}
+
+function simulateBackgroundClick(eventInit?: MouseEventInit) {
+  if (lastProps.onBackgroundClick) {
+    lastProps.onBackgroundClick(new MouseEvent('click', eventInit));
+  }
+}
+
+function simulateLinkClick(link: { id: string; from: string; to: string }, eventInit?: MouseEventInit) {
+  if (lastProps.onLinkClick) {
+    lastProps.onLinkClick(link, new MouseEvent('click', eventInit));
   }
 }
 
@@ -59,8 +77,11 @@ function clearAllHandlers() {
 }
 
 const ForceGraph3DWithHelpers = Object.assign(ForceGraph3D, {
+  simulateNodeClick,
   simulateNodeRightClick,
   simulateBackgroundRightClick,
+  simulateBackgroundClick,
+  simulateLinkClick,
   simulateLinkRightClick,
   getLastProps,
   clearAllHandlers,
