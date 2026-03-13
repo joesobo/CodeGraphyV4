@@ -103,6 +103,18 @@ describe('Python PathResolver', () => {
       expect(resolved).toBe(expectAbsPath('mypackage/__init__.py'));
     });
 
+    it('should skip __init__.py when resolveInitFiles is disabled', () => {
+      const resolverWithoutInit = new PathResolver(workspaceRoot, {
+        resolveInitFiles: false,
+      });
+      addFile('mypackage/__init__.py');
+
+      const imp = createImport({ module: 'mypackage' });
+      const resolved = resolverWithoutInit.resolve(imp, 'main.py');
+
+      expect(resolved).toBeNull();
+    });
+
     it('should prefer .py over __init__.py', () => {
       addFile('utils.py');
       addFile('utils/__init__.py');
@@ -126,6 +138,15 @@ describe('Python PathResolver', () => {
       const imp = createImport({ module: 'nonexistent' });
       const resolved = resolver.resolve(imp, 'main.py');
       
+      expect(resolved).toBeNull();
+    });
+
+    it('should not resolve from implicit source roots when none are configured', () => {
+      addFile('Stryker was here/ghost.py');
+
+      const imp = createImport({ module: 'ghost' });
+      const resolved = resolver.resolve(imp, 'main.py');
+
       expect(resolved).toBeNull();
     });
 
@@ -251,6 +272,15 @@ describe('Python PathResolver', () => {
       expect(resolved).toBe(expectAbsPath('mypackage/utils.py'));
     });
 
+    it('should normalize backslashes in module names before lookup', () => {
+      addFile('mypackage/utils.py');
+
+      const imp = createImport({ module: 'mypackage\\\\utils' });
+      const resolved = resolver.resolve(imp, 'main.py');
+
+      expect(resolved).toBe(expectAbsPath('mypackage/utils.py'));
+    });
+
     it('should handle empty module in relative import', () => {
       // from .. import something (go to parent package)
       addFile('package/__init__.py');
@@ -266,6 +296,18 @@ describe('Python PathResolver', () => {
       
       // Should resolve to the parent package's __init__.py
       expect(resolved).toBe(expectAbsPath('package/__init__.py'));
+    });
+
+    it('should return null when fs.statSync throws while checking candidate files', () => {
+      addFile('broken.py');
+      vi.mocked(fs.statSync).mockImplementation(() => {
+        throw new Error('stat failed');
+      });
+
+      const imp = createImport({ module: 'broken' });
+      const resolved = resolver.resolve(imp, 'main.py');
+
+      expect(resolved).toBeNull();
     });
   });
 

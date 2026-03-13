@@ -1,99 +1,31 @@
 import { execFileSync } from 'child_process';
+import { parsePythonImportsFromRaw } from './astParserResult';
+import { normalizeParsedImport } from './astParserNormalize';
+import type { ParsedPythonImport } from './pythonImportTypes';
 
-export type ParsedPythonImport =
-  | {
-      kind: 'import';
-      module: string;
-      line: number;
-    }
-  | {
-      kind: 'from';
-      module: string;
-      names: string[];
-      level: number;
-      line: number;
-    };
+export type { ParsedPythonImport } from './pythonImportTypes';
 
-const PYTHON_AST_SCRIPT = String.raw`
-import ast
-import json
-import sys
+const AST_SCRIPT_BASE64 =
+  'aW1wb3J0IGFzdCwganNvbiwgc3lzCnNvdXJjZSA9IHN5cy5zdGRpbi5yZWFkKCkKdHJ5OgogICAgdHJlZSA9IGFzdC5wYXJzZShzb3VyY2UpCmV4Y2VwdCBTeW50YXhFcnJvcjoKICAgIHByaW50KCdbXScpCiAgICByYWlzZSBTeXN0ZW1FeGl0KDApCmltcG9ydHMgPSBbXQpmb3Igbm9kZSBpbiBhc3Qud2Fsayh0cmVlKToKICAgIGlmIGlzaW5zdGFuY2Uobm9kZSwgYXN0LkltcG9ydCk6CiAgICAgICAgZm9yIGFsaWFzIGluIG5vZGUubmFtZXM6CiAgICAgICAgICAgIGltcG9ydHMuYXBwZW5kKHsna2luZCc6ICdpbXBvcnQnLCAnbW9kdWxlJzogYWxpYXMubmFtZSwgJ2xpbmUnOiBub2RlLmxpbmVub30pCiAgICBlbGlmIGlzaW5zdGFuY2Uobm9kZSwgYXN0LkltcG9ydEZyb20pOgogICAgICAgIGltcG9ydHMuYXBwZW5kKHsna2luZCc6ICdmcm9tJywgJ21vZHVsZSc6IG5vZGUubW9kdWxlIG9yICcnLCAnbmFtZXMnOiBbYWxpYXMubmFtZSBmb3IgYWxpYXMgaW4gbm9kZS5uYW1lc10sICdsZXZlbCc6IG5vZGUubGV2ZWwgb3IgMCwgJ2xpbmUnOiBub2RlLmxpbmVub30pCnByaW50KGpzb24uZHVtcHMoc29ydGVkKGltcG9ydHMsIGtleT1sYW1iZGEgaXRlbTogaXRlbVsnbGluZSddKSkpCg==';
 
-source = sys.stdin.read()
-
-try:
-    tree = ast.parse(source)
-except SyntaxError:
-    print("[]")
-    raise SystemExit(0)
-
-imports = []
-
-for node in ast.walk(tree):
-    if isinstance(node, ast.Import):
-        for alias in node.names:
-            imports.append({
-                "kind": "import",
-                "module": alias.name,
-                "line": node.lineno,
-            })
-    elif isinstance(node, ast.ImportFrom):
-        imports.append({
-            "kind": "from",
-            "module": node.module or "",
-            "names": [alias.name for alias in node.names],
-            "level": node.level or 0,
-            "line": node.lineno,
-        })
-
-imports.sort(key=lambda item: item["line"])
-print(json.dumps(imports))
-`;
+const PYTHON_AST_SCRIPT = Buffer.from(AST_SCRIPT_BASE64, 'base64').toString('utf8');
+const AST_PARSE_BUFFER_BYTES = 1024 * 1024 * 10;
 
 export function assertPythonAstRuntimeAvailable(): void {
-  execFileSync('python3', ['-c', 'import ast, sys; print(sys.version_info[0])'], {
-    encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'pipe'],
-  });
+  execFileSync('python3', ['-c', 'import ast, sys; print(sys.version_info[0])']);
 }
 
 export function parsePythonImports(content: string): ParsedPythonImport[] {
   const raw = execFileSync('python3', ['-c', PYTHON_AST_SCRIPT], {
     input: content,
-    encoding: 'utf8',
-    maxBuffer: 1024 * 1024 * 10,
-    stdio: ['pipe', 'pipe', 'pipe'],
+    maxBuffer: AST_PARSE_BUFFER_BYTES,
   });
 
-  const parsed = JSON.parse(raw) as unknown;
-  if (!Array.isArray(parsed)) return [];
-
-  const imports: ParsedPythonImport[] = [];
-  for (const item of parsed) {
-    if (!item || typeof item !== 'object') continue;
-    const rec = item as Record<string, unknown>;
-    const kind = rec.kind;
-    const line = rec.line;
-
-    if (kind !== 'import' && kind !== 'from') continue;
-    if (typeof line !== 'number' || !Number.isFinite(line)) continue;
-
-    if (kind === 'import') {
-      const module = rec.module;
-      if (typeof module !== 'string' || module.length === 0) continue;
-      imports.push({ kind, module, line });
-      continue;
-    }
-
-    const module = rec.module;
-    const names = rec.names;
-    const level = rec.level;
-    if (typeof module !== 'string') continue;
-    if (!Array.isArray(names) || !names.every(name => typeof name === 'string')) continue;
-    if (typeof level !== 'number' || !Number.isInteger(level) || level < 0) continue;
-
-    imports.push({ kind, module, names, level, line });
-  }
-
-  return imports;
+  return parsePythonImportsFromRaw(raw.toString('utf8'));
 }
+
+export const __test = {
+  normalizeParsedImport,
+  parsePythonImportsFromRaw,
+  PYTHON_AST_SCRIPT,
+};
