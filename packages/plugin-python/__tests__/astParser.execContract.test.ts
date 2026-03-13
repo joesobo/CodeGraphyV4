@@ -30,7 +30,7 @@ describe('astParser subprocess contract', () => {
     );
   });
 
-  it('parses imports using the embedded script and bounded subprocess buffer', async () => {
+  it('passes the embedded parser script to subprocess execution', async () => {
     execFileSyncMock.mockReturnValue(
       Buffer.from(JSON.stringify([{ kind: 'import', module: 'os', line: 1 }]), 'utf8'),
     );
@@ -40,6 +40,21 @@ describe('astParser subprocess contract', () => {
     expect(execFileSyncMock).toHaveBeenCalledWith(
       'python3',
       ['-c', __test.PYTHON_AST_SCRIPT],
+      expect.any(Object),
+    );
+  });
+
+  it('uses a bounded subprocess buffer when parsing imports', async () => {
+    execFileSyncMock.mockReturnValue(
+      Buffer.from(JSON.stringify([{ kind: 'import', module: 'os', line: 1 }]), 'utf8'),
+    );
+    const { parsePythonImports } = await import('../src/astParser');
+
+    parsePythonImports('import os');
+
+    expect(execFileSyncMock).toHaveBeenCalledWith(
+      'python3',
+      expect.any(Array),
       {
         input: 'import os',
         maxBuffer: 1024 * 1024 * 10,

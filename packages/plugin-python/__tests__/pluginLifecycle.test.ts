@@ -82,27 +82,76 @@ describe('createPythonPlugin lifecycle', () => {
     vi.restoreAllMocks();
   });
 
-  it('initialize primes python runtime and resolver', async () => {
+  it('initialize probes python runtime', async () => {
+    const plugin = createPythonPlugin();
+
+    await plugin.initialize?.(workspaceRoot);
+
+    expect(mocks.assertPythonAstRuntimeAvailable).toHaveBeenCalledTimes(1);
+  });
+
+  it('initialize loads python project configuration', async () => {
+    const plugin = createPythonPlugin();
+
+    await plugin.initialize?.(workspaceRoot);
+
+    expect(mocks.loadPythonConfig).toHaveBeenCalledWith(workspaceRoot);
+  });
+
+  it('initialize creates one resolver for the workspace', async () => {
+    const plugin = createPythonPlugin();
+
+    await plugin.initialize?.(workspaceRoot);
+
+    expect(mocks.resolverRecords).toHaveLength(1);
+  });
+
+  it('initialize logs plugin startup', async () => {
     const plugin = createPythonPlugin();
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
     await plugin.initialize?.(workspaceRoot);
 
-    expect(mocks.assertPythonAstRuntimeAvailable).toHaveBeenCalledTimes(1);
-    expect(mocks.loadPythonConfig).toHaveBeenCalledWith(workspaceRoot);
-    expect(mocks.resolverRecords).toHaveLength(1);
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Python plugin initialized');
   });
 
-  it('detectConnections lazily initializes runtime and resolver when initialize was skipped', async () => {
+  it('detectConnections probes python runtime when initialize was skipped', async () => {
     const plugin = createPythonPlugin();
 
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
+    await plugin.detectConnections(filePath, content, workspaceRoot);
 
     expect(mocks.assertPythonAstRuntimeAvailable).toHaveBeenCalledTimes(1);
+  });
+
+  it('detectConnections loads project configuration when initialize was skipped', async () => {
+    const plugin = createPythonPlugin();
+
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+
     expect(mocks.loadPythonConfig).toHaveBeenCalledTimes(1);
+  });
+
+  it('detectConnections creates a resolver when initialize was skipped', async () => {
+    const plugin = createPythonPlugin();
+
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+
     expect(mocks.resolverRecords).toHaveLength(1);
+  });
+
+  it('detectConnections parses source content before rule detection', async () => {
+    const plugin = createPythonPlugin();
+
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+
     expect(mocks.parsePythonImports).toHaveBeenCalledWith(content);
+  });
+
+  it('detectConnections passes parsed-import context into import-module detection', async () => {
+    const plugin = createPythonPlugin();
+
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+
     expect(mocks.detectImportModule).toHaveBeenCalledWith(
       content,
       filePath,
@@ -111,6 +160,13 @@ describe('createPythonPlugin lifecycle', () => {
         resolver: mocks.resolverRecords[0].instance,
       }),
     );
+  });
+
+  it('detectConnections returns connections from the rule detectors', async () => {
+    const plugin = createPythonPlugin();
+
+    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
+
     expect(connections).toEqual([
       { specifier: 'pkg', resolvedPath: '/workspace/pkg.py', type: 'static', ruleId: 'import-module' },
     ]);
@@ -125,7 +181,7 @@ describe('createPythonPlugin lifecycle', () => {
     expect(mocks.assertPythonAstRuntimeAvailable).toHaveBeenCalledTimes(1);
   });
 
-  it('reuses initialized runtime and resolver across detect calls', async () => {
+  it('detectConnections reuses runtime after explicit initialize', async () => {
     const plugin = createPythonPlugin();
 
     await plugin.initialize?.(workspaceRoot);
@@ -133,8 +189,26 @@ describe('createPythonPlugin lifecycle', () => {
     await plugin.detectConnections(filePath, content, workspaceRoot);
 
     expect(mocks.assertPythonAstRuntimeAvailable).toHaveBeenCalledTimes(1);
+  });
+
+  it('detectConnections reuses resolver after explicit initialize', async () => {
+    const plugin = createPythonPlugin();
+
+    await plugin.initialize?.(workspaceRoot);
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+
     expect(mocks.loadPythonConfig).toHaveBeenCalledTimes(1);
     expect(mocks.resolverRecords).toHaveLength(1);
+  });
+
+  it('detectConnections still parses each file on every detect call', async () => {
+    const plugin = createPythonPlugin();
+
+    await plugin.initialize?.(workspaceRoot);
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+    await plugin.detectConnections(filePath, content, workspaceRoot);
+
     expect(mocks.parsePythonImports).toHaveBeenCalledTimes(2);
   });
 

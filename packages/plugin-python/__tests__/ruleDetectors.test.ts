@@ -23,16 +23,10 @@ function createContext(
 }
 
 describe('python rule detectors', () => {
-  it('builds from-import connections with relative module specifiers and wildcard handling', () => {
+  it('builds relative from-import connections for named members', () => {
     const { ctx, resolve } = createContext((imp) => {
       if (imp.module === 'pkg.member') {
         return '/workspace/pkg/member.py';
-      }
-      if (imp.module === 'pkg.*') {
-        return '/workspace/pkg/wildcard-should-not-win.py';
-      }
-      if (imp.module === 'pkg') {
-        return '/workspace/pkg/__init__.py';
       }
       return null;
     });
@@ -42,7 +36,7 @@ describe('python rule detectors', () => {
       {
         kind: 'from',
         module: 'pkg',
-        names: ['member', '*'],
+        names: ['member'],
         level: 2,
         line: 8,
       },
@@ -57,18 +51,12 @@ describe('python rule detectors', () => {
         type: 'static',
         ruleId: 'from-import-relative',
       },
-      {
-        specifier: 'from ..pkg import *',
-        resolvedPath: '/workspace/pkg/__init__.py',
-        type: 'static',
-        ruleId: 'from-import-relative',
-      },
     ]);
 
     expect(resolve).toHaveBeenCalledWith(
       {
         module: 'pkg',
-        names: ['member', '*'],
+        names: ['member'],
         isRelative: true,
         relativeLevel: 2,
         type: 'from',
@@ -76,6 +64,40 @@ describe('python rule detectors', () => {
       },
       '/workspace/current.py',
     );
+  });
+
+  it('resolves wildcard from-import connections to the package module', () => {
+    const { ctx } = createContext((imp) => {
+      if (imp.module === 'pkg.*') {
+        return '/workspace/pkg/wildcard-should-not-win.py';
+      }
+      if (imp.module === 'pkg') {
+        return '/workspace/pkg/__init__.py';
+      }
+      return null;
+    });
+
+    const connections = buildFromImportConnections(
+      '/workspace/current.py',
+      {
+        kind: 'from',
+        module: 'pkg',
+        names: ['*'],
+        level: 2,
+        line: 8,
+      },
+      ctx,
+      'from-import-relative',
+    );
+
+    expect(connections).toEqual([
+      {
+        specifier: 'from ..pkg import *',
+        resolvedPath: '/workspace/pkg/__init__.py',
+        type: 'static',
+        ruleId: 'from-import-relative',
+      },
+    ]);
   });
 
   it('filters from-import-absolute entries to level 0 with non-empty module names', () => {
@@ -109,8 +131,8 @@ describe('python rule detectors', () => {
     ]);
   });
 
-  it('builds import-module connections with static type and absolute-resolver payload', () => {
-    const { ctx, resolve } = createContext(() => '/workspace/pkg.py');
+  it('builds static import-module connections', () => {
+    const { ctx } = createContext(() => '/workspace/pkg.py');
 
     ctx.imports = [
       { kind: 'import', module: 'pkg', line: 7 },
@@ -127,6 +149,15 @@ describe('python rule detectors', () => {
         ruleId: 'import-module',
       },
     ]);
+  });
+
+  it('passes absolute import payload to the resolver for import-module detection', () => {
+    const { ctx, resolve } = createContext(() => '/workspace/pkg.py');
+
+    ctx.imports = [{ kind: 'import', module: 'pkg', line: 7 }];
+
+    detectImportModule('', '/workspace/main.py', ctx);
+
     expect(resolve).toHaveBeenCalledWith(
       {
         module: 'pkg',

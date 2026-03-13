@@ -43,16 +43,26 @@ describe('projectConfig subprocess contract', () => {
     );
   });
 
-  it('falls back to default config and warns when source-root discovery fails', async () => {
+  it('falls back to default config when source-root discovery fails', async () => {
+    execFileSyncMock.mockImplementation(() => {
+      throw new Error('python discovery failed');
+    });
+    const { loadPythonConfig } = await import('../src/projectConfig');
+
+    const config = await loadPythonConfig(workspaceRoot);
+
+    expect(config).toEqual({ sourceRoots: [], resolveInitFiles: true });
+  });
+
+  it('logs a warning when source-root discovery fails', async () => {
     execFileSyncMock.mockImplementation(() => {
       throw new Error('python discovery failed');
     });
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const { loadPythonConfig } = await import('../src/projectConfig');
 
-    const config = await loadPythonConfig(workspaceRoot);
+    await loadPythonConfig(workspaceRoot);
 
-    expect(config).toEqual({ sourceRoots: [], resolveInitFiles: true });
     expect(warnSpy).toHaveBeenCalledWith(
       '[CodeGraphy] Failed to parse python project config:',
       expect.any(Error),

@@ -25,7 +25,7 @@ describe('loadPythonConfig', () => {
     expect(config).toEqual({ sourceRoots: [], resolveInitFiles: true });
   });
 
-  it('merges unique normalized source roots from pyproject.toml and setup.cfg', async () => {
+  it('collects source roots from pyproject.toml', async () => {
     writeConfig('pyproject.toml', `
 [tool.setuptools.packages.find]
 where = ["backend", "backend"]
@@ -37,6 +37,13 @@ package-dir = {"" = "src"}
 packages = [{ include = "api", from = "vendor" }]
 `);
 
+    const config = await loadPythonConfig(workspaceRoot);
+
+    expect(config.resolveInitFiles).toBe(true);
+    expect(config.sourceRoots).toEqual(['backend', 'vendor', 'src']);
+  });
+
+  it('collects source roots from setup.cfg', async () => {
     writeConfig('setup.cfg', `
 [options.packages.find]
 where = api
@@ -49,7 +56,23 @@ package_dir =
     const config = await loadPythonConfig(workspaceRoot);
 
     expect(config.resolveInitFiles).toBe(true);
-    expect(config.sourceRoots).toEqual(['backend', 'vendor', 'src', 'api', 'app']);
+    expect(config.sourceRoots).toEqual(['api', 'app']);
+  });
+
+  it('deduplicates roots discovered from multiple project files', async () => {
+    writeConfig('pyproject.toml', `
+[tool.setuptools.packages.find]
+where = ["shared", "shared"]
+`);
+
+    writeConfig('setup.cfg', `
+[options.packages.find]
+where = shared
+`);
+
+    const config = await loadPythonConfig(workspaceRoot);
+
+    expect(config.sourceRoots).toEqual(['shared']);
   });
 });
 

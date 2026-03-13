@@ -6,17 +6,25 @@ describe('astParser runtime', () => {
     expect(() => assertPythonAstRuntimeAvailable()).not.toThrow();
   });
 
-  it('parses import and from-import statements from python source', () => {
+  it('parses import statements from python source', () => {
     const imports = parsePythonImports(`
 import os
-from pkg import member
 import json as js
 `);
 
     expect(imports).toEqual([
       { kind: 'import', module: 'os', line: 2 },
-      { kind: 'from', module: 'pkg', names: ['member'], level: 0, line: 3 },
-      { kind: 'import', module: 'json', line: 4 },
+      { kind: 'import', module: 'json', line: 3 },
+    ]);
+  });
+
+  it('parses from-import statements from python source', () => {
+    const imports = parsePythonImports(`
+from pkg import member
+`);
+
+    expect(imports).toEqual([
+      { kind: 'from', module: 'pkg', names: ['member'], level: 0, line: 2 },
     ]);
   });
 
