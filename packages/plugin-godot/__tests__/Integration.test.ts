@@ -58,7 +58,7 @@ describe('createGDScriptPlugin lifecycle', () => {
     // Now class_name-based references should resolve
     const content = 'var p: Player';
     const conns = await plugin.detectConnections('/workspace/scripts/test.gd', content, '/workspace');
-    expect(conns.some(cn => cn.specifier === 'Player')).toBe(true);
+    expect(conns.some(conn => conn.specifier === 'Player')).toBe(true);
   });
 
   it('onPreAnalyze should register files for snake_case fallback', async () => {
@@ -78,7 +78,7 @@ describe('createGDScriptPlugin lifecycle', () => {
     // SpiritCapSpawner should resolve via snake_case fallback
     const content = 'var x: SpiritCapSpawner';
     const conns = await plugin.detectConnections('/workspace/scripts/test.gd', content, '/workspace');
-    expect(conns.some(cn => cn.specifier === 'SpiritCapSpawner')).toBe(true);
+    expect(conns.some(conn => conn.specifier === 'SpiritCapSpawner')).toBe(true);
   });
 
   it('onPreAnalyze should work without prior initialize', async () => {
@@ -95,7 +95,7 @@ describe('createGDScriptPlugin lifecycle', () => {
     await plugin.onPreAnalyze!(files, '/workspace');
 
     const conns = await plugin.detectConnections('/workspace/scripts/test.gd', 'extends Player', '/workspace');
-    expect(conns.some(cn => cn.specifier === 'Player')).toBe(true);
+    expect(conns.some(conn => conn.specifier === 'Player')).toBe(true);
   });
 
   it('onPreAnalyze should clear previous class names before re-scanning', async () => {
@@ -116,7 +116,7 @@ describe('createGDScriptPlugin lifecycle', () => {
 
     // Player should no longer resolve
     const conns = await plugin.detectConnections('/workspace/test.gd', 'var x: Player', '/workspace');
-    expect(conns.some(cn => cn.specifier === 'Player')).toBe(false);
+    expect(conns.some(conn => conn.specifier === 'Player')).toBe(false);
   });
 
   it('detectConnections should register class_name declarations from current file', async () => {
@@ -129,7 +129,7 @@ describe('createGDScriptPlugin lifecycle', () => {
     // Now MyClass should be resolvable from another file
     const otherContent = 'var x: MyClass';
     const conns = await plugin.detectConnections('/workspace/scripts/other.gd', otherContent, '/workspace');
-    expect(conns.some(cn => cn.specifier === 'MyClass')).toBe(true);
+    expect(conns.some(conn => conn.specifier === 'MyClass')).toBe(true);
   });
 
   it('detectConnections should combine results from all rules', async () => {
@@ -142,9 +142,9 @@ var config = load("res://data/config.tres")`;
 
     const conns = await plugin.detectConnections('/workspace/scripts/test.gd', content, '/workspace');
 
-    expect(conns.some(cn => cn.ruleId === 'extends')).toBe(true);
-    expect(conns.some(cn => cn.ruleId === 'preload')).toBe(true);
-    expect(conns.some(cn => cn.ruleId === 'load')).toBe(true);
+    expect(conns.some(conn => conn.ruleId === 'extends')).toBe(true);
+    expect(conns.some(conn => conn.ruleId === 'preload')).toBe(true);
+    expect(conns.some(conn => conn.ruleId === 'load')).toBe(true);
   });
 
   it('onUnload should clean up resolver state', async () => {
@@ -161,7 +161,7 @@ var config = load("res://data/config.tres")`;
     // After unload, resolver is null. detectConnections should lazily recreate.
     // Player should no longer resolve since the class_name map was cleared.
     const conns = await plugin.detectConnections('/workspace/test.gd', 'var x: Player', '/workspace');
-    expect(conns.some(cn => cn.specifier === 'Player')).toBe(false);
+    expect(conns.some(conn => conn.specifier === 'Player')).toBe(false);
   });
 
   it('should expose rules and fileColors from manifest', () => {
@@ -212,7 +212,7 @@ var config = load("res://data/config.tres")`;
 
     // Verify class_name was registered (not off by one)
     const conns = await plugin.detectConnections('/workspace/other.gd', 'var x: TestClass', '/workspace');
-    expect(conns.some(cn => cn.specifier === 'TestClass')).toBe(true);
+    expect(conns.some(conn => conn.specifier === 'TestClass')).toBe(true);
   });
 
   it('onPreAnalyze should process files with multiple class_name lines', async () => {
@@ -228,8 +228,8 @@ var config = load("res://data/config.tres")`;
     await plugin.onPreAnalyze!(files, '/workspace');
 
     const conns = await plugin.detectConnections('/workspace/test.gd', 'var a: Alpha\nvar b: Beta', '/workspace');
-    expect(conns.some(cn => cn.specifier === 'Alpha')).toBe(true);
-    expect(conns.some(cn => cn.specifier === 'Beta')).toBe(true);
+    expect(conns.some(conn => conn.specifier === 'Alpha')).toBe(true);
+    expect(conns.some(conn => conn.specifier === 'Beta')).toBe(true);
   });
 
   it('detectConnections should split content by newlines correctly', async () => {
@@ -240,8 +240,8 @@ var config = load("res://data/config.tres")`;
     const content = 'extends "res://base.gd"\n\nconst X = preload("res://x.gd")\n';
     const conns = await plugin.detectConnections('/workspace/test.gd', content, '/workspace');
 
-    expect(conns.some(cn => cn.ruleId === 'extends')).toBe(true);
-    expect(conns.some(cn => cn.ruleId === 'preload')).toBe(true);
+    expect(conns.some(conn => conn.ruleId === 'extends')).toBe(true);
+    expect(conns.some(conn => conn.ruleId === 'preload')).toBe(true);
   });
 
   it('detectConnections should create workspace-relative path from filePath', async () => {
@@ -292,8 +292,8 @@ describe('Godot GDScript Plugin Integration', () => {
 
     // player.gd preloads res://scripts/utils/math_helpers.gd which exists in the workspace
     const resolvedPaths = connections
-      .filter(cn => cn.resolvedPath !== null)
-      .map(cn => path.relative(workspaceRoot, cn.resolvedPath!).replace(/\\/g, '/'));
+      .filter(conn => conn.resolvedPath !== null)
+      .map(conn => path.relative(workspaceRoot, conn.resolvedPath!).replace(/\\/g, '/'));
 
     expect(resolvedPaths).toContain('scripts/utils/math_helpers.gd');
   });
@@ -303,7 +303,7 @@ describe('Godot GDScript Plugin Integration', () => {
     const content = fs.readFileSync(filePath, 'utf-8');
 
     const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
-    const inWorkspace = connections.filter(cn => cn.resolvedPath !== null);
+    const inWorkspace = connections.filter(conn => conn.resolvedPath !== null);
 
     for (const conn of inWorkspace) {
       expect(path.isAbsolute(conn.resolvedPath!)).toBe(true);
@@ -320,7 +320,7 @@ describe('Godot GDScript Plugin Integration', () => {
 
     // preloads of .tscn / .tres / .wav files should not resolve to .gd paths
     const tscnOrTres = connections.filter(
-      cn => cn.specifier.endsWith('.tscn') || cn.specifier.endsWith('.tres') || cn.specifier.endsWith('.wav')
+      conn => conn.specifier.endsWith('.tscn') || conn.specifier.endsWith('.tres') || conn.specifier.endsWith('.wav')
     );
     for (const conn of tscnOrTres) {
       // Either null or pointing to a non-.gd file — never a ghost gd path
@@ -337,7 +337,7 @@ describe('Godot GDScript Plugin Integration', () => {
       'scripts/game_manager.gd',
       'scripts/base/entity.gd',
       'scripts/utils/math_helpers.gd',
-    ].filter(fp => fs.existsSync(path.join(workspaceRoot, fp)));
+    ].filter(scriptPath => fs.existsSync(path.join(workspaceRoot, scriptPath)));
 
     const allConnections: Array<{ from: string; to: string }> = [];
 
