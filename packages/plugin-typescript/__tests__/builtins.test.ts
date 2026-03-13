@@ -62,8 +62,17 @@ describe('isBareSpecifier', () => {
     expect(isBareSpecifier('../helpers')).toBe(false);
   });
 
+  it('should return false for dot-only specifiers', () => {
+    expect(isBareSpecifier('.')).toBe(false);
+    expect(isBareSpecifier('..')).toBe(false);
+  });
+
   it('should return false for absolute paths', () => {
     expect(isBareSpecifier('/absolute/path')).toBe(false);
+  });
+
+  it('should return false for root-relative paths', () => {
+    expect(isBareSpecifier('/usr/local/lib')).toBe(false);
   });
 
   it('should return true for packages with hyphens', () => {

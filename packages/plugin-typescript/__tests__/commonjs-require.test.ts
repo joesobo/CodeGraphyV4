@@ -67,6 +67,16 @@ describe('commonjs-require rule', () => {
     expect(connections).toHaveLength(0);
   });
 
+  it('should not detect other function calls with string arguments', () => {
+    const connections = detect(`const x = myRequire('./bar');`, testFile, context);
+    expect(connections).toHaveLength(0);
+  });
+
+  it('should not detect method calls named require', () => {
+    const connections = detect(`const x = obj.require('./bar');`, testFile, context);
+    expect(connections).toHaveLength(0);
+  });
+
   it('should handle .cjs file extensions', () => {
     const connections = detect(`const foo = require('./bar');`, '/workspace/src/test.cjs', context);
     expect(connections).toHaveLength(1);

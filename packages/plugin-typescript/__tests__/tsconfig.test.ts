@@ -89,6 +89,10 @@ describe('getPaths', () => {
     expect(getPaths({ paths: { '@/*': [42] } })).toBeUndefined();
   });
 
+  it('should return undefined when some array items are not strings', () => {
+    expect(getPaths({ paths: { '@/*': ['src/*', 42] } })).toBeUndefined();
+  });
+
   it('should handle multiple path aliases', () => {
     const compilerOptions = {
       paths: { '@/*': ['src/*'], '#/*': ['lib/*'] },

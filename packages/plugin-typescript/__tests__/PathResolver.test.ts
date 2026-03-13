@@ -214,6 +214,76 @@ describe('PathResolver', () => {
     });
   });
 
+  describe('exact path alias without wildcard', () => {
+    it('should resolve exact path alias without wildcard', () => {
+      createFile('vendor/jquery.ts');
+      const resolver = new PathResolver(tempDir, {
+        baseUrl: '.',
+        paths: { 'jquery': ['vendor/jquery'] },
+      });
+      const fromFile = path.join(tempDir, 'src', 'app.ts');
+
+      const result = resolver.resolve('jquery', fromFile);
+
+      expect(result).toBe(path.join(tempDir, 'vendor', 'jquery.ts'));
+    });
+  });
+
+  describe('baseUrl fallback when path alias does not match', () => {
+    it('should fall through to baseUrl when path alias does not match', () => {
+      createFile('src/utils.ts');
+      const resolver = new PathResolver(tempDir, {
+        baseUrl: '.',
+        paths: { '@/*': ['lib/*'] },
+      });
+      const fromFile = path.join(tempDir, 'src', 'app.ts');
+
+      const result = resolver.resolve('src/utils', fromFile);
+
+      expect(result).toBe(path.join(tempDir, 'src', 'utils.ts'));
+    });
+  });
+
+  describe('relative path not treated as built-in', () => {
+    it('should resolve relative path and not treat as built-in', () => {
+      createFile('src/fs.ts');
+      const fromFile = path.join(tempDir, 'src', 'app.ts');
+      const resolver = new PathResolver(tempDir);
+
+      const result = resolver.resolve('./fs', fromFile);
+
+      expect(result).toBe(path.join(tempDir, 'src', 'fs.ts'));
+    });
+  });
+
+  describe('path alias with non-empty suffix', () => {
+    it('should resolve path alias with suffix after wildcard', () => {
+      createFile('src/components/Button.ts');
+      const resolver = new PathResolver(tempDir, {
+        baseUrl: '.',
+        paths: { '@components/*.comp': ['src/components/*'] },
+      });
+      const fromFile = path.join(tempDir, 'src', 'app.ts');
+
+      const result = resolver.resolve('@components/Button.comp', fromFile);
+
+      expect(result).toBe(path.join(tempDir, 'src', 'components', 'Button.ts'));
+    });
+
+    it('should not match when suffix does not match', () => {
+      createFile('src/components/Button.ts');
+      const resolver = new PathResolver(tempDir, {
+        baseUrl: '.',
+        paths: { '@components/*.comp': ['src/components/*'] },
+      });
+      const fromFile = path.join(tempDir, 'src', 'app.ts');
+
+      const result = resolver.resolve('@components/Button.xyz', fromFile);
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe('non-existent files', () => {
     it('should return null for non-existent relative import', () => {
       const fromFile = path.join(tempDir, 'src', 'app.ts');

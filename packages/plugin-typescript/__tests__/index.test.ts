@@ -67,6 +67,26 @@ describe('createTypeScriptPlugin lifecycle', () => {
     await plugin.initialize?.(workspaceRoot);
   });
 
+  it('should create resolver during initialize', async () => {
+    const plugin = createTypeScriptPlugin();
+    await plugin.initialize?.(workspaceRoot);
+
+    // After initialize, resolver exists, so detectConnections works with imports
+    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
+    expect(connections.length).toBeGreaterThan(0);
+  });
+
+  it('should lazy-initialize resolver if not initialized', async () => {
+    const plugin = createTypeScriptPlugin();
+    // Do NOT call initialize — go straight to detectConnections
+    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
+    expect(connections.length).toBeGreaterThan(0);
+  });
+
   it('should handle detectConnections without prior initialize', async () => {
     const plugin = createTypeScriptPlugin();
     const connections = await plugin.detectConnections(
@@ -87,6 +107,18 @@ describe('createTypeScriptPlugin lifecycle', () => {
       workspaceRoot
     );
     expect(connections).toEqual([]);
+  });
+
+  it('should re-create resolver after unload when detectConnections is called', async () => {
+    const plugin = createTypeScriptPlugin();
+    await plugin.initialize?.(workspaceRoot);
+    plugin.onUnload?.();
+
+    // Now calling detectConnections should lazy-init a new resolver
+    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
+    expect(connections.length).toBeGreaterThan(0);
   });
 });
 
