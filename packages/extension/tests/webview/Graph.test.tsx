@@ -289,7 +289,7 @@ describe('Context Menu Content and Actions', () => {
     expect(screen.getByText('Copy Relative Path')).toBeInTheDocument();
     expect(screen.getByText('Copy Absolute Path')).toBeInTheDocument();
     expect(screen.getByText('Focus Node')).toBeInTheDocument();
-    expect(screen.getByText('Add to Exclude')).toBeInTheDocument();
+    expect(screen.getByText('Add to Filter')).toBeInTheDocument();
     expect(screen.getByText('Rename...')).toBeInTheDocument();
     expect(screen.getByText('Delete File')).toBeInTheDocument();
     expect(screen.queryByText('New File...')).not.toBeInTheDocument();

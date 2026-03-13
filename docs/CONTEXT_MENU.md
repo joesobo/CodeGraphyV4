@@ -33,18 +33,18 @@ Node context supports:
 
 Background context:
 
-- Always: `Refresh Graph`, `Fit All Nodes`
+- Always: `Refresh Graph`, `Fit All Nodes` (shortcut: `0`)
 - Not timeline: `New File...`
 
 Node context (single):
 
 - Always: `Open File`, `Copy Relative Path`, `Copy Absolute Path`, favorite toggle, `Focus Node`
-- Not timeline: `Reveal in Explorer`, `Add to Exclude`, `Rename...`, `Delete File`
+- Not timeline: `Reveal in Explorer`, `Add to Filter`, `Rename...`, `Delete File`
 
 Node context (multi):
 
 - Always: `Open N Files`, `Copy Relative Paths`, favorite toggle
-- Not timeline: `Add All to Exclude`, `Delete N Files`
+- Not timeline: `Add All to Filter`, `Delete N Files`
 
 ## Plugin Menu Items
 

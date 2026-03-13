@@ -35,7 +35,7 @@ Right-click a node or a selection of nodes to access file actions:
 | Rename | Rename file via inline prompt | Yes |
 | Create File | Create a new file in the same directory | Yes |
 | Toggle Favorite | Mark or unmark with yellow outline | Yes |
-| Add to Exclude | Hide from graph via filter pattern | Yes |
+| Add to Filter | Hide from graph via filter pattern | Yes |
 
 Undoable actions support `Ctrl+Z` / `Cmd+Z` to undo and `Ctrl+Shift+Z` / `Cmd+Shift+Z` to redo.
 
@@ -85,7 +85,7 @@ The timeline bar appears below the graph after indexing. See [Timeline](./TIMELI
 | Current | Jump to latest commit |
 | Double-click node | Preview file at current commit (read-only) |
 
-During timeline mode, destructive context menu actions (Delete, Rename, Create File, Add to Exclude) are hidden.
+During timeline mode, destructive context menu actions (Delete, Rename, Create File, Add to Filter) are hidden.
 
 ## Export
 

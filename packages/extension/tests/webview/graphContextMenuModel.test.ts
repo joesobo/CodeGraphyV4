@@ -4,10 +4,26 @@ import {
   buildGraphContextMenuEntries,
   makeBackgroundContextSelection,
   makeNodeContextSelection,
+  type BuiltInContextMenuAction,
+  type GraphContextMenuEntry,
 } from '../../src/webview/components/graphContextMenu';
 
-function menuLabels(entries: ReturnType<typeof buildGraphContextMenuEntries>): string[] {
-  return entries.filter(entry => entry.kind === 'item').map(entry => entry.label);
+function menuItems(entries: GraphContextMenuEntry[]): Extract<GraphContextMenuEntry, { kind: 'item' }>[] {
+  return entries.filter(entry => entry.kind === 'item');
+}
+
+function menuLabels(entries: GraphContextMenuEntry[]): string[] {
+  return menuItems(entries).map(entry => entry.label);
+}
+
+function builtInActions(entries: GraphContextMenuEntry[]): BuiltInContextMenuAction[] {
+  const actions: BuiltInContextMenuAction[] = [];
+  for (const entry of menuItems(entries)) {
+    if (entry.action.kind === 'builtin') {
+      actions.push(entry.action.action);
+    }
+  }
+  return actions;
 }
 
 describe('graphContextMenuModel', () => {
@@ -45,7 +61,7 @@ describe('graphContextMenuModel', () => {
       'Copy Absolute Path',
       'Remove from Favorites',
       'Focus Node',
-      'Add to Exclude',
+      'Add to Filter',
       'Rename...',
       'Delete File',
     ]);
@@ -77,8 +93,90 @@ describe('graphContextMenuModel', () => {
       'Open 2 Files',
       'Copy Relative Paths',
       'Add All to Favorites',
-      'Add All to Exclude',
+      'Add All to Filter',
       'Delete 2 Files',
+    ]);
+  });
+
+  it('maps all built-in actions by context variant', () => {
+    const backgroundLive = buildGraphContextMenuEntries({
+      selection: makeBackgroundContextSelection(),
+      timelineActive: false,
+      favorites: new Set(),
+      pluginItems: [],
+    });
+    expect(builtInActions(backgroundLive)).toEqual(['createFile', 'refresh', 'fitView']);
+    const fitViewItem = menuItems(backgroundLive).find(
+      entry => entry.action.kind === 'builtin' && entry.action.action === 'fitView'
+    );
+    expect(fitViewItem?.shortcut).toBe('0');
+
+    const backgroundTimeline = buildGraphContextMenuEntries({
+      selection: makeBackgroundContextSelection(),
+      timelineActive: true,
+      favorites: new Set(),
+      pluginItems: [],
+    });
+    expect(builtInActions(backgroundTimeline)).toEqual(['refresh', 'fitView']);
+
+    const singleSelection = makeNodeContextSelection('src/app.ts', new Set<string>());
+    const singleLive = buildGraphContextMenuEntries({
+      selection: singleSelection,
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pluginItems: [],
+    });
+    expect(builtInActions(singleLive)).toEqual([
+      'open',
+      'reveal',
+      'copyRelative',
+      'copyAbsolute',
+      'toggleFavorite',
+      'focus',
+      'addToExclude',
+      'rename',
+      'delete',
+    ]);
+
+    const singleTimeline = buildGraphContextMenuEntries({
+      selection: singleSelection,
+      timelineActive: true,
+      favorites: new Set<string>(),
+      pluginItems: [],
+    });
+    expect(builtInActions(singleTimeline)).toEqual([
+      'open',
+      'copyRelative',
+      'copyAbsolute',
+      'toggleFavorite',
+      'focus',
+    ]);
+
+    const multiSelection = makeNodeContextSelection('src/a.ts', new Set(['src/a.ts', 'src/b.ts']));
+    const multiLive = buildGraphContextMenuEntries({
+      selection: multiSelection,
+      timelineActive: false,
+      favorites: new Set<string>(),
+      pluginItems: [],
+    });
+    expect(builtInActions(multiLive)).toEqual([
+      'open',
+      'copyRelative',
+      'toggleFavorite',
+      'addToExclude',
+      'delete',
+    ]);
+
+    const multiTimeline = buildGraphContextMenuEntries({
+      selection: multiSelection,
+      timelineActive: true,
+      favorites: new Set<string>(),
+      pluginItems: [],
+    });
+    expect(builtInActions(multiTimeline)).toEqual([
+      'open',
+      'copyRelative',
+      'toggleFavorite',
     ]);
   });
 
@@ -99,7 +197,7 @@ describe('graphContextMenuModel', () => {
     expect(menuLabels(singleNodeEntries)).toContain('Inspect');
     expect(menuLabels(singleNodeEntries)).not.toContain('Edge Only');
 
-    const pluginActionEntry = singleNodeEntries.find(entry => entry.kind === 'item' && entry.label === 'Run Rule');
+    const pluginActionEntry = menuItems(singleNodeEntries).find(entry => entry.label === 'Run Rule');
     expect(pluginActionEntry?.kind).toBe('item');
     if (!pluginActionEntry || pluginActionEntry.kind !== 'item') {
       throw new Error('Expected plugin menu item');
