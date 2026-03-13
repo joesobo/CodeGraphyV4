@@ -4,7 +4,14 @@ This document defines CodeGraphy's context-menu behavior and the files that own 
 
 ## Ownership
 
-- Rules/model: `packages/extension/src/webview/components/graphContextMenuModel.ts`
+- Rules/model (split by concern):
+  - `packages/extension/src/webview/components/graphContextMenu/backgroundEntries.ts`
+  - `packages/extension/src/webview/components/graphContextMenu/nodeEntries.ts`
+  - `packages/extension/src/webview/components/graphContextMenu/pluginEntries.ts`
+  - `packages/extension/src/webview/components/graphContextMenu/selection.ts`
+  - `packages/extension/src/webview/components/graphContextMenu/buildGraphContextMenuEntries.ts`
+  - `packages/extension/src/webview/components/graphContextMenu/types.ts`
+  - `packages/extension/src/webview/components/graphContextMenuModel.ts` (compatibility re-export)
 - UI wiring + event bridge: `packages/extension/src/webview/components/Graph.tsx`
 - Webview message contract: `packages/extension/src/shared/types.ts`
 - Runtime handler for plugin actions: `packages/extension/src/extension/GraphViewProvider.ts`
