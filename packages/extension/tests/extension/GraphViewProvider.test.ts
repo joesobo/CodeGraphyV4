@@ -469,6 +469,7 @@ describe('GraphViewProvider', () => {
       // Other built-in defaults
       expect(groups.some((g: { id: string }) => g.id === 'default:.gitignore')).toBe(true);
       expect(groups.some((g: { id: string }) => g.id === 'default:*.png')).toBe(true);
+      expect(groups.some((g: { id: string }) => g.id === 'default:*.jpg')).toBe(true);
       expect(groups.some((g: { id: string }) => g.id === 'default:*.md')).toBe(true);
       expect(groups.some((g: { id: string }) => g.id === 'default:.vscode/settings.json')).toBe(true);
     });
