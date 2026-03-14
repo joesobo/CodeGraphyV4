@@ -68,11 +68,14 @@ import {
 	readGraphViewSettings,
 	resolveGraphViewDisabledState,
 } from './graphViewSettings';
+import { applyExportMessage } from './graphView/messages/exports';
+import { applyNodeFileMessage } from './graphView/messages/nodeFile';
 import { applyPluginContextMenuAction } from './graphView/messages/pluginContextMenu';
 import { applyPluginGroupToggle } from './graphView/messages/pluginGroupToggle';
 import { applyPluginInteraction } from './graphView/messages/pluginInteraction';
 import { applyPluginSectionToggle } from './graphView/messages/pluginSectionToggle';
 import { applyWebviewReady } from './graphView/messages/ready';
+import { applyTimelineMessage } from './graphView/messages/timeline';
 
 /** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -1234,6 +1237,44 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _setWebviewMessageListener(webview: vscode.Webview): void {
     webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
+      if (await applyNodeFileMessage(message, {
+        timelineActive: this._timelineActive,
+        currentCommitSha: this._currentCommitSha,
+        openSelectedNode: nodeId => this._openSelectedNode(nodeId),
+        activateNode: nodeId => this._activateNode(nodeId),
+        previewFileAtCommit: (sha, filePath) => this._previewFileAtCommit(sha, filePath),
+        openFile: filePath => this._openFile(filePath),
+        revealInExplorer: filePath => this._revealInExplorer(filePath),
+        copyToClipboard: text => this._copyToClipboard(text),
+        deleteFiles: paths => this._deleteFiles(paths),
+        renameFile: filePath => this._renameFile(filePath),
+        createFile: directory => this._createFile(directory),
+        toggleFavorites: paths => this._toggleFavorites(paths),
+        addToExclude: patterns => this._addToExclude(patterns),
+        analyzeAndSendData: () => this._analyzeAndSendData(),
+        getFileInfo: filePath => this._getFileInfo(filePath),
+      })) {
+        return;
+      }
+
+      if (await applyExportMessage(message, {
+        savePng: (dataUrl, filename) => saveExportedPng(dataUrl, filename),
+        saveSvg: (svg, filename) => saveExportedSvg(svg, filename),
+        saveJpeg: (dataUrl, filename) => saveExportedJpeg(dataUrl, filename),
+        saveJson: (json, filename) => saveExportedJson(json, filename),
+        saveMarkdown: (markdown, filename) => saveExportedMarkdown(markdown, filename),
+      })) {
+        return;
+      }
+
+      if (await applyTimelineMessage(message, {
+        indexRepository: () => this._indexRepository(),
+        jumpToCommit: sha => this._jumpToCommit(sha),
+        previewFileAtCommit: (sha, filePath) => this._previewFileAtCommit(sha, filePath),
+      })) {
+        return;
+      }
+
       switch (message.type) {
         case 'WEBVIEW_READY': {
           const config = vscode.workspace.getConfiguration('codegraphy');
@@ -1273,79 +1314,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
         }
 
-        case 'NODE_SELECTED':
-          void this._openSelectedNode(message.payload.nodeId);
-          break;
-
-        case 'NODE_DOUBLE_CLICKED':
-          void this._activateNode(message.payload.nodeId);
-          break;
-
-        // Context menu actions
-        case 'OPEN_FILE':
-          if (this._timelineActive && this._currentCommitSha) {
-            void this._previewFileAtCommit(this._currentCommitSha, message.payload.path);
-          } else {
-            void this._openFile(message.payload.path);
-          }
-          break;
-          
-        case 'REVEAL_IN_EXPLORER':
-          void this._revealInExplorer(message.payload.path);
-          break;
-          
-        case 'COPY_TO_CLIPBOARD':
-          void this._copyToClipboard(message.payload.text);
-          break;
-          
-        case 'DELETE_FILES':
-          if (!this._timelineActive) void this._deleteFiles(message.payload.paths);
-          break;
-
-        case 'RENAME_FILE':
-          if (!this._timelineActive) void this._renameFile(message.payload.path);
-          break;
-
-        case 'CREATE_FILE':
-          if (!this._timelineActive) void this._createFile(message.payload.directory);
-          break;
-          
-        case 'TOGGLE_FAVORITE':
-          void this._toggleFavorites(message.payload.paths);
-          break;
-          
-        case 'ADD_TO_EXCLUDE':
-          if (!this._timelineActive) void this._addToExclude(message.payload.patterns);
-          break;
-          
-        case 'REFRESH_GRAPH':
-          await this._analyzeAndSendData();
-          break;
-          
-        case 'GET_FILE_INFO':
-          void this._getFileInfo(message.payload.path);
-          break;
-          
-        case 'EXPORT_PNG':
-          await saveExportedPng(message.payload.dataUrl, message.payload.filename);
-          break;
-          
-        case 'EXPORT_SVG':
-          await saveExportedSvg(message.payload.svg, message.payload.filename);
-          break;
-
-        case 'EXPORT_JPEG':
-          await saveExportedJpeg(message.payload.dataUrl, message.payload.filename);
-          break;
-
-        case 'EXPORT_JSON':
-          await saveExportedJson(message.payload.json, message.payload.filename);
-          break;
-
-        case 'EXPORT_MD':
-          await saveExportedMarkdown(message.payload.markdown, message.payload.filename);
-          break;
-          
         case 'GET_PHYSICS_SETTINGS':
           this._sendPhysicsSettings();
           break;
@@ -1541,19 +1509,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           this._smartRebuild('plugin', pluginId);
           break;
         }
-
-        // Timeline commands
-        case 'INDEX_REPO':
-          void this._indexRepository();
-          break;
-
-        case 'JUMP_TO_COMMIT':
-          await this._jumpToCommit(message.payload.sha);
-          break;
-
-        case 'PREVIEW_FILE_AT_COMMIT':
-          void this._previewFileAtCommit(message.payload.sha, message.payload.filePath);
-          break;
 
         case 'GRAPH_INTERACTION': {
           applyPluginInteraction(message.payload, {
