@@ -98,9 +98,23 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
             - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/nodeFile.test.ts tests/extension/graphView/messages/nodeFileOpen.test.ts tests/extension/graphView/messages/nodeFileEdit.test.ts tests/extension/graphView/messages/nodeFileNavigation.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts`
             - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
             - package-relative `eslint` on touched `graphView/messages/nodeFile*` files
+        - rerun after the `nodeFile` split:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - graph-view-provider slice overall = `46.56%`
+          - `graphView/messages/nodeFile.ts` = `100%`
+          - `GraphViewProvider.ts` remains the only file above the `50`-site threshold at `1150` sites
+      - current local provider drain:
+        - extract physics/settings/group-config webview handlers to `graphView/messages/{physics,settings,groups}.ts`
+        - add direct helper tests: `physics.test.ts`, `settings.test.ts`, `groups.test.ts`
+        - red-green checkpoint:
+          - red: focused `vitest` failed on missing helper modules before the extraction
+          - green:
+            - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/physics.test.ts tests/extension/graphView/messages/settings.test.ts tests/extension/graphView/messages/groups.test.ts tests/extension/GraphViewProvider.settingsPersistence.test.ts tests/extension/GraphViewProvider.test.ts`
+            - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+            - package-relative `eslint` on touched provider/message files
       - next cut:
-        - rerun the `graph-view-provider` mutation slice on the split `nodeFile` helpers and confirm the threshold drop
-        - keep draining `GraphViewProvider.ts` by extracting remaining config-update/file-edit orchestration
+        - rerun the `graph-view-provider` mutation slice on the new provider message helpers
+        - keep draining `GraphViewProvider.ts` by extracting remaining file-edit/public-wrapper orchestration
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.

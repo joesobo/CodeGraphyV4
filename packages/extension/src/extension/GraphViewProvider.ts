@@ -9,7 +9,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import {
   IGraphData,
-  DirectionMode,
   DagMode,
   IPhysicsSettings,
   IGroup,
@@ -17,7 +16,6 @@ import {
   ISettingsSnapshot,
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
-  DEFAULT_DIRECTION_COLOR,
   DEFAULT_FOLDER_NODE_COLOR,
 } from '../shared/types';
 import { EventBus, EventName, EventPayloads } from '../core/plugins/EventBus';
@@ -74,19 +72,21 @@ import {
 } from './graphView/visits';
 import {
 	getGraphViewConfigTarget,
-	normalizeDirectionColor,
 	normalizeFolderNodeColor,
 	readGraphViewSettings,
 	resolveGraphViewDisabledState,
 } from './graphViewSettings';
 import { applyCommandMessage } from './graphView/messages/commands';
 import { applyExportMessage } from './graphView/messages/exports';
+import { applyGroupMessage } from './graphView/messages/groups';
 import { applyNodeFileMessage } from './graphView/messages/nodeFile';
+import { applyPhysicsMessage } from './graphView/messages/physics';
 import { applyPluginContextMenuAction } from './graphView/messages/pluginContextMenu';
 import { applyPluginGroupToggle } from './graphView/messages/pluginGroupToggle';
 import { applyPluginInteraction } from './graphView/messages/pluginInteraction';
 import { applyPluginSectionToggle } from './graphView/messages/pluginSectionToggle';
 import { applyWebviewReady } from './graphView/messages/ready';
+import { applySettingsMessage } from './graphView/messages/settings';
 import { applyTimelineMessage } from './graphView/messages/timeline';
 
 /** Default physics settings (user-facing normalized values) */
@@ -1288,6 +1288,70 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         return;
       }
 
+      if (await applyPhysicsMessage(message, {
+        sendPhysicsSettings: () => this._sendPhysicsSettings(),
+        updatePhysicsSetting: (key, value) => this._updatePhysicsSetting(key, value),
+        resetPhysicsSettings: () => this._resetPhysicsSettings(),
+      })) {
+        return;
+      }
+
+      const groupMessageState = {
+        userGroups: this._userGroups,
+      };
+      if (await applyGroupMessage(message, groupMessageState, {
+        workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+        persistGroups: async (groups) => {
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
+          await vscode.workspace.getConfiguration('codegraphy').update('groups', groups, target);
+        },
+        recomputeGroups: () => this._computeMergedGroups(),
+        sendGroupsUpdated: () => this._sendGroupsUpdated(),
+        showOpenDialog: (options) => vscode.window.showOpenDialog(options),
+        createDirectory: (uri) => vscode.workspace.fs.createDirectory(uri),
+        copyFile: (source, destination, options) =>
+          vscode.workspace.fs.copy(source, destination, options),
+      })) {
+        this._userGroups = groupMessageState.userGroups;
+        return;
+      }
+
+      const settingsMessageState = {
+        activeViewId: this._activeViewId,
+        disabledPlugins: this._disabledPlugins,
+        disabledRules: this._disabledRules,
+        filterPatterns: this._filterPatterns,
+        graphData: this._graphData,
+        viewContext: this._viewContext,
+      };
+      if (await applySettingsMessage(message, settingsMessageState, {
+        getConfig: (key, defaultValue) =>
+          vscode.workspace.getConfiguration('codegraphy').get(key, defaultValue),
+        updateConfig: async (key, value) => {
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
+          await vscode.workspace.getConfiguration('codegraphy').update(key, value, target);
+        },
+        getPluginFilterPatterns: () => this._analyzer?.getPluginFilterPatterns() ?? [],
+        sendMessage: (nextMessage) => this._sendMessage(nextMessage),
+        applyViewTransform: () => this._applyViewTransform(),
+        smartRebuild: (kind, id) => this._smartRebuild(kind, id),
+        resetAllSettings: async () => {
+          const snapshot = this._captureSettingsSnapshot();
+          const action = new ResetSettingsAction(
+            snapshot,
+            getGraphViewConfigTarget(vscode.workspace.workspaceFolders),
+            this._context,
+            () => this._sendAllSettings(),
+            (mode) => { this._nodeSizeMode = mode; },
+            () => this._analyzeAndSendData(),
+          );
+          await getUndoManager().execute(action);
+        },
+      })) {
+        this._filterPatterns = settingsMessageState.filterPatterns;
+        return;
+      }
+
       switch (message.type) {
         case 'WEBVIEW_READY': {
           const config = vscode.workspace.getConfiguration('codegraphy');
@@ -1324,162 +1388,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
               notifyWebviewReady: () => this._analyzer?.registry.notifyWebviewReady(),
             },
           );
-          break;
-        }
-
-        case 'GET_PHYSICS_SETTINGS':
-          this._sendPhysicsSettings();
-          break;
-          
-        case 'UPDATE_PHYSICS_SETTING':
-          await this._updatePhysicsSetting(
-            message.payload.key,
-            message.payload.value
-          );
-          break;
-          
-        case 'RESET_PHYSICS_SETTINGS':
-          await this._resetPhysicsSettings();
-          break;
-
-        case 'RESET_ALL_SETTINGS': {
-          const snapshot = this._captureSettingsSnapshot();
-          const action = new ResetSettingsAction(
-            snapshot,
-            getGraphViewConfigTarget(vscode.workspace.workspaceFolders),
-            this._context,
-            () => this._sendAllSettings(),
-            (mode) => { this._nodeSizeMode = mode; },
-            () => this._analyzeAndSendData(),
-          );
-          await getUndoManager().execute(action);
-          break;
-        }
-
-        case 'UPDATE_GROUPS': {
-          // Strip transient/session-only fields before persisting
-          this._userGroups = message.payload.groups.map(({ imageUrl: _iu, isPluginDefault: _ip, pluginName: _pn, ...persistable }) => persistable);
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, target);
-          this._computeMergedGroups();
-          this._sendGroupsUpdated();
-          break;
-        }
-
-        case 'UPDATE_FILTER_PATTERNS': {
-          this._filterPatterns = message.payload.patterns;
-          const filterTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update('filterPatterns', this._filterPatterns, filterTarget);
-          this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
-          // onDidChangeConfiguration fires after config.update and calls refresh() → _analyzeAndSendData().
-          // this._filterPatterns is already set above, so that refresh uses the correct patterns.
-          break;
-        }
-
-        case 'UPDATE_SHOW_ORPHANS': {
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update('showOrphans', message.payload.showOrphans, target);
-          // Config change listener in index.ts handles re-analysis
-          break;
-        }
-
-        case 'UPDATE_BIDIRECTIONAL_MODE': {
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          const mode = message.payload.bidirectionalMode;
-          await vscode.workspace.getConfiguration('codegraphy').update('bidirectionalEdges', mode, target);
-          // Config change listener sends SETTINGS_UPDATED which updates the store
-          break;
-        }
-
-        case 'UPDATE_DIRECTION_MODE': {
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          const mode = message.payload.directionMode;
-          await vscode.workspace.getConfiguration('codegraphy').update('directionMode', mode, target);
-          const config = vscode.workspace.getConfiguration('codegraphy');
-          this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: {
-            directionMode: mode,
-            particleSpeed: config.get<number>('particleSpeed', 0.005),
-            particleSize: config.get<number>('particleSize', 4),
-            directionColor: normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)),
-          }});
-          break;
-        }
-
-        case 'UPDATE_DIRECTION_COLOR': {
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          const color = normalizeDirectionColor(message.payload.directionColor);
-          await vscode.workspace.getConfiguration('codegraphy').update('directionColor', color, target);
-          const config = vscode.workspace.getConfiguration('codegraphy');
-          this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: {
-            directionMode: config.get<string>('directionMode', 'arrows') as DirectionMode,
-            particleSpeed: config.get<number>('particleSpeed', 0.005),
-            particleSize: config.get<number>('particleSize', 4),
-            directionColor: color,
-          }});
-          break;
-        }
-
-        case 'UPDATE_FOLDER_NODE_COLOR': {
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          const color = normalizeFolderNodeColor(message.payload.folderNodeColor);
-          await vscode.workspace.getConfiguration('codegraphy').update('folderNodeColor', color, target);
-          this._viewContext.folderNodeColor = color;
-          this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: color } });
-          // Re-apply view transform if folder view is active (updates folder node colors)
-          if (this._activeViewId === 'codegraphy.folder') {
-            this._applyViewTransform();
-            this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-          }
-          break;
-        }
-
-        case 'UPDATE_PARTICLE_SETTING': {
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          const { key, value } = message.payload;
-          await vscode.workspace.getConfiguration('codegraphy').update(key, value, target);
-          break;
-        }
-
-        case 'UPDATE_SHOW_LABELS': {
-          const labelsTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update('showLabels', message.payload.showLabels, labelsTarget);
-          this._sendMessage({
-            type: 'SHOW_LABELS_UPDATED',
-            payload: { showLabels: message.payload.showLabels },
-          });
-          break;
-        }
-
-        case 'UPDATE_MAX_FILES': {
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update('maxFiles', message.payload.maxFiles, target);
-          // Config change listener will trigger re-analysis automatically
-          break;
-        }
-
-        case 'TOGGLE_RULE': {
-          const { qualifiedId, enabled } = message.payload;
-          if (enabled) {
-            this._disabledRules.delete(qualifiedId);
-          } else {
-            this._disabledRules.add(qualifiedId);
-          }
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update('disabledRules', [...this._disabledRules], target);
-          this._smartRebuild('rule', qualifiedId);
-          break;
-        }
-
-        case 'TOGGLE_PLUGIN': {
-          const { pluginId, enabled: pluginEnabled } = message.payload;
-          if (pluginEnabled) {
-            this._disabledPlugins.delete(pluginId);
-          } else {
-            this._disabledPlugins.add(pluginId);
-          }
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update('disabledPlugins', [...this._disabledPlugins], target);
-          this._smartRebuild('plugin', pluginId);
           break;
         }
 
@@ -1537,36 +1445,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
         }
 
-        case 'PICK_GROUP_IMAGE': {
-          const { groupId } = message.payload;
-          const uris = await vscode.window.showOpenDialog({
-            canSelectMany: false,
-            filters: { 'Images': ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif', 'ico'] },
-            openLabel: 'Select Image',
-          });
-          if (!uris || uris.length === 0) break;
-          const selectedUri = uris[0];
-          const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-          if (!workspaceFolder) break;
-
-          const assetsDir = vscode.Uri.joinPath(workspaceFolder.uri, '.codegraphy', 'assets');
-          try { await vscode.workspace.fs.createDirectory(assetsDir); } catch { /* already exists */ }
-
-          const fileName = path.basename(selectedUri.fsPath);
-          const destUri = vscode.Uri.joinPath(assetsDir, fileName);
-          await vscode.workspace.fs.copy(selectedUri, destUri, { overwrite: true });
-
-          const imagePath = `.codegraphy/assets/${fileName}`;
-          const group = this._userGroups.find(g => g.id === groupId);
-          if (group) {
-            group.imagePath = imagePath;
-            const imgTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-            await vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, imgTarget);
-            this._computeMergedGroups();
-            this._sendGroupsUpdated();
-          }
-          break;
-        }
       }
     });
   }
