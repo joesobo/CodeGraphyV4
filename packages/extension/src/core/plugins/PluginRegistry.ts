@@ -10,48 +10,14 @@ import { DecorationManager } from './DecorationManager';
 import { CodeGraphyAPIImpl, GraphDataProvider, CommandRegistrar, WebviewMessageSender } from './CodeGraphyAPI';
 import { ViewRegistry } from '../views/ViewRegistry';
 import { IGraphData } from '../../shared/types';
-
-const CORE_PLUGIN_API_VERSION = '2.0.0';
-const WEBVIEW_PLUGIN_API_VERSION = '1.0.0';
-
-interface ISemver {
-  major: number;
-  minor: number;
-  patch: number;
-}
-
-function parseSemver(input: string): ISemver | undefined {
-  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(input.trim());
-  if (!match) return undefined;
-  return {
-    major: Number(match[1]),
-    minor: Number(match[2]),
-    patch: Number(match[3]),
-  };
-}
-
-function compareSemver(left: ISemver, right: ISemver): number {
-  if (left.major !== right.major) return left.major - right.major;
-  if (left.minor !== right.minor) return left.minor - right.minor;
-  return left.patch - right.patch;
-}
-
-function satisfiesSemverRange(version: string, range: string): boolean {
-  const target = parseSemver(version);
-  if (!target) return false;
-
-  const normalized = range.trim();
-  if (normalized.startsWith('^')) {
-    const min = parseSemver(normalized.slice(1));
-    if (!min) return false;
-    const maxExclusive: ISemver = { major: min.major + 1, minor: 0, patch: 0 };
-    return compareSemver(target, min) >= 0 && compareSemver(target, maxExclusive) < 0;
-  }
-
-  const exact = parseSemver(normalized);
-  if (!exact) return false;
-  return compareSemver(target, exact) === 0;
-}
+import {
+  CORE_PLUGIN_API_VERSION,
+  WEBVIEW_PLUGIN_API_VERSION,
+  parseSemver,
+  satisfiesSemverRange,
+} from './pluginVersioning';
+import { getFileExtension, normalizePluginExtension } from './pluginFileExtensions';
+import { hasScopedApiConfiguration } from './pluginApiConfiguration';
 
 /**
  * Registry for managing CodeGraphy plugins.
@@ -191,24 +157,25 @@ export class PluginRegistry {
       sourceExtension: options.sourceExtension,
     };
 
-    if (
-      this._eventBus &&
-      this._decorationManager &&
-      this._viewRegistry &&
-      this._graphProvider &&
-      this._commandRegistrar &&
-      this._webviewSender &&
-      this._workspaceRoot !== undefined
-    ) {
+    const apiConfiguration = {
+      eventBus: this._eventBus,
+      decorationManager: this._decorationManager,
+      viewRegistry: this._viewRegistry,
+      graphProvider: this._graphProvider,
+      commandRegistrar: this._commandRegistrar,
+      webviewSender: this._webviewSender,
+      workspaceRoot: this._workspaceRoot,
+    };
+    if (hasScopedApiConfiguration(apiConfiguration)) {
       const api = new CodeGraphyAPIImpl(
         plugin.id,
-        this._eventBus,
-        this._decorationManager,
-        this._viewRegistry,
-        this._graphProvider,
-        this._commandRegistrar,
-        this._webviewSender,
-        this._workspaceRoot,
+        apiConfiguration.eventBus,
+        apiConfiguration.decorationManager,
+        apiConfiguration.viewRegistry,
+        apiConfiguration.graphProvider,
+        apiConfiguration.commandRegistrar,
+        apiConfiguration.webviewSender,
+        apiConfiguration.workspaceRoot,
         this._logFn,
       );
       info.api = api;
@@ -226,7 +193,7 @@ export class PluginRegistry {
 
     // Update extension map
     for (const ext of plugin.supportedExtensions) {
-      const normalizedExt = ext.startsWith('.') ? ext : `.${ext}`;
+      const normalizedExt = normalizePluginExtension(ext);
       const plugins = this._extensionMap.get(normalizedExt) ?? [];
       plugins.push(plugin.id);
       this._extensionMap.set(normalizedExt, plugins);
@@ -320,7 +287,7 @@ export class PluginRegistry {
 
     // Remove from extension map
     for (const ext of info.plugin.supportedExtensions) {
-      const normalizedExt = ext.startsWith('.') ? ext : `.${ext}`;
+      const normalizedExt = normalizePluginExtension(ext);
       const plugins = this._extensionMap.get(normalizedExt);
       if (plugins) {
         const index = plugins.indexOf(pluginId);
@@ -361,7 +328,7 @@ export class PluginRegistry {
    * @returns The plugin, or undefined if no plugin supports this file type
    */
   getPluginForFile(filePath: string): IPlugin | undefined {
-    const ext = this._getExtension(filePath);
+    const ext = getFileExtension(filePath);
     const pluginIds = this._extensionMap.get(ext);
     
     if (!pluginIds || pluginIds.length === 0) {
@@ -369,8 +336,14 @@ export class PluginRegistry {
     }
 
     // Return the first plugin (built-in plugins should be registered first)
-    const info = this._plugins.get(pluginIds[0]);
-    return info?.plugin;
+    for (const pluginId of pluginIds) {
+      const plugin = this._plugins.get(pluginId)?.plugin;
+      if (plugin) {
+        return plugin;
+      }
+    }
+
+    return undefined;
   }
 
   /**
@@ -380,12 +353,20 @@ export class PluginRegistry {
    * @returns Array of plugins that support this extension
    */
   getPluginsForExtension(extension: string): IPlugin[] {
-    const normalizedExt = extension.startsWith('.') ? extension : `.${extension}`;
-    const pluginIds = this._extensionMap.get(normalizedExt) ?? [];
-    
-    return pluginIds
-      .map((id) => this._plugins.get(id)?.plugin)
-      .filter((plugin): plugin is IPlugin => plugin !== undefined);
+    const normalizedExt = normalizePluginExtension(extension);
+    const pluginIds = this._extensionMap.get(normalizedExt);
+    if (!pluginIds) {
+      return [];
+    }
+
+    const plugins: IPlugin[] = [];
+    for (const pluginId of pluginIds) {
+      const plugin = this._plugins.get(pluginId)?.plugin;
+      if (plugin) {
+        plugins.push(plugin);
+      }
+    }
+    return plugins;
   }
 
   /**
@@ -447,7 +428,7 @@ export class PluginRegistry {
    * @returns true if a plugin can handle this file
    */
   supportsFile(filePath: string): boolean {
-    const ext = this._getExtension(filePath);
+    const ext = getFileExtension(filePath);
     return this._extensionMap.has(ext);
   }
 
@@ -573,17 +554,6 @@ export class PluginRegistry {
     const info = this._plugins.get(pluginId);
     if (!info) return;
     this._replayReadinessForPlugin(info);
-  }
-
-  /**
-   * Extracts the file extension from a path.
-   */
-  private _getExtension(filePath: string): string {
-    const lastDot = filePath.lastIndexOf('.');
-    if (lastDot === -1 || lastDot === filePath.length - 1) {
-      return '';
-    }
-    return filePath.slice(lastDot).toLowerCase();
   }
 
   /**
