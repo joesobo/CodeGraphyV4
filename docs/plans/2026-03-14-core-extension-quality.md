@@ -43,6 +43,14 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/plugin.test.ts tests/extension/graphView/messages/ready.test.ts tests/webview/graph/effects/contextMenu.test.ts tests/webview/graph/effects/interaction.test.ts tests/webview/graph/effects/keyboard.test.ts tests/webview/graph/effects/messages.test.ts`
         - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
       - next cut: rerun `crap` / targeted mutation and decide whether `Graph.tsx` or `GraphViewProvider.ts` gets the next split
+      - tooling follow-up: make `scripts/run-mutate.ts` accept extension slices so hot files can be iterated without full-package Stryker runs
+      - latest package gate status:
+        - `pnpm run crap -- extension` passed
+        - `pnpm run mutate -- extension graph-view-messages` = `97.80%`
+        - graph-view message slice now stays under the 50-site file threshold
+      - tooling landed:
+        - `scripts/run-mutate.ts` now supports `pnpm run mutate -- extension <slice>`
+        - `pnpm exec tsx scripts/run-mutate.ts --list-slices` prints available extension slices
 - S4 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 

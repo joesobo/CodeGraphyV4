@@ -134,7 +134,10 @@ packages/extension/src/extension/export/saveJson.ts
 packages/extension/src/extension/export/saveMarkdown.ts
 packages/extension/src/extension/export/savePng.ts
 packages/extension/src/extension/export/saveSvg.ts
-packages/extension/src/extension/graphView/messages/plugin.ts
+packages/extension/src/extension/graphView/messages/pluginContextMenu.ts
+packages/extension/src/extension/graphView/messages/pluginGroupToggle.ts
+packages/extension/src/extension/graphView/messages/pluginInteraction.ts
+packages/extension/src/extension/graphView/messages/pluginSectionToggle.ts
 packages/extension/src/extension/graphView/messages/ready.ts
 packages/extension/src/extension/graphViewFileInfo.ts
 packages/extension/src/extension/graphViewHtml.ts
@@ -304,7 +307,10 @@ packages/extension/tests/extension/export/saveMarkdown.test.ts
 packages/extension/tests/extension/export/savePng.test.ts
 packages/extension/tests/extension/export/saveSvg.test.ts
 packages/extension/tests/extension/extension.test.ts
-packages/extension/tests/extension/graphView/messages/plugin.test.ts
+packages/extension/tests/extension/graphView/messages/pluginContextMenu.test.ts
+packages/extension/tests/extension/graphView/messages/pluginGroupToggle.test.ts
+packages/extension/tests/extension/graphView/messages/pluginInteraction.test.ts
+packages/extension/tests/extension/graphView/messages/pluginSectionToggle.test.ts
 packages/extension/tests/extension/graphView/messages/ready.test.ts
 packages/extension/tests/extension/graphViewFileInfo.test.ts
 packages/extension/tests/extension/graphViewHtml.test.ts

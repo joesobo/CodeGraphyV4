@@ -62,18 +62,16 @@ import { readGraphViewPhysicsSettings } from './graphViewPhysics';
 import { createGraphViewHtml, createGraphViewNonce } from './graphViewHtml';
 import { buildGraphViewFileInfoPayload } from './graphViewFileInfo';
 import {
-  getGraphViewConfigTarget,
-  normalizeDirectionColor,
-  normalizeFolderNodeColor,
-  readGraphViewSettings,
-  resolveGraphViewDisabledState,
+	getGraphViewConfigTarget,
+	normalizeDirectionColor,
+	normalizeFolderNodeColor,
+	readGraphViewSettings,
+	resolveGraphViewDisabledState,
 } from './graphViewSettings';
-import {
-  applyPluginContextMenuAction,
-  applyPluginGroupToggle,
-  applyPluginInteraction,
-  applyPluginSectionToggle,
-} from './graphView/messages/plugin';
+import { applyPluginContextMenuAction } from './graphView/messages/pluginContextMenu';
+import { applyPluginGroupToggle } from './graphView/messages/pluginGroupToggle';
+import { applyPluginInteraction } from './graphView/messages/pluginInteraction';
+import { applyPluginSectionToggle } from './graphView/messages/pluginSectionToggle';
 import { applyWebviewReady } from './graphView/messages/ready';
 
 /** Default physics settings (user-facing normalized values) */
