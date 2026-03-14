@@ -9,6 +9,15 @@ import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Button } from './ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/collapsible';
+import {
+  getPluginsPanelChevronClassName,
+  getPluginsPanelRuleCountClassName,
+  getPluginsPanelRuleLabelClassName,
+  getPluginsPanelWrapperClassName,
+  shouldRenderPluginsPanelRuleDescription,
+  shouldRenderPluginsPanelSeparator,
+  toggleExpandedPluginIds,
+} from './pluginsPanelModel';
 
 interface PluginsPanelProps {
   isOpen: boolean;
@@ -16,7 +25,7 @@ interface PluginsPanelProps {
 }
 
 const ChevronIcon = ({ open }: { open: boolean }) => (
-  <MdiIcon path={mdiChevronRight} size={12} className={cn('text-muted-foreground transition-transform', open && 'rotate-90')} />
+  <MdiIcon path={mdiChevronRight} size={12} className={getPluginsPanelChevronClassName(open)} />
 );
 
 export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
@@ -26,12 +35,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
   if (!isOpen) return null;
 
   const toggleExpanded = (pluginId: string) => {
-    setExpandedPlugins(prev => {
-      const next = new Set(prev);
-      if (next.has(pluginId)) next.delete(pluginId);
-      else next.add(pluginId);
-      return next;
-    });
+    setExpandedPlugins((prev) => toggleExpandedPluginIds(prev, pluginId));
   };
 
   const handleTogglePlugin = (pluginId: string, enabled: boolean) => {
@@ -60,10 +64,9 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
           ) : (
             plugins.map((plugin, index) => {
               const isExpanded = expandedPlugins.has(plugin.id);
-              const dimmed = !plugin.enabled;
 
               return (
-                <div key={plugin.id} className={cn(dimmed && 'opacity-50')}>
+                <div key={plugin.id} className={getPluginsPanelWrapperClassName(plugin.enabled)}>
                   <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(plugin.id)}>
                     {/* Plugin header */}
                     <div className="flex items-center gap-2 py-2.5">
@@ -104,11 +107,11 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
                               <div className="flex-1 min-w-0">
                                 <span className={cn(
                                   'text-xs block truncate',
-                                  !plugin.enabled ? 'text-muted-foreground/50' : 'text-foreground'
+                                  getPluginsPanelRuleLabelClassName(plugin.enabled)
                                 )}>
                                   {rule.name}
                                 </span>
-                                {rule.description && (
+                                {shouldRenderPluginsPanelRuleDescription(rule.description) && (
                                   <span className="text-[10px] text-muted-foreground block truncate">
                                     {rule.description}
                                   </span>
@@ -117,7 +120,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
 
                               <span className={cn(
                                 'text-xs flex-shrink-0 tabular-nums',
-                                !plugin.enabled ? 'text-muted-foreground/50' : 'text-muted-foreground'
+                                getPluginsPanelRuleCountClassName(plugin.enabled)
                               )}>
                                 {rule.connectionCount}
                               </span>
@@ -132,7 +135,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
                     </CollapsibleContent>
                   </Collapsible>
 
-                  {index < plugins.length - 1 && <Separator className="opacity-50" />}
+                  {shouldRenderPluginsPanelSeparator(index, plugins.length) && <Separator className="opacity-50" />}
                 </div>
               );
             })
