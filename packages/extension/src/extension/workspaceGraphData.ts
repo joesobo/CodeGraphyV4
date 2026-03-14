@@ -113,10 +113,5 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
     });
   }
 
-  const nodeIdSet = new Set(nodes.map((node) => node.id));
-  const filteredEdges = edges.filter(
-    (edge) => nodeIdSet.has(edge.from) && nodeIdSet.has(edge.to)
-  );
-
-  return { nodes, edges: filteredEdges };
+  return { nodes, edges };
 }
