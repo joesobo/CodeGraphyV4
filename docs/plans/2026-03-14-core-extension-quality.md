@@ -155,8 +155,42 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - `graphView/groupSync.ts` = `100.00%`
         - `graphView/allSettingsSync.ts` = `33.33%`
         - net result: provider is still the only file above the `50`-site threshold, and this cut did not materially lower its site count
+      - reviewed/integrated subagent cut: `subagent/core-extension-timeline`
+        - extract `graphView/timelineGraph.ts`, `timelineOpen.ts`, and `timelinePlayback.ts`
+        - add direct tests: `timelineGraph.test.ts`, `timelineOpen.test.ts`, `timelinePlayback.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/timelineGraph.test.ts tests/extension/graphView/timelinePlayback.test.ts tests/extension/graphView/timelineOpen.test.ts tests/extension/graphView/messages/timeline.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts tests/extension/graphView/messages/ready.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - package-relative `eslint` on touched timeline/provider files
+      - reviewed/integrated subagent cut: `subagent/core-extension-file-ops`
+        - extract `graphView/fileNavigation.ts`, `fileActions.ts`, `fileRename.ts`, and `favorites.ts`
+        - add direct tests: `fileNavigation.test.ts`, `fileActions.test.ts`, `fileRename.test.ts`, `favorites.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/fileNavigation.test.ts tests/extension/graphView/fileActions.test.ts tests/extension/graphView/fileRename.test.ts tests/extension/graphView/favorites.test.ts tests/extension/graphView/messages/nodeFile.test.ts tests/extension/graphView/messages/nodeFileEdit.test.ts tests/extension/graphView/messages/nodeFileNavigation.test.ts tests/extension/GraphViewProvider.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - package-relative `eslint` on touched file-operation/provider files
+      - rerun after the timeline + file-operation cuts:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `60.54%`
+        - `GraphViewProvider.ts` = `41.06%`
+        - `GraphViewProvider.ts` mutation sites = `915`
+      - current local provider plugin/webview cut:
+        - extract `graphView/pluginWebview.ts` and `externalPluginRegistration.ts`
+        - add direct tests: `pluginWebview.test.ts`, `externalPluginRegistration.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/pluginWebview.test.ts tests/extension/graphView/externalPluginRegistration.test.ts tests/extension/GraphViewProvider.publicApi.test.ts tests/extension/GraphViewProvider.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts tests/extension/graphView/messages/ready.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - package-relative `eslint` on touched plugin/provider files
+      - rerun after the plugin/webview cut:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `62.16%`
+        - `GraphViewProvider.ts` = `40.64%`
+        - `GraphViewProvider.ts` mutation sites = `855`
+        - `graphView/pluginWebview.ts` = `86.49%`
+        - `graphView/externalPluginRegistration.ts` = `79.07%`
+        - `GraphViewProvider.ts` remains the only file above the `50`-site threshold
       - next cut:
-        - keep draining `GraphViewProvider.ts`, but stop targeting tiny wrappers and move to higher-yield seams: file-edit/public-wrapper orchestration and favorites flows
+        - keep draining `GraphViewProvider.ts` with the next high-yield seams: `_setWebviewMessageListener`, `_indexRepository`, and `_doAnalyzeAndSendData`
         - do not spend time on survivor cleanup until the provider file is also under the `50`-site threshold
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
