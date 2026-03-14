@@ -1,4 +1,4 @@
-import type { IGroup } from '../../shared/types';
+import type { IGroup } from '../../../shared/types';
 
 const PARTICLE_SPEED_MIN_INTERNAL = 0.0005;
 const PARTICLE_SPEED_MAX_INTERNAL = 0.005;

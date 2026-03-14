@@ -43,7 +43,7 @@ vi.mock('../../src/webview/components/SearchBar', () => ({
   },
 }));
 
-vi.mock('../../src/webview/components/SettingsPanel', () => ({
+vi.mock('../../src/webview/components/settingsPanel/Panel', () => ({
   default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
     isOpen ? <button data-testid="settings-panel" onClick={onClose}>Close Settings</button> : null,
 }));

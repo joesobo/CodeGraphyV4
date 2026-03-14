@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGroup } from '../../src/shared/types';
+import type { IGroup } from '../../../src/shared/types';
 import {
   buildSettingsGroupOverride,
   groupSettingsPanelSections,
@@ -7,7 +7,7 @@ import {
   particleSpeedFromDisplay,
   particleSpeedToDisplay,
   reorderSettingsGroups,
-} from '../../src/webview/components/settingsPanelModel';
+} from '../../../src/webview/components/settingsPanel/model';
 
 describe('settingsPanelModel', () => {
   it('accepts 6-digit hex colors and rejects other values', () => {
