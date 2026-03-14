@@ -48,9 +48,14 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - `pnpm run crap -- extension` passed
         - `pnpm run mutate -- extension graph-view-messages` = `97.80%`
         - graph-view message slice now stays under the 50-site file threshold
+        - `pnpm run mutate -- extension graph-view-provider` = `31.09%`
+        - `GraphViewProvider.ts` still carries `1311` mutation sites inside that slice
       - tooling landed:
         - `scripts/run-mutate.ts` now supports `pnpm run mutate -- extension <slice>`
         - `pnpm exec tsx scripts/run-mutate.ts --list-slices` prints available extension slices
+      - next target after this pass:
+        - stay on `GraphViewProvider.ts`
+        - first candidate seams from mutation output: settings/group loading, public wrapper methods, file-info helpers, and panel/webview send wrappers
 - S4 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
