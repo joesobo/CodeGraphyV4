@@ -20,7 +20,6 @@ import {
   WebviewToExtensionMessage,
   DEFAULT_DIRECTION_COLOR,
   DEFAULT_FOLDER_NODE_COLOR,
-  normalizeHexColor,
 } from '../shared/types';
 import { EventBus, EventName, EventPayloads } from '../core/plugins/EventBus';
 import { DecorationManager } from '../core/plugins/DecorationManager';
@@ -61,6 +60,14 @@ import { shouldRebuildGraphView } from './graphViewRebuild';
 import { getGraphViewVisitCount, incrementGraphViewVisitCount } from './graphViewVisits';
 import { readGraphViewPhysicsSettings } from './graphViewPhysics';
 import { createGraphViewHtml, createGraphViewNonce } from './graphViewHtml';
+import { buildGraphViewFileInfoPayload } from './graphViewFileInfo';
+import {
+  getGraphViewConfigTarget,
+  normalizeDirectionColor,
+  normalizeFolderNodeColor,
+  readGraphViewSettings,
+  resolveGraphViewDisabledState,
+} from './graphViewSettings';
 
 /** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -114,14 +121,6 @@ const DEFAULT_TIMELINE_PREVIEW_BEHAVIOR: EditorOpenBehavior = {
   preview: true,
   preserveFocus: false,
 };
-
-function normalizeDirectionColor(value: string | undefined): string {
-  return normalizeHexColor(value, DEFAULT_DIRECTION_COLOR);
-}
-
-function normalizeFolderNodeColor(value: string | undefined): string {
-  return normalizeHexColor(value, DEFAULT_FOLDER_NODE_COLOR);
-}
 
 interface IExternalPluginRegistrationOptions {
   extensionUri?: vscode.Uri | string;
@@ -565,12 +564,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
   private _isAbortError(error: unknown): boolean {
     return error instanceof Error && error.name === 'AbortError';
-  }
-
-  private _getConfigTarget(): vscode.ConfigurationTarget {
-    return vscode.workspace.workspaceFolders?.length
-      ? vscode.ConfigurationTarget.Workspace
-      : vscode.ConfigurationTarget.Global;
   }
 
   /** Map of built-in plugin IDs to their package directory names. */
@@ -1362,7 +1355,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           const snapshot = this._captureSettingsSnapshot();
           const action = new ResetSettingsAction(
             snapshot,
-            this._getConfigTarget(),
+            getGraphViewConfigTarget(vscode.workspace.workspaceFolders),
             this._context,
             () => this._sendAllSettings(),
             (mode) => { this._nodeSizeMode = mode; },
@@ -1415,7 +1408,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         case 'UPDATE_GROUPS': {
           // Strip transient/session-only fields before persisting
           this._userGroups = message.payload.groups.map(({ imageUrl: _iu, isPluginDefault: _ip, pluginName: _pn, ...persistable }) => persistable);
-          const target = this._getConfigTarget();
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           await vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, target);
           this._computeMergedGroups();
           this._sendGroupsUpdated();
@@ -1424,7 +1417,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
         case 'UPDATE_FILTER_PATTERNS': {
           this._filterPatterns = message.payload.patterns;
-          const filterTarget = this._getConfigTarget();
+          const filterTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           await vscode.workspace.getConfiguration('codegraphy').update('filterPatterns', this._filterPatterns, filterTarget);
           this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
           // onDidChangeConfiguration fires after config.update and calls refresh() → _analyzeAndSendData().
@@ -1433,14 +1426,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         }
 
         case 'UPDATE_SHOW_ORPHANS': {
-          const target = this._getConfigTarget();
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           await vscode.workspace.getConfiguration('codegraphy').update('showOrphans', message.payload.showOrphans, target);
           // Config change listener in index.ts handles re-analysis
           break;
         }
 
         case 'UPDATE_BIDIRECTIONAL_MODE': {
-          const target = this._getConfigTarget();
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           const mode = message.payload.bidirectionalMode;
           await vscode.workspace.getConfiguration('codegraphy').update('bidirectionalEdges', mode, target);
           // Config change listener sends SETTINGS_UPDATED which updates the store
@@ -1448,7 +1441,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         }
 
         case 'UPDATE_DIRECTION_MODE': {
-          const target = this._getConfigTarget();
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           const mode = message.payload.directionMode;
           await vscode.workspace.getConfiguration('codegraphy').update('directionMode', mode, target);
           const config = vscode.workspace.getConfiguration('codegraphy');
@@ -1462,7 +1455,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         }
 
         case 'UPDATE_DIRECTION_COLOR': {
-          const target = this._getConfigTarget();
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           const color = normalizeDirectionColor(message.payload.directionColor);
           await vscode.workspace.getConfiguration('codegraphy').update('directionColor', color, target);
           const config = vscode.workspace.getConfiguration('codegraphy');
@@ -1476,7 +1469,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         }
 
         case 'UPDATE_FOLDER_NODE_COLOR': {
-          const target = this._getConfigTarget();
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           const color = normalizeFolderNodeColor(message.payload.folderNodeColor);
           await vscode.workspace.getConfiguration('codegraphy').update('folderNodeColor', color, target);
           this._viewContext.folderNodeColor = color;
@@ -1490,21 +1483,24 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         }
 
         case 'UPDATE_PARTICLE_SETTING': {
-          const target = this._getConfigTarget();
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           const { key, value } = message.payload;
           await vscode.workspace.getConfiguration('codegraphy').update(key, value, target);
           break;
         }
 
         case 'UPDATE_SHOW_LABELS': {
-          const labelsTarget = this._getConfigTarget();
+          const labelsTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           await vscode.workspace.getConfiguration('codegraphy').update('showLabels', message.payload.showLabels, labelsTarget);
-          this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels: message.payload.showLabels } });
+          this._sendMessage({
+            type: 'SHOW_LABELS_UPDATED',
+            payload: { showLabels: message.payload.showLabels },
+          });
           break;
         }
 
         case 'UPDATE_MAX_FILES': {
-          const target = this._getConfigTarget();
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           await vscode.workspace.getConfiguration('codegraphy').update('maxFiles', message.payload.maxFiles, target);
           // Config change listener will trigger re-analysis automatically
           break;
@@ -1517,7 +1513,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           } else {
             this._disabledRules.add(qualifiedId);
           }
-          const target = this._getConfigTarget();
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           await vscode.workspace.getConfiguration('codegraphy').update('disabledRules', [...this._disabledRules], target);
           this._smartRebuild('rule', qualifiedId);
           break;
@@ -1530,7 +1526,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           } else {
             this._disabledPlugins.add(pluginId);
           }
-          const target = this._getConfigTarget();
+          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           await vscode.workspace.getConfiguration('codegraphy').update('disabledPlugins', [...this._disabledPlugins], target);
           this._smartRebuild('plugin', pluginId);
           break;
@@ -1589,7 +1585,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           } else {
             this._hiddenPluginGroupIds.delete(groupId);
           }
-          const toggleTarget = this._getConfigTarget();
+          const toggleTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           await vscode.workspace.getConfiguration('codegraphy').update(
             'hiddenPluginGroups',
             [...this._hiddenPluginGroupIds],
@@ -1615,7 +1611,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
               if (id.startsWith(prefix)) this._hiddenPluginGroupIds.delete(id);
             }
           }
-          const sectionTarget = this._getConfigTarget();
+          const sectionTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
           await vscode.workspace.getConfiguration('codegraphy').update(
             'hiddenPluginGroups',
             [...this._hiddenPluginGroupIds],
@@ -1649,7 +1645,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           const group = this._userGroups.find(g => g.id === groupId);
           if (group) {
             group.imagePath = imagePath;
-            const imgTarget = this._getConfigTarget();
+            const imgTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
             await vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, imgTarget);
             this._computeMergedGroups();
             this._sendGroupsUpdated();
@@ -2082,7 +2078,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
       // Migrate to settings.json if there were legacy groups
       if (legacyGroups.length > 0) {
-        const target = this._getConfigTarget();
+        const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
         vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, target);
         this._context.workspaceState.update('codegraphy.groups', undefined);
       }
@@ -2109,33 +2105,19 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     const config = vscode.workspace.getConfiguration('codegraphy');
     const rulesInspect = config.inspect<string[]>('disabledRules');
     const pluginsInspect = config.inspect<string[]>('disabledPlugins');
-
-    const configuredRules = rulesInspect?.workspaceValue ?? rulesInspect?.globalValue;
-    const configuredPlugins = pluginsInspect?.workspaceValue ?? pluginsInspect?.globalValue;
-
-    const nextDisabledRules = new Set(
-      configuredRules ?? this._context.workspaceState.get<string[]>(DISABLED_RULES_KEY) ?? []
-    );
-    const nextDisabledPlugins = new Set(
-      configuredPlugins ?? this._context.workspaceState.get<string[]>(DISABLED_PLUGINS_KEY) ?? []
+    const disabledState = resolveGraphViewDisabledState(
+      this._disabledRules,
+      this._disabledPlugins,
+      rulesInspect?.workspaceValue ?? rulesInspect?.globalValue,
+      pluginsInspect?.workspaceValue ?? pluginsInspect?.globalValue,
+      this._context.workspaceState.get<string[]>(DISABLED_RULES_KEY),
+      this._context.workspaceState.get<string[]>(DISABLED_PLUGINS_KEY)
     );
 
-    const changed =
-      !this._areSetsEqual(this._disabledRules, nextDisabledRules) ||
-      !this._areSetsEqual(this._disabledPlugins, nextDisabledPlugins);
+    this._disabledRules = disabledState.disabledRules;
+    this._disabledPlugins = disabledState.disabledPlugins;
 
-    this._disabledRules = nextDisabledRules;
-    this._disabledPlugins = nextDisabledPlugins;
-
-    return changed;
-  }
-
-  private _areSetsEqual<T>(setA: Set<T>, b: Set<T>): boolean {
-    if (setA.size !== b.size) return false;
-    for (const value of setA) {
-      if (!b.has(value)) return false;
-    }
-    return true;
+    return disabledState.changed;
   }
 
   /**
@@ -2151,20 +2133,29 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Sends current settings to the webview.
    */
   private _sendSettings(): void {
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const bidirectionalEdges = config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate');
-    const showOrphans = config.get<boolean>('showOrphans', true);
-    const directionMode = config.get<string>('directionMode', 'arrows') as DirectionMode;
-    const particleSpeed = config.get<number>('particleSpeed', 0.005);
-    const particleSize = config.get<number>('particleSize', 4);
-    const directionColor = normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR));
-    const folderNodeColor = normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR));
-    const showLabels = config.get<boolean>('showLabels', true);
-    this._viewContext.folderNodeColor = folderNodeColor;
-    this._sendMessage({ type: 'SETTINGS_UPDATED', payload: { bidirectionalEdges, showOrphans } });
-    this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: { directionMode, particleSpeed, particleSize, directionColor } });
-    this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor } });
-    this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels } });
+    const settings = readGraphViewSettings(vscode.workspace.getConfiguration('codegraphy'));
+    this._viewContext.folderNodeColor = settings.folderNodeColor;
+    this._sendMessage({
+      type: 'SETTINGS_UPDATED',
+      payload: {
+        bidirectionalEdges: settings.bidirectionalEdges,
+        showOrphans: settings.showOrphans,
+      },
+    });
+    this._sendMessage({
+      type: 'DIRECTION_SETTINGS_UPDATED',
+      payload: {
+        directionMode: settings.directionMode,
+        particleSpeed: settings.particleSpeed,
+        particleSize: settings.particleSize,
+        directionColor: settings.directionColor,
+      },
+    });
+    this._sendMessage({
+      type: 'FOLDER_NODE_COLOR_UPDATED',
+      payload: { folderNodeColor: settings.folderNodeColor },
+    });
+    this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels: settings.showLabels } });
   }
 
   /**
@@ -2178,15 +2169,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
       const stat = await vscode.workspace.fs.stat(fileUri);
 
-      // Count connections from graph data
-      let incomingCount = 0;
-      let outgoingCount = 0;
-      
-      for (const edge of this._graphData.edges) {
-        if (edge.to === filePath) incomingCount++;
-        if (edge.from === filePath) outgoingCount++;
-      }
-
       // Get plugin name
       if (this._analyzer && !this._analyzerInitialized) {
         await this._analyzer.initialize();
@@ -2199,15 +2181,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
 
       this._sendMessage({
         type: 'FILE_INFO',
-        payload: {
-          path: filePath,
-          size: stat.size,
-          lastModified: stat.mtime,
-          incomingCount,
-          outgoingCount,
-          plugin,
-          visits,
-        },
+        payload: buildGraphViewFileInfoPayload(filePath, stat, this._graphData, plugin, visits),
       });
     } catch (error) {
       console.error('[CodeGraphy] Failed to get file info:', error);
@@ -2356,7 +2330,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private async _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void> {
     const config = vscode.workspace.getConfiguration('codegraphy.physics');
-    const target = this._getConfigTarget();
+    const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
     await config.update(key, value, target);
     // Config change listener handles sending PHYSICS_SETTINGS_UPDATED
   }
@@ -2368,7 +2342,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private async _resetPhysicsSettings(): Promise<void> {
     const config = vscode.workspace.getConfiguration('codegraphy.physics');
-    const target = this._getConfigTarget();
+    const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
     await config.update('repelForce', undefined, target);
     await config.update('linkDistance', undefined, target);
     await config.update('linkForce', undefined, target);
