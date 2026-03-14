@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useCallback, useRef } from 'react';
 import Graph from './components/Graph';
 import { GraphIcon } from './components/icons';
 import { SearchBar } from './components/SearchBar';
-import SettingsPanel from './components/SettingsPanel';
+import SettingsPanel from './components/settingsPanel/Panel';
 import PluginsPanel from './components/PluginsPanel';
 import Timeline from './components/Timeline';
 import Toolbar from './components/Toolbar';

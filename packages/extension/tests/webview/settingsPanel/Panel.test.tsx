@@ -4,14 +4,14 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import SettingsPanel from '../../src/webview/components/SettingsPanel';
-import { graphStore } from '../../src/webview/store';
-import type { IPhysicsSettings } from '../../src/shared/types';
-import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/types';
+import SettingsPanel from '../../../src/webview/components/settingsPanel/Panel';
+import { graphStore } from '../../../src/webview/store';
+import type { IPhysicsSettings } from '../../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
 
 // Capture postMessage calls from the panel
 const sentMessages: unknown[] = [];
-vi.mock('../../src/webview/lib/vscodeApi', () => ({
+vi.mock('../../../src/webview/lib/vscodeApi', () => ({
   postMessage: (msg: unknown) => sentMessages.push(msg),
   vscode: { getState: () => undefined, setState: vi.fn() },
 }));

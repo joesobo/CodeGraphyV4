@@ -1,31 +1,29 @@
 /**
  * @fileoverview Settings panel with four collapsible accordion sections:
  * Forces, Groups, Filters, and Display.
- * @module webview/components/SettingsPanel
+ * @module webview/components/settingsPanel/Panel
  */
 
 import React, { useState, useRef, useEffect } from 'react';
-import { IPhysicsSettings, DirectionMode, BidirectionalEdgeMode, IGroup, NodeShape2D, NodeShape3D, DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/types';
-import { postMessage } from '../lib/vscodeApi';
-import { useGraphStore } from '../store';
-import { cn } from '../lib/utils';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Label } from './ui/label';
-import { Switch } from './ui/switch';
-import { Slider } from './ui/slider';
-import { ScrollArea } from './ui/scroll-area';
+import { IPhysicsSettings, IGroup, NodeShape2D, NodeShape3D } from '../../../shared/types';
+import { postMessage } from '../../lib/vscodeApi';
+import { useGraphStore } from '../../store';
+import { cn } from '../../lib/utils';
+import { Button } from '../ui/button';
+import { Input } from '../ui/input';
+import { Label } from '../ui/label';
+import { Switch } from '../ui/switch';
+import { Slider } from '../ui/slider';
+import { ScrollArea } from '../ui/scroll-area';
 import { mdiChevronRight, mdiClose, mdiDrag, mdiEyeOutline, mdiEyeOffOutline, mdiMinus, mdiPlus, mdiLockOutline, mdiRefresh } from '@mdi/js';
-import { MdiIcon } from './icons';
-import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
+import { MdiIcon } from '../icons';
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/tooltip';
+import { DisplaySection } from './DisplaySection';
 import {
   buildSettingsGroupOverride,
   groupSettingsPanelSections,
-  isHexColor,
-  particleSpeedFromDisplay,
-  particleSpeedToDisplay,
   reorderSettingsGroups,
-} from './settingsPanelModel';
+} from './model';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -100,19 +98,8 @@ export default function SettingsPanel({
   const showOrphans = useGraphStore(s => s.showOrphans);
   const setShowOrphans = useGraphStore(s => s.setShowOrphans);
 
-  const bidirectionalMode = useGraphStore(s => s.bidirectionalMode);
-  const setBidirectionalMode = useGraphStore(s => s.setBidirectionalMode);
-  const directionMode = useGraphStore(s => s.directionMode);
-  const directionColor = useGraphStore(s => s.directionColor);
-  const setDirectionMode = useGraphStore(s => s.setDirectionMode);
-  const setDirectionColor = useGraphStore(s => s.setDirectionColor);
-  const showLabels = useGraphStore(s => s.showLabels);
-  const setShowLabels = useGraphStore(s => s.setShowLabels);
   const maxFiles = useGraphStore(s => s.maxFiles);
   const setMaxFiles = useGraphStore(s => s.setMaxFiles);
-  const folderNodeColor = useGraphStore(s => s.folderNodeColor);
-  const setFolderNodeColor = useGraphStore(s => s.setFolderNodeColor);
-  const activeViewId = useGraphStore(s => s.activeViewId);
 
   // Local UI state
   const [forcesOpen, setForcesOpen] = useState(false);
@@ -142,29 +129,16 @@ export default function SettingsPanel({
   const pendingPhysicsValuesRef = useRef<Partial<Record<keyof IPhysicsSettings, number>>>({});
   const physicsPersistTimersRef = useRef<Partial<Record<keyof IPhysicsSettings, ReturnType<typeof setTimeout>>>>({});
 
-  // Particle settings refs and store reads (must be before early return for hooks rules)
-  const pendingParticleValuesRef = useRef<Partial<Record<'particleSpeed' | 'particleSize', number>>>({});
-  const particlePersistTimersRef = useRef<Partial<Record<'particleSpeed' | 'particleSize', ReturnType<typeof setTimeout>>>>({});
-  const particleSpeed = useGraphStore(s => s.particleSpeed);
-  const setParticleSpeed = useGraphStore(s => s.setParticleSpeed);
-  const particleSize = useGraphStore(s => s.particleSize);
-  const setParticleSize = useGraphStore(s => s.setParticleSize);
-
   useEffect(() => {
     const timersRef = physicsPersistTimersRef;
-    const particleTimersRef = particlePersistTimersRef;
     const colorTimersRef = colorDebounceRef;
     const patternTimersRef = patternDebounceRef;
     return () => {
       clearTimerRefs(timersRef);
-      clearTimerRefs(particleTimersRef);
       clearTimerRefs(colorTimersRef);
       clearTimerRefs(patternTimersRef);
     };
   }, []);
-
-  const directionColorTimerRef = useRef<ReturnType<typeof setTimeout>>();
-  const folderColorTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   if (!isOpen) return null;
 
@@ -350,83 +324,6 @@ export default function SettingsPanel({
     const updated = { ...settings, [key]: value };
     setPhysicsSettings(updated);
     schedulePhysicsSettingPersist(key, value);
-  };
-
-  // Particle settings debounce (same pattern as physics sliders)
-  const flushParticleSetting = (key: 'particleSpeed' | 'particleSize') => {
-    const pendingValue = pendingParticleValuesRef.current[key];
-    if (pendingValue === undefined) return;
-
-    const timer = particlePersistTimersRef.current[key];
-    if (timer) {
-      clearTimeout(timer);
-      delete particlePersistTimersRef.current[key];
-    }
-
-    delete pendingParticleValuesRef.current[key];
-    postMessage({ type: 'UPDATE_PARTICLE_SETTING', payload: { key, value: pendingValue } });
-  };
-
-  const scheduleParticleSettingPersist = (key: 'particleSpeed' | 'particleSize', value: number) => {
-    pendingParticleValuesRef.current[key] = value;
-
-    const existingTimer = particlePersistTimersRef.current[key];
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
-
-    particlePersistTimersRef.current[key] = setTimeout(() => {
-      flushParticleSetting(key);
-    }, PHYSICS_PERSIST_DEBOUNCE_MS);
-  };
-
-  // Display handlers
-  const handleBidirectionalModeChange = (mode: BidirectionalEdgeMode) => {
-    setBidirectionalMode(mode);
-    postMessage({ type: 'UPDATE_BIDIRECTIONAL_MODE', payload: { bidirectionalMode: mode } });
-  };
-
-  const handleDirectionModeChange = (mode: DirectionMode) => {
-    setDirectionMode(mode);
-    postMessage({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: mode } });
-  };
-
-  const resolvedDirectionColor = isHexColor(directionColor) ? directionColor : DEFAULT_DIRECTION_COLOR;
-  const displayParticleSpeed = particleSpeedToDisplay(particleSpeed);
-
-  const handleDirectionColorChange = (value: string) => {
-    const normalized = value.toUpperCase();
-    setDirectionColor(normalized);
-    clearTimeout(directionColorTimerRef.current);
-    directionColorTimerRef.current = setTimeout(() => {
-      postMessage({ type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: normalized } });
-    }, 150);
-  };
-
-  const resolvedFolderNodeColor = isHexColor(folderNodeColor) ? folderNodeColor : DEFAULT_FOLDER_NODE_COLOR;
-  const handleFolderNodeColorChange = (value: string) => {
-    const normalized = value.toUpperCase();
-    setFolderNodeColor(normalized);
-    clearTimeout(folderColorTimerRef.current);
-    folderColorTimerRef.current = setTimeout(() => {
-      postMessage({ type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: normalized } });
-    }, 150);
-  };
-
-  const handleParticleSpeedChange = (level: number) => {
-    const normalized = particleSpeedFromDisplay(level);
-    setParticleSpeed(normalized);
-    scheduleParticleSettingPersist('particleSpeed', normalized);
-  };
-
-  const handleParticleSizeChange = (value: number) => {
-    setParticleSize(value);
-    scheduleParticleSettingPersist('particleSize', value);
-  };
-
-  const handleShowLabelsChange = (checked: boolean) => {
-    setShowLabels(checked);
-    postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: checked } });
   };
 
   const handleResetSettings = () => {
@@ -954,144 +851,7 @@ export default function SettingsPanel({
 
           {/* Display section */}
           <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen(prev => !prev)} />
-          {displayOpen && (
-            <div className="mb-2 space-y-3">
-              {/* Direction mode toggle */}
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1.5 block">Direction</Label>
-                <div className="flex gap-1">
-                  <Button
-                    variant={directionMode === 'arrows' ? 'default' : 'secondary'}
-                    size="sm"
-                    className="h-6 px-2 text-xs flex-1"
-                    onClick={() => handleDirectionModeChange('arrows')}
-                  >
-                    Arrows
-                  </Button>
-                  <Button
-                    variant={directionMode === 'particles' ? 'default' : 'secondary'}
-                    size="sm"
-                    className="h-6 px-2 text-xs flex-1"
-                    onClick={() => handleDirectionModeChange('particles')}
-                  >
-                    Particles
-                  </Button>
-                  <Button
-                    variant={directionMode === 'none' ? 'default' : 'secondary'}
-                    size="sm"
-                    className="h-6 px-2 text-xs flex-1"
-                    onClick={() => handleDirectionModeChange('none')}
-                  >
-                    None
-                  </Button>
-                </div>
-              </div>
-
-              {/* Bidirectional mode toggle */}
-              <div>
-                <Label className="text-xs text-muted-foreground mb-1.5 block">Bidirectional Edges</Label>
-                <div className="flex gap-1">
-                  <Button
-                    variant={bidirectionalMode === 'separate' ? 'default' : 'secondary'}
-                    size="sm"
-                    className="h-6 px-2 text-xs flex-1"
-                    onClick={() => handleBidirectionalModeChange('separate')}
-                  >
-                    Separate
-                  </Button>
-                  <Button
-                    variant={bidirectionalMode === 'combined' ? 'default' : 'secondary'}
-                    size="sm"
-                    className="h-6 px-2 text-xs flex-1"
-                    onClick={() => handleBidirectionalModeChange('combined')}
-                  >
-                    Combined
-                  </Button>
-                </div>
-              </div>
-
-              {/* Direction color */}
-              <div>
-                <Label htmlFor="direction-color" className="text-xs text-muted-foreground mb-1.5 block">Direction Color</Label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    id="direction-color"
-                    type="color"
-                    value={resolvedDirectionColor}
-                    onChange={(e) => handleDirectionColorChange(e.target.value)}
-                    className="h-7 w-10 p-1"
-                  />
-                  <span className="text-[11px] text-muted-foreground font-mono flex-1">
-                    {resolvedDirectionColor}
-                  </span>
-                </div>
-              </div>
-
-              {/* Folder node color — only visible when folder view is active */}
-              {activeViewId === 'codegraphy.folder' && (
-                <div>
-                  <Label htmlFor="folder-node-color" className="text-xs text-muted-foreground mb-1.5 block">Folder Node Color</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      id="folder-node-color"
-                      type="color"
-                      value={resolvedFolderNodeColor}
-                      onChange={(e) => handleFolderNodeColorChange(e.target.value)}
-                      className="h-7 w-10 p-1"
-                    />
-                    <span className="text-[11px] text-muted-foreground font-mono flex-1">
-                      {resolvedFolderNodeColor}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Particle settings (visible only when mode is 'particles') */}
-              {directionMode === 'particles' && (
-                <div className="space-y-3 pl-2 border-l border-border">
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <Label className="text-xs">Particle Speed</Label>
-                      <span className="text-xs text-muted-foreground font-mono">{Math.round(displayParticleSpeed)}</span>
-                    </div>
-                    <Slider
-                      min={1}
-                      max={10}
-                      step={1}
-                      value={[displayParticleSpeed]}
-                      onValueChange={(vals) => handleParticleSpeedChange(vals[0])}
-                      onValueCommit={() => flushParticleSetting('particleSpeed')}
-                    />
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <Label className="text-xs">Particle Size</Label>
-                      <span className="text-xs text-muted-foreground font-mono">{particleSize.toFixed(1)}</span>
-                    </div>
-                    <Slider
-                      min={1}
-                      max={10}
-                      step={0.5}
-                      value={[particleSize]}
-                      onValueChange={(vals) => handleParticleSizeChange(vals[0])}
-                      onValueCommit={() => flushParticleSetting('particleSize')}
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* Labels toggle */}
-              <div className="flex items-center justify-between">
-                <Label htmlFor="show-labels" className="text-xs">Show Labels</Label>
-                <Switch
-                  id="show-labels"
-                  checked={showLabels}
-                  onCheckedChange={handleShowLabelsChange}
-                />
-              </div>
-
-            </div>
-          )}
+          {displayOpen && <DisplaySection />}
         </div>
       </ScrollArea>
     </div>
