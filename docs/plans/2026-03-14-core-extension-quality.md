@@ -56,15 +56,25 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - next target after this pass:
         - stay on `GraphViewProvider.ts`
         - first candidate seams from mutation output: settings/group loading, public wrapper methods, file-info helpers, and panel/webview send wrappers
-- S4 `pending`: rerun package workflow gates and update PR with current state.
+  - S3d `in_progress`: break `GraphViewProvider.ts` mutation density before survivor cleanup.
+    - tests: add/update matching file-per-module tests under `packages/extension/tests/extension/graphView/messages/*` and `packages/extension/tests/extension/graphView/*.test.ts`
+    - subagent split:
+      - `subagent/core-extension-provider-dispatch`: extract non-plugin webview message handlers and dispatch helpers out of `_setWebviewMessageListener`
+      - `subagent/core-extension-provider-state`: extract provider state helpers for settings/groups/file-info/visit flows where they can be directly tested
+    - current target:
+      - cut mutation-site count in `GraphViewProvider.ts` before spending time on survivors
+      - keep targeted provider/message suites green at each cut
+- S4 `pending`: resume the next independent hotspot after the provider cuts merge.
+  - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
+- S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. `packages/extension/src/webview/components/Graph.tsx`
-2. `packages/extension/src/extension/GraphViewProvider.ts`
+1. `packages/extension/src/extension/GraphViewProvider.ts`
+2. `packages/extension/src/webview/components/Graph.tsx`
 3. `packages/extension/src/webview/lib/export/exportSvg.ts`
 4. `packages/extension/src/webview/components/Timeline.tsx`
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
-- Use subagent-style task splitting where safe, but this session has no literal subagent launcher.
+- Use real subagent worktrees/branches for the current provider split and verify their output before integrating.
