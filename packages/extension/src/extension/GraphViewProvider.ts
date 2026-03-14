@@ -68,6 +68,7 @@ import {
 	readGraphViewSettings,
 	resolveGraphViewDisabledState,
 } from './graphViewSettings';
+import { applyCommandMessage } from './graphView/messages/commands';
 import { applyExportMessage } from './graphView/messages/exports';
 import { applyNodeFileMessage } from './graphView/messages/nodeFile';
 import { applyPluginContextMenuAction } from './graphView/messages/pluginContextMenu';
@@ -1267,6 +1268,31 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         return;
       }
 
+      if (await applyCommandMessage(message, {
+        undo: () => this.undo(),
+        redo: () => this.redo(),
+        showInformationMessage: detail => {
+          vscode.window.showInformationMessage(detail);
+        },
+        changeView: viewId => this.changeView(viewId),
+        setDepthLimit: depthLimit => this.setDepthLimit(depthLimit),
+        updateDagMode: async dagMode => {
+          this._dagMode = dagMode;
+          await this._context.workspaceState.update(DAG_MODE_KEY, this._dagMode);
+          this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
+        },
+        updateNodeSizeMode: async nodeSizeMode => {
+          this._nodeSizeMode = nodeSizeMode;
+          await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, this._nodeSizeMode);
+          this._sendMessage({
+            type: 'NODE_SIZE_MODE_UPDATED',
+            payload: { nodeSizeMode: this._nodeSizeMode },
+          });
+        },
+      })) {
+        return;
+      }
+
       if (await applyTimelineMessage(message, {
         indexRepository: () => this._indexRepository(),
         jumpToCommit: sha => this._jumpToCommit(sha),
@@ -1342,46 +1368,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           await getUndoManager().execute(action);
           break;
         }
-
-        case 'UNDO': {
-          const undoDesc = await this.undo();
-          if (undoDesc) {
-            vscode.window.showInformationMessage(`Undo: ${undoDesc}`);
-          } else {
-            vscode.window.showInformationMessage('Nothing to undo');
-          }
-          break;
-        }
-        
-        case 'REDO': {
-          const redoDesc = await this.redo();
-          if (redoDesc) {
-            vscode.window.showInformationMessage(`Redo: ${redoDesc}`);
-          } else {
-            vscode.window.showInformationMessage('Nothing to redo');
-          }
-          break;
-        }
-
-        case 'CHANGE_VIEW':
-          await this.changeView(message.payload.viewId);
-          break;
-
-        case 'CHANGE_DEPTH_LIMIT':
-          await this.setDepthLimit(message.payload.depthLimit);
-          break;
-
-        case 'UPDATE_DAG_MODE':
-          this._dagMode = message.payload.dagMode;
-          await this._context.workspaceState.update(DAG_MODE_KEY, this._dagMode);
-          this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
-          break;
-
-        case 'UPDATE_NODE_SIZE_MODE':
-          this._nodeSizeMode = message.payload.nodeSizeMode;
-          await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, this._nodeSizeMode);
-          this._sendMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode: this._nodeSizeMode } });
-          break;
 
         case 'UPDATE_GROUPS': {
           // Strip transient/session-only fields before persisting
