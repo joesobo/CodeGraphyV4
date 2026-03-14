@@ -64,6 +64,27 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
     - current target:
       - cut mutation-site count in `GraphViewProvider.ts` before spending time on survivors
       - keep targeted provider/message suites green at each cut
+    - progress:
+      - extracted non-plugin message families to `graphView/messages/{nodeFile,exports,timeline,commands}.ts`
+      - extracted provider state helpers to `graphView/{groups,settings,fileInfo,visits}.ts`
+      - focused verification green:
+        - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/*.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts tests/extension/GraphViewProvider.fileInfo.test.ts tests/extension/GraphViewProvider.viewState.test.ts`
+        - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/{groups,settings,fileInfo,visits}.test.ts tests/extension/GraphViewProvider.fileInfo.test.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts`
+        - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - package-relative `eslint` on touched provider/helper files
+      - latest targeted mutation after the helper extractions:
+        - graph-view-provider slice overall = `44.85%`
+        - `GraphViewProvider.ts` = `33.67%`
+        - `GraphViewProvider.ts` mutation sites = `1150` (down from `1272`)
+        - `graphView/groups.ts` = `80.60%` with `67` sites
+        - `graphView/messages/nodeFile.ts` = `63.33%` with `60` sites
+        - `graphView/settings.ts` = `85.71%`
+        - `graphView/fileInfo.ts` = `80.00%`
+        - `graphView/visits.ts` = `100.00%`
+        - `graphView/messages/commands.ts` = `81.48%`
+      - next cut:
+        - split `graphView/groups.ts` and `graphView/messages/nodeFile.ts` under the `50`-site threshold
+        - keep draining `GraphViewProvider.ts` by extracting remaining config-update/file-edit orchestration
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
