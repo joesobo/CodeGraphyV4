@@ -45,6 +45,10 @@ import {
   getGraphContextActionEffects,
   type GraphContextEffect,
 } from './graphContextActionEffects';
+import { applyContextEffects as runContextEffects } from './graph/effects/contextMenu';
+import { applyInteractionEffects } from './graph/effects/interaction';
+import { applyKeyboardEffects } from './graph/effects/keyboard';
+import { applyWebviewMessageEffects as runWebviewMessageEffects } from './graph/effects/messages';
 import {
   getBackgroundClickCommand,
   getLinkClickCommand,
@@ -626,11 +630,50 @@ export default function Graph({
     postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
   }, []);
 
+  const fitView = useCallback(() => {
+    if (graphMode === '2d') {
+      fg2dRef.current?.zoomToFit(300, 20);
+      return;
+    }
+
+    fg3dRef.current?.zoomToFit(300, 20);
+  }, [graphMode]);
+
+  const zoom2d = useCallback((factor: number) => {
+    const fg = fg2dRef.current;
+    if (!fg) return;
+
+    const current = fg.zoom();
+    fg.zoom(current * factor, 150);
+  }, []);
+
   const setGraphCursor = useCallback((cursor: GraphCursorStyle) => {
     graphCursorRef.current = cursor;
     const container = containerRef.current;
     if (!container) return;
     applyCursorToGraphSurface(container, cursor);
+  }, []);
+
+  const setSelection = useCallback((nodeIds: string[]) => {
+    selectedNodesSetRef.current = new Set(nodeIds);
+    setSelectedNodes(nodeIds);
+  }, []);
+
+  const clearSelection = useCallback(() => {
+    setHighlight(null);
+    selectedNodesSetRef.current = new Set();
+    setSelectedNodes([]);
+  }, [setHighlight]);
+
+  const previewNode = useCallback((nodeId: string) => {
+    postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
+  }, []);
+
+  const updateAccessCount = useCallback((nodeId: string, accessCount: number) => {
+    const nodeIndex = dataRef.current.nodes.findIndex(node => node.id === nodeId);
+    if (nodeIndex !== -1) {
+      dataRef.current.nodes[nodeIndex].accessCount = accessCount;
+    }
   }, []);
 
   const clearRightClickFallbackTimer = useCallback(() => {
@@ -699,58 +742,29 @@ export default function Graph({
     effects: GraphInteractionEffect[],
     options: { event?: MouseEvent; link?: FGLink } = {}
   ) => {
-    for (const effect of effects) {
-      switch (effect.kind) {
-        case 'openNodeContextMenu':
-          if (options.event) {
-            openNodeContextMenu(effect.nodeId, options.event);
-          }
-          break;
-        case 'openBackgroundContextMenu':
-          if (options.event) {
-            openBackgroundContextMenu(options.event);
-          }
-          break;
-        case 'openEdgeContextMenu':
-          if (options.event && options.link) {
-            openEdgeContextMenu(options.link, options.event);
-          }
-          break;
-        case 'selectOnlyNode':
-          selectOnlyNode(effect.nodeId);
-          break;
-        case 'setSelection':
-          selectedNodesSetRef.current = new Set(effect.nodeIds);
-          setSelectedNodes(effect.nodeIds);
-          break;
-        case 'clearSelection':
-          setHighlight(null);
-          selectedNodesSetRef.current = new Set();
-          setSelectedNodes([]);
-          break;
-        case 'previewNode':
-          postMessage({ type: 'NODE_SELECTED', payload: { nodeId: effect.nodeId } });
-          break;
-        case 'openNode':
-          requestNodeOpenById(effect.nodeId);
-          break;
-        case 'focusNode':
-          focusNodeById(effect.nodeId);
-          break;
-        case 'sendInteraction':
-          sendGraphInteraction(effect.event, effect.payload);
-          break;
-      }
-    }
+    applyInteractionEffects(effects, {
+      openNodeContextMenu,
+      openBackgroundContextMenu,
+      openEdgeContextMenu,
+      selectOnlyNode,
+      setSelection,
+      clearSelection,
+      previewNode,
+      openNode: requestNodeOpenById,
+      focusNode: focusNodeById,
+      sendInteraction: sendGraphInteraction,
+    }, options);
   }, [
+    clearSelection,
     focusNodeById,
     openBackgroundContextMenu,
     openEdgeContextMenu,
     openNodeContextMenu,
+    previewNode,
     requestNodeOpenById,
     selectOnlyNode,
     sendGraphInteraction,
-    setHighlight,
+    setSelection,
   ]);
 
   const handleNodeClick = useCallback((node: FGNode, event: MouseEvent) => {
@@ -921,25 +935,13 @@ export default function Graph({
   useEffect(() => clearRightClickFallbackTimer, [clearRightClickFallbackTimer]);
 
   const applyContextEffects = useCallback((effects: GraphContextEffect[]) => {
-    for (const effect of effects) {
-      switch (effect.kind) {
-        case 'openFile':
-          fileInfoCacheRef.current.delete(effect.path);
-          postMessage({ type: 'OPEN_FILE', payload: { path: effect.path } });
-          break;
-        case 'focusNode':
-          focusNodeById(effect.nodeId);
-          break;
-        case 'fitView':
-          if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
-          else fg3dRef.current?.zoomToFit(300, 20);
-          break;
-        case 'postMessage':
-          postMessage(effect.message);
-          break;
-      }
-    }
-  }, [focusNodeById, graphMode]);
+    runContextEffects(effects, {
+      clearCachedFile: path => fileInfoCacheRef.current.delete(path),
+      focusNode: focusNodeById,
+      fitView,
+      postMessage,
+    });
+  }, [fitView, focusNodeById]);
 
   const handleMenuAction = useCallback((action: GraphContextMenuAction) => {
     applyContextEffects(getGraphContextActionEffects(action, contextSelection.targets));
@@ -952,59 +954,25 @@ export default function Graph({
   }, []);
 
   const applyWebviewMessageEffects = useCallback((effects: GraphWebviewMessageEffect[]) => {
-    for (const effect of effects) {
-      switch (effect.kind) {
-        case 'fitView':
-          if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
-          else fg3dRef.current?.zoomToFit(300, 20);
-          break;
-        case 'zoom': {
-          const fg = fg2dRef.current;
-          if (fg) {
-            const current = fg.zoom();
-            fg.zoom(current * effect.factor, 150);
-          }
-          break;
-        }
-        case 'cacheFileInfo':
-          fileInfoCacheRef.current.set(effect.info.path, effect.info);
-          break;
-        case 'updateTooltipInfo':
-          setTooltipData(prev => ({ ...prev, info: effect.info }));
-          break;
-        case 'postMessage':
-          postMessage(effect.message);
-          break;
-        case 'exportPng':
-          exportAsPng(containerRef.current);
-          break;
-        case 'exportSvg':
-          exportAsSvg(graphDataRef.current.nodes, graphDataRef.current.links, {
-            directionMode: directionModeRef.current,
-            directionColor: directionColorRef.current,
-            showLabels: showLabelsRef.current,
-            theme: themeRef.current,
-          });
-          break;
-        case 'exportJpeg':
-          exportAsJpeg(containerRef.current);
-          break;
-        case 'exportJson':
-          exportAsJson(dataRef.current);
-          break;
-        case 'exportMarkdown':
-          exportAsMarkdown(dataRef.current);
-          break;
-        case 'updateAccessCount': {
-          const nodeIndex = dataRef.current.nodes.findIndex(node => node.id === effect.nodeId);
-          if (nodeIndex !== -1) {
-            dataRef.current.nodes[nodeIndex].accessCount = effect.accessCount;
-          }
-          break;
-        }
-      }
-    }
-  }, [graphMode]);
+    runWebviewMessageEffects(effects, {
+      fitView,
+      zoom2d,
+      cacheFileInfo: info => fileInfoCacheRef.current.set(info.path, info),
+      updateTooltipInfo: info => setTooltipData(prev => ({ ...prev, info })),
+      postMessage,
+      exportPng: () => exportAsPng(containerRef.current),
+      exportSvg: () => exportAsSvg(graphDataRef.current.nodes, graphDataRef.current.links, {
+        directionMode: directionModeRef.current,
+        directionColor: directionColorRef.current,
+        showLabels: showLabelsRef.current,
+        theme: themeRef.current,
+      }),
+      exportJpeg: () => exportAsJpeg(containerRef.current),
+      exportJson: () => exportAsJson(dataRef.current),
+      exportMarkdown: () => exportAsMarkdown(dataRef.current),
+      updateAccessCount,
+    });
+  }, [fitView, updateAccessCount, zoom2d]);
 
   // ── Message listener ─────────────────────────────────────────────────────
 
@@ -1040,46 +1008,25 @@ export default function Graph({
       if (command.preventDefault) event.preventDefault();
       if (command.stopPropagation) event.stopPropagation();
 
-      for (const effect of command.effects) {
-        switch (effect.kind) {
-          case 'fitView':
-            if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
-            else fg3dRef.current?.zoomToFit(300, 20);
-            break;
-          case 'clearSelection':
-            setHighlight(null);
-            selectedNodesSetRef.current = new Set();
-            setSelectedNodes([]);
-            break;
-          case 'openSelectedNodes':
-            effect.nodeIds.forEach(nodeId => {
-              requestNodeOpenById(nodeId);
-            });
-            break;
-          case 'selectAll':
-            selectedNodesSetRef.current = new Set(effect.nodeIds);
-            setSelectedNodes(effect.nodeIds);
-            break;
-          case 'zoom': {
-            const fg = fg2dRef.current;
-            if (fg) {
-              const scale = fg.zoom();
-              fg.zoom(scale * effect.factor, 150);
-            }
-            break;
-          }
-          case 'postMessage':
-            postMessage(effect.message);
-            break;
-          case 'dispatchStoreMessage':
-            graphStore.getState().handleExtensionMessage(effect.message);
-            break;
-        }
-      }
+      applyKeyboardEffects(command.effects, {
+        fitView,
+        clearSelection,
+        openSelectedNodes: nodeIds => {
+          nodeIds.forEach(nodeId => {
+            requestNodeOpenById(nodeId);
+          });
+        },
+        selectAll: setSelection,
+        zoom2d,
+        postMessage,
+        dispatchStoreMessage: message => {
+          graphStore.getState().handleExtensionMessage(message);
+        },
+      });
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [selectedNodes, graphMode, requestNodeOpenById, setHighlight]);
+  }, [clearSelection, fitView, selectedNodes, graphMode, requestNodeOpenById, setSelection, zoom2d]);
 
   // ── Physics settings update ───────────────────────────────────────────────
 

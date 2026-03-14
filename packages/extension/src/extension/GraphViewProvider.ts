@@ -68,6 +68,13 @@ import {
   readGraphViewSettings,
   resolveGraphViewDisabledState,
 } from './graphViewSettings';
+import {
+  applyPluginContextMenuAction,
+  applyPluginGroupToggle,
+  applyPluginInteraction,
+  applyPluginSectionToggle,
+} from './graphView/messages/plugin';
+import { applyWebviewReady } from './graphView/messages/ready';
 
 /** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -1231,35 +1238,40 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
       switch (message.type) {
         case 'WEBVIEW_READY': {
-          this._loadGroupsAndFilterPatterns();
-          this._loadDisabledRulesAndPlugins();
-          void this._analyzeAndSendData();
-          this._sendFavorites();
-          this._sendSettings();
-          this._sendPhysicsSettings();
-          this._sendGroupsUpdated();
-          this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: { patterns: this._filterPatterns, pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [] } });
-          this._sendMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles: vscode.workspace.getConfiguration('codegraphy').get<number>('maxFiles', 500) } });
-          this._sendCachedTimeline();
-          this._sendMessage({
-            type: 'PLAYBACK_SPEED_UPDATED',
-            payload: { speed: vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0) },
-          });
-          this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
-          this._sendMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode: this._nodeSizeMode } });
-          this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: normalizeFolderNodeColor(vscode.workspace.getConfiguration('codegraphy').get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)) } });
-          this._sendDecorations();
-          this._sendContextMenuItems();
-          this._sendPluginWebviewInjections();
-          const hasWorkspace = (vscode.workspace.workspaceFolders?.length ?? 0) > 0;
-          // Keep lifecycle ordering deterministic for workspace-backed sessions.
-          if (hasWorkspace && this._firstAnalysis) {
-            await this._firstWorkspaceReadyPromise;
-          }
-          if (!this._webviewReadyNotified) {
-            this._webviewReadyNotified = true;
-            this._analyzer?.registry.notifyWebviewReady();
-          }
+          const config = vscode.workspace.getConfiguration('codegraphy');
+          this._webviewReadyNotified = await applyWebviewReady(
+            {
+              filterPatterns: this._filterPatterns,
+              pluginFilterPatterns: this._analyzer?.getPluginFilterPatterns() ?? [],
+              maxFiles: config.get<number>('maxFiles', 500),
+              playbackSpeed: config.get<number>('timeline.playbackSpeed', 1.0),
+              dagMode: this._dagMode,
+              nodeSizeMode: this._nodeSizeMode,
+              folderNodeColor: normalizeFolderNodeColor(
+                config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR),
+              ),
+              hasWorkspace: (vscode.workspace.workspaceFolders?.length ?? 0) > 0,
+              firstAnalysis: this._firstAnalysis,
+              webviewReadyNotified: this._webviewReadyNotified,
+            },
+            {
+              loadGroupsAndFilterPatterns: () => this._loadGroupsAndFilterPatterns(),
+              loadDisabledRulesAndPlugins: () => this._loadDisabledRulesAndPlugins(),
+              analyzeAndSendData: () => void this._analyzeAndSendData(),
+              sendFavorites: () => this._sendFavorites(),
+              sendSettings: () => this._sendSettings(),
+              sendPhysicsSettings: () => this._sendPhysicsSettings(),
+              sendGroupsUpdated: () => this._sendGroupsUpdated(),
+              sendMessage: (nextMessage) =>
+                this._sendMessage(nextMessage as ExtensionToWebviewMessage),
+              sendCachedTimeline: () => this._sendCachedTimeline(),
+              sendDecorations: () => this._sendDecorations(),
+              sendContextMenuItems: () => this._sendContextMenuItems(),
+              sendPluginWebviewInjections: () => this._sendPluginWebviewInjections(),
+              waitForFirstWorkspaceReady: () => this._firstWorkspaceReadyPromise,
+              notifyWebviewReady: () => this._analyzer?.registry.notifyWebviewReady(),
+            },
+          );
           break;
         }
 
@@ -1546,79 +1558,56 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
           break;
 
         case 'GRAPH_INTERACTION': {
-          const { event, data } = message.payload;
-          if (event.startsWith('plugin:')) {
-            const [, pluginId, ...typeParts] = event.split(':');
-            if (pluginId && typeParts.length > 0) {
-              const api = this._analyzer?.registry.getPluginAPI(pluginId);
-              api?.deliverWebviewMessage({ type: typeParts.join(':'), data });
-            }
-          } else {
-            this._eventBus.emit(event as EventName, data as EventPayloads[EventName]);
-          }
+          applyPluginInteraction(message.payload, {
+            getPluginApi: pluginId => this._analyzer?.registry.getPluginAPI(pluginId),
+            emitEvent: (event, payload) => {
+              this._eventBus.emit(event as EventName, payload as EventPayloads[EventName]);
+            },
+          });
           break;
         }
 
         case 'PLUGIN_CONTEXT_MENU_ACTION': {
-          const { pluginId, index, targetId, targetType } = message.payload;
-          const api = this._analyzer?.registry.getPluginAPI(pluginId);
-          if (api && index < api.contextMenuItems.length) {
-            const item = api.contextMenuItems[index];
-            const target = targetType === 'node'
-              ? this._graphData.nodes.find(n => n.id === targetId)
-              : this._graphData.edges.find(e => e.id === targetId);
-            if (target) {
-              try {
-                await item.action(target);
-              } catch (error) {
-                console.error(`[CodeGraphy] Plugin context menu action error:`, error);
-              }
-            }
-          }
+          await applyPluginContextMenuAction(message.payload, {
+            getPluginApi: pluginId => this._analyzer?.registry.getPluginAPI(pluginId),
+            findNode: targetId => this._graphData.nodes.find(n => n.id === targetId),
+            findEdge: targetId => this._graphData.edges.find(e => e.id === targetId),
+            logError: (label, error) => {
+              console.error(label, error);
+            },
+          });
           break;
         }
 
         case 'TOGGLE_PLUGIN_GROUP_DISABLED': {
-          const { groupId, disabled } = message.payload;
-          if (disabled) {
-            this._hiddenPluginGroupIds.add(groupId);
-          } else {
-            this._hiddenPluginGroupIds.delete(groupId);
-          }
           const toggleTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update(
-            'hiddenPluginGroups',
-            [...this._hiddenPluginGroupIds],
-            toggleTarget
-          );
-          this._computeMergedGroups();
-          this._sendGroupsUpdated();
+          await applyPluginGroupToggle(message.payload, {
+            hiddenPluginGroupIds: this._hiddenPluginGroupIds,
+            updateHiddenPluginGroups: groupIds =>
+              vscode.workspace.getConfiguration('codegraphy').update(
+                'hiddenPluginGroups',
+                groupIds,
+                toggleTarget
+              ),
+            recomputeGroups: () => this._computeMergedGroups(),
+            sendGroupsUpdated: () => this._sendGroupsUpdated(),
+          });
           break;
         }
 
         case 'TOGGLE_PLUGIN_SECTION_DISABLED': {
-          // Built-in defaults use "default" as section ID; plugins use their ID
-          const rawId = message.payload.pluginId;
-          const sectionKey = rawId === 'default' ? 'default' : `plugin:${rawId}`;
-          if (message.payload.disabled) {
-            // Store just the section-level key
-            this._hiddenPluginGroupIds.add(sectionKey);
-          } else {
-            // Remove section key and any individual group entries under it
-            this._hiddenPluginGroupIds.delete(sectionKey);
-            const prefix = `${sectionKey}:`;
-            for (const id of [...this._hiddenPluginGroupIds]) {
-              if (id.startsWith(prefix)) this._hiddenPluginGroupIds.delete(id);
-            }
-          }
           const sectionTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update(
-            'hiddenPluginGroups',
-            [...this._hiddenPluginGroupIds],
-            sectionTarget
-          );
-          this._computeMergedGroups();
-          this._sendGroupsUpdated();
+          await applyPluginSectionToggle(message.payload, {
+            hiddenPluginGroupIds: this._hiddenPluginGroupIds,
+            updateHiddenPluginGroups: groupIds =>
+              vscode.workspace.getConfiguration('codegraphy').update(
+                'hiddenPluginGroups',
+                groupIds,
+                sectionTarget
+              ),
+            recomputeGroups: () => this._computeMergedGroups(),
+            sendGroupsUpdated: () => this._sendGroupsUpdated(),
+          });
           break;
         }
 
