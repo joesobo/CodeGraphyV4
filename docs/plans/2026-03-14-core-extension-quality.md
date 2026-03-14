@@ -14,6 +14,7 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
     - tests: add/update `packages/extension/tests/webview/SettingsPanelDisplaySection.test.tsx`, `packages/extension/tests/webview/SettingsPanel.test.tsx`
   - S3b `in_progress`: extract filters/groups seams next because `settingsPanel/Panel.tsx` still mutates poorly.
     - tests: add/update matching file-per-module tests for extracted settings-panel modules
+    - progress: `DisplaySection.tsx` = `97.47%`, `FilterSection.tsx` = `97.33%`; remaining `Panel.tsx` work is concentrated in groups/custom-default handling
   - S3c `pending`: move to `Graph.tsx` or `GraphViewProvider.ts` based on fresh mutation data after S3a/S3b.
     - tests: add/update matching file-per-module tests for the next hottest module
 - S4 `pending`: rerun package workflow gates and update PR with current state.
