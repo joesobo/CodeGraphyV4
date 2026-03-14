@@ -59,8 +59,8 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
   - S3d `in_progress`: break `GraphViewProvider.ts` mutation density before survivor cleanup.
     - tests: add/update matching file-per-module tests under `packages/extension/tests/extension/graphView/messages/*` and `packages/extension/tests/extension/graphView/*.test.ts`
     - subagent split:
-      - `subagent/core-extension-provider-dispatch`: extract non-plugin webview message handlers and dispatch helpers out of `_setWebviewMessageListener`
-      - `subagent/core-extension-provider-state`: extract provider state helpers for settings/groups/file-info/visit flows where they can be directly tested
+      - `subagent/core-extension-nodefile-threshold`: split `graphView/messages/nodeFile.ts` under the `50`-site threshold with direct tests
+      - `subagent/core-extension-provider-settings`: extract remaining settings/config-update webview message handlers out of `_setWebviewMessageListener`
     - current target:
       - cut mutation-site count in `GraphViewProvider.ts` before spending time on survivors
       - keep targeted provider/message suites green at each cut
@@ -82,8 +82,15 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - `graphView/fileInfo.ts` = `80.00%`
         - `graphView/visits.ts` = `100.00%`
         - `graphView/messages/commands.ts` = `81.48%`
+      - current local threshold cut:
+        - split `graphView/groups.ts` into `groupState.ts` and `groupMessage.ts`
+        - replace `groups.test.ts` with file-per-module tests: `groupState.test.ts`, `groupMessage.test.ts`
+        - direct verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/groupState.test.ts tests/extension/graphView/groupMessage.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - package-relative `eslint` on touched `graphView/group*` files
       - next cut:
-        - split `graphView/groups.ts` and `graphView/messages/nodeFile.ts` under the `50`-site threshold
+        - finish the `graphView/messages/nodeFile.ts` split under the `50`-site threshold
         - keep draining `GraphViewProvider.ts` by extracting remaining config-update/file-edit orchestration
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
