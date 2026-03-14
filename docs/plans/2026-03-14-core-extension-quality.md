@@ -16,25 +16,34 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
     - tests: add/update matching file-per-module tests for extracted settings-panel modules
     - progress:
       - folder regrouping landed: `settingsPanel/display/*`, `settingsPanel/filters/*`, `settingsPanel/groups/*`
-      - focused tests passing: `88` settings-panel tests green after the rename/extraction pass
+      - focused tests passing: `128` settings-panel tests green after the rename/extraction pass
       - latest targeted mutation:
-        - `display/Section.tsx` = `94.94%`
-        - `display/model.ts` = `100%`
-        - `filters/Section.tsx` = `97.33%`
+        - settings-panel slice overall = `92.21%`
+        - `Panel.tsx` = `100%`
+        - `SectionHeader.tsx` = `100%`
+        - `groups/Section.tsx` = `100%`
+        - `groups/useEditorState.ts` = `90.91%`
         - `groups/model.ts` = `97.18%`
-        - `groups/Section.tsx` = `37.10%`
-        - `Panel.tsx` = `59.34%`
-      - next cut: split `groups/Section.tsx` into smaller custom/default editor modules, then extract `forces` out of `Panel.tsx`
+        - `groups/Custom.tsx` = `84.62%`
+        - `groups/Defaults.tsx` = `88.68%`
+        - `forces/Section.tsx` = `83.67%`
+        - `display/Section.tsx` = `94.94%`
+        - `filters/Section.tsx` = `97.33%`
+      - package gate status after this pass:
+        - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json` passed
+        - `pnpm --filter @codegraphy/extension run lint` passed
+        - `pnpm run crap -- extension` still fails on pre-existing large hotspots led by `Graph.tsx` and `GraphViewProvider.ts`
+      - next cut: move off settings-panel and attack `Graph.tsx` / `GraphViewProvider.ts` CRAP + mutation hotspots
   - S3c `pending`: move to `Graph.tsx` or `GraphViewProvider.ts` based on fresh mutation data after S3a/S3b.
     - tests: add/update matching file-per-module tests for the next hottest module
 - S4 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. `packages/extension/src/webview/components/settingsPanel/groups/Section.tsx`
-2. `packages/extension/src/webview/components/settingsPanel/Panel.tsx`
-3. `packages/extension/src/webview/components/Graph.tsx`
-4. `packages/extension/src/extension/GraphViewProvider.ts`
+1. `packages/extension/src/webview/components/Graph.tsx`
+2. `packages/extension/src/extension/GraphViewProvider.ts`
+3. `packages/extension/src/webview/lib/export/exportSvg.ts`
+4. `packages/extension/src/webview/components/Timeline.tsx`
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.

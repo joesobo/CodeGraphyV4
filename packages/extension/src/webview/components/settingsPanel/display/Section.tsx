@@ -30,7 +30,6 @@ import {
 
 const PARTICLE_PERSIST_DEBOUNCE_MS = 350;
 const COLOR_PERSIST_DEBOUNCE_MS = 150;
-const EFFECT_DEPENDENCIES = [] as const;
 
 type ParticleSettingKey = 'particleSpeed' | 'particleSize';
 const PARTICLE_SPEED_KEY: ParticleSettingKey = 'particleSpeed';
@@ -59,12 +58,15 @@ export function DisplaySection(): React.ReactElement {
   const folderColorTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   useEffect(() => {
+    const particleTimers = particlePersistTimersRef.current;
+    const directionColorTimer = directionColorTimerRef;
+    const folderColorTimer = folderColorTimerRef;
     return () => {
-      clearTimeoutMap(particlePersistTimersRef.current);
-      clearTimeout(directionColorTimerRef.current);
-      clearTimeout(folderColorTimerRef.current);
+      clearTimeoutMap(particleTimers);
+      clearTimeout(directionColorTimer.current);
+      clearTimeout(folderColorTimer.current);
     };
-  }, EFFECT_DEPENDENCIES);
+  }, []);
 
   const flushParticleSetting = (key: ParticleSettingKey) => {
     flushPendingNumber(
