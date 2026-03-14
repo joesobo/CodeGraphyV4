@@ -89,8 +89,17 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/groupState.test.ts tests/extension/graphView/groupMessage.test.ts`
           - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
           - package-relative `eslint` on touched `graphView/group*` files
+      - current local threshold cut in progress:
+        - split `graphView/messages/nodeFile.ts` into `nodeFileOpen.ts`, `nodeFileEdit.ts`, and `nodeFileNavigation.ts`
+        - add direct file-per-module tests: `nodeFileOpen.test.ts`, `nodeFileEdit.test.ts`, `nodeFileNavigation.test.ts`
+        - red-green checkpoint:
+          - red: focused `vitest` failed on missing helper modules before the extraction
+          - green:
+            - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/nodeFile.test.ts tests/extension/graphView/messages/nodeFileOpen.test.ts tests/extension/graphView/messages/nodeFileEdit.test.ts tests/extension/graphView/messages/nodeFileNavigation.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts`
+            - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+            - package-relative `eslint` on touched `graphView/messages/nodeFile*` files
       - next cut:
-        - finish the `graphView/messages/nodeFile.ts` split under the `50`-site threshold
+        - rerun the `graph-view-provider` mutation slice on the split `nodeFile` helpers and confirm the threshold drop
         - keep draining `GraphViewProvider.ts` by extracting remaining config-update/file-edit orchestration
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
