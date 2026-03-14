@@ -50,6 +50,14 @@ describe('PluginRegistry', () => {
       expect(info?.builtIn).toBe(true);
     });
 
+    it('should default builtIn to false when omitted', () => {
+      const plugin = createMockPlugin();
+      registry.register(plugin);
+
+      const info = registry.get(plugin.id);
+      expect(info?.builtIn).toBe(false);
+    });
+
     it('should register plugin with source extension', () => {
       const plugin = createMockPlugin();
       registry.register(plugin, { sourceExtension: 'codegraphy-rust' });
@@ -234,8 +242,8 @@ describe('PluginRegistry', () => {
       const result = registry.list();
 
       expect(result).toHaveLength(2);
-      expect(result.map((p) => p.plugin.id)).toContain('first');
-      expect(result.map((p) => p.plugin.id)).toContain('second');
+      expect(result.map((pluginInfo) => pluginInfo.plugin.id)).toContain('first');
+      expect(result.map((pluginInfo) => pluginInfo.plugin.id)).toContain('second');
     });
 
     it('should return empty array when no plugins registered', () => {
