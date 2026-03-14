@@ -9,7 +9,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import {
   IGraphData,
-  BidirectionalEdgeMode,
   DirectionMode,
   DagMode,
   IPhysicsSettings,
@@ -57,10 +56,22 @@ import {
   resolveGraphViewAssetPath,
 } from './graphViewResources';
 import { shouldRebuildGraphView } from './graphViewRebuild';
-import { getGraphViewVisitCount, incrementGraphViewVisitCount } from './graphViewVisits';
 import { readGraphViewPhysicsSettings } from './graphViewPhysics';
 import { createGraphViewHtml, createGraphViewNonce } from './graphViewHtml';
-import { buildGraphViewFileInfoPayload } from './graphViewFileInfo';
+import { loadGraphViewFileInfo } from './graphView/fileInfo';
+import {
+  buildGraphViewGroupsUpdatedMessage,
+  loadGraphViewGroupState,
+} from './graphView/groups';
+import {
+  buildGraphViewAllSettingsMessages,
+  buildGraphViewSettingsMessages,
+  captureGraphViewSettingsSnapshot,
+} from './graphView/settings';
+import {
+  incrementPersistedGraphViewVisitCount,
+  readPersistedGraphViewVisitCount,
+} from './graphView/visits';
 import {
 	getGraphViewConfigTarget,
 	normalizeDirectionColor,
@@ -87,14 +98,8 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
   centerForce: 0.1,
 };
 
-/** Storage key for file visit counts in workspace state */
-const VISITS_KEY = 'codegraphy.fileVisits';
-
 /** Storage key for selected view per workspace */
 const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
-
-/** Storage key for filter patterns in workspace state */
-const FILTER_PATTERNS_KEY = 'codegraphy.filterPatterns';
 
 /** Storage key for depth limit per workspace */
 const DEPTH_LIMIT_KEY = 'codegraphy.depthLimit';
@@ -1188,32 +1193,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._registerBuiltInPluginRoots();
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     const webview = this._view?.webview ?? this._panels[0]?.webview;
-    const resolved = this._groups.map(g => {
-      if (!g.imagePath) return g;
-
-      let imageUrl: string | undefined;
-
-      // Plugin groups: resolve via _resolveWebviewAssetPath (extension or plugin root)
-      const pluginMatch = g.id.match(/^plugin:([^:]+):/);
-      if (pluginMatch) {
-        const pluginId = pluginMatch[1];
-        imageUrl = this._resolveWebviewAssetPath(g.imagePath, pluginId);
-      } else {
-        // User groups: check for "plugin:<id>:<path>" format (inherited from plugin override)
-        const inheritedMatch = g.imagePath.match(/^plugin:([^:]+):(.+)$/);
-        if (inheritedMatch) {
-          const [, pluginId, relativePath] = inheritedMatch;
-          imageUrl = this._resolveWebviewAssetPath(relativePath, pluginId);
-        } else if (workspaceFolder && webview) {
-          // Standard workspace-relative path
-          const imageUri = vscode.Uri.joinPath(workspaceFolder.uri, g.imagePath);
-          imageUrl = webview.asWebviewUri(imageUri).toString();
-        }
-      }
-
-      return { ...g, imageUrl };
-    });
-    this._sendMessage({ type: 'GROUPS_UPDATED', payload: { groups: resolved } });
+    this._sendMessage(
+      buildGraphViewGroupsUpdatedMessage(this._groups, {
+        workspaceFolder,
+        asWebviewUri: webview ? (uri) => webview.asWebviewUri(uri) : undefined,
+        resolvePluginAssetPath: (assetPath, pluginId) =>
+          this._resolveWebviewAssetPath(assetPath, pluginId),
+      }),
+    );
   }
 
   /**
@@ -1987,40 +1974,19 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _loadGroupsAndFilterPatterns(): void {
     const config = vscode.workspace.getConfiguration('codegraphy');
-    // Use inspect() to distinguish explicitly-set values from schema defaults.
-    // config.get() returns the schema default ([]) even when the user hasn't set
-    // anything, making the workspace state fallback unreachable via nullish coalescing.
-    const groupsInspect = config.inspect<IGroup[]>('groups');
-    const patternsInspect = config.inspect<string[]>('filterPatterns');
-
-    const vsGroups = groupsInspect?.workspaceValue ?? groupsInspect?.globalValue;
-    const vsFilterPatterns = patternsInspect?.workspaceValue ?? patternsInspect?.globalValue;
-
-    if (vsGroups) {
-      // Settings.json has explicit groups — use them as user groups
-      this._userGroups = vsGroups;
-    } else {
-      // Fall back to workspaceState for migration, filtering out plugin groups
-      const legacyGroups = this._context.workspaceState.get<IGroup[]>('codegraphy.groups') ?? [];
-      this._userGroups = legacyGroups.filter(g => !g.id.startsWith('plugin:'));
-
-      // Migrate to settings.json if there were legacy groups
-      if (legacyGroups.length > 0) {
-        const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-        vscode.workspace.getConfiguration('codegraphy').update('groups', this._userGroups, target);
-        this._context.workspaceState.update('codegraphy.groups', undefined);
-      }
-    }
-
-    // Load hidden plugin group IDs from settings
-    this._hiddenPluginGroupIds = new Set(
-      config.get<string[]>('hiddenPluginGroups', [])
-    );
-
-    // Compute merged groups (user + visible plugin defaults)
+    const groupState = loadGraphViewGroupState(config, this._context.workspaceState);
+    this._userGroups = groupState.userGroups;
+    this._hiddenPluginGroupIds = groupState.hiddenPluginGroupIds;
     this._computeMergedGroups();
+    this._filterPatterns = groupState.filterPatterns;
 
-    this._filterPatterns = vsFilterPatterns ?? this._context.workspaceState.get<string[]>(FILTER_PATTERNS_KEY) ?? [];
+    if (groupState.legacyGroupsToMigrate) {
+      const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
+      void vscode.workspace
+        .getConfiguration('codegraphy')
+        .update('groups', groupState.legacyGroupsToMigrate, target);
+      void this._context.workspaceState.update('codegraphy.groups', undefined);
+    }
   }
 
   /**
@@ -2063,54 +2029,32 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _sendSettings(): void {
     const settings = readGraphViewSettings(vscode.workspace.getConfiguration('codegraphy'));
     this._viewContext.folderNodeColor = settings.folderNodeColor;
-    this._sendMessage({
-      type: 'SETTINGS_UPDATED',
-      payload: {
-        bidirectionalEdges: settings.bidirectionalEdges,
-        showOrphans: settings.showOrphans,
-      },
-    });
-    this._sendMessage({
-      type: 'DIRECTION_SETTINGS_UPDATED',
-      payload: {
-        directionMode: settings.directionMode,
-        particleSpeed: settings.particleSpeed,
-        particleSize: settings.particleSize,
-        directionColor: settings.directionColor,
-      },
-    });
-    this._sendMessage({
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: settings.folderNodeColor },
-    });
-    this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: { showLabels: settings.showLabels } });
+    for (const message of buildGraphViewSettingsMessages(settings)) {
+      this._sendMessage(message);
+    }
   }
 
   /**
    * Gets file info and sends it to the webview.
    */
   private async _getFileInfo(filePath: string): Promise<void> {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) return;
-
     try {
-      const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
-      const stat = await vscode.workspace.fs.stat(fileUri);
-
-      // Get plugin name
-      if (this._analyzer && !this._analyzerInitialized) {
-        await this._analyzer.initialize();
-        this._analyzerInitialized = true;
-      }
-      const plugin = this._analyzer?.getPluginNameForFile(filePath);
-
-      // Get visit count
-      const visits = this._getVisitCount(filePath);
-
-      this._sendMessage({
-        type: 'FILE_INFO',
-        payload: buildGraphViewFileInfoPayload(filePath, stat, this._graphData, plugin, visits),
+      const payload = await loadGraphViewFileInfo(filePath, {
+        workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+        statFile: (fileUri) => vscode.workspace.fs.stat(fileUri),
+        ensureAnalyzerReady: async () => {
+          if (this._analyzer && !this._analyzerInitialized) {
+            await this._analyzer.initialize();
+            this._analyzerInitialized = true;
+          }
+          return this._analyzer;
+        },
+        graphData: this._graphData,
+        getVisitCount: (nextFilePath) => this._getVisitCount(nextFilePath),
       });
+      if (!payload) return;
+
+      this._sendMessage({ type: 'FILE_INFO', payload });
     } catch (error) {
       console.error('[CodeGraphy] Failed to get file info:', error);
     }
@@ -2120,23 +2064,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Gets the visit count for a file.
    */
   private _getVisitCount(filePath: string): number {
-    const visits = this._context.workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
-    return getGraphViewVisitCount(visits, filePath);
+    return readPersistedGraphViewVisitCount(this._context.workspaceState, filePath);
   }
 
   /**
    * Increments the visit count for a file and notifies the webview.
    */
   private async _incrementVisitCount(filePath: string): Promise<void> {
-    const visits = this._context.workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
-    const nextVisitState = incrementGraphViewVisitCount(visits, filePath);
-    await this._context.workspaceState.update(VISITS_KEY, nextVisitState.visits);
-    
-    // Notify webview of the updated access count for real-time node size updates
-    this._sendMessage({ 
-      type: 'NODE_ACCESS_COUNT_UPDATED', 
-      payload: { nodeId: filePath, accessCount: nextVisitState.accessCount } 
-    });
+    this._sendMessage(
+      await incrementPersistedGraphViewVisitCount(this._context.workspaceState, filePath),
+    );
   }
 
   /**
@@ -2181,72 +2118,41 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _sendAllSettings(): void {
     const config = vscode.workspace.getConfiguration('codegraphy');
-    const physicsSettings = this._getPhysicsSettings();
+    const snapshot = captureGraphViewSettingsSnapshot(
+      config,
+      this._getPhysicsSettings(),
+      this._nodeSizeMode,
+    );
+    const messages = buildGraphViewAllSettingsMessages(
+      snapshot,
+      this._analyzer?.getPluginFilterPatterns() ?? [],
+    );
 
-    this._sendMessage({ type: 'PHYSICS_SETTINGS_UPDATED', payload: physicsSettings });
-    this._sendMessage({ type: 'SETTINGS_UPDATED', payload: {
-      bidirectionalEdges: config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate'),
-      showOrphans: config.get<boolean>('showOrphans', true),
-    }});
-    this._sendMessage({ type: 'DIRECTION_SETTINGS_UPDATED', payload: {
-      directionMode: config.get<string>('directionMode', 'arrows') as DirectionMode,
-      particleSpeed: config.get<number>('particleSpeed', 0.005),
-      particleSize: config.get<number>('particleSize', 4),
-      directionColor: normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)),
-    }});
-    this._sendMessage({ type: 'SHOW_LABELS_UPDATED', payload: {
-      showLabels: config.get<boolean>('showLabels', true),
-    }});
+    this._viewContext.folderNodeColor = snapshot.folderNodeColor;
+    for (const message of messages.preGroupMessages) {
+      this._sendMessage(message);
+    }
 
-    const folderColor = normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR));
-    this._viewContext.folderNodeColor = folderColor;
-    this._sendMessage({ type: 'FOLDER_NODE_COLOR_UPDATED', payload: { folderNodeColor: folderColor } });
-
-    // Update hidden plugin groups first (affects merged groups output)
-    const hiddenPluginGroups = config.get<string[]>('hiddenPluginGroups', []);
-    this._hiddenPluginGroupIds = new Set(hiddenPluginGroups);
-
-    // Update internal groups state and send to webview
-    this._userGroups = config.get<IGroup[]>('groups', []);
+    this._hiddenPluginGroupIds = new Set(snapshot.hiddenPluginGroups);
+    this._userGroups = snapshot.groups;
     this._computeMergedGroups();
     this._sendGroupsUpdated();
 
-    // Update internal filter patterns and send to webview
-    this._filterPatterns = config.get<string[]>('filterPatterns', []);
-    this._sendMessage({ type: 'FILTER_PATTERNS_UPDATED', payload: {
-      patterns: this._filterPatterns,
-      pluginPatterns: this._analyzer?.getPluginFilterPatterns() ?? [],
-    }});
-
-    // maxFiles
-    const maxFiles = config.get<number>('maxFiles', 500);
-    this._sendMessage({ type: 'MAX_FILES_UPDATED', payload: { maxFiles } });
-
-    // nodeSizeMode is persisted in workspace state
-    this._sendMessage({ type: 'NODE_SIZE_MODE_UPDATED', payload: { nodeSizeMode: this._nodeSizeMode } });
+    this._filterPatterns = snapshot.filterPatterns;
+    for (const message of messages.postGroupMessages) {
+      this._sendMessage(message);
+    }
   }
 
   /**
    * Captures the current settings state as a snapshot.
    */
   private _captureSettingsSnapshot(): ISettingsSnapshot {
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    return {
-      physics: this._getPhysicsSettings(),
-      groups: config.get<IGroup[]>('groups', []),
-      filterPatterns: config.get<string[]>('filterPatterns', []),
-      showOrphans: config.get<boolean>('showOrphans', true),
-      bidirectionalMode: config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate'),
-      directionMode: config.get<string>('directionMode', 'arrows') as DirectionMode,
-      directionColor: normalizeDirectionColor(config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)),
-      folderNodeColor: normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)),
-      particleSpeed: config.get<number>('particleSpeed', 0.005),
-      particleSize: config.get<number>('particleSize', 4),
-      showLabels: config.get<boolean>('showLabels', true),
-      maxFiles: config.get<number>('maxFiles', 500),
-      hiddenPluginGroups: config.get<string[]>('hiddenPluginGroups', []),
-      nodeSizeMode: this._nodeSizeMode,
-    };
+    return captureGraphViewSettingsSnapshot(
+      vscode.workspace.getConfiguration('codegraphy'),
+      this._getPhysicsSettings(),
+      this._nodeSizeMode,
+    );
   }
 
   /**
