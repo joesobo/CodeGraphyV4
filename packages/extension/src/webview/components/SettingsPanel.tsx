@@ -18,6 +18,14 @@ import { ScrollArea } from './ui/scroll-area';
 import { mdiChevronRight, mdiClose, mdiDrag, mdiEyeOutline, mdiEyeOffOutline, mdiMinus, mdiPlus, mdiLockOutline, mdiRefresh } from '@mdi/js';
 import { MdiIcon } from './icons';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from './ui/tooltip';
+import {
+  buildSettingsGroupOverride,
+  groupSettingsPanelSections,
+  isHexColor,
+  particleSpeedFromDisplay,
+  particleSpeedToDisplay,
+  reorderSettingsGroups,
+} from './settingsPanelModel';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -44,27 +52,6 @@ const SHAPE_3D_OPTIONS: { value: NodeShape3D; label: string }[] = [
 
 /** Delay before persisting slider updates to VS Code settings. */
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
-const PARTICLE_SPEED_MIN_INTERNAL = 0.0005;
-const PARTICLE_SPEED_MAX_INTERNAL = 0.005;
-const PARTICLE_SPEED_MIN_DISPLAY = 1;
-const PARTICLE_SPEED_MAX_DISPLAY = 10;
-
-function isHexColor(value: string): boolean {
-  return /^#[0-9A-F]{6}$/i.test(value);
-}
-
-function particleSpeedToDisplay(speed: number): number {
-  const clamped = Math.min(PARTICLE_SPEED_MAX_INTERNAL, Math.max(PARTICLE_SPEED_MIN_INTERNAL, speed));
-  const ratio = (clamped - PARTICLE_SPEED_MIN_INTERNAL) / (PARTICLE_SPEED_MAX_INTERNAL - PARTICLE_SPEED_MIN_INTERNAL);
-  return PARTICLE_SPEED_MIN_DISPLAY + ratio * (PARTICLE_SPEED_MAX_DISPLAY - PARTICLE_SPEED_MIN_DISPLAY);
-}
-
-function particleSpeedFromDisplay(level: number): number {
-  const clamped = Math.min(PARTICLE_SPEED_MAX_DISPLAY, Math.max(PARTICLE_SPEED_MIN_DISPLAY, level));
-  const ratio = (clamped - PARTICLE_SPEED_MIN_DISPLAY) / (PARTICLE_SPEED_MAX_DISPLAY - PARTICLE_SPEED_MIN_DISPLAY);
-  return Number((PARTICLE_SPEED_MIN_INTERNAL + ratio * (PARTICLE_SPEED_MAX_INTERNAL - PARTICLE_SPEED_MIN_INTERNAL)).toFixed(6));
-}
-
 function clearTimerRefs(ref: React.MutableRefObject<Partial<Record<string, ReturnType<typeof setTimeout>>>>) {
   for (const timer of Object.values(ref.current)) {
     if (timer) clearTimeout(timer);
@@ -181,26 +168,7 @@ export default function SettingsPanel({
 
   if (!isOpen) return null;
 
-  // Split groups into user-defined and defaults (built-in + plugin)
-  const userGroups = groups.filter(g => !g.isPluginDefault);
-  const defaultGroups = groups.filter(g => g.isPluginDefault);
-
-  // Group defaults by section: "default" for built-in, plugin ID for plugin groups
-  const defaultSections = defaultGroups.reduce<Record<string, { sectionId: string; sectionName: string; groups: IGroup[] }>>((acc, g) => {
-    let sectionId: string;
-    let sectionName: string;
-    if (g.id.startsWith('default:')) {
-      sectionId = 'default';
-      sectionName = g.pluginName ?? 'CodeGraphy';
-    } else {
-      const match = g.id.match(/^plugin:([^:]+):/);
-      sectionId = match?.[1] ?? 'unknown';
-      sectionName = g.pluginName ?? sectionId;
-    }
-    if (!acc[sectionId]) acc[sectionId] = { sectionId, sectionName, groups: [] };
-    acc[sectionId].groups.push(g);
-    return acc;
-  }, {});
+  const { userGroups, defaultSections } = groupSettingsPanelSections(groups);
 
   // Groups handlers — only send user groups in UPDATE_GROUPS
   const sendUserGroups = (updated: IGroup[]) => {
@@ -225,24 +193,7 @@ export default function SettingsPanel({
   /** Override a plugin default: create a user copy with changes (original stays visible). */
   const handleOverridePluginGroup = (group: IGroup, updates: Partial<IGroup>) => {
     const newId = crypto.randomUUID();
-    // Encode plugin source into imagePath so the extension can resolve it
-    // from the correct plugin root (e.g. "assets/godot.svg" → "plugin:godot:assets/godot.svg")
-    let inheritedImagePath = group.imagePath;
-    if (inheritedImagePath && !inheritedImagePath.startsWith('plugin:')) {
-      const pluginIdMatch = group.id.match(/^plugin:([^:]+):/);
-      if (pluginIdMatch) {
-        inheritedImagePath = `plugin:${pluginIdMatch[1]}:${inheritedImagePath}`;
-      }
-    }
-    const override: IGroup = {
-      id: newId,
-      pattern: group.pattern,
-      color: group.color,
-      shape2D: group.shape2D,
-      shape3D: group.shape3D,
-      imagePath: inheritedImagePath,
-      ...updates,
-    };
+    const override = buildSettingsGroupOverride(group, updates, newId);
     const updatedUser = [...userGroups, override];
     sendUserGroups(updatedUser);
     setExpandedGroupId(newId);
@@ -325,15 +276,12 @@ export default function SettingsPanel({
 
   const handleGroupDrop = (e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
-    if (dragIndex === null || dragIndex === targetIndex) {
+    if (dragIndex === null) {
       setDragIndex(null);
       setDragOverIndex(null);
       return;
     }
-    const updated = [...userGroups];
-    const [moved] = updated.splice(dragIndex, 1);
-    updated.splice(targetIndex, 0, moved);
-    sendUserGroups(updated);
+    sendUserGroups(reorderSettingsGroups(userGroups, dragIndex, targetIndex));
     setDragIndex(null);
     setDragOverIndex(null);
   };
@@ -777,7 +725,7 @@ export default function SettingsPanel({
               </div>
 
               {/* Default groups — built-in (CodeGraphy) + per-plugin, collapsible */}
-              {Object.values(defaultSections).map(({ sectionId, sectionName, groups: sgGroups }) => {
+              {defaultSections.map(({ sectionId, sectionName, groups: sgGroups }) => {
                 const isPluginExpanded = expandedPluginIds.has(sectionId);
                 const allDisabled = sgGroups.every(g => g.disabled);
                 const togglePlugin = () => setExpandedPluginIds(prev => {
@@ -1107,8 +1055,8 @@ export default function SettingsPanel({
                       <span className="text-xs text-muted-foreground font-mono">{Math.round(displayParticleSpeed)}</span>
                     </div>
                     <Slider
-                      min={PARTICLE_SPEED_MIN_DISPLAY}
-                      max={PARTICLE_SPEED_MAX_DISPLAY}
+                      min={1}
+                      max={10}
                       step={1}
                       value={[displayParticleSpeed]}
                       onValueChange={(vals) => handleParticleSpeedChange(vals[0])}
