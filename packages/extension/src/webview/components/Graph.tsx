@@ -14,20 +14,13 @@ import SpriteText from 'three-spritetext';
 import { forceCollide, forceX, forceY } from 'd3-force';
 import {
   IGraphData,
-  IGraphNode,
-  IGraphEdge,
   IFileInfo,
   IPhysicsSettings,
   ExtensionToWebviewMessage,
-  NodeSizeMode,
-  BidirectionalEdgeMode,
   NodeDecorationPayload,
   EdgeDecorationPayload,
-  NodeShape2D,
-  NodeShape3D,
   DEFAULT_DIRECTION_COLOR,
 } from '../../shared/types';
-import { computeLinkCurvature } from '../lib/linkCurvature';
 import { drawShape } from '../lib/shapes2D';
 import { getImage } from '../lib/imageCache';
 import { createNodeMesh, createImageSprite } from '../lib/shapes3D';
@@ -44,11 +37,57 @@ import {
   makeBackgroundContextSelection,
   makeEdgeContextSelection,
   makeNodeContextSelection,
-  type BuiltInContextMenuAction,
   type GraphContextMenuAction,
   type GraphContextMenuEntry,
   type GraphContextSelection,
 } from './graphContextMenu';
+import {
+  getGraphContextActionEffects,
+  type GraphContextEffect,
+} from './graphContextActionEffects';
+import {
+  getBackgroundClickCommand,
+  getLinkClickCommand,
+  getNodeClickCommand,
+  getNodeContextMenuSelection,
+  shouldMarkRightMouseDrag,
+  shouldUseRightClickFallback,
+  type GraphInteractionEffect,
+} from './graphInteractionModel';
+import { getGraphKeyboardCommand } from './graphKeyboardEffects';
+import {
+  buildGraphTooltipContext,
+  buildGraphTooltipState,
+  hideGraphTooltipState,
+  type GraphTooltipRect,
+  type GraphTooltipState,
+} from './graphTooltipModel';
+import {
+  getGraphWebviewMessageEffects,
+  type GraphWebviewMessageEffect,
+} from './graphWebviewMessageEffects';
+import {
+  buildGraphData,
+  calculateNodeSizes,
+  DEFAULT_NODE_SIZE,
+  FAVORITE_BORDER_COLOR,
+  type FGLink,
+  type FGNode,
+  getDepthSizeMultiplier,
+  getNodeType,
+  resolveDirectionColor,
+  toD3Repel,
+} from './graphModel';
+import {
+  applyCursorToGraphSurface,
+  as2DExtMethods,
+  type GraphCursorStyle,
+  hasDistanceAndStrength,
+  hasStrength,
+  resolveEdgeActionTargetId,
+  resolveLinkEndpointId,
+  setSpriteVisible,
+} from './graphSupport';
 import { NodeTooltip } from './NodeTooltip';
 import { ThemeKind, adjustColorForLightTheme } from '../hooks/useTheme';
 import { postMessage } from '../lib/vscodeApi';
@@ -60,19 +99,11 @@ import { exportAsMarkdown } from '../lib/export/exportMarkdown';
 import { useGraphStore, graphStore } from '../store';
 import { WebviewPluginHost } from '../pluginHost';
 
-/** Yellow color for favorites */
-const FAVORITE_BORDER_COLOR = '#EAB308';
 const DIRECTIONAL_ARROW_LENGTH_2D = 12;
 const DIRECTIONAL_ARROW_NODE_GAP_2D = 0;
 const RIGHT_CLICK_DRAG_THRESHOLD_PX = 6;
 const RIGHT_CLICK_FALLBACK_DELAY_MS = 40;
 const NODE_DOUBLE_CLICK_THRESHOLD_MS = 450;
-
-/** Minimum and maximum node sizes */
-const MIN_NODE_SIZE = 10;
-const MAX_NODE_SIZE = 40;
-const DEFAULT_NODE_SIZE = 16;
-type GraphCursorStyle = 'default' | 'pointer';
 
 interface GraphProps {
   data: IGraphData;
@@ -82,239 +113,8 @@ interface GraphProps {
   pluginHost?: WebviewPluginHost;
 }
 
-/** Map normalized repelForce (0–20) to d3 forceManyBody strength (0 to -500) */
-function toD3Repel(repelForce: number): number {
-  return -(repelForce / 20) * 500;
-}
-
-function resolveDirectionColor(directionColor: string): string {
-  return /^#[0-9A-F]{6}$/i.test(directionColor) ? directionColor : DEFAULT_DIRECTION_COLOR;
-}
-
-// ─── Internal node/link types ──────────────────────────────────────────────
-
-type FGNode = NodeObject & {
-  id: string;
-  label: string;
-  size: number;
-  color: string;
-  borderColor: string;
-  borderWidth: number;
-  baseOpacity: number;
-  isFavorite: boolean;
-  shape2D?: NodeShape2D;
-  shape3D?: NodeShape3D;
-  imageUrl?: string;
-};
-
-type FGLink = LinkObject & {
-  id: string;
-  from: string;
-  to: string;
-  bidirectional: boolean;
-  baseColor?: string;
-  curvature?: number;
-};
-
-type StrengthForce = { strength: (value: number) => unknown };
-type LinkDistanceForce = { distance: (value: number) => unknown; strength: (value: number) => unknown };
-
-type FG2DExtMethods = FG2DMethods<FGNode, FGLink> & {
-  d3Alpha?: (value: number) => unknown;
-  linkDirectionalArrowLength?: (value: number) => unknown;
-  linkDirectionalArrowRelPos?: (value: number | ((link: LinkObject) => number)) => unknown;
-  linkDirectionalParticles?: (value: number | ((link: LinkObject) => number)) => unknown;
-  linkDirectionalParticleWidth?: (value: number) => unknown;
-  linkDirectionalParticleSpeed?: (value: number) => unknown;
-  linkDirectionalArrowColor?: (value: string | ((link: LinkObject) => string)) => unknown;
-  linkDirectionalParticleColor?: (value: string | ((link: LinkObject) => string)) => unknown;
-};
-
-function isRecordLike(value: unknown): value is Record<string, unknown> {
-  return (typeof value === 'object' && value !== null) || typeof value === 'function';
-}
-
-function hasStrength(force: unknown): force is StrengthForce {
-  if (!isRecordLike(force)) return false;
-  return typeof (force as { strength?: unknown }).strength === 'function';
-}
-
-function hasDistanceAndStrength(force: unknown): force is LinkDistanceForce {
-  if (!isRecordLike(force)) return false;
-  const candidate = force as { distance?: unknown; strength?: unknown };
-  return typeof candidate.distance === 'function' && typeof candidate.strength === 'function';
-}
-
-function as2DExtMethods(instance: FG2DMethods<FGNode, FGLink> | undefined): FG2DExtMethods | undefined {
-  return instance as FG2DExtMethods | undefined;
-}
-
-function setSpriteVisible(sprite: SpriteText, visible: boolean): void {
-  (sprite as unknown as { visible: boolean }).visible = visible;
-}
-
 type ForceGraph2DRefObject = React.MutableRefObject<FG2DMethods<NodeObject, LinkObject> | undefined>;
 type ForceGraph3DRefObject = React.MutableRefObject<FG3DMethods<NodeObject, LinkObject> | undefined>;
-
-// ─── Pure helpers ──────────────────────────────────────────────────────────
-
-function calculateNodeSizes(
-  nodes: IGraphNode[],
-  edges: { from: string; to: string }[],
-  mode: NodeSizeMode
-): Map<string, number> {
-  const sizes = new Map<string, number>();
-
-  if (mode === 'uniform') {
-    for (const node of nodes) sizes.set(node.id, DEFAULT_NODE_SIZE);
-    return sizes;
-  }
-
-  if (mode === 'connections') {
-    const counts = new Map<string, number>();
-    for (const node of nodes) counts.set(node.id, 0);
-    for (const edge of edges) {
-      counts.set(edge.from, (counts.get(edge.from) ?? 0) + 1);
-      counts.set(edge.to, (counts.get(edge.to) ?? 0) + 1);
-    }
-    const vals = Array.from(counts.values());
-    const min = Math.min(...vals, 0);
-    const max = Math.max(...vals, 1);
-    const range = max - min || 1;
-    for (const node of nodes) {
-      const count = counts.get(node.id) ?? 0;
-      sizes.set(node.id, MIN_NODE_SIZE + ((count - min) / range) * (MAX_NODE_SIZE - MIN_NODE_SIZE));
-    }
-    return sizes;
-  }
-
-  if (mode === 'access-count') {
-    const vals = nodes.map(n => n.accessCount ?? 0);
-    const min = Math.min(...vals, 0);
-    const max = Math.max(...vals, 1);
-    const range = max - min || 1;
-    for (const node of nodes) {
-      const accessCount = node.accessCount ?? 0;
-      sizes.set(node.id, MIN_NODE_SIZE + ((accessCount - min) / range) * (MAX_NODE_SIZE - MIN_NODE_SIZE));
-    }
-    return sizes;
-  }
-
-  if (mode === 'file-size') {
-    const fileSizes = nodes.map(n => n.fileSize ?? 0).filter(s => s > 0);
-    if (fileSizes.length === 0) {
-      for (const node of nodes) sizes.set(node.id, DEFAULT_NODE_SIZE);
-      return sizes;
-    }
-    const logSizes = fileSizes.map(s => Math.log10(s + 1));
-    const minLog = Math.min(...logSizes);
-    const maxLog = Math.max(...logSizes);
-    const range = maxLog - minLog || 1;
-    for (const node of nodes) {
-      const fs = node.fileSize ?? 0;
-      if (fs === 0) {
-        sizes.set(node.id, MIN_NODE_SIZE);
-      } else {
-        const logS = Math.log10(fs + 1);
-        sizes.set(node.id, MIN_NODE_SIZE + ((logS - minLog) / range) * (MAX_NODE_SIZE - MIN_NODE_SIZE));
-      }
-    }
-    return sizes;
-  }
-
-  for (const node of nodes) sizes.set(node.id, DEFAULT_NODE_SIZE);
-  return sizes;
-}
-
-function getDepthOpacity(depthLevel: number | undefined): number {
-  if (depthLevel === undefined) return 1.0;
-  if (depthLevel === 0) return 1.0;
-  return Math.max(0.4, 1.0 - depthLevel * 0.15);
-}
-
-function getDepthSizeMultiplier(depthLevel: number | undefined): number {
-  if (depthLevel === undefined) return 1.0;
-  if (depthLevel === 0) return 1.3;
-  return 1.0;
-}
-
-function getNodeType(filePath: string): string {
-  const dotIndex = filePath.lastIndexOf('.');
-  if (dotIndex === -1 || dotIndex === filePath.length - 1) {
-    return '*';
-  }
-  return filePath.slice(dotIndex).toLowerCase();
-}
-
-interface ProcessedEdge extends IGraphEdge {
-  bidirectional?: boolean;
-}
-
-function processEdges(edges: IGraphEdge[], mode: BidirectionalEdgeMode): ProcessedEdge[] {
-  if (mode === 'separate') return edges.map(e => ({ ...e, bidirectional: false }));
-
-  const edgeSet = new Set(edges.map(e => `${e.from}->${e.to}`));
-  const processed: ProcessedEdge[] = [];
-  const seen = new Set<string>();
-
-  for (const edge of edges) {
-    const key = `${edge.from}->${edge.to}`;
-    const reverseKey = `${edge.to}->${edge.from}`;
-    if (seen.has(key) || seen.has(reverseKey)) continue;
-    if (edgeSet.has(reverseKey)) {
-      const [nodeA, nodeB] = [edge.from, edge.to].sort();
-      processed.push({ id: `${nodeA}<->${nodeB}`, from: nodeA, to: nodeB, bidirectional: true });
-      seen.add(key);
-      seen.add(reverseKey);
-    } else {
-      processed.push({ ...edge, bidirectional: false });
-      seen.add(key);
-    }
-  }
-  return processed;
-}
-
-function resolveLinkEndpointId(value: unknown): string | null {
-  if (typeof value === 'string') return value;
-  if (!isRecordLike(value)) return null;
-  const maybeId = (value as { id?: unknown }).id;
-  return typeof maybeId === 'string' ? maybeId : null;
-}
-
-function resolveEdgeActionTargetId(
-  linkId: string | undefined,
-  sourceId: string,
-  targetId: string,
-  rawEdges: IGraphEdge[]
-): string {
-  if (linkId && rawEdges.some(edge => edge.id === linkId)) {
-    return linkId;
-  }
-
-  const forward = rawEdges.find(edge => edge.from === sourceId && edge.to === targetId);
-  if (forward) return forward.id;
-
-  const reverse = rawEdges.find(edge => edge.from === targetId && edge.to === sourceId);
-  if (reverse) return reverse.id;
-
-  return linkId ?? `${sourceId}->${targetId}`;
-}
-
-function isMacControlContextClick(event: MouseEvent, isMacPlatform: boolean): boolean {
-  return isMacPlatform && event.button === 0 && event.ctrlKey && !event.metaKey;
-}
-
-function applyCursorToGraphSurface(container: HTMLDivElement, cursor: GraphCursorStyle): void {
-  container.style.cursor = cursor;
-  for (const child of Array.from(container.children)) {
-    if (child instanceof HTMLElement) {
-      child.style.cursor = cursor;
-    }
-  }
-  for (const canvas of Array.from(container.querySelectorAll('canvas'))) {
-    canvas.style.cursor = cursor;
-  }
-}
 
 // ─── Graph component ────────────────────────────────────────────────────────
 
@@ -398,13 +198,7 @@ export default function Graph({
   const [contextSelection, setContextSelection] = useState<GraphContextSelection>(() =>
     makeBackgroundContextSelection()
   );
-  const [tooltipData, setTooltipData] = useState<{
-    visible: boolean;
-    nodeRect: { x: number; y: number; radius: number };
-    path: string;
-    info: IFileInfo | null;
-    pluginSections: Array<{ title: string; content: string }>;
-  }>({
+  const [tooltipData, setTooltipData] = useState<GraphTooltipState>({
     visible: false,
     nodeRect: { x: 0, y: 0, radius: 0 },
     path: '',
@@ -423,80 +217,18 @@ export default function Graph({
   // via a separate effect to avoid restarting the physics simulation.
 
   const graphData = useMemo(() => {
-    const nodeSizes = calculateNodeSizes(data.nodes, data.edges, nodeSizeModeRef.current);
-    const isLight = themeRef.current === 'light';
-    const favs = favoritesRef.current;
-
-    // During timeline playback, preserve positions from previous simulation frame.
-    // d3-force mutates node objects in-place with x/y/vx/vy, so graphDataRef has
-    // the latest simulation positions even though we're creating new objects here.
-    const prevPositions = timelineActiveRef.current
-      ? new Map(graphDataRef.current.nodes.map(n => [n.id, { x: n.x, y: n.y }]))
-      : null;
-
-    const nodes: FGNode[] = data.nodes.map(n => {
-      const rawColor = isLight ? adjustColorForLightTheme(n.color) : n.color;
-      const isFavorite = favs.has(n.id);
-      const isFocused = n.depthLevel === 0;
-      const size = (nodeSizes.get(n.id) ?? DEFAULT_NODE_SIZE) * getDepthSizeMultiplier(n.depthLevel);
-      const borderColor = isFocused
-        ? (isLight ? '#2563eb' : '#60a5fa')
-        : isFavorite
-        ? FAVORITE_BORDER_COLOR
-        : rawColor;
-      const borderWidth = isFocused ? 4 : isFavorite ? 3 : 2;
-
-      // Use persisted data position, or carry over simulation position for timeline
-      const prev = prevPositions?.get(n.id);
-      return {
-        id: n.id,
-        label: n.label,
-        size,
-        color: rawColor,
-        borderColor,
-        borderWidth,
-        baseOpacity: getDepthOpacity(n.depthLevel),
-        isFavorite,
-        shape2D: n.shape2D,
-        shape3D: n.shape3D,
-        imageUrl: n.imageUrl,
-        x: n.x ?? prev?.x,
-        y: n.y ?? prev?.y,
-      } as FGNode;
+    const nextGraphData = buildGraphData({
+      data,
+      nodeSizeMode: nodeSizeModeRef.current,
+      theme: themeRef.current,
+      favorites: favoritesRef.current,
+      bidirectionalMode,
+      timelineActive: timelineActiveRef.current,
+      previousNodes: graphDataRef.current.nodes,
     });
 
-    // For truly new nodes during timeline, seed their position near a connected node
-    if (prevPositions && prevPositions.size > 0) {
-      const nodePositionMap = new Map(nodes.map(n => [n.id, n]));
-      for (const node of nodes) {
-        if (node.x === undefined && node.y === undefined) {
-          const edge = data.edges.find(e => e.from === node.id || e.to === node.id);
-          if (edge) {
-            const neighborId = edge.from === node.id ? edge.to : edge.from;
-            const neighbor = nodePositionMap.get(neighborId);
-            if (neighbor?.x !== undefined && neighbor?.y !== undefined) {
-              node.x = neighbor.x + (Math.random() - 0.5) * 40;
-              node.y = neighbor.y + (Math.random() - 0.5) * 40;
-            }
-          }
-        }
-      }
-    }
-
-    const processedEdges = processEdges(data.edges, bidirectionalMode);
-    const links: FGLink[] = processedEdges.map(e => ({
-      id: e.id,
-      source: e.from,
-      target: e.to,
-      bidirectional: e.bidirectional ?? false,
-      baseColor: e.bidirectional ? '#60a5fa' : undefined,
-    } as FGLink));
-
-    // Compute curvature for overlapping links so parallel edges fan apart
-    computeLinkCurvature(links);
-
-    graphDataRef.current = { nodes, links };
-    return { nodes, links };
+    graphDataRef.current = nextGraphData;
+    return nextGraphData;
   }, [data, bidirectionalMode]);
 
   // During timeline playback, dampen the simulation alpha after data changes
@@ -849,15 +581,12 @@ export default function Graph({
   }, []);
 
   const openNodeContextMenu = useCallback((nodeId: string, event: MouseEvent) => {
-    const nextSelectedNodes = selectedNodesSetRef.current.has(nodeId)
-      ? new Set(selectedNodesSetRef.current)
-      : new Set([nodeId]);
-
-    if (!selectedNodesSetRef.current.has(nodeId)) {
-      selectedNodesSetRef.current = nextSelectedNodes;
-      setSelectedNodes([nodeId]);
+    const selection = getNodeContextMenuSelection(nodeId, selectedNodesSetRef.current);
+    if (selection.shouldUpdateSelection) {
+      selectedNodesSetRef.current = new Set(selection.nodeIds);
+      setSelectedNodes(selection.nodeIds);
     }
-    setContextSelection(makeNodeContextSelection(nodeId, nextSelectedNodes));
+    setContextSelection(makeNodeContextSelection(nodeId, new Set(selection.nodeIds)));
     lastGraphContextEventRef.current = Date.now();
     openContextMenuFromGraphCallback(event);
   }, [openContextMenuFromGraphCallback]);
@@ -897,15 +626,6 @@ export default function Graph({
     postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
   }, []);
 
-  const handleNodeDoubleClick = useCallback((node: FGNode, event: MouseEvent) => {
-    requestNodeOpenById(node.id);
-    focusNodeById(node.id);
-    sendGraphInteraction('graph:nodeDoubleClick', {
-      node: { id: node.id, label: node.label },
-      event: { x: event.clientX, y: event.clientY },
-    });
-  }, [focusNodeById, requestNodeOpenById, sendGraphInteraction]);
-
   const setGraphCursor = useCallback((cursor: GraphCursorStyle) => {
     graphCursorRef.current = cursor;
     const container = containerRef.current;
@@ -934,9 +654,13 @@ export default function Graph({
   const handleMouseMoveCapture = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     const rightMouseDown = rightMouseDownRef.current;
     if (!rightMouseDown) return;
-    const dx = event.clientX - rightMouseDown.x;
-    const dy = event.clientY - rightMouseDown.y;
-    if ((dx * dx) + (dy * dy) > (RIGHT_CLICK_DRAG_THRESHOLD_PX * RIGHT_CLICK_DRAG_THRESHOLD_PX)) {
+    if (shouldMarkRightMouseDrag({
+      startX: rightMouseDown.x,
+      startY: rightMouseDown.y,
+      nextX: event.clientX,
+      nextY: event.clientY,
+      thresholdPx: RIGHT_CLICK_DRAG_THRESHOLD_PX,
+    })) {
       rightMouseDown.moved = true;
     }
   }, []);
@@ -950,9 +674,12 @@ export default function Graph({
     clearRightClickFallbackTimer();
     rightClickFallbackTimerRef.current = setTimeout(() => {
       const now = Date.now();
-      const graphCallbackHandledRecently = now - lastGraphContextEventRef.current <= RIGHT_CLICK_FALLBACK_DELAY_MS * 3;
-      const contextMenuHandledRecently = now - lastContainerContextMenuEventRef.current <= RIGHT_CLICK_FALLBACK_DELAY_MS * 3;
-      if (graphCallbackHandledRecently || contextMenuHandledRecently) return;
+      if (!shouldUseRightClickFallback({
+        now,
+        lastGraphContextEvent: lastGraphContextEventRef.current,
+        lastContainerContextMenuEvent: lastContainerContextMenuEventRef.current,
+        fallbackDelayMs: RIGHT_CLICK_FALLBACK_DELAY_MS,
+      })) return;
 
       // Final fallback when graph libraries swallow right-click callbacks/contextmenu bubbling.
       const fallbackEvent = new MouseEvent('contextmenu', {
@@ -968,62 +695,111 @@ export default function Graph({
     }, RIGHT_CLICK_FALLBACK_DELAY_MS);
   }, [clearRightClickFallbackTimer, openBackgroundContextMenu]);
 
+  const applyGraphInteractionEffects = useCallback((
+    effects: GraphInteractionEffect[],
+    options: { event?: MouseEvent; link?: FGLink } = {}
+  ) => {
+    for (const effect of effects) {
+      switch (effect.kind) {
+        case 'openNodeContextMenu':
+          if (options.event) {
+            openNodeContextMenu(effect.nodeId, options.event);
+          }
+          break;
+        case 'openBackgroundContextMenu':
+          if (options.event) {
+            openBackgroundContextMenu(options.event);
+          }
+          break;
+        case 'openEdgeContextMenu':
+          if (options.event && options.link) {
+            openEdgeContextMenu(options.link, options.event);
+          }
+          break;
+        case 'selectOnlyNode':
+          selectOnlyNode(effect.nodeId);
+          break;
+        case 'setSelection':
+          selectedNodesSetRef.current = new Set(effect.nodeIds);
+          setSelectedNodes(effect.nodeIds);
+          break;
+        case 'clearSelection':
+          setHighlight(null);
+          selectedNodesSetRef.current = new Set();
+          setSelectedNodes([]);
+          break;
+        case 'previewNode':
+          postMessage({ type: 'NODE_SELECTED', payload: { nodeId: effect.nodeId } });
+          break;
+        case 'openNode':
+          requestNodeOpenById(effect.nodeId);
+          break;
+        case 'focusNode':
+          focusNodeById(effect.nodeId);
+          break;
+        case 'sendInteraction':
+          sendGraphInteraction(effect.event, effect.payload);
+          break;
+      }
+    }
+  }, [
+    focusNodeById,
+    openBackgroundContextMenu,
+    openEdgeContextMenu,
+    openNodeContextMenu,
+    requestNodeOpenById,
+    selectOnlyNode,
+    sendGraphInteraction,
+    setHighlight,
+  ]);
+
   const handleNodeClick = useCallback((node: FGNode, event: MouseEvent) => {
-    const nodeId = node.id;
-
-    // macOS control-click should mirror right-click context behavior.
-    if (isMacControlContextClick(event, isMacPlatform)) {
-      openNodeContextMenu(nodeId, event);
-      return;
-    }
-
-    const now = Date.now();
-    const last = lastClickRef.current;
-
-    // Detect double-click (two clicks on the same node within threshold)
-    if (last && last.nodeId === nodeId && now - last.time < NODE_DOUBLE_CLICK_THRESHOLD_MS) {
-      lastClickRef.current = null;
-      selectOnlyNode(nodeId);
-      handleNodeDoubleClick(node, event);
-      return;
-    }
-    lastClickRef.current = { nodeId, time: now };
-
-    if (event.ctrlKey || event.shiftKey || event.metaKey) {
-      // Multi-select
-      const next = new Set(selectedNodesSetRef.current);
-      if (next.has(nodeId)) next.delete(nodeId);
-      else next.add(nodeId);
-      selectedNodesSetRef.current = next;
-      setSelectedNodes([...next]);
-    } else {
-      // Single select — always keep the node selected and preview-open it.
-      selectOnlyNode(nodeId);
-      postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
-    }
-    sendGraphInteraction('graph:nodeClick', { node: { id: node.id, label: node.label }, event: { x: event.clientX, y: event.clientY } });
-  }, [handleNodeDoubleClick, isMacPlatform, openNodeContextMenu, selectOnlyNode, sendGraphInteraction]);
+    const command = getNodeClickCommand({
+      nodeId: node.id,
+      label: node.label,
+      ctrlKey: event.ctrlKey,
+      shiftKey: event.shiftKey,
+      metaKey: event.metaKey,
+      clientX: event.clientX,
+      clientY: event.clientY,
+      isMacPlatform,
+      selectedNodeIds: selectedNodesSetRef.current,
+      lastClick: lastClickRef.current,
+      now: Date.now(),
+      doubleClickThresholdMs: NODE_DOUBLE_CLICK_THRESHOLD_MS,
+    });
+    lastClickRef.current = command.nextLastClick;
+    applyGraphInteractionEffects(command.effects, { event });
+  }, [applyGraphInteractionEffects, isMacPlatform]);
 
   const handleBackgroundClick = useCallback((event?: MouseEvent) => {
-    if (event && isMacControlContextClick(event, isMacPlatform)) {
-      openBackgroundContextMenu(event);
+    setGraphCursor('default');
+    if (!event) {
+      applyGraphInteractionEffects(getBackgroundClickCommand({ ctrlKey: false, isMacPlatform: false }));
       return;
     }
 
-    setGraphCursor('default');
-    setHighlight(null);
-    selectedNodesSetRef.current = new Set();
-    setSelectedNodes([]);
-    sendGraphInteraction('graph:backgroundClick', {});
-  }, [isMacPlatform, openBackgroundContextMenu, setGraphCursor, setHighlight, sendGraphInteraction]);
+    applyGraphInteractionEffects(
+      getBackgroundClickCommand({
+        ctrlKey: event.ctrlKey,
+        isMacPlatform,
+      }),
+      { event }
+    );
+  }, [applyGraphInteractionEffects, isMacPlatform, setGraphCursor]);
 
   const handleLinkClick = useCallback((link: FGLink, event: MouseEvent) => {
-    if (!isMacControlContextClick(event, isMacPlatform)) return;
-    openEdgeContextMenu(link, event);
-  }, [isMacPlatform, openEdgeContextMenu]);
+    applyGraphInteractionEffects(
+      getLinkClickCommand({
+        ctrlKey: event.ctrlKey,
+        isMacPlatform,
+      }),
+      { event, link }
+    );
+  }, [applyGraphInteractionEffects, isMacPlatform]);
 
   /** Returns the node's bounding rect in screen coordinates (accounts for zoom). */
-  const getNodeScreenRect = useCallback((node: FGNode): { x: number; y: number; radius: number } | null => {
+  const getNodeScreenRect = useCallback((node: FGNode): GraphTooltipRect | null => {
     const fg = fg2dRef.current;
     const canvas = containerRef.current?.querySelector('canvas');
     if (!fg || !canvas) return null;
@@ -1063,7 +839,7 @@ export default function Graph({
       setGraphCursor('default');
       hoveredNodeRef.current = null;
       stopTooltipTracking();
-      setTooltipData(prev => ({ ...prev, visible: false, pluginSections: [] }));
+      setTooltipData(hideGraphTooltipState);
       sendGraphInteraction('graph:nodeHover', { node: null });
       return;
     }
@@ -1074,32 +850,21 @@ export default function Graph({
     hoveredNodeRef.current = node;
     const nodeId = node.id;
     tooltipTimeoutRef.current = setTimeout(() => {
-      const rect = getNodeScreenRect(node) ?? { x: 0, y: 0, radius: 0 };
       const snapshot = dataRef.current;
-      const baseNode =
-        snapshot.nodes.find((n) => n.id === nodeId) ??
-        { id: node.id, label: node.label, color: node.color };
-      const connectedEdges = snapshot.edges.filter((edge) => edge.from === nodeId || edge.to === nodeId);
-      const neighborIds = new Set<string>();
-      for (const edge of connectedEdges) {
-        neighborIds.add(edge.from === nodeId ? edge.to : edge.from);
-      }
-      const neighbors = snapshot.nodes.filter((n) => neighborIds.has(n.id));
-      const pluginTooltip = pluginHost?.getTooltipContent({
-        node: baseNode,
-        neighbors,
-        edges: connectedEdges,
-      });
-
-      const cached = fileInfoCacheRef.current.get(nodeId);
-      setTooltipData({
-        visible: true,
-        nodeRect: rect,
-        path: nodeId,
-        info: cached || null,
+      const pluginTooltip = pluginHost?.getTooltipContent(buildGraphTooltipContext({
+        node,
+        snapshot,
+      }));
+      const tooltipState = buildGraphTooltipState({
+        nodeId,
+        rect: getNodeScreenRect(node),
+        cachedInfo: fileInfoCacheRef.current.get(nodeId) ?? null,
         pluginSections: pluginTooltip?.sections ?? [],
       });
-      if (!cached) postMessage({ type: 'GET_FILE_INFO', payload: { path: nodeId } });
+      setTooltipData(tooltipState.tooltipData);
+      if (tooltipState.shouldRequestFileInfo) {
+        postMessage({ type: 'GET_FILE_INFO', payload: { path: nodeId } });
+      }
 
       startTooltipTracking();
     }, 500);
@@ -1150,88 +915,35 @@ export default function Graph({
     }
     hoveredNodeRef.current = null;
     stopTooltipTracking();
-    setTooltipData(prev => ({ ...prev, visible: false, pluginSections: [] }));
+    setTooltipData(hideGraphTooltipState);
   }, [stopTooltipTracking]);
 
   useEffect(() => clearRightClickFallbackTimer, [clearRightClickFallbackTimer]);
 
-  const handleContextAction = useCallback((action: BuiltInContextMenuAction, paths?: string[]) => {
-    const targetPaths = paths || contextSelection.targets;
-
-    switch (action) {
-      case 'open':
-        targetPaths.forEach(path => {
-          fileInfoCacheRef.current.delete(path);
-          postMessage({ type: 'OPEN_FILE', payload: { path } });
-        });
-        break;
-      case 'reveal':
-        if (targetPaths.length > 0)
-          postMessage({ type: 'REVEAL_IN_EXPLORER', payload: { path: targetPaths[0] } });
-        break;
-      case 'copyRelative':
-        postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: targetPaths.join('\n') } });
-        break;
-      case 'copyAbsolute':
-        postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: `absolute:${targetPaths[0]}` } });
-        break;
-      case 'copyEdgeSource':
-        if (targetPaths.length > 0)
-          postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: targetPaths[0] } });
-        break;
-      case 'copyEdgeTarget':
-        if (targetPaths.length > 1)
-          postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: targetPaths[1] } });
-        break;
-      case 'copyEdgeBoth':
-        postMessage({ type: 'COPY_TO_CLIPBOARD', payload: { text: targetPaths.join('\n') } });
-        break;
-      case 'toggleFavorite':
-        postMessage({ type: 'TOGGLE_FAVORITE', payload: { paths: targetPaths } });
-        break;
-      case 'focus': {
-        const nodeId = targetPaths[0];
-        if (nodeId) focusNodeById(nodeId);
-        break;
+  const applyContextEffects = useCallback((effects: GraphContextEffect[]) => {
+    for (const effect of effects) {
+      switch (effect.kind) {
+        case 'openFile':
+          fileInfoCacheRef.current.delete(effect.path);
+          postMessage({ type: 'OPEN_FILE', payload: { path: effect.path } });
+          break;
+        case 'focusNode':
+          focusNodeById(effect.nodeId);
+          break;
+        case 'fitView':
+          if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
+          else fg3dRef.current?.zoomToFit(300, 20);
+          break;
+        case 'postMessage':
+          postMessage(effect.message);
+          break;
       }
-      case 'addToFilter':
-        postMessage({ type: 'ADD_TO_EXCLUDE', payload: { patterns: targetPaths } });
-        break;
-      case 'rename':
-        if (targetPaths.length > 0)
-          postMessage({ type: 'RENAME_FILE', payload: { path: targetPaths[0] } });
-        break;
-      case 'delete':
-        postMessage({ type: 'DELETE_FILES', payload: { paths: targetPaths } });
-        break;
-      case 'refresh':
-        postMessage({ type: 'REFRESH_GRAPH' });
-        break;
-      case 'fitView':
-        if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
-        else fg3dRef.current?.zoomToFit(300, 20);
-        break;
-      case 'createFile':
-        postMessage({ type: 'CREATE_FILE', payload: { directory: '.' } });
-        break;
     }
-  }, [focusNodeById, graphMode, contextSelection.targets]);
+  }, [focusNodeById, graphMode]);
 
   const handleMenuAction = useCallback((action: GraphContextMenuAction) => {
-    if (action.kind === 'builtin') {
-      handleContextAction(action.action);
-      return;
-    }
-    postMessage({
-      type: 'PLUGIN_CONTEXT_MENU_ACTION',
-      payload: {
-        pluginId: action.pluginId,
-        index: action.index,
-        targetId: action.targetId,
-        targetType: action.targetType,
-      },
-    });
-  }, [handleContextAction]);
+    applyContextEffects(getGraphContextActionEffects(action, contextSelection.targets));
+  }, [applyContextEffects, contextSelection.targets]);
 
   // ── Physics stop ─────────────────────────────────────────────────────────
 
@@ -1239,59 +951,34 @@ export default function Graph({
     postMessage({ type: 'PHYSICS_STABILIZED' });
   }, []);
 
-  // ── Message listener ─────────────────────────────────────────────────────
-
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
-      const message = event.data;
-      switch (message.type) {
-        case 'FIT_VIEW':
+  const applyWebviewMessageEffects = useCallback((effects: GraphWebviewMessageEffect[]) => {
+    for (const effect of effects) {
+      switch (effect.kind) {
+        case 'fitView':
           if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
           else fg3dRef.current?.zoomToFit(300, 20);
           break;
-        case 'ZOOM_IN': {
-          if (graphMode === '2d') {
-            const fg = fg2dRef.current;
-            if (fg) {
-              const current = fg.zoom();
-              fg.zoom(current * 1.2, 150);
-            }
+        case 'zoom': {
+          const fg = fg2dRef.current;
+          if (fg) {
+            const current = fg.zoom();
+            fg.zoom(current * effect.factor, 150);
           }
           break;
         }
-        case 'ZOOM_OUT': {
-          if (graphMode === '2d') {
-            const fg = fg2dRef.current;
-            if (fg) {
-              const current = fg.zoom();
-              fg.zoom(current / 1.2, 150);
-            }
-          }
+        case 'cacheFileInfo':
+          fileInfoCacheRef.current.set(effect.info.path, effect.info);
           break;
-        }
-        case 'FAVORITES_UPDATED':
+        case 'updateTooltipInfo':
+          setTooltipData(prev => ({ ...prev, info: effect.info }));
           break;
-        case 'FILE_INFO':
-          fileInfoCacheRef.current.set(message.payload.path, message.payload);
-          setTooltipData(prev =>
-            prev.path === message.payload.path ? { ...prev, info: message.payload } : prev
-          );
+        case 'postMessage':
+          postMessage(effect.message);
           break;
-        case 'GET_NODE_BOUNDS': {
-          const nodes = graphDataRef.current.nodes;
-          const bounds = nodes.map(n => ({
-            id: n.id,
-            x: (n as FGNode & { x?: number }).x ?? 0,
-            y: (n as FGNode & { y?: number }).y ?? 0,
-            size: n.size,
-          }));
-          postMessage({ type: 'NODE_BOUNDS_RESPONSE', payload: { nodes: bounds } });
-          break;
-        }
-        case 'REQUEST_EXPORT_PNG':
+        case 'exportPng':
           exportAsPng(containerRef.current);
           break;
-        case 'REQUEST_EXPORT_SVG':
+        case 'exportSvg':
           exportAsSvg(graphDataRef.current.nodes, graphDataRef.current.links, {
             directionMode: directionModeRef.current,
             directionColor: directionColorRef.current,
@@ -1299,121 +986,95 @@ export default function Graph({
             theme: themeRef.current,
           });
           break;
-        case 'REQUEST_EXPORT_JPEG':
+        case 'exportJpeg':
           exportAsJpeg(containerRef.current);
           break;
-        case 'REQUEST_EXPORT_JSON':
+        case 'exportJson':
           exportAsJson(dataRef.current);
           break;
-        case 'REQUEST_EXPORT_MD':
+        case 'exportMarkdown':
           exportAsMarkdown(dataRef.current);
           break;
-        case 'NODE_ACCESS_COUNT_UPDATED': {
-          const { nodeId, accessCount } = message.payload;
-          const nodeIndex = dataRef.current.nodes.findIndex(n => n.id === nodeId);
-          if (nodeIndex !== -1) dataRef.current.nodes[nodeIndex].accessCount = accessCount;
+        case 'updateAccessCount': {
+          const nodeIndex = dataRef.current.nodes.findIndex(node => node.id === effect.nodeId);
+          if (nodeIndex !== -1) {
+            dataRef.current.nodes[nodeIndex].accessCount = effect.accessCount;
+          }
           break;
         }
       }
+    }
+  }, [graphMode]);
+
+  // ── Message listener ─────────────────────────────────────────────────────
+
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
+      applyWebviewMessageEffects(getGraphWebviewMessageEffects({
+        message: event.data,
+        graphMode,
+        tooltipPath: tooltipData.path,
+        graphNodes: graphDataRef.current.nodes,
+      }));
     };
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [graphMode]);
+  }, [applyWebviewMessageEffects, graphMode, tooltipData.path]);
 
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) return;
-      const isMod = event.ctrlKey || event.metaKey;
+      const command = getGraphKeyboardCommand({
+        key: event.key,
+        isMod: event.ctrlKey || event.metaKey,
+        shiftKey: event.shiftKey,
+        graphMode,
+        selectedNodeIds: selectedNodes,
+        allNodeIds: graphDataRef.current.nodes.map(node => node.id),
+        targetIsEditable:
+          event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement,
+      });
+      if (!command) return;
 
-      switch (event.key) {
-        case '0':
-          event.preventDefault();
-          if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
-          else fg3dRef.current?.zoomToFit(300, 20);
-          break;
-        case 'Escape':
-          event.preventDefault();
-          setHighlight(null);
-          selectedNodesSetRef.current = new Set();
-          setSelectedNodes([]);
-          break;
-        case 'Enter':
-          if (selectedNodes.length > 0) {
-            event.preventDefault();
-            selectedNodes.forEach(nodeId => {
+      if (command.preventDefault) event.preventDefault();
+      if (command.stopPropagation) event.stopPropagation();
+
+      for (const effect of command.effects) {
+        switch (effect.kind) {
+          case 'fitView':
+            if (graphMode === '2d') fg2dRef.current?.zoomToFit(300, 20);
+            else fg3dRef.current?.zoomToFit(300, 20);
+            break;
+          case 'clearSelection':
+            setHighlight(null);
+            selectedNodesSetRef.current = new Set();
+            setSelectedNodes([]);
+            break;
+          case 'openSelectedNodes':
+            effect.nodeIds.forEach(nodeId => {
               requestNodeOpenById(nodeId);
             });
-          }
-          break;
-        case 'a':
-          if (isMod) {
-            event.preventDefault();
-            const allIds = graphDataRef.current.nodes.map(n => n.id);
-            selectedNodesSetRef.current = new Set(allIds);
-            setSelectedNodes(allIds);
-          }
-          break;
-        case '=':
-        case '+':
-          if (!isMod && graphMode === '2d') {
-            event.preventDefault();
+            break;
+          case 'selectAll':
+            selectedNodesSetRef.current = new Set(effect.nodeIds);
+            setSelectedNodes(effect.nodeIds);
+            break;
+          case 'zoom': {
             const fg = fg2dRef.current;
             if (fg) {
-              const s = fg.zoom();
-              fg.zoom(s * 1.2, 150);
+              const scale = fg.zoom();
+              fg.zoom(scale * effect.factor, 150);
             }
+            break;
           }
-          break;
-        case '-':
-          if (!isMod && graphMode === '2d') {
-            event.preventDefault();
-            const fg = fg2dRef.current;
-            if (fg) {
-              const s = fg.zoom();
-              fg.zoom(s / 1.2, 150);
-            }
-          }
-          break;
-        case 'z':
-        case 'Z':
-          if (isMod) {
-            event.preventDefault();
-            event.stopPropagation();
-            postMessage({ type: event.shiftKey ? 'REDO' : 'UNDO' });
-          }
-          break;
-        case 'y':
-        case 'Y':
-          if (isMod) {
-            event.preventDefault();
-            event.stopPropagation();
-            postMessage({ type: 'REDO' });
-          }
-          break;
-        // Toolbar shortcuts (fallback when VS Code command doesn't fire)
-        case 'v':
-        case 'V':
-          if (!isMod) {
-            event.preventDefault();
-            graphStore.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
-          }
-          break;
-        case 'l':
-        case 'L':
-          if (!isMod) {
-            event.preventDefault();
-            graphStore.getState().handleExtensionMessage({ type: 'CYCLE_LAYOUT' });
-          }
-          break;
-        case 't':
-        case 'T':
-          if (!isMod) {
-            event.preventDefault();
-            graphStore.getState().handleExtensionMessage({ type: 'TOGGLE_DIMENSION' });
-          }
-          break;
+          case 'postMessage':
+            postMessage(effect.message);
+            break;
+          case 'dispatchStoreMessage':
+            graphStore.getState().handleExtensionMessage(effect.message);
+            break;
+        }
       }
     };
     window.addEventListener('keydown', handleKeyDown);
