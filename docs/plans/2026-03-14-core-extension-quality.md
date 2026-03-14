@@ -34,8 +34,15 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - `pnpm --filter @codegraphy/extension run lint` passed
         - `pnpm run crap -- extension` still fails on pre-existing large hotspots led by `Graph.tsx` and `GraphViewProvider.ts`
       - next cut: move off settings-panel and attack `Graph.tsx` / `GraphViewProvider.ts` CRAP + mutation hotspots
-  - S3c `pending`: move to `Graph.tsx` or `GraphViewProvider.ts` based on fresh mutation data after S3a/S3b.
-    - tests: add/update matching file-per-module tests for the next hottest module
+  - S3c `in_progress`: split `Graph.tsx` / `GraphViewProvider.ts` effect and message blocks into direct-test helpers.
+    - tests: add/update `packages/extension/tests/webview/graph/effects/*.test.ts` and `packages/extension/tests/extension/graphView/messages/*.test.ts`
+    - progress:
+      - extracted webview graph effect runners: `graph/effects/contextMenu.ts`, `interaction.ts`, `keyboard.ts`, `messages.ts`
+      - extracted extension graph-view message helpers: `graphView/messages/plugin.ts`, `graphView/messages/ready.ts`
+      - focused verification green:
+        - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/plugin.test.ts tests/extension/graphView/messages/ready.test.ts tests/webview/graph/effects/contextMenu.test.ts tests/webview/graph/effects/interaction.test.ts tests/webview/graph/effects/keyboard.test.ts tests/webview/graph/effects/messages.test.ts`
+        - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - next cut: rerun `crap` / targeted mutation and decide whether `Graph.tsx` or `GraphViewProvider.ts` gets the next split
 - S4 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 

@@ -16,6 +16,7 @@
   "coverageAnalysis": "perTest",
   "incremental": true,
   "incrementalFile": "reports/mutation/stryker-incremental.json",
+  "ignorePatterns": ["/coverage"],
   "ignoreStatic": true,
   "thresholds": {
     "high": 90,
