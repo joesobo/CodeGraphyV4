@@ -112,9 +112,34 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
             - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/physics.test.ts tests/extension/graphView/messages/settings.test.ts tests/extension/graphView/messages/groups.test.ts tests/extension/GraphViewProvider.settingsPersistence.test.ts tests/extension/GraphViewProvider.test.ts`
             - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
             - package-relative `eslint` on touched provider/message files
+      - latest targeted mutation after the provider message extraction:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `53.53%`
+        - `GraphViewProvider.ts` = `36.88%`
+        - `GraphViewProvider.ts` mutation sites = `1035` (down from `1150`)
+        - `graphView/messages/settings.ts` = `88.04%` with `92` sites
+      - current local threshold cut:
+        - split `graphView/messages/settings.ts` into `settingsConfig.ts`, `settingsDirection.ts`, and `settingsToggle.ts`
+        - add direct helper tests: `settingsConfig.test.ts`, `settingsDirection.test.ts`, `settingsToggle.test.ts`
+        - red-green checkpoint:
+          - red: focused `vitest` failed on missing helper modules before the extraction
+          - green:
+            - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/settings.test.ts tests/extension/graphView/messages/settingsConfig.test.ts tests/extension/graphView/messages/settingsDirection.test.ts tests/extension/graphView/messages/settingsToggle.test.ts tests/extension/GraphViewProvider.settingsPersistence.test.ts tests/extension/GraphViewProvider.test.ts`
+            - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+            - package-relative `eslint` on touched `graphView/messages/settings*` files
+      - rerun after the settings helper split:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `53.86%`
+        - `GraphViewProvider.ts` = `36.88%`
+        - `GraphViewProvider.ts` mutation sites = `1035`
+        - `graphView/messages/settings.ts` = `77.78%`
+        - `graphView/messages/settingsConfig.ts` = `94.29%`
+        - `graphView/messages/settingsDirection.ts` = `87.50%`
+        - `graphView/messages/settingsToggle.ts` = `82.61%`
+        - `GraphViewProvider.ts` is back to being the only file above the `50`-site threshold
       - next cut:
-        - rerun the `graph-view-provider` mutation slice on the new provider message helpers
-        - keep draining `GraphViewProvider.ts` by extracting remaining file-edit/public-wrapper orchestration
+        - keep draining `GraphViewProvider.ts` by extracting remaining settings-sync, favorites, file-edit, and public-wrapper orchestration
+        - do not spend time on survivor cleanup until the provider file is also under the `50`-site threshold
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
