@@ -58,4 +58,9 @@ describe('parseUsingDirective', () => {
   it('does not parse trailing tokens after a semicolon-terminated using', () => {
     expect(parseUsingDirective('using MyApp.Services; extra')).toBeNull();
   });
+
+  it('supports trailing whitespace after a valid using line', () => {
+    const result = parseUsingDirective('using MyApp.Services;   ');
+    expect(result?.namespace).toBe('MyApp.Services');
+  });
 });

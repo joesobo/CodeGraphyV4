@@ -2,7 +2,7 @@ export function stripCommentsAndLiteralsForTypeExtraction(content: string): stri
   return content
     .replace(/\/\*[\s\S]*?\*\//g, '')
     .replace(/\/\/.*/g, '')
-    .replace(/"(?:[^"\\]|\\.)*"/g, '')
     .replace(/@"(?:[^"]|"")*"/g, '')
+    .replace(/"(?:[^"\\]|\\.)*"/g, '')
     .replace(/'(?:[^'\\]|\\.)*'/g, '');
 }

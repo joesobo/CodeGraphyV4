@@ -62,4 +62,54 @@ describe('resolveWithUsedTypes', () => {
 
     expect(resolved).toEqual([]);
   });
+
+  it('does not resolve root files for non-matching namespaces', () => {
+    const resolved = resolveWithUsedTypes({
+      namespace: 'MyApp.Services',
+      usedTypes: new Set(['Helper']),
+      sourceDirs: [''],
+      workspaceRoot: '/workspace',
+      fsOps: createFsOps(['Helper.cs']),
+    });
+
+    expect(resolved).toEqual([]);
+  });
+
+  it('resolves root-level parent candidates when namespace equals the used type', () => {
+    const resolved = resolveWithUsedTypes({
+      namespace: 'Helper',
+      usedTypes: new Set(['Helper']),
+      sourceDirs: ['', 'src'],
+      workspaceRoot: '/workspace',
+      fsOps: createFsOps(['Helper.cs', 'src/Helper.cs']),
+    });
+
+    expect(new Set(resolved)).toEqual(
+      new Set(['/workspace/Helper.cs', '/workspace/src/Helper.cs']),
+    );
+  });
+
+  it('does not resolve parent candidates when used type does not match namespace suffix', () => {
+    const resolved = resolveWithUsedTypes({
+      namespace: 'MyApp.Models.Foo',
+      usedTypes: new Set(['Bar']),
+      sourceDirs: ['src'],
+      workspaceRoot: '/workspace',
+      fsOps: createFsOps(['src/MyApp/Models/Bar.cs']),
+    });
+
+    expect(resolved).toEqual([]);
+  });
+
+  it('uses slash-delimited namespace paths for direct candidate lookup', () => {
+    const resolved = resolveWithUsedTypes({
+      namespace: 'MyApp.Domain',
+      usedTypes: new Set(['Entity']),
+      sourceDirs: ['src'],
+      workspaceRoot: '/workspace',
+      fsOps: createFsOps(['src/MyApp/Domain/Entity.cs']),
+    });
+
+    expect(resolved).toEqual(['/workspace/src/MyApp/Domain/Entity.cs']);
+  });
 });

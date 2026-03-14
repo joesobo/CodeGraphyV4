@@ -40,4 +40,20 @@ describe('parseNamespaceDeclaration', () => {
     expect(parseNamespaceDeclaration('namespace MyApp.Features; extra')).toBeNull();
     expect(parseNamespaceDeclaration('namespace MyApp.Features { extra')).toBeNull();
   });
+
+  it('supports trailing whitespace after delimiters', () => {
+    expect(parseNamespaceDeclaration('namespace MyApp.Features;   ')).toEqual({
+      name: 'MyApp.Features',
+      isFileScoped: true,
+    });
+    expect(parseNamespaceDeclaration('namespace MyApp.Features {   ')).toEqual({
+      name: 'MyApp.Features',
+      isFileScoped: false,
+    });
+  });
+
+  it('does not parse when namespace keyword appears after a prefix token', () => {
+    expect(parseNamespaceDeclaration('prefix namespace MyApp.Features;')).toBeNull();
+    expect(parseNamespaceDeclaration('prefix namespace MyApp.Features {')).toBeNull();
+  });
 });
