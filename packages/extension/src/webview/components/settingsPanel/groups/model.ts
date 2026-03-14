@@ -1,9 +1,4 @@
-import type { IGroup } from '../../../shared/types';
-
-const PARTICLE_SPEED_MIN_INTERNAL = 0.0005;
-const PARTICLE_SPEED_MAX_INTERNAL = 0.005;
-const PARTICLE_SPEED_MIN_DISPLAY = 1;
-const PARTICLE_SPEED_MAX_DISPLAY = 10;
+import type { IGroup } from '../../../../shared/types';
 
 export interface SettingsPanelGroupSection {
   sectionId: string;
@@ -14,37 +9,6 @@ export interface SettingsPanelGroupSection {
 export interface SettingsPanelGroupSections {
   userGroups: IGroup[];
   defaultSections: SettingsPanelGroupSection[];
-}
-
-export function isHexColor(value: string): boolean {
-  return /^#[0-9A-F]{6}$/i.test(value);
-}
-
-export function particleSpeedToDisplay(speed: number): number {
-  const clamped = Math.min(
-    PARTICLE_SPEED_MAX_INTERNAL,
-    Math.max(PARTICLE_SPEED_MIN_INTERNAL, speed)
-  );
-  const ratio =
-    (clamped - PARTICLE_SPEED_MIN_INTERNAL) /
-    (PARTICLE_SPEED_MAX_INTERNAL - PARTICLE_SPEED_MIN_INTERNAL);
-  return PARTICLE_SPEED_MIN_DISPLAY + ratio * (PARTICLE_SPEED_MAX_DISPLAY - PARTICLE_SPEED_MIN_DISPLAY);
-}
-
-export function particleSpeedFromDisplay(level: number): number {
-  const clamped = Math.min(
-    PARTICLE_SPEED_MAX_DISPLAY,
-    Math.max(PARTICLE_SPEED_MIN_DISPLAY, level)
-  );
-  const ratio =
-    (clamped - PARTICLE_SPEED_MIN_DISPLAY) /
-    (PARTICLE_SPEED_MAX_DISPLAY - PARTICLE_SPEED_MIN_DISPLAY);
-  return Number(
-    (
-      PARTICLE_SPEED_MIN_INTERNAL +
-      ratio * (PARTICLE_SPEED_MAX_INTERNAL - PARTICLE_SPEED_MIN_INTERNAL)
-    ).toFixed(6)
-  );
 }
 
 export function groupSettingsPanelSections(groups: IGroup[]): SettingsPanelGroupSections {
