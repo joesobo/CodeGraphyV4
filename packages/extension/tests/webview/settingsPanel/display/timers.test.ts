@@ -3,9 +3,9 @@ import {
   clearTimeoutMap,
   flushPendingNumber,
   schedulePendingNumber,
-  type TimeoutMap,
   type PendingNumberMap,
-} from '../../../src/webview/components/settingsPanel/timers';
+  type TimeoutMap,
+} from '../../../../src/webview/components/settingsPanel/display/timers';
 
 describe('settingsPanel timers', () => {
   it('does nothing when flushing a key without a pending value', () => {
@@ -38,7 +38,7 @@ describe('settingsPanel timers', () => {
     expect(pendingValues).toEqual({});
     expect(timers).toEqual({});
 
-    actAdvance();
+    vi.advanceTimersByTime(1000);
     vi.useRealTimers();
   });
 
@@ -55,7 +55,7 @@ describe('settingsPanel timers', () => {
     schedulePendingNumber(pendingValues, timers, 'particleSpeed', 0.001, 350, flush);
     schedulePendingNumber(pendingValues, timers, 'particleSpeed', 0.0015, 350, flush);
 
-    actAdvance(350);
+    vi.advanceTimersByTime(350);
 
     expect(flushed).toEqual([{ key: 'particleSpeed', value: 0.0015 }]);
     vi.useRealTimers();
@@ -75,14 +75,10 @@ describe('settingsPanel timers', () => {
     };
 
     clearTimeoutMap(timers);
-    actAdvance(1000);
+    vi.advanceTimersByTime(1000);
 
     expect(firstRan).toBe(false);
     expect(secondRan).toBe(false);
     vi.useRealTimers();
   });
 });
-
-function actAdvance(duration = 1000) {
-  vi.advanceTimersByTime(duration);
-}

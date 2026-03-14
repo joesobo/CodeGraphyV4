@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { mdiClose, mdiLockOutline, mdiMinus, mdiPlus } from '@mdi/js';
-import { postMessage } from '../../lib/vscodeApi';
-import { useGraphStore } from '../../store';
-import { MdiIcon } from '../icons';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Switch } from '../ui/switch';
+import { postMessage } from '../../../lib/vscodeApi';
+import { useGraphStore } from '../../../store';
+import { MdiIcon } from '../../icons';
+import { Button } from '../../ui/button';
+import { Input } from '../../ui/input';
+import { Label } from '../../ui/label';
+import { Switch } from '../../ui/switch';
 import {
   canAddFilterPattern,
   clampMaxFiles,
@@ -14,7 +14,7 @@ import {
   increaseMaxFiles,
   parseMaxFilesInput,
   shouldShowPluginFilterPatterns,
-} from './filterModel';
+} from './model';
 
 export function FilterSection(): React.ReactElement {
   const filterPatterns = useGraphStore((state) => state.filterPatterns);
@@ -56,14 +56,6 @@ export function FilterSection(): React.ReactElement {
     postMessage({ type: 'UPDATE_MAX_FILES', payload: { maxFiles: clamped } });
   };
 
-  const handleDecreaseMaxFiles = () => {
-    handleMaxFilesCommit(decreaseMaxFiles(maxFiles));
-  };
-
-  const handleIncreaseMaxFiles = () => {
-    handleMaxFilesCommit(increaseMaxFiles(maxFiles));
-  };
-
   const handleMaxFilesChange = (value: string) => {
     const parsed = parseMaxFilesInput(value);
     if (parsed !== null) {
@@ -75,9 +67,7 @@ export function FilterSection(): React.ReactElement {
     handleMaxFilesCommit(parseMaxFilesInput(value) ?? 1);
   };
 
-  const handleMaxFilesKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>
-  ) => {
+  const handleMaxFilesKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === 'Enter') {
       handleMaxFilesCommit(parseMaxFilesInput(event.currentTarget.value) ?? 1);
     }
@@ -105,7 +95,7 @@ export function FilterSection(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-6 w-6"
-            onClick={handleDecreaseMaxFiles}
+            onClick={() => handleMaxFilesCommit(decreaseMaxFiles(maxFiles))}
             disabled={maxFiles <= 1}
             title="Decrease by 100"
           >
@@ -124,7 +114,7 @@ export function FilterSection(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-6 w-6"
-            onClick={handleIncreaseMaxFiles}
+            onClick={() => handleMaxFilesCommit(increaseMaxFiles(maxFiles))}
             title="Increase by 100"
           >
             <MdiIcon path={mdiPlus} size={12} />

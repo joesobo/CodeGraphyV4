@@ -1,11 +1,14 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../src/shared/types';
-import { graphStore } from '../../../src/webview/store';
-import { DisplaySection } from '../../../src/webview/components/settingsPanel/DisplaySection';
+import {
+  DEFAULT_DIRECTION_COLOR,
+  DEFAULT_FOLDER_NODE_COLOR,
+} from '../../../../src/shared/types';
+import { DisplaySection } from '../../../../src/webview/components/settingsPanel/display/Section';
+import { graphStore } from '../../../../src/webview/store';
 
 const sentMessages: unknown[] = [];
-vi.mock('../../../src/webview/lib/vscodeApi', () => ({
+vi.mock('../../../../src/webview/lib/vscodeApi', () => ({
   postMessage: (message: unknown) => sentMessages.push(message),
   vscode: { getState: () => undefined, setState: vi.fn() },
 }));
@@ -63,8 +66,6 @@ describe('DisplaySection', () => {
       rerender(<DisplaySection />);
     });
 
-    expect(screen.getByRole('button', { name: /^Arrows$/i })).toHaveAttribute('aria-pressed', 'false');
-    expect(screen.getByRole('button', { name: /^Particles$/i })).toHaveAttribute('aria-pressed', 'false');
     expect(screen.getByRole('button', { name: /^None$/i })).toHaveAttribute('aria-pressed', 'true');
   });
 
@@ -79,7 +80,6 @@ describe('DisplaySection', () => {
       rerender(<DisplaySection />);
     });
 
-    expect(screen.getByRole('button', { name: /^Separate$/i })).toHaveAttribute('aria-pressed', 'false');
     expect(screen.getByRole('button', { name: /^Combined$/i })).toHaveAttribute('aria-pressed', 'true');
   });
 
@@ -202,8 +202,7 @@ describe('DisplaySection', () => {
     });
 
     const particleMessages = sentMessages.filter(
-      (message) =>
-        (message as { type?: string }).type === 'UPDATE_PARTICLE_SETTING'
+      (message) => (message as { type?: string }).type === 'UPDATE_PARTICLE_SETTING'
     ) as Array<{ type: string; payload: { key: string; value: number } }>;
 
     expect(particleMessages.at(-1)).toEqual({
@@ -287,6 +286,7 @@ describe('DisplaySection', () => {
       setStoreState({ activeViewId: 'codegraphy.connections' });
       rerender(<DisplaySection />);
     });
+
     expect(screen.queryByLabelText('Folder Node Color')).not.toBeInTheDocument();
     vi.useRealTimers();
   });

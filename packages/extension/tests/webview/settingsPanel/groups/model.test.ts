@@ -1,40 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import type { IGroup } from '../../../src/shared/types';
+import type { IGroup } from '../../../../src/shared/types';
 import {
   buildSettingsGroupOverride,
   groupSettingsPanelSections,
-  isHexColor,
-  particleSpeedFromDisplay,
-  particleSpeedToDisplay,
   reorderSettingsGroups,
-} from '../../../src/webview/components/settingsPanel/model';
+} from '../../../../src/webview/components/settingsPanel/groups/model';
 
-describe('settingsPanelModel', () => {
-  it('accepts 6-digit hex colors and rejects other values', () => {
-    expect(isHexColor('#3B82F6')).toBe(true);
-    expect(isHexColor('#abcdef')).toBe(true);
-    expect(isHexColor('3B82F6')).toBe(false);
-    expect(isHexColor('#abc')).toBe(false);
-    expect(isHexColor('x#ABCDEF')).toBe(false);
-    expect(isHexColor('#ABCDEF0')).toBe(false);
-  });
-
-  it('maps the minimum internal particle speed to the minimum display value', () => {
-    expect(particleSpeedToDisplay(0.0005)).toBe(1);
-  });
-
-  it('clamps internal particle speed values above the supported range', () => {
-    expect(particleSpeedToDisplay(0.1)).toBe(10);
-  });
-
-  it('maps the minimum display particle level back to the minimum internal value', () => {
-    expect(particleSpeedFromDisplay(1)).toBe(0.0005);
-  });
-
-  it('clamps display particle levels above the supported range', () => {
-    expect(particleSpeedFromDisplay(99)).toBe(0.005);
-  });
-
+describe('settingsPanel groups model', () => {
   it('groups custom and default settings panel groups into visible sections', () => {
     const groups: IGroup[] = [
       { id: 'custom:src', pattern: 'src/**', color: '#3B82F6' },
@@ -111,7 +83,7 @@ describe('settingsPanelModel', () => {
         {
           sectionId: 'python',
           sectionName: 'Python',
-          groups: groups,
+          groups,
         },
       ],
     });

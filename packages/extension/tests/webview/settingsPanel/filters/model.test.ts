@@ -6,9 +6,9 @@ import {
   increaseMaxFiles,
   parseMaxFilesInput,
   shouldShowPluginFilterPatterns,
-} from '../../../src/webview/components/settingsPanel/filterModel';
+} from '../../../../src/webview/components/settingsPanel/filters/model';
 
-describe('settingsPanel filterModel', () => {
+describe('settingsPanel filter model', () => {
   it('only allows non-empty filter patterns after trimming', () => {
     expect(canAddFilterPattern('**/*.log')).toBe(true);
     expect(canAddFilterPattern('   ')).toBe(false);

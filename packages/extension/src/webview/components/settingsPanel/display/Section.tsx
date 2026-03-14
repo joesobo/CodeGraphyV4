@@ -4,24 +4,22 @@ import {
   DEFAULT_DIRECTION_COLOR,
   DEFAULT_FOLDER_NODE_COLOR,
   type DirectionMode,
-} from '../../../shared/types';
-import { postMessage } from '../../lib/vscodeApi';
-import { useGraphStore } from '../../store';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Slider } from '../ui/slider';
-import { Switch } from '../ui/switch';
-import {
-  particleSpeedFromDisplay,
-  particleSpeedToDisplay,
-} from './model';
+} from '../../../../shared/types';
+import { postMessage } from '../../../lib/vscodeApi';
+import { useGraphStore } from '../../../store';
+import { Button } from '../../ui/button';
+import { Input } from '../../ui/input';
+import { Label } from '../../ui/label';
+import { Slider } from '../../ui/slider';
+import { Switch } from '../../ui/switch';
 import {
   getSettingsToggleButtonState,
+  particleSpeedFromDisplay,
+  particleSpeedToDisplay,
   resolveDisplayColor,
   shouldShowFolderNodeColor,
   shouldShowParticleControls,
-} from './displayModel';
+} from './model';
 import {
   clearTimeoutMap,
   flushPendingNumber,
@@ -132,27 +130,13 @@ export function DisplaySection(): React.ReactElement {
     scheduleParticleSettingPersist(PARTICLE_SIZE_KEY, value);
   };
 
-  const handleParticleSpeedCommit = () => {
-    flushParticleSetting(PARTICLE_SPEED_KEY);
-  };
-
-  const handleParticleSizeCommit = () => {
-    flushParticleSetting(PARTICLE_SIZE_KEY);
-  };
-
   const handleShowLabelsChange = (checked: boolean) => {
     setShowLabels(checked);
     postMessage({ type: 'UPDATE_SHOW_LABELS', payload: { showLabels: checked } });
   };
 
-  const resolvedDirectionColor = resolveDisplayColor(
-    directionColor,
-    DEFAULT_DIRECTION_COLOR
-  );
-  const resolvedFolderNodeColor = resolveDisplayColor(
-    folderNodeColor,
-    DEFAULT_FOLDER_NODE_COLOR
-  );
+  const resolvedDirectionColor = resolveDisplayColor(directionColor, DEFAULT_DIRECTION_COLOR);
+  const resolvedFolderNodeColor = resolveDisplayColor(folderNodeColor, DEFAULT_FOLDER_NODE_COLOR);
   const displayParticleSpeed = particleSpeedToDisplay(particleSpeed);
   const arrowsButton = getSettingsToggleButtonState(directionMode, 'arrows');
   const particlesButton = getSettingsToggleButtonState(directionMode, 'particles');
@@ -272,7 +256,7 @@ export function DisplaySection(): React.ReactElement {
               step={1}
               value={[displayParticleSpeed]}
               onValueChange={(values) => handleParticleSpeedChange(values[0])}
-              onValueCommit={handleParticleSpeedCommit}
+              onValueCommit={() => flushParticleSetting(PARTICLE_SPEED_KEY)}
             />
           </div>
           <div>
@@ -288,7 +272,7 @@ export function DisplaySection(): React.ReactElement {
               step={0.5}
               value={[particleSize]}
               onValueChange={(values) => handleParticleSizeChange(values[0])}
-              onValueCommit={handleParticleSizeCommit}
+              onValueCommit={() => flushParticleSetting(PARTICLE_SIZE_KEY)}
             />
           </div>
         </div>

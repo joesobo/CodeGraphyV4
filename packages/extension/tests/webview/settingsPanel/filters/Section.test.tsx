@@ -1,10 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { graphStore } from '../../../src/webview/store';
-import { FilterSection } from '../../../src/webview/components/settingsPanel/FilterSection';
+import { FilterSection } from '../../../../src/webview/components/settingsPanel/filters/Section';
+import { graphStore } from '../../../../src/webview/store';
 
 const sentMessages: unknown[] = [];
-vi.mock('../../../src/webview/lib/vscodeApi', () => ({
+vi.mock('../../../../src/webview/lib/vscodeApi', () => ({
   postMessage: (message: unknown) => sentMessages.push(message),
   vscode: { getState: () => undefined, setState: vi.fn() },
 }));
@@ -59,9 +59,7 @@ describe('FilterSection', () => {
     renderSection();
 
     const input = screen.getByPlaceholderText('*.png');
-    fireEvent.change(input, {
-      target: { value: '**/*.log' },
-    });
+    fireEvent.change(input, { target: { value: '**/*.log' } });
     fireEvent.click(screen.getByRole('button', { name: /^Add$/i }));
 
     expect(graphStore.getState().filterPatterns).toEqual(['**/*.log']);
