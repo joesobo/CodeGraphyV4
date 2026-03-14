@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useCallback, useRef } from 'react';
-import { globMatch } from './lib/globMatch';
 import Graph from './components/Graph';
 import { GraphIcon } from './components/icons';
 import { SearchBar } from './components/SearchBar';
@@ -8,78 +7,21 @@ import PluginsPanel from './components/PluginsPanel';
 import Timeline from './components/Timeline';
 import Toolbar from './components/Toolbar';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, IGraphNode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
+import { IGraphData, ExtensionToWebviewMessage } from '../shared/types';
 import { postMessage } from './lib/vscodeApi';
 import { useGraphStore, graphStore } from './store';
 import type { SearchOptions } from './components/SearchBar';
 import { WebviewPluginHost } from './pluginHost';
 import type { CodeGraphyWebviewAPI } from './pluginHost/types';
-
-interface PluginWebviewModule {
-  activate?: (api: CodeGraphyWebviewAPI) => void | Promise<void>;
-  default?: ((api: CodeGraphyWebviewAPI) => void | Promise<void>) | {
-    activate?: (api: CodeGraphyWebviewAPI) => void | Promise<void>;
-  };
-}
-
-interface PluginInjectPayload {
-  pluginId: string;
-  scripts: string[];
-  styles: string[];
-}
-
-/**
- * Filter nodes using advanced search options.
- * Returns matching node IDs and any regex error.
- */
-function filterNodesAdvanced(
-  nodes: IGraphNode[],
-  query: string,
-  options: SearchOptions
-): { matchingIds: Set<string>; regexError: string | null } {
-  const matchingIds = new Set<string>();
-  let regexError: string | null = null;
-
-  if (!query.trim()) {
-    nodes.forEach(node => matchingIds.add(node.id));
-    return { matchingIds, regexError };
-  }
-
-  let pattern: RegExp | null = null;
-
-  if (options.regex) {
-    try {
-      const flags = options.matchCase ? '' : 'i';
-      pattern = new RegExp(query, flags);
-    } catch (e) {
-      regexError = e instanceof Error ? e.message : 'Invalid regex';
-      return { matchingIds, regexError };
-    }
-  } else if (options.wholeWord) {
-    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const flags = options.matchCase ? '' : 'i';
-    pattern = new RegExp(`\\b${escaped}\\b`, flags);
-  }
-
-  for (const node of nodes) {
-    const searchText = `${node.label} ${node.id}`;
-    let isMatch = false;
-
-    if (pattern) {
-      isMatch = pattern.test(searchText);
-    } else {
-      const normalizedText = options.matchCase ? searchText : searchText.toLowerCase();
-      const normalizedQuery = options.matchCase ? query : query.toLowerCase();
-      isMatch = normalizedText.includes(normalizedQuery);
-    }
-
-    if (isMatch) {
-      matchingIds.add(node.id);
-    }
-  }
-
-  return { matchingIds, regexError };
-}
+import { applyGroupColors, filterGraphData } from './appSearch';
+import {
+  getNoDataHint,
+  normalizePluginInjectPayload,
+  parsePluginScopedMessage,
+  PluginInjectPayload,
+  PluginWebviewModule,
+  resolvePluginModuleActivator,
+} from './appMessages';
 
 export default function App(): React.ReactElement {
   const pluginHostRef = useRef<WebviewPluginHost>(new WebviewPluginHost());
@@ -108,43 +50,12 @@ export default function App(): React.ReactElement {
 
   // Filter graph data based on search
   const { filteredData, regexError } = useMemo((): { filteredData: IGraphData | null; regexError: string | null } => {
-    if (!graphData) return { filteredData: null, regexError: null };
-    if (!searchQuery.trim()) return { filteredData: graphData, regexError: null };
-
-    const result = filterNodesAdvanced(graphData.nodes, searchQuery, searchOptions);
-    const matchingNodeIds = result.matchingIds;
-    const error = result.regexError;
-
-    const filteredNodes = graphData.nodes.filter(node => matchingNodeIds.has(node.id));
-    const filteredEdges = graphData.edges.filter(
-      edge => matchingNodeIds.has(edge.from) && matchingNodeIds.has(edge.to)
-    );
-
-    return { filteredData: { nodes: filteredNodes, edges: filteredEdges }, regexError: error };
+    return filterGraphData(graphData, searchQuery, searchOptions);
   }, [graphData, searchQuery, searchOptions]);
 
   // Apply group colors to filtered data
   const coloredData = useMemo((): IGraphData | null => {
-    const base = filteredData;
-    if (!base) return null;
-    if (groups.length === 0) return base;
-
-    const coloredNodes = base.nodes.map(node => {
-      for (const group of groups) {
-        if (!group.disabled && globMatch(node.id, group.pattern)) {
-          return {
-            ...node,
-            color: group.color,
-            shape2D: group.shape2D,
-            shape3D: group.shape3D,
-            imageUrl: group.imageUrl,
-          };
-        }
-      }
-      return { ...node, color: node.color || DEFAULT_NODE_COLOR };
-    });
-
-    return { ...base, nodes: coloredNodes };
+    return applyGroupColors(filteredData, groups);
   }, [filteredData, groups]);
 
   const handleSearchOptionsChange = useCallback((newOptions: SearchOptions) => {
@@ -168,13 +79,8 @@ export default function App(): React.ReactElement {
       return;
     }
 
-    const mod = (await import(/* @vite-ignore */ script)) as PluginWebviewModule;
-    const candidate = mod.activate ?? mod.default;
-    const activate = typeof candidate === 'function'
-      ? candidate
-      : (candidate && typeof candidate === 'object' && 'activate' in candidate
-          ? candidate.activate
-          : undefined);
+    const mod = (await import(/* @vite-ignore */ script)) as unknown;
+    const activate = resolvePluginModuleActivator(mod as PluginWebviewModule);
 
     if (typeof activate !== 'function') {
       console.warn(`[CodeGraphy] Webview plugin script "${script}" has no activate(api) export`);
@@ -213,27 +119,22 @@ export default function App(): React.ReactElement {
       }
 
       if (raw.type === 'PLUGIN_WEBVIEW_INJECT') {
-        const payload = raw.payload as PluginInjectPayload;
-        if (payload && typeof payload.pluginId === 'string') {
+        const payload = normalizePluginInjectPayload(raw.payload);
+        if (payload) {
           void injectPluginAssets({
             pluginId: payload.pluginId,
-            scripts: Array.isArray(payload.scripts) ? payload.scripts : [],
-            styles: Array.isArray(payload.styles) ? payload.styles : [],
+            scripts: payload.scripts,
+            styles: payload.styles,
           });
         }
         return;
       }
 
-      if (raw.type.startsWith('plugin:')) {
-        const [, pluginId, ...typeParts] = raw.type.split(':');
-        if (pluginId && typeParts.length > 0) {
-          pluginHostRef.current.deliverMessage(pluginId, {
-            type: typeParts.join(':'),
-            data: raw.data,
-          });
-        }
+      const scopedMessage = parsePluginScopedMessage(raw.type, raw.data);
+      if (scopedMessage) {
+        pluginHostRef.current.deliverMessage(scopedMessage.pluginId, scopedMessage.message);
         return;
-      }
+        }
 
       graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
     };
@@ -261,9 +162,7 @@ export default function App(): React.ReactElement {
 
   // No data state — skip during timeline mode (empty graph at early commits is valid)
   if (!timelineActive && (!graphData || graphData.nodes.length === 0)) {
-    const hint = graphData && !showOrphans
-      ? 'All files are hidden. Try enabling "Show Orphans" in Settings → Filters.'
-      : 'Open a folder to visualize its structure.';
+    const hint = getNoDataHint(graphData, showOrphans);
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <div className="flex items-center gap-3 mb-4">
