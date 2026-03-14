@@ -137,8 +137,26 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - `graphView/messages/settingsDirection.ts` = `87.50%`
         - `graphView/messages/settingsToggle.ts` = `82.61%`
         - `GraphViewProvider.ts` is back to being the only file above the `50`-site threshold
+      - current local provider sync cut:
+        - extract provider-only sync logic to `graphView/groupSync.ts` and `graphView/allSettingsSync.ts`
+        - remove the now-dead `_captureSettingsSnapshot()` wrapper
+        - add direct tests: `groupSync.test.ts`, `allSettingsSync.test.ts`
+        - red-green checkpoint:
+          - red: focused `vitest` failed on missing sync helpers before the extraction
+          - green:
+            - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/groupSync.test.ts tests/extension/graphView/allSettingsSync.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/graphView/messages/ready.test.ts`
+            - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+            - package-relative `eslint` on touched provider/sync files
+      - rerun after the provider sync cut:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `53.86%`
+        - `GraphViewProvider.ts` = `36.83%`
+        - `GraphViewProvider.ts` mutation sites = `1039`
+        - `graphView/groupSync.ts` = `100.00%`
+        - `graphView/allSettingsSync.ts` = `33.33%`
+        - net result: provider is still the only file above the `50`-site threshold, and this cut did not materially lower its site count
       - next cut:
-        - keep draining `GraphViewProvider.ts` by extracting remaining settings-sync, favorites, file-edit, and public-wrapper orchestration
+        - keep draining `GraphViewProvider.ts`, but stop targeting tiny wrappers and move to higher-yield seams: file-edit/public-wrapper orchestration and favorites flows
         - do not spend time on survivor cleanup until the provider file is also under the `50`-site threshold
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers

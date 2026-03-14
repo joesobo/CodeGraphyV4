@@ -13,7 +13,6 @@ import {
   IPhysicsSettings,
   IGroup,
   NodeSizeMode,
-  ISettingsSnapshot,
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
   DEFAULT_FOLDER_NODE_COLOR,
@@ -56,13 +55,14 @@ import {
 import { shouldRebuildGraphView } from './graphViewRebuild';
 import { readGraphViewPhysicsSettings } from './graphViewPhysics';
 import { createGraphViewHtml, createGraphViewNonce } from './graphViewHtml';
+import { applyGraphViewAllSettingsSnapshot } from './graphView/allSettingsSync';
 import { loadGraphViewFileInfo } from './graphView/fileInfo';
+import { applyLoadedGraphViewGroupState } from './graphView/groupSync';
 import {
   buildGraphViewGroupsUpdatedMessage,
   loadGraphViewGroupState,
 } from './graphView/groups';
 import {
-  buildGraphViewAllSettingsMessages,
   buildGraphViewSettingsMessages,
   captureGraphViewSettingsSnapshot,
 } from './graphView/settings';
@@ -1336,7 +1336,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
         applyViewTransform: () => this._applyViewTransform(),
         smartRebuild: (kind, id) => this._smartRebuild(kind, id),
         resetAllSettings: async () => {
-          const snapshot = this._captureSettingsSnapshot();
+          const snapshot = captureGraphViewSettingsSnapshot(
+            vscode.workspace.getConfiguration('codegraphy'),
+            this._getPhysicsSettings(),
+            this._nodeSizeMode,
+          );
           const action = new ResetSettingsAction(
             snapshot,
             getGraphViewConfigTarget(vscode.workspace.workspaceFolders),
@@ -1853,18 +1857,24 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _loadGroupsAndFilterPatterns(): void {
     const config = vscode.workspace.getConfiguration('codegraphy');
     const groupState = loadGraphViewGroupState(config, this._context.workspaceState);
-    this._userGroups = groupState.userGroups;
-    this._hiddenPluginGroupIds = groupState.hiddenPluginGroupIds;
-    this._computeMergedGroups();
-    this._filterPatterns = groupState.filterPatterns;
-
-    if (groupState.legacyGroupsToMigrate) {
-      const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-      void vscode.workspace
-        .getConfiguration('codegraphy')
-        .update('groups', groupState.legacyGroupsToMigrate, target);
-      void this._context.workspaceState.update('codegraphy.groups', undefined);
-    }
+    const state = {
+      userGroups: this._userGroups,
+      hiddenPluginGroupIds: this._hiddenPluginGroupIds,
+      filterPatterns: this._filterPatterns,
+    };
+    applyLoadedGraphViewGroupState(groupState, state, {
+      recomputeGroups: () => this._computeMergedGroups(),
+      persistLegacyGroups: (groups) => {
+        const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
+        void vscode.workspace.getConfiguration('codegraphy').update('groups', groups, target);
+      },
+      clearLegacyGroups: () => {
+        void this._context.workspaceState.update('codegraphy.groups', undefined);
+      },
+    });
+    this._userGroups = state.userGroups;
+    this._hiddenPluginGroupIds = state.hiddenPluginGroupIds;
+    this._filterPatterns = state.filterPatterns;
   }
 
   /**
@@ -1995,42 +2005,30 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Used after reset/undo to ensure the webview is fully in sync.
    */
   private _sendAllSettings(): void {
-    const config = vscode.workspace.getConfiguration('codegraphy');
     const snapshot = captureGraphViewSettingsSnapshot(
-      config,
-      this._getPhysicsSettings(),
-      this._nodeSizeMode,
-    );
-    const messages = buildGraphViewAllSettingsMessages(
-      snapshot,
-      this._analyzer?.getPluginFilterPatterns() ?? [],
-    );
-
-    this._viewContext.folderNodeColor = snapshot.folderNodeColor;
-    for (const message of messages.preGroupMessages) {
-      this._sendMessage(message);
-    }
-
-    this._hiddenPluginGroupIds = new Set(snapshot.hiddenPluginGroups);
-    this._userGroups = snapshot.groups;
-    this._computeMergedGroups();
-    this._sendGroupsUpdated();
-
-    this._filterPatterns = snapshot.filterPatterns;
-    for (const message of messages.postGroupMessages) {
-      this._sendMessage(message);
-    }
-  }
-
-  /**
-   * Captures the current settings state as a snapshot.
-   */
-  private _captureSettingsSnapshot(): ISettingsSnapshot {
-    return captureGraphViewSettingsSnapshot(
       vscode.workspace.getConfiguration('codegraphy'),
       this._getPhysicsSettings(),
       this._nodeSizeMode,
     );
+    const state = {
+      viewContext: this._viewContext,
+      hiddenPluginGroupIds: this._hiddenPluginGroupIds,
+      userGroups: this._userGroups,
+      filterPatterns: this._filterPatterns,
+    };
+    applyGraphViewAllSettingsSnapshot(
+      snapshot,
+      this._analyzer?.getPluginFilterPatterns() ?? [],
+      state,
+      {
+        sendMessage: (message) => this._sendMessage(message),
+        recomputeGroups: () => this._computeMergedGroups(),
+        sendGroupsUpdated: () => this._sendGroupsUpdated(),
+      },
+    );
+    this._hiddenPluginGroupIds = state.hiddenPluginGroupIds;
+    this._userGroups = state.userGroups;
+    this._filterPatterns = state.filterPatterns;
   }
 
   /**
