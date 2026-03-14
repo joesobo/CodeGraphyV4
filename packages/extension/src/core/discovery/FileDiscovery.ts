@@ -6,36 +6,18 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import ignore, { Ignore } from 'ignore';
-import { minimatch } from 'minimatch';
 import { IDiscoveryOptions, IDiscoveredFile, IDiscoveryResult } from './types';
+import { throwIfAborted } from './discoveryAbort';
+import { loadGitignore } from './discoveryGitignore';
+import {
+  DEFAULT_EXCLUDE,
+  matchesAnyPattern,
+  shouldSkipKnownDirectory,
+} from './discoveryPathMatching';
 
-/**
- * Default exclude patterns applied to all discoveries.
- */
-const DEFAULT_EXCLUDE = [
-  '**/node_modules/**',
-  '**/dist/**',
-  '**/build/**',
-  '**/out/**',
-  '**/.git/**',
-  '**/coverage/**',
-  '**/*.min.js',
-  '**/*.bundle.js',
-  '**/*.map',
-];
-
-function createAbortError(): Error {
-  const error = new Error('Discovery aborted');
-  error.name = 'AbortError';
-  return error;
-}
-
-function throwIfAborted(signal?: AbortSignal): void {
-  if (signal?.aborted) {
-    throw createAbortError();
-  }
-}
+const DEFAULT_INCLUDE = ['**/*'];
+const EMPTY_PATTERNS: string[] = [];
+const DEFAULT_MAX_FILES = 500;
 
 /**
  * Discovers source files in a workspace.
@@ -71,25 +53,22 @@ export class FileDiscovery {
    */
   async discover(options: IDiscoveryOptions): Promise<IDiscoveryResult> {
     const startTime = Date.now();
-    
-    const {
-      rootPath,
-      maxFiles = 500,
-      include = ['**/*'],
-      exclude = [],
-      respectGitignore = true,
-      extensions = [],
-      signal,
-    } = options;
+
+    const { rootPath, signal } = options;
+    const maxFiles = options.maxFiles ?? DEFAULT_MAX_FILES;
+    const includePatterns = options.include ?? DEFAULT_INCLUDE;
+    const excludePatterns = options.exclude ?? EMPTY_PATTERNS;
+    const respectGitignore = options.respectGitignore ?? true;
+    const extensions = options.extensions ?? EMPTY_PATTERNS;
 
     throwIfAborted(signal);
 
     // Combine default and custom exclude patterns
-    const allExclude = [...DEFAULT_EXCLUDE, ...exclude];
-    
+    const allExclude = [...DEFAULT_EXCLUDE, ...excludePatterns];
+
     // Load gitignore if requested
-    const gitignore = respectGitignore ? this._loadGitignore(rootPath) : null;
-    
+    const gitignore = respectGitignore ? loadGitignore(rootPath) : null;
+
     const files: IDiscoveredFile[] = [];
     let totalFound = 0;
     let limitReached = false;
@@ -114,12 +93,12 @@ export class FileDiscovery {
         }
 
         // Check exclude patterns
-        if (this._matchesAny(relativePath, allExclude)) {
+        if (matchesAnyPattern(relativePath, allExclude)) {
           return true; // Skip but continue
         }
 
         // Check include patterns
-        if (!this._matchesAny(relativePath, include)) {
+        if (!matchesAnyPattern(relativePath, includePatterns)) {
           return true; // Skip but continue
         }
 
@@ -164,38 +143,6 @@ export class FileDiscovery {
   }
 
   /**
-   * Loads and parses .gitignore file from the root path.
-   */
-  private _loadGitignore(rootPath: string): Ignore | null {
-    const gitignorePath = path.join(rootPath, '.gitignore');
-    
-    try {
-      if (fs.existsSync(gitignorePath)) {
-        const content = fs.readFileSync(gitignorePath, 'utf-8');
-        const ig = ignore();
-        ig.add(content);
-        return ig;
-      }
-    } catch (error) {
-      console.warn('[CodeGraphy] Failed to load .gitignore:', error);
-    }
-    
-    return null;
-  }
-
-  /**
-   * Checks if a path matches any of the given glob patterns.
-   */
-  private _matchesAny(relativePath: string, patterns: string[]): boolean {
-    // Normalize path separators for cross-platform matching
-    const normalizedPath = relativePath.replace(/\\/g, '/');
-    
-    return patterns.some((pattern) =>
-      minimatch(normalizedPath, pattern, { dot: true, matchBase: true })
-    );
-  }
-
-  /**
    * Recursively walks a directory, calling the callback for each file.
    * 
    * @param rootPath - The original root path
@@ -227,11 +174,7 @@ export class FileDiscovery {
 
       if (entry.isDirectory()) {
         // Quick check: skip known large directories early
-        const normalizedRelative = relativePath.replace(/\\/g, '/');
-        if (normalizedRelative === 'node_modules' || 
-            normalizedRelative === '.git' ||
-            normalizedRelative.startsWith('node_modules/') ||
-            normalizedRelative.startsWith('.git/')) {
+        if (shouldSkipKnownDirectory(relativePath)) {
           continue;
         }
         
