@@ -56,6 +56,21 @@ import { readGraphViewPhysicsSettings } from './graphViewPhysics';
 import { createGraphViewHtml, createGraphViewNonce } from './graphViewHtml';
 import { applyGraphViewAllSettingsSnapshot } from './graphView/allSettingsSync';
 import { loadGraphViewFileInfo } from './graphView/fileInfo';
+import {
+  sendGraphViewFavorites,
+  toggleGraphViewFavorites,
+} from './graphView/favorites';
+import {
+  addGraphViewExcludePatterns,
+  createGraphViewFile,
+  deleteGraphViewFiles,
+} from './graphView/fileActions';
+import {
+  copyGraphViewTextToClipboard,
+  openGraphViewFile,
+  revealGraphViewFileInExplorer,
+} from './graphView/fileNavigation';
+import { renameGraphViewFile } from './graphView/fileRename';
 import { applyLoadedGraphViewGroupState } from './graphView/groupSync';
 import {
   buildGraphViewGroupsUpdatedMessage,
@@ -1679,160 +1694,121 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     filePath: string,
     behavior: EditorOpenBehavior = PERMANENT_NODE_OPEN_BEHAVIOR
   ): Promise<void> {
-    try {
-      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-      if (!workspaceFolder) {
-        // Mock data - show info message
-        vscode.window.showInformationMessage(`Mock file: ${filePath}`);
-        return;
-      }
-
-      const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
-      
-      // Check if file exists
-      try {
-        await vscode.workspace.fs.stat(fileUri);
-      } catch {
-        // File doesn't exist (mock data)
-        vscode.window.showInformationMessage(`Mock file: ${filePath}`);
-        return;
-      }
-
-      const document = await vscode.workspace.openTextDocument(fileUri);
-      await vscode.window.showTextDocument(document, behavior);
-      
-      // Track visit
-      await this._incrementVisitCount(filePath);
-    } catch (error) {
-      console.error('[CodeGraphy] Failed to open file:', error);
-      vscode.window.showErrorMessage(`Could not open file: ${filePath}`);
-    }
+    await openGraphViewFile(
+      filePath,
+      {
+        workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+        showInformationMessage: (message) => {
+          vscode.window.showInformationMessage(message);
+        },
+        showErrorMessage: (message) => {
+          vscode.window.showErrorMessage(message);
+        },
+        statFile: (fileUri) => vscode.workspace.fs.stat(fileUri),
+        openTextDocument: (fileUri) => vscode.workspace.openTextDocument(fileUri),
+        showTextDocument: (document, nextBehavior) =>
+          vscode.window.showTextDocument(document, nextBehavior),
+        incrementVisitCount: (nextFilePath) => this._incrementVisitCount(nextFilePath),
+        logError: (label, error) => {
+          console.error(label, error);
+        },
+      },
+      behavior,
+    );
   }
 
   /**
    * Reveals a file in the VSCode explorer sidebar.
    */
   private async _revealInExplorer(filePath: string): Promise<void> {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) return;
-
-    const fileUri = vscode.Uri.joinPath(workspaceFolder.uri, filePath);
-    await vscode.commands.executeCommand('revealInExplorer', fileUri);
+    await revealGraphViewFileInExplorer(filePath, {
+      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+      executeCommand: (command, ...args) => vscode.commands.executeCommand(command, ...args),
+    });
   }
 
   /**
    * Copies text to the clipboard.
    */
   private async _copyToClipboard(text: string): Promise<void> {
-    // Handle absolute path request
-    if (text.startsWith('absolute:')) {
-      const relativePath = text.slice(9);
-      const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-      if (workspaceFolder) {
-        const absolutePath = vscode.Uri.joinPath(workspaceFolder.uri, relativePath).fsPath;
-        await vscode.env.clipboard.writeText(absolutePath);
-        return;
-      }
-    }
-    await vscode.env.clipboard.writeText(text);
+    await copyGraphViewTextToClipboard(text, {
+      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+      writeText: (value) => vscode.env.clipboard.writeText(value),
+    });
   }
 
   /**
    * Deletes files with confirmation (with undo support).
    */
   private async _deleteFiles(paths: string[]): Promise<void> {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) return;
-
-    const count = paths.length;
-    const message = count === 1
-      ? `Are you sure you want to delete "${paths[0]}"?`
-      : `Are you sure you want to delete ${count} files?`;
-
-    const confirm = await vscode.window.showWarningMessage(
-      message,
-      { modal: true },
-      'Delete'
-    );
-
-    if (confirm === 'Delete') {
-      const action = new DeleteFilesAction(
-        paths,
-        workspaceFolder.uri,
-        () => this._analyzeAndSendData()
-      );
-      await getUndoManager().execute(action);
-    }
+    await deleteGraphViewFiles(paths, {
+      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+      showWarningMessage: (message, options, deleteAction) =>
+        vscode.window.showWarningMessage(message, options, deleteAction),
+      executeDeleteAction: async (nextPaths, workspaceFolderUri) => {
+        const action = new DeleteFilesAction(
+          nextPaths,
+          workspaceFolderUri,
+          () => this._analyzeAndSendData(),
+        );
+        await getUndoManager().execute(action);
+      },
+    });
   }
 
   /**
    * Renames a file with an input dialog (with undo support).
    */
   private async _renameFile(filePath: string): Promise<void> {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) return;
-
-    const oldName = filePath.split('/').pop() || filePath;
-
-    const newName = await vscode.window.showInputBox({
-      prompt: 'Enter new file name',
-      value: oldName,
-      valueSelection: [0, oldName.lastIndexOf('.') > 0 ? oldName.lastIndexOf('.') : oldName.length],
-      ignoreFocusOut: true, // Prevent dialog from closing on mouse move or focus loss
+    await renameGraphViewFile(filePath, {
+      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+      showInputBox: (options) => vscode.window.showInputBox(options),
+      executeRenameAction: async (oldPath, newPath, workspaceFolderUri) => {
+        const action = new RenameFileAction(
+          oldPath,
+          newPath,
+          workspaceFolderUri,
+          () => this._analyzeAndSendData(),
+        );
+        await getUndoManager().execute(action);
+      },
+      showErrorMessage: (message) => {
+        vscode.window.showErrorMessage(message);
+      },
     });
-
-    if (!newName || newName === oldName) return;
-
-    const newPath = filePath.replace(/[^/]+$/, newName);
-
-    try {
-      const action = new RenameFileAction(
-        filePath,
-        newPath,
-        workspaceFolder.uri,
-        () => this._analyzeAndSendData()
-      );
-      await getUndoManager().execute(action);
-    } catch (error) {
-      vscode.window.showErrorMessage(`Failed to rename: ${toErrorMessage(error)}`);
-    }
   }
 
   /**
    * Creates a new file in the workspace (with undo support).
    */
   private async _createFile(directory: string): Promise<void> {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) return;
-
-    const fileName = await vscode.window.showInputBox({
-      prompt: 'Enter file name',
-      placeHolder: 'newfile.ts',
-      ignoreFocusOut: true, // Prevent dialog from closing on mouse move or focus loss
-    });
-
-    if (fileName) {
-      const filePath = directory === '.' ? fileName : `${directory}/${fileName}`;
-
-      try {
+    await createGraphViewFile(directory, {
+      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+      showInputBox: (options) => vscode.window.showInputBox(options),
+      executeCreateAction: async (filePath, workspaceFolderUri) => {
         const action = new CreateFileAction(
           filePath,
-          workspaceFolder.uri,
-          () => this._analyzeAndSendData()
+          workspaceFolderUri,
+          () => this._analyzeAndSendData(),
         );
         await getUndoManager().execute(action);
-      } catch (error) {
-        vscode.window.showErrorMessage(`Failed to create file: ${toErrorMessage(error)}`);
-      }
-    }
+      },
+      showErrorMessage: (message) => {
+        vscode.window.showErrorMessage(message);
+      },
+    });
   }
 
   /**
    * Toggles favorite status for files (with undo support).
    */
   private async _toggleFavorites(paths: string[]): Promise<void> {
-    const action = new ToggleFavoriteAction(paths, () => this._sendFavorites());
-    await getUndoManager().execute(action);
+    await toggleGraphViewFavorites(paths, {
+      executeToggleFavoritesAction: async (nextPaths) => {
+        const action = new ToggleFavoriteAction(nextPaths, () => this._sendFavorites());
+        await getUndoManager().execute(action);
+      },
+    });
   }
 
   /**
@@ -1892,9 +1868,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Sends current favorites to the webview.
    */
   private _sendFavorites(): void {
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const favorites = config.get<string[]>('favorites', []);
-    this._sendMessage({ type: 'FAVORITES_UPDATED', payload: { favorites } });
+    sendGraphViewFavorites(
+      vscode.workspace.getConfiguration('codegraphy'),
+      (message) => this._sendMessage(message),
+    );
   }
 
   /**
@@ -1966,8 +1943,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Adds patterns to the exclude list (with undo support).
    */
   private async _addToExclude(patterns: string[]): Promise<void> {
-    const action = new AddToExcludeAction(patterns, () => this._analyzeAndSendData());
-    await getUndoManager().execute(action);
+    await addGraphViewExcludePatterns(patterns, {
+      executeAddToExcludeAction: async (nextPatterns) => {
+        const action = new AddToExcludeAction(nextPatterns, () => this._analyzeAndSendData());
+        await getUndoManager().execute(action);
+      },
+    });
   }
 
   /**
