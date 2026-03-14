@@ -12,13 +12,13 @@ import { cn } from '../../lib/utils';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { Switch } from '../ui/switch';
 import { Slider } from '../ui/slider';
 import { ScrollArea } from '../ui/scroll-area';
-import { mdiChevronRight, mdiClose, mdiDrag, mdiEyeOutline, mdiEyeOffOutline, mdiMinus, mdiPlus, mdiLockOutline, mdiRefresh } from '@mdi/js';
+import { mdiChevronRight, mdiClose, mdiDrag, mdiEyeOutline, mdiEyeOffOutline, mdiRefresh } from '@mdi/js';
 import { MdiIcon } from '../icons';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '../ui/tooltip';
 import { DisplaySection } from './DisplaySection';
+import { FilterSection } from './FilterSection';
 import {
   buildSettingsGroupOverride,
   groupSettingsPanelSections,
@@ -92,14 +92,6 @@ export default function SettingsPanel({
   const groups = useGraphStore(s => s.groups);
   const expandedGroupId = useGraphStore(s => s.expandedGroupId);
   const setExpandedGroupId = useGraphStore(s => s.setExpandedGroupId);
-  const filterPatterns = useGraphStore(s => s.filterPatterns);
-  const setFilterPatterns = useGraphStore(s => s.setFilterPatterns);
-  const pluginFilterPatterns = useGraphStore(s => s.pluginFilterPatterns);
-  const showOrphans = useGraphStore(s => s.showOrphans);
-  const setShowOrphans = useGraphStore(s => s.setShowOrphans);
-
-  const maxFiles = useGraphStore(s => s.maxFiles);
-  const setMaxFiles = useGraphStore(s => s.setMaxFiles);
 
   // Local UI state
   const [forcesOpen, setForcesOpen] = useState(false);
@@ -122,9 +114,6 @@ export default function SettingsPanel({
   // Pattern debounce: immediate visual feedback while typing, debounced persistence
   const [localPatternOverrides, setLocalPatternOverrides] = useState<Record<string, string>>({});
   const patternDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
-
-  // Filters form state
-  const [newFilterPattern, setNewFilterPattern] = useState('');
 
   const pendingPhysicsValuesRef = useRef<Partial<Record<keyof IPhysicsSettings, number>>>({});
   const physicsPersistTimersRef = useRef<Partial<Record<keyof IPhysicsSettings, ReturnType<typeof setTimeout>>>>({});
@@ -263,33 +252,6 @@ export default function SettingsPanel({
   const handleGroupDragEnd = () => {
     setDragIndex(null);
     setDragOverIndex(null);
-  };
-
-  // Filters handlers
-  const handleShowOrphansToggle = (checked: boolean) => {
-    setShowOrphans(checked);
-    postMessage({ type: 'UPDATE_SHOW_ORPHANS', payload: { showOrphans: checked } });
-  };
-
-  const handleAddFilterPattern = () => {
-    if (!newFilterPattern.trim()) return;
-    const updated = [...filterPatterns, newFilterPattern.trim()];
-    setFilterPatterns(updated);
-    postMessage({ type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: updated } });
-    setNewFilterPattern('');
-  };
-
-  const handleDeleteFilterPattern = (pattern: string) => {
-    const updated = filterPatterns.filter(pat => pat !== pattern);
-    setFilterPatterns(updated);
-    postMessage({ type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: updated } });
-  };
-
-  // Max files handler
-  const handleMaxFilesCommit = (value: number) => {
-    const clamped = Math.max(1, value);
-    setMaxFiles(clamped);
-    postMessage({ type: 'UPDATE_MAX_FILES', payload: { maxFiles: clamped } });
   };
 
   // Forces handlers
@@ -742,112 +704,7 @@ export default function SettingsPanel({
 
           {/* Filters section */}
           <SectionHeader title="Filters" open={filtersOpen} onToggle={() => setFiltersOpen(prev => !prev)} />
-          {filtersOpen && (
-            <div className="mb-2 space-y-2">
-              {/* Show Orphans toggle */}
-              <div className="flex items-center justify-between py-0.5">
-                <Label htmlFor="show-orphans" className="text-xs">Show Orphans</Label>
-                <Switch
-                  id="show-orphans"
-                  checked={showOrphans}
-                  onCheckedChange={handleShowOrphansToggle}
-                />
-              </div>
-
-              {/* Max Files */}
-              <div className="flex items-center justify-between py-0.5">
-                <Label className="text-xs">Max Files</Label>
-                <div className="flex items-center gap-0.5">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleMaxFilesCommit(Math.max(1, maxFiles - 100))}
-                    disabled={maxFiles <= 1}
-                    title="Decrease by 100"
-                  >
-                    <MdiIcon path={mdiMinus} size={12} />
-                  </Button>
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={maxFiles}
-                    onChange={e => {
-                      const parsed = parseInt(e.target.value, 10);
-                      if (!isNaN(parsed)) setMaxFiles(parsed);
-                    }}
-                    onBlur={e => handleMaxFilesCommit(parseInt(e.target.value, 10) || 1)}
-                    onKeyDown={e => e.key === 'Enter' && handleMaxFilesCommit(parseInt((e.target as HTMLInputElement).value, 10) || 1)}
-                    className="h-6 w-14 text-xs text-center px-1"
-                  />
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    className="h-6 w-6"
-                    onClick={() => handleMaxFilesCommit(maxFiles + 100)}
-                    title="Increase by 100"
-                  >
-                    <MdiIcon path={mdiPlus} size={12} />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Plugin default filter patterns (read-only) */}
-              {pluginFilterPatterns.length > 0 && (
-                <>
-                  <p className="text-xs text-muted-foreground">Plugin defaults (read-only)</p>
-                  <ul className="space-y-1">
-                    {pluginFilterPatterns.map(pattern => (
-                      <li key={pattern} className="flex items-center gap-2 opacity-60">
-                        <MdiIcon path={mdiLockOutline} size={12} className="text-muted-foreground flex-shrink-0" />
-                        <span className="text-xs text-muted-foreground flex-1 truncate font-mono">{pattern}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </>
-              )}
-              {/* User blacklist patterns */}
-              <p className="text-xs text-muted-foreground">Custom (exclude from graph)</p>
-              {filterPatterns.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No patterns.</p>
-              ) : (
-                <ul className="space-y-1">
-                  {filterPatterns.map(pattern => (
-                    <li key={pattern} className="flex items-center gap-2">
-                      <span className="text-xs flex-1 truncate font-mono">{pattern}</span>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
-                        onClick={() => handleDeleteFilterPattern(pattern)}
-                        title="Delete pattern"
-                      >
-                        <MdiIcon path={mdiClose} size={14} />
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <div className="flex items-center gap-1.5 pt-1">
-                <Input
-                  value={newFilterPattern}
-                  onChange={e => setNewFilterPattern(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddFilterPattern()}
-                  placeholder="*.png"
-                  className="flex-1 h-7 text-xs min-w-0"
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  className="h-7 px-2 text-xs"
-                  onClick={handleAddFilterPattern}
-                  disabled={!newFilterPattern.trim()}
-                >
-                  Add
-                </Button>
-              </div>
-            </div>
-          )}
+          {filtersOpen && <FilterSection />}
 
           {/* Display section */}
           <SectionHeader title="Display" open={displayOpen} onToggle={() => setDisplayOpen(prev => !prev)} />
