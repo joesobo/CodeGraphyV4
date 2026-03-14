@@ -155,6 +155,10 @@ describe('GraphViewProvider lifecycle', () => {
 
     await providerPrivate._doAnalyzeAndSendData(new AbortController().signal, 1);
 
+    expect((provider as unknown as { _rawGraphData: IGraphData })._rawGraphData).toEqual({
+      nodes: [],
+      edges: [],
+    });
     expect((provider as unknown as { _graphData: IGraphData })._graphData).toEqual({
       nodes: [],
       edges: [],
@@ -196,10 +200,30 @@ describe('GraphViewProvider lifecycle', () => {
 
     await providerPrivate._doAnalyzeAndSendData(new AbortController().signal, 1);
 
+    expect((provider as unknown as { _rawGraphData: IGraphData })._rawGraphData).toEqual({
+      nodes: [],
+      edges: [],
+    });
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
     expect(sendAvailableViewsSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('clearCacheAndRefresh still analyzes when there is no analyzer cache to clear', async () => {
+    const provider = new GraphViewProvider(
+      vscode.Uri.file('/test/extension'),
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const analyzeSpy = vi.spyOn((provider as unknown as {
+      _analyzeAndSendData: () => Promise<void>;
+    }), '_analyzeAndSendData').mockResolvedValue();
+
+    (provider as unknown as { _analyzer?: unknown })._analyzer = undefined;
+
+    await provider.clearCacheAndRefresh();
+
+    expect(analyzeSpy).toHaveBeenCalledTimes(1);
   });
 });

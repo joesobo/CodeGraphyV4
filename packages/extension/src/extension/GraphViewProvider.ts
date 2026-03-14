@@ -9,7 +9,6 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import {
   IGraphData,
-  IAvailableView,
   BidirectionalEdgeMode,
   DirectionMode,
   DagMode,
@@ -19,9 +18,6 @@ import {
   ISettingsSnapshot,
   ExtensionToWebviewMessage,
   WebviewToExtensionMessage,
-  NodeDecorationPayload,
-  EdgeDecorationPayload,
-  IPluginContextMenuItem,
   DEFAULT_DIRECTION_COLOR,
   DEFAULT_FOLDER_NODE_COLOR,
   normalizeHexColor,
@@ -46,6 +42,25 @@ import { saveExportedSvg } from './export/saveSvg';
 import { saveExportedJpeg } from './export/saveJpeg';
 import { saveExportedJson } from './export/saveJson';
 import { saveExportedMarkdown } from './export/saveMarkdown';
+import {
+  applyGraphViewTransform,
+  getRelativeWorkspacePath,
+  mapAvailableViews,
+} from './graphViewPresentation';
+import {
+  buildGraphViewDecorationPayload,
+  collectGraphViewContextMenuItems,
+  collectGraphViewWebviewInjections,
+} from './graphViewPluginMessages';
+import {
+  getGraphViewLocalResourceRoots,
+  normalizeGraphViewExtensionUri,
+  resolveGraphViewAssetPath,
+} from './graphViewResources';
+import { shouldRebuildGraphView } from './graphViewRebuild';
+import { getGraphViewVisitCount, incrementGraphViewVisitCount } from './graphViewVisits';
+import { readGraphViewPhysicsSettings } from './graphViewPhysics';
+import { createGraphViewHtml, createGraphViewNonce } from './graphViewHtml';
 
 /** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -713,37 +728,25 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Gets the workspace-relative path for a URI.
    */
   private _getRelativePath(uri: vscode.Uri): string | undefined {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) return undefined;
-    
-    const relativePath = vscode.workspace.asRelativePath(uri, false);
-    return relativePath !== uri.fsPath ? relativePath : undefined;
+    return getRelativeWorkspacePath(uri, vscode.workspace.workspaceFolders, vscode.workspace.asRelativePath);
   }
 
   /**
    * Applies the current view's transform to the raw graph data.
    */
   private _applyViewTransform(): void {
-    const viewInfo = this._viewRegistry.get(this._activeViewId);
-    
-    if (!viewInfo || !this._viewRegistry.isViewAvailable(this._activeViewId, this._viewContext)) {
-      // Fall back to default view
-      const defaultId = this._viewRegistry.getDefaultViewId();
-      if (defaultId && defaultId !== this._activeViewId) {
-        this._activeViewId = defaultId;
-        this._context.workspaceState.update(SELECTED_VIEW_KEY, defaultId);
-        const defaultView = this._viewRegistry.get(defaultId);
-        if (defaultView) {
-          this._graphData = defaultView.view.transform(this._rawGraphData, this._viewContext);
-          return;
-        }
-      }
-      // No valid view - use raw data
-      this._graphData = this._rawGraphData;
-      return;
+    const result = applyGraphViewTransform(
+      this._viewRegistry,
+      this._activeViewId,
+      this._viewContext,
+      this._rawGraphData
+    );
+    this._activeViewId = result.activeViewId;
+    this._graphData = result.graphData;
+
+    if (result.persistSelectedViewId) {
+      void this._context.workspaceState.update(SELECTED_VIEW_KEY, result.persistSelectedViewId);
     }
-    
-    this._graphData = viewInfo.view.transform(this._rawGraphData, this._viewContext);
   }
 
   /**
@@ -751,15 +754,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _sendAvailableViews(): void {
     const availableViews = this._viewRegistry.getAvailableViews(this._viewContext);
-    
-    const views: IAvailableView[] = availableViews.map(info => ({
-      id: info.view.id,
-      name: info.view.name,
-      icon: info.view.icon,
-      description: info.view.description,
-      active: info.view.id === this._activeViewId,
-    }));
-    
+    const views = mapAvailableViews(availableViews, this._activeViewId);
+
     this._sendMessage({
       type: 'VIEWS_UPDATED',
       payload: { views, activeViewId: this._activeViewId },
@@ -785,23 +781,13 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Sends merged decorations to the webview.
    */
   private _sendDecorations(): void {
-    const nodeDecorations: Record<string, NodeDecorationPayload> = {};
-    for (const [id, dec] of this._decorationManager.getMergedNodeDecorations()) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { priority, ...payload } = dec;
-      nodeDecorations[id] = payload;
-    }
-
-    const edgeDecorations: Record<string, EdgeDecorationPayload> = {};
-    for (const [id, dec] of this._decorationManager.getMergedEdgeDecorations()) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { priority, ...payload } = dec;
-      edgeDecorations[id] = payload;
-    }
-
+    const payload = buildGraphViewDecorationPayload(
+      this._decorationManager.getMergedNodeDecorations(),
+      this._decorationManager.getMergedEdgeDecorations()
+    );
     this._sendMessage({
       type: 'DECORATIONS_UPDATED',
-      payload: { nodeDecorations, edgeDecorations },
+      payload,
     });
   }
 
@@ -809,25 +795,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Sends plugin context menu items to the webview.
    */
   private _sendContextMenuItems(): void {
-    const items: IPluginContextMenuItem[] = [];
     if (!this._analyzer) return;
-
-    for (const pluginInfo of this._analyzer.registry.list()) {
-      const api = this._analyzer.registry.getPluginAPI(pluginInfo.plugin.id);
-      if (!api) continue;
-      for (let i = 0; i < api.contextMenuItems.length; i++) {
-        const item = api.contextMenuItems[i];
-        items.push({
-          label: item.label,
-          when: item.when,
-          icon: item.icon,
-          group: item.group,
-          pluginId: pluginInfo.plugin.id,
-          index: i,
-        });
-      }
-    }
-
+    const items = collectGraphViewContextMenuItems(
+      this._analyzer.registry.list(),
+      (pluginId) => this._analyzer?.registry.getPluginAPI(pluginId)
+    );
     this._sendMessage({ type: 'CONTEXT_MENU_ITEMS', payload: { items } });
   }
 
@@ -836,27 +808,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _sendPluginWebviewInjections(): void {
     if (!this._analyzer) return;
+    const injections = collectGraphViewWebviewInjections(
+      this._analyzer.registry.list(),
+      (assetPath, pluginId) => this._resolveWebviewAssetPath(assetPath, pluginId)
+    );
 
-    for (const pluginInfo of this._analyzer.registry.list()) {
-      const contributions = pluginInfo.plugin.webviewContributions;
-      if (!contributions) continue;
-
-      const scripts = (contributions.scripts ?? []).map((asset) =>
-        this._resolveWebviewAssetPath(asset, pluginInfo.plugin.id)
-      );
-      const styles = (contributions.styles ?? []).map((asset) =>
-        this._resolveWebviewAssetPath(asset, pluginInfo.plugin.id)
-      );
-
-      if (scripts.length === 0 && styles.length === 0) continue;
-
+    for (const injection of injections) {
       this._sendMessage({
         type: 'PLUGIN_WEBVIEW_INJECT',
-        payload: {
-          pluginId: pluginInfo.plugin.id,
-          scripts,
-          styles,
-        },
+        payload: injection,
       });
     }
   }
@@ -867,38 +827,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * to webview URIs when possible.
    */
   private _resolveWebviewAssetPath(assetPath: string, pluginId?: string): string {
-    // Already a URI (e.g. https://..., vscode-webview://...)
-    if (/^[a-z][a-z0-9+.-]*:\/\//i.test(assetPath)) {
-      return assetPath;
-    }
-
-    const pluginRoot = pluginId ? this._pluginExtensionUris.get(pluginId) : undefined;
-    const fileUri = path.isAbsolute(assetPath)
-      ? vscode.Uri.file(assetPath)
-      : vscode.Uri.joinPath(pluginRoot ?? this._extensionUri, assetPath);
-
     const webview = this._view?.webview ?? this._panels[0]?.webview;
-    if (!webview) {
-      return fileUri.toString();
-    }
-
-    const webviewUri = webview.asWebviewUri(fileUri) as unknown;
-    if (typeof webviewUri === 'string') {
-      return webviewUri;
-    }
-    if (
-      webviewUri &&
-      typeof (webviewUri as { toString?: () => string }).toString === 'function'
-    ) {
-      const text = (webviewUri as { toString: () => string }).toString();
-      if (text && text !== '[object Object]') {
-        return text;
-      }
-    }
-
-    // Test mocks may provide plain URI objects without a useful toString().
-    const pathLike = webviewUri as { path?: string; fsPath?: string } | null;
-    return pathLike?.path ?? pathLike?.fsPath ?? String(webviewUri);
+    return resolveGraphViewAssetPath(
+      assetPath,
+      this._extensionUri,
+      this._pluginExtensionUris,
+      webview,
+      pluginId
+    );
   }
 
   /**
@@ -906,24 +842,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Includes CodeGraphy and any externally-registered plugin extension roots.
    */
   private _getLocalResourceRoots(): vscode.Uri[] {
-    const roots = new Map<string, vscode.Uri>();
-    roots.set(this._uriKey(this._extensionUri), this._extensionUri);
-    for (const uri of this._pluginExtensionUris.values()) {
-      roots.set(this._uriKey(uri), uri);
-    }
-    // Add workspace folders so .codegraphy/assets/ images can be served
-    for (const folder of vscode.workspace.workspaceFolders ?? []) {
-      roots.set(this._uriKey(folder.uri), folder.uri);
-    }
-    return [...roots.values()];
-  }
-
-  /**
-   * Stable key helper for URI map de-duplication across real VS Code URIs and test mocks.
-   */
-  private _uriKey(uri: vscode.Uri): string {
-    const candidate = uri as unknown as { fsPath?: string; path?: string; toString(): string };
-    return candidate.fsPath ?? candidate.path ?? candidate.toString();
+    return getGraphViewLocalResourceRoots(
+      this._extensionUri,
+      this._pluginExtensionUris,
+      vscode.workspace.workspaceFolders
+    );
   }
 
   /**
@@ -949,11 +872,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Normalizes an external plugin extension URI from API input.
    */
   private _normalizeExternalExtensionUri(uri: vscode.Uri | string | undefined): vscode.Uri | undefined {
-    if (!uri) return undefined;
-    if (typeof uri === 'string') {
-      return vscode.Uri.file(uri);
-    }
-    return uri;
+    return normalizeGraphViewExtensionUri(uri);
   }
 
   /**
@@ -984,22 +903,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     if (!this._analyzer) return;
 
     const statuses = this._analyzer.getPluginStatuses(this._disabledRules, this._disabledPlugins);
-    let hasConnections = false;
-
-    if (kind === 'plugin') {
-      const plugin = statuses.find(status => status.id === id);
-      hasConnections = (plugin?.connectionCount ?? 0) > 0;
-    } else {
-      for (const plugin of statuses) {
-        const rule = plugin.rules.find(r => r.qualifiedId === id);
-        if (rule) {
-          hasConnections = rule.connectionCount > 0;
-          break;
-        }
-      }
-    }
-
-    if (hasConnections) {
+    if (shouldRebuildGraphView(statuses, kind, id)) {
       this._rebuildAndSend();
     } else {
       // No connections affected — just update the toggle UI
@@ -2315,7 +2219,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _getVisitCount(filePath: string): number {
     const visits = this._context.workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
-    return visits[filePath] ?? 0;
+    return getGraphViewVisitCount(visits, filePath);
   }
 
   /**
@@ -2323,13 +2227,13 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private async _incrementVisitCount(filePath: string): Promise<void> {
     const visits = this._context.workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
-    visits[filePath] = (visits[filePath] ?? 0) + 1;
-    await this._context.workspaceState.update(VISITS_KEY, visits);
+    const nextVisitState = incrementGraphViewVisitCount(visits, filePath);
+    await this._context.workspaceState.update(VISITS_KEY, nextVisitState.visits);
     
     // Notify webview of the updated access count for real-time node size updates
     this._sendMessage({ 
       type: 'NODE_ACCESS_COUNT_UPDATED', 
-      payload: { nodeId: filePath, accessCount: visits[filePath] } 
+      payload: { nodeId: filePath, accessCount: nextVisitState.accessCount } 
     });
   }
 
@@ -2358,13 +2262,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _getPhysicsSettings(): IPhysicsSettings {
     const config = vscode.workspace.getConfiguration('codegraphy.physics');
-    return {
-      repelForce: config.get<number>('repelForce', DEFAULT_PHYSICS.repelForce),
-      linkDistance: config.get<number>('linkDistance', DEFAULT_PHYSICS.linkDistance),
-      linkForce: config.get<number>('linkForce', DEFAULT_PHYSICS.linkForce),
-      damping: config.get<number>('damping', DEFAULT_PHYSICS.damping),
-      centerForce: config.get<number>('centerForce', DEFAULT_PHYSICS.centerForce),
-    };
+    return readGraphViewPhysicsSettings(config, DEFAULT_PHYSICS);
   }
 
   /**
@@ -2487,45 +2385,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * @returns Complete HTML document as a string
    */
   private _getHtmlForWebview(webview: vscode.Webview): string {
-    const scriptUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'dist', 'webview', 'index.js')
-    );
-    const styleUri = webview.asWebviewUri(
-      vscode.Uri.joinPath(this._extensionUri, 'dist', 'webview', 'index.css')
-    );
-
-    const nonce = getNonce();
-
-    return `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}'; connect-src ${webview.cspSource}; img-src ${webview.cspSource};">
-  <link href="${styleUri.toString()}" rel="stylesheet">
-  <title>CodeGraphy</title>
-</head>
-<body>
-  <div id="root"></div>
-  <script nonce="${nonce}" src="${scriptUri.toString()}"></script>
-</body>
-</html>`;
+    return createGraphViewHtml(this._extensionUri, webview, createGraphViewNonce());
   }
-}
-
-/**
- * Generates a random nonce for CSP script-src.
- * Used to allow only specific inline scripts in the webview.
- * 
- * @returns 32-character random alphanumeric string
- */
-function getNonce(): string {
-  let text = '';
-  const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  for (let i = 0; i < 32; i++) {
-    text += possible.charAt(Math.floor(Math.random() * possible.length));
-  }
-  return text;
 }
 
 function toErrorMessage(error: unknown): string {
