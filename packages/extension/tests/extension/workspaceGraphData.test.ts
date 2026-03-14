@@ -170,4 +170,91 @@ describe('workspaceGraphData', () => {
       },
     ]);
   });
+
+  it('returns no edges when connections have no resolved path', () => {
+    const graph = buildWorkspaceGraphData({
+      cacheFiles: {},
+      disabledPlugins: new Set(),
+      disabledRules: new Set(),
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: null, type: 'static' }]],
+        ['src/utils.ts', []],
+      ]),
+      showOrphans: true,
+      visitCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('plugin.typescript'),
+    });
+
+    expect(graph.edges).toEqual([]);
+  });
+
+  it('returns no edges when resolved targets are not discovered files', () => {
+    const graph = buildWorkspaceGraphData({
+      cacheFiles: {},
+      disabledPlugins: new Set(),
+      disabledRules: new Set(),
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [{ specifier: './missing', resolvedPath: '/workspace/src/missing.ts', type: 'static' }]],
+      ]),
+      showOrphans: true,
+      visitCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('plugin.typescript'),
+    });
+
+    expect(graph.edges).toEqual([]);
+  });
+
+  it('creates a rule list when a later duplicate edge adds the first rule id', () => {
+    const graph = buildWorkspaceGraphData({
+      cacheFiles: {},
+      disabledPlugins: new Set(),
+      disabledRules: new Set(),
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' },
+        ]],
+        ['src/utils.ts', []],
+      ]),
+      showOrphans: true,
+      visitCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('plugin.typescript'),
+    });
+
+    expect(graph.edges).toEqual([
+      {
+        id: 'src/index.ts->src/utils.ts',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+        ruleIds: ['plugin.typescript:es6-import'],
+      },
+    ]);
+  });
+
+  it('does not qualify rule ids when no plugin matches the source file', () => {
+    const graph = buildWorkspaceGraphData({
+      cacheFiles: {},
+      disabledPlugins: new Set(),
+      disabledRules: new Set(['plugin.typescript:es6-import']),
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' }]],
+        ['src/utils.ts', []],
+      ]),
+      showOrphans: true,
+      visitCounts: {},
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => undefined,
+    });
+
+    expect(graph.edges).toEqual([
+      {
+        id: 'src/index.ts->src/utils.ts',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+      },
+    ]);
+  });
 });

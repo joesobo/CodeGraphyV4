@@ -170,4 +170,80 @@ describe('workspacePluginStatuses', () => {
     expect(statuses.find((status) => status.id === 'plugin.typescript')?.connectionCount).toBe(1);
     expect(statuses.find((status) => status.id === 'plugin.python')?.connectionCount).toBe(1);
   });
+
+  it('ignores files when no plugin matches their path', () => {
+    const pluginInfos = [
+      createPluginInfo({
+        id: 'plugin.typescript',
+        name: 'TypeScript',
+        supportedExtensions: ['.ts'],
+      }),
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      disabledRules: new Set(),
+      discoveredFiles: [{ relativePath: 'src/index.ts' }],
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' }]],
+      ]),
+      pluginInfos,
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => undefined,
+    });
+
+    expect(statuses[0].connectionCount).toBe(0);
+    expect(statuses[0].status).toBe('installed');
+  });
+
+  it('counts connections without rule ids toward plugin totals only', () => {
+    const pluginInfos = [
+      createPluginInfo({
+        id: 'plugin.typescript',
+        name: 'TypeScript',
+        supportedExtensions: ['.ts'],
+        rules: [createRule('es6-import', 'ES6 import')],
+      }),
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      disabledRules: new Set(),
+      discoveredFiles: [{ relativePath: 'src/index.ts' }],
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' }]],
+      ]),
+      pluginInfos,
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => pluginInfos[0].plugin,
+    });
+
+    expect(statuses[0].connectionCount).toBe(1);
+    expect(statuses[0].rules[0].connectionCount).toBe(0);
+  });
+
+  it('returns an empty rule list when a plugin declares no rules', () => {
+    const pluginInfos = [
+      createPluginInfo({
+        id: 'plugin.markdown',
+        name: 'Markdown',
+        supportedExtensions: ['.md'],
+        rules: undefined,
+      }),
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      disabledRules: new Set(),
+      discoveredFiles: [{ relativePath: 'README.md' }],
+      fileConnections: new Map<string, IConnection[]>([
+        ['README.md', []],
+      ]),
+      pluginInfos,
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => pluginInfos[0].plugin,
+    });
+
+    expect(statuses[0].rules).toEqual([]);
+  });
 });

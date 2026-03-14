@@ -18,33 +18,16 @@ import { IGraphData, IPluginStatus } from '../shared/types';
 import { EventBus } from '../core/plugins/EventBus';
 import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
 import { throwIfWorkspaceAnalysisAborted } from './workspaceAnalyzerAbort';
+import {
+  createEmptyWorkspaceAnalysisCache,
+  IWorkspaceAnalysisCache,
+  loadWorkspaceAnalysisCache,
+  saveWorkspaceAnalysisCache,
+  WORKSPACE_ANALYSIS_CACHE_KEY,
+} from './workspaceAnalysisCache';
 import { buildWorkspaceGraphData } from './workspaceGraphData';
+import { analyzeWorkspaceFiles } from './workspaceFileAnalysis';
 import { buildWorkspacePluginStatuses } from './workspacePluginStatuses';
-
-/**
- * Cache entry for a single file's analysis.
- */
-interface ICachedFile {
-  /** File modification time when cached */
-  mtime: number;
-  /** Detected connections */
-  connections: IConnection[];
-  /** File size in bytes */
-  size?: number;
-}
-
-/**
- * Analysis cache stored in workspace state.
- */
-interface IAnalysisCache {
-  /** Cache format version */
-  version: string;
-  /** Cached file data */
-  files: Record<string, ICachedFile>;
-}
-
-const CACHE_KEY = 'codegraphy.analysisCache';
-const CACHE_VERSION = '1.9.0'; // Bumped for rule-based filtering support
 
 /** Storage key for file visit counts in workspace state (shared with GraphViewProvider) */
 const VISITS_KEY = 'codegraphy.fileVisits';
@@ -70,7 +53,7 @@ export class WorkspaceAnalyzer {
   private readonly _registry: PluginRegistry;
   private readonly _discovery: FileDiscovery;
   private readonly _context: vscode.ExtensionContext;
-  private _cache: IAnalysisCache;
+  private _cache: IWorkspaceAnalysisCache;
   private _lastFileConnections: Map<string, IConnection[]> = new Map();
   private _lastDiscoveredFiles: IDiscoveredFile[] = [];
   private _lastWorkspaceRoot: string = '';
@@ -81,7 +64,9 @@ export class WorkspaceAnalyzer {
     this._config = new Configuration();
     this._registry = new PluginRegistry();
     this._discovery = new FileDiscovery();
-    this._cache = this._loadCache();
+    this._cache = loadWorkspaceAnalysisCache(
+      this._context.workspaceState.get<IWorkspaceAnalysisCache>(WORKSPACE_ANALYSIS_CACHE_KEY)
+    );
   }
 
   /**
@@ -213,7 +198,7 @@ export class WorkspaceAnalyzer {
     const graphData = this._buildGraphData(fileConnections, workspaceRoot, config.showOrphans, disabledRules, disabledPlugins);
 
     // Save cache
-    this._saveCache();
+    saveWorkspaceAnalysisCache(this._context.workspaceState.update.bind(this._context.workspaceState), this._cache);
 
     console.log(`[CodeGraphy] Graph built: ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
 
@@ -274,8 +259,8 @@ export class WorkspaceAnalyzer {
    * Clears the analysis cache.
    */
   clearCache(): void {
-    this._cache = { version: CACHE_VERSION, files: {} };
-    this._saveCache();
+    this._cache = createEmptyWorkspaceAnalysisCache();
+    saveWorkspaceAnalysisCache(this._context.workspaceState.update.bind(this._context.workspaceState), this._cache);
     console.log('[CodeGraphy] Cache cleared');
   }
 
@@ -297,15 +282,16 @@ export class WorkspaceAnalyzer {
   ): Promise<void> {
     throwIfWorkspaceAnalysisAborted(signal);
 
-    const contentByRelativePath = new Map<string, string>();
-    const getFileContent = async (file: IDiscoveredFile): Promise<string> => {
+    const contentByRelativePath = new Map<string, Promise<string>>();
+    const getFileContent = (file: IDiscoveredFile): Promise<string> => {
       const cached = contentByRelativePath.get(file.relativePath);
-      if (cached !== undefined) {
+      if (cached) {
         return cached;
       }
-      const content = await this._discovery.readContent(file);
-      contentByRelativePath.set(file.relativePath, content);
-      return content;
+
+      const contentPromise = this._discovery.readContent(file);
+      contentByRelativePath.set(file.relativePath, contentPromise);
+      return contentPromise;
     };
 
     const v2Files = await Promise.all(files.map(async (file) => ({
@@ -327,57 +313,21 @@ export class WorkspaceAnalyzer {
     workspaceRoot: string,
     signal?: AbortSignal
   ): Promise<Map<string, IConnection[]>> {
-    throwIfWorkspaceAnalysisAborted(signal);
+    const result = await analyzeWorkspaceFiles({
+      analyzeFile: (absolutePath, content, rootPath) => this._registry.analyzeFile(absolutePath, content, rootPath),
+      cache: this._cache,
+      emitFileProcessed: this._eventBus
+        ? (payload) => this._eventBus?.emit('analysis:fileProcessed', payload)
+        : undefined,
+      files,
+      getFileStat: (filePath) => this._getFileStat(filePath),
+      readContent: (file) => this._discovery.readContent(file),
+      signal,
+      workspaceRoot,
+    });
 
-    const results = new Map<string, IConnection[]>();
-    let cacheHits = 0;
-    let cacheMisses = 0;
-
-    for (const file of files) {
-      throwIfWorkspaceAnalysisAborted(signal);
-
-      // Check cache
-      const cached = this._cache.files[file.relativePath];
-      const stat = await this._getFileStat(file.absolutePath);
-
-      if (cached && cached.mtime === stat?.mtime) {
-        // Cache hit - but update size if missing (migration from old cache)
-        if (cached.size === undefined && stat?.size !== undefined) {
-          cached.size = stat.size;
-        }
-        results.set(file.relativePath, cached.connections);
-        cacheHits++;
-        continue;
-      }
-
-      // Cache miss - analyze file
-      cacheMisses++;
-      throwIfWorkspaceAnalysisAborted(signal);
-      const content = await this._discovery.readContent(file);
-      throwIfWorkspaceAnalysisAborted(signal);
-      const connections = await this._registry.analyzeFile(
-        file.absolutePath,
-        content,
-        workspaceRoot
-      );
-
-      results.set(file.relativePath, connections);
-
-      this._eventBus?.emit('analysis:fileProcessed', {
-        filePath: file.relativePath,
-        connections: connections.map(conn => ({ specifier: conn.specifier, resolvedPath: conn.resolvedPath })),
-      });
-
-      // Update cache with connections and size
-      this._cache.files[file.relativePath] = {
-        mtime: stat?.mtime ?? 0,
-        connections,
-        size: stat?.size,
-      };
-    }
-
-    console.log(`[CodeGraphy] Analysis: ${cacheHits} cache hits, ${cacheMisses} misses`);
-    return results;
+    console.log(`[CodeGraphy] Analysis: ${result.cacheHits} cache hits, ${result.cacheMisses} misses`);
+    return result.fileConnections;
   }
 
   /**
@@ -424,24 +374,4 @@ export class WorkspaceAnalyzer {
     }
   }
 
-  /**
-   * Loads the analysis cache from workspace state.
-   */
-  private _loadCache(): IAnalysisCache {
-    const cached = this._context.workspaceState.get<IAnalysisCache>(CACHE_KEY);
-    
-    if (cached && cached.version === CACHE_VERSION) {
-      console.log(`[CodeGraphy] Loaded cache: ${Object.keys(cached.files).length} files`);
-      return cached;
-    }
-
-    return { version: CACHE_VERSION, files: {} };
-  }
-
-  /**
-   * Saves the analysis cache to workspace state.
-   */
-  private _saveCache(): void {
-    this._context.workspaceState.update(CACHE_KEY, this._cache);
-  }
 }
