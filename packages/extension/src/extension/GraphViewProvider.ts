@@ -42,14 +42,7 @@ import {
   mapAvailableViews,
 } from './graphViewPresentation';
 import {
-  buildGraphViewDecorationPayload,
-  collectGraphViewContextMenuItems,
-  collectGraphViewWebviewInjections,
-} from './graphViewPluginMessages';
-import {
-  getGraphViewLocalResourceRoots,
   normalizeGraphViewExtensionUri,
-  resolveGraphViewAssetPath,
 } from './graphViewResources';
 import { shouldRebuildGraphView } from './graphViewRebuild';
 import { readGraphViewPhysicsSettings } from './graphViewPhysics';
@@ -60,6 +53,10 @@ import {
   sendGraphViewFavorites,
   toggleGraphViewFavorites,
 } from './graphView/favorites';
+import {
+  registerGraphViewExternalPlugin,
+  type GraphViewExternalPluginRegistrationOptions,
+} from './graphView/externalPluginRegistration';
 import {
   addGraphViewExcludePatterns,
   createGraphViewFile,
@@ -94,6 +91,15 @@ import {
   sendCachedGraphViewTimeline,
   sendGraphViewPlaybackSpeed,
 } from './graphView/timelinePlayback';
+import {
+  getGraphViewWebviewResourceRoots,
+  refreshGraphViewResourceRoots,
+  resolveGraphViewPluginAssetPath,
+  sendGraphViewContextMenuItems,
+  sendGraphViewDecorations,
+  sendGraphViewPluginStatuses,
+  sendGraphViewPluginWebviewInjections,
+} from './graphView/pluginWebview';
 import {
 	getGraphViewConfigTarget,
 	normalizeFolderNodeColor,
@@ -159,10 +165,6 @@ const DEFAULT_TIMELINE_PREVIEW_BEHAVIOR: EditorOpenBehavior = {
   preview: true,
   preserveFocus: false,
 };
-
-interface IExternalPluginRegistrationOptions {
-  extensionUri?: vscode.Uri | string;
-}
 
 /**
  * Provides the webview panel that displays the CodeGraphy dependency graph.
@@ -803,53 +805,37 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Sends plugin statuses to the webview.
    */
   private _sendPluginStatuses(): void {
-    if (!this._analyzer) return;
-    const plugins = this._analyzer.getPluginStatuses(this._disabledRules, this._disabledPlugins);
-    this._sendMessage({ type: 'PLUGINS_UPDATED', payload: { plugins } });
+    sendGraphViewPluginStatuses(
+      this._analyzer,
+      this._disabledRules,
+      this._disabledPlugins,
+      (message) => this._sendMessage(message),
+    );
   }
 
   /**
    * Sends merged decorations to the webview.
    */
   private _sendDecorations(): void {
-    const payload = buildGraphViewDecorationPayload(
-      this._decorationManager.getMergedNodeDecorations(),
-      this._decorationManager.getMergedEdgeDecorations()
-    );
-    this._sendMessage({
-      type: 'DECORATIONS_UPDATED',
-      payload,
-    });
+    sendGraphViewDecorations(this._decorationManager, (message) => this._sendMessage(message));
   }
 
   /**
    * Sends plugin context menu items to the webview.
    */
   private _sendContextMenuItems(): void {
-    if (!this._analyzer) return;
-    const items = collectGraphViewContextMenuItems(
-      this._analyzer.registry.list(),
-      (pluginId) => this._analyzer?.registry.getPluginAPI(pluginId)
-    );
-    this._sendMessage({ type: 'CONTEXT_MENU_ITEMS', payload: { items } });
+    sendGraphViewContextMenuItems(this._analyzer, (message) => this._sendMessage(message));
   }
 
   /**
    * Sends Tier-2 webview asset injections for plugins that declare contributions.
    */
   private _sendPluginWebviewInjections(): void {
-    if (!this._analyzer) return;
-    const injections = collectGraphViewWebviewInjections(
-      this._analyzer.registry.list(),
-      (assetPath, pluginId) => this._resolveWebviewAssetPath(assetPath, pluginId)
+    sendGraphViewPluginWebviewInjections(
+      this._analyzer,
+      (assetPath, pluginId) => this._resolveWebviewAssetPath(assetPath, pluginId),
+      (message) => this._sendMessage(message),
     );
-
-    for (const injection of injections) {
-      this._sendMessage({
-        type: 'PLUGIN_WEBVIEW_INJECT',
-        payload: injection,
-      });
-    }
   }
 
   /**
@@ -858,12 +844,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * to webview URIs when possible.
    */
   private _resolveWebviewAssetPath(assetPath: string, pluginId?: string): string {
-    const webview = this._view?.webview ?? this._panels[0]?.webview;
-    return resolveGraphViewAssetPath(
+    return resolveGraphViewPluginAssetPath(
       assetPath,
       this._extensionUri,
       this._pluginExtensionUris,
-      webview,
+      this._view,
+      this._panels,
       pluginId
     );
   }
@@ -873,7 +859,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Includes CodeGraphy and any externally-registered plugin extension roots.
    */
   private _getLocalResourceRoots(): vscode.Uri[] {
-    return getGraphViewLocalResourceRoots(
+    return getGraphViewWebviewResourceRoots(
       this._extensionUri,
       this._pluginExtensionUris,
       vscode.workspace.workspaceFolders
@@ -884,19 +870,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Applies the current resource roots to all active webviews.
    */
   private _refreshWebviewResourceRoots(): void {
-    const localResourceRoots = this._getLocalResourceRoots();
-    if (this._view) {
-      this._view.webview.options = {
-        ...this._view.webview.options,
-        localResourceRoots,
-      };
-    }
-    for (const panel of this._panels) {
-      panel.webview.options = {
-        ...panel.webview.options,
-        localResourceRoots,
-      };
-    }
+    refreshGraphViewResourceRoots(
+      this._view,
+      this._panels,
+      this._getLocalResourceRoots(),
+    );
   }
 
   /**
@@ -1091,51 +1069,31 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   /**
    * Registers an external v2 plugin.
    */
-  public registerExternalPlugin(plugin: unknown, options?: IExternalPluginRegistrationOptions): void {
-    if (!this._analyzer || typeof plugin !== 'object' || plugin === null || !('id' in plugin)) {
-      return;
-    }
-
-    const analyzer = this._analyzer;
-    const pluginId = String((plugin as { id: unknown }).id);
-    const sourceUri = this._normalizeExternalExtensionUri(options?.extensionUri);
-    if (sourceUri) {
-      this._pluginExtensionUris.set(pluginId, sourceUri);
-    }
-
-    const shouldDeferReadinessReplay = !this._firstAnalysis || this._webviewReadyNotified;
-    analyzer.registry.register(plugin as import('../core/plugins/types').IPlugin, {
-      deferReadinessReplay: shouldDeferReadinessReplay,
-    });
-
-    const initializePromise = (async () => {
-      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-      if (!workspaceRoot) return;
-
-      if (this._analyzerInitialized) {
-        await analyzer.registry.initializePlugin(pluginId, workspaceRoot);
-        return;
-      }
-
-      // If startup is already running, finish it before initializing this plugin.
-      if (this._analyzerInitPromise) {
-        await this._analyzerInitPromise;
-        await analyzer.registry.initializePlugin(pluginId, workspaceRoot);
-      }
-    })();
-
-    this._refreshWebviewResourceRoots();
-    this._sendPluginStatuses();
-    this._sendContextMenuItems();
-    this._sendPluginWebviewInjections();
-    void initializePromise.finally(() => {
-      if (shouldDeferReadinessReplay) {
-        analyzer.registry.replayReadinessForPlugin(pluginId);
-      }
-      if (this._analyzerInitialized) {
-        void this._analyzeAndSendData();
-      }
-    });
+  public registerExternalPlugin(
+    plugin: unknown,
+    options?: GraphViewExternalPluginRegistrationOptions,
+  ): void {
+    registerGraphViewExternalPlugin(
+      plugin,
+      options,
+      {
+        analyzer: this._analyzer,
+        pluginExtensionUris: this._pluginExtensionUris,
+        firstAnalysis: this._firstAnalysis,
+        webviewReadyNotified: this._webviewReadyNotified,
+        analyzerInitialized: this._analyzerInitialized,
+        analyzerInitPromise: this._analyzerInitPromise,
+      },
+      {
+        normalizeExtensionUri: (uri) => this._normalizeExternalExtensionUri(uri),
+        getWorkspaceRoot: () => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+        refreshWebviewResourceRoots: () => this._refreshWebviewResourceRoots(),
+        sendPluginStatuses: () => this._sendPluginStatuses(),
+        sendContextMenuItems: () => this._sendContextMenuItems(),
+        sendPluginWebviewInjections: () => this._sendPluginWebviewInjections(),
+        analyzeAndSendData: () => this._analyzeAndSendData(),
+      },
+    );
   }
 
   /**
