@@ -1108,7 +1108,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       }
     );
 
-    panel.iconPath = vscode.Uri.joinPath(this._extensionUri, 'assets', 'icon.svg');
+    panel.iconPath = {
+      dark: vscode.Uri.joinPath(this._extensionUri, 'assets', 'icon-dark.svg'),
+      light: vscode.Uri.joinPath(this._extensionUri, 'assets', 'icon-light.svg'),
+    };
 
     // Set up message listener before loading HTML
     this._setWebviewMessageListener(panel.webview);
