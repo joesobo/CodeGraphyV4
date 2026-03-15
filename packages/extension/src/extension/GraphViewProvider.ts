@@ -30,7 +30,6 @@ import {
   ResetSettingsAction,
 } from './actions';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
-import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
 import { saveExportedPng } from './export/savePng';
 import { saveExportedSvg } from './export/saveSvg';
 import { saveExportedJpeg } from './export/saveJpeg';
@@ -48,6 +47,11 @@ import { shouldRebuildGraphView } from './graphViewRebuild';
 import { readGraphViewPhysicsSettings } from './graphViewPhysics';
 import { createGraphViewHtml, createGraphViewNonce } from './graphViewHtml';
 import { applyGraphViewAllSettingsSnapshot } from './graphView/allSettingsSync';
+import {
+  executeGraphViewAnalysis,
+  type GraphViewAnalysisExecutionState,
+} from './graphView/analysisExecution';
+import { runGraphViewAnalysisRequest } from './graphView/analysisRequest';
 import { loadGraphViewFileInfo } from './graphView/fileInfo';
 import {
   sendGraphViewFavorites,
@@ -91,6 +95,7 @@ import {
   sendCachedGraphViewTimeline,
   sendGraphViewPlaybackSpeed,
 } from './graphView/timelinePlayback';
+import { indexGraphViewRepository } from './graphView/timelineIndex';
 import {
   getGraphViewWebviewResourceRoots,
   refreshGraphViewResourceRoots,
@@ -482,109 +487,64 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Analyzes the workspace and sends data to webview.
    */
   private async _analyzeAndSendData(): Promise<void> {
-    // Cancel current run and immediately prioritize the latest refresh request.
-    this._analysisController?.abort();
-    const controller = new AbortController();
-    this._analysisController = controller;
-    const requestId = ++this._analysisRequestId;
+    const state = {
+      analysisController: this._analysisController,
+      analysisRequestId: this._analysisRequestId,
+    };
 
-    try {
-      await this._doAnalyzeAndSendData(controller.signal, requestId);
-    } catch (error) {
-      if (!this._isAbortError(error)) {
-        console.error('[CodeGraphy] Analysis failed:', error);
-      }
-    } finally {
-      if (this._analysisController === controller) {
-        this._analysisController = undefined;
-      }
-    }
+    await runGraphViewAnalysisRequest(state, {
+      executeAnalysis: (signal, requestId) => this._doAnalyzeAndSendData(signal, requestId),
+      isAbortError: error => this._isAbortError(error),
+      logError: (message, error) => {
+        console.error(message, error);
+      },
+    });
+
+    this._analysisController = state.analysisController;
+    this._analysisRequestId = state.analysisRequestId;
   }
 
   private async _doAnalyzeAndSendData(signal: AbortSignal, requestId: number): Promise<void> {
-    if (this._isAnalysisStale(signal, requestId)) return;
+    const state: GraphViewAnalysisExecutionState = {
+      analyzer: this._analyzer,
+      analyzerInitialized: this._analyzerInitialized,
+      analyzerInitPromise: this._analyzerInitPromise,
+      filterPatterns: this._filterPatterns,
+      disabledRules: this._disabledRules,
+      disabledPlugins: this._disabledPlugins,
+    };
 
-    if (!this._analyzer) {
-      // No analyzer - send empty data
-      this._rawGraphData = { nodes: [], edges: [] };
-      this._graphData = { nodes: [], edges: [] };
-      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-      this._sendAvailableViews();
-      return;
-    }
+    await executeGraphViewAnalysis(signal, requestId, state, {
+      isAnalysisStale: (nextSignal, nextRequestId) =>
+        this._isAnalysisStale(nextSignal, nextRequestId),
+      hasWorkspace: () => (vscode.workspace.workspaceFolders?.length ?? 0) > 0,
+      setRawGraphData: graphData => {
+        this._rawGraphData = graphData;
+      },
+      setGraphData: graphData => {
+        this._graphData = graphData;
+      },
+      getGraphData: () => this._graphData,
+      sendGraphDataUpdated: graphData => {
+        this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
+      },
+      sendAvailableViews: () => this._sendAvailableViews(),
+      computeMergedGroups: () => this._computeMergedGroups(),
+      sendGroupsUpdated: () => this._sendGroupsUpdated(),
+      updateViewContext: () => this._updateViewContext(),
+      applyViewTransform: () => this._applyViewTransform(),
+      sendPluginStatuses: () => this._sendPluginStatuses(),
+      sendDecorations: () => this._sendDecorations(),
+      sendContextMenuItems: () => this._sendContextMenuItems(),
+      markWorkspaceReady: graphData => this._markWorkspaceReady(graphData),
+      isAbortError: error => this._isAbortError(error),
+      logError: (message, error) => {
+        console.error(message, error);
+      },
+    });
 
-    // Initialize analyzer if needed
-    if (!this._analyzerInitialized) {
-      if (!this._analyzerInitPromise) {
-        this._analyzerInitPromise = this._analyzer.initialize()
-          .then(() => {
-            this._analyzerInitialized = true;
-          })
-          .finally(() => {
-            this._analyzerInitPromise = undefined;
-          });
-      }
-      await this._analyzerInitPromise;
-      if (this._isAnalysisStale(signal, requestId)) return;
-    }
-
-    // Recompute merged groups (user groups + visible plugin defaults) and notify webview.
-    this._computeMergedGroups();
-    if (this._isAnalysisStale(signal, requestId)) return;
-    this._sendGroupsUpdated();
-
-    // Check if workspace is open
-    const hasWorkspace = vscode.workspace.workspaceFolders && 
-                         vscode.workspace.workspaceFolders.length > 0;
-
-    if (!hasWorkspace) {
-      // No workspace - send empty data
-      this._rawGraphData = { nodes: [], edges: [] };
-      this._graphData = { nodes: [], edges: [] };
-      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-      this._sendAvailableViews();
-      return;
-    }
-
-    // Analyze real workspace
-    try {
-      this._rawGraphData = await this._analyzer.analyze(
-        this._filterPatterns,
-        this._disabledRules,
-        this._disabledPlugins,
-        signal
-      );
-      if (this._isAnalysisStale(signal, requestId)) return;
-
-      // Update view context
-      this._updateViewContext();
-      
-      // Apply view transform
-      this._applyViewTransform();
-      
-  
-      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-      this._sendAvailableViews();
-      this._sendPluginStatuses();
-      this._sendDecorations();
-      this._sendContextMenuItems();
-
-      // Notify v2 plugins of lifecycle events
-      this._analyzer.registry.notifyPostAnalyze(this._graphData);
-      this._markWorkspaceReady(this._graphData);
-    } catch (error) {
-      if (this._isAbortError(error) || this._isAnalysisStale(signal, requestId)) {
-        return;
-      }
-      console.error('[CodeGraphy] Analysis failed:', error);
-      // Send empty data on error
-      this._rawGraphData = { nodes: [], edges: [] };
-      this._graphData = { nodes: [], edges: [] };
-      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-      this._sendAvailableViews();
-      this._sendPluginStatuses();
-      this._markWorkspaceReady(this._graphData);
-    }
+    this._analyzerInitialized = state.analyzerInitialized;
+    this._analyzerInitPromise = state.analyzerInitPromise;
   }
 
   /**
@@ -1448,84 +1408,52 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Indexes the git repository history and enables the timeline.
    */
   private async _indexRepository(): Promise<void> {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    if (!workspaceFolder) {
-      vscode.window.showErrorMessage('No workspace folder open');
-      return;
-    }
+    const state = {
+      analyzer: this._analyzer,
+      analyzerInitialized: this._analyzerInitialized,
+      gitAnalyzer: this._gitAnalyzer,
+      indexingController: this._indexingController,
+      filterPatterns: this._filterPatterns,
+      timelineActive: this._timelineActive,
+      currentCommitSha: this._currentCommitSha,
+    };
 
-    // Check if this is a git repo
-    try {
-      const { execFile } = await import('child_process');
-      const { promisify } = await import('util');
-      const execFileAsync = promisify(execFile);
-      await execFileAsync('git', ['rev-parse', '--git-dir'], { cwd: workspaceFolder.uri.fsPath });
-    } catch {
-      vscode.window.showErrorMessage('This workspace is not a git repository');
-      return;
-    }
+    await indexGraphViewRepository(state, {
+      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+      verifyGitRepository: async cwd => {
+        const { execFile } = await import('child_process');
+        const { promisify } = await import('util');
+        const execFileAsync = promisify(execFile);
+        await execFileAsync('git', ['rev-parse', '--git-dir'], { cwd });
+      },
+      createGitAnalyzer: (workspaceRoot, mergedExclude) =>
+        new GitHistoryAnalyzer(
+          this._context,
+          this._analyzer!.registry,
+          workspaceRoot,
+          mergedExclude,
+        ),
+      getMaxCommits: () =>
+        vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.maxCommits', 500),
+      sendMessage: message => this._sendMessage(message),
+      showErrorMessage: message => {
+        vscode.window.showErrorMessage(message);
+      },
+      showInformationMessage: message => {
+        vscode.window.showInformationMessage(message);
+      },
+      toErrorMessage,
+      jumpToCommit: sha => this._jumpToCommit(sha),
+      logError: (message, error) => {
+        console.error(message, error);
+      },
+    });
 
-    // Cancel any existing indexing
-    this._indexingController?.abort();
-    const controller = new AbortController();
-    this._indexingController = controller;
-
-    // Initialize analyzer if needed
-    if (!this._analyzer) return;
-    if (!this._analyzerInitialized) {
-      await this._analyzer.initialize();
-      this._analyzerInitialized = true;
-    }
-
-    // Create GitHistoryAnalyzer lazily with merged exclude patterns
-    if (!this._gitAnalyzer) {
-      const pluginFilters = this._analyzer.getPluginFilterPatterns();
-      const mergedExclude = [
-        ...new Set([...DEFAULT_EXCLUDE_PATTERNS, ...pluginFilters, ...this._filterPatterns]),
-      ];
-      this._gitAnalyzer = new GitHistoryAnalyzer(
-        this._context,
-        this._analyzer.registry,
-        workspaceFolder.uri.fsPath,
-        mergedExclude
-      );
-    }
-
-    try {
-      const maxCommits = vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.maxCommits', 500);
-      const commits = await this._gitAnalyzer.indexHistory(
-        (phase, current, total) => {
-          this._sendMessage({
-            type: 'INDEX_PROGRESS',
-            payload: { phase, current, total },
-          });
-        },
-        controller.signal,
-        maxCommits
-      );
-
-      if (commits.length === 0) {
-        vscode.window.showInformationMessage('No commits found to index');
-        return;
-      }
-
-      this._timelineActive = true;
-      const latestSha = commits[commits.length - 1].sha;
-      this._currentCommitSha = latestSha;
-
-      this._sendMessage({
-        type: 'TIMELINE_DATA',
-        payload: { commits, currentSha: latestSha },
-      });
-
-      // Load the latest commit's graph data
-      await this._jumpToCommit(latestSha);
-    } catch (error) {
-      if (error instanceof Error && error.name === 'AbortError') return;
-      console.error('[CodeGraphy] Indexing failed:', error);
-      vscode.window.showErrorMessage(`Timeline indexing failed: ${toErrorMessage(error)}`);
-      this._sendMessage({ type: 'CACHE_INVALIDATED' });
-    }
+    this._analyzerInitialized = state.analyzerInitialized;
+    this._gitAnalyzer = state.gitAnalyzer;
+    this._indexingController = state.indexingController;
+    this._timelineActive = state.timelineActive ?? this._timelineActive;
+    this._currentCommitSha = state.currentCommitSha;
   }
 
   /**
