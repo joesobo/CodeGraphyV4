@@ -370,6 +370,32 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - commit/push this follow-up batch
           - rerun `pnpm run mutate -- extension graph-view-provider`
           - keep splitting `providerAnalysisMethods.ts` and `dispatchPlugin.ts` in parallel
+      - current local threshold-closure batch:
+        - split `dispatchPlugin.ts` into:
+          - `dispatchPluginReady.ts`
+          - `dispatchPluginHiddenGroups.ts`
+        - split `providerAnalysisMethods.ts` into:
+          - `providerAnalysisMethodDelegates.ts`
+          - `providerAnalysisMethodState.ts`
+          - `providerAnalysisMethodHandlers.ts`
+          - `providerAnalysisExecutionMethods.ts`
+          - `providerAnalysisRequestMethods.ts`
+        - update `externalPluginRegistration.ts` and `providerPluginMethods.ts` so late plugin registration reads live provider readiness state and still initializes plugins after readiness replay
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/dispatchPlugin.test.ts tests/extension/graphView/messages/dispatchPluginHiddenGroups.test.ts tests/extension/graphView/messages/dispatchPluginReady.test.ts`
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerAnalysisMethods.test.ts tests/extension/graphView/providerAnalysisMethodDelegates.test.ts tests/extension/graphView/providerAnalysisMethodHandlers.test.ts tests/extension/graphView/providerAnalysisMethodState.test.ts tests/extension/graphView/providerAnalysisExecutionMethods.test.ts tests/extension/graphView/providerAnalysisRequestMethods.test.ts tests/extension/graphView/providerPluginMethods.test.ts tests/extension/graphView/externalPluginRegistration.test.ts`
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GraphViewProvider.test.ts -t "plugin API v2 webview bridge"`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the threshold-closure batch:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - graph-view-provider slice overall = `77.68%`
+          - `packages/extension/src/extension/GraphViewProvider.ts` = `53.13%`
+          - `packages/extension/src/extension/graphView/providerAnalysisMethods.ts` = `64.71%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - next immediate step:
+          - stop splitting for site-count reasons in this slice
+          - start survivor cleanup and test hardening against the lowest-scoring files now that every mutated file is under `50` sites
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
