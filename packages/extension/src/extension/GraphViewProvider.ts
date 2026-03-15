@@ -82,6 +82,11 @@ import {
   captureGraphViewSettingsSnapshot,
 } from './graphView/settings';
 import {
+  initializeGraphViewProviderServices,
+  restoreGraphViewProviderState,
+} from './graphView/providerBootstrap';
+import { resolveGraphViewWebviewView } from './graphView/resolveWebview';
+import {
   buildGraphViewContext,
 } from './graphView/viewContext';
 import {
@@ -317,51 +322,41 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     });
 
     this._analyzer = new WorkspaceAnalyzer(_context);
-
-    // Initialize view registry with core views
     this._viewRegistry = new ViewRegistry();
-    for (const view of coreViews) {
-      this._viewRegistry.register(view, { core: true, isDefault: view.id === 'codegraphy.connections' });
-    }
-
-    // Initialize v2 plugin subsystems
     this._eventBus = new EventBus();
     this._decorationManager = new DecorationManager();
 
-    // Wire the event bus into the analyzer for analysis lifecycle events
-    this._analyzer.setEventBus(this._eventBus);
-
-    // Configure plugin registry for v2
-    this._analyzer.registry.configureV2({
+    initializeGraphViewProviderServices({
+      analyzer:
+        this._analyzer as Parameters<typeof initializeGraphViewProviderServices>[0]['analyzer'],
+      viewRegistry: this._viewRegistry,
+      coreViews,
       eventBus: this._eventBus,
       decorationManager: this._decorationManager,
-      viewRegistry: this._viewRegistry,
-      graphProvider: () => this._graphData,
-      commandRegistrar: (id, action) => {
-        const disposable = vscode.commands.registerCommand(id, action);
-        this._context.subscriptions.push(disposable);
-        return disposable;
+      getGraphData: () => this._graphData,
+      registerCommand: (id, action) => vscode.commands.registerCommand(id, action),
+      pushSubscription: subscription => {
+        this._context.subscriptions.push(subscription as vscode.Disposable);
       },
-      webviewSender: (msg) => this._sendMessage(msg as ExtensionToWebviewMessage),
+      sendMessage: msg => this._sendMessage(msg as ExtensionToWebviewMessage),
       workspaceRoot: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
+      onDecorationsChanged: () => {
+        this._sendDecorations();
+      },
     });
 
-    // Forward decoration changes to webview
-    this._decorationManager.onDecorationsChanged(() => {
-      this._sendDecorations();
+    const restoredState = restoreGraphViewProviderState({
+      workspaceState: this._context.workspaceState,
+      viewRegistry: this._viewRegistry,
+      selectedViewKey: SELECTED_VIEW_KEY,
+      dagModeKey: DAG_MODE_KEY,
+      nodeSizeModeKey: NODE_SIZE_MODE_KEY,
+      fallbackViewId: 'codegraphy.connections',
+      fallbackNodeSizeMode: 'connections',
     });
-
-    // Restore selected view from workspace state, or use default
-    const savedViewId = this._context.workspaceState.get<string>(SELECTED_VIEW_KEY);
-    this._activeViewId = savedViewId && this._viewRegistry.get(savedViewId)
-      ? savedViewId
-      : this._viewRegistry.getDefaultViewId() ?? 'codegraphy.connections';
-
-    // Restore DAG mode from workspace state
-    this._dagMode = this._context.workspaceState.get<DagMode>(DAG_MODE_KEY) ?? null;
-
-    // Restore node size mode from workspace state
-    this._nodeSizeMode = this._context.workspaceState.get<NodeSizeMode>(NODE_SIZE_MODE_KEY) ?? 'connections';
+    this._activeViewId = restoredState.activeViewId;
+    this._dagMode = restoredState.dagMode;
+    this._nodeSizeMode = restoredState.nodeSizeMode;
 
     this._loadDisabledRulesAndPlugins();
   }
@@ -387,30 +382,18 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     _token: vscode.CancellationToken
   ): void {
     this._view = webviewView;
-
-    webviewView.webview.options = {
-      enableScripts: true,
-      localResourceRoots: this._getLocalResourceRoots(),
-    };
-
-    // Set up message listener BEFORE loading HTML to avoid race condition
-    this._setWebviewMessageListener(webviewView.webview);
-
-    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-
-    // Set context for keybindings - initial state
-    void vscode.commands.executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
-
-    // Listen for visibility changes (e.g., switching between views)
-    // When view becomes visible again, re-send the graph data
-    webviewView.onDidChangeVisibility(() => {
-      // Update keybinding context
-      void vscode.commands.executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
-
-      if (webviewView.visible) {
-        console.log('[CodeGraphy] View became visible, re-sending data');
-        void this._analyzeAndSendData();
-      }
+    resolveGraphViewWebviewView(webviewView, {
+      getLocalResourceRoots: () => this._getLocalResourceRoots(),
+      setWebviewMessageListener: nextWebview => {
+        this._setWebviewMessageListener(nextWebview as vscode.Webview);
+      },
+      getHtml: nextWebview => this._getHtmlForWebview(nextWebview as vscode.Webview),
+      executeCommand: (command, key, value) =>
+        vscode.commands.executeCommand(command, key, value),
+      analyzeAndSendData: () => this._analyzeAndSendData(),
+      log: message => {
+        console.log(message);
+      },
     });
 
     // Do NOT proactively call _analyzeAndSendData() here.
