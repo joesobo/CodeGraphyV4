@@ -28,6 +28,8 @@ export interface GraphViewProviderFileVisitMethodsSource {
   _graphData: IGraphData;
   _sendMessage(message: ExtensionToWebviewMessage): void;
   _analyzeAndSendData(): Promise<void>;
+  _getVisitCount?(this: void, filePath: string): number;
+  _incrementVisitCount?(this: void, filePath: string): Promise<void>;
 }
 
 export interface GraphViewProviderFileVisitMethods {
@@ -79,6 +81,15 @@ export function createGraphViewProviderFileVisitMethods(
   const _getVisitCount = (filePath: string): number =>
     dependencies.getVisitCount(source._context.workspaceState as never, filePath);
 
+  const readVisitCount = (filePath: string): number => {
+    const implementation = source._getVisitCount;
+    if (implementation && implementation !== _getVisitCount) {
+      return implementation(filePath);
+    }
+
+    return _getVisitCount(filePath);
+  };
+
   const _getFileInfo = async (filePath: string): Promise<void> => {
     const state = {
       analyzer: source._analyzer,
@@ -89,7 +100,7 @@ export function createGraphViewProviderFileVisitMethods(
     await dependencies.sendFileInfoMessage(filePath, state, {
       workspaceFolder: dependencies.getWorkspaceFolder(),
       statFile: fileUri => dependencies.statFile(fileUri),
-      getVisitCount: nextFilePath => _getVisitCount(nextFilePath),
+      getVisitCount: nextFilePath => readVisitCount(nextFilePath),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
       logError: (label, error) => dependencies.logError(label, error),
     });
@@ -107,7 +118,14 @@ export function createGraphViewProviderFileVisitMethods(
   const trackFileVisitOnGraph = async (filePath: string): Promise<void> => {
     await dependencies.trackFileVisit(filePath, {
       graphData: source._graphData,
-      incrementVisitCount: nextFilePath => _incrementVisitCount(nextFilePath),
+      incrementVisitCount: nextFilePath => {
+        const implementation = source._incrementVisitCount;
+        if (implementation && implementation !== _incrementVisitCount) {
+          return implementation(nextFilePath);
+        }
+
+        return _incrementVisitCount(nextFilePath);
+      },
     });
   };
 
@@ -127,7 +145,7 @@ export function createGraphViewProviderFileVisitMethods(
     );
   };
 
-  return {
+  const methods: GraphViewProviderFileVisitMethods = {
     _getFileInfo,
     _getVisitCount,
     _incrementVisitCount,
@@ -135,4 +153,8 @@ export function createGraphViewProviderFileVisitMethods(
     _addToExclude,
     _sendFavorites,
   };
+
+  Object.assign(source as object, methods);
+
+  return methods;
 }

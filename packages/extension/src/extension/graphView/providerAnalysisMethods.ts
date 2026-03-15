@@ -41,6 +41,10 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _sendPluginStatuses(): void;
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
+  _doAnalyzeAndSendData?(this: void, signal: AbortSignal, requestId: number): Promise<void>;
+  _markWorkspaceReady?(this: void, graph: IGraphData): void;
+  _isAnalysisStale?(this: void, signal: AbortSignal, requestId: number): boolean;
+  _isAbortError?(this: void, error: unknown): boolean;
 }
 
 export interface GraphViewProviderAnalysisMethods {
@@ -113,6 +117,34 @@ export function createGraphViewProviderAnalysisMethods(
 
   const _isAbortError = (error: unknown): boolean => dependencies.isAbortError(error);
 
+  const callMarkWorkspaceReady = (graph: IGraphData): void => {
+    const implementation = source._markWorkspaceReady;
+    if (implementation && implementation !== _markWorkspaceReady) {
+      implementation(graph);
+      return;
+    }
+
+    _markWorkspaceReady(graph);
+  };
+
+  const callIsAnalysisStale = (signal: AbortSignal, requestId: number): boolean => {
+    const implementation = source._isAnalysisStale;
+    if (implementation && implementation !== _isAnalysisStale) {
+      return implementation(signal, requestId);
+    }
+
+    return _isAnalysisStale(signal, requestId);
+  };
+
+  const callIsAbortError = (error: unknown): boolean => {
+    const implementation = source._isAbortError;
+    if (implementation && implementation !== _isAbortError) {
+      return implementation(error);
+    }
+
+    return _isAbortError(error);
+  };
+
   const _doAnalyzeAndSendData = async (
     signal: AbortSignal,
     requestId: number,
@@ -129,7 +161,8 @@ export function createGraphViewProviderAnalysisMethods(
     };
 
     await dependencies.executeAnalysis(signal, requestId, state, {
-      isAnalysisStale: (nextSignal, nextRequestId) => _isAnalysisStale(nextSignal, nextRequestId),
+      isAnalysisStale: (nextSignal, nextRequestId) =>
+        callIsAnalysisStale(nextSignal, nextRequestId),
       hasWorkspace: () => dependencies.hasWorkspace(),
       setRawGraphData: graphData => {
         source._rawGraphData = graphData;
@@ -149,8 +182,8 @@ export function createGraphViewProviderAnalysisMethods(
       sendPluginStatuses: () => source._sendPluginStatuses(),
       sendDecorations: () => source._sendDecorations(),
       sendContextMenuItems: () => source._sendContextMenuItems(),
-      markWorkspaceReady: graphData => _markWorkspaceReady(graphData),
-      isAbortError: error => _isAbortError(error),
+      markWorkspaceReady: graphData => callMarkWorkspaceReady(graphData),
+      isAbortError: error => callIsAbortError(error),
       logError: (message, error) => {
         dependencies.logError(message, error);
       },
@@ -175,8 +208,15 @@ export function createGraphViewProviderAnalysisMethods(
     };
 
     await dependencies.runAnalysisRequest(state, {
-      executeAnalysis: (signal, requestId) => _doAnalyzeAndSendData(signal, requestId),
-      isAbortError: error => _isAbortError(error),
+      executeAnalysis: (signal, requestId) => {
+        const implementation = source._doAnalyzeAndSendData;
+        if (implementation && implementation !== _doAnalyzeAndSendData) {
+          return implementation(signal, requestId);
+        }
+
+        return _doAnalyzeAndSendData(signal, requestId);
+      },
+      isAbortError: error => callIsAbortError(error),
       logError: (message, error) => {
         dependencies.logError(message, error);
       },
@@ -192,11 +232,15 @@ export function createGraphViewProviderAnalysisMethods(
     source._analysisRequestId = state.analysisRequestId;
   };
 
-  return {
+  const methods: GraphViewProviderAnalysisMethods = {
     _analyzeAndSendData,
     _doAnalyzeAndSendData,
     _markWorkspaceReady,
     _isAnalysisStale,
     _isAbortError,
   };
+
+  Object.assign(source as object, methods);
+
+  return methods;
 }

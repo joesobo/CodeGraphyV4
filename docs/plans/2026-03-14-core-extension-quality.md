@@ -255,6 +255,47 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - extract constructor/view-resolution bootstrap and settings/file-info/visit orchestration before another listener-context pass
         - keep draining `GraphViewProvider.ts`, next likely seams: built-in/plugin group assembly, view-context/view-transform/send wrappers, and the `_setWebviewMessageListener` dependency object
         - do not spend time on survivor cleanup until the provider file is also under the `50`-site threshold
+      - latest targeted mutation after the provider wrapper/listener/settings pass:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `69.12%`
+        - `GraphViewProvider.ts` = `41.94%`
+        - `GraphViewProvider.ts` mutation sites = `408`
+        - `graphView/messages/providerListener.ts` = `125` sites
+        - `graphView/messages/dispatchPrimary.ts` = `86` sites
+        - `graphView/messages/dispatchPlugin.ts` = `56` sites
+        - `graphView/timelineIndex.ts` = `54` sites
+      - latest targeted mutation after the current local commit stack:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `69.12%`
+        - `GraphViewProvider.ts` = `44.97%`
+        - `GraphViewProvider.ts` mutation sites = `358`
+        - remaining threshold blockers:
+          - `GraphViewProvider.ts` = `358` sites
+          - `graphView/messages/providerListener.ts` = `125` sites
+          - `graphView/messages/dispatchPrimary.ts` = `86` sites
+          - `graphView/messages/dispatchPlugin.ts` = `56` sites
+          - `graphView/timelineIndex.ts` = `54` sites
+      - current worker split:
+        - worker 1: add `graphView/providerAnalysisMethods.ts` and `providerRefreshMethods.ts` with direct tests
+        - worker 2: add `graphView/providerSettingsMethods.ts` and `providerFileVisitMethods.ts` with direct tests
+        - worker 3: add `graphView/providerPluginMethods.ts`, `providerViewMethods.ts`, and `providerCommandMethods.ts` with direct tests
+        - main branch: wire helper factories into `GraphViewProvider.ts`, keep helper files below the `50`-site threshold, rerun targeted mutation immediately after each integration cut
+      - next cut:
+        - convert remaining provider methods to bound helper factories so `GraphViewProvider.ts` becomes a thin declaration/wiring shell
+        - drain provider first; only then split `providerListener.ts`, `dispatchPrimary.ts`, `dispatchPlugin.ts`, and `timelineIndex.ts`
+      - current local integration batch before the next mutation rerun:
+        - wire `providerCommandMethods.ts`, `providerFileActionMethods.ts`, `providerTimelineMethods.ts`, and `providerPluginResourceMethods.ts` into `GraphViewProvider.ts`
+        - slim `providerPluginMethods.ts` down to plugin broadcasts + external registration only
+        - convert helper-owned provider state to `protected` members so extension `tsc` no longer flags extracted state as dead private fields
+        - update extension activation coverage to spy on instance-bound `refresh`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/extension.test.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/graphView/providerAnalysisMethods.test.ts tests/extension/graphView/providerRefreshMethods.test.ts tests/extension/graphView/providerSettingsMethods.test.ts tests/extension/graphView/providerFileVisitMethods.test.ts tests/extension/graphView/providerTimelineMethods.test.ts tests/extension/graphView/providerFileActionMethods.test.ts tests/extension/graphView/providerPluginMethods.test.ts tests/extension/graphView/providerPluginResourceMethods.test.ts tests/extension/graphView/providerCommandMethods.test.ts`
+          - `45` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - next immediate step:
+          - commit/push this helper-integration batch
+          - rerun `pnpm run mutate -- extension graph-view-provider`
+          - keep splitting `GraphViewProvider.ts` until it finally drops under the `50`-site threshold
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.

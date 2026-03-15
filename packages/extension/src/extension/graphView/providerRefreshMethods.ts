@@ -23,6 +23,7 @@ export interface GraphViewProviderRefreshMethodsSource {
   _sendPluginStatuses(): void;
   _sendDecorations(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
+  _rebuildAndSend?(this: void): void;
 }
 
 export interface GraphViewProviderRefreshMethods {
@@ -70,7 +71,15 @@ export function createGraphViewProviderRefreshMethods(
     dependencies.smartRebuildGraphData(source as never, kind, id, {
       shouldRebuild: (statuses, nextKind, nextId) =>
         dependencies.shouldRebuild(statuses as never, nextKind, nextId),
-      rebuildAndSend: () => _rebuildAndSend(),
+      rebuildAndSend: () => {
+        const implementation = source._rebuildAndSend;
+        if (implementation && implementation !== _rebuildAndSend) {
+          implementation();
+          return;
+        }
+
+        _rebuildAndSend();
+      },
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
     });
   };
@@ -92,6 +101,12 @@ export function createGraphViewProviderRefreshMethods(
 
   const refreshToggleSettings = (): void => {
     if (!source._loadDisabledRulesAndPlugins()) return;
+    const implementation = source._rebuildAndSend;
+    if (implementation && implementation !== _rebuildAndSend) {
+      implementation();
+      return;
+    }
+
     _rebuildAndSend();
   };
 
@@ -100,7 +115,7 @@ export function createGraphViewProviderRefreshMethods(
     await source._analyzeAndSendData();
   };
 
-  return {
+  const methods: GraphViewProviderRefreshMethods = {
     refresh,
     refreshPhysicsSettings,
     refreshSettings,
@@ -109,4 +124,8 @@ export function createGraphViewProviderRefreshMethods(
     _rebuildAndSend,
     _smartRebuild,
   };
+
+  Object.assign(source as object, methods);
+
+  return methods;
 }

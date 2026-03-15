@@ -43,6 +43,7 @@ export interface GraphViewProviderSettingsMethodsSource {
   _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
+  _getPhysicsSettings?(this: void): IPhysicsSettings;
 }
 
 export interface GraphViewProviderSettingsMethods {
@@ -154,10 +155,19 @@ export function createGraphViewProviderSettingsMethods(
       dependencies.defaultPhysics,
     );
 
+  const readCurrentPhysicsSettings = (): IPhysicsSettings => {
+    const implementation = source._getPhysicsSettings;
+    if (implementation && implementation !== _getPhysicsSettings) {
+      return implementation();
+    }
+
+    return _getPhysicsSettings();
+  };
+
   const _sendPhysicsSettings = (): void => {
     source._sendMessage({
       type: 'PHYSICS_SETTINGS_UPDATED',
-      payload: _getPhysicsSettings(),
+      payload: readCurrentPhysicsSettings(),
     });
   };
 
@@ -173,7 +183,7 @@ export function createGraphViewProviderSettingsMethods(
       captureSettingsSnapshot: () =>
         dependencies.captureSettingsSnapshot(
           dependencies.getConfiguration('codegraphy') as never,
-          _getPhysicsSettings(),
+          readCurrentPhysicsSettings(),
           source._nodeSizeMode,
         ),
       getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
@@ -204,7 +214,7 @@ export function createGraphViewProviderSettingsMethods(
     });
   };
 
-  return {
+  const methods: GraphViewProviderSettingsMethods = {
     _loadGroupsAndFilterPatterns,
     _loadDisabledRulesAndPlugins,
     _sendSettings,
@@ -214,4 +224,8 @@ export function createGraphViewProviderSettingsMethods(
     _updatePhysicsSetting,
     _resetPhysicsSettings,
   };
+
+  Object.assign(source as object, methods);
+
+  return methods;
 }

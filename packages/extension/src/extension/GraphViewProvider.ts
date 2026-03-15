@@ -19,75 +19,28 @@ import { EventBus, EventName, EventPayloads } from '../core/plugins/EventBus';
 import { DecorationManager } from '../core/plugins/DecorationManager';
 import { WorkspaceAnalyzer } from './WorkspaceAnalyzer';
 import { GitHistoryAnalyzer } from './GitHistoryAnalyzer';
-import { getUndoManager } from './UndoManager';
-import {
-  ToggleFavoriteAction,
-  AddToExcludeAction,
-  DeleteFilesAction,
-  RenameFileAction,
-  CreateFileAction,
-} from './actions';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
 import {
   applyGraphViewTransform,
 } from './graphViewPresentation';
-import {
-  normalizeGraphViewExtensionUri,
-} from './graphViewResources';
-import { shouldRebuildGraphView } from './graphViewRebuild';
-import { readGraphViewPhysicsSettings } from './graphViewPhysics';
 import { createGraphViewHtml, createGraphViewNonce } from './graphViewHtml';
 import {
-  executeGraphViewProviderAnalysis,
-  isGraphViewAbortError,
-  isGraphViewAnalysisStale,
-  markGraphViewWorkspaceReady,
-  runGraphViewProviderAnalysisRequest,
-  type GraphViewProviderAnalysisState,
-} from './graphView/analysisLifecycle';
-import {
-  getBuiltInGraphViewDefaultGroups,
-  registerBuiltInGraphViewPluginRoots,
-} from './graphView/builtInGroups';
-import { loadGraphViewDisabledState } from './graphView/disabledState';
-import { addGraphViewExcludePatternsWithUndo } from './graphView/excludePatterns';
-import { loadGraphViewFileInfo } from './graphView/fileInfo';
-import { sendGraphViewProviderFileInfoMessage } from './graphView/fileInfoRequest';
-import {
-  sendGraphViewFavorites,
-  toggleGraphViewFavorites,
-} from './graphView/favorites';
-import {
-  registerGraphViewExternalPlugin,
   type GraphViewExternalPluginRegistrationOptions,
 } from './graphView/externalPluginRegistration';
-import {
-  createGraphViewFile,
-  deleteGraphViewFiles,
-} from './graphView/fileActions';
-import { renameGraphViewFile } from './graphView/fileRename';
-import { applyLoadedGraphViewGroupState } from './graphView/groupSync';
-import {
-  loadGraphViewGroupState,
-} from './graphView/groups';
 import { openGraphViewInEditor } from './graphView/editorPanel';
-import { buildGraphViewMergedGroups } from './graphView/mergedGroups';
-import {
-  resetGraphViewPhysicsSettings,
-  updateGraphViewPhysicsSetting,
-} from './graphView/physicsConfig';
-import { getGraphViewPluginDefaultGroups } from './graphView/pluginDefaultGroups';
-import {
-  captureGraphViewSettingsSnapshot,
-} from './graphView/settings';
-import {
-  sendGraphViewProviderAllSettings,
-  sendGraphViewProviderSettings,
-} from './graphView/settingsLifecycle';
 import {
   initializeGraphViewProviderServices,
   restoreGraphViewProviderState,
 } from './graphView/providerBootstrap';
+import { createGraphViewProviderAnalysisMethods } from './graphView/providerAnalysisMethods';
+import { createGraphViewProviderCommandMethods } from './graphView/providerCommandMethods';
+import { createGraphViewProviderFileActionMethods } from './graphView/providerFileActionMethods';
+import { createGraphViewProviderFileVisitMethods } from './graphView/providerFileVisitMethods';
+import { createGraphViewProviderPluginMethods } from './graphView/providerPluginMethods';
+import { createGraphViewProviderPluginResourceMethods } from './graphView/providerPluginResourceMethods';
+import { createGraphViewProviderRefreshMethods } from './graphView/providerRefreshMethods';
+import { createGraphViewProviderSettingsMethods } from './graphView/providerSettingsMethods';
+import { createGraphViewProviderTimelineMethods } from './graphView/providerTimelineMethods';
 import { resolveGraphViewWebviewView } from './graphView/resolveWebview';
 import {
   buildGraphViewContext,
@@ -99,47 +52,6 @@ import {
   setGraphViewFocusedFile,
 } from './graphView/viewSelection';
 import {
-  rebuildGraphViewData,
-  smartRebuildGraphView,
-} from './graphView/viewRebuild';
-import {
-  getGraphViewVisitCount,
-  incrementGraphViewVisitCount,
-  trackGraphViewFileVisit,
-} from './graphView/visitTracking';
-import {
-  sendGraphViewAvailableViews,
-  sendGraphViewGroupsUpdated,
-} from './graphView/viewBroadcast';
-import {
-  openGraphViewNodeInEditor,
-  previewGraphViewFileAtCommit,
-} from './graphView/timelineOpen';
-import {
-  invalidateGraphViewTimelineCache,
-  sendGraphViewPlaybackSpeed,
-} from './graphView/timelinePlayback';
-import {
-  copyGraphViewProviderTextToClipboard,
-  openGraphViewProviderFile,
-  revealGraphViewProviderFileInExplorer,
-} from './graphView/providerFileNavigation';
-import {
-  indexGraphViewProviderRepository,
-  jumpGraphViewProviderToCommit,
-  sendGraphViewProviderCachedTimeline,
-} from './graphView/providerTimeline';
-import {
-  getGraphViewWebviewResourceRoots,
-  refreshGraphViewResourceRoots,
-  resolveGraphViewPluginAssetPath,
-  sendGraphViewContextMenuItems,
-  sendGraphViewDecorations,
-  sendGraphViewPluginStatuses,
-  sendGraphViewPluginWebviewInjections,
-} from './graphView/pluginWebview';
-import {
-  getGraphViewConfigTarget,
   normalizeFolderNodeColor,
 } from './graphViewSettings';
 import {
@@ -150,15 +62,6 @@ import {
   onGraphViewWebviewMessage,
   sendGraphViewWebviewMessage,
 } from './graphView/webviewBridge';
-
-/** Default physics settings (user-facing normalized values) */
-const DEFAULT_PHYSICS: IPhysicsSettings = {
-  repelForce: 10,
-  linkDistance: 80,
-  linkForce: 0.15,
-  damping: 0.7,
-  centerForce: 0.1,
-};
 
 /** Storage key for selected view per workspace */
 const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
@@ -172,31 +75,8 @@ const DAG_MODE_KEY = 'codegraphy.dagMode';
 /** Storage key for node size mode per workspace */
 const NODE_SIZE_MODE_KEY = 'codegraphy.nodeSizeMode';
 
-/** Storage key for disabled rules in workspace state */
-const DISABLED_RULES_KEY = 'codegraphy.disabledRules';
-
-/** Storage key for disabled plugins in workspace state */
-const DISABLED_PLUGINS_KEY = 'codegraphy.disabledPlugins';
-
 /** Default depth limit for depth graph view */
 const DEFAULT_DEPTH_LIMIT = 1;
-
-type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
-
-const TEMPORARY_NODE_OPEN_BEHAVIOR: EditorOpenBehavior = {
-  preview: true,
-  preserveFocus: true,
-};
-
-const PERMANENT_NODE_OPEN_BEHAVIOR: EditorOpenBehavior = {
-  preview: false,
-  preserveFocus: false,
-};
-
-const DEFAULT_TIMELINE_PREVIEW_BEHAVIOR: EditorOpenBehavior = {
-  preview: true,
-  preserveFocus: false,
-};
 
 /**
  * Provides the webview panel that displays the CodeGraphy dependency graph.
@@ -237,16 +117,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _analyzer?: WorkspaceAnalyzer;
 
   /** Whether the analyzer has been initialized */
-  private _analyzerInitialized = false;
+  protected _analyzerInitialized = false;
 
   /** In-flight analyzer initialization promise (deduplicates concurrent starts). */
-  private _analyzerInitPromise?: Promise<void>;
+  protected _analyzerInitPromise?: Promise<void>;
 
   /** Abort controller for the currently running analysis (if any). */
-  private _analysisController?: AbortController;
+  protected _analysisController?: AbortController;
 
   /** Monotonic analysis request counter; latest request wins. */
-  private _analysisRequestId = 0;
+  protected _analysisRequestId = 0;
 
   /** View registry for managing available views */
   private readonly _viewRegistry: ViewRegistry;
@@ -258,7 +138,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   protected _dagMode: DagMode = null;
 
   /** Current node size mode */
-  private _nodeSizeMode: NodeSizeMode = 'connections';
+  protected _nodeSizeMode: NodeSizeMode = 'connections';
 
   /** Raw (untransformed) graph data from analysis */
   private _rawGraphData: IGraphData = { nodes: [], edges: [] };
@@ -270,31 +150,31 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   };
 
   /** Groups for client-side file coloring (computed merged result) */
-  private _groups: IGroup[] = [];
+  protected _groups: IGroup[] = [];
 
   /** User-defined groups (persisted to settings.json) */
-  private _userGroups: IGroup[] = [];
+  protected _userGroups: IGroup[] = [];
 
   /** Plugin default group IDs that the user has hidden */
-  private _hiddenPluginGroupIds = new Set<string>();
+  protected _hiddenPluginGroupIds = new Set<string>();
 
   /** Filter patterns passed to analysis (extension-side exclusions) */
-  private _filterPatterns: string[] = [];
+  protected _filterPatterns: string[] = [];
 
   /** Disabled rule qualified IDs (e.g., "codegraphy.typescript:es6-import") */
-  private _disabledRules: Set<string> = new Set();
+  protected _disabledRules: Set<string> = new Set();
 
   /** Disabled plugin IDs (e.g., "codegraphy.typescript") */
-  private _disabledPlugins: Set<string> = new Set();
+  protected _disabledPlugins: Set<string> = new Set();
 
   /** Git history analyzer for timeline feature */
-  private _gitAnalyzer?: GitHistoryAnalyzer;
+  protected _gitAnalyzer?: GitHistoryAnalyzer;
 
   /** SHA of the currently displayed commit */
-  private _currentCommitSha?: string;
+  protected _currentCommitSha?: string;
 
   /** Whether the timeline mode is active */
-  private _timelineActive = false;
+  protected _timelineActive = false;
 
   /** EventBus for plugin event system */
   private _eventBus: EventBus;
@@ -303,22 +183,22 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _decorationManager: DecorationManager;
 
   /** Whether this is the first analysis (for notifyWorkspaceReady) */
-  private _firstAnalysis = true;
+  protected _firstAnalysis = true;
 
   /** Resolves when first workspace-ready lifecycle dispatch has occurred. */
-  private _resolveFirstWorkspaceReady?: () => void;
+  protected _resolveFirstWorkspaceReady?: () => void;
 
   /** Promise that settles when first workspace-ready lifecycle dispatch has occurred. */
   protected readonly _firstWorkspaceReadyPromise: Promise<void>;
 
   /** Whether webview-ready lifecycle has already fired. */
-  private _webviewReadyNotified = false;
+  protected _webviewReadyNotified = false;
 
   /** Abort controller for timeline indexing */
   protected _indexingController?: AbortController;
 
   /** Source extension roots for externally registered plugins (Tier-2 assets). */
-  private readonly _pluginExtensionUris = new Map<string, vscode.Uri>();
+  protected readonly _pluginExtensionUris = new Map<string, vscode.Uri>();
 
   /**
    * Creates a new GraphViewProvider.
@@ -371,6 +251,19 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._dagMode = restoredState.dagMode;
     this._nodeSizeMode = restoredState.nodeSizeMode;
 
+    Object.assign(
+      this,
+      createGraphViewProviderAnalysisMethods(this as never),
+      createGraphViewProviderCommandMethods(this as never),
+      createGraphViewProviderFileActionMethods(this as never),
+      createGraphViewProviderFileVisitMethods(this as never),
+      createGraphViewProviderPluginResourceMethods(this as never),
+      createGraphViewProviderPluginMethods(this as never),
+      createGraphViewProviderRefreshMethods(this as never),
+      createGraphViewProviderSettingsMethods(this as never),
+      createGraphViewProviderTimelineMethods(this as never),
+    );
+
     this._loadDisabledRulesAndPlugins();
   }
 
@@ -380,6 +273,103 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   public get viewRegistry(): ViewRegistry {
     return this._viewRegistry;
   }
+
+  public declare refresh: () => Promise<void>;
+  public declare refreshPhysicsSettings: () => void;
+  public declare refreshSettings: () => void;
+  public declare refreshToggleSettings: () => void;
+  public declare clearCacheAndRefresh: () => Promise<void>;
+  public declare sendCommand: (
+    command:
+      | 'FIT_VIEW'
+      | 'ZOOM_IN'
+      | 'ZOOM_OUT'
+      | 'CYCLE_VIEW'
+      | 'CYCLE_LAYOUT'
+      | 'TOGGLE_DIMENSION',
+  ) => void;
+  public declare undo: () => Promise<string | undefined>;
+  public declare redo: () => Promise<string | undefined>;
+  public declare canUndo: () => boolean;
+  public declare canRedo: () => boolean;
+  public declare requestExportPng: () => void;
+  public declare requestExportSvg: () => void;
+  public declare requestExportJpeg: () => void;
+  public declare requestExportJson: () => void;
+  public declare requestExportMarkdown: () => void;
+  private declare _analyzeAndSendData: () => Promise<void>;
+  private declare _doAnalyzeAndSendData: (
+    signal: AbortSignal,
+    requestId: number,
+  ) => Promise<void>;
+  private declare _markWorkspaceReady: (graph: IGraphData) => void;
+  private declare _isAnalysisStale: (signal: AbortSignal, requestId: number) => boolean;
+  private declare _isAbortError: (error: unknown) => boolean;
+  private declare _rebuildAndSend: () => void;
+  protected declare _smartRebuild: (kind: 'rule' | 'plugin', id: string) => void;
+  protected declare _indexRepository: () => Promise<void>;
+  protected declare _jumpToCommit: (sha: string) => Promise<void>;
+  protected declare _openSelectedNode: (nodeId: string) => Promise<void>;
+  protected declare _activateNode: (nodeId: string) => Promise<void>;
+  private declare _openNodeInEditor: (
+    nodeId: string,
+    behavior: Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>,
+  ) => Promise<void>;
+  private declare _previewFileAtCommit: (
+    sha: string,
+    filePath: string,
+    behavior?: Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>,
+  ) => Promise<void>;
+  protected declare _sendCachedTimeline: () => void;
+  public declare sendPlaybackSpeed: () => void;
+  public declare invalidateTimelineCache: () => Promise<void>;
+  private declare _openFile: (
+    filePath: string,
+    behavior?: Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>,
+  ) => Promise<void>;
+  protected declare _revealInExplorer: (filePath: string) => Promise<void>;
+  protected declare _copyToClipboard: (text: string) => Promise<void>;
+  protected declare _deleteFiles: (paths: string[]) => Promise<void>;
+  protected declare _renameFile: (filePath: string) => Promise<void>;
+  protected declare _createFile: (directory: string) => Promise<void>;
+  protected declare _toggleFavorites: (paths: string[]) => Promise<void>;
+  protected declare _loadGroupsAndFilterPatterns: () => void;
+  protected declare _loadDisabledRulesAndPlugins: () => boolean;
+  protected declare _sendFavorites: () => void;
+  protected declare _sendSettings: () => void;
+  protected declare _getFileInfo: (filePath: string) => Promise<void>;
+  protected declare _getVisitCount: (filePath: string) => number;
+  protected declare _incrementVisitCount: (filePath: string) => Promise<void>;
+  public declare trackFileVisit: (filePath: string) => Promise<void>;
+  protected declare _addToExclude: (patterns: string[]) => Promise<void>;
+  protected declare _getPhysicsSettings: () => IPhysicsSettings;
+  protected declare _sendPhysicsSettings: () => void;
+  protected declare _sendAllSettings: () => void;
+  protected declare _updatePhysicsSetting: (
+    key: keyof IPhysicsSettings,
+    value: number,
+  ) => Promise<void>;
+  protected declare _resetPhysicsSettings: () => Promise<void>;
+  private declare _registerBuiltInPluginRoots: () => void;
+  private declare _getPluginDefaultGroups: () => IGroup[];
+  private declare _getBuiltInDefaultGroups: () => IGroup[];
+  private declare _computeMergedGroups: () => void;
+  private declare _sendAvailableViews: () => void;
+  private declare _sendPluginStatuses: () => void;
+  private declare _sendDecorations: () => void;
+  private declare _sendContextMenuItems: () => void;
+  private declare _sendPluginWebviewInjections: () => void;
+  private declare _resolveWebviewAssetPath: (assetPath: string, pluginId?: string) => string;
+  private declare _getLocalResourceRoots: () => vscode.Uri[];
+  private declare _refreshWebviewResourceRoots: () => void;
+  private declare _normalizeExternalExtensionUri: (
+    uri: vscode.Uri | string | undefined,
+  ) => vscode.Uri | undefined;
+  private declare _sendGroupsUpdated: () => void;
+  public declare registerExternalPlugin: (
+    plugin: unknown,
+    options?: GraphViewExternalPluginRegistrationOptions,
+  ) => void;
 
   /**
    * Called by VSCode when the webview view needs to be resolved.
@@ -445,191 +435,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Re-analyzes the workspace and updates the graph.
-   * Can be called when files change or settings are updated.
-   */
-  public async refresh(): Promise<void> {
-    this._loadDisabledRulesAndPlugins();
-    await this._analyzeAndSendData();
-    this._sendSettings();
-    this._sendPhysicsSettings();
-  }
-
-  /**
-   * Sends physics settings to the webview without re-analyzing.
-   * Used when only physics settings change (not file/graph changes).
-   */
-  public refreshPhysicsSettings(): void {
-    this._sendPhysicsSettings();
-  }
-
-  /**
-   * Sends display settings (arrows, labels, bidirectional, etc.) to the webview
-   * without re-analyzing the workspace. Used for display-only config changes.
-   */
-  public refreshSettings(): void {
-    this._sendSettings();
-  }
-
-  /**
-   * Refreshes rule/plugin toggle state from VS Code settings and updates the graph.
-   * Used when users edit disabled toggles directly in settings JSON.
-   */
-  public refreshToggleSettings(): void {
-    if (!this._loadDisabledRulesAndPlugins()) return;
-    this._rebuildAndSend();
-  }
-
-  /**
-   * Clears the analysis cache and re-analyzes.
-   */
-  public async clearCacheAndRefresh(): Promise<void> {
-    this._analyzer?.clearCache();
-    await this._analyzeAndSendData();
-  }
-
-  /**
-   * Analyzes the workspace and sends data to webview.
-   */
-  private async _analyzeAndSendData(): Promise<void> {
-    const state = {
-      analysisController: this._analysisController,
-      analysisRequestId: this._analysisRequestId,
-    };
-
-    await runGraphViewProviderAnalysisRequest(state, {
-      executeAnalysis: (signal, requestId) => this._doAnalyzeAndSendData(signal, requestId),
-      isAbortError: error => this._isAbortError(error),
-      logError: (message, error) => {
-        console.error(message, error);
-      },
-      updateAnalysisController: controller => {
-        this._analysisController = controller;
-      },
-      updateAnalysisRequestId: requestId => {
-        this._analysisRequestId = requestId;
-      },
-    });
-
-    this._analysisController = state.analysisController;
-    this._analysisRequestId = state.analysisRequestId;
-  }
-
-  private async _doAnalyzeAndSendData(signal: AbortSignal, requestId: number): Promise<void> {
-    const state: GraphViewProviderAnalysisState = {
-      analysisController: this._analysisController,
-      analysisRequestId: this._analysisRequestId,
-      analyzer: this._analyzer,
-      analyzerInitialized: this._analyzerInitialized,
-      analyzerInitPromise: this._analyzerInitPromise,
-      filterPatterns: this._filterPatterns,
-      disabledRules: this._disabledRules,
-      disabledPlugins: this._disabledPlugins,
-    };
-
-    await executeGraphViewProviderAnalysis(signal, requestId, state, {
-      isAnalysisStale: (nextSignal, nextRequestId) =>
-        this._isAnalysisStale(nextSignal, nextRequestId),
-      hasWorkspace: () => (vscode.workspace.workspaceFolders?.length ?? 0) > 0,
-      setRawGraphData: graphData => {
-        this._rawGraphData = graphData;
-      },
-      setGraphData: graphData => {
-        this._graphData = graphData;
-      },
-      getGraphData: () => this._graphData,
-      sendGraphDataUpdated: graphData => {
-        this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
-      },
-      sendAvailableViews: () => this._sendAvailableViews(),
-      computeMergedGroups: () => this._computeMergedGroups(),
-      sendGroupsUpdated: () => this._sendGroupsUpdated(),
-      updateViewContext: () => this._updateViewContext(),
-      applyViewTransform: () => this._applyViewTransform(),
-      sendPluginStatuses: () => this._sendPluginStatuses(),
-      sendDecorations: () => this._sendDecorations(),
-      sendContextMenuItems: () => this._sendContextMenuItems(),
-      markWorkspaceReady: graphData => this._markWorkspaceReady(graphData),
-      isAbortError: error => this._isAbortError(error),
-      logError: (message, error) => {
-        console.error(message, error);
-      },
-    });
-
-    this._analysisController = state.analysisController;
-    this._analysisRequestId = state.analysisRequestId;
-    this._analyzerInitialized = state.analyzerInitialized;
-    this._analyzerInitPromise = state.analyzerInitPromise;
-  }
-
-  /**
-   * Marks first workspace-ready lifecycle as complete and resolves waiters.
-   */
-  private _markWorkspaceReady(graph: IGraphData): void {
-    const state = {
-      firstAnalysis: this._firstAnalysis,
-      resolveFirstWorkspaceReady: this._resolveFirstWorkspaceReady,
-    };
-
-    markGraphViewWorkspaceReady(state, this._analyzer?.registry, graph);
-
-    this._firstAnalysis = state.firstAnalysis;
-    this._resolveFirstWorkspaceReady = state.resolveFirstWorkspaceReady;
-  }
-
-  private _isAnalysisStale(signal: AbortSignal, requestId: number): boolean {
-    return isGraphViewAnalysisStale(signal, requestId, this._analysisRequestId);
-  }
-
-  private _isAbortError(error: unknown): boolean {
-    return isGraphViewAbortError(error);
-  }
-
-  /**
-   * Eagerly registers built-in plugin asset roots so that plugin image paths
-   * always resolve correctly regardless of analyzer timing.
-   */
-  private _registerBuiltInPluginRoots(): void {
-    registerBuiltInGraphViewPluginRoots(this._extensionUri, this._pluginExtensionUris);
-  }
-
-  /**
-   * Returns plugin-provided default file color groups.
-   * Group IDs are deterministic: plugin:<pluginId>:<pattern>
-   * Sets isPluginDefault: true on each group.
-   * Does NOT modify this._groups — caller is responsible for merging.
-   */
-  private _getPluginDefaultGroups(): IGroup[] {
-    return getGraphViewPluginDefaultGroups(
-      this._analyzer,
-      this._disabledPlugins,
-      this._pluginExtensionUris,
-      this._extensionUri,
-    );
-  }
-
-  /** Returns built-in default groups (common file types, independent of plugins). */
-  private _getBuiltInDefaultGroups(): IGroup[] {
-    return getBuiltInGraphViewDefaultGroups();
-  }
-
-  /**
-   * Computes the merged groups list: user groups + built-in defaults + plugin defaults.
-   * Disabled groups are marked but still included (visible in settings).
-   */
-  private _computeMergedGroups(): void {
-    this._groups = buildGraphViewMergedGroups(
-      this._userGroups,
-      this._hiddenPluginGroupIds,
-      this._getBuiltInDefaultGroups(),
-      this._getPluginDefaultGroups(),
-    );
-  }
-
-  /**
    * Updates the view context with current state.
    */
-  private _updateViewContext(): void {
+  protected _updateViewContext(): void {
     const config = vscode.workspace.getConfiguration('codegraphy');
     this._viewContext = buildGraphViewContext({
       analyzer: this._analyzer,
@@ -661,137 +469,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     if (result.persistSelectedViewId) {
       void this._context.workspaceState.update(SELECTED_VIEW_KEY, result.persistSelectedViewId);
     }
-  }
-
-  /**
-   * Sends the list of available views to the webview.
-   */
-  private _sendAvailableViews(): void {
-    sendGraphViewAvailableViews(
-      this._viewRegistry,
-      this._viewContext,
-      this._activeViewId,
-      DEFAULT_DEPTH_LIMIT,
-      message => this._sendMessage(message as ExtensionToWebviewMessage),
-    );
-  }
-
-  /**
-   * Sends plugin statuses to the webview.
-   */
-  private _sendPluginStatuses(): void {
-    sendGraphViewPluginStatuses(
-      this._analyzer,
-      this._disabledRules,
-      this._disabledPlugins,
-      (message) => this._sendMessage(message),
-    );
-  }
-
-  /**
-   * Sends merged decorations to the webview.
-   */
-  private _sendDecorations(): void {
-    sendGraphViewDecorations(this._decorationManager, (message) => this._sendMessage(message));
-  }
-
-  /**
-   * Sends plugin context menu items to the webview.
-   */
-  private _sendContextMenuItems(): void {
-    sendGraphViewContextMenuItems(this._analyzer, (message) => this._sendMessage(message));
-  }
-
-  /**
-   * Sends Tier-2 webview asset injections for plugins that declare contributions.
-   */
-  private _sendPluginWebviewInjections(): void {
-    sendGraphViewPluginWebviewInjections(
-      this._analyzer,
-      (assetPath, pluginId) => this._resolveWebviewAssetPath(assetPath, pluginId),
-      (message) => this._sendMessage(message),
-    );
-  }
-
-  /**
-   * Resolves an asset path for webview consumption.
-   * Absolute URLs are passed through; relative/absolute file paths are converted
-   * to webview URIs when possible.
-   */
-  private _resolveWebviewAssetPath(assetPath: string, pluginId?: string): string {
-    return resolveGraphViewPluginAssetPath(
-      assetPath,
-      this._extensionUri,
-      this._pluginExtensionUris,
-      this._view,
-      this._panels,
-      pluginId
-    );
-  }
-
-  /**
-   * Returns all local resource roots allowed for webviews.
-   * Includes CodeGraphy and any externally-registered plugin extension roots.
-   */
-  private _getLocalResourceRoots(): vscode.Uri[] {
-    return getGraphViewWebviewResourceRoots(
-      this._extensionUri,
-      this._pluginExtensionUris,
-      vscode.workspace.workspaceFolders
-    );
-  }
-
-  /**
-   * Applies the current resource roots to all active webviews.
-   */
-  private _refreshWebviewResourceRoots(): void {
-    refreshGraphViewResourceRoots(
-      this._view,
-      this._panels,
-      this._getLocalResourceRoots(),
-    );
-  }
-
-  /**
-   * Normalizes an external plugin extension URI from API input.
-   */
-  private _normalizeExternalExtensionUri(uri: vscode.Uri | string | undefined): vscode.Uri | undefined {
-    return normalizeGraphViewExtensionUri(uri);
-  }
-
-  /**
-   * Rebuilds the graph from cached connections (no re-analysis) and sends updates.
-   * Used for instant rule/plugin toggle response.
-   */
-  private _rebuildAndSend(): void {
-    rebuildGraphViewData(this as unknown as Parameters<typeof rebuildGraphViewData>[0], {
-      getShowOrphans: () =>
-        vscode.workspace.getConfiguration('codegraphy').get<boolean>('showOrphans', true),
-      updateViewContext: () => this._updateViewContext(),
-      applyViewTransform: () => this._applyViewTransform(),
-      sendAvailableViews: () => this._sendAvailableViews(),
-      sendPluginStatuses: () => this._sendPluginStatuses(),
-      sendDecorations: () => this._sendDecorations(),
-      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
-    });
-  }
-
-  /**
-   * Intelligently rebuilds graph only when the toggled rule/plugin has connections.
-   * If the rule/plugin has 0 connections, only the plugin statuses are updated
-   * since the graph wouldn't visually change.
-   */
-  protected _smartRebuild(kind: 'rule' | 'plugin', id: string): void {
-    smartRebuildGraphView(this as unknown as Parameters<typeof smartRebuildGraphView>[0], kind, id, {
-      shouldRebuild: (statuses, nextKind, nextId) =>
-        shouldRebuildGraphView(
-          statuses as Parameters<typeof shouldRebuildGraphView>[0],
-          nextKind,
-          nextId,
-        ),
-      rebuildAndSend: () => this._rebuildAndSend(),
-      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
-    });
   }
 
   /**
@@ -857,15 +534,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Send a command to the webview (for keyboard shortcuts)
-   * 
-   * @param command - The command to send (FIT_VIEW, ZOOM_IN, ZOOM_OUT)
-   */
-  public sendCommand(command: 'FIT_VIEW' | 'ZOOM_IN' | 'ZOOM_OUT' | 'CYCLE_VIEW' | 'CYCLE_LAYOUT' | 'TOGGLE_DIMENSION'): void {
-    this._sendMessage({ type: command });
-  }
-
-  /**
    * Opens CodeGraphy in a main editor panel (alongside code tabs).
    * Creates a WebviewPanel in the active editor column.
    */
@@ -911,126 +579,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Registers an external v2 plugin.
-   */
-  public registerExternalPlugin(
-    plugin: unknown,
-    options?: GraphViewExternalPluginRegistrationOptions,
-  ): void {
-    registerGraphViewExternalPlugin(
-      plugin,
-      options,
-      {
-        analyzer: this._analyzer,
-        pluginExtensionUris: this._pluginExtensionUris,
-        firstAnalysis: this._firstAnalysis,
-        webviewReadyNotified: this._webviewReadyNotified,
-        analyzerInitialized: this._analyzerInitialized,
-        analyzerInitPromise: this._analyzerInitPromise,
-      },
-      {
-        normalizeExtensionUri: (uri) => this._normalizeExternalExtensionUri(uri),
-        getWorkspaceRoot: () => vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
-        refreshWebviewResourceRoots: () => this._refreshWebviewResourceRoots(),
-        sendPluginStatuses: () => this._sendPluginStatuses(),
-        sendContextMenuItems: () => this._sendContextMenuItems(),
-        sendPluginWebviewInjections: () => this._sendPluginWebviewInjections(),
-        analyzeAndSendData: () => this._analyzeAndSendData(),
-      },
-    );
-  }
-
-  /**
-   * Undoes the last action.
-   * @returns Description of undone action, or undefined if nothing to undo
-   */
-  public async undo(): Promise<string | undefined> {
-    return getUndoManager().undo();
-  }
-
-  /**
-   * Redoes the last undone action.
-   * @returns Description of redone action, or undefined if nothing to redo
-   */
-  public async redo(): Promise<string | undefined> {
-    return getUndoManager().redo();
-  }
-
-  /**
-   * Checks if undo is available.
-   */
-  public canUndo(): boolean {
-    return getUndoManager().canUndo();
-  }
-
-  /**
-   * Checks if redo is available.
-   */
-  public canRedo(): boolean {
-    return getUndoManager().canRedo();
-  }
-
-  /**
-   * Request the webview to export as PNG.
-   */
-  public requestExportPng(): void {
-    this._sendMessage({ type: 'REQUEST_EXPORT_PNG' });
-  }
-
-  /**
-   * Request the webview to export as SVG.
-   */
-  public requestExportSvg(): void {
-    this._sendMessage({ type: 'REQUEST_EXPORT_SVG' });
-  }
-
-  /**
-   * Request the webview to export as JPEG.
-   */
-  public requestExportJpeg(): void {
-    this._sendMessage({ type: 'REQUEST_EXPORT_JPEG' });
-  }
-
-  /**
-   * Request the webview to export connections as JSON.
-   */
-  public requestExportJson(): void {
-    this._sendMessage({ type: 'REQUEST_EXPORT_JSON' });
-  }
-
-  /**
-   * Request the webview to export connections as Markdown.
-   */
-  public requestExportMarkdown(): void {
-    this._sendMessage({ type: 'REQUEST_EXPORT_MD' });
-  }
-
-  /**
-   * Sends GROUPS_UPDATED with imagePath resolved to imageUrl.
-   *
-   * imagePath formats:
-   * - Plugin groups (id starts with "plugin:"): relative to plugin root
-   * - User groups with "plugin:<pluginId>:<path>": inherited from a plugin override,
-   *   resolved via the named plugin root
-   * - User groups with workspace-relative path (e.g. ".codegraphy/assets/icon.png"):
-   *   resolved relative to the workspace folder
-   */
-  private _sendGroupsUpdated(): void {
-    sendGraphViewGroupsUpdated(
-      this._groups,
-      {
-        registerPluginRoots: () => this._registerBuiltInPluginRoots(),
-        workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-        view: this._view,
-        panels: this._panels,
-        resolvePluginAssetPath: (assetPath, pluginId) =>
-          this._resolveWebviewAssetPath(assetPath, pluginId),
-      },
-      message => this._sendMessage(message as ExtensionToWebviewMessage),
-    );
-  }
-
-  /**
    * Sends a message to all active webviews (sidebar + editor panels).
    *
    * @param message - Message to send to the webviews
@@ -1060,409 +608,6 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
 
   // ── Timeline methods ─────────────────────────────────────────────────────
-
-  /**
-   * Indexes the git repository history and enables the timeline.
-   */
-  protected async _indexRepository(): Promise<void> {
-    await indexGraphViewProviderRepository(this as never);
-  }
-
-  /**
-   * Loads graph data for a specific commit and sends it to the webview.
-   */
-  protected async _jumpToCommit(sha: string): Promise<void> {
-    await jumpGraphViewProviderToCommit(this as never, sha);
-  }
-
-  // Playback is now driven entirely by the webview's requestAnimationFrame loop.
-  // The webview sends JUMP_TO_COMMIT messages when the smooth time cursor
-  // crosses commit boundaries.
-
-  protected async _openSelectedNode(nodeId: string): Promise<void> {
-    await this._openNodeInEditor(nodeId, TEMPORARY_NODE_OPEN_BEHAVIOR);
-  }
-
-  protected async _activateNode(nodeId: string): Promise<void> {
-    await this._openNodeInEditor(nodeId, PERMANENT_NODE_OPEN_BEHAVIOR);
-  }
-
-  private async _openNodeInEditor(nodeId: string, behavior: EditorOpenBehavior): Promise<void> {
-    await openGraphViewNodeInEditor(
-      nodeId,
-      {
-        timelineActive: this._timelineActive,
-        currentCommitSha: this._currentCommitSha,
-      },
-      {
-        previewFileAtCommit: (sha, filePath, nextBehavior) =>
-          this._previewFileAtCommit(sha, filePath, nextBehavior),
-        openFile: (filePath, nextBehavior) => this._openFile(filePath, nextBehavior),
-      },
-      behavior,
-    );
-  }
-
-  /**
-   * Opens a file at a specific commit with the requested editor behavior.
-   */
-  private async _previewFileAtCommit(
-    sha: string,
-    filePath: string,
-    behavior: EditorOpenBehavior = DEFAULT_TIMELINE_PREVIEW_BEHAVIOR
-  ): Promise<void> {
-    await previewGraphViewFileAtCommit(
-      sha,
-      filePath,
-      {
-        workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-        openTextDocument: (fileUri) => vscode.workspace.openTextDocument(fileUri),
-        showTextDocument: (document, nextBehavior) =>
-          vscode.window.showTextDocument(document, nextBehavior),
-        logError: (label, error) => {
-          console.error(label, error);
-        },
-      },
-      behavior,
-    );
-  }
-
-  /**
-   * Sends cached timeline data to the webview (called on WEBVIEW_READY).
-   */
-  protected _sendCachedTimeline(): void {
-    sendGraphViewProviderCachedTimeline(this as never);
-  }
-
-  /**
-   * Sends the current playback speed setting to the webview.
-   */
-  public sendPlaybackSpeed(): void {
-    sendGraphViewPlaybackSpeed(
-      vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0),
-      (message) => this._sendMessage(message),
-    );
-  }
-
-  /**
-   * Invalidates the timeline cache and notifies the webview.
-   */
-  public async invalidateTimelineCache(): Promise<void> {
-    const state = {
-      timelineActive: this._timelineActive,
-      currentCommitSha: this._currentCommitSha,
-    };
-    const nextGitAnalyzer = await invalidateGraphViewTimelineCache(
-      this._gitAnalyzer,
-      state,
-      (message) => this._sendMessage(message),
-    );
-    this._timelineActive = state.timelineActive;
-    this._currentCommitSha = state.currentCommitSha;
-    this._gitAnalyzer = nextGitAnalyzer;
-  }
-
-  private async _openFile(
-    filePath: string,
-    behavior: EditorOpenBehavior = PERMANENT_NODE_OPEN_BEHAVIOR
-  ): Promise<void> {
-    await openGraphViewProviderFile(this as never, filePath, behavior);
-  }
-
-  /**
-   * Reveals a file in the VSCode explorer sidebar.
-   */
-  protected async _revealInExplorer(filePath: string): Promise<void> {
-    await revealGraphViewProviderFileInExplorer(filePath);
-  }
-
-  /**
-   * Copies text to the clipboard.
-   */
-  protected async _copyToClipboard(text: string): Promise<void> {
-    await copyGraphViewProviderTextToClipboard(text);
-  }
-
-  /**
-   * Deletes files with confirmation (with undo support).
-   */
-  protected async _deleteFiles(paths: string[]): Promise<void> {
-    await deleteGraphViewFiles(paths, {
-      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-      showWarningMessage: (message, options, deleteAction) =>
-        vscode.window.showWarningMessage(message, options, deleteAction),
-      executeDeleteAction: async (nextPaths, workspaceFolderUri) => {
-        const action = new DeleteFilesAction(
-          nextPaths,
-          workspaceFolderUri,
-          () => this._analyzeAndSendData(),
-        );
-        await getUndoManager().execute(action);
-      },
-    });
-  }
-
-  /**
-   * Renames a file with an input dialog (with undo support).
-   */
-  protected async _renameFile(filePath: string): Promise<void> {
-    await renameGraphViewFile(filePath, {
-      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-      showInputBox: (options) => vscode.window.showInputBox(options),
-      executeRenameAction: async (oldPath, newPath, workspaceFolderUri) => {
-        const action = new RenameFileAction(
-          oldPath,
-          newPath,
-          workspaceFolderUri,
-          () => this._analyzeAndSendData(),
-        );
-        await getUndoManager().execute(action);
-      },
-      showErrorMessage: (message) => {
-        vscode.window.showErrorMessage(message);
-      },
-    });
-  }
-
-  /**
-   * Creates a new file in the workspace (with undo support).
-   */
-  protected async _createFile(directory: string): Promise<void> {
-    await createGraphViewFile(directory, {
-      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-      showInputBox: (options) => vscode.window.showInputBox(options),
-      executeCreateAction: async (filePath, workspaceFolderUri) => {
-        const action = new CreateFileAction(
-          filePath,
-          workspaceFolderUri,
-          () => this._analyzeAndSendData(),
-        );
-        await getUndoManager().execute(action);
-      },
-      showErrorMessage: (message) => {
-        vscode.window.showErrorMessage(message);
-      },
-    });
-  }
-
-  /**
-   * Toggles favorite status for files (with undo support).
-   */
-  protected async _toggleFavorites(paths: string[]): Promise<void> {
-    await toggleGraphViewFavorites(paths, {
-      executeToggleFavoritesAction: async (nextPaths) => {
-        const action = new ToggleFavoriteAction(nextPaths, () => this._sendFavorites());
-        await getUndoManager().execute(action);
-      },
-    });
-  }
-
-  /**
-   * Loads groups and filter patterns with VS Code settings taking priority over workspace state.
-   * User groups are stored in settings.json; plugin default groups are computed dynamically.
-   * Falls back to workspaceState for migration from older persisted data.
-   */
-  protected _loadGroupsAndFilterPatterns(): void {
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const groupState = loadGraphViewGroupState(config, this._context.workspaceState);
-    const state = {
-      userGroups: this._userGroups,
-      hiddenPluginGroupIds: this._hiddenPluginGroupIds,
-      filterPatterns: this._filterPatterns,
-    };
-    applyLoadedGraphViewGroupState(groupState, state, {
-      recomputeGroups: () => this._computeMergedGroups(),
-      persistLegacyGroups: (groups) => {
-        const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-        void vscode.workspace.getConfiguration('codegraphy').update('groups', groups, target);
-      },
-      clearLegacyGroups: () => {
-        void this._context.workspaceState.update('codegraphy.groups', undefined);
-      },
-    });
-    this._userGroups = state.userGroups;
-    this._hiddenPluginGroupIds = state.hiddenPluginGroupIds;
-    this._filterPatterns = state.filterPatterns;
-  }
-
-  /**
-   * Loads disabled rule/plugin toggles from VS Code settings.
-   * Falls back to workspace state for migration from older persisted data.
-   *
-   * @returns True when either disabled set changed
-   */
-  private _loadDisabledRulesAndPlugins(): boolean {
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const disabledState = loadGraphViewDisabledState(
-      this._disabledRules,
-      this._disabledPlugins,
-      {
-        disabledRulesInspect: config.inspect<string[]>('disabledRules'),
-        disabledPluginsInspect: config.inspect<string[]>('disabledPlugins'),
-        persistedDisabledRules: this._context.workspaceState.get<string[]>(DISABLED_RULES_KEY),
-        persistedDisabledPlugins: this._context.workspaceState.get<string[]>(DISABLED_PLUGINS_KEY),
-      },
-    );
-
-    this._disabledRules = disabledState.disabledRules;
-    this._disabledPlugins = disabledState.disabledPlugins;
-
-    return disabledState.changed;
-  }
-
-  /**
-   * Sends current favorites to the webview.
-   */
-  private _sendFavorites(): void {
-    sendGraphViewFavorites(
-      vscode.workspace.getConfiguration('codegraphy'),
-      (message) => this._sendMessage(message),
-    );
-  }
-
-  /**
-   * Sends current settings to the webview.
-   */
-  private _sendSettings(): void {
-    sendGraphViewProviderSettings(this._viewContext, {
-      getConfiguration: () => vscode.workspace.getConfiguration('codegraphy'),
-      sendMessage: message => this._sendMessage(message),
-    });
-  }
-
-  /**
-   * Gets file info and sends it to the webview.
-   */
-  protected async _getFileInfo(filePath: string): Promise<void> {
-    const state = {
-      analyzer: this._analyzer,
-      analyzerInitialized: this._analyzerInitialized,
-      graphData: this._graphData,
-    };
-
-    await sendGraphViewProviderFileInfoMessage(filePath, state, {
-      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-      statFile: fileUri => vscode.workspace.fs.stat(fileUri),
-      getVisitCount: nextTrackedFilePath => this._getVisitCount(nextTrackedFilePath),
-      loadFileInfo: loadGraphViewFileInfo,
-      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
-      logError: (label, error) => {
-        console.error(label, error);
-      },
-    });
-
-    this._analyzerInitialized = state.analyzerInitialized;
-  }
-
-  /**
-   * Gets the visit count for a file.
-   */
-  private _getVisitCount(filePath: string): number {
-    return getGraphViewVisitCount(this._context.workspaceState, filePath);
-  }
-
-  /**
-   * Increments the visit count for a file and notifies the webview.
-   */
-  private async _incrementVisitCount(filePath: string): Promise<void> {
-    await incrementGraphViewVisitCount(filePath, {
-      workspaceState: this._context.workspaceState,
-      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
-    });
-  }
-
-  /**
-   * Tracks a file visit when opened through VS Code (external to CodeGraphy).
-   * Called by the active text editor change listener.
-   */
-  public async trackFileVisit(filePath: string): Promise<void> {
-    await trackGraphViewFileVisit(filePath, {
-      graphData: this._graphData,
-      incrementVisitCount: nextFilePath => this._incrementVisitCount(nextFilePath),
-    });
-  }
-
-  /**
-   * Adds patterns to the exclude list (with undo support).
-   */
-  protected async _addToExclude(patterns: string[]): Promise<void> {
-    await addGraphViewExcludePatternsWithUndo(patterns, {
-      createAction: (nextPatterns, analyzeAndSendData) =>
-        new AddToExcludeAction(nextPatterns, analyzeAndSendData),
-      executeAction: action => getUndoManager().execute(action),
-      analyzeAndSendData: () => this._analyzeAndSendData(),
-    });
-  }
-
-  /**
-   * Gets the current physics settings from configuration.
-   */
-  private _getPhysicsSettings(): IPhysicsSettings {
-    const config = vscode.workspace.getConfiguration('codegraphy.physics');
-    return readGraphViewPhysicsSettings(config, DEFAULT_PHYSICS);
-  }
-
-  /**
-   * Sends current physics settings to the webview.
-   */
-  private _sendPhysicsSettings(): void {
-    const settings = this._getPhysicsSettings();
-    this._sendMessage({ type: 'PHYSICS_SETTINGS_UPDATED', payload: settings });
-  }
-
-  /**
-   * Sends all current settings to the webview in a single batch.
-   * Used after reset/undo to ensure the webview is fully in sync.
-   */
-  protected _sendAllSettings(): void {
-    const state = {
-      viewContext: this._viewContext,
-      hiddenPluginGroupIds: this._hiddenPluginGroupIds,
-      userGroups: this._userGroups,
-      filterPatterns: this._filterPatterns,
-    };
-    sendGraphViewProviderAllSettings(state, {
-      captureSettingsSnapshot: () =>
-        captureGraphViewSettingsSnapshot(
-          vscode.workspace.getConfiguration('codegraphy'),
-          this._getPhysicsSettings(),
-          this._nodeSizeMode,
-        ),
-      getPluginFilterPatterns: () => this._analyzer?.getPluginFilterPatterns() ?? [],
-      sendMessage: message => this._sendMessage(message),
-      recomputeGroups: () => this._computeMergedGroups(),
-      sendGroupsUpdated: () => this._sendGroupsUpdated(),
-    });
-    this._hiddenPluginGroupIds = state.hiddenPluginGroupIds;
-    this._userGroups = state.userGroups;
-    this._filterPatterns = state.filterPatterns;
-  }
-
-  /**
-   * Updates a single physics setting.
-   * Uses workspace config if available, falls back to global config.
-   * Note: We don't call _sendPhysicsSettings() here because:
-   * 1. The slider already has immediate feedback via onSettingsChange
-   * 2. The config change listener will send the update for external changes
-   */
-  protected async _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void> {
-    await updateGraphViewPhysicsSetting(key, value, {
-      getConfiguration: () => vscode.workspace.getConfiguration('codegraphy.physics'),
-      getConfigTarget: () => getGraphViewConfigTarget(vscode.workspace.workspaceFolders),
-    });
-  }
-
-  /**
-   * Resets all physics settings to defaults.
-   * Uses workspace config if available, falls back to global config.
-   * Note: Config change listener handles sending PHYSICS_SETTINGS_UPDATED
-   */
-  protected async _resetPhysicsSettings(): Promise<void> {
-    await resetGraphViewPhysicsSettings({
-      getConfiguration: () => vscode.workspace.getConfiguration('codegraphy.physics'),
-      getConfigTarget: () => getGraphViewConfigTarget(vscode.workspace.workspaceFolders),
-    });
-  }
 
   /**
    * Generates the HTML content for the webview.
