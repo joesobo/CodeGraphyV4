@@ -19,7 +19,7 @@ export function createGraphViewProviderAnalysisDelegates(
 ): GraphViewProviderAnalysisDelegateCalls {
   const callMarkWorkspaceReady = (graph: IGraphData): void => {
     const implementation = source._markWorkspaceReady;
-    if (implementation && implementation !== methods.markWorkspaceReady) {
+    if (implementation) {
       implementation(graph);
       return;
     }
@@ -29,7 +29,7 @@ export function createGraphViewProviderAnalysisDelegates(
 
   const callIsAnalysisStale = (signal: AbortSignal, requestId: number): boolean => {
     const implementation = source._isAnalysisStale;
-    if (implementation && implementation !== methods.isAnalysisStale) {
+    if (implementation) {
       return implementation(signal, requestId);
     }
 
@@ -38,7 +38,7 @@ export function createGraphViewProviderAnalysisDelegates(
 
   const callIsAbortError = (error: unknown): boolean => {
     const implementation = source._isAbortError;
-    if (implementation && implementation !== methods.isAbortError) {
+    if (implementation) {
       return implementation(error);
     }
 

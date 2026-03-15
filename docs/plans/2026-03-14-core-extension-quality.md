@@ -476,14 +476,24 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/timelineIndex.ts` = `61.90%`
           - `packages/extension/src/extension/GraphViewProvider.ts` = `53.13%`
           - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the eighth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerAnalysisMethodDelegates.test.ts tests/extension/graphView/messages/providerListenerPrimaryActions.test.ts tests/extension/GraphViewProvider.bootstrap.test.ts`
+          - `13` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the eighth survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - `packages/extension/src/extension/graphView/providerAnalysisMethodDelegates.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/providerListenerPrimaryActions.ts` = `100.00%`
+          - `packages/extension/src/extension/GraphViewProvider.ts` = `91.67%`
+          - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
           - next hotspot order:
-            - `providerAnalysisMethodDelegates.ts`
             - `timelineIndex.ts`
-            - `messages/providerListenerPrimaryActions.ts`
+            - `providerTimelineMethods.ts`
             - `timelineOpen.ts`
-            - `GraphViewProvider.ts`
+            - `viewContext.ts`
+            - `viewRebuild.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
