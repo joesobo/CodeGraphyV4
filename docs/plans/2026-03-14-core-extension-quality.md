@@ -551,12 +551,23 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/messages/exports.ts` = `50.00%`
           - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
           - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the fourteenth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/exports.test.ts`
+          - `6` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the fourteenth helper pass:
+          - graph-view-provider slice overall = `86.85%`
+          - `packages/extension/src/extension/graphView/messages/exports.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts` = `51.28%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
+          - `packages/extension/src/extension/graphView/physicsConfig.ts` = `33.33%`
+          - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
           - next hotspot order:
             - `providerTimelineMethods.ts`
             - `dispatchPrimary.ts`
-            - `exports.ts`
             - `dispatchPlugin.ts`
             - `physicsConfig.ts`
             - `timelinePlayback.ts`
@@ -568,9 +579,9 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
 ## Current hotspot order
 1. `packages/extension/src/extension/graphView/providerTimelineMethods.ts`
 2. `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts`
-3. `packages/extension/src/extension/graphView/messages/exports.ts`
-4. `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts`
-5. `packages/extension/src/extension/graphView/physicsConfig.ts`
+3. `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts`
+4. `packages/extension/src/extension/graphView/physicsConfig.ts`
+5. `packages/extension/src/extension/graphView/timelinePlayback.ts`
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
