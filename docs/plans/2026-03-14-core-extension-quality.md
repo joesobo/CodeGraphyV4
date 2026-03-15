@@ -296,6 +296,19 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - commit/push this helper-integration batch
           - rerun `pnpm run mutate -- extension graph-view-provider`
           - keep splitting `GraphViewProvider.ts` until it finally drops under the `50`-site threshold
+      - second local integration batch from stale-but-useful subagent worktrees:
+        - merge untracked `providerViewMethods.ts` + `providerViewMethods.test.ts` from `subagent/core-extension-provider-bindings-b`
+        - merge untracked `providerWebviewMethods.ts` + `providerWebviewMethods.test.ts` from `subagent/core-extension-provider-bindings-c`
+        - extend `providerCommandMethods.ts` to own `emitEvent`
+        - wire all three helper seams into `GraphViewProvider.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/GraphViewProvider.publicApi.test.ts tests/extension/extension.test.ts tests/extension/graphView/providerCommandMethods.test.ts tests/extension/graphView/providerViewMethods.test.ts tests/extension/graphView/providerWebviewMethods.test.ts`
+          - `35` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - next immediate step:
+          - commit/push this second helper batch
+          - prune the old subagent worktrees after the useful untracked files are now safely merged
+          - rerun `pnpm run mutate -- extension graph-view-provider`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.

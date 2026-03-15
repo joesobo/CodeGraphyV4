@@ -1,4 +1,5 @@
 import { getUndoManager } from '../UndoManager';
+import type { EventName, EventPayloads } from '../../core/plugins/EventBus';
 
 interface GraphViewProviderCommandMessage {
   type:
@@ -16,6 +17,9 @@ interface GraphViewProviderCommandMessage {
 }
 
 export interface GraphViewProviderCommandMethodsSource {
+  _eventBus: {
+    emit<E extends EventName>(event: E, payload: EventPayloads[E]): void;
+  };
   _sendMessage(message: GraphViewProviderCommandMessage): void;
 }
 
@@ -29,6 +33,7 @@ export interface GraphViewProviderCommandMethods {
       | 'CYCLE_LAYOUT'
       | 'TOGGLE_DIMENSION',
   ): void;
+  emitEvent<E extends EventName>(event: E, payload: EventPayloads[E]): void;
   undo(): Promise<string | undefined>;
   redo(): Promise<string | undefined>;
   canUndo(): boolean;
@@ -62,6 +67,9 @@ export function createGraphViewProviderCommandMethods(
   return {
     sendCommand: command => {
       source._sendMessage({ type: command });
+    },
+    emitEvent: (event, payload) => {
+      source._eventBus.emit(event, payload);
     },
     undo: () => dependencies.getUndoManager().undo(),
     redo: () => dependencies.getUndoManager().redo(),

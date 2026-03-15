@@ -4,8 +4,12 @@ import { createGraphViewProviderCommandMethods } from '../../../src/extension/gr
 describe('graphView/providerCommandMethods', () => {
   it('sends graph commands and export requests through the provider message bridge', () => {
     const sendMessage = vi.fn();
+    const emit = vi.fn();
     const methods = createGraphViewProviderCommandMethods(
-      { _sendMessage: sendMessage },
+      {
+        _eventBus: { emit },
+        _sendMessage: sendMessage,
+      },
       {
         getUndoManager: () => ({
           undo: vi.fn(async () => undefined),
@@ -17,6 +21,7 @@ describe('graphView/providerCommandMethods', () => {
     );
 
     methods.sendCommand('FIT_VIEW');
+    methods.emitEvent('workspace:ready', { graphData: { nodes: [], edges: [] } });
     methods.requestExportPng();
     methods.requestExportSvg();
     methods.requestExportJpeg();
@@ -31,13 +36,16 @@ describe('graphView/providerCommandMethods', () => {
       [{ type: 'REQUEST_EXPORT_JSON' }],
       [{ type: 'REQUEST_EXPORT_MD' }],
     ]);
+    expect(emit).toHaveBeenCalledWith('workspace:ready', {
+      graphData: { nodes: [], edges: [] },
+    });
   });
 
   it('delegates undo and redo operations to the undo manager', async () => {
     const undo = vi.fn(async () => 'Undo delete');
     const redo = vi.fn(async () => 'Redo delete');
     const methods = createGraphViewProviderCommandMethods(
-      { _sendMessage: vi.fn() },
+      { _eventBus: { emit: vi.fn() }, _sendMessage: vi.fn() },
       {
         getUndoManager: () => ({
           undo,
@@ -59,7 +67,7 @@ describe('graphView/providerCommandMethods', () => {
     const canUndo = vi.fn(() => true);
     const canRedo = vi.fn(() => false);
     const methods = createGraphViewProviderCommandMethods(
-      { _sendMessage: vi.fn() },
+      { _eventBus: { emit: vi.fn() }, _sendMessage: vi.fn() },
       {
         getUndoManager: () => ({
           undo: vi.fn(async () => undefined),
