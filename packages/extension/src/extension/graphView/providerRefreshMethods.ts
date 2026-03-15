@@ -67,19 +67,21 @@ export function createGraphViewProviderRefreshMethods(
     });
   };
 
+  const runRebuildAndSend = (): void => {
+    const implementation = source._rebuildAndSend;
+    if (implementation) {
+      implementation();
+      return;
+    }
+
+    _rebuildAndSend();
+  };
+
   const _smartRebuild = (kind: 'rule' | 'plugin', id: string): void => {
     dependencies.smartRebuildGraphData(source as never, kind, id, {
       shouldRebuild: (statuses, nextKind, nextId) =>
         dependencies.shouldRebuild(statuses as never, nextKind, nextId),
-      rebuildAndSend: () => {
-        const implementation = source._rebuildAndSend;
-        if (implementation && implementation !== _rebuildAndSend) {
-          implementation();
-          return;
-        }
-
-        _rebuildAndSend();
-      },
+      rebuildAndSend: () => runRebuildAndSend(),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
     });
   };
@@ -101,13 +103,7 @@ export function createGraphViewProviderRefreshMethods(
 
   const refreshToggleSettings = (): void => {
     if (!source._loadDisabledRulesAndPlugins()) return;
-    const implementation = source._rebuildAndSend;
-    if (implementation && implementation !== _rebuildAndSend) {
-      implementation();
-      return;
-    }
-
-    _rebuildAndSend();
+    runRebuildAndSend();
   };
 
   const clearCacheAndRefresh = async (): Promise<void> => {
