@@ -257,19 +257,6 @@ describe('GraphViewProvider view state and internal helpers', () => {
     });
   });
 
-  it('returns workspace-relative paths through the provider wrapper', () => {
-    const provider = new GraphViewProvider(
-      vscode.Uri.file('/test/extension'),
-      createContext() as unknown as vscode.ExtensionContext
-    );
-
-    expect(
-      (provider as unknown as { _getRelativePath: (uri: vscode.Uri) => string | undefined })._getRelativePath(
-        vscode.Uri.file('/test/workspace/src/app.ts')
-      )
-    ).toBe('src/app.ts');
-  });
-
   it('returns no plugin default groups when no analyzer is ready', () => {
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),

@@ -31,7 +31,6 @@ import {
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
 import {
   applyGraphViewTransform,
-  getRelativeWorkspacePath,
   mapAvailableViews,
 } from './graphViewPresentation';
 import {
@@ -81,6 +80,19 @@ import {
   buildGraphViewSettingsMessages,
   captureGraphViewSettingsSnapshot,
 } from './graphView/settings';
+import {
+  buildGraphViewContext,
+} from './graphView/viewContext';
+import {
+  changeGraphViewView,
+  getGraphViewDepthLimit,
+  setGraphViewDepthLimit,
+  setGraphViewFocusedFile,
+} from './graphView/viewSelection';
+import {
+  rebuildGraphViewData,
+  smartRebuildGraphView,
+} from './graphView/viewRebuild';
 import {
   incrementPersistedGraphViewVisitCount,
   readPersistedGraphViewVisitCount,
@@ -606,40 +618,19 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Updates the view context with current state.
    */
   private _updateViewContext(): void {
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    const activeEditor = vscode.window.activeTextEditor;
-    const savedDepthLimit = this._context.workspaceState.get<number>(DEPTH_LIMIT_KEY);
     const config = vscode.workspace.getConfiguration('codegraphy');
-
-    this._viewContext = {
-      activePlugins: this._getActivePluginIds(),
-      workspaceRoot: workspaceFolder?.uri.fsPath,
-      focusedFile: activeEditor ? this._getRelativePath(activeEditor.document.uri) : undefined,
-      depthLimit: savedDepthLimit ?? DEFAULT_DEPTH_LIMIT,
-      folderNodeColor: normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)),
-    };
-  }
-
-  /**
-   * Gets the set of active plugin IDs from the plugin registry.
-   */
-  private _getActivePluginIds(): Set<string> {
-    const plugins = new Set<string>();
-    if (this._analyzer) {
-      for (const info of this._analyzer.registry.list()) {
-        if (info.plugin?.id) {
-          plugins.add(info.plugin.id);
-        }
-      }
-    }
-    return plugins;
-  }
-
-  /**
-   * Gets the workspace-relative path for a URI.
-   */
-  private _getRelativePath(uri: vscode.Uri): string | undefined {
-    return getRelativeWorkspacePath(uri, vscode.workspace.workspaceFolders, vscode.workspace.asRelativePath);
+    this._viewContext = buildGraphViewContext({
+      analyzer: this._analyzer,
+      workspaceFolders: vscode.workspace.workspaceFolders,
+      activeEditor: vscode.window.activeTextEditor,
+      readSavedDepthLimit: () => this._context.workspaceState.get<number>(DEPTH_LIMIT_KEY),
+      readFolderNodeColor: () =>
+        normalizeFolderNodeColor(
+          config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR),
+        ),
+      asRelativePath: uri => vscode.workspace.asRelativePath(uri),
+      defaultDepthLimit: DEFAULT_DEPTH_LIMIT,
+    });
   }
 
   /**
@@ -767,18 +758,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Used for instant rule/plugin toggle response.
    */
   private _rebuildAndSend(): void {
-    if (!this._analyzer) return;
-
-    const showOrphans = vscode.workspace.getConfiguration('codegraphy').get<boolean>('showOrphans', true);
-
-    this._rawGraphData = this._analyzer.rebuildGraph(this._disabledRules, this._disabledPlugins, showOrphans);
-    this._updateViewContext();
-    this._applyViewTransform();
-    this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-    this._sendAvailableViews();
-    this._sendPluginStatuses();
-    this._sendDecorations();
-    this._analyzer.registry.notifyGraphRebuild(this._graphData);
+    rebuildGraphViewData(this as unknown as Parameters<typeof rebuildGraphViewData>[0], {
+      getShowOrphans: () =>
+        vscode.workspace.getConfiguration('codegraphy').get<boolean>('showOrphans', true),
+      updateViewContext: () => this._updateViewContext(),
+      applyViewTransform: () => this._applyViewTransform(),
+      sendAvailableViews: () => this._sendAvailableViews(),
+      sendPluginStatuses: () => this._sendPluginStatuses(),
+      sendDecorations: () => this._sendDecorations(),
+      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
+    });
   }
 
   /**
@@ -787,15 +776,16 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * since the graph wouldn't visually change.
    */
   private _smartRebuild(kind: 'rule' | 'plugin', id: string): void {
-    if (!this._analyzer) return;
-
-    const statuses = this._analyzer.getPluginStatuses(this._disabledRules, this._disabledPlugins);
-    if (shouldRebuildGraphView(statuses, kind, id)) {
-      this._rebuildAndSend();
-    } else {
-      // No connections affected — just update the toggle UI
-      this._sendMessage({ type: 'PLUGINS_UPDATED', payload: { plugins: statuses } });
-    }
+    smartRebuildGraphView(this as unknown as Parameters<typeof smartRebuildGraphView>[0], kind, id, {
+      shouldRebuild: (statuses, nextKind, nextId) =>
+        shouldRebuildGraphView(
+          statuses as Parameters<typeof shouldRebuildGraphView>[0],
+          nextKind,
+          nextId,
+        ),
+      rebuildAndSend: () => this._rebuildAndSend(),
+      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
+    });
   }
 
   /**
@@ -804,19 +794,19 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * @param viewId - ID of the view to switch to
    */
   public async changeView(viewId: string): Promise<void> {
-    if (!this._viewRegistry.isViewAvailable(viewId, this._viewContext)) {
-      console.warn(`[CodeGraphy] View '${viewId}' is not available`);
-      return;
-    }
-    
-    this._activeViewId = viewId;
-    await this._context.workspaceState.update(SELECTED_VIEW_KEY, viewId);
-    
-    // Re-apply view transform and send updates
-    this._applyViewTransform();
-
-    this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-    this._sendAvailableViews();
+    await changeGraphViewView(this as unknown as Parameters<typeof changeGraphViewView>[0], viewId, {
+      isViewAvailable: (nextViewId, viewContext) =>
+        this._viewRegistry.isViewAvailable(nextViewId, viewContext),
+      persistActiveViewId: async nextViewId => {
+        await this._context.workspaceState.update(SELECTED_VIEW_KEY, nextViewId);
+      },
+      applyViewTransform: () => this._applyViewTransform(),
+      sendAvailableViews: () => this._sendAvailableViews(),
+      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
+      logUnavailableView: nextViewId => {
+        console.warn(`[CodeGraphy] View '${nextViewId}' is not available`);
+      },
+    });
   }
 
   /**
@@ -825,22 +815,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * @param filePath - Relative path to the focused file
    */
   public setFocusedFile(filePath: string | undefined): void {
-    const previousFocusedFile = this._viewContext.focusedFile;
-    this._viewContext.focusedFile = filePath;
-    
-    // Always update available views when focused file changes
-    // (e.g., Depth Graph is only available when a file is focused)
-    if (previousFocusedFile !== filePath) {
-      this._sendAvailableViews();
-    }
-    
-    // Re-apply transform if using a view that depends on focused file
-    const viewInfo = this._viewRegistry.get(this._activeViewId);
-    if (viewInfo?.view.id === 'codegraphy.depth-graph') {
-      this._applyViewTransform();
-  
-      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-    }
+    setGraphViewFocusedFile(this as unknown as Parameters<typeof setGraphViewFocusedFile>[0], filePath, {
+      getActiveViewInfo: nextViewId => this._viewRegistry.get(nextViewId),
+      applyViewTransform: () => this._applyViewTransform(),
+      sendAvailableViews: () => this._sendAvailableViews(),
+      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
+    });
   }
 
   /**
@@ -849,29 +829,25 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * @param depthLimit - Maximum number of hops from the focused node
    */
   public async setDepthLimit(depthLimit: number): Promise<void> {
-    // Clamp to valid range (1-10)
-    const clampedDepth = Math.max(1, Math.min(10, depthLimit));
-    this._viewContext.depthLimit = clampedDepth;
-    
-    await this._context.workspaceState.update(DEPTH_LIMIT_KEY, clampedDepth);
-    
-    // Notify webview of the new depth limit
-    this._sendMessage({ type: 'DEPTH_LIMIT_UPDATED', payload: { depthLimit: clampedDepth } });
-    
-    // Re-apply transform if using depth graph view
-    const viewInfo = this._viewRegistry.get(this._activeViewId);
-    if (viewInfo?.view.id === 'codegraphy.depth-graph') {
-      this._applyViewTransform();
-  
-      this._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: this._graphData });
-    }
+    await setGraphViewDepthLimit(
+      this as unknown as Parameters<typeof setGraphViewDepthLimit>[0],
+      depthLimit,
+      {
+      persistDepthLimit: async nextDepthLimit => {
+        await this._context.workspaceState.update(DEPTH_LIMIT_KEY, nextDepthLimit);
+      },
+      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
+      getActiveViewInfo: nextViewId => this._viewRegistry.get(nextViewId),
+      applyViewTransform: () => this._applyViewTransform(),
+      },
+    );
   }
 
   /**
    * Gets the current depth limit.
    */
   public getDepthLimit(): number {
-    return this._viewContext.depthLimit ?? DEFAULT_DEPTH_LIMIT;
+    return getGraphViewDepthLimit(this._viewContext, DEFAULT_DEPTH_LIMIT);
   }
 
   /**
