@@ -408,7 +408,7 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `providerWebviewMethodsDefaultDependencies.test.ts`
         - focused verification green:
           - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerPluginMethods.test.ts tests/extension/graphView/providerSettingsStateMethods.test.ts tests/extension/graphView/providerTimeline.test.ts tests/extension/graphView/providerTimelineDefaultDependencies.test.ts tests/extension/graphView/providerWebviewMethods.test.ts tests/extension/graphView/providerWebviewMethodsDefaultDependencies.test.ts tests/extension/graphView/allSettingsSync.test.ts tests/extension/graphView/externalPluginRegistration.test.ts`
-          - `41` tests green
+          - `42` tests green
           - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
           - touched-file `eslint` green
         - latest targeted mutation after the second survivor pass:
