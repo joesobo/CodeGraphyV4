@@ -139,6 +139,68 @@ describe('graphView/providerTimelineMethods', () => {
     );
   });
 
+  it('uses the live default selected-node behavior', async () => {
+    const source = {
+      _context: {} as never,
+      _analyzer: undefined,
+      _analyzerInitialized: false,
+      _gitAnalyzer: undefined,
+      _indexingController: undefined,
+      _filterPatterns: [],
+      _timelineActive: true,
+      _currentCommitSha: 'sha-1',
+      _disabledPlugins: new Set<string>(),
+      _disabledRules: new Set<string>(),
+      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _sendMessage: vi.fn(),
+      _openFile: vi.fn(async () => undefined),
+    };
+    timelineMethodMocks.openNodeInEditor.mockImplementation(
+      async (_nodeId, state, _handlers, behavior) => {
+        expect(state).toEqual({
+          timelineActive: true,
+          currentCommitSha: 'sha-1',
+        });
+        expect(behavior).toEqual({ preview: true, preserveFocus: true });
+      },
+    );
+
+    const methods = createGraphViewProviderTimelineMethods(source as never);
+
+    await methods._openSelectedNode('src/app.ts');
+  });
+
+  it('uses the live default activated-node behavior', async () => {
+    const source = {
+      _context: {} as never,
+      _analyzer: undefined,
+      _analyzerInitialized: false,
+      _gitAnalyzer: undefined,
+      _indexingController: undefined,
+      _filterPatterns: [],
+      _timelineActive: true,
+      _currentCommitSha: 'sha-1',
+      _disabledPlugins: new Set<string>(),
+      _disabledRules: new Set<string>(),
+      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _sendMessage: vi.fn(),
+      _openFile: vi.fn(async () => undefined),
+    };
+    timelineMethodMocks.openNodeInEditor.mockImplementation(
+      async (_nodeId, state, _handlers, behavior) => {
+        expect(state).toEqual({
+          timelineActive: true,
+          currentCommitSha: 'sha-1',
+        });
+        expect(behavior).toEqual({ preview: false, preserveFocus: false });
+      },
+    );
+
+    const methods = createGraphViewProviderTimelineMethods(source as never);
+
+    await methods._activateNode('src/app.ts');
+  });
+
   it('previews files at a commit using workspace/editor dependencies', async () => {
     const previewFileAtCommit = vi.fn(async () => undefined);
     const getWorkspaceFolder = vi.fn(() => ({ uri: { fsPath: '/workspace' } }));
