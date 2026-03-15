@@ -25,6 +25,8 @@ describe('graph view analysis request', () => {
       executeAnalysis,
       isAbortError: vi.fn(() => false),
       logError: vi.fn(),
+      updateAnalysisController: vi.fn(),
+      updateAnalysisRequestId: vi.fn(),
     });
 
     expect(abortSpy).toHaveBeenCalledOnce();
@@ -42,6 +44,8 @@ describe('graph view analysis request', () => {
       executeAnalysis: vi.fn(() => Promise.reject(error)),
       isAbortError: vi.fn(() => false),
       logError,
+      updateAnalysisController: vi.fn(),
+      updateAnalysisRequestId: vi.fn(),
     });
 
     expect(logError).toHaveBeenCalledWith('[CodeGraphy] Analysis failed:', error);

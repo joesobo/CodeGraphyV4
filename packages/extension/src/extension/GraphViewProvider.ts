@@ -481,6 +481,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       logError: (message, error) => {
         console.error(message, error);
       },
+      updateAnalysisController: controller => {
+        this._analysisController = controller;
+      },
+      updateAnalysisRequestId: requestId => {
+        this._analysisRequestId = requestId;
+      },
     });
 
     this._analysisController = state.analysisController;

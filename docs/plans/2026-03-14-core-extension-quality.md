@@ -189,8 +189,36 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - `graphView/pluginWebview.ts` = `86.49%`
         - `graphView/externalPluginRegistration.ts` = `79.07%`
         - `GraphViewProvider.ts` remains the only file above the `50`-site threshold
+      - reviewed/integrated subagent cut: `subagent/core-extension-provider-analysis`
+        - extract `graphView/analysisRequest.ts`, `analysisExecution.ts`, and `timelineIndex.ts`
+        - add direct tests: `analysisRequest.test.ts`, `analysisExecution.test.ts`, `timelineIndex.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/analysisRequest.test.ts tests/extension/graphView/analysisExecution.test.ts tests/extension/graphView/timelineIndex.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts tests/extension/graphView/messages/timeline.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - reviewed/integrated subagent cut: `subagent/core-extension-provider-listener`
+        - extract `graphView/messages/dispatchPrimary.ts`, `dispatchPlugin.ts`, and `listener.ts`
+        - add direct tests: `dispatchPrimary.test.ts`, `dispatchPlugin.test.ts`, `listener.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/dispatchPrimary.test.ts tests/extension/graphView/messages/dispatchPlugin.test.ts tests/extension/graphView/messages/listener.test.ts tests/extension/graphView/messages/ready.test.ts tests/extension/GraphViewProvider.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts tests/extension/GraphViewProvider.publicApi.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - integrated regression fix:
+        - update `analysisRequest.ts` to publish live request/controller state immediately so `_isAnalysisStale()` and refresh cancellation still work during an active run
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/analysisRequest.test.ts tests/extension/GraphViewProvider.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - latest targeted mutation after the analysis + listener cuts:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `62.85%`
+        - `GraphViewProvider.ts` = `39.67%`
+        - `GraphViewProvider.ts` mutation sites = `721`
+        - threshold blockers now:
+          - `graphView/messages/dispatchPrimary.ts` = `86` sites
+          - `graphView/messages/dispatchPlugin.ts` = `56` sites
+          - `graphView/timelineIndex.ts` = `54` sites
+          - `GraphViewProvider.ts` = `721` sites
       - next cut:
-        - keep draining `GraphViewProvider.ts` with the next high-yield seams: `_setWebviewMessageListener`, `_indexRepository`, and `_doAnalyzeAndSendData`
+        - split the new dispatcher/index helpers under the `50`-site threshold
+        - keep draining `GraphViewProvider.ts`, next likely seams: built-in/plugin group assembly, view-context/view-transform/send wrappers, and the `_setWebviewMessageListener` dependency object
         - do not spend time on survivor cleanup until the provider file is also under the `50`-site threshold
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers

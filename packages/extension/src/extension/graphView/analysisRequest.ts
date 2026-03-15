@@ -7,6 +7,8 @@ export interface GraphViewAnalysisRequestHandlers {
   executeAnalysis(signal: AbortSignal, requestId: number): Promise<void>;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;
+  updateAnalysisController(controller: AbortController | undefined): void;
+  updateAnalysisRequestId(requestId: number): void;
 }
 
 export async function runGraphViewAnalysisRequest(
@@ -16,7 +18,9 @@ export async function runGraphViewAnalysisRequest(
   state.analysisController?.abort();
   const controller = new AbortController();
   state.analysisController = controller;
+  handlers.updateAnalysisController(controller);
   const requestId = ++state.analysisRequestId;
+  handlers.updateAnalysisRequestId(requestId);
 
   try {
     await handlers.executeAnalysis(controller.signal, requestId);
@@ -27,6 +31,7 @@ export async function runGraphViewAnalysisRequest(
   } finally {
     if (state.analysisController === controller) {
       state.analysisController = undefined;
+      handlers.updateAnalysisController(undefined);
     }
   }
 }
