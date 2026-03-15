@@ -13,7 +13,6 @@ import {
   IGroup,
   NodeSizeMode,
   ExtensionToWebviewMessage,
-  WebviewToExtensionMessage,
   DEFAULT_FOLDER_NODE_COLOR,
 } from '../shared/types';
 import { EventBus, EventName, EventPayloads } from '../core/plugins/EventBus';
@@ -30,11 +29,6 @@ import {
   ResetSettingsAction,
 } from './actions';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
-import { saveExportedPng } from './export/savePng';
-import { saveExportedSvg } from './export/saveSvg';
-import { saveExportedJpeg } from './export/saveJpeg';
-import { saveExportedJson } from './export/saveJson';
-import { saveExportedMarkdown } from './export/saveMarkdown';
 import {
   applyGraphViewTransform,
   getRelativeWorkspacePath,
@@ -111,18 +105,7 @@ import {
 	readGraphViewSettings,
 	resolveGraphViewDisabledState,
 } from './graphViewSettings';
-import { applyCommandMessage } from './graphView/messages/commands';
-import { applyExportMessage } from './graphView/messages/exports';
-import { applyGroupMessage } from './graphView/messages/groups';
-import { applyNodeFileMessage } from './graphView/messages/nodeFile';
-import { applyPhysicsMessage } from './graphView/messages/physics';
-import { applyPluginContextMenuAction } from './graphView/messages/pluginContextMenu';
-import { applyPluginGroupToggle } from './graphView/messages/pluginGroupToggle';
-import { applyPluginInteraction } from './graphView/messages/pluginInteraction';
-import { applyPluginSectionToggle } from './graphView/messages/pluginSectionToggle';
-import { applyWebviewReady } from './graphView/messages/ready';
-import { applySettingsMessage } from './graphView/messages/settings';
-import { applyTimelineMessage } from './graphView/messages/timeline';
+import { setGraphViewWebviewMessageListener } from './graphView/messages/listener';
 
 /** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -1166,232 +1149,144 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * @param webview - The webview to listen to
    */
   private _setWebviewMessageListener(webview: vscode.Webview): void {
-    webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
-      if (await applyNodeFileMessage(message, {
-        timelineActive: this._timelineActive,
-        currentCommitSha: this._currentCommitSha,
-        openSelectedNode: nodeId => this._openSelectedNode(nodeId),
-        activateNode: nodeId => this._activateNode(nodeId),
-        previewFileAtCommit: (sha, filePath) => this._previewFileAtCommit(sha, filePath),
-        openFile: filePath => this._openFile(filePath),
-        revealInExplorer: filePath => this._revealInExplorer(filePath),
-        copyToClipboard: text => this._copyToClipboard(text),
-        deleteFiles: paths => this._deleteFiles(paths),
-        renameFile: filePath => this._renameFile(filePath),
-        createFile: directory => this._createFile(directory),
-        toggleFavorites: paths => this._toggleFavorites(paths),
-        addToExclude: patterns => this._addToExclude(patterns),
-        analyzeAndSendData: () => this._analyzeAndSendData(),
-        getFileInfo: filePath => this._getFileInfo(filePath),
-      })) {
-        return;
-      }
+    const config = vscode.workspace.getConfiguration('codegraphy');
 
-      if (await applyExportMessage(message, {
-        savePng: (dataUrl, filename) => saveExportedPng(dataUrl, filename),
-        saveSvg: (svg, filename) => saveExportedSvg(svg, filename),
-        saveJpeg: (dataUrl, filename) => saveExportedJpeg(dataUrl, filename),
-        saveJson: (json, filename) => saveExportedJson(json, filename),
-        saveMarkdown: (markdown, filename) => saveExportedMarkdown(markdown, filename),
-      })) {
-        return;
-      }
-
-      if (await applyCommandMessage(message, {
-        undo: () => this.undo(),
-        redo: () => this.redo(),
-        showInformationMessage: detail => {
-          vscode.window.showInformationMessage(detail);
-        },
-        changeView: viewId => this.changeView(viewId),
-        setDepthLimit: depthLimit => this.setDepthLimit(depthLimit),
-        updateDagMode: async dagMode => {
-          this._dagMode = dagMode;
-          await this._context.workspaceState.update(DAG_MODE_KEY, this._dagMode);
-          this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
-        },
-        updateNodeSizeMode: async nodeSizeMode => {
-          this._nodeSizeMode = nodeSizeMode;
-          await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, this._nodeSizeMode);
-          this._sendMessage({
-            type: 'NODE_SIZE_MODE_UPDATED',
-            payload: { nodeSizeMode: this._nodeSizeMode },
-          });
-        },
-      })) {
-        return;
-      }
-
-      if (await applyTimelineMessage(message, {
-        indexRepository: () => this._indexRepository(),
-        jumpToCommit: sha => this._jumpToCommit(sha),
-        previewFileAtCommit: (sha, filePath) => this._previewFileAtCommit(sha, filePath),
-      })) {
-        return;
-      }
-
-      if (await applyPhysicsMessage(message, {
-        sendPhysicsSettings: () => this._sendPhysicsSettings(),
-        updatePhysicsSetting: (key, value) => this._updatePhysicsSetting(key, value),
-        resetPhysicsSettings: () => this._resetPhysicsSettings(),
-      })) {
-        return;
-      }
-
-      const groupMessageState = {
-        userGroups: this._userGroups,
-      };
-      if (await applyGroupMessage(message, groupMessageState, {
-        workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-        persistGroups: async (groups) => {
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update('groups', groups, target);
-        },
-        recomputeGroups: () => this._computeMergedGroups(),
-        sendGroupsUpdated: () => this._sendGroupsUpdated(),
-        showOpenDialog: (options) => vscode.window.showOpenDialog(options),
-        createDirectory: (uri) => vscode.workspace.fs.createDirectory(uri),
-        copyFile: (source, destination, options) =>
-          vscode.workspace.fs.copy(source, destination, options),
-      })) {
-        this._userGroups = groupMessageState.userGroups;
-        return;
-      }
-
-      const settingsMessageState = {
-        activeViewId: this._activeViewId,
-        disabledPlugins: this._disabledPlugins,
-        disabledRules: this._disabledRules,
-        filterPatterns: this._filterPatterns,
-        graphData: this._graphData,
-        viewContext: this._viewContext,
-      };
-      if (await applySettingsMessage(message, settingsMessageState, {
-        getConfig: (key, defaultValue) =>
-          vscode.workspace.getConfiguration('codegraphy').get(key, defaultValue),
-        updateConfig: async (key, value) => {
-          const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await vscode.workspace.getConfiguration('codegraphy').update(key, value, target);
-        },
-        getPluginFilterPatterns: () => this._analyzer?.getPluginFilterPatterns() ?? [],
-        sendMessage: (nextMessage) => this._sendMessage(nextMessage),
-        applyViewTransform: () => this._applyViewTransform(),
-        smartRebuild: (kind, id) => this._smartRebuild(kind, id),
-        resetAllSettings: async () => {
-          const snapshot = captureGraphViewSettingsSnapshot(
-            vscode.workspace.getConfiguration('codegraphy'),
-            this._getPhysicsSettings(),
-            this._nodeSizeMode,
-          );
-          const action = new ResetSettingsAction(
-            snapshot,
-            getGraphViewConfigTarget(vscode.workspace.workspaceFolders),
-            this._context,
-            () => this._sendAllSettings(),
-            (mode) => { this._nodeSizeMode = mode; },
-            () => this._analyzeAndSendData(),
-          );
-          await getUndoManager().execute(action);
-        },
-      })) {
-        this._filterPatterns = settingsMessageState.filterPatterns;
-        return;
-      }
-
-      switch (message.type) {
-        case 'WEBVIEW_READY': {
-          const config = vscode.workspace.getConfiguration('codegraphy');
-          this._webviewReadyNotified = await applyWebviewReady(
-            {
-              filterPatterns: this._filterPatterns,
-              pluginFilterPatterns: this._analyzer?.getPluginFilterPatterns() ?? [],
-              maxFiles: config.get<number>('maxFiles', 500),
-              playbackSpeed: config.get<number>('timeline.playbackSpeed', 1.0),
-              dagMode: this._dagMode,
-              nodeSizeMode: this._nodeSizeMode,
-              folderNodeColor: normalizeFolderNodeColor(
-                config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR),
-              ),
-              hasWorkspace: (vscode.workspace.workspaceFolders?.length ?? 0) > 0,
-              firstAnalysis: this._firstAnalysis,
-              webviewReadyNotified: this._webviewReadyNotified,
-            },
-            {
-              loadGroupsAndFilterPatterns: () => this._loadGroupsAndFilterPatterns(),
-              loadDisabledRulesAndPlugins: () => this._loadDisabledRulesAndPlugins(),
-              analyzeAndSendData: () => void this._analyzeAndSendData(),
-              sendFavorites: () => this._sendFavorites(),
-              sendSettings: () => this._sendSettings(),
-              sendPhysicsSettings: () => this._sendPhysicsSettings(),
-              sendGroupsUpdated: () => this._sendGroupsUpdated(),
-              sendMessage: (nextMessage) =>
-                this._sendMessage(nextMessage as ExtensionToWebviewMessage),
-              sendCachedTimeline: () => this._sendCachedTimeline(),
-              sendDecorations: () => this._sendDecorations(),
-              sendContextMenuItems: () => this._sendContextMenuItems(),
-              sendPluginWebviewInjections: () => this._sendPluginWebviewInjections(),
-              waitForFirstWorkspaceReady: () => this._firstWorkspaceReadyPromise,
-              notifyWebviewReady: () => this._analyzer?.registry.notifyWebviewReady(),
-            },
-          );
-          break;
-        }
-
-        case 'GRAPH_INTERACTION': {
-          applyPluginInteraction(message.payload, {
-            getPluginApi: pluginId => this._analyzer?.registry.getPluginAPI(pluginId),
-            emitEvent: (event, payload) => {
-              this._eventBus.emit(event as EventName, payload as EventPayloads[EventName]);
-            },
-          });
-          break;
-        }
-
-        case 'PLUGIN_CONTEXT_MENU_ACTION': {
-          await applyPluginContextMenuAction(message.payload, {
-            getPluginApi: pluginId => this._analyzer?.registry.getPluginAPI(pluginId),
-            findNode: targetId => this._graphData.nodes.find(n => n.id === targetId),
-            findEdge: targetId => this._graphData.edges.find(e => e.id === targetId),
-            logError: (label, error) => {
-              console.error(label, error);
-            },
-          });
-          break;
-        }
-
-        case 'TOGGLE_PLUGIN_GROUP_DISABLED': {
-          const toggleTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await applyPluginGroupToggle(message.payload, {
-            hiddenPluginGroupIds: this._hiddenPluginGroupIds,
-            updateHiddenPluginGroups: groupIds =>
-              vscode.workspace.getConfiguration('codegraphy').update(
-                'hiddenPluginGroups',
-                groupIds,
-                toggleTarget
-              ),
-            recomputeGroups: () => this._computeMergedGroups(),
-            sendGroupsUpdated: () => this._sendGroupsUpdated(),
-          });
-          break;
-        }
-
-        case 'TOGGLE_PLUGIN_SECTION_DISABLED': {
-          const sectionTarget = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-          await applyPluginSectionToggle(message.payload, {
-            hiddenPluginGroupIds: this._hiddenPluginGroupIds,
-            updateHiddenPluginGroups: groupIds =>
-              vscode.workspace.getConfiguration('codegraphy').update(
-                'hiddenPluginGroups',
-                groupIds,
-                sectionTarget
-              ),
-            recomputeGroups: () => this._computeMergedGroups(),
-            sendGroupsUpdated: () => this._sendGroupsUpdated(),
-          });
-          break;
-        }
-
-      }
+    setGraphViewWebviewMessageListener(webview, {
+      getTimelineActive: () => this._timelineActive,
+      getCurrentCommitSha: () => this._currentCommitSha,
+      getUserGroups: () => this._userGroups,
+      getActiveViewId: () => this._activeViewId,
+      getDisabledPlugins: () => this._disabledPlugins,
+      getDisabledRules: () => this._disabledRules,
+      getFilterPatterns: () => this._filterPatterns,
+      getGraphData: () => this._graphData,
+      getViewContext: () => this._viewContext,
+      openSelectedNode: nodeId => this._openSelectedNode(nodeId),
+      activateNode: nodeId => this._activateNode(nodeId),
+      previewFileAtCommit: (sha, filePath) => this._previewFileAtCommit(sha, filePath),
+      openFile: filePath => this._openFile(filePath),
+      revealInExplorer: filePath => this._revealInExplorer(filePath),
+      copyToClipboard: text => this._copyToClipboard(text),
+      deleteFiles: paths => this._deleteFiles(paths),
+      renameFile: filePath => this._renameFile(filePath),
+      createFile: directory => this._createFile(directory),
+      toggleFavorites: paths => this._toggleFavorites(paths),
+      addToExclude: patterns => this._addToExclude(patterns),
+      analyzeAndSendData: () => this._analyzeAndSendData(),
+      getFileInfo: filePath => this._getFileInfo(filePath),
+      undo: () => this.undo(),
+      redo: () => this.redo(),
+      showInformationMessage: detail => {
+        vscode.window.showInformationMessage(detail);
+      },
+      changeView: viewId => this.changeView(viewId),
+      setDepthLimit: depthLimit => this.setDepthLimit(depthLimit),
+      updateDagMode: async dagMode => {
+        this._dagMode = dagMode;
+        await this._context.workspaceState.update(DAG_MODE_KEY, this._dagMode);
+        this._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: this._dagMode } });
+      },
+      updateNodeSizeMode: async nodeSizeMode => {
+        this._nodeSizeMode = nodeSizeMode;
+        await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, this._nodeSizeMode);
+        this._sendMessage({
+          type: 'NODE_SIZE_MODE_UPDATED',
+          payload: { nodeSizeMode: this._nodeSizeMode },
+        });
+      },
+      indexRepository: () => this._indexRepository(),
+      jumpToCommit: sha => this._jumpToCommit(sha),
+      sendPhysicsSettings: () => this._sendPhysicsSettings(),
+      updatePhysicsSetting: (key, value) => this._updatePhysicsSetting(key, value),
+      resetPhysicsSettings: () => this._resetPhysicsSettings(),
+      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+      persistGroups: async groups => {
+        const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
+        await vscode.workspace.getConfiguration('codegraphy').update('groups', groups, target);
+      },
+      recomputeGroups: () => this._computeMergedGroups(),
+      sendGroupsUpdated: () => this._sendGroupsUpdated(),
+      showOpenDialog: options => vscode.window.showOpenDialog(options),
+      createDirectory: uri => vscode.workspace.fs.createDirectory(uri),
+      copyFile: (source, destination, options) =>
+        vscode.workspace.fs.copy(source, destination, options),
+      getConfig: (key, defaultValue) =>
+        vscode.workspace.getConfiguration('codegraphy').get(key, defaultValue),
+      updateConfig: async (key, value) => {
+        const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
+        await vscode.workspace.getConfiguration('codegraphy').update(key, value, target);
+      },
+      getPluginFilterPatterns: () => this._analyzer?.getPluginFilterPatterns() ?? [],
+      sendMessage: nextMessage => this._sendMessage(nextMessage as ExtensionToWebviewMessage),
+      applyViewTransform: () => this._applyViewTransform(),
+      smartRebuild: (kind, id) => this._smartRebuild(kind, id),
+      resetAllSettings: async () => {
+        const snapshot = captureGraphViewSettingsSnapshot(
+          vscode.workspace.getConfiguration('codegraphy'),
+          this._getPhysicsSettings(),
+          this._nodeSizeMode,
+        );
+        const action = new ResetSettingsAction(
+          snapshot,
+          getGraphViewConfigTarget(vscode.workspace.workspaceFolders),
+          this._context,
+          () => this._sendAllSettings(),
+          mode => {
+            this._nodeSizeMode = mode;
+          },
+          () => this._analyzeAndSendData(),
+        );
+        await getUndoManager().execute(action);
+      },
+      getMaxFiles: () => config.get<number>('maxFiles', 500),
+      getPlaybackSpeed: () => config.get<number>('timeline.playbackSpeed', 1.0),
+      getDagMode: () => this._dagMode,
+      getNodeSizeMode: () => this._nodeSizeMode,
+      getFolderNodeColor: () =>
+        normalizeFolderNodeColor(config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)),
+      hasWorkspace: () => (vscode.workspace.workspaceFolders?.length ?? 0) > 0,
+      isFirstAnalysis: () => this._firstAnalysis,
+      isWebviewReadyNotified: () => this._webviewReadyNotified,
+      getHiddenPluginGroupIds: () => this._hiddenPluginGroupIds,
+      loadGroupsAndFilterPatterns: () => this._loadGroupsAndFilterPatterns(),
+      loadDisabledRulesAndPlugins: () => this._loadDisabledRulesAndPlugins(),
+      sendFavorites: () => this._sendFavorites(),
+      sendSettings: () => this._sendSettings(),
+      sendCachedTimeline: () => this._sendCachedTimeline(),
+      sendDecorations: () => this._sendDecorations(),
+      sendContextMenuItems: () => this._sendContextMenuItems(),
+      sendPluginWebviewInjections: () => this._sendPluginWebviewInjections(),
+      waitForFirstWorkspaceReady: () => this._firstWorkspaceReadyPromise,
+      notifyWebviewReady: () => this._analyzer?.registry.notifyWebviewReady(),
+      getInteractionPluginApi: pluginId => this._analyzer?.registry.getPluginAPI(pluginId),
+      getContextMenuPluginApi: pluginId => this._analyzer?.registry.getPluginAPI(pluginId),
+      emitEvent: (event, payload) => {
+        this._eventBus.emit(event as EventName, payload as EventPayloads[EventName]);
+      },
+      findNode: targetId => this._graphData.nodes.find(node => node.id === targetId),
+      findEdge: targetId => this._graphData.edges.find(edge => edge.id === targetId),
+      logError: (label, error) => {
+        console.error(label, error);
+      },
+      updateHiddenPluginGroups: groupIds => {
+        const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
+        return Promise.resolve(
+          vscode.workspace.getConfiguration('codegraphy').update(
+            'hiddenPluginGroups',
+            groupIds,
+            target,
+          ),
+        );
+      },
+      setUserGroups: groups => {
+        this._userGroups = groups;
+      },
+      setFilterPatterns: patterns => {
+        this._filterPatterns = patterns;
+      },
+      setWebviewReadyNotified: readyNotified => {
+        this._webviewReadyNotified = readyNotified;
+      },
     });
   }
 
