@@ -25,6 +25,60 @@ async function loadSubject(
     | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
     | undefined,
 ) {
+  vi.doMock('../../src/extension/WorkspaceAnalyzer', () => ({
+    WorkspaceAnalyzer: class WorkspaceAnalyzer {},
+  }));
+  vi.doMock('../../src/core/views', () => ({
+    ViewRegistry: class ViewRegistry {},
+    coreViews: [],
+  }));
+  vi.doMock('../../src/core/plugins/EventBus', () => ({
+    EventBus: class EventBus {},
+  }));
+  vi.doMock('../../src/core/plugins/DecorationManager', () => ({
+    DecorationManager: class DecorationManager {},
+  }));
+  vi.doMock('../../src/extension/graphView/providerAnalysisMethods', () => ({
+    createGraphViewProviderAnalysisMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerCommandMethods', () => ({
+    createGraphViewProviderCommandMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerFileActionMethods', () => ({
+    createGraphViewProviderFileActionMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerFileVisitMethods', () => ({
+    createGraphViewProviderFileVisitMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerPluginMethods', () => ({
+    createGraphViewProviderPluginMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerPluginResourceMethods', () => ({
+    createGraphViewProviderPluginResourceMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerPhysicsSettingsMethods', () => ({
+    createGraphViewProviderPhysicsSettingsMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerRefreshMethods', () => ({
+    createGraphViewProviderRefreshMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerSettingsStateMethods', () => ({
+    createGraphViewProviderSettingsStateMethods: () => ({
+      _loadDisabledRulesAndPlugins: vi.fn(() => false),
+    }),
+  }));
+  vi.doMock('../../src/extension/graphView/providerTimelineMethods', () => ({
+    createGraphViewProviderTimelineMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerViewContextMethods', () => ({
+    createGraphViewProviderViewContextMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerViewSelectionMethods', () => ({
+    createGraphViewProviderViewSelectionMethods: () => ({}),
+  }));
+  vi.doMock('../../src/extension/graphView/providerWebviewMethods', () => ({
+    createGraphViewProviderWebviewMethods: () => ({}),
+  }));
   vi.doMock('vscode', async () => {
     const actual = await vi.importActual<typeof import('vscode')>('vscode');
 
@@ -52,6 +106,23 @@ describe('GraphViewProvider bootstrap wiring', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.doUnmock('vscode');
+    vi.doUnmock('../../src/extension/WorkspaceAnalyzer');
+    vi.doUnmock('../../src/core/views');
+    vi.doUnmock('../../src/core/plugins/EventBus');
+    vi.doUnmock('../../src/core/plugins/DecorationManager');
+    vi.doUnmock('../../src/extension/graphView/providerAnalysisMethods');
+    vi.doUnmock('../../src/extension/graphView/providerCommandMethods');
+    vi.doUnmock('../../src/extension/graphView/providerFileActionMethods');
+    vi.doUnmock('../../src/extension/graphView/providerFileVisitMethods');
+    vi.doUnmock('../../src/extension/graphView/providerPluginMethods');
+    vi.doUnmock('../../src/extension/graphView/providerPluginResourceMethods');
+    vi.doUnmock('../../src/extension/graphView/providerPhysicsSettingsMethods');
+    vi.doUnmock('../../src/extension/graphView/providerRefreshMethods');
+    vi.doUnmock('../../src/extension/graphView/providerSettingsStateMethods');
+    vi.doUnmock('../../src/extension/graphView/providerTimelineMethods');
+    vi.doUnmock('../../src/extension/graphView/providerViewContextMethods');
+    vi.doUnmock('../../src/extension/graphView/providerViewSelectionMethods');
+    vi.doUnmock('../../src/extension/graphView/providerWebviewMethods');
     vi.doUnmock('../../src/extension/graphView/providerBootstrap');
     vi.resetModules();
   });

@@ -1,9 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   indexGraphViewRepository,
   type GraphViewTimelineIndexHandlers,
   type GraphViewTimelineIndexState,
 } from '../../../src/extension/graphView/timelineIndex';
+
+afterEach(() => {
+  vi.doUnmock('../../../src/extension/graphView/timelineIndexSetup');
+  vi.doUnmock('../../../src/extension/graphView/timelineIndexExecution');
+  vi.resetModules();
+});
 
 function createState(
   overrides: Partial<GraphViewTimelineIndexState> = {},
@@ -48,6 +54,75 @@ describe('graph view timeline index', () => {
     expect(handlers.showErrorMessage).toHaveBeenCalledWith('No workspace folder open');
   });
 
+  it('stops before execution when the index setup is not ready', async () => {
+    vi.resetModules();
+
+    const prepareGraphViewTimelineIndex = vi.fn(async () => false);
+    const runGraphViewTimelineIndex = vi.fn(async () => undefined);
+
+    vi.doMock('../../../src/extension/graphView/timelineIndexSetup', () => ({
+      prepareGraphViewTimelineIndex,
+    }));
+    vi.doMock('../../../src/extension/graphView/timelineIndexExecution', () => ({
+      runGraphViewTimelineIndex,
+    }));
+
+    const { indexGraphViewRepository: indexRepository } = await import(
+      '../../../src/extension/graphView/timelineIndex'
+    );
+
+    await indexRepository(
+      createState({
+        gitAnalyzer: {
+          indexHistory: vi.fn(() => Promise.resolve([])),
+        },
+        indexingController: new AbortController(),
+      }),
+      createHandlers(),
+    );
+
+    expect(prepareGraphViewTimelineIndex).toHaveBeenCalledOnce();
+    expect(runGraphViewTimelineIndex).not.toHaveBeenCalled();
+  });
+
+  it('stops before execution when setup leaves timeline state incomplete', async () => {
+    vi.resetModules();
+
+    const prepareGraphViewTimelineIndex = vi.fn(async () => true);
+    const runGraphViewTimelineIndex = vi.fn(async () => undefined);
+
+    vi.doMock('../../../src/extension/graphView/timelineIndexSetup', () => ({
+      prepareGraphViewTimelineIndex,
+    }));
+    vi.doMock('../../../src/extension/graphView/timelineIndexExecution', () => ({
+      runGraphViewTimelineIndex,
+    }));
+
+    const { indexGraphViewRepository: indexRepository } = await import(
+      '../../../src/extension/graphView/timelineIndex'
+    );
+
+    await indexRepository(
+      createState({
+        gitAnalyzer: undefined,
+        indexingController: new AbortController(),
+      }),
+      createHandlers(),
+    );
+    await indexRepository(
+      createState({
+        gitAnalyzer: {
+          indexHistory: vi.fn(() => Promise.resolve([])),
+        },
+        indexingController: undefined,
+      }),
+      createHandlers(),
+    );
+
+    expect(prepareGraphViewTimelineIndex).toHaveBeenCalledTimes(2);
+    expect(runGraphViewTimelineIndex).not.toHaveBeenCalled();
+  });
+
   it('indexes commits and activates the latest timeline state', async () => {
     const commits = [{ sha: '111' }, { sha: '222' }];
     const gitAnalyzer = {
@@ -89,5 +164,62 @@ describe('graph view timeline index', () => {
     expect(state.analyzerInitialized).toBe(true);
     expect(state.timelineActive).toBe(true);
     expect(state.currentCommitSha).toBe('222');
+  });
+
+  it('forwards execution handlers to the timeline runner', async () => {
+    vi.resetModules();
+
+    const prepareGraphViewTimelineIndex = vi.fn(async () => true);
+    const runGraphViewTimelineIndex = vi.fn(async (_state, handlers) => {
+      expect(handlers.getMaxCommits()).toBe(250);
+      handlers.sendMessage({ type: 'TIMELINE_DATA', payload: { commits: [], currentSha: 'sha-1' } });
+      handlers.showInformationMessage('indexed');
+      handlers.showErrorMessage('failed');
+      expect(handlers.toErrorMessage(new Error('boom'))).toBe('boom');
+      await handlers.jumpToCommit('sha-1');
+      handlers.logError('timeline failed', new Error('boom'));
+    });
+
+    vi.doMock('../../../src/extension/graphView/timelineIndexSetup', () => ({
+      prepareGraphViewTimelineIndex,
+    }));
+    vi.doMock('../../../src/extension/graphView/timelineIndexExecution', () => ({
+      runGraphViewTimelineIndex,
+    }));
+
+    const { indexGraphViewRepository: indexRepository } = await import(
+      '../../../src/extension/graphView/timelineIndex'
+    );
+    const handlers = createHandlers({
+      getMaxCommits: vi.fn(() => 250),
+      sendMessage: vi.fn(),
+      showInformationMessage: vi.fn(),
+      showErrorMessage: vi.fn(),
+      toErrorMessage: vi.fn(() => 'boom'),
+      jumpToCommit: vi.fn(() => Promise.resolve()),
+      logError: vi.fn(),
+    });
+
+    await indexRepository(
+      createState({
+        gitAnalyzer: {
+          indexHistory: vi.fn(() => Promise.resolve([])),
+        },
+        indexingController: new AbortController(),
+      }),
+      handlers,
+    );
+
+    expect(runGraphViewTimelineIndex).toHaveBeenCalledOnce();
+    expect(handlers.getMaxCommits).toHaveBeenCalledOnce();
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'TIMELINE_DATA',
+      payload: { commits: [], currentSha: 'sha-1' },
+    });
+    expect(handlers.showInformationMessage).toHaveBeenCalledWith('indexed');
+    expect(handlers.showErrorMessage).toHaveBeenCalledWith('failed');
+    expect(handlers.toErrorMessage).toHaveBeenCalledOnce();
+    expect(handlers.jumpToCommit).toHaveBeenCalledWith('sha-1');
+    expect(handlers.logError).toHaveBeenCalledWith('timeline failed', expect.any(Error));
   });
 });
