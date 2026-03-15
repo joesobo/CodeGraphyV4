@@ -74,47 +74,55 @@ export interface GraphViewProviderTimelineMethodDependencies {
   logError(message: string, error: unknown): void;
 }
 
-const DEFAULT_TIMELINE_PREVIEW_BEHAVIOR: EditorOpenBehavior = {
-  preview: true,
-  preserveFocus: false,
-};
+function createDefaultTimelinePreviewBehavior(): EditorOpenBehavior {
+  return {
+    preview: true,
+    preserveFocus: false,
+  };
+}
 
-const TEMPORARY_NODE_OPEN_BEHAVIOR: EditorOpenBehavior = {
-  preview: true,
-  preserveFocus: true,
-};
+function createTemporaryNodeOpenBehavior(): EditorOpenBehavior {
+  return {
+    preview: true,
+    preserveFocus: true,
+  };
+}
 
-const PERMANENT_NODE_OPEN_BEHAVIOR: EditorOpenBehavior = {
-  preview: false,
-  preserveFocus: false,
-};
+function createPermanentNodeOpenBehavior(): EditorOpenBehavior {
+  return {
+    preview: false,
+    preserveFocus: false,
+  };
+}
 
-const DEFAULT_DEPENDENCIES: GraphViewProviderTimelineMethodDependencies = {
-  indexRepository: indexGraphViewProviderRepository,
-  jumpToCommit: jumpGraphViewProviderToCommit,
-  openNodeInEditor: openGraphViewNodeInEditor,
-  previewFileAtCommit: previewGraphViewFileAtCommit,
-  sendCachedTimeline: sendGraphViewProviderCachedTimeline,
-  sendPlaybackSpeed: sendGraphViewPlaybackSpeed,
-  invalidateTimelineCache: invalidateGraphViewTimelineCache,
-  getPlaybackSpeed: () =>
-    vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0),
-  getWorkspaceFolder: () => vscode.workspace.workspaceFolders?.[0],
-  openTextDocument: fileUri => vscode.workspace.openTextDocument(fileUri),
-  showTextDocument: (document, options) => vscode.window.showTextDocument(document, options),
-  logError: (message, error) => {
-    console.error(message, error);
-  },
-};
+function createDefaultDependencies(): GraphViewProviderTimelineMethodDependencies {
+  return {
+    indexRepository: indexGraphViewProviderRepository,
+    jumpToCommit: jumpGraphViewProviderToCommit,
+    openNodeInEditor: openGraphViewNodeInEditor,
+    previewFileAtCommit: previewGraphViewFileAtCommit,
+    sendCachedTimeline: sendGraphViewProviderCachedTimeline,
+    sendPlaybackSpeed: sendGraphViewPlaybackSpeed,
+    invalidateTimelineCache: invalidateGraphViewTimelineCache,
+    getPlaybackSpeed: () =>
+      vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.playbackSpeed', 1.0),
+    getWorkspaceFolder: () => vscode.workspace.workspaceFolders?.[0],
+    openTextDocument: fileUri => vscode.workspace.openTextDocument(fileUri),
+    showTextDocument: (document, options) => vscode.window.showTextDocument(document, options),
+    logError: (message, error) => {
+      console.error(message, error);
+    },
+  };
+}
 
 export function createGraphViewProviderTimelineMethods(
   source: GraphViewProviderTimelineMethodsSource,
-  dependencies: GraphViewProviderTimelineMethodDependencies = DEFAULT_DEPENDENCIES,
+  dependencies: GraphViewProviderTimelineMethodDependencies = createDefaultDependencies(),
 ): GraphViewProviderTimelineMethods {
   const _previewFileAtCommit = async (
     sha: string,
     filePath: string,
-    behavior: EditorOpenBehavior = DEFAULT_TIMELINE_PREVIEW_BEHAVIOR,
+    behavior: EditorOpenBehavior = createDefaultTimelinePreviewBehavior(),
   ): Promise<void> => {
     await dependencies.previewFileAtCommit(
       sha,
@@ -160,11 +168,11 @@ export function createGraphViewProviderTimelineMethods(
   };
 
   const _openSelectedNode = async (nodeId: string): Promise<void> => {
-    await _openNodeInEditor(nodeId, TEMPORARY_NODE_OPEN_BEHAVIOR);
+    await _openNodeInEditor(nodeId, createTemporaryNodeOpenBehavior());
   };
 
   const _activateNode = async (nodeId: string): Promise<void> => {
-    await _openNodeInEditor(nodeId, PERMANENT_NODE_OPEN_BEHAVIOR);
+    await _openNodeInEditor(nodeId, createPermanentNodeOpenBehavior());
   };
 
   const _sendCachedTimeline = (): void => {

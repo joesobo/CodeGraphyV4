@@ -575,25 +575,39 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
           - `packages/extension/src/extension/graphView/editorPanel.ts` = `50.00%`
           - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the sixteenth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerTimelineMethods.test.ts`
+          - `7` tests green
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/editorPanel.test.ts`
+          - `1` test green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the sixteenth helper pass:
+          - graph-view-provider slice overall = `88.03%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/editorPanel.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts` = `51.28%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
+          - `packages/extension/src/extension/graphView/timelinePlayback.ts` = `84.62%`
+          - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
           - next hotspot order:
-            - `providerTimelineMethods.ts`
             - `dispatchPrimary.ts`
             - `dispatchPlugin.ts`
-            - `editorPanel.ts`
             - `timelinePlayback.ts`
+            - `pluginDefaultGroups.ts`
+            - `providerPluginResourceMethods.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. `packages/extension/src/extension/graphView/providerTimelineMethods.ts`
-2. `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts`
-3. `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts`
-4. `packages/extension/src/extension/graphView/editorPanel.ts`
-5. `packages/extension/src/extension/graphView/timelinePlayback.ts`
+1. `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts`
+2. `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts`
+3. `packages/extension/src/extension/graphView/timelinePlayback.ts`
+4. `packages/extension/src/extension/graphView/pluginDefaultGroups.ts`
+5. `packages/extension/src/extension/graphView/providerPluginResourceMethods.ts`
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.

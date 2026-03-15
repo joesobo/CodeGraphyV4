@@ -12,6 +12,7 @@ describe('graph view editor panel helper', () => {
         return { dispose: () => {} };
       }),
     };
+    const createPanel = vi.fn(() => panel as never);
     const registerPanel = vi.fn();
     const unregisterPanel = vi.fn();
 
@@ -19,7 +20,7 @@ describe('graph view editor panel helper', () => {
       viewType: 'codegraphy.graphView',
       extensionUri: vscode.Uri.file('/extension'),
       getLocalResourceRoots: () => [vscode.Uri.file('/extension')],
-      createPanel: vi.fn(() => panel as never),
+      createPanel,
       setWebviewMessageListener: vi.fn(),
       getHtmlForWebview: () => '<div id="root"></div>',
       registerPanel,
@@ -27,6 +28,16 @@ describe('graph view editor panel helper', () => {
     });
     disposeHandler?.();
 
+    expect(createPanel).toHaveBeenCalledWith(
+      'codegraphy.graphView',
+      'CodeGraphy',
+      vscode.ViewColumn.Active,
+      {
+        enableScripts: true,
+        localResourceRoots: [vscode.Uri.file('/extension')],
+        retainContextWhenHidden: true,
+      },
+    );
     expect(registerPanel).toHaveBeenCalledWith(panel);
     expect(panel.webview.html).toBe('<div id="root"></div>');
     expect(panel.iconPath).toEqual(vscode.Uri.file('/extension/assets/icon.svg'));
