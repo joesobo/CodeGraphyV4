@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { IGroup, NodeShape2D, NodeShape3D } from '../../shared/types';
-import { GRAPH_VIEW_BUILT_IN_PLUGIN_DIRS } from './builtInGroups';
+import { getBuiltInGraphViewPluginDir } from './builtInPluginRoots';
 
 interface GraphViewPluginColorDefinition {
   color: string;
@@ -45,7 +45,7 @@ export function getGraphViewPluginDefaultGroups(
 
     const pluginId = pluginInfo.plugin.id;
     if (pluginInfo.builtIn && !pluginExtensionUris.has(pluginId)) {
-      const dirName = GRAPH_VIEW_BUILT_IN_PLUGIN_DIRS[pluginId];
+      const dirName = getBuiltInGraphViewPluginDir(pluginId);
       if (dirName) {
         pluginExtensionUris.set(
           pluginId,
