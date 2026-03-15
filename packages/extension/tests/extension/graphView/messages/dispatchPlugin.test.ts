@@ -88,6 +88,58 @@ describe('graph view plugin message dispatch', () => {
     });
   });
 
+  it('runs plugin context menu actions against resolved graph targets', async () => {
+    const action = vi.fn(() => Promise.resolve());
+    const context = createContext({
+      getContextMenuPluginApi: vi.fn(() => ({
+        contextMenuItems: [{ action }],
+      })),
+      findNode: vi.fn(() => ({ id: 'src/index.ts', label: 'Index' })),
+    });
+
+    await expect(
+      dispatchGraphViewPluginMessage(
+        {
+          type: 'PLUGIN_CONTEXT_MENU_ACTION',
+          payload: {
+            pluginId: 'plugin.test',
+            index: 0,
+            targetId: 'src/index.ts',
+            targetType: 'node',
+          },
+        },
+        context,
+      ),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.getContextMenuPluginApi).toHaveBeenCalledWith('plugin.test');
+    expect(context.findNode).toHaveBeenCalledWith('src/index.ts');
+    expect(action).toHaveBeenCalledWith({ id: 'src/index.ts', label: 'Index' });
+    expect(context.logError).not.toHaveBeenCalled();
+  });
+
+  it('updates hidden plugin groups for direct group toggles', async () => {
+    const hiddenPluginGroupIds = new Set<string>();
+    const context = createContext({
+      getHiddenPluginGroupIds: vi.fn(() => hiddenPluginGroupIds),
+    });
+
+    await expect(
+      dispatchGraphViewPluginMessage(
+        {
+          type: 'TOGGLE_PLUGIN_GROUP_DISABLED',
+          payload: { groupId: 'plugin:test:*.ts', disabled: true },
+        },
+        context,
+      ),
+    ).resolves.toEqual({ handled: true });
+
+    expect(hiddenPluginGroupIds.has('plugin:test:*.ts')).toBe(true);
+    expect(context.updateHiddenPluginGroups).toHaveBeenCalledWith(['plugin:test:*.ts']);
+    expect(context.recomputeGroups).toHaveBeenCalledOnce();
+    expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
+  });
+
   it('updates hidden plugin groups for section toggles', async () => {
     const hiddenPluginGroupIds = new Set<string>();
     const context = createContext({

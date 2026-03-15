@@ -122,4 +122,36 @@ describe('graphView/providerPluginResourceMethods', () => {
     expect(methods._normalizeExternalExtensionUri('/plugin')).toEqual(vscode.Uri.file('/plugin'));
     expect(normalizeExtensionUri).toHaveBeenCalledWith('/plugin');
   });
+
+  it('uses the default dependency set for workspace resource roots and uri normalization', () => {
+    const workspace = vscode.workspace as { workspaceFolders?: readonly vscode.WorkspaceFolder[] };
+    const originalWorkspaceFolders = workspace.workspaceFolders;
+    workspace.workspaceFolders = [{ uri: vscode.Uri.file('/workspace') }] as vscode.WorkspaceFolder[];
+
+    try {
+      const source = {
+        _extensionUri: vscode.Uri.file('/extension'),
+        _pluginExtensionUris: new Map<string, vscode.Uri>([
+          ['plugin.test', vscode.Uri.file('/plugin-root')],
+        ]),
+        _analyzer: undefined,
+        _disabledPlugins: new Set<string>(),
+        _userGroups: [],
+        _hiddenPluginGroupIds: new Set<string>(),
+        _groups: [],
+        _view: undefined,
+        _panels: [],
+      };
+      const methods = createGraphViewProviderPluginResourceMethods(source as never);
+
+      expect(methods._normalizeExternalExtensionUri('/plugin')).toEqual(vscode.Uri.file('/plugin'));
+      expect(methods._getLocalResourceRoots()).toEqual([
+        vscode.Uri.file('/extension'),
+        vscode.Uri.file('/plugin-root'),
+        vscode.Uri.file('/workspace'),
+      ]);
+    } finally {
+      workspace.workspaceFolders = originalWorkspaceFolders;
+    }
+  });
 });

@@ -111,6 +111,27 @@ describe('graph view webview message listener', () => {
     expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
   });
 
+  it('stores filter pattern updates from primary dispatch flows', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext();
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.({
+      type: 'UPDATE_FILTER_PATTERNS',
+      payload: { patterns: ['dist/**'] },
+    });
+
+    expect(context.setFilterPatterns).toHaveBeenCalledWith(['dist/**']);
+    expect(context.setUserGroups).not.toHaveBeenCalled();
+    expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
+  });
+
   it('stores ready state updates from plugin dispatch flows', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {
@@ -125,5 +146,49 @@ describe('graph view webview message listener', () => {
     await messageHandler?.({ type: 'WEBVIEW_READY' });
 
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
+  });
+
+  it('does not store ready state for handled plugin messages without a ready flag', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext();
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.({
+      type: 'GRAPH_INTERACTION',
+      payload: {
+        event: 'nodeClick',
+        data: { pluginId: 'plugin.test', nodeId: 'src/index.ts' },
+      },
+    });
+
+    expect(context.emitEvent).toHaveBeenCalledWith('nodeClick', {
+      pluginId: 'plugin.test',
+      nodeId: 'src/index.ts',
+    });
+    expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
+  });
+
+  it('ignores messages not handled by the primary or plugin dispatchers', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext();
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.({ type: 'NOT_A_REAL_MESSAGE' } as never);
+
+    expect(context.setUserGroups).not.toHaveBeenCalled();
+    expect(context.setFilterPatterns).not.toHaveBeenCalled();
+    expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
   });
 });

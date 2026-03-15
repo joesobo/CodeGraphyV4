@@ -23,6 +23,42 @@ const cachedCommits: ICommitInfo[] = [
 ];
 
 describe('graphView/timelinePlayback', () => {
+  it('does not send cached timeline data when no analyzer is available', () => {
+    const sendMessage = vi.fn();
+    const state = createState({
+      timelineActive: true,
+      currentCommitSha: 'existing',
+    });
+
+    sendCachedGraphViewTimeline(undefined, state, sendMessage);
+
+    expect(state.timelineActive).toBe(true);
+    expect(state.currentCommitSha).toBe('existing');
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('does not send cached timeline data when the cache is empty', () => {
+    const sendMessage = vi.fn();
+    const state = createState({
+      timelineActive: true,
+      currentCommitSha: 'existing',
+    });
+
+    sendCachedGraphViewTimeline(
+      {
+        getCachedCommitList() {
+          return [];
+        },
+      },
+      state,
+      sendMessage,
+    );
+
+    expect(state.timelineActive).toBe(true);
+    expect(state.currentCommitSha).toBe('existing');
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
   it('sends cached timeline data and updates the active commit state', () => {
     const sendMessage = vi.fn();
     const state = createState();
@@ -76,6 +112,22 @@ describe('graphView/timelinePlayback', () => {
     expect(state.currentCommitSha).toBeUndefined();
     expect(nextAnalyzer).toBeUndefined();
     expect(invalidateCache).toHaveBeenCalledOnce();
+    expect(sendMessage).toHaveBeenCalledWith({ type: 'CACHE_INVALIDATED' });
+  });
+
+  it('clears timeline state and notifies the webview even without an analyzer', async () => {
+    const sendMessage = vi.fn();
+    const state = createState({
+      timelineActive: true,
+      currentCommitSha: 'b2',
+    });
+
+    await expect(
+      invalidateGraphViewTimelineCache(undefined, state, sendMessage),
+    ).resolves.toBeUndefined();
+
+    expect(state.timelineActive).toBe(false);
+    expect(state.currentCommitSha).toBeUndefined();
     expect(sendMessage).toHaveBeenCalledWith({ type: 'CACHE_INVALIDATED' });
   });
 });
