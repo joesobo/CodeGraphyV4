@@ -326,6 +326,24 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - split `providerListener.ts` first, then `dispatchPrimary.ts` / `dispatchPlugin.ts`
           - split provider helper hotspots (`providerAnalysisMethods.ts`, `providerViewMethods.ts`, `providerSettingsMethods.ts`)
           - finish with `timelineIndex.ts`, then start survivor cleanup once every file is under `50` sites
+      - current local split in progress:
+        - break `messages/providerListener.ts` into:
+          - `providerListenerReadContext.ts`
+          - `providerListenerPrimaryActions.ts`
+          - `providerListenerSettingsContext.ts`
+          - `providerListenerPluginContext.ts`
+        - add direct tests:
+          - `providerListenerReadContext.test.ts`
+          - `providerListenerPrimaryActions.test.ts`
+          - `providerListenerSettingsContext.test.ts`
+          - `providerListenerPluginContext.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/providerListener.test.ts tests/extension/graphView/messages/listener.test.ts tests/extension/graphView/messages/providerListenerReadContext.test.ts tests/extension/graphView/messages/providerListenerPrimaryActions.test.ts tests/extension/graphView/messages/providerListenerSettingsContext.test.ts tests/extension/graphView/messages/providerListenerPluginContext.test.ts`
+          - `8` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - next immediate step:
+          - commit/push the `providerListener.ts` split
+          - rerun mutation to confirm the `providerListener.ts` site count drops under `50`
       - current local threshold-reduction batch:
         - replace `providerViewMethods.ts` with `providerViewContextMethods.ts` + `providerViewSelectionMethods.ts`
         - split `timelineIndex.ts` into `timelineIndexSetup.ts` + `timelineIndexResult.ts`
