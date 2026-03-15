@@ -11,14 +11,54 @@ export function createGraphViewProviderAnalysisState(
   source: GraphViewProviderAnalysisMethodsSource,
 ): GraphViewProviderAnalysisState {
   return {
-    analysisController: source._analysisController,
-    analysisRequestId: source._analysisRequestId,
-    analyzer: source._analyzer,
-    analyzerInitialized: source._analyzerInitialized,
-    analyzerInitPromise: source._analyzerInitPromise,
-    filterPatterns: source._filterPatterns,
-    disabledRules: source._disabledRules,
-    disabledPlugins: source._disabledPlugins,
+    get analysisController() {
+      return source._analysisController;
+    },
+    set analysisController(controller) {
+      source._analysisController = controller;
+    },
+    get analysisRequestId() {
+      return source._analysisRequestId;
+    },
+    set analysisRequestId(requestId) {
+      source._analysisRequestId = requestId;
+    },
+    get analyzer() {
+      return source._analyzer;
+    },
+    set analyzer(analyzer) {
+      source._analyzer = analyzer;
+    },
+    get analyzerInitialized() {
+      return source._analyzerInitialized;
+    },
+    set analyzerInitialized(initialized) {
+      source._analyzerInitialized = initialized;
+    },
+    get analyzerInitPromise() {
+      return source._analyzerInitPromise;
+    },
+    set analyzerInitPromise(promise) {
+      source._analyzerInitPromise = promise;
+    },
+    get filterPatterns() {
+      return source._filterPatterns;
+    },
+    set filterPatterns(filterPatterns) {
+      source._filterPatterns = filterPatterns;
+    },
+    get disabledRules() {
+      return source._disabledRules;
+    },
+    set disabledRules(disabledRules) {
+      source._disabledRules = disabledRules;
+    },
+    get disabledPlugins() {
+      return source._disabledPlugins;
+    },
+    set disabledPlugins(disabledPlugins) {
+      source._disabledPlugins = disabledPlugins;
+    },
   };
 }
 
@@ -28,6 +68,13 @@ export function syncGraphViewProviderAnalysisState(
 ): void {
   source._analysisController = state.analysisController;
   source._analysisRequestId = state.analysisRequestId;
+}
+
+export function syncGraphViewProviderAnalysisExecutionState(
+  source: GraphViewProviderAnalysisMethodsSource,
+  state: GraphViewProviderAnalysisState,
+): void {
+  syncGraphViewProviderAnalysisState(source, state);
   source._analyzerInitialized = state.analyzerInitialized;
   source._analyzerInitPromise = state.analyzerInitPromise;
 }

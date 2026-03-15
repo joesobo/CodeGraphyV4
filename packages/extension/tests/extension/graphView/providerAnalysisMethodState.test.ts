@@ -5,6 +5,7 @@ import {
   createGraphViewProviderWorkspaceReadyState,
   setGraphViewProviderGraphData,
   setGraphViewProviderRawGraphData,
+  syncGraphViewProviderAnalysisExecutionState,
   syncGraphViewProviderAnalysisState,
   syncGraphViewProviderWorkspaceReadyState,
 } from '../../../src/extension/graphView/providerAnalysisMethodState';
@@ -51,15 +52,41 @@ describe('graphView/providerAnalysisMethodState', () => {
     const state = createGraphViewProviderAnalysisState(source);
     state.analysisController = undefined;
     state.analysisRequestId = 7;
-    state.analyzerInitialized = false;
-    state.analyzerInitPromise = undefined;
 
     syncGraphViewProviderAnalysisState(source, state);
 
     expect(source._analysisController).toBeUndefined();
     expect(source._analysisRequestId).toBe(7);
-    expect(source._analyzerInitialized).toBe(false);
-    expect(source._analyzerInitPromise).toBeUndefined();
+    expect(source._analyzerInitialized).toBe(true);
+    expect(source._analyzerInitPromise).toBeInstanceOf(Promise);
+  });
+
+  it('syncs execution state updates, including analyzer initialization flags', () => {
+    const source = createSource();
+    const state = createGraphViewProviderAnalysisState(source);
+    state.analysisController = new AbortController();
+    state.analysisRequestId = 9;
+    state.analyzerInitialized = true;
+    state.analyzerInitPromise = Promise.resolve();
+
+    syncGraphViewProviderAnalysisExecutionState(source, state);
+
+    expect(source._analysisController).toBeInstanceOf(AbortController);
+    expect(source._analysisRequestId).toBe(9);
+    expect(source._analyzerInitialized).toBe(true);
+    expect(source._analyzerInitPromise).toBeInstanceOf(Promise);
+  });
+
+  it('reflects analyzer initialization progress onto the provider source immediately', () => {
+    const source = createSource();
+    const state = createGraphViewProviderAnalysisState(source);
+    const initializePromise = Promise.resolve();
+
+    state.analyzerInitPromise = initializePromise;
+    state.analyzerInitialized = true;
+
+    expect(source._analyzerInitPromise).toBe(initializePromise);
+    expect(source._analyzerInitialized).toBe(true);
   });
 
   it('creates and syncs the workspace-ready state', () => {
