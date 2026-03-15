@@ -419,13 +419,23 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/providerWebviewMethods.ts` = `100.00%`
           - `packages/extension/src/extension/graphView/allSettingsSync.ts` = `100.00%`
           - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the next helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerFileNavigation.test.ts tests/extension/graphView/providerFileNavigationDefaultDependencies.test.ts tests/extension/graphView/providerPhysicsSettingsMethods.test.ts tests/extension/graphView/providerViewContextMethods.test.ts`
+          - `14` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the third survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - `packages/extension/src/extension/graphView/providerViewContextMethods.ts` = `95.00%`
+          - `packages/extension/src/extension/graphView/providerPhysicsSettingsMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerFileNavigation.ts` = `100.00%`
+          - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 provider/helper files instead of reopening file-splitting
           - next hotspot order:
-            - `providerViewContextMethods.ts`
-            - `providerPhysicsSettingsMethods.ts`
             - `providerAnalysisMethods.ts`
-            - `providerFileNavigation.ts`
+            - `providerAnalysisMethodState.ts`
+            - `providerFileVisitMethods.ts`
+            - `providerRefreshMethods.ts`
             - `GraphViewProvider.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers

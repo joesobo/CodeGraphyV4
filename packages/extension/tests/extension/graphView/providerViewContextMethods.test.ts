@@ -21,6 +21,14 @@ describe('graphView/providerViewContextMethods', () => {
 
   it('builds view context from workspace and editor state', () => {
     const source = createSource();
+    const configuration = {
+      get: vi.fn(() => '#123456'),
+    };
+    const getConfiguration = vi.fn(() => configuration);
+    const normalizeFolderNodeColor = vi.fn(() => '#654321');
+    const asRelativePath = vi.fn(() => 'src/app.ts');
+    const workspaceFolders = [{ uri: { fsPath: '/workspace' } }] as never;
+    const activeEditor = { document: { uri: { fsPath: '/workspace/src/app.ts' } } } as never;
     const buildViewContext = vi.fn(() => ({
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
@@ -30,26 +38,82 @@ describe('graphView/providerViewContextMethods', () => {
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
       createDependencies({
-        getConfiguration: vi.fn(() => ({
-          get: vi.fn(() => '#123456'),
-        })),
+        getConfiguration,
         buildViewContext,
-        getWorkspaceFolders: vi.fn(() => [{ uri: { fsPath: '/workspace' } }] as never),
-        getActiveTextEditor: vi.fn(
-          () => ({ document: { uri: { fsPath: '/workspace/src/app.ts' } } }) as never,
-        ),
-        asRelativePath: vi.fn(() => 'src/app.ts'),
+        getWorkspaceFolders: vi.fn(() => workspaceFolders),
+        getActiveTextEditor: vi.fn(() => activeEditor),
+        asRelativePath,
+        normalizeFolderNodeColor,
       }),
     );
 
     methods._updateViewContext();
 
     expect(buildViewContext).toHaveBeenCalledOnce();
+    expect(getConfiguration).toHaveBeenCalledWith('codegraphy');
+    const options = buildViewContext.mock.calls[0]?.[0] as {
+      analyzer: unknown;
+      workspaceFolders: unknown;
+      activeEditor: unknown;
+      readSavedDepthLimit(): number;
+      readFolderNodeColor(): string;
+      asRelativePath(uri: { fsPath: string }): string;
+      defaultDepthLimit: number;
+    };
+    expect(options.analyzer).toBe(source._analyzer);
+    expect(options.workspaceFolders).toBe(workspaceFolders);
+    expect(options.activeEditor).toBe(activeEditor);
+    expect(options.readSavedDepthLimit()).toBe(1);
+    expect(options.readFolderNodeColor()).toBe('#654321');
+    expect(options.asRelativePath({ fsPath: '/workspace/src/app.ts' })).toBe('src/app.ts');
+    expect(options.defaultDepthLimit).toBe(1);
+    expect(source._context.workspaceState.get).toHaveBeenCalledWith('codegraphy.depthLimit');
+    expect(configuration.get).toHaveBeenCalledWith('folderNodeColor', '#93C5FD');
+    expect(normalizeFolderNodeColor).toHaveBeenCalledWith('#123456');
+    expect(asRelativePath).toHaveBeenCalledWith({ fsPath: '/workspace/src/app.ts' });
     expect(source._viewContext).toEqual({
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
       focusedFile: 'src/app.ts',
       folderNodeColor: '#123456',
+    });
+  });
+
+  it('sends available views through the provider message bridge', () => {
+    const source = createSource({
+      _activeViewId: 'codegraphy.depth-graph',
+      _viewContext: {
+        activePlugins: new Set<string>(['plugin.test']),
+        depthLimit: 3,
+      } satisfies IViewContext,
+    });
+    const sendAvailableViews = vi.fn(
+      (_registry, _viewContext, _activeViewId, _defaultDepthLimit, sendMessage) => {
+        sendMessage({
+          type: 'VIEWS_UPDATED',
+          payload: { views: [], activeViewId: 'codegraphy.depth-graph' },
+        });
+      },
+    );
+    const methods = createGraphViewProviderViewContextMethods(
+      source as never,
+      createDependencies({
+        sendAvailableViews,
+      }),
+    );
+
+    methods._sendAvailableViews();
+
+    expect(sendAvailableViews).toHaveBeenCalledWith(
+      source._viewRegistry,
+      source._viewContext,
+      'codegraphy.depth-graph',
+      1,
+      expect.any(Function),
+    );
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'VIEWS_UPDATED',
+      payload: { views: [], activeViewId: 'codegraphy.depth-graph' },
     });
   });
 
@@ -87,6 +151,29 @@ describe('graphView/providerViewContextMethods', () => {
       'codegraphy.connections',
     );
     expect(sendAvailableViews).toHaveBeenCalledOnce();
+  });
+
+  it('keeps the current selected view when the transform does not request persistence', () => {
+    const source = createSource({
+      _activeViewId: 'codegraphy.depth-graph',
+    });
+    const applyViewTransform = vi.fn(() => ({
+      activeViewId: 'codegraphy.connections',
+      graphData: { nodes: [{ id: 'transformed' }], edges: [] },
+      persistSelectedViewId: undefined,
+    }));
+    const methods = createGraphViewProviderViewContextMethods(
+      source as never,
+      createDependencies({
+        applyViewTransform,
+      }),
+    );
+
+    methods._applyViewTransform();
+
+    expect(source._activeViewId).toBe('codegraphy.connections');
+    expect(source._graphData).toEqual({ nodes: [{ id: 'transformed' }], edges: [] });
+    expect(source._context.workspaceState.update).not.toHaveBeenCalled();
   });
 });
 
