@@ -46,6 +46,10 @@ import {
   type GraphViewAnalysisExecutionState,
 } from './graphView/analysisExecution';
 import { runGraphViewAnalysisRequest } from './graphView/analysisRequest';
+import {
+  getBuiltInGraphViewDefaultGroups,
+  registerBuiltInGraphViewPluginRoots,
+} from './graphView/builtInGroups';
 import { loadGraphViewFileInfo } from './graphView/fileInfo';
 import {
   sendGraphViewFavorites,
@@ -71,6 +75,8 @@ import {
   buildGraphViewGroupsUpdatedMessage,
   loadGraphViewGroupState,
 } from './graphView/groups';
+import { buildGraphViewMergedGroups } from './graphView/mergedGroups';
+import { getGraphViewPluginDefaultGroups } from './graphView/pluginDefaultGroups';
 import {
   buildGraphViewSettingsMessages,
   captureGraphViewSettingsSnapshot,
@@ -555,40 +561,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     return error instanceof Error && error.name === 'AbortError';
   }
 
-  /** Map of built-in plugin IDs to their package directory names. */
-  private static readonly _builtInPluginDirs: Record<string, string> = {
-    'codegraphy.typescript': 'plugin-typescript',
-    'codegraphy.gdscript': 'plugin-godot',
-    'codegraphy.python': 'plugin-python',
-    'codegraphy.csharp': 'plugin-csharp',
-    'codegraphy.markdown': 'plugin-markdown',
-  };
-
-  /** Built-in default groups for common file types (independent of plugins). */
-  private static readonly _builtInDefaultGroups: Array<{ pattern: string; color: string }> = [
-    { pattern: '.gitignore', color: '#F97583' },
-    { pattern: '*.json', color: '#F9C74F' },
-    { pattern: '*.png', color: '#90BE6D' },
-    { pattern: '*.jpg', color: '#90BE6D' },
-    { pattern: '*.svg', color: '#43AA8B' },
-    { pattern: '*.md', color: '#577590' },
-    { pattern: '*.jpeg', color: '#90BE6D' },
-    { pattern: '.vscode/settings.json', color: '#277ACC' },
-  ];
-
   /**
    * Eagerly registers built-in plugin asset roots so that plugin image paths
    * always resolve correctly regardless of analyzer timing.
    */
   private _registerBuiltInPluginRoots(): void {
-    for (const [pluginId, dirName] of Object.entries(GraphViewProvider._builtInPluginDirs)) {
-      if (!this._pluginExtensionUris.has(pluginId)) {
-        this._pluginExtensionUris.set(
-          pluginId,
-          vscode.Uri.joinPath(this._extensionUri, 'packages', dirName)
-        );
-      }
-    }
+    registerBuiltInGraphViewPluginRoots(this._extensionUri, this._pluginExtensionUris);
   }
 
   /**
@@ -598,59 +576,17 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Does NOT modify this._groups — caller is responsible for merging.
    */
   private _getPluginDefaultGroups(): IGroup[] {
-    if (!this._analyzer) return [];
-
-    const result: IGroup[] = [];
-    const addedIds = new Set<string>();
-
-    for (const pluginInfo of this._analyzer.registry.list()) {
-      // Skip disabled plugins entirely — they shouldn't show up in the groups panel
-      if (this._disabledPlugins.has(pluginInfo.plugin.id)) continue;
-
-      const fileColors = pluginInfo.plugin.fileColors;
-      if (!fileColors) continue;
-
-      // Ensure built-in plugins have their package root registered for asset resolution
-      const pluginId = pluginInfo.plugin.id;
-      if (pluginInfo.builtIn && !this._pluginExtensionUris.has(pluginId)) {
-        const dirName = GraphViewProvider._builtInPluginDirs[pluginId];
-        if (dirName) {
-          this._pluginExtensionUris.set(
-            pluginId,
-            vscode.Uri.joinPath(this._extensionUri, 'packages', dirName)
-          );
-        }
-      }
-
-      for (const [pattern, value] of Object.entries(fileColors)) {
-        const color = typeof value === 'string' ? value : value.color;
-        const id = `plugin:${pluginId}:${pattern}`;
-        if (addedIds.has(id)) continue;
-        const group: IGroup = { id, pattern, color, isPluginDefault: true, pluginName: pluginInfo.plugin.name };
-        if (typeof value === 'object') {
-          if (value.shape2D) group.shape2D = value.shape2D;
-          if (value.shape3D) group.shape3D = value.shape3D;
-          if (value.image) {
-            group.imagePath = value.image;
-          }
-        }
-        result.push(group);
-        addedIds.add(id);
-      }
-    }
-
-    return result;
+    return getGraphViewPluginDefaultGroups(
+      this._analyzer,
+      this._disabledPlugins,
+      this._pluginExtensionUris,
+      this._extensionUri,
+    );
   }
 
   /** Returns built-in default groups (common file types, independent of plugins). */
   private _getBuiltInDefaultGroups(): IGroup[] {
-    return GraphViewProvider._builtInDefaultGroups.map(({ pattern, color }) => ({
-      id: `default:${pattern}`,
-      pattern,
-      color,
-      isPluginDefault: true,
-      pluginName: 'CodeGraphy',
-    }));
+    return getBuiltInGraphViewDefaultGroups();
   }
 
   /**
@@ -658,19 +594,12 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Disabled groups are marked but still included (visible in settings).
    */
   private _computeMergedGroups(): void {
-    const applyDisabledState = (g: IGroup): IGroup => {
-      // Section key is everything before the last colon:
-      // "default:*.json" → "default", "plugin:codegraphy.csharp:*.cs" → "plugin:codegraphy.csharp"
-      const lastColon = g.id.lastIndexOf(':');
-      const sectionKey = lastColon > 0 ? g.id.slice(0, lastColon) : undefined;
-      const isDisabled = this._hiddenPluginGroupIds.has(g.id)
-        || (sectionKey !== undefined && this._hiddenPluginGroupIds.has(sectionKey));
-      return { ...g, disabled: isDisabled || undefined };
-    };
-
-    const builtInDefaults = this._getBuiltInDefaultGroups().map(applyDisabledState);
-    const pluginDefaults = this._getPluginDefaultGroups().map(applyDisabledState);
-    this._groups = [...this._userGroups, ...builtInDefaults, ...pluginDefaults];
+    this._groups = buildGraphViewMergedGroups(
+      this._userGroups,
+      this._hiddenPluginGroupIds,
+      this._getBuiltInDefaultGroups(),
+      this._getPluginDefaultGroups(),
+    );
   }
 
   /**
