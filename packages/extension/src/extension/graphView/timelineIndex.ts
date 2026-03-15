@@ -1,5 +1,6 @@
 import type { ExtensionToWebviewMessage, ICommitInfo } from '../../shared/types';
-import { DEFAULT_EXCLUDE_PATTERNS } from '../Configuration';
+import { applyGraphViewTimelineIndexResult } from './timelineIndexResult';
+import { prepareGraphViewTimelineIndex } from './timelineIndexSetup';
 
 interface GraphViewTimelineAnalyzerLike {
   initialize(): Promise<void>;
@@ -44,39 +45,14 @@ export async function indexGraphViewRepository(
   state: GraphViewTimelineIndexState,
   handlers: GraphViewTimelineIndexHandlers,
 ): Promise<void> {
-  const workspaceFolder = handlers.workspaceFolder;
-  if (!workspaceFolder) {
-    handlers.showErrorMessage('No workspace folder open');
-    return;
-  }
-
-  try {
-    await handlers.verifyGitRepository(workspaceFolder.uri.fsPath);
-  } catch {
-    handlers.showErrorMessage('This workspace is not a git repository');
-    return;
-  }
-
-  state.indexingController?.abort();
-  const controller = new AbortController();
-  state.indexingController = controller;
-
-  if (!state.analyzer) return;
-  if (!state.analyzerInitialized) {
-    await state.analyzer.initialize();
-    state.analyzerInitialized = true;
-  }
-
-  if (!state.gitAnalyzer) {
-    const mergedExclude = [
-      ...new Set([
-        ...DEFAULT_EXCLUDE_PATTERNS,
-        ...state.analyzer.getPluginFilterPatterns(),
-        ...state.filterPatterns,
-      ]),
-    ];
-    state.gitAnalyzer = handlers.createGitAnalyzer(workspaceFolder.uri.fsPath, mergedExclude);
-  }
+  const ready = await prepareGraphViewTimelineIndex(state, {
+    workspaceFolder: handlers.workspaceFolder,
+    verifyGitRepository: cwd => handlers.verifyGitRepository(cwd),
+    createGitAnalyzer: (workspaceRoot, mergedExclude) =>
+      handlers.createGitAnalyzer(workspaceRoot, mergedExclude),
+    showErrorMessage: message => handlers.showErrorMessage(message),
+  });
+  if (!ready || !state.gitAnalyzer || !state.indexingController) return;
 
   try {
     const commits = await state.gitAnalyzer.indexHistory(
@@ -86,25 +62,14 @@ export async function indexGraphViewRepository(
           payload: { phase, current, total },
         });
       },
-      controller.signal,
+      state.indexingController.signal,
       handlers.getMaxCommits(),
     );
-
-    if (commits.length === 0) {
-      handlers.showInformationMessage('No commits found to index');
-      return;
-    }
-
-    const currentSha = commits[commits.length - 1]?.sha;
-    if (!currentSha) return;
-
-    state.timelineActive = true;
-    state.currentCommitSha = currentSha;
-    handlers.sendMessage({
-      type: 'TIMELINE_DATA',
-      payload: { commits, currentSha },
+    await applyGraphViewTimelineIndexResult(commits, state, {
+      sendMessage: message => handlers.sendMessage(message),
+      showInformationMessage: message => handlers.showInformationMessage(message),
+      jumpToCommit: sha => handlers.jumpToCommit(sha),
     });
-    await handlers.jumpToCommit(currentSha);
   } catch (error) {
     if (error instanceof Error && error.name === 'AbortError') return;
     handlers.logError('[CodeGraphy] Indexing failed:', error);

@@ -35,7 +35,8 @@ import { createGraphViewProviderPluginResourceMethods } from './graphView/provid
 import { createGraphViewProviderRefreshMethods } from './graphView/providerRefreshMethods';
 import { createGraphViewProviderSettingsMethods } from './graphView/providerSettingsMethods';
 import { createGraphViewProviderTimelineMethods } from './graphView/providerTimelineMethods';
-import { createGraphViewProviderViewMethods } from './graphView/providerViewMethods';
+import { createGraphViewProviderViewContextMethods } from './graphView/providerViewContextMethods';
+import { createGraphViewProviderViewSelectionMethods } from './graphView/providerViewSelectionMethods';
 import { createGraphViewProviderWebviewMethods } from './graphView/providerWebviewMethods';
 
 /** Storage key for selected view per workspace */
@@ -234,7 +235,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       createGraphViewProviderRefreshMethods(this as never),
       createGraphViewProviderSettingsMethods(this as never),
       createGraphViewProviderTimelineMethods(this as never),
-      createGraphViewProviderViewMethods(this as never),
+      createGraphViewProviderViewContextMethods(this as never),
+      createGraphViewProviderViewSelectionMethods(this as never),
       createGraphViewProviderWebviewMethods(this as never),
     );
 

@@ -309,6 +309,35 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - commit/push this second helper batch
           - prune the old subagent worktrees after the useful untracked files are now safely merged
           - rerun `pnpm run mutate -- extension graph-view-provider`
+      - latest targeted mutation after the view/webview/helper cleanup pass:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `72.50%`
+        - `packages/extension/src/extension/GraphViewProvider.ts` = `53.13%`
+        - `GraphViewProvider.ts` mutation sites are now under threshold (`32` total mutants: `17` killed, `15` survived)
+        - remaining mutation-site threshold blockers:
+          - `packages/extension/src/extension/graphView/messages/providerListener.ts` = `125` sites
+          - `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts` = `86` sites
+          - `packages/extension/src/extension/graphView/providerAnalysisMethods.ts` = `73` sites
+          - `packages/extension/src/extension/graphView/providerViewMethods.ts` = `63` sites
+          - `packages/extension/src/extension/graphView/providerSettingsMethods.ts` = `59` sites
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `56` sites
+          - `packages/extension/src/extension/graphView/timelineIndex.ts` = `54` sites
+        - next hotspot order:
+          - split `providerListener.ts` first, then `dispatchPrimary.ts` / `dispatchPlugin.ts`
+          - split provider helper hotspots (`providerAnalysisMethods.ts`, `providerViewMethods.ts`, `providerSettingsMethods.ts`)
+          - finish with `timelineIndex.ts`, then start survivor cleanup once every file is under `50` sites
+      - current local threshold-reduction batch:
+        - replace `providerViewMethods.ts` with `providerViewContextMethods.ts` + `providerViewSelectionMethods.ts`
+        - split `timelineIndex.ts` into `timelineIndexSetup.ts` + `timelineIndexResult.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/extension.test.ts tests/extension/graphView/providerViewContextMethods.test.ts tests/extension/graphView/providerViewSelectionMethods.test.ts tests/extension/graphView/timelineIndex.test.ts tests/extension/graphView/timelineIndexSetup.test.ts tests/extension/graphView/timelineIndexResult.test.ts tests/extension/graphView/providerTimeline.test.ts tests/extension/graphView/providerTimelineMethods.test.ts`
+          - `35` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - touched-file `eslint` green
+        - next immediate step:
+          - commit/push this batch
+          - merge any parallel worker cuts for `providerListener.ts`, `dispatchPrimary.ts`, `dispatchPlugin.ts`, and `providerAnalysisMethods.ts`
+          - rerun `pnpm run mutate -- extension graph-view-provider`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
