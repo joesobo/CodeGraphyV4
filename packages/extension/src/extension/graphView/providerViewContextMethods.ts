@@ -58,23 +58,25 @@ export interface GraphViewProviderViewContextMethodDependencies {
   selectedViewKey: string;
 }
 
-const DEFAULT_DEPENDENCIES: GraphViewProviderViewContextMethodDependencies = {
-  getConfiguration: section => vscode.workspace.getConfiguration(section),
-  getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
-  getActiveTextEditor: () => vscode.window.activeTextEditor,
-  asRelativePath: uri => vscode.workspace.asRelativePath(uri),
-  buildViewContext: buildGraphViewContext,
-  applyViewTransform: applyGraphViewTransform,
-  sendAvailableViews: sendGraphViewAvailableViews,
-  normalizeFolderNodeColor,
-  defaultDepthLimit: 1,
-  defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
-  selectedViewKey: 'codegraphy.selectedView',
-};
+function createDefaultDependencies(): GraphViewProviderViewContextMethodDependencies {
+  return {
+    getConfiguration: section => vscode.workspace.getConfiguration(section),
+    getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
+    getActiveTextEditor: () => vscode.window.activeTextEditor,
+    asRelativePath: uri => vscode.workspace.asRelativePath(uri),
+    buildViewContext: buildGraphViewContext,
+    applyViewTransform: applyGraphViewTransform,
+    sendAvailableViews: sendGraphViewAvailableViews,
+    normalizeFolderNodeColor,
+    defaultDepthLimit: 1,
+    defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
+    selectedViewKey: 'codegraphy.selectedView',
+  };
+}
 
 export function createGraphViewProviderViewContextMethods(
   source: GraphViewProviderViewContextMethodsSource,
-  dependencies: GraphViewProviderViewContextMethodDependencies = DEFAULT_DEPENDENCIES,
+  dependencies: GraphViewProviderViewContextMethodDependencies = createDefaultDependencies(),
 ): GraphViewProviderViewContextMethods {
   const _updateViewContext = (): void => {
     const config = dependencies.getConfiguration('codegraphy');

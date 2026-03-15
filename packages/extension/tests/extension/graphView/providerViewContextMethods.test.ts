@@ -1,9 +1,40 @@
-import { describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../src/core/views';
-import type { IGraphData } from '../../../src/shared/types';
+import { DEFAULT_FOLDER_NODE_COLOR, type IGraphData } from '../../../src/shared/types';
+const providerViewContextMethodMocks = vi.hoisted(() => ({
+  buildViewContext: vi.fn(),
+  applyViewTransform: vi.fn(),
+  sendAvailableViews: vi.fn(),
+  normalizeFolderNodeColor: vi.fn(),
+}));
+
+vi.mock('../../../src/extension/graphView/viewContext', () => ({
+  buildGraphViewContext: providerViewContextMethodMocks.buildViewContext,
+}));
+
+vi.mock('../../../src/extension/graphView/viewBroadcast', () => ({
+  sendGraphViewAvailableViews: providerViewContextMethodMocks.sendAvailableViews,
+}));
+
+vi.mock('../../../src/extension/graphViewPresentation', () => ({
+  applyGraphViewTransform: providerViewContextMethodMocks.applyViewTransform,
+}));
+
+vi.mock('../../../src/extension/graphViewSettings', () => ({
+  normalizeFolderNodeColor: providerViewContextMethodMocks.normalizeFolderNodeColor,
+}));
+
 import { createGraphViewProviderViewContextMethods } from '../../../src/extension/graphView/providerViewContextMethods';
 
 describe('graphView/providerViewContextMethods', () => {
+  beforeEach(() => {
+    providerViewContextMethodMocks.buildViewContext.mockReset();
+    providerViewContextMethodMocks.applyViewTransform.mockReset();
+    providerViewContextMethodMocks.sendAvailableViews.mockReset();
+    providerViewContextMethodMocks.normalizeFolderNodeColor.mockReset();
+  });
+
   it('updates graph data and returns the current graph snapshot', () => {
     const source = createSource();
     const methods = createGraphViewProviderViewContextMethods(source as never, createDependencies());
@@ -79,6 +110,90 @@ describe('graphView/providerViewContextMethods', () => {
     });
   });
 
+  it('uses the live vscode defaults to build the view context', () => {
+    const source = createSource();
+    const configurationGet = vi.fn(() => '#123456');
+    const getConfiguration = vi
+      .spyOn(vscode.workspace, 'getConfiguration')
+      .mockReturnValue({ get: configurationGet } as never);
+    const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
+    const workspaceFolders = vi
+      .spyOn(vscode.workspace, 'workspaceFolders', 'get')
+      .mockReturnValue([workspaceFolder]);
+    const activeEditor = { document: { uri: vscode.Uri.file('/workspace/src/app.ts') } } as never;
+    const originalActiveTextEditor = (vscode.window as { activeTextEditor?: unknown }).activeTextEditor;
+    Object.defineProperty(vscode.window, 'activeTextEditor', {
+      configurable: true,
+      value: activeEditor,
+    });
+    const originalAsRelativePath = (vscode.workspace as { asRelativePath?: unknown }).asRelativePath;
+    const asRelativePath = vi.fn(() => 'src/app.ts');
+    Object.defineProperty(vscode.workspace, 'asRelativePath', {
+      configurable: true,
+      value: asRelativePath,
+    });
+
+    providerViewContextMethodMocks.normalizeFolderNodeColor.mockReturnValue('#654321');
+    providerViewContextMethodMocks.buildViewContext.mockReturnValue({
+      activePlugins: new Set<string>(['plugin.test']),
+      depthLimit: 3,
+      focusedFile: 'src/app.ts',
+      folderNodeColor: '#654321',
+    } satisfies IViewContext);
+
+    const methods = createGraphViewProviderViewContextMethods(source as never);
+
+    methods._updateViewContext();
+
+    expect(getConfiguration).toHaveBeenCalledWith('codegraphy');
+    expect(providerViewContextMethodMocks.buildViewContext).toHaveBeenCalledOnce();
+    const options = providerViewContextMethodMocks.buildViewContext.mock.calls[0]?.[0] as {
+      analyzer: unknown;
+      workspaceFolders: unknown;
+      activeEditor: unknown;
+      readSavedDepthLimit(): number;
+      readFolderNodeColor(): string;
+      asRelativePath(uri: vscode.Uri): string;
+      defaultDepthLimit: number;
+    };
+    expect(options.analyzer).toBe(source._analyzer);
+    expect(options.workspaceFolders).toEqual([workspaceFolder]);
+    expect(options.activeEditor).toBe(activeEditor);
+    expect(options.readSavedDepthLimit()).toBe(1);
+    expect(options.readFolderNodeColor()).toBe('#654321');
+    expect(options.asRelativePath(vscode.Uri.file('/workspace/src/app.ts'))).toBe('src/app.ts');
+    expect(options.defaultDepthLimit).toBe(1);
+    expect(source._context.workspaceState.get).toHaveBeenCalledWith('codegraphy.depthLimit');
+    expect(configurationGet).toHaveBeenCalledWith('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR);
+    expect(providerViewContextMethodMocks.normalizeFolderNodeColor).toHaveBeenCalledWith('#123456');
+    expect(asRelativePath).toHaveBeenCalledWith(vscode.Uri.file('/workspace/src/app.ts'));
+    expect(source._viewContext).toEqual({
+      activePlugins: new Set<string>(['plugin.test']),
+      depthLimit: 3,
+      focusedFile: 'src/app.ts',
+      folderNodeColor: '#654321',
+    });
+
+    if (originalAsRelativePath === undefined) {
+      delete (vscode.workspace as { asRelativePath?: unknown }).asRelativePath;
+    } else {
+      Object.defineProperty(vscode.workspace, 'asRelativePath', {
+        configurable: true,
+        value: originalAsRelativePath,
+      });
+    }
+    if (originalActiveTextEditor === undefined) {
+      delete (vscode.window as { activeTextEditor?: unknown }).activeTextEditor;
+    } else {
+      Object.defineProperty(vscode.window, 'activeTextEditor', {
+        configurable: true,
+        value: originalActiveTextEditor,
+      });
+    }
+    workspaceFolders.mockRestore();
+    getConfiguration.mockRestore();
+  });
+
   it('sends available views through the provider message bridge', () => {
     const source = createSource({
       _activeViewId: 'codegraphy.depth-graph',
@@ -151,6 +266,58 @@ describe('graphView/providerViewContextMethods', () => {
       'codegraphy.connections',
     );
     expect(sendAvailableViews).toHaveBeenCalledOnce();
+  });
+
+  it('uses the live default transform and view broadcast helpers', () => {
+    const source = createSource({
+      _activeViewId: 'codegraphy.depth-graph',
+      _viewContext: {
+        activePlugins: new Set<string>(['plugin.test']),
+        depthLimit: 2,
+      } satisfies IViewContext,
+    });
+    providerViewContextMethodMocks.applyViewTransform.mockReturnValue({
+      activeViewId: 'codegraphy.connections',
+      graphData: { nodes: [{ id: 'transformed' }], edges: [] },
+      persistSelectedViewId: 'codegraphy.connections',
+    });
+    providerViewContextMethodMocks.sendAvailableViews.mockImplementation(
+      (_registry, _viewContext, _activeViewId, _defaultDepthLimit, sendMessage) => {
+        sendMessage({
+          type: 'VIEWS_UPDATED',
+          payload: { views: [], activeViewId: 'codegraphy.connections' },
+        });
+      },
+    );
+
+    const methods = createGraphViewProviderViewContextMethods(source as never);
+
+    methods._applyViewTransform();
+    methods._sendAvailableViews();
+
+    expect(providerViewContextMethodMocks.applyViewTransform).toHaveBeenCalledWith(
+      source._viewRegistry,
+      'codegraphy.depth-graph',
+      source._viewContext,
+      source._rawGraphData,
+    );
+    expect(source._activeViewId).toBe('codegraphy.connections');
+    expect(source._graphData).toEqual({ nodes: [{ id: 'transformed' }], edges: [] });
+    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
+      'codegraphy.selectedView',
+      'codegraphy.connections',
+    );
+    expect(providerViewContextMethodMocks.sendAvailableViews).toHaveBeenCalledWith(
+      source._viewRegistry,
+      source._viewContext,
+      'codegraphy.connections',
+      1,
+      expect.any(Function),
+    );
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'VIEWS_UPDATED',
+      payload: { views: [], activeViewId: 'codegraphy.connections' },
+    });
   });
 
   it('keeps the current selected view when the transform does not request persistence', () => {
