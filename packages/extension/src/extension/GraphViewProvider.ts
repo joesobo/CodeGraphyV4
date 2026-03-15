@@ -65,11 +65,6 @@ import {
   createGraphViewFile,
   deleteGraphViewFiles,
 } from './graphView/fileActions';
-import {
-  copyGraphViewTextToClipboard,
-  openGraphViewFile,
-  revealGraphViewFileInExplorer,
-} from './graphView/fileNavigation';
 import { renameGraphViewFile } from './graphView/fileRename';
 import { applyLoadedGraphViewGroupState } from './graphView/groupSync';
 import {
@@ -116,17 +111,24 @@ import {
   sendGraphViewAvailableViews,
   sendGraphViewGroupsUpdated,
 } from './graphView/viewBroadcast';
-import { buildGraphViewTimelineGraphData } from './graphView/timelineGraph';
 import {
   openGraphViewNodeInEditor,
   previewGraphViewFileAtCommit,
 } from './graphView/timelineOpen';
 import {
   invalidateGraphViewTimelineCache,
-  sendCachedGraphViewTimeline,
   sendGraphViewPlaybackSpeed,
 } from './graphView/timelinePlayback';
-import { indexGraphViewRepository } from './graphView/timelineIndex';
+import {
+  copyGraphViewProviderTextToClipboard,
+  openGraphViewProviderFile,
+  revealGraphViewProviderFileInExplorer,
+} from './graphView/providerFileNavigation';
+import {
+  indexGraphViewProviderRepository,
+  jumpGraphViewProviderToCommit,
+  sendGraphViewProviderCachedTimeline,
+} from './graphView/providerTimeline';
 import {
   getGraphViewWebviewResourceRoots,
   refreshGraphViewResourceRoots,
@@ -313,7 +315,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _webviewReadyNotified = false;
 
   /** Abort controller for timeline indexing */
-  private _indexingController?: AbortController;
+  protected _indexingController?: AbortController;
 
   /** Source extension roots for externally registered plugins (Tier-2 assets). */
   private readonly _pluginExtensionUris = new Map<string, vscode.Uri>();
@@ -1063,75 +1065,14 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Indexes the git repository history and enables the timeline.
    */
   protected async _indexRepository(): Promise<void> {
-    const state = {
-      analyzer: this._analyzer,
-      analyzerInitialized: this._analyzerInitialized,
-      gitAnalyzer: this._gitAnalyzer,
-      indexingController: this._indexingController,
-      filterPatterns: this._filterPatterns,
-      timelineActive: this._timelineActive,
-      currentCommitSha: this._currentCommitSha,
-    };
-
-    await indexGraphViewRepository(state, {
-      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-      verifyGitRepository: async cwd => {
-        const { execFile } = await import('child_process');
-        const { promisify } = await import('util');
-        const execFileAsync = promisify(execFile);
-        await execFileAsync('git', ['rev-parse', '--git-dir'], { cwd });
-      },
-      createGitAnalyzer: (workspaceRoot, mergedExclude) =>
-        new GitHistoryAnalyzer(
-          this._context,
-          this._analyzer!.registry,
-          workspaceRoot,
-          mergedExclude,
-        ),
-      getMaxCommits: () =>
-        vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.maxCommits', 500),
-      sendMessage: message => this._sendMessage(message),
-      showErrorMessage: message => {
-        vscode.window.showErrorMessage(message);
-      },
-      showInformationMessage: message => {
-        vscode.window.showInformationMessage(message);
-      },
-      toErrorMessage,
-      jumpToCommit: sha => this._jumpToCommit(sha),
-      logError: (message, error) => {
-        console.error(message, error);
-      },
-    });
-
-    this._analyzerInitialized = state.analyzerInitialized;
-    this._gitAnalyzer = state.gitAnalyzer;
-    this._indexingController = state.indexingController;
-    this._timelineActive = state.timelineActive ?? this._timelineActive;
-    this._currentCommitSha = state.currentCommitSha;
+    await indexGraphViewProviderRepository(this as never);
   }
 
   /**
    * Loads graph data for a specific commit and sends it to the webview.
    */
-  private async _jumpToCommit(sha: string): Promise<void> {
-    if (!this._gitAnalyzer) return;
-
-    const rawGraphData = await this._gitAnalyzer.getGraphDataForCommit(sha);
-    this._currentCommitSha = sha;
-    const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
-      disabledPlugins: this._disabledPlugins,
-      disabledRules: this._disabledRules,
-      showOrphans: vscode.workspace.getConfiguration('codegraphy').get<boolean>('showOrphans', true),
-      workspaceRoot: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
-      registry: this._analyzer?.registry,
-    });
-    this._graphData = graphData;
-
-    this._sendMessage({
-      type: 'COMMIT_GRAPH_DATA',
-      payload: { sha, graphData },
-    });
+  protected async _jumpToCommit(sha: string): Promise<void> {
+    await jumpGraphViewProviderToCommit(this as never, sha);
   }
 
   // Playback is now driven entirely by the webview's requestAnimationFrame loop.
@@ -1190,17 +1131,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Sends cached timeline data to the webview (called on WEBVIEW_READY).
    */
   protected _sendCachedTimeline(): void {
-    const state = {
-      timelineActive: this._timelineActive,
-      currentCommitSha: this._currentCommitSha,
-    };
-    sendCachedGraphViewTimeline(
-      this._gitAnalyzer,
-      state,
-      (message) => this._sendMessage(message),
-    );
-    this._timelineActive = state.timelineActive;
-    this._currentCommitSha = state.currentCommitSha;
+    sendGraphViewProviderCachedTimeline(this as never);
   }
 
   /**
@@ -1235,47 +1166,21 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     filePath: string,
     behavior: EditorOpenBehavior = PERMANENT_NODE_OPEN_BEHAVIOR
   ): Promise<void> {
-    await openGraphViewFile(
-      filePath,
-      {
-        workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-        showInformationMessage: (message) => {
-          vscode.window.showInformationMessage(message);
-        },
-        showErrorMessage: (message) => {
-          vscode.window.showErrorMessage(message);
-        },
-        statFile: (fileUri) => vscode.workspace.fs.stat(fileUri),
-        openTextDocument: (fileUri) => vscode.workspace.openTextDocument(fileUri),
-        showTextDocument: (document, nextBehavior) =>
-          vscode.window.showTextDocument(document, nextBehavior),
-        incrementVisitCount: (nextFilePath) => this._incrementVisitCount(nextFilePath),
-        logError: (label, error) => {
-          console.error(label, error);
-        },
-      },
-      behavior,
-    );
+    await openGraphViewProviderFile(this as never, filePath, behavior);
   }
 
   /**
    * Reveals a file in the VSCode explorer sidebar.
    */
   protected async _revealInExplorer(filePath: string): Promise<void> {
-    await revealGraphViewFileInExplorer(filePath, {
-      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-      executeCommand: (command, ...args) => vscode.commands.executeCommand(command, ...args),
-    });
+    await revealGraphViewProviderFileInExplorer(filePath);
   }
 
   /**
    * Copies text to the clipboard.
    */
   protected async _copyToClipboard(text: string): Promise<void> {
-    await copyGraphViewTextToClipboard(text, {
-      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-      writeText: (value) => vscode.env.clipboard.writeText(value),
-    });
+    await copyGraphViewProviderTextToClipboard(text);
   }
 
   /**
@@ -1569,8 +1474,4 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   private _getHtmlForWebview(webview: vscode.Webview): string {
     return createGraphViewHtml(this._extensionUri, webview, createGraphViewNonce());
   }
-}
-
-function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
 }
