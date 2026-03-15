@@ -607,16 +607,17 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
           - `pnpm run mutate -- extension graph-view-provider`
         - latest targeted mutation after the eighteenth helper pass:
-          - graph-view-provider slice overall = `91.82%`
+          - graph-view-provider slice overall = `92.35%`
           - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `93.75%`
           - `packages/extension/src/extension/graphView/messages/listener.ts` = `100.00%`
           - `packages/extension/src/extension/graphView/messages/groups.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/timeline.ts` = `100.00%`
           - `packages/extension/src/extension/graphView/timelinePlayback.ts` = `100.00%`
           - `packages/extension/src/extension/graphView/analysisExecution.ts` = `92.31%`
           - `packages/extension/src/extension/graphView/pluginDefaultGroups.ts` = `97.62%`
           - `packages/extension/src/extension/graphView/providerPluginResourceMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerFileVisitMethods.ts` = `100.00%`
           - `packages/extension/src/extension/graphView/fileNavigation.ts` = `96.67%`
-          - `packages/extension/src/extension/graphView/providerFileVisitMethods.ts` = `79.55%`
           - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
@@ -625,9 +626,9 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
             - `providerPhysicsSettingsMethods.ts`
             - `timelineGraph.ts`
             - `providerFileNavigation.ts`
-            - `providerFileVisitMethods.ts`
-            - `viewBroadcast.ts`
             - `externalPluginRegistration.ts`
+            - `settings.ts`
+            - `viewBroadcast.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
@@ -637,8 +638,8 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
 1. `packages/extension/src/extension/graphView/providerPhysicsSettingsMethods.ts`
 2. `packages/extension/src/extension/graphView/timelineGraph.ts`
 3. `packages/extension/src/extension/graphView/providerFileNavigation.ts`
-4. `packages/extension/src/extension/graphView/providerFileVisitMethods.ts`
-5. `packages/extension/src/extension/graphView/viewBroadcast.ts`
+4. `packages/extension/src/extension/graphView/externalPluginRegistration.ts`
+5. `packages/extension/src/extension/graphView/settings.ts`
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
