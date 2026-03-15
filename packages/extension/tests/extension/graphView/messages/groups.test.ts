@@ -85,7 +85,11 @@ describe('graph view group message', () => {
       ),
     ).resolves.toBe(true);
 
-    expect(handlers.showOpenDialog).toHaveBeenCalledOnce();
+    expect(handlers.showOpenDialog).toHaveBeenCalledWith({
+      canSelectMany: false,
+      filters: { Images: ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif', 'ico'] },
+      openLabel: 'Select Image',
+    });
     expect(handlers.createDirectory).toHaveBeenCalledWith(
       vscode.Uri.file('/test/workspace/.codegraphy/assets'),
     );
@@ -173,6 +177,38 @@ describe('graph view group message', () => {
     expect(handlers.copyFile).toHaveBeenCalledOnce();
     expect(handlers.persistGroups).not.toHaveBeenCalled();
     expect(handlers.recomputeGroups).not.toHaveBeenCalled();
+  });
+
+  it('updates only the matching group when multiple groups share the same state object', async () => {
+    const state = createState({
+      userGroups: [
+        { id: 'user-group', pattern: 'src/**', color: '#112233' },
+        { id: 'other-group', pattern: 'test/**', color: '#445566' },
+      ],
+    });
+    const selectedUri = vscode.Uri.file('/tmp/python.svg');
+    const handlers = createHandlers({
+      showOpenDialog: vi.fn(() => Promise.resolve([selectedUri])),
+    });
+
+    await expect(
+      applyGroupMessage(
+        { type: 'PICK_GROUP_IMAGE', payload: { groupId: 'other-group' } },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(state.userGroups).toEqual([
+      { id: 'user-group', pattern: 'src/**', color: '#112233' },
+      {
+        id: 'other-group',
+        pattern: 'test/**',
+        color: '#445566',
+        imagePath: '.codegraphy/assets/python.svg',
+      },
+    ]);
+    expect(handlers.persistGroups).toHaveBeenCalledWith(state.userGroups);
   });
 
   it('returns false for unrelated messages', async () => {

@@ -103,6 +103,31 @@ describe('graph view analysis execution', () => {
     expect(handlers.computeMergedGroups).not.toHaveBeenCalled();
   });
 
+  it('reuses an in-flight analyzer initialization promise', async () => {
+    const initialize = vi.fn(async () => undefined);
+    const analyzerInitPromise = Promise.resolve().then(() => undefined);
+    const state = createState({
+      analyzer: {
+        initialize,
+        analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
+        registry: {
+          notifyPostAnalyze: vi.fn(),
+        },
+      },
+      analyzerInitPromise,
+    });
+    const { handlers } = createHandlers({
+      hasWorkspace: vi.fn(() => false),
+    });
+
+    await executeGraphViewAnalysis(new AbortController().signal, 1, state, handlers);
+
+    expect(initialize).not.toHaveBeenCalled();
+    expect(state.analyzerInitialized).toBe(false);
+    expect(state.analyzerInitPromise).toBe(analyzerInitPromise);
+    expect(handlers.computeMergedGroups).toHaveBeenCalledOnce();
+  });
+
   it('publishes an empty graph after group recompute when no workspace is available', async () => {
     const analyze = vi.fn(async () => ({ nodes: [{ id: 'src/index.ts' }], edges: [] }));
     const state = createState({

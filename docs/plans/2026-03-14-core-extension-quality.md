@@ -602,39 +602,42 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/providerPluginResourceMethods.ts` = `83.33%`
           - result: `✅ All files are within the mutation site threshold (50).`
         - focused verification green for the eighteenth helper pass:
-          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/analysisExecution.test.ts tests/extension/graphView/messages/dispatchPlugin.test.ts tests/extension/graphView/messages/listener.test.ts tests/extension/graphView/pluginDefaultGroups.test.ts tests/extension/graphView/providerFileVisitMethodsDefaultDependencies.test.ts tests/extension/graphView/providerPluginResourceMethods.test.ts tests/extension/graphView/timelinePlayback.test.ts`
-          - `40` tests green
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/analysisExecution.test.ts tests/extension/graphView/providerFileVisitMethods.test.ts tests/extension/graphView/providerFileVisitMethodsDefaultDependencies.test.ts tests/extension/graphView/messages/dispatchPlugin.test.ts tests/extension/graphView/messages/listener.test.ts tests/extension/graphView/pluginDefaultGroups.test.ts tests/extension/graphView/providerPluginResourceMethods.test.ts tests/extension/graphView/timelinePlayback.test.ts`
+          - `46` tests green
           - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
           - `pnpm run mutate -- extension graph-view-provider`
         - latest targeted mutation after the eighteenth helper pass:
-          - graph-view-provider slice overall = `90.26%`
+          - graph-view-provider slice overall = `91.82%`
           - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `93.75%`
           - `packages/extension/src/extension/graphView/messages/listener.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/groups.ts` = `100.00%`
           - `packages/extension/src/extension/graphView/timelinePlayback.ts` = `100.00%`
-          - `packages/extension/src/extension/graphView/analysisExecution.ts` = `89.74%`
-          - `packages/extension/src/extension/graphView/pluginDefaultGroups.ts` = `73.81%`
-          - `packages/extension/src/extension/graphView/providerPluginResourceMethods.ts` = `83.33%`
+          - `packages/extension/src/extension/graphView/analysisExecution.ts` = `92.31%`
+          - `packages/extension/src/extension/graphView/pluginDefaultGroups.ts` = `97.62%`
+          - `packages/extension/src/extension/graphView/providerPluginResourceMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/fileNavigation.ts` = `96.67%`
+          - `packages/extension/src/extension/graphView/providerFileVisitMethods.ts` = `79.55%`
           - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
           - use current mutation report ordering rather than the older provider-only hotspot list
           - next hotspot order:
-            - `messages/groups.ts`
-            - `fileNavigation.ts`
             - `providerPhysicsSettingsMethods.ts`
-            - `pluginDefaultGroups.ts`
+            - `timelineGraph.ts`
+            - `providerFileNavigation.ts`
+            - `providerFileVisitMethods.ts`
             - `viewBroadcast.ts`
-            - `groupState.ts`
+            - `externalPluginRegistration.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. `packages/extension/src/extension/graphView/messages/groups.ts`
-2. `packages/extension/src/extension/graphView/fileNavigation.ts`
-3. `packages/extension/src/extension/graphView/providerPhysicsSettingsMethods.ts`
-4. `packages/extension/src/extension/graphView/pluginDefaultGroups.ts`
+1. `packages/extension/src/extension/graphView/providerPhysicsSettingsMethods.ts`
+2. `packages/extension/src/extension/graphView/timelineGraph.ts`
+3. `packages/extension/src/extension/graphView/providerFileNavigation.ts`
+4. `packages/extension/src/extension/graphView/providerFileVisitMethods.ts`
 5. `packages/extension/src/extension/graphView/viewBroadcast.ts`
 
 ## Notes

@@ -177,6 +177,43 @@ describe('graphView/pluginDefaultGroups', () => {
     ]);
   });
 
+  it('does not add optional metadata keys when a plugin color definition only provides a color', () => {
+    const groups = getGraphViewPluginDefaultGroups(
+      {
+        registry: {
+          list: () => [
+            {
+              plugin: {
+                id: 'codegraphy.rust',
+                name: 'Rust',
+                fileColors: {
+                  '*.rs': {
+                    color: '#DEA584',
+                  },
+                },
+              },
+            },
+          ],
+        },
+      },
+      new Set<string>(),
+      new Map<string, vscode.Uri>(),
+      vscode.Uri.file('/test/extension'),
+    );
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toEqual({
+      id: 'plugin:codegraphy.rust:*.rs',
+      pattern: '*.rs',
+      color: '#DEA584',
+      isPluginDefault: true,
+      pluginName: 'Rust',
+    });
+    expect(groups[0]).not.toHaveProperty('shape2D');
+    expect(groups[0]).not.toHaveProperty('shape3D');
+    expect(groups[0]).not.toHaveProperty('imagePath');
+  });
+
   it('skips disabled plugins and deduplicates duplicate patterns', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {

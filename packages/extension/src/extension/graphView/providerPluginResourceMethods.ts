@@ -52,38 +52,42 @@ export interface GraphViewProviderPluginResourceMethodDependencies {
   getWorkspaceFolders(): readonly vscode.WorkspaceFolder[] | undefined;
 }
 
-const DEFAULT_DEPENDENCIES: GraphViewProviderPluginResourceMethodDependencies = {
-  registerBuiltInPluginRoots: registerBuiltInGraphViewPluginRoots,
-  getPluginDefaultGroups: getGraphViewPluginDefaultGroups,
-  getBuiltInDefaultGroups: getBuiltInGraphViewDefaultGroups,
-  buildMergedGroups: buildGraphViewMergedGroups,
-  resolvePluginAssetPath: resolveGraphViewPluginAssetPath,
-  getWebviewResourceRoots: getGraphViewWebviewResourceRoots,
-  refreshWebviewResourceRoots: refreshGraphViewResourceRoots,
-  normalizeExtensionUri: normalizeGraphViewExtensionUri,
-  getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
-};
+function createDefaultGraphViewProviderPluginResourceMethodDependencies(): GraphViewProviderPluginResourceMethodDependencies {
+  return {
+    registerBuiltInPluginRoots: registerBuiltInGraphViewPluginRoots,
+    getPluginDefaultGroups: getGraphViewPluginDefaultGroups,
+    getBuiltInDefaultGroups: getBuiltInGraphViewDefaultGroups,
+    buildMergedGroups: buildGraphViewMergedGroups,
+    resolvePluginAssetPath: resolveGraphViewPluginAssetPath,
+    getWebviewResourceRoots: getGraphViewWebviewResourceRoots,
+    refreshWebviewResourceRoots: refreshGraphViewResourceRoots,
+    normalizeExtensionUri: normalizeGraphViewExtensionUri,
+    getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
+  };
+}
 
 export function createGraphViewProviderPluginResourceMethods(
   source: GraphViewProviderPluginResourceMethodsSource,
-  dependencies: GraphViewProviderPluginResourceMethodDependencies = DEFAULT_DEPENDENCIES,
+  dependencies?: GraphViewProviderPluginResourceMethodDependencies,
 ): GraphViewProviderPluginResourceMethods {
+  const resolvedDependencies =
+    dependencies ?? createDefaultGraphViewProviderPluginResourceMethodDependencies();
   const _registerBuiltInPluginRoots = (): void => {
-    dependencies.registerBuiltInPluginRoots(source._extensionUri, source._pluginExtensionUris);
+    resolvedDependencies.registerBuiltInPluginRoots(source._extensionUri, source._pluginExtensionUris);
   };
 
   const _getPluginDefaultGroups = (): IGroup[] =>
-    dependencies.getPluginDefaultGroups(
+    resolvedDependencies.getPluginDefaultGroups(
       source._analyzer as never,
       source._disabledPlugins,
       source._pluginExtensionUris,
       source._extensionUri,
     );
 
-  const _getBuiltInDefaultGroups = (): IGroup[] => dependencies.getBuiltInDefaultGroups();
+  const _getBuiltInDefaultGroups = (): IGroup[] => resolvedDependencies.getBuiltInDefaultGroups();
 
   const _computeMergedGroups = (): void => {
-    source._groups = dependencies.buildMergedGroups(
+    source._groups = resolvedDependencies.buildMergedGroups(
       source._userGroups,
       source._hiddenPluginGroupIds,
       _getBuiltInDefaultGroups(),
@@ -92,7 +96,7 @@ export function createGraphViewProviderPluginResourceMethods(
   };
 
   const _resolveWebviewAssetPath = (assetPath: string, pluginId?: string): string =>
-    dependencies.resolvePluginAssetPath(
+    resolvedDependencies.resolvePluginAssetPath(
       assetPath,
       source._extensionUri,
       source._pluginExtensionUris,
@@ -102,14 +106,14 @@ export function createGraphViewProviderPluginResourceMethods(
     );
 
   const _getLocalResourceRoots = (): vscode.Uri[] =>
-    dependencies.getWebviewResourceRoots(
+    resolvedDependencies.getWebviewResourceRoots(
       source._extensionUri,
       source._pluginExtensionUris,
-      dependencies.getWorkspaceFolders(),
+      resolvedDependencies.getWorkspaceFolders(),
     );
 
   const _refreshWebviewResourceRoots = (): void => {
-    dependencies.refreshWebviewResourceRoots(
+    resolvedDependencies.refreshWebviewResourceRoots(
       source._view,
       source._panels,
       _getLocalResourceRoots(),
@@ -118,7 +122,7 @@ export function createGraphViewProviderPluginResourceMethods(
 
   const _normalizeExternalExtensionUri = (
     uri: vscode.Uri | string | undefined,
-  ): vscode.Uri | undefined => dependencies.normalizeExtensionUri(uri);
+  ): vscode.Uri | undefined => resolvedDependencies.normalizeExtensionUri(uri);
 
   return {
     _registerBuiltInPluginRoots,

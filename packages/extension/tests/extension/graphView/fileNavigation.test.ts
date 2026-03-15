@@ -51,6 +51,47 @@ describe('graphView/fileNavigation', () => {
     expect(incrementVisitCount).toHaveBeenCalledWith('src/app.ts');
   });
 
+  it('uses the default editor behavior when none is provided', async () => {
+    const showTextDocument = vi.fn(async () => undefined);
+
+    await openGraphViewFile('src/app.ts', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInformationMessage: vi.fn(),
+      showErrorMessage: vi.fn(),
+      statFile: vi.fn(async () => ({ type: 1 })),
+      openTextDocument: vi.fn(async () => ({ uri: vscode.Uri.file('/workspace/src/app.ts') })),
+      showTextDocument,
+      incrementVisitCount: vi.fn(async () => undefined),
+      logError: vi.fn(),
+    });
+
+    expect(showTextDocument).toHaveBeenCalledWith(
+      { uri: vscode.Uri.file('/workspace/src/app.ts') },
+      { preview: false, preserveFocus: false },
+    );
+  });
+
+  it('falls back to a mock-file message when the file is missing from disk', async () => {
+    const showInformationMessage = vi.fn();
+    const openTextDocument = vi.fn();
+
+    await openGraphViewFile('src/app.ts', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInformationMessage,
+      showErrorMessage: vi.fn(),
+      statFile: vi.fn(async () => {
+        throw new Error('missing');
+      }),
+      openTextDocument,
+      showTextDocument: vi.fn(),
+      incrementVisitCount: vi.fn(),
+      logError: vi.fn(),
+    });
+
+    expect(showInformationMessage).toHaveBeenCalledWith('Mock file: src/app.ts');
+    expect(openTextDocument).not.toHaveBeenCalled();
+  });
+
   it('shows an error when opening the file fails', async () => {
     const showErrorMessage = vi.fn();
     const logError = vi.fn();
@@ -86,6 +127,16 @@ describe('graphView/fileNavigation', () => {
     );
   });
 
+  it('does not reveal the file in the explorer when no workspace exists', async () => {
+    const executeCommand = vi.fn(async () => undefined);
+
+    await revealGraphViewFileInExplorer('src/app.ts', {
+      executeCommand,
+    });
+
+    expect(executeCommand).not.toHaveBeenCalled();
+  });
+
   it('copies the absolute path when requested', async () => {
     const writeText = vi.fn(async () => undefined);
 
@@ -103,5 +154,13 @@ describe('graphView/fileNavigation', () => {
     await copyGraphViewTextToClipboard('src/app.ts', { writeText });
 
     expect(writeText).toHaveBeenCalledWith('src/app.ts');
+  });
+
+  it('keeps the original absolute-path marker when no workspace exists', async () => {
+    const writeText = vi.fn(async () => undefined);
+
+    await copyGraphViewTextToClipboard('absolute:src/app.ts', { writeText });
+
+    expect(writeText).toHaveBeenCalledWith('absolute:src/app.ts');
   });
 });
