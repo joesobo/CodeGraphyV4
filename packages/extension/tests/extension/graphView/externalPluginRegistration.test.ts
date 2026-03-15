@@ -76,7 +76,7 @@ describe('graphView/externalPluginRegistration', () => {
     expect(analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
-  it('replays readiness instead of initializing immediately after the first analysis/webview-ready phase', async () => {
+  it('replays readiness and still initializes the plugin after the first analysis/webview-ready phase', async () => {
     const state = createState({
       firstAnalysis: false,
       webviewReadyNotified: true,
@@ -113,8 +113,78 @@ describe('graphView/externalPluginRegistration', () => {
       deferReadinessReplay: true,
     });
     expect(state.analyzer?.registry.replayReadinessForPlugin).toHaveBeenCalledWith('plugin.test');
-    expect(state.analyzer?.registry.initializePlugin).not.toHaveBeenCalled();
+    expect(state.analyzer?.registry.initializePlugin).toHaveBeenCalledWith(
+      'plugin.test',
+      '/test/workspace',
+    );
     expect(analyzeAndSendData).not.toHaveBeenCalled();
+  });
+
+  it('waits for analyzer initialization to settle before replaying readiness and reanalyzing', async () => {
+    let analyzerInitialized = false;
+    let resolveAnalyzerInit: (() => void) | undefined;
+    const analyzerInitPromise = new Promise<void>((resolve) => {
+      resolveAnalyzerInit = () => {
+        analyzerInitialized = true;
+        resolve();
+      };
+    });
+    const initializePlugin = vi.fn(async () => undefined);
+    const replayReadinessForPlugin = vi.fn();
+    const analyzeAndSendData = vi.fn(async () => undefined);
+    const state: GraphViewExternalPluginRegistrationState = {
+      pluginExtensionUris: new Map<string, vscode.Uri>(),
+      analyzer: {
+        registry: {
+          register: vi.fn(),
+          initializePlugin,
+          replayReadinessForPlugin,
+        },
+      },
+      get firstAnalysis() {
+        return false;
+      },
+      get webviewReadyNotified() {
+        return true;
+      },
+      get analyzerInitialized() {
+        return analyzerInitialized;
+      },
+      get analyzerInitPromise() {
+        return analyzerInitPromise;
+      },
+    };
+
+    registerGraphViewExternalPlugin(
+      {
+        id: 'plugin.test',
+        name: 'Plugin',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        detectConnections: async () => [],
+      },
+      undefined,
+      state,
+      {
+        normalizeExtensionUri: () => undefined,
+        getWorkspaceRoot: () => '/test/workspace',
+        refreshWebviewResourceRoots: vi.fn(),
+        sendPluginStatuses: vi.fn(),
+        sendContextMenuItems: vi.fn(),
+        sendPluginWebviewInjections: vi.fn(),
+        analyzeAndSendData,
+      },
+    );
+
+    resolveAnalyzerInit?.();
+    await analyzerInitPromise;
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(initializePlugin).toHaveBeenCalledWith('plugin.test', '/test/workspace');
+    expect(replayReadinessForPlugin).toHaveBeenCalledWith('plugin.test');
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
   it('ignores invalid plugin registrations when there is no analyzer or plugin id', () => {

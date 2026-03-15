@@ -163,10 +163,18 @@ export function createGraphViewProviderPluginMethods(
       {
         analyzer: source._analyzer as never,
         pluginExtensionUris: source._pluginExtensionUris,
-        firstAnalysis: source._firstAnalysis,
-        webviewReadyNotified: source._webviewReadyNotified,
-        analyzerInitialized: source._analyzerInitialized,
-        analyzerInitPromise: source._analyzerInitPromise,
+        get firstAnalysis() {
+          return source._firstAnalysis;
+        },
+        get webviewReadyNotified() {
+          return source._webviewReadyNotified;
+        },
+        get analyzerInitialized() {
+          return source._analyzerInitialized;
+        },
+        get analyzerInitPromise() {
+          return source._analyzerInitPromise;
+        },
       },
       {
         normalizeExtensionUri: uri => source._normalizeExternalExtensionUri(uri),

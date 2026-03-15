@@ -60,15 +60,11 @@ export function registerGraphViewExternalPlugin(
     const workspaceRoot = handlers.getWorkspaceRoot();
     if (!workspaceRoot) return;
 
-    if (state.analyzerInitialized) {
-      await analyzer.registry.initializePlugin(pluginId, workspaceRoot);
-      return;
-    }
-
     if (state.analyzerInitPromise) {
       await state.analyzerInitPromise;
-      await analyzer.registry.initializePlugin(pluginId, workspaceRoot);
     }
+
+    await analyzer.registry.initializePlugin(pluginId, workspaceRoot);
   })();
 
   handlers.refreshWebviewResourceRoots();
