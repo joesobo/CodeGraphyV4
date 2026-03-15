@@ -3,9 +3,10 @@ import type { IGraphData } from '../../../src/shared/types';
 import { createGraphViewProviderFileVisitMethods } from '../../../src/extension/graphView/providerFileVisitMethods';
 
 describe('graphView/providerFileVisitMethods', () => {
-  it('loads file info, prefers source visit overrides, and syncs analyzer initialization state', async () => {
+  it('loads file info, prefers source visit overrides captured during creation, and syncs analyzer initialization state', async () => {
     const statFile = vi.fn(async () => ({ size: 1, mtime: 2 }));
     const logError = vi.fn();
+    const getVisitCountOverride = vi.fn(() => 9);
     const source = {
       _context: {
         workspaceState: {
@@ -21,6 +22,7 @@ describe('graphView/providerFileVisitMethods', () => {
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _sendMessage: vi.fn(),
       _analyzeAndSendData: vi.fn(async () => undefined),
+      _getVisitCount: getVisitCountOverride,
     };
     const sendFileInfoMessage = vi.fn(async (_filePath, state, handlers) => {
       expect(handlers.getVisitCount('src/index.ts')).toBe(9);
@@ -43,8 +45,6 @@ describe('graphView/providerFileVisitMethods', () => {
       executeUndoAction: vi.fn(async () => undefined),
       logError,
     });
-    const getVisitCountOverride = vi.fn(() => 9);
-    source._getVisitCount = getVisitCountOverride;
 
     await methods._getFileInfo('src/index.ts');
 
@@ -56,7 +56,7 @@ describe('graphView/providerFileVisitMethods', () => {
     expect(source._sendMessage).toHaveBeenCalledWith({ type: 'FILE_INFO_UPDATED' });
   });
 
-  it('tracks visits, prefers source increment overrides, and sends favorites', async () => {
+  it('tracks visits, prefers source increment overrides captured during creation, and sends favorites', async () => {
     const incrementVisitCount = vi.fn(async (_filePath, handlers) => {
       handlers.sendMessage({ type: 'VISIT_COUNT_UPDATED' });
     });
@@ -66,6 +66,7 @@ describe('graphView/providerFileVisitMethods', () => {
     const sendFavorites = vi.fn((_config, sendMessage) => {
       sendMessage({ type: 'FAVORITES_UPDATED' });
     });
+    const incrementVisitCountOverride = vi.fn(async () => undefined);
     const source = {
       _context: {
         workspaceState: {
@@ -78,6 +79,7 @@ describe('graphView/providerFileVisitMethods', () => {
       _graphData: { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData,
       _sendMessage: vi.fn(),
       _analyzeAndSendData: vi.fn(async () => undefined),
+      _incrementVisitCount: incrementVisitCountOverride,
     };
     const methods = createGraphViewProviderFileVisitMethods(source as never, {
       getWorkspaceFolder: vi.fn(() => undefined),
@@ -93,8 +95,6 @@ describe('graphView/providerFileVisitMethods', () => {
       executeUndoAction: vi.fn(async () => undefined),
       logError: vi.fn(),
     });
-    const incrementVisitCountOverride = vi.fn(async () => undefined);
-    source._incrementVisitCount = incrementVisitCountOverride;
 
     expect(methods._getVisitCount('src/index.ts')).toBe(2);
     await methods._incrementVisitCount('src/index.ts');
@@ -160,7 +160,7 @@ describe('graphView/providerFileVisitMethods', () => {
     );
   });
 
-  it('falls back to the generated visit callbacks when source overrides are cleared', async () => {
+  it('continues using the generated visit callbacks when no source overrides were captured', async () => {
     const getVisitCount = vi.fn(() => 5);
     const incrementVisitCount = vi.fn(async (_filePath, handlers) => {
       handlers.sendMessage({ type: 'VISIT_COUNT_UPDATED' });
@@ -199,9 +199,6 @@ describe('graphView/providerFileVisitMethods', () => {
       logError: vi.fn(),
     });
 
-    source._getVisitCount = undefined;
-    source._incrementVisitCount = undefined;
-
     await methods._getFileInfo('src/index.ts');
     await methods.trackFileVisit('src/index.ts');
 
@@ -215,7 +212,7 @@ describe('graphView/providerFileVisitMethods', () => {
     );
   });
 
-  it('ignores self-installed visit callbacks when choosing the fallback handlers', async () => {
+  it('ignores method replacements that happen after creation', async () => {
     const getVisitCount = vi.fn(() => 6);
     const incrementVisitCount = vi.fn(async (_filePath, handlers) => {
       handlers.sendMessage({ type: 'VISIT_COUNT_UPDATED' });
@@ -254,8 +251,8 @@ describe('graphView/providerFileVisitMethods', () => {
       logError: vi.fn(),
     });
 
-    source._getVisitCount = methods._getVisitCount;
-    source._incrementVisitCount = methods._incrementVisitCount;
+    source._getVisitCount = vi.fn(() => 99);
+    source._incrementVisitCount = vi.fn(async () => undefined);
 
     await methods._getFileInfo('src/index.ts');
     await methods.trackFileVisit('src/index.ts');

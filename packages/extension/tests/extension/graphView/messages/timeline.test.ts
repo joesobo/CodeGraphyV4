@@ -26,6 +26,19 @@ describe('graph view timeline message', () => {
     expect(handlers.jumpToCommit).toHaveBeenCalledWith('abc123');
   });
 
+  it('starts file previews at a commit without blocking the caller', async () => {
+    const handlers = createHandlers();
+
+    await expect(
+      applyTimelineMessage(
+        { type: 'PREVIEW_FILE_AT_COMMIT', payload: { sha: 'abc123', filePath: 'src/app.ts' } },
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.previewFileAtCommit).toHaveBeenCalledWith('abc123', 'src/app.ts');
+  });
+
   it('starts repository indexing without blocking the caller', async () => {
     const handlers = createHandlers();
 

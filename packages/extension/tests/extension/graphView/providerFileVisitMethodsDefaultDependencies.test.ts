@@ -135,6 +135,32 @@ describe('graphView/providerFileVisitMethods default dependencies', () => {
     consoleError.mockRestore();
   });
 
+  it('passes an undefined workspace folder when no workspace is open', async () => {
+    const source = {
+      _context: {
+        workspaceState: {
+          get: vi.fn(),
+          update: vi.fn(() => Promise.resolve()),
+        },
+      },
+      _analyzer: undefined,
+      _analyzerInitialized: false,
+      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _sendMessage: vi.fn(),
+      _analyzeAndSendData: vi.fn(async () => undefined),
+    };
+
+    mocks.sendFileInfoMessage.mockImplementation(async (_filePath, _state, handlers) => {
+      expect(handlers.workspaceFolder).toBeUndefined();
+    });
+
+    const methods = createGraphViewProviderFileVisitMethods(source as never);
+
+    await methods._getFileInfo('src/index.ts');
+
+    expect(mocks.sendFileInfoMessage).toHaveBeenCalledOnce();
+  });
+
   it('uses the default visit tracking dependencies when no overrides are installed', async () => {
     const source = {
       _context: {

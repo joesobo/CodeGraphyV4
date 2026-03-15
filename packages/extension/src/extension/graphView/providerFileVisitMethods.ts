@@ -56,39 +56,37 @@ export interface GraphViewProviderFileVisitMethodDependencies {
   logError(label: string, error: unknown): void;
 }
 
-const DEFAULT_DEPENDENCIES: GraphViewProviderFileVisitMethodDependencies = {
-  getWorkspaceFolder: () => vscode.workspace.workspaceFolders?.[0],
-  getConfiguration: section => vscode.workspace.getConfiguration(section),
-  statFile: fileUri => vscode.workspace.fs.stat(fileUri),
-  sendFileInfoMessage: sendGraphViewProviderFileInfoMessage,
-  getVisitCount: getGraphViewVisitCount,
-  incrementVisitCount: incrementGraphViewVisitCount,
-  trackFileVisit: trackGraphViewFileVisit,
-  sendFavorites: sendGraphViewFavorites,
-  addExcludeWithUndo: addGraphViewExcludePatternsWithUndo,
-  createAddToExcludeAction: (patterns, analyzeAndSendData) =>
-    new AddToExcludeAction(patterns, analyzeAndSendData),
-  executeUndoAction: action => getUndoManager().execute(action as never),
-  logError: (label, error) => {
-    console.error(label, error);
-  },
-};
+function createDefaultGraphViewProviderFileVisitMethodDependencies(): GraphViewProviderFileVisitMethodDependencies {
+  return {
+    getWorkspaceFolder: () => vscode.workspace.workspaceFolders?.[0],
+    getConfiguration: section => vscode.workspace.getConfiguration(section),
+    statFile: fileUri => vscode.workspace.fs.stat(fileUri),
+    sendFileInfoMessage: sendGraphViewProviderFileInfoMessage,
+    getVisitCount: getGraphViewVisitCount,
+    incrementVisitCount: incrementGraphViewVisitCount,
+    trackFileVisit: trackGraphViewFileVisit,
+    sendFavorites: sendGraphViewFavorites,
+    addExcludeWithUndo: addGraphViewExcludePatternsWithUndo,
+    createAddToExcludeAction: (patterns, analyzeAndSendData) =>
+      new AddToExcludeAction(patterns, analyzeAndSendData),
+    executeUndoAction: action => getUndoManager().execute(action as never),
+    logError: (label, error) => {
+      console.error(label, error);
+    },
+  };
+}
 
 export function createGraphViewProviderFileVisitMethods(
   source: GraphViewProviderFileVisitMethodsSource,
-  dependencies: GraphViewProviderFileVisitMethodDependencies = DEFAULT_DEPENDENCIES,
+  dependencies?: GraphViewProviderFileVisitMethodDependencies,
 ): GraphViewProviderFileVisitMethods {
+  const resolvedDependencies =
+    dependencies ?? createDefaultGraphViewProviderFileVisitMethodDependencies();
+  const getVisitCountOverride = source._getVisitCount;
+  const incrementVisitCountOverride = source._incrementVisitCount;
+
   const _getVisitCount = (filePath: string): number =>
-    dependencies.getVisitCount(source._context.workspaceState as never, filePath);
-
-  const readVisitCount = (filePath: string): number => {
-    const implementation = source._getVisitCount;
-    if (implementation && implementation !== _getVisitCount) {
-      return implementation(filePath);
-    }
-
-    return _getVisitCount(filePath);
-  };
+    resolvedDependencies.getVisitCount(source._context.workspaceState as never, filePath);
 
   const _getFileInfo = async (filePath: string): Promise<void> => {
     const state = {
@@ -97,50 +95,45 @@ export function createGraphViewProviderFileVisitMethods(
       graphData: source._graphData,
     };
 
-    await dependencies.sendFileInfoMessage(filePath, state, {
-      workspaceFolder: dependencies.getWorkspaceFolder(),
-      statFile: fileUri => dependencies.statFile(fileUri),
-      getVisitCount: nextFilePath => readVisitCount(nextFilePath),
+    await resolvedDependencies.sendFileInfoMessage(filePath, state, {
+      workspaceFolder: resolvedDependencies.getWorkspaceFolder(),
+      statFile: fileUri => resolvedDependencies.statFile(fileUri),
+      getVisitCount: nextFilePath =>
+        (getVisitCountOverride ?? _getVisitCount)(nextFilePath),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
-      logError: (label, error) => dependencies.logError(label, error),
+      logError: (label, error) => resolvedDependencies.logError(label, error),
     });
 
     source._analyzerInitialized = state.analyzerInitialized;
   };
 
   const _incrementVisitCount = async (filePath: string): Promise<void> => {
-    await dependencies.incrementVisitCount(filePath, {
+    await resolvedDependencies.incrementVisitCount(filePath, {
       workspaceState: source._context.workspaceState as never,
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
     });
   };
 
   const trackFileVisitOnGraph = async (filePath: string): Promise<void> => {
-    await dependencies.trackFileVisit(filePath, {
+    await resolvedDependencies.trackFileVisit(filePath, {
       graphData: source._graphData,
-      incrementVisitCount: nextFilePath => {
-        const implementation = source._incrementVisitCount;
-        if (implementation && implementation !== _incrementVisitCount) {
-          return implementation(nextFilePath);
-        }
-
-        return _incrementVisitCount(nextFilePath);
-      },
+      incrementVisitCount: nextFilePath =>
+        (incrementVisitCountOverride ?? _incrementVisitCount)(nextFilePath),
     });
   };
 
   const _addToExclude = async (patterns: string[]): Promise<void> => {
-    await dependencies.addExcludeWithUndo(patterns, {
+    await resolvedDependencies.addExcludeWithUndo(patterns, {
       createAction: (nextPatterns, analyzeAndSendData) =>
-        dependencies.createAddToExcludeAction(nextPatterns, analyzeAndSendData),
-      executeAction: action => dependencies.executeUndoAction(action),
+        resolvedDependencies.createAddToExcludeAction(nextPatterns, analyzeAndSendData),
+      executeAction: action => resolvedDependencies.executeUndoAction(action),
       analyzeAndSendData: () => source._analyzeAndSendData(),
     });
   };
 
   const _sendFavorites = (): void => {
-    dependencies.sendFavorites(
-      dependencies.getConfiguration('codegraphy') as never,
+    resolvedDependencies.sendFavorites(
+      resolvedDependencies.getConfiguration('codegraphy') as never,
       message => source._sendMessage(message as ExtensionToWebviewMessage),
     );
   };
