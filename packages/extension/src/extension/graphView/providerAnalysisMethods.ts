@@ -10,16 +10,13 @@ import {
   type GraphViewProviderAnalysisRequestHandlers,
   type GraphViewProviderAnalysisState,
 } from './analysisLifecycle';
+import { createGraphViewProviderAnalysisDelegates } from './providerAnalysisMethodDelegates';
 import {
-  createGraphViewProviderAnalysisHandlers,
-  createGraphViewProviderAnalysisRequestHandlers,
-} from './providerAnalysisMethodHandlers';
-import {
-  createGraphViewProviderAnalysisState,
   createGraphViewProviderWorkspaceReadyState,
-  syncGraphViewProviderAnalysisState,
   syncGraphViewProviderWorkspaceReadyState,
 } from './providerAnalysisMethodState';
+import { createGraphViewProviderDoAnalyzeAndSendData } from './providerAnalysisExecutionMethods';
+import { createGraphViewProviderAnalyzeAndSendData } from './providerAnalysisRequestMethods';
 
 interface GraphViewProviderWorkspaceReadyRegistryLike {
   notifyWorkspaceReady(graphData: IGraphData): void;
@@ -123,75 +120,22 @@ export function createGraphViewProviderAnalysisMethods(
 
   const _isAbortError = (error: unknown): boolean => dependencies.isAbortError(error);
 
-  const callMarkWorkspaceReady = (graph: IGraphData): void => {
-    const implementation = source._markWorkspaceReady;
-    if (implementation && implementation !== _markWorkspaceReady) {
-      implementation(graph);
-      return;
-    }
-
-    _markWorkspaceReady(graph);
-  };
-
-  const callIsAnalysisStale = (signal: AbortSignal, requestId: number): boolean => {
-    const implementation = source._isAnalysisStale;
-    if (implementation && implementation !== _isAnalysisStale) {
-      return implementation(signal, requestId);
-    }
-
-    return _isAnalysisStale(signal, requestId);
-  };
-
-  const callIsAbortError = (error: unknown): boolean => {
-    const implementation = source._isAbortError;
-    if (implementation && implementation !== _isAbortError) {
-      return implementation(error);
-    }
-
-    return _isAbortError(error);
-  };
-
-  const _doAnalyzeAndSendData = async (
-    signal: AbortSignal,
-    requestId: number,
-  ): Promise<void> => {
-    const state = createGraphViewProviderAnalysisState(source);
-
-    await dependencies.executeAnalysis(
-      signal,
-      requestId,
-      state,
-      createGraphViewProviderAnalysisHandlers(source, dependencies, {
-        isAnalysisStale: (nextSignal, nextRequestId) =>
-          callIsAnalysisStale(nextSignal, nextRequestId),
-        isAbortError: error => callIsAbortError(error),
-        markWorkspaceReady: graphData => callMarkWorkspaceReady(graphData),
-      }),
-    );
-
-    syncGraphViewProviderAnalysisState(source, state);
-  };
-
-  const _analyzeAndSendData = async (): Promise<void> => {
-    const state = createGraphViewProviderAnalysisState(source);
-
-    await dependencies.runAnalysisRequest(
-      state,
-      createGraphViewProviderAnalysisRequestHandlers(source, dependencies, {
-        executeAnalysis: (signal, requestId) => {
-          const implementation = source._doAnalyzeAndSendData;
-          if (implementation && implementation !== _doAnalyzeAndSendData) {
-            return implementation(signal, requestId);
-          }
-
-          return _doAnalyzeAndSendData(signal, requestId);
-        },
-        isAbortError: error => callIsAbortError(error),
-      }),
-    );
-
-    syncGraphViewProviderAnalysisState(source, state);
-  };
+  const delegates = createGraphViewProviderAnalysisDelegates(source, {
+    markWorkspaceReady: graph => _markWorkspaceReady(graph),
+    isAnalysisStale: (signal, requestId) => _isAnalysisStale(signal, requestId),
+    isAbortError: error => _isAbortError(error),
+  });
+  const _doAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+  );
+  const _analyzeAndSendData = createGraphViewProviderAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    _doAnalyzeAndSendData,
+  );
 
   const methods: GraphViewProviderAnalysisMethods = {
     _analyzeAndSendData,

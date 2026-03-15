@@ -133,7 +133,7 @@ describe('graphView/providerPluginMethods', () => {
     expect(registerBuiltInPluginRoots).toHaveBeenCalledOnce();
   });
 
-  it('registers external plugins with the current provider state and callbacks', () => {
+  it('registers external plugins with live provider state and callbacks', () => {
     const registerExternalPlugin = vi.fn();
     const source = createSource();
     const methods = createGraphViewProviderPluginMethods(source, {
@@ -149,15 +149,17 @@ describe('graphView/providerPluginMethods', () => {
 
     methods.registerExternalPlugin({ id: 'plugin.test' }, { extensionUri: '/plugin' });
 
-    expect(registerExternalPlugin).toHaveBeenCalledWith(
-      { id: 'plugin.test' },
-      { extensionUri: '/plugin' },
+    const [registeredPlugin, registrationOptions, initialRegistrationState, registrationHandlers] =
+      registerExternalPlugin.mock.calls[0] ?? [];
+    expect(registeredPlugin).toEqual({ id: 'plugin.test' });
+    expect(registrationOptions).toEqual({ extensionUri: '/plugin' });
+    expect(initialRegistrationState).toEqual(
       expect.objectContaining({
         analyzer: source._analyzer,
         pluginExtensionUris: source._pluginExtensionUris,
-        firstAnalysis: true,
-        webviewReadyNotified: false,
       }),
+    );
+    expect(registrationHandlers).toEqual(
       expect.objectContaining({
         normalizeExtensionUri: expect.any(Function),
         getWorkspaceRoot: expect.any(Function),
@@ -168,5 +170,21 @@ describe('graphView/providerPluginMethods', () => {
         analyzeAndSendData: expect.any(Function),
       }),
     );
+
+    const capturedRegistrationState = registerExternalPlugin.mock.calls[0]?.[2] as {
+      firstAnalysis: boolean;
+      webviewReadyNotified: boolean;
+      analyzerInitialized: boolean;
+      analyzerInitPromise: Promise<void> | undefined;
+    };
+    source._firstAnalysis = false;
+    source._webviewReadyNotified = true;
+    source._analyzerInitialized = false;
+    source._analyzerInitPromise = Promise.resolve();
+
+    expect(capturedRegistrationState.firstAnalysis).toBe(false);
+    expect(capturedRegistrationState.webviewReadyNotified).toBe(true);
+    expect(capturedRegistrationState.analyzerInitialized).toBe(false);
+    expect(capturedRegistrationState.analyzerInitPromise).toBeInstanceOf(Promise);
   });
 });
