@@ -301,6 +301,76 @@ describe('graph view provider listener bridge', () => {
     expect(configurationGet).toHaveBeenCalledWith('folderNodeColor', '#A1A1AA');
     expect(normalizeFolderNodeColor).toHaveBeenCalledWith('#abcdef');
   });
+
+  it('wires the default undo-execution dependency into the settings context', async () => {
+    vi.resetModules();
+
+    const execute = vi.fn(() => Promise.resolve());
+    let executeUndoActionPromise: Promise<void> | undefined;
+
+    vi.doMock('vscode', () => ({
+      workspace: {
+        workspaceFolders: undefined,
+        getConfiguration: vi.fn(() => ({
+          get: vi.fn(),
+          update: vi.fn(() => Promise.resolve()),
+        })),
+      },
+      window: {
+        showInformationMessage: vi.fn(),
+        showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
+      },
+    }));
+    vi.doMock('../../../../src/extension/graphViewSettings', () => ({
+      getGraphViewConfigTarget: vi.fn(() => 'workspace'),
+      normalizeFolderNodeColor: vi.fn((color: string) => color),
+    }));
+    vi.doMock('../../../../src/extension/graphView/settings', () => ({
+      captureGraphViewSettingsSnapshot: vi.fn(() => ({ kind: 'snapshot' })),
+    }));
+    vi.doMock('../../../../src/extension/actions', () => ({
+      ResetSettingsAction: vi.fn(),
+    }));
+    vi.doMock('../../../../src/extension/UndoManager', () => ({
+      getUndoManager: () => ({ execute }),
+    }));
+    vi.doMock('../../../../src/extension/graphView/messages/providerListenerReadContext', () => ({
+      createGraphViewProviderMessageReadContext: vi.fn(() => ({})),
+    }));
+    vi.doMock(
+      '../../../../src/extension/graphView/messages/providerListenerPrimaryActions',
+      () => ({
+        createGraphViewProviderMessagePrimaryActions: vi.fn(() => ({})),
+      }),
+    );
+    vi.doMock(
+      '../../../../src/extension/graphView/messages/providerListenerSettingsContext',
+      () => ({
+        createGraphViewProviderMessageSettingsContext: vi.fn((_source, dependencies) => {
+          executeUndoActionPromise = dependencies.executeUndoAction({ kind: 'reset-settings' });
+          return {};
+        }),
+      }),
+    );
+    vi.doMock(
+      '../../../../src/extension/graphView/messages/providerListenerPluginContext',
+      () => ({
+        createGraphViewProviderMessagePluginContext: vi.fn(() => ({})),
+      }),
+    );
+    vi.doMock('../../../../src/extension/graphView/messages/listener', () => ({
+      setGraphViewWebviewMessageListener: vi.fn(),
+    }));
+
+    const { setGraphViewProviderMessageListener: setListener } = await import(
+      '../../../../src/extension/graphView/messages/providerListener'
+    );
+
+    setListener({ onDidReceiveMessage: vi.fn() } as never, createSource());
+    await executeUndoActionPromise;
+
+    expect(execute).toHaveBeenCalledWith({ kind: 'reset-settings' });
+  });
 });
 
 async function loadDefaultListenerHarness() {

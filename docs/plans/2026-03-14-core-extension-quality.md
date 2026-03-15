@@ -505,7 +505,7 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
         - latest targeted mutation after the tenth survivor pass:
           - `pnpm run mutate -- extension graph-view-provider`
-          - `packages/extension/src/extension/graphView/messages/providerListener.ts` = `88.89%`
+          - `packages/extension/src/extension/graphView/messages/providerListener.ts` = `100.00%`
           - `packages/extension/src/extension/graphView/timelineOpen.ts` = `94.12%`
           - `packages/extension/src/extension/graphView/viewContext.ts` = `100.00%`
           - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
@@ -515,8 +515,9 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
           - next hotspot order:
             - `providerTimelineMethods.ts`
-            - `providerListener.ts`
             - `viewRebuild.ts`
+            - `providerListenerPluginContext.ts`
+            - `providerListenerSettingsContext.ts`
             - `providerViewContextMethods.ts`
             - `timelinePlayback.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
