@@ -218,6 +218,41 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `GraphViewProvider.ts` = `721` sites
       - next cut:
         - split the new dispatcher/index helpers under the `50`-site threshold
+      - reviewed/integrated subagent cut: `subagent/core-extension-provider-view-state`
+        - extract `graphView/viewContext.ts`, `viewSelection.ts`, and `viewRebuild.ts`
+        - add direct tests: `viewContext.test.ts`, `viewSelection.test.ts`, `viewRebuild.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/viewContext.test.ts tests/extension/graphView/viewSelection.test.ts tests/extension/graphView/viewRebuild.test.ts tests/extension/GraphViewProvider.viewState.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - reviewed/integrated subagent cut: `subagent/core-extension-provider-message-config`
+        - extract `graphView/webviewBridge.ts`, `viewBroadcast.ts`, and `editorPanel.ts`
+        - add direct tests: `webviewBridge.test.ts`, `viewBroadcast.test.ts`, `editorPanel.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/webviewBridge.test.ts tests/extension/graphView/viewBroadcast.test.ts tests/extension/graphView/editorPanel.test.ts tests/extension/GraphViewProvider.publicApi.test.ts tests/extension/GraphViewProvider.viewState.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - integrated branch verification after the two new subagent cuts:
+        - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/viewContext.test.ts tests/extension/graphView/viewSelection.test.ts tests/extension/graphView/viewRebuild.test.ts tests/extension/graphView/webviewBridge.test.ts tests/extension/graphView/viewBroadcast.test.ts tests/extension/graphView/editorPanel.test.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/GraphViewProvider.publicApi.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts tests/extension/GraphViewProvider.test.ts`
+        - `66` tests green
+        - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - latest targeted mutation after the view-state + webview bridge cuts:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `66.20%`
+        - `GraphViewProvider.ts` = `39.89%`
+        - `GraphViewProvider.ts` mutation sites = `571`
+        - new helpers all stay under threshold:
+          - `viewSelection.ts` = `36` sites
+          - `viewRebuild.ts` = `16` sites
+          - `viewContext.ts` = `15` sites
+          - `viewBroadcast.ts` = `14` sites
+          - `editorPanel.ts` = `8` sites
+          - `webviewBridge.ts` = `11` sites
+        - remaining threshold blockers:
+          - `GraphViewProvider.ts` = `571` sites
+          - `graphView/messages/dispatchPrimary.ts` = `86` sites
+          - `graphView/messages/dispatchPlugin.ts` = `56` sites
+          - `graphView/timelineIndex.ts` = `54` sites
+      - next cut:
+        - extract constructor/view-resolution bootstrap and settings/file-info/visit orchestration before another listener-context pass
         - keep draining `GraphViewProvider.ts`, next likely seams: built-in/plugin group assembly, view-context/view-transform/send wrappers, and the `_setWebviewMessageListener` dependency object
         - do not spend time on survivor cleanup until the provider file is also under the `50`-site threshold
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
