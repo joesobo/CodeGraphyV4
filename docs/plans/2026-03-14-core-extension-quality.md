@@ -511,14 +511,26 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
           - `packages/extension/src/extension/graphView/viewRebuild.ts` = `75.00%`
           - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the eleventh helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerViewContextMethods.test.ts tests/extension/graphView/viewRebuild.test.ts`
+          - `12` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the eleventh helper pass:
+          - graph-view-provider slice overall = `84.25%`
+          - `packages/extension/src/extension/graphView/providerViewContextMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/viewRebuild.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/messages/providerListenerPluginContext.ts` = `76.32%`
+          - `packages/extension/src/extension/graphView/messages/providerListenerSettingsContext.ts` = `76.92%`
+          - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
           - next hotspot order:
             - `providerTimelineMethods.ts`
-            - `viewRebuild.ts`
             - `providerListenerPluginContext.ts`
             - `providerListenerSettingsContext.ts`
-            - `providerViewContextMethods.ts`
+            - `dispatchPrimary.ts`
+            - `dispatchPlugin.ts`
             - `timelinePlayback.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
