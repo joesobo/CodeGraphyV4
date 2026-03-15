@@ -14,6 +14,9 @@ import { saveExportedMarkdown } from '../../export/saveMarkdown';
 import { saveExportedPng } from '../../export/savePng';
 import { saveExportedSvg } from '../../export/saveSvg';
 import { applyCommandMessage } from './commands';
+import { createGraphViewPrimaryGroupMessageState } from './dispatchPrimaryGroupMessageState';
+import { createGraphViewPrimaryNodeFileHandlers } from './dispatchPrimaryNodeFileHandlers';
+import { createGraphViewPrimarySettingsMessageState } from './dispatchPrimarySettingsMessageState';
 import { applyExportMessage } from './exports';
 import { applyGroupMessage } from './groups';
 import { applyNodeFileMessage } from './nodeFile';
@@ -84,115 +87,48 @@ export interface GraphViewPrimaryMessageResult {
   filterPatterns?: string[];
 }
 
+const GRAPH_VIEW_PRIMARY_EXPORT_HANDLERS = {
+  savePng: saveExportedPng,
+  saveSvg: saveExportedSvg,
+  saveJpeg: saveExportedJpeg,
+  saveJson: saveExportedJson,
+  saveMarkdown: saveExportedMarkdown,
+};
+
 export async function dispatchGraphViewPrimaryMessage(
   message: WebviewToExtensionMessage,
   context: GraphViewPrimaryMessageContext,
 ): Promise<GraphViewPrimaryMessageResult> {
-  if (
-    await applyNodeFileMessage(message, {
-      timelineActive: context.getTimelineActive(),
-      currentCommitSha: context.getCurrentCommitSha(),
-      openSelectedNode: nodeId => context.openSelectedNode(nodeId),
-      activateNode: nodeId => context.activateNode(nodeId),
-      previewFileAtCommit: (sha, filePath) => context.previewFileAtCommit(sha, filePath),
-      openFile: filePath => context.openFile(filePath),
-      revealInExplorer: filePath => context.revealInExplorer(filePath),
-      copyToClipboard: text => context.copyToClipboard(text),
-      deleteFiles: paths => context.deleteFiles(paths),
-      renameFile: filePath => context.renameFile(filePath),
-      createFile: directory => context.createFile(directory),
-      toggleFavorites: paths => context.toggleFavorites(paths),
-      addToExclude: patterns => context.addToExclude(patterns),
-      analyzeAndSendData: () => context.analyzeAndSendData(),
-      getFileInfo: filePath => context.getFileInfo(filePath),
-    })
-  ) {
+  if (await applyNodeFileMessage(message, createGraphViewPrimaryNodeFileHandlers(context))) {
     return { handled: true };
   }
 
-  if (
-    await applyExportMessage(message, {
-      savePng: saveExportedPng,
-      saveSvg: saveExportedSvg,
-      saveJpeg: saveExportedJpeg,
-      saveJson: saveExportedJson,
-      saveMarkdown: saveExportedMarkdown,
-    })
-  ) {
+  if (await applyExportMessage(message, GRAPH_VIEW_PRIMARY_EXPORT_HANDLERS)) {
     return { handled: true };
   }
 
-  if (
-    await applyCommandMessage(message, {
-      undo: () => context.undo(),
-      redo: () => context.redo(),
-      showInformationMessage: detail => context.showInformationMessage(detail),
-      changeView: viewId => context.changeView(viewId),
-      setDepthLimit: depthLimit => context.setDepthLimit(depthLimit),
-      updateDagMode: dagMode => context.updateDagMode(dagMode),
-      updateNodeSizeMode: nodeSizeMode => context.updateNodeSizeMode(nodeSizeMode),
-    })
-  ) {
+  if (await applyCommandMessage(message, context)) {
     return { handled: true };
   }
 
-  if (
-    await applyTimelineMessage(message, {
-      indexRepository: () => context.indexRepository(),
-      jumpToCommit: sha => context.jumpToCommit(sha),
-      previewFileAtCommit: (sha, filePath) => context.previewFileAtCommit(sha, filePath),
-    })
-  ) {
+  if (await applyTimelineMessage(message, context)) {
     return { handled: true };
   }
 
-  if (
-    await applyPhysicsMessage(message, {
-      sendPhysicsSettings: () => context.sendPhysicsSettings(),
-      updatePhysicsSetting: (key, value) => context.updatePhysicsSetting(key, value),
-      resetPhysicsSettings: () => context.resetPhysicsSettings(),
-    })
-  ) {
+  if (await applyPhysicsMessage(message, context)) {
     return { handled: true };
   }
 
-  const groupState = { userGroups: context.getUserGroups() };
-  if (
-    await applyGroupMessage(message, groupState, {
-      workspaceFolder: context.workspaceFolder,
-      persistGroups: groups => context.persistGroups(groups),
-      recomputeGroups: () => context.recomputeGroups(),
-      sendGroupsUpdated: () => context.sendGroupsUpdated(),
-      showOpenDialog: options => context.showOpenDialog(options),
-      createDirectory: uri => context.createDirectory(uri),
-      copyFile: (source, destination, options) => context.copyFile(source, destination, options),
-    })
-  ) {
+  const groupState = createGraphViewPrimaryGroupMessageState(context);
+  if (await applyGroupMessage(message, groupState, context)) {
     return {
       handled: true,
       userGroups: groupState.userGroups,
     };
   }
 
-  const settingsState = {
-    activeViewId: context.getActiveViewId(),
-    disabledPlugins: context.getDisabledPlugins(),
-    disabledRules: context.getDisabledRules(),
-    filterPatterns: context.getFilterPatterns(),
-    graphData: context.getGraphData(),
-    viewContext: context.getViewContext(),
-  };
-  if (
-    await applySettingsMessage(message, settingsState, {
-      getConfig: (key, defaultValue) => context.getConfig(key, defaultValue),
-      updateConfig: (key, value) => context.updateConfig(key, value),
-      getPluginFilterPatterns: () => context.getPluginFilterPatterns(),
-      sendMessage: nextMessage => context.sendMessage(nextMessage),
-      applyViewTransform: () => context.applyViewTransform(),
-      smartRebuild: (kind, id) => context.smartRebuild(kind, id),
-      resetAllSettings: () => context.resetAllSettings(),
-    })
-  ) {
+  const settingsState = createGraphViewPrimarySettingsMessageState(context);
+  if (await applySettingsMessage(message, settingsState, context)) {
     return {
       handled: true,
       filterPatterns: settingsState.filterPatterns,

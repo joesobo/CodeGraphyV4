@@ -1,5 +1,8 @@
 import type { ExtensionToWebviewMessage, ICommitInfo } from '../../shared/types';
-import { applyGraphViewTimelineIndexResult } from './timelineIndexResult';
+import {
+  runGraphViewTimelineIndex,
+  type GraphViewTimelineIndexExecutionState,
+} from './timelineIndexExecution';
 import { prepareGraphViewTimelineIndex } from './timelineIndexSetup';
 
 interface GraphViewTimelineAnalyzerLike {
@@ -54,26 +57,18 @@ export async function indexGraphViewRepository(
   });
   if (!ready || !state.gitAnalyzer || !state.indexingController) return;
 
-  try {
-    const commits = await state.gitAnalyzer.indexHistory(
-      (phase, current, total) => {
-        handlers.sendMessage({
-          type: 'INDEX_PROGRESS',
-          payload: { phase, current, total },
-        });
-      },
-      state.indexingController.signal,
-      handlers.getMaxCommits(),
-    );
-    await applyGraphViewTimelineIndexResult(commits, state, {
+  const executionState = state as GraphViewTimelineIndexExecutionState;
+
+  await runGraphViewTimelineIndex(
+    executionState,
+    {
+      getMaxCommits: () => handlers.getMaxCommits(),
       sendMessage: message => handlers.sendMessage(message),
       showInformationMessage: message => handlers.showInformationMessage(message),
+      showErrorMessage: message => handlers.showErrorMessage(message),
+      toErrorMessage: error => handlers.toErrorMessage(error),
       jumpToCommit: sha => handlers.jumpToCommit(sha),
-    });
-  } catch (error) {
-    if (error instanceof Error && error.name === 'AbortError') return;
-    handlers.logError('[CodeGraphy] Indexing failed:', error);
-    handlers.showErrorMessage(`Timeline indexing failed: ${handlers.toErrorMessage(error)}`);
-    handlers.sendMessage({ type: 'CACHE_INVALIDATED' });
-  }
+      logError: (message, error) => handlers.logError(message, error),
+    },
+  );
 }
