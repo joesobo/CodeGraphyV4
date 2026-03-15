@@ -49,6 +49,27 @@ describe('graphView/timelineOpen', () => {
     });
   });
 
+  it('opens the workspace file when a commit sha exists but timeline mode is inactive', async () => {
+    const previewFileAtCommit = vi.fn(async () => undefined);
+    const openFile = vi.fn(async () => undefined);
+
+    await openGraphViewNodeInEditor(
+      'src/app.ts',
+      { timelineActive: false, currentCommitSha: 'abc123' },
+      {
+        previewFileAtCommit,
+        openFile,
+      },
+      { preview: false, preserveFocus: true },
+    );
+
+    expect(previewFileAtCommit).not.toHaveBeenCalled();
+    expect(openFile).toHaveBeenCalledWith('src/app.ts', {
+      preview: false,
+      preserveFocus: true,
+    });
+  });
+
   it('opens the git-backed preview document for the requested commit', async () => {
     const gitUri = {
       fsPath: '/workspace/src/app.ts',
@@ -81,6 +102,41 @@ describe('graphView/timelineOpen', () => {
       preview: true,
       preserveFocus: false,
     });
+  });
+
+  it('uses the default preview behavior when no editor behavior override is provided', async () => {
+    const document = { uri: vscode.Uri.file('/workspace/src/app.ts') } as vscode.TextDocument;
+    const openTextDocument = vi.fn(async () => document);
+    const showTextDocument = vi.fn(async () => undefined);
+
+    await previewGraphViewFileAtCommit('abc123', 'src/app.ts', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      openTextDocument,
+      showTextDocument,
+      logError: vi.fn(),
+    });
+
+    expect(showTextDocument).toHaveBeenCalledWith(document, {
+      preview: true,
+      preserveFocus: false,
+    });
+  });
+
+  it('returns early when there is no workspace folder for commit preview', async () => {
+    const openTextDocument = vi.fn();
+    const showTextDocument = vi.fn();
+
+    await expect(
+      previewGraphViewFileAtCommit('abc123', 'src/app.ts', {
+        workspaceFolder: undefined,
+        openTextDocument,
+        showTextDocument,
+        logError: vi.fn(),
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(openTextDocument).not.toHaveBeenCalled();
+    expect(showTextDocument).not.toHaveBeenCalled();
   });
 
   it('logs preview failures without throwing', async () => {
