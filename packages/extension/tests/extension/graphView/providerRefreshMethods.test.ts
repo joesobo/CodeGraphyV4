@@ -79,6 +79,40 @@ describe('graphView/providerRefreshMethods', () => {
     expect(rebuildGraphData).not.toHaveBeenCalled();
   });
 
+  it('refreshToggleSettings falls back to the local rebuild helper when the source callback is cleared', () => {
+    const rebuildGraphData = vi.fn();
+    const source = createSource();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => false),
+      rebuildGraphData,
+      smartRebuildGraphData: vi.fn(),
+      shouldRebuild: vi.fn(() => true),
+    });
+
+    source._rebuildAndSend = undefined;
+
+    methods.refreshToggleSettings();
+
+    expect(rebuildGraphData).toHaveBeenCalledOnce();
+  });
+
+  it('refreshToggleSettings ignores a self-installed rebuild implementation', () => {
+    const rebuildGraphData = vi.fn();
+    const source = createSource();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => false),
+      rebuildGraphData,
+      smartRebuildGraphData: vi.fn(),
+      shouldRebuild: vi.fn(() => true),
+    });
+
+    source._rebuildAndSend = methods._rebuildAndSend;
+
+    methods.refreshToggleSettings();
+
+    expect(rebuildGraphData).toHaveBeenCalledOnce();
+  });
+
   it('rebuild and smart rebuild delegate to the graph view rebuild helpers', () => {
     const rebuildGraphData = vi.fn((_nextSource, handlers: {
       getShowOrphans(): boolean;
@@ -130,6 +164,52 @@ describe('graphView/providerRefreshMethods', () => {
     expect(shouldRebuild).toHaveBeenCalledWith(['status'], 'plugin', 'plugin.test');
     expect(rebuildOverride).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({ type: 'PLUGINS_UPDATED' });
+  });
+
+  it('smart rebuild falls back to the local rebuild helper when the source callback is cleared', () => {
+    const rebuildGraphData = vi.fn();
+    const smartRebuildGraphData = vi.fn((_nextSource, _kind, _id, handlers: {
+      rebuildAndSend(): void;
+    }) => {
+      handlers.rebuildAndSend();
+    });
+    const source = createSource();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => false),
+      rebuildGraphData,
+      smartRebuildGraphData,
+      shouldRebuild: vi.fn(() => true),
+    });
+
+    source._rebuildAndSend = undefined;
+
+    methods._smartRebuild('plugin', 'plugin.test');
+
+    expect(smartRebuildGraphData).toHaveBeenCalledOnce();
+    expect(rebuildGraphData).toHaveBeenCalledOnce();
+  });
+
+  it('smart rebuild ignores a self-installed rebuild implementation', () => {
+    const rebuildGraphData = vi.fn();
+    const smartRebuildGraphData = vi.fn((_nextSource, _kind, _id, handlers: {
+      rebuildAndSend(): void;
+    }) => {
+      handlers.rebuildAndSend();
+    });
+    const source = createSource();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => false),
+      rebuildGraphData,
+      smartRebuildGraphData,
+      shouldRebuild: vi.fn(() => true),
+    });
+
+    source._rebuildAndSend = methods._rebuildAndSend;
+
+    methods._smartRebuild('plugin', 'plugin.test');
+
+    expect(smartRebuildGraphData).toHaveBeenCalledOnce();
+    expect(rebuildGraphData).toHaveBeenCalledOnce();
   });
 
   it('clearCacheAndRefresh clears analyzer cache before re-analysis', async () => {
