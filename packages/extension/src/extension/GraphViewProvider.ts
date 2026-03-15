@@ -31,7 +31,6 @@ import {
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
 import {
   applyGraphViewTransform,
-  mapAvailableViews,
 } from './graphViewPresentation';
 import {
   normalizeGraphViewExtensionUri,
@@ -71,9 +70,9 @@ import {
 import { renameGraphViewFile } from './graphView/fileRename';
 import { applyLoadedGraphViewGroupState } from './graphView/groupSync';
 import {
-  buildGraphViewGroupsUpdatedMessage,
   loadGraphViewGroupState,
 } from './graphView/groups';
+import { openGraphViewInEditor } from './graphView/editorPanel';
 import { buildGraphViewMergedGroups } from './graphView/mergedGroups';
 import { getGraphViewPluginDefaultGroups } from './graphView/pluginDefaultGroups';
 import {
@@ -97,6 +96,10 @@ import {
   incrementPersistedGraphViewVisitCount,
   readPersistedGraphViewVisitCount,
 } from './graphView/visits';
+import {
+  sendGraphViewAvailableViews,
+  sendGraphViewGroupsUpdated,
+} from './graphView/viewBroadcast';
 import { buildGraphViewTimelineGraphData } from './graphView/timelineGraph';
 import {
   openGraphViewNodeInEditor,
@@ -124,6 +127,10 @@ import {
 	resolveGraphViewDisabledState,
 } from './graphViewSettings';
 import { setGraphViewWebviewMessageListener } from './graphView/messages/listener';
+import {
+  onGraphViewWebviewMessage,
+  sendGraphViewWebviewMessage,
+} from './graphView/webviewBridge';
 
 /** Default physics settings (user-facing normalized values) */
 const DEFAULT_PHYSICS: IPhysicsSettings = {
@@ -655,19 +662,13 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Sends the list of available views to the webview.
    */
   private _sendAvailableViews(): void {
-    const availableViews = this._viewRegistry.getAvailableViews(this._viewContext);
-    const views = mapAvailableViews(availableViews, this._activeViewId);
-
-    this._sendMessage({
-      type: 'VIEWS_UPDATED',
-      payload: { views, activeViewId: this._activeViewId },
-    });
-    
-    // Also send current depth limit for depth graph view
-    this._sendMessage({
-      type: 'DEPTH_LIMIT_UPDATED',
-      payload: { depthLimit: this._viewContext.depthLimit ?? DEFAULT_DEPTH_LIMIT },
-    });
+    sendGraphViewAvailableViews(
+      this._viewRegistry,
+      this._viewContext,
+      this._activeViewId,
+      DEFAULT_DEPTH_LIMIT,
+      message => this._sendMessage(message as ExtensionToWebviewMessage),
+    );
   }
 
   /**
@@ -864,30 +865,20 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Creates a WebviewPanel in the active editor column.
    */
   public openInEditor(): void {
-    const panel = vscode.window.createWebviewPanel(
-      GraphViewProvider.viewType,
-      'CodeGraphy',
-      vscode.ViewColumn.Active,
-      {
-        enableScripts: true,
-        localResourceRoots: this._getLocalResourceRoots(),
-        retainContextWhenHidden: true,
-      }
-    );
-
-    panel.iconPath = vscode.Uri.joinPath(this._extensionUri, 'assets', 'icon.svg');
-
-    // Set up message listener before loading HTML
-    this._setWebviewMessageListener(panel.webview);
-
-    panel.webview.html = this._getHtmlForWebview(panel.webview);
-
-    // Track panel
-    this._panels.push(panel);
-
-    // Clean up when panel is closed
-    panel.onDidDispose(() => {
-      this._panels = this._panels.filter(existingPanel => existingPanel !== panel);
+    openGraphViewInEditor({
+      viewType: GraphViewProvider.viewType,
+      extensionUri: this._extensionUri,
+      getLocalResourceRoots: () => this._getLocalResourceRoots(),
+      createPanel: (viewType, title, column, options) =>
+        vscode.window.createWebviewPanel(viewType, title, column, options),
+      setWebviewMessageListener: webview => this._setWebviewMessageListener(webview),
+      getHtmlForWebview: webview => this._getHtmlForWebview(webview),
+      registerPanel: panel => {
+        this._panels.push(panel);
+      },
+      unregisterPanel: panel => {
+        this._panels = this._panels.filter(existingPanel => existingPanel !== panel);
+      },
     });
   }
 
@@ -898,10 +889,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Mirrors what the extension sends, e.g. to simulate WEBVIEW_READY.
    */
   public sendToWebview(message: unknown): void {
-    this._view?.webview.postMessage(message);
-    for (const panel of this._panels) {
-      panel.webview.postMessage(message);
-    }
+    sendGraphViewWebviewMessage(this._view, this._panels, message);
   }
 
   /**
@@ -909,10 +897,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Returns a disposable so tests can clean up.
    */
   public onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable {
-    if (!this._view) {
-      return { dispose: () => {} };
-    }
-    return this._view.webview.onDidReceiveMessage(handler);
+    return onGraphViewWebviewMessage(this._view, handler);
   }
 
   /** Emit an event on the plugin EventBus (used by extension entry point). */
@@ -1026,16 +1011,17 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    *   resolved relative to the workspace folder
    */
   private _sendGroupsUpdated(): void {
-    this._registerBuiltInPluginRoots();
-    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-    const webview = this._view?.webview ?? this._panels[0]?.webview;
-    this._sendMessage(
-      buildGraphViewGroupsUpdatedMessage(this._groups, {
-        workspaceFolder,
-        asWebviewUri: webview ? (uri) => webview.asWebviewUri(uri) : undefined,
+    sendGraphViewGroupsUpdated(
+      this._groups,
+      {
+        registerPluginRoots: () => this._registerBuiltInPluginRoots(),
+        workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+        view: this._view,
+        panels: this._panels,
         resolvePluginAssetPath: (assetPath, pluginId) =>
           this._resolveWebviewAssetPath(assetPath, pluginId),
-      }),
+      },
+      message => this._sendMessage(message as ExtensionToWebviewMessage),
     );
   }
 
@@ -1045,12 +1031,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * @param message - Message to send to the webviews
    */
   private _sendMessage(message: ExtensionToWebviewMessage): void {
-    if (this._view) {
-      void this._view.webview.postMessage(message);
-    }
-    for (const panel of this._panels) {
-      void panel.webview.postMessage(message);
-    }
+    sendGraphViewWebviewMessage(this._view, this._panels, message);
   }
 
   /**
