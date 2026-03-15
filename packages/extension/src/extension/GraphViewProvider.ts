@@ -40,10 +40,13 @@ import { readGraphViewPhysicsSettings } from './graphViewPhysics';
 import { createGraphViewHtml, createGraphViewNonce } from './graphViewHtml';
 import { applyGraphViewAllSettingsSnapshot } from './graphView/allSettingsSync';
 import {
-  executeGraphViewAnalysis,
-  type GraphViewAnalysisExecutionState,
-} from './graphView/analysisExecution';
-import { runGraphViewAnalysisRequest } from './graphView/analysisRequest';
+  executeGraphViewProviderAnalysis,
+  isGraphViewAbortError,
+  isGraphViewAnalysisStale,
+  markGraphViewWorkspaceReady,
+  runGraphViewProviderAnalysisRequest,
+  type GraphViewProviderAnalysisState,
+} from './graphView/analysisLifecycle';
 import {
   getBuiltInGraphViewDefaultGroups,
   registerBuiltInGraphViewPluginRoots,
@@ -484,7 +487,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       analysisRequestId: this._analysisRequestId,
     };
 
-    await runGraphViewAnalysisRequest(state, {
+    await runGraphViewProviderAnalysisRequest(state, {
       executeAnalysis: (signal, requestId) => this._doAnalyzeAndSendData(signal, requestId),
       isAbortError: error => this._isAbortError(error),
       logError: (message, error) => {
@@ -503,7 +506,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
   }
 
   private async _doAnalyzeAndSendData(signal: AbortSignal, requestId: number): Promise<void> {
-    const state: GraphViewAnalysisExecutionState = {
+    const state: GraphViewProviderAnalysisState = {
+      analysisController: this._analysisController,
+      analysisRequestId: this._analysisRequestId,
       analyzer: this._analyzer,
       analyzerInitialized: this._analyzerInitialized,
       analyzerInitPromise: this._analyzerInitPromise,
@@ -512,7 +517,7 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       disabledPlugins: this._disabledPlugins,
     };
 
-    await executeGraphViewAnalysis(signal, requestId, state, {
+    await executeGraphViewProviderAnalysis(signal, requestId, state, {
       isAnalysisStale: (nextSignal, nextRequestId) =>
         this._isAnalysisStale(nextSignal, nextRequestId),
       hasWorkspace: () => (vscode.workspace.workspaceFolders?.length ?? 0) > 0,
@@ -541,6 +546,8 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       },
     });
 
+    this._analysisController = state.analysisController;
+    this._analysisRequestId = state.analysisRequestId;
     this._analyzerInitialized = state.analyzerInitialized;
     this._analyzerInitPromise = state.analyzerInitPromise;
   }
@@ -549,19 +556,23 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Marks first workspace-ready lifecycle as complete and resolves waiters.
    */
   private _markWorkspaceReady(graph: IGraphData): void {
-    if (!this._firstAnalysis) return;
-    this._firstAnalysis = false;
-    this._analyzer?.registry.notifyWorkspaceReady(graph);
-    this._resolveFirstWorkspaceReady?.();
-    this._resolveFirstWorkspaceReady = undefined;
+    const state = {
+      firstAnalysis: this._firstAnalysis,
+      resolveFirstWorkspaceReady: this._resolveFirstWorkspaceReady,
+    };
+
+    markGraphViewWorkspaceReady(state, this._analyzer?.registry, graph);
+
+    this._firstAnalysis = state.firstAnalysis;
+    this._resolveFirstWorkspaceReady = state.resolveFirstWorkspaceReady;
   }
 
   private _isAnalysisStale(signal: AbortSignal, requestId: number): boolean {
-    return signal.aborted || requestId !== this._analysisRequestId;
+    return isGraphViewAnalysisStale(signal, requestId, this._analysisRequestId);
   }
 
   private _isAbortError(error: unknown): boolean {
-    return error instanceof Error && error.name === 'AbortError';
+    return isGraphViewAbortError(error);
   }
 
   /**
