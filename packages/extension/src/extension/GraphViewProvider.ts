@@ -48,7 +48,9 @@ import {
   getBuiltInGraphViewDefaultGroups,
   registerBuiltInGraphViewPluginRoots,
 } from './graphView/builtInGroups';
+import { loadGraphViewDisabledState } from './graphView/disabledState';
 import { loadGraphViewFileInfo } from './graphView/fileInfo';
+import { sendGraphViewFileInfoMessage } from './graphView/fileInfoMessage';
 import {
   sendGraphViewFavorites,
   toggleGraphViewFavorites,
@@ -75,8 +77,8 @@ import {
 import { openGraphViewInEditor } from './graphView/editorPanel';
 import { buildGraphViewMergedGroups } from './graphView/mergedGroups';
 import { getGraphViewPluginDefaultGroups } from './graphView/pluginDefaultGroups';
+import { sendGraphViewSettingsMessages } from './graphView/settingsMessage';
 import {
-  buildGraphViewSettingsMessages,
   captureGraphViewSettingsSnapshot,
 } from './graphView/settings';
 import {
@@ -93,9 +95,10 @@ import {
   smartRebuildGraphView,
 } from './graphView/viewRebuild';
 import {
-  incrementPersistedGraphViewVisitCount,
-  readPersistedGraphViewVisitCount,
-} from './graphView/visits';
+  getGraphViewVisitCount,
+  incrementGraphViewVisitCount,
+  trackGraphViewFileVisit,
+} from './graphView/visitTracking';
 import {
   sendGraphViewAvailableViews,
   sendGraphViewGroupsUpdated,
@@ -123,8 +126,6 @@ import {
 import {
 	getGraphViewConfigTarget,
 	normalizeFolderNodeColor,
-	readGraphViewSettings,
-	resolveGraphViewDisabledState,
 } from './graphViewSettings';
 import { setGraphViewWebviewMessageListener } from './graphView/messages/listener';
 import {
@@ -1520,15 +1521,15 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    */
   private _loadDisabledRulesAndPlugins(): boolean {
     const config = vscode.workspace.getConfiguration('codegraphy');
-    const rulesInspect = config.inspect<string[]>('disabledRules');
-    const pluginsInspect = config.inspect<string[]>('disabledPlugins');
-    const disabledState = resolveGraphViewDisabledState(
+    const disabledState = loadGraphViewDisabledState(
       this._disabledRules,
       this._disabledPlugins,
-      rulesInspect?.workspaceValue ?? rulesInspect?.globalValue,
-      pluginsInspect?.workspaceValue ?? pluginsInspect?.globalValue,
-      this._context.workspaceState.get<string[]>(DISABLED_RULES_KEY),
-      this._context.workspaceState.get<string[]>(DISABLED_PLUGINS_KEY)
+      {
+        disabledRulesInspect: config.inspect<string[]>('disabledRules'),
+        disabledPluginsInspect: config.inspect<string[]>('disabledPlugins'),
+        persistedDisabledRules: this._context.workspaceState.get<string[]>(DISABLED_RULES_KEY),
+        persistedDisabledPlugins: this._context.workspaceState.get<string[]>(DISABLED_PLUGINS_KEY),
+      },
     );
 
     this._disabledRules = disabledState.disabledRules;
@@ -1551,53 +1552,54 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Sends current settings to the webview.
    */
   private _sendSettings(): void {
-    const settings = readGraphViewSettings(vscode.workspace.getConfiguration('codegraphy'));
-    this._viewContext.folderNodeColor = settings.folderNodeColor;
-    for (const message of buildGraphViewSettingsMessages(settings)) {
-      this._sendMessage(message);
-    }
+    sendGraphViewSettingsMessages(this._viewContext, {
+      getConfiguration: () => vscode.workspace.getConfiguration('codegraphy'),
+      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
+    });
   }
 
   /**
    * Gets file info and sends it to the webview.
    */
   private async _getFileInfo(filePath: string): Promise<void> {
-    try {
-      const payload = await loadGraphViewFileInfo(filePath, {
-        workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-        statFile: (fileUri) => vscode.workspace.fs.stat(fileUri),
-        ensureAnalyzerReady: async () => {
-          if (this._analyzer && !this._analyzerInitialized) {
-            await this._analyzer.initialize();
-            this._analyzerInitialized = true;
-          }
-          return this._analyzer;
-        },
-        graphData: this._graphData,
-        getVisitCount: (nextFilePath) => this._getVisitCount(nextFilePath),
-      });
-      if (!payload) return;
+    await sendGraphViewFileInfoMessage(filePath, {
+      loadFileInfo: async nextFilePath =>
+        loadGraphViewFileInfo(nextFilePath, {
+          workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+          statFile: fileUri => vscode.workspace.fs.stat(fileUri),
+          ensureAnalyzerReady: async () => {
+            if (this._analyzer && !this._analyzerInitialized) {
+              await this._analyzer.initialize();
+              this._analyzerInitialized = true;
+            }
 
-      this._sendMessage({ type: 'FILE_INFO', payload });
-    } catch (error) {
-      console.error('[CodeGraphy] Failed to get file info:', error);
-    }
+            return this._analyzer;
+          },
+          graphData: this._graphData,
+          getVisitCount: nextTrackedFilePath => this._getVisitCount(nextTrackedFilePath),
+        }),
+      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
+      logError: (label, error) => {
+        console.error(label, error);
+      },
+    });
   }
 
   /**
    * Gets the visit count for a file.
    */
   private _getVisitCount(filePath: string): number {
-    return readPersistedGraphViewVisitCount(this._context.workspaceState, filePath);
+    return getGraphViewVisitCount(this._context.workspaceState, filePath);
   }
 
   /**
    * Increments the visit count for a file and notifies the webview.
    */
   private async _incrementVisitCount(filePath: string): Promise<void> {
-    this._sendMessage(
-      await incrementPersistedGraphViewVisitCount(this._context.workspaceState, filePath),
-    );
+    await incrementGraphViewVisitCount(filePath, {
+      workspaceState: this._context.workspaceState,
+      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
+    });
   }
 
   /**
@@ -1605,11 +1607,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Called by the active text editor change listener.
    */
   public async trackFileVisit(filePath: string): Promise<void> {
-    // Only track files that are in our graph
-    const nodeExists = this._graphData.nodes.some(n => n.id === filePath);
-    if (nodeExists) {
-      await this._incrementVisitCount(filePath);
-    }
+    await trackGraphViewFileVisit(filePath, {
+      graphData: this._graphData,
+      incrementVisitCount: nextFilePath => this._incrementVisitCount(nextFilePath),
+    });
   }
 
   /**
