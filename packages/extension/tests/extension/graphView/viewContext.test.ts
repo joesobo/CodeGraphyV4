@@ -7,6 +7,10 @@ import {
 } from '../../../src/extension/graphView/viewContext';
 
 describe('graph view context helpers', () => {
+  it('returns an empty plugin id set when there is no analyzer', () => {
+    expect([...getGraphViewActivePluginIds(undefined)]).toEqual([]);
+  });
+
   it('collects active plugin ids from the analyzer registry', () => {
     const pluginIds = getGraphViewActivePluginIds({
       registry: {
@@ -20,6 +24,16 @@ describe('graph view context helpers', () => {
     });
 
     expect([...pluginIds]).toEqual(['plugin.alpha', 'plugin.beta']);
+  });
+
+  it('ignores plugin entries without an id', () => {
+    const pluginIds = getGraphViewActivePluginIds({
+      registry: {
+        list: () => [{ plugin: {} }, {}],
+      },
+    });
+
+    expect([...pluginIds]).toEqual([]);
   });
 
   it('returns workspace-relative paths through the shared path helper', () => {
@@ -55,6 +69,26 @@ describe('graph view context helpers', () => {
       focusedFile: 'src/app.ts',
       depthLimit: 4,
       folderNodeColor: '#112233',
+    });
+  });
+
+  it('falls back to default context values without workspace or editor state', () => {
+    const context = buildGraphViewContext({
+      analyzer: undefined,
+      workspaceFolders: undefined,
+      activeEditor: undefined,
+      readSavedDepthLimit: () => undefined,
+      readFolderNodeColor: () => '#445566',
+      asRelativePath: () => 'ignored.ts',
+      defaultDepthLimit: 3,
+    });
+
+    expect(context).toEqual({
+      activePlugins: new Set(),
+      workspaceRoot: undefined,
+      focusedFile: undefined,
+      depthLimit: 3,
+      folderNodeColor: '#445566',
     });
   });
 });

@@ -499,14 +499,26 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/viewRebuild.ts` = `75.00%`
           - `packages/extension/src/extension/graphView/providerListener.ts` = `22.22%`
           - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the tenth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/providerListener.test.ts tests/extension/graphView/timelineOpen.test.ts tests/extension/graphView/viewContext.test.ts`
+          - `16` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the tenth survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - `packages/extension/src/extension/graphView/messages/providerListener.ts` = `88.89%`
+          - `packages/extension/src/extension/graphView/timelineOpen.ts` = `94.12%`
+          - `packages/extension/src/extension/graphView/viewContext.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/viewRebuild.ts` = `75.00%`
+          - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
           - next hotspot order:
             - `providerTimelineMethods.ts`
-            - `timelineOpen.ts`
-            - `viewContext.ts`
-            - `viewRebuild.ts`
             - `providerListener.ts`
+            - `viewRebuild.ts`
+            - `providerViewContextMethods.ts`
+            - `timelinePlayback.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
