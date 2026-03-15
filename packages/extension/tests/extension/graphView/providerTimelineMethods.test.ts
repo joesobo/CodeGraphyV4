@@ -1,8 +1,45 @@
-import { describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ExtensionToWebviewMessage, IGraphData } from '../../../src/shared/types';
+const timelineMethodMocks = vi.hoisted(() => ({
+  indexRepository: vi.fn(async () => undefined),
+  jumpToCommit: vi.fn(async () => undefined),
+  sendCachedTimeline: vi.fn(),
+  sendPlaybackSpeed: vi.fn(),
+  invalidateTimelineCache: vi.fn(async () => undefined),
+  openNodeInEditor: vi.fn(async () => undefined),
+  previewFileAtCommit: vi.fn(async () => undefined),
+}));
+
+vi.mock('../../../src/extension/graphView/providerTimeline', () => ({
+  indexGraphViewProviderRepository: timelineMethodMocks.indexRepository,
+  jumpGraphViewProviderToCommit: timelineMethodMocks.jumpToCommit,
+  sendGraphViewProviderCachedTimeline: timelineMethodMocks.sendCachedTimeline,
+}));
+
+vi.mock('../../../src/extension/graphView/timelinePlayback', () => ({
+  invalidateGraphViewTimelineCache: timelineMethodMocks.invalidateTimelineCache,
+  sendGraphViewPlaybackSpeed: timelineMethodMocks.sendPlaybackSpeed,
+}));
+
+vi.mock('../../../src/extension/graphView/timelineOpen', () => ({
+  openGraphViewNodeInEditor: timelineMethodMocks.openNodeInEditor,
+  previewGraphViewFileAtCommit: timelineMethodMocks.previewFileAtCommit,
+}));
+
 import { createGraphViewProviderTimelineMethods } from '../../../src/extension/graphView/providerTimelineMethods';
 
 describe('graphView/providerTimelineMethods', () => {
+  beforeEach(() => {
+    timelineMethodMocks.indexRepository.mockReset();
+    timelineMethodMocks.jumpToCommit.mockReset();
+    timelineMethodMocks.sendCachedTimeline.mockReset();
+    timelineMethodMocks.sendPlaybackSpeed.mockReset();
+    timelineMethodMocks.invalidateTimelineCache.mockReset();
+    timelineMethodMocks.openNodeInEditor.mockReset();
+    timelineMethodMocks.previewFileAtCommit.mockReset();
+  });
+
   it('delegates repository timeline actions to the extracted provider helpers', async () => {
     const source = {
       _context: {} as never,
@@ -208,5 +245,118 @@ describe('graphView/providerTimelineMethods', () => {
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'CACHE_INVALIDATED',
     } satisfies ExtensionToWebviewMessage);
+  });
+
+  it('uses the default preview, playback, and cache delegates with live vscode dependencies', async () => {
+    const source = {
+      _context: {} as never,
+      _analyzer: undefined,
+      _analyzerInitialized: false,
+      _gitAnalyzer: { invalidateCache: vi.fn(async () => undefined) } as never,
+      _indexingController: undefined,
+      _filterPatterns: [],
+      _timelineActive: true,
+      _currentCommitSha: 'sha-1',
+      _disabledPlugins: new Set<string>(),
+      _disabledRules: new Set<string>(),
+      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _sendMessage: vi.fn(),
+      _openFile: vi.fn(async () => undefined),
+    };
+    const configurationGet = vi.fn((key: string, fallback: unknown) =>
+      key === 'timeline.playbackSpeed' ? 1.5 : fallback,
+    );
+    const fileUri = vscode.Uri.file('/workspace/src/app.ts');
+    const document = { uri: fileUri } as vscode.TextDocument;
+    const getConfiguration = vi
+      .spyOn(vscode.workspace, 'getConfiguration')
+      .mockReturnValue({ get: configurationGet } as never);
+    const workspaceFolders = vi
+      .spyOn(vscode.workspace, 'workspaceFolders', 'get')
+      .mockReturnValue(undefined);
+    const originalOpenTextDocument = (vscode.workspace as { openTextDocument?: unknown }).openTextDocument;
+    const originalShowTextDocument = (vscode.window as { showTextDocument?: unknown }).showTextDocument;
+    const openTextDocument = vi.fn(async () => document);
+    const showTextDocument = vi.fn(async () => ({} as vscode.TextEditor));
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+    Object.defineProperty(vscode.workspace, 'openTextDocument', {
+      configurable: true,
+      value: openTextDocument,
+    });
+    Object.defineProperty(vscode.window, 'showTextDocument', {
+      configurable: true,
+      value: showTextDocument,
+    });
+
+    timelineMethodMocks.previewFileAtCommit.mockImplementation(
+      async (_sha, _filePath, handlers, behavior) => {
+        expect(handlers.workspaceFolder).toBeUndefined();
+        expect(behavior).toEqual({ preview: true, preserveFocus: false });
+        await handlers.openTextDocument(fileUri);
+        await handlers.showTextDocument(document, { preview: false, preserveFocus: true });
+        handlers.logError('preview failed', 'boom');
+      },
+    );
+    timelineMethodMocks.sendPlaybackSpeed.mockImplementation((speed, callback) => {
+      callback({
+        type: 'PLAYBACK_SPEED_UPDATED',
+        payload: { speed },
+      });
+    });
+    timelineMethodMocks.invalidateTimelineCache.mockImplementation(
+      async (_gitAnalyzer, state, callback) => {
+        expect(state).toEqual({
+          timelineActive: true,
+          currentCommitSha: 'sha-1',
+        });
+        state.timelineActive = false;
+        state.currentCommitSha = undefined;
+        callback({ type: 'CACHE_INVALIDATED' });
+        return undefined;
+      },
+    );
+
+    const methods = createGraphViewProviderTimelineMethods(source as never);
+
+    await methods._previewFileAtCommit('sha-1', 'src/app.ts');
+    methods.sendPlaybackSpeed();
+    await methods.invalidateTimelineCache();
+
+    expect(getConfiguration).toHaveBeenCalledWith('codegraphy');
+    expect(configurationGet).toHaveBeenCalledWith('timeline.playbackSpeed', 1.0);
+    expect(openTextDocument).toHaveBeenCalledWith(fileUri);
+    expect(showTextDocument).toHaveBeenCalledWith(document, {
+      preview: false,
+      preserveFocus: true,
+    });
+    expect(consoleError).toHaveBeenCalledWith('preview failed', 'boom');
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'PLAYBACK_SPEED_UPDATED',
+      payload: { speed: 1.5 },
+    } satisfies ExtensionToWebviewMessage);
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'CACHE_INVALIDATED',
+    } satisfies ExtensionToWebviewMessage);
+
+    consoleError.mockRestore();
+    if (originalShowTextDocument === undefined) {
+      delete (vscode.window as { showTextDocument?: unknown }).showTextDocument;
+    } else {
+      Object.defineProperty(vscode.window, 'showTextDocument', {
+        configurable: true,
+        value: originalShowTextDocument,
+      });
+    }
+    if (originalOpenTextDocument === undefined) {
+      delete (vscode.workspace as { openTextDocument?: unknown }).openTextDocument;
+    } else {
+      Object.defineProperty(vscode.workspace, 'openTextDocument', {
+        configurable: true,
+        value: originalOpenTextDocument,
+      });
+    }
+    workspaceFolders.mockRestore();
+    getConfiguration.mockRestore();
   });
 });
