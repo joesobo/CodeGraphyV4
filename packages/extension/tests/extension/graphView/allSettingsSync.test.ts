@@ -67,4 +67,56 @@ describe('graphView/allSettingsSync', () => {
     expect(sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalled();
   });
+
+  it('sends every pre-group settings message before recomputing groups', () => {
+    const order: string[] = [];
+    const state = createState();
+    const snapshot = createSnapshot();
+
+    applyGraphViewAllSettingsSnapshot(snapshot, ['venv/**'], state, {
+      sendMessage: message => {
+        order.push(message.type);
+      },
+      recomputeGroups: () => {
+        order.push('RECOMPUTE_GROUPS');
+      },
+      sendGroupsUpdated: () => {
+        order.push('SEND_GROUPS_UPDATED');
+      },
+    });
+
+    expect(order.slice(0, 7)).toEqual([
+      'PHYSICS_SETTINGS_UPDATED',
+      'SETTINGS_UPDATED',
+      'DIRECTION_SETTINGS_UPDATED',
+      'FOLDER_NODE_COLOR_UPDATED',
+      'SHOW_LABELS_UPDATED',
+      'RECOMPUTE_GROUPS',
+      'SEND_GROUPS_UPDATED',
+    ]);
+  });
+
+  it('sends every post-group settings message after groups are recomputed', () => {
+    const order: string[] = [];
+    const state = createState();
+    const snapshot = createSnapshot();
+
+    applyGraphViewAllSettingsSnapshot(snapshot, ['venv/**'], state, {
+      sendMessage: message => {
+        order.push(message.type);
+      },
+      recomputeGroups: () => {
+        order.push('RECOMPUTE_GROUPS');
+      },
+      sendGroupsUpdated: () => {
+        order.push('SEND_GROUPS_UPDATED');
+      },
+    });
+
+    expect(order.slice(-3)).toEqual([
+      'FILTER_PATTERNS_UPDATED',
+      'MAX_FILES_UPDATED',
+      'NODE_SIZE_MODE_UPDATED',
+    ]);
+  });
 });

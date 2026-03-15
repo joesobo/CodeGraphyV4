@@ -258,6 +258,50 @@ describe('graphView/providerWebviewMethods', () => {
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview);
   });
 
+  it('keeps panel registration state live across editor opener callbacks', () => {
+    const openInEditor = vi.fn();
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _panels: [] as vscode.WebviewPanel[],
+      _analyzeAndSendData: vi.fn(async () => undefined),
+      _getLocalResourceRoots: vi.fn(() => []),
+    };
+    const methods = createGraphViewProviderWebviewMethods(source as never, {
+      viewType: 'codegraphy.graphView',
+      createHtml: vi.fn(() => '<html />'),
+      resolveWebviewView: vi.fn(),
+      openInEditor,
+      sendWebviewMessage: vi.fn(),
+      onWebviewMessage: vi.fn(() => ({ dispose: () => {} })),
+      setWebviewMessageListener: vi.fn(),
+      executeCommand: vi.fn(() => Promise.resolve()),
+      createPanel: vi.fn() as never,
+      log: vi.fn(),
+    });
+    const panelA = { id: 'panel-a' } as unknown as vscode.WebviewPanel;
+    const panelB = { id: 'panel-b' } as unknown as vscode.WebviewPanel;
+
+    methods.openInEditor();
+
+    const options = openInEditor.mock.calls[0]?.[0] as {
+      registerPanel(panel: vscode.WebviewPanel): void;
+      unregisterPanel(panel: vscode.WebviewPanel): void;
+    };
+
+    options.registerPanel(panelA);
+    expect(source._panels).toEqual([panelA]);
+
+    options.registerPanel(panelB);
+    expect(source._panels).toEqual([panelA, panelB]);
+
+    options.unregisterPanel(panelA);
+    expect(source._panels).toEqual([panelB]);
+
+    options.unregisterPanel(panelB);
+    expect(source._panels).toEqual([]);
+  });
+
   it('forwards direct webview messaging helpers', () => {
     const sendWebviewMessage = vi.fn();
     const disposable = { dispose: vi.fn() };
