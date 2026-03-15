@@ -147,6 +147,37 @@ describe('graph view provider timeline helpers', () => {
     } satisfies ExtensionToWebviewMessage);
   });
 
+  it('syncs true timeline state from the repository indexer before and after a jump', async () => {
+    const nextGitAnalyzer = {
+      kind: 'git',
+      getGraphDataForCommit: vi.fn(async () => ({ nodes: [], edges: [] })),
+    } as never;
+    const source = createTimelineSource({
+      _timelineActive: false,
+      _currentCommitSha: 'sha-0',
+    });
+    const deps = createTimelineDependencies({
+      createGitAnalyzer: vi.fn(() => nextGitAnalyzer),
+      buildTimelineGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
+      indexRepository: vi.fn(async (state, handlers) => {
+        state.analyzerInitialized = true;
+        state.gitAnalyzer = nextGitAnalyzer;
+        state.indexingController = new AbortController();
+        state.timelineActive = true;
+        state.currentCommitSha = 'def456';
+
+        await handlers.jumpToCommit('def456');
+
+        expect(source._timelineActive).toBe(true);
+      }),
+    });
+
+    await indexGraphViewProviderRepository(source as never, deps as never);
+
+    expect(source._timelineActive).toBe(true);
+    expect(source._currentCommitSha).toBe('def456');
+  });
+
   it('preserves the existing timeline state when the indexer leaves it undefined', async () => {
     const nextGitAnalyzer = {
       kind: 'git',
