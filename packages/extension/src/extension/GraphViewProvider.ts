@@ -32,8 +32,9 @@ import { createGraphViewProviderFileActionMethods } from './graphView/providerFi
 import { createGraphViewProviderFileVisitMethods } from './graphView/providerFileVisitMethods';
 import { createGraphViewProviderPluginMethods } from './graphView/providerPluginMethods';
 import { createGraphViewProviderPluginResourceMethods } from './graphView/providerPluginResourceMethods';
+import { createGraphViewProviderPhysicsSettingsMethods } from './graphView/providerPhysicsSettingsMethods';
 import { createGraphViewProviderRefreshMethods } from './graphView/providerRefreshMethods';
-import { createGraphViewProviderSettingsMethods } from './graphView/providerSettingsMethods';
+import { createGraphViewProviderSettingsStateMethods } from './graphView/providerSettingsStateMethods';
 import { createGraphViewProviderTimelineMethods } from './graphView/providerTimelineMethods';
 import { createGraphViewProviderViewContextMethods } from './graphView/providerViewContextMethods';
 import { createGraphViewProviderViewSelectionMethods } from './graphView/providerViewSelectionMethods';
@@ -232,8 +233,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
       createGraphViewProviderFileVisitMethods(this as never),
       createGraphViewProviderPluginResourceMethods(this as never),
       createGraphViewProviderPluginMethods(this as never),
+      createGraphViewProviderPhysicsSettingsMethods(this as never),
       createGraphViewProviderRefreshMethods(this as never),
-      createGraphViewProviderSettingsMethods(this as never),
+      createGraphViewProviderSettingsStateMethods(this as never),
       createGraphViewProviderTimelineMethods(this as never),
       createGraphViewProviderViewContextMethods(this as never),
       createGraphViewProviderViewSelectionMethods(this as never),

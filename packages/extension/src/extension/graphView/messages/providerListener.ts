@@ -13,6 +13,10 @@ import { getUndoManager } from '../../UndoManager';
 import { ResetSettingsAction } from '../../actions';
 import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../graphViewSettings';
 import { captureGraphViewSettingsSnapshot } from '../settings';
+import { createGraphViewProviderMessagePluginContext } from './providerListenerPluginContext';
+import { createGraphViewProviderMessagePrimaryActions } from './providerListenerPrimaryActions';
+import { createGraphViewProviderMessageReadContext } from './providerListenerReadContext';
+import { createGraphViewProviderMessageSettingsContext } from './providerListenerSettingsContext';
 import { setGraphViewWebviewMessageListener } from './listener';
 
 interface GraphViewConfigurationLike {
@@ -165,154 +169,10 @@ export function setGraphViewProviderMessageListener(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies = DEFAULT_DEPENDENCIES,
 ): void {
-  const config = dependencies.workspace.getConfiguration('codegraphy');
-
   setGraphViewWebviewMessageListener(webview, {
-    getTimelineActive: () => source._timelineActive,
-    getCurrentCommitSha: () => source._currentCommitSha,
-    getUserGroups: () => source._userGroups,
-    getActiveViewId: () => source._activeViewId,
-    getDisabledPlugins: () => source._disabledPlugins,
-    getDisabledRules: () => source._disabledRules,
-    getFilterPatterns: () => source._filterPatterns,
-    getGraphData: () => source._graphData,
-    getViewContext: () => source._viewContext,
-    openSelectedNode: nodeId => source._openSelectedNode(nodeId),
-    activateNode: nodeId => source._activateNode(nodeId),
-    previewFileAtCommit: (sha, filePath) => source._previewFileAtCommit(sha, filePath),
-    openFile: filePath => source._openFile(filePath),
-    revealInExplorer: filePath => source._revealInExplorer(filePath),
-    copyToClipboard: text => source._copyToClipboard(text),
-    deleteFiles: paths => source._deleteFiles(paths),
-    renameFile: filePath => source._renameFile(filePath),
-    createFile: directory => source._createFile(directory),
-    toggleFavorites: paths => source._toggleFavorites(paths),
-    addToExclude: patterns => source._addToExclude(patterns),
-    analyzeAndSendData: () => source._analyzeAndSendData(),
-    getFileInfo: filePath => source._getFileInfo(filePath),
-    undo: () => source.undo(),
-    redo: () => source.redo(),
-    showInformationMessage: detail => {
-      dependencies.window.showInformationMessage(detail);
-    },
-    changeView: viewId => source.changeView(viewId),
-    setDepthLimit: depthLimit => source.setDepthLimit(depthLimit),
-    updateDagMode: async dagMode => {
-      source._dagMode = dagMode;
-      await source._context.workspaceState.update(dependencies.dagModeKey, source._dagMode);
-      source._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: source._dagMode } });
-    },
-    updateNodeSizeMode: async nodeSizeMode => {
-      source._nodeSizeMode = nodeSizeMode;
-      await source._context.workspaceState.update(
-        dependencies.nodeSizeModeKey,
-        source._nodeSizeMode,
-      );
-      source._sendMessage({
-        type: 'NODE_SIZE_MODE_UPDATED',
-        payload: { nodeSizeMode: source._nodeSizeMode },
-      });
-    },
-    indexRepository: () => source._indexRepository(),
-    jumpToCommit: sha => source._jumpToCommit(sha),
-    sendPhysicsSettings: () => source._sendPhysicsSettings(),
-    updatePhysicsSetting: (key, value) => source._updatePhysicsSetting(key, value),
-    resetPhysicsSettings: () => source._resetPhysicsSettings(),
-    workspaceFolder: dependencies.workspace.workspaceFolders?.[0],
-    persistGroups: async groups => {
-      const target = dependencies.getConfigTarget(dependencies.workspace.workspaceFolders);
-      await dependencies.workspace.getConfiguration('codegraphy').update('groups', groups, target);
-    },
-    recomputeGroups: () => source._computeMergedGroups(),
-    sendGroupsUpdated: () => source._sendGroupsUpdated(),
-    showOpenDialog: options => dependencies.window.showOpenDialog(options),
-    createDirectory: uri => vscode.workspace.fs.createDirectory(uri),
-    copyFile: (sourceUri, destinationUri, options) =>
-      vscode.workspace.fs.copy(sourceUri, destinationUri, options),
-    getConfig: (key, defaultValue) =>
-      dependencies.workspace.getConfiguration('codegraphy').get(key, defaultValue),
-    updateConfig: async (key, value) => {
-      const target = dependencies.getConfigTarget(dependencies.workspace.workspaceFolders);
-      await dependencies.workspace.getConfiguration('codegraphy').update(key, value, target);
-    },
-    getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
-    sendMessage: nextMessage => source._sendMessage(nextMessage as ExtensionToWebviewMessage),
-    applyViewTransform: () => source._applyViewTransform(),
-    smartRebuild: (kind, id) => source._smartRebuild(kind, id),
-    resetAllSettings: async () => {
-      const snapshot = dependencies.captureSettingsSnapshot(
-        dependencies.workspace.getConfiguration('codegraphy'),
-        source._getPhysicsSettings(),
-        source._nodeSizeMode,
-      );
-      const action = dependencies.createResetSettingsAction(
-        snapshot,
-        dependencies.getConfigTarget(dependencies.workspace.workspaceFolders),
-        source._context,
-        () => source._sendAllSettings(),
-        mode => {
-          source._nodeSizeMode = mode;
-        },
-        () => source._analyzeAndSendData(),
-      );
-      await dependencies.executeUndoAction(action);
-    },
-    getMaxFiles: () => config.get<number>('maxFiles', 500),
-    getPlaybackSpeed: () => config.get<number>('timeline.playbackSpeed', 1.0),
-    getDagMode: () => source._dagMode,
-    getNodeSizeMode: () => source._nodeSizeMode,
-    getFolderNodeColor: () =>
-      dependencies.normalizeFolderNodeColor(
-        config.get<string>('folderNodeColor', dependencies.defaultFolderNodeColor),
-      ),
-    hasWorkspace: () => (dependencies.workspace.workspaceFolders?.length ?? 0) > 0,
-    isFirstAnalysis: () => source._firstAnalysis,
-    isWebviewReadyNotified: () => source._webviewReadyNotified,
-    getHiddenPluginGroupIds: () => source._hiddenPluginGroupIds,
-    loadGroupsAndFilterPatterns: () => source._loadGroupsAndFilterPatterns(),
-    loadDisabledRulesAndPlugins: () => source._loadDisabledRulesAndPlugins(),
-    sendFavorites: () => source._sendFavorites(),
-    sendSettings: () => source._sendSettings(),
-    sendCachedTimeline: () => source._sendCachedTimeline(),
-    sendDecorations: () => source._sendDecorations(),
-    sendContextMenuItems: () => source._sendContextMenuItems(),
-    sendPluginWebviewInjections: () => source._sendPluginWebviewInjections(),
-    waitForFirstWorkspaceReady: () => source._firstWorkspaceReadyPromise,
-    notifyWebviewReady: () => source._analyzer?.registry?.notifyWebviewReady(),
-    getInteractionPluginApi: pluginId =>
-      source._analyzer?.registry?.getPluginAPI(pluginId) as
-        | { deliverWebviewMessage(message: { type: string; data: unknown }): void }
-        | undefined,
-    getContextMenuPluginApi: pluginId =>
-      source._analyzer?.registry?.getPluginAPI(pluginId) as
-        | { contextMenuItems: ReadonlyArray<{ action(target: unknown): Promise<void> | void }> }
-        | undefined,
-    emitEvent: (event, payload) => {
-      source._eventBus.emit(event, payload);
-    },
-    findNode: targetId => source._graphData.nodes.find(node => node.id === targetId),
-    findEdge: targetId => source._graphData.edges.find(edge => edge.id === targetId),
-    logError: (label, error) => {
-      console.error(label, error);
-    },
-    updateHiddenPluginGroups: groupIds => {
-      const target = dependencies.getConfigTarget(dependencies.workspace.workspaceFolders);
-      return Promise.resolve(
-        dependencies.workspace.getConfiguration('codegraphy').update(
-          'hiddenPluginGroups',
-          groupIds,
-          target,
-        ),
-      );
-    },
-    setUserGroups: groups => {
-      source._userGroups = groups;
-    },
-    setFilterPatterns: patterns => {
-      source._filterPatterns = patterns;
-    },
-    setWebviewReadyNotified: readyNotified => {
-      source._webviewReadyNotified = readyNotified;
-    },
+    ...createGraphViewProviderMessageReadContext(source, dependencies),
+    ...createGraphViewProviderMessagePrimaryActions(source, dependencies),
+    ...createGraphViewProviderMessageSettingsContext(source, dependencies),
+    ...createGraphViewProviderMessagePluginContext(source, dependencies),
   });
 }

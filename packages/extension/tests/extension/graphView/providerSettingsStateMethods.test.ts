@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../src/shared/types';
-import { createGraphViewProviderSettingsMethods } from '../../../src/extension/graphView/providerSettingsMethods';
+import { createGraphViewProviderSettingsStateMethods } from '../../../src/extension/graphView/providerSettingsStateMethods';
 
-describe('graphView/providerSettingsMethods', () => {
+describe('graphView/providerSettingsStateMethods', () => {
   it('loads groups and filter patterns and syncs the result onto the provider source', () => {
     const source = {
       _context: {
@@ -22,8 +22,9 @@ describe('graphView/providerSettingsMethods', () => {
       _computeMergedGroups: vi.fn(),
       _sendGroupsUpdated: vi.fn(),
       _sendMessage: vi.fn(),
+      _getPhysicsSettings: vi.fn(() => ({ damping: 1 } as IPhysicsSettings)),
     };
-    const methods = createGraphViewProviderSettingsMethods(source as never, {
+    const methods = createGraphViewProviderSettingsStateMethods(source as never, {
       getConfiguration: vi.fn(() => ({ get: vi.fn(), inspect: vi.fn(), update: vi.fn(() => Promise.resolve()) })),
       getWorkspaceFolders: vi.fn(() => []),
       getConfigTarget: vi.fn(() => 'workspace'),
@@ -37,10 +38,6 @@ describe('graphView/providerSettingsMethods', () => {
       sendProviderSettings: vi.fn(),
       sendProviderAllSettings: vi.fn(),
       captureSettingsSnapshot: vi.fn(),
-      readPhysicsSettings: vi.fn(),
-      updatePhysicsSetting: vi.fn(),
-      resetPhysicsSettings: vi.fn(),
-      defaultPhysics: {} as IPhysicsSettings,
     });
 
     methods._loadGroupsAndFilterPatterns();
@@ -69,8 +66,9 @@ describe('graphView/providerSettingsMethods', () => {
       _computeMergedGroups: vi.fn(),
       _sendGroupsUpdated: vi.fn(),
       _sendMessage: vi.fn(),
+      _getPhysicsSettings: vi.fn(() => ({ damping: 1 } as IPhysicsSettings)),
     };
-    const methods = createGraphViewProviderSettingsMethods(source as never, {
+    const methods = createGraphViewProviderSettingsStateMethods(source as never, {
       getConfiguration: vi.fn(() => ({
         get: vi.fn(),
         inspect: vi.fn(() => undefined),
@@ -88,10 +86,6 @@ describe('graphView/providerSettingsMethods', () => {
       sendProviderSettings: vi.fn(),
       sendProviderAllSettings: vi.fn(),
       captureSettingsSnapshot: vi.fn(),
-      readPhysicsSettings: vi.fn(),
-      updatePhysicsSetting: vi.fn(),
-      resetPhysicsSettings: vi.fn(),
-      defaultPhysics: {} as IPhysicsSettings,
     });
 
     expect(methods._loadDisabledRulesAndPlugins()).toBe(true);
@@ -99,15 +93,13 @@ describe('graphView/providerSettingsMethods', () => {
     expect([...source._disabledPlugins]).toEqual(['plugin.saved']);
   });
 
-  it('sends settings snapshots and physics updates through the helper dependencies', async () => {
+  it('sends settings snapshots and syncs the returned settings state', () => {
     const sendProviderSettings = vi.fn();
     const sendProviderAllSettings = vi.fn((state) => {
       state.hiddenPluginGroupIds = new Set<string>(['plugin.updated']);
       state.userGroups = [{ id: 'group.updated' }];
       state.filterPatterns = ['src/**'];
     });
-    const updatePhysicsSetting = vi.fn(async () => undefined);
-    const resetPhysicsSettings = vi.fn(async () => undefined);
     const source = {
       _context: {
         workspaceState: {
@@ -126,8 +118,9 @@ describe('graphView/providerSettingsMethods', () => {
       _computeMergedGroups: vi.fn(),
       _sendGroupsUpdated: vi.fn(),
       _sendMessage: vi.fn(),
+      _getPhysicsSettings: vi.fn(() => ({ damping: 1 } as IPhysicsSettings)),
     };
-    const methods = createGraphViewProviderSettingsMethods(source as never, {
+    const methods = createGraphViewProviderSettingsStateMethods(source as never, {
       getConfiguration: vi.fn(() => ({ get: vi.fn((_, fallback) => fallback), inspect: vi.fn(), update: vi.fn(() => Promise.resolve()) })),
       getWorkspaceFolders: vi.fn(() => []),
       getConfigTarget: vi.fn(() => 'workspace'),
@@ -137,28 +130,15 @@ describe('graphView/providerSettingsMethods', () => {
       sendProviderSettings,
       sendProviderAllSettings,
       captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
-      readPhysicsSettings: vi.fn(() => ({ damping: 1 } as IPhysicsSettings)),
-      updatePhysicsSetting,
-      resetPhysicsSettings,
-      defaultPhysics: {} as IPhysicsSettings,
     });
 
     methods._sendSettings();
-    methods._sendPhysicsSettings();
     methods._sendAllSettings();
-    await methods._updatePhysicsSetting('damping', 0.4);
-    await methods._resetPhysicsSettings();
 
     expect(sendProviderSettings).toHaveBeenCalledOnce();
-    expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'PHYSICS_SETTINGS_UPDATED',
-      payload: { damping: 1 },
-    });
     expect(sendProviderAllSettings).toHaveBeenCalledOnce();
     expect([...source._hiddenPluginGroupIds]).toEqual(['plugin.updated']);
     expect(source._userGroups).toEqual([{ id: 'group.updated' }]);
     expect(source._filterPatterns).toEqual(['src/**']);
-    expect(updatePhysicsSetting).toHaveBeenCalledOnce();
-    expect(resetPhysicsSettings).toHaveBeenCalledOnce();
   });
 });

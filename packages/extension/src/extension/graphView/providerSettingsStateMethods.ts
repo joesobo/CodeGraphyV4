@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
 import type { IViewContext } from '../../core/views';
 import type { ExtensionToWebviewMessage, IGroup, IPhysicsSettings, NodeSizeMode } from '../../shared/types';
-import { readGraphViewPhysicsSettings } from '../graphViewPhysics';
 import { getGraphViewConfigTarget } from '../graphViewSettings';
 import { loadGraphViewDisabledState } from './disabledState';
 import { applyLoadedGraphViewGroupState } from './groupSync';
 import { loadGraphViewGroupState } from './groups';
-import { resetGraphViewPhysicsSettings, updateGraphViewPhysicsSetting } from './physicsConfig';
 import { captureGraphViewSettingsSnapshot } from './settings';
 import { sendGraphViewProviderAllSettings, sendGraphViewProviderSettings } from './settingsLifecycle';
 
@@ -30,7 +28,7 @@ interface GraphViewProviderSettingsConfigLike {
   update(key: string, value: unknown, target: unknown): PromiseLike<void>;
 }
 
-export interface GraphViewProviderSettingsMethodsSource {
+export interface GraphViewProviderSettingsStateMethodsSource {
   _context: { workspaceState: GraphViewProviderSettingsWorkspaceStateLike };
   _viewContext: IViewContext;
   _hiddenPluginGroupIds: Set<string>;
@@ -43,21 +41,17 @@ export interface GraphViewProviderSettingsMethodsSource {
   _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
-  _getPhysicsSettings?(this: void): IPhysicsSettings;
+  _getPhysicsSettings(): IPhysicsSettings;
 }
 
-export interface GraphViewProviderSettingsMethods {
+export interface GraphViewProviderSettingsStateMethods {
   _loadGroupsAndFilterPatterns(): void;
   _loadDisabledRulesAndPlugins(): boolean;
   _sendSettings(): void;
-  _getPhysicsSettings(): IPhysicsSettings;
-  _sendPhysicsSettings(): void;
   _sendAllSettings(): void;
-  _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
-  _resetPhysicsSettings(): Promise<void>;
 }
 
-export interface GraphViewProviderSettingsMethodDependencies {
+export interface GraphViewProviderSettingsStateMethodDependencies {
   getConfiguration(section: string): GraphViewProviderSettingsConfigLike;
   getWorkspaceFolders(): readonly vscode.WorkspaceFolder[] | undefined;
   getConfigTarget(workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined): unknown;
@@ -67,13 +61,9 @@ export interface GraphViewProviderSettingsMethodDependencies {
   sendProviderSettings: typeof sendGraphViewProviderSettings;
   sendProviderAllSettings: typeof sendGraphViewProviderAllSettings;
   captureSettingsSnapshot: typeof captureGraphViewSettingsSnapshot;
-  readPhysicsSettings: typeof readGraphViewPhysicsSettings;
-  updatePhysicsSetting: typeof updateGraphViewPhysicsSetting;
-  resetPhysicsSettings: typeof resetGraphViewPhysicsSettings;
-  defaultPhysics: IPhysicsSettings;
 }
 
-const DEFAULT_DEPENDENCIES: GraphViewProviderSettingsMethodDependencies = {
+const DEFAULT_DEPENDENCIES: GraphViewProviderSettingsStateMethodDependencies = {
   getConfiguration: section => vscode.workspace.getConfiguration(section),
   getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
   getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
@@ -83,22 +73,12 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderSettingsMethodDependencies = {
   sendProviderSettings: sendGraphViewProviderSettings,
   sendProviderAllSettings: sendGraphViewProviderAllSettings,
   captureSettingsSnapshot: captureGraphViewSettingsSnapshot,
-  readPhysicsSettings: readGraphViewPhysicsSettings,
-  updatePhysicsSetting: updateGraphViewPhysicsSetting,
-  resetPhysicsSettings: resetGraphViewPhysicsSettings,
-  defaultPhysics: {
-    repelForce: 10,
-    linkDistance: 80,
-    linkForce: 0.15,
-    damping: 0.7,
-    centerForce: 0.1,
-  },
 };
 
-export function createGraphViewProviderSettingsMethods(
-  source: GraphViewProviderSettingsMethodsSource,
-  dependencies: GraphViewProviderSettingsMethodDependencies = DEFAULT_DEPENDENCIES,
-): GraphViewProviderSettingsMethods {
+export function createGraphViewProviderSettingsStateMethods(
+  source: GraphViewProviderSettingsStateMethodsSource,
+  dependencies: GraphViewProviderSettingsStateMethodDependencies = DEFAULT_DEPENDENCIES,
+): GraphViewProviderSettingsStateMethods {
   const _loadGroupsAndFilterPatterns = (): void => {
     const config = dependencies.getConfiguration('codegraphy');
     const groupState = dependencies.loadGroupState(config as never, source._context.workspaceState as never);
@@ -149,28 +129,6 @@ export function createGraphViewProviderSettingsMethods(
     });
   };
 
-  const _getPhysicsSettings = (): IPhysicsSettings =>
-    dependencies.readPhysicsSettings(
-      dependencies.getConfiguration('codegraphy.physics') as never,
-      dependencies.defaultPhysics,
-    );
-
-  const readCurrentPhysicsSettings = (): IPhysicsSettings => {
-    const implementation = source._getPhysicsSettings;
-    if (implementation && implementation !== _getPhysicsSettings) {
-      return implementation();
-    }
-
-    return _getPhysicsSettings();
-  };
-
-  const _sendPhysicsSettings = (): void => {
-    source._sendMessage({
-      type: 'PHYSICS_SETTINGS_UPDATED',
-      payload: readCurrentPhysicsSettings(),
-    });
-  };
-
   const _sendAllSettings = (): void => {
     const state = {
       viewContext: source._viewContext,
@@ -183,7 +141,7 @@ export function createGraphViewProviderSettingsMethods(
       captureSettingsSnapshot: () =>
         dependencies.captureSettingsSnapshot(
           dependencies.getConfiguration('codegraphy') as never,
-          readCurrentPhysicsSettings(),
+          source._getPhysicsSettings(),
           source._nodeSizeMode,
         ),
       getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
@@ -197,35 +155,10 @@ export function createGraphViewProviderSettingsMethods(
     source._filterPatterns = state.filterPatterns;
   };
 
-  const _updatePhysicsSetting = async (
-    key: keyof IPhysicsSettings,
-    value: number,
-  ): Promise<void> => {
-    await dependencies.updatePhysicsSetting(key, value, {
-      getConfiguration: () => dependencies.getConfiguration('codegraphy.physics') as never,
-      getConfigTarget: () => dependencies.getConfigTarget(dependencies.getWorkspaceFolders()),
-    });
-  };
-
-  const _resetPhysicsSettings = async (): Promise<void> => {
-    await dependencies.resetPhysicsSettings({
-      getConfiguration: () => dependencies.getConfiguration('codegraphy.physics') as never,
-      getConfigTarget: () => dependencies.getConfigTarget(dependencies.getWorkspaceFolders()),
-    });
-  };
-
-  const methods: GraphViewProviderSettingsMethods = {
+  return {
     _loadGroupsAndFilterPatterns,
     _loadDisabledRulesAndPlugins,
     _sendSettings,
-    _getPhysicsSettings,
-    _sendPhysicsSettings,
     _sendAllSettings,
-    _updatePhysicsSetting,
-    _resetPhysicsSettings,
   };
-
-  Object.assign(source as object, methods);
-
-  return methods;
 }
