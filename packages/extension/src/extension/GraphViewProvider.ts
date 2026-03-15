@@ -38,7 +38,6 @@ import {
 import { shouldRebuildGraphView } from './graphViewRebuild';
 import { readGraphViewPhysicsSettings } from './graphViewPhysics';
 import { createGraphViewHtml, createGraphViewNonce } from './graphViewHtml';
-import { applyGraphViewAllSettingsSnapshot } from './graphView/allSettingsSync';
 import {
   executeGraphViewProviderAnalysis,
   isGraphViewAbortError,
@@ -52,8 +51,9 @@ import {
   registerBuiltInGraphViewPluginRoots,
 } from './graphView/builtInGroups';
 import { loadGraphViewDisabledState } from './graphView/disabledState';
+import { addGraphViewExcludePatternsWithUndo } from './graphView/excludePatterns';
 import { loadGraphViewFileInfo } from './graphView/fileInfo';
-import { sendGraphViewFileInfoMessage } from './graphView/fileInfoMessage';
+import { sendGraphViewProviderFileInfoMessage } from './graphView/fileInfoRequest';
 import {
   sendGraphViewFavorites,
   toggleGraphViewFavorites,
@@ -63,7 +63,6 @@ import {
   type GraphViewExternalPluginRegistrationOptions,
 } from './graphView/externalPluginRegistration';
 import {
-  addGraphViewExcludePatterns,
   createGraphViewFile,
   deleteGraphViewFiles,
 } from './graphView/fileActions';
@@ -79,11 +78,18 @@ import {
 } from './graphView/groups';
 import { openGraphViewInEditor } from './graphView/editorPanel';
 import { buildGraphViewMergedGroups } from './graphView/mergedGroups';
+import {
+  resetGraphViewPhysicsSettings,
+  updateGraphViewPhysicsSetting,
+} from './graphView/physicsConfig';
 import { getGraphViewPluginDefaultGroups } from './graphView/pluginDefaultGroups';
-import { sendGraphViewSettingsMessages } from './graphView/settingsMessage';
 import {
   captureGraphViewSettingsSnapshot,
 } from './graphView/settings';
+import {
+  sendGraphViewProviderAllSettings,
+  sendGraphViewProviderSettings,
+} from './graphView/settingsLifecycle';
 import {
   initializeGraphViewProviderServices,
   restoreGraphViewProviderState,
@@ -1546,9 +1552,9 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Sends current settings to the webview.
    */
   private _sendSettings(): void {
-    sendGraphViewSettingsMessages(this._viewContext, {
+    sendGraphViewProviderSettings(this._viewContext, {
       getConfiguration: () => vscode.workspace.getConfiguration('codegraphy'),
-      sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
+      sendMessage: message => this._sendMessage(message),
     });
   }
 
@@ -1556,27 +1562,24 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Gets file info and sends it to the webview.
    */
   private async _getFileInfo(filePath: string): Promise<void> {
-    await sendGraphViewFileInfoMessage(filePath, {
-      loadFileInfo: async nextFilePath =>
-        loadGraphViewFileInfo(nextFilePath, {
-          workspaceFolder: vscode.workspace.workspaceFolders?.[0],
-          statFile: fileUri => vscode.workspace.fs.stat(fileUri),
-          ensureAnalyzerReady: async () => {
-            if (this._analyzer && !this._analyzerInitialized) {
-              await this._analyzer.initialize();
-              this._analyzerInitialized = true;
-            }
+    const state = {
+      analyzer: this._analyzer,
+      analyzerInitialized: this._analyzerInitialized,
+      graphData: this._graphData,
+    };
 
-            return this._analyzer;
-          },
-          graphData: this._graphData,
-          getVisitCount: nextTrackedFilePath => this._getVisitCount(nextTrackedFilePath),
-        }),
+    await sendGraphViewProviderFileInfoMessage(filePath, state, {
+      workspaceFolder: vscode.workspace.workspaceFolders?.[0],
+      statFile: fileUri => vscode.workspace.fs.stat(fileUri),
+      getVisitCount: nextTrackedFilePath => this._getVisitCount(nextTrackedFilePath),
+      loadFileInfo: loadGraphViewFileInfo,
       sendMessage: message => this._sendMessage(message as ExtensionToWebviewMessage),
       logError: (label, error) => {
         console.error(label, error);
       },
     });
+
+    this._analyzerInitialized = state.analyzerInitialized;
   }
 
   /**
@@ -1611,11 +1614,11 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Adds patterns to the exclude list (with undo support).
    */
   private async _addToExclude(patterns: string[]): Promise<void> {
-    await addGraphViewExcludePatterns(patterns, {
-      executeAddToExcludeAction: async (nextPatterns) => {
-        const action = new AddToExcludeAction(nextPatterns, () => this._analyzeAndSendData());
-        await getUndoManager().execute(action);
-      },
+    await addGraphViewExcludePatternsWithUndo(patterns, {
+      createAction: (nextPatterns, analyzeAndSendData) =>
+        new AddToExcludeAction(nextPatterns, analyzeAndSendData),
+      executeAction: action => getUndoManager().execute(action),
+      analyzeAndSendData: () => this._analyzeAndSendData(),
     });
   }
 
@@ -1640,27 +1643,24 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Used after reset/undo to ensure the webview is fully in sync.
    */
   private _sendAllSettings(): void {
-    const snapshot = captureGraphViewSettingsSnapshot(
-      vscode.workspace.getConfiguration('codegraphy'),
-      this._getPhysicsSettings(),
-      this._nodeSizeMode,
-    );
     const state = {
       viewContext: this._viewContext,
       hiddenPluginGroupIds: this._hiddenPluginGroupIds,
       userGroups: this._userGroups,
       filterPatterns: this._filterPatterns,
     };
-    applyGraphViewAllSettingsSnapshot(
-      snapshot,
-      this._analyzer?.getPluginFilterPatterns() ?? [],
-      state,
-      {
-        sendMessage: (message) => this._sendMessage(message),
-        recomputeGroups: () => this._computeMergedGroups(),
-        sendGroupsUpdated: () => this._sendGroupsUpdated(),
-      },
-    );
+    sendGraphViewProviderAllSettings(state, {
+      captureSettingsSnapshot: () =>
+        captureGraphViewSettingsSnapshot(
+          vscode.workspace.getConfiguration('codegraphy'),
+          this._getPhysicsSettings(),
+          this._nodeSizeMode,
+        ),
+      getPluginFilterPatterns: () => this._analyzer?.getPluginFilterPatterns() ?? [],
+      sendMessage: message => this._sendMessage(message),
+      recomputeGroups: () => this._computeMergedGroups(),
+      sendGroupsUpdated: () => this._sendGroupsUpdated(),
+    });
     this._hiddenPluginGroupIds = state.hiddenPluginGroupIds;
     this._userGroups = state.userGroups;
     this._filterPatterns = state.filterPatterns;
@@ -1674,10 +1674,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * 2. The config change listener will send the update for external changes
    */
   private async _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void> {
-    const config = vscode.workspace.getConfiguration('codegraphy.physics');
-    const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-    await config.update(key, value, target);
-    // Config change listener handles sending PHYSICS_SETTINGS_UPDATED
+    await updateGraphViewPhysicsSetting(key, value, {
+      getConfiguration: () => vscode.workspace.getConfiguration('codegraphy.physics'),
+      getConfigTarget: () => getGraphViewConfigTarget(vscode.workspace.workspaceFolders),
+    });
   }
 
   /**
@@ -1686,14 +1686,10 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
    * Note: Config change listener handles sending PHYSICS_SETTINGS_UPDATED
    */
   private async _resetPhysicsSettings(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('codegraphy.physics');
-    const target = getGraphViewConfigTarget(vscode.workspace.workspaceFolders);
-    await config.update('repelForce', undefined, target);
-    await config.update('linkDistance', undefined, target);
-    await config.update('linkForce', undefined, target);
-    await config.update('damping', undefined, target);
-    await config.update('centerForce', undefined, target);
-    // Config change listener handles sending PHYSICS_SETTINGS_UPDATED
+    await resetGraphViewPhysicsSettings({
+      getConfiguration: () => vscode.workspace.getConfiguration('codegraphy.physics'),
+      getConfigTarget: () => getGraphViewConfigTarget(vscode.workspace.workspaceFolders),
+    });
   }
 
   /**
