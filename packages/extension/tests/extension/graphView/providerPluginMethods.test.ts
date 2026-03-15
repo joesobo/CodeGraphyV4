@@ -47,6 +47,58 @@ function createSource(
 }
 
 describe('graphView/providerPluginMethods', () => {
+  it('forwards decoration payloads through the provider message bridge', () => {
+    const sendMessage = vi.fn();
+    const methods = createGraphViewProviderPluginMethods(
+      createSource({ _sendMessage: sendMessage }),
+      {
+        sendAvailableViews: vi.fn(),
+        sendPluginStatuses: vi.fn(),
+        sendDecorations: vi.fn((_manager, callback) =>
+          callback({ type: 'DECORATIONS_UPDATED', payload: { nodes: ['node'], edges: ['edge'] } }),
+        ),
+        sendContextMenuItems: vi.fn(),
+        sendPluginWebviewInjections: vi.fn(),
+        sendGroupsUpdated: vi.fn(),
+        registerExternalPlugin: vi.fn(),
+        getWorkspaceFolders: vi.fn(() => []),
+      },
+    );
+
+    methods._sendDecorations();
+
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'DECORATIONS_UPDATED',
+      payload: { nodes: ['node'], edges: ['edge'] },
+    });
+  });
+
+  it('forwards context menu payloads through the provider message bridge', () => {
+    const sendMessage = vi.fn();
+    const methods = createGraphViewProviderPluginMethods(
+      createSource({ _sendMessage: sendMessage }),
+      {
+        sendAvailableViews: vi.fn(),
+        sendPluginStatuses: vi.fn(),
+        sendDecorations: vi.fn(),
+        sendContextMenuItems: vi.fn((_analyzer, callback) =>
+          callback({ type: 'CONTEXT_MENU_ITEMS', payload: { items: [{ id: 'menu-item' }] } }),
+        ),
+        sendPluginWebviewInjections: vi.fn(),
+        sendGroupsUpdated: vi.fn(),
+        registerExternalPlugin: vi.fn(),
+        getWorkspaceFolders: vi.fn(() => []),
+      },
+    );
+
+    methods._sendContextMenuItems();
+
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'CONTEXT_MENU_ITEMS',
+      payload: { items: [{ id: 'menu-item' }] },
+    });
+  });
+
   it('forwards view and plugin broadcasts', () => {
     const sendMessage = vi.fn();
     const source = createSource({
@@ -133,6 +185,41 @@ describe('graphView/providerPluginMethods', () => {
     expect(registerBuiltInPluginRoots).toHaveBeenCalledOnce();
   });
 
+  it('passes the current workspace folder into group updates', () => {
+    const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
+    const methods = createGraphViewProviderPluginMethods(createSource(), {
+      sendAvailableViews: vi.fn(),
+      sendPluginStatuses: vi.fn(),
+      sendDecorations: vi.fn(),
+      sendContextMenuItems: vi.fn(),
+      sendPluginWebviewInjections: vi.fn(),
+      sendGroupsUpdated: vi.fn((_groups, options) => {
+        expect(options.workspaceFolder).toBe(workspaceFolder);
+      }),
+      registerExternalPlugin: vi.fn(),
+      getWorkspaceFolders: vi.fn(() => [workspaceFolder]),
+    });
+
+    methods._sendGroupsUpdated();
+  });
+
+  it('omits the workspace folder from group updates when none exists', () => {
+    const methods = createGraphViewProviderPluginMethods(createSource(), {
+      sendAvailableViews: vi.fn(),
+      sendPluginStatuses: vi.fn(),
+      sendDecorations: vi.fn(),
+      sendContextMenuItems: vi.fn(),
+      sendPluginWebviewInjections: vi.fn(),
+      sendGroupsUpdated: vi.fn((_groups, options) => {
+        expect(options.workspaceFolder).toBeUndefined();
+      }),
+      registerExternalPlugin: vi.fn(),
+      getWorkspaceFolders: vi.fn(() => undefined),
+    });
+
+    methods._sendGroupsUpdated();
+  });
+
   it('registers external plugins with live provider state and callbacks', () => {
     const registerExternalPlugin = vi.fn();
     const source = createSource();
@@ -186,5 +273,72 @@ describe('graphView/providerPluginMethods', () => {
     expect(capturedRegistrationState.webviewReadyNotified).toBe(true);
     expect(capturedRegistrationState.analyzerInitialized).toBe(false);
     expect(capturedRegistrationState.analyzerInitPromise).toBeInstanceOf(Promise);
+  });
+
+  it('exposes a live workspace root through the external plugin registration handlers', () => {
+    const registerExternalPlugin = vi.fn();
+    let workspaceFolders: vscode.WorkspaceFolder[] | undefined = undefined;
+    const methods = createGraphViewProviderPluginMethods(createSource(), {
+      sendAvailableViews: vi.fn(),
+      sendPluginStatuses: vi.fn(),
+      sendDecorations: vi.fn(),
+      sendContextMenuItems: vi.fn(),
+      sendPluginWebviewInjections: vi.fn(),
+      sendGroupsUpdated: vi.fn(),
+      registerExternalPlugin,
+      getWorkspaceFolders: vi.fn(() => workspaceFolders),
+    });
+
+    methods.registerExternalPlugin({ id: 'plugin.test' });
+
+    const registrationHandlers = registerExternalPlugin.mock.calls[0]?.[3] as {
+      getWorkspaceRoot(): string | undefined;
+    };
+
+    expect(registrationHandlers.getWorkspaceRoot()).toBeUndefined();
+
+    workspaceFolders = [{ uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder];
+
+    expect(registrationHandlers.getWorkspaceRoot()).toBe('/workspace');
+  });
+
+  it('forwards external plugin registration callbacks to the current provider methods', async () => {
+    const registerExternalPlugin = vi.fn();
+    const sendPluginStatuses = vi.fn();
+    const sendContextMenuItems = vi.fn();
+    const sendPluginWebviewInjections = vi.fn();
+    const analyzeAndSendData = vi.fn(async () => undefined);
+    const methods = createGraphViewProviderPluginMethods(
+      createSource({ _analyzeAndSendData: analyzeAndSendData }),
+      {
+        sendAvailableViews: vi.fn(),
+        sendPluginStatuses,
+        sendDecorations: vi.fn(),
+        sendContextMenuItems,
+        sendPluginWebviewInjections,
+        sendGroupsUpdated: vi.fn(),
+        registerExternalPlugin,
+        getWorkspaceFolders: vi.fn(() => []),
+      },
+    );
+
+    methods.registerExternalPlugin({ id: 'plugin.test' });
+
+    const registrationHandlers = registerExternalPlugin.mock.calls[0]?.[3] as {
+      sendPluginStatuses(): void;
+      sendContextMenuItems(): void;
+      sendPluginWebviewInjections(): void;
+      analyzeAndSendData(): Promise<void>;
+    };
+
+    registrationHandlers.sendPluginStatuses();
+    registrationHandlers.sendContextMenuItems();
+    registrationHandlers.sendPluginWebviewInjections();
+    await registrationHandlers.analyzeAndSendData();
+
+    expect(sendPluginStatuses).toHaveBeenCalledOnce();
+    expect(sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
   });
 });
