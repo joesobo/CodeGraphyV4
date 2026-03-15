@@ -51,7 +51,9 @@ async function loadSubject(
     createGraphViewProviderFileVisitMethods: () => ({}),
   }));
   vi.doMock('../../src/extension/graphView/providerPluginMethods', () => ({
-    createGraphViewProviderPluginMethods: () => ({}),
+    createGraphViewProviderPluginMethods: () => ({
+      _sendDecorations: vi.fn(),
+    }),
   }));
   vi.doMock('../../src/extension/graphView/providerPluginResourceMethods', () => ({
     createGraphViewProviderPluginResourceMethods: () => ({}),
@@ -77,7 +79,9 @@ async function loadSubject(
     createGraphViewProviderViewSelectionMethods: () => ({}),
   }));
   vi.doMock('../../src/extension/graphView/providerWebviewMethods', () => ({
-    createGraphViewProviderWebviewMethods: () => ({}),
+    createGraphViewProviderWebviewMethods: () => ({
+      _sendMessage: vi.fn(),
+    }),
   }));
   vi.doMock('vscode', async () => {
     const actual = await vi.importActual<typeof import('vscode')>('vscode');

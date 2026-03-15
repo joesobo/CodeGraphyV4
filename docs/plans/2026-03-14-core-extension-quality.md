@@ -493,6 +493,11 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - latest targeted mutation after the ninth survivor pass:
           - `packages/extension/src/extension/graphView/timelineIndex.ts` = `100.00%`
           - `packages/extension/src/extension/GraphViewProvider.ts` = `91.67%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/timelineOpen.ts` = `70.59%`
+          - `packages/extension/src/extension/graphView/viewContext.ts` = `73.33%`
+          - `packages/extension/src/extension/graphView/viewRebuild.ts` = `75.00%`
+          - `packages/extension/src/extension/graphView/providerListener.ts` = `22.22%`
           - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
