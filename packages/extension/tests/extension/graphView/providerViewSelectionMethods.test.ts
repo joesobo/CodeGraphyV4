@@ -72,9 +72,93 @@ describe('graphView/providerViewSelectionMethods', () => {
     expect(methods.getDepthLimit()).toBe(7);
     expect(getDepthLimit).toHaveBeenCalledWith(source._viewContext, 1);
   });
+
+  it('forwards view-availability checks and tolerates missing transform broadcasters', async () => {
+    const source = createSource({
+      _applyViewTransform: undefined,
+      _sendAvailableViews: undefined,
+    });
+    const logUnavailableView = vi.fn();
+    const changeView = vi.fn(async (_state, nextViewId, handlers) => {
+      expect(handlers.isViewAvailable(nextViewId, source._viewContext)).toBe(true);
+      handlers.applyViewTransform();
+      handlers.sendAvailableViews();
+      handlers.logUnavailableView('codegraphy.missing');
+      handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
+    });
+    const methods = createGraphViewProviderViewSelectionMethods(
+      source as never,
+      createDependencies({
+        changeView,
+        logUnavailableView,
+      }),
+    );
+
+    await methods.changeView('codegraphy.depth-graph');
+
+    expect(source._viewRegistry.isViewAvailable).toHaveBeenCalledWith(
+      'codegraphy.depth-graph',
+      source._viewContext,
+    );
+    expect(logUnavailableView).toHaveBeenCalledWith('codegraphy.missing');
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_DATA_UPDATED',
+      payload: { nodes: [], edges: [] },
+    });
+  });
+
+  it('forwards active view lookups through focused-file and depth-limit handlers', async () => {
+    const source = createSource({
+      _applyViewTransform: undefined,
+      _sendAvailableViews: undefined,
+    });
+    const viewInfo = { view: { id: 'codegraphy.connections' } };
+    source._viewRegistry.get = vi.fn(() => viewInfo);
+    const setFocusedFile = vi.fn((_state, nextFilePath, handlers) => {
+      expect(nextFilePath).toBeUndefined();
+      expect(handlers.getActiveViewInfo('codegraphy.connections')).toBe(viewInfo);
+      handlers.applyViewTransform();
+      handlers.sendAvailableViews();
+      handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
+    });
+    const setDepthLimit = vi.fn(async (_state, nextDepthLimit, handlers) => {
+      expect(nextDepthLimit).toBe(4);
+      expect(handlers.getActiveViewInfo('codegraphy.connections')).toBe(viewInfo);
+      handlers.applyViewTransform();
+      await handlers.persistDepthLimit(nextDepthLimit);
+      handlers.sendMessage({
+        type: 'DEPTH_LIMIT_UPDATED',
+        payload: { depthLimit: nextDepthLimit },
+      });
+    });
+    const methods = createGraphViewProviderViewSelectionMethods(
+      source as never,
+      createDependencies({
+        setFocusedFile,
+        setDepthLimit,
+      }),
+    );
+
+    methods.setFocusedFile(undefined);
+    await methods.setDepthLimit(4);
+
+    expect(source._viewRegistry.get).toHaveBeenCalledWith('codegraphy.connections');
+    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
+      'codegraphy.depthLimit',
+      4,
+    );
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_DATA_UPDATED',
+      payload: { nodes: [], edges: [] },
+    });
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'DEPTH_LIMIT_UPDATED',
+      payload: { depthLimit: 4 },
+    });
+  });
 });
 
-function createSource() {
+function createSource(overrides: Partial<Record<string, unknown>> = {}) {
   return {
     _context: {
       workspaceState: {
@@ -94,6 +178,7 @@ function createSource() {
     _sendAvailableViews: vi.fn(),
     _sendMessage: vi.fn(),
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
+    ...overrides,
   };
 }
 

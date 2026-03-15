@@ -160,6 +160,116 @@ describe('graphView/providerFileVisitMethods', () => {
     );
   });
 
+  it('falls back to the generated visit callbacks when source overrides are cleared', async () => {
+    const getVisitCount = vi.fn(() => 5);
+    const incrementVisitCount = vi.fn(async (_filePath, handlers) => {
+      handlers.sendMessage({ type: 'VISIT_COUNT_UPDATED' });
+    });
+    const trackFileVisit = vi.fn(async (_filePath, handlers) => {
+      await handlers.incrementVisitCount('src/index.ts');
+    });
+    const source = {
+      _context: {
+        workspaceState: {
+          get: vi.fn(),
+          update: vi.fn(() => Promise.resolve()),
+        },
+      },
+      _analyzer: undefined,
+      _analyzerInitialized: false,
+      _graphData: { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData,
+      _sendMessage: vi.fn(),
+      _analyzeAndSendData: vi.fn(async () => undefined),
+    };
+    const sendFileInfoMessage = vi.fn(async (_filePath, _state, handlers) => {
+      expect(handlers.getVisitCount('src/index.ts')).toBe(5);
+    });
+    const methods = createGraphViewProviderFileVisitMethods(source as never, {
+      getWorkspaceFolder: vi.fn(() => undefined),
+      getConfiguration: vi.fn(() => ({ get: vi.fn() })),
+      statFile: vi.fn(async () => ({ size: 1, mtime: 2 })),
+      sendFileInfoMessage,
+      getVisitCount,
+      incrementVisitCount,
+      trackFileVisit,
+      sendFavorites: vi.fn(),
+      addExcludeWithUndo: vi.fn(async () => undefined),
+      createAddToExcludeAction: vi.fn(),
+      executeUndoAction: vi.fn(async () => undefined),
+      logError: vi.fn(),
+    });
+
+    source._getVisitCount = undefined;
+    source._incrementVisitCount = undefined;
+
+    await methods._getFileInfo('src/index.ts');
+    await methods.trackFileVisit('src/index.ts');
+
+    expect(getVisitCount).toHaveBeenCalledWith(source._context.workspaceState, 'src/index.ts');
+    expect(incrementVisitCount).toHaveBeenCalledWith(
+      'src/index.ts',
+      expect.objectContaining({
+        workspaceState: source._context.workspaceState,
+        sendMessage: expect.any(Function),
+      }),
+    );
+  });
+
+  it('ignores self-installed visit callbacks when choosing the fallback handlers', async () => {
+    const getVisitCount = vi.fn(() => 6);
+    const incrementVisitCount = vi.fn(async (_filePath, handlers) => {
+      handlers.sendMessage({ type: 'VISIT_COUNT_UPDATED' });
+    });
+    const trackFileVisit = vi.fn(async (_filePath, handlers) => {
+      await handlers.incrementVisitCount('src/index.ts');
+    });
+    const source = {
+      _context: {
+        workspaceState: {
+          get: vi.fn(),
+          update: vi.fn(() => Promise.resolve()),
+        },
+      },
+      _analyzer: undefined,
+      _analyzerInitialized: false,
+      _graphData: { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData,
+      _sendMessage: vi.fn(),
+      _analyzeAndSendData: vi.fn(async () => undefined),
+    };
+    const sendFileInfoMessage = vi.fn(async (_filePath, _state, handlers) => {
+      expect(handlers.getVisitCount('src/index.ts')).toBe(6);
+    });
+    const methods = createGraphViewProviderFileVisitMethods(source as never, {
+      getWorkspaceFolder: vi.fn(() => undefined),
+      getConfiguration: vi.fn(() => ({ get: vi.fn() })),
+      statFile: vi.fn(async () => ({ size: 1, mtime: 2 })),
+      sendFileInfoMessage,
+      getVisitCount,
+      incrementVisitCount,
+      trackFileVisit,
+      sendFavorites: vi.fn(),
+      addExcludeWithUndo: vi.fn(async () => undefined),
+      createAddToExcludeAction: vi.fn(),
+      executeUndoAction: vi.fn(async () => undefined),
+      logError: vi.fn(),
+    });
+
+    source._getVisitCount = methods._getVisitCount;
+    source._incrementVisitCount = methods._incrementVisitCount;
+
+    await methods._getFileInfo('src/index.ts');
+    await methods.trackFileVisit('src/index.ts');
+
+    expect(getVisitCount).toHaveBeenCalledWith(source._context.workspaceState, 'src/index.ts');
+    expect(incrementVisitCount).toHaveBeenCalledWith(
+      'src/index.ts',
+      expect.objectContaining({
+        workspaceState: source._context.workspaceState,
+        sendMessage: expect.any(Function),
+      }),
+    );
+  });
+
   it('adds exclude patterns through the undo helper', async () => {
     const addExcludeWithUndo = vi.fn(async (_patterns, handlers) => {
       await handlers.analyzeAndSendData();

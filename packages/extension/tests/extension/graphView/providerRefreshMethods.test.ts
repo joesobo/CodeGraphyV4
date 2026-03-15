@@ -2,25 +2,30 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../src/shared/types';
 import { createGraphViewProviderRefreshMethods } from '../../../src/extension/graphView/providerRefreshMethods';
 
+function createSource(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    _analyzer: { clearCache: vi.fn() },
+    _disabledRules: new Set<string>(),
+    _disabledPlugins: new Set<string>(),
+    _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _loadDisabledRulesAndPlugins: vi.fn(() => true),
+    _analyzeAndSendData: vi.fn(async () => undefined),
+    _sendSettings: vi.fn(),
+    _sendPhysicsSettings: vi.fn(),
+    _updateViewContext: vi.fn(),
+    _applyViewTransform: vi.fn(),
+    _sendAvailableViews: vi.fn(),
+    _sendPluginStatuses: vi.fn(),
+    _sendDecorations: vi.fn(),
+    _sendMessage: vi.fn(),
+    ...overrides,
+  };
+}
+
 describe('graphView/providerRefreshMethods', () => {
   it('refresh reloads disabled settings, re-analyzes, and resends settings', async () => {
-    const source = {
-      _analyzer: { clearCache: vi.fn() },
-      _disabledRules: new Set<string>(),
-      _disabledPlugins: new Set<string>(),
-      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _loadDisabledRulesAndPlugins: vi.fn(() => true),
-      _analyzeAndSendData: vi.fn(async () => undefined),
-      _sendSettings: vi.fn(),
-      _sendPhysicsSettings: vi.fn(),
-      _updateViewContext: vi.fn(),
-      _applyViewTransform: vi.fn(),
-      _sendAvailableViews: vi.fn(),
-      _sendPluginStatuses: vi.fn(),
-      _sendDecorations: vi.fn(),
-      _sendMessage: vi.fn(),
-    };
+    const source = createSource();
     const methods = createGraphViewProviderRefreshMethods(source as never, {
       getShowOrphans: vi.fn(() => true),
       rebuildGraphData: vi.fn(),
@@ -38,23 +43,7 @@ describe('graphView/providerRefreshMethods', () => {
 
   it('refreshToggleSettings rebuilds only when the disabled state changes', () => {
     const rebuildGraphData = vi.fn();
-    const source = {
-      _analyzer: { clearCache: vi.fn() },
-      _disabledRules: new Set<string>(),
-      _disabledPlugins: new Set<string>(),
-      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _loadDisabledRulesAndPlugins: vi.fn(() => true),
-      _analyzeAndSendData: vi.fn(async () => undefined),
-      _sendSettings: vi.fn(),
-      _sendPhysicsSettings: vi.fn(),
-      _updateViewContext: vi.fn(),
-      _applyViewTransform: vi.fn(),
-      _sendAvailableViews: vi.fn(),
-      _sendPluginStatuses: vi.fn(),
-      _sendDecorations: vi.fn(),
-      _sendMessage: vi.fn(),
-    };
+    const source = createSource();
     const methods = createGraphViewProviderRefreshMethods(source as never, {
       getShowOrphans: vi.fn(() => false),
       rebuildGraphData,
@@ -72,65 +61,82 @@ describe('graphView/providerRefreshMethods', () => {
     expect(rebuildGraphData).toHaveBeenCalledOnce();
   });
 
-  it('rebuild and smart rebuild delegate to the graph view rebuild helpers', () => {
+  it('refreshToggleSettings prefers a source override rebuild implementation when present', () => {
     const rebuildGraphData = vi.fn();
-    const smartRebuildGraphData = vi.fn();
-    const shouldRebuild = vi.fn(() => false);
-    const source = {
-      _analyzer: { clearCache: vi.fn() },
-      _disabledRules: new Set<string>(),
-      _disabledPlugins: new Set<string>(),
-      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _loadDisabledRulesAndPlugins: vi.fn(() => true),
-      _analyzeAndSendData: vi.fn(async () => undefined),
-      _sendSettings: vi.fn(),
-      _sendPhysicsSettings: vi.fn(),
-      _updateViewContext: vi.fn(),
-      _applyViewTransform: vi.fn(),
-      _sendAvailableViews: vi.fn(),
-      _sendPluginStatuses: vi.fn(),
-      _sendDecorations: vi.fn(),
-      _sendMessage: vi.fn(),
-    };
+    const rebuildOverride = vi.fn();
+    const source = createSource();
     const methods = createGraphViewProviderRefreshMethods(source as never, {
-      getShowOrphans: vi.fn(() => true),
+      getShowOrphans: vi.fn(() => false),
+      rebuildGraphData,
+      smartRebuildGraphData: vi.fn(),
+      shouldRebuild: vi.fn(() => true),
+    });
+    source._rebuildAndSend = rebuildOverride;
+
+    methods.refreshToggleSettings();
+
+    expect(rebuildOverride).toHaveBeenCalledOnce();
+    expect(rebuildGraphData).not.toHaveBeenCalled();
+  });
+
+  it('rebuild and smart rebuild delegate to the graph view rebuild helpers', () => {
+    const rebuildGraphData = vi.fn((_nextSource, handlers: {
+      getShowOrphans(): boolean;
+      updateViewContext(): void;
+      applyViewTransform(): void;
+      sendAvailableViews(): void;
+      sendPluginStatuses(): void;
+      sendDecorations(): void;
+      sendMessage(message: unknown): void;
+    }) => {
+      expect(handlers.getShowOrphans()).toBe(false);
+      handlers.updateViewContext();
+      handlers.applyViewTransform();
+      handlers.sendAvailableViews();
+      handlers.sendPluginStatuses();
+      handlers.sendDecorations();
+      handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED' });
+    });
+    const smartRebuildGraphData = vi.fn((_nextSource, _kind, _id, handlers: {
+      shouldRebuild(statuses: string[], nextKind: 'rule' | 'plugin', nextId: string): boolean;
+      rebuildAndSend(): void;
+      sendMessage(message: unknown): void;
+    }) => {
+      expect(handlers.shouldRebuild(['status'], 'plugin', 'plugin.test')).toBe(false);
+      handlers.rebuildAndSend();
+      handlers.sendMessage({ type: 'PLUGINS_UPDATED' });
+    });
+    const shouldRebuild = vi.fn(() => false);
+    const source = createSource();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => false),
       rebuildGraphData,
       smartRebuildGraphData,
       shouldRebuild,
     });
+    const rebuildOverride = vi.fn();
+    source._rebuildAndSend = rebuildOverride;
 
     methods._rebuildAndSend();
     methods._smartRebuild('plugin', 'plugin.test');
 
-    expect(rebuildGraphData).toHaveBeenCalledOnce();
+    expect(source._updateViewContext).toHaveBeenCalledOnce();
+    expect(source._applyViewTransform).toHaveBeenCalledOnce();
+    expect(source._sendAvailableViews).toHaveBeenCalledOnce();
+    expect(source._sendPluginStatuses).toHaveBeenCalledOnce();
+    expect(source._sendDecorations).toHaveBeenCalledOnce();
+    expect(source._sendMessage).toHaveBeenCalledWith({ type: 'GRAPH_DATA_UPDATED' });
     expect(smartRebuildGraphData).toHaveBeenCalledOnce();
-    const smartRebuildArgs = smartRebuildGraphData.mock.calls[0][3];
-    smartRebuildArgs.shouldRebuild(['status'], 'plugin', 'plugin.test');
-    smartRebuildArgs.sendMessage({ type: 'PLUGINS_UPDATED' });
     expect(shouldRebuild).toHaveBeenCalledWith(['status'], 'plugin', 'plugin.test');
+    expect(rebuildOverride).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({ type: 'PLUGINS_UPDATED' });
   });
 
   it('clearCacheAndRefresh clears analyzer cache before re-analysis', async () => {
     const clearCache = vi.fn();
-    const source = {
+    const source = createSource({
       _analyzer: { clearCache },
-      _disabledRules: new Set<string>(),
-      _disabledPlugins: new Set<string>(),
-      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
-      _loadDisabledRulesAndPlugins: vi.fn(() => true),
-      _analyzeAndSendData: vi.fn(async () => undefined),
-      _sendSettings: vi.fn(),
-      _sendPhysicsSettings: vi.fn(),
-      _updateViewContext: vi.fn(),
-      _applyViewTransform: vi.fn(),
-      _sendAvailableViews: vi.fn(),
-      _sendPluginStatuses: vi.fn(),
-      _sendDecorations: vi.fn(),
-      _sendMessage: vi.fn(),
-    };
+    });
     const methods = createGraphViewProviderRefreshMethods(source as never, {
       getShowOrphans: vi.fn(() => true),
       rebuildGraphData: vi.fn(),
@@ -146,5 +152,42 @@ describe('graphView/providerRefreshMethods', () => {
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
     expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(source._sendSettings).toHaveBeenCalledOnce();
+  });
+
+  it('uses the default show-orphans configuration when rebuilding with default dependencies', async () => {
+    vi.resetModules();
+
+    const get = vi.fn((_key: string, fallback: boolean) => fallback);
+    const getConfiguration = vi.fn(() => ({ get }));
+    const rebuildGraphData = vi.fn((_source: unknown, handlers: { getShowOrphans(): boolean }) => {
+      expect(handlers.getShowOrphans()).toBe(true);
+    });
+
+    vi.doMock('vscode', () => ({
+      workspace: {
+        getConfiguration,
+      },
+    }));
+    vi.doMock('../../../src/extension/graphView/viewRebuild', () => ({
+      rebuildGraphViewData: rebuildGraphData,
+      smartRebuildGraphView: vi.fn(),
+    }));
+    vi.doMock('../../../src/extension/graphViewRebuild', () => ({
+      shouldRebuildGraphView: vi.fn(() => true),
+    }));
+
+    const { createGraphViewProviderRefreshMethods: createMethods } = await import(
+      '../../../src/extension/graphView/providerRefreshMethods'
+    );
+
+    createMethods(createSource() as never)._rebuildAndSend();
+
+    expect(getConfiguration).toHaveBeenCalledWith('codegraphy');
+    expect(get).toHaveBeenCalledWith('showOrphans', true);
+
+    vi.doUnmock('vscode');
+    vi.doUnmock('../../../src/extension/graphView/viewRebuild');
+    vi.doUnmock('../../../src/extension/graphViewRebuild');
+    vi.resetModules();
   });
 });

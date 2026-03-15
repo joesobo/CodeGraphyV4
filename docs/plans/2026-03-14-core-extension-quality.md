@@ -425,7 +425,7 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
         - latest targeted mutation after the third survivor pass:
           - `pnpm run mutate -- extension graph-view-provider`
-          - `packages/extension/src/extension/graphView/providerViewContextMethods.ts` = `95.00%`
+          - `packages/extension/src/extension/graphView/providerViewContextMethods.ts` = `100.00%`
           - `packages/extension/src/extension/graphView/providerPhysicsSettingsMethods.ts` = `100.00%`
           - `packages/extension/src/extension/graphView/providerFileNavigation.ts` = `100.00%`
           - result: `✅ All files are within the mutation site threshold (50).`
@@ -440,13 +440,25 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/providerAnalysisMethodState.ts` = `96.00%`
           - `packages/extension/src/extension/graphView/providerFileVisitMethods.ts` = `78.95%`
           - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the fifth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerViewSelectionMethods.test.ts tests/extension/graphView/providerFileVisitMethods.test.ts tests/extension/graphView/providerFileVisitMethodsDefaultDependencies.test.ts`
+          - `12` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the fifth survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - graph-view-provider slice overall = `84.02%`
+          - `packages/extension/src/extension/graphView/providerAnalysisMethodState.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerFileVisitMethods.ts` = `94.74%`
+          - `packages/extension/src/extension/graphView/providerViewSelectionMethods.ts` = `96.55%`
+          - `packages/extension/src/extension/graphView/providerRefreshMethods.ts` = `85.71%`
+          - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 provider/helper files instead of reopening file-splitting
           - next hotspot order:
-            - `providerFileVisitMethods.ts`
-            - `providerRefreshMethods.ts`
-            - `providerViewSelectionMethods.ts`
             - `providerTimelineMethods.ts`
+            - `providerAnalysisMethodDelegates.ts`
+            - `providerFileActionMethods.ts`
+            - `providerRefreshMethods.ts`
             - `GraphViewProvider.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
