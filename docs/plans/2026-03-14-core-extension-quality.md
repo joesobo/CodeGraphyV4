@@ -401,23 +401,28 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `providerPluginMethods.ts`
           - `providerSettingsStateMethods.ts`
           - `providerTimeline.ts`
-          - `providerWebviewMethods.ts`
         - add default-dependency coverage in `providerTimelineDefaultDependencies.test.ts`
         - focused verification green:
-          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerPluginMethods.test.ts tests/extension/graphView/providerSettingsStateMethods.test.ts tests/extension/graphView/providerTimeline.test.ts tests/extension/graphView/providerTimelineDefaultDependencies.test.ts tests/extension/graphView/providerWebviewMethods.test.ts tests/extension/graphView/externalPluginRegistration.test.ts`
-          - `35` tests green
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerPluginMethods.test.ts tests/extension/graphView/providerSettingsStateMethods.test.ts tests/extension/graphView/providerTimeline.test.ts tests/extension/graphView/providerTimelineDefaultDependencies.test.ts tests/extension/graphView/externalPluginRegistration.test.ts`
+          - `28` tests green
           - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - touched-file `eslint` green
         - latest targeted mutation after the first survivor pass:
           - `pnpm run mutate -- extension graph-view-provider`
-          - graph-view-provider slice overall = `80.14%`
+          - graph-view-provider slice overall = `79.29%`
+          - `packages/extension/src/extension/GraphViewProvider.ts` = `53.13%`
           - `packages/extension/src/extension/graphView/providerPluginMethods.ts` = `97.14%`
           - `packages/extension/src/extension/graphView/providerSettingsStateMethods.ts` = `97.14%`
-          - `packages/extension/src/extension/graphView/providerTimeline.ts` = `95.24%`
-          - `packages/extension/src/extension/graphView/providerWebviewMethods.ts` = `65.52%`
+          - `packages/extension/src/extension/graphView/providerTimeline.ts` = `54.76%`
           - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
-          - rerun the slice with the new `providerWebviewMethods.test.ts` callback coverage included
-          - continue climbing the remaining sub-90 provider/helper files instead of reopening file-splitting
+          - keep climbing the remaining sub-90 provider/helper files instead of reopening file-splitting
+          - next hotspot order:
+            - `GraphViewProvider.ts`
+            - `providerWebviewMethods.ts`
+            - `providerListenerPrimaryActions.ts`
+            - `providerFileVisitMethods.ts`
+            - `providerTimeline.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.

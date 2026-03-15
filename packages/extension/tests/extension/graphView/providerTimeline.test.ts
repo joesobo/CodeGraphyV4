@@ -147,6 +147,37 @@ describe('graph view provider timeline helpers', () => {
     } satisfies ExtensionToWebviewMessage);
   });
 
+  it('preserves the existing timeline state when the indexer leaves it undefined', async () => {
+    const nextGitAnalyzer = {
+      kind: 'git',
+      getGraphDataForCommit: vi.fn(async () => ({ nodes: [], edges: [] })),
+    } as never;
+    const source = createTimelineSource({
+      _timelineActive: true,
+      _currentCommitSha: 'sha-0',
+    });
+    const deps = createTimelineDependencies({
+      createGitAnalyzer: vi.fn(() => nextGitAnalyzer),
+      buildTimelineGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
+      indexRepository: vi.fn(async (state, handlers) => {
+        state.analyzerInitialized = true;
+        state.gitAnalyzer = nextGitAnalyzer;
+        state.indexingController = new AbortController();
+        state.timelineActive = undefined;
+        state.currentCommitSha = 'abc123';
+
+        await handlers.jumpToCommit('abc123');
+
+        expect(source._timelineActive).toBe(true);
+      }),
+    });
+
+    await indexGraphViewProviderRepository(source as never, deps as never);
+
+    expect(source._timelineActive).toBe(true);
+    expect(source._currentCommitSha).toBe('abc123');
+  });
+
   it('builds commit graph data and stores the active commit on jump', async () => {
     const sendMessage = vi.fn();
     const graphData = { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData;
