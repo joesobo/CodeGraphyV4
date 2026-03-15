@@ -4,11 +4,13 @@ import type {
   NodeSizeMode,
   WebviewToExtensionMessage,
 } from '../../../shared/types';
+import {
+  dispatchGraphViewPluginGroupToggleMessage,
+  dispatchGraphViewPluginSectionToggleMessage,
+} from './dispatchPluginHiddenGroups';
+import { dispatchGraphViewPluginReadyMessage } from './dispatchPluginReady';
 import { applyPluginContextMenuAction } from './pluginContextMenu';
-import { applyPluginGroupToggle } from './pluginGroupToggle';
 import { applyPluginInteraction } from './pluginInteraction';
-import { applyPluginSectionToggle } from './pluginSectionToggle';
-import { applyWebviewReady } from './ready';
 
 export interface GraphViewPluginMessageContext {
   getFilterPatterns(): string[];
@@ -64,36 +66,7 @@ export async function dispatchGraphViewPluginMessage(
     case 'WEBVIEW_READY':
       return {
         handled: true,
-        webviewReadyNotified: await applyWebviewReady(
-          {
-            filterPatterns: context.getFilterPatterns(),
-            pluginFilterPatterns: context.getPluginFilterPatterns(),
-            maxFiles: context.getMaxFiles(),
-            playbackSpeed: context.getPlaybackSpeed(),
-            dagMode: context.getDagMode(),
-            nodeSizeMode: context.getNodeSizeMode(),
-            folderNodeColor: context.getFolderNodeColor(),
-            hasWorkspace: context.hasWorkspace(),
-            firstAnalysis: context.isFirstAnalysis(),
-            webviewReadyNotified: context.isWebviewReadyNotified(),
-          },
-          {
-            loadGroupsAndFilterPatterns: () => context.loadGroupsAndFilterPatterns(),
-            loadDisabledRulesAndPlugins: () => context.loadDisabledRulesAndPlugins(),
-            analyzeAndSendData: () => void context.analyzeAndSendData(),
-            sendFavorites: () => context.sendFavorites(),
-            sendSettings: () => context.sendSettings(),
-            sendPhysicsSettings: () => context.sendPhysicsSettings(),
-            sendGroupsUpdated: () => context.sendGroupsUpdated(),
-            sendMessage: message => context.sendMessage(message),
-            sendCachedTimeline: () => context.sendCachedTimeline(),
-            sendDecorations: () => context.sendDecorations(),
-            sendContextMenuItems: () => context.sendContextMenuItems(),
-            sendPluginWebviewInjections: () => context.sendPluginWebviewInjections(),
-            waitForFirstWorkspaceReady: () => context.waitForFirstWorkspaceReady(),
-            notifyWebviewReady: () => context.notifyWebviewReady(),
-          },
-        ),
+        webviewReadyNotified: await dispatchGraphViewPluginReadyMessage(message, context),
       };
 
     case 'GRAPH_INTERACTION':
@@ -113,21 +86,11 @@ export async function dispatchGraphViewPluginMessage(
       return { handled: true };
 
     case 'TOGGLE_PLUGIN_GROUP_DISABLED':
-      await applyPluginGroupToggle(message.payload, {
-        hiddenPluginGroupIds: context.getHiddenPluginGroupIds(),
-        updateHiddenPluginGroups: groupIds => context.updateHiddenPluginGroups(groupIds),
-        recomputeGroups: () => context.recomputeGroups(),
-        sendGroupsUpdated: () => context.sendGroupsUpdated(),
-      });
+      await dispatchGraphViewPluginGroupToggleMessage(message, context);
       return { handled: true };
 
     case 'TOGGLE_PLUGIN_SECTION_DISABLED':
-      await applyPluginSectionToggle(message.payload, {
-        hiddenPluginGroupIds: context.getHiddenPluginGroupIds(),
-        updateHiddenPluginGroups: groupIds => context.updateHiddenPluginGroups(groupIds),
-        recomputeGroups: () => context.recomputeGroups(),
-        sendGroupsUpdated: () => context.sendGroupsUpdated(),
-      });
+      await dispatchGraphViewPluginSectionToggleMessage(message, context);
       return { handled: true };
 
     default:
