@@ -46,6 +46,107 @@ describe('graphView/providerWebviewMethods', () => {
     );
   });
 
+  it('exposes live resource, listener, and html callbacks to the sidebar resolver', () => {
+    const resolveWebviewView = vi.fn();
+    const setWebviewMessageListener = vi.fn();
+    const createHtml = vi.fn(() => '<html />');
+    const resourceRoots = [vscode.Uri.file('/test/root')];
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _panels: [],
+      _analyzeAndSendData: vi.fn(async () => undefined),
+      _getLocalResourceRoots: vi.fn(() => resourceRoots),
+    };
+    const webviewView = { webview: {}, visible: true } as unknown as vscode.WebviewView;
+    const methods = createGraphViewProviderWebviewMethods(source as never, {
+      viewType: 'codegraphy.graphView',
+      createHtml,
+      resolveWebviewView,
+      openInEditor: vi.fn(),
+      sendWebviewMessage: vi.fn(),
+      onWebviewMessage: vi.fn(() => ({ dispose: () => {} })),
+      setWebviewMessageListener,
+      executeCommand: vi.fn(() => Promise.resolve()),
+      createPanel: vi.fn() as never,
+      log: vi.fn(),
+    });
+    const nextWebview = { kind: 'next-webview' } as unknown as vscode.Webview;
+
+    methods.resolveWebviewView(
+      webviewView,
+      {} as vscode.WebviewViewResolveContext,
+      {} as vscode.CancellationToken,
+    );
+
+    const options = resolveWebviewView.mock.calls[0]?.[1] as {
+      getLocalResourceRoots(): vscode.Uri[];
+      setWebviewMessageListener(webview: vscode.Webview): void;
+      getHtml(webview: vscode.Webview): string;
+    };
+
+    expect(options.getLocalResourceRoots()).toBe(resourceRoots);
+
+    options.setWebviewMessageListener(nextWebview);
+    expect(setWebviewMessageListener).toHaveBeenCalledWith(nextWebview, source);
+
+    expect(options.getHtml(nextWebview)).toBe('<html />');
+    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview);
+  });
+
+  it('exposes live command, analysis, and log callbacks to the sidebar resolver', async () => {
+    const resolveWebviewView = vi.fn();
+    const executeCommand = vi.fn(() => Promise.resolve('executed'));
+    const log = vi.fn();
+    const analyzeAndSendData = vi.fn(async () => undefined);
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _panels: [],
+      _analyzeAndSendData: analyzeAndSendData,
+      _getLocalResourceRoots: vi.fn(() => []),
+    };
+    const webviewView = { webview: {}, visible: true } as unknown as vscode.WebviewView;
+    const methods = createGraphViewProviderWebviewMethods(source as never, {
+      viewType: 'codegraphy.graphView',
+      createHtml: vi.fn(() => '<html />'),
+      resolveWebviewView,
+      openInEditor: vi.fn(),
+      sendWebviewMessage: vi.fn(),
+      onWebviewMessage: vi.fn(() => ({ dispose: () => {} })),
+      setWebviewMessageListener: vi.fn(),
+      executeCommand,
+      createPanel: vi.fn() as never,
+      log,
+    });
+
+    methods.resolveWebviewView(
+      webviewView,
+      {} as vscode.WebviewViewResolveContext,
+      {} as vscode.CancellationToken,
+    );
+
+    const options = resolveWebviewView.mock.calls[0]?.[1] as {
+      executeCommand(command: string, key: string, value: boolean): Promise<unknown>;
+      analyzeAndSendData(): Promise<void>;
+      log(message: string): void;
+    };
+
+    await expect(options.executeCommand('setContext', 'codegraphy.graphViewVisible', true)).resolves.toBe(
+      'executed',
+    );
+    await options.analyzeAndSendData();
+    options.log('sidebar ready');
+
+    expect(executeCommand).toHaveBeenCalledWith(
+      'setContext',
+      'codegraphy.graphViewVisible',
+      true,
+    );
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(log).toHaveBeenCalledWith('sidebar ready');
+  });
+
   it('opens an editor panel and keeps panel registration in sync', () => {
     const panel = { id: 'panel-1' } as unknown as vscode.WebviewPanel;
     const openInEditor = vi.fn(options => {
@@ -91,6 +192,70 @@ describe('graphView/providerWebviewMethods', () => {
     expect(setWebviewMessageListener).not.toHaveBeenCalled();
     expect(createHtml).not.toHaveBeenCalled();
     expect(source._panels).toEqual([]);
+  });
+
+  it('exposes live panel and webview callbacks to the editor opener', () => {
+    const panel = { id: 'panel-1' } as unknown as vscode.WebviewPanel;
+    const webview = { kind: 'panel-webview' } as unknown as vscode.Webview;
+    const openInEditor = vi.fn();
+    const createPanel = vi.fn(() => panel);
+    const setWebviewMessageListener = vi.fn();
+    const createHtml = vi.fn(() => '<html />');
+    const resourceRoots = [vscode.Uri.file('/test/root')];
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _panels: [] as vscode.WebviewPanel[],
+      _analyzeAndSendData: vi.fn(async () => undefined),
+      _getLocalResourceRoots: vi.fn(() => resourceRoots),
+    };
+    const methods = createGraphViewProviderWebviewMethods(source as never, {
+      viewType: 'codegraphy.graphView',
+      createHtml,
+      resolveWebviewView: vi.fn(),
+      openInEditor,
+      sendWebviewMessage: vi.fn(),
+      onWebviewMessage: vi.fn(() => ({ dispose: () => {} })),
+      setWebviewMessageListener,
+      executeCommand: vi.fn(() => Promise.resolve()),
+      createPanel: createPanel as never,
+      log: vi.fn(),
+    });
+
+    methods.openInEditor();
+
+    const options = openInEditor.mock.calls[0]?.[0] as {
+      getLocalResourceRoots(): vscode.Uri[];
+      createPanel(
+        viewType: string,
+        title: string,
+        column: vscode.ViewColumn,
+        options: vscode.WebviewPanelOptions & vscode.WebviewOptions,
+      ): vscode.WebviewPanel;
+      setWebviewMessageListener(webview: vscode.Webview): void;
+      getHtmlForWebview(webview: vscode.Webview): string;
+    };
+
+    expect(options.getLocalResourceRoots()).toBe(resourceRoots);
+    expect(
+      options.createPanel(
+        'codegraphy.graphView',
+        'CodeGraphy',
+        vscode.ViewColumn.Beside,
+        { enableScripts: true },
+      ),
+    ).toBe(panel);
+    options.setWebviewMessageListener(webview);
+    expect(options.getHtmlForWebview(webview)).toBe('<html />');
+
+    expect(createPanel).toHaveBeenCalledWith(
+      'codegraphy.graphView',
+      'CodeGraphy',
+      vscode.ViewColumn.Beside,
+      { enableScripts: true },
+    );
+    expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source);
+    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview);
   });
 
   it('forwards direct webview messaging helpers', () => {
