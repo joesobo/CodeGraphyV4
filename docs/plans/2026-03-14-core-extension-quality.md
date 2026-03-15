@@ -486,14 +486,22 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/messages/providerListenerPrimaryActions.ts` = `100.00%`
           - `packages/extension/src/extension/GraphViewProvider.ts` = `91.67%`
           - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the ninth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/timelineIndex.test.ts`
+          - `5` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the ninth survivor pass:
+          - `packages/extension/src/extension/graphView/timelineIndex.ts` = `100.00%`
+          - `packages/extension/src/extension/GraphViewProvider.ts` = `91.67%`
+          - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
           - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
           - next hotspot order:
-            - `timelineIndex.ts`
             - `providerTimelineMethods.ts`
             - `timelineOpen.ts`
             - `viewContext.ts`
             - `viewRebuild.ts`
+            - `providerListener.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
