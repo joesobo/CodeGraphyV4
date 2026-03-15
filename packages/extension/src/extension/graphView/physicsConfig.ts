@@ -9,13 +9,9 @@ interface GraphViewPhysicsConfigOptions {
   getConfigTarget: () => unknown;
 }
 
-const PHYSICS_SETTING_KEYS: Array<keyof IPhysicsSettings> = [
-  'repelForce',
-  'linkDistance',
-  'linkForce',
-  'damping',
-  'centerForce',
-];
+function getGraphViewPhysicsSettingKeys(): Array<keyof IPhysicsSettings> {
+  return ['repelForce', 'linkDistance', 'linkForce', 'damping', 'centerForce'];
+}
 
 export async function updateGraphViewPhysicsSetting(
   key: keyof IPhysicsSettings,
@@ -31,7 +27,7 @@ export async function resetGraphViewPhysicsSettings(
   const config = getConfiguration();
   const target = getConfigTarget();
 
-  for (const key of PHYSICS_SETTING_KEYS) {
+  for (const key of getGraphViewPhysicsSettingKeys()) {
     await config.update(key, undefined, target);
   }
 }
