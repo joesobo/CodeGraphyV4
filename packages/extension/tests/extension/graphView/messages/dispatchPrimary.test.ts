@@ -1,6 +1,15 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData, IGroup } from '../../../../src/shared/types';
 import type { IViewContext } from '../../../../src/core/views';
+
+const exportSaverMocks = vi.hoisted(() => ({
+  savePng: vi.fn(() => Promise.resolve()),
+}));
+
+vi.mock('../../../../src/extension/export/savePng', () => ({
+  saveExportedPng: exportSaverMocks.savePng,
+}));
+
 import {
   dispatchGraphViewPrimaryMessage,
   type GraphViewPrimaryMessageContext,
@@ -63,6 +72,69 @@ function createContext(
 }
 
 describe('graph view primary message dispatch', () => {
+  it('returns handled for node/file messages before later handlers run', async () => {
+    const context = createContext();
+
+    await expect(
+      dispatchGraphViewPrimaryMessage({ type: 'NODE_SELECTED', payload: { nodeId: 'src/app.ts' } }, context),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.openSelectedNode).toHaveBeenCalledWith('src/app.ts');
+    expect(context.updateDagMode).not.toHaveBeenCalled();
+  });
+
+  it('routes export messages through the live export saver handlers', async () => {
+    const context = createContext();
+
+    await expect(
+      dispatchGraphViewPrimaryMessage(
+        {
+          type: 'EXPORT_PNG',
+          payload: { dataUrl: 'data:image/png;base64,abc', filename: 'graph.png' },
+        },
+        context,
+      ),
+    ).resolves.toEqual({ handled: true });
+
+    expect(exportSaverMocks.savePng).toHaveBeenCalledWith('data:image/png;base64,abc', 'graph.png');
+    expect(context.updateDagMode).not.toHaveBeenCalled();
+  });
+
+  it('returns handled for command messages before timeline handlers run', async () => {
+    const context = createContext();
+
+    await expect(
+      dispatchGraphViewPrimaryMessage(
+        { type: 'UPDATE_DAG_MODE', payload: { dagMode: 'TB' } },
+        context,
+      ),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.updateDagMode).toHaveBeenCalledWith('TB');
+    expect(context.indexRepository).not.toHaveBeenCalled();
+  });
+
+  it('returns handled for timeline messages before physics handlers run', async () => {
+    const context = createContext();
+
+    await expect(dispatchGraphViewPrimaryMessage({ type: 'INDEX_REPO' }, context)).resolves.toEqual({
+      handled: true,
+    });
+
+    expect(context.indexRepository).toHaveBeenCalledOnce();
+    expect(context.sendPhysicsSettings).not.toHaveBeenCalled();
+  });
+
+  it('returns handled for physics messages', async () => {
+    const context = createContext();
+
+    await expect(
+      dispatchGraphViewPrimaryMessage({ type: 'GET_PHYSICS_SETTINGS' }, context),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.sendPhysicsSettings).toHaveBeenCalledOnce();
+  });
+
   it('persists updated user groups returned by the group message handler', async () => {
     const incomingGroups: IGroup[] = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
     const context = createContext({
