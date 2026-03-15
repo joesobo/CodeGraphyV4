@@ -1,0 +1,74 @@
+import type { IGraphData } from '../../shared/types';
+import type {
+  GraphViewProviderAnalysisHandlers,
+  GraphViewProviderAnalysisRequestHandlers,
+} from './analysisLifecycle';
+import type {
+  GraphViewProviderAnalysisMethodDependencies,
+  GraphViewProviderAnalysisMethodsSource,
+} from './providerAnalysisMethods';
+import {
+  setGraphViewProviderGraphData,
+  setGraphViewProviderRawGraphData,
+} from './providerAnalysisMethodState';
+
+interface GraphViewProviderAnalysisHandlerCallbacks {
+  executeAnalysis(signal: AbortSignal, requestId: number): Promise<void>;
+  isAnalysisStale(signal: AbortSignal, requestId: number): boolean;
+  isAbortError(error: unknown): boolean;
+  markWorkspaceReady(graph: IGraphData): void;
+}
+
+export function createGraphViewProviderAnalysisHandlers(
+  source: GraphViewProviderAnalysisMethodsSource,
+  dependencies: GraphViewProviderAnalysisMethodDependencies,
+  callbacks: Omit<GraphViewProviderAnalysisHandlerCallbacks, 'executeAnalysis'>,
+): GraphViewProviderAnalysisHandlers {
+  return {
+    isAnalysisStale: (signal, requestId) => callbacks.isAnalysisStale(signal, requestId),
+    hasWorkspace: () => dependencies.hasWorkspace(),
+    setRawGraphData: graphData => {
+      setGraphViewProviderRawGraphData(source, graphData);
+    },
+    setGraphData: graphData => {
+      setGraphViewProviderGraphData(source, graphData);
+    },
+    getGraphData: () => source._graphData,
+    sendGraphDataUpdated: graphData => {
+      source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
+    },
+    sendAvailableViews: () => source._sendAvailableViews(),
+    computeMergedGroups: () => source._computeMergedGroups(),
+    sendGroupsUpdated: () => source._sendGroupsUpdated(),
+    updateViewContext: () => source._updateViewContext(),
+    applyViewTransform: () => source._applyViewTransform(),
+    sendPluginStatuses: () => source._sendPluginStatuses(),
+    sendDecorations: () => source._sendDecorations(),
+    sendContextMenuItems: () => source._sendContextMenuItems(),
+    markWorkspaceReady: graphData => callbacks.markWorkspaceReady(graphData),
+    isAbortError: error => callbacks.isAbortError(error),
+    logError: (message, error) => {
+      dependencies.logError(message, error);
+    },
+  };
+}
+
+export function createGraphViewProviderAnalysisRequestHandlers(
+  source: GraphViewProviderAnalysisMethodsSource,
+  dependencies: GraphViewProviderAnalysisMethodDependencies,
+  callbacks: Pick<GraphViewProviderAnalysisHandlerCallbacks, 'executeAnalysis' | 'isAbortError'>,
+): GraphViewProviderAnalysisRequestHandlers {
+  return {
+    executeAnalysis: (signal, requestId) => callbacks.executeAnalysis(signal, requestId),
+    isAbortError: error => callbacks.isAbortError(error),
+    logError: (message, error) => {
+      dependencies.logError(message, error);
+    },
+    updateAnalysisController: controller => {
+      source._analysisController = controller;
+    },
+    updateAnalysisRequestId: requestId => {
+      source._analysisRequestId = requestId;
+    },
+  };
+}

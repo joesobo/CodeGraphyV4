@@ -10,6 +10,16 @@ import {
   type GraphViewProviderAnalysisRequestHandlers,
   type GraphViewProviderAnalysisState,
 } from './analysisLifecycle';
+import {
+  createGraphViewProviderAnalysisHandlers,
+  createGraphViewProviderAnalysisRequestHandlers,
+} from './providerAnalysisMethodHandlers';
+import {
+  createGraphViewProviderAnalysisState,
+  createGraphViewProviderWorkspaceReadyState,
+  syncGraphViewProviderAnalysisState,
+  syncGraphViewProviderWorkspaceReadyState,
+} from './providerAnalysisMethodState';
 
 interface GraphViewProviderWorkspaceReadyRegistryLike {
   notifyWorkspaceReady(graphData: IGraphData): void;
@@ -101,15 +111,11 @@ export function createGraphViewProviderAnalysisMethods(
   dependencies: GraphViewProviderAnalysisMethodDependencies = DEFAULT_DEPENDENCIES,
 ): GraphViewProviderAnalysisMethods {
   const _markWorkspaceReady = (graph: IGraphData): void => {
-    const state = {
-      firstAnalysis: source._firstAnalysis,
-      resolveFirstWorkspaceReady: source._resolveFirstWorkspaceReady,
-    };
+    const state = createGraphViewProviderWorkspaceReadyState(source);
 
     dependencies.markWorkspaceReady(state, source._analyzer?.registry, graph);
 
-    source._firstAnalysis = state.firstAnalysis;
-    source._resolveFirstWorkspaceReady = state.resolveFirstWorkspaceReady;
+    syncGraphViewProviderWorkspaceReadyState(source, state);
   };
 
   const _isAnalysisStale = (signal: AbortSignal, requestId: number): boolean =>
@@ -149,87 +155,42 @@ export function createGraphViewProviderAnalysisMethods(
     signal: AbortSignal,
     requestId: number,
   ): Promise<void> => {
-    const state: GraphViewProviderAnalysisState = {
-      analysisController: source._analysisController,
-      analysisRequestId: source._analysisRequestId,
-      analyzer: source._analyzer,
-      analyzerInitialized: source._analyzerInitialized,
-      analyzerInitPromise: source._analyzerInitPromise,
-      filterPatterns: source._filterPatterns,
-      disabledRules: source._disabledRules,
-      disabledPlugins: source._disabledPlugins,
-    };
+    const state = createGraphViewProviderAnalysisState(source);
 
-    await dependencies.executeAnalysis(signal, requestId, state, {
-      isAnalysisStale: (nextSignal, nextRequestId) =>
-        callIsAnalysisStale(nextSignal, nextRequestId),
-      hasWorkspace: () => dependencies.hasWorkspace(),
-      setRawGraphData: graphData => {
-        source._rawGraphData = graphData;
-      },
-      setGraphData: graphData => {
-        source._graphData = graphData;
-      },
-      getGraphData: () => source._graphData,
-      sendGraphDataUpdated: graphData => {
-        source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
-      },
-      sendAvailableViews: () => source._sendAvailableViews(),
-      computeMergedGroups: () => source._computeMergedGroups(),
-      sendGroupsUpdated: () => source._sendGroupsUpdated(),
-      updateViewContext: () => source._updateViewContext(),
-      applyViewTransform: () => source._applyViewTransform(),
-      sendPluginStatuses: () => source._sendPluginStatuses(),
-      sendDecorations: () => source._sendDecorations(),
-      sendContextMenuItems: () => source._sendContextMenuItems(),
-      markWorkspaceReady: graphData => callMarkWorkspaceReady(graphData),
-      isAbortError: error => callIsAbortError(error),
-      logError: (message, error) => {
-        dependencies.logError(message, error);
-      },
-    });
+    await dependencies.executeAnalysis(
+      signal,
+      requestId,
+      state,
+      createGraphViewProviderAnalysisHandlers(source, dependencies, {
+        isAnalysisStale: (nextSignal, nextRequestId) =>
+          callIsAnalysisStale(nextSignal, nextRequestId),
+        isAbortError: error => callIsAbortError(error),
+        markWorkspaceReady: graphData => callMarkWorkspaceReady(graphData),
+      }),
+    );
 
-    source._analysisController = state.analysisController;
-    source._analysisRequestId = state.analysisRequestId;
-    source._analyzerInitialized = state.analyzerInitialized;
-    source._analyzerInitPromise = state.analyzerInitPromise;
+    syncGraphViewProviderAnalysisState(source, state);
   };
 
   const _analyzeAndSendData = async (): Promise<void> => {
-    const state: GraphViewProviderAnalysisState = {
-      analysisController: source._analysisController,
-      analysisRequestId: source._analysisRequestId,
-      analyzer: source._analyzer,
-      analyzerInitialized: source._analyzerInitialized,
-      analyzerInitPromise: source._analyzerInitPromise,
-      filterPatterns: source._filterPatterns,
-      disabledRules: source._disabledRules,
-      disabledPlugins: source._disabledPlugins,
-    };
+    const state = createGraphViewProviderAnalysisState(source);
 
-    await dependencies.runAnalysisRequest(state, {
-      executeAnalysis: (signal, requestId) => {
-        const implementation = source._doAnalyzeAndSendData;
-        if (implementation && implementation !== _doAnalyzeAndSendData) {
-          return implementation(signal, requestId);
-        }
+    await dependencies.runAnalysisRequest(
+      state,
+      createGraphViewProviderAnalysisRequestHandlers(source, dependencies, {
+        executeAnalysis: (signal, requestId) => {
+          const implementation = source._doAnalyzeAndSendData;
+          if (implementation && implementation !== _doAnalyzeAndSendData) {
+            return implementation(signal, requestId);
+          }
 
-        return _doAnalyzeAndSendData(signal, requestId);
-      },
-      isAbortError: error => callIsAbortError(error),
-      logError: (message, error) => {
-        dependencies.logError(message, error);
-      },
-      updateAnalysisController: controller => {
-        source._analysisController = controller;
-      },
-      updateAnalysisRequestId: requestId => {
-        source._analysisRequestId = requestId;
-      },
-    });
+          return _doAnalyzeAndSendData(signal, requestId);
+        },
+        isAbortError: error => callIsAbortError(error),
+      }),
+    );
 
-    source._analysisController = state.analysisController;
-    source._analysisRequestId = state.analysisRequestId;
+    syncGraphViewProviderAnalysisState(source, state);
   };
 
   const methods: GraphViewProviderAnalysisMethods = {
