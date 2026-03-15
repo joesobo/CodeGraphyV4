@@ -61,20 +61,76 @@ describe('graphView/providerAnalysisMethodState', () => {
     expect(source._analyzerInitPromise).toBeInstanceOf(Promise);
   });
 
-  it('syncs execution state updates, including analyzer initialization flags', () => {
-    const source = createSource();
+  it('exposes analyzer, filter, and disabled plugin state through the accessors', () => {
+    const source = createSource({
+      _analyzer: { initialize: vi.fn(async () => undefined) } as never,
+      _analyzerInitPromise: Promise.resolve(),
+    });
+    const nextAnalyzer = { initialize: vi.fn(async () => undefined) } as never;
     const state = createGraphViewProviderAnalysisState(source);
-    state.analysisController = new AbortController();
-    state.analysisRequestId = 9;
-    state.analyzerInitialized = true;
-    state.analyzerInitPromise = Promise.resolve();
 
-    syncGraphViewProviderAnalysisExecutionState(source, state);
+    expect(state.analyzer).toBe(source._analyzer);
+    expect(state.analyzerInitPromise).toBe(source._analyzerInitPromise);
+    expect(state.filterPatterns).toEqual(['src/**']);
+    expect([...state.disabledRules]).toEqual(['rule-a']);
+    expect([...state.disabledPlugins]).toEqual(['plugin-a']);
 
-    expect(source._analysisController).toBeInstanceOf(AbortController);
+    state.analyzer = nextAnalyzer;
+    state.filterPatterns = ['dist/**'];
+    state.disabledRules = new Set<string>(['rule-b']);
+    state.disabledPlugins = new Set<string>(['plugin-b']);
+
+    expect(source._analyzer).toBe(nextAnalyzer);
+    expect(source._filterPatterns).toEqual(['dist/**']);
+    expect([...source._disabledRules]).toEqual(['rule-b']);
+    expect([...source._disabledPlugins]).toEqual(['plugin-b']);
+  });
+
+  it('syncs analysis request state from plain state snapshots', () => {
+    const source = createSource();
+    const analysisController = new AbortController();
+
+    syncGraphViewProviderAnalysisState(
+      source,
+      {
+        analysisController,
+        analysisRequestId: 9,
+        analyzer: source._analyzer,
+        analyzerInitialized: source._analyzerInitialized,
+        analyzerInitPromise: source._analyzerInitPromise,
+        filterPatterns: source._filterPatterns,
+        disabledRules: source._disabledRules,
+        disabledPlugins: source._disabledPlugins,
+      } as never,
+    );
+
+    expect(source._analysisController).toBe(analysisController);
+    expect(source._analysisRequestId).toBe(9);
+  });
+
+  it('syncs execution state updates from plain state snapshots', () => {
+    const source = createSource();
+    const analysisController = new AbortController();
+    const analyzerInitPromise = Promise.resolve();
+
+    syncGraphViewProviderAnalysisExecutionState(
+      source,
+      {
+        analysisController,
+        analysisRequestId: 9,
+        analyzer: source._analyzer,
+        analyzerInitialized: true,
+        analyzerInitPromise,
+        filterPatterns: source._filterPatterns,
+        disabledRules: source._disabledRules,
+        disabledPlugins: source._disabledPlugins,
+      } as never,
+    );
+
+    expect(source._analysisController).toBe(analysisController);
     expect(source._analysisRequestId).toBe(9);
     expect(source._analyzerInitialized).toBe(true);
-    expect(source._analyzerInitPromise).toBeInstanceOf(Promise);
+    expect(source._analyzerInitPromise).toBe(analyzerInitPromise);
   });
 
   it('reflects analyzer initialization progress onto the provider source immediately', () => {
