@@ -87,13 +87,15 @@ export interface GraphViewPrimaryMessageResult {
   filterPatterns?: string[];
 }
 
-const GRAPH_VIEW_PRIMARY_EXPORT_HANDLERS = {
-  savePng: saveExportedPng,
-  saveSvg: saveExportedSvg,
-  saveJpeg: saveExportedJpeg,
-  saveJson: saveExportedJson,
-  saveMarkdown: saveExportedMarkdown,
-};
+function createGraphViewPrimaryExportHandlers() {
+  return {
+    savePng: saveExportedPng,
+    saveSvg: saveExportedSvg,
+    saveJpeg: saveExportedJpeg,
+    saveJson: saveExportedJson,
+    saveMarkdown: saveExportedMarkdown,
+  };
+}
 
 export async function dispatchGraphViewPrimaryMessage(
   message: WebviewToExtensionMessage,
@@ -103,7 +105,7 @@ export async function dispatchGraphViewPrimaryMessage(
     return { handled: true };
   }
 
-  if (await applyExportMessage(message, GRAPH_VIEW_PRIMARY_EXPORT_HANDLERS)) {
+  if (await applyExportMessage(message, createGraphViewPrimaryExportHandlers())) {
     return { handled: true };
   }
 
