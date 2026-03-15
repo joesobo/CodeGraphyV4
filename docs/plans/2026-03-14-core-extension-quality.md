@@ -356,6 +356,20 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - commit/push this batch
           - merge any parallel worker cuts for `providerListener.ts`, `dispatchPrimary.ts`, `dispatchPlugin.ts`, and `providerAnalysisMethods.ts`
           - rerun `pnpm run mutate -- extension graph-view-provider`
+      - current local threshold-reduction follow-up:
+        - split `dispatchPrimary.ts` into adapter/state helpers:
+          - `dispatchPrimaryNodeFileHandlers.ts`
+          - `dispatchPrimaryGroupMessageState.ts`
+          - `dispatchPrimarySettingsMessageState.ts`
+        - split `timelineIndex.ts` execution path into `timelineIndexExecution.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/dispatchPrimary.test.ts tests/extension/graphView/messages/dispatchPrimaryNodeFileHandlers.test.ts tests/extension/graphView/messages/dispatchPrimaryGroupMessageState.test.ts tests/extension/graphView/messages/dispatchPrimarySettingsMessageState.test.ts tests/extension/graphView/timelineIndex.test.ts tests/extension/graphView/timelineIndexExecution.test.ts`
+          - `10` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - next immediate step:
+          - commit/push this follow-up batch
+          - rerun `pnpm run mutate -- extension graph-view-provider`
+          - keep splitting `providerAnalysisMethods.ts` and `dispatchPlugin.ts` in parallel
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
