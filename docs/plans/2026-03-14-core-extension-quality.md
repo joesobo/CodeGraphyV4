@@ -458,6 +458,7 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
         - latest targeted mutation after the sixth survivor pass:
           - `pnpm run mutate -- extension graph-view-provider`
+          - graph-view-provider slice overall = `84.32%`
           - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `100.00%`
           - result: `✅ All files are within the mutation site threshold (50).`
         - next immediate step:
