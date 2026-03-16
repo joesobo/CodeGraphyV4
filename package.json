@@ -179,7 +179,10 @@
 				{
 					"id": "codegraphy",
 					"title": "CodeGraphy",
-					"icon": "assets/icon.svg"
+					"icon": {
+						"dark": "assets/icon-dark.svg",
+						"light": "assets/icon-light.svg"
+					}
 				}
 			]
 		},
