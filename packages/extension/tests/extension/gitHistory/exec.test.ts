@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { execGitCommand } from '../../../src/extension/gitHistory/gitExec';
+import { execGitCommand } from '../../../src/extension/gitHistory/exec';
 
-describe('gitHistory/gitExec', () => {
+describe('gitHistory/exec', () => {
   it('rejects immediately when the signal is already aborted', async () => {
     const controller = new AbortController();
     const execFileImpl = vi.fn();

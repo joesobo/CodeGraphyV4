@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { getCommitTreeFiles, getDiffNameStatus, getFileAtCommit } from '../../../src/extension/gitHistory/gitFiles';
+import { getCommitTreeFiles, getDiffNameStatus, getFileAtCommit } from '../../../src/extension/gitHistory/files';
 
-describe('gitHistory/gitFiles', () => {
+describe('gitHistory/files', () => {
   it('reads and filters commit tree file output', async () => {
     const execGit = vi.fn(async () => 'src/a.ts\n\nsrc/b.ts\n');
 

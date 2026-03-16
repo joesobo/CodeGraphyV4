@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { indexGitHistory } from '../../../src/extension/gitHistory/indexHistory';
+import { indexGitHistory } from '../../../src/extension/gitHistory/indexer';
 import type { ICommitInfo, IGraphData } from '../../../src/shared/types';
 
 function createCommit(sha: string, parents: string[] = []): ICommitInfo {
@@ -10,7 +10,7 @@ function createGraph(id: string): IGraphData {
   return { nodes: [{ id, label: id, color: '#fff' }], edges: [] };
 }
 
-describe('gitHistory/indexHistory', () => {
+describe('gitHistory/indexer', () => {
   it('returns early when there are no commits', async () => {
     const dependencies = {
       analyzeDiffCommit: vi.fn(),

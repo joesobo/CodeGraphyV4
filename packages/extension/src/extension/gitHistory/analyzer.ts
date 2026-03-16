@@ -7,21 +7,21 @@
 
 import * as vscode from 'vscode';
 import { minimatch } from 'minimatch';
-import { PluginRegistry } from '../core/plugins/registry';
-import { IGraphData, ICommitInfo } from '../shared/types';
+import { PluginRegistry } from '../../core/plugins/registry';
+import { IGraphData, ICommitInfo } from '../../shared/types';
 import {
   clearCachedCommitState,
   getCachedCommitList as getStoredCommitList,
   hasCachedTimeline as hasStoredTimeline,
   persistCachedCommitState,
-} from './gitHistory/cache/state';
-import { readCachedGraphData, removeGitCacheDir, writeCachedGraphData } from './gitHistory/cache/storage';
-import { getCommitList as getTimelineCommitList } from './gitHistory/commitList';
-import { analyzeDiffCommitGraph } from './gitHistory/diff/analysis';
-import { execGitCommand } from './gitHistory/gitExec';
-import { getCommitTreeFiles, getDiffNameStatus, getFileAtCommit } from './gitHistory/gitFiles';
-import { analyzeFullCommitGraph } from './gitHistory/fullCommitAnalysis';
-import { indexGitHistory } from './gitHistory/indexHistory';
+} from './cache/state';
+import { readCachedGraphData, removeGitCacheDir, writeCachedGraphData } from './cache/storage';
+import { getCommitList as getTimelineCommitList } from './commitList';
+import { analyzeDiffCommitGraph } from './diff/analysis';
+import { execGitCommand } from './exec';
+import { getCommitTreeFiles, getDiffNameStatus, getFileAtCommit } from './files';
+import { analyzeFullCommitGraph } from './fullCommitAnalysis';
+import { indexGitHistory } from './indexer';
 
 /**
  * Service that analyzes git history and builds per-commit graph data

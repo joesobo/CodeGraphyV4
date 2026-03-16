@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import type { IGraphData } from '../../src/shared/types';
+import type { IGraphData } from '../../../src/shared/types';
 
 // Mock vscode module
 vi.mock('vscode', () => ({
@@ -42,8 +42,8 @@ vi.mock('fs', async () => {
 });
 
 import * as fs from 'fs';
-import { GitHistoryAnalyzer } from '../../src/extension/gitHistoryAnalyzer';
-import type { PluginRegistry } from '../../src/core/plugins/registry';
+import { GitHistoryAnalyzer } from '../../../src/extension/gitHistory/analyzer';
+import type { PluginRegistry } from '../../../src/core/plugins/registry';
 
 // ---------------------------------------------------------------------------
 // Helpers

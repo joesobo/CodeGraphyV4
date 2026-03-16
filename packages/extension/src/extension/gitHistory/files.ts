@@ -1,5 +1,5 @@
 import { createAbortError } from './abort';
-import type { ExecGitCommand } from './gitExec';
+import type { ExecGitCommand } from './exec';
 
 export async function getCommitTreeFiles(
   execGit: ExecGitCommand,

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { GitHistoryAnalyzer } from '../../gitHistoryAnalyzer';
+import { GitHistoryAnalyzer } from '../../gitHistory/analyzer';
 import type { GraphViewProviderTimelineDependencies } from './provider';
 import { buildGraphViewTimelineGraphData } from './graph';
 import { indexGraphViewRepository } from './index';

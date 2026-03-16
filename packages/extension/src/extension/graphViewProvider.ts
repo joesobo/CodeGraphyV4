@@ -17,7 +17,7 @@ import {
 import { EventBus, EventName, EventPayloads } from '../core/plugins/eventBus';
 import { DecorationManager } from '../core/plugins/decorationManager';
 import { WorkspaceAnalyzer } from './workspaceAnalyzer';
-import { GitHistoryAnalyzer } from './gitHistoryAnalyzer';
+import { GitHistoryAnalyzer } from './gitHistory/analyzer';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
 import {
   type GraphViewExternalPluginRegistrationOptions,
