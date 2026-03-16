@@ -5,7 +5,12 @@
  */
 
 import { useEffect, RefObject } from 'react';
-import type { SearchOptions } from './SearchBar';
+import type { SearchOptions } from './searchBarTypes';
+import {
+  handleFocusShortcut,
+  handleEscapeKey,
+  handleAltShortcuts,
+} from './searchKeyboardHandlers';
 
 interface ISearchKeyboardOptions {
   inputRef: RefObject<HTMLInputElement | null>;
@@ -24,43 +29,9 @@ export function useSearchKeyboard({
 }: ISearchKeyboardOptions): void {
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent): void => {
-      // Ctrl/Cmd + F to focus search
-      if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
-        event.preventDefault();
-        inputRef.current?.focus();
-        inputRef.current?.select();
-        return;
-      }
-
-      // Escape to clear search (when focused)
-      if (event.key === 'Escape' && document.activeElement === inputRef.current) {
-        event.preventDefault();
-        onChange('');
-        inputRef.current?.blur();
-        return;
-      }
-
-      if (!event.altKey) return;
-
-      // Alt+C for Match Case
-      if (event.key.toLowerCase() === 'c') {
-        event.preventDefault();
-        toggleOption('matchCase');
-        return;
-      }
-
-      // Alt+W for Whole Word
-      if (event.key.toLowerCase() === 'w') {
-        event.preventDefault();
-        toggleOption('wholeWord');
-        return;
-      }
-
-      // Alt+R for Regex
-      if (event.key.toLowerCase() === 'r') {
-        event.preventDefault();
-        toggleOption('regex');
-      }
+      if (handleFocusShortcut(event, inputRef)) return;
+      if (handleEscapeKey(event, inputRef, onChange)) return;
+      handleAltShortcuts(event, toggleOption);
     };
 
     window.addEventListener('keydown', handleKeyDown);

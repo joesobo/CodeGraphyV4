@@ -3,30 +3,17 @@
  * Supports fuzzy search and advanced options: Match Case, Whole Word, Regex.
  */
 
-import React, { useRef, useCallback } from 'react';
+import React from 'react';
 import { cn } from './ui/cn';
 import { mdiMagnify, mdiClose } from '@mdi/js';
 import { MdiIcon } from './icons';
 import { ToggleButton } from './searchBar/ToggleButton';
-import { useSearchKeyboard } from './useSearchKeyboard';
+import { useSearchBarHandlers } from './searchBarHandlers';
 
-export interface SearchOptions {
-  matchCase: boolean;
-  wholeWord: boolean;
-  regex: boolean;
-}
+export type { SearchOptions } from './searchBarTypes';
+export type { SearchBarProps } from './searchBarTypes';
 
-interface SearchBarProps {
-  value: string;
-  onChange: (value: string) => void;
-  options: SearchOptions;
-  onOptionsChange: (options: SearchOptions) => void;
-  placeholder?: string;
-  className?: string;
-  resultCount?: number;
-  totalCount?: number;
-  regexError?: string | null;
-}
+import type { SearchBarProps } from './searchBarTypes';
 
 /**
  * Search bar with VSCode-like styling and advanced search options.
@@ -43,18 +30,7 @@ export function SearchBar({
   totalCount,
   regexError,
 }: SearchBarProps): React.ReactElement {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const toggleOption = useCallback((key: keyof SearchOptions) => {
-    onOptionsChange({ ...options, [key]: !options[key] });
-  }, [options, onOptionsChange]);
-
-  useSearchKeyboard({ inputRef, onChange, toggleOption });
-
-  const handleClear = useCallback(() => {
-    onChange('');
-    inputRef.current?.focus();
-  }, [onChange]);
+  const { inputRef, toggleOption, handleClear } = useSearchBarHandlers(options, onOptionsChange, onChange);
 
   const showResults = value.length > 0 && resultCount !== undefined && totalCount !== undefined;
 
