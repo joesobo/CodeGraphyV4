@@ -178,4 +178,34 @@ describe('workspaceFileAnalysis', () => {
     expect(readContent).toHaveBeenCalledTimes(1);
     expect(analyzeFile).toHaveBeenCalledTimes(1);
   });
+
+  it('reuses malformed cached entries without reading size from missing stats', async () => {
+    const cache = createEmptyWorkspaceAnalysisCache();
+    const cachedConnections: IConnection[] = [
+      { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' },
+    ];
+    cache.files['src/index.ts'] = {
+      mtime: undefined as unknown as number,
+      connections: cachedConnections,
+      size: undefined,
+    };
+    const readContent = vi.fn(async () => 'ignored');
+    const analyzeFile = vi.fn(async () => []);
+
+    const result = await analyzeWorkspaceFiles({
+      analyzeFile,
+      cache,
+      files: [createFile('src/index.ts')],
+      getFileStat: vi.fn(async () => null),
+      readContent,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(result.cacheHits).toBe(1);
+    expect(result.cacheMisses).toBe(0);
+    expect(result.fileConnections.get('src/index.ts')).toEqual(cachedConnections);
+    expect(cache.files['src/index.ts'].size).toBeUndefined();
+    expect(readContent).not.toHaveBeenCalled();
+    expect(analyzeFile).not.toHaveBeenCalled();
+  });
 });

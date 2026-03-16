@@ -246,4 +246,35 @@ describe('workspacePluginStatuses', () => {
 
     expect(statuses[0].rules).toEqual([]);
   });
+
+  it('ignores falsey rule ids when counting rule-level connections', () => {
+    const pluginInfos = [
+      createPluginInfo({
+        id: 'plugin.typescript',
+        name: 'TypeScript',
+        supportedExtensions: ['.ts'],
+        rules: [createRule('', 'Unnamed rule')],
+      }),
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      disabledRules: new Set(),
+      discoveredFiles: [{ relativePath: 'src/index.ts' }],
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', ruleId: '' }]],
+      ]),
+      pluginInfos,
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => pluginInfos[0].plugin,
+    });
+
+    expect(statuses[0].connectionCount).toBe(1);
+    expect(statuses[0].rules).toEqual([
+      expect.objectContaining({
+        id: '',
+        connectionCount: 0,
+      }),
+    ]);
+  });
 });
