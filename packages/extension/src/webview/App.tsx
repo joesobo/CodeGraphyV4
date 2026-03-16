@@ -9,20 +9,14 @@ import Toolbar from './components/Toolbar';
 import { useTheme } from './useTheme';
 import { usePluginManager } from './usePluginManager';
 import { useFilteredGraph } from './useFilteredGraph';
-import { ExtensionToWebviewMessage } from '../shared/types';
-import { postMessage } from './vscodeApi';
-import { useGraphStore, graphStore } from './store';
+import { useGraphStore } from './store';
 import type { SearchOptions } from './components/SearchBar';
-import {
-  getNoDataHint,
-  normalizePluginInjectPayload,
-  parsePluginScopedMessage,
-} from './appMessages';
+import { getNoDataHint } from './appMessages';
+import { setupMessageListener } from './appMessageListener';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
 
-  // Read state from store
   const graphData = useGraphStore(s => s.graphData);
   const isLoading = useGraphStore(s => s.isLoading);
   const searchQuery = useGraphStore(s => s.searchQuery);
@@ -34,14 +28,12 @@ export default function App(): React.ReactElement {
   const nodeDecorations = useGraphStore(s => s.nodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
 
-  // Store actions
   const setSearchQuery = useGraphStore(s => s.setSearchQuery);
   const setSearchOptions = useGraphStore(s => s.setSearchOptions);
   const setActivePanel = useGraphStore(s => s.setActivePanel);
 
   const theme = useTheme();
 
-  // Derived graph data (filtered + colored)
   const { filteredData, coloredData, regexError } = useFilteredGraph(
     graphData,
     searchQuery,
@@ -53,44 +45,10 @@ export default function App(): React.ReactElement {
     setSearchOptions(newOptions);
   }, [setSearchOptions]);
 
-  // Listen for extension messages and delegate to store
   useEffect(() => {
-    const handleMessage = (event: MessageEvent<unknown>) => {
-      const raw = event.data as { type?: unknown; payload?: unknown; data?: unknown };
-      if (!raw || typeof raw !== 'object' || typeof raw.type !== 'string') {
-        return;
-      }
-
-      if (raw.type === 'PLUGIN_WEBVIEW_INJECT') {
-        const payload = normalizePluginInjectPayload(raw.payload);
-        if (payload) {
-          void injectPluginAssets({
-            pluginId: payload.pluginId,
-            scripts: payload.scripts,
-            styles: payload.styles,
-          });
-        }
-        return;
-      }
-
-      const scopedMessage = parsePluginScopedMessage(raw.type, raw.data);
-      if (scopedMessage) {
-        pluginHost.deliverMessage(scopedMessage.pluginId, scopedMessage.message);
-        return;
-      }
-
-      graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
-    };
-
-    window.addEventListener('message', handleMessage);
-    postMessage({ type: 'WEBVIEW_READY', payload: null });
-
-    return () => {
-      window.removeEventListener('message', handleMessage);
-    };
+    return setupMessageListener(injectPluginAssets, pluginHost);
   }, [injectPluginAssets, pluginHost]);
 
-  // Loading state
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
@@ -103,7 +61,6 @@ export default function App(): React.ReactElement {
     );
   }
 
-  // No data state — skip during timeline mode (empty graph at early commits is valid)
   if (!timelineActive && (!graphData || graphData.nodes.length === 0)) {
     const hint = getNoDataHint(graphData, showOrphans);
     return (
@@ -117,13 +74,10 @@ export default function App(): React.ReactElement {
     );
   }
 
-  // During timeline, graphData may be null/empty before first commit data arrives
   const effectiveGraphData = graphData ?? { nodes: [], edges: [] };
 
-  // Graph view with search bar
   return (
     <div className="relative w-full h-screen flex flex-col">
-      {/* Header with search bar */}
       <div className="flex-shrink-0 p-2 border-b border-[var(--vscode-panel-border,#3c3c3c)]">
         <SearchBar
           value={searchQuery}
@@ -137,7 +91,6 @@ export default function App(): React.ReactElement {
         />
       </div>
 
-      {/* Graph */}
       <div className="flex-1 relative">
         <Graph
           data={coloredData || effectiveGraphData}
@@ -164,7 +117,6 @@ export default function App(): React.ReactElement {
         )}
       </div>
 
-      {/* Timeline */}
       <Timeline />
     </div>
   );

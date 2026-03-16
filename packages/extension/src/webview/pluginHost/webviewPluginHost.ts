@@ -16,19 +16,14 @@ import type {
   CodeGraphyWebviewAPI,
 } from './types';
 import { drawBadge, drawProgressRing, drawLabel } from './drawing';
+import { createPluginWebviewApi } from './pluginHostApi';
+import { removePluginRegistrations } from './pluginHostCleanup';
 
 type GraphInteractionMessage = {
   type: 'GRAPH_INTERACTION';
-  payload: {
-    event: string;
-    data: unknown;
-  };
+  payload: { event: string; data: unknown };
 };
 
-/**
- * Manages Tier 2 plugin scripts and their registrations.
- * Each plugin gets a scoped API instance.
- */
 export class WebviewPluginHost {
   private readonly _nodeRenderers = new Map<string, { pluginId: string; fn: NodeRenderFn }>();
   private readonly _overlays = new Map<string, { pluginId: string; fn: OverlayRenderFn }>();
@@ -39,44 +34,23 @@ export class WebviewPluginHost {
     Set<(msg: { type: string; data: unknown }) => void>
   >();
 
-  /**
-   * Create a scoped API for a plugin.
-   */
   createAPI(pluginId: string, postMessage: (msg: GraphInteractionMessage) => void): CodeGraphyWebviewAPI {
-    return {
-      getContainer: () => this._getOrCreateContainer(pluginId),
-      registerNodeRenderer: (type, fn) => this._registerNodeRenderer(pluginId, type, fn),
-      registerOverlay: (id, fn) => this._registerOverlay(pluginId, id, fn),
-      registerTooltipProvider: (fn) => this._registerTooltipProvider(pluginId, fn),
-      helpers: {
+    return createPluginWebviewApi(
+      pluginId,
+      postMessage,
+      (pid) => this._getOrCreateContainer(pid),
+      (pid, type, fn) => this._registerNodeRenderer(pid, type, fn),
+      (pid, id, fn) => this._registerOverlay(pid, id, fn),
+      (pid, fn) => this._registerTooltipProvider(pid, fn),
+      this._messageHandlers,
+      {
         drawBadge: (ctx, opts) => WebviewPluginHost.drawBadge(ctx, opts),
         drawProgressRing: (ctx, opts) => WebviewPluginHost.drawProgressRing(ctx, opts),
         drawLabel: (ctx, opts) => WebviewPluginHost.drawLabel(ctx, opts),
       },
-      sendMessage: (msg) => {
-        postMessage({
-          type: 'GRAPH_INTERACTION',
-          payload: { event: `plugin:${pluginId}:${msg.type}`, data: msg.data },
-        });
-      },
-      onMessage: (handler) => {
-        let handlers = this._messageHandlers.get(pluginId);
-        if (!handlers) {
-          handlers = new Set();
-          this._messageHandlers.set(pluginId, handlers);
-        }
-        const pluginHandlers = handlers;
-        pluginHandlers.add(handler);
-        return {
-          dispose: () => pluginHandlers.delete(handler),
-        };
-      },
-    };
+    );
   }
 
-  /**
-   * Deliver a message from the extension to a specific plugin.
-   */
   deliverMessage(pluginId: string, msg: { type: string; data: unknown }): void {
     const handlers = this._messageHandlers.get(pluginId);
     if (handlers) {
@@ -90,23 +64,14 @@ export class WebviewPluginHost {
     }
   }
 
-  /**
-   * Get a custom node renderer if registered for this type.
-   */
   getNodeRenderer(type: string): NodeRenderFn | undefined {
     return this._nodeRenderers.get(type)?.fn;
   }
 
-  /**
-   * Get all overlay render functions.
-   */
   getOverlays(): Array<{ id: string; fn: OverlayRenderFn }> {
     return Array.from(this._overlays.entries()).map(([id, entry]) => ({ id, fn: entry.fn }));
   }
 
-  /**
-   * Get tooltip content from all registered providers.
-   */
   getTooltipContent(context: TooltipContext): TooltipContent | null {
     const sections: Array<{ title: string; content: string }> = [];
     for (const provider of this._tooltipProviders) {
@@ -120,53 +85,30 @@ export class WebviewPluginHost {
     return sections.length > 0 ? { sections } : null;
   }
 
-  /**
-   * Remove all registrations for a plugin.
-   */
   removePlugin(pluginId: string): void {
-    // Remove node renderers
-    for (const [type, entry] of this._nodeRenderers) {
-      if (entry.pluginId === pluginId) this._nodeRenderers.delete(type);
-    }
-    // Remove overlays
-    for (const [id, entry] of this._overlays) {
-      if (entry.pluginId === pluginId) this._overlays.delete(id);
-    }
-    // Remove tooltip providers
-    for (let i = this._tooltipProviders.length - 1; i >= 0; i--) {
-      if (this._tooltipProviders[i].pluginId === pluginId) {
-        this._tooltipProviders.splice(i, 1);
-      }
-    }
-    // Remove message handlers
-    this._messageHandlers.delete(pluginId);
-    // Remove container
-    const container = this._containers.get(pluginId);
-    if (container) {
-      container.remove();
-      this._containers.delete(pluginId);
-    }
+    removePluginRegistrations(
+      pluginId,
+      this._nodeRenderers,
+      this._overlays,
+      this._tooltipProviders,
+      this._messageHandlers,
+      this._containers,
+    );
   }
-
-  // ── Private ──
 
   private _getOrCreateContainer(pluginId: string): HTMLDivElement {
     let container = this._containers.get(pluginId);
     if (!container) {
       container = document.createElement('div');
       container.setAttribute('data-cg-plugin', pluginId);
-      container.style.display = 'none'; // Hidden by default
+      container.style.display = 'none';
       document.body.appendChild(container);
       this._containers.set(pluginId, container);
     }
     return container;
   }
 
-  private _registerNodeRenderer(
-    pluginId: string,
-    type: string,
-    fn: NodeRenderFn,
-  ): WebviewDisposable {
+  private _registerNodeRenderer(pluginId: string, type: string, fn: NodeRenderFn): WebviewDisposable {
     this._nodeRenderers.set(type, { pluginId, fn });
     return {
       dispose: () => {
@@ -175,20 +117,13 @@ export class WebviewPluginHost {
     };
   }
 
-  private _registerOverlay(
-    pluginId: string,
-    id: string,
-    fn: OverlayRenderFn,
-  ): WebviewDisposable {
+  private _registerOverlay(pluginId: string, id: string, fn: OverlayRenderFn): WebviewDisposable {
     const qualifiedId = `${pluginId}:${id}`;
     this._overlays.set(qualifiedId, { pluginId, fn });
     return { dispose: () => this._overlays.delete(qualifiedId) };
   }
 
-  private _registerTooltipProvider(
-    pluginId: string,
-    fn: TooltipProviderFn,
-  ): WebviewDisposable {
+  private _registerTooltipProvider(pluginId: string, fn: TooltipProviderFn): WebviewDisposable {
     const entry = { pluginId, fn };
     this._tooltipProviders.push(entry);
     return {
@@ -199,17 +134,7 @@ export class WebviewPluginHost {
     };
   }
 
-  // ── Drawing Helpers (static delegates to drawing) ──
-
-  static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void {
-    drawBadge(ctx, opts);
-  }
-
-  static drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOpts): void {
-    drawProgressRing(ctx, opts);
-  }
-
-  static drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void {
-    drawLabel(ctx, opts);
-  }
+  static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void { drawBadge(ctx, opts); }
+  static drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOpts): void { drawProgressRing(ctx, opts); }
+  static drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void { drawLabel(ctx, opts); }
 }

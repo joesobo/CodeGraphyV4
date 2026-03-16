@@ -20,20 +20,7 @@ import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_DIRECTION_COLOR } from '../shared/ty
 import type { SearchOptions } from './components/SearchBar';
 import { postMessage } from './vscodeApi';
 import { MESSAGE_HANDLERS } from './storeMessages';
-
-const DEFAULT_PHYSICS: IPhysicsSettings = {
-  repelForce: 10,
-  linkDistance: 80,
-  linkForce: 0.15,
-  damping: 0.7,
-  centerForce: 0.1,
-};
-
-const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
-  matchCase: false,
-  wholeWord: false,
-  regex: false,
-};
+import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './storeDefaults';
 
 export interface GraphState {
   // Graph data
