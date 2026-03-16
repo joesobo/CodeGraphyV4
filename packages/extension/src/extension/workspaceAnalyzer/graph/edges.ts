@@ -4,8 +4,8 @@
  */
 
 import * as path from 'path';
-import type { IConnection, IPlugin } from '../../core/plugins';
-import type { IGraphEdge } from '../../shared/types';
+import type { IConnection, IPlugin } from '../../../core/plugins';
+import type { IGraphEdge } from '../../../shared/types';
 
 export interface IWorkspaceGraphEdgesOptions {
   disabledPlugins: ReadonlySet<string>;

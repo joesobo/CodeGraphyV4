@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { WorkspaceAnalyzer } from '../../src/extension/workspaceAnalyzer';
-import * as pluginModule from '../../src/extension/workspaceAnalyzer/plugins';
-import * as runModule from '../../src/extension/workspaceAnalyzer/run';
-import * as stateModule from '../../src/extension/workspaceAnalyzer/state';
+import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer';
+import * as pluginModule from '../../../src/extension/workspaceAnalyzer/plugins';
+import * as runModule from '../../../src/extension/workspaceAnalyzer/run';
+import * as stateModule from '../../../src/extension/workspaceAnalyzer/state';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection, IPlugin } from '../../../src/core/plugins';
-import { DEFAULT_NODE_COLOR } from '../../../src/shared/types';
-import { buildWorkspaceGraphData } from '../../../src/extension/workspaceAnalyzer/graphData';
+import type { IConnection, IPlugin } from '../../../../src/core/plugins';
+import { DEFAULT_NODE_COLOR } from '../../../../src/shared/types';
+import { buildWorkspaceGraphData } from '../../../../src/extension/workspaceAnalyzer/graph/data';
 
 function createPlugin(id: string): IPlugin {
   return {
@@ -14,7 +14,7 @@ function createPlugin(id: string): IPlugin {
   };
 }
 
-describe('workspaceAnalyzer/graphData', () => {
+describe('workspaceAnalyzer/graph/data', () => {
   it('builds connected nodes and edges with cached size and visit counts', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
     const fileConnections = new Map<string, IConnection[]>([

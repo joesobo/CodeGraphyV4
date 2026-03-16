@@ -3,10 +3,10 @@
  * @module extension/workspaceGraphData
  */
 
-import type { IConnection, IPlugin } from '../../core/plugins';
-import type { IGraphData } from '../../shared/types';
-import { buildWorkspaceGraphEdges } from './graphEdges';
-import { buildWorkspaceGraphNodes } from './graphNodes';
+import type { IConnection, IPlugin } from '../../../core/plugins';
+import type { IGraphData } from '../../../shared/types';
+import { buildWorkspaceGraphEdges } from './edges';
+import { buildWorkspaceGraphNodes } from './nodes';
 
 export interface IWorkspaceGraphDataOptions {
   cacheFiles: Record<string, { size?: number }>;

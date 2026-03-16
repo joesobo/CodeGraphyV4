@@ -3,8 +3,8 @@ import * as vscode from 'vscode';
 import {
   WORKSPACE_ANALYSIS_CACHE_KEY,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
-} from '../../src/extension/workspaceAnalyzer/cache';
-import { WorkspaceAnalyzer } from '../../src/extension/workspaceAnalyzer';
+} from '../../../src/extension/workspaceAnalyzer/cache';
+import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>

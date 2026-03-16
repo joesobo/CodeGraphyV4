@@ -2,8 +2,8 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   buildWorkspaceAnalyzerGraph,
   buildWorkspaceAnalyzerGraphForSource,
-} from '../../../src/extension/workspaceAnalyzer/graph';
-import * as workspaceGraphDataModule from '../../../src/extension/workspaceAnalyzer/graphData';
+} from '../../../../src/extension/workspaceAnalyzer/graph/index';
+import * as workspaceGraphDataModule from '../../../../src/extension/workspaceAnalyzer/graph/data';
 
 describe('workspaceAnalyzer/graph', () => {
   it('reads visit counts from workspace state before building graph data', () => {

@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
-import { WorkspaceAnalyzer } from '../../src/extension/workspaceAnalyzer';
+import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer';
 
 // Set up workspace folders before tests
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {

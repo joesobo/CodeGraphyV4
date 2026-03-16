@@ -5,43 +5,43 @@
  */
 
 import * as vscode from 'vscode';
-import { PluginRegistry, IConnection } from '../core/plugins';
-import { FileDiscovery, IDiscoveredFile } from '../core/discovery';
-import { Configuration } from './configuration';
-import { IGraphData, IPluginStatus } from '../shared/types';
-import { EventBus } from '../core/plugins/eventBus';
+import { PluginRegistry, IConnection } from '../../core/plugins';
+import { FileDiscovery, IDiscoveredFile } from '../../core/discovery';
+import { Configuration } from '../configuration';
+import { IGraphData, IPluginStatus } from '../../shared/types';
+import { EventBus } from '../../core/plugins/eventBus';
 import {
   IWorkspaceAnalysisCache,
   loadWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_KEY,
-} from './workspaceAnalyzer/cache';
-import { type WorkspaceAnalyzerAnalysisSource } from './workspaceAnalyzer/analyze';
+} from './cache';
+import { type WorkspaceAnalyzerAnalysisSource } from './analyze';
 import {
   analyzeWorkspaceAnalyzerSourceFiles,
   type WorkspaceAnalyzerFilesSource,
-} from './workspaceAnalyzer/files';
+} from './files';
 import {
   buildWorkspaceAnalyzerGraphForSource,
   type WorkspaceAnalyzerGraphSource,
-} from './workspaceAnalyzer/graph';
+} from './graph';
 import {
   getWorkspaceAnalyzerPluginFilterPatterns,
   initializeWorkspaceAnalyzer,
-} from './workspaceAnalyzer/initialize';
+} from './initialize';
 import {
   getWorkspaceAnalyzerFileStat,
   getWorkspaceAnalyzerRoot,
-} from './workspaceAnalyzer/io';
-import { preAnalyzeWorkspaceAnalyzerFiles } from './workspaceAnalyzer/preAnalyze';
+} from './io';
+import { preAnalyzeWorkspaceAnalyzerFiles } from './preAnalyze';
 import {
   getWorkspaceAnalyzerPluginStatuses,
   resolveWorkspaceAnalyzerPluginNameForFile,
-} from './workspaceAnalyzer/plugins';
+} from './plugins';
 import {
   clearWorkspaceAnalyzerCache,
   rebuildWorkspaceAnalyzerGraphForSource,
-} from './workspaceAnalyzer/state';
-import { runWorkspaceAnalyzerAnalysis } from './workspaceAnalyzer/run';
+} from './state';
+import { runWorkspaceAnalyzerAnalysis } from './run';
 
 /**
  * Orchestrates workspace analysis.
@@ -207,7 +207,7 @@ export class WorkspaceAnalyzer {
           nextDisabledRules,
           nextDisabledPlugins,
         ),
-    } as import('./workspaceAnalyzer/state').WorkspaceAnalyzerRebuildSource;
+    } as import('./state').WorkspaceAnalyzerRebuildSource;
     Object.defineProperties(source, {
       _lastFileConnections: {
         get: () => this._lastFileConnections,
