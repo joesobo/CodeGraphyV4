@@ -91,21 +91,24 @@ export interface GraphViewProviderAnalysisMethodDependencies {
   logError(message: string, error: unknown): void;
 }
 
-const DEFAULT_DEPENDENCIES: GraphViewProviderAnalysisMethodDependencies = {
-  runAnalysisRequest: runGraphViewProviderAnalysisRequest,
-  executeAnalysis: executeGraphViewProviderAnalysis,
-  markWorkspaceReady: markGraphViewWorkspaceReady,
-  isAnalysisStale: isGraphViewAnalysisStale,
-  isAbortError: isGraphViewAbortError,
-  hasWorkspace: () => (vscode.workspace.workspaceFolders?.length ?? 0) > 0,
-  logError: (message, error) => {
-    console.error(message, error);
-  },
-};
+export function createDefaultGraphViewProviderAnalysisMethodDependencies(): GraphViewProviderAnalysisMethodDependencies {
+  return {
+    runAnalysisRequest: runGraphViewProviderAnalysisRequest,
+    executeAnalysis: executeGraphViewProviderAnalysis,
+    markWorkspaceReady: markGraphViewWorkspaceReady,
+    isAnalysisStale: isGraphViewAnalysisStale,
+    isAbortError: isGraphViewAbortError,
+    hasWorkspace: () => (vscode.workspace.workspaceFolders?.length ?? 0) > 0,
+    logError: (message, error) => {
+      console.error(message, error);
+    },
+  };
+}
 
 export function createGraphViewProviderAnalysisMethods(
   source: GraphViewProviderAnalysisMethodsSource,
-  dependencies: GraphViewProviderAnalysisMethodDependencies = DEFAULT_DEPENDENCIES,
+  dependencies: GraphViewProviderAnalysisMethodDependencies =
+    createDefaultGraphViewProviderAnalysisMethodDependencies(),
 ): GraphViewProviderAnalysisMethods {
   const _markWorkspaceReady = (graph: IGraphData): void => {
     const state = createGraphViewProviderWorkspaceReadyState(source);
