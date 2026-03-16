@@ -11,9 +11,9 @@ import { throwIfAborted } from './abort';
 import { loadGitignore } from './gitignore';
 import {
   DEFAULT_EXCLUDE,
-  matchesAnyPattern,
   shouldSkipKnownDirectory,
 } from './pathMatching';
+import { shouldIncludeFile } from './fileFilter';
 
 const DEFAULT_INCLUDE = ['**/*'];
 const EMPTY_PATTERNS: string[] = [];
@@ -87,27 +87,16 @@ export class FileDiscovery {
           return false; // Stop walking
         }
 
-        // Check gitignore
-        if (gitignore && gitignore.ignores(relativePath)) {
+        if (!shouldIncludeFile(relativePath, absolutePath, {
+          includePatterns,
+          excludePatterns: allExclude,
+          extensions,
+          gitignore,
+        })) {
           return true; // Skip but continue
         }
 
-        // Check exclude patterns
-        if (matchesAnyPattern(relativePath, allExclude)) {
-          return true; // Skip but continue
-        }
-
-        // Check include patterns
-        if (!matchesAnyPattern(relativePath, includePatterns)) {
-          return true; // Skip but continue
-        }
-
-        // Check extension filter
         const ext = path.extname(absolutePath).toLowerCase();
-        if (extensions.length > 0 && !extensions.includes(ext)) {
-          return true; // Skip but continue
-        }
-
         // Add the file
         files.push({
           relativePath,

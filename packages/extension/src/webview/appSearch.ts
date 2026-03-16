@@ -1,55 +1,10 @@
-import { DEFAULT_NODE_COLOR, IGraphData, IGraphNode, IGroup } from '../shared/types';
+import { DEFAULT_NODE_COLOR, IGraphData, IGroup } from '../shared/types';
 import type { SearchOptions } from './components/SearchBar';
 import { globMatch } from './lib/globMatch';
+import { filterNodesAdvanced } from './lib/nodeMatching';
 
-export function filterNodesAdvanced(
-  nodes: IGraphNode[],
-  query: string,
-  options: SearchOptions,
-): { matchingIds: Set<string>; regexError: string | null } {
-  const matchingIds = new Set<string>();
-  let regexError: string | null = null;
-
-  if (!query.trim()) {
-    nodes.forEach((node) => matchingIds.add(node.id));
-    return { matchingIds, regexError };
-  }
-
-  let pattern: RegExp | null = null;
-
-  if (options.regex) {
-    try {
-      const flags = options.matchCase ? '' : 'i';
-      pattern = new RegExp(query, flags);
-    } catch (error) {
-      regexError = error instanceof Error ? error.message : 'Invalid regex';
-      return { matchingIds, regexError };
-    }
-  } else if (options.wholeWord) {
-    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const flags = options.matchCase ? '' : 'i';
-    pattern = new RegExp(`\\b${escaped}\\b`, flags);
-  }
-
-  for (const node of nodes) {
-    const searchText = `${node.label} ${node.id}`;
-    let isMatch = false;
-
-    if (pattern) {
-      isMatch = pattern.test(searchText);
-    } else {
-      const normalizedText = options.matchCase ? searchText : searchText.toLowerCase();
-      const normalizedQuery = options.matchCase ? query : query.toLowerCase();
-      isMatch = normalizedText.includes(normalizedQuery);
-    }
-
-    if (isMatch) {
-      matchingIds.add(node.id);
-    }
-  }
-
-  return { matchingIds, regexError };
-}
+// Re-export so existing callers can import directly from appSearch
+export { filterNodesAdvanced } from './lib/nodeMatching';
 
 export function filterGraphData(
   graphData: IGraphData | null,
