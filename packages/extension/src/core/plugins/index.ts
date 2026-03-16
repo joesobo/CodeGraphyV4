@@ -4,8 +4,8 @@
  */
 
 export * from './types';
-export * from './PluginRegistry';
-export * from './Disposable';
-export * from './EventBus';
-export * from './DecorationManager';
-export * from './CodeGraphyAPI';
+export * from './pluginRegistry';
+export * from './disposable';
+export * from './eventBus';
+export * from './decorationManager';
+export * from './codeGraphyApi';

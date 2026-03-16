@@ -48,7 +48,7 @@ vi.mock('util', () => ({
   promisify: mocks.promisify,
 }));
 
-vi.mock('../../../../src/extension/GitHistoryAnalyzer', () => ({
+vi.mock('../../../../src/extension/gitHistoryAnalyzer', () => ({
   GitHistoryAnalyzer: mocks.GitHistoryAnalyzer,
 }));
 

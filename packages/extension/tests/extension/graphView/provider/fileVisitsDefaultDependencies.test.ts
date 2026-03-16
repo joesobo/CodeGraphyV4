@@ -73,7 +73,7 @@ vi.mock('../../../../src/extension/graphView/excludePatterns', () => ({
   addGraphViewExcludePatternsWithUndo: mocks.addExcludeWithUndo,
 }));
 
-vi.mock('../../../../src/extension/UndoManager', () => ({
+vi.mock('../../../../src/extension/undoManager', () => ({
   getUndoManager: () => ({
     execute: mocks.undoExecute,
   }),

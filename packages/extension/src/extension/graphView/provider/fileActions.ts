@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { getUndoManager } from '../../UndoManager';
+import { getUndoManager } from '../../undoManager';
 import {
   CreateFileAction,
   DeleteFilesAction,

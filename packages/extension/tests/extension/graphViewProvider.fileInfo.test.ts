@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { GraphViewProvider } from '../../src/extension/GraphViewProvider';
+import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>

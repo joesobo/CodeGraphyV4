@@ -3,7 +3,7 @@
  * @module core/views
  */
 
-export { ViewRegistry } from './ViewRegistry';
+export { ViewRegistry } from './viewRegistry';
 export {
   connectionsView,
   depthGraphView,

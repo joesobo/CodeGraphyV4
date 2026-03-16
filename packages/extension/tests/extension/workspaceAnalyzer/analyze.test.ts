@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../src/core/discovery';
 import type { IConnection } from '../../../src/core/plugins';
-import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/Configuration';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/configuration';
 import { analyzeWorkspaceWithAnalyzer } from '../../../src/extension/workspaceAnalyzer/analyze';
 
 function createSource() {

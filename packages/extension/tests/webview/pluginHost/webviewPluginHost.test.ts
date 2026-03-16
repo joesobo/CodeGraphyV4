@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { WebviewPluginHost } from '../../../src/webview/pluginHost/WebviewPluginHost';
+import { WebviewPluginHost } from '../../../src/webview/pluginHost/webviewPluginHost';
 
 function createMockContext(): CanvasRenderingContext2D {
   return {

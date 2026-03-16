@@ -25,17 +25,17 @@ async function loadSubject(
     | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
     | undefined,
 ) {
-  vi.doMock('../../src/extension/WorkspaceAnalyzer', () => ({
+  vi.doMock('../../src/extension/workspaceAnalyzer', () => ({
     WorkspaceAnalyzer: class WorkspaceAnalyzer {},
   }));
   vi.doMock('../../src/core/views', () => ({
     ViewRegistry: class ViewRegistry {},
     coreViews: [],
   }));
-  vi.doMock('../../src/core/plugins/EventBus', () => ({
+  vi.doMock('../../src/core/plugins/eventBus', () => ({
     EventBus: class EventBus {},
   }));
-  vi.doMock('../../src/core/plugins/DecorationManager', () => ({
+  vi.doMock('../../src/core/plugins/decorationManager', () => ({
     DecorationManager: class DecorationManager {},
   }));
   vi.doMock('../../src/extension/graphView/provider/analysis', () => ({
@@ -96,7 +96,7 @@ async function loadSubject(
   });
 
   const vscodeModule = await import('vscode');
-  const { GraphViewProvider } = await import('../../src/extension/GraphViewProvider');
+  const { GraphViewProvider } = await import('../../src/extension/graphViewProvider');
 
   return { GraphViewProvider, vscodeModule };
 }
@@ -110,10 +110,10 @@ describe('GraphViewProvider bootstrap wiring', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.doUnmock('vscode');
-    vi.doUnmock('../../src/extension/WorkspaceAnalyzer');
+    vi.doUnmock('../../src/extension/workspaceAnalyzer');
     vi.doUnmock('../../src/core/views');
-    vi.doUnmock('../../src/core/plugins/EventBus');
-    vi.doUnmock('../../src/core/plugins/DecorationManager');
+    vi.doUnmock('../../src/core/plugins/eventBus');
+    vi.doUnmock('../../src/core/plugins/decorationManager');
     vi.doUnmock('../../src/extension/graphView/provider/analysis');
     vi.doUnmock('../../src/extension/graphView/provider/commands');
     vi.doUnmock('../../src/extension/graphView/provider/fileActions');

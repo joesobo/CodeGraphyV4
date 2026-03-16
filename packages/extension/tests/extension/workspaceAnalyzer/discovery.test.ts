@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/Configuration';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/configuration';
 import {
   discoverWorkspaceAnalyzerFiles,
   formatWorkspaceAnalyzerLimitReachedMessage,

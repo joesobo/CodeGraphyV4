@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as vscode from 'vscode';
-import type { WorkspaceAnalyzer } from '../../src/extension/WorkspaceAnalyzer';
+import type { WorkspaceAnalyzer } from '../../src/extension/workspaceAnalyzer';
 import type { IGraphData } from '../../src/shared/types';
 
 // Capture showInputBox calls to verify options
@@ -36,7 +36,7 @@ const inputBoxCalls: InputBoxCall[] = [];
 (vscode.workspace.fs as Record<string, unknown>).writeFile = vi.fn();
 
 // Import after mocks are set up
-import { GraphViewProvider } from '../../src/extension/GraphViewProvider';
+import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 function deferredPromise<T>() {
   let resolve!: (value: T | PromiseLike<T>) => void;

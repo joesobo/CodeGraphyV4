@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { GraphViewProvider } from '../../src/extension/GraphViewProvider';
+import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 interface MockExtensionContext {
   subscriptions: { dispose: () => void }[];

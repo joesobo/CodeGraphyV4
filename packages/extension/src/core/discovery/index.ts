@@ -4,4 +4,4 @@
  */
 
 export * from './types';
-export * from './FileDiscovery';
+export * from './fileDiscovery';

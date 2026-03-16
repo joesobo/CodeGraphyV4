@@ -1,4 +1,4 @@
-import type { EdgeDecoration, NodeDecoration } from '../../../core/plugins/DecorationManager';
+import type { EdgeDecoration, NodeDecoration } from '../../../core/plugins/decorationManager';
 import type {
   EdgeDecorationPayload,
   IPluginContextMenuItem,

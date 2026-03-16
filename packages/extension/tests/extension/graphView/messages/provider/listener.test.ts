@@ -14,7 +14,7 @@ afterEach(() => {
   vi.doUnmock('../../../../../src/extension/graphView/settings/config');
   vi.doUnmock('../../../../../src/extension/graphView/settings');
   vi.doUnmock('../../../../../src/extension/actions');
-  vi.doUnmock('../../../../../src/extension/UndoManager');
+  vi.doUnmock('../../../../../src/extension/undoManager');
   vi.resetModules();
 });
 
@@ -331,7 +331,7 @@ describe('graph view provider listener bridge', () => {
     vi.doMock('../../../../../src/extension/actions', () => ({
       ResetSettingsAction: vi.fn(),
     }));
-    vi.doMock('../../../../../src/extension/UndoManager', () => ({
+    vi.doMock('../../../../../src/extension/undoManager', () => ({
       getUndoManager: () => ({ execute }),
     }));
     vi.doMock('../../../../../src/extension/graphView/messages/provider/readContext', () => ({
@@ -435,7 +435,7 @@ async function loadDefaultListenerHarness() {
   vi.doMock('../../../../../src/extension/actions', () => ({
     ResetSettingsAction,
   }));
-  vi.doMock('../../../../../src/extension/UndoManager', () => ({
+  vi.doMock('../../../../../src/extension/undoManager', () => ({
     getUndoManager: () => ({ execute }),
   }));
 

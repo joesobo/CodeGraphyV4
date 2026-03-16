@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
-import { GraphViewProvider } from './GraphViewProvider';
+import { GraphViewProvider } from './graphViewProvider';
 import type { IGraphData } from '../shared/types';
 
 /** Public API returned by activate() — usable from e2e tests. */

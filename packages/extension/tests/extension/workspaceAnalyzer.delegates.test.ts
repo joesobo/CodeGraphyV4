@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { WorkspaceAnalyzer } from '../../src/extension/WorkspaceAnalyzer';
+import { WorkspaceAnalyzer } from '../../src/extension/workspaceAnalyzer';
 import * as pluginModule from '../../src/extension/workspaceAnalyzer/plugins';
 import * as runModule from '../../src/extension/workspaceAnalyzer/run';
 import * as stateModule from '../../src/extension/workspaceAnalyzer/state';

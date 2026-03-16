@@ -185,7 +185,7 @@ export interface IPlugin {
    * Called when the plugin is loaded and the host API is available.
    * Plugins use this to register events, commands, views, and decorations.
    */
-  onLoad?(api: import('./CodeGraphyAPI').CodeGraphyAPIImpl): void;
+  onLoad?(api: import('./codeGraphyApi').CodeGraphyAPIImpl): void;
 
   /** Called once after the initial workspace graph is ready. */
   onWorkspaceReady?(graph: import('../../shared/types').IGraphData): void;
