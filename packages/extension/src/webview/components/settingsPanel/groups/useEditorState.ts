@@ -1,17 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IGroup } from '../../../../shared/types';
-import { postMessage } from '../../../lib/vscodeApi';
-import { buildSettingsGroupOverride, reorderSettingsGroups } from './model';
-
-const COLOR_DEBOUNCE_MS = 300;
-
-function clearTimeoutMap(ref: React.MutableRefObject<Record<string, ReturnType<typeof setTimeout>>>): void {
-  for (const timer of Object.values(ref.current)) {
-    if (timer) {
-      clearTimeout(timer);
-    }
-  }
-}
+import { createGroupActions } from './actions';
+import { createGroupDragHandlers } from './drag';
+import {
+  clearTimeoutMap,
+  createGroupPersistenceHandlers,
+} from './persistence';
 
 export interface GroupEditorState {
   customExpanded: boolean;
@@ -67,102 +61,29 @@ export function useEditorState({
       clearTimeoutMap(patternDebounceRef);
     };
   }, []);
-
-  const sendUserGroups = (updated: IGroup[]) => {
-    postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
-  };
-
-  const addGroup = () => {
-    const pattern = newPattern.trim();
-    if (!pattern) {
-      return;
-    }
-
-    const newId = crypto.randomUUID();
-    sendUserGroups([...userGroups, { id: newId, pattern, color: newColor }]);
-    setNewPattern('');
-    setNewColor('#3B82F6');
-    setExpandedGroupId(newId);
-  };
-
-  const updateGroup = (groupId: string, updates: Partial<IGroup>) => {
-    sendUserGroups(userGroups.map((group) => (group.id === groupId ? { ...group, ...updates } : group)));
-  };
-
-  const overridePluginGroup = (group: IGroup, updates: Partial<IGroup>) => {
-    const newId = crypto.randomUUID();
-    const override = buildSettingsGroupOverride(group, updates, newId);
-    sendUserGroups([...userGroups, override]);
-    setExpandedGroupId(newId);
-  };
-
-  const changeGroupColor = (groupId: string, color: string) => {
-    setLocalColorOverrides((current) => ({ ...current, [groupId]: color }));
-    if (colorDebounceRef.current[groupId]) {
-      clearTimeout(colorDebounceRef.current[groupId]);
-    }
-    colorDebounceRef.current[groupId] = setTimeout(() => {
-      updateGroup(groupId, { color });
-      setLocalColorOverrides((current) => {
-        const next = { ...current };
-        delete next[groupId];
-        return next;
-      });
-      delete colorDebounceRef.current[groupId];
-    }, COLOR_DEBOUNCE_MS);
-  };
-
-  const changePluginGroupColor = (group: IGroup, color: string) => {
-    setLocalColorOverrides((current) => ({ ...current, [group.id]: color }));
-    if (colorDebounceRef.current[group.id]) {
-      clearTimeout(colorDebounceRef.current[group.id]);
-    }
-    colorDebounceRef.current[group.id] = setTimeout(() => {
-      overridePluginGroup(group, { color });
-      setLocalColorOverrides((current) => {
-        const next = { ...current };
-        delete next[group.id];
-        return next;
-      });
-      delete colorDebounceRef.current[group.id];
-    }, COLOR_DEBOUNCE_MS);
-  };
-
-  const changeGroupPattern = (groupId: string, pattern: string) => {
-    setLocalPatternOverrides((current) => ({ ...current, [groupId]: pattern }));
-    if (patternDebounceRef.current[groupId]) {
-      clearTimeout(patternDebounceRef.current[groupId]);
-    }
-    patternDebounceRef.current[groupId] = setTimeout(() => {
-      updateGroup(groupId, { pattern });
-      setLocalPatternOverrides((current) => {
-        const next = { ...current };
-        delete next[groupId];
-        return next;
-      });
-      delete patternDebounceRef.current[groupId];
-    }, COLOR_DEBOUNCE_MS);
-  };
-
-  const deleteGroup = (groupId: string) => {
-    sendUserGroups(userGroups.filter((group) => group.id !== groupId));
-  };
-
-  const pickImage = (groupId: string) => {
-    postMessage({ type: 'PICK_GROUP_IMAGE', payload: { groupId } });
-  };
-
-  const clearImage = (groupId: string) => {
-    updateGroup(groupId, { imagePath: undefined, imageUrl: undefined });
-  };
-
-  const togglePluginGroupDisabled = (groupId: string, disabled: boolean) => {
-    postMessage({ type: 'TOGGLE_PLUGIN_GROUP_DISABLED', payload: { groupId, disabled } });
-  };
-
-  const togglePluginSectionDisabled = (pluginId: string, disabled: boolean) => {
-    postMessage({ type: 'TOGGLE_PLUGIN_SECTION_DISABLED', payload: { pluginId, disabled } });
-  };
+  const actions = createGroupActions({
+    newColor,
+    newPattern,
+    setExpandedGroupId,
+    setNewColor,
+    setNewPattern,
+    userGroups,
+  });
+  const persistence = createGroupPersistenceHandlers({
+    colorDebounceRef,
+    overridePluginGroup: actions.overridePluginGroup,
+    patternDebounceRef,
+    setLocalColorOverrides,
+    setLocalPatternOverrides,
+    updateGroup: actions.updateGroup,
+  });
+  const drag = createGroupDragHandlers({
+    dragIndex,
+    sendUserGroups: actions.sendUserGroups,
+    setDragIndex,
+    setDragOverIndex,
+    userGroups,
+  });
 
   const togglePluginExpansion = (sectionId: string) => {
     setExpandedPluginIds((current) => {
@@ -174,33 +95,6 @@ export function useEditorState({
       }
       return next;
     });
-  };
-
-  const startGroupDrag = (index: number) => {
-    setDragIndex(index);
-  };
-
-  const overGroupDrag = (event: React.DragEvent, index: number) => {
-    event.preventDefault();
-    setDragOverIndex(index);
-  };
-
-  const dropGroup = (event: React.DragEvent, targetIndex: number) => {
-    event.preventDefault();
-    if (dragIndex === null) {
-      setDragIndex(null);
-      setDragOverIndex(null);
-      return;
-    }
-
-    sendUserGroups(reorderSettingsGroups(userGroups, dragIndex, targetIndex));
-    setDragIndex(null);
-    setDragOverIndex(null);
-  };
-
-  const endGroupDrag = () => {
-    setDragIndex(null);
-    setDragOverIndex(null);
   };
 
   return {
@@ -215,21 +109,21 @@ export function useEditorState({
     dragOverIndex,
     localColorOverrides,
     localPatternOverrides,
-    addGroup,
-    updateGroup,
-    overridePluginGroup,
-    changeGroupColor,
-    changePluginGroupColor,
-    changeGroupPattern,
-    deleteGroup,
-    pickImage,
-    clearImage,
-    togglePluginGroupDisabled,
-    togglePluginSectionDisabled,
+    addGroup: actions.addGroup,
+    updateGroup: actions.updateGroup,
+    overridePluginGroup: actions.overridePluginGroup,
+    changeGroupColor: persistence.changeGroupColor,
+    changePluginGroupColor: persistence.changePluginGroupColor,
+    changeGroupPattern: persistence.changeGroupPattern,
+    deleteGroup: actions.deleteGroup,
+    pickImage: actions.pickImage,
+    clearImage: actions.clearImage,
+    togglePluginGroupDisabled: actions.togglePluginGroupDisabled,
+    togglePluginSectionDisabled: actions.togglePluginSectionDisabled,
     togglePluginExpansion,
-    startGroupDrag,
-    overGroupDrag,
-    dropGroup,
-    endGroupDrag,
+    startGroupDrag: drag.startGroupDrag,
+    overGroupDrag: drag.overGroupDrag,
+    dropGroup: drag.dropGroup,
+    endGroupDrag: drag.endGroupDrag,
   };
 }

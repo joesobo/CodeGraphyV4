@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { SettingsPanelGroupSection } from '../../../../src/webview/components/settingsPanel/groups/model';
 import { DefaultGroups } from '../../../../src/webview/components/settingsPanel/groups/Defaults';
+import type { SettingsPanelGroupSection } from '../../../../src/webview/components/settingsPanel/groups/sections';
 import type { GroupEditorState } from '../../../../src/webview/components/settingsPanel/groups/useEditorState';
 
 function buildController(overrides: Partial<GroupEditorState> = {}): GroupEditorState {

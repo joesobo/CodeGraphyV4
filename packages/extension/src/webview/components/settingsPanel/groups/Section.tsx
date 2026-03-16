@@ -2,7 +2,7 @@ import React from 'react';
 import { useGraphStore } from '../../../store';
 import { CustomGroups } from './Custom';
 import { DefaultGroups } from './Defaults';
-import { groupSettingsPanelSections } from './model';
+import { groupSettingsPanelSections } from './sections';
 import { useEditorState } from './useEditorState';
 
 export function GroupsSection(): React.ReactElement {

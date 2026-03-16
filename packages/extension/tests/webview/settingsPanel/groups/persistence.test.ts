@@ -1,0 +1,120 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { IGroup } from '../../../../src/shared/types';
+import {
+  clearTimeoutMap,
+  createGroupPersistenceHandlers,
+} from '../../../../src/webview/components/settingsPanel/groups/persistence';
+
+function createOverrideSetter(initialValue: Record<string, string> = {}) {
+  let value = initialValue;
+  const setter = (next: Record<string, string> | ((current: Record<string, string>) => Record<string, string>)) => {
+    value = typeof next === 'function' ? next(value) : next;
+  };
+
+  return {
+    get value() {
+      return value;
+    },
+    setter,
+  };
+}
+
+describe('settingsPanel groups persistence', () => {
+  beforeEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('clears all pending timers from a timeout map', () => {
+    vi.useFakeTimers();
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const ref = {
+      current: {
+        first: setTimeout(() => undefined, 100),
+        second: setTimeout(() => undefined, 200),
+      },
+    };
+
+    clearTimeoutMap(ref);
+
+    expect(clearTimeoutSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it('persists debounced custom color changes and clears the local override', () => {
+    vi.useFakeTimers();
+    const colorOverrides = createOverrideSetter();
+    const patternOverrides = createOverrideSetter();
+    const updateGroup = vi.fn();
+    const handlers = createGroupPersistenceHandlers({
+      colorDebounceRef: { current: {} },
+      overridePluginGroup: vi.fn(),
+      patternDebounceRef: { current: {} },
+      setLocalColorOverrides: colorOverrides.setter,
+      setLocalPatternOverrides: patternOverrides.setter,
+      updateGroup,
+    });
+
+    handlers.changeGroupColor('g1', '#ff00ff');
+    expect(colorOverrides.value).toEqual({ g1: '#ff00ff' });
+
+    vi.advanceTimersByTime(300);
+
+    expect(updateGroup).toHaveBeenCalledWith('g1', { color: '#ff00ff' });
+    expect(colorOverrides.value).toEqual({});
+  });
+
+  it('persists debounced plugin color overrides and clears the local override', () => {
+    vi.useFakeTimers();
+    const overridePluginGroup = vi.fn();
+    const colorOverrides = createOverrideSetter();
+    const handlers = createGroupPersistenceHandlers({
+      colorDebounceRef: { current: {} },
+      overridePluginGroup,
+      patternDebounceRef: { current: {} },
+      setLocalColorOverrides: colorOverrides.setter,
+      setLocalPatternOverrides: createOverrideSetter().setter,
+      updateGroup: vi.fn(),
+    });
+
+    handlers.changePluginGroupColor(
+      {
+        id: 'plugin:typescript:ts',
+        pattern: '*.ts',
+        color: '#3178C6',
+        isPluginDefault: true,
+      } as IGroup,
+      '#00ff00',
+    );
+    expect(colorOverrides.value).toEqual({ 'plugin:typescript:ts': '#00ff00' });
+
+    vi.advanceTimersByTime(300);
+
+    expect(overridePluginGroup).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'plugin:typescript:ts' }),
+      { color: '#00ff00' },
+    );
+    expect(colorOverrides.value).toEqual({});
+  });
+
+  it('persists debounced pattern changes and keeps only the latest pending value', () => {
+    vi.useFakeTimers();
+    const patternOverrides = createOverrideSetter();
+    const updateGroup = vi.fn();
+    const handlers = createGroupPersistenceHandlers({
+      colorDebounceRef: { current: {} },
+      overridePluginGroup: vi.fn(),
+      patternDebounceRef: { current: {} },
+      setLocalColorOverrides: createOverrideSetter().setter,
+      setLocalPatternOverrides: patternOverrides.setter,
+      updateGroup,
+    });
+
+    handlers.changeGroupPattern('g1', '*.tsx');
+    handlers.changeGroupPattern('g1', '*.cts');
+
+    vi.advanceTimersByTime(300);
+
+    expect(updateGroup).toHaveBeenCalledTimes(1);
+    expect(updateGroup).toHaveBeenCalledWith('g1', { pattern: '*.cts' });
+    expect(patternOverrides.value).toEqual({});
+  });
+});
