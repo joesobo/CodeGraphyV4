@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FGLink } from '../../../src/webview/components/graphModel';
 import { createContextMenuHandlers } from '../../../src/webview/components/graph/interactionHandlers/contextMenuHandlers';
-import { createInteractionDependencies } from './interactionHandlers.testUtils';
+import { createInteractionDependencies } from './interactionHandlers/testUtils';
 
 describe('graph/contextMenuHandlers', () => {
   it('updates selection and opens the node context menu', () => {

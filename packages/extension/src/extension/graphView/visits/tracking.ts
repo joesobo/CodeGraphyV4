@@ -1,8 +1,8 @@
-import type { IGraphData } from '../../shared/types';
+import type { IGraphData } from '../../../shared/types';
 import {
   incrementPersistedGraphViewVisitCount,
   readPersistedGraphViewVisitCount,
-} from './visits';
+} from './index';
 
 interface GraphViewWorkspaceStateLike {
   get<T>(key: string): T | undefined;

@@ -5,9 +5,9 @@ import type {
 import type {
   ForceGraphMethods as FG3DMethods,
 } from 'react-force-graph-3d';
-import type { IGraphData } from '../../../src/shared/types';
-import type { FGLink, FGNode } from '../../../src/webview/components/graphModel';
-import type { GraphInteractionHandlersDependencies } from '../../../src/webview/components/graph/interactionHandlers';
+import type { IGraphData } from '../../../../src/shared/types';
+import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
+import type { GraphInteractionHandlersDependencies } from '../../../../src/webview/components/graph/interactionHandlers';
 
 export function createRef<T>(current: T): { current: T } {
   return { current };

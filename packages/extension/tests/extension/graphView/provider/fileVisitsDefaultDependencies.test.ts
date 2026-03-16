@@ -63,7 +63,7 @@ vi.mock('../../../../src/extension/graphView/favorites', () => ({
   sendGraphViewFavorites: mocks.sendFavorites,
 }));
 
-vi.mock('../../../../src/extension/graphView/visitTracking', () => ({
+vi.mock('../../../../src/extension/graphView/visits/tracking', () => ({
   getGraphViewVisitCount: mocks.getVisitCount,
   incrementGraphViewVisitCount: mocks.incrementVisitCount,
   trackGraphViewFileVisit: mocks.trackFileVisit,

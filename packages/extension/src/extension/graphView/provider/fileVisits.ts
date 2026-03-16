@@ -5,7 +5,7 @@ import { getUndoManager } from '../../UndoManager';
 import { addGraphViewExcludePatternsWithUndo } from '../excludePatterns';
 import { sendGraphViewProviderFileInfoMessage } from '../fileInfo/request';
 import { sendGraphViewFavorites } from '../favorites';
-import { getGraphViewVisitCount, incrementGraphViewVisitCount, trackGraphViewFileVisit } from '../visitTracking';
+import { getGraphViewVisitCount, incrementGraphViewVisitCount, trackGraphViewFileVisit } from '../visits/tracking';
 
 interface GraphViewProviderFileInfoAnalyzerLike {
   initialize(): Promise<void>;

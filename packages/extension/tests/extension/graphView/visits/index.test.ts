@@ -3,7 +3,7 @@ import {
   getGraphViewVisitsStorageKey,
   incrementPersistedGraphViewVisitCount,
   readPersistedGraphViewVisitCount,
-} from '../../../src/extension/graphView/visits';
+} from '../../../../src/extension/graphView/visits';
 
 function createWorkspaceState(visits?: Record<string, number>) {
   return {

@@ -4,9 +4,9 @@ import {
   getGraphViewVisitCount,
   incrementGraphViewVisitCount,
   trackGraphViewFileVisit,
-} from '../../../src/extension/graphView/visitTracking';
+} from '../../../../src/extension/graphView/visits/tracking';
 
-describe('graph view visit-tracking helper', () => {
+describe('graphView/visits/tracking', () => {
   it('reads visit counts from persisted state', () => {
     const workspaceState = {
       get: vi.fn(() => ({ 'src/app.ts': 4 })),
