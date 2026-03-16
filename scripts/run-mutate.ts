@@ -29,7 +29,8 @@ const EXTENSION_SLICES: Record<string, string> = {
 	'timeline':
 		'packages/extension/src/webview/components/Timeline.tsx,packages/extension/src/webview/components/timeline/**/*.ts,packages/extension/src/webview/components/timeline/**/*.tsx',
 	'webview-export': 'packages/extension/src/webview/lib/export/**/*.ts',
-	'git-history': 'packages/extension/src/extension/GitHistoryAnalyzer.ts',
+	'git-history':
+		'packages/extension/src/extension/GitHistoryAnalyzer.ts,packages/extension/src/extension/gitHistory/**/*.ts',
 };
 
 interface MutationRunOptions {

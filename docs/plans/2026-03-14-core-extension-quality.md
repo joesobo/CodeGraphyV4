@@ -1409,13 +1409,85 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - move off `webview-export`
       - refresh `git-history` next
       - then rerun package-level CRAP and mutation status to identify the next stale extension slice
+- 2026-03-16 git-history baseline:
+  - refreshed the official `git-history` slice baseline:
+    - `pnpm run mutate -- extension git-history`
+    - slice overall = `55.25%`
+    - `⚠️ GitHistoryAnalyzer.ts exceeds the mutation-site threshold with 365 sites`
+  - current file layout risk:
+    - `packages/extension/src/extension/GitHistoryAnalyzer.ts` = `653` lines
+    - `packages/extension/tests/extension/GitHistoryAnalyzer.test.ts` = `758` lines
+    - both are still single-file modules covering commit listing, cache IO, full-commit analysis, diff application, and abort handling
+  - current split plan:
+    - extract `packages/extension/src/extension/gitHistory/` helpers for:
+      - commit listing
+      - cache IO/state
+      - full-commit analysis
+      - diff application and file reanalysis
+    - mirror those helpers with direct file-per-module tests under `packages/extension/tests/extension/gitHistory/`
+    - rerun `pnpm run mutate -- extension git-history` after each extraction batch until every file is under `50` sites
+  - next cut:
+    - land the helper-module extractions first
+    - wire `GitHistoryAnalyzer.ts` onto the extracted helpers
+    - only then start survivor cleanup
+- 2026-03-16 git-history threshold recovery:
+  - introduced `packages/extension/src/extension/gitHistory/` helpers:
+    - `abort.ts`
+    - `cachePaths.ts`
+    - `cacheState.ts`
+    - `cacheStorage.ts`
+    - `commitList.ts`
+    - `constants.ts`
+    - `diffGraphAnalysis.ts`
+    - `diffGraphChanges.ts`
+    - `diffGraphState.ts`
+    - `fullCommitAnalysis.ts`
+    - `gitExec.ts`
+    - `graphConnections.ts`
+    - `reanalyzeGraphFile.ts`
+  - added direct tests under `tests/extension/gitHistory/` for:
+    - `abort.test.ts`
+    - `cachePaths.test.ts`
+    - `cacheState.test.ts`
+    - `cacheStorage.test.ts`
+    - `commitList.test.ts`
+    - `gitExec.test.ts`
+  - widened the `git-history` mutation slice in `scripts/run-mutate.ts` to include `packages/extension/src/extension/gitHistory/**/*.ts`
+  - rewired `GitHistoryAnalyzer.ts` onto the extracted commit-list, cache, full-analysis, diff-analysis, and git-exec helpers
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GitHistoryAnalyzer.test.ts $(fd -t f '.test.ts$' packages/extension/tests/extension/gitHistory | sed 's#^packages/extension/##' | sort)`
+    - `41` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension git-history`
+    - slice overall = `64.94%`
+    - `GitHistoryAnalyzer.ts` = `74` mutation sites at `66.22%`
+    - `diffGraphAnalysis.ts` = `51` mutation sites at `78.43%`
+    - current below-threshold files needing later survivor cleanup:
+      - `diffGraphChanges.ts` = `30.00%`
+      - `reanalyzeGraphFile.ts` = `31.82%`
+      - `graphConnections.ts` = `36.84%`
+      - `diffGraphState.ts` = `42.55%`
+      - `fullCommitAnalysis.ts` = `66.67%`
+      - `gitExec.ts` = `68.75%`
+      - `commitList.ts` = `81.25%`
+      - `cacheState.ts` = `83.33%`
+    - threshold wins from this pass:
+      - `GitHistoryAnalyzer.ts` dropped from `365` sites to `74`
+      - all extracted helpers except `diffGraphAnalysis.ts` are already within the `50`-site threshold
+    - next cut:
+      - split `GitHistoryAnalyzer.ts` under `50`
+      - split `diffGraphAnalysis.ts` under `50`
+      - only then switch from threshold work to direct survivor cleanup in the remaining git-history helpers
 
 ## Current hotspot order
-1. refresh the remaining official extension slices: `git-history`, then any stale graph-webview/settings-panel files not yet officially rerun
-2. print the package-level mutation/CRAP/status summary from the refreshed slice set
-3. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
-4. update the PR description with the completed refactor record
-5. resolve any remaining merge conflict drift on the PR branch
+1. finish the `git-history` threshold pass by splitting `GitHistoryAnalyzer.ts` and `diffGraphAnalysis.ts` under `50`
+2. raise every mutated file in `git-history` above `90%`
+3. refresh any stale extension slices not yet officially rerun after the git-history pass
+4. print the package-level mutation/CRAP/status summary from the refreshed slice set
+5. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
+6. update the PR description with the completed refactor record
+7. resolve any remaining merge conflict drift on the PR branch
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
