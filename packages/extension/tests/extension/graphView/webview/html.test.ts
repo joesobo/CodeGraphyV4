@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { createGraphViewHtml, createGraphViewNonce } from '../../../src/extension/graphView/html';
+import { createGraphViewHtml, createGraphViewNonce } from '../../../../src/extension/graphView/webview/html';
 
-describe('graphViewHtml', () => {
+describe('graphView/webview/html', () => {
   it('creates a 32-character nonce from the allowed character set', () => {
     const nonce = createGraphViewNonce(() => 0);
 

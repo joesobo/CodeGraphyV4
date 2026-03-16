@@ -1,5 +1,5 @@
 import type { IFileInfo, WebviewToExtensionMessage } from '../../../../shared/types';
-import type { GraphWebviewMessageEffect } from '../../graphWebviewMessageEffects';
+import type { GraphWebviewMessageEffect } from '../../graphWebviewMessages/effects';
 
 export interface GraphWebviewMessageEffectHandlers {
   fitView(): void;

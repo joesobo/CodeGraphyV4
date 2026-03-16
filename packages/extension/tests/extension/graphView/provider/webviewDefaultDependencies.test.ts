@@ -21,7 +21,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-vi.mock('../../../../src/extension/graphView/html', () => ({
+vi.mock('../../../../src/extension/graphView/webview/html', () => ({
   createGraphViewHtml: mocks.createGraphViewHtml,
   createGraphViewNonce: mocks.createGraphViewNonce,
 }));
@@ -34,11 +34,11 @@ vi.mock('../../../../src/extension/graphView/messages/provider/listener', () => 
   setGraphViewProviderMessageListener: mocks.setGraphViewProviderMessageListener,
 }));
 
-vi.mock('../../../../src/extension/graphView/resolveWebview', () => ({
+vi.mock('../../../../src/extension/graphView/webview/resolve', () => ({
   resolveGraphViewWebviewView: mocks.resolveGraphViewWebviewView,
 }));
 
-vi.mock('../../../../src/extension/graphView/webviewBridge', () => ({
+vi.mock('../../../../src/extension/graphView/webview/bridge', () => ({
   sendGraphViewWebviewMessage: mocks.sendGraphViewWebviewMessage,
   onGraphViewWebviewMessage: mocks.onGraphViewWebviewMessage,
 }));

@@ -2,8 +2,8 @@ import type {
   ExtensionToWebviewMessage,
   IFileInfo,
   WebviewToExtensionMessage,
-} from '../../shared/types';
-import type { FGNode } from './graphModel';
+} from '../../../shared/types';
+import type { FGNode } from '../graphModel';
 import {
   EMPTY_EFFECTS,
   getAccessCountEffects,
@@ -12,7 +12,7 @@ import {
   getFitViewEffects,
   getNodeBoundsEffects,
   getZoomEffects,
-} from './graphWebviewMessageEffectHelpers';
+} from './helpers';
 
 export type GraphWebviewMessageEffect =
   | { kind: 'fitView' }
