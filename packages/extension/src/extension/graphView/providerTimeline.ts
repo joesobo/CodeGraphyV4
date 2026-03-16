@@ -1,9 +1,8 @@
-import * as vscode from 'vscode';
 import type { ExtensionToWebviewMessage, ICommitInfo, IGraphData } from '../../shared/types';
-import { GitHistoryAnalyzer } from '../GitHistoryAnalyzer';
-import { buildGraphViewTimelineGraphData } from './timelineGraph';
 import { indexGraphViewRepository } from './timelineIndex';
 import { sendCachedGraphViewTimeline } from './timelinePlayback';
+import { createDefaultGraphViewProviderTimelineDependencies } from './providerTimelineDefaultDependencies';
+import type { ExtensionContext } from 'vscode';
 
 interface GraphViewProviderTimelineAnalyzer {
   registry: unknown;
@@ -22,7 +21,7 @@ interface GraphViewProviderTimelineGitAnalyzer {
 }
 
 export interface GraphViewProviderTimelineSource {
-  _context: vscode.ExtensionContext;
+  _context: ExtensionContext;
   _analyzer?: GraphViewProviderTimelineAnalyzer;
   _analyzerInitialized: boolean;
   _gitAnalyzer?: GraphViewProviderTimelineGitAnalyzer;
@@ -42,7 +41,7 @@ export interface GraphViewProviderTimelineDependencies {
   getMaxCommits(): number;
   verifyGitRepository(cwd: string): Promise<void>;
   createGitAnalyzer(
-    context: vscode.ExtensionContext,
+    context: ExtensionContext,
     registry: unknown,
     workspaceRoot: string,
     mergedExclude: string[],
@@ -62,37 +61,6 @@ export interface GraphViewProviderTimelineDependencies {
   indexRepository: typeof indexGraphViewRepository;
   sendCachedTimeline: typeof sendCachedGraphViewTimeline;
   logError(message: string, error: unknown): void;
-}
-
-function createDefaultGraphViewProviderTimelineDependencies(): GraphViewProviderTimelineDependencies {
-  return {
-    getWorkspaceFolder: () => vscode.workspace.workspaceFolders?.[0],
-    getShowOrphans: () =>
-      vscode.workspace.getConfiguration('codegraphy').get<boolean>('showOrphans', true),
-    getMaxCommits: () =>
-      vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.maxCommits', 500),
-    verifyGitRepository: async cwd => {
-      const { execFile } = await import('child_process');
-      const { promisify } = await import('util');
-      const execFileAsync = promisify(execFile);
-      await execFileAsync('git', ['rev-parse', '--git-dir'], { cwd });
-    },
-    createGitAnalyzer: (context, registry, workspaceRoot, mergedExclude) =>
-      new GitHistoryAnalyzer(context, registry as never, workspaceRoot, mergedExclude),
-    showErrorMessage: message => {
-      vscode.window.showErrorMessage(message);
-    },
-    showInformationMessage: message => {
-      vscode.window.showInformationMessage(message);
-    },
-    buildTimelineGraphData: (rawGraphData, options) =>
-      buildGraphViewTimelineGraphData(rawGraphData, options as never),
-    indexRepository: indexGraphViewRepository,
-    sendCachedTimeline: sendCachedGraphViewTimeline,
-    logError: (message, error) => {
-      console.error(message, error);
-    },
-  };
 }
 
 export async function indexGraphViewProviderRepository(

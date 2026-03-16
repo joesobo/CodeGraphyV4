@@ -39,23 +39,27 @@ export interface GraphViewProviderViewSelectionMethodDependencies {
   logUnavailableView(viewId: string): void;
 }
 
-const DEFAULT_DEPENDENCIES: GraphViewProviderViewSelectionMethodDependencies = {
-  changeView: changeGraphViewView,
-  setFocusedFile: setGraphViewFocusedFile,
-  setDepthLimit: setGraphViewDepthLimit,
-  getDepthLimit: getGraphViewDepthLimit,
-  defaultDepthLimit: 1,
-  selectedViewKey: 'codegraphy.selectedView',
-  depthLimitKey: 'codegraphy.depthLimit',
-  logUnavailableView: viewId => {
-    console.warn(`[CodeGraphy] View '${viewId}' is not available`);
-  },
-};
+function createDefaultGraphViewProviderViewSelectionMethodDependencies(): GraphViewProviderViewSelectionMethodDependencies {
+  return {
+    changeView: changeGraphViewView,
+    setFocusedFile: setGraphViewFocusedFile,
+    setDepthLimit: setGraphViewDepthLimit,
+    getDepthLimit: getGraphViewDepthLimit,
+    defaultDepthLimit: 1,
+    selectedViewKey: 'codegraphy.selectedView',
+    depthLimitKey: 'codegraphy.depthLimit',
+    logUnavailableView: viewId => {
+      console.warn(`[CodeGraphy] View '${viewId}' is not available`);
+    },
+  };
+}
 
 export function createGraphViewProviderViewSelectionMethods(
   source: GraphViewProviderViewSelectionMethodsSource,
-  dependencies: GraphViewProviderViewSelectionMethodDependencies = DEFAULT_DEPENDENCIES,
+  dependencies?: GraphViewProviderViewSelectionMethodDependencies,
 ): GraphViewProviderViewSelectionMethods {
+  const resolvedDependencies =
+    dependencies ?? createDefaultGraphViewProviderViewSelectionMethodDependencies();
   const callApplyViewTransform = (): void => {
     source._applyViewTransform?.();
   };
@@ -65,21 +69,21 @@ export function createGraphViewProviderViewSelectionMethods(
   };
 
   const changeView = async (viewId: string): Promise<void> => {
-    await dependencies.changeView(source as never, viewId, {
+    await resolvedDependencies.changeView(source as never, viewId, {
       isViewAvailable: (nextViewId, viewContext) =>
         source._viewRegistry.isViewAvailable(nextViewId, viewContext),
       persistActiveViewId: async nextViewId => {
-        await source._context.workspaceState.update(dependencies.selectedViewKey, nextViewId);
+        await source._context.workspaceState.update(resolvedDependencies.selectedViewKey, nextViewId);
       },
       applyViewTransform: () => callApplyViewTransform(),
       sendAvailableViews: () => callSendAvailableViews(),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
-      logUnavailableView: nextViewId => dependencies.logUnavailableView(nextViewId),
+      logUnavailableView: nextViewId => resolvedDependencies.logUnavailableView(nextViewId),
     });
   };
 
   const setFocusedFile = (filePath: string | undefined): void => {
-    dependencies.setFocusedFile(source as never, filePath, {
+    resolvedDependencies.setFocusedFile(source as never, filePath, {
       getActiveViewInfo: nextViewId => source._viewRegistry.get(nextViewId) as never,
       applyViewTransform: () => callApplyViewTransform(),
       sendAvailableViews: () => callSendAvailableViews(),
@@ -88,9 +92,9 @@ export function createGraphViewProviderViewSelectionMethods(
   };
 
   const setDepthLimit = async (depthLimit: number): Promise<void> => {
-    await dependencies.setDepthLimit(source as never, depthLimit, {
+    await resolvedDependencies.setDepthLimit(source as never, depthLimit, {
       persistDepthLimit: async nextDepthLimit => {
-        await source._context.workspaceState.update(dependencies.depthLimitKey, nextDepthLimit);
+        await source._context.workspaceState.update(resolvedDependencies.depthLimitKey, nextDepthLimit);
       },
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
       getActiveViewInfo: nextViewId => source._viewRegistry.get(nextViewId) as never,
@@ -99,7 +103,7 @@ export function createGraphViewProviderViewSelectionMethods(
   };
 
   const getDepthLimit = (): number =>
-    dependencies.getDepthLimit(source._viewContext, dependencies.defaultDepthLimit);
+    resolvedDependencies.getDepthLimit(source._viewContext, resolvedDependencies.defaultDepthLimit);
 
   return {
     changeView,
