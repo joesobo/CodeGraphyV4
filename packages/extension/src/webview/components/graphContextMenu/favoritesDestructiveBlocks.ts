@@ -1,6 +1,8 @@
 import { builtInItem, separator } from './entryFactories';
 import type { GraphContextMenuEntry } from './types';
 
+export { buildDestructiveBlock } from './destructiveBlock';
+
 /** Builds the "favorites" block: Toggle Favorite and optionally Focus Node. */
 export function buildFavoriteBlock(
   targets: readonly string[],
@@ -24,30 +26,6 @@ export function buildFavoriteBlock(
   if (!isMultiSelect) {
     entries.push(builtInItem('node-focus', 'Focus Node', 'focus'));
   }
-
-  return entries;
-}
-
-/** Builds the "destructive" block: Add to Filter, Rename, and Delete. */
-export function buildDestructiveBlock(targets: readonly string[]): GraphContextMenuEntry[] {
-  const isMultiSelect = targets.length > 1;
-  const entries: GraphContextMenuEntry[] = [];
-
-  entries.push(separator('node-separator-destructive-1'));
-  entries.push(
-    builtInItem('node-add-filter', isMultiSelect ? 'Add All to Filter' : 'Add to Filter', 'addToFilter')
-  );
-  entries.push(separator('node-separator-destructive-2'));
-
-  if (!isMultiSelect) {
-    entries.push(builtInItem('node-rename', 'Rename...', 'rename'));
-  }
-
-  entries.push(
-    builtInItem('node-delete', isMultiSelect ? `Delete ${targets.length} Files` : 'Delete File', 'delete', {
-      destructive: true,
-    })
-  );
 
   return entries;
 }
