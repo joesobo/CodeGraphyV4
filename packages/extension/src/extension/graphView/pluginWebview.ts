@@ -7,11 +7,11 @@ import {
   buildGraphViewDecorationPayload,
   collectGraphViewContextMenuItems,
   collectGraphViewWebviewInjections,
-} from '../graphViewPluginMessages';
+} from './pluginMessages';
 import {
   getGraphViewLocalResourceRoots,
   resolveGraphViewAssetPath,
-} from '../graphViewResources';
+} from './resources';
 
 interface GraphViewPluginRegistry {
   list(): Array<{

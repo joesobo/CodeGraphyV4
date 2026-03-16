@@ -11,7 +11,7 @@ import type { IViewContext } from '../../../../core/views';
 import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/types';
 import { getUndoManager } from '../../../UndoManager';
 import { ResetSettingsAction } from '../../../actions';
-import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../../graphViewSettings';
+import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../config';
 import { captureGraphViewSettingsSnapshot } from '../../settings';
 import { createGraphViewProviderMessagePluginContext } from './pluginContext';
 import { createGraphViewProviderMessagePrimaryActions } from './primaryActions';

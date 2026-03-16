@@ -4,8 +4,8 @@ import type {
   ISettingsSnapshot,
   NodeSizeMode,
 } from '../../shared/types';
-import { readGraphViewSettings } from '../graphViewSettings';
-import type { IGraphViewSettingsSnapshot } from '../graphViewSettings';
+import { readGraphViewSettings } from './config';
+import type { IGraphViewSettingsSnapshot } from './config';
 
 interface GraphViewSettingsConfig {
   get<T>(section: string, defaultValue: T): T;

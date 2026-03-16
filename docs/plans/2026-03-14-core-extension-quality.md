@@ -1610,6 +1610,27 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
 4. update the PR description with the completed refactor record
 5. resolve any remaining merge conflict drift on the PR branch
 
+## 2026-03-16 graph-view organization refresh
+- completed the pending `main` merge and pushed `9772177`; PR `#144` is mergeable again
+- refreshed the official `graph-view-provider` mutation slice with lower Stryker concurrency after a harness-level `143` abort
+  - `pnpm run mutate -- extension graph-view-provider`
+  - slice overall = `98.08%`
+  - `✅ every file in the slice is above the 90% mutation goal`
+  - `✅ every file in the slice is within the 50-site threshold`
+  - current floor files:
+    - `messages/provider/readContext.ts` = `90.91%`
+    - `GraphViewProvider.ts` = `91.67%`
+    - `analysisLifecycle.ts` = `91.18%`
+    - `viewSelection.ts` = `91.67%`
+    - `viewBroadcast.ts` = `92.86%`
+  - note: Stryker still attributes part of the provider slice to pre-folder-cleanup paths, so the next rerun should happen after the remaining folder normalization pass
+- next cleanup batch:
+  - move root `analysis*.ts` helpers into `graphView/analysis/`
+  - move root group/default-group helpers into `graphView/groups/`
+  - move root file/file-info helpers into `graphView/files/`
+  - mirror each move under `packages/extension/tests/extension/graphView/`
+  - rerun focused graph-view tests plus the official `graph-view-provider` and `graph-view-messages` slices after the rename pass
+
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
 - Use real subagent worktrees/branches for the current provider split and verify their output before integrating.
