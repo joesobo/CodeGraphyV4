@@ -5,6 +5,7 @@
  */
 
 import { Disposable, toDisposable } from './disposable';
+import { mergeNodeDecorations, mergeEdgeDecorations } from './decorationMerge';
 
 /**
  * Structured decoration properties for graph nodes.
@@ -194,7 +195,7 @@ export class DecorationManager {
         const sorted = [...entries].sort(
           (entryA, entryB) => (entryB.decoration.priority ?? 0) - (entryA.decoration.priority ?? 0)
         );
-        result.set(nodeId, this._mergeNodeDecorations(sorted.map((e) => e.decoration)));
+        result.set(nodeId, mergeNodeDecorations(sorted.map((e) => e.decoration)));
       }
     }
 
@@ -214,7 +215,7 @@ export class DecorationManager {
         const sorted = [...entries].sort(
           (entryA, entryB) => (entryB.decoration.priority ?? 0) - (entryA.decoration.priority ?? 0)
         );
-        result.set(edgeId, this._mergeEdgeDecorations(sorted.map((e) => e.decoration)));
+        result.set(edgeId, mergeEdgeDecorations(sorted.map((e) => e.decoration)));
       }
     }
 
@@ -230,56 +231,6 @@ export class DecorationManager {
     return toDisposable(() => {
       this._changeListeners.delete(callback);
     });
-  }
-
-  /**
-   * Merge multiple node decorations (already sorted by priority descending).
-   * First-set-wins per property.
-   */
-  private _mergeNodeDecorations(decorations: NodeDecoration[]): NodeDecoration {
-    const merged: NodeDecoration = {};
-    const tooltipSections: TooltipSection[] = [];
-
-    for (const dec of decorations) {
-      if (dec.badge && !merged.badge) merged.badge = dec.badge;
-      if (dec.border && !merged.border) merged.border = dec.border;
-      if (dec.label && !merged.label) merged.label = dec.label;
-      if (dec.size && !merged.size) merged.size = dec.size;
-      if (dec.opacity !== undefined && merged.opacity === undefined) merged.opacity = dec.opacity;
-      if (dec.color && !merged.color) merged.color = dec.color;
-      if (dec.icon && !merged.icon) merged.icon = dec.icon;
-      if (dec.group && !merged.group) merged.group = dec.group;
-
-      // Tooltip sections are concatenated from all plugins
-      if (dec.tooltip?.sections) {
-        tooltipSections.push(...dec.tooltip.sections);
-      }
-    }
-
-    if (tooltipSections.length > 0) {
-      merged.tooltip = { sections: tooltipSections };
-    }
-
-    return merged;
-  }
-
-  /**
-   * Merge multiple edge decorations (already sorted by priority descending).
-   */
-  private _mergeEdgeDecorations(decorations: EdgeDecoration[]): EdgeDecoration {
-    const merged: EdgeDecoration = {};
-
-    for (const dec of decorations) {
-      if (dec.color && !merged.color) merged.color = dec.color;
-      if (dec.width !== undefined && merged.width === undefined) merged.width = dec.width;
-      if (dec.style && !merged.style) merged.style = dec.style;
-      if (dec.label && !merged.label) merged.label = dec.label;
-      if (dec.particles && !merged.particles) merged.particles = dec.particles;
-      if (dec.opacity !== undefined && merged.opacity === undefined) merged.opacity = dec.opacity;
-      if (dec.curvature !== undefined && merged.curvature === undefined) merged.curvature = dec.curvature;
-    }
-
-    return merged;
   }
 
   private _notifyChange(): void {

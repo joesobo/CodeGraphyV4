@@ -3,6 +3,9 @@
  */
 
 import { useState, useEffect } from 'react';
+import { parseColor } from '../lib/colorParsing';
+
+export { adjustColorForLightTheme } from '../lib/colorParsing';
 
 export type ThemeKind = 'light' | 'dark' | 'high-contrast';
 type ThemeChangedMessage = { type: 'THEME_CHANGED'; payload: { kind: ThemeKind } };
@@ -24,62 +27,22 @@ function isThemeChangedMessage(data: unknown): data is ThemeChangedMessage {
 function detectTheme(): ThemeKind {
   // Check for high contrast first
   const bodyBg = getComputedStyle(document.body).getPropertyValue('--vscode-editor-background').trim();
-  
+
   if (!bodyBg) return 'dark'; // Default
-  
+
   // Parse the color and determine brightness
   const rgb = parseColor(bodyBg);
   if (!rgb) return 'dark';
-  
+
   // Calculate perceived brightness
   const brightness = (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000;
-  
+
   // High contrast themes typically have very dark or very light backgrounds
   if (brightness < 30 || brightness > 240) {
     return 'high-contrast';
   }
-  
+
   return brightness > 128 ? 'light' : 'dark';
-}
-
-/**
- * Parses a CSS color string to RGB values.
- */
-function parseColor(color: string): { r: number; g: number; b: number } | null {
-  // Handle hex colors
-  const hexMatch = color.match(/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i);
-  if (hexMatch) {
-    return {
-      r: parseInt(hexMatch[1], 16),
-      g: parseInt(hexMatch[2], 16),
-      b: parseInt(hexMatch[3], 16),
-    };
-  }
-  
-  // Handle rgb/rgba
-  const rgbMatch = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-  if (rgbMatch) {
-    return {
-      r: parseInt(rgbMatch[1]),
-      g: parseInt(rgbMatch[2]),
-      b: parseInt(rgbMatch[3]),
-    };
-  }
-  
-  return null;
-}
-
-/**
- * Adjusts a hex color for light theme (darker, more saturated).
- */
-export function adjustColorForLightTheme(hexColor: string): string {
-  const rgb = parseColor(hexColor);
-  if (!rgb) return hexColor;
-  
-  // Darken and increase saturation for light theme
-  const darkenFactor = 0.7;
-  
-  return `#${Math.round(rgb.r * darkenFactor).toString(16).padStart(2, '0')}${Math.round(rgb.g * darkenFactor).toString(16).padStart(2, '0')}${Math.round(rgb.b * darkenFactor).toString(16).padStart(2, '0')}`;
 }
 
 /**
@@ -105,7 +68,7 @@ export function useTheme(): ThemeKind {
       if (!isThemeChangedMessage(event.data)) return;
       setTheme(event.data.payload.kind);
     };
-    
+
     window.addEventListener('message', handleMessage);
 
     return () => {

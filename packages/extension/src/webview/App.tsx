@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import Graph from './components/Graph';
 import { GraphIcon } from './components/icons';
 import { SearchBar } from './components/SearchBar';
@@ -7,27 +7,20 @@ import PluginsPanel from './components/PluginsPanel';
 import Timeline from './components/Timeline';
 import Toolbar from './components/Toolbar';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, ExtensionToWebviewMessage } from '../shared/types';
+import { usePluginManager } from './hooks/usePluginManager';
+import { useFilteredGraph } from './hooks/useFilteredGraph';
+import { ExtensionToWebviewMessage } from '../shared/types';
 import { postMessage } from './lib/vscodeApi';
 import { useGraphStore, graphStore } from './store';
 import type { SearchOptions } from './components/SearchBar';
-import { WebviewPluginHost } from './pluginHost';
-import type { CodeGraphyWebviewAPI } from './pluginHost/types';
-import { applyGroupColors, filterGraphData } from './appSearch';
 import {
   getNoDataHint,
   normalizePluginInjectPayload,
   parsePluginScopedMessage,
-  PluginInjectPayload,
-  PluginWebviewModule,
-  resolvePluginModuleActivator,
 } from './appMessages';
 
 export default function App(): React.ReactElement {
-  const pluginHostRef = useRef<WebviewPluginHost>(new WebviewPluginHost());
-  const pluginApisRef = useRef<Map<string, CodeGraphyWebviewAPI>>(new Map());
-  const loadedStylesRef = useRef<Set<string>>(new Set());
-  const activatedScriptKeysRef = useRef<Set<string>>(new Set());
+  const { pluginHost, injectPluginAssets } = usePluginManager();
 
   // Read state from store
   const graphData = useGraphStore(s => s.graphData);
@@ -48,67 +41,17 @@ export default function App(): React.ReactElement {
 
   const theme = useTheme();
 
-  // Filter graph data based on search
-  const { filteredData, regexError } = useMemo((): { filteredData: IGraphData | null; regexError: string | null } => {
-    return filterGraphData(graphData, searchQuery, searchOptions);
-  }, [graphData, searchQuery, searchOptions]);
-
-  // Apply group colors to filtered data
-  const coloredData = useMemo((): IGraphData | null => {
-    return applyGroupColors(filteredData, groups);
-  }, [filteredData, groups]);
+  // Derived graph data (filtered + colored)
+  const { filteredData, coloredData, regexError } = useFilteredGraph(
+    graphData,
+    searchQuery,
+    searchOptions,
+    groups,
+  );
 
   const handleSearchOptionsChange = useCallback((newOptions: SearchOptions) => {
     setSearchOptions(newOptions);
   }, [setSearchOptions]);
-
-  const getPluginApi = useCallback((pluginId: string): CodeGraphyWebviewAPI => {
-    const existing = pluginApisRef.current.get(pluginId);
-    if (existing) {
-      return existing;
-    }
-
-    const api = pluginHostRef.current.createAPI(pluginId, postMessage);
-    pluginApisRef.current.set(pluginId, api);
-    return api;
-  }, []);
-
-  const activatePluginScript = useCallback(async (pluginId: string, script: string): Promise<void> => {
-    const activationKey = `${pluginId}::${script}`;
-    if (activatedScriptKeysRef.current.has(activationKey)) {
-      return;
-    }
-
-    const mod = (await import(/* @vite-ignore */ script)) as unknown;
-    const activate = resolvePluginModuleActivator(mod as PluginWebviewModule);
-
-    if (typeof activate !== 'function') {
-      console.warn(`[CodeGraphy] Webview plugin script "${script}" has no activate(api) export`);
-      return;
-    }
-
-    await activate(getPluginApi(pluginId));
-    activatedScriptKeysRef.current.add(activationKey);
-  }, [getPluginApi]);
-
-  const injectPluginAssets = useCallback(async (payload: PluginInjectPayload): Promise<void> => {
-    for (const style of payload.styles) {
-      if (loadedStylesRef.current.has(style)) continue;
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = style;
-      document.head.appendChild(link);
-      loadedStylesRef.current.add(style);
-    }
-
-    for (const script of payload.scripts) {
-      try {
-        await activatePluginScript(payload.pluginId, script);
-      } catch (error) {
-        console.error(`[CodeGraphy] Failed to activate webview plugin script "${script}":`, error);
-      }
-    }
-  }, [activatePluginScript]);
 
   // Listen for extension messages and delegate to store
   useEffect(() => {
@@ -132,9 +75,9 @@ export default function App(): React.ReactElement {
 
       const scopedMessage = parsePluginScopedMessage(raw.type, raw.data);
       if (scopedMessage) {
-        pluginHostRef.current.deliverMessage(scopedMessage.pluginId, scopedMessage.message);
+        pluginHost.deliverMessage(scopedMessage.pluginId, scopedMessage.message);
         return;
-        }
+      }
 
       graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
     };
@@ -145,7 +88,7 @@ export default function App(): React.ReactElement {
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [injectPluginAssets]);
+  }, [injectPluginAssets, pluginHost]);
 
   // Loading state
   if (isLoading) {
@@ -201,7 +144,7 @@ export default function App(): React.ReactElement {
           theme={theme}
           nodeDecorations={nodeDecorations}
           edgeDecorations={edgeDecorations}
-          pluginHost={pluginHostRef.current}
+          pluginHost={pluginHost}
         />
         {activePanel !== 'none' ? (
           <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
