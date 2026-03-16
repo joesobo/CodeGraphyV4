@@ -36,4 +36,18 @@ describe('display ModeButtons', () => {
 
     expect(onSelect).toHaveBeenCalledWith('particles');
   });
+
+  it('ignores invalid selection handlers at runtime', () => {
+    render(
+      <ModeButtons
+        label="Direction"
+        onSelect={undefined as unknown as (value: 'particles') => void}
+        options={[
+          { value: 'particles', label: 'Particles', pressed: false, variant: 'outline' },
+        ]}
+      />
+    );
+
+    expect(() => fireEvent.click(screen.getByRole('button', { name: 'Particles' }))).not.toThrow();
+  });
 });

@@ -34,4 +34,21 @@ describe('display ColorField', () => {
 
     expect(onChange).toHaveBeenCalledWith('#123456');
   });
+
+  it('ignores invalid change handlers at runtime', () => {
+    render(
+      <ColorField
+        id="direction-color"
+        label="Direction Color"
+        onChange={undefined as unknown as (value: string) => void}
+        value="#abcdef"
+      />
+    );
+
+    expect(() =>
+      fireEvent.change(screen.getByLabelText('Direction Color'), {
+        target: { value: '#123456' },
+      })
+    ).not.toThrow();
+  });
 });

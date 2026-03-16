@@ -74,11 +74,13 @@ describe('settingsPanel groups actions', () => {
     actions.clearImage('g1');
     actions.deleteGroup('g1');
 
-    expect(sentMessages[0]).toMatchObject({
+    expect(sentMessages[0]).toEqual({
+      type: 'UPDATE_GROUPS',
       payload: {
-        groups: expect.arrayContaining([
-          expect.objectContaining({ id: 'g1', disabled: true }),
-        ]),
+        groups: [
+          { ...groups[0], disabled: true },
+          groups[1],
+        ],
       },
     });
     expect(sentMessages[1]).toMatchObject({

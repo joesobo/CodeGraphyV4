@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 export function getWorkspaceAnalyzerRoot(
   workspaceFolders: typeof vscode.workspace.workspaceFolders,
 ): string | undefined {
-  return workspaceFolders?.[0]?.uri.fsPath;
+  return workspaceFolders?.[0]?.uri?.fsPath;
 }
 
 export async function getWorkspaceAnalyzerFileStat(
