@@ -1,4 +1,5 @@
-import type { FGNode } from '../../graphModel';
+import type { FGLink } from '../../graphModel';
+import { resolveLinkEndpointId } from '../../graphSupport';
 import type { GraphInteractionHandlersDependencies } from '../interactionHandlers';
 
 export interface SelectionHandlers {
@@ -6,6 +7,33 @@ export interface SelectionHandlers {
   selectOnlyNode(this: void, nodeId: string): void;
   setHighlight(this: void, nodeId: string | null): void;
   setSelection(this: void, nodeIds: string[]): void;
+}
+
+export function resolveSelectionLinkEndpointId(
+  endpoint: FGLink['source']  ,
+): string | undefined {
+  return resolveLinkEndpointId(endpoint) ?? undefined;
+}
+
+export function collectHighlightedNeighborIds(
+  links: Array<Pick<FGLink, 'source' | 'target'>>,
+  nodeId: string,
+): Set<string> {
+  const neighbors = new Set<string>();
+
+  for (const link of links) {
+    const sourceId = resolveSelectionLinkEndpointId(link.source);
+    const targetId = resolveSelectionLinkEndpointId(link.target);
+
+    if (sourceId === nodeId && targetId) neighbors.add(targetId);
+    if (targetId === nodeId && sourceId) neighbors.add(sourceId);
+  }
+
+  return neighbors;
+}
+
+export function incrementHighlightVersion(previous: number): number {
+  return previous + 1;
 }
 
 export function createSelectionHandlers(
@@ -19,24 +47,17 @@ export function createSelectionHandlers(
   const setHighlight = (nodeId: string | null): void => {
     dependencies.highlightedNodeRef.current = nodeId;
 
-    if (nodeId) {
-      const neighbors = new Set<string>();
-      for (const link of dependencies.graphDataRef.current.links) {
-        const sourceId =
-          typeof link.source === 'string' ? link.source : (link.source as FGNode | undefined)?.id;
-        const targetId =
-          typeof link.target === 'string' ? link.target : (link.target as FGNode | undefined)?.id;
-
-        if (sourceId === nodeId && targetId) neighbors.add(targetId);
-        if (targetId === nodeId && sourceId) neighbors.add(sourceId);
-      }
-      dependencies.highlightedNeighborsRef.current = neighbors;
-    } else {
+    if (nodeId === null) {
       dependencies.highlightedNeighborsRef.current = new Set();
+    } else {
+      dependencies.highlightedNeighborsRef.current = collectHighlightedNeighborIds(
+        dependencies.graphDataRef.current.links,
+        nodeId,
+      );
     }
 
     if (dependencies.graphMode === '3d') {
-      dependencies.setHighlightVersion((previous) => previous + 1);
+      dependencies.setHighlightVersion(incrementHighlightVersion);
     }
   };
 

@@ -1233,15 +1233,31 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - `tooltipHover.ts` = `100.00%`
       - `tooltipRect.ts` = `93.33%`
       - `tooltipTracking.ts` = `100.00%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/interactionHandlers/clickHandlers.ts,packages/extension/src/webview/components/graph/interactionHandlers/selectionHandlers.ts,packages/extension/src/webview/components/graph/interactionHandlers/viewHandlers.ts,packages/extension/src/webview/components/graph/contextMenuRuntime.ts'`
+    - intermediate slice overall = `98.20%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/interactionHandlers.ts'`
+    - latest slice overall = `98.26%`
+    - focused verification green:
+      - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/clickHandlers.test.ts tests/webview/graph/selectionHandlers.test.ts tests/webview/graph/viewHandlers.test.ts tests/webview/graph/contextMenuRuntime.test.ts tests/webview/graph/interactionHandlers.test.ts`
+      - `47` tests green
+    - interaction-handler cluster wins:
+      - `clickHandlers.ts` = `100.00%`
+      - `selectionHandlers.ts` = `94.87%`
+      - `viewHandlers.ts` = `95.56%`
+      - `contextMenuRuntime.ts` = `100.00%`
+      - `interactionHandlers.ts` = `100.00%`
+    - current graph-webview state:
+      - `✅ every file in the refreshed graph-webview slice is above the 90% mutation goal`
+      - `✅ every file in the refreshed graph-webview slice is within the 50-site threshold`
     - next step:
-      - graph-webview is no longer the bottleneck; shift to the remaining sub-90 extension files under `interactionHandlers`, `contextMenuRuntime.ts`, and the package-level slices that still need refreshes
+      - move off graph-webview and refresh the remaining extension slices, starting with `webview-export` and `git-history`
 
 ## Current hotspot order
-1. finish the remaining sub-90 extension files in `interactionHandlers`, `contextMenuRuntime.ts`, and nearby graph webview wrappers
-2. refresh the remaining official extension slices: `webview-export`, `git-history`
-3. `packages/extension/src/webview/components/Graph.tsx`
-4. print the package-level mutation/CRAP/status summary from the refreshed slice set
-5. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
+1. refresh the remaining official extension slices: `webview-export`, `git-history`
+2. print the package-level mutation/CRAP/status summary from the refreshed slice set
+3. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
+4. update the PR description with the completed refactor record
+5. resolve any remaining merge conflict drift on the PR branch
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
