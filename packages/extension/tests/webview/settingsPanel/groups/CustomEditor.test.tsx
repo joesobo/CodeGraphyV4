@@ -1,6 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { CustomEditor } from '../../../../src/webview/components/settingsPanel/groups/CustomEditor';
+import {
+  CustomEditor,
+  resolveCustomShape2D,
+  resolveCustomShape3D,
+} from '../../../../src/webview/components/settingsPanel/groups/CustomEditor';
 import type { GroupEditorState } from '../../../../src/webview/components/settingsPanel/groups/useEditorState';
 
 function buildController(overrides: Partial<GroupEditorState> = {}): GroupEditorState {
@@ -37,7 +41,15 @@ function buildController(overrides: Partial<GroupEditorState> = {}): GroupEditor
 }
 
 describe('CustomEditor', () => {
-  it('falls back to default shapes when the group does not define them', () => {
+  it('returns the default 2D shape when a custom group omits it', () => {
+    expect(resolveCustomShape2D({ id: 'g1', pattern: '*.ts', color: '#3178C6' })).toBe('circle');
+  });
+
+  it('returns the default 3D shape when a custom group omits it', () => {
+    expect(resolveCustomShape3D({ id: 'g1', pattern: '*.ts', color: '#3178C6' })).toBe('sphere');
+  });
+
+  it('uses the default shapes in the editor selects when a custom group omits them', () => {
     render(
       <CustomEditor
         controller={buildController()}
@@ -50,7 +62,7 @@ describe('CustomEditor', () => {
     expect(screen.getAllByRole('combobox')[1]).toHaveValue('sphere');
   });
 
-  it('preserves explicit shapes and forwards editor actions', () => {
+  it('forwards editor actions for explicit shapes and images', () => {
     const controller = buildController({
       localPatternOverrides: { g1: '*.tsx' },
     });
@@ -81,11 +93,22 @@ describe('CustomEditor', () => {
     });
     fireEvent.click(screen.getByText('Clear'));
 
-    expect(screen.getAllByRole('combobox')[0]).toHaveValue('triangle');
-    expect(screen.getAllByRole('combobox')[1]).toHaveValue('cone');
     expect(controller.changeGroupPattern).toHaveBeenCalledWith('g1', '*.cts');
     expect(controller.updateGroup).toHaveBeenCalledWith('g1', { shape2D: 'square' });
     expect(controller.updateGroup).toHaveBeenCalledWith('g1', { shape3D: 'cube' });
     expect(controller.clearImage).toHaveBeenCalledWith('g1');
+  });
+
+  it('returns explicit shapes unchanged', () => {
+    const group = {
+      id: 'g1',
+      pattern: '*.ts',
+      color: '#3178C6',
+      shape2D: 'triangle' as const,
+      shape3D: 'cone' as const,
+    };
+
+    expect(resolveCustomShape2D(group)).toBe('triangle');
+    expect(resolveCustomShape3D(group)).toBe('cone');
   });
 });

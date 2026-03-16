@@ -9,6 +9,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    server: {
+      sourcemap: false,
+    },
     include: [
       resolve(__dirname, 'tests/**/*.test.{ts,tsx}'),
       resolve(root, 'packages/plugin-*/__tests__/**/*.test.{ts,tsx}'),

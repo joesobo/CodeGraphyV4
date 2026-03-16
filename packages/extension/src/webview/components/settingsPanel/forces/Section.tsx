@@ -1,63 +1,50 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { type IPhysicsSettings } from '../../../../shared/types';
 import { postMessage } from '../../../lib/vscodeApi';
 import { useGraphStore } from '../../../store';
 import { Label } from '../../ui/label';
 import { Slider } from '../../ui/slider';
+import {
+  clearPhysicsTimerMap,
+  flushPendingPhysicsValue,
+  schedulePendingPhysicsValue,
+  type PendingPhysicsMap,
+  type PhysicsTimerMap,
+} from './persistence';
 
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
-
-function clearTimerRefs(
-  ref: React.MutableRefObject<Partial<Record<keyof IPhysicsSettings, ReturnType<typeof setTimeout>>>>
-): void {
-  for (const timer of Object.values(ref.current)) {
-    if (timer) {
-      clearTimeout(timer);
-    }
-  }
-}
 
 export function ForcesSection(): React.ReactElement {
   const settings = useGraphStore((state) => state.physicsSettings);
   const setPhysicsSettings = useGraphStore((state) => state.setPhysicsSettings);
-  const pendingPhysicsValuesRef = useRef<Partial<Record<keyof IPhysicsSettings, number>>>({});
-  const physicsPersistTimersRef = useRef<
-    Partial<Record<keyof IPhysicsSettings, ReturnType<typeof setTimeout>>>
-  >({});
-
-  useEffect(() => {
-    return () => {
-      clearTimerRefs(physicsPersistTimersRef);
-    };
-  }, []);
+  const pendingPhysicsValuesRef = useRef<PendingPhysicsMap>({});
+  const physicsPersistTimersRef = useRef<PhysicsTimerMap>({});
+  const cleanupRef = useRef<(node: HTMLDivElement | null) => void>((node) => {
+    if (node === null) {
+      clearPhysicsTimerMap(physicsPersistTimersRef.current);
+    }
+  });
 
   const flushPhysicsSetting = (key: keyof IPhysicsSettings) => {
-    const pendingValue = pendingPhysicsValuesRef.current[key];
-    if (pendingValue === undefined) {
-      return;
-    }
-
-    const timer = physicsPersistTimersRef.current[key];
-    if (timer) {
-      clearTimeout(timer);
-      delete physicsPersistTimersRef.current[key];
-    }
-
-    delete pendingPhysicsValuesRef.current[key];
-    postMessage({ type: 'UPDATE_PHYSICS_SETTING', payload: { key, value: pendingValue } });
+    flushPendingPhysicsValue(
+      pendingPhysicsValuesRef.current,
+      physicsPersistTimersRef.current,
+      key,
+      (flushKey, value) => {
+        postMessage({ type: 'UPDATE_PHYSICS_SETTING', payload: { key: flushKey, value } });
+      },
+    );
   };
 
   const schedulePhysicsSettingPersist = (key: keyof IPhysicsSettings, value: number) => {
-    pendingPhysicsValuesRef.current[key] = value;
-
-    const existingTimer = physicsPersistTimersRef.current[key];
-    if (existingTimer) {
-      clearTimeout(existingTimer);
-    }
-
-    physicsPersistTimersRef.current[key] = setTimeout(() => {
-      flushPhysicsSetting(key);
-    }, PHYSICS_PERSIST_DEBOUNCE_MS);
+    schedulePendingPhysicsValue(
+      pendingPhysicsValuesRef.current,
+      physicsPersistTimersRef.current,
+      key,
+      value,
+      PHYSICS_PERSIST_DEBOUNCE_MS,
+      flushPhysicsSetting,
+    );
   };
 
   const handlePhysicsChange = (key: keyof IPhysicsSettings, value: number) => {
@@ -66,7 +53,7 @@ export function ForcesSection(): React.ReactElement {
   };
 
   return (
-    <div className="mb-2 space-y-3 pt-1">
+    <div className="mb-2 space-y-3 pt-1" ref={cleanupRef.current}>
       <div>
         <div className="flex items-center justify-between mb-1">
           <Label className="text-xs">Repel Force</Label>

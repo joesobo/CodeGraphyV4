@@ -5,7 +5,19 @@ import {
 } from '../../../../src/webview/components/settingsPanel/groups/customRowState';
 
 describe('customRowState', () => {
-  it('builds row classes for drag, expanded, and disabled states', () => {
+  it('includes the base row classes', () => {
+    expect(
+      getCustomRowClassName({
+        dragIndex: null,
+        dragOverIndex: null,
+        groupDisabled: false,
+        index: 1,
+        isExpanded: false,
+      }),
+    ).toContain('rounded transition-colors');
+  });
+
+  it('adds the hover highlight when a different row is the current drop target', () => {
     expect(
       getCustomRowClassName({
         dragIndex: 0,
@@ -15,14 +27,52 @@ describe('customRowState', () => {
         isExpanded: true,
       }),
     ).toContain('bg-accent');
+  });
 
+  it('omits the hover highlight when dragging over the same row', () => {
     expect(
       getCustomRowClassName({
-        dragIndex: 0,
+        dragIndex: 1,
         dragOverIndex: 1,
-        groupDisabled: true,
+        groupDisabled: false,
+        index: 1,
+        isExpanded: false,
+      }),
+    ).not.toContain('outline-primary/50');
+  });
+
+  it('adds the dragged-row opacity class', () => {
+    expect(
+      getCustomRowClassName({
+        dragIndex: 1,
+        dragOverIndex: null,
+        groupDisabled: false,
+        index: 1,
+        isExpanded: false,
+      }),
+    ).toContain('opacity-40');
+  });
+
+  it('adds expanded row styling', () => {
+    expect(
+      getCustomRowClassName({
+        dragIndex: null,
+        dragOverIndex: null,
+        groupDisabled: false,
         index: 1,
         isExpanded: true,
+      }),
+    ).toContain('bg-accent/50 p-1.5');
+  });
+
+  it('adds the disabled-row opacity class', () => {
+    expect(
+      getCustomRowClassName({
+        dragIndex: null,
+        dragOverIndex: null,
+        groupDisabled: true,
+        index: 1,
+        isExpanded: false,
       }),
     ).toContain('opacity-50');
   });

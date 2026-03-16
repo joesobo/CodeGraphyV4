@@ -6,6 +6,14 @@ import { Label } from '../../ui/label';
 import { SHAPE_2D_OPTIONS, SHAPE_3D_OPTIONS } from './options';
 import type { GroupEditorState } from './useEditorState';
 
+export function resolveCustomShape2D(group: IGroup): NodeShape2D {
+  return group.shape2D ?? 'circle';
+}
+
+export function resolveCustomShape3D(group: IGroup): NodeShape3D {
+  return group.shape3D ?? 'sphere';
+}
+
 export function CustomEditor({
   controller,
   displayColor,
@@ -39,7 +47,7 @@ export function CustomEditor({
       <div>
         <Label className="text-[10px] text-muted-foreground">2D Shape</Label>
         <select
-          value={group.shape2D ?? 'circle'}
+          value={resolveCustomShape2D(group)}
           onChange={(event) =>
             controller.updateGroup(group.id, {
               shape2D: event.target.value as NodeShape2D,
@@ -56,7 +64,7 @@ export function CustomEditor({
       <div>
         <Label className="text-[10px] text-muted-foreground">3D Shape</Label>
         <select
-          value={group.shape3D ?? 'sphere'}
+          value={resolveCustomShape3D(group)}
           onChange={(event) =>
             controller.updateGroup(group.id, {
               shape3D: event.target.value as NodeShape3D,

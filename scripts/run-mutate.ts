@@ -37,6 +37,11 @@ interface MutationRunOptions {
 	reportDir: string;
 }
 
+function envFlag(name: string, cliOption: string): string {
+	const value = process.env[name];
+	return value ? ` ${cliOption} ${value}` : '';
+}
+
 function sanitizeReportKey(value: string): string {
 	return value.replace(/[^a-z0-9.-]+/gi, '-').replace(/^-+|-+$/g, '').toLowerCase();
 }
@@ -87,11 +92,17 @@ function resolveMutationOptions(pkg: string, slice?: string, customPattern?: str
 function runOne(pkg: string, slice?: string, customPattern?: string): void {
 	const { incrementalKey, mutatePattern, reportDir } = resolveMutationOptions(pkg, slice, customPattern);
 	const incrementalFile = `${reportDir}/stryker-incremental-${incrementalKey}.json`;
+	const concurrencyFlags =
+		envFlag('MUTATION_CONCURRENCY', '--concurrency') +
+		envFlag('MUTATION_MAX_TEST_RUNNERS', '--maxConcurrentTestRunners') +
+		envFlag('MUTATION_DRY_RUN_TIMEOUT_MINUTES', '--dryRunTimeoutMinutes') +
+		envFlag('MUTATION_MAX_TEST_RUNNER_REUSE', '--maxTestRunnerReuse');
 
 	execSync(
 		`stryker run` +
 			` -m '${mutatePattern}'` +
-			` --incrementalFile '${incrementalFile}'`,
+			` --incrementalFile '${incrementalFile}'` +
+			concurrencyFlags,
 		{ stdio: 'inherit' },
 	);
 
