@@ -251,6 +251,25 @@ describe('graph/contextMenuRuntime', () => {
     });
   });
 
+  it('clears tooltip state directly without changing the current context selection', () => {
+    const { dependencies, getTooltipState } = createDependencies();
+    dependencies.lastContainerContextMenuEventRef.current = 250;
+    dependencies.tooltipTimeoutRef.current = setTimeout(() => undefined, 1000);
+    const runtime = createGraphContextMenuRuntime(dependencies);
+
+    runtime.clearTooltipContext();
+
+    expect(dependencies.lastContainerContextMenuEventRef.current).toBe(250);
+    expect(dependencies.setContextSelection).not.toHaveBeenCalled();
+    expect(dependencies.tooltipTimeoutRef.current).toBeNull();
+    expect(dependencies.hoveredNodeRef.current).toBeNull();
+    expect(dependencies.stopTooltipTracking).toHaveBeenCalledOnce();
+    expect(getTooltipState()).toMatchObject({
+      visible: false,
+      pluginSections: [],
+    });
+  });
+
   it('keeps the existing selection when the graph callback handled the context menu recently', () => {
     const currentTime = 500;
     const { dependencies } = createDependencies({
@@ -317,5 +336,20 @@ describe('graph/contextMenuRuntime', () => {
         targetType: 'node',
       },
     });
+  });
+
+  it('applies context effects directly through the effect runtime', () => {
+    const { dependencies } = createDependencies();
+    const runtime = createGraphContextMenuRuntime(dependencies);
+
+    runtime.applyContextEffects([
+      { kind: 'fitView' },
+      { kind: 'focusNode', nodeId: 'src/app.ts' },
+      { kind: 'postMessage', message: { type: 'REFRESH_GRAPH' } },
+    ]);
+
+    expect(dependencies.fitView).toHaveBeenCalledOnce();
+    expect(dependencies.focusNode).toHaveBeenCalledWith('src/app.ts');
+    expect(dependencies.postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
   });
 });
