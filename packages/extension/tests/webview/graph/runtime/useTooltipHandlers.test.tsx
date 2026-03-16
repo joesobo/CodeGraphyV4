@@ -267,6 +267,29 @@ describe('graph/runtime/useTooltipHandlers', () => {
 		expect(tooltipRafRef.current).toBeNull();
 	});
 
+	it('does not clear a timeout on unmount when no tooltip delay is pending', () => {
+		const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+		const { unmount } = renderHook(() => useTooltipHandlers({
+			containerRef: { current: createContainer() },
+			dataRef: { current: { nodes: [createNode()], edges: [] } } as never,
+			fg2dRef: { current: createGraph() },
+			fileInfoCacheRef: { current: new Map() } as never,
+			hoveredNodeRef: { current: null },
+			interactionHandlers: {
+				sendGraphInteraction: vi.fn(),
+				setGraphCursor: vi.fn(),
+			},
+			postMessage: vi.fn(),
+			setTooltipData: vi.fn(),
+			tooltipRafRef: { current: null },
+			tooltipTimeoutRef: { current: null },
+		}));
+
+		unmount();
+
+		expect(clearTimeoutSpy).not.toHaveBeenCalled();
+	});
+
 	it('stops an in-flight tooltip tracking raf through the returned callback', () => {
 		vi.useFakeTimers();
 		const requestAnimationFrame = vi.fn(() => 123);

@@ -992,6 +992,19 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
   - status after the runtime follow-up:
     - every checked graph-webview hotspot in this pass is now under the `50` mutation-site threshold
     - next step is a fresh whole-slice `graph-webview` rerun for mutation score, not more threshold cuts in the current hotspots
+  - local survivor follow-up before the next timeline split:
+    - refactored `graph/interactionHandlers/contextMenuHandlers.ts` to normalize missing callback events through an explicit pointer-state object instead of optional chaining fallbacks
+    - refactored `graph/runtime/useTooltipHandlers.ts` to remove mutation-heavy `useCallback` wrappers and added direct cleanup coverage for the no-timeout unmount path
+    - hardened `tests/webview/Graph.wiring.test.tsx` so the default dark-theme path is asserted directly instead of only through viewport colors
+    - focused verification green:
+      - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/Graph.wiring.test.tsx tests/webview/graph/contextMenuHandlers.test.ts tests/webview/graph/runtime/useTooltipHandlers.test.tsx`
+      - `17` tests green
+      - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - latest targeted mutation refreshes:
+      - `packages/extension/src/webview/components/graph/interactionHandlers/contextMenuHandlers.ts` = `100.00%`
+      - `packages/extension/src/webview/components/graph/runtime/useTooltipHandlers.ts` = `94.12%`
+      - `packages/extension/src/webview/components/Graph.tsx` = `91.84%`
+      - result: current graph-webview helper hotspots remain under the `50`-site threshold and the local survivor floor in this batch is now above `90%`
 
 ## Current hotspot order
 1. commit and push the `WorkspaceAnalyzer.delegates.test.ts` follow-up that restored `workspace-analysis` to `100%`

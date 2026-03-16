@@ -21,14 +21,26 @@ function openContextMenuFromGraphCallback(
   const container = dependencies.containerRef.current;
   if (!container) return;
 
+  const pointerState = event
+    ? {
+        clientX: event.clientX,
+        clientY: event.clientY,
+        ctrlKey: event.ctrlKey,
+      }
+    : {
+        clientX: 0,
+        clientY: 0,
+        ctrlKey: false,
+      };
+
   const syntheticContextMenu = new MouseEvent('contextmenu', {
     bubbles: true,
     cancelable: true,
     button: 2,
     buttons: 2,
-    clientX: event?.clientX ?? 0,
-    clientY: event?.clientY ?? 0,
-    ctrlKey: event?.ctrlKey ?? false,
+    clientX: pointerState.clientX,
+    clientY: pointerState.clientY,
+    ctrlKey: pointerState.ctrlKey,
   });
   container.dispatchEvent(syntheticContextMenu);
 }

@@ -273,6 +273,16 @@ describe('Graph wiring', () => {
 	it('defaults to dark viewport colors when no theme prop is provided', () => {
 		render(<Graph data={baseData} />);
 
+		expect(harness.useGraphState).toHaveBeenCalledWith(
+			expect.objectContaining({
+				theme: 'dark',
+			}),
+		);
+		expect(harness.useGraphRenderingRuntime).toHaveBeenCalledWith(
+			expect.objectContaining({
+				theme: 'dark',
+			}),
+		);
 		expect(harness.viewport).toHaveBeenCalledWith(
 			expect.objectContaining({
 				backgroundColor: '#18181b',
