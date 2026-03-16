@@ -248,7 +248,7 @@ describe('graphView/provider/refresh', () => {
         getConfiguration,
       },
     }));
-    vi.doMock('../../../../src/extension/graphView/viewRebuild', () => ({
+    vi.doMock('../../../../src/extension/graphView/view/rebuild', () => ({
       rebuildGraphViewData: rebuildGraphData,
       smartRebuildGraphView: vi.fn(),
     }));
@@ -266,7 +266,7 @@ describe('graphView/provider/refresh', () => {
     expect(get).toHaveBeenCalledWith('showOrphans', true);
 
     vi.doUnmock('vscode');
-    vi.doUnmock('../../../../src/extension/graphView/viewRebuild');
+    vi.doUnmock('../../../../src/extension/graphView/view/rebuild');
     vi.doUnmock('../../../../src/extension/graphView/rebuild');
     vi.resetModules();
   });

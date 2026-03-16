@@ -5,8 +5,8 @@ describe('graphView/provider/fileActions', () => {
   afterEach(() => {
     vi.doUnmock('vscode');
     vi.doUnmock('../../../../src/extension/graphView/provider/fileNavigation');
-    vi.doUnmock('../../../../src/extension/graphView/fileActions');
-    vi.doUnmock('../../../../src/extension/graphView/fileRename');
+    vi.doUnmock('../../../../src/extension/graphView/files/actions');
+    vi.doUnmock('../../../../src/extension/graphView/files/rename');
     vi.doUnmock('../../../../src/extension/graphView/favorites');
     vi.doUnmock('../../../../src/extension/actions');
     vi.doUnmock('../../../../src/extension/UndoManager');
@@ -339,11 +339,11 @@ async function createDefaultDependencyHarness() {
     revealGraphViewProviderFileInExplorer: revealFile,
     copyGraphViewProviderTextToClipboard: copyText,
   }));
-  vi.doMock('../../../../src/extension/graphView/fileActions', () => ({
+  vi.doMock('../../../../src/extension/graphView/files/actions', () => ({
     createGraphViewFile: createFile,
     deleteGraphViewFiles: deleteFiles,
   }));
-  vi.doMock('../../../../src/extension/graphView/fileRename', () => ({
+  vi.doMock('../../../../src/extension/graphView/files/rename', () => ({
     renameGraphViewFile: renameFile,
   }));
   vi.doMock('../../../../src/extension/graphView/favorites', () => ({
