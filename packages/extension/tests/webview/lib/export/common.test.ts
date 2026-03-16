@@ -44,8 +44,14 @@ describe('resolveDirectionColor', () => {
     expect(resolveDirectionColor('#AbC123')).toBe('#AbC123');
   });
 
-  it('falls back to the default direction color for invalid input', () => {
-    expect(resolveDirectionColor('rgb(1, 2, 3)')).toBe(DEFAULT_DIRECTION_COLOR);
+  it.each([
+    'rgb(1, 2, 3)',
+    '#12345',
+    '#1234567',
+    '123456',
+    '#GGGGGG',
+  ])('falls back to the default direction color for invalid input: %s', (value) => {
+    expect(resolveDirectionColor(value)).toBe(DEFAULT_DIRECTION_COLOR);
   });
 });
 
@@ -121,6 +127,7 @@ describe('createImageExportDataUrl', () => {
     expect(result).toBe('data:image/png;base64,exported');
     expect(exportCanvas.width).toBe(640);
     expect(exportCanvas.height).toBe(360);
+    expect(exportCanvas.getContext).toHaveBeenCalledWith('2d');
     expect(context.fillStyle).toBe('#18181b');
     expect(fillRect).toHaveBeenCalledWith(0, 0, 640, 360);
     expect(drawImage).toHaveBeenCalledWith(sourceCanvas, 0, 0);

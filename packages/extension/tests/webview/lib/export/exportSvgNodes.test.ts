@@ -85,4 +85,37 @@ describe('exportSvgNodes', () => {
       '<image href="data:image/png;base64,encoded" x="38" y="48" width="24" height="24" clip-path="url(#clip-node_1)"/>',
     ]);
   });
+
+  it('skips nodes without positions while still rendering later nodes', () => {
+    const parts: string[] = [];
+    const definitions: string[] = [];
+    const imageElements: string[] = [];
+    const nodes: SvgExportNode[] = [
+      {
+        id: 'missing',
+        label: 'Missing',
+        size: 10,
+        color: '#111827',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+      },
+      {
+        id: 'present',
+        label: 'Visible',
+        size: 10,
+        color: '#111827',
+        borderColor: '#e5e7eb',
+        borderWidth: 1,
+      },
+    ];
+    const positionMap = new Map([['present', { x: 5, y: 6 }]]);
+
+    appendNodeElements(parts, definitions, imageElements, nodes, positionMap, false, '#ffffff');
+
+    expect(parts).toEqual([
+      '<circle cx="5" cy="6" r="10" fill="#111827" stroke="#e5e7eb" stroke-width="1"/>',
+    ]);
+    expect(definitions).toEqual([]);
+    expect(imageElements).toEqual([]);
+  });
 });

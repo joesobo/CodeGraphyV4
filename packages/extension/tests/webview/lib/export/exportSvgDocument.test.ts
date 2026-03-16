@@ -20,6 +20,35 @@ describe('exportSvgDocument', () => {
         labelColor: '#e2e8f0',
       });
     });
+
+    it('keeps valid direction colors and light theme colors', () => {
+      const options: SvgExportOptions = {
+        directionMode: 'none',
+        directionColor: '#ABCDEF',
+        showLabels: false,
+        theme: 'light',
+      };
+
+      expect(getPalette(options)).toEqual({
+        showArrows: false,
+        arrowColor: '#ABCDEF',
+        backgroundColor: '#ffffff',
+        labelColor: '#1e1e1e',
+      });
+    });
+  });
+
+  describe('createBaseParts', () => {
+    it('builds the xml declaration, svg shell, and background rect', () => {
+      expect(createBaseParts(
+        { minX: -10, minY: -20, width: 120, height: 140 },
+        '#ffffff'
+      )).toEqual([
+        '<?xml version="1.0" encoding="UTF-8"?>',
+        '<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="-10 -20 120 140" width="120" height="140">',
+        '<rect x="-10" y="-20" width="120" height="140" fill="#ffffff"/>',
+      ]);
+    });
   });
 
   describe('createDefinitions', () => {
@@ -47,6 +76,17 @@ describe('exportSvgDocument', () => {
       expect(svg).toContain('<image href="data:image/png;base64,abc"/>');
       expect(svg.indexOf('<defs>')).toBeLessThan(svg.indexOf('<image'));
       expect(svg).toContain('</svg>');
+    });
+
+    it('leaves the svg body unchanged when there are no definitions', () => {
+      const svg = assembleSvg(
+        ['<svg>', '<rect/>'],
+        [],
+        ['<image href="data:image/png;base64,abc"/>']
+      );
+
+      expect(svg).toBe('<svg>\n<rect/>\n<image href="data:image/png;base64,abc"/>\n</svg>');
+      expect(svg).not.toContain('<defs>');
     });
   });
 });

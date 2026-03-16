@@ -38,6 +38,16 @@ describe('exportSvgLinks', () => {
         target: 'missing',
         bidirectional: false,
       },
+      {
+        source: {},
+        target: 'b',
+        bidirectional: false,
+      },
+      {
+        source: 'b',
+        target: 'c',
+        bidirectional: false,
+      },
     ];
     const positionMap = new Map([
       ['a', { x: 0, y: 0 }],
