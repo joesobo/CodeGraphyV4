@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   onGraphViewWebviewMessage,
   sendGraphViewWebviewMessage,
-} from '../../../src/extension/graphView/webviewBridge';
+} from '../../../../src/extension/graphView/webview/bridge';
 
-describe('graph view webview bridge helpers', () => {
+describe('graphView/webview/bridge', () => {
   it('sends messages to the sidebar view and every editor panel', () => {
     const viewWebview = { postMessage: vi.fn() };
     const panelWebview = { postMessage: vi.fn() };

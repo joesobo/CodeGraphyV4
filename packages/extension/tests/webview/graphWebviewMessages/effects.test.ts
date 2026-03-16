@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { getGraphWebviewMessageEffects } from '../../src/webview/components/graphWebviewMessageEffects';
+import { getGraphWebviewMessageEffects } from '../../../src/webview/components/graphWebviewMessages/effects';
 
-describe('graphWebviewMessageEffects', () => {
+describe('graphWebviewMessages/effects', () => {
   it('fits the view for FIT_VIEW messages', () => {
     expect(getGraphWebviewMessageEffects({
       message: { type: 'FIT_VIEW' },

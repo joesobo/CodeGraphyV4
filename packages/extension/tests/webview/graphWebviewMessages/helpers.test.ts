@@ -7,9 +7,9 @@ import {
   getFitViewEffects,
   getNodeBoundsEffects,
   getZoomEffects,
-} from '../../src/webview/components/graphWebviewMessageEffectHelpers';
+} from '../../../src/webview/components/graphWebviewMessages/helpers';
 
-describe('graphWebviewMessageEffectHelpers', () => {
+describe('graphWebviewMessages/helpers', () => {
   it('returns a reusable empty effects array', () => {
     expect(EMPTY_EFFECTS).toEqual([]);
   });

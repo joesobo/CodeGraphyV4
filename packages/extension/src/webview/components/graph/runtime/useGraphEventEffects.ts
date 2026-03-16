@@ -4,7 +4,7 @@ import { applyKeyboardEffects } from '../effects/keyboard';
 import { applyWebviewMessageEffects as runWebviewMessageEffects } from '../effects/messages';
 import { createGraphKeyboardListener } from '../keyboardListener';
 import { createGraphMessageListener } from '../messageListener';
-import type { GraphWebviewMessageEffect } from '../../graphWebviewMessageEffects';
+import type { GraphWebviewMessageEffect } from '../../graphWebviewMessages/effects';
 import { exportAsJpeg } from '../../../lib/export/exportJpeg';
 import { exportAsJson } from '../../../lib/export/exportJson';
 import { exportAsMarkdown } from '../../../lib/export/exportMarkdown';

@@ -1,15 +1,15 @@
 import * as vscode from 'vscode';
-import { createGraphViewHtml, createGraphViewNonce } from '../html';
+import { createGraphViewHtml, createGraphViewNonce } from '../webview/html';
 import { openGraphViewInEditor } from '../editorPanel';
 import {
   setGraphViewProviderMessageListener,
   type GraphViewProviderMessageListenerSource,
 } from '../messages/provider/listener';
-import { resolveGraphViewWebviewView } from '../resolveWebview';
+import { resolveGraphViewWebviewView } from '../webview/resolve';
 import {
   onGraphViewWebviewMessage,
   sendGraphViewWebviewMessage,
-} from '../webviewBridge';
+} from '../webview/bridge';
 
 export interface GraphViewProviderWebviewSource
   extends GraphViewProviderMessageListenerSource {

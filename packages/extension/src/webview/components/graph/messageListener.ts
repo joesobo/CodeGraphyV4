@@ -1,5 +1,5 @@
 import type { ExtensionToWebviewMessage } from '../../../shared/types';
-import { getGraphWebviewMessageEffects, type GraphWebviewMessageEffect } from '../graphWebviewMessageEffects';
+import { getGraphWebviewMessageEffects, type GraphWebviewMessageEffect } from '../graphWebviewMessages/effects';
 import type { FGNode } from '../graphModel';
 
 export interface GraphMessageListenerOptions {

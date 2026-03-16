@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { resolveGraphViewWebviewView } from '../../../src/extension/graphView/resolveWebview';
+import { resolveGraphViewWebviewView } from '../../../../src/extension/graphView/webview/resolve';
 
-describe('graph view resolve-webview helper', () => {
+describe('graphView/webview/resolve', () => {
   it('configures the webview, registers the message listener, and sets the initial visibility context', () => {
     const setWebviewMessageListener = vi.fn();
     const executeCommand = vi.fn(() => Promise.resolve());
