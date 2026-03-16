@@ -16,7 +16,6 @@ import {
   IGraphData,
   IFileInfo,
   IPhysicsSettings,
-  ExtensionToWebviewMessage,
   NodeDecorationPayload,
   EdgeDecorationPayload,
   DEFAULT_DIRECTION_COLOR,
@@ -42,7 +41,8 @@ import { applyKeyboardEffects } from './graph/effects/keyboard';
 import { applyWebviewMessageEffects as runWebviewMessageEffects } from './graph/effects/messages';
 import { createGraphContextMenuRuntime } from './graph/contextMenuRuntime';
 import { createGraphInteractionHandlers } from './graph/interactionHandlers';
-import { getGraphKeyboardCommand } from './graphKeyboardEffects';
+import { createGraphKeyboardListener } from './graph/keyboardListener';
+import { createGraphMessageListener } from './graph/messageListener';
 import {
   buildGraphTooltipContext,
   buildGraphTooltipState,
@@ -51,7 +51,6 @@ import {
   type GraphTooltipState,
 } from './graphTooltipModel';
 import {
-  getGraphWebviewMessageEffects,
   type GraphWebviewMessageEffect,
 } from './graphWebviewMessageEffects';
 import {
@@ -725,14 +724,12 @@ export default function Graph({
   // ── Message listener ─────────────────────────────────────────────────────
 
   useEffect(() => {
-    const handleMessage = (event: MessageEvent<ExtensionToWebviewMessage>) => {
-      applyWebviewMessageEffects(getGraphWebviewMessageEffects({
-        message: event.data,
-        graphMode,
-        tooltipPath: tooltipData.path,
-        graphNodes: graphDataRef.current.nodes,
-      }));
-    };
+    const handleMessage = createGraphMessageListener({
+      applyEffects: applyWebviewMessageEffects,
+      graphMode,
+      tooltipPath: tooltipData.path,
+      getGraphNodes: () => graphDataRef.current.nodes,
+    });
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
   }, [applyWebviewMessageEffects, graphMode, tooltipData.path]);
@@ -740,38 +737,20 @@ export default function Graph({
   // ── Keyboard shortcuts ────────────────────────────────────────────────────
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      const command = getGraphKeyboardCommand({
-        key: event.key,
-        isMod: event.ctrlKey || event.metaKey,
-        shiftKey: event.shiftKey,
-        graphMode,
-        selectedNodeIds: selectedNodes,
-        allNodeIds: graphDataRef.current.nodes.map(node => node.id),
-        targetIsEditable:
-          event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement,
-      });
-      if (!command) return;
-
-      if (command.preventDefault) event.preventDefault();
-      if (command.stopPropagation) event.stopPropagation();
-
-      applyKeyboardEffects(command.effects, {
-        fitView: interactionHandlers.fitView,
-        clearSelection: interactionHandlers.clearSelection,
-        openSelectedNodes: nodeIds => {
-          nodeIds.forEach(nodeId => {
-            interactionHandlers.requestNodeOpenById(nodeId);
-          });
-        },
-        selectAll: interactionHandlers.setSelection,
-        zoom2d: interactionHandlers.zoom2d,
-        postMessage,
-        dispatchStoreMessage: message => {
-          graphStore.getState().handleExtensionMessage(message);
-        },
-      });
-    };
+    const handleKeyDown = createGraphKeyboardListener({
+      graphMode,
+      selectedNodeIds: selectedNodes,
+      getAllNodeIds: () => graphDataRef.current.nodes.map((node) => node.id),
+      fitView: interactionHandlers.fitView,
+      setSelection: interactionHandlers.setSelection,
+      openNode: interactionHandlers.requestNodeOpenById,
+      zoom2d: interactionHandlers.zoom2d,
+      postMessage,
+      dispatchStoreMessage: message => {
+        graphStore.getState().handleExtensionMessage(message);
+      },
+      runEffects: applyKeyboardEffects,
+    });
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [graphMode, interactionHandlers, selectedNodes]);

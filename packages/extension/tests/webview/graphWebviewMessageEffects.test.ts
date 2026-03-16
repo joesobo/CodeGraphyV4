@@ -32,6 +32,13 @@ describe('graphWebviewMessageEffects', () => {
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([]);
+
+    expect(getGraphWebviewMessageEffects({
+      message: { type: 'ZOOM_OUT' },
+      graphMode: '3d',
+      tooltipPath: null,
+      graphNodes: [],
+    })).toEqual([]);
   });
 
   it('caches file info and updates the tooltip when the paths match', () => {
@@ -181,6 +188,13 @@ describe('graphWebviewMessageEffects', () => {
   it('ignores messages with no Graph-side effect', () => {
     expect(getGraphWebviewMessageEffects({
       message: { type: 'FAVORITES_UPDATED' },
+      graphMode: '2d',
+      tooltipPath: null,
+      graphNodes: [],
+    })).toEqual([]);
+
+    expect(getGraphWebviewMessageEffects({
+      message: { type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } },
       graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],

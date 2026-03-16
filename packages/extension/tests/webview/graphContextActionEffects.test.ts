@@ -43,6 +43,14 @@ describe('graphContextActionEffects', () => {
     ]);
   });
 
+  it('returns no effect when absolute path copy has no selected path', () => {
+    expect(getBuiltInContextActionEffects('copyAbsolute', [])).toEqual([]);
+  });
+
+  it('returns no effect when edge source copy has no selected path', () => {
+    expect(getBuiltInContextActionEffects('copyEdgeSource', [])).toEqual([]);
+  });
+
   it('copies edge target only when a second path exists', () => {
     expect(getBuiltInContextActionEffects('copyEdgeTarget', ['from.ts'])).toEqual([]);
     expect(getBuiltInContextActionEffects('copyEdgeTarget', ['from.ts', 'to.ts'])).toEqual([
@@ -57,6 +65,14 @@ describe('graphContextActionEffects', () => {
     expect(getBuiltInContextActionEffects('focus', ['src/app.ts'])).toEqual([
       { kind: 'focusNode', nodeId: 'src/app.ts' },
     ]);
+  });
+
+  it('returns no effect when focus has no selected path', () => {
+    expect(getBuiltInContextActionEffects('focus', [])).toEqual([]);
+  });
+
+  it('returns no effect when rename has no selected path', () => {
+    expect(getBuiltInContextActionEffects('rename', [])).toEqual([]);
   });
 
   it('creates a fit-view effect', () => {

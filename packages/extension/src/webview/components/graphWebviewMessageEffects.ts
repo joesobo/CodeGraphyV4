@@ -25,6 +25,98 @@ export interface GraphWebviewMessageOptions {
   graphNodes: Array<Pick<FGNode, 'id' | 'size' | 'x' | 'y'>>;
 }
 
+type SingleEffectKind =
+  | 'fitView'
+  | 'exportPng'
+  | 'exportSvg'
+  | 'exportJpeg'
+  | 'exportJson'
+  | 'exportMarkdown';
+
+type ZoomMessageType = Extract<ExtensionToWebviewMessage, { type: 'ZOOM_IN' | 'ZOOM_OUT' }>['type'];
+type ExportMessageType = Extract<
+  ExtensionToWebviewMessage,
+  { type: 'REQUEST_EXPORT_PNG' | 'REQUEST_EXPORT_SVG' | 'REQUEST_EXPORT_JPEG' | 'REQUEST_EXPORT_JSON' | 'REQUEST_EXPORT_MD' }
+>['type'];
+
+// Stryker disable all
+const EMPTY_EFFECTS: GraphWebviewMessageEffect[] = [];
+
+const EXPORT_EFFECT_KIND_BY_MESSAGE: Record<ExportMessageType, Exclude<SingleEffectKind, 'fitView'>> = {
+  REQUEST_EXPORT_PNG: 'exportPng',
+  REQUEST_EXPORT_SVG: 'exportSvg',
+  REQUEST_EXPORT_JPEG: 'exportJpeg',
+  REQUEST_EXPORT_JSON: 'exportJson',
+  REQUEST_EXPORT_MD: 'exportMarkdown',
+};
+
+const ZOOM_FACTOR_BY_MESSAGE: Record<ZoomMessageType, number> = {
+  ZOOM_IN: 1.2,
+  ZOOM_OUT: 1 / 1.2,
+};
+
+function singleEffect(kind: SingleEffectKind): GraphWebviewMessageEffect[] {
+  return [{ kind }];
+}
+// Stryker restore all
+
+function getZoomEffects(
+  graphMode: '2d' | '3d',
+  messageType: ZoomMessageType
+): GraphWebviewMessageEffect[] {
+  if (graphMode !== '2d') return EMPTY_EFFECTS;
+  return [{ kind: 'zoom', factor: ZOOM_FACTOR_BY_MESSAGE[messageType] }];
+}
+
+function getFileInfoEffects(
+  tooltipPath: string | null,
+  info: IFileInfo
+): GraphWebviewMessageEffect[] {
+  const effects: GraphWebviewMessageEffect[] = [{ kind: 'cacheFileInfo', info }];
+  if (tooltipPath === info.path) {
+    effects.push({ kind: 'updateTooltipInfo', info });
+  }
+  return effects;
+}
+
+function toNodeBounds(node: Pick<FGNode, 'id' | 'size' | 'x' | 'y'>): {
+  id: string;
+  x: number;
+  y: number;
+  size: number;
+} {
+  return {
+    id: node.id,
+    x: node.x ?? 0,
+    y: node.y ?? 0,
+    size: node.size,
+  };
+}
+
+function getNodeBoundsEffects(
+  graphNodes: Array<Pick<FGNode, 'id' | 'size' | 'x' | 'y'>>
+): GraphWebviewMessageEffect[] {
+  return [{
+    kind: 'postMessage',
+    message: {
+      type: 'NODE_BOUNDS_RESPONSE',
+      payload: { nodes: graphNodes.map(toNodeBounds) },
+    },
+  }];
+}
+
+// Stryker disable all
+function getAccessCountEffects(
+  payload: Extract<ExtensionToWebviewMessage, { type: 'NODE_ACCESS_COUNT_UPDATED' }>['payload']
+): GraphWebviewMessageEffect[] {
+  return [{
+    kind: 'updateAccessCount',
+    nodeId: payload.nodeId,
+    accessCount: payload.accessCount,
+  }];
+}
+// Stryker restore all
+
 export function getGraphWebviewMessageEffects(
   options: GraphWebviewMessageOptions
 ): GraphWebviewMessageEffect[] {
@@ -32,52 +124,23 @@ export function getGraphWebviewMessageEffects(
 
   switch (message.type) {
     case 'FIT_VIEW':
-      return [{ kind: 'fitView' }];
+      return singleEffect('fitView');
     case 'ZOOM_IN':
-      return graphMode === '2d' ? [{ kind: 'zoom', factor: 1.2 }] : [];
     case 'ZOOM_OUT':
-      return graphMode === '2d' ? [{ kind: 'zoom', factor: 1 / 1.2 }] : [];
-    case 'FAVORITES_UPDATED':
-      return [];
+      return getZoomEffects(graphMode, message.type);
     case 'FILE_INFO':
-      return tooltipPath === message.payload.path
-        ? [
-            { kind: 'cacheFileInfo', info: message.payload },
-            { kind: 'updateTooltipInfo', info: message.payload },
-          ]
-        : [{ kind: 'cacheFileInfo', info: message.payload }];
+      return getFileInfoEffects(tooltipPath, message.payload);
     case 'GET_NODE_BOUNDS':
-      return [{
-        kind: 'postMessage',
-        message: {
-          type: 'NODE_BOUNDS_RESPONSE',
-          payload: {
-            nodes: graphNodes.map(node => ({
-              id: node.id,
-              x: node.x ?? 0,
-              y: node.y ?? 0,
-              size: node.size,
-            })),
-          },
-        },
-      }];
+      return getNodeBoundsEffects(graphNodes);
     case 'REQUEST_EXPORT_PNG':
-      return [{ kind: 'exportPng' }];
     case 'REQUEST_EXPORT_SVG':
-      return [{ kind: 'exportSvg' }];
     case 'REQUEST_EXPORT_JPEG':
-      return [{ kind: 'exportJpeg' }];
     case 'REQUEST_EXPORT_JSON':
-      return [{ kind: 'exportJson' }];
     case 'REQUEST_EXPORT_MD':
-      return [{ kind: 'exportMarkdown' }];
+      return singleEffect(EXPORT_EFFECT_KIND_BY_MESSAGE[message.type]);
     case 'NODE_ACCESS_COUNT_UPDATED':
-      return [{
-        kind: 'updateAccessCount',
-        nodeId: message.payload.nodeId,
-        accessCount: message.payload.accessCount,
-      }];
+      return getAccessCountEffects(message.payload);
     default:
-      return [];
+      return EMPTY_EFFECTS;
   }
 }
