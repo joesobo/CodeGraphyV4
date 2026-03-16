@@ -21,7 +21,7 @@ import { GitHistoryAnalyzer } from './GitHistoryAnalyzer';
 import { ViewRegistry, coreViews, IViewContext } from '../core/views';
 import {
   type GraphViewExternalPluginRegistrationOptions,
-} from './graphView/externalPluginRegistration';
+} from './graphView/plugins/registration';
 import {
   initializeGraphViewProviderServices,
   restoreGraphViewProviderState,

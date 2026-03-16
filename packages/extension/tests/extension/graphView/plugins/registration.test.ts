@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import {
   registerGraphViewExternalPlugin,
   type GraphViewExternalPluginRegistrationState,
-} from '../../../src/extension/graphView/externalPluginRegistration';
+} from '../../../../src/extension/graphView/plugins/registration';
 
 function createState(
   overrides: Partial<GraphViewExternalPluginRegistrationState> = {},
@@ -25,7 +25,7 @@ function createState(
   };
 }
 
-describe('graphView/externalPluginRegistration', () => {
+describe('graphView/plugins/registration', () => {
   it('ignores plugin registrations when the plugin value is not an object', () => {
     const state = createState();
     const refreshWebviewResourceRoots = vi.fn();
