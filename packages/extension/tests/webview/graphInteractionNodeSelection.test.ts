@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getNodeContextMenuSelection,
   toggleNodeSelection,
-} from '../../src/webview/components/graphInteractionNodeSelection';
+} from '../../src/webview/components/graphInteraction/nodeSelection';
 
 describe('graphInteraction node selection', () => {
   it('adds a node when toggling a node that is not selected', () => {

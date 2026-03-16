@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   shouldMarkRightMouseDrag,
   shouldUseRightClickFallback,
-} from '../../src/webview/components/graphInteractionPointer';
+} from '../../src/webview/components/graphInteraction/pointer';
 
 describe('graphInteraction pointer', () => {
   it('keeps right-click drag inactive while movement stays within the threshold', () => {

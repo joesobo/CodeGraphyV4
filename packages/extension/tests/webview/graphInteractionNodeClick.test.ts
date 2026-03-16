@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getNodeClickCommand } from '../../src/webview/components/graphInteractionNodeClick';
+import { getNodeClickCommand } from '../../src/webview/components/graphInteraction/nodeClick';
 
 function makeNodeClickOptions(overrides: Partial<Parameters<typeof getNodeClickCommand>[0]> = {}) {
   return {
