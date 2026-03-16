@@ -63,4 +63,12 @@ describe('gitHistory/commitList', () => {
       { sha: 'sha1', timestamp: 1, message: 'first', author: 'Dev', parents: [] },
     ]);
   });
+
+  it('parses commits with no parent field and ignores blank lines', () => {
+    const commits = parseCommitList('\nsha1|1|first|Dev\n\n');
+
+    expect(commits).toEqual([
+      { sha: 'sha1', timestamp: 1, message: 'first', author: 'Dev', parents: [] },
+    ]);
+  });
 });

@@ -8,6 +8,10 @@ describe('gitHistory/gitFiles', () => {
     await expect(
       getCommitTreeFiles(execGit, 'abc123', new AbortController().signal)
     ).resolves.toEqual(['src/a.ts', 'src/b.ts']);
+    expect(execGit).toHaveBeenCalledWith(
+      ['ls-tree', '-r', '--name-only', 'abc123'],
+      expect.any(AbortSignal)
+    );
   });
 
   it('throws an abort error before reading tree files when the signal is already aborted', async () => {
@@ -50,5 +54,14 @@ describe('gitHistory/gitFiles', () => {
     await expect(
       getFileAtCommit(execGit, 'child', 'src/a.ts', new AbortController().signal)
     ).resolves.toBe('');
+  });
+
+  it('throws an abort error before reading diff output when the signal is already aborted', async () => {
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      getDiffNameStatus(vi.fn(), 'parent', 'child', controller.signal)
+    ).rejects.toMatchObject({ name: 'AbortError', message: 'Indexing aborted' });
   });
 });

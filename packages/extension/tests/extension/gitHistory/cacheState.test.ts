@@ -58,8 +58,11 @@ describe('gitHistory/cacheState', () => {
 
     expect(getCachedCommitList(workspaceState)).toBeNull();
 
-    workspaceState.store.set('codegraphy.timelineCacheVersion', '1.1.0');
     workspaceState.store.set('codegraphy.timelineCommits', commits);
+    workspaceState.store.set('codegraphy.timelineCacheVersion', '0.9.0');
+    expect(getCachedCommitList(workspaceState)).toBeNull();
+
+    workspaceState.store.set('codegraphy.timelineCacheVersion', '1.1.0');
 
     expect(getCachedCommitList(workspaceState)).toEqual(commits);
   });

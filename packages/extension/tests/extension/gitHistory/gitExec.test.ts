@@ -75,4 +75,24 @@ describe('gitHistory/gitExec', () => {
     });
     expect(kill).toHaveBeenCalledTimes(1);
   });
+
+  it('ignores later aborts once the command has already resolved', async () => {
+    const controller = new AbortController();
+    const kill = vi.fn();
+    const execFileImpl = vi.fn((_cmd, _args, _options, callback) => {
+      callback?.(null, 'done\n');
+      return { kill };
+    });
+
+    const result = await execGitCommand(['status'], {
+      workspaceRoot: '/workspace',
+      signal: controller.signal,
+      execFileImpl: execFileImpl as never,
+    });
+
+    controller.abort();
+
+    expect(result).toBe('done\n');
+    expect(kill).not.toHaveBeenCalled();
+  });
 });
