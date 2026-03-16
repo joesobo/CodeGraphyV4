@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { renameGraphViewFile } from '../../../src/extension/graphView/fileRename';
+import { renameGraphViewFile } from '../../../../src/extension/graphView/files/rename';
 
-describe('graphView/fileRename', () => {
+describe('graphView/files/rename', () => {
   it('does nothing when no workspace folder is available', async () => {
     const showInputBox = vi.fn(async () => 'renamed.ts');
     const executeRenameAction = vi.fn(async () => undefined);

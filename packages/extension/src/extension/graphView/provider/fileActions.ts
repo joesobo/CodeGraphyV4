@@ -6,8 +6,8 @@ import {
   RenameFileAction,
   ToggleFavoriteAction,
 } from '../../actions';
-import { createGraphViewFile, deleteGraphViewFiles } from '../fileActions';
-import { renameGraphViewFile } from '../fileRename';
+import { createGraphViewFile, deleteGraphViewFiles } from '../files/actions';
+import { renameGraphViewFile } from '../files/rename';
 import { toggleGraphViewFavorites } from '../favorites';
 import {
   copyGraphViewProviderTextToClipboard,

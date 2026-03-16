@@ -4,9 +4,9 @@ import {
   addGraphViewExcludePatterns,
   createGraphViewFile,
   deleteGraphViewFiles,
-} from '../../../src/extension/graphView/fileActions';
+} from '../../../../src/extension/graphView/files/actions';
 
-describe('graphView/fileActions', () => {
+describe('graphView/files/actions', () => {
   it('runs the delete action after confirmation', async () => {
     const executeDeleteAction = vi.fn(async () => undefined);
     const showWarningMessage = vi.fn(async () => 'Delete');

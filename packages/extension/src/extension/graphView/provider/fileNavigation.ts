@@ -4,7 +4,7 @@ import {
   openGraphViewFile,
   revealGraphViewFileInExplorer,
   type GraphViewEditorOpenBehavior,
-} from '../fileNavigation';
+} from '../files/navigation';
 
 export interface GraphViewProviderFileNavigationSource {
   _incrementVisitCount(filePath: string): Promise<void>;
