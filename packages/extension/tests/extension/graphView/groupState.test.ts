@@ -62,6 +62,48 @@ describe('graphView/groupState', () => {
     expect(state.legacyGroupsToMigrate).toBeUndefined();
   });
 
+  it('uses workspace-state filter patterns when configured groups do not define them', () => {
+    const configuredGroups: IGroup[] = [
+      { id: 'configured', pattern: 'src/**', color: '#112233' },
+    ];
+
+    const state = loadGraphViewGroupState(
+      createConfig({
+        inspected: {
+          groups: { globalValue: configuredGroups },
+        },
+      }),
+      createWorkspaceState({
+        'codegraphy.filterPatterns': ['coverage/**'],
+      }),
+    );
+
+    expect(state.userGroups).toEqual(configuredGroups);
+    expect(state.filterPatterns).toEqual(['coverage/**']);
+    expect([...state.hiddenPluginGroupIds]).toEqual([]);
+    expect(state.legacyGroupsToMigrate).toBeUndefined();
+  });
+
+  it('defaults configured groups to empty filter and hidden-group collections', () => {
+    const configuredGroups: IGroup[] = [
+      { id: 'configured', pattern: 'src/**', color: '#112233' },
+    ];
+
+    const state = loadGraphViewGroupState(
+      createConfig({
+        inspected: {
+          groups: { workspaceValue: configuredGroups },
+        },
+      }),
+      createWorkspaceState({}),
+    );
+
+    expect(state.userGroups).toEqual(configuredGroups);
+    expect(state.filterPatterns).toEqual([]);
+    expect([...state.hiddenPluginGroupIds]).toEqual([]);
+    expect(state.legacyGroupsToMigrate).toBeUndefined();
+  });
+
   it('falls back to legacy groups, filters out plugin groups, and requests migration', () => {
     const state = loadGraphViewGroupState(
       createConfig(),
@@ -81,5 +123,14 @@ describe('graphView/groupState', () => {
       { id: 'user', pattern: 'src/**', color: '#112233' },
     ]);
     expect(state.filterPatterns).toEqual(['coverage/**']);
+  });
+
+  it('returns empty legacy state when no groups or filters have been stored', () => {
+    const state = loadGraphViewGroupState(createConfig(), createWorkspaceState({}));
+
+    expect(state.userGroups).toEqual([]);
+    expect(state.filterPatterns).toEqual([]);
+    expect([...state.hiddenPluginGroupIds]).toEqual([]);
+    expect(state.legacyGroupsToMigrate).toBeUndefined();
   });
 });

@@ -4,15 +4,22 @@ import { loadGraphViewFileInfo } from '../../../src/extension/graphView/fileInfo
 
 describe('graphView/fileInfo', () => {
   it('returns no payload when no workspace folder is available', async () => {
+    const statFile = vi.fn();
+    const ensureAnalyzerReady = vi.fn();
+    const getVisitCount = vi.fn();
+
     const payload = await loadGraphViewFileInfo('src/main.py', {
       workspaceFolder: undefined,
-      statFile: vi.fn(),
-      ensureAnalyzerReady: vi.fn(),
+      statFile,
+      ensureAnalyzerReady,
       graphData: { nodes: [], edges: [] },
-      getVisitCount: vi.fn(),
+      getVisitCount,
     });
 
     expect(payload).toBeUndefined();
+    expect(statFile).not.toHaveBeenCalled();
+    expect(ensureAnalyzerReady).not.toHaveBeenCalled();
+    expect(getVisitCount).not.toHaveBeenCalled();
   });
 
   it('builds file info payloads from stat, analyzer, graph, and visit state', async () => {
@@ -49,6 +56,26 @@ describe('graphView/fileInfo', () => {
       incomingCount: 1,
       outgoingCount: 2,
       plugin: 'Python',
+      visits: 4,
+    });
+  });
+
+  it('builds file info payloads without a plugin when the analyzer is unavailable', async () => {
+    const payload = await loadGraphViewFileInfo('src/main.py', {
+      workspaceFolder: { uri: vscode.Uri.file('/test/workspace') },
+      statFile: vi.fn().mockResolvedValue({ size: 456, mtime: 123 }),
+      ensureAnalyzerReady: vi.fn().mockResolvedValue(undefined),
+      graphData: { nodes: [], edges: [] },
+      getVisitCount: vi.fn(() => 4),
+    });
+
+    expect(payload).toEqual({
+      path: 'src/main.py',
+      size: 456,
+      lastModified: 123,
+      incomingCount: 0,
+      outgoingCount: 0,
+      plugin: undefined,
       visits: 4,
     });
   });

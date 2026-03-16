@@ -41,4 +41,66 @@ describe('graph view file-info request helper', () => {
     });
     expect(logError).not.toHaveBeenCalled();
   });
+
+  it('returns undefined analyzer state without trying to initialize it', async () => {
+    const sendMessage = vi.fn();
+    const logError = vi.fn();
+    const state = {
+      analyzer: undefined,
+      analyzerInitialized: false,
+      graphData: { nodes: [], edges: [] } satisfies IGraphData,
+    };
+    const loadFileInfo = vi.fn(async (_filePath, options) => ({
+      analyzer: await options.ensureAnalyzerReady(),
+    }));
+
+    await sendGraphViewProviderFileInfoMessage('src/index.ts', state, {
+      workspaceFolder: { uri: { fsPath: '/workspace' } },
+      statFile: vi.fn(),
+      getVisitCount: vi.fn(() => 3),
+      loadFileInfo,
+      sendMessage,
+      logError,
+    });
+
+    expect(state.analyzerInitialized).toBe(false);
+    expect(loadFileInfo).toHaveBeenCalledOnce();
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'FILE_INFO',
+      payload: { analyzer: undefined },
+    });
+    expect(logError).not.toHaveBeenCalled();
+  });
+
+  it('reuses an initialized analyzer without running initialize again', async () => {
+    const sendMessage = vi.fn();
+    const logError = vi.fn();
+    const analyzer = {
+      initialize: vi.fn(() => Promise.resolve()),
+      getPluginNameForFile: vi.fn(() => undefined),
+    };
+    const state = {
+      analyzer,
+      analyzerInitialized: true,
+      graphData: { nodes: [], edges: [] } satisfies IGraphData,
+    };
+
+    await sendGraphViewProviderFileInfoMessage('src/index.ts', state, {
+      workspaceFolder: { uri: { fsPath: '/workspace' } },
+      statFile: vi.fn(),
+      getVisitCount: vi.fn(() => 3),
+      loadFileInfo: vi.fn(async (_filePath, options) => ({
+        analyzer: await options.ensureAnalyzerReady(),
+      })),
+      sendMessage,
+      logError,
+    });
+
+    expect(analyzer.initialize).not.toHaveBeenCalled();
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'FILE_INFO',
+      payload: { analyzer },
+    });
+    expect(logError).not.toHaveBeenCalled();
+  });
 });

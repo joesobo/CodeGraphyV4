@@ -20,22 +20,24 @@ describe('graph view node/file navigation message', () => {
   it('reveals a file in the explorer', async () => {
     const handlers = createHandlers();
 
-    await applyNodeFileNavigationMessage(
+    const handled = await applyNodeFileNavigationMessage(
       { type: 'REVEAL_IN_EXPLORER', payload: { path: 'src/app.ts' } },
       handlers,
     );
 
+    expect(handled).toBe(true);
     expect(handlers.revealInExplorer).toHaveBeenCalledWith('src/app.ts');
   });
 
   it('copies text to the clipboard', async () => {
     const handlers = createHandlers();
 
-    await applyNodeFileNavigationMessage(
+    const handled = await applyNodeFileNavigationMessage(
       { type: 'COPY_TO_CLIPBOARD', payload: { text: 'src/app.ts' } },
       handlers,
     );
 
+    expect(handled).toBe(true);
     expect(handlers.copyToClipboard).toHaveBeenCalledWith('src/app.ts');
   });
 
@@ -48,19 +50,21 @@ describe('graph view node/file navigation message', () => {
       }),
     });
 
-    await applyNodeFileNavigationMessage({ type: 'REFRESH_GRAPH' }, handlers);
+    const handled = await applyNodeFileNavigationMessage({ type: 'REFRESH_GRAPH' }, handlers);
 
+    expect(handled).toBe(true);
     expect(finished).toBe(true);
   });
 
   it('requests file info', async () => {
     const handlers = createHandlers();
 
-    await applyNodeFileNavigationMessage(
+    const handled = await applyNodeFileNavigationMessage(
       { type: 'GET_FILE_INFO', payload: { path: 'src/app.ts' } },
       handlers,
     );
 
+    expect(handled).toBe(true);
     expect(handlers.getFileInfo).toHaveBeenCalledWith('src/app.ts');
   });
 

@@ -17,6 +17,20 @@ describe('graph view file-info message helper', () => {
     });
   });
 
+  it('skips messaging when the loader returns no payload', async () => {
+    const sendMessage = vi.fn();
+    const logError = vi.fn();
+
+    await sendGraphViewFileInfoMessage('src/main.py', {
+      loadFileInfo: vi.fn().mockResolvedValue(undefined),
+      sendMessage,
+      logError,
+    });
+
+    expect(sendMessage).not.toHaveBeenCalled();
+    expect(logError).not.toHaveBeenCalled();
+  });
+
   it('logs failures without rethrowing', async () => {
     const logError = vi.fn();
 
