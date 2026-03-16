@@ -9,9 +9,13 @@ import type { IPhysicsSettings } from '../../../../shared/types';
 import type { FGLink, FGNode } from '../../graphModel';
 import {
 	applyPhysicsSettings,
-	havePhysicsSettingsChanged,
 	initPhysics,
 } from './physics';
+import {
+	resolvePhysicsInitAction,
+	selectActivePhysicsGraph,
+	shouldApplyPhysicsUpdate,
+} from './physicsRuntimeHelpers';
 
 interface UsePhysicsRuntimeOptions {
 	fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
@@ -33,9 +37,13 @@ export function usePhysicsRuntime({
 	physicsSettingsRef.current = physicsSettings;
 
 	useEffect(() => {
-		const graph = graphMode === '2d' ? fg2dRef.current : fg3dRef.current;
-		if (!graph || !physicsInitialisedRef.current) return;
-		if (!havePhysicsSettingsChanged(previousPhysicsRef.current, physicsSettings)) return;
+		const graph = selectActivePhysicsGraph(graphMode, fg2dRef.current, fg3dRef.current);
+		if (!graph || !shouldApplyPhysicsUpdate({
+			graph,
+			physicsInitialised: physicsInitialisedRef.current,
+			physicsSettings,
+			previousPhysics: previousPhysicsRef.current,
+		})) return;
 
 		previousPhysicsRef.current = { ...physicsSettings };
 		applyPhysicsSettings(graph, physicsSettings);
@@ -50,13 +58,17 @@ export function usePhysicsRuntime({
 		let frame: number | null = null;
 
 		const tryInit = (): void => {
-			if (physicsInitialisedRef.current) return;
-
-			const instance = graphMode === '2d' ? fg2dRef.current : fg3dRef.current;
-			if (instance) {
+			const action = resolvePhysicsInitAction({
+				fg2d: fg2dRef.current,
+				fg3d: fg3dRef.current,
+				graphMode,
+				physicsInitialised: physicsInitialisedRef.current,
+			});
+			if (action.type === 'skip') return;
+			if (action.type === 'init') {
 				physicsInitialisedRef.current = true;
 				previousPhysicsRef.current = { ...physicsSettingsRef.current };
-				initPhysics(instance, physicsSettingsRef.current);
+				initPhysics(action.instance, physicsSettingsRef.current);
 				return;
 			}
 

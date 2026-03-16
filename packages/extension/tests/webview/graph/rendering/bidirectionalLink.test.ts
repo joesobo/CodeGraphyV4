@@ -4,6 +4,14 @@ import type { ThemeKind } from '../../../../src/webview/hooks/useTheme';
 import type { FGLink } from '../../../../src/webview/components/graphModel';
 import { renderBidirectionalLink } from '../../../../src/webview/components/graph/rendering/bidirectionalLink';
 
+interface ContextOperation {
+  fillStyle: string;
+  globalAlpha: number;
+  kind: 'fill' | 'stroke';
+  lineWidth: number;
+  strokeStyle: string;
+}
+
 function createDependencies(overrides: Partial<{
   directionColor: string;
   directionMode: DirectionMode;
@@ -32,26 +40,51 @@ function createLink(overrides: Partial<FGLink> = {}): FGLink {
   } as FGLink;
 }
 
-function createContext(): CanvasRenderingContext2D {
-  return {
+function createContext(): {
+  ctx: CanvasRenderingContext2D;
+  operations: ContextOperation[];
+} {
+  const operations: ContextOperation[] = [];
+  const ctx = {
     beginPath: vi.fn(),
     closePath: vi.fn(),
-    fill: vi.fn(),
+    fill: vi.fn(() => {
+      operations.push({
+        fillStyle: ctx.fillStyle,
+        globalAlpha: ctx.globalAlpha,
+        kind: 'fill',
+        lineWidth: ctx.lineWidth,
+        strokeStyle: ctx.strokeStyle,
+      });
+    }),
     lineTo: vi.fn(),
     moveTo: vi.fn(),
     restore: vi.fn(),
     save: vi.fn(),
-    stroke: vi.fn(),
+    stroke: vi.fn(() => {
+      operations.push({
+        fillStyle: ctx.fillStyle,
+        globalAlpha: ctx.globalAlpha,
+        kind: 'stroke',
+        lineWidth: ctx.lineWidth,
+        strokeStyle: ctx.strokeStyle,
+      });
+    }),
     fillStyle: '',
     globalAlpha: 1,
     lineWidth: 0,
     strokeStyle: '',
-  } as unknown as CanvasRenderingContext2D;
+  };
+
+  return {
+    ctx: ctx as unknown as CanvasRenderingContext2D,
+    operations,
+  };
 }
 
 describe('graph/rendering/bidirectionalLink', () => {
   it('draws a bidirectional link line and arrow heads in arrows mode', () => {
-    const ctx = createContext();
+    const { ctx, operations } = createContext();
 
     renderBidirectionalLink(createDependencies(), createLink(), ctx, 1);
 
@@ -59,10 +92,77 @@ describe('graph/rendering/bidirectionalLink', () => {
     expect(ctx.lineTo).toHaveBeenCalled();
     expect(ctx.stroke).toHaveBeenCalledOnce();
     expect(ctx.fill).toHaveBeenCalledTimes(2);
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        fillStyle: '#22c55e',
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        globalAlpha: 1,
+        kind: 'stroke',
+        lineWidth: 2,
+        strokeStyle: '#60a5fa',
+      }),
+    ]));
+  });
+
+  it('uses edge decoration styling when one is present', () => {
+    const { ctx, operations } = createContext();
+
+    renderBidirectionalLink(
+      createDependencies({
+        edgeDecorations: {
+          'src/app.ts->src/utils.ts': {
+            color: '#facc15',
+            opacity: 0.4,
+            width: 4,
+          },
+        },
+      }),
+      createLink(),
+      ctx,
+      2,
+    );
+
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        globalAlpha: 0.4,
+        kind: 'stroke',
+        lineWidth: 2,
+        strokeStyle: '#facc15',
+      }),
+      expect.objectContaining({
+        fillStyle: '#22c55e',
+        kind: 'fill',
+      }),
+    ]));
+  });
+
+  it('dims disconnected links with the light-theme default stroke color', () => {
+    const { ctx, operations } = createContext();
+
+    renderBidirectionalLink(
+      createDependencies({
+        highlightedNodeId: 'src/other.ts',
+        theme: 'light',
+      }),
+      createLink(),
+      ctx,
+      1,
+    );
+
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        globalAlpha: 0.15,
+        kind: 'stroke',
+        lineWidth: 2,
+        strokeStyle: '#d4d4d4',
+      }),
+    ]));
   });
 
   it('skips bidirectional canvas drawing when direction mode is not arrows', () => {
-    const ctx = createContext();
+    const { ctx } = createContext();
 
     renderBidirectionalLink(
       createDependencies({ directionMode: 'particles' }),
@@ -76,7 +176,7 @@ describe('graph/rendering/bidirectionalLink', () => {
   });
 
   it('skips drawing when link geometry cannot be computed', () => {
-    const ctx = createContext();
+    const { ctx } = createContext();
 
     renderBidirectionalLink(
       createDependencies(),

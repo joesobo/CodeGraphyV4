@@ -1,7 +1,9 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../src/shared/types';
-import { usePhysicsRuntime } from '../../../../src/webview/components/graph/runtime/usePhysicsRuntime';
+import {
+  usePhysicsRuntime,
+} from '../../../../src/webview/components/graph/runtime/usePhysicsRuntime';
 
 const physicsHarness = vi.hoisted(() => ({
   applyPhysicsSettings: vi.fn(),
@@ -35,6 +37,18 @@ function create3DGraph(): Graph3DCurrent {
   return {} as Graph3DCurrent;
 }
 
+function havePhysicsChanged(
+  previous: IPhysicsSettings | null,
+  next: IPhysicsSettings,
+): boolean {
+  return previous === null
+    || previous.centerForce !== next.centerForce
+    || previous.damping !== next.damping
+    || previous.linkDistance !== next.linkDistance
+    || previous.linkForce !== next.linkForce
+    || previous.repelForce !== next.repelForce;
+}
+
 describe('usePhysicsRuntime', () => {
   beforeEach(() => {
     physicsHarness.applyPhysicsSettings.mockReset();
@@ -46,6 +60,17 @@ describe('usePhysicsRuntime', () => {
       return 1;
     });
     vi.stubGlobal('cancelAnimationFrame', vi.fn());
+  });
+
+  it('does not check for setting changes before initialization completes', () => {
+    renderHook(() => usePhysicsRuntime({
+      fg2dRef: { current: create2DGraph() },
+      fg3dRef: { current: undefined },
+      graphMode: '2d',
+      physicsSettings: SETTINGS,
+    }));
+
+    expect(physicsHarness.havePhysicsSettingsChanged).not.toHaveBeenCalled();
   });
 
   it('initializes the active graph instance', () => {
@@ -127,6 +152,23 @@ describe('usePhysicsRuntime', () => {
     expect(cancelAnimationFrame).toHaveBeenCalledWith(42);
   });
 
+  it('does not cancel an animation frame when initialization completed synchronously', () => {
+    const cancelAnimationFrame = vi.fn();
+
+    vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrame);
+
+    const { unmount } = renderHook(() => usePhysicsRuntime({
+      fg2dRef: { current: create2DGraph() },
+      fg3dRef: { current: undefined },
+      graphMode: '2d',
+      physicsSettings: SETTINGS,
+    }));
+
+    unmount();
+
+    expect(cancelAnimationFrame).not.toHaveBeenCalled();
+  });
+
   it('does not reapply settings when they are unchanged after initialization', () => {
     const graph = create2DGraph();
 
@@ -148,6 +190,42 @@ describe('usePhysicsRuntime', () => {
       sameSettings,
     );
     expect(physicsHarness.applyPhysicsSettings).not.toHaveBeenCalled();
+  });
+
+  it('tracks the latest settings snapshot after applying a change', () => {
+    const graph = create2DGraph();
+    const updatedSettings = {
+      ...SETTINGS,
+      repelForce: SETTINGS.repelForce + 1,
+    };
+
+    physicsHarness.havePhysicsSettingsChanged.mockImplementation(havePhysicsChanged);
+
+    const { rerender } = renderHook(
+      ({ physicsSettings }) => usePhysicsRuntime({
+        fg2dRef: { current: graph },
+        fg3dRef: { current: undefined },
+        graphMode: '2d',
+        physicsSettings,
+      }),
+      { initialProps: { physicsSettings: SETTINGS } },
+    );
+
+    rerender({ physicsSettings: updatedSettings });
+    rerender({ physicsSettings: { ...updatedSettings } });
+
+    expect(physicsHarness.havePhysicsSettingsChanged).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining(SETTINGS),
+      updatedSettings,
+    );
+    expect(physicsHarness.havePhysicsSettingsChanged).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining(updatedSettings),
+      expect.objectContaining(updatedSettings),
+    );
+    expect(physicsHarness.applyPhysicsSettings).toHaveBeenCalledOnce();
+    expect(physicsHarness.applyPhysicsSettings).toHaveBeenCalledWith(graph, updatedSettings);
   });
 
   it('reapplies settings after initialization when values change', () => {

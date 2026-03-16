@@ -21,6 +21,9 @@ vi.mock('../../../../src/webview/components/graphSupport', () => ({
 }));
 
 import {
+  applyTimelineAlpha,
+  createEmptyRuntimeGraphData,
+  incrementImageCacheVersion,
   useGraphState,
   type UseGraphStateOptions,
 } from '../../../../src/webview/components/graph/runtime/useGraphState';
@@ -101,6 +104,31 @@ describe('graph/runtime/useGraphState', () => {
     vi.unstubAllGlobals();
   });
 
+  it('creates empty runtime graph data for the initial previous-node snapshot', () => {
+    expect(createEmptyRuntimeGraphData()).toEqual({
+      links: [],
+      nodes: [],
+    });
+  });
+
+  it('increments the image cache version by one per update', () => {
+    expect(incrementImageCacheVersion(0)).toBe(1);
+    expect(incrementImageCacheVersion(1)).toBe(2);
+  });
+
+  it('applies timeline alpha only when the graph exposes a d3Alpha function', () => {
+    const graph = { d3Alpha: vi.fn() };
+
+    expect(() => {
+      applyTimelineAlpha(undefined);
+      applyTimelineAlpha({});
+      applyTimelineAlpha(graph, 0.1);
+    }).not.toThrow();
+
+    expect(graph.d3Alpha).toHaveBeenCalledTimes(1);
+    expect(graph.d3Alpha).toHaveBeenCalledWith(0.1);
+  });
+
   it('initializes refs and state from their expected defaults', () => {
     const { result } = renderHook(() => useGraphState(createOptions()));
 
@@ -112,6 +140,7 @@ describe('graph/runtime/useGraphState', () => {
     expect(result.current.fg3dRef.current).toBeUndefined();
     expect(result.current.graphCursorRef.current).toBe('default');
     expect(result.current.graphDataRef.current).toBe(result.current.graphData);
+    expect(result.current.imageCacheVersion).toBe(0);
     expect(result.current.highlightedNeighborsRef.current).toEqual(new Set());
     expect(result.current.selectedNodes).toEqual([]);
     expect(result.current.selectedNodesSetRef.current).toEqual(new Set());
@@ -212,6 +241,19 @@ describe('graph/runtime/useGraphState', () => {
     expect(requestAnimationFrame).not.toHaveBeenCalled();
   });
 
+  it('keeps the data effect safe when the graph api has no d3Alpha function', () => {
+    graphStateHarness.as2DExtMethods.mockReturnValue({});
+
+    renderHook(() => useGraphState(createOptions({ timelineActive: true })));
+
+    expect(requestAnimationFrame).toHaveBeenCalledTimes(1);
+    expect(() => {
+      act(() => {
+        frameCallbacks[0](16);
+      });
+    }).not.toThrow();
+  });
+
   it('schedules a low alpha bump when the timeline is active and reruns it when graph data changes', () => {
     const graph = { d3Alpha: vi.fn() };
     const firstData = createData('alpha');
@@ -243,14 +285,21 @@ describe('graph/runtime/useGraphState', () => {
     const options = createOptions();
     const { result } = renderHook(() => useGraphState(options));
     const firstGraphData = result.current.graphData;
-    const firstTrigger = result.current.triggerImageRerender;
 
     act(() => {
       result.current.triggerImageRerender();
     });
 
+    expect(result.current.imageCacheVersion).toBe(1);
     expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(1);
     expect(result.current.graphData).toBe(firstGraphData);
-    expect(result.current.triggerImageRerender).toBe(firstTrigger);
+
+    act(() => {
+      result.current.triggerImageRerender();
+    });
+
+    expect(result.current.imageCacheVersion).toBe(2);
+    expect(graphStateHarness.buildGraphData).toHaveBeenCalledTimes(1);
+    expect(result.current.graphData).toBe(firstGraphData);
   });
 });

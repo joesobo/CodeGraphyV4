@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useRef } from 'react';
 import type {
   LinkObject,
   NodeObject,
@@ -52,108 +52,111 @@ export interface UseGraphCallbacksResult {
   nodeThreeObject: (this: void, node: NodeObject) => ReturnType<typeof createNodeThreeObject>;
 }
 
+type GraphCallbackRefs = UseGraphCallbacksOptions['refs'];
+
+interface GraphCallbackContext {
+  pluginHost?: WebviewPluginHost;
+  refs: GraphCallbackRefs;
+  triggerImageRerender(this: void): void;
+}
+
+function getLinkRenderingContext(refs: GraphCallbackRefs) {
+  return {
+    directionColorRef: refs.directionColorRef,
+    directionModeRef: refs.directionModeRef,
+    edgeDecorationsRef: refs.edgeDecorationsRef,
+    highlightedNodeRef: refs.highlightedNodeRef,
+    themeRef: refs.themeRef,
+  };
+}
+
+function getNodeCanvasContext({
+  pluginHost,
+  refs,
+  triggerImageRerender,
+}: GraphCallbackContext) {
+  return {
+    highlightedNeighborsRef: refs.highlightedNeighborsRef,
+    highlightedNodeRef: refs.highlightedNodeRef,
+    nodeDecorationsRef: refs.nodeDecorationsRef,
+    selectedNodesSetRef: refs.selectedNodesSetRef,
+    showLabelsRef: refs.showLabelsRef,
+    themeRef: refs.themeRef,
+    pluginHost,
+    triggerImageRerender,
+  };
+}
+
+function getNodeThreeObjectContext(refs: GraphCallbackRefs) {
+  return {
+    meshesRef: refs.meshesRef,
+    showLabelsRef: refs.showLabelsRef,
+    spritesRef: refs.spritesRef,
+  };
+}
+
 export function useGraphCallbacks({
   pluginHost,
   refs,
   triggerImageRerender,
 }: UseGraphCallbacksOptions): UseGraphCallbacksResult {
-  const nodeCanvasObject = useCallback((
-    node: NodeObject,
-    ctx: CanvasRenderingContext2D,
-    globalScale: number,
-  ) => {
-    renderNodeCanvas({
-      highlightedNeighborsRef: refs.highlightedNeighborsRef,
-      highlightedNodeRef: refs.highlightedNodeRef,
-      nodeDecorationsRef: refs.nodeDecorationsRef,
-      selectedNodesSetRef: refs.selectedNodesSetRef,
-      showLabelsRef: refs.showLabelsRef,
-      themeRef: refs.themeRef,
-      pluginHost,
-      triggerImageRerender,
-    }, node as FGNode, ctx, globalScale);
-  }, [pluginHost, refs, triggerImageRerender]);
+  const contextRef = useRef<GraphCallbackContext>({
+    pluginHost,
+    refs,
+    triggerImageRerender,
+  });
+  const callbacksRef = useRef<UseGraphCallbacksResult | null>(null);
 
-  const nodePointerAreaPaint = useCallback((
-    node: NodeObject,
-    color: string,
-    ctx: CanvasRenderingContext2D,
-  ) => {
-    paintNodePointerArea(node as FGNode, color, ctx);
-  }, []);
-
-  const linkCanvasObject = useCallback((
-    link: LinkObject,
-    ctx: CanvasRenderingContext2D,
-    globalScale: number,
-  ) => {
-    renderBidirectionalLink({
-      directionColorRef: refs.directionColorRef,
-      directionModeRef: refs.directionModeRef,
-      edgeDecorationsRef: refs.edgeDecorationsRef,
-      highlightedNodeRef: refs.highlightedNodeRef,
-      themeRef: refs.themeRef,
-    }, link as FGLink, ctx, globalScale);
-  }, [refs.directionColorRef, refs.directionModeRef, refs.edgeDecorationsRef, refs.highlightedNodeRef, refs.themeRef]);
-
-  const getLinkColor = useCallback((link: LinkObject) => getGraphLinkColor({
-    directionColorRef: refs.directionColorRef,
-    directionModeRef: refs.directionModeRef,
-    edgeDecorationsRef: refs.edgeDecorationsRef,
-    highlightedNodeRef: refs.highlightedNodeRef,
-    themeRef: refs.themeRef,
-  }, link as FGLink), [refs.directionColorRef, refs.directionModeRef, refs.edgeDecorationsRef, refs.highlightedNodeRef, refs.themeRef]);
-
-  const getLinkParticles = useCallback((link: LinkObject) => getGraphLinkParticles({
-    directionColorRef: refs.directionColorRef,
-    directionModeRef: refs.directionModeRef,
-    edgeDecorationsRef: refs.edgeDecorationsRef,
-    highlightedNodeRef: refs.highlightedNodeRef,
-    themeRef: refs.themeRef,
-  }, link as FGLink), [refs.directionColorRef, refs.directionModeRef, refs.edgeDecorationsRef, refs.highlightedNodeRef, refs.themeRef]);
-
-  const getArrowRelPos = useCallback((_link: LinkObject) => getGraphArrowRelPos(), []);
-
-  const getArrowColor = useCallback((_link: LinkObject) => getGraphDirectionalColor({
-    directionColorRef: refs.directionColorRef,
-    directionModeRef: refs.directionModeRef,
-    edgeDecorationsRef: refs.edgeDecorationsRef,
-    highlightedNodeRef: refs.highlightedNodeRef,
-    themeRef: refs.themeRef,
-  }), [refs.directionColorRef, refs.directionModeRef, refs.edgeDecorationsRef, refs.highlightedNodeRef, refs.themeRef]);
-
-  const getParticleColor = useCallback((_link: LinkObject) => getGraphDirectionalColor({
-    directionColorRef: refs.directionColorRef,
-    directionModeRef: refs.directionModeRef,
-    edgeDecorationsRef: refs.edgeDecorationsRef,
-    highlightedNodeRef: refs.highlightedNodeRef,
-    themeRef: refs.themeRef,
-  }), [refs.directionColorRef, refs.directionModeRef, refs.edgeDecorationsRef, refs.highlightedNodeRef, refs.themeRef]);
-
-  const getLinkWidth = useCallback((link: LinkObject) => getGraphLinkWidth({
-    directionColorRef: refs.directionColorRef,
-    directionModeRef: refs.directionModeRef,
-    edgeDecorationsRef: refs.edgeDecorationsRef,
-    highlightedNodeRef: refs.highlightedNodeRef,
-    themeRef: refs.themeRef,
-  }, link as FGLink), [refs.directionColorRef, refs.directionModeRef, refs.edgeDecorationsRef, refs.highlightedNodeRef, refs.themeRef]);
-
-  const nodeThreeObject = useCallback((node: NodeObject) => createNodeThreeObject({
-    meshesRef: refs.meshesRef,
-    showLabelsRef: refs.showLabelsRef,
-    spritesRef: refs.spritesRef,
-  }, node as FGNode), [refs.meshesRef, refs.showLabelsRef, refs.spritesRef]);
-
-  return {
-    getArrowColor,
-    getArrowRelPos,
-    getLinkColor,
-    getLinkParticles,
-    getLinkWidth,
-    getParticleColor,
-    linkCanvasObject,
-    nodeCanvasObject,
-    nodePointerAreaPaint,
-    nodeThreeObject,
+  contextRef.current = {
+    pluginHost,
+    refs,
+    triggerImageRerender,
   };
+
+  if (callbacksRef.current === null) {
+    callbacksRef.current = {
+      nodeCanvasObject(node, ctx, globalScale) {
+        renderNodeCanvas(
+          getNodeCanvasContext(contextRef.current),
+          node as FGNode,
+          ctx,
+          globalScale,
+        );
+      },
+      nodePointerAreaPaint(node, color, ctx) {
+        paintNodePointerArea(node as FGNode, color, ctx);
+      },
+      linkCanvasObject(link, ctx, globalScale) {
+        renderBidirectionalLink(
+          getLinkRenderingContext(contextRef.current.refs),
+          link as FGLink,
+          ctx,
+          globalScale,
+        );
+      },
+      getLinkColor(link) {
+        return getGraphLinkColor(getLinkRenderingContext(contextRef.current.refs), link as FGLink);
+      },
+      getLinkParticles(link) {
+        return getGraphLinkParticles(getLinkRenderingContext(contextRef.current.refs), link as FGLink);
+      },
+      getArrowRelPos(_link) {
+        return getGraphArrowRelPos();
+      },
+      getArrowColor(_link) {
+        return getGraphDirectionalColor(getLinkRenderingContext(contextRef.current.refs));
+      },
+      getParticleColor(_link) {
+        return getGraphDirectionalColor(getLinkRenderingContext(contextRef.current.refs));
+      },
+      getLinkWidth(link) {
+        return getGraphLinkWidth(getLinkRenderingContext(contextRef.current.refs), link as FGLink);
+      },
+      nodeThreeObject(node) {
+        return createNodeThreeObject(getNodeThreeObjectContext(contextRef.current.refs), node as FGNode);
+      },
+    };
+  }
+
+  return callbacksRef.current;
 }

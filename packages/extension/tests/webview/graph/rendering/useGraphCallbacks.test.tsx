@@ -53,22 +53,25 @@ function createRefs(): UseGraphCallbacksOptions['refs'] {
   } as UseGraphCallbacksOptions['refs'];
 }
 
-function renderUseGraphCallbacks(options: Partial<UseGraphCallbacksOptions> = {}) {
-  const refs = options.refs ?? createRefs();
-  const triggerImageRerender = options.triggerImageRerender ?? vi.fn();
-  const pluginHost = options.pluginHost ?? ({ name: 'plugin-host' } as never);
+function createOptions(options: Partial<UseGraphCallbacksOptions> = {}): UseGraphCallbacksOptions {
+  return {
+    pluginHost: options.pluginHost ?? ({ name: 'plugin-host' } as never),
+    refs: options.refs ?? createRefs(),
+    triggerImageRerender: options.triggerImageRerender ?? vi.fn(),
+  };
+}
 
-  const hook = renderHook(() => useGraphCallbacks({
-    pluginHost,
-    refs,
-    triggerImageRerender,
-  }));
+function renderUseGraphCallbacks(options: Partial<UseGraphCallbacksOptions> = {}) {
+  const initialOptions = createOptions(options);
+  const hook = renderHook(useGraphCallbacks, {
+    initialProps: initialOptions,
+  });
 
   return {
-    pluginHost,
-    refs,
-    result: hook.result,
-    triggerImageRerender,
+    ...hook,
+    pluginHost: initialOptions.pluginHost,
+    refs: initialOptions.refs,
+    triggerImageRerender: initialOptions.triggerImageRerender,
   };
 }
 
@@ -238,5 +241,48 @@ describe('graph/rendering/useGraphCallbacks', () => {
       showLabelsRef: refs.showLabelsRef,
       spritesRef: refs.spritesRef,
     }, node);
+  });
+
+  it('keeps callback identities stable across rerenders while using the latest inputs', () => {
+    const initialCallbacks = renderUseGraphCallbacks();
+    const node = { id: 'node-2' } as FGNode as NodeObject;
+    const link = { source: 'node-1', target: 'node-2' } as FGLink as LinkObject;
+    const ctx = { canvas: document.createElement('canvas') } as CanvasRenderingContext2D;
+    const nextRefs = createRefs();
+    const nextPluginHost = { name: 'next-plugin-host' } as never;
+    const nextTriggerImageRerender = vi.fn();
+    const stableCallbacks = initialCallbacks.result.current;
+
+    renderingHarness.getGraphLinkColor.mockReturnValue('#445566');
+
+    initialCallbacks.rerender(createOptions({
+      pluginHost: nextPluginHost,
+      refs: nextRefs,
+      triggerImageRerender: nextTriggerImageRerender,
+    }));
+
+    stableCallbacks.nodeCanvasObject(node, ctx, 1.5);
+    stableCallbacks.getLinkColor(link);
+
+    expect(initialCallbacks.result.current).toBe(stableCallbacks);
+    expect(initialCallbacks.result.current.nodeCanvasObject).toBe(stableCallbacks.nodeCanvasObject);
+    expect(initialCallbacks.result.current.getLinkColor).toBe(stableCallbacks.getLinkColor);
+    expect(renderingHarness.renderNodeCanvas).toHaveBeenCalledWith({
+      highlightedNeighborsRef: nextRefs.highlightedNeighborsRef,
+      highlightedNodeRef: nextRefs.highlightedNodeRef,
+      nodeDecorationsRef: nextRefs.nodeDecorationsRef,
+      selectedNodesSetRef: nextRefs.selectedNodesSetRef,
+      showLabelsRef: nextRefs.showLabelsRef,
+      themeRef: nextRefs.themeRef,
+      pluginHost: nextPluginHost,
+      triggerImageRerender: nextTriggerImageRerender,
+    }, node, ctx, 1.5);
+    expect(renderingHarness.getGraphLinkColor).toHaveBeenCalledWith({
+      directionColorRef: nextRefs.directionColorRef,
+      directionModeRef: nextRefs.directionModeRef,
+      edgeDecorationsRef: nextRefs.edgeDecorationsRef,
+      highlightedNodeRef: nextRefs.highlightedNodeRef,
+      themeRef: nextRefs.themeRef,
+    }, link);
   });
 });

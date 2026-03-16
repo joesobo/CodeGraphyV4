@@ -143,4 +143,16 @@ describe('physics', () => {
     expect(d3Force).toHaveBeenCalledWith('forceY', expect.anything());
     expect(d3Force).toHaveBeenCalledWith('collision', expect.anything());
   });
+
+  it('uses node size plus padding for the collision radius', () => {
+    const { d3Force, instance } = createPhysicsInstance();
+
+    initPhysics(instance, SETTINGS);
+
+    const collisionForce = d3Force.mock.calls.find(([name]) => name === 'collision')?.[1] as {
+      radius: () => (node: { size: number }) => number;
+    };
+
+    expect(collisionForce.radius()({ size: 9 })).toBe(13);
+  });
 });
