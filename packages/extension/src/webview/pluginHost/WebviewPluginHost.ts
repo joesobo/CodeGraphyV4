@@ -15,6 +15,7 @@ import type {
   LabelOpts,
   CodeGraphyWebviewAPI,
 } from './types';
+import { drawBadge, drawProgressRing, drawLabel } from './canvasHelpers';
 
 type GraphInteractionMessage = {
   type: 'GRAPH_INTERACTION';
@@ -198,44 +199,17 @@ export class WebviewPluginHost {
     };
   }
 
-  // ── Drawing Helpers ──
+  // ── Drawing Helpers (delegated to canvasHelpers module) ──
 
   static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void {
-    const fontSize = opts.fontSize ?? 8;
-    ctx.font = `bold ${fontSize}px sans-serif`;
-    const metrics = ctx.measureText(opts.text);
-    const padding = 3;
-    const w = metrics.width + padding * 2;
-    const h = fontSize + padding * 2;
-
-    ctx.fillStyle = opts.bgColor ?? '#EF4444';
-    ctx.beginPath();
-    ctx.roundRect(opts.x - w / 2, opts.y - h / 2, w, h, h / 2);
-    ctx.fill();
-
-    ctx.fillStyle = opts.color ?? '#FFFFFF';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(opts.text, opts.x, opts.y);
+    drawBadge(ctx, opts);
   }
 
   static drawProgressRing(ctx: CanvasRenderingContext2D, opts: RingOpts): void {
-    const width = opts.width ?? 2;
-    const progress = opts.progress ?? 1;
-
-    ctx.strokeStyle = opts.color;
-    ctx.lineWidth = width;
-    ctx.beginPath();
-    ctx.arc(opts.x, opts.y, opts.radius, -Math.PI / 2, -Math.PI / 2 + 2 * Math.PI * progress);
-    ctx.stroke();
+    drawProgressRing(ctx, opts);
   }
 
   static drawLabel(ctx: CanvasRenderingContext2D, opts: LabelOpts): void {
-    const fontSize = opts.fontSize ?? 10;
-    ctx.font = `${fontSize}px sans-serif`;
-    ctx.fillStyle = opts.color ?? '#FFFFFF';
-    ctx.textAlign = opts.align ?? 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(opts.text, opts.x, opts.y);
+    drawLabel(ctx, opts);
   }
 }

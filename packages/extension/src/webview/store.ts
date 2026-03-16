@@ -18,7 +18,7 @@ import type {
 } from '../shared/types';
 import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_DIRECTION_COLOR } from '../shared/types';
 import type { SearchOptions } from './components/SearchBar';
-import { postMessage } from './lib/vscodeApi';
+import { messageHandlers } from './storeMessageHandlers';
 
 const DEFAULT_PHYSICS: IPhysicsSettings = {
   repelForce: 10,
@@ -126,9 +126,6 @@ export interface GraphState {
   handleExtensionMessage: (message: ExtensionToWebviewMessage) => void;
 }
 
-/** DAG mode cycle order: free-form → radialout → top-down → left-right */
-const DAG_MODE_CYCLE: DagMode[] = [null, 'radialout', 'td', 'lr'];
-
 export function createGraphStore() {
   return createStore<GraphState>((set, get) => ({
     // Initial state
@@ -195,133 +192,9 @@ export function createGraphStore() {
     setIsPlaying: (playing) => set({ isPlaying: playing }),
 
     handleExtensionMessage: (message) => {
-      switch (message.type) {
-        case 'GRAPH_DATA_UPDATED':
-          set({ graphData: message.payload, isLoading: false });
-          break;
-        case 'FAVORITES_UPDATED':
-          set({ favorites: new Set(message.payload.favorites) });
-          break;
-        case 'SETTINGS_UPDATED':
-          set({
-            bidirectionalMode: message.payload.bidirectionalEdges,
-            showOrphans: message.payload.showOrphans,
-          });
-          break;
-        case 'GROUPS_UPDATED':
-          set({ groups: message.payload.groups });
-          break;
-        case 'FILTER_PATTERNS_UPDATED':
-          set({
-            filterPatterns: message.payload.patterns,
-            pluginFilterPatterns: message.payload.pluginPatterns,
-          });
-          break;
-        case 'VIEWS_UPDATED':
-          set({
-            availableViews: message.payload.views,
-            activeViewId: message.payload.activeViewId,
-          });
-          break;
-        case 'PHYSICS_SETTINGS_UPDATED':
-          set({ physicsSettings: message.payload });
-          break;
-        case 'DEPTH_LIMIT_UPDATED':
-          set({ depthLimit: message.payload.depthLimit });
-          break;
-        case 'DIRECTION_SETTINGS_UPDATED':
-          set({
-            directionMode: message.payload.directionMode,
-            directionColor: message.payload.directionColor,
-            particleSpeed: message.payload.particleSpeed,
-            particleSize: message.payload.particleSize,
-          });
-          break;
-        case 'SHOW_LABELS_UPDATED':
-          set({ showLabels: message.payload.showLabels });
-          break;
-        case 'PLUGINS_UPDATED':
-          set({ pluginStatuses: message.payload.plugins });
-          break;
-        case 'MAX_FILES_UPDATED':
-          set({ maxFiles: message.payload.maxFiles });
-          break;
-        case 'INDEX_PROGRESS':
-          set({ isIndexing: true, indexProgress: message.payload });
-          break;
-        case 'TIMELINE_DATA':
-          set({
-            isIndexing: false,
-            indexProgress: null,
-            timelineActive: true,
-            timelineCommits: message.payload.commits,
-            currentCommitSha: message.payload.currentSha,
-          });
-          break;
-        case 'COMMIT_GRAPH_DATA':
-          set({
-            currentCommitSha: message.payload.sha,
-            graphData: message.payload.graphData,
-            isLoading: false,
-          });
-          break;
-        case 'PLAYBACK_SPEED_UPDATED':
-          set({ playbackSpeed: message.payload.speed });
-          break;
-        case 'CACHE_INVALIDATED':
-          set({
-            timelineActive: false,
-            timelineCommits: [],
-            currentCommitSha: null,
-            isPlaying: false,
-            isIndexing: false,
-            indexProgress: null,
-          });
-          break;
-        case 'PLAYBACK_ENDED':
-          set({ isPlaying: false });
-          break;
-        case 'DECORATIONS_UPDATED':
-          set({
-            nodeDecorations: message.payload.nodeDecorations,
-            edgeDecorations: message.payload.edgeDecorations,
-          });
-          break;
-        case 'CONTEXT_MENU_ITEMS':
-          set({ pluginContextMenuItems: message.payload.items });
-          break;
-        case 'PLUGIN_WEBVIEW_INJECT':
-          // Tier 2: will be implemented later
-          break;
-        case 'DAG_MODE_UPDATED':
-          set({ dagMode: message.payload.dagMode });
-          break;
-        case 'FOLDER_NODE_COLOR_UPDATED':
-          set({ folderNodeColor: message.payload.folderNodeColor });
-          break;
-        case 'NODE_SIZE_MODE_UPDATED':
-          set({ nodeSizeMode: message.payload.nodeSizeMode });
-          break;
-        case 'CYCLE_VIEW': {
-          const { availableViews, activeViewId } = get();
-          if (availableViews.length === 0) break;
-          const idx = availableViews.findIndex(view => view.id === activeViewId);
-          const next = availableViews[(idx + 1) % availableViews.length];
-          postMessage({ type: 'CHANGE_VIEW', payload: { viewId: next.id } });
-          break;
-        }
-        case 'CYCLE_LAYOUT': {
-          const { dagMode } = get();
-          const idx = DAG_MODE_CYCLE.indexOf(dagMode);
-          const nextMode = DAG_MODE_CYCLE[(idx + 1) % DAG_MODE_CYCLE.length];
-          postMessage({ type: 'UPDATE_DAG_MODE', payload: { dagMode: nextMode } });
-          break;
-        }
-        case 'TOGGLE_DIMENSION': {
-          const { graphMode } = get();
-          set({ graphMode: graphMode === '2d' ? '3d' : '2d' });
-          break;
-        }
+      const handler = messageHandlers[message.type];
+      if (handler) {
+        handler(set as (partial: Partial<GraphState>) => void, get, 'payload' in message ? message.payload : undefined);
       }
     },
   }));

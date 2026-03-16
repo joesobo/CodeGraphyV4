@@ -1,5 +1,4 @@
-import React, { useEffect, useMemo, useCallback, useRef } from 'react';
-import { globMatch } from './lib/globMatch';
+import React, { useEffect, useCallback } from 'react';
 import Graph from './components/Graph';
 import { GraphIcon } from './components/icons';
 import { SearchBar } from './components/SearchBar';
@@ -8,84 +7,15 @@ import PluginsPanel from './components/PluginsPanel';
 import Timeline from './components/Timeline';
 import Toolbar from './components/Toolbar';
 import { useTheme } from './hooks/useTheme';
-import { IGraphData, IGraphNode, DEFAULT_NODE_COLOR, ExtensionToWebviewMessage } from '../shared/types';
+import { useFilteredGraph } from './hooks/useFilteredGraph';
+import { usePluginManager } from './hooks/usePluginManager';
+import { ExtensionToWebviewMessage } from '../shared/types';
 import { postMessage } from './lib/vscodeApi';
 import { useGraphStore, graphStore } from './store';
-import type { SearchOptions } from './components/SearchBar';
-import { WebviewPluginHost } from './pluginHost';
-import type { CodeGraphyWebviewAPI } from './pluginHost/types';
-
-interface PluginWebviewModule {
-  activate?: (api: CodeGraphyWebviewAPI) => void | Promise<void>;
-  default?: ((api: CodeGraphyWebviewAPI) => void | Promise<void>) | {
-    activate?: (api: CodeGraphyWebviewAPI) => void | Promise<void>;
-  };
-}
-
-interface PluginInjectPayload {
-  pluginId: string;
-  scripts: string[];
-  styles: string[];
-}
-
-/**
- * Filter nodes using advanced search options.
- * Returns matching node IDs and any regex error.
- */
-function filterNodesAdvanced(
-  nodes: IGraphNode[],
-  query: string,
-  options: SearchOptions
-): { matchingIds: Set<string>; regexError: string | null } {
-  const matchingIds = new Set<string>();
-  let regexError: string | null = null;
-
-  if (!query.trim()) {
-    nodes.forEach(node => matchingIds.add(node.id));
-    return { matchingIds, regexError };
-  }
-
-  let pattern: RegExp | null = null;
-
-  if (options.regex) {
-    try {
-      const flags = options.matchCase ? '' : 'i';
-      pattern = new RegExp(query, flags);
-    } catch (e) {
-      regexError = e instanceof Error ? e.message : 'Invalid regex';
-      return { matchingIds, regexError };
-    }
-  } else if (options.wholeWord) {
-    const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const flags = options.matchCase ? '' : 'i';
-    pattern = new RegExp(`\\b${escaped}\\b`, flags);
-  }
-
-  for (const node of nodes) {
-    const searchText = `${node.label} ${node.id}`;
-    let isMatch = false;
-
-    if (pattern) {
-      isMatch = pattern.test(searchText);
-    } else {
-      const normalizedText = options.matchCase ? searchText : searchText.toLowerCase();
-      const normalizedQuery = options.matchCase ? query : query.toLowerCase();
-      isMatch = normalizedText.includes(normalizedQuery);
-    }
-
-    if (isMatch) {
-      matchingIds.add(node.id);
-    }
-  }
-
-  return { matchingIds, regexError };
-}
+import type { PluginInjectPayload } from './hooks/usePluginManager';
 
 export default function App(): React.ReactElement {
-  const pluginHostRef = useRef<WebviewPluginHost>(new WebviewPluginHost());
-  const pluginApisRef = useRef<Map<string, CodeGraphyWebviewAPI>>(new Map());
-  const loadedStylesRef = useRef<Set<string>>(new Set());
-  const activatedScriptKeysRef = useRef<Set<string>>(new Set());
+  const { pluginHost, injectPluginAssets } = usePluginManager();
 
   // Read state from store
   const graphData = useGraphStore(s => s.graphData);
@@ -106,103 +36,11 @@ export default function App(): React.ReactElement {
 
   const theme = useTheme();
 
-  // Filter graph data based on search
-  const { filteredData, regexError } = useMemo((): { filteredData: IGraphData | null; regexError: string | null } => {
-    if (!graphData) return { filteredData: null, regexError: null };
-    if (!searchQuery.trim()) return { filteredData: graphData, regexError: null };
+  const { filteredData, coloredData, regexError } = useFilteredGraph(graphData, searchQuery, searchOptions, groups);
 
-    const result = filterNodesAdvanced(graphData.nodes, searchQuery, searchOptions);
-    const matchingNodeIds = result.matchingIds;
-    const error = result.regexError;
-
-    const filteredNodes = graphData.nodes.filter(node => matchingNodeIds.has(node.id));
-    const filteredEdges = graphData.edges.filter(
-      edge => matchingNodeIds.has(edge.from) && matchingNodeIds.has(edge.to)
-    );
-
-    return { filteredData: { nodes: filteredNodes, edges: filteredEdges }, regexError: error };
-  }, [graphData, searchQuery, searchOptions]);
-
-  // Apply group colors to filtered data
-  const coloredData = useMemo((): IGraphData | null => {
-    const base = filteredData;
-    if (!base) return null;
-    if (groups.length === 0) return base;
-
-    const coloredNodes = base.nodes.map(node => {
-      for (const group of groups) {
-        if (!group.disabled && globMatch(node.id, group.pattern)) {
-          return {
-            ...node,
-            color: group.color,
-            shape2D: group.shape2D,
-            shape3D: group.shape3D,
-            imageUrl: group.imageUrl,
-          };
-        }
-      }
-      return { ...node, color: node.color || DEFAULT_NODE_COLOR };
-    });
-
-    return { ...base, nodes: coloredNodes };
-  }, [filteredData, groups]);
-
-  const handleSearchOptionsChange = useCallback((newOptions: SearchOptions) => {
+  const handleSearchOptionsChange = useCallback((newOptions: typeof searchOptions) => {
     setSearchOptions(newOptions);
   }, [setSearchOptions]);
-
-  const getPluginApi = useCallback((pluginId: string): CodeGraphyWebviewAPI => {
-    const existing = pluginApisRef.current.get(pluginId);
-    if (existing) {
-      return existing;
-    }
-
-    const api = pluginHostRef.current.createAPI(pluginId, postMessage);
-    pluginApisRef.current.set(pluginId, api);
-    return api;
-  }, []);
-
-  const activatePluginScript = useCallback(async (pluginId: string, script: string): Promise<void> => {
-    const activationKey = `${pluginId}::${script}`;
-    if (activatedScriptKeysRef.current.has(activationKey)) {
-      return;
-    }
-
-    const mod = (await import(/* @vite-ignore */ script)) as PluginWebviewModule;
-    const candidate = mod.activate ?? mod.default;
-    const activate = typeof candidate === 'function'
-      ? candidate
-      : (candidate && typeof candidate === 'object' && 'activate' in candidate
-          ? candidate.activate
-          : undefined);
-
-    if (typeof activate !== 'function') {
-      console.warn(`[CodeGraphy] Webview plugin script "${script}" has no activate(api) export`);
-      return;
-    }
-
-    await activate(getPluginApi(pluginId));
-    activatedScriptKeysRef.current.add(activationKey);
-  }, [getPluginApi]);
-
-  const injectPluginAssets = useCallback(async (payload: PluginInjectPayload): Promise<void> => {
-    for (const style of payload.styles) {
-      if (loadedStylesRef.current.has(style)) continue;
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = style;
-      document.head.appendChild(link);
-      loadedStylesRef.current.add(style);
-    }
-
-    for (const script of payload.scripts) {
-      try {
-        await activatePluginScript(payload.pluginId, script);
-      } catch (error) {
-        console.error(`[CodeGraphy] Failed to activate webview plugin script "${script}":`, error);
-      }
-    }
-  }, [activatePluginScript]);
 
   // Listen for extension messages and delegate to store
   useEffect(() => {
@@ -227,7 +65,7 @@ export default function App(): React.ReactElement {
       if (raw.type.startsWith('plugin:')) {
         const [, pluginId, ...typeParts] = raw.type.split(':');
         if (pluginId && typeParts.length > 0) {
-          pluginHostRef.current.deliverMessage(pluginId, {
+          pluginHost.deliverMessage(pluginId, {
             type: typeParts.join(':'),
             data: raw.data,
           });
@@ -244,7 +82,7 @@ export default function App(): React.ReactElement {
     return () => {
       window.removeEventListener('message', handleMessage);
     };
-  }, [injectPluginAssets]);
+  }, [injectPluginAssets, pluginHost]);
 
   // Loading state
   if (isLoading) {
@@ -302,7 +140,7 @@ export default function App(): React.ReactElement {
           theme={theme}
           nodeDecorations={nodeDecorations}
           edgeDecorations={edgeDecorations}
-          pluginHost={pluginHostRef.current}
+          pluginHost={pluginHost}
         />
         {activePanel !== 'none' ? (
           <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
