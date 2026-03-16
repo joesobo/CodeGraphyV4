@@ -712,17 +712,37 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
             - `timelineIndexExecution.ts`
             - `timelineIndexSetup.ts`
             - `analysisRequest.ts`
+      - current local survivor pass:
+        - refactor `providerWebviewMethods.ts` to resolve default dependencies lazily instead of holding a module-level constant
+        - harden `messages/settingsToggle.ts` and `providerWebviewMethodsDefaultDependencies.test.ts` to cover the remaining default/fallback paths
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerWebviewMethods.test.ts tests/extension/graphView/providerWebviewMethodsDefaultDependencies.test.ts tests/extension/graphView/messages/settingsToggle.test.ts`
+          - `16` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the current local survivor pass:
+          - graph-view-provider slice overall = `96.28%`
+          - `packages/extension/src/extension/graphView/messages/settingsToggle.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerWebviewMethods.ts` = `94.44%`
+          - result: `✅ All files remain within the mutation site threshold (50).`
+        - next immediate step:
+          - move fully onto the remaining timeline/request/view-selection helper survivors
+          - target the remaining sub-90 helpers in this order:
+            - `timelineIndexExecution.ts`
+            - `timelineIndexSetup.ts`
+            - `analysisRequest.ts`
+            - `timelineIndexResult.ts`
+            - `providerTimeline.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. `packages/extension/src/extension/graphView/messages/settingsToggle.ts`
-2. `packages/extension/src/extension/graphView/providerWebviewMethods.ts`
-3. `packages/extension/src/extension/graphView/timelineIndexExecution.ts`
-4. `packages/extension/src/extension/graphView/timelineIndexSetup.ts`
-5. `packages/extension/src/extension/graphView/analysisRequest.ts`
+1. `packages/extension/src/extension/graphView/timelineIndexExecution.ts`
+2. `packages/extension/src/extension/graphView/timelineIndexSetup.ts`
+3. `packages/extension/src/extension/graphView/analysisRequest.ts`
+4. `packages/extension/src/extension/graphView/timelineIndexResult.ts`
+5. `packages/extension/src/extension/graphView/providerTimeline.ts`
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
