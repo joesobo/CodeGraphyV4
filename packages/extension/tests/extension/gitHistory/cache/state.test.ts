@@ -4,7 +4,7 @@ import {
   getCachedCommitList,
   hasCachedTimeline,
   persistCachedCommitState,
-} from '../../../src/extension/gitHistory/cache/state';
+} from '../../../../src/extension/gitHistory/cache/state';
 
 function createWorkspaceState() {
   const store = new Map<string, unknown>();

@@ -14,13 +14,13 @@ const reanalyzeMocks = vi.hoisted(() => ({
   reanalyzeGraphFile: vi.fn(async () => {}),
 }));
 
-vi.mock('../../../src/extension/gitHistory/diffGraphChanges', () => diffChangeMocks);
-vi.mock('../../../src/extension/gitHistory/diffGraphState', () => diffStateMocks);
-vi.mock('../../../src/extension/gitHistory/reanalyzeGraphFile', () => reanalyzeMocks);
+vi.mock('../../../../src/extension/gitHistory/diff/changes', () => diffChangeMocks);
+vi.mock('../../../../src/extension/gitHistory/diff/state', () => diffStateMocks);
+vi.mock('../../../../src/extension/gitHistory/reanalyzeGraphFile', () => reanalyzeMocks);
 
-import { analyzeDiffCommitGraph } from '../../../src/extension/gitHistory/diffGraphAnalysis';
+import { analyzeDiffCommitGraph } from '../../../../src/extension/gitHistory/diff/analysis';
 
-describe('gitHistory/diffGraphAnalysis', () => {
+describe('gitHistory/diff/analysis', () => {
   beforeEach(() => {
     diffChangeMocks.addGitHistoryGraphFile.mockClear();
     diffChangeMocks.modifyGitHistoryGraphFile.mockClear();

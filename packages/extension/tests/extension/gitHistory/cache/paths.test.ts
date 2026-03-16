@@ -9,7 +9,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-import { getCacheDir, getCachePath } from '../../../src/extension/gitHistory/cache/paths';
+import { getCacheDir, getCachePath } from '../../../../src/extension/gitHistory/cache/paths';
 
 describe('gitHistory/cache/paths', () => {
   it('returns null paths when storage is unavailable', () => {
