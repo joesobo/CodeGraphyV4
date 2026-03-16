@@ -4,7 +4,7 @@ import {
   buildGraphViewSettingsMessages,
   captureGraphViewSettingsSnapshot,
 } from '../../../src/extension/graphView/settings';
-import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../src/shared/types';
 
 function createConfig(values: Record<string, unknown>) {
   return {
@@ -15,6 +15,43 @@ function createConfig(values: Record<string, unknown>) {
 }
 
 describe('graphView/settings', () => {
+  it('captures default snapshot values when graph view configuration is empty', () => {
+    const snapshot = captureGraphViewSettingsSnapshot(
+      createConfig({}),
+      {
+        repelForce: 10,
+        linkDistance: 80,
+        linkForce: 0.15,
+        damping: 0.7,
+        centerForce: 0.1,
+      },
+      'uniform',
+    );
+
+    expect(snapshot).toEqual({
+      physics: {
+        repelForce: 10,
+        linkDistance: 80,
+        linkForce: 0.15,
+        damping: 0.7,
+        centerForce: 0.1,
+      },
+      groups: [],
+      filterPatterns: [],
+      showOrphans: true,
+      bidirectionalMode: 'separate',
+      directionMode: 'arrows',
+      directionColor: DEFAULT_DIRECTION_COLOR,
+      folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
+      particleSpeed: 0.005,
+      particleSize: 4,
+      showLabels: true,
+      maxFiles: 500,
+      hiddenPluginGroups: [],
+      nodeSizeMode: 'uniform',
+    });
+  });
+
   it('captures reset snapshots from configuration and normalized settings state', () => {
     const snapshot = captureGraphViewSettingsSnapshot(
       createConfig({

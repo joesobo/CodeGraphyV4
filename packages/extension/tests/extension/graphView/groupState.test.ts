@@ -133,4 +133,18 @@ describe('graphView/groupState', () => {
     expect([...state.hiddenPluginGroupIds]).toEqual([]);
     expect(state.legacyGroupsToMigrate).toBeUndefined();
   });
+
+  it('keeps configured hidden plugin groups in legacy fallback mode', () => {
+    const state = loadGraphViewGroupState(
+      createConfig({
+        hiddenPluginGroups: ['plugin:codegraphy.python'],
+      }),
+      createWorkspaceState({}),
+    );
+
+    expect(state.userGroups).toEqual([]);
+    expect(state.filterPatterns).toEqual([]);
+    expect([...state.hiddenPluginGroupIds]).toEqual(['plugin:codegraphy.python']);
+    expect(state.legacyGroupsToMigrate).toBeUndefined();
+  });
 });

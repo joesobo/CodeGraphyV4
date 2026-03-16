@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
 import type { IGroup } from '../../../src/shared/types';
 import { ViewRegistry, type IViewContext, coreViews } from '../../../src/core/views';
 import {
@@ -62,6 +63,84 @@ describe('graph view broadcast helpers', () => {
           expect.objectContaining({
             id: 'plugin:test:src/**',
             imageUrl: '/resolved/icons/test.svg',
+          }),
+        ],
+      },
+    });
+  });
+
+  it('prefers the active view webview for workspace-relative group images', () => {
+    const sendMessage = vi.fn();
+    const viewAsWebviewUri = vi.fn((value: { fsPath: string }) => ({
+      toString: () => `view:${value.fsPath}`,
+    }));
+
+    sendGraphViewGroupsUpdated(
+      [
+        {
+          id: 'user-group',
+          pattern: 'src/**',
+          color: '#112233',
+          imagePath: '.codegraphy/assets/icon.png',
+        },
+      ],
+      {
+        registerPluginRoots: vi.fn(),
+        workspaceFolder: { uri: vscode.Uri.file('/test/workspace') } as never,
+        view: { webview: { asWebviewUri: viewAsWebviewUri } } as never,
+        panels: [],
+        resolvePluginAssetPath: vi.fn(),
+      },
+      sendMessage,
+    );
+
+    expect(viewAsWebviewUri).toHaveBeenCalledOnce();
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'GROUPS_UPDATED',
+      payload: {
+        groups: [
+          expect.objectContaining({
+            id: 'user-group',
+            imageUrl: 'view:/test/workspace/.codegraphy/assets/icon.png',
+          }),
+        ],
+      },
+    });
+  });
+
+  it('falls back to the first panel webview for workspace-relative group images', () => {
+    const sendMessage = vi.fn();
+    const panelAsWebviewUri = vi.fn((value: { fsPath: string }) => ({
+      toString: () => `panel:${value.fsPath}`,
+    }));
+
+    sendGraphViewGroupsUpdated(
+      [
+        {
+          id: 'user-group',
+          pattern: 'src/**',
+          color: '#112233',
+          imagePath: '.codegraphy/assets/icon.png',
+        },
+      ],
+      {
+        registerPluginRoots: vi.fn(),
+        workspaceFolder: { uri: vscode.Uri.file('/test/workspace') } as never,
+        view: undefined,
+        panels: [{ webview: { asWebviewUri: panelAsWebviewUri } }] as never,
+        resolvePluginAssetPath: vi.fn(),
+      },
+      sendMessage,
+    );
+
+    expect(panelAsWebviewUri).toHaveBeenCalledOnce();
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'GROUPS_UPDATED',
+      payload: {
+        groups: [
+          expect.objectContaining({
+            id: 'user-group',
+            imageUrl: 'panel:/test/workspace/.codegraphy/assets/icon.png',
           }),
         ],
       },

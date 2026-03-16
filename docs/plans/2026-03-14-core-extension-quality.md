@@ -656,17 +656,40 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
             - `viewBroadcast.ts`
             - `groupState.ts`
             - `fileInfo.ts`
+      - current local survivor pass:
+        - harden `externalPluginRegistration.ts`, `settings.ts`, `viewBroadcast.ts`, and `groupState.ts` with direct default/branch tests
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/settings.test.ts tests/extension/graphView/viewBroadcast.test.ts tests/extension/graphView/externalPluginRegistration.test.ts tests/extension/graphView/groupState.test.ts tests/extension/graphView/fileInfo.test.ts tests/extension/graphView/analysisLifecycle.test.ts tests/extension/graphView/fileActions.test.ts tests/extension/graphView/fileInfoMessage.test.ts tests/extension/graphView/fileInfoRequest.test.ts tests/extension/graphView/groupMessage.test.ts tests/extension/graphView/messages/nodeFileNavigation.test.ts`
+          - `59` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the current local survivor pass:
+          - graph-view-provider slice overall = `94.91%`
+          - `packages/extension/src/extension/graphView/externalPluginRegistration.ts` = `97.50%`
+          - `packages/extension/src/extension/graphView/settings.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/viewBroadcast.ts` = `92.86%`
+          - `packages/extension/src/extension/graphView/groupState.ts` = `94.74%`
+          - `packages/extension/src/extension/graphView/fileInfo.ts` = `100.00%`
+          - result: `✅ All files remain within the mutation site threshold (50).`
+        - next immediate step:
+          - keep using the latest report ordering rather than the stale provider-only list
+          - target the remaining sub-90 helpers in this order:
+            - `providerFileNavigation.ts`
+            - `messages/settings.ts`
+            - `favorites.ts`
+            - `mergedGroups.ts`
+            - `messages/commands.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. `packages/extension/src/extension/graphView/externalPluginRegistration.ts`
-2. `packages/extension/src/extension/graphView/settings.ts`
-3. `packages/extension/src/extension/graphView/viewBroadcast.ts`
-4. `packages/extension/src/extension/graphView/groupState.ts`
-5. `packages/extension/src/extension/graphView/fileInfo.ts`
+1. `packages/extension/src/extension/graphView/providerFileNavigation.ts`
+2. `packages/extension/src/extension/graphView/messages/settings.ts`
+3. `packages/extension/src/extension/graphView/favorites.ts`
+4. `packages/extension/src/extension/graphView/mergedGroups.ts`
+5. `packages/extension/src/extension/graphView/messages/commands.ts`
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
