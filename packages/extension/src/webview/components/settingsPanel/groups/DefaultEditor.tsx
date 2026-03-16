@@ -4,6 +4,14 @@ import { Label } from '../../ui/label';
 import { SHAPE_2D_OPTIONS, SHAPE_3D_OPTIONS } from './options';
 import type { GroupEditorState } from './useEditorState';
 
+export function resolveDefaultShape2D(group: IGroup): NodeShape2D {
+  return group.shape2D ?? 'circle';
+}
+
+export function resolveDefaultShape3D(group: IGroup): NodeShape3D {
+  return group.shape3D ?? 'sphere';
+}
+
 export function DefaultEditor({
   controller,
   displayColor,
@@ -31,7 +39,7 @@ export function DefaultEditor({
       <div>
         <Label className="text-[10px] text-muted-foreground">2D Shape</Label>
         <select
-          value={group.shape2D ?? 'circle'}
+          value={resolveDefaultShape2D(group)}
           onChange={(event) =>
             controller.overridePluginGroup(group, {
               shape2D: event.target.value as NodeShape2D,
@@ -48,7 +56,7 @@ export function DefaultEditor({
       <div>
         <Label className="text-[10px] text-muted-foreground">3D Shape</Label>
         <select
-          value={group.shape3D ?? 'sphere'}
+          value={resolveDefaultShape3D(group)}
           onChange={(event) =>
             controller.overridePluginGroup(group, {
               shape3D: event.target.value as NodeShape3D,

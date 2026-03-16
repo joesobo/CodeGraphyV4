@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { CustomRow } from '../../../../src/webview/components/settingsPanel/groups/CustomRow';
+import { CustomEditor } from '../../../../src/webview/components/settingsPanel/groups/CustomEditor';
 import type { GroupEditorState } from '../../../../src/webview/components/settingsPanel/groups/useEditorState';
 
 function buildController(overrides: Partial<GroupEditorState> = {}): GroupEditorState {
@@ -36,49 +36,38 @@ function buildController(overrides: Partial<GroupEditorState> = {}): GroupEditor
   };
 }
 
-describe('CustomRow', () => {
-  it('renders drag state classes and forwards drag handlers', () => {
-    const controller = buildController({ dragIndex: 0, dragOverIndex: 1 });
+describe('CustomEditor', () => {
+  it('falls back to default shapes when the group does not define them', () => {
     render(
-      <ul>
-        <CustomRow
-          controller={controller}
-          group={{ id: 'g1', pattern: '*.ts', color: '#3178C6' }}
-          index={1}
-          isExpanded={false}
-          setExpandedGroupId={vi.fn()}
-        />
-      </ul>,
+      <CustomEditor
+        controller={buildController()}
+        displayColor="#3178C6"
+        group={{ id: 'g1', pattern: '*.ts', color: '#3178C6' }}
+      />,
     );
 
-    const row = screen.getByText('*.ts').closest('li');
-    fireEvent.dragStart(row!);
-    fireEvent.dragOver(row!);
-    fireEvent.drop(row!);
-    fireEvent.dragEnd(row!);
-
-    expect(row).toHaveClass('bg-accent');
-    expect(controller.startGroupDrag).toHaveBeenCalledWith(1);
-    expect(controller.overGroupDrag).toHaveBeenCalled();
-    expect(controller.dropGroup).toHaveBeenCalled();
-    expect(controller.endGroupDrag).toHaveBeenCalled();
+    expect(screen.getAllByRole('combobox')[0]).toHaveValue('circle');
+    expect(screen.getAllByRole('combobox')[1]).toHaveValue('sphere');
   });
 
-  it('renders expanded editor controls and forwards edit actions', () => {
+  it('preserves explicit shapes and forwards editor actions', () => {
     const controller = buildController({
-      localColorOverrides: { g1: '#ff00ff' },
       localPatternOverrides: { g1: '*.tsx' },
     });
+
     render(
-      <ul>
-        <CustomRow
-          controller={controller}
-          group={{ id: 'g1', pattern: '*.ts', color: '#3178C6' }}
-          index={0}
-          isExpanded={true}
-          setExpandedGroupId={vi.fn()}
-        />
-      </ul>,
+      <CustomEditor
+        controller={controller}
+        displayColor="#ff00ff"
+        group={{
+          id: 'g1',
+          pattern: '*.ts',
+          color: '#3178C6',
+          shape2D: 'triangle',
+          shape3D: 'cone',
+          imageUrl: 'https://example.com/icon.png',
+        }}
+      />,
     );
 
     fireEvent.change(screen.getByDisplayValue('*.tsx'), {
@@ -90,13 +79,13 @@ describe('CustomRow', () => {
     fireEvent.change(screen.getAllByRole('combobox')[1], {
       target: { value: 'cube' },
     });
-    fireEvent.click(screen.getByText('Choose Image...'));
+    fireEvent.click(screen.getByText('Clear'));
 
-    expect(screen.getAllByRole('combobox')[0]).toHaveValue('circle');
-    expect(screen.getAllByRole('combobox')[1]).toHaveValue('sphere');
+    expect(screen.getAllByRole('combobox')[0]).toHaveValue('triangle');
+    expect(screen.getAllByRole('combobox')[1]).toHaveValue('cone');
     expect(controller.changeGroupPattern).toHaveBeenCalledWith('g1', '*.cts');
     expect(controller.updateGroup).toHaveBeenCalledWith('g1', { shape2D: 'square' });
     expect(controller.updateGroup).toHaveBeenCalledWith('g1', { shape3D: 'cube' });
-    expect(controller.pickImage).toHaveBeenCalledWith('g1');
+    expect(controller.clearImage).toHaveBeenCalledWith('g1');
   });
 });

@@ -1,20 +1,16 @@
 import React, { useState } from 'react';
-import { mdiClose, mdiLockOutline, mdiMinus, mdiPlus } from '@mdi/js';
 import { postMessage } from '../../../lib/vscodeApi';
 import { useGraphStore } from '../../../store';
-import { MdiIcon } from '../../icons';
-import { Button } from '../../ui/button';
-import { Input } from '../../ui/input';
-import { Label } from '../../ui/label';
-import { Switch } from '../../ui/switch';
+import { MaxFilesControl } from './MaxFilesControl';
 import {
   canAddFilterPattern,
   clampMaxFiles,
   decreaseMaxFiles,
   increaseMaxFiles,
   parseMaxFilesInput,
-  shouldShowPluginFilterPatterns,
 } from './model';
+import { OrphansToggle } from './OrphansToggle';
+import { Patterns } from './Patterns';
 
 export function FilterSection(): React.ReactElement {
   const filterPatterns = useGraphStore((state) => state.filterPatterns);
@@ -73,115 +69,30 @@ export function FilterSection(): React.ReactElement {
     }
   };
 
-  const addButtonDisabled = !canAddFilterPattern(newFilterPattern);
-
   return (
     <div className="mb-2 space-y-2">
-      <div className="flex items-center justify-between py-0.5">
-        <Label htmlFor="show-orphans" className="text-xs">
-          Show Orphans
-        </Label>
-        <Switch
-          id="show-orphans"
-          checked={showOrphans}
-          onCheckedChange={handleShowOrphansToggle}
-        />
-      </div>
+      <OrphansToggle
+        onCheckedChange={handleShowOrphansToggle}
+        showOrphans={showOrphans}
+      />
 
-      <div className="flex items-center justify-between py-0.5">
-        <Label className="text-xs">Max Files</Label>
-        <div className="flex items-center gap-0.5">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-6 w-6"
-            onClick={() => handleMaxFilesCommit(decreaseMaxFiles(maxFiles))}
-            disabled={maxFiles <= 1}
-            title="Decrease by 100"
-          >
-            <MdiIcon path={mdiMinus} size={12} />
-          </Button>
-          <Input
-            type="text"
-            inputMode="numeric"
-            value={maxFiles}
-            onChange={(event) => handleMaxFilesChange(event.target.value)}
-            onBlur={(event) => handleMaxFilesBlur(event.target.value)}
-            onKeyDown={handleMaxFilesKeyDown}
-            className="h-6 w-14 text-xs text-center px-1"
-          />
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-6 w-6"
-            onClick={() => handleMaxFilesCommit(increaseMaxFiles(maxFiles))}
-            title="Increase by 100"
-          >
-            <MdiIcon path={mdiPlus} size={12} />
-          </Button>
-        </div>
-      </div>
+      <MaxFilesControl
+        maxFiles={maxFiles}
+        onBlur={handleMaxFilesBlur}
+        onChange={handleMaxFilesChange}
+        onDecrease={() => handleMaxFilesCommit(decreaseMaxFiles(maxFiles))}
+        onIncrease={() => handleMaxFilesCommit(increaseMaxFiles(maxFiles))}
+        onKeyDown={handleMaxFilesKeyDown}
+      />
 
-      {shouldShowPluginFilterPatterns(pluginFilterPatterns) && (
-        <>
-          <p className="text-xs text-muted-foreground">Plugin defaults (read-only)</p>
-          <ul className="space-y-1">
-            {pluginFilterPatterns.map((pattern) => (
-              <li key={pattern} className="flex items-center gap-2 opacity-60">
-                <MdiIcon
-                  path={mdiLockOutline}
-                  size={12}
-                  className="text-muted-foreground flex-shrink-0"
-                />
-                <span className="text-xs text-muted-foreground flex-1 truncate font-mono">
-                  {pattern}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </>
-      )}
-
-      <p className="text-xs text-muted-foreground">Custom (exclude from graph)</p>
-      {filterPatterns.length === 0 ? (
-        <p className="text-xs text-muted-foreground">No patterns.</p>
-      ) : (
-        <ul className="space-y-1">
-          {filterPatterns.map((pattern) => (
-            <li key={pattern} className="flex items-center gap-2">
-              <span className="text-xs flex-1 truncate font-mono">{pattern}</span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 text-muted-foreground hover:text-destructive flex-shrink-0"
-                onClick={() => handleDeleteFilterPattern(pattern)}
-                title="Delete pattern"
-              >
-                <MdiIcon path={mdiClose} size={14} />
-              </Button>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      <div className="flex items-center gap-1.5 pt-1">
-        <Input
-          value={newFilterPattern}
-          onChange={(event) => setNewFilterPattern(event.target.value)}
-          onKeyDown={(event) => event.key === 'Enter' && handleAddFilterPattern()}
-          placeholder="*.png"
-          className="flex-1 h-7 text-xs min-w-0"
-        />
-        <Button
-          variant="secondary"
-          size="sm"
-          className="h-7 px-2 text-xs"
-          onClick={handleAddFilterPattern}
-          disabled={addButtonDisabled}
-        >
-          Add
-        </Button>
-      </div>
+      <Patterns
+        filterPatterns={filterPatterns}
+        newFilterPattern={newFilterPattern}
+        onAdd={handleAddFilterPattern}
+        onDelete={handleDeleteFilterPattern}
+        onPatternChange={setNewFilterPattern}
+        pluginFilterPatterns={pluginFilterPatterns}
+      />
     </div>
   );
 }

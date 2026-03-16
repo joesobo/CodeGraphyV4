@@ -39,6 +39,38 @@ describe('settingsPanel groups persistence', () => {
     expect(clearTimeoutSpy).toHaveBeenCalledTimes(2);
   });
 
+  it('ignores empty timer entries when clearing a timeout map', () => {
+    vi.useFakeTimers();
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const ref = {
+      current: {
+        first: setTimeout(() => undefined, 100),
+        second: undefined,
+      },
+    };
+
+    clearTimeoutMap(ref);
+
+    expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not clear a timer before scheduling the first override', () => {
+    vi.useFakeTimers();
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const handlers = createGroupPersistenceHandlers({
+      colorDebounceRef: { current: {} },
+      overridePluginGroup: vi.fn(),
+      patternDebounceRef: { current: {} },
+      setLocalColorOverrides: createOverrideSetter().setter,
+      setLocalPatternOverrides: createOverrideSetter().setter,
+      updateGroup: vi.fn(),
+    });
+
+    handlers.changeGroupColor('g1', '#ff00ff');
+
+    expect(clearTimeoutSpy).not.toHaveBeenCalled();
+  });
+
   it('persists debounced custom color changes and clears the local override', () => {
     vi.useFakeTimers();
     const colorOverrides = createOverrideSetter();
@@ -60,6 +92,30 @@ describe('settingsPanel groups persistence', () => {
 
     expect(updateGroup).toHaveBeenCalledWith('g1', { color: '#ff00ff' });
     expect(colorOverrides.value).toEqual({});
+  });
+
+  it('replaces a pending custom color timer and preserves sibling overrides', () => {
+    vi.useFakeTimers();
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const colorOverrides = createOverrideSetter({ preserved: '#123456' });
+    const updateGroup = vi.fn();
+    const handlers = createGroupPersistenceHandlers({
+      colorDebounceRef: { current: {} },
+      overridePluginGroup: vi.fn(),
+      patternDebounceRef: { current: {} },
+      setLocalColorOverrides: colorOverrides.setter,
+      setLocalPatternOverrides: createOverrideSetter().setter,
+      updateGroup,
+    });
+
+    handlers.changeGroupColor('g1', '#ff00ff');
+    handlers.changeGroupColor('g1', '#00ff00');
+    vi.advanceTimersByTime(300);
+
+    expect(clearTimeoutSpy).toHaveBeenCalledTimes(1);
+    expect(updateGroup).toHaveBeenCalledTimes(1);
+    expect(updateGroup).toHaveBeenCalledWith('g1', { color: '#00ff00' });
+    expect(colorOverrides.value).toEqual({ preserved: '#123456' });
   });
 
   it('persists debounced plugin color overrides and clears the local override', () => {

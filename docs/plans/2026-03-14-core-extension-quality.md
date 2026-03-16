@@ -33,11 +33,86 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json` passed
         - `pnpm --filter @codegraphy/extension run lint` passed
         - `pnpm run crap -- extension` still fails on pre-existing large hotspots led by `Graph.tsx` and `GraphViewProvider.ts`
-      - next cut: move off settings-panel and attack `Graph.tsx` / `GraphViewProvider.ts` CRAP + mutation hotspots
+      - committed `76ffa74`:
+        - split `settingsPanel/groups` into direct UI + state helpers:
+          - `CustomAddForm.tsx`, `CustomEditor.tsx`, `CustomRow.tsx`
+          - `DefaultEditor.tsx`, `DefaultRow.tsx`, `DefaultSection.tsx`
+          - `actions.ts`, `drag.ts`, `override.ts`, `persistence.ts`, `reorder.ts`, `sections.ts`
+        - replace `model.ts` with narrower `sections.ts` + `override.ts` + `reorder.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/settingsPanel/groups/*.test.ts tests/webview/settingsPanel/groups/*.test.tsx tests/webview/SettingsPanel.test.tsx`
+          - `158` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - touched-file `eslint`
+      - latest targeted mutation after the current settings-panel rerun:
+        - `pnpm run mutate -- extension settings-panel`
+        - settings-panel slice overall = `92.91%`
+        - threshold blockers:
+          - `display/Section.tsx` = `82` sites
+          - `filters/Section.tsx` = `75` sites
+          - `groups/CustomRow.tsx` = `53` sites
+        - remaining sub-90 files:
+          - `display/timers.ts` = `72.22%`
+          - `forces/Section.tsx` = `83.67%`
+          - `groups/DefaultEditor.tsx` = `66.67%`
+          - `groups/useEditorState.ts` = `82.35%`
+          - `groups/CustomRow.tsx` = `84.91%`
+          - `groups/CustomEditor.tsx` = `87.50%`
+          - `groups/persistence.ts` = `88.89%`
+      - current local cleanup before the next settings-panel split:
+        - extract `filters/MaxFilesControl.tsx`, `filters/OrphansToggle.tsx`, and `filters/Patterns.tsx`
+        - extract `groups/CustomRowHeader.tsx` and `groups/customRowState.ts`
+        - add direct tests:
+          - `tests/webview/settingsPanel/filters/MaxFilesControl.test.tsx`
+          - `tests/webview/settingsPanel/filters/OrphansToggle.test.tsx`
+          - `tests/webview/settingsPanel/filters/Patterns.test.tsx`
+          - `tests/webview/settingsPanel/groups/CustomRowHeader.test.tsx`
+          - `tests/webview/settingsPanel/groups/customRowState.test.ts`
+          - `tests/webview/settingsPanel/groups/CustomEditor.test.tsx`
+          - `tests/webview/settingsPanel/groups/DefaultEditor.test.tsx`
+        - harden existing tests:
+          - `tests/webview/settingsPanel/groups/persistence.test.ts`
+          - `tests/webview/settingsPanel/groups/useEditorState.test.tsx`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/settingsPanel/filters/model.test.ts tests/webview/settingsPanel/filters/OrphansToggle.test.tsx tests/webview/settingsPanel/filters/MaxFilesControl.test.tsx tests/webview/settingsPanel/filters/Patterns.test.tsx tests/webview/settingsPanel/filters/Section.test.tsx tests/webview/settingsPanel/groups/CustomRowHeader.test.tsx tests/webview/settingsPanel/groups/CustomRow.test.tsx tests/webview/settingsPanel/groups/CustomEditor.test.tsx tests/webview/settingsPanel/groups/DefaultEditor.test.tsx tests/webview/settingsPanel/groups/DefaultRow.test.tsx tests/webview/settingsPanel/groups/Defaults.test.tsx tests/webview/settingsPanel/groups/persistence.test.ts tests/webview/settingsPanel/groups/useEditorState.test.tsx tests/webview/settingsPanel/groups/Custom.test.tsx tests/webview/settingsPanel/groups/Section.test.tsx`
+          - `91` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the local cleanup:
+          - `pnpm run mutate -- extension settings-panel`
+          - settings-panel slice overall = `94.33%`
+          - threshold blockers:
+            - `display/Section.tsx` = `82` sites at `93.75%`
+            - `filters/Section.tsx` = `51` sites at `98.04%`
+          - remaining sub-90 files:
+            - `display/timers.ts` = `72.22%`
+            - `groups/customRowState.ts` = `78.57%`
+            - `forces/Section.tsx` = `83.67%`
+            - `groups/DefaultEditor.tsx` = `85.71%`
+            - `groups/CustomEditor.tsx` = `87.50%`
+          - files cleared by this pass:
+            - `groups/CustomRow.tsx` = `100%`
+            - `groups/CustomRowHeader.tsx` = `100%`
+            - `groups/persistence.ts` = `100%`
+      - next cut:
+        - split `display/Section.tsx` and `filters/Section.tsx` under the `50`-site threshold
+        - then harden `display/timers.ts`, `groups/customRowState.ts`, `forces/Section.tsx`, `groups/DefaultEditor.tsx`, and `groups/CustomEditor.tsx`
   - S3c `in_progress`: split `Graph.tsx` / `GraphViewProvider.ts` effect and message blocks into direct-test helpers.
     - tests: add/update `packages/extension/tests/webview/graph/effects/*.test.ts` and `packages/extension/tests/extension/graphView/messages/*.test.ts`
     - progress:
       - extracted webview graph effect runners: `graph/effects/contextMenu.ts`, `interaction.ts`, `keyboard.ts`, `messages.ts`
+      - committed `988f36a`:
+        - extracted `graph/interactionHandlers.ts` and `graph/contextMenuRuntime.ts`
+        - added direct tests:
+          - `tests/webview/graph/interactionHandlers.test.ts`
+          - `tests/webview/graph/contextMenuRuntime.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/interactionHandlers.test.ts tests/webview/graph/contextMenuRuntime.test.ts tests/webview/GraphContextMenu.background.test.tsx tests/webview/GraphContextMenu.edge.test.tsx tests/webview/GraphContextMenu.node.test.tsx tests/webview/GraphCursor.test.tsx tests/webview/GraphDoubleClickFocus.test.tsx tests/webview/GraphDrag.test.tsx`
+          - `92` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - touched-file `eslint`
+        - next cut:
+          - refresh `graph-webview` mutation on the updated `Graph.tsx`
+          - keep draining tooltip/runtime and render-callback seams from current reports
       - extracted extension graph-view message helpers: `graphView/messages/plugin.ts`, `graphView/messages/ready.ts`
       - focused verification green:
         - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/plugin.test.ts tests/extension/graphView/messages/ready.test.ts tests/webview/graph/effects/contextMenu.test.ts tests/webview/graph/effects/interaction.test.ts tests/webview/graph/effects/keyboard.test.ts tests/webview/graph/effects/messages.test.ts`
