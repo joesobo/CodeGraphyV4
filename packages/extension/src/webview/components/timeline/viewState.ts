@@ -1,5 +1,6 @@
 import type { ICommitInfo } from '../../../shared/types';
-import { generateDateTicks } from './model';
+import { getCurrentCommitIndex as getCommitIndexAtSha } from './commits';
+import { generateDateTicks } from './dates';
 
 export interface TimelineViewState {
   currentIndex: number;
@@ -8,17 +9,7 @@ export interface TimelineViewState {
   isAtEnd: boolean;
 }
 
-export function getCurrentCommitIndex(
-  currentCommitSha: string | null,
-  timelineCommits: ICommitInfo[],
-): number {
-  if (!currentCommitSha || timelineCommits.length === 0) {
-    return 0;
-  }
-
-  const index = timelineCommits.findIndex((commit) => commit.sha === currentCommitSha);
-  return index >= 0 ? index : 0;
-}
+export { getCurrentCommitIndex } from './commits';
 
 export function getTimelineViewState(
   currentCommitSha: string | null,
@@ -48,14 +39,11 @@ export function buildTimelineViewState(options: {
     };
   }
 
-  const currentIndex = getCurrentCommitIndex(currentCommitSha, timelineCommits);
+  const currentIndex = getCommitIndexAtSha(currentCommitSha, timelineCommits);
   const minTimestamp = timelineCommits[0].timestamp;
   const maxTimestamp = timelineCommits[timelineCommits.length - 1].timestamp;
   const timeRange = maxTimestamp - minTimestamp || 1;
-  const indicatorTimestamp = playbackTime
-    ?? (currentCommitSha
-      ? timelineCommits.find((commit) => commit.sha === currentCommitSha)?.timestamp ?? minTimestamp
-      : minTimestamp);
+  const indicatorTimestamp = playbackTime ?? timelineCommits[currentIndex]?.timestamp ?? minTimestamp;
 
   return {
     currentIndex,

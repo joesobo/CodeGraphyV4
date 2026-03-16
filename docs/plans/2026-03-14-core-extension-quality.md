@@ -1067,23 +1067,25 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
     - file-scoped `eslint` over touched timeline source and tests
   - latest official mutation refresh:
     - `pnpm run mutate -- extension timeline`
-    - slice overall = `84.30%`
-    - `✅ All files are within the mutation site threshold (50).`
-    - current sub-90 files:
-      - `cleanup.ts` = `78.57%`
-      - `commits.ts` = `84.38%`
-      - `playbackTick.ts` = `82.86%`
-      - `Track.tsx` = `65.79%`
-      - `useCleanup.ts` = `80.00%`
-      - `useController.ts` = `56.25%`
-      - `usePlaybackAnimation.ts` = `88.89%`
-      - `viewState.ts` = `85.42%`
-    - current survivor priority:
-      - `useController.ts`
-      - `Track.tsx`
-      - `viewState.ts`
-      - `playbackTick.ts`
-      - `cleanup.ts`
+    - slice overall = `97.43%`
+    - `✅ All files are above the 90% goal and within the mutation site threshold (50).`
+    - latest floor files:
+      - `playbackActions.ts` = `90.32%`
+      - `Timeline.tsx` = `92.00%`
+      - `commits.ts` = `93.75%`
+      - `useController.ts` = `93.75%`
+      - `syncPlayback.ts` = `95.00%`
+      - `viewState.ts` = `96.43%`
+    - key survivor-hardening wins from the final passes:
+      - `Track.tsx` = `100.00%`
+      - `cleanup.ts` = `100.00%`
+      - `playbackTick.ts` = `100.00%`
+      - `scrubPosition.ts` = `100.00%`
+      - `Status.tsx` = `100.00%`
+      - `useCleanup.ts` = `100.00%`
+      - `usePlaybackAnimation.ts` = `100.00%`
+    - next step:
+      - move off `timeline` and refresh the next extension slice with the same threshold-first workflow
 
 ## Current hotspot order
 1. commit and push the `WorkspaceAnalyzer.delegates.test.ts` follow-up that restored `workspace-analysis` to `100%`

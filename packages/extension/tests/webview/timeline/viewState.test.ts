@@ -31,6 +31,14 @@ describe('timeline/viewState', () => {
       expect(getCurrentCommitIndex('missing', timelineCommits)).toBe(0);
     });
 
+    it('returns zero when there are no timeline commits', () => {
+      expect(getCurrentCommitIndex('aaa', [])).toBe(0);
+    });
+
+    it('returns the first commit index when the first sha is present', () => {
+      expect(getCurrentCommitIndex('aaa', timelineCommits)).toBe(0);
+    });
+
     it('returns the matching commit index when the sha is present', () => {
       expect(getCurrentCommitIndex('bbb', timelineCommits)).toBe(1);
     });
@@ -134,6 +142,27 @@ describe('timeline/viewState', () => {
       ).toMatchObject({
         currentIndex: 0,
         indicatorPosition: 0,
+        isAtEnd: false,
+      });
+    });
+
+    it('derives the indicator position from the commit range instead of absolute timestamps', () => {
+      const shiftedTimelineCommits = [
+        createCommit('aaa', 100),
+        createCommit('bbb', 140),
+        createCommit('ccc', 180),
+      ];
+
+      expect(
+        buildTimelineViewState({
+          currentCommitSha: 'bbb',
+          playbackTime: null,
+          timelineCommits: shiftedTimelineCommits,
+        }),
+      ).toEqual({
+        currentIndex: 1,
+        dateTicks: [110, 120, 130, 140, 150, 160, 170],
+        indicatorPosition: 50,
         isAtEnd: false,
       });
     });

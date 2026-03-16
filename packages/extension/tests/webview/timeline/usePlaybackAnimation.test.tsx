@@ -32,10 +32,13 @@ const commits = [
 ];
 
 describe('timeline/usePlaybackAnimation', () => {
+  let requestAnimationFrameMock: ReturnType<typeof vi.fn>;
+
   beforeEach(() => {
     stopTimelinePlayback.mockReset();
     createTimelinePlaybackTick.mockReset();
-    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 41));
+    requestAnimationFrameMock = vi.fn(() => 41);
+    vi.stubGlobal('requestAnimationFrame', requestAnimationFrameMock);
   });
 
   afterEach(() => {
@@ -108,5 +111,86 @@ describe('timeline/usePlaybackAnimation', () => {
     unmount();
 
     expect(stopTimelinePlayback).toHaveBeenLastCalledWith(refs.rafRef);
+  });
+
+  it('does not seed playback time when no deferred start time is queued', () => {
+    const refs = createRefs();
+    const setPlaybackTime = vi.fn();
+    createTimelinePlaybackTick.mockReturnValue(vi.fn());
+
+    const { unmount } = renderHook(() => useTimelinePlaybackAnimation({
+      isPlaying: true,
+      refs,
+      setIsPlaying: vi.fn(),
+      setPlaybackTime,
+      timelineCommits: commits,
+    }));
+
+    expect(setPlaybackTime).not.toHaveBeenCalled();
+    expect(createTimelinePlaybackTick).toHaveBeenCalledTimes(1);
+
+    unmount();
+  });
+
+  it('restarts the animation effect when tracked inputs change', () => {
+    const refs = createRefs();
+    const setIsPlaying = vi.fn();
+    const firstSetPlaybackTime = vi.fn();
+    const secondSetPlaybackTime = vi.fn();
+    const firstTick = vi.fn();
+    const secondTick = vi.fn();
+    const nextCommits = [
+      ...commits,
+      { author: 'Cara', message: 'Final', parents: ['bbb'], sha: 'ccc', timestamp: 5000 },
+    ];
+
+    createTimelinePlaybackTick.mockReturnValueOnce(firstTick).mockReturnValueOnce(secondTick);
+
+    const { rerender, unmount } = renderHook(
+      ({ setPlaybackTime, timelineCommits }) => useTimelinePlaybackAnimation({
+        isPlaying: true,
+        refs,
+        setIsPlaying,
+        setPlaybackTime,
+        timelineCommits,
+      }),
+      {
+        initialProps: {
+          setPlaybackTime: firstSetPlaybackTime,
+          timelineCommits: commits,
+        },
+      },
+    );
+
+    expect(createTimelinePlaybackTick).toHaveBeenCalledTimes(1);
+
+    stopTimelinePlayback.mockClear();
+    requestAnimationFrameMock.mockClear();
+
+    rerender({
+      setPlaybackTime: secondSetPlaybackTime,
+      timelineCommits: nextCommits,
+    });
+
+    expect(stopTimelinePlayback).toHaveBeenCalledTimes(1);
+    expect(stopTimelinePlayback).toHaveBeenCalledWith(refs.rafRef);
+    expect(createTimelinePlaybackTick).toHaveBeenCalledTimes(2);
+    expect(createTimelinePlaybackTick).toHaveBeenLastCalledWith({
+      maxTimestamp: 5000,
+      refs: {
+        lastFrameTimeRef: refs.lastFrameTimeRef,
+        lastSentCommitIndexRef: refs.lastSentCommitIndexRef,
+        playbackSpeedRef: refs.playbackSpeedRef,
+        rafRef: refs.rafRef,
+      },
+      setIsPlaying,
+      setPlaybackTime: secondSetPlaybackTime,
+      timelineCommits: nextCommits,
+    });
+    expect(requestAnimationFrameMock).toHaveBeenCalledWith(secondTick);
+
+    unmount();
+
+    expect(stopTimelinePlayback).toHaveBeenCalledTimes(2);
   });
 });

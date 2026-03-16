@@ -81,6 +81,24 @@ describe('timeline/scrubPosition', () => {
     expect(postMessage).not.toHaveBeenCalled();
   });
 
+  it('does nothing when the track exists but there are no commits to scrub', () => {
+    const setPlaybackTime = vi.fn();
+
+    jumpToTrackPosition({
+      clientX: 150,
+      debounceTimerRef: createRef<ReturnType<typeof setTimeout> | null>(null),
+      lastSentCommitIndexRef: createRef(-1),
+      scrubResetTimerRef: createRef<ReturnType<typeof setTimeout> | null>(null),
+      setPlaybackTime,
+      timelineCommits: [],
+      trackElement: createTrack(),
+      userScrubActiveRef: createRef(false),
+    });
+
+    expect(setPlaybackTime).not.toHaveBeenCalled();
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
   it('updates playback time immediately and sends the matched commit after the debounce', () => {
     let playbackTime: number | null = null;
     const debounceTimerRef = createRef<ReturnType<typeof setTimeout> | null>(null);
@@ -121,6 +139,23 @@ describe('timeline/scrubPosition', () => {
 
     vi.advanceTimersByTime(1);
     expect(userScrubActiveRef.current).toBe(false);
+  });
+
+  it('does not clear timers when there are no pending scrub timers', () => {
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+
+    jumpToTrackPosition({
+      clientX: 200,
+      debounceTimerRef: createRef<ReturnType<typeof setTimeout> | null>(null),
+      lastSentCommitIndexRef: createRef(-1),
+      scrubResetTimerRef: createRef<ReturnType<typeof setTimeout> | null>(null),
+      setPlaybackTime: vi.fn(),
+      timelineCommits: commits,
+      trackElement: createTrack(),
+      userScrubActiveRef: createRef(false),
+    });
+
+    expect(clearTimeoutSpy).not.toHaveBeenCalled();
   });
 
   it('clears pending scrub timers and clamps positions before the track start', () => {

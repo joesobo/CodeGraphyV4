@@ -60,6 +60,20 @@ describe('timeline/Status', () => {
     expect(screen.getByTestId('timeline-status-progress-fill')).toHaveStyle({ width: '25%' });
   });
 
+  it('renders zero progress when the total count is zero', () => {
+    render(
+      <Status
+        hasGraphData={false}
+        isIndexing
+        indexProgress={{ phase: 'Scanning commits', current: 50, total: 0 }}
+        onIndexRepo={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Scanning commits (50/0)')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-status-progress-fill')).toHaveStyle({ width: '0%' });
+  });
+
   it('renders a generic indexing message when progress is unavailable', () => {
     render(
       <Status

@@ -20,6 +20,7 @@ describe('timeline/cleanup', () => {
 
   afterEach(() => {
     vi.useRealTimers();
+    vi.restoreAllMocks();
     vi.unstubAllGlobals();
   });
 
@@ -56,5 +57,18 @@ describe('timeline/cleanup', () => {
 
     expect(cancelAnimationFrameMock).not.toHaveBeenCalled();
     expect(rafRef.current).toBeNull();
+  });
+
+  it('ignores missing cleanup refs instead of clearing null handles', () => {
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+
+    cleanupTimelineController({
+      debounceTimerRef: createRef<ReturnType<typeof setTimeout> | null>(null),
+      rafRef: createRef<number | null>(null),
+      scrubResetTimerRef: createRef<ReturnType<typeof setTimeout> | null>(null),
+    });
+
+    expect(clearTimeoutSpy).not.toHaveBeenCalled();
+    expect(cancelAnimationFrameMock).not.toHaveBeenCalled();
   });
 });

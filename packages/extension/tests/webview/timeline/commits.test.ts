@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   findCommitIndexAtTime,
   getCurrentCommitIndex,
@@ -45,6 +45,17 @@ describe('timeline/commits', () => {
       expect(getCurrentCommitIndex(null, timelineCommits)).toBe(0);
     });
 
+    it('returns early without searching commits when the current sha is missing', () => {
+      const guardedTimelineCommits = [{ sha: 'aaa' }];
+      const findIndex = vi.fn(() => 0);
+      Object.defineProperty(guardedTimelineCommits, 'findIndex', {
+        value: findIndex,
+      });
+
+      expect(getCurrentCommitIndex(null, guardedTimelineCommits)).toBe(0);
+      expect(findIndex).not.toHaveBeenCalled();
+    });
+
     it('returns zero when there are no timeline commits', () => {
       expect(getCurrentCommitIndex('bbb', [])).toBe(0);
     });
@@ -55,6 +66,10 @@ describe('timeline/commits', () => {
 
     it('returns the matching commit index when the sha is present', () => {
       expect(getCurrentCommitIndex('bbb', timelineCommits)).toBe(1);
+    });
+
+    it('returns the first commit index when the first sha matches', () => {
+      expect(getCurrentCommitIndex('aaa', timelineCommits)).toBe(0);
     });
   });
 });
