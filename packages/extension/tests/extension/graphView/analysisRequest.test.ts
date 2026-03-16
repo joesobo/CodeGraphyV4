@@ -51,4 +51,45 @@ describe('graph view analysis request', () => {
     expect(logError).toHaveBeenCalledWith('[CodeGraphy] Analysis failed:', error);
     expect(state.analysisController).toBeUndefined();
   });
+
+  it('does not log abort failures and still clears the active request', async () => {
+    const state = createState();
+    const error = new Error('cancelled');
+    const logError = vi.fn();
+
+    await runGraphViewAnalysisRequest(state, {
+      executeAnalysis: vi.fn(() => Promise.reject(error)),
+      isAbortError: vi.fn(() => true),
+      logError,
+      updateAnalysisController: vi.fn(),
+      updateAnalysisRequestId: vi.fn(),
+    });
+
+    expect(logError).not.toHaveBeenCalled();
+    expect(state.analysisController).toBeUndefined();
+  });
+
+  it('does not clear the active controller when a newer request replaced it', async () => {
+    const state = createState();
+    const replacementController = new AbortController();
+    const updateAnalysisController = vi.fn((controller: AbortController | undefined) => {
+      if (controller) {
+        state.analysisController = replacementController;
+      }
+    });
+    const updateAnalysisRequestId = vi.fn();
+
+    await runGraphViewAnalysisRequest(state, {
+      executeAnalysis: vi.fn(() => Promise.resolve()),
+      isAbortError: vi.fn(() => false),
+      logError: vi.fn(),
+      updateAnalysisController,
+      updateAnalysisRequestId,
+    });
+
+    expect(updateAnalysisController).toHaveBeenCalledWith(expect.any(AbortController));
+    expect(updateAnalysisController).not.toHaveBeenCalledWith(undefined);
+    expect(updateAnalysisRequestId).toHaveBeenCalledWith(1);
+    expect(state.analysisController).toBe(replacementController);
+  });
 });

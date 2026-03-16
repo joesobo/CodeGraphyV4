@@ -6,20 +6,23 @@ import {
 
 function createWorkspaceState(visits?: Record<string, number>) {
   return {
-    get<T>(key: string): T | undefined {
+    get: vi.fn(<T>(key: string): T | undefined => {
       if (key === 'codegraphy.fileVisits') {
         return visits as T | undefined;
       }
 
       return undefined;
-    },
+    }),
     update: vi.fn(() => Promise.resolve()),
   };
 }
 
 describe('graphView/visits', () => {
   it('returns zero when no persisted visit count exists', () => {
-    expect(readPersistedGraphViewVisitCount(createWorkspaceState(), 'src/app.ts')).toBe(0);
+    const workspaceState = createWorkspaceState();
+
+    expect(readPersistedGraphViewVisitCount(workspaceState, 'src/app.ts')).toBe(0);
+    expect(workspaceState.get).toHaveBeenCalledWith('codegraphy.fileVisits');
   });
 
   it('returns the stored visit count for a file', () => {
