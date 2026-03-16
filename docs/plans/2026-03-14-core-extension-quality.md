@@ -927,6 +927,44 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
+## Latest graph-webview pass
+- 2026-03-15 local pass:
+  - split `graph/rendering/nodes2d.ts` into `nodeBody.ts`, `nodeMedia.ts`, `nodePointer.ts`, and `nodeCanvasShared.ts`
+  - verified existing `links.ts` helper breakup now routes through:
+    - `bidirectionalLink.ts`
+    - `bidirectionalLineGeometry.ts`
+    - `bidirectionalArrowGeometry.ts`
+    - `linkColors.ts`
+    - `linkMetrics.ts`
+  - accepted worker-driven `Graph.tsx` orchestration split into:
+    - `graph/Viewport.tsx`
+    - `graph/runtime/useGraphState.ts`
+    - `graph/runtime/useGraphInteractionRuntime.ts`
+    - `graph/runtime/useGraphEventEffects.ts`
+    - `graph/rendering/useGraphCallbacks.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/bidirectionalLink.test.ts tests/webview/graph/rendering/linkColors.test.ts tests/webview/graph/rendering/linkMetrics.test.ts tests/webview/graph/rendering/bidirectionalLineGeometry.test.ts tests/webview/graph/rendering/bidirectionalArrowGeometry.test.ts tests/webview/graph/rendering/nodeBody.test.ts tests/webview/graph/rendering/nodeMedia.test.ts tests/webview/graph/rendering/nodePointer.test.ts tests/webview/graph/rendering/links.test.ts tests/webview/graph/rendering/nodes2d.test.ts tests/webview/graph/rendering/nodes3d.test.ts`
+    - `39` rendering tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/Graph.test.tsx tests/webview/GraphDrag.test.tsx tests/webview/GraphCursor.test.tsx tests/webview/GraphDoubleClickFocus.test.tsx tests/webview/GraphContextMenu.background.test.tsx tests/webview/GraphContextMenu.node.test.tsx tests/webview/GraphContextMenu.edge.test.tsx tests/webview/graph/Viewport.test.tsx`
+    - `101` graph + viewport tests green
+    - file-scoped `eslint` over touched graph rendering/runtime files and tests
+  - fresh dry-run mutation site counts:
+    - `packages/extension/src/webview/components/Graph.tsx` = `49`
+    - `packages/extension/src/webview/components/graph/Viewport.tsx` = `23`
+    - `packages/extension/src/webview/components/graph/rendering/useGraphCallbacks.ts` = `30`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphState.ts` = `25`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphInteractionRuntime.ts` = `49`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphEventEffects.ts` = `37`
+    - `packages/extension/src/webview/components/graph/rendering/bidirectionalLink.ts` = `41`
+    - `packages/extension/src/webview/components/graph/rendering/bidirectionalLineGeometry.ts` = `49`
+    - `packages/extension/src/webview/components/graph/rendering/nodes2d.ts` = `18`
+    - `packages/extension/src/webview/components/graph/rendering/nodeBody.ts` = `49`
+    - `packages/extension/src/webview/components/graph/rendering/nodeMedia.ts` = `32`
+  - remaining graph-webview threshold blockers after this pass:
+    - `packages/extension/src/webview/components/graph/runtime/useGraphRenderingRuntime.ts` = `184`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphTooltip.ts` = `74`
+
 ## Current hotspot order
 1. commit and push the `WorkspaceAnalyzer.delegates.test.ts` follow-up that restored `workspace-analysis` to `100%`
 2. refresh the remaining official extension slices: `graph-webview`, `timeline`, `webview-export`, `git-history`
