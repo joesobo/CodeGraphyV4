@@ -5,9 +5,9 @@ import {
   saveWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_KEY,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
-} from '../../src/extension/workspaceAnalysisCache';
+} from '../../../src/extension/workspaceAnalyzer/cache';
 
-describe('workspaceAnalysisCache', () => {
+describe('workspaceAnalyzer/cache', () => {
   it('creates an empty cache with the current version', () => {
     expect(createEmptyWorkspaceAnalysisCache()).toEqual({
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../src/core/discovery';
 import type { IConnection, IPlugin, IPluginInfo, IRule } from '../../src/core/plugins';
-import { buildWorkspacePluginStatuses } from '../../src/extension/workspacePluginStatuses';
+import { buildWorkspacePluginStatuses } from '../../../src/extension/workspaceAnalyzer/pluginStatuses';
 
 function createRule(id: string, name: string): IRule {
   return {
@@ -28,7 +28,7 @@ function createPluginInfo(overrides: Partial<IPlugin>): IPluginInfo {
   };
 }
 
-describe('workspacePluginStatuses', () => {
+describe('workspaceAnalyzer/pluginStatuses', () => {
   it('sorts statuses and classifies plugins as active, installed, or inactive', () => {
     const pluginInfos = [
       createPluginInfo({

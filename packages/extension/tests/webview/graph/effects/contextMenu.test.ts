@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { applyContextEffects } from '../../../../src/webview/components/graph/effects/contextMenu';
-import type { GraphContextEffect } from '../../../../src/webview/components/graphContextActionEffects';
+import type { GraphContextEffect } from '../../../../src/webview/components/graph/contextActions/effects';
 
 function createHandlers() {
   return {

@@ -4,7 +4,7 @@ import {
   rebuildWorkspaceAnalyzerGraph,
   rebuildWorkspaceAnalyzerGraphForSource,
 } from '../../../src/extension/workspaceAnalyzer/state';
-import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../../../src/extension/workspaceAnalysisCache';
+import { WORKSPACE_ANALYSIS_CACHE_VERSION } from '../../../src/extension/workspaceAnalyzer/cache';
 
 describe('workspaceAnalyzer/state', () => {
   it('returns an empty graph when rebuilding without cached file connections', () => {

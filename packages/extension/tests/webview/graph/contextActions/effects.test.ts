@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   getBuiltInContextActionEffects,
   getGraphContextActionEffects,
-} from '../../src/webview/components/graphContextActionEffects';
+} from '../../../../src/webview/components/graph/contextActions/effects';
 
-describe('graphContextActionEffects', () => {
+describe('graph/contextActions/effects', () => {
   it('creates one open-file effect per selected path', () => {
     expect(getBuiltInContextActionEffects('open', ['src/app.ts', 'src/utils.ts'])).toEqual([
       { kind: 'openFile', path: 'src/app.ts' },

@@ -1,9 +1,9 @@
 import type { IDiscoveredFile } from '../../core/discovery';
 import type { IConnection } from '../../core/plugins';
 import type { EventBus } from '../../core/plugins/EventBus';
-import { analyzeWorkspaceFiles } from '../workspaceFileAnalysis';
-import type { IWorkspaceFileProcessedPayload } from '../workspaceFileAnalysis';
-import type { IWorkspaceAnalysisCache } from '../workspaceAnalysisCache';
+import { analyzeWorkspaceFiles } from './fileAnalysis';
+import type { IWorkspaceFileProcessedPayload } from './fileAnalysis';
+import type { IWorkspaceAnalysisCache } from './cache';
 
 export interface WorkspaceAnalyzerFilesDependencies {
   analyzeFile: (

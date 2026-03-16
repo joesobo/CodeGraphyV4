@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import {
   WORKSPACE_ANALYSIS_CACHE_KEY,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
-} from '../../src/extension/workspaceAnalysisCache';
+} from '../../src/extension/workspaceAnalyzer/cache';
 import { WorkspaceAnalyzer } from '../../src/extension/WorkspaceAnalyzer';
 
 let workspaceFoldersValue:

@@ -2,7 +2,7 @@ import type { IDiscoveredFile } from '../../core/discovery';
 import type { IConnection } from '../../core/plugins';
 import type { EventBus } from '../../core/plugins/EventBus';
 import type { IGraphData } from '../../shared/types';
-import { throwIfWorkspaceAnalysisAborted } from '../workspaceAnalyzerAbort';
+import { throwIfWorkspaceAnalysisAborted } from './abort';
 import {
   discoverWorkspaceAnalyzerFiles,
   formatWorkspaceAnalyzerLimitReachedMessage,

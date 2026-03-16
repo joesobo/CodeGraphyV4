@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../src/core/discovery';
 import type { IConnection } from '../../src/core/plugins';
-import { createEmptyWorkspaceAnalysisCache } from '../../src/extension/workspaceAnalysisCache';
-import { analyzeWorkspaceFiles } from '../../src/extension/workspaceFileAnalysis';
+import { createEmptyWorkspaceAnalysisCache } from '../../../src/extension/workspaceAnalyzer/cache';
+import { analyzeWorkspaceFiles } from '../../../src/extension/workspaceAnalyzer/fileAnalysis';
 
 function createFile(relativePath: string): IDiscoveredFile {
   return {
@@ -11,7 +11,7 @@ function createFile(relativePath: string): IDiscoveredFile {
   };
 }
 
-describe('workspaceFileAnalysis', () => {
+describe('workspaceAnalyzer/fileAnalysis', () => {
   it('reuses cached connections and backfills missing size on cache hits', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
     const cachedConnections: IConnection[] = [

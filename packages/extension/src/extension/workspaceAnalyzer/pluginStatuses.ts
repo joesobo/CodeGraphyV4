@@ -4,9 +4,9 @@
  */
 
 import * as path from 'path';
-import { IDiscoveredFile } from '../core/discovery';
-import { IConnection, IPlugin, IPluginInfo } from '../core/plugins';
-import { IPluginStatus, IPluginRuleStatus } from '../shared/types';
+import { IDiscoveredFile } from '../../core/discovery';
+import { IConnection, IPlugin, IPluginInfo } from '../../core/plugins';
+import { IPluginStatus, IPluginRuleStatus } from '../../shared/types';
 
 export interface IWorkspacePluginStatusOptions {
   disabledPlugins: ReadonlySet<string>;

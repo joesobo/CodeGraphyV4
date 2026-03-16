@@ -1,7 +1,7 @@
-import type { WebviewToExtensionMessage } from '../../shared/types';
-import type { BuiltInContextMenuAction, GraphContextMenuAction } from './graphContextMenu';
-import { getBuiltInContextActionEffectsImpl } from './graph/builtinContextActionEffects';
-import { createPluginContextActionEffects } from './graph/pluginContextActionEffects';
+import type { WebviewToExtensionMessage } from '../../../../shared/types';
+import type { BuiltInContextMenuAction, GraphContextMenuAction } from '../../graphContextMenu';
+import { getBuiltInContextActionEffectsImpl } from './builtinEffects';
+import { createPluginContextActionEffects } from './pluginEffects';
 
 export type GraphContextEffect =
   | { kind: 'openFile'; path: string }

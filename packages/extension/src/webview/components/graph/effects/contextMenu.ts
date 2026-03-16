@@ -1,4 +1,4 @@
-import type { GraphContextEffect } from '../../graphContextActionEffects';
+import type { GraphContextEffect } from '../contextActions/effects';
 
 export interface GraphContextEffectHandlers {
   clearCachedFile(path: string): void;

@@ -1,6 +1,6 @@
 import {
   type GraphContextEffect,
-} from '../../graphContextActionEffects';
+} from '../contextActions/effects';
 import type {
   GraphContextMenuAction,
   GraphContextSelection,

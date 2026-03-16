@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_NODE_COLOR } from '../../src/shared/types';
-import { buildWorkspaceGraphNodes } from '../../src/extension/workspaceGraphNodes';
+import { buildWorkspaceGraphNodes } from '../../../src/extension/workspaceAnalyzer/graphNodes';
 
-describe('workspaceGraphNodes', () => {
+describe('workspaceAnalyzer/graphNodes', () => {
   it('builds nodes with labels, sizes, and access counts', () => {
     const nodes = buildWorkspaceGraphNodes({
       cacheFiles: {
