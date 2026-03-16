@@ -756,17 +756,36 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
             - `visits.ts`
             - `providerAnalysisMethods.ts`
             - `fileRename.ts`
+      - current local survivor pass:
+        - refactor `providerAnalysisMethods.ts` and `providerSettingsStateMethods.ts` to build default dependencies lazily at runtime instead of holding module-level default objects
+        - refactor `visits.ts` to read the storage key through a runtime getter so the key path is mutation-covered
+        - add file-per-module default-dependency coverage in:
+          - `tests/extension/graphView/providerAnalysisMethodsDefaultDependencies.test.ts`
+          - `tests/extension/graphView/providerSettingsStateMethodsDefaultDependencies.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerAnalysisMethods.test.ts tests/extension/graphView/providerAnalysisMethodsDefaultDependencies.test.ts tests/extension/graphView/providerSettingsStateMethods.test.ts tests/extension/graphView/providerSettingsStateMethodsDefaultDependencies.test.ts tests/extension/graphView/visits.test.ts`
+          - `25` tests green
+          - `pnpm run mutate -- extension visits-refresh --mutate 'packages/extension/src/extension/graphView/visits.ts'`
+          - `pnpm run mutate -- extension analysis-settings-refresh --mutate 'packages/extension/src/extension/graphView/providerAnalysisMethods.ts,packages/extension/src/extension/graphView/providerSettingsStateMethods.ts'`
+        - latest targeted mutation after the current local survivor pass:
+          - `packages/extension/src/extension/graphView/visits.ts` = `100.00%` with `9` sites
+          - `packages/extension/src/extension/graphView/providerAnalysisMethods.ts` = `100.00%` with `20` sites
+          - `packages/extension/src/extension/graphView/providerSettingsStateMethods.ts` = `100.00%` with `40` sites
+          - result: `✅ All three files are above the 90% goal and within the mutation site threshold (50).`
+        - note:
+          - the last reusable whole `graph-view-provider` slice report had only `visits.ts` and `providerAnalysisMethods.ts` below `90%`
+          - both of those files now clear via focused reruns; the next full-slice refresh is about re-baselining/reporting, not debugging known survivors
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. `packages/extension/src/extension/graphView/providerTimeline.ts`
-2. `packages/extension/src/extension/graphView/providerViewSelectionMethods.ts`
-3. `packages/extension/src/extension/graphView/visits.ts`
-4. `packages/extension/src/extension/graphView/providerAnalysisMethods.ts`
-5. `packages/extension/src/extension/graphView/fileRename.ts`
+1. refresh the whole `graph-view-provider` slice with a harness-safe run and confirm the updated floor in one report
+2. `packages/extension/src/extension/graphView/providerTimeline.ts`
+3. `packages/extension/src/extension/graphView/providerViewSelectionMethods.ts`
+4. `packages/extension/src/extension/graphView/fileRename.ts`
+5. refresh the next extension slices and package-level threshold summary before the folder/name cleanup pass
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
