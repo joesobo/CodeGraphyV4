@@ -775,17 +775,50 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - note:
           - the last reusable whole `graph-view-provider` slice report had only `visits.ts` and `providerAnalysisMethods.ts` below `90%`
           - both of those files now clear via focused reruns; the next full-slice refresh is about re-baselining/reporting, not debugging known survivors
-- S4 `pending`: resume the next independent hotspot after the provider cuts merge.
-  - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
+- S4 `in_progress`: finish the workspace-analysis slice, then resume the next independent hotspot.
+  - tests: add/update matching file-per-module tests for `WorkspaceAnalyzer.ts` and `workspaceAnalyzer/**/*`
+  - progress:
+    - split `WorkspaceAnalyzer.ts` orchestration into `workspaceAnalyzer/{analyze,discovery,files,graph,initialize,io,plugins,preAnalyze,run,state}.ts`
+    - added matching helper tests plus `WorkspaceAnalyzer.delegates.test.ts` for the remaining class wrappers
+    - expanded `scripts/run-mutate.ts` so the `workspace-analysis` slice includes `workspaceAnalyzer/**/*.ts`
+    - focused verification green:
+      - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/WorkspaceAnalyzer*.test.ts tests/extension/workspaceAnalysisCache.test.ts tests/extension/workspaceAnalyzerAbort.test.ts tests/extension/workspaceFileAnalysis.test.ts tests/extension/workspaceGraph*.test.ts tests/extension/workspacePluginStatuses.test.ts tests/extension/workspaceAnalyzer/*.test.ts`
+      - `107` tests green
+      - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - package-relative `eslint` on touched workspace-analysis files
+    - latest targeted mutation after the current local pass:
+      - focused `workspace-analysis` slice overall = `100.00%`
+      - `WorkspaceAnalyzer.ts` = `100.00%`
+      - `workspaceAnalyzer/analyze.ts` = `100.00%`
+      - `workspaceAnalyzer/discovery.ts` = `100.00%`
+      - `workspaceAnalyzer/files.ts` = `100.00%`
+      - `workspaceAnalyzer/graph.ts` = `100.00%`
+      - `workspaceAnalyzer/initialize.ts` = `100.00%`
+      - `workspaceAnalyzer/io.ts` = `100.00%`
+      - `workspaceAnalyzer/plugins.ts` = `100.00%`
+      - `workspaceAnalyzer/preAnalyze.ts` = `100.00%`
+      - `workspaceAnalyzer/run.ts` = `100.00%`
+      - `workspaceAnalyzer/state.ts` = `100.00%`
+      - `workspaceAnalysisCache.ts` = `100.00%`
+      - `workspaceAnalyzerAbort.ts` = `100.00%`
+      - `workspaceFileAnalysis.ts` = `100.00%`
+      - `workspaceGraphData.ts` = `100.00%`
+      - `workspaceGraphEdges.ts` = `100.00%`
+      - `workspaceGraphNodes.ts` = `100.00%`
+      - `workspacePluginStatuses.ts` = `100.00%`
+      - result: `✅ All files remain within the mutation site threshold (50).`
+  - next:
+    - commit and push the workspace-analysis batch
+    - refresh the next extension slice after the workspace-analysis merge
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. refresh the whole `graph-view-provider` slice with a harness-safe run and confirm the updated floor in one report
-2. `packages/extension/src/extension/graphView/providerTimeline.ts`
-3. `packages/extension/src/extension/graphView/providerViewSelectionMethods.ts`
-4. `packages/extension/src/extension/graphView/fileRename.ts`
-5. refresh the next extension slices and package-level threshold summary before the folder/name cleanup pass
+1. commit and push the `workspace-analysis` slice now that it is `100%` and under the site cap
+2. refresh the whole `graph-view-provider` slice with a harness-safe run and confirm the updated floor in one report
+3. `packages/extension/src/webview/components/Graph.tsx`
+4. refresh the remaining extension slices and package-level threshold summary before the folder/name cleanup pass
+5. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.

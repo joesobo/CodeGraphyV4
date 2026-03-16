@@ -5,32 +5,43 @@
  */
 
 import * as vscode from 'vscode';
-import * as path from 'path';
 import { PluginRegistry, IConnection } from '../core/plugins';
 import { FileDiscovery, IDiscoveredFile } from '../core/discovery';
 import { Configuration } from './Configuration';
-import { createTypeScriptPlugin } from '../../../plugin-typescript/src';
-import { createGDScriptPlugin } from '../../../plugin-godot/src';
-import { createPythonPlugin } from '../../../plugin-python/src';
-import { createCSharpPlugin } from '../../../plugin-csharp/src';
-import { createMarkdownPlugin } from '../../../plugin-markdown/src';
 import { IGraphData, IPluginStatus } from '../shared/types';
 import { EventBus } from '../core/plugins/EventBus';
-import { DEFAULT_EXCLUDE_PATTERNS } from './Configuration';
-import { throwIfWorkspaceAnalysisAborted } from './workspaceAnalyzerAbort';
 import {
-  createEmptyWorkspaceAnalysisCache,
   IWorkspaceAnalysisCache,
   loadWorkspaceAnalysisCache,
-  saveWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_KEY,
 } from './workspaceAnalysisCache';
-import { buildWorkspaceGraphData } from './workspaceGraphData';
-import { analyzeWorkspaceFiles } from './workspaceFileAnalysis';
-import { buildWorkspacePluginStatuses } from './workspacePluginStatuses';
-
-/** Storage key for file visit counts in workspace state (shared with GraphViewProvider) */
-const VISITS_KEY = 'codegraphy.fileVisits';
+import { type WorkspaceAnalyzerAnalysisSource } from './workspaceAnalyzer/analyze';
+import {
+  analyzeWorkspaceAnalyzerSourceFiles,
+  type WorkspaceAnalyzerFilesSource,
+} from './workspaceAnalyzer/files';
+import {
+  buildWorkspaceAnalyzerGraphForSource,
+  type WorkspaceAnalyzerGraphSource,
+} from './workspaceAnalyzer/graph';
+import {
+  getWorkspaceAnalyzerPluginFilterPatterns,
+  initializeWorkspaceAnalyzer,
+} from './workspaceAnalyzer/initialize';
+import {
+  getWorkspaceAnalyzerFileStat,
+  getWorkspaceAnalyzerRoot,
+} from './workspaceAnalyzer/io';
+import { preAnalyzeWorkspaceAnalyzerFiles } from './workspaceAnalyzer/preAnalyze';
+import {
+  getWorkspaceAnalyzerPluginStatuses,
+  resolveWorkspaceAnalyzerPluginNameForFile,
+} from './workspaceAnalyzer/plugins';
+import {
+  clearWorkspaceAnalyzerCache,
+  rebuildWorkspaceAnalyzerGraphForSource,
+} from './workspaceAnalyzer/state';
+import { runWorkspaceAnalyzerAnalysis } from './workspaceAnalyzer/run';
 
 /**
  * Orchestrates workspace analysis.
@@ -87,31 +98,9 @@ export class WorkspaceAnalyzer {
    * Initializes the analyzer and registers built-in plugins.
    */
   async initialize(): Promise<void> {
-    // Register built-in TypeScript plugin
-    const tsPlugin = createTypeScriptPlugin();
-    this._registry.register(tsPlugin, { builtIn: true });
-
-    // Register built-in GDScript plugin
-    const gdPlugin = createGDScriptPlugin();
-    this._registry.register(gdPlugin, { builtIn: true });
-
-    // Register built-in Python plugin
-    const pyPlugin = createPythonPlugin();
-    this._registry.register(pyPlugin, { builtIn: true });
-
-    // Register built-in C# plugin
-    const csPlugin = createCSharpPlugin();
-    this._registry.register(csPlugin, { builtIn: true });
-
-    // Register built-in Markdown plugin
-    const mdPlugin = createMarkdownPlugin();
-    this._registry.register(mdPlugin, { builtIn: true });
-
-    // Initialize all plugins
-    const workspaceRoot = this._getWorkspaceRoot();
-    if (workspaceRoot) {
-      await this._registry.initializeAll(workspaceRoot);
-    }
+    await initializeWorkspaceAnalyzer(this._registry, {
+      getWorkspaceRoot: () => getWorkspaceAnalyzerRoot(vscode.workspace.workspaceFolders),
+    });
 
     console.log('[CodeGraphy] WorkspaceAnalyzer initialized');
   }
@@ -120,13 +109,7 @@ export class WorkspaceAnalyzer {
    * Returns default filter patterns declared by all registered plugins.
    */
   getPluginFilterPatterns(): string[] {
-    const patterns: string[] = [];
-    for (const pluginInfo of this._registry.list()) {
-      if (pluginInfo.plugin.defaultFilters) {
-        patterns.push(...pluginInfo.plugin.defaultFilters);
-      }
-    }
-    return [...new Set(patterns)];
+    return getWorkspaceAnalyzerPluginFilterPatterns(this._registry);
   }
 
   /**
@@ -139,78 +122,69 @@ export class WorkspaceAnalyzer {
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal
   ): Promise<IGraphData> {
-    throwIfWorkspaceAnalysisAborted(signal);
-
-    const workspaceRoot = this._getWorkspaceRoot();
-    if (!workspaceRoot) {
-      console.log('[CodeGraphy] No workspace folder open');
-      return { nodes: [], edges: [] };
-    }
-
-    // Discover ALL files (not filtered by extension)
-    // Non-code files will appear as orphans if showOrphans is enabled
-    const config = this._config.getAll();
-
-    // Collect default filter patterns from all plugins
-    const pluginFilters = this.getPluginFilterPatterns();
-
-    // Merge: hardcoded defaults + plugin filters + user filter patterns
-    const mergedExclude = [...new Set([...DEFAULT_EXCLUDE_PATTERNS, ...pluginFilters, ...filterPatterns])];
-
-    const discoveryResult = await this._discovery.discover({
-      rootPath: workspaceRoot,
-      maxFiles: config.maxFiles,
-      include: config.include,
-      exclude: mergedExclude,
-      respectGitignore: config.respectGitignore,
-      signal,
-      // Don't filter by extensions - we want all files as nodes
-    });
-
-    throwIfWorkspaceAnalysisAborted(signal);
-
-    if (discoveryResult.limitReached) {
-      vscode.window.showWarningMessage(
-        `CodeGraphy: Found ${discoveryResult.totalFound}+ files, showing first ${config.maxFiles}. ` +
-        `Increase codegraphy.maxFiles in settings to see more.`
-      );
-    }
-
-    console.log(`[CodeGraphy] Discovered ${discoveryResult.files.length} files in ${discoveryResult.durationMs}ms`);
-
-    this._eventBus?.emit('analysis:started', { fileCount: discoveryResult.files.length });
-
-    // Pre-analysis pass: let plugins build workspace-wide indexes before per-file analysis.
-    // Needed for cross-file references that require seeing all files first (e.g. GDScript class_name).
-    await this._preAnalyzePlugins(discoveryResult.files, workspaceRoot, signal);
-
-    // Analyze files (with caching)
-    const fileConnections = await this._analyzeFiles(discoveryResult.files, workspaceRoot, signal);
-
-    throwIfWorkspaceAnalysisAborted(signal);
-
-    // Store results for instant rebuilding via rebuildGraph()
-    this._lastFileConnections = fileConnections;
-    this._lastDiscoveredFiles = discoveryResult.files;
-    this._lastWorkspaceRoot = workspaceRoot;
-
-    // Build graph data
-    const graphData = this._buildGraphData(fileConnections, workspaceRoot, config.showOrphans, disabledRules, disabledPlugins);
-
-    // Save cache
-    saveWorkspaceAnalysisCache(this._context.workspaceState.update.bind(this._context.workspaceState), this._cache);
-
-    console.log(`[CodeGraphy] Graph built: ${graphData.nodes.length} nodes, ${graphData.edges.length} edges`);
-
-    this._eventBus?.emit('analysis:completed', {
-      graph: {
-        nodes: graphData.nodes.map(n => ({ id: n.id })),
-        edges: graphData.edges.map(e => ({ id: e.id })),
+    const source = {
+      _analyzeFiles: (
+        files: IDiscoveredFile[],
+        workspaceRoot: string,
+        nextSignal?: AbortSignal,
+      ) => this._analyzeFiles(files, workspaceRoot, nextSignal),
+      _buildGraphData: (
+        fileConnections: Map<string, IConnection[]>,
+        workspaceRoot: string,
+        showOrphans: boolean,
+        nextDisabledRules: Set<string>,
+        nextDisabledPlugins: Set<string>,
+      ) =>
+        this._buildGraphData(
+          fileConnections,
+          workspaceRoot,
+          showOrphans,
+          nextDisabledRules,
+          nextDisabledPlugins,
+        ),
+      _preAnalyzePlugins: (
+        files: IDiscoveredFile[],
+        workspaceRoot: string,
+        nextSignal?: AbortSignal,
+      ) => this._preAnalyzePlugins(files, workspaceRoot, nextSignal),
+      getPluginFilterPatterns: () => this.getPluginFilterPatterns(),
+    } as WorkspaceAnalyzerAnalysisSource;
+    Object.defineProperties(source, {
+      _eventBus: {
+        get: () => this._eventBus,
       },
-      duration: 0,
+      _lastDiscoveredFiles: {
+        get: () => this._lastDiscoveredFiles,
+        set: (files: IDiscoveredFile[]) => {
+          this._lastDiscoveredFiles = files;
+        },
+      },
+      _lastFileConnections: {
+        get: () => this._lastFileConnections,
+        set: (fileConnections: Map<string, IConnection[]>) => {
+          this._lastFileConnections = fileConnections;
+        },
+      },
+      _lastWorkspaceRoot: {
+        get: () => this._lastWorkspaceRoot,
+        set: (workspaceRoot: string) => {
+          this._lastWorkspaceRoot = workspaceRoot;
+        },
+      },
     });
 
-    return graphData;
+    return runWorkspaceAnalyzerAnalysis(
+      source,
+      this._cache,
+      this._config,
+      this._discovery,
+      this._context.workspaceState,
+      () => this._getWorkspaceRoot(),
+      filterPatterns,
+      disabledRules,
+      disabledPlugins,
+      signal,
+    );
   }
 
   /**
@@ -218,15 +192,36 @@ export class WorkspaceAnalyzer {
    * Used for instant graph updates when toggling rules/plugins.
    */
   rebuildGraph(disabledRules: Set<string>, disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
-    if (this._lastFileConnections.size === 0) {
-      return { nodes: [], edges: [] };
-    }
-    return this._buildGraphData(
-      this._lastFileConnections,
-      this._lastWorkspaceRoot,
-      showOrphans,
+    const source = {
+      _buildGraphData: (
+        fileConnections: Map<string, IConnection[]>,
+        workspaceRoot: string,
+        nextShowOrphans: boolean,
+        nextDisabledRules: Set<string>,
+        nextDisabledPlugins: Set<string>,
+      ) =>
+        this._buildGraphData(
+          fileConnections,
+          workspaceRoot,
+          nextShowOrphans,
+          nextDisabledRules,
+          nextDisabledPlugins,
+        ),
+    } as import('./workspaceAnalyzer/state').WorkspaceAnalyzerRebuildSource;
+    Object.defineProperties(source, {
+      _lastFileConnections: {
+        get: () => this._lastFileConnections,
+      },
+      _lastWorkspaceRoot: {
+        get: () => this._lastWorkspaceRoot,
+      },
+    });
+
+    return rebuildWorkspaceAnalyzerGraphForSource(
+      source,
       disabledRules,
-      disabledPlugins
+      disabledPlugins,
+      showOrphans,
     );
   }
 
@@ -234,14 +229,13 @@ export class WorkspaceAnalyzer {
    * Computes the status of each registered plugin for the webview's Plugins panel.
    */
   getPluginStatuses(disabledRules: Set<string>, disabledPlugins: Set<string>): IPluginStatus[] {
-    return buildWorkspacePluginStatuses({
+    return getWorkspaceAnalyzerPluginStatuses({
       disabledPlugins,
       disabledRules,
       discoveredFiles: this._lastDiscoveredFiles,
       fileConnections: this._lastFileConnections,
-      pluginInfos: this._registry.list(),
+      registry: this._registry,
       workspaceRoot: this._lastWorkspaceRoot,
-      getPluginForFile: (absolutePath) => this._registry.getPluginForFile(absolutePath),
     });
   }
 
@@ -249,19 +243,24 @@ export class WorkspaceAnalyzer {
    * Gets the plugin display name for a workspace-relative file path.
    */
   getPluginNameForFile(relativePath: string): string | undefined {
-    const workspaceRoot = this._lastWorkspaceRoot || this._getWorkspaceRoot();
-    if (!workspaceRoot) return undefined;
-    const plugin = this._registry.getPluginForFile(path.join(workspaceRoot, relativePath));
-    return plugin?.name;
+    return resolveWorkspaceAnalyzerPluginNameForFile(
+      relativePath,
+      this._lastWorkspaceRoot,
+      () => getWorkspaceAnalyzerRoot(vscode.workspace.workspaceFolders),
+      this._registry,
+    );
   }
 
   /**
    * Clears the analysis cache.
    */
   clearCache(): void {
-    this._cache = createEmptyWorkspaceAnalysisCache();
-    saveWorkspaceAnalysisCache(this._context.workspaceState.update.bind(this._context.workspaceState), this._cache);
-    console.log('[CodeGraphy] Cache cleared');
+    this._cache = clearWorkspaceAnalyzerCache(
+      this._context.workspaceState,
+      message => {
+        console.log(message);
+      },
+    );
   }
 
   /**
@@ -280,28 +279,15 @@ export class WorkspaceAnalyzer {
     workspaceRoot: string,
     signal?: AbortSignal
   ): Promise<void> {
-    throwIfWorkspaceAnalysisAborted(signal);
-
-    const contentByRelativePath = new Map<string, Promise<string>>();
-    const getFileContent = (file: IDiscoveredFile): Promise<string> => {
-      const cached = contentByRelativePath.get(file.relativePath);
-      if (cached) {
-        return cached;
-      }
-
-      const contentPromise = this._discovery.readContent(file);
-      contentByRelativePath.set(file.relativePath, contentPromise);
-      return contentPromise;
-    };
-
-    const v2Files = await Promise.all(files.map(async (file) => ({
-      absolutePath: file.absolutePath,
-      relativePath: file.relativePath,
-      content: await getFileContent(file),
-    })));
-    await this._registry.notifyPreAnalyze(
-      v2Files,
-      workspaceRoot
+    await preAnalyzeWorkspaceAnalyzerFiles(
+      files,
+      workspaceRoot,
+      {
+        notifyPreAnalyze: (v2Files, rootPath) =>
+          this._registry.notifyPreAnalyze(v2Files, rootPath),
+        readContent: file => this._discovery.readContent(file),
+      },
+      signal,
     );
   }
 
@@ -313,21 +299,23 @@ export class WorkspaceAnalyzer {
     workspaceRoot: string,
     signal?: AbortSignal
   ): Promise<Map<string, IConnection[]>> {
-    const result = await analyzeWorkspaceFiles({
-      analyzeFile: (absolutePath, content, rootPath) => this._registry.analyzeFile(absolutePath, content, rootPath),
-      cache: this._cache,
-      emitFileProcessed: this._eventBus
-        ? (payload) => this._eventBus?.emit('analysis:fileProcessed', payload)
-        : undefined,
-      files,
-      getFileStat: (filePath) => this._getFileStat(filePath),
-      readContent: (file) => this._discovery.readContent(file),
-      signal,
-      workspaceRoot,
-    });
+    const source: WorkspaceAnalyzerFilesSource = {
+      _cache: this._cache,
+      _discovery: this._discovery,
+      _eventBus: this._eventBus,
+      _getFileStat: (filePath: string) => this._getFileStat(filePath),
+      _registry: this._registry,
+    };
 
-    console.log(`[CodeGraphy] Analysis: ${result.cacheHits} cache hits, ${result.cacheMisses} misses`);
-    return result.fileConnections;
+    return analyzeWorkspaceAnalyzerSourceFiles(
+      source,
+      files,
+      workspaceRoot,
+      message => {
+        console.log(message);
+      },
+      signal,
+    );
   }
 
   /**
@@ -340,38 +328,34 @@ export class WorkspaceAnalyzer {
     disabledRules: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set()
   ): IGraphData {
-    const visitCounts = this._context.workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
+    const source: WorkspaceAnalyzerGraphSource = {
+      _cache: this._cache,
+      _context: this._context,
+      _registry: this._registry,
+    };
 
-    return buildWorkspaceGraphData({
-      cacheFiles: this._cache.files,
-      disabledPlugins,
-      disabledRules,
+    return buildWorkspaceAnalyzerGraphForSource(
+      source,
       fileConnections,
-      showOrphans,
-      visitCounts,
       workspaceRoot,
-      getPluginForFile: (absolutePath) => this._registry.getPluginForFile(absolutePath),
-    });
+      showOrphans,
+      disabledRules,
+      disabledPlugins,
+    );
   }
-
 
   /**
    * Gets the workspace root folder path.
    */
   private _getWorkspaceRoot(): string | undefined {
-    return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    return getWorkspaceAnalyzerRoot(vscode.workspace.workspaceFolders);
   }
 
   /**
    * Gets file stat (mtime and size).
    */
   private async _getFileStat(filePath: string): Promise<{ mtime: number; size: number } | null> {
-    try {
-      const stat = await vscode.workspace.fs.stat(vscode.Uri.file(filePath));
-      return { mtime: stat.mtime, size: stat.size };
-    } catch {
-      return null;
-    }
+    return getWorkspaceAnalyzerFileStat(filePath, vscode.workspace.fs);
   }
 
 }
