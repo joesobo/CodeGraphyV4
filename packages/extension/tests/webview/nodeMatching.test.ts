@@ -89,4 +89,66 @@ describe('filterNodesAdvanced', () => {
     });
     expect(Array.from(matchingIds)).toEqual(['notes/Todo.txt']);
   });
+
+  it('matches case-sensitive plain text when matchCase is true and case matches', () => {
+    const { matchingIds } = filterNodesAdvanced(nodes, 'App', {
+      ...defaultOptions,
+      matchCase: true,
+    });
+    expect(Array.from(matchingIds)).toEqual(['src/App.ts', 'src/AppService.ts']);
+  });
+
+  it('searches both label and id for matches', () => {
+    // 'src' appears in the id but not in the label
+    const { matchingIds } = filterNodesAdvanced(nodes, 'src', defaultOptions);
+    expect(matchingIds.size).toBe(2); // src/App.ts and src/AppService.ts
+    expect(matchingIds.has('notes/Todo.txt')).toBe(false);
+  });
+
+  it('matches nodes by their id path component', () => {
+    const { matchingIds } = filterNodesAdvanced(nodes, 'notes', defaultOptions);
+    expect(Array.from(matchingIds)).toEqual(['notes/Todo.txt']);
+  });
+
+  it('returns a null regexError for successful regex searches', () => {
+    const { regexError } = filterNodesAdvanced(nodes, 'App', {
+      ...defaultOptions,
+      regex: true,
+    });
+    expect(regexError).toBeNull();
+  });
+
+  it('returns a null regexError for plain-text searches', () => {
+    const { regexError } = filterNodesAdvanced(nodes, 'App', defaultOptions);
+    expect(regexError).toBeNull();
+  });
+
+  it('returns a non-null regexError string for regex errors that are not Error instances', () => {
+    // compilePattern handles errors that are not Error instances
+    const { regexError } = compilePattern('[', { ...defaultOptions, regex: true });
+    expect(regexError).toBeTruthy();
+    expect(typeof regexError).toBe('string');
+  });
+
+  it('escapes special regex characters in wholeWord mode', () => {
+    const specialNodes: IGraphNode[] = [
+      { id: 'file.test.ts', label: 'file.test.ts', color: '#aaa' },
+    ];
+    const { matchingIds } = filterNodesAdvanced(specialNodes, 'file.test', {
+      ...defaultOptions,
+      wholeWord: true,
+    });
+    // 'file.test' should be escaped so the dot doesn't match arbitrary characters
+    expect(matchingIds.has('file.test.ts')).toBe(true);
+  });
+
+  it('returns case-insensitive wholeWord match by default', () => {
+    const { pattern } = compilePattern('app', { ...defaultOptions, wholeWord: true });
+    expect(pattern?.flags).toContain('i');
+  });
+
+  it('returns case-sensitive wholeWord match when matchCase is true', () => {
+    const { pattern } = compilePattern('app', { ...defaultOptions, wholeWord: true, matchCase: true });
+    expect(pattern?.flags).not.toContain('i');
+  });
 });

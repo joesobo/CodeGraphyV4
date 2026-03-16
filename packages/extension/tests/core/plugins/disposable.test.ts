@@ -8,17 +8,16 @@ import {
 describe('toDisposable', () => {
   it('calls the cleanup function on dispose', () => {
     const fn = vi.fn();
-    const d = toDisposable(fn);
-    d.dispose();
+    const disposable = toDisposable(fn);
+    disposable.dispose();
     expect(fn).toHaveBeenCalledOnce();
   });
 
   it('only calls the cleanup function once', () => {
     const fn = vi.fn();
-    const d = toDisposable(fn);
-    d.dispose();
-    d.dispose();
-    d.dispose();
+    const disposable = toDisposable(fn);
+    disposable.dispose();
+    disposable.dispose();
     expect(fn).toHaveBeenCalledOnce();
   });
 });
@@ -51,9 +50,9 @@ describe('DisposableStore', () => {
 
   it('returns the added disposable for chaining', () => {
     const store = new DisposableStore();
-    const d = toDisposable(() => {});
-    const result = store.add(d);
-    expect(result).toBe(d);
+    const disposable = toDisposable(() => {});
+    const result = store.add(disposable);
+    expect(result).toBe(disposable);
     store.dispose();
   });
 
@@ -109,6 +108,53 @@ describe('DisposableStore', () => {
     expect(fn1).toHaveBeenCalledOnce();
     expect(fn3).toHaveBeenCalledOnce();
   });
+
+  it('Symbol.dispose calls dispose()', () => {
+    const fn = vi.fn();
+    const store = new DisposableStore();
+    store.add(toDisposable(fn));
+
+    store[Symbol.dispose]();
+
+    expect(fn).toHaveBeenCalledOnce();
+    expect(store.isDisposed).toBe(true);
+  });
+
+  it('logs errors when disposal throws', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const store = new DisposableStore();
+    store.add(toDisposable(() => { throw new Error('fail'); }));
+
+    store.dispose();
+
+    expect(consoleSpy).toHaveBeenCalledOnce();
+    consoleSpy.mockRestore();
+  });
+
+  it('does not log errors when all disposals succeed', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const store = new DisposableStore();
+    store.add(toDisposable(() => {}));
+
+    store.dispose();
+
+    expect(consoleSpy).not.toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  it('add returns the disposable for chaining even when store is full', () => {
+    const store = new DisposableStore();
+    const d1 = toDisposable(() => {});
+    const d2 = toDisposable(() => {});
+    const d3 = toDisposable(() => {});
+
+    expect(store.add(d1)).toBe(d1);
+    expect(store.add(d2)).toBe(d2);
+    expect(store.add(d3)).toBe(d3);
+    expect(store.size).toBe(3);
+
+    store.dispose();
+  });
 });
 
 describe('DisposableMap', () => {
@@ -158,11 +204,11 @@ describe('DisposableMap', () => {
 
   it('has and get work correctly', () => {
     const map = new DisposableMap<string>();
-    const d = toDisposable(() => {});
-    map.set('a', d);
+    const disposable = toDisposable(() => {});
+    map.set('a', disposable);
 
     expect(map.has('a')).toBe(true);
-    expect(map.get('a')).toBe(d);
+    expect(map.get('a')).toBe(disposable);
     expect(map.has('b')).toBe(false);
     expect(map.get('b')).toBeUndefined();
 

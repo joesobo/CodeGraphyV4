@@ -462,4 +462,98 @@ describe('App behavior', () => {
     });
     expect(graphStore.getState().activePanel).toBe('none');
   });
+
+  it('shows the toolbar when activePanel is none', () => {
+    graphStore.setState({
+      graphData: { nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }], edges: [] },
+      activePanel: 'none',
+    });
+
+    render(<App />);
+
+    expect(screen.getByTestId('toolbar')).toBeInTheDocument();
+  });
+
+  it('shows timeline component regardless of activePanel', () => {
+    graphStore.setState({
+      graphData: { nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }], edges: [] },
+      activePanel: 'settings',
+    });
+
+    render(<App />);
+
+    expect(screen.getByTestId('timeline')).toBeInTheDocument();
+  });
+
+  it('renders the graph when timeline is active even with empty graph data', () => {
+    graphStore.setState({
+      graphData: { nodes: [], edges: [] },
+      timelineActive: true,
+    });
+
+    render(<App />);
+
+    expect(screen.getByTestId('mock-graph')).toBeInTheDocument();
+  });
+
+  it('renders empty state when timeline is inactive and graph has no nodes', () => {
+    graphStore.setState({
+      graphData: { nodes: [], edges: [] },
+      timelineActive: false,
+    });
+
+    render(<App />);
+
+    expect(screen.getByText(/No files found/)).toBeInTheDocument();
+  });
+
+  it('renders the graph with colored data when available', () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
+        edges: [],
+      },
+      groups: [{ id: 'g1', pattern: 'src/**', color: '#abcdef' }],
+    });
+
+    render(<App />);
+
+    expect(screen.getByTestId('graph-node-colors')).toHaveTextContent('#abcdef');
+  });
+
+  it('renders the graph with effective graph data when colored data is null', () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
+        edges: [],
+      },
+      groups: [],
+    });
+
+    render(<App />);
+
+    expect(screen.getByTestId('mock-graph')).toBeInTheDocument();
+  });
+
+  it('shows the loading state when isLoading is true', () => {
+    graphStore.setState({
+      isLoading: true,
+    });
+
+    render(<App />);
+
+    expect(screen.getByText('Loading graph...')).toBeInTheDocument();
+  });
+
+  it('shows the empty state when graphData is null and timeline is not active', () => {
+    graphStore.setState({
+      graphData: null,
+      timelineActive: false,
+      isLoading: false,
+    });
+
+    render(<App />);
+
+    expect(screen.getByText(/No files found/)).toBeInTheDocument();
+  });
 });

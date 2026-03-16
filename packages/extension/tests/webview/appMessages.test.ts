@@ -77,4 +77,24 @@ describe('appMessages', () => {
   it('returns the open-folder hint otherwise', () => {
     expect(getNoDataHint(null, true)).toBe('Open a folder to visualize its structure.');
   });
+
+  it('returns the open-folder hint when graphData is null and showOrphans is false', () => {
+    expect(getNoDataHint(null, false)).toBe('Open a folder to visualize its structure.');
+  });
+
+  it('returns the open-folder hint when graphData exists and showOrphans is true', () => {
+    expect(getNoDataHint({ nodes: [], edges: [] }, true)).toBe('Open a folder to visualize its structure.');
+  });
+
+  it('returns the hidden-files hint only when graphData is truthy AND showOrphans is false', () => {
+    const hidden = getNoDataHint({ nodes: [], edges: [] }, false);
+    const open1 = getNoDataHint(null, false);
+    const open2 = getNoDataHint(null, true);
+    const open3 = getNoDataHint({ nodes: [], edges: [] }, true);
+
+    expect(hidden).toMatch(/All files are hidden/);
+    expect(open1).toBe('Open a folder to visualize its structure.');
+    expect(open2).toBe('Open a folder to visualize its structure.');
+    expect(open3).toBe('Open a folder to visualize its structure.');
+  });
 });

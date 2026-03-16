@@ -555,5 +555,65 @@ describe('CodeGraphyAPIImpl', () => {
       api.disposeAll();
       expect(viewRegistry.get('test-view')).toBeUndefined();
     });
+
+    it('disposeAll() calls dispose on the internal DisposableStore', () => {
+      const { api } = createTestAPI();
+      const handler = vi.fn();
+
+      api.on('analysis:started', handler);
+
+      api.disposeAll();
+
+      // After disposeAll, new event subscriptions should fail because store is disposed
+      expect(() => api.on('analysis:started', vi.fn())).toThrow('already been disposed');
+    });
+  });
+
+  describe('sendToWebview additional', () => {
+    it('sendToWebview() forwards data unchanged', () => {
+      const { api, webviewSender } = createTestAPI('test-plugin');
+      const data = { nested: { value: 42 } };
+
+      api.sendToWebview({ type: 'custom', data });
+
+      expect(webviewSender).toHaveBeenCalledWith({
+        type: 'plugin:test-plugin:custom',
+        data,
+      });
+    });
+  });
+
+  describe('registerCommand additional', () => {
+    it('registerCommand() dispose removes the command from commands list', () => {
+      const { api } = createTestAPI();
+      const cmd1 = { id: 'cmd1', title: 'Cmd 1', action: vi.fn() };
+      const cmd2 = { id: 'cmd2', title: 'Cmd 2', action: vi.fn() };
+
+      api.registerCommand(cmd1);
+      const d2 = api.registerCommand(cmd2);
+
+      expect(api.commands).toHaveLength(2);
+
+      d2.dispose();
+
+      expect(api.commands).toHaveLength(1);
+      expect(api.commands[0].id).toBe('cmd1');
+    });
+  });
+
+  describe('registerContextMenuItem additional', () => {
+    it('dispose does not remove other items', () => {
+      const { api } = createTestAPI();
+      const item1 = { label: 'Item 1', when: 'node' as const, action: vi.fn() };
+      const item2 = { label: 'Item 2', when: 'edge' as const, action: vi.fn() };
+
+      api.registerContextMenuItem(item1);
+      const d2 = api.registerContextMenuItem(item2);
+
+      d2.dispose();
+
+      expect(api.contextMenuItems).toHaveLength(1);
+      expect(api.contextMenuItems[0].label).toBe('Item 1');
+    });
   });
 });

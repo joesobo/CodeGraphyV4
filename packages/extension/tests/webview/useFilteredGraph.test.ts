@@ -68,4 +68,45 @@ describe('useFilteredGraph', () => {
 
     expect(result.current.coloredData).toBeNull();
   });
+
+  it('returns all three fields from the hook result', () => {
+    const { result } = renderHook(() =>
+      useFilteredGraph(sampleGraph, '', defaultOptions, []),
+    );
+
+    expect(result.current).toHaveProperty('filteredData');
+    expect(result.current).toHaveProperty('coloredData');
+    expect(result.current).toHaveProperty('regexError');
+  });
+
+  it('returns filtered edges that match the search query', () => {
+    const { result } = renderHook(() =>
+      useFilteredGraph(sampleGraph, 'App', defaultOptions, []),
+    );
+
+    // Only 'src/App.ts' matches "App" as a substring in the id
+    // Actually "App" matches "App" in both node ids (src/App.ts)
+    // but wait, "util" won't match "App", so only the App node is kept
+    expect(result.current.filteredData?.edges).toHaveLength(0);
+  });
+
+  it('applies group colors to filtered data', () => {
+    const groups: IGroup[] = [
+      { id: 'grp', pattern: '**/*.ts', color: '#123456' },
+    ];
+
+    const { result } = renderHook(() =>
+      useFilteredGraph(sampleGraph, 'App', defaultOptions, groups),
+    );
+
+    expect(result.current.coloredData?.nodes[0].color).toBe('#123456');
+  });
+
+  it('returns regexError as null for non-regex search', () => {
+    const { result } = renderHook(() =>
+      useFilteredGraph(sampleGraph, 'test', defaultOptions, []),
+    );
+
+    expect(result.current.regexError).toBeNull();
+  });
 });

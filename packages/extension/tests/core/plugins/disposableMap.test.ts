@@ -80,4 +80,37 @@ describe('DisposableMap', () => {
     map.set('key', toDisposable(fn));
     expect(fn).toHaveBeenCalledOnce();
   });
+
+  it('continues disposing other entries when one throws during dispose', () => {
+    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const map = new DisposableMap<string>();
+    const fn = vi.fn();
+    map.set('a', toDisposable(() => { throw new Error('fail'); }));
+    map.set('b', toDisposable(fn));
+
+    map.dispose();
+
+    expect(fn).toHaveBeenCalledOnce();
+    expect(consoleSpy).toHaveBeenCalled();
+    consoleSpy.mockRestore();
+  });
+
+  it('clears the map after dispose', () => {
+    const map = new DisposableMap<string>();
+    map.set('a', toDisposable(vi.fn()));
+    map.set('b', toDisposable(vi.fn()));
+
+    map.dispose();
+
+    expect(map.size).toBe(0);
+  });
+
+  it('does not store a value set after disposal', () => {
+    const map = new DisposableMap<string>();
+    map.dispose();
+    map.set('key', toDisposable(vi.fn()));
+
+    expect(map.has('key')).toBe(false);
+    expect(map.size).toBe(0);
+  });
 });

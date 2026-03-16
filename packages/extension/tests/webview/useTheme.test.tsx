@@ -123,4 +123,41 @@ describe('useTheme', () => {
   it('returns invalid colors unchanged', () => {
     expect(adjustColorForLightTheme('not-a-color')).toBe('not-a-color');
   });
+
+  it('removes the message listener on unmount', () => {
+    const removeEventSpy = vi.spyOn(window, 'removeEventListener');
+    const { unmount } = renderHook(() => useTheme());
+
+    unmount();
+
+    expect(removeEventSpy).toHaveBeenCalledWith('message', expect.any(Function));
+  });
+
+  it('adds a message listener on mount', () => {
+    const addEventSpy = vi.spyOn(window, 'addEventListener');
+    renderHook(() => useTheme());
+
+    expect(addEventSpy).toHaveBeenCalledWith('message', expect.any(Function));
+  });
+
+  it('ignores messages that are not THEME_CHANGED', () => {
+    setEditorBackground('#1e1e1e');
+    const { result } = renderHook(() => useTheme());
+
+    act(() => {
+      window.dispatchEvent(new MessageEvent('message', {
+        data: { type: 'OTHER_MESSAGE', payload: { kind: 'light' } },
+      }));
+    });
+
+    expect(result.current).toBe('dark');
+  });
+
+  it('detects dark from a standard dark hex background', () => {
+    setEditorBackground('#2d2d2d');
+
+    const { result } = renderHook(() => useTheme());
+
+    expect(result.current).toBe('dark');
+  });
 });

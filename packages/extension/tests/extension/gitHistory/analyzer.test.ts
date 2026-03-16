@@ -9,10 +9,10 @@ vi.mock('vscode', () => ({
   },
   Uri: {
     joinPath: vi.fn((...args: unknown[]) => {
-      const parts = args.map((a) => String((a as { fsPath?: string }).fsPath ?? a));
+      const parts = args.map((arg) => String((arg as { fsPath?: string }).fsPath ?? arg));
       return { fsPath: parts.join('/') };
     }),
-    file: vi.fn((p: string) => ({ fsPath: p, scheme: 'file' })),
+    file: vi.fn((filePath: string) => ({ fsPath: filePath, scheme: 'file' })),
   },
 }));
 
@@ -95,7 +95,7 @@ function mockGitCommands(handlers: Array<{ match: string | RegExp; stdout: strin
   const mockedExecFile = mockExecFile;
   mockedExecFile.mockImplementation(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ((_cmd: string, args: readonly string[], _opts: unknown, cb?: (...a: any[]) => void) => {
+    ((_cmd: string, args: readonly string[], _opts: unknown, cb?: (...cbArgs: any[]) => void) => {
       const joined = (args as string[]).join(' ');
       for (const handler of handlers) {
         const matches =
@@ -201,7 +201,7 @@ describe('GitHistoryAnalyzer', () => {
 
       mockedExecFile.mockImplementation(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        ((_cmd: string, args: readonly string[], _opts: unknown, cb?: (...a: any[]) => void) => {
+        ((_cmd: string, args: readonly string[], _opts: unknown, cb?: (...cbArgs: any[]) => void) => {
           calls.push(args as string[]);
           const joined = (args as string[]).join(' ');
           if (joined.includes('rev-parse')) {
@@ -216,7 +216,7 @@ describe('GitHistoryAnalyzer', () => {
       await analyzer.getCommitList(10, liveAbortSignal());
 
       // The log command should use the detected branch name
-      const logCall = calls.find((c) => c.includes('log'));
+      const logCall = calls.find((call) => call.includes('log'));
       expect(logCall).toBeDefined();
       expect(logCall).toContain('feature-branch');
     });
@@ -266,9 +266,9 @@ describe('GitHistoryAnalyzer', () => {
     it('should return empty graph data when storageUri is undefined', async () => {
       const ctxNoStorage = createMockContext();
       ctxNoStorage.storageUri = undefined as never;
-      const a = new GitHistoryAnalyzer(ctxNoStorage as never, registry, workspaceRoot);
+      const analyzerNoStorage = new GitHistoryAnalyzer(ctxNoStorage as never, registry, workspaceRoot);
 
-      const result = await a.getGraphDataForCommit('abc123');
+      const result = await analyzerNoStorage.getGraphDataForCommit('abc123');
       expect(result).toEqual({ nodes: [], edges: [] });
     });
   });
@@ -569,10 +569,10 @@ describe('GitHistoryAnalyzer', () => {
 
       // Only non-excluded files should be analyzed
       const analyzeCalls = registry.analyzeFile.mock.calls;
-      const analyzedPaths = analyzeCalls.map((c) => c[0] as string);
-      for (const p of analyzedPaths) {
-        expect(p).not.toMatch(/assets\//);
-        expect(p).not.toMatch(/node_modules\//);
+      const analyzedPaths = analyzeCalls.map((call) => call[0] as string);
+      for (const analyzedPath of analyzedPaths) {
+        expect(analyzedPath).not.toMatch(/assets\//);
+        expect(analyzedPath).not.toMatch(/node_modules\//);
       }
 
       // Check cached graph doesn't contain excluded nodes

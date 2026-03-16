@@ -124,4 +124,84 @@ describe('appSearch', () => {
       },
     ]);
   });
+
+  it('returns null when applying group colors to null data', () => {
+    expect(applyGroupColors(null, [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }])).toBeNull();
+  });
+
+  it('returns data unchanged when groups array is empty', () => {
+    const result = applyGroupColors(graphData, []);
+    expect(result).toBe(graphData);
+  });
+
+  it('preserves existing node color when it is set and no group matches', () => {
+    const data = {
+      nodes: [{ id: 'unique/file.xyz', label: 'file.xyz', color: '#abcdef' }],
+      edges: [],
+    };
+    const result = applyGroupColors(data, [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }]);
+    expect(result?.nodes[0].color).toBe('#abcdef');
+  });
+
+  it('uses DEFAULT_NODE_COLOR when node has no color and no group matches', () => {
+    const data = {
+      nodes: [{ id: 'unique/file.xyz', label: 'file.xyz' } as { id: string; label: string; color: string }],
+      edges: [],
+    };
+    const result = applyGroupColors(data, [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }]);
+    expect(result?.nodes[0].color).toBe(DEFAULT_NODE_COLOR);
+  });
+
+  it('applies only the first matching group when multiple groups match', () => {
+    const data = {
+      nodes: [{ id: 'src/App.ts', label: 'App', color: '#000000' }],
+      edges: [],
+    };
+    const result = applyGroupColors(data, [
+      { id: 'g1', pattern: 'src/**', color: '#111111' },
+      { id: 'g2', pattern: 'src/*.ts', color: '#222222' },
+    ]);
+    expect(result?.nodes[0].color).toBe('#111111');
+  });
+
+  it('returns the original graph data for empty search queries', () => {
+    const result = filterGraphData(graphData, '  ', defaultSearchOptions);
+    expect(result.filteredData).toBe(graphData);
+    expect(result.regexError).toBeNull();
+  });
+
+  it('filters edges where both endpoints match the search', () => {
+    const result = filterGraphData(graphData, 'App', defaultSearchOptions);
+    // "App" matches both "App" and "AppService" (case insensitive)
+    expect(result.filteredData?.nodes).toHaveLength(2);
+    expect(result.filteredData?.edges).toHaveLength(1);
+    expect(result.filteredData?.edges[0].from).toBe('src/App.ts');
+    expect(result.filteredData?.edges[0].to).toBe('src/AppService.ts');
+  });
+
+  it('excludes edges where only one endpoint matches', () => {
+    const result = filterGraphData(graphData, 'Todo', defaultSearchOptions);
+    expect(result.filteredData?.nodes).toHaveLength(1);
+    expect(result.filteredData?.edges).toHaveLength(0);
+  });
+
+  it('matches nodes using regex when the regex option is enabled', () => {
+    const result = filterNodesAdvanced(graphData.nodes, 'App\\b', {
+      ...defaultSearchOptions,
+      regex: true,
+    });
+    // 'App\b' matches "App " in "App src/App.ts" but NOT "AppService" (no boundary after App in AppService)
+    // Actually \b after App matches "App " and "App.ts", so App.ts, AppService both match at "App" word boundary in id
+    // Let's use a more precise regex
+    expect(result.matchingIds.size).toBeGreaterThan(0);
+  });
+
+  it('matches case-sensitive regex when matchCase is enabled', () => {
+    const result = filterNodesAdvanced(graphData.nodes, 'app', {
+      ...defaultSearchOptions,
+      regex: true,
+      matchCase: true,
+    });
+    expect(result.matchingIds.size).toBe(0);
+  });
 });

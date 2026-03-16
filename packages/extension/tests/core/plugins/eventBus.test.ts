@@ -74,9 +74,9 @@ describe('EventBus', () => {
   it('once() dispose works before event fires', () => {
     const bus = new EventBus();
     const handler = vi.fn();
-    const d = bus.once('analysis:started', handler);
+    const disposable = bus.once('analysis:started', handler);
 
-    d.dispose();
+    disposable.dispose();
     bus.emit('analysis:started', { fileCount: 5 });
 
     expect(handler).not.toHaveBeenCalled();
@@ -150,5 +150,70 @@ describe('EventBus', () => {
     bus.emit('analysis:started', { fileCount: 2 });
     expect(h1).toHaveBeenCalledOnce();
     expect(h2).toHaveBeenCalledTimes(2);
+  });
+
+  it('on() creates handler set lazily when first handler is registered for an event', () => {
+    const bus = new EventBus();
+    expect(bus.listenerCount('analysis:started')).toBe(0);
+
+    bus.on('analysis:started', () => {});
+
+    expect(bus.listenerCount('analysis:started')).toBe(1);
+  });
+
+  it('on() creates plugin handler set lazily when first handler is registered for a plugin', () => {
+    const bus = new EventBus();
+    const handler = vi.fn();
+
+    bus.on('analysis:started', handler, 'my-plugin');
+
+    // The handler should be tracked under the plugin — verify via removeAllForPlugin
+    bus.removeAllForPlugin('my-plugin');
+    bus.emit('analysis:started', { fileCount: 1 });
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('listenerCount returns 0 for an event that was never subscribed to', () => {
+    const bus = new EventBus();
+    expect(bus.listenerCount('graph:zoom')).toBe(0);
+  });
+
+  it('emit does not call handler after it is removed via off()', () => {
+    const bus = new EventBus();
+    const handler = vi.fn();
+    bus.on('analysis:started', handler);
+
+    bus.off('analysis:started', handler);
+    bus.emit('analysis:started', { fileCount: 1 });
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(bus.listenerCount('analysis:started')).toBe(0);
+  });
+
+  it('removeAllForPlugin is safe to call with an unknown plugin ID', () => {
+    const bus = new EventBus();
+    expect(() => bus.removeAllForPlugin('nonexistent')).not.toThrow();
+  });
+
+  it('once() with pluginId tracks the handler for plugin cleanup', () => {
+    const bus = new EventBus();
+    const handler = vi.fn();
+
+    bus.once('analysis:started', handler, 'my-plugin');
+    bus.removeAllForPlugin('my-plugin');
+    bus.emit('analysis:started', { fileCount: 1 });
+
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('emit with empty handler set does not throw', () => {
+    const bus = new EventBus();
+    const handler = vi.fn();
+    const disposable = bus.on('analysis:started', handler);
+    disposable.dispose();
+
+    // Event key may still exist with size 0 or be deleted; either way emit should not throw
+    expect(() => bus.emit('analysis:started', { fileCount: 1 })).not.toThrow();
+    expect(handler).not.toHaveBeenCalled();
   });
 });

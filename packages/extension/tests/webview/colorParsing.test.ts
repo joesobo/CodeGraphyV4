@@ -54,4 +54,47 @@ describe('adjustColorForLightTheme', () => {
     expect(parsed!.g).toBeLessThanOrEqual(128);
     expect(parsed!.b).toBeLessThanOrEqual(255);
   });
+
+  it('applies a darken factor of exactly 0.7', () => {
+    // #646464 (100, 100, 100) * 0.7 = round(70) = 70 = 0x46
+    expect(adjustColorForLightTheme('#646464')).toBe('#464646');
+  });
+
+  it('pads each channel to two hex digits', () => {
+    // #0a0a0a (10, 10, 10) * 0.7 = round(7) = 7 = 0x07
+    expect(adjustColorForLightTheme('#0a0a0a')).toBe('#070707');
+  });
+
+  it('correctly darkens each channel independently', () => {
+    // #ff0000 (255, 0, 0) * 0.7 => r=round(178.5)=179=0xb3, g=0, b=0
+    const result = adjustColorForLightTheme('#ff0000');
+    const parsed = parseColor(result);
+    expect(parsed).not.toBeNull();
+    expect(parsed!.r).toBe(179);
+    expect(parsed!.g).toBe(0);
+    expect(parsed!.b).toBe(0);
+  });
+});
+
+describe('parseColor edge cases', () => {
+  it('correctly parses each hex channel independently', () => {
+    const result = parseColor('#102030');
+    expect(result).toEqual({ r: 16, g: 32, b: 48 });
+  });
+
+  it('parses rgb with no spaces', () => {
+    expect(parseColor('rgb(10,20,30)')).toEqual({ r: 10, g: 20, b: 30 });
+  });
+
+  it('returns null for rgb with missing values', () => {
+    expect(parseColor('rgb(10, 20)')).toBeNull();
+  });
+
+  it('returns null for a partial hex string', () => {
+    expect(parseColor('#12345')).toBeNull();
+  });
+
+  it('returns null for a hex string with 8 characters', () => {
+    expect(parseColor('#12345678')).toBeNull();
+  });
 });

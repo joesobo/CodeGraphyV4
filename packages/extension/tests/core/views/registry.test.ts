@@ -213,8 +213,8 @@ describe('ViewRegistry', () => {
       const views = registry.list();
 
       expect(views).toHaveLength(2);
-      expect(views.map(v => v.view.id)).toContain('first');
-      expect(views.map(v => v.view.id)).toContain('second');
+      expect(views.map(entry => entry.view.id)).toContain('first');
+      expect(views.map(entry => entry.view.id)).toContain('second');
     });
 
     it('should return empty array when no views registered', () => {
@@ -277,6 +277,117 @@ describe('ViewRegistry', () => {
 
       expect(registry.size).toBe(0);
       expect(registry.getDefaultViewId()).toBeUndefined();
+    });
+
+    it('should reset order counter so next view starts at order 0', () => {
+      const view1 = createMockView({ id: 'first' });
+      registry.register(view1);
+
+      registry.clear();
+
+      const view2 = createMockView({ id: 'after-clear' });
+      registry.register(view2);
+
+      expect(registry.get('after-clear')!.order).toBe(0);
+    });
+  });
+
+  describe('register - additional edge cases', () => {
+    it('should set core to false by default', () => {
+      const view = createMockView();
+      registry.register(view);
+
+      expect(registry.get(view.id)!.core).toBe(false);
+    });
+
+    it('should not change default when registering non-default second view', () => {
+      const view1 = createMockView({ id: 'first' });
+      const view2 = createMockView({ id: 'second' });
+      registry.register(view1);
+      registry.register(view2);
+
+      expect(registry.getDefaultViewId()).toBe('first');
+    });
+
+    it('should increment order for each registration', () => {
+      const view1 = createMockView({ id: 'first' });
+      const view2 = createMockView({ id: 'second' });
+      const view3 = createMockView({ id: 'third' });
+      registry.register(view1);
+      registry.register(view2);
+      registry.register(view3);
+
+      expect(registry.get('first')!.order).toBe(0);
+      expect(registry.get('second')!.order).toBe(1);
+      expect(registry.get('third')!.order).toBe(2);
+    });
+  });
+
+  describe('unregister - additional edge cases', () => {
+    it('should set default to undefined when all views are removed', () => {
+      const view = createMockView({ id: 'only' });
+      registry.register(view);
+      registry.unregister('only');
+
+      expect(registry.getDefaultViewId()).toBeUndefined();
+    });
+
+    it('should pick earliest-registered view as new default when default is removed', () => {
+      const view1 = createMockView({ id: 'first' });
+      const view2 = createMockView({ id: 'second' });
+      const view3 = createMockView({ id: 'third' });
+      registry.register(view1);
+      registry.register(view2);
+      registry.register(view3);
+
+      // default is 'first', remove it
+      registry.unregister('first');
+
+      // Should pick 'second' (order=1) over 'third' (order=2)
+      expect(registry.getDefaultViewId()).toBe('second');
+    });
+
+    it('should not change default when removing a non-default view', () => {
+      const view1 = createMockView({ id: 'default-view' });
+      const view2 = createMockView({ id: 'other-view' });
+      registry.register(view1);
+      registry.register(view2);
+
+      registry.unregister('other-view');
+
+      expect(registry.getDefaultViewId()).toBe('default-view');
+    });
+  });
+
+  describe('list - sorting', () => {
+    it('should sort views by registration order', () => {
+      const view3 = createMockView({ id: 'third' });
+      const view1 = createMockView({ id: 'first' });
+      const view2 = createMockView({ id: 'second' });
+      registry.register(view1);
+      registry.register(view2);
+      registry.register(view3);
+
+      const views = registry.list();
+
+      expect(views[0].view.id).toBe('first');
+      expect(views[1].view.id).toBe('second');
+      expect(views[2].view.id).toBe('third');
+    });
+  });
+
+  describe('size', () => {
+    it('should return 0 for empty registry', () => {
+      expect(registry.size).toBe(0);
+    });
+
+    it('should decrease after unregister', () => {
+      const view = createMockView();
+      registry.register(view);
+      expect(registry.size).toBe(1);
+
+      registry.unregister(view.id);
+      expect(registry.size).toBe(0);
     });
   });
 });

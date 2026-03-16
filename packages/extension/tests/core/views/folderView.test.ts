@@ -298,6 +298,18 @@ describe('folderView', () => {
     expect(result.nodes.find(n => n.id === 'src/my.lib')!.label).toBe('my.lib');
   });
 
+  it('returns non-empty output for a single node input', () => {
+    const input: IGraphData = {
+      nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' }],
+      edges: [],
+    };
+
+    const result = folderView.transform(input, defaultContext);
+
+    expect(result.nodes.length).toBeGreaterThan(0);
+    expect(result.edges.length).toBeGreaterThan(0);
+  });
+
   it('deduplicates shared folder ancestors across files', () => {
     const input: IGraphData = {
       nodes: [

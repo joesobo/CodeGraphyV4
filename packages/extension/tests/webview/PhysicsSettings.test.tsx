@@ -217,7 +217,7 @@ describe('PhysicsSettings', () => {
       // Should have sent message to VSCode
       const messages = globalThis.__vscodeSentMessages || [];
       const updateMessage = messages.find(
-        (m: unknown) => (m as { type: string }).type === 'UPDATE_PHYSICS_SETTING'
+        (msg: unknown) => (msg as { type: string }).type === 'UPDATE_PHYSICS_SETTING'
       );
 
       expect(updateMessage).toBeDefined();
@@ -229,17 +229,17 @@ describe('PhysicsSettings', () => {
 
     it('should send RESET_PHYSICS_SETTINGS message when reset button is clicked', () => {
       render(<PhysicsSettings settings={defaultSettings} />);
-      
+
       // Expand panel
       fireEvent.click(screen.getByTitle('Physics Settings'));
-      
+
       // Click reset button
       fireEvent.click(screen.getByText('Reset to Defaults'));
-      
+
       // Should have sent message to VSCode
       const messages = globalThis.__vscodeSentMessages || [];
       const resetMessage = messages.find(
-        (m: unknown) => (m as { type: string }).type === 'RESET_PHYSICS_SETTINGS'
+        (msg: unknown) => (msg as { type: string }).type === 'RESET_PHYSICS_SETTINGS'
       );
       
       expect(resetMessage).toBeDefined();
@@ -268,7 +268,7 @@ describe('PhysicsSettings', () => {
         
         const messages = globalThis.__vscodeSentMessages;
         const updateMessage = messages.find(
-          (m: unknown) => (m as { type: string }).type === 'UPDATE_PHYSICS_SETTING'
+          (msg: unknown) => (msg as { type: string }).type === 'UPDATE_PHYSICS_SETTING'
         ) as { type: string; payload: { key: string; value: number } } | undefined;
         
         expect(updateMessage).toBeDefined();
