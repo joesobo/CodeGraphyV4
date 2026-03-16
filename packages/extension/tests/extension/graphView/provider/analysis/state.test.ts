@@ -8,8 +8,8 @@ import {
   syncGraphViewProviderAnalysisExecutionState,
   syncGraphViewProviderAnalysisState,
   syncGraphViewProviderWorkspaceReadyState,
-} from '../../../../../src/extension/graphView/provider/analysisState';
-import type { GraphViewProviderAnalysisMethodsSource } from '../../../../../src/extension/graphView/provider/analysis';
+} from '../../../../../src/extension/graphView/provider/analysis/state';
+import type { GraphViewProviderAnalysisMethodsSource } from '../../../../../src/extension/graphView/provider/analysis/index';
 
 function createSource(
   overrides: Partial<GraphViewProviderAnalysisMethodsSource> = {},
@@ -40,7 +40,7 @@ function createSource(
   };
 }
 
-describe('graphView/provider/analysisState', () => {
+describe('graphView/provider/analysis/state', () => {
   it('creates and syncs the analysis request state', () => {
     const source = createSource({
       _analysisController: new AbortController(),

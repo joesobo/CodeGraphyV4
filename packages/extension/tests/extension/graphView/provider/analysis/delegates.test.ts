@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/types';
-import { createGraphViewProviderAnalysisDelegates } from '../../../../../src/extension/graphView/provider/analysisDelegates';
+import { createGraphViewProviderAnalysisDelegates } from '../../../../../src/extension/graphView/provider/analysis/delegates';
 
-describe('graphView/provider/analysisDelegates', () => {
+describe('graphView/provider/analysis/delegates', () => {
   it('calls the source workspace-ready callback when it exists', () => {
     const graph = { nodes: [{ id: 'graph' }], edges: [] } satisfies IGraphData;
     const source = {
