@@ -5,6 +5,7 @@
  */
 
 import { IView, IViewInfo, IViewContext } from './types';
+import { getAvailableViews, isViewAvailable } from './viewAvailability';
 
 /**
  * Registry for managing CodeGraphy views.
@@ -135,33 +136,7 @@ export class ViewRegistry {
    * @returns Array of available view info objects, sorted by registration order
    */
   getAvailableViews(context: IViewContext): IViewInfo[] {
-    const available: IViewInfo[] = [];
-    
-    for (const info of this._views.values()) {
-      const view = info.view;
-      
-      // Check plugin availability
-      if (view.pluginId && !context.activePlugins.has(view.pluginId)) {
-        continue;
-      }
-      
-      // Check custom availability
-      if (view.isAvailable && !view.isAvailable(context)) {
-        continue;
-      }
-      
-      available.push(info);
-    }
-    
-    // Sort by registration order (core views first)
-    return available.sort((va, vb) => {
-      // Core views come first
-      if (va.core !== vb.core) {
-        return va.core ? -1 : 1;
-      }
-      // Then by registration order
-      return va.order - vb.order;
-    });
+    return getAvailableViews(this._views, context);
   }
 
   /**
@@ -188,22 +163,7 @@ export class ViewRegistry {
    * @returns true if the view is available
    */
   isViewAvailable(viewId: string, context: IViewContext): boolean {
-    const info = this._views.get(viewId);
-    if (!info) return false;
-    
-    const view = info.view;
-    
-    // Check plugin availability
-    if (view.pluginId && !context.activePlugins.has(view.pluginId)) {
-      return false;
-    }
-    
-    // Check custom availability
-    if (view.isAvailable && !view.isAvailable(context)) {
-      return false;
-    }
-    
-    return true;
+    return isViewAvailable(this._views, viewId, context);
   }
 
   /**
