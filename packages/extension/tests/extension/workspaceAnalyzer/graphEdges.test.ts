@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection, IPlugin } from '../../src/core/plugins';
+import type { IConnection, IPlugin } from '../../../src/core/plugins';
 import { buildWorkspaceGraphEdges } from '../../../src/extension/workspaceAnalyzer/graphEdges';
 
 function createPlugin(id: string): IPlugin {

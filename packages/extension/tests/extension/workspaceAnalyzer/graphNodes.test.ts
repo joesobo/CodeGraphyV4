@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_NODE_COLOR } from '../../src/shared/types';
+import { DEFAULT_NODE_COLOR } from '../../../src/shared/types';
 import { buildWorkspaceGraphNodes } from '../../../src/extension/workspaceAnalyzer/graphNodes';
 
 describe('workspaceAnalyzer/graphNodes', () => {
