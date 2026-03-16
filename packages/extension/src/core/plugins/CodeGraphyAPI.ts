@@ -11,6 +11,12 @@ import { DecorationManager, NodeDecoration, EdgeDecoration } from './DecorationM
 import { ViewRegistry } from '../views/ViewRegistry';
 import { IView } from '../views/types';
 import { IGraphData, IGraphNode, IGraphEdge } from '../../shared/types';
+import {
+  getGraph as facadeGetGraph,
+  getNode as facadeGetNode,
+  getNeighbors as facadeGetNeighbors,
+  getEdgesFor as facadeGetEdgesFor,
+} from './graphQueryFacade';
 
 /**
  * Command registered by a plugin.
@@ -119,29 +125,19 @@ export class CodeGraphyAPIImpl {
   // ── Graph Queries ──
 
   getGraph(): IGraphData {
-    return this._graphProvider();
+    return facadeGetGraph(this._graphProvider);
   }
 
   getNode(id: string): IGraphNode | null {
-    const graph = this._graphProvider();
-    return graph.nodes.find((n) => n.id === id) ?? null;
+    return facadeGetNode(id, this._graphProvider);
   }
 
   getNeighbors(id: string): IGraphNode[] {
-    const graph = this._graphProvider();
-    const neighborIds = new Set<string>();
-
-    for (const edge of graph.edges) {
-      if (edge.from === id) neighborIds.add(edge.to);
-      if (edge.to === id) neighborIds.add(edge.from);
-    }
-
-    return graph.nodes.filter((n) => neighborIds.has(n.id));
+    return facadeGetNeighbors(id, this._graphProvider);
   }
 
   getEdgesFor(nodeId: string): IGraphEdge[] {
-    const graph = this._graphProvider();
-    return graph.edges.filter((e) => e.from === nodeId || e.to === nodeId);
+    return facadeGetEdgesFor(nodeId, this._graphProvider);
   }
 
   // ── Registration ──

@@ -10,6 +10,24 @@ import { DecorationManager } from './DecorationManager';
 import { CodeGraphyAPIImpl, GraphDataProvider, CommandRegistrar, WebviewMessageSender } from './CodeGraphyAPI';
 import { ViewRegistry } from '../views/ViewRegistry';
 import { IGraphData } from '../../shared/types';
+import {
+  getPluginForFile as routeGetPluginForFile,
+  getPluginsForExtension as routeGetPluginsForExtension,
+  supportsFile as routeSupportsFile,
+  getSupportedExtensions as routeGetSupportedExtensions,
+  analyzeFile as routeAnalyzeFile,
+} from './pluginRouting';
+import {
+  IReadinessState,
+  initializeAll as lcInitializeAll,
+  initializePlugin as lcInitializePlugin,
+  notifyWorkspaceReady as lcNotifyWorkspaceReady,
+  notifyPreAnalyze as lcNotifyPreAnalyze,
+  notifyPostAnalyze as lcNotifyPostAnalyze,
+  notifyGraphRebuild as lcNotifyGraphRebuild,
+  notifyWebviewReady as lcNotifyWebviewReady,
+  replayReadinessForPlugin as lcReplayReadinessForPlugin,
+} from './pluginLifecycle';
 
 const CORE_PLUGIN_API_VERSION = '2.0.0';
 const WEBVIEW_PLUGIN_API_VERSION = '1.0.0';
@@ -55,21 +73,21 @@ function satisfiesSemverRange(version: string, range: string): boolean {
 
 /**
  * Registry for managing CodeGraphy plugins.
- * 
+ *
  * The registry maintains a collection of plugins and provides methods
  * to register, unregister, and query plugins. It also handles routing
  * files to the appropriate plugin based on file extension.
- * 
+ *
  * @example
  * ```typescript
  * const registry = new PluginRegistry();
- * 
+ *
  * // Register a plugin
  * registry.register(typescriptPlugin, { builtIn: true });
- * 
+ *
  * // Get plugin for a file
  * const plugin = registry.getPluginForFile('src/app.ts');
- * 
+ *
  * // Analyze a file
  * const connections = await registry.analyzeFile(
  *   'src/app.ts',
@@ -119,17 +137,15 @@ export class PluginRegistry {
     else console.log(...args);
   };
 
-  /** Last graph sent through workspace-ready lifecycle (for late-registration replay). */
-  private _lastWorkspaceReadyGraph?: IGraphData;
-
-  /** Whether workspace-ready lifecycle has fired at least once. */
-  private _workspaceReadyNotified = false;
-
-  /** Whether webview-ready lifecycle has fired at least once. */
-  private _webviewReadyNotified = false;
-
   /** Tracks plugins that have already run initialize(). */
   private readonly _initializedPlugins = new Set<string>();
+
+  /** Readiness state shared with lifecycle helpers. */
+  private readonly _readinessState: IReadinessState = {
+    workspaceReadyNotified: false,
+    webviewReadyNotified: false,
+    lastWorkspaceReadyGraph: undefined,
+  };
 
   /**
    * Configure plugin API subsystems.
@@ -157,7 +173,7 @@ export class PluginRegistry {
 
   /**
    * Registers a plugin with the registry.
-   * 
+   *
    * @param plugin - The plugin to register
    * @param options - Registration options
    * @throws Error if a plugin with the same ID is already registered
@@ -298,7 +314,7 @@ export class PluginRegistry {
   /**
    * Unregisters a plugin from the registry.
    * Calls the plugin's dispose method if available.
-   * 
+   *
    * @param pluginId - ID of the plugin to unregister
    * @returns true if the plugin was found and removed, false otherwise
    */
@@ -345,7 +361,7 @@ export class PluginRegistry {
 
   /**
    * Gets a plugin by its ID.
-   * 
+   *
    * @param pluginId - ID of the plugin to get
    * @returns The plugin info, or undefined if not found
    */
@@ -356,41 +372,27 @@ export class PluginRegistry {
   /**
    * Gets the plugin that should handle a given file.
    * Returns the first registered plugin that supports the file's extension.
-   * 
+   *
    * @param filePath - Path to the file
    * @returns The plugin, or undefined if no plugin supports this file type
    */
   getPluginForFile(filePath: string): IPlugin | undefined {
-    const ext = this._getExtension(filePath);
-    const pluginIds = this._extensionMap.get(ext);
-    
-    if (!pluginIds || pluginIds.length === 0) {
-      return undefined;
-    }
-
-    // Return the first plugin (built-in plugins should be registered first)
-    const info = this._plugins.get(pluginIds[0]);
-    return info?.plugin;
+    return routeGetPluginForFile(filePath, this._plugins, this._extensionMap);
   }
 
   /**
    * Gets all plugins that support a given file extension.
-   * 
+   *
    * @param extension - File extension (with or without leading dot)
    * @returns Array of plugins that support this extension
    */
   getPluginsForExtension(extension: string): IPlugin[] {
-    const normalizedExt = extension.startsWith('.') ? extension : `.${extension}`;
-    const pluginIds = this._extensionMap.get(normalizedExt) ?? [];
-    
-    return pluginIds
-      .map((id) => this._plugins.get(id)?.plugin)
-      .filter((plugin): plugin is IPlugin => plugin !== undefined);
+    return routeGetPluginsForExtension(extension, this._plugins, this._extensionMap);
   }
 
   /**
    * Analyzes a file using the appropriate plugin.
-   * 
+   *
    * @param filePath - Absolute path to the file
    * @param content - File content
    * @param workspaceRoot - Workspace root path
@@ -401,23 +403,12 @@ export class PluginRegistry {
     content: string,
     workspaceRoot: string
   ): Promise<IConnection[]> {
-    const plugin = this.getPluginForFile(filePath);
-    
-    if (!plugin) {
-      return [];
-    }
-
-    try {
-      return await plugin.detectConnections(filePath, content, workspaceRoot);
-    } catch (error) {
-      console.error(`[CodeGraphy] Error analyzing ${filePath} with ${plugin.id}:`, error);
-      return [];
-    }
+    return routeAnalyzeFile(filePath, content, workspaceRoot, this._plugins, this._extensionMap);
   }
 
   /**
    * Gets all registered plugins.
-   * 
+   *
    * @returns Array of all plugin info objects
    */
   list(): IPluginInfo[] {
@@ -433,36 +424,31 @@ export class PluginRegistry {
 
   /**
    * Gets all supported file extensions across all plugins.
-   * 
+   *
    * @returns Array of file extensions (with leading dot)
    */
   getSupportedExtensions(): string[] {
-    return Array.from(this._extensionMap.keys());
+    return routeGetSupportedExtensions(this._extensionMap);
   }
 
   /**
    * Checks if any plugin supports a given file.
-   * 
+   *
    * @param filePath - Path to the file
    * @returns true if a plugin can handle this file
    */
   supportsFile(filePath: string): boolean {
-    const ext = this._getExtension(filePath);
-    return this._extensionMap.has(ext);
+    return routeSupportsFile(filePath, this._extensionMap);
   }
 
   /**
    * Initializes all registered plugins.
-   * 
+   *
    * @param workspaceRoot - Workspace root path
    */
   async initializeAll(workspaceRoot: string): Promise<void> {
     this._workspaceRoot = workspaceRoot;
-    const promises = Array.from(this._plugins.values()).map((info) =>
-      this._initializePlugin(info, workspaceRoot)
-    );
-
-    await Promise.all(promises);
+    await lcInitializeAll(this._plugins, this._initializedPlugins, workspaceRoot);
   }
 
   /**
@@ -473,7 +459,7 @@ export class PluginRegistry {
     this._workspaceRoot = workspaceRoot;
     const info = this._plugins.get(pluginId);
     if (!info) return;
-    await this._initializePlugin(info, workspaceRoot);
+    await lcInitializePlugin(info, this._initializedPlugins, workspaceRoot);
   }
 
   /**
@@ -491,11 +477,7 @@ export class PluginRegistry {
    * Notify all plugins that the workspace is ready with initial graph data.
    */
   notifyWorkspaceReady(graph: IGraphData): void {
-    this._workspaceReadyNotified = true;
-    this._lastWorkspaceReadyGraph = graph;
-    for (const info of this._plugins.values()) {
-      this._notifyWorkspaceReadyForPlugin(info, graph);
-    }
+    lcNotifyWorkspaceReady(this._plugins, this._readinessState, graph);
   }
 
   /**
@@ -505,57 +487,28 @@ export class PluginRegistry {
     files: Array<{ absolutePath: string; relativePath: string; content: string }>,
     workspaceRoot: string
   ): Promise<void> {
-    for (const info of this._plugins.values()) {
-      if (info.plugin.onPreAnalyze) {
-        try {
-          await info.plugin.onPreAnalyze(files, workspaceRoot);
-        } catch (error) {
-          console.error(`[CodeGraphy] Error in onPreAnalyze for ${info.plugin.id}:`, error);
-        }
-      }
-    }
+    await lcNotifyPreAnalyze(this._plugins, files, workspaceRoot);
   }
 
   /**
    * Notify all plugins after an analysis pass.
    */
   notifyPostAnalyze(graph: IGraphData): void {
-    this._lastWorkspaceReadyGraph = graph;
-    for (const info of this._plugins.values()) {
-      if (info.plugin.onPostAnalyze) {
-        try {
-          info.plugin.onPostAnalyze(graph);
-        } catch (error) {
-          console.error(`[CodeGraphy] Error in onPostAnalyze for ${info.plugin.id}:`, error);
-        }
-      }
-    }
+    lcNotifyPostAnalyze(this._plugins, this._readinessState, graph);
   }
 
   /**
    * Notify all plugins that the graph was rebuilt without re-analysis.
    */
   notifyGraphRebuild(graph: IGraphData): void {
-    this._lastWorkspaceReadyGraph = graph;
-    for (const info of this._plugins.values()) {
-      if (info.plugin.onGraphRebuild) {
-        try {
-          info.plugin.onGraphRebuild(graph);
-        } catch (error) {
-          console.error(`[CodeGraphy] Error in onGraphRebuild for ${info.plugin.id}:`, error);
-        }
-      }
-    }
+    lcNotifyGraphRebuild(this._plugins, this._readinessState, graph);
   }
 
   /**
    * Notify all plugins that the webview is ready.
    */
   notifyWebviewReady(): void {
-    this._webviewReadyNotified = true;
-    for (const info of this._plugins.values()) {
-      this._notifyWebviewReadyForPlugin(info);
-    }
+    lcNotifyWebviewReady(this._plugins, this._readinessState);
   }
 
   /**
@@ -576,73 +529,10 @@ export class PluginRegistry {
   }
 
   /**
-   * Extracts the file extension from a path.
-   */
-  private _getExtension(filePath: string): string {
-    const lastDot = filePath.lastIndexOf('.');
-    if (lastDot === -1 || lastDot === filePath.length - 1) {
-      return '';
-    }
-    return filePath.slice(lastDot).toLowerCase();
-  }
-
-  /**
-   * Runs initialize() once per plugin.
-   */
-  private async _initializePlugin(info: IPluginInfoV2, workspaceRoot: string): Promise<void> {
-    const pluginId = info.plugin.id;
-    if (this._initializedPlugins.has(pluginId)) return;
-    this._initializedPlugins.add(pluginId);
-
-    if (!info.plugin.initialize) {
-      return;
-    }
-
-    try {
-      await info.plugin.initialize(workspaceRoot);
-    } catch (error) {
-      this._initializedPlugins.delete(pluginId);
-      console.error(
-        `[CodeGraphy] Error initializing plugin ${pluginId}:`,
-        error
-      );
-    }
-  }
-
-  /**
    * Replays readiness hooks for a late-registered plugin, similar to Obsidian's
    * "run now if already ready" behavior.
    */
   private _replayReadinessForPlugin(info: IPluginInfoV2): void {
-    if (this._workspaceReadyNotified && this._lastWorkspaceReadyGraph) {
-      this._notifyWorkspaceReadyForPlugin(info, this._lastWorkspaceReadyGraph);
-    }
-    if (this._webviewReadyNotified) {
-      this._notifyWebviewReadyForPlugin(info);
-    }
-  }
-
-  /**
-   * Safely invokes onWorkspaceReady for one plugin.
-   */
-  private _notifyWorkspaceReadyForPlugin(info: IPluginInfoV2, graph: IGraphData): void {
-    if (!info.plugin.onWorkspaceReady) return;
-    try {
-      info.plugin.onWorkspaceReady(graph);
-    } catch (error) {
-      console.error(`[CodeGraphy] Error in onWorkspaceReady for ${info.plugin.id}:`, error);
-    }
-  }
-
-  /**
-   * Safely invokes onWebviewReady for one plugin.
-   */
-  private _notifyWebviewReadyForPlugin(info: IPluginInfoV2): void {
-    if (!info.plugin.onWebviewReady) return;
-    try {
-      info.plugin.onWebviewReady();
-    } catch (error) {
-      console.error(`[CodeGraphy] Error in onWebviewReady for ${info.plugin.id}:`, error);
-    }
+    lcReplayReadinessForPlugin(info, this._readinessState);
   }
 }

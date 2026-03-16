@@ -7,8 +7,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import ignore, { Ignore } from 'ignore';
-import { minimatch } from 'minimatch';
 import { IDiscoveryOptions, IDiscoveredFile, IDiscoveryResult } from './types';
+import { shouldIncludeFile } from './fileFilter';
 
 /**
  * Default exclude patterns applied to all discoveries.
@@ -39,12 +39,12 @@ function throwIfAborted(signal?: AbortSignal): void {
 
 /**
  * Discovers source files in a workspace.
- * 
+ *
  * The FileDiscovery class walks the file system starting from a root path,
  * applying include/exclude patterns and respecting .gitignore files.
  * It enforces a maximum file limit to prevent performance issues with
  * large codebases.
- * 
+ *
  * @example
  * ```typescript
  * const discovery = new FileDiscovery();
@@ -56,7 +56,7 @@ function throwIfAborted(signal?: AbortSignal): void {
  *   respectGitignore: true,
  *   extensions: ['.ts', '.tsx']
  * });
- * 
+ *
  * if (result.limitReached) {
  *   console.warn(`Limit reached, found ${result.totalFound} files`);
  * }
@@ -65,13 +65,13 @@ function throwIfAborted(signal?: AbortSignal): void {
 export class FileDiscovery {
   /**
    * Discovers files in the workspace according to the given options.
-   * 
+   *
    * @param options - Discovery options
    * @returns Discovery result with files and metadata
    */
   async discover(options: IDiscoveryOptions): Promise<IDiscoveryResult> {
     const startTime = Date.now();
-    
+
     const {
       rootPath,
       maxFiles = 500,
@@ -86,10 +86,10 @@ export class FileDiscovery {
 
     // Combine default and custom exclude patterns
     const allExclude = [...DEFAULT_EXCLUDE, ...exclude];
-    
+
     // Load gitignore if requested
     const gitignore = respectGitignore ? this._loadGitignore(rootPath) : null;
-    
+
     const files: IDiscoveredFile[] = [];
     let totalFound = 0;
     let limitReached = false;
@@ -108,24 +108,9 @@ export class FileDiscovery {
           return false; // Stop walking
         }
 
-        // Check gitignore
-        if (gitignore && gitignore.ignores(relativePath)) {
-          return true; // Skip but continue
-        }
-
-        // Check exclude patterns
-        if (this._matchesAny(relativePath, allExclude)) {
-          return true; // Skip but continue
-        }
-
-        // Check include patterns
-        if (!this._matchesAny(relativePath, include)) {
-          return true; // Skip but continue
-        }
-
-        // Check extension filter
         const ext = path.extname(absolutePath).toLowerCase();
-        if (extensions.length > 0 && !extensions.includes(ext)) {
+
+        if (!shouldIncludeFile(relativePath, { gitignore, allExclude, include, extensions, fileExtension: ext })) {
           return true; // Skip but continue
         }
 
@@ -137,7 +122,7 @@ export class FileDiscovery {
           name: path.basename(absolutePath),
         });
         totalFound++;
-        
+
         return true; // Continue walking
       },
       signal
@@ -155,7 +140,7 @@ export class FileDiscovery {
 
   /**
    * Reads the content of a file.
-   * 
+   *
    * @param file - The discovered file to read
    * @returns File content as a string
    */
@@ -168,7 +153,7 @@ export class FileDiscovery {
    */
   private _loadGitignore(rootPath: string): Ignore | null {
     const gitignorePath = path.join(rootPath, '.gitignore');
-    
+
     try {
       if (fs.existsSync(gitignorePath)) {
         const content = fs.readFileSync(gitignorePath, 'utf-8');
@@ -179,25 +164,13 @@ export class FileDiscovery {
     } catch (error) {
       console.warn('[CodeGraphy] Failed to load .gitignore:', error);
     }
-    
+
     return null;
   }
 
   /**
-   * Checks if a path matches any of the given glob patterns.
-   */
-  private _matchesAny(relativePath: string, patterns: string[]): boolean {
-    // Normalize path separators for cross-platform matching
-    const normalizedPath = relativePath.replace(/\\/g, '/');
-    
-    return patterns.some((pattern) =>
-      minimatch(normalizedPath, pattern, { dot: true, matchBase: true })
-    );
-  }
-
-  /**
    * Recursively walks a directory, calling the callback for each file.
-   * 
+   *
    * @param rootPath - The original root path
    * @param currentPath - Current directory being walked
    * @param onFile - Callback for each file. Return false to stop walking.
@@ -211,7 +184,7 @@ export class FileDiscovery {
     throwIfAborted(signal);
 
     let entries: fs.Dirent[];
-    
+
     try {
       entries = await fs.promises.readdir(currentPath, { withFileTypes: true });
     } catch {
@@ -228,13 +201,13 @@ export class FileDiscovery {
       if (entry.isDirectory()) {
         // Quick check: skip known large directories early
         const normalizedRelative = relativePath.replace(/\\/g, '/');
-        if (normalizedRelative === 'node_modules' || 
+        if (normalizedRelative === 'node_modules' ||
             normalizedRelative === '.git' ||
             normalizedRelative.startsWith('node_modules/') ||
             normalizedRelative.startsWith('.git/')) {
           continue;
         }
-        
+
         // Recurse into directory
         const shouldContinue = await this._walkDirectory(rootPath, absolutePath, onFile, signal);
         if (!shouldContinue) {
