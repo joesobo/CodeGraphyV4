@@ -43,7 +43,7 @@ vi.mock('fs', async () => {
 
 import * as fs from 'fs';
 import { GitHistoryAnalyzer } from '../../src/extension/gitHistoryAnalyzer';
-import type { PluginRegistry } from '../../src/core/plugins/pluginRegistry';
+import type { PluginRegistry } from '../../src/core/plugins/registry';
 
 // ---------------------------------------------------------------------------
 // Helpers

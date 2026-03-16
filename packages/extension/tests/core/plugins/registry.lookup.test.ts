@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { PluginRegistry } from '@/core/plugins/pluginRegistry';
+import { PluginRegistry } from '@/core/plugins/registry';
 import { EventBus } from '@/core/plugins/eventBus';
 import { DecorationManager } from '@/core/plugins/decorationManager';
 import { ViewRegistry } from '@/core/views/viewRegistry';

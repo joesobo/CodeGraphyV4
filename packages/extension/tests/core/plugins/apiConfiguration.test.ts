@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { EventBus } from '@/core/plugins/eventBus';
 import { DecorationManager } from '@/core/plugins/decorationManager';
 import { ViewRegistry } from '@/core/views/viewRegistry';
-import { hasScopedApiConfiguration, IPluginApiConfiguration } from '@/core/plugins/pluginApiConfiguration';
+import { hasScopedApiConfiguration, IPluginApiConfiguration } from '@/core/plugins/apiConfiguration';
 
 function createCompleteConfiguration(): IPluginApiConfiguration {
   return {
@@ -16,7 +16,7 @@ function createCompleteConfiguration(): IPluginApiConfiguration {
   };
 }
 
-describe('pluginApiConfiguration', () => {
+describe('apiConfiguration', () => {
   it('returns true only when every scoped API dependency is configured', () => {
     expect(hasScopedApiConfiguration(createCompleteConfiguration())).toBe(true);
   });

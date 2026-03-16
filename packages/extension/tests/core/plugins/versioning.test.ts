@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { compareSemver, parseSemver, satisfiesSemverRange } from '@/core/plugins/pluginVersioning';
+import { compareSemver, parseSemver, satisfiesSemverRange } from '@/core/plugins/versioning';
 
-describe('pluginVersioning', () => {
+describe('versioning', () => {
   describe('parseSemver', () => {
     it('parses trimmed multi-digit versions', () => {
       expect(parseSemver(' 12.34.56 ')).toEqual({

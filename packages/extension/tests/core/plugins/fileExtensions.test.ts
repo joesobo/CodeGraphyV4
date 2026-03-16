@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { getFileExtension, normalizePluginExtension } from '@/core/plugins/pluginFileExtensions';
+import { getFileExtension, normalizePluginExtension } from '@/core/plugins/fileExtensions';
 
-describe('pluginFileExtensions', () => {
+describe('fileExtensions', () => {
   describe('normalizePluginExtension', () => {
     it('adds a leading dot when missing', () => {
       expect(normalizePluginExtension('ts')).toBe('.ts');
