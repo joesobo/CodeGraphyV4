@@ -83,6 +83,78 @@ describe('WorkspaceAnalyzer delegates', () => {
     expect(runSpy).toHaveBeenCalledOnce();
   });
 
+  it('updates cached discovered files when the shared runner writes them back', async () => {
+    const analyzer = new WorkspaceAnalyzer(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    const discoveredFiles = [
+      {
+        absolutePath: '/test/workspace/src/index.ts',
+        extension: '.ts',
+        name: 'index.ts',
+        relativePath: 'src/index.ts',
+      },
+    ];
+
+    vi.spyOn(runModule, 'runWorkspaceAnalyzerAnalysis').mockImplementation(async source => {
+      source._lastDiscoveredFiles = discoveredFiles;
+      return { nodes: [], edges: [] };
+    });
+
+    await analyzer.analyze();
+
+    expect(
+      (analyzer as unknown as { _lastDiscoveredFiles: unknown })._lastDiscoveredFiles,
+    ).toBe(discoveredFiles);
+  });
+
+  it('updates cached file connections when the shared runner writes them back', async () => {
+    const analyzer = new WorkspaceAnalyzer(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    const fileConnections = new Map([
+      [
+        'src/index.ts',
+        [
+          {
+            resolvedPath: '/test/workspace/src/utils.ts',
+            specifier: './utils',
+            type: 'static' as const,
+          },
+        ],
+      ],
+    ]);
+
+    vi.spyOn(runModule, 'runWorkspaceAnalyzerAnalysis').mockImplementation(async source => {
+      source._lastFileConnections = fileConnections;
+      return { nodes: [], edges: [] };
+    });
+
+    await analyzer.analyze();
+
+    expect(
+      (analyzer as unknown as { _lastFileConnections: unknown })._lastFileConnections,
+    ).toBe(fileConnections);
+  });
+
+  it('updates the cached workspace root when the shared runner writes it back', async () => {
+    const analyzer = new WorkspaceAnalyzer(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    const workspaceRoot = '/test/workspace';
+
+    vi.spyOn(runModule, 'runWorkspaceAnalyzerAnalysis').mockImplementation(async source => {
+      source._lastWorkspaceRoot = workspaceRoot;
+      return { nodes: [], edges: [] };
+    });
+
+    await analyzer.analyze();
+
+    expect(
+      (analyzer as unknown as { _lastWorkspaceRoot: unknown })._lastWorkspaceRoot,
+    ).toBe(workspaceRoot);
+  });
+
   it('delegates rebuildGraph through the cached rebuild source', () => {
     const analyzer = new WorkspaceAnalyzer(
       createContext() as unknown as vscode.ExtensionContext,
