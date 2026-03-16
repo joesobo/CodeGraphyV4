@@ -2,16 +2,16 @@ import * as vscode from 'vscode';
 import type {
   ExtensionToWebviewMessage,
   IPluginStatus,
-} from '../../shared/types';
+} from '../../../shared/types';
 import {
   buildGraphViewDecorationPayload,
   collectGraphViewContextMenuItems,
   collectGraphViewWebviewInjections,
-} from './pluginMessages';
+} from './messages';
 import {
   getGraphViewLocalResourceRoots,
   resolveGraphViewAssetPath,
-} from './resources';
+} from '../resources';
 
 interface GraphViewPluginRegistry {
   list(): Array<{

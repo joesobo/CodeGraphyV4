@@ -1,5 +1,5 @@
 import type * as vscode from 'vscode';
-import type { IPlugin } from '../../core/plugins/types';
+import type { IPlugin } from '../../../core/plugins/types';
 
 interface GraphViewPluginRegistry {
   register(plugin: IPlugin, options: { deferReadinessReplay: boolean }): void;
