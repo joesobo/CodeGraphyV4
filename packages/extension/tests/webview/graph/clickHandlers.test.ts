@@ -9,7 +9,7 @@ const interactionModelHarness = vi.hoisted(() => ({
   getNodeClickCommand: vi.fn(),
 }));
 
-vi.mock('../../../src/webview/components/graphInteractionModel', () => ({
+vi.mock('../../../src/webview/components/graphInteraction/model', () => ({
   getBackgroundClickCommand: interactionModelHarness.getBackgroundClickCommand,
   getLinkClickCommand: interactionModelHarness.getLinkClickCommand,
   getNodeClickCommand: interactionModelHarness.getNodeClickCommand,

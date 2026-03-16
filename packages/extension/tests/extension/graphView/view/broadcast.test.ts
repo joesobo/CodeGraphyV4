@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGroup } from '../../../src/shared/types';
-import { ViewRegistry, type IViewContext, coreViews } from '../../../src/core/views';
+import type { IGroup } from '../../../../src/shared/types';
+import { ViewRegistry, type IViewContext, coreViews } from '../../../../src/core/views';
 import {
   sendGraphViewAvailableViews,
   sendGraphViewGroupsUpdated,
-} from '../../../src/extension/graphView/viewBroadcast';
+} from '../../../../src/extension/graphView/view/broadcast';
 
-describe('graph view broadcast helpers', () => {
+describe('graphView/view/broadcast', () => {
   it('sends available views and the current depth limit', () => {
     const viewRegistry = new ViewRegistry();
     for (const view of coreViews) {

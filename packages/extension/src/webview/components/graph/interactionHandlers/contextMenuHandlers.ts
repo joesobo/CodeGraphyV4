@@ -3,7 +3,7 @@ import {
   makeEdgeContextSelection,
   makeNodeContextSelection,
 } from '../../graphContextMenu';
-import { getNodeContextMenuSelection } from '../../graphInteractionModel';
+import { getNodeContextMenuSelection } from '../../graphInteraction/model';
 import type { FGLink } from '../../graphModel';
 import { resolveEdgeActionTargetId, resolveLinkEndpointId } from '../../graphSupport';
 import type { GraphInteractionHandlersDependencies } from '../interactionHandlers';

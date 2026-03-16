@@ -1,6 +1,6 @@
 import type * as vscode from 'vscode';
-import type { IViewContext } from '../../core/views';
-import { getRelativeWorkspacePath } from './presentation';
+import type { IViewContext } from '../../../core/views';
+import { getRelativeWorkspacePath } from '../presentation';
 
 interface GraphViewPluginInfoLike {
   plugin?: {

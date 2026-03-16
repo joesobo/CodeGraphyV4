@@ -1,7 +1,7 @@
 import type {
   GraphRightClickFallbackOptions,
   GraphRightMouseDragOptions,
-} from '../graphInteractionModel';
+} from './model';
 
 export function shouldMarkRightMouseDrag(
   options: GraphRightMouseDragOptions,

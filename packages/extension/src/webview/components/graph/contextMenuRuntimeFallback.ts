@@ -1,4 +1,4 @@
-import { shouldUseRightClickFallback } from '../graphInteractionModel';
+import { shouldUseRightClickFallback } from '../graphInteraction/model';
 import { createFallbackContextMenuEvent } from './contextMenuRuntimeFallbackEvent';
 import type {
   GraphContextMenuRuntimeDependencies,

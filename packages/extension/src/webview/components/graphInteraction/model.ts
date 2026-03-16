@@ -69,13 +69,13 @@ export interface GraphRightClickFallbackOptions {
   fallbackDelayMs: number;
 }
 
-export { getNodeContextMenuSelection } from './graphInteraction/nodeSelection';
-export { getNodeClickCommand } from './graphInteraction/nodeClick';
+export { getNodeContextMenuSelection } from './nodeSelection';
+export { getNodeClickCommand } from './nodeClick';
 export {
   getBackgroundClickCommand,
   getLinkClickCommand,
-} from './graphInteraction/surfaceClick';
+} from './surfaceClick';
 export {
   shouldMarkRightMouseDrag,
   shouldUseRightClickFallback,
-} from './graphInteraction/pointer';
+} from './pointer';

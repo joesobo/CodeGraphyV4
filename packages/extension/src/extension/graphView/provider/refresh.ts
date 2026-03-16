@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import type { ExtensionToWebviewMessage, IGraphData } from '../../../shared/types';
 import { shouldRebuildGraphView } from '../rebuild';
-import { rebuildGraphViewData, smartRebuildGraphView } from '../viewRebuild';
+import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 
 interface GraphViewProviderRefreshAnalyzerLike {
   clearCache(): void;

@@ -9,11 +9,11 @@ const providerViewContextMethodMocks = vi.hoisted(() => ({
   normalizeFolderNodeColor: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/graphView/viewContext', () => ({
+vi.mock('../../../../src/extension/graphView/view/context', () => ({
   buildGraphViewContext: providerViewContextMethodMocks.buildViewContext,
 }));
 
-vi.mock('../../../../src/extension/graphView/viewBroadcast', () => ({
+vi.mock('../../../../src/extension/graphView/view/broadcast', () => ({
   sendGraphViewAvailableViews: providerViewContextMethodMocks.sendAvailableViews,
 }));
 

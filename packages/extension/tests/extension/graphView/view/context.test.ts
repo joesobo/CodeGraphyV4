@@ -4,9 +4,9 @@ import {
   buildGraphViewContext,
   getGraphViewActivePluginIds,
   getGraphViewRelativePath,
-} from '../../../src/extension/graphView/viewContext';
+} from '../../../../src/extension/graphView/view/context';
 
-describe('graph view context helpers', () => {
+describe('graphView/view/context', () => {
   it('returns an empty plugin id set when there is no analyzer', () => {
     expect([...getGraphViewActivePluginIds(undefined)]).toEqual([]);
   });

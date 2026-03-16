@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   getGraphViewDepthLimit: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/graphView/viewSelection', () => ({
+vi.mock('../../../../src/extension/graphView/view/selection', () => ({
   changeGraphViewView: mocks.changeGraphViewView,
   setGraphViewFocusedFile: mocks.setGraphViewFocusedFile,
   setGraphViewDepthLimit: mocks.setGraphViewDepthLimit,

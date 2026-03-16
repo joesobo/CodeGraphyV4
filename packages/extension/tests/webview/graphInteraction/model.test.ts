@@ -6,9 +6,9 @@ import {
   getNodeContextMenuSelection,
   shouldMarkRightMouseDrag,
   shouldUseRightClickFallback,
-} from '../../src/webview/components/graphInteractionModel';
+} from '../../../src/webview/components/graphInteraction/model';
 
-describe('graphInteractionModel barrel', () => {
+describe('graphInteraction/model barrel', () => {
   it('re-exports the public graph interaction helpers', () => {
     expect(getNodeContextMenuSelection('src/app.ts', [])).toEqual({
       nodeIds: ['src/app.ts'],

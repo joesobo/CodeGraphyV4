@@ -1,7 +1,7 @@
 import type {
   GraphInteractionEffect,
   GraphNodeClickCommand,
-} from '../graphInteractionModel';
+} from './model';
 import { toggleNodeSelection } from './nodeSelection';
 
 export interface GraphNodeSingleClickOptions {

@@ -5,8 +5,8 @@ import {
   type NodeShape2D,
   type NodeShape3D,
   type NodeSizeMode,
-} from '../../shared/types';
-import type { ThemeKind } from '../hooks/useTheme';
+} from '../../../shared/types';
+import type { ThemeKind } from '../../hooks/useTheme';
 
 export type FGNode = NodeObject & {
   id: string;
@@ -42,9 +42,9 @@ export interface BuildGraphDataOptions {
   random?: () => number;
 }
 
-export type { ProcessedEdge } from './graphModel/edgeProcessing';
-export { buildGraphData } from './graphModel/buildGraphData';
-export { processEdges } from './graphModel/edgeProcessing';
+export type { ProcessedEdge } from './edgeProcessing';
+export { buildGraphData } from './buildGraphData';
+export { processEdges } from './edgeProcessing';
 export {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,
@@ -52,5 +52,5 @@ export {
   getDepthSizeMultiplier,
   getNodeType,
   resolveDirectionColor,
-} from './graphModel/nodeDisplay';
-export { calculateNodeSizes, toD3Repel } from './graphModel/nodeSizing';
+} from './nodeDisplay';
+export { calculateNodeSizes, toD3Repel } from './nodeSizing';

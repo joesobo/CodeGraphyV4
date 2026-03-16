@@ -2,7 +2,7 @@ import {
   getBackgroundClickCommand,
   getLinkClickCommand,
   getNodeClickCommand,
-} from '../../graphInteractionModel';
+} from '../../graphInteraction/model';
 import type { FGLink, FGNode } from '../../graphModel';
 import type { GraphCursorStyle } from '../../graphSupport';
 import type { GraphInteractionHandlersDependencies } from '../interactionHandlers';

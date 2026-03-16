@@ -1,7 +1,7 @@
 import type {
   GraphLastClickState,
   GraphNodeClickCommand,
-} from '../graphInteractionModel';
+} from './model';
 
 export interface GraphNodeDoubleClickOptions {
   clientX: number;

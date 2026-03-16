@@ -5,7 +5,7 @@ import {
   getGraphViewDepthLimit,
   setGraphViewDepthLimit,
   setGraphViewFocusedFile,
-} from '../viewSelection';
+} from '../view/selection';
 
 interface GraphViewProviderWorkspaceStateLike {
   update(key: string, value: unknown): PromiseLike<void>;

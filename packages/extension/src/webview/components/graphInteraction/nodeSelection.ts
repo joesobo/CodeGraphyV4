@@ -1,4 +1,4 @@
-import type { GraphNodeContextMenuSelection } from '../graphInteractionModel';
+import type { GraphNodeContextMenuSelection } from './model';
 
 export function toggleNodeSelection(
   nodeId: string,
