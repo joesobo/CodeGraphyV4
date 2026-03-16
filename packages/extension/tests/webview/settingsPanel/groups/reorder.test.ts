@@ -13,18 +13,52 @@ describe('settingsPanel groups reorder', () => {
     expect(reorderSettingsGroups(groups, 0, 2).map((group) => group.id)).toEqual(['b', 'c', 'a']);
   });
 
-  it('leaves settings groups unchanged when the drag indices do not produce a move', () => {
+  it('returns the original array when the target index is negative', () => {
     const groups: IGroup[] = [
       { id: 'a', pattern: 'a/**', color: '#111111' },
       { id: 'b', pattern: 'b/**', color: '#222222' },
     ];
 
-    expect(reorderSettingsGroups(groups, 1, 1)).toEqual(groups);
-    expect(reorderSettingsGroups(groups, -1, 1)).toEqual(groups);
-    expect(reorderSettingsGroups(groups, 1, -1)).toEqual(groups);
-    expect(reorderSettingsGroups(groups, groups.length, 0)).toEqual(groups);
-    expect(reorderSettingsGroups(groups, 0, 9)).toEqual(groups);
-    expect(reorderSettingsGroups(groups, 0, groups.length)).toEqual(groups);
+    expect(reorderSettingsGroups(groups, 1, -1)).toBe(groups);
+  });
+
+  it('returns the original array when the source index is past the end', () => {
+    const groups: IGroup[] = [
+      { id: 'a', pattern: 'a/**', color: '#111111' },
+      { id: 'b', pattern: 'b/**', color: '#222222' },
+    ];
+
+    expect(reorderSettingsGroups(groups, groups.length, 0)).toBe(groups);
+  });
+
+  it('returns the original array when the target index is past the end', () => {
+    const groups: IGroup[] = [
+      { id: 'a', pattern: 'a/**', color: '#111111' },
+      { id: 'b', pattern: 'b/**', color: '#222222' },
+    ];
+
+    expect(reorderSettingsGroups(groups, 0, 9)).toBe(groups);
+    expect(reorderSettingsGroups(groups, 0, groups.length)).toBe(groups);
+  });
+
+  it('returns the original array when the source index is negative', () => {
+    const groups: IGroup[] = [
+      { id: 'a', pattern: 'a/**', color: '#111111' },
+      { id: 'b', pattern: 'b/**', color: '#222222' },
+      { id: 'c', pattern: 'c/**', color: '#333333' },
+    ];
+
+    expect(reorderSettingsGroups(groups, -1, 1)).toBe(groups);
+  });
+
+  it('returns the original array when the source and target indices match', () => {
+    const groups: IGroup[] = [
+      { id: 'a', pattern: 'a/**', color: '#111111' },
+      { id: 'b', pattern: 'b/**', color: '#222222' },
+      { id: 'c', pattern: 'c/**', color: '#333333' },
+    ];
+
+    expect(reorderSettingsGroups(groups, 1, 1)).toBe(groups);
   });
 
   it('allows moving a group to index zero', () => {

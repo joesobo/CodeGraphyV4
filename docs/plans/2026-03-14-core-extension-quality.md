@@ -96,6 +96,38 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - next cut:
         - split `display/Section.tsx` and `filters/Section.tsx` under the `50`-site threshold
         - then harden `display/timers.ts`, `groups/customRowState.ts`, `forces/Section.tsx`, `groups/DefaultEditor.tsx`, and `groups/CustomEditor.tsx`
+      - committed local follow-up now staged for the next push:
+        - extracted `filters/controller.ts` and `filters/patternActions.ts`
+        - extracted `forces/persistence.ts`
+        - hardened mutation tests for:
+          - `groups/CustomEditor.tsx`
+          - `groups/DefaultEditor.tsx`
+          - `groups/customRowState.ts`
+          - `groups/reorder.ts`
+        - added `vitest` sourcemap suppression in `packages/extension/vitest.config.ts`
+        - added env-driven Stryker runtime flags in `scripts/run-mutate.ts`
+      - latest full settings-panel rerun:
+        - `pnpm run mutate -- extension settings-panel`
+        - settings-panel slice overall = `96.03%`
+        - `✅ All files are within the mutation site threshold (50).`
+        - files still below `90%` in the slice:
+          - `display/ColorField.tsx` = `75.00%`
+          - `display/LabelsToggle.tsx` = `71.43%`
+          - `display/ModeButtons.tsx` = `77.78%`
+          - `display/Particles.tsx` = `61.29%`
+        - remaining above `90%` but with survivors worth cleaning later:
+          - `display/useColorUpdates.ts` = `94.12%`
+          - `display/useParticleSettings.ts` = `93.33%`
+          - `filters/Patterns.tsx` = `94.74%`
+          - `forces/Section.tsx` = `97.22%`
+          - `groups/actions.ts` = `97.78%`
+          - `groups/Custom.tsx` = `92.31%`
+          - `groups/CustomAddForm.tsx` = `91.67%`
+          - `groups/customRowState.ts` = `92.86%`
+          - `groups/DefaultRow.tsx` = `95.65%`
+          - `groups/useEditorState.ts` = `94.12%`
+        - current mutation errors to inspect:
+          - `groups/DefaultSection.tsx` = runtime errors on row class-name mutations
   - S3c `in_progress`: split `Graph.tsx` / `GraphViewProvider.ts` effect and message blocks into direct-test helpers.
     - tests: add/update `packages/extension/tests/webview/graph/effects/*.test.ts` and `packages/extension/tests/extension/graphView/messages/*.test.ts`
     - progress:

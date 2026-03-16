@@ -1,6 +1,10 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import { DefaultEditor } from '../../../../src/webview/components/settingsPanel/groups/DefaultEditor';
+import {
+  DefaultEditor,
+  resolveDefaultShape2D,
+  resolveDefaultShape3D,
+} from '../../../../src/webview/components/settingsPanel/groups/DefaultEditor';
 import type { GroupEditorState } from '../../../../src/webview/components/settingsPanel/groups/useEditorState';
 
 function buildController(overrides: Partial<GroupEditorState> = {}): GroupEditorState {
@@ -37,7 +41,15 @@ function buildController(overrides: Partial<GroupEditorState> = {}): GroupEditor
 }
 
 describe('DefaultEditor', () => {
-  it('falls back to default shapes when plugin groups omit them', () => {
+  it('returns the default 2D shape when a plugin group omits it', () => {
+    expect(resolveDefaultShape2D({ id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6' })).toBe('circle');
+  });
+
+  it('returns the default 3D shape when a plugin group omits it', () => {
+    expect(resolveDefaultShape3D({ id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6' })).toBe('sphere');
+  });
+
+  it('uses the default shapes in the editor selects when a plugin group omits them', () => {
     render(
       <DefaultEditor
         controller={buildController()}
@@ -50,7 +62,7 @@ describe('DefaultEditor', () => {
     expect(screen.getAllByRole('combobox')[1]).toHaveValue('sphere');
   });
 
-  it('preserves explicit shapes and routes override actions', () => {
+  it('routes override actions for explicit plugin shapes', () => {
     const controller = buildController();
 
     render(
@@ -74,8 +86,6 @@ describe('DefaultEditor', () => {
       target: { value: 'cube' },
     });
 
-    expect(screen.getAllByRole('combobox')[0]).toHaveValue('triangle');
-    expect(screen.getAllByRole('combobox')[1]).toHaveValue('cone');
     expect(controller.overridePluginGroup).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'plugin:typescript:ts' }),
       { shape2D: 'square' },
@@ -84,5 +94,18 @@ describe('DefaultEditor', () => {
       expect.objectContaining({ id: 'plugin:typescript:ts' }),
       { shape3D: 'cube' },
     );
+  });
+
+  it('returns explicit shapes unchanged', () => {
+    const group = {
+      id: 'plugin:typescript:ts',
+      pattern: '*.ts',
+      color: '#3178C6',
+      shape2D: 'triangle' as const,
+      shape3D: 'cone' as const,
+    };
+
+    expect(resolveDefaultShape2D(group)).toBe('triangle');
+    expect(resolveDefaultShape3D(group)).toBe('cone');
   });
 });
