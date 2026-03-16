@@ -6,7 +6,7 @@ import {
   type IGraphData,
 } from '../../../shared/types';
 import { applyGraphViewTransform } from '../presentation';
-import { normalizeFolderNodeColor } from '../config';
+import { normalizeFolderNodeColor } from '../settings/config';
 import { sendGraphViewAvailableViews } from '../viewBroadcast';
 import { buildGraphViewContext } from '../viewContext';
 

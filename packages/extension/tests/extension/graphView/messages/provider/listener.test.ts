@@ -11,7 +11,7 @@ afterEach(() => {
   vi.restoreAllMocks();
   vi.doUnmock('vscode');
   vi.doUnmock('../../../../../src/extension/graphView/messages/webviewListener');
-  vi.doUnmock('../../../../../src/extension/graphView/config');
+  vi.doUnmock('../../../../../src/extension/graphView/settings/config');
   vi.doUnmock('../../../../../src/extension/graphView/settings');
   vi.doUnmock('../../../../../src/extension/actions');
   vi.doUnmock('../../../../../src/extension/UndoManager');
@@ -321,7 +321,7 @@ describe('graph view provider listener bridge', () => {
         showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
       },
     }));
-    vi.doMock('../../../../../src/extension/graphView/config', () => ({
+    vi.doMock('../../../../../src/extension/graphView/settings/config', () => ({
       getGraphViewConfigTarget: vi.fn(() => 'workspace'),
       normalizeFolderNodeColor: vi.fn((color: string) => color),
     }));
@@ -425,7 +425,7 @@ async function loadDefaultListenerHarness() {
       capturedContext = context as Record<string, unknown>;
     }),
   }));
-  vi.doMock('../../../../../src/extension/graphView/config', () => ({
+  vi.doMock('../../../../../src/extension/graphView/settings/config', () => ({
     getGraphViewConfigTarget: getConfigTarget,
     normalizeFolderNodeColor,
   }));

@@ -1,5 +1,5 @@
 import type { ExtensionToWebviewMessage, IGroup, ISettingsSnapshot } from '../../shared/types';
-import { buildGraphViewAllSettingsMessages } from './settings';
+import { buildGraphViewAllSettingsMessages } from './settings/index';
 
 export interface GraphViewAllSettingsSyncState {
   viewContext: { folderNodeColor?: string };

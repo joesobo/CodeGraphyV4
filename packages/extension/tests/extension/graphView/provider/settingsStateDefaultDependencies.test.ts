@@ -51,7 +51,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-vi.mock('../../../../src/extension/graphView/config', () => ({
+vi.mock('../../../../src/extension/graphView/settings/config', () => ({
   getGraphViewConfigTarget: mocks.getConfigTarget,
 }));
 
@@ -59,7 +59,7 @@ vi.mock('../../../../src/extension/graphView/groups', () => ({
   loadGraphViewGroupState: mocks.loadGroupState,
 }));
 
-vi.mock('../../../../src/extension/graphView/groupSync', () => ({
+vi.mock('../../../../src/extension/graphView/groups/sync', () => ({
   applyLoadedGraphViewGroupState: mocks.applyLoadedGroupState,
 }));
 
@@ -71,7 +71,7 @@ vi.mock('../../../../src/extension/graphView/settings', () => ({
   captureGraphViewSettingsSnapshot: mocks.captureSettingsSnapshot,
 }));
 
-vi.mock('../../../../src/extension/graphView/settingsLifecycle', () => ({
+vi.mock('../../../../src/extension/graphView/settings/lifecycle', () => ({
   sendGraphViewProviderSettings: mocks.sendProviderSettings,
   sendGraphViewProviderAllSettings: mocks.sendProviderAllSettings,
 }));
