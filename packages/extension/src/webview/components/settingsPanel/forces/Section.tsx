@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { type IPhysicsSettings } from '../../../../shared/types';
-import { postMessage } from '../../../lib/vscodeApi';
+import { postMessage } from '../../../vscodeApi';
 import { useGraphStore } from '../../../store';
 import { Label } from '../../ui/label';
 import { Slider } from '../../ui/slider';

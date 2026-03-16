@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { cn } from '../../lib/utils';
+import { cn } from '../ui/cn';
 
 export interface ToggleButtonProps {
   active: boolean;

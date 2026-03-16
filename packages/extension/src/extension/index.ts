@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
 import { GraphViewProvider } from './graphViewProvider';
-import { registerConfigHandler } from './configHandler';
+import { registerConfigHandler } from './configListener';
 import { registerCommands } from './commandRegistration';
-import { registerEditorChangeHandler, registerSaveHandler, registerFileWatcher } from './fileEventHandlers';
+import { registerEditorChangeHandler, registerSaveHandler, registerFileWatcher } from './fileSystemListeners';
 import type { IGraphData } from '../shared/types';
 
 /** Public API returned by activate() — usable from e2e tests. */

@@ -18,8 +18,8 @@ import type {
 } from '../shared/types';
 import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_DIRECTION_COLOR } from '../shared/types';
 import type { SearchOptions } from './components/SearchBar';
-import { postMessage } from './lib/vscodeApi';
-import { MESSAGE_HANDLERS } from './storeMessageHandlers';
+import { postMessage } from './vscodeApi';
+import { MESSAGE_HANDLERS } from './storeMessages';
 
 const DEFAULT_PHYSICS: IPhysicsSettings = {
   repelForce: 10,

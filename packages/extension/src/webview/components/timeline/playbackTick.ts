@@ -1,6 +1,6 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { ICommitInfo } from '../../../shared/types';
-import { postMessage } from '../../lib/vscodeApi';
+import { postMessage } from '../../vscodeApi';
 import { findCommitIndexAtTime } from './commits';
 
 const PLAYBACK_SECONDS_PER_DAY = 172800;

@@ -1,10 +1,10 @@
 import { IGraphData } from '../shared/types';
-export type { PluginWebviewModule, PluginInjectPayload, PluginScopedMessage } from './lib/pluginMessageParser';
+export type { PluginWebviewModule, PluginInjectPayload, PluginScopedMessage } from './pluginMessageParser';
 export {
   normalizePluginInjectPayload,
   parsePluginScopedMessage,
   resolvePluginModuleActivator,
-} from './lib/pluginMessageParser';
+} from './pluginMessageParser';
 
 export function getNoDataHint(
   graphData: IGraphData | null,

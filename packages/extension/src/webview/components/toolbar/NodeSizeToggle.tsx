@@ -10,7 +10,7 @@ import { MdiIcon } from '../icons';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { useGraphStore } from '../../store';
-import { postMessage } from '../../lib/vscodeApi';
+import { postMessage } from '../../vscodeApi';
 import type { NodeSizeMode } from '../../../shared/types';
 
 const NODE_SIZE_MODES: { mode: NodeSizeMode; label: string; icon: string }[] = [

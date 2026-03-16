@@ -4,11 +4,11 @@
  */
 
 import React, { useRef, useCallback } from 'react';
-import { cn } from '../lib/utils';
+import { cn } from './ui/cn';
 import { mdiMagnify, mdiClose } from '@mdi/js';
 import { MdiIcon } from './icons';
 import { ToggleButton } from './searchBar/ToggleButton';
-import { useSearchKeyboard } from '../hooks/useSearchKeyboard';
+import { useSearchKeyboard } from './useSearchKeyboard';
 
 export interface SearchOptions {
   matchCase: boolean;

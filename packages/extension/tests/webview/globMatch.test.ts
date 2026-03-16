@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { globMatch, globToRegex } from '../../src/webview/lib/globMatch';
+import { globMatch, globToRegex } from '../../src/webview/globMatch';
 
 describe('globMatch', () => {
   describe('extension patterns (*.ext)', () => {

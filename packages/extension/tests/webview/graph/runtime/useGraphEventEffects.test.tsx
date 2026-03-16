@@ -34,27 +34,27 @@ vi.mock('../../../../src/webview/components/graph/messageListener', () => ({
   createGraphMessageListener: eventEffectsHarness.createGraphMessageListener,
 }));
 
-vi.mock('../../../../src/webview/lib/export/jpeg', () => ({
+vi.mock('../../../../src/webview/export/jpeg', () => ({
   exportAsJpeg: eventEffectsHarness.exportAsJpeg,
 }));
 
-vi.mock('../../../../src/webview/lib/export/json', () => ({
+vi.mock('../../../../src/webview/export/json', () => ({
   exportAsJson: eventEffectsHarness.exportAsJson,
 }));
 
-vi.mock('../../../../src/webview/lib/export/markdown', () => ({
+vi.mock('../../../../src/webview/export/markdown', () => ({
   exportAsMarkdown: eventEffectsHarness.exportAsMarkdown,
 }));
 
-vi.mock('../../../../src/webview/lib/export/png', () => ({
+vi.mock('../../../../src/webview/export/png', () => ({
   exportAsPng: eventEffectsHarness.exportAsPng,
 }));
 
-vi.mock('../../../../src/webview/lib/export/svg', () => ({
+vi.mock('../../../../src/webview/export/svg', () => ({
   exportAsSvg: eventEffectsHarness.exportAsSvg,
 }));
 
-vi.mock('../../../../src/webview/lib/vscodeApi', () => ({
+vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: eventEffectsHarness.postMessage,
 }));
 

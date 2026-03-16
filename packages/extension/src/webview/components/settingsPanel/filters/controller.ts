@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
-import { postMessage } from '../../../lib/vscodeApi';
+import { postMessage } from '../../../vscodeApi';
 import { useGraphStore } from '../../../store';
 import {
   clampMaxFiles,

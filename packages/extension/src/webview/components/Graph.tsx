@@ -18,7 +18,7 @@ import { useGraphEventEffects } from './graph/runtime/useGraphEventEffects';
 import { useGraphInteractionRuntime } from './graph/runtime/useGraphInteractionRuntime';
 import { useGraphRenderingRuntime } from './graph/runtime/useGraphRenderingRuntime';
 import { useGraphState } from './graph/runtime/useGraphState';
-import { ThemeKind } from '../hooks/useTheme';
+import { ThemeKind } from '../useTheme';
 import type { WebviewPluginHost } from '../pluginHost';
 import { useGraphStore } from '../store';
 

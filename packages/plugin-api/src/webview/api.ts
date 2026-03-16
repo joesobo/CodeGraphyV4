@@ -5,7 +5,7 @@
 
 import type { Disposable } from '../disposable';
 import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from './renderers';
-import type { BadgeOpts, RingOpts, LabelOpts } from './helpers';
+import type { BadgeOpts, RingOpts, LabelOpts } from './types';
 
 /**
  * API available to Tier-2 plugin scripts running in the CodeGraphy webview.

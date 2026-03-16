@@ -5,7 +5,7 @@ import { jumpToTrackPosition } from '../../../src/webview/components/timeline/sc
 
 const postMessage = vi.fn();
 
-vi.mock('../../../src/webview/lib/vscodeApi', () => ({
+vi.mock('../../../src/webview/vscodeApi', () => ({
   postMessage: (message: unknown) => postMessage(message),
 }));
 

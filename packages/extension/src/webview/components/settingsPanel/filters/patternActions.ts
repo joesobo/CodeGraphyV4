@@ -1,4 +1,4 @@
-import { postMessage } from '../../../lib/vscodeApi';
+import { postMessage } from '../../../vscodeApi';
 import { canAddFilterPattern } from './model';
 
 type SetFilterPatterns = (patterns: string[]) => void;

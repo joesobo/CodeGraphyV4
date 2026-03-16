@@ -1,6 +1,6 @@
 import type { IGraphEdge, IGraphNode } from '../../../shared/types';
-import type { ThemeKind } from '../../hooks/useTheme';
-import { adjustColorForLightTheme } from '../../hooks/useTheme';
+import type { ThemeKind } from '../../useTheme';
+import { adjustColorForLightTheme } from '../../useTheme';
 import type { FGNode } from '../graphModel';
 import {
   DEFAULT_NODE_SIZE,

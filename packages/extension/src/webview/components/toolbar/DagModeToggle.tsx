@@ -9,7 +9,7 @@ import { DagDefaultIcon, DagRadialIcon, DagTopDownIcon, DagLeftRightIcon } from 
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { useGraphStore } from '../../store';
-import { postMessage } from '../../lib/vscodeApi';
+import { postMessage } from '../../vscodeApi';
 import type { DagMode } from '../../../shared/types';
 
 const DAG_MODES: { mode: DagMode; label: string; Icon: React.FC<{ size?: number; className?: string }> }[] = [

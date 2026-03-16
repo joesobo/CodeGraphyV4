@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { postMessage } from '../../../lib/vscodeApi';
+import { postMessage } from '../../../vscodeApi';
 
 const COLOR_PERSIST_DEBOUNCE_MS = 150;
 

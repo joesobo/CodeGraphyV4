@@ -16,7 +16,7 @@ vi.mock('three-spritetext', () => ({
   default: vi.fn(() => spriteInstance),
 }));
 
-vi.mock('../../../../src/webview/lib/shapes3D', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/shapes3D', () => ({
   createImageSprite: vi.fn(() => ({ kind: 'image-sprite' })),
   createNodeMesh: vi.fn(() => ({ kind: 'mesh' })),
 }));
@@ -26,7 +26,7 @@ vi.mock('../../../../src/webview/components/graphSupport', () => ({
 }));
 
 import SpriteText from 'three-spritetext';
-import { createImageSprite, createNodeMesh } from '../../../../src/webview/lib/shapes3D';
+import { createImageSprite, createNodeMesh } from '../../../../src/webview/components/graph/rendering/shapes3D';
 import { setSpriteVisible } from '../../../../src/webview/components/graphSupport';
 import type { FGNode } from '../../../../src/webview/components/graphModel';
 import { createNodeThreeObject } from '../../../../src/webview/components/graph/rendering/nodes3d';

@@ -28,7 +28,7 @@ const EXTENSION_SLICES: Record<string, string> = {
 		'packages/extension/src/webview/components/settingsPanel/**/*.ts,packages/extension/src/webview/components/settingsPanel/**/*.tsx',
 	'timeline':
 		'packages/extension/src/webview/components/Timeline.tsx,packages/extension/src/webview/components/timeline/**/*.ts,packages/extension/src/webview/components/timeline/**/*.tsx',
-	'webview-export': 'packages/extension/src/webview/lib/export/**/*.ts',
+	'webview-export': 'packages/extension/src/webview/export/**/*.ts',
 	'git-history':
 		'packages/extension/src/extension/GitHistoryAnalyzer.ts,packages/extension/src/extension/gitHistory/**/*.ts',
 };

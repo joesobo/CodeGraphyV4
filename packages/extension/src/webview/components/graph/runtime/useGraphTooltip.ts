@@ -11,7 +11,7 @@ import type { GraphCursorStyle } from '../../graphSupport';
 import type { FGLink, FGNode } from '../../graphModel';
 import type { GraphTooltipState } from '../tooltipModel';
 import type { WebviewPluginHost } from '../../../pluginHost';
-import { useTooltipHandlers } from './useTooltipHandlers';
+import { useTooltipEvents } from './useTooltipEvents';
 import { useTooltipState } from './useTooltipState';
 
 export interface GraphTooltipInteractionDependencies {
@@ -59,7 +59,7 @@ export function useGraphTooltip({
 		handleMouseLeave,
 		handleNodeHover,
 		stopTooltipTracking,
-	} = useTooltipHandlers({
+	} = useTooltipEvents({
 		containerRef,
 		dataRef,
 		fg2dRef,

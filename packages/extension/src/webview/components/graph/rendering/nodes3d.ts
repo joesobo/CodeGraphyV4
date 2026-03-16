@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
-import { createImageSprite, createNodeMesh } from '../../../lib/shapes3D';
+import { createImageSprite, createNodeMesh } from './shapes3D';
 import { DEFAULT_NODE_SIZE, type FGNode } from '../../graphModel';
 import { setSpriteVisible } from '../../graphSupport';
 

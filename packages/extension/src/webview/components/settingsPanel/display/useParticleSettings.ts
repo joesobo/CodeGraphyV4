@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { postMessage } from '../../../lib/vscodeApi';
+import { postMessage } from '../../../vscodeApi';
 import { particleSpeedFromDisplay } from './model';
 import {
   clearTimeoutMap,

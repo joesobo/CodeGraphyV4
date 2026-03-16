@@ -1,6 +1,6 @@
 import React from 'react';
 import { mdiChevronRight } from '@mdi/js';
-import { cn } from '../../lib/utils';
+import { cn } from '../ui/cn';
 import { MdiIcon } from '../icons';
 
 export function ChevronIcon({ open }: { open: boolean }): React.ReactElement {

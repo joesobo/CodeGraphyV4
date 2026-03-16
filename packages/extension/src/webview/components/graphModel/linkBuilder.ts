@@ -1,5 +1,5 @@
 import type { BidirectionalEdgeMode, IGraphEdge } from '../../../shared/types';
-import { computeLinkCurvature } from '../../lib/linkCurvature';
+import { computeLinkCurvature } from './linkCurvature';
 import type { FGLink } from '../graphModel';
 import { processEdges } from './edgeProcessing';
 

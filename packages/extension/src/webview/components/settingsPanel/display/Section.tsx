@@ -3,7 +3,7 @@ import type {
   BidirectionalEdgeMode,
   DirectionMode,
 } from '../../../../shared/types';
-import { postMessage } from '../../../lib/vscodeApi';
+import { postMessage } from '../../../vscodeApi';
 import { ColorField } from './ColorField';
 import { LabelsToggle } from './LabelsToggle';
 import { ModeButtons } from './ModeButtons';

@@ -2,7 +2,7 @@ import type {
   DirectionMode,
   EdgeDecorationPayload,
 } from '../../../../shared/types';
-import type { ThemeKind } from '../../../hooks/useTheme';
+import type { ThemeKind } from '../../../useTheme';
 
 interface GraphRef<TValue> {
   current: TValue;

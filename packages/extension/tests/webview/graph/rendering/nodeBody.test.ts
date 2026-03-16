@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { NodeDecorationPayload } from '../../../../src/shared/types';
-import type { ThemeKind } from '../../../../src/webview/hooks/useTheme';
+import type { ThemeKind } from '../../../../src/webview/useTheme';
 
-vi.mock('../../../../src/webview/lib/shapes2D', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/shapes2D', () => ({
   drawShape: vi.fn(),
 }));
 
-import { drawShape } from '../../../../src/webview/lib/shapes2D';
+import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes2D';
 import type { FGNode } from '../../../../src/webview/components/graphModel';
 import { renderNodeBody, renderNodeLabel } from '../../../../src/webview/components/graph/rendering/nodeBody';
 

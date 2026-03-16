@@ -11,7 +11,7 @@ import { Button } from '../ui/button';
 import { Slider } from '../ui/slider';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { useGraphStore } from '../../store';
-import { postMessage } from '../../lib/vscodeApi';
+import { postMessage } from '../../vscodeApi';
 
 const VIEW_ICONS: Record<string, string> = {
   'codegraphy.connections': mdiGraphOutline,

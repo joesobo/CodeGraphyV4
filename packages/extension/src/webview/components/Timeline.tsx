@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react';
 import type { ICommitInfo } from '../../shared/types';
 import { useGraphStore } from '../store';
-import { postMessage } from '../lib/vscodeApi';
+import { postMessage } from '../vscodeApi';
 import Status from './timeline/Status';
 import Track from './timeline/Track';
 import { useTimelineController } from './timeline/useController';

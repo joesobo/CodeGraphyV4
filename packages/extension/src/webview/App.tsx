@@ -6,11 +6,11 @@ import SettingsPanel from './components/settingsPanel/Panel';
 import PluginsPanel from './components/PluginsPanel';
 import Timeline from './components/Timeline';
 import Toolbar from './components/Toolbar';
-import { useTheme } from './hooks/useTheme';
-import { usePluginManager } from './hooks/usePluginManager';
-import { useFilteredGraph } from './hooks/useFilteredGraph';
+import { useTheme } from './useTheme';
+import { usePluginManager } from './usePluginManager';
+import { useFilteredGraph } from './useFilteredGraph';
 import { ExtensionToWebviewMessage } from '../shared/types';
-import { postMessage } from './lib/vscodeApi';
+import { postMessage } from './vscodeApi';
 import { useGraphStore, graphStore } from './store';
 import type { SearchOptions } from './components/SearchBar';
 import {

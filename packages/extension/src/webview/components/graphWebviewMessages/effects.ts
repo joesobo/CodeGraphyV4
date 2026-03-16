@@ -12,7 +12,7 @@ import {
   getFitViewEffects,
   getNodeBoundsEffects,
   getZoomEffects,
-} from './helpers';
+} from './effectBuilders';
 
 export type GraphWebviewMessageEffect =
   | { kind: 'fitView' }

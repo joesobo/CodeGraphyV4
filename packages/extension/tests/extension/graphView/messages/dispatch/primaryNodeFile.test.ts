@@ -3,8 +3,8 @@ import type { IGraphData } from '../../../../../src/shared/types';
 import type { IViewContext } from '../../../../../src/core/views';
 import {
   createGraphViewPrimaryNodeFileHandlers,
-} from '../../../../../src/extension/graphView/messages/dispatch/primaryNodeFile';
-import type { GraphViewPrimaryMessageContext } from '../../../../../src/extension/graphView/messages/dispatch/primary';
+  type GraphViewPrimaryMessageContext,
+} from '../../../../../src/extension/graphView/messages/dispatch/primary';
 
 function createContext(
   overrides: Partial<GraphViewPrimaryMessageContext> = {},

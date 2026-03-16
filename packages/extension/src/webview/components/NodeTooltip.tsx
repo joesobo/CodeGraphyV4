@@ -12,9 +12,9 @@ import {
   shift,
   autoUpdate,
 } from '@floating-ui/react';
-import { cn } from '../lib/utils';
+import { cn } from './ui/cn';
 import { Separator } from './ui/separator';
-import { formatSize, formatRelativeTime } from '../lib/formatters';
+import { formatSize, formatRelativeTime } from './tooltipFormatters';
 
 interface NodeTooltipProps {
   /** File path relative to workspace */

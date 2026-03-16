@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../../../src/webview/lib/shapes2D', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/shapes2D', () => ({
   drawShape: vi.fn(),
 }));
 
-import { drawShape } from '../../../../src/webview/lib/shapes2D';
+import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes2D';
 import type { FGNode } from '../../../../src/webview/components/graphModel';
 import { paintNodePointerArea } from '../../../../src/webview/components/graph/rendering/nodePointer';
 

@@ -33,7 +33,7 @@ import {
   as2DExtMethods,
   type GraphCursorStyle,
 } from '../../graphSupport';
-import type { ThemeKind } from '../../../hooks/useTheme';
+import type { ThemeKind } from '../../../useTheme';
 
 export interface GraphMouseState {
   ctrlKey: boolean;

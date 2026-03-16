@@ -12,7 +12,7 @@ import {
   createGraphContextMenuRuntime,
   type GraphContextMenuRuntimeDependencies,
 } from '../contextMenuRuntime';
-import { createGraphInteractionHandlers } from '../interactionHandlers';
+import { createGraphInteractionHandlers } from '../interactions';
 import type { GraphCursorStyle } from '../../graphSupport';
 import { applyCursorToGraphSurface } from '../../graphSupport';
 import {
@@ -22,7 +22,7 @@ import {
 import type { FGLink, FGNode } from '../../graphModel';
 import type { UseGraphStateResult } from './useGraphState';
 import type { WebviewPluginHost } from '../../../pluginHost';
-import { postMessage } from '../../../lib/vscodeApi';
+import { postMessage } from '../../../vscodeApi';
 
 export interface UseGraphInteractionRuntimeOptions {
   dataRef: MutableRefObject<IGraphData>;

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { postMessage } from '../lib/vscodeApi';
+import { postMessage } from '../vscodeApi';
 import { useGraphStore } from '../store';
-import { cn } from '../lib/utils';
+import { cn } from './ui/cn';
 import { mdiChevronRight, mdiClose } from '@mdi/js';
 import { MdiIcon } from './icons';
 import { Switch } from './ui/switch';

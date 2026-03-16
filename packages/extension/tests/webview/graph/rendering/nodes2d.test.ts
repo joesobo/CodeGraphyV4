@@ -1,17 +1,17 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NodeDecorationPayload } from '../../../../src/shared/types';
-import type { ThemeKind } from '../../../../src/webview/hooks/useTheme';
+import type { ThemeKind } from '../../../../src/webview/useTheme';
 
-vi.mock('../../../../src/webview/lib/imageCache', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/imageCache', () => ({
   getImage: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/lib/shapes2D', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/shapes2D', () => ({
   drawShape: vi.fn(),
 }));
 
-import { getImage } from '../../../../src/webview/lib/imageCache';
-import { drawShape } from '../../../../src/webview/lib/shapes2D';
+import { getImage } from '../../../../src/webview/components/graph/rendering/imageCache';
+import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes2D';
 import type { WebviewPluginHost } from '../../../../src/webview/pluginHost';
 import type { FGNode } from '../../../../src/webview/components/graphModel';
 import {

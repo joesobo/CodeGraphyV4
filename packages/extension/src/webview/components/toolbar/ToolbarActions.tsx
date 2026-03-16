@@ -18,7 +18,7 @@ import {
   DropdownMenuLabel,
 } from '../ui/dropdown-menu';
 import { useGraphStore } from '../../store';
-import { postMessage } from '../../lib/vscodeApi';
+import { postMessage } from '../../vscodeApi';
 
 export function ToolbarActions(): React.ReactElement {
   const setActivePanel = useGraphStore(s => s.setActivePanel);

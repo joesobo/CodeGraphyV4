@@ -6,7 +6,7 @@
 
 import React, { useState } from 'react';
 import { mdiClose, mdiRefresh } from '@mdi/js';
-import { postMessage } from '../../lib/vscodeApi';
+import { postMessage } from '../../vscodeApi';
 import { MdiIcon } from '../icons';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';

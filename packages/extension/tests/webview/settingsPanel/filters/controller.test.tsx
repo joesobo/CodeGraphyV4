@@ -5,7 +5,7 @@ import { useFilterController } from '../../../../src/webview/components/settings
 import { graphStore } from '../../../../src/webview/store';
 
 const sentMessages: unknown[] = [];
-vi.mock('../../../../src/webview/lib/vscodeApi', () => ({
+vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: (message: unknown) => sentMessages.push(message),
   vscode: { getState: () => undefined, setState: vi.fn() },
 }));

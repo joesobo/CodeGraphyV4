@@ -1,10 +1,10 @@
 import { DEFAULT_NODE_COLOR, IGraphData, IGroup } from '../shared/types';
 import type { SearchOptions } from './components/SearchBar';
-import { globMatch } from './lib/globMatch';
-import { filterNodesAdvanced } from './lib/nodeMatching';
+import { globMatch } from './globMatch';
+import { filterNodesAdvanced } from './nodeMatching';
 
 // Re-export so existing callers can import directly from appSearch
-export { filterNodesAdvanced } from './lib/nodeMatching';
+export { filterNodesAdvanced } from './nodeMatching';
 
 export function filterGraphData(
   graphData: IGraphData | null,

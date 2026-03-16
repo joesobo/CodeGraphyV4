@@ -8,20 +8,17 @@ import type {
   WebviewToExtensionMessage,
 } from '../../../../shared/types';
 import type { IViewContext } from '../../../../core/views';
-import { saveExportedJpeg } from '../../../export/jpeg';
-import { saveExportedJson } from '../../../export/json';
-import { saveExportedMarkdown } from '../../../export/markdown';
-import { saveExportedPng } from '../../../export/png';
-import { saveExportedSvg } from '../../../export/svg';
+import { saveExportedJpeg } from '../../../export/saveJpeg';
+import { saveExportedJson } from '../../../export/saveJson';
+import { saveExportedMarkdown } from '../../../export/saveMarkdown';
+import { saveExportedPng } from '../../../export/savePng';
+import { saveExportedSvg } from '../../../export/saveSvg';
 import { applyCommandMessage } from '../commands';
-import { createGraphViewPrimaryGroupMessageState } from './primaryGroupState';
-import { createGraphViewPrimaryNodeFileHandlers } from './primaryNodeFile';
-import { createGraphViewPrimarySettingsMessageState } from './primarySettingsState';
 import { applyExportMessage } from '../exports';
-import { applyGroupMessage } from '../groups';
-import { applyNodeFileMessage } from '../nodeFile';
+import { applyGroupMessage, type GraphViewGroupMessageState } from '../groups';
+import { applyNodeFileMessage, type GraphViewNodeFileHandlers } from '../nodeFile';
 import { applyPhysicsMessage } from '../physics';
-import { applySettingsMessage } from '../settings';
+import { applySettingsMessage, type GraphViewSettingsMessageState } from '../settings';
 import { applyTimelineMessage } from '../timeline';
 
 export interface GraphViewPrimaryMessageContext {
@@ -85,6 +82,37 @@ export interface GraphViewPrimaryMessageResult {
   handled: boolean;
   userGroups?: IGroup[];
   filterPatterns?: string[];
+}
+
+export function createGraphViewPrimaryGroupMessageState(
+  context: GraphViewPrimaryMessageContext,
+): GraphViewGroupMessageState {
+  return {
+    userGroups: context.getUserGroups(),
+  };
+}
+
+export function createGraphViewPrimaryNodeFileHandlers(
+  context: GraphViewPrimaryMessageContext,
+): GraphViewNodeFileHandlers {
+  return {
+    ...context,
+    timelineActive: context.getTimelineActive(),
+    currentCommitSha: context.getCurrentCommitSha(),
+  };
+}
+
+export function createGraphViewPrimarySettingsMessageState(
+  context: GraphViewPrimaryMessageContext,
+): GraphViewSettingsMessageState {
+  return {
+    activeViewId: context.getActiveViewId(),
+    disabledPlugins: context.getDisabledPlugins(),
+    disabledRules: context.getDisabledRules(),
+    filterPatterns: context.getFilterPatterns(),
+    graphData: context.getGraphData(),
+    viewContext: context.getViewContext(),
+  };
 }
 
 function createGraphViewPrimaryExportHandlers() {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { mdiEyeOffOutline, mdiEyeOutline } from '@mdi/js';
-import { cn } from '../../../lib/utils';
+import { cn } from '../../ui/cn';
 import { MdiIcon } from '../../icons';
 import { ChevronIcon } from '../SectionHeader';
 import { DefaultRow } from './DefaultRow';

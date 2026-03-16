@@ -1,7 +1,7 @@
 import type {
   NodeDecorationPayload,
 } from '../../../../shared/types';
-import type { ThemeKind } from '../../../hooks/useTheme';
+import type { ThemeKind } from '../../../useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost';
 
 interface GraphRef<TValue> {

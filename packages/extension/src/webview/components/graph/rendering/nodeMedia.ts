@@ -1,8 +1,8 @@
 import type {
   NodeDecorationPayload,
 } from '../../../../shared/types';
-import { getImage } from '../../../lib/imageCache';
-import { drawShape } from '../../../lib/shapes2D';
+import { getImage } from './imageCache';
+import { drawShape } from './shapes2D';
 import type { WebviewPluginHost } from '../../../pluginHost';
 import {
   getNodeType,

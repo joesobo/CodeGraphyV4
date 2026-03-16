@@ -1,8 +1,8 @@
 import type {
   NodeDecorationPayload,
 } from '../../../../shared/types';
-import type { ThemeKind } from '../../../hooks/useTheme';
-import { drawShape } from '../../../lib/shapes2D';
+import type { ThemeKind } from '../../../useTheme';
+import { drawShape } from './shapes2D';
 import type { FGNode } from '../../graphModel';
 
 export interface RenderNodeBodyOptions {

@@ -3,7 +3,7 @@ import {
 	type MutableRefObject,
 } from 'react';
 import type { IGraphData } from '../../../../shared/types';
-import { ThemeKind, adjustColorForLightTheme } from '../../../hooks/useTheme';
+import { ThemeKind, adjustColorForLightTheme } from '../../../useTheme';
 import {
 	calculateNodeSizes,
 	FAVORITE_BORDER_COLOR,

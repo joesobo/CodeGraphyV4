@@ -11,7 +11,7 @@ import type {
 import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
 import type { IGraphData, IPhysicsSettings } from '../../../../shared/types';
-import { ThemeKind } from '../../../hooks/useTheme';
+import { ThemeKind } from '../../../useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost';
 import {
   type FGLink,

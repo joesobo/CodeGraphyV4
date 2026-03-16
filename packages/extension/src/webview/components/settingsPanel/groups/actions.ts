@@ -1,5 +1,5 @@
 import type { IGroup } from '../../../../shared/types';
-import { postMessage } from '../../../lib/vscodeApi';
+import { postMessage } from '../../../vscodeApi';
 import { buildSettingsGroupOverride } from './override';
 
 interface GroupActionDependencies {

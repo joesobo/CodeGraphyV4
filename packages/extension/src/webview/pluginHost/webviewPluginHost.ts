@@ -15,7 +15,7 @@ import type {
   LabelOpts,
   CodeGraphyWebviewAPI,
 } from './types';
-import { drawBadge, drawProgressRing, drawLabel } from './canvasHelpers';
+import { drawBadge, drawProgressRing, drawLabel } from './drawing';
 
 type GraphInteractionMessage = {
   type: 'GRAPH_INTERACTION';
@@ -199,7 +199,7 @@ export class WebviewPluginHost {
     };
   }
 
-  // ── Drawing Helpers (static delegates to canvasHelpers) ──
+  // ── Drawing Helpers (static delegates to drawing) ──
 
   static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void {
     drawBadge(ctx, opts);

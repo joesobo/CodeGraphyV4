@@ -3,7 +3,7 @@ import type { IGroup } from '../../../../src/shared/types';
 import { createGroupActions } from '../../../../src/webview/components/settingsPanel/groups/actions';
 
 const sentMessages: unknown[] = [];
-vi.mock('../../../../src/webview/lib/vscodeApi', () => ({
+vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: (message: unknown) => sentMessages.push(message),
   vscode: { getState: () => undefined, setState: vi.fn() },
 }));

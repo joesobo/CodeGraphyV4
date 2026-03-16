@@ -54,8 +54,8 @@ Organize by feature and behavior, not by technical layer.
 Group code by what it does, not what type it is.
 
 ```
-src/webview/settings-panel/
-src/webview/node-size-toggle/
+src/webview/settingsPanel/
+src/webview/nodeSizeToggle/
 src/core/registry/
 src/core/discovery/
 ```
@@ -74,9 +74,9 @@ src/helpers/
 Folder names communicate feature or business context. Filenames communicate the role within that context. Do not repeat the folder name in the filename.
 
 ```
-webview/settings-panel/model.ts    ✓
-webview/settings-panel/view.tsx    ✓
-webview/settings-panel/SettingsPanelModel.ts  ✗
+webview/settingsPanel/model.ts    ✓
+webview/settingsPanel/view.tsx    ✓
+webview/settingsPanel/SettingsPanelModel.ts  ✗
 ```
 
 ### 3. Split by mutation site
@@ -91,8 +91,8 @@ A file should have one clear reason to change. If a file contains independently 
 Every source module must have a matching test module.
 
 ```
-settings-panel/model.ts        → settings-panel/model.test.ts
-node-size-toggle/command.ts    → node-size-toggle/command.test.ts
+settingsPanel/model.ts        → settingsPanel/model.test.ts
+nodeSizeToggle/command.ts    → nodeSizeToggle/command.test.ts
 ```
 
 If a source file covers multiple distinct concepts, split it before creating a large test file.

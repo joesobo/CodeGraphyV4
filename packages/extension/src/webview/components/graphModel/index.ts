@@ -6,7 +6,7 @@ import {
   type NodeShape3D,
   type NodeSizeMode,
 } from '../../../shared/types';
-import type { ThemeKind } from '../../hooks/useTheme';
+import type { ThemeKind } from '../../useTheme';
 
 export type FGNode = NodeObject & {
   id: string;

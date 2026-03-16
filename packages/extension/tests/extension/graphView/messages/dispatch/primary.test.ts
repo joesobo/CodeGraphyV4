@@ -6,7 +6,7 @@ const exportSaverMocks = vi.hoisted(() => ({
   savePng: vi.fn(() => Promise.resolve()),
 }));
 
-vi.mock('../../../../../src/extension/export/png', () => ({
+vi.mock('../../../../../src/extension/export/savePng', () => ({
   saveExportedPng: exportSaverMocks.savePng,
 }));
 

@@ -16,7 +16,7 @@ vi.mock('../../../../src/webview/components/graph/contextMenuRuntime', () => ({
   createGraphContextMenuRuntime: interactionRuntimeHarness.createGraphContextMenuRuntime,
 }));
 
-vi.mock('../../../../src/webview/components/graph/interactionHandlers', () => ({
+vi.mock('../../../../src/webview/components/graph/interactions', () => ({
   createGraphInteractionHandlers: interactionRuntimeHarness.createGraphInteractionHandlers,
 }));
 
@@ -28,7 +28,7 @@ vi.mock('../../../../src/webview/components/graph/runtime/useGraphTooltip', () =
   useGraphTooltip: interactionRuntimeHarness.useGraphTooltip,
 }));
 
-vi.mock('../../../../src/webview/lib/vscodeApi', () => ({
+vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: interactionRuntimeHarness.postMessage,
 }));
 

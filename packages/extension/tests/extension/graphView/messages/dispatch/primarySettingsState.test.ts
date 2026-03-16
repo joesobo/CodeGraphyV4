@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/types';
 import type { IViewContext } from '../../../../../src/core/views';
-import { createGraphViewPrimarySettingsMessageState } from '../../../../../src/extension/graphView/messages/dispatch/primarySettingsState';
-import type { GraphViewPrimaryMessageContext } from '../../../../../src/extension/graphView/messages/dispatch/primary';
+import {
+  createGraphViewPrimarySettingsMessageState,
+  type GraphViewPrimaryMessageContext,
+} from '../../../../../src/extension/graphView/messages/dispatch/primary';
 
 function createContext(
   overrides: Partial<GraphViewPrimaryMessageContext> = {},

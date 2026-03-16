@@ -1,7 +1,7 @@
 import React from 'react';
 import { mdiEyeOffOutline, mdiEyeOutline } from '@mdi/js';
 import type { IGroup } from '../../../../shared/types';
-import { cn } from '../../../lib/utils';
+import { cn } from '../../ui/cn';
 import { MdiIcon } from '../../icons';
 import { ChevronIcon } from '../SectionHeader';
 import { DefaultEditor } from './DefaultEditor';
