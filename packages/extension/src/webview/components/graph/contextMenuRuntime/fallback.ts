@@ -1,10 +1,10 @@
-import { shouldUseRightClickFallback } from '../graphInteraction/model';
-import { createFallbackContextMenuEvent } from './contextMenuRuntimeFallbackEvent';
+import { shouldUseRightClickFallback } from '../../graphInteraction/model';
+import { createFallbackContextMenuEvent } from './fallbackEvent';
 import type {
   GraphContextMenuRuntimeDependencies,
   GraphRightMouseDownState,
   GraphTimerHandle,
-} from './contextMenuRuntime';
+} from '.';
 
 const DEFAULT_RIGHT_CLICK_FALLBACK_DELAY_MS = 40;
 

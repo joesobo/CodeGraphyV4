@@ -1,14 +1,14 @@
 import {
   type GraphContextEffect,
-} from '../graphContextActionEffects';
+} from '../../graphContextActionEffects';
 import type {
   GraphContextMenuAction,
   GraphContextSelection,
-} from '../graphContextMenu';
-import type { GraphTooltipState } from '../graphTooltipModel';
-import { createContextMenuEffectRuntime } from './contextMenuRuntimeEffects';
-import { createContextMenuPointerRuntime } from './contextMenuRuntimePointer';
-import { createContextMenuTooltipRuntime } from './contextMenuRuntimeTooltip';
+} from '../../graphContextMenu';
+import type { GraphTooltipState } from '../../graphTooltipModel';
+import { createContextMenuEffectRuntime } from './effects';
+import { createContextMenuPointerRuntime } from './pointer';
+import { createContextMenuTooltipRuntime } from './tooltip';
 
 export type GraphTimerHandle = ReturnType<typeof setTimeout>;
 

@@ -63,7 +63,7 @@ vi.mock('../../../../src/extension/graphView/groups/sync', () => ({
   applyLoadedGraphViewGroupState: mocks.applyLoadedGroupState,
 }));
 
-vi.mock('../../../../src/extension/graphView/disabledState', () => ({
+vi.mock('../../../../src/extension/graphView/settings/disabled', () => ({
   loadGraphViewDisabledState: mocks.loadDisabledState,
 }));
 

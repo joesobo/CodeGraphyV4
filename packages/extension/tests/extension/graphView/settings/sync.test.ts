@@ -3,7 +3,7 @@ import type { ISettingsSnapshot } from '../../../../src/shared/types';
 import {
   applyGraphViewAllSettingsSnapshot,
   type GraphViewAllSettingsSyncState,
-} from '../../../src/extension/graphView/allSettingsSync';
+} from '../../../../src/extension/graphView/settings/sync';
 
 function createSnapshot(
   overrides: Partial<ISettingsSnapshot> = {},
@@ -45,7 +45,7 @@ function createState(
   };
 }
 
-describe('graphView/allSettingsSync', () => {
+describe('graphView/settings/sync', () => {
   it('applies the snapshot, recomputes groups, and sends pre/post group messages in order', () => {
     const sendMessage = vi.fn();
     const recomputeGroups = vi.fn();

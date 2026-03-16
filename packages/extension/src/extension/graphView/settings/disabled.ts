@@ -1,4 +1,4 @@
-import { resolveGraphViewDisabledState } from './settings/config';
+import { resolveGraphViewDisabledState } from './config';
 
 interface InspectLike<T> {
   workspaceValue?: T;

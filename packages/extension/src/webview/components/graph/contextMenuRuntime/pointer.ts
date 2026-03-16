@@ -1,13 +1,13 @@
 import {
   shouldMarkRightMouseDrag,
-} from '../graphInteraction/model';
+} from '../../graphInteraction/model';
 import type {
   GraphContextMenuRuntimeDependencies,
   GraphRightClickPointerDownEvent,
   GraphRightClickPointerMoveEvent,
   GraphRightClickPointerUpEvent,
-} from './contextMenuRuntime';
-import { createContextMenuFallbackRuntime } from './contextMenuRuntimeFallback';
+} from '.';
+import { createContextMenuFallbackRuntime } from './fallback';
 
 const DEFAULT_RIGHT_CLICK_DRAG_THRESHOLD_PX = 6;
 

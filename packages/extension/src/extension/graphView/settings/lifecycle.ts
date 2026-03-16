@@ -1,5 +1,5 @@
 import type { ExtensionToWebviewMessage, ISettingsSnapshot } from '../../../shared/types';
-import { applyGraphViewAllSettingsSnapshot, type GraphViewAllSettingsSyncState } from '../allSettingsSync';
+import { applyGraphViewAllSettingsSnapshot, type GraphViewAllSettingsSyncState } from './sync';
 import { sendGraphViewSettingsMessages } from './message';
 
 interface GraphViewConfigurationLike {

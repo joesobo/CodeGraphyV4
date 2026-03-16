@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { loadGraphViewDisabledState } from '../../../src/extension/graphView/disabledState';
+import { loadGraphViewDisabledState } from '../../../../src/extension/graphView/settings/disabled';
 
-describe('graph view disabled-state helper', () => {
+describe('graphView/settings/disabled', () => {
   it('resolves disabled rules and plugins from config inspection and workspace state fallbacks', () => {
     const state = loadGraphViewDisabledState(new Set(['old.rule']), new Set(['old.plugin']), {
       disabledRulesInspect: { workspaceValue: ['rule.alpha'] },
