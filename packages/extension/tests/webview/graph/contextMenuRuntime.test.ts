@@ -82,6 +82,35 @@ describe('graph/contextMenuRuntime', () => {
     });
   });
 
+  it('ignores non-right mouse buttons on mouse down', () => {
+    const { dependencies } = createDependencies();
+    const runtime = createGraphContextMenuRuntime(dependencies);
+
+    runtime.handleMouseDownCapture({
+      button: 0,
+      clientX: 24,
+      clientY: 32,
+      ctrlKey: true,
+    });
+
+    expect(dependencies.rightMouseDownRef.current).toBeNull();
+  });
+
+  it('uses the injected timer clearer for pending fallback timers', () => {
+    const clearFallbackTimer = vi.fn();
+    const { dependencies } = createDependencies({
+      clearFallbackTimer,
+    });
+    dependencies.rightClickFallbackTimerRef.current = setTimeout(() => undefined, 1000);
+    const runtime = createGraphContextMenuRuntime(dependencies);
+
+    runtime.clearRightClickFallbackTimer();
+
+    expect(clearFallbackTimer).toHaveBeenCalledOnce();
+    expect(clearFallbackTimer).toHaveBeenCalledWith(expect.anything());
+    expect(dependencies.rightClickFallbackTimerRef.current).toBeNull();
+  });
+
   it('marks right-click pointer state as moved after drag threshold', () => {
     const { dependencies } = createDependencies();
     const runtime = createGraphContextMenuRuntime(dependencies);
@@ -98,6 +127,18 @@ describe('graph/contextMenuRuntime', () => {
     });
 
     expect(dependencies.rightMouseDownRef.current?.moved).toBe(true);
+  });
+
+  it('ignores pointer move events when no right-click drag is active', () => {
+    const { dependencies } = createDependencies();
+    const runtime = createGraphContextMenuRuntime(dependencies);
+
+    runtime.handleMouseMoveCapture({
+      clientX: 20,
+      clientY: 20,
+    });
+
+    expect(dependencies.rightMouseDownRef.current).toBeNull();
   });
 
   it('opens the background context menu when graph callbacks do not handle the right click', () => {
@@ -148,6 +189,43 @@ describe('graph/contextMenuRuntime', () => {
     expect(dependencies.openBackgroundContextMenu).not.toHaveBeenCalled();
   });
 
+  it('skips fallback scheduling when the pointer already moved', () => {
+    const { dependencies } = createDependencies();
+    dependencies.rightMouseDownRef.current = {
+      x: 48,
+      y: 64,
+      ctrlKey: false,
+      moved: true,
+    };
+    const runtime = createGraphContextMenuRuntime(dependencies);
+
+    runtime.handleMouseUpCapture({ button: 2 });
+    vi.runAllTimers();
+
+    expect(dependencies.rightMouseDownRef.current).toBeNull();
+    expect(dependencies.openBackgroundContextMenu).not.toHaveBeenCalled();
+  });
+
+  it('ignores non-right mouse buttons on mouse up', () => {
+    const { dependencies } = createDependencies();
+    dependencies.rightMouseDownRef.current = {
+      x: 48,
+      y: 64,
+      ctrlKey: false,
+      moved: false,
+    };
+    const runtime = createGraphContextMenuRuntime(dependencies);
+
+    runtime.handleMouseUpCapture({ button: 0 });
+
+    expect(dependencies.rightMouseDownRef.current).toEqual({
+      x: 48,
+      y: 64,
+      ctrlKey: false,
+      moved: false,
+    });
+  });
+
   it('falls back to a background selection and clears tooltip state on context menu', () => {
     const currentTime = 500;
     const { dependencies, getTooltipState } = createDependencies({
@@ -179,6 +257,19 @@ describe('graph/contextMenuRuntime', () => {
       now: () => currentTime,
     });
     dependencies.lastGraphContextEventRef.current = 400;
+    const runtime = createGraphContextMenuRuntime(dependencies);
+
+    runtime.handleContextMenu();
+
+    expect(dependencies.setContextSelection).not.toHaveBeenCalled();
+  });
+
+  it('keeps the existing selection at the grace-period boundary', () => {
+    const currentTime = 500;
+    const { dependencies } = createDependencies({
+      now: () => currentTime,
+    });
+    dependencies.lastGraphContextEventRef.current = 350;
     const runtime = createGraphContextMenuRuntime(dependencies);
 
     runtime.handleContextMenu();

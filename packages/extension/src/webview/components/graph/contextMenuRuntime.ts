@@ -1,25 +1,14 @@
 import {
-  getGraphContextActionEffects,
   type GraphContextEffect,
 } from '../graphContextActionEffects';
-import {
-  makeBackgroundContextSelection,
-  type GraphContextMenuAction,
-  type GraphContextSelection,
+import type {
+  GraphContextMenuAction,
+  GraphContextSelection,
 } from '../graphContextMenu';
-import {
-  shouldMarkRightMouseDrag,
-  shouldUseRightClickFallback,
-} from '../graphInteractionModel';
-import {
-  hideGraphTooltipState,
-  type GraphTooltipState,
-} from '../graphTooltipModel';
-import { applyContextEffects as runContextEffects } from './effects/contextMenu';
-
-const DEFAULT_RIGHT_CLICK_DRAG_THRESHOLD_PX = 6;
-const DEFAULT_RIGHT_CLICK_FALLBACK_DELAY_MS = 40;
-const DEFAULT_CONTEXT_SELECTION_GRACE_MS = 150;
+import type { GraphTooltipState } from '../graphTooltipModel';
+import { createContextMenuEffectRuntime } from './contextMenuRuntimeEffects';
+import { createContextMenuPointerRuntime } from './contextMenuRuntimePointer';
+import { createContextMenuTooltipRuntime } from './contextMenuRuntimeTooltip';
 
 export type GraphTimerHandle = ReturnType<typeof setTimeout>;
 
@@ -87,161 +76,19 @@ export interface GraphContextMenuRuntime {
 export function createGraphContextMenuRuntime(
   dependencies: GraphContextMenuRuntimeDependencies,
 ): GraphContextMenuRuntime {
-  const now = (): number => (
-    dependencies.now ? dependencies.now() : Date.now()
-  );
-  const dragThresholdPx =
-    dependencies.dragThresholdPx ?? DEFAULT_RIGHT_CLICK_DRAG_THRESHOLD_PX;
-  const fallbackDelayMs =
-    dependencies.fallbackDelayMs ?? DEFAULT_RIGHT_CLICK_FALLBACK_DELAY_MS;
-  const contextSelectionGraceMs =
-    dependencies.contextSelectionGraceMs ?? DEFAULT_CONTEXT_SELECTION_GRACE_MS;
-  const scheduleFallback = (
-    callback: () => void,
-    delayMs: number,
-  ): GraphTimerHandle => (
-    dependencies.scheduleFallback
-      ? dependencies.scheduleFallback(callback, delayMs)
-      : setTimeout(callback, delayMs)
-  );
-  const clearFallbackTimer = (handle: GraphTimerHandle): void => {
-    if (dependencies.clearFallbackTimer) {
-      dependencies.clearFallbackTimer(handle);
-      return;
-    }
-
-    clearTimeout(handle);
-  };
-
-  const clearRightClickFallbackTimer = (): void => {
-    if (dependencies.rightClickFallbackTimerRef.current === null) {
-      return;
-    }
-
-    clearFallbackTimer(dependencies.rightClickFallbackTimerRef.current);
-    dependencies.rightClickFallbackTimerRef.current = null;
-  };
-
-  const clearTooltipContext = (): void => {
-    if (dependencies.tooltipTimeoutRef.current !== null) {
-      clearTimeout(dependencies.tooltipTimeoutRef.current);
-      dependencies.tooltipTimeoutRef.current = null;
-    }
-
-    dependencies.hoveredNodeRef.current = null;
-    dependencies.stopTooltipTracking();
-    dependencies.setTooltipData(hideGraphTooltipState);
-  };
-
-  const applyContextEffects = (effects: GraphContextEffect[]): void => {
-    runContextEffects(effects, {
-      clearCachedFile: (path) => dependencies.clearCachedFile(path),
-      fitView: () => dependencies.fitView(),
-      focusNode: (nodeId) => dependencies.focusNode(nodeId),
-      postMessage: (message) => dependencies.postMessage(message),
-    });
-  };
-
-  const handleMenuAction = (
-    action: GraphContextMenuAction,
-    targetPaths: string[],
-  ): void => {
-    applyContextEffects(getGraphContextActionEffects(action, targetPaths));
-  };
-
-  const handleMouseDownCapture = (
-    event: GraphRightClickPointerDownEvent,
-  ): void => {
-    if (event.button !== 2) {
-      return;
-    }
-
-    clearRightClickFallbackTimer();
-    dependencies.rightMouseDownRef.current = {
-      x: event.clientX,
-      y: event.clientY,
-      ctrlKey: event.ctrlKey,
-      moved: false,
-    };
-  };
-
-  const handleMouseMoveCapture = (
-    event: GraphRightClickPointerMoveEvent,
-  ): void => {
-    const rightMouseDown = dependencies.rightMouseDownRef.current;
-    if (!rightMouseDown) {
-      return;
-    }
-
-    if (shouldMarkRightMouseDrag({
-      startX: rightMouseDown.x,
-      startY: rightMouseDown.y,
-      nextX: event.clientX,
-      nextY: event.clientY,
-      thresholdPx: dragThresholdPx,
-    })) {
-      rightMouseDown.moved = true;
-    }
-  };
-
-  const handleMouseUpCapture = (
-    event: GraphRightClickPointerUpEvent,
-  ): void => {
-    if (event.button !== 2) {
-      return;
-    }
-
-    const rightMouseDown = dependencies.rightMouseDownRef.current;
-    dependencies.rightMouseDownRef.current = null;
-    if (!rightMouseDown || rightMouseDown.moved) {
-      return;
-    }
-
-    clearRightClickFallbackTimer();
-    dependencies.rightClickFallbackTimerRef.current = scheduleFallback(() => {
-      const currentTime = now();
-      if (!shouldUseRightClickFallback({
-        now: currentTime,
-        lastGraphContextEvent: dependencies.lastGraphContextEventRef.current,
-        lastContainerContextMenuEvent: dependencies.lastContainerContextMenuEventRef.current,
-        fallbackDelayMs,
-      })) {
-        return;
-      }
-
-      dependencies.openBackgroundContextMenu(new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
-        button: 2,
-        buttons: 2,
-        clientX: rightMouseDown.x,
-        clientY: rightMouseDown.y,
-        ctrlKey: rightMouseDown.ctrlKey,
-      }));
-    }, fallbackDelayMs);
-  };
-
-  const handleContextMenu = (): void => {
-    dependencies.lastContainerContextMenuEventRef.current = now();
-
-    if (
-      now() - dependencies.lastGraphContextEventRef.current
-      > contextSelectionGraceMs
-    ) {
-      dependencies.setContextSelection(makeBackgroundContextSelection());
-    }
-
-    clearTooltipContext();
-  };
+  const effectRuntime = createContextMenuEffectRuntime(dependencies);
+  const pointerRuntime = createContextMenuPointerRuntime(dependencies);
+  const tooltipRuntime = createContextMenuTooltipRuntime(dependencies);
 
   return {
-    clearRightClickFallbackTimer,
-    clearTooltipContext,
-    handleContextMenu,
-    handleMenuAction,
-    handleMouseDownCapture,
-    handleMouseMoveCapture,
-    handleMouseUpCapture,
-    applyContextEffects,
+    clearRightClickFallbackTimer: () => pointerRuntime.clearRightClickFallbackTimer(),
+    clearTooltipContext: () => tooltipRuntime.clearTooltipContext(),
+    handleContextMenu: () => tooltipRuntime.handleContextMenu(),
+    handleMenuAction: (action, targetPaths) =>
+      effectRuntime.handleMenuAction(action, targetPaths),
+    handleMouseDownCapture: (event) => pointerRuntime.handleMouseDownCapture(event),
+    handleMouseMoveCapture: (event) => pointerRuntime.handleMouseMoveCapture(event),
+    handleMouseUpCapture: (event) => pointerRuntime.handleMouseUpCapture(event),
+    applyContextEffects: (effects) => effectRuntime.applyContextEffects(effects),
   };
 }
