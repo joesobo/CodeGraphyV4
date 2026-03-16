@@ -54,15 +54,28 @@ describe('CustomAddForm', () => {
     expect(controller.addGroup).toHaveBeenCalled();
   });
 
-  it('adds a group when enter is pressed and disables add for whitespace-only patterns', () => {
-    const controller = buildController({ newPattern: '   ' });
-    const { rerender } = render(<CustomAddForm controller={controller} />);
+  it('adds a group when enter is pressed', () => {
+    const controller = buildController({ newPattern: 'src/**' });
+    render(<CustomAddForm controller={controller} />);
 
-    expect(screen.getByRole('button', { name: /^Add$/i })).toBeDisabled();
-
-    rerender(<CustomAddForm controller={buildController({ newPattern: 'src/**' })} />);
     fireEvent.keyDown(screen.getByPlaceholderText('src/**'), { key: 'Enter' });
 
-    expect(screen.getByRole('button', { name: /^Add$/i })).not.toBeDisabled();
+    expect(controller.addGroup).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not add a group for other key presses', () => {
+    const controller = buildController({ newPattern: 'src/**' });
+    render(<CustomAddForm controller={controller} />);
+
+    fireEvent.keyDown(screen.getByPlaceholderText('src/**'), { key: 'Tab' });
+
+    expect(controller.addGroup).not.toHaveBeenCalled();
+  });
+
+  it('disables add for whitespace-only patterns', () => {
+    const controller = buildController({ newPattern: '   ' });
+    render(<CustomAddForm controller={controller} />);
+
+    expect(screen.getByRole('button', { name: /^Add$/i })).toBeDisabled();
   });
 });

@@ -51,6 +51,9 @@ describe('DefaultRow', () => {
       </ul>,
     );
 
+    expect(screen.getByText('*.ts').closest('li')).toHaveClass('rounded');
+    expect(screen.getByText('*.ts').closest('li')).toHaveClass('transition-colors');
+
     fireEvent.click(screen.getByText('*.ts'));
     fireEvent.click(screen.getByTitle('Disable group'));
 
@@ -97,5 +100,25 @@ describe('DefaultRow', () => {
       expect.objectContaining({ id: 'plugin:typescript:ts' }),
       { shape3D: 'cube' },
     );
+  });
+
+  it('uses the enabled-group title for disabled plugin rows', () => {
+    render(
+      <ul>
+        <DefaultRow
+          controller={buildController()}
+          group={{
+            id: 'plugin:typescript:ts',
+            pattern: '*.ts',
+            color: '#3178C6',
+            disabled: true,
+          }}
+          isExpanded={false}
+          setExpandedGroupId={vi.fn()}
+        />
+      </ul>,
+    );
+
+    expect(screen.getByTitle('Enable group')).toBeInTheDocument();
   });
 });

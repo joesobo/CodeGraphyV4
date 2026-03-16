@@ -95,7 +95,7 @@ describe('CustomGroups', () => {
 
     fireEvent.click(screen.getByText('Custom'));
 
-    expect(controller.setCustomExpanded).toHaveBeenCalled();
+    expect(controller.setCustomExpanded).toHaveBeenCalledWith(false);
   });
 
   it('opens a group editor when the row is clicked', () => {

@@ -17,4 +17,15 @@ describe('display LabelsToggle', () => {
 
     expect(onCheckedChange).toHaveBeenCalledWith(false);
   });
+
+  it('ignores invalid toggle handlers at runtime', () => {
+    render(
+      <LabelsToggle
+        checked={true}
+        onCheckedChange={undefined as unknown as (checked: boolean) => void}
+      />
+    );
+
+    expect(() => fireEvent.click(screen.getByRole('switch'))).not.toThrow();
+  });
 });

@@ -22,6 +22,10 @@ describe('workspaceAnalyzer/io', () => {
     expect(getWorkspaceAnalyzerRoot([] as never)).toBeUndefined();
   });
 
+  it('returns undefined when the first workspace folder does not expose a uri', () => {
+    expect(getWorkspaceAnalyzerRoot([{ name: 'workspace', index: 0 }] as never)).toBeUndefined();
+  });
+
   it('returns file stat details when the file system succeeds', async () => {
     const fileSystem = {
       stat: vi.fn(async () => ({ mtime: 17, size: 64 })),

@@ -108,26 +108,25 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - added env-driven Stryker runtime flags in `scripts/run-mutate.ts`
       - latest full settings-panel rerun:
         - `pnpm run mutate -- extension settings-panel`
-        - settings-panel slice overall = `96.03%`
+        - settings-panel slice overall = `99.31%`
         - `✅ All files are within the mutation site threshold (50).`
-        - files still below `90%` in the slice:
-          - `display/ColorField.tsx` = `75.00%`
-          - `display/LabelsToggle.tsx` = `71.43%`
-          - `display/ModeButtons.tsx` = `77.78%`
-          - `display/Particles.tsx` = `61.29%`
-        - remaining above `90%` but with survivors worth cleaning later:
+        - current floor files in the slice:
           - `display/useColorUpdates.ts` = `94.12%`
           - `display/useParticleSettings.ts` = `93.33%`
           - `filters/Patterns.tsx` = `94.74%`
           - `forces/Section.tsx` = `97.22%`
-          - `groups/actions.ts` = `97.78%`
-          - `groups/Custom.tsx` = `92.31%`
-          - `groups/CustomAddForm.tsx` = `91.67%`
-          - `groups/customRowState.ts` = `92.86%`
-          - `groups/DefaultRow.tsx` = `95.65%`
           - `groups/useEditorState.ts` = `94.12%`
-        - current mutation errors to inspect:
-          - `groups/DefaultSection.tsx` = runtime errors on row class-name mutations
+        - direct wins from the latest pass:
+          - `display/ColorField.tsx` = `100.00%`
+          - `display/LabelsToggle.tsx` = `100.00%`
+          - `display/ModeButtons.tsx` = `100.00%`
+          - `display/Particles.tsx` = `100.00%`
+          - `groups/actions.ts` = `100.00%`
+          - `groups/Custom.tsx` = `100.00%`
+          - `groups/CustomAddForm.tsx` = `100.00%`
+          - `groups/customRowState.ts` = `100.00%`
+          - `groups/DefaultRow.tsx` = `100.00%`
+          - `groups/DefaultSection.tsx` = `100.00%`
   - S3c `in_progress`: split `Graph.tsx` / `GraphViewProvider.ts` effect and message blocks into direct-test helpers.
     - tests: add/update `packages/extension/tests/webview/graph/effects/*.test.ts` and `packages/extension/tests/extension/graphView/messages/*.test.ts`
     - progress:
@@ -894,8 +893,8 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
       - package-relative `eslint` on touched workspace-analysis files
     - latest targeted mutation after the current local pass:
-      - focused `workspace-analysis` slice overall = `100.00%`
-      - `WorkspaceAnalyzer.ts` = `100.00%`
+      - focused `workspace-analysis` slice overall = `99.09%`
+      - `WorkspaceAnalyzer.ts` = `94.00%`
       - `workspaceAnalyzer/analyze.ts` = `100.00%`
       - `workspaceAnalyzer/discovery.ts` = `100.00%`
       - `workspaceAnalyzer/files.ts` = `100.00%`
@@ -913,15 +912,16 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - `workspaceGraphEdges.ts` = `100.00%`
       - `workspaceGraphNodes.ts` = `100.00%`
       - `workspacePluginStatuses.ts` = `100.00%`
+      - `WorkspaceAnalyzer.ts` survivors are the three `_last*` state setter wrappers inside the analyzer source bridge
       - result: `✅ All files remain within the mutation site threshold (50).`
   - next:
-    - commit and push the workspace-analysis batch
+    - commit and push the workspace-analysis + settings-panel hardening batch
     - refresh the next extension slice after the workspace-analysis merge
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. commit and push the `workspace-analysis` slice now that it is `100%` and under the site cap
+1. commit and push the current `settings-panel` + `workspace-analysis` hardening batch
 2. refresh the whole `graph-view-provider` slice with a harness-safe run and confirm the updated floor in one report
 3. `packages/extension/src/webview/components/Graph.tsx`
 4. refresh the remaining extension slices and package-level threshold summary before the folder/name cleanup pass

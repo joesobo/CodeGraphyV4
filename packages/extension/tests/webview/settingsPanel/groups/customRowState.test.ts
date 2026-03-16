@@ -41,6 +41,18 @@ describe('customRowState', () => {
     ).not.toContain('outline-primary/50');
   });
 
+  it('omits the hover highlight when the row is not the current drop target', () => {
+    expect(
+      getCustomRowClassName({
+        dragIndex: 0,
+        dragOverIndex: 2,
+        groupDisabled: false,
+        index: 1,
+        isExpanded: false,
+      }),
+    ).not.toContain('outline-primary/50');
+  });
+
   it('adds the dragged-row opacity class', () => {
     expect(
       getCustomRowClassName({
@@ -51,6 +63,18 @@ describe('customRowState', () => {
         isExpanded: false,
       }),
     ).toContain('opacity-40');
+  });
+
+  it('omits the dragged-row opacity class when another row is being dragged', () => {
+    expect(
+      getCustomRowClassName({
+        dragIndex: 0,
+        dragOverIndex: null,
+        groupDisabled: false,
+        index: 1,
+        isExpanded: false,
+      }),
+    ).not.toContain('opacity-40');
   });
 
   it('adds expanded row styling', () => {
