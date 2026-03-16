@@ -3,11 +3,11 @@ import type { IGroup, WebviewToExtensionMessage } from '../../../shared/types';
 import {
   dispatchGraphViewPluginMessage,
   type GraphViewPluginMessageContext,
-} from './dispatchPlugin';
+} from './dispatch/plugin';
 import {
   dispatchGraphViewPrimaryMessage,
   type GraphViewPrimaryMessageContext,
-} from './dispatchPrimary';
+} from './dispatch/primary';
 
 export interface GraphViewMessageListenerContext
   extends GraphViewPrimaryMessageContext,
