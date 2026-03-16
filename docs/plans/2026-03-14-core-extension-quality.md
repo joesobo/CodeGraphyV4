@@ -687,17 +687,42 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
             - `favorites.ts`
             - `mergedGroups.ts`
             - `messages/commands.ts`
+      - current local survivor pass:
+        - refactor `providerFileNavigation.ts` to resolve default dependencies lazily instead of holding a module-level constant
+        - harden `pluginWebview.ts`, `messages/settings.ts`, `messages/commands.ts`, `favorites.ts`, and `mergedGroups.ts` with direct branch/default/fallback tests
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerFileNavigation.test.ts tests/extension/graphView/providerFileNavigationDefaultDependencies.test.ts tests/extension/graphView/favorites.test.ts tests/extension/graphView/mergedGroups.test.ts tests/extension/graphView/pluginWebview.test.ts tests/extension/graphView/messages/commands.test.ts tests/extension/graphView/messages/settings.test.ts`
+          - `55` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the current local survivor pass:
+          - graph-view-provider slice overall = `95.90%`
+          - `packages/extension/src/extension/graphView/providerFileNavigation.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/pluginWebview.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/favorites.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/mergedGroups.ts` = `95.00%`
+          - `packages/extension/src/extension/graphView/messages/commands.ts` = `96.30%`
+          - `packages/extension/src/extension/graphView/messages/settings.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/settingsDirection.ts` = `92.50%`
+          - result: `✅ All files remain within the mutation site threshold (50).`
+        - next immediate step:
+          - stay on the remaining sub-90 helpers from the fresh report instead of reopening the cleared lanes
+          - target the remaining sub-90 helpers in this order:
+            - `messages/settingsToggle.ts`
+            - `providerWebviewMethods.ts`
+            - `timelineIndexExecution.ts`
+            - `timelineIndexSetup.ts`
+            - `analysisRequest.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. `packages/extension/src/extension/graphView/providerFileNavigation.ts`
-2. `packages/extension/src/extension/graphView/messages/settings.ts`
-3. `packages/extension/src/extension/graphView/favorites.ts`
-4. `packages/extension/src/extension/graphView/mergedGroups.ts`
-5. `packages/extension/src/extension/graphView/messages/commands.ts`
+1. `packages/extension/src/extension/graphView/messages/settingsToggle.ts`
+2. `packages/extension/src/extension/graphView/providerWebviewMethods.ts`
+3. `packages/extension/src/extension/graphView/timelineIndexExecution.ts`
+4. `packages/extension/src/extension/graphView/timelineIndexSetup.ts`
+5. `packages/extension/src/extension/graphView/analysisRequest.ts`
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.

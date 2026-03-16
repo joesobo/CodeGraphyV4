@@ -35,4 +35,24 @@ describe('graphView/favorites', () => {
       payload: { favorites: ['src/app.ts'] },
     });
   });
+
+  it('sends an empty favorites payload when no favorites are configured', () => {
+    const sendMessage = vi.fn();
+    const get = vi.fn((_key, defaultValue) => defaultValue);
+
+    sendGraphViewFavorites(
+      {
+        get,
+      },
+      sendMessage,
+    );
+
+    expect(get).toHaveBeenCalledWith('favorites', []);
+    expect(get.mock.calls[0]?.[1]).toEqual([]);
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'FAVORITES_UPDATED',
+      payload: { favorites: [] },
+    });
+    expect(sendMessage.mock.calls[0]?.[0].payload.favorites).toEqual([]);
+  });
 });

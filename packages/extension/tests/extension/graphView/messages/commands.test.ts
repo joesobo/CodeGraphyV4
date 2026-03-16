@@ -38,63 +38,69 @@ describe('graph view command message', () => {
     const handlers = createHandlers();
     handlers.redo.mockResolvedValue('Delete file');
 
-    await applyCommandMessage({ type: 'REDO' }, handlers);
+    const handled = await applyCommandMessage({ type: 'REDO' }, handlers);
 
     expect(handlers.redo).toHaveBeenCalledOnce();
     expect(handlers.showInformationMessage).toHaveBeenCalledWith('Redo: Delete file');
+    expect(handled).toBe(true);
   });
 
   it('shows an empty-redo message when there is nothing to redo', async () => {
     const handlers = createHandlers();
     handlers.redo.mockResolvedValue(undefined);
 
-    await applyCommandMessage({ type: 'REDO' }, handlers);
+    const handled = await applyCommandMessage({ type: 'REDO' }, handlers);
 
     expect(handlers.showInformationMessage).toHaveBeenCalledWith('Nothing to redo');
+    expect(handled).toBe(true);
   });
 
   it('changes the active view', async () => {
     const handlers = createHandlers();
 
-    await applyCommandMessage(
+    const handled = await applyCommandMessage(
       { type: 'CHANGE_VIEW', payload: { viewId: 'codegraphy.folder' } },
       handlers,
     );
 
     expect(handlers.changeView).toHaveBeenCalledWith('codegraphy.folder');
+    expect(handled).toBe(true);
   });
 
   it('changes the depth limit', async () => {
     const handlers = createHandlers();
 
-    await applyCommandMessage(
+    const handled = await applyCommandMessage(
       { type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: 2 } },
       handlers,
     );
 
     expect(handlers.setDepthLimit).toHaveBeenCalledWith(2);
+    expect(handled).toBe(true);
   });
 
   it('updates dag mode', async () => {
     const handlers = createHandlers();
 
-    await applyCommandMessage(
+    const handled = await applyCommandMessage(
       { type: 'UPDATE_DAG_MODE', payload: { dagMode: 'td' } },
       handlers,
     );
 
     expect(handlers.updateDagMode).toHaveBeenCalledWith('td');
+    expect(handled).toBe(true);
   });
 
   it('updates node size mode', async () => {
     const handlers = createHandlers();
 
-    await applyCommandMessage(
+    const handled = await applyCommandMessage(
       { type: 'UPDATE_NODE_SIZE_MODE', payload: { nodeSizeMode: 'uniform' } },
       handlers,
     );
 
     expect(handlers.updateNodeSizeMode).toHaveBeenCalledWith('uniform');
+    expect(handled).toBe(true);
   });
 
   it('returns false for unrelated messages', async () => {

@@ -56,14 +56,13 @@ vi.mock('../../../src/extension/graphView/fileNavigation', () => ({
   copyGraphViewTextToClipboard: mocks.copyGraphViewTextToClipboard,
 }));
 
-import {
-  copyGraphViewProviderTextToClipboard,
-  openGraphViewProviderFile,
-  revealGraphViewProviderFileInExplorer,
-} from '../../../src/extension/graphView/providerFileNavigation';
+async function loadProviderFileNavigationModule() {
+  return import('../../../src/extension/graphView/providerFileNavigation');
+}
 
 describe('graphView/providerFileNavigation default dependencies', () => {
   beforeEach(() => {
+    vi.resetModules();
     mocks.workspaceFolders = [{ uri: { fsPath: '/workspace' } }];
     mocks.showInformationMessage.mockReset();
     mocks.showErrorMessage.mockReset();
@@ -77,21 +76,33 @@ describe('graphView/providerFileNavigation default dependencies', () => {
     mocks.copyGraphViewTextToClipboard.mockReset();
   });
 
-  it('uses the default file-opening delegates with the current workspace folder', async () => {
+  it('passes the current workspace folder through the default file opener', async () => {
     const source = {
       _incrementVisitCount: vi.fn(async () => undefined),
     };
-    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
 
-    mocks.openGraphViewFile.mockImplementation(async (_filePath, handlers, behavior) => {
+    mocks.openGraphViewFile.mockImplementation(async (_filePath, handlers) => {
       expect(handlers.workspaceFolder).toEqual({ uri: { fsPath: '/workspace' } });
+    });
+
+    await openGraphViewProviderFile(
+      source as never,
+      'src/index.ts',
+      { preview: false, preserveFocus: false },
+    );
+
+    expect(mocks.openGraphViewFile).toHaveBeenCalledOnce();
+  });
+
+  it('routes default open-file info messages through vscode', async () => {
+    const source = {
+      _incrementVisitCount: vi.fn(async () => undefined),
+    };
+    const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
+
+    mocks.openGraphViewFile.mockImplementation(async (_filePath, handlers) => {
       handlers.showInformationMessage('opened');
-      handlers.showErrorMessage('missing');
-      await handlers.statFile({ fsPath: '/workspace/src/index.ts' });
-      const document = await handlers.openTextDocument({ fsPath: '/workspace/src/index.ts' });
-      await handlers.showTextDocument(document, behavior);
-      await handlers.incrementVisitCount('src/index.ts');
-      handlers.logError('open failed', 'raw failure');
     });
 
     await openGraphViewProviderFile(
@@ -101,20 +112,137 @@ describe('graphView/providerFileNavigation default dependencies', () => {
     );
 
     expect(mocks.showInformationMessage).toHaveBeenCalledWith('opened');
+  });
+
+  it('routes default open-file error messages through vscode', async () => {
+    const source = {
+      _incrementVisitCount: vi.fn(async () => undefined),
+    };
+    const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
+
+    mocks.openGraphViewFile.mockImplementation(async (_filePath, handlers) => {
+      handlers.showErrorMessage('missing');
+    });
+
+    await openGraphViewProviderFile(
+      source as never,
+      'src/index.ts',
+      { preview: false, preserveFocus: false },
+    );
+
     expect(mocks.showErrorMessage).toHaveBeenCalledWith('missing');
+  });
+
+  it('routes default file stat requests through vscode workspace fs', async () => {
+    const source = {
+      _incrementVisitCount: vi.fn(async () => undefined),
+    };
+    const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
+
+    mocks.openGraphViewFile.mockImplementation(async (_filePath, handlers) => {
+      await handlers.statFile({ fsPath: '/workspace/src/index.ts' });
+    });
+
+    await openGraphViewProviderFile(
+      source as never,
+      'src/index.ts',
+      { preview: false, preserveFocus: false },
+    );
+
     expect(mocks.stat).toHaveBeenCalledWith({ fsPath: '/workspace/src/index.ts' });
+  });
+
+  it('routes default document opening through vscode workspace', async () => {
+    const source = {
+      _incrementVisitCount: vi.fn(async () => undefined),
+    };
+    const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
+
+    mocks.openGraphViewFile.mockImplementation(async (_filePath, handlers) => {
+      await handlers.openTextDocument({ fsPath: '/workspace/src/index.ts' });
+    });
+
+    await openGraphViewProviderFile(
+      source as never,
+      'src/index.ts',
+      { preview: false, preserveFocus: false },
+    );
+
     expect(mocks.openTextDocument).toHaveBeenCalledWith({ fsPath: '/workspace/src/index.ts' });
+  });
+
+  it('routes default editor showing through vscode window', async () => {
+    const source = {
+      _incrementVisitCount: vi.fn(async () => undefined),
+    };
+    const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
+
+    mocks.openGraphViewFile.mockImplementation(async (_filePath, handlers, behavior) => {
+      await handlers.showTextDocument(
+        { uri: { fsPath: '/workspace/src/index.ts' } } as never,
+        behavior,
+      );
+    });
+
+    await openGraphViewProviderFile(
+      source as never,
+      'src/index.ts',
+      { preview: false, preserveFocus: false },
+    );
+
     expect(mocks.showTextDocument).toHaveBeenCalledWith(
       { uri: { fsPath: '/workspace/src/index.ts' } },
       { preview: false, preserveFocus: false },
     );
+  });
+
+  it('routes provider visit counting through the default file opener handlers', async () => {
+    const source = {
+      _incrementVisitCount: vi.fn(async () => undefined),
+    };
+    const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
+
+    mocks.openGraphViewFile.mockImplementation(async (_filePath, handlers) => {
+      await handlers.incrementVisitCount('src/index.ts');
+    });
+
+    await openGraphViewProviderFile(
+      source as never,
+      'src/index.ts',
+      { preview: false, preserveFocus: false },
+    );
+
     expect(source._incrementVisitCount).toHaveBeenCalledWith('src/index.ts');
+  });
+
+  it('routes default open-file logging through console.error', async () => {
+    const source = {
+      _incrementVisitCount: vi.fn(async () => undefined),
+    };
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
+
+    mocks.openGraphViewFile.mockImplementation(async (_filePath, handlers) => {
+      handlers.logError('open failed', 'raw failure');
+    });
+
+    await openGraphViewProviderFile(
+      source as never,
+      'src/index.ts',
+      { preview: false, preserveFocus: false },
+    );
+
     expect(consoleError).toHaveBeenCalledWith('open failed', 'raw failure');
 
     consoleError.mockRestore();
   });
 
   it('uses the default explorer and clipboard delegates with the current workspace folder', async () => {
+    const {
+      revealGraphViewProviderFileInExplorer,
+      copyGraphViewProviderTextToClipboard,
+    } = await loadProviderFileNavigationModule();
+
     mocks.revealGraphViewFileInExplorer.mockImplementation(async (_filePath, handlers) => {
       expect(handlers.workspaceFolder).toEqual({ uri: { fsPath: '/workspace' } });
       await handlers.executeCommand('revealFileInOS', '/workspace/src/index.ts');
@@ -132,6 +260,11 @@ describe('graphView/providerFileNavigation default dependencies', () => {
   });
 
   it('passes an undefined workspace folder through the default explorer and clipboard delegates', async () => {
+    const {
+      revealGraphViewProviderFileInExplorer,
+      copyGraphViewProviderTextToClipboard,
+    } = await loadProviderFileNavigationModule();
+
     mocks.workspaceFolders = undefined;
     mocks.revealGraphViewFileInExplorer.mockImplementation(async (_filePath, handlers) => {
       expect(handlers.workspaceFolder).toBeUndefined();

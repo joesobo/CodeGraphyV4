@@ -11,6 +11,14 @@ import {
 } from '../../../src/extension/graphView/pluginWebview';
 
 describe('graphView/pluginWebview', () => {
+  it('skips plugin status updates when no analyzer is available', () => {
+    const sendMessage = vi.fn();
+
+    sendGraphViewPluginStatuses(undefined, new Set(), new Set(), sendMessage);
+
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
   it('sends plugin status updates when an analyzer exists', () => {
     const sendMessage = vi.fn();
 
@@ -87,6 +95,14 @@ describe('graphView/pluginWebview', () => {
     });
   });
 
+  it('skips context menu updates when no analyzer is available', () => {
+    const sendMessage = vi.fn();
+
+    sendGraphViewContextMenuItems(undefined, sendMessage);
+
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
   it('sends plugin webview injections with resolved asset paths', () => {
     const sendMessage = vi.fn();
     const resolveAssetPath = vi.fn((assetPath: string, pluginId?: string) => `${pluginId}:${assetPath}`);
@@ -119,6 +135,16 @@ describe('graphView/pluginWebview', () => {
         styles: ['plugin.test:dist/plugin.css'],
       },
     });
+  });
+
+  it('skips plugin webview injections when no analyzer is available', () => {
+    const sendMessage = vi.fn();
+    const resolveAssetPath = vi.fn();
+
+    sendGraphViewPluginWebviewInjections(undefined, resolveAssetPath, sendMessage);
+
+    expect(resolveAssetPath).not.toHaveBeenCalled();
+    expect(sendMessage).not.toHaveBeenCalled();
   });
 
   it('refreshes local resource roots across the sidebar view and editor panels', () => {
@@ -160,6 +186,36 @@ describe('graphView/pluginWebview', () => {
         'plugin.test',
       ),
     ).toBe('webview:/test/external-extension/dist/plugin.js');
+  });
+
+  it('falls back to the first panel webview when no sidebar view exists', () => {
+    const panelWebview = {
+      asWebviewUri: vi.fn((uri: vscode.Uri) => `panel:${uri.fsPath}`),
+    };
+
+    expect(
+      resolveGraphViewPluginAssetPath(
+        'dist/plugin.js',
+        vscode.Uri.file('/test/extension'),
+        new Map([['plugin.test', vscode.Uri.file('/test/external-extension')]]),
+        undefined,
+        [{ webview: panelWebview } as unknown as vscode.WebviewPanel],
+        'plugin.test',
+      ),
+    ).toBe('panel:/test/external-extension/dist/plugin.js');
+  });
+
+  it('resolves plugin assets without a webview when neither a sidebar view nor panel exists', () => {
+    expect(
+      resolveGraphViewPluginAssetPath(
+        'dist/plugin.js',
+        vscode.Uri.file('/test/extension'),
+        new Map([['plugin.test', vscode.Uri.file('/test/external-extension')]]),
+        undefined,
+        [],
+        'plugin.test',
+      ),
+    ).toBe('/test/external-extension/dist/plugin.js');
   });
 
   it('returns the combined local resource roots for extension, plugin, and workspace folders', () => {

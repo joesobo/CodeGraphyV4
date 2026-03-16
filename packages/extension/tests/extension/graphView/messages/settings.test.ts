@@ -101,11 +101,13 @@ describe('graph view settings message', () => {
       directionColor: 'bad-color',
     });
 
-    await applySettingsMessage(
-      { type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: 'particles' } },
-      state,
-      handlers,
-    );
+    await expect(
+      applySettingsMessage(
+        { type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: 'particles' } },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('directionMode', 'particles');
     expect(handlers.sendMessage).toHaveBeenCalledWith({
@@ -156,11 +158,13 @@ describe('graph view settings message', () => {
     });
     const handlers = createHandlers();
 
-    await applySettingsMessage(
-      { type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: '#123abc' } },
-      state,
-      handlers,
-    );
+    await expect(
+      applySettingsMessage(
+        { type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: '#123abc' } },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
 
     expect(state.viewContext.folderNodeColor).toBe('#123ABC');
     expect(handlers.updateConfig).toHaveBeenCalledWith('folderNodeColor', '#123ABC');
@@ -179,11 +183,13 @@ describe('graph view settings message', () => {
     const state = createState();
     const handlers = createHandlers();
 
-    await applySettingsMessage(
-      { type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: '#123abc' } },
-      state,
-      handlers,
-    );
+    await expect(
+      applySettingsMessage(
+        { type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: '#123abc' } },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
 
     expect(handlers.applyViewTransform).not.toHaveBeenCalled();
     expect(handlers.sendMessage).toHaveBeenCalledTimes(1);

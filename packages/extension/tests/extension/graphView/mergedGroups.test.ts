@@ -28,4 +28,40 @@ describe('graphView/mergedGroups', () => {
       { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' },
     ]);
   });
+
+  it('does not infer a disabled section key from groups without a colon', () => {
+    const groups = buildGraphViewMergedGroups(
+      [],
+      new Set(['plai']),
+      [{ id: 'plain', pattern: 'plain', color: '#123456' }],
+      [],
+    );
+
+    expect(groups).toEqual([{ id: 'plain', pattern: 'plain', color: '#123456' }]);
+  });
+
+  it('does not infer a disabled empty section key from leading-colon ids', () => {
+    const groups = buildGraphViewMergedGroups(
+      [],
+      new Set(['']),
+      [],
+      [{ id: ':leading', pattern: ':leading', color: '#654321' }],
+    );
+
+    expect(groups).toEqual([{ id: ':leading', pattern: ':leading', color: '#654321' }]);
+  });
+
+  it('leaves built-in and plugin defaults enabled when no hidden ids match', () => {
+    const groups = buildGraphViewMergedGroups(
+      [],
+      new Set(['plugin:codegraphy.typescript:*.tsx']),
+      [{ id: 'default:*.json', pattern: '*.json', color: '#F9C74F' }],
+      [{ id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' }],
+    );
+
+    expect(groups).toEqual([
+      { id: 'default:*.json', pattern: '*.json', color: '#F9C74F' },
+      { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' },
+    ]);
+  });
 });
