@@ -9,4 +9,4 @@ export {
   type IColorInfo,
   type IColorGenerationOptions,
   type ColorSource,
-} from './ColorPaletteManager';
+} from './colorPaletteManager';

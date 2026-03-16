@@ -1,6 +1,6 @@
 import type { IDiscoveredFile } from '../../core/discovery';
 import type { IConnection } from '../../core/plugins';
-import type { EventBus } from '../../core/plugins/EventBus';
+import type { EventBus } from '../../core/plugins/eventBus';
 import { analyzeWorkspaceFiles } from './fileAnalysis';
 import type { IWorkspaceFileProcessedPayload } from './fileAnalysis';
 import type { IWorkspaceAnalysisCache } from './cache';

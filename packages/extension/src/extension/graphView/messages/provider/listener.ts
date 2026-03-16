@@ -9,7 +9,7 @@ import type {
 } from '../../../../shared/types';
 import type { IViewContext } from '../../../../core/views';
 import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/types';
-import { getUndoManager } from '../../../UndoManager';
+import { getUndoManager } from '../../../undoManager';
 import { ResetSettingsAction } from '../../../actions';
 import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/config';
 import { captureGraphViewSettingsSnapshot } from '../../settings';

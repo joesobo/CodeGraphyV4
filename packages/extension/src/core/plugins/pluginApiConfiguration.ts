@@ -1,7 +1,7 @@
-import type { DecorationManager } from './DecorationManager';
-import type { EventBus } from './EventBus';
-import type { ViewRegistry } from '../views/ViewRegistry';
-import type { CommandRegistrar, GraphDataProvider, WebviewMessageSender } from './CodeGraphyAPI';
+import type { DecorationManager } from './decorationManager';
+import type { EventBus } from './eventBus';
+import type { ViewRegistry } from '../views/viewRegistry';
+import type { CommandRegistrar, GraphDataProvider, WebviewMessageSender } from './codeGraphyApi';
 
 export interface IPluginApiConfiguration {
   eventBus?: EventBus;

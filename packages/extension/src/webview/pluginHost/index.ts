@@ -1,2 +1,2 @@
 export * from './types';
-export * from './WebviewPluginHost';
+export * from './webviewPluginHost';

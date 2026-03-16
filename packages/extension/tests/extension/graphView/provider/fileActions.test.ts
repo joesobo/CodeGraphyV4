@@ -9,7 +9,7 @@ describe('graphView/provider/fileActions', () => {
     vi.doUnmock('../../../../src/extension/graphView/files/rename');
     vi.doUnmock('../../../../src/extension/graphView/favorites');
     vi.doUnmock('../../../../src/extension/actions');
-    vi.doUnmock('../../../../src/extension/UndoManager');
+    vi.doUnmock('../../../../src/extension/undoManager');
     vi.resetModules();
   });
 
@@ -355,7 +355,7 @@ async function createDefaultDependencyHarness() {
     CreateFileAction,
     ToggleFavoriteAction,
   }));
-  vi.doMock('../../../../src/extension/UndoManager', () => ({
+  vi.doMock('../../../../src/extension/undoManager', () => ({
     getUndoManager: () => ({ execute }),
   }));
 

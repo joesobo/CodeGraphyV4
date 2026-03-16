@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { Configuration, DEFAULT_EXCLUDE_PATTERNS, ICodeGraphyConfig } from '../../src/extension/Configuration';
+import { Configuration, DEFAULT_EXCLUDE_PATTERNS, ICodeGraphyConfig } from '../../src/extension/configuration';
 
 // Mock vscode module
 vi.mock('vscode', () => ({

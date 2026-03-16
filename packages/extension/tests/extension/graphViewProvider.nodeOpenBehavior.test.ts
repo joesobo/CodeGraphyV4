@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as vscode from 'vscode';
-import { GraphViewProvider } from '../../src/extension/GraphViewProvider';
+import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 type MessageHandler = (message: unknown) => Promise<void>;
 

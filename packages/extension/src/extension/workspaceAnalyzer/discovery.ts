@@ -1,4 +1,4 @@
-import { DEFAULT_EXCLUDE_PATTERNS } from '../Configuration';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../configuration';
 
 export interface WorkspaceAnalyzerDiscoveryConfig {
   include: string[];

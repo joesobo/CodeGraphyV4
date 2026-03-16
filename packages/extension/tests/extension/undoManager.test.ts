@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { UndoManager, IUndoableAction } from '../../src/extension/UndoManager';
+import { UndoManager, IUndoableAction } from '../../src/extension/undoManager';
 
 /**
  * Simple test action that tracks execution state.
