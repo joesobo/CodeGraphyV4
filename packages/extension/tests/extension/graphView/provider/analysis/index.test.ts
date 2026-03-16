@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/types';
-import { createGraphViewProviderAnalysisDelegates } from '../../../../../src/extension/graphView/provider/analysisDelegates';
-import { createGraphViewProviderAnalysisMethods } from '../../../../../src/extension/graphView/provider/analysis';
+import { createGraphViewProviderAnalysisDelegates } from '../../../../../src/extension/graphView/provider/analysis/delegates';
+import { createGraphViewProviderAnalysisMethods } from '../../../../../src/extension/graphView/provider/analysis/index';
 
-vi.mock('../../../../../src/extension/graphView/provider/analysisDelegates', async importOriginal => {
+vi.mock('../../../../../src/extension/graphView/provider/analysis/delegates', async importOriginal => {
   const actual = await importOriginal<
-    typeof import('../../../../../src/extension/graphView/provider/analysisDelegates')
+    typeof import('../../../../../src/extension/graphView/provider/analysis/delegates')
   >();
 
   return {
@@ -47,7 +47,7 @@ function createSource(
   };
 }
 
-describe('graphView/provider/analysis', () => {
+describe('graphView/provider/analysis/index', () => {
   it('assigns the created methods back onto the provider source', () => {
     const source = createSource();
     const methods = createGraphViewProviderAnalysisMethods(source as never, {

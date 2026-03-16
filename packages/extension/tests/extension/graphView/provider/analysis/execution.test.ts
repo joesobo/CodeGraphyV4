@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderDoAnalyzeAndSendData,
-} from '../../../../../src/extension/graphView/provider/analysisExecution';
+} from '../../../../../src/extension/graphView/provider/analysis/execution';
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
-} from '../../../../../src/extension/graphView/provider/analysis';
+} from '../../../../../src/extension/graphView/provider/analysis/index';
 
 function createSource(
   overrides: Partial<GraphViewProviderAnalysisMethodsSource> = {},
@@ -51,7 +51,7 @@ function createDependencies(
   };
 }
 
-describe('graphView/provider/analysisExecution', () => {
+describe('graphView/provider/analysis/execution', () => {
   it('executes analysis with delegate-backed handlers and syncs execution state', async () => {
     const source = createSource();
     const dependencies = createDependencies({

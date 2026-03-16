@@ -3,11 +3,11 @@ import type { IGraphData } from '../../../../../src/shared/types';
 import {
   createGraphViewProviderAnalysisHandlers,
   createGraphViewProviderAnalysisRequestHandlers,
-} from '../../../../../src/extension/graphView/provider/analysisHandlers';
+} from '../../../../../src/extension/graphView/provider/analysis/handlers';
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
-} from '../../../../../src/extension/graphView/provider/analysis';
+} from '../../../../../src/extension/graphView/provider/analysis/index';
 
 function createSource(
   overrides: Partial<GraphViewProviderAnalysisMethodsSource> = {},
@@ -53,7 +53,7 @@ function createDependencies(
   };
 }
 
-describe('graphView/provider/analysisHandlers', () => {
+describe('graphView/provider/analysis/handlers', () => {
   it('builds execution handlers that update provider state and delegate callbacks', () => {
     const source = createSource();
     const dependencies = createDependencies();
