@@ -1,5 +1,4 @@
 import {
-	useCallback,
 	useEffect,
 	type MutableRefObject,
 } from 'react';
@@ -55,25 +54,25 @@ export function useTooltipHandlers({
 	tooltipRafRef,
 	tooltipTimeoutRef,
 }: UseTooltipHandlersOptions): UseTooltipHandlersResult {
-	const getNodeScreenRect = useCallback((node: FGNode) => getTooltipNodeRect({
+	const getNodeScreenRect = (node: FGNode) => getTooltipNodeRect({
 		containerRef,
 		fg2dRef,
-	}, node), [containerRef, fg2dRef]);
+	}, node);
 
-	const stopTooltipTracking = useCallback(() => {
+	const stopTooltipTracking = () => {
 		endTooltipTracking(tooltipRafRef);
-	}, [tooltipRafRef]);
+	};
 
-	const startTooltipTracking = useCallback(() => {
+	const startTooltipTracking = () => {
 		beginTooltipTracking({
 			getNodeRect: getNodeScreenRect,
 			hoveredNodeRef,
 			setTooltipData,
 			tooltipRafRef,
 		});
-	}, [getNodeScreenRect, hoveredNodeRef, setTooltipData, tooltipRafRef]);
+	};
 
-	const handleNodeHover = useCallback((node: FGNode | null) => {
+	const handleNodeHover = (node: FGNode | null) => {
 		handleTooltipNodeHover(node, {
 			dataRef,
 			fileInfoCacheRef,
@@ -87,23 +86,11 @@ export function useTooltipHandlers({
 			stopTracking: stopTooltipTracking,
 			tooltipTimeoutRef,
 		});
-	}, [
-		dataRef,
-		fileInfoCacheRef,
-		getNodeScreenRect,
-		hoveredNodeRef,
-		interactionHandlers,
-		pluginHost,
-		postMessage,
-		setTooltipData,
-		startTooltipTracking,
-		stopTooltipTracking,
-		tooltipTimeoutRef,
-	]);
+	};
 
-	const handleMouseLeave = useCallback(() => {
+	const handleMouseLeave = () => {
 		interactionHandlers.setGraphCursor('default');
-	}, [interactionHandlers]);
+	};
 
 	useEffect(
 		() => () => {
@@ -111,9 +98,9 @@ export function useTooltipHandlers({
 				clearTimeout(tooltipTimeoutRef.current);
 				tooltipTimeoutRef.current = null;
 			}
-			stopTooltipTracking();
+			endTooltipTracking(tooltipRafRef);
 		},
-		[stopTooltipTracking, tooltipTimeoutRef],
+		[tooltipRafRef, tooltipTimeoutRef],
 	);
 
 	return {
