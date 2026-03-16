@@ -9,8 +9,8 @@ import {
   dispatchGraphViewPluginSectionToggleMessage,
 } from './pluginHiddenGroups';
 import { dispatchGraphViewPluginReadyMessage } from './pluginReady';
-import { applyPluginContextMenuAction } from '../pluginContextMenu';
-import { applyPluginInteraction } from '../pluginInteraction';
+import { applyPluginContextMenuAction } from '../plugin/contextMenu';
+import { applyPluginInteraction } from '../plugin/interaction';
 
 export interface GraphViewPluginMessageContext {
   getFilterPatterns(): string[];

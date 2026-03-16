@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applyPluginSectionToggle } from '../../../../src/extension/graphView/messages/pluginSectionToggle';
+import { applyPluginSectionToggle } from '../../../../../src/extension/graphView/messages/plugin/sectionToggle';
 
 function createHandlers(hiddenPluginGroupIds = new Set<string>()) {
 	return {

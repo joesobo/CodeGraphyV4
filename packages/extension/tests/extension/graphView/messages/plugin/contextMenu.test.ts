@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applyPluginContextMenuAction } from '../../../../src/extension/graphView/messages/pluginContextMenu';
+import { applyPluginContextMenuAction } from '../../../../../src/extension/graphView/messages/plugin/contextMenu';
 
 describe('graph view plugin context menu message', () => {
 	it('runs plugin context menu actions for node targets', async () => {

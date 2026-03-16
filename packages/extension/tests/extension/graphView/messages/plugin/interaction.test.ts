@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applyPluginInteraction } from '../../../../src/extension/graphView/messages/pluginInteraction';
+import { applyPluginInteraction } from '../../../../../src/extension/graphView/messages/plugin/interaction';
 
 describe('graph view plugin interaction message', () => {
 	it('routes plugin graph interactions to the plugin api', () => {

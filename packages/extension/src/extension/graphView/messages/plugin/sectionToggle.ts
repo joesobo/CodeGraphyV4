@@ -1,4 +1,4 @@
-import type { GraphViewHiddenPluginGroupsHandlers } from './pluginGroupToggle';
+import type { GraphViewHiddenPluginGroupsHandlers } from './groupToggle';
 
 export interface GraphViewPluginSectionTogglePayload {
 	pluginId: string;

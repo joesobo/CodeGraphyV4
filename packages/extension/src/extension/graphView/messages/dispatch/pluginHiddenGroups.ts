@@ -1,6 +1,6 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/types';
-import { applyPluginGroupToggle } from '../pluginGroupToggle';
-import { applyPluginSectionToggle } from '../pluginSectionToggle';
+import { applyPluginGroupToggle } from '../plugin/groupToggle';
+import { applyPluginSectionToggle } from '../plugin/sectionToggle';
 
 type GraphViewPluginGroupToggleMessage = Extract<
   WebviewToExtensionMessage,
