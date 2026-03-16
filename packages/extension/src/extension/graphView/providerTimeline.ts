@@ -65,10 +65,9 @@ export interface GraphViewProviderTimelineDependencies {
 
 export async function indexGraphViewProviderRepository(
   source: GraphViewProviderTimelineSource,
-  dependencies?: GraphViewProviderTimelineDependencies,
+  dependencies: GraphViewProviderTimelineDependencies =
+    createDefaultGraphViewProviderTimelineDependencies(),
 ): Promise<void> {
-  const resolvedDependencies =
-    dependencies ?? createDefaultGraphViewProviderTimelineDependencies();
   const state = {
     analyzer: source._analyzer,
     analyzerInitialized: source._analyzerInitialized,
@@ -79,23 +78,23 @@ export async function indexGraphViewProviderRepository(
     currentCommitSha: source._currentCommitSha,
   };
 
-  await resolvedDependencies.indexRepository(state, {
-    workspaceFolder: resolvedDependencies.getWorkspaceFolder(),
-    verifyGitRepository: cwd => resolvedDependencies.verifyGitRepository(cwd),
+  await dependencies.indexRepository(state, {
+    workspaceFolder: dependencies.getWorkspaceFolder(),
+    verifyGitRepository: cwd => dependencies.verifyGitRepository(cwd),
     createGitAnalyzer: (workspaceRoot, mergedExclude) =>
-      resolvedDependencies.createGitAnalyzer(
+      dependencies.createGitAnalyzer(
         source._context,
         source._analyzer!.registry,
         workspaceRoot,
         mergedExclude,
       ),
-    getMaxCommits: () => resolvedDependencies.getMaxCommits(),
+    getMaxCommits: () => dependencies.getMaxCommits(),
     sendMessage: message => source._sendMessage(message),
     showErrorMessage: message => {
-      resolvedDependencies.showErrorMessage(message);
+      dependencies.showErrorMessage(message);
     },
     showInformationMessage: message => {
-      resolvedDependencies.showInformationMessage(message);
+      dependencies.showInformationMessage(message);
     },
     toErrorMessage,
     jumpToCommit: sha => {
@@ -104,10 +103,10 @@ export async function indexGraphViewProviderRepository(
       source._indexingController = state.indexingController;
       source._timelineActive = state.timelineActive ?? source._timelineActive;
       source._currentCommitSha = state.currentCommitSha;
-      return jumpGraphViewProviderToCommit(source, sha, resolvedDependencies);
+      return jumpGraphViewProviderToCommit(source, sha, dependencies);
     },
     logError: (message, error) => {
-      resolvedDependencies.logError(message, error);
+      dependencies.logError(message, error);
     },
   });
 
@@ -130,22 +129,20 @@ export async function jumpGraphViewProviderToCommit(
     | '_sendMessage'
   >,
   sha: string,
-  dependencies?: Pick<
+  dependencies: Pick<
     GraphViewProviderTimelineDependencies,
     'buildTimelineGraphData' | 'getShowOrphans' | 'getWorkspaceFolder'
-  >,
+  > = createDefaultGraphViewProviderTimelineDependencies(),
 ): Promise<void> {
-  const resolvedDependencies =
-    dependencies ?? createDefaultGraphViewProviderTimelineDependencies();
   if (!source._gitAnalyzer) return;
 
   const rawGraphData = await source._gitAnalyzer.getGraphDataForCommit(sha);
   source._currentCommitSha = sha;
-  const graphData = resolvedDependencies.buildTimelineGraphData(rawGraphData, {
+  const graphData = dependencies.buildTimelineGraphData(rawGraphData, {
     disabledPlugins: source._disabledPlugins,
     disabledRules: source._disabledRules,
-    showOrphans: resolvedDependencies.getShowOrphans(),
-    workspaceRoot: resolvedDependencies.getWorkspaceFolder()?.uri.fsPath,
+    showOrphans: dependencies.getShowOrphans(),
+    workspaceRoot: dependencies.getWorkspaceFolder()?.uri.fsPath,
     registry: source._analyzer?.registry,
   });
   source._graphData = graphData;
@@ -161,16 +158,15 @@ export function sendGraphViewProviderCachedTimeline(
     GraphViewProviderTimelineSource,
     '_gitAnalyzer' | '_timelineActive' | '_currentCommitSha' | '_sendMessage'
   >,
-  dependencies?: Pick<GraphViewProviderTimelineDependencies, 'sendCachedTimeline'>,
+  dependencies: Pick<GraphViewProviderTimelineDependencies, 'sendCachedTimeline'> =
+    createDefaultGraphViewProviderTimelineDependencies(),
 ): void {
-  const resolvedDependencies =
-    dependencies ?? createDefaultGraphViewProviderTimelineDependencies();
   const state = {
     timelineActive: source._timelineActive,
     currentCommitSha: source._currentCommitSha,
   };
 
-  resolvedDependencies.sendCachedTimeline(source._gitAnalyzer, state, message =>
+  dependencies.sendCachedTimeline(source._gitAnalyzer, state, message =>
     source._sendMessage(message),
   );
   source._timelineActive = state.timelineActive;

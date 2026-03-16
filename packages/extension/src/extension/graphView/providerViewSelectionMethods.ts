@@ -56,10 +56,9 @@ function createDefaultGraphViewProviderViewSelectionMethodDependencies(): GraphV
 
 export function createGraphViewProviderViewSelectionMethods(
   source: GraphViewProviderViewSelectionMethodsSource,
-  dependencies?: GraphViewProviderViewSelectionMethodDependencies,
+  dependencies: GraphViewProviderViewSelectionMethodDependencies =
+    createDefaultGraphViewProviderViewSelectionMethodDependencies(),
 ): GraphViewProviderViewSelectionMethods {
-  const resolvedDependencies =
-    dependencies ?? createDefaultGraphViewProviderViewSelectionMethodDependencies();
   const callApplyViewTransform = (): void => {
     source._applyViewTransform?.();
   };
@@ -69,21 +68,21 @@ export function createGraphViewProviderViewSelectionMethods(
   };
 
   const changeView = async (viewId: string): Promise<void> => {
-    await resolvedDependencies.changeView(source as never, viewId, {
+    await dependencies.changeView(source as never, viewId, {
       isViewAvailable: (nextViewId, viewContext) =>
         source._viewRegistry.isViewAvailable(nextViewId, viewContext),
       persistActiveViewId: async nextViewId => {
-        await source._context.workspaceState.update(resolvedDependencies.selectedViewKey, nextViewId);
+        await source._context.workspaceState.update(dependencies.selectedViewKey, nextViewId);
       },
       applyViewTransform: () => callApplyViewTransform(),
       sendAvailableViews: () => callSendAvailableViews(),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
-      logUnavailableView: nextViewId => resolvedDependencies.logUnavailableView(nextViewId),
+      logUnavailableView: nextViewId => dependencies.logUnavailableView(nextViewId),
     });
   };
 
   const setFocusedFile = (filePath: string | undefined): void => {
-    resolvedDependencies.setFocusedFile(source as never, filePath, {
+    dependencies.setFocusedFile(source as never, filePath, {
       getActiveViewInfo: nextViewId => source._viewRegistry.get(nextViewId) as never,
       applyViewTransform: () => callApplyViewTransform(),
       sendAvailableViews: () => callSendAvailableViews(),
@@ -92,9 +91,9 @@ export function createGraphViewProviderViewSelectionMethods(
   };
 
   const setDepthLimit = async (depthLimit: number): Promise<void> => {
-    await resolvedDependencies.setDepthLimit(source as never, depthLimit, {
+    await dependencies.setDepthLimit(source as never, depthLimit, {
       persistDepthLimit: async nextDepthLimit => {
-        await source._context.workspaceState.update(resolvedDependencies.depthLimitKey, nextDepthLimit);
+        await source._context.workspaceState.update(dependencies.depthLimitKey, nextDepthLimit);
       },
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
       getActiveViewInfo: nextViewId => source._viewRegistry.get(nextViewId) as never,
@@ -103,7 +102,7 @@ export function createGraphViewProviderViewSelectionMethods(
   };
 
   const getDepthLimit = (): number =>
-    resolvedDependencies.getDepthLimit(source._viewContext, resolvedDependencies.defaultDepthLimit);
+    dependencies.getDepthLimit(source._viewContext, dependencies.defaultDepthLimit);
 
   return {
     changeView,
