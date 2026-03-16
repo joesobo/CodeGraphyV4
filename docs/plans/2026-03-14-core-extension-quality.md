@@ -1521,6 +1521,44 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - stay on `git-history`
       - add direct tests and tighten behavior around `diffGraphChanges.ts`, `reanalyzeGraphFile.ts`, `graphConnections.ts`, and `diffGraphState.ts`
       - then raise `fullCommitAnalysis.ts`, `gitExec.ts`, `commitList.ts`, `gitFiles.ts`, `cacheState.ts`, and `indexHistory.ts` above `90%`
+- 2026-03-16 git-history survivor recovery:
+  - expanded direct tests under `tests/extension/gitHistory/`:
+    - `diffGraphAnalysis.test.ts`
+    - `diffGraphChanges.test.ts`
+    - `diffGraphState.test.ts`
+    - `fullCommitAnalysis.test.ts`
+    - `graphConnections.test.ts`
+    - `reanalyzeGraphFile.test.ts`
+  - hardened existing tests:
+    - `cacheState.test.ts`
+    - `commitList.test.ts`
+    - `gitExec.test.ts`
+    - `gitFiles.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GitHistoryAnalyzer.test.ts $(fd -t f '.test.ts$' packages/extension/tests/extension/gitHistory | sed 's#^packages/extension/##' | sort)`
+    - `75` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension git-history`
+    - slice overall = `90.41%`
+    - `✅ every file in the refreshed git-history slice is within the 50-site threshold`
+    - files now above the goal:
+      - `cacheState.ts` = `100.00%`
+      - `diffGraphAnalysis.ts` = `92.11%`
+      - `diffGraphState.ts` = `91.49%`
+      - `fullCommitAnalysis.ts` = `93.33%`
+      - `gitFiles.ts` = `96.15%`
+      - `graphConnections.ts` = `94.74%`
+      - `reanalyzeGraphFile.ts` = `100.00%`
+    - remaining sub-90 files:
+      - `diffGraphChanges.ts` = `70.00%`
+      - `gitExec.ts` = `78.13%`
+      - `commitList.ts` = `84.38%`
+      - `indexHistory.ts` = `88.00%`
+    - next cut:
+      - stay on `git-history`
+      - kill the remaining survivor groups in `diffGraphChanges.ts`, `gitExec.ts`, `commitList.ts`, and `indexHistory.ts`
+      - rerun `pnpm run mutate -- extension git-history` before moving back to package-level refresh work
 
 ## Current hotspot order
 1. raise every mutated file in `git-history` above `90%`
