@@ -1,5 +1,5 @@
-import type { GraphKeyboardCommand } from '../graphKeyboardEffects';
-import { createStoreMessageCommand } from './keyboardCommandBuilders';
+import type { GraphKeyboardCommand } from './effects';
+import { createStoreMessageCommand } from './commandBuilders';
 
 export function getToolbarShortcutCommand(
   key: string,

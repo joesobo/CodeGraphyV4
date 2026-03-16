@@ -1,5 +1,5 @@
-import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../shared/types';
-import { getGraphKeyboardCommandImpl } from './graph/keyboardCommandLookup';
+import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../../../shared/types';
+import { getGraphKeyboardCommandImpl } from './commandLookup';
 
 export type GraphKeyboardEffect =
   | { kind: 'fitView' }

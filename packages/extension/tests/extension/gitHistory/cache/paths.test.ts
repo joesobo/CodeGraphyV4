@@ -9,9 +9,9 @@ vi.mock('vscode', () => ({
   },
 }));
 
-import { getCacheDir, getCachePath } from '../../../src/extension/gitHistory/cachePaths';
+import { getCacheDir, getCachePath } from '../../../src/extension/gitHistory/cache/paths';
 
-describe('gitHistory/cachePaths', () => {
+describe('gitHistory/cache/paths', () => {
   it('returns null paths when storage is unavailable', () => {
     expect(getCacheDir(undefined)).toBeNull();
     expect(getCachePath(undefined, 'abc123')).toBeNull();

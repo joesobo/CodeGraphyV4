@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { getGraphKeyboardCommand } from '../../src/webview/components/graphKeyboardEffects';
+import { getGraphKeyboardCommand } from '../../../../src/webview/components/graph/keyboard/effects';
 
-describe('graphKeyboardEffects', () => {
+describe('graph/keyboard/effects', () => {
   it('ignores shortcuts when focus is inside an editable input', () => {
     expect(getGraphKeyboardCommand({
       key: '0',

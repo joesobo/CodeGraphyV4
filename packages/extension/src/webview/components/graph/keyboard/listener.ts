@@ -1,6 +1,6 @@
-import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../../shared/types';
-import { getGraphKeyboardCommand } from '../graphKeyboardEffects';
-import type { GraphKeyboardEffectHandlers } from './effects/keyboard';
+import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../../../shared/types';
+import { getGraphKeyboardCommand } from './effects';
+import type { GraphKeyboardEffectHandlers } from '../effects/keyboard';
 
 export interface GraphKeyboardListenerOptions {
   dispatchStoreMessage: (message: ExtensionToWebviewMessage) => void;
@@ -10,7 +10,7 @@ export interface GraphKeyboardListenerOptions {
   openNode: (nodeId: string) => void;
   postMessage: (message: WebviewToExtensionMessage) => void;
   runEffects: (
-    effects: Parameters<typeof import('./effects/keyboard').applyKeyboardEffects>[0],
+    effects: Parameters<typeof import('../effects/keyboard').applyKeyboardEffects>[0],
     handlers: GraphKeyboardEffectHandlers,
   ) => void;
   selectedNodeIds: string[];

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getToolbarShortcutCommand } from '../../../src/webview/components/graph/keyboardToolbarShortcutResolver';
+import { getToolbarShortcutCommand } from '../../../../src/webview/components/graph/keyboard/toolbarShortcutResolver';
 
 describe('graph/keyboardToolbarShortcutResolver', () => {
   it('returns null for unsupported toolbar keys', () => {

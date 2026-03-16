@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getHistoryShortcutCommand,
   getZoomShortcutCommand,
-} from '../../../src/webview/components/graph/keyboardShortcutResolvers';
+} from '../../../../src/webview/components/graph/keyboard/shortcutResolvers';
 
 describe('graph/keyboardShortcutResolvers', () => {
   it('returns null for unsupported zoom keys', () => {

@@ -1,8 +1,8 @@
-import type { GraphKeyboardCommand, GraphKeyboardOptions } from '../graphKeyboardEffects';
+import type { GraphKeyboardCommand, GraphKeyboardOptions } from './effects';
 import {
   createHistoryCommand,
   createZoomCommand,
-} from './keyboardCommandBuilders';
+} from './commandBuilders';
 
 const ZOOM_IN_FACTOR = 1.2;
 const ZOOM_OUT_FACTOR = 1 / ZOOM_IN_FACTOR;

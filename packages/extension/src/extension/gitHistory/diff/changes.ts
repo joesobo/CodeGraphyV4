@@ -1,7 +1,7 @@
-import type { IConnection } from '../../core/plugins';
-import type { IGraphEdge, IGraphNode } from '../../shared/types';
-import { createGitHistoryNode } from './fullCommitAnalysis';
-import { reanalyzeGraphFile, removeOutgoingGitHistoryEdges } from './reanalyzeGraphFile';
+import type { IConnection } from '../../../core/plugins';
+import type { IGraphEdge, IGraphNode } from '../../../shared/types';
+import { createGitHistoryNode } from '../fullCommitAnalysis';
+import { reanalyzeGraphFile, removeOutgoingGitHistoryEdges } from '../reanalyzeGraphFile';
 
 interface DiffGraphChangeRegistry {
   analyzeFile(

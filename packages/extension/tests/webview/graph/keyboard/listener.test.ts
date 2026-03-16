@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createGraphKeyboardListener } from '../../../src/webview/components/graph/keyboardListener';
-import { applyKeyboardEffects } from '../../../src/webview/components/graph/effects/keyboard';
-import * as graphKeyboardEffectsModule from '../../../src/webview/components/graphKeyboardEffects';
-import type { GraphKeyboardEffect } from '../../../src/webview/components/graphKeyboardEffects';
-import type { GraphKeyboardEffectHandlers } from '../../../src/webview/components/graph/effects/keyboard';
+import { createGraphKeyboardListener } from '../../../../src/webview/components/graph/keyboard/listener';
+import { applyKeyboardEffects } from '../../../../src/webview/components/graph/effects/keyboard';
+import * as graphKeyboardEffectsModule from '../../../../src/webview/components/graph/keyboard/effects';
+import type { GraphKeyboardEffect } from '../../../../src/webview/components/graph/keyboard/effects';
+import type { GraphKeyboardEffectHandlers } from '../../../../src/webview/components/graph/effects/keyboard';
 
 function createKeyboardEvent(
   key: string,

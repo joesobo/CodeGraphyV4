@@ -4,7 +4,7 @@ import {
   getCachedCommitList,
   hasCachedTimeline,
   persistCachedCommitState,
-} from '../../../src/extension/gitHistory/cacheState';
+} from '../../../src/extension/gitHistory/cache/state';
 
 function createWorkspaceState() {
   const store = new Map<string, unknown>();
@@ -24,7 +24,7 @@ function createWorkspaceState() {
   };
 }
 
-describe('gitHistory/cacheState', () => {
+describe('gitHistory/cache/state', () => {
   it('persists and clears cached commit state', async () => {
     const workspaceState = createWorkspaceState();
     const commits = [{ sha: 'abc', timestamp: 1, message: 'init', author: 'Dev', parents: [] }];

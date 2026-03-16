@@ -1,5 +1,5 @@
 import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../../../shared/types';
-import type { GraphKeyboardEffect } from '../../graphKeyboardEffects';
+import type { GraphKeyboardEffect } from '../keyboard/effects';
 
 export interface GraphKeyboardEffectHandlers {
   fitView(): void;

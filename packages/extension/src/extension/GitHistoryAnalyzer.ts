@@ -14,10 +14,10 @@ import {
   getCachedCommitList as getStoredCommitList,
   hasCachedTimeline as hasStoredTimeline,
   persistCachedCommitState,
-} from './gitHistory/cacheState';
-import { readCachedGraphData, removeGitCacheDir, writeCachedGraphData } from './gitHistory/cacheStorage';
+} from './gitHistory/cache/state';
+import { readCachedGraphData, removeGitCacheDir, writeCachedGraphData } from './gitHistory/cache/storage';
 import { getCommitList as getTimelineCommitList } from './gitHistory/commitList';
-import { analyzeDiffCommitGraph } from './gitHistory/diffGraphAnalysis';
+import { analyzeDiffCommitGraph } from './gitHistory/diff/analysis';
 import { execGitCommand } from './gitHistory/gitExec';
 import { getCommitTreeFiles, getDiffNameStatus, getFileAtCommit } from './gitHistory/gitFiles';
 import { analyzeFullCommitGraph } from './gitHistory/fullCommitAnalysis';

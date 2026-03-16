@@ -2,7 +2,7 @@ import { useCallback, useEffect, type MutableRefObject } from 'react';
 import type { IFileInfo, IGraphData } from '../../../../shared/types';
 import { applyKeyboardEffects } from '../effects/keyboard';
 import { applyWebviewMessageEffects as runWebviewMessageEffects } from '../effects/messages';
-import { createGraphKeyboardListener } from '../keyboardListener';
+import { createGraphKeyboardListener } from '../keyboard/listener';
 import { createGraphMessageListener } from '../messageListener';
 import type { GraphWebviewMessageEffect } from '../../graphWebviewMessages/effects';
 import { exportAsJpeg } from '../../../lib/export/exportJpeg';

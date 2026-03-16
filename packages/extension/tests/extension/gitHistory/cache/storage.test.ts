@@ -14,7 +14,7 @@ import {
   readCachedGraphData,
   removeGitCacheDir,
   writeCachedGraphData,
-} from '../../../src/extension/gitHistory/cacheStorage';
+} from '../../../src/extension/gitHistory/cache/storage';
 
 function createFsPromises() {
   return {

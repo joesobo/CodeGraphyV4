@@ -1,5 +1,5 @@
-import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../../shared/types';
-import type { GraphKeyboardCommand, GraphKeyboardEffect } from '../graphKeyboardEffects';
+import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../../../shared/types';
+import type { GraphKeyboardCommand, GraphKeyboardEffect } from './effects';
 
 type HistoryMessageType = Extract<WebviewToExtensionMessage['type'], 'UNDO' | 'REDO'>;
 type StoreMessageType = Extract<ExtensionToWebviewMessage['type'], 'CYCLE_VIEW' | 'CYCLE_LAYOUT' | 'TOGGLE_DIMENSION'>;

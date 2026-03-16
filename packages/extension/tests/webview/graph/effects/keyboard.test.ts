@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { applyKeyboardEffects } from '../../../../src/webview/components/graph/effects/keyboard';
-import type { GraphKeyboardEffect } from '../../../../src/webview/components/graphKeyboardEffects';
+import type { GraphKeyboardEffect } from '../../../../src/webview/components/graph/keyboard/effects';
 
 function createHandlers() {
   return {

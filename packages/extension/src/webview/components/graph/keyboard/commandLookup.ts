@@ -1,15 +1,15 @@
-import type { GraphKeyboardCommand, GraphKeyboardOptions } from '../graphKeyboardEffects';
+import type { GraphKeyboardCommand, GraphKeyboardOptions } from './effects';
 import {
   createClearSelectionCommand,
   createFitViewCommand,
   createOpenSelectedNodesCommand,
   createSelectAllCommand,
-} from './keyboardCommandBuilders';
+} from './commandBuilders';
 import {
   getHistoryShortcutCommand,
   getZoomShortcutCommand,
-} from './keyboardShortcutResolvers';
-import { getToolbarShortcutCommand } from './keyboardToolbarShortcutResolver';
+} from './shortcutResolvers';
+import { getToolbarShortcutCommand } from './toolbarShortcutResolver';
 
 export function getGraphKeyboardCommandImpl(
   options: GraphKeyboardOptions

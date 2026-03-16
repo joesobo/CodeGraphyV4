@@ -1,12 +1,12 @@
-import type { IConnection } from '../../core/plugins';
-import type { IGraphData } from '../../shared/types';
-import { addGitHistoryGraphFile, modifyGitHistoryGraphFile } from './diffGraphChanges';
+import type { IConnection } from '../../../core/plugins';
+import type { IGraphData } from '../../../shared/types';
+import { addGitHistoryGraphFile, modifyGitHistoryGraphFile } from './changes';
 import {
   createDiffGraphSnapshot,
   filterDanglingDiffGraphEdges,
-} from './diffGraphSnapshot';
-import { deleteGitHistoryGraphFile, renameGitHistoryGraphFile } from './diffGraphState';
-import { reanalyzeGraphFile } from './reanalyzeGraphFile';
+} from './snapshot';
+import { deleteGitHistoryGraphFile, renameGitHistoryGraphFile } from './state';
+import { reanalyzeGraphFile } from '../reanalyzeGraphFile';
 
 interface DiffGraphRegistry {
   analyzeFile(

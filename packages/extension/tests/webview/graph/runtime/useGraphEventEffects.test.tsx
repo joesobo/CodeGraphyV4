@@ -26,7 +26,7 @@ vi.mock('../../../../src/webview/components/graph/effects/messages', () => ({
   applyWebviewMessageEffects: eventEffectsHarness.runWebviewMessageEffects,
 }));
 
-vi.mock('../../../../src/webview/components/graph/keyboardListener', () => ({
+vi.mock('../../../../src/webview/components/graph/keyboard/listener', () => ({
   createGraphKeyboardListener: eventEffectsHarness.createGraphKeyboardListener,
 }));
 
