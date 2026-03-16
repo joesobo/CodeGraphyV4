@@ -3,6 +3,20 @@ import * as vscode from 'vscode';
 import { renameGraphViewFile } from '../../../src/extension/graphView/fileRename';
 
 describe('graphView/fileRename', () => {
+  it('does nothing when no workspace folder is available', async () => {
+    const showInputBox = vi.fn(async () => 'renamed.ts');
+    const executeRenameAction = vi.fn(async () => undefined);
+
+    await renameGraphViewFile('src/original.ts', {
+      showInputBox,
+      executeRenameAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(showInputBox).not.toHaveBeenCalled();
+    expect(executeRenameAction).not.toHaveBeenCalled();
+  });
+
   it('renames the file selected in the input box', async () => {
     const executeRenameAction = vi.fn(async () => undefined);
     const showInputBox = vi.fn(async () => 'renamed.ts');
@@ -25,6 +39,24 @@ describe('graphView/fileRename', () => {
       'src/renamed.ts',
       vscode.Uri.file('/workspace'),
     );
+  });
+
+  it('selects the full hidden filename when there is no extension suffix to preserve', async () => {
+    const showInputBox = vi.fn(async () => '.env.local');
+
+    await renameGraphViewFile('src/.env', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox,
+      executeRenameAction: vi.fn(async () => undefined),
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(showInputBox).toHaveBeenCalledWith({
+      prompt: 'Enter new file name',
+      value: '.env',
+      valueSelection: [0, '.env'.length],
+      ignoreFocusOut: true,
+    });
   });
 
   it('does not rename when the user keeps the original name', async () => {

@@ -71,7 +71,9 @@ describe('graph view plugin context menu message', () => {
 	});
 
 	it('ignores plugin context menu actions when the plugin api is missing', async () => {
-		const action = vi.fn();
+		const findNode = vi.fn(() => ({ id: 'src/app.ts' }));
+		const findEdge = vi.fn();
+		const logError = vi.fn();
 
 		await applyPluginContextMenuAction(
 			{
@@ -82,17 +84,21 @@ describe('graph view plugin context menu message', () => {
 			},
 			{
 				getPluginApi: () => undefined,
-				findNode: () => ({ id: 'src/app.ts' }),
-				findEdge: vi.fn(),
-				logError: vi.fn(),
+				findNode,
+				findEdge,
+				logError,
 			},
 		);
 
-		expect(action).not.toHaveBeenCalled();
+		expect(findNode).not.toHaveBeenCalled();
+		expect(findEdge).not.toHaveBeenCalled();
+		expect(logError).not.toHaveBeenCalled();
 	});
 
 	it('ignores plugin context menu actions with out-of-range indexes', async () => {
 		const action = vi.fn();
+		const findNode = vi.fn(() => ({ id: 'src/app.ts' }));
+		const logError = vi.fn();
 
 		await applyPluginContextMenuAction(
 			{
@@ -103,13 +109,15 @@ describe('graph view plugin context menu message', () => {
 			},
 			{
 				getPluginApi: () => ({ contextMenuItems: [{ action }] }),
-				findNode: () => ({ id: 'src/app.ts' }),
+				findNode,
 				findEdge: vi.fn(),
-				logError: vi.fn(),
+				logError,
 			},
 		);
 
 		expect(action).not.toHaveBeenCalled();
+		expect(findNode).not.toHaveBeenCalled();
+		expect(logError).not.toHaveBeenCalled();
 	});
 
 	it('ignores plugin context menu actions with missing targets', async () => {
