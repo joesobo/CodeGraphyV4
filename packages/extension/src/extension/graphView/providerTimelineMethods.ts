@@ -4,15 +4,15 @@ import {
   indexGraphViewProviderRepository,
   jumpGraphViewProviderToCommit,
   sendGraphViewProviderCachedTimeline,
-} from './providerTimeline';
+} from './timeline/provider';
 import {
   invalidateGraphViewTimelineCache,
   sendGraphViewPlaybackSpeed,
-} from './timelinePlayback';
+} from './timeline/playback';
 import {
   openGraphViewNodeInEditor,
   previewGraphViewFileAtCommit,
-} from './timelineOpen';
+} from './timeline/open';
 
 type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
 

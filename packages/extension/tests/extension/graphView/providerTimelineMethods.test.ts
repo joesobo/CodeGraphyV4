@@ -11,18 +11,18 @@ const timelineMethodMocks = vi.hoisted(() => ({
   previewFileAtCommit: vi.fn(async () => undefined),
 }));
 
-vi.mock('../../../src/extension/graphView/providerTimeline', () => ({
+vi.mock('../../../src/extension/graphView/timeline/provider', () => ({
   indexGraphViewProviderRepository: timelineMethodMocks.indexRepository,
   jumpGraphViewProviderToCommit: timelineMethodMocks.jumpToCommit,
   sendGraphViewProviderCachedTimeline: timelineMethodMocks.sendCachedTimeline,
 }));
 
-vi.mock('../../../src/extension/graphView/timelinePlayback', () => ({
+vi.mock('../../../src/extension/graphView/timeline/playback', () => ({
   invalidateGraphViewTimelineCache: timelineMethodMocks.invalidateTimelineCache,
   sendGraphViewPlaybackSpeed: timelineMethodMocks.sendPlaybackSpeed,
 }));
 
-vi.mock('../../../src/extension/graphView/timelineOpen', () => ({
+vi.mock('../../../src/extension/graphView/timeline/open', () => ({
   openGraphViewNodeInEditor: timelineMethodMocks.openNodeInEditor,
   previewGraphViewFileAtCommit: timelineMethodMocks.previewFileAtCommit,
 }));

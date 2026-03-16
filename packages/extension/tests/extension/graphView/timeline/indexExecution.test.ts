@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { runGraphViewTimelineIndex } from '../../../src/extension/graphView/timelineIndexExecution';
+import { runGraphViewTimelineIndex } from '../../../../src/extension/graphView/timeline/indexExecution';
 
 describe('graph view timeline index execution', () => {
   it('indexes commit history, sends progress, and applies the resulting timeline state', async () => {

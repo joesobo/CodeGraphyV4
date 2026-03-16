@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '../../../src/shared/types';
+import type { ICommitInfo } from '../../../../src/shared/types';
 import {
   invalidateGraphViewTimelineCache,
   sendCachedGraphViewTimeline,
   sendGraphViewPlaybackSpeed,
   type GraphViewTimelinePlaybackState,
-} from '../../../src/extension/graphView/timelinePlayback';
+} from '../../../../src/extension/graphView/timeline/playback';
 
 function createState(
   overrides: Partial<GraphViewTimelinePlaybackState> = {},
@@ -22,7 +22,7 @@ const cachedCommits: ICommitInfo[] = [
   { sha: 'b2', author: 'B', message: 'two', timestamp: 2, parents: ['a1'] },
 ];
 
-describe('graphView/timelinePlayback', () => {
+describe('graphView/timeline/playback', () => {
   it('does not send cached timeline data when no analyzer is available', () => {
     const sendMessage = vi.fn();
     const state = createState({

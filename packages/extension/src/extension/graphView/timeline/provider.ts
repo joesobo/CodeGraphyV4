@@ -1,7 +1,7 @@
-import type { ExtensionToWebviewMessage, ICommitInfo, IGraphData } from '../../shared/types';
-import { indexGraphViewRepository } from './timelineIndex';
-import { sendCachedGraphViewTimeline } from './timelinePlayback';
-import { createDefaultGraphViewProviderTimelineDependencies } from './providerTimelineDefaultDependencies';
+import type { ExtensionToWebviewMessage, ICommitInfo, IGraphData } from '../../../shared/types';
+import { indexGraphViewRepository } from './index';
+import { sendCachedGraphViewTimeline } from './playback';
+import { createDefaultGraphViewProviderTimelineDependencies } from './providerDependencies';
 import type { ExtensionContext } from 'vscode';
 
 interface GraphViewProviderTimelineAnalyzer {

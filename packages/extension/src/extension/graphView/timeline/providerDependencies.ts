@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
-import { GitHistoryAnalyzer } from '../GitHistoryAnalyzer';
-import type { GraphViewProviderTimelineDependencies } from './providerTimeline';
-import { buildGraphViewTimelineGraphData } from './timelineGraph';
-import { indexGraphViewRepository } from './timelineIndex';
-import { sendCachedGraphViewTimeline } from './timelinePlayback';
+import { GitHistoryAnalyzer } from '../../GitHistoryAnalyzer';
+import type { GraphViewProviderTimelineDependencies } from './provider';
+import { buildGraphViewTimelineGraphData } from './graph';
+import { indexGraphViewRepository } from './index';
+import { sendCachedGraphViewTimeline } from './playback';
 
 export function createDefaultGraphViewProviderTimelineDependencies(): GraphViewProviderTimelineDependencies {
   return {

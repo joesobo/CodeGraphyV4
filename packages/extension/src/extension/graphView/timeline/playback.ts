@@ -1,4 +1,4 @@
-import type { ExtensionToWebviewMessage, ICommitInfo } from '../../shared/types';
+import type { ExtensionToWebviewMessage, ICommitInfo } from '../../../shared/types';
 
 interface GraphViewTimelineCache {
   getCachedCommitList(): ICommitInfo[] | null | undefined;

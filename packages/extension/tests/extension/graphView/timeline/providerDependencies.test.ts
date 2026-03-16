@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../src/shared/types';
+import type { IGraphData } from '../../../../src/shared/types';
 
 const mocks = vi.hoisted(() => {
   let workspaceFolders: { uri: { fsPath: string } }[] | undefined = [{ uri: { fsPath: '/workspace' } }];
@@ -48,19 +48,19 @@ vi.mock('util', () => ({
   promisify: mocks.promisify,
 }));
 
-vi.mock('../../../src/extension/GitHistoryAnalyzer', () => ({
+vi.mock('../../../../src/extension/GitHistoryAnalyzer', () => ({
   GitHistoryAnalyzer: mocks.GitHistoryAnalyzer,
 }));
 
-vi.mock('../../../src/extension/graphView/timelineGraph', () => ({
+vi.mock('../../../../src/extension/graphView/timeline/graph', () => ({
   buildGraphViewTimelineGraphData: mocks.buildTimelineGraphData,
 }));
 
-vi.mock('../../../src/extension/graphView/timelineIndex', () => ({
+vi.mock('../../../../src/extension/graphView/timeline', () => ({
   indexGraphViewRepository: mocks.indexRepository,
 }));
 
-vi.mock('../../../src/extension/graphView/timelinePlayback', () => ({
+vi.mock('../../../../src/extension/graphView/timeline/playback', () => ({
   sendCachedGraphViewTimeline: mocks.sendCachedTimeline,
 }));
 
@@ -68,7 +68,7 @@ import * as vscode from 'vscode';
 import {
   indexGraphViewProviderRepository,
   jumpGraphViewProviderToCommit,
-} from '../../../src/extension/graphView/providerTimeline';
+} from '../../../../src/extension/graphView/timeline/provider';
 
 describe('graph view provider timeline default dependencies', () => {
   beforeEach(() => {

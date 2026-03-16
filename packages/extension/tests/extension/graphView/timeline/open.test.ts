@@ -3,9 +3,9 @@ import * as vscode from 'vscode';
 import {
   openGraphViewNodeInEditor,
   previewGraphViewFileAtCommit,
-} from '../../../src/extension/graphView/timelineOpen';
+} from '../../../../src/extension/graphView/timeline/open';
 
-describe('graphView/timelineOpen', () => {
+describe('graphView/timeline/open', () => {
   it('opens the file through timeline preview when a commit is active', async () => {
     const previewFileAtCommit = vi.fn(async () => undefined);
     const openFile = vi.fn(async () => undefined);

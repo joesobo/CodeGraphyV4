@@ -3,7 +3,7 @@ import {
   prepareGraphViewTimelineIndex,
   type GraphViewTimelineIndexSetupHandlers,
   type GraphViewTimelineIndexSetupState,
-} from '../../../src/extension/graphView/timelineIndexSetup';
+} from '../../../../src/extension/graphView/timeline/indexSetup';
 
 function createState(
   overrides: Partial<GraphViewTimelineIndexSetupState> = {},

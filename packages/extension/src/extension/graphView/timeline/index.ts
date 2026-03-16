@@ -1,9 +1,9 @@
-import type { ExtensionToWebviewMessage, ICommitInfo } from '../../shared/types';
+import type { ExtensionToWebviewMessage, ICommitInfo } from '../../../shared/types';
 import {
   runGraphViewTimelineIndex,
   type GraphViewTimelineIndexExecutionState,
-} from './timelineIndexExecution';
-import { prepareGraphViewTimelineIndex } from './timelineIndexSetup';
+} from './indexExecution';
+import { prepareGraphViewTimelineIndex } from './indexSetup';
 
 interface GraphViewTimelineAnalyzerLike {
   initialize(): Promise<void>;

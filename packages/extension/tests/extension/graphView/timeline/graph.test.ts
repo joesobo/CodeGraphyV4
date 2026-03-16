@@ -1,7 +1,7 @@
 import * as path from 'path';
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../src/shared/types';
-import { buildGraphViewTimelineGraphData } from '../../../src/extension/graphView/timelineGraph';
+import type { IGraphData } from '../../../../src/shared/types';
+import { buildGraphViewTimelineGraphData } from '../../../../src/extension/graphView/timeline/graph';
 
 const rawGraphData: IGraphData = {
   nodes: [
@@ -15,7 +15,7 @@ const rawGraphData: IGraphData = {
   ],
 };
 
-describe('graphView/timelineGraph', () => {
+describe('graphView/timeline/graph', () => {
   it('filters out edges from disabled plugins', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),

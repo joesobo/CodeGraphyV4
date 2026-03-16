@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applyGraphViewTimelineIndexResult } from '../../../src/extension/graphView/timelineIndexResult';
+import { applyGraphViewTimelineIndexResult } from '../../../../src/extension/graphView/timeline/indexResult';
 
 describe('graph view timeline index result', () => {
   it('reports when indexing returns no commits', async () => {

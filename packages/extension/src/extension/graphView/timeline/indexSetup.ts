@@ -1,5 +1,5 @@
-import type { ICommitInfo } from '../../shared/types';
-import { DEFAULT_EXCLUDE_PATTERNS } from '../Configuration';
+import type { ICommitInfo } from '../../../shared/types';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../Configuration';
 
 interface GraphViewTimelineAnalyzerLike {
   initialize(): Promise<void>;

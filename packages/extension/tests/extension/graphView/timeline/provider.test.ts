@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ExtensionToWebviewMessage, IGraphData } from '../../../src/shared/types';
+import type { ExtensionToWebviewMessage, IGraphData } from '../../../../src/shared/types';
 import {
   indexGraphViewProviderRepository,
   jumpGraphViewProviderToCommit,
   sendGraphViewProviderCachedTimeline,
-} from '../../../src/extension/graphView/providerTimeline';
+} from '../../../../src/extension/graphView/timeline/provider';
 
 describe('graph view provider timeline helpers', () => {
   function createTimelineSource(

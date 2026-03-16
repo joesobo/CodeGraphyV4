@@ -3,11 +3,11 @@ import {
   indexGraphViewRepository,
   type GraphViewTimelineIndexHandlers,
   type GraphViewTimelineIndexState,
-} from '../../../src/extension/graphView/timelineIndex';
+} from '../../../../src/extension/graphView/timeline';
 
 afterEach(() => {
-  vi.doUnmock('../../../src/extension/graphView/timelineIndexSetup');
-  vi.doUnmock('../../../src/extension/graphView/timelineIndexExecution');
+  vi.doUnmock('../../../../src/extension/graphView/timeline/indexSetup');
+  vi.doUnmock('../../../../src/extension/graphView/timeline/indexExecution');
   vi.resetModules();
 });
 
@@ -60,15 +60,15 @@ describe('graph view timeline index', () => {
     const prepareGraphViewTimelineIndex = vi.fn(async () => false);
     const runGraphViewTimelineIndex = vi.fn(async () => undefined);
 
-    vi.doMock('../../../src/extension/graphView/timelineIndexSetup', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/indexSetup', () => ({
       prepareGraphViewTimelineIndex,
     }));
-    vi.doMock('../../../src/extension/graphView/timelineIndexExecution', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/indexExecution', () => ({
       runGraphViewTimelineIndex,
     }));
 
     const { indexGraphViewRepository: indexRepository } = await import(
-      '../../../src/extension/graphView/timelineIndex'
+      '../../../../src/extension/graphView/timeline'
     );
 
     await indexRepository(
@@ -91,15 +91,15 @@ describe('graph view timeline index', () => {
     const prepareGraphViewTimelineIndex = vi.fn(async () => true);
     const runGraphViewTimelineIndex = vi.fn(async () => undefined);
 
-    vi.doMock('../../../src/extension/graphView/timelineIndexSetup', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/indexSetup', () => ({
       prepareGraphViewTimelineIndex,
     }));
-    vi.doMock('../../../src/extension/graphView/timelineIndexExecution', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/indexExecution', () => ({
       runGraphViewTimelineIndex,
     }));
 
     const { indexGraphViewRepository: indexRepository } = await import(
-      '../../../src/extension/graphView/timelineIndex'
+      '../../../../src/extension/graphView/timeline'
     );
 
     await indexRepository(
@@ -180,15 +180,15 @@ describe('graph view timeline index', () => {
       handlers.logError('timeline failed', new Error('boom'));
     });
 
-    vi.doMock('../../../src/extension/graphView/timelineIndexSetup', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/indexSetup', () => ({
       prepareGraphViewTimelineIndex,
     }));
-    vi.doMock('../../../src/extension/graphView/timelineIndexExecution', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/indexExecution', () => ({
       runGraphViewTimelineIndex,
     }));
 
     const { indexGraphViewRepository: indexRepository } = await import(
-      '../../../src/extension/graphView/timelineIndex'
+      '../../../../src/extension/graphView/timeline'
     );
     const handlers = createHandlers({
       getMaxCommits: vi.fn(() => 250),
