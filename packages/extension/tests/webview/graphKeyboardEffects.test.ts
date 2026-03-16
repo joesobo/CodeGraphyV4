@@ -62,6 +62,18 @@ describe('graphKeyboardEffects', () => {
     });
   });
 
+  it('ignores Enter when nothing is selected', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'Enter',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: [],
+      allNodeIds: ['src/app.ts'],
+      targetIsEditable: false,
+    })).toBeNull();
+  });
+
   it('selects all nodes for the modifier+a shortcut', () => {
     expect(getGraphKeyboardCommand({
       key: 'a',
@@ -75,6 +87,22 @@ describe('graphKeyboardEffects', () => {
       preventDefault: true,
       stopPropagation: false,
       effects: [{ kind: 'selectAll', nodeIds: ['src/app.ts', 'src/utils.ts'] }],
+    });
+  });
+
+  it('zooms in for the equals shortcut', () => {
+    expect(getGraphKeyboardCommand({
+      key: '=',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: [],
+      allNodeIds: [],
+      targetIsEditable: false,
+    })).toEqual({
+      preventDefault: true,
+      stopPropagation: false,
+      effects: [{ kind: 'zoom', factor: 1.2 }],
     });
   });
 
@@ -109,6 +137,18 @@ describe('graphKeyboardEffects', () => {
 
     expect(getGraphKeyboardCommand({
       key: '+',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '3d',
+      selectedNodeIds: [],
+      allNodeIds: [],
+      targetIsEditable: false,
+    })).toBeNull();
+  });
+
+  it('ignores zoom-out when the graph is not 2d', () => {
+    expect(getGraphKeyboardCommand({
+      key: '-',
       isMod: false,
       shiftKey: false,
       graphMode: '3d',
@@ -162,7 +202,23 @@ describe('graphKeyboardEffects', () => {
     });
   });
 
-  it('maps toolbar fallback shortcuts to store messages', () => {
+  it('maps uppercase modifier+y to redo', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'Y',
+      isMod: true,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: [],
+      allNodeIds: [],
+      targetIsEditable: false,
+    })).toEqual({
+      preventDefault: true,
+      stopPropagation: true,
+      effects: [{ kind: 'postMessage', message: { type: 'REDO' } }],
+    });
+  });
+
+  it('maps lowercase v to the cycle-view store message', () => {
     expect(getGraphKeyboardCommand({
       key: 'v',
       isMod: false,
@@ -176,7 +232,41 @@ describe('graphKeyboardEffects', () => {
       stopPropagation: false,
       effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_VIEW' } }],
     });
+  });
 
+  it('maps uppercase v to the cycle-view store message', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'V',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: [],
+      allNodeIds: [],
+      targetIsEditable: false,
+    })).toEqual({
+      preventDefault: true,
+      stopPropagation: false,
+      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_VIEW' } }],
+    });
+  });
+
+  it('maps lowercase l to the cycle-layout store message', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'l',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: [],
+      allNodeIds: [],
+      targetIsEditable: false,
+    })).toEqual({
+      preventDefault: true,
+      stopPropagation: false,
+      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_LAYOUT' } }],
+    });
+  });
+
+  it('maps uppercase l to the cycle-layout store message', () => {
     expect(getGraphKeyboardCommand({
       key: 'L',
       isMod: false,
@@ -190,7 +280,25 @@ describe('graphKeyboardEffects', () => {
       stopPropagation: false,
       effects: [{ kind: 'dispatchStoreMessage', message: { type: 'CYCLE_LAYOUT' } }],
     });
+  });
 
+  it('maps lowercase t to the toggle-dimension store message', () => {
+    expect(getGraphKeyboardCommand({
+      key: 't',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: [],
+      allNodeIds: [],
+      targetIsEditable: false,
+    })).toEqual({
+      preventDefault: true,
+      stopPropagation: false,
+      effects: [{ kind: 'dispatchStoreMessage', message: { type: 'TOGGLE_DIMENSION' } }],
+    });
+  });
+
+  it('maps uppercase t to the toggle-dimension store message', () => {
     expect(getGraphKeyboardCommand({
       key: 'T',
       isMod: false,
@@ -204,5 +312,17 @@ describe('graphKeyboardEffects', () => {
       stopPropagation: false,
       effects: [{ kind: 'dispatchStoreMessage', message: { type: 'TOGGLE_DIMENSION' } }],
     });
+  });
+
+  it('ignores unsupported keys', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'q',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: [],
+      allNodeIds: [],
+      targetIsEditable: false,
+    })).toBeNull();
   });
 });
