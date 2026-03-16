@@ -1,11 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import type { IFileInfo, IGraphData } from '../../src/shared/types';
+import type { IFileInfo, IGraphData } from '../../../src/shared/types';
 import {
   buildGraphTooltipContext,
   buildGraphTooltipState,
   hideGraphTooltipState,
   type GraphTooltipState,
-} from '../../src/webview/components/graphTooltipModel';
+} from '../../../src/webview/components/graphTooltipModel';
 
 const graphSnapshot: IGraphData = {
   nodes: [

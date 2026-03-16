@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act } from '@testing-library/react';
-import Graph from '../../src/webview/components/Graph';
-import { IGraphData, DEFAULT_DIRECTION_COLOR } from '../../src/shared/types';
-import { graphStore } from '../../src/webview/store';
+import Graph from '../../../src/webview/components/Graph';
+import { IGraphData, DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
+import { graphStore } from '../../../src/webview/store';
 import ForceGraph2D, { mockMethods } from 'react-force-graph-2d';
-import { getSentMessages } from '../helpers/sentMessages';
+import { getSentMessages } from '../../helpers/sentMessages';
 
 const mockData: IGraphData = {
   nodes: [
