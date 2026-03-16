@@ -732,17 +732,41 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
             - `analysisRequest.ts`
             - `timelineIndexResult.ts`
             - `providerTimeline.ts`
+      - current local survivor pass:
+        - harden `timelineIndexExecution.ts`, `timelineIndexSetup.ts`, and `timelineIndexResult.ts` with abort/no-commit/missing-sha coverage
+        - harden `analysisRequest.ts` with abort-error and replaced-controller coverage
+        - tighten `visits.ts` assertions, though one string-key survivor still remains
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/timelineIndexExecution.test.ts tests/extension/graphView/timelineIndexSetup.test.ts tests/extension/graphView/timelineIndexResult.test.ts`
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/analysisRequest.test.ts tests/extension/graphView/visits.test.ts`
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the current local survivor pass:
+          - graph-view-provider slice overall = `97.08%`
+          - `packages/extension/src/extension/graphView/timelineIndexExecution.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/timelineIndexSetup.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/timelineIndexResult.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/analysisRequest.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/visits.ts` = `87.50%`
+          - result: `✅ All files remain within the mutation site threshold (50).`
+        - next immediate step:
+          - focus on the remaining sub-90 provider/view-state helpers
+          - target the remaining sub-90 helpers in this order:
+            - `providerTimeline.ts`
+            - `providerViewSelectionMethods.ts`
+            - `visits.ts`
+            - `providerAnalysisMethods.ts`
+            - `fileRename.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. `packages/extension/src/extension/graphView/timelineIndexExecution.ts`
-2. `packages/extension/src/extension/graphView/timelineIndexSetup.ts`
-3. `packages/extension/src/extension/graphView/analysisRequest.ts`
-4. `packages/extension/src/extension/graphView/timelineIndexResult.ts`
-5. `packages/extension/src/extension/graphView/providerTimeline.ts`
+1. `packages/extension/src/extension/graphView/providerTimeline.ts`
+2. `packages/extension/src/extension/graphView/providerViewSelectionMethods.ts`
+3. `packages/extension/src/extension/graphView/visits.ts`
+4. `packages/extension/src/extension/graphView/providerAnalysisMethods.ts`
+5. `packages/extension/src/extension/graphView/fileRename.ts`
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
