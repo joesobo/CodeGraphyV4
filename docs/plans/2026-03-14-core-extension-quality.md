@@ -877,10 +877,18 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/visits.ts` = `100.00%` with `9` sites
           - `packages/extension/src/extension/graphView/providerAnalysisMethods.ts` = `100.00%` with `20` sites
           - `packages/extension/src/extension/graphView/providerSettingsStateMethods.ts` = `100.00%` with `40` sites
-          - result: `✅ All three files are above the 90% goal and within the mutation site threshold (50).`
+      - result: `✅ All three files are above the 90% goal and within the mutation site threshold (50).`
         - note:
           - the last reusable whole `graph-view-provider` slice report had only `visits.ts` and `providerAnalysisMethods.ts` below `90%`
           - both of those files now clear via focused reruns; the next full-slice refresh is about re-baselining/reporting, not debugging known survivors
+      - latest whole-slice refreshes:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `98.08%`
+        - `GraphViewProvider.ts` = `91.67%`
+        - result: `✅ Every file in the graph-view-provider slice is above 90% and within the mutation site threshold (50).`
+        - `pnpm run mutate -- extension graph-view-messages`
+        - graph-view-messages slice overall = `98.13%`
+        - result: `✅ Every file in the graph-view-messages slice is above 90% and within the mutation site threshold (50).`
 - S4 `in_progress`: finish the workspace-analysis slice, then resume the next independent hotspot.
   - tests: add/update matching file-per-module tests for `WorkspaceAnalyzer.ts` and `workspaceAnalyzer/**/*`
   - progress:
@@ -893,8 +901,8 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
       - package-relative `eslint` on touched workspace-analysis files
     - latest targeted mutation after the current local pass:
-      - focused `workspace-analysis` slice overall = `99.09%`
-      - `WorkspaceAnalyzer.ts` = `94.00%`
+      - focused `workspace-analysis` slice overall = `100.00%`
+      - `WorkspaceAnalyzer.ts` = `100.00%`
       - `workspaceAnalyzer/analyze.ts` = `100.00%`
       - `workspaceAnalyzer/discovery.ts` = `100.00%`
       - `workspaceAnalyzer/files.ts` = `100.00%`
@@ -912,19 +920,18 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - `workspaceGraphEdges.ts` = `100.00%`
       - `workspaceGraphNodes.ts` = `100.00%`
       - `workspacePluginStatuses.ts` = `100.00%`
-      - `WorkspaceAnalyzer.ts` survivors are the three `_last*` state setter wrappers inside the analyzer source bridge
-      - result: `✅ All files remain within the mutation site threshold (50).`
+      - result: `✅ Every file in the workspace-analysis slice is above 90% and within the mutation site threshold (50).`
   - next:
-    - commit and push the workspace-analysis + settings-panel hardening batch
+    - commit and push the workspace-analysis delegate-hardening follow-up
     - refresh the next extension slice after the workspace-analysis merge
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. commit and push the current `settings-panel` + `workspace-analysis` hardening batch
-2. refresh the whole `graph-view-provider` slice with a harness-safe run and confirm the updated floor in one report
+1. commit and push the `WorkspaceAnalyzer.delegates.test.ts` follow-up that restored `workspace-analysis` to `100%`
+2. refresh the remaining official extension slices: `graph-webview`, `timeline`, `webview-export`, `git-history`
 3. `packages/extension/src/webview/components/Graph.tsx`
-4. refresh the remaining extension slices and package-level threshold summary before the folder/name cleanup pass
+4. print the package-level mutation/CRAP/status summary from the refreshed slice set
 5. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
 
 ## Notes
