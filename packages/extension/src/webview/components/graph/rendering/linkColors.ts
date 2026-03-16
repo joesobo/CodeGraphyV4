@@ -4,8 +4,8 @@ import {
 import {
   resolveDirectionColor,
   type FGLink,
-  type FGNode,
 } from '../../graphModel';
+import { resolveLinkEndpointId } from '../../graphSupport';
 import type { LinkRenderingDependencies } from './linkShared';
 
 export function getGraphLinkColor(
@@ -14,10 +14,8 @@ export function getGraphLinkColor(
 ): string {
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
   if (decoration?.color) return decoration.color;
-  const source = link.source as FGNode;
-  const target = link.target as FGNode;
-  const sourceId = typeof link.source === 'string' ? link.source : source?.id;
-  const targetId = typeof link.target === 'string' ? link.target : target?.id;
+  const sourceId = resolveLinkEndpointId(link.source);
+  const targetId = resolveLinkEndpointId(link.target);
   const highlighted = dependencies.highlightedNodeRef.current;
   const isLight = dependencies.themeRef.current === 'light';
   if (!highlighted) return link.baseColor ?? DEFAULT_DIRECTION_COLOR;

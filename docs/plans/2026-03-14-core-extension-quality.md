@@ -1213,8 +1213,14 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - `linkColors.ts` = `100.00%`
       - `linkMetrics.ts` = `100.00%`
       - `bidirectionalLineGeometry.ts` = `97.67%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/runtime/containerSize.ts'`
+    - intermediate slice overall = `94.43%`
+    - `containerSize.ts` = `100.00%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/runtime/pluginOverlays.ts'`
+    - latest slice overall = `94.53%`
+    - `pluginOverlays.ts` = `100.00%`
     - next step:
-      - keep pushing the remaining graph-webview floor files above `90%`, starting with `bidirectionalArrowGeometry.ts`, `pluginOverlays.ts`, `containerSize.ts`, and tooltip helpers
+      - keep pushing the remaining graph-webview floor files above `90%`, starting with `bidirectionalArrowGeometry.ts`, `bidirectionalLink.ts`, `nodeBody.ts`, `nodeMedia.ts`, `nodes2d.ts`, and tooltip helpers
 
 ## Current hotspot order
 1. finish the remaining `graph-webview` floor files above `90%` while keeping every file under the `50`-site threshold
