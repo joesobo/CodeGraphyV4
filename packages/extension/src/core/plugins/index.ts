@@ -4,7 +4,7 @@
  */
 
 export * from './types';
-export * from './pluginRegistry';
+export * from './registry';
 export * from './disposable';
 export * from './eventBus';
 export * from './decorationManager';

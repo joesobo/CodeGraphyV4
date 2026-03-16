@@ -15,9 +15,9 @@ import {
   WEBVIEW_PLUGIN_API_VERSION,
   parseSemver,
   satisfiesSemverRange,
-} from './pluginVersioning';
-import { getFileExtension, normalizePluginExtension } from './pluginFileExtensions';
-import { hasScopedApiConfiguration } from './pluginApiConfiguration';
+} from './versioning';
+import { getFileExtension, normalizePluginExtension } from './fileExtensions';
+import { hasScopedApiConfiguration } from './apiConfiguration';
 
 /**
  * Registry for managing CodeGraphy plugins.

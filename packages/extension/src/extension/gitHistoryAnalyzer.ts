@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { minimatch } from 'minimatch';
-import { PluginRegistry } from '../core/plugins/pluginRegistry';
+import { PluginRegistry } from '../core/plugins/registry';
 import { IGraphData, ICommitInfo } from '../shared/types';
 import {
   clearCachedCommitState,
