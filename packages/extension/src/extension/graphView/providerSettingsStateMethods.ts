@@ -63,21 +63,24 @@ export interface GraphViewProviderSettingsStateMethodDependencies {
   captureSettingsSnapshot: typeof captureGraphViewSettingsSnapshot;
 }
 
-const DEFAULT_DEPENDENCIES: GraphViewProviderSettingsStateMethodDependencies = {
-  getConfiguration: section => vscode.workspace.getConfiguration(section),
-  getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
-  getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
-  loadGroupState: loadGraphViewGroupState,
-  applyLoadedGroupState: applyLoadedGraphViewGroupState,
-  loadDisabledState: loadGraphViewDisabledState,
-  sendProviderSettings: sendGraphViewProviderSettings,
-  sendProviderAllSettings: sendGraphViewProviderAllSettings,
-  captureSettingsSnapshot: captureGraphViewSettingsSnapshot,
-};
+export function createDefaultGraphViewProviderSettingsStateMethodDependencies(): GraphViewProviderSettingsStateMethodDependencies {
+  return {
+    getConfiguration: section => vscode.workspace.getConfiguration(section),
+    getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
+    getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
+    loadGroupState: loadGraphViewGroupState,
+    applyLoadedGroupState: applyLoadedGraphViewGroupState,
+    loadDisabledState: loadGraphViewDisabledState,
+    sendProviderSettings: sendGraphViewProviderSettings,
+    sendProviderAllSettings: sendGraphViewProviderAllSettings,
+    captureSettingsSnapshot: captureGraphViewSettingsSnapshot,
+  };
+}
 
 export function createGraphViewProviderSettingsStateMethods(
   source: GraphViewProviderSettingsStateMethodsSource,
-  dependencies: GraphViewProviderSettingsStateMethodDependencies = DEFAULT_DEPENDENCIES,
+  dependencies: GraphViewProviderSettingsStateMethodDependencies =
+    createDefaultGraphViewProviderSettingsStateMethodDependencies(),
 ): GraphViewProviderSettingsStateMethods {
   const _loadGroupsAndFilterPatterns = (): void => {
     const config = dependencies.getConfiguration('codegraphy');
