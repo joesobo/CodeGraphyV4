@@ -601,7 +601,7 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/pluginDefaultGroups.ts` = `73.81%`
           - `packages/extension/src/extension/graphView/providerPluginResourceMethods.ts` = `83.33%`
           - result: `✅ All files are within the mutation site threshold (50).`
-        - focused verification green for the eighteenth helper pass:
+      - focused verification green for the eighteenth helper pass:
           - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/analysisExecution.test.ts tests/extension/graphView/providerFileVisitMethods.test.ts tests/extension/graphView/providerFileVisitMethodsDefaultDependencies.test.ts tests/extension/graphView/messages/dispatchPlugin.test.ts tests/extension/graphView/messages/listener.test.ts tests/extension/graphView/pluginDefaultGroups.test.ts tests/extension/graphView/providerPluginResourceMethods.test.ts tests/extension/graphView/timelinePlayback.test.ts`
           - `46` tests green
           - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
@@ -629,17 +629,44 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
             - `externalPluginRegistration.ts`
             - `settings.ts`
             - `viewBroadcast.ts`
+      - current local survivor pass:
+        - refactor `providerPhysicsSettingsMethods.ts` so default dependencies are created lazily instead of captured as a module-level constant
+        - keep the dedicated default-dependency test file and existing provider physics tests green
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerPhysicsSettingsMethods.test.ts tests/extension/graphView/providerPhysicsSettingsMethodsDefaultDependencies.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the current local survivor pass:
+          - graph-view-provider slice overall = `93.07%`
+          - `packages/extension/src/extension/graphView/providerPhysicsSettingsMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/timelineGraph.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerFileVisitMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerPluginResourceMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/groups.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/timeline.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/fileNavigation.ts` = `96.67%`
+          - `packages/extension/src/extension/graphView/pluginDefaultGroups.ts` = `97.62%`
+          - `packages/extension/src/extension/graphView/analysisExecution.ts` = `92.31%`
+          - result: `✅ All files remain within the mutation site threshold (50).`
+        - next immediate step:
+          - move off the already-cleared physics/timeline files
+          - target the remaining sub-90 helpers in this order:
+            - `externalPluginRegistration.ts`
+            - `settings.ts`
+            - `viewBroadcast.ts`
+            - `groupState.ts`
+            - `fileInfo.ts`
 - S4 `pending`: resume the next independent hotspot after the provider cuts merge.
   - tests: add/update matching file-per-module tests for the next extracted `Graph.tsx` helpers
 - S5 `pending`: rerun package workflow gates and update PR with current state.
   - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
 
 ## Current hotspot order
-1. `packages/extension/src/extension/graphView/providerPhysicsSettingsMethods.ts`
-2. `packages/extension/src/extension/graphView/timelineGraph.ts`
-3. `packages/extension/src/extension/graphView/providerFileNavigation.ts`
-4. `packages/extension/src/extension/graphView/externalPluginRegistration.ts`
-5. `packages/extension/src/extension/graphView/settings.ts`
+1. `packages/extension/src/extension/graphView/externalPluginRegistration.ts`
+2. `packages/extension/src/extension/graphView/settings.ts`
+3. `packages/extension/src/extension/graphView/viewBroadcast.ts`
+4. `packages/extension/src/extension/graphView/groupState.ts`
+5. `packages/extension/src/extension/graphView/fileInfo.ts`
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
