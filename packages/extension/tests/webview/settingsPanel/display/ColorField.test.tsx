@@ -1,0 +1,37 @@
+import { fireEvent, render, screen } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { ColorField } from '../../../../src/webview/components/settingsPanel/display/ColorField';
+
+describe('display ColorField', () => {
+  it('renders the provided label and value', () => {
+    render(
+      <ColorField
+        id="direction-color"
+        label="Direction Color"
+        onChange={vi.fn()}
+        value="#abcdef"
+      />
+    );
+
+    expect(screen.getByLabelText('Direction Color')).toHaveValue('#abcdef');
+    expect(screen.getByText('#abcdef')).toBeInTheDocument();
+  });
+
+  it('forwards changed color values', () => {
+    const onChange = vi.fn();
+    render(
+      <ColorField
+        id="direction-color"
+        label="Direction Color"
+        onChange={onChange}
+        value="#abcdef"
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText('Direction Color'), {
+      target: { value: '#123456' },
+    });
+
+    expect(onChange).toHaveBeenCalledWith('#123456');
+  });
+});
