@@ -20,7 +20,7 @@ const EXTENSION_SLICES: Record<string, string> = {
 		'packages/extension/src/extension/GraphViewProvider.ts,packages/extension/src/extension/graphView/**/*.ts',
 	'graph-view-messages': 'packages/extension/src/extension/graphView/messages/**/*.ts',
 	'workspace-analysis':
-		'packages/extension/src/extension/WorkspaceAnalyzer.ts,packages/extension/src/extension/workspace*.ts',
+		'packages/extension/src/extension/WorkspaceAnalyzer.ts,packages/extension/src/extension/workspace*.ts,packages/extension/src/extension/workspaceAnalyzer/**/*.ts',
 	'graph-webview':
 		'packages/extension/src/webview/components/Graph.tsx,packages/extension/src/webview/components/graph*.ts,packages/extension/src/webview/components/graph/**/*.ts',
 	'graph-effects': 'packages/extension/src/webview/components/graph/effects/**/*.ts',

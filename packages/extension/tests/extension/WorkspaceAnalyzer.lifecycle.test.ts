@@ -122,6 +122,52 @@ describe('WorkspaceAnalyzer lifecycle', () => {
     expect(analyzer.getPluginNameForFile('src/index.ts')).toBeUndefined();
   });
 
+  it('returns the plugin name using the cached workspace root', () => {
+    const analyzer = new WorkspaceAnalyzer({
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    } as unknown as vscode.ExtensionContext);
+    const analyzerPrivate = analyzer as unknown as {
+      _lastWorkspaceRoot: string;
+      _registry: { getPluginForFile: (filePath: string) => unknown };
+    };
+
+    analyzerPrivate._lastWorkspaceRoot = '/test/workspace';
+    const getPluginForFileSpy = vi
+      .spyOn(analyzerPrivate._registry, 'getPluginForFile')
+      .mockReturnValue({ name: 'TypeScript' });
+
+    expect(analyzer.getPluginNameForFile('src/index.ts')).toBe('TypeScript');
+    expect(getPluginForFileSpy).toHaveBeenCalledWith('/test/workspace/src/index.ts');
+  });
+
+  it('returns the plugin name using the current workspace root when no cached root exists', () => {
+    const analyzer = new WorkspaceAnalyzer({
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    } as unknown as vscode.ExtensionContext);
+    const analyzerPrivate = analyzer as unknown as {
+      _lastWorkspaceRoot: string;
+      _registry: { getPluginForFile: (filePath: string) => unknown };
+    };
+
+    analyzerPrivate._lastWorkspaceRoot = '';
+    const getPluginForFileSpy = vi
+      .spyOn(analyzerPrivate._registry, 'getPluginForFile')
+      .mockReturnValue({ name: 'TypeScript' });
+
+    expect(analyzer.getPluginNameForFile('src/index.ts')).toBe('TypeScript');
+    expect(getPluginForFileSpy).toHaveBeenCalledWith('/test/workspace/src/index.ts');
+  });
+
   it('returns file stat details when the workspace file system succeeds', async () => {
     const analyzer = new WorkspaceAnalyzer({
       subscriptions: [],
