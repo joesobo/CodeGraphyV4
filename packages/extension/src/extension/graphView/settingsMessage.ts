@@ -1,5 +1,5 @@
 import type { IViewContext } from '../../core/views';
-import { readGraphViewSettings } from '../graphViewSettings';
+import { readGraphViewSettings } from './config';
 import { buildGraphViewSettingsMessages } from './settings';
 
 interface GraphViewConfigurationLike {

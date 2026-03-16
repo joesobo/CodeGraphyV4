@@ -1,7 +1,7 @@
 import type * as vscode from 'vscode';
 import type { IGroup } from '../../shared/types';
 import type { IViewContext, ViewRegistry } from '../../core/views';
-import { mapAvailableViews } from '../graphViewPresentation';
+import { mapAvailableViews } from './presentation';
 import { buildGraphViewGroupsUpdatedMessage } from './groups';
 
 interface SendGraphViewGroupsUpdatedOptions {

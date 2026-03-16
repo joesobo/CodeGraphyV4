@@ -3,7 +3,7 @@ import type { IGraphData } from '../../shared/types';
 import {
   buildGraphViewFileInfoPayload,
   type IGraphViewFileInfoPayload,
-} from '../graphViewFileInfo';
+} from './fileInfoPayload';
 
 interface GraphViewFileInfoAnalyzer {
   getPluginNameForFile(filePath: string): string | undefined;

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IViewContext } from '../../../src/core/views';
+import type { IViewContext } from '../../../../src/core/views';
 import { sendGraphViewSettingsMessages } from '../../../src/extension/graphView/settingsMessage';
 
 describe('graph view settings-message helper', () => {

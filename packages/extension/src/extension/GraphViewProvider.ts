@@ -25,20 +25,20 @@ import {
 import {
   initializeGraphViewProviderServices,
   restoreGraphViewProviderState,
-} from './graphView/providerBootstrap';
-import { createGraphViewProviderAnalysisMethods } from './graphView/providerAnalysisMethods';
-import { createGraphViewProviderCommandMethods } from './graphView/providerCommandMethods';
-import { createGraphViewProviderFileActionMethods } from './graphView/providerFileActionMethods';
-import { createGraphViewProviderFileVisitMethods } from './graphView/providerFileVisitMethods';
-import { createGraphViewProviderPluginMethods } from './graphView/providerPluginMethods';
-import { createGraphViewProviderPluginResourceMethods } from './graphView/providerPluginResourceMethods';
-import { createGraphViewProviderPhysicsSettingsMethods } from './graphView/providerPhysicsSettingsMethods';
-import { createGraphViewProviderRefreshMethods } from './graphView/providerRefreshMethods';
-import { createGraphViewProviderSettingsStateMethods } from './graphView/providerSettingsStateMethods';
-import { createGraphViewProviderTimelineMethods } from './graphView/providerTimelineMethods';
-import { createGraphViewProviderViewContextMethods } from './graphView/providerViewContextMethods';
-import { createGraphViewProviderViewSelectionMethods } from './graphView/providerViewSelectionMethods';
-import { createGraphViewProviderWebviewMethods } from './graphView/providerWebviewMethods';
+} from './graphView/provider/bootstrap';
+import { createGraphViewProviderAnalysisMethods } from './graphView/provider/analysis';
+import { createGraphViewProviderCommandMethods } from './graphView/provider/commands';
+import { createGraphViewProviderFileActionMethods } from './graphView/provider/fileActions';
+import { createGraphViewProviderFileVisitMethods } from './graphView/provider/fileVisits';
+import { createGraphViewProviderPluginMethods } from './graphView/provider/plugins';
+import { createGraphViewProviderPluginResourceMethods } from './graphView/provider/pluginResources';
+import { createGraphViewProviderPhysicsSettingsMethods } from './graphView/provider/physicsSettings';
+import { createGraphViewProviderRefreshMethods } from './graphView/provider/refresh';
+import { createGraphViewProviderSettingsStateMethods } from './graphView/provider/settingsState';
+import { createGraphViewProviderTimelineMethods } from './graphView/provider/timeline';
+import { createGraphViewProviderViewContextMethods } from './graphView/provider/viewContext';
+import { createGraphViewProviderViewSelectionMethods } from './graphView/provider/viewSelection';
+import { createGraphViewProviderWebviewMethods } from './graphView/provider/webview';
 
 /** Storage key for selected view per workspace */
 const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
