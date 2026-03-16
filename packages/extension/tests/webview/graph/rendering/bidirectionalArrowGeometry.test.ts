@@ -26,4 +26,29 @@ describe('graph/rendering/bidirectionalArrowGeometry', () => {
       vertexY: 10,
     });
   });
+
+  it('builds arrow-head points for a diagonal arrow with non-zero y and x offsets', () => {
+    const geometry = createBidirectionalArrowGeometry(
+      20,
+      40,
+      0.6,
+      0.8,
+      -0.8,
+      0.6,
+      10,
+      4,
+      2.5,
+    );
+
+    expect(geometry).toEqual({
+      leftX: 10.8,
+      leftY: 34.4,
+      rightX: 17.2,
+      rightY: 29.6,
+      tipX: 20,
+      tipY: 40,
+      vertexX: 18.5,
+      vertexY: 38,
+    });
+  });
 });

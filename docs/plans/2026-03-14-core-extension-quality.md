@@ -1219,11 +1219,25 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
     - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/runtime/pluginOverlays.ts'`
     - latest slice overall = `94.53%`
     - `pluginOverlays.ts` = `100.00%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/rendering/bidirectionalArrowGeometry.ts,packages/extension/src/webview/components/graph/rendering/bidirectionalLink.ts,packages/extension/src/webview/components/graph/rendering/nodeBody.ts,packages/extension/src/webview/components/graph/rendering/nodeMedia.ts,packages/extension/src/webview/components/graph/rendering/nodes2d.ts,packages/extension/src/webview/components/graph/runtime/tooltipHover.ts,packages/extension/src/webview/components/graph/runtime/tooltipRect.ts,packages/extension/src/webview/components/graph/runtime/tooltipTracking.ts'`
+    - latest slice overall = `96.65%`
+    - focused verification green:
+      - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/bidirectionalArrowGeometry.test.ts tests/webview/graph/rendering/bidirectionalLink.test.ts tests/webview/graph/rendering/nodeBody.test.ts tests/webview/graph/rendering/nodeMedia.test.ts tests/webview/graph/rendering/nodes2d.test.ts tests/webview/graph/runtime/tooltipHover.test.ts tests/webview/graph/runtime/tooltipRect.test.ts tests/webview/graph/runtime/tooltipTracking.test.ts`
+      - `52` tests green
+    - key file wins:
+      - `bidirectionalArrowGeometry.ts` = `100.00%`
+      - `bidirectionalLink.ts` = `97.56%`
+      - `nodeBody.ts` = `97.96%`
+      - `nodeMedia.ts` = `93.75%`
+      - `nodes2d.ts` = `100.00%`
+      - `tooltipHover.ts` = `100.00%`
+      - `tooltipRect.ts` = `93.33%`
+      - `tooltipTracking.ts` = `100.00%`
     - next step:
-      - keep pushing the remaining graph-webview floor files above `90%`, starting with `bidirectionalArrowGeometry.ts`, `bidirectionalLink.ts`, `nodeBody.ts`, `nodeMedia.ts`, `nodes2d.ts`, and tooltip helpers
+      - graph-webview is no longer the bottleneck; shift to the remaining sub-90 extension files under `interactionHandlers`, `contextMenuRuntime.ts`, and the package-level slices that still need refreshes
 
 ## Current hotspot order
-1. finish the remaining `graph-webview` floor files above `90%` while keeping every file under the `50`-site threshold
+1. finish the remaining sub-90 extension files in `interactionHandlers`, `contextMenuRuntime.ts`, and nearby graph webview wrappers
 2. refresh the remaining official extension slices: `webview-export`, `git-history`
 3. `packages/extension/src/webview/components/Graph.tsx`
 4. print the package-level mutation/CRAP/status summary from the refreshed slice set

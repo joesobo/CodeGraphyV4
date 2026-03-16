@@ -138,6 +138,50 @@ describe('graph/rendering/bidirectionalLink', () => {
     ]));
   });
 
+  it('keeps the connected stroke styling when the highlighted node is the source', () => {
+    const { ctx, operations } = createContext();
+
+    renderBidirectionalLink(
+      createDependencies({
+        highlightedNodeId: 'src/app.ts',
+      }),
+      createLink(),
+      ctx,
+      1,
+    );
+
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        globalAlpha: 1,
+        kind: 'stroke',
+        lineWidth: 2,
+        strokeStyle: '#60a5fa',
+      }),
+    ]));
+  });
+
+  it('keeps the connected stroke styling when the highlighted node is the target', () => {
+    const { ctx, operations } = createContext();
+
+    renderBidirectionalLink(
+      createDependencies({
+        highlightedNodeId: 'src/utils.ts',
+      }),
+      createLink(),
+      ctx,
+      1,
+    );
+
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        globalAlpha: 1,
+        kind: 'stroke',
+        lineWidth: 2,
+        strokeStyle: '#60a5fa',
+      }),
+    ]));
+  });
+
   it('dims disconnected links with the light-theme default stroke color', () => {
     const { ctx, operations } = createContext();
 
@@ -159,6 +203,40 @@ describe('graph/rendering/bidirectionalLink', () => {
         strokeStyle: '#d4d4d4',
       }),
     ]));
+  });
+
+  it('dims disconnected links with the dark-theme default stroke color', () => {
+    const { ctx, operations } = createContext();
+
+    renderBidirectionalLink(
+      createDependencies({
+        highlightedNodeId: 'src/other.ts',
+        theme: 'dark',
+      }),
+      createLink(),
+      ctx,
+      1,
+    );
+
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        globalAlpha: 0.15,
+        kind: 'stroke',
+        lineWidth: 2,
+        strokeStyle: '#2d3748',
+      }),
+    ]));
+  });
+
+  it('points the second arrow back toward the source node', () => {
+    const { ctx } = createContext();
+
+    renderBidirectionalLink(createDependencies(), createLink(), ctx, 1);
+
+    expect(ctx.moveTo).toHaveBeenNthCalledWith(3, 10, 10);
+    expect(ctx.lineTo).toHaveBeenNthCalledWith(5, 22, 13.75);
+    expect(ctx.lineTo).toHaveBeenNthCalledWith(6, 12.4, 10);
+    expect(ctx.lineTo).toHaveBeenNthCalledWith(7, 22, 6.25);
   });
 
   it('skips bidirectional canvas drawing when direction mode is not arrows', () => {

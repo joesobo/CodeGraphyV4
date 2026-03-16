@@ -166,6 +166,34 @@ describe('graph/rendering/nodeBody', () => {
     ]);
   });
 
+  it('uses the dark-theme selected border color when no decoration overrides it', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeBody({
+      ctx,
+      decoration: undefined,
+      globalScale: 1,
+      isSelected: true,
+      node: createNode({ borderWidth: 4 }),
+      opacity: 0.6,
+      theme: 'dark',
+    });
+
+    expect(operations).toEqual([
+      expect.objectContaining({
+        fillStyle: '#3b82f6',
+        globalAlpha: 1,
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        globalAlpha: 0.6,
+        kind: 'stroke',
+        lineWidth: 4,
+        strokeStyle: '#ffffff',
+      }),
+    ]);
+  });
+
   it('renders decorated labels when labels are visible at the current zoom', () => {
     const { ctx, operations } = createContext();
 
@@ -235,6 +263,50 @@ describe('graph/rendering/nodeBody', () => {
     ]);
   });
 
+  it('uses the highlighted dark-theme label color when no decoration label overrides it', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeLabel({
+      ctx,
+      decoration: undefined,
+      globalScale: 2,
+      isHighlighted: true,
+      node: createNode(),
+      opacity: 1,
+      theme: 'dark',
+    });
+
+    expect(operations).toEqual([
+      expect.objectContaining({
+        fillStyle: '#e2e8f0',
+        kind: 'fillText',
+        text: 'app.ts',
+      }),
+    ]);
+  });
+
+  it('uses the muted dark-theme label color for non-highlighted nodes', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeLabel({
+      ctx,
+      decoration: undefined,
+      globalScale: 2,
+      isHighlighted: false,
+      node: createNode(),
+      opacity: 1,
+      theme: 'dark',
+    });
+
+    expect(operations).toEqual([
+      expect.objectContaining({
+        fillStyle: '#4a5568',
+        kind: 'fillText',
+        text: 'app.ts',
+      }),
+    ]);
+  });
+
   it('skips label rendering when the zoom level keeps label opacity near zero', () => {
     const { ctx, operations } = createContext();
 
@@ -250,5 +322,28 @@ describe('graph/rendering/nodeBody', () => {
 
     expect(ctx.fillText).not.toHaveBeenCalled();
     expect(operations).toEqual([]);
+  });
+
+  it('renders the label when zoom moves just above the minimum opacity threshold', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeLabel({
+      ctx,
+      decoration: undefined,
+      globalScale: 0.813,
+      isHighlighted: true,
+      node: createNode(),
+      opacity: 1,
+      theme: 'dark',
+    });
+
+    expect(ctx.fillText).toHaveBeenCalledOnce();
+    expect(operations).toEqual([
+      expect.objectContaining({
+        fillStyle: '#e2e8f0',
+        kind: 'fillText',
+        text: 'app.ts',
+      }),
+    ]);
   });
 });

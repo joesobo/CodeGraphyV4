@@ -44,6 +44,35 @@ describe('graph/rendering/nodeMedia', () => {
     vi.clearAllMocks();
   });
 
+  it('skips image overlay rendering when the node has no image url', () => {
+    const ctx = createContext();
+    const triggerImageRerender = vi.fn();
+
+    renderNodeImageOverlay(ctx, createNode(), triggerImageRerender);
+
+    expect(getImage).not.toHaveBeenCalled();
+    expect(drawShape).not.toHaveBeenCalled();
+    expect(ctx.save).not.toHaveBeenCalled();
+    expect(ctx.drawImage).not.toHaveBeenCalled();
+  });
+
+  it('stops image overlay rendering when the image is not yet cached', () => {
+    vi.mocked(getImage).mockReturnValue(undefined);
+    const ctx = createContext();
+    const triggerImageRerender = vi.fn();
+
+    renderNodeImageOverlay(
+      ctx,
+      createNode({ imageUrl: 'https://example.com/icon.png' }),
+      triggerImageRerender,
+    );
+
+    expect(getImage).toHaveBeenCalledWith('https://example.com/icon.png', triggerImageRerender);
+    expect(drawShape).not.toHaveBeenCalled();
+    expect(ctx.save).not.toHaveBeenCalled();
+    expect(ctx.drawImage).not.toHaveBeenCalled();
+  });
+
   it('draws an image overlay when the node image is cached', () => {
     const image = { width: 32, height: 32 };
     vi.mocked(getImage).mockReturnValue(image as HTMLImageElement);
@@ -55,6 +84,26 @@ describe('graph/rendering/nodeMedia', () => {
     expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 12.8);
     expect(ctx.clip).toHaveBeenCalled();
     expect(ctx.drawImage).toHaveBeenCalledWith(image, 14.4, 38.4, 19.2, 19.2);
+  });
+
+  it('skips plugin overlay rendering when no plugin host is available', () => {
+    renderNodePluginOverlay(undefined, createNode(), createContext(), 1, undefined);
+  });
+
+  it('skips plugin overlay rendering when no node renderer is registered', () => {
+    const getNodeRenderer = vi.fn(() => undefined);
+    const ctx = createContext();
+
+    renderNodePluginOverlay(
+      { getNodeRenderer } as unknown as WebviewPluginHost,
+      createNode(),
+      ctx,
+      1,
+      undefined,
+    );
+
+    expect(getNodeRenderer).toHaveBeenCalledWith('.ts');
+    expect(getNodeRenderer).toHaveBeenCalledWith('*');
   });
 
   it('uses the wildcard plugin renderer when no type-specific renderer is registered', () => {

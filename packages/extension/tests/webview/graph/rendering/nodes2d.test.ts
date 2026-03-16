@@ -157,6 +157,8 @@ describe('graph/rendering/nodes2d', () => {
         text: 'app.ts',
       }),
     ]));
+    expect(ctx.save).toHaveBeenCalledOnce();
+    expect(ctx.restore).toHaveBeenCalledOnce();
   });
 
   it('draws an image overlay when the node image is cached', () => {
@@ -274,6 +276,51 @@ describe('graph/rendering/nodes2d', () => {
         kind: 'stroke',
       }),
     ]));
+  });
+
+  it('keeps directly highlighted nodes fully opaque when they have no explicit base opacity', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeCanvas(
+      createDependencies({
+        highlightedNodeId: 'src/app.ts',
+        showLabels: false,
+      }),
+      createNode({ baseOpacity: undefined }),
+      ctx,
+      1,
+    );
+
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        globalAlpha: 1,
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        globalAlpha: 1,
+        kind: 'stroke',
+      }),
+    ]));
+  });
+
+  it('renders selected nodes with the selected border styling', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeCanvas(
+      createDependencies({
+        selectedNodeIds: new Set(['src/app.ts']),
+        showLabels: false,
+      }),
+      createNode(),
+      ctx,
+      1,
+    );
+
+    expect(operations).toContainEqual(expect.objectContaining({
+      kind: 'stroke',
+      lineWidth: 3,
+      strokeStyle: '#ffffff',
+    }));
   });
 
   it('paints the expanded pointer area around the node shape', () => {
