@@ -1,6 +1,6 @@
-import type { IGraphData } from '../../../shared/types';
-import type { GraphViewProviderAnalysisState } from '../analysis/lifecycle';
-import type { GraphViewProviderAnalysisMethodsSource } from './analysis';
+import type { IGraphData } from '../../../../shared/types';
+import type { GraphViewProviderAnalysisState } from '../../analysis/lifecycle';
+import type { GraphViewProviderAnalysisMethodsSource } from './index';
 
 interface GraphViewProviderWorkspaceReadyState {
   firstAnalysis: boolean;

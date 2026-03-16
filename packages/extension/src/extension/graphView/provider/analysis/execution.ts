@@ -1,13 +1,13 @@
-import { createGraphViewProviderAnalysisHandlers } from './analysisHandlers';
-import type { GraphViewProviderAnalysisDelegateCalls } from './analysisDelegates';
+import { createGraphViewProviderAnalysisHandlers } from './handlers';
+import type { GraphViewProviderAnalysisDelegateCalls } from './delegates';
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
-} from './analysis';
+} from './index';
 import {
   createGraphViewProviderAnalysisState,
   syncGraphViewProviderAnalysisExecutionState,
-} from './analysisState';
+} from './state';
 
 export function createGraphViewProviderDoAnalyzeAndSendData(
   source: GraphViewProviderAnalysisMethodsSource,

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/types';
+import type { IGraphData } from '../../../../../src/shared/types';
 import {
   createGraphViewProviderAnalysisState,
   createGraphViewProviderWorkspaceReadyState,
@@ -8,8 +8,8 @@ import {
   syncGraphViewProviderAnalysisExecutionState,
   syncGraphViewProviderAnalysisState,
   syncGraphViewProviderWorkspaceReadyState,
-} from '../../../../src/extension/graphView/provider/analysisState';
-import type { GraphViewProviderAnalysisMethodsSource } from '../../../../src/extension/graphView/provider/analysis';
+} from '../../../../../src/extension/graphView/provider/analysisState';
+import type { GraphViewProviderAnalysisMethodsSource } from '../../../../../src/extension/graphView/provider/analysis';
 
 function createSource(
   overrides: Partial<GraphViewProviderAnalysisMethodsSource> = {},

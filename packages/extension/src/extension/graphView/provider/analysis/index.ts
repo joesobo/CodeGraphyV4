@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { ExtensionToWebviewMessage, IGraphData } from '../../../shared/types';
+import type { ExtensionToWebviewMessage, IGraphData } from '../../../../shared/types';
 import {
   executeGraphViewProviderAnalysis,
   isGraphViewAbortError,
@@ -9,14 +9,14 @@ import {
   type GraphViewProviderAnalysisHandlers,
   type GraphViewProviderAnalysisRequestHandlers,
   type GraphViewProviderAnalysisState,
-} from '../analysis/lifecycle';
-import { createGraphViewProviderAnalysisDelegates } from './analysisDelegates';
+} from '../../analysis/lifecycle';
+import { createGraphViewProviderAnalysisDelegates } from './delegates';
 import {
   createGraphViewProviderWorkspaceReadyState,
   syncGraphViewProviderWorkspaceReadyState,
-} from './analysisState';
-import { createGraphViewProviderDoAnalyzeAndSendData } from './analysisExecution';
-import { createGraphViewProviderAnalyzeAndSendData } from './analysisRequest';
+} from './state';
+import { createGraphViewProviderDoAnalyzeAndSendData } from './execution';
+import { createGraphViewProviderAnalyzeAndSendData } from './request';
 
 interface GraphViewProviderWorkspaceReadyRegistryLike {
   notifyWorkspaceReady(graphData: IGraphData): void;

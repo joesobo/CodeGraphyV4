@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/types';
-import { createGraphViewProviderAnalysisDelegates } from '../../../../src/extension/graphView/provider/analysisDelegates';
-import { createGraphViewProviderAnalysisMethods } from '../../../../src/extension/graphView/provider/analysis';
+import type { IGraphData } from '../../../../../src/shared/types';
+import { createGraphViewProviderAnalysisDelegates } from '../../../../../src/extension/graphView/provider/analysisDelegates';
+import { createGraphViewProviderAnalysisMethods } from '../../../../../src/extension/graphView/provider/analysis';
 
-vi.mock('../../../../src/extension/graphView/provider/analysisDelegates', async importOriginal => {
+vi.mock('../../../../../src/extension/graphView/provider/analysisDelegates', async importOriginal => {
   const actual = await importOriginal<
-    typeof import('../../../../src/extension/graphView/provider/analysisDelegates')
+    typeof import('../../../../../src/extension/graphView/provider/analysisDelegates')
   >();
 
   return {

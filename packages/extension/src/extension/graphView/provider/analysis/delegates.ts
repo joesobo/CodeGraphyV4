@@ -1,5 +1,5 @@
-import type { IGraphData } from '../../../shared/types';
-import type { GraphViewProviderAnalysisMethodsSource } from './analysis';
+import type { IGraphData } from '../../../../shared/types';
+import type { GraphViewProviderAnalysisMethodsSource } from './index';
 
 interface GraphViewProviderAnalysisDelegateMethods {
   markWorkspaceReady(graph: IGraphData): void;

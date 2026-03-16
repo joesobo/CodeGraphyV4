@@ -6,8 +6,8 @@ import {
   isGraphViewAnalysisStale,
   markGraphViewWorkspaceReady,
   runGraphViewProviderAnalysisRequest,
-} from '../../../../src/extension/graphView/analysis/lifecycle';
-import { createDefaultGraphViewProviderAnalysisMethodDependencies } from '../../../../src/extension/graphView/provider/analysis';
+} from '../../../../../src/extension/graphView/analysis/lifecycle';
+import { createDefaultGraphViewProviderAnalysisMethodDependencies } from '../../../../../src/extension/graphView/provider/analysis';
 
 describe('graphView/provider/analysis default dependencies', () => {
   afterEach(() => {

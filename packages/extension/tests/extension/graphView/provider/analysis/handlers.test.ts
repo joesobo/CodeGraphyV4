@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/types';
+import type { IGraphData } from '../../../../../src/shared/types';
 import {
   createGraphViewProviderAnalysisHandlers,
   createGraphViewProviderAnalysisRequestHandlers,
-} from '../../../../src/extension/graphView/provider/analysisHandlers';
+} from '../../../../../src/extension/graphView/provider/analysisHandlers';
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
-} from '../../../../src/extension/graphView/provider/analysis';
+} from '../../../../../src/extension/graphView/provider/analysis';
 
 function createSource(
   overrides: Partial<GraphViewProviderAnalysisMethodsSource> = {},

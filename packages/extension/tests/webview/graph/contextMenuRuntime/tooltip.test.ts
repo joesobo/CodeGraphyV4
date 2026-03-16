@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GraphContextMenuRuntimeDependencies, GraphRef, GraphTimerHandle } from '../../../src/webview/components/graph/contextMenuRuntime';
-import type { GraphTooltipState } from '../../../src/webview/components/graphTooltipModel';
-import { createContextMenuTooltipRuntime } from '../../../src/webview/components/graph/contextMenuRuntimeTooltip';
+import type { GraphContextMenuRuntimeDependencies, GraphRef, GraphTimerHandle } from '../../../../src/webview/components/graph/contextMenuRuntime';
+import type { GraphTooltipState } from '../../../../src/webview/components/graphTooltipModel';
+import { createContextMenuTooltipRuntime } from '../../../../src/webview/components/graph/contextMenuRuntime/tooltip';
 
 function createRef<TValue>(current: TValue): GraphRef<TValue> {
   return { current };
@@ -47,7 +47,7 @@ function createDependencies(
   };
 }
 
-describe('graph/contextMenuRuntimeTooltip', () => {
+describe('graph/contextMenuRuntime/tooltip', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });

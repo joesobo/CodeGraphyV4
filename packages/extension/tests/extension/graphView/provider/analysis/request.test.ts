@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderAnalyzeAndSendData,
-} from '../../../../src/extension/graphView/provider/analysisRequest';
+} from '../../../../../src/extension/graphView/provider/analysisRequest';
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
-} from '../../../../src/extension/graphView/provider/analysis';
+} from '../../../../../src/extension/graphView/provider/analysis';
 
 function createSource(
   overrides: Partial<GraphViewProviderAnalysisMethodsSource> = {},

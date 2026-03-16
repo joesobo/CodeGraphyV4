@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { GraphContextMenuRuntimeDependencies } from '../../../src/webview/components/graph/contextMenuRuntime';
-import { createContextMenuEffectRuntime } from '../../../src/webview/components/graph/contextMenuRuntimeEffects';
+import type { GraphContextMenuRuntimeDependencies } from '../../../../src/webview/components/graph/contextMenuRuntime';
+import { createContextMenuEffectRuntime } from '../../../../src/webview/components/graph/contextMenuRuntime/effects';
 
 function createDependencies(
   overrides: Partial<GraphContextMenuRuntimeDependencies> = {},
@@ -17,7 +17,7 @@ function createDependencies(
   };
 }
 
-describe('graph/contextMenuRuntimeEffects', () => {
+describe('graph/contextMenuRuntime/effects', () => {
   it('applies built-in menu actions through context effects', () => {
     const dependencies = createDependencies();
     const runtime = createContextMenuEffectRuntime(dependencies);

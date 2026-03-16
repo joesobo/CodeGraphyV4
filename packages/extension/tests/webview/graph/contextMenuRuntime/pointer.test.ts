@@ -4,8 +4,8 @@ import type {
   GraphRef,
   GraphRightMouseDownState,
   GraphTimerHandle,
-} from '../../../src/webview/components/graph/contextMenuRuntime';
-import { createContextMenuPointerRuntime } from '../../../src/webview/components/graph/contextMenuRuntimePointer';
+} from '../../../../src/webview/components/graph/contextMenuRuntime';
+import { createContextMenuPointerRuntime } from '../../../../src/webview/components/graph/contextMenuRuntime/pointer';
 
 function createRef<TValue>(current: TValue): GraphRef<TValue> {
   return { current };
@@ -35,7 +35,7 @@ function createDependencies(
   return { dependencies };
 }
 
-describe('graph/contextMenuRuntimePointer', () => {
+describe('graph/contextMenuRuntime/pointer', () => {
   beforeEach(() => {
     vi.useFakeTimers();
   });

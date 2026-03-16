@@ -1,16 +1,16 @@
-import type { IGraphData } from '../../../shared/types';
+import type { IGraphData } from '../../../../shared/types';
 import type {
   GraphViewProviderAnalysisHandlers,
   GraphViewProviderAnalysisRequestHandlers,
-} from '../analysis/lifecycle';
+} from '../../analysis/lifecycle';
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
-} from './analysis';
+} from './index';
 import {
   setGraphViewProviderGraphData,
   setGraphViewProviderRawGraphData,
-} from './analysisState';
+} from './state';
 
 interface GraphViewProviderAnalysisHandlerCallbacks {
   executeAnalysis(signal: AbortSignal, requestId: number): Promise<void>;

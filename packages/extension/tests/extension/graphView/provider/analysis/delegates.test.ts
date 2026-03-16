@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/types';
-import { createGraphViewProviderAnalysisDelegates } from '../../../../src/extension/graphView/provider/analysisDelegates';
+import type { IGraphData } from '../../../../../src/shared/types';
+import { createGraphViewProviderAnalysisDelegates } from '../../../../../src/extension/graphView/provider/analysisDelegates';
 
 describe('graphView/provider/analysisDelegates', () => {
   it('calls the source workspace-ready callback when it exists', () => {
