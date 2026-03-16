@@ -1309,9 +1309,70 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
     - next cut:
       - split `exportMarkdownRenderer.ts`, `exportSvgShapes.ts`, `exportJsonRules.ts`, `exportSvgNodes.ts`, `exportJsonGroups.ts`, and `exportSvgLinks.ts` under `50` sites
       - only then switch to survivor cleanup in `common.ts`, `exportMarkdown.ts`, `exportSvg.ts`, and `exportSvgDocument.ts`
+- 2026-03-16 webview-export threshold completion:
+  - completed sub-splits under `packages/extension/src/webview/lib/export/`:
+    - JSON:
+      - `exportJsonRuleHelpers.ts`
+      - `exportJsonGroupHelpers.ts`
+    - Markdown:
+      - `exportMarkdownFiles.ts`
+      - `exportMarkdownGroups.ts`
+      - `exportMarkdownImages.ts`
+      - `exportMarkdownRules.ts`
+    - SVG:
+      - `exportSvgLinkNodeId.ts`
+      - `exportSvgLinkElement.ts`
+      - `exportSvgNodeMarkup.ts`
+      - `exportSvgNodeImageOverlay.ts`
+      - `exportSvgRegularPolygonPath.ts`
+      - `exportSvgStarPath.ts`
+  - expanded direct export tests to file-per-module coverage:
+    - `tests/webview/lib/export/exportJsonRuleHelpers.test.ts`
+    - `tests/webview/lib/export/exportJsonGroupHelpers.test.ts`
+    - `tests/webview/lib/export/exportMarkdownFiles.test.ts`
+    - `tests/webview/lib/export/exportMarkdownGroups.test.ts`
+    - `tests/webview/lib/export/exportMarkdownImages.test.ts`
+    - `tests/webview/lib/export/exportMarkdownRules.test.ts`
+    - `tests/webview/lib/export/exportSvgLinkNodeId.test.ts`
+    - `tests/webview/lib/export/exportSvgLinkElement.test.ts`
+    - `tests/webview/lib/export/exportSvgNodeMarkup.test.ts`
+    - `tests/webview/lib/export/exportSvgNodeImageOverlay.test.ts`
+    - `tests/webview/lib/export/exportSvgRegularPolygonPath.test.ts`
+    - `tests/webview/lib/export/exportSvgStarPath.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts $(fd -t f '.test.ts$' packages/extension/tests/webview/lib/export | sed 's#^packages/extension/##' | sort)`
+    - `103` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension webview-export`
+    - slice overall = `91.71%`
+    - `✅ All files are within the mutation site threshold (50).`
+    - current sub-90 files:
+      - `exportMarkdownRenderer.ts` = `66.67%`
+      - `exportSvgLinks.ts` = `68.75%`
+      - `exportSvgNodeImageOverlay.ts` = `76.19%`
+      - `exportSvgLinkElement.ts` = `79.17%`
+      - `exportMarkdown.ts` = `80.00%`
+      - `exportJsonGroups.ts` = `85.29%`
+      - `exportSvg.ts` = `88.89%`
+    - current high-floor files:
+      - `common.ts` = `96.15%`
+      - `exportJsonRuleHelpers.ts` = `91.89%`
+      - `exportJsonRules.ts` = `93.33%`
+      - `exportMarkdownFiles.ts` = `91.43%`
+      - `exportMarkdownGroups.ts` = `94.44%`
+      - `exportSvgDocument.ts` = `97.62%`
+      - `exportSvgNodes.ts` = `100.00%`
+      - `exportSvgShapes.ts` = `100.00%`
+      - `exportSvgRegularPolygonPath.ts` = `100.00%`
+      - `exportSvgStarPath.ts` = `100.00%`
+    - next cut:
+      - stay on `webview-export`, but switch from file-splitting to survivor cleanup
+      - start with `exportMarkdownRenderer.ts`, `exportSvgLinks.ts`, `exportSvgNodeImageOverlay.ts`, and `exportSvgLinkElement.ts`
+      - then finish `exportMarkdown.ts`, `exportJsonGroups.ts`, and `exportSvg.ts`
 
 ## Current hotspot order
-1. finish the `webview-export` threshold cuts, then harden remaining survivors there
+1. finish `webview-export` survivor cleanup to bring every file in the slice above `90%`
 2. refresh the remaining official extension slices: `git-history`, then any stale graph-webview/settings-panel files not yet officially rerun
 3. print the package-level mutation/CRAP/status summary from the refreshed slice set
 4. do the folder/name cleanup pass only after the mutation/crap baselines are recorded

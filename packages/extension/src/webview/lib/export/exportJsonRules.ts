@@ -1,10 +1,10 @@
 import type { IGraphEdge, IPluginStatus } from '../../../shared/types';
 import { UNATTRIBUTED_RULE_KEY, type ExportRule } from './exportTypes';
-
-interface RuleMeta {
-  name: string;
-  plugin: string;
-}
+import {
+  buildRulesRecord,
+  resolveRuleKeys as resolveRuleKeysHelper,
+  type RuleMeta,
+} from './exportJsonRuleHelpers';
 
 export interface ExportRuleLookups {
   ruleMetaByQualified: Record<string, RuleMeta>;
@@ -15,6 +15,8 @@ export interface ExportConnectionData {
   importsMap: Map<string, Record<string, string[]>>;
   rulesRecord: Record<string, ExportRule>;
 }
+
+export const resolveRuleKeys = resolveRuleKeysHelper;
 
 export function buildRuleLookups(pluginStatuses: IPluginStatus[] = []): ExportRuleLookups {
   const ruleMetaByQualified: Record<string, RuleMeta> = {};
@@ -75,45 +77,4 @@ export function buildConnectionData(
     importsMap,
     rulesRecord: buildRulesRecord(ruleConnectionCounts, lookups.ruleMetaByQualified),
   };
-}
-
-export function resolveRuleKeys(
-  edge: Pick<IGraphEdge, 'ruleIds' | 'ruleId'>,
-  qualifiedByRuleId: Map<string, string[]>,
-): string[] {
-  if (Array.isArray(edge.ruleIds) && edge.ruleIds.length > 0) {
-    return edge.ruleIds;
-  }
-
-  if (edge.ruleId) {
-    const qualified = qualifiedByRuleId.get(edge.ruleId);
-    if (qualified && qualified.length === 1) {
-      return [qualified[0]];
-    }
-
-    return [edge.ruleId];
-  }
-
-  return [UNATTRIBUTED_RULE_KEY];
-}
-
-function buildRulesRecord(
-  ruleConnectionCounts: Map<string, number>,
-  ruleMetaByQualified: Record<string, RuleMeta>,
-): Record<string, ExportRule> {
-  const rulesRecord: Record<string, ExportRule> = {};
-
-  for (const key of Array.from(ruleConnectionCounts.keys()).sort()) {
-    const meta = ruleMetaByQualified[key];
-    const fallbackName = key.includes(':') ? key.split(':').slice(1).join(':') : key;
-    const fallbackPlugin = key.includes(':') ? key.split(':')[0] : 'unknown';
-
-    rulesRecord[key] = {
-      name: meta?.name ?? fallbackName,
-      plugin: meta?.plugin ?? fallbackPlugin,
-      connections: ruleConnectionCounts.get(key) ?? 0,
-    };
-  }
-
-  return rulesRecord;
 }

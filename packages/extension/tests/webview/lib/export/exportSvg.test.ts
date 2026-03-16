@@ -53,6 +53,12 @@ describe('exportAsSvg', () => {
         filename: 'codegraphy-2026-03-16T12-34-56.svg',
       },
     });
+    const payload = svgHarness.postMessage.mock.calls[0][0] as {
+      payload: { svg: string };
+    };
+    expect(payload.payload.svg).toContain('<defs><marker id="arrowhead"');
+    expect(payload.payload.svg).toContain('fill="#18181b"');
+    expect(payload.payload.svg).not.toContain('<image ');
   });
 
   it('logs and swallows failures', () => {
