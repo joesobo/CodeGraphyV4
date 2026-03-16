@@ -53,8 +53,10 @@ function filterGraphViewTimelineEdges(
     return rawGraphData.edges;
   }
 
+  const { registry, workspaceRoot } = options;
+
   return rawGraphData.edges.filter((edge) => {
-    const plugin = options.registry?.getPluginForFile(path.join(options.workspaceRoot!, edge.from));
+    const plugin = registry.getPluginForFile(path.join(workspaceRoot, edge.from));
     if (!plugin) return true;
     if (options.disabledPlugins.has(plugin.id)) return false;
     if (edge.ruleId && options.disabledRules.has(`${plugin.id}:${edge.ruleId}`)) return false;

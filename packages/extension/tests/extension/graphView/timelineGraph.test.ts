@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import * as path from 'path';
+import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../src/shared/types';
 import { buildGraphViewTimelineGraphData } from '../../../src/extension/graphView/timelineGraph';
 
@@ -37,6 +38,27 @@ describe('graphView/timelineGraph', () => {
     ]);
   });
 
+  it('keeps all nodes when showOrphans is enabled', () => {
+    const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
+      disabledPlugins: new Set(['codegraphy.typescript']),
+      disabledRules: new Set<string>(),
+      showOrphans: true,
+      workspaceRoot: '/workspace',
+      registry: {
+        getPluginForFile(filePath) {
+          if (filePath.endsWith('src/a.ts')) {
+            return { id: 'codegraphy.typescript' };
+          }
+
+          return { id: 'codegraphy.python' };
+        },
+      },
+    });
+
+    expect(graphData.nodes).toBe(rawGraphData.nodes);
+    expect(graphData.nodes.map((node) => node.id)).toEqual(['src/a.ts', 'src/b.ts', 'src/c.ts']);
+  });
+
   it('filters out edges from disabled rules', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set<string>(),
@@ -71,5 +93,67 @@ describe('graphView/timelineGraph', () => {
     });
 
     expect(graphData.nodes.map((node) => node.id)).toEqual(['src/b.ts', 'src/c.ts']);
+  });
+
+  it('returns the original edge array when no plugin or rule filters are disabled', () => {
+    const getPluginForFile = vi.fn(() => ({ id: 'codegraphy.typescript' }));
+
+    const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
+      disabledPlugins: new Set<string>(),
+      disabledRules: new Set<string>(),
+      showOrphans: true,
+      workspaceRoot: '/workspace',
+      registry: { getPluginForFile },
+    });
+
+    expect(graphData.edges).toBe(rawGraphData.edges);
+    expect(getPluginForFile).not.toHaveBeenCalled();
+  });
+
+  it('returns the original edge array when the registry is missing', () => {
+    const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
+      disabledPlugins: new Set(['codegraphy.typescript']),
+      disabledRules: new Set<string>(),
+      showOrphans: true,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(graphData.edges).toBe(rawGraphData.edges);
+  });
+
+  it('returns the original edge array when the workspace root is missing', () => {
+    const getPluginForFile = vi.fn(() => ({ id: 'codegraphy.typescript' }));
+
+    const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
+      disabledPlugins: new Set(['codegraphy.typescript']),
+      disabledRules: new Set<string>(),
+      showOrphans: true,
+      registry: { getPluginForFile },
+    });
+
+    expect(graphData.edges).toBe(rawGraphData.edges);
+    expect(getPluginForFile).not.toHaveBeenCalled();
+  });
+
+  it('keeps edges when the registry cannot resolve a plugin for the source file', () => {
+    const getPluginForFile = vi.fn((filePath: string) => {
+      if (filePath === path.join('/workspace', 'src/a.ts')) {
+        return undefined;
+      }
+
+      return { id: 'codegraphy.python' };
+    });
+
+    const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
+      disabledPlugins: new Set(['codegraphy.typescript']),
+      disabledRules: new Set<string>(),
+      showOrphans: true,
+      workspaceRoot: '/workspace',
+      registry: { getPluginForFile },
+    });
+
+    expect(graphData.edges).toEqual(rawGraphData.edges);
+    expect(getPluginForFile).toHaveBeenNthCalledWith(1, path.join('/workspace', 'src/a.ts'));
+    expect(getPluginForFile).toHaveBeenNthCalledWith(2, path.join('/workspace', 'src/c.ts'));
   });
 });
