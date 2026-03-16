@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getNodeDoubleClickCommand,
   isDoubleNodeClick,
-} from '../../src/webview/components/graphInteraction/nodeDoubleClick';
+} from '../../../src/webview/components/graphInteraction/nodeDoubleClick';
 
 function makeNodeDoubleClickOptions(
   overrides: Partial<Parameters<typeof getNodeDoubleClickCommand>[0]> = {},

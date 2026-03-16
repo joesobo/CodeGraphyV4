@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getNodeSingleClickCommand } from '../../src/webview/components/graphInteraction/nodeSingleClick';
+import { getNodeSingleClickCommand } from '../../../src/webview/components/graphInteraction/nodeSingleClick';
 
 function makeNodeSingleClickOptions(
   overrides: Partial<Parameters<typeof getNodeSingleClickCommand>[0]> = {},

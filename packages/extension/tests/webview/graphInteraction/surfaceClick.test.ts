@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   getBackgroundClickCommand,
   getLinkClickCommand,
-} from '../../src/webview/components/graphInteraction/surfaceClick';
+} from '../../../src/webview/components/graphInteraction/surfaceClick';
 
 describe('graphInteraction surface click', () => {
   it('opens the background context menu for mac control-click', () => {
