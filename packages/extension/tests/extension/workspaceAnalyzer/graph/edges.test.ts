@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection, IPlugin } from '../../../src/core/plugins';
-import { buildWorkspaceGraphEdges } from '../../../src/extension/workspaceAnalyzer/graphEdges';
+import type { IConnection, IPlugin } from '../../../../src/core/plugins';
+import { buildWorkspaceGraphEdges } from '../../../../src/extension/workspaceAnalyzer/graph/edges';
 
 function createPlugin(id: string): IPlugin {
   return {
@@ -29,7 +29,7 @@ function createOptions(
   };
 }
 
-describe('workspaceAnalyzer/graphEdges', () => {
+describe('workspaceAnalyzer/graph/edges', () => {
   it('deduplicates repeated edges and accumulates distinct qualified rule ids', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
       fileConnections: new Map<string, IConnection[]>([
