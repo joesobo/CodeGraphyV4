@@ -1370,14 +1370,52 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - stay on `webview-export`, but switch from file-splitting to survivor cleanup
       - start with `exportMarkdownRenderer.ts`, `exportSvgLinks.ts`, `exportSvgNodeImageOverlay.ts`, and `exportSvgLinkElement.ts`
       - then finish `exportMarkdown.ts`, `exportJsonGroups.ts`, and `exportSvg.ts`
+- 2026-03-16 webview-export survivor completion:
+  - hardened direct export tests under `tests/webview/lib/export/`:
+    - `exportJson.test.ts`
+    - `exportJsonGroups.test.ts`
+    - `exportMarkdown.test.ts`
+    - `exportMarkdownRenderer.test.ts`
+    - `exportSvg.test.ts`
+    - `exportSvgDocument.test.ts`
+    - `exportSvgLinkElement.test.ts`
+    - `exportSvgLinks.test.ts`
+    - `exportSvgNodeImageOverlay.test.ts`
+  - trimmed a redundant null-guard branch in `packages/extension/src/webview/lib/export/exportSvgLinks.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts $(fd -t f '.test.ts$' packages/extension/tests/webview/lib/export | sed 's#^packages/extension/##' | sort)`
+    - `110` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension webview-export`
+    - slice overall = `98.17%`
+    - `✅ every file in the refreshed webview-export slice is above the 90% mutation goal`
+    - `✅ every file in the refreshed webview-export slice is within the 50-site threshold`
+    - remaining low-end files still above goal:
+      - `exportJsonRuleHelpers.ts` = `91.89%`
+      - `exportMarkdownFiles.ts` = `91.43%`
+      - `exportJsonRules.ts` = `93.33%`
+      - `common.ts` = `96.15%`
+      - `exportJsonGroupHelpers.ts` = `96.30%`
+    - direct wins from this pass:
+      - `exportSvgLinks.ts` = `100.00%`
+      - `exportMarkdownGroups.ts` = `100.00%`
+      - `exportMarkdown.ts` = `100.00%`
+      - `exportSvg.ts` = `100.00%`
+      - `exportSvgDocument.ts` = `100.00%`
+      - `exportSvgLinkElement.ts` = `100.00%`
+      - `exportSvgNodeImageOverlay.ts` = `100.00%`
+    - next cut:
+      - move off `webview-export`
+      - refresh `git-history` next
+      - then rerun package-level CRAP and mutation status to identify the next stale extension slice
 
 ## Current hotspot order
-1. finish `webview-export` survivor cleanup to bring every file in the slice above `90%`
-2. refresh the remaining official extension slices: `git-history`, then any stale graph-webview/settings-panel files not yet officially rerun
-3. print the package-level mutation/CRAP/status summary from the refreshed slice set
-4. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
-5. update the PR description with the completed refactor record
-6. resolve any remaining merge conflict drift on the PR branch
+1. refresh the remaining official extension slices: `git-history`, then any stale graph-webview/settings-panel files not yet officially rerun
+2. print the package-level mutation/CRAP/status summary from the refreshed slice set
+3. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
+4. update the PR description with the completed refactor record
+5. resolve any remaining merge conflict drift on the PR branch
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.

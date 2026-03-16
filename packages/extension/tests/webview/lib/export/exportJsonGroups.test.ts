@@ -22,9 +22,10 @@ describe('exportJsonGroups', () => {
   });
 
   describe('buildGroupedSections', () => {
-    it('uses first-match wins, skips disabled groups, and preserves alphabetical file order', () => {
+    it('uses first-match wins, reuses grouped file maps, and preserves alphabetical file order', () => {
       const nodes: IGraphNode[] = [
         { id: 'src/App.tsx', label: 'App.tsx', color: '#fff' },
+        { id: 'src/Another.tsx', label: 'Another.tsx', color: '#fff' },
         { id: 'src/utils.ts', label: 'utils.ts', color: '#fff' },
         { id: 'README.md', label: 'README.md', color: '#fff' },
       ];
@@ -41,6 +42,7 @@ describe('exportJsonGroups', () => {
 
       expect(Object.keys(result.groupsRecord)).toEqual(['*.tsx', 'src/**']);
       expect(result.groupsRecord['*.tsx'].files).toEqual({
+        'src/Another.tsx': {},
         'src/App.tsx': { imports: { rule: ['src/utils.ts'] } },
       });
       expect(result.groupsRecord['*.tsx'].style).toEqual({
@@ -55,6 +57,34 @@ describe('exportJsonGroups', () => {
       });
       expect(result.ungroupedFiles).toEqual({
         'README.md': {},
+      });
+    });
+
+    it('skips active groups without files and accumulates groups that share an image path', () => {
+      const nodes: IGraphNode[] = [
+        { id: 'src/App.tsx', label: 'App.tsx', color: '#fff' },
+        { id: 'src/utils.ts', label: 'utils.ts', color: '#fff' },
+      ];
+      const groups: IGroup[] = [
+        { id: 'tsx', pattern: '*.tsx', color: '#3B82F6', imagePath: '.codegraphy/images/shared.png' },
+        { id: 'ts', pattern: '*.ts', color: '#10B981', imagePath: '.codegraphy/images/shared.png' },
+        { id: 'unused', pattern: '*.md', color: '#f97316', imagePath: '.codegraphy/images/unused.png' },
+      ];
+
+      const result = buildGroupedSections(nodes, groups, new Map());
+
+      expect(result.groupsRecord).toEqual({
+        '*.tsx': {
+          style: { color: '#3B82F6', image: '.codegraphy/images/shared.png' },
+          files: { 'src/App.tsx': {} },
+        },
+        '*.ts': {
+          style: { color: '#10B981', image: '.codegraphy/images/shared.png' },
+          files: { 'src/utils.ts': {} },
+        },
+      });
+      expect(result.imagesRecord).toEqual({
+        '.codegraphy/images/shared.png': { groups: ['*.tsx', '*.ts'] },
       });
     });
   });

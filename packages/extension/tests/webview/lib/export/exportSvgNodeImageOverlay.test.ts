@@ -44,6 +44,8 @@ describe('exportSvgNodeImageOverlay', () => {
     appendNodeImageOverlay({ ...node, imageUrl: undefined }, { x: 50, y: 60 }, 'circle', definitions, imageElements);
     appendNodeImageOverlay(node, { x: 50, y: 60 }, 'circle', definitions, imageElements);
 
+    expect(overlayHarness.getImage).toHaveBeenCalledTimes(1);
+    expect(overlayHarness.getImage).toHaveBeenCalledWith('https://example.com/icon.png');
     expect(definitions).toEqual([]);
     expect(imageElements).toEqual([]);
   });
@@ -58,12 +60,36 @@ describe('exportSvgNodeImageOverlay', () => {
 
     appendNodeImageOverlay(node, { x: 50, y: 60 }, 'circle', definitions, imageElements);
 
+    expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledWith('2d');
+    expect(HTMLCanvasElement.prototype.toDataURL).toHaveBeenCalledWith('image/png');
     expect(definitions).toEqual([
       '<clipPath id="clip-node_1"><circle cx="50" cy="60" r="16"/></clipPath>',
     ]);
     expect(imageElements).toEqual([
       '<image href="data:image/png;base64,encoded" x="38" y="48" width="24" height="24" clip-path="url(#clip-node_1)"/>',
     ]);
+  });
+
+  it('falls back to a 64px canvas dimension when the cached image has no natural size', () => {
+    const definitions: string[] = [];
+    const imageElements: string[] = [];
+    const image = document.createElement('img') as HTMLImageElement;
+    const drawImage = vi.fn();
+    const getContext = vi.fn(() => ({
+      drawImage,
+    }));
+
+    Object.defineProperty(image, 'naturalWidth', { value: 0 });
+    Object.defineProperty(image, 'naturalHeight', { value: 0 });
+    overlayHarness.getImage.mockReturnValue(image);
+    HTMLCanvasElement.prototype.getContext = getContext as typeof HTMLCanvasElement.prototype.getContext;
+
+    appendNodeImageOverlay(node, { x: 50, y: 60 }, 'circle', definitions, imageElements);
+
+    const canvas = getContext.mock.instances[0] as HTMLCanvasElement;
+    expect(canvas.width).toBe(64);
+    expect(canvas.height).toBe(64);
+    expect(drawImage).toHaveBeenCalledWith(image, 0, 0);
   });
 
   it('stops after defining the clip path when the canvas context is unavailable', () => {
@@ -75,6 +101,7 @@ describe('exportSvgNodeImageOverlay', () => {
 
     appendNodeImageOverlay({ ...node, id: 'node:2', shape2D: 'diamond' }, { x: 50, y: 60 }, 'diamond', definitions, imageElements);
 
+    expect(HTMLCanvasElement.prototype.getContext).toHaveBeenCalledWith('2d');
     expect(definitions).toEqual([
       '<clipPath id="clip-node_2"><path d="M50,44L66,60L50,76L34,60Z"/></clipPath>',
     ]);

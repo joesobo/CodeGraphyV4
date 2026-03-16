@@ -1,8 +1,38 @@
-import { describe, it, expect } from 'vitest';
-import { buildExportData, UNATTRIBUTED_RULE_KEY } from '../../../../src/webview/lib/export/exportJson';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+
+const jsonHarness = vi.hoisted(() => ({
+  postMessage: vi.fn(),
+}));
+
+vi.mock('../../../../src/webview/lib/vscodeApi', () => ({
+  postMessage: jsonHarness.postMessage,
+}));
+
+vi.mock('../../../../src/webview/lib/export/common', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../../src/webview/lib/export/common')>();
+  return {
+    ...actual,
+    createExportTimestamp: () => '2026-03-16T12-34-56',
+  };
+});
+
+import { buildExportData, exportAsJson, UNATTRIBUTED_RULE_KEY } from '../../../../src/webview/lib/export/exportJson';
 import type { IGraphData, IGroup, IPluginStatus } from '../../../../src/shared/types';
+import { graphStore } from '../../../../src/webview/store';
 
 const noGroups: IGroup[] = [];
+const initialStoreState = {
+  currentCommitSha: graphStore.getState().currentCommitSha,
+  groups: graphStore.getState().groups,
+  pluginStatuses: graphStore.getState().pluginStatuses,
+  timelineActive: graphStore.getState().timelineActive,
+};
+
+afterEach(() => {
+  graphStore.setState(initialStoreState);
+  jsonHarness.postMessage.mockReset();
+  vi.restoreAllMocks();
+});
 
 describe('buildExportData', () => {
   it('returns labeled top-level sections for an empty graph', () => {
@@ -176,5 +206,79 @@ describe('buildExportData', () => {
 
     const result = buildExportData(data, noGroups);
     expect(Object.keys(result.sections.connections.ungrouped)).toEqual(['a.ts', 'm.ts', 'z.ts']);
+  });
+
+  it('posts a timestamped json export message through the webview api', () => {
+    const data: IGraphData = {
+      nodes: [{ id: 'src/App.tsx', label: 'App.tsx', color: '#fff' }],
+      edges: [],
+    };
+    graphStore.setState({
+      currentCommitSha: 'abc123',
+      groups: [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }],
+      pluginStatuses: [],
+      timelineActive: true,
+    });
+
+    exportAsJson(data);
+
+    expect(jsonHarness.postMessage).toHaveBeenCalledWith({
+      type: 'EXPORT_JSON',
+      payload: {
+        json: expect.any(String),
+        filename: 'codegraphy-connections-2026-03-16T12-34-56.json',
+      },
+    });
+    const message = jsonHarness.postMessage.mock.calls[0][0] as {
+      payload: { json: string };
+    };
+    expect(JSON.parse(message.payload.json)).toEqual({
+      format: 'codegraphy-export',
+      version: '2.0',
+      exportedAt: expect.any(String),
+      scope: {
+        graph: 'current-view',
+        timeline: {
+          active: true,
+          commitSha: 'abc123',
+        },
+      },
+      summary: {
+        totalFiles: 1,
+        totalConnections: 0,
+        totalRules: 0,
+        totalGroups: 1,
+        totalImages: 0,
+      },
+      sections: {
+        connections: {
+          rules: {},
+          groups: {
+            '*.tsx': {
+              style: {
+                color: '#3B82F6',
+              },
+              files: {
+                'src/App.tsx': {},
+              },
+            },
+          },
+          ungrouped: {},
+        },
+        images: {},
+      },
+    });
+  });
+
+  it('logs json export failures instead of throwing', () => {
+    const error = new Error('json failed');
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    jsonHarness.postMessage.mockImplementation(() => {
+      throw error;
+    });
+
+    exportAsJson({ nodes: [], edges: [] });
+
+    expect(consoleError).toHaveBeenCalledWith('[CodeGraphy] JSON export failed:', error);
   });
 });

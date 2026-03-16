@@ -75,6 +75,7 @@ describe('exportSvgDocument', () => {
       expect(svg).toContain('<defs><clipPath id="node"/><circle cx="0" cy="0" r="5"/></clipPath></defs>');
       expect(svg).toContain('<image href="data:image/png;base64,abc"/>');
       expect(svg.indexOf('<defs>')).toBeLessThan(svg.indexOf('<image'));
+      expect(svg).not.toContain('Stryker was here!');
       expect(svg).toContain('</svg>');
     });
 

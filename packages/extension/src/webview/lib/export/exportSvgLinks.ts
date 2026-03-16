@@ -11,12 +11,8 @@ export function appendLinkElements(
   for (const link of links) {
     const sourceId = getLinkNodeId(link.source);
     const targetId = getLinkNodeId(link.target);
-    if (sourceId === null || targetId === null) {
-      continue;
-    }
-
-    const from = positionMap.get(sourceId);
-    const to = positionMap.get(targetId);
+    const from = sourceId === null ? undefined : positionMap.get(sourceId);
+    const to = targetId === null ? undefined : positionMap.get(targetId);
     if (!from || !to) {
       continue;
     }

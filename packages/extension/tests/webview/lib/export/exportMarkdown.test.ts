@@ -1,8 +1,38 @@
-import { describe, it, expect } from 'vitest';
-import { buildMarkdownExport } from '../../../../src/webview/lib/export/exportMarkdown';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+
+const markdownHarness = vi.hoisted(() => ({
+  postMessage: vi.fn(),
+}));
+
+vi.mock('../../../../src/webview/lib/vscodeApi', () => ({
+  postMessage: markdownHarness.postMessage,
+}));
+
+vi.mock('../../../../src/webview/lib/export/common', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../../../../src/webview/lib/export/common')>();
+  return {
+    ...actual,
+    createExportTimestamp: () => '2026-03-16T12-34-56',
+  };
+});
+
+import { buildMarkdownExport, exportAsMarkdown } from '../../../../src/webview/lib/export/exportMarkdown';
 import type { IGraphData, IGroup, IPluginStatus } from '../../../../src/shared/types';
+import { graphStore } from '../../../../src/webview/store';
 
 const noGroups: IGroup[] = [];
+const initialStoreState = {
+  currentCommitSha: graphStore.getState().currentCommitSha,
+  groups: graphStore.getState().groups,
+  pluginStatuses: graphStore.getState().pluginStatuses,
+  timelineActive: graphStore.getState().timelineActive,
+};
+
+afterEach(() => {
+  graphStore.setState(initialStoreState);
+  markdownHarness.postMessage.mockReset();
+  vi.restoreAllMocks();
+});
 
 describe('buildMarkdownExport', () => {
   it('includes summary and labeled top-level sections', () => {
@@ -86,5 +116,58 @@ describe('buildMarkdownExport', () => {
     const result = buildMarkdownExport(data, noGroups);
     expect(result).toContain('### Groups');
     expect(result).toContain('- none');
+  });
+
+  it('posts a timestamped markdown export message through the webview api', () => {
+    const data: IGraphData = {
+      nodes: [{ id: 'src/App.tsx', label: 'App.tsx', color: '#fff' }],
+      edges: [],
+    };
+    graphStore.setState({
+      currentCommitSha: 'abc123',
+      groups: [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }],
+      pluginStatuses: [],
+      timelineActive: true,
+    });
+
+    exportAsMarkdown(data);
+
+    expect(markdownHarness.postMessage).toHaveBeenCalledWith({
+      type: 'EXPORT_MD',
+      payload: {
+        markdown: [
+          '# CodeGraphy Export',
+          '',
+          '> 1 files, 0 connections',
+          '> timeline commit: abc123',
+          '',
+          '## Connections',
+          '',
+          '### Groups',
+          '',
+          '#### `*.tsx`',
+          '- style: #3B82F6',
+          '- src/App.tsx',
+          '',
+          '## Images',
+          '',
+          '- none',
+          '',
+        ].join('\n'),
+        filename: 'codegraphy-connections-2026-03-16T12-34-56.md',
+      },
+    });
+  });
+
+  it('logs markdown export failures instead of throwing', () => {
+    const error = new Error('markdown failed');
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    markdownHarness.postMessage.mockImplementation(() => {
+      throw error;
+    });
+
+    exportAsMarkdown({ nodes: [], edges: [] });
+
+    expect(consoleError).toHaveBeenCalledWith('[CodeGraphy] Markdown export failed:', error);
   });
 });

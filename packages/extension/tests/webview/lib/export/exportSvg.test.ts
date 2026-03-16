@@ -59,6 +59,7 @@ describe('exportAsSvg', () => {
     expect(payload.payload.svg).toContain('<defs><marker id="arrowhead"');
     expect(payload.payload.svg).toContain('fill="#18181b"');
     expect(payload.payload.svg).not.toContain('<image ');
+    expect(payload.payload.svg).not.toContain('Stryker was here');
   });
 
   it('logs and swallows failures', () => {

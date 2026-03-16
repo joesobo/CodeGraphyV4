@@ -23,11 +23,11 @@ describe('exportSvgLinkElement', () => {
       target: 'b',
       bidirectional: true,
       baseColor: '#0ea5e9',
-      curvature: -0.5,
+      curvature: 0.5,
     };
 
-    expect(buildLinkElement(link, { x: 0, y: 0 }, { x: 10, y: 0 }, true)).toBe(
-      '<path d="M0,0 Q5,-5 10,0" fill="none" stroke="#0ea5e9" stroke-width="2" marker-end="url(#arrowhead)"/>'
+    expect(buildLinkElement(link, { x: 1, y: 2 }, { x: 8, y: 5 }, true)).toBe(
+      '<path d="M1,2 Q3,7 8,5" fill="none" stroke="#0ea5e9" stroke-width="2" marker-end="url(#arrowhead)"/>'
     );
   });
 });

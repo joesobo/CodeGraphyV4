@@ -60,4 +60,34 @@ describe('exportSvgLinks', () => {
       `<path d="M0,0 Q5,5 10,0" fill="none" stroke="${DEFAULT_DIRECTION_COLOR}" stroke-width="2"/>`,
     ]);
   });
+
+  it('skips links with missing endpoint ids even when the position map contains null keys', () => {
+    const parts: string[] = [];
+    const links: SvgExportLink[] = [
+      {
+        source: undefined,
+        target: 'b',
+        bidirectional: false,
+      },
+      {
+        source: 'a',
+        target: {},
+        bidirectional: false,
+      },
+    ];
+    const positionMap = new Map<unknown, { x: number; y: number }>([
+      [null, { x: 100, y: 100 }],
+      ['a', { x: 0, y: 0 }],
+      ['b', { x: 10, y: 10 }],
+    ]);
+
+    appendLinkElements(
+      parts,
+      links,
+      positionMap as unknown as Map<string, { x: number; y: number }>,
+      false
+    );
+
+    expect(parts).toEqual([]);
+  });
 });
