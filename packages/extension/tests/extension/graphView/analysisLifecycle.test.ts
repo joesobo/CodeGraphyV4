@@ -61,18 +61,28 @@ describe('graph view provider analysis lifecycle helper', () => {
       analysisController: new AbortController(),
     });
     const handlers = createHandlers();
+    const updateAnalysisController = vi.fn();
+    const updateAnalysisRequestId = vi.fn();
 
     await runGraphViewProviderAnalysisRequest(state, {
       executeAnalysis: (signal, requestId) =>
         executeGraphViewProviderAnalysis(signal, requestId, state, handlers),
       isAbortError: error => isGraphViewAbortError(error),
       logError: handlers.logError,
+      updateAnalysisController,
+      updateAnalysisRequestId,
     });
 
     expect(state.analysisRequestId).toBe(1);
     expect(state.analysisController).toBeUndefined();
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith({ nodes: [], edges: [] });
     expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
+    expect(updateAnalysisController).toHaveBeenNthCalledWith(
+      1,
+      expect.any(AbortController),
+    );
+    expect(updateAnalysisController).toHaveBeenLastCalledWith(undefined);
+    expect(updateAnalysisRequestId).toHaveBeenCalledWith(1);
   });
 
   it('syncs analyzer initialization state after execution', async () => {
@@ -97,6 +107,31 @@ describe('graph view provider analysis lifecycle helper', () => {
     expect(state.analyzer?.analyze).toHaveBeenCalledOnce();
   });
 
+  it('forwards stale and abort checks through the provider wrappers', async () => {
+    const abortController = new AbortController();
+    const abortError = new Error('cancelled');
+    abortError.name = 'AbortError';
+    const state = createState({
+      analysisRequestId: 1,
+      analyzer: {
+        initialize: vi.fn(() => Promise.resolve()),
+        analyze: vi.fn(() => Promise.reject(abortError)),
+        registry: {
+          notifyPostAnalyze: vi.fn(),
+        },
+      },
+    });
+    const handlers = createHandlers({
+      isAnalysisStale: vi.fn(() => false),
+      isAbortError: vi.fn(() => true),
+    });
+
+    await executeGraphViewProviderAnalysis(abortController.signal, 1, state, handlers);
+
+    expect(handlers.isAnalysisStale).toHaveBeenCalledWith(abortController.signal, 1);
+    expect(handlers.isAbortError).toHaveBeenCalledWith(expect.anything());
+  });
+
   it('marks workspace ready once and resolves waiters', () => {
     const resolveFirstWorkspaceReady = vi.fn();
     const workspaceReadyState = {
@@ -115,6 +150,22 @@ describe('graph view provider analysis lifecycle helper', () => {
     expect(workspaceReadyState.resolveFirstWorkspaceReady).toBeUndefined();
     expect(registry.notifyWorkspaceReady).toHaveBeenCalledTimes(1);
     expect(resolveFirstWorkspaceReady).toHaveBeenCalledTimes(1);
+  });
+
+  it('marks first analysis complete without requiring registry listeners', () => {
+    const workspaceReadyState = {
+      firstAnalysis: true,
+      resolveFirstWorkspaceReady: undefined,
+    };
+
+    expect(() =>
+      markGraphViewWorkspaceReady(workspaceReadyState, undefined, {
+        nodes: [],
+        edges: [],
+      }),
+    ).not.toThrow();
+    expect(workspaceReadyState.firstAnalysis).toBe(false);
+    expect(workspaceReadyState.resolveFirstWorkspaceReady).toBeUndefined();
   });
 
   it('detects stale requests and abort errors', () => {

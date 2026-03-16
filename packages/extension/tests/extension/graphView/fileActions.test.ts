@@ -40,6 +40,19 @@ describe('graphView/fileActions', () => {
     expect(executeDeleteAction).not.toHaveBeenCalled();
   });
 
+  it('returns before prompting when no workspace folder is available for delete', async () => {
+    const showWarningMessage = vi.fn(async () => 'Delete');
+    const executeDeleteAction = vi.fn(async () => undefined);
+
+    await deleteGraphViewFiles(['src/app.ts'], {
+      showWarningMessage,
+      executeDeleteAction,
+    });
+
+    expect(showWarningMessage).not.toHaveBeenCalled();
+    expect(executeDeleteAction).not.toHaveBeenCalled();
+  });
+
   it('creates the file selected in the input box', async () => {
     const executeCreateAction = vi.fn(async () => undefined);
     const showInputBox = vi.fn(async () => 'newfile.ts');
@@ -70,6 +83,48 @@ describe('graphView/fileActions', () => {
       showInputBox: vi.fn(async () => 'newfile.ts'),
       executeCreateAction: vi.fn(async () => {
         throw new Error('disk full');
+      }),
+      showErrorMessage,
+    });
+
+    expect(showErrorMessage).toHaveBeenCalledWith('Failed to create file: disk full');
+  });
+
+  it('returns before prompting when no workspace folder is available for create', async () => {
+    const showInputBox = vi.fn(async () => 'newfile.ts');
+    const executeCreateAction = vi.fn(async () => undefined);
+
+    await createGraphViewFile('src', {
+      showInputBox,
+      executeCreateAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(showInputBox).not.toHaveBeenCalled();
+    expect(executeCreateAction).not.toHaveBeenCalled();
+  });
+
+  it('returns when the create prompt is cancelled', async () => {
+    const executeCreateAction = vi.fn(async () => undefined);
+
+    await createGraphViewFile('src', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => undefined),
+      executeCreateAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeCreateAction).not.toHaveBeenCalled();
+  });
+
+  it('stringifies non-error create failures', async () => {
+    const showErrorMessage = vi.fn();
+
+    await createGraphViewFile('.', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => 'newfile.ts'),
+      executeCreateAction: vi.fn(async () => {
+        throw 'disk full';
       }),
       showErrorMessage,
     });
