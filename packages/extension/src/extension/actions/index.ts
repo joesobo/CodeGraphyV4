@@ -3,9 +3,9 @@
  * @module extension/actions
  */
 
-export { ToggleFavoriteAction } from './ToggleFavoriteAction';
-export { AddToExcludeAction } from './AddToExcludeAction';
-export { DeleteFilesAction } from './DeleteFilesAction';
-export { RenameFileAction } from './RenameFileAction';
-export { CreateFileAction } from './CreateFileAction';
-export { ResetSettingsAction } from './ResetSettingsAction';
+export { ToggleFavoriteAction } from './toggleFavorite';
+export { AddToExcludeAction } from './addToExclude';
+export { DeleteFilesAction } from './deleteFiles';
+export { RenameFileAction } from './renameFile';
+export { CreateFileAction } from './createFile';
+export { ResetSettingsAction } from './resetSettings';
