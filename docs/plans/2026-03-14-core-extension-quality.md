@@ -658,6 +658,8 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
             - `fileInfo.ts`
       - current local survivor pass:
         - harden `externalPluginRegistration.ts`, `settings.ts`, `viewBroadcast.ts`, and `groupState.ts` with direct default/branch tests
+        - harden `fileActions.ts`, `groupMessage.ts`, and `analysisLifecycle.ts` with branch/default-path coverage
+        - integrate fallback-path tests for `fileInfo.ts`, `fileInfoMessage.ts`, `fileInfoRequest.ts`, and `messages/nodeFileNavigation.ts`
         - focused verification green:
           - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/settings.test.ts tests/extension/graphView/viewBroadcast.test.ts tests/extension/graphView/externalPluginRegistration.test.ts tests/extension/graphView/groupState.test.ts tests/extension/graphView/fileInfo.test.ts tests/extension/graphView/analysisLifecycle.test.ts tests/extension/graphView/fileActions.test.ts tests/extension/graphView/fileInfoMessage.test.ts tests/extension/graphView/fileInfoRequest.test.ts tests/extension/graphView/groupMessage.test.ts tests/extension/graphView/messages/nodeFileNavigation.test.ts`
           - `59` tests green
@@ -670,6 +672,12 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
           - `packages/extension/src/extension/graphView/viewBroadcast.ts` = `92.86%`
           - `packages/extension/src/extension/graphView/groupState.ts` = `94.74%`
           - `packages/extension/src/extension/graphView/fileInfo.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/fileInfoMessage.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/fileInfoRequest.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/fileActions.ts` = `89.47%`
+          - `packages/extension/src/extension/graphView/groupMessage.ts` = `96.43%`
+          - `packages/extension/src/extension/graphView/analysisLifecycle.ts` = `91.18%`
+          - `packages/extension/src/extension/graphView/messages/nodeFileNavigation.ts` = `100.00%`
           - result: `✅ All files remain within the mutation site threshold (50).`
         - next immediate step:
           - keep using the latest report ordering rather than the stale provider-only list
