@@ -1182,10 +1182,43 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - `usePlaybackAnimation.ts` = `100.00%`
     - next step:
       - move off `timeline` and refresh the next extension slice with the same threshold-first workflow
+- 2026-03-15 graph-webview survivor pass:
+  - hardened graph runtime/rendering mutation seams:
+    - extracted `applyDirectionalSettings` from `packages/extension/src/webview/components/graph/runtime/useDirectional.ts`
+    - extracted direct highlight helpers from `packages/extension/src/webview/components/graph/runtime/useMeshHighlights.ts`
+    - extracted `applyNodeAppearance` from `packages/extension/src/webview/components/graph/runtime/useNodeAppearance.ts`
+  - added or expanded matching file-per-module tests:
+    - `tests/webview/graph/runtime/useDirectional.test.tsx`
+    - `tests/webview/graph/runtime/useMeshHighlights.test.tsx`
+    - `tests/webview/graph/runtime/useNodeAppearance.test.tsx`
+    - `tests/webview/graph/rendering/linkColors.test.ts`
+    - `tests/webview/graph/rendering/linkMetrics.test.ts`
+    - `tests/webview/graph/rendering/sharedProps.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/runtime/useDirectional.test.tsx tests/webview/graph/runtime/useMeshHighlights.test.tsx tests/webview/graph/runtime/useNodeAppearance.test.tsx`
+    - `29` tests green
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/linkMetrics.test.ts tests/webview/graph/rendering/linkColors.test.ts tests/webview/graph/rendering/sharedProps.test.ts`
+    - `19` tests green
+  - latest official mutation refreshes:
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/runtime/useDirectional.ts,packages/extension/src/webview/components/graph/runtime/useMeshHighlights.ts,packages/extension/src/webview/components/graph/runtime/useNodeAppearance.ts,packages/extension/src/webview/components/graph/rendering/sharedProps.ts,packages/extension/src/webview/components/graph/rendering/linkMetrics.ts,packages/extension/src/webview/components/graph/rendering/linkColors.ts'`
+    - intermediate slice overall = `91.99%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/rendering/bidirectionalLineGeometry.ts,packages/extension/src/webview/components/graph/rendering/sharedProps.ts,packages/extension/src/webview/components/graph/rendering/linkMetrics.ts,packages/extension/src/webview/components/graph/rendering/linkColors.ts'`
+    - latest slice overall = `94.03%`
+    - `✅ All files are within the mutation site threshold (50).`
+    - key file wins:
+      - `useDirectional.ts` = `100.00%`
+      - `useMeshHighlights.ts` = `100.00%`
+      - `useNodeAppearance.ts` = `100.00%`
+      - `sharedProps.ts` = `100.00%`
+      - `linkColors.ts` = `100.00%`
+      - `linkMetrics.ts` = `100.00%`
+      - `bidirectionalLineGeometry.ts` = `97.67%`
+    - next step:
+      - keep pushing the remaining graph-webview floor files above `90%`, starting with `bidirectionalArrowGeometry.ts`, `pluginOverlays.ts`, `containerSize.ts`, and tooltip helpers
 
 ## Current hotspot order
-1. commit and push the `WorkspaceAnalyzer.delegates.test.ts` follow-up that restored `workspace-analysis` to `100%`
-2. refresh the remaining official extension slices: `graph-webview`, `timeline`, `webview-export`, `git-history`
+1. finish the remaining `graph-webview` floor files above `90%` while keeping every file under the `50`-site threshold
+2. refresh the remaining official extension slices: `webview-export`, `git-history`
 3. `packages/extension/src/webview/components/Graph.tsx`
 4. print the package-level mutation/CRAP/status summary from the refreshed slice set
 5. do the folder/name cleanup pass only after the mutation/crap baselines are recorded

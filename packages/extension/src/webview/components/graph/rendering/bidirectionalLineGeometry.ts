@@ -1,7 +1,6 @@
 import type { FGNode } from '../../graphModel';
 import {
   DIRECTIONAL_ARROW_LENGTH_2D,
-  DIRECTIONAL_ARROW_NODE_GAP_2D,
 } from './linkShared';
 
 export interface BidirectionalLineGeometry {
@@ -21,7 +20,7 @@ export interface BidirectionalLineGeometry {
 export function createBidirectionalLineGeometry(
   source: FGNode,
   target: FGNode,
-  globalScale: number,
+  _globalScale: number,
 ): BidirectionalLineGeometry | null {
   if (source.x == null || source.y == null || target.x == null || target.y == null) {
     return null;
@@ -29,14 +28,13 @@ export function createBidirectionalLineGeometry(
 
   const deltaX = target.x - source.x;
   const deltaY = target.y - source.y;
-  const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+  const distance = Math.hypot(deltaX, deltaY);
   if (distance < 1) return null;
 
   const vectorX = deltaX / distance;
   const vectorY = deltaY / distance;
-  const nodeGap = DIRECTIONAL_ARROW_NODE_GAP_2D / globalScale;
-  const startInset = source.size + nodeGap;
-  const endInset = target.size + nodeGap;
+  const startInset = source.size;
+  const endInset = target.size;
   if (distance <= startInset + endInset) return null;
 
   const startX = source.x + vectorX * startInset;
