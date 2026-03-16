@@ -1005,6 +1005,48 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - `packages/extension/src/webview/components/graph/runtime/useTooltipHandlers.ts` = `94.12%`
       - `packages/extension/src/webview/components/Graph.tsx` = `91.84%`
       - result: current graph-webview helper hotspots remain under the `50`-site threshold and the local survivor floor in this batch is now above `90%`
+- 2026-03-15 graph-webview survivor pass:
+  - added direct file-per-module tests:
+    - `tests/webview/graph/rendering/useGraphCallbacks.test.tsx`
+    - `tests/webview/graph/runtime/useGraphState.test.tsx`
+    - `tests/webview/graph/runtime/useGraphEventEffects.test.tsx`
+    - `tests/webview/graph/runtime/useGraphInteractionRuntime.test.tsx`
+  - hardened existing runtime tests:
+    - `tests/webview/graph/runtime/usePhysicsRuntime.test.tsx`
+    - `tests/webview/graph/runtime/physics.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/useGraphCallbacks.test.tsx tests/webview/graph/runtime/useGraphState.test.tsx tests/webview/graph/runtime/usePhysicsRuntime.test.tsx tests/webview/graph/runtime/physics.test.ts tests/webview/graph/runtime/useGraphEventEffects.test.tsx tests/webview/graph/runtime/useGraphInteractionRuntime.test.tsx`
+    - `41` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - package-relative `eslint` over the touched graph runtime/rendering tests
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension graph-webview`
+    - slice overall = `82.72%`
+    - `✅ All files are still within the mutation site threshold (50).`
+    - direct wins from this pass:
+      - `packages/extension/src/webview/components/graph/runtime/useGraphEventEffects.ts` = `97.30%`
+      - `packages/extension/src/webview/components/graph/runtime/physics.ts` = `95.35%`
+      - `packages/extension/src/webview/components/graph/runtime/useTooltipHandlers.ts` = `94.12%`
+      - `packages/extension/src/webview/components/Graph.tsx` = `93.88%`
+    - current floor files after the rerun:
+      - `packages/extension/src/webview/components/graph/rendering/nodeBody.ts` = `38.78%`
+      - `packages/extension/src/webview/components/graph/rendering/nodes2d.ts` = `38.89%`
+      - `packages/extension/src/webview/components/graph/rendering/bidirectionalLink.ts` = `41.46%`
+      - `packages/extension/src/webview/components/graph/rendering/bidirectionalLineGeometry.ts` = `48.98%`
+      - `packages/extension/src/webview/components/graph/rendering/linkColors.ts` = `50.00%`
+      - `packages/extension/src/webview/components/graph/rendering/useGraphCallbacks.ts` = `66.67%`
+      - `packages/extension/src/webview/components/graph/runtime/useGraphInteractionRuntime.ts` = `75.51%`
+      - `packages/extension/src/webview/components/graph/runtime/useGraphState.ts` = `79.17%`
+      - `packages/extension/src/webview/components/graph/runtime/usePhysicsRuntime.ts` = `81.58%`
+    - next step:
+      - stay on `graph-webview`
+      - harden the remaining render/runtime survivors before opening the next extension slice
+      - next target order:
+        - `useGraphCallbacks.ts`
+        - `useGraphInteractionRuntime.ts`
+        - `useGraphState.ts`
+        - `usePhysicsRuntime.ts`
+        - rendering helpers led by `nodeBody.ts`, `nodes2d.ts`, and `bidirectionalLink.ts`
 
 ## Latest timeline pass
 - 2026-03-15 local pass:
