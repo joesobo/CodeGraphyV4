@@ -1030,6 +1030,60 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
     - result: the timeline entry file is now above the `90%` goal and under the `50`-site threshold
   - next step:
     - rerun `pnpm run mutate -- extension timeline` against the expanded slice to measure `timeline/Status.tsx`, `timeline/Track.tsx`, `timeline/model.ts`, and `timeline/useController.ts`
+- 2026-03-15 threshold follow-up:
+  - completed the helper split under `packages/extension/src/webview/components/timeline/`:
+    - `cleanup.ts`
+    - `commits.ts`
+    - `dates.ts`
+    - `dragListeners.ts`
+    - `messages.ts`
+    - `playbackActions.ts`
+    - `playbackTick.ts`
+    - `scrubPosition.ts`
+    - `syncPlayback.ts`
+    - `useCleanup.ts`
+    - `useCommitSync.ts`
+    - `usePlaybackAnimation.ts`
+    - `viewState.ts`
+  - added matching file-per-module tests:
+    - `tests/webview/timeline/cleanup.test.ts`
+    - `tests/webview/timeline/commits.test.ts`
+    - `tests/webview/timeline/dates.test.ts`
+    - `tests/webview/timeline/dragListeners.test.ts`
+    - `tests/webview/timeline/messages.test.ts`
+    - `tests/webview/timeline/playbackActions.test.ts`
+    - `tests/webview/timeline/playbackTick.test.ts`
+    - `tests/webview/timeline/scrubPosition.test.ts`
+    - `tests/webview/timeline/syncPlayback.test.ts`
+    - `tests/webview/timeline/useCleanup.test.tsx`
+    - `tests/webview/timeline/useCommitSync.test.tsx`
+    - `tests/webview/timeline/usePlaybackAnimation.test.tsx`
+    - `tests/webview/timeline/viewState.test.ts`
+  - hardened `tests/webview/timeline/Track.test.tsx` with marker position and tooltip assertions
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/timeline/cleanup.test.ts tests/webview/timeline/commits.test.ts tests/webview/timeline/dates.test.ts tests/webview/timeline/dragListeners.test.ts tests/webview/timeline/messages.test.ts tests/webview/timeline/playbackActions.test.ts tests/webview/timeline/playbackTick.test.ts tests/webview/timeline/scrubPosition.test.ts tests/webview/timeline/syncPlayback.test.ts tests/webview/timeline/useCleanup.test.tsx tests/webview/timeline/useCommitSync.test.tsx tests/webview/timeline/usePlaybackAnimation.test.tsx tests/webview/timeline/viewState.test.ts tests/webview/timeline/Track.test.tsx tests/webview/timeline/useController.test.tsx tests/webview/Timeline.test.tsx tests/webview/timeline/Status.test.tsx tests/webview/timeline/model.test.ts`
+    - `106` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - file-scoped `eslint` over touched timeline source and tests
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension timeline`
+    - slice overall = `84.30%`
+    - `✅ All files are within the mutation site threshold (50).`
+    - current sub-90 files:
+      - `cleanup.ts` = `78.57%`
+      - `commits.ts` = `84.38%`
+      - `playbackTick.ts` = `82.86%`
+      - `Track.tsx` = `65.79%`
+      - `useCleanup.ts` = `80.00%`
+      - `useController.ts` = `56.25%`
+      - `usePlaybackAnimation.ts` = `88.89%`
+      - `viewState.ts` = `85.42%`
+    - current survivor priority:
+      - `useController.ts`
+      - `Track.tsx`
+      - `viewState.ts`
+      - `playbackTick.ts`
+      - `cleanup.ts`
 
 ## Current hotspot order
 1. commit and push the `WorkspaceAnalyzer.delegates.test.ts` follow-up that restored `workspace-analysis` to `100%`
