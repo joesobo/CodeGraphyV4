@@ -942,28 +942,56 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
     - `graph/runtime/useGraphInteractionRuntime.ts`
     - `graph/runtime/useGraphEventEffects.ts`
     - `graph/rendering/useGraphCallbacks.ts`
+  - local follow-up split completed for the remaining graph runtime hotspots:
+    - `graph/runtime/useGraphRenderingRuntime.ts` now delegates to:
+      - `containerSize.ts`
+      - `physics.ts`
+      - `pluginOverlays.ts`
+      - `useDirectional.ts`
+      - `useLabelVisibility.ts`
+      - `useMeshHighlights.ts`
+      - `useNodeAppearance.ts`
+      - `usePhysicsRuntime.ts`
+    - `graph/runtime/useGraphTooltip.ts` now delegates to:
+      - `useTooltipHandlers.ts`
+      - `useTooltipState.ts`
+      - existing `tooltipHover.ts`
+      - existing `tooltipRect.ts`
+      - existing `tooltipTracking.ts`
   - focused verification green:
     - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/bidirectionalLink.test.ts tests/webview/graph/rendering/linkColors.test.ts tests/webview/graph/rendering/linkMetrics.test.ts tests/webview/graph/rendering/bidirectionalLineGeometry.test.ts tests/webview/graph/rendering/bidirectionalArrowGeometry.test.ts tests/webview/graph/rendering/nodeBody.test.ts tests/webview/graph/rendering/nodeMedia.test.ts tests/webview/graph/rendering/nodePointer.test.ts tests/webview/graph/rendering/links.test.ts tests/webview/graph/rendering/nodes2d.test.ts tests/webview/graph/rendering/nodes3d.test.ts`
     - `39` rendering tests green
     - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
     - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/Graph.test.tsx tests/webview/GraphDrag.test.tsx tests/webview/GraphCursor.test.tsx tests/webview/GraphDoubleClickFocus.test.tsx tests/webview/GraphContextMenu.background.test.tsx tests/webview/GraphContextMenu.node.test.tsx tests/webview/GraphContextMenu.edge.test.tsx tests/webview/graph/Viewport.test.tsx`
     - `101` graph + viewport tests green
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/runtime/containerSize.test.tsx tests/webview/graph/runtime/physics.test.ts tests/webview/graph/runtime/pluginOverlays.test.tsx tests/webview/graph/runtime/tooltipHover.test.ts tests/webview/graph/runtime/tooltipRect.test.ts tests/webview/graph/runtime/tooltipTracking.test.ts tests/webview/graph/runtime/useDirectional.test.tsx tests/webview/graph/runtime/useGraphTooltip.test.tsx tests/webview/graph/runtime/useLabelVisibility.test.tsx tests/webview/graph/runtime/useMeshHighlights.test.tsx tests/webview/graph/runtime/useNodeAppearance.test.tsx tests/webview/graph/runtime/usePhysicsRuntime.test.tsx tests/webview/graph/runtime/useTooltipHandlers.test.tsx tests/webview/graph/runtime/useTooltipState.test.tsx`
+    - `23` graph runtime tests green
     - file-scoped `eslint` over touched graph rendering/runtime files and tests
   - fresh dry-run mutation site counts:
     - `packages/extension/src/webview/components/Graph.tsx` = `49`
-    - `packages/extension/src/webview/components/graph/Viewport.tsx` = `23`
+    - `packages/extension/src/webview/components/graph/Viewport.tsx` = `25`
     - `packages/extension/src/webview/components/graph/rendering/useGraphCallbacks.ts` = `30`
     - `packages/extension/src/webview/components/graph/runtime/useGraphState.ts` = `25`
     - `packages/extension/src/webview/components/graph/runtime/useGraphInteractionRuntime.ts` = `49`
     - `packages/extension/src/webview/components/graph/runtime/useGraphEventEffects.ts` = `37`
-    - `packages/extension/src/webview/components/graph/rendering/bidirectionalLink.ts` = `41`
-    - `packages/extension/src/webview/components/graph/rendering/bidirectionalLineGeometry.ts` = `49`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphRenderingRuntime.ts` = `7`
+    - `packages/extension/src/webview/components/graph/runtime/containerSize.ts` = `14`
+    - `packages/extension/src/webview/components/graph/runtime/physics.ts` = `43`
+    - `packages/extension/src/webview/components/graph/runtime/pluginOverlays.ts` = `14`
+    - `packages/extension/src/webview/components/graph/runtime/useDirectional.ts` = `26`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphTooltip.ts` = `3`
+    - `packages/extension/src/webview/components/graph/runtime/useLabelVisibility.ts` = `4`
+    - `packages/extension/src/webview/components/graph/runtime/useMeshHighlights.ts` = `25`
+    - `packages/extension/src/webview/components/graph/runtime/useTooltipHandlers.ts` = `22`
+    - `packages/extension/src/webview/components/graph/runtime/useNodeAppearance.ts` = `25`
+    - `packages/extension/src/webview/components/graph/runtime/usePhysicsRuntime.ts` = `38`
+    - `packages/extension/src/webview/components/graph/runtime/useTooltipState.ts` = `7`
     - `packages/extension/src/webview/components/graph/rendering/nodes2d.ts` = `18`
-    - `packages/extension/src/webview/components/graph/rendering/nodeBody.ts` = `49`
-    - `packages/extension/src/webview/components/graph/rendering/nodeMedia.ts` = `32`
-  - remaining graph-webview threshold blockers after this pass:
-    - `packages/extension/src/webview/components/graph/runtime/useGraphRenderingRuntime.ts` = `184`
-    - `packages/extension/src/webview/components/graph/runtime/useGraphTooltip.ts` = `74`
+    - `packages/extension/src/webview/components/graph/interactionHandlers.ts` = `8`
+    - `packages/extension/src/webview/components/graph/contextMenuRuntime.ts` = `10`
+  - status after the runtime follow-up:
+    - every checked graph-webview hotspot in this pass is now under the `50` mutation-site threshold
+    - next step is a fresh whole-slice `graph-webview` rerun for mutation score, not more threshold cuts in the current hotspots
 
 ## Current hotspot order
 1. commit and push the `WorkspaceAnalyzer.delegates.test.ts` follow-up that restored `workspace-analysis` to `100%`
