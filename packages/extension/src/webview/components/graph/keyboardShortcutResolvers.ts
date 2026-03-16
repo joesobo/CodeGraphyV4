@@ -1,7 +1,6 @@
 import type { GraphKeyboardCommand, GraphKeyboardOptions } from '../graphKeyboardEffects';
 import {
   createHistoryCommand,
-  createStoreMessageCommand,
   createZoomCommand,
 } from './keyboardCommandBuilders';
 
@@ -36,25 +35,6 @@ export function getHistoryShortcutCommand(
     case 'y':
     case 'Y':
       return isMod ? createHistoryCommand('REDO') : null;
-    default:
-      return null;
-  }
-}
-
-export function getToolbarShortcutCommand(
-  key: string,
-  isMod: boolean
-): GraphKeyboardCommand | null {
-  switch (key) {
-    case 'v':
-    case 'V':
-      return !isMod ? createStoreMessageCommand('CYCLE_VIEW') : null;
-    case 'l':
-    case 'L':
-      return !isMod ? createStoreMessageCommand('CYCLE_LAYOUT') : null;
-    case 't':
-    case 'T':
-      return !isMod ? createStoreMessageCommand('TOGGLE_DIMENSION') : null;
     default:
       return null;
   }

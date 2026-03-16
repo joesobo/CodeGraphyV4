@@ -44,20 +44,6 @@ describe('graph/contextMenuRuntimePointer', () => {
     vi.useRealTimers();
   });
 
-  it('uses the injected timer clearer for pending fallback timers', () => {
-    const clearFallbackTimer = vi.fn();
-    const { dependencies } = createDependencies({
-      clearFallbackTimer,
-    });
-    dependencies.rightClickFallbackTimerRef.current = setTimeout(() => undefined, 1000);
-    const runtime = createContextMenuPointerRuntime(dependencies);
-
-    runtime.clearRightClickFallbackTimer();
-
-    expect(clearFallbackTimer).toHaveBeenCalledOnce();
-    expect(dependencies.rightClickFallbackTimerRef.current).toBeNull();
-  });
-
   it('tracks right-click pointer state and marks movement after the drag threshold', () => {
     const { dependencies } = createDependencies();
     const runtime = createContextMenuPointerRuntime(dependencies);
@@ -74,26 +60,6 @@ describe('graph/contextMenuRuntimePointer', () => {
     });
 
     expect(dependencies.rightMouseDownRef.current?.moved).toBe(true);
-  });
-
-  it('opens the background context menu when graph callbacks do not handle the right click', () => {
-    let currentTime = 1000;
-    const { dependencies } = createDependencies({
-      now: () => currentTime,
-    });
-    const runtime = createContextMenuPointerRuntime(dependencies);
-
-    runtime.handleMouseDownCapture({
-      button: 2,
-      clientX: 48,
-      clientY: 64,
-      ctrlKey: true,
-    });
-    runtime.handleMouseUpCapture({ button: 2 });
-    currentTime = 1040;
-    vi.advanceTimersByTime(40);
-
-    expect(dependencies.openBackgroundContextMenu).toHaveBeenCalledOnce();
   });
 
   it('skips fallback scheduling when the pointer already moved', () => {

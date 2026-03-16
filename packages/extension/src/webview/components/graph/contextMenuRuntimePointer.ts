@@ -1,17 +1,15 @@
 import {
   shouldMarkRightMouseDrag,
-  shouldUseRightClickFallback,
 } from '../graphInteractionModel';
 import type {
   GraphContextMenuRuntimeDependencies,
   GraphRightClickPointerDownEvent,
   GraphRightClickPointerMoveEvent,
   GraphRightClickPointerUpEvent,
-  GraphTimerHandle,
 } from './contextMenuRuntime';
+import { createContextMenuFallbackRuntime } from './contextMenuRuntimeFallback';
 
 const DEFAULT_RIGHT_CLICK_DRAG_THRESHOLD_PX = 6;
-const DEFAULT_RIGHT_CLICK_FALLBACK_DELAY_MS = 40;
 
 type GraphContextMenuPointerDependencies = Pick<
   GraphContextMenuRuntimeDependencies,
@@ -21,7 +19,6 @@ type GraphContextMenuPointerDependencies = Pick<
   | 'rightMouseDownRef'
   | 'openBackgroundContextMenu'
   | 'now'
-  | 'fallbackDelayMs'
   | 'dragThresholdPx'
   | 'scheduleFallback'
   | 'clearFallbackTimer'
@@ -37,40 +34,9 @@ export interface GraphContextMenuPointerRuntime {
 export function createContextMenuPointerRuntime(
   dependencies: GraphContextMenuPointerDependencies,
 ): GraphContextMenuPointerRuntime {
-  const now = (): number => (
-    dependencies.now ? dependencies.now() : Date.now()
-  );
   const dragThresholdPx =
     dependencies.dragThresholdPx ?? DEFAULT_RIGHT_CLICK_DRAG_THRESHOLD_PX;
-  const fallbackDelayMs =
-    dependencies.fallbackDelayMs ?? DEFAULT_RIGHT_CLICK_FALLBACK_DELAY_MS;
-
-  const scheduleFallback = (
-    callback: () => void,
-    delayMs: number,
-  ): GraphTimerHandle => (
-    dependencies.scheduleFallback
-      ? dependencies.scheduleFallback(callback, delayMs)
-      : setTimeout(callback, delayMs)
-  );
-
-  const clearFallbackTimer = (handle: GraphTimerHandle): void => {
-    if (dependencies.clearFallbackTimer) {
-      dependencies.clearFallbackTimer(handle);
-      return;
-    }
-
-    clearTimeout(handle);
-  };
-
-  const clearRightClickFallbackTimer = (): void => {
-    if (dependencies.rightClickFallbackTimerRef.current === null) {
-      return;
-    }
-
-    clearFallbackTimer(dependencies.rightClickFallbackTimerRef.current);
-    dependencies.rightClickFallbackTimerRef.current = null;
-  };
+  const fallbackRuntime = createContextMenuFallbackRuntime(dependencies);
 
   const handleMouseDownCapture = (
     event: GraphRightClickPointerDownEvent,
@@ -79,7 +45,7 @@ export function createContextMenuPointerRuntime(
       return;
     }
 
-    clearRightClickFallbackTimer();
+    fallbackRuntime.clearRightClickFallbackTimer();
     dependencies.rightMouseDownRef.current = {
       x: event.clientX,
       y: event.clientY,
@@ -120,32 +86,13 @@ export function createContextMenuPointerRuntime(
       return;
     }
 
-    clearRightClickFallbackTimer();
-    dependencies.rightClickFallbackTimerRef.current = scheduleFallback(() => {
-      const currentTime = now();
-      if (!shouldUseRightClickFallback({
-        now: currentTime,
-        lastGraphContextEvent: dependencies.lastGraphContextEventRef.current,
-        lastContainerContextMenuEvent: dependencies.lastContainerContextMenuEventRef.current,
-        fallbackDelayMs,
-      })) {
-        return;
-      }
-
-      dependencies.openBackgroundContextMenu(new MouseEvent('contextmenu', {
-        bubbles: true,
-        cancelable: true,
-        button: 2,
-        buttons: 2,
-        clientX: rightMouseDown.x,
-        clientY: rightMouseDown.y,
-        ctrlKey: rightMouseDown.ctrlKey,
-      }));
-    }, fallbackDelayMs);
+    fallbackRuntime.scheduleRightClickFallback(rightMouseDown);
   };
 
   return {
-    clearRightClickFallbackTimer,
+    clearRightClickFallbackTimer: () => {
+      fallbackRuntime.clearRightClickFallbackTimer();
+    },
     handleMouseDownCapture,
     handleMouseMoveCapture,
     handleMouseUpCapture,

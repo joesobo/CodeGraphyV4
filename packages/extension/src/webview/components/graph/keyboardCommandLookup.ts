@@ -7,9 +7,9 @@ import {
 } from './keyboardCommandBuilders';
 import {
   getHistoryShortcutCommand,
-  getToolbarShortcutCommand,
   getZoomShortcutCommand,
 } from './keyboardShortcutResolvers';
+import { getToolbarShortcutCommand } from './keyboardToolbarShortcutResolver';
 
 export function getGraphKeyboardCommandImpl(
   options: GraphKeyboardOptions
