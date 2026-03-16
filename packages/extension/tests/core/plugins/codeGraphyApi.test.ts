@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { CodeGraphyAPIImpl } from '@/core/plugins/codeGraphyApi';
 import { EventBus } from '@/core/plugins/eventBus';
 import { DecorationManager } from '@/core/plugins/decorationManager';
-import { ViewRegistry } from '@/core/views/viewRegistry';
+import { ViewRegistry } from '@/core/views/registry';
 import { IGraphData } from '@/shared/types';
 import { IView } from '@/core/views/types';
 

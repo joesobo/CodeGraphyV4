@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { PluginRegistry } from '@/core/plugins/registry';
 import { EventBus } from '@/core/plugins/eventBus';
 import { DecorationManager } from '@/core/plugins/decorationManager';
-import { ViewRegistry } from '@/core/views/viewRegistry';
+import { ViewRegistry } from '@/core/views/registry';
 import { IPlugin } from '@/core/plugins/types';
 
 function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {

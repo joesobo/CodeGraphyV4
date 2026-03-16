@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { folderView } from '../../../src/core/views/coreViews';
+import { folderView } from '../../../src/core/views/builtIn';
 import { IGraphData, DEFAULT_FOLDER_NODE_COLOR } from '../../../src/shared/types';
 import { IViewContext } from '../../../src/core/views/types';
 

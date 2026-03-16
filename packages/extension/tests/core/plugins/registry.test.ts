@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { PluginRegistry, IPlugin, IConnection } from '../../../src/core/plugins';
 import { EventBus } from '@/core/plugins/eventBus';
 import { DecorationManager } from '@/core/plugins/decorationManager';
-import { ViewRegistry } from '@/core/views/viewRegistry';
+import { ViewRegistry } from '@/core/views/registry';
 
 // Helper to create a mock plugin
 function createMockPlugin(overrides: Partial<IPlugin> = {}): IPlugin {

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { EventBus } from '@/core/plugins/eventBus';
 import { DecorationManager } from '@/core/plugins/decorationManager';
-import { ViewRegistry } from '@/core/views/viewRegistry';
+import { ViewRegistry } from '@/core/views/registry';
 import { hasScopedApiConfiguration, IPluginApiConfiguration } from '@/core/plugins/apiConfiguration';
 
 function createCompleteConfiguration(): IPluginApiConfiguration {

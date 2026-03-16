@@ -8,7 +8,7 @@ import { IPlugin, IPluginInfo, IConnection } from './types';
 import { EventBus } from './eventBus';
 import { DecorationManager } from './decorationManager';
 import { CodeGraphyAPIImpl, GraphDataProvider, CommandRegistrar, WebviewMessageSender } from './codeGraphyApi';
-import { ViewRegistry } from '../views/viewRegistry';
+import { ViewRegistry } from '../views/registry';
 import { IGraphData } from '../../shared/types';
 import {
   CORE_PLUGIN_API_VERSION,
