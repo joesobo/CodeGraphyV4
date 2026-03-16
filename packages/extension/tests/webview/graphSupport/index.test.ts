@@ -9,7 +9,7 @@ import {
   resolveEdgeActionTargetId,
   resolveLinkEndpointId,
   setSpriteVisible,
-} from '../../src/webview/components/graphSupport';
+} from '../../../src/webview/components/graphSupport';
 
 describe('graphSupport', () => {
   it('recognizes objects and functions as record-like values', () => {

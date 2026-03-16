@@ -4,9 +4,9 @@ import {
   copyGraphViewTextToClipboard,
   openGraphViewFile,
   revealGraphViewFileInExplorer,
-} from '../../../src/extension/graphView/fileNavigation';
+} from '../../../../src/extension/graphView/files/navigation';
 
-describe('graphView/fileNavigation', () => {
+describe('graphView/files/navigation', () => {
   it('shows a mock-file message when no workspace folder exists', async () => {
     const showInformationMessage = vi.fn();
 

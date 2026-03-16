@@ -1,5 +1,5 @@
-import type { IGraphEdge } from '../../shared/types';
-import { isRecordLike } from './graphSupportGuards';
+import type { IGraphEdge } from '../../../shared/types';
+import { isRecordLike } from './guards';
 
 export function resolveLinkEndpointId(value: unknown): string | null {
   if (typeof value === 'string') return value;

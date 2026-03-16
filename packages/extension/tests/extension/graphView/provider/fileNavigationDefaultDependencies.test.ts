@@ -50,7 +50,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-vi.mock('../../../../src/extension/graphView/fileNavigation', () => ({
+vi.mock('../../../../src/extension/graphView/files/navigation', () => ({
   openGraphViewFile: mocks.openGraphViewFile,
   revealGraphViewFileInExplorer: mocks.revealGraphViewFileInExplorer,
   copyGraphViewTextToClipboard: mocks.copyGraphViewTextToClipboard,

@@ -1,4 +1,4 @@
-import type { LinkDistanceForce, StrengthForce } from './graphSupportTypes';
+import type { LinkDistanceForce, StrengthForce } from './types';
 
 export function isRecordLike(value: unknown): value is Record<string, unknown> {
   return (typeof value === 'object' && value !== null) || typeof value === 'function';

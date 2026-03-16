@@ -1,4 +1,4 @@
-import { addGraphViewExcludePatterns } from './fileActions';
+import { addGraphViewExcludePatterns } from './files/actions';
 
 interface AddGraphViewExcludePatternsWithUndoOptions<TAction> {
   createAction: (
