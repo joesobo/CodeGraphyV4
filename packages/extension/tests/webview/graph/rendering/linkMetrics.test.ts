@@ -53,6 +53,32 @@ describe('graph/rendering/linkMetrics', () => {
     expect(defaultCount).toBe(3);
   });
 
+  it('falls back to the default particle count when a decoration omits particle settings', () => {
+    const count = getGraphLinkParticles(
+      createDependencies({
+        edgeDecorations: {
+          'src/app.ts->src/utils.ts': {},
+        },
+      }),
+      createLink(),
+    );
+
+    expect(count).toBe(3);
+  });
+
+  it('preserves a zero particle count from edge decorations', () => {
+    const count = getGraphLinkParticles(
+      createDependencies({
+        edgeDecorations: {
+          'src/app.ts->src/utils.ts': { particles: { count: 0 } },
+        },
+      }),
+      createLink(),
+    );
+
+    expect(count).toBe(0);
+  });
+
   it('returns an arrow relative position of 1 so arrows end at the node border', () => {
     expect(getGraphArrowRelPos()).toBe(1);
   });
@@ -75,6 +101,58 @@ describe('graph/rendering/linkMetrics', () => {
     expect(decoratedWidth).toBe(5);
     expect(highlightedWidth).toBe(2);
     expect(defaultWidth).toBe(1);
+  });
+
+  it('preserves a zero edge decoration width', () => {
+    const width = getGraphLinkWidth(
+      createDependencies({
+        edgeDecorations: {
+          'src/app.ts->src/utils.ts': { width: 0 },
+        },
+      }),
+      createLink({ bidirectional: true }),
+    );
+
+    expect(width).toBe(0);
+  });
+
+  it('treats string endpoints as connected when the highlighted node id matches', () => {
+    const width = getGraphLinkWidth(
+      createDependencies({ highlightedNodeId: 'src/app.ts' }),
+      createLink({
+        source: 'src/app.ts',
+        target: 'src/utils.ts',
+      }),
+    );
+
+    expect(width).toBe(2);
+  });
+
+  it('treats object endpoints as connected when the highlighted node id matches the source', () => {
+    const width = getGraphLinkWidth(
+      createDependencies({ highlightedNodeId: 'src/app.ts' }),
+      createLink(),
+    );
+
+    expect(width).toBe(2);
+  });
+
+  it('uses the bidirectional default width when nothing is highlighted', () => {
+    const width = getGraphLinkWidth(createDependencies(), createLink({ bidirectional: true }));
+
+    expect(width).toBe(2);
+  });
+
+  it('uses the thin default width when a highlighted node is unrelated to the link', () => {
+    const width = getGraphLinkWidth(
+      createDependencies({ highlightedNodeId: 'src/other.ts' }),
+      createLink({
+        source: 'src/app.ts',
+        target: 'src/utils.ts',
+      }),
+    );
+
+    expect(width).toBe(1);
   });
 
   it('uses replace mode only for bidirectional links in arrows mode', () => {

@@ -4,18 +4,44 @@ import {
 } from 'react';
 import type { ForceGraphMethods as FG2DMethods, LinkObject } from 'react-force-graph-2d';
 import type { FGLink, FGNode } from '../../graphModel';
-import { as2DExtMethods } from '../../graphSupport';
+import { as2DExtMethods, type FG2DExtMethods } from '../../graphSupport';
 
-interface UseDirectionalOptions {
+interface DirectionalOptions {
 	directionMode: 'arrows' | 'particles' | 'none';
-	fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
 	getArrowColor(this: void, link: LinkObject): string;
 	getArrowRelPos(this: void, link: LinkObject): number;
 	getLinkParticles(this: void, link: LinkObject): number;
 	getParticleColor(this: void, link: LinkObject): string;
-	graphMode: '2d' | '3d';
 	particleSize: number;
 	particleSpeed: number;
+}
+
+interface UseDirectionalOptions extends DirectionalOptions {
+	fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
+	graphMode: '2d' | '3d';
+}
+
+export function applyDirectionalSettings(
+	graph: FG2DExtMethods<FGNode, FGLink>,
+	{
+		directionMode,
+		getArrowColor,
+		getArrowRelPos,
+		getLinkParticles,
+		getParticleColor,
+		particleSize,
+		particleSpeed,
+	}: DirectionalOptions,
+): void {
+	graph.linkDirectionalArrowLength?.(directionMode === 'arrows' ? 12 : 0);
+	graph.linkDirectionalArrowRelPos?.(getArrowRelPos);
+	graph.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
+	graph.linkDirectionalParticleWidth?.(particleSize);
+	graph.linkDirectionalParticleSpeed?.(particleSpeed);
+	graph.linkDirectionalArrowColor?.(getArrowColor);
+	graph.linkDirectionalParticleColor?.(getParticleColor);
+	graph.d3ReheatSimulation();
+	graph.resumeAnimation?.();
 }
 
 export function useDirectional({
@@ -35,15 +61,15 @@ export function useDirectional({
 		const graph = as2DExtMethods(fg2dRef.current);
 		if (!graph) return;
 
-		graph.linkDirectionalArrowLength?.(directionMode === 'arrows' ? 12 : 0);
-		graph.linkDirectionalArrowRelPos?.(getArrowRelPos);
-		graph.linkDirectionalParticles?.(directionMode === 'particles' ? getLinkParticles : 0);
-		graph.linkDirectionalParticleWidth?.(particleSize);
-		graph.linkDirectionalParticleSpeed?.(particleSpeed);
-		graph.linkDirectionalArrowColor?.(getArrowColor);
-		graph.linkDirectionalParticleColor?.(getParticleColor);
-		graph.d3ReheatSimulation();
-		graph.resumeAnimation?.();
+		applyDirectionalSettings(graph, {
+			directionMode,
+			getArrowColor,
+			getArrowRelPos,
+			getLinkParticles,
+			getParticleColor,
+			particleSize,
+			particleSpeed,
+		});
 	}, [
 		directionMode,
 		fg2dRef,

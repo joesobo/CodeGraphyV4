@@ -44,13 +44,17 @@ export interface BuildSharedGraphPropsOptions {
   timelineActive: boolean;
 }
 
+export function normalizeGraphDimension(value: number): number | undefined {
+  return value === 0 ? undefined : value;
+}
+
 export function buildSharedGraphProps(
   options: BuildSharedGraphPropsOptions,
 ): GraphSurfaceSharedProps {
   return {
     graphData: options.graphData as unknown as { nodes: NodeObject[]; links: LinkObject[] },
-    width: options.containerSize.width || undefined,
-    height: options.containerSize.height || undefined,
+    width: normalizeGraphDimension(options.containerSize.width),
+    height: normalizeGraphDimension(options.containerSize.height),
     onNodeClick: (node, event) => options.onNodeClick(node as FGNode, event),
     onNodeRightClick: (node, event) => options.onNodeRightClick(node as FGNode, event),
     onLinkClick: (link, event) => options.onLinkClick(link as FGLink, event),
