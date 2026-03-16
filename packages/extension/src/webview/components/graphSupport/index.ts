@@ -2,18 +2,18 @@ export {
   as2DExtMethods,
   type FG2DExtMethods,
   setSpriteVisible,
-} from './graphSupportTypes';
+} from './types';
 export {
   hasDistanceAndStrength,
   hasStrength,
   isRecordLike,
-} from './graphSupportGuards';
+} from './guards';
 export {
   resolveEdgeActionTargetId,
   resolveLinkEndpointId,
-} from './graphSupportLinkTargets';
+} from './linkTargets';
 export {
   applyCursorToGraphSurface,
   isMacControlContextClick,
   type GraphCursorStyle,
-} from './graphSupportDom';
+} from './dom';

@@ -3,9 +3,9 @@ import {
   buildGraphViewDecorationPayload,
   collectGraphViewContextMenuItems,
   collectGraphViewWebviewInjections,
-} from '../../../src/extension/graphView/pluginMessages';
+} from '../../../../src/extension/graphView/plugins/messages';
 
-describe('graphViewPluginMessages', () => {
+describe('graphView/plugins/messages', () => {
   it('strips priority fields while preserving merged decoration payloads', () => {
     const payload = buildGraphViewDecorationPayload(
       new Map([

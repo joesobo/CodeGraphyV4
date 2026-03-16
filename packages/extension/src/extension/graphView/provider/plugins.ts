@@ -4,13 +4,13 @@ import type { ExtensionToWebviewMessage, IGroup } from '../../../shared/types';
 import {
   registerGraphViewExternalPlugin,
   type GraphViewExternalPluginRegistrationOptions,
-} from '../externalPluginRegistration';
+} from '../plugins/registration';
 import {
   sendGraphViewContextMenuItems,
   sendGraphViewDecorations,
   sendGraphViewPluginStatuses,
   sendGraphViewPluginWebviewInjections,
-} from '../pluginWebview';
+} from '../plugins/webview';
 import { sendGraphViewAvailableViews, sendGraphViewGroupsUpdated } from '../view/broadcast';
 
 const DEFAULT_DEPTH_LIMIT = 1;

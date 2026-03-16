@@ -8,9 +8,9 @@ import {
   sendGraphViewDecorations,
   sendGraphViewPluginStatuses,
   sendGraphViewPluginWebviewInjections,
-} from '../../../src/extension/graphView/pluginWebview';
+} from '../../../../src/extension/graphView/plugins/webview';
 
-describe('graphView/pluginWebview', () => {
+describe('graphView/plugins/webview', () => {
   it('skips plugin status updates when no analyzer is available', () => {
     const sendMessage = vi.fn();
 
