@@ -1559,14 +1559,56 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - stay on `git-history`
       - kill the remaining survivor groups in `diffGraphChanges.ts`, `gitExec.ts`, `commitList.ts`, and `indexHistory.ts`
       - rerun `pnpm run mutate -- extension git-history` before moving back to package-level refresh work
+- 2026-03-16 git-history survivor completion:
+  - simplified survivor-heavy helpers:
+    - `commitList.ts`
+      - removed redundant fallback defaults for parsed `message` and `author`
+    - `indexHistory.ts`
+      - split first-commit analysis from the diff loop so the initial graph state is no longer synthetic
+    - `diffGraphChanges.ts`
+      - extracted `addGitHistoryNodeIfMissing()` and removed the redundant supported-file node creation branch
+  - expanded direct tests:
+    - `commitList.test.ts`
+      - trims outer whitespace before parsing
+      - filters empty parent entries from repeated spacing
+    - `indexHistory.test.ts`
+      - single-commit indexing skips diff analysis
+      - later diffs receive the previous diff result
+      - abort before first-commit analysis short-circuits cleanly
+    - `gitExec.test.ts`
+      - asserts abort listener registration with `{ once: true }`
+      - asserts matching listener removal after success
+      - proves late git callbacks are ignored after abort settlement
+    - `diffGraphChanges.test.ts`
+      - reuses an existing supported node while still reanalyzing its edges
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/gitHistory/commitList.test.ts tests/extension/gitHistory/indexHistory.test.ts tests/extension/gitHistory/diffGraphChanges.test.ts tests/extension/gitHistory/gitExec.test.ts tests/extension/GitHistoryAnalyzer.test.ts`
+    - `47` tests green
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension git-history`
+    - slice overall = `95.18%`
+    - `✅ every file in the refreshed git-history slice is above the 90% mutation goal`
+    - `✅ every file in the refreshed git-history slice is within the 50-site threshold`
+    - current floor files:
+      - `cacheStorage.ts` = `90.32%`
+      - `diffGraphState.ts` = `91.49%`
+      - `diffGraphAnalysis.ts` = `92.11%`
+      - `fullCommitAnalysis.ts` = `93.33%`
+      - `gitExec.ts` = `93.75%`
+    - direct wins from this pass:
+      - `diffGraphChanges.ts` = `100.00%`
+      - `indexHistory.ts` = `100.00%`
+      - `commitList.ts` = `96.43%`
+    - next cut:
+      - move off `git-history`
+      - refresh the next stale extension slice and re-check package-level CRAP / mutation status ordering
 
 ## Current hotspot order
-1. raise every mutated file in `git-history` above `90%`
-2. refresh any stale extension slices not yet officially rerun after the git-history pass
-3. print the package-level mutation/CRAP/status summary from the refreshed slice set
-4. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
-5. update the PR description with the completed refactor record
-6. resolve any remaining merge conflict drift on the PR branch
+1. refresh the next stale extension slices not yet officially rerun after the git-history pass
+2. print the package-level mutation/CRAP/status summary from the refreshed slice set
+3. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
+4. update the PR description with the completed refactor record
+5. resolve any remaining merge conflict drift on the PR branch
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.

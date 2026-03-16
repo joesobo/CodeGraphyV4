@@ -30,6 +30,20 @@ interface DiffGraphChangeOptions {
   workspaceRoot: string;
 }
 
+function addGitHistoryNodeIfMissing(
+  filePath: string,
+  nodeMap: Map<string, IGraphNode>,
+  nodes: IGraphNode[],
+): void {
+  if (nodeMap.has(filePath)) {
+    return;
+  }
+
+  const node = createGitHistoryNode(filePath);
+  nodes.push(node);
+  nodeMap.set(filePath, node);
+}
+
 export async function addGitHistoryGraphFile(
   options: DiffGraphChangeOptions,
 ): Promise<void> {
@@ -47,19 +61,8 @@ export async function addGitHistoryGraphFile(
   } = options;
 
   if (!registry.supportsFile(filePath)) {
-    if (!nodeMap.has(filePath)) {
-      const node = createGitHistoryNode(filePath);
-      nodes.push(node);
-      nodeMap.set(filePath, node);
-    }
-
+    addGitHistoryNodeIfMissing(filePath, nodeMap, nodes);
     return;
-  }
-
-  if (!nodeMap.has(filePath)) {
-    const node = createGitHistoryNode(filePath);
-    nodes.push(node);
-    nodeMap.set(filePath, node);
   }
 
   await reanalyzeGraphFile({

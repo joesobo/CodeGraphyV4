@@ -71,4 +71,26 @@ describe('gitHistory/commitList', () => {
       { sha: 'sha1', timestamp: 1, message: 'first', author: 'Dev', parents: [] },
     ]);
   });
+
+  it('trims outer whitespace from the git output before parsing commits', () => {
+    const commits = parseCommitList('  sha1|1|first|Dev|  ');
+
+    expect(commits).toEqual([
+      { sha: 'sha1', timestamp: 1, message: 'first', author: 'Dev', parents: [] },
+    ]);
+  });
+
+  it('filters empty parent entries when the parent field contains repeated spacing', () => {
+    const commits = parseCommitList('sha1|1|merge|Dev| parent1  parent2   parent3 ');
+
+    expect(commits).toEqual([
+      {
+        sha: 'sha1',
+        timestamp: 1,
+        message: 'merge',
+        author: 'Dev',
+        parents: ['parent1', 'parent2', 'parent3'],
+      },
+    ]);
+  });
 });

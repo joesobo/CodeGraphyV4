@@ -78,6 +78,56 @@ describe('gitHistory/diffGraphChanges', () => {
     expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts']));
   });
 
+  it('reuses an existing supported node while reanalyzing its edges', async () => {
+    const existingNode = { id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' };
+    const nodes = [existingNode];
+    const nodeMap = new Map([[existingNode.id, existingNode]]);
+    const edges: Array<{ id: string; from: string; to: string; ruleId?: string }> = [];
+    const edgeSet = new Set<string>();
+    const getFileAtCommit = vi.fn(async () => 'import "./c";');
+    const registry = {
+      analyzeFile: vi.fn(async () => [{
+        ruleId: 'import',
+        specifier: './c',
+        type: 'static',
+        resolvedPath: '/workspace/src/c.ts',
+      }]),
+      supportsFile: vi.fn(() => true),
+    };
+    const signal = new AbortController().signal;
+
+    await addGitHistoryGraphFile({
+      edgeSet,
+      edges,
+      filePath: existingNode.id,
+      getFileAtCommit,
+      nodeMap,
+      nodes,
+      registry,
+      sha: 'abc123',
+      signal,
+      workspaceRoot: '/workspace',
+    });
+
+    expect(getFileAtCommit).toHaveBeenCalledWith('abc123', existingNode.id, signal);
+    expect(registry.analyzeFile).toHaveBeenCalledWith(
+      '/workspace/src/a.ts',
+      'import "./c";',
+      '/workspace',
+    );
+    expect(nodes).toEqual([existingNode]);
+    expect(nodeMap.get(existingNode.id)).toBe(existingNode);
+    expect(edges).toEqual([
+      {
+        id: 'src/a.ts->src/c.ts',
+        from: 'src/a.ts',
+        to: 'src/c.ts',
+        ruleId: 'import',
+      },
+    ]);
+    expect(edgeSet).toEqual(new Set(['src/a.ts->src/c.ts']));
+  });
+
   it('does not duplicate unsupported nodes that already exist', async () => {
     const existingNode = { id: 'src/readme.md', label: 'readme.md', color: '#CBD5E1' };
     const nodes = [existingNode];

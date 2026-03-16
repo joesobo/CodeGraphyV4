@@ -18,8 +18,8 @@ export function parseCommitList(output: string): ICommitInfo[] {
     commits.push({
       sha,
       timestamp: parseInt(timestampStr, 10),
-      message: message ?? '',
-      author: author ?? '',
+      message,
+      author,
       parents: parentsStr ? parentsStr.split(' ').filter(Boolean) : [],
     });
   }

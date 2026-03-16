@@ -31,27 +31,29 @@ export async function indexGitHistory(
   }
 
   const total = commits.length;
-  let previousGraphData: IGraphData = { nodes: [], edges: [] };
+  const firstCommit = commits[0];
 
-  for (let index = 0; index < commits.length; index++) {
+  if (signal.aborted) {
+    throw createAbortError();
+  }
+
+  onProgress('Indexing commits', 1, total);
+  let previousGraphData: IGraphData = await dependencies.analyzeFullCommit(firstCommit.sha, signal);
+  await dependencies.writeCachedGraphData(firstCommit.sha, previousGraphData);
+
+  for (let index = 1; index < commits.length; index++) {
     if (signal.aborted) {
       throw createAbortError();
     }
 
     const commit = commits[index];
     onProgress('Indexing commits', index + 1, total);
-
-    if (index === 0) {
-      previousGraphData = await dependencies.analyzeFullCommit(commit.sha, signal);
-    } else {
-      previousGraphData = await dependencies.analyzeDiffCommit(
-        commit.sha,
-        commits[index - 1].sha,
-        previousGraphData,
-        signal
-      );
-    }
-
+    previousGraphData = await dependencies.analyzeDiffCommit(
+      commit.sha,
+      commits[index - 1].sha,
+      previousGraphData,
+      signal
+    );
     await dependencies.writeCachedGraphData(commit.sha, previousGraphData);
   }
 

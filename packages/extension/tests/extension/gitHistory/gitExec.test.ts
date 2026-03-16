@@ -76,6 +76,31 @@ describe('gitHistory/gitExec', () => {
     expect(kill).toHaveBeenCalledTimes(1);
   });
 
+  it('registers the abort listener with once and removes the same listener after success', async () => {
+    const controller = new AbortController();
+    const addEventListenerSpy = vi.spyOn(controller.signal, 'addEventListener');
+    const removeEventListenerSpy = vi.spyOn(controller.signal, 'removeEventListener');
+    let callback: ((error: Error | null, stdout: string) => void) | undefined;
+    const execFileImpl = vi.fn((_cmd, _args, _options, execCallback) => {
+      callback = execCallback;
+      return { kill: vi.fn() };
+    });
+
+    const promise = execGitCommand(['status'], {
+      workspaceRoot: '/workspace',
+      signal: controller.signal,
+      execFileImpl: execFileImpl as never,
+    });
+
+    expect(addEventListenerSpy).toHaveBeenCalledWith('abort', expect.any(Function), { once: true });
+
+    const abortListener = addEventListenerSpy.mock.calls[0]?.[1];
+    callback?.(null, 'done\n');
+
+    await expect(promise).resolves.toBe('done\n');
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('abort', abortListener);
+  });
+
   it('ignores later aborts once the command has already resolved', async () => {
     const controller = new AbortController();
     const kill = vi.fn();
@@ -94,5 +119,34 @@ describe('gitHistory/gitExec', () => {
 
     expect(result).toBe('done\n');
     expect(kill).not.toHaveBeenCalled();
+  });
+
+  it('ignores a late git callback after abort already settled the promise', async () => {
+    const controller = new AbortController();
+    const kill = vi.fn();
+    const removeEventListenerSpy = vi.spyOn(controller.signal, 'removeEventListener');
+    let callback: ((error: Error | null, stdout: string) => void) | undefined;
+    const execFileImpl = vi.fn((_cmd, _args, _options, execCallback) => {
+      callback = execCallback;
+      return { kill };
+    });
+
+    const promise = execGitCommand(['status'], {
+      workspaceRoot: '/workspace',
+      signal: controller.signal,
+      execFileImpl: execFileImpl as never,
+    });
+
+    controller.abort();
+
+    await expect(promise).rejects.toMatchObject({
+      message: 'Indexing aborted',
+      name: 'AbortError',
+    });
+
+    callback?.(new Error('late failure'), 'late stdout');
+
+    expect(kill).toHaveBeenCalledTimes(1);
+    expect(removeEventListenerSpy).toHaveBeenCalledTimes(1);
   });
 });
