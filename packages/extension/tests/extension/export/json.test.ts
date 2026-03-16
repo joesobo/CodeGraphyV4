@@ -13,9 +13,9 @@ vi.mock('../../../src/extension/export/common', async () => {
 });
 
 import { saveExportBuffer } from '../../../src/extension/export/common';
-import { saveExportedJson } from '../../../src/extension/export/saveJson';
+import { saveExportedJson } from '../../../src/extension/export/json';
 
-describe('saveJson', () => {
+describe('json', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (vscode.window as Record<string, unknown>).showErrorMessage = vi.fn();

@@ -12,61 +12,59 @@ vi.mock('../../../src/extension/export/common', async () => {
   };
 });
 
+import { saveExportedSvg } from '../../../src/extension/export/svg';
 import { saveExportBuffer } from '../../../src/extension/export/common';
-import { saveExportedMarkdown } from '../../../src/extension/export/saveMarkdown';
 
-describe('saveMarkdown', () => {
+describe('svg', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (vscode.window as Record<string, unknown>).showErrorMessage = vi.fn();
   });
 
-  it('passes the markdown buffer and export options to the common save flow', async () => {
+  it('passes the svg buffer and export options to the common save flow', async () => {
     vi.mocked(saveExportBuffer).mockResolvedValue(undefined);
 
-    await saveExportedMarkdown('# Graph', 'graph.md');
+    await saveExportedSvg('<svg><rect /></svg>', 'graph.svg');
 
     expect(saveExportBuffer).toHaveBeenCalledTimes(1);
     const [buffer, options] = vi.mocked(saveExportBuffer).mock.calls[0];
-    expect(Buffer.from(buffer).toString('utf-8')).toBe('# Graph');
+    expect(Buffer.from(buffer).toString('utf-8')).toBe('<svg><rect /></svg>');
     expect(options).toEqual({
-      defaultFilename: 'graph.md',
-      filters: { 'Markdown Files': ['md'] },
-      title: 'Export Graph as Markdown',
+      defaultFilename: 'graph.svg',
+      filters: { 'SVG Images': ['svg'] },
+      title: 'Export Graph as SVG',
       successMessage: 'Graph exported',
     });
   });
 
-  it('encodes markdown content as utf-8 before delegating to the common save flow', async () => {
+  it('encodes svg content as utf-8 before delegating to the common save flow', async () => {
     vi.mocked(saveExportBuffer).mockResolvedValue(undefined);
     const bufferFromSpy = vi.spyOn(Buffer, 'from');
 
-    await saveExportedMarkdown('# á', 'graph.md');
+    await saveExportedSvg('<svg>á</svg>', 'graph.svg');
 
-    expect(bufferFromSpy).toHaveBeenCalledWith('# á', 'utf-8');
+    expect(bufferFromSpy).toHaveBeenCalledWith('<svg>á</svg>', 'utf-8');
   });
 
-  it('uses a timestamped markdown filename when none is provided', async () => {
+  it('uses a timestamped svg filename when none is provided', async () => {
     vi.mocked(saveExportBuffer).mockResolvedValue(undefined);
     vi.spyOn(Date, 'now').mockReturnValue(1700000000000);
 
-    await saveExportedMarkdown('# Graph');
+    await saveExportedSvg('<svg />');
 
     expect(saveExportBuffer).toHaveBeenCalledWith(
       expect.any(Buffer),
       expect.objectContaining({
-        defaultFilename: 'codegraphy-1700000000000.md',
+        defaultFilename: 'codegraphy-1700000000000.svg',
       })
     );
   });
 
   it('shows an export error when the common save flow throws', async () => {
-    vi.mocked(saveExportBuffer).mockRejectedValue(new Error('bad markdown'));
+    vi.mocked(saveExportBuffer).mockRejectedValue(new Error('disk full'));
 
-    await saveExportedMarkdown('# Graph', 'graph.md');
+    await saveExportedSvg('<svg />', 'graph.svg');
 
-    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-      'Failed to export Markdown: bad markdown'
-    );
+    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('Failed to export SVG: disk full');
   });
 });
