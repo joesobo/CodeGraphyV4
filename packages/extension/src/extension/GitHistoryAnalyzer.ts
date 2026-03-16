@@ -9,7 +9,6 @@ import * as vscode from 'vscode';
 import { minimatch } from 'minimatch';
 import { PluginRegistry } from '../core/plugins/PluginRegistry';
 import { IGraphData, ICommitInfo } from '../shared/types';
-import { createAbortError } from './gitHistory/abort';
 import {
   clearCachedCommitState,
   getCachedCommitList as getStoredCommitList,
@@ -20,7 +19,9 @@ import { readCachedGraphData, removeGitCacheDir, writeCachedGraphData } from './
 import { getCommitList as getTimelineCommitList } from './gitHistory/commitList';
 import { analyzeDiffCommitGraph } from './gitHistory/diffGraphAnalysis';
 import { execGitCommand } from './gitHistory/gitExec';
+import { getCommitTreeFiles, getDiffNameStatus, getFileAtCommit } from './gitHistory/gitFiles';
 import { analyzeFullCommitGraph } from './gitHistory/fullCommitAnalysis';
+import { indexGitHistory } from './gitHistory/indexHistory';
 
 /**
  * Service that analyzes git history and builds per-commit graph data
@@ -100,42 +101,21 @@ export class GitHistoryAnalyzer {
     signal: AbortSignal,
     maxCommits: number = 500
   ): Promise<ICommitInfo[]> {
-    const commits = await this.getCommitList(maxCommits, signal);
-    if (commits.length === 0) {
-      return [];
-    }
-
-    const total = commits.length;
-    let previousGraphData: IGraphData = { nodes: [], edges: [] };
-
-    for (let i = 0; i < commits.length; i++) {
-      if (signal.aborted) {
-        throw this._createAbortError();
-      }
-
-      const commit = commits[i];
-      onProgress('Indexing commits', i + 1, total);
-
-      if (i === 0) {
-        // Full analysis for the first (oldest) commit
-        previousGraphData = await this._analyzeFullCommit(commit.sha, signal);
-      } else {
-        // Diff-based analysis for subsequent commits
-        const parentSha = commits[i - 1].sha;
-        previousGraphData = await this._analyzeDiffCommit(
-          commit.sha,
-          parentSha,
-          previousGraphData,
-          signal
-        );
-      }
-
-      await writeCachedGraphData(this._context.storageUri, commit.sha, previousGraphData);
-    }
-
-    await persistCachedCommitState(this._context.workspaceState, commits);
-
-    return commits;
+    return indexGitHistory({
+      dependencies: {
+        analyzeDiffCommit: (sha, parentSha, previousGraph, abortSignal) =>
+          this._analyzeDiffCommit(sha, parentSha, previousGraph, abortSignal),
+        analyzeFullCommit: (sha, abortSignal) => this._analyzeFullCommit(sha, abortSignal),
+        getCommitList: (limit, abortSignal) => this.getCommitList(limit, abortSignal),
+        persistCachedCommitState: (commits) =>
+          persistCachedCommitState(this._context.workspaceState, commits),
+        writeCachedGraphData: (sha, graphData) =>
+          writeCachedGraphData(this._context.storageUri, sha, graphData),
+      },
+      maxCommits,
+      onProgress,
+      signal,
+    });
   }
 
   /**
@@ -168,15 +148,12 @@ export class GitHistoryAnalyzer {
    * Fully analyzes a commit by listing all files in its tree.
    */
   private async _analyzeFullCommit(sha: string, signal: AbortSignal): Promise<IGraphData> {
-    if (signal.aborted) {
-      throw this._createAbortError();
-    }
-
-    const output = await this._execGit(['ls-tree', '-r', '--name-only', sha], signal);
-    const allFiles = output.trim().split('\n').filter(Boolean);
-
     return analyzeFullCommitGraph({
-      allFiles,
+      allFiles: await getCommitTreeFiles(
+        (args, abortSignal) => this._execGit(args, abortSignal),
+        sha,
+        signal
+      ),
       getFileAtCommit: (commitSha, filePath, abortSignal) =>
         this._getFileAtCommit(commitSha, filePath, abortSignal),
       registry: this._registry,
@@ -197,17 +174,13 @@ export class GitHistoryAnalyzer {
     previousGraph: IGraphData,
     signal: AbortSignal
   ): Promise<IGraphData> {
-    if (signal.aborted) {
-      throw this._createAbortError();
-    }
-
-    const output = await this._execGit(
-      ['diff', '--name-status', '-M', parentSha, sha],
-      signal
-    );
-
     return analyzeDiffCommitGraph({
-      diffOutput: output,
+      diffOutput: await getDiffNameStatus(
+        (args, abortSignal) => this._execGit(args, abortSignal),
+        parentSha,
+        sha,
+        signal
+      ),
       getFileAtCommit: (commitSha, filePath, abortSignal) =>
         this._getFileAtCommit(commitSha, filePath, abortSignal),
       previousGraph,
@@ -227,11 +200,12 @@ export class GitHistoryAnalyzer {
     filePath: string,
     signal: AbortSignal
   ): Promise<string> {
-    try {
-      return await this._execGit(['show', `${sha}:${filePath}`], signal);
-    } catch {
-      return '';
-    }
+    return getFileAtCommit(
+      (args, abortSignal) => this._execGit(args, abortSignal),
+      sha,
+      filePath,
+      signal
+    );
   }
 
   private _execGit(args: string[], signal?: AbortSignal): Promise<string> {
@@ -239,9 +213,5 @@ export class GitHistoryAnalyzer {
       workspaceRoot: this._workspaceRoot,
       signal,
     });
-  }
-
-  private _createAbortError(): Error {
-    return createAbortError();
   }
 }

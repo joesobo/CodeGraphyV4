@@ -1,6 +1,10 @@
 import type { IConnection } from '../../core/plugins';
 import type { IGraphData } from '../../shared/types';
 import { addGitHistoryGraphFile, modifyGitHistoryGraphFile } from './diffGraphChanges';
+import {
+  createDiffGraphSnapshot,
+  filterDanglingDiffGraphEdges,
+} from './diffGraphSnapshot';
 import { deleteGitHistoryGraphFile, renameGitHistoryGraphFile } from './diffGraphState';
 import { reanalyzeGraphFile } from './reanalyzeGraphFile';
 
@@ -43,10 +47,7 @@ export async function analyzeDiffCommitGraph(
     workspaceRoot,
   } = options;
 
-  const nodes = previousGraph.nodes.map((node) => ({ ...node }));
-  const edges = previousGraph.edges.map((edge) => ({ ...edge }));
-  const nodeMap = new Map(nodes.map((node) => [node.id, node]));
-  const edgeSet = new Set(edges.map((edge) => edge.id));
+  const { edgeSet, edges, nodeMap, nodes } = createDiffGraphSnapshot(previousGraph);
   const lines = diffOutput.trim().split('\n').filter(Boolean);
 
   for (const line of lines) {
@@ -119,9 +120,8 @@ export async function analyzeDiffCommitGraph(
     }
   }
 
-  const nodeIds = new Set(nodes.map((node) => node.id));
   return {
     nodes,
-    edges: edges.filter((edge) => nodeIds.has(edge.from) && nodeIds.has(edge.to)),
+    edges: filterDanglingDiffGraphEdges(nodes, edges),
   };
 }
