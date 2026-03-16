@@ -55,7 +55,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-vi.mock('../../../../src/extension/graphView/fileInfoRequest', () => ({
+vi.mock('../../../../src/extension/graphView/fileInfo/request', () => ({
   sendGraphViewProviderFileInfoMessage: mocks.sendFileInfoMessage,
 }));
 

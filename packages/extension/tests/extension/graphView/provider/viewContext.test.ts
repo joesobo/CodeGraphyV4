@@ -21,7 +21,7 @@ vi.mock('../../../../src/extension/graphView/presentation', () => ({
   applyGraphViewTransform: providerViewContextMethodMocks.applyViewTransform,
 }));
 
-vi.mock('../../../../src/extension/graphView/config', () => ({
+vi.mock('../../../../src/extension/graphView/settings/config', () => ({
   normalizeFolderNodeColor: providerViewContextMethodMocks.normalizeFolderNodeColor,
 }));
 

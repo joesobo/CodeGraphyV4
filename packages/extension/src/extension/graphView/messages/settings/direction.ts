@@ -3,7 +3,7 @@ import { DEFAULT_DIRECTION_COLOR } from '../../../../shared/types';
 import {
   normalizeDirectionColor,
   normalizeFolderNodeColor,
-} from '../../config';
+} from '../../settings/config';
 import type {
   GraphViewSettingsMessageHandlers,
   GraphViewSettingsMessageState,

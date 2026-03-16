@@ -3,7 +3,7 @@ import type { ExtensionToWebviewMessage, IGraphData } from '../../../shared/type
 import { AddToExcludeAction } from '../../actions';
 import { getUndoManager } from '../../UndoManager';
 import { addGraphViewExcludePatternsWithUndo } from '../excludePatterns';
-import { sendGraphViewProviderFileInfoMessage } from '../fileInfoRequest';
+import { sendGraphViewProviderFileInfoMessage } from '../fileInfo/request';
 import { sendGraphViewFavorites } from '../favorites';
 import { getGraphViewVisitCount, incrementGraphViewVisitCount, trackGraphViewFileVisit } from '../visitTracking';
 
