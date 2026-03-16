@@ -1,7 +1,7 @@
 /**
  * @fileoverview Core views that ship with CodeGraphy.
  * These views are always available regardless of which plugins are active.
- * @module core/views/coreViews
+ * @module core/views/builtIn
  */
 
 import { IView, IViewContext } from './types';

@@ -8,7 +8,7 @@
 import { Disposable, DisposableStore, toDisposable } from './disposable';
 import { EventBus, EventPayloads, EventName } from './eventBus';
 import { DecorationManager, NodeDecoration, EdgeDecoration } from './decorationManager';
-import { ViewRegistry } from '../views/viewRegistry';
+import { ViewRegistry } from '../views/registry';
 import { IView } from '../views/types';
 import { IGraphData, IGraphNode, IGraphEdge } from '../../shared/types';
 

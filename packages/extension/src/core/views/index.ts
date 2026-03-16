@@ -3,13 +3,13 @@
  * @module core/views
  */
 
-export { ViewRegistry } from './viewRegistry';
+export { ViewRegistry } from './registry';
 export {
   connectionsView,
   depthGraphView,
   folderView,
   coreViews
-} from './coreViews';
+} from './builtIn';
 export type { 
   IView, 
   IViewInfo, 
