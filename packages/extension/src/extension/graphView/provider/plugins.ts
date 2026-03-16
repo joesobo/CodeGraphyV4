@@ -11,7 +11,7 @@ import {
   sendGraphViewPluginStatuses,
   sendGraphViewPluginWebviewInjections,
 } from '../pluginWebview';
-import { sendGraphViewAvailableViews, sendGraphViewGroupsUpdated } from '../viewBroadcast';
+import { sendGraphViewAvailableViews, sendGraphViewGroupsUpdated } from '../view/broadcast';
 
 const DEFAULT_DEPTH_LIMIT = 1;
 

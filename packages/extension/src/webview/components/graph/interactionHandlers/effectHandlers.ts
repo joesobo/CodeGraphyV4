@@ -1,6 +1,6 @@
 import { postMessage } from '../../../lib/vscodeApi';
 import { applyInteractionEffects, type GraphInteractionOptions } from '../effects/interaction';
-import type { GraphInteractionEffect } from '../../graphInteractionModel';
+import type { GraphInteractionEffect } from '../../graphInteraction/model';
 import type { FGLink } from '../../graphModel';
 import type { GraphInteractionHandlersDependencies } from '../interactionHandlers';
 

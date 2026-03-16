@@ -1,5 +1,5 @@
-import type { IGraphData } from '../../shared/types';
-import type { IViewContext } from '../../core/views';
+import type { IGraphData } from '../../../shared/types';
+import type { IViewContext } from '../../../core/views';
 
 interface GraphViewSelectionState {
   _activeViewId: string;

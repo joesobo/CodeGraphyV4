@@ -7,8 +7,8 @@ import {
 } from '../../../shared/types';
 import { applyGraphViewTransform } from '../presentation';
 import { normalizeFolderNodeColor } from '../settings/config';
-import { sendGraphViewAvailableViews } from '../viewBroadcast';
-import { buildGraphViewContext } from '../viewContext';
+import { sendGraphViewAvailableViews } from '../view/broadcast';
+import { buildGraphViewContext } from '../view/context';
 
 interface GraphViewProviderWorkspaceStateLike {
   get<T>(key: string): T | undefined;

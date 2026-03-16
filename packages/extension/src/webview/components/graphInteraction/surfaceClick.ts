@@ -1,7 +1,7 @@
 import type {
   GraphInteractionEffect,
   GraphModifierClickOptions,
-} from '../graphInteractionModel';
+} from './model';
 
 function isMacControlContextAction(
   ctrlKey: boolean,

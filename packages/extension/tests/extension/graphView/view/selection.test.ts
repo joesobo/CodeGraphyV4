@@ -6,9 +6,9 @@ import {
   getGraphViewDepthLimit,
   setGraphViewDepthLimit,
   setGraphViewFocusedFile,
-} from '../../../src/extension/graphView/viewSelection';
+} from '../../../../src/extension/graphView/view/selection';
 
-describe('graph view selection helpers', () => {
+describe('graphView/view/selection', () => {
   it('persists and broadcasts available view changes', async () => {
     const state = {
       _activeViewId: 'codegraphy.connections',

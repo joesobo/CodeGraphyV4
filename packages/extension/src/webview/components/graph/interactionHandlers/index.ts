@@ -10,14 +10,14 @@ import type { GraphContextSelection } from '../graphContextMenu';
 import {
   type GraphInteractionEffect,
   type GraphLastClickState,
-} from '../graphInteractionModel';
+} from '../graphInteraction/model';
 import type { FGLink, FGNode } from '../graphModel';
 import { applyCursorToGraphSurface, type GraphCursorStyle } from '../graphSupport';
-import { createClickHandlers } from './interactionHandlers/clickHandlers';
-import { createContextMenuHandlers } from './interactionHandlers/contextMenuHandlers';
-import { createEffectHandlers } from './interactionHandlers/effectHandlers';
-import { createSelectionHandlers } from './interactionHandlers/selectionHandlers';
-import { createViewHandlers } from './interactionHandlers/viewHandlers';
+import { createClickHandlers } from './clickHandlers';
+import { createContextMenuHandlers } from './contextMenuHandlers';
+import { createEffectHandlers } from './effectHandlers';
+import { createSelectionHandlers } from './selectionHandlers';
+import { createViewHandlers } from './viewHandlers';
 
 export interface GraphInteractionHandlersDependencies {
   containerRef: MutableRefObject<HTMLDivElement | null>;

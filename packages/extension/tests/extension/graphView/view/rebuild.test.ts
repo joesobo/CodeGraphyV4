@@ -3,9 +3,9 @@ import type { IGraphData } from '../../../../src/shared/types';
 import {
   rebuildGraphViewData,
   smartRebuildGraphView,
-} from '../../../src/extension/graphView/viewRebuild';
+} from '../../../../src/extension/graphView/view/rebuild';
 
-describe('graph view rebuild helpers', () => {
+describe('graphView/view/rebuild', () => {
   it('returns early when rebuild graph data is requested without an analyzer', () => {
     const state = {
       _analyzer: undefined,

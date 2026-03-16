@@ -1,6 +1,6 @@
 import {
   shouldMarkRightMouseDrag,
-} from '../graphInteractionModel';
+} from '../graphInteraction/model';
 import type {
   GraphContextMenuRuntimeDependencies,
   GraphRightClickPointerDownEvent,

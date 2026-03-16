@@ -1,7 +1,7 @@
 import type {
   GraphNodeClickCommand,
   GraphNodeClickOptions,
-} from '../graphInteractionModel';
+} from './model';
 import {
   getNodeDoubleClickCommand,
   isDoubleNodeClick,
