@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { DEFAULT_EXCLUDE_PATTERNS } from '../../src/extension/configuration';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/configuration';
 import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer';
 
 let workspaceFoldersValue:
