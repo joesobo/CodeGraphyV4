@@ -48,4 +48,19 @@ describe('graphView/visits', () => {
       payload: { nodeId: 'src/app.ts', accessCount: 3 },
     });
   });
+
+  it('starts visit counts from one when no persisted state exists', async () => {
+    const workspaceState = createWorkspaceState();
+
+    const message = await incrementPersistedGraphViewVisitCount(workspaceState, 'src/app.ts');
+
+    expect(workspaceState.get).toHaveBeenCalledWith('codegraphy.fileVisits');
+    expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.fileVisits', {
+      'src/app.ts': 1,
+    });
+    expect(message).toEqual({
+      type: 'NODE_ACCESS_COUNT_UPDATED',
+      payload: { nodeId: 'src/app.ts', accessCount: 1 },
+    });
+  });
 });

@@ -11,11 +11,21 @@ interface GraphViewVisitsWorkspaceState {
   update(key: string, value: unknown): PromiseLike<void>;
 }
 
+function getGraphViewVisitsStorageKey(): string {
+  return VISITS_KEY;
+}
+
+function readGraphViewVisitsState(
+  workspaceState: GraphViewVisitsWorkspaceState,
+): Record<string, number> {
+  return workspaceState.get<Record<string, number>>(getGraphViewVisitsStorageKey()) ?? {};
+}
+
 export function readPersistedGraphViewVisitCount(
   workspaceState: GraphViewVisitsWorkspaceState,
   filePath: string,
 ): number {
-  const visits = workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
+  const visits = readGraphViewVisitsState(workspaceState);
   return getGraphViewVisitCount(visits, filePath);
 }
 
@@ -23,9 +33,9 @@ export async function incrementPersistedGraphViewVisitCount(
   workspaceState: GraphViewVisitsWorkspaceState,
   filePath: string,
 ): Promise<Extract<ExtensionToWebviewMessage, { type: 'NODE_ACCESS_COUNT_UPDATED' }>> {
-  const visits = workspaceState.get<Record<string, number>>(VISITS_KEY) ?? {};
+  const visits = readGraphViewVisitsState(workspaceState);
   const nextVisitState = incrementGraphViewVisitCount(visits, filePath);
-  await workspaceState.update(VISITS_KEY, nextVisitState.visits);
+  await workspaceState.update(getGraphViewVisitsStorageKey(), nextVisitState.visits);
 
   return {
     type: 'NODE_ACCESS_COUNT_UPDATED',
