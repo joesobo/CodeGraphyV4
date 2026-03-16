@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FGLink, FGNode } from '../../../src/webview/components/graphModel';
 import { createClickHandlers } from '../../../src/webview/components/graph/interactionHandlers/clickHandlers';
-import { createInteractionDependencies } from './interactionHandlers.testUtils';
+import { createInteractionDependencies } from './interactionHandlers/testUtils';
 
 const interactionModelHarness = vi.hoisted(() => ({
   getBackgroundClickCommand: vi.fn(),

@@ -1,8 +1,8 @@
-import type { ExtensionToWebviewMessage } from '../../shared/types';
+import type { ExtensionToWebviewMessage } from '../../../shared/types';
 import {
   getGraphViewVisitCount,
   incrementGraphViewVisitCount,
-} from './visitCounts';
+} from './counts';
 
 interface GraphViewVisitsWorkspaceState {
   get<T>(key: string): T | undefined;

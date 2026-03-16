@@ -5,7 +5,7 @@ import {
   incrementHighlightVersion,
   resolveSelectionLinkEndpointId,
 } from '../../../src/webview/components/graph/interactionHandlers/selectionHandlers';
-import { createInteractionDependencies } from './interactionHandlers.testUtils';
+import { createInteractionDependencies } from './interactionHandlers/testUtils';
 import type { FGLink, FGNode } from '../../../src/webview/components/graphModel';
 
 describe('graph/selectionHandlers', () => {

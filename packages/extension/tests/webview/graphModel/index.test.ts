@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/types';
-import type { IGraphData } from '../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
+import type { IGraphData } from '../../../src/shared/types';
 import {
   buildGraphData,
   calculateNodeSizes,
@@ -10,7 +10,7 @@ import {
   getNodeType,
   processEdges,
   resolveDirectionColor,
-} from '../../src/webview/components/graphModel';
+} from '../../../src/webview/components/graphModel';
 
 describe('graphModel', () => {
   it('keeps valid direction colors', () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { createViewHandlers } from '../../../src/webview/components/graph/interactionHandlers/viewHandlers';
-import { createInteractionDependencies } from './interactionHandlers.testUtils';
+import { createInteractionDependencies } from './interactionHandlers/testUtils';
 
 describe('graph/viewHandlers', () => {
   it('focuses a 2d node at the origin when coordinates are missing', () => {

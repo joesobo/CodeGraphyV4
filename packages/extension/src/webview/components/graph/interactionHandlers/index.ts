@@ -5,14 +5,14 @@ import type {
 import type {
   ForceGraphMethods as FG3DMethods,
 } from 'react-force-graph-3d';
-import type { IFileInfo, IGraphData } from '../../../shared/types';
-import type { GraphContextSelection } from '../graphContextMenu';
+import type { IFileInfo, IGraphData } from '../../../../shared/types';
+import type { GraphContextSelection } from '../../graphContextMenu';
 import {
   type GraphInteractionEffect,
   type GraphLastClickState,
-} from '../graphInteraction/model';
-import type { FGLink, FGNode } from '../graphModel';
-import { applyCursorToGraphSurface, type GraphCursorStyle } from '../graphSupport';
+} from '../../graphInteraction/model';
+import type { FGLink, FGNode } from '../../graphModel';
+import { applyCursorToGraphSurface, type GraphCursorStyle } from '../../graphSupport';
 import { createClickHandlers } from './clickHandlers';
 import { createContextMenuHandlers } from './contextMenuHandlers';
 import { createEffectHandlers } from './effectHandlers';

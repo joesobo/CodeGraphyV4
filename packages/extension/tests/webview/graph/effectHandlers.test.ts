@@ -5,7 +5,7 @@ import {
   findMessage,
   getSentMessages,
 } from '../../helpers/sentMessages';
-import { createInteractionDependencies } from './interactionHandlers.testUtils';
+import { createInteractionDependencies } from './interactionHandlers/testUtils';
 
 describe('graph/effectHandlers', () => {
   it('posts preview, open, and interaction messages', () => {

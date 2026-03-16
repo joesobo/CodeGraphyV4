@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { getGraphViewVisitCount, incrementGraphViewVisitCount } from '../../../src/extension/graphView/visitCounts';
+import { getGraphViewVisitCount, incrementGraphViewVisitCount } from '../../../../src/extension/graphView/visits/counts';
 
-describe('graphViewVisits', () => {
+describe('graphView/visits/counts', () => {
   it('returns zero when a file has not been visited yet', () => {
     expect(getGraphViewVisitCount({}, 'src/app.ts')).toBe(0);
   });

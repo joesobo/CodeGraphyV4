@@ -5,17 +5,17 @@ import type {
 import type {
   ForceGraphMethods as FG3DMethods,
 } from 'react-force-graph-3d';
-import type { IGraphData } from '../../../src/shared/types';
-import type { FGLink, FGNode } from '../../../src/webview/components/graphModel';
+import type { IGraphData } from '../../../../src/shared/types';
+import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
 import {
   createGraphInteractionHandlers,
   type GraphInteractionHandlersDependencies,
-} from '../../../src/webview/components/graph/interactionHandlers';
+} from '../../../../src/webview/components/graph/interactionHandlers';
 import {
   clearSentMessages,
   findMessage,
   getSentMessages,
-} from '../../helpers/sentMessages';
+} from '../../../helpers/sentMessages';
 
 function createRef<T>(current: T): { current: T } {
   return { current };
@@ -263,25 +263,25 @@ describe('graph/interactionHandlers', () => {
     const createEffectHandlers = vi.fn(() => effectHandlers);
     const createClickHandlers = vi.fn(() => clickHandlers);
 
-    vi.doMock('../../../src/webview/components/graph/interactionHandlers/selectionHandlers', () => ({
+    vi.doMock('../../../../src/webview/components/graph/interactionHandlers/selectionHandlers', () => ({
       createSelectionHandlers,
     }));
-    vi.doMock('../../../src/webview/components/graph/interactionHandlers/contextMenuHandlers', () => ({
+    vi.doMock('../../../../src/webview/components/graph/interactionHandlers/contextMenuHandlers', () => ({
       createContextMenuHandlers,
     }));
-    vi.doMock('../../../src/webview/components/graph/interactionHandlers/viewHandlers', () => ({
+    vi.doMock('../../../../src/webview/components/graph/interactionHandlers/viewHandlers', () => ({
       createViewHandlers,
     }));
-    vi.doMock('../../../src/webview/components/graph/interactionHandlers/effectHandlers', () => ({
+    vi.doMock('../../../../src/webview/components/graph/interactionHandlers/effectHandlers', () => ({
       createEffectHandlers,
     }));
-    vi.doMock('../../../src/webview/components/graph/interactionHandlers/clickHandlers', () => ({
+    vi.doMock('../../../../src/webview/components/graph/interactionHandlers/clickHandlers', () => ({
       createClickHandlers,
     }));
-    vi.doMock('../../../src/webview/components/graphSupport', async () => {
+    vi.doMock('../../../../src/webview/components/graphSupport', async () => {
       const actual = await vi.importActual<
-        typeof import('../../../src/webview/components/graphSupport')
-      >('../../../src/webview/components/graphSupport');
+        typeof import('../../../../src/webview/components/graphSupport')
+      >('../../../../src/webview/components/graphSupport');
       return {
         ...actual,
         applyCursorToGraphSurface,
@@ -289,7 +289,7 @@ describe('graph/interactionHandlers', () => {
     });
 
     const { createGraphInteractionHandlers: createHandlers } = await import(
-      '../../../src/webview/components/graph/interactionHandlers'
+      '../../../../src/webview/components/graph/interactionHandlers'
     );
     const dependencies = createDependencies();
     const handlers = createHandlers(dependencies);
@@ -343,12 +343,12 @@ describe('graph/interactionHandlers', () => {
       'pointer',
     );
 
-    vi.doUnmock('../../../src/webview/components/graph/interactionHandlers/selectionHandlers');
-    vi.doUnmock('../../../src/webview/components/graph/interactionHandlers/contextMenuHandlers');
-    vi.doUnmock('../../../src/webview/components/graph/interactionHandlers/viewHandlers');
-    vi.doUnmock('../../../src/webview/components/graph/interactionHandlers/effectHandlers');
-    vi.doUnmock('../../../src/webview/components/graph/interactionHandlers/clickHandlers');
-    vi.doUnmock('../../../src/webview/components/graphSupport');
+    vi.doUnmock('../../../../src/webview/components/graph/interactionHandlers/selectionHandlers');
+    vi.doUnmock('../../../../src/webview/components/graph/interactionHandlers/contextMenuHandlers');
+    vi.doUnmock('../../../../src/webview/components/graph/interactionHandlers/viewHandlers');
+    vi.doUnmock('../../../../src/webview/components/graph/interactionHandlers/effectHandlers');
+    vi.doUnmock('../../../../src/webview/components/graph/interactionHandlers/clickHandlers');
+    vi.doUnmock('../../../../src/webview/components/graphSupport');
     vi.resetModules();
   });
 });
