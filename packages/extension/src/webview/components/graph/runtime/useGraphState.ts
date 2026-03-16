@@ -1,5 +1,4 @@
 import {
-  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -71,6 +70,7 @@ export interface UseGraphStateResult {
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
   graphData: { links: FGLink[]; nodes: FGNode[] };
   graphDataRef: MutableRefObject<{ links: FGLink[]; nodes: FGNode[] }>;
+  imageCacheVersion: number;
   highlightVersion: number;
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
   highlightedNodeRef: MutableRefObject<string | null>;
@@ -92,6 +92,26 @@ export interface UseGraphStateResult {
   themeRef: MutableRefObject<ThemeKind>;
   timelineActiveRef: MutableRefObject<boolean>;
   triggerImageRerender(this: void): void;
+}
+
+export interface TimelineAlphaGraph {
+  d3Alpha?: (value: number) => unknown;
+}
+
+export function createEmptyRuntimeGraphData(): { links: FGLink[]; nodes: FGNode[] } {
+  return { links: [], nodes: [] };
+}
+
+export function incrementImageCacheVersion(previous: number): number {
+  return previous + 1;
+}
+
+export function applyTimelineAlpha(graph: TimelineAlphaGraph | undefined, alpha: number = 0.05): void {
+  if (!graph || typeof graph.d3Alpha !== 'function') {
+    return;
+  }
+
+  graph.d3Alpha(alpha);
 }
 
 export function useGraphState({
@@ -120,7 +140,7 @@ export function useGraphState({
   const directionModeRef = useRef(directionMode);
   const directionColorRef = useRef(directionColor);
   const favoritesRef = useRef(favorites);
-  const graphDataRef = useRef<{ links: FGLink[]; nodes: FGNode[] }>({ links: [], nodes: [] });
+  const graphDataRef = useRef<{ links: FGLink[]; nodes: FGNode[] }>(createEmptyRuntimeGraphData());
   const dataRef = useRef(data);
   const nodeSizeModeRef = useRef(nodeSizeMode);
   const fileInfoCacheRef = useRef<Map<string, IFileInfo>>(new Map());
@@ -150,12 +170,12 @@ export function useGraphState({
   const [contextSelection, setContextSelection] = useState<GraphContextSelection>(() =>
     makeBackgroundContextSelection(),
   );
-  const [, setImageCacheVersion] = useState(0);
+  const [imageCacheVersion, setImageCacheVersion] = useState(0);
   const [highlightVersion, setHighlightVersion] = useState(0);
 
-  const triggerImageRerender = useCallback(() => {
-    setImageCacheVersion(previous => previous + 1);
-  }, []);
+  function triggerImageRerender(): void {
+    setImageCacheVersion(incrementImageCacheVersion);
+  }
 
   const graphData = useMemo(() => {
     const nextGraphData = buildGraphData({
@@ -177,7 +197,7 @@ export function useGraphState({
     const graph = as2DExtMethods(fg2dRef.current);
     if (!graph) return;
     requestAnimationFrame(() => {
-      graph.d3Alpha?.(0.05);
+      applyTimelineAlpha(graph);
     });
   }, [data, timelineActive]);
 
@@ -195,6 +215,7 @@ export function useGraphState({
     graphCursorRef,
     graphData,
     graphDataRef,
+    imageCacheVersion,
     highlightVersion,
     highlightedNeighborsRef,
     highlightedNodeRef,

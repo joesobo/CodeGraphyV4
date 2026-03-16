@@ -262,6 +262,92 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     expect(interactionRuntimeHarness.postMessage).toHaveBeenCalledWith({ type: 'PHYSICS_STABILIZED' });
   });
 
+  it('refreshes delegated handlers when runtime dependencies change on rerender', () => {
+    const firstInteractionHandlers = createInteractionHandlers();
+    const secondInteractionHandlers = createInteractionHandlers();
+    const firstContextMenuRuntime = createContextMenuRuntime();
+    const secondContextMenuRuntime = createContextMenuRuntime();
+    const tooltipRuntime = createTooltipRuntime();
+
+    interactionRuntimeHarness.createGraphInteractionHandlers
+      .mockReturnValueOnce(firstInteractionHandlers)
+      .mockReturnValue(secondInteractionHandlers);
+    interactionRuntimeHarness.createGraphContextMenuRuntime
+      .mockReturnValueOnce(firstContextMenuRuntime)
+      .mockReturnValue(secondContextMenuRuntime);
+    interactionRuntimeHarness.useGraphTooltip.mockReturnValue(tooltipRuntime);
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1));
+
+    const { result, rerender } = renderHook(
+      ({ graphMode }) => useGraphInteractionRuntime({
+        dataRef: { current: { edges: [], nodes: [] } as never },
+        fileInfoCacheRef: { current: new Map() } as never,
+        graphContextSelection: createSelection(['src/one.ts']),
+        graphCursorRef: { current: 'pointer' as never },
+        graphDataRef: { current: { links: [], nodes: [] } } as never,
+        graphMode,
+        highlightedNeighborsRef: { current: new Set() },
+        highlightedNodeRef: { current: null },
+        isMacPlatform: false,
+        lastClickRef: { current: null },
+        lastContainerContextMenuEventRef: { current: 0 },
+        lastGraphContextEventRef: { current: 0 },
+        refs: {
+          containerRef: { current: document.createElement('div') },
+          fg2dRef: { current: undefined },
+          fg3dRef: { current: undefined },
+          rightClickFallbackTimerRef: { current: null },
+          rightMouseDownRef: { current: null },
+          selectedNodesSetRef: { current: new Set() },
+        },
+        setContextSelection: vi.fn(),
+        setHighlightVersion: vi.fn(),
+        setSelectedNodes: vi.fn(),
+      }),
+      {
+        initialProps: {
+          graphMode: '2d' as const,
+        },
+      },
+    );
+
+    rerender({ graphMode: '3d' as const });
+
+    const event = { type: 'contextmenu' } as never;
+    result.current.handleBackgroundRightClick(event);
+    result.current.handleNodeRightClick(createNode('src/next.ts'), event);
+    result.current.handleMouseDownCapture({
+      button: 2,
+      clientX: 5,
+      clientY: 6,
+      ctrlKey: false,
+    } as never);
+    result.current.handleContextMenu();
+
+    expect(interactionRuntimeHarness.createGraphInteractionHandlers).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ graphMode: '2d' }),
+    );
+    expect(interactionRuntimeHarness.createGraphInteractionHandlers).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ graphMode: '3d' }),
+    );
+    expect(firstInteractionHandlers.openBackgroundContextMenu).not.toHaveBeenCalled();
+    expect(secondInteractionHandlers.openBackgroundContextMenu).toHaveBeenCalledWith(event);
+    expect(firstInteractionHandlers.openNodeContextMenu).not.toHaveBeenCalled();
+    expect(secondInteractionHandlers.openNodeContextMenu).toHaveBeenCalledWith('src/next.ts', event);
+    expect(firstContextMenuRuntime.handleMouseDownCapture).not.toHaveBeenCalled();
+    expect(secondContextMenuRuntime.handleMouseDownCapture).toHaveBeenCalledWith({
+      button: 2,
+      clientX: 5,
+      clientY: 6,
+      ctrlKey: false,
+    });
+    expect(firstContextMenuRuntime.handleContextMenu).not.toHaveBeenCalled();
+    expect(secondContextMenuRuntime.handleContextMenu).toHaveBeenCalledTimes(1);
+  });
+
   it('applies the latest cursor on animation frame and cleans up on unmount', () => {
     const interactionHandlers = createInteractionHandlers();
     const contextMenuRuntime = createContextMenuRuntime();

@@ -19,6 +19,15 @@ import {
   renderNodeCanvas,
 } from '../../../../src/webview/components/graph/rendering/nodes2d';
 
+interface ContextOperation {
+  fillStyle: string;
+  globalAlpha: number;
+  kind: 'drawImage' | 'fill' | 'fillText' | 'stroke';
+  lineWidth: number;
+  strokeStyle: string;
+  text?: string;
+}
+
 function createDependencies(overrides: Partial<{
   highlightedNeighborIds: Set<string>;
   highlightedNodeId: string | null;
@@ -60,15 +69,52 @@ function createNode(overrides: Partial<FGNode> = {}): FGNode {
   } as FGNode;
 }
 
-function createContext(): CanvasRenderingContext2D {
-  return {
+function createContext(): {
+  ctx: CanvasRenderingContext2D;
+  operations: ContextOperation[];
+} {
+  const operations: ContextOperation[] = [];
+  const ctx = {
     clip: vi.fn(),
-    drawImage: vi.fn(),
-    fill: vi.fn(),
-    fillText: vi.fn(),
+    drawImage: vi.fn(() => {
+      operations.push({
+        fillStyle: ctx.fillStyle,
+        globalAlpha: ctx.globalAlpha,
+        kind: 'drawImage',
+        lineWidth: ctx.lineWidth,
+        strokeStyle: ctx.strokeStyle,
+      });
+    }),
+    fill: vi.fn(() => {
+      operations.push({
+        fillStyle: ctx.fillStyle,
+        globalAlpha: ctx.globalAlpha,
+        kind: 'fill',
+        lineWidth: ctx.lineWidth,
+        strokeStyle: ctx.strokeStyle,
+      });
+    }),
+    fillText: vi.fn((text: string) => {
+      operations.push({
+        fillStyle: ctx.fillStyle,
+        globalAlpha: ctx.globalAlpha,
+        kind: 'fillText',
+        lineWidth: ctx.lineWidth,
+        strokeStyle: ctx.strokeStyle,
+        text,
+      });
+    }),
     restore: vi.fn(),
     save: vi.fn(),
-    stroke: vi.fn(),
+    stroke: vi.fn(() => {
+      operations.push({
+        fillStyle: ctx.fillStyle,
+        globalAlpha: ctx.globalAlpha,
+        kind: 'stroke',
+        lineWidth: ctx.lineWidth,
+        strokeStyle: ctx.strokeStyle,
+      });
+    }),
     fillStyle: '',
     font: '',
     globalAlpha: 1,
@@ -76,7 +122,12 @@ function createContext(): CanvasRenderingContext2D {
     strokeStyle: '',
     textAlign: 'left',
     textBaseline: 'alphabetic',
-  } as unknown as CanvasRenderingContext2D;
+  };
+
+  return {
+    ctx: ctx as unknown as CanvasRenderingContext2D,
+    operations,
+  };
 }
 
 describe('graph/rendering/nodes2d', () => {
@@ -85,19 +136,33 @@ describe('graph/rendering/nodes2d', () => {
   });
 
   it('draws the node body and stroke using node styling', () => {
-    const ctx = createContext();
+    const { ctx, operations } = createContext();
 
     renderNodeCanvas(createDependencies(), createNode(), ctx, 1);
 
     expect(drawShape).toHaveBeenCalledWith(ctx, 'circle', 24, 48, 16);
     expect(ctx.fill).toHaveBeenCalled();
     expect(ctx.stroke).toHaveBeenCalled();
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        globalAlpha: 1,
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        globalAlpha: 1,
+        kind: 'stroke',
+      }),
+      expect.objectContaining({
+        kind: 'fillText',
+        text: 'app.ts',
+      }),
+    ]));
   });
 
   it('draws an image overlay when the node image is cached', () => {
     const image = { width: 32, height: 32 };
     vi.mocked(getImage).mockReturnValue(image as HTMLImageElement);
-    const ctx = createContext();
+    const { ctx, operations } = createContext();
 
     renderNodeCanvas(
       createDependencies(),
@@ -109,10 +174,14 @@ describe('graph/rendering/nodes2d', () => {
     expect(getImage).toHaveBeenCalledWith('https://example.com/icon.png', expect.any(Function));
     expect(ctx.clip).toHaveBeenCalled();
     expect(ctx.drawImage).toHaveBeenCalledWith(image, 14.4, 38.4, 19.2, 19.2);
+    expect(operations).toContainEqual(expect.objectContaining({
+      globalAlpha: 1,
+      kind: 'drawImage',
+    }));
   });
 
   it('renders labels when labels are enabled and the zoom level makes them visible', () => {
-    const ctx = createContext();
+    const { ctx, operations } = createContext();
 
     renderNodeCanvas(
       createDependencies({
@@ -125,12 +194,17 @@ describe('graph/rendering/nodes2d', () => {
 
     expect(ctx.fillText).toHaveBeenCalledWith('Decorated Label', 24, 65);
     expect(ctx.fillStyle).toBe('#facc15');
+    expect(operations).toContainEqual(expect.objectContaining({
+      fillStyle: '#facc15',
+      kind: 'fillText',
+      text: 'Decorated Label',
+    }));
   });
 
   it('uses the wildcard plugin renderer when no type-specific renderer is registered', () => {
     const pluginRenderer = vi.fn();
     const getNodeRenderer = vi.fn((type: string) => (type === '*' ? pluginRenderer : undefined));
-    const ctx = createContext();
+    const { ctx } = createContext();
 
     renderNodeCanvas(
       createDependencies({
@@ -150,8 +224,60 @@ describe('graph/rendering/nodes2d', () => {
     }));
   });
 
+  it('dims disconnected nodes when another node is highlighted', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeCanvas(
+      createDependencies({
+        highlightedNodeId: 'src/other.ts',
+        showLabels: false,
+      }),
+      createNode({ baseOpacity: 0.85 }),
+      ctx,
+      1,
+    );
+
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        globalAlpha: 0.15,
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        globalAlpha: 0.15,
+        kind: 'stroke',
+      }),
+    ]));
+    expect(ctx.fillText).not.toHaveBeenCalled();
+  });
+
+  it('keeps decorated neighbor nodes at their decorated opacity when they are highlighted indirectly', () => {
+    const { ctx, operations } = createContext();
+
+    renderNodeCanvas(
+      createDependencies({
+        highlightedNeighborIds: new Set(['src/app.ts']),
+        highlightedNodeId: 'src/other.ts',
+        nodeDecoration: { opacity: 0.7 },
+      }),
+      createNode({ baseOpacity: 0.4 }),
+      ctx,
+      1,
+    );
+
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        globalAlpha: 0.7,
+        kind: 'fill',
+      }),
+      expect.objectContaining({
+        globalAlpha: 0.7,
+        kind: 'stroke',
+      }),
+    ]));
+  });
+
   it('paints the expanded pointer area around the node shape', () => {
-    const ctx = createContext();
+    const { ctx } = createContext();
 
     paintNodePointerArea(createNode(), '#ffffff', ctx);
 

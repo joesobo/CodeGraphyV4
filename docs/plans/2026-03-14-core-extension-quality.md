@@ -1047,6 +1047,60 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
         - `useGraphState.ts`
         - `usePhysicsRuntime.ts`
         - rendering helpers led by `nodeBody.ts`, `nodes2d.ts`, and `bidirectionalLink.ts`
+- 2026-03-15 graph-webview threshold recovery + hook cleanup:
+  - reshaped `graph/rendering/useGraphCallbacks.ts` to use a ref-backed stable callback object instead of mutation-heavy per-callback `useCallback` wrappers
+  - reshaped `graph/runtime/useGraphState.ts` with direct helper seams:
+    - `createEmptyRuntimeGraphData()`
+    - `incrementImageCacheVersion()`
+    - `applyTimelineAlpha()`
+  - reshaped `graph/runtime/useGraphInteractionRuntime.ts` around extracted runtime-dependency builders instead of repeated inline callback wrappers
+  - split `graph/runtime/usePhysicsRuntime.ts` helper logic into:
+    - `physicsRuntimeHelpers.ts`
+  - hardened matching tests:
+    - `tests/webview/graph/rendering/useGraphCallbacks.test.tsx`
+    - `tests/webview/graph/rendering/nodeBody.test.ts`
+    - `tests/webview/graph/rendering/nodes2d.test.ts`
+    - `tests/webview/graph/rendering/bidirectionalLink.test.ts`
+    - `tests/webview/graph/runtime/useGraphState.test.tsx`
+    - `tests/webview/graph/runtime/useGraphInteractionRuntime.test.tsx`
+    - `tests/webview/graph/runtime/usePhysicsRuntime.test.tsx`
+    - `tests/webview/graph/runtime/physicsRuntimeHelpers.test.ts`
+    - `tests/webview/graph/runtime/physics.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/useGraphCallbacks.test.tsx tests/webview/graph/rendering/nodeBody.test.ts tests/webview/graph/rendering/nodes2d.test.ts tests/webview/graph/rendering/bidirectionalLink.test.ts tests/webview/graph/runtime/useGraphState.test.tsx tests/webview/graph/runtime/usePhysicsRuntime.test.tsx tests/webview/graph/runtime/physicsRuntimeHelpers.test.ts tests/webview/graph/runtime/physics.test.ts tests/webview/graph/runtime/useGraphInteractionRuntime.test.tsx`
+    - `75` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - package-relative `eslint` over the touched graph runtime/rendering source + tests
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension graph-webview`
+    - slice overall = `88.25%`
+    - `✅ All files are within the mutation site threshold (50).`
+    - threshold recovery wins:
+      - `packages/extension/src/webview/components/graph/runtime/usePhysicsRuntime.ts` = `100.00%` with `26` sites
+      - `packages/extension/src/webview/components/graph/runtime/physicsRuntimeHelpers.ts` = `100.00%` with `18` sites
+      - `packages/extension/src/webview/components/graph/runtime/useGraphState.ts` = `100.00%`
+      - `packages/extension/src/webview/components/graph/runtime/useGraphInteractionRuntime.ts` = `95.65%`
+      - `packages/extension/src/webview/components/graph/rendering/useGraphCallbacks.ts` = `95.83%`
+      - `packages/extension/src/webview/components/graph/rendering/bidirectionalLink.ts` = `85.37%`
+      - `packages/extension/src/webview/components/graph/rendering/nodeBody.ts` = `85.71%`
+      - `packages/extension/src/webview/components/graph/rendering/nodes2d.ts` = `88.89%`
+    - current floor files after the rerun:
+      - `packages/extension/src/webview/components/graph/runtime/useNodeAppearance.ts` = `64.00%`
+      - `packages/extension/src/webview/components/graph/runtime/useDirectional.ts` = `65.38%`
+      - `packages/extension/src/webview/components/graph/runtime/useMeshHighlights.ts` = `68.00%`
+      - `packages/extension/src/webview/components/graph/rendering/sharedProps.ts` = `61.11%`
+      - `packages/extension/src/webview/components/graph/rendering/linkMetrics.ts` = `63.41%`
+      - `packages/extension/src/webview/components/graph/rendering/linkColors.ts` = `50.00%`
+      - `packages/extension/src/webview/components/graph/rendering/bidirectionalLineGeometry.ts` = `48.98%`
+    - next step:
+      - keep `graph-webview` open until the slice is above `90%`
+      - target the next low files in this order:
+        - `useNodeAppearance.ts`
+        - `useMeshHighlights.ts`
+        - `useDirectional.ts`
+        - `sharedProps.ts`
+        - `linkMetrics.ts`
+        - `linkColors.ts`
 
 ## Latest timeline pass
 - 2026-03-15 local pass:
