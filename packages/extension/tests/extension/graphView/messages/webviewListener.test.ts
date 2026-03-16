@@ -4,7 +4,7 @@ import type { IViewContext } from '../../../../src/core/views';
 import {
   setGraphViewWebviewMessageListener,
   type GraphViewMessageListenerContext,
-} from '../../../../src/extension/graphView/messages/listener';
+} from '../../../../src/extension/graphView/messages/webviewListener';
 
 function createContext(
   overrides: Partial<GraphViewMessageListenerContext> = {},

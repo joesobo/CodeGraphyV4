@@ -4,7 +4,7 @@ import { openGraphViewInEditor } from './editorPanel';
 import {
   setGraphViewProviderMessageListener,
   type GraphViewProviderMessageListenerSource,
-} from './messages/providerListener';
+} from './messages/provider/listener';
 import { resolveGraphViewWebviewView } from './resolveWebview';
 import {
   onGraphViewWebviewMessage,

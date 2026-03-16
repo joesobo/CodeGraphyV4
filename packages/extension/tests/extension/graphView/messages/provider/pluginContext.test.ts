@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessagePluginContext,
-} from '../../../../src/extension/graphView/messages/providerListenerPluginContext';
+} from '../../../../../src/extension/graphView/messages/provider/pluginContext';
 
 describe('graph view provider listener plugin context', () => {
   it('returns safe defaults when analyzer and workspace state are unavailable', async () => {

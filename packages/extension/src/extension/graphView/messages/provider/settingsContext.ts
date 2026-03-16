@@ -1,8 +1,8 @@
-import type { GraphViewMessageListenerContext } from './listener';
+import type { GraphViewMessageListenerContext } from '../webviewListener';
 import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
-} from './providerListener';
+} from './listener';
 
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,

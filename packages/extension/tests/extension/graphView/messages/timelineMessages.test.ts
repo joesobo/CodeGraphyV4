@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applyTimelineMessage, type GraphViewTimelineHandlers } from '../../../../src/extension/graphView/messages/timeline';
+import {
+  applyTimelineMessage,
+  type GraphViewTimelineHandlers,
+} from '../../../../src/extension/graphView/messages/timelineMessages';
 
 function createHandlers(
   overrides: Partial<GraphViewTimelineHandlers> = {},

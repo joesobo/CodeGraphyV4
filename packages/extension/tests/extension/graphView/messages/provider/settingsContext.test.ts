@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessageSettingsContext,
-} from '../../../../src/extension/graphView/messages/providerListenerSettingsContext';
+} from '../../../../../src/extension/graphView/messages/provider/settingsContext';
 
 describe('graph view provider listener settings context', () => {
   it('reads config values from the codegraphy settings namespace', () => {

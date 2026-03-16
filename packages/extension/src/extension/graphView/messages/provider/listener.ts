@@ -6,18 +6,18 @@ import type {
   IGroup,
   IPhysicsSettings,
   NodeSizeMode,
-} from '../../../shared/types';
-import type { IViewContext } from '../../../core/views';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../../shared/types';
-import { getUndoManager } from '../../UndoManager';
-import { ResetSettingsAction } from '../../actions';
-import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../graphViewSettings';
-import { captureGraphViewSettingsSnapshot } from '../settings';
-import { createGraphViewProviderMessagePluginContext } from './providerListenerPluginContext';
-import { createGraphViewProviderMessagePrimaryActions } from './providerListenerPrimaryActions';
-import { createGraphViewProviderMessageReadContext } from './providerListenerReadContext';
-import { createGraphViewProviderMessageSettingsContext } from './providerListenerSettingsContext';
-import { setGraphViewWebviewMessageListener } from './listener';
+} from '../../../../shared/types';
+import type { IViewContext } from '../../../../core/views';
+import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/types';
+import { getUndoManager } from '../../../UndoManager';
+import { ResetSettingsAction } from '../../../actions';
+import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../../graphViewSettings';
+import { captureGraphViewSettingsSnapshot } from '../../settings';
+import { createGraphViewProviderMessagePluginContext } from './pluginContext';
+import { createGraphViewProviderMessagePrimaryActions } from './primaryActions';
+import { createGraphViewProviderMessageReadContext } from './readContext';
+import { createGraphViewProviderMessageSettingsContext } from './settingsContext';
+import { setGraphViewWebviewMessageListener } from '../webviewListener';
 
 interface GraphViewConfigurationLike {
   get<T>(key: string, defaultValue: T): T;

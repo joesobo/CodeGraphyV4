@@ -1,20 +1,20 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData, IGroup } from '../../../../src/shared/types';
-import type { IViewContext } from '../../../../src/core/views';
+import type { IGraphData, IGroup } from '../../../../../src/shared/types';
+import type { IViewContext } from '../../../../../src/core/views';
 import {
   setGraphViewProviderMessageListener,
   type GraphViewProviderMessageListenerDependencies,
   type GraphViewProviderMessageListenerSource,
-} from '../../../../src/extension/graphView/messages/providerListener';
+} from '../../../../../src/extension/graphView/messages/provider/listener';
 
 afterEach(() => {
   vi.restoreAllMocks();
   vi.doUnmock('vscode');
-  vi.doUnmock('../../../../src/extension/graphView/messages/listener');
-  vi.doUnmock('../../../../src/extension/graphViewSettings');
-  vi.doUnmock('../../../../src/extension/graphView/settings');
-  vi.doUnmock('../../../../src/extension/actions');
-  vi.doUnmock('../../../../src/extension/UndoManager');
+  vi.doUnmock('../../../../../src/extension/graphView/messages/webviewListener');
+  vi.doUnmock('../../../../../src/extension/graphViewSettings');
+  vi.doUnmock('../../../../../src/extension/graphView/settings');
+  vi.doUnmock('../../../../../src/extension/actions');
+  vi.doUnmock('../../../../../src/extension/UndoManager');
   vi.resetModules();
 });
 
@@ -321,30 +321,30 @@ describe('graph view provider listener bridge', () => {
         showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
       },
     }));
-    vi.doMock('../../../../src/extension/graphViewSettings', () => ({
+    vi.doMock('../../../../../src/extension/graphViewSettings', () => ({
       getGraphViewConfigTarget: vi.fn(() => 'workspace'),
       normalizeFolderNodeColor: vi.fn((color: string) => color),
     }));
-    vi.doMock('../../../../src/extension/graphView/settings', () => ({
+    vi.doMock('../../../../../src/extension/graphView/settings', () => ({
       captureGraphViewSettingsSnapshot: vi.fn(() => ({ kind: 'snapshot' })),
     }));
-    vi.doMock('../../../../src/extension/actions', () => ({
+    vi.doMock('../../../../../src/extension/actions', () => ({
       ResetSettingsAction: vi.fn(),
     }));
-    vi.doMock('../../../../src/extension/UndoManager', () => ({
+    vi.doMock('../../../../../src/extension/UndoManager', () => ({
       getUndoManager: () => ({ execute }),
     }));
-    vi.doMock('../../../../src/extension/graphView/messages/providerListenerReadContext', () => ({
+    vi.doMock('../../../../../src/extension/graphView/messages/provider/readContext', () => ({
       createGraphViewProviderMessageReadContext: vi.fn(() => ({})),
     }));
     vi.doMock(
-      '../../../../src/extension/graphView/messages/providerListenerPrimaryActions',
+      '../../../../../src/extension/graphView/messages/provider/primaryActions',
       () => ({
         createGraphViewProviderMessagePrimaryActions: vi.fn(() => ({})),
       }),
     );
     vi.doMock(
-      '../../../../src/extension/graphView/messages/providerListenerSettingsContext',
+      '../../../../../src/extension/graphView/messages/provider/settingsContext',
       () => ({
         createGraphViewProviderMessageSettingsContext: vi.fn((_source, dependencies) => {
           executeUndoActionPromise = dependencies.executeUndoAction({ kind: 'reset-settings' });
@@ -353,17 +353,17 @@ describe('graph view provider listener bridge', () => {
       }),
     );
     vi.doMock(
-      '../../../../src/extension/graphView/messages/providerListenerPluginContext',
+      '../../../../../src/extension/graphView/messages/provider/pluginContext',
       () => ({
         createGraphViewProviderMessagePluginContext: vi.fn(() => ({})),
       }),
     );
-    vi.doMock('../../../../src/extension/graphView/messages/listener', () => ({
+    vi.doMock('../../../../../src/extension/graphView/messages/webviewListener', () => ({
       setGraphViewWebviewMessageListener: vi.fn(),
     }));
 
     const { setGraphViewProviderMessageListener: setListener } = await import(
-      '../../../../src/extension/graphView/messages/providerListener'
+      '../../../../../src/extension/graphView/messages/provider/listener'
     );
 
     setListener({ onDidReceiveMessage: vi.fn() } as never, createSource());
@@ -420,27 +420,27 @@ async function loadDefaultListenerHarness() {
       showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
     },
   }));
-  vi.doMock('../../../../src/extension/graphView/messages/listener', () => ({
+  vi.doMock('../../../../../src/extension/graphView/messages/webviewListener', () => ({
     setGraphViewWebviewMessageListener: vi.fn((_webview, context) => {
       capturedContext = context as Record<string, unknown>;
     }),
   }));
-  vi.doMock('../../../../src/extension/graphViewSettings', () => ({
+  vi.doMock('../../../../../src/extension/graphViewSettings', () => ({
     getGraphViewConfigTarget: getConfigTarget,
     normalizeFolderNodeColor,
   }));
-  vi.doMock('../../../../src/extension/graphView/settings', () => ({
+  vi.doMock('../../../../../src/extension/graphView/settings', () => ({
     captureGraphViewSettingsSnapshot: captureSettingsSnapshot,
   }));
-  vi.doMock('../../../../src/extension/actions', () => ({
+  vi.doMock('../../../../../src/extension/actions', () => ({
     ResetSettingsAction,
   }));
-  vi.doMock('../../../../src/extension/UndoManager', () => ({
+  vi.doMock('../../../../../src/extension/UndoManager', () => ({
     getUndoManager: () => ({ execute }),
   }));
 
   const { setGraphViewProviderMessageListener: setListener } = await import(
-    '../../../../src/extension/graphView/messages/providerListener'
+    '../../../../../src/extension/graphView/messages/provider/listener'
   );
   const source = createSource({
     _graphData: {

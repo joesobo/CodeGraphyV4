@@ -30,7 +30,7 @@ vi.mock('../../../src/extension/graphView/editorPanel', () => ({
   openGraphViewInEditor: mocks.openGraphViewInEditor,
 }));
 
-vi.mock('../../../src/extension/graphView/messages/providerListener', () => ({
+vi.mock('../../../src/extension/graphView/messages/provider/listener', () => ({
   setGraphViewProviderMessageListener: mocks.setGraphViewProviderMessageListener,
 }));
 

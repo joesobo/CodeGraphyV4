@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessagePrimaryActions,
-} from '../../../../src/extension/graphView/messages/providerListenerPrimaryActions';
+} from '../../../../../src/extension/graphView/messages/provider/primaryActions';
 
 describe('graph view provider listener primary actions', () => {
   afterEach(() => {

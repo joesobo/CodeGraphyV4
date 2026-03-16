@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { applyWebviewReady } from '../../../../src/extension/graphView/messages/ready';
+import { applyWebviewReady } from '../../../../src/extension/graphView/messages/webviewReady';
 
 function createHandlers() {
   return {

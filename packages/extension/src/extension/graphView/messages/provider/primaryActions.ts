@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import type { GraphViewMessageListenerContext } from './listener';
+import type { GraphViewMessageListenerContext } from '../webviewListener';
 import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
-} from './providerListener';
-import type { ExtensionToWebviewMessage } from '../../../shared/types';
+} from './listener';
+import type { ExtensionToWebviewMessage } from '../../../../shared/types';
 
 type GraphViewProviderPrimaryActions = Pick<
   GraphViewMessageListenerContext,

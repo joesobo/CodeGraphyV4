@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/types';
+import type { IGraphData } from '../../../../../src/shared/types';
 import {
   createGraphViewProviderMessageReadContext,
-} from '../../../../src/extension/graphView/messages/providerListenerReadContext';
+} from '../../../../../src/extension/graphView/messages/provider/readContext';
 
 describe('graph view provider listener read context', () => {
   it('reads provider state and resolves graph targets from the current graph data', () => {
