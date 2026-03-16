@@ -5,11 +5,11 @@ import { applyWebviewMessageEffects as runWebviewMessageEffects } from '../effec
 import { createGraphKeyboardListener } from '../keyboard/listener';
 import { createGraphMessageListener } from '../messageListener';
 import type { GraphWebviewMessageEffect } from '../../graphWebviewMessages/effects';
-import { exportAsJpeg } from '../../../lib/export/exportJpeg';
-import { exportAsJson } from '../../../lib/export/exportJson';
-import { exportAsMarkdown } from '../../../lib/export/exportMarkdown';
-import { exportAsPng } from '../../../lib/export/exportPng';
-import { exportAsSvg } from '../../../lib/export/exportSvg';
+import { exportAsJpeg } from '../../../lib/export/jpeg';
+import { exportAsJson } from '../../../lib/export/json';
+import { exportAsMarkdown } from '../../../lib/export/markdown';
+import { exportAsPng } from '../../../lib/export/png';
+import { exportAsSvg } from '../../../lib/export/svg';
 import { postMessage } from '../../../lib/vscodeApi';
 import { graphStore } from '../../../store';
 import type { FGLink, FGNode } from '../../graphModel';

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GraphTooltipState } from '../../../../src/webview/components/graphTooltipModel';
+import type { GraphTooltipState } from '../../../../src/webview/components/graph/tooltipModel';
 import {
   createGraphContextMenuRuntime,
   type GraphContextMenuRuntimeDependencies,

@@ -4,7 +4,7 @@ import type {
 import type { MutableRefObject } from 'react';
 import type {
 	GraphTooltipRect,
-} from '../../graphTooltipModel';
+} from '../tooltipModel';
 import {
 	DEFAULT_NODE_SIZE,
 	type FGLink,

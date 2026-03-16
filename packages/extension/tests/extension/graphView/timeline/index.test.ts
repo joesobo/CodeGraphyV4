@@ -6,8 +6,8 @@ import {
 } from '../../../../src/extension/graphView/timeline';
 
 afterEach(() => {
-  vi.doUnmock('../../../../src/extension/graphView/timeline/indexSetup');
-  vi.doUnmock('../../../../src/extension/graphView/timeline/indexExecution');
+  vi.doUnmock('../../../../src/extension/graphView/timeline/setup');
+  vi.doUnmock('../../../../src/extension/graphView/timeline/execution');
   vi.resetModules();
 });
 
@@ -60,10 +60,10 @@ describe('graph view timeline index', () => {
     const prepareGraphViewTimelineIndex = vi.fn(async () => false);
     const runGraphViewTimelineIndex = vi.fn(async () => undefined);
 
-    vi.doMock('../../../../src/extension/graphView/timeline/indexSetup', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/setup', () => ({
       prepareGraphViewTimelineIndex,
     }));
-    vi.doMock('../../../../src/extension/graphView/timeline/indexExecution', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/execution', () => ({
       runGraphViewTimelineIndex,
     }));
 
@@ -91,10 +91,10 @@ describe('graph view timeline index', () => {
     const prepareGraphViewTimelineIndex = vi.fn(async () => true);
     const runGraphViewTimelineIndex = vi.fn(async () => undefined);
 
-    vi.doMock('../../../../src/extension/graphView/timeline/indexSetup', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/setup', () => ({
       prepareGraphViewTimelineIndex,
     }));
-    vi.doMock('../../../../src/extension/graphView/timeline/indexExecution', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/execution', () => ({
       runGraphViewTimelineIndex,
     }));
 
@@ -180,10 +180,10 @@ describe('graph view timeline index', () => {
       handlers.logError('timeline failed', new Error('boom'));
     });
 
-    vi.doMock('../../../../src/extension/graphView/timeline/indexSetup', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/setup', () => ({
       prepareGraphViewTimelineIndex,
     }));
-    vi.doMock('../../../../src/extension/graphView/timeline/indexExecution', () => ({
+    vi.doMock('../../../../src/extension/graphView/timeline/execution', () => ({
       runGraphViewTimelineIndex,
     }));
 

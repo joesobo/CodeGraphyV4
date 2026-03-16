@@ -1,5 +1,5 @@
 import { makeBackgroundContextSelection } from '../../graphContextMenu';
-import { hideGraphTooltipState } from '../../graphTooltipModel';
+import { hideGraphTooltipState } from '../tooltipModel';
 import type { GraphContextMenuRuntimeDependencies } from '.';
 
 const DEFAULT_CONTEXT_SELECTION_GRACE_MS = 150;

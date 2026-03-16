@@ -9,7 +9,7 @@ import type {
 } from '../../../../shared/types';
 import type { GraphCursorStyle } from '../../graphSupport';
 import type { FGLink, FGNode } from '../../graphModel';
-import type { GraphTooltipState } from '../../graphTooltipModel';
+import type { GraphTooltipState } from '../tooltipModel';
 import type { WebviewPluginHost } from '../../../pluginHost';
 import { useTooltipHandlers } from './useTooltipHandlers';
 import { useTooltipState } from './useTooltipState';

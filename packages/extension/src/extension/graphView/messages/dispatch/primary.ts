@@ -22,7 +22,7 @@ import { applyGroupMessage } from '../groups';
 import { applyNodeFileMessage } from '../nodeFile';
 import { applyPhysicsMessage } from '../physics';
 import { applySettingsMessage } from '../settings';
-import { applyTimelineMessage } from '../timelineMessages';
+import { applyTimelineMessage } from '../timeline';
 
 export interface GraphViewPrimaryMessageContext {
   getTimelineActive(): boolean;

@@ -5,7 +5,7 @@ import {
   buildGraphTooltipState,
   hideGraphTooltipState,
   type GraphTooltipState,
-} from '../../../src/webview/components/graphTooltipModel';
+} from '../../../src/webview/components/graph/tooltipModel';
 
 const graphSnapshot: IGraphData = {
   nodes: [
@@ -29,7 +29,7 @@ const cachedInfo: IFileInfo = {
   visits: 9,
 };
 
-describe('graphTooltipModel', () => {
+describe('tooltipModel', () => {
   it('builds tooltip context from the matching snapshot node and its connected neighbors', () => {
     const context = buildGraphTooltipContext({
       node: { id: 'src/app.ts', label: 'hovered.ts', color: '#000000' },

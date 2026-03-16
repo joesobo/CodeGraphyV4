@@ -5,7 +5,7 @@ import type {
   GraphContextMenuAction,
   GraphContextSelection,
 } from '../../graphContextMenu';
-import type { GraphTooltipState } from '../../graphTooltipModel';
+import type { GraphTooltipState } from '../tooltipModel';
 import { createContextMenuEffectRuntime } from './effects';
 import { createContextMenuPointerRuntime } from './pointer';
 import { createContextMenuTooltipRuntime } from './tooltip';
