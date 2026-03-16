@@ -30,13 +30,19 @@ describe('graphView/fileActions', () => {
 
   it('skips the delete action when confirmation is rejected', async () => {
     const executeDeleteAction = vi.fn(async () => undefined);
+    const showWarningMessage = vi.fn(async () => undefined);
 
     await deleteGraphViewFiles(['src/app.ts', 'src/lib.ts'], {
       workspaceFolder: { uri: vscode.Uri.file('/workspace') },
-      showWarningMessage: vi.fn(async () => undefined),
+      showWarningMessage,
       executeDeleteAction,
     });
 
+    expect(showWarningMessage).toHaveBeenCalledWith(
+      'Are you sure you want to delete 2 files?',
+      { modal: true },
+      'Delete',
+    );
     expect(executeDeleteAction).not.toHaveBeenCalled();
   });
 
@@ -88,6 +94,22 @@ describe('graphView/fileActions', () => {
     });
 
     expect(showErrorMessage).toHaveBeenCalledWith('Failed to create file: disk full');
+  });
+
+  it('creates files in the workspace root without prefixing the current directory', async () => {
+    const executeCreateAction = vi.fn(async () => undefined);
+
+    await createGraphViewFile('.', {
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
+      showInputBox: vi.fn(async () => 'newfile.ts'),
+      executeCreateAction,
+      showErrorMessage: vi.fn(),
+    });
+
+    expect(executeCreateAction).toHaveBeenCalledWith(
+      'newfile.ts',
+      vscode.Uri.file('/workspace'),
+    );
   });
 
   it('returns before prompting when no workspace folder is available for create', async () => {

@@ -45,4 +45,26 @@ describe('graph view timeline index result', () => {
     });
     expect(jumpToCommit).toHaveBeenCalledWith('222');
   });
+
+  it('returns without activating timeline state when the latest commit entry is missing', async () => {
+    const sendMessage = vi.fn();
+    const showInformationMessage = vi.fn();
+    const jumpToCommit = vi.fn(() => Promise.resolve());
+    const state = {
+      timelineActive: false,
+      currentCommitSha: undefined as string | undefined,
+    };
+
+    await applyGraphViewTimelineIndexResult([{ sha: '111' }, undefined as never], state, {
+      sendMessage,
+      showInformationMessage,
+      jumpToCommit,
+    });
+
+    expect(state.timelineActive).toBe(false);
+    expect(state.currentCommitSha).toBeUndefined();
+    expect(showInformationMessage).not.toHaveBeenCalled();
+    expect(sendMessage).not.toHaveBeenCalled();
+    expect(jumpToCommit).not.toHaveBeenCalled();
+  });
 });

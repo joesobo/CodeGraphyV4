@@ -35,6 +35,31 @@ describe('graph view timeline index execution', () => {
     expect(handlers.jumpToCommit).toHaveBeenCalledWith('222');
   });
 
+  it('shows the no-commits message when indexing returns no commits', async () => {
+    const handlers = {
+      getMaxCommits: vi.fn(() => 500),
+      sendMessage: vi.fn(),
+      showInformationMessage: vi.fn(),
+      showErrorMessage: vi.fn(),
+      toErrorMessage: vi.fn((error: unknown) => String(error)),
+      jumpToCommit: vi.fn(async () => undefined),
+      logError: vi.fn(),
+    };
+
+    await runGraphViewTimelineIndex(
+      {
+        gitAnalyzer: {
+          indexHistory: vi.fn(async () => []),
+        },
+        indexingController: new AbortController(),
+      },
+      handlers,
+    );
+
+    expect(handlers.showInformationMessage).toHaveBeenCalledWith('No commits found to index');
+    expect(handlers.jumpToCommit).not.toHaveBeenCalled();
+  });
+
   it('reports non-abort indexing failures and invalidates the cache', async () => {
     const error = new Error('kaboom');
     const handlers = {
@@ -62,5 +87,35 @@ describe('graph view timeline index execution', () => {
     expect(handlers.logError).toHaveBeenCalledWith('[CodeGraphy] Indexing failed:', error);
     expect(handlers.showErrorMessage).toHaveBeenCalledWith('Timeline indexing failed: kaboom');
     expect(handlers.sendMessage).toHaveBeenCalledWith({ type: 'CACHE_INVALIDATED' });
+  });
+
+  it('returns quietly for abort failures', async () => {
+    const error = new Error('aborted');
+    error.name = 'AbortError';
+    const handlers = {
+      getMaxCommits: vi.fn(() => 500),
+      sendMessage: vi.fn(),
+      showInformationMessage: vi.fn(),
+      showErrorMessage: vi.fn(),
+      toErrorMessage: vi.fn(() => 'aborted'),
+      jumpToCommit: vi.fn(async () => undefined),
+      logError: vi.fn(),
+    };
+
+    await runGraphViewTimelineIndex(
+      {
+        gitAnalyzer: {
+          indexHistory: vi.fn(async () => {
+            throw error;
+          }),
+        },
+        indexingController: new AbortController(),
+      },
+      handlers,
+    );
+
+    expect(handlers.logError).not.toHaveBeenCalled();
+    expect(handlers.showErrorMessage).not.toHaveBeenCalled();
+    expect(handlers.sendMessage).not.toHaveBeenCalledWith({ type: 'CACHE_INVALIDATED' });
   });
 });

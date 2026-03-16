@@ -37,8 +37,9 @@ describe('graph view timeline index setup', () => {
     const state = createState();
     const handlers = createHandlers();
 
-    await expect(prepareGraphViewTimelineIndex(state, handlers)).resolves.toBe(false);
+    const ready = await prepareGraphViewTimelineIndex(state, handlers);
 
+    expect(ready).toBe(false);
     expect(handlers.showErrorMessage).toHaveBeenCalledWith('No workspace folder open');
   });
 
@@ -49,8 +50,9 @@ describe('graph view timeline index setup', () => {
       verifyGitRepository: vi.fn(() => Promise.reject(new Error('not git'))),
     });
 
-    await expect(prepareGraphViewTimelineIndex(state, handlers)).resolves.toBe(false);
+    const ready = await prepareGraphViewTimelineIndex(state, handlers);
 
+    expect(ready).toBe(false);
     expect(handlers.showErrorMessage).toHaveBeenCalledWith(
       'This workspace is not a git repository',
     );
@@ -73,8 +75,9 @@ describe('graph view timeline index setup', () => {
       createGitAnalyzer: vi.fn(() => gitAnalyzer),
     });
 
-    await expect(prepareGraphViewTimelineIndex(state, handlers)).resolves.toBe(true);
+    const ready = await prepareGraphViewTimelineIndex(state, handlers);
 
+    expect(ready).toBe(true);
     expect(analyzer.initialize).toHaveBeenCalledOnce();
     expect(state.analyzerInitialized).toBe(true);
     expect(state.gitAnalyzer).toBe(gitAnalyzer);
@@ -92,5 +95,50 @@ describe('graph view timeline index setup', () => {
       'src/generated/**',
     ]);
     expect(state.indexingController).toBeInstanceOf(AbortController);
+  });
+
+  it('returns false after preparing the controller when analyzer state is unavailable', async () => {
+    const state = createState();
+    const handlers = createHandlers({
+      workspaceFolder: { uri: { fsPath: '/workspace' } },
+    });
+
+    const ready = await prepareGraphViewTimelineIndex(state, handlers);
+
+    expect(ready).toBe(false);
+    expect(state.indexingController).toBeInstanceOf(AbortController);
+    expect(handlers.createGitAnalyzer).not.toHaveBeenCalled();
+  });
+
+  it('reuses initialized analyzer and existing git analyzer instances', async () => {
+    const analyzer = {
+      initialize: vi.fn(() => Promise.resolve()),
+      getPluginFilterPatterns: vi.fn(() => ['**/*.generated.ts']),
+    };
+    const existingGitAnalyzer = {
+      indexHistory: vi.fn(() => Promise.resolve([])),
+    };
+    const previousController = new AbortController();
+    const abortSpy = vi.spyOn(previousController, 'abort');
+    const state = createState({
+      analyzer,
+      analyzerInitialized: true,
+      gitAnalyzer: existingGitAnalyzer,
+      indexingController: previousController,
+      filterPatterns: ['src/generated/**'],
+    });
+    const handlers = createHandlers({
+      workspaceFolder: { uri: { fsPath: '/workspace' } },
+    });
+
+    const ready = await prepareGraphViewTimelineIndex(state, handlers);
+
+    expect(ready).toBe(true);
+    expect(abortSpy).toHaveBeenCalledOnce();
+    expect(analyzer.initialize).not.toHaveBeenCalled();
+    expect(handlers.createGitAnalyzer).not.toHaveBeenCalled();
+    expect(state.gitAnalyzer).toBe(existingGitAnalyzer);
+    expect(state.indexingController).toBeInstanceOf(AbortController);
+    expect(state.indexingController).not.toBe(previousController);
   });
 });
