@@ -1,5 +1,6 @@
 import type { DirectionMode } from '../../../../shared/types';
-import type { FGLink, FGNode } from '../../graphModel';
+import type { FGLink } from '../../graphModel';
+import { resolveLinkEndpointId } from '../../graphSupport';
 import type { LinkRenderingDependencies } from './linkShared';
 
 export function getGraphLinkParticles(
@@ -20,8 +21,8 @@ export function getGraphLinkWidth(
 ): number {
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
   if (decoration?.width !== undefined) return decoration.width;
-  const sourceId = typeof link.source === 'string' ? link.source : (link.source as FGNode)?.id;
-  const targetId = typeof link.target === 'string' ? link.target : (link.target as FGNode)?.id;
+  const sourceId = resolveLinkEndpointId(link.source);
+  const targetId = resolveLinkEndpointId(link.target);
   const highlighted = dependencies.highlightedNodeRef.current;
   if (!highlighted) return link.bidirectional ? 2 : 1;
   return (sourceId === highlighted || targetId === highlighted) ? 2 : 1;
