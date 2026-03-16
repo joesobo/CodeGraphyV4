@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../src/shared/types';
+import type { IGraphData } from '../../../../src/shared/types';
 
 vi.mock('vscode', () => ({
   Uri: {
@@ -14,7 +14,7 @@ import {
   readCachedGraphData,
   removeGitCacheDir,
   writeCachedGraphData,
-} from '../../../src/extension/gitHistory/cache/storage';
+} from '../../../../src/extension/gitHistory/cache/storage';
 
 function createFsPromises() {
   return {
@@ -26,7 +26,7 @@ function createFsPromises() {
   };
 }
 
-describe('gitHistory/cacheStorage', () => {
+describe('gitHistory/cache/storage', () => {
   it('returns cached graph data on a cache hit', async () => {
     const fsPromises = createFsPromises();
     const graphData: IGraphData = {

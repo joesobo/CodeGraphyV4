@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   createDiffGraphSnapshot,
   filterDanglingDiffGraphEdges,
-} from '../../../src/extension/gitHistory/diffGraphSnapshot';
+} from '../../../../src/extension/gitHistory/diff/snapshot';
 
-describe('gitHistory/diffGraphSnapshot', () => {
+describe('gitHistory/diff/snapshot', () => {
   it('clones the previous graph into mutable lookup structures', () => {
     const previousGraph = {
       nodes: [{ id: 'src/a.ts', label: 'a.ts', color: '#fff' }],

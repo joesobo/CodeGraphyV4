@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   deleteGitHistoryGraphFile,
   renameGitHistoryGraphFile,
-} from '../../../src/extension/gitHistory/diffGraphState';
+} from '../../../../src/extension/gitHistory/diff/state';
 
-describe('gitHistory/diffGraphState', () => {
+describe('gitHistory/diff/state', () => {
   it('removes the node and all incoming and outgoing edges for a deleted file', () => {
     const nodes = [
       { id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' },

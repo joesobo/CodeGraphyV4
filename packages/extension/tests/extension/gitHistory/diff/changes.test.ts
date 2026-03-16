@@ -2,9 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   addGitHistoryGraphFile,
   modifyGitHistoryGraphFile,
-} from '../../../src/extension/gitHistory/diffGraphChanges';
+} from '../../../../src/extension/gitHistory/diff/changes';
 
-describe('gitHistory/diffGraphChanges', () => {
+describe('gitHistory/diff/changes', () => {
   it('adds a node for unsupported files without reanalyzing them', async () => {
     const nodes: Array<{ id: string; label: string; color: string }> = [];
     const nodeMap = new Map();
