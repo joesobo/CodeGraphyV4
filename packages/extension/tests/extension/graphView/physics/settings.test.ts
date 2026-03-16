@@ -11,7 +11,7 @@ const defaults: IPhysicsSettings = {
   centerForce: 0.1,
 };
 
-describe('graphViewPhysics', () => {
+describe('graphView/physics/settings', () => {
   it('reads each physics setting from configuration using the configured keys', () => {
     const get = vi.fn((key: string, fallback: number) => fallback + 1);
     const config = { get } as unknown as vscode.WorkspaceConfiguration;

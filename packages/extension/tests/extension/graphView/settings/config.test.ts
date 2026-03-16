@@ -13,7 +13,7 @@ import {
   resolveGraphViewDisabledState,
 } from '../../../../src/extension/graphView/settings/config';
 
-describe('graphViewSettings', () => {
+describe('graphView/settings/config', () => {
   it('normalizes invalid direction colors to the default', () => {
     expect(normalizeDirectionColor('not-a-color')).toBe(DEFAULT_DIRECTION_COLOR);
   });

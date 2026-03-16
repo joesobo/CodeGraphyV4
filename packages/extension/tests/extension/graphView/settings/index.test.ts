@@ -3,7 +3,7 @@ import {
   buildGraphViewAllSettingsMessages,
   buildGraphViewSettingsMessages,
   captureGraphViewSettingsSnapshot,
-} from '../../../../src/extension/graphView/settings/index';
+} from '../../../../src/extension/graphView/settings';
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/types';
 
 function createConfig(values: Record<string, unknown>) {

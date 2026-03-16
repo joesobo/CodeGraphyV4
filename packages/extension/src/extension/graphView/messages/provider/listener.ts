@@ -12,7 +12,7 @@ import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/types';
 import { getUndoManager } from '../../../UndoManager';
 import { ResetSettingsAction } from '../../../actions';
 import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/config';
-import { captureGraphViewSettingsSnapshot } from '../../settings/index';
+import { captureGraphViewSettingsSnapshot } from '../../settings';
 import { createGraphViewProviderMessagePluginContext } from './pluginContext';
 import { createGraphViewProviderMessagePrimaryActions } from './primaryActions';
 import { createGraphViewProviderMessageReadContext } from './readContext';
