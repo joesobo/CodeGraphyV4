@@ -10,7 +10,7 @@ import {
 	hideGraphTooltipState,
 	type GraphTooltipRect,
 	type GraphTooltipState,
-} from '../../graphTooltipModel';
+} from '../tooltipModel';
 import type { FGNode } from '../../graphModel';
 import type { GraphTooltipInteractionDependencies } from './useGraphTooltip';
 import type { WebviewPluginHost } from '../../../pluginHost';
