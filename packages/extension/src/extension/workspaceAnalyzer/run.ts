@@ -5,7 +5,7 @@ import type { Configuration } from '../Configuration';
 import {
   saveWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
-} from '../workspaceAnalysisCache';
+} from './cache';
 import {
   analyzeWorkspaceWithAnalyzer,
   type WorkspaceAnalyzerAnalysisSource,

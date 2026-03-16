@@ -1,5 +1,5 @@
-import type { GraphContextMenuAction } from '../graphContextMenu';
-import type { GraphContextEffect } from '../graphContextActionEffects';
+import type { GraphContextMenuAction } from '../../graphContextMenu';
+import type { GraphContextEffect } from './effects';
 
 export function createPluginContextActionEffects(
   action: Extract<GraphContextMenuAction, { kind: 'plugin' }>

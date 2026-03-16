@@ -3,7 +3,7 @@ import {
   analyzeWorkspaceAnalyzerFiles,
   analyzeWorkspaceAnalyzerSourceFiles,
 } from '../../../src/extension/workspaceAnalyzer/files';
-import * as workspaceFileAnalysisModule from '../../../src/extension/workspaceFileAnalysis';
+import * as workspaceFileAnalysisModule from '../../../src/extension/workspaceAnalyzer/fileAnalysis';
 
 describe('workspaceAnalyzer/files', () => {
   it('logs cache hit and miss counts from workspace file analysis', async () => {

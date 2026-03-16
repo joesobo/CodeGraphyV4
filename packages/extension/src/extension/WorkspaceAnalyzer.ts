@@ -14,7 +14,7 @@ import {
   IWorkspaceAnalysisCache,
   loadWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_KEY,
-} from './workspaceAnalysisCache';
+} from './workspaceAnalyzer/cache';
 import { type WorkspaceAnalyzerAnalysisSource } from './workspaceAnalyzer/analyze';
 import {
   analyzeWorkspaceAnalyzerSourceFiles,

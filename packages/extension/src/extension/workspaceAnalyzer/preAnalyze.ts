@@ -1,5 +1,5 @@
 import type { IDiscoveredFile } from '../../core/discovery';
-import { throwIfWorkspaceAnalysisAborted } from '../workspaceAnalyzerAbort';
+import { throwIfWorkspaceAnalysisAborted } from './abort';
 
 export interface WorkspaceAnalyzerPreAnalyzeDependencies {
   notifyPreAnalyze(

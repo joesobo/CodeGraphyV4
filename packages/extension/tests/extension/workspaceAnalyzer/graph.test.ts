@@ -3,7 +3,7 @@ import {
   buildWorkspaceAnalyzerGraph,
   buildWorkspaceAnalyzerGraphForSource,
 } from '../../../src/extension/workspaceAnalyzer/graph';
-import * as workspaceGraphDataModule from '../../../src/extension/workspaceGraphData';
+import * as workspaceGraphDataModule from '../../../src/extension/workspaceAnalyzer/graphData';
 
 describe('workspaceAnalyzer/graph', () => {
   it('reads visit counts from workspace state before building graph data', () => {

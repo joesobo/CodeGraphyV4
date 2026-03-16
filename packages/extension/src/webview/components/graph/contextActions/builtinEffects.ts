@@ -1,5 +1,5 @@
-import type { BuiltInContextMenuAction } from '../graphContextMenu';
-import type { GraphContextEffect } from '../graphContextActionEffects';
+import type { BuiltInContextMenuAction } from '../../graphContextMenu';
+import type { GraphContextEffect } from './effects';
 import {
   createClipboardEffects,
   createCreateFileEffects,
@@ -11,7 +11,7 @@ import {
   createPathListMessageEffects,
   createPatternMessageEffects,
   createRefreshEffects,
-} from './contextActionBuilders';
+} from './builders';
 
 export function getBuiltInContextActionEffectsImpl(
   action: BuiltInContextMenuAction,

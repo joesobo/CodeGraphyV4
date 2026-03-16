@@ -2,7 +2,7 @@ import * as path from 'path';
 import type { IDiscoveredFile } from '../../core/discovery';
 import type { IConnection, IPlugin, PluginRegistry } from '../../core/plugins';
 import type { IPluginStatus } from '../../shared/types';
-import { buildWorkspacePluginStatuses } from '../workspacePluginStatuses';
+import { buildWorkspacePluginStatuses } from './pluginStatuses';
 
 interface WorkspaceAnalyzerPluginRegistry {
   getPluginForFile(filePath: string): IPlugin | undefined;

@@ -3,10 +3,10 @@
  * @module extension/workspaceFileAnalysis
  */
 
-import type { IDiscoveredFile } from '../core/discovery';
-import type { IConnection } from '../core/plugins';
-import { throwIfWorkspaceAnalysisAborted } from './workspaceAnalyzerAbort';
-import type { IWorkspaceAnalysisCache } from './workspaceAnalysisCache';
+import type { IDiscoveredFile } from '../../core/discovery';
+import type { IConnection } from '../../core/plugins';
+import { throwIfWorkspaceAnalysisAborted } from './abort';
+import type { IWorkspaceAnalysisCache } from './cache';
 
 interface IWorkspaceFileProcessedConnection {
   resolvedPath: string | null;

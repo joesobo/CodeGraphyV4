@@ -4,7 +4,7 @@ import {
   createEmptyWorkspaceAnalysisCache,
   saveWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
-} from '../workspaceAnalysisCache';
+} from './cache';
 
 export interface WorkspaceAnalyzerRebuildDependencies {
   buildGraphData(
