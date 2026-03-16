@@ -39,6 +39,7 @@ describe('graphView/visits', () => {
 
     const message = await incrementPersistedGraphViewVisitCount(workspaceState, 'src/app.ts');
 
+    expect(workspaceState.get).toHaveBeenCalledWith('codegraphy.fileVisits');
     expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.fileVisits', {
       'src/app.ts': 3,
     });
