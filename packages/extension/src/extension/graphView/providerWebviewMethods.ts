@@ -47,40 +47,44 @@ export interface GraphViewProviderWebviewMethodDependencies {
   log(message: string): void;
 }
 
-const DEFAULT_DEPENDENCIES: GraphViewProviderWebviewMethodDependencies = {
-  viewType: 'codegraphy.graphView',
-  createHtml: (extensionUri, webview) =>
-    createGraphViewHtml(extensionUri, webview, createGraphViewNonce()),
-  resolveWebviewView: resolveGraphViewWebviewView,
-  openInEditor: openGraphViewInEditor,
-  sendWebviewMessage: sendGraphViewWebviewMessage,
-  onWebviewMessage: onGraphViewWebviewMessage,
-  setWebviewMessageListener: setGraphViewProviderMessageListener,
-  executeCommand: (command, key, value) => vscode.commands.executeCommand(command, key, value),
-  createPanel: (viewType, title, column, options) =>
-    vscode.window.createWebviewPanel(viewType, title, column, options),
-  log: message => {
-    console.log(message);
-  },
-};
+function createDefaultGraphViewProviderWebviewMethodDependencies(): GraphViewProviderWebviewMethodDependencies {
+  return {
+    viewType: 'codegraphy.graphView',
+    createHtml: (extensionUri, webview) =>
+      createGraphViewHtml(extensionUri, webview, createGraphViewNonce()),
+    resolveWebviewView: resolveGraphViewWebviewView,
+    openInEditor: openGraphViewInEditor,
+    sendWebviewMessage: sendGraphViewWebviewMessage,
+    onWebviewMessage: onGraphViewWebviewMessage,
+    setWebviewMessageListener: setGraphViewProviderMessageListener,
+    executeCommand: (command, key, value) => vscode.commands.executeCommand(command, key, value),
+    createPanel: (viewType, title, column, options) =>
+      vscode.window.createWebviewPanel(viewType, title, column, options),
+    log: message => {
+      console.log(message);
+    },
+  };
+}
 
 export function createGraphViewProviderWebviewMethods(
   source: GraphViewProviderWebviewSource,
-  dependencies: GraphViewProviderWebviewMethodDependencies = DEFAULT_DEPENDENCIES,
+  dependencies?: GraphViewProviderWebviewMethodDependencies,
 ): GraphViewProviderWebviewMethods {
+  const resolvedDependencies =
+    dependencies ?? createDefaultGraphViewProviderWebviewMethodDependencies();
   const _sendMessage = (message: unknown): void => {
-    dependencies.sendWebviewMessage(source._view, source._panels, message);
+    resolvedDependencies.sendWebviewMessage(source._view, source._panels, message);
   };
 
   const _setWebviewMessageListener = (webview: vscode.Webview): void => {
-    dependencies.setWebviewMessageListener(
+    resolvedDependencies.setWebviewMessageListener(
       webview,
       source as unknown as GraphViewProviderMessageListenerSource,
     );
   };
 
   const _getHtmlForWebview = (webview: vscode.Webview): string =>
-    dependencies.createHtml(source._extensionUri, webview);
+    resolvedDependencies.createHtml(source._extensionUri, webview);
 
   const resolveWebviewView = (
     webviewView: vscode.WebviewView,
@@ -88,27 +92,27 @@ export function createGraphViewProviderWebviewMethods(
     _token: vscode.CancellationToken,
   ): void => {
     source._view = webviewView;
-    dependencies.resolveWebviewView(webviewView, {
+    resolvedDependencies.resolveWebviewView(webviewView, {
       getLocalResourceRoots: () => source._getLocalResourceRoots(),
       setWebviewMessageListener: nextWebview =>
         _setWebviewMessageListener(nextWebview as vscode.Webview),
       getHtml: nextWebview => _getHtmlForWebview(nextWebview as vscode.Webview),
       executeCommand: (command, key, value) =>
-        dependencies.executeCommand(command, key, value),
+        resolvedDependencies.executeCommand(command, key, value),
       analyzeAndSendData: () => source._analyzeAndSendData(),
       log: message => {
-        dependencies.log(message);
+        resolvedDependencies.log(message);
       },
     });
   };
 
   const openInEditor = (): void => {
-    dependencies.openInEditor({
-      viewType: dependencies.viewType,
+    resolvedDependencies.openInEditor({
+      viewType: resolvedDependencies.viewType,
       extensionUri: source._extensionUri,
       getLocalResourceRoots: () => source._getLocalResourceRoots(),
       createPanel: (viewType, title, column, options) =>
-        dependencies.createPanel(viewType, title, column, options),
+        resolvedDependencies.createPanel(viewType, title, column, options),
       setWebviewMessageListener: webview => _setWebviewMessageListener(webview),
       getHtmlForWebview: webview => _getHtmlForWebview(webview),
       registerPanel: panel => {
@@ -125,7 +129,7 @@ export function createGraphViewProviderWebviewMethods(
   };
 
   const onWebviewMessage = (handler: (message: unknown) => void): vscode.Disposable =>
-    dependencies.onWebviewMessage(source._view, handler);
+    resolvedDependencies.onWebviewMessage(source._view, handler);
 
   return {
     resolveWebviewView,

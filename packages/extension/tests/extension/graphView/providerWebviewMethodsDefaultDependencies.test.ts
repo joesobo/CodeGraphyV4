@@ -103,4 +103,41 @@ describe('graphView/providerWebviewMethods default dependencies', () => {
 
     consoleLog.mockRestore();
   });
+
+  it('uses the default editor-opening delegates for panels, view type, html, and listener wiring', () => {
+    const source = {
+      _extensionUri: { fsPath: '/test/extension' },
+      _view: undefined,
+      _panels: [],
+      _analyzeAndSendData: vi.fn(async () => undefined),
+      _getLocalResourceRoots: vi.fn(() => [{ fsPath: '/test/root' }]),
+    };
+    const nextWebview = { kind: 'panel-webview' };
+    const methods = createGraphViewProviderWebviewMethods(source as never);
+
+    mocks.openGraphViewInEditor.mockImplementation(options => {
+      expect(options.viewType).toBe('codegraphy.graphView');
+      expect(options.getLocalResourceRoots()).toEqual([{ fsPath: '/test/root' }]);
+      expect(
+        options.createPanel('codegraphy.graphView', 'CodeGraphy', 2 as never, {
+          enableScripts: true,
+        } as never),
+      ).toEqual({ id: 'panel-1' });
+      options.setWebviewMessageListener(nextWebview as never);
+      expect(options.getHtmlForWebview(nextWebview as never)).toBe('<default html />');
+    });
+
+    methods.openInEditor();
+
+    expect(mocks.openGraphViewInEditor).toHaveBeenCalledOnce();
+    expect(mocks.createWebviewPanel).toHaveBeenCalledWith(
+      'codegraphy.graphView',
+      'CodeGraphy',
+      2,
+      { enableScripts: true },
+    );
+    expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(nextWebview, source);
+    expect(mocks.createGraphViewNonce).toHaveBeenCalledOnce();
+    expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview, 'nonce-123');
+  });
 });
