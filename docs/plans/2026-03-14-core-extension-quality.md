@@ -1251,13 +1251,72 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - `✅ every file in the refreshed graph-webview slice is within the 50-site threshold`
     - next step:
       - move off graph-webview and refresh the remaining extension slices, starting with `webview-export` and `git-history`
+- 2026-03-16 webview-export threshold recovery:
+  - split export modules under `packages/extension/src/webview/lib/export/`:
+    - extracted SVG helpers:
+      - `exportSvgDocument.ts`
+      - `exportSvgLayout.ts`
+      - `exportSvgLinks.ts`
+      - `exportSvgNodes.ts`
+      - `exportSvgShapes.ts`
+      - `exportSvgTypes.ts`
+    - extracted JSON/Markdown helpers:
+      - `exportJsonRules.ts`
+      - `exportJsonGroups.ts`
+      - `exportMarkdownRenderer.ts`
+      - `exportTypes.ts`
+  - moved export tests into direct file-per-module coverage under `tests/webview/lib/export/`
+  - added new direct tests:
+    - `tests/webview/lib/export/common.test.ts`
+    - `tests/webview/lib/export/exportJpeg.test.ts`
+    - `tests/webview/lib/export/exportPng.test.ts`
+    - `tests/webview/lib/export/exportJson.test.ts`
+    - `tests/webview/lib/export/exportJsonGroups.test.ts`
+    - `tests/webview/lib/export/exportJsonRules.test.ts`
+    - `tests/webview/lib/export/exportMarkdown.test.ts`
+    - `tests/webview/lib/export/exportMarkdownRenderer.test.ts`
+    - `tests/webview/lib/export/exportSvg.test.ts`
+    - `tests/webview/lib/export/exportSvgDocument.test.ts`
+    - `tests/webview/lib/export/exportSvgLayout.test.ts`
+    - `tests/webview/lib/export/exportSvgLinks.test.ts`
+    - `tests/webview/lib/export/exportSvgNodes.test.ts`
+    - `tests/webview/lib/export/exportSvgShapes.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts $(fd -t f '.test.ts$' packages/extension/tests/webview/lib/export | sed 's#^packages/extension/##' | sort)`
+    - `55` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - package-relative `eslint src/webview/lib/export/*.ts tests/webview/lib/export/*.test.ts`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension webview-export`
+    - slice overall = `75.12%`
+    - current site-threshold blockers:
+      - `exportMarkdownRenderer.ts` = `109` sites at `61.47%`
+      - `exportSvgShapes.ts` = `87` sites at `55.17%`
+      - `exportJsonRules.ts` = `66` sites at `84.85%`
+      - `exportSvgNodes.ts` = `63` sites at `68.25%`
+      - `exportJsonGroups.ts` = `61` sites at `90.16%`
+      - `exportSvgLinks.ts` = `57` sites at `71.93%`
+    - current sub-90 files already under the site threshold:
+      - `common.ts` = `88.46%`
+      - `exportMarkdown.ts` = `80.00%`
+      - `exportSvg.ts` = `88.89%`
+      - `exportSvgDocument.ts` = `73.81%`
+    - direct wins from this pass:
+      - `exportJpeg.ts` = `100.00%`
+      - `exportPng.ts` = `100.00%`
+      - `exportJson.ts` = `90.00%`
+      - `exportSvgLayout.ts` = `100.00%`
+    - next cut:
+      - split `exportMarkdownRenderer.ts`, `exportSvgShapes.ts`, `exportJsonRules.ts`, `exportSvgNodes.ts`, `exportJsonGroups.ts`, and `exportSvgLinks.ts` under `50` sites
+      - only then switch to survivor cleanup in `common.ts`, `exportMarkdown.ts`, `exportSvg.ts`, and `exportSvgDocument.ts`
 
 ## Current hotspot order
-1. refresh the remaining official extension slices: `webview-export`, `git-history`
-2. print the package-level mutation/CRAP/status summary from the refreshed slice set
-3. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
-4. update the PR description with the completed refactor record
-5. resolve any remaining merge conflict drift on the PR branch
+1. finish the `webview-export` threshold cuts, then harden remaining survivors there
+2. refresh the remaining official extension slices: `git-history`, then any stale graph-webview/settings-panel files not yet officially rerun
+3. print the package-level mutation/CRAP/status summary from the refreshed slice set
+4. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
+5. update the PR description with the completed refactor record
+6. resolve any remaining merge conflict drift on the PR branch
 
 ## Notes
 - No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.

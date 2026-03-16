@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildMarkdownExport } from '../../../src/webview/lib/export/exportMarkdown';
-import type { IGraphData, IGroup, IPluginStatus } from '../../../src/shared/types';
+import { buildMarkdownExport } from '../../../../src/webview/lib/export/exportMarkdown';
+import type { IGraphData, IGroup, IPluginStatus } from '../../../../src/shared/types';
 
 const noGroups: IGroup[] = [];
 
