@@ -242,7 +242,9 @@ describe('Timeline', () => {
       vi.advanceTimersByTime(100);
     });
 
-    const jumpMessages = sentMessages.filter((m) => (m as { type: string }).type === 'JUMP_TO_COMMIT');
+    const jumpMessages = sentMessages.filter(
+      (message) => (message as { type: string }).type === 'JUMP_TO_COMMIT',
+    );
     expect(jumpMessages.length).toBeGreaterThanOrEqual(1);
   });
 

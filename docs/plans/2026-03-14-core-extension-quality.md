@@ -1006,6 +1006,31 @@ Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, C
       - `packages/extension/src/webview/components/Graph.tsx` = `91.84%`
       - result: current graph-webview helper hotspots remain under the `50`-site threshold and the local survivor floor in this batch is now above `90%`
 
+## Latest timeline pass
+- 2026-03-15 local pass:
+  - split `Timeline.tsx` into folder-scoped helpers:
+    - `timeline/Status.tsx`
+    - `timeline/Track.tsx`
+    - `timeline/model.ts`
+    - `timeline/useController.ts`
+  - added direct tests:
+    - `tests/webview/timeline/Status.test.tsx`
+    - `tests/webview/timeline/Track.test.tsx`
+    - `tests/webview/timeline/model.test.ts`
+    - `tests/webview/timeline/useController.test.tsx`
+  - expanded the official `timeline` mutation slice in `scripts/run-mutate.ts` to include `packages/extension/src/webview/components/timeline/**/*.ts` and `**/*.tsx`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/Timeline.test.tsx tests/webview/timeline/Status.test.tsx tests/webview/timeline/Track.test.tsx tests/webview/timeline/model.test.ts tests/webview/timeline/useController.test.tsx`
+    - `46` tests green
+    - `pnpm --filter @codegraphy/extension exec eslint src/webview/components/Timeline.tsx src/webview/components/timeline/Status.tsx src/webview/components/timeline/Track.tsx src/webview/components/timeline/model.ts src/webview/components/timeline/useController.ts tests/webview/Timeline.test.tsx tests/webview/timeline/Status.test.tsx tests/webview/timeline/Track.test.tsx tests/webview/timeline/model.test.ts tests/webview/timeline/useController.test.tsx`
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest targeted mutation refresh:
+    - `packages/extension/src/webview/components/Timeline.tsx` = `92.00%`
+    - `packages/extension/src/webview/components/Timeline.tsx` mutation sites = `25`
+    - result: the timeline entry file is now above the `90%` goal and under the `50`-site threshold
+  - next step:
+    - rerun `pnpm run mutate -- extension timeline` against the expanded slice to measure `timeline/Status.tsx`, `timeline/Track.tsx`, `timeline/model.ts`, and `timeline/useController.ts`
+
 ## Current hotspot order
 1. commit and push the `WorkspaceAnalyzer.delegates.test.ts` follow-up that restored `workspace-analysis` to `100%`
 2. refresh the remaining official extension slices: `graph-webview`, `timeline`, `webview-export`, `git-history`
