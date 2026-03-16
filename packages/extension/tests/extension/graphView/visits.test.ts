@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
+  getGraphViewVisitsStorageKey,
   incrementPersistedGraphViewVisitCount,
   readPersistedGraphViewVisitCount,
 } from '../../../src/extension/graphView/visits';
@@ -18,6 +19,10 @@ function createWorkspaceState(visits?: Record<string, number>) {
 }
 
 describe('graphView/visits', () => {
+  it('returns the persisted visits storage key', () => {
+    expect(getGraphViewVisitsStorageKey()).toBe('codegraphy.fileVisits');
+  });
+
   it('returns zero when no persisted visit count exists', () => {
     const workspaceState = createWorkspaceState();
 

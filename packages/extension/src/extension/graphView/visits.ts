@@ -4,15 +4,13 @@ import {
   incrementGraphViewVisitCount,
 } from '../graphViewVisits';
 
-const VISITS_KEY = 'codegraphy.fileVisits';
-
 interface GraphViewVisitsWorkspaceState {
   get<T>(key: string): T | undefined;
   update(key: string, value: unknown): PromiseLike<void>;
 }
 
-function getGraphViewVisitsStorageKey(): string {
-  return VISITS_KEY;
+export function getGraphViewVisitsStorageKey(): string {
+  return 'codegraphy.fileVisits';
 }
 
 function readGraphViewVisitsState(
