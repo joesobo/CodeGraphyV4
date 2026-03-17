@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData, IGroup } from '../../../../src/shared/types';
-import type { IViewContext } from '../../../../src/core/views';
+import type { IViewContext } from '../../../../src/core/views/types';
 import {
   setGraphViewWebviewMessageListener,
   type GraphViewMessageListenerContext,

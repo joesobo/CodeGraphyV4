@@ -13,7 +13,7 @@ import { NodeTooltip } from '../NodeTooltip';
 import type {
   GraphContextMenuAction,
   GraphContextMenuEntry,
-} from '../graphContextMenu';
+} from '../graphContextMenu/types';
 import {
   Surface2d,
   type Surface2dProps,

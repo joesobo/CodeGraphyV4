@@ -55,7 +55,7 @@ vi.mock('../../../../src/extension/graphView/settings/config', () => ({
   getGraphViewConfigTarget: mocks.getConfigTarget,
 }));
 
-vi.mock('../../../../src/extension/graphView/groups', () => ({
+vi.mock('../../../../src/extension/graphView/groups/state', () => ({
   loadGraphViewGroupState: mocks.loadGroupState,
 }));
 

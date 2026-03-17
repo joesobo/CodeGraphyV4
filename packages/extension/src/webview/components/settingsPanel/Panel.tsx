@@ -7,7 +7,7 @@
 import React, { useState } from 'react';
 import { mdiClose, mdiRefresh } from '@mdi/js';
 import { postMessage } from '../../vscodeApi';
-import { MdiIcon } from '../icons';
+import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';

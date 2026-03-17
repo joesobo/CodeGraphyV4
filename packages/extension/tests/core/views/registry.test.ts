@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { ViewRegistry, IView, IViewContext } from '../../../src/core/views';
+import { ViewRegistry } from '../../../src/core/views/registry';
+import type { IView, IViewContext } from '../../../src/core/views/types';
 import { IGraphData } from '../../../src/shared/types';
 
 // Helper to create a mock view

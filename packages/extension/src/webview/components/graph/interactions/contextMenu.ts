@@ -2,10 +2,10 @@ import {
   makeBackgroundContextSelection,
   makeEdgeContextSelection,
   makeNodeContextSelection,
-} from '../../graphContextMenu';
+} from '../../graphContextMenu/selection';
 import { getNodeContextMenuSelection } from '../../graphInteraction/model';
 import type { FGLink } from '../../graphModel';
-import { resolveEdgeActionTargetId, resolveLinkEndpointId } from '../../graphSupport';
+import { resolveEdgeActionTargetId, resolveLinkEndpointId } from '../../graphSupport/linkTargets';
 import type { GraphInteractionHandlersDependencies } from '../interactions';
 
 export interface ContextMenuHandlers {

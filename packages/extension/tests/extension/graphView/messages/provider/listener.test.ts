@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData, IGroup } from '../../../../../src/shared/types';
-import type { IViewContext } from '../../../../../src/core/views';
+import type { IViewContext } from '../../../../../src/core/views/types';
 import {
   setGraphViewProviderMessageListener,
   type GraphViewProviderMessageListenerDependencies,
@@ -13,7 +13,7 @@ afterEach(() => {
   vi.doUnmock('../../../../../src/extension/graphView/messages/webviewListener');
   vi.doUnmock('../../../../../src/extension/graphView/settings/config');
   vi.doUnmock('../../../../../src/extension/graphView/settings');
-  vi.doUnmock('../../../../../src/extension/actions');
+  vi.doUnmock('../../../../../src/extension/actions/resetSettings');
   vi.doUnmock('../../../../../src/extension/undoManager');
   vi.resetModules();
 });
@@ -328,7 +328,7 @@ describe('graph view provider listener bridge', () => {
     vi.doMock('../../../../../src/extension/graphView/settings', () => ({
       captureGraphViewSettingsSnapshot: vi.fn(() => ({ kind: 'snapshot' })),
     }));
-    vi.doMock('../../../../../src/extension/actions', () => ({
+    vi.doMock('../../../../../src/extension/actions/resetSettings', () => ({
       ResetSettingsAction: vi.fn(),
     }));
     vi.doMock('../../../../../src/extension/undoManager', () => ({
@@ -432,7 +432,7 @@ async function loadDefaultListenerHarness() {
   vi.doMock('../../../../../src/extension/graphView/settings', () => ({
     captureGraphViewSettingsSnapshot: captureSettingsSnapshot,
   }));
-  vi.doMock('../../../../../src/extension/actions', () => ({
+  vi.doMock('../../../../../src/extension/actions/resetSettings', () => ({
     ResetSettingsAction,
   }));
   vi.doMock('../../../../../src/extension/undoManager', () => ({

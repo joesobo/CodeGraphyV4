@@ -12,7 +12,7 @@ vi.mock('../../../../src/webview/components/graph/rendering/shapes2D', () => ({
 
 import { getImage } from '../../../../src/webview/components/graph/rendering/imageCache';
 import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes2D';
-import type { WebviewPluginHost } from '../../../../src/webview/pluginHost';
+import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/webviewPluginHost';
 import type { FGNode } from '../../../../src/webview/components/graphModel';
 import {
   paintNodePointerArea,

@@ -3,7 +3,7 @@
  * @module extension/workspaceAnalysisCache
  */
 
-import type { IConnection } from '../../core/plugins';
+import type { IConnection } from '../../core/plugins/types';
 
 export interface ICachedWorkspaceFile {
   mtime: number;

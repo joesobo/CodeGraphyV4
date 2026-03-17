@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GraphContextMenuAction, GraphContextSelection } from '../../../../src/webview/components/graphContextMenu';
+import type { GraphContextMenuAction, GraphContextSelection } from '../../../../src/webview/components/graphContextMenu/types';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
 import { useGraphInteractionRuntime } from '../../../../src/webview/components/graph/runtime/useGraphInteractionRuntime';
 
@@ -20,7 +20,7 @@ vi.mock('../../../../src/webview/components/graph/interactions', () => ({
   createGraphInteractionHandlers: interactionRuntimeHarness.createGraphInteractionHandlers,
 }));
 
-vi.mock('../../../../src/webview/components/graphSupport', () => ({
+vi.mock('../../../../src/webview/components/graphSupport/dom', () => ({
   applyCursorToGraphSurface: interactionRuntimeHarness.applyCursorToGraphSurface,
 }));
 

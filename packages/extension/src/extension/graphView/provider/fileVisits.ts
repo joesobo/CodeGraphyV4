@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { ExtensionToWebviewMessage, IGraphData } from '../../../shared/types';
-import { AddToExcludeAction } from '../../actions';
+import { AddToExcludeAction } from '../../actions/addToExclude';
 import { getUndoManager } from '../../undoManager';
 import { addGraphViewExcludePatternsWithUndo } from '../excludePatterns';
 import { sendGraphViewProviderFileInfoMessage } from '../fileInfo/request';

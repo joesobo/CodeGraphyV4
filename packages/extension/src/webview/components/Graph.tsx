@@ -10,7 +10,7 @@ import type {
   IGraphData,
   NodeDecorationPayload,
 } from '../../shared/types';
-import { buildGraphContextMenuEntries } from './graphContextMenu';
+import { buildGraphContextMenuEntries } from './graphContextMenu/buildEntries';
 import { buildSharedGraphProps } from './graph/rendering/sharedProps';
 import { Viewport } from './graph/Viewport';
 import { useGraphCallbacks } from './graph/rendering/useGraphCallbacks';
@@ -19,7 +19,7 @@ import { useGraphInteractionRuntime } from './graph/runtime/useGraphInteractionR
 import { useGraphRenderingRuntime } from './graph/runtime/useGraphRenderingRuntime';
 import { useGraphState } from './graph/runtime/useGraphState';
 import { ThemeKind } from '../useTheme';
-import type { WebviewPluginHost } from '../pluginHost';
+import type { WebviewPluginHost } from '../pluginHost/webviewPluginHost';
 import { useGraphStore } from '../store';
 
 interface GraphProps {

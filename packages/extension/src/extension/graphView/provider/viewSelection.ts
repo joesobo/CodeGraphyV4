@@ -1,4 +1,5 @@
-import type { IViewContext, ViewRegistry } from '../../../core/views';
+import type { IViewContext } from '../../../core/views/types';
+import type { ViewRegistry } from '../../../core/views/registry';
 import type { ExtensionToWebviewMessage } from '../../../shared/types';
 import {
   changeGraphViewView,

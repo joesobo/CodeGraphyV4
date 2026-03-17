@@ -1,6 +1,6 @@
 import React from 'react';
 import { mdiClockOutline, mdiRefresh } from '@mdi/js';
-import { MdiIcon } from '../icons';
+import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 
 export interface TimelineStatusProgress {

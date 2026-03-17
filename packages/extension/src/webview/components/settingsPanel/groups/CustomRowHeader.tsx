@@ -1,7 +1,7 @@
 import React from 'react';
 import { mdiClose, mdiDrag, mdiEyeOffOutline, mdiEyeOutline } from '@mdi/js';
 import type { IGroup } from '../../../../shared/types';
-import { MdiIcon } from '../../icons';
+import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { ChevronIcon } from '../SectionHeader';
 import type { GroupEditorState } from './useEditorState';

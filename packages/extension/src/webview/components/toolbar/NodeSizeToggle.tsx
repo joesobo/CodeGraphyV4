@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { mdiHubOutline, mdiFileOutline, mdiEyeOutline, mdiCircleMultipleOutline } from '@mdi/js';
-import { MdiIcon } from '../icons';
+import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { useGraphStore } from '../../store';

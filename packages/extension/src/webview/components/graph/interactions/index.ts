@@ -6,13 +6,13 @@ import type {
   ForceGraphMethods as FG3DMethods,
 } from 'react-force-graph-3d';
 import type { IFileInfo, IGraphData } from '../../../../shared/types';
-import type { GraphContextSelection } from '../../graphContextMenu';
+import type { GraphContextSelection } from '../../graphContextMenu/types';
 import {
   type GraphInteractionEffect,
   type GraphLastClickState,
 } from '../../graphInteraction/model';
 import type { FGLink, FGNode } from '../../graphModel';
-import { applyCursorToGraphSurface, type GraphCursorStyle } from '../../graphSupport';
+import { applyCursorToGraphSurface, type GraphCursorStyle } from '../../graphSupport/dom';
 import { createClickHandlers } from './click';
 import { createContextMenuHandlers } from './contextMenu';
 import { createEffectHandlers } from './effects';

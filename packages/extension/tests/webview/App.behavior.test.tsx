@@ -61,7 +61,7 @@ vi.mock('../../src/webview/components/Toolbar', () => ({
   default: () => <div data-testid="toolbar" />,
 }));
 
-vi.mock('../../src/webview/pluginHost', () => {
+vi.mock('../../src/webview/pluginHost/webviewPluginHost', () => {
   class MockWebviewPluginHost {
     createAPI(pluginId: string, postMessage: (message: { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }) => void) {
       harness.createApiCalls.push(pluginId);

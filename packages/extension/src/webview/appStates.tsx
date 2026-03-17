@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { GraphIcon } from './components/icons';
+import { GraphIcon } from './components/icons/GraphIcon';
 
 export function LoadingState(): React.ReactElement {
   return (

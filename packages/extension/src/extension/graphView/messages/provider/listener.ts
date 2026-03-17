@@ -7,10 +7,10 @@ import type {
   IPhysicsSettings,
   NodeSizeMode,
 } from '../../../../shared/types';
-import type { IViewContext } from '../../../../core/views';
+import type { IViewContext } from '../../../../core/views/types';
 import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/types';
 import { getUndoManager } from '../../../undoManager';
-import { ResetSettingsAction } from '../../../actions';
+import { ResetSettingsAction } from '../../../actions/resetSettings';
 import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/config';
 import { captureGraphViewSettingsSnapshot } from '../../settings';
 import { createGraphViewProviderMessagePluginContext } from './pluginContext';

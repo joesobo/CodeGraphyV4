@@ -3,7 +3,7 @@
  * @module extension/workspaceGraphData
  */
 
-import type { IConnection, IPlugin } from '../../../core/plugins';
+import type { IConnection, IPlugin } from '../../../core/plugins/types';
 import type { IGraphData } from '../../../shared/types';
 import { buildWorkspaceGraphEdges } from './edges';
 import { buildWorkspaceGraphNodes } from './nodes';

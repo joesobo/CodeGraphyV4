@@ -1,5 +1,5 @@
 import type { FGLink } from '../../graphModel';
-import { resolveLinkEndpointId } from '../../graphSupport';
+import { resolveLinkEndpointId } from '../../graphSupport/linkTargets';
 import type { GraphInteractionHandlersDependencies } from '../interactions';
 
 export interface SelectionHandlers {

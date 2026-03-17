@@ -22,8 +22,8 @@ import type {
 } from '../../../../shared/types';
 import type {
   GraphContextSelection,
-} from '../../graphContextMenu';
-import { makeBackgroundContextSelection } from '../../graphContextMenu';
+} from '../../graphContextMenu/types';
+import { makeBackgroundContextSelection } from '../../graphContextMenu/selection';
 import {
   buildGraphData,
   type FGLink,
@@ -31,8 +31,8 @@ import {
 } from '../../graphModel';
 import {
   as2DExtMethods,
-  type GraphCursorStyle,
-} from '../../graphSupport';
+} from '../../graphSupport/types';
+import type { GraphCursorStyle } from '../../graphSupport/dom';
 import type { ThemeKind } from '../../../useTheme';
 
 export interface GraphMouseState {

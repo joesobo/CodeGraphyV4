@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { IPhysicsSettings } from '../../shared/types';
 import { postMessage } from '../vscodeApi';
 import { mdiClose, mdiCogOutline } from '@mdi/js';
-import { MdiIcon } from './icons';
+import { MdiIcon } from './icons/MdiIcon';
 
 interface PhysicsSettingsProps {
   settings: IPhysicsSettings;

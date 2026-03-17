@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { GraphContextMenuEntry } from '../../../src/webview/components/graphContextMenu';
+import type { GraphContextMenuEntry } from '../../../src/webview/components/graphContextMenu/types';
 import { Viewport } from '../../../src/webview/components/graph/Viewport';
 
 const harness = vi.hoisted(() => ({

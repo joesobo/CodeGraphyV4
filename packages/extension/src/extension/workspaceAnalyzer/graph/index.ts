@@ -1,4 +1,4 @@
-import type { IConnection, IPlugin } from '../../../core/plugins';
+import type { IConnection, IPlugin } from '../../../core/plugins/types';
 import type { IGraphData } from '../../../shared/types';
 import { buildWorkspaceGraphData } from './data';
 

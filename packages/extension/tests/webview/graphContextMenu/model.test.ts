@@ -1,13 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import type { IPluginContextMenuItem } from '../../../src/shared/types';
+import { buildGraphContextMenuEntries } from '../../../src/webview/components/graphContextMenu/buildEntries';
 import {
-  buildGraphContextMenuEntries,
   makeBackgroundContextSelection,
   makeEdgeContextSelection,
   makeNodeContextSelection,
-  type BuiltInContextMenuAction,
-  type GraphContextMenuEntry,
-} from '../../../src/webview/components/graphContextMenu';
+} from '../../../src/webview/components/graphContextMenu/selection';
+import type {
+  BuiltInContextMenuAction,
+  GraphContextMenuEntry,
+} from '../../../src/webview/components/graphContextMenu/types';
 
 function menuItems(entries: GraphContextMenuEntry[]): Extract<GraphContextMenuEntry, { kind: 'item' }>[] {
   return entries.filter(entry => entry.kind === 'item');

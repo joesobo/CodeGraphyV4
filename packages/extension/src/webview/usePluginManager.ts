@@ -5,7 +5,7 @@
  */
 
 import { useRef, useCallback } from 'react';
-import { WebviewPluginHost } from './pluginHost';
+import { WebviewPluginHost } from './pluginHost/webviewPluginHost';
 import type { CodeGraphyWebviewAPI } from './pluginHost/types';
 import { postMessage } from './vscodeApi';
 import {

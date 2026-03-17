@@ -1,7 +1,7 @@
 import React from 'react';
 import { mdiEyeOffOutline, mdiEyeOutline } from '@mdi/js';
 import { cn } from '../../ui/cn';
-import { MdiIcon } from '../../icons';
+import { MdiIcon } from '../../icons/MdiIcon';
 import { ChevronIcon } from '../SectionHeader';
 import { DefaultRow } from './DefaultRow';
 import type { SettingsPanelGroupSection } from './sections';

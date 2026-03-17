@@ -1,4 +1,4 @@
-import type { PluginRegistry } from '../../core/plugins';
+import type { PluginRegistry } from '../../core/plugins/registry';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src';
 import { createPythonPlugin } from '../../../../plugin-python/src';

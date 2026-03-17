@@ -1,7 +1,7 @@
 import React from 'react';
 import { mdiChevronRight } from '@mdi/js';
 import { cn } from '../ui/cn';
-import { MdiIcon } from '../icons';
+import { MdiIcon } from '../icons/MdiIcon';
 
 export function ChevronIcon({ open }: { open: boolean }): React.ReactElement {
   return (

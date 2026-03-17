@@ -1,6 +1,6 @@
 import React from 'react';
 import { mdiClose, mdiLockOutline } from '@mdi/js';
-import { MdiIcon } from '../../icons';
+import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { canAddFilterPattern, shouldShowPluginFilterPatterns } from './model';

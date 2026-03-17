@@ -1,4 +1,4 @@
-import type { IConnection } from '../../../core/plugins';
+import type { IConnection } from '../../../core/plugins/types';
 import type { IGraphData } from '../../../shared/types';
 import { addGitHistoryGraphFile, modifyGitHistoryGraphFile } from './changes';
 import {

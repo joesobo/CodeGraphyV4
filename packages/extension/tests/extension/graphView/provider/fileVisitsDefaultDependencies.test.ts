@@ -79,7 +79,7 @@ vi.mock('../../../../src/extension/undoManager', () => ({
   }),
 }));
 
-vi.mock('../../../../src/extension/actions', () => ({
+vi.mock('../../../../src/extension/actions/addToExclude', () => ({
   AddToExcludeAction: mocks.addToExcludeAction,
 }));
 

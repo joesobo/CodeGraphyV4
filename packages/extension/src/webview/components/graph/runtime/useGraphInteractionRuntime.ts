@@ -7,21 +7,21 @@ import {
   type SetStateAction,
 } from 'react';
 import type { IGraphData } from '../../../../shared/types';
-import type { GraphContextMenuAction, GraphContextSelection } from '../../graphContextMenu';
+import type { GraphContextMenuAction, GraphContextSelection } from '../../graphContextMenu/types';
 import {
   createGraphContextMenuRuntime,
   type GraphContextMenuRuntimeDependencies,
 } from '../contextMenuRuntime';
 import { createGraphInteractionHandlers } from '../interactions';
-import type { GraphCursorStyle } from '../../graphSupport';
-import { applyCursorToGraphSurface } from '../../graphSupport';
+import type { GraphCursorStyle } from '../../graphSupport/dom';
+import { applyCursorToGraphSurface } from '../../graphSupport/dom';
 import {
   useGraphTooltip,
   type GraphTooltipInteractionDependencies,
 } from './useGraphTooltip';
 import type { FGLink, FGNode } from '../../graphModel';
 import type { UseGraphStateResult } from './useGraphState';
-import type { WebviewPluginHost } from '../../../pluginHost';
+import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';
 import { postMessage } from '../../../vscodeApi';
 
 export interface UseGraphInteractionRuntimeOptions {
