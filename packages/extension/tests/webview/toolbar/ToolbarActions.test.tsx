@@ -2,14 +2,38 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TooltipProvider } from '../../../src/webview/components/ui/tooltip';
-import { ToolbarActions } from '../../../src/webview/components/toolbar/ToolbarActions';
 import { graphStore } from '../../../src/webview/store';
 
 vi.mock('../../../src/webview/vscodeApi', () => ({
   postMessage: vi.fn(),
 }));
 
+// Mock dropdown components to render inline (Radix portals don't work in jsdom)
+vi.mock('../../../src/webview/components/ui/dropdown-menu', () => ({
+  DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="dropdown-content">{children}</div>
+  ),
+  DropdownMenuItem: ({
+    children,
+    onSelect,
+  }: {
+    children: React.ReactNode;
+    onSelect?: () => void;
+  }) => (
+    <button type="button" onClick={onSelect}>
+      {children}
+    </button>
+  ),
+  DropdownMenuSeparator: () => <hr data-testid="dropdown-separator" />,
+  DropdownMenuLabel: ({ children }: { children: React.ReactNode }) => (
+    <span data-testid="dropdown-label">{children}</span>
+  ),
+}));
+
 import { postMessage } from '../../../src/webview/vscodeApi';
+import { ToolbarActions } from '../../../src/webview/components/toolbar/ToolbarActions';
 
 function renderWithProviders() {
   return render(
@@ -89,98 +113,97 @@ describe('ToolbarActions', () => {
   });
 });
 
-describe('ToolbarActions export dropdown', () => {
+describe('ToolbarActions export dropdown items', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('posts REQUEST_EXPORT_PNG when export PNG is selected', () => {
+  it('renders all five export menu items', () => {
+    renderWithProviders();
+    expect(screen.getByText('Export as PNG')).toBeInTheDocument();
+    expect(screen.getByText('Export as SVG')).toBeInTheDocument();
+    expect(screen.getByText('Export as JPEG')).toBeInTheDocument();
+    expect(screen.getByText('Export as JSON')).toBeInTheDocument();
+    expect(screen.getByText('Export as Markdown')).toBeInTheDocument();
+  });
+
+  it('renders Images and Connections section labels', () => {
+    renderWithProviders();
+    expect(screen.getByText('Images')).toBeInTheDocument();
+    expect(screen.getByText('Connections')).toBeInTheDocument();
+  });
+
+  it('posts REQUEST_EXPORT_PNG when export PNG is clicked', () => {
     const postMessageSpy = vi.spyOn(window, 'postMessage');
     renderWithProviders();
-
-    const exportButton = screen.getByTitle('Export');
-    fireEvent.click(exportButton);
-
-    const pngItem = screen.queryByText('Export as PNG');
-    if (pngItem) {
-      fireEvent.click(pngItem);
-      expect(postMessageSpy).toHaveBeenCalledWith(
-        { type: 'REQUEST_EXPORT_PNG' },
-        '*',
-      );
-    }
+    fireEvent.click(screen.getByText('Export as PNG'));
+    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'REQUEST_EXPORT_PNG' }, '*');
     postMessageSpy.mockRestore();
   });
 
-  it('posts REQUEST_EXPORT_SVG when export SVG is selected', () => {
+  it('posts REQUEST_EXPORT_SVG when export SVG is clicked', () => {
     const postMessageSpy = vi.spyOn(window, 'postMessage');
     renderWithProviders();
-
-    const exportButton = screen.getByTitle('Export');
-    fireEvent.click(exportButton);
-
-    const svgItem = screen.queryByText('Export as SVG');
-    if (svgItem) {
-      fireEvent.click(svgItem);
-      expect(postMessageSpy).toHaveBeenCalledWith(
-        { type: 'REQUEST_EXPORT_SVG' },
-        '*',
-      );
-    }
+    fireEvent.click(screen.getByText('Export as SVG'));
+    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'REQUEST_EXPORT_SVG' }, '*');
     postMessageSpy.mockRestore();
   });
 
-  it('posts REQUEST_EXPORT_JPEG when export JPEG is selected', () => {
+  it('posts REQUEST_EXPORT_JPEG when export JPEG is clicked', () => {
     const postMessageSpy = vi.spyOn(window, 'postMessage');
     renderWithProviders();
-
-    const exportButton = screen.getByTitle('Export');
-    fireEvent.click(exportButton);
-
-    const jpegItem = screen.queryByText('Export as JPEG');
-    if (jpegItem) {
-      fireEvent.click(jpegItem);
-      expect(postMessageSpy).toHaveBeenCalledWith(
-        { type: 'REQUEST_EXPORT_JPEG' },
-        '*',
-      );
-    }
+    fireEvent.click(screen.getByText('Export as JPEG'));
+    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'REQUEST_EXPORT_JPEG' }, '*');
     postMessageSpy.mockRestore();
   });
 
-  it('posts REQUEST_EXPORT_JSON when export JSON is selected', () => {
+  it('posts REQUEST_EXPORT_JSON when export JSON is clicked', () => {
     const postMessageSpy = vi.spyOn(window, 'postMessage');
     renderWithProviders();
-
-    const exportButton = screen.getByTitle('Export');
-    fireEvent.click(exportButton);
-
-    const jsonItem = screen.queryByText('Export as JSON');
-    if (jsonItem) {
-      fireEvent.click(jsonItem);
-      expect(postMessageSpy).toHaveBeenCalledWith(
-        { type: 'REQUEST_EXPORT_JSON' },
-        '*',
-      );
-    }
+    fireEvent.click(screen.getByText('Export as JSON'));
+    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'REQUEST_EXPORT_JSON' }, '*');
     postMessageSpy.mockRestore();
   });
 
-  it('posts REQUEST_EXPORT_MD when export Markdown is selected', () => {
+  it('posts REQUEST_EXPORT_MD when export Markdown is clicked', () => {
     const postMessageSpy = vi.spyOn(window, 'postMessage');
     renderWithProviders();
-
-    const exportButton = screen.getByTitle('Export');
-    fireEvent.click(exportButton);
-
-    const mdItem = screen.queryByText('Export as Markdown');
-    if (mdItem) {
-      fireEvent.click(mdItem);
-      expect(postMessageSpy).toHaveBeenCalledWith(
-        { type: 'REQUEST_EXPORT_MD' },
-        '*',
-      );
-    }
+    fireEvent.click(screen.getByText('Export as Markdown'));
+    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'REQUEST_EXPORT_MD' }, '*');
     postMessageSpy.mockRestore();
+  });
+
+  it('renders the export icon SVG path for the export button', () => {
+    renderWithProviders();
+    const exportButton = screen.getByTitle('Export');
+    const svg = exportButton.querySelector('svg');
+    expect(svg).not.toBeNull();
+    const path = svg?.querySelector('path');
+    expect(path).not.toBeNull();
+    expect(path?.getAttribute('d')).toBeTruthy();
+  });
+
+  it('renders the refresh icon SVG path', () => {
+    renderWithProviders();
+    const refreshButton = screen.getByTitle('Refresh Graph');
+    const path = refreshButton.querySelector('svg path');
+    expect(path).not.toBeNull();
+    expect(path?.getAttribute('d')).toBeTruthy();
+  });
+
+  it('renders the plugins icon SVG path', () => {
+    renderWithProviders();
+    const pluginsButton = screen.getByTitle('Plugins');
+    const path = pluginsButton.querySelector('svg path');
+    expect(path).not.toBeNull();
+    expect(path?.getAttribute('d')).toBeTruthy();
+  });
+
+  it('renders the settings icon SVG path', () => {
+    renderWithProviders();
+    const settingsButton = screen.getByTitle('Settings');
+    const path = settingsButton.querySelector('svg path');
+    expect(path).not.toBeNull();
+    expect(path?.getAttribute('d')).toBeTruthy();
   });
 });
