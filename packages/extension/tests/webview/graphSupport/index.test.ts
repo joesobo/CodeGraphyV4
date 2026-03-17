@@ -1,15 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
-  applyCursorToGraphSurface,
   as2DExtMethods,
+  setSpriteVisible,
+} from '../../../src/webview/components/graphSupport/types';
+import {
   hasDistanceAndStrength,
   hasStrength,
-  isMacControlContextClick,
   isRecordLike,
+} from '../../../src/webview/components/graphSupport/guards';
+import {
   resolveEdgeActionTargetId,
   resolveLinkEndpointId,
-  setSpriteVisible,
-} from '../../../src/webview/components/graphSupport';
+} from '../../../src/webview/components/graphSupport/linkTargets';
+import {
+  applyCursorToGraphSurface,
+  isMacControlContextClick,
+} from '../../../src/webview/components/graphSupport/dom';
 
 describe('graphSupport', () => {
   it('recognizes objects and functions as record-like values', () => {

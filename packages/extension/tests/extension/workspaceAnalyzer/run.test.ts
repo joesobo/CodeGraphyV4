@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IDiscoveredFile } from '../../../src/core/discovery';
-import type { IConnection } from '../../../src/core/plugins';
+import type { IDiscoveredFile } from '../../../src/core/discovery/types';
+import type { IConnection } from '../../../src/core/plugins/types';
 import * as analyzeModule from '../../../src/extension/workspaceAnalyzer/analyze';
 import { runWorkspaceAnalyzerAnalysis } from '../../../src/extension/workspaceAnalyzer/run';
 

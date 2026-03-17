@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
 import { getUndoManager } from '../../undoManager';
-import {
-  CreateFileAction,
-  DeleteFilesAction,
-  RenameFileAction,
-  ToggleFavoriteAction,
-} from '../../actions';
+import { CreateFileAction } from '../../actions/createFile';
+import { DeleteFilesAction } from '../../actions/deleteFiles';
+import { RenameFileAction } from '../../actions/renameFile';
+import { ToggleFavoriteAction } from '../../actions/toggleFavorite';
 import { createGraphViewFile, deleteGraphViewFiles } from '../files/actions';
 import { renameGraphViewFile } from '../files/rename';
 import { toggleGraphViewFavorites } from '../favorites';

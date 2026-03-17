@@ -1,5 +1,5 @@
-import type { IDiscoveredFile } from '../../core/discovery';
-import type { IConnection } from '../../core/plugins';
+import type { IDiscoveredFile } from '../../core/discovery/types';
+import type { IConnection } from '../../core/plugins/types';
 import type { EventBus } from '../../core/plugins/eventBus';
 import type { IGraphData } from '../../shared/types';
 import { throwIfWorkspaceAnalysisAborted } from './abort';

@@ -21,13 +21,13 @@ vi.mock('../../../../src/webview/components/graph/rendering/shapes3D', () => ({
   createNodeMesh: vi.fn(() => ({ kind: 'mesh' })),
 }));
 
-vi.mock('../../../../src/webview/components/graphSupport', () => ({
+vi.mock('../../../../src/webview/components/graphSupport/types', () => ({
   setSpriteVisible: vi.fn(),
 }));
 
 import SpriteText from 'three-spritetext';
 import { createImageSprite, createNodeMesh } from '../../../../src/webview/components/graph/rendering/shapes3D';
-import { setSpriteVisible } from '../../../../src/webview/components/graphSupport';
+import { setSpriteVisible } from '../../../../src/webview/components/graphSupport/types';
 import type { FGNode } from '../../../../src/webview/components/graphModel';
 import { createNodeThreeObject } from '../../../../src/webview/components/graph/rendering/nodes3d';
 

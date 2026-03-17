@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { FileDiscovery } from '../../../src/core/discovery';
+import { FileDiscovery } from '../../../src/core/discovery/file';
 
 describe('FileDiscovery discover', () => {
   let discovery: FileDiscovery;

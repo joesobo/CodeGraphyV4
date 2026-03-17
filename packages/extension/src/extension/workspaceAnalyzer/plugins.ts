@@ -1,6 +1,7 @@
 import * as path from 'path';
-import type { IDiscoveredFile } from '../../core/discovery';
-import type { IConnection, IPlugin, PluginRegistry } from '../../core/plugins';
+import type { IDiscoveredFile } from '../../core/discovery/types';
+import type { IConnection, IPlugin } from '../../core/plugins/types';
+import type { PluginRegistry } from '../../core/plugins/registry';
 import type { IPluginStatus } from '../../shared/types';
 import { buildWorkspacePluginStatuses } from './pluginStatuses';
 

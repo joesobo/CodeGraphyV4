@@ -3,7 +3,7 @@ import type {
 } from '../../../../shared/types';
 import { getImage } from './imageCache';
 import { drawShape } from './shapes2D';
-import type { WebviewPluginHost } from '../../../pluginHost';
+import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';
 import {
   getNodeType,
   type FGNode,

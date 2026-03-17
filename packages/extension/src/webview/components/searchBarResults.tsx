@@ -6,7 +6,7 @@
 import React from 'react';
 import { cn } from './ui/cn';
 import { mdiClose } from '@mdi/js';
-import { MdiIcon } from './icons';
+import { MdiIcon } from './icons/MdiIcon';
 
 interface SearchBarResultsProps {
   value: string;

@@ -1,6 +1,6 @@
 import type { DirectionMode } from '../../../../shared/types';
 import type { FGLink } from '../../graphModel';
-import { resolveLinkEndpointId } from '../../graphSupport';
+import { resolveLinkEndpointId } from '../../graphSupport/linkTargets';
 import type { LinkRenderingDependencies } from './linkShared';
 
 export function getGraphLinkParticles(

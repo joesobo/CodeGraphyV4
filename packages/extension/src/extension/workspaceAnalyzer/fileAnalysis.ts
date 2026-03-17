@@ -3,8 +3,8 @@
  * @module extension/workspaceFileAnalysis
  */
 
-import type { IDiscoveredFile } from '../../core/discovery';
-import type { IConnection } from '../../core/plugins';
+import type { IDiscoveredFile } from '../../core/discovery/types';
+import type { IConnection } from '../../core/plugins/types';
 import { throwIfWorkspaceAnalysisAborted } from './abort';
 import type { IWorkspaceAnalysisCache } from './cache';
 

@@ -278,10 +278,10 @@ describe('graph/interactionHandlers', () => {
     vi.doMock('../../../../src/webview/components/graph/interactions/click', () => ({
       createClickHandlers,
     }));
-    vi.doMock('../../../../src/webview/components/graphSupport', async () => {
+    vi.doMock('../../../../src/webview/components/graphSupport/dom', async () => {
       const actual = await vi.importActual<
-        typeof import('../../../../src/webview/components/graphSupport')
-      >('../../../../src/webview/components/graphSupport');
+        typeof import('../../../../src/webview/components/graphSupport/dom')
+      >('../../../../src/webview/components/graphSupport/dom');
       return {
         ...actual,
         applyCursorToGraphSurface,
@@ -348,7 +348,7 @@ describe('graph/interactionHandlers', () => {
     vi.doUnmock('../../../../src/webview/components/graph/interactions/view');
     vi.doUnmock('../../../../src/webview/components/graph/interactions/effects');
     vi.doUnmock('../../../../src/webview/components/graph/interactions/click');
-    vi.doUnmock('../../../../src/webview/components/graphSupport');
+    vi.doUnmock('../../../../src/webview/components/graphSupport/dom');
     vi.resetModules();
   });
 });

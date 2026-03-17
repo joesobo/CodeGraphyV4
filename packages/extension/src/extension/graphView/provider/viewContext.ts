@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import type { IViewContext, ViewRegistry } from '../../../core/views';
+import type { IViewContext } from '../../../core/views/types';
+import type { ViewRegistry } from '../../../core/views/registry';
 import {
   DEFAULT_FOLDER_NODE_COLOR,
   type ExtensionToWebviewMessage,

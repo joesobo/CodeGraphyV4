@@ -1,8 +1,9 @@
 import type * as vscode from 'vscode';
 import type { IGroup } from '../../../shared/types';
-import type { IViewContext, ViewRegistry } from '../../../core/views';
+import type { IViewContext } from '../../../core/views/types';
+import type { ViewRegistry } from '../../../core/views/registry';
 import { mapAvailableViews } from '../presentation';
-import { buildGraphViewGroupsUpdatedMessage } from '../groups';
+import { buildGraphViewGroupsUpdatedMessage } from '../groups/message';
 
 interface SendGraphViewGroupsUpdatedOptions {
   registerPluginRoots: () => void;

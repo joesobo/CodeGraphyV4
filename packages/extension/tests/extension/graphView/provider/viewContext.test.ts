@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IViewContext } from '../../../../src/core/views';
+import type { IViewContext } from '../../../../src/core/views/types';
 import { DEFAULT_FOLDER_NODE_COLOR, type IGraphData } from '../../../../src/shared/types';
 const providerViewContextMethodMocks = vi.hoisted(() => ({
   buildViewContext: vi.fn(),

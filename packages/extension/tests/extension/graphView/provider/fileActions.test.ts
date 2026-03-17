@@ -8,7 +8,10 @@ describe('graphView/provider/fileActions', () => {
     vi.doUnmock('../../../../src/extension/graphView/files/actions');
     vi.doUnmock('../../../../src/extension/graphView/files/rename');
     vi.doUnmock('../../../../src/extension/graphView/favorites');
-    vi.doUnmock('../../../../src/extension/actions');
+    vi.doUnmock('../../../../src/extension/actions/deleteFiles');
+    vi.doUnmock('../../../../src/extension/actions/renameFile');
+    vi.doUnmock('../../../../src/extension/actions/createFile');
+    vi.doUnmock('../../../../src/extension/actions/toggleFavorite');
     vi.doUnmock('../../../../src/extension/undoManager');
     vi.resetModules();
   });
@@ -349,10 +352,16 @@ async function createDefaultDependencyHarness() {
   vi.doMock('../../../../src/extension/graphView/favorites', () => ({
     toggleGraphViewFavorites: toggleFavorites,
   }));
-  vi.doMock('../../../../src/extension/actions', () => ({
+  vi.doMock('../../../../src/extension/actions/deleteFiles', () => ({
     DeleteFilesAction,
+  }));
+  vi.doMock('../../../../src/extension/actions/renameFile', () => ({
     RenameFileAction,
+  }));
+  vi.doMock('../../../../src/extension/actions/createFile', () => ({
     CreateFileAction,
+  }));
+  vi.doMock('../../../../src/extension/actions/toggleFavorite', () => ({
     ToggleFavoriteAction,
   }));
   vi.doMock('../../../../src/extension/undoManager', () => ({

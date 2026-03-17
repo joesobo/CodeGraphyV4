@@ -18,7 +18,7 @@ import {
 } from './nodes2d';
 import type { UseGraphStateResult } from '../runtime/useGraphState';
 import type { FGLink, FGNode } from '../../graphModel';
-import type { WebviewPluginHost } from '../../../pluginHost';
+import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';
 
 export interface UseGraphCallbacksOptions {
   pluginHost?: WebviewPluginHost;

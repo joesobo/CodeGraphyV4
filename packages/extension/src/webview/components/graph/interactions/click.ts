@@ -4,7 +4,7 @@ import {
   getNodeClickCommand,
 } from '../../graphInteraction/model';
 import type { FGLink, FGNode } from '../../graphModel';
-import type { GraphCursorStyle } from '../../graphSupport';
+import type { GraphCursorStyle } from '../../graphSupport/dom';
 import type { GraphInteractionHandlersDependencies } from '../interactions';
 
 const NODE_DOUBLE_CLICK_THRESHOLD_MS = 450;

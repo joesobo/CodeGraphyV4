@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { IConnection } from '../../core/plugins';
+import type { IConnection } from '../../core/plugins/types';
 import { getFileColor, type IGraphData, type IGraphEdge, type IGraphNode } from '../../shared/types';
 import { appendGitHistoryConnectionEdges } from './graphConnections';
 

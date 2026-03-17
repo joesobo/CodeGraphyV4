@@ -1,4 +1,4 @@
-import type { GraphContextMenuAction } from '../../graphContextMenu';
+import type { GraphContextMenuAction } from '../../graphContextMenu/types';
 import type { GraphContextEffect } from './effects';
 
 export function createPluginContextActionEffects(

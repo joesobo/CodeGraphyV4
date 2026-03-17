@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { mdiPause, mdiPlay } from '@mdi/js';
 import type { ICommitInfo } from '../../../shared/types';
-import { MdiIcon } from '../icons';
+import { MdiIcon } from '../icons/MdiIcon';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/tooltip';
 import { formatAxisLabel, formatDate, truncateMessage } from './model';
 

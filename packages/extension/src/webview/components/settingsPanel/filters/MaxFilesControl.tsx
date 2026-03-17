@@ -1,6 +1,6 @@
 import React from 'react';
 import { mdiMinus, mdiPlus } from '@mdi/js';
-import { MdiIcon } from '../../icons';
+import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';

@@ -4,7 +4,7 @@
  */
 
 import * as path from 'path';
-import type { IConnection, IPlugin } from '../../../core/plugins';
+import type { IConnection, IPlugin } from '../../../core/plugins/types';
 import type { IGraphEdge } from '../../../shared/types';
 
 export interface IWorkspaceGraphEdgesOptions {

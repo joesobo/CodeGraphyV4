@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { mdiGraphOutline, mdiBullseye, mdiFolderOutline } from '@mdi/js';
-import { MdiIcon } from '../icons';
+import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Slider } from '../ui/slider';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';

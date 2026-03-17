@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { FileDiscovery } from '../../core/discovery';
+import type { FileDiscovery } from '../../core/discovery/file';
 import type { IGraphData } from '../../shared/types';
 import type { Configuration } from '../configuration';
 import {

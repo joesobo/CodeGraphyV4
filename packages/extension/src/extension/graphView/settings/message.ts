@@ -1,4 +1,4 @@
-import type { IViewContext } from '../../../core/views';
+import type { IViewContext } from '../../../core/views/types';
 import { readGraphViewSettings } from './config';
 import { buildGraphViewSettingsMessages } from './index';
 

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection, IPlugin } from '../../../../src/core/plugins';
+import type { IConnection, IPlugin } from '../../../../src/core/plugins/types';
 import { DEFAULT_NODE_COLOR } from '../../../../src/shared/types';
 import { buildWorkspaceGraphData } from '../../../../src/extension/workspaceAnalyzer/graph/data';
 

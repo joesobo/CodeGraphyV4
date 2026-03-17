@@ -13,7 +13,7 @@ import {
 } from '../tooltipModel';
 import type { FGNode } from '../../graphModel';
 import type { GraphTooltipInteractionDependencies } from './useGraphTooltip';
-import type { WebviewPluginHost } from '../../../pluginHost';
+import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';
 
 interface TooltipHoverOptions {
 	dataRef: MutableRefObject<IGraphData>;

@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import type { IViewContext } from '../../../core/views';
+import type { IViewContext } from '../../../core/views/types';
 import type { ExtensionToWebviewMessage, IGroup, IPhysicsSettings, NodeSizeMode } from '../../../shared/types';
 import { getGraphViewConfigTarget } from '../settings/config';
 import { loadGraphViewDisabledState } from '../settings/disabled';
 import { applyLoadedGraphViewGroupState } from '../groups/sync';
-import { loadGraphViewGroupState } from '../groups';
+import { loadGraphViewGroupState } from '../groups/state';
 import { captureGraphViewSettingsSnapshot } from '../settings/index';
 import { sendGraphViewProviderAllSettings, sendGraphViewProviderSettings } from '../settings/lifecycle';
 

@@ -5,7 +5,7 @@
 import React from 'react';
 import { cn } from './ui/cn';
 import { mdiMagnify } from '@mdi/js';
-import { MdiIcon } from './icons';
+import { MdiIcon } from './icons/MdiIcon';
 import { ToggleButton } from './searchBar/ToggleButton';
 import { useSearchBarHandlers } from './searchBarHandlers';
 import { SearchBarResults } from './searchBarResults';

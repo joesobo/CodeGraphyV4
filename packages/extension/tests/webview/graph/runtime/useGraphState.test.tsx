@@ -16,7 +16,7 @@ vi.mock('../../../../src/webview/components/graphModel', () => ({
   buildGraphData: graphStateHarness.buildGraphData,
 }));
 
-vi.mock('../../../../src/webview/components/graphSupport', () => ({
+vi.mock('../../../../src/webview/components/graphSupport/types', () => ({
   as2DExtMethods: graphStateHarness.as2DExtMethods,
 }));
 

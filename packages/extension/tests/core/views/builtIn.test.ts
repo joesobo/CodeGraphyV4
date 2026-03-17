@@ -4,9 +4,9 @@ import {
   depthGraphView,
   folderView,
   coreViews,
-} from '../../../src/core/views';
+} from '../../../src/core/views/builtIn';
 import { IGraphData } from '../../../src/shared/types';
-import { IViewContext } from '../../../src/core/views';
+import type { IViewContext } from '../../../src/core/views/types';
 
 // Sample graph data for testing
 const sampleGraphData: IGraphData = {

@@ -3,7 +3,7 @@ import { postMessage } from '../vscodeApi';
 import { useGraphStore } from '../store';
 import { cn } from './ui/cn';
 import { mdiChevronRight, mdiClose } from '@mdi/js';
-import { MdiIcon } from './icons';
+import { MdiIcon } from './icons/MdiIcon';
 import { Switch } from './ui/switch';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';

@@ -4,8 +4,8 @@
  */
 
 import * as path from 'path';
-import { IDiscoveredFile } from '../../core/discovery';
-import { IConnection, IPlugin, IPluginInfo } from '../../core/plugins';
+import type { IDiscoveredFile } from '../../core/discovery/types';
+import type { IConnection, IPlugin, IPluginInfo } from '../../core/plugins/types';
 import { IPluginStatus, IPluginRuleStatus } from '../../shared/types';
 
 export interface IWorkspacePluginStatusOptions {

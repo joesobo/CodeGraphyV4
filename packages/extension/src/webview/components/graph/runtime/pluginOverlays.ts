@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { WebviewPluginHost } from '../../../pluginHost';
+import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';
 
 export const PLUGIN_OVERLAY_RENDERER_ERROR = '[CodeGraphy] Plugin overlay renderer error:';
 

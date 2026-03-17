@@ -1,4 +1,4 @@
-import { makeBackgroundContextSelection } from '../../graphContextMenu';
+import { makeBackgroundContextSelection } from '../../graphContextMenu/selection';
 import { hideGraphTooltipState } from '../tooltipModel';
 import type { GraphContextMenuRuntimeDependencies } from '.';
 

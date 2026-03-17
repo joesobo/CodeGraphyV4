@@ -3,7 +3,7 @@ import {
 	type MutableRefObject,
 } from 'react';
 import SpriteText from 'three-spritetext';
-import { setSpriteVisible } from '../../graphSupport';
+import { setSpriteVisible } from '../../graphSupport/types';
 
 interface UseLabelVisibilityOptions {
 	showLabels: boolean;

@@ -1,7 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IGroup } from '../../../../src/shared/types';
-import { ViewRegistry, type IViewContext, coreViews } from '../../../../src/core/views';
+import { ViewRegistry } from '../../../../src/core/views/registry';
+import type { IViewContext } from '../../../../src/core/views/types';
+import { coreViews } from '../../../../src/core/views/builtIn';
 import {
   sendGraphViewAvailableViews,
   sendGraphViewGroupsUpdated,

@@ -7,7 +7,7 @@ import type {
   NodeSizeMode,
   WebviewToExtensionMessage,
 } from '../../../../shared/types';
-import type { IViewContext } from '../../../../core/views';
+import type { IViewContext } from '../../../../core/views/types';
 import { saveExportedJpeg } from '../../../export/saveJpeg';
 import { saveExportedJson } from '../../../export/saveJson';
 import { saveExportedMarkdown } from '../../../export/saveMarkdown';

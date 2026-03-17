@@ -12,7 +12,7 @@ import type {
 } from '../../../../shared/types';
 import type { FGLink, FGNode } from '../../graphModel';
 import type { GraphTooltipState } from '../tooltipModel';
-import type { WebviewPluginHost } from '../../../pluginHost';
+import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';
 import type { GraphTooltipInteractionDependencies } from './useGraphTooltip';
 import { handleTooltipNodeHover } from './tooltipHover';
 import { getTooltipNodeRect } from './tooltipRect';

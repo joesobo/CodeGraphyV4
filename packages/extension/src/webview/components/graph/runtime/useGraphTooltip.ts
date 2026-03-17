@@ -7,10 +7,10 @@ import type {
 	IGraphData,
 	WebviewToExtensionMessage,
 } from '../../../../shared/types';
-import type { GraphCursorStyle } from '../../graphSupport';
+import type { GraphCursorStyle } from '../../graphSupport/dom';
 import type { FGLink, FGNode } from '../../graphModel';
 import type { GraphTooltipState } from '../tooltipModel';
-import type { WebviewPluginHost } from '../../../pluginHost';
+import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';
 import { useTooltipEvents } from './useTooltipEvents';
 import { useTooltipState } from './useTooltipState';
 
