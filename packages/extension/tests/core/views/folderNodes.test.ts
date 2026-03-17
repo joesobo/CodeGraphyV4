@@ -78,28 +78,22 @@ describe('collectFolderPaths', () => {
   });
 
   it('does not create folder path for a single-segment file id', () => {
-    // A file like "index.ts" has segments.length === 1, so segments.length > 1 is false
-    // If mutated to >= 1, it would erroneously create a folder entry for ""
     const result = collectFolderPaths([
       { id: 'index.ts', label: 'index.ts', color: '#fff' },
     ]);
 
-    // The only path should be (root), not an empty string from joining 0 segments
+    // The only path should be (root), not an empty string
     expect(result.paths.has('')).toBe(false);
-    // Only (root) should be present
     const pathsWithoutRoot = Array.from(result.paths).filter(path => path !== '(root)');
     expect(pathsWithoutRoot).toHaveLength(0);
   });
 
   it('creates exactly one folder for a file one level deep', () => {
-    // "src/app.ts" has segments.length === 2, so > 1 is true
-    // The loop runs for i=1 only, producing "src"
     const result = collectFolderPaths([
       { id: 'src/app.ts', label: 'app.ts', color: '#fff' },
     ]);
 
     expect(result.paths.has('src')).toBe(true);
-    // Should NOT have (root) since the file is in a subdirectory
     expect(result.paths.has('(root)')).toBe(false);
     expect(result.paths.size).toBe(1);
   });
@@ -165,9 +159,7 @@ describe('createFolderNodes', () => {
     expect(nodes[0].label).toBe('src');
   });
 
-  it('uses (root) literally as the label when path is (root)', () => {
-    // This kills the mutant that replaces the conditional `fp === "(root)" ? "(root)" : ...` with false
-    // and the mutant that replaces "(root)" string with ""
+  it('uses (root) as label when path is (root) via split/pop', () => {
     const paths = new Set(['(root)', 'src']);
 
     const nodes = createFolderNodes(paths, '#FF0000');
@@ -181,27 +173,12 @@ describe('createFolderNodes', () => {
     expect(srcNode!.label).toBe('src');
   });
 
-  it('does not use split logic for (root) label', () => {
-    // If the conditional were replaced with false, (root) would get label from split('/').pop()
-    // which would be "(root)" anyway, but let's verify the label is exactly "(root)"
-    const paths = new Set(['(root)']);
-
-    const nodes = createFolderNodes(paths, '#FF0000');
-
-    expect(nodes[0].id).toBe('(root)');
-    expect(nodes[0].label).toBe('(root)');
-    // Verify it's not an empty string (kills StringLiteral: "" mutant)
-    expect(nodes[0].label).not.toBe('');
-    expect(nodes[0].id).not.toBe('');
-  });
-
   it('uses the last segment for nested folder path labels', () => {
     const paths = new Set(['a/b/c']);
 
     const nodes = createFolderNodes(paths, '#FF0000');
 
     expect(nodes[0].label).toBe('c');
-    // Should not be the full path
     expect(nodes[0].label).not.toBe('a/b/c');
   });
 });

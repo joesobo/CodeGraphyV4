@@ -85,7 +85,7 @@ export class ViewRegistry {
       if (this._defaultViewId === viewId) {
         const remaining = Array.from(this._views.values());
         this._defaultViewId = remaining.length > 0
-          ? remaining.sort((va, vb) => va.order - vb.order)[0].view.id
+          ? remaining[0].view.id
           : undefined;
       }
     }
@@ -145,7 +145,7 @@ export class ViewRegistry {
    * @returns Array of all view info objects
    */
   list(): IViewInfo[] {
-    return Array.from(this._views.values()).sort((va, vb) => va.order - vb.order);
+    return Array.from(this._views.values());
   }
 
   /**

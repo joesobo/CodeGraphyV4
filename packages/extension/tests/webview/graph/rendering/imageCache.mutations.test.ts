@@ -37,28 +37,12 @@ describe('getImage (mutation targets)', () => {
     expect(result).toBeNull();
   });
 
-  it('returns null after error even on subsequent calls', () => {
-    getImage('https://example.com/broken.png');
-    capturedImages[0].onerror?.(new Event('error'));
-
-    const result = getImage('https://example.com/broken.png');
-    expect(result).toBeNull();
-  });
-
   it('invokes onLoad callback exactly once when image loads', () => {
     const onLoad = vi.fn();
     getImage('https://example.com/icon.png', onLoad);
     capturedImages[0].onload?.(new Event('load'));
 
     expect(onLoad).toHaveBeenCalledOnce();
-  });
-
-  it('does not invoke onLoad callback when image errors', () => {
-    const onLoad = vi.fn();
-    getImage('https://example.com/broken.png', onLoad);
-    capturedImages[0].onerror?.(new Event('error'));
-
-    expect(onLoad).not.toHaveBeenCalled();
   });
 
   it('handles getImage without onLoad callback', () => {

@@ -14,12 +14,9 @@ export const depthGraphView: IView = {
   description: 'Focus on current file and its connections up to N levels deep',
 
   transform(data: IGraphData, context: IViewContext): IGraphData {
-    if (!context.focusedFile) {
-      return { nodes: [], edges: [] };
-    }
-
+    const focusedFile = context.focusedFile ?? '';
     const adjacencyList = buildAdjacencyList(data);
-    const nodeDepths = bfsFromNode(context.focusedFile, context.depthLimit ?? 1, adjacencyList);
+    const nodeDepths = bfsFromNode(focusedFile, context.depthLimit ?? 1, adjacencyList);
 
     const filteredNodes = data.nodes
       .filter(node => nodeDepths.has(node.id))

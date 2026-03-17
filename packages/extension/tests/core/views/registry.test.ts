@@ -360,11 +360,11 @@ describe('ViewRegistry', () => {
     });
   });
 
-  describe('list - sorting', () => {
-    it('should sort views by registration order', () => {
-      const view3 = createMockView({ id: 'third' });
+  describe('list - ordering', () => {
+    it('should return views in registration order', () => {
       const view1 = createMockView({ id: 'first' });
       const view2 = createMockView({ id: 'second' });
+      const view3 = createMockView({ id: 'third' });
       registry.register(view1);
       registry.register(view2);
       registry.register(view3);
@@ -376,10 +376,7 @@ describe('ViewRegistry', () => {
       expect(views[2].view.id).toBe('third');
     });
 
-    it('should sort by ascending order (not descending or addition)', () => {
-      // This kills the ArithmeticOperator mutant that changes va.order - vb.order to va.order + vb.order
-      // With subtraction: [0,1,2] sorted ascending = first, second, third
-      // With addition: comparator would give wrong results
+    it('should preserve insertion order across registrations', () => {
       const view1 = createMockView({ id: 'alpha' });
       const view2 = createMockView({ id: 'beta' });
       const view3 = createMockView({ id: 'gamma' });
@@ -394,7 +391,6 @@ describe('ViewRegistry', () => {
       const ids = views.map(entry => entry.view.id);
 
       expect(ids).toEqual(['alpha', 'beta', 'gamma', 'delta']);
-      // Verify each successive order is greater than the previous
       for (let i = 1; i < views.length; i++) {
         expect(views[i].order).toBeGreaterThan(views[i - 1].order);
       }

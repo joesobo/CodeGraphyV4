@@ -25,21 +25,13 @@ export function resolveGraphViewAssetPath(
   }
 
   const webviewUri = webview.asWebviewUri(fileUri) as unknown;
-  if (typeof webviewUri === 'string') {
-    return webviewUri;
-  }
-  if (
-    webviewUri &&
-    typeof (webviewUri as { toString?: () => string }).toString === 'function'
-  ) {
-    const text = (webviewUri as { toString: () => string }).toString();
-    if (text && text !== '[object Object]') {
-      return text;
-    }
+  const text = String(webviewUri);
+  if (text && text !== '[object Object]') {
+    return text;
   }
 
   const pathLike = webviewUri as { path?: string; fsPath?: string } | null;
-  return pathLike?.path ?? pathLike?.fsPath ?? String(webviewUri);
+  return pathLike?.path ?? pathLike?.fsPath ?? text;
 }
 
 export function normalizeGraphViewExtensionUri(

@@ -1,53 +1,45 @@
-import { describe, it, expect } from 'vitest';
-import { folderView } from '../../../src/core/views/builtIn';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { IGraphData, DEFAULT_FOLDER_NODE_COLOR } from '../../../src/shared/types';
 import { IViewContext } from '../../../src/core/views/types';
+import type { IView } from '../../../src/core/views/types';
 
 const defaultContext: IViewContext = {
   activePlugins: new Set(),
 };
 
 describe('folderView', () => {
-  it('has correct metadata', () => {
-    expect(folderView.id).toBe('codegraphy.folder');
-    expect(folderView.name).toBe('Folder');
-    expect(folderView.icon).toBe('folder');
-    expect(folderView.description).toBe('Shows the folder containment hierarchy');
+  let folderView: IView;
+
+  beforeEach(async () => {
+    vi.resetModules();
+    const mod = await import('../../../src/core/views/folderView');
+    folderView = mod.folderView;
   });
 
-  it('has a non-empty id', () => {
-    expect(folderView.id.length).toBeGreaterThan(0);
-  });
+  describe('view definition properties', () => {
+    it('has id codegraphy.folder', () => {
+      expect(folderView.id).toBe('codegraphy.folder');
+    });
 
-  it('has a non-empty name', () => {
-    expect(folderView.name.length).toBeGreaterThan(0);
-  });
+    it('has name Folder', () => {
+      expect(folderView.name).toBe('Folder');
+    });
 
-  it('has a non-empty description', () => {
-    expect(folderView.description.length).toBeGreaterThan(0);
-  });
+    it('has icon folder', () => {
+      expect(folderView.icon).toBe('folder');
+    });
 
-  it('has a non-empty icon', () => {
-    expect(folderView.icon.length).toBeGreaterThan(0);
-  });
+    it('has description about folder containment hierarchy', () => {
+      expect(folderView.description).toBe('Shows the folder containment hierarchy');
+    });
 
-  it('has a transform function', () => {
-    expect(typeof folderView.transform).toBe('function');
-  });
+    it('has a transform function', () => {
+      expect(typeof folderView.transform).toBe('function');
+    });
 
-  it('exposes all required IView fields', () => {
-    expect(folderView).toEqual(
-      expect.objectContaining({
-        id: 'codegraphy.folder',
-        name: 'Folder',
-        icon: 'folder',
-        description: 'Shows the folder containment hierarchy',
-      }),
-    );
-  });
-
-  it('is always available (no isAvailable guard)', () => {
-    expect(folderView.isAvailable).toBeUndefined();
+    it('is always available (no isAvailable guard)', () => {
+      expect(folderView.isAvailable).toBeUndefined();
+    });
   });
 
   it('returns empty output for empty input', () => {
@@ -70,7 +62,6 @@ describe('folderView', () => {
 
     const result = folderView.transform(input, defaultContext);
 
-    // Should have 1 folder node (src) + 2 file nodes
     const folderNodes = result.nodes.filter(n => n.nodeType === 'folder');
     const fileNodes = result.nodes.filter(n => n.nodeType === 'file');
 
@@ -98,7 +89,6 @@ describe('folderView', () => {
     expect(rootFolder!.nodeType).toBe('folder');
     expect(rootFolder!.label).toBe('(root)');
 
-    // Should have edges from (root) to each file
     const rootEdges = result.edges.filter(e => e.from === '(root)');
     expect(rootEdges).toHaveLength(2);
     expect(rootEdges.map(e => e.to).sort()).toEqual(['package.json', 'tsconfig.json']);
@@ -117,10 +107,8 @@ describe('folderView', () => {
     const folderNodes = result.nodes.filter(n => n.nodeType === 'folder');
     const folderIds = folderNodes.map(n => n.id).sort();
 
-    // Should create a, a/b, a/b/c
     expect(folderIds).toEqual(['a', 'a/b', 'a/b/c']);
 
-    // Check labels are last segment
     expect(folderNodes.find(n => n.id === 'a')!.label).toBe('a');
     expect(folderNodes.find(n => n.id === 'a/b')!.label).toBe('b');
     expect(folderNodes.find(n => n.id === 'a/b/c')!.label).toBe('c');
@@ -163,16 +151,13 @@ describe('folderView', () => {
 
     const result = folderView.transform(input, defaultContext);
 
-    // All edges should be containment: parent->child format
     for (const edge of result.edges) {
       expect(edge.id).toMatch(/^.+->.+$/);
-      // The from should be a folder that exists in the node list
       const fromNode = result.nodes.find(n => n.id === edge.from);
       expect(fromNode).toBeDefined();
       expect(fromNode!.nodeType).toBe('folder');
     }
 
-    // Original import edges should NOT be present
     const importEdge = result.edges.find(e => e.from === 'src/a.ts');
     expect(importEdge).toBeUndefined();
   });
@@ -219,7 +204,6 @@ describe('folderView', () => {
     const result = folderView.transform(input, defaultContext);
 
     const edgeIds = result.edges.map(e => e.id).sort();
-    // src->src/utils, src/utils->src/utils/helper.ts
     expect(edgeIds).toEqual([
       'src->src/utils',
       'src/utils->src/utils/helper.ts',
@@ -239,19 +223,15 @@ describe('folderView', () => {
 
     const result = folderView.transform(input, defaultContext);
 
-    // Should have (root) and src folders
     const folderIds = result.nodes
       .filter(n => n.nodeType === 'folder')
       .map(n => n.id)
       .sort();
     expect(folderIds).toEqual(['(root)', 'src']);
 
-    // (root)->index.ts edge
     expect(result.edges.find(e => e.from === '(root)' && e.to === 'index.ts')).toBeDefined();
-    // src->src/app.ts edge
     expect(result.edges.find(e => e.from === 'src' && e.to === 'src/app.ts')).toBeDefined();
 
-    // No import edge from index.ts to src/app.ts
     expect(result.edges.find(e => e.from === 'index.ts')).toBeUndefined();
   });
 
@@ -308,7 +288,6 @@ describe('folderView', () => {
 
     const result = folderView.transform(input, defaultContext);
 
-    // No edge should have a file node as its source
     for (const edge of result.edges) {
       const fromNode = result.nodes.find(n => n.id === edge.from);
       expect(fromNode!.nodeType).toBe('folder');
@@ -359,7 +338,6 @@ describe('folderView', () => {
       .map(n => n.id)
       .sort();
 
-    // src, src/components, src/utils — no duplicates
     expect(folderIds).toEqual(['src', 'src/components', 'src/utils']);
   });
 });

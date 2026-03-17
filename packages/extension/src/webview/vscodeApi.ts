@@ -16,16 +16,15 @@ declare function acquireVsCodeApi(): {
 // Type for the vscode API
 export type VsCodeApi = ReturnType<typeof acquireVsCodeApi>;
 
-// Acquire the API exactly once at module load (VSCode requirement)
+// Acquire the API exactly once at module load (VSCode requirement).
+// The try/catch handles environments where acquireVsCodeApi is missing
+// or has already been called (VSCode throws on double-acquire).
 let vscode: VsCodeApi | null = null;
 
 try {
-  if (typeof acquireVsCodeApi !== 'undefined') {
-    vscode = acquireVsCodeApi();
-  }
+  vscode = acquireVsCodeApi();
 } catch {
-  // Already acquired or not in VSCode context
-  vscode = null;
+  // Not in VSCode context or already acquired
 }
 
 /**

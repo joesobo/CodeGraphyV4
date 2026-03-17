@@ -15,10 +15,6 @@ export const folderView: IView = {
   description: 'Shows the folder containment hierarchy',
 
   transform(data: IGraphData, context: IViewContext): IGraphData {
-    if (data.nodes.length === 0) {
-      return { nodes: [], edges: [] };
-    }
-
     const { paths: folderPaths } = collectFolderPaths(data.nodes);
     const folderNodeColor = context.folderNodeColor ?? DEFAULT_FOLDER_NODE_COLOR;
     const folderNodes = createFolderNodes(folderPaths, folderNodeColor);

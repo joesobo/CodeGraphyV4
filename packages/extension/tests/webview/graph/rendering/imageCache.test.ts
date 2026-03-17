@@ -52,16 +52,6 @@ describe('getImage', () => {
     expect(onLoad).toHaveBeenCalledOnce();
   });
 
-  it('returns null after onerror fires', () => {
-    getImage('https://example.com/broken.png');
-    const img = capturedImages[0];
-
-    img.onerror?.(new Event('error'));
-
-    const result = getImage('https://example.com/broken.png');
-    expect(result).toBeNull();
-  });
-
   it('does not duplicate requests for the same URL', () => {
     getImage('https://example.com/icon.png');
     getImage('https://example.com/icon.png');
@@ -112,14 +102,13 @@ describe('clearImageCache', () => {
     expect(capturedImages).toHaveLength(2);
   });
 
-  it('resets errored entries', () => {
-    getImage('https://example.com/broken.png');
-    capturedImages[0].onerror?.(new Event('error'));
+  it('resets pending entries', () => {
+    getImage('https://example.com/pending.png');
 
     clearImageCache();
 
     // Should start a new load attempt
-    getImage('https://example.com/broken.png');
+    getImage('https://example.com/pending.png');
     expect(capturedImages).toHaveLength(2);
   });
 });

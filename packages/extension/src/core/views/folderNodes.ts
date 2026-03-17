@@ -14,10 +14,8 @@ export function collectFolderPaths(nodes: IGraphData['nodes']): { paths: Set<str
 
   for (const node of nodes) {
     const segments = node.id.split('/');
-    if (segments.length > 1) {
-      for (let i = 1; i < segments.length; i++) {
-        folderPaths.add(segments.slice(0, i).join('/'));
-      }
+    for (let i = 1; i < segments.length; i++) {
+      folderPaths.add(segments.slice(0, i).join('/'));
     }
   }
 
@@ -38,7 +36,7 @@ export function createFolderNodes(
 ): Array<{ id: string; label: string; color: string; nodeType: 'folder' }> {
   return Array.from(folderPaths).map(fp => ({
     id: fp,
-    label: fp === '(root)' ? '(root)' : fp.split('/').pop()!,
+    label: fp.split('/').pop()!,
     color: folderNodeColor,
     nodeType: 'folder' as const,
   }));

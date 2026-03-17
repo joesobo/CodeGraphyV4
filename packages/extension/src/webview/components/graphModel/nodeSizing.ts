@@ -1,6 +1,5 @@
 import type { IGraphEdge, IGraphNode, NodeSizeMode } from '../../../shared/types';
 import {
-  computeUniformSizes,
   computeConnectionSizes,
   computeAccessCountSizes,
   computeFileSizeSizes,
@@ -17,11 +16,11 @@ export function calculateNodeSizes(
   edges: Pick<IGraphEdge, 'from' | 'to'>[],
   mode: NodeSizeMode
 ): Map<string, number> {
-  if (mode === 'uniform') return computeUniformSizes(nodes);
   if (mode === 'connections') return computeConnectionSizes(nodes, edges);
   if (mode === 'access-count') return computeAccessCountSizes(nodes);
   if (mode === 'file-size') return computeFileSizeSizes(nodes);
 
+  // 'uniform' and any unrecognized mode both use the default node size
   const sizes = new Map<string, number>();
   for (const node of nodes) sizes.set(node.id, DEFAULT_NODE_SIZE);
   return sizes;

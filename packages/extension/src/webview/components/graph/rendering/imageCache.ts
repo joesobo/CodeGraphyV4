@@ -1,7 +1,6 @@
 interface CacheEntry {
   img: HTMLImageElement
   loaded: boolean
-  error: boolean
 }
 
 const cache = new Map<string, CacheEntry>()
@@ -17,16 +16,12 @@ export function getImage(
   }
 
   const img = new Image()
-  const newEntry: CacheEntry = { img, loaded: false, error: false }
+  const newEntry: CacheEntry = { img, loaded: false }
   cache.set(url, newEntry)
 
   img.onload = () => {
     newEntry.loaded = true
     onLoad?.()
-  }
-
-  img.onerror = () => {
-    newEntry.error = true
   }
 
   img.src = url

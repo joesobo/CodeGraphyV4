@@ -1,10 +1,4 @@
-import { describe, it, expect } from 'vitest';
-import {
-  connectionsView,
-  depthGraphView,
-  folderView,
-  coreViews,
-} from '../../../src/core/views/builtIn';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { IGraphData } from '../../../src/shared/types';
 import type { IViewContext } from '../../../src/core/views/types';
 
@@ -32,216 +26,125 @@ function createContext(overrides: Partial<IViewContext> = {}): IViewContext {
   };
 }
 
-describe('Core Views', () => {
+describe('Core Views (fresh imports)', () => {
+  beforeEach(() => {
+    vi.resetModules();
+  });
+
+  describe('connectionsView properties', () => {
+    it('has id codegraphy.connections', async () => {
+      const { connectionsView } = await import('../../../src/core/views/builtIn');
+      expect(connectionsView.id).toBe('codegraphy.connections');
+    });
+
+    it('has name Connections', async () => {
+      const { connectionsView } = await import('../../../src/core/views/builtIn');
+      expect(connectionsView.name).toBe('Connections');
+    });
+
+    it('has icon symbol-file', async () => {
+      const { connectionsView } = await import('../../../src/core/views/builtIn');
+      expect(connectionsView.icon).toBe('symbol-file');
+    });
+
+    it('has description about import relationships', async () => {
+      const { connectionsView } = await import('../../../src/core/views/builtIn');
+      expect(connectionsView.description).toBe('Shows all files and their import relationships');
+    });
+
+    it('has a transform function', async () => {
+      const { connectionsView } = await import('../../../src/core/views/builtIn');
+      expect(typeof connectionsView.transform).toBe('function');
+    });
+
+    it('has no pluginId', async () => {
+      const { connectionsView } = await import('../../../src/core/views/builtIn');
+      expect(connectionsView.pluginId).toBeUndefined();
+    });
+
+    it('passes through data unchanged', async () => {
+      const { connectionsView } = await import('../../../src/core/views/builtIn');
+      const context = createContext();
+      const result = connectionsView.transform(sampleGraphData, context);
+      expect(result).toBe(sampleGraphData);
+    });
+  });
+
   describe('coreViews array', () => {
-    it('should contain all core views', () => {
+    it('contains exactly three views', async () => {
+      const { coreViews } = await import('../../../src/core/views/builtIn');
       expect(coreViews).toHaveLength(3);
-      expect(coreViews).toContain(connectionsView);
-      expect(coreViews).toContain(depthGraphView);
-      expect(coreViews).toContain(folderView);
     });
 
-    it('should not be empty', () => {
-      expect(coreViews.length).toBeGreaterThan(0);
-    });
-
-    it('should contain views with valid IView properties', () => {
-      for (const view of coreViews) {
-        expect(view.id).toBeDefined();
-        expect(view.id.length).toBeGreaterThan(0);
-        expect(view.name).toBeDefined();
-        expect(view.name.length).toBeGreaterThan(0);
-        expect(view.icon).toBeDefined();
-        expect(view.icon.length).toBeGreaterThan(0);
-        expect(view.description).toBeDefined();
-        expect(view.description.length).toBeGreaterThan(0);
-        expect(typeof view.transform).toBe('function');
-      }
-    });
-
-    it('should contain views in the expected order', () => {
+    it('contains connectionsView, depthGraphView, and folderView in order', async () => {
+      const { coreViews, connectionsView, depthGraphView, folderView } = await import('../../../src/core/views/builtIn');
       expect(coreViews[0]).toBe(connectionsView);
       expect(coreViews[1]).toBe(depthGraphView);
       expect(coreViews[2]).toBe(folderView);
     });
-  });
 
-  describe('connectionsView', () => {
-    it('should have correct metadata', () => {
-      expect(connectionsView.id).toBe('codegraphy.connections');
-      expect(connectionsView.name).toBe('Connections');
-      expect(connectionsView.icon).toBe('symbol-file');
-      expect(connectionsView.description).toBe('Shows all files and their import relationships');
-      expect(connectionsView.pluginId).toBeUndefined();
-    });
-
-    it('should have a non-empty id', () => {
-      expect(connectionsView.id.length).toBeGreaterThan(0);
-    });
-
-    it('should have a non-empty name', () => {
-      expect(connectionsView.name.length).toBeGreaterThan(0);
-    });
-
-    it('should have a non-empty description', () => {
-      expect(connectionsView.description.length).toBeGreaterThan(0);
-    });
-
-    it('should have a non-empty icon', () => {
-      expect(connectionsView.icon.length).toBeGreaterThan(0);
-    });
-
-    it('should have a transform function', () => {
-      expect(typeof connectionsView.transform).toBe('function');
-    });
-
-    it('should pass through data unchanged', () => {
-      const context = createContext();
-      const result = connectionsView.transform(sampleGraphData, context);
-
-      expect(result).toBe(sampleGraphData);
-      expect(result.nodes).toHaveLength(5);
-      expect(result.edges).toHaveLength(4);
+    it('contains views with valid IView properties', async () => {
+      const { coreViews } = await import('../../../src/core/views/builtIn');
+      for (const view of coreViews) {
+        expect(view.id.length).toBeGreaterThan(0);
+        expect(view.name.length).toBeGreaterThan(0);
+        expect(view.icon.length).toBeGreaterThan(0);
+        expect(view.description.length).toBeGreaterThan(0);
+        expect(typeof view.transform).toBe('function');
+      }
     });
   });
 
-  describe('depthGraphView', () => {
-    it('should have correct metadata', () => {
+  describe('depthGraphView from builtIn re-export', () => {
+    it('has id codegraphy.depth-graph', async () => {
+      const { depthGraphView } = await import('../../../src/core/views/builtIn');
       expect(depthGraphView.id).toBe('codegraphy.depth-graph');
-      expect(depthGraphView.name).toBe('Depth Graph');
-      expect(depthGraphView.icon).toBe('target');
-      expect(depthGraphView.pluginId).toBeUndefined();
     });
 
-    it('should return empty graph when no file is focused', () => {
+    it('has name Depth Graph', async () => {
+      const { depthGraphView } = await import('../../../src/core/views/builtIn');
+      expect(depthGraphView.name).toBe('Depth Graph');
+    });
+
+    it('has icon target', async () => {
+      const { depthGraphView } = await import('../../../src/core/views/builtIn');
+      expect(depthGraphView.icon).toBe('target');
+    });
+
+    it('returns empty graph when no file is focused', async () => {
+      const { depthGraphView } = await import('../../../src/core/views/builtIn');
       const context = createContext({ focusedFile: undefined });
       const result = depthGraphView.transform(sampleGraphData, context);
-
       expect(result.nodes).toHaveLength(0);
       expect(result.edges).toHaveLength(0);
     });
 
-    it('should return focused file and immediate connections with default depth 1', () => {
+    it('returns focused file and immediate connections with default depth 1', async () => {
+      const { depthGraphView } = await import('../../../src/core/views/builtIn');
       const context = createContext({ focusedFile: 'src/app.ts' });
       const result = depthGraphView.transform(sampleGraphData, context);
-
-      // app.ts connects to: helpers.ts, Button.tsx, and is imported by app.test.ts
       expect(result.nodes).toHaveLength(4);
-      expect(result.nodes.map(n => n.id)).toContain('src/app.ts');
-      expect(result.nodes.map(n => n.id)).toContain('src/utils/helpers.ts');
-      expect(result.nodes.map(n => n.id)).toContain('src/components/Button.tsx');
-      expect(result.nodes.map(n => n.id)).toContain('tests/app.test.ts');
-
-      // Should include edges to/from the focused file
       expect(result.edges).toHaveLength(3);
     });
 
-    it('should filter to only 1-hop connections with default depth', () => {
-      // format.ts is 2 hops from app.ts (app -> helpers -> format)
-      const context = createContext({ focusedFile: 'src/app.ts' });
-      const result = depthGraphView.transform(sampleGraphData, context);
-
-      expect(result.nodes.map(n => n.id)).not.toContain('src/utils/format.ts');
-    });
-
-    it('should include 2-hop nodes when depthLimit is 2', () => {
-      // format.ts is 2 hops from app.ts (app -> helpers -> format)
+    it('includes 2-hop nodes when depthLimit is 2', async () => {
+      const { depthGraphView } = await import('../../../src/core/views/builtIn');
       const context = createContext({ focusedFile: 'src/app.ts', depthLimit: 2 });
       const result = depthGraphView.transform(sampleGraphData, context);
-
-      // Should now include format.ts
       expect(result.nodes).toHaveLength(5);
       expect(result.nodes.map(n => n.id)).toContain('src/utils/format.ts');
-      
-      // Should include the edge from helpers to format
-      expect(result.edges).toHaveLength(4);
     });
 
-    it('should annotate nodes with depthLevel', () => {
-      const context = createContext({ focusedFile: 'src/app.ts', depthLimit: 2 });
-      const result = depthGraphView.transform(sampleGraphData, context);
-
-      // Check depth levels
-      const appNode = result.nodes.find(n => n.id === 'src/app.ts');
-      expect(appNode?.depthLevel).toBe(0); // Focused node
-
-      const helpersNode = result.nodes.find(n => n.id === 'src/utils/helpers.ts');
-      expect(helpersNode?.depthLevel).toBe(1); // 1 hop
-
-      const formatNode = result.nodes.find(n => n.id === 'src/utils/format.ts');
-      expect(formatNode?.depthLevel).toBe(2); // 2 hops
-    });
-
-    it('should work with depth 3 to include all nodes in chain', () => {
-      // Create a longer chain for testing
-      const chainData: IGraphData = {
-        nodes: [
-          { id: 'a', label: 'a', color: '#fff' },
-          { id: 'b', label: 'b', color: '#fff' },
-          { id: 'c', label: 'c', color: '#fff' },
-          { id: 'd', label: 'd', color: '#fff' },
-        ],
-        edges: [
-          { id: 'a->b', from: 'a', to: 'b' },
-          { id: 'b->c', from: 'b', to: 'c' },
-          { id: 'c->d', from: 'c', to: 'd' },
-        ],
-      };
-
-      const context = createContext({ focusedFile: 'a', depthLimit: 3 });
-      const result = depthGraphView.transform(chainData, context);
-
-      // All nodes should be included
-      expect(result.nodes).toHaveLength(4);
-      expect(result.nodes.map(n => n.id)).toEqual(expect.arrayContaining(['a', 'b', 'c', 'd']));
-
-      // Check depth levels
-      expect(result.nodes.find(n => n.id === 'a')?.depthLevel).toBe(0);
-      expect(result.nodes.find(n => n.id === 'b')?.depthLevel).toBe(1);
-      expect(result.nodes.find(n => n.id === 'c')?.depthLevel).toBe(2);
-      expect(result.nodes.find(n => n.id === 'd')?.depthLevel).toBe(3);
-    });
-
-    it('should handle depth 1 explicitly', () => {
-      const context = createContext({ focusedFile: 'src/app.ts', depthLimit: 1 });
-      const result = depthGraphView.transform(sampleGraphData, context);
-
-      // Same as default, should not include format.ts
-      expect(result.nodes).toHaveLength(4);
-      expect(result.nodes.map(n => n.id)).not.toContain('src/utils/format.ts');
-    });
-
-    it('should handle focused file not in graph', () => {
-      const context = createContext({ focusedFile: 'nonexistent.ts', depthLimit: 1 });
-      const result = depthGraphView.transform(sampleGraphData, context);
-
-      // Should return empty since the focused file doesn't exist
-      expect(result.nodes).toHaveLength(0);
-      expect(result.edges).toHaveLength(0);
-    });
-
-    it('should traverse bidirectionally (both imports and imported-by)', () => {
-      // helpers.ts is imported by app.ts and imports format.ts
-      // Starting from helpers.ts at depth 1, we should see both app.ts and format.ts
-      const context = createContext({ focusedFile: 'src/utils/helpers.ts', depthLimit: 1 });
-      const result = depthGraphView.transform(sampleGraphData, context);
-
-      expect(result.nodes).toHaveLength(3);
-      expect(result.nodes.map(n => n.id)).toContain('src/utils/helpers.ts');
-      expect(result.nodes.map(n => n.id)).toContain('src/app.ts'); // imports helpers
-      expect(result.nodes.map(n => n.id)).toContain('src/utils/format.ts'); // imported by helpers
-    });
-
-    it('should be unavailable when no file is focused', () => {
+    it('is unavailable when no file is focused', async () => {
+      const { depthGraphView } = await import('../../../src/core/views/builtIn');
       const context = createContext({ focusedFile: undefined });
       expect(depthGraphView.isAvailable?.(context)).toBe(false);
     });
 
-    it('should be available when a file is focused', () => {
+    it('is available when a file is focused', async () => {
+      const { depthGraphView } = await import('../../../src/core/views/builtIn');
       const context = createContext({ focusedFile: 'src/app.ts' });
       expect(depthGraphView.isAvailable?.(context)).toBe(true);
     });
-
   });
-
 });
