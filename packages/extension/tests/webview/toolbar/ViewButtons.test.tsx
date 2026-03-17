@@ -2,14 +2,35 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TooltipProvider } from '../../../src/webview/components/ui/tooltip';
-import { ViewButtons } from '../../../src/webview/components/toolbar/ViewButtons';
 import { graphStore } from '../../../src/webview/store';
 
 vi.mock('../../../src/webview/vscodeApi', () => ({
   postMessage: vi.fn(),
 }));
 
+const sliderHarness = vi.hoisted(() => ({
+  onValueChange: null as null | ((value: number[]) => void),
+}));
+
+// Mock Slider so we can trigger onValueChange directly
+vi.mock('../../../src/webview/components/ui/slider', () => ({
+  Slider: (props: { value: number[]; onValueChange: (value: number[]) => void; min: number; max: number; step: number; className: string }) => {
+    sliderHarness.onValueChange = props.onValueChange;
+    return (
+      <input
+        data-testid="depth-slider"
+        type="range"
+        min={props.min}
+        max={props.max}
+        value={props.value[0]}
+        onChange={(e) => props.onValueChange([Number(e.target.value)])}
+      />
+    );
+  },
+}));
+
 import { postMessage } from '../../../src/webview/vscodeApi';
+import { ViewButtons } from '../../../src/webview/components/toolbar/ViewButtons';
 
 function renderWithProviders() {
   return render(
@@ -22,6 +43,7 @@ function renderWithProviders() {
 describe('ViewButtons', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sliderHarness.onValueChange = null;
     graphStore.setState({
       availableViews: [],
       activeViewId: 'codegraphy.connections',
@@ -132,10 +154,9 @@ describe('ViewButtons', () => {
     });
     const { container } = renderWithProviders();
     const sliderContainer = container.querySelector('[style*="max-width"]') as HTMLElement | null;
-    if (sliderContainer) {
-      expect(sliderContainer.style.opacity).toBe('0');
-      expect(sliderContainer.style.maxWidth).toBe('0px');
-    }
+    expect(sliderContainer).not.toBeNull();
+    expect(sliderContainer!.style.opacity).toBe('0');
+    expect(sliderContainer!.style.maxWidth).toBe('0px');
   });
 
   it('sets opacity to 1 and maxWidth to 8rem when depth view is active', () => {
@@ -148,10 +169,9 @@ describe('ViewButtons', () => {
     });
     const { container } = renderWithProviders();
     const sliderContainer = container.querySelector('[style*="max-width"]') as HTMLElement | null;
-    if (sliderContainer) {
-      expect(sliderContainer.style.opacity).toBe('1');
-      expect(sliderContainer.style.maxWidth).toBe('8rem');
-    }
+    expect(sliderContainer).not.toBeNull();
+    expect(sliderContainer!.style.opacity).toBe('1');
+    expect(sliderContainer!.style.maxWidth).toBe('8rem');
   });
 
   it('applies default variant to the active view button', () => {
@@ -164,11 +184,9 @@ describe('ViewButtons', () => {
     });
     renderWithProviders();
     const buttons = screen.getByTestId('view-buttons').querySelectorAll('button');
-    // The active button should NOT have 'ghost' variant class
-    // (ghost variant is for inactive buttons)
+    // Active and inactive buttons should have different styling
     const activeButton = buttons[0];
     const inactiveButton = buttons[1];
-    // Active and inactive buttons should have different styling
     expect(activeButton.className).not.toBe(inactiveButton.className);
   });
 
@@ -182,5 +200,88 @@ describe('ViewButtons', () => {
     });
     renderWithProviders();
     expect(screen.getByText('4')).toBeInTheDocument();
+  });
+});
+
+describe('ViewButtons depth slider interaction', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    sliderHarness.onValueChange = null;
+    graphStore.setState({
+      availableViews: [
+        { id: 'codegraphy.depth-graph', name: 'Depth' },
+      ],
+      activeViewId: 'codegraphy.depth-graph',
+      depthLimit: 2,
+    });
+  });
+
+  it('sends CHANGE_DEPTH_LIMIT when the depth slider value changes', () => {
+    renderWithProviders();
+    expect(sliderHarness.onValueChange).not.toBeNull();
+    sliderHarness.onValueChange!([4]);
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CHANGE_DEPTH_LIMIT',
+      payload: { depthLimit: 4 },
+    });
+  });
+
+  it('passes the first element of the value array as depthLimit', () => {
+    renderWithProviders();
+    sliderHarness.onValueChange!([3]);
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CHANGE_DEPTH_LIMIT',
+      payload: { depthLimit: 3 },
+    });
+  });
+
+  it('sends the correct depth limit for boundary values', () => {
+    renderWithProviders();
+    sliderHarness.onValueChange!([1]);
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CHANGE_DEPTH_LIMIT',
+      payload: { depthLimit: 1 },
+    });
+    vi.clearAllMocks();
+    sliderHarness.onValueChange!([5]);
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'CHANGE_DEPTH_LIMIT',
+      payload: { depthLimit: 5 },
+    });
+  });
+});
+
+describe('ViewButtons availableViews guard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    graphStore.setState({
+      availableViews: [],
+      activeViewId: 'codegraphy.connections',
+      depthLimit: 1,
+    });
+  });
+
+  it('does not render the view-buttons container when length is 0', () => {
+    graphStore.setState({ availableViews: [] });
+    renderWithProviders();
+    expect(screen.queryByTestId('view-buttons')).not.toBeInTheDocument();
+  });
+
+  it('renders the view-buttons container when length is 1', () => {
+    graphStore.setState({
+      availableViews: [{ id: 'codegraphy.connections', name: 'Connections' }],
+    });
+    renderWithProviders();
+    expect(screen.getByTestId('view-buttons')).toBeInTheDocument();
+  });
+
+  it('renders correct border styling on the view-buttons container', () => {
+    graphStore.setState({
+      availableViews: [{ id: 'codegraphy.connections', name: 'Connections' }],
+    });
+    renderWithProviders();
+    const container = screen.getByTestId('view-buttons');
+    expect(container.className).toContain('border');
+    expect(container.className).toContain('rounded');
   });
 });

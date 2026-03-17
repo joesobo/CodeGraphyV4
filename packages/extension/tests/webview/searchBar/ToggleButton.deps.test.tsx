@@ -10,6 +10,15 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { ToggleButton } from '../../../src/webview/components/searchBar/ToggleButton';
 
+/**
+ * Helper: checks if a className string contains a standalone class (not just as a prefix).
+ * e.g., hasClass('border foo', 'border') => true
+ * e.g., hasClass('border-transparent foo', 'border') => false
+ */
+function hasStandaloneClass(className: string, cls: string): boolean {
+  return className.split(/\s+/).includes(cls);
+}
+
 describe('ToggleButton (base class mutations)', () => {
   it('always has text-xs class regardless of active state', () => {
     // L34: if the base class string is mutated to "", these classes disappear
@@ -42,35 +51,36 @@ describe('ToggleButton (base class mutations)', () => {
     expect(button.className).toContain('font-medium');
   });
 
-  it('always has border class regardless of active/error state', () => {
-    // L35: if 'border' string is mutated to "", the border class is missing
+  it('always has the standalone border class when inactive and no error', () => {
+    // L35: if 'border' string is mutated to "", the standalone border class is missing
+    // (but border-transparent would remain, so we must check for standalone 'border')
     render(
       <ToggleButton active={false} onClick={vi.fn()} title="Test" shortcut="Alt+T">
         T
       </ToggleButton>,
     );
     const button = screen.getByRole('button');
-    expect(button.className).toContain('border');
+    expect(hasStandaloneClass(button.className, 'border')).toBe(true);
   });
 
-  it('has border class when active', () => {
+  it('has standalone border class when active', () => {
     render(
       <ToggleButton active={true} onClick={vi.fn()} title="Test" shortcut="Alt+T">
         T
       </ToggleButton>,
     );
     const button = screen.getByRole('button');
-    expect(button.className).toContain('border');
+    expect(hasStandaloneClass(button.className, 'border')).toBe(true);
   });
 
-  it('has border class when hasError', () => {
+  it('has standalone border class when hasError', () => {
     render(
       <ToggleButton active={false} onClick={vi.fn()} title="Test" shortcut="Alt+T" hasError>
         T
       </ToggleButton>,
     );
     const button = screen.getByRole('button');
-    expect(button.className).toContain('border');
+    expect(hasStandaloneClass(button.className, 'border')).toBe(true);
   });
 });
 

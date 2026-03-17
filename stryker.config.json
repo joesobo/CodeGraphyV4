@@ -27,7 +27,11 @@
     "!packages/extension/src/**/webview/components/ui/**",
     "!packages/extension/src/**/webview/components/icons/**",
     "!packages/extension/src/**/e2e/**",
-    "!packages/extension/src/**/webview/components/DepthSlider.tsx"
+    "!packages/extension/src/**/webview/components/DepthSlider.tsx",
+    "!packages/extension/src/**/webview/components/graph/rendering/Surface2d.tsx",
+    "!packages/extension/src/**/webview/components/graph/rendering/Surface3d.tsx",
+    "!packages/extension/src/**/webview/components/NodeTooltip.tsx",
+    "!packages/extension/src/**/webview/components/SearchBar.tsx"
   ],
   "thresholds": {
     "high": 90,

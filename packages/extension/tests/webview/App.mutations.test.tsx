@@ -1,12 +1,12 @@
 /**
  * Tests targeting surviving mutations in App.tsx:
- * - ArrayDeclaration [] on useEffect deps
- * - OptionalChaining on graphData?.nodes.length
- * - ConditionalExpression on activePanel !== 'none'
- * - ConditionalExpression on timelineActive
+ * - L27,31: ArrayDeclaration [] on useEffect deps
+ * - L39: NoCoverage ObjectLiteral/ArrayDeclaration (graphData fallback)
+ * - L49: OptionalChaining on filteredData?.nodes
+ * - L59,60: ConditionalExpression true on panel isOpen props
  */
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, act, fireEvent } from '@testing-library/react';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/types';
 import { graphStore } from '../../src/webview/store';
@@ -14,6 +14,8 @@ import { graphStore } from '../../src/webview/store';
 const harness = vi.hoisted(() => ({
   graphProps: null as null | Record<string, unknown>,
   searchBarProps: null as null | Record<string, unknown>,
+  pluginsPanelProps: null as null | Record<string, unknown>,
+  settingsPanelProps: null as null | Record<string, unknown>,
 }));
 
 const messageListeners: Array<(event: MessageEvent) => void> = [];
@@ -33,18 +35,28 @@ vi.mock('../../src/webview/components/Graph', () => ({
 vi.mock('../../src/webview/components/SearchBar', () => ({
   SearchBar: (props: Record<string, unknown>) => {
     harness.searchBarProps = props;
-    return <div data-testid="mock-search-bar" />;
+    return (
+      <div
+        data-testid="mock-search-bar"
+        data-result-count={String(props.resultCount ?? '')}
+        data-total-count={String(props.totalCount ?? '')}
+      />
+    );
   },
 }));
 
 vi.mock('../../src/webview/components/settingsPanel/Panel', () => ({
-  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
-    isOpen ? <button data-testid="settings-panel" onClick={onClose}>Close Settings</button> : null,
+  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+    harness.settingsPanelProps = { isOpen, onClose };
+    return isOpen ? <button data-testid="settings-panel" onClick={onClose}>Close Settings</button> : <div data-testid="settings-panel-closed" />;
+  },
 }));
 
 vi.mock('../../src/webview/components/PluginsPanel', () => ({
-  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
-    isOpen ? <button data-testid="plugins-panel" onClick={onClose}>Close Plugins</button> : null,
+  default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+    harness.pluginsPanelProps = { isOpen, onClose };
+    return isOpen ? <button data-testid="plugins-panel" onClick={onClose}>Close Plugins</button> : <div data-testid="plugins-panel-closed" />;
+  },
 }));
 
 vi.mock('../../src/webview/components/Timeline', () => ({
@@ -123,6 +135,8 @@ describe('App (mutation targets)', () => {
     messageListeners.length = 0;
     harness.graphProps = null;
     harness.searchBarProps = null;
+    harness.pluginsPanelProps = null;
+    harness.settingsPanelProps = null;
     resetStore();
   });
 
@@ -198,7 +212,7 @@ describe('App (mutation targets)', () => {
     expect(screen.getByText(/No files found/)).toBeInTheDocument();
   });
 
-  it('renders graph with effectiveGraphData when graphData is null and timeline is active', () => {
+  it('renders graph with effectiveGraphData fallback when graphData is null and timeline is active', () => {
     graphStore.setState({
       graphData: null,
       timelineActive: true,
@@ -206,6 +220,11 @@ describe('App (mutation targets)', () => {
     render(<App />);
     // effectiveGraphData should be { nodes: [], edges: [] }
     expect(screen.getByTestId('graph-node-count')).toHaveTextContent('0');
+    // Graph component should receive empty arrays, not undefined
+    expect(harness.graphProps).not.toBeNull();
+    const data = harness.graphProps!.data as { nodes: unknown[]; edges: unknown[] };
+    expect(data.nodes).toEqual([]);
+    expect(data.edges).toEqual([]);
   });
 
   it('always renders the timeline component when graph data is available', () => {
@@ -254,5 +273,153 @@ describe('App (mutation targets)', () => {
     });
     render(<App />);
     expect(screen.getByText(/All files are hidden/)).toBeInTheDocument();
+  });
+});
+
+describe('App panel isOpen mutations (L59-60)', () => {
+  beforeEach(() => {
+    messageListeners.length = 0;
+    harness.graphProps = null;
+    harness.searchBarProps = null;
+    harness.pluginsPanelProps = null;
+    harness.settingsPanelProps = null;
+    resetStore();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('plugins panel isOpen is false when activePanel is settings', () => {
+    graphStore.setState({
+      graphData: { nodes: [{ id: 'a.ts', label: 'a', color: '#111' }], edges: [] },
+      activePanel: 'settings',
+    });
+    render(<App />);
+    // Plugins panel should be present but closed
+    expect(screen.getByTestId('plugins-panel-closed')).toBeInTheDocument();
+    expect(screen.queryByTestId('plugins-panel')).not.toBeInTheDocument();
+    // Settings panel should be open
+    expect(screen.getByTestId('settings-panel')).toBeInTheDocument();
+  });
+
+  it('settings panel isOpen is false when activePanel is plugins', () => {
+    graphStore.setState({
+      graphData: { nodes: [{ id: 'a.ts', label: 'a', color: '#111' }], edges: [] },
+      activePanel: 'plugins',
+    });
+    render(<App />);
+    // Settings panel should be present but closed
+    expect(screen.getByTestId('settings-panel-closed')).toBeInTheDocument();
+    expect(screen.queryByTestId('settings-panel')).not.toBeInTheDocument();
+    // Plugins panel should be open
+    expect(screen.getByTestId('plugins-panel')).toBeInTheDocument();
+  });
+
+  it('closes plugins panel by setting activePanel to none', async () => {
+    graphStore.setState({
+      graphData: { nodes: [{ id: 'a.ts', label: 'a', color: '#111' }], edges: [] },
+      activePanel: 'plugins',
+    });
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('plugins-panel'));
+    });
+    expect(graphStore.getState().activePanel).toBe('none');
+  });
+
+  it('closes settings panel by setting activePanel to none', async () => {
+    graphStore.setState({
+      graphData: { nodes: [{ id: 'a.ts', label: 'a', color: '#111' }], edges: [] },
+      activePanel: 'settings',
+    });
+    render(<App />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByTestId('settings-panel'));
+    });
+    expect(graphStore.getState().activePanel).toBe('none');
+  });
+});
+
+describe('App effectiveGraphData and filteredData mutations (L39, L49)', () => {
+  beforeEach(() => {
+    messageListeners.length = 0;
+    harness.graphProps = null;
+    harness.searchBarProps = null;
+    resetStore();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('passes totalCount from effectiveGraphData when graphData is null and timeline is active', () => {
+    graphStore.setState({
+      graphData: null,
+      timelineActive: true,
+    });
+    render(<App />);
+    // SearchBar should get totalCount of 0 from effectiveGraphData.nodes.length
+    expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-total-count', '0');
+  });
+
+  it('passes totalCount from graphData when graphData has nodes', () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [
+          { id: 'a.ts', label: 'a', color: '#111' },
+          { id: 'b.ts', label: 'b', color: '#222' },
+        ],
+        edges: [],
+      },
+    });
+    render(<App />);
+    expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-total-count', '2');
+  });
+
+  it('passes resultCount from filteredData.nodes when search is active', () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [
+          { id: 'src/App.ts', label: 'App', color: '#111' },
+          { id: 'src/Todo.ts', label: 'Todo', color: '#222' },
+        ],
+        edges: [],
+      },
+      searchQuery: 'App',
+    });
+    render(<App />);
+    expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-result-count', '1');
+  });
+
+  it('passes resultCount equal to node count when search is blank', () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [
+          { id: 'src/App.ts', label: 'App', color: '#111' },
+        ],
+        edges: [],
+      },
+      searchQuery: '',
+    });
+    render(<App />);
+    // When search is blank, filteredData === graphData, so resultCount === node count
+    const searchBar = screen.getByTestId('mock-search-bar');
+    const resultCount = searchBar.getAttribute('data-result-count');
+    expect(resultCount).toBe('1');
+  });
+
+  it('passes undefined resultCount when graphData is null and timeline is active', () => {
+    graphStore.setState({
+      graphData: null,
+      timelineActive: true,
+    });
+    render(<App />);
+    // filteredData is null when graphData is null, so filteredData?.nodes.length is undefined
+    const searchBar = screen.getByTestId('mock-search-bar');
+    const resultCount = searchBar.getAttribute('data-result-count');
+    expect(resultCount).toBe('');
   });
 });
