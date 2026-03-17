@@ -2,7 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import './index.css';
-import { getVsCodeApi, VsCodeApi } from './lib/vscodeApi';
+import { getVsCodeApi, VsCodeApi } from './vscodeApi';
 
 const container = document.getElementById('root');
 if (container) {

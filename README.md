@@ -62,7 +62,6 @@ Want to add a language? See the [Plugin Guide](./docs/PLUGINS.md).
 | [Commands](./docs/COMMANDS.md) | Command palette reference |
 | [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts |
 | [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, tooltips, panels |
-| [Architecture](./docs/ARCHITECTURE.md) | System design and data flow |
 | [Plugin Guide](./docs/PLUGINS.md) | Create language plugins |
 | [Contributing](./CONTRIBUTING.md) | Development setup and guidelines |
 

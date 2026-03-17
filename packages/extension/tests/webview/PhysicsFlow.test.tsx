@@ -115,7 +115,7 @@ describe('Physics flow', () => {
       vi.advanceTimersByTime(350);
     });
 
-    const physicsMessage = sentMessages.find(m => m.type === 'UPDATE_PHYSICS_SETTING');
+    const physicsMessage = sentMessages.find(msg => msg.type === 'UPDATE_PHYSICS_SETTING');
     expect(physicsMessage).toEqual({
       type: 'UPDATE_PHYSICS_SETTING',
       payload: { key: 'repelForce', value: 11 },

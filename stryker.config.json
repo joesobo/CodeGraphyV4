@@ -16,7 +16,23 @@
   "coverageAnalysis": "perTest",
   "incremental": true,
   "incrementalFile": "reports/mutation/stryker-incremental.json",
+  "ignorePatterns": ["/coverage"],
   "ignoreStatic": true,
+  "mutate": [
+    "packages/extension/src/**/*.ts",
+    "packages/extension/src/**/*.tsx",
+    "!packages/extension/src/**/shared/types.ts",
+    "!packages/extension/src/**/shared/mockData*.ts",
+    "!packages/extension/src/**/webview/index.tsx",
+    "!packages/extension/src/**/webview/components/ui/**",
+    "!packages/extension/src/**/webview/components/icons/**",
+    "!packages/extension/src/**/e2e/**",
+    "!packages/extension/src/**/webview/components/DepthSlider.tsx",
+    "!packages/extension/src/**/webview/components/graph/rendering/Surface2d.tsx",
+    "!packages/extension/src/**/webview/components/graph/rendering/Surface3d.tsx",
+    "!packages/extension/src/**/webview/components/NodeTooltip.tsx",
+    "!packages/extension/src/**/webview/components/SearchBar.tsx"
+  ],
   "thresholds": {
     "high": 90,
     "low": 80,
