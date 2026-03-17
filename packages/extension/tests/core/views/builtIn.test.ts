@@ -40,6 +40,30 @@ describe('Core Views', () => {
       expect(coreViews).toContain(depthGraphView);
       expect(coreViews).toContain(folderView);
     });
+
+    it('should not be empty', () => {
+      expect(coreViews.length).toBeGreaterThan(0);
+    });
+
+    it('should contain views with valid IView properties', () => {
+      for (const view of coreViews) {
+        expect(view.id).toBeDefined();
+        expect(view.id.length).toBeGreaterThan(0);
+        expect(view.name).toBeDefined();
+        expect(view.name.length).toBeGreaterThan(0);
+        expect(view.icon).toBeDefined();
+        expect(view.icon.length).toBeGreaterThan(0);
+        expect(view.description).toBeDefined();
+        expect(view.description.length).toBeGreaterThan(0);
+        expect(typeof view.transform).toBe('function');
+      }
+    });
+
+    it('should contain views in the expected order', () => {
+      expect(coreViews[0]).toBe(connectionsView);
+      expect(coreViews[1]).toBe(depthGraphView);
+      expect(coreViews[2]).toBe(folderView);
+    });
   });
 
   describe('connectionsView', () => {
@@ -47,7 +71,28 @@ describe('Core Views', () => {
       expect(connectionsView.id).toBe('codegraphy.connections');
       expect(connectionsView.name).toBe('Connections');
       expect(connectionsView.icon).toBe('symbol-file');
+      expect(connectionsView.description).toBe('Shows all files and their import relationships');
       expect(connectionsView.pluginId).toBeUndefined();
+    });
+
+    it('should have a non-empty id', () => {
+      expect(connectionsView.id.length).toBeGreaterThan(0);
+    });
+
+    it('should have a non-empty name', () => {
+      expect(connectionsView.name.length).toBeGreaterThan(0);
+    });
+
+    it('should have a non-empty description', () => {
+      expect(connectionsView.description.length).toBeGreaterThan(0);
+    });
+
+    it('should have a non-empty icon', () => {
+      expect(connectionsView.icon.length).toBeGreaterThan(0);
+    });
+
+    it('should have a transform function', () => {
+      expect(typeof connectionsView.transform).toBe('function');
     });
 
     it('should pass through data unchanged', () => {

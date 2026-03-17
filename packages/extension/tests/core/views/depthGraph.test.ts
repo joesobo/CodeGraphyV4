@@ -22,6 +22,59 @@ function context(overrides: Partial<IViewContext> = {}): IViewContext {
 }
 
 describe('depthGraphView', () => {
+  describe('view definition properties', () => {
+    it('has the correct id', () => {
+      expect(depthGraphView.id).toBe('codegraphy.depth-graph');
+    });
+
+    it('has a non-empty id', () => {
+      expect(depthGraphView.id.length).toBeGreaterThan(0);
+    });
+
+    it('has the correct name', () => {
+      expect(depthGraphView.name).toBe('Depth Graph');
+    });
+
+    it('has a non-empty name', () => {
+      expect(depthGraphView.name.length).toBeGreaterThan(0);
+    });
+
+    it('has the correct description', () => {
+      expect(depthGraphView.description).toBe('Focus on current file and its connections up to N levels deep');
+    });
+
+    it('has a non-empty description', () => {
+      expect(depthGraphView.description.length).toBeGreaterThan(0);
+    });
+
+    it('has the correct icon', () => {
+      expect(depthGraphView.icon).toBe('target');
+    });
+
+    it('has a non-empty icon', () => {
+      expect(depthGraphView.icon.length).toBeGreaterThan(0);
+    });
+
+    it('has a transform function', () => {
+      expect(typeof depthGraphView.transform).toBe('function');
+    });
+
+    it('has an isAvailable function', () => {
+      expect(typeof depthGraphView.isAvailable).toBe('function');
+    });
+
+    it('exposes all required IView fields', () => {
+      expect(depthGraphView).toEqual(
+        expect.objectContaining({
+          id: 'codegraphy.depth-graph',
+          name: 'Depth Graph',
+          icon: 'target',
+          description: 'Focus on current file and its connections up to N levels deep',
+        }),
+      );
+    });
+  });
+
   it('returns an empty graph when no file is focused', () => {
     const result = depthGraphView.transform(sampleData, context());
     expect(result.nodes).toHaveLength(0);
@@ -71,5 +124,23 @@ describe('depthGraphView', () => {
 
   it('is not available when no file is focused', () => {
     expect(depthGraphView.isAvailable!(context())).toBe(false);
+  });
+
+  describe('transform guard - no focused file', () => {
+    it('returns empty nodes array when focusedFile is undefined', () => {
+      const result = depthGraphView.transform(sampleData, context({ focusedFile: undefined }));
+      expect(result.nodes).toEqual([]);
+    });
+
+    it('returns empty edges array when focusedFile is undefined', () => {
+      const result = depthGraphView.transform(sampleData, context({ focusedFile: undefined }));
+      expect(result.edges).toEqual([]);
+    });
+
+    it('returns an object with both nodes and edges properties when focusedFile is undefined', () => {
+      const result = depthGraphView.transform(sampleData, context({ focusedFile: undefined }));
+      expect(result).toHaveProperty('nodes');
+      expect(result).toHaveProperty('edges');
+    });
   });
 });

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ViewRegistry } from '../../../src/core/views/registry';
 import type { IView, IViewContext } from '../../../src/core/views/types';
 import { IGraphData } from '../../../src/shared/types';
@@ -375,6 +375,30 @@ describe('ViewRegistry', () => {
       expect(views[1].view.id).toBe('second');
       expect(views[2].view.id).toBe('third');
     });
+
+    it('should sort by ascending order (not descending or addition)', () => {
+      // This kills the ArithmeticOperator mutant that changes va.order - vb.order to va.order + vb.order
+      // With subtraction: [0,1,2] sorted ascending = first, second, third
+      // With addition: comparator would give wrong results
+      const view1 = createMockView({ id: 'alpha' });
+      const view2 = createMockView({ id: 'beta' });
+      const view3 = createMockView({ id: 'gamma' });
+      const view4 = createMockView({ id: 'delta' });
+
+      registry.register(view1); // order 0
+      registry.register(view2); // order 1
+      registry.register(view3); // order 2
+      registry.register(view4); // order 3
+
+      const views = registry.list();
+      const ids = views.map(entry => entry.view.id);
+
+      expect(ids).toEqual(['alpha', 'beta', 'gamma', 'delta']);
+      // Verify each successive order is greater than the previous
+      for (let i = 1; i < views.length; i++) {
+        expect(views[i].order).toBeGreaterThan(views[i - 1].order);
+      }
+    });
   });
 
   describe('size', () => {
@@ -389,6 +413,121 @@ describe('ViewRegistry', () => {
 
       registry.unregister(view.id);
       expect(registry.size).toBe(0);
+    });
+  });
+
+  describe('console logging', () => {
+    it('should log on register with view name and id', () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const view = createMockView({ id: 'my.view', name: 'My View' });
+
+      registry.register(view);
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[CodeGraphy] Registered view: My View (my.view)',
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it('should log on successful unregister with view id', () => {
+      const view = createMockView({ id: 'log.test' });
+      registry.register(view);
+
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      registry.unregister('log.test');
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        '[CodeGraphy] Unregistered view: log.test',
+      );
+      consoleSpy.mockRestore();
+    });
+
+    it('should not log on unsuccessful unregister', () => {
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      registry.unregister('does.not.exist');
+
+      expect(consoleSpy).not.toHaveBeenCalled();
+      consoleSpy.mockRestore();
+    });
+  });
+
+  describe('unregister - sort comparator for new default', () => {
+    it('should pick the lowest-order remaining view as default after removing default', () => {
+      // Register views with known order: a=0, b=1, c=2, d=3
+      const viewA = createMockView({ id: 'a' });
+      const viewB = createMockView({ id: 'b' });
+      const viewC = createMockView({ id: 'c' });
+      const viewD = createMockView({ id: 'd' });
+      registry.register(viewA); // order 0, default
+      registry.register(viewB); // order 1
+      registry.register(viewC); // order 2
+      registry.register(viewD); // order 3
+
+      // Remove default (a, order=0). New default should be b (order=1), not d (order=3)
+      registry.unregister('a');
+
+      expect(registry.getDefaultViewId()).toBe('b');
+    });
+
+    it('should correctly sort remaining views by order when selecting new default', () => {
+      // Register 5 views: a=0, b=1, c=2, d=3, e=4
+      const viewA = createMockView({ id: 'a' });
+      const viewB = createMockView({ id: 'b' });
+      const viewC = createMockView({ id: 'c' });
+      const viewD = createMockView({ id: 'd' });
+      const viewE = createMockView({ id: 'e' });
+      registry.register(viewA);
+      registry.register(viewB);
+      registry.register(viewC);
+      registry.register(viewD);
+      registry.register(viewE);
+
+      // Remove a (default). Remaining: b(1), c(2), d(3), e(4)
+      registry.unregister('a');
+      expect(registry.getDefaultViewId()).toBe('b');
+
+      // Remove b (now default). Remaining: c(2), d(3), e(4)
+      registry.unregister('b');
+      expect(registry.getDefaultViewId()).toBe('c');
+
+      // Remove c (now default). Remaining: d(3), e(4)
+      registry.unregister('c');
+      expect(registry.getDefaultViewId()).toBe('d');
+    });
+
+    it('should not reselect default when removing non-default view', () => {
+      const viewA = createMockView({ id: 'a' });
+      const viewB = createMockView({ id: 'b' });
+      const viewC = createMockView({ id: 'c' });
+      registry.register(viewA);
+      registry.register(viewB);
+      registry.register(viewC);
+
+      // Remove c (not default). Default should remain 'a'
+      registry.unregister('c');
+      expect(registry.getDefaultViewId()).toBe('a');
+    });
+
+    it('should preserve manually-set default when removing a different view', () => {
+      // This catches the mutant that replaces `this._defaultViewId === viewId` with `true`.
+      // If the guard is always true, removing any view would reset the default to the
+      // lowest-order view, overwriting the manually set default.
+      const viewA = createMockView({ id: 'a' });
+      const viewB = createMockView({ id: 'b' });
+      const viewC = createMockView({ id: 'c' });
+      registry.register(viewA); // order 0
+      registry.register(viewB); // order 1
+      registry.register(viewC); // order 2
+
+      // Set default to 'c' (order 2) instead of 'a' (order 0)
+      registry.setDefaultViewId('c');
+      expect(registry.getDefaultViewId()).toBe('c');
+
+      // Remove 'b' (not the default). Default should remain 'c'.
+      // If guard is always true, it would sort remaining [a(0), c(2)] and pick 'a'.
+      registry.unregister('b');
+      expect(registry.getDefaultViewId()).toBe('c');
     });
   });
 });

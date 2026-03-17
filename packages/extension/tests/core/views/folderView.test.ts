@@ -12,6 +12,38 @@ describe('folderView', () => {
     expect(folderView.id).toBe('codegraphy.folder');
     expect(folderView.name).toBe('Folder');
     expect(folderView.icon).toBe('folder');
+    expect(folderView.description).toBe('Shows the folder containment hierarchy');
+  });
+
+  it('has a non-empty id', () => {
+    expect(folderView.id.length).toBeGreaterThan(0);
+  });
+
+  it('has a non-empty name', () => {
+    expect(folderView.name.length).toBeGreaterThan(0);
+  });
+
+  it('has a non-empty description', () => {
+    expect(folderView.description.length).toBeGreaterThan(0);
+  });
+
+  it('has a non-empty icon', () => {
+    expect(folderView.icon.length).toBeGreaterThan(0);
+  });
+
+  it('has a transform function', () => {
+    expect(typeof folderView.transform).toBe('function');
+  });
+
+  it('exposes all required IView fields', () => {
+    expect(folderView).toEqual(
+      expect.objectContaining({
+        id: 'codegraphy.folder',
+        name: 'Folder',
+        icon: 'folder',
+        description: 'Shows the folder containment hierarchy',
+      }),
+    );
   });
 
   it('is always available (no isAvailable guard)', () => {
