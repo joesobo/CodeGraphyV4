@@ -5,7 +5,7 @@ import {
   DEFAULT_FOLDER_NODE_COLOR,
   DirectionMode,
   normalizeHexColor,
-} from '../../../shared/types';
+} from '../../../shared/contracts';
 
 export interface IGraphViewSettingsSnapshot {
   bidirectionalEdges: BidirectionalEdgeMode;

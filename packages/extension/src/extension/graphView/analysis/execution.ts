@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../shared/types';
+import type { IGraphData } from '../../../shared/contracts';
 
 const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
 

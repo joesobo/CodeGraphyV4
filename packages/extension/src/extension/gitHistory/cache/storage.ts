@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../../shared/types';
+import type { IGraphData } from '../../../shared/contracts';
 import { getCacheDir, getCachePath } from './paths';
 
 type GraphCacheFs = Pick<

@@ -3,7 +3,7 @@ import ForceGraph3D from 'react-force-graph-3d';
 import type {
   ForceGraphMethods as FG3DMethods,
 } from 'react-force-graph-3d';
-import type { DirectionMode } from '../../../../shared/types';
+import type { DirectionMode } from '../../../../shared/contracts';
 import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import * as THREE from 'three';
 import { DEFAULT_NODE_SIZE, type FGLink, type FGNode } from '../../graphModel';

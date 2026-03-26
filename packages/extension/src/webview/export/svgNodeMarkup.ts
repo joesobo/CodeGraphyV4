@@ -1,4 +1,4 @@
-import type { NodeShape2D } from '../../shared/types';
+import type { NodeShape2D } from '../../shared/contracts';
 import { escapeXml, svgShapePath } from './svgShapes';
 import type { SvgExportNode, SvgPosition } from './svgTypes';
 

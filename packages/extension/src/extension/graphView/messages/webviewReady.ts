@@ -1,4 +1,4 @@
-import type { DagMode, NodeSizeMode } from '../../../shared/types';
+import type { DagMode, NodeSizeMode } from '../../../shared/contracts';
 
 export interface GraphViewReadyState {
   filterPatterns: string[];

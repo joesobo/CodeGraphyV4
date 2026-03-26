@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
 import {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,

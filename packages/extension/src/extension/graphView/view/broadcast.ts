@@ -1,5 +1,5 @@
 import type * as vscode from 'vscode';
-import type { IGroup } from '../../../shared/types';
+import type { IGroup } from '../../../shared/contracts';
 import type { IViewContext } from '../../../core/views/types';
 import type { ViewRegistry } from '../../../core/views/registry';
 import { mapAvailableViews } from '../presentation';

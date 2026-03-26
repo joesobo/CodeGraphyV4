@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../src/shared/types';
+import type { IPhysicsSettings } from '../../../../src/shared/contracts';
 
 const mocks = vi.hoisted(() => {
   let workspaceFolders: { name: string }[] | undefined = undefined;

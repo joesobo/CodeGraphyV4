@@ -2,7 +2,7 @@ import type {
   ExtensionToWebviewMessage,
   IFileInfo,
   WebviewToExtensionMessage,
-} from '../../../shared/types';
+} from '../../../shared/contracts';
 import type { FGNode } from '../graphModel';
 import {
   EMPTY_EFFECTS,

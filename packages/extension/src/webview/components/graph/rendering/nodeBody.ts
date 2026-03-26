@@ -1,6 +1,6 @@
 import type {
   NodeDecorationPayload,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import type { ThemeKind } from '../../../useTheme';
 import { drawShape } from './shapes2D';
 import type { FGNode } from '../../graphModel';

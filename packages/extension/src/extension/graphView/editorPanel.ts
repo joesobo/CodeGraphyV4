@@ -32,7 +32,10 @@ export function openGraphViewInEditor({
     retainContextWhenHidden: true,
   });
 
-  panel.iconPath = vscode.Uri.joinPath(extensionUri, 'assets', 'icon.svg');
+  panel.iconPath = {
+    dark: vscode.Uri.joinPath(extensionUri, 'assets', 'icon-dark.svg'),
+    light: vscode.Uri.joinPath(extensionUri, 'assets', 'icon-light.svg'),
+  };
   setWebviewMessageListener(panel.webview);
   panel.webview.html = getHtmlForWebview(panel.webview);
   registerPanel(panel);

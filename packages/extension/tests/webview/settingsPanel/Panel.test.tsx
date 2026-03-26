@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../src/shared/types';
-import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
+import type { IPhysicsSettings } from '../../../src/shared/contracts';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
 import SettingsPanel from '../../../src/webview/components/settingsPanel/Panel';
 import { graphStore } from '../../../src/webview/store';
 

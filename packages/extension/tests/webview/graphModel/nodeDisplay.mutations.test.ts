@@ -5,7 +5,7 @@ import {
   getDepthSizeMultiplier,
   getNodeType,
 } from '../../../src/webview/components/graphModel/nodeDisplay';
-import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
 
 describe('nodeDisplay (mutation targets)', () => {
   describe('resolveDirectionColor', () => {

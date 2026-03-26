@@ -3,7 +3,7 @@ import { GraphViewProvider } from './graphViewProvider';
 import { registerConfigHandler } from './configListener';
 import { registerCommands } from './commandRegistration';
 import { registerEditorChangeHandler, registerSaveHandler, registerFileWatcher } from './fileSystemListeners';
-import type { IGraphData } from '../shared/types';
+import type { IGraphData } from '../shared/contracts';
 
 /** Public API returned by activate() — usable from e2e tests. */
 export interface CodeGraphyAPI {

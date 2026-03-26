@@ -14,7 +14,7 @@
  * @module shared/mockData
  */
 
-import { IFileData, IGraphData } from './types';
+import { IFileData, IGraphData } from './contracts';
 import { fileDataToNodes, fileDataToEdges } from './mockDataTransforms';
 import { MOCK_ENTRY_POINTS } from './mockDataEntryPoints';
 import { MOCK_COMPONENTS } from './mockDataComponents';

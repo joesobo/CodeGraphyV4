@@ -13,7 +13,7 @@ import {
   IGroup,
   NodeSizeMode,
   ExtensionToWebviewMessage,
-} from '../shared/types';
+} from '../shared/contracts';
 import { EventBus, EventName, EventPayloads } from '../core/plugins/eventBus';
 import { DecorationManager } from '../core/plugins/decorationManager';
 import { WorkspaceAnalyzer } from './workspaceAnalyzer';

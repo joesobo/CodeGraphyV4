@@ -1,5 +1,5 @@
 import React from 'react';
-import type { IGroup } from '../../../../shared/types';
+import type { IGroup } from '../../../../shared/contracts';
 import { CustomEditor } from './CustomEditor';
 import { CustomRowHeader } from './CustomRowHeader';
 import { getCustomRowClassName, isCustomRowDraggable } from './customRowState';

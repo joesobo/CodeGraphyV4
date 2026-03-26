@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphEdge, IPluginStatus } from '../../../src/shared/types';
+import type { IGraphEdge, IPluginStatus } from '../../../src/shared/contracts';
 import {
   buildConnectionData,
   buildRuleLookups,

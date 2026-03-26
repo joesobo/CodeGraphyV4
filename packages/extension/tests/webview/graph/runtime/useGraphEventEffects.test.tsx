@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IFileInfo, IGraphData } from '../../../../src/shared/types';
+import type { IFileInfo, IGraphData } from '../../../../src/shared/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
 import { useGraphEventEffects } from '../../../../src/webview/components/graph/runtime/useGraphEventEffects';
 

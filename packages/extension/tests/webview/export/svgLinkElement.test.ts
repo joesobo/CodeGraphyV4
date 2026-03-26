@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
 import { buildLinkElement } from '../../../src/webview/export/svgLinkElement';
 import type { SvgExportLink } from '../../../src/webview/export/svgTypes';
 

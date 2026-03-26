@@ -3,7 +3,7 @@
  * @module webview/storeMessageHandlersToolbar
  */
 
-import type { ExtensionToWebviewMessage } from '../shared/types';
+import type { ExtensionToWebviewMessage } from '../shared/contracts';
 import type { IHandlerContext, PartialState } from './storeMessageTypes';
 import { DAG_MODE_CYCLE } from './storeMessageTypes';
 

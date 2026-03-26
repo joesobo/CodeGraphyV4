@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
-import type { IGraphData } from '../../../src/shared/types';
+import type { IGraphData } from '../../../src/shared/contracts';
 
 // Mock vscode module
 vi.mock('vscode', () => ({

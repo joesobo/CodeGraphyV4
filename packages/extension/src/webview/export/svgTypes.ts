@@ -1,4 +1,4 @@
-import type { DirectionMode, NodeShape2D } from '../../shared/types';
+import type { DirectionMode, NodeShape2D } from '../../shared/contracts';
 
 export interface SvgExportLinkNodeRef {
   id?: string | number;

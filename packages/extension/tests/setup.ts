@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
-import type { WebviewToExtensionMessage } from '../src/shared/types';
+import type { WebviewToExtensionMessage } from '../src/shared/contracts';
 
 interface VscodeSentMessagesGlobal {
   __vscodeSentMessages: WebviewToExtensionMessage[];

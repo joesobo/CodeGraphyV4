@@ -1,4 +1,4 @@
-import type { IGraphNode, IGroup } from '../../shared/types';
+import type { IGraphNode, IGroup } from '../../shared/contracts';
 import { globMatch } from '../globMatch';
 import type { ExportFile, ExportGroup } from './types';
 

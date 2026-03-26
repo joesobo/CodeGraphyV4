@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '../../../src/shared/types';
+import type { ICommitInfo } from '../../../src/shared/contracts';
 import * as dragListenersModule from '../../../src/webview/components/timeline/dragListeners';
 import * as playbackAnimationModule from '../../../src/webview/components/timeline/usePlaybackAnimation';
 import * as commitSyncModule from '../../../src/webview/components/timeline/useCommitSync';

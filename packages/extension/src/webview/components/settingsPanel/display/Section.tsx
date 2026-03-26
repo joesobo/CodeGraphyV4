@@ -2,7 +2,7 @@ import React from 'react';
 import type {
   BidirectionalEdgeMode,
   DirectionMode,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import { postMessage } from '../../../vscodeApi';
 import { ColorField } from './ColorField';
 import { LabelsToggle } from './LabelsToggle';

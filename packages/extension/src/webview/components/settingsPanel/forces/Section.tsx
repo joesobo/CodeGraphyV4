@@ -1,5 +1,5 @@
 import React, { useRef } from 'react';
-import { type IPhysicsSettings } from '../../../../shared/types';
+import { type IPhysicsSettings } from '../../../../shared/contracts';
 import { postMessage } from '../../../vscodeApi';
 import { useGraphStore } from '../../../store';
 import { Label } from '../../ui/label';

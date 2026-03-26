@@ -1,6 +1,6 @@
 import {
   DEFAULT_DIRECTION_COLOR,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import {
   resolveDirectionColor,
   type FGLink,

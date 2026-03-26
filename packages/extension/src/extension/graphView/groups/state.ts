@@ -1,4 +1,4 @@
-import type { IGroup } from '../../../shared/types';
+import type { IGroup } from '../../../shared/contracts';
 
 interface GraphViewGroupConfigInspect<T> {
   workspaceValue?: T;

@@ -3,7 +3,7 @@ import type {
   EdgeDecorationPayload,
   IPluginContextMenuItem,
   NodeDecorationPayload,
-} from '../../../shared/types';
+} from '../../../shared/contracts';
 
 interface IContextMenuContribution {
   label: string;

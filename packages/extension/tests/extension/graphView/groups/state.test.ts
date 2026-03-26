@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGroup } from '../../../../../src/shared/types';
+import type { IGroup } from '../../../../../src/shared/contracts';
 import { loadGraphViewGroupState } from '../../../../src/extension/graphView/groups/state';
 
 interface MockInspectResult<T> {

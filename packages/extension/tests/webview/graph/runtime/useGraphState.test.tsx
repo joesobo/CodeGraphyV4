@@ -4,7 +4,7 @@ import type {
   EdgeDecorationPayload,
   IGraphData,
   NodeDecorationPayload,
-} from '../../../../src/shared/types';
+} from '../../../../src/shared/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
 
 const graphStateHarness = vi.hoisted(() => ({

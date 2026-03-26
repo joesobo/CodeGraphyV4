@@ -3,7 +3,7 @@ import type {
 	IFileInfo,
 	IGraphData,
 	WebviewToExtensionMessage,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import {
 	buildGraphTooltipContext,
 	buildGraphTooltipState,

@@ -1,4 +1,4 @@
-import type { ExtensionToWebviewMessage, ICommitInfo } from '../../../shared/types';
+import type { ExtensionToWebviewMessage, ICommitInfo } from '../../../shared/contracts';
 
 export interface GraphViewTimelineIndexResultState {
   timelineActive?: boolean;

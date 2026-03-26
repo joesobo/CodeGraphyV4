@@ -3,7 +3,7 @@ import {
   DEFAULT_FOLDER_NODE_COLOR,
   type BidirectionalEdgeMode,
   type DirectionMode,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import {
   particleSpeedToDisplay,
   resolveDisplayColor,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR, type DirectionMode, type EdgeDecorationPayload } from '../../../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR, type DirectionMode, type EdgeDecorationPayload } from '../../../../src/shared/contracts';
 import type { ThemeKind } from '../../../../src/webview/useTheme';
 import type { FGLink } from '../../../../src/webview/components/graphModel';
 import {

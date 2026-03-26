@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as vscode from 'vscode';
 import type { WorkspaceAnalyzer } from '../../src/extension/workspaceAnalyzer';
-import type { IGraphData } from '../../src/shared/types';
+import type { IGraphData } from '../../src/shared/contracts';
 
 // Capture showInputBox calls to verify options
 interface InputBoxCall {

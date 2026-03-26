@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { IPluginContextMenuItem } from '../../../src/shared/types';
+import type { IPluginContextMenuItem } from '../../../src/shared/contracts';
 import { buildGraphContextMenuEntries } from '../../../src/webview/components/graphContextMenu/buildEntries';
 import {
   makeBackgroundContextSelection,

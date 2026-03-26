@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   DEFAULT_DIRECTION_COLOR,
   DEFAULT_FOLDER_NODE_COLOR,
-} from '../../../../src/shared/types';
+} from '../../../../src/shared/contracts';
 import { useDisplayStore } from '../../../../src/webview/components/settingsPanel/display/useDisplayStore';
 import { graphStore } from '../../../../src/webview/store';
 

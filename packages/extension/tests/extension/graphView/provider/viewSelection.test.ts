@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../../src/core/views/types';
-import type { IGraphData } from '../../../../src/shared/types';
+import type { IGraphData } from '../../../../src/shared/contracts';
 import { createGraphViewProviderViewSelectionMethods } from '../../../../src/extension/graphView/provider/viewSelection';
 
 describe('graphView/provider/viewSelection', () => {

@@ -3,7 +3,7 @@
  * @module webview/storeInitialState
  */
 
-import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_DIRECTION_COLOR } from '../shared/types';
+import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_DIRECTION_COLOR } from '../shared/contracts';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './storeDefaults';
 
 export const INITIAL_STATE = {

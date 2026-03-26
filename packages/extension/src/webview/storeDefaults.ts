@@ -3,7 +3,7 @@
  * @module webview/storeDefaults
  */
 
-import type { IPhysicsSettings } from '../shared/types';
+import type { IPhysicsSettings } from '../shared/contracts';
 import type { SearchOptions } from './components/SearchBar';
 
 export const DEFAULT_PHYSICS: IPhysicsSettings = {

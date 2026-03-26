@@ -4,7 +4,7 @@
  */
 
 import { IView, IViewContext } from './types';
-import { IGraphData, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/types';
+import { IGraphData, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/contracts';
 import { collectFolderPaths, createFolderNodes } from './folderNodes';
 import { buildContainmentEdges } from './folderEdges';
 

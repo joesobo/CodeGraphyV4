@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import type { NodeShape3D } from '../../../../shared/types';
+import type { NodeShape3D } from '../../../../shared/contracts';
 
 /**
  * Creates a Three.js mesh for a 3D node shape.

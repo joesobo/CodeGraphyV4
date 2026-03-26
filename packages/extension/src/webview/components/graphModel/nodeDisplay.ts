@@ -1,4 +1,4 @@
-import { DEFAULT_DIRECTION_COLOR } from '../../../shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../../shared/contracts';
 
 export const FAVORITE_BORDER_COLOR = '#EAB308';
 export const DEFAULT_NODE_SIZE = 16;

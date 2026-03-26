@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../shared/types';
+import type { IGraphData } from '../../../shared/contracts';
 
 interface GraphViewAnalyzerLike {
   rebuildGraph(

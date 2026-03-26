@@ -1,6 +1,6 @@
 import type { MutableRefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '../../../src/shared/types';
+import type { ICommitInfo } from '../../../src/shared/contracts';
 import { jumpToTrackPosition } from '../../../src/webview/components/timeline/scrubPosition';
 
 const postMessage = vi.fn();

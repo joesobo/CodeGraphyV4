@@ -4,7 +4,7 @@ import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
 } from './listener';
-import type { ExtensionToWebviewMessage } from '../../../../shared/types';
+import type { ExtensionToWebviewMessage } from '../../../../shared/contracts';
 
 type GraphViewProviderPrimaryActions = Pick<
   GraphViewMessageListenerContext,

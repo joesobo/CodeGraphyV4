@@ -1,4 +1,4 @@
-import type { DirectionMode } from '../../../../shared/types';
+import type { DirectionMode } from '../../../../shared/contracts';
 import type { FGLink } from '../../graphModel';
 import { resolveLinkEndpointId } from '../../graphSupport/linkTargets';
 import type { LinkRenderingDependencies } from './linkShared';

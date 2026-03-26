@@ -4,7 +4,7 @@
  */
 
 import * as vscode from 'vscode';
-import type { IGroup } from '../shared/types';
+import type { IGroup } from '../shared/contracts';
 import type { ICodeGraphyConfig } from './configDefaults';
 
 /**

@@ -9,7 +9,7 @@ import type {
 	IFileInfo,
 	IGraphData,
 	WebviewToExtensionMessage,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import type { FGLink, FGNode } from '../../graphModel';
 import type { GraphTooltipState } from '../tooltipModel';
 import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';

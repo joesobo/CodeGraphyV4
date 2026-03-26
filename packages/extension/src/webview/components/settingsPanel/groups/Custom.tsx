@@ -1,5 +1,5 @@
 import React from 'react';
-import type { IGroup } from '../../../../shared/types';
+import type { IGroup } from '../../../../shared/contracts';
 import { ChevronIcon } from '../SectionHeader';
 import { CustomAddForm } from './CustomAddForm';
 import { CustomRow } from './CustomRow';

@@ -1,4 +1,4 @@
-import type { IPhysicsSettings, WebviewToExtensionMessage } from '../../../shared/types';
+import type { IPhysicsSettings, WebviewToExtensionMessage } from '../../../shared/contracts';
 
 export interface GraphViewPhysicsMessageHandlers {
   sendPhysicsSettings(): void;

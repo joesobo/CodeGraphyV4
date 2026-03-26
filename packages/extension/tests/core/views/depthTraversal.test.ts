@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildAdjacencyList, bfsFromNode } from '../../../src/core/views/depthTraversal';
-import { IGraphData } from '../../../src/shared/types';
+import { IGraphData } from '../../../src/shared/contracts';
 
 describe('buildAdjacencyList', () => {
   it('creates an empty set for each node', () => {

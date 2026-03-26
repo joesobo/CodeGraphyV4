@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
-import type { IGraphData } from '../../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
+import type { IGraphData } from '../../../src/shared/contracts';
 import {
   buildGraphData,
   calculateNodeSizes,

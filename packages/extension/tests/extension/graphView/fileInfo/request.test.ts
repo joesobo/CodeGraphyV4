@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/types';
+import type { IGraphData } from '../../../../../src/shared/contracts';
 import { sendGraphViewProviderFileInfoMessage } from '../../../../src/extension/graphView/fileInfo/request';
 
 describe('graph view file-info request helper', () => {

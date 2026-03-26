@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { ViewRegistry } from '../../../src/core/views/registry';
 import type { IView, IViewContext } from '../../../src/core/views/types';
-import { IGraphData } from '../../../src/shared/types';
+import { IGraphData } from '../../../src/shared/contracts';
 
 // Helper to create a mock view
 function createMockView(overrides: Partial<IView> = {}): IView {

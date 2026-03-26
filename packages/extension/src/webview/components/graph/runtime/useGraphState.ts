@@ -19,7 +19,7 @@ import type {
   IGraphData,
   NodeSizeMode,
   NodeDecorationPayload,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import type {
   GraphContextSelection,
 } from '../../graphContextMenu/types';

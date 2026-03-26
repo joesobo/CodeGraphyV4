@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/types';
+import type { IGraphData } from '../../../../../src/shared/contracts';
 import {
   applySettingsToggleMessage,
 } from '../../../../../src/extension/graphView/messages/settings/toggle';

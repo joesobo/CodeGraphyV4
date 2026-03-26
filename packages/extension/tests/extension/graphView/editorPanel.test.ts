@@ -40,7 +40,10 @@ describe('graph view editor panel helper', () => {
     );
     expect(registerPanel).toHaveBeenCalledWith(panel);
     expect(panel.webview.html).toBe('<div id="root"></div>');
-    expect(panel.iconPath).toEqual(vscode.Uri.file('/extension/assets/icon.svg'));
+    expect(panel.iconPath).toEqual({
+      dark: vscode.Uri.file('/extension/assets/icon-dark.svg'),
+      light: vscode.Uri.file('/extension/assets/icon-light.svg'),
+    });
     expect(unregisterPanel).toHaveBeenCalledWith(panel);
   });
 });

@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useFilteredGraph } from '../../src/webview/useFilteredGraph';
-import type { IGraphData, IGroup } from '../../src/shared/types';
+import type { IGraphData, IGroup } from '../../src/shared/contracts';
 
 const sampleGraph: IGraphData = {
   nodes: [

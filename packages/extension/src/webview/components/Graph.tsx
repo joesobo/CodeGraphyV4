@@ -9,7 +9,7 @@ import type {
   EdgeDecorationPayload,
   IGraphData,
   NodeDecorationPayload,
-} from '../../shared/types';
+} from '../../shared/contracts';
 import { buildGraphContextMenuEntries } from './graphContextMenu/buildEntries';
 import { buildSharedGraphProps } from './graph/rendering/sharedProps';
 import { Viewport } from './graph/Viewport';

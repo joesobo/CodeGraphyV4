@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../src/shared/types';
+import type { IPhysicsSettings } from '../../../../src/shared/contracts';
 import {
   createGraphViewProviderSettingsStateMethods,
   type GraphViewProviderSettingsStateMethodDependencies,

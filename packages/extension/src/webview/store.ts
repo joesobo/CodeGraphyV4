@@ -15,7 +15,7 @@ import type {
   NodeDecorationPayload,
   EdgeDecorationPayload,
   IPluginContextMenuItem,
-} from '../shared/types';
+} from '../shared/contracts';
 import type { SearchOptions } from './components/SearchBar';
 import { INITIAL_STATE } from './storeInitialState';
 import { createActions } from './storeActions';

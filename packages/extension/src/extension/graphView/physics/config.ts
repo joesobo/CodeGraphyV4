@@ -1,4 +1,4 @@
-import type { IPhysicsSettings } from '../../../shared/types';
+import type { IPhysicsSettings } from '../../../shared/contracts';
 
 interface GraphViewPhysicsConfigurationLike {
   update(key: string, value: unknown, target: unknown): PromiseLike<void>;

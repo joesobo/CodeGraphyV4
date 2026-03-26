@@ -1,4 +1,4 @@
-import type { IGraphEdge, IGraphNode } from '../../../shared/types';
+import type { IGraphEdge, IGraphNode } from '../../../shared/contracts';
 import { DEFAULT_NODE_SIZE } from './nodeDisplay';
 
 export const MIN_NODE_SIZE = 10;

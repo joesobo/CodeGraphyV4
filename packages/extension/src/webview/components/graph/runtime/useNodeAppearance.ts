@@ -2,7 +2,7 @@ import {
 	useEffect,
 	type MutableRefObject,
 } from 'react';
-import type { IGraphData } from '../../../../shared/types';
+import type { IGraphData } from '../../../../shared/contracts';
 import { ThemeKind, adjustColorForLightTheme } from '../../../useTheme';
 import {
 	calculateNodeSizes,

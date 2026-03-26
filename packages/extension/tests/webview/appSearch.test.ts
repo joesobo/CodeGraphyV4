@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_NODE_COLOR } from '../../src/shared/types';
+import { DEFAULT_NODE_COLOR } from '../../src/shared/contracts';
 import type { SearchOptions } from '../../src/webview/components/SearchBar';
 import { applyGroupColors, filterGraphData, filterNodesAdvanced } from '../../src/webview/appSearch';
 

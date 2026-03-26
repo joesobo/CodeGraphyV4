@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGroup } from '../../../../src/shared/types';
+import type { IGroup } from '../../../../src/shared/contracts';
 import {
   applyGroupMessage,
   type GraphViewGroupMessageHandlers,

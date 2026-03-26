@@ -5,7 +5,7 @@ import {
   DEFAULT_FOLDER_NODE_COLOR,
   type ExtensionToWebviewMessage,
   type IGraphData,
-} from '../../../shared/types';
+} from '../../../shared/contracts';
 import { applyGraphViewTransform } from '../presentation';
 import { normalizeFolderNodeColor } from '../settings/config';
 import { sendGraphViewAvailableViews } from '../view/broadcast';

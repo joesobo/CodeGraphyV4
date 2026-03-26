@@ -1,4 +1,4 @@
-import type { IGraphEdge, IGraphNode } from '../../../shared/types';
+import type { IGraphEdge, IGraphNode } from '../../../shared/contracts';
 import type { ThemeKind } from '../../useTheme';
 import { adjustColorForLightTheme } from '../../useTheme';
 import type { FGNode } from '../graphModel';

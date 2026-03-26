@@ -5,7 +5,7 @@
  */
 
 import { useMemo } from 'react';
-import type { IGraphData, IGroup } from '../shared/types';
+import type { IGraphData, IGroup } from '../shared/contracts';
 import type { SearchOptions } from './components/SearchBar';
 import { filterGraphData, applyGroupColors } from './appSearch';
 

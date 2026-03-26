@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGroup } from '../../../../src/shared/types';
+import type { IGroup } from '../../../../src/shared/contracts';
 import { groupSettingsPanelSections } from '../../../../src/webview/components/settingsPanel/groups/sections';
 
 describe('settingsPanel groups sections', () => {

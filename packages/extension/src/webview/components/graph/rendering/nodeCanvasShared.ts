@@ -1,6 +1,6 @@
 import type {
   NodeDecorationPayload,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import type { ThemeKind } from '../../../useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';
 

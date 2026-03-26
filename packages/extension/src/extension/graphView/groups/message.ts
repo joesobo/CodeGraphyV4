@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { ExtensionToWebviewMessage, IGroup } from '../../../shared/types';
+import type { ExtensionToWebviewMessage, IGroup } from '../../../shared/contracts';
 
 interface GraphViewGroupsUpdatedMessageOptions {
   workspaceFolder?: { uri: vscode.Uri };

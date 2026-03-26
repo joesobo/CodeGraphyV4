@@ -1,4 +1,4 @@
-import type { IFileInfo, WebviewToExtensionMessage } from '../../../../shared/types';
+import type { IFileInfo, WebviewToExtensionMessage } from '../../../../shared/contracts';
 import type { GraphWebviewMessageEffect } from '../../graphWebviewMessages/effects';
 
 export interface GraphWebviewMessageEffectHandlers {

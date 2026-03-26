@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen } from '@testing-library/react';
 import Graph from '../../../src/webview/components/Graph';
-import { IGraphData } from '../../../src/shared/types';
+import { IGraphData } from '../../../src/shared/contracts';
 import { graphStore } from '../../../src/webview/store';
 import ForceGraph2D from 'react-force-graph-2d';
 import ForceGraph3D from 'react-force-graph-3d';

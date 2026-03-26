@@ -1,4 +1,4 @@
-import type { IGraphEdge, IGraphNode, NodeSizeMode } from '../../../shared/types';
+import type { IGraphEdge, IGraphNode, NodeSizeMode } from '../../../shared/contracts';
 import {
   computeConnectionSizes,
   computeAccessCountSizes,

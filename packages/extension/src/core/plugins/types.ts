@@ -129,8 +129,8 @@ export interface IPlugin {
    */
   fileColors?: Record<string, string | {
     color: string;
-    shape2D?: import('../../shared/types').NodeShape2D;
-    shape3D?: import('../../shared/types').NodeShape3D;
+    shape2D?: import('../../shared/contracts').NodeShape2D;
+    shape3D?: import('../../shared/contracts').NodeShape3D;
     image?: string;  // relative path from plugin root
   }>;
   
@@ -188,7 +188,7 @@ export interface IPlugin {
   onLoad?(api: import('./codeGraphyApi').CodeGraphyAPIImpl): void;
 
   /** Called once after the initial workspace graph is ready. */
-  onWorkspaceReady?(graph: import('../../shared/types').IGraphData): void;
+  onWorkspaceReady?(graph: import('../../shared/contracts').IGraphData): void;
 
   /** Called when the webview is ready to receive plugin messages. */
   onWebviewReady?(): void;
@@ -200,10 +200,10 @@ export interface IPlugin {
   ): Promise<void>;
 
   /** Called after each full analysis pass. */
-  onPostAnalyze?(graph: import('../../shared/types').IGraphData): void;
+  onPostAnalyze?(graph: import('../../shared/contracts').IGraphData): void;
 
   /** Called when the graph is rebuilt from cache without re-analysis. */
-  onGraphRebuild?(graph: import('../../shared/types').IGraphData): void;
+  onGraphRebuild?(graph: import('../../shared/contracts').IGraphData): void;
 
   /** Called before plugin teardown. */
   onUnload?(): void;

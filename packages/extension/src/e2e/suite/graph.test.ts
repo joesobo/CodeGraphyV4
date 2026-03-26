@@ -11,7 +11,7 @@ import * as path from 'path';
 
 // The type exported by the extension's activate() function
 interface CodeGraphyAPI {
-  getGraphData(): import('../../shared/types').IGraphData;
+  getGraphData(): import('../../shared/contracts').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
 }

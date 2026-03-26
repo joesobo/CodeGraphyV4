@@ -2,7 +2,7 @@ import type {
   ExtensionToWebviewMessage,
   IGraphData,
   WebviewToExtensionMessage,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import { applySettingsConfigMessage } from './config';
 import { applySettingsDirectionMessage } from './direction';
 import { applySettingsToggleMessage } from './toggle';

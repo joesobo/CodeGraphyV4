@@ -1,4 +1,4 @@
-import type { DagMode, NodeSizeMode, WebviewToExtensionMessage } from '../../../../shared/types';
+import type { DagMode, NodeSizeMode, WebviewToExtensionMessage } from '../../../../shared/contracts';
 import { applyWebviewReady } from '../webviewReady';
 
 type GraphViewReadyMessage = Extract<WebviewToExtensionMessage, { type: 'WEBVIEW_READY' }>;

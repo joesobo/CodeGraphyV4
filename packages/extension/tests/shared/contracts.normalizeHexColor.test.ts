@@ -6,7 +6,7 @@ import {
   DEFAULT_DIRECTION_COLOR,
   FILE_TYPE_COLORS,
   getFileColor,
-} from '../../src/shared/types';
+} from '../../src/shared/contracts';
 
 describe('normalizeHexColor', () => {
   it('returns the default color when value is undefined', () => {

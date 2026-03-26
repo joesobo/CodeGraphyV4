@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { IGroup } from '../../../shared/types';
+import type { IGroup } from '../../../shared/contracts';
 import { getBuiltInGraphViewDefaultGroups } from '../groups/defaults/builtIn';
 import { registerBuiltInGraphViewPluginRoots } from '../groups/defaults/pluginRoots';
 import { buildGraphViewMergedGroups } from '../groups/merged';

@@ -1,5 +1,5 @@
 import type React from 'react';
-import type { IGroup } from '../../../../shared/types';
+import type { IGroup } from '../../../../shared/contracts';
 
 const COLOR_DEBOUNCE_MS = 300;
 

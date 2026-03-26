@@ -3,7 +3,7 @@ import type {
   IPhysicsSettings,
   ISettingsSnapshot,
   NodeSizeMode,
-} from '../../../shared/types';
+} from '../../../shared/contracts';
 import { readGraphViewSettings } from './config';
 import type { IGraphViewSettingsSnapshot } from './config';
 

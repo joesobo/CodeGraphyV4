@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { MESSAGE_HANDLERS, DAG_MODE_CYCLE } from '../../src/webview/storeMessages';
 import type { IHandlerContext, IStoreFields } from '../../src/webview/storeMessages';
-import type { ExtensionToWebviewMessage } from '../../src/shared/types';
+import type { ExtensionToWebviewMessage } from '../../src/shared/contracts';
 
 function makeCtx(partial: Partial<IStoreFields> = {}): IHandlerContext {
   return {

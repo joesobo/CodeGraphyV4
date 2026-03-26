@@ -5,7 +5,7 @@ import {
   type NodeShape2D,
   type NodeShape3D,
   type NodeSizeMode,
-} from '../../../shared/types';
+} from '../../../shared/contracts';
 import type { ThemeKind } from '../../useTheme';
 
 export type FGNode = NodeObject & {

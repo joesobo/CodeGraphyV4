@@ -1,4 +1,4 @@
-import type { ICommitInfo } from '../../../shared/types';
+import type { ICommitInfo } from '../../../shared/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../configuration';
 
 interface GraphViewTimelineAnalyzerLike {

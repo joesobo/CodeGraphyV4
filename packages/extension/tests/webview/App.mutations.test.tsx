@@ -8,7 +8,7 @@
 import React from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/contracts';
 import { graphStore } from '../../src/webview/store';
 
 const harness = vi.hoisted(() => ({

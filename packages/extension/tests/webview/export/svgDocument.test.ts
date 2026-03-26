@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
 import { assembleSvg, createBaseParts, createDefinitions, getPalette } from '../../../src/webview/export/svgDocument';
 import type { SvgExportOptions } from '../../../src/webview/export/svgTypes';
 

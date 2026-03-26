@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../src/shared/types';
+import type { IGraphData } from '../../src/shared/contracts';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 let workspaceFoldersValue:

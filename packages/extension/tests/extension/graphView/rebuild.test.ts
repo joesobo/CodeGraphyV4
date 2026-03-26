@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IPluginStatus } from '../../../src/shared/types';
+import type { IPluginStatus } from '../../../src/shared/contracts';
 import { shouldRebuildGraphView } from '../../../src/extension/graphView/rebuild';
 
 const pluginStatuses: IPluginStatus[] = [

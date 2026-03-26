@@ -4,7 +4,7 @@
  * @module webview/vscodeApi
  */
 
-import { WebviewToExtensionMessage } from '../shared/types';
+import { WebviewToExtensionMessage } from '../shared/contracts';
 
 // Declare the VSCode API type
 declare function acquireVsCodeApi(): {

@@ -6,9 +6,9 @@ import type {
   IGroup,
   IPhysicsSettings,
   NodeSizeMode,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import type { IViewContext } from '../../../../core/views/types';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/types';
+import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/contracts';
 import { getUndoManager } from '../../../undoManager';
 import { ResetSettingsAction } from '../../../actions/resetSettings';
 import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/config';

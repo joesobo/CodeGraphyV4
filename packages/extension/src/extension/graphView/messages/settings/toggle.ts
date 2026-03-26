@@ -1,4 +1,4 @@
-import type { WebviewToExtensionMessage } from '../../../../shared/types';
+import type { WebviewToExtensionMessage } from '../../../../shared/contracts';
 import type {
   GraphViewSettingsMessageHandlers,
   GraphViewSettingsMessageState,

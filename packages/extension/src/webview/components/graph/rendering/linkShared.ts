@@ -1,7 +1,7 @@
 import type {
   DirectionMode,
   EdgeDecorationPayload,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import type { ThemeKind } from '../../../useTheme';
 
 interface GraphRef<TValue> {

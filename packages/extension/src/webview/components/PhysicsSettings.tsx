@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import { IPhysicsSettings } from '../../shared/types';
+import { IPhysicsSettings } from '../../shared/contracts';
 import { postMessage } from '../vscodeApi';
 import { mdiClose, mdiCogOutline } from '@mdi/js';
 import { MdiIcon } from './icons/MdiIcon';

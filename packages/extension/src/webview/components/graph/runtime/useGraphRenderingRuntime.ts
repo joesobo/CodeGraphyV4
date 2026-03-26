@@ -10,7 +10,7 @@ import type {
 } from 'react-force-graph-3d';
 import * as THREE from 'three';
 import SpriteText from 'three-spritetext';
-import type { IGraphData, IPhysicsSettings } from '../../../../shared/types';
+import type { IGraphData, IPhysicsSettings } from '../../../../shared/contracts';
 import { ThemeKind } from '../../../useTheme';
 import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';
 import {

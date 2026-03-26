@@ -4,7 +4,7 @@
  * @module webview/nodeMatching
  */
 
-import type { IGraphNode } from '../shared/types';
+import type { IGraphNode } from '../shared/contracts';
 import type { SearchOptions } from './components/SearchBar';
 
 /**

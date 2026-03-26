@@ -1,5 +1,5 @@
 import type React from 'react';
-import type { IGroup } from '../../../../shared/types';
+import type { IGroup } from '../../../../shared/contracts';
 import { reorderSettingsGroups } from './reorder';
 
 interface GroupDragDependencies {

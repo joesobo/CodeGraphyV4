@@ -12,7 +12,7 @@ import {
   replayReadinessForPlugin,
 } from '../../../src/core/plugins/pluginLifecycle';
 import type { IPlugin } from '../../../src/core/plugins/types';
-import type { IGraphData } from '../../../src/shared/types';
+import type { IGraphData } from '../../../src/shared/contracts';
 
 const emptyGraph: IGraphData = { nodes: [], edges: [] };
 

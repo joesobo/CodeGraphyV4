@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphNode, IGroup } from '../../../src/shared/types';
+import type { IGraphNode, IGroup } from '../../../src/shared/contracts';
 import { buildGroupedSections, buildGroupStyle } from '../../../src/webview/export/jsonGroups';
 
 describe('exportJsonGroups', () => {

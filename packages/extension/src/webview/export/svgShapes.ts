@@ -1,4 +1,4 @@
-import type { NodeShape2D } from '../../shared/types';
+import type { NodeShape2D } from '../../shared/contracts';
 import { svgRegularPolygonPath } from './svgRegularPolygonPath';
 import { svgStarPath } from './svgStarPath';
 

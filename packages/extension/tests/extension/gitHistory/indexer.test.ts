@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { indexGitHistory } from '../../../src/extension/gitHistory/indexer';
-import type { ICommitInfo, IGraphData } from '../../../src/shared/types';
+import type { ICommitInfo, IGraphData } from '../../../src/shared/contracts';
 
 function createCommit(sha: string, parents: string[] = []): ICommitInfo {
   return { sha, timestamp: 1, message: sha, author: 'Dev', parents };

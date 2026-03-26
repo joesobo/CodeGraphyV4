@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { classifyTarget } from '../../../src/webview/components/graphContextMenu/targetClassification';
-import type { IPluginContextMenuItem } from '../../../src/shared/types';
+import type { IPluginContextMenuItem } from '../../../src/shared/contracts';
 
 const pluginItems: IPluginContextMenuItem[] = [
   { label: 'Node Action', when: 'node', pluginId: 'acme', index: 0 },

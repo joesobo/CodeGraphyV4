@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import type { IGroup } from '../../../../shared/types';
+import type { IGroup } from '../../../../shared/contracts';
 import { createGroupActions } from './actions';
 import { createGroupDragHandlers } from './drag';
 import {

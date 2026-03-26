@@ -1,4 +1,4 @@
-import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../../../shared/types';
+import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../../../shared/contracts';
 import { getGraphKeyboardCommandImpl } from './commandLookup';
 
 export type GraphKeyboardEffect =

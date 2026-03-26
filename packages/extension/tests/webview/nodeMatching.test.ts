@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { compilePattern, filterNodesAdvanced } from '../../src/webview/nodeMatching';
-import type { IGraphNode } from '../../src/shared/types';
+import type { IGraphNode } from '../../src/shared/contracts';
 
 const defaultOptions = { matchCase: false, wholeWord: false, regex: false };
 

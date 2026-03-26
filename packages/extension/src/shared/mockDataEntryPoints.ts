@@ -3,7 +3,7 @@
  * @module shared/mockDataEntryPoints
  */
 
-import type { IFileData } from './types';
+import type { IFileData } from './contracts';
 
 export const MOCK_ENTRY_POINTS: IFileData[] = [
   {

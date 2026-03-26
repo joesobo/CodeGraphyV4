@@ -17,7 +17,7 @@ vi.mock('../../../src/webview/export/exportContext', async (importOriginal) => {
 });
 
 import { buildMarkdownExport, exportAsMarkdown } from '../../../src/webview/export/markdown';
-import type { IGraphData, IGroup, IPluginStatus } from '../../../src/shared/types';
+import type { IGraphData, IGroup, IPluginStatus } from '../../../src/shared/contracts';
 import { graphStore } from '../../../src/webview/store';
 
 const noGroups: IGroup[] = [];

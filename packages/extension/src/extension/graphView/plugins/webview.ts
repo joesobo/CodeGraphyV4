@@ -2,7 +2,7 @@ import * as vscode from 'vscode';
 import type {
   ExtensionToWebviewMessage,
   IPluginStatus,
-} from '../../../shared/types';
+} from '../../../shared/contracts';
 import {
   buildGraphViewDecorationPayload,
   collectGraphViewContextMenuItems,

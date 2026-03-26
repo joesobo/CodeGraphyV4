@@ -10,7 +10,7 @@ import { PluginRegistry } from '../../core/plugins/registry';
 import { FileDiscovery } from '../../core/discovery/file';
 import type { IDiscoveredFile } from '../../core/discovery/types';
 import { Configuration } from '../configuration';
-import { IGraphData, IPluginStatus } from '../../shared/types';
+import { IGraphData, IPluginStatus } from '../../shared/contracts';
 import { EventBus } from '../../core/plugins/eventBus';
 import {
   IWorkspaceAnalysisCache,

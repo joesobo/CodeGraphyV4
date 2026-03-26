@@ -1,4 +1,4 @@
-import type { IGraphNode, IGroup } from '../../shared/types';
+import type { IGraphNode, IGroup } from '../../shared/contracts';
 import type { ExportFile, ExportGroup, ExportImagesSectionEntry } from './types';
 import {
   buildGroupStyle as buildGroupStyleHelper,

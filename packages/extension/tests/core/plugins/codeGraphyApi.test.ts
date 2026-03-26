@@ -3,7 +3,7 @@ import { CodeGraphyAPIImpl } from '@/core/plugins/codeGraphyApi';
 import { EventBus } from '@/core/plugins/eventBus';
 import { DecorationManager } from '@/core/plugins/decorationManager';
 import { ViewRegistry } from '@/core/views/registry';
-import { IGraphData } from '@/shared/types';
+import { IGraphData } from '@/shared/contracts';
 import { IView } from '@/core/views/types';
 
 function createTestAPI(pluginId = 'test-plugin') {

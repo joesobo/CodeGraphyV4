@@ -20,7 +20,9 @@ pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts te
 
 ## Architecture
 
-Package boundaries are the primary entry point — there is no separate architecture doc.
+Never create `architecture.md` in this repo. The monorepo is too large for a durable file-by-file architecture map.
+
+Package boundaries are the primary entry point.
 
 - `packages/extension/src/extension/` — VS Code extension host
 - `packages/extension/src/core/` — discovery, registry, views, colors

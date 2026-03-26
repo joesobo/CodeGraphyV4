@@ -175,17 +175,14 @@
 			}
 		],
 		"viewsContainers": {
-			"activitybar": [
-				{
-					"id": "codegraphy",
-					"title": "CodeGraphy",
-					"icon": {
-						"dark": "assets/icon-dark.svg",
-						"light": "assets/icon-light.svg"
+				"activitybar": [
+					{
+						"id": "codegraphy",
+						"title": "CodeGraphy",
+						"icon": "assets/icon.svg"
 					}
-				}
-			]
-		},
+				]
+			},
 		"views": {
 			"codegraphy": [
 				{

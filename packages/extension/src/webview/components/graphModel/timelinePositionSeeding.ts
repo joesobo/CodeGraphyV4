@@ -1,4 +1,4 @@
-import type { IGraphEdge } from '../../../shared/types';
+import type { IGraphEdge } from '../../../shared/contracts';
 import type { FGNode } from '../graphModel';
 
 /**

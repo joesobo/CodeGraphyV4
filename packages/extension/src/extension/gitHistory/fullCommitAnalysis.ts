@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type { IConnection } from '../../core/plugins/types';
-import { getFileColor, type IGraphData, type IGraphEdge, type IGraphNode } from '../../shared/types';
+import { getFileColor, type IGraphData, type IGraphEdge, type IGraphNode } from '../../shared/contracts';
 import { appendGitHistoryConnectionEdges } from './graphConnections';
 
 interface FullCommitAnalysisRegistry {

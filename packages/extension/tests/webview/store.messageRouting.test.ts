@@ -3,7 +3,7 @@ import type {
   EdgeDecorationPayload,
   IPluginContextMenuItem,
   NodeDecorationPayload,
-} from '../../src/shared/types';
+} from '../../src/shared/contracts';
 import { createGraphStore } from '../../src/webview/store';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 

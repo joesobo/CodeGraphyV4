@@ -1,4 +1,4 @@
-import type { ICommitInfo } from '../../../shared/types';
+import type { ICommitInfo } from '../../../shared/contracts';
 import { getCurrentCommitIndex as getCommitIndexAtSha } from './commits';
 import { generateDateTicks } from './dates';
 

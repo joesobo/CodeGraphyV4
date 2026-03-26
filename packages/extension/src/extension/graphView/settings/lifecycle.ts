@@ -1,4 +1,4 @@
-import type { ExtensionToWebviewMessage, ISettingsSnapshot } from '../../../shared/types';
+import type { ExtensionToWebviewMessage, ISettingsSnapshot } from '../../../shared/contracts';
 import { applyGraphViewAllSettingsSnapshot, type GraphViewAllSettingsSyncState } from './sync';
 import { sendGraphViewSettingsMessages } from './message';
 

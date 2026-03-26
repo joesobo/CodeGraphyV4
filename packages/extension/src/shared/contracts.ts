@@ -1,8 +1,8 @@
 /**
- * @fileoverview Shared types between the VSCode extension and webview.
- * These types define the data structures for file analysis, graph rendering,
- * and the message protocol for communication between extension and webview.
- * @module shared/types
+ * @fileoverview Shared contracts between the VSCode extension and webview.
+ * These contracts define the data structures for file analysis, graph rendering,
+ * shared defaults, and the message protocol for communication between extension and webview.
+ * @module shared/contracts
  */
 
 // ============================================================================

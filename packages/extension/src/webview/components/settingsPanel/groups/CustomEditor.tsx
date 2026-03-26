@@ -1,5 +1,5 @@
 import React from 'react';
-import type { IGroup, NodeShape2D, NodeShape3D } from '../../../../shared/types';
+import type { IGroup, NodeShape2D, NodeShape3D } from '../../../../shared/contracts';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Label } from '../../ui/label';

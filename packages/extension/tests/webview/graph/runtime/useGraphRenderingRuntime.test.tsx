@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as THREE from 'three';
 import type SpriteText from 'three-spritetext';
-import type { IGraphData, IPhysicsSettings } from '../../../../src/shared/types';
+import type { IGraphData, IPhysicsSettings } from '../../../../src/shared/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
 import { useGraphRenderingRuntime } from '../../../../src/webview/components/graph/runtime/useGraphRenderingRuntime';
 

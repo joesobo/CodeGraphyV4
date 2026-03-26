@@ -1,4 +1,4 @@
-import type { IGraphEdge } from '../../../shared/types';
+import type { IGraphEdge } from '../../../shared/contracts';
 import { isRecordLike } from './guards';
 
 export function resolveLinkEndpointId(value: unknown): string | null {

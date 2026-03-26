@@ -1,4 +1,4 @@
-import type { WebviewToExtensionMessage } from '../../../../shared/types';
+import type { WebviewToExtensionMessage } from '../../../../shared/contracts';
 import { applyPluginGroupToggle } from '../plugin/groupToggle';
 import { applyPluginSectionToggle } from '../plugin/sectionToggle';
 

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import PluginsPanel from '../../src/webview/components/PluginsPanel';
 import { graphStore } from '../../src/webview/store';
-import type { IPluginStatus } from '../../src/shared/types';
+import type { IPluginStatus } from '../../src/shared/contracts';
 
 const sentMessages: unknown[] = [];
 

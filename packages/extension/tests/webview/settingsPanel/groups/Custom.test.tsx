@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { IGroup } from '../../../../src/shared/types';
+import type { IGroup } from '../../../../src/shared/contracts';
 import { CustomGroups } from '../../../../src/webview/components/settingsPanel/groups/Custom';
 import type { GroupEditorState } from '../../../../src/webview/components/settingsPanel/groups/useEditorState';
 

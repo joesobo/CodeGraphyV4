@@ -1,4 +1,4 @@
-import type { ExtensionToWebviewMessage, ICommitInfo, IGraphData } from '../../../shared/types';
+import type { ExtensionToWebviewMessage, ICommitInfo, IGraphData } from '../../../shared/contracts';
 import { indexGraphViewRepository } from './index';
 import { sendCachedGraphViewTimeline } from './playback';
 import { createDefaultGraphViewProviderTimelineDependencies } from './dependencies';

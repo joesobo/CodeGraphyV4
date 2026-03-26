@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type DirectionMode, type EdgeDecorationPayload } from '../../../../src/shared/types';
+import { type DirectionMode, type EdgeDecorationPayload } from '../../../../src/shared/contracts';
 import type { ThemeKind } from '../../../../src/webview/useTheme';
 import type { FGLink } from '../../../../src/webview/components/graphModel';
 import {

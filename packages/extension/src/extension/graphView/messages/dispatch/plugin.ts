@@ -3,7 +3,7 @@ import type {
   IGraphData,
   NodeSizeMode,
   WebviewToExtensionMessage,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import {
   dispatchGraphViewPluginGroupToggleMessage,
   dispatchGraphViewPluginSectionToggleMessage,

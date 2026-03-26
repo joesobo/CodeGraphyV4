@@ -6,7 +6,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as vscode from 'vscode';
 import { ResetSettingsAction } from '../../../src/extension/actions/resetSettings';
 import { getUndoManager, resetUndoManager } from '../../../src/extension/undoManager';
-import type { ISettingsSnapshot } from '../../../src/shared/types';
+import type { ISettingsSnapshot } from '../../../src/shared/contracts';
 
 vi.mock('vscode', () => ({
   workspace: {

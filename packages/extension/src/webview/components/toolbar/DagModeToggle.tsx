@@ -13,7 +13,7 @@ import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import { useGraphStore } from '../../store';
 import { postMessage } from '../../vscodeApi';
-import type { DagMode } from '../../../shared/types';
+import type { DagMode } from '../../../shared/contracts';
 
 const DAG_MODES: { mode: DagMode; label: string; Icon: React.FC<{ size?: number; className?: string }> }[] = [
   { mode: null, label: 'Default', Icon: DagDefaultIcon },

@@ -4,7 +4,7 @@
  */
 
 import type { StoreApi } from 'zustand/vanilla';
-import type { ExtensionToWebviewMessage } from '../shared/types';
+import type { ExtensionToWebviewMessage } from '../shared/contracts';
 import type { GraphState } from './store';
 import { postMessage } from './vscodeApi';
 import { MESSAGE_HANDLERS } from './storeMessages';

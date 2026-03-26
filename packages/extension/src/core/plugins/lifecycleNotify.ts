@@ -3,7 +3,7 @@
  * @module core/plugins/lifecycleNotify
  */
 
-import type { IGraphData } from '../../shared/types';
+import type { IGraphData } from '../../shared/contracts';
 import type { ILifecyclePluginInfo } from './lifecycleTypes';
 
 /**

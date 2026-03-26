@@ -1,4 +1,4 @@
-import type { ExtensionToWebviewMessage } from '../../../shared/types';
+import type { ExtensionToWebviewMessage } from '../../../shared/contracts';
 import {
   getGraphViewVisitCount,
   incrementGraphViewVisitCount,

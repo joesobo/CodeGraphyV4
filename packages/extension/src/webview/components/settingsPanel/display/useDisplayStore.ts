@@ -1,7 +1,7 @@
 import type {
   BidirectionalEdgeMode,
   DirectionMode,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import { useGraphStore } from '../../../store';
 
 export type DisplayStoreState = {

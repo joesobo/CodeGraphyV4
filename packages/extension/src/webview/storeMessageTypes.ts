@@ -18,7 +18,7 @@ import type {
   EdgeDecorationPayload,
   IPluginContextMenuItem,
   IAvailableView,
-} from '../shared/types';
+} from '../shared/contracts';
 import type { SearchOptions } from './components/SearchBar';
 
 /** All fields that the store can hold — used to type partial state updates. */

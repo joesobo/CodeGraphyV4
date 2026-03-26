@@ -1,4 +1,4 @@
-import type { NodeShape2D } from '../../../../shared/types';
+import type { NodeShape2D } from '../../../../shared/contracts';
 import { drawTriangle, drawHexagon, drawStar } from './shapes2DPolygons';
 
 export { drawTriangle, drawHexagon, drawStar } from './shapes2DPolygons';

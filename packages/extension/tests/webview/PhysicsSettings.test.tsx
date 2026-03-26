@@ -6,7 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import PhysicsSettings from '../../src/webview/components/PhysicsSettings';
-import { IPhysicsSettings } from '../../src/shared/types';
+import { IPhysicsSettings } from '../../src/shared/contracts';
 
 // Access the global message tracker from setup.ts
 declare const globalThis: {

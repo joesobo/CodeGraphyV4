@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { DirectionMode, IGraphData } from '../../../../../src/shared/types';
+import type { DirectionMode, IGraphData } from '../../../../../src/shared/contracts';
 import {
   applySettingsMessage,
   type GraphViewSettingsMessageHandlers,

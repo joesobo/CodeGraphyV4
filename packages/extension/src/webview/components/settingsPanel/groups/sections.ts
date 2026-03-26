@@ -1,4 +1,4 @@
-import type { IGroup } from '../../../../shared/types';
+import type { IGroup } from '../../../../shared/contracts';
 
 export interface SettingsPanelGroupSection {
   sectionId: string;

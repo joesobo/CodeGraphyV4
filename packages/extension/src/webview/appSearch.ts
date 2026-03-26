@@ -1,4 +1,4 @@
-import { DEFAULT_NODE_COLOR, IGraphData, IGroup } from '../shared/types';
+import { DEFAULT_NODE_COLOR, IGraphData, IGroup } from '../shared/contracts';
 import type { SearchOptions } from './components/SearchBar';
 import { globMatch } from './globMatch';
 import { filterNodesAdvanced } from './nodeMatching';

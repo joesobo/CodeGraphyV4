@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { fileDataToNodes, fileDataToEdges } from '../../src/shared/mockDataTransforms';
 import { getMockGraphData } from '../../src/shared/mockData';
-import { IFileData } from '../../src/shared/types';
+import { IFileData } from '../../src/shared/contracts';
 
 const sampleFiles: IFileData[] = [
   { path: 'src/a.ts', name: 'a.ts', extension: '.ts', imports: ['src/b.ts'] },

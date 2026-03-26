@@ -1,5 +1,5 @@
-import type { DirectionMode, WebviewToExtensionMessage } from '../../../../shared/types';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../shared/types';
+import type { DirectionMode, WebviewToExtensionMessage } from '../../../../shared/contracts';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../shared/contracts';
 import {
   normalizeDirectionColor,
   normalizeFolderNodeColor,

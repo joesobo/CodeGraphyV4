@@ -1,5 +1,5 @@
 import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
-import type { ICommitInfo } from '../../../shared/types';
+import type { ICommitInfo } from '../../../shared/contracts';
 import { syncTimelinePlaybackFromCommit } from './syncPlayback';
 
 export function useTimelineCommitSync(options: {

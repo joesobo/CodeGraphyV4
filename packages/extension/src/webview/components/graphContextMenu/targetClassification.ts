@@ -1,4 +1,4 @@
-import type { IPluginContextMenuItem } from '../../../shared/types';
+import type { IPluginContextMenuItem } from '../../../shared/contracts';
 import type { GraphContextSelection } from './types';
 
 export interface ClassifiedTarget {

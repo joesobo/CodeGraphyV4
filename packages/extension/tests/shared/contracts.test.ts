@@ -9,7 +9,7 @@ import {
   IGroup,
   ICommitInfo,
   ITimelineData,
-} from '../../src/shared/types';
+} from '../../src/shared/contracts';
 
 describe('File Type Colors', () => {
   it('should return correct color for TypeScript files', () => {

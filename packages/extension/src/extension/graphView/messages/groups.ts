@@ -1,6 +1,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
-import type { IGroup, WebviewToExtensionMessage } from '../../../shared/types';
+import type { IGroup, WebviewToExtensionMessage } from '../../../shared/contracts';
 
 export interface GraphViewGroupMessageState {
   userGroups: IGroup[];

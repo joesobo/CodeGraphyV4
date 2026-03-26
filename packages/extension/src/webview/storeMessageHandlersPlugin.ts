@@ -3,7 +3,7 @@
  * @module webview/storeMessageHandlersPlugin
  */
 
-import type { ExtensionToWebviewMessage } from '../shared/types';
+import type { ExtensionToWebviewMessage } from '../shared/contracts';
 import type { PartialState } from './storeMessageTypes';
 
 export function handlePluginsUpdated(

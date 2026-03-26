@@ -1,5 +1,5 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
-import type { ICommitInfo } from '../../../shared/types';
+import type { ICommitInfo } from '../../../shared/contracts';
 
 export function syncTimelinePlaybackFromCommit(options: {
   currentCommitSha: string | null;

@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../shared/types';
+import type { IGraphData } from '../../../shared/contracts';
 import type { IViewContext } from '../../../core/views/types';
 
 interface GraphViewSelectionState {

@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../../shared/types';
+import type { IGraphData } from '../../../../shared/contracts';
 import type { GraphViewProviderAnalysisMethodsSource } from './index';
 
 interface GraphViewProviderAnalysisDelegateMethods {

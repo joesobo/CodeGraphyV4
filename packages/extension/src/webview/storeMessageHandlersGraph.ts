@@ -3,7 +3,7 @@
  * @module webview/storeMessageHandlersGraph
  */
 
-import type { ExtensionToWebviewMessage } from '../shared/types';
+import type { ExtensionToWebviewMessage } from '../shared/contracts';
 import type { PartialState } from './storeMessageTypes';
 
 export function handleGraphDataUpdated(

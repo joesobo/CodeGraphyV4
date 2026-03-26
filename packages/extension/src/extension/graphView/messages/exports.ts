@@ -1,4 +1,4 @@
-import type { WebviewToExtensionMessage } from '../../../shared/types';
+import type { WebviewToExtensionMessage } from '../../../shared/contracts';
 
 export interface GraphViewExportHandlers {
   savePng(dataUrl: string, filename?: string): Promise<void>;

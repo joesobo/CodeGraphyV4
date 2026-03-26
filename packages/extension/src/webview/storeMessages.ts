@@ -3,7 +3,7 @@
  * @module webview/storeMessages
  */
 
-import type { ExtensionToWebviewMessage } from '../shared/types';
+import type { ExtensionToWebviewMessage } from '../shared/contracts';
 import type { PartialState, IHandlerContext } from './storeMessageTypes';
 
 export type { IStoreFields, IHandlerContext, PartialState, MessageHandler } from './storeMessageTypes';

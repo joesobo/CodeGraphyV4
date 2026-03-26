@@ -1,6 +1,6 @@
 import type { MutableRefObject } from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '../../../src/shared/types';
+import type { ICommitInfo } from '../../../src/shared/contracts';
 import { syncTimelinePlaybackFromCommit } from '../../../src/webview/components/timeline/syncPlayback';
 
 function createRef<T>(current: T): MutableRefObject<T> {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ExtensionToWebviewMessage, IGraphData } from '../../../../src/shared/types';
+import type { ExtensionToWebviewMessage, IGraphData } from '../../../../src/shared/contracts';
 import {
   indexGraphViewProviderRepository,
   jumpGraphViewProviderToCommit,

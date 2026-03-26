@@ -6,7 +6,7 @@ import type {
   IPhysicsSettings,
   NodeSizeMode,
   WebviewToExtensionMessage,
-} from '../../../../shared/types';
+} from '../../../../shared/contracts';
 import type { IViewContext } from '../../../../core/views/types';
 import { saveExportedJpeg } from '../../../export/saveJpeg';
 import { saveExportedJson } from '../../../export/saveJson';

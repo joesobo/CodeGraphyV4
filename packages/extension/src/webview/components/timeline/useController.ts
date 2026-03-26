@@ -6,7 +6,7 @@ import {
   useState,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
-import type { ICommitInfo } from '../../../shared/types';
+import type { ICommitInfo } from '../../../shared/contracts';
 import { bindTimelineDragListeners } from './dragListeners';
 import { runJumpToEndAction, runPlayPauseAction } from './playbackActions';
 import { jumpToTrackPosition } from './scrubPosition';

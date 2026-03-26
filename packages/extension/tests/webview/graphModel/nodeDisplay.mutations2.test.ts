@@ -4,7 +4,7 @@ import {
   getDepthOpacity,
   getDepthSizeMultiplier,
 } from '../../../src/webview/components/graphModel/nodeDisplay';
-import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/types';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
 
 describe('nodeDisplay (mutation kill tests)', () => {
   /**

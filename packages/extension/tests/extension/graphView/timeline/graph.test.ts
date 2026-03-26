@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/types';
+import type { IGraphData } from '../../../../src/shared/contracts';
 import { buildGraphViewTimelineGraphData } from '../../../../src/extension/graphView/timeline/graph';
 
 const rawGraphData: IGraphData = {

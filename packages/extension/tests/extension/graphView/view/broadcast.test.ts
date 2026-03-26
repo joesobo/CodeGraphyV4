@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGroup } from '../../../../src/shared/types';
+import type { IGroup } from '../../../../src/shared/contracts';
 import { ViewRegistry } from '../../../../src/core/views/registry';
 import type { IViewContext } from '../../../../src/core/views/types';
 import { coreViews } from '../../../../src/core/views/builtIn';

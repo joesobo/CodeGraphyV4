@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import {
   DEFAULT_DIRECTION_COLOR,
   DEFAULT_FOLDER_NODE_COLOR,
-} from '../../../../src/shared/types';
+} from '../../../../src/shared/contracts';
 import {
   areGraphViewSetsEqual,
   getGraphViewConfigTarget,

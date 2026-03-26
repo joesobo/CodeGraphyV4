@@ -12,9 +12,7 @@
   },
   "aliases": {
     "components": "@/webview/components",
-    "utils": "@/webview/lib/utils",
-    "ui": "@/webview/components/ui",
-    "lib": "@/webview/lib",
-    "hooks": "@/webview/hooks"
+    "utils": "@/webview/components/ui/cn",
+    "ui": "@/webview/components/ui"
   }
 }

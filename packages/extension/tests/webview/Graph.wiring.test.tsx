@@ -1,7 +1,7 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../src/shared/types';
+import type { IGraphData } from '../../src/shared/contracts';
 import Graph from '../../src/webview/components/Graph';
 import { graphStore } from '../../src/webview/store';
 

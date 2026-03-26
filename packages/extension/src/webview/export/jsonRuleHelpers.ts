@@ -1,4 +1,4 @@
-import type { IGraphEdge } from '../../shared/types';
+import type { IGraphEdge } from '../../shared/contracts';
 import { UNATTRIBUTED_RULE_KEY, type ExportRule } from './types';
 
 export interface RuleMeta {
