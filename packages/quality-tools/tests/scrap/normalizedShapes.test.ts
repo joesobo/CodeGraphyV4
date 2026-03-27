@@ -1,6 +1,10 @@
 import * as ts from 'typescript';
 import { describe, expect, it } from 'vitest';
-import { statementFeatures } from '../../src/scrap/normalizedShapes';
+import {
+  literalShapeFingerprint,
+  statementFeatures,
+  statementFingerprint
+} from '../../src/scrap/normalizedShapes';
 
 function parseStatements(source: string): ts.Statement[] {
   const sourceFile = ts.createSourceFile('sample.test.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
@@ -34,5 +38,38 @@ describe('statementFeatures', () => {
 
     expect(features.length).toBeGreaterThan(withoutCollections.length);
     expect(features).not.toEqual(withoutCollections);
+    expect(features).toEqual([...features].sort());
+  });
+
+  it('preserves identifier structure while normalizing literal differences in literal-shape fingerprints', () => {
+    const left = literalShapeFingerprint(parseStatements(`
+      expect(renderNode('alpha')).toEqual('one');
+    `));
+    const right = literalShapeFingerprint(parseStatements(`
+      expect(renderNode('beta')).toEqual('two');
+    `));
+    const differentSubject = literalShapeFingerprint(parseStatements(`
+      expect(renderGraph('beta')).toEqual('two');
+    `));
+
+    expect(left).toBe(right);
+    expect(left).not.toBe(differentSubject);
+  });
+
+  it('distinguishes normalized literals from identifier leaves in statement fingerprints', () => {
+    const numericLiteral = statementFingerprint(parseStatements(`
+      expect(result).toBe(1);
+    `));
+    const stringLiteral = statementFingerprint(parseStatements(`
+      expect(result).toBe('alpha');
+    `));
+    const identifier = statementFingerprint(parseStatements(`
+      expect(result).toBe(expectedValue);
+    `));
+
+    expect(numericLiteral).toContain('lit');
+    expect(stringLiteral).toContain('lit');
+    expect(numericLiteral).not.toBe(identifier);
+    expect(stringLiteral).not.toBe(identifier);
   });
 });

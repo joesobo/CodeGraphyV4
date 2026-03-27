@@ -35,7 +35,7 @@ export function runCrapCli(
   dependencies: CrapCliDependencies = DEFAULT_DEPENDENCIES
 ): void {
   const args = cleanCliArgs(rawArgs);
-  const target = dependencies.resolveQualityTarget(REPO_ROOT, parseTargetArg(args));
+  const target = dependencies.resolveQualityTarget(REPO_ROOT, parseTargetArg(args, ['--threshold']));
   const threshold = parseThreshold(args);
   const filterScope = assertSourceScope(target);
   const profiles = dependencies.createCoverageProfiles(REPO_ROOT, target.packageName);

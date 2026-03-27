@@ -30,34 +30,38 @@ describe('analyzeDuplicationInsights', () => {
     ]);
 
     expect(result.coverageMatrixCandidateCount).toBe(2);
-    expect(result.recommendations).toContainEqual({
+    expect(result.recommendations).toContainEqual(expect.objectContaining({
       confidence: 'HIGH',
       kind: 'TABLE_DRIVE',
-      message: '2 example(s) look like a coverage matrix that should be table-driven.'
-    });
+      message: expect.stringContaining('2 example(s) look like a coverage matrix that should be table-driven.')
+    }));
   });
 
   it('recommends extraction for repeated setup clusters', () => {
     const result = analyzeDuplicationInsights([
       example({
+        blockPath: ['suite', 'resolveTestScopes'],
         duplicateSetupGroupSize: 2,
         setupFingerprint: 'setup-a',
-        setupLineCount: 3
+        setupLineCount: 3,
+        setupSubjectNames: ['createRepo']
       }),
       example({
+        blockPath: ['suite', 'resolveTestScopes'],
         duplicateSetupGroupSize: 2,
         setupFingerprint: 'setup-a',
-        setupLineCount: 3
+        setupLineCount: 3,
+        setupSubjectNames: ['createRepo']
       })
     ]);
 
     expect(result.setupDuplicationScore).toBe(2);
     expect(result.recommendedExtractionCount).toBe(1);
-    expect(result.recommendations).toContainEqual({
+    expect(result.recommendations).toContainEqual(expect.objectContaining({
       confidence: 'MEDIUM',
       kind: 'EXTRACT_SETUP',
-      message: '1 repeated setup cluster(s) look worth extracting into shared helpers or fixtures.'
-    });
+      message: expect.stringContaining('1 repeated setup cluster(s) look worth extracting into shared helpers or fixtures.')
+    }));
   });
 
   it('counts harmful duplication and zero-assertion pressure separately from effective duplication', () => {
@@ -65,16 +69,20 @@ describe('analyzeDuplicationInsights', () => {
       example({
         assertionCount: 1,
         assertionFingerprint: 'assert-a',
+        blockPath: ['suite', 'resolveTestScopes'],
         duplicateSetupGroupSize: 2,
         exampleFingerprint: 'matrix-a',
+        literalShapeFingerprint: 'literal-a',
         setupFingerprint: 'setup-a',
         setupLineCount: 3
       }),
       example({
         assertionCount: 1,
         assertionFingerprint: 'assert-a',
+        blockPath: ['suite', 'resolveTestScopes'],
         duplicateSetupGroupSize: 2,
         exampleFingerprint: 'matrix-a',
+        literalShapeFingerprint: 'literal-a',
         setupFingerprint: 'setup-a',
         setupLineCount: 3
       }),
@@ -89,7 +97,7 @@ describe('analyzeDuplicationInsights', () => {
     expect(result.harmfulDuplicationScore).toBe(4);
     expect(result.coverageMatrixCandidateCount).toBe(2);
     expect(result.effectiveDuplicationScore).toBe(2);
-    expect(result.extractionPressureScore).toBe(2);
+    expect(result.extractionPressureScore).toBe(0);
     expect(result.recommendations).toContainEqual({
       confidence: 'HIGH',
       kind: 'STRENGTHEN_ASSERTIONS',
@@ -104,6 +112,7 @@ describe('analyzeDuplicationInsights', () => {
         assertionFingerprint: 'assert-a',
         exampleFeatures: ['const', 'call', 'expect', 'toBe'],
         exampleFingerprint: 'example-a',
+        literalShapeFingerprint: 'literal-a',
         setupFeatures: ['const', 'call', 'mock'],
         setupFingerprint: 'setup-a',
         setupLineCount: 2
@@ -113,6 +122,7 @@ describe('analyzeDuplicationInsights', () => {
         assertionFingerprint: 'assert-b',
         exampleFeatures: ['const', 'call', 'expect', 'toBeDefined'],
         exampleFingerprint: 'example-b',
+        literalShapeFingerprint: 'literal-a',
         setupFeatures: ['const', 'call', 'mock', 'extra'],
         setupFingerprint: 'setup-b',
         setupLineCount: 3
@@ -121,6 +131,68 @@ describe('analyzeDuplicationInsights', () => {
 
     expect(result.setupDuplicationScore).toBe(2);
     expect(result.assertionDuplicationScore).toBe(2);
+    expect(result.literalDuplicationScore).toBe(2);
     expect(result.coverageMatrixCandidateCount).toBe(2);
+  });
+
+  it('counts fixture duplication separately from setup duplication', () => {
+    const result = analyzeDuplicationInsights([
+      example({
+        blockPath: ['suite', 'resolveTestScopes'],
+        fixtureFeatures: ['mkdirSync', 'writeFileSync'],
+        fixtureFingerprint: 'fixture-a'
+      }),
+      example({
+        blockPath: ['suite', 'resolveTestScopes'],
+        fixtureFeatures: ['mkdirSync', 'writeFileSync'],
+        fixtureFingerprint: 'fixture-a'
+      })
+    ]);
+
+    expect(result.fixtureDuplicationScore).toBe(2);
+    expect(result.harmfulDuplicationScore).toBe(2);
+  });
+
+  it('uses fuzzy setup groups when only part of the file exposes setup features', () => {
+    const result = analyzeDuplicationInsights([
+      example({
+        duplicateSetupGroupSize: 0,
+        setupFeatures: ['const', 'call'],
+        setupFingerprint: 'setup-a',
+        setupLineCount: 2
+      }),
+      example({
+        duplicateSetupGroupSize: 0,
+        setupFeatures: ['const', 'call'],
+        setupFingerprint: 'setup-a',
+        setupLineCount: 2
+      }),
+      example({
+        duplicateSetupGroupSize: 0,
+        setupFingerprint: 'setup-a',
+        setupLineCount: 2
+      })
+    ]);
+
+    expect(result.setupDuplicationScore).toBe(2);
+  });
+
+  it('falls back to fixture fingerprints and counts them in extraction pressure', () => {
+    const result = analyzeDuplicationInsights([
+      example({
+        duplicateSetupGroupSize: 2,
+        fixtureFingerprint: 'fixture-a',
+        setupLineCount: 3
+      }),
+      example({
+        duplicateSetupGroupSize: 2,
+        fixtureFingerprint: 'fixture-a',
+        setupLineCount: 3
+      })
+    ]);
+
+    expect(result.setupDuplicationScore).toBe(2);
+    expect(result.fixtureDuplicationScore).toBe(2);
+    expect(result.extractionPressureScore).toBe(4);
   });
 });

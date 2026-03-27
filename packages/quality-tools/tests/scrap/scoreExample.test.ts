@@ -109,11 +109,12 @@ describe('scoreExample', () => {
       helperCallCount: 0,
       helperHiddenLineCount: 0,
       lineCount: 4,
+      moduleMockCount: 2,
       mockCount: 0,
       name: 'example',
       setupLineCount: 0,
       snapshotCount: 3,
       startLine: 9
-    })).toBe(8);
+    })).toBe(10);
   });
 });

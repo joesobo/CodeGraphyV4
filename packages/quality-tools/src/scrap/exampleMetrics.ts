@@ -8,11 +8,13 @@ import {
   type ExampleSetupMetric
 } from './exampleSetup';
 import { analyzeVitestSignals, countTempResourceWork, maxSetupDepth } from './exampleSignals';
+import { fixtureStatements } from './fixtureShapes';
 import { analyzeHelperUsage } from './helperUsage';
-import { statementFeatures } from './normalizedShapes';
+import { literalShapeFingerprint, statementFeatures } from './normalizedShapes';
+import { analyzeRtlSignals } from './rtlSignals';
 import { scoreExample } from './scoreExample';
 import { statementFingerprint } from './setupFingerprint';
-import { collectSubjectNames } from './subjectNames';
+import { collectStatementSubjectNames, collectSubjectNames } from './subjectNames';
 import { type ScrapExampleMetric, type ScrapExampleNode } from './scrapTypes';
 
 export function analyzeExample(
@@ -23,8 +25,10 @@ export function analyzeExample(
   const start = sourceFile.getLineAndCharacterOfPosition(example.body.getStart());
   const end = sourceFile.getLineAndCharacterOfPosition(example.body.getEnd());
   const helperUsage = analyzeHelperUsage(sourceFile, example);
+  const rtlSignals = analyzeRtlSignals(example.body);
   const vitestSignals = analyzeVitestSignals(example.body);
   const setupNodes = setupStatements(example);
+  const fixtureNodes = fixtureStatements(example.body);
   const assertionNodes = assertionStatements(example);
   const allNodes = allExampleStatements(example);
   const setupDepth = setupNodes.reduce(
@@ -42,6 +46,9 @@ export function analyzeExample(
     endLine: end.line + 1,
     exampleFeatures: statementFeatures(allNodes),
     exampleFingerprint: statementFingerprint(allNodes),
+    fixtureFeatures: statementFeatures(fixtureNodes),
+    fixtureFingerprint: statementFingerprint(fixtureNodes),
+    literalShapeFingerprint: literalShapeFingerprint(allNodes),
     asyncWaitCount: vitestSignals.asyncWaitCount,
     concurrencyCount: vitestSignals.concurrencyCount,
     envMutationCount: vitestSignals.envMutationCount,
@@ -49,13 +56,18 @@ export function analyzeExample(
     helperHiddenLineCount: helperUsage.helperHiddenLineCount,
     lineCount: end.line - start.line + 1,
     fakeTimerCount: vitestSignals.fakeTimerCount,
+    moduleMockCount: vitestSignals.moduleMockCount,
     mockCount: collectCallCount(example.body, isMockCall),
     name: example.name,
+    rtlMutationCount: rtlSignals.rtlMutationCount,
+    rtlQueryCount: rtlSignals.rtlQueryCount,
+    rtlRenderCount: rtlSignals.rtlRenderCount,
     snapshotCount: vitestSignals.snapshotCount,
     setupDepth,
     setupFeatures: statementFeatures(setupNodes),
     setupFingerprint: setupMetric.setupFingerprint,
     setupLineCount: setupMetric.setupLineCount,
+    setupSubjectNames: collectStatementSubjectNames(setupNodes),
     startLine: start.line + 1,
     subjectNames: collectSubjectNames(example.body),
     tableDriven: example.tableDriven,

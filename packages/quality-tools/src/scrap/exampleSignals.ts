@@ -6,19 +6,11 @@ import {
   isConcurrencyCall,
   isEnvironmentMutationCall,
   isFakeTimerMutationCall,
+  isModuleMockLifecycleCall,
   isSnapshotCall,
   isTypeOnlyAssertionCall
 } from './vitestSignals';
-
-const TEMP_RESOURCE_CALLS = new Set([
-  'mkdtemp',
-  'mkdtempSync',
-  'mkdir',
-  'mkdirSync',
-  'tmpdir',
-  'writeFile',
-  'writeFileSync'
-]);
+import { isTempResourceCallName } from './tempResourceCalls';
 
 const DEPTH_KINDS = new Set<ts.SyntaxKind>([
   ts.SyntaxKind.IfStatement,
@@ -53,7 +45,7 @@ export function countTempResourceWork(node: ts.Node): number {
   function walk(current: ts.Node): void {
     if (ts.isCallExpression(current)) {
       const callName = terminalCallName(current.expression);
-      if (callName && TEMP_RESOURCE_CALLS.has(callName)) {
+      if (isTempResourceCallName(callName)) {
         count += 1;
       }
     }
@@ -65,4 +57,13 @@ export function countTempResourceWork(node: ts.Node): number {
   return count;
 }
 
-export { analyzeVitestSignals, isAsyncWaitCall, isConcurrencyCall, isEnvironmentMutationCall, isFakeTimerMutationCall, isSnapshotCall, isTypeOnlyAssertionCall };
+export {
+  analyzeVitestSignals,
+  isAsyncWaitCall,
+  isConcurrencyCall,
+  isEnvironmentMutationCall,
+  isFakeTimerMutationCall,
+  isModuleMockLifecycleCall,
+  isSnapshotCall,
+  isTypeOnlyAssertionCall
+};

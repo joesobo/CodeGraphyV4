@@ -72,7 +72,7 @@ describe('reportScrap', () => {
     expect(lines).toContain('  actionability: AUTO_REFACTOR');
     expect(lines).toContain('  coverage-matrix: 0');
     expect(lines).toContain('  extraction-pressure: 0');
-    expect(lines).toContain('  vitest-signals: snapshots=0 waits=0 fake-timers=0 env/global=0 concurrent=0 type-only=0');
+    expect(lines).toContain('  vitest-signals: snapshots=0 waits=0 fake-timers=0 module-mocks=0 env/global=0 concurrent=0 type-only=0 rtl-renders=0 rtl-query-heavy=0 rtl-mutations=0');
     expect(lines).toContain('  temp-resources: 0');
     expect(lines).toContain('  validation-issues: 0');
     expect(lines).toContain('  hot blocks:');
@@ -111,7 +111,7 @@ describe('reportScrap', () => {
     expect(lines).toContain('  actionability: LEAVE_ALONE');
     expect(lines).toContain('  coverage-matrix: 0');
     expect(lines).toContain('  extraction-pressure: 0');
-    expect(lines).toContain('  vitest-signals: snapshots=0 waits=0 fake-timers=0 env/global=0 concurrent=0 type-only=0');
+    expect(lines).toContain('  vitest-signals: snapshots=0 waits=0 fake-timers=0 module-mocks=0 env/global=0 concurrent=0 type-only=0 rtl-renders=0 rtl-query-heavy=0 rtl-mutations=0');
     expect(lines).not.toContain('  worst examples:');
     log.mockRestore();
   });
@@ -226,7 +226,7 @@ describe('reportScrap', () => {
     ], '/repo', { verbose: true });
 
     const lines = log.mock.calls.map(([line]) => line);
-    expect(lines).toContain('  compare: mixed avgΔ=-1 maxΔ=-2 extractΔ=2');
+    expect(lines).toContain('  compare: mixed avgΔ=-1 maxΔ=-2 extractΔ=2 matrixΔ=1 dupΔ=1 helperΔ=0');
     expect(lines).toContain('  validation:');
     expect(lines).toContain('    - [nested-test] L9 Nested test call inside another test body.');
     expect(lines).toContain('  recommendations:');

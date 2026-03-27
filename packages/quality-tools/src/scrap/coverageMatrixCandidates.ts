@@ -1,25 +1,46 @@
 import { type ScrapExampleMetric } from './scrapTypes';
+import { isSimpleCoverageMatrixShape } from './coverageMatrixShape';
+import { hasStructuredVariation } from './coverageMatrixVariation';
 
-function isSimpleCoverageMatrixShape(example: ScrapExampleMetric): boolean {
-  return example.branchCount <= 1 &&
-    example.helperHiddenLineCount === 0 &&
-    example.mockCount === 0 &&
-    example.lineCount <= 8 &&
-    example.assertionCount >= 1;
+export interface CoverageMatrixGroupSizes {
+  exampleGroupSizes: number[];
+  fixtureGroupSizes: number[];
+  literalShapeGroupSizes: number[];
 }
 
 export function isCoverageMatrixCandidate(
   example: ScrapExampleMetric,
-  duplicateSize: number
+  duplicateSize: number,
+  literalShapeGroupSize = 0,
+  fixtureGroupSize = 0
 ): boolean {
-  return duplicateSize > 1 && (example.tableDriven === true || isSimpleCoverageMatrixShape(example));
+  if (duplicateSize <= 1) {
+    return false;
+  }
+
+  if (example.tableDriven === true) {
+    return true;
+  }
+
+  const structuredVariation = hasStructuredVariation(
+    example,
+    literalShapeGroupSize,
+    fixtureGroupSize
+  );
+
+  return structuredVariation && isSimpleCoverageMatrixShape(example);
 }
 
 export function coverageMatrixCandidateCount(
   examples: ScrapExampleMetric[],
-  exampleGroupSizes: number[]
+  groupSizes: CoverageMatrixGroupSizes
 ): number {
   return examples.filter((example, index) => (
-    isCoverageMatrixCandidate(example, exampleGroupSizes[index] ?? 0)
+    isCoverageMatrixCandidate(
+      example,
+      groupSizes.exampleGroupSizes[index] ?? 0,
+      groupSizes.literalShapeGroupSizes[index] ?? 0,
+      groupSizes.fixtureGroupSizes[index] ?? 0
+    )
   )).length;
 }

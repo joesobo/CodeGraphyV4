@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { terminalCallName } from './callNames';
+import { baseCallName, terminalCallName } from './callNames';
 
 const BRANCHING_KINDS = new Set<ts.SyntaxKind>([
   ts.SyntaxKind.IfStatement,
@@ -18,7 +18,10 @@ export function isExpectCall(node: ts.CallExpression): boolean {
 
 export function isTypeOnlyAssertionCall(node: ts.CallExpression): boolean {
   const terminal = terminalCallName(node.expression);
-  return terminal === 'assertType' || terminal === 'expectTypeOf';
+  return terminal === 'assertType' || (
+    ts.isPropertyAccessExpression(node.expression) &&
+    baseCallName(node.expression) === 'expectTypeOf'
+  );
 }
 
 export function isAssertionCall(node: ts.CallExpression): boolean {

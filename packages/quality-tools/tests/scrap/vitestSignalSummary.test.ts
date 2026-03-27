@@ -17,6 +17,7 @@ function example(overrides: Partial<ScrapExampleMetric> = {}): ScrapExampleMetri
     helperCallCount: 0,
     helperHiddenLineCount: 0,
     lineCount: 4,
+    moduleMockCount: 0,
     mockCount: 0,
     name: 'example',
     score: 2,
@@ -39,8 +40,19 @@ describe('summarizeVitestSignals', () => {
       concurrencyExampleCount: 1,
       envMutationExampleCount: 1,
       fakeTimerExampleCount: 1,
+      moduleMockExampleCount: 0,
+      rtlMutationExampleCount: 0,
+      rtlQueryHeavyExampleCount: 0,
+      rtlRenderExampleCount: 0,
       snapshotExampleCount: 1,
       typeOnlyAssertionExampleCount: 1
     });
+  });
+
+  it('counts examples with module mock lifecycle work', () => {
+    expect(summarizeVitestSignals([
+      example({ moduleMockCount: 2 }),
+      example({ moduleMockCount: 0 })
+    ]).moduleMockExampleCount).toBe(1);
   });
 });

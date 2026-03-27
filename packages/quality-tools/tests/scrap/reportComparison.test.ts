@@ -37,7 +37,7 @@ describe('comparisonLines', () => {
         verdict: 'mixed'
       }
     }))).toEqual([
-      '  compare: mixed avgΔ=-1 maxΔ=-2 extractΔ=2'
+      '  compare: mixed avgΔ=-1 maxΔ=-2 extractΔ=2 matrixΔ=1 dupΔ=1 helperΔ=0'
     ]);
   });
 });

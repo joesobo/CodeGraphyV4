@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { describe, expect, it } from 'vitest';
-import { collectSubjectNames } from '../../src/scrap/subjectNames';
+import { collectStatementSubjectNames, collectSubjectNames } from '../../src/scrap/subjectNames';
 
 function parse(source: string): ts.SourceFile {
   return ts.createSourceFile('sample.test.ts', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
@@ -40,5 +40,19 @@ describe('collectSubjectNames', () => {
     `);
 
     expect(collectSubjectNames(node)).toEqual(['parser']);
+  });
+
+  it('collects setup-only helper subjects from statements', () => {
+    const sourceFile = parse(`
+      const repo = createRepo();
+      mkdirSync('/tmp/example');
+      const result = helper();
+    `);
+
+    expect(collectStatementSubjectNames([...sourceFile.statements])).toEqual([
+      'createRepo',
+      'helper',
+      'mkdirSync'
+    ]);
   });
 });

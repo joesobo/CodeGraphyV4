@@ -71,6 +71,7 @@ describe('verboseExampleLines', () => {
           helperHiddenLineCount: 0,
           fakeTimerCount: 1,
           lineCount: 5,
+          moduleMockCount: 2,
           mockCount: 0,
           name: 'verbose test',
           score: 9,
@@ -85,7 +86,7 @@ describe('verboseExampleLines', () => {
       ]
     }))).toEqual([
       '  verbose examples:',
-      '    - verbose test tableDriven=true setupDepth=2 tempResources=1 snapshots=2 waits=2 fakeTimers=1 envMutations=1 concurrent=1 typeOnly=1'
+      '    - verbose test tableDriven=true setupDepth=2 tempResources=1 snapshots=2 waits=2 fakeTimers=1 moduleMocks=2 envMutations=1 concurrent=1 typeOnly=1'
     ]);
   });
 });

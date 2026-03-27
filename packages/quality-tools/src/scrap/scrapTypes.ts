@@ -14,7 +14,6 @@ export type ScrapRecommendationConfidence = 'HIGH' | 'LOW' | 'MEDIUM';
 export type ScrapRecommendationKind =
   | 'EXTRACT_SETUP'
   | 'REVIEW_STRUCTURE'
-  | 'SPLIT_FILE'
   | 'STRENGTHEN_ASSERTIONS'
   | 'TABLE_DRIVE';
 
@@ -61,19 +60,27 @@ export interface ScrapExampleMetric {
   endLine: number;
   exampleFeatures?: string[];
   exampleFingerprint?: string;
+  fixtureFeatures?: string[];
+  fixtureFingerprint?: string;
+  literalShapeFingerprint?: string;
   envMutationCount?: number;
   helperCallCount: number;
   helperHiddenLineCount: number;
   lineCount: number;
   fakeTimerCount?: number;
+  moduleMockCount?: number;
   mockCount: number;
   name: string;
+  rtlMutationCount?: number;
+  rtlQueryCount?: number;
+  rtlRenderCount?: number;
   score: number;
   snapshotCount?: number;
   setupDepth?: number;
   setupFeatures?: string[];
   setupFingerprint?: string;
   setupLineCount: number;
+  setupSubjectNames?: string[];
   startLine: number;
   subjectNames?: string[];
   tableDriven?: boolean;
@@ -103,6 +110,7 @@ export interface ScrapFileMetric {
   averageAssertionSimilarity?: number;
   averageExampleSimilarity?: number;
   averageSetupSimilarity?: number;
+  averageFixtureSimilarity?: number;
   averageSubjectOverlap?: number;
   assertionShapeDiversity?: number;
   asyncWaitExampleCount?: number;
@@ -119,17 +127,24 @@ export interface ScrapFileMetric {
   extractionPressureScore?: number;
   filePath: string;
   fakeTimerExampleCount?: number;
+  moduleMockExampleCount?: number;
   harmfulDuplicationScore?: number;
+  fixtureDuplicationScore?: number;
   helperHiddenExampleCount: number;
+  literalDuplicationScore?: number;
   envMutationExampleCount?: number;
   lowAssertionExampleCount: number;
   maxScore: number;
   recommendations?: ScrapRecommendation[];
   recommendedExtractionCount?: number;
   remediationMode: ScrapRemediationMode;
+  rtlQueryHeavyExampleCount?: number;
+  rtlMutationExampleCount?: number;
+  rtlRenderExampleCount?: number;
   snapshotExampleCount?: number;
   setupDuplicationScore?: number;
   setupShapeDiversity?: number;
+  fixtureShapeDiversity?: number;
   subjectRepetitionScore?: number;
   tableDrivenExampleCount?: number;
   typeOnlyAssertionExampleCount?: number;

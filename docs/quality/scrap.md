@@ -27,10 +27,13 @@ Current `SCRAP v5` metrics:
 - fake timer and env/global mutation signals
 - concurrency signals
 - type-only assertion awareness
+- React Testing Library render/query/mutation signals
 - duplicate setup group size per example
 - file-level duplicate setup example count
 - setup duplication score
 - assertion duplication score
+- fixture duplication score
+- literal-shape duplication score
 - coverage-matrix candidate count
 - harmful duplication score
 - effective duplication score
@@ -55,11 +58,13 @@ Current scope:
 - helper-hidden complexity counts helper logic that runs outside the visible example body
 - fuzzy normalized duplication compares example/setup/assertion shapes after normalizing identifiers and literal values
 - duplication pressure now looks beyond setup into assertion and whole-example shape clusters
+- literal-shape clustering helps separate scalar matrix repetition from harmful duplication
+- fixture-heavy examples are tracked as a separate duplication channel so filesystem and temp-resource setup does not disappear into generic setup noise
 - subject cohesion highlights files that touch many unrelated production subjects with little overlap
 - nested `describe` and `context` paths are summarized so hotspots can be localized inside a larger spec file
 - malformed structure is reported when hooks, nested tests, or suite builders appear inside a test body
-- output supports human-readable summaries, JSON, verbose detail, and baseline comparison for tooling
-- recommendations currently include table-drive, extract-setup, strengthen-assertions, and structure-review guidance
+- output supports human-readable summaries, JSON, verbose detail, policy presets (`advisory`, `review`, `split`, `strict`), and baseline comparison for tooling
+- recommendations currently include table-drive, extract-setup, strengthen-assertions, and structure-review guidance with block and helper-group context
 
 Examples:
 
@@ -70,6 +75,9 @@ pnpm run scrap -- quality-tools/
 pnpm run scrap -- quality-tools/tests/scrap/metrics.basics.test.ts --json
 pnpm run scrap -- quality-tools/ --write-baseline
 pnpm run scrap -- quality-tools/ --compare reports/scrap/quality-tools.json --verbose
+pnpm run scrap -- quality-tools/ --policy split
+pnpm run scrap -- quality-tools/ --policy split
+pnpm run scrap -- quality-tools/ --policy review
 ```
 
 Vitest / TypeScript-specific signals worth tracking:
@@ -84,14 +92,13 @@ Vitest / TypeScript-specific signals worth tracking:
 - `vi.useFakeTimers`, `vi.setSystemTime`, `vi.stubEnv`, `vi.stubGlobal`
 - `test.concurrent` / `describe.concurrent`
 - `expectTypeOf` and `assertType` compile-time assertions
+- filesystem fixture clustering through `mkdir`, `writeFile`, `mkdtemp`, and similar temp-resource calls
+- React Testing Library render/query/mutation balance for UI-heavy suites
 
-Good next additions for the Vitest/TypeScript stack:
+Policy presets:
 
-- React Testing Library query/mutation balance for UI-heavy suites
-
-Still planned:
-
-- stronger coverage-matrix detection so repeated scalar variations do not over-report harmful duplication
-- richer duplication channels beyond current setup/assertion/example clusters, especially fixture and literal-shape clustering
-- clearer extraction recommendations that point at candidate helper groups and block paths
-- optional stricter CLI gating once the signals stabilize on real package test suites
+- `advisory` leaves output informational only
+- `split` fails when `SPLIT` files are present
+- `review` fails when `REVIEW_FIRST` files are present
+- `strict` fails on either condition
+- `--strict` remains a shorthand alias for `--policy strict`

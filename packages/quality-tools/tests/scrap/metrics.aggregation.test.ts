@@ -1,6 +1,6 @@
 import * as ts from 'typescript';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ScrapExampleMetric } from '../../src/scrap/metrics';
+import { analyzeScrapFile, type ScrapExampleMetric } from '../../src/scrap/metrics';
 
 let metrics: ScrapExampleMetric[] = [];
 
@@ -15,7 +15,6 @@ function sourceFile(): ts.SourceFile {
 describe('analyzeScrapFile aggregation', () => {
   beforeEach(() => {
     metrics = [];
-    vi.resetModules();
   });
 
   it('rounds averages, counts hot examples, and keeps the worst five examples', async () => {
@@ -28,7 +27,6 @@ describe('analyzeScrapFile aggregation', () => {
       { assertionCount: 2, blockPath: ['suite'], branchCount: 0, describeDepth: 1, duplicateSetupGroupSize: 0, endLine: 30, helperCallCount: 0, helperHiddenLineCount: 0, lineCount: 3, mockCount: 0, name: 'f', score: 4, setupLineCount: 0, startLine: 26 }
     ];
 
-    const { analyzeScrapFile } = await import('../../src/scrap/metrics');
     const result = analyzeScrapFile(sourceFile());
 
     expect(result.averageScore).toBe(6);
@@ -60,7 +58,6 @@ describe('analyzeScrapFile aggregation', () => {
       { assertionCount: 2, blockPath: ['suite'], branchCount: 0, describeDepth: 1, duplicateSetupGroupSize: 0, endLine: 15, helperCallCount: 0, helperHiddenLineCount: 0, lineCount: 3, mockCount: 0, name: 'c', score: 8, setupLineCount: 0, startLine: 11 }
     ];
 
-    const { analyzeScrapFile } = await import('../../src/scrap/metrics');
     const result = analyzeScrapFile(sourceFile());
 
     expect(result.lowAssertionExampleCount).toBe(2);

@@ -74,6 +74,8 @@ describe('analyzeExample', () => {
           vi.setSystemTime(new Date());
           vi.stubEnv('A', 'B');
           vi.stubGlobal('fetch', () => undefined);
+          vi.doMock('./module');
+          vi.mocked(fetch);
           await waitFor(() => undefined);
           await screen.findByText('ready');
           expect(value).toMatchSnapshot();
@@ -92,6 +94,7 @@ describe('analyzeExample', () => {
       concurrencyCount: 2,
       envMutationCount: 2,
       fakeTimerCount: 2,
+      moduleMockCount: 2,
       snapshotCount: 2,
       typeOnlyAssertionCount: 2
     });

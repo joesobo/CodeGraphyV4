@@ -18,7 +18,7 @@ const EXCLUDED_SUBJECTS = new Set([
   'waitFor'
 ]);
 
-export function collectSubjectNames(node: ts.Node): string[] {
+function collectSubjects(nodes: ts.Node[]): string[] {
   const subjects = new Set<string>();
 
   function walk(current: ts.Node): void {
@@ -32,6 +32,14 @@ export function collectSubjectNames(node: ts.Node): string[] {
     ts.forEachChild(current, walk);
   }
 
-  walk(node);
+  nodes.forEach(walk);
   return [...subjects].sort();
+}
+
+export function collectSubjectNames(node: ts.Node): string[] {
+  return collectSubjects([node]);
+}
+
+export function collectStatementSubjectNames(statements: ts.Statement[]): string[] {
+  return collectSubjects(statements);
 }

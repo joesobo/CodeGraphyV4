@@ -3,6 +3,7 @@ import {
   asyncWaitPressure,
   concurrencyPressure,
   environmentMutationPressure,
+  moduleMockPressure,
   snapshotPressure,
   vitestOperationalPressure
 } from '../../src/scrap/vitestPressure';
@@ -24,9 +25,11 @@ describe('vitestPressure', () => {
     expect(concurrencyPressure(10)).toBe(2);
     expect(environmentMutationPressure(1, 0)).toBe(1);
     expect(environmentMutationPressure(2, 2)).toBe(3);
+    expect(moduleMockPressure(1)).toBe(1);
+    expect(moduleMockPressure(10)).toBe(3);
   });
 
   it('combines the Vitest operational pressures', () => {
-    expect(vitestOperationalPressure(3, 2, 1, 1, 2)).toBe(8);
+    expect(vitestOperationalPressure(3, 2, 1, 1, 2, 2)).toBe(10);
   });
 });

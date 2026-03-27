@@ -1,4 +1,4 @@
-import { type ScrapFileMetric } from './metrics';
+import { type ScrapFileMetric } from './scrapTypes';
 
 export function comparisonLines(metric: ScrapFileMetric): string[] {
   if (!metric.comparison) {
@@ -6,6 +6,6 @@ export function comparisonLines(metric: ScrapFileMetric): string[] {
   }
 
   return [
-    `  compare: ${metric.comparison.verdict} avgΔ=${metric.comparison.averageScoreDelta} maxΔ=${metric.comparison.maxScoreDelta} extractΔ=${metric.comparison.extractionPressureDelta}`
+    `  compare: ${metric.comparison.verdict} avgΔ=${metric.comparison.averageScoreDelta} maxΔ=${metric.comparison.maxScoreDelta} extractΔ=${metric.comparison.extractionPressureDelta} matrixΔ=${metric.comparison.coverageMatrixDelta} dupΔ=${metric.comparison.harmfulDuplicationDelta} helperΔ=${metric.comparison.helperHiddenDelta}`
   ];
 }

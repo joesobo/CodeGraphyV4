@@ -12,6 +12,17 @@ function parse(source: string): ts.SourceFile {
 }
 
 describe('helperReachability', () => {
+  it('returns no direct calls for functions without a body', () => {
+    const sourceFile = parse(`
+      declare function buildValue(): string;
+    `);
+
+    const declaration = sourceFile.statements.find(ts.isFunctionDeclaration);
+
+    expect(directHelperCalls(declaration!, [])).toEqual([]);
+    expect(reachableHelpers(declaration!, [])).toEqual([]);
+  });
+
   it('returns only direct helper calls before expanding transitive reachability', () => {
     const sourceFile = parse(`
       describe('suite', () => {
@@ -36,6 +47,57 @@ describe('helperReachability', () => {
     expect(reachableHelpers(example!.body, helpers).map((helper) => helper.name)).toEqual([
       'buildValue',
       'trimValue'
+    ]);
+  });
+
+  it('prefers the nearest helper when the same name exists in multiple containers', () => {
+    const sourceFile = parse(`
+      function buildValue() {
+        return 'outer';
+      }
+
+      describe('suite', () => {
+        function buildValue() {
+          return 'inner';
+        }
+
+        it('uses helpers', () => {
+          expect(buildValue()).toBe('inner');
+        });
+      });
+    `);
+
+    const [example] = findExamples(sourceFile);
+    const helpers = collectHelperDefinitions(sourceFile);
+
+    const direct = directHelperCalls(example!.body, helpers);
+    expect(direct).toHaveLength(1);
+    expect(direct[0].body.getSourceFile().getLineAndCharacterOfPosition(direct[0].body.getStart()).line + 1).toBe(7);
+  });
+
+  it('deduplicates repeated helper calls while still following transitive helpers once', () => {
+    const sourceFile = parse(`
+      describe('suite', () => {
+        function first() {
+          return second() + second();
+        }
+
+        function second() {
+          return 'value';
+        }
+
+        it('uses helpers', () => {
+          expect(first()).toBeDefined();
+        });
+      });
+    `);
+
+    const [example] = findExamples(sourceFile);
+    const helpers = collectHelperDefinitions(sourceFile);
+
+    expect(reachableHelpers(example!.body, helpers).map((helper) => helper.name)).toEqual([
+      'first',
+      'second'
     ]);
   });
 

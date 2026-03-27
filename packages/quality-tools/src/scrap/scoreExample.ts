@@ -25,7 +25,11 @@ export function scoreExample(metric: ExampleScoreInput): number {
       metric.asyncWaitCount ?? 0,
       metric.fakeTimerCount ?? 0,
       metric.envMutationCount ?? 0,
-      metric.concurrencyCount ?? 0
+      metric.concurrencyCount ?? 0,
+      metric.moduleMockCount ?? 0,
+      metric.rtlRenderCount ?? 0,
+      metric.rtlQueryCount ?? 0,
+      metric.rtlMutationCount ?? 0
     ) +
     Math.max(0, (metric.setupDepth ?? 0) - 1) +
     Math.min(3, metric.tempResourceCount ?? 0);

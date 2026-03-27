@@ -3,22 +3,20 @@ import * as ts from 'typescript';
 export type HelperContainer = ts.Block | ts.SourceFile;
 
 export function findHelperContainer(node: ts.Node | undefined): HelperContainer | undefined {
-  let current = node;
-
-  while (current && !ts.isBlock(current) && !ts.isSourceFile(current)) {
-    current = current.parent;
+  for (let current = node; current; current = current.parent) {
+    if (ts.isBlock(current) || ts.isSourceFile(current)) {
+      return current;
+    }
   }
 
-  return current as HelperContainer | undefined;
+  return undefined;
 }
 
 export function ancestorHelperContainers(node: ts.Node): HelperContainer[] {
   const containers: HelperContainer[] = [];
-  let current = findHelperContainer(node.parent);
 
-  while (current) {
+  for (let current = findHelperContainer(node.parent); current; current = findHelperContainer(current.parent)) {
     containers.push(current);
-    current = findHelperContainer(current.parent);
   }
 
   return containers;

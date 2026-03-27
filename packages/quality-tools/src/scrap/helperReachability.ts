@@ -4,6 +4,13 @@ import {
 } from './helperDefinitions';
 import { ancestorHelperContainers } from './helperContainers';
 
+function helpersInContainer(
+  container: ts.SourceFile | ts.Block,
+  helpers: HelperDefinition[]
+): HelperDefinition[] {
+  return helpers.filter((helper) => helper.container === container);
+}
+
 function visibleHelpers(
   scopeNode: ts.FunctionLikeDeclaration,
   helpers: HelperDefinition[]
@@ -11,8 +18,8 @@ function visibleHelpers(
   const visible = new Map<string, HelperDefinition>();
 
   for (const container of ancestorHelperContainers(scopeNode)) {
-    for (const helper of helpers) {
-      if (helper.container === container && !visible.has(helper.name)) {
+    for (const helper of helpersInContainer(container, helpers)) {
+      if (!visible.has(helper.name)) {
         visible.set(helper.name, helper);
       }
     }
@@ -49,6 +56,24 @@ export function directHelperCalls(
   return calls;
 }
 
+function appendReachableHelpers(
+  helper: HelperDefinition,
+  helpers: HelperDefinition[],
+  visited: Set<string>,
+  reachable: HelperDefinition[]
+): void {
+  if (visited.has(helper.key)) {
+    return;
+  }
+
+  visited.add(helper.key);
+  reachable.push(helper);
+
+  for (const nestedHelper of directHelperCalls(helper.body, helpers)) {
+    appendReachableHelpers(nestedHelper, helpers, visited, reachable);
+  }
+}
+
 export function reachableHelpers(
   scopeNode: ts.FunctionLikeDeclaration,
   helpers: HelperDefinition[],
@@ -57,12 +82,7 @@ export function reachableHelpers(
   const reachable: HelperDefinition[] = [];
 
   for (const helper of directHelperCalls(scopeNode, helpers)) {
-    if (visited.has(helper.key)) {
-      continue;
-    }
-
-    visited.add(helper.key);
-    reachable.push(helper, ...reachableHelpers(helper.body, helpers, visited));
+    appendReachableHelpers(helper, helpers, visited, reachable);
   }
 
   return reachable;

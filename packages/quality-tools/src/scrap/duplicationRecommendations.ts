@@ -1,4 +1,7 @@
+import { type ScrapExampleMetric } from './scrapTypes';
 import { type ScrapRecommendation } from './scrapTypes';
+import { summarizeBlockPaths, summarizeHelperGroups } from './recommendationText';
+import { coverageRelevantExamples, strongestSetupCluster } from './setupClusters';
 
 interface DuplicationRecommendationCounts {
   coverageMatrixCandidateCount: number;
@@ -18,7 +21,10 @@ function strengthenAssertionsRecommendation(zeroAssertionCount: number): ScrapRe
   }];
 }
 
-function tableDriveRecommendation(coverageMatrixCandidateCount: number): ScrapRecommendation[] {
+function tableDriveRecommendation(
+  examples: ScrapExampleMetric[],
+  coverageMatrixCandidateCount: number
+): ScrapRecommendation[] {
   if (coverageMatrixCandidateCount === 0) {
     return [];
   }
@@ -26,28 +32,31 @@ function tableDriveRecommendation(coverageMatrixCandidateCount: number): ScrapRe
   return [{
     confidence: 'HIGH',
     kind: 'TABLE_DRIVE',
-    message: `${coverageMatrixCandidateCount} example(s) look like a coverage matrix that should be table-driven.`
+    message: `${coverageMatrixCandidateCount} example(s) look like a coverage matrix that should be table-driven.${summarizeBlockPaths(coverageRelevantExamples(examples))}`
   }];
 }
 
-function extractSetupRecommendation(repeatedSetupCount: number): ScrapRecommendation[] {
+function extractSetupRecommendation(examples: ScrapExampleMetric[], repeatedSetupCount: number): ScrapRecommendation[] {
   if (repeatedSetupCount === 0) {
     return [];
   }
 
+  const strongestCluster = strongestSetupCluster(examples);
+
   return [{
     confidence: 'MEDIUM',
     kind: 'EXTRACT_SETUP',
-    message: `${repeatedSetupCount} repeated setup cluster(s) look worth extracting into shared helpers or fixtures.`
+    message: `${repeatedSetupCount} repeated setup cluster(s) look worth extracting into shared helpers or fixtures.${summarizeBlockPaths(strongestCluster)}${summarizeHelperGroups(strongestCluster)}`
   }];
 }
 
 export function duplicationRecommendations(
+  examples: ScrapExampleMetric[],
   counts: DuplicationRecommendationCounts
 ): ScrapRecommendation[] {
   return [
     ...strengthenAssertionsRecommendation(counts.zeroAssertionCount),
-    ...tableDriveRecommendation(counts.coverageMatrixCandidateCount),
-    ...extractSetupRecommendation(counts.recommendedExtractionCount)
+    ...tableDriveRecommendation(examples, counts.coverageMatrixCandidateCount),
+    ...extractSetupRecommendation(examples, counts.recommendedExtractionCount)
   ];
 }

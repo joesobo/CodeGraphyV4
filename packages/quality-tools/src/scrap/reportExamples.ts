@@ -1,4 +1,4 @@
-import { type ScrapFileMetric } from './metrics';
+import { type ScrapFileMetric } from './scrapTypes';
 
 export function worstExampleLines(metric: ScrapFileMetric): string[] {
   if (metric.worstExamples.length === 0) {
@@ -19,7 +19,7 @@ export function verboseExampleLines(metric: ScrapFileMetric): string[] {
     '  verbose examples:',
     ...metric.worstExamples.map(
       (example) =>
-        `    - ${example.name} tableDriven=${example.tableDriven} setupDepth=${example.setupDepth} tempResources=${example.tempResourceCount} snapshots=${example.snapshotCount ?? 0} waits=${example.asyncWaitCount ?? 0} fakeTimers=${example.fakeTimerCount ?? 0} envMutations=${example.envMutationCount ?? 0} concurrent=${example.concurrencyCount ?? 0} typeOnly=${example.typeOnlyAssertionCount ?? 0}`
+        `    - ${example.name} tableDriven=${example.tableDriven} setupDepth=${example.setupDepth} tempResources=${example.tempResourceCount} snapshots=${example.snapshotCount ?? 0} waits=${example.asyncWaitCount ?? 0} fakeTimers=${example.fakeTimerCount ?? 0} moduleMocks=${example.moduleMockCount ?? 0} envMutations=${example.envMutationCount ?? 0} concurrent=${example.concurrencyCount ?? 0} typeOnly=${example.typeOnlyAssertionCount ?? 0}`
     )
   ];
 }

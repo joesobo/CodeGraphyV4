@@ -5,6 +5,7 @@
 - `CRAP` for production-code complexity and coverage risk
 - mutation testing orchestration and mutation-site checks
 - `SCRAP` for test-structure quality, duplication pressure, and refactor guidance
+- `SCRAP` policy presets default to advisory mode; use `--policy review`, `--policy split`, or `--policy strict` for enforcement
 
 Root commands stay path-first:
 
@@ -14,6 +15,9 @@ pnpm run mutate -- quality-tools/
 pnpm run scrap -- quality-tools/
 pnpm run scrap -- quality-tools/ --write-baseline
 pnpm run scrap -- quality-tools/ --compare reports/scrap/quality-tools.json --verbose
+pnpm run scrap -- quality-tools/ --policy split
+pnpm run scrap -- quality-tools/ --policy split
+pnpm run scrap -- quality-tools/ --policy review
 ```
 
 Documentation lives in the repo docs:
@@ -47,8 +51,12 @@ Current SCRAP features:
 - block-level `describe` / `context` summaries
 - helper-hidden complexity tracking
 - fuzzy normalized duplication across setup, assertion, and whole-example shapes
+- literal-shape clustering for scalar matrix repetition
+- fixture duplication for temp-resource and filesystem-heavy setup
 - cohesion metrics for subject breadth, overlap, and shape diversity
 - coverage-matrix and extraction-pressure heuristics
 - Vitest-specific operational signals for snapshots, async waits, fake timers, env/global mutation, concurrency, and type-only assertions
+- React Testing Library render/query/mutation balance signals for UI-heavy suites
 - structural validation for malformed test structure
-- baseline write/compare support and verbose output
+- baseline write/compare support, verbose output, optional strict gating, and block-aware extraction guidance
+- policy presets: `advisory`, `split`, `review`, and `strict`, with `--strict` kept as an alias
