@@ -22,6 +22,7 @@ vi.mock('@floating-ui/react', () => ({
   autoUpdate: vi.fn(),
 }));
 
+import { autoUpdate, flip, offset, shift, useFloating } from '@floating-ui/react';
 import { NodeTooltip } from '../../src/webview/components/NodeTooltip';
 
 const defaultNodeRect = { x: 120, y: 180, radius: 20 };
@@ -203,5 +204,89 @@ describe('NodeTooltip (mutation targets)', () => {
     expect(rect.left).toBe(190);
     expect(rect.right).toBe(210);
     expect(rect.bottom).toBe(310);
+  });
+
+  it('configures floating-ui with the expected placement, middleware, and auto update hook', () => {
+    render(
+      <NodeTooltip
+        path="src/App.ts"
+        incomingCount={2}
+        outgoingCount={4}
+        nodeRect={defaultNodeRect}
+        visible={true}
+      />,
+    );
+
+    expect(offset).toHaveBeenCalledWith(8);
+    expect(flip).toHaveBeenCalledWith({ fallbackPlacements: ['left-start', 'right-end', 'left-end'] });
+    expect(shift).toHaveBeenCalledWith({ padding: 8 });
+
+    const config = vi.mocked(useFloating).mock.calls.at(-1)?.[0];
+    expect(config).toMatchObject({
+      open: true,
+      placement: 'right-start',
+      whileElementsMounted: autoUpdate,
+    });
+    expect(config?.middleware).toEqual([
+      { name: 'offset', options: 8 },
+      { name: 'flip', options: { fallbackPlacements: ['left-start', 'right-end', 'left-end'] } },
+      { name: 'shift', options: { padding: 8 } },
+    ]);
+  });
+
+  it('updates the floating reference when the node rect changes', () => {
+    const { rerender } = render(
+      <NodeTooltip
+        path="src/App.ts"
+        incomingCount={0}
+        outgoingCount={0}
+        nodeRect={defaultNodeRect}
+        visible={true}
+      />,
+    );
+
+    const firstReference = floatingHarness.setReference.mock.calls.at(-1)?.[0] as {
+      getBoundingClientRect: () => DOMRect;
+    };
+
+    rerender(
+      <NodeTooltip
+        path="src/App.ts"
+        incomingCount={0}
+        outgoingCount={0}
+        nodeRect={{ x: 40, y: 60, radius: 5 }}
+        visible={true}
+      />,
+    );
+
+    const secondReference = floatingHarness.setReference.mock.calls.at(-1)?.[0] as {
+      getBoundingClientRect: () => DOMRect;
+    };
+
+    expect(secondReference).not.toBe(firstReference);
+    expect(secondReference.getBoundingClientRect()).toMatchObject({
+      x: 35,
+      y: 55,
+      width: 10,
+      height: 10,
+      top: 55,
+      left: 35,
+      right: 45,
+      bottom: 65,
+    });
+  });
+
+  it('renders only the base separator when extra sections are omitted', () => {
+    const { container } = render(
+      <NodeTooltip
+        path="src/App.ts"
+        incomingCount={0}
+        outgoingCount={0}
+        nodeRect={defaultNodeRect}
+        visible={true}
+      />,
+    );
+
+    expect(container.querySelectorAll('[data-orientation="horizontal"]')).toHaveLength(1);
   });
 });

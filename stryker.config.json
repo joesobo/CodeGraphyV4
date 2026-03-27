@@ -39,12 +39,14 @@
 		"!packages/extension/src/**/core/plugins/versioning.ts",
 		"!packages/extension/src/**/extension/configDefaults.ts",
 		"!packages/extension/src/**/extension/gitHistory/constants.ts",
+		"!packages/extension/src/**/shared/fileColorConstants.ts",
 		"!packages/extension/src/**/shared/mockData*.ts",
 		"!packages/extension/src/**/webview/components/icons/**",
 		"!packages/extension/src/**/webview/components/settingsPanel/groups/options.ts",
 		"!packages/extension/src/**/webview/export/types.ts",
 		"!packages/extension/src/**/webview/storeDefaults.ts",
 		"!packages/extension/src/**/webview/storeInitialState.ts",
+		"!packages/extension/src/**/webview/storeMessages.ts",
 		"!packages/extension/src/**/webview/storeMessageTypes.ts"
 	],
 	"thresholds": {

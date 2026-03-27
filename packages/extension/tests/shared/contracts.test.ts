@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-  getFileColor,
-  FILE_TYPE_COLORS,
-  DEFAULT_NODE_COLOR,
   IGraphNode,
   IGraphEdge,
   IGraphData,
@@ -10,51 +7,6 @@ import {
   ICommitInfo,
   ITimelineData,
 } from '../../src/shared/contracts';
-
-describe('File Type Colors', () => {
-  it('should return correct color for TypeScript files', () => {
-    expect(getFileColor('.ts')).toBe('#93C5FD');
-  });
-
-  it('should return correct color for TSX files', () => {
-    expect(getFileColor('.tsx')).toBe('#67E8F9');
-  });
-
-  it('should return correct color for JavaScript files', () => {
-    expect(getFileColor('.js')).toBe('#FDE68A');
-  });
-
-  it('should return correct color for JSX files', () => {
-    expect(getFileColor('.jsx')).toBe('#FDBA74');
-  });
-
-  it('should return correct color for CSS files', () => {
-    expect(getFileColor('.css')).toBe('#F9A8D4');
-  });
-
-  it('should return correct color for JSON files', () => {
-    expect(getFileColor('.json')).toBe('#86EFAC');
-  });
-
-  it('should return default color for unknown extensions', () => {
-    expect(getFileColor('.unknown')).toBe(DEFAULT_NODE_COLOR);
-    expect(getFileColor('.xyz')).toBe(DEFAULT_NODE_COLOR);
-    expect(getFileColor('')).toBe(DEFAULT_NODE_COLOR);
-  });
-
-  it('should be case-insensitive', () => {
-    expect(getFileColor('.TS')).toBe('#93C5FD');
-    expect(getFileColor('.Tsx')).toBe('#67E8F9');
-    expect(getFileColor('.JSON')).toBe('#86EFAC');
-  });
-
-  it('should have all expected file type colors defined', () => {
-    const expectedExtensions = ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.json', '.md', '.html', '.svg'];
-    expectedExtensions.forEach((ext) => {
-      expect(FILE_TYPE_COLORS[ext]).toBeDefined();
-    });
-  });
-});
 
 describe('Graph Types', () => {
   it('should allow creating valid IGraphNode', () => {

@@ -44,6 +44,25 @@ describe('resolveGraphViewAssetPath String(webviewUri) branch', () => {
     expect(result).toBe('webview://direct-string');
   });
 
+  it('prefers the useful string form over path-like fallbacks when both exist', () => {
+    const webview = {
+      asWebviewUri: vi.fn(() => ({
+        toString: () => 'webview://preferred-result',
+        path: '/fallback/path.js',
+        fsPath: '/fallback/fs-path.js',
+      })),
+    };
+
+    const result = resolveGraphViewAssetPath(
+      'dist/file.js',
+      vscode.Uri.file('/ext'),
+      new Map(),
+      webview as unknown as vscode.Webview
+    );
+
+    expect(result).toBe('webview://preferred-result');
+  });
+
   it('falls back to path when String(webviewUri) is [object Object]', () => {
     const webview = {
       asWebviewUri: vi.fn(() => ({

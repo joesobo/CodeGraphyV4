@@ -647,64 +647,11 @@ export interface IFileInfo {
 // File Type Colors
 // ============================================================================
 
-/**
- * Legacy static color palette for file extensions.
- * 
- * @deprecated Use {@link ColorPaletteManager} for dynamic color generation.
- * This is kept for backwards compatibility with tests and mock data.
- * The extension now uses ColorPaletteManager which:
- * - Generates distinct colors for any number of file types
- * - Allows plugins to define preferred colors
- * - Allows users to override colors via settings
- * 
- * @see {@link ColorPaletteManager} for the new dynamic color system
- */
-export const FILE_TYPE_COLORS: Record<string, string> = {
-  '.ts': '#93C5FD',    // Soft blue
-  '.tsx': '#67E8F9',   // Soft cyan
-  '.js': '#FDE68A',    // Soft yellow
-  '.jsx': '#FDBA74',   // Soft peach
-  '.css': '#F9A8D4',   // Soft pink
-  '.scss': '#E879F9',  // Soft magenta
-  '.json': '#86EFAC',  // Soft green
-  '.md': '#CBD5E1',    // Soft gray
-  '.html': '#FCA5A5',  // Soft coral
-  '.svg': '#C4B5FD',   // Soft purple
-};
-
-/**
- * Default color for file types not in {@link FILE_TYPE_COLORS}.
- * A neutral soft zinc gray that works on dark backgrounds.
- */
-export const DEFAULT_NODE_COLOR = '#A1A1AA'; // Soft zinc
-
-/** Default color for folder nodes in Folder View. Same as DEFAULT_NODE_COLOR. */
-export const DEFAULT_FOLDER_NODE_COLOR = '#A1A1AA';
-
-/** Default color for direction indicators (arrows/particles). */
-export const DEFAULT_DIRECTION_COLOR = '#475569';
-
-/** Validates and normalizes a hex color string, returning the default if invalid. */
-export function normalizeHexColor(value: string | undefined, defaultColor: string): string {
-  if (!value) return defaultColor;
-  const trimmed = value.trim();
-  if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed.toUpperCase();
-  return defaultColor;
-}
-
-/**
- * Get the display color for a file based on its extension.
- * 
- * @param extension - File extension including leading dot (e.g., '.ts')
- * @returns Hex color string for the file type
- * 
- * @example
- * ```typescript
- * getFileColor('.ts')   // Returns '#93C5FD' (soft blue)
- * getFileColor('.tsx')  // Returns '#67E8F9' (soft cyan)
- * getFileColor('.xyz')  // Returns '#A1A1AA' (default gray)
- * ```
- */
-export function getFileColor(extension: string): string {
-  return FILE_TYPE_COLORS[extension.toLowerCase()] ?? DEFAULT_NODE_COLOR;
-}
+export {
+  FILE_TYPE_COLORS,
+  DEFAULT_NODE_COLOR,
+  DEFAULT_FOLDER_NODE_COLOR,
+  DEFAULT_DIRECTION_COLOR,
+  normalizeHexColor,
+  getFileColor,
+} from './fileColors';

@@ -6,7 +6,7 @@ import {
   DEFAULT_DIRECTION_COLOR,
   FILE_TYPE_COLORS,
   getFileColor,
-} from '../../src/shared/contracts';
+} from '../../src/shared/fileColors';
 
 describe('normalizeHexColor', () => {
   it('returns the default color when value is undefined', () => {
@@ -58,27 +58,34 @@ describe('normalizeHexColor', () => {
     expect(normalizeHexColor('#6789ab', '#000000')).toBe('#6789AB');
     expect(normalizeHexColor('#cdef00', '#000000')).toBe('#CDEF00');
   });
+
+  it('rejects strings that only contain a valid hex substring', () => {
+    expect(normalizeHexColor('prefix #AABBCC', '#FF0000')).toBe('#FF0000');
+    expect(normalizeHexColor('#AABBCC suffix', '#FF0000')).toBe('#FF0000');
+    expect(normalizeHexColor('#AABBCC#', '#FF0000')).toBe('#FF0000');
+  });
 });
 
-describe('DEFAULT_NODE_COLOR', () => {
-  it('is a valid hex color string', () => {
-    expect(DEFAULT_NODE_COLOR).toMatch(/^#[0-9A-Fa-f]{6}$/);
-  });
-
-  it('has the expected value', () => {
+describe('file color defaults', () => {
+  it('keeps the expected default colors', () => {
     expect(DEFAULT_NODE_COLOR).toBe('#A1A1AA');
-  });
-});
-
-describe('DEFAULT_FOLDER_NODE_COLOR', () => {
-  it('matches DEFAULT_NODE_COLOR', () => {
     expect(DEFAULT_FOLDER_NODE_COLOR).toBe('#A1A1AA');
-  });
-});
-
-describe('DEFAULT_DIRECTION_COLOR', () => {
-  it('has the expected value', () => {
     expect(DEFAULT_DIRECTION_COLOR).toBe('#475569');
+  });
+
+  it('uses the exact supported extension palette', () => {
+    expect(FILE_TYPE_COLORS).toEqual({
+      '.ts': '#93C5FD',
+      '.tsx': '#67E8F9',
+      '.js': '#FDE68A',
+      '.jsx': '#FDBA74',
+      '.css': '#F9A8D4',
+      '.scss': '#E879F9',
+      '.json': '#86EFAC',
+      '.md': '#CBD5E1',
+      '.html': '#FCA5A5',
+      '.svg': '#C4B5FD',
+    });
   });
 });
 
@@ -97,8 +104,8 @@ describe('getFileColor', () => {
       '.svg': '#C4B5FD',
     };
 
-    for (const [ext, color] of Object.entries(expected)) {
-      expect(getFileColor(ext)).toBe(color);
+    for (const [extension, color] of Object.entries(expected)) {
+      expect(getFileColor(extension)).toBe(color);
     }
   });
 
@@ -111,30 +118,5 @@ describe('getFileColor', () => {
     expect(getFileColor('.unknown')).toBe(DEFAULT_NODE_COLOR);
     expect(getFileColor('.py')).toBe(DEFAULT_NODE_COLOR);
     expect(getFileColor('')).toBe(DEFAULT_NODE_COLOR);
-  });
-
-  it('returns DEFAULT_NODE_COLOR and not null or undefined for missing extensions', () => {
-    const result = getFileColor('.nonexistent');
-    expect(result).toBeDefined();
-    expect(result).not.toBeNull();
-    expect(result).toBe(DEFAULT_NODE_COLOR);
-  });
-});
-
-describe('FILE_TYPE_COLORS', () => {
-  it('contains exactly 10 file extensions', () => {
-    expect(Object.keys(FILE_TYPE_COLORS)).toHaveLength(10);
-  });
-
-  it('all values are valid hex colors', () => {
-    for (const color of Object.values(FILE_TYPE_COLORS)) {
-      expect(color).toMatch(/^#[0-9A-Fa-f]{6}$/);
-    }
-  });
-
-  it('all keys start with a dot', () => {
-    for (const key of Object.keys(FILE_TYPE_COLORS)) {
-      expect(key.startsWith('.')).toBe(true);
-    }
   });
 });
