@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { describe, expect, it, afterEach } from 'vitest';
-import { buildImportGraph } from '../../src/organize/importGraph';
+import { buildImportGraph } from '../../../src/organize/cohesion/importGraph';
 
 let tempDirs: string[] = [];
 

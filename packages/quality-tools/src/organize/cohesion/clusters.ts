@@ -1,6 +1,6 @@
-import { tokenize } from './tokenize';
+import { tokenize } from '../tokenize';
 import type { ImportAdjacency } from './importGraph';
-import type { OrganizeCohesionCluster } from './organizeTypes';
+import type { OrganizeCohesionCluster } from '../organizeTypes';
 
 /**
  * Find cohesion clusters by merging prefix grouping and import graph signals.

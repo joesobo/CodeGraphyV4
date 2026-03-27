@@ -2,15 +2,15 @@ import { readFileSync } from 'fs';
 import { relative } from 'path';
 import { REPO_ROOT } from '../shared/repoRoot';
 import { loadOrganizeConfig } from './organizeConfig';
-import { walkDirectories } from './directoryWalk';
-import { fileFanOutVerdict } from './fileFanOut';
-import { folderFanOutVerdict } from './folderFanOut';
-import { directoryDepth, depthVerdict } from './directoryDepth';
-import { pathRedundancy } from './pathRedundancy';
-import { checkLowInfoName } from './lowInfoNames';
-import { checkBarrelFile } from './barrelDetection';
-import { buildImportGraph } from './importGraph';
-import { findCohesionClusters } from './cohesionClusters';
+import { walkDirectories } from './metric/directoryWalk';
+import { fileFanOutVerdict } from './metric/fileFanOut';
+import { folderFanOutVerdict } from './metric/folderFanOut';
+import { directoryDepth, depthVerdict } from './metric/directoryDepth';
+import { pathRedundancy } from './metric/pathRedundancy';
+import { checkLowInfoName } from './metric/lowInfoNames';
+import { checkBarrelFile } from './metric/barrelDetection';
+import { buildImportGraph } from './cohesion/importGraph';
+import { findCohesionClusters } from './cohesion/clusters';
 import type { QualityTarget } from '../shared/resolveTarget';
 import type { OrganizeDirectoryMetric, OrganizeFileIssue } from './organizeTypes';
 
@@ -43,7 +43,7 @@ export function analyzeOrganize(target: QualityTarget): OrganizeDirectoryMetric[
       const ancestorFolders = relPath ? relPath.split(/[/\\]/).filter((seg) => seg.length > 0) : [];
       return pathRedundancy(fileName, ancestorFolders);
     });
-    const averageRedundancy = redundancyScores.length > 0 ? redundancyScores.reduce((a, b) => a + b, 0) / redundancyScores.length : 0;
+    const averageRedundancy = redundancyScores.length > 0 ? redundancyScores.reduce((sum, score) => sum + score, 0) / redundancyScores.length : 0;
 
     // File issues: low-info names and barrel files
     const fileIssues: OrganizeFileIssue[] = [];

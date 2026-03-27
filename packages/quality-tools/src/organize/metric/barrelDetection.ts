@@ -1,5 +1,5 @@
 import * as ts from 'typescript';
-import { type OrganizeFileIssue } from './organizeTypes';
+import { type OrganizeFileIssue } from '../organizeTypes';
 
 const SUPPORTED_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 

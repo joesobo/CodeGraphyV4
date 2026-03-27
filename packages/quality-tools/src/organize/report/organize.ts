@@ -1,7 +1,7 @@
-import { clusterLines } from './reportClusters';
-import { fileIssueLines } from './reportFileIssues';
-import { summaryLines } from './reportSummary';
-import type { OrganizeDirectoryMetric } from './organizeTypes';
+import { clusterLines } from './clusters';
+import { fileIssueLines } from './fileIssues';
+import { summaryLines } from './summary';
+import type { OrganizeDirectoryMetric } from '../organizeTypes';
 
 export interface OrganizeReportOptions {
   verbose?: boolean;

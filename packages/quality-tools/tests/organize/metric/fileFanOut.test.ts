@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fileFanOutVerdict } from '../../src/organize/fileFanOut';
+import { fileFanOutVerdict } from '../../../src/organize/metric/fileFanOut';
 
 describe('fileFanOutVerdict', () => {
   it('returns STABLE when file count is below warning threshold', () => {

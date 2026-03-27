@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { findCohesionClusters } from '../../src/organize/cohesionClusters';
-import type { ImportAdjacency } from '../../src/organize/importGraph';
+import { findCohesionClusters } from '../../../src/organize/cohesion/clusters';
+import type { ImportAdjacency } from '../../../src/organize/cohesion/importGraph';
 
 /**
  * Helper to create an ImportAdjacency map.
@@ -104,8 +104,8 @@ describe('findCohesionClusters', () => {
     const clusters = findCohesionClusters(fileNames, graph, 3);
 
     expect(clusters).toHaveLength(2);
-    const prefixCluster = clusters.find((c) => c.prefix === 'report');
-    const importsCluster = clusters.find((c) => c.confidence === 'imports-only');
+    const prefixCluster = clusters.find((cluster) => cluster.prefix === 'report');
+    const importsCluster = clusters.find((cluster) => cluster.confidence === 'imports-only');
 
     expect(prefixCluster).toMatchObject({
       confidence: 'prefix-only',
@@ -331,9 +331,9 @@ describe('findCohesionClusters', () => {
 
     expect(clusters).toHaveLength(3);
 
-    const dataCluster = clusters.find((c) => c.prefix === 'data');
-    const logCluster = clusters.find((c) => c.prefix === 'log');
-    const importsCluster = clusters.find((c) => c.confidence === 'imports-only');
+    const dataCluster = clusters.find((cluster) => cluster.prefix === 'data');
+    const logCluster = clusters.find((cluster) => cluster.prefix === 'log');
+    const importsCluster = clusters.find((cluster) => cluster.confidence === 'imports-only');
 
     expect(dataCluster?.confidence).toBe('prefix+imports');
     expect(logCluster?.confidence).toBe('prefix-only');

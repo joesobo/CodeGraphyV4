@@ -1,5 +1,5 @@
 import { basename } from 'path';
-import { tokenize } from './tokenize';
+import { tokenize } from '../tokenize';
 
 /**
  * Calculate the redundancy score of a file based on its path.

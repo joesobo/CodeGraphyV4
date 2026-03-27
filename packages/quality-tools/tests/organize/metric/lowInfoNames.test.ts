@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkLowInfoName, type LowInfoNameConfig } from '../../src/organize/lowInfoNames';
+import { checkLowInfoName, type LowInfoNameConfig } from '../../../src/organize/metric/lowInfoNames';
 
 describe('checkLowInfoName', () => {
   const defaultConfig: LowInfoNameConfig = {

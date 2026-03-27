@@ -54,6 +54,6 @@ function walkDirectoriesRecursive(directoryPath: string, entries: DirectoryEntry
 export function walkDirectories(rootPath: string): DirectoryEntry[] {
   const entries: DirectoryEntry[] = [];
   walkDirectoriesRecursive(rootPath, entries);
-  entries.sort((a, b) => a.directoryPath.localeCompare(b.directoryPath));
+  entries.sort((left, right) => left.directoryPath.localeCompare(right.directoryPath));
   return entries;
 }

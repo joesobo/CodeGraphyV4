@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { fileIssueLines } from '../../src/organize/reportFileIssues';
-import type { OrganizeFileIssue } from '../../src/organize/organizeTypes';
+import { fileIssueLines } from '../../../src/organize/report/fileIssues';
+import type { OrganizeFileIssue } from '../../../src/organize/organizeTypes';
 
 describe('fileIssueLines', () => {
   it('returns empty array when no issues', () => {

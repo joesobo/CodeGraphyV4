@@ -6,7 +6,7 @@ import { resolveQualityTarget } from '../shared/resolveTarget';
 import { sanitizeReportKey } from '../mutation/reportKey';
 import { analyzeOrganize } from './analyzeOrganize';
 import { compareBaseline } from './baselineCompare';
-import { reportOrganize } from './reportOrganize';
+import { reportOrganize } from './report/organize';
 
 export interface OrganizeCliDependencies {
   analyzeOrganize: typeof analyzeOrganize;
@@ -56,7 +56,7 @@ export function runOrganizeCli(
     const baselinePath = baselinePathFor(target.relativePath);
     mkdirSync(join(baselinePath, '..'), { recursive: true });
     // Write the base metrics without comparison data
-    const baseMetrics = metrics.map(({ comparison, ...rest }) => rest);
+    const baseMetrics = metrics.map(({ comparison: _comparison, ...rest }) => rest);
     writeFileSync(baselinePath, JSON.stringify(baseMetrics, null, 2));
   }
 

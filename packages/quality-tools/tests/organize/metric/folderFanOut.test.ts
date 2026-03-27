@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { folderFanOutVerdict } from '../../src/organize/folderFanOut';
+import { folderFanOutVerdict } from '../../../src/organize/metric/folderFanOut';
 
 describe('folderFanOutVerdict', () => {
   it('returns STABLE when folder count is below warning threshold', () => {
