@@ -1,0 +1,16 @@
+{
+  "name": "@codegraphy/quality-tools",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Quality tooling for CRAP, mutation testing, and SCRAP",
+  "scripts": {
+    "crap": "tsx src/cli/crap.ts",
+    "mutate": "tsx src/cli/mutate.ts",
+    "scrap": "tsx src/cli/scrap.ts",
+    "test": "vitest run --config vitest.config.ts",
+    "test:watch": "vitest --config vitest.config.ts",
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  }
+}

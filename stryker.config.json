@@ -27,28 +27,6 @@
 		"/coverage"
 	],
 	"ignoreStatic": true,
-	"mutate": [
-		"packages/extension/src/**/*.ts",
-		"packages/extension/src/**/*.tsx",
-		"!packages/extension/src/**/*.d.ts",
-		"!packages/extension/src/**/index.ts",
-		"!packages/extension/src/**/index.tsx",
-		"!packages/extension/src/**/e2e/**",
-		"!packages/extension/src/**/core/colors/colorPaletteTypes.ts",
-		"!packages/extension/src/**/core/discovery/fileConstants.ts",
-		"!packages/extension/src/**/core/plugins/versioning.ts",
-		"!packages/extension/src/**/extension/configDefaults.ts",
-		"!packages/extension/src/**/extension/gitHistory/constants.ts",
-		"!packages/extension/src/**/shared/fileColorConstants.ts",
-		"!packages/extension/src/**/shared/mockData*.ts",
-		"!packages/extension/src/**/webview/components/icons/**",
-		"!packages/extension/src/**/webview/components/settingsPanel/groups/options.ts",
-		"!packages/extension/src/**/webview/export/types.ts",
-		"!packages/extension/src/**/webview/storeDefaults.ts",
-		"!packages/extension/src/**/webview/storeInitialState.ts",
-		"!packages/extension/src/**/webview/storeMessages.ts",
-		"!packages/extension/src/**/webview/storeMessageTypes.ts"
-	],
 	"thresholds": {
 		"high": 90,
 		"low": 80,

@@ -1,0 +1,62 @@
+{
+  "defaults": {
+    "mutation": {
+      "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+      ],
+      "exclude": [
+        "src/**/*.d.ts",
+        "**/index.ts",
+        "**/index.tsx"
+      ]
+    },
+    "crap": {
+      "exclude": [
+        "**/e2e/**",
+        "**/__tests__/**",
+        "**/*.test.ts",
+        "**/*.test.tsx"
+      ]
+    },
+    "scrap": {
+      "include": [
+        "tests/**/*.test.ts",
+        "tests/**/*.test.tsx",
+        "__tests__/**/*.test.ts",
+        "__tests__/**/*.test.tsx"
+      ],
+      "exclude": []
+    }
+  },
+  "packages": {
+    "extension": {
+      "mutation": {
+        "exclude": [
+          "src/**/e2e/**",
+          "src/**/core/colors/colorPaletteTypes.ts",
+          "src/**/core/discovery/fileConstants.ts",
+          "src/**/core/plugins/versioning.ts",
+          "src/**/extension/configDefaults.ts",
+          "src/**/extension/gitHistory/constants.ts",
+          "src/**/shared/fileColorConstants.ts",
+          "src/**/shared/mockData*.ts",
+          "src/**/webview/components/icons/**",
+          "src/**/webview/components/settingsPanel/groups/options.ts",
+          "src/**/webview/export/types.ts",
+          "src/**/webview/storeDefaults.ts",
+          "src/**/webview/storeInitialState.ts",
+          "src/**/webview/storeMessages.ts",
+          "src/**/webview/storeMessageTypes.ts"
+        ]
+      }
+    },
+    "quality-tools": {
+      "mutation": {
+        "exclude": [
+          "src/cli/**/*.ts"
+        ]
+      }
+    }
+  }
+}
