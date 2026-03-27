@@ -2,6 +2,7 @@
 
 `@codegraphy/quality-tools` holds the repo's quality tooling:
 
+- `Organize` for directory structure, file naming, and cohesion analysis
 - `CRAP` for production-code complexity and coverage risk
 - mutation testing orchestration and mutation-site checks
 - `SCRAP` for test-structure quality, duplication pressure, and refactor guidance
@@ -10,6 +11,7 @@
 Root commands stay path-first:
 
 ```bash
+pnpm run organize -- quality-tools/
 pnpm run crap -- quality-tools/
 pnpm run mutate -- quality-tools/
 pnpm run scrap -- quality-tools/
@@ -24,6 +26,7 @@ Documentation lives in the repo docs:
 
 - [docs/quality/README.md](../../docs/quality/README.md)
 - [docs/quality/workflow.md](../../docs/quality/workflow.md)
+- [docs/quality/organize.md](../../docs/quality/organize.md)
 - [docs/quality/crap.md](../../docs/quality/crap.md)
 - [docs/quality/mutation.md](../../docs/quality/mutation.md)
 - [docs/quality/scrap.md](../../docs/quality/scrap.md)
@@ -40,6 +43,7 @@ Package layout:
 - `src/config/` shared quality-scope config loading
 - `src/crap/` CRAP analysis and reporting
 - `src/mutation/` mutation orchestration and report checks
+- `src/organize/` Organize analysis and reporting
 - `src/scrap/` SCRAP analysis and reporting
 - `src/shared/` path, target, and workspace helpers
 - `tests/` mirrors the source layout

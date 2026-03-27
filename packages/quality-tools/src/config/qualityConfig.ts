@@ -2,7 +2,7 @@ import { readFileSync } from 'fs';
 import { join, matchesGlob } from 'path';
 import { toPosix } from '../shared/pathUtils';
 
-export type QualityToolName = 'crap' | 'mutation' | 'scrap';
+export type QualityToolName = 'crap' | 'mutation' | 'scrap' | 'organize';
 
 interface QualityToolPatterns {
   exclude?: string[];
@@ -13,6 +13,7 @@ interface QualityConfigBlock {
   crap?: QualityToolPatterns;
   mutation?: QualityToolPatterns;
   scrap?: QualityToolPatterns;
+  organize?: QualityToolPatterns;
 }
 
 interface QualityConfig {

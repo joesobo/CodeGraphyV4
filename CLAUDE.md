@@ -9,6 +9,7 @@ pnpm run dev       # start dev mode
 pnpm run test      # run all tests
 pnpm run lint      # lint all packages
 pnpm run typecheck # type-check all packages
+pnpm run organize  # analyze directory structure
 ```
 
 Targeted runs:
@@ -16,6 +17,7 @@ Targeted runs:
 ```bash
 pnpm --filter @codegraphy/extension test
 pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/SettingsPanel.test.tsx
+pnpm run organize -- quality-tools/
 ```
 
 ## Architecture
@@ -50,6 +52,8 @@ Package boundaries are the primary entry point.
 ## Repo Organization
 
 Organize by feature and behavior, not by technical layer.
+
+Run `pnpm run organize` to check that directory structure follows these conventions.
 
 ### 1. Feature-first folder structure
 

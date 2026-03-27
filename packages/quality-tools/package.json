@@ -8,6 +8,7 @@
     "crap": "tsx src/cli/crap.ts",
     "mutate": "tsx src/cli/mutate.ts",
     "scrap": "tsx src/cli/scrap.ts",
+    "organize": "tsx src/cli/organize.ts",
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
     "lint": "eslint src tests",
