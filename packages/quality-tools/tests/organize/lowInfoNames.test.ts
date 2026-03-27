@@ -1,0 +1,150 @@
+import { describe, expect, it } from 'vitest';
+import { checkLowInfoName, type LowInfoNameConfig } from '../../src/organize/lowInfoNames';
+
+describe('checkLowInfoName', () => {
+  const defaultConfig: LowInfoNameConfig = {
+    banned: ['utils', 'helpers', 'misc', 'common', 'shared', '_shared', 'lib', 'index'],
+    discouraged: ['types', 'constants', 'config', 'base', 'core']
+  };
+
+  it('detects banned name: utils.ts', () => {
+    const issue = checkLowInfoName('utils.ts', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+    expect(issue?.detail).toContain('Catch-all dumping ground');
+  });
+
+  it('detects banned name: helpers.ts', () => {
+    const issue = checkLowInfoName('helpers.ts', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+    expect(issue?.detail).toContain('Vague semantics');
+  });
+
+  it('detects discouraged name: types.ts', () => {
+    const issue = checkLowInfoName('types.ts', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-discouraged');
+    expect(issue?.detail).toContain('dump for unrelated type definitions');
+  });
+
+  it('detects discouraged name: constants.ts', () => {
+    const issue = checkLowInfoName('constants.ts', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-discouraged');
+    expect(issue?.detail).toContain('dump for unrelated values');
+  });
+
+  it('allows normal file names', () => {
+    const issue = checkLowInfoName('analyzeOrganize.ts', defaultConfig);
+    expect(issue).toBeUndefined();
+  });
+
+  it('allows index.ts when isPackageEntryPoint is true', () => {
+    const issue = checkLowInfoName('index.ts', defaultConfig, true);
+    expect(issue).toBeUndefined();
+  });
+
+  it('flags index.ts when isPackageEntryPoint is false', () => {
+    const issue = checkLowInfoName('index.ts', defaultConfig, false);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('flags index.ts when isPackageEntryPoint is not provided', () => {
+    const issue = checkLowInfoName('index.ts', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('performs case-insensitive matching: Utils.ts', () => {
+    const issue = checkLowInfoName('Utils.ts', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('performs case-insensitive matching: HELPERS.TS', () => {
+    const issue = checkLowInfoName('HELPERS.TS', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('performs case-insensitive matching: Types.tsx', () => {
+    const issue = checkLowInfoName('Types.tsx', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-discouraged');
+  });
+
+  it('handles compound test extension: utils.test.ts', () => {
+    const issue = checkLowInfoName('utils.test.ts', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('handles compound spec extension: helpers.spec.tsx', () => {
+    const issue = checkLowInfoName('helpers.spec.tsx', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('provides generic message for custom banned names not in detail map', () => {
+    const customConfig: LowInfoNameConfig = {
+      banned: ['junk'],
+      discouraged: []
+    };
+    const issue = checkLowInfoName('junk.ts', customConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.detail).toBe('Low-information filename');
+  });
+
+  it('provides generic message for custom discouraged names not in detail map', () => {
+    const customConfig: LowInfoNameConfig = {
+      banned: [],
+      discouraged: ['orphaned']
+    };
+    const issue = checkLowInfoName('orphaned.ts', customConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.detail).toBe('Low-information filename');
+  });
+
+  it('returns issue with correct fileName field', () => {
+    const issue = checkLowInfoName('misc.ts', defaultConfig);
+    expect(issue?.fileName).toBe('misc.ts');
+  });
+
+  it('detects all default banned names', () => {
+    const bannedNames = ['utils', 'helpers', 'misc', 'common', 'shared', '_shared', 'lib', 'index'];
+    for (const name of bannedNames) {
+      const issue = checkLowInfoName(`${name}.ts`, defaultConfig);
+      expect(issue?.kind).toBe('low-info-banned');
+    }
+  });
+
+  it('detects all default discouraged names', () => {
+    const discouragedNames = ['types', 'constants', 'config', 'base', 'core'];
+    for (const name of discouragedNames) {
+      const issue = checkLowInfoName(`${name}.ts`, defaultConfig);
+      expect(issue?.kind).toBe('low-info-discouraged');
+    }
+  });
+
+  it('handles index as both banned and in special case', () => {
+    const issue1 = checkLowInfoName('index.ts', defaultConfig, true);
+    expect(issue1).toBeUndefined();
+
+    const issue2 = checkLowInfoName('index.ts', defaultConfig, false);
+    expect(issue2?.kind).toBe('low-info-banned');
+  });
+
+  it('handles multiple extensions: .test.tsx', () => {
+    const issue = checkLowInfoName('utils.test.tsx', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('handles .spec.js extension', () => {
+    const issue = checkLowInfoName('helpers.spec.js', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+});

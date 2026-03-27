@@ -1,7 +1,8 @@
 # Quality Tools
 
-CodeGraphy uses three complementary quality checks:
+CodeGraphy uses four complementary quality checks:
 
+- `Organize`: directory structure, file naming, and cohesion analysis
 - `CRAP`: production-code complexity and coverage risk
 - `Mutation`: test effectiveness against injected faults
 - `SCRAP`: test-structure quality and refactor guidance
@@ -9,6 +10,7 @@ CodeGraphy uses three complementary quality checks:
 The root commands are path-first:
 
 ```bash
+pnpm run organize -- extension/
 pnpm run crap -- extension/
 pnpm run mutate -- extension/
 pnpm run scrap -- extension/

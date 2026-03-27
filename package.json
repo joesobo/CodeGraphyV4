@@ -25,6 +25,7 @@
 		"crap": "pnpm --filter @codegraphy/quality-tools run crap --",
 		"mutate": "pnpm --filter @codegraphy/quality-tools run mutate --",
 		"scrap": "pnpm --filter @codegraphy/quality-tools run scrap --",
+		"organize": "pnpm --filter @codegraphy/quality-tools run organize --",
 		"changeset": "changeset",
 		"version-packages": "changeset version",
 		"typecheck": "turbo run typecheck",
