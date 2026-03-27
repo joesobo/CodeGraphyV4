@@ -1,4 +1,4 @@
-import { type OrganizeVerdict } from './organizeTypes';
+import { type OrganizeVerdict } from '../organizeTypes';
 
 export function fileFanOutVerdict(
   fileCount: number,

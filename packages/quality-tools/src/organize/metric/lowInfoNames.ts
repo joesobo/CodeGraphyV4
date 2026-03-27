@@ -1,4 +1,4 @@
-import { type OrganizeFileIssue } from './organizeTypes';
+import { type OrganizeFileIssue } from '../organizeTypes';
 
 export interface LowInfoNameConfig {
   banned: string[];

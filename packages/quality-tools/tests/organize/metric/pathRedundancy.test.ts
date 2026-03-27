@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pathRedundancy } from '../../src/organize/pathRedundancy';
+import { pathRedundancy } from '../../../src/organize/metric/pathRedundancy';
 
 describe('pathRedundancy', () => {
   describe('basic redundancy calculation', () => {

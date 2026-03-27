@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { directoryDepth, depthVerdict } from '../../src/organize/directoryDepth';
+import { directoryDepth, depthVerdict } from '../../../src/organize/metric/directoryDepth';
 
 describe('directoryDepth', () => {
   describe('depth calculation', () => {
@@ -49,6 +49,7 @@ describe('directoryDepth', () => {
     it('handles backslash-separated paths on Windows (when running on Windows)', () => {
       // This test is platform-specific - it only applies when running on Windows
       // where path.sep is '\\'
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const isWindows = require('path').sep === '\\';
       if (isWindows) {
         expect(directoryDepth('C:\\Users\\User\\Documents', 'C:\\Users\\User')).toBe(1);

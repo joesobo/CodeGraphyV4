@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { summaryLines } from '../../src/organize/reportSummary';
-import type { OrganizeDirectoryMetric } from '../../src/organize/organizeTypes';
+import { summaryLines } from '../../../src/organize/report/summary';
+import type { OrganizeDirectoryMetric } from '../../../src/organize/organizeTypes';
 
 describe('summaryLines', () => {
   it('formats basic summary line correctly', () => {

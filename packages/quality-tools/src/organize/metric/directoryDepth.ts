@@ -1,5 +1,5 @@
 import { relative, sep } from 'path';
-import type { OrganizeDepthVerdict } from './organizeTypes';
+import type { OrganizeDepthVerdict } from '../organizeTypes';
 
 /**
  * Count the directory depth (path segments) between a directory and its root.

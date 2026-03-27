@@ -13,7 +13,7 @@
  */
 export function tokenize(name: string): string[] {
   // Strip known extensions
-  let withoutExtension = stripExtension(name);
+  const withoutExtension = stripExtension(name);
 
   // Replace separators with spaces for initial split
   const withSpaces = withoutExtension

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { checkBarrelFile } from '../../src/organize/barrelDetection';
+import { checkBarrelFile } from '../../../src/organize/metric/barrelDetection';
 
 describe('checkBarrelFile', () => {
   it('flags pure barrel file with all re-exports', () => {

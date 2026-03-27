@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { reportOrganize } from '../../src/organize/reportOrganize';
-import type { OrganizeDirectoryMetric } from '../../src/organize/organizeTypes';
+import { reportOrganize } from '../../../src/organize/report/organize';
+import type { OrganizeDirectoryMetric } from '../../../src/organize/organizeTypes';
 
 describe('reportOrganize', () => {
   it('prints message when no metrics', () => {

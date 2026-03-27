@@ -1,4 +1,4 @@
-import { type OrganizeCohesionCluster } from './organizeTypes';
+import { type OrganizeCohesionCluster } from '../organizeTypes';
 
 export function clusterLines(clusters: OrganizeCohesionCluster[], directoryPath: string): string[] {
   if (clusters.length === 0) {
@@ -13,7 +13,8 @@ export function clusterLines(clusters: OrganizeCohesionCluster[], directoryPath:
     const cluster = clusters[i];
     const confidence = cluster.confidence;
     const memberCount = cluster.memberCount;
-    const suggestedPath = `${directoryPath}${cluster.prefix}/`;
+    const base = directoryPath.endsWith('/') ? directoryPath : `${directoryPath}/`;
+    const suggestedPath = `${base}${cluster.prefix}/`;
     const clusterLine = `${cluster.prefix} (${memberCount} files, ${confidence}) → suggest ${suggestedPath}`;
 
     if (i === 0) {

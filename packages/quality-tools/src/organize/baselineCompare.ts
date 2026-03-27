@@ -23,11 +23,11 @@ function verdictFromDeltas(
   redundancyDelta: number
 ): OrganizeComparison['verdict'] {
   const deltas = [fileFanOutDelta, folderFanOutDelta, clusterCountDelta, issueCountDelta, redundancyDelta];
-  const allNegativeOrZero = deltas.every((d) => d <= 0);
-  const allPositiveOrZero = deltas.every((d) => d >= 0);
-  const hasNegative = deltas.some((d) => d < 0);
-  const hasPositive = deltas.some((d) => d > 0);
-  const allZero = deltas.every((d) => d === 0);
+  const allNegativeOrZero = deltas.every((delta) => delta <= 0);
+  const allPositiveOrZero = deltas.every((delta) => delta >= 0);
+  const hasNegative = deltas.some((delta) => delta < 0);
+  const hasPositive = deltas.some((delta) => delta > 0);
+  const allZero = deltas.every((delta) => delta === 0);
 
   if (allZero) {
     return 'unchanged';
