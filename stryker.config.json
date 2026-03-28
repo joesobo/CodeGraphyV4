@@ -5,10 +5,10 @@
 	"plugins": [
 		"@stryker-mutator/vitest-runner"
 	],
-	"vitest": {
-		"configFile": "packages/extension/vitest.stryker.config.ts",
-		"related": false
-	},
+  "vitest": {
+    "configFile": "packages/extension/vitest.shared.stryker.config.ts",
+    "related": false
+  },
 	"reporters": [
 		"clear-text",
 		"json",

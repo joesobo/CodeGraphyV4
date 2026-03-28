@@ -16,12 +16,21 @@ describe('mutation profiles', () => {
 
   it('uses package-specific configs for extension and quality-tools', () => {
     expect(resolveMutationProfile(resolveQualityTarget(REPO_ROOT, 'extension/'))).toMatchObject({
-      configPath: 'stryker.config.json'
+      configPath: 'packages/extension/stryker.config.json'
     });
 
     expect(resolveMutationProfile(resolveQualityTarget(REPO_ROOT, 'quality-tools/'))).toMatchObject({
       configPath: 'packages/quality-tools/stryker.config.json'
     });
+  });
+
+  it('scopes extension mutation test discovery to extension tests', async () => {
+    const { default: config } = await import('../../../../extension/vitest.stryker.config');
+
+    expect(config.test?.include).toEqual([
+      'packages/extension/tests/**/*.test.{ts,tsx}',
+      'packages/extension/__tests__/**/*.test.{ts,tsx}',
+    ]);
   });
 
   it('uses the shared root config for generic workspace packages', () => {

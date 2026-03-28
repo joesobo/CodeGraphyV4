@@ -14,16 +14,16 @@ export default defineConfig({
       sourcemap: false,
     },
     include: [
-      'packages/extension/tests/**/*.test.{ts,tsx}',
-      'packages/extension/__tests__/**/*.test.{ts,tsx}',
+      'packages/*/tests/**/*.test.{ts,tsx}',
+      'packages/*/__tests__/**/*.test.{ts,tsx}',
     ],
     setupFiles: [resolve(__dirname, 'tests/setup.ts')],
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],
       reportsDirectory: resolve(workspaceRoot, 'coverage'),
-      include: ['packages/extension/src/**/*.{ts,tsx}'],
-      exclude: ['packages/extension/src/**/*.d.ts'],
+      include: ['packages/*/src/**/*.{ts,tsx}'],
+      exclude: ['packages/*/src/**/*.d.ts'],
     },
   },
   resolve: {
