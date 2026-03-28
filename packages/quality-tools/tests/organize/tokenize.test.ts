@@ -163,4 +163,42 @@ describe('tokenize', () => {
       expect(tokenize('APIv3')).toEqual(['ap', 'iv', '3']); // Acronym then v then digit
     });
   });
+
+  describe('acronym boundary regex mutations', () => {
+    it('handles XMLParser correctly with acronym boundary', () => {
+      expect(tokenize('XMLParser')).toEqual(['xml', 'parser']);
+    });
+
+    it('handles HTMLElement correctly', () => {
+      expect(tokenize('HTMLElement')).toEqual(['html', 'element']);
+    });
+
+    it('handles XMLHttpRequest with multiple acronyms', () => {
+      expect(tokenize('XMLHttpRequest')).toEqual(['xml', 'http', 'request']);
+    });
+  });
+
+  describe('digit boundary regex mutations', () => {
+    it('handles 2fast with digit-to-letter boundary', () => {
+      expect(tokenize('2fast')).toEqual(['2', 'fast']);
+    });
+
+    it('handles v2release with letter-to-digit and digit-to-letter', () => {
+      expect(tokenize('v2release')).toEqual(['v', '2', 'release']);
+    });
+
+    it('handles file2Open with digit boundaries', () => {
+      expect(tokenize('file2Open')).toEqual(['file', '2', 'open']);
+    });
+  });
+
+  describe('whitespace split regex mutations', () => {
+    it('handles multiple spaces in separated names', () => {
+      expect(tokenize('report  blocks')).toEqual(['report', 'blocks']);
+    });
+
+    it('handles mixed whitespace in complex names', () => {
+      expect(tokenize('report\tblocks')).toEqual(['report', 'blocks']);
+    });
+  });
 });

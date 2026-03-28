@@ -1,4 +1,5 @@
-import { type OrganizeFileIssue } from '../organizeTypes';
+import { type OrganizeFileIssue } from '../types';
+import { formatBarrelIssues, formatLowInfoIssues, formatRedundancyIssues } from './issueFormatters';
 
 export function fileIssueLines(issues: OrganizeFileIssue[]): string[] {
   if (issues.length === 0) {
@@ -11,31 +12,19 @@ export function fileIssueLines(issues: OrganizeFileIssue[]): string[] {
 
   const lines: string[] = [];
 
-  if (redundancyIssues.length > 0) {
-    const itemsList = redundancyIssues
-      .map((issue) => `${issue.fileName} (${issue.redundancyScore?.toFixed(2)})`)
-      .join(', ');
-    // "  Redundant: " = 12 chars + 1 space
-    lines.push(`  Redundant: ${itemsList}`);
+  const redundancyLine = formatRedundancyIssues(redundancyIssues);
+  if (redundancyLine) {
+    lines.push(redundancyLine);
   }
 
-  if (lowInfoIssues.length > 0) {
-    const itemsList = lowInfoIssues
-      .map((issue) => {
-        const prefix = issue.kind === 'low-info-banned' ? 'banned' : 'discouraged';
-        return `${issue.fileName} (${prefix}: ${issue.detail})`;
-      })
-      .join(', ');
-    // "  Low-info:" = 11 chars + 2 spaces
-    lines.push(`  Low-info:  ${itemsList}`);
+  const lowInfoLine = formatLowInfoIssues(lowInfoIssues);
+  if (lowInfoLine) {
+    lines.push(lowInfoLine);
   }
 
-  if (barrelIssues.length > 0) {
-    const itemsList = barrelIssues
-      .map((issue) => `${issue.fileName} (${issue.detail})`)
-      .join(', ');
-    // "  Barrels:" = 10 chars + 3 spaces
-    lines.push(`  Barrels:   ${itemsList}`);
+  const barrelLine = formatBarrelIssues(barrelIssues);
+  if (barrelLine) {
+    lines.push(barrelLine);
   }
 
   return lines;

@@ -94,14 +94,16 @@ A file should have one clear reason to change. If a file contains independently 
 
 ### 4. File-to-test mapping
 
-Every source module must have a matching test module.
+Every source module must have at least one matching test module. A single source file may be covered by multiple focused test files when the behaviors it contains are distinct enough to warrant separate test groupings.
 
 ```
 settingsPanel/model.ts        → settingsPanel/model.test.ts
 nodeSizeToggle/command.ts    → nodeSizeToggle/command.test.ts
+cohesion/clusters.ts          → cohesion/clusters.prefix.test.ts
+                                cohesion/clusters.import.test.ts
 ```
 
-If a source file covers multiple distinct concepts, split it before creating a large test file.
+If a source file covers multiple distinct concepts, split it before creating a large test file. If a test file exceeds ~200–300 lines, split it by behavior group rather than keeping one monolithic file.
 
 ### 5. Prefer local code over premature abstraction
 
@@ -144,7 +146,7 @@ Use targeted test runs while iterating. Run `pnpm run test` before finishing.
 
 1. **One concept per test** — if the name needs "and", split it.
 2. **Arrange-Act-Assert** — if any section is long, the test is doing too much.
-3. **File-per-module** — each source file gets a matching test file.
+3. **File-per-module** — each source file gets at least one matching test file. Large test files may be split by behavior group (e.g., `clusters.prefix.test.ts`, `clusters.import.test.ts`).
 4. **Descriptive names** — no abbreviations in test code.
 5. **Test behavior, not implementation** — describe what the code does, not how.
 

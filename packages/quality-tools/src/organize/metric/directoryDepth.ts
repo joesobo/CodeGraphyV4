@@ -1,5 +1,5 @@
 import { relative, sep } from 'path';
-import type { OrganizeDepthVerdict } from '../organizeTypes';
+import type { OrganizeDepthVerdict } from '../types';
 
 /**
  * Count the directory depth (path segments) between a directory and its root.
@@ -14,18 +14,13 @@ import type { OrganizeDepthVerdict } from '../organizeTypes';
  * - directoryDepth("/root", "/root") → 0
  */
 export function directoryDepth(directoryPath: string, targetRoot: string): number {
-  // Get the relative path from root to the directory
   const relativePath = relative(targetRoot, directoryPath);
 
-  // If paths are the same, depth is 0
-  if (!relativePath || relativePath === '.') {
+  if (relativePath === '' || relativePath === '.') {
     return 0;
   }
 
-  // Count segments: split on path separators and filter empty strings
-  const segments = relativePath.split(sep).filter((seg) => seg.length > 0);
-
-  return segments.length;
+  return relativePath.split(sep).length;
 }
 
 /**

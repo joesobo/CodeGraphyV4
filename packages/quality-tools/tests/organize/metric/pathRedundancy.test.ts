@@ -8,7 +8,7 @@ describe('pathRedundancy', () => {
     });
 
     it('returns 0 when no tokens are shared with ancestors', () => {
-      expect(pathRedundancy('scrap/metrics.ts', ['scrap'])).toBe(0);
+      expect(pathRedundancy('scrap/types.ts', ['scrap'])).toBe(0);
     });
 
     it('handles multiple ancestor folders', () => {

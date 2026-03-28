@@ -112,7 +112,7 @@ describe('depthVerdict', () => {
     });
   });
 
-  describe('config thresholds from organizeConfig', () => {
+  describe('config thresholds from config', () => {
     // Based on default config: { warning: 4, deep: 5 }
     it('applies default config thresholds', () => {
       expect(depthVerdict(3, 4, 5)).toBe('STABLE');
@@ -135,6 +135,105 @@ describe('depthVerdict', () => {
 
       // src/modules/auth/providers/strategies/oauth/google -> depth 5 -> DEEP
       expect(depthVerdict(5, 4, 5)).toBe('DEEP');
+    });
+  });
+
+  describe('empty relative path handling', () => {
+    it('returns 0 when relative path is empty string', () => {
+      // When directory and root are the same
+      expect(directoryDepth('/root', '/root')).toBe(0);
+      expect(directoryDepth('/home', '/home')).toBe(0);
+    });
+
+    it('returns 0 when relative path is dot', () => {
+      // This can occur with certain path normalization scenarios
+      expect(directoryDepth('/root/.', '/root')).toBe(0);
+    });
+
+    it('returns 0 for identical absolute and relative paths', () => {
+      expect(directoryDepth('/usr/local', '/usr/local')).toBe(0);
+    });
+  });
+
+  describe('split and segment filtering', () => {
+    it('filters out empty segments from split', () => {
+      // Path with trailing separator should be handled correctly
+      expect(directoryDepth('/root/src/', '/root')).toBe(1);
+    });
+
+    it('counts only non-empty segments', () => {
+      expect(directoryDepth('/root/a/b/c', '/root')).toBe(3);
+      expect(directoryDepth('/root/a//b/c', '/root')).toBe(3);
+    });
+
+    it('handles single-segment paths', () => {
+      expect(directoryDepth('/root/single', '/root')).toBe(1);
+    });
+
+    it('handles multi-segment paths correctly', () => {
+      expect(directoryDepth('/root/a/b/c/d', '/root')).toBe(4);
+      expect(directoryDepth('/root/a/b/c/d/e/f', '/root')).toBe(6);
+    });
+  });
+
+  describe('edge cases for depth calculation', () => {
+    it('returns 0 for empty string inputs resolved to same path', () => {
+      // relative('', '') would return ''
+      expect(directoryDepth('root', 'root')).toBe(0);
+    });
+
+    it('returns positive depth for nested relative paths', () => {
+      expect(directoryDepth('src/modules/auth', 'src')).toBe(2);
+    });
+
+    it('handles path with many segments correctly', () => {
+      expect(directoryDepth('/a/b/c/d/e/f/g/h/i', '/a')).toBe(8);
+    });
+  });
+
+  describe('mutation killers for directoryDepth.ts', () => {
+    it('returns 0 when the relative path is empty', () => {
+      expect(directoryDepth('/root', '/root')).toBe(0);
+    });
+
+    it('returns 0 when the relative path is dot', () => {
+      expect(directoryDepth('/root/.', '/root')).toBe(0);
+    });
+
+    it('treats empty and dot relative paths as distinct zero-depth cases', () => {
+      expect(directoryDepth('/path', '/path')).toBe(0);
+      expect(directoryDepth('/path/.', '/path')).toBe(0);
+    });
+
+    it('counts path segments after splitting the normalized relative path', () => {
+      const depth = directoryDepth('/root/a/b/c', '/root');
+      expect(depth).toBe(3);
+    });
+
+    it('counts deeper normalized paths exactly', () => {
+      expect(directoryDepth('/root/very/deep/path', '/root')).toBe(3);
+      expect(directoryDepth('/root/a', '/root')).toBe(1);
+    });
+
+    it('counts all normalized segments in long paths', () => {
+      expect(directoryDepth('/a/b/c/d/e', '/a')).toBe(4);
+    });
+
+    it('kills L21 mutation: empty string relativePath must return 0', () => {
+      // When relative path is completely empty (same directories)
+      expect(directoryDepth('/identical', '/identical')).toBe(0);
+      expect(directoryDepth('/', '/')).toBe(0);
+    });
+
+    it('kills L21 mutation: dot (.) relativePath must return 0', () => {
+      // The '.' case represents current directory, should be 0 depth
+      expect(directoryDepth('/home/.', '/home')).toBe(0);
+      expect(directoryDepth('/usr/local/.', '/usr/local')).toBe(0);
+    });
+
+    it('counts normalized paths with repeated or trailing separators exactly', () => {
+      expect(directoryDepth('/root/a//b/c', '/root')).toBe(3);
+      expect(directoryDepth('/root/a/b/', '/root')).toBe(2);
     });
   });
 });

@@ -7,6 +7,14 @@ export interface DirectoryEntry {
   subdirectories: string[];
 }
 
+export function sortDirectoryNames(names: string[]): string[] {
+  return [...names].sort();
+}
+
+export function sortDirectoryEntries(entries: DirectoryEntry[]): DirectoryEntry[] {
+  return [...entries].sort((left, right) => left.directoryPath.localeCompare(right.directoryPath));
+}
+
 function isHidden(name: string): boolean {
   return name.startsWith('.');
 }
@@ -36,16 +44,16 @@ function walkDirectoriesRecursive(directoryPath: string, entries: DirectoryEntry
     }
   }
 
-  files.sort();
-  subdirectories.sort();
+  const sortedFiles = sortDirectoryNames(files);
+  const sortedSubdirectories = sortDirectoryNames(subdirectories);
 
   entries.push({
     directoryPath,
-    files,
-    subdirectories
+    files: sortedFiles,
+    subdirectories: sortedSubdirectories
   });
 
-  for (const subdirectory of subdirectories) {
+  for (const subdirectory of sortedSubdirectories) {
     const subdirectoryPath = resolve(directoryPath, subdirectory);
     walkDirectoriesRecursive(subdirectoryPath, entries);
   }
@@ -54,6 +62,5 @@ function walkDirectoriesRecursive(directoryPath: string, entries: DirectoryEntry
 export function walkDirectories(rootPath: string): DirectoryEntry[] {
   const entries: DirectoryEntry[] = [];
   walkDirectoriesRecursive(rootPath, entries);
-  entries.sort((left, right) => left.directoryPath.localeCompare(right.directoryPath));
-  return entries;
+  return sortDirectoryEntries(entries);
 }
