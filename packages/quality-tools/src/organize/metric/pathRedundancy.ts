@@ -4,11 +4,11 @@ import { tokenize } from '../tokenize';
 /**
  * Calculate the redundancy score of a file based on its path.
  *
- * @param filePath - The full path to the file (e.g., "scrap/scrapTypes.ts")
+ * @param filePath - The full path to the file (e.g., "scrap/types.ts")
  * @param ancestorFolders - Array of ancestor folder names (e.g., ["scrap"])
  * @returns A ratio from 0 to 1 indicating how many filename tokens appear in ancestor folders.
  *
- * Example: scrap/scrapTypes.ts
+ * Example: scrap/types.ts
  * - filename tokens: ['scrap', 'types']
  * - ancestor tokens: {'scrap'}
  * - shared: 1 out of 2 = 0.5

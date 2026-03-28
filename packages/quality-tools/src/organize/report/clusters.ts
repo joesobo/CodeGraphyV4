@@ -1,4 +1,4 @@
-import { type OrganizeCohesionCluster } from '../organizeTypes';
+import { type OrganizeCohesionCluster } from '../types';
 
 export function clusterLines(clusters: OrganizeCohesionCluster[], directoryPath: string): string[] {
   if (clusters.length === 0) {

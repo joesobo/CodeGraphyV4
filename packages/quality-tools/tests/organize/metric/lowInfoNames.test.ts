@@ -36,7 +36,7 @@ describe('checkLowInfoName', () => {
   });
 
   it('allows normal file names', () => {
-    const issue = checkLowInfoName('analyzeOrganize.ts', defaultConfig);
+    const issue = checkLowInfoName('analyze.ts', defaultConfig);
     expect(issue).toBeUndefined();
   });
 
@@ -146,5 +146,79 @@ describe('checkLowInfoName', () => {
     const issue = checkLowInfoName('helpers.spec.js', defaultConfig);
     expect(issue).toBeDefined();
     expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('returns null for files without extensions', () => {
+    const issue = checkLowInfoName('normalname', defaultConfig);
+    expect(issue).toBeUndefined();
+  });
+
+  it('correctly identifies banned names even without extension', () => {
+    const issue = checkLowInfoName('utils', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('correctly identifies discouraged names even without extension', () => {
+    const issue = checkLowInfoName('types', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-discouraged');
+  });
+
+  it('respects isDirectory flag as false by default for index.ts', () => {
+    const issue = checkLowInfoName('index.ts', defaultConfig, false);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('allows index only when isPackageEntryPoint is explicitly true', () => {
+    const issue = checkLowInfoName('index.ts', defaultConfig, true);
+    expect(issue).toBeUndefined();
+  });
+
+  it('handles lastDot at position 0 correctly', () => {
+    // File like ".ts" should not match
+    const issue = checkLowInfoName('.ts', defaultConfig);
+    expect(issue).toBeUndefined();
+  });
+
+  it('strips single extension before checking', () => {
+    // "utils.test" after stripping compound would be "utils"
+    const issue = checkLowInfoName('utils.other', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('handles multiple dots in filename correctly', () => {
+    // "utils.service.ts" should strip to "utils.service" which is not in the list
+    const issue = checkLowInfoName('utils.service.ts', defaultConfig);
+    expect(issue).toBeUndefined();
+  });
+
+  it('allows filenames with extension that match banned names after stripping', () => {
+    const issue = checkLowInfoName('common.ts', defaultConfig);
+    expect(issue).toBeDefined();
+    expect(issue?.kind).toBe('low-info-banned');
+  });
+
+  it('returns undefined for non-matching lowercase name', () => {
+    const issue = checkLowInfoName('model.ts', defaultConfig);
+    expect(issue).toBeUndefined();
+  });
+
+  it('case-insensitive matching works for all banned names', () => {
+    const bannedNames = ['UTILS', 'Helpers', 'MISC', 'Common', 'Shared', '_SHARED', 'LIB', 'INDEX'];
+    for (const name of bannedNames) {
+      const issue = checkLowInfoName(`${name}.ts`, defaultConfig);
+      expect(issue?.kind).toBe('low-info-banned');
+    }
+  });
+
+  it('case-insensitive matching works for all discouraged names', () => {
+    const discouragedNames = ['TYPES', 'Constants', 'CONFIG', 'Base', 'CORE'];
+    for (const name of discouragedNames) {
+      const issue = checkLowInfoName(`${name}.ts`, defaultConfig);
+      expect(issue?.kind).toBe('low-info-discouraged');
+    }
   });
 });

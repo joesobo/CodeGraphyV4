@@ -1,28 +1,18 @@
 import * as ts from 'typescript';
-import { type OrganizeFileIssue } from '../organizeTypes';
+import { type OrganizeFileIssue } from '../types';
+import { SUPPORTED_EXTENSIONS, getFileExtension, isReExportStatement } from './reExport';
 
-const SUPPORTED_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
-
-function getFileExtension(fileName: string): string {
-  const lastDot = fileName.lastIndexOf('.');
-  return lastDot > 0 ? fileName.slice(lastDot) : '';
-}
-
-function isReExportStatement(statement: ts.Statement): boolean {
-  if (ts.isExportDeclaration(statement)) {
-    // export * from '...' or export { ... } from '...'
-    if (statement.moduleSpecifier) {
-      return true;
-    }
-
-    // export { ... } without from — only count as re-export if the exportClause exists
-    // These are local re-exports of imported names
-    if (statement.exportClause && !statement.moduleSpecifier) {
-      return true;
-    }
+function scriptKindForExtension(ext: string): ts.ScriptKind {
+  if (ext === '.tsx') {
+    return ts.ScriptKind.TSX;
   }
-
-  return false;
+  if (ext === '.jsx') {
+    return ts.ScriptKind.JSX;
+  }
+  if (ext === '.js') {
+    return ts.ScriptKind.JS;
+  }
+  return ts.ScriptKind.TS;
 }
 
 export function checkBarrelFile(fileName: string, fileContent: string): OrganizeFileIssue | undefined {
@@ -39,7 +29,7 @@ export function checkBarrelFile(fileName: string, fileContent: string): Organize
     fileContent,
     ts.ScriptTarget.Latest,
     true,
-    ts.ScriptKind.TS
+    scriptKindForExtension(ext)
   );
 
   // Count statements
@@ -58,13 +48,7 @@ export function checkBarrelFile(fileName: string, fileContent: string): Organize
     }
   }
 
-  // Empty file is not a barrel
-  if (totalStatements === 0) {
-    return undefined;
-  }
-
-  // Calculate re-export ratio
-  const reExportRatio = reExportCount / totalStatements;
+  const reExportRatio = totalStatements > 0 ? reExportCount / totalStatements : 0;
 
   // Flag if 80% or more statements are re-exports
   if (reExportRatio >= 0.8) {

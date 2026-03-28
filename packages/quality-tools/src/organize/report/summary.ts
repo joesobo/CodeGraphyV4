@@ -1,4 +1,4 @@
-import { type OrganizeDirectoryMetric } from '../organizeTypes';
+import { type OrganizeDirectoryMetric } from '../types';
 
 function worstVerdict(metric: OrganizeDirectoryMetric): string {
   const verdicts: string[] = [];
@@ -29,12 +29,13 @@ function countIssuesByKind(metric: OrganizeDirectoryMetric, kindPrefix: string):
 
 export function summaryLines(metric: OrganizeDirectoryMetric): string[] {
   const verdict = worstVerdict(metric);
+  const redundantCount = countIssuesByKind(metric, 'redundancy');
   const lowInfoCount = countIssuesByKind(metric, 'low-info');
   const barrelCount = countIssuesByKind(metric, 'barrel');
   const redundancy = metric.averageRedundancy.toFixed(2);
 
   const line =
-    `${metric.directoryPath}  [${verdict}]  files: ${metric.fileFanOut}  folders: ${metric.folderFanOut}  depth: ${metric.depth}  redundancy: ${redundancy}  clusters: ${metric.clusters.length}  low-info: ${lowInfoCount}  barrels: ${barrelCount}`;
+    `${metric.directoryPath}  [${verdict}]  files: ${metric.fileFanOut}  folders: ${metric.folderFanOut}  depth: ${metric.depth}  redundancy: ${redundancy}  clusters: ${metric.clusters.length}  redundant: ${redundantCount}  low-info: ${lowInfoCount}  barrels: ${barrelCount}`;
 
   return [line];
 }
