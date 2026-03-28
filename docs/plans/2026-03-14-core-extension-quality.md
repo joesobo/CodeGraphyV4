@@ -1,0 +1,1636 @@
+# Core Extension Quality Plan
+
+## Goal
+Raise `@codegraphy/extension` to workflow-clean state: TDD, file-scoped tests, CRAP <= 8, mutation hotspots >= 90 where feasible, regular PR updates on `refactor/core-extension-quality`.
+
+## Subtasks
+- S1 `done`: discovery/workspace/provider helper extraction, tests added, PR open.
+  - tests: add/update `packages/extension/tests/core/**/*`, `packages/extension/tests/extension/**/*`, `packages/extension/tests/webview/**/*`
+- S2 `done`: Graph helper extraction for interaction/tooltip flows, targeted mutation passes completed.
+  - tests: add/update `packages/extension/tests/webview/graph*.test.ts`
+- S3 `in_progress`: close remaining extension hotspots starting with smallest uncovered modules, then larger webview/extension files.
+  - tests: add/update matching file-per-module tests for `saveSvg.ts`, `settingsPanel/**/*`, `Graph.tsx`, `GraphViewProvider.ts`
+  - S3a `done`: group settings-panel files into `settingsPanel/`, extract display section/timer helpers, and add direct tests before re-measuring mutation.
+    - tests: add/update `packages/extension/tests/webview/SettingsPanelDisplaySection.test.tsx`, `packages/extension/tests/webview/SettingsPanel.test.tsx`
+  - S3b `in_progress`: finish the settings-panel breakup until each extracted module is mutation-clean.
+    - tests: add/update matching file-per-module tests for extracted settings-panel modules
+    - progress:
+      - folder regrouping landed: `settingsPanel/display/*`, `settingsPanel/filters/*`, `settingsPanel/groups/*`
+      - focused tests passing: `128` settings-panel tests green after the rename/extraction pass
+      - latest targeted mutation:
+        - settings-panel slice overall = `92.21%`
+        - `Panel.tsx` = `100%`
+        - `SectionHeader.tsx` = `100%`
+        - `groups/Section.tsx` = `100%`
+        - `groups/useEditorState.ts` = `90.91%`
+        - `groups/model.ts` = `97.18%`
+        - `groups/Custom.tsx` = `84.62%`
+        - `groups/Defaults.tsx` = `88.68%`
+        - `forces/Section.tsx` = `83.67%`
+        - `display/Section.tsx` = `94.94%`
+        - `filters/Section.tsx` = `97.33%`
+      - package gate status after this pass:
+        - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json` passed
+        - `pnpm --filter @codegraphy/extension run lint` passed
+        - `pnpm run crap -- extension` still fails on pre-existing large hotspots led by `Graph.tsx` and `GraphViewProvider.ts`
+      - committed `76ffa74`:
+        - split `settingsPanel/groups` into direct UI + state helpers:
+          - `CustomAddForm.tsx`, `CustomEditor.tsx`, `CustomRow.tsx`
+          - `DefaultEditor.tsx`, `DefaultRow.tsx`, `DefaultSection.tsx`
+          - `actions.ts`, `drag.ts`, `override.ts`, `persistence.ts`, `reorder.ts`, `sections.ts`
+        - replace `model.ts` with narrower `sections.ts` + `override.ts` + `reorder.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/settingsPanel/groups/*.test.ts tests/webview/settingsPanel/groups/*.test.tsx tests/webview/SettingsPanel.test.tsx`
+          - `158` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - touched-file `eslint`
+      - latest targeted mutation after the current settings-panel rerun:
+        - `pnpm run mutate -- extension settings-panel`
+        - settings-panel slice overall = `92.91%`
+        - threshold blockers:
+          - `display/Section.tsx` = `82` sites
+          - `filters/Section.tsx` = `75` sites
+          - `groups/CustomRow.tsx` = `53` sites
+        - remaining sub-90 files:
+          - `display/timers.ts` = `72.22%`
+          - `forces/Section.tsx` = `83.67%`
+          - `groups/DefaultEditor.tsx` = `66.67%`
+          - `groups/useEditorState.ts` = `82.35%`
+          - `groups/CustomRow.tsx` = `84.91%`
+          - `groups/CustomEditor.tsx` = `87.50%`
+          - `groups/persistence.ts` = `88.89%`
+      - current local cleanup before the next settings-panel split:
+        - extract `filters/MaxFilesControl.tsx`, `filters/OrphansToggle.tsx`, and `filters/Patterns.tsx`
+        - extract `groups/CustomRowHeader.tsx` and `groups/customRowState.ts`
+        - add direct tests:
+          - `tests/webview/settingsPanel/filters/MaxFilesControl.test.tsx`
+          - `tests/webview/settingsPanel/filters/OrphansToggle.test.tsx`
+          - `tests/webview/settingsPanel/filters/Patterns.test.tsx`
+          - `tests/webview/settingsPanel/groups/CustomRowHeader.test.tsx`
+          - `tests/webview/settingsPanel/groups/customRowState.test.ts`
+          - `tests/webview/settingsPanel/groups/CustomEditor.test.tsx`
+          - `tests/webview/settingsPanel/groups/DefaultEditor.test.tsx`
+        - harden existing tests:
+          - `tests/webview/settingsPanel/groups/persistence.test.ts`
+          - `tests/webview/settingsPanel/groups/useEditorState.test.tsx`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/settingsPanel/filters/model.test.ts tests/webview/settingsPanel/filters/OrphansToggle.test.tsx tests/webview/settingsPanel/filters/MaxFilesControl.test.tsx tests/webview/settingsPanel/filters/Patterns.test.tsx tests/webview/settingsPanel/filters/Section.test.tsx tests/webview/settingsPanel/groups/CustomRowHeader.test.tsx tests/webview/settingsPanel/groups/CustomRow.test.tsx tests/webview/settingsPanel/groups/CustomEditor.test.tsx tests/webview/settingsPanel/groups/DefaultEditor.test.tsx tests/webview/settingsPanel/groups/DefaultRow.test.tsx tests/webview/settingsPanel/groups/Defaults.test.tsx tests/webview/settingsPanel/groups/persistence.test.ts tests/webview/settingsPanel/groups/useEditorState.test.tsx tests/webview/settingsPanel/groups/Custom.test.tsx tests/webview/settingsPanel/groups/Section.test.tsx`
+          - `91` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the local cleanup:
+          - `pnpm run mutate -- extension settings-panel`
+          - settings-panel slice overall = `94.33%`
+          - threshold blockers:
+            - `display/Section.tsx` = `82` sites at `93.75%`
+            - `filters/Section.tsx` = `51` sites at `98.04%`
+          - remaining sub-90 files:
+            - `display/timers.ts` = `72.22%`
+            - `groups/customRowState.ts` = `78.57%`
+            - `forces/Section.tsx` = `83.67%`
+            - `groups/DefaultEditor.tsx` = `85.71%`
+            - `groups/CustomEditor.tsx` = `87.50%`
+          - files cleared by this pass:
+            - `groups/CustomRow.tsx` = `100%`
+            - `groups/CustomRowHeader.tsx` = `100%`
+            - `groups/persistence.ts` = `100%`
+      - next cut:
+        - split `display/Section.tsx` and `filters/Section.tsx` under the `50`-site threshold
+        - then harden `display/timers.ts`, `groups/customRowState.ts`, `forces/Section.tsx`, `groups/DefaultEditor.tsx`, and `groups/CustomEditor.tsx`
+      - committed local follow-up now staged for the next push:
+        - extracted `filters/controller.ts` and `filters/patternActions.ts`
+        - extracted `forces/persistence.ts`
+        - hardened mutation tests for:
+          - `groups/CustomEditor.tsx`
+          - `groups/DefaultEditor.tsx`
+          - `groups/customRowState.ts`
+          - `groups/reorder.ts`
+        - added `vitest` sourcemap suppression in `packages/extension/vitest.config.ts`
+        - added env-driven Stryker runtime flags in `scripts/run-mutate.ts`
+      - latest full settings-panel rerun:
+        - `pnpm run mutate -- extension settings-panel`
+        - settings-panel slice overall = `99.31%`
+        - `✅ All files are within the mutation site threshold (50).`
+        - current floor files in the slice:
+          - `display/useColorUpdates.ts` = `94.12%`
+          - `display/useParticleSettings.ts` = `93.33%`
+          - `filters/Patterns.tsx` = `94.74%`
+          - `forces/Section.tsx` = `97.22%`
+          - `groups/useEditorState.ts` = `94.12%`
+        - direct wins from the latest pass:
+          - `display/ColorField.tsx` = `100.00%`
+          - `display/LabelsToggle.tsx` = `100.00%`
+          - `display/ModeButtons.tsx` = `100.00%`
+          - `display/Particles.tsx` = `100.00%`
+          - `groups/actions.ts` = `100.00%`
+          - `groups/Custom.tsx` = `100.00%`
+          - `groups/CustomAddForm.tsx` = `100.00%`
+          - `groups/customRowState.ts` = `100.00%`
+          - `groups/DefaultRow.tsx` = `100.00%`
+          - `groups/DefaultSection.tsx` = `100.00%`
+  - S3c `in_progress`: split `Graph.tsx` / `GraphViewProvider.ts` effect and message blocks into direct-test helpers.
+    - tests: add/update `packages/extension/tests/webview/graph/effects/*.test.ts` and `packages/extension/tests/extension/graphView/messages/*.test.ts`
+    - progress:
+      - extracted webview graph effect runners: `graph/effects/contextMenu.ts`, `interaction.ts`, `keyboard.ts`, `messages.ts`
+      - committed `988f36a`:
+        - extracted `graph/interactionHandlers.ts` and `graph/contextMenuRuntime.ts`
+        - added direct tests:
+          - `tests/webview/graph/interactionHandlers.test.ts`
+          - `tests/webview/graph/contextMenuRuntime.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/interactionHandlers.test.ts tests/webview/graph/contextMenuRuntime.test.ts tests/webview/GraphContextMenu.background.test.tsx tests/webview/GraphContextMenu.edge.test.tsx tests/webview/GraphContextMenu.node.test.tsx tests/webview/GraphCursor.test.tsx tests/webview/GraphDoubleClickFocus.test.tsx tests/webview/GraphDrag.test.tsx`
+          - `92` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - touched-file `eslint`
+        - next cut:
+          - refresh `graph-webview` mutation on the updated `Graph.tsx`
+          - keep draining tooltip/runtime and render-callback seams from current reports
+      - extracted extension graph-view message helpers: `graphView/messages/plugin.ts`, `graphView/messages/ready.ts`
+      - focused verification green:
+        - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/plugin.test.ts tests/extension/graphView/messages/ready.test.ts tests/webview/graph/effects/contextMenu.test.ts tests/webview/graph/effects/interaction.test.ts tests/webview/graph/effects/keyboard.test.ts tests/webview/graph/effects/messages.test.ts`
+        - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - next cut: rerun `crap` / targeted mutation and decide whether `Graph.tsx` or `GraphViewProvider.ts` gets the next split
+      - tooling follow-up: make `scripts/run-mutate.ts` accept extension slices so hot files can be iterated without full-package Stryker runs
+      - latest package gate status:
+        - `pnpm run crap -- extension` passed
+        - `pnpm run mutate -- extension graph-view-messages` = `97.80%`
+        - graph-view message slice now stays under the 50-site file threshold
+        - `pnpm run mutate -- extension graph-view-provider` = `31.09%`
+        - `GraphViewProvider.ts` still carries `1311` mutation sites inside that slice
+      - tooling landed:
+        - `scripts/run-mutate.ts` now supports `pnpm run mutate -- extension <slice>`
+        - `pnpm exec tsx scripts/run-mutate.ts --list-slices` prints available extension slices
+      - next target after this pass:
+        - stay on `GraphViewProvider.ts`
+        - first candidate seams from mutation output: settings/group loading, public wrapper methods, file-info helpers, and panel/webview send wrappers
+  - S3d `in_progress`: break `GraphViewProvider.ts` mutation density before survivor cleanup.
+    - tests: add/update matching file-per-module tests under `packages/extension/tests/extension/graphView/messages/*` and `packages/extension/tests/extension/graphView/*.test.ts`
+    - subagent split:
+      - `subagent/core-extension-nodefile-threshold`: split `graphView/messages/nodeFile.ts` under the `50`-site threshold with direct tests
+      - `subagent/core-extension-provider-settings`: extract remaining settings/config-update webview message handlers out of `_setWebviewMessageListener`
+    - current target:
+      - cut mutation-site count in `GraphViewProvider.ts` before spending time on survivors
+      - keep targeted provider/message suites green at each cut
+    - progress:
+      - extracted non-plugin message families to `graphView/messages/{nodeFile,exports,timeline,commands}.ts`
+      - extracted provider state helpers to `graphView/{groups,settings,fileInfo,visits}.ts`
+      - focused verification green:
+        - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/*.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts tests/extension/GraphViewProvider.fileInfo.test.ts tests/extension/GraphViewProvider.viewState.test.ts`
+        - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/{groups,settings,fileInfo,visits}.test.ts tests/extension/GraphViewProvider.fileInfo.test.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts`
+        - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - package-relative `eslint` on touched provider/helper files
+      - latest targeted mutation after the helper extractions:
+        - graph-view-provider slice overall = `44.85%`
+        - `GraphViewProvider.ts` = `33.67%`
+        - `GraphViewProvider.ts` mutation sites = `1150` (down from `1272`)
+        - `graphView/groups.ts` = `80.60%` with `67` sites
+        - `graphView/messages/nodeFile.ts` = `63.33%` with `60` sites
+        - `graphView/settings.ts` = `85.71%`
+        - `graphView/fileInfo.ts` = `80.00%`
+        - `graphView/visits.ts` = `100.00%`
+        - `graphView/messages/commands.ts` = `81.48%`
+      - current local threshold cut:
+        - split `graphView/groups.ts` into `groupState.ts` and `groupMessage.ts`
+        - replace `groups.test.ts` with file-per-module tests: `groupState.test.ts`, `groupMessage.test.ts`
+        - direct verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/groupState.test.ts tests/extension/graphView/groupMessage.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - package-relative `eslint` on touched `graphView/group*` files
+      - current local threshold cut in progress:
+        - split `graphView/messages/nodeFile.ts` into `nodeFileOpen.ts`, `nodeFileEdit.ts`, and `nodeFileNavigation.ts`
+        - add direct file-per-module tests: `nodeFileOpen.test.ts`, `nodeFileEdit.test.ts`, `nodeFileNavigation.test.ts`
+        - red-green checkpoint:
+          - red: focused `vitest` failed on missing helper modules before the extraction
+          - green:
+            - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/nodeFile.test.ts tests/extension/graphView/messages/nodeFileOpen.test.ts tests/extension/graphView/messages/nodeFileEdit.test.ts tests/extension/graphView/messages/nodeFileNavigation.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts`
+            - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+            - package-relative `eslint` on touched `graphView/messages/nodeFile*` files
+        - rerun after the `nodeFile` split:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - graph-view-provider slice overall = `46.56%`
+          - `graphView/messages/nodeFile.ts` = `100%`
+          - `GraphViewProvider.ts` remains the only file above the `50`-site threshold at `1150` sites
+      - current local provider drain:
+        - extract physics/settings/group-config webview handlers to `graphView/messages/{physics,settings,groups}.ts`
+        - add direct helper tests: `physics.test.ts`, `settings.test.ts`, `groups.test.ts`
+        - red-green checkpoint:
+          - red: focused `vitest` failed on missing helper modules before the extraction
+          - green:
+            - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/physics.test.ts tests/extension/graphView/messages/settings.test.ts tests/extension/graphView/messages/groups.test.ts tests/extension/GraphViewProvider.settingsPersistence.test.ts tests/extension/GraphViewProvider.test.ts`
+            - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+            - package-relative `eslint` on touched provider/message files
+      - latest targeted mutation after the provider message extraction:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `53.53%`
+        - `GraphViewProvider.ts` = `36.88%`
+        - `GraphViewProvider.ts` mutation sites = `1035` (down from `1150`)
+        - `graphView/messages/settings.ts` = `88.04%` with `92` sites
+      - current local threshold cut:
+        - split `graphView/messages/settings.ts` into `settingsConfig.ts`, `settingsDirection.ts`, and `settingsToggle.ts`
+        - add direct helper tests: `settingsConfig.test.ts`, `settingsDirection.test.ts`, `settingsToggle.test.ts`
+        - red-green checkpoint:
+          - red: focused `vitest` failed on missing helper modules before the extraction
+          - green:
+            - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/settings.test.ts tests/extension/graphView/messages/settingsConfig.test.ts tests/extension/graphView/messages/settingsDirection.test.ts tests/extension/graphView/messages/settingsToggle.test.ts tests/extension/GraphViewProvider.settingsPersistence.test.ts tests/extension/GraphViewProvider.test.ts`
+            - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+            - package-relative `eslint` on touched `graphView/messages/settings*` files
+      - rerun after the settings helper split:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `53.86%`
+        - `GraphViewProvider.ts` = `36.88%`
+        - `GraphViewProvider.ts` mutation sites = `1035`
+        - `graphView/messages/settings.ts` = `77.78%`
+        - `graphView/messages/settingsConfig.ts` = `94.29%`
+        - `graphView/messages/settingsDirection.ts` = `87.50%`
+        - `graphView/messages/settingsToggle.ts` = `82.61%`
+        - `GraphViewProvider.ts` is back to being the only file above the `50`-site threshold
+      - current local provider sync cut:
+        - extract provider-only sync logic to `graphView/groupSync.ts` and `graphView/allSettingsSync.ts`
+        - remove the now-dead `_captureSettingsSnapshot()` wrapper
+        - add direct tests: `groupSync.test.ts`, `allSettingsSync.test.ts`
+        - red-green checkpoint:
+          - red: focused `vitest` failed on missing sync helpers before the extraction
+          - green:
+            - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/groupSync.test.ts tests/extension/graphView/allSettingsSync.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/graphView/messages/ready.test.ts`
+            - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+            - package-relative `eslint` on touched provider/sync files
+      - rerun after the provider sync cut:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `53.86%`
+        - `GraphViewProvider.ts` = `36.83%`
+        - `GraphViewProvider.ts` mutation sites = `1039`
+        - `graphView/groupSync.ts` = `100.00%`
+        - `graphView/allSettingsSync.ts` = `33.33%`
+        - net result: provider is still the only file above the `50`-site threshold, and this cut did not materially lower its site count
+      - reviewed/integrated subagent cut: `subagent/core-extension-timeline`
+        - extract `graphView/timelineGraph.ts`, `timelineOpen.ts`, and `timelinePlayback.ts`
+        - add direct tests: `timelineGraph.test.ts`, `timelineOpen.test.ts`, `timelinePlayback.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/timelineGraph.test.ts tests/extension/graphView/timelinePlayback.test.ts tests/extension/graphView/timelineOpen.test.ts tests/extension/graphView/messages/timeline.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts tests/extension/graphView/messages/ready.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - package-relative `eslint` on touched timeline/provider files
+      - reviewed/integrated subagent cut: `subagent/core-extension-file-ops`
+        - extract `graphView/fileNavigation.ts`, `fileActions.ts`, `fileRename.ts`, and `favorites.ts`
+        - add direct tests: `fileNavigation.test.ts`, `fileActions.test.ts`, `fileRename.test.ts`, `favorites.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/fileNavigation.test.ts tests/extension/graphView/fileActions.test.ts tests/extension/graphView/fileRename.test.ts tests/extension/graphView/favorites.test.ts tests/extension/graphView/messages/nodeFile.test.ts tests/extension/graphView/messages/nodeFileEdit.test.ts tests/extension/graphView/messages/nodeFileNavigation.test.ts tests/extension/GraphViewProvider.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - package-relative `eslint` on touched file-operation/provider files
+      - rerun after the timeline + file-operation cuts:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `60.54%`
+        - `GraphViewProvider.ts` = `41.06%`
+        - `GraphViewProvider.ts` mutation sites = `915`
+      - current local provider plugin/webview cut:
+        - extract `graphView/pluginWebview.ts` and `externalPluginRegistration.ts`
+        - add direct tests: `pluginWebview.test.ts`, `externalPluginRegistration.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/pluginWebview.test.ts tests/extension/graphView/externalPluginRegistration.test.ts tests/extension/GraphViewProvider.publicApi.test.ts tests/extension/GraphViewProvider.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts tests/extension/graphView/messages/ready.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - package-relative `eslint` on touched plugin/provider files
+      - rerun after the plugin/webview cut:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `62.16%`
+        - `GraphViewProvider.ts` = `40.64%`
+        - `GraphViewProvider.ts` mutation sites = `855`
+        - `graphView/pluginWebview.ts` = `86.49%`
+        - `graphView/externalPluginRegistration.ts` = `79.07%`
+        - `GraphViewProvider.ts` remains the only file above the `50`-site threshold
+      - reviewed/integrated subagent cut: `subagent/core-extension-provider-analysis`
+        - extract `graphView/analysisRequest.ts`, `analysisExecution.ts`, and `timelineIndex.ts`
+        - add direct tests: `analysisRequest.test.ts`, `analysisExecution.test.ts`, `timelineIndex.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/analysisRequest.test.ts tests/extension/graphView/analysisExecution.test.ts tests/extension/graphView/timelineIndex.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts tests/extension/GraphViewProvider.nodeOpenBehavior.test.ts tests/extension/graphView/messages/timeline.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - reviewed/integrated subagent cut: `subagent/core-extension-provider-listener`
+        - extract `graphView/messages/dispatchPrimary.ts`, `dispatchPlugin.ts`, and `listener.ts`
+        - add direct tests: `dispatchPrimary.test.ts`, `dispatchPlugin.test.ts`, `listener.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/dispatchPrimary.test.ts tests/extension/graphView/messages/dispatchPlugin.test.ts tests/extension/graphView/messages/listener.test.ts tests/extension/graphView/messages/ready.test.ts tests/extension/GraphViewProvider.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts tests/extension/GraphViewProvider.publicApi.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - integrated regression fix:
+        - update `analysisRequest.ts` to publish live request/controller state immediately so `_isAnalysisStale()` and refresh cancellation still work during an active run
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/analysisRequest.test.ts tests/extension/GraphViewProvider.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - latest targeted mutation after the analysis + listener cuts:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `62.85%`
+        - `GraphViewProvider.ts` = `39.67%`
+        - `GraphViewProvider.ts` mutation sites = `721`
+        - threshold blockers now:
+          - `graphView/messages/dispatchPrimary.ts` = `86` sites
+          - `graphView/messages/dispatchPlugin.ts` = `56` sites
+          - `graphView/timelineIndex.ts` = `54` sites
+          - `GraphViewProvider.ts` = `721` sites
+      - next cut:
+        - split the new dispatcher/index helpers under the `50`-site threshold
+      - reviewed/integrated subagent cut: `subagent/core-extension-provider-view-state`
+        - extract `graphView/viewContext.ts`, `viewSelection.ts`, and `viewRebuild.ts`
+        - add direct tests: `viewContext.test.ts`, `viewSelection.test.ts`, `viewRebuild.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/viewContext.test.ts tests/extension/graphView/viewSelection.test.ts tests/extension/graphView/viewRebuild.test.ts tests/extension/GraphViewProvider.viewState.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - reviewed/integrated subagent cut: `subagent/core-extension-provider-message-config`
+        - extract `graphView/webviewBridge.ts`, `viewBroadcast.ts`, and `editorPanel.ts`
+        - add direct tests: `webviewBridge.test.ts`, `viewBroadcast.test.ts`, `editorPanel.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/webviewBridge.test.ts tests/extension/graphView/viewBroadcast.test.ts tests/extension/graphView/editorPanel.test.ts tests/extension/GraphViewProvider.publicApi.test.ts tests/extension/GraphViewProvider.viewState.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - integrated branch verification after the two new subagent cuts:
+        - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/viewContext.test.ts tests/extension/graphView/viewSelection.test.ts tests/extension/graphView/viewRebuild.test.ts tests/extension/graphView/webviewBridge.test.ts tests/extension/graphView/viewBroadcast.test.ts tests/extension/graphView/editorPanel.test.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/GraphViewProvider.publicApi.test.ts tests/extension/GraphViewProvider.lifecycle.test.ts tests/extension/GraphViewProvider.test.ts`
+        - `66` tests green
+        - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - latest targeted mutation after the view-state + webview bridge cuts:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `66.20%`
+        - `GraphViewProvider.ts` = `39.89%`
+        - `GraphViewProvider.ts` mutation sites = `571`
+        - new helpers all stay under threshold:
+          - `viewSelection.ts` = `36` sites
+          - `viewRebuild.ts` = `16` sites
+          - `viewContext.ts` = `15` sites
+          - `viewBroadcast.ts` = `14` sites
+          - `editorPanel.ts` = `8` sites
+          - `webviewBridge.ts` = `11` sites
+        - remaining threshold blockers:
+          - `GraphViewProvider.ts` = `571` sites
+          - `graphView/messages/dispatchPrimary.ts` = `86` sites
+          - `graphView/messages/dispatchPlugin.ts` = `56` sites
+          - `graphView/timelineIndex.ts` = `54` sites
+      - next cut:
+        - extract constructor/view-resolution bootstrap and settings/file-info/visit orchestration before another listener-context pass
+        - keep draining `GraphViewProvider.ts`, next likely seams: built-in/plugin group assembly, view-context/view-transform/send wrappers, and the `_setWebviewMessageListener` dependency object
+        - do not spend time on survivor cleanup until the provider file is also under the `50`-site threshold
+      - latest targeted mutation after the provider wrapper/listener/settings pass:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `69.12%`
+        - `GraphViewProvider.ts` = `41.94%`
+        - `GraphViewProvider.ts` mutation sites = `408`
+        - `graphView/messages/providerListener.ts` = `125` sites
+        - `graphView/messages/dispatchPrimary.ts` = `86` sites
+        - `graphView/messages/dispatchPlugin.ts` = `56` sites
+        - `graphView/timelineIndex.ts` = `54` sites
+      - latest targeted mutation after the current local commit stack:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `69.12%`
+        - `GraphViewProvider.ts` = `44.97%`
+        - `GraphViewProvider.ts` mutation sites = `358`
+        - remaining threshold blockers:
+          - `GraphViewProvider.ts` = `358` sites
+          - `graphView/messages/providerListener.ts` = `125` sites
+          - `graphView/messages/dispatchPrimary.ts` = `86` sites
+          - `graphView/messages/dispatchPlugin.ts` = `56` sites
+          - `graphView/timelineIndex.ts` = `54` sites
+      - current worker split:
+        - worker 1: add `graphView/providerAnalysisMethods.ts` and `providerRefreshMethods.ts` with direct tests
+        - worker 2: add `graphView/providerSettingsMethods.ts` and `providerFileVisitMethods.ts` with direct tests
+        - worker 3: add `graphView/providerPluginMethods.ts`, `providerViewMethods.ts`, and `providerCommandMethods.ts` with direct tests
+        - main branch: wire helper factories into `GraphViewProvider.ts`, keep helper files below the `50`-site threshold, rerun targeted mutation immediately after each integration cut
+      - next cut:
+        - convert remaining provider methods to bound helper factories so `GraphViewProvider.ts` becomes a thin declaration/wiring shell
+        - drain provider first; only then split `providerListener.ts`, `dispatchPrimary.ts`, `dispatchPlugin.ts`, and `timelineIndex.ts`
+      - current local integration batch before the next mutation rerun:
+        - wire `providerCommandMethods.ts`, `providerFileActionMethods.ts`, `providerTimelineMethods.ts`, and `providerPluginResourceMethods.ts` into `GraphViewProvider.ts`
+        - slim `providerPluginMethods.ts` down to plugin broadcasts + external registration only
+        - convert helper-owned provider state to `protected` members so extension `tsc` no longer flags extracted state as dead private fields
+        - update extension activation coverage to spy on instance-bound `refresh`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/extension.test.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/graphView/providerAnalysisMethods.test.ts tests/extension/graphView/providerRefreshMethods.test.ts tests/extension/graphView/providerSettingsMethods.test.ts tests/extension/graphView/providerFileVisitMethods.test.ts tests/extension/graphView/providerTimelineMethods.test.ts tests/extension/graphView/providerFileActionMethods.test.ts tests/extension/graphView/providerPluginMethods.test.ts tests/extension/graphView/providerPluginResourceMethods.test.ts tests/extension/graphView/providerCommandMethods.test.ts`
+          - `45` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - next immediate step:
+          - commit/push this helper-integration batch
+          - rerun `pnpm run mutate -- extension graph-view-provider`
+          - keep splitting `GraphViewProvider.ts` until it finally drops under the `50`-site threshold
+      - second local integration batch from stale-but-useful subagent worktrees:
+        - merge untracked `providerViewMethods.ts` + `providerViewMethods.test.ts` from `subagent/core-extension-provider-bindings-b`
+        - merge untracked `providerWebviewMethods.ts` + `providerWebviewMethods.test.ts` from `subagent/core-extension-provider-bindings-c`
+        - extend `providerCommandMethods.ts` to own `emitEvent`
+        - wire all three helper seams into `GraphViewProvider.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/GraphViewProvider.publicApi.test.ts tests/extension/extension.test.ts tests/extension/graphView/providerCommandMethods.test.ts tests/extension/graphView/providerViewMethods.test.ts tests/extension/graphView/providerWebviewMethods.test.ts`
+          - `35` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - next immediate step:
+          - commit/push this second helper batch
+          - prune the old subagent worktrees after the useful untracked files are now safely merged
+          - rerun `pnpm run mutate -- extension graph-view-provider`
+      - latest targeted mutation after the view/webview/helper cleanup pass:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `72.50%`
+        - `packages/extension/src/extension/GraphViewProvider.ts` = `53.13%`
+        - `GraphViewProvider.ts` mutation sites are now under threshold (`32` total mutants: `17` killed, `15` survived)
+        - remaining mutation-site threshold blockers:
+          - `packages/extension/src/extension/graphView/messages/providerListener.ts` = `125` sites
+          - `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts` = `86` sites
+          - `packages/extension/src/extension/graphView/providerAnalysisMethods.ts` = `73` sites
+          - `packages/extension/src/extension/graphView/providerViewMethods.ts` = `63` sites
+          - `packages/extension/src/extension/graphView/providerSettingsMethods.ts` = `59` sites
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `56` sites
+          - `packages/extension/src/extension/graphView/timelineIndex.ts` = `54` sites
+        - next hotspot order:
+          - split `providerListener.ts` first, then `dispatchPrimary.ts` / `dispatchPlugin.ts`
+          - split provider helper hotspots (`providerAnalysisMethods.ts`, `providerViewMethods.ts`, `providerSettingsMethods.ts`)
+          - finish with `timelineIndex.ts`, then start survivor cleanup once every file is under `50` sites
+      - current local split in progress:
+        - break `messages/providerListener.ts` into:
+          - `providerListenerReadContext.ts`
+          - `providerListenerPrimaryActions.ts`
+          - `providerListenerSettingsContext.ts`
+          - `providerListenerPluginContext.ts`
+        - add direct tests:
+          - `providerListenerReadContext.test.ts`
+          - `providerListenerPrimaryActions.test.ts`
+          - `providerListenerSettingsContext.test.ts`
+          - `providerListenerPluginContext.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/providerListener.test.ts tests/extension/graphView/messages/listener.test.ts tests/extension/graphView/messages/providerListenerReadContext.test.ts tests/extension/graphView/messages/providerListenerPrimaryActions.test.ts tests/extension/graphView/messages/providerListenerSettingsContext.test.ts tests/extension/graphView/messages/providerListenerPluginContext.test.ts`
+          - `8` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - next immediate step:
+          - commit/push the `providerListener.ts` split
+          - rerun mutation to confirm the `providerListener.ts` site count drops under `50`
+      - current local threshold-reduction batch:
+        - replace `providerViewMethods.ts` with `providerViewContextMethods.ts` + `providerViewSelectionMethods.ts`
+        - split `timelineIndex.ts` into `timelineIndexSetup.ts` + `timelineIndexResult.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GraphViewProvider.viewState.test.ts tests/extension/extension.test.ts tests/extension/graphView/providerViewContextMethods.test.ts tests/extension/graphView/providerViewSelectionMethods.test.ts tests/extension/graphView/timelineIndex.test.ts tests/extension/graphView/timelineIndexSetup.test.ts tests/extension/graphView/timelineIndexResult.test.ts tests/extension/graphView/providerTimeline.test.ts tests/extension/graphView/providerTimelineMethods.test.ts`
+          - `35` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - touched-file `eslint` green
+        - next immediate step:
+          - commit/push this batch
+          - merge any parallel worker cuts for `providerListener.ts`, `dispatchPrimary.ts`, `dispatchPlugin.ts`, and `providerAnalysisMethods.ts`
+          - rerun `pnpm run mutate -- extension graph-view-provider`
+      - current local threshold-reduction follow-up:
+        - split `dispatchPrimary.ts` into adapter/state helpers:
+          - `dispatchPrimaryNodeFileHandlers.ts`
+          - `dispatchPrimaryGroupMessageState.ts`
+          - `dispatchPrimarySettingsMessageState.ts`
+        - split `timelineIndex.ts` execution path into `timelineIndexExecution.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/dispatchPrimary.test.ts tests/extension/graphView/messages/dispatchPrimaryNodeFileHandlers.test.ts tests/extension/graphView/messages/dispatchPrimaryGroupMessageState.test.ts tests/extension/graphView/messages/dispatchPrimarySettingsMessageState.test.ts tests/extension/graphView/timelineIndex.test.ts tests/extension/graphView/timelineIndexExecution.test.ts`
+          - `10` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - next immediate step:
+          - commit/push this follow-up batch
+          - rerun `pnpm run mutate -- extension graph-view-provider`
+          - keep splitting `providerAnalysisMethods.ts` and `dispatchPlugin.ts` in parallel
+      - current local threshold-closure batch:
+        - split `dispatchPlugin.ts` into:
+          - `dispatchPluginReady.ts`
+          - `dispatchPluginHiddenGroups.ts`
+        - split `providerAnalysisMethods.ts` into:
+          - `providerAnalysisMethodDelegates.ts`
+          - `providerAnalysisMethodState.ts`
+          - `providerAnalysisMethodHandlers.ts`
+          - `providerAnalysisExecutionMethods.ts`
+          - `providerAnalysisRequestMethods.ts`
+        - update `externalPluginRegistration.ts` and `providerPluginMethods.ts` so late plugin registration reads live provider readiness state and still initializes plugins after readiness replay
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/dispatchPlugin.test.ts tests/extension/graphView/messages/dispatchPluginHiddenGroups.test.ts tests/extension/graphView/messages/dispatchPluginReady.test.ts`
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerAnalysisMethods.test.ts tests/extension/graphView/providerAnalysisMethodDelegates.test.ts tests/extension/graphView/providerAnalysisMethodHandlers.test.ts tests/extension/graphView/providerAnalysisMethodState.test.ts tests/extension/graphView/providerAnalysisExecutionMethods.test.ts tests/extension/graphView/providerAnalysisRequestMethods.test.ts tests/extension/graphView/providerPluginMethods.test.ts tests/extension/graphView/externalPluginRegistration.test.ts`
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GraphViewProvider.test.ts -t "plugin API v2 webview bridge"`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the threshold-closure batch:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - graph-view-provider slice overall = `77.68%`
+          - `packages/extension/src/extension/GraphViewProvider.ts` = `53.13%`
+          - `packages/extension/src/extension/graphView/providerAnalysisMethods.ts` = `64.71%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - next immediate step:
+          - stop splitting for site-count reasons in this slice
+          - start survivor cleanup and test hardening against the lowest-scoring files now that every mutated file is under `50` sites
+      - current local survivor-hardening batch:
+        - extend direct tests for:
+          - `providerPluginMethods.ts`
+          - `providerSettingsStateMethods.ts`
+          - `providerTimeline.ts`
+          - `providerWebviewMethods.ts`
+          - `allSettingsSync.ts`
+        - add default-dependency coverage in:
+          - `providerTimelineDefaultDependencies.test.ts`
+          - `providerWebviewMethodsDefaultDependencies.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerPluginMethods.test.ts tests/extension/graphView/providerSettingsStateMethods.test.ts tests/extension/graphView/providerTimeline.test.ts tests/extension/graphView/providerTimelineDefaultDependencies.test.ts tests/extension/graphView/providerWebviewMethods.test.ts tests/extension/graphView/providerWebviewMethodsDefaultDependencies.test.ts tests/extension/graphView/allSettingsSync.test.ts tests/extension/graphView/externalPluginRegistration.test.ts`
+          - `42` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - touched-file `eslint` green
+        - latest targeted mutation after the second survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - `packages/extension/src/extension/graphView/providerPluginMethods.ts` = `97.14%`
+          - `packages/extension/src/extension/graphView/providerSettingsStateMethods.ts` = `97.14%`
+          - `packages/extension/src/extension/graphView/providerTimeline.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerWebviewMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/allSettingsSync.ts` = `100.00%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the next helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerFileNavigation.test.ts tests/extension/graphView/providerFileNavigationDefaultDependencies.test.ts tests/extension/graphView/providerPhysicsSettingsMethods.test.ts tests/extension/graphView/providerViewContextMethods.test.ts`
+          - `14` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the third survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - `packages/extension/src/extension/graphView/providerViewContextMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerPhysicsSettingsMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerFileNavigation.ts` = `100.00%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the fourth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerAnalysisMethods.test.ts tests/extension/graphView/providerAnalysisMethodState.test.ts tests/extension/graphView/providerFileVisitMethods.test.ts tests/extension/graphView/providerFileVisitMethodsDefaultDependencies.test.ts`
+          - `19` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the fourth survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - graph-view-provider slice overall = `83.15%`
+          - `packages/extension/src/extension/graphView/providerAnalysisMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerAnalysisMethodState.ts` = `96.00%`
+          - `packages/extension/src/extension/graphView/providerFileVisitMethods.ts` = `78.95%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the fifth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerViewSelectionMethods.test.ts tests/extension/graphView/providerFileVisitMethods.test.ts tests/extension/graphView/providerFileVisitMethodsDefaultDependencies.test.ts`
+          - `12` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the fifth survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - graph-view-provider slice overall = `84.02%`
+          - `packages/extension/src/extension/graphView/providerAnalysisMethodState.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerFileVisitMethods.ts` = `94.74%`
+          - `packages/extension/src/extension/graphView/providerViewSelectionMethods.ts` = `96.55%`
+          - `packages/extension/src/extension/graphView/providerRefreshMethods.ts` = `85.71%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the sixth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerTimelineMethods.test.ts`
+          - `5` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the sixth survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - graph-view-provider slice overall = `84.32%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerFileActionMethods.ts` = `64.52%`
+          - `packages/extension/src/extension/graphView/providerAnalysisMethodDelegates.ts` = `86.96%`
+          - `packages/extension/src/extension/graphView/providerRefreshMethods.ts` = `85.71%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the seventh helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerFileActionMethods.test.ts tests/extension/graphView/providerRefreshMethods.test.ts`
+          - `18` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the seventh survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - `packages/extension/src/extension/graphView/providerFileActionMethods.ts` = `97.50%`
+          - `packages/extension/src/extension/graphView/providerRefreshMethods.ts` = `97.06%`
+          - `packages/extension/src/extension/graphView/providerAnalysisMethodDelegates.ts` = `86.96%`
+          - `packages/extension/src/extension/graphView/timelineIndex.ts` = `61.90%`
+          - `packages/extension/src/extension/GraphViewProvider.ts` = `53.13%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the eighth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerAnalysisMethodDelegates.test.ts tests/extension/graphView/messages/providerListenerPrimaryActions.test.ts tests/extension/GraphViewProvider.bootstrap.test.ts`
+          - `13` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the eighth survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - `packages/extension/src/extension/graphView/providerAnalysisMethodDelegates.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/providerListenerPrimaryActions.ts` = `100.00%`
+          - `packages/extension/src/extension/GraphViewProvider.ts` = `91.67%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the ninth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/timelineIndex.test.ts`
+          - `5` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the ninth survivor pass:
+          - `packages/extension/src/extension/graphView/timelineIndex.ts` = `100.00%`
+          - `packages/extension/src/extension/GraphViewProvider.ts` = `91.67%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/timelineOpen.ts` = `70.59%`
+          - `packages/extension/src/extension/graphView/viewContext.ts` = `73.33%`
+          - `packages/extension/src/extension/graphView/viewRebuild.ts` = `75.00%`
+          - `packages/extension/src/extension/graphView/providerListener.ts` = `22.22%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the tenth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/providerListener.test.ts tests/extension/graphView/timelineOpen.test.ts tests/extension/graphView/viewContext.test.ts`
+          - `16` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+        - latest targeted mutation after the tenth survivor pass:
+          - `pnpm run mutate -- extension graph-view-provider`
+          - `packages/extension/src/extension/graphView/messages/providerListener.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/timelineOpen.ts` = `94.12%`
+          - `packages/extension/src/extension/graphView/viewContext.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/viewRebuild.ts` = `75.00%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the eleventh helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerViewContextMethods.test.ts tests/extension/graphView/viewRebuild.test.ts`
+          - `12` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the eleventh helper pass:
+          - graph-view-provider slice overall = `84.25%`
+          - `packages/extension/src/extension/graphView/providerViewContextMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/viewRebuild.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/messages/providerListenerPluginContext.ts` = `76.32%`
+          - `packages/extension/src/extension/graphView/messages/providerListenerSettingsContext.ts` = `76.92%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the twelfth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/providerListenerPluginContext.test.ts tests/extension/graphView/messages/providerListenerSettingsContext.test.ts`
+          - `6` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the twelfth helper pass:
+          - graph-view-provider slice overall = `84.87%`
+          - `packages/extension/src/extension/graphView/viewRebuild.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerViewContextMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/providerListenerPluginContext.ts` = `97.37%`
+          - `packages/extension/src/extension/graphView/messages/providerListenerSettingsContext.ts` = `96.15%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts` = `51.28%`
+          - `packages/extension/src/extension/graphView/messages/exports.ts` = `50.00%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the thirteenth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/builtInPluginRoots.test.ts tests/extension/graphView/builtInDefaultGroups.test.ts tests/extension/graphView/pluginDefaultGroups.test.ts tests/extension/graphView/providerPluginResourceMethods.test.ts`
+          - `9` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the thirteenth helper pass:
+          - graph-view-provider slice overall = `86.42%`
+          - `packages/extension/src/extension/graphView/builtInDefaultGroups.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/builtInPluginRoots.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts` = `51.28%`
+          - `packages/extension/src/extension/graphView/messages/exports.ts` = `50.00%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the fourteenth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/exports.test.ts`
+          - `6` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the fourteenth helper pass:
+          - graph-view-provider slice overall = `86.85%`
+          - `packages/extension/src/extension/graphView/messages/exports.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts` = `51.28%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
+          - `packages/extension/src/extension/graphView/physicsConfig.ts` = `33.33%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the fifteenth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/physicsConfig.test.ts`
+          - `2` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the fifteenth helper pass:
+          - graph-view-provider slice overall = `87.15%`
+          - `packages/extension/src/extension/graphView/physicsConfig.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `65.00%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts` = `51.28%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
+          - `packages/extension/src/extension/graphView/editorPanel.ts` = `50.00%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the sixteenth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerTimelineMethods.test.ts`
+          - `7` tests green
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/editorPanel.test.ts`
+          - `1` test green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the sixteenth helper pass:
+          - graph-view-provider slice overall = `88.03%`
+          - `packages/extension/src/extension/graphView/providerTimelineMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/editorPanel.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts` = `51.28%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
+          - `packages/extension/src/extension/graphView/timelinePlayback.ts` = `84.62%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - focused verification green for the seventeenth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/messages/dispatchPrimary.test.ts`
+          - `8` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the seventeenth helper pass:
+          - graph-view-provider slice overall = `89.04%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPrimary.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `65.63%`
+          - `packages/extension/src/extension/graphView/timelinePlayback.ts` = `84.62%`
+          - `packages/extension/src/extension/graphView/pluginDefaultGroups.ts` = `73.81%`
+          - `packages/extension/src/extension/graphView/providerPluginResourceMethods.ts` = `83.33%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+      - focused verification green for the eighteenth helper pass:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/analysisExecution.test.ts tests/extension/graphView/providerFileVisitMethods.test.ts tests/extension/graphView/providerFileVisitMethodsDefaultDependencies.test.ts tests/extension/graphView/messages/dispatchPlugin.test.ts tests/extension/graphView/messages/listener.test.ts tests/extension/graphView/pluginDefaultGroups.test.ts tests/extension/graphView/providerPluginResourceMethods.test.ts tests/extension/graphView/timelinePlayback.test.ts`
+          - `46` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the eighteenth helper pass:
+          - graph-view-provider slice overall = `92.35%`
+          - `packages/extension/src/extension/graphView/messages/dispatchPlugin.ts` = `93.75%`
+          - `packages/extension/src/extension/graphView/messages/listener.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/groups.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/timeline.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/timelinePlayback.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/analysisExecution.ts` = `92.31%`
+          - `packages/extension/src/extension/graphView/pluginDefaultGroups.ts` = `97.62%`
+          - `packages/extension/src/extension/graphView/providerPluginResourceMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerFileVisitMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/fileNavigation.ts` = `96.67%`
+          - result: `✅ All files are within the mutation site threshold (50).`
+        - next immediate step:
+          - keep climbing the remaining sub-90 extension files instead of reopening file-splitting
+          - use current mutation report ordering rather than the older provider-only hotspot list
+          - next hotspot order:
+            - `providerPhysicsSettingsMethods.ts`
+            - `timelineGraph.ts`
+            - `providerFileNavigation.ts`
+            - `externalPluginRegistration.ts`
+            - `settings.ts`
+            - `viewBroadcast.ts`
+      - current local survivor pass:
+        - refactor `providerPhysicsSettingsMethods.ts` so default dependencies are created lazily instead of captured as a module-level constant
+        - keep the dedicated default-dependency test file and existing provider physics tests green
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerPhysicsSettingsMethods.test.ts tests/extension/graphView/providerPhysicsSettingsMethodsDefaultDependencies.test.ts`
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the current local survivor pass:
+          - graph-view-provider slice overall = `93.07%`
+          - `packages/extension/src/extension/graphView/providerPhysicsSettingsMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/timelineGraph.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerFileVisitMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerPluginResourceMethods.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/groups.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/timeline.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/fileNavigation.ts` = `96.67%`
+          - `packages/extension/src/extension/graphView/pluginDefaultGroups.ts` = `97.62%`
+          - `packages/extension/src/extension/graphView/analysisExecution.ts` = `92.31%`
+          - result: `✅ All files remain within the mutation site threshold (50).`
+        - next immediate step:
+          - move off the already-cleared physics/timeline files
+          - target the remaining sub-90 helpers in this order:
+            - `externalPluginRegistration.ts`
+            - `settings.ts`
+            - `viewBroadcast.ts`
+            - `groupState.ts`
+            - `fileInfo.ts`
+      - current local survivor pass:
+        - harden `externalPluginRegistration.ts`, `settings.ts`, `viewBroadcast.ts`, and `groupState.ts` with direct default/branch tests
+        - harden `fileActions.ts`, `groupMessage.ts`, and `analysisLifecycle.ts` with branch/default-path coverage
+        - integrate fallback-path tests for `fileInfo.ts`, `fileInfoMessage.ts`, `fileInfoRequest.ts`, and `messages/nodeFileNavigation.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/settings.test.ts tests/extension/graphView/viewBroadcast.test.ts tests/extension/graphView/externalPluginRegistration.test.ts tests/extension/graphView/groupState.test.ts tests/extension/graphView/fileInfo.test.ts tests/extension/graphView/analysisLifecycle.test.ts tests/extension/graphView/fileActions.test.ts tests/extension/graphView/fileInfoMessage.test.ts tests/extension/graphView/fileInfoRequest.test.ts tests/extension/graphView/groupMessage.test.ts tests/extension/graphView/messages/nodeFileNavigation.test.ts`
+          - `59` tests green
+          - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the current local survivor pass:
+          - graph-view-provider slice overall = `94.91%`
+          - `packages/extension/src/extension/graphView/externalPluginRegistration.ts` = `97.50%`
+          - `packages/extension/src/extension/graphView/settings.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/viewBroadcast.ts` = `92.86%`
+          - `packages/extension/src/extension/graphView/groupState.ts` = `94.74%`
+          - `packages/extension/src/extension/graphView/fileInfo.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/fileInfoMessage.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/fileInfoRequest.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/fileActions.ts` = `89.47%`
+          - `packages/extension/src/extension/graphView/groupMessage.ts` = `96.43%`
+          - `packages/extension/src/extension/graphView/analysisLifecycle.ts` = `91.18%`
+          - `packages/extension/src/extension/graphView/messages/nodeFileNavigation.ts` = `100.00%`
+          - result: `✅ All files remain within the mutation site threshold (50).`
+        - next immediate step:
+          - keep using the latest report ordering rather than the stale provider-only list
+          - target the remaining sub-90 helpers in this order:
+            - `providerFileNavigation.ts`
+            - `messages/settings.ts`
+            - `favorites.ts`
+            - `mergedGroups.ts`
+            - `messages/commands.ts`
+      - current local survivor pass:
+        - refactor `providerFileNavigation.ts` to resolve default dependencies lazily instead of holding a module-level constant
+        - harden `pluginWebview.ts`, `messages/settings.ts`, `messages/commands.ts`, `favorites.ts`, and `mergedGroups.ts` with direct branch/default/fallback tests
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerFileNavigation.test.ts tests/extension/graphView/providerFileNavigationDefaultDependencies.test.ts tests/extension/graphView/favorites.test.ts tests/extension/graphView/mergedGroups.test.ts tests/extension/graphView/pluginWebview.test.ts tests/extension/graphView/messages/commands.test.ts tests/extension/graphView/messages/settings.test.ts`
+          - `55` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the current local survivor pass:
+          - graph-view-provider slice overall = `95.90%`
+          - `packages/extension/src/extension/graphView/providerFileNavigation.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/pluginWebview.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/favorites.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/mergedGroups.ts` = `95.00%`
+          - `packages/extension/src/extension/graphView/messages/commands.ts` = `96.30%`
+          - `packages/extension/src/extension/graphView/messages/settings.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/messages/settingsDirection.ts` = `92.50%`
+          - result: `✅ All files remain within the mutation site threshold (50).`
+        - next immediate step:
+          - stay on the remaining sub-90 helpers from the fresh report instead of reopening the cleared lanes
+          - target the remaining sub-90 helpers in this order:
+            - `messages/settingsToggle.ts`
+            - `providerWebviewMethods.ts`
+            - `timelineIndexExecution.ts`
+            - `timelineIndexSetup.ts`
+            - `analysisRequest.ts`
+      - current local survivor pass:
+        - refactor `providerWebviewMethods.ts` to resolve default dependencies lazily instead of holding a module-level constant
+        - harden `messages/settingsToggle.ts` and `providerWebviewMethodsDefaultDependencies.test.ts` to cover the remaining default/fallback paths
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerWebviewMethods.test.ts tests/extension/graphView/providerWebviewMethodsDefaultDependencies.test.ts tests/extension/graphView/messages/settingsToggle.test.ts`
+          - `16` tests green
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the current local survivor pass:
+          - graph-view-provider slice overall = `96.28%`
+          - `packages/extension/src/extension/graphView/messages/settingsToggle.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/providerWebviewMethods.ts` = `94.44%`
+          - result: `✅ All files remain within the mutation site threshold (50).`
+        - next immediate step:
+          - move fully onto the remaining timeline/request/view-selection helper survivors
+          - target the remaining sub-90 helpers in this order:
+            - `timelineIndexExecution.ts`
+            - `timelineIndexSetup.ts`
+            - `analysisRequest.ts`
+            - `timelineIndexResult.ts`
+            - `providerTimeline.ts`
+      - current local survivor pass:
+        - harden `timelineIndexExecution.ts`, `timelineIndexSetup.ts`, and `timelineIndexResult.ts` with abort/no-commit/missing-sha coverage
+        - harden `analysisRequest.ts` with abort-error and replaced-controller coverage
+        - tighten `visits.ts` assertions, though one string-key survivor still remains
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/timelineIndexExecution.test.ts tests/extension/graphView/timelineIndexSetup.test.ts tests/extension/graphView/timelineIndexResult.test.ts`
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/analysisRequest.test.ts tests/extension/graphView/visits.test.ts`
+          - `pnpm run mutate -- extension graph-view-provider`
+        - latest targeted mutation after the current local survivor pass:
+          - graph-view-provider slice overall = `97.08%`
+          - `packages/extension/src/extension/graphView/timelineIndexExecution.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/timelineIndexSetup.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/timelineIndexResult.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/analysisRequest.ts` = `100.00%`
+          - `packages/extension/src/extension/graphView/visits.ts` = `87.50%`
+          - result: `✅ All files remain within the mutation site threshold (50).`
+        - next immediate step:
+          - focus on the remaining sub-90 provider/view-state helpers
+          - target the remaining sub-90 helpers in this order:
+            - `providerTimeline.ts`
+            - `providerViewSelectionMethods.ts`
+            - `visits.ts`
+            - `providerAnalysisMethods.ts`
+            - `fileRename.ts`
+      - current local survivor pass:
+        - refactor `providerAnalysisMethods.ts` and `providerSettingsStateMethods.ts` to build default dependencies lazily at runtime instead of holding module-level default objects
+        - refactor `visits.ts` to read the storage key through a runtime getter so the key path is mutation-covered
+        - add file-per-module default-dependency coverage in:
+          - `tests/extension/graphView/providerAnalysisMethodsDefaultDependencies.test.ts`
+          - `tests/extension/graphView/providerSettingsStateMethodsDefaultDependencies.test.ts`
+        - focused verification green:
+          - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/graphView/providerAnalysisMethods.test.ts tests/extension/graphView/providerAnalysisMethodsDefaultDependencies.test.ts tests/extension/graphView/providerSettingsStateMethods.test.ts tests/extension/graphView/providerSettingsStateMethodsDefaultDependencies.test.ts tests/extension/graphView/visits.test.ts`
+          - `25` tests green
+          - `pnpm run mutate -- extension visits-refresh --mutate 'packages/extension/src/extension/graphView/visits.ts'`
+          - `pnpm run mutate -- extension analysis-settings-refresh --mutate 'packages/extension/src/extension/graphView/providerAnalysisMethods.ts,packages/extension/src/extension/graphView/providerSettingsStateMethods.ts'`
+        - latest targeted mutation after the current local survivor pass:
+          - `packages/extension/src/extension/graphView/visits.ts` = `100.00%` with `9` sites
+          - `packages/extension/src/extension/graphView/providerAnalysisMethods.ts` = `100.00%` with `20` sites
+          - `packages/extension/src/extension/graphView/providerSettingsStateMethods.ts` = `100.00%` with `40` sites
+      - result: `✅ All three files are above the 90% goal and within the mutation site threshold (50).`
+        - note:
+          - the last reusable whole `graph-view-provider` slice report had only `visits.ts` and `providerAnalysisMethods.ts` below `90%`
+          - both of those files now clear via focused reruns; the next full-slice refresh is about re-baselining/reporting, not debugging known survivors
+      - latest whole-slice refreshes:
+        - `pnpm run mutate -- extension graph-view-provider`
+        - graph-view-provider slice overall = `98.08%`
+        - `GraphViewProvider.ts` = `91.67%`
+        - result: `✅ Every file in the graph-view-provider slice is above 90% and within the mutation site threshold (50).`
+        - `pnpm run mutate -- extension graph-view-messages`
+        - graph-view-messages slice overall = `98.13%`
+        - result: `✅ Every file in the graph-view-messages slice is above 90% and within the mutation site threshold (50).`
+- S4 `in_progress`: finish the workspace-analysis slice, then resume the next independent hotspot.
+  - tests: add/update matching file-per-module tests for `WorkspaceAnalyzer.ts` and `workspaceAnalyzer/**/*`
+  - progress:
+    - split `WorkspaceAnalyzer.ts` orchestration into `workspaceAnalyzer/{analyze,discovery,files,graph,initialize,io,plugins,preAnalyze,run,state}.ts`
+    - added matching helper tests plus `WorkspaceAnalyzer.delegates.test.ts` for the remaining class wrappers
+    - expanded `scripts/run-mutate.ts` so the `workspace-analysis` slice includes `workspaceAnalyzer/**/*.ts`
+    - focused verification green:
+      - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/WorkspaceAnalyzer*.test.ts tests/extension/workspaceAnalysisCache.test.ts tests/extension/workspaceAnalyzerAbort.test.ts tests/extension/workspaceFileAnalysis.test.ts tests/extension/workspaceGraph*.test.ts tests/extension/workspacePluginStatuses.test.ts tests/extension/workspaceAnalyzer/*.test.ts`
+      - `107` tests green
+      - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+      - package-relative `eslint` on touched workspace-analysis files
+    - latest targeted mutation after the current local pass:
+      - focused `workspace-analysis` slice overall = `100.00%`
+      - `WorkspaceAnalyzer.ts` = `100.00%`
+      - `workspaceAnalyzer/analyze.ts` = `100.00%`
+      - `workspaceAnalyzer/discovery.ts` = `100.00%`
+      - `workspaceAnalyzer/files.ts` = `100.00%`
+      - `workspaceAnalyzer/graph.ts` = `100.00%`
+      - `workspaceAnalyzer/initialize.ts` = `100.00%`
+      - `workspaceAnalyzer/io.ts` = `100.00%`
+      - `workspaceAnalyzer/plugins.ts` = `100.00%`
+      - `workspaceAnalyzer/preAnalyze.ts` = `100.00%`
+      - `workspaceAnalyzer/run.ts` = `100.00%`
+      - `workspaceAnalyzer/state.ts` = `100.00%`
+      - `workspaceAnalysisCache.ts` = `100.00%`
+      - `workspaceAnalyzerAbort.ts` = `100.00%`
+      - `workspaceFileAnalysis.ts` = `100.00%`
+      - `workspaceGraphData.ts` = `100.00%`
+      - `workspaceGraphEdges.ts` = `100.00%`
+      - `workspaceGraphNodes.ts` = `100.00%`
+      - `workspacePluginStatuses.ts` = `100.00%`
+      - result: `✅ Every file in the workspace-analysis slice is above 90% and within the mutation site threshold (50).`
+  - next:
+    - commit and push the workspace-analysis delegate-hardening follow-up
+    - refresh the next extension slice after the workspace-analysis merge
+- S5 `pending`: rerun package workflow gates and update PR with current state.
+  - tests: full `pnpm --filter @codegraphy/extension test`, `pnpm run crap -- extension`, targeted/package mutation runs, lint, typecheck
+
+## Latest graph-webview pass
+- 2026-03-15 local pass:
+  - split `graph/rendering/nodes2d.ts` into `nodeBody.ts`, `nodeMedia.ts`, `nodePointer.ts`, and `nodeCanvasShared.ts`
+  - verified existing `links.ts` helper breakup now routes through:
+    - `bidirectionalLink.ts`
+    - `bidirectionalLineGeometry.ts`
+    - `bidirectionalArrowGeometry.ts`
+    - `linkColors.ts`
+    - `linkMetrics.ts`
+  - accepted worker-driven `Graph.tsx` orchestration split into:
+    - `graph/Viewport.tsx`
+    - `graph/runtime/useGraphState.ts`
+    - `graph/runtime/useGraphInteractionRuntime.ts`
+    - `graph/runtime/useGraphEventEffects.ts`
+    - `graph/rendering/useGraphCallbacks.ts`
+  - local follow-up split completed for the remaining graph runtime hotspots:
+    - `graph/runtime/useGraphRenderingRuntime.ts` now delegates to:
+      - `containerSize.ts`
+      - `physics.ts`
+      - `pluginOverlays.ts`
+      - `useDirectional.ts`
+      - `useLabelVisibility.ts`
+      - `useMeshHighlights.ts`
+      - `useNodeAppearance.ts`
+      - `usePhysicsRuntime.ts`
+    - `graph/runtime/useGraphTooltip.ts` now delegates to:
+      - `useTooltipHandlers.ts`
+      - `useTooltipState.ts`
+      - existing `tooltipHover.ts`
+      - existing `tooltipRect.ts`
+      - existing `tooltipTracking.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/bidirectionalLink.test.ts tests/webview/graph/rendering/linkColors.test.ts tests/webview/graph/rendering/linkMetrics.test.ts tests/webview/graph/rendering/bidirectionalLineGeometry.test.ts tests/webview/graph/rendering/bidirectionalArrowGeometry.test.ts tests/webview/graph/rendering/nodeBody.test.ts tests/webview/graph/rendering/nodeMedia.test.ts tests/webview/graph/rendering/nodePointer.test.ts tests/webview/graph/rendering/links.test.ts tests/webview/graph/rendering/nodes2d.test.ts tests/webview/graph/rendering/nodes3d.test.ts`
+    - `39` rendering tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/Graph.test.tsx tests/webview/GraphDrag.test.tsx tests/webview/GraphCursor.test.tsx tests/webview/GraphDoubleClickFocus.test.tsx tests/webview/GraphContextMenu.background.test.tsx tests/webview/GraphContextMenu.node.test.tsx tests/webview/GraphContextMenu.edge.test.tsx tests/webview/graph/Viewport.test.tsx`
+    - `101` graph + viewport tests green
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/runtime/containerSize.test.tsx tests/webview/graph/runtime/physics.test.ts tests/webview/graph/runtime/pluginOverlays.test.tsx tests/webview/graph/runtime/tooltipHover.test.ts tests/webview/graph/runtime/tooltipRect.test.ts tests/webview/graph/runtime/tooltipTracking.test.ts tests/webview/graph/runtime/useDirectional.test.tsx tests/webview/graph/runtime/useGraphTooltip.test.tsx tests/webview/graph/runtime/useLabelVisibility.test.tsx tests/webview/graph/runtime/useMeshHighlights.test.tsx tests/webview/graph/runtime/useNodeAppearance.test.tsx tests/webview/graph/runtime/usePhysicsRuntime.test.tsx tests/webview/graph/runtime/useTooltipHandlers.test.tsx tests/webview/graph/runtime/useTooltipState.test.tsx`
+    - `23` graph runtime tests green
+    - file-scoped `eslint` over touched graph rendering/runtime files and tests
+  - fresh dry-run mutation site counts:
+    - `packages/extension/src/webview/components/Graph.tsx` = `49`
+    - `packages/extension/src/webview/components/graph/Viewport.tsx` = `25`
+    - `packages/extension/src/webview/components/graph/rendering/useGraphCallbacks.ts` = `30`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphState.ts` = `25`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphInteractionRuntime.ts` = `49`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphEventEffects.ts` = `37`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphRenderingRuntime.ts` = `7`
+    - `packages/extension/src/webview/components/graph/runtime/containerSize.ts` = `14`
+    - `packages/extension/src/webview/components/graph/runtime/physics.ts` = `43`
+    - `packages/extension/src/webview/components/graph/runtime/pluginOverlays.ts` = `14`
+    - `packages/extension/src/webview/components/graph/runtime/useDirectional.ts` = `26`
+    - `packages/extension/src/webview/components/graph/runtime/useGraphTooltip.ts` = `3`
+    - `packages/extension/src/webview/components/graph/runtime/useLabelVisibility.ts` = `4`
+    - `packages/extension/src/webview/components/graph/runtime/useMeshHighlights.ts` = `25`
+    - `packages/extension/src/webview/components/graph/runtime/useTooltipHandlers.ts` = `22`
+    - `packages/extension/src/webview/components/graph/runtime/useNodeAppearance.ts` = `25`
+    - `packages/extension/src/webview/components/graph/runtime/usePhysicsRuntime.ts` = `38`
+    - `packages/extension/src/webview/components/graph/runtime/useTooltipState.ts` = `7`
+    - `packages/extension/src/webview/components/graph/rendering/nodes2d.ts` = `18`
+    - `packages/extension/src/webview/components/graph/interactionHandlers.ts` = `8`
+    - `packages/extension/src/webview/components/graph/contextMenuRuntime.ts` = `10`
+  - status after the runtime follow-up:
+    - every checked graph-webview hotspot in this pass is now under the `50` mutation-site threshold
+    - next step is a fresh whole-slice `graph-webview` rerun for mutation score, not more threshold cuts in the current hotspots
+  - local survivor follow-up before the next timeline split:
+    - refactored `graph/interactionHandlers/contextMenuHandlers.ts` to normalize missing callback events through an explicit pointer-state object instead of optional chaining fallbacks
+    - refactored `graph/runtime/useTooltipHandlers.ts` to remove mutation-heavy `useCallback` wrappers and added direct cleanup coverage for the no-timeout unmount path
+    - hardened `tests/webview/Graph.wiring.test.tsx` so the default dark-theme path is asserted directly instead of only through viewport colors
+    - focused verification green:
+      - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/Graph.wiring.test.tsx tests/webview/graph/contextMenuHandlers.test.ts tests/webview/graph/runtime/useTooltipHandlers.test.tsx`
+      - `17` tests green
+      - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - latest targeted mutation refreshes:
+      - `packages/extension/src/webview/components/graph/interactionHandlers/contextMenuHandlers.ts` = `100.00%`
+      - `packages/extension/src/webview/components/graph/runtime/useTooltipHandlers.ts` = `94.12%`
+      - `packages/extension/src/webview/components/Graph.tsx` = `91.84%`
+      - result: current graph-webview helper hotspots remain under the `50`-site threshold and the local survivor floor in this batch is now above `90%`
+- 2026-03-15 graph-webview survivor pass:
+  - added direct file-per-module tests:
+    - `tests/webview/graph/rendering/useGraphCallbacks.test.tsx`
+    - `tests/webview/graph/runtime/useGraphState.test.tsx`
+    - `tests/webview/graph/runtime/useGraphEventEffects.test.tsx`
+    - `tests/webview/graph/runtime/useGraphInteractionRuntime.test.tsx`
+  - hardened existing runtime tests:
+    - `tests/webview/graph/runtime/usePhysicsRuntime.test.tsx`
+    - `tests/webview/graph/runtime/physics.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/useGraphCallbacks.test.tsx tests/webview/graph/runtime/useGraphState.test.tsx tests/webview/graph/runtime/usePhysicsRuntime.test.tsx tests/webview/graph/runtime/physics.test.ts tests/webview/graph/runtime/useGraphEventEffects.test.tsx tests/webview/graph/runtime/useGraphInteractionRuntime.test.tsx`
+    - `41` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - package-relative `eslint` over the touched graph runtime/rendering tests
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension graph-webview`
+    - slice overall = `82.72%`
+    - `✅ All files are still within the mutation site threshold (50).`
+    - direct wins from this pass:
+      - `packages/extension/src/webview/components/graph/runtime/useGraphEventEffects.ts` = `97.30%`
+      - `packages/extension/src/webview/components/graph/runtime/physics.ts` = `95.35%`
+      - `packages/extension/src/webview/components/graph/runtime/useTooltipHandlers.ts` = `94.12%`
+      - `packages/extension/src/webview/components/Graph.tsx` = `93.88%`
+    - current floor files after the rerun:
+      - `packages/extension/src/webview/components/graph/rendering/nodeBody.ts` = `38.78%`
+      - `packages/extension/src/webview/components/graph/rendering/nodes2d.ts` = `38.89%`
+      - `packages/extension/src/webview/components/graph/rendering/bidirectionalLink.ts` = `41.46%`
+      - `packages/extension/src/webview/components/graph/rendering/bidirectionalLineGeometry.ts` = `48.98%`
+      - `packages/extension/src/webview/components/graph/rendering/linkColors.ts` = `50.00%`
+      - `packages/extension/src/webview/components/graph/rendering/useGraphCallbacks.ts` = `66.67%`
+      - `packages/extension/src/webview/components/graph/runtime/useGraphInteractionRuntime.ts` = `75.51%`
+      - `packages/extension/src/webview/components/graph/runtime/useGraphState.ts` = `79.17%`
+      - `packages/extension/src/webview/components/graph/runtime/usePhysicsRuntime.ts` = `81.58%`
+    - next step:
+      - stay on `graph-webview`
+      - harden the remaining render/runtime survivors before opening the next extension slice
+      - next target order:
+        - `useGraphCallbacks.ts`
+        - `useGraphInteractionRuntime.ts`
+        - `useGraphState.ts`
+        - `usePhysicsRuntime.ts`
+        - rendering helpers led by `nodeBody.ts`, `nodes2d.ts`, and `bidirectionalLink.ts`
+- 2026-03-15 graph-webview threshold recovery + hook cleanup:
+  - reshaped `graph/rendering/useGraphCallbacks.ts` to use a ref-backed stable callback object instead of mutation-heavy per-callback `useCallback` wrappers
+  - reshaped `graph/runtime/useGraphState.ts` with direct helper seams:
+    - `createEmptyRuntimeGraphData()`
+    - `incrementImageCacheVersion()`
+    - `applyTimelineAlpha()`
+  - reshaped `graph/runtime/useGraphInteractionRuntime.ts` around extracted runtime-dependency builders instead of repeated inline callback wrappers
+  - split `graph/runtime/usePhysicsRuntime.ts` helper logic into:
+    - `physicsRuntimeHelpers.ts`
+  - hardened matching tests:
+    - `tests/webview/graph/rendering/useGraphCallbacks.test.tsx`
+    - `tests/webview/graph/rendering/nodeBody.test.ts`
+    - `tests/webview/graph/rendering/nodes2d.test.ts`
+    - `tests/webview/graph/rendering/bidirectionalLink.test.ts`
+    - `tests/webview/graph/runtime/useGraphState.test.tsx`
+    - `tests/webview/graph/runtime/useGraphInteractionRuntime.test.tsx`
+    - `tests/webview/graph/runtime/usePhysicsRuntime.test.tsx`
+    - `tests/webview/graph/runtime/physicsRuntimeHelpers.test.ts`
+    - `tests/webview/graph/runtime/physics.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/useGraphCallbacks.test.tsx tests/webview/graph/rendering/nodeBody.test.ts tests/webview/graph/rendering/nodes2d.test.ts tests/webview/graph/rendering/bidirectionalLink.test.ts tests/webview/graph/runtime/useGraphState.test.tsx tests/webview/graph/runtime/usePhysicsRuntime.test.tsx tests/webview/graph/runtime/physicsRuntimeHelpers.test.ts tests/webview/graph/runtime/physics.test.ts tests/webview/graph/runtime/useGraphInteractionRuntime.test.tsx`
+    - `75` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - package-relative `eslint` over the touched graph runtime/rendering source + tests
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension graph-webview`
+    - slice overall = `88.25%`
+    - `✅ All files are within the mutation site threshold (50).`
+    - threshold recovery wins:
+      - `packages/extension/src/webview/components/graph/runtime/usePhysicsRuntime.ts` = `100.00%` with `26` sites
+      - `packages/extension/src/webview/components/graph/runtime/physicsRuntimeHelpers.ts` = `100.00%` with `18` sites
+      - `packages/extension/src/webview/components/graph/runtime/useGraphState.ts` = `100.00%`
+      - `packages/extension/src/webview/components/graph/runtime/useGraphInteractionRuntime.ts` = `95.65%`
+      - `packages/extension/src/webview/components/graph/rendering/useGraphCallbacks.ts` = `95.83%`
+      - `packages/extension/src/webview/components/graph/rendering/bidirectionalLink.ts` = `85.37%`
+      - `packages/extension/src/webview/components/graph/rendering/nodeBody.ts` = `85.71%`
+      - `packages/extension/src/webview/components/graph/rendering/nodes2d.ts` = `88.89%`
+    - current floor files after the rerun:
+      - `packages/extension/src/webview/components/graph/runtime/useNodeAppearance.ts` = `64.00%`
+      - `packages/extension/src/webview/components/graph/runtime/useDirectional.ts` = `65.38%`
+      - `packages/extension/src/webview/components/graph/runtime/useMeshHighlights.ts` = `68.00%`
+      - `packages/extension/src/webview/components/graph/rendering/sharedProps.ts` = `61.11%`
+      - `packages/extension/src/webview/components/graph/rendering/linkMetrics.ts` = `63.41%`
+      - `packages/extension/src/webview/components/graph/rendering/linkColors.ts` = `50.00%`
+      - `packages/extension/src/webview/components/graph/rendering/bidirectionalLineGeometry.ts` = `48.98%`
+    - next step:
+      - keep `graph-webview` open until the slice is above `90%`
+      - target the next low files in this order:
+        - `useNodeAppearance.ts`
+        - `useMeshHighlights.ts`
+        - `useDirectional.ts`
+        - `sharedProps.ts`
+        - `linkMetrics.ts`
+        - `linkColors.ts`
+
+## Latest timeline pass
+- 2026-03-15 local pass:
+  - split `Timeline.tsx` into folder-scoped helpers:
+    - `timeline/Status.tsx`
+    - `timeline/Track.tsx`
+    - `timeline/model.ts`
+    - `timeline/useController.ts`
+  - added direct tests:
+    - `tests/webview/timeline/Status.test.tsx`
+    - `tests/webview/timeline/Track.test.tsx`
+    - `tests/webview/timeline/model.test.ts`
+    - `tests/webview/timeline/useController.test.tsx`
+  - expanded the official `timeline` mutation slice in `scripts/run-mutate.ts` to include `packages/extension/src/webview/components/timeline/**/*.ts` and `**/*.tsx`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/Timeline.test.tsx tests/webview/timeline/Status.test.tsx tests/webview/timeline/Track.test.tsx tests/webview/timeline/model.test.ts tests/webview/timeline/useController.test.tsx`
+    - `46` tests green
+    - `pnpm --filter @codegraphy/extension exec eslint src/webview/components/Timeline.tsx src/webview/components/timeline/Status.tsx src/webview/components/timeline/Track.tsx src/webview/components/timeline/model.ts src/webview/components/timeline/useController.ts tests/webview/Timeline.test.tsx tests/webview/timeline/Status.test.tsx tests/webview/timeline/Track.test.tsx tests/webview/timeline/model.test.ts tests/webview/timeline/useController.test.tsx`
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest targeted mutation refresh:
+    - `packages/extension/src/webview/components/Timeline.tsx` = `92.00%`
+    - `packages/extension/src/webview/components/Timeline.tsx` mutation sites = `25`
+    - result: the timeline entry file is now above the `90%` goal and under the `50`-site threshold
+  - next step:
+    - rerun `pnpm run mutate -- extension timeline` against the expanded slice to measure `timeline/Status.tsx`, `timeline/Track.tsx`, `timeline/model.ts`, and `timeline/useController.ts`
+- 2026-03-15 threshold follow-up:
+  - completed the helper split under `packages/extension/src/webview/components/timeline/`:
+    - `cleanup.ts`
+    - `commits.ts`
+    - `dates.ts`
+    - `dragListeners.ts`
+    - `messages.ts`
+    - `playbackActions.ts`
+    - `playbackTick.ts`
+    - `scrubPosition.ts`
+    - `syncPlayback.ts`
+    - `useCleanup.ts`
+    - `useCommitSync.ts`
+    - `usePlaybackAnimation.ts`
+    - `viewState.ts`
+  - added matching file-per-module tests:
+    - `tests/webview/timeline/cleanup.test.ts`
+    - `tests/webview/timeline/commits.test.ts`
+    - `tests/webview/timeline/dates.test.ts`
+    - `tests/webview/timeline/dragListeners.test.ts`
+    - `tests/webview/timeline/messages.test.ts`
+    - `tests/webview/timeline/playbackActions.test.ts`
+    - `tests/webview/timeline/playbackTick.test.ts`
+    - `tests/webview/timeline/scrubPosition.test.ts`
+    - `tests/webview/timeline/syncPlayback.test.ts`
+    - `tests/webview/timeline/useCleanup.test.tsx`
+    - `tests/webview/timeline/useCommitSync.test.tsx`
+    - `tests/webview/timeline/usePlaybackAnimation.test.tsx`
+    - `tests/webview/timeline/viewState.test.ts`
+  - hardened `tests/webview/timeline/Track.test.tsx` with marker position and tooltip assertions
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/timeline/cleanup.test.ts tests/webview/timeline/commits.test.ts tests/webview/timeline/dates.test.ts tests/webview/timeline/dragListeners.test.ts tests/webview/timeline/messages.test.ts tests/webview/timeline/playbackActions.test.ts tests/webview/timeline/playbackTick.test.ts tests/webview/timeline/scrubPosition.test.ts tests/webview/timeline/syncPlayback.test.ts tests/webview/timeline/useCleanup.test.tsx tests/webview/timeline/useCommitSync.test.tsx tests/webview/timeline/usePlaybackAnimation.test.tsx tests/webview/timeline/viewState.test.ts tests/webview/timeline/Track.test.tsx tests/webview/timeline/useController.test.tsx tests/webview/Timeline.test.tsx tests/webview/timeline/Status.test.tsx tests/webview/timeline/model.test.ts`
+    - `106` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - file-scoped `eslint` over touched timeline source and tests
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension timeline`
+    - slice overall = `97.43%`
+    - `✅ All files are above the 90% goal and within the mutation site threshold (50).`
+    - latest floor files:
+      - `playbackActions.ts` = `90.32%`
+      - `Timeline.tsx` = `92.00%`
+      - `commits.ts` = `93.75%`
+      - `useController.ts` = `93.75%`
+      - `syncPlayback.ts` = `95.00%`
+      - `viewState.ts` = `96.43%`
+    - key survivor-hardening wins from the final passes:
+      - `Track.tsx` = `100.00%`
+      - `cleanup.ts` = `100.00%`
+      - `playbackTick.ts` = `100.00%`
+      - `scrubPosition.ts` = `100.00%`
+      - `Status.tsx` = `100.00%`
+      - `useCleanup.ts` = `100.00%`
+      - `usePlaybackAnimation.ts` = `100.00%`
+    - next step:
+      - move off `timeline` and refresh the next extension slice with the same threshold-first workflow
+- 2026-03-15 graph-webview survivor pass:
+  - hardened graph runtime/rendering mutation seams:
+    - extracted `applyDirectionalSettings` from `packages/extension/src/webview/components/graph/runtime/useDirectional.ts`
+    - extracted direct highlight helpers from `packages/extension/src/webview/components/graph/runtime/useMeshHighlights.ts`
+    - extracted `applyNodeAppearance` from `packages/extension/src/webview/components/graph/runtime/useNodeAppearance.ts`
+  - added or expanded matching file-per-module tests:
+    - `tests/webview/graph/runtime/useDirectional.test.tsx`
+    - `tests/webview/graph/runtime/useMeshHighlights.test.tsx`
+    - `tests/webview/graph/runtime/useNodeAppearance.test.tsx`
+    - `tests/webview/graph/rendering/linkColors.test.ts`
+    - `tests/webview/graph/rendering/linkMetrics.test.ts`
+    - `tests/webview/graph/rendering/sharedProps.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/runtime/useDirectional.test.tsx tests/webview/graph/runtime/useMeshHighlights.test.tsx tests/webview/graph/runtime/useNodeAppearance.test.tsx`
+    - `29` tests green
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/linkMetrics.test.ts tests/webview/graph/rendering/linkColors.test.ts tests/webview/graph/rendering/sharedProps.test.ts`
+    - `19` tests green
+  - latest official mutation refreshes:
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/runtime/useDirectional.ts,packages/extension/src/webview/components/graph/runtime/useMeshHighlights.ts,packages/extension/src/webview/components/graph/runtime/useNodeAppearance.ts,packages/extension/src/webview/components/graph/rendering/sharedProps.ts,packages/extension/src/webview/components/graph/rendering/linkMetrics.ts,packages/extension/src/webview/components/graph/rendering/linkColors.ts'`
+    - intermediate slice overall = `91.99%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/rendering/bidirectionalLineGeometry.ts,packages/extension/src/webview/components/graph/rendering/sharedProps.ts,packages/extension/src/webview/components/graph/rendering/linkMetrics.ts,packages/extension/src/webview/components/graph/rendering/linkColors.ts'`
+    - latest slice overall = `94.03%`
+    - `✅ All files are within the mutation site threshold (50).`
+    - key file wins:
+      - `useDirectional.ts` = `100.00%`
+      - `useMeshHighlights.ts` = `100.00%`
+      - `useNodeAppearance.ts` = `100.00%`
+      - `sharedProps.ts` = `100.00%`
+      - `linkColors.ts` = `100.00%`
+      - `linkMetrics.ts` = `100.00%`
+      - `bidirectionalLineGeometry.ts` = `97.67%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/runtime/containerSize.ts'`
+    - intermediate slice overall = `94.43%`
+    - `containerSize.ts` = `100.00%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/runtime/pluginOverlays.ts'`
+    - latest slice overall = `94.53%`
+    - `pluginOverlays.ts` = `100.00%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/rendering/bidirectionalArrowGeometry.ts,packages/extension/src/webview/components/graph/rendering/bidirectionalLink.ts,packages/extension/src/webview/components/graph/rendering/nodeBody.ts,packages/extension/src/webview/components/graph/rendering/nodeMedia.ts,packages/extension/src/webview/components/graph/rendering/nodes2d.ts,packages/extension/src/webview/components/graph/runtime/tooltipHover.ts,packages/extension/src/webview/components/graph/runtime/tooltipRect.ts,packages/extension/src/webview/components/graph/runtime/tooltipTracking.ts'`
+    - latest slice overall = `96.65%`
+    - focused verification green:
+      - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/rendering/bidirectionalArrowGeometry.test.ts tests/webview/graph/rendering/bidirectionalLink.test.ts tests/webview/graph/rendering/nodeBody.test.ts tests/webview/graph/rendering/nodeMedia.test.ts tests/webview/graph/rendering/nodes2d.test.ts tests/webview/graph/runtime/tooltipHover.test.ts tests/webview/graph/runtime/tooltipRect.test.ts tests/webview/graph/runtime/tooltipTracking.test.ts`
+      - `52` tests green
+    - key file wins:
+      - `bidirectionalArrowGeometry.ts` = `100.00%`
+      - `bidirectionalLink.ts` = `97.56%`
+      - `nodeBody.ts` = `97.96%`
+      - `nodeMedia.ts` = `93.75%`
+      - `nodes2d.ts` = `100.00%`
+      - `tooltipHover.ts` = `100.00%`
+      - `tooltipRect.ts` = `93.33%`
+      - `tooltipTracking.ts` = `100.00%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/interactionHandlers/clickHandlers.ts,packages/extension/src/webview/components/graph/interactionHandlers/selectionHandlers.ts,packages/extension/src/webview/components/graph/interactionHandlers/viewHandlers.ts,packages/extension/src/webview/components/graph/contextMenuRuntime.ts'`
+    - intermediate slice overall = `98.20%`
+    - `pnpm run mutate -- extension graph-webview --mutate 'packages/extension/src/webview/components/graph/interactionHandlers.ts'`
+    - latest slice overall = `98.26%`
+    - focused verification green:
+      - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/webview/graph/clickHandlers.test.ts tests/webview/graph/selectionHandlers.test.ts tests/webview/graph/viewHandlers.test.ts tests/webview/graph/contextMenuRuntime.test.ts tests/webview/graph/interactionHandlers.test.ts`
+      - `47` tests green
+    - interaction-handler cluster wins:
+      - `clickHandlers.ts` = `100.00%`
+      - `selectionHandlers.ts` = `94.87%`
+      - `viewHandlers.ts` = `95.56%`
+      - `contextMenuRuntime.ts` = `100.00%`
+      - `interactionHandlers.ts` = `100.00%`
+    - current graph-webview state:
+      - `✅ every file in the refreshed graph-webview slice is above the 90% mutation goal`
+      - `✅ every file in the refreshed graph-webview slice is within the 50-site threshold`
+    - next step:
+      - move off graph-webview and refresh the remaining extension slices, starting with `webview-export` and `git-history`
+- 2026-03-16 webview-export threshold recovery:
+  - split export modules under `packages/extension/src/webview/lib/export/`:
+    - extracted SVG helpers:
+      - `exportSvgDocument.ts`
+      - `exportSvgLayout.ts`
+      - `exportSvgLinks.ts`
+      - `exportSvgNodes.ts`
+      - `exportSvgShapes.ts`
+      - `exportSvgTypes.ts`
+    - extracted JSON/Markdown helpers:
+      - `exportJsonRules.ts`
+      - `exportJsonGroups.ts`
+      - `exportMarkdownRenderer.ts`
+      - `exportTypes.ts`
+  - moved export tests into direct file-per-module coverage under `tests/webview/lib/export/`
+  - added new direct tests:
+    - `tests/webview/lib/export/common.test.ts`
+    - `tests/webview/lib/export/exportJpeg.test.ts`
+    - `tests/webview/lib/export/exportPng.test.ts`
+    - `tests/webview/lib/export/exportJson.test.ts`
+    - `tests/webview/lib/export/exportJsonGroups.test.ts`
+    - `tests/webview/lib/export/exportJsonRules.test.ts`
+    - `tests/webview/lib/export/exportMarkdown.test.ts`
+    - `tests/webview/lib/export/exportMarkdownRenderer.test.ts`
+    - `tests/webview/lib/export/exportSvg.test.ts`
+    - `tests/webview/lib/export/exportSvgDocument.test.ts`
+    - `tests/webview/lib/export/exportSvgLayout.test.ts`
+    - `tests/webview/lib/export/exportSvgLinks.test.ts`
+    - `tests/webview/lib/export/exportSvgNodes.test.ts`
+    - `tests/webview/lib/export/exportSvgShapes.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts $(fd -t f '.test.ts$' packages/extension/tests/webview/lib/export | sed 's#^packages/extension/##' | sort)`
+    - `55` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+    - package-relative `eslint src/webview/lib/export/*.ts tests/webview/lib/export/*.test.ts`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension webview-export`
+    - slice overall = `75.12%`
+    - current site-threshold blockers:
+      - `exportMarkdownRenderer.ts` = `109` sites at `61.47%`
+      - `exportSvgShapes.ts` = `87` sites at `55.17%`
+      - `exportJsonRules.ts` = `66` sites at `84.85%`
+      - `exportSvgNodes.ts` = `63` sites at `68.25%`
+      - `exportJsonGroups.ts` = `61` sites at `90.16%`
+      - `exportSvgLinks.ts` = `57` sites at `71.93%`
+    - current sub-90 files already under the site threshold:
+      - `common.ts` = `88.46%`
+      - `exportMarkdown.ts` = `80.00%`
+      - `exportSvg.ts` = `88.89%`
+      - `exportSvgDocument.ts` = `73.81%`
+    - direct wins from this pass:
+      - `exportJpeg.ts` = `100.00%`
+      - `exportPng.ts` = `100.00%`
+      - `exportJson.ts` = `90.00%`
+      - `exportSvgLayout.ts` = `100.00%`
+    - next cut:
+      - split `exportMarkdownRenderer.ts`, `exportSvgShapes.ts`, `exportJsonRules.ts`, `exportSvgNodes.ts`, `exportJsonGroups.ts`, and `exportSvgLinks.ts` under `50` sites
+      - only then switch to survivor cleanup in `common.ts`, `exportMarkdown.ts`, `exportSvg.ts`, and `exportSvgDocument.ts`
+- 2026-03-16 webview-export threshold completion:
+  - completed sub-splits under `packages/extension/src/webview/lib/export/`:
+    - JSON:
+      - `exportJsonRuleHelpers.ts`
+      - `exportJsonGroupHelpers.ts`
+    - Markdown:
+      - `exportMarkdownFiles.ts`
+      - `exportMarkdownGroups.ts`
+      - `exportMarkdownImages.ts`
+      - `exportMarkdownRules.ts`
+    - SVG:
+      - `exportSvgLinkNodeId.ts`
+      - `exportSvgLinkElement.ts`
+      - `exportSvgNodeMarkup.ts`
+      - `exportSvgNodeImageOverlay.ts`
+      - `exportSvgRegularPolygonPath.ts`
+      - `exportSvgStarPath.ts`
+  - expanded direct export tests to file-per-module coverage:
+    - `tests/webview/lib/export/exportJsonRuleHelpers.test.ts`
+    - `tests/webview/lib/export/exportJsonGroupHelpers.test.ts`
+    - `tests/webview/lib/export/exportMarkdownFiles.test.ts`
+    - `tests/webview/lib/export/exportMarkdownGroups.test.ts`
+    - `tests/webview/lib/export/exportMarkdownImages.test.ts`
+    - `tests/webview/lib/export/exportMarkdownRules.test.ts`
+    - `tests/webview/lib/export/exportSvgLinkNodeId.test.ts`
+    - `tests/webview/lib/export/exportSvgLinkElement.test.ts`
+    - `tests/webview/lib/export/exportSvgNodeMarkup.test.ts`
+    - `tests/webview/lib/export/exportSvgNodeImageOverlay.test.ts`
+    - `tests/webview/lib/export/exportSvgRegularPolygonPath.test.ts`
+    - `tests/webview/lib/export/exportSvgStarPath.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts $(fd -t f '.test.ts$' packages/extension/tests/webview/lib/export | sed 's#^packages/extension/##' | sort)`
+    - `103` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension webview-export`
+    - slice overall = `91.71%`
+    - `✅ All files are within the mutation site threshold (50).`
+    - current sub-90 files:
+      - `exportMarkdownRenderer.ts` = `66.67%`
+      - `exportSvgLinks.ts` = `68.75%`
+      - `exportSvgNodeImageOverlay.ts` = `76.19%`
+      - `exportSvgLinkElement.ts` = `79.17%`
+      - `exportMarkdown.ts` = `80.00%`
+      - `exportJsonGroups.ts` = `85.29%`
+      - `exportSvg.ts` = `88.89%`
+    - current high-floor files:
+      - `common.ts` = `96.15%`
+      - `exportJsonRuleHelpers.ts` = `91.89%`
+      - `exportJsonRules.ts` = `93.33%`
+      - `exportMarkdownFiles.ts` = `91.43%`
+      - `exportMarkdownGroups.ts` = `94.44%`
+      - `exportSvgDocument.ts` = `97.62%`
+      - `exportSvgNodes.ts` = `100.00%`
+      - `exportSvgShapes.ts` = `100.00%`
+      - `exportSvgRegularPolygonPath.ts` = `100.00%`
+      - `exportSvgStarPath.ts` = `100.00%`
+    - next cut:
+      - stay on `webview-export`, but switch from file-splitting to survivor cleanup
+      - start with `exportMarkdownRenderer.ts`, `exportSvgLinks.ts`, `exportSvgNodeImageOverlay.ts`, and `exportSvgLinkElement.ts`
+      - then finish `exportMarkdown.ts`, `exportJsonGroups.ts`, and `exportSvg.ts`
+- 2026-03-16 webview-export survivor completion:
+  - hardened direct export tests under `tests/webview/lib/export/`:
+    - `exportJson.test.ts`
+    - `exportJsonGroups.test.ts`
+    - `exportMarkdown.test.ts`
+    - `exportMarkdownRenderer.test.ts`
+    - `exportSvg.test.ts`
+    - `exportSvgDocument.test.ts`
+    - `exportSvgLinkElement.test.ts`
+    - `exportSvgLinks.test.ts`
+    - `exportSvgNodeImageOverlay.test.ts`
+  - trimmed a redundant null-guard branch in `packages/extension/src/webview/lib/export/exportSvgLinks.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts $(fd -t f '.test.ts$' packages/extension/tests/webview/lib/export | sed 's#^packages/extension/##' | sort)`
+    - `110` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension webview-export`
+    - slice overall = `98.17%`
+    - `✅ every file in the refreshed webview-export slice is above the 90% mutation goal`
+    - `✅ every file in the refreshed webview-export slice is within the 50-site threshold`
+    - remaining low-end files still above goal:
+      - `exportJsonRuleHelpers.ts` = `91.89%`
+      - `exportMarkdownFiles.ts` = `91.43%`
+      - `exportJsonRules.ts` = `93.33%`
+      - `common.ts` = `96.15%`
+      - `exportJsonGroupHelpers.ts` = `96.30%`
+    - direct wins from this pass:
+      - `exportSvgLinks.ts` = `100.00%`
+      - `exportMarkdownGroups.ts` = `100.00%`
+      - `exportMarkdown.ts` = `100.00%`
+      - `exportSvg.ts` = `100.00%`
+      - `exportSvgDocument.ts` = `100.00%`
+      - `exportSvgLinkElement.ts` = `100.00%`
+      - `exportSvgNodeImageOverlay.ts` = `100.00%`
+    - next cut:
+      - move off `webview-export`
+      - refresh `git-history` next
+      - then rerun package-level CRAP and mutation status to identify the next stale extension slice
+- 2026-03-16 git-history baseline:
+  - refreshed the official `git-history` slice baseline:
+    - `pnpm run mutate -- extension git-history`
+    - slice overall = `55.25%`
+    - `⚠️ GitHistoryAnalyzer.ts exceeds the mutation-site threshold with 365 sites`
+  - current file layout risk:
+    - `packages/extension/src/extension/GitHistoryAnalyzer.ts` = `653` lines
+    - `packages/extension/tests/extension/GitHistoryAnalyzer.test.ts` = `758` lines
+    - both are still single-file modules covering commit listing, cache IO, full-commit analysis, diff application, and abort handling
+  - current split plan:
+    - extract `packages/extension/src/extension/gitHistory/` helpers for:
+      - commit listing
+      - cache IO/state
+      - full-commit analysis
+      - diff application and file reanalysis
+    - mirror those helpers with direct file-per-module tests under `packages/extension/tests/extension/gitHistory/`
+    - rerun `pnpm run mutate -- extension git-history` after each extraction batch until every file is under `50` sites
+  - next cut:
+    - land the helper-module extractions first
+    - wire `GitHistoryAnalyzer.ts` onto the extracted helpers
+    - only then start survivor cleanup
+- 2026-03-16 git-history threshold recovery:
+  - introduced `packages/extension/src/extension/gitHistory/` helpers:
+    - `abort.ts`
+    - `cachePaths.ts`
+    - `cacheState.ts`
+    - `cacheStorage.ts`
+    - `commitList.ts`
+    - `constants.ts`
+    - `diffGraphAnalysis.ts`
+    - `diffGraphChanges.ts`
+    - `diffGraphState.ts`
+    - `fullCommitAnalysis.ts`
+    - `gitExec.ts`
+    - `graphConnections.ts`
+    - `reanalyzeGraphFile.ts`
+  - added direct tests under `tests/extension/gitHistory/` for:
+    - `abort.test.ts`
+    - `cachePaths.test.ts`
+    - `cacheState.test.ts`
+    - `cacheStorage.test.ts`
+    - `commitList.test.ts`
+    - `gitExec.test.ts`
+  - widened the `git-history` mutation slice in `scripts/run-mutate.ts` to include `packages/extension/src/extension/gitHistory/**/*.ts`
+  - rewired `GitHistoryAnalyzer.ts` onto the extracted commit-list, cache, full-analysis, diff-analysis, and git-exec helpers
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GitHistoryAnalyzer.test.ts $(fd -t f '.test.ts$' packages/extension/tests/extension/gitHistory | sed 's#^packages/extension/##' | sort)`
+    - `41` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension git-history`
+    - slice overall = `64.94%`
+    - `GitHistoryAnalyzer.ts` = `74` mutation sites at `66.22%`
+    - `diffGraphAnalysis.ts` = `51` mutation sites at `78.43%`
+    - current below-threshold files needing later survivor cleanup:
+      - `diffGraphChanges.ts` = `30.00%`
+      - `reanalyzeGraphFile.ts` = `31.82%`
+      - `graphConnections.ts` = `36.84%`
+      - `diffGraphState.ts` = `42.55%`
+      - `fullCommitAnalysis.ts` = `66.67%`
+      - `gitExec.ts` = `68.75%`
+      - `commitList.ts` = `81.25%`
+      - `cacheState.ts` = `83.33%`
+    - threshold wins from this pass:
+      - `GitHistoryAnalyzer.ts` dropped from `365` sites to `74`
+      - all extracted helpers except `diffGraphAnalysis.ts` are already within the `50`-site threshold
+    - next cut:
+      - split `GitHistoryAnalyzer.ts` under `50`
+      - split `diffGraphAnalysis.ts` under `50`
+      - only then switch from threshold work to direct survivor cleanup in the remaining git-history helpers
+- 2026-03-16 git-history threshold completion:
+  - completed the final threshold splits:
+    - `gitFiles.ts`
+    - `indexHistory.ts`
+    - `diffGraphSnapshot.ts`
+  - added direct tests for the new split helpers:
+    - `gitFiles.test.ts`
+    - `indexHistory.test.ts`
+    - `diffGraphSnapshot.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GitHistoryAnalyzer.test.ts $(fd -t f '.test.ts$' packages/extension/tests/extension/gitHistory | sed 's#^packages/extension/##' | sort)`
+    - `50` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension git-history`
+    - slice overall = `71.07%`
+    - `✅ every file in the refreshed git-history slice is within the 50-site threshold`
+    - current sub-90 files:
+      - `diffGraphChanges.ts` = `30.00%`
+      - `reanalyzeGraphFile.ts` = `31.82%`
+      - `graphConnections.ts` = `36.84%`
+      - `diffGraphState.ts` = `42.55%`
+      - `fullCommitAnalysis.ts` = `66.67%`
+      - `gitExec.ts` = `68.75%`
+      - `commitList.ts` = `81.25%`
+      - `diffGraphAnalysis.ts` = `81.58%`
+      - `gitFiles.ts` = `80.77%`
+      - `cacheState.ts` = `83.33%`
+      - `indexHistory.ts` = `88.00%`
+    - current high-floor files:
+      - `GitHistoryAnalyzer.ts` = `94.44%`
+      - `cacheStorage.ts` = `90.32%`
+      - `abort.ts` = `100.00%`
+      - `cachePaths.ts` = `100.00%`
+      - `diffGraphSnapshot.ts` = `100.00%`
+    - threshold wins from this pass:
+      - `GitHistoryAnalyzer.ts` = `34` mutation sites
+      - `diffGraphAnalysis.ts` = `38` mutation sites
+    - next cut:
+      - stay on `git-history`
+      - add direct tests and tighten behavior around `diffGraphChanges.ts`, `reanalyzeGraphFile.ts`, `graphConnections.ts`, and `diffGraphState.ts`
+      - then raise `fullCommitAnalysis.ts`, `gitExec.ts`, `commitList.ts`, `gitFiles.ts`, `cacheState.ts`, and `indexHistory.ts` above `90%`
+- 2026-03-16 git-history survivor recovery:
+  - expanded direct tests under `tests/extension/gitHistory/`:
+    - `diffGraphAnalysis.test.ts`
+    - `diffGraphChanges.test.ts`
+    - `diffGraphState.test.ts`
+    - `fullCommitAnalysis.test.ts`
+    - `graphConnections.test.ts`
+    - `reanalyzeGraphFile.test.ts`
+  - hardened existing tests:
+    - `cacheState.test.ts`
+    - `commitList.test.ts`
+    - `gitExec.test.ts`
+    - `gitFiles.test.ts`
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/GitHistoryAnalyzer.test.ts $(fd -t f '.test.ts$' packages/extension/tests/extension/gitHistory | sed 's#^packages/extension/##' | sort)`
+    - `75` tests green
+    - `pnpm --filter @codegraphy/extension exec tsc --noEmit -p tsconfig.json`
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension git-history`
+    - slice overall = `90.41%`
+    - `✅ every file in the refreshed git-history slice is within the 50-site threshold`
+    - files now above the goal:
+      - `cacheState.ts` = `100.00%`
+      - `diffGraphAnalysis.ts` = `92.11%`
+      - `diffGraphState.ts` = `91.49%`
+      - `fullCommitAnalysis.ts` = `93.33%`
+      - `gitFiles.ts` = `96.15%`
+      - `graphConnections.ts` = `94.74%`
+      - `reanalyzeGraphFile.ts` = `100.00%`
+    - remaining sub-90 files:
+      - `diffGraphChanges.ts` = `70.00%`
+      - `gitExec.ts` = `78.13%`
+      - `commitList.ts` = `84.38%`
+      - `indexHistory.ts` = `88.00%`
+    - next cut:
+      - stay on `git-history`
+      - kill the remaining survivor groups in `diffGraphChanges.ts`, `gitExec.ts`, `commitList.ts`, and `indexHistory.ts`
+      - rerun `pnpm run mutate -- extension git-history` before moving back to package-level refresh work
+- 2026-03-16 git-history survivor completion:
+  - simplified survivor-heavy helpers:
+    - `commitList.ts`
+      - removed redundant fallback defaults for parsed `message` and `author`
+    - `indexHistory.ts`
+      - split first-commit analysis from the diff loop so the initial graph state is no longer synthetic
+    - `diffGraphChanges.ts`
+      - extracted `addGitHistoryNodeIfMissing()` and removed the redundant supported-file node creation branch
+  - expanded direct tests:
+    - `commitList.test.ts`
+      - trims outer whitespace before parsing
+      - filters empty parent entries from repeated spacing
+    - `indexHistory.test.ts`
+      - single-commit indexing skips diff analysis
+      - later diffs receive the previous diff result
+      - abort before first-commit analysis short-circuits cleanly
+    - `gitExec.test.ts`
+      - asserts abort listener registration with `{ once: true }`
+      - asserts matching listener removal after success
+      - proves late git callbacks are ignored after abort settlement
+    - `diffGraphChanges.test.ts`
+      - reuses an existing supported node while still reanalyzing its edges
+  - focused verification green:
+    - `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts tests/extension/gitHistory/commitList.test.ts tests/extension/gitHistory/indexHistory.test.ts tests/extension/gitHistory/diffGraphChanges.test.ts tests/extension/gitHistory/gitExec.test.ts tests/extension/GitHistoryAnalyzer.test.ts`
+    - `47` tests green
+  - latest official mutation refresh:
+    - `pnpm run mutate -- extension git-history`
+    - slice overall = `95.18%`
+    - `✅ every file in the refreshed git-history slice is above the 90% mutation goal`
+    - `✅ every file in the refreshed git-history slice is within the 50-site threshold`
+    - current floor files:
+      - `cacheStorage.ts` = `90.32%`
+      - `diffGraphState.ts` = `91.49%`
+      - `diffGraphAnalysis.ts` = `92.11%`
+      - `fullCommitAnalysis.ts` = `93.33%`
+      - `gitExec.ts` = `93.75%`
+    - direct wins from this pass:
+      - `diffGraphChanges.ts` = `100.00%`
+      - `indexHistory.ts` = `100.00%`
+      - `commitList.ts` = `96.43%`
+    - next cut:
+      - move off `git-history`
+      - refresh the next stale extension slice and re-check package-level CRAP / mutation status ordering
+
+## Current hotspot order
+1. refresh the next stale extension slices not yet officially rerun after the git-history pass
+2. print the package-level mutation/CRAP/status summary from the refreshed slice set
+3. do the folder/name cleanup pass only after the mutation/crap baselines are recorded
+4. update the PR description with the completed refactor record
+5. resolve any remaining merge conflict drift on the PR branch
+
+## 2026-03-16 graph-view organization refresh
+- completed the pending `main` merge and pushed `9772177`; PR `#144` is mergeable again
+- refreshed the official `graph-view-provider` mutation slice with lower Stryker concurrency after a harness-level `143` abort
+  - `pnpm run mutate -- extension graph-view-provider`
+  - slice overall = `98.08%`
+  - `✅ every file in the slice is above the 90% mutation goal`
+  - `✅ every file in the slice is within the 50-site threshold`
+  - current floor files:
+    - `messages/provider/readContext.ts` = `90.91%`
+    - `GraphViewProvider.ts` = `91.67%`
+    - `analysisLifecycle.ts` = `91.18%`
+    - `viewSelection.ts` = `91.67%`
+    - `viewBroadcast.ts` = `92.86%`
+  - note: Stryker still attributes part of the provider slice to pre-folder-cleanup paths, so the next rerun should happen after the remaining folder normalization pass
+- next cleanup batch:
+  - move root `analysis*.ts` helpers into `graphView/analysis/`
+  - move root group/default-group helpers into `graphView/groups/`
+  - move root file/file-info helpers into `graphView/files/`
+  - mirror each move under `packages/extension/tests/extension/graphView/`
+  - rerun focused graph-view tests plus the official `graph-view-provider` and `graph-view-messages` slices after the rename pass
+
+## Notes
+- No dedicated architecture doc in this repo; use package boundaries from `AGENTS.md`/`CLAUDE.md`.
+- Use real subagent worktrees/branches for the current provider split and verify their output before integrating.

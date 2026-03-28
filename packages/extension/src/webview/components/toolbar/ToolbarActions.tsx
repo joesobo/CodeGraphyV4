@@ -6,7 +6,7 @@
 
 import React from 'react';
 import { mdiAutorenew, mdiPuzzleOutline, mdiCogOutline, mdiExport } from '@mdi/js';
-import { MdiIcon } from '../icons';
+import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
 import {
@@ -18,7 +18,7 @@ import {
   DropdownMenuLabel,
 } from '../ui/dropdown-menu';
 import { useGraphStore } from '../../store';
-import { postMessage } from '../../lib/vscodeApi';
+import { postMessage } from '../../vscodeApi';
 
 export function ToolbarActions(): React.ReactElement {
   const setActivePanel = useGraphStore(s => s.setActivePanel);

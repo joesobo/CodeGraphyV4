@@ -1,0 +1,43 @@
+/**
+ * @fileoverview Configuration defaults and types for CodeGraphy extension settings.
+ * @module extension/configDefaults
+ */
+
+/**
+ * Default exclude patterns for file discovery.
+ * These patterns are excluded by default to avoid analyzing
+ * build artifacts, dependencies, and non-source files.
+ */
+export const DEFAULT_EXCLUDE_PATTERNS: readonly string[] = [
+  '**/node_modules/**',
+  '**/dist/**',
+  '**/build/**',
+  '**/out/**',
+  '**/.git/**',
+  '**/coverage/**',
+  '**/*.min.js',
+  '**/*.bundle.js',
+  '**/*.map',
+];
+
+/**
+ * Configuration interface matching the settings defined in package.json.
+ */
+export interface ICodeGraphyConfig {
+  /** Maximum number of files to analyze */
+  maxFiles: number;
+  /** Glob patterns for files to include */
+  include: string[];
+  /** Whether to respect .gitignore patterns */
+  respectGitignore: boolean;
+  /** Whether to show orphan nodes (files with no connections) */
+  showOrphans: boolean;
+  /** How to display bidirectional connections */
+  bidirectionalEdges: 'separate' | 'combined';
+  /** List of plugin extension names to enable */
+  plugins: string[];
+  /** List of disabled rule qualified IDs */
+  disabledRules: string[];
+  /** List of disabled plugin IDs */
+  disabledPlugins: string[];
+}

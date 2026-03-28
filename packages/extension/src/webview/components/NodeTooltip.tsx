@@ -12,8 +12,9 @@ import {
   shift,
   autoUpdate,
 } from '@floating-ui/react';
-import { cn } from '../lib/utils';
+import { cn } from './ui/cn';
 import { Separator } from './ui/separator';
+import { TooltipHeader, TooltipStats, TooltipExtraSections } from './nodeTooltipContent';
 
 interface NodeTooltipProps {
   /** File path relative to workspace */
@@ -36,28 +37,6 @@ interface NodeTooltipProps {
   visible: boolean;
   /** Optional plugin-contributed sections */
   extraSections?: Array<{ title: string; content: string }>;
-}
-
-function formatSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function formatRelativeTime(timestamp: number): string {
-  const now = Date.now();
-  const diff = now - timestamp;
-
-  const minutes = Math.floor(diff / 60000);
-  const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
-
-  if (minutes < 1) return 'just now';
-  if (minutes < 60) return `${minutes}m ago`;
-  if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
-
-  return new Date(timestamp).toLocaleDateString();
 }
 
 export function NodeTooltip({
@@ -118,48 +97,20 @@ export function NodeTooltip({
         'text-[var(--vscode-editorHoverWidget-foreground,#cccccc)]',
       )}
     >
-      {/* Header — file path */}
-      <div className="px-3 pt-2 pb-1.5">
-        <p className="text-xs font-semibold text-[var(--vscode-textLink-foreground,#3794ff)] break-all leading-snug">
-          {path}
-        </p>
-      </div>
+      <TooltipHeader path={path} />
 
       <Separator className="bg-[var(--vscode-editorHoverWidget-border,#454545)]" />
 
-      {/* Stats */}
-      <div className="px-3 py-1.5 space-y-0.5 text-[11px] font-mono">
-        <Row label="Connections" value={`${outgoingCount} out \u00B7 ${incomingCount} in`} />
-        {size !== undefined && <Row label="Size" value={formatSize(size)} />}
-        {lastModified !== undefined && <Row label="Modified" value={formatRelativeTime(lastModified)} />}
-        {(visits ?? 0) > 0 && <Row label="Visits" value={String(visits)} />}
-        {plugin && <Row label="Plugin" value={plugin} />}
-      </div>
+      <TooltipStats
+        outgoingCount={outgoingCount}
+        incomingCount={incomingCount}
+        size={size}
+        lastModified={lastModified}
+        visits={visits}
+        plugin={plugin}
+      />
 
-      {extraSections.length > 0 && (
-        <>
-          <Separator className="bg-[var(--vscode-editorHoverWidget-border,#454545)]" />
-          <div className="px-3 py-1.5 space-y-1 text-[11px]">
-            {extraSections.map((section, index) => (
-              <div key={`${section.title}-${index}`}>
-                <p className="font-semibold text-[var(--vscode-textLink-foreground,#3794ff)]">
-                  {section.title}
-                </p>
-                <p className="font-mono whitespace-pre-wrap break-words">{section.content}</p>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-3">
-      <span className="text-[var(--vscode-descriptionForeground,#8c8c8c)]">{label}</span>
-      <span className="text-[var(--vscode-editorHoverWidget-foreground,#cccccc)] text-right">{value}</span>
+      <TooltipExtraSections sections={extraSections} />
     </div>
   );
 }

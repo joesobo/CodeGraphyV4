@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { saveExportBuffer, toErrorMessage } from './common';
+import { saveExportBuffer, toErrorMessage } from './fileSave';
 
 export async function saveExportedSvg(svgContent: string, filename?: string): Promise<void> {
   try {

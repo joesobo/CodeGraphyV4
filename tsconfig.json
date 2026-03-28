@@ -1,7 +1,8 @@
 {
   "references": [
     { "path": "packages/extension" },
-    { "path": "packages/plugin-api" }
+    { "path": "packages/plugin-api" },
+    { "path": "packages/quality-tools" }
   ],
   "files": []
 }

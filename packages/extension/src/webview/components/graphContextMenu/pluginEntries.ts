@@ -1,26 +1,16 @@
-import type { IPluginContextMenuItem } from '../../../shared/types';
+import type { IPluginContextMenuItem } from '../../../shared/contracts';
 import { pluginItem, separator } from './entryFactories';
 import type { GraphContextMenuEntry, GraphContextSelection } from './types';
+import { classifyTarget } from './targetClassification';
 
 export function buildPluginEntries(
   selection: GraphContextSelection,
   pluginItems: readonly IPluginContextMenuItem[]
 ): GraphContextMenuEntry[] {
-  let targetId: string | undefined;
-  let targetType: 'node' | 'edge' | undefined;
-  let eligibleItems: IPluginContextMenuItem[] = [];
+  const classified = classifyTarget(selection, pluginItems);
+  if (!classified) return [];
 
-  if (selection.kind === 'node' && selection.targets.length === 1) {
-    targetId = selection.targets[0];
-    targetType = 'node';
-    eligibleItems = pluginItems.filter(item => item.when === 'node' || item.when === 'both');
-  } else if (selection.kind === 'edge' && selection.edgeId) {
-    targetId = selection.edgeId;
-    targetType = 'edge';
-    eligibleItems = pluginItems.filter(item => item.when === 'edge' || item.when === 'both');
-  }
-
-  if (!targetId || !targetType) return [];
+  const { targetId, targetType, eligibleItems } = classified;
   if (eligibleItems.length === 0) return [];
 
   const entries: GraphContextMenuEntry[] = [separator('plugins-separator')];

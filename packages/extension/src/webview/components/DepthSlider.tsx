@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { postMessage } from '../lib/vscodeApi';
+import { postMessage } from '../vscodeApi';
 
 interface DepthSliderProps {
   depthLimit: number;

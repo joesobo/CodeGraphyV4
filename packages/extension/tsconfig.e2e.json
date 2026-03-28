@@ -12,6 +12,6 @@
     "noEmit": false,
     "types": ["mocha", "node"]
   },
-  "include": ["src/e2e/**/*", "src/shared/types.ts"],
+  "include": ["src/e2e/**/*", "src/shared/contracts.ts"],
   "exclude": ["node_modules"]
 }

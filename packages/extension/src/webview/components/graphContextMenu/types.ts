@@ -1,4 +1,4 @@
-import type { IPluginContextMenuItem } from '../../../shared/types';
+import type { IPluginContextMenuItem } from '../../../shared/contracts';
 
 export type GraphContextTargetKind = 'background' | 'node' | 'edge';
 

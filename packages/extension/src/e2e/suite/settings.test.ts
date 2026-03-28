@@ -10,7 +10,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 interface CodeGraphyAPI {
-  getGraphData(): import('../../shared/types').IGraphData;
+  getGraphData(): import('../../shared/contracts').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
 }

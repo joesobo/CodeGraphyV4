@@ -15,7 +15,7 @@ This document defines CodeGraphy's context-menu behavior and the files that own 
   - `packages/extension/src/webview/components/graphContextMenu/types.ts`
   - `packages/extension/src/webview/components/graphContextMenuModel.ts` (compatibility re-export)
 - UI wiring + event bridge: `packages/extension/src/webview/components/Graph.tsx`
-- Webview message contract: `packages/extension/src/shared/types.ts`
+- Webview message contract: `packages/extension/src/shared/contracts.ts`
 - Runtime handler for plugin actions: `packages/extension/src/extension/GraphViewProvider.ts`
 
 ## Contexts

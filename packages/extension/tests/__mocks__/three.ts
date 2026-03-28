@@ -25,9 +25,9 @@ export const SpriteMaterial = vi.fn().mockImplementation((opts: Record<string, u
   ...opts,
 }));
 
-export const Color = vi.fn().mockImplementation((c: string) => ({
+export const Color = vi.fn().mockImplementation((color: string) => ({
   isColor: true,
-  value: c,
+  value: color,
   set: vi.fn(),
 }));
 
