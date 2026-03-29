@@ -66,6 +66,20 @@ vi.mock('../../../../src/webview/store/state', () => ({
   },
 }));
 
+interface MessageEffectHandlers {
+  cacheFileInfo: (info: IFileInfo) => void;
+  exportJpeg: () => void;
+  exportJson: () => void;
+  exportMarkdown: () => void;
+  exportPng: () => void;
+  exportSvg: () => void;
+  fitView: () => void;
+  postMessage: typeof eventEffectsHarness.postMessage;
+  updateAccessCount: (nodeId: string, accessCount: number) => void;
+  updateTooltipInfo: (info: IFileInfo) => void;
+  zoom2d: (factor: number) => void;
+}
+
 function createInteractionHandlers() {
   return {
     fitView: vi.fn(),
@@ -122,8 +136,9 @@ describe('graph/runtime/useGraphEventEffects', () => {
     const keyboardHandler = vi.fn();
     eventEffectsHarness.createGraphMessageListener.mockReturnValue(messageHandler);
     eventEffectsHarness.createGraphKeyboardListener.mockReturnValue(keyboardHandler);
-    eventEffectsHarness.runWebviewMessageEffects.mockImplementation((effects, handlers) => {
-      handlers.fitView();
+    let capturedHandlers: MessageEffectHandlers | undefined;
+    eventEffectsHarness.runWebviewMessageEffects.mockImplementation((_, handlers: MessageEffectHandlers) => {
+      capturedHandlers = handlers;
     });
 
     const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
@@ -167,8 +182,8 @@ describe('graph/runtime/useGraphEventEffects', () => {
 
     const effects = [{ kind: 'fitView' }];
     messageOptions.applyEffects(effects);
+    expect(capturedHandlers).toBeDefined();
 
-    expect(interactionHandlers.fitView).toHaveBeenCalledTimes(1);
     expect(eventEffectsHarness.runWebviewMessageEffects).toHaveBeenCalledWith(
       effects,
       expect.objectContaining({
@@ -185,6 +200,40 @@ describe('graph/runtime/useGraphEventEffects', () => {
         zoom2d: expect.any(Function),
       }),
     );
+
+    const fileInfo = { path: 'src/tooltip.ts' } as IFileInfo;
+    capturedHandlers?.fitView();
+    capturedHandlers?.zoom2d(1.5);
+    capturedHandlers?.cacheFileInfo(fileInfo);
+    capturedHandlers?.updateTooltipInfo(fileInfo);
+    capturedHandlers?.postMessage({ type: 'PING' });
+    capturedHandlers?.exportPng();
+    capturedHandlers?.exportSvg();
+    capturedHandlers?.exportJpeg();
+    capturedHandlers?.exportJson();
+    capturedHandlers?.exportMarkdown();
+    capturedHandlers?.updateAccessCount('src/initial.ts', 3);
+
+    expect(interactionHandlers.fitView).toHaveBeenCalledTimes(1);
+    expect(interactionHandlers.zoom2d).toHaveBeenCalledWith(1.5);
+    expect(fileInfoCacheRef.current.get(fileInfo.path)).toBe(fileInfo);
+    expect(tooltip.getTooltipData()).toEqual({ info: fileInfo });
+    expect(eventEffectsHarness.postMessage).toHaveBeenCalledWith({ type: 'PING' });
+    expect(eventEffectsHarness.exportAsPng).toHaveBeenCalledWith(containerRef.current);
+    expect(eventEffectsHarness.exportAsSvg).toHaveBeenCalledWith(
+      graphDataRef.current.nodes,
+      graphDataRef.current.links,
+      {
+        directionColor: '#60a5fa',
+        directionMode: 'incoming',
+        showLabels: true,
+        theme: 'light',
+      },
+    );
+    expect(eventEffectsHarness.exportAsJpeg).toHaveBeenCalledWith(containerRef.current);
+    expect(eventEffectsHarness.exportAsJson).toHaveBeenCalledWith(dataRef.current);
+    expect(eventEffectsHarness.exportAsMarkdown).toHaveBeenCalledWith(dataRef.current);
+    expect(interactionHandlers.updateAccessCount).toHaveBeenCalledWith('src/initial.ts', 3);
 
     addEventListenerSpy.mockRestore();
   });
@@ -286,6 +335,93 @@ describe('graph/runtime/useGraphEventEffects', () => {
 
     expect(removeEventListenerSpy).toHaveBeenCalledWith('message', messageHandlerTwo);
     expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', keyboardHandlerTwo);
+
+    addEventListenerSpy.mockRestore();
+    removeEventListenerSpy.mockRestore();
+  });
+
+  it('refreshes the message listener when only message effect dependencies change', () => {
+    const messageHandlerOne = vi.fn();
+    const messageHandlerTwo = vi.fn();
+    const keyboardHandler = vi.fn();
+    eventEffectsHarness.createGraphMessageListener
+      .mockReturnValueOnce(messageHandlerOne)
+      .mockReturnValueOnce(messageHandlerTwo);
+    eventEffectsHarness.createGraphKeyboardListener.mockReturnValue(keyboardHandler);
+
+    let tooltipCounter = 0;
+    eventEffectsHarness.runWebviewMessageEffects.mockImplementation((_, handlers: MessageEffectHandlers) => {
+      tooltipCounter += 1;
+      handlers.updateTooltipInfo({ path: `src/tooltip-${tooltipCounter}.ts` } as IFileInfo);
+    });
+
+    const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
+    const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener');
+    const firstTooltip = createTooltipSetter();
+    const secondTooltip = createTooltipSetter();
+    const containerRef = { current: document.createElement('div') };
+    const dataRef = { current: createData('src/one.ts') };
+    const directionColorRef = { current: '#22c55e' };
+    const directionModeRef = { current: 'incoming' as never };
+    const fileInfoCacheRef = { current: new Map<string, IFileInfo>() };
+    const graphDataRef = {
+      current: {
+        links: [createLink('edge-a')],
+        nodes: [createNode('src/one.ts')],
+      },
+    };
+    const interactionHandlers = createInteractionHandlers();
+    const selectedNodes = ['src/one.ts'];
+    const showLabelsRef = { current: true };
+    const themeRef = { current: 'light' as never };
+
+    const { rerender } = renderHook(
+      ({ setTooltipData }) => useGraphEventEffects({
+        containerRef,
+        dataRef,
+        directionColorRef,
+        directionModeRef,
+        fileInfoCacheRef,
+        graphDataRef,
+        graphMode: '2d',
+        interactionHandlers,
+        selectedNodes,
+        setTooltipData,
+        showLabelsRef,
+        themeRef,
+        tooltipPath: 'src/one.ts',
+      }),
+      {
+        initialProps: {
+          setTooltipData: firstTooltip.setTooltipData,
+        },
+      },
+    );
+
+    const firstMessageOptions = eventEffectsHarness.createGraphMessageListener.mock.calls[0]?.[0];
+    firstMessageOptions.applyEffects([{ kind: 'fitView' }]);
+    expect(firstTooltip.getTooltipData()).toEqual({
+      info: { path: 'src/tooltip-1.ts' },
+    });
+
+    rerender({
+      setTooltipData: secondTooltip.setTooltipData,
+    });
+
+    expect(eventEffectsHarness.createGraphMessageListener).toHaveBeenCalledTimes(2);
+    expect(eventEffectsHarness.createGraphKeyboardListener).toHaveBeenCalledTimes(1);
+    expect(removeEventListenerSpy).toHaveBeenCalledWith('message', messageHandlerOne);
+    expect(addEventListenerSpy).toHaveBeenCalledWith('message', messageHandlerTwo);
+
+    const secondMessageOptions = eventEffectsHarness.createGraphMessageListener.mock.calls[1]?.[0];
+    secondMessageOptions.applyEffects([{ kind: 'fitView' }]);
+
+    expect(firstTooltip.getTooltipData()).toEqual({
+      info: { path: 'src/tooltip-1.ts' },
+    });
+    expect(secondTooltip.getTooltipData()).toEqual({
+      info: { path: 'src/tooltip-2.ts' },
+    });
 
     addEventListenerSpy.mockRestore();
     removeEventListenerSpy.mockRestore();
