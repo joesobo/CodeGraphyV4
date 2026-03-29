@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
-import { graphStore } from '../../../../../src/webview/store/state';
+import { graphStore } from '../../../src/webview/store/state';
 
 vi.mock('../../../src/webview/vscodeApi', () => ({
   postMessage: vi.fn(),

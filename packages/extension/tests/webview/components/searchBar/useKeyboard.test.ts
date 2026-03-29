@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useRef } from 'react';
-import { useSearchKeyboard } from '../../../../src/webview/components/searchBar/useKeyboard';
+import { useSearchKeyboard } from '../../../../src/webview/components/searchBar/field/useKeyboard';
 
 function fireKeyDown(opts: Partial<KeyboardEventInit>): void {
   window.dispatchEvent(new KeyboardEvent('keydown', opts));
