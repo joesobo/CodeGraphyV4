@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { checkLowInfoName, type LowInfoNameConfig } from './metric/lowInfoNames';
 import { checkBarrelFile } from './metric/barrelDetection';
 import { pathRedundancy } from './metric/pathRedundancy';
+import { stripExtension } from './metric/nameStrip';
 import type { OrganizeFileIssue } from './types';
 
 /**
@@ -29,7 +30,7 @@ export function collectFileIssues(
     }
 
     // Check low-info name
-    const lowInfoIssue = checkLowInfoName(fileName, lowInfoNames, false);
+    const lowInfoIssue = checkLowInfoName(fileName, lowInfoNames, stripExtension(fileName).toLowerCase() === 'index');
     if (lowInfoIssue) {
       issues.push(lowInfoIssue);
     }

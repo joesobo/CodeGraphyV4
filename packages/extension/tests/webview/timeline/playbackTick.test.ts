@@ -1,16 +1,18 @@
 import type { MutableRefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '../../../src/shared/contracts';
+import type { ICommitInfo } from '../../../../../src/shared/contracts';
+import { clearSentMessages, findMessage } from '../../helpers/sentMessages';
 import { createTimelinePlaybackTick } from '../../../src/webview/components/timeline/playbackTick';
-
-const postMessage = vi.fn();
-
-vi.mock('../../../src/webview/vscodeApi', () => ({
-  postMessage: (message: unknown) => postMessage(message),
-}));
 
 function createRef<T>(current: T): MutableRefObject<T> {
   return { current } as MutableRefObject<T>;
+}
+
+function expectJumpToCommit(sha: string): void {
+  expect(findMessage('JUMP_TO_COMMIT')).toEqual({
+    type: 'JUMP_TO_COMMIT',
+    payload: { sha },
+  });
 }
 
 const commits: ICommitInfo[] = [
@@ -41,7 +43,7 @@ describe('timeline/playbackTick', () => {
   let requestAnimationFrameMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    postMessage.mockReset();
+    clearSentMessages();
     requestAnimationFrameMock = vi.fn(() => 91);
     vi.stubGlobal('requestAnimationFrame', requestAnimationFrameMock);
   });
@@ -75,7 +77,7 @@ describe('timeline/playbackTick', () => {
 
     expect(playbackTime).toBeNull();
     expect(refs.lastFrameTimeRef.current).toBe(200);
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
     expect(setIsPlaying).not.toHaveBeenCalled();
     expect(requestAnimationFrameMock).toHaveBeenCalledTimes(1);
     expect(refs.rafRef.current).toBe(91);
@@ -105,7 +107,7 @@ describe('timeline/playbackTick', () => {
     tick(5000);
 
     expect(playbackTime).toBe(1000);
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
     expect(setIsPlaying).not.toHaveBeenCalled();
   });
 
@@ -134,10 +136,7 @@ describe('timeline/playbackTick', () => {
 
     expect(playbackTime).toBe(173800);
     expect(refs.lastSentCommitIndexRef.current).toBe(1);
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: commits[1].sha },
-    });
+    expectJumpToCommit(commits[1].sha);
     expect(setIsPlaying).not.toHaveBeenCalled();
   });
 
@@ -165,10 +164,7 @@ describe('timeline/playbackTick', () => {
     tick(1500);
 
     expect(playbackTime).toBe(173800);
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: commits[1].sha },
-    });
+    expectJumpToCommit(commits[1].sha);
     expect(setIsPlaying).not.toHaveBeenCalled();
   });
 
@@ -213,10 +209,7 @@ describe('timeline/playbackTick', () => {
 
     expect(playbackTime).toBe(1000);
     expect(refs.lastSentCommitIndexRef.current).toBe(0);
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: edgeCommits[0].sha },
-    });
+    expectJumpToCommit(edgeCommits[0].sha);
   });
 
   it('does not emit a jump when playback remains before the first commit', () => {
@@ -244,7 +237,7 @@ describe('timeline/playbackTick', () => {
 
     expect(playbackTime).toBeCloseTo(272.8, 5);
     expect(refs.lastSentCommitIndexRef.current).toBe(-2);
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
     expect(setIsPlaying).not.toHaveBeenCalled();
   });
 
@@ -273,7 +266,7 @@ describe('timeline/playbackTick', () => {
 
     expect(playbackTime).toBe(300000);
     expect(setIsPlaying).toHaveBeenCalledWith(false);
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
   });
 
   it('stops playback when it lands exactly on the maximum timestamp', () => {
@@ -317,6 +310,6 @@ describe('timeline/playbackTick', () => {
 
     expect(playbackTime).toBe(173800);
     expect(setIsPlaying).toHaveBeenCalledWith(false);
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
   });
 });

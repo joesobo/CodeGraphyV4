@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { EventBus } from '@/core/plugins/eventBus';
-import { DecorationManager } from '@/core/plugins/decorationManager';
+import { DecorationManager } from '@/core/plugins/decoration/manager';
 import { ViewRegistry } from '@/core/views/registry';
 import { hasScopedApiConfiguration, IPluginApiConfiguration } from '@/core/plugins/apiConfiguration';
 

@@ -4,7 +4,7 @@ vi.mock('../../../src/webview/vscodeApi', () => ({
   postMessage: vi.fn(),
 }));
 
-vi.mock('../../../src/webview/export/exportContext', () => ({
+vi.mock('../../../src/webview/export/shared/context', () => ({
   createExportTimestamp: vi.fn(),
   createImageExportDataUrl: vi.fn(),
 }));
@@ -14,7 +14,7 @@ import { postMessage } from '../../../src/webview/vscodeApi';
 import {
   createExportTimestamp,
   createImageExportDataUrl,
-} from '../../../src/webview/export/exportContext';
+} from '../../../src/webview/export/shared/context';
 
 afterEach(() => {
   vi.restoreAllMocks();

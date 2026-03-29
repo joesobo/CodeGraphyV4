@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { LinkObject, NodeObject } from 'react-force-graph-2d';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
+import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
   useGraphCallbacks,
   type UseGraphCallbacksOptions,
@@ -19,21 +19,27 @@ const renderingHarness = vi.hoisted(() => ({
   renderNodeCanvas: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/links', () => ({
-  getGraphArrowRelPos: renderingHarness.getGraphArrowRelPos,
+vi.mock('../../../../src/webview/components/graph/rendering/link/colors', () => ({
   getGraphDirectionalColor: renderingHarness.getGraphDirectionalColor,
   getGraphLinkColor: renderingHarness.getGraphLinkColor,
+}));
+
+vi.mock('../../../../src/webview/components/graph/rendering/link/metrics', () => ({
+  getGraphArrowRelPos: renderingHarness.getGraphArrowRelPos,
   getGraphLinkParticles: renderingHarness.getGraphLinkParticles,
   getGraphLinkWidth: renderingHarness.getGraphLinkWidth,
+}));
+
+vi.mock('../../../../src/webview/components/graph/rendering/bidirectional/link', () => ({
   renderBidirectionalLink: renderingHarness.renderBidirectionalLink,
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/nodes2d', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/nodes/canvas2d', () => ({
   paintNodePointerArea: renderingHarness.paintNodePointerArea,
   renderNodeCanvas: renderingHarness.renderNodeCanvas,
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/nodes3d', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/nodes/canvas3d', () => ({
   createNodeThreeObject: renderingHarness.createNodeThreeObject,
 }));
 

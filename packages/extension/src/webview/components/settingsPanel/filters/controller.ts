@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { KeyboardEvent } from 'react';
 import { postMessage } from '../../../vscodeApi';
-import { useGraphStore } from '../../../store';
+import { useGraphStore } from '../../../store/state';
 import {
   clampMaxFiles,
   decreaseMaxFiles,

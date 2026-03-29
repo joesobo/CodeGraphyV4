@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { resolveColorInfo } from '../../../src/core/colors/resolveColorInfo';
-import { DEFAULT_FALLBACK_COLOR } from '../../../src/core/colors/colorPaletteTypes';
+import { resolveColorInfo } from '../../../src/core/colors/resolution/info';
+import { DEFAULT_FALLBACK_COLOR } from '../../../src/core/colors/palette/colorTypes';
 
 function emptyMap(): Map<string, string> {
   return new Map();

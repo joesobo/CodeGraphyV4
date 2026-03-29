@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { adjustColorForLightTheme, useTheme } from '../../src/webview/useTheme';
+import { adjustColorForLightTheme, useTheme } from '../../src/webview/theme/useTheme';
 
 let editorBackground = '';
 let mutationCallback: MutationCallback | null = null;

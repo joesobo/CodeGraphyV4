@@ -6,12 +6,12 @@ import {
   FAVORITE_BORDER_COLOR,
   getDepthSizeMultiplier,
   type FGNode,
-} from '../../../../src/webview/components/graphModel';
+} from '../../../../src/webview/components/graph/model/build';
 import {
   applyNodeAppearance,
   useNodeAppearance,
-} from '../../../../src/webview/components/graph/runtime/useNodeAppearance';
-import { adjustColorForLightTheme } from '../../../../src/webview/useTheme';
+} from '../../../../src/webview/components/graph/runtime/use/directional/nodeAppearance';
+import { adjustColorForLightTheme } from '../../../../src/webview/theme/useTheme';
 
 function createData(nodes: IGraphData['nodes']): IGraphData {
   return {

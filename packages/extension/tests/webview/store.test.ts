@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createGraphStore } from '../../src/webview/store';
+import { createGraphStore } from '../../src/webview/store/state';
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../src/shared/contracts';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 

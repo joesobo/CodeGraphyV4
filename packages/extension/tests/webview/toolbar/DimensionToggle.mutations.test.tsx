@@ -1,10 +1,10 @@
 import React from 'react';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { graphStore } from '../../../src/webview/store';
+import { graphStore } from '../../../../../src/webview/store/state';
 
 // Mock tooltip components to render inline so we can test tooltip content
-vi.mock('../../../src/webview/components/ui/tooltip', () => ({
+vi.mock('../../../src/webview/components/ui/overlay/tooltip', () => ({
   Tooltip: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   TooltipTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   TooltipContent: ({ children }: { children: React.ReactNode }) => (

@@ -78,7 +78,7 @@ describe('reportOrganize - filtering', () => {
     spy.mockRestore();
   });
 
-  it('shows directories with clusters even in non-verbose mode', () => {
+  it('hides stable directories with only clusters in non-verbose mode', () => {
     const spy = vi.spyOn(console, 'log');
     const metrics = [
       createMetric({
@@ -89,11 +89,7 @@ describe('reportOrganize - filtering', () => {
 
     reportOrganize(metrics, { verbose: false });
 
-    const calls = spy.mock.calls;
-    const loggedText = calls.map((call) => call[0]).join('\n');
-
-    expect(loggedText).toContain('src/clusters/');
-    expect(loggedText).toContain('Clusters:');
+    expect(spy).toHaveBeenCalledWith('No directories found for organize analysis.');
 
     spy.mockRestore();
   });

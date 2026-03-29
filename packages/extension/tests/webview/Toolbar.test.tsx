@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Toolbar from '../../src/webview/components/Toolbar';
-import { graphStore } from '../../src/webview/store';
+import { graphStore } from '../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
 const mockViews = [

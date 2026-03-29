@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { runCommand } from '../../src/shared/runCommand';
-import { execFileSync } from 'child_process';
+import * as childProcess from 'child_process';
 
 vi.mock('child_process', () => ({
   execFileSync: vi.fn()
@@ -9,6 +9,10 @@ vi.mock('child_process', () => ({
 describe('runCommand', () => {
   it('executes the command with inherited stdio', () => {
     runCommand('pnpm', ['test'], '/repo');
-    expect(execFileSync).toHaveBeenCalledWith('pnpm', ['test'], { cwd: '/repo', stdio: 'inherit' });
+    expect(vi.mocked(childProcess.execFileSync)).toHaveBeenCalledWith(
+      'pnpm',
+      ['test'],
+      { cwd: '/repo', stdio: 'inherit' }
+    );
   });
 });

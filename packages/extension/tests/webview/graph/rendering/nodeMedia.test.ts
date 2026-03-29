@@ -4,15 +4,15 @@ vi.mock('../../../../src/webview/components/graph/rendering/imageCache', () => (
   getImage: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/shapes2D', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/shapes/draw2d', () => ({
   drawShape: vi.fn(),
 }));
 
 import { getImage } from '../../../../src/webview/components/graph/rendering/imageCache';
-import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes2D';
-import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/webviewPluginHost';
-import type { FGNode } from '../../../../src/webview/components/graphModel';
-import { renderNodeImageOverlay, renderNodePluginOverlay } from '../../../../src/webview/components/graph/rendering/nodeMedia';
+import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes/draw2d';
+import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/manager';
+import type { FGNode } from '../../../../src/webview/components/graph/model/build';
+import { renderNodeImageOverlay, renderNodePluginOverlay } from '../../../../src/webview/components/graph/rendering/node/media';
 
 function createNode(overrides: Partial<FGNode> = {}): FGNode {
   return {
@@ -39,7 +39,7 @@ function createContext(): CanvasRenderingContext2D {
   } as unknown as CanvasRenderingContext2D;
 }
 
-describe('graph/rendering/nodeMedia', () => {
+describe('graph/rendering/node/media', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

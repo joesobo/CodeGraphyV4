@@ -1,6 +1,6 @@
 import type { IGraphData } from '../../../../shared/contracts';
 import type { GraphViewProviderAnalysisState } from '../../analysis/lifecycle';
-import type { GraphViewProviderAnalysisMethodsSource } from './index';
+import type { GraphViewProviderAnalysisMethodsSource } from './methods';
 
 interface GraphViewProviderWorkspaceReadyState {
   firstAnalysis: boolean;

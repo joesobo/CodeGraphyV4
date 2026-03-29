@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { NodeDecorationPayload } from '../../../../src/shared/contracts';
-import type { ThemeKind } from '../../../../src/webview/useTheme';
+import type { ThemeKind } from '../../../../src/webview/theme/useTheme';
 
-vi.mock('../../../../src/webview/components/graph/rendering/shapes2D', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/shapes/draw2d', () => ({
   drawShape: vi.fn(),
 }));
 
-import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes2D';
-import type { FGNode } from '../../../../src/webview/components/graphModel';
-import { renderNodeBody, renderNodeLabel } from '../../../../src/webview/components/graph/rendering/nodeBody';
+import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes/draw2d';
+import type { FGNode } from '../../../../src/webview/components/graph/model/build';
+import { renderNodeBody, renderNodeLabel } from '../../../../src/webview/components/graph/rendering/node/body';
 
 interface ContextOperation {
   fillStyle: string;
@@ -106,7 +106,7 @@ function createContext(): {
   };
 }
 
-describe('graph/rendering/nodeBody', () => {
+describe('graph/rendering/node/body', () => {
   it('draws the node body and stroke using node styling', () => {
     const { ctx, operations } = createContext();
 

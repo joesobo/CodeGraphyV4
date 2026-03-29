@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { FGNode } from '../../../../src/webview/components/graphModel';
+import type { FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { IFileInfo, IGraphData } from '../../../../src/shared/contracts';
-import { handleTooltipNodeHover } from '../../../../src/webview/components/graph/runtime/tooltipHover';
+import { handleTooltipNodeHover } from '../../../../src/webview/components/graph/runtime/tooltip/hover';
 
 describe('handleTooltipNodeHover', () => {
   beforeEach(() => {

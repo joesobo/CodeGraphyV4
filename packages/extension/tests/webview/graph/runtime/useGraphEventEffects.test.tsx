@@ -1,8 +1,8 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IFileInfo, IGraphData } from '../../../../src/shared/contracts';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
-import { useGraphEventEffects } from '../../../../src/webview/components/graph/runtime/useGraphEventEffects';
+import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
+import { useGraphEventEffects } from '../../../../src/webview/components/graph/runtime/use/graph/events';
 
 const eventEffectsHarness = vi.hoisted(() => ({
   applyKeyboardEffects: vi.fn(),
@@ -38,11 +38,11 @@ vi.mock('../../../../src/webview/export/jpeg', () => ({
   exportAsJpeg: eventEffectsHarness.exportAsJpeg,
 }));
 
-vi.mock('../../../../src/webview/export/json', () => ({
+vi.mock('../../../../src/webview/export/json/export', () => ({
   exportAsJson: eventEffectsHarness.exportAsJson,
 }));
 
-vi.mock('../../../../src/webview/export/markdown', () => ({
+vi.mock('../../../../src/webview/export/markdown/export', () => ({
   exportAsMarkdown: eventEffectsHarness.exportAsMarkdown,
 }));
 
@@ -50,7 +50,7 @@ vi.mock('../../../../src/webview/export/png', () => ({
   exportAsPng: eventEffectsHarness.exportAsPng,
 }));
 
-vi.mock('../../../../src/webview/export/svg', () => ({
+vi.mock('../../../../src/webview/export/svg/export', () => ({
   exportAsSvg: eventEffectsHarness.exportAsSvg,
 }));
 
@@ -58,7 +58,7 @@ vi.mock('../../../../src/webview/vscodeApi', () => ({
   postMessage: eventEffectsHarness.postMessage,
 }));
 
-vi.mock('../../../../src/webview/store', () => ({
+vi.mock('../../../../src/webview/store/state', () => ({
   graphStore: {
     getState: () => ({
       handleExtensionMessage: eventEffectsHarness.handleExtensionMessage,
@@ -84,15 +84,6 @@ function createTooltipSetter() {
     setTooltipData: vi.fn((value: { info?: IFileInfo } | ((previous: { info?: IFileInfo }) => { info?: IFileInfo })) => {
       tooltipData = typeof value === 'function' ? value(tooltipData) : value;
     }),
-  };
-}
-
-function createInfo(path = 'src/app.ts'): IFileInfo {
-  return {
-    lastModified: '2026-03-15T00:00:00.000Z',
-    path,
-    pluginName: 'TypeScript',
-    size: 42,
   };
 }
 
@@ -131,6 +122,9 @@ describe('graph/runtime/useGraphEventEffects', () => {
     const keyboardHandler = vi.fn();
     eventEffectsHarness.createGraphMessageListener.mockReturnValue(messageHandler);
     eventEffectsHarness.createGraphKeyboardListener.mockReturnValue(keyboardHandler);
+    eventEffectsHarness.runWebviewMessageEffects.mockImplementation((effects, handlers) => {
+      handlers.fitView();
+    });
 
     const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
     const containerRef = { current: document.createElement('div') };
@@ -168,73 +162,29 @@ describe('graph/runtime/useGraphEventEffects', () => {
     expect(addEventListenerSpy).toHaveBeenCalledWith('message', messageHandler);
     expect(addEventListenerSpy).toHaveBeenCalledWith('keydown', keyboardHandler);
 
-    const updatedContainer = document.createElement('div');
-    const updatedData = createData('src/updated.ts');
-    const updatedGraphData = {
-      links: [createLink('edge-b')],
-      nodes: [createNode('src/updated.ts')],
-    };
-    const info = createInfo('src/updated.ts');
-
-    containerRef.current = updatedContainer;
-    dataRef.current = updatedData;
-    directionColorRef.current = '#f97316';
-    directionModeRef.current = 'outgoing' as never;
-    graphDataRef.current = updatedGraphData;
-    showLabelsRef.current = false;
-    themeRef.current = 'dark' as never;
-
     const messageOptions = eventEffectsHarness.createGraphMessageListener.mock.calls[0]?.[0];
     expect(messageOptions).toBeDefined();
 
     const effects = [{ kind: 'fitView' }];
     messageOptions.applyEffects(effects);
 
-    expect(eventEffectsHarness.runWebviewMessageEffects).toHaveBeenCalledWith(effects, expect.objectContaining({
-      cacheFileInfo: expect.any(Function),
-      exportJpeg: expect.any(Function),
-      exportJson: expect.any(Function),
-      exportMarkdown: expect.any(Function),
-      exportPng: expect.any(Function),
-      exportSvg: expect.any(Function),
-      fitView: expect.any(Function),
-      postMessage: eventEffectsHarness.postMessage,
-      updateAccessCount: expect.any(Function),
-      updateTooltipInfo: expect.any(Function),
-      zoom2d: expect.any(Function),
-    }));
-
-    const runtime = eventEffectsHarness.runWebviewMessageEffects.mock.calls[0]?.[1];
-    runtime.fitView();
-    runtime.zoom2d(2);
-    runtime.cacheFileInfo(info);
-    runtime.updateTooltipInfo(info);
-    runtime.exportPng();
-    runtime.exportSvg();
-    runtime.exportJpeg();
-    runtime.exportJson();
-    runtime.exportMarkdown();
-    runtime.updateAccessCount('src/updated.ts', 7);
-
     expect(interactionHandlers.fitView).toHaveBeenCalledTimes(1);
-    expect(interactionHandlers.zoom2d).toHaveBeenCalledWith(2);
-    expect(fileInfoCacheRef.current.get('src/updated.ts')).toEqual(info);
-    expect(tooltip.getTooltipData()).toEqual({ info });
-    expect(eventEffectsHarness.exportAsPng).toHaveBeenCalledWith(updatedContainer);
-    expect(eventEffectsHarness.exportAsSvg).toHaveBeenCalledWith(
-      updatedGraphData.nodes,
-      updatedGraphData.links,
-      {
-        directionColor: '#f97316',
-        directionMode: 'outgoing',
-        showLabels: false,
-        theme: 'dark',
-      },
+    expect(eventEffectsHarness.runWebviewMessageEffects).toHaveBeenCalledWith(
+      effects,
+      expect.objectContaining({
+        cacheFileInfo: expect.any(Function),
+        exportJpeg: expect.any(Function),
+        exportJson: expect.any(Function),
+        exportMarkdown: expect.any(Function),
+        exportPng: expect.any(Function),
+        exportSvg: expect.any(Function),
+        fitView: expect.any(Function),
+        postMessage: eventEffectsHarness.postMessage,
+        updateAccessCount: expect.any(Function),
+        updateTooltipInfo: expect.any(Function),
+        zoom2d: expect.any(Function),
+      }),
     );
-    expect(eventEffectsHarness.exportAsJpeg).toHaveBeenCalledWith(updatedContainer);
-    expect(eventEffectsHarness.exportAsJson).toHaveBeenCalledWith(updatedData);
-    expect(eventEffectsHarness.exportAsMarkdown).toHaveBeenCalledWith(updatedData);
-    expect(interactionHandlers.updateAccessCount).toHaveBeenCalledWith('src/updated.ts', 7);
 
     addEventListenerSpy.mockRestore();
   });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Label } from '../../ui/label';
+import { Label } from '../../ui/form/label';
 import { Switch } from '../../ui/switch';
 
 export function OrphansToggle({

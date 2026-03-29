@@ -1,5 +1,5 @@
 import type { ICommitInfo } from '../../../shared/contracts';
-import { CACHE_VERSION, CACHE_VERSION_KEY, COMMITS_STATE_KEY } from '../constants';
+import { CACHE_VERSION, CACHE_VERSION_KEY, COMMITS_STATE_KEY } from './stateKeys';
 
 export interface CacheWorkspaceState {
   get<T>(key: string): T | undefined;

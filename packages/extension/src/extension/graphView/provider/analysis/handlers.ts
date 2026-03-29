@@ -6,7 +6,7 @@ import type {
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
-} from './index';
+} from './methods';
 import {
   setGraphViewProviderGraphData,
   setGraphViewProviderRawGraphData,

@@ -14,7 +14,7 @@ async function main(): Promise<void> {
   const extensionDevelopmentPath = path.resolve(__dirname, '../../');
 
   // The compiled Mocha suite entry point
-  const extensionTestsPath = path.resolve(__dirname, './suite/index');
+  const extensionTestsPath = path.resolve(__dirname, './suite/run');
 
   // A minimal workspace VS Code opens during the test run
   const workspacePath = path.resolve(__dirname, '../../test-fixtures/workspace');

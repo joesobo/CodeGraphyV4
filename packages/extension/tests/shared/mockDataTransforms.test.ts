@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { fileDataToNodes, fileDataToEdges } from '../../src/shared/mockDataTransforms';
+import { fileDataToNodes, fileDataToEdges } from '../../src/shared/mock/transforms';
 import { getMockGraphData } from '../../src/shared/mockData';
 import { IFileData } from '../../src/shared/contracts';
 

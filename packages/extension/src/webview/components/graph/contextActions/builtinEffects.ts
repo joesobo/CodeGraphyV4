@@ -1,4 +1,4 @@
-import type { BuiltInContextMenuAction } from '../../graphContextMenu/types';
+import type { BuiltInContextMenuAction } from '../contextMenu/contracts';
 import type { GraphContextEffect } from './effects';
 import {
   createClipboardEffects,

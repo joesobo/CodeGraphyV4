@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR, type DirectionMode, type EdgeDecorationPayload } from '../../../../src/shared/contracts';
-import type { ThemeKind } from '../../../../src/webview/useTheme';
-import type { FGLink } from '../../../../src/webview/components/graphModel';
+import type { ThemeKind } from '../../../../src/webview/theme/useTheme';
+import type { FGLink } from '../../../../src/webview/components/graph/model/build';
 import {
   getGraphDirectionalColor,
   getGraphLinkColor,
-} from '../../../../src/webview/components/graph/rendering/linkColors';
+} from '../../../../src/webview/components/graph/rendering/link/colors';
 
 function createDependencies(overrides: Partial<{
   directionColor: string;
@@ -35,7 +35,7 @@ function createLink(overrides: Partial<FGLink> = {}): FGLink {
   } as FGLink;
 }
 
-describe('graph/rendering/linkColors', () => {
+describe('graph/rendering/link/colors', () => {
   it('prefers edge decoration color over the link base color', () => {
     const color = getGraphLinkColor(
       createDependencies({

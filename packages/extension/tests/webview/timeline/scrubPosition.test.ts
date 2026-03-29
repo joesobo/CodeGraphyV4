@@ -1,16 +1,18 @@
 import type { MutableRefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '../../../src/shared/contracts';
+import type { ICommitInfo } from '../../../../../src/shared/contracts';
+import { clearSentMessages, findMessage } from '../../helpers/sentMessages';
 import { jumpToTrackPosition } from '../../../src/webview/components/timeline/scrubPosition';
-
-const postMessage = vi.fn();
-
-vi.mock('../../../src/webview/vscodeApi', () => ({
-  postMessage: (message: unknown) => postMessage(message),
-}));
 
 function createRef<T>(current: T): MutableRefObject<T> {
   return { current } as MutableRefObject<T>;
+}
+
+function expectJumpToCommit(sha: string): void {
+  expect(findMessage('JUMP_TO_COMMIT')).toEqual({
+    type: 'JUMP_TO_COMMIT',
+    payload: { sha },
+  });
 }
 
 const commits: ICommitInfo[] = [
@@ -56,7 +58,7 @@ function createTrack(): HTMLDivElement {
 describe('timeline/scrubPosition', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    postMessage.mockReset();
+    clearSentMessages();
   });
 
   afterEach(() => {
@@ -78,7 +80,7 @@ describe('timeline/scrubPosition', () => {
     });
 
     expect(setPlaybackTime).not.toHaveBeenCalled();
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
   });
 
   it('does nothing when the track exists but there are no commits to scrub', () => {
@@ -96,7 +98,7 @@ describe('timeline/scrubPosition', () => {
     });
 
     expect(setPlaybackTime).not.toHaveBeenCalled();
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
   });
 
   it('updates playback time immediately and sends the matched commit after the debounce', () => {
@@ -123,16 +125,13 @@ describe('timeline/scrubPosition', () => {
     expect(playbackTime).toBe(20);
     expect(userScrubActiveRef.current).toBe(true);
     expect(lastSentCommitIndexRef.current).toBe(1);
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
 
     vi.advanceTimersByTime(49);
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
 
     vi.advanceTimersByTime(1);
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: commits[1].sha },
-    });
+    expectJumpToCommit(commits[1].sha);
 
     vi.advanceTimersByTime(199);
     expect(userScrubActiveRef.current).toBe(true);
@@ -193,9 +192,6 @@ describe('timeline/scrubPosition', () => {
 
     expect(pendingDebounceCallback).not.toHaveBeenCalled();
     expect(pendingResetCallback).not.toHaveBeenCalled();
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: commits[0].sha },
-    });
+    expectJumpToCommit(commits[0].sha);
   });
 });

@@ -1,8 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { LabelsToggle } from '../../../../src/webview/components/settingsPanel/display/LabelsToggle';
 
 describe('display LabelsToggle', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renders the current checked state', () => {
     render(<LabelsToggle checked={true} onCheckedChange={vi.fn()} />);
 
@@ -19,6 +23,8 @@ describe('display LabelsToggle', () => {
   });
 
   it('ignores invalid toggle handlers at runtime', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     render(
       <LabelsToggle
         checked={true}
@@ -27,5 +33,6 @@ describe('display LabelsToggle', () => {
     );
 
     expect(() => fireEvent.click(screen.getByRole('switch'))).not.toThrow();
+    expect(consoleError).not.toHaveBeenCalled();
   });
 });

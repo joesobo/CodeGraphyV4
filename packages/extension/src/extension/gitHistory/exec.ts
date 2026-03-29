@@ -1,5 +1,5 @@
 import { execFile } from 'child_process';
-import { createIndexingAbortError } from './abort';
+import { createIndexingAbortError } from './shared/abort';
 
 export type ExecGitCommand = (args: string[], signal?: AbortSignal) => Promise<string>;
 

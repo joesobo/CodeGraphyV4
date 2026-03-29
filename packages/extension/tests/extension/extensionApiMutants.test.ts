@@ -14,7 +14,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
-import { activate } from '../../src/extension/index';
+import { activate } from '../../src/extension/activate';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 function makeMockContext() {

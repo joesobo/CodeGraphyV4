@@ -1,6 +1,6 @@
 import type * as vscode from 'vscode';
 import type { IGroup } from '../../../shared/contracts';
-import type { IViewContext } from '../../../core/views/types';
+import type { IViewContext } from '../../../core/views/contracts';
 import type { ViewRegistry } from '../../../core/views/registry';
 import { mapAvailableViews } from '../presentation';
 import { buildGraphViewGroupsUpdatedMessage } from '../groups/message';

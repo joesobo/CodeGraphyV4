@@ -1,8 +1,8 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
-import { useTooltipEvents } from '../../../../src/webview/components/graph/runtime/useTooltipEvents';
+import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
+import { useTooltipEvents } from '../../../../src/webview/components/graph/runtime/use/directional/tooltipEvents';
 
 function createNode(): FGNode {
 	return {

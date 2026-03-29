@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ButtonProps } from '../../ui/button';
 import { Button } from '../../ui/button';
-import { Label } from '../../ui/label';
+import { Label } from '../../ui/form/label';
 
 export type ModeButtonOption<Value extends string> = {
   label: string;

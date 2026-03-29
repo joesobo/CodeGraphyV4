@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../src/shared/contracts';
-import { createGraphStore } from '../../src/webview/store';
+import { createGraphStore } from '../../src/webview/store/state';
 
 describe('GraphStore initial state', () => {
   let store: ReturnType<typeof createGraphStore>;

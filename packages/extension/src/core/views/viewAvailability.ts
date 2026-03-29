@@ -3,7 +3,7 @@
  * @module core/views/viewAvailability
  */
 
-import { IViewInfo, IViewContext } from './types';
+import { IViewInfo, IViewContext } from './contracts';
 
 /**
  * Gets all views that are available in the given context.

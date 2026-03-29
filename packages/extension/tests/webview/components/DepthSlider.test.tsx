@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const vscodeHarness = vi.hoisted(() => ({
   postMessage: vi.fn(),
@@ -13,6 +13,10 @@ vi.mock('../../../src/webview/vscodeApi', () => ({
 import { DepthSlider } from '../../../src/webview/components/DepthSlider';
 
 describe('DepthSlider', () => {
+  beforeEach(() => {
+    vscodeHarness.postMessage.mockReset();
+  });
+
   it('renders the slider label, current value, and singular title', () => {
     render(<DepthSlider depthLimit={1} />);
 

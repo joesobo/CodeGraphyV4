@@ -1,8 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ColorField } from '../../../../src/webview/components/settingsPanel/display/ColorField';
 
 describe('display ColorField', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renders the provided label and value', () => {
     render(
       <ColorField
@@ -36,6 +40,8 @@ describe('display ColorField', () => {
   });
 
   it('ignores invalid change handlers at runtime', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     render(
       <ColorField
         id="direction-color"
@@ -50,5 +56,6 @@ describe('display ColorField', () => {
         target: { value: '#123456' },
       })
     ).not.toThrow();
+    expect(consoleError).not.toHaveBeenCalled();
   });
 });

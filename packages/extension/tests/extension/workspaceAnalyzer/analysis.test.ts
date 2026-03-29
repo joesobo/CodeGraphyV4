@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/configuration';
-import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
+import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer/service';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>

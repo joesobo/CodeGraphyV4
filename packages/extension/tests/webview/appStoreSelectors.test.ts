@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useAppState, useAppActions } from '../../src/webview/appStoreSelectors';
-import { graphStore } from '../../src/webview/store';
+import { graphStore } from '../../src/webview/store/state';
 
 describe('useAppState', () => {
   beforeEach(() => {

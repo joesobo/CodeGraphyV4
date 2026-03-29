@@ -3,7 +3,7 @@ import type { GraphViewProviderAnalysisDelegateCalls } from './delegates';
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
-} from './index';
+} from './methods';
 import {
   createGraphViewProviderAnalysisState,
   syncGraphViewProviderAnalysisExecutionState,

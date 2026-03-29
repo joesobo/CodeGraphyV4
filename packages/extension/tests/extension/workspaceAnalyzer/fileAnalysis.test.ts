@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IDiscoveredFile } from '../../../src/core/discovery/types';
-import type { IConnection } from '../../../src/core/plugins/types';
+import type { IDiscoveredFile } from '../../../src/core/discovery/contracts';
+import type { IConnection } from '../../../src/core/plugins/types/contracts';
 import { createEmptyWorkspaceAnalysisCache } from '../../../src/extension/workspaceAnalyzer/cache';
 import { analyzeWorkspaceFiles } from '../../../src/extension/workspaceAnalyzer/fileAnalysis';
 

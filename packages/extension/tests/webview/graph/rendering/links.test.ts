@@ -1,16 +1,18 @@
 import { describe, expect, it, vi } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR, type DirectionMode, type EdgeDecorationPayload } from '../../../../src/shared/contracts';
-import type { ThemeKind } from '../../../../src/webview/useTheme';
-import type { FGLink } from '../../../../src/webview/components/graphModel';
+import type { ThemeKind } from '../../../../src/webview/theme/useTheme';
+import type { FGLink } from '../../../../src/webview/components/graph/model/build';
 import {
-  getGraphArrowRelPos,
   getGraphDirectionalColor,
   getGraphLinkColor,
+} from '../../../../src/webview/components/graph/rendering/link/colors';
+import {
+  getGraphArrowRelPos,
   getGraphLinkParticles,
   getGraphLinkWidth,
   getLinkCanvasObjectMode,
-  renderBidirectionalLink,
-} from '../../../../src/webview/components/graph/rendering/links';
+} from '../../../../src/webview/components/graph/rendering/link/metrics';
+import { renderBidirectionalLink } from '../../../../src/webview/components/graph/rendering/bidirectional/link';
 
 function createDependencies(overrides: Partial<{
   directionColor: string;
@@ -57,7 +59,7 @@ function createContext(): CanvasRenderingContext2D {
   } as unknown as CanvasRenderingContext2D;
 }
 
-describe('graph/rendering/links', () => {
+describe('graph/rendering/link/links', () => {
   it('draws a bidirectional link line and arrow heads in arrows mode', () => {
     const ctx = createContext();
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createBidirectionalArrowGeometry } from '../../../../src/webview/components/graph/rendering/bidirectionalArrowGeometry';
+import { createBidirectionalArrowGeometry } from '../../../../src/webview/components/graph/rendering/bidirectional/arrowGeometry';
 
-describe('graph/rendering/bidirectionalArrowGeometry', () => {
+describe('graph/rendering/bidirectional/arrowGeometry', () => {
   it('builds arrow-head points from the supplied tip and vectors', () => {
     const geometry = createBidirectionalArrowGeometry(
       70,

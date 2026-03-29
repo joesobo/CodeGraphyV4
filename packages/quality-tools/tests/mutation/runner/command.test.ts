@@ -17,10 +17,25 @@ function packageTarget(packageName: string): QualityTarget {
   };
 }
 
+function fileTarget(relativePath: string): QualityTarget {
+  return {
+    absolutePath: `${REPO_ROOT}/${relativePath}`,
+    kind: 'file',
+    packageName: 'extension',
+    packageRelativePath: relativePath.replace('packages/extension/', ''),
+    packageRoot: `${REPO_ROOT}/packages/extension`,
+    relativePath,
+  };
+}
+
 function createDependencies(): MutationCliDependencies {
   return {
     discoverMutationPackageNames: vi.fn(() => ['plugin-godot', 'quality-tools']),
-    resolveQualityTarget: vi.fn((_repoRoot: string, input?: string) => packageTarget(input ?? 'quality-tools')),
+    resolveQualityTarget: vi.fn((_repoRoot: string, input?: string) => (
+      input?.startsWith('packages/extension/src/')
+        ? fileTarget(input)
+        : packageTarget(input ?? 'quality-tools')
+    )),
     runMutation: vi.fn()
   };
 }
@@ -42,5 +57,26 @@ describe('command', () => {
     expect(dependencies.resolveQualityTarget).toHaveBeenNthCalledWith(1, REPO_ROOT, 'plugin-godot');
     expect(dependencies.resolveQualityTarget).toHaveBeenNthCalledWith(2, REPO_ROOT, 'quality-tools');
     expect(dependencies.runMutation).toHaveBeenCalledTimes(2);
+  });
+
+  it('uses --mutate as the effective mutation target', () => {
+    const dependencies = createDependencies();
+
+    runMutationCli([
+      'extension/',
+      '--mutate',
+      'packages/extension/src/webview/components/DepthSlider.tsx',
+    ], dependencies);
+
+    expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(
+      REPO_ROOT,
+      'packages/extension/src/webview/components/DepthSlider.tsx',
+    );
+    expect(dependencies.runMutation).toHaveBeenCalledWith(
+      expect.objectContaining({
+        kind: 'file',
+        relativePath: 'packages/extension/src/webview/components/DepthSlider.tsx',
+      }),
+    );
   });
 });

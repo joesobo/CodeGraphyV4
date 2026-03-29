@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createBidirectionalLineGeometry } from '../../../../src/webview/components/graph/rendering/bidirectionalLineGeometry';
+import { createBidirectionalLineGeometry } from '../../../../src/webview/components/graph/rendering/bidirectional/lineGeometry';
 
 function createNode(overrides: Record<string, number | undefined>) {
   return {
@@ -10,7 +10,7 @@ function createNode(overrides: Record<string, number | undefined>) {
   } as never;
 }
 
-describe('graph/rendering/bidirectionalLineGeometry', () => {
+describe('graph/rendering/bidirectional/lineGeometry', () => {
   it('returns bidirectional line endpoints trimmed to each node radius', () => {
     const geometry = createBidirectionalLineGeometry(
       { x: 0, y: 10, size: 10 } as never,

@@ -4,7 +4,7 @@ import type {
   IPluginContextMenuItem,
   NodeDecorationPayload,
 } from '../../src/shared/contracts';
-import { createGraphStore } from '../../src/webview/store';
+import { createGraphStore } from '../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
 describe('GraphStore message routing', () => {

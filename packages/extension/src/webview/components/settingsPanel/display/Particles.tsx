@@ -1,6 +1,6 @@
 import React from 'react';
-import { Label } from '../../ui/label';
-import { Slider } from '../../ui/slider';
+import { Label } from '../../ui/form/label';
+import { Slider } from '../../ui/controls/slider';
 
 type ParticlesProps = {
   displayParticleSpeed: number;

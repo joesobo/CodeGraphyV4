@@ -223,7 +223,7 @@ describe('collectFileIssues', () => {
       expect(redundancyIssue?.detail).toBe('filename repeats path context (50% token overlap)');
     });
 
-    it('does not treat index.ts as a package entry point during file issue collection', () => {
+    it('treats index.ts as a package entry point during file issue collection', () => {
       const root = createFileTree(
         {
           'index.ts': 'export const x = 1;'
@@ -239,12 +239,7 @@ describe('collectFileIssues', () => {
         0.5
       );
 
-      const lowInfoIssue = result.find((issue) => issue.kind === 'low-info-banned');
-      expect(lowInfoIssue).toEqual({
-        detail: 'Indistinguishable in IDE tabs; breaks Go to Definition',
-        fileName: 'index.ts',
-        kind: 'low-info-banned'
-      });
+      expect(result).toEqual([]);
     });
   });
 });

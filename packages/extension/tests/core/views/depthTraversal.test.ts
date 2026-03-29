@@ -47,6 +47,18 @@ describe('buildAdjacencyList', () => {
     expect(adj.get('a.ts')!.has('missing.ts')).toBe(true);
   });
 
+  it('ignores edges whose source node is missing from the node list', () => {
+    const data: IGraphData = {
+      nodes: [{ id: 'a.ts', label: 'a.ts', color: '#fff' }],
+      edges: [{ id: 'ghost->a', from: 'ghost.ts', to: 'a.ts' }],
+    };
+
+    const adj = buildAdjacencyList(data);
+
+    expect(adj.get('a.ts')).toEqual(new Set(['ghost.ts']));
+    expect(adj.has('ghost.ts')).toBe(false);
+  });
+
   it('returns an empty map for empty graph data', () => {
     const data: IGraphData = { nodes: [], edges: [] };
 
@@ -175,5 +187,19 @@ describe('bfsFromNode', () => {
     // 'ghost' has no neighbors entry but should still be visited
     expect(depths.get('a')).toBe(0);
     expect(depths.get('ghost')).toBe(1);
+  });
+
+  it('stops cleanly when a visited neighbor has no adjacency entry', () => {
+    const adj = new Map<string, Set<string>>();
+    adj.set('a', new Set(['ghost']));
+
+    const depths = bfsFromNode('a', 2, adj);
+
+    expect(depths).toEqual(
+      new Map([
+        ['a', 0],
+        ['ghost', 1],
+      ]),
+    );
   });
 });

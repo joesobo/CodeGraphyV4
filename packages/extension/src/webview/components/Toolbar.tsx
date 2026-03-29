@@ -1,10 +1,10 @@
 import React from 'react';
-import { TooltipProvider } from './ui/tooltip';
+import { TooltipProvider } from './ui/overlay/tooltip';
 import { ViewButtons } from './toolbar/ViewButtons';
 import { DagModeToggle } from './toolbar/DagModeToggle';
 import { DimensionToggle } from './toolbar/DimensionToggle';
 import { NodeSizeToggle } from './toolbar/NodeSizeToggle';
-import { ToolbarActions } from './toolbar/ToolbarActions';
+import { ToolbarActions } from './toolbar/Actions';
 
 export default function Toolbar(): React.ReactElement {
   return (

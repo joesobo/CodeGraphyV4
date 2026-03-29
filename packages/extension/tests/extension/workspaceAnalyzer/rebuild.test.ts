@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer';
+import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer/service';
 
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => [{ uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 }],

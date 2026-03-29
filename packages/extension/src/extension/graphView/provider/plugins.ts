@@ -1,17 +1,17 @@
 import * as vscode from 'vscode';
-import type { IViewContext } from '../../../core/views/types';
+import type { IViewContext } from '../../../core/views/contracts';
 import type { ViewRegistry } from '../../../core/views/registry';
 import type { ExtensionToWebviewMessage, IGroup } from '../../../shared/contracts';
 import {
   registerGraphViewExternalPlugin,
   type GraphViewExternalPluginRegistrationOptions,
-} from '../plugins/registration';
+} from '../webview/plugins/registration';
 import {
   sendGraphViewContextMenuItems,
   sendGraphViewDecorations,
   sendGraphViewPluginStatuses,
   sendGraphViewPluginWebviewInjections,
-} from '../plugins/webview';
+} from '../webview/plugins/assets';
 import { sendGraphViewAvailableViews, sendGraphViewGroupsUpdated } from '../view/broadcast';
 
 const DEFAULT_DEPTH_LIMIT = 1;
@@ -48,7 +48,7 @@ export interface GraphViewProviderPluginMethodsSource {
   _activeViewId: string;
   _decorationManager: GraphViewDecorationManagerLike;
   _firstAnalysis: boolean;
-  _webviewReadyNotified: boolean;
+  _readyNotified: boolean;
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;
   _registerBuiltInPluginRoots(): void;
@@ -167,8 +167,8 @@ export function createGraphViewProviderPluginMethods(
         get firstAnalysis() {
           return source._firstAnalysis;
         },
-        get webviewReadyNotified() {
-          return source._webviewReadyNotified;
+        get readyNotified() {
+          return source._readyNotified;
         },
         get analyzerInitialized() {
           return source._analyzerInitialized;

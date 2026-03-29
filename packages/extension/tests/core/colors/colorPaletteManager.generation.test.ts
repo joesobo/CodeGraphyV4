@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IColorGenerationOptions } from '../../../src/core/colors/colorPaletteManager';
-import { ColorPaletteManager, DEFAULT_FALLBACK_COLOR } from '../../../src/core/colors/colorPaletteManager';
+import type { IColorGenerationOptions } from '../../../src/core/colors/palette/manager';
+import { ColorPaletteManager, DEFAULT_FALLBACK_COLOR } from '../../../src/core/colors/palette/manager';
 
 const { distinctColorsMock } = vi.hoisted(() => ({
   distinctColorsMock: vi.fn((options: { count: number }) =>

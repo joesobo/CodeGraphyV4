@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getFileExtension, normalizePluginExtension } from '@/core/plugins/fileExtensions';
+import { getFileExtension, normalizePluginExtension } from '@/core/plugins/routing/fileExtensions';
 
 describe('fileExtensions', () => {
   describe('normalizePluginExtension', () => {

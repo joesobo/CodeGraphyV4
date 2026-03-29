@@ -13,7 +13,7 @@
 // multiple conditions.
 
 import { describe, it, expect } from 'vitest';
-import { isExtension } from '../../../src/core/colors/colorIsExtension';
+import { isExtension } from '../../../src/core/colors/extension/path';
 
 describe('isExtension glob/path guard (L10 mutants)', () => {
   it('returns false for a pattern containing only a wildcard character', () => {

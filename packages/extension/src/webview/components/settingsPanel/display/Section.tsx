@@ -8,10 +8,10 @@ import { ColorField } from './ColorField';
 import { LabelsToggle } from './LabelsToggle';
 import { ModeButtons } from './ModeButtons';
 import { Particles } from './Particles';
-import { useColorUpdates } from './useColorUpdates';
-import { useDisplayStore } from './useDisplayStore';
-import { useParticleSettings } from './useParticleSettings';
-import { getDisplayViewState } from './viewState';
+import { useColorUpdates } from './use/colorUpdates';
+import { useDisplayStore } from './use/store';
+import { useParticleSettings } from './use/particles';
+import { getDisplayViewState } from './state/selectors';
 
 export function DisplaySection(): React.ReactElement {
   const {

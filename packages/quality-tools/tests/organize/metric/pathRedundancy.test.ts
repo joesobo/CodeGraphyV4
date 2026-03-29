@@ -99,6 +99,28 @@ describe('pathRedundancy', () => {
     });
   });
 
+  describe('conventional entry files', () => {
+    it('treats App.tsx in an app folder as conventional', () => {
+      expect(pathRedundancy('webview/app/App.tsx', ['webview', 'app'])).toBe(0);
+    });
+
+    it('treats export.ts in an export folder as conventional', () => {
+      expect(pathRedundancy('webview/export/settings/export.ts', ['webview', 'export', 'settings'])).toBe(0);
+    });
+
+    it('treats useTheme.ts in a theme folder as conventional', () => {
+      expect(pathRedundancy('webview/theme/useTheme.ts', ['webview', 'theme'])).toBe(0);
+    });
+
+    it('treats hook-style files under feature folders as conventional when the hook matches the folder', () => {
+      expect(pathRedundancy('features/editor/useEditorState.ts', ['features', 'editor'])).toBe(0);
+    });
+
+    it('still flags conventional-looking names that do not actually match their folder', () => {
+      expect(pathRedundancy('webview/app/appState.tsx', ['webview', 'app'])).toBe(0.5);
+    });
+  });
+
   describe('case insensitivity', () => {
     it('matches tokens case-insensitively', () => {
       // ScrapData -> ['scrap', 'data']

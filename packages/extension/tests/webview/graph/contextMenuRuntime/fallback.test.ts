@@ -4,7 +4,7 @@ import type {
   GraphRef,
   GraphRightMouseDownState,
   GraphTimerHandle,
-} from '../../../../src/webview/components/graph/contextMenuRuntime';
+} from '../../../../src/webview/components/graph/contextMenuRuntime/controller';
 import { createContextMenuFallbackRuntime } from '../../../../src/webview/components/graph/contextMenuRuntime/fallback';
 
 function createRef<TValue>(current: TValue): GraphRef<TValue> {

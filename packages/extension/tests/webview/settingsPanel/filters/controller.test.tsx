@@ -2,7 +2,7 @@ import type React from 'react';
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useFilterController } from '../../../../src/webview/components/settingsPanel/filters/controller';
-import { graphStore } from '../../../../src/webview/store';
+import { graphStore } from '../../../../../src/webview/store/state';
 
 const sentMessages: unknown[] = [];
 vi.mock('../../../../src/webview/vscodeApi', () => ({

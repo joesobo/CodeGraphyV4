@@ -3,10 +3,10 @@ import {
   isExtension,
   normalizeExtension,
   getExtension,
-  resolveColor,
-  resolveColorInfo,
-} from '../../../src/core/colors/colorResolver';
-import { DEFAULT_FALLBACK_COLOR } from '../../../src/core/colors/colorPaletteManager';
+} from '../../../src/core/colors/extension/path';
+import { resolveColor } from '../../../src/core/colors/resolution/color';
+import { resolveColorInfo } from '../../../src/core/colors/resolution/info';
+import { DEFAULT_FALLBACK_COLOR } from '../../../src/core/colors/palette/colorTypes';
 
 describe('colorResolver', () => {
   describe('isExtension', () => {

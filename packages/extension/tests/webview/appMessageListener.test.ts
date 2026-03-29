@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createMessageHandler, setupMessageListener } from '../../src/webview/appMessageListener';
-import { graphStore } from '../../src/webview/store';
-import type { WebviewPluginHost } from '../../src/webview/pluginHost/webviewPluginHost';
+import { graphStore } from '../../src/webview/store/state';
+import type { WebviewPluginHost } from '../../src/webview/pluginHost/manager';
 
 describe('createMessageHandler', () => {
   let injectPluginAssets: ReturnType<typeof vi.fn>;

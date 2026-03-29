@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { NodeShape3D } from '../../../src/shared/contracts';
+import type { NodeShape3D } from '../../../../src/shared/contracts';
 
 const mockTexture = { isTexture: true };
 
@@ -39,7 +39,7 @@ vi.mock('three', () => {
 });
 
 import * as THREE from 'three';
-import { createNodeMesh, createImageSprite } from '../../../../src/webview/components/graph/rendering/shapes3D';
+import { createNodeMesh, createImageSprite } from '../../../../src/webview/components/graph/rendering/shapes/draw3d';
 
 const MockSphereGeometry = vi.mocked(THREE.SphereGeometry);
 const MockBoxGeometry = vi.mocked(THREE.BoxGeometry);

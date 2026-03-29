@@ -9,10 +9,14 @@ const { mkdirSync, writeFileSync } = vi.hoisted(() => ({
   writeFileSync: vi.fn()
 }));
 
-vi.mock('fs', () => ({
-  mkdirSync,
-  writeFileSync
-}));
+vi.mock('fs', async () => {
+  const actual = await vi.importActual<typeof import('fs')>('fs');
+  return {
+    ...actual,
+    mkdirSync,
+    writeFileSync
+  };
+});
 
 describe('baseline', () => {
   it('builds a repo baseline path for the repo target', () => {

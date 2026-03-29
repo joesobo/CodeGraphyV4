@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compareSemver, parseSemver, satisfiesSemverRange } from '@/core/plugins/versioning';
+import { compareSemver, parseSemver, satisfiesSemverRange } from '@/core/plugins/versioning/apiVersions';
 
 describe('versioning', () => {
   describe('parseSemver', () => {

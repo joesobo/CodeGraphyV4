@@ -5,8 +5,8 @@ import {
   supportsFile,
   getSupportedExtensions,
   analyzeFile,
-} from '../../../src/core/plugins/pluginRouting';
-import type { IPlugin } from '../../../src/core/plugins/types';
+} from '../../../src/core/plugins/routing/router';
+import type { IPlugin } from '../../../src/core/plugins/types/contracts';
 
 function makePlugin(id: string, extensions: string[]): IPlugin {
   return {
@@ -41,7 +41,7 @@ function buildMaps(
   return { pluginsMap, extensionMap };
 }
 
-describe('pluginRouting', () => {
+describe('plugin routing', () => {
   describe('getPluginForFile', () => {
     it('returns the plugin whose extension matches the file', () => {
       const ts = makePlugin('ts-plugin', ['.ts']);

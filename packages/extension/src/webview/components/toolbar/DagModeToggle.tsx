@@ -10,8 +10,8 @@ import { DagRadialIcon } from '../icons/DagRadialIcon';
 import { DagTopDownIcon } from '../icons/DagTopDownIcon';
 import { DagLeftRightIcon } from '../icons/DagLeftRightIcon';
 import { Button } from '../ui/button';
-import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
-import { useGraphStore } from '../../store';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
+import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import type { DagMode } from '../../../shared/contracts';
 

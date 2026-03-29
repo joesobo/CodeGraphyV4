@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
 import { type DirectionMode, type EdgeDecorationPayload } from '../../../../src/shared/contracts';
-import type { ThemeKind } from '../../../../src/webview/useTheme';
-import type { FGLink } from '../../../../src/webview/components/graphModel';
-import { renderBidirectionalLink } from '../../../../src/webview/components/graph/rendering/bidirectionalLink';
+import type { ThemeKind } from '../../../../src/webview/theme/useTheme';
+import type { FGLink } from '../../../../src/webview/components/graph/model/build';
+import { renderBidirectionalLink } from '../../../../src/webview/components/graph/rendering/bidirectional/link';
 
 interface ContextOperation {
   fillStyle: string;
@@ -82,7 +82,7 @@ function createContext(): {
   };
 }
 
-describe('graph/rendering/bidirectionalLink', () => {
+describe('graph/rendering/bidirectional/link', () => {
   it('draws a bidirectional link line and arrow heads in arrows mode', () => {
     const { ctx, operations } = createContext();
 

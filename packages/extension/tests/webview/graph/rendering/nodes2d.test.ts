@@ -1,23 +1,23 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { NodeDecorationPayload } from '../../../../src/shared/contracts';
-import type { ThemeKind } from '../../../../src/webview/useTheme';
+import type { ThemeKind } from '../../../../src/webview/theme/useTheme';
 
 vi.mock('../../../../src/webview/components/graph/rendering/imageCache', () => ({
   getImage: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/shapes2D', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/shapes/draw2d', () => ({
   drawShape: vi.fn(),
 }));
 
 import { getImage } from '../../../../src/webview/components/graph/rendering/imageCache';
-import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes2D';
-import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/webviewPluginHost';
-import type { FGNode } from '../../../../src/webview/components/graphModel';
+import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes/draw2d';
+import type { WebviewPluginHost } from '../../../../src/webview/pluginHost/manager';
+import type { FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
   paintNodePointerArea,
   renderNodeCanvas,
-} from '../../../../src/webview/components/graph/rendering/nodes2d';
+} from '../../../../src/webview/components/graph/rendering/nodes/canvas2d';
 
 interface ContextOperation {
   fillStyle: string;
@@ -130,7 +130,7 @@ function createContext(): {
   };
 }
 
-describe('graph/rendering/nodes2d', () => {
+describe('graph/rendering/nodes/canvas2d', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { isExtension } from '../../../src/core/colors/colorIsExtension';
+import { isExtension } from '../../../src/core/colors/extension/path';
 
 describe('isExtension', () => {
   it('returns true for a simple extension like .ts', () => {

@@ -1,4 +1,4 @@
-import type { GraphInteractionEffect } from '../../graphInteraction/model';
+import type { GraphInteractionEffect } from '../interaction/model';
 
 export interface GraphInteractionOptions<TLink = unknown> {
   event?: MouseEvent;
