@@ -12,7 +12,7 @@ describe('buildMutationArgsForTest', () => {
     expect(args[3]).toBe('reports/mutation/extension/stryker-incremental-extension.json');
     expect(args).toContain('-m');
     expect(args.join(' ')).toContain('packages/extension/src/**/*.ts');
-    expect(args.join(' ')).toContain('!packages/extension/src/**/webview/storeMessageTypes.ts');
+    expect(args.join(' ')).toContain('!packages/extension/src/**/webview/store/defaults.ts');
   });
 
   it('uses unified mutation globs for a full quality-tools run', () => {
