@@ -160,10 +160,17 @@ describe('GraphViewProvider bootstrap wiring', () => {
       .mockImplementation(() => {});
 
     expect((provider as unknown as { _nodeSizeMode: string })._nodeSizeMode).toBe('connections');
+    expect(GraphViewProvider.viewType).toBe('codegraphy.graphView');
     expect((provider as unknown as { _rawGraphData: unknown })._rawGraphData).toEqual({
       nodes: [],
       edges: [],
     });
+    expect((provider as unknown as { _analyzerInitialized: boolean })._analyzerInitialized).toBe(
+      false,
+    );
+    expect(
+      (provider as unknown as { _webviewReadyNotified: boolean })._webviewReadyNotified,
+    ).toBe(false);
     expect(
       (provider as unknown as { _viewContext: { depthLimit: number; activePlugins: Set<string> } })
         ._viewContext.depthLimit,
@@ -215,6 +222,29 @@ describe('GraphViewProvider bootstrap wiring', () => {
     }));
 
     const { GraphViewProvider, vscodeModule } = await loadSubject(undefined);
+
+    new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
+    );
+
+    expect(initializeGraphViewProviderServices).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workspaceRoot: '',
+      }),
+    );
+  });
+
+  it('passes an empty workspace root to provider services when the folder list is empty', async () => {
+    const initializeGraphViewProviderServices = vi.fn();
+    const restoreGraphViewProviderState = vi.fn(() => createRestoredState());
+
+    vi.doMock('../../src/extension/graphView/provider/bootstrap', () => ({
+      initializeGraphViewProviderServices,
+      restoreGraphViewProviderState,
+    }));
+
+    const { GraphViewProvider, vscodeModule } = await loadSubject([]);
 
     new GraphViewProvider(
       vscodeModule.Uri.file('/test/extension'),
