@@ -14,15 +14,13 @@ export default defineConfig({
     },
     include: [
       'tests/**/*.test.{ts,tsx}',
-      '../*/tests/**/*.test.{ts,tsx}',
-      '../*/__tests__/**/*.test.{ts,tsx}',
     ],
     setupFiles: [resolve(__dirname, 'tests/setup.ts')],
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],
       reportsDirectory: resolve(root, 'coverage'),
-      include: ['src/**/*.{ts,tsx}', '../*/src/**/*.{ts,tsx}'],
+      include: ['src/**/*.{ts,tsx}'],
       exclude: ['src/**/*.d.ts', '../*/src/**/*.d.ts'],
     },
   },

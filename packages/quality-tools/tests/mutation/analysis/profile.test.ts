@@ -33,6 +33,14 @@ describe('mutation profiles', () => {
     ]);
   });
 
+  it('scopes regular extension vitest discovery to extension-owned tests', async () => {
+    const { default: config } = await import('../../../../extension/vitest.config');
+
+    expect(config.test?.include).toEqual([
+      'tests/**/*.test.{ts,tsx}',
+    ]);
+  });
+
   it('uses the shared root config for generic workspace packages', () => {
     expect(resolveMutationProfile(resolveQualityTarget(REPO_ROOT, 'plugin-godot/'))).toMatchObject({
       configPath: 'stryker.config.json',
