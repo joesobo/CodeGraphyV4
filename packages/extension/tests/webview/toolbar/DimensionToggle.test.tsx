@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
 import { DimensionToggle } from '../../../src/webview/components/toolbar/DimensionToggle';
-import { graphStore } from '../../../../../src/webview/store/state';
+import { graphStore } from '../../../src/webview/store/state';
 
 function renderWithProviders() {
   return render(

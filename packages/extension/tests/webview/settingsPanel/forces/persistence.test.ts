@@ -55,6 +55,23 @@ describe('settingsPanel forces persistence', () => {
     vi.useRealTimers();
   });
 
+  it('does nothing when flushing a key with no pending value', () => {
+    vi.useFakeTimers();
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const pendingValues: PendingPhysicsMap = {};
+    const timer = setTimeout(() => undefined, 1000);
+    const timers: PhysicsTimerMap = { repelForce: timer };
+    const emit = vi.fn();
+
+    flushPendingPhysicsValue(pendingValues, timers, 'repelForce', emit);
+
+    expect(clearTimeoutSpy).not.toHaveBeenCalled();
+    expect(emit).not.toHaveBeenCalled();
+    expect(pendingValues).toEqual({});
+    expect(timers).toEqual({ repelForce: timer });
+    vi.useRealTimers();
+  });
+
   it('does not clear a timer before the first scheduled value', () => {
     vi.useFakeTimers();
     const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
