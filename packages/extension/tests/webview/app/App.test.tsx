@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
-import App from '../../src/webview/App';
-import { graphStore } from '../../src/webview/store/state';
-import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/contracts';
+import App from '../../../src/webview/app/App';
+import { graphStore } from '../../../src/webview/store/state';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
 
 // Mock window message listeners
 const messageListeners: ((event: MessageEvent) => void)[] = [];

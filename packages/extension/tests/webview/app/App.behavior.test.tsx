@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen, act, waitFor } from '@testing-library/react';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_NODE_COLOR } from '../../src/shared/contracts';
-import { graphStore } from '../../src/webview/store/state';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_NODE_COLOR } from '../../../src/shared/contracts';
+import { graphStore } from '../../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({
   graphProps: null as null | Record<string, unknown>,
@@ -13,7 +13,7 @@ const harness = vi.hoisted(() => ({
 
 const messageListeners: Array<(event: MessageEvent) => void> = [];
 
-vi.mock('../../src/webview/components/Graph', () => ({
+vi.mock('../../../src/webview/components/Graph', () => ({
   default: (props: Record<string, unknown>) => {
     harness.graphProps = props;
     const data = props.data as { nodes: Array<{ id: string; color?: string; shape2D?: string; shape3D?: string; imageUrl?: string }>; edges: Array<{ id: string }> };
@@ -29,7 +29,7 @@ vi.mock('../../src/webview/components/Graph', () => ({
   },
 }));
 
-vi.mock('../../src/webview/components/searchBar/Field', () => ({
+vi.mock('../../../src/webview/components/searchBar/Field', () => ({
   SearchBar: (props: Record<string, unknown>) => {
     harness.searchBarProps = props;
     return (
@@ -43,25 +43,25 @@ vi.mock('../../src/webview/components/searchBar/Field', () => ({
   },
 }));
 
-vi.mock('../../src/webview/components/settingsPanel/Drawer', () => ({
+vi.mock('../../../src/webview/components/settingsPanel/Drawer', () => ({
   default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
     isOpen ? <button data-testid="settings-panel" onClick={onClose}>Close Settings</button> : null,
 }));
 
-vi.mock('../../src/webview/components/plugins/Panel', () => ({
+vi.mock('../../../src/webview/components/plugins/Panel', () => ({
   default: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
     isOpen ? <button data-testid="plugins-panel" onClick={onClose}>Close Plugins</button> : null,
 }));
 
-vi.mock('../../src/webview/components/Timeline', () => ({
+vi.mock('../../../src/webview/components/Timeline', () => ({
   default: () => <div data-testid="timeline" />,
 }));
 
-vi.mock('../../src/webview/components/Toolbar', () => ({
+vi.mock('../../../src/webview/components/Toolbar', () => ({
   default: () => <div data-testid="toolbar" />,
 }));
 
-vi.mock('../../src/webview/pluginHost/manager', () => {
+vi.mock('../../../src/webview/pluginHost/manager', () => {
   class MockWebviewPluginHost {
     createAPI(pluginId: string, postMessage: (message: { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }) => void) {
       harness.createApiCalls.push(pluginId);
@@ -95,7 +95,7 @@ vi.mock('../../src/webview/pluginHost/manager', () => {
   return { WebviewPluginHost: MockWebviewPluginHost };
 });
 
-import App from '../../src/webview/App';
+import App from '../../../src/webview/app/App';
 
 vi.stubGlobal('addEventListener', (type: string, listener: (event: MessageEvent) => void) => {
   if (type === 'message') {
