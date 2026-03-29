@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { isThemeChangedMessage } from '../../src/webview/themeMessageGuard';
+import { describe, expect, it } from 'vitest';
+import { isThemeChangedMessage } from '../../../src/webview/theme/messageGuard';
 
 describe('isThemeChangedMessage', () => {
   it('returns true for a valid light theme message', () => {
@@ -60,17 +60,10 @@ describe('isThemeChangedMessage', () => {
     expect(isThemeChangedMessage({})).toBe(false);
   });
 
-  it('distinguishes light from other valid kinds', () => {
-    // Each kind must return true individually - ensures || branches are tested
-    const lightResult = isThemeChangedMessage({ type: 'THEME_CHANGED', payload: { kind: 'light' } });
-    const darkResult = isThemeChangedMessage({ type: 'THEME_CHANGED', payload: { kind: 'dark' } });
-    const hcResult = isThemeChangedMessage({ type: 'THEME_CHANGED', payload: { kind: 'high-contrast' } });
-
-    expect(lightResult).toBe(true);
-    expect(darkResult).toBe(true);
-    expect(hcResult).toBe(true);
-
-    // Close but wrong values must return false
+  it('distinguishes valid kinds from close but invalid values', () => {
+    expect(isThemeChangedMessage({ type: 'THEME_CHANGED', payload: { kind: 'light' } })).toBe(true);
+    expect(isThemeChangedMessage({ type: 'THEME_CHANGED', payload: { kind: 'dark' } })).toBe(true);
+    expect(isThemeChangedMessage({ type: 'THEME_CHANGED', payload: { kind: 'high-contrast' } })).toBe(true);
     expect(isThemeChangedMessage({ type: 'THEME_CHANGED', payload: { kind: 'Light' } })).toBe(false);
     expect(isThemeChangedMessage({ type: 'THEME_CHANGED', payload: { kind: 'Dark' } })).toBe(false);
     expect(isThemeChangedMessage({ type: 'THEME_CHANGED', payload: { kind: 'HIGH-CONTRAST' } })).toBe(false);
