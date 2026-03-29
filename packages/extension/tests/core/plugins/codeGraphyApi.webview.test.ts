@@ -43,6 +43,7 @@ describe('CodeGraphyAPIImpl webview messaging', () => {
     const { api } = createTestAPI();
     const firstHandler = vi.fn(() => { throw new Error('boom'); });
     const secondHandler = vi.fn();
+    const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     api.onWebviewMessage(firstHandler);
     api.onWebviewMessage(secondHandler);
@@ -50,5 +51,9 @@ describe('CodeGraphyAPIImpl webview messaging', () => {
 
     expect(firstHandler).toHaveBeenCalled();
     expect(secondHandler).toHaveBeenCalled();
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      '[CodeGraphy] Error in webview message handler for plugin test-plugin:',
+      expect.any(Error),
+    );
   });
 });

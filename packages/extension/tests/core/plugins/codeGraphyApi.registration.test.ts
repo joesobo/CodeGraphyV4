@@ -63,6 +63,27 @@ describe('CodeGraphyAPIImpl registration', () => {
     expect(innerDispose).toHaveBeenCalled();
   });
 
+  it('does not remove other commands when a command disposable is disposed twice', () => {
+    const { api } = createTestAPI();
+
+    const firstDisposable = api.registerCommand({
+      id: 'cmd.one',
+      title: 'Cmd One',
+      action: vi.fn(),
+    });
+    api.registerCommand({
+      id: 'cmd.two',
+      title: 'Cmd Two',
+      action: vi.fn(),
+    });
+
+    firstDisposable.dispose();
+    firstDisposable.dispose();
+
+    expect(api.commands).toHaveLength(1);
+    expect(api.commands[0]?.id).toBe('cmd.two');
+  });
+
   it('registers and removes context menu items', () => {
     const { api } = createTestAPI();
     const item = {
@@ -77,5 +98,26 @@ describe('CodeGraphyAPIImpl registration', () => {
 
     disposable.dispose();
     expect(api.contextMenuItems).toHaveLength(0);
+  });
+
+  it('does not remove other context menu items when a disposable is disposed twice', () => {
+    const { api } = createTestAPI();
+
+    const firstDisposable = api.registerContextMenuItem({
+      label: 'First Item',
+      when: 'node',
+      action: vi.fn(),
+    });
+    api.registerContextMenuItem({
+      label: 'Second Item',
+      when: 'edge',
+      action: vi.fn(),
+    });
+
+    firstDisposable.dispose();
+    firstDisposable.dispose();
+
+    expect(api.contextMenuItems).toHaveLength(1);
+    expect(api.contextMenuItems[0]?.label).toBe('Second Item');
   });
 });
