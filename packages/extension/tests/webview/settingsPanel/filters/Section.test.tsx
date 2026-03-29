@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FilterSection } from '../../../../src/webview/components/settingsPanel/filters/Section';
-import { graphStore } from '../../../../../src/webview/store/state';
+import { graphStore } from '../../../../src/webview/store/state';
 
 const sentMessages: unknown[] = [];
 vi.mock('../../../../src/webview/vscodeApi', () => ({
