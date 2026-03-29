@@ -5,7 +5,7 @@ import {
   DEFAULT_FOLDER_NODE_COLOR,
 } from '../../../../src/shared/contracts';
 import { DisplaySection } from '../../../../src/webview/components/settingsPanel/display/Section';
-import { graphStore } from '../../../../src/webview/store';
+import { graphStore } from '../../../../src/webview/store/state';
 
 const sentMessages: unknown[] = [];
 vi.mock('../../../../src/webview/vscodeApi', () => ({

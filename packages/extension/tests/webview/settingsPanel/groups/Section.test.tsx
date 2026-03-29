@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { GroupsSection } from '../../../../src/webview/components/settingsPanel/groups/Section';
-import { graphStore } from '../../../../src/webview/store';
+import { graphStore } from '../../../../src/webview/store/state';
 
 const sentMessages: unknown[] = [];
 vi.mock('../../../../src/webview/vscodeApi', () => ({

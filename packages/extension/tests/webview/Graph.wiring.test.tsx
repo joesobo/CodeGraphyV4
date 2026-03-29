@@ -3,7 +3,7 @@ import { act, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../src/shared/contracts';
 import Graph from '../../src/webview/components/Graph';
-import { graphStore } from '../../src/webview/store';
+import { graphStore } from '../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({
 	buildGraphContextMenuEntries: vi.fn(() => []),
@@ -34,19 +34,19 @@ const harness = vi.hoisted(() => ({
 	viewport: vi.fn(() => <div data-testid="graph-viewport" />),
 }));
 
-vi.mock('../../src/webview/components/graphContextMenu', () => ({
+vi.mock('../../src/webview/components/graph/contextMenu/buildEntries', () => ({
 	buildGraphContextMenuEntries: harness.buildGraphContextMenuEntries,
 }));
 
-vi.mock('../../src/webview/components/graph/rendering/sharedProps', () => ({
+vi.mock('../../src/webview/components/graph/rendering/surface/sharedProps', () => ({
 	buildSharedGraphProps: harness.buildSharedGraphProps,
 }));
 
-vi.mock('../../src/webview/components/graph/runtime/useGraphState', () => ({
+vi.mock('../../src/webview/components/graph/runtime/use/graph/state', () => ({
 	useGraphState: harness.useGraphState,
 }));
 
-vi.mock('../../src/webview/components/graph/runtime/useGraphInteractionRuntime', () => ({
+vi.mock('../../src/webview/components/graph/runtime/use/graph/interaction', () => ({
 	useGraphInteractionRuntime: harness.useGraphInteractionRuntime,
 }));
 
@@ -54,11 +54,11 @@ vi.mock('../../src/webview/components/graph/rendering/useGraphCallbacks', () => 
 	useGraphCallbacks: harness.useGraphCallbacks,
 }));
 
-vi.mock('../../src/webview/components/graph/runtime/useGraphRenderingRuntime', () => ({
+vi.mock('../../src/webview/components/graph/runtime/use/graph/rendering', () => ({
 	useGraphRenderingRuntime: harness.useGraphRenderingRuntime,
 }));
 
-vi.mock('../../src/webview/components/graph/runtime/useGraphEventEffects', () => ({
+vi.mock('../../src/webview/components/graph/runtime/use/graph/events', () => ({
 	useGraphEventEffects: harness.useGraphEventEffects,
 }));
 

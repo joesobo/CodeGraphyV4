@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { IGraphData } from '../../../src/shared/contracts';
-import { IViewContext } from '../../../src/core/views/types';
+import { IViewContext } from '../../../src/core/views/contracts';
 
 const sampleData: IGraphData = {
   nodes: [

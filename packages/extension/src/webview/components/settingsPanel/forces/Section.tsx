@@ -1,9 +1,9 @@
 import React, { useRef } from 'react';
 import { type IPhysicsSettings } from '../../../../shared/contracts';
 import { postMessage } from '../../../vscodeApi';
-import { useGraphStore } from '../../../store';
-import { Label } from '../../ui/label';
-import { Slider } from '../../ui/slider';
+import { useGraphStore } from '../../../store/state';
+import { Label } from '../../ui/form/label';
+import { Slider } from '../../ui/controls/slider';
 import {
   clearPhysicsTimerMap,
   flushPendingPhysicsValue,

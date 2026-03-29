@@ -16,20 +16,20 @@ vi.mock('three-spritetext', () => ({
   default: vi.fn(() => spriteInstance),
 }));
 
-vi.mock('../../../../src/webview/components/graph/rendering/shapes3D', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/shapes/draw3d', () => ({
   createImageSprite: vi.fn(() => ({ kind: 'image-sprite' })),
   createNodeMesh: vi.fn(() => ({ kind: 'mesh' })),
 }));
 
-vi.mock('../../../../src/webview/components/graphSupport/types', () => ({
+vi.mock('../../../../src/webview/components/graph/support/contracts', () => ({
   setSpriteVisible: vi.fn(),
 }));
 
 import SpriteText from 'three-spritetext';
-import { createImageSprite, createNodeMesh } from '../../../../src/webview/components/graph/rendering/shapes3D';
-import { setSpriteVisible } from '../../../../src/webview/components/graphSupport/types';
-import type { FGNode } from '../../../../src/webview/components/graphModel';
-import { createNodeThreeObject } from '../../../../src/webview/components/graph/rendering/nodes3d';
+import { createImageSprite, createNodeMesh } from '../../../../src/webview/components/graph/rendering/shapes/draw3d';
+import { setSpriteVisible } from '../../../../src/webview/components/graph/support/contracts';
+import type { FGNode } from '../../../../src/webview/components/graph/model/build';
+import { createNodeThreeObject } from '../../../../src/webview/components/graph/rendering/nodes/canvas3d';
 
 function createNode(overrides: Partial<FGNode> = {}): FGNode {
   return {
@@ -45,7 +45,7 @@ function createNode(overrides: Partial<FGNode> = {}): FGNode {
   } as FGNode;
 }
 
-describe('graph/rendering/nodes3d', () => {
+describe('graph/rendering/nodes/canvas3d', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

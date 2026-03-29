@@ -1,8 +1,8 @@
 import type { ComponentProps } from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../../../src/webview/components/ui/slider', () => ({
+vi.mock('../../../../src/webview/components/ui/controls/slider', () => ({
   Slider: ({
     onValueChange,
     onValueCommit,
@@ -47,6 +47,10 @@ function renderParticles(overrides: Partial<ComponentProps<typeof Particles>> = 
 }
 
 describe('display Particles', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renders particle summaries', () => {
     renderParticles();
 
@@ -81,19 +85,25 @@ describe('display Particles', () => {
   });
 
   it('ignores invalid particle speed change handlers at runtime', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     renderParticles({
       onParticleSpeedChange: undefined as unknown as (value: number) => void,
     });
 
     expect(() => fireEvent.click(screen.getByTestId('speed-change'))).not.toThrow();
+    expect(consoleError).not.toHaveBeenCalled();
   });
 
   it('ignores invalid particle speed commit handlers at runtime', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     renderParticles({
       onParticleSpeedCommit: undefined as unknown as () => void,
     });
 
     expect(() => fireEvent.click(screen.getByTestId('speed-commit'))).not.toThrow();
+    expect(consoleError).not.toHaveBeenCalled();
   });
 
   it('forwards particle size changes', () => {
@@ -121,18 +131,24 @@ describe('display Particles', () => {
   });
 
   it('ignores invalid particle size change handlers at runtime', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     renderParticles({
       onParticleSizeChange: undefined as unknown as (value: number) => void,
     });
 
     expect(() => fireEvent.click(screen.getByTestId('size-change'))).not.toThrow();
+    expect(consoleError).not.toHaveBeenCalled();
   });
 
   it('ignores invalid particle size commit handlers at runtime', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     renderParticles({
       onParticleSizeCommit: undefined as unknown as () => void,
     });
 
     expect(() => fireEvent.click(screen.getByTestId('size-commit'))).not.toThrow();
+    expect(consoleError).not.toHaveBeenCalled();
   });
 });

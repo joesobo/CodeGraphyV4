@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { minimatch } from 'minimatch';
-import { PluginRegistry } from '../../core/plugins/registry';
+import { PluginRegistry } from '../../core/plugins/registry/manager';
 import { IGraphData, ICommitInfo } from '../../shared/contracts';
 import {
   clearCachedCommitState,
@@ -16,7 +16,7 @@ import {
   persistCachedCommitState,
 } from './cache/state';
 import { readCachedGraphData, removeGitCacheDir, writeCachedGraphData } from './cache/storage';
-import { getCommitList as getTimelineCommitList } from './commitList';
+import { getCommitList as getTimelineCommitList } from './commits/list';
 import { analyzeDiffCommitGraph } from './diff/analysis';
 import { execGitCommand } from './exec';
 import { getCommitTreeFiles, getDiffNameStatus, getFileAtCommit } from './files';

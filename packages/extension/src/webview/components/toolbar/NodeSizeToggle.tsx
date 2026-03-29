@@ -8,8 +8,8 @@ import React from 'react';
 import { mdiHubOutline, mdiFileOutline, mdiEyeOutline, mdiCircleMultipleOutline } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
-import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
-import { useGraphStore } from '../../store';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
+import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import type { NodeSizeMode } from '../../../shared/contracts';
 

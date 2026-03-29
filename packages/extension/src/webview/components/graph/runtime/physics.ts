@@ -2,8 +2,8 @@ import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import { forceCollide, forceX, forceY } from 'd3-force';
 import type { IPhysicsSettings } from '../../../../shared/contracts';
-import { toD3Repel, type FGLink, type FGNode } from '../../graphModel';
-import { hasDistanceAndStrength, hasStrength } from '../../graphSupport/guards';
+import { toD3Repel, type FGLink, type FGNode } from '../model/build';
+import { hasDistanceAndStrength, hasStrength } from '../support/guards';
 
 export type GraphPhysicsInstance = FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>;
 

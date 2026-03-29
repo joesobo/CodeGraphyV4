@@ -11,7 +11,7 @@ import {
   ContextMenuItem,
   ContextMenuSeparator,
   ContextMenuLabel,
-} from '../../src/webview/components/ui/context-menu';
+} from '../../src/webview/components/ui/context/menu';
 
 describe('ContextMenu Components', () => {
   it('should export all required components', () => {

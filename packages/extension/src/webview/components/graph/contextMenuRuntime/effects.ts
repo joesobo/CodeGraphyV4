@@ -2,9 +2,9 @@ import {
   getGraphContextActionEffects,
   type GraphContextEffect,
 } from '../contextActions/effects';
-import type { GraphContextMenuAction } from '../../graphContextMenu/types';
+import type { GraphContextMenuAction } from '../contextMenu/contracts';
 import { applyContextEffects as runContextEffects } from '../effects/contextMenu';
-import type { GraphContextMenuRuntimeDependencies } from '.';
+import type { GraphContextMenuRuntimeDependencies } from './controller';
 
 type GraphContextMenuEffectDependencies = Pick<
   GraphContextMenuRuntimeDependencies,

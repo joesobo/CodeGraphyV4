@@ -3,6 +3,9 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 const workspaceRoot = resolve(__dirname, '../..');
+const scopedInclude = process.env.CODEGRAPHY_VITEST_INCLUDE_JSON
+  ? JSON.parse(process.env.CODEGRAPHY_VITEST_INCLUDE_JSON) as string[]
+  : undefined;
 
 export default defineConfig({
   root: workspaceRoot,
@@ -13,7 +16,7 @@ export default defineConfig({
     server: {
       sourcemap: false,
     },
-    include: [
+    include: scopedInclude ?? [
       'packages/extension/tests/**/*.test.{ts,tsx}',
       'packages/extension/__tests__/**/*.test.{ts,tsx}',
     ],

@@ -1,4 +1,4 @@
-import { createAbortError } from './abort';
+import { createAbortError } from './shared/abort';
 import type { ExecGitCommand } from './exec';
 
 export async function getCommitTreeFiles(

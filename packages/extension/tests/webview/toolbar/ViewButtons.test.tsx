@@ -1,8 +1,8 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { TooltipProvider } from '../../../src/webview/components/ui/tooltip';
-import { graphStore } from '../../../src/webview/store';
+import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
+import { graphStore } from '../../../../../src/webview/store/state';
 
 vi.mock('../../../src/webview/vscodeApi', () => ({
   postMessage: vi.fn(),
@@ -13,7 +13,7 @@ const sliderHarness = vi.hoisted(() => ({
 }));
 
 // Mock Slider so we can trigger onValueChange directly
-vi.mock('../../../src/webview/components/ui/slider', () => ({
+vi.mock('../../../src/webview/components/ui/controls/slider', () => ({
   Slider: (props: { value: number[]; onValueChange: (value: number[]) => void; min: number; max: number; step: number; className: string }) => {
     sliderHarness.onValueChange = props.onValueChange;
     return (

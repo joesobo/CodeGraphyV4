@@ -1,4 +1,4 @@
-import { cleanCliArgs, parseBareTargetArg } from '../../shared/cliArgs';
+import { cleanCliArgs, flagValue, parseBareTargetArg } from '../../shared/cliArgs';
 import { REPO_ROOT } from '../../shared/resolve/repoRoot';
 import { resolveQualityTarget, type QualityTarget } from '../../shared/resolve/target';
 import { discoverMutationPackageNames } from '../analysis/profile';
@@ -18,8 +18,13 @@ const DEFAULT_DEPENDENCIES: MutationCliDependencies = {
 
 function resolveCliTargets(
   input: string | undefined,
+  mutateInput: string | undefined,
   dependencies: MutationCliDependencies
 ): QualityTarget[] {
+  if (mutateInput) {
+    return [dependencies.resolveQualityTarget(REPO_ROOT, mutateInput)];
+  }
+
   if (input) {
     return [dependencies.resolveQualityTarget(REPO_ROOT, input)];
   }
@@ -34,7 +39,11 @@ export function runMutationCli(
   dependencies: MutationCliDependencies = DEFAULT_DEPENDENCIES
 ): void {
   const args = cleanCliArgs(rawArgs);
-  const targets = resolveCliTargets(parseBareTargetArg(args), dependencies);
+  const targets = resolveCliTargets(
+    parseBareTargetArg(args),
+    flagValue(args, '--mutate'),
+    dependencies,
+  );
   targets.forEach((target) => {
     dependencies.runMutation(target);
   });

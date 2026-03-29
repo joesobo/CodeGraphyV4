@@ -3,7 +3,7 @@ import { mdiMinus, mdiPlus } from '@mdi/js';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
-import { Label } from '../../ui/label';
+import { Label } from '../../ui/form/label';
 
 export function MaxFilesControl({
   maxFiles,

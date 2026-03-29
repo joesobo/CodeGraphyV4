@@ -2,12 +2,15 @@ import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
 
 const workspaceRoot = resolve(__dirname, '../..');
+const scopedInclude = process.env.CODEGRAPHY_VITEST_INCLUDE_JSON
+  ? JSON.parse(process.env.CODEGRAPHY_VITEST_INCLUDE_JSON) as string[]
+  : undefined;
 
 export default defineConfig({
   root: workspaceRoot,
   test: {
     environment: 'node',
-    include: ['packages/quality-tools/tests/**/*.test.ts'],
+    include: scopedInclude ?? ['packages/quality-tools/tests/**/*.test.ts'],
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],

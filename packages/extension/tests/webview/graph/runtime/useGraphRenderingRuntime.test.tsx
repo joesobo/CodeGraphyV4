@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as THREE from 'three';
 import type SpriteText from 'three-spritetext';
 import type { IGraphData, IPhysicsSettings } from '../../../../src/shared/contracts';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
-import { useGraphRenderingRuntime } from '../../../../src/webview/components/graph/runtime/useGraphRenderingRuntime';
+import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
+import { useGraphRenderingRuntime } from '../../../../src/webview/components/graph/runtime/use/graph/rendering';
 
 const renderingHarness = vi.hoisted(() => ({
 	renderPluginOverlays: vi.fn(),
@@ -25,23 +25,23 @@ vi.mock('../../../../src/webview/components/graph/runtime/pluginOverlays', () =>
 	usePluginOverlays: renderingHarness.usePluginOverlays,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/useDirectional', () => ({
+vi.mock('../../../../src/webview/components/graph/runtime/use/directional/indicators', () => ({
 	useDirectional: renderingHarness.useDirectional,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/useLabelVisibility', () => ({
+vi.mock('../../../../src/webview/components/graph/runtime/use/directional/labelVisibility', () => ({
 	useLabelVisibility: renderingHarness.useLabelVisibility,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/useMeshHighlights', () => ({
+vi.mock('../../../../src/webview/components/graph/runtime/use/directional/meshHighlights', () => ({
 	useMeshHighlights: renderingHarness.useMeshHighlights,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/useNodeAppearance', () => ({
+vi.mock('../../../../src/webview/components/graph/runtime/use/directional/nodeAppearance', () => ({
 	useNodeAppearance: renderingHarness.useNodeAppearance,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/usePhysicsRuntime', () => ({
+vi.mock('../../../../src/webview/components/graph/runtime/use/graph/physics', () => ({
 	usePhysicsRuntime: renderingHarness.usePhysicsRuntime,
 }));
 

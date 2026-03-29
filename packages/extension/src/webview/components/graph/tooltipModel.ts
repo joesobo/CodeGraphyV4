@@ -1,5 +1,5 @@
 import type { IFileInfo, IGraphData, IGraphNode } from '../../../shared/contracts';
-import type { TooltipContext } from '../../pluginHost/types';
+import type { TooltipContext } from '../../pluginHost/api/contracts';
 
 export interface GraphTooltipRect {
   x: number;

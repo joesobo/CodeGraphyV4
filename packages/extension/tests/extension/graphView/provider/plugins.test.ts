@@ -31,7 +31,7 @@ function createSource(
       getMergedEdgeDecorations: vi.fn(() => []),
     },
     _firstAnalysis: true,
-    _webviewReadyNotified: false,
+    _readyNotified: false,
     _analyzerInitialized: true,
     _analyzerInitPromise: undefined,
     _registerBuiltInPluginRoots: vi.fn(),
@@ -260,17 +260,17 @@ describe('graphView/provider/plugins', () => {
 
     const capturedRegistrationState = registerExternalPlugin.mock.calls[0]?.[2] as {
       firstAnalysis: boolean;
-      webviewReadyNotified: boolean;
+      readyNotified: boolean;
       analyzerInitialized: boolean;
       analyzerInitPromise: Promise<void> | undefined;
     };
     source._firstAnalysis = false;
-    source._webviewReadyNotified = true;
+    source._readyNotified = true;
     source._analyzerInitialized = false;
     source._analyzerInitPromise = Promise.resolve();
 
     expect(capturedRegistrationState.firstAnalysis).toBe(false);
-    expect(capturedRegistrationState.webviewReadyNotified).toBe(true);
+    expect(capturedRegistrationState.readyNotified).toBe(true);
     expect(capturedRegistrationState.analyzerInitialized).toBe(false);
     expect(capturedRegistrationState.analyzerInitPromise).toBeInstanceOf(Promise);
   });

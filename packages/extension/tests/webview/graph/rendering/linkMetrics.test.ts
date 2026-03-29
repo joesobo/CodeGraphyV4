@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { type DirectionMode, type EdgeDecorationPayload } from '../../../../src/shared/contracts';
-import type { ThemeKind } from '../../../../src/webview/useTheme';
-import type { FGLink } from '../../../../src/webview/components/graphModel';
+import type { ThemeKind } from '../../../../src/webview/theme/useTheme';
+import type { FGLink } from '../../../../src/webview/components/graph/model/build';
 import {
   getGraphArrowRelPos,
   getGraphLinkParticles,
   getGraphLinkWidth,
   getLinkCanvasObjectMode,
-} from '../../../../src/webview/components/graph/rendering/linkMetrics';
+} from '../../../../src/webview/components/graph/rendering/link/metrics';
 
 function createDependencies(overrides: Partial<{
   directionColor: string;
@@ -37,7 +37,7 @@ function createLink(overrides: Partial<FGLink> = {}): FGLink {
   } as FGLink;
 }
 
-describe('graph/rendering/linkMetrics', () => {
+describe('graph/rendering/link/metrics', () => {
   it('reads particle counts from edge decorations before falling back to the default', () => {
     const decoratedCount = getGraphLinkParticles(
       createDependencies({

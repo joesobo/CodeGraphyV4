@@ -98,7 +98,7 @@ describe('reportOrganize - display', () => {
     expect(loggedText).toContain('WARNING');
   });
 
-  it('shows directory when it has clusters despite STABLE verdicts', () => {
+  it('hides directory when it only has clusters and stable verdicts', () => {
     const metrics = [
       createMetric({
         directoryPath: 'src/stable/',
@@ -108,12 +108,7 @@ describe('reportOrganize - display', () => {
 
     reportOrganize(metrics, { verbose: false });
 
-    const calls = spy.mock.calls;
-    const loggedText = calls.map((call) => call[0]).join('\n');
-
-    expect(loggedText).toContain('src/stable/');
-    expect(loggedText).toContain('Clusters:');
-    expect(calls.length).toBeGreaterThan(1);
+    expect(spy).toHaveBeenCalledWith('No directories found for organize analysis.');
   });
 
   it('shows directory when it has file issues despite STABLE verdicts', () => {

@@ -1,6 +1,6 @@
 import type * as vscode from 'vscode';
 import type { IAvailableView, IGraphData } from '../../shared/contracts';
-import type { IViewContext, IViewInfo } from '../../core/views/types';
+import type { IViewContext, IViewInfo } from '../../core/views/contracts';
 import type { ViewRegistry } from '../../core/views/registry';
 
 interface IWorkspaceFolderLike {

@@ -1,5 +1,5 @@
 import type { ICommitInfo, IGraphData } from '../../shared/contracts';
-import { createAbortError } from './abort';
+import { createAbortError } from './shared/abort';
 
 export interface IndexGitHistoryDependencies {
   analyzeDiffCommit(

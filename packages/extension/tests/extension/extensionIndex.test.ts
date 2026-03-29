@@ -5,7 +5,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
-import { activate, deactivate } from '../../src/extension/index';
+import { activate, deactivate } from '../../src/extension/activate';
 
 describe('extension activate API', () => {
   let mockContext: {

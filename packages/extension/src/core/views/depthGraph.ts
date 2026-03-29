@@ -3,7 +3,7 @@
  * @module core/views/depthGraph
  */
 
-import { IView, IViewContext } from './types';
+import { IView, IViewContext } from './contracts';
 import { IGraphData } from '../../shared/contracts';
 import { buildAdjacencyList, bfsFromNode } from './depthTraversal';
 

@@ -1,6 +1,6 @@
 import type { ICommitInfo } from '../../../shared/contracts';
-import { getCurrentCommitIndex as getCommitIndexAtSha } from './commits';
-import { generateDateTicks } from './dates';
+import { getCurrentCommitIndex as getCommitIndexAtSha } from './format/commits';
+import { generateDateTicks } from './format/dates';
 
 export interface TimelineViewState {
   currentIndex: number;
@@ -9,7 +9,7 @@ export interface TimelineViewState {
   isAtEnd: boolean;
 }
 
-export { getCurrentCommitIndex } from './commits';
+export { getCurrentCommitIndex } from './format/commits';
 
 export function getTimelineViewState(
   currentCommitSha: string | null,

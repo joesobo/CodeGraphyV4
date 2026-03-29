@@ -4,21 +4,23 @@ import type {
   NodeObject,
 } from 'react-force-graph-2d';
 import {
-  getGraphArrowRelPos,
   getGraphDirectionalColor,
   getGraphLinkColor,
+} from './link/colors';
+import {
+  getGraphArrowRelPos,
   getGraphLinkParticles,
   getGraphLinkWidth,
-  renderBidirectionalLink,
-} from './links';
-import { createNodeThreeObject } from './nodes3d';
+} from './link/metrics';
+import { renderBidirectionalLink } from './bidirectional/link';
+import { createNodeThreeObject } from './nodes/canvas3d';
 import {
   paintNodePointerArea,
   renderNodeCanvas,
-} from './nodes2d';
-import type { UseGraphStateResult } from '../runtime/useGraphState';
-import type { FGLink, FGNode } from '../../graphModel';
-import type { WebviewPluginHost } from '../../../pluginHost/webviewPluginHost';
+} from './nodes/canvas2d';
+import type { UseGraphStateResult } from '../runtime/use/graph/state';
+import type { FGLink, FGNode } from '../model/build';
+import type { WebviewPluginHost } from '../../../pluginHost/manager';
 
 export interface UseGraphCallbacksOptions {
   pluginHost?: WebviewPluginHost;

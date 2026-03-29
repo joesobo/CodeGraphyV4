@@ -1,12 +1,12 @@
 import {
   shouldMarkRightMouseDrag,
-} from '../../graphInteraction/model';
+} from '../interaction/model';
 import type {
   GraphContextMenuRuntimeDependencies,
   GraphRightClickPointerDownEvent,
   GraphRightClickPointerMoveEvent,
   GraphRightClickPointerUpEvent,
-} from '.';
+} from './controller';
 import { createContextMenuFallbackRuntime } from './fallback';
 
 const DEFAULT_RIGHT_CLICK_DRAG_THRESHOLD_PX = 6;
@@ -18,11 +18,13 @@ type GraphContextMenuPointerDependencies = Pick<
   | 'rightClickFallbackTimerRef'
   | 'rightMouseDownRef'
   | 'openBackgroundContextMenu'
+> & Partial<Pick<
+  GraphContextMenuRuntimeDependencies,
   | 'now'
   | 'dragThresholdPx'
   | 'scheduleFallback'
   | 'clearFallbackTimer'
->;
+>>;
 
 export interface GraphContextMenuPointerRuntime {
   clearRightClickFallbackTimer(): void;

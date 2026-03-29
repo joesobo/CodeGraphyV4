@@ -15,32 +15,32 @@ import {
   ExtensionToWebviewMessage,
 } from '../shared/contracts';
 import { EventBus, EventName, EventPayloads } from '../core/plugins/eventBus';
-import { DecorationManager } from '../core/plugins/decorationManager';
-import { WorkspaceAnalyzer } from './workspaceAnalyzer';
+import { DecorationManager } from '../core/plugins/decoration/manager';
+import { WorkspaceAnalyzer } from './workspaceAnalyzer/service';
 import { GitHistoryAnalyzer } from './gitHistory/analyzer';
 import { ViewRegistry } from '../core/views/registry';
-import { coreViews } from '../core/views/builtIn';
-import type { IViewContext } from '../core/views/types';
+import { coreViews } from '../core/views/builtIns';
+import type { IViewContext } from '../core/views/contracts';
 import {
   type GraphViewExternalPluginRegistrationOptions,
-} from './graphView/plugins/registration';
+} from './graphView/webview/plugins/registration';
 import {
   initializeGraphViewProviderServices,
   restoreGraphViewProviderState,
 } from './graphView/provider/bootstrap';
-import { createGraphViewProviderAnalysisMethods } from './graphView/provider/analysis';
+import { createGraphViewProviderAnalysisMethods } from './graphView/provider/analysis/methods';
 import { createGraphViewProviderCommandMethods } from './graphView/provider/commands';
-import { createGraphViewProviderFileActionMethods } from './graphView/provider/fileActions';
-import { createGraphViewProviderFileVisitMethods } from './graphView/provider/fileVisits';
+import { createGraphViewProviderFileActionMethods } from './graphView/provider/file/actions';
+import { createGraphViewProviderFileVisitMethods } from './graphView/provider/file/visits';
 import { createGraphViewProviderPluginMethods } from './graphView/provider/plugins';
 import { createGraphViewProviderPluginResourceMethods } from './graphView/provider/pluginResources';
 import { createGraphViewProviderPhysicsSettingsMethods } from './graphView/provider/physicsSettings';
 import { createGraphViewProviderRefreshMethods } from './graphView/provider/refresh';
 import { createGraphViewProviderSettingsStateMethods } from './graphView/provider/settingsState';
-import { createGraphViewProviderTimelineMethods } from './graphView/provider/timeline';
-import { createGraphViewProviderViewContextMethods } from './graphView/provider/viewContext';
-import { createGraphViewProviderViewSelectionMethods } from './graphView/provider/viewSelection';
-import { createGraphViewProviderWebviewMethods } from './graphView/provider/webview';
+import { createGraphViewProviderTimelineMethods } from './graphView/provider/timeline/methods';
+import { createGraphViewProviderViewContextMethods } from './graphView/provider/view/context';
+import { createGraphViewProviderViewSelectionMethods } from './graphView/provider/view/selection';
+import { createGraphViewProviderWebviewMethods } from './graphView/provider/webview/host';
 
 /** Storage key for selected view per workspace */
 const SELECTED_VIEW_KEY = 'codegraphy.selectedView';

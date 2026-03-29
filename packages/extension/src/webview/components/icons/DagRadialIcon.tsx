@@ -1,5 +1,5 @@
 import React from 'react';
-import type { IconProps } from './types';
+import type { IconProps } from './iconProps';
 
 /** Center node with radial children — radialout mode */
 export const DagRadialIcon: React.FC<IconProps> = ({ size = 18, className }) => (

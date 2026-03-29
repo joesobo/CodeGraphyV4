@@ -10,17 +10,17 @@ import type {
   IGraphData,
   NodeDecorationPayload,
 } from '../../shared/contracts';
-import { buildGraphContextMenuEntries } from './graphContextMenu/buildEntries';
-import { buildSharedGraphProps } from './graph/rendering/sharedProps';
+import { buildGraphContextMenuEntries } from './graph/contextMenu/buildEntries';
+import { buildSharedGraphProps } from './graph/rendering/surface/sharedProps';
 import { Viewport } from './graph/Viewport';
 import { useGraphCallbacks } from './graph/rendering/useGraphCallbacks';
-import { useGraphEventEffects } from './graph/runtime/useGraphEventEffects';
-import { useGraphInteractionRuntime } from './graph/runtime/useGraphInteractionRuntime';
-import { useGraphRenderingRuntime } from './graph/runtime/useGraphRenderingRuntime';
-import { useGraphState } from './graph/runtime/useGraphState';
-import { ThemeKind } from '../useTheme';
-import type { WebviewPluginHost } from '../pluginHost/webviewPluginHost';
-import { useGraphStore } from '../store';
+import { useGraphEventEffects } from './graph/runtime/use/graph/events';
+import { useGraphInteractionRuntime } from './graph/runtime/use/graph/interaction';
+import { useGraphRenderingRuntime } from './graph/runtime/use/graph/rendering';
+import { useGraphState } from './graph/runtime/use/graph/state';
+import { ThemeKind } from '../theme/useTheme';
+import type { WebviewPluginHost } from '../pluginHost/manager';
+import { useGraphStore } from '../store/state';
 
 interface GraphProps {
   data: IGraphData;

@@ -9,7 +9,7 @@ import {
   syncGraphViewProviderAnalysisState,
   syncGraphViewProviderWorkspaceReadyState,
 } from '../../../../../src/extension/graphView/provider/analysis/state';
-import type { GraphViewProviderAnalysisMethodsSource } from '../../../../../src/extension/graphView/provider/analysis/index';
+import type { GraphViewProviderAnalysisMethodsSource } from '../../../../../src/extension/graphView/provider/analysis/methods';
 
 function createSource(
   overrides: Partial<GraphViewProviderAnalysisMethodsSource> = {},

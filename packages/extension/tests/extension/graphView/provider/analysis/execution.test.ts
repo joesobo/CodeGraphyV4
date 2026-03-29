@@ -5,7 +5,7 @@ import {
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
-} from '../../../../../src/extension/graphView/provider/analysis/index';
+} from '../../../../../src/extension/graphView/provider/analysis/methods';
 
 function createSource(
   overrides: Partial<GraphViewProviderAnalysisMethodsSource> = {},

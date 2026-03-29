@@ -51,7 +51,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-vi.mock('../../../../src/extension/graphView/settings/config', () => ({
+vi.mock('../../../../src/extension/graphView/settings/reader', () => ({
   getGraphViewConfigTarget: mocks.getConfigTarget,
 }));
 
@@ -67,7 +67,7 @@ vi.mock('../../../../src/extension/graphView/settings/disabled', () => ({
   loadGraphViewDisabledState: mocks.loadDisabledState,
 }));
 
-vi.mock('../../../../src/extension/graphView/settings', () => ({
+vi.mock('../../../../src/extension/graphView/settings/snapshotMessages', () => ({
   captureGraphViewSettingsSnapshot: mocks.captureSettingsSnapshot,
 }));
 

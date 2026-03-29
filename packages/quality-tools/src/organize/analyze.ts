@@ -13,7 +13,7 @@ import type { QualityTarget } from '../shared/resolve/target';
 import type { OrganizeDirectoryMetric } from './types';
 
 export function analyze(target: QualityTarget): OrganizeDirectoryMetric[] {
-  const config = loadOrganizeConfig(REPO_ROOT);
+  const config = loadOrganizeConfig(REPO_ROOT, target.packageName);
   const entries = walkDirectories(target.absolutePath);
 
   const metrics: OrganizeDirectoryMetric[] = [];

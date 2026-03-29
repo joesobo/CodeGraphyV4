@@ -49,7 +49,12 @@ const DEFAULT_CONFIG: ResolvedOrganizeConfig = {
 const CONFIG_FILE = 'quality.config.json';
 
 interface QualityConfig {
-  organize?: OrganizeConfigBlock;
+  defaults?: {
+    organize?: OrganizeConfigBlock;
+  };
+  packages?: Record<string, {
+    organize?: OrganizeConfigBlock;
+  }>;
 }
 
 function mergeConfig(defaults: ResolvedOrganizeConfig, overrides: OrganizeConfigBlock): ResolvedOrganizeConfig {
@@ -63,13 +68,17 @@ function mergeConfig(defaults: ResolvedOrganizeConfig, overrides: OrganizeConfig
   };
 }
 
-export function loadOrganizeConfig(repoRoot: string): ResolvedOrganizeConfig {
+export function loadOrganizeConfig(repoRoot: string, packageName?: string): ResolvedOrganizeConfig {
   const configPath = join(repoRoot, CONFIG_FILE);
 
   try {
     const rawConfig = JSON.parse(readFileSync(configPath, 'utf-8')) as QualityConfig;
-    if (rawConfig.organize) {
-      return mergeConfig(DEFAULT_CONFIG, rawConfig.organize);
+    const defaultConfig = rawConfig.defaults?.organize;
+    const packageConfig = packageName ? rawConfig.packages?.[packageName]?.organize : undefined;
+
+    if (defaultConfig || packageConfig) {
+      const mergedDefaults = defaultConfig ? mergeConfig(DEFAULT_CONFIG, defaultConfig) : DEFAULT_CONFIG;
+      return packageConfig ? mergeConfig(mergedDefaults, packageConfig) : mergedDefaults;
     }
     return DEFAULT_CONFIG;
   } catch {

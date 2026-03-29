@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { drawTriangle, drawHexagon } from '../../../../src/webview/components/graph/rendering/regularPolygons';
+import { drawTriangle, drawHexagon } from '../../../../src/webview/components/graph/rendering/shapes/regularPolygons';
 
 function makeCtx() {
   return {

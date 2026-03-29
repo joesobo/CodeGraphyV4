@@ -4,13 +4,14 @@ import type { QualityTarget } from '../../../../src/shared/resolve/target';
 
 const files = ['/repo/a.test.ts', '/repo/b.test.tsx'];
 const analyzeCalls: ts.SourceFile[] = [];
+const readFileSync = vi.fn(() => `
+  test('works', () => {
+    expect(true).toBe(true);
+  });
+`);
 
 vi.mock('fs', () => ({
-  readFileSync: vi.fn(() => `
-    test('works', () => {
-      expect(true).toBe(true);
-    });
-  `)
+  readFileSync
 }));
 
 vi.mock('../../../../src/scrap/test/files', () => ({

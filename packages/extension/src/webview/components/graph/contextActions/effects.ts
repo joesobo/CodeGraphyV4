@@ -1,5 +1,5 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/contracts';
-import type { BuiltInContextMenuAction, GraphContextMenuAction } from '../../graphContextMenu/types';
+import type { BuiltInContextMenuAction, GraphContextMenuAction } from '../contextMenu/contracts';
 import { getBuiltInContextActionEffectsImpl } from './builtinEffects';
 import { createPluginContextActionEffects } from './pluginEffects';
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ColorPaletteManager, DEFAULT_FALLBACK_COLOR } from '../../../src/core/colors/colorPaletteManager';
+import { ColorPaletteManager, DEFAULT_FALLBACK_COLOR } from '../../../src/core/colors/palette/manager';
 
 describe('ColorPaletteManager priority', () => {
   it('lets plugin extension colors override generated colors', () => {

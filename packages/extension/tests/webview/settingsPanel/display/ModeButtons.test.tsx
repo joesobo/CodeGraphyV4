@@ -1,8 +1,12 @@
 import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ModeButtons } from '../../../../src/webview/components/settingsPanel/display/ModeButtons';
 
 describe('display ModeButtons', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renders button labels and pressed state', () => {
     render(
       <ModeButtons
@@ -38,6 +42,8 @@ describe('display ModeButtons', () => {
   });
 
   it('ignores invalid selection handlers at runtime', () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
     render(
       <ModeButtons
         label="Direction"
@@ -49,5 +55,6 @@ describe('display ModeButtons', () => {
     );
 
     expect(() => fireEvent.click(screen.getByRole('button', { name: 'Particles' }))).not.toThrow();
+    expect(consoleError).not.toHaveBeenCalled();
   });
 });

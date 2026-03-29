@@ -1,19 +1,21 @@
 import type { MutableRefObject } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '../../../src/shared/contracts';
+import type { ICommitInfo } from '../../../../../src/shared/contracts';
+import { clearSentMessages, findMessage } from '../../helpers/sentMessages';
 import {
   runJumpToEndAction,
   runPlayPauseAction,
 } from '../../../src/webview/components/timeline/playbackActions';
 
-const postMessage = vi.fn();
-
-vi.mock('../../../src/webview/vscodeApi', () => ({
-  postMessage: (message: unknown) => postMessage(message),
-}));
-
 function createRef<T>(current: T): MutableRefObject<T> {
   return { current } as MutableRefObject<T>;
+}
+
+function expectJumpToCommit(sha: string): void {
+  expect(findMessage('JUMP_TO_COMMIT')).toEqual({
+    type: 'JUMP_TO_COMMIT',
+    payload: { sha },
+  });
 }
 
 const commits: ICommitInfo[] = [
@@ -42,7 +44,7 @@ const commits: ICommitInfo[] = [
 
 describe('timeline/playbackActions', () => {
   beforeEach(() => {
-    postMessage.mockReset();
+    clearSentMessages();
   });
 
   it('pauses playback immediately when playback is already active', () => {
@@ -61,7 +63,7 @@ describe('timeline/playbackActions', () => {
 
     expect(setIsPlaying).toHaveBeenCalledWith(false);
     expect(setPlaybackTime).not.toHaveBeenCalled();
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
   });
 
   it('rewinds to the first commit before restarting playback from the end', () => {
@@ -84,10 +86,7 @@ describe('timeline/playbackActions', () => {
     expect(startFromTimeRef.current).toBe(commits[0].timestamp);
     expect(setPlaybackTime).toHaveBeenCalledWith(commits[0].timestamp);
     expect(setIsPlaying).toHaveBeenCalledWith(true);
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: commits[0].sha },
-    });
+    expectJumpToCommit(commits[0].sha);
   });
 
   it('starts playback without rewinding when not already at the end', () => {
@@ -106,7 +105,7 @@ describe('timeline/playbackActions', () => {
 
     expect(setIsPlaying).toHaveBeenCalledWith(true);
     expect(setPlaybackTime).not.toHaveBeenCalled();
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
   });
 
   it('does nothing when asked to jump to the end without commits', () => {
@@ -125,7 +124,7 @@ describe('timeline/playbackActions', () => {
     expect(setIsPlaying).not.toHaveBeenCalled();
     expect(setPlaybackTime).not.toHaveBeenCalled();
     expect(lastSentCommitIndexRef.current).toBe(-1);
-    expect(postMessage).not.toHaveBeenCalled();
+    expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
   });
 
   it('jumps to the last commit and stops active playback', () => {
@@ -144,9 +143,6 @@ describe('timeline/playbackActions', () => {
     expect(setIsPlaying).toHaveBeenCalledWith(false);
     expect(setPlaybackTime).toHaveBeenCalledWith(commits[2].timestamp);
     expect(lastSentCommitIndexRef.current).toBe(2);
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: commits[2].sha },
-    });
+    expectJumpToCommit(commits[2].sha);
   });
 });

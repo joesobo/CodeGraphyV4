@@ -18,8 +18,8 @@ function shouldShowDirectory(metric: OrganizeDirectoryMetric, verbose: boolean):
     return true;
   }
 
-  // Show if there are any clusters or file issues
-  if (metric.clusters.length > 0 || metric.fileIssues.length > 0) {
+  // Show if there are any concrete file issues
+  if (metric.fileIssues.length > 0) {
     return true;
   }
 

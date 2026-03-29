@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IPlugin } from '../../src/core/plugins/types';
-import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer';
+import type { IPlugin } from '../../src/core/plugins/types/contracts';
+import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer/service';
 import * as workspaceFileAnalysisModule from '../../../src/extension/workspaceAnalyzer/fileAnalysis';
 
 let workspaceFoldersValue:

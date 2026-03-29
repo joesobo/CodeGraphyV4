@@ -1,9 +1,9 @@
 import React from 'react';
-import { useGraphStore } from '../../../store';
-import { CustomGroups } from './Custom';
-import { DefaultGroups } from './Defaults';
-import { groupSettingsPanelSections } from './sections';
-import { useEditorState } from './useEditorState';
+import { useGraphStore } from '../../../store/state';
+import { CustomGroups } from './custom/List';
+import { DefaultGroups } from './default/List';
+import { groupSettingsPanelSections } from './shared/sections';
+import { useEditorState } from './shared/state/useEditorState';
 
 export function GroupsSection(): React.ReactElement {
   const groups = useGraphStore((state) => state.groups);

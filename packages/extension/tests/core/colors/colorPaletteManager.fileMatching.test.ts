@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ColorPaletteManager, DEFAULT_FALLBACK_COLOR } from '../../../src/core/colors/colorPaletteManager';
+import { ColorPaletteManager, DEFAULT_FALLBACK_COLOR } from '../../../src/core/colors/palette/manager';
 
 describe('ColorPaletteManager file matching', () => {
   it('matches user path globs after normalizing Windows separators', () => {

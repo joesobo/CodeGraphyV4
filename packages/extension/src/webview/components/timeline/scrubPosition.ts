@@ -1,7 +1,7 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { ICommitInfo } from '../../../shared/contracts';
 import { postMessage } from '../../vscodeApi';
-import { findCommitIndexAtTime } from './commits';
+import { findCommitIndexAtTime } from './format/commits';
 
 const SCRUB_DEBOUNCE_MS = 50;
 const SCRUB_RELEASE_MS = 200;

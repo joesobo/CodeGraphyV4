@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../../../src/webview/components/graph/rendering/shapes2D', () => ({
+vi.mock('../../../../src/webview/components/graph/rendering/shapes/draw2d', () => ({
   drawShape: vi.fn(),
 }));
 
-import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes2D';
-import type { FGNode } from '../../../../src/webview/components/graphModel';
-import { paintNodePointerArea } from '../../../../src/webview/components/graph/rendering/nodePointer';
+import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes/draw2d';
+import type { FGNode } from '../../../../src/webview/components/graph/model/build';
+import { paintNodePointerArea } from '../../../../src/webview/components/graph/rendering/node/pointer';
 
 function createNode(overrides: Partial<FGNode> = {}): FGNode {
   return {
@@ -24,7 +24,7 @@ function createNode(overrides: Partial<FGNode> = {}): FGNode {
   } as FGNode;
 }
 
-describe('graph/rendering/nodePointer', () => {
+describe('graph/rendering/node/pointer', () => {
   it('paints the expanded pointer area around the node shape', () => {
     const ctx = {
       fill: vi.fn(),

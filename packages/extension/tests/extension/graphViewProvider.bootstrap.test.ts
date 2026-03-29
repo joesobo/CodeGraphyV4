@@ -25,7 +25,7 @@ async function loadSubject(
     | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
     | undefined,
 ) {
-  vi.doMock('../../src/extension/workspaceAnalyzer', () => ({
+  vi.doMock('../../src/extension/workspaceAnalyzer/service', () => ({
     WorkspaceAnalyzer: class WorkspaceAnalyzer {},
   }));
   vi.doMock('../../src/core/views', () => ({
@@ -35,19 +35,19 @@ async function loadSubject(
   vi.doMock('../../src/core/plugins/eventBus', () => ({
     EventBus: class EventBus {},
   }));
-  vi.doMock('../../src/core/plugins/decorationManager', () => ({
+  vi.doMock('../../src/core/plugins/decoration/manager', () => ({
     DecorationManager: class DecorationManager {},
   }));
-  vi.doMock('../../src/extension/graphView/provider/analysis', () => ({
+  vi.doMock('../../src/extension/graphView/provider/analysis/methods', () => ({
     createGraphViewProviderAnalysisMethods: () => ({}),
   }));
   vi.doMock('../../src/extension/graphView/provider/commands', () => ({
     createGraphViewProviderCommandMethods: () => ({}),
   }));
-  vi.doMock('../../src/extension/graphView/provider/fileActions', () => ({
+  vi.doMock('../../src/extension/graphView/provider/file/actions', () => ({
     createGraphViewProviderFileActionMethods: () => ({}),
   }));
-  vi.doMock('../../src/extension/graphView/provider/fileVisits', () => ({
+  vi.doMock('../../src/extension/graphView/provider/file/visits', () => ({
     createGraphViewProviderFileVisitMethods: () => ({}),
   }));
   vi.doMock('../../src/extension/graphView/provider/plugins', () => ({
@@ -69,16 +69,16 @@ async function loadSubject(
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
     }),
   }));
-  vi.doMock('../../src/extension/graphView/provider/timeline', () => ({
+  vi.doMock('../../src/extension/graphView/provider/timeline/methods', () => ({
     createGraphViewProviderTimelineMethods: () => ({}),
   }));
-  vi.doMock('../../src/extension/graphView/provider/viewContext', () => ({
+  vi.doMock('../../src/extension/graphView/provider/view/context', () => ({
     createGraphViewProviderViewContextMethods: () => ({}),
   }));
-  vi.doMock('../../src/extension/graphView/provider/viewSelection', () => ({
+  vi.doMock('../../src/extension/graphView/provider/view/selection', () => ({
     createGraphViewProviderViewSelectionMethods: () => ({}),
   }));
-  vi.doMock('../../src/extension/graphView/provider/webview', () => ({
+  vi.doMock('../../src/extension/graphView/provider/webview/host', () => ({
     createGraphViewProviderWebviewMethods: () => ({
       _sendMessage: vi.fn(),
     }),
@@ -110,23 +110,23 @@ describe('GraphViewProvider bootstrap wiring', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.doUnmock('vscode');
-    vi.doUnmock('../../src/extension/workspaceAnalyzer');
+    vi.doUnmock('../../src/extension/workspaceAnalyzer/service');
     vi.doUnmock('../../src/core/views');
     vi.doUnmock('../../src/core/plugins/eventBus');
-    vi.doUnmock('../../src/core/plugins/decorationManager');
-    vi.doUnmock('../../src/extension/graphView/provider/analysis');
+    vi.doUnmock('../../src/core/plugins/decoration/manager');
+    vi.doUnmock('../../src/extension/graphView/provider/analysis/methods');
     vi.doUnmock('../../src/extension/graphView/provider/commands');
-    vi.doUnmock('../../src/extension/graphView/provider/fileActions');
-    vi.doUnmock('../../src/extension/graphView/provider/fileVisits');
+    vi.doUnmock('../../src/extension/graphView/provider/file/actions');
+    vi.doUnmock('../../src/extension/graphView/provider/file/visits');
     vi.doUnmock('../../src/extension/graphView/provider/plugins');
     vi.doUnmock('../../src/extension/graphView/provider/pluginResources');
     vi.doUnmock('../../src/extension/graphView/provider/physicsSettings');
     vi.doUnmock('../../src/extension/graphView/provider/refresh');
     vi.doUnmock('../../src/extension/graphView/provider/settingsState');
-    vi.doUnmock('../../src/extension/graphView/provider/timeline');
-    vi.doUnmock('../../src/extension/graphView/provider/viewContext');
-    vi.doUnmock('../../src/extension/graphView/provider/viewSelection');
-    vi.doUnmock('../../src/extension/graphView/provider/webview');
+    vi.doUnmock('../../src/extension/graphView/provider/timeline/methods');
+    vi.doUnmock('../../src/extension/graphView/provider/view/context');
+    vi.doUnmock('../../src/extension/graphView/provider/view/selection');
+    vi.doUnmock('../../src/extension/graphView/provider/webview/host');
     vi.doUnmock('../../src/extension/graphView/provider/bootstrap');
     vi.resetModules();
   });

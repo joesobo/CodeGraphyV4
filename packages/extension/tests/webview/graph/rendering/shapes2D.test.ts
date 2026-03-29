@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes2D';
+import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes/draw2d';
 
 function createMockContext() {
   return {

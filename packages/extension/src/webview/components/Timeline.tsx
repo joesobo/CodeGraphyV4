@@ -1,10 +1,10 @@
 import React, { useCallback } from 'react';
 import type { ICommitInfo } from '../../shared/contracts';
-import { useGraphStore } from '../store';
+import { useGraphStore } from '../store/state';
 import { postMessage } from '../vscodeApi';
-import Status from './timeline/Status';
-import Track from './timeline/Track';
-import { useTimelineController } from './timeline/useController';
+import Status from './timeline/view/Status';
+import Track from './timeline/view/Track';
+import { useTimelineController } from './timeline/use/controller';
 
 interface ReadyTimelineProps {
   currentCommitSha: string | null;

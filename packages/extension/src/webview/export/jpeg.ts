@@ -1,5 +1,5 @@
 import { postMessage } from '../vscodeApi';
-import { createExportTimestamp, createImageExportDataUrl } from './exportContext';
+import { createExportTimestamp, createImageExportDataUrl } from './shared/context';
 
 export function exportAsJpeg(container: HTMLDivElement | null): void {
   try {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_NODE_COLOR } from '../../src/shared/contracts';
-import type { SearchOptions } from '../../src/webview/components/SearchBar';
+import type { SearchOptions } from '../../src/webview/components/searchBar/model';
 import { applyGroupColors, filterGraphData, filterNodesAdvanced } from '../../src/webview/appSearch';
 
 const defaultSearchOptions: SearchOptions = {

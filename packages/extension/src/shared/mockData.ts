@@ -3,7 +3,7 @@
  * Used for testing and development before real file discovery is implemented.
  *
  * The mock data simulates a typical React project structure with:
- * - Entry point (index.tsx, App.tsx)
+ * - Entry point (main.tsx, App.tsx)
  * - Components (Header, Button, Card, Modal, etc.)
  * - Hooks (useAuth, useApi, useLocalStorage)
  * - API layer (client, users, posts)
@@ -15,13 +15,13 @@
  */
 
 import { IFileData, IGraphData } from './contracts';
-import { fileDataToNodes, fileDataToEdges } from './mockDataTransforms';
-import { MOCK_ENTRY_POINTS } from './mockDataEntryPoints';
-import { MOCK_COMPONENTS } from './mockDataComponents';
-import { MOCK_HOOKS, MOCK_API } from './mockDataHooksAndApi';
-import { MOCK_UTILS, MOCK_STYLES, MOCK_CONFIG } from './mockDataUtilsAndConfig';
+import { fileDataToNodes, fileDataToEdges } from './mock/transforms';
+import { MOCK_ENTRY_POINTS } from './mock/entryPoints';
+import { MOCK_COMPONENTS } from './mock/components';
+import { MOCK_HOOKS, MOCK_API } from './mock/hooksAndApi';
+import { MOCK_UTILS, MOCK_STYLES, MOCK_CONFIG } from './mock/utilsAndConfig';
 
-export { fileDataToNodes, fileDataToEdges } from './mockDataTransforms';
+export { fileDataToNodes, fileDataToEdges } from './mock/transforms';
 
 /**
  * Mock file data simulating a React application structure.

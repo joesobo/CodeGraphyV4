@@ -2,7 +2,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import ForceGraph3D from 'react-force-graph-3d';
-import { Surface3d } from '../../../../src/webview/components/graph/rendering/Surface3d';
+import { Surface3d } from '../../../../src/webview/components/graph/rendering/surface/view3d';
 
 function createSharedProps() {
   return {

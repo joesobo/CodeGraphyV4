@@ -1,5 +1,5 @@
 import React from 'react';
-import type { IconProps } from './types';
+import type { IconProps } from './iconProps';
 
 /** Tree pointing right — left-to-right mode */
 export const DagLeftRightIcon: React.FC<IconProps> = ({ size = 18, className }) => (

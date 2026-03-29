@@ -5,18 +5,18 @@ import type {
   IGraphData,
   NodeDecorationPayload,
 } from '../../../../src/shared/contracts';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
+import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 
 const graphStateHarness = vi.hoisted(() => ({
   as2DExtMethods: vi.fn(),
   buildGraphData: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graphModel', () => ({
+vi.mock('../../../../src/webview/components/graph/model/build', () => ({
   buildGraphData: graphStateHarness.buildGraphData,
 }));
 
-vi.mock('../../../../src/webview/components/graphSupport/types', () => ({
+vi.mock('../../../../src/webview/components/graph/support/contracts', () => ({
   as2DExtMethods: graphStateHarness.as2DExtMethods,
 }));
 
@@ -26,7 +26,7 @@ import {
   incrementImageCacheVersion,
   useGraphState,
   type UseGraphStateOptions,
-} from '../../../../src/webview/components/graph/runtime/useGraphState';
+} from '../../../../src/webview/components/graph/runtime/use/graph/state';
 
 function createData(suffix: string): IGraphData {
   return {

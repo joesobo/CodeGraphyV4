@@ -29,15 +29,15 @@ vi.mock('vscode', () => ({
   },
 }));
 
-vi.mock('../../../../src/extension/graphView/physics/settings', () => ({
+vi.mock('../../../../src/extension/graphView/settings/physics/reader', () => ({
   readGraphViewPhysicsSettings: mocks.readPhysicsSettings,
 }));
 
-vi.mock('../../../../src/extension/graphView/settings/config', () => ({
+vi.mock('../../../../src/extension/graphView/settings/reader', () => ({
   getGraphViewConfigTarget: mocks.getConfigTarget,
 }));
 
-vi.mock('../../../../src/extension/graphView/physics/config', () => ({
+vi.mock('../../../../src/extension/graphView/settings/physics/updates', () => ({
   updateGraphViewPhysicsSetting: mocks.updatePhysicsSetting,
   resetGraphViewPhysicsSettings: mocks.resetPhysicsSettings,
 }));

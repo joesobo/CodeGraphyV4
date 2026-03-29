@@ -25,21 +25,21 @@ vi.mock('../../../src/webview/components/NodeTooltip', () => ({
   },
 }));
 
-vi.mock('../../../src/webview/components/graph/rendering/Surface2d', () => ({
+vi.mock('../../../src/webview/components/graph/rendering/surface/view2d', () => ({
   Surface2d: (props: Record<string, unknown>) => {
     harness.surface2d(props);
     return <div data-testid="surface-2d" />;
   },
 }));
 
-vi.mock('../../../src/webview/components/graph/rendering/Surface3d', () => ({
+vi.mock('../../../src/webview/components/graph/rendering/surface/view3d', () => ({
   Surface3d: (props: Record<string, unknown>) => {
     harness.surface3d(props);
     return <div data-testid="surface-3d" />;
   },
 }));
 
-vi.mock('../../../src/webview/components/ui/context-menu', () => ({
+vi.mock('../../../src/webview/components/ui/context/menu', () => ({
   ContextMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ContextMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
   ContextMenuContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,

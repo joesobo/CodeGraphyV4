@@ -1,10 +1,10 @@
-import { shouldUseRightClickFallback } from '../../graphInteraction/model';
+import { shouldUseRightClickFallback } from '../interaction/model';
 import { createFallbackContextMenuEvent } from './fallbackEvent';
 import type {
   GraphContextMenuRuntimeDependencies,
   GraphRightMouseDownState,
   GraphTimerHandle,
-} from '.';
+} from './controller';
 
 const DEFAULT_RIGHT_CLICK_FALLBACK_DELAY_MS = 40;
 
@@ -14,11 +14,13 @@ type GraphContextMenuFallbackDependencies = Pick<
   | 'lastGraphContextEventRef'
   | 'rightClickFallbackTimerRef'
   | 'openBackgroundContextMenu'
+> & Partial<Pick<
+  GraphContextMenuRuntimeDependencies,
   | 'now'
   | 'fallbackDelayMs'
   | 'scheduleFallback'
   | 'clearFallbackTimer'
->;
+>>;
 
 export interface GraphContextMenuFallbackRuntime {
   clearRightClickFallbackTimer(): void;

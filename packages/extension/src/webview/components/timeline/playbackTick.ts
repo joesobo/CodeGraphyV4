@@ -1,7 +1,7 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import type { ICommitInfo } from '../../../shared/contracts';
 import { postMessage } from '../../vscodeApi';
-import { findCommitIndexAtTime } from './commits';
+import { findCommitIndexAtTime } from './format/commits';
 
 const PLAYBACK_SECONDS_PER_DAY = 172800;
 

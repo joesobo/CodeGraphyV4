@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createGraphStore } from '../../src/webview/store';
+import { createGraphStore } from '../../src/webview/store/state';
 import type { ICommitInfo, IGraphData } from '../../src/shared/contracts';
 
 describe('GraphStore: Timeline', () => {

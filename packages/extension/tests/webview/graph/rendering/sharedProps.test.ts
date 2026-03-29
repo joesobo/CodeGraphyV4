@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graphModel';
+import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import {
   buildSharedGraphProps,
   normalizeGraphDimension,
   type BuildSharedGraphPropsOptions,
-} from '../../../../src/webview/components/graph/rendering/sharedProps';
+} from '../../../../src/webview/components/graph/rendering/surface/sharedProps';
 
 function createNode(overrides: Partial<FGNode> = {}): FGNode {
   return {
@@ -56,7 +56,7 @@ function createOptions(
   };
 }
 
-describe('graph/rendering/sharedProps', () => {
+describe('graph/rendering/surface/sharedProps', () => {
   it('normalizeGraphDimension keeps non-zero values and drops zeros', () => {
     expect(normalizeGraphDimension(640)).toBe(640);
     expect(normalizeGraphDimension(-24)).toBe(-24);

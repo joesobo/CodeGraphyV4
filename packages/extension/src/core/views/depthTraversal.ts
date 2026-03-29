@@ -29,15 +29,21 @@ export function bfsFromNode(
   adjacencyList: Map<string, Set<string>>,
 ): Map<string, number> {
   const nodeDepths = new Map<string, number>();
-  const queue: Array<{ nodeId: string; depth: number }> = [];
+  const queue: Array<{ nodeId: string; depth: number }> = adjacencyList.has(startNode)
+    ? [{ nodeId: startNode, depth: 0 }]
+    : [];
 
-  if (adjacencyList.has(startNode)) {
-    nodeDepths.set(startNode, 0);
-    queue.push({ nodeId: startNode, depth: 0 });
+  if (queue.length === 0) {
+    return nodeDepths;
   }
 
-  while (queue.length > 0) {
-    const { nodeId, depth } = queue.shift()!;
+  nodeDepths.set(startNode, 0);
+
+  for (let cursor = 0; cursor < queue.length; cursor += 1) {
+    const entry = queue[cursor];
+    if (!entry) continue;
+
+    const { nodeId, depth } = entry;
     if (depth >= depthLimit) continue;
 
     const neighbors = adjacencyList.get(nodeId);

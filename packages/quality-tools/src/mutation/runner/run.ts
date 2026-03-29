@@ -7,6 +7,7 @@ import { copySharedMutationReports, incrementalReportPath } from '../reporting/r
 import { reportMutationSiteViolations } from '../reporting/check';
 import { resolveMutationProfile } from '../analysis/profile';
 import { sanitizeReportKey } from '../../shared/util/reportKey';
+import { resolveScopedVitestIncludes } from './vitestIncludes';
 
 function buildArgs(target: QualityTarget): { args: string[]; reportKey: string } {
   const profile = resolveMutationProfile(target);
@@ -22,7 +23,15 @@ function buildArgs(target: QualityTarget): { args: string[]; reportKey: string }
 
 export function runMutation(target: QualityTarget): void {
   const { args, reportKey } = buildArgs(target);
-  execFileSync('stryker', args, { cwd: REPO_ROOT, stdio: 'inherit' });
+  const scopedVitestIncludes = resolveScopedVitestIncludes(target);
+  const env = scopedVitestIncludes
+    ? {
+        ...process.env,
+        CODEGRAPHY_VITEST_INCLUDE_JSON: JSON.stringify(scopedVitestIncludes),
+      }
+    : process.env;
+
+  execFileSync('stryker', args, { cwd: REPO_ROOT, env, stdio: 'inherit' });
   const reportPath = copySharedMutationReports(reportKey, REPO_ROOT);
   reportMutationSiteViolations(reportPath);
 }

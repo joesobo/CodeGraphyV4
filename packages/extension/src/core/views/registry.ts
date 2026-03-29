@@ -4,7 +4,7 @@
  * @module core/views/ViewRegistry
  */
 
-import { IView, IViewInfo, IViewContext } from './types';
+import { IView, IViewInfo, IViewContext } from './contracts';
 import { getAvailableViews, isViewAvailable } from './viewAvailability';
 
 /**

@@ -9,7 +9,7 @@ export default defineConfig({
   build: {
     outDir: resolve(root, 'dist/webview'),
     rollupOptions: {
-      input: resolve(__dirname, 'src/webview/index.tsx'),
+      input: resolve(__dirname, 'src/webview/main.tsx'),
       output: {
         entryFileNames: 'index.js',
         assetFileNames: 'index.[ext]',

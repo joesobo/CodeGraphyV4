@@ -3,7 +3,7 @@ import {
 	useState,
 	type MutableRefObject,
 } from 'react';
-import type { GraphContainerSize } from '../rendering/sharedProps';
+import type { GraphContainerSize } from '../rendering/surface/sharedProps';
 
 export function useContainerSize(
 	containerRef: MutableRefObject<HTMLDivElement | null>,

@@ -8,20 +8,20 @@ import {
   ContextMenuSeparator,
   ContextMenuShortcut,
   ContextMenuTrigger,
-} from '../ui/context-menu';
+} from '../ui/context/menu';
 import { NodeTooltip } from '../NodeTooltip';
 import type {
   GraphContextMenuAction,
   GraphContextMenuEntry,
-} from '../graphContextMenu/types';
+} from './contextMenu/contracts';
 import {
   Surface2d,
   type Surface2dProps,
-} from './rendering/Surface2d';
+} from './rendering/surface/view2d';
 import {
   Surface3d,
   type Surface3dProps,
-} from './rendering/Surface3d';
+} from './rendering/surface/view3d';
 
 export interface ViewportProps {
   backgroundColor: string;

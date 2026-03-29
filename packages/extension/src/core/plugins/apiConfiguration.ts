@@ -1,4 +1,4 @@
-import type { DecorationManager } from './decorationManager';
+import type { DecorationManager } from './decoration/manager';
 import type { EventBus } from './eventBus';
 import type { ViewRegistry } from '../views/registry';
 import type { CommandRegistrar, GraphDataProvider, WebviewMessageSender } from './codeGraphyApi';

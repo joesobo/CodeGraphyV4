@@ -1,6 +1,6 @@
 import type { ExtensionToWebviewMessage, ISettingsSnapshot } from '../../../shared/contracts';
 import { applyGraphViewAllSettingsSnapshot, type GraphViewAllSettingsSyncState } from './sync';
-import { sendGraphViewSettingsMessages } from './message';
+import { sendGraphViewSettingsMessages } from './sender';
 
 interface GraphViewConfigurationLike {
   get<T>(key: string, defaultValue: T): T;

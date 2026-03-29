@@ -18,11 +18,15 @@ const {
   writeFileSync: vi.fn()
 }));
 
-vi.mock('fs', () => ({
-  mkdirSync,
-  readFileSync,
-  writeFileSync
-}));
+vi.mock('fs', async () => {
+  const actual = await vi.importActual<typeof import('fs')>('fs');
+  return {
+    ...actual,
+    mkdirSync,
+    readFileSync,
+    writeFileSync
+  };
+});
 
 vi.mock('../../../../src/scrap/test/compare', () => ({
   applyBaselineComparison

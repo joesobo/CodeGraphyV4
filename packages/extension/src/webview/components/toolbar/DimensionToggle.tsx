@@ -8,8 +8,8 @@ import React from 'react';
 import { mdiCircleOutline, mdiSphere } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
-import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
-import { useGraphStore } from '../../store';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
+import { useGraphStore } from '../../store/state';
 
 export function DimensionToggle(): React.ReactElement {
   const graphMode = useGraphStore(s => s.graphMode);

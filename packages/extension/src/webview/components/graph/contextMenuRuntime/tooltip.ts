@@ -1,6 +1,6 @@
-import { makeBackgroundContextSelection } from '../../graphContextMenu/selection';
+import { makeBackgroundContextSelection } from '../contextMenu/selection';
 import { hideGraphTooltipState } from '../tooltipModel';
-import type { GraphContextMenuRuntimeDependencies } from '.';
+import type { GraphContextMenuRuntimeDependencies } from './controller';
 
 const DEFAULT_CONTEXT_SELECTION_GRACE_MS = 150;
 
@@ -13,9 +13,11 @@ type GraphContextMenuTooltipDependencies = Pick<
   | 'setContextSelection'
   | 'setTooltipData'
   | 'stopTooltipTracking'
+> & Partial<Pick<
+  GraphContextMenuRuntimeDependencies,
   | 'now'
   | 'contextSelectionGraceMs'
->;
+>>;
 
 export interface GraphContextMenuTooltipRuntime {
   clearTooltipContext(): void;
