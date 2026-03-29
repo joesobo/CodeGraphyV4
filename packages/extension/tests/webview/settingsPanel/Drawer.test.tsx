@@ -1,9 +1,9 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../../src/shared/contracts';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../../src/shared/contracts';
+import type { IPhysicsSettings } from '../../../src/shared/contracts';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
 import SettingsPanel from '../../../src/webview/components/settingsPanel/Drawer';
-import { graphStore } from '../../../../../src/webview/store/state';
+import { graphStore } from '../../../src/webview/store/state';
 
 const sentMessages: unknown[] = [];
 vi.mock('../../../src/webview/vscodeApi', () => ({
