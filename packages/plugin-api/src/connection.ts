@@ -1,6 +1,6 @@
 /**
  * @fileoverview Connection and rule types for plugin analysis.
- * @module @codegraphy/plugin-api/connection
+ * @module @codegraphy-vscode/plugin-api/connection
  */
 
 /**

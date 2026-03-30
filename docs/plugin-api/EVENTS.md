@@ -2,14 +2,14 @@
 
 ![Event System Diagram](./diagrams/event-system.excalidraw)
 
-Diagram source: `docs/plugin-api/diagrams/event-system.excalidraw`
+Diagram source: `docs-vscode/plugin-api/diagrams/event-system.excalidraw`
 
-This document tracks the canonical event contract in [`packages/plugin-api/src/events.ts`](../../packages/plugin-api/src/events.ts).
+This document tracks the canonical event contract in [`packages-vscode/plugin-api/src/events.ts`](../../packages-vscode/plugin-api/src/events.ts).
 
 ## Usage
 
 ```typescript
-import type { CodeGraphyAPI } from '@codegraphy/plugin-api';
+import type { CodeGraphyAPI } from '@codegraphy-vscode/plugin-api';
 
 export function onLoad(api: CodeGraphyAPI): void {
   api.on('graph:nodeClick', ({ node, event }) => {
@@ -102,7 +102,7 @@ Notes:
 - `EventName`: union of all keys in `EventPayloads`.
 
 ```typescript
-import type { EventName, EventPayloads } from '@codegraphy/plugin-api';
+import type { EventName, EventPayloads } from '@codegraphy-vscode/plugin-api';
 
 function on<E extends EventName>(event: E, payload: EventPayloads[E]): void {
   // typed by event name

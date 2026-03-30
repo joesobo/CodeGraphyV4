@@ -5,7 +5,7 @@
  * @module plugins/python
  */
 
-import type { IPlugin, IConnection } from '@codegraphy/plugin-api';
+import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
 import { PathResolver } from './PathResolver';
 import { loadPythonConfig } from './projectConfig';
 import { assertPythonAstRuntimeAvailable, parsePythonImports } from './astParser';

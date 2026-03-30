@@ -177,7 +177,7 @@ onLoad(api: CodeGraphyAPI) {
 ## Full Lifecycle Example
 
 ```typescript
-import type { IPlugin, CodeGraphyAPI, IGraphData } from '@codegraphy/plugin-api';
+import type { IPlugin, CodeGraphyAPI, IGraphData } from '@codegraphy-vscode/plugin-api';
 
 export function createMetricsPlugin(): IPlugin {
   let api: CodeGraphyAPI;

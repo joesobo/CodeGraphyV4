@@ -5,7 +5,7 @@
  * @module plugins/markdown/rules/wikilink
  */
 
-import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
+import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
 import type { PathResolver } from '../PathResolver';
 import {
   isFenceStart,

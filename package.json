@@ -36,7 +36,7 @@
 		"release:publish": "node scripts/release.mjs publish",
 		"typecheck": "turbo run typecheck",
 		"typecheck:extension": "pnpm --filter @codegraphy/extension run typecheck",
-		"typecheck:plugin-api": "pnpm --filter @codegraphy/plugin-api run typecheck",
+		"typecheck:plugin-api": "pnpm --filter @codegraphy-vscode/plugin-api run typecheck",
 		"typecheck:plugins": "turbo run typecheck --filter=codegraphy-typescript --filter=codegraphy-python --filter=codegraphy-csharp --filter=codegraphy-godot --filter=@codegraphy/plugin-markdown",
 		"prepare": "husky",
 		"test:e2e": "pnpm run build:e2e && node dist-e2e/e2e/runTest.js",

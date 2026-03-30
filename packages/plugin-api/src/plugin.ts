@@ -4,7 +4,7 @@
  * Plugin API v2 is required. Every plugin must declare `apiVersion`
  * and is validated by the host at registration time.
  *
- * @module @codegraphy/plugin-api/plugin
+ * @module @codegraphy-vscode/plugin-api/plugin
  */
 
 import type { IConnection, IRule } from './connection';

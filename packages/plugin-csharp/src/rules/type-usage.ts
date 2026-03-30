@@ -4,7 +4,7 @@
  * @module plugins/csharp/rules/type-usage
  */
 
-import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
+import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
 import type { CSharpRuleContext } from '../parser';
 
 /** Detects intra-namespace type usage: same namespace, no using needed */

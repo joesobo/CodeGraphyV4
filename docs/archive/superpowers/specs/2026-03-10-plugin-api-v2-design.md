@@ -21,7 +21,7 @@ Redesign CodeGraphy's plugin system from a narrow connection-detection interface
 
 - **Plugin Lifecycle** — One-time phases, recurring hooks, and auto-cleanup pattern ([source](../../plugin-api/diagrams/plugin-lifecycle.excalidraw))
 - **Event System** — Hub-and-spoke view of event categories and payload contracts ([source](../../plugin-api/diagrams/event-system.excalidraw))
-- **Type Surface** — How `@codegraphy/plugin-api` modules map to extension/webview runtime structures ([source](../../plugin-api/diagrams/type-surface.excalidraw))
+- **Type Surface** — How `@codegraphy-vscode/plugin-api` modules map to extension/webview runtime structures ([source](../../plugin-api/diagrams/type-surface.excalidraw))
 
 ## Detailed Documentation
 
@@ -36,7 +36,7 @@ Redesign CodeGraphy's plugin system from a narrow connection-detection interface
 - Canonical event naming (colon-style keys) and shared `EventPayloads`/`EventName`.
 - v2 lifecycle dispatch (`onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`).
 - Tier-2 message bridge (`plugin:<pluginId>:<type>`) and webview injection plumbing.
-- `@codegraphy/plugin-api` type package exports for core, events, plugin, and webview type entry points.
+- `@codegraphy-vscode/plugin-api` type package exports for core, events, plugin, and webview type entry points.
 
 ### Partially Implemented
 
@@ -68,7 +68,7 @@ CodeGraphyV4/
 │   │   │   ├── core/               # shared core (discovery, registry, views, colors)
 │   │   │   └── shared/             # shared types
 │   │   └── tests/
-│   ├── plugin-api/                 # @codegraphy/plugin-api (published to NPM)
+│   ├── plugin-api/                 # @codegraphy-vscode/plugin-api (published to NPM)
 │   │   ├── package.json
 │   │   └── src/
 │   │       ├── index.ts            # main entry — re-exports everything
@@ -127,7 +127,7 @@ Plugins are VS Code extensions that depend on CodeGraphy.
   "extensionDependencies": ["codegraphy.codegraphy"],
   "main": "./dist/extension.js",
   "devDependencies": {
-    "@codegraphy/plugin-api": "^2.0.0"
+    "@codegraphy-vscode/plugin-api": "^2.0.0"
   }
 }
 ```
@@ -484,7 +484,7 @@ On `registerPlugin()`, the core checks the manifest's `apiVersion` range:
 
 ### Types Package Versioning
 
-`@codegraphy/plugin-api` version is **locked to the core API version.** If the core API is 2.3.0, the types package is 2.3.0. Plugin authors install `@codegraphy/plugin-api@^2.0.0` and get type-safe access to everything available in API 2.x.
+`@codegraphy-vscode/plugin-api` version is **locked to the core API version.** If the core API is 2.3.0, the types package is 2.3.0. Plugin authors install `@codegraphy-vscode/plugin-api@^2.0.0` and get type-safe access to everything available in API 2.x.
 
 ---
 
@@ -493,7 +493,7 @@ On `registerPlugin()`, the core checks the manifest's `apiVersion` range:
 ```typescript
 // Third-party plugin's extension.ts
 import * as vscode from 'vscode';
-import type { IPlugin, CodeGraphyAPI } from '@codegraphy/plugin-api';
+import type { IPlugin, CodeGraphyAPI } from '@codegraphy-vscode/plugin-api';
 
 export async function activate(context: vscode.ExtensionContext) {
   // Get CodeGraphy's exported API

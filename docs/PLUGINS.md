@@ -3,13 +3,13 @@
 CodeGraphy supports two plugin layers:
 
 - Marketplace plugin extensions that register themselves with the core `codegraphy.codegraphy` extension
-- Type-safe plugin implementations built against `@codegraphy/plugin-api`
+- Type-safe plugin implementations built against `@codegraphy-vscode/plugin-api`
 
 Use these docs as the starting point:
 
-- [Plugin lifecycle](./plugin-api/LIFECYCLE.md)
-- [Plugin types](./plugin-api/TYPES.md)
-- [Plugin events](./plugin-api/EVENTS.md)
+- [Plugin lifecycle](.-vscode/plugin-api/LIFECYCLE.md)
+- [Plugin types](.-vscode/plugin-api/TYPES.md)
+- [Plugin events](.-vscode/plugin-api/EVENTS.md)
 
 ## Packaging model
 

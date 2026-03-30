@@ -1,5 +1,5 @@
 {
-  "name": "@codegraphy/plugin-api",
+  "name": "@codegraphy-vscode/plugin-api",
   "version": "0.1.0",
   "description": "Type definitions for CodeGraphy plugins",
   "type": "module",

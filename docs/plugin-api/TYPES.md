@@ -2,9 +2,9 @@
 
 ![Type Surface Diagram](./diagrams/type-surface.excalidraw)
 
-Diagram source: `docs/plugin-api/diagrams/type-surface.excalidraw`
+Diagram source: `docs-vscode/plugin-api/diagrams/type-surface.excalidraw`
 
-This document references the canonical type package in `packages/plugin-api/src`.
+This document references the canonical type package in `packages-vscode/plugin-api/src`.
 
 ## Import Surface
 
@@ -28,14 +28,14 @@ import type {
   ICommand,
   IContextMenuItem,
   Disposable,
-} from '@codegraphy/plugin-api';
+} from '@codegraphy-vscode/plugin-api';
 
 import type {
   CodeGraphyWebviewAPI,
   NodeRenderFn,
   OverlayRenderFn,
   TooltipProviderFn,
-} from '@codegraphy/plugin-api/webview';
+} from '@codegraphy-vscode/plugin-api/webview';
 ```
 
 ## Core Plugin Contract
@@ -102,7 +102,7 @@ Main groups:
 
 ## Webview Types (Tier 2)
 
-From `@codegraphy/plugin-api/webview`:
+From `@codegraphy-vscode/plugin-api/webview`:
 
 - `CodeGraphyWebviewAPI`
 - `NodeRenderContext`, `NodeRenderFn`
@@ -112,10 +112,10 @@ From `@codegraphy/plugin-api/webview`:
 
 ## Package Export Notes
 
-`@codegraphy/plugin-api` is currently a type-definition package with `types` exports for:
-- `@codegraphy/plugin-api`
-- `@codegraphy/plugin-api/events`
-- `@codegraphy/plugin-api/plugin`
-- `@codegraphy/plugin-api/webview`
+`@codegraphy-vscode/plugin-api` is currently a type-definition package with `types` exports for:
+- `@codegraphy-vscode/plugin-api`
+- `@codegraphy-vscode/plugin-api/events`
+- `@codegraphy-vscode/plugin-api/plugin`
+- `@codegraphy-vscode/plugin-api/webview`
 
 Use `import type` for these symbols in plugin code.

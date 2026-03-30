@@ -1,6 +1,6 @@
 /**
  * @fileoverview Drawing helper option types for webview plugins.
- * @module @codegraphy/plugin-api/webview/types
+ * @module @codegraphy-vscode/plugin-api/webview/types
  */
 
 /** Options for drawing a badge on a node. */

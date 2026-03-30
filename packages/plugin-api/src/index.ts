@@ -9,7 +9,7 @@
  * - {@link CodeGraphyWebviewAPI} — the webview-side API for custom rendering
  * - Graph, decoration, event, view, and command types
  *
- * @module @codegraphy/plugin-api
+ * @module @codegraphy-vscode/plugin-api
  */
 
 // Disposable

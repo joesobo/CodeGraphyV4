@@ -2,7 +2,7 @@
  * @fileoverview Decoration types for customizing node and edge appearance.
  * Plugins can apply decorations to overlay visual changes on graph elements
  * without modifying the underlying data.
- * @module @codegraphy/plugin-api/decorations
+ * @module @codegraphy-vscode/plugin-api/decorations
  */
 
 /**
