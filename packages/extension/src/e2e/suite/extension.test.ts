@@ -14,7 +14,27 @@ function getExtensionOrThrow(): vscode.Extension<unknown> {
 }
 
 function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    return JSON.stringify(error);
+  }
+
+  if (typeof error === 'number' || typeof error === 'boolean' || typeof error === 'bigint') {
+    return String(error);
+  }
+
+  if (typeof error === 'symbol') {
+    return error.description ?? error.toString();
+  }
+
+  return 'Unknown error';
 }
 
 suite('Extension: Activation', function () {

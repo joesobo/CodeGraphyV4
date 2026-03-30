@@ -3,10 +3,10 @@
  * Called by @vscode/test-electron after VS Code starts.
  */
 import * as path from 'path';
-import Mocha from 'mocha';
 import { glob } from 'glob';
 
 export async function run(): Promise<void> {
+  const { default: Mocha } = await import('mocha');
   const mocha = new Mocha({
     ui: 'tdd',
     color: true,

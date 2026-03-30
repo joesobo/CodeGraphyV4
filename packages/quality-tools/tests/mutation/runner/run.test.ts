@@ -8,7 +8,7 @@ describe('buildMutationArgsForTest', () => {
   it('uses unified mutation globs for a full extension run', () => {
     const args = buildMutationArgsForTest(resolveQualityTarget(REPO_ROOT, 'extension/'));
     expect(args[0]).toBe('run');
-    expect(args[1]).toBe('packages/extension/stryker.config.json');
+    expect(args[1]).toBe('packages/extension/stryker.config.cjs');
     expect(args[3]).toBe('reports/mutation/extension/stryker-incremental-extension.json');
     expect(args).toContain('-m');
     expect(args.join(' ')).toContain('packages/extension/src/**/*.ts');

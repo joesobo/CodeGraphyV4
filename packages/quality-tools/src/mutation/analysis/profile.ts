@@ -13,9 +13,9 @@ export function resolveMutationProfile(target: QualityTarget): MutationProfile {
   }
 
   const packageConfig = target.packageName === 'extension'
-    ? 'packages/extension/stryker.config.json'
+    ? 'packages/extension/stryker.config.cjs'
     : target.packageName === 'quality-tools'
       ? 'packages/quality-tools/stryker.config.json'
-      : 'stryker.config.json';
+      : 'stryker.config.cjs';
   return { configPath: packageConfig, packageName: target.packageName };
 }

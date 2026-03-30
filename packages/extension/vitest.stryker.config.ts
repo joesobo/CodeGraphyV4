@@ -3,9 +3,25 @@ import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 const workspaceRoot = resolve(__dirname, '../..');
+const vitestScope = process.env.CODEGRAPHY_VITEST_SCOPE ?? 'extension';
 const scopedInclude = process.env.CODEGRAPHY_VITEST_INCLUDE_JSON
   ? JSON.parse(process.env.CODEGRAPHY_VITEST_INCLUDE_JSON) as string[]
   : undefined;
+const defaultInclude = vitestScope === 'workspace'
+  ? [
+      'packages/*/tests/**/*.test.{ts,tsx}',
+      'packages/*/__tests__/**/*.test.{ts,tsx}',
+    ]
+  : [
+      'packages/extension/tests/**/*.test.{ts,tsx}',
+      'packages/extension/__tests__/**/*.test.{ts,tsx}',
+    ];
+const coverageInclude = vitestScope === 'workspace'
+  ? ['packages/*/src/**/*.{ts,tsx}']
+  : ['packages/extension/src/**/*.{ts,tsx}'];
+const coverageExclude = vitestScope === 'workspace'
+  ? ['packages/*/src/**/*.d.ts']
+  : ['packages/extension/src/**/*.d.ts'];
 
 export default defineConfig({
   root: workspaceRoot,
@@ -16,17 +32,14 @@ export default defineConfig({
     server: {
       sourcemap: false,
     },
-    include: scopedInclude ?? [
-      'packages/extension/tests/**/*.test.{ts,tsx}',
-      'packages/extension/__tests__/**/*.test.{ts,tsx}',
-    ],
+    include: scopedInclude ?? defaultInclude,
     setupFiles: [resolve(__dirname, 'tests/setup.ts')],
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],
       reportsDirectory: resolve(workspaceRoot, 'coverage'),
-      include: ['packages/extension/src/**/*.{ts,tsx}'],
-      exclude: ['packages/extension/src/**/*.d.ts'],
+      include: coverageInclude,
+      exclude: coverageExclude,
     },
   },
   resolve: {

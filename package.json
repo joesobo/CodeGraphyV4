@@ -36,7 +36,7 @@
 		"typecheck:plugins": "turbo run typecheck --filter=@codegraphy/plugin-typescript --filter=@codegraphy/plugin-python --filter=@codegraphy/plugin-csharp --filter=@codegraphy/plugin-godot --filter=@codegraphy/plugin-markdown",
 		"prepare": "husky",
 		"test:e2e": "pnpm run build:e2e && node dist-e2e/e2e/runTest.js",
-		"build:e2e": "pnpm run build && tsc -p packages/extension/tsconfig.e2e.json"
+		"build:e2e": "pnpm run build && tsc -p packages/extension/src/e2e/tsconfig.json"
 	},
 	"displayName": "CodeGraphy",
 	"description": "Visualize your codebase as an interactive 2D force graph",

@@ -36,7 +36,8 @@ Documentation lives in the repo docs:
 Config ownership:
 
 - [quality.config.json](../../quality.config.json) is the source of truth for per-tool include and exclude scope
-- [stryker.config.json](../../stryker.config.json) holds the shared Stryker runtime for extension-oriented mutation runs
+- [stryker.config.cjs](../../stryker.config.cjs) holds the shared Stryker runtime for non-extension workspace mutation runs
+- [packages/extension/stryker.config.cjs](../extension/stryker.config.cjs) and [packages/extension/vitest.stryker.config.ts](../extension/vitest.stryker.config.ts) now provide the single extension-owned mutation Vitest config surface
 - [packages/quality-tools/stryker.config.json](./stryker.config.json) exists because `quality-tools` needs its own Vitest/Stryker runner config
 
 Package layout:
