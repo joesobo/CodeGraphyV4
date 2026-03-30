@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_NODE_COLOR, type IGraphData, type IGroup } from '../../../src/shared/contracts';
+import { DEFAULT_NODE_COLOR } from '../../../src/shared/fileColors';
+import type { IGraphData } from '../../../src/shared/graph/types';
+import type { IGroup } from '../../../src/shared/settings/groups';
 import { applyGroupColors, filterGraphData } from '../../../src/webview/search/filtering';
 
 const graphData: IGraphData = {

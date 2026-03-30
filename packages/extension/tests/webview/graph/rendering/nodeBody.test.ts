@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { NodeDecorationPayload } from '../../../../src/shared/contracts';
+import type { NodeDecorationPayload } from '../../../../src/shared/plugins/decorations';
 import type { ThemeKind } from '../../../../src/webview/theme/useTheme';
 
 vi.mock('../../../../src/webview/components/graph/rendering/shapes/draw2d', () => ({

@@ -1,11 +1,6 @@
-/**
- * @fileoverview Store message handlers for toolbar cycle/toggle commands.
- * @module webview/storeMessageHandlersToolbar
- */
-
-import type { ExtensionToWebviewMessage } from '../../../shared/contracts';
 import type { IHandlerContext, PartialState } from '../messageTypes';
 import { DAG_MODE_CYCLE } from '../messageTypes';
+import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 
 export function handleCycleView(
   _message: ExtensionToWebviewMessage,

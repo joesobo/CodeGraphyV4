@@ -1,6 +1,6 @@
 import type React from 'react';
 import { describe, expect, it, vi } from 'vitest';
-import type { IGroup } from '../../../../../src/shared/contracts';
+import type { IGroup } from '../../../../../src/shared/settings/groups';
 import { createGroupDragHandlers } from '../../../../../src/webview/components/settingsPanel/groups/shared/drag';
 
 describe('settingsPanel groups drag', () => {

@@ -7,7 +7,7 @@ import {
   registerFileWatcher,
   registerSaveHandler,
 } from './workspaceFiles/register';
-import type { IGraphData } from '../shared/contracts';
+import type { IGraphData } from '../shared/graph/types';
 
 /** Public API returned by activate() — usable from e2e tests. */
 export interface CodeGraphyAPI {

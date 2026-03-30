@@ -1,4 +1,6 @@
-import type { IGraphData, IGroup, IPluginStatus } from '../../../shared/contracts';
+import type { IGraphData } from '../../../shared/graph/types';
+import type { IPluginStatus } from '../../../shared/plugins/status';
+import type { IGroup } from '../../../shared/settings/groups';
 import { graphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import { buildExportData } from '../json/export';

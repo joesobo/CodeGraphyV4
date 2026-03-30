@@ -1,9 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import type {
-  EdgeDecorationPayload,
-  IPluginContextMenuItem,
-  NodeDecorationPayload,
-} from '../../src/shared/contracts';
+import type { IPluginContextMenuItem } from '../../src/shared/plugins/contextMenu';
+import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../src/shared/plugins/decorations';
 import { createGraphStore } from '../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 

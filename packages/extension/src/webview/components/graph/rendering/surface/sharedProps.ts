@@ -1,4 +1,4 @@
-import type { DagMode } from '../../../../../shared/contracts';
+import type { DagMode } from '../../../../../shared/settings/modes';
 import type { LinkObject, NodeObject } from 'react-force-graph-2d';
 import type { FGLink, FGNode } from '../../model/build';
 

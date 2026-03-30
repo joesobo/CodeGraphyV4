@@ -1,10 +1,5 @@
-/**
- * @fileoverview Store message handlers for graph/settings messages.
- * @module webview/storeMessageHandlersGraph
- */
-
-import type { ExtensionToWebviewMessage } from '../../../shared/contracts';
 import type { PartialState } from '../messageTypes';
+import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 
 export function handleGraphDataUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>,

@@ -17,7 +17,9 @@ vi.mock('../../../../src/webview/export/shared/context', async (importOriginal) 
 });
 
 import { buildExportData, exportAsJson, UNATTRIBUTED_RULE_KEY } from '../../../../src/webview/export/json/export';
-import type { IGraphData, IGroup, IPluginStatus } from '../../../../src/shared/contracts';
+import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IPluginStatus } from '../../../../src/shared/plugins/status';
+import type { IGroup } from '../../../../src/shared/settings/groups';
 import { graphStore } from '../../../../src/webview/store/state';
 
 const noGroups: IGroup[] = [];

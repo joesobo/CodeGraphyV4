@@ -1,9 +1,6 @@
 import type { EdgeDecoration, NodeDecoration } from '../../../../core/plugins/decoration/manager';
-import type {
-  EdgeDecorationPayload,
-  IPluginContextMenuItem,
-  NodeDecorationPayload,
-} from '../../../../shared/contracts';
+import type { IPluginContextMenuItem } from '../../../../shared/plugins/contextMenu';
+import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
 
 interface IContextMenuContribution {
   label: string;

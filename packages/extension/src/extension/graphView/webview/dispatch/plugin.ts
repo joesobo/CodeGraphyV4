@@ -1,9 +1,6 @@
-import type {
-  DagMode,
-  IGraphData,
-  NodeSizeMode,
-  WebviewToExtensionMessage,
-} from '../../../../shared/contracts';
+import type { IGraphData } from '../../../../shared/graph/types';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import {
   dispatchGraphViewPluginGroupToggleMessage,
   dispatchGraphViewPluginSectionToggleMessage,

@@ -1,5 +1,5 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from 'react';
-import type { ICommitInfo } from '../../../shared/contracts';
+import type { ICommitInfo } from '../../../shared/timeline/types';
 import { postMessage } from '../../vscodeApi';
 
 export interface PlayPauseActionOptions {

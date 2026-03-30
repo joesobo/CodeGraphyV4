@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import type { ICommitInfo } from '../../shared/contracts';
+import type { ICommitInfo } from '../../shared/timeline/types';
 import { useGraphStore } from '../store/state';
 import { postMessage } from '../vscodeApi';
 import Status from './timeline/view/Status';

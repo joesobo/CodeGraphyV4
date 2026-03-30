@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { compilePattern, filterNodesAdvanced } from '../../../src/webview/search/matching';
-import type { IGraphNode } from '../../../src/shared/contracts';
+import type { IGraphNode } from '../../../src/shared/graph/types';
 
 const nodes: IGraphNode[] = [
   { id: 'src/App.ts', label: 'App', color: '#ffffff' },

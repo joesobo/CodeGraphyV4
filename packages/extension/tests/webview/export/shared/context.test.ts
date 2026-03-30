@@ -6,7 +6,7 @@ import {
   resolveDirectionColor,
 } from '../../../../src/webview/export/shared/context';
 import { graphStore } from '../../../../src/webview/store/state';
-import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/contracts';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
 
 const initialExportContext = {
   timelineActive: graphStore.getState().timelineActive,

@@ -1,4 +1,4 @@
-import type { WebviewToExtensionMessage } from '../../../../shared/contracts';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import {
   applyNodeFileEditMessage,
   type GraphViewNodeFileEditHandlers,

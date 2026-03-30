@@ -1,11 +1,9 @@
 import * as vscode from 'vscode';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { ViewRegistry } from '../../../../core/views/registry';
-import {
-  DEFAULT_FOLDER_NODE_COLOR,
-  type ExtensionToWebviewMessage,
-  type IGraphData,
-} from '../../../../shared/contracts';
+import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/fileColors';
+import type { IGraphData } from '../../../../shared/graph/types';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import { applyGraphViewTransform } from '../../presentation';
 import { normalizeFolderNodeColor } from '../../settings/reader';
 import { sendGraphViewAvailableViews } from '../../view/broadcast';

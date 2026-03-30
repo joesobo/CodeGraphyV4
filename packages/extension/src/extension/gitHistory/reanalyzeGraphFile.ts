@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type { IConnection } from '../../core/plugins/types/contracts';
-import type { IGraphEdge, IGraphNode } from '../../shared/contracts';
+import type { IGraphEdge, IGraphNode } from '../../shared/graph/types';
 import { appendGitHistoryConnectionEdges } from './graphConnections';
 import { createGitHistoryNode } from './fullCommitAnalysis';
 

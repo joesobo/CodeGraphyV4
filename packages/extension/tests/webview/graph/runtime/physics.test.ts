@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../src/shared/contracts';
+import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   applyPhysicsSettings,
   havePhysicsSettingsChanged,

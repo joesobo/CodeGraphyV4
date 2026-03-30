@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import type { ExtensionToWebviewMessage, IGraphData } from '../../../shared/contracts';
+import type { IGraphData } from '../../../shared/graph/types';
+import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import { shouldRebuildGraphView } from '../rebuild';
 import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 

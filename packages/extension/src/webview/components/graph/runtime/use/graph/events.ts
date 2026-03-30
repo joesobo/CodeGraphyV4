@@ -1,5 +1,6 @@
 import { useCallback, useEffect, type MutableRefObject } from 'react';
-import type { IFileInfo, IGraphData } from '../../../../../../shared/contracts';
+import type { IFileInfo } from '../../../../../../shared/files/info';
+import type { IGraphData } from '../../../../../../shared/graph/types';
 import { applyKeyboardEffects } from '../../../effects/keyboard';
 import { applyWebviewMessageEffects as runWebviewMessageEffects } from '../../../effects/messages';
 import { createGraphKeyboardListener } from '../../../keyboard/listener';

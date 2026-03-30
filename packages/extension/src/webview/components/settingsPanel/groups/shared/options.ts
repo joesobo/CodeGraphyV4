@@ -1,4 +1,4 @@
-import type { NodeShape2D, NodeShape3D } from '../../../../../shared/contracts';
+import type { NodeShape2D, NodeShape3D } from '../../../../../shared/settings/modes';
 
 export const SHAPE_2D_OPTIONS: Array<{ value: NodeShape2D; label: string }> = [
   { value: 'circle', label: 'Circle' },

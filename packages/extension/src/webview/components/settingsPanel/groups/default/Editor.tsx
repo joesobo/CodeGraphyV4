@@ -1,5 +1,6 @@
 import React from 'react';
-import type { IGroup, NodeShape2D, NodeShape3D } from '../../../../../shared/contracts';
+import type { NodeShape2D, NodeShape3D } from '../../../../../shared/settings/modes';
+import type { IGroup } from '../../../../../shared/settings/groups';
 import { Label } from '../../../ui/form/label';
 import { SHAPE_2D_OPTIONS, SHAPE_3D_OPTIONS } from '../shared/options';
 import type { GroupEditorState } from '../shared/state/useEditorState';

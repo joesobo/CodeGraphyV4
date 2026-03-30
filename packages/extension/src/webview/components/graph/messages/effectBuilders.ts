@@ -1,4 +1,5 @@
-import type { ExtensionToWebviewMessage, IFileInfo } from '../../../../shared/contracts';
+import type { IFileInfo } from '../../../../shared/files/info';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { FGNode } from '../model/build';
 import type { GraphWebviewMessageEffect } from './effects';
 

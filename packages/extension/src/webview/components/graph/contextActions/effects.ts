@@ -1,4 +1,4 @@
-import type { WebviewToExtensionMessage } from '../../../../shared/contracts';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { BuiltInContextMenuAction, GraphContextMenuAction } from '../contextMenu/contracts';
 import { getBuiltInContextActionEffectsImpl } from './builtinEffects';
 import { createPluginContextActionEffects } from './pluginEffects';

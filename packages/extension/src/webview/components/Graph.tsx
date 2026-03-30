@@ -5,11 +5,8 @@
  */
 
 import React, { useMemo } from 'react';
-import type {
-  EdgeDecorationPayload,
-  IGraphData,
-  NodeDecorationPayload,
-} from '../../shared/contracts';
+import type { IGraphData } from '../../shared/graph/types';
+import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/plugins/decorations';
 import { buildGraphContextMenuEntries } from './graph/contextMenu/buildEntries';
 import { buildSharedGraphProps } from './graph/rendering/surface/sharedProps';
 import { Viewport } from './graph/Viewport';

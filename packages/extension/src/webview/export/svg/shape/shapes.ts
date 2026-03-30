@@ -1,6 +1,6 @@
-import type { NodeShape2D } from '../../../../shared/contracts';
 import { svgRegularPolygonPath } from './regularPolygonPath';
 import { svgStarPath } from './starPath';
+import type { NodeShape2D } from '../../../../shared/settings/modes';
 
 export function escapeXml(text: string): string {
   return text

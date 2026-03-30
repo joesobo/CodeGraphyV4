@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGroup } from '../../../../../src/shared/contracts';
+import type { IGroup } from '../../../../../src/shared/settings/groups';
 import { createGroupActions } from '../../../../../src/webview/components/settingsPanel/groups/shared/actions';
 
 const sentMessages: unknown[] = [];

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type { IConnection } from '../../core/plugins/types/contracts';
-import type { IGraphEdge } from '../../shared/contracts';
+import type { IGraphEdge } from '../../shared/graph/types';
 
 export interface AppendGitHistoryConnectionEdgesOptions {
   connections: readonly IConnection[];

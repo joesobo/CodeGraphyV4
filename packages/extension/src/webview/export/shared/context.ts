@@ -1,5 +1,6 @@
 import { graphStore } from '../../store/state';
-import { DEFAULT_DIRECTION_COLOR } from '../../../shared/contracts';
+import { DEFAULT_DIRECTION_COLOR } from '../../../shared/fileColors';
+
 const EXPORT_BACKGROUND_COLOR = '#18181b';
 
 interface CanvasExportOptions {

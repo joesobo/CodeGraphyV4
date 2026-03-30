@@ -1,5 +1,6 @@
 import type * as vscode from 'vscode';
-import type { IGroup, WebviewToExtensionMessage } from '../../../../shared/contracts';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type { IGroup } from '../../../../shared/settings/groups';
 import {
   dispatchGraphViewPluginMessage,
   type GraphViewPluginMessageContext,

@@ -1,7 +1,9 @@
-import { DEFAULT_NODE_COLOR, IGraphData, IGroup } from '../../shared/contracts';
 import type { SearchOptions } from '../components/searchBar/field/model';
 import { globMatch } from '../globMatch';
 import { filterNodesAdvanced } from './matching';
+import { DEFAULT_NODE_COLOR } from '../../shared/fileColors';
+import type { IGraphData } from '../../shared/graph/types';
+import type { IGroup } from '../../shared/settings/groups';
 
 export { filterNodesAdvanced } from './matching';
 

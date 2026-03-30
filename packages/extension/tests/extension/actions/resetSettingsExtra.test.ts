@@ -5,7 +5,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
 import { ResetSettingsAction } from '../../../src/extension/actions/resetSettings';
-import type { ISettingsSnapshot } from '../../../src/shared/contracts';
+import type { ISettingsSnapshot } from '../../../src/shared/settings/snapshot';
 
 vi.mock('vscode', () => ({
   workspace: {

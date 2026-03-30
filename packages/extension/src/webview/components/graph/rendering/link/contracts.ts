@@ -1,7 +1,5 @@
-import type {
-  DirectionMode,
-  EdgeDecorationPayload,
-} from '../../../../../shared/contracts';
+import type { EdgeDecorationPayload } from '../../../../../shared/plugins/decorations';
+import type { DirectionMode } from '../../../../../shared/settings/modes';
 import type { ThemeKind } from '../../../../theme/useTheme';
 
 interface GraphRef<TValue> {

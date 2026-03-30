@@ -1,14 +1,11 @@
 import * as vscode from 'vscode';
-import type {
-  DagMode,
-  ExtensionToWebviewMessage,
-  IGraphData,
-  IGroup,
-  IPhysicsSettings,
-  NodeSizeMode,
-} from '../../../../shared/contracts';
+import type { IGraphData } from '../../../../shared/graph/types';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type { IGroup } from '../../../../shared/settings/groups';
+import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/contracts';
+import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/fileColors';
 import { getUndoManager } from '../../../undoManager';
 import { ResetSettingsAction } from '../../../actions/resetSettings';
 import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/reader';

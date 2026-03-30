@@ -1,5 +1,5 @@
-import type { NodeShape2D } from '../../../../../shared/contracts';
 import { drawTriangle, drawHexagon } from './regularPolygons';
+import type { NodeShape2D } from '../../../../../shared/settings/modes';
 import { drawStar } from './starPolygon';
 
 export { drawTriangle, drawHexagon } from './regularPolygons';

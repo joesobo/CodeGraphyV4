@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { FileDiscovery } from '../../../core/discovery/file/service';
-import type { IGraphData } from '../../../shared/contracts';
+import type { IGraphData } from '../../../shared/graph/types';
 import type { Configuration } from '../../config/reader';
 import {
   saveWorkspaceAnalysisCache,

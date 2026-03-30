@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { type DirectionMode, type EdgeDecorationPayload } from '../../../../src/shared/contracts';
+import type { EdgeDecorationPayload } from '../../../../src/shared/plugins/decorations';
+import type { DirectionMode } from '../../../../src/shared/settings/modes';
 import type { ThemeKind } from '../../../../src/webview/theme/useTheme';
 import type { FGLink } from '../../../../src/webview/components/graph/model/build';
 import { renderBidirectionalLink } from '../../../../src/webview/components/graph/rendering/bidirectional/link';

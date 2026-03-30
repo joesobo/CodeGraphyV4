@@ -1,4 +1,5 @@
-import type { IGraphEdge, IPluginStatus } from '../../../shared/contracts';
+import type { IGraphEdge } from '../../../shared/graph/types';
+import type { IPluginStatus } from '../../../shared/plugins/status';
 import { UNATTRIBUTED_RULE_KEY, type ExportRule } from '../shared/contracts';
 import {
   buildRulesRecord,

@@ -1,6 +1,6 @@
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { ViewRegistry } from '../../../../core/views/registry';
-import type { ExtensionToWebviewMessage } from '../../../../shared/contracts';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import {
   changeGraphViewView,
   getGraphViewDepthLimit,

@@ -3,7 +3,7 @@
  * @module shared/mockDataComponents
  */
 
-import type { IFileData } from '../contracts';
+import type { IFileData } from './fileData';
 
 export const MOCK_COMPONENTS: IFileData[] = [
   {

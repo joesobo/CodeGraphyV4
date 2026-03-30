@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { DagMode, NodeSizeMode } from '@/shared/contracts';
+import type { DagMode, NodeSizeMode } from '@/shared/settings/modes';
 import {
   dispatchGraphViewPluginReadyMessage,
   type GraphViewPluginReadyContext,

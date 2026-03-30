@@ -1,6 +1,4 @@
-import {
-  DEFAULT_DIRECTION_COLOR,
-} from '../../../../../shared/contracts';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../../shared/fileColors';
 import {
   resolveDirectionColor,
   type FGLink,

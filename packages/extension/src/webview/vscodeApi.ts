@@ -1,10 +1,4 @@
-/**
- * @fileoverview Centralized VSCode API access.
- * Ensures acquireVsCodeApi() is called exactly once (VSCode requirement).
- * @module webview/vscodeApi
- */
-
-import { WebviewToExtensionMessage } from '../shared/contracts';
+import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 
 // Declare the VSCode API type
 declare function acquireVsCodeApi(): {

@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import * as vscode from 'vscode';
-import {
-  DEFAULT_DIRECTION_COLOR,
-  DEFAULT_FOLDER_NODE_COLOR,
-} from '../../../../src/shared/contracts';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/fileColors';
 import {
   areGraphViewSetsEqual,
   getGraphViewConfigTarget,

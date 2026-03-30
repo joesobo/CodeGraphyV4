@@ -1,6 +1,6 @@
 import type { MutableRefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '@/shared/contracts';
+import type { ICommitInfo } from '@/shared/timeline/types';
 import { clearSentMessages, findMessage } from '../../helpers/sentMessages';
 import { createTimelinePlaybackTick } from '../../../src/webview/components/timeline/playbackTick';
 

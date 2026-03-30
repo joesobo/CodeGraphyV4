@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '@/shared/contracts';
+import type { IGraphData } from '@/shared/graph/types';
 import {
   createGraphViewProviderMessageReadContext,
 } from '../../../../../src/extension/graphView/webview/providerMessages/readContext';

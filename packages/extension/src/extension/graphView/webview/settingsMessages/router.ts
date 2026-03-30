@@ -1,8 +1,6 @@
-import type {
-  ExtensionToWebviewMessage,
-  IGraphData,
-  WebviewToExtensionMessage,
-} from '../../../../shared/contracts';
+import type { IGraphData } from '../../../../shared/graph/types';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import { applySettingsUpdateMessage } from './updates';
 import { applySettingsDirectionMessage } from './direction';
 import { applySettingsToggleMessage } from './toggle';

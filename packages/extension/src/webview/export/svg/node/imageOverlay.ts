@@ -1,7 +1,7 @@
-import type { NodeShape2D } from '../../../../shared/contracts';
 import { getImage } from '../../../components/graph/rendering/imageCache';
 import { svgShapePath } from '../shape/shapes';
 import type { SvgExportNode, SvgPosition } from '../contracts';
+import type { NodeShape2D } from '../../../../shared/settings/modes';
 
 function buildClipShape(node: SvgExportNode, position: SvgPosition, shape: NodeShape2D): string {
   if (shape === 'circle') {

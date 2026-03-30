@@ -5,7 +5,7 @@
  * @module core/plugins/graphQueryFacade
  */
 
-import { IGraphData, IGraphNode, IGraphEdge } from '../../shared/contracts';
+import type { IGraphData, IGraphNode, IGraphEdge } from '../../shared/graph/types';
 
 /** Function that provides current graph data. */
 export type GraphDataGetter = () => IGraphData;

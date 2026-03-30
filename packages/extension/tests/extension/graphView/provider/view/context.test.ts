@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
-import { DEFAULT_FOLDER_NODE_COLOR, type IGraphData } from '../../../../../src/shared/contracts';
+import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../../src/shared/fileColors';
+import type { IGraphData } from '../../../../../src/shared/graph/types';
 import { buildGraphViewContext } from '../../../../../src/extension/graphView/view/context';
 import { applyGraphViewTransform, type IGraphViewTransformResult } from '../../../../../src/extension/graphView/presentation';
 import type { GraphViewProviderViewContextMethodDependencies } from '../../../../../src/extension/graphView/provider/view/context';

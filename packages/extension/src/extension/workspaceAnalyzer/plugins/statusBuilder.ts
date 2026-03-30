@@ -6,7 +6,7 @@
 import * as path from 'path';
 import type { IDiscoveredFile } from '../../../core/discovery/contracts';
 import type { IConnection, IPlugin, IPluginInfo } from '../../../core/plugins/types/contracts';
-import { IPluginStatus, IPluginRuleStatus } from '../../../shared/contracts';
+import type { IPluginStatus, IPluginRuleStatus } from '../../../shared/plugins/status';
 
 export interface IWorkspacePluginStatusOptions {
   disabledPlugins: ReadonlySet<string>;

@@ -1,10 +1,7 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type {
-  EdgeDecorationPayload,
-  IGraphData,
-  NodeDecorationPayload,
-} from '../../../../src/shared/contracts';
+import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../src/shared/plugins/decorations';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 
 const graphStateHarness = vi.hoisted(() => ({

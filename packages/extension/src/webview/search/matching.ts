@@ -1,11 +1,5 @@
-/**
- * @fileoverview Pure node-matching logic extracted from appSearch.
- * Compiles search patterns and tests node labels/ids.
- * @module webview/nodeMatching
- */
-
-import type { IGraphNode } from '../../shared/contracts';
 import type { SearchOptions } from '../components/searchBar/field/model';
+import type { IGraphNode } from '../../shared/graph/types';
 
 /**
  * Compiles the user query into a RegExp (or null for plain-text matching),

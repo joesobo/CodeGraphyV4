@@ -1,4 +1,4 @@
-import type { ICommitInfo } from '../../../shared/contracts';
+import type { ICommitInfo } from '../../../shared/timeline/types';
 import { CACHE_VERSION, CACHE_VERSION_KEY, COMMITS_STATE_KEY } from './stateKeys';
 
 export interface CacheWorkspaceState {

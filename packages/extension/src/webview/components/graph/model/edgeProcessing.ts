@@ -1,4 +1,5 @@
-import type { BidirectionalEdgeMode, IGraphEdge } from '../../../../shared/contracts';
+import type { IGraphEdge } from '../../../../shared/graph/types';
+import type { BidirectionalEdgeMode } from '../../../../shared/settings/modes';
 
 export interface ProcessedEdge extends IGraphEdge {
   bidirectional?: boolean;

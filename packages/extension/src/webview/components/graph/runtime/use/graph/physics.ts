@@ -5,7 +5,7 @@ import {
 } from 'react';
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
-import type { IPhysicsSettings } from '../../../../../../shared/contracts';
+import type { IPhysicsSettings } from '../../../../../../shared/settings/physics';
 import type { FGLink, FGNode } from '../../../model/build';
 import {
 	applyPhysicsSettings,

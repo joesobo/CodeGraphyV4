@@ -4,7 +4,8 @@
  */
 
 import * as path from 'path';
-import { DEFAULT_NODE_COLOR, type IGraphNode } from '../../../shared/contracts';
+import { DEFAULT_NODE_COLOR } from '../../../shared/fileColors';
+import type { IGraphNode } from '../../../shared/graph/types';
 
 export interface IWorkspaceGraphNodesOptions {
   cacheFiles: Record<string, { size?: number }>;

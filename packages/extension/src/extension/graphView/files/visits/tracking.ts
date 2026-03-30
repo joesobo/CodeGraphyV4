@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../../shared/contracts';
+import type { IGraphData } from '../../../../shared/graph/types';
 import {
   incrementPersistedGraphViewVisitCount,
   readPersistedGraphViewVisitCount,

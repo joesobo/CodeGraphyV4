@@ -1,4 +1,4 @@
-import type { IPhysicsSettings } from '../../../../shared/contracts';
+import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 
 export type PendingPhysicsMap = Partial<Record<keyof IPhysicsSettings, number>>;
 export type PhysicsTimerMap = Partial<

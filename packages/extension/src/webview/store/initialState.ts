@@ -1,10 +1,5 @@
-/**
- * @fileoverview Initial state values for the graph store.
- * @module webview/storeInitialState
- */
-
-import { DEFAULT_FOLDER_NODE_COLOR, DEFAULT_DIRECTION_COLOR } from '../../shared/contracts';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
 
 export const INITIAL_STATE = {
   graphData: null,

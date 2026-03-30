@@ -1,6 +1,6 @@
-import type { NodeShape2D } from '../../../../shared/contracts';
 import { escapeXml, svgShapePath } from '../shape/shapes';
 import type { SvgExportNode, SvgPosition } from '../contracts';
+import type { NodeShape2D } from '../../../../shared/settings/modes';
 
 export function buildNodeShapeElement(
   node: SvgExportNode,

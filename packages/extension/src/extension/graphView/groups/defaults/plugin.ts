@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import type { IGroup, NodeShape2D, NodeShape3D } from '../../../../shared/contracts';
+import type { NodeShape2D, NodeShape3D } from '../../../../shared/settings/modes';
+import type { IGroup } from '../../../../shared/settings/groups';
 import { getBuiltInGraphViewPluginDir } from './pluginRoots';
 
 interface GraphViewPluginColorDefinition {

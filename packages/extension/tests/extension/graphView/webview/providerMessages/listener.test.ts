@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { DagMode, IGraphData, IGroup, NodeSizeMode } from '@/shared/contracts';
+import type { IGraphData } from '@/shared/graph/types';
+import type { IGroup } from '@/shared/settings/groups';
+import type { DagMode, NodeSizeMode } from '@/shared/settings/modes';
 import type { IViewContext } from '@/core/views/contracts';
 import type { GraphViewMessageListenerContext } from '../../../../../src/extension/graphView/webview/messages/listener';
 import {

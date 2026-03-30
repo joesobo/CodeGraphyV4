@@ -6,14 +6,11 @@
  */
 
 import * as vscode from 'vscode';
-import {
-  IGraphData,
-  DagMode,
-  IPhysicsSettings,
-  IGroup,
-  NodeSizeMode,
-  ExtensionToWebviewMessage,
-} from '../shared/contracts';
+import type { IGraphData } from '../shared/graph/types';
+import type { ExtensionToWebviewMessage } from '../shared/protocol/extensionToWebview';
+import type { IGroup } from '../shared/settings/groups';
+import type { DagMode, NodeSizeMode } from '../shared/settings/modes';
+import type { IPhysicsSettings } from '../shared/settings/physics';
 import { EventBus, EventName, EventPayloads } from '../core/plugins/eventBus';
 import { DecorationManager } from '../core/plugins/decoration/manager';
 import { WorkspaceAnalyzer } from './workspaceAnalyzer/service';

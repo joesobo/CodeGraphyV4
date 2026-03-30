@@ -1,12 +1,9 @@
 import * as vscode from 'vscode';
-import type {
-  DagMode,
-  IGraphData,
-  IGroup,
-  IPhysicsSettings,
-  NodeSizeMode,
-  WebviewToExtensionMessage,
-} from '../../../../shared/contracts';
+import type { IGraphData } from '../../../../shared/graph/types';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type { IGroup } from '../../../../shared/settings/groups';
+import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
 import { saveExportedJpeg } from '../../../export/saveJpeg';
 import { saveExportedJson } from '../../../export/saveJson';

@@ -1,7 +1,4 @@
-import type {
-  BidirectionalEdgeMode,
-  DirectionMode,
-} from '../../../../../shared/contracts';
+import type { BidirectionalEdgeMode, DirectionMode } from '../../../../../shared/settings/modes';
 import type { ModeButtonOption } from '../ModeButtons';
 import { getSettingsToggleButtonState } from './model';
 

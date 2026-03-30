@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IPluginStatus } from '@/shared/contracts';
+import type { IPluginStatus } from '@/shared/plugins/status';
 import {
   getGraphViewWebviewResourceRoots,
   refreshGraphViewResourceRoots,

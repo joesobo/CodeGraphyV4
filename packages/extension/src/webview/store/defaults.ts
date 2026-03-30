@@ -1,10 +1,5 @@
-/**
- * @fileoverview Default values for the graph store.
- * @module webview/storeDefaults
- */
-
-import type { IPhysicsSettings } from '../../shared/contracts';
 import type { SearchOptions } from '../components/searchBar/field/model';
+import type { IPhysicsSettings } from '../../shared/settings/physics';
 
 export const DEFAULT_PHYSICS: IPhysicsSettings = {
   repelForce: 10,

@@ -3,7 +3,7 @@
  * @module core/views/folder/nodes
  */
 
-import type { IGraphData } from '../../../shared/contracts';
+import type { IGraphData } from '../../../shared/graph/types';
 
 /**
  * Collect all unique folder paths from file node ids.

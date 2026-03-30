@@ -1,4 +1,4 @@
-import type { ExtensionToWebviewMessage } from '../../shared/contracts';
+import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 
 interface GraphViewFavoritesConfig {
   get<T>(key: string, defaultValue: T): T;

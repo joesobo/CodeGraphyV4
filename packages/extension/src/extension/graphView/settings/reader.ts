@@ -1,11 +1,6 @@
 import * as vscode from 'vscode';
-import {
-  BidirectionalEdgeMode,
-  DEFAULT_DIRECTION_COLOR,
-  DEFAULT_FOLDER_NODE_COLOR,
-  DirectionMode,
-  normalizeHexColor,
-} from '../../../shared/contracts';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR, normalizeHexColor } from '../../../shared/fileColors';
+import type { BidirectionalEdgeMode, DirectionMode } from '../../../shared/settings/modes';
 
 export interface IGraphViewSettingsSnapshot {
   bidirectionalEdges: BidirectionalEdgeMode;

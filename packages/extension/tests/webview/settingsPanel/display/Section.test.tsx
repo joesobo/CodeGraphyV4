@@ -1,9 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  DEFAULT_DIRECTION_COLOR,
-  DEFAULT_FOLDER_NODE_COLOR,
-} from '../../../../src/shared/contracts';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/fileColors';
 import { DisplaySection } from '../../../../src/webview/components/settingsPanel/display/Section';
 import { graphStore } from '../../../../src/webview/store/state';
 

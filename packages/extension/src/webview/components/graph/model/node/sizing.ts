@@ -1,4 +1,5 @@
-import type { IGraphEdge, IGraphNode, NodeSizeMode } from '../../../../../shared/contracts';
+import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/types';
+import type { NodeSizeMode } from '../../../../../shared/settings/modes';
 import { computeConnectionSizes } from '../sizing/calculations';
 import { computeAccessCountSizes, computeFileSizeSizes } from '../sizing/byMetric';
 import { DEFAULT_NODE_SIZE } from './display';

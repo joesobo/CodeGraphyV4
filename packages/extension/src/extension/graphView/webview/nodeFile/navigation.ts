@@ -1,4 +1,4 @@
-import type { WebviewToExtensionMessage } from '../../../../shared/contracts';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 
 export interface GraphViewNodeFileNavigationHandlers {
   revealInExplorer(filePath: string): Promise<void>;

@@ -1,10 +1,5 @@
-/**
- * @fileoverview Store message handlers for timeline/playback messages.
- * @module webview/storeMessageHandlersTimeline
- */
-
-import type { ExtensionToWebviewMessage } from '../../../shared/contracts';
 import type { PartialState } from '../messageTypes';
+import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 
 export function handleIndexProgress(
   message: Extract<ExtensionToWebviewMessage, { type: 'INDEX_PROGRESS' }>,

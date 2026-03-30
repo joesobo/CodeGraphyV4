@@ -1,4 +1,4 @@
-import type { IPluginStatus } from '../../shared/contracts';
+import type { IPluginStatus } from '../../shared/plugins/status';
 
 export function shouldRebuildGraphView(
   pluginStatuses: readonly IPluginStatus[],

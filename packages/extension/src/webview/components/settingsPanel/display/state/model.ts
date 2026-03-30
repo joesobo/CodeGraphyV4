@@ -1,4 +1,4 @@
-import type { DirectionMode } from '../../../../../shared/contracts';
+import type { DirectionMode } from '../../../../../shared/settings/modes';
 
 const PARTICLE_SPEED_MIN_INTERNAL = 0.0005;
 const PARTICLE_SPEED_MAX_INTERNAL = 0.005;

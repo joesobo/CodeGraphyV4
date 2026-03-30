@@ -1,4 +1,5 @@
-import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../../../shared/contracts';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { GraphKeyboardCommand, GraphKeyboardEffect } from './effects';
 
 type HistoryMessageType = Extract<WebviewToExtensionMessage['type'], 'UNDO' | 'REDO'>;
