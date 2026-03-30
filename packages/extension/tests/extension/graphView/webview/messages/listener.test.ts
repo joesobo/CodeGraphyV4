@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData, IGroup } from '../../../../../src/shared/contracts';
+import type { IGraphData, IGroup, NodeSizeMode } from '../../../../../src/shared/contracts';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
 import {
   setGraphViewWebviewMessageListener,
@@ -61,7 +61,7 @@ function createContext(
     getMaxFiles: vi.fn(() => 500),
     getPlaybackSpeed: vi.fn(() => 1),
     getDagMode: vi.fn(() => null),
-    getNodeSizeMode: vi.fn(() => 'connections'),
+    getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
     getFolderNodeColor: vi.fn(() => '#111111'),
     hasWorkspace: vi.fn(() => false),
     isFirstAnalysis: vi.fn(() => false),

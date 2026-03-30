@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData, IGroup } from '../../../../../../src/shared/contracts';
-import type { IViewContext } from '../../../../../../src/core/views/contracts';
+import type { DagMode, IGraphData, IGroup, NodeSizeMode } from '@/shared/contracts';
+import type { IViewContext } from '@/core/views/contracts';
+import type { GraphViewMessageListenerContext } from '../../../../../src/extension/graphView/webview/messages/listener';
 import {
   setGraphViewProviderMessageListener,
   type GraphViewProviderMessageListenerDependencies,
@@ -60,7 +61,7 @@ function createSource(
     _dagMode: null,
     _nodeSizeMode: 'connections',
     _firstAnalysis: false,
-    _readyNotified: false,
+    _webviewReadyNotified: false,
     _hiddenPluginGroupIds: new Set<string>(),
     _context: {
       workspaceState: {
@@ -160,7 +161,7 @@ describe('graph view provider listener bridge', () => {
     setGraphViewProviderMessageListener(webview as never, source, deps);
     await messageHandler?.({ type: 'WEBVIEW_READY', payload: null });
 
-    expect(source._readyNotified).toBe(true);
+    expect(source._webviewReadyNotified).toBe(true);
     expect(source._sendFavorites).toHaveBeenCalledOnce();
     expect(source._sendSettings).toHaveBeenCalledOnce();
     expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
@@ -237,7 +238,7 @@ describe('graph view provider listener bridge', () => {
       { id: 'user:src', pattern: 'src/**', color: '#112233' },
     ]);
     expect(source._filterPatterns).toEqual(['src/**']);
-    expect(source._readyNotified).toBe(true);
+    expect(source._webviewReadyNotified).toBe(true);
 
     consoleError.mockRestore();
   });
@@ -256,30 +257,30 @@ describe('graph view provider listener bridge', () => {
       workspaceFolders,
     } = await loadDefaultListenerHarness();
 
-    await context.updateDagMode('bt');
-    await context.updateNodeSizeMode('folder');
+    await context.updateDagMode('td' as DagMode);
+    await context.updateNodeSizeMode('file-size' as NodeSizeMode);
     await context.updateConfig('showOrphans', false);
     await context.resetAllSettings();
 
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith('codegraphy.dagMode', 'bt');
+    expect(source._context.workspaceState.update).toHaveBeenCalledWith('codegraphy.dagMode', 'td');
     expect(source._context.workspaceState.update).toHaveBeenCalledWith(
       'codegraphy.nodeSizeMode',
-      'folder',
+      'file-size',
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'DAG_MODE_UPDATED',
-      payload: { dagMode: 'bt' },
+      payload: { dagMode: 'td' },
     });
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'NODE_SIZE_MODE_UPDATED',
-      payload: { nodeSizeMode: 'folder' },
+      payload: { nodeSizeMode: 'file-size' },
     });
     expect(getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
     expect(configurationUpdate).toHaveBeenCalledWith('showOrphans', false, 'workspace');
     expect(captureSettingsSnapshot).toHaveBeenCalledWith(
       expect.objectContaining({ get: configurationGet }),
       source._getPhysicsSettings(),
-      'folder',
+      'file-size',
     );
     expect(ResetSettingsAction).toHaveBeenCalledWith(
       { kind: 'snapshot' },
@@ -293,8 +294,8 @@ describe('graph view provider listener bridge', () => {
 
     expect(context.getMaxFiles()).toBe(500);
     expect(context.getPlaybackSpeed()).toBe(1);
-    expect(context.getDagMode()).toBe('bt');
-    expect(context.getNodeSizeMode()).toBe('folder');
+    expect(context.getDagMode()).toBe('td');
+    expect(context.getNodeSizeMode()).toBe('file-size');
     expect(context.getFolderNodeColor()).toBe('#ABCDEF');
     expect(configurationGet).toHaveBeenCalledWith('maxFiles', 500);
     expect(configurationGet).toHaveBeenCalledWith('timeline.playbackSpeed', 1.0);
@@ -376,7 +377,7 @@ describe('graph view provider listener bridge', () => {
 async function loadDefaultListenerHarness() {
   vi.resetModules();
 
-  let capturedContext: Record<string, unknown> | undefined;
+  let capturedContext: GraphViewMessageListenerContext | undefined;
   const workspaceFolders = [{ uri: { fsPath: '/workspace' }, name: 'workspace', index: 0 }];
   const configurationGet = vi.fn(<T>(key: string, defaultValue: T) => {
     if (key === 'folderNodeColor') {
@@ -422,7 +423,7 @@ async function loadDefaultListenerHarness() {
   }));
   vi.doMock('../../../../../src/extension/graphView/webview/messages/listener', () => ({
     setGraphViewWebviewMessageListener: vi.fn((_webview, context) => {
-      capturedContext = context as Record<string, unknown>;
+      capturedContext = context;
     }),
   }));
   vi.doMock('../../../../../src/extension/graphView/settings/reader', () => ({
@@ -444,8 +445,8 @@ async function loadDefaultListenerHarness() {
   );
   const source = createSource({
     _graphData: {
-      nodes: [{ id: 'node-1', label: 'node-1' }],
-      edges: [{ id: 'edge-1', source: 'node-1', target: 'node-2' }],
+      nodes: [{ id: 'node-1', label: 'node-1', color: '#93C5FD' }],
+      edges: [{ id: 'edge-1', from: 'node-1', to: 'node-2' }],
     } satisfies IGraphData,
   });
   const webview = {
@@ -455,7 +456,7 @@ async function loadDefaultListenerHarness() {
   setListener(webview as never, source);
 
   return {
-    context: capturedContext as Record<string, unknown>,
+    context: capturedContext as GraphViewMessageListenerContext,
     source,
     workspaceFolders,
     configurationGet,

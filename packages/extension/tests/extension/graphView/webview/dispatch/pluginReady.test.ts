@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { DagMode, NodeSizeMode } from '@/shared/contracts';
 import {
   dispatchGraphViewPluginReadyMessage,
   type GraphViewPluginReadyContext,
@@ -12,8 +13,8 @@ function createContext(
     getPluginFilterPatterns: vi.fn(() => ['plugin:test/**']),
     getMaxFiles: vi.fn(() => 500),
     getPlaybackSpeed: vi.fn(() => 2),
-    getDagMode: vi.fn(() => 'td'),
-    getNodeSizeMode: vi.fn(() => 'lines'),
+    getDagMode: vi.fn(() => 'td' as DagMode),
+    getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
     getFolderNodeColor: vi.fn(() => '#111111'),
     hasWorkspace: vi.fn(() => false),
     isFirstAnalysis: vi.fn(() => false),
@@ -41,7 +42,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
     const context = createContext();
 
     await expect(
-      dispatchGraphViewPluginReadyMessage({ type: 'WEBVIEW_READY' }, context),
+      dispatchGraphViewPluginReadyMessage({ type: 'WEBVIEW_READY', payload: null }, context),
     ).resolves.toBe(true);
 
     expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
@@ -72,7 +73,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
     });
 
     await expect(
-      dispatchGraphViewPluginReadyMessage({ type: 'WEBVIEW_READY' }, context),
+      dispatchGraphViewPluginReadyMessage({ type: 'WEBVIEW_READY', payload: null }, context),
     ).resolves.toBe(true);
 
     expect(context.waitForFirstWorkspaceReady).toHaveBeenCalledOnce();

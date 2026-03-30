@@ -52,7 +52,7 @@ describe('graph view provider listener primary actions', () => {
     await actions.indexRepository();
     await actions.jumpToCommit('sha-1');
     actions.sendPhysicsSettings();
-    await actions.updatePhysicsSetting('particleCount', 300);
+    await actions.updatePhysicsSetting('damping', 300);
     await actions.resetPhysicsSettings();
 
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
@@ -63,7 +63,7 @@ describe('graph view provider listener primary actions', () => {
     expect(source._indexRepository).toHaveBeenCalledOnce();
     expect(source._jumpToCommit).toHaveBeenCalledWith('sha-1');
     expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
-    expect(source._updatePhysicsSetting).toHaveBeenCalledWith('particleCount', 300);
+    expect(source._updatePhysicsSetting).toHaveBeenCalledWith('damping', 300);
     expect(source._resetPhysicsSettings).toHaveBeenCalledOnce();
   });
 

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData, IGroup } from '../../../../../../src/shared/contracts';
-import type { IViewContext } from '../../../../../../src/core/views/contracts';
+import type { DagMode, IGraphData, IGroup } from '@/shared/contracts';
+import type { IViewContext } from '@/core/views/contracts';
 
 const exportSaverMocks = vi.hoisted(() => ({
   savePng: vi.fn(() => Promise.resolve()),
@@ -105,12 +105,12 @@ describe('graph view primary message dispatch', () => {
 
     await expect(
       dispatchGraphViewPrimaryMessage(
-        { type: 'UPDATE_DAG_MODE', payload: { dagMode: 'TB' } },
+        { type: 'UPDATE_DAG_MODE', payload: { dagMode: 'td' as DagMode } },
         context,
       ),
     ).resolves.toEqual({ handled: true });
 
-    expect(context.updateDagMode).toHaveBeenCalledWith('TB');
+    expect(context.updateDagMode).toHaveBeenCalledWith('td');
     expect(context.indexRepository).not.toHaveBeenCalled();
   });
 
@@ -182,7 +182,7 @@ describe('graph view primary message dispatch', () => {
 
   it('returns false when no primary message family handles the input', async () => {
     await expect(
-      dispatchGraphViewPrimaryMessage({ type: 'WEBVIEW_READY' }, createContext()),
+      dispatchGraphViewPrimaryMessage({ type: 'WEBVIEW_READY', payload: null }, createContext()),
     ).resolves.toEqual({ handled: false });
   });
 });

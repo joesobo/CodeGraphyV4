@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../../src/shared/contracts';
+import type { IGraphData, NodeSizeMode } from '@/shared/contracts';
 import {
   dispatchGraphViewPluginMessage,
   type GraphViewPluginMessageContext,
@@ -14,7 +14,7 @@ function createContext(
     getMaxFiles: vi.fn(() => 500),
     getPlaybackSpeed: vi.fn(() => 1),
     getDagMode: vi.fn(() => null),
-    getNodeSizeMode: vi.fn(() => 'connections'),
+    getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
     getFolderNodeColor: vi.fn(() => '#111111'),
     hasWorkspace: vi.fn(() => false),
     isFirstAnalysis: vi.fn(() => false),
@@ -58,7 +58,7 @@ describe('graph view plugin message dispatch', () => {
     const context = createContext();
 
     await expect(
-      dispatchGraphViewPluginMessage({ type: 'WEBVIEW_READY' }, context),
+      dispatchGraphViewPluginMessage({ type: 'WEBVIEW_READY', payload: null }, context),
     ).resolves.toEqual({ handled: true, readyNotified: true });
 
     expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();

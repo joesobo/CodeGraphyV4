@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../../src/shared/contracts';
+import type { IGraphData } from '@/shared/contracts';
 import {
   applySettingsUpdateMessage,
 } from '../../../../../src/extension/graphView/webview/settingsMessages/updates';
@@ -69,20 +69,60 @@ describe('graph view settings update message', () => {
     });
   });
 
-  it.each([
-    ['UPDATE_SHOW_ORPHANS', { showOrphans: false }, 'showOrphans', false],
-    ['UPDATE_BIDIRECTIONAL_MODE', { bidirectionalMode: 'combined' }, 'bidirectionalEdges', 'combined'],
-    ['UPDATE_PARTICLE_SETTING', { key: 'particleSpeed', value: 0.2 }, 'particleSpeed', 0.2],
-    ['UPDATE_MAX_FILES', { maxFiles: 250 }, 'maxFiles', 250],
-  ] as const)('persists %s through config updates', async (type, payload, key, value) => {
+  it('persists update-show-orphans through config updates', async () => {
     const state = createState();
     const handlers = createHandlers();
 
     await expect(
-      applySettingsUpdateMessage({ type, payload }, state, handlers),
+      applySettingsUpdateMessage(
+        { type: 'UPDATE_SHOW_ORPHANS', payload: { showOrphans: false } },
+        state,
+        handlers,
+      ),
     ).resolves.toBe(true);
 
-    expect(handlers.updateConfig).toHaveBeenCalledWith(key, value);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('showOrphans', false);
+  });
+
+  it('persists update-bidirectional-mode through config updates', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applySettingsUpdateMessage(
+        { type: 'UPDATE_BIDIRECTIONAL_MODE', payload: { bidirectionalMode: 'combined' } },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('bidirectionalEdges', 'combined');
+  });
+
+  it('persists update-particle-setting through config updates', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applySettingsUpdateMessage(
+        { type: 'UPDATE_PARTICLE_SETTING', payload: { key: 'particleSpeed', value: 0.2 } },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('particleSpeed', 0.2);
+  });
+
+  it('persists update-max-files through config updates', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applySettingsUpdateMessage({ type: 'UPDATE_MAX_FILES', payload: { maxFiles: 250 } }, state, handlers),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('maxFiles', 250);
   });
 
   it('updates label visibility and publishes it immediately', async () => {
