@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { IGroup } from '../../../src/shared/settings/groups';
 import { createGraphViewProviderTestHarness } from './testHarness';
+import { getGraphViewProviderInternals } from './internals';
 
 type GroupSummary = Pick<IGroup, 'id'> & Partial<Pick<IGroup, 'pattern' | 'color' | 'disabled' | 'isPluginDefault' | 'pluginName'>>;
 
@@ -10,10 +11,8 @@ interface PluginDefaultsProvider {
     initialize(): Promise<void>;
   };
   _disabledPlugins: Set<string>;
-  _getPluginDefaultGroups(): IGroup[];
   _groups: IGroup[];
   _hiddenPluginGroupIds: Set<string>;
-  _computeMergedGroups(): void;
   _userGroups: IGroup[];
 }
 
@@ -31,10 +30,11 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
 
   it('returns plugin default groups with isPluginDefault flag', async () => {
     const provider = getProvider(harness);
+    const internals = getGraphViewProviderInternals(harness.provider);
     provider._userGroups = [];
     await provider._analyzer.initialize();
 
-    const pluginGroups = provider._getPluginDefaultGroups() as GroupSummary[];
+    const pluginGroups = internals._pluginResourceMethods._getPluginDefaultGroups() as GroupSummary[];
     expect(pluginGroups.length).toBeGreaterThan(0);
     expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.typescript:*.ts' && g.color === '#3178C6')).toBe(true);
     expect(pluginGroups.some(g => g.id === 'plugin:codegraphy.python:*.py' && g.color === '#3776AB')).toBe(true);
@@ -43,11 +43,12 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
 
   it('computeMergedGroups combines user groups with visible plugin defaults', async () => {
     const provider = getProvider(harness);
+    const internals = getGraphViewProviderInternals(harness.provider);
     provider._userGroups = [{ id: 'user-group-1', pattern: 'src/**', color: '#FF0000' }] as IGroup[];
     provider._hiddenPluginGroupIds = new Set<string>();
     await provider._analyzer.initialize();
 
-    provider._computeMergedGroups();
+    internals._pluginResourceMethods._computeMergedGroups();
 
     const groups = provider._groups as GroupSummary[];
     expect(groups.some(g => g.id === 'user-group-1')).toBe(true);
@@ -57,11 +58,12 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
 
   it('computeMergedGroups marks disabled plugin groups but keeps them in list', async () => {
     const provider = getProvider(harness);
+    const internals = getGraphViewProviderInternals(harness.provider);
     provider._userGroups = [];
     provider._hiddenPluginGroupIds = new Set(['plugin:codegraphy.typescript:*.ts']);
     await provider._analyzer.initialize();
 
-    provider._computeMergedGroups();
+    internals._pluginResourceMethods._computeMergedGroups();
 
     const groups = provider._groups as GroupSummary[];
     const tsGroup = groups.find(g => g.id === 'plugin:codegraphy.typescript:*.ts');
@@ -74,11 +76,12 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
 
   it('computeMergedGroups includes built-in default groups', async () => {
     const provider = getProvider(harness);
+    const internals = getGraphViewProviderInternals(harness.provider);
     provider._userGroups = [];
     provider._hiddenPluginGroupIds = new Set<string>();
     await provider._analyzer.initialize();
 
-    provider._computeMergedGroups();
+    internals._pluginResourceMethods._computeMergedGroups();
 
     const groups = provider._groups as GroupSummary[];
     const jsonGroup = groups.find(g => g.id === 'default:*.json');
@@ -94,11 +97,12 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
 
   it('computeMergedGroups marks built-in defaults as disabled when section is disabled', async () => {
     const provider = getProvider(harness);
+    const internals = getGraphViewProviderInternals(harness.provider);
     provider._userGroups = [];
     provider._hiddenPluginGroupIds = new Set(['default']);
     await provider._analyzer.initialize();
 
-    provider._computeMergedGroups();
+    internals._pluginResourceMethods._computeMergedGroups();
 
     const groups = provider._groups as GroupSummary[];
     const builtInGroups = groups.filter(g => g.id.startsWith('default:'));
@@ -110,10 +114,11 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
 
   it('getPluginDefaultGroups excludes disabled plugins', async () => {
     const provider = getProvider(harness);
+    const internals = getGraphViewProviderInternals(harness.provider);
     provider._disabledPlugins = new Set(['codegraphy.typescript']);
     await provider._analyzer.initialize();
 
-    const pluginGroups = provider._getPluginDefaultGroups() as GroupSummary[];
+    const pluginGroups = internals._pluginResourceMethods._getPluginDefaultGroups() as GroupSummary[];
     expect(pluginGroups.some(g => g.id.startsWith('plugin:codegraphy.typescript:'))).toBe(false);
     expect(pluginGroups.some(g => g.id.startsWith('plugin:codegraphy.python:'))).toBe(true);
 

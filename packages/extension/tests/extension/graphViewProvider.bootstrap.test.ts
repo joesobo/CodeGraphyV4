@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type * as VSCode from 'vscode';
+import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 
 function createContext(vscodeModule: typeof import('vscode')) {
   return {
@@ -155,12 +156,13 @@ describe('GraphViewProvider bootstrap wiring', () => {
       vscodeModule.Uri.file('/test/extension'),
       createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
     );
+    const internals = getGraphViewProviderInternals(provider);
     const initArgs = initializeGraphViewProviderServices.mock.calls[0][0];
     const sendMessageSpy = vi
-      .spyOn(provider as unknown as { _sendMessage(message: unknown): void }, '_sendMessage')
+      .spyOn(internals._webviewMethods, '_sendMessage')
       .mockImplementation(() => {});
     const sendDecorationsSpy = vi
-      .spyOn(provider as unknown as { _sendDecorations(): void }, '_sendDecorations')
+      .spyOn(internals._pluginMethods, '_sendDecorations')
       .mockImplementation(() => {});
 
     expect((provider as unknown as { _nodeSizeMode: string })._nodeSizeMode).toBe('connections');

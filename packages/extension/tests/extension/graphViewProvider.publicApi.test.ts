@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
+import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -46,8 +47,9 @@ describe('GraphViewProvider public API', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const sendMessageSpy = vi.spyOn(
-      provider as unknown as { _sendMessage: (message: unknown) => void },
+      internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
     const graphData = {
@@ -69,8 +71,9 @@ describe('GraphViewProvider public API', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const sendPhysicsSpy = vi.spyOn(
-      provider as unknown as { _sendPhysicsSettings: () => void },
+      internals._physicsSettingsMethods,
       '_sendPhysicsSettings'
     ).mockImplementation(() => {});
 
@@ -84,14 +87,120 @@ describe('GraphViewProvider public API', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const sendSettingsSpy = vi.spyOn(
-      provider as unknown as { _sendSettings: () => void },
+      internals._settingsStateMethods,
       '_sendSettings'
     ).mockImplementation(() => {});
 
     provider.refreshSettings();
 
     expect(sendSettingsSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('sendPlaybackSpeed delegates to the timeline method container', () => {
+    const provider = new GraphViewProvider(
+      vscode.Uri.file('/test/extension'),
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const internals = getGraphViewProviderInternals(provider);
+    const sendPlaybackSpeedSpy = vi.spyOn(internals._timelineMethods, 'sendPlaybackSpeed');
+
+    provider.sendPlaybackSpeed();
+
+    expect(sendPlaybackSpeedSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('invalidateTimelineCache delegates to the timeline method container', async () => {
+    const provider = new GraphViewProvider(
+      vscode.Uri.file('/test/extension'),
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const internals = getGraphViewProviderInternals(provider);
+    const invalidateTimelineCacheSpy = vi
+      .spyOn(internals._timelineMethods, 'invalidateTimelineCache')
+      .mockResolvedValue();
+
+    await provider.invalidateTimelineCache();
+
+    expect(invalidateTimelineCacheSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the current depth limit through the public API', () => {
+    const provider = new GraphViewProvider(
+      vscode.Uri.file('/test/extension'),
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const internals = getGraphViewProviderInternals(provider);
+
+    vi.spyOn(internals._viewSelectionMethods, 'getDepthLimit').mockReturnValue(7);
+
+    expect(provider.getDepthLimit()).toBe(7);
+  });
+
+  it('openInEditor creates and initializes an editor panel', () => {
+    const provider = new GraphViewProvider(
+      vscode.Uri.file('/test/extension'),
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const createWebviewPanelMock = vi.fn(() => ({
+      webview: {
+        html: '',
+        onDidReceiveMessage: vi.fn(() => ({ dispose: () => {} })),
+        asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+        cspSource: 'test-csp',
+      },
+      onDidDispose: vi.fn(() => ({ dispose: () => {} })),
+      reveal: vi.fn(),
+      dispose: vi.fn(),
+      title: 'CodeGraphy',
+      viewColumn: vscode.ViewColumn.Active,
+    }));
+    (vscode.window as Record<string, unknown>).createWebviewPanel = createWebviewPanelMock;
+
+    provider.openInEditor();
+
+    expect(createWebviewPanelMock).toHaveBeenCalledWith(
+      'codegraphy.graphView',
+      'CodeGraphy',
+      vscode.ViewColumn.Active,
+      expect.objectContaining({
+        enableScripts: true,
+        retainContextWhenHidden: true,
+      })
+    );
+  });
+
+  it('sendToWebview delegates the payload to the webview method container', () => {
+    const provider = new GraphViewProvider(
+      vscode.Uri.file('/test/extension'),
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const internals = getGraphViewProviderInternals(provider);
+    const sendToWebviewSpy = vi.spyOn(internals._webviewMethods, 'sendToWebview');
+    const message = { type: 'PING', payload: { nodeId: 'src/app.ts' } };
+
+    provider.sendToWebview(message);
+
+    expect(sendToWebviewSpy).toHaveBeenCalledWith(message);
+  });
+
+  it('onWebviewMessage delegates handler registration to the webview method container', () => {
+    const provider = new GraphViewProvider(
+      vscode.Uri.file('/test/extension'),
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const internals = getGraphViewProviderInternals(provider);
+    const handler = vi.fn();
+    const disposable = { dispose: vi.fn() };
+    const onWebviewMessageSpy = vi
+      .spyOn(internals._webviewMethods, 'onWebviewMessage')
+      .mockReturnValue(disposable as unknown as vscode.Disposable);
+
+    const result = provider.onWebviewMessage(handler);
+
+    expect(onWebviewMessageSpy).toHaveBeenCalledWith(handler);
+    expect(result).toBe(disposable);
   });
 
   it('re-analyzes when a resolved webview becomes visible', () => {
@@ -102,8 +211,9 @@ describe('GraphViewProvider public API', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const analyzeSpy = vi.spyOn(
-      provider as unknown as { _analyzeAndSendData: () => Promise<void> },
+      internals._analysisMethods,
       '_analyzeAndSendData'
     ).mockResolvedValue();
 
@@ -147,8 +257,9 @@ describe('GraphViewProvider public API', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const analyzeSpy = vi.spyOn(
-      provider as unknown as { _analyzeAndSendData: () => Promise<void> },
+      internals._analysisMethods,
       '_analyzeAndSendData'
     ).mockResolvedValue();
 

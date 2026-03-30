@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IGraphData } from '../../src/shared/graph/types';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
+import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -53,9 +54,8 @@ describe('GraphViewProvider lifecycle', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
-    const sendDecorationsSpy = vi.spyOn((provider as unknown as {
-      _sendDecorations: () => void;
-    }), '_sendDecorations');
+    const internals = getGraphViewProviderInternals(provider);
+    const sendDecorationsSpy = vi.spyOn(internals._pluginMethods, '_sendDecorations');
 
     (provider as unknown as {
       _decorationManager: {
@@ -71,17 +71,20 @@ describe('GraphViewProvider lifecycle', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
-    const providerPrivate = provider as unknown as {
-      _analyzeAndSendData: () => Promise<void>;
-      _loadDisabledRulesAndPlugins: () => boolean;
-      _sendPhysicsSettings: () => void;
-      _sendSettings: () => void;
-    };
+    const internals = getGraphViewProviderInternals(provider);
 
-    const loadSpy = vi.spyOn(providerPrivate, '_loadDisabledRulesAndPlugins').mockReturnValue(true);
-    const analyzeSpy = vi.spyOn(providerPrivate, '_analyzeAndSendData').mockResolvedValue();
-    const settingsSpy = vi.spyOn(providerPrivate, '_sendSettings').mockImplementation(() => {});
-    const physicsSpy = vi.spyOn(providerPrivate, '_sendPhysicsSettings').mockImplementation(() => {});
+    const loadSpy = vi
+      .spyOn(internals._settingsStateMethods, '_loadDisabledRulesAndPlugins')
+      .mockReturnValue(true);
+    const analyzeSpy = vi
+      .spyOn(internals._analysisMethods, '_analyzeAndSendData')
+      .mockResolvedValue();
+    const settingsSpy = vi
+      .spyOn(internals._settingsStateMethods, '_sendSettings')
+      .mockImplementation(() => {});
+    const physicsSpy = vi
+      .spyOn(internals._physicsSettingsMethods, '_sendPhysicsSettings')
+      .mockImplementation(() => {});
 
     await provider.refresh();
 
@@ -96,19 +99,18 @@ describe('GraphViewProvider lifecycle', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
-    const providerPrivate = provider as unknown as {
-      _loadDisabledRulesAndPlugins: () => boolean;
-      _rebuildAndSend: () => void;
-    };
+    const internals = getGraphViewProviderInternals(provider);
 
-    vi.spyOn(providerPrivate, '_loadDisabledRulesAndPlugins').mockReturnValue(false);
-    const rebuildSpy = vi.spyOn(providerPrivate, '_rebuildAndSend').mockImplementation(() => {});
+    vi.spyOn(internals._settingsStateMethods, '_loadDisabledRulesAndPlugins').mockReturnValue(false);
+    const rebuildSpy = vi
+      .spyOn(internals._refreshMethods, '_rebuildAndSend')
+      .mockImplementation(() => {});
 
     provider.refreshToggleSettings();
 
     expect(rebuildSpy).not.toHaveBeenCalled();
 
-    vi.spyOn(providerPrivate, '_loadDisabledRulesAndPlugins').mockReturnValue(true);
+    vi.spyOn(internals._settingsStateMethods, '_loadDisabledRulesAndPlugins').mockReturnValue(true);
     provider.refreshToggleSettings();
 
     expect(rebuildSpy).toHaveBeenCalledTimes(1);
@@ -120,9 +122,10 @@ describe('GraphViewProvider lifecycle', () => {
       createContext() as unknown as vscode.ExtensionContext
     );
     const clearCache = vi.fn();
-    const analyzeSpy = vi.spyOn((provider as unknown as {
-      _analyzeAndSendData: () => Promise<void>;
-    }), '_analyzeAndSendData').mockResolvedValue();
+    const internals = getGraphViewProviderInternals(provider);
+    const analyzeSpy = vi
+      .spyOn(internals._analysisMethods, '_analyzeAndSendData')
+      .mockResolvedValue();
 
     (provider as unknown as {
       _analyzer: { clearCache: () => void };
@@ -139,21 +142,18 @@ describe('GraphViewProvider lifecycle', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
-    const providerPrivate = provider as unknown as {
-      _analysisRequestId: number;
-      _sendMessage: (message: unknown) => void;
-      _sendAvailableViews: () => void;
-      _doAnalyzeAndSendData: (signal: AbortSignal, requestId: number) => Promise<void>;
-    };
-    const sendMessageSpy = vi.spyOn(providerPrivate, '_sendMessage').mockImplementation(() => {});
+    const internals = getGraphViewProviderInternals(provider);
+    const sendMessageSpy = vi
+      .spyOn(internals._webviewMethods, '_sendMessage')
+      .mockImplementation(() => {});
     const sendAvailableViewsSpy = vi
-      .spyOn(providerPrivate, '_sendAvailableViews')
+      .spyOn(internals._viewContextMethods, '_sendAvailableViews')
       .mockImplementation(() => {});
 
     (provider as unknown as { _analyzer?: unknown })._analyzer = undefined;
-    providerPrivate._analysisRequestId = 1;
+    (provider as unknown as { _analysisRequestId: number })._analysisRequestId = 1;
 
-    await providerPrivate._doAnalyzeAndSendData(new AbortController().signal, 1);
+    await internals._analysisMethods._doAnalyzeAndSendData(new AbortController().signal, 1);
 
     expect((provider as unknown as { _rawGraphData: IGraphData })._rawGraphData).toEqual({
       nodes: [],
@@ -176,29 +176,24 @@ describe('GraphViewProvider lifecycle', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
-    const providerPrivate = provider as unknown as {
-      _analysisRequestId: number;
-      _sendMessage: (message: unknown) => void;
-      _sendAvailableViews: () => void;
-      _computeMergedGroups: () => void;
-      _sendGroupsUpdated: () => void;
-      _doAnalyzeAndSendData: (signal: AbortSignal, requestId: number) => Promise<void>;
-    };
-    const sendMessageSpy = vi.spyOn(providerPrivate, '_sendMessage').mockImplementation(() => {});
-    const sendAvailableViewsSpy = vi
-      .spyOn(providerPrivate, '_sendAvailableViews')
+    const internals = getGraphViewProviderInternals(provider);
+    const sendMessageSpy = vi
+      .spyOn(internals._webviewMethods, '_sendMessage')
       .mockImplementation(() => {});
-    vi.spyOn(providerPrivate, '_computeMergedGroups').mockImplementation(() => {});
-    vi.spyOn(providerPrivate, '_sendGroupsUpdated').mockImplementation(() => {});
+    const sendAvailableViewsSpy = vi
+      .spyOn(internals._viewContextMethods, '_sendAvailableViews')
+      .mockImplementation(() => {});
+    vi.spyOn(internals._pluginResourceMethods, '_computeMergedGroups').mockImplementation(() => {});
+    vi.spyOn(internals._pluginMethods, '_sendGroupsUpdated').mockImplementation(() => {});
 
     (provider as unknown as {
       _analyzer: { analyze: () => Promise<IGraphData> };
       _analyzerInitialized: boolean;
     })._analyzer = { analyze: vi.fn() };
     (provider as unknown as { _analyzerInitialized: boolean })._analyzerInitialized = true;
-    providerPrivate._analysisRequestId = 1;
+    (provider as unknown as { _analysisRequestId: number })._analysisRequestId = 1;
 
-    await providerPrivate._doAnalyzeAndSendData(new AbortController().signal, 1);
+    await internals._analysisMethods._doAnalyzeAndSendData(new AbortController().signal, 1);
 
     expect((provider as unknown as { _rawGraphData: IGraphData })._rawGraphData).toEqual({
       nodes: [],
@@ -216,9 +211,10 @@ describe('GraphViewProvider lifecycle', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
-    const analyzeSpy = vi.spyOn((provider as unknown as {
-      _analyzeAndSendData: () => Promise<void>;
-    }), '_analyzeAndSendData').mockResolvedValue();
+    const internals = getGraphViewProviderInternals(provider);
+    const analyzeSpy = vi
+      .spyOn(internals._analysisMethods, '_analyzeAndSendData')
+      .mockResolvedValue();
 
     (provider as unknown as { _analyzer?: unknown })._analyzer = undefined;
 

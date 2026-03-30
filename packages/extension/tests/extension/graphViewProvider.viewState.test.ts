@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IGraphData } from '../../src/shared/graph/types';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
+import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -56,9 +57,10 @@ describe('GraphViewProvider view state and internal helpers', () => {
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const sendMessageSpy = vi.spyOn(
-      provider as unknown as { _sendMessage: (message: unknown) => void },
+      internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
 
@@ -75,17 +77,18 @@ describe('GraphViewProvider view state and internal helpers', () => {
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     provider.setFocusedFile('src/app.ts');
     const applySpy = vi.spyOn(
-      provider as unknown as { _applyViewTransform: () => void },
+      internals._viewContextMethods,
       '_applyViewTransform'
     ).mockImplementation(() => {});
     const sendViewsSpy = vi.spyOn(
-      provider as unknown as { _sendAvailableViews: () => void },
+      internals._viewContextMethods,
       '_sendAvailableViews'
     ).mockImplementation(() => {});
     const sendMessageSpy = vi.spyOn(
-      provider as unknown as { _sendMessage: (message: unknown) => void },
+      internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
 
@@ -112,13 +115,14 @@ describe('GraphViewProvider view state and internal helpers', () => {
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     (provider as unknown as { _activeViewId: string })._activeViewId = 'codegraphy.depth-graph';
     const applySpy = vi.spyOn(
-      provider as unknown as { _applyViewTransform: () => void },
+      internals._viewContextMethods,
       '_applyViewTransform'
     ).mockImplementation(() => {});
     const sendMessageSpy = vi.spyOn(
-      provider as unknown as { _sendMessage: (message: unknown) => void },
+      internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
 
@@ -143,12 +147,13 @@ describe('GraphViewProvider view state and internal helpers', () => {
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const applySpy = vi.spyOn(
-      provider as unknown as { _applyViewTransform: () => void },
+      internals._viewContextMethods,
       '_applyViewTransform'
     ).mockImplementation(() => {});
     const sendMessageSpy = vi.spyOn(
-      provider as unknown as { _sendMessage: (message: unknown) => void },
+      internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
 
@@ -186,12 +191,13 @@ describe('GraphViewProvider view state and internal helpers', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const sendMessageSpy = vi.spyOn(
-      provider as unknown as { _sendMessage: (message: unknown) => void },
+      internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
 
-    (provider as unknown as { _sendSettings: () => void })._sendSettings();
+    internals._settingsStateMethods._sendSettings();
 
     expect((provider as unknown as { _viewContext: { folderNodeColor: string } })._viewContext.folderNodeColor).toBe(
       '#112233'
@@ -238,12 +244,13 @@ describe('GraphViewProvider view state and internal helpers', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const sendMessageSpy = vi.spyOn(
-      provider as unknown as { _sendMessage: (message: unknown) => void },
+      internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
 
-    (provider as unknown as { _sendPhysicsSettings: () => void })._sendPhysicsSettings();
+    internals._physicsSettingsMethods._sendPhysicsSettings();
 
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'PHYSICS_SETTINGS_UPDATED',
@@ -262,10 +269,9 @@ describe('GraphViewProvider view state and internal helpers', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
 
-    expect(
-      (provider as unknown as { _getPluginDefaultGroups: () => unknown[] })._getPluginDefaultGroups()
-    ).toEqual([]);
+    expect(internals._pluginResourceMethods._getPluginDefaultGroups()).toEqual([]);
   });
 
   it('rebuilds graph data and notifies dependents when analyzer state is available', () => {
@@ -276,6 +282,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const graphData: IGraphData = {
       nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#ffffff' }],
       edges: [],
@@ -292,31 +299,31 @@ describe('GraphViewProvider view state and internal helpers', () => {
       registry: { notifyGraphRebuild },
     };
     const updateViewContextSpy = vi.spyOn(
-      provider as unknown as { _updateViewContext: () => void },
+      internals._viewContextMethods,
       '_updateViewContext'
     ).mockImplementation(() => {});
     const applySpy = vi.spyOn(
-      provider as unknown as { _applyViewTransform: () => void },
+      internals._viewContextMethods,
       '_applyViewTransform'
     ).mockImplementation(() => {});
     const sendViewsSpy = vi.spyOn(
-      provider as unknown as { _sendAvailableViews: () => void },
+      internals._viewContextMethods,
       '_sendAvailableViews'
     ).mockImplementation(() => {});
     const sendStatusesSpy = vi.spyOn(
-      provider as unknown as { _sendPluginStatuses: () => void },
+      internals._pluginMethods,
       '_sendPluginStatuses'
     ).mockImplementation(() => {});
     const sendDecorationsSpy = vi.spyOn(
-      provider as unknown as { _sendDecorations: () => void },
+      internals._pluginMethods,
       '_sendDecorations'
     ).mockImplementation(() => {});
     const sendMessageSpy = vi.spyOn(
-      provider as unknown as { _sendMessage: (message: unknown) => void },
+      internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
 
-    (provider as unknown as { _rebuildAndSend: () => void })._rebuildAndSend();
+    internals._refreshMethods._rebuildAndSend();
 
     expect(rebuildGraph).toHaveBeenCalledWith(new Set(), new Set(), false);
     expect((provider as unknown as { _rawGraphData: IGraphData })._rawGraphData).toEqual(graphData);
@@ -337,13 +344,14 @@ describe('GraphViewProvider view state and internal helpers', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const panelWebview = { options: {}, asWebviewUri: vi.fn((uri: vscode.Uri) => uri) };
     (provider as unknown as {
       _view?: unknown;
       _panels: Array<{ webview: typeof panelWebview }>;
     })._panels = [{ webview: panelWebview }];
 
-    (provider as unknown as { _refreshWebviewResourceRoots: () => void })._refreshWebviewResourceRoots();
+    internals._pluginResourceMethods._refreshWebviewResourceRoots();
 
     expect(
       (panelWebview.options as { localResourceRoots?: Array<{ fsPath: string }> }).localResourceRoots?.some(

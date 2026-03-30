@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IGraphData } from '../../src/shared/graph/types';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
+import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -36,18 +37,14 @@ describe('GraphViewProvider error handling', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
-    const providerPrivate = provider as unknown as {
-      _analysisController?: AbortController;
-      _analyzeAndSendData: () => Promise<void>;
-      _doAnalyzeAndSendData: () => Promise<void>;
-    };
-    vi.spyOn(providerPrivate, '_doAnalyzeAndSendData').mockRejectedValueOnce(new Error('boom'));
+    const internals = getGraphViewProviderInternals(provider);
+    vi.spyOn(internals._analysisMethods, '_doAnalyzeAndSendData').mockRejectedValueOnce(new Error('boom'));
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    await providerPrivate._analyzeAndSendData();
+    await internals._analysisMethods._analyzeAndSendData();
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('[CodeGraphy] Analysis failed:', expect.any(Error));
-    expect(providerPrivate._analysisController).toBeUndefined();
+    expect((provider as unknown as { _analysisController?: AbortController })._analysisController).toBeUndefined();
   });
 
   it('sends empty graph data when workspace analysis throws a non-abort error', async () => {
@@ -55,43 +52,33 @@ describe('GraphViewProvider error handling', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
-    const providerPrivate = provider as unknown as {
-      _analysisRequestId: number;
-      _analyzerInitialized: boolean;
-      _analyzer: { analyze: () => Promise<IGraphData> };
-      _computeMergedGroups: () => void;
-      _sendGroupsUpdated: () => void;
-      _sendMessage: (message: unknown) => void;
-      _sendAvailableViews: () => void;
-      _sendPluginStatuses: () => void;
-      _markWorkspaceReady: (graph: IGraphData) => void;
-      _doAnalyzeAndSendData: (signal: AbortSignal, requestId: number) => Promise<void>;
-      _graphData: IGraphData;
-    };
+    const internals = getGraphViewProviderInternals(provider);
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    providerPrivate._analysisRequestId = 1;
-    providerPrivate._analyzerInitialized = true;
-    providerPrivate._analyzer = {
+    (provider as unknown as { _analysisRequestId: number })._analysisRequestId = 1;
+    (provider as unknown as { _analyzerInitialized: boolean })._analyzerInitialized = true;
+    (provider as unknown as { _analyzer: { analyze: () => Promise<IGraphData> } })._analyzer = {
       analyze: vi.fn().mockRejectedValueOnce(new Error('analysis failed')),
     };
-    vi.spyOn(providerPrivate, '_computeMergedGroups').mockImplementation(() => {});
-    vi.spyOn(providerPrivate, '_sendGroupsUpdated').mockImplementation(() => {});
-    const sendMessageSpy = vi.spyOn(providerPrivate, '_sendMessage').mockImplementation(() => {});
+    vi.spyOn(internals._pluginResourceMethods, '_computeMergedGroups').mockImplementation(() => {});
+    vi.spyOn(internals._pluginMethods, '_sendGroupsUpdated').mockImplementation(() => {});
+    const sendMessageSpy = vi
+      .spyOn(internals._webviewMethods, '_sendMessage')
+      .mockImplementation(() => {});
     const sendAvailableViewsSpy = vi
-      .spyOn(providerPrivate, '_sendAvailableViews')
+      .spyOn(internals._viewContextMethods, '_sendAvailableViews')
       .mockImplementation(() => {});
     const sendPluginStatusesSpy = vi
-      .spyOn(providerPrivate, '_sendPluginStatuses')
+      .spyOn(internals._pluginMethods, '_sendPluginStatuses')
       .mockImplementation(() => {});
     const markWorkspaceReadySpy = vi
-      .spyOn(providerPrivate, '_markWorkspaceReady')
+      .spyOn(internals._analysisMethods, '_markWorkspaceReady')
       .mockImplementation(() => {});
 
-    await providerPrivate._doAnalyzeAndSendData(new AbortController().signal, 1);
+    await internals._analysisMethods._doAnalyzeAndSendData(new AbortController().signal, 1);
 
     expect(consoleErrorSpy).toHaveBeenCalledWith('[CodeGraphy] Analysis failed:', expect.any(Error));
-    expect(providerPrivate._graphData).toEqual({ nodes: [], edges: [] });
+    expect((provider as unknown as { _graphData: IGraphData })._graphData).toEqual({ nodes: [], edges: [] });
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
@@ -106,14 +93,12 @@ describe('GraphViewProvider error handling', () => {
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
     );
-    const providerPrivate = provider as unknown as {
-      _isAbortError: (error: unknown) => boolean;
-    };
+    const internals = getGraphViewProviderInternals(provider);
     const abortError = new Error('cancelled');
     abortError.name = 'AbortError';
 
-    expect(providerPrivate._isAbortError(abortError)).toBe(true);
-    expect(providerPrivate._isAbortError(new Error('boom'))).toBe(false);
-    expect(providerPrivate._isAbortError('AbortError')).toBe(false);
+    expect(internals._analysisMethods._isAbortError(abortError)).toBe(true);
+    expect(internals._analysisMethods._isAbortError(new Error('boom'))).toBe(false);
+    expect(internals._analysisMethods._isAbortError('AbortError')).toBe(false);
   });
 });

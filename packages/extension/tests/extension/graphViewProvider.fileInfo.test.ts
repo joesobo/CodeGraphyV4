@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
+import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -139,8 +140,9 @@ describe('GraphViewProvider file info and visits', () => {
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const sendMessageSpy = vi.spyOn(
-      provider as unknown as { _sendMessage: (message: unknown) => void },
+      internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
 
@@ -169,8 +171,9 @@ describe('GraphViewProvider file info and visits', () => {
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
     );
+    const internals = getGraphViewProviderInternals(provider);
     const sendMessageSpy = vi.spyOn(
-      provider as unknown as { _sendMessage: (message: unknown) => void },
+      internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
 

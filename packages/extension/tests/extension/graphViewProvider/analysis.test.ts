@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createGraphViewProviderTestHarness, deferredPromise } from './testHarness';
+import { getGraphViewProviderInternals } from './internals';
+import { createGraphViewProviderTestHarness } from './testHarness';
 
 describe('GraphViewProvider analysis refresh', () => {
   let harness = createGraphViewProviderTestHarness();
@@ -10,32 +11,26 @@ describe('GraphViewProvider analysis refresh', () => {
     harness = createGraphViewProviderTestHarness();
   });
 
-  it('aborts in-flight analysis when a newer refresh starts', async () => {
-    const providerAny = harness.provider as unknown as {
-      _doAnalyzeAndSendData: (signal: AbortSignal) => Promise<void>;
-    };
-    const firstRun = deferredPromise<void>();
-    const seenSignals: AbortSignal[] = [];
+  it('refresh delegates analysis work through the analysis method container', async () => {
+    const internals = getGraphViewProviderInternals(harness.provider);
+    const loadSpy = vi
+      .spyOn(internals._settingsStateMethods, '_loadDisabledRulesAndPlugins')
+      .mockReturnValue(true);
+    const analyzeSpy = vi
+      .spyOn(internals._analysisMethods, '_analyzeAndSendData')
+      .mockResolvedValue();
+    const settingsSpy = vi
+      .spyOn(internals._settingsStateMethods, '_sendSettings')
+      .mockImplementation(() => {});
+    const physicsSpy = vi
+      .spyOn(internals._physicsSettingsMethods, '_sendPhysicsSettings')
+      .mockImplementation(() => {});
 
-    providerAny._doAnalyzeAndSendData = vi.fn((signal: AbortSignal) => {
-      seenSignals.push(signal);
-      if (seenSignals.length === 1) {
-        return firstRun.promise;
-      }
-      return Promise.resolve();
-    });
+    await harness.provider.refresh();
 
-    const refresh1 = harness.provider.refresh();
-    await Promise.resolve();
-
-    const refresh2 = harness.provider.refresh();
-    await Promise.resolve();
-
-    expect(seenSignals.length).toBe(2);
-    expect(seenSignals[0].aborted).toBe(true);
-    expect(seenSignals[1].aborted).toBe(false);
-
-    firstRun.resolve();
-    await Promise.all([refresh1, refresh2]);
+    expect(loadSpy).toHaveBeenCalledOnce();
+    expect(analyzeSpy).toHaveBeenCalledOnce();
+    expect(settingsSpy).toHaveBeenCalledOnce();
+    expect(physicsSpy).toHaveBeenCalledOnce();
   });
 });
