@@ -16,6 +16,12 @@ function readExtensionManifest() {
           icon?: string | { dark?: string; light?: string };
         }>;
       };
+      views?: {
+        codegraphy?: Array<{
+          id?: string;
+          icon?: string;
+        }>;
+      };
     };
   };
 
@@ -23,7 +29,7 @@ function readExtensionManifest() {
 }
 
 describe('extension manifest', () => {
-  it('declares a packaged marketplace icon', () => {
+  it('declares a packaged extension icon', () => {
     const { manifest, repoRoot } = readExtensionManifest();
 
     expect(typeof manifest.icon).toBe('string');
@@ -43,5 +49,14 @@ describe('extension manifest', () => {
     const icon = container?.icon as { dark?: string; light?: string };
     expect(existsSync(resolve(repoRoot, String(icon.dark)))).toBe(true);
     expect(existsSync(resolve(repoRoot, String(icon.light)))).toBe(true);
+  });
+
+  it('declares a graph view icon', () => {
+    const { manifest, repoRoot } = readExtensionManifest();
+    const view = manifest.contributes?.views?.codegraphy?.find(entry => entry.id === 'codegraphy.graphView');
+
+    expect(view).toBeDefined();
+    expect(view?.icon).toBe('assets/icon.svg');
+    expect(existsSync(resolve(repoRoot, String(view?.icon)))).toBe(true);
   });
 });

@@ -7,7 +7,8 @@ Release-facing metadata is not all in one package:
 - Core extension marketplace metadata lives in the repo root [`package.json`](../package.json)
 - Plugin extension marketplace metadata lives in each `packages/plugin-*/package.json`
 - Plugin API npm metadata lives in [`packages/plugin-api/package.json`](../packages/plugin-api/package.json)
-- The shared marketplace icon source lives at [`assets/marketplace-icon.svg`](../assets/marketplace-icon.svg)
+- The core extension icon source lives at [`assets/icon.svg`](../assets/icon.svg)
+- Each published plugin ships its own badged icon at `packages/plugin-*/assets/icon.svg`
 
 ## Local release commands
 

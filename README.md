@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="./assets/marketplace-icon.png" alt="CodeGraphy icon" width="120" />
+  <img src="./assets/icon.png" alt="CodeGraphy icon" width="120" />
 </p>
 
 <h1 align="center">CodeGraphy</h1>
