@@ -1,8 +1,23 @@
 import { describe, expect, it } from 'vitest';
 import * as vscode from 'vscode';
+import type { NodeShape2D, NodeShape3D } from '@/shared/contracts';
 import { getGraphViewPluginDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/plugin';
 
 describe('graphView/pluginDefaultGroups', () => {
+  type PluginInfoLike = {
+    builtIn?: boolean;
+    plugin: {
+      id: string;
+      name: string;
+      fileColors?: Record<
+        string,
+        string | { color: string; shape2D?: NodeShape2D; shape3D?: NodeShape3D; image?: string }
+      >;
+    };
+  };
+
+  const pluginInfos = (...items: PluginInfoLike[]) => items;
+
   it('returns no plugin default groups when the analyzer is unavailable', () => {
     expect(
       getGraphViewPluginDefaultGroups(
@@ -218,7 +233,8 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
+          list: () =>
+            pluginInfos(
             {
               plugin: {
                 id: 'codegraphy.typescript',
@@ -240,7 +256,7 @@ describe('graphView/pluginDefaultGroups', () => {
                 fileColors: { '*.py': '#3776AB' },
               },
             },
-          ],
+            ),
         },
       },
       new Set(['codegraphy.typescript']),
@@ -263,7 +279,8 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () => [
+          list: () =>
+            pluginInfos(
             {
               plugin: {
                 id: 'codegraphy.godot',
@@ -292,7 +309,7 @@ describe('graphView/pluginDefaultGroups', () => {
                 },
               },
             },
-          ],
+            ),
         },
       },
       new Set<string>(),

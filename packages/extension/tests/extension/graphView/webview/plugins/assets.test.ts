@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import type { IPluginStatus } from '@/shared/contracts';
 import {
   getGraphViewWebviewResourceRoots,
   refreshGraphViewResourceRoots,
@@ -11,6 +12,19 @@ import {
 } from '../../../../../src/extension/graphView/webview/plugins/assets';
 
 describe('graphView/webview/plugins/assets', () => {
+  function createPluginStatus(id: string, enabled: boolean): IPluginStatus {
+    return {
+      id,
+      name: id,
+      version: '1.0.0',
+      supportedExtensions: [],
+      status: enabled ? 'active' : 'inactive',
+      enabled,
+      connectionCount: 0,
+      rules: [],
+    };
+  }
+
   it('skips plugin status updates when no analyzer is available', () => {
     const sendMessage = vi.fn();
 
@@ -24,7 +38,7 @@ describe('graphView/webview/plugins/assets', () => {
 
     sendGraphViewPluginStatuses(
       {
-        getPluginStatuses: vi.fn(() => [{ id: 'plugin.test', enabled: true }]),
+        getPluginStatuses: vi.fn(() => [createPluginStatus('plugin.test', true)]),
       },
       new Set(['plugin.test:rule']),
       new Set(['plugin.disabled']),
@@ -121,6 +135,7 @@ describe('graphView/webview/plugins/assets', () => {
               },
             },
           ],
+          getPluginAPI: () => undefined,
         },
       },
       resolveAssetPath,

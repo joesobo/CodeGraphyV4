@@ -88,9 +88,23 @@ describe('graphView/view/rebuild', () => {
   });
 
   it('sends plugin statuses directly when a toggle does not require a rebuild', () => {
+    const notifyGraphRebuild = vi.fn();
     const state = {
       _analyzer: {
-        getPluginStatuses: vi.fn(() => [{ id: 'plugin.alpha', enabled: false }]),
+        rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
+        registry: { notifyGraphRebuild },
+        getPluginStatuses: vi.fn(() => [
+          {
+            id: 'plugin.alpha',
+            name: 'Alpha',
+            version: '1.0.0',
+            supportedExtensions: [],
+            status: 'active',
+            enabled: false,
+            connectionCount: 0,
+            rules: [],
+          },
+        ]),
       },
       _disabledRules: new Set<string>(),
       _disabledPlugins: new Set<string>(),
@@ -137,9 +151,22 @@ describe('graphView/view/rebuild', () => {
   });
 
   it('rebuilds graph data when a toggle requires a smart rebuild', () => {
-    const statuses = [{ id: 'plugin.alpha', enabled: true }];
+    const statuses = [
+      {
+        id: 'plugin.alpha',
+        name: 'Alpha',
+        version: '1.0.0',
+        supportedExtensions: [],
+        status: 'active',
+        enabled: true,
+        connectionCount: 0,
+        rules: [],
+      },
+    ];
     const state = {
       _analyzer: {
+        rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
+        registry: { notifyGraphRebuild: vi.fn() },
         getPluginStatuses: vi.fn(() => statuses),
       },
       _disabledRules: new Set<string>(['rule.alpha']),

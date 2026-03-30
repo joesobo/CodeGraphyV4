@@ -7,6 +7,10 @@ import {
 } from '../../../../../src/extension/graphView/timeline/provider/indexing';
 
 describe('graph view provider timeline indexing', () => {
+  function createGraphNode(id: string) {
+    return { id, label: id, color: '#ffffff' };
+  }
+
   function createTimelineSource(
     overrides: Partial<Record<string, unknown>> = {},
   ): Record<string, unknown> {
@@ -211,7 +215,7 @@ describe('graph view provider timeline indexing', () => {
 
   it('builds commit graph data and stores the active commit on jump', async () => {
     const sendMessage = vi.fn();
-    const graphData = { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData;
+    const graphData = { nodes: [createGraphNode('src/index.ts')], edges: [] } satisfies IGraphData;
     const source = {
       _analyzer: { registry: { kind: 'registry' } } as never,
       _gitAnalyzer: {
@@ -265,7 +269,7 @@ describe('graph view provider timeline indexing', () => {
 
   it('passes undefined workspace and registry to the graph builder when they are unavailable', async () => {
     const sendMessage = vi.fn();
-    const graphData = { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData;
+    const graphData = { nodes: [createGraphNode('src/index.ts')], edges: [] } satisfies IGraphData;
     const deps = {
       getWorkspaceFolder: vi.fn(() => undefined),
       getShowOrphans: vi.fn(() => true),

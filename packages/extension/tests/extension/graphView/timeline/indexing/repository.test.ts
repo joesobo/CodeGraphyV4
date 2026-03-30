@@ -39,6 +39,7 @@ function createHandlers(
     showInformationMessage: vi.fn(),
     toErrorMessage: vi.fn((error: unknown) => String(error)),
     jumpToCommit: vi.fn(() => Promise.resolve()),
+    logError: vi.fn(),
     ...overrides,
   };
 }
