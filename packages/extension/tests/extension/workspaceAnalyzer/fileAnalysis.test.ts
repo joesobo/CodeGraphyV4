@@ -5,8 +5,13 @@ import { createEmptyWorkspaceAnalysisCache } from '../../../src/extension/worksp
 import { analyzeWorkspaceFiles } from '../../../src/extension/workspaceAnalyzer/fileAnalysis';
 
 function createFile(relativePath: string): IDiscoveredFile {
+  const extensionIndex = relativePath.lastIndexOf('.');
+  const slashIndex = relativePath.lastIndexOf('/');
+
   return {
     absolutePath: `/workspace/${relativePath}`,
+    extension: extensionIndex >= 0 ? relativePath.slice(extensionIndex) : '',
+    name: slashIndex >= 0 ? relativePath.slice(slashIndex + 1) : relativePath,
     relativePath,
   };
 }
@@ -114,11 +119,12 @@ describe('workspaceAnalyzer/fileAnalysis', () => {
 
   it('emits file processed payloads for analyzed files', async () => {
     const emitFileProcessed = vi.fn();
+    const connections: IConnection[] = [
+      { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' },
+    ];
 
     await analyzeWorkspaceFiles({
-      analyzeFile: vi.fn(async () => [
-        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' },
-      ]),
+      analyzeFile: vi.fn(async () => connections),
       cache: createEmptyWorkspaceAnalysisCache(),
       emitFileProcessed,
       files: [createFile('src/index.ts')],

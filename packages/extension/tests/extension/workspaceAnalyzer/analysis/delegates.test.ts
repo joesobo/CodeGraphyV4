@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import type { IGraphData } from '../../../../src/shared/contracts';
 import { WorkspaceAnalyzer } from '../../../../src/extension/workspaceAnalyzer/service';
 import * as pluginModule from '../../../../src/extension/workspaceAnalyzer/plugins/queries';
 import * as runModule from '../../../../src/extension/workspaceAnalyzer/analysis/run';
@@ -25,6 +26,13 @@ function createContext() {
   };
 }
 
+function createGraph(): IGraphData {
+  return {
+    nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+    edges: [],
+  };
+}
+
 describe('WorkspaceAnalyzer delegates', () => {
   beforeEach(() => {
     workspaceFoldersValue = [
@@ -41,7 +49,7 @@ describe('WorkspaceAnalyzer delegates', () => {
     const signal = new AbortController().signal;
     const disabledRules = new Set(['plugin.typescript:rule']);
     const disabledPlugins = new Set(['plugin.python']);
-    const expectedGraph = { nodes: [{ id: 'src/index.ts' }], edges: [] };
+    const expectedGraph = createGraph();
     const runSpy = vi
       .spyOn(runModule, 'runWorkspaceAnalyzerAnalysis')
       .mockImplementation(
@@ -161,10 +169,10 @@ describe('WorkspaceAnalyzer delegates', () => {
     );
     const disabledRules = new Set(['plugin.typescript:rule']);
     const disabledPlugins = new Set(['plugin.python']);
-    const expectedGraph = { nodes: [{ id: 'src/index.ts' }], edges: [] };
+    const expectedGraph = createGraph();
     const rebuildSpy = vi
       .spyOn(stateModule, 'rebuildWorkspaceAnalyzerGraphForSource')
-      .mockReturnValue(expectedGraph as never);
+      .mockReturnValue(expectedGraph);
 
     expect(
       analyzer.rebuildGraph(disabledRules, disabledPlugins, false),

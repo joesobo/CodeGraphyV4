@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import path from 'path';
 import * as vscode from 'vscode';
-import type { IPlugin } from '../../src/core/plugins/types/contracts';
+import type { IConnection, IPlugin } from '../../../src/core/plugins/types/contracts';
 import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer/service';
 import * as workspaceFileAnalysisModule from '../../../src/extension/workspaceAnalyzer/fileAnalysis';
 
@@ -32,6 +33,15 @@ function createPlugin(id: string, name: string, supportedExtensions: string[]): 
     apiVersion: '^2.0.0',
     supportedExtensions,
     detectConnections: vi.fn(async () => []),
+  };
+}
+
+function createDiscoveredFile(relativePath: string) {
+  return {
+    absolutePath: `/test/workspace/${relativePath}`,
+    extension: path.extname(relativePath),
+    name: path.basename(relativePath),
+    relativePath,
   };
 }
 
@@ -122,16 +132,16 @@ describe('WorkspaceAnalyzer adapters', () => {
           absolutePath: string,
           content: string,
           workspaceRoot: string
-        ) => Promise<unknown[]>;
+        ) => Promise<IConnection[]>;
       };
       _analyzeFiles: (
-        files: Array<{ absolutePath: string; relativePath: string }>,
+        files: Array<{ absolutePath: string; extension: string; name: string; relativePath: string }>,
         workspaceRoot: string
-      ) => Promise<Map<string, unknown[]>>;
+      ) => Promise<Map<string, IConnection[]>>;
     };
     const eventBus = { emit: vi.fn() };
-    const expectedConnections = new Map<string, unknown[]>([['src/index.ts', []]]);
-    const file = { absolutePath: '/test/workspace/src/index.ts', relativePath: 'src/index.ts' };
+    const expectedConnections = new Map<string, IConnection[]>([['src/index.ts', []]]);
+    const file = createDiscoveredFile('src/index.ts');
     const analyzeWorkspaceFilesSpy = vi.spyOn(workspaceFileAnalysisModule, 'analyzeWorkspaceFiles').mockResolvedValue({
       cacheHits: 1,
       cacheMisses: 2,

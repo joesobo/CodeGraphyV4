@@ -5,6 +5,12 @@ import {
 } from '../../../../src/extension/workspaceAnalyzer/graph/build';
 import * as workspaceGraphDataModule from '../../../../src/extension/workspaceAnalyzer/graph/data';
 
+function createWorkspaceState(value: Record<string, number>) {
+  return {
+    get: <T>(_key: string) => value as T,
+  };
+}
+
 describe('workspaceAnalyzer/graph', () => {
   it('reads visit counts from workspace state before building graph data', () => {
     vi.spyOn(workspaceGraphDataModule, 'buildWorkspaceGraphData').mockReturnValue({
@@ -21,9 +27,7 @@ describe('workspaceAnalyzer/graph', () => {
         getPluginForFile: vi.fn(),
         showOrphans: true,
         workspaceRoot: '/workspace',
-        workspaceState: {
-          get: vi.fn(() => ({ 'src/index.ts': 3 })),
-        },
+        workspaceState: createWorkspaceState({ 'src/index.ts': 3 }),
       }),
     ).toEqual({ nodes: [], edges: [] });
 
@@ -49,7 +53,7 @@ describe('workspaceAnalyzer/graph', () => {
         {
           _cache: { files: { 'src/index.ts': { size: 5 } } },
           _context: {
-            workspaceState: { get: vi.fn(() => ({ 'src/index.ts': 1 })) },
+            workspaceState: createWorkspaceState({ 'src/index.ts': 1 }),
           },
           _registry: { getPluginForFile: vi.fn() },
         } as never,

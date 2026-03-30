@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { IConnection } from '../../../src/core/plugins/types/contracts';
 import {
   reanalyzeGraphFile,
   removeOutgoingGitHistoryEdges,
@@ -8,7 +9,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
   it('returns early for unsupported files', async () => {
     const getFileAtCommit = vi.fn(async () => '');
     const registry = {
-      analyzeFile: vi.fn(async () => []),
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => []),
       getPluginForFile: vi.fn(() => ({ id: 'ts' })),
       supportsFile: vi.fn(() => false),
     };
@@ -42,7 +43,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     const nodeMap = new Map();
     const nodes: Array<{ id: string; label: string; color: string }> = [];
     const registry = {
-      analyzeFile: vi.fn(async () => [{
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [{
         ruleId: 'import',
         specifier: './b',
         type: 'static',
@@ -82,7 +83,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     const edgeSet = new Set<string>();
     const getFileAtCommit = vi.fn(async () => 'import "./b";');
     const registry = {
-      analyzeFile: vi.fn(async () => [{
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [{
         ruleId: 'import',
         specifier: './b',
         type: 'static',
@@ -130,7 +131,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
       nodeMap,
       nodes,
       registry: {
-        analyzeFile: vi.fn(async () => []),
+        analyzeFile: vi.fn(async (): Promise<IConnection[]> => []),
         supportsFile: vi.fn(() => true),
       },
       sha: 'abc123',

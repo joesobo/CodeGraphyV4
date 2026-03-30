@@ -1,9 +1,23 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
+import type { IConnection } from '../../../../src/core/plugins/types/contracts';
 import {
   analyzeWorkspaceAnalyzerFiles,
   analyzeWorkspaceAnalyzerSourceFiles,
 } from '../../../../src/extension/workspaceAnalyzer/analysis/files';
 import * as workspaceFileAnalysisModule from '../../../../src/extension/workspaceAnalyzer/fileAnalysis';
+
+function createDiscoveredFile(relativePath: string): IDiscoveredFile {
+  const extensionIndex = relativePath.lastIndexOf('.');
+  const slashIndex = relativePath.lastIndexOf('/');
+
+  return {
+    absolutePath: `/workspace/${relativePath}`,
+    extension: extensionIndex >= 0 ? relativePath.slice(extensionIndex) : '',
+    name: slashIndex >= 0 ? relativePath.slice(slashIndex + 1) : relativePath,
+    relativePath,
+  };
+}
 
 describe('workspaceAnalyzer/analysis/files', () => {
   it('logs cache hit and miss counts from workspace file analysis', async () => {
@@ -41,7 +55,7 @@ describe('workspaceAnalyzer/analysis/files', () => {
       },
       _getFileStat: vi.fn(async () => ({ mtime: 10, size: 5 })),
       _registry: {
-        analyzeFile: vi.fn(async () => []),
+        analyzeFile: vi.fn(async (): Promise<IConnection[]> => []),
       },
     };
     const analyzeWorkspaceFilesSpy = vi
@@ -55,10 +69,7 @@ describe('workspaceAnalyzer/analysis/files', () => {
     await analyzeWorkspaceAnalyzerSourceFiles(
       source as never,
       [
-        {
-          absolutePath: '/workspace/src/index.ts',
-          relativePath: 'src/index.ts',
-        },
+        createDiscoveredFile('src/index.ts'),
       ],
       '/workspace',
       vi.fn(),
@@ -73,6 +84,8 @@ describe('workspaceAnalyzer/analysis/files', () => {
     );
     await options.readContent({
       absolutePath: '/workspace/src/index.ts',
+      extension: '.ts',
+      name: 'index.ts',
       relativePath: 'src/index.ts',
     });
     expect(source._discovery.readContent).toHaveBeenCalledOnce();

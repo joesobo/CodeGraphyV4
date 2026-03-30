@@ -13,7 +13,7 @@ Object.defineProperty(vscode.workspace, 'workspaceFolders', {
 });
 
 // Mock vscode.workspace.fs.stat to return file stats
-(vscode.workspace.fs as Record<string, unknown>).stat = vi.fn().mockResolvedValue({
+(vscode.workspace.fs as unknown as Record<string, unknown>).stat = vi.fn().mockResolvedValue({
   mtime: Date.now(),
   size: 100,
 });
@@ -364,7 +364,7 @@ describe('WorkspaceAnalyzer rules', () => {
         }),
       };
 
-      const notifyPreAnalyze = vi.fn(async () => {});
+      const notifyPreAnalyze = vi.fn<(files: unknown[], workspaceRoot: string) => Promise<void>>(async () => {});
       analyzerPriv._registry = {
         list: vi.fn(() => []),
         notifyPreAnalyze,
@@ -373,7 +373,10 @@ describe('WorkspaceAnalyzer rules', () => {
       await analyzerPriv._preAnalyzePlugins(files, '/test/workspace');
 
       expect(notifyPreAnalyze).toHaveBeenCalledTimes(1);
-      const [payload, workspaceRoot] = notifyPreAnalyze.mock.calls[0];
+      const [payload, workspaceRoot] = notifyPreAnalyze.mock.calls[0] as [
+        unknown[],
+        string,
+      ];
       expect(workspaceRoot).toBe('/test/workspace');
       expect(payload).toEqual([
         {
