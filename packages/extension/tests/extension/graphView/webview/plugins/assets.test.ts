@@ -47,7 +47,20 @@ describe('graphView/webview/plugins/assets', () => {
 
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'PLUGINS_UPDATED',
-      payload: { plugins: [{ id: 'plugin.test', enabled: true }] },
+      payload: {
+        plugins: [
+          {
+            id: 'plugin.test',
+            name: 'plugin.test',
+            version: '1.0.0',
+            supportedExtensions: [],
+            status: 'active',
+            enabled: true,
+            connectionCount: 0,
+            rules: [],
+          },
+        ],
+      },
     });
   });
 

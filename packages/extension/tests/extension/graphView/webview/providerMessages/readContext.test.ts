@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../../../src/shared/contracts';
+import type { IGraphData } from '@/shared/contracts';
 import {
   createGraphViewProviderMessageReadContext,
 } from '../../../../../src/extension/graphView/webview/providerMessages/readContext';
@@ -15,8 +15,8 @@ describe('graph view provider listener read context', () => {
       _disabledRules: new Set(['rule.disabled']),
       _filterPatterns: ['dist/**'],
       _graphData: {
-        nodes: [{ id: 'src/app.ts' }],
-        edges: [{ id: 'edge-1', source: 'src/app.ts', target: 'src/lib.ts' }],
+        nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' }],
+        edges: [{ id: 'edge-1', from: 'src/app.ts', to: 'src/lib.ts' }],
       } satisfies IGraphData,
       _viewContext: { activePlugins: new Set(['plugin.enabled']) },
     };
@@ -41,11 +41,15 @@ describe('graph view provider listener read context', () => {
     expect(context.getGraphData()).toBe(source._graphData);
     expect(context.getViewContext()).toBe(source._viewContext);
     expect(context.workspaceFolder).toEqual({ uri: { fsPath: '/workspace' } });
-    expect(context.findNode('src/app.ts')).toEqual({ id: 'src/app.ts' });
+    expect(context.findNode('src/app.ts')).toEqual({
+      id: 'src/app.ts',
+      label: 'app.ts',
+      color: '#93C5FD',
+    });
     expect(context.findEdge('edge-1')).toEqual({
       id: 'edge-1',
-      source: 'src/app.ts',
-      target: 'src/lib.ts',
+      from: 'src/app.ts',
+      to: 'src/lib.ts',
     });
   });
 });

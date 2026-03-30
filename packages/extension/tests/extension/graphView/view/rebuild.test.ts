@@ -121,7 +121,20 @@ describe('graphView/view/rebuild', () => {
     expect(rebuildAndSend).not.toHaveBeenCalled();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'PLUGINS_UPDATED',
-      payload: { plugins: [{ id: 'plugin.alpha', enabled: false }] },
+      payload: {
+        plugins: [
+          {
+            id: 'plugin.alpha',
+            name: 'Alpha',
+            version: '1.0.0',
+            supportedExtensions: [],
+            status: 'active',
+            enabled: false,
+            connectionCount: 0,
+            rules: [],
+          },
+        ],
+      },
     });
   });
 

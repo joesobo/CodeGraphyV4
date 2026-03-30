@@ -156,13 +156,18 @@ describe('graphView/provider/timeline methods', () => {
       _openFile: vi.fn(async () => undefined),
     };
     timelineMethodMocks.openNodeInEditor.mockImplementation(
-      async (_nodeId, state, _handlers, behavior) => {
+      (async (
+        _nodeId: string,
+        state: { timelineActive: boolean; currentCommitSha: string | undefined },
+        _handlers: unknown,
+        behavior: { preview: boolean; preserveFocus: boolean },
+      ) => {
         expect(state).toEqual({
           timelineActive: true,
           currentCommitSha: 'sha-1',
         });
         expect(behavior).toEqual({ preview: true, preserveFocus: true });
-      },
+      }) as never,
     );
 
     const methods = createGraphViewProviderTimelineMethods(source as never);
@@ -187,13 +192,18 @@ describe('graphView/provider/timeline methods', () => {
       _openFile: vi.fn(async () => undefined),
     };
     timelineMethodMocks.openNodeInEditor.mockImplementation(
-      async (_nodeId, state, _handlers, behavior) => {
+      (async (
+        _nodeId: string,
+        state: { timelineActive: boolean; currentCommitSha: string | undefined },
+        _handlers: unknown,
+        behavior: { preview: boolean; preserveFocus: boolean },
+      ) => {
         expect(state).toEqual({
           timelineActive: true,
           currentCommitSha: 'sha-1',
         });
         expect(behavior).toEqual({ preview: false, preserveFocus: false });
-      },
+      }) as never,
     );
 
     const methods = createGraphViewProviderTimelineMethods(source as never);
@@ -203,7 +213,11 @@ describe('graphView/provider/timeline methods', () => {
 
   it('previews files at a commit using workspace/editor dependencies', async () => {
     const previewFileAtCommit = vi.fn(async () => undefined);
-    const getWorkspaceFolder = vi.fn(() => ({ uri: { fsPath: '/workspace' } }));
+    const getWorkspaceFolder = vi.fn(() => ({
+      uri: { fsPath: '/workspace' },
+      name: 'workspace',
+      index: 0,
+    } as never));
     const openTextDocument = vi.fn();
     const showTextDocument = vi.fn();
     const methods = createGraphViewProviderTimelineMethods({
@@ -241,7 +255,11 @@ describe('graphView/provider/timeline methods', () => {
       'sha-1',
       'src/app.ts',
       expect.objectContaining({
-        workspaceFolder: { uri: { fsPath: '/workspace' } },
+        workspaceFolder: expect.objectContaining({
+          uri: { fsPath: '/workspace' },
+          name: 'workspace',
+          index: 0,
+        }),
         openTextDocument: expect.any(Function),
         showTextDocument: expect.any(Function),
       }),
@@ -352,13 +370,26 @@ describe('graphView/provider/timeline methods', () => {
     });
 
     timelineMethodMocks.previewFileAtCommit.mockImplementation(
-      async (_sha, _filePath, handlers, behavior) => {
+      (async (
+        _sha: string,
+        _filePath: string,
+        handlers: {
+          workspaceFolder?: { uri: { fsPath: string } };
+          openTextDocument(fileUri: vscode.Uri): PromiseLike<vscode.TextDocument>;
+          showTextDocument(
+            document: vscode.TextDocument,
+            options: { preview: boolean; preserveFocus: boolean },
+          ): PromiseLike<vscode.TextEditor>;
+          logError(message: string, error: unknown): void;
+        },
+        behavior: { preview: boolean; preserveFocus: boolean },
+      ) => {
         expect(handlers.workspaceFolder).toBeUndefined();
         expect(behavior).toEqual({ preview: true, preserveFocus: false });
         await handlers.openTextDocument(fileUri);
         await handlers.showTextDocument(document, { preview: false, preserveFocus: true });
         handlers.logError('preview failed', 'boom');
-      },
+      }) as never,
     );
     timelineMethodMocks.sendPlaybackSpeed.mockImplementation((speed, callback) => {
       callback({
@@ -367,7 +398,11 @@ describe('graphView/provider/timeline methods', () => {
       });
     });
     timelineMethodMocks.invalidateTimelineCache.mockImplementation(
-      async (_gitAnalyzer, state, callback) => {
+      (async (
+        _gitAnalyzer: { invalidateCache(): PromiseLike<void> } | undefined,
+        state: { timelineActive: boolean; currentCommitSha: string | undefined },
+        callback: (message: { type: 'CACHE_INVALIDATED' }) => void,
+      ) => {
         expect(state).toEqual({
           timelineActive: true,
           currentCommitSha: 'sha-1',
@@ -376,7 +411,7 @@ describe('graphView/provider/timeline methods', () => {
         state.currentCommitSha = undefined;
         callback({ type: 'CACHE_INVALIDATED' });
         return undefined;
-      },
+      }) as never,
     );
 
     const methods = createGraphViewProviderTimelineMethods(source as never);
