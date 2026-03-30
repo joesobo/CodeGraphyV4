@@ -35,6 +35,21 @@ describe('resolveScopedVitestIncludes', () => {
     expect(includes).toContain('packages/extension/tests/**/graphViewProvider/**/*.test.ts');
   });
 
+  it('skips broad basename fallback patterns for generic file names', () => {
+    const includes = resolveScopedVitestIncludes(
+      target({
+        absolutePath: '/repo/packages/extension/src/extension/graphView/provider/runtime.ts',
+        kind: 'file',
+        packageRelativePath: 'src/extension/graphView/provider/runtime.ts',
+        relativePath: 'packages/extension/src/extension/graphView/provider/runtime.ts',
+      }),
+    );
+
+    expect(includes).toContain('packages/extension/tests/extension/graphView/provider/runtime.test.ts');
+    expect(includes).not.toContain('packages/extension/tests/**/runtime.test.ts');
+    expect(includes).not.toContain('packages/extension/tests/**/runtime/**/*.test.ts');
+  });
+
   it('returns mirrored directory test patterns for directory targets', () => {
     expect(
       resolveScopedVitestIncludes(
