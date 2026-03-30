@@ -5,7 +5,7 @@
  */
 
 import * as ts from 'typescript';
-import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
+import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
 import type { TsRuleContext } from '../types';
 import { getScriptKind } from '../getScriptKind';
 

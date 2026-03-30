@@ -1,7 +1,7 @@
 /**
  * @fileoverview Canonical event payload contract for the CodeGraphy plugin API.
  * Event keys and payloads mirror the extension host runtime exactly.
- * @module @codegraphy/plugin-api/events
+ * @module @codegraphy-vscode/plugin-api/events
  */
 
 /** Lightweight graph node reference used in event payloads. */

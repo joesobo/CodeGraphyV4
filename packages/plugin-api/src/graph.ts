@@ -1,6 +1,6 @@
 /**
  * @fileoverview Graph data types for CodeGraphy visualization.
- * @module @codegraphy/plugin-api/graph
+ * @module @codegraphy-vscode/plugin-api/graph
  */
 
 /**

@@ -1,7 +1,7 @@
 /**
  * @fileoverview The main CodeGraphy API surface exposed to v2 plugins.
  * Passed to the plugin's `onLoad(api)` lifecycle hook.
- * @module @codegraphy/plugin-api/api
+ * @module @codegraphy-vscode/plugin-api/api
  */
 
 import type { Disposable } from './disposable';

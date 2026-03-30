@@ -6,7 +6,7 @@
  */
 
 import * as path from 'path';
-import type { IPlugin, IConnection } from '@codegraphy/plugin-api';
+import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration, normalizePath } from './parser';
 import manifest from '../codegraphy.json';

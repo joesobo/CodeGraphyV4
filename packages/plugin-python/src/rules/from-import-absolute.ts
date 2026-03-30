@@ -1,4 +1,4 @@
-import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
+import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
 import type { PythonRuleContext } from '../context';
 import { buildFromImportConnections } from './from-import-shared';
 

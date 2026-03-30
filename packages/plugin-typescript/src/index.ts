@@ -5,7 +5,7 @@
  * @module plugins/typescript
  */
 
-import type { IPlugin, IConnection } from '@codegraphy/plugin-api';
+import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
 import { PathResolver } from './PathResolver';
 import { loadTsConfig } from './tsconfig';
 import manifest from '../codegraphy.json';

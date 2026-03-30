@@ -72,7 +72,7 @@ if (mode === 'publish') {
   }
 
   if (target === 'plugin-api') {
-    run('pnpm', ['--filter', '@codegraphy/plugin-api', 'publish', '--access', 'public', '--no-git-checks']);
+    run('pnpm', ['--filter', '@codegraphy-vscode/plugin-api', 'publish', '--access', 'public', '--no-git-checks']);
     process.exit(0);
   }
 

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Webview-side plugin API.
- * @module @codegraphy/plugin-api/webview/api
+ * @module @codegraphy-vscode/plugin-api/webview/api
  */
 
 import type { Disposable } from '../disposable';

@@ -1,7 +1,7 @@
 /**
  * @fileoverview View system types for CodeGraphy.
  * Views transform graph data into different visualization perspectives.
- * @module @codegraphy/plugin-api/views
+ * @module @codegraphy-vscode/plugin-api/views
  */
 
 import type { IGraphData } from './graph';
