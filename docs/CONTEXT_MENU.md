@@ -5,18 +5,17 @@ This document defines CodeGraphy's context-menu behavior and the files that own 
 ## Ownership
 
 - Rules/model (split by concern):
-  - `packages/extension/src/webview/components/graphContextMenu/backgroundEntries.ts`
-  - `packages/extension/src/webview/components/graphContextMenu/edgeEntries.ts`
-  - `packages/extension/src/webview/components/graphContextMenu/nodeEntries.ts`
-  - `packages/extension/src/webview/components/graphContextMenu/pluginEntries.ts`
-  - `packages/extension/src/webview/components/graphContextMenu/entryFactories.ts`
-  - `packages/extension/src/webview/components/graphContextMenu/selection.ts`
-  - `packages/extension/src/webview/components/graphContextMenu/buildGraphContextMenuEntries.ts`
-  - `packages/extension/src/webview/components/graphContextMenu/types.ts`
-  - `packages/extension/src/webview/components/graphContextMenuModel.ts` (compatibility re-export)
+  - `packages/extension/src/webview/components/graph/contextMenu/background/entries.ts`
+  - `packages/extension/src/webview/components/graph/contextMenu/edge/entries.ts`
+  - `packages/extension/src/webview/components/graph/contextMenu/node/entries.ts`
+  - `packages/extension/src/webview/components/graph/contextMenu/plugin/entries.ts`
+  - `packages/extension/src/webview/components/graph/contextMenu/common/entryFactories.ts`
+  - `packages/extension/src/webview/components/graph/contextMenu/selection.ts`
+  - `packages/extension/src/webview/components/graph/contextMenu/buildEntries.ts`
+  - `packages/extension/src/webview/components/graph/contextMenu/contracts.ts`
 - UI wiring + event bridge: `packages/extension/src/webview/components/Graph.tsx`
 - Webview message contract: `packages/extension/src/shared/contracts.ts`
-- Runtime handler for plugin actions: `packages/extension/src/extension/GraphViewProvider.ts`
+- Runtime handler for plugin actions: `packages/extension/src/extension/graphViewProvider.ts`
 
 ## Contexts
 
@@ -76,11 +75,11 @@ This keeps right-click reliable in both 2D and 3D.
 ## Tests
 
 - Rule/model tests (typed menu construction + action mapping):
-  - `packages/extension/tests/webview/graphContextMenuModel.test.ts`
+  - `packages/extension/tests/webview/graph/contextMenu/model.test.ts`
 - Integration tests (Graph + Radix + message dispatch), split by runtime context:
-  - `packages/extension/tests/webview/GraphContextMenu.background.test.tsx`
-  - `packages/extension/tests/webview/GraphContextMenu.node.test.tsx`
-  - `packages/extension/tests/webview/GraphContextMenu.edge.test.tsx`
+  - `packages/extension/tests/webview/graph/contextMenu/background.test.tsx`
+  - `packages/extension/tests/webview/graph/contextMenu/node.test.tsx`
+  - `packages/extension/tests/webview/graph/contextMenu/edge.test.tsx`
 - Non-context Graph behavior stays in:
   - `packages/extension/tests/webview/Graph.test.tsx`
 
@@ -100,8 +99,8 @@ This keeps right-click reliable in both 2D and 3D.
 
 ```bash
 pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts \
-  tests/webview/graphContextMenuModel.test.ts \
-  tests/webview/GraphContextMenu.background.test.tsx \
-  tests/webview/GraphContextMenu.node.test.tsx \
-  tests/webview/GraphContextMenu.edge.test.tsx
+  tests/webview/graph/contextMenu/model.test.ts \
+  tests/webview/graph/contextMenu/background.test.tsx \
+  tests/webview/graph/contextMenu/node.test.tsx \
+  tests/webview/graph/contextMenu/edge.test.tsx
 ```
