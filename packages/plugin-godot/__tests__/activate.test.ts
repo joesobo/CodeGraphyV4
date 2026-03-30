@@ -8,7 +8,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-describe('extension-godot/activate', () => {
+describe('plugin-godot/activate', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();

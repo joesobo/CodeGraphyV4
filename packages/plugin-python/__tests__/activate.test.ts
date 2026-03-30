@@ -8,13 +8,13 @@ vi.mock('vscode', () => ({
   },
 }));
 
-describe('extension-typescript/activate', () => {
+describe('plugin-python/activate', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
   });
 
-  it('registers the TypeScript plugin with the core extension', async () => {
+  it('registers the Python plugin with the core extension', async () => {
     const registerPlugin = vi.fn();
     getExtension.mockReturnValue({
       isActive: false,
@@ -22,13 +22,13 @@ describe('extension-typescript/activate', () => {
     });
 
     const { activate } = await import('../src/activate');
-    const context = { extensionUri: { fsPath: '/plugins/typescript' } };
+    const context = { extensionUri: { fsPath: '/plugins/python' } };
 
     await activate(context as never);
 
     expect(getExtension).toHaveBeenCalledWith('joesobo.codegraphy');
     expect(registerPlugin).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'codegraphy.typescript' }),
+      expect.objectContaining({ id: 'codegraphy.python' }),
       { extensionUri: context.extensionUri },
     );
   });
@@ -38,6 +38,6 @@ describe('extension-typescript/activate', () => {
 
     const { activate } = await import('../src/activate');
 
-    await expect(activate({ extensionUri: { fsPath: '/plugins/typescript' } } as never)).resolves.toBeUndefined();
+    await expect(activate({ extensionUri: { fsPath: '/plugins/python' } } as never)).resolves.toBeUndefined();
   });
 });

@@ -18,7 +18,10 @@ on:
         type: choice
         options:
           - core
-          - plugins
+          - typescript
+          - python
+          - csharp
+          - godot
           - plugin-api
           - all
 
@@ -59,13 +62,9 @@ jobs:
       - name: Release checks
         run: pnpm run release:check
 
-      - name: Package core extension
-        if: ${{ inputs.target == 'core' || inputs.target == 'all' }}
-        run: pnpm run release:package:core
-
-      - name: Package plugin extensions
-        if: ${{ inputs.target == 'plugins' || inputs.target == 'all' }}
-        run: pnpm run release:package:plugins
+      - name: Package selected VS Code extension artifacts
+        if: ${{ inputs.target != 'plugin-api' }}
+        run: pnpm run release:package ${{ inputs.target }}
 
       - name: Upload VSIX artifacts
         if: ${{ inputs.target != 'plugin-api' }}
@@ -75,14 +74,6 @@ jobs:
           path: artifacts/vsix/
           retention-days: 30
 
-      - name: Publish plugin API to npm
-        if: ${{ inputs.mode == 'publish' && (inputs.target == 'plugin-api' || inputs.target == 'all') }}
-        run: pnpm run release:publish:plugin-api
-
-      - name: Publish core extension
-        if: ${{ inputs.mode == 'publish' && (inputs.target == 'core' || inputs.target == 'all') }}
-        run: pnpm run release:publish:core
-
-      - name: Publish plugin extensions
-        if: ${{ inputs.mode == 'publish' && (inputs.target == 'plugins' || inputs.target == 'all') }}
-        run: pnpm run release:publish:plugins
+      - name: Publish selected target
+        if: ${{ inputs.mode == 'publish' }}
+        run: pnpm run release:publish ${{ inputs.target }}
