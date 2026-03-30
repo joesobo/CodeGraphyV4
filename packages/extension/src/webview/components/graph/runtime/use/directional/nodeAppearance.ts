@@ -78,7 +78,7 @@ export function applyNodeAppearance({
 			continue;
 		}
 
-		const depthLevel = dataNode.depthLevel ?? 0;
+		const depthLevel = dataNode.depthLevel;
 		const nodeColor = isLightTheme ? adjustColorForLightTheme(dataNode.color) : dataNode.color;
 		const isFavorite = favorites.has(graphNode.id);
 		const isFocused = depthLevel === 0;

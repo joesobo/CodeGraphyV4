@@ -1,6 +1,7 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { NodeSizeMode } from '../../../../src/shared/settings/modes';
 import {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,
@@ -145,7 +146,7 @@ describe('graph/runtime/useNodeAppearance', () => {
       });
     });
 
-    it('treats an undefined depth level as focused for size and border styling', () => {
+    it('keeps nodes without a depth level unfocused when applying appearance', () => {
       const graphNodes = [createGraphNode('root')];
 
       applyNodeAppearance({
@@ -159,9 +160,11 @@ describe('graph/runtime/useNodeAppearance', () => {
       });
 
       expect(graphNodes[0]).toMatchObject({
-        borderColor: '#60a5fa',
-        borderWidth: 4,
-        size: DEFAULT_NODE_SIZE * getDepthSizeMultiplier(0),
+        borderColor: '#112233',
+        borderWidth: 2,
+        color: '#112233',
+        isFavorite: false,
+        size: DEFAULT_NODE_SIZE * getDepthSizeMultiplier(undefined),
       });
     });
   });
@@ -200,6 +203,43 @@ describe('graph/runtime/useNodeAppearance', () => {
       expect(graphNodes[0]).toMatchObject({
         borderColor: '#2563eb',
         color: adjustColorForLightTheme('#112233'),
+      });
+    });
+
+    it('does not introduce focused borders for nodes without a depth level when node size mode changes', () => {
+      const graphNodes = [createGraphNode('root')];
+      const dataRef = {
+        current: createData([
+          { color: '#112233', id: 'root', label: 'Root' },
+        ]),
+      };
+      const graphDataRef = { current: { links: [], nodes: graphNodes } };
+      const favorites = new Set<string>();
+
+      const { rerender } = renderHook(
+        ({ nodeSizeMode }: { nodeSizeMode: NodeSizeMode }) => useNodeAppearance({
+          dataRef,
+          favorites,
+          graphDataRef,
+          nodeSizeMode,
+          theme: 'dark',
+        }),
+        {
+          initialProps: { nodeSizeMode: 'uniform' as NodeSizeMode },
+        },
+      );
+
+      expect(graphNodes[0]).toMatchObject({
+        borderColor: '#112233',
+        borderWidth: 2,
+        size: DEFAULT_NODE_SIZE,
+      });
+
+      rerender({ nodeSizeMode: 'connections' as NodeSizeMode });
+
+      expect(graphNodes[0]).toMatchObject({
+        borderColor: '#112233',
+        borderWidth: 2,
       });
     });
   });
