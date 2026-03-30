@@ -27,7 +27,7 @@ describe('graphView/pluginDefaultGroups', () => {
     ).toEqual([]);
   });
 
-  it('builds plugin default groups and registers built-in asset roots', () => {
+  it('builds plugin default groups and registers known built-in asset roots', () => {
     const pluginExtensionUris = new Map<string, vscode.Uri>();
 
     const groups = getGraphViewPluginDefaultGroups(
@@ -37,14 +37,14 @@ describe('graphView/pluginDefaultGroups', () => {
             {
               builtIn: true,
               plugin: {
-                id: 'codegraphy.typescript',
-                name: 'TypeScript',
+                id: 'codegraphy.markdown',
+                name: 'Markdown',
                 fileColors: {
-                  '*.ts': '#3178C6',
-                  '*.tsx': {
-                    color: '#3178C6',
+                  '*.md': '#577590',
+                  '*.mdx': {
+                    color: '#577590',
                     shape2D: 'hexagon',
-                    image: 'assets/ts.svg',
+                    image: 'assets/markdown.svg',
                   },
                 },
               },
@@ -59,24 +59,24 @@ describe('graphView/pluginDefaultGroups', () => {
 
     expect(groups).toEqual([
       {
-        id: 'plugin:codegraphy.typescript:*.ts',
-        pattern: '*.ts',
-        color: '#3178C6',
+        id: 'plugin:codegraphy.markdown:*.md',
+        pattern: '*.md',
+        color: '#577590',
         isPluginDefault: true,
-        pluginName: 'TypeScript',
+        pluginName: 'Markdown',
       },
       {
-        id: 'plugin:codegraphy.typescript:*.tsx',
-        pattern: '*.tsx',
-        color: '#3178C6',
+        id: 'plugin:codegraphy.markdown:*.mdx',
+        pattern: '*.mdx',
+        color: '#577590',
         isPluginDefault: true,
-        pluginName: 'TypeScript',
+        pluginName: 'Markdown',
         shape2D: 'hexagon',
-        imagePath: 'assets/ts.svg',
+        imagePath: 'assets/markdown.svg',
       },
     ]);
-    expect(pluginExtensionUris.get('codegraphy.typescript')?.fsPath).toBe(
-      '/test/extension/packages/plugin-typescript',
+    expect(pluginExtensionUris.get('codegraphy.markdown')?.fsPath).toBe(
+      '/test/extension/packages/plugin-markdown',
     );
   });
 

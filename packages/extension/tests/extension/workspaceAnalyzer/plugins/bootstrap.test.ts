@@ -31,19 +31,11 @@ describe('workspaceAnalyzer/plugins/bootstrap', () => {
       getWorkspaceRoot: () => '/workspace',
     });
 
-    expect(registry.register).toHaveBeenCalledTimes(5);
-    expect(
-      registry.register.mock.calls.map(([, options]) => options),
-    ).toEqual([{ builtIn: true }, { builtIn: true }, { builtIn: true }, { builtIn: true }, { builtIn: true }]);
+    expect(registry.register).toHaveBeenCalledTimes(1);
+    expect(registry.register.mock.calls.map(([, options]) => options)).toEqual([{ builtIn: true }]);
     expect(
       registry.register.mock.calls.map(([plugin]) => plugin.id),
-    ).toEqual([
-      'codegraphy.typescript',
-      'codegraphy.gdscript',
-      'codegraphy.python',
-      'codegraphy.csharp',
-      'codegraphy.markdown',
-    ]);
+    ).toEqual(['codegraphy.markdown']);
     expect(registry.initializeAll).toHaveBeenCalledWith('/workspace');
   });
 
@@ -54,7 +46,7 @@ describe('workspaceAnalyzer/plugins/bootstrap', () => {
       getWorkspaceRoot: () => undefined,
     });
 
-    expect(registry.register).toHaveBeenCalledTimes(5);
+    expect(registry.register).toHaveBeenCalledTimes(1);
     expect(registry.initializeAll).not.toHaveBeenCalled();
   });
 });

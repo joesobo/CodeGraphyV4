@@ -1,8 +1,4 @@
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';
-import { createTypeScriptPlugin } from '../../../../../plugin-typescript/src';
-import { createGDScriptPlugin } from '../../../../../plugin-godot/src';
-import { createPythonPlugin } from '../../../../../plugin-python/src';
-import { createCSharpPlugin } from '../../../../../plugin-csharp/src';
 import { createMarkdownPlugin } from '../../../../../plugin-markdown/src';
 
 export interface WorkspaceAnalyzerPluginFilterSource {
@@ -31,10 +27,6 @@ export async function initializeWorkspaceAnalyzer(
   registry: PluginRegistry,
   dependencies: WorkspaceAnalyzerInitializationDependencies,
 ): Promise<void> {
-  registry.register(createTypeScriptPlugin(), { builtIn: true });
-  registry.register(createGDScriptPlugin(), { builtIn: true });
-  registry.register(createPythonPlugin(), { builtIn: true });
-  registry.register(createCSharpPlugin(), { builtIn: true });
   registry.register(createMarkdownPlugin(), { builtIn: true });
 
   const workspaceRoot = dependencies.getWorkspaceRoot();
