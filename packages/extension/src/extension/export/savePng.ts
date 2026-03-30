@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { decodeBase64DataUrl, saveExportBuffer, toErrorMessage } from './common';
+import { decodeBase64DataUrl, saveExportBuffer, toErrorMessage } from './fileSave';
 
 export async function saveExportedPng(dataUrl: string, filename?: string): Promise<void> {
   try {

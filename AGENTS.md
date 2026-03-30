@@ -3,15 +3,15 @@
 ## Commands
 
 ```bash
-pnpm install          # install dependencies
-pnpm run build        # build all packages
-pnpm run dev          # start dev mode
-pnpm run test         # run all tests
-pnpm run lint         # lint all packages
-pnpm run typecheck    # type-check all packages
+pnpm install       # install dependencies
+pnpm run build     # build all packages
+pnpm run dev       # start dev mode
+pnpm run test      # run all tests
+pnpm run lint      # lint all packages
+pnpm run typecheck # type-check all packages
 ```
 
-Targeted:
+Targeted runs:
 
 ```bash
 pnpm --filter @codegraphy/extension test
@@ -20,7 +20,9 @@ pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts te
 
 ## Architecture
 
-No dedicated architecture doc. Start from package boundaries:
+Never create `architecture.md` in this repo. The monorepo is too large for a durable file-by-file architecture map.
+
+Package boundaries are the primary entry point.
 
 - `packages/extension/src/extension/` — VS Code extension host
 - `packages/extension/src/core/` — discovery, registry, views, colors
@@ -33,68 +35,138 @@ No dedicated architecture doc. Start from package boundaries:
 
 ### Task Setup
 
-1. **Discuss first** — review approach, risks, open questions before implementation.
+1. **Discuss first** — review approach, risks, and open questions before implementation.
 2. **Plan** — create an implementation plan once aligned.
-3. **Branch + worktree isolation** — work in its own branch/worktree. Split into small tasks for subagents where safe.
-4. **Commit frequently** — at minimum when subagent work merges in.
+3. **Branch + worktree isolation** — work in a dedicated branch/worktree. Split into parallel subagent tasks where safe.
+4. **Commit frequently** — at minimum when subagent work is merged.
 5. **Deliver via PR** — push and open a GitHub PR for human review.
 
 ### Worktree Safety
 
 - The user's open worktree is **protected** — never run `git switch`, `git checkout <branch>`, or `git rebase` there.
-- Create a separate agent worktree for branch operations.
-- If the protected worktree's branch was changed by mistake, restore immediately and report it.
+- Create a separate agent worktree for all branch operations.
+- If the protected worktree's branch is changed by mistake, restore it immediately and report what happened.
 
-### Quality Gates
+## Repo Organization
 
-#### 1. Red-Green-Refactor TDD
+Organize by feature and behavior, not by technical layer.
 
-Write acceptance scenarios for every new/changed behavior. Ask before changing existing scenarios.
+### 1. Feature-first folder structure
 
-Three Laws of TDD:
+Group code by what it does, not what type it is.
+
+```
+src/webview/settingsPanel/
+src/webview/nodeSizeToggle/
+src/core/registry/
+src/core/discovery/
+```
+
+Avoid horizontal layers that scatter a single feature across many folders:
+
+```
+src/components/
+src/hooks/
+src/utils/
+src/helpers/
+```
+
+### 2. Path carries context; filename carries role
+
+Folder names communicate feature or business context. Filenames communicate the role within that context. Do not repeat the folder name in the filename.
+
+```
+webview/settingsPanel/model.ts    ✓
+webview/settingsPanel/view.tsx    ✓
+webview/settingsPanel/SettingsPanelModel.ts  ✗
+```
+
+### 3. Split by mutation site
+
+A file should have one clear reason to change. If a file contains independently changing behaviors, extract them.
+
+- Source file exceeds 50 mutation sites → split or refactor.
+- Test file exceeds ~200–300 lines → split by source module or behavior.
+
+### 4. File-to-test mapping
+
+Every source module must have a matching test module.
+
+```
+settingsPanel/model.ts        → settingsPanel/model.test.ts
+nodeSizeToggle/command.ts    → nodeSizeToggle/command.test.ts
+```
+
+If a source file covers multiple distinct concepts, split it before creating a large test file.
+
+### 5. Prefer local code over premature abstraction
+
+Keep code close to the feature that owns it. Duplicate small amounts first; extract only when the abstraction is proven.
+
+Extract shared code only when:
+- The shared behavior is real, not coincidental.
+- The name is obvious.
+- It is used in 3+ places or is clearly stable.
+- Extraction improves clarity more than it adds indirection.
+
+### 6. Naming
+
+Ban junk-drawer names: `utils`, `helpers`, `common`, `misc`, `base`, `temp`, `new`.
+
+Ban vague role names: `manager`, `processor`, `service`, `handler2`, `thing`.
+
+Prefer a consistent, minimal vocabulary for file roles:
+
+`model` · `view` · `command` · `registry` · `parser` · `serializer` · `protocol` · `types` · `test`
+
+A reader should be able to guess what a file does from its path alone, before opening it.
+
+## Quality Gates
+
+### 1. TDD — Red → Green → Refactor
+
+Write acceptance scenarios for every new or changed behavior. Ask before changing existing scenarios.
+
+**Three Laws:**
 1. No production code without a failing test.
 2. No more test code than is sufficient to fail.
 3. No more production code than is sufficient to pass.
 
-Cycle: **Red** (failing test) → **Green** (minimum code to pass) → **Refactor** (clean up, keep green) → repeat.
+Test locations: `packages/extension/tests/` (extension + webview), `packages/plugin-*/__tests__/` (plugins).
 
-- Tests: `packages/extension/tests/` (extension/webview), `packages/plugin-*/__tests__/` (plugins).
-- Prefer targeted test runs while iterating; run full `pnpm run test` before finishing.
+Use targeted test runs while iterating. Run `pnpm run test` before finishing.
 
-#### 2. Test Quality
+### 2. Test Quality
 
-1. **One concept per test** — if the name has "and", split it. Each test fails for exactly one reason.
-2. **Arrange-Act-Assert** — if any section gets long, the test is doing too much.
-3. **File-per-module** — each source file gets a matching test file. Split test files past ~200-300 lines.
+1. **One concept per test** — if the name needs "and", split it.
+2. **Arrange-Act-Assert** — if any section is long, the test is doing too much.
+3. **File-per-module** — each source file gets a matching test file.
 4. **Descriptive names** — no abbreviations in test code.
-5. **Test behavior, not implementation** — describe what the code does, not how it does it.
-6. **Code review** — the main mechanism for catching untested edge cases and unclear naming.
+5. **Test behavior, not implementation** — describe what the code does, not how.
 
-#### 3. CRAP ≤ 8
+### 3. CRAP ≤ 8
 
-CRAP = `comp² × (1 - cov/100)³ + comp`. High complexity + low coverage = high score.
+`CRAP = comp² × (1 - cov/100)³ + comp`. High complexity with low coverage produces a high score.
 
 ```bash
 pnpm run crap                    # all packages
 pnpm run crap -- plugin-godot    # specific package
 ```
 
-If a function exceeds 8: add tests to increase coverage or refactor to reduce complexity.
+If a function exceeds 8: add tests to raise coverage or refactor to reduce complexity.
 
-#### 4. Mutation Testing ≥ 80%
+### 4. Mutation Testing ≥ 90%
 
-Stryker introduces small bugs and verifies tests catch them. Run one module at a time — kill survivors before moving on.
+Stryker injects small faults and verifies tests catch them. Run one module at a time — kill all survivors before moving on.
 
 ```bash
 pnpm run mutate                    # all packages
 pnpm run mutate -- plugin-godot    # specific package
 ```
 
-- ≥90% green, ≥80% warning, <80% needs work
-- If a file exceeds 50 mutation sites, split/refactor it
-- Report: `reports/mutation/mutation.html`
+Thresholds: ≥90% required · ≥80% warning · <80% must fix. Report: `reports/mutation/mutation.html`.
 
-#### 5. Lint + Typecheck
+### 5. Lint + Typecheck
 
 Pre-commit hooks run automatically. Keep staged changes clean.
 
@@ -103,9 +175,9 @@ pnpm run lint
 pnpm run typecheck
 ```
 
-#### 6. Changeset
+### 6. Changesets
 
-Add for **user-facing changes** only (features, fixes, behavior changes). Skip for refactors, tests, CI, docs.
+Required for **user-facing changes** (features, fixes, behavior changes). Skip for refactors, tests, CI, and docs.
 
 ```bash
 pnpm changeset
@@ -121,5 +193,6 @@ Or create manually in `.changeset/`:
 Add node size toggle to the toolbar with four sizing modes
 ```
 
-- `patch` (bug fix), `minor` (feature), `major` (breaking)
-- Write from the user's perspective, not implementation details.
+Levels: `patch` (bug fix) · `minor` (feature) · `major` (breaking change).
+
+Write from the user's perspective, not implementation details.

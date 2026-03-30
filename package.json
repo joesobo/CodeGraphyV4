@@ -22,8 +22,12 @@
 		"test:watch": "pnpm --filter @codegraphy/extension run test:watch",
 		"lint": "turbo run lint && pnpm run lint:playwright",
 		"lint:playwright": "eslint tests/playwright --max-warnings=0",
-		"crap": "tsx scripts/run-crap.ts",
-		"mutate": "tsx scripts/run-mutate.ts",
+		"crap": "pnpm --filter @codegraphy/quality-tools run crap --",
+		"boundaries": "pnpm --filter @codegraphy/quality-tools run boundaries --",
+		"reachability": "pnpm --filter @codegraphy/quality-tools run reachability --",
+		"mutate": "pnpm --filter @codegraphy/quality-tools run mutate --",
+		"scrap": "pnpm --filter @codegraphy/quality-tools run scrap --",
+		"organize": "pnpm --filter @codegraphy/quality-tools run organize --",
 		"changeset": "changeset",
 		"version-packages": "changeset version",
 		"typecheck": "turbo run typecheck",
@@ -32,7 +36,7 @@
 		"typecheck:plugins": "turbo run typecheck --filter=@codegraphy/plugin-typescript --filter=@codegraphy/plugin-python --filter=@codegraphy/plugin-csharp --filter=@codegraphy/plugin-godot --filter=@codegraphy/plugin-markdown",
 		"prepare": "husky",
 		"test:e2e": "pnpm run build:e2e && node dist-e2e/e2e/runTest.js",
-		"build:e2e": "pnpm run build && tsc -p packages/extension/tsconfig.e2e.json"
+		"build:e2e": "pnpm run build && tsc -p packages/extension/src/e2e/tsconfig.json"
 	},
 	"displayName": "CodeGraphy",
 	"description": "Visualize your codebase as an interactive 2D force graph",
@@ -175,17 +179,14 @@
 			}
 		],
 		"viewsContainers": {
-			"activitybar": [
-				{
-					"id": "codegraphy",
-					"title": "CodeGraphy",
-					"icon": {
-					"dark": "assets/icon-dark.svg",
-					"light": "assets/icon-light.svg"
-				}
-				}
-			]
-		},
+				"activitybar": [
+					{
+						"id": "codegraphy",
+						"title": "CodeGraphy",
+						"icon": "assets/icon.svg"
+					}
+				]
+			},
 		"views": {
 			"codegraphy": [
 				{

@@ -5,12 +5,15 @@
  */
 
 import React from 'react';
-import { DagDefaultIcon, DagRadialIcon, DagTopDownIcon, DagLeftRightIcon } from '../icons';
+import { DagDefaultIcon } from '../icons/DagDefaultIcon';
+import { DagRadialIcon } from '../icons/DagRadialIcon';
+import { DagTopDownIcon } from '../icons/DagTopDownIcon';
+import { DagLeftRightIcon } from '../icons/DagLeftRightIcon';
 import { Button } from '../ui/button';
-import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
-import { useGraphStore } from '../../store';
-import { postMessage } from '../../lib/vscodeApi';
-import type { DagMode } from '../../../shared/types';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
+import { useGraphStore } from '../../store/state';
+import { postMessage } from '../../vscodeApi';
+import type { DagMode } from '../../../shared/settings/modes';
 
 const DAG_MODES: { mode: DagMode; label: string; Icon: React.FC<{ size?: number; className?: string }> }[] = [
   { mode: null, label: 'Default', Icon: DagDefaultIcon },

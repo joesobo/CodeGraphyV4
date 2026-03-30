@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import Timeline from '../../src/webview/components/Timeline';
-import { graphStore } from '../../src/webview/store';
-import type { ICommitInfo, IGraphData } from '../../src/shared/types';
+import { graphStore } from '../../src/webview/store/state';
+import type { IGraphData } from '../../src/shared/graph/types';
+import type { ICommitInfo } from '../../src/shared/timeline/types';
 
 // Capture postMessage calls
 const sentMessages: unknown[] = [];
-vi.mock('../../src/webview/lib/vscodeApi', () => ({
+vi.mock('../../src/webview/vscodeApi', () => ({
   postMessage: (msg: unknown) => sentMessages.push(msg),
   vscode: { getState: () => undefined, setState: vi.fn() },
 }));
@@ -242,7 +243,9 @@ describe('Timeline', () => {
       vi.advanceTimersByTime(100);
     });
 
-    const jumpMessages = sentMessages.filter((m) => (m as { type: string }).type === 'JUMP_TO_COMMIT');
+    const jumpMessages = sentMessages.filter(
+      (message) => (message as { type: string }).type === 'JUMP_TO_COMMIT',
+    );
     expect(jumpMessages.length).toBeGreaterThanOrEqual(1);
   });
 

@@ -1,0 +1,272 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
+import type { IGraphData } from '../../../../src/shared/graph/types';
+import { WorkspaceAnalyzer } from '../../../../src/extension/workspaceAnalyzer/service';
+import * as pluginModule from '../../../../src/extension/workspaceAnalyzer/plugins/queries';
+import * as runModule from '../../../../src/extension/workspaceAnalyzer/analysis/run';
+import * as stateModule from '../../../../src/extension/workspaceAnalyzer/analysis/state';
+
+let workspaceFoldersValue:
+  | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
+  | undefined;
+
+Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+  get: () => workspaceFoldersValue,
+  configurable: true,
+});
+
+function createContext() {
+  return {
+    subscriptions: [],
+    extensionUri: vscode.Uri.file('/test/extension'),
+    workspaceState: {
+      get: vi.fn(() => undefined),
+      update: vi.fn(() => Promise.resolve()),
+    },
+  };
+}
+
+function createGraph(): IGraphData {
+  return {
+    nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+    edges: [],
+  };
+}
+
+describe('WorkspaceAnalyzer delegates', () => {
+  beforeEach(() => {
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },
+    ];
+    vi.clearAllMocks();
+  });
+
+  it('delegates analyze through the shared runner with the current workspace root', async () => {
+    const context = createContext();
+    const analyzer = new WorkspaceAnalyzer(
+      context as unknown as vscode.ExtensionContext,
+    );
+    const signal = new AbortController().signal;
+    const disabledRules = new Set(['plugin.typescript:rule']);
+    const disabledPlugins = new Set(['plugin.python']);
+    const expectedGraph = createGraph();
+    const runSpy = vi
+      .spyOn(runModule, 'runWorkspaceAnalyzerAnalysis')
+      .mockImplementation(
+        async (
+          source,
+          cache,
+          config,
+          discovery,
+          workspaceState,
+          getWorkspaceRoot,
+          filterPatterns,
+          nextDisabledRules,
+          nextDisabledPlugins,
+          nextSignal,
+        ) => {
+          expect(cache).toBe((analyzer as unknown as { _cache: unknown })._cache);
+          expect(config).toBe((analyzer as unknown as { _config: unknown })._config);
+          expect(discovery).toBe((analyzer as unknown as { _discovery: unknown })._discovery);
+          expect(workspaceState).toBe(context.workspaceState);
+          expect(source._lastDiscoveredFiles).toBe(
+            (analyzer as unknown as { _lastDiscoveredFiles: unknown })._lastDiscoveredFiles,
+          );
+          expect(source._lastFileConnections).toBe(
+            (analyzer as unknown as { _lastFileConnections: unknown })._lastFileConnections,
+          );
+          expect(source._lastWorkspaceRoot).toBe('');
+          expect(getWorkspaceRoot()).toBe('/test/workspace');
+          expect(filterPatterns).toEqual(['**/*.generated.ts']);
+          expect(nextDisabledRules).toBe(disabledRules);
+          expect(nextDisabledPlugins).toBe(disabledPlugins);
+          expect(nextSignal).toBe(signal);
+          return expectedGraph;
+        },
+      );
+
+    await expect(
+      analyzer.analyze(['**/*.generated.ts'], disabledRules, disabledPlugins, signal),
+    ).resolves.toEqual(expectedGraph);
+    expect(runSpy).toHaveBeenCalledOnce();
+  });
+
+  it('updates cached discovered files when the shared runner writes them back', async () => {
+    const analyzer = new WorkspaceAnalyzer(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    const discoveredFiles = [
+      {
+        absolutePath: '/test/workspace/src/index.ts',
+        extension: '.ts',
+        name: 'index.ts',
+        relativePath: 'src/index.ts',
+      },
+    ];
+
+    vi.spyOn(runModule, 'runWorkspaceAnalyzerAnalysis').mockImplementation(async source => {
+      source._lastDiscoveredFiles = discoveredFiles;
+      return { nodes: [], edges: [] };
+    });
+
+    await analyzer.analyze();
+
+    expect(
+      (analyzer as unknown as { _lastDiscoveredFiles: unknown })._lastDiscoveredFiles,
+    ).toBe(discoveredFiles);
+  });
+
+  it('updates cached file connections when the shared runner writes them back', async () => {
+    const analyzer = new WorkspaceAnalyzer(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    const fileConnections = new Map([
+      [
+        'src/index.ts',
+        [
+          {
+            resolvedPath: '/test/workspace/src/utils.ts',
+            specifier: './utils',
+            type: 'static' as const,
+          },
+        ],
+      ],
+    ]);
+
+    vi.spyOn(runModule, 'runWorkspaceAnalyzerAnalysis').mockImplementation(async source => {
+      source._lastFileConnections = fileConnections;
+      return { nodes: [], edges: [] };
+    });
+
+    await analyzer.analyze();
+
+    expect(
+      (analyzer as unknown as { _lastFileConnections: unknown })._lastFileConnections,
+    ).toBe(fileConnections);
+  });
+
+  it('updates the cached workspace root when the shared runner writes it back', async () => {
+    const analyzer = new WorkspaceAnalyzer(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    const workspaceRoot = '/test/workspace';
+
+    vi.spyOn(runModule, 'runWorkspaceAnalyzerAnalysis').mockImplementation(async source => {
+      source._lastWorkspaceRoot = workspaceRoot;
+      return { nodes: [], edges: [] };
+    });
+
+    await analyzer.analyze();
+
+    expect(
+      (analyzer as unknown as { _lastWorkspaceRoot: unknown })._lastWorkspaceRoot,
+    ).toBe(workspaceRoot);
+  });
+
+  it('delegates rebuildGraph through the cached rebuild source', () => {
+    const analyzer = new WorkspaceAnalyzer(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    const disabledRules = new Set(['plugin.typescript:rule']);
+    const disabledPlugins = new Set(['plugin.python']);
+    const expectedGraph = createGraph();
+    const rebuildSpy = vi
+      .spyOn(stateModule, 'rebuildWorkspaceAnalyzerGraphForSource')
+      .mockReturnValue(expectedGraph);
+
+    expect(
+      analyzer.rebuildGraph(disabledRules, disabledPlugins, false),
+    ).toEqual(expectedGraph);
+    const [source, nextDisabledRules, nextDisabledPlugins, nextShowOrphans] =
+      rebuildSpy.mock.calls[0];
+    expect(source._lastFileConnections).toBe(
+      (analyzer as unknown as { _lastFileConnections: unknown })._lastFileConnections,
+    );
+    expect(source._lastWorkspaceRoot).toBe('');
+    expect(nextDisabledRules).toBe(disabledRules);
+    expect(nextDisabledPlugins).toBe(disabledPlugins);
+    expect(nextShowOrphans).toBe(false);
+  });
+
+  it('delegates plugin status calculation through the current analyzer state', () => {
+    const analyzer = new WorkspaceAnalyzer(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    const analyzerPrivate = analyzer as unknown as {
+      _lastDiscoveredFiles: Array<{ relativePath: string }>;
+      _lastFileConnections: Map<string, never[]>;
+      _lastWorkspaceRoot: string;
+      _registry: unknown;
+    };
+    const disabledRules = new Set(['plugin.typescript:rule']);
+    const disabledPlugins = new Set(['plugin.python']);
+    const expectedStatuses = [{ id: 'plugin.typescript', status: 'active' }];
+
+    analyzerPrivate._lastDiscoveredFiles = [{ relativePath: 'src/index.ts' }];
+    analyzerPrivate._lastFileConnections = new Map([['src/index.ts', []]]);
+    analyzerPrivate._lastWorkspaceRoot = '/test/workspace';
+
+    const statusSpy = vi
+      .spyOn(pluginModule, 'getWorkspaceAnalyzerPluginStatuses')
+      .mockReturnValue(expectedStatuses as never);
+
+    expect(
+      analyzer.getPluginStatuses(disabledRules, disabledPlugins),
+    ).toEqual(expectedStatuses);
+    expect(statusSpy).toHaveBeenCalledWith({
+      disabledPlugins,
+      disabledRules,
+      discoveredFiles: analyzerPrivate._lastDiscoveredFiles,
+      fileConnections: analyzerPrivate._lastFileConnections,
+      registry: analyzerPrivate._registry,
+      workspaceRoot: '/test/workspace',
+    });
+  });
+
+  it('delegates plugin name lookup with the live workspace root callback', () => {
+    const analyzer = new WorkspaceAnalyzer(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+    const analyzerPrivate = analyzer as unknown as {
+      _lastWorkspaceRoot: string;
+      _registry: unknown;
+    };
+
+    analyzerPrivate._lastWorkspaceRoot = '';
+
+    const resolveSpy = vi
+      .spyOn(pluginModule, 'resolveWorkspaceAnalyzerPluginNameForFile')
+      .mockImplementation((relativePath, lastWorkspaceRoot, getWorkspaceRoot, registry) => {
+        expect(relativePath).toBe('src/index.ts');
+        expect(lastWorkspaceRoot).toBe('');
+        expect(getWorkspaceRoot()).toBe('/test/workspace');
+        expect(registry).toBe(analyzerPrivate._registry);
+        return 'TypeScript';
+      });
+
+    expect(analyzer.getPluginNameForFile('src/index.ts')).toBe('TypeScript');
+    expect(resolveSpy).toHaveBeenCalledOnce();
+  });
+
+  it('delegates cache clearing and replaces the cached analysis state', () => {
+    const context = createContext();
+    const analyzer = new WorkspaceAnalyzer(
+      context as unknown as vscode.ExtensionContext,
+    );
+    const replacementCache = { version: '1.9.0', files: {} };
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    const clearSpy = vi
+      .spyOn(stateModule, 'clearWorkspaceAnalyzerCache')
+      .mockImplementation((workspaceState, logInfo) => {
+        expect(workspaceState).toBe(context.workspaceState);
+        logInfo('[CodeGraphy] Cache cleared');
+        return replacementCache as never;
+      });
+
+    analyzer.clearCache();
+
+    expect(clearSpy).toHaveBeenCalledOnce();
+    expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Cache cleared');
+    expect((analyzer as unknown as { _cache: unknown })._cache).toBe(replacementCache);
+  });
+});

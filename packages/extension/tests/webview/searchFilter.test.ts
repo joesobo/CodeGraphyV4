@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import type { IGraphNode } from '../../src/shared/types';
+import type { IGraphNode } from '../../src/shared/graph/types';
 
 // Re-implement the filter function for testing (same logic as App.tsx)
 interface SearchOptions {

@@ -6,10 +6,14 @@
 
 import React from 'react';
 import { mdiCircleOutline, mdiSphere } from '@mdi/js';
-import { MdiIcon } from '../icons';
+import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
-import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
-import { useGraphStore } from '../../store';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
+import { useGraphStore } from '../../store/state';
+
+export function getDimensionToggleTooltipLabel(graphMode: '2d' | '3d'): string {
+  return graphMode === '2d' ? '2D Mode' : '3D Mode';
+}
 
 export function DimensionToggle(): React.ReactElement {
   const graphMode = useGraphStore(s => s.graphMode);
@@ -27,7 +31,7 @@ export function DimensionToggle(): React.ReactElement {
           <MdiIcon path={graphMode === '2d' ? mdiCircleOutline : mdiSphere} size={16} />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom">{graphMode === '2d' ? '2D Mode' : '3D Mode'}</TooltipContent>
+      <TooltipContent side="bottom">{getDimensionToggleTooltipLabel(graphMode)}</TooltipContent>
     </Tooltip>
   );
 }

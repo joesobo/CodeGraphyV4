@@ -11,7 +11,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 
 interface CodeGraphyAPI {
-  getGraphData(): import('../../shared/types').IGraphData;
+  getGraphData(): import('../../shared/graph/types').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
 }

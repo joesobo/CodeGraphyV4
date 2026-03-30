@@ -5,16 +5,16 @@
   "description": "CodeGraphy VS Code extension core",
   "scripts": {
     "build": "pnpm run build:extension && pnpm run build:webview",
-    "build:extension": "esbuild src/extension/index.ts --bundle --outfile=../../dist/extension.js --external:vscode --format=cjs --platform=node",
+    "build:extension": "esbuild src/extension/activate.ts --bundle --outfile=../../dist/extension.js --external:vscode --format=cjs --platform=node",
     "build:webview": "cd ../.. && vite build --config packages/extension/vite.config.ts",
     "watch": "concurrently \"pnpm run watch:extension\" \"pnpm run watch:webview\"",
-    "watch:extension": "esbuild src/extension/index.ts --bundle --outfile=../../dist/extension.js --external:vscode --format=cjs --platform=node --watch",
+    "watch:extension": "esbuild src/extension/activate.ts --bundle --outfile=../../dist/extension.js --external:vscode --format=cjs --platform=node --watch",
     "watch:webview": "cd ../.. && vite build --config packages/extension/vite.config.ts --watch",
     "dev": "pnpm run watch",
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
-    "lint": "eslint src",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "lint": "eslint \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.16"

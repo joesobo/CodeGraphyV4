@@ -1,0 +1,72 @@
+import * as path from 'path';
+import { getFileColor } from '../../../shared/fileColors';
+import type { IGraphEdge, IGraphNode } from '../../../shared/graph/types';
+
+export function deleteGitHistoryGraphFile(
+  filePath: string,
+  nodes: IGraphNode[],
+  edges: IGraphEdge[],
+  nodeMap: Map<string, IGraphNode>,
+  edgeSet: Set<string>,
+): void {
+  const nodeIndex = nodes.findIndex((node) => node.id === filePath);
+  if (nodeIndex !== -1) {
+    nodes.splice(nodeIndex, 1);
+  }
+
+  nodeMap.delete(filePath);
+
+  const edgeIndexesToRemove: number[] = [];
+  for (let index = edges.length - 1; index >= 0; index--) {
+    if (edges[index].from !== filePath && edges[index].to !== filePath) {
+      continue;
+    }
+
+    edgeSet.delete(edges[index].id);
+    edgeIndexesToRemove.push(index);
+  }
+
+  for (const index of edgeIndexesToRemove) {
+    edges.splice(index, 1);
+  }
+}
+
+export function renameGitHistoryGraphFile(
+  oldPath: string,
+  newPath: string,
+  edges: IGraphEdge[],
+  nodeMap: Map<string, IGraphNode>,
+  edgeSet: Set<string>,
+): void {
+  const node = nodeMap.get(oldPath);
+  if (node) {
+    node.id = newPath;
+    node.label = path.basename(newPath);
+    node.color = getFileColor(path.extname(newPath));
+    nodeMap.delete(oldPath);
+    nodeMap.set(newPath, node);
+  }
+
+  for (const edge of edges) {
+    let changed = false;
+    const previousId = edge.id;
+
+    if (edge.from === oldPath) {
+      edge.from = newPath;
+      changed = true;
+    }
+
+    if (edge.to === oldPath) {
+      edge.to = newPath;
+      changed = true;
+    }
+
+    if (!changed) {
+      continue;
+    }
+
+    edgeSet.delete(previousId);
+    edge.id = `${edge.from}->${edge.to}`;
+    edgeSet.add(edge.id);
+  }
+}

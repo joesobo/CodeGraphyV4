@@ -1,0 +1,145 @@
+{
+  "defaults": {
+    "mutation": {
+      "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+      ],
+      "exclude": [
+        "src/**/*.d.ts",
+        "**/index.ts",
+        "**/index.tsx"
+      ]
+    },
+    "crap": {
+      "exclude": [
+        "**/e2e/**",
+        "**/__tests__/**",
+        "**/*.test.ts",
+        "**/*.test.tsx"
+      ]
+    },
+    "scrap": {
+      "include": [
+        "tests/**/*.test.ts",
+        "tests/**/*.test.tsx",
+        "__tests__/**/*.test.ts",
+        "__tests__/**/*.test.tsx"
+      ],
+      "exclude": []
+    },
+    "organize": {
+      "lowInfoNames": {
+        "banned": ["utils", "helpers", "misc", "common", "shared", "_shared", "lib", "index"],
+        "discouraged": ["types", "constants", "config", "base", "core"]
+      },
+      "fileFanOut": { "warning": 8, "split": 10 },
+      "folderFanOut": { "warning": 10, "split": 13 },
+      "depth": { "warning": 4, "deep": 5 },
+      "redundancyThreshold": 0.3,
+      "cohesionClusterMinSize": 3
+    },
+    "boundaries": {
+      "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+      ],
+      "exclude": [
+        "src/**/*.d.ts",
+        "**/index.ts",
+        "**/index.tsx",
+        "src/e2e/**",
+        "src/shared/mockData.ts",
+        "src/shared/mock/**",
+        "**/*.test.ts",
+        "**/*.test.tsx"
+      ]
+    }
+  },
+  "packages": {
+    "extension": {
+      "organize": {
+        "fileFanOut": { "warning": 9, "split": 11 },
+        "folderFanOut": { "warning": 14, "split": 16 },
+        "depth": { "warning": 7, "deep": 8 }
+      },
+      "mutation": {
+        "exclude": [
+          "src/**/e2e/**",
+          "src/**/core/discovery/file/defaults.ts",
+          "src/**/core/plugins/versioning/apiVersions.ts",
+          "src/**/extension/config/defaults.ts",
+          "src/**/extension/gitHistory/cache/stateKeys.ts",
+          "src/**/shared/fileColorConstants.ts",
+          "src/**/shared/mockData*.ts",
+          "src/**/webview/components/icons/**",
+          "src/**/webview/components/settingsPanel/groups/shared/options.ts",
+          "src/**/webview/store/defaults.ts"
+        ]
+      },
+      "boundaries": {
+        "entrypoints": [
+          "src/extension/activate.ts",
+          "src/extension/graphViewProvider.ts",
+          "src/webview/main.tsx"
+        ],
+        "layers": [
+          {
+            "allow": [
+              "shared",
+              "core"
+            ],
+            "include": [
+              "src/extension/**"
+            ],
+            "name": "extension"
+          },
+          {
+            "allow": [
+              "shared"
+            ],
+            "include": [
+              "src/core/**"
+            ],
+            "name": "core"
+          },
+          {
+            "allow": [
+              "shared",
+              "webview"
+            ],
+            "include": [
+              "src/webview/**"
+            ],
+            "name": "webview"
+          },
+          {
+            "allow": [
+              "shared"
+            ],
+            "include": [
+              "src/shared/**"
+            ],
+            "name": "shared"
+          }
+        ]
+      }
+    },
+    "quality-tools": {
+      "mutation": {
+        "exclude": [
+          "src/cli/**/*.ts"
+        ]
+      },
+      "boundaries": {
+        "entrypoints": [
+          "src/**/command.ts"
+        ],
+        "exclude": [
+          "src/cli/**/*.ts",
+          "tests/**/*.ts"
+        ]
+      }
+    }
+  }
+}

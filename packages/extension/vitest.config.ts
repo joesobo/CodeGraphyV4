@@ -9,17 +9,19 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    server: {
+      sourcemap: false,
+    },
     include: [
-      resolve(__dirname, 'tests/**/*.test.{ts,tsx}'),
-      resolve(root, 'packages/plugin-*/__tests__/**/*.test.{ts,tsx}'),
+      'tests/**/*.test.{ts,tsx}',
     ],
     setupFiles: [resolve(__dirname, 'tests/setup.ts')],
     coverage: {
       provider: 'istanbul',
       reporter: ['text', 'html', 'json'],
       reportsDirectory: resolve(root, 'coverage'),
-      include: ['src/**/*.{ts,tsx}', '../plugin-*/src/**/*.ts'],
-      exclude: ['src/**/*.d.ts'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: ['src/**/*.d.ts', '../*/src/**/*.d.ts'],
     },
   },
   resolve: {

@@ -1,4 +1,4 @@
-import type { WebviewToExtensionMessage } from '../../src/shared/types';
+import type { WebviewToExtensionMessage } from '../../src/shared/protocol/webviewToExtension';
 
 /**
  * Typed access to messages captured by the vscodeApi mock.

@@ -1,0 +1,51 @@
+import { vi } from 'vitest';
+import { CodeGraphyAPIImpl } from '@/core/plugins/codeGraphyApi';
+import { EventBus } from '@/core/plugins/eventBus';
+import { DecorationManager } from '@/core/plugins/decoration/manager';
+import { ViewRegistry } from '@/core/views/registry';
+import type { IGraphData } from '@/shared/graph/types';
+
+export function createTestAPI(pluginId = 'test-plugin') {
+  const eventBus = new EventBus();
+  const decorationManager = new DecorationManager();
+  const viewRegistry = new ViewRegistry();
+  const graphData: IGraphData = {
+    nodes: [
+      { id: 'a.ts', label: 'a.ts', color: '#fff' },
+      { id: 'b.ts', label: 'b.ts', color: '#fff' },
+      { id: 'c.ts', label: 'c.ts', color: '#fff' },
+    ],
+    edges: [
+      { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
+      { id: 'b.ts->c.ts', from: 'b.ts', to: 'c.ts' },
+    ],
+  };
+  const graphProvider = vi.fn(() => graphData);
+  const commandRegistrar = vi.fn(() => ({ dispose: vi.fn() }));
+  const webviewSender = vi.fn();
+  const logFn = vi.fn();
+
+  const api = new CodeGraphyAPIImpl(
+    pluginId,
+    eventBus,
+    decorationManager,
+    viewRegistry,
+    graphProvider,
+    commandRegistrar,
+    webviewSender,
+    '/workspace',
+    logFn,
+  );
+
+  return {
+    api,
+    eventBus,
+    decorationManager,
+    viewRegistry,
+    graphProvider,
+    commandRegistrar,
+    webviewSender,
+    logFn,
+    graphData,
+  };
+}

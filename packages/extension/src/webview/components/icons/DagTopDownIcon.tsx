@@ -1,5 +1,5 @@
 import React from 'react';
-import type { IconProps } from './types';
+import type { IconProps } from './iconProps';
 
 /** Tree pointing down — top-down mode */
 export const DagTopDownIcon: React.FC<IconProps> = ({ size = 18, className }) => (

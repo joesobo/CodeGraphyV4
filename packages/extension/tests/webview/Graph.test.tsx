@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen } from '@testing-library/react';
 import Graph from '../../src/webview/components/Graph';
-import { IGraphData } from '../../src/shared/types';
-import { graphStore } from '../../src/webview/store';
+import type { IGraphData } from '../../src/shared/graph/types';
+import { graphStore } from '../../src/webview/store/state';
 import ForceGraph2D from 'react-force-graph-2d';
 
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';

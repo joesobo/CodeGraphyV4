@@ -243,6 +243,8 @@ importers:
         specifier: workspace:*
         version: link:../plugin-api
 
+  packages/quality-tools: {}
+
 packages:
 
   3d-force-graph@1.79.1:

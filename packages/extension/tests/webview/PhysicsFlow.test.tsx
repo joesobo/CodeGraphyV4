@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import App from '../../src/webview/App';
-import { graphStore } from '../../src/webview/store';
+import App from '../../src/webview/app/App';
+import { graphStore } from '../../src/webview/store/state';
 
 const messageListeners: Array<(event: MessageEvent) => void> = [];
 
@@ -115,7 +115,7 @@ describe('Physics flow', () => {
       vi.advanceTimersByTime(350);
     });
 
-    const physicsMessage = sentMessages.find(m => m.type === 'UPDATE_PHYSICS_SETTING');
+    const physicsMessage = sentMessages.find(msg => msg.type === 'UPDATE_PHYSICS_SETTING');
     expect(physicsMessage).toEqual({
       type: 'UPDATE_PHYSICS_SETTING',
       payload: { key: 'repelForce', value: 11 },

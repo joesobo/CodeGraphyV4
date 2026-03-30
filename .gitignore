@@ -2,7 +2,7 @@ node_modules/
 dist/
 *.vsix
 .vscode-test/
-coverage/
+/coverage/
 *.log
 .DS_Store
 dist-e2e/
@@ -16,3 +16,4 @@ blob-report/
 .turbo/
 reports/
 .stryker-tmp/
+.pnpm-store/

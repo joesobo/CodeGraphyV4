@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getMockGraphData, MOCK_FILE_DATA } from '../../src/shared/mockData';
-import { FILE_TYPE_COLORS, DEFAULT_NODE_COLOR } from '../../src/shared/types';
+import { FILE_TYPE_COLORS, DEFAULT_NODE_COLOR } from '../../src/shared/fileColors';
 
 describe('Mock Data', () => {
   describe('MOCK_FILE_DATA', () => {
@@ -31,7 +31,7 @@ describe('Mock Data', () => {
     });
 
     it('should only import existing files', () => {
-      const allPaths = new Set(MOCK_FILE_DATA.map((f) => f.path));
+      const allPaths = new Set(MOCK_FILE_DATA.map((file) => file.path));
       MOCK_FILE_DATA.forEach((file) => {
         file.imports.forEach((importPath) => {
           expect(allPaths.has(importPath)).toBe(true);
@@ -68,7 +68,7 @@ describe('Mock Data', () => {
 
     it('should use file path as node id', () => {
       const data = getMockGraphData();
-      const mockPaths = MOCK_FILE_DATA.map((f) => f.path);
+      const mockPaths = MOCK_FILE_DATA.map((file) => file.path);
       data.nodes.forEach((node) => {
         expect(mockPaths).toContain(node.id);
       });
@@ -76,7 +76,7 @@ describe('Mock Data', () => {
 
     it('should use filename as node label', () => {
       const data = getMockGraphData();
-      const mockNames = MOCK_FILE_DATA.map((f) => f.name);
+      const mockNames = MOCK_FILE_DATA.map((file) => file.name);
       data.nodes.forEach((node) => {
         expect(mockNames).toContain(node.label);
       });
@@ -85,7 +85,7 @@ describe('Mock Data', () => {
     it('should assign correct colors based on file extension', () => {
       const data = getMockGraphData();
       data.nodes.forEach((node) => {
-        const file = MOCK_FILE_DATA.find((f) => f.path === node.id);
+        const file = MOCK_FILE_DATA.find((file) => file.path === node.id);
         expect(file).toBeDefined();
         const expectedColor = FILE_TYPE_COLORS[file!.extension] ?? DEFAULT_NODE_COLOR;
         expect(node.color).toBe(expectedColor);
@@ -94,7 +94,7 @@ describe('Mock Data', () => {
 
     it('should create edges for all imports', () => {
       const data = getMockGraphData();
-      const totalImports = MOCK_FILE_DATA.reduce((sum, f) => sum + f.imports.length, 0);
+      const totalImports = MOCK_FILE_DATA.reduce((sum, file) => sum + file.imports.length, 0);
       expect(data.edges.length).toBe(totalImports);
     });
 

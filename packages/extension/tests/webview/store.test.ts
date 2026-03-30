@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createGraphStore } from '../../src/webview/store';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../src/shared/types';
+import { createGraphStore } from '../../src/webview/store/state';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../src/shared/fileColors';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
 describe('GraphStore', () => {

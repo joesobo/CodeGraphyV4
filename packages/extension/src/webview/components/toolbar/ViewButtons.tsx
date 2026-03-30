@@ -6,12 +6,12 @@
 
 import React from 'react';
 import { mdiGraphOutline, mdiBullseye, mdiFolderOutline } from '@mdi/js';
-import { MdiIcon } from '../icons';
+import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
-import { Slider } from '../ui/slider';
-import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/tooltip';
-import { useGraphStore } from '../../store';
-import { postMessage } from '../../lib/vscodeApi';
+import { Slider } from '../ui/controls/slider';
+import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
+import { useGraphStore } from '../../store/state';
+import { postMessage } from '../../vscodeApi';
 
 const VIEW_ICONS: Record<string, string> = {
   'codegraphy.connections': mdiGraphOutline,

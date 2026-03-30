@@ -1,0 +1,38 @@
+import { createGraphViewProviderAnalysisRequestHandlers } from './handlers';
+import type { GraphViewProviderAnalysisDelegateCalls } from './delegates';
+import type {
+  GraphViewProviderAnalysisMethodDependencies,
+  GraphViewProviderAnalysisMethodsSource,
+} from './methods';
+import {
+  createGraphViewProviderAnalysisState,
+  syncGraphViewProviderAnalysisState,
+} from './state';
+
+export function createGraphViewProviderAnalyzeAndSendData(
+  source: GraphViewProviderAnalysisMethodsSource,
+  dependencies: GraphViewProviderAnalysisMethodDependencies,
+  delegates: Pick<GraphViewProviderAnalysisDelegateCalls, 'callIsAbortError'>,
+  doAnalyzeAndSendData: (signal: AbortSignal, requestId: number) => Promise<void>,
+): () => Promise<void> {
+  return async (): Promise<void> => {
+    const state = createGraphViewProviderAnalysisState(source);
+
+    await dependencies.runAnalysisRequest(
+      state,
+      createGraphViewProviderAnalysisRequestHandlers(source, dependencies, {
+        executeAnalysis: (signal, requestId) => {
+          const implementation = source._doAnalyzeAndSendData;
+          if (implementation && implementation !== doAnalyzeAndSendData) {
+            return implementation(signal, requestId);
+          }
+
+          return doAnalyzeAndSendData(signal, requestId);
+        },
+        isAbortError: error => delegates.callIsAbortError(error),
+      }),
+    );
+
+    syncGraphViewProviderAnalysisState(source, state);
+  };
+}

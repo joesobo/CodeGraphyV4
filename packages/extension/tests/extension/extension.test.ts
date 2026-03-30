@@ -2,8 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
 
 // Import after mock is set up
-import { activate, deactivate } from '../../src/extension/index';
-import { GraphViewProvider } from '../../src/extension/GraphViewProvider';
+import { activate, deactivate } from '../../src/extension/activate';
+import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 describe('Extension', () => {
   let mockContext: {
@@ -65,9 +65,12 @@ describe('Extension', () => {
 
     it('should ignore workspace settings saves when deciding graph refresh', async () => {
       vi.useFakeTimers();
-      const refreshSpy = vi.spyOn(GraphViewProvider.prototype, 'refresh').mockResolvedValue();
 
       activate(mockContext as unknown as Parameters<typeof activate>[0]);
+      const provider = (
+        vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
+      ).mock.calls[0]?.[1] as GraphViewProvider;
+      const refreshSpy = vi.spyOn(provider, 'refresh').mockResolvedValue();
 
       const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })
         .mock.calls[0]?.[0] as (document: { uri?: { fsPath?: string } }) => void;
@@ -82,9 +85,12 @@ describe('Extension', () => {
 
     it('should refresh graph on regular file saves', async () => {
       vi.useFakeTimers();
-      const refreshSpy = vi.spyOn(GraphViewProvider.prototype, 'refresh').mockResolvedValue();
 
       activate(mockContext as unknown as Parameters<typeof activate>[0]);
+      const provider = (
+        vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
+      ).mock.calls[0]?.[1] as GraphViewProvider;
+      const refreshSpy = vi.spyOn(provider, 'refresh').mockResolvedValue();
 
       const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })
         .mock.calls[0]?.[0] as (document: { uri?: { fsPath?: string } }) => void;

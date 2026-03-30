@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "types": ["vitest/globals", "node"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "react-force-graph-2d": ["./tests/types/react-force-graph-2d"],
+      "react-force-graph-3d": ["./tests/types/react-force-graph-3d"]
+    }
+  },
+  "include": ["src", "tests", "vite.config.ts", "vitest.config.ts", "vitest.stryker.config.ts"]
+}
