@@ -5,7 +5,7 @@
 ## Boundaries
 
 - `src/extension/` owns the VS Code host, workspace state, command wiring, and file-system actions.
-- `src/core/` owns reusable domain logic for colors, views, discovery, and plugin infrastructure.
+- `src/core/` owns reusable domain logic for views, discovery, and plugin infrastructure.
 - `src/webview/` owns the React UI, store, rendering runtime, and browser-side message handling.
 - `src/shared/protocol/` owns extension-to-webview and webview-to-extension message unions.
 - `src/shared/graph/`, `src/shared/files/`, `src/shared/settings/`, `src/shared/plugins/`, `src/shared/view/`, and `src/shared/timeline/` own shared payload types.
