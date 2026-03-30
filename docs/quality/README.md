@@ -29,3 +29,5 @@ Current command expectations:
 - `scrap` works best on package roots and test files/directories
 
 Implementation now lives in `packages/quality-tools/`.
+
+Extension-specific architecture and lifecycle notes live in `packages/extension/docs/`.
