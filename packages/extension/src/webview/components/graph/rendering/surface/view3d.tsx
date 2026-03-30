@@ -9,7 +9,7 @@ import * as THREE from 'three';
 import { DEFAULT_NODE_SIZE, type FGLink, type FGNode } from '../../model/build';
 import type { GraphSurfaceSharedProps } from './sharedProps';
 
-type ForceGraph3DRefObject = MutableRefObject<FG3DMethods<NodeObject, LinkObject> | undefined>;
+type ForceGraph3DRef = MutableRefObject<FG3DMethods<NodeObject, LinkObject> | undefined>;
 
 export interface Surface3dProps {
   backgroundColor: string;
@@ -42,10 +42,10 @@ export function Surface3d({
 }: Surface3dProps): ReactElement {
   return (
     <ForceGraph3D
-      ref={fg3dRef as unknown as ForceGraph3DRefObject}
+      ref={fg3dRef as unknown as ForceGraph3DRef}
       {...sharedProps}
       backgroundColor={backgroundColor}
-      nodeVal={(node) => (node as FGNode).size / DEFAULT_NODE_SIZE}
+      nodeVal={(node: NodeObject) => (node as FGNode).size / DEFAULT_NODE_SIZE}
       nodeLabel=""
       nodeThreeObjectExtend={false}
       nodeThreeObject={nodeThreeObject}
@@ -58,7 +58,7 @@ export function Surface3d({
       linkDirectionalParticleWidth={particleSize}
       linkDirectionalParticleSpeed={particleSpeed}
       linkDirectionalParticleColor={getParticleColor}
-      linkCurvature={(link) => (link as FGLink).curvature ?? 0}
+      linkCurvature={(link: LinkObject) => (link as FGLink).curvature ?? 0}
       linkCurveRotation="rotation"
     />
   );

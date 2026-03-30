@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { Dispatch, SetStateAction } from 'react';
 import type { FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphTooltipState } from '../../../../src/webview/components/graph/tooltipModel';
 import {
@@ -36,16 +37,21 @@ describe('tooltipTracking', () => {
       return 7;
     });
 
-    const setTooltipData = vi.fn((update: (previous: GraphTooltipState) => GraphTooltipState) => {
-      const nextState = update({
-        info: null,
-        nodeRect: { radius: 0, x: 0, y: 0 },
-        path: '',
-        pluginSections: [],
-        visible: true,
-      });
-      expect(nextState.nodeRect).toEqual({ x: 10, y: 20, radius: 30 });
-    });
+    const setTooltipData = vi.fn(
+      (update: SetStateAction<GraphTooltipState>) => {
+        const nextState =
+          typeof update === 'function'
+            ? update({
+                info: null,
+                nodeRect: { radius: 0, x: 0, y: 0 },
+                path: '',
+                pluginSections: [],
+                visible: true,
+              })
+            : update;
+        expect(nextState.nodeRect).toEqual({ x: 10, y: 20, radius: 30 });
+      },
+    ) as Dispatch<SetStateAction<GraphTooltipState>>;
     const tooltipRafRef = { current: null as number | null };
 
     startTooltipTracking({
@@ -127,9 +133,13 @@ describe('tooltipTracking', () => {
       pluginSections: [],
       visible: false,
     };
-    const setTooltipData = vi.fn((update: (previous: GraphTooltipState) => GraphTooltipState) => {
-      expect(update(hiddenState)).toBe(hiddenState);
-    });
+    const setTooltipData = vi.fn(
+      (update: SetStateAction<GraphTooltipState>) => {
+        if (typeof update === 'function') {
+          expect(update(hiddenState)).toBe(hiddenState);
+        }
+      },
+    ) as Dispatch<SetStateAction<GraphTooltipState>>;
 
     startTooltipTracking({
       getNodeRect: () => ({ x: 10, y: 20, radius: 30 }),

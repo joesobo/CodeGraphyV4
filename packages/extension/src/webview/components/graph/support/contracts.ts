@@ -22,6 +22,9 @@ export function as2DExtMethods<NodeT extends NodeObject, LinkT extends LinkObjec
   return instance as FG2DExtMethods<NodeT, LinkT> | undefined;
 }
 
-export function setSpriteVisible(sprite: SpriteText, visible: boolean): void {
+export function setSpriteVisible(
+  sprite: SpriteText | { visible?: boolean },
+  visible: boolean,
+): void {
   (sprite as unknown as { visible: boolean }).visible = visible;
 }

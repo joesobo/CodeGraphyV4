@@ -34,16 +34,20 @@ describe('GraphViewProvider plugin bridge injection', () => {
       (call: unknown[]) => (call[0] as { type?: string }).type === 'PLUGIN_WEBVIEW_INJECT',
     );
     expect(injectCall).toBeDefined();
-    expect(injectCall[0]).toMatchObject({
+    const injectMessage = injectCall?.[0] as {
+      type: string;
+      payload: { pluginId: string; scripts: string[]; styles: string[] };
+    };
+    expect(injectMessage).toMatchObject({
       type: 'PLUGIN_WEBVIEW_INJECT',
       payload: {
         pluginId: 'test.webview-plugin',
       },
     });
-    expect((injectCall[0] as { payload: { scripts: string[] } }).payload.scripts[0]).toContain(
+    expect(injectMessage.payload.scripts[0]).toContain(
       'test-plugin.js',
     );
-    expect((injectCall[0] as { payload: { styles: string[] } }).payload.styles[0]).toContain(
+    expect(injectMessage.payload.styles[0]).toContain(
       'test-plugin.css',
     );
   });
@@ -76,7 +80,7 @@ describe('GraphViewProvider plugin bridge injection', () => {
     );
     expect(injectCall).toBeDefined();
 
-    const payload = (injectCall[0] as { payload: { scripts: string[] } }).payload;
+    const payload = (injectCall?.[0] as { payload: { scripts: string[] } }).payload;
     expect(payload.scripts[0]).toContain('/test/external-extension/dist/webview/plugins/external.js');
 
     const roots = (mockWebview.options as { localResourceRoots?: Array<{ path?: string; fsPath?: string }> })

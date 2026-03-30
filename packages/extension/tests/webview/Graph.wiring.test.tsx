@@ -31,7 +31,7 @@ const harness = vi.hoisted(() => ({
 	useGraphCallbacks: vi.fn(),
 	useGraphRenderingRuntime: vi.fn(),
 	useGraphEventEffects: vi.fn(),
-	viewport: vi.fn(() => <div data-testid="graph-viewport" />),
+		viewport: vi.fn((_props: Record<string, unknown>) => <div data-testid="graph-viewport" />),
 }));
 
 vi.mock('../../src/webview/components/graph/contextMenu/buildEntries', () => ({
@@ -175,7 +175,7 @@ function createRenderingRuntime() {
 
 function resetStore(overrides: Record<string, unknown> = {}) {
 	graphStore.setState({
-		bidirectionalMode: 'replace',
+			bidirectionalMode: 'separate',
 		dagMode: null,
 		directionColor: '#22c55e',
 		directionMode: 'arrows',

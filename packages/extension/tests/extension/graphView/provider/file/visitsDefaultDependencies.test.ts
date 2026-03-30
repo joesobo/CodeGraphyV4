@@ -116,7 +116,11 @@ describe('graphView/provider/file/visits default dependencies', () => {
       _analyzeAndSendData: vi.fn(async () => undefined),
     };
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const workspaceFolder = { uri: { fsPath: '/workspace' } };
+    const workspaceFolder = {
+      uri: { fsPath: '/workspace' },
+      name: 'workspace',
+      index: 0,
+    };
     mocks.workspaceFolders = [workspaceFolder];
 
     mocks.sendFileInfoMessage.mockImplementation(async (_filePath, _state, handlers) => {
@@ -171,7 +175,10 @@ describe('graphView/provider/file/visits default dependencies', () => {
       },
       _analyzer: undefined,
       _analyzerInitialized: false,
-      _graphData: { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData,
+      _graphData: {
+        nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+        edges: [],
+      } satisfies IGraphData,
       _sendMessage: vi.fn(),
       _analyzeAndSendData: vi.fn(async () => undefined),
     };

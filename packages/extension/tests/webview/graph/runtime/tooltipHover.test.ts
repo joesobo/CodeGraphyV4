@@ -111,7 +111,7 @@ describe('handleTooltipNodeHover', () => {
         getTooltipContent: () => ({
           sections: [{ content: 'details', title: 'Plugin' }],
         }),
-      } as NonNullable<Parameters<typeof handleTooltipNodeHover>[1]['pluginHost']>,
+      } as unknown as NonNullable<Parameters<typeof handleTooltipNodeHover>[1]['pluginHost']>,
       postMessage,
       setTooltipData,
       startTracking,

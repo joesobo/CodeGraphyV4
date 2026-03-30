@@ -108,7 +108,8 @@ describe('GraphViewProvider file info and visits', () => {
       getPluginNameForFile: vi.fn(() => 'Python'),
     };
 
-    (vscode.workspace.fs as Record<string, unknown>).stat = vi.fn().mockResolvedValue({
+    const mutableWorkspaceFs = vscode.workspace.fs as unknown as Record<string, unknown>;
+    mutableWorkspaceFs.stat = vi.fn().mockResolvedValue({
       mtime: 123,
       size: 456,
     });

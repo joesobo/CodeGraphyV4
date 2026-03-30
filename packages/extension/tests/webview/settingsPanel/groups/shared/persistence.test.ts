@@ -32,7 +32,7 @@ describe('settingsPanel groups persistence', () => {
         first: setTimeout(() => undefined, 100),
         second: setTimeout(() => undefined, 200),
       },
-    };
+    } as unknown as Parameters<typeof clearTimeoutMap>[0];
 
     clearTimeoutMap(ref);
 
@@ -47,7 +47,7 @@ describe('settingsPanel groups persistence', () => {
         first: setTimeout(() => undefined, 100),
         second: undefined,
       },
-    };
+    } as unknown as Parameters<typeof clearTimeoutMap>[0];
 
     clearTimeoutMap(ref);
 

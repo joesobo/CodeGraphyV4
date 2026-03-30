@@ -29,7 +29,11 @@ async function loadSubject(
     WorkspaceAnalyzer: class WorkspaceAnalyzer {},
   }));
   vi.doMock('../../src/core/views', () => ({
-    ViewRegistry: class ViewRegistry {},
+    ViewRegistry: class ViewRegistry {
+      register = vi.fn();
+      get = vi.fn(() => undefined);
+      getDefaultViewId = vi.fn(() => 'codegraphy.connections');
+    },
     coreViews: [],
   }));
   vi.doMock('../../src/core/plugins/eventBus', () => ({

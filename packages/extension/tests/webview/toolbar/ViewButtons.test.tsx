@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
@@ -32,6 +31,16 @@ vi.mock('../../../src/webview/components/ui/controls/slider', () => ({
 import { postMessage } from '../../../src/webview/vscodeApi';
 import { ViewButtons } from '../../../src/webview/components/toolbar/ViewButtons';
 
+function createAvailableView(id: string, name: string) {
+  return {
+    id,
+    name,
+    icon: 'codicon-symbol-file',
+    description: name,
+    active: false,
+  };
+}
+
 function renderWithProviders() {
   return render(
     <TooltipProvider>
@@ -60,8 +69,8 @@ describe('ViewButtons', () => {
   it('renders view buttons when availableViews has entries', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'codegraphy.connections', name: 'Connections' },
-        { id: 'codegraphy.folder', name: 'Folder' },
+        createAvailableView('codegraphy.connections', 'Connections'),
+        createAvailableView('codegraphy.folder', 'Folder'),
       ],
     });
     renderWithProviders();
@@ -71,9 +80,9 @@ describe('ViewButtons', () => {
   it('renders a button for each available view', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'codegraphy.connections', name: 'Connections' },
-        { id: 'codegraphy.depth-graph', name: 'Depth' },
-        { id: 'codegraphy.folder', name: 'Folder' },
+        createAvailableView('codegraphy.connections', 'Connections'),
+        createAvailableView('codegraphy.depth-graph', 'Depth'),
+        createAvailableView('codegraphy.folder', 'Folder'),
       ],
     });
     renderWithProviders();
@@ -84,8 +93,8 @@ describe('ViewButtons', () => {
   it('sends CHANGE_VIEW message when a view button is clicked', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'codegraphy.connections', name: 'Connections' },
-        { id: 'codegraphy.folder', name: 'Folder' },
+        createAvailableView('codegraphy.connections', 'Connections'),
+        createAvailableView('codegraphy.folder', 'Folder'),
       ],
     });
     renderWithProviders();
@@ -102,7 +111,7 @@ describe('ViewButtons', () => {
   it('renders known view icons as SVG paths', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'codegraphy.connections', name: 'Connections' },
+        createAvailableView('codegraphy.connections', 'Connections'),
       ],
     });
     const { container } = renderWithProviders();
@@ -113,7 +122,7 @@ describe('ViewButtons', () => {
   it('renders first letter of name for unknown view IDs', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'custom.unknown-view', name: 'Zzz Custom View' },
+        createAvailableView('custom.unknown-view', 'Zzz Custom View'),
       ],
     });
     renderWithProviders();
@@ -123,7 +132,7 @@ describe('ViewButtons', () => {
   it('renders first letter with text-xs class for fallback icon', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'custom.unknown-view', name: 'Zzz Custom View' },
+        createAvailableView('custom.unknown-view', 'Zzz Custom View'),
       ],
     });
     renderWithProviders();
@@ -134,7 +143,7 @@ describe('ViewButtons', () => {
   it('shows depth slider only when depth view is active', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'codegraphy.depth-graph', name: 'Depth' },
+        createAvailableView('codegraphy.depth-graph', 'Depth'),
       ],
       activeViewId: 'codegraphy.depth-graph',
       depthLimit: 3,
@@ -146,8 +155,8 @@ describe('ViewButtons', () => {
   it('hides depth slider when depth view is not active', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'codegraphy.connections', name: 'Connections' },
-        { id: 'codegraphy.depth-graph', name: 'Depth' },
+        createAvailableView('codegraphy.connections', 'Connections'),
+        createAvailableView('codegraphy.depth-graph', 'Depth'),
       ],
       activeViewId: 'codegraphy.connections',
       depthLimit: 2,
@@ -162,7 +171,7 @@ describe('ViewButtons', () => {
   it('sets opacity to 1 and maxWidth to 8rem when depth view is active', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'codegraphy.depth-graph', name: 'Depth' },
+        createAvailableView('codegraphy.depth-graph', 'Depth'),
       ],
       activeViewId: 'codegraphy.depth-graph',
       depthLimit: 1,
@@ -177,8 +186,8 @@ describe('ViewButtons', () => {
   it('applies default variant to the active view button', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'codegraphy.connections', name: 'Connections' },
-        { id: 'codegraphy.folder', name: 'Folder' },
+        createAvailableView('codegraphy.connections', 'Connections'),
+        createAvailableView('codegraphy.folder', 'Folder'),
       ],
       activeViewId: 'codegraphy.connections',
     });
@@ -193,7 +202,7 @@ describe('ViewButtons', () => {
   it('displays the current depth limit as text', () => {
     graphStore.setState({
       availableViews: [
-        { id: 'codegraphy.depth-graph', name: 'Depth' },
+        createAvailableView('codegraphy.depth-graph', 'Depth'),
       ],
       activeViewId: 'codegraphy.depth-graph',
       depthLimit: 4,
@@ -209,7 +218,7 @@ describe('ViewButtons depth slider interaction', () => {
     sliderHarness.onValueChange = null;
     graphStore.setState({
       availableViews: [
-        { id: 'codegraphy.depth-graph', name: 'Depth' },
+        createAvailableView('codegraphy.depth-graph', 'Depth'),
       ],
       activeViewId: 'codegraphy.depth-graph',
       depthLimit: 2,
@@ -269,7 +278,7 @@ describe('ViewButtons availableViews guard', () => {
 
   it('renders the view-buttons container when length is 1', () => {
     graphStore.setState({
-      availableViews: [{ id: 'codegraphy.connections', name: 'Connections' }],
+      availableViews: [{ id: 'codegraphy.connections', name: 'Connections', icon: 'symbol-file', description: 'Shows all files', active: true }],
     });
     renderWithProviders();
     expect(screen.getByTestId('view-buttons')).toBeInTheDocument();
@@ -277,7 +286,7 @@ describe('ViewButtons availableViews guard', () => {
 
   it('renders correct border styling on the view-buttons container', () => {
     graphStore.setState({
-      availableViews: [{ id: 'codegraphy.connections', name: 'Connections' }],
+      availableViews: [{ id: 'codegraphy.connections', name: 'Connections', icon: 'symbol-file', description: 'Shows all files', active: true }],
     });
     renderWithProviders();
     const container = screen.getByTestId('view-buttons');

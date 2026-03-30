@@ -6,11 +6,19 @@ import {
   type GraphViewProviderSettingsStateMethodsSource,
 } from '../../../../src/extension/graphView/provider/settingsState';
 
+type WorkspaceStateGetMock = ReturnType<typeof vi.fn> & (<T>(key: string) => T | undefined);
+
 function createSource(
   overrides: Partial<GraphViewProviderSettingsStateMethodsSource> = {},
 ): GraphViewProviderSettingsStateMethodsSource {
+  const get = vi.fn((key: string) => {
+    if (key === 'codegraphy.groups') return undefined;
+    if (key === 'codegraphy.disabledRules') return ['rule.saved'];
+    if (key === 'codegraphy.disabledPlugins') return ['plugin.saved'];
+    return undefined;
+  }) as WorkspaceStateGetMock;
   const workspaceState = {
-    get: vi.fn(),
+    get,
     update: vi.fn(() => Promise.resolve()),
   };
 
@@ -115,15 +123,19 @@ describe('graphView/provider/settingsState', () => {
   });
 
   it('migrates legacy groups into configuration and clears the persisted workspace value', () => {
+    const get = vi.fn((key: string) => {
+      if (key === 'codegraphy.groups') return undefined;
+      return undefined;
+    }) as WorkspaceStateGetMock;
     const workspaceState = {
-      get: vi.fn(),
+      get,
       update: vi.fn(() => Promise.resolve()),
     };
     const source = createSource({
       _context: { workspaceState },
     });
     const legacyGroups = [{ id: 'group.legacy' } as never];
-    const workspaceFolders = [{ name: 'workspace-folder' }] as never;
+    const workspaceFolders = [{ name: 'workspace-folder', uri: { fsPath: '/workspace' }, index: 0 }] as never;
     const { configuration, dependencies } = createDependencies({
       getWorkspaceFolders: vi.fn(() => workspaceFolders),
       getConfigTarget: vi.fn(() => 'workspace-folder'),
@@ -144,8 +156,11 @@ describe('graphView/provider/settingsState', () => {
   });
 
   it('loads disabled rules and plugins from inspected config and persisted workspace keys', () => {
+    const get = vi.fn((key: string) =>
+      key === 'codegraphy.disabledRules' ? ['rule.saved'] : ['plugin.saved']
+    ) as WorkspaceStateGetMock;
     const workspaceState = {
-      get: vi.fn((key: string) => (key === 'codegraphy.disabledRules' ? ['rule.saved'] : ['plugin.saved'])),
+      get,
       update: vi.fn(() => Promise.resolve()),
     };
     const source = createSource({

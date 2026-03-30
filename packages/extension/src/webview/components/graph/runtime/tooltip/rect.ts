@@ -16,11 +16,16 @@ interface GraphTooltipRectOptions {
 	fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
 }
 
+interface GraphTooltipGraph {
+	graph2ScreenCoords(x: number, y: number): { x: number; y: number };
+	zoom(): number;
+}
+
 export function getTooltipNodeRect(
 	{ containerRef, fg2dRef }: GraphTooltipRectOptions,
 	node: FGNode,
 ): GraphTooltipRect | null {
-	const graph = fg2dRef.current;
+	const graph = fg2dRef.current as GraphTooltipGraph | undefined;
 	const canvas = containerRef.current?.querySelector('canvas');
 	if (!graph || !canvas) return null;
 

@@ -28,7 +28,7 @@ describe('settingsPanel groups drag', () => {
       userGroups,
     });
     start.startGroupDrag(0);
-    start.overGroupDrag({ preventDefault } as React.DragEvent, 1);
+    start.overGroupDrag({ preventDefault } as unknown as React.DragEvent, 1);
 
     const drop = createGroupDragHandlers({
       dragIndex,
@@ -37,7 +37,7 @@ describe('settingsPanel groups drag', () => {
       setDragOverIndex: setDragOverIndex as never,
       userGroups,
     });
-    drop.dropGroup({ preventDefault } as React.DragEvent, 1);
+    drop.dropGroup({ preventDefault } as unknown as React.DragEvent, 1);
 
     expect(preventDefault).toHaveBeenCalledTimes(2);
     expect(sendUserGroups).toHaveBeenCalledWith([
@@ -61,7 +61,7 @@ describe('settingsPanel groups drag', () => {
       userGroups: [{ id: 'a', pattern: 'a/**', color: '#111111' }],
     });
 
-    handlers.dropGroup({ preventDefault } as React.DragEvent, 0);
+    handlers.dropGroup({ preventDefault } as unknown as React.DragEvent, 0);
 
     expect(preventDefault).toHaveBeenCalled();
     expect(sendUserGroups).not.toHaveBeenCalled();

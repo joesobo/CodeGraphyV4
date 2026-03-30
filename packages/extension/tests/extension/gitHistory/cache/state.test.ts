@@ -5,12 +5,15 @@ import {
   hasCachedTimeline,
   persistCachedCommitState,
 } from '../../../../src/extension/gitHistory/cache/state';
+import type { CacheWorkspaceState } from '../../../../src/extension/gitHistory/cache/state';
 
-function createWorkspaceState() {
+function createWorkspaceState(): CacheWorkspaceState & { store: Map<string, unknown> } {
   const store = new Map<string, unknown>();
 
   return {
-    get: vi.fn(<T>(key: string) => store.get(key) as T | undefined),
+    get<T>(key: string): T | undefined {
+      return store.get(key) as T | undefined;
+    },
     update: vi.fn((key: string, value: unknown) => {
       if (value === undefined) {
         store.delete(key);

@@ -314,7 +314,7 @@ describe('CreateFileAction', () => {
     await action.execute();
     
     // Reset mock to not have visible editors
-    (vscode.window as { visibleTextEditors: unknown[] }).visibleTextEditors = [];
+    (vscode.window as unknown as { visibleTextEditors: unknown[] }).visibleTextEditors = [];
     
     await action.undo();
 

@@ -88,7 +88,6 @@ describe('graph/contextActions/effects', () => {
       index: 2,
       targetId: 'src/app.ts',
       targetType: 'node',
-      label: 'Do thing',
     }, ['src/app.ts'])).toEqual([
       {
         kind: 'postMessage',

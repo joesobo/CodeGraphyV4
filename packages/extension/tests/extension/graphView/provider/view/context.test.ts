@@ -2,6 +2,9 @@ import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
 import { DEFAULT_FOLDER_NODE_COLOR, type IGraphData } from '../../../../../src/shared/contracts';
+import { buildGraphViewContext } from '../../../../../src/extension/graphView/view/context';
+import { applyGraphViewTransform, type IGraphViewTransformResult } from '../../../../../src/extension/graphView/presentation';
+import type { GraphViewProviderViewContextMethodDependencies } from '../../../../../src/extension/graphView/provider/view/context';
 const providerViewContextMethodMocks = vi.hoisted(() => ({
   buildViewContext: vi.fn(),
   applyViewTransform: vi.fn(),
@@ -38,7 +41,10 @@ describe('graphView/provider/view/context', () => {
   it('updates graph data and returns the current graph snapshot', () => {
     const source = createSource();
     const methods = createGraphViewProviderViewContextMethods(source as never, createDependencies());
-    const nextGraph = { nodes: [{ id: 'src/app.ts' }], edges: [] } satisfies IGraphData;
+    const nextGraph = {
+      nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' }],
+      edges: [],
+    } satisfies IGraphData;
 
     methods.updateGraphData(nextGraph);
 
@@ -53,19 +59,21 @@ describe('graphView/provider/view/context', () => {
   it('builds view context from workspace and editor state', () => {
     const source = createSource();
     const configuration = {
-      get: vi.fn(() => '#123456'),
+      get: vi.fn(<T>(_: string, _defaultValue: T): T => '#123456' as T),
     };
     const getConfiguration = vi.fn(() => configuration);
     const normalizeFolderNodeColor = vi.fn(() => '#654321');
     const asRelativePath = vi.fn(() => 'src/app.ts');
-    const workspaceFolders = [{ uri: { fsPath: '/workspace' } }] as never;
+    const workspaceFolders = [{ uri: { fsPath: '/workspace' }, name: 'workspace', index: 0 }] as never;
     const activeEditor = { document: { uri: { fsPath: '/workspace/src/app.ts' } } } as never;
-    const buildViewContext = vi.fn(() => ({
+    const buildViewContext = vi.fn(
+      (_options: Parameters<typeof buildGraphViewContext>[0]) => ({
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
       focusedFile: 'src/app.ts',
       folderNodeColor: '#123456',
-    } satisfies IViewContext));
+      } satisfies IViewContext),
+    );
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
       createDependencies({
@@ -238,9 +246,12 @@ describe('graphView/provider/view/context', () => {
     });
     const applyViewTransform = vi.fn(() => ({
       activeViewId: 'codegraphy.connections',
-      graphData: { nodes: [{ id: 'transformed' }], edges: [] },
+      graphData: {
+        nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
+        edges: [],
+      },
       persistSelectedViewId: 'codegraphy.connections',
-    }));
+    } satisfies IGraphViewTransformResult));
     const sendAvailableViews = vi.fn();
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
@@ -260,7 +271,10 @@ describe('graphView/provider/view/context', () => {
       source._rawGraphData,
     );
     expect(source._activeViewId).toBe('codegraphy.connections');
-    expect(source._graphData).toEqual({ nodes: [{ id: 'transformed' }], edges: [] });
+    expect(source._graphData).toEqual({
+      nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
+      edges: [],
+    });
     expect(source._context.workspaceState.update).toHaveBeenCalledWith(
       'codegraphy.selectedView',
       'codegraphy.connections',
@@ -278,9 +292,12 @@ describe('graphView/provider/view/context', () => {
     });
     providerViewContextMethodMocks.applyViewTransform.mockReturnValue({
       activeViewId: 'codegraphy.connections',
-      graphData: { nodes: [{ id: 'transformed' }], edges: [] },
+      graphData: {
+        nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
+        edges: [],
+      },
       persistSelectedViewId: 'codegraphy.connections',
-    });
+    } satisfies IGraphViewTransformResult);
     providerViewContextMethodMocks.sendAvailableViews.mockImplementation(
       (_registry, _viewContext, _activeViewId, _defaultDepthLimit, sendMessage) => {
         sendMessage({
@@ -302,7 +319,10 @@ describe('graphView/provider/view/context', () => {
       source._rawGraphData,
     );
     expect(source._activeViewId).toBe('codegraphy.connections');
-    expect(source._graphData).toEqual({ nodes: [{ id: 'transformed' }], edges: [] });
+    expect(source._graphData).toEqual({
+      nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
+      edges: [],
+    });
     expect(source._context.workspaceState.update).toHaveBeenCalledWith(
       'codegraphy.selectedView',
       'codegraphy.connections',
@@ -326,9 +346,11 @@ describe('graphView/provider/view/context', () => {
     });
     const applyViewTransform = vi.fn(() => ({
       activeViewId: 'codegraphy.connections',
-      graphData: { nodes: [{ id: 'transformed' }], edges: [] },
-      persistSelectedViewId: undefined,
-    }));
+      graphData: {
+        nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
+        edges: [],
+      },
+    } satisfies IGraphViewTransformResult));
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
       createDependencies({
@@ -339,7 +361,10 @@ describe('graphView/provider/view/context', () => {
     methods._applyViewTransform();
 
     expect(source._activeViewId).toBe('codegraphy.connections');
-    expect(source._graphData).toEqual({ nodes: [{ id: 'transformed' }], edges: [] });
+    expect(source._graphData).toEqual({
+      nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
+      edges: [],
+    });
     expect(source._context.workspaceState.update).not.toHaveBeenCalled();
   });
 });
@@ -381,25 +406,36 @@ function createSource(
 }
 
 function createDependencies(
-  overrides: Partial<Parameters<typeof createGraphViewProviderViewContextMethods>[1]> = {},
-) {
+  overrides: Partial<GraphViewProviderViewContextMethodDependencies> = {},
+): GraphViewProviderViewContextMethodDependencies {
+  const configuration = {
+    get: vi.fn((_: string, fallback: unknown) => fallback),
+  } as { get<T>(section: string, defaultValue: T): T };
+  const getConfiguration: GraphViewProviderViewContextMethodDependencies['getConfiguration'] = vi.fn(
+    () => configuration,
+  );
+  const buildViewContext: GraphViewProviderViewContextMethodDependencies['buildViewContext'] =
+    vi.fn((_options: Parameters<typeof buildGraphViewContext>[0]) => ({
+      activePlugins: new Set<string>(),
+      depthLimit: 1,
+    } satisfies IViewContext));
+  const applyViewTransform: GraphViewProviderViewContextMethodDependencies['applyViewTransform'] =
+    vi.fn((...args: Parameters<typeof applyGraphViewTransform>) => {
+      const [, activeViewId, , rawGraphData] = args;
+      return {
+        activeViewId,
+        graphData: rawGraphData,
+      } satisfies IGraphViewTransformResult;
+    });
   return {
-    getConfiguration: vi.fn(() => ({
-      get: vi.fn((_: string, fallback: unknown) => fallback),
-    })),
+    getConfiguration,
     getWorkspaceFolders: vi.fn(() => []),
     getActiveTextEditor: vi.fn(() => undefined),
     asRelativePath: vi.fn((uri: { fsPath?: string }) => uri.fsPath ?? ''),
-    buildViewContext: vi.fn(() => ({
-      activePlugins: new Set<string>(),
-      depthLimit: 1,
-    })),
-    applyViewTransform: vi.fn((_, activeViewId: string, __, rawGraphData: IGraphData) => ({
-      activeViewId,
-      graphData: rawGraphData,
-    })),
+    buildViewContext,
+    applyViewTransform,
     sendAvailableViews: vi.fn(),
-    normalizeFolderNodeColor: vi.fn((color: string) => color),
+    normalizeFolderNodeColor: vi.fn((color: string | undefined) => color ?? '#93C5FD'),
     defaultDepthLimit: 1,
     defaultFolderNodeColor: '#93C5FD',
     selectedViewKey: 'codegraphy.selectedView',

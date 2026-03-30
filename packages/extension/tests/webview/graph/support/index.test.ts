@@ -16,6 +16,7 @@ import {
   applyCursorToGraphSurface,
   isMacControlContextClick,
 } from '../../../../src/webview/components/graph/support/dom';
+import type SpriteText from 'three-spritetext';
 
 describe('graph/support', () => {
   it('recognizes objects and functions as record-like values', () => {
@@ -60,7 +61,7 @@ describe('graph/support', () => {
   });
 
   it('sets sprite visibility flags', () => {
-    const sprite = {} as { visible?: boolean };
+    const sprite = {} as SpriteText & { visible: boolean };
 
     setSpriteVisible(sprite, true);
     expect(sprite.visible).toBe(true);

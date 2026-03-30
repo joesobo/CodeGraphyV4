@@ -60,8 +60,8 @@ function createContext(): {
         kind: 'fill',
         lineWidth: ctx.lineWidth,
         strokeStyle: ctx.strokeStyle,
-        textAlign: ctx.textAlign,
-        textBaseline: ctx.textBaseline,
+        textAlign: ctx.textAlign as CanvasTextAlign,
+        textBaseline: ctx.textBaseline as CanvasTextBaseline,
       });
     }),
     fillText: vi.fn((text: string, x: number, y: number) => {
@@ -73,8 +73,8 @@ function createContext(): {
         lineWidth: ctx.lineWidth,
         strokeStyle: ctx.strokeStyle,
         text,
-        textAlign: ctx.textAlign,
-        textBaseline: ctx.textBaseline,
+        textAlign: ctx.textAlign as CanvasTextAlign,
+        textBaseline: ctx.textBaseline as CanvasTextBaseline,
         x,
         y,
       });
@@ -87,8 +87,8 @@ function createContext(): {
         kind: 'stroke',
         lineWidth: ctx.lineWidth,
         strokeStyle: ctx.strokeStyle,
-        textAlign: ctx.textAlign,
-        textBaseline: ctx.textBaseline,
+        textAlign: ctx.textAlign as CanvasTextAlign,
+        textBaseline: ctx.textBaseline as CanvasTextBaseline,
       });
     }),
     fillStyle: '',
@@ -96,8 +96,8 @@ function createContext(): {
     globalAlpha: 1,
     lineWidth: 0,
     strokeStyle: '',
-    textAlign: 'left',
-    textBaseline: 'alphabetic',
+    textAlign: 'left' as CanvasTextAlign,
+    textBaseline: 'alphabetic' as CanvasTextBaseline,
   };
 
   return {

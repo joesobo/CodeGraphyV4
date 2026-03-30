@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { TooltipProviderFn } from '@/webview/pluginHost/api/contracts';
 import { WebviewPluginHost } from '../../../src/webview/pluginHost/manager';
 
 function createMockContext(): CanvasRenderingContext2D {
@@ -143,7 +144,11 @@ describe('WebviewPluginHost', () => {
     });
     secondApi.registerTooltipProvider(() => ({ sections: [{ title: 'Two', content: 'Second' }] }));
 
-    expect(host.getTooltipContent({ path: 'src/App.ts' })).toEqual({
+    expect(host.getTooltipContent({
+      node: { id: 'src/App.ts', label: 'App', color: '#ffffff' },
+      neighbors: [],
+      edges: [],
+    })).toEqual({
       sections: [
         { title: 'One', content: 'First' },
         { title: 'Two', content: 'Second' },
@@ -155,17 +160,25 @@ describe('WebviewPluginHost', () => {
   it('returns null when no tooltip providers contribute content', () => {
     const host = new WebviewPluginHost();
 
-    expect(host.getTooltipContent({ path: 'src/App.ts' })).toBeNull();
+    expect(host.getTooltipContent({
+      node: { id: 'src/App.ts', label: 'App', color: '#ffffff' },
+      neighbors: [],
+      edges: [],
+    })).toBeNull();
   });
 
   it('ignores tooltip providers that do not return sections', () => {
     const host = new WebviewPluginHost();
     const api = host.createAPI('acme.plugin', vi.fn());
 
-    api.registerTooltipProvider(() => ({}));
-    api.registerTooltipProvider(() => undefined);
+    api.registerTooltipProvider((() => ({})) as unknown as TooltipProviderFn);
+    api.registerTooltipProvider((() => undefined) as unknown as TooltipProviderFn);
 
-    expect(host.getTooltipContent({ path: 'src/App.ts' })).toBeNull();
+    expect(host.getTooltipContent({
+      node: { id: 'src/App.ts', label: 'App', color: '#ffffff' },
+      neighbors: [],
+      edges: [],
+    })).toBeNull();
   });
 
   it('removes tooltip providers when their disposables are invoked', () => {
@@ -177,7 +190,11 @@ describe('WebviewPluginHost', () => {
     }));
     disposable.dispose();
 
-    expect(host.getTooltipContent({ path: 'src/App.ts' })).toBeNull();
+    expect(host.getTooltipContent({
+      node: { id: 'src/App.ts', label: 'App', color: '#ffffff' },
+      neighbors: [],
+      edges: [],
+    })).toBeNull();
   });
 
   it('removes a plugin container, handlers, and tooltip providers together', () => {
@@ -198,7 +215,11 @@ describe('WebviewPluginHost', () => {
 
     expect(document.querySelector('[data-cg-plugin="acme.plugin"]')).toBeNull();
     expect(host.getNodeRenderer('.ts')).toBeUndefined();
-    expect(host.getTooltipContent({ path: 'src/App.ts' })).toBeNull();
+    expect(host.getTooltipContent({
+      node: { id: 'src/App.ts', label: 'App', color: '#ffffff' },
+      neighbors: [],
+      edges: [],
+    })).toBeNull();
     expect(host.getOverlays()).toEqual([{ id: 'other.plugin:other', fn: expect.any(Function) }]);
     expect(handler).not.toHaveBeenCalled();
   });

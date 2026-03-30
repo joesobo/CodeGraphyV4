@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react';
+import type { MutableRefObject } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const { cleanupTimelineController } = vi.hoisted(() => ({
@@ -17,9 +18,9 @@ describe('timeline/useCleanup', () => {
   });
 
   it('runs controller cleanup on unmount with the tracked refs', () => {
-    const debounceTimerRef = { current: null };
-    const rafRef = { current: null };
-    const scrubResetTimerRef = { current: null };
+    const debounceTimerRef = { current: null } as MutableRefObject<ReturnType<typeof setTimeout> | null>;
+    const rafRef = { current: null } as MutableRefObject<number | null>;
+    const scrubResetTimerRef = { current: null } as MutableRefObject<ReturnType<typeof setTimeout> | null>;
     const { unmount } = renderHook(() => useTimelineCleanup({
       debounceTimerRef,
       rafRef,
@@ -39,14 +40,14 @@ describe('timeline/useCleanup', () => {
 
   it('cleans up the previous refs when the tracked refs change', () => {
     const firstRefs = {
-      debounceTimerRef: { current: null },
-      rafRef: { current: null },
-      scrubResetTimerRef: { current: null },
+      debounceTimerRef: { current: null } as MutableRefObject<ReturnType<typeof setTimeout> | null>,
+      rafRef: { current: null } as MutableRefObject<number | null>,
+      scrubResetTimerRef: { current: null } as MutableRefObject<ReturnType<typeof setTimeout> | null>,
     };
     const secondRefs = {
-      debounceTimerRef: { current: null },
-      rafRef: { current: 9 },
-      scrubResetTimerRef: { current: null },
+      debounceTimerRef: { current: null } as MutableRefObject<ReturnType<typeof setTimeout> | null>,
+      rafRef: { current: 9 } as MutableRefObject<number | null>,
+      scrubResetTimerRef: { current: null } as MutableRefObject<ReturnType<typeof setTimeout> | null>,
     };
 
     const { rerender, unmount } = renderHook(

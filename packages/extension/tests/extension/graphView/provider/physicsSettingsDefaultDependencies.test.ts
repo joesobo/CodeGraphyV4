@@ -89,12 +89,16 @@ describe('graphView/provider/physicsSettings default dependencies', () => {
     await methods._updatePhysicsSetting('damping', 0.25);
 
     expect(mocks.updatePhysicsSetting).toHaveBeenCalledOnce();
-    const options = mocks.updatePhysicsSetting.mock.calls[0]?.[2] as {
-      getConfiguration(): unknown;
-      getConfigTarget(): unknown;
-    };
-    expect(options.getConfiguration()).toBe(mocks.configuration);
-    expect(options.getConfigTarget()).toBe('workspace-target');
+    const options = mocks.updatePhysicsSetting.mock.calls[0] as unknown as [
+      unknown,
+      unknown,
+      {
+        getConfiguration(): unknown;
+        getConfigTarget(): unknown;
+      },
+    ];
+    expect(options[2].getConfiguration()).toBe(mocks.configuration);
+    expect(options[2].getConfigTarget()).toBe('workspace-target');
     expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy.physics');
     expect(mocks.getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
   });
@@ -107,12 +111,14 @@ describe('graphView/provider/physicsSettings default dependencies', () => {
     await methods._resetPhysicsSettings();
 
     expect(mocks.resetPhysicsSettings).toHaveBeenCalledOnce();
-    const options = mocks.resetPhysicsSettings.mock.calls[0]?.[0] as {
-      getConfiguration(): unknown;
-      getConfigTarget(): unknown;
-    };
-    expect(options.getConfiguration()).toBe(mocks.configuration);
-    expect(options.getConfigTarget()).toBe('workspace-target');
+    const options = mocks.resetPhysicsSettings.mock.calls[0] as unknown as [
+      {
+        getConfiguration(): unknown;
+        getConfigTarget(): unknown;
+      },
+    ];
+    expect(options[0].getConfiguration()).toBe(mocks.configuration);
+    expect(options[0].getConfigTarget()).toBe('workspace-target');
     expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy.physics');
     expect(mocks.getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
   });

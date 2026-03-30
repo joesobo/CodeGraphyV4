@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { DirectionMode, IGraphData } from '../../../../../../src/shared/contracts';
+import type { DirectionMode, IGraphData } from '@/shared/contracts';
 import {
   applySettingsDirectionMessage,
 } from '../../../../../src/extension/graphView/webview/settingsMessages/direction';
@@ -106,7 +106,7 @@ describe('graph view settings direction message', () => {
 
   it('updates folder node color and refreshes folder graph data in folder view', async () => {
     const graphData: IGraphData = {
-      nodes: [{ id: 'src', label: 'src', type: 'folder', val: 1 }],
+      nodes: [{ id: 'src', label: 'src', color: '#93C5FD' }],
       edges: [],
     };
     const state = createState({

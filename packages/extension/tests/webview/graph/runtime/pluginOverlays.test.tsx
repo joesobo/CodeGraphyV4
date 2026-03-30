@@ -16,7 +16,7 @@ describe('usePluginOverlays', () => {
     const overlays = [{ id: 'badge', fn: vi.fn() }];
     const pluginHost = {
       getOverlays: vi.fn(() => overlays),
-    } as Parameters<typeof usePluginOverlays>[0];
+    } as unknown as NonNullable<Parameters<typeof usePluginOverlays>[0]>;
 
     expect(getPluginOverlayRegistrations(pluginHost)).toBe(overlays);
     expect(pluginHost.getOverlays).toHaveBeenCalledOnce();
@@ -88,7 +88,7 @@ describe('usePluginOverlays', () => {
     const getOverlays = vi.fn(() => []);
     const pluginHost = {
       getOverlays,
-    } as Parameters<typeof usePluginOverlays>[0];
+    } as unknown as NonNullable<Parameters<typeof usePluginOverlays>[0]>;
     const ctx = {
       canvas: { height: 180, width: 320 },
     } as CanvasRenderingContext2D;
@@ -105,7 +105,7 @@ describe('usePluginOverlays', () => {
     const overlay = vi.fn();
     const pluginHost = {
       getOverlays: () => [{ fn: overlay }],
-    } as Parameters<typeof usePluginOverlays>[0];
+    } as unknown as NonNullable<Parameters<typeof usePluginOverlays>[0]>;
     const ctx = {
       canvas: { height: 180, width: 320 },
     } as CanvasRenderingContext2D;
@@ -131,7 +131,7 @@ describe('usePluginOverlays', () => {
         { fn: () => { throw thrownError; } },
         { fn: goodOverlay },
       ],
-    } as Parameters<typeof usePluginOverlays>[0];
+    } as unknown as NonNullable<Parameters<typeof usePluginOverlays>[0]>;
 
     const { result } = renderHook(() => usePluginOverlays(pluginHost));
 
@@ -156,7 +156,7 @@ describe('usePluginOverlays', () => {
         initialProps: {
           pluginHost: {
             getOverlays: () => [{ fn: firstOverlay }],
-          } as Parameters<typeof usePluginOverlays>[0],
+          } as unknown as NonNullable<Parameters<typeof usePluginOverlays>[0]>,
         },
       },
     );
@@ -168,7 +168,7 @@ describe('usePluginOverlays', () => {
     rerender({
       pluginHost: {
         getOverlays: () => [{ fn: secondOverlay }],
-      } as Parameters<typeof usePluginOverlays>[0],
+      } as unknown as NonNullable<Parameters<typeof usePluginOverlays>[0]>,
     });
 
     act(() => {

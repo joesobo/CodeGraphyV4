@@ -6,11 +6,13 @@ import {
 } from '../../../../src/extension/gitHistory/diff/changes';
 
 describe('gitHistory/diff/changes', () => {
+  const noConnections = (): IConnection[] => [];
+
   it('adds a node for unsupported files without reanalyzing them', async () => {
     const nodes: Array<{ id: string; label: string; color: string }> = [];
     const nodeMap = new Map();
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => []),
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
       supportsFile: vi.fn(() => false),
     };
 
@@ -36,12 +38,14 @@ describe('gitHistory/diff/changes', () => {
     const edgeSet = new Set<string>();
     const getFileAtCommit = vi.fn(async () => 'import "./b";');
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [{
-        ruleId: 'import',
-        specifier: './b',
-        type: 'static',
-        resolvedPath: '/workspace/src/b.ts',
-      }]),
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
+        {
+          ruleId: 'import',
+          specifier: './b',
+          type: 'static',
+          resolvedPath: '/workspace/src/b.ts',
+        } satisfies IConnection,
+      ]),
       supportsFile: vi.fn(() => true),
     };
     const signal = new AbortController().signal;
@@ -87,12 +91,14 @@ describe('gitHistory/diff/changes', () => {
     const edgeSet = new Set<string>();
     const getFileAtCommit = vi.fn(async () => 'import "./c";');
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [{
-        ruleId: 'import',
-        specifier: './c',
-        type: 'static',
-        resolvedPath: '/workspace/src/c.ts',
-      }]),
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
+        {
+          ruleId: 'import',
+          specifier: './c',
+          type: 'static',
+          resolvedPath: '/workspace/src/c.ts',
+        } satisfies IConnection,
+      ]),
       supportsFile: vi.fn(() => true),
     };
     const signal = new AbortController().signal;
@@ -142,7 +148,7 @@ describe('gitHistory/diff/changes', () => {
       nodeMap,
       nodes,
       registry: {
-        analyzeFile: vi.fn(async (): Promise<IConnection[]> => []),
+        analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
         supportsFile: vi.fn(() => false),
       },
       sha: 'abc123',
@@ -162,12 +168,14 @@ describe('gitHistory/diff/changes', () => {
     ];
     const edgeSet = new Set(edges.map((edge) => edge.id));
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [{
-        ruleId: 'import',
-        specifier: './new',
-        type: 'static',
-        resolvedPath: '/workspace/src/new.ts',
-      }]),
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
+        {
+          ruleId: 'import',
+          specifier: './new',
+          type: 'static',
+          resolvedPath: '/workspace/src/new.ts',
+        } satisfies IConnection,
+      ]),
       getPluginForFile: vi.fn(() => ({ id: 'ts' })),
       supportsFile: vi.fn(() => true),
     };
@@ -203,7 +211,7 @@ describe('gitHistory/diff/changes', () => {
     const edges = [{ id: 'src/a.txt->src/b.txt', from: 'src/a.txt', to: 'src/b.txt' }];
     const edgeSet = new Set(['src/a.txt->src/b.txt']);
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => []),
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
       supportsFile: vi.fn(() => false),
     };
 

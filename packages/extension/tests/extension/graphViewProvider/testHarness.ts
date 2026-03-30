@@ -45,33 +45,38 @@ export function deferredPromise<T>() {
 
 export function createGraphViewProviderTestHarness(): GraphViewProviderTestHarness {
   const inputBoxCalls: InputBoxCall[] = [];
+  const mutableWindow = vscode.window as unknown as Record<string, unknown>;
+  const mutableWorkspaceFs = vscode.workspace.fs as unknown as Record<string, unknown>;
 
-  (vscode.window as Record<string, unknown>).showInputBox = vi.fn(async (options?: vscode.InputBoxOptions) => {
+  mutableWindow.showInputBox = vi.fn(async (options?: vscode.InputBoxOptions) => {
     inputBoxCalls.push({ options });
     return undefined;
   });
-  (vscode.window as Record<string, unknown>).showWarningMessage = vi.fn();
-  (vscode.env as Record<string, unknown>) = {
-    clipboard: {
-      writeText: vi.fn(),
+  mutableWindow.showWarningMessage = vi.fn();
+  Object.defineProperty(vscode, 'env', {
+    value: {
+      clipboard: {
+        writeText: vi.fn(),
+      },
     },
-  };
+    configurable: true,
+  });
 
-  (vscode.workspace.fs as Record<string, unknown>).rename = vi.fn();
-  (vscode.workspace.fs as Record<string, unknown>).delete = vi.fn();
-  (vscode.workspace.fs as Record<string, unknown>).writeFile = vi.fn();
+  mutableWorkspaceFs.rename = vi.fn();
+  mutableWorkspaceFs.delete = vi.fn();
+  mutableWorkspaceFs.writeFile = vi.fn();
 
   Object.defineProperty(vscode.workspace, 'workspaceFolders', {
     get: () => [{ uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 }],
     configurable: true,
   });
 
-  const mockContext = {
+  const mockContext: GraphViewProviderTestHarness['mockContext'] = {
     subscriptions: [],
     extensionUri: vscode.Uri.file('/test/extension'),
     workspaceState: {
-      get: () => undefined,
-      update: () => Promise.resolve(),
+      get: <T>(_key: string) => undefined as T | undefined,
+      update: (_key: string, _value: unknown) => Promise.resolve(),
     },
   };
 

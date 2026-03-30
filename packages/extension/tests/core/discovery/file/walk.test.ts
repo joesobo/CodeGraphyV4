@@ -12,7 +12,7 @@ const mockReaddir = vi.mocked(fs.promises.readdir);
 
 function makeDirent(name: string, isDir: boolean): fs.Dirent<NonSharedBuffer> {
   return {
-    name,
+    name: name as unknown as NonSharedBuffer,
     isDirectory: () => isDir,
     isFile: () => !isDir,
     isBlockDevice: () => false,
@@ -22,7 +22,7 @@ function makeDirent(name: string, isDir: boolean): fs.Dirent<NonSharedBuffer> {
     isSymbolicLink: () => false,
     parentPath: '',
     path: '',
-  } as fs.Dirent<NonSharedBuffer>;
+  } as unknown as fs.Dirent<NonSharedBuffer>;
 }
 
 beforeEach(() => {
@@ -155,7 +155,7 @@ describe('walkDirectory', () => {
 
   it('ignores entries that are neither files nor directories', async () => {
     const symlink: fs.Dirent<NonSharedBuffer> = {
-      name: 'link',
+      name: 'link' as unknown as NonSharedBuffer,
       isDirectory: () => false,
       isFile: () => false,
       isBlockDevice: () => false,
@@ -165,7 +165,7 @@ describe('walkDirectory', () => {
       isSymbolicLink: () => true,
       parentPath: '',
       path: '',
-    };
+    } as unknown as fs.Dirent<NonSharedBuffer>;
     mockReaddir.mockResolvedValueOnce([symlink] as fs.Dirent<NonSharedBuffer>[]);
 
     const onFile = vi.fn();

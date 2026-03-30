@@ -18,7 +18,7 @@ describe('exportSvgNodes', () => {
     nodeHarness.getImage.mockReset();
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
       drawImage: vi.fn(),
-    })) as typeof HTMLCanvasElement.prototype.getContext;
+    })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.toDataURL = vi.fn(() => 'data:image/png;base64,encoded');
   });
 

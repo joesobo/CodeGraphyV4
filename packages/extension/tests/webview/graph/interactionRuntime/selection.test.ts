@@ -15,7 +15,7 @@ describe('graph/selectionHandlers', () => {
   });
 
   it('resolveSelectionLinkEndpointId returns undefined for missing object endpoints', () => {
-    expect(resolveSelectionLinkEndpointId(undefined)).toBeUndefined();
+    expect(resolveSelectionLinkEndpointId(undefined as never)).toBeUndefined();
     expect(resolveSelectionLinkEndpointId({} as FGNode)).toBeUndefined();
   });
 
@@ -53,6 +53,7 @@ describe('graph/selectionHandlers', () => {
       graphMode: '3d',
     });
     const handlers = createSelectionHandlers(dependencies);
+    const setHighlightVersion = vi.mocked(dependencies.setHighlightVersion);
 
     handlers.setHighlight('src/app.ts');
 
@@ -61,8 +62,8 @@ describe('graph/selectionHandlers', () => {
       'src/utils.ts',
       'src/other.ts',
     ]);
-    expect(dependencies.setHighlightVersion).toHaveBeenCalledWith(expect.any(Function));
-    expect(dependencies.setHighlightVersion.mock.calls[0][0](4)).toBe(5);
+    expect(setHighlightVersion).toHaveBeenCalledWith(expect.any(Function));
+    expect(setHighlightVersion.mock.calls[0][0](4)).toBe(5);
   });
 
   it('updates highlight neighbors in 2d mode without bumping highlight version', () => {

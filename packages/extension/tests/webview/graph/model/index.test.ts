@@ -43,8 +43,8 @@ describe('graph/model/build', () => {
         { id: 'leaf-b.ts', label: 'leaf-b.ts', color: '#67E8F9' },
       ],
       [
-        { id: 'hub.ts->leaf-a.ts', from: 'hub.ts', to: 'leaf-a.ts' },
-        { id: 'hub.ts->leaf-b.ts', from: 'hub.ts', to: 'leaf-b.ts' },
+        { from: 'hub.ts', to: 'leaf-a.ts' },
+        { from: 'hub.ts', to: 'leaf-b.ts' },
       ],
       'connections'
     );
@@ -93,9 +93,9 @@ describe('graph/model/build', () => {
   it('combines reverse edges into one bidirectional edge in combined mode', () => {
     expect(
       processEdges(
-        [
-          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
-          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
+      [
+        { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
+        { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
         ],
         'combined'
       )
@@ -107,9 +107,9 @@ describe('graph/model/build', () => {
   it('keeps each edge separate in separate mode', () => {
     expect(
       processEdges(
-        [
-          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
-          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
+      [
+        { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
+        { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
         ],
         'separate'
       )

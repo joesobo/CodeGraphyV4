@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createTestAPI } from './codeGraphyApi.test-utils';
+import type { IGraphData } from '@/shared/contracts';
+import type { IViewContext } from '@/core/views/contracts';
 
 describe('CodeGraphyAPIImpl cleanup', () => {
   it('disposes event handlers, decorations, commands, views, and webview listeners', () => {
@@ -17,7 +19,7 @@ describe('CodeGraphyAPIImpl cleanup', () => {
       name: 'Test View',
       icon: 'symbol-file',
       description: 'A test view',
-      transform: (data: unknown) => data,
+      transform: (data: IGraphData, _context: IViewContext) => data,
     });
 
     decorationManager.decorateNode('plugin-b', 'a.ts', { color: '#0000ff' });

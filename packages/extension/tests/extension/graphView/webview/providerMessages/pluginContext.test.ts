@@ -10,7 +10,7 @@ describe('graph view provider listener plugin context', () => {
       {
         _analyzer: undefined,
         _firstAnalysis: false,
-        _readyNotified: false,
+        _webviewReadyNotified: false,
         _hiddenPluginGroupIds: new Set<string>(),
         _sendFavorites: vi.fn(),
         _sendSettings: vi.fn(),
@@ -55,7 +55,7 @@ describe('graph view provider listener plugin context', () => {
         },
       },
       _firstAnalysis: true,
-      _readyNotified: false,
+      _webviewReadyNotified: false,
       _hiddenPluginGroupIds: new Set(['plugin.hidden']),
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),
@@ -105,7 +105,7 @@ describe('graph view provider listener plugin context', () => {
       { id: 'user:src', pattern: 'src/**', color: '#112233' },
     ]);
     expect(source._filterPatterns).toEqual(['src/**']);
-    expect(source._readyNotified).toBe(true);
+    expect(source._webviewReadyNotified).toBe(true);
   });
 
   it('notifies the analyzer, exposes plugin APIs, and logs plugin context failures', () => {
@@ -121,7 +121,7 @@ describe('graph view provider listener plugin context', () => {
         },
       },
       _firstAnalysis: false,
-      _readyNotified: false,
+      _webviewReadyNotified: false,
       _hiddenPluginGroupIds: new Set<string>(),
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),

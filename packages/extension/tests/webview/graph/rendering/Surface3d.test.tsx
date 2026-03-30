@@ -30,7 +30,7 @@ function createSharedProps() {
 function createDefaultProps() {
   return {
     backgroundColor: '#1e1e1e',
-    directionMode: 'arrows' as const,
+    directionMode: 'arrows' as 'arrows' | 'particles' | 'none',
     fg3dRef: { current: undefined },
     getArrowColor: vi.fn(() => '#ffffff'),
     getLinkColor: vi.fn(() => '#888888'),

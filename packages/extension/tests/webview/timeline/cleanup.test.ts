@@ -29,9 +29,9 @@ describe('timeline/cleanup', () => {
     const scrubResetCallback = vi.fn();
 
     cleanupTimelineController({
-      debounceTimerRef: createRef(setTimeout(debounceCallback, 100)),
+      debounceTimerRef: createRef<ReturnType<typeof setTimeout> | null>(setTimeout(debounceCallback, 100) as unknown as ReturnType<typeof setTimeout>),
       rafRef: createRef<number | null>(17),
-      scrubResetTimerRef: createRef(setTimeout(scrubResetCallback, 100)),
+      scrubResetTimerRef: createRef<ReturnType<typeof setTimeout> | null>(setTimeout(scrubResetCallback, 100) as unknown as ReturnType<typeof setTimeout>),
     });
 
     vi.advanceTimersByTime(150);

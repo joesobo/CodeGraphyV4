@@ -57,13 +57,61 @@ export interface GraphViewProviderTimelineMethods {
 }
 
 export interface GraphViewProviderTimelineMethodDependencies {
-  indexRepository: typeof indexGraphViewProviderRepository;
-  jumpToCommit: typeof jumpGraphViewProviderToCommit;
-  openNodeInEditor: typeof openGraphViewNodeInEditor;
-  previewFileAtCommit: typeof previewGraphViewFileAtCommit;
-  sendCachedTimeline: typeof sendGraphViewProviderCachedTimeline;
-  sendPlaybackSpeed: typeof sendGraphViewPlaybackSpeed;
-  invalidateTimelineCache: typeof invalidateGraphViewTimelineCache;
+  indexRepository(
+    source: Parameters<typeof indexGraphViewProviderRepository>[0],
+  ): Promise<void>;
+  jumpToCommit(
+    source: Parameters<typeof jumpGraphViewProviderToCommit>[0],
+    sha: string,
+  ): Promise<void>;
+  openNodeInEditor(
+    nodeId: string,
+    state: {
+      timelineActive: boolean;
+      currentCommitSha: string | undefined;
+    },
+    handlers: {
+      previewFileAtCommit(
+        sha: string,
+        filePath: string,
+        behavior?: EditorOpenBehavior,
+      ): Promise<void>;
+      openFile(
+        filePath: string,
+        behavior?: EditorOpenBehavior,
+      ): Promise<void>;
+    },
+    behavior: EditorOpenBehavior,
+  ): Promise<void>;
+  previewFileAtCommit(
+    sha: string,
+    filePath: string,
+    handlers: {
+      workspaceFolder: vscode.WorkspaceFolder | undefined;
+      openTextDocument(fileUri: vscode.Uri): Thenable<vscode.TextDocument>;
+      showTextDocument(
+        document: vscode.TextDocument,
+        options: EditorOpenBehavior,
+      ): Thenable<vscode.TextEditor>;
+      logError(message: string, error: unknown): void;
+    },
+    behavior: EditorOpenBehavior,
+  ): Promise<void>;
+  sendCachedTimeline(
+    source: Parameters<typeof sendGraphViewProviderCachedTimeline>[0],
+  ): void;
+  sendPlaybackSpeed(
+    playbackSpeed: number,
+    sendMessage: (message: ExtensionToWebviewMessage) => void,
+  ): void;
+  invalidateTimelineCache(
+    gitAnalyzer: GraphViewProviderTimelineMethodsSource['_gitAnalyzer'],
+    state: {
+      timelineActive: boolean;
+      currentCommitSha: string | undefined;
+    },
+    sendMessage: (message: ExtensionToWebviewMessage) => void,
+  ): Promise<GraphViewProviderTimelineMethodsSource['_gitAnalyzer']>;
   getPlaybackSpeed(): number;
   getWorkspaceFolder(): vscode.WorkspaceFolder | undefined;
   openTextDocument(fileUri: vscode.Uri): Thenable<vscode.TextDocument>;
@@ -181,7 +229,7 @@ export function createGraphViewProviderTimelineMethods(
 
   const sendPlaybackSpeed = (): void => {
     dependencies.sendPlaybackSpeed(dependencies.getPlaybackSpeed(), message =>
-      source._sendMessage(message as ExtensionToWebviewMessage),
+      source._sendMessage(message),
     );
   };
 
@@ -193,7 +241,7 @@ export function createGraphViewProviderTimelineMethods(
     const nextGitAnalyzer = await dependencies.invalidateTimelineCache(
       source._gitAnalyzer,
       state,
-      message => source._sendMessage(message as ExtensionToWebviewMessage),
+      message => source._sendMessage(message),
     );
     source._timelineActive = state.timelineActive;
     source._currentCommitSha = state.currentCommitSha;

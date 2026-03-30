@@ -30,8 +30,8 @@ describe('graph/model/node/sizing', () => {
         { id: 'leaf-b.ts', label: 'leaf-b.ts', color: '#67E8F9' },
       ],
       [
-        { id: 'hub.ts->leaf-a.ts', from: 'hub.ts', to: 'leaf-a.ts' },
-        { id: 'hub.ts->leaf-b.ts', from: 'hub.ts', to: 'leaf-b.ts' },
+        { from: 'hub.ts', to: 'leaf-a.ts' },
+        { from: 'hub.ts', to: 'leaf-b.ts' },
       ],
       'connections'
     );

@@ -3,6 +3,8 @@ import { CodeGraphyAPIImpl } from '@/core/plugins/codeGraphyApi';
 import { EventBus } from '@/core/plugins/eventBus';
 import { DecorationManager } from '@/core/plugins/decoration/manager';
 import { ViewRegistry } from '@/core/views/registry';
+import type { IGraphData } from '@/shared/contracts';
+import type { IViewContext } from '@/core/views/contracts';
 import { createTestAPI } from './codeGraphyApi.test-utils';
 
 describe('CodeGraphyAPIImpl registration', () => {
@@ -13,7 +15,7 @@ describe('CodeGraphyAPIImpl registration', () => {
       name: 'Test View',
       icon: 'symbol-file',
       description: 'A test view',
-      transform: (data: unknown) => data,
+      transform: (data: IGraphData, _context: IViewContext) => data,
     };
 
     const disposable = api.registerView(view);

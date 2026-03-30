@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, act, waitFor } from '@testing-library/react';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_NODE_COLOR } from '../../../src/shared/contracts';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
 import { graphStore } from '../../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({
@@ -273,12 +273,12 @@ describe('App behavior', () => {
     expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('src/Todo.ts');
   });
 
-  it('applies the first enabled matching group and falls back to the default node color', () => {
+  it('applies the first enabled matching group and preserves unmatched node styling', () => {
     graphStore.setState({
       graphData: {
         nodes: [
           { id: 'src/App.ts', label: 'App', color: '#123456' },
-          { id: 'notes/Todo.txt', label: 'Todo' },
+          { id: 'notes/Todo.txt', label: 'Todo', color: '#abcdef' },
         ],
         edges: [],
       },
@@ -290,7 +290,7 @@ describe('App behavior', () => {
 
     render(<App />);
 
-    expect(screen.getByTestId('graph-node-colors')).toHaveTextContent(`#00ff00,${DEFAULT_NODE_COLOR}`);
+    expect(screen.getByTestId('graph-node-colors')).toHaveTextContent('#00ff00,#abcdef');
     expect(screen.getByTestId('graph-node-shapes')).toHaveTextContent('diamond:cube,none:none');
     expect(screen.getByTestId('graph-node-images')).toHaveTextContent('https://example.com/icon.png,');
   });

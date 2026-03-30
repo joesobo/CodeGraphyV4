@@ -77,7 +77,7 @@ describe('EventBus emit early return (L70 mutant)', () => {
     // If the guard is removed (mutated to false), the code would try to spread
     // `undefined` handlers, causing a runtime error
     expect(() => {
-      bus.emit('graph:zoom', { level: 1 });
+      bus.emit('graph:zoom', { level: 1, center: { x: 0, y: 0 } });
     }).not.toThrow();
   });
 

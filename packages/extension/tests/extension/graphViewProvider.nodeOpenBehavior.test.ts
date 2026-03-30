@@ -46,6 +46,10 @@ describe('GraphViewProvider node open behavior', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    const mutableWorkspace = vscode.workspace as unknown as Record<string, unknown>;
+    const mutableWindow = vscode.window as unknown as Record<string, unknown>;
+    const mutableWorkspaceFs = vscode.workspace.fs as unknown as Record<string, unknown>;
+    const mutableUri = vscode.Uri as unknown as Record<string, unknown>;
 
     Object.defineProperty(vscode.workspace, 'workspaceFolders', {
       get: () => [{ uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 }],
@@ -55,15 +59,15 @@ describe('GraphViewProvider node open behavior', () => {
     openTextDocumentMock = vi.fn().mockResolvedValue(mockDocument);
     showTextDocumentMock = vi.fn().mockResolvedValue(undefined);
 
-    (vscode.workspace as Record<string, unknown>).openTextDocument = openTextDocumentMock;
-    (vscode.window as Record<string, unknown>).showTextDocument = showTextDocumentMock;
-    (vscode.workspace.fs as Record<string, unknown>).stat = vi.fn().mockResolvedValue({
+    mutableWorkspace.openTextDocument = openTextDocumentMock;
+    mutableWindow.showTextDocument = showTextDocumentMock;
+    mutableWorkspaceFs.stat = vi.fn().mockResolvedValue({
       type: 1,
       ctime: 0,
       mtime: 0,
       size: 1,
     });
-    (vscode.Uri as Record<string, unknown>).parse = vi.fn((value: string) => ({
+    mutableUri.parse = vi.fn((value: string) => ({
       fsPath: value,
       path: value,
       toString: () => value,

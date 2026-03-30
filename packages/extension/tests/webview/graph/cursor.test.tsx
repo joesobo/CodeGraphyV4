@@ -39,8 +39,6 @@ describe('Graph cursor behavior', () => {
     await act(async () => {
       ForceGraph2D.simulateNodeHover({
         id: 'src/app.ts',
-        label: 'app.ts',
-        color: '#93C5FD',
         size: 16,
       });
     });
@@ -71,8 +69,6 @@ describe('Graph cursor behavior', () => {
     await act(async () => {
       props.onNodeHover({
         id: 'src/app.ts',
-        label: 'app.ts',
-        color: '#93C5FD',
         size: 16,
       });
     });

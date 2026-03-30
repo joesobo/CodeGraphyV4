@@ -56,7 +56,7 @@ function createRefs(): UseGraphCallbacksOptions['refs'] {
     showLabelsRef: { current: true },
     spritesRef: { current: new Map() },
     themeRef: { current: 'dark' },
-  } as UseGraphCallbacksOptions['refs'];
+  } as unknown as UseGraphCallbacksOptions['refs'];
 }
 
 function createOptions(options: Partial<UseGraphCallbacksOptions> = {}): UseGraphCallbacksOptions {

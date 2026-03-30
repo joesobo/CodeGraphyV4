@@ -18,7 +18,7 @@ describe('graph/model/node/build', () => {
           id: 'favorite.ts',
           label: 'favorite.ts',
           color: '#80c0ff',
-          shape3D: 'box',
+          shape3D: 'cube',
           imageUrl: 'https://example.test/favorite.png',
         },
       ],
@@ -40,13 +40,13 @@ describe('graph/model/node/build', () => {
       shape2D: 'circle',
       size: 20.8,
     });
-    expect(nodes.find(node => node.id === 'favorite.ts')).toMatchObject({
+      expect(nodes.find(node => node.id === 'favorite.ts')).toMatchObject({
       color: '#5a86b3',
       borderColor: FAVORITE_BORDER_COLOR,
       borderWidth: 3,
       imageUrl: 'https://example.test/favorite.png',
       isFavorite: true,
-      shape3D: 'box',
+      shape3D: 'cube',
       size: 18,
     });
   });

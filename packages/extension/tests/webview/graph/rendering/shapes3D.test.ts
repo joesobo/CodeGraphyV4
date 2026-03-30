@@ -70,7 +70,7 @@ describe('shapes3D', () => {
     it.each(allShapes)('returns a Mesh for shape "%s"', (shape) => {
       const result = createNodeMesh(shape, '#ff0000', 5);
       expect(result).toBeDefined();
-      expect(result.isMesh).toBe(true);
+      expect((result as unknown as { isMesh: boolean }).isMesh).toBe(true);
     });
 
     it('creates SphereGeometry for "sphere"', () => {
@@ -168,7 +168,7 @@ describe('shapes3D', () => {
     it('returns a Sprite', () => {
       const result = createImageSprite('https://example.com/image.png', 10);
       expect(result).toBeDefined();
-      expect(result.isSprite).toBe(true);
+      expect((result as unknown as { isSprite: boolean }).isSprite).toBe(true);
     });
 
     it('loads the texture from the given URL', () => {
@@ -193,7 +193,7 @@ describe('shapes3D', () => {
 
     it('sets renderOrder to 1 so sprite renders on top of mesh', () => {
       const sprite = createImageSprite('https://example.com/icon.png', 5);
-      expect(sprite.renderOrder).toBe(1);
+      expect((sprite as unknown as { renderOrder: number }).renderOrder).toBe(1);
     });
 
     it('sets scale based on size parameter', () => {

@@ -26,6 +26,8 @@ describe('graph view provider bootstrap helper', () => {
       },
       viewRegistry: {
         register,
+        get: vi.fn(() => undefined),
+        getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
       },
       coreViews: [
         { id: 'codegraphy.connections' },
@@ -76,18 +78,19 @@ describe('graph view provider bootstrap helper', () => {
 
   it('restores the persisted view and modes when the saved view still exists', () => {
     const workspaceState = {
-      get: vi.fn((key: string) => {
-        if (key === 'selected') return 'codegraphy.folder';
-        if (key === 'dag') return 'horizontal';
-        if (key === 'size') return 'visits';
+      get<T>(key: string): T | undefined {
+        if (key === 'selected') return 'codegraphy.folder' as T;
+        if (key === 'dag') return 'horizontal' as T;
+        if (key === 'size') return 'visits' as T;
         return undefined;
-      }),
+      },
     };
 
     expect(
       restoreGraphViewProviderState({
         workspaceState,
         viewRegistry: {
+          register: vi.fn(),
           get: vi.fn((viewId: string) => (viewId === 'codegraphy.folder' ? {} : undefined)),
           getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
         },
@@ -108,12 +111,13 @@ describe('graph view provider bootstrap helper', () => {
     expect(
       restoreGraphViewProviderState({
         workspaceState: {
-          get: vi.fn((key: string) => {
-            if (key === 'selected') return 'missing.view';
+          get<T>(key: string): T | undefined {
+            if (key === 'selected') return 'missing.view' as T;
             return undefined;
-          }),
+          },
         },
         viewRegistry: {
+          register: vi.fn(),
           get: vi.fn(() => undefined),
           getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
         },

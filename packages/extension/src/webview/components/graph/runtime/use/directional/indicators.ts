@@ -40,7 +40,7 @@ export function applyDirectionalSettings(
 	graph.linkDirectionalParticleSpeed?.(particleSpeed);
 	graph.linkDirectionalArrowColor?.(getArrowColor);
 	graph.linkDirectionalParticleColor?.(getParticleColor);
-	graph.d3ReheatSimulation();
+	graph.d3ReheatSimulation?.();
 	graph.resumeAnimation?.();
 }
 
