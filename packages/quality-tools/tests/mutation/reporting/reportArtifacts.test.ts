@@ -25,6 +25,14 @@ describe('mutation report artifacts', () => {
     const reportPath = copySharedMutationReports('quality-tools', directory);
     expect(JSON.parse(readFileSync(reportPath, 'utf-8'))).toEqual({ ok: true });
     expect(readFileSync(join(directory, 'reports/mutation/quality-tools/mutation.html'), 'utf-8')).toBe('<html />');
+    expect(
+      JSON.parse(
+        readFileSync(
+          join(directory, 'reports/mutation/quality-tools/stryker-incremental-quality-tools.json'),
+          'utf-8',
+        ),
+      ),
+    ).toEqual({ ok: true });
   });
 
   it('creates the target directory recursively and skips missing shared artifacts', () => {
