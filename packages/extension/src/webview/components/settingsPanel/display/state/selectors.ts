@@ -1,9 +1,5 @@
-import {
-  DEFAULT_DIRECTION_COLOR,
-  DEFAULT_FOLDER_NODE_COLOR,
-  type BidirectionalEdgeMode,
-  type DirectionMode,
-} from '../../../../../shared/contracts';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../../shared/fileColors';
+import type { BidirectionalEdgeMode, DirectionMode } from '../../../../../shared/settings/modes';
 import {
   particleSpeedToDisplay,
   resolveDisplayColor,

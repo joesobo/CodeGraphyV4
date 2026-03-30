@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../src/shared/contracts';
+import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 
 const runtimeHarness = vi.hoisted(() => ({
   applyPhysicsSettings: vi.fn(),

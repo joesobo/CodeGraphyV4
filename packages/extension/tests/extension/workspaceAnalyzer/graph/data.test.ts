@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
-import { DEFAULT_NODE_COLOR } from '../../../../src/shared/contracts';
+import { DEFAULT_NODE_COLOR } from '../../../../src/shared/fileColors';
 import { buildWorkspaceGraphData } from '../../../../src/extension/workspaceAnalyzer/graph/data';
 
 function createPlugin(id: string): IPlugin {

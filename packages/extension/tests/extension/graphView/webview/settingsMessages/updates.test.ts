@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '@/shared/contracts';
+import type { IGraphData } from '@/shared/graph/types';
 import {
   applySettingsUpdateMessage,
 } from '../../../../../src/extension/graphView/webview/settingsMessages/updates';

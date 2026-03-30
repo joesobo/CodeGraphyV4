@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { getMockGraphData, MOCK_FILE_DATA } from '../../src/shared/mockData';
-import { FILE_TYPE_COLORS, DEFAULT_NODE_COLOR } from '../../src/shared/contracts';
+import { FILE_TYPE_COLORS, DEFAULT_NODE_COLOR } from '../../src/shared/fileColors';
 
 describe('Mock Data', () => {
   describe('MOCK_FILE_DATA', () => {

@@ -4,11 +4,11 @@
  */
 
 import type { StoreApi } from 'zustand/vanilla';
-import type { ExtensionToWebviewMessage } from '../../shared/contracts';
 import type { GraphState } from './state';
 import { postMessage } from '../vscodeApi';
 import { MESSAGE_HANDLERS } from './messages';
 import { createDisplayActions } from './displayActions';
+import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 
 type SetState = StoreApi<GraphState>['setState'];
 type GetState = StoreApi<GraphState>['getState'];

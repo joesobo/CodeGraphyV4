@@ -1,7 +1,8 @@
 import { renderHook } from '@testing-library/react';
 import type { Dispatch, SetStateAction } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IFileInfo, IGraphData } from '../../../../src/shared/contracts';
+import type { IFileInfo } from '../../../../src/shared/files/info';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphInteractionHandlers } from '../../../../src/webview/components/graph/interactionRuntime/handlers';
 import type { GraphTooltipState } from '../../../../src/webview/components/graph/tooltipModel';

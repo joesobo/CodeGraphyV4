@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import Timeline from '../../src/webview/components/Timeline';
 import { graphStore } from '../../src/webview/store/state';
-import type { ICommitInfo, IGraphData } from '../../src/shared/contracts';
+import type { IGraphData } from '../../src/shared/graph/types';
+import type { ICommitInfo } from '../../src/shared/timeline/types';
 
 // Capture postMessage calls
 const sentMessages: unknown[] = [];

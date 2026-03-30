@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { NodeShape3D } from '../../../../src/shared/contracts';
+import type { NodeShape3D } from '../../../../src/shared/settings/modes';
 
 const mockTexture = { isTexture: true };
 

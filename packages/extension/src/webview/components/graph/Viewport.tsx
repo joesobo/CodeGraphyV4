@@ -1,5 +1,5 @@
 import type { MouseEvent as ReactMouseEvent, ReactElement, Ref } from 'react';
-import type { DirectionMode } from '../../../shared/contracts';
+import type { DirectionMode } from '../../../shared/settings/modes';
 import type { GraphTooltipState } from './tooltipModel';
 import {
   ContextMenu,

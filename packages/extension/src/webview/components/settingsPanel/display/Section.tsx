@@ -1,8 +1,5 @@
 import React from 'react';
-import type {
-  BidirectionalEdgeMode,
-  DirectionMode,
-} from '../../../../shared/contracts';
+import type { BidirectionalEdgeMode, DirectionMode } from '../../../../shared/settings/modes';
 import { postMessage } from '../../../vscodeApi';
 import { ColorField } from './ColorField';
 import { LabelsToggle } from './LabelsToggle';

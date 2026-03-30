@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
 import type { IConnection } from '../../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../src/extension/config/defaults';
-import type { IGraphData } from '../../../../src/shared/contracts';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 import { analyzeWorkspaceWithAnalyzer } from '../../../../src/extension/workspaceAnalyzer/analysis/analyze';
 
 function createSource() {

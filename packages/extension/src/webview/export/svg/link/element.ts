@@ -1,5 +1,5 @@
-import { DEFAULT_DIRECTION_COLOR } from '../../../../shared/contracts';
 import type { SvgExportLink, SvgPosition } from '../contracts';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../shared/fileColors';
 
 const CURVATURE_EPSILON = 0.001;
 

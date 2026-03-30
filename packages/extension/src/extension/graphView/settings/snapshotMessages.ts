@@ -1,9 +1,7 @@
-import type {
-  ExtensionToWebviewMessage,
-  IPhysicsSettings,
-  ISettingsSnapshot,
-  NodeSizeMode,
-} from '../../../shared/contracts';
+import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import type { NodeSizeMode } from '../../../shared/settings/modes';
+import type { IPhysicsSettings } from '../../../shared/settings/physics';
+import type { ISettingsSnapshot } from '../../../shared/settings/snapshot';
 import { readGraphViewSettings } from './reader';
 import type { IGraphViewSettingsSnapshot } from './reader';
 

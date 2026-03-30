@@ -10,7 +10,7 @@ import { EventBus, EventPayloads, EventName } from './eventBus';
 import { DecorationManager, NodeDecoration, EdgeDecoration } from './decoration/manager';
 import { ViewRegistry } from '../views/registry';
 import { IView } from '../views/contracts';
-import { IGraphData, IGraphNode, IGraphEdge } from '../../shared/contracts';
+import type { IGraphData, IGraphNode, IGraphEdge } from '../../shared/graph/types';
 import {
   getGraph as facadeGetGraph,
   getNode as facadeGetNode,

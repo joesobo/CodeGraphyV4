@@ -1,6 +1,4 @@
-import type {
-  NodeDecorationPayload,
-} from '../../../../../shared/contracts';
+import type { NodeDecorationPayload } from '../../../../../shared/plugins/decorations';
 import type { ThemeKind } from '../../../../theme/useTheme';
 import { drawShape } from '../shapes/draw2d';
 import type { FGNode } from '../../model/build';

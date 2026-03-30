@@ -1,4 +1,6 @@
-import type { ExtensionToWebviewMessage, ICommitInfo, IGraphData } from '../../../../shared/contracts';
+import type { IGraphData } from '../../../../shared/graph/types';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type { ICommitInfo } from '../../../../shared/timeline/types';
 import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/defaults';
 import type { ExtensionContext } from 'vscode';
 

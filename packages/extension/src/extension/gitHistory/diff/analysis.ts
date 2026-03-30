@@ -1,5 +1,5 @@
 import type { IConnection } from '../../../core/plugins/types/contracts';
-import type { IGraphData } from '../../../shared/contracts';
+import type { IGraphData } from '../../../shared/graph/types';
 import { addGitHistoryGraphFile, modifyGitHistoryGraphFile } from './changes';
 import {
   createDiffGraphSnapshot,

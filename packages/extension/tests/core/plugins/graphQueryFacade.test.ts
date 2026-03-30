@@ -5,7 +5,7 @@ import {
   getNeighbors,
   getEdgesFor,
 } from '../../../src/core/plugins/graphQueryFacade';
-import type { IGraphData } from '../../../src/shared/contracts';
+import type { IGraphData } from '../../../src/shared/graph/types';
 
 const sampleGraph: IGraphData = {
   nodes: [

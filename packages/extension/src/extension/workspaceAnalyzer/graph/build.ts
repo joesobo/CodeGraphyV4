@@ -1,5 +1,5 @@
 import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
-import type { IGraphData } from '../../../shared/contracts';
+import type { IGraphData } from '../../../shared/graph/types';
 import { buildWorkspaceGraphData } from './data';
 
 const VISITS_KEY = 'codegraphy.fileVisits';

@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { describe, expect, it, vi } from 'vitest';
-import type { IGroup } from '../../../../src/shared/contracts';
+import type { IGroup } from '../../../../src/shared/settings/groups';
 import {
   createGraphViewProviderPluginMethods,
   type GraphViewProviderPluginMethodsSource,

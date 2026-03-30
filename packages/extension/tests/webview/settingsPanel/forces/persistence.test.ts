@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '@/shared/contracts';
+import type { IPhysicsSettings } from '@/shared/settings/physics';
 import {
   clearPhysicsTimerMap,
   flushPendingPhysicsValue,

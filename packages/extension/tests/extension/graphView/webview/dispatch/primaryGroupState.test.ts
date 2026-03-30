@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData, IGroup } from '@/shared/contracts';
+import type { IGraphData } from '@/shared/graph/types';
+import type { IGroup } from '@/shared/settings/groups';
 import type { IViewContext } from '@/core/views/contracts';
 import {
   createGraphViewPrimaryGroupMessageState,

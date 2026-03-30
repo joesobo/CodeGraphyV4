@@ -1,14 +1,4 @@
-/**
- * @fileoverview Message handler map for the graph store.
- * @module webview/storeMessages
- */
-
-import type { ExtensionToWebviewMessage } from '../../shared/contracts';
 import type { PartialState, IHandlerContext } from './messageTypes';
-
-export type { IStoreFields, IHandlerContext, PartialState, MessageHandler } from './messageTypes';
-export { DAG_MODE_CYCLE } from './messageTypes';
-
 import {
   handleGraphDataUpdated,
   handleFavoritesUpdated,
@@ -22,7 +12,6 @@ import {
   handleShowLabelsUpdated,
   handleMaxFilesUpdated,
 } from './messageHandlers/graph';
-
 import {
   handleIndexProgress,
   handleTimelineData,
@@ -31,7 +20,6 @@ import {
   handleCacheInvalidated,
   handlePlaybackEnded,
 } from './messageHandlers/timeline';
-
 import {
   handlePluginsUpdated,
   handleDecorationsUpdated,
@@ -40,12 +28,12 @@ import {
   handleFolderNodeColorUpdated,
   handleNodeSizeModeUpdated,
 } from './messageHandlers/plugin';
-
 import {
   handleCycleView,
   handleCycleLayout,
   handleToggleDimension,
 } from './messageHandlers/toolbar';
+import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 
 export const MESSAGE_HANDLERS: Record<
   string,

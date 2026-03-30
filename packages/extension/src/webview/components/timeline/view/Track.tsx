@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { mdiPause, mdiPlay } from '@mdi/js';
-import type { ICommitInfo } from '../../../../shared/contracts';
+import type { ICommitInfo } from '../../../../shared/timeline/types';
 import { MdiIcon } from '../../icons/MdiIcon';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/overlay/tooltip';
 import { formatAxisLabel, formatDate } from '../format/dates';

@@ -1,9 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import {
-  DEFAULT_DIRECTION_COLOR,
-  DEFAULT_FOLDER_NODE_COLOR,
-} from '../../../../../src/shared/contracts';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../../src/shared/fileColors';
 import { useDisplayStore } from '../../../../../src/webview/components/settingsPanel/display/use/store';
 import { graphStore } from '../../../../../src/webview/store/state';
 

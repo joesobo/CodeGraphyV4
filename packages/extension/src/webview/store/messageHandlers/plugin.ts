@@ -1,10 +1,5 @@
-/**
- * @fileoverview Store message handlers for plugin/decoration messages.
- * @module webview/storeMessageHandlersPlugin
- */
-
-import type { ExtensionToWebviewMessage } from '../../../shared/contracts';
 import type { PartialState } from '../messageTypes';
+import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 
 export function handlePluginsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'PLUGINS_UPDATED' }>,

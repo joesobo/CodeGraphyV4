@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { ViewRegistry } from '../../../src/core/views/registry';
 import type { IViewContext } from '../../../src/core/views/contracts';
-import type { IGraphData } from '../../../src/shared/contracts';
+import type { IGraphData } from '../../../src/shared/graph/types';
 import {
   applyGraphViewTransform,
   getRelativeWorkspacePath,

@@ -3,7 +3,7 @@
  * @module core/views/depthTraversal
  */
 
-import type { IGraphData } from '../../shared/contracts';
+import type { IGraphData } from '../../shared/graph/types';
 
 /**
  * Build an undirected adjacency list from graph data.

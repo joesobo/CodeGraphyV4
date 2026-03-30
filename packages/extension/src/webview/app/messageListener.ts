@@ -3,7 +3,7 @@
  * @module webview/appMessageListener
  */
 
-import type { ExtensionToWebviewMessage } from '../../shared/contracts';
+import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 import { postMessage } from '../vscodeApi';
 import { graphStore } from '../store/state';
 import { normalizePluginInjectPayload, parsePluginScopedMessage } from './messages';

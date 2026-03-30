@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/contracts';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 import { createGraphViewProviderRefreshMethods } from '../../../../src/extension/graphView/provider/refresh';
 
 function createSource(

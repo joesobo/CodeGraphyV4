@@ -1,5 +1,6 @@
 import * as path from 'path';
-import { getFileColor, type IGraphEdge, type IGraphNode } from '../../../shared/contracts';
+import { getFileColor } from '../../../shared/fileColors';
+import type { IGraphEdge, IGraphNode } from '../../../shared/graph/types';
 
 export function deleteGitHistoryGraphFile(
   filePath: string,

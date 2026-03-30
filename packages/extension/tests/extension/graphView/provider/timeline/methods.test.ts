@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ExtensionToWebviewMessage, IGraphData } from '../../../../../src/shared/contracts';
+import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { ExtensionToWebviewMessage } from '../../../../../src/shared/protocol/extensionToWebview';
 const timelineMethodMocks = vi.hoisted(() => ({
   indexRepository: vi.fn(async () => undefined),
   jumpToCommit: vi.fn(async () => undefined),

@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IPhysicsSettings } from '../../../../src/shared/contracts';
+import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   usePhysicsRuntime,
 } from '../../../../src/webview/components/graph/runtime/use/graph/physics';

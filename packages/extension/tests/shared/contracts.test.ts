@@ -1,12 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import {
-  IGraphNode,
-  IGraphEdge,
-  IGraphData,
-  IGroup,
-  ICommitInfo,
-  ITimelineData,
-} from '../../src/shared/contracts';
+import type { IGraphNode, IGraphEdge, IGraphData } from '../../src/shared/graph/types';
+import type { IGroup } from '../../src/shared/settings/groups';
+import type { ICommitInfo, ITimelineData } from '../../src/shared/timeline/types';
 
 describe('Graph Types', () => {
   it('should allow creating valid IGraphNode', () => {

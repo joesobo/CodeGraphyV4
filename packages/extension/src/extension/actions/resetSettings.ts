@@ -5,7 +5,8 @@
 
 import * as vscode from 'vscode';
 import type { IUndoableAction } from '../undoManager';
-import type { ISettingsSnapshot, IPhysicsSettings } from '../../shared/contracts';
+import type { IPhysicsSettings } from '../../shared/settings/physics';
+import type { ISettingsSnapshot } from '../../shared/settings/snapshot';
 
 /** Physics keys live under `codegraphy.physics.*` */
 const PHYSICS_KEYS: (keyof IPhysicsSettings)[] = [

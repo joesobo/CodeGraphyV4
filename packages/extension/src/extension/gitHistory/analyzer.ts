@@ -8,7 +8,8 @@
 import * as vscode from 'vscode';
 import { minimatch } from 'minimatch';
 import { PluginRegistry } from '../../core/plugins/registry/manager';
-import { IGraphData, ICommitInfo } from '../../shared/contracts';
+import type { IGraphData } from '../../shared/graph/types';
+import type { ICommitInfo } from '../../shared/timeline/types';
 import {
   clearCachedCommitState,
   getCachedCommitList as getStoredCommitList,

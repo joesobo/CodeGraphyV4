@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type * as vscode from 'vscode';
-import type { IPhysicsSettings } from '../../../../../src/shared/contracts';
+import type { IPhysicsSettings } from '../../../../../src/shared/settings/physics';
 import { readGraphViewPhysicsSettings } from '../../../../../src/extension/graphView/settings/physics/reader';
 
 const defaults: IPhysicsSettings = {

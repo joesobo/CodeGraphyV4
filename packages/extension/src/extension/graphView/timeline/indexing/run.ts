@@ -1,4 +1,5 @@
-import type { ExtensionToWebviewMessage, ICommitInfo } from '../../../../shared/contracts';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type { ICommitInfo } from '../../../../shared/timeline/types';
 import { applyGraphViewTimelineIndexResult } from './result';
 
 interface GraphViewGitAnalyzerLike {

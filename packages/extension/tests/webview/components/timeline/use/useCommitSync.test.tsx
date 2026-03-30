@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '@/shared/contracts';
+import type { ICommitInfo } from '@/shared/timeline/types';
 
 const { syncTimelinePlaybackFromCommit } = vi.hoisted(() => ({
   syncTimelinePlaybackFromCommit: vi.fn(),

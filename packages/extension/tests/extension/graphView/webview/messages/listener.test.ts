@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData, IGroup, NodeSizeMode } from '../../../../../src/shared/contracts';
+import type { NodeSizeMode } from '../../../../../src/shared/settings/modes';
+import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGroup } from '../../../../../src/shared/settings/groups';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
 import {
   setGraphViewWebviewMessageListener,

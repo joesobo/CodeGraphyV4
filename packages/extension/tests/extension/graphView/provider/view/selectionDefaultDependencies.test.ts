@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
-import type { IGraphData } from '../../../../../src/shared/contracts';
+import type { IGraphData } from '../../../../../src/shared/graph/types';
 
 const mocks = vi.hoisted(() => ({
   changeGraphViewView: vi.fn(),

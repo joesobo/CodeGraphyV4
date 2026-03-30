@@ -1,4 +1,5 @@
-import type { ExtensionToWebviewMessage, WebviewToExtensionMessage } from '../../../../shared/contracts';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { GraphKeyboardEffect } from '../keyboard/effects';
 
 export interface GraphKeyboardEffectHandlers {

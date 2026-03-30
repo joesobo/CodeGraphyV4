@@ -1,5 +1,6 @@
 import type * as vscode from 'vscode';
-import type { IAvailableView, IGraphData } from '../../shared/contracts';
+import type { IGraphData } from '../../shared/graph/types';
+import type { IAvailableView } from '../../shared/view/types';
 import type { IViewContext, IViewInfo } from '../../core/views/contracts';
 import type { ViewRegistry } from '../../core/views/registry';
 

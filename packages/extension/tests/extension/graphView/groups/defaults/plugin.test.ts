@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import type { NodeShape2D, NodeShape3D } from '@/shared/settings/modes';
 import * as vscode from 'vscode';
-import type { NodeShape2D, NodeShape3D } from '@/shared/contracts';
 import { getGraphViewPluginDefaultGroups } from '../../../../../src/extension/graphView/groups/defaults/plugin';
 
 describe('graphView/pluginDefaultGroups', () => {

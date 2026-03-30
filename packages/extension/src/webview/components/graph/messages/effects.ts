@@ -1,8 +1,6 @@
-import type {
-  ExtensionToWebviewMessage,
-  IFileInfo,
-  WebviewToExtensionMessage,
-} from '../../../../shared/contracts';
+import type { IFileInfo } from '../../../../shared/files/info';
+import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { FGNode } from '../model/build';
 import {
   EMPTY_EFFECTS,

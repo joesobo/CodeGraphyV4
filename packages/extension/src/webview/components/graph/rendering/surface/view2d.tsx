@@ -5,7 +5,7 @@ import type {
   LinkObject,
   NodeObject,
 } from 'react-force-graph-2d';
-import type { DirectionMode } from '../../../../../shared/contracts';
+import type { DirectionMode } from '../../../../../shared/settings/modes';
 import type { FGLink, FGNode } from '../../model/build';
 import type { GraphSurfaceSharedProps } from './sharedProps';
 import {

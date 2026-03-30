@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/contracts';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 import {
   DEFAULT_NODE_SIZE,
   FAVORITE_BORDER_COLOR,

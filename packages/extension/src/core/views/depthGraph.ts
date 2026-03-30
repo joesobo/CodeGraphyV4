@@ -4,7 +4,7 @@
  */
 
 import { IView, IViewContext } from './contracts';
-import { IGraphData } from '../../shared/contracts';
+import type { IGraphData } from '../../shared/graph/types';
 import { buildAdjacencyList, bfsFromNode } from './depthTraversal';
 
 export const depthGraphView: IView = {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/contracts';
+import type { IGraphData } from '../../../../../src/shared/graph/types';
 import { createGraphViewProviderAnalysisDelegates } from '../../../../../src/extension/graphView/provider/analysis/delegates';
 import { createGraphViewProviderAnalysisMethods } from '../../../../../src/extension/graphView/provider/analysis/methods';
 

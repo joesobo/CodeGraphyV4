@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGroup } from '../../../../../src/shared/contracts';
+import type { IGroup } from '../../../../../src/shared/settings/groups';
 import { buildSettingsGroupOverride } from '../../../../../src/webview/components/settingsPanel/groups/shared/override';
 
 describe('settingsPanel groups override', () => {

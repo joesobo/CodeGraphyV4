@@ -1,4 +1,5 @@
-import type { DagMode, NodeSizeMode, WebviewToExtensionMessage } from '../../../../shared/contracts';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
+import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 
 export interface GraphViewCommandHandlers {
   undo(): Promise<string | undefined>;

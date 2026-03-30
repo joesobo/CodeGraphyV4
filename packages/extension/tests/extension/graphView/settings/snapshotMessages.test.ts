@@ -4,7 +4,7 @@ import {
   buildGraphViewSettingsMessages,
   captureGraphViewSettingsSnapshot,
 } from '../../../../src/extension/graphView/settings/snapshotMessages';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/contracts';
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/fileColors';
 
 function createConfig(values: Record<string, unknown>) {
   return {

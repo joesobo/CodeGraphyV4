@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { IGroup } from '../../../src/shared/contracts';
+import type { IGroup } from '../../../src/shared/settings/groups';
 import { createGraphViewProviderTestHarness } from './testHarness';
 
 type GroupSummary = Pick<IGroup, 'id'> & Partial<Pick<IGroup, 'pattern' | 'color' | 'disabled' | 'isPluginDefault' | 'pluginName'>>;

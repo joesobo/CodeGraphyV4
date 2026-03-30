@@ -5,7 +5,7 @@
  * @module core/views/contracts
  */
 
-import { IGraphData } from '../../shared/contracts';
+import type { IGraphData } from '../../shared/graph/types';
 
 /**
  * Represents a view type that can be displayed in CodeGraphy.

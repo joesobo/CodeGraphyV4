@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { getAvailableViews, isViewAvailable } from '../../../src/core/views/viewAvailability';
 import { IViewInfo, IViewContext, IView } from '../../../src/core/views/contracts';
-import { IGraphData } from '../../../src/shared/contracts';
+import type { IGraphData } from '../../../src/shared/graph/types';
 
 function makeView(id: string, overrides: Partial<IView> = {}): IView {
   return {

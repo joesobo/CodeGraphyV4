@@ -1,4 +1,4 @@
-import type { IGraphNode } from '../../../../../shared/contracts';
+import type { IGraphNode } from '../../../../../shared/graph/types';
 import { DEFAULT_NODE_SIZE } from '../node/display';
 import { MIN_NODE_SIZE, MAX_NODE_SIZE } from './calculations';
 

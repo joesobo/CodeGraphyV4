@@ -1,5 +1,5 @@
 import type * as vscode from 'vscode';
-import type { IPhysicsSettings } from '../../../../shared/contracts';
+import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 
 export function readGraphViewPhysicsSettings(
   config: Pick<vscode.WorkspaceConfiguration, 'get'>,

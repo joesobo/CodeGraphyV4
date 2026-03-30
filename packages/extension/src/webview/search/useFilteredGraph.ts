@@ -5,9 +5,10 @@
  */
 
 import { useMemo } from 'react';
-import type { IGraphData, IGroup } from '../../shared/contracts';
 import type { SearchOptions } from '../components/searchBar/field/model';
 import { filterGraphData, applyGroupColors } from './filtering';
+import type { IGraphData } from '../../shared/graph/types';
+import type { IGroup } from '../../shared/settings/groups';
 
 export interface IFilteredGraph {
   /** Graph after node/edge search filtering (null when no graph data). */

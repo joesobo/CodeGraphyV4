@@ -3,7 +3,9 @@
  * @module shared/mockDataTransforms
  */
 
-import { IFileData, IGraphNode, IGraphEdge, getFileColor } from '../contracts';
+import { getFileColor } from '../fileColors';
+import type { IFileData } from './fileData';
+import type { IGraphEdge, IGraphNode } from '../graph/types';
 
 /**
  * Converts an array of file data to graph nodes.

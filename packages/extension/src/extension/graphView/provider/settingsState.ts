@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
+import type { NodeSizeMode } from '../../../shared/settings/modes';
 import type { IViewContext } from '../../../core/views/contracts';
-import type { ExtensionToWebviewMessage, IGroup, IPhysicsSettings, NodeSizeMode } from '../../../shared/contracts';
+import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import type { IGroup } from '../../../shared/settings/groups';
+import type { IPhysicsSettings } from '../../../shared/settings/physics';
 import { getGraphViewConfigTarget } from '../settings/reader';
 import { loadGraphViewDisabledState } from '../settings/disabled';
 import { applyLoadedGraphViewGroupState } from '../groups/sync';

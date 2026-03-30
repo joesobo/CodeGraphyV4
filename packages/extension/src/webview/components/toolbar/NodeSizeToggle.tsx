@@ -5,13 +5,13 @@
  */
 
 import React from 'react';
+import type { NodeSizeMode } from '../../../shared/settings/modes';
 import { mdiHubOutline, mdiFileOutline, mdiEyeOutline, mdiCircleMultipleOutline } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
 import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
-import type { NodeSizeMode } from '../../../shared/contracts';
 
 const NODE_SIZE_MODES: { mode: NodeSizeMode; label: string; icon: string }[] = [
   { mode: 'connections', label: 'Size by Connections', icon: mdiHubOutline },

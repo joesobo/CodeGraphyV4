@@ -1,4 +1,4 @@
-import type { IGroup } from '../../../../../shared/contracts';
+import type { IGroup } from '../../../../../shared/settings/groups';
 
 export function reorderSettingsGroups(
   groups: IGroup[],

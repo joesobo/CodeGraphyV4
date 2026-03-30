@@ -6,7 +6,7 @@
 import type { IPlugin, IPluginInfo, IConnection } from '../types/contracts';
 import type { EventBus } from '../eventBus';
 import type { CodeGraphyAPIImpl } from '../codeGraphyApi';
-import type { IGraphData } from '../../../shared/contracts';
+import type { IGraphData } from '../../../shared/graph/types';
 import { validateAndCreatePluginInfo, addToRegistry } from './register';
 import type { RegistryV2Config } from './register';
 import { removeFromRegistry } from './unregister';

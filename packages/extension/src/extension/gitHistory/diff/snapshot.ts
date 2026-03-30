@@ -1,4 +1,4 @@
-import type { IGraphData, IGraphEdge, IGraphNode } from '../../../shared/contracts';
+import type { IGraphData, IGraphEdge, IGraphNode } from '../../../shared/graph/types';
 
 export interface DiffGraphSnapshot {
   edgeSet: Set<string>;

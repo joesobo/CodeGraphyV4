@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../../../src/shared/contracts';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 import { WorkspaceAnalyzer } from '../../../../src/extension/workspaceAnalyzer/service';
 import * as pluginModule from '../../../../src/extension/workspaceAnalyzer/plugins/queries';
 import * as runModule from '../../../../src/extension/workspaceAnalyzer/analysis/run';

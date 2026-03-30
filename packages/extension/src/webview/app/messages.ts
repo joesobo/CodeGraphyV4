@@ -1,4 +1,4 @@
-import { IGraphData } from '../../shared/contracts';
+import type { IGraphData } from '../../shared/graph/types';
 export type { PluginWebviewModule } from '../pluginRuntime/moduleResolver';
 export type { PluginInjectPayload, PluginScopedMessage } from '../pluginRuntime/messageValidation';
 export {

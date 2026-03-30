@@ -1,4 +1,4 @@
-import type { IPluginContextMenuItem } from '../../../../../shared/contracts';
+import type { IPluginContextMenuItem } from '../../../../../shared/plugins/contextMenu';
 import { pluginItem, separator } from '../common/entryFactories';
 import type { GraphContextMenuEntry, GraphContextSelection } from '../contracts';
 import { classifyTarget } from '../targetClassification';

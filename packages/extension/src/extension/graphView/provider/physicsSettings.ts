@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
-import type { ExtensionToWebviewMessage, IPhysicsSettings } from '../../../shared/contracts';
+import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import type { IPhysicsSettings } from '../../../shared/settings/physics';
 import { readGraphViewPhysicsSettings } from '../settings/physics/reader';
 import { getGraphViewConfigTarget } from '../settings/reader';
 import { resetGraphViewPhysicsSettings, updateGraphViewPhysicsSetting } from '../settings/physics/updates';

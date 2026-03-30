@@ -1,6 +1,6 @@
 import React from 'react';
 import { mdiEyeOffOutline, mdiEyeOutline } from '@mdi/js';
-import type { IGroup } from '../../../../../shared/contracts';
+import type { IGroup } from '../../../../../shared/settings/groups';
 import { cn } from '../../../ui/cn';
 import { MdiIcon } from '../../../icons/MdiIcon';
 import { ChevronIcon } from '../../SectionHeader';

@@ -3,7 +3,7 @@
  * @module core/views/folder/edges
  */
 
-import type { IGraphData } from '../../../shared/contracts';
+import type { IGraphData } from '../../../shared/graph/types';
 
 /**
  * Build containment edges: folder→subfolder and folder→file.

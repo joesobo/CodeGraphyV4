@@ -1,4 +1,4 @@
-import type { WebviewToExtensionMessage } from '../../../../shared/contracts';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 
 export interface GraphViewNodeFileEditHandlers {
   timelineActive: boolean;

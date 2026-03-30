@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { DagMode, IGraphData, IGroup } from '@/shared/contracts';
+import type { IGraphData } from '@/shared/graph/types';
+import type { IGroup } from '@/shared/settings/groups';
+import type { DagMode } from '@/shared/settings/modes';
 import type { IViewContext } from '@/core/views/contracts';
 
 const exportSaverMocks = vi.hoisted(() => ({

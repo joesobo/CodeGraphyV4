@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FGNode } from '../../../../src/webview/components/graph/model/build';
-import type { IFileInfo, IGraphData } from '../../../../src/shared/contracts';
+import type { IFileInfo } from '../../../../src/shared/files/info';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 import { handleTooltipNodeHover } from '../../../../src/webview/components/graph/runtime/tooltip/hover';
 
 describe('handleTooltipNodeHover', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { ISettingsSnapshot } from '../../../../src/shared/contracts';
+import type { ISettingsSnapshot } from '../../../../src/shared/settings/snapshot';
 import {
   sendGraphViewProviderAllSettings,
   sendGraphViewProviderSettings,

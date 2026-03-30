@@ -1,4 +1,4 @@
-import type { DirectionMode } from '../../../../../shared/contracts';
+import type { DirectionMode } from '../../../../../shared/settings/modes';
 import type { FGLink } from '../../model/build';
 import { resolveLinkEndpointId } from '../../support/linkTargets';
 import type { LinkRenderingDependencies } from './contracts';

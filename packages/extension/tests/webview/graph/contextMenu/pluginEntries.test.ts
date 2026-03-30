@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { buildPluginEntries } from '../../../../src/webview/components/graph/contextMenu/plugin/entries';
 import type { GraphContextMenuEntry, GraphContextSelection } from '../../../../src/webview/components/graph/contextMenu/contracts';
-import type { IPluginContextMenuItem } from '../../../../src/shared/contracts';
+import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
 
 function itemLabels(entries: GraphContextMenuEntry[]): string[] {
   return entries

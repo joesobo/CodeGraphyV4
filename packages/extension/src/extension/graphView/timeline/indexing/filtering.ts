@@ -1,5 +1,5 @@
 import * as path from 'path';
-import type { IGraphData } from '../../../../shared/contracts';
+import type { IGraphData } from '../../../../shared/graph/types';
 
 interface GraphViewTimelineRegistry {
   getPluginForFile(filePath: string): { id: string } | undefined;

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act } from '@testing-library/react';
 import Graph from '../../../src/webview/components/Graph';
-import { IGraphData, DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
+import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
+import type { IGraphData } from '../../../src/shared/graph/types';
 import { graphStore } from '../../../src/webview/store/state';
 import ForceGraph2D from 'react-force-graph-2d';
 import { getSentMessages } from '../../helpers/sentMessages';

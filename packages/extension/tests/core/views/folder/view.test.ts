@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { IGraphData, DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/contracts';
+import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/fileColors';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 import { IViewContext } from '../../../../src/core/views/contracts';
 import type { IView } from '../../../../src/core/views/contracts';
 

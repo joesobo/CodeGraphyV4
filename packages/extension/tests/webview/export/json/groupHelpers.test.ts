@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphNode, IGroup } from '../../../../src/shared/contracts';
+import type { IGraphNode } from '../../../../src/shared/graph/types';
+import type { IGroup } from '../../../../src/shared/settings/groups';
 import {
   buildGroupStyle,
   buildNodeGroupMap,

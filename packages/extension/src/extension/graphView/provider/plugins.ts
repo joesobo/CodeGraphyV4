@@ -1,7 +1,8 @@
 import * as vscode from 'vscode';
 import type { IViewContext } from '../../../core/views/contracts';
 import type { ViewRegistry } from '../../../core/views/registry';
-import type { ExtensionToWebviewMessage, IGroup } from '../../../shared/contracts';
+import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import type { IGroup } from '../../../shared/settings/groups';
 import {
   registerGraphViewExternalPlugin,
   type GraphViewExternalPluginRegistrationOptions,
