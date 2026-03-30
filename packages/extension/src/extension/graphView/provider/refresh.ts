@@ -1,15 +1,28 @@
 import * as vscode from 'vscode';
 import type { IGraphData } from '../../../shared/graph/types';
+import type { IPluginStatus } from '../../../shared/plugins/status';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import { shouldRebuildGraphView } from '../rebuild';
 import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 
 interface GraphViewProviderRefreshAnalyzerLike {
+  rebuildGraph(
+    disabledRules: Set<string>,
+    disabledPlugins: Set<string>,
+    showOrphans: boolean,
+  ): IGraphData;
+  getPluginStatuses(
+    disabledRules: Set<string>,
+    disabledPlugins: Set<string>,
+  ): readonly IPluginStatus[];
+  registry: {
+    notifyGraphRebuild(graphData: IGraphData): void;
+  };
   clearCache(): void;
 }
 
 export interface GraphViewProviderRefreshMethodsSource {
-  _analyzer?: GraphViewProviderRefreshAnalyzerLike;
+  _analyzer: GraphViewProviderRefreshAnalyzerLike | undefined;
   _disabledRules: Set<string>;
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
@@ -41,7 +54,7 @@ export interface GraphViewProviderRefreshMethodDependencies {
   getShowOrphans(): boolean;
   rebuildGraphData: typeof rebuildGraphViewData;
   smartRebuildGraphData: typeof smartRebuildGraphView;
-  shouldRebuild: typeof shouldRebuildGraphView;
+  shouldRebuild(statuses: readonly IPluginStatus[], kind: 'rule' | 'plugin', id: string): boolean;
 }
 
 const DEFAULT_DEPENDENCIES: GraphViewProviderRefreshMethodDependencies = {
@@ -57,7 +70,7 @@ export function createGraphViewProviderRefreshMethods(
   dependencies: GraphViewProviderRefreshMethodDependencies = DEFAULT_DEPENDENCIES,
 ): GraphViewProviderRefreshMethods {
   const _rebuildAndSend = (): void => {
-    dependencies.rebuildGraphData(source as never, {
+    dependencies.rebuildGraphData(source, {
       getShowOrphans: () => dependencies.getShowOrphans(),
       updateViewContext: () => source._updateViewContext(),
       applyViewTransform: () => source._applyViewTransform(),
@@ -79,9 +92,9 @@ export function createGraphViewProviderRefreshMethods(
   };
 
   const _smartRebuild = (kind: 'rule' | 'plugin', id: string): void => {
-    dependencies.smartRebuildGraphData(source as never, kind, id, {
+    dependencies.smartRebuildGraphData(source, kind, id, {
       shouldRebuild: (statuses, nextKind, nextId) =>
-        dependencies.shouldRebuild(statuses as never, nextKind, nextId),
+        dependencies.shouldRebuild(statuses, nextKind, nextId),
       rebuildAndSend: () => runRebuildAndSend(),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
     });

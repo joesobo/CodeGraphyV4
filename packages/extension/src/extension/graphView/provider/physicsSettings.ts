@@ -7,6 +7,7 @@ import { resetGraphViewPhysicsSettings, updateGraphViewPhysicsSetting } from '..
 
 interface GraphViewProviderSettingsConfigLike {
   get<T>(key: string, defaultValue: T): T;
+  update(key: string, value: unknown, target: unknown): PromiseLike<void>;
 }
 
 export interface GraphViewProviderPhysicsSettingsMethodsSource {
@@ -24,7 +25,10 @@ export interface GraphViewProviderPhysicsSettingsMethodDependencies {
   getConfiguration(section: string): GraphViewProviderSettingsConfigLike;
   getWorkspaceFolders(): readonly vscode.WorkspaceFolder[] | undefined;
   getConfigTarget(workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined): unknown;
-  readPhysicsSettings: typeof readGraphViewPhysicsSettings;
+  readPhysicsSettings(
+    config: Pick<GraphViewProviderSettingsConfigLike, 'get'>,
+    defaults: IPhysicsSettings,
+  ): IPhysicsSettings;
   updatePhysicsSetting: typeof updateGraphViewPhysicsSetting;
   resetPhysicsSettings: typeof resetGraphViewPhysicsSettings;
   defaultPhysics: IPhysicsSettings;
@@ -56,7 +60,7 @@ export function createGraphViewProviderPhysicsSettingsMethods(
     dependencies ?? createDefaultGraphViewProviderPhysicsSettingsMethodDependencies();
   const _getPhysicsSettings = (): IPhysicsSettings =>
     resolvedDependencies.readPhysicsSettings(
-      resolvedDependencies.getConfiguration('codegraphy.physics') as never,
+      resolvedDependencies.getConfiguration('codegraphy.physics'),
       resolvedDependencies.defaultPhysics,
     );
 
@@ -72,14 +76,14 @@ export function createGraphViewProviderPhysicsSettingsMethods(
     value: number,
   ): Promise<void> => {
     await resolvedDependencies.updatePhysicsSetting(key, value, {
-      getConfiguration: () => resolvedDependencies.getConfiguration('codegraphy.physics') as never,
+      getConfiguration: () => resolvedDependencies.getConfiguration('codegraphy.physics'),
       getConfigTarget: () => resolvedDependencies.getConfigTarget(resolvedDependencies.getWorkspaceFolders()),
     });
   };
 
   const _resetPhysicsSettings = async (): Promise<void> => {
     await resolvedDependencies.resetPhysicsSettings({
-      getConfiguration: () => resolvedDependencies.getConfiguration('codegraphy.physics') as never,
+      getConfiguration: () => resolvedDependencies.getConfiguration('codegraphy.physics'),
       getConfigTarget: () => resolvedDependencies.getConfigTarget(resolvedDependencies.getWorkspaceFolders()),
     });
   };

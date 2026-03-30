@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import type { ICommitInfo } from '../../../../shared/timeline/types';
+import type { GraphViewProviderTimelineSource } from '../../timeline/provider/indexing';
 import {
   indexGraphViewProviderRepository,
   jumpGraphViewProviderToCommit,
@@ -17,26 +18,29 @@ import {
 
 type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
 
-export interface GraphViewProviderTimelineMethodsSource {
-  _context: vscode.ExtensionContext;
-  _analyzer?: {
-    registry: unknown;
-    initialize(): Promise<void>;
-    getPluginFilterPatterns(): string[];
-  };
-  _analyzerInitialized: boolean;
-  _gitAnalyzer?: {
+export interface GraphViewProviderTimelineMethodsSource
+  extends Omit<
+    Pick<
+    GraphViewProviderTimelineSource,
+    | '_context'
+    | '_analyzer'
+    | '_analyzerInitialized'
+    | '_gitAnalyzer'
+    | '_indexingController'
+    | '_filterPatterns'
+    | '_timelineActive'
+    | '_currentCommitSha'
+    | '_disabledPlugins'
+    | '_disabledRules'
+    | '_graphData'
+    | '_sendMessage'
+    >,
+    '_gitAnalyzer'
+  > {
+  _gitAnalyzer?: GraphViewProviderTimelineSource['_gitAnalyzer'] & {
     invalidateCache(): PromiseLike<void>;
-    getCachedCommitList(): unknown;
-    getGraphDataForCommit(sha: string): Promise<IGraphData>;
+    getCachedCommitList(): ICommitInfo[] | null | undefined;
   };
-  _indexingController?: AbortController;
-  _filterPatterns: string[];
-  _timelineActive: boolean;
-  _currentCommitSha: string | undefined;
-  _disabledPlugins: Set<string>;
-  _disabledRules: Set<string>;
-  _graphData: IGraphData;
   _sendMessage(message: ExtensionToWebviewMessage): void;
   _openFile(filePath: string, behavior?: EditorOpenBehavior): Promise<void>;
 }
@@ -209,11 +213,11 @@ export function createGraphViewProviderTimelineMethods(
   };
 
   const _indexRepository = async (): Promise<void> => {
-    await dependencies.indexRepository(source as never);
+    await dependencies.indexRepository(source);
   };
 
   const _jumpToCommit = async (sha: string): Promise<void> => {
-    await dependencies.jumpToCommit(source as never, sha);
+    await dependencies.jumpToCommit(source, sha);
   };
 
   const _openSelectedNode = async (nodeId: string): Promise<void> => {
@@ -225,7 +229,7 @@ export function createGraphViewProviderTimelineMethods(
   };
 
   const _sendCachedTimeline = (): void => {
-    dependencies.sendCachedTimeline(source as never);
+    dependencies.sendCachedTimeline(source);
   };
 
   const sendPlaybackSpeed = (): void => {

@@ -23,16 +23,14 @@ export function getGraphViewVisitCount(
   workspaceState: GraphViewWorkspaceStateLike,
   filePath: string,
 ): number {
-  return readPersistedGraphViewVisitCount(workspaceState as never, filePath);
+  return readPersistedGraphViewVisitCount(workspaceState, filePath);
 }
 
 export async function incrementGraphViewVisitCount(
   filePath: string,
   { workspaceState, sendMessage }: IncrementGraphViewVisitCountOptions,
 ): Promise<void> {
-  sendMessage(
-    await incrementPersistedGraphViewVisitCount(workspaceState as never, filePath),
-  );
+  sendMessage(await incrementPersistedGraphViewVisitCount(workspaceState, filePath));
 }
 
 export async function trackGraphViewFileVisit(

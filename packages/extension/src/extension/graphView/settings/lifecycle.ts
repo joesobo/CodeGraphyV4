@@ -24,7 +24,7 @@ export function sendGraphViewProviderSettings(
   viewContext: GraphViewAllSettingsSyncState['viewContext'],
   { getConfiguration, sendMessage }: SendGraphViewProviderSettingsOptions,
 ): void {
-  sendGraphViewSettingsMessages(viewContext as never, {
+  sendGraphViewSettingsMessages(viewContext, {
     getConfiguration,
     sendMessage: message => sendMessage(message as ExtensionToWebviewMessage),
   });

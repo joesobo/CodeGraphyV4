@@ -4,6 +4,14 @@ import type {
   GraphViewProviderMessageListenerSource,
 } from './listener';
 
+type GraphViewInteractionPluginApi = {
+  deliverWebviewMessage(message: { type: string; data: unknown }): void;
+};
+
+type GraphViewContextMenuPluginApi = {
+  contextMenuItems: ReadonlyArray<{ action(target: unknown): Promise<void> | void }>;
+};
+
 type GraphViewProviderPluginContext = Pick<
   GraphViewMessageListenerContext,
   | 'getPluginFilterPatterns'
@@ -51,8 +59,14 @@ export function createGraphViewProviderMessagePluginContext(
     sendPluginWebviewInjections: () => source._sendPluginWebviewInjections(),
     waitForFirstWorkspaceReady: () => source._firstWorkspaceReadyPromise,
     notifyWebviewReady: () => source._analyzer?.registry?.notifyWebviewReady(),
-    getInteractionPluginApi: pluginId => source._analyzer?.registry?.getPluginAPI(pluginId) as never,
-    getContextMenuPluginApi: pluginId => source._analyzer?.registry?.getPluginAPI(pluginId) as never,
+    getInteractionPluginApi: pluginId =>
+      source._analyzer?.registry?.getPluginAPI(pluginId) as
+        | GraphViewInteractionPluginApi
+        | undefined,
+    getContextMenuPluginApi: pluginId =>
+      source._analyzer?.registry?.getPluginAPI(pluginId) as
+        | GraphViewContextMenuPluginApi
+        | undefined,
     emitEvent: (event, payload) => {
       source._eventBus.emit(event, payload);
     },

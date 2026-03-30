@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../shared/graph/types';
+import type { IPluginStatus } from '../../../shared/plugins/status';
 
 interface GraphViewAnalyzerLike {
   rebuildGraph(
@@ -9,7 +10,7 @@ interface GraphViewAnalyzerLike {
   getPluginStatuses(
     disabledRules: Set<string>,
     disabledPlugins: Set<string>,
-  ): unknown[];
+  ): readonly IPluginStatus[];
   registry: {
     notifyGraphRebuild(graphData: IGraphData): void;
   };
@@ -34,7 +35,7 @@ interface RebuildGraphViewDataDependencies {
 }
 
 interface SmartRebuildGraphViewDependencies {
-  shouldRebuild: (statuses: unknown[], kind: 'rule' | 'plugin', id: string) => boolean;
+  shouldRebuild: (statuses: readonly IPluginStatus[], kind: 'rule' | 'plugin', id: string) => boolean;
   rebuildAndSend: () => void;
   sendMessage: (message: unknown) => void;
 }

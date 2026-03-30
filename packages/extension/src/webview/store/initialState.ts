@@ -1,7 +1,8 @@
+import type { GraphStateFields } from './state';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
 
-export const INITIAL_STATE = {
+export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
   isLoading: true,
   searchQuery: '',
@@ -18,22 +19,22 @@ export const INITIAL_STATE = {
   nodeSizeMode: 'connections' as const,
   physicsSettings: DEFAULT_PHYSICS,
   depthLimit: 1,
-  groups: [] as never[],
-  filterPatterns: [] as string[],
-  pluginFilterPatterns: [] as string[],
-  availableViews: [] as never[],
+  groups: [],
+  filterPatterns: [],
+  pluginFilterPatterns: [],
+  availableViews: [],
   activeViewId: 'codegraphy.connections',
   dagMode: null,
   folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
-  pluginStatuses: [] as never[],
+  pluginStatuses: [],
   nodeDecorations: {},
   edgeDecorations: {},
-  pluginContextMenuItems: [] as never[],
+  pluginContextMenuItems: [],
   expandedGroupId: null,
   activePanel: 'none' as const,
   maxFiles: 500,
   timelineActive: false,
-  timelineCommits: [] as never[],
+  timelineCommits: [],
   currentCommitSha: null,
   isIndexing: false,
   indexProgress: null,

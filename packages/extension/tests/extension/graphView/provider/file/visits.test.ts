@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/graph/types';
 import { createGraphViewProviderFileVisitMethods } from '../../../../../src/extension/graphView/provider/file/visits';
+import type { IUndoableAction } from '../../../../../src/extension/undoManager';
 
 type FileVisitSource = {
   _context: {
@@ -20,6 +21,15 @@ type FileVisitSource = {
   _getVisitCount?: ReturnType<typeof vi.fn>;
   _incrementVisitCount?: ReturnType<typeof vi.fn>;
 };
+
+function createUndoableAction(overrides: Partial<IUndoableAction> = {}): IUndoableAction {
+  return {
+    description: 'test action',
+    execute: vi.fn(async () => undefined),
+    undo: vi.fn(async () => undefined),
+    ...overrides,
+  };
+}
 
 describe('graphView/provider/file/visits', () => {
   it('loads file info, prefers source visit overrides captured during creation, and syncs analyzer initialization state', async () => {
@@ -64,7 +74,7 @@ describe('graphView/provider/file/visits', () => {
       trackFileVisit: vi.fn(async () => undefined),
       sendFavorites: vi.fn(),
       addExcludeWithUndo: vi.fn(async () => undefined),
-      createAddToExcludeAction: vi.fn(),
+      createAddToExcludeAction: vi.fn(() => createUndoableAction()),
       executeUndoAction: vi.fn(async () => undefined),
       logError,
     });
@@ -118,7 +128,7 @@ describe('graphView/provider/file/visits', () => {
       trackFileVisit,
       sendFavorites,
       addExcludeWithUndo: vi.fn(async () => undefined),
-      createAddToExcludeAction: vi.fn(),
+      createAddToExcludeAction: vi.fn(() => createUndoableAction()),
       executeUndoAction: vi.fn(async () => undefined),
       logError: vi.fn(),
     });
@@ -172,7 +182,7 @@ describe('graphView/provider/file/visits', () => {
       trackFileVisit,
       sendFavorites: vi.fn(),
       addExcludeWithUndo: vi.fn(async () => undefined),
-      createAddToExcludeAction: vi.fn(),
+      createAddToExcludeAction: vi.fn(() => createUndoableAction()),
       executeUndoAction: vi.fn(async () => undefined),
       logError: vi.fn(),
     });
@@ -227,7 +237,7 @@ describe('graphView/provider/file/visits', () => {
       trackFileVisit,
       sendFavorites: vi.fn(),
       addExcludeWithUndo: vi.fn(async () => undefined),
-      createAddToExcludeAction: vi.fn(),
+      createAddToExcludeAction: vi.fn(() => createUndoableAction()),
       executeUndoAction: vi.fn(async () => undefined),
       logError: vi.fn(),
     });
@@ -282,7 +292,7 @@ describe('graphView/provider/file/visits', () => {
       trackFileVisit,
       sendFavorites: vi.fn(),
       addExcludeWithUndo: vi.fn(async () => undefined),
-      createAddToExcludeAction: vi.fn(),
+      createAddToExcludeAction: vi.fn(() => createUndoableAction()),
       executeUndoAction: vi.fn(async () => undefined),
       logError: vi.fn(),
     });
@@ -333,7 +343,7 @@ describe('graphView/provider/file/visits', () => {
       trackFileVisit: vi.fn(async () => undefined),
       sendFavorites: vi.fn(),
       addExcludeWithUndo,
-      createAddToExcludeAction: vi.fn(() => ({ kind: 'exclude-action' })),
+      createAddToExcludeAction: vi.fn(() => createUndoableAction()),
       executeUndoAction,
       logError: vi.fn(),
     });
@@ -342,6 +352,8 @@ describe('graphView/provider/file/visits', () => {
 
     expect(addExcludeWithUndo).toHaveBeenCalledOnce();
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(executeUndoAction).toHaveBeenCalledWith({ kind: 'exclude-action' });
+    expect(executeUndoAction).toHaveBeenCalledWith(
+      expect.objectContaining({ description: 'test action' }),
+    );
   });
 });

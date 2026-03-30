@@ -4,9 +4,11 @@ import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/exte
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
+import type { ISettingsSnapshot } from '../../../../shared/settings/snapshot';
 import type { IViewContext } from '../../../../core/views/contracts';
 import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/fileColors';
 import { getUndoManager } from '../../../undoManager';
+import type { IUndoableAction } from '../../../undoManager';
 import { ResetSettingsAction } from '../../../actions/resetSettings';
 import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/reader';
 import { captureGraphViewSettingsSnapshot } from '../../settings/snapshotMessages';
@@ -18,7 +20,7 @@ import { setGraphViewWebviewMessageListener } from '../messages/listener';
 
 interface GraphViewConfigurationLike {
   get<T>(key: string, defaultValue: T): T;
-  update(key: string, value: unknown, target: unknown): PromiseLike<void>;
+  update(key: string, value: unknown, target: vscode.ConfigurationTarget): PromiseLike<void>;
 }
 
 interface GraphViewWorkspaceLike {
@@ -38,21 +40,21 @@ export interface GraphViewProviderMessageListenerDependencies {
   window: GraphViewWindowLike;
   getConfigTarget(
     workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined,
-  ): unknown;
+  ): vscode.ConfigurationTarget;
   captureSettingsSnapshot(
     configuration: GraphViewConfigurationLike,
     physicsSettings: IPhysicsSettings,
     nodeSizeMode: NodeSizeMode,
-  ): unknown;
+  ): ISettingsSnapshot;
   createResetSettingsAction(
-    snapshot: unknown,
-    target: unknown,
+    snapshot: ISettingsSnapshot,
+    target: vscode.ConfigurationTarget,
     context: vscode.ExtensionContext,
     sendAllSettings: () => void,
     setNodeSizeMode: (mode: NodeSizeMode) => void,
     analyzeAndSendData: () => Promise<void>,
-  ): unknown;
-  executeUndoAction(action: unknown): Promise<void>;
+  ): IUndoableAction;
+  executeUndoAction(action: IUndoableAction): Promise<void>;
   normalizeFolderNodeColor(folderNodeColor: string): string;
   defaultFolderNodeColor: string;
   dagModeKey: string;
@@ -137,7 +139,7 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {
   window: vscode.window,
   getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
   captureSettingsSnapshot: (configuration, physicsSettings, nodeSizeMode) =>
-    captureGraphViewSettingsSnapshot(configuration as never, physicsSettings, nodeSizeMode),
+    captureGraphViewSettingsSnapshot(configuration, physicsSettings, nodeSizeMode),
   createResetSettingsAction: (
     snapshot,
     target,
@@ -147,14 +149,14 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {
     analyzeAndSendData,
   ) =>
     new ResetSettingsAction(
-      snapshot as never,
-      target as never,
+      snapshot,
+      target,
       context,
       sendAllSettings,
       setNodeSizeMode,
       analyzeAndSendData,
     ),
-  executeUndoAction: action => getUndoManager().execute(action as never),
+  executeUndoAction: action => getUndoManager().execute(action),
   normalizeFolderNodeColor,
   defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
   dagModeKey: 'codegraphy.dagMode',

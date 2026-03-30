@@ -6,7 +6,7 @@
 import type { EventName } from '../../../../plugin-api/src/events';
 
 /** Handler function for a specific event */
-export type EventHandler = (payload: never) => void;
+export type EventHandler = (payload: unknown) => void;
 
 /**
  * Remove a handler from the event handler map and optionally from the plugin tracking set.

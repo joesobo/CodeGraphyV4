@@ -17,24 +17,12 @@ import { sendGraphViewAvailableViews, sendGraphViewGroupsUpdated } from '../view
 
 const DEFAULT_DEPTH_LIMIT = 1;
 
-interface GraphViewPluginAnalyzerLike {
-  registry: {
-    list(): unknown[];
-    getPluginAPI(pluginId: string): unknown;
-    register?(plugin: unknown, options: { deferReadinessReplay: boolean }): void;
-    initializePlugin?(pluginId: string, workspaceRoot: string): PromiseLike<void>;
-    replayReadinessForPlugin?(pluginId: string): void;
-  };
-  getPluginStatuses?(
-    disabledRules: ReadonlySet<string>,
-    disabledPlugins: ReadonlySet<string>,
-  ): unknown[];
-}
+type GraphViewPluginAnalyzerLike =
+  NonNullable<Parameters<typeof registerGraphViewExternalPlugin>[2]['analyzer']>
+  & NonNullable<Parameters<typeof sendGraphViewContextMenuItems>[0]>
+  & NonNullable<Parameters<typeof sendGraphViewPluginStatuses>[0]>;
 
-interface GraphViewDecorationManagerLike {
-  getMergedNodeDecorations(): unknown;
-  getMergedEdgeDecorations(): unknown;
-}
+type GraphViewDecorationManagerLike = Parameters<typeof sendGraphViewDecorations>[0];
 
 export interface GraphViewProviderPluginMethodsSource {
   _pluginExtensionUris: Map<string, vscode.Uri>;
@@ -113,7 +101,7 @@ export function createGraphViewProviderPluginMethods(
 
   const _sendPluginStatuses = (): void => {
     dependencies.sendPluginStatuses(
-      source._analyzer as never,
+      source._analyzer,
       source._disabledRules,
       source._disabledPlugins,
       message => source._sendMessage(message as ExtensionToWebviewMessage),
@@ -121,20 +109,20 @@ export function createGraphViewProviderPluginMethods(
   };
 
   const _sendDecorations = (): void => {
-    dependencies.sendDecorations(source._decorationManager as never, message =>
+    dependencies.sendDecorations(source._decorationManager, message =>
       source._sendMessage(message as ExtensionToWebviewMessage),
     );
   };
 
   const _sendContextMenuItems = (): void => {
-    dependencies.sendContextMenuItems(source._analyzer as never, message =>
+    dependencies.sendContextMenuItems(source._analyzer, message =>
       source._sendMessage(message as ExtensionToWebviewMessage),
     );
   };
 
   const _sendPluginWebviewInjections = (): void => {
     dependencies.sendPluginWebviewInjections(
-      source._analyzer as never,
+      source._analyzer,
       (assetPath, pluginId) => source._resolveWebviewAssetPath(assetPath, pluginId),
       message => source._sendMessage(message as ExtensionToWebviewMessage),
     );
@@ -163,7 +151,7 @@ export function createGraphViewProviderPluginMethods(
       plugin,
       options,
       {
-        analyzer: source._analyzer as never,
+        analyzer: source._analyzer,
         pluginExtensionUris: source._pluginExtensionUris,
         get firstAnalysis() {
           return source._firstAnalysis;

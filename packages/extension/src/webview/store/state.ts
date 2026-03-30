@@ -77,6 +77,8 @@ export interface GraphState {
   handleExtensionMessage: (message: ExtensionToWebviewMessage) => void;
 }
 
+export type GraphStateFields = Omit<GraphState, keyof ReturnType<typeof createActions>>;
+
 export function createGraphStore() {
   return createStore<GraphState>((set, get) => ({
     ...INITIAL_STATE,

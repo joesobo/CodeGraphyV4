@@ -6,7 +6,10 @@ describe('graphView/provider/physicsSettings', () => {
   it('reads and sends current physics settings through the provider message bridge', () => {
     const readPhysicsSettings = vi.fn(() => ({ damping: 1 } as IPhysicsSettings));
     const source = { _sendMessage: vi.fn() };
-    const configuration = { get: vi.fn((_, fallback) => fallback) };
+    const configuration = {
+      get: vi.fn((_, fallback) => fallback),
+      update: vi.fn(async () => undefined),
+    };
     const getConfiguration = vi.fn(() => configuration);
     const methods = createGraphViewProviderPhysicsSettingsMethods(source as never, {
       getConfiguration,
@@ -31,7 +34,10 @@ describe('graphView/provider/physicsSettings', () => {
   });
 
   it('updates physics settings through the current config and workspace-target helpers', async () => {
-    const configuration = { get: vi.fn((_, fallback) => fallback) };
+    const configuration = {
+      get: vi.fn((_, fallback) => fallback),
+      update: vi.fn(async () => undefined),
+    };
     const workspaceFolders = [{ name: 'workspace-folder' }] as never;
     const getConfiguration = vi.fn(() => configuration);
     const getWorkspaceFolders = vi.fn(() => workspaceFolders);
@@ -69,7 +75,10 @@ describe('graphView/provider/physicsSettings', () => {
   });
 
   it('resets physics settings through the current config and workspace-target helpers', async () => {
-    const configuration = { get: vi.fn((_, fallback) => fallback) };
+    const configuration = {
+      get: vi.fn((_, fallback) => fallback),
+      update: vi.fn(async () => undefined),
+    };
     const workspaceFolders = [{ name: 'workspace-folder' }] as never;
     const getConfiguration = vi.fn(() => configuration);
     const getWorkspaceFolders = vi.fn(() => workspaceFolders);

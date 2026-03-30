@@ -14,11 +14,7 @@ import { normalizeGraphViewExtensionUri } from '../resources';
 export interface GraphViewProviderPluginResourceMethodsSource {
   _extensionUri: vscode.Uri;
   _pluginExtensionUris: Map<string, vscode.Uri>;
-  _analyzer?: {
-    registry: {
-      list(): unknown[];
-    };
-  };
+  _analyzer: Parameters<typeof getGraphViewPluginDefaultGroups>[0];
   _disabledPlugins: Set<string>;
   _userGroups: IGroup[];
   _hiddenPluginGroupIds: Set<string>;
@@ -78,7 +74,7 @@ export function createGraphViewProviderPluginResourceMethods(
 
   const _getPluginDefaultGroups = (): IGroup[] =>
     resolvedDependencies.getPluginDefaultGroups(
-      source._analyzer as never,
+      source._analyzer,
       source._disabledPlugins,
       source._pluginExtensionUris,
       source._extensionUri,

@@ -1,5 +1,5 @@
 import type { IViewContext } from '../../../../core/views/contracts';
-import type { ViewRegistry } from '../../../../core/views/registry';
+import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import {
   changeGraphViewView,
@@ -12,11 +12,21 @@ interface GraphViewProviderWorkspaceStateLike {
   update(key: string, value: unknown): PromiseLike<void>;
 }
 
+interface GraphViewProviderViewInfoLike {
+  view: {
+    id: string;
+  };
+}
+
 export interface GraphViewProviderViewSelectionMethodsSource {
   _context: { workspaceState: GraphViewProviderWorkspaceStateLike };
-  _viewRegistry: Pick<ViewRegistry, 'get' | 'isViewAvailable'>;
+  _viewRegistry: {
+    get(viewId: string): GraphViewProviderViewInfoLike | undefined;
+    isViewAvailable(viewId: string, viewContext: IViewContext): boolean;
+  };
   _viewContext: IViewContext;
   _activeViewId: string;
+  _graphData: IGraphData;
   _applyViewTransform?(this: void): void;
   _sendAvailableViews?(this: void): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
@@ -69,7 +79,7 @@ export function createGraphViewProviderViewSelectionMethods(
   };
 
   const changeView = async (viewId: string): Promise<void> => {
-    await dependencies.changeView(source as never, viewId, {
+    await dependencies.changeView(source, viewId, {
       isViewAvailable: (nextViewId, viewContext) =>
         source._viewRegistry.isViewAvailable(nextViewId, viewContext),
       persistActiveViewId: async nextViewId => {
@@ -83,8 +93,8 @@ export function createGraphViewProviderViewSelectionMethods(
   };
 
   const setFocusedFile = (filePath: string | undefined): void => {
-    dependencies.setFocusedFile(source as never, filePath, {
-      getActiveViewInfo: nextViewId => source._viewRegistry.get(nextViewId) as never,
+    dependencies.setFocusedFile(source, filePath, {
+      getActiveViewInfo: nextViewId => source._viewRegistry.get(nextViewId),
       applyViewTransform: () => callApplyViewTransform(),
       sendAvailableViews: () => callSendAvailableViews(),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
@@ -92,12 +102,12 @@ export function createGraphViewProviderViewSelectionMethods(
   };
 
   const setDepthLimit = async (depthLimit: number): Promise<void> => {
-    await dependencies.setDepthLimit(source as never, depthLimit, {
+    await dependencies.setDepthLimit(source, depthLimit, {
       persistDepthLimit: async nextDepthLimit => {
         await source._context.workspaceState.update(dependencies.depthLimitKey, nextDepthLimit);
       },
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
-      getActiveViewInfo: nextViewId => source._viewRegistry.get(nextViewId) as never,
+      getActiveViewInfo: nextViewId => source._viewRegistry.get(nextViewId),
       applyViewTransform: () => callApplyViewTransform(),
     });
   };

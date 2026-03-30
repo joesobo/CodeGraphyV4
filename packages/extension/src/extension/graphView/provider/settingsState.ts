@@ -58,12 +58,19 @@ export interface GraphViewProviderSettingsStateMethodDependencies {
   getConfiguration(section: string): GraphViewProviderSettingsConfigLike;
   getWorkspaceFolders(): readonly vscode.WorkspaceFolder[] | undefined;
   getConfigTarget(workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined): unknown;
-  loadGroupState: typeof loadGraphViewGroupState;
+  loadGroupState(
+    config: GraphViewProviderSettingsConfigLike,
+    workspaceState: GraphViewProviderSettingsWorkspaceStateLike,
+  ): ReturnType<typeof loadGraphViewGroupState>;
   applyLoadedGroupState: typeof applyLoadedGraphViewGroupState;
   loadDisabledState: typeof loadGraphViewDisabledState;
   sendProviderSettings: typeof sendGraphViewProviderSettings;
   sendProviderAllSettings: typeof sendGraphViewProviderAllSettings;
-  captureSettingsSnapshot: typeof captureGraphViewSettingsSnapshot;
+  captureSettingsSnapshot(
+    configuration: GraphViewProviderSettingsConfigLike,
+    physicsSettings: IPhysicsSettings,
+    nodeSizeMode: NodeSizeMode,
+  ): ReturnType<typeof captureGraphViewSettingsSnapshot>;
 }
 
 export function createDefaultGraphViewProviderSettingsStateMethodDependencies(): GraphViewProviderSettingsStateMethodDependencies {
@@ -87,7 +94,7 @@ export function createGraphViewProviderSettingsStateMethods(
 ): GraphViewProviderSettingsStateMethods {
   const _loadGroupsAndFilterPatterns = (): void => {
     const config = dependencies.getConfiguration('codegraphy');
-    const groupState = dependencies.loadGroupState(config as never, source._context.workspaceState as never);
+    const groupState = dependencies.loadGroupState(config, source._context.workspaceState);
     const state = {
       userGroups: source._userGroups,
       hiddenPluginGroupIds: source._hiddenPluginGroupIds,
@@ -144,12 +151,12 @@ export function createGraphViewProviderSettingsStateMethods(
     };
 
     dependencies.sendProviderAllSettings(state, {
-      captureSettingsSnapshot: () =>
-        dependencies.captureSettingsSnapshot(
-          dependencies.getConfiguration('codegraphy') as never,
-          source._getPhysicsSettings(),
-          source._nodeSizeMode,
-        ),
+        captureSettingsSnapshot: () =>
+          dependencies.captureSettingsSnapshot(
+            dependencies.getConfiguration('codegraphy'),
+            source._getPhysicsSettings(),
+            source._nodeSizeMode,
+          ),
       getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
       sendMessage: message => source._sendMessage(message),
       recomputeGroups: () => source._computeMergedGroups(),

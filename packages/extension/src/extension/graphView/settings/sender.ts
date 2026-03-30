@@ -1,4 +1,3 @@
-import type { IViewContext } from '../../../core/views/contracts';
 import { readGraphViewSettings } from './reader';
 import { buildGraphViewSettingsMessages } from './snapshotMessages';
 
@@ -12,10 +11,10 @@ interface SendGraphViewSettingsMessagesOptions {
 }
 
 export function sendGraphViewSettingsMessages(
-  viewContext: IViewContext,
+  viewContext: { folderNodeColor?: string },
   { getConfiguration, sendMessage }: SendGraphViewSettingsMessagesOptions,
 ): void {
-  const settings = readGraphViewSettings(getConfiguration() as never);
+  const settings = readGraphViewSettings(getConfiguration());
   viewContext.folderNodeColor = settings.folderNodeColor;
 
   for (const message of buildGraphViewSettingsMessages(settings)) {

@@ -25,19 +25,58 @@ import {
   initializeGraphViewProviderServices,
   restoreGraphViewProviderState,
 } from './graphView/provider/bootstrap';
-import { createGraphViewProviderAnalysisMethods } from './graphView/provider/analysis/methods';
-import { createGraphViewProviderCommandMethods } from './graphView/provider/commands';
-import { createGraphViewProviderFileActionMethods } from './graphView/provider/file/actions';
-import { createGraphViewProviderFileVisitMethods } from './graphView/provider/file/visits';
-import { createGraphViewProviderPluginMethods } from './graphView/provider/plugins';
-import { createGraphViewProviderPluginResourceMethods } from './graphView/provider/pluginResources';
-import { createGraphViewProviderPhysicsSettingsMethods } from './graphView/provider/physicsSettings';
-import { createGraphViewProviderRefreshMethods } from './graphView/provider/refresh';
-import { createGraphViewProviderSettingsStateMethods } from './graphView/provider/settingsState';
-import { createGraphViewProviderTimelineMethods } from './graphView/provider/timeline/methods';
-import { createGraphViewProviderViewContextMethods } from './graphView/provider/view/context';
-import { createGraphViewProviderViewSelectionMethods } from './graphView/provider/view/selection';
-import { createGraphViewProviderWebviewMethods } from './graphView/provider/webview/host';
+import {
+  createGraphViewProviderAnalysisMethods,
+  type GraphViewProviderAnalysisMethodsSource,
+} from './graphView/provider/analysis/methods';
+import {
+  createGraphViewProviderCommandMethods,
+  type GraphViewProviderCommandMethodsSource,
+} from './graphView/provider/commands';
+import {
+  createGraphViewProviderFileActionMethods,
+  type GraphViewProviderFileActionMethodsSource,
+} from './graphView/provider/file/actions';
+import {
+  createGraphViewProviderFileVisitMethods,
+  type GraphViewProviderFileVisitMethodsSource,
+} from './graphView/provider/file/visits';
+import {
+  createGraphViewProviderPluginMethods,
+  type GraphViewProviderPluginMethodsSource,
+} from './graphView/provider/plugins';
+import {
+  createGraphViewProviderPluginResourceMethods,
+  type GraphViewProviderPluginResourceMethodsSource,
+} from './graphView/provider/pluginResources';
+import {
+  createGraphViewProviderPhysicsSettingsMethods,
+  type GraphViewProviderPhysicsSettingsMethodsSource,
+} from './graphView/provider/physicsSettings';
+import {
+  createGraphViewProviderRefreshMethods,
+  type GraphViewProviderRefreshMethodsSource,
+} from './graphView/provider/refresh';
+import {
+  createGraphViewProviderSettingsStateMethods,
+  type GraphViewProviderSettingsStateMethodsSource,
+} from './graphView/provider/settingsState';
+import {
+  createGraphViewProviderTimelineMethods,
+  type GraphViewProviderTimelineMethodsSource,
+} from './graphView/provider/timeline/methods';
+import {
+  createGraphViewProviderViewContextMethods,
+  type GraphViewProviderViewContextMethodsSource,
+} from './graphView/provider/view/context';
+import {
+  createGraphViewProviderViewSelectionMethods,
+  type GraphViewProviderViewSelectionMethodsSource,
+} from './graphView/provider/view/selection';
+import {
+  createGraphViewProviderWebviewMethods,
+  type GraphViewProviderWebviewSource,
+} from './graphView/provider/webview/host';
 
 /** Storage key for selected view per workspace */
 const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
@@ -50,6 +89,21 @@ const NODE_SIZE_MODE_KEY = 'codegraphy.nodeSizeMode';
 
 /** Default depth limit for depth graph view */
 const DEFAULT_DEPTH_LIMIT = 1;
+
+type GraphViewProviderMethodSource =
+  & GraphViewProviderAnalysisMethodsSource
+  & GraphViewProviderCommandMethodsSource
+  & GraphViewProviderFileActionMethodsSource
+  & GraphViewProviderFileVisitMethodsSource
+  & GraphViewProviderPluginMethodsSource
+  & GraphViewProviderPluginResourceMethodsSource
+  & GraphViewProviderPhysicsSettingsMethodsSource
+  & GraphViewProviderRefreshMethodsSource
+  & GraphViewProviderSettingsStateMethodsSource
+  & GraphViewProviderTimelineMethodsSource
+  & GraphViewProviderViewContextMethodsSource
+  & GraphViewProviderViewSelectionMethodsSource
+  & GraphViewProviderWebviewSource;
 
 /**
  * Provides the webview panel that displays the CodeGraphy dependency graph.
@@ -192,6 +246,254 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     ReturnType<typeof createGraphViewProviderViewSelectionMethods>;
   private readonly _webviewMethods: ReturnType<typeof createGraphViewProviderWebviewMethods>;
 
+  private _createMethodSource(): GraphViewProviderMethodSource {
+    // The adapter exposes a public source shape over private provider state.
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const owner = this;
+
+    return {
+      get _view() {
+        return owner._view;
+      },
+      set _view(view) {
+        owner._view = view;
+      },
+      get _panels() {
+        return owner._panels;
+      },
+      set _panels(panels) {
+        owner._panels = panels;
+      },
+      get _graphData() {
+        return owner._graphData;
+      },
+      set _graphData(graphData) {
+        owner._graphData = graphData;
+      },
+      get _analyzer() {
+        return owner._analyzer;
+      },
+      set _analyzer(analyzer) {
+        owner._analyzer = analyzer;
+      },
+      get _analyzerInitialized() {
+        return owner._analyzerInitialized;
+      },
+      set _analyzerInitialized(analyzerInitialized) {
+        owner._analyzerInitialized = analyzerInitialized;
+      },
+      get _analyzerInitPromise() {
+        return owner._analyzerInitPromise;
+      },
+      set _analyzerInitPromise(analyzerInitPromise) {
+        owner._analyzerInitPromise = analyzerInitPromise;
+      },
+      get _analysisController() {
+        return owner._analysisController;
+      },
+      set _analysisController(analysisController) {
+        owner._analysisController = analysisController;
+      },
+      get _analysisRequestId() {
+        return owner._analysisRequestId;
+      },
+      set _analysisRequestId(analysisRequestId) {
+        owner._analysisRequestId = analysisRequestId;
+      },
+      get _viewRegistry() {
+        return owner._viewRegistry;
+      },
+      get _activeViewId() {
+        return owner._activeViewId;
+      },
+      set _activeViewId(activeViewId) {
+        owner._activeViewId = activeViewId;
+      },
+      get _dagMode() {
+        return owner._dagMode;
+      },
+      set _dagMode(dagMode) {
+        owner._dagMode = dagMode;
+      },
+      get _nodeSizeMode() {
+        return owner._nodeSizeMode;
+      },
+      set _nodeSizeMode(nodeSizeMode) {
+        owner._nodeSizeMode = nodeSizeMode;
+      },
+      get _rawGraphData() {
+        return owner._rawGraphData;
+      },
+      set _rawGraphData(rawGraphData) {
+        owner._rawGraphData = rawGraphData;
+      },
+      get _viewContext() {
+        return owner._viewContext;
+      },
+      set _viewContext(viewContext) {
+        owner._viewContext = viewContext;
+      },
+      get _groups() {
+        return owner._groups;
+      },
+      set _groups(groups) {
+        owner._groups = groups;
+      },
+      get _userGroups() {
+        return owner._userGroups;
+      },
+      set _userGroups(userGroups) {
+        owner._userGroups = userGroups;
+      },
+      get _hiddenPluginGroupIds() {
+        return owner._hiddenPluginGroupIds;
+      },
+      set _hiddenPluginGroupIds(hiddenPluginGroupIds) {
+        owner._hiddenPluginGroupIds = hiddenPluginGroupIds;
+      },
+      get _filterPatterns() {
+        return owner._filterPatterns;
+      },
+      set _filterPatterns(filterPatterns) {
+        owner._filterPatterns = filterPatterns;
+      },
+      get _disabledRules() {
+        return owner._disabledRules;
+      },
+      set _disabledRules(disabledRules) {
+        owner._disabledRules = disabledRules;
+      },
+      get _disabledPlugins() {
+        return owner._disabledPlugins;
+      },
+      set _disabledPlugins(disabledPlugins) {
+        owner._disabledPlugins = disabledPlugins;
+      },
+      get _gitAnalyzer() {
+        return owner._gitAnalyzer;
+      },
+      set _gitAnalyzer(gitAnalyzer) {
+        owner._gitAnalyzer = gitAnalyzer;
+      },
+      get _currentCommitSha() {
+        return owner._currentCommitSha;
+      },
+      set _currentCommitSha(currentCommitSha) {
+        owner._currentCommitSha = currentCommitSha;
+      },
+      get _timelineActive() {
+        return owner._timelineActive;
+      },
+      set _timelineActive(timelineActive) {
+        owner._timelineActive = timelineActive;
+      },
+      get _eventBus() {
+        return owner._eventBus;
+      },
+      get _decorationManager() {
+        return owner._decorationManager;
+      },
+      get _firstAnalysis() {
+        return owner._firstAnalysis;
+      },
+      set _firstAnalysis(firstAnalysis) {
+        owner._firstAnalysis = firstAnalysis;
+      },
+      get _resolveFirstWorkspaceReady() {
+        return owner._resolveFirstWorkspaceReady;
+      },
+      set _resolveFirstWorkspaceReady(resolveFirstWorkspaceReady) {
+        owner._resolveFirstWorkspaceReady = resolveFirstWorkspaceReady;
+      },
+      get _firstWorkspaceReadyPromise() {
+        return owner._firstWorkspaceReadyPromise;
+      },
+      get _webviewReadyNotified() {
+        return owner._webviewReadyNotified;
+      },
+      set _webviewReadyNotified(webviewReadyNotified) {
+        owner._webviewReadyNotified = webviewReadyNotified;
+      },
+      get _indexingController() {
+        return owner._indexingController;
+      },
+      set _indexingController(indexingController) {
+        owner._indexingController = indexingController;
+      },
+      get _pluginExtensionUris() {
+        return owner._pluginExtensionUris;
+      },
+      get _extensionUri() {
+        return owner._extensionUri;
+      },
+      get _context() {
+        return owner._context;
+      },
+      _sendMessage: message => owner._sendMessage(message),
+      _sendAvailableViews: () => owner._sendAvailableViews(),
+      _computeMergedGroups: () => owner._computeMergedGroups(),
+      _sendGroupsUpdated: () => owner._sendGroupsUpdated(),
+      _updateViewContext: () => owner._updateViewContext(),
+      _applyViewTransform: () => owner._applyViewTransform(),
+      _sendPluginStatuses: () => owner._sendPluginStatuses(),
+      _sendDecorations: () => owner._sendDecorations(),
+      _sendContextMenuItems: () => owner._sendContextMenuItems(),
+      _sendPluginWebviewInjections: () => owner._sendPluginWebviewInjections(),
+      _analyzeAndSendData: () => owner._analyzeAndSendData(),
+      _doAnalyzeAndSendData: (signal, requestId) =>
+        owner._doAnalyzeAndSendData(signal, requestId),
+      _markWorkspaceReady: graph => owner._markWorkspaceReady(graph),
+      _isAnalysisStale: (signal, requestId) => owner._isAnalysisStale(signal, requestId),
+      _isAbortError: error => owner._isAbortError(error),
+      _registerBuiltInPluginRoots: () => owner._registerBuiltInPluginRoots(),
+      _resolveWebviewAssetPath: (assetPath, pluginId) =>
+        owner._resolveWebviewAssetPath(assetPath, pluginId),
+      _refreshWebviewResourceRoots: () => owner._refreshWebviewResourceRoots(),
+      _normalizeExternalExtensionUri: uri => owner._normalizeExternalExtensionUri(uri),
+      _loadDisabledRulesAndPlugins: () => owner._loadDisabledRulesAndPlugins(),
+      _sendSettings: () => owner._sendSettings(),
+      _sendPhysicsSettings: () => owner._sendPhysicsSettings(),
+      _rebuildAndSend: () => owner._rebuildAndSend(),
+      _smartRebuild: (kind, id) => owner._smartRebuild(kind, id),
+      _getPhysicsSettings: () => owner._getPhysicsSettings(),
+      _loadGroupsAndFilterPatterns: () => owner._loadGroupsAndFilterPatterns(),
+      _sendAllSettings: () => owner._sendAllSettings(),
+      _getLocalResourceRoots: () => owner._getLocalResourceRoots(),
+      _openFile: (
+        filePath: string,
+        behavior?: Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>,
+      ) => owner._openFile(filePath, behavior),
+      _revealInExplorer: (filePath: string) => owner._revealInExplorer(filePath),
+      _copyToClipboard: (text: string) => owner._copyToClipboard(text),
+      _deleteFiles: (paths: string[]) => owner._deleteFiles(paths),
+      _renameFile: (filePath: string) => owner._renameFile(filePath),
+      _createFile: (directory: string) => owner._createFile(directory),
+      _toggleFavorites: (paths: string[]) => owner._toggleFavorites(paths),
+      _getFileInfo: (filePath: string) => owner._getFileInfo(filePath),
+      _getVisitCount: (filePath: string) => owner._getVisitCount(filePath),
+      _incrementVisitCount: (filePath: string) => owner._incrementVisitCount(filePath),
+      _addToExclude: (patterns: string[]) => owner._addToExclude(patterns),
+      _indexRepository: () => owner._indexRepository(),
+      _jumpToCommit: (sha: string) => owner._jumpToCommit(sha),
+      _openSelectedNode: (nodeId: string) => owner._openSelectedNode(nodeId),
+      _activateNode: (nodeId: string) => owner._activateNode(nodeId),
+      _previewFileAtCommit: (
+        sha: string,
+        filePath: string,
+        behavior?: Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>,
+      ) =>
+        owner._previewFileAtCommit(sha, filePath, behavior),
+      _sendCachedTimeline: () => owner._sendCachedTimeline(),
+      changeView: (viewId: string) => owner.changeView(viewId),
+      setDepthLimit: (depthLimit: number) => owner.setDepthLimit(depthLimit),
+      undo: () => owner.undo(),
+      redo: () => owner.redo(),
+      _updatePhysicsSetting: (key, value) => owner._updatePhysicsSetting(key, value),
+      _resetPhysicsSettings: () => owner._resetPhysicsSettings(),
+      _sendFavorites: () => owner._sendFavorites(),
+    };
+  }
+
   /**
    * Creates a new GraphViewProvider.
    *
@@ -243,20 +545,20 @@ export class GraphViewProvider implements vscode.WebviewViewProvider {
     this._dagMode = restoredState.dagMode;
     this._nodeSizeMode = restoredState.nodeSizeMode;
 
-    const provider = this as never;
-    this._analysisMethods = createGraphViewProviderAnalysisMethods(provider);
-    this._commandMethods = createGraphViewProviderCommandMethods(provider);
-    this._fileActionMethods = createGraphViewProviderFileActionMethods(provider);
-    this._fileVisitMethods = createGraphViewProviderFileVisitMethods(provider);
-    this._pluginResourceMethods = createGraphViewProviderPluginResourceMethods(provider);
-    this._pluginMethods = createGraphViewProviderPluginMethods(provider);
-    this._physicsSettingsMethods = createGraphViewProviderPhysicsSettingsMethods(provider);
-    this._refreshMethods = createGraphViewProviderRefreshMethods(provider);
-    this._settingsStateMethods = createGraphViewProviderSettingsStateMethods(provider);
-    this._timelineMethods = createGraphViewProviderTimelineMethods(provider);
-    this._viewContextMethods = createGraphViewProviderViewContextMethods(provider);
-    this._viewSelectionMethods = createGraphViewProviderViewSelectionMethods(provider);
-    this._webviewMethods = createGraphViewProviderWebviewMethods(provider);
+    const methodSource = this._createMethodSource();
+    this._analysisMethods = createGraphViewProviderAnalysisMethods(methodSource);
+    this._commandMethods = createGraphViewProviderCommandMethods(methodSource);
+    this._fileActionMethods = createGraphViewProviderFileActionMethods(methodSource);
+    this._fileVisitMethods = createGraphViewProviderFileVisitMethods(methodSource);
+    this._pluginResourceMethods = createGraphViewProviderPluginResourceMethods(methodSource);
+    this._pluginMethods = createGraphViewProviderPluginMethods(methodSource);
+    this._physicsSettingsMethods = createGraphViewProviderPhysicsSettingsMethods(methodSource);
+    this._refreshMethods = createGraphViewProviderRefreshMethods(methodSource);
+    this._settingsStateMethods = createGraphViewProviderSettingsStateMethods(methodSource);
+    this._timelineMethods = createGraphViewProviderTimelineMethods(methodSource);
+    this._viewContextMethods = createGraphViewProviderViewContextMethods(methodSource);
+    this._viewSelectionMethods = createGraphViewProviderViewSelectionMethods(methodSource);
+    this._webviewMethods = createGraphViewProviderWebviewMethods(methodSource);
 
     this._loadDisabledRulesAndPlugins();
   }

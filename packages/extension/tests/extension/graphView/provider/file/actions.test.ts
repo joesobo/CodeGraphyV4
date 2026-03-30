@@ -1,5 +1,21 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createGraphViewProviderFileActionMethods } from '../../../../../src/extension/graphView/provider/file/actions';
+import type { IUndoableAction } from '../../../../../src/extension/undoManager';
+
+type MockUndoableAction = IUndoableAction & {
+  analyzeAndSendData?: () => Promise<void>;
+  sendFavorites?: () => void;
+  type?: string;
+};
+
+function createUndoableAction(overrides: Partial<MockUndoableAction> = {}): MockUndoableAction {
+  return {
+    description: 'test action',
+    execute: vi.fn(async () => undefined),
+    undo: vi.fn(async () => undefined),
+    ...overrides,
+  };
+}
 
 describe('graphView/provider/file/actions', () => {
   afterEach(() => {
@@ -37,10 +53,10 @@ describe('graphView/provider/file/actions', () => {
       showWarningMessage: vi.fn(),
       showInputBox: vi.fn(),
       showErrorMessage: vi.fn(),
-      createDeleteAction: vi.fn(),
-      createRenameAction: vi.fn(),
-      createCreateAction: vi.fn(),
-      createToggleFavoriteAction: vi.fn(),
+      createDeleteAction: vi.fn(() => createUndoableAction()),
+      createRenameAction: vi.fn(() => createUndoableAction()),
+      createCreateAction: vi.fn(() => createUndoableAction()),
+      createToggleFavoriteAction: vi.fn(() => createUndoableAction()),
       executeUndoAction: vi.fn(async () => undefined),
     });
 
@@ -48,19 +64,25 @@ describe('graphView/provider/file/actions', () => {
     await methods._revealInExplorer('src/app.ts');
     await methods._copyToClipboard('hello');
 
-    expect(openFile).toHaveBeenCalledWith(source, 'src/app.ts', {
-      preview: true,
-      preserveFocus: false,
-    });
+    expect(openFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        _incrementVisitCount: expect.any(Function),
+      }),
+      'src/app.ts',
+      {
+        preview: true,
+        preserveFocus: false,
+      },
+    );
     expect(revealFile).toHaveBeenCalledWith('src/app.ts');
     expect(copyText).toHaveBeenCalledWith('hello');
   });
 
   it('creates undoable file actions for delete, rename, and create operations', async () => {
     const executeUndoAction = vi.fn(async () => undefined);
-    const createDeleteAction = vi.fn(() => ({ type: 'delete' }));
-    const createRenameAction = vi.fn(() => ({ type: 'rename' }));
-    const createCreateAction = vi.fn(() => ({ type: 'create' }));
+    const createDeleteAction = vi.fn(() => createUndoableAction({ type: 'delete' }));
+    const createRenameAction = vi.fn(() => createUndoableAction({ type: 'rename' }));
+    const createCreateAction = vi.fn(() => createUndoableAction({ type: 'create' }));
     const deleteFiles = vi.fn(async (_paths, handlers) => {
       await handlers.executeDeleteAction(['src/app.ts'], { fsPath: '/workspace' });
     });
@@ -94,7 +116,7 @@ describe('graphView/provider/file/actions', () => {
       createDeleteAction,
       createRenameAction,
       createCreateAction,
-      createToggleFavoriteAction: vi.fn(),
+      createToggleFavoriteAction: vi.fn(() => createUndoableAction()),
       executeUndoAction,
     });
 
@@ -125,7 +147,7 @@ describe('graphView/provider/file/actions', () => {
     const executeUndoAction = vi.fn(async () => undefined);
     const createToggleFavoriteAction = vi.fn((_paths, sendFavorites) => {
       sendFavorites();
-      return { type: 'favorite' };
+      return createUndoableAction({ type: 'favorite' });
     });
     const toggleFavorites = vi.fn(async (_paths, handlers) => {
       await handlers.executeToggleFavoritesAction(['src/app.ts']);
@@ -147,9 +169,9 @@ describe('graphView/provider/file/actions', () => {
       showWarningMessage: vi.fn(),
       showInputBox: vi.fn(),
       showErrorMessage: vi.fn(),
-      createDeleteAction: vi.fn(),
-      createRenameAction: vi.fn(),
-      createCreateAction: vi.fn(),
+      createDeleteAction: vi.fn(() => createUndoableAction()),
+      createRenameAction: vi.fn(() => createUndoableAction()),
+      createCreateAction: vi.fn(() => createUndoableAction()),
       createToggleFavoriteAction,
       executeUndoAction,
     });
@@ -161,18 +183,26 @@ describe('graphView/provider/file/actions', () => {
       expect.any(Function),
     );
     expect(source._sendFavorites).toHaveBeenCalledOnce();
-    expect(executeUndoAction).toHaveBeenCalledWith({ type: 'favorite' });
+    expect(executeUndoAction).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'favorite' }),
+    );
   });
 
   it('uses the default open-file behavior when no behavior override is provided', async () => {
-    const { source, methods, openFile } = await createDefaultDependencyHarness();
+    const { methods, openFile } = await createDefaultDependencyHarness();
 
     await methods._openFile('src/app.ts');
 
-    expect(openFile).toHaveBeenCalledWith(source, 'src/app.ts', {
-      preview: false,
-      preserveFocus: false,
-    });
+    expect(openFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        _incrementVisitCount: expect.any(Function),
+      }),
+      'src/app.ts',
+      {
+        preview: false,
+        preserveFocus: false,
+      },
+    );
   });
 
   it('passes the current workspace folder through default file-action delegates', async () => {
@@ -302,43 +332,52 @@ async function createDefaultDependencyHarness(
   const showWarningMessage = vi.fn(async () => 'Delete');
   const showInputBox = vi.fn(async () => 'result');
   const showErrorMessage = vi.fn();
-  const execute = vi.fn(async (action: {
-    analyzeAndSendData?: () => Promise<void>;
-    sendFavorites?: () => void;
-  }) => {
+  const execute = vi.fn(async (action: MockUndoableAction) => {
     await action.analyzeAndSendData?.();
     action.sendFavorites?.();
   });
   const DeleteFilesAction = vi.fn(function (
-    this: { analyzeAndSendData?: () => Promise<void> },
+    this: MockUndoableAction,
     _paths: string[],
     _workspaceFolderUri: { fsPath: string },
     analyzeAndSendData: () => Promise<void>,
   ) {
+    Object.defineProperty(this, 'description', { value: 'delete files', configurable: true });
+    this.execute = vi.fn(async () => undefined);
+    this.undo = vi.fn(async () => undefined);
     this.analyzeAndSendData = analyzeAndSendData;
   });
   const RenameFileAction = vi.fn(function (
-    this: { analyzeAndSendData?: () => Promise<void> },
+    this: MockUndoableAction,
     _oldPath: string,
     _newPath: string,
     _workspaceFolderUri: { fsPath: string },
     analyzeAndSendData: () => Promise<void>,
   ) {
+    Object.defineProperty(this, 'description', { value: 'rename file', configurable: true });
+    this.execute = vi.fn(async () => undefined);
+    this.undo = vi.fn(async () => undefined);
     this.analyzeAndSendData = analyzeAndSendData;
   });
   const CreateFileAction = vi.fn(function (
-    this: { analyzeAndSendData?: () => Promise<void> },
+    this: MockUndoableAction,
     _filePath: string,
     _workspaceFolderUri: { fsPath: string },
     analyzeAndSendData: () => Promise<void>,
   ) {
+    Object.defineProperty(this, 'description', { value: 'create file', configurable: true });
+    this.execute = vi.fn(async () => undefined);
+    this.undo = vi.fn(async () => undefined);
     this.analyzeAndSendData = analyzeAndSendData;
   });
   const ToggleFavoriteAction = vi.fn(function (
-    this: { sendFavorites?: () => void },
+    this: MockUndoableAction,
     _paths: string[],
     sendFavorites: () => void,
   ) {
+    Object.defineProperty(this, 'description', { value: 'toggle favorites', configurable: true });
+    this.execute = vi.fn(async () => undefined);
+    this.undo = vi.fn(async () => undefined);
     this.sendFavorites = sendFavorites;
   });
 

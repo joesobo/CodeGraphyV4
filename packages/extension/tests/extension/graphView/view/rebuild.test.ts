@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IPluginStatus } from '../../../../src/shared/plugins/status';
 import {
   rebuildGraphViewData,
   smartRebuildGraphView,
@@ -45,11 +46,12 @@ describe('graphView/view/rebuild', () => {
       edges: [],
     };
     const notifyGraphRebuild = vi.fn();
+    const statuses: IPluginStatus[] = [];
     const state = {
       _analyzer: {
         rebuildGraph: vi.fn(() => graphData),
         registry: { notifyGraphRebuild },
-        getPluginStatuses: vi.fn(() => []),
+        getPluginStatuses: vi.fn(() => statuses),
       },
       _disabledRules: new Set<string>(),
       _disabledPlugins: new Set<string>(),
@@ -89,22 +91,23 @@ describe('graphView/view/rebuild', () => {
 
   it('sends plugin statuses directly when a toggle does not require a rebuild', () => {
     const notifyGraphRebuild = vi.fn();
+    const statuses = [
+      {
+        id: 'plugin.alpha',
+        name: 'Alpha',
+        version: '1.0.0',
+        supportedExtensions: [],
+        status: 'active' as const,
+        enabled: false,
+        connectionCount: 0,
+        rules: [],
+      },
+    ] satisfies IPluginStatus[];
     const state = {
       _analyzer: {
         rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
         registry: { notifyGraphRebuild },
-        getPluginStatuses: vi.fn(() => [
-          {
-            id: 'plugin.alpha',
-            name: 'Alpha',
-            version: '1.0.0',
-            supportedExtensions: [],
-            status: 'active',
-            enabled: false,
-            connectionCount: 0,
-            rules: [],
-          },
-        ]),
+        getPluginStatuses: vi.fn(() => statuses),
       },
       _disabledRules: new Set<string>(),
       _disabledPlugins: new Set<string>(),
@@ -123,16 +126,7 @@ describe('graphView/view/rebuild', () => {
       type: 'PLUGINS_UPDATED',
       payload: {
         plugins: [
-          {
-            id: 'plugin.alpha',
-            name: 'Alpha',
-            version: '1.0.0',
-            supportedExtensions: [],
-            status: 'active',
-            enabled: false,
-            connectionCount: 0,
-            rules: [],
-          },
+          ...statuses,
         ],
       },
     });
@@ -170,12 +164,12 @@ describe('graphView/view/rebuild', () => {
         name: 'Alpha',
         version: '1.0.0',
         supportedExtensions: [],
-        status: 'active',
+        status: 'active' as const,
         enabled: true,
         connectionCount: 0,
         rules: [],
       },
-    ];
+    ] satisfies IPluginStatus[];
     const state = {
       _analyzer: {
         rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),

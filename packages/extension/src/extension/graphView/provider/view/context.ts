@@ -20,7 +20,7 @@ interface GraphViewProviderConfigLike {
 
 interface GraphViewProviderAnalyzerLike {
   registry: {
-    list(): Array<{ plugin?: { id?: string } }>;
+    list(): Array<{ plugin: { id: string } }>;
   };
 }
 
@@ -80,7 +80,7 @@ export function createGraphViewProviderViewContextMethods(
   const _updateViewContext = (): void => {
     const config = dependencies.getConfiguration('codegraphy');
     source._viewContext = dependencies.buildViewContext({
-      analyzer: source._analyzer as never,
+      analyzer: source._analyzer,
       workspaceFolders: dependencies.getWorkspaceFolders(),
       activeEditor: dependencies.getActiveTextEditor(),
       readSavedDepthLimit: () => source._context.workspaceState.get<number>('codegraphy.depthLimit'),

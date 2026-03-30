@@ -1,14 +1,53 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
 import type { IGraphData } from '@/shared/graph/types';
 import type { IGroup } from '@/shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '@/shared/settings/modes';
+import type { ISettingsSnapshot } from '../../../../../src/shared/settings/snapshot';
 import type { IViewContext } from '@/core/views/contracts';
+import type { IUndoableAction } from '../../../../../src/extension/undoManager';
 import type { GraphViewMessageListenerContext } from '../../../../../src/extension/graphView/webview/messages/listener';
 import {
   setGraphViewProviderMessageListener,
   type GraphViewProviderMessageListenerDependencies,
   type GraphViewProviderMessageListenerSource,
 } from '../../../../../src/extension/graphView/webview/providerMessages/listener';
+
+type MockUndoableAction = IUndoableAction & { kind?: string };
+
+function createUndoableAction(overrides: Partial<MockUndoableAction> = {}): MockUndoableAction {
+  return {
+    description: 'test action',
+    execute: vi.fn(async () => undefined),
+    undo: vi.fn(async () => undefined),
+    ...overrides,
+  };
+}
+
+function createSettingsSnapshot(): ISettingsSnapshot {
+  return {
+    groups: [],
+    filterPatterns: [],
+    hiddenPluginGroups: [],
+    showOrphans: true,
+    bidirectionalMode: 'separate',
+    directionMode: 'arrows',
+    directionColor: '#123456',
+    folderNodeColor: '#abcdef',
+    particleSpeed: 0.005,
+    particleSize: 4,
+    showLabels: true,
+    maxFiles: 500,
+    nodeSizeMode: 'connections',
+    physics: {
+      repelForce: 1,
+      linkDistance: 2,
+      linkForce: 3,
+      damping: 4,
+      centerForce: 5,
+    },
+  };
+}
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -36,9 +75,11 @@ function createDependencies(): GraphViewProviderMessageListenerDependencies {
       showInformationMessage: vi.fn(),
       showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
     },
-    getConfigTarget: vi.fn(() => 'workspace'),
-    captureSettingsSnapshot: vi.fn(() => ({}) as never),
-    createResetSettingsAction: vi.fn(() => ({ kind: 'reset-settings-action' })),
+    getConfigTarget: vi.fn(() => vscode.ConfigurationTarget.Workspace),
+    captureSettingsSnapshot: vi.fn(() => createSettingsSnapshot()),
+    createResetSettingsAction: vi.fn(() =>
+      createUndoableAction({ kind: 'reset-settings-action' }),
+    ),
     executeUndoAction: vi.fn(() => Promise.resolve()),
     normalizeFolderNodeColor: vi.fn(color => color),
     defaultFolderNodeColor: '#336699',
@@ -234,7 +275,7 @@ describe('graph view provider listener bridge', () => {
     expect(configurationUpdate).toHaveBeenCalledWith(
       'hiddenPluginGroups',
       ['plugin.test:group'],
-      'workspace',
+      vscode.ConfigurationTarget.Workspace,
     );
     expect(source._userGroups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#112233' },
@@ -278,15 +319,19 @@ describe('graph view provider listener bridge', () => {
       payload: { nodeSizeMode: 'file-size' },
     });
     expect(getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
-    expect(configurationUpdate).toHaveBeenCalledWith('showOrphans', false, 'workspace');
+    expect(configurationUpdate).toHaveBeenCalledWith(
+      'showOrphans',
+      false,
+      vscode.ConfigurationTarget.Workspace,
+    );
     expect(captureSettingsSnapshot).toHaveBeenCalledWith(
       expect.objectContaining({ get: configurationGet }),
       source._getPhysicsSettings(),
       'file-size',
     );
     expect(ResetSettingsAction).toHaveBeenCalledWith(
-      { kind: 'snapshot' },
-      'workspace',
+      createSettingsSnapshot(),
+      vscode.ConfigurationTarget.Workspace,
       source._context,
       expect.any(Function),
       expect.any(Function),
@@ -325,11 +370,11 @@ describe('graph view provider listener bridge', () => {
       },
     }));
     vi.doMock('../../../../../src/extension/graphView/settings/reader', () => ({
-      getGraphViewConfigTarget: vi.fn(() => 'workspace'),
+      getGraphViewConfigTarget: vi.fn(() => vscode.ConfigurationTarget.Workspace),
       normalizeFolderNodeColor: vi.fn((color: string) => color),
     }));
     vi.doMock('../../../../../src/extension/graphView/settings/snapshotMessages', () => ({
-      captureGraphViewSettingsSnapshot: vi.fn(() => ({ kind: 'snapshot' })),
+      captureGraphViewSettingsSnapshot: vi.fn(() => createSettingsSnapshot()),
     }));
     vi.doMock('../../../../../src/extension/actions/resetSettings', () => ({
       ResetSettingsAction: vi.fn(),
@@ -350,7 +395,9 @@ describe('graph view provider listener bridge', () => {
       '../../../../../src/extension/graphView/webview/providerMessages/settingsContext',
       () => ({
         createGraphViewProviderMessageSettingsContext: vi.fn((_source, dependencies) => {
-          executeUndoActionPromise = dependencies.executeUndoAction({ kind: 'reset-settings' });
+          executeUndoActionPromise = dependencies.executeUndoAction(
+            createUndoableAction({ kind: 'reset-settings' }),
+          );
           return {};
         }),
       }),
@@ -372,7 +419,9 @@ describe('graph view provider listener bridge', () => {
     setListener({ onDidReceiveMessage: vi.fn() } as never, createSource());
     await executeUndoActionPromise;
 
-    expect(execute).toHaveBeenCalledWith({ kind: 'reset-settings' });
+    expect(execute).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: 'reset-settings' }),
+    );
   });
 });
 
@@ -389,8 +438,8 @@ async function loadDefaultListenerHarness() {
     return defaultValue;
   });
   const configurationUpdate = vi.fn(() => Promise.resolve());
-  const getConfigTarget = vi.fn(() => 'workspace');
-  const captureSettingsSnapshot = vi.fn(() => ({ kind: 'snapshot' }));
+  const getConfigTarget = vi.fn(() => vscode.ConfigurationTarget.Workspace);
+  const captureSettingsSnapshot = vi.fn(() => createSettingsSnapshot());
   const execute = vi.fn(() => Promise.resolve());
   const ResetSettingsAction = vi.fn(function (
     this: Record<string, unknown>,
@@ -401,6 +450,9 @@ async function loadDefaultListenerHarness() {
     setNodeSizeMode: (mode: GraphViewProviderMessageListenerSource['_nodeSizeMode']) => void,
     analyzeAndSendData: () => Promise<void>,
   ) {
+    this.description = 'reset settings';
+    this.execute = vi.fn(async () => undefined);
+    this.undo = vi.fn(async () => undefined);
     this.snapshot = snapshot;
     this.target = target;
     this.context = context;

@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { getUndoManager } from '../../../undoManager';
+import type { IUndoableAction } from '../../../undoManager';
 import { CreateFileAction } from '../../../actions/createFile';
 import { DeleteFilesAction } from '../../../actions/deleteFiles';
 import { RenameFileAction } from '../../../actions/renameFile';
@@ -11,6 +12,7 @@ import {
   copyGraphViewProviderTextToClipboard,
   openGraphViewProviderFile,
   revealGraphViewProviderFileInExplorer,
+  type GraphViewProviderFileNavigationSource,
 } from './navigation';
 
 type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
@@ -51,20 +53,20 @@ export interface GraphViewProviderFileActionMethodDependencies {
     paths: string[],
     workspaceFolderUri: vscode.Uri,
     analyzeAndSendData: () => Promise<void>,
-  ): unknown;
+  ): IUndoableAction;
   createRenameAction(
     oldPath: string,
     newPath: string,
     workspaceFolderUri: vscode.Uri,
     analyzeAndSendData: () => Promise<void>,
-  ): unknown;
+  ): IUndoableAction;
   createCreateAction(
     filePath: string,
     workspaceFolderUri: vscode.Uri,
     analyzeAndSendData: () => Promise<void>,
-  ): unknown;
-  createToggleFavoriteAction(paths: string[], sendFavorites: () => void): unknown;
-  executeUndoAction(action: unknown): Promise<void>;
+  ): IUndoableAction;
+  createToggleFavoriteAction(paths: string[], sendFavorites: () => void): IUndoableAction;
+  executeUndoAction(action: IUndoableAction): Promise<void>;
 }
 
 const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
@@ -92,7 +94,7 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderFileActionMethodDependencies = {
     new CreateFileAction(filePath, workspaceFolderUri, analyzeAndSendData),
   createToggleFavoriteAction: (paths, sendFavorites) =>
     new ToggleFavoriteAction(paths, sendFavorites),
-  executeUndoAction: action => getUndoManager().execute(action as never),
+  executeUndoAction: action => getUndoManager().execute(action),
 };
 
 export function createGraphViewProviderFileActionMethods(
@@ -103,7 +105,10 @@ export function createGraphViewProviderFileActionMethods(
     filePath: string,
     behavior: EditorOpenBehavior = { preview: false, preserveFocus: false },
   ): Promise<void> => {
-    await dependencies.openFile(source as never, filePath, behavior);
+    const navigationSource: GraphViewProviderFileNavigationSource = {
+      _incrementVisitCount: nextFilePath => source._incrementVisitCount(nextFilePath),
+    };
+    await dependencies.openFile(navigationSource, filePath, behavior);
   };
 
   const _revealInExplorer = async (filePath: string): Promise<void> => {

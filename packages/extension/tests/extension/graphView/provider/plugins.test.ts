@@ -15,6 +15,9 @@ function createSource(
       registry: {
         list: vi.fn(() => []),
         getPluginAPI: vi.fn(),
+        register: vi.fn(),
+        initializePlugin: vi.fn(async () => undefined),
+        replayReadinessForPlugin: vi.fn(),
       },
       getPluginStatuses: vi.fn(() => []),
     },
@@ -27,8 +30,8 @@ function createSource(
     _viewContext: { activePlugins: new Set(), depthLimit: 1 } as never,
     _activeViewId: 'codegraphy.connections',
     _decorationManager: {
-      getMergedNodeDecorations: vi.fn(() => []),
-      getMergedEdgeDecorations: vi.fn(() => []),
+      getMergedNodeDecorations: vi.fn(() => new Map()),
+      getMergedEdgeDecorations: vi.fn(() => new Map()),
     },
     _firstAnalysis: true,
     _webviewReadyNotified: false,

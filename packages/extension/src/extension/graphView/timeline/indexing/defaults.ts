@@ -1,7 +1,11 @@
 import * as vscode from 'vscode';
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
+import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { GraphViewProviderTimelineDependencies } from '../provider/indexing';
-import { buildGraphViewTimelineGraphData } from './filtering';
+import {
+  buildGraphViewTimelineGraphData,
+  type GraphViewTimelineGraphOptions,
+} from './filtering';
 import { indexGraphViewRepository } from './repository';
 import { sendCachedGraphViewTimeline } from '../playback';
 
@@ -19,7 +23,7 @@ export function createDefaultGraphViewProviderTimelineDependencies(): GraphViewP
       await execFileAsync('git', ['rev-parse', '--git-dir'], { cwd });
     },
     createGitAnalyzer: (context, registry, workspaceRoot, mergedExclude) =>
-      new GitHistoryAnalyzer(context, registry as never, workspaceRoot, mergedExclude),
+      new GitHistoryAnalyzer(context, registry as PluginRegistry, workspaceRoot, mergedExclude),
     showErrorMessage: message => {
       vscode.window.showErrorMessage(message);
     },
@@ -27,7 +31,7 @@ export function createDefaultGraphViewProviderTimelineDependencies(): GraphViewP
       vscode.window.showInformationMessage(message);
     },
     buildTimelineGraphData: (rawGraphData, options) =>
-      buildGraphViewTimelineGraphData(rawGraphData, options as never),
+      buildGraphViewTimelineGraphData(rawGraphData, options as GraphViewTimelineGraphOptions),
     indexRepository: indexGraphViewRepository,
     sendCachedTimeline: sendCachedGraphViewTimeline,
     logError: (message, error) => {
