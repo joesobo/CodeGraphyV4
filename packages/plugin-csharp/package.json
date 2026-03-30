@@ -5,7 +5,7 @@
   "description": "Adds C# dependency detection to CodeGraphy. Requires codegraphy.codegraphy.",
   "publisher": "codegraphy",
   "license": "MIT",
-  "icon": "assets/marketplace-icon.png",
+  "icon": "assets/icon.png",
   "galleryBanner": {
     "color": "#023859",
     "theme": "dark"

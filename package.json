@@ -46,7 +46,7 @@
 	"description": "Visualize your codebase as an interactive dependency graph inside VS Code",
 	"publisher": "codegraphy",
 	"license": "MIT",
-	"icon": "assets/marketplace-icon.png",
+	"icon": "assets/icon.png",
 	"galleryBanner": {
 		"color": "#023859",
 		"theme": "dark"
@@ -224,7 +224,8 @@
 				{
 					"type": "webview",
 					"id": "codegraphy.graphView",
-					"name": "Graph"
+					"name": "Graph",
+					"icon": "assets/icon.svg"
 				}
 			]
 		},
