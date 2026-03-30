@@ -27,22 +27,15 @@ export function createGraphViewProviderMethodSource(
   owner: GraphViewProviderMethodSourceOwner,
 ): GraphViewProviderMethodSource {
   const source = createGraphViewProviderMethodStateSource(owner);
-  const withAnalysisDelegates = attachDelegateProperties(
-    source,
-    createGraphViewProviderAnalysisMethodDelegates(owner),
-  );
-  const withSettingsDelegates = attachDelegateProperties(
-    withAnalysisDelegates,
-    createGraphViewProviderSettingsMethodDelegates(owner),
-  );
-  const withFileTimelineDelegates = attachDelegateProperties(
-    withSettingsDelegates,
-    createGraphViewProviderFileTimelineMethodDelegates(owner),
-  );
-  const methodSource = attachDelegateProperties(
-    withFileTimelineDelegates,
-    createGraphViewProviderPublicMethodDelegates(owner),
-  );
 
-  return methodSource;
+  for (const createDelegates of [
+    createGraphViewProviderAnalysisMethodDelegates,
+    createGraphViewProviderSettingsMethodDelegates,
+    createGraphViewProviderFileTimelineMethodDelegates,
+    createGraphViewProviderPublicMethodDelegates,
+  ]) {
+    attachDelegateProperties(source, createDelegates(owner));
+  }
+
+  return source as GraphViewProviderMethodSource;
 }

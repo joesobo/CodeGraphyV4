@@ -2,19 +2,21 @@ import * as vscode from 'vscode';
 import type { EventName, EventPayloads } from '../../../core/plugins/eventBus';
 import type { IGraphData } from '../../../shared/graph/types';
 import type { GraphViewExternalPluginRegistrationOptions } from '../webview/plugins/registration';
-import type { GraphViewProviderMethodSourceOwner } from './source/contracts';
+import type { GraphViewProviderMethodContainers } from './methodContainers';
 
-type GraphViewProviderPublicMethodsOwner = Pick<
-  GraphViewProviderMethodSourceOwner,
-  | '_commandMethods'
-  | '_fileVisitMethods'
-  | '_pluginMethods'
-  | '_refreshMethods'
-  | '_timelineMethods'
-  | '_viewContextMethods'
-  | '_viewSelectionMethods'
-  | '_webviewMethods'
->;
+interface GraphViewProviderPublicMethodsOwner {
+  _methodContainers: Pick<
+    GraphViewProviderMethodContainers,
+    | 'command'
+    | 'fileVisit'
+    | 'plugin'
+    | 'refresh'
+    | 'timeline'
+    | 'viewContext'
+    | 'viewSelection'
+    | 'webview'
+  >;
+}
 
 export interface GraphViewProviderPublicMethods {
   refresh: () => Promise<void>;
@@ -71,36 +73,36 @@ export type GraphViewProviderPublicMethodsTarget =
 export function assignGraphViewProviderPublicMethods(
   target: GraphViewProviderPublicMethodsTarget,
 ): void {
-  target.refresh = () => target._refreshMethods.refresh();
-  target.refreshPhysicsSettings = () => target._refreshMethods.refreshPhysicsSettings();
-  target.refreshSettings = () => target._refreshMethods.refreshSettings();
-  target.refreshToggleSettings = () => target._refreshMethods.refreshToggleSettings();
-  target.clearCacheAndRefresh = () => target._refreshMethods.clearCacheAndRefresh();
-  target.sendCommand = command => target._commandMethods.sendCommand(command);
-  target.undo = () => target._commandMethods.undo();
-  target.redo = () => target._commandMethods.redo();
-  target.canUndo = () => target._commandMethods.canUndo();
-  target.canRedo = () => target._commandMethods.canRedo();
-  target.requestExportPng = () => target._commandMethods.requestExportPng();
-  target.requestExportSvg = () => target._commandMethods.requestExportSvg();
-  target.requestExportJpeg = () => target._commandMethods.requestExportJpeg();
-  target.requestExportJson = () => target._commandMethods.requestExportJson();
-  target.requestExportMarkdown = () => target._commandMethods.requestExportMarkdown();
-  target.emitEvent = (event, payload) => target._commandMethods.emitEvent(event, payload);
+  target.refresh = () => target._methodContainers.refresh.refresh();
+  target.refreshPhysicsSettings = () => target._methodContainers.refresh.refreshPhysicsSettings();
+  target.refreshSettings = () => target._methodContainers.refresh.refreshSettings();
+  target.refreshToggleSettings = () => target._methodContainers.refresh.refreshToggleSettings();
+  target.clearCacheAndRefresh = () => target._methodContainers.refresh.clearCacheAndRefresh();
+  target.sendCommand = command => target._methodContainers.command.sendCommand(command);
+  target.undo = () => target._methodContainers.command.undo();
+  target.redo = () => target._methodContainers.command.redo();
+  target.canUndo = () => target._methodContainers.command.canUndo();
+  target.canRedo = () => target._methodContainers.command.canRedo();
+  target.requestExportPng = () => target._methodContainers.command.requestExportPng();
+  target.requestExportSvg = () => target._methodContainers.command.requestExportSvg();
+  target.requestExportJpeg = () => target._methodContainers.command.requestExportJpeg();
+  target.requestExportJson = () => target._methodContainers.command.requestExportJson();
+  target.requestExportMarkdown = () => target._methodContainers.command.requestExportMarkdown();
+  target.emitEvent = (event, payload) => target._methodContainers.command.emitEvent(event, payload);
   target.resolveWebviewView = (webviewView, context, token) =>
-    target._webviewMethods.resolveWebviewView(webviewView, context, token);
-  target.updateGraphData = data => target._viewContextMethods.updateGraphData(data);
-  target.getGraphData = () => target._viewContextMethods.getGraphData();
-  target.sendPlaybackSpeed = () => target._timelineMethods.sendPlaybackSpeed();
-  target.invalidateTimelineCache = () => target._timelineMethods.invalidateTimelineCache();
-  target.trackFileVisit = filePath => target._fileVisitMethods.trackFileVisit(filePath);
+    target._methodContainers.webview.resolveWebviewView(webviewView, context, token);
+  target.updateGraphData = data => target._methodContainers.viewContext.updateGraphData(data);
+  target.getGraphData = () => target._methodContainers.viewContext.getGraphData();
+  target.sendPlaybackSpeed = () => target._methodContainers.timeline.sendPlaybackSpeed();
+  target.invalidateTimelineCache = () => target._methodContainers.timeline.invalidateTimelineCache();
+  target.trackFileVisit = filePath => target._methodContainers.fileVisit.trackFileVisit(filePath);
   target.registerExternalPlugin = (plugin, options) =>
-    target._pluginMethods.registerExternalPlugin(plugin, options);
-  target.changeView = viewId => target._viewSelectionMethods.changeView(viewId);
-  target.setFocusedFile = filePath => target._viewSelectionMethods.setFocusedFile(filePath);
-  target.setDepthLimit = depthLimit => target._viewSelectionMethods.setDepthLimit(depthLimit);
-  target.getDepthLimit = () => target._viewSelectionMethods.getDepthLimit();
-  target.openInEditor = () => target._webviewMethods.openInEditor();
-  target.sendToWebview = message => target._webviewMethods.sendToWebview(message);
-  target.onWebviewMessage = handler => target._webviewMethods.onWebviewMessage(handler);
+    target._methodContainers.plugin.registerExternalPlugin(plugin, options);
+  target.changeView = viewId => target._methodContainers.viewSelection.changeView(viewId);
+  target.setFocusedFile = filePath => target._methodContainers.viewSelection.setFocusedFile(filePath);
+  target.setDepthLimit = depthLimit => target._methodContainers.viewSelection.setDepthLimit(depthLimit);
+  target.getDepthLimit = () => target._methodContainers.viewSelection.getDepthLimit();
+  target.openInEditor = () => target._methodContainers.webview.openInEditor();
+  target.sendToWebview = message => target._methodContainers.webview.sendToWebview(message);
+  target.onWebviewMessage = handler => target._methodContainers.webview.onWebviewMessage(handler);
 }

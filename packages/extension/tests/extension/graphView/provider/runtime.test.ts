@@ -26,6 +26,34 @@ async function loadSubject(
     | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
     | undefined,
 ) {
+  const methodContainers = {
+    analysis: {},
+    command: {
+      undo: vi.fn(async () => 'undo'),
+      redo: vi.fn(async () => 'redo'),
+    },
+    fileAction: {},
+    fileVisit: {},
+    physicsSettings: {},
+    plugin: {
+      _sendDecorations: vi.fn(),
+    },
+    pluginResource: {},
+    refresh: {},
+    settingsState: {
+      _loadDisabledRulesAndPlugins: vi.fn(() => false),
+    },
+    timeline: {},
+    viewContext: {},
+    viewSelection: {
+      changeView: vi.fn(async () => undefined),
+      setDepthLimit: vi.fn(async () => undefined),
+    },
+    webview: {
+      _sendMessage: vi.fn(),
+    },
+  };
+
   vi.doMock('../../../../src/extension/workspaceAnalyzer/service', () => ({
     WorkspaceAnalyzer: class WorkspaceAnalyzer {},
   }));
@@ -43,56 +71,8 @@ async function loadSubject(
   vi.doMock('../../../../src/core/plugins/decoration/manager', () => ({
     DecorationManager: class DecorationManager {},
   }));
-  vi.doMock('../../../../src/extension/graphView/provider/analysis/methods', () => ({
-    createGraphViewProviderAnalysisMethods: () => ({}),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/commands', () => ({
-    createGraphViewProviderCommandMethods: () => ({
-      undo: vi.fn(async () => 'undo'),
-      redo: vi.fn(async () => 'redo'),
-    }),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/file/actions', () => ({
-    createGraphViewProviderFileActionMethods: () => ({}),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/file/visits', () => ({
-    createGraphViewProviderFileVisitMethods: () => ({}),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/plugins', () => ({
-    createGraphViewProviderPluginMethods: () => ({
-      _sendDecorations: vi.fn(),
-    }),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/pluginResources', () => ({
-    createGraphViewProviderPluginResourceMethods: () => ({}),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/physicsSettings', () => ({
-    createGraphViewProviderPhysicsSettingsMethods: () => ({}),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/refresh', () => ({
-    createGraphViewProviderRefreshMethods: () => ({}),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/settingsState', () => ({
-    createGraphViewProviderSettingsStateMethods: () => ({
-      _loadDisabledRulesAndPlugins: vi.fn(() => false),
-    }),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/timeline/methods', () => ({
-    createGraphViewProviderTimelineMethods: () => ({}),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/view/context', () => ({
-    createGraphViewProviderViewContextMethods: () => ({}),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/view/selection', () => ({
-    createGraphViewProviderViewSelectionMethods: () => ({
-      changeView: vi.fn(async () => undefined),
-      setDepthLimit: vi.fn(async () => undefined),
-    }),
-  }));
-  vi.doMock('../../../../src/extension/graphView/provider/webview/host', () => ({
-    createGraphViewProviderWebviewMethods: () => ({
-      _sendMessage: vi.fn(),
-    }),
+  vi.doMock('../../../../src/extension/graphView/provider/methodContainers', () => ({
+    createGraphViewProviderMethodContainers: vi.fn(() => methodContainers),
   }));
   vi.doMock('vscode', async () => {
     const actual = await vi.importActual<typeof import('vscode')>('vscode');
@@ -109,7 +89,7 @@ async function loadSubject(
   const vscodeModule = await import('vscode');
   const { GraphViewProvider } = await import('../../../../src/extension/graphViewProvider');
 
-  return { GraphViewProvider, vscodeModule };
+  return { GraphViewProvider, methodContainers, vscodeModule };
 }
 
 describe('graphView/provider/runtime', () => {
@@ -125,19 +105,7 @@ describe('graphView/provider/runtime', () => {
     vi.doUnmock('../../../../src/core/views');
     vi.doUnmock('../../../../src/core/plugins/eventBus');
     vi.doUnmock('../../../../src/core/plugins/decoration/manager');
-    vi.doUnmock('../../../../src/extension/graphView/provider/analysis/methods');
-    vi.doUnmock('../../../../src/extension/graphView/provider/commands');
-    vi.doUnmock('../../../../src/extension/graphView/provider/file/actions');
-    vi.doUnmock('../../../../src/extension/graphView/provider/file/visits');
-    vi.doUnmock('../../../../src/extension/graphView/provider/plugins');
-    vi.doUnmock('../../../../src/extension/graphView/provider/pluginResources');
-    vi.doUnmock('../../../../src/extension/graphView/provider/physicsSettings');
-    vi.doUnmock('../../../../src/extension/graphView/provider/refresh');
-    vi.doUnmock('../../../../src/extension/graphView/provider/settingsState');
-    vi.doUnmock('../../../../src/extension/graphView/provider/timeline/methods');
-    vi.doUnmock('../../../../src/extension/graphView/provider/view/context');
-    vi.doUnmock('../../../../src/extension/graphView/provider/view/selection');
-    vi.doUnmock('../../../../src/extension/graphView/provider/webview/host');
+    vi.doUnmock('../../../../src/extension/graphView/provider/methodContainers');
     vi.doUnmock('../../../../src/extension/graphView/provider/bootstrap');
     vi.resetModules();
   });
@@ -151,7 +119,7 @@ describe('graphView/provider/runtime', () => {
       restoreGraphViewProviderState,
     }));
 
-    const { GraphViewProvider, vscodeModule } = await loadSubject([
+    const { GraphViewProvider, methodContainers, vscodeModule } = await loadSubject([
       {
         uri: { fsPath: '/test/workspace', path: '/test/workspace' },
         name: 'workspace',
@@ -222,6 +190,9 @@ describe('graphView/provider/runtime', () => {
     secondInitArgs.pushSubscription(disposable);
     expect(registerCommandMock).toHaveBeenCalledWith('codegraphy.test', expect.any(Function));
     expect(context.subscriptions).toContain(disposable);
+    expect((provider as unknown as { _methodContainers: unknown })._methodContainers).toBe(
+      methodContainers,
+    );
 
     resolveFirstWorkspaceReady?.();
     await expect(firstWorkspaceReadyPromise).resolves.toBeUndefined();
@@ -259,6 +230,46 @@ describe('graphView/provider/runtime', () => {
       payload: { nodes: [], edges: [] },
     });
     expect(sendDecorationsSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the method containers available through the internals helper', async () => {
+    vi.doMock('../../../../src/extension/graphView/provider/bootstrap', () => ({
+      initializeGraphViewProviderServices: vi.fn(),
+      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
+    }));
+
+    const { GraphViewProvider, methodContainers, vscodeModule } = await loadSubject([
+      {
+        uri: { fsPath: '/test/workspace', path: '/test/workspace' },
+        name: 'workspace',
+        index: 0,
+      },
+    ]);
+    const provider = new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
+    );
+    const internals = getGraphViewProviderInternals(provider);
+    const assignedMethodContainers = (
+      provider as unknown as {
+        _methodContainers: Record<string, unknown>;
+      }
+    )._methodContainers;
+
+    expect(assignedMethodContainers).toBe(methodContainers);
+    expect(internals._analysisMethods).toBe(methodContainers.analysis);
+    expect(internals._commandMethods).toBe(methodContainers.command);
+    expect(internals._fileActionMethods).toBe(methodContainers.fileAction);
+    expect(internals._fileVisitMethods).toBe(methodContainers.fileVisit);
+    expect(internals._pluginMethods).toBe(methodContainers.plugin);
+    expect(internals._pluginResourceMethods).toBe(methodContainers.pluginResource);
+    expect(internals._physicsSettingsMethods).toBe(methodContainers.physicsSettings);
+    expect(internals._refreshMethods).toBe(methodContainers.refresh);
+    expect(internals._settingsStateMethods).toBe(methodContainers.settingsState);
+    expect(internals._timelineMethods).toBe(methodContainers.timeline);
+    expect(internals._viewContextMethods).toBe(methodContainers.viewContext);
+    expect(internals._viewSelectionMethods).toBe(methodContainers.viewSelection);
+    expect(internals._webviewMethods).toBe(methodContainers.webview);
   });
 
   it('passes an empty workspace root to provider services when no folder is open', async () => {

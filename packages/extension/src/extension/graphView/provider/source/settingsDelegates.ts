@@ -25,27 +25,28 @@ export function createGraphViewProviderSettingsMethodDelegates(
   | '_sendFavorites'
 > {
   return {
-    _registerBuiltInPluginRoots: () => owner._pluginResourceMethods._registerBuiltInPluginRoots(),
+    _registerBuiltInPluginRoots: () =>
+      owner._methodContainers.pluginResource._registerBuiltInPluginRoots(),
     _resolveWebviewAssetPath: (assetPath, pluginId) =>
-      owner._pluginResourceMethods._resolveWebviewAssetPath(assetPath, pluginId),
+      owner._methodContainers.pluginResource._resolveWebviewAssetPath(assetPath, pluginId),
     _refreshWebviewResourceRoots: () =>
-      owner._pluginResourceMethods._refreshWebviewResourceRoots(),
+      owner._methodContainers.pluginResource._refreshWebviewResourceRoots(),
     _normalizeExternalExtensionUri: uri =>
-      owner._pluginResourceMethods._normalizeExternalExtensionUri(uri),
+      owner._methodContainers.pluginResource._normalizeExternalExtensionUri(uri),
     _loadDisabledRulesAndPlugins: () =>
-      owner._settingsStateMethods._loadDisabledRulesAndPlugins(),
-    _sendSettings: () => owner._settingsStateMethods._sendSettings(),
-    _sendPhysicsSettings: () => owner._physicsSettingsMethods._sendPhysicsSettings(),
-    _rebuildAndSend: () => owner._refreshMethods._rebuildAndSend(),
-    _smartRebuild: (kind, id) => owner._refreshMethods._smartRebuild(kind, id),
-    _getPhysicsSettings: () => owner._physicsSettingsMethods._getPhysicsSettings(),
+      owner._methodContainers.settingsState._loadDisabledRulesAndPlugins(),
+    _sendSettings: () => owner._methodContainers.settingsState._sendSettings(),
+    _sendPhysicsSettings: () => owner._methodContainers.physicsSettings._sendPhysicsSettings(),
+    _rebuildAndSend: () => owner._methodContainers.refresh._rebuildAndSend(),
+    _smartRebuild: (kind, id) => owner._methodContainers.refresh._smartRebuild(kind, id),
+    _getPhysicsSettings: () => owner._methodContainers.physicsSettings._getPhysicsSettings(),
     _loadGroupsAndFilterPatterns: () =>
-      owner._settingsStateMethods._loadGroupsAndFilterPatterns(),
-    _sendAllSettings: () => owner._settingsStateMethods._sendAllSettings(),
-    _getLocalResourceRoots: () => owner._pluginResourceMethods._getLocalResourceRoots(),
+      owner._methodContainers.settingsState._loadGroupsAndFilterPatterns(),
+    _sendAllSettings: () => owner._methodContainers.settingsState._sendAllSettings(),
+    _getLocalResourceRoots: () => owner._methodContainers.pluginResource._getLocalResourceRoots(),
     _updatePhysicsSetting: (key, value) =>
-      owner._physicsSettingsMethods._updatePhysicsSetting(key, value),
-    _resetPhysicsSettings: () => owner._physicsSettingsMethods._resetPhysicsSettings(),
-    _sendFavorites: () => owner._fileVisitMethods._sendFavorites(),
+      owner._methodContainers.physicsSettings._updatePhysicsSetting(key, value),
+    _resetPhysicsSettings: () => owner._methodContainers.physicsSettings._resetPhysicsSettings(),
+    _sendFavorites: () => owner._methodContainers.fileVisit._sendFavorites(),
   };
 }

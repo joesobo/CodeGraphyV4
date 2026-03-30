@@ -24,22 +24,22 @@ export function createGraphViewProviderAnalysisMethodDelegates(
   | '_isAbortError'
 > {
   return {
-    _sendMessage: message => owner._webviewMethods._sendMessage(message),
-    _sendAvailableViews: () => owner._viewContextMethods._sendAvailableViews(),
-    _computeMergedGroups: () => owner._pluginResourceMethods._computeMergedGroups(),
-    _sendGroupsUpdated: () => owner._pluginMethods._sendGroupsUpdated(),
-    _updateViewContext: () => owner._viewContextMethods._updateViewContext(),
-    _applyViewTransform: () => owner._viewContextMethods._applyViewTransform(),
-    _sendPluginStatuses: () => owner._pluginMethods._sendPluginStatuses(),
-    _sendDecorations: () => owner._pluginMethods._sendDecorations(),
-    _sendContextMenuItems: () => owner._pluginMethods._sendContextMenuItems(),
-    _sendPluginWebviewInjections: () => owner._pluginMethods._sendPluginWebviewInjections(),
-    _analyzeAndSendData: () => owner._analysisMethods._analyzeAndSendData(),
+    _sendMessage: message => owner._methodContainers.webview._sendMessage(message),
+    _sendAvailableViews: () => owner._methodContainers.viewContext._sendAvailableViews(),
+    _computeMergedGroups: () => owner._methodContainers.pluginResource._computeMergedGroups(),
+    _sendGroupsUpdated: () => owner._methodContainers.plugin._sendGroupsUpdated(),
+    _updateViewContext: () => owner._methodContainers.viewContext._updateViewContext(),
+    _applyViewTransform: () => owner._methodContainers.viewContext._applyViewTransform(),
+    _sendPluginStatuses: () => owner._methodContainers.plugin._sendPluginStatuses(),
+    _sendDecorations: () => owner._methodContainers.plugin._sendDecorations(),
+    _sendContextMenuItems: () => owner._methodContainers.plugin._sendContextMenuItems(),
+    _sendPluginWebviewInjections: () => owner._methodContainers.plugin._sendPluginWebviewInjections(),
+    _analyzeAndSendData: () => owner._methodContainers.analysis._analyzeAndSendData(),
     _doAnalyzeAndSendData: (signal, requestId) =>
-      owner._analysisMethods._doAnalyzeAndSendData(signal, requestId),
-    _markWorkspaceReady: graph => owner._analysisMethods._markWorkspaceReady(graph),
+      owner._methodContainers.analysis._doAnalyzeAndSendData(signal, requestId),
+    _markWorkspaceReady: graph => owner._methodContainers.analysis._markWorkspaceReady(graph),
     _isAnalysisStale: (signal, requestId) =>
-      owner._analysisMethods._isAnalysisStale(signal, requestId),
-    _isAbortError: error => owner._analysisMethods._isAbortError(error),
+      owner._methodContainers.analysis._isAnalysisStale(signal, requestId),
+    _isAbortError: error => owner._methodContainers.analysis._isAbortError(error),
   };
 }
