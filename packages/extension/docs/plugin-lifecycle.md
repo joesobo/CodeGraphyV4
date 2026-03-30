@@ -17,7 +17,7 @@ Readiness matters in two places:
 - workspace readiness, which controls when plugins receive initial analysis state
 - webview readiness, which controls when webview-side plugin APIs can safely receive messages
 
-The provider keeps these states separate so late-registered plugins can still replay the correct lifecycle events.
+The provider keeps these states separate and uses a single `_webviewReadyNotified` seam across the host bridge so late-registered plugins can still replay the correct lifecycle events without hidden instance mutation.
 
 ## Runtime delivery
 

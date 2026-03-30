@@ -9,3 +9,5 @@ Current docs are split by purpose:
 - `docs/archive/` - historical plans, specs, and superseded guides
 
 If a doc describes old refactor intent instead of current behavior, it belongs in `docs/archive/`.
+
+Historical `docs/plans/` and `docs/superpowers/` material now lives under `docs/archive/`.

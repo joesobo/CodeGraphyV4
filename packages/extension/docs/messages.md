@@ -16,6 +16,8 @@ Typical path:
 2. Provider methods serialize the current state into a message from `ExtensionToWebviewMessage`.
 3. The webview store and runtime handlers consume the message and update React state or trigger canvas behavior.
 
+The graph-view provider now composes its host bridge through explicit typed method-source adapters instead of mutating the class surface with `Object.assign`.
+
 ## Webview to extension
 
 The webview sends user interaction and UI state messages back to the host.
@@ -29,6 +31,8 @@ Typical path:
 1. A React component or runtime handler emits a `WebviewToExtensionMessage`.
 2. `src/webview/vscodeApi.ts` posts it to the host bridge.
 3. The host message listener dispatches to the relevant extension-side action or provider method.
+
+Host-side listener composition now lives under `src/extension/graphView/webview/providerMessages/`, which keeps read context, primary actions, settings context, and plugin context explicit and separately testable.
 
 ## Plugin messages
 

@@ -7,6 +7,8 @@ This folder documents the current `@codegraphy/extension` package.
 - `plugin-lifecycle.md` - plugin readiness and lifecycle
 - `testing.md` - package testing strategy and commands
 
+These docs describe the current runtime seams after the graph-view/provider refactor. Historical plans stay in `/docs/archive/`.
+
 The source tree is split by runtime boundary:
 
 - `src/extension/` - VS Code extension host

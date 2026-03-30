@@ -12,6 +12,7 @@ The package uses three layers of tests:
 - Use targeted Vitest runs while iterating.
 - Split large test files when they stop being easy to reason about.
 - Keep mutation tests focused on one source file or seam at a time.
+- Add regression coverage before changing provider lifecycle, bridge, or plugin readiness seams.
 
 ## Useful commands
 
