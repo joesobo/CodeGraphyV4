@@ -39,7 +39,7 @@ export function createGraphViewProviderMessagePluginContext(
     getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
     hasWorkspace: () => (dependencies.workspace.workspaceFolders?.length ?? 0) > 0,
     isFirstAnalysis: () => source._firstAnalysis,
-    isWebviewReadyNotified: () => source._readyNotified,
+    isWebviewReadyNotified: () => source._webviewReadyNotified,
     getHiddenPluginGroupIds: () => source._hiddenPluginGroupIds,
     loadGroupsAndFilterPatterns: () => source._loadGroupsAndFilterPatterns(),
     loadDisabledRulesAndPlugins: () => source._loadDisabledRulesAndPlugins(),
@@ -76,7 +76,7 @@ export function createGraphViewProviderMessagePluginContext(
       source._filterPatterns = patterns;
     },
     setWebviewReadyNotified: readyNotified => {
-      source._readyNotified = readyNotified;
+      source._webviewReadyNotified = readyNotified;
     },
   };
 }

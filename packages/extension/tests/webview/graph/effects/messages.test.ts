@@ -37,7 +37,14 @@ describe('graph effects messages', () => {
 
   it('caches file info', () => {
     const handlers = createHandlers();
-    const info = { path: 'src/app.ts', size: 123, lastModified: 'today', incomingCount: 1, outgoingCount: 2 };
+    const info = {
+      path: 'src/app.ts',
+      size: 123,
+      lastModified: 1704067200000,
+      incomingCount: 1,
+      outgoingCount: 2,
+      visits: 1,
+    };
 
     applyWebviewMessageEffects([{ kind: 'cacheFileInfo', info }], handlers);
 
@@ -46,7 +53,14 @@ describe('graph effects messages', () => {
 
   it('updates tooltip info', () => {
     const handlers = createHandlers();
-    const info = { path: 'src/app.ts', size: 123, lastModified: 'today', incomingCount: 1, outgoingCount: 2 };
+    const info = {
+      path: 'src/app.ts',
+      size: 123,
+      lastModified: 1704067200000,
+      incomingCount: 1,
+      outgoingCount: 2,
+      visits: 1,
+    };
 
     applyWebviewMessageEffects([{ kind: 'updateTooltipInfo', info }], handlers);
 
@@ -57,7 +71,10 @@ describe('graph effects messages', () => {
     const handlers = createHandlers();
     const effect: GraphWebviewMessageEffect = {
       kind: 'postMessage',
-      message: { type: 'NODE_BOUNDS_RESPONSE', payload: { nodes: [] } },
+      message: {
+        type: 'NODE_BOUNDS_RESPONSE',
+        payload: { nodes: [{ id: 'src/app.ts', x: 1, y: 2, size: 3 }] },
+      },
     };
 
     applyWebviewMessageEffects([effect], handlers);
@@ -108,10 +125,7 @@ describe('graph effects messages', () => {
   it('updates access counts in the graph data', () => {
     const handlers = createHandlers();
 
-    applyWebviewMessageEffects(
-      [{ kind: 'updateAccessCount', nodeId: 'src/app.ts', accessCount: 7 }],
-      handlers
-    );
+    applyWebviewMessageEffects([{ kind: 'updateAccessCount', nodeId: 'src/app.ts', accessCount: 7 }], handlers);
 
     expect(handlers.updateAccessCount).toHaveBeenCalledWith('src/app.ts', 7);
   });

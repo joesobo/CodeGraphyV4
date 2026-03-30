@@ -147,7 +147,5 @@ export function createGraphViewProviderFileVisitMethods(
     _sendFavorites,
   };
 
-  Object.assign(source as object, methods);
-
   return methods;
 }

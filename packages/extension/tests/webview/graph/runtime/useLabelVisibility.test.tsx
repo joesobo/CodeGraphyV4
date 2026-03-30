@@ -1,18 +1,17 @@
 import { renderHook } from '@testing-library/react';
-import type SpriteText from 'three-spritetext';
 import { describe, expect, it } from 'vitest';
 import { useLabelVisibility } from '../../../../src/webview/components/graph/runtime/use/directional/labelVisibility';
 
 describe('useLabelVisibility', () => {
   it('toggles sprite visibility to match the label setting', () => {
-    const alpha = { visible: false } as unknown as SpriteText;
-    const beta = { visible: false } as unknown as SpriteText;
+    const alpha = { visible: false } as { visible: boolean };
+    const beta = { visible: false } as { visible: boolean };
     const spritesRef = {
       current: new Map([
         ['alpha', alpha],
         ['beta', beta],
       ]),
-    };
+    } as never;
 
     const { rerender } = renderHook(
       ({ showLabels }) => useLabelVisibility({ showLabels, spritesRef }),

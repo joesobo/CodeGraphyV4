@@ -6,10 +6,12 @@ import {
 } from '../../../src/extension/gitHistory/reanalyzeGraphFile';
 
 describe('gitHistory/reanalyzeGraphFile', () => {
+  const noConnections = (): IConnection[] => [];
+
   it('returns early for unsupported files', async () => {
     const getFileAtCommit = vi.fn(async () => '');
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => []),
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
       getPluginForFile: vi.fn(() => ({ id: 'ts' })),
       supportsFile: vi.fn(() => false),
     };
@@ -43,12 +45,14 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     const nodeMap = new Map();
     const nodes: Array<{ id: string; label: string; color: string }> = [];
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [{
-        ruleId: 'import',
-        specifier: './b',
-        type: 'static',
-        resolvedPath: '/workspace/src/b.ts',
-      }]),
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
+        {
+          ruleId: 'import',
+          specifier: './b',
+          type: 'static',
+          resolvedPath: '/workspace/src/b.ts',
+        } satisfies IConnection,
+      ]),
       getPluginForFile: vi.fn(() => ({ id: 'ts' })),
       supportsFile: vi.fn(() => true),
     };
@@ -83,12 +87,14 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     const edgeSet = new Set<string>();
     const getFileAtCommit = vi.fn(async () => 'import "./b";');
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [{
-        ruleId: 'import',
-        specifier: './b',
-        type: 'static',
-        resolvedPath: '/workspace/src/b.ts',
-      }]),
+      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
+        {
+          ruleId: 'import',
+          specifier: './b',
+          type: 'static',
+          resolvedPath: '/workspace/src/b.ts',
+        } satisfies IConnection,
+      ]),
       getPluginForFile: vi.fn(() => undefined),
       supportsFile: vi.fn(() => true),
     };
@@ -131,7 +137,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
       nodeMap,
       nodes,
       registry: {
-        analyzeFile: vi.fn(async (): Promise<IConnection[]> => []),
+        analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
         supportsFile: vi.fn(() => true),
       },
       sha: 'abc123',

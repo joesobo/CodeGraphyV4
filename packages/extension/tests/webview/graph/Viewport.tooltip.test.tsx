@@ -231,6 +231,7 @@ describe('Viewport tooltip count mutations (L111-112)', () => {
         nodeRect: { x: 50, y: 60, radius: 15 },
         path: 'src/utils.ts',
         info: {
+          path: 'src/utils.ts',
           size: 1024,
           lastModified: 1700000000000,
           incomingCount: 3,
@@ -301,10 +302,12 @@ describe('Viewport tooltip count mutations (L111-112)', () => {
         nodeRect: { x: 10, y: 20, radius: 5 },
         path: 'src/App.ts',
         info: {
+          path: 'src/App.ts',
           size: 512,
           lastModified: 1700000000000,
           incomingCount: 7,
           outgoingCount: 2,
+          visits: 1,
         },
         pluginSections: [],
       },

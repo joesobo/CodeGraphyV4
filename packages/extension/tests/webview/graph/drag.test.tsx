@@ -3,7 +3,7 @@ import { render, act } from '@testing-library/react';
 import Graph from '../../../src/webview/components/Graph';
 import { IGraphData, DEFAULT_DIRECTION_COLOR } from '../../../src/shared/contracts';
 import { graphStore } from '../../../src/webview/store/state';
-import ForceGraph2D, { mockMethods } from 'react-force-graph-2d';
+import ForceGraph2D from 'react-force-graph-2d';
 import { getSentMessages } from '../../helpers/sentMessages';
 
 const mockData: IGraphData = {
@@ -43,6 +43,8 @@ function setStore(overrides: Record<string, unknown> = {}) {
 }
 
 describe('Graph: force-graph rendering', () => {
+  const mockMethods = ForceGraph2D.getMockMethods();
+
   beforeEach(() => {
     ForceGraph2D.clearAllHandlers();
     vi.clearAllMocks();

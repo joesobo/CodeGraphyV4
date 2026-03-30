@@ -9,7 +9,7 @@ import {
 describe('graphView/files/actions', () => {
   it('runs the delete action after confirmation', async () => {
     const executeDeleteAction = vi.fn(async () => undefined);
-    const showWarningMessage = vi.fn(async () => 'Delete');
+    const showWarningMessage = vi.fn(async (): Promise<'Delete' | undefined> => 'Delete');
 
     await deleteGraphViewFiles(['src/app.ts'], {
       workspaceFolder: { uri: vscode.Uri.file('/workspace') },
@@ -47,7 +47,7 @@ describe('graphView/files/actions', () => {
   });
 
   it('returns before prompting when no workspace folder is available for delete', async () => {
-    const showWarningMessage = vi.fn(async () => 'Delete');
+    const showWarningMessage = vi.fn(async (): Promise<'Delete' | undefined> => 'Delete');
     const executeDeleteAction = vi.fn(async () => undefined);
 
     await deleteGraphViewFiles(['src/app.ts'], {

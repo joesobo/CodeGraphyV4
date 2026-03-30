@@ -86,7 +86,10 @@ describe('graph view provider analysis lifecycle helper', () => {
   });
 
   it('syncs analyzer initialization state after execution', async () => {
-    const rawGraphData: IGraphData = { nodes: [{ id: 'src/index.ts' }], edges: [] };
+    const rawGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
     const state = createState({
       analysisRequestId: 1,
       analyzer: {
@@ -141,7 +144,10 @@ describe('graph view provider analysis lifecycle helper', () => {
     const registry = {
       notifyWorkspaceReady: vi.fn(),
     };
-    const graphData: IGraphData = { nodes: [{ id: 'src/index.ts' }], edges: [] };
+    const graphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
 
     markGraphViewWorkspaceReady(workspaceReadyState, registry, graphData);
     markGraphViewWorkspaceReady(workspaceReadyState, registry, graphData);

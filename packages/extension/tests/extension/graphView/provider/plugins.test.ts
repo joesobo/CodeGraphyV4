@@ -31,7 +31,7 @@ function createSource(
       getMergedEdgeDecorations: vi.fn(() => []),
     },
     _firstAnalysis: true,
-    _readyNotified: false,
+    _webviewReadyNotified: false,
     _analyzerInitialized: true,
     _analyzerInitPromise: undefined,
     _registerBuiltInPluginRoots: vi.fn(),
@@ -265,7 +265,7 @@ describe('graphView/provider/plugins', () => {
       analyzerInitPromise: Promise<void> | undefined;
     };
     source._firstAnalysis = false;
-    source._readyNotified = true;
+    source._webviewReadyNotified = true;
     source._analyzerInitialized = false;
     source._analyzerInitPromise = Promise.resolve();
 

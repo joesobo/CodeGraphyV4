@@ -6,7 +6,7 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { SearchBar } from '../../../../src/webview/components/searchBar/Field';
-import type { SearchOptions } from '../../../../src/webview/components/searchBar/model';
+import type { SearchOptions } from '../../../../src/webview/components/searchBar/field/model';
 
 describe('SearchBar (CSS class mutations)', () => {
   const defaultOptions: SearchOptions = {

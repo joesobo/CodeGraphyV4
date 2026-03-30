@@ -1,6 +1,4 @@
 import type { ExtensionToWebviewMessage, ICommitInfo, IGraphData } from '../../../../shared/contracts';
-import { indexGraphViewRepository } from '../indexing/repository';
-import { sendCachedGraphViewTimeline } from '../playback';
 import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/defaults';
 import type { ExtensionContext } from 'vscode';
 
@@ -58,8 +56,40 @@ export interface GraphViewProviderTimelineDependencies {
       registry: unknown;
     },
   ): IGraphData;
-  indexRepository: typeof indexGraphViewRepository;
-  sendCachedTimeline: typeof sendCachedGraphViewTimeline;
+  indexRepository(
+    state: {
+      analyzer: GraphViewProviderTimelineAnalyzer | undefined;
+      analyzerInitialized: boolean;
+      gitAnalyzer: GraphViewProviderTimelineGitAnalyzer | undefined;
+      indexingController: AbortController | undefined;
+      filterPatterns: string[];
+      timelineActive?: boolean;
+      currentCommitSha?: string;
+    },
+    handlers: {
+      workspaceFolder: { uri: { fsPath: string } } | undefined;
+      verifyGitRepository(cwd: string): Promise<void>;
+      createGitAnalyzer(
+        workspaceRoot: string,
+        mergedExclude: string[],
+      ): GraphViewProviderTimelineGitAnalyzer;
+      getMaxCommits(): number;
+      sendMessage(message: ExtensionToWebviewMessage): void;
+      showErrorMessage(message: string): void;
+      showInformationMessage(message: string): void;
+      toErrorMessage(error: unknown): string;
+      jumpToCommit(sha: string): Promise<void>;
+      logError(message: string, error: unknown): void;
+    },
+  ): Promise<void>;
+  sendCachedTimeline(
+    gitAnalyzer: GraphViewProviderTimelineGitAnalyzer | undefined,
+    state: {
+      timelineActive: boolean;
+      currentCommitSha: string | undefined;
+    },
+    sendMessage: (message: ExtensionToWebviewMessage) => void,
+  ): void;
   logError(message: string, error: unknown): void;
 }
 

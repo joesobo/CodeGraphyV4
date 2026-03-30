@@ -13,7 +13,7 @@ import {
 } from '../link/contracts';
 import { getLinkCanvasObjectMode } from '../link/metrics';
 
-type ForceGraph2DRefObject = MutableRefObject<FG2DMethods<NodeObject, LinkObject> | undefined>;
+type ForceGraph2DRef = MutableRefObject<FG2DMethods<NodeObject, LinkObject> | undefined>;
 
 export interface Surface2dProps {
   backgroundColor: string;
@@ -54,13 +54,13 @@ export function Surface2d({
 }: Surface2dProps): ReactElement {
   return (
     <ForceGraph2D
-      ref={fg2dRef as unknown as ForceGraph2DRefObject}
+      ref={fg2dRef as unknown as ForceGraph2DRef}
       {...sharedProps}
       backgroundColor={backgroundColor}
       nodeCanvasObject={nodeCanvasObject}
       nodeCanvasObjectMode={() => 'replace'}
       nodePointerAreaPaint={nodePointerAreaPaint}
-      nodeVal={(node) => {
+      nodeVal={(node: NodeObject) => {
         const radius = (node as FGNode).size ?? 16;
         return Math.max(1, radius * radius);
       }}
@@ -74,9 +74,11 @@ export function Surface2d({
       linkDirectionalParticleWidth={particleSize}
       linkDirectionalParticleSpeed={particleSpeed}
       linkDirectionalParticleColor={getParticleColor}
-      linkCurvature={(link) => (link as FGLink).curvature ?? 0}
+      linkCurvature={(link: LinkObject) => (link as FGLink).curvature ?? 0}
       linkCanvasObject={linkCanvasObject}
-      linkCanvasObjectMode={(link) => getLinkCanvasObjectMode(directionMode, link as FGLink)}
+      linkCanvasObjectMode={(link: LinkObject) =>
+        getLinkCanvasObjectMode(directionMode, link as FGLink)
+      }
       onRenderFramePost={onRenderFramePost}
       autoPauseRedraw={false}
     />

@@ -32,6 +32,8 @@ export type FGLink = LinkObject & {
   id: string;
   from: string;
   to: string;
+  source: string | FGNode;
+  target: string | FGNode;
   bidirectional: boolean;
   baseColor?: string;
   curvature?: number;

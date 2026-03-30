@@ -30,7 +30,7 @@ describe('app store selectors', () => {
         timelineActive: true,
         activePanel: 'plugins',
         nodeDecorations: { 'src/app.ts': { badge: { text: 'A' } } },
-        edgeDecorations: { edge1: { animated: true } },
+        edgeDecorations: { edge1: { opacity: 0.5 } },
       });
     });
 
@@ -46,7 +46,7 @@ describe('app store selectors', () => {
       timelineActive: true,
       activePanel: 'plugins',
       nodeDecorations: { 'src/app.ts': { badge: { text: 'A' } } },
-      edgeDecorations: { edge1: { animated: true } },
+      edgeDecorations: { edge1: { opacity: 0.5 } },
     });
   });
 

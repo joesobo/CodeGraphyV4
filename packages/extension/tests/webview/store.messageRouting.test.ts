@@ -73,13 +73,9 @@ describe('GraphStore message routing', () => {
     store.getState().handleExtensionMessage({
       type: 'PLUGIN_WEBVIEW_INJECT',
       payload: {
-        injections: [
-          {
-            pluginId: 'plugin.docs',
-            scripts: ['webview://plugin.js'],
-            styles: ['webview://plugin.css'],
-          },
-        ],
+        pluginId: 'plugin.docs',
+        scripts: ['webview://plugin.js'],
+        styles: ['webview://plugin.css'],
       },
     });
 

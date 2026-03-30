@@ -16,8 +16,6 @@ describe('graphView/pluginDefaultGroups', () => {
     };
   };
 
-  const pluginInfos = (...items: PluginInfoLike[]) => items;
-
   it('returns no plugin default groups when the analyzer is unavailable', () => {
     expect(
       getGraphViewPluginDefaultGroups(
@@ -233,8 +231,7 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () =>
-            pluginInfos(
+          list: (): PluginInfoLike[] => [
             {
               plugin: {
                 id: 'codegraphy.typescript',
@@ -256,7 +253,7 @@ describe('graphView/pluginDefaultGroups', () => {
                 fileColors: { '*.py': '#3776AB' },
               },
             },
-            ),
+          ],
         },
       },
       new Set(['codegraphy.typescript']),
@@ -279,8 +276,7 @@ describe('graphView/pluginDefaultGroups', () => {
     const groups = getGraphViewPluginDefaultGroups(
       {
         registry: {
-          list: () =>
-            pluginInfos(
+          list: (): PluginInfoLike[] => [
             {
               plugin: {
                 id: 'codegraphy.godot',
@@ -309,7 +305,7 @@ describe('graphView/pluginDefaultGroups', () => {
                 },
               },
             },
-            ),
+          ],
         },
       },
       new Set<string>(),

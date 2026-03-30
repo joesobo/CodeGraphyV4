@@ -23,8 +23,8 @@ function createSource(
     _filterPatterns: ['src/**'],
     _disabledRules: new Set<string>(['rule-a']),
     _disabledPlugins: new Set<string>(['plugin-a']),
-    _graphData: { nodes: [], edges: [] },
-    _rawGraphData: { nodes: [], edges: [] },
+    _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _firstAnalysis: true,
     _resolveFirstWorkspaceReady: vi.fn(),
     _sendMessage: vi.fn(),
@@ -159,8 +159,14 @@ describe('graphView/provider/analysis/state', () => {
 
   it('updates raw and transformed graph data on the provider source', () => {
     const source = createSource();
-    const rawGraph = { nodes: [{ id: 'raw' }], edges: [] } satisfies IGraphData;
-    const graph = { nodes: [{ id: 'graph' }], edges: [] } satisfies IGraphData;
+    const rawGraph = {
+      nodes: [{ id: 'raw', label: 'raw', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
+    const graph = {
+      nodes: [{ id: 'graph', label: 'graph', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
 
     setGraphViewProviderRawGraphData(source, rawGraph);
     setGraphViewProviderGraphData(source, graph);

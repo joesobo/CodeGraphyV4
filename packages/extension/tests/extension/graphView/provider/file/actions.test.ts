@@ -83,7 +83,11 @@ describe('graphView/provider/file/actions', () => {
       renameFile,
       createFile,
       toggleFavorites: vi.fn(async () => undefined),
-      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
+      getWorkspaceFolder: vi.fn(() => ({
+        uri: { fsPath: '/workspace' },
+        name: 'workspace',
+        index: 0,
+      } as never)),
       showWarningMessage: vi.fn(),
       showInputBox: vi.fn(),
       showErrorMessage: vi.fn(),

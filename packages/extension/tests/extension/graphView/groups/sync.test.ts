@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGroup } from '../../../../../src/shared/contracts';
+import type { IGroup } from '../../../../src/shared/contracts';
 import {
   applyLoadedGraphViewGroupState,
   type GraphViewGroupSyncState,

@@ -307,12 +307,12 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
       }),
       {
         initialProps: {
-          graphMode: '2d' as const,
+          graphMode: '2d' as '2d' | '3d',
         },
       },
     );
 
-    rerender({ graphMode: '3d' as const });
+    rerender({ graphMode: '3d' as never });
 
     const event = { type: 'contextmenu' } as never;
     result.current.handleBackgroundRightClick(event);

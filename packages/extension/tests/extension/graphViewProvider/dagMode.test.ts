@@ -20,7 +20,8 @@ describe('GraphViewProvider DAG mode', () => {
       (call: unknown[]) => (call[0] as { type?: string }).type === 'DAG_MODE_UPDATED'
     );
     expect(dagModeCall).toBeDefined();
-    expect((dagModeCall[0] as { payload: { dagMode: unknown } }).payload.dagMode).toBeNull();
+    const dagModeMessage = dagModeCall?.[0] as { payload: { dagMode: unknown } };
+    expect(dagModeMessage.payload.dagMode).toBeNull();
   });
 
   it('handles UPDATE_DAG_MODE and echoes back DAG_MODE_UPDATED', async () => {
@@ -36,7 +37,8 @@ describe('GraphViewProvider DAG mode', () => {
       (call: unknown[]) => (call[0] as { type?: string }).type === 'DAG_MODE_UPDATED'
     );
     expect(dagModeCall).toBeDefined();
-    expect((dagModeCall[0] as { payload: { dagMode: string } }).payload.dagMode).toBe('td');
+    const dagModeMessage = dagModeCall?.[0] as { payload: { dagMode: string } };
+    expect(dagModeMessage.payload.dagMode).toBe('td');
   });
 
   it('persists dagMode to workspace state on UPDATE_DAG_MODE', async () => {

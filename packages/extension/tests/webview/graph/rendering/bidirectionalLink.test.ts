@@ -259,8 +259,8 @@ describe('graph/rendering/bidirectional/link', () => {
     renderBidirectionalLink(
       createDependencies(),
       createLink({
-        source: { id: 'src/app.ts', x: 0, y: 10, size: 10 },
-        target: { id: 'src/utils.ts', x: 15, y: 10, size: 10 },
+        source: { id: 'src/app.ts', x: 0, y: 10, size: 10 } as unknown as FGLink['source'],
+        target: { id: 'src/utils.ts', x: 15, y: 10, size: 10 } as unknown as FGLink['target'],
       }),
       ctx,
       1,

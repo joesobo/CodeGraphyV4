@@ -7,7 +7,11 @@ import { describe, it, expect, vi, afterEach } from 'vitest';
 import { aggregateTooltipContent } from '../../../../src/webview/pluginHost/api/tooltip';
 import type { TooltipProviderFn, TooltipContext } from '../../../../src/webview/pluginHost/api/contracts';
 
-const context: TooltipContext = { path: 'src/App.ts' };
+const context: TooltipContext = {
+  node: { id: 'src/App.ts', label: 'App', color: '#ffffff' },
+  neighbors: [],
+  edges: [],
+};
 
 describe('aggregateTooltipContent (mutation targets)', () => {
   afterEach(() => {

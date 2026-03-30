@@ -2,12 +2,31 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/contracts';
 import { createGraphViewProviderFileVisitMethods } from '../../../../../src/extension/graphView/provider/file/visits';
 
+type FileVisitSource = {
+  _context: {
+    workspaceState: {
+      get: ReturnType<typeof vi.fn>;
+      update: ReturnType<typeof vi.fn>;
+    };
+  };
+  _analyzer?: {
+    initialize?: ReturnType<typeof vi.fn>;
+    getPluginNameForFile?: ReturnType<typeof vi.fn>;
+  };
+  _analyzerInitialized: boolean;
+  _graphData: IGraphData;
+  _sendMessage: ReturnType<typeof vi.fn>;
+  _analyzeAndSendData: ReturnType<typeof vi.fn>;
+  _getVisitCount?: ReturnType<typeof vi.fn>;
+  _incrementVisitCount?: ReturnType<typeof vi.fn>;
+};
+
 describe('graphView/provider/file/visits', () => {
   it('loads file info, prefers source visit overrides captured during creation, and syncs analyzer initialization state', async () => {
     const statFile = vi.fn(async () => ({ size: 1, mtime: 2 }));
     const logError = vi.fn();
     const getVisitCountOverride = vi.fn(() => 9);
-    const source = {
+    const source: FileVisitSource = {
       _context: {
         workspaceState: {
           get: vi.fn(),
@@ -32,7 +51,11 @@ describe('graphView/provider/file/visits', () => {
       state.analyzerInitialized = true;
     });
     const methods = createGraphViewProviderFileVisitMethods(source as never, {
-      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
+      getWorkspaceFolder: vi.fn(() => ({
+        uri: { fsPath: '/workspace' },
+        name: 'workspace',
+        index: 0,
+      } as never)),
       getConfiguration: vi.fn(() => ({ get: vi.fn() })),
       statFile,
       sendFileInfoMessage,
@@ -76,10 +99,14 @@ describe('graphView/provider/file/visits', () => {
       },
       _analyzer: undefined,
       _analyzerInitialized: false,
-      _graphData: { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData,
+      _graphData: {
+        nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+        edges: [],
+      } satisfies IGraphData,
       _sendMessage: vi.fn(),
       _analyzeAndSendData: vi.fn(async () => undefined),
       _incrementVisitCount: incrementVisitCountOverride,
+      _getVisitCount: vi.fn(() => 1),
     };
     const methods = createGraphViewProviderFileVisitMethods(source as never, {
       getWorkspaceFolder: vi.fn(() => undefined),
@@ -116,7 +143,7 @@ describe('graphView/provider/file/visits', () => {
     const trackFileVisit = vi.fn(async (_filePath, handlers) => {
       await handlers.incrementVisitCount('src/index.ts');
     });
-    const source = {
+    const source: FileVisitSource = {
       _context: {
         workspaceState: {
           get: vi.fn(),
@@ -125,7 +152,10 @@ describe('graphView/provider/file/visits', () => {
       },
       _analyzer: undefined,
       _analyzerInitialized: false,
-      _graphData: { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData,
+      _graphData: {
+        nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+        edges: [],
+      } satisfies IGraphData,
       _sendMessage: vi.fn(),
       _analyzeAndSendData: vi.fn(async () => undefined),
     };
@@ -177,7 +207,10 @@ describe('graphView/provider/file/visits', () => {
       },
       _analyzer: undefined,
       _analyzerInitialized: false,
-      _graphData: { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData,
+      _graphData: {
+        nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+        edges: [],
+      } satisfies IGraphData,
       _sendMessage: vi.fn(),
       _analyzeAndSendData: vi.fn(async () => undefined),
     };
@@ -220,7 +253,7 @@ describe('graphView/provider/file/visits', () => {
     const trackFileVisit = vi.fn(async (_filePath, handlers) => {
       await handlers.incrementVisitCount('src/index.ts');
     });
-    const source = {
+    const source: FileVisitSource = {
       _context: {
         workspaceState: {
           get: vi.fn(),
@@ -229,7 +262,10 @@ describe('graphView/provider/file/visits', () => {
       },
       _analyzer: undefined,
       _analyzerInitialized: false,
-      _graphData: { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData,
+      _graphData: {
+        nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+        edges: [],
+      } satisfies IGraphData,
       _sendMessage: vi.fn(),
       _analyzeAndSendData: vi.fn(async () => undefined),
     };
@@ -274,7 +310,7 @@ describe('graphView/provider/file/visits', () => {
       await handlers.executeAction(action);
     });
     const executeUndoAction = vi.fn(async () => undefined);
-    const source = {
+    const source: FileVisitSource = {
       _context: {
         workspaceState: {
           get: vi.fn(),

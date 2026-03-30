@@ -5,15 +5,19 @@ import {
   readPersistedGraphViewVisitCount,
 } from '../../../../../src/extension/graphView/files/visits/storage';
 
-function createWorkspaceState(visits?: Record<string, number>) {
-  return {
-    get: vi.fn(<T>(key: string): T | undefined => {
-      if (key === 'codegraphy.fileVisits') {
-        return visits as T | undefined;
-      }
+type WorkspaceStateGetMock = ReturnType<typeof vi.fn> & (<T>(key: string) => T | undefined);
 
-      return undefined;
-    }),
+function createWorkspaceState(visits?: Record<string, number>) {
+  const get = vi.fn((key: string) => {
+    if (key === 'codegraphy.fileVisits') {
+      return visits;
+    }
+
+    return undefined;
+  }) as WorkspaceStateGetMock;
+
+  return {
+    get,
     update: vi.fn(() => Promise.resolve()),
   };
 }

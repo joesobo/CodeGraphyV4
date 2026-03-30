@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react';
+import type { MutableRefObject } from 'react';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
 const useSearchKeyboardHarness = vi.hoisted(() => ({
@@ -51,7 +52,8 @@ describe('useSearchBarHandlers', () => {
     const focus = vi.fn();
 
     const { result } = renderHook(() => useSearchBarHandlers(options, vi.fn(), onChange));
-    result.current.inputRef.current = { focus } as unknown as HTMLInputElement;
+    const inputRef = result.current.inputRef as MutableRefObject<HTMLInputElement | null>;
+    inputRef.current = { focus } as unknown as HTMLInputElement;
 
     result.current.handleClear();
 
@@ -64,7 +66,7 @@ describe('useSearchBarHandlers', () => {
     const onChange = vi.fn();
 
     const { result, rerender } = renderHook(
-      ({ options }) => useSearchBarHandlers(options, onOptionsChange, onChange),
+      ({ options }: { options: SearchOptions }) => useSearchBarHandlers(options, onOptionsChange, onChange),
       {
         initialProps: {
           options: { matchCase: false, wholeWord: false, regex: false } satisfies SearchOptions,
@@ -72,9 +74,8 @@ describe('useSearchBarHandlers', () => {
       },
     );
 
-    rerender({
-      options: { matchCase: true, wholeWord: false, regex: true },
-    });
+    const nextOptions: SearchOptions = { matchCase: true, wholeWord: false, regex: true };
+    rerender({ options: nextOptions } as never);
 
     result.current.toggleOption('regex');
 

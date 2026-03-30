@@ -10,8 +10,15 @@ import {
 import { createDefaultGraphViewProviderAnalysisMethodDependencies } from '../../../../../src/extension/graphView/provider/analysis/methods';
 
 describe('graphView/provider/analysis default dependencies', () => {
+  const setWorkspaceFolders = (value: typeof vscode.workspace.workspaceFolders) => {
+    Object.defineProperty(vscode.workspace, 'workspaceFolders', {
+      configurable: true,
+      get: () => value,
+    });
+  };
+
   afterEach(() => {
-    vscode.workspace.workspaceFolders = undefined;
+    setWorkspaceFolders(undefined);
     vi.restoreAllMocks();
   });
 
@@ -26,14 +33,14 @@ describe('graphView/provider/analysis default dependencies', () => {
   });
 
   it('reports that a workspace exists when folders are present', () => {
-    vscode.workspace.workspaceFolders = [{ uri: { fsPath: '/workspace' } }] as never;
+    setWorkspaceFolders([{ uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 }]);
     const dependencies = createDefaultGraphViewProviderAnalysisMethodDependencies();
 
     expect(dependencies.hasWorkspace()).toBe(true);
   });
 
   it('reports that no workspace exists when folders are absent', () => {
-    vscode.workspace.workspaceFolders = undefined;
+    setWorkspaceFolders(undefined);
     const dependencies = createDefaultGraphViewProviderAnalysisMethodDependencies();
 
     expect(dependencies.hasWorkspace()).toBe(false);

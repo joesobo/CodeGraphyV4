@@ -1,6 +1,6 @@
 import type { MutableRefObject } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '../../../../../src/shared/contracts';
+import type { ICommitInfo } from '@/shared/contracts';
 import { clearSentMessages, findMessage } from '../../helpers/sentMessages';
 import { jumpToTrackPosition } from '../../../src/webview/components/timeline/scrubPosition';
 
@@ -163,10 +163,10 @@ describe('timeline/scrubPosition', () => {
     const pendingResetCallback = vi.fn();
     let playbackTime: number | null = null;
     const debounceTimerRef = createRef<ReturnType<typeof setTimeout> | null>(
-      setTimeout(pendingDebounceCallback, 500),
+      setTimeout(pendingDebounceCallback, 500) as unknown as ReturnType<typeof setTimeout>,
     );
     const scrubResetTimerRef = createRef<ReturnType<typeof setTimeout> | null>(
-      setTimeout(pendingResetCallback, 500),
+      setTimeout(pendingResetCallback, 500) as unknown as ReturnType<typeof setTimeout>,
     );
     const lastSentCommitIndexRef = createRef(-1);
     const setPlaybackTime = vi.fn((update: number | null | ((value: number | null) => number | null)) => {

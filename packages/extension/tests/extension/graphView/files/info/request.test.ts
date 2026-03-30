@@ -2,6 +2,12 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/contracts';
 import { sendGraphViewProviderFileInfoMessage } from '../../../../../src/extension/graphView/files/info/request';
 
+const workspaceFolder = {
+  uri: { fsPath: '/workspace' },
+  name: 'workspace',
+  index: 0,
+} as never;
+
 describe('graph view file-info request helper', () => {
   it('initializes the analyzer on demand before loading and sending file info', async () => {
     const sendMessage = vi.fn();
@@ -16,7 +22,7 @@ describe('graph view file-info request helper', () => {
     };
 
     await sendGraphViewProviderFileInfoMessage('src/index.ts', state, {
-      workspaceFolder: { uri: { fsPath: '/workspace' } },
+      workspaceFolder,
       statFile: vi.fn(),
       getVisitCount: vi.fn(() => 3),
       loadFileInfo: vi.fn(async (_filePath, options) => {
@@ -55,7 +61,7 @@ describe('graph view file-info request helper', () => {
     }));
 
     await sendGraphViewProviderFileInfoMessage('src/index.ts', state, {
-      workspaceFolder: { uri: { fsPath: '/workspace' } },
+      workspaceFolder,
       statFile: vi.fn(),
       getVisitCount: vi.fn(() => 3),
       loadFileInfo,
@@ -86,7 +92,7 @@ describe('graph view file-info request helper', () => {
     };
 
     await sendGraphViewProviderFileInfoMessage('src/index.ts', state, {
-      workspaceFolder: { uri: { fsPath: '/workspace' } },
+      workspaceFolder,
       statFile: vi.fn(),
       getVisitCount: vi.fn(() => 3),
       loadFileInfo: vi.fn(async (_filePath, options) => ({

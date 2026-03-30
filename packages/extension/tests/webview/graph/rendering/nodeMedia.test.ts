@@ -57,7 +57,7 @@ describe('graph/rendering/node/media', () => {
   });
 
   it('stops image overlay rendering when the image is not yet cached', () => {
-    vi.mocked(getImage).mockReturnValue(undefined);
+    vi.mocked(getImage).mockReturnValue(null);
     const ctx = createContext();
     const triggerImageRerender = vi.fn();
 

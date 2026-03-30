@@ -9,10 +9,22 @@ import {
 describe('export common', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (vscode.window as Record<string, unknown>).showSaveDialog = vi.fn();
-    (vscode.window as Record<string, unknown>).showInformationMessage = vi.fn();
-    (vscode.workspace.fs as Record<string, unknown>).writeFile = vi.fn();
-    (vscode.commands as Record<string, unknown>).executeCommand = vi.fn();
+    Object.defineProperty(vscode.window, 'showSaveDialog', {
+      configurable: true,
+      value: vi.fn(),
+    });
+    Object.defineProperty(vscode.window, 'showInformationMessage', {
+      configurable: true,
+      value: vi.fn(),
+    });
+    Object.defineProperty(vscode.workspace.fs, 'writeFile', {
+      configurable: true,
+      value: vi.fn(),
+    });
+    Object.defineProperty(vscode.commands, 'executeCommand', {
+      configurable: true,
+      value: vi.fn(),
+    });
 
     Object.defineProperty(vscode.workspace, 'workspaceFolders', {
       get: () => [{ uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 }],
@@ -45,7 +57,7 @@ describe('export common', () => {
   it('uses the first workspace folder to seed the save dialog and opens the saved file when requested', async () => {
     const saveUri = vscode.Uri.file('/workspace/graph.json');
     vi.mocked(vscode.window.showSaveDialog).mockResolvedValue(saveUri);
-    vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('Open File');
+    vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('Open File' as never);
 
     await saveExportBuffer(Buffer.from('graph-data'), {
       defaultFilename: 'graph.json',
@@ -131,7 +143,7 @@ describe('export common', () => {
   it('reveals the saved file in the OS when the folder action is selected', async () => {
     const saveUri = vscode.Uri.file('/workspace/graph.json');
     vi.mocked(vscode.window.showSaveDialog).mockResolvedValue(saveUri);
-    vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('Open Folder');
+    vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('Open Folder' as never);
 
     await saveExportBuffer(Buffer.from('graph-data'), {
       defaultFilename: 'graph.json',
@@ -146,7 +158,7 @@ describe('export common', () => {
   it('does not run a command when the success action is unrecognized', async () => {
     const saveUri = vscode.Uri.file('/workspace/graph.json');
     vi.mocked(vscode.window.showSaveDialog).mockResolvedValue(saveUri);
-    vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('Ignore');
+    vi.mocked(vscode.window.showInformationMessage).mockResolvedValue('Ignore' as never);
 
     await saveExportBuffer(Buffer.from('graph-data'), {
       defaultFilename: 'graph.json',

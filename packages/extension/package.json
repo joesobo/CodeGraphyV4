@@ -13,8 +13,8 @@
     "dev": "pnpm run watch",
     "test": "vitest run --config vitest.config.ts",
     "test:watch": "vitest --config vitest.config.ts",
-    "lint": "eslint src",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "lint": "eslint src tests",
+    "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json"
   },
   "dependencies": {
     "@radix-ui/react-dropdown-menu": "^2.1.16"

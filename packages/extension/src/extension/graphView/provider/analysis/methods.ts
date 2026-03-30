@@ -148,7 +148,5 @@ export function createGraphViewProviderAnalysisMethods(
     _isAbortError,
   };
 
-  Object.assign(source as object, methods);
-
   return methods;
 }

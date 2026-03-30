@@ -17,6 +17,10 @@ function createMesh(color: string): THREE.Mesh {
   );
 }
 
+function getHexString(material: THREE.MeshLambertMaterial): string {
+  return (material.color as THREE.Color & { getHexString(): string }).getHexString();
+}
+
 function createNodes(): FGNode[] {
   return [
     { color: '#112233', id: 'selected' } as FGNode,
@@ -111,7 +115,7 @@ describe('graph/runtime/useMeshHighlights', () => {
     });
 
     const material = unknownMesh.material as THREE.MeshLambertMaterial;
-    expect(material.color.getHexString()).toBe('abcdef');
+    expect(getHexString(material)).toBe('abcdef');
     expect(material.opacity).toBe(1);
   });
 
@@ -136,11 +140,11 @@ describe('graph/runtime/useMeshHighlights', () => {
     const neighborMaterial = neighborMesh.material as THREE.MeshLambertMaterial;
     const dimmedMaterial = dimmedMesh.material as THREE.MeshLambertMaterial;
 
-    expect(selectedMaterial.color.getHexString()).toBe('ffffff');
+    expect(getHexString(selectedMaterial)).toBe('ffffff');
     expect(selectedMaterial.opacity).toBe(1);
-    expect(neighborMaterial.color.getHexString()).toBe('445566');
+    expect(getHexString(neighborMaterial)).toBe('445566');
     expect(neighborMaterial.opacity).toBe(1);
-    expect(dimmedMaterial.color.getHexString()).toBe('646464');
+    expect(getHexString(dimmedMaterial)).toBe('646464');
     expect(dimmedMaterial.opacity).toBe(0.3);
   });
 
@@ -176,8 +180,8 @@ describe('graph/runtime/useMeshHighlights', () => {
       },
     );
 
-    expect((selectedMesh.material as THREE.MeshLambertMaterial).color.getHexString()).toBe('ffffff');
-    expect((neighborMesh.material as THREE.MeshLambertMaterial).color.getHexString()).toBe('445566');
+    expect(getHexString(selectedMesh.material as THREE.MeshLambertMaterial)).toBe('ffffff');
+    expect(getHexString(neighborMesh.material as THREE.MeshLambertMaterial)).toBe('445566');
 
     highlightedNodeRef.current = 'neighbor';
     highlightedNeighborsRef.current = new Set();
@@ -185,9 +189,9 @@ describe('graph/runtime/useMeshHighlights', () => {
 
     rerender({ highlightVersion: 2 });
 
-    expect((selectedMesh.material as THREE.MeshLambertMaterial).color.getHexString()).toBe('646464');
+    expect(getHexString(selectedMesh.material as THREE.MeshLambertMaterial)).toBe('646464');
     expect((selectedMesh.material as THREE.MeshLambertMaterial).opacity).toBe(0.3);
-    expect((neighborMesh.material as THREE.MeshLambertMaterial).color.getHexString()).toBe('ffffff');
+    expect(getHexString(neighborMesh.material as THREE.MeshLambertMaterial)).toBe('ffffff');
     expect((neighborMesh.material as THREE.MeshLambertMaterial).opacity).toBe(1);
   });
 });

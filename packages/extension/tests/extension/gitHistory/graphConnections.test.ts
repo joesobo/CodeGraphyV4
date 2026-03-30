@@ -8,7 +8,7 @@ describe('gitHistory/graphConnections', () => {
 
     appendGitHistoryConnectionEdges({
       connections: [
-        { specifier: './missing', type: 'static', resolvedPath: undefined },
+        { specifier: './missing', type: 'static', resolvedPath: null },
         { specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts' },
       ],
       edgeSet,

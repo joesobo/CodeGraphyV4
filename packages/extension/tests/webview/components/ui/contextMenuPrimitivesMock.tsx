@@ -8,7 +8,9 @@ function createPrimitive<T extends keyof JSX.IntrinsicElements>(
     ({ children, ...props }, ref) => React.createElement(tag, { ref, ...props }, children),
   );
   Component.displayName = displayName;
-  return Component;
+  return Component as unknown as React.ForwardRefExoticComponent<
+    React.ComponentPropsWithoutRef<T> & React.RefAttributes<HTMLElement>
+  >;
 }
 
 const CheckboxItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement> & { checked?: boolean }>(

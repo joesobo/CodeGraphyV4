@@ -4,7 +4,10 @@ import { createGraphViewProviderAnalysisDelegates } from '../../../../../src/ext
 
 describe('graphView/provider/analysis/delegates', () => {
   it('calls the source workspace-ready callback when it exists', () => {
-    const graph = { nodes: [{ id: 'graph' }], edges: [] } satisfies IGraphData;
+    const graph = {
+      nodes: [{ id: 'graph', label: 'graph', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
     const source = {
       _markWorkspaceReady: vi.fn(),
     };

@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ICommitInfo } from '@/shared/contracts';
 
 const { syncTimelinePlaybackFromCommit } = vi.hoisted(() => ({
   syncTimelinePlaybackFromCommit: vi.fn(),
@@ -19,7 +20,13 @@ describe('timeline/useCommitSync', () => {
   it('syncs playback using the current hook inputs', () => {
     const lastSentCommitIndexRef = { current: -1 };
     const setPlaybackTime = vi.fn();
-    const timelineCommits = [{ sha: 'aaa', timestamp: 1000 }];
+    const timelineCommits: ICommitInfo[] = [{
+      sha: 'aaa',
+      timestamp: 1000,
+      message: 'initial',
+      author: 'tester',
+      parents: [],
+    }];
     const userScrubActiveRef = { current: false };
 
     renderHook(() => useTimelineCommitSync({
@@ -44,7 +51,13 @@ describe('timeline/useCommitSync', () => {
   it('re-runs sync when the selected commit changes', () => {
     const lastSentCommitIndexRef = { current: -1 };
     const setPlaybackTime = vi.fn();
-    const timelineCommits = [{ sha: 'aaa', timestamp: 1000 }];
+    const timelineCommits: ICommitInfo[] = [{
+      sha: 'aaa',
+      timestamp: 1000,
+      message: 'initial',
+      author: 'tester',
+      parents: [],
+    }];
     const userScrubActiveRef = { current: false };
     const { rerender } = renderHook(({ currentCommitSha }) => useTimelineCommitSync({
       currentCommitSha,

@@ -16,15 +16,47 @@ vi.mock('../../../../../src/extension/graphView/provider/analysis/delegates', as
 
 function createSource(
   overrides: Partial<Record<string, unknown>> = {},
-): Record<string, unknown> {
+): {
+  _analysisController?: AbortController;
+  _analysisRequestId: number;
+  _analyzer?: {
+    registry: {
+      notifyWorkspaceReady: ReturnType<typeof vi.fn>;
+    };
+  };
+  _analyzerInitialized: boolean;
+  _analyzerInitPromise?: Promise<void>;
+  _filterPatterns: string[];
+  _disabledRules: Set<string>;
+  _disabledPlugins: Set<string>;
+  _graphData: IGraphData;
+  _rawGraphData: IGraphData;
+  _firstAnalysis: boolean;
+  _resolveFirstWorkspaceReady?: ReturnType<typeof vi.fn>;
+  _sendMessage: ReturnType<typeof vi.fn>;
+  _sendAvailableViews: ReturnType<typeof vi.fn>;
+  _computeMergedGroups: ReturnType<typeof vi.fn>;
+  _sendGroupsUpdated: ReturnType<typeof vi.fn>;
+  _updateViewContext: ReturnType<typeof vi.fn>;
+  _applyViewTransform: ReturnType<typeof vi.fn>;
+  _sendPluginStatuses: ReturnType<typeof vi.fn>;
+  _sendDecorations: ReturnType<typeof vi.fn>;
+  _sendContextMenuItems: ReturnType<typeof vi.fn>;
+  _analyzeAndSendData?: () => Promise<void>;
+  _doAnalyzeAndSendData?: (signal: AbortSignal, requestId: number) => Promise<void>;
+  _markWorkspaceReady?: (graph: IGraphData) => void;
+  _isAnalysisStale?: (signal: AbortSignal, requestId: number) => boolean;
+  _isAbortError?: (error: unknown) => boolean;
+  [key: string]: unknown;
+} {
   return {
     _analysisController: undefined,
     _analysisRequestId: 7,
-    _analyzer: {
-      registry: {
-        notifyWorkspaceReady: vi.fn(),
+      _analyzer: {
+        registry: {
+          notifyWorkspaceReady: vi.fn(),
+        },
       },
-    },
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,
     _filterPatterns: [],
@@ -48,7 +80,7 @@ function createSource(
 }
 
 describe('graphView/provider/analysis/methods', () => {
-  it('assigns the created methods back onto the provider source', () => {
+  it('returns analysis helpers without mutating the provider source', () => {
     const source = createSource();
     const methods = createGraphViewProviderAnalysisMethods(source as never, {
       runAnalysisRequest: vi.fn(async () => undefined),
@@ -60,16 +92,24 @@ describe('graphView/provider/analysis/methods', () => {
       logError: vi.fn(),
     });
 
-    expect(methods._analyzeAndSendData).toBe(source._analyzeAndSendData);
-    expect(methods._doAnalyzeAndSendData).toBe(source._doAnalyzeAndSendData);
-    expect(methods._markWorkspaceReady).toBe(source._markWorkspaceReady);
-    expect(methods._isAnalysisStale).toBe(source._isAnalysisStale);
-    expect(methods._isAbortError).toBe(source._isAbortError);
+    expect(methods._analyzeAndSendData).toEqual(expect.any(Function));
+    expect(methods._doAnalyzeAndSendData).toEqual(expect.any(Function));
+    expect(methods._markWorkspaceReady).toEqual(expect.any(Function));
+    expect(methods._isAnalysisStale).toEqual(expect.any(Function));
+    expect(methods._isAbortError).toEqual(expect.any(Function));
+    expect(source._analyzeAndSendData).toBeUndefined();
+    expect(source._doAnalyzeAndSendData).toBeUndefined();
+    expect(source._markWorkspaceReady).toBeUndefined();
+    expect(source._isAnalysisStale).toBeUndefined();
+    expect(source._isAbortError).toBeUndefined();
   });
 
   it('marks workspace readiness with the current registry and syncs the live state back to the source', () => {
     const source = createSource();
-    const graphData = { nodes: [{ id: 'graph-node' }], edges: [] } satisfies IGraphData;
+    const graphData = {
+      nodes: [{ id: 'graph-node', label: 'graph-node', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
     const markWorkspaceReady = vi.fn((state, registry, graph) => {
       expect(state.firstAnalysis).toBe(true);
       expect(state.resolveFirstWorkspaceReady).toBe(source._resolveFirstWorkspaceReady);
@@ -99,7 +139,10 @@ describe('graphView/provider/analysis/methods', () => {
     const source = createSource({
       _analyzer: undefined,
     });
-    const graphData = { nodes: [{ id: 'graph-node' }], edges: [] } satisfies IGraphData;
+    const graphData = {
+      nodes: [{ id: 'graph-node', label: 'graph-node', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
     const signal = new AbortController().signal;
     const error = new Error('aborted');
     const markWorkspaceReady = vi.fn((state, registry, graph) => {
@@ -166,7 +209,10 @@ describe('graphView/provider/analysis/methods', () => {
   it('wires delegate callbacks through executeAnalysis and runAnalysisRequest', async () => {
     const source = createSource();
     const signal = new AbortController().signal;
-    const graphData = { nodes: [{ id: 'graph-node' }], edges: [] } satisfies IGraphData;
+    const graphData = {
+      nodes: [{ id: 'graph-node', label: 'graph-node', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
     const error = new Error('aborted');
     const markWorkspaceReady = vi.fn((state, _registry, graph) => {
       expect(graph).toBe(graphData);
@@ -213,7 +259,10 @@ describe('graphView/provider/analysis/methods', () => {
       _analyzer: undefined,
     });
     const signal = new AbortController().signal;
-    const graphData = { nodes: [{ id: 'graph-node' }], edges: [] } satisfies IGraphData;
+    const graphData = {
+      nodes: [{ id: 'graph-node', label: 'graph-node', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
     const error = new Error('aborted');
     const markWorkspaceReady = vi.fn((state, registry, graph) => {
       expect(registry).toBeUndefined();

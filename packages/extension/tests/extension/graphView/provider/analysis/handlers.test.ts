@@ -21,8 +21,8 @@ function createSource(
     _filterPatterns: [],
     _disabledRules: new Set<string>(),
     _disabledPlugins: new Set<string>(),
-    _graphData: { nodes: [], edges: [] },
-    _rawGraphData: { nodes: [], edges: [] },
+    _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _firstAnalysis: true,
     _resolveFirstWorkspaceReady: undefined,
     _sendMessage: vi.fn(),
@@ -63,10 +63,16 @@ describe('graphView/provider/analysis/handlers', () => {
       markWorkspaceReady: vi.fn(),
     };
     const handlers = createGraphViewProviderAnalysisHandlers(source, dependencies, callbacks);
-    const graphData = { nodes: [{ id: 'graph' }], edges: [] } satisfies IGraphData;
+    const graphData = {
+      nodes: [{ id: 'graph', label: 'graph', color: '#ffffff' }],
+      edges: [],
+    } satisfies IGraphData;
 
     expect(handlers.isAnalysisStale(new AbortController().signal, 4)).toBe(true);
-    handlers.setRawGraphData({ nodes: [{ id: 'raw' }], edges: [] });
+    handlers.setRawGraphData({
+      nodes: [{ id: 'raw', label: 'raw', color: '#ffffff' }],
+      edges: [],
+    });
     handlers.setGraphData(graphData);
     handlers.sendGraphDataUpdated(graphData);
     handlers.sendAvailableViews();
@@ -81,7 +87,10 @@ describe('graphView/provider/analysis/handlers', () => {
     expect(handlers.isAbortError(new Error('boom'))).toBe(true);
     handlers.logError('label', new Error('boom'));
 
-    expect(source._rawGraphData).toEqual({ nodes: [{ id: 'raw' }], edges: [] });
+    expect(source._rawGraphData).toEqual({
+      nodes: [{ id: 'raw', label: 'raw', color: '#ffffff' }],
+      edges: [],
+    });
     expect(source._graphData).toEqual(graphData);
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',

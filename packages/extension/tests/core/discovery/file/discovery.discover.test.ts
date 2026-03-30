@@ -242,13 +242,18 @@ describe('FileDiscovery discover', () => {
     const originalReaddir = fs.promises.readdir.bind(fs.promises);
     const readdirSpy = vi.spyOn(fs.promises, 'readdir');
 
-    readdirSpy.mockImplementation(async (directoryPath, options) => {
-      if (directoryPath === path.join(tempDir, 'a-private')) {
-        throw new Error('EACCES');
-      }
+    readdirSpy.mockImplementation(
+      (async (
+        directoryPath: Parameters<typeof fs.promises.readdir>[0],
+        options: Parameters<typeof fs.promises.readdir>[1],
+      ) => {
+        if (directoryPath === path.join(tempDir, 'a-private')) {
+          throw new Error('EACCES');
+        }
 
-      return originalReaddir(directoryPath as Parameters<typeof fs.promises.readdir>[0], options as never);
-    });
+        return originalReaddir(directoryPath, options as never);
+      }) as never,
+    );
 
     const result = await discovery.discover({ rootPath: tempDir });
 
@@ -279,19 +284,21 @@ describe('FileDiscovery discover', () => {
     const readdirSpy = vi.spyOn(fs.promises, 'readdir');
     let readdirCallCount = 0;
 
-    readdirSpy.mockImplementation(async (directoryPath, options) => {
-      readdirCallCount += 1;
-      const result = await originalReaddir(
-        directoryPath as Parameters<typeof fs.promises.readdir>[0],
-        options as never
-      );
+    readdirSpy.mockImplementation(
+      (async (
+        directoryPath: Parameters<typeof fs.promises.readdir>[0],
+        options: Parameters<typeof fs.promises.readdir>[1],
+      ) => {
+        readdirCallCount += 1;
+        const result = await originalReaddir(directoryPath, options as never);
 
-      if (readdirCallCount === 2) {
-        controller.abort();
-      }
+        if (readdirCallCount === 2) {
+          controller.abort();
+        }
 
-      return result;
-    });
+        return result;
+      }) as never,
+    );
 
     await expect(
       discovery.discover({

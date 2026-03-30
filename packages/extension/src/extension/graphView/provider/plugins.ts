@@ -48,7 +48,7 @@ export interface GraphViewProviderPluginMethodsSource {
   _activeViewId: string;
   _decorationManager: GraphViewDecorationManagerLike;
   _firstAnalysis: boolean;
-  _readyNotified: boolean;
+  _webviewReadyNotified: boolean;
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;
   _registerBuiltInPluginRoots(): void;
@@ -168,7 +168,7 @@ export function createGraphViewProviderPluginMethods(
           return source._firstAnalysis;
         },
         get readyNotified() {
-          return source._readyNotified;
+          return source._webviewReadyNotified;
         },
         get analyzerInitialized() {
           return source._analyzerInitialized;

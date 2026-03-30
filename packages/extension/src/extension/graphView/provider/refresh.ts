@@ -121,7 +121,5 @@ export function createGraphViewProviderRefreshMethods(
     _smartRebuild,
   };
 
-  Object.assign(source as object, methods);
-
   return methods;
 }

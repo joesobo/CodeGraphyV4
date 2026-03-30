@@ -17,15 +17,17 @@ describe('graphView/favorites', () => {
 
   it('sends the current favorites to the webview', () => {
     const sendMessage = vi.fn();
+    const get = <T>(key: string, defaultValue: T): T => {
+      if (key === 'favorites') {
+        return ['src/app.ts'] as never as T;
+      }
+
+      return defaultValue;
+    };
 
     sendGraphViewFavorites(
       {
-        get(key, defaultValue) {
-          if (key === 'favorites') {
-            return ['src/app.ts'];
-          }
-          return defaultValue;
-        },
+        get,
       },
       sendMessage,
     );
@@ -38,7 +40,7 @@ describe('graphView/favorites', () => {
 
   it('sends an empty favorites payload when no favorites are configured', () => {
     const sendMessage = vi.fn();
-    const get = vi.fn((_key, defaultValue) => defaultValue);
+    const get = vi.fn(<T>(_key: string, defaultValue: T): T => defaultValue);
 
     sendGraphViewFavorites(
       {

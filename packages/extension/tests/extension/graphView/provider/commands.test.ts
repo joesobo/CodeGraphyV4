@@ -21,7 +21,7 @@ describe('graphView/provider/commands', () => {
     );
 
     methods.sendCommand('FIT_VIEW');
-    methods.emitEvent('workspace:ready', { graphData: { nodes: [], edges: [] } });
+    methods.emitEvent('analysis:completed', { graph: { nodes: [], edges: [] }, duration: 1 });
     methods.requestExportPng();
     methods.requestExportSvg();
     methods.requestExportJpeg();
@@ -36,8 +36,9 @@ describe('graphView/provider/commands', () => {
       [{ type: 'REQUEST_EXPORT_JSON' }],
       [{ type: 'REQUEST_EXPORT_MD' }],
     ]);
-    expect(emit).toHaveBeenCalledWith('workspace:ready', {
-      graphData: { nodes: [], edges: [] },
+    expect(emit).toHaveBeenCalledWith('analysis:completed', {
+      graph: { nodes: [], edges: [] },
+      duration: 1,
     });
   });
 

@@ -42,7 +42,6 @@ function createHandlers(
     sendPluginStatuses: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
-    notifyPostAnalyze: vi.fn(),
     markWorkspaceReady: vi.fn(),
     isAbortError: vi.fn(() => false),
     logError: vi.fn(),
@@ -129,7 +128,10 @@ describe('graph view analysis execution', () => {
   });
 
   it('publishes an empty graph after group recompute when no workspace is available', async () => {
-    const analyze = vi.fn(async () => ({ nodes: [{ id: 'src/index.ts' }], edges: [] }));
+    const analyze = vi.fn(async () => ({
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    }));
     const state = createState({
       analyzer: {
         initialize: vi.fn(async () => undefined),
@@ -155,13 +157,17 @@ describe('graph view analysis execution', () => {
   });
 
   it('analyzes the workspace and publishes the transformed graph', async () => {
-    const rawGraphData: IGraphData = { nodes: [{ id: 'src/index.ts' }], edges: [] };
+    const rawGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
     const transformedGraphData: IGraphData = {
-      nodes: [{ id: 'src/index.ts', label: 'src/index.ts' }],
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
       edges: [],
     };
     const state = createState({
       analyzer: {
+        initialize: vi.fn(async () => undefined),
         analyze: vi.fn(() => Promise.resolve(rawGraphData)),
         registry: {
           notifyPostAnalyze: vi.fn(),
@@ -191,7 +197,10 @@ describe('graph view analysis execution', () => {
   });
 
   it('drops analyzed graph results when the request turns stale after analyze resolves', async () => {
-    const rawGraphData: IGraphData = { nodes: [{ id: 'src/index.ts' }], edges: [] };
+    const rawGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
     const state = createState({
       analyzer: {
         initialize: vi.fn(async () => undefined),

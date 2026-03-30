@@ -7,6 +7,7 @@ describe('graph view editor panel helper', () => {
     let disposeHandler: (() => void) | undefined;
     const panel = {
       webview: { html: '', options: {} },
+      iconPath: undefined,
       onDidDispose: vi.fn((handler: () => void) => {
         disposeHandler = handler;
         return { dispose: () => {} };

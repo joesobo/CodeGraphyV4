@@ -120,8 +120,8 @@ describe('graph/messages/effects', () => {
       graphMode: '2d',
       tooltipPath: null,
       graphNodes: [
-        { id: 'src/app.ts', label: 'app.ts', size: 12, color: '#fff', borderColor: '#fff', borderWidth: 2, baseOpacity: 1, isFavorite: false, x: 10, y: 20 },
-        { id: 'src/utils.ts', label: 'utils.ts', size: 8, color: '#fff', borderColor: '#fff', borderWidth: 2, baseOpacity: 1, isFavorite: false },
+        { id: 'src/app.ts', size: 12, x: 10, y: 20 },
+        { id: 'src/utils.ts', size: 8 },
       ],
     })).toEqual([
       {
@@ -187,7 +187,7 @@ describe('graph/messages/effects', () => {
 
   it('ignores messages with no Graph-side effect', () => {
     expect(getGraphWebviewMessageEffects({
-      message: { type: 'FAVORITES_UPDATED' },
+      message: { type: 'FAVORITES_UPDATED', payload: { favorites: [] } },
       graphMode: '2d',
       tooltipPath: null,
       graphNodes: [],

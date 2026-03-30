@@ -29,7 +29,7 @@ describe('useTheme', () => {
     vi.stubGlobal('MutationObserver', MockMutationObserver as unknown as typeof MutationObserver);
     vi.spyOn(window, 'getComputedStyle').mockImplementation(() => ({
       getPropertyValue: () => editorBackground,
-    } as CSSStyleDeclaration));
+    } as unknown as CSSStyleDeclaration));
   });
 
   afterEach(() => {

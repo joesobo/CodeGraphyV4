@@ -28,7 +28,7 @@ describe('exportSvgNodeImageOverlay', () => {
     overlayHarness.getImage.mockReset();
     HTMLCanvasElement.prototype.getContext = vi.fn(() => ({
       drawImage: vi.fn(),
-    })) as typeof HTMLCanvasElement.prototype.getContext;
+    })) as unknown as typeof HTMLCanvasElement.prototype.getContext;
     HTMLCanvasElement.prototype.toDataURL = vi.fn(() => 'data:image/png;base64,encoded');
   });
 
@@ -82,11 +82,11 @@ describe('exportSvgNodeImageOverlay', () => {
     Object.defineProperty(image, 'naturalWidth', { value: 0 });
     Object.defineProperty(image, 'naturalHeight', { value: 0 });
     overlayHarness.getImage.mockReturnValue(image);
-    HTMLCanvasElement.prototype.getContext = getContext as typeof HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = getContext as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
     appendNodeImageOverlay(node, { x: 50, y: 60 }, 'circle', definitions, imageElements);
 
-    const canvas = getContext.mock.instances[0] as HTMLCanvasElement;
+    const canvas = getContext.mock.instances[0] as unknown as HTMLCanvasElement;
     expect(canvas.width).toBe(64);
     expect(canvas.height).toBe(64);
     expect(drawImage).toHaveBeenCalledWith(image, 0, 0);
@@ -97,7 +97,7 @@ describe('exportSvgNodeImageOverlay', () => {
     const imageElements: string[] = [];
     const image = document.createElement('img') as HTMLImageElement;
     overlayHarness.getImage.mockReturnValue(image);
-    HTMLCanvasElement.prototype.getContext = vi.fn(() => null) as typeof HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = vi.fn(() => null) as unknown as typeof HTMLCanvasElement.prototype.getContext;
 
     appendNodeImageOverlay({ ...node, id: 'node:2', shape2D: 'diamond' }, { x: 50, y: 60 }, 'diamond', definitions, imageElements);
 

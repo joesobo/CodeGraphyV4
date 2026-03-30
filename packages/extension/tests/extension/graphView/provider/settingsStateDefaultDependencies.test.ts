@@ -82,11 +82,13 @@ import {
   type GraphViewProviderSettingsStateMethodsSource,
 } from '../../../../src/extension/graphView/provider/settingsState';
 
+type WorkspaceStateGetMock = ReturnType<typeof vi.fn> & (<T>(key: string) => T | undefined);
+
 function createSource(
   overrides: Partial<GraphViewProviderSettingsStateMethodsSource> = {},
 ): GraphViewProviderSettingsStateMethodsSource {
   const workspaceState = {
-    get: vi.fn(),
+    get: vi.fn(() => undefined) as WorkspaceStateGetMock,
     update: vi.fn(() => Promise.resolve()),
   };
 
@@ -195,10 +197,11 @@ describe('graphView/provider/settingsState default dependencies', () => {
   });
 
   it('loads disabled state through the default configuration inspection', () => {
+    const get = vi.fn((key: string) =>
+      key === 'codegraphy.disabledRules' ? ['rule.saved'] : ['plugin.saved']
+    ) as WorkspaceStateGetMock;
     const workspaceState = {
-      get<T>(key: string): T | undefined {
-        return (key === 'codegraphy.disabledRules' ? ['rule.saved'] : ['plugin.saved']) as never as T;
-      },
+      get,
       update: vi.fn(() => Promise.resolve()),
     };
     const source = createSource({

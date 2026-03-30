@@ -2,7 +2,26 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../src/shared/contracts';
 import { createGraphViewProviderRefreshMethods } from '../../../../src/extension/graphView/provider/refresh';
 
-function createSource(overrides: Partial<Record<string, unknown>> = {}) {
+function createSource(
+  overrides: Partial<Record<string, unknown>> = {},
+): {
+  _analyzer: { clearCache: ReturnType<typeof vi.fn> };
+  _disabledRules: Set<string>;
+  _disabledPlugins: Set<string>;
+  _rawGraphData: IGraphData;
+  _graphData: IGraphData;
+  _loadDisabledRulesAndPlugins: ReturnType<typeof vi.fn>;
+  _analyzeAndSendData: ReturnType<typeof vi.fn>;
+  _sendSettings: ReturnType<typeof vi.fn>;
+  _sendPhysicsSettings: ReturnType<typeof vi.fn>;
+  _updateViewContext: ReturnType<typeof vi.fn>;
+  _applyViewTransform: ReturnType<typeof vi.fn>;
+  _sendAvailableViews: ReturnType<typeof vi.fn>;
+  _sendPluginStatuses: ReturnType<typeof vi.fn>;
+  _sendDecorations: ReturnType<typeof vi.fn>;
+  _sendMessage: ReturnType<typeof vi.fn>;
+  _rebuildAndSend?: (() => void) | ReturnType<typeof vi.fn> | undefined;
+} {
   return {
     _analyzer: { clearCache: vi.fn() },
     _disabledRules: new Set<string>(),
@@ -71,7 +90,7 @@ describe('graphView/provider/refresh', () => {
       smartRebuildGraphData: vi.fn(),
       shouldRebuild: vi.fn(() => true),
     });
-    source._rebuildAndSend = rebuildOverride;
+    source._rebuildAndSend = rebuildOverride as never;
 
     methods.refreshToggleSettings();
 
@@ -89,7 +108,7 @@ describe('graphView/provider/refresh', () => {
       shouldRebuild: vi.fn(() => true),
     });
 
-    source._rebuildAndSend = undefined;
+    source._rebuildAndSend = undefined as never;
 
     methods.refreshToggleSettings();
 
@@ -106,7 +125,7 @@ describe('graphView/provider/refresh', () => {
       shouldRebuild: vi.fn(() => true),
     });
 
-    source._rebuildAndSend = methods._rebuildAndSend;
+    source._rebuildAndSend = methods._rebuildAndSend as never;
 
     methods.refreshToggleSettings();
 

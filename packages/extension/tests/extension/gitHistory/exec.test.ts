@@ -1,10 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import { execGitCommand } from '../../../src/extension/gitHistory/exec';
 
+type ExecFileLike = typeof import('node:child_process').execFile;
+
 describe('gitHistory/exec', () => {
   it('rejects immediately when the signal is already aborted', async () => {
     const controller = new AbortController();
-    const execFileImpl = vi.fn();
+    const execFileImpl = Object.assign(vi.fn(), { __promisify__: vi.fn() }) as unknown as ExecFileLike;
 
     controller.abort();
 
@@ -22,10 +24,13 @@ describe('gitHistory/exec', () => {
   });
 
   it('resolves stdout from a successful git command', async () => {
-    const execFileImpl = vi.fn((_cmd, _args, _options, callback) => {
-      callback?.(null, 'main\n');
-      return { kill: vi.fn() };
-    });
+    const execFileImpl = Object.assign(
+      vi.fn((_cmd, _args, _options, callback) => {
+        callback?.(null, 'main\n');
+        return { kill: vi.fn() };
+      }),
+      { __promisify__: vi.fn() },
+    ) as unknown as ExecFileLike;
 
     await expect(
       execGitCommand(['rev-parse', '--abbrev-ref', 'HEAD'], {
@@ -43,10 +48,13 @@ describe('gitHistory/exec', () => {
   });
 
   it('rejects non-Error failures with the fallback message', async () => {
-    const execFileImpl = vi.fn((_cmd, _args, _options, callback) => {
-      callback?.('boom', '');
-      return { kill: vi.fn() };
-    });
+    const execFileImpl = Object.assign(
+      vi.fn((_cmd, _args, _options, callback) => {
+        callback?.('boom', '');
+        return { kill: vi.fn() };
+      }),
+      { __promisify__: vi.fn() },
+    ) as unknown as ExecFileLike;
 
     await expect(
       execGitCommand(['status'], {
@@ -59,7 +67,9 @@ describe('gitHistory/exec', () => {
   it('kills the child process and rejects when the signal aborts mid-command', async () => {
     const controller = new AbortController();
     const kill = vi.fn();
-    const execFileImpl = vi.fn(() => ({ kill }));
+    const execFileImpl = Object.assign(vi.fn(() => ({ kill })), {
+      __promisify__: vi.fn(),
+    }) as unknown as ExecFileLike;
 
     const promise = execGitCommand(['status'], {
       workspaceRoot: '/workspace',
@@ -81,10 +91,13 @@ describe('gitHistory/exec', () => {
     const addEventListenerSpy = vi.spyOn(controller.signal, 'addEventListener');
     const removeEventListenerSpy = vi.spyOn(controller.signal, 'removeEventListener');
     let callback: ((error: Error | null, stdout: string) => void) | undefined;
-    const execFileImpl = vi.fn((_cmd, _args, _options, execCallback) => {
-      callback = execCallback;
-      return { kill: vi.fn() };
-    });
+    const execFileImpl = Object.assign(
+      vi.fn((_cmd, _args, _options, execCallback) => {
+        callback = execCallback;
+        return { kill: vi.fn() };
+      }),
+      { __promisify__: vi.fn() },
+    ) as unknown as ExecFileLike;
 
     const promise = execGitCommand(['status'], {
       workspaceRoot: '/workspace',
@@ -104,10 +117,13 @@ describe('gitHistory/exec', () => {
   it('ignores later aborts once the command has already resolved', async () => {
     const controller = new AbortController();
     const kill = vi.fn();
-    const execFileImpl = vi.fn((_cmd, _args, _options, callback) => {
-      callback?.(null, 'done\n');
-      return { kill };
-    });
+    const execFileImpl = Object.assign(
+      vi.fn((_cmd, _args, _options, callback) => {
+        callback?.(null, 'done\n');
+        return { kill };
+      }),
+      { __promisify__: vi.fn() },
+    ) as unknown as ExecFileLike;
 
     const result = await execGitCommand(['status'], {
       workspaceRoot: '/workspace',
@@ -126,10 +142,13 @@ describe('gitHistory/exec', () => {
     const kill = vi.fn();
     const removeEventListenerSpy = vi.spyOn(controller.signal, 'removeEventListener');
     let callback: ((error: Error | null, stdout: string) => void) | undefined;
-    const execFileImpl = vi.fn((_cmd, _args, _options, execCallback) => {
-      callback = execCallback;
-      return { kill };
-    });
+    const execFileImpl = Object.assign(
+      vi.fn((_cmd, _args, _options, execCallback) => {
+        callback = execCallback;
+        return { kill };
+      }),
+      { __promisify__: vi.fn() },
+    ) as unknown as ExecFileLike;
 
     const promise = execGitCommand(['status'], {
       workspaceRoot: '/workspace',

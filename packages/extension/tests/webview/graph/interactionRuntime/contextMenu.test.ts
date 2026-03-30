@@ -3,11 +3,19 @@ import type { FGLink } from '../../../../src/webview/components/graph/model/buil
 import { createContextMenuHandlers } from '../../../../src/webview/components/graph/interactionRuntime/contextMenu';
 import { createInteractionDependencies } from './testUtils';
 
+function spyOnDispatchEvent(container: HTMLElement | null) {
+  if (!container) {
+    throw new Error('Expected graph container');
+  }
+
+  return vi.spyOn(container as EventTarget, 'dispatchEvent');
+}
+
 describe('graph/contextMenuHandlers', () => {
   it('updates selection and opens the node context menu', () => {
     const dependencies = createInteractionDependencies();
     const setSelection = vi.fn();
-    const dispatchEvent = vi.spyOn(dependencies.containerRef.current, 'dispatchEvent');
+    const dispatchEvent = spyOnDispatchEvent(dependencies.containerRef.current);
     const handlers = createContextMenuHandlers(dependencies, setSelection);
 
     handlers.openNodeContextMenu(
@@ -25,7 +33,7 @@ describe('graph/contextMenuHandlers', () => {
   it('does not dispatch when the graph container is missing', () => {
     const dependencies = createInteractionDependencies();
     const container = dependencies.containerRef.current;
-    const dispatchEvent = vi.spyOn(container, 'dispatchEvent');
+    const dispatchEvent = spyOnDispatchEvent(container);
     dependencies.containerRef.current = null;
     const handlers = createContextMenuHandlers(dependencies, vi.fn());
 
@@ -49,7 +57,7 @@ describe('graph/contextMenuHandlers', () => {
 
   it('preserves pointer metadata on the synthetic context menu event', () => {
     const dependencies = createInteractionDependencies();
-    const dispatchEvent = vi.spyOn(dependencies.containerRef.current, 'dispatchEvent');
+    const dispatchEvent = spyOnDispatchEvent(dependencies.containerRef.current);
     const handlers = createContextMenuHandlers(dependencies, vi.fn());
 
     handlers.openBackgroundContextMenu(
@@ -62,7 +70,7 @@ describe('graph/contextMenuHandlers', () => {
       }),
     );
 
-    const syntheticEvent = dispatchEvent.mock.calls[0]?.[0] as MouseEvent | undefined;
+    const syntheticEvent = (dispatchEvent.mock.calls as Array<[MouseEvent]>)[0]?.[0];
 
     expect(syntheticEvent).toBeDefined();
     expect(syntheticEvent?.type).toBe('contextmenu');
@@ -77,12 +85,12 @@ describe('graph/contextMenuHandlers', () => {
 
   it('falls back to default pointer metadata when the graph callback omits the event', () => {
     const dependencies = createInteractionDependencies();
-    const dispatchEvent = vi.spyOn(dependencies.containerRef.current, 'dispatchEvent');
+    const dispatchEvent = spyOnDispatchEvent(dependencies.containerRef.current);
     const handlers = createContextMenuHandlers(dependencies, vi.fn());
 
     handlers.openBackgroundContextMenu(undefined as unknown as MouseEvent);
 
-    const syntheticEvent = dispatchEvent.mock.calls[0]?.[0] as MouseEvent | undefined;
+    const syntheticEvent = (dispatchEvent.mock.calls as Array<[MouseEvent]>)[0]?.[0];
 
     expect(syntheticEvent).toBeDefined();
     expect(syntheticEvent?.clientX).toBe(0);
@@ -94,7 +102,7 @@ describe('graph/contextMenuHandlers', () => {
     const dependencies = createInteractionDependencies();
     dependencies.selectedNodesSetRef.current = new Set(['src/app.ts', 'src/utils.ts']);
     const setSelection = vi.fn();
-    const dispatchEvent = vi.spyOn(dependencies.containerRef.current, 'dispatchEvent');
+    const dispatchEvent = spyOnDispatchEvent(dependencies.containerRef.current);
     const handlers = createContextMenuHandlers(dependencies, setSelection);
 
     handlers.openNodeContextMenu(
@@ -112,7 +120,7 @@ describe('graph/contextMenuHandlers', () => {
 
   it('opens edge and background context menus', () => {
     const dependencies = createInteractionDependencies();
-    const dispatchEvent = vi.spyOn(dependencies.containerRef.current, 'dispatchEvent');
+    const dispatchEvent = spyOnDispatchEvent(dependencies.containerRef.current);
     const handlers = createContextMenuHandlers(dependencies, vi.fn());
 
     handlers.openEdgeContextMenu(
@@ -122,7 +130,7 @@ describe('graph/contextMenuHandlers', () => {
         to: 'src/utils.ts',
         source: 'src/app.ts',
         target: 'src/utils.ts',
-      } as FGLink,
+      } as unknown as FGLink,
       new MouseEvent('contextmenu', { button: 2, buttons: 2 }),
     );
     handlers.openBackgroundContextMenu(
@@ -149,7 +157,7 @@ describe('graph/contextMenuHandlers', () => {
         to: 'src/utils.ts',
         source: {},
         target: 'src/utils.ts',
-      },
+      } as unknown as FGLink,
     ],
     [
       'target',
@@ -159,17 +167,17 @@ describe('graph/contextMenuHandlers', () => {
         to: {},
         source: 'src/app.ts',
         target: {},
-      },
+      } as unknown as FGLink,
     ],
   ])(
     'does not open the edge context menu when the %s endpoint cannot be resolved',
     (_endpoint, link) => {
       const dependencies = createInteractionDependencies();
-      const dispatchEvent = vi.spyOn(dependencies.containerRef.current, 'dispatchEvent');
+      const dispatchEvent = vi.spyOn(dependencies.containerRef.current as EventTarget, 'dispatchEvent');
       const handlers = createContextMenuHandlers(dependencies, vi.fn());
 
       handlers.openEdgeContextMenu(
-        link as FGLink,
+        link as unknown as FGLink,
         new MouseEvent('contextmenu', { button: 2, buttons: 2 }),
       );
 

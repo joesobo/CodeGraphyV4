@@ -24,7 +24,8 @@ describe('graphView/files/navigation', () => {
   });
 
   it('opens an existing file and tracks the visit count', async () => {
-    const openTextDocument = vi.fn(async () => ({ uri: vscode.Uri.file('/workspace/src/app.ts') }));
+    const document = { uri: vscode.Uri.file('/workspace/src/app.ts') } as vscode.TextDocument;
+    const openTextDocument = vi.fn(async () => document);
     const showTextDocument = vi.fn(async () => undefined);
     const incrementVisitCount = vi.fn(async () => undefined);
 
@@ -59,7 +60,7 @@ describe('graphView/files/navigation', () => {
       showInformationMessage: vi.fn(),
       showErrorMessage: vi.fn(),
       statFile: vi.fn(async () => ({ type: 1 })),
-      openTextDocument: vi.fn(async () => ({ uri: vscode.Uri.file('/workspace/src/app.ts') })),
+      openTextDocument: vi.fn(async () => ({ uri: vscode.Uri.file('/workspace/src/app.ts') } as vscode.TextDocument)),
       showTextDocument,
       incrementVisitCount: vi.fn(async () => undefined),
       logError: vi.fn(),
