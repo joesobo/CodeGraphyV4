@@ -79,7 +79,7 @@ describe('search filtering', () => {
         pattern: 'src/**',
         color: '#ff0000',
         shape2D: 'diamond',
-        shape3D: 'box',
+        shape3D: 'cube',
         imageUrl: 'icon.png',
       },
       { id: 'fallback', pattern: '**/*.ts', color: '#00ff00' },
@@ -90,7 +90,7 @@ describe('search filtering', () => {
     expect(result?.nodes[0]).toMatchObject({
       color: '#ff0000',
       shape2D: 'diamond',
-      shape3D: 'box',
+      shape3D: 'cube',
       imageUrl: 'icon.png',
     });
   });

@@ -10,7 +10,7 @@ vi.mock('fs', () => ({
 
 const mockReaddir = vi.mocked(fs.promises.readdir);
 
-function makeDirent(name: string, isDir: boolean): fs.Dirent {
+function makeDirent(name: string, isDir: boolean): fs.Dirent<NonSharedBuffer> {
   return {
     name,
     isDirectory: () => isDir,
@@ -22,7 +22,7 @@ function makeDirent(name: string, isDir: boolean): fs.Dirent {
     isSymbolicLink: () => false,
     parentPath: '',
     path: '',
-  };
+  } as fs.Dirent<NonSharedBuffer>;
 }
 
 beforeEach(() => {
@@ -34,7 +34,7 @@ describe('walkDirectory', () => {
     mockReaddir.mockResolvedValueOnce([
       makeDirent('app.ts', false),
       makeDirent('index.ts', false),
-    ] as fs.Dirent[]);
+    ] as fs.Dirent<NonSharedBuffer>[]);
 
     const onFile = vi.fn().mockReturnValue(true);
 
@@ -48,8 +48,8 @@ describe('walkDirectory', () => {
 
   it('recursively walks subdirectories', async () => {
     mockReaddir
-      .mockResolvedValueOnce([makeDirent('src', true)] as fs.Dirent[])
-      .mockResolvedValueOnce([makeDirent('main.ts', false)] as fs.Dirent[]);
+      .mockResolvedValueOnce([makeDirent('src', true)] as fs.Dirent<NonSharedBuffer>[])
+      .mockResolvedValueOnce([makeDirent('main.ts', false)] as fs.Dirent<NonSharedBuffer>[]);
 
     const onFile = vi.fn().mockReturnValue(true);
 
@@ -62,7 +62,7 @@ describe('walkDirectory', () => {
     mockReaddir.mockResolvedValueOnce([
       makeDirent('node_modules', true),
       makeDirent('app.ts', false),
-    ] as fs.Dirent[]);
+    ] as fs.Dirent<NonSharedBuffer>[]);
 
     const onFile = vi.fn().mockReturnValue(true);
 
@@ -77,7 +77,7 @@ describe('walkDirectory', () => {
     mockReaddir.mockResolvedValueOnce([
       makeDirent('.git', true),
       makeDirent('app.ts', false),
-    ] as fs.Dirent[]);
+    ] as fs.Dirent<NonSharedBuffer>[]);
 
     const onFile = vi.fn().mockReturnValue(true);
 
@@ -90,7 +90,7 @@ describe('walkDirectory', () => {
     mockReaddir.mockResolvedValueOnce([
       makeDirent('first.ts', false),
       makeDirent('second.ts', false),
-    ] as fs.Dirent[]);
+    ] as fs.Dirent<NonSharedBuffer>[]);
 
     const onFile = vi.fn().mockReturnValueOnce(false);
 
@@ -105,8 +105,8 @@ describe('walkDirectory', () => {
       .mockResolvedValueOnce([
         makeDirent('src', true),
         makeDirent('lib', true),
-      ] as fs.Dirent[])
-      .mockResolvedValueOnce([makeDirent('a.ts', false)] as fs.Dirent[]);
+      ] as fs.Dirent<NonSharedBuffer>[])
+      .mockResolvedValueOnce([makeDirent('a.ts', false)] as fs.Dirent<NonSharedBuffer>[]);
 
     const onFile = vi.fn().mockReturnValue(false);
 
@@ -142,7 +142,7 @@ describe('walkDirectory', () => {
     mockReaddir.mockResolvedValueOnce([
       makeDirent('first.ts', false),
       makeDirent('second.ts', false),
-    ] as fs.Dirent[]);
+    ] as fs.Dirent<NonSharedBuffer>[]);
 
     const onFile = vi.fn().mockImplementationOnce(() => {
       controller.abort();
@@ -154,7 +154,7 @@ describe('walkDirectory', () => {
   });
 
   it('ignores entries that are neither files nor directories', async () => {
-    const symlink: fs.Dirent = {
+    const symlink: fs.Dirent<NonSharedBuffer> = {
       name: 'link',
       isDirectory: () => false,
       isFile: () => false,
@@ -166,7 +166,7 @@ describe('walkDirectory', () => {
       parentPath: '',
       path: '',
     };
-    mockReaddir.mockResolvedValueOnce([symlink] as fs.Dirent[]);
+    mockReaddir.mockResolvedValueOnce([symlink] as fs.Dirent<NonSharedBuffer>[]);
 
     const onFile = vi.fn();
 
@@ -177,7 +177,7 @@ describe('walkDirectory', () => {
   });
 
   it('handles an empty directory', async () => {
-    mockReaddir.mockResolvedValueOnce([] as fs.Dirent[]);
+    mockReaddir.mockResolvedValueOnce([] as fs.Dirent<NonSharedBuffer>[]);
 
     const onFile = vi.fn();
 
