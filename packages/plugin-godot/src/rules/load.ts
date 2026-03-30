@@ -5,7 +5,7 @@
  */
 
 import * as path from 'path';
-import type { IConnection, IRuleDetector } from '@codegraphy/plugin-api';
+import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { isResPath, normalizePath } from '../parser';
 

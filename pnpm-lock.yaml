@@ -214,43 +214,35 @@ importers:
         specifier: ^2.1.16
         version: 2.1.16(@types/react-dom@18.3.7(@types/react@18.3.28))(@types/react@18.3.28)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
-  packages/extension-csharp: {}
-
-  packages/extension-godot: {}
-
-  packages/extension-python: {}
-
-  packages/extension-typescript: {}
-
   packages/plugin-api: {}
 
   packages/plugin-csharp:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-vscode/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-godot:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-vscode/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-markdown:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-vscode/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-python:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-vscode/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 
   packages/plugin-typescript:
     dependencies:
-      '@codegraphy/plugin-api':
+      '@codegraphy-vscode/plugin-api':
         specifier: workspace:*
         version: link:../plugin-api
 

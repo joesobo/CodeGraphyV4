@@ -1,6 +1,6 @@
 /**
  * @fileoverview Webview rendering extension points.
- * @module @codegraphy/plugin-api/webview/renderers
+ * @module @codegraphy-vscode/plugin-api/webview/renderers
  */
 
 import type { IGraphNode, IGraphEdge } from '../graph';

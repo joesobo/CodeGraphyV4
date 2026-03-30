@@ -1,4 +1,4 @@
-import type { IConnection } from '@codegraphy/plugin-api';
+import type { IConnection } from '@codegraphy-vscode/plugin-api';
 import type { IDetectedImport } from '../PathResolver';
 import type { ParsedPythonImport } from '../astParser';
 import type { PythonRuleContext } from '../context';
