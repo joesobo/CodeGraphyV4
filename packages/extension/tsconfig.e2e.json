@@ -12,6 +12,6 @@
     "noEmit": false,
     "types": ["mocha", "node"]
   },
-  "include": ["src/e2e/**/*", "src/shared/graph/types.ts"],
+  "include": ["src/e2e/**/*", "src/shared/**/*.ts"],
   "exclude": ["node_modules"]
 }

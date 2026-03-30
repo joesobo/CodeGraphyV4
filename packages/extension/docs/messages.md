@@ -1,10 +1,14 @@
 # Message Flow
 
-The extension and webview communicate through typed messages defined in the shared modules under `src/shared/`.
+The extension and webview communicate through explicit shared modules under `src/shared/`.
 
 ## Extension to webview
 
 The extension sends graph data, settings snapshots, view changes, plugin updates, file info, and export requests.
+
+Canonical message union:
+
+- `src/shared/protocol/extensionToWebview.ts`
 
 Typical path:
 
@@ -15,6 +19,10 @@ Typical path:
 ## Webview to extension
 
 The webview sends user interaction and UI state messages back to the host.
+
+Canonical message union:
+
+- `src/shared/protocol/webviewToExtension.ts`
 
 Typical path:
 
@@ -28,7 +36,12 @@ Plugin-facing messaging is layered on top of the core bridge.
 
 - The extension tracks readiness and plugin lifecycle state.
 - Webview plugin APIs send plugin-scoped actions through the provider bridge.
-- The shared message modules are the canonical source for message payload shapes.
+- Shared payload ownership is explicit:
+- `src/shared/graph/types.ts` for graph data
+- `src/shared/files/info.ts` for file info
+- `src/shared/settings/` for settings snapshots and display/runtime modes
+- `src/shared/plugins/` for plugin status, decorations, and context menu payloads
+- `src/shared/view/types.ts` and `src/shared/timeline/types.ts` for view and timeline payloads
 
 ## Practical rule
 
