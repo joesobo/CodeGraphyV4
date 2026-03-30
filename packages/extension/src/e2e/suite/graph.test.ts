@@ -21,7 +21,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 async function getAPI(): Promise<CodeGraphyAPI> {
-  const ext = vscode.extensions.getExtension<CodeGraphyAPI>('joesobo.codegraphy');
+  const ext = vscode.extensions.getExtension<CodeGraphyAPI>('codegraphy.codegraphy');
   assert.ok(ext, 'Extension not found');
   return ext.activate();
 }

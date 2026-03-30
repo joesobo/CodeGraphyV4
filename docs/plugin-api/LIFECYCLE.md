@@ -16,7 +16,7 @@ The plugin's VS Code extension activates. It grabs CodeGraphy's exported API and
 import * as vscode from 'vscode';
 
 export async function activate(context: vscode.ExtensionContext) {
-  const cg = vscode.extensions.getExtension('joesobo.codegraphy');
+  const cg = vscode.extensions.getExtension('codegraphy.codegraphy');
   if (!cg) return;
 
   const api = cg.isActive ? cg.exports : await cg.activate();

@@ -6,7 +6,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 
 function getExtensionOrThrow(): vscode.Extension<unknown> {
-  const ext = vscode.extensions.getExtension('joesobo.codegraphy');
+  const ext = vscode.extensions.getExtension('codegraphy.codegraphy');
   if (!ext) {
     throw new Error('Extension should be registered with VS Code');
   }
@@ -41,7 +41,7 @@ suite('Extension: Activation', function () {
   this.timeout(30_000);
 
   test('extension is present in VS Code', function() {
-    const ext = vscode.extensions.getExtension('joesobo.codegraphy');
+    const ext = vscode.extensions.getExtension('codegraphy.codegraphy');
     assert.ok(ext, 'Extension should be registered with VS Code');
   });
 

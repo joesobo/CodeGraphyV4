@@ -26,7 +26,7 @@ describe('plugin-godot/activate', () => {
 
     await activate(context as never);
 
-    expect(getExtension).toHaveBeenCalledWith('joesobo.codegraphy');
+    expect(getExtension).toHaveBeenCalledWith('codegraphy.codegraphy');
     expect(registerPlugin).toHaveBeenCalledWith(
       expect.objectContaining({ id: 'codegraphy.gdscript' }),
       { extensionUri: context.extensionUri },

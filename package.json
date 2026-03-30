@@ -29,7 +29,7 @@
 		"organize": "pnpm --filter @codegraphy/quality-tools run organize --",
 		"changeset": "changeset",
 		"version-packages": "changeset version",
-		"package:vsix": "mkdir -p artifacts/vsix && pnpm exec vsce package --no-dependencies --out artifacts/vsix/joesobo.codegraphy-${npm_package_version}.vsix",
+		"package:vsix": "mkdir -p artifacts/vsix && pnpm exec vsce package --no-dependencies --out artifacts/vsix/codegraphy.codegraphy-${npm_package_version}.vsix",
 		"publish:vsce": "pnpm exec vsce publish --no-dependencies --skip-duplicate",
 		"release:check": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
 		"release:package": "node scripts/release.mjs package",
@@ -44,7 +44,7 @@
 	},
 	"displayName": "CodeGraphy",
 	"description": "Visualize your codebase as an interactive 2D force graph",
-	"publisher": "joesobo",
+	"publisher": "codegraphy",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
@@ -70,6 +70,7 @@
 		"Other"
 	],
 	"keywords": [
+		"codegraphy",
 		"graph",
 		"visualization",
 		"dependencies",
