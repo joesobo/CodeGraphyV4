@@ -90,7 +90,8 @@ describe('graph/viewHandlers', () => {
 
   it('scales the current 2d zoom by the requested factor', () => {
     const dependencies = createInteractionDependencies();
-    dependencies.fg2dRef.current?.zoom.mockImplementationOnce(() => 1.5);
+    const zoom = dependencies.fg2dRef.current!.zoom!;
+    zoom.mockImplementationOnce?.(() => 1.5);
 
     createViewHandlers(dependencies).zoom2d(0.5);
 

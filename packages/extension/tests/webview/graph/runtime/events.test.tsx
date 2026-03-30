@@ -1,7 +1,10 @@
 import { renderHook } from '@testing-library/react';
+import type { Dispatch, SetStateAction } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IFileInfo, IGraphData } from '../../../../src/shared/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
+import type { GraphInteractionHandlers } from '../../../../src/webview/components/graph/interactionRuntime/handlers';
+import type { GraphTooltipState } from '../../../../src/webview/components/graph/tooltipModel';
 import { useGraphEventEffects } from '../../../../src/webview/components/graph/runtime/use/graph/events';
 
 const eventEffectsHarness = vi.hoisted(() => ({
@@ -80,10 +83,31 @@ interface MessageEffectHandlers {
   zoom2d: (factor: number) => void;
 }
 
-function createInteractionHandlers() {
+interface GraphEventHookProps {
+  graphMode: '2d' | '3d';
+  interactionHandlers: GraphInteractionHandlers;
+  selectedNodes: string[];
+  tooltipPath: string;
+}
+
+function createInteractionHandlers(): GraphInteractionHandlers {
   return {
+    applyGraphInteractionEffects: vi.fn(),
+    clearSelection: vi.fn(),
     fitView: vi.fn(),
+    focusNodeById: vi.fn(),
+    handleBackgroundClick: vi.fn(),
+    handleLinkClick: vi.fn(),
+    handleNodeClick: vi.fn(),
+    openBackgroundContextMenu: vi.fn(),
+    openEdgeContextMenu: vi.fn(),
+    openNodeContextMenu: vi.fn(),
+    previewNode: vi.fn(),
     requestNodeOpenById: vi.fn(),
+    selectOnlyNode: vi.fn(),
+    sendGraphInteraction: vi.fn(),
+    setGraphCursor: vi.fn(),
+    setHighlight: vi.fn(),
     setSelection: vi.fn(),
     updateAccessCount: vi.fn(),
     zoom2d: vi.fn(),
@@ -91,13 +115,21 @@ function createInteractionHandlers() {
 }
 
 function createTooltipSetter() {
-  let tooltipData: { info?: IFileInfo } = {};
+  let tooltipData: GraphTooltipState = {
+    visible: false,
+    nodeRect: { x: 0, y: 0, radius: 0 },
+    path: '',
+    info: null,
+    pluginSections: [],
+  };
 
   return {
     getTooltipData: () => tooltipData,
-    setTooltipData: vi.fn((value: { info?: IFileInfo } | ((previous: { info?: IFileInfo }) => { info?: IFileInfo })) => {
-      tooltipData = typeof value === 'function' ? value(tooltipData) : value;
-    }),
+    setTooltipData: vi.fn(
+      (value: GraphTooltipState | ((previous: GraphTooltipState) => GraphTooltipState)) => {
+        tooltipData = typeof value === 'function' ? value(tooltipData) : value;
+      },
+    ) as Dispatch<SetStateAction<GraphTooltipState>>,
   };
 }
 
@@ -217,7 +249,7 @@ describe('graph/runtime/useGraphEventEffects', () => {
     expect(interactionHandlers.fitView).toHaveBeenCalledTimes(1);
     expect(interactionHandlers.zoom2d).toHaveBeenCalledWith(1.5);
     expect(fileInfoCacheRef.current.get(fileInfo.path)).toBe(fileInfo);
-    expect(tooltip.getTooltipData()).toEqual({ info: fileInfo });
+    expect(tooltip.getTooltipData()).toMatchObject({ info: fileInfo });
     expect(eventEffectsHarness.postMessage).toHaveBeenCalledWith({ type: 'PING' });
     expect(eventEffectsHarness.exportAsPng).toHaveBeenCalledWith(containerRef.current);
     expect(eventEffectsHarness.exportAsSvg).toHaveBeenCalledWith(
@@ -260,7 +292,7 @@ describe('graph/runtime/useGraphEventEffects', () => {
     };
 
     const { rerender, unmount } = renderHook(
-      ({ graphMode, interactionHandlers, selectedNodes, tooltipPath }) => useGraphEventEffects({
+      ({ graphMode, interactionHandlers, selectedNodes, tooltipPath }: GraphEventHookProps) => useGraphEventEffects({
         containerRef: { current: document.createElement('div') },
         dataRef: { current: createData('src/one.ts') },
         directionColorRef: { current: '#22c55e' },
@@ -292,11 +324,11 @@ describe('graph/runtime/useGraphEventEffects', () => {
     const updatedInteractionHandlers = createInteractionHandlers();
 
     rerender({
-      graphMode: '3d',
+      graphMode: '3d' as '2d' | '3d',
       interactionHandlers: updatedInteractionHandlers,
       selectedNodes: ['src/two.ts'],
       tooltipPath: 'src/two.ts',
-    });
+    } as never);
 
     expect(removeEventListenerSpy).toHaveBeenCalledWith('message', messageHandlerOne);
     expect(removeEventListenerSpy).toHaveBeenCalledWith('keydown', keyboardHandlerOne);
@@ -376,7 +408,7 @@ describe('graph/runtime/useGraphEventEffects', () => {
     const themeRef = { current: 'light' as never };
 
     const { rerender } = renderHook(
-      ({ setTooltipData }) => useGraphEventEffects({
+      ({ setTooltipData }: { setTooltipData: Dispatch<SetStateAction<GraphTooltipState>> }) => useGraphEventEffects({
         containerRef,
         dataRef,
         directionColorRef,
@@ -400,13 +432,13 @@ describe('graph/runtime/useGraphEventEffects', () => {
 
     const firstMessageOptions = eventEffectsHarness.createGraphMessageListener.mock.calls[0]?.[0];
     firstMessageOptions.applyEffects([{ kind: 'fitView' }]);
-    expect(firstTooltip.getTooltipData()).toEqual({
+    expect(firstTooltip.getTooltipData()).toMatchObject({
       info: { path: 'src/tooltip-1.ts' },
     });
 
     rerender({
       setTooltipData: secondTooltip.setTooltipData,
-    });
+    } as never);
 
     expect(eventEffectsHarness.createGraphMessageListener).toHaveBeenCalledTimes(2);
     expect(eventEffectsHarness.createGraphKeyboardListener).toHaveBeenCalledTimes(1);
@@ -416,10 +448,10 @@ describe('graph/runtime/useGraphEventEffects', () => {
     const secondMessageOptions = eventEffectsHarness.createGraphMessageListener.mock.calls[1]?.[0];
     secondMessageOptions.applyEffects([{ kind: 'fitView' }]);
 
-    expect(firstTooltip.getTooltipData()).toEqual({
+    expect(firstTooltip.getTooltipData()).toMatchObject({
       info: { path: 'src/tooltip-1.ts' },
     });
-    expect(secondTooltip.getTooltipData()).toEqual({
+    expect(secondTooltip.getTooltipData()).toMatchObject({
       info: { path: 'src/tooltip-2.ts' },
     });
 
