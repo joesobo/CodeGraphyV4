@@ -38,6 +38,22 @@
       "depth": { "warning": 4, "deep": 5 },
       "redundancyThreshold": 0.3,
       "cohesionClusterMinSize": 3
+    },
+    "boundaries": {
+      "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+      ],
+      "exclude": [
+        "src/**/*.d.ts",
+        "**/index.ts",
+        "**/index.tsx",
+        "src/e2e/**",
+        "src/shared/mockData.ts",
+        "src/shared/mock/**",
+        "**/*.test.ts",
+        "**/*.test.tsx"
+      ]
     }
   },
   "packages": {
@@ -61,12 +77,65 @@
           "src/**/webview/components/settingsPanel/groups/shared/options.ts",
           "src/**/webview/store/defaults.ts"
         ]
+      },
+      "boundaries": {
+        "entrypoints": [
+          "src/extension/activate.ts",
+          "src/extension/graphViewProvider.ts",
+          "src/webview/main.tsx"
+        ],
+        "layers": [
+          {
+            "allow": [
+              "shared",
+              "core"
+            ],
+            "include": [
+              "src/extension/**"
+            ],
+            "name": "extension"
+          },
+          {
+            "allow": [
+              "shared"
+            ],
+            "include": [
+              "src/core/**"
+            ],
+            "name": "core"
+          },
+          {
+            "allow": [
+              "shared",
+              "webview"
+            ],
+            "include": [
+              "src/webview/**"
+            ],
+            "name": "webview"
+          },
+          {
+            "allow": [
+              "shared"
+            ],
+            "include": [
+              "src/shared/**"
+            ],
+            "name": "shared"
+          }
+        ]
       }
     },
     "quality-tools": {
       "mutation": {
         "exclude": [
           "src/cli/**/*.ts"
+        ]
+      },
+      "boundaries": {
+        "exclude": [
+          "src/cli/**/*.ts",
+          "tests/**/*.ts"
         ]
       }
     }

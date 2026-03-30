@@ -2,6 +2,7 @@
 
 `@codegraphy/quality-tools` holds the repo's quality tooling:
 
+- `Boundaries` for dependency-layer rules and dead-surface detection
 - `Organize` for directory structure, file naming, and cohesion analysis
 - `CRAP` for production-code complexity and coverage risk
 - mutation testing orchestration and mutation-site checks
@@ -11,6 +12,7 @@
 Root commands stay path-first:
 
 ```bash
+pnpm run boundaries -- quality-tools/
 pnpm run organize -- quality-tools/
 pnpm run crap -- quality-tools/
 pnpm run mutate -- quality-tools/
@@ -18,12 +20,12 @@ pnpm run scrap -- quality-tools/
 pnpm run scrap -- quality-tools/ --write-baseline
 pnpm run scrap -- quality-tools/ --compare reports/scrap/quality-tools.json --verbose
 pnpm run scrap -- quality-tools/ --policy split
-pnpm run scrap -- quality-tools/ --policy split
 pnpm run scrap -- quality-tools/ --policy review
 ```
 
 Documentation lives in the repo docs:
 
+- [docs/quality/boundaries.md](../../docs/quality/boundaries.md)
 - [docs/quality/README.md](../../docs/quality/README.md)
 - [docs/quality/workflow.md](../../docs/quality/workflow.md)
 - [docs/quality/organize.md](../../docs/quality/organize.md)

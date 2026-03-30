@@ -2,14 +2,26 @@ import { readFileSync } from 'fs';
 import { join, matchesGlob } from 'path';
 import { toPosix } from '../shared/util/pathUtils';
 
-export type QualityToolName = 'crap' | 'mutation' | 'scrap' | 'organize';
+export type QualityToolName = 'boundaries' | 'crap' | 'mutation' | 'scrap' | 'organize';
 
 interface QualityToolPatterns {
   exclude?: string[];
   include?: string[];
 }
 
+export interface BoundaryLayerRule {
+  allow: string[];
+  include: string[];
+  name: string;
+}
+
+export interface BoundaryToolPatterns extends QualityToolPatterns {
+  entrypoints?: string[];
+  layers?: BoundaryLayerRule[];
+}
+
 interface QualityConfigBlock {
+  boundaries?: BoundaryToolPatterns;
   crap?: QualityToolPatterns;
   mutation?: QualityToolPatterns;
   scrap?: QualityToolPatterns;
@@ -26,6 +38,11 @@ export interface ResolvedToolPatterns {
   include: string[];
 }
 
+export interface ResolvedBoundaryConfig extends ResolvedToolPatterns {
+  entrypoints: string[];
+  layers: BoundaryLayerRule[];
+}
+
 const CONFIG_FILE = 'quality.config.json';
 
 function normalizePatterns(patterns: string[] | undefined): string[] {
@@ -39,6 +56,21 @@ function mergeToolPatterns(
   return {
     exclude: [...normalizePatterns(defaults?.exclude), ...normalizePatterns(overrides?.exclude)],
     include: [...normalizePatterns(defaults?.include), ...normalizePatterns(overrides?.include)]
+  };
+}
+
+function mergeBoundaryPatterns(
+  defaults: BoundaryToolPatterns | undefined,
+  overrides: BoundaryToolPatterns | undefined
+): ResolvedBoundaryConfig {
+  return {
+    exclude: [...normalizePatterns(defaults?.exclude), ...normalizePatterns(overrides?.exclude)],
+    include: [...normalizePatterns(defaults?.include), ...normalizePatterns(overrides?.include)],
+    entrypoints: [
+      ...normalizePatterns(defaults?.entrypoints),
+      ...normalizePatterns(overrides?.entrypoints)
+    ],
+    layers: overrides?.layers ?? defaults?.layers ?? []
   };
 }
 
@@ -76,6 +108,14 @@ export function resolvePackageToolGlobs(
     exclude: patterns.exclude.map((pattern) => packagePattern(packageName, pattern)),
     include: patterns.include.map((pattern) => packagePattern(packageName, pattern))
   };
+}
+
+export function resolvePackageBoundaryConfig(
+  repoRoot: string,
+  packageName: string
+): ResolvedBoundaryConfig {
+  const config = loadQualityConfig(repoRoot);
+  return mergeBoundaryPatterns(config.defaults?.boundaries, config.packages?.[packageName]?.boundaries);
 }
 
 export function pathIncludedByTool(
