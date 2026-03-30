@@ -1,9 +1,8 @@
 {
   "name": "codegraphy-python",
   "displayName": "CodeGraphy Python Plugin",
-  "version": "4.0.0",
-  "private": true,
-  "description": "Adds Python dependency detection to CodeGraphy.",
+  "version": "1.0.0",
+  "description": "Adds Python dependency detection to CodeGraphy. Requires joesobo.codegraphy.",
   "publisher": "joesobo",
   "license": "MIT",
   "repository": {

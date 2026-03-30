@@ -1,9 +1,8 @@
 {
   "name": "codegraphy-typescript",
   "displayName": "CodeGraphy TypeScript/JavaScript Plugin",
-  "version": "4.0.0",
-  "private": true,
-  "description": "Adds TypeScript and JavaScript dependency detection to CodeGraphy.",
+  "version": "1.0.0",
+  "description": "Adds TypeScript and JavaScript dependency detection to CodeGraphy. Requires joesobo.codegraphy.",
   "publisher": "joesobo",
   "license": "MIT",
   "repository": {
