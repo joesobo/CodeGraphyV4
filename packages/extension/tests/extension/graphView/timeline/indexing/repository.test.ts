@@ -30,7 +30,6 @@ function createHandlers(
   return {
     workspaceFolder: undefined,
     verifyGitRepository: vi.fn(() => Promise.resolve()),
-    getPluginFilterPatterns: vi.fn(() => []),
     createGitAnalyzer: vi.fn(() => ({
       indexHistory: vi.fn(() => Promise.resolve([])),
     })),
@@ -124,7 +123,10 @@ describe('graph view timeline repository', () => {
   });
 
   it('indexes commits and activates the latest timeline state', async () => {
-    const commits = [{ sha: '111' }, { sha: '222' }];
+    const commits = [
+      { sha: '111', timestamp: 1, message: 'one', author: 'A', parents: [] },
+      { sha: '222', timestamp: 2, message: 'two', author: 'B', parents: ['111'] },
+    ];
     const gitAnalyzer = {
       indexHistory: vi.fn((_progress: unknown, _signal: AbortSignal, _maxCommits: number) =>
         Promise.resolve(commits),

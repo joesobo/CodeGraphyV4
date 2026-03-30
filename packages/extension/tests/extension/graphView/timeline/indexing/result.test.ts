@@ -23,7 +23,10 @@ describe('graph view timeline result', () => {
   });
 
   it('publishes timeline data for the latest commit and activates timeline state', async () => {
-    const commits = [{ sha: '111' }, { sha: '222' }];
+    const commits = [
+      { sha: '111', timestamp: 1, message: 'one', author: 'A', parents: [] },
+      { sha: '222', timestamp: 2, message: 'two', author: 'B', parents: ['111'] },
+    ];
     const sendMessage = vi.fn();
     const jumpToCommit = vi.fn(() => Promise.resolve());
     const state = {
@@ -55,7 +58,10 @@ describe('graph view timeline result', () => {
       currentCommitSha: undefined as string | undefined,
     };
 
-    await applyGraphViewTimelineIndexResult([{ sha: '111' }, undefined as never], state, {
+    await applyGraphViewTimelineIndexResult([
+      { sha: '111', timestamp: 1, message: 'one', author: 'A', parents: [] },
+      undefined as never,
+    ], state, {
       sendMessage,
       showInformationMessage,
       jumpToCommit,

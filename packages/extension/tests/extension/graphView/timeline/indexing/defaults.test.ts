@@ -104,7 +104,11 @@ describe('graph view provider timeline default dependencies', () => {
     };
     const source = {
       _context: { subscriptions: [] } as never,
-      _analyzer: { registry: { kind: 'registry' } } as never,
+      _analyzer: {
+        registry: { notifyGraphRebuild: vi.fn() },
+        rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
+        getPluginStatuses: vi.fn(() => []),
+      },
       _analyzerInitialized: false,
       _gitAnalyzer: undefined,
       _indexingController: undefined,
@@ -165,7 +169,10 @@ describe('graph view provider timeline default dependencies', () => {
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _sendMessage: vi.fn(),
     };
-    const graphData = { nodes: [{ id: 'src/index.ts' }], edges: [] } satisfies IGraphData;
+    const graphData = {
+      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+      edges: [],
+    } satisfies IGraphData;
 
     mocks.workspaceFolders = undefined;
     mocks.buildTimelineGraphData.mockReturnValue(graphData);

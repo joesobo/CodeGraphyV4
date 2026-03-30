@@ -5,7 +5,7 @@ const mocks = vi.hoisted(() => {
   let workspaceFolders: { name: string }[] | undefined = undefined;
   const configuration = {
     get: vi.fn((_: string, fallback: unknown) => fallback),
-    inspect: vi.fn(() => undefined),
+    inspect: vi.fn((_: string) => undefined),
     update: vi.fn(() => Promise.resolve()),
   };
   const otherConfiguration = {
@@ -196,9 +196,9 @@ describe('graphView/provider/settingsState default dependencies', () => {
 
   it('loads disabled state through the default configuration inspection', () => {
     const workspaceState = {
-      get: vi.fn((key: string) =>
-        key === 'codegraphy.disabledRules' ? ['rule.saved'] : ['plugin.saved'],
-      ),
+      get<T>(key: string): T | undefined {
+        return (key === 'codegraphy.disabledRules' ? ['rule.saved'] : ['plugin.saved']) as never as T;
+      },
       update: vi.fn(() => Promise.resolve()),
     };
     const source = createSource({

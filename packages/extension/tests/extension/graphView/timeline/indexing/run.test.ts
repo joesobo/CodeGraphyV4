@@ -7,7 +7,10 @@ describe('graph view timeline execution', () => {
       gitAnalyzer: {
         indexHistory: vi.fn(async (onProgress, _signal, maxCommits) => {
           onProgress('scan', 1, maxCommits);
-          return [{ sha: '111' }, { sha: '222' }];
+          return [
+            { sha: '111', timestamp: 1, message: 'one', author: 'A', parents: [] },
+            { sha: '222', timestamp: 2, message: 'two', author: 'B', parents: ['111'] },
+          ];
         }),
       },
       indexingController: new AbortController(),
@@ -30,7 +33,13 @@ describe('graph view timeline execution', () => {
     });
     expect(handlers.sendMessage).toHaveBeenCalledWith({
       type: 'TIMELINE_DATA',
-      payload: { commits: [{ sha: '111' }, { sha: '222' }], currentSha: '222' },
+      payload: {
+        commits: [
+          { sha: '111', timestamp: 1, message: 'one', author: 'A', parents: [] },
+          { sha: '222', timestamp: 2, message: 'two', author: 'B', parents: ['111'] },
+        ],
+        currentSha: '222',
+      },
     });
     expect(handlers.jumpToCommit).toHaveBeenCalledWith('222');
   });

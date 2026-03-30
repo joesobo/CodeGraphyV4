@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
 import type { IConnection } from '../../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../src/extension/config/defaults';
+import type { IGraphData } from '../../../../src/shared/contracts';
 import { analyzeWorkspaceWithAnalyzer } from '../../../../src/extension/workspaceAnalyzer/analysis/analyze';
 
 function createSource() {
@@ -10,7 +11,10 @@ function createSource() {
     _analyzeFiles: vi.fn<
       (files: IDiscoveredFile[], workspaceRoot: string) => Promise<Map<string, IConnection[]>>
     >(async () => new Map()),
-    _buildGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
+    _buildGraphData: vi.fn(() => ({
+      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+      edges: [{ id: 'src/index.ts->src/utils.ts', from: 'src/index.ts', to: 'src/utils.ts' }],
+    } satisfies IGraphData)),
     _eventBus: { emit },
     _lastDiscoveredFiles: [] as IDiscoveredFile[],
     _lastFileConnections: new Map<string, IConnection[]>(),
@@ -34,7 +38,7 @@ function createDependencies() {
       respectGitignore: true,
       showOrphans: true,
     })),
-    getWorkspaceRoot: vi.fn(() => '/workspace'),
+    getWorkspaceRoot: vi.fn<() => string | undefined>(() => '/workspace'),
     logInfo: vi.fn(),
     saveCache: vi.fn(),
     showWarningMessage: vi.fn(),
@@ -48,7 +52,7 @@ describe('workspaceAnalyzer/analysis/analyze', () => {
     dependencies.getWorkspaceRoot.mockReturnValue(undefined);
 
     await expect(
-      analyzeWorkspaceWithAnalyzer(source, dependencies),
+      analyzeWorkspaceWithAnalyzer(source as never, dependencies as never),
     ).resolves.toEqual({ nodes: [], edges: [] });
 
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] No workspace folder open');
@@ -62,7 +66,7 @@ describe('workspaceAnalyzer/analysis/analyze', () => {
     const source = createSource();
     const dependencies = createDependencies();
 
-    await analyzeWorkspaceWithAnalyzer(source, dependencies);
+    await analyzeWorkspaceWithAnalyzer(source as never, dependencies as never);
 
     expect(dependencies.discover).toHaveBeenCalledWith({
       rootPath: '/workspace',
@@ -81,9 +85,9 @@ describe('workspaceAnalyzer/analysis/analyze', () => {
       { absolutePath: '/workspace/src/index.ts', relativePath: 'src/index.ts' },
     ] as IDiscoveredFile[];
     const fileConnections = new Map<string, IConnection[]>([['src/index.ts', []]]);
-    const graphData = {
-      nodes: [{ id: 'src/index.ts' }],
-      edges: [{ id: 'src/index.ts->src/utils.ts' }],
+    const graphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+      edges: [{ id: 'src/index.ts->src/utils.ts', from: 'src/index.ts', to: 'src/utils.ts' }],
     };
 
     dependencies.discover.mockResolvedValue({
@@ -97,8 +101,8 @@ describe('workspaceAnalyzer/analysis/analyze', () => {
 
     await expect(
       analyzeWorkspaceWithAnalyzer(
-        source,
-        dependencies,
+        source as never,
+        dependencies as never,
         ['**/*.user.ts'],
         new Set<string>(['plugin.typescript:rule']),
         new Set<string>(['plugin.python']),
@@ -144,7 +148,7 @@ describe('workspaceAnalyzer/analysis/analyze', () => {
       totalFound: 27,
     });
 
-    await analyzeWorkspaceWithAnalyzer(source, dependencies);
+    await analyzeWorkspaceWithAnalyzer(source as never, dependencies as never);
 
     expect(dependencies.showWarningMessage).toHaveBeenCalledWith(
       'CodeGraphy: Found 27+ files, showing first 25. Increase codegraphy.maxFiles in settings to see more.',
