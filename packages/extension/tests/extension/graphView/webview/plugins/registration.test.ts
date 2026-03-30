@@ -15,6 +15,7 @@ function createState(
     analyzerInitialized: true,
     analyzerInitPromise: undefined,
     analyzer: {
+      clearCache: vi.fn(),
       registry: {
         register: vi.fn(),
         initializePlugin: vi.fn(async () => undefined),
@@ -113,6 +114,7 @@ describe('graphView/webview/plugins/registration', () => {
     expect(state.analyzer?.registry.register).toHaveBeenCalledWith(plugin, {
       deferReadinessReplay: false,
     });
+    expect(state.analyzer?.clearCache).toHaveBeenCalledOnce();
     expect(state.analyzer?.registry.initializePlugin).toHaveBeenCalledWith(
       'plugin.test',
       '/test/workspace',
@@ -262,6 +264,7 @@ describe('graphView/webview/plugins/registration', () => {
     const state: GraphViewExternalPluginRegistrationState = {
       pluginExtensionUris: new Map<string, vscode.Uri>(),
       analyzer: {
+        clearCache: vi.fn(),
         registry: {
           register: vi.fn(),
           initializePlugin,
