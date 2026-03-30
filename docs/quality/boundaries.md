@@ -1,6 +1,6 @@
 # Boundaries
 
-`boundaries` checks package structure and source-surface health.
+`boundaries` checks dependency-layer rules inside a package source graph.
 
 ## Quick start
 
@@ -13,8 +13,8 @@ pnpm run boundaries -- quality-tools/
 ## What it checks
 
 - dependency-layer violations between configured source areas
-- dead surfaces: files with no inbound references inside the analyzed package scope
-- dead ends: files with no inbound or outbound source references inside the analyzed package scope
+
+Use `pnpm run reachability -- ...` when you want focused dead-surface and dead-end reporting.
 
 ## Configuration
 

@@ -1,7 +1,28 @@
 import { describe, expect, it } from 'vitest';
 import { REPO_ROOT } from '../../../src/shared/resolve/repoRoot';
 import { resolveQualityTarget } from '../../../src/shared/resolve/target';
-import { resolveTestScopes } from '../../../src/shared/scope/test';
+import type { QualityTarget } from '../../../src/shared/resolve/target';
+import { existingTestRoots, isTestPath } from './testRootsSupport';
+
+function resolveTestScopes(target: QualityTarget): string[] {
+  if (target.kind === 'repo') {
+    return ['packages'];
+  }
+
+  if (!target.packageName || !target.packageRoot) {
+    return [];
+  }
+
+  if (target.kind === 'package') {
+    return existingTestRoots(target.packageRoot, target.packageName);
+  }
+
+  if (isTestPath(target.packageRelativePath)) {
+    return [target.relativePath];
+  }
+
+  return [];
+}
 
 describe('resolveTestScopes', () => {
   it('returns the packages root for repo targets', () => {
