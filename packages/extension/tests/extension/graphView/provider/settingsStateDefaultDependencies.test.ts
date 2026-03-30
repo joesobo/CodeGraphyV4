@@ -206,9 +206,9 @@ describe('graphView/provider/settingsState default dependencies', () => {
     });
     const disabledRulesInspect = { workspaceValue: ['rule.config'] };
     const disabledPluginsInspect = { workspaceValue: ['plugin.config'] };
-    mocks.configuration.inspect.mockImplementation((key: string) =>
-      key === 'disabledRules' ? disabledRulesInspect : disabledPluginsInspect,
-    );
+    mocks.configuration.inspect.mockImplementation(((
+      key: string,
+    ) => (key === 'disabledRules' ? disabledRulesInspect : disabledPluginsInspect)) as never);
     mocks.loadDisabledState.mockReturnValue({
       disabledRules: new Set<string>(['rule.saved']),
       disabledPlugins: new Set<string>(['plugin.saved']),

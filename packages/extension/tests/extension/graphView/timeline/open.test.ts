@@ -86,7 +86,7 @@ describe('graphView/timeline/open', () => {
       'abc123',
       'src/app.ts',
       {
-        workspaceFolder: { uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 },
+        workspaceFolder: { uri: vscode.Uri.file('/workspace') },
         openTextDocument,
         showTextDocument,
         logError: vi.fn(),
@@ -110,7 +110,7 @@ describe('graphView/timeline/open', () => {
     const showTextDocument = vi.fn(async () => undefined);
 
     await previewGraphViewFileAtCommit('abc123', 'src/app.ts', {
-      workspaceFolder: { uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 },
+      workspaceFolder: { uri: vscode.Uri.file('/workspace') },
       openTextDocument,
       showTextDocument,
       logError: vi.fn(),
@@ -144,10 +144,10 @@ describe('graphView/timeline/open', () => {
 
     await expect(
       previewGraphViewFileAtCommit(
-        'abc123',
-        'src/app.ts',
-        {
-          workspaceFolder: { uri: vscode.Uri.file('/workspace'), name: 'workspace', index: 0 },
+          'abc123',
+          'src/app.ts',
+          {
+          workspaceFolder: { uri: vscode.Uri.file('/workspace') },
           openTextDocument: vi.fn(async () => {
             throw new Error('missing');
           }),
