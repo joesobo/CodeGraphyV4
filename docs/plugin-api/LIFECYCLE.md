@@ -20,7 +20,7 @@ export async function activate(context: vscode.ExtensionContext) {
   if (!cg) return;
 
   const api = cg.isActive ? cg.exports : await cg.activate();
-  api.registerPlugin(myPlugin);
+  api.registerPlugin(myPlugin, { extensionUri: context.extensionUri });
 }
 ```
 

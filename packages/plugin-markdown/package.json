@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "CodeGraphy markdown plugin",
+  "license": "MIT",
   "scripts": {
     "lint": "eslint src",
     "typecheck": "tsc --noEmit -p tsconfig.json"

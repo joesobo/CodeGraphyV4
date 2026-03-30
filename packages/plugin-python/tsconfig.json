@@ -1,5 +1,11 @@
 {
   "extends": "../../tsconfig.plugins.json",
+  "compilerOptions": {
+    "module": "ESNext",
+    "target": "ES2022",
+    "moduleResolution": "Bundler",
+    "types": ["node", "vscode"]
+  },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "dist", "__tests__", "examples"]
 }

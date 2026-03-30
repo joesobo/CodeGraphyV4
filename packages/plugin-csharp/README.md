@@ -1,21 +1,10 @@
-# C# Plugin
+# CodeGraphy C# Plugin
 
-Detects using directives and intra-namespace type usage in C# files, resolving them to file paths using convention-based namespace mapping.
+Adds C# dependency analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
-## Supported Extensions
+Requires the core CodeGraphy extension: `codegraphy.codegraphy`.
 
-`.cs`
+Install this plugin alongside the core CodeGraphy extension to detect:
 
-## Rules
-
-| Rule | Description |
-|------|-------------|
-| Using Directives | `using System;`, `using static System.Math;`, `global using X;`, `using Alias = X;` |
-| Type Usage | Intra-namespace references: `new Type()`, `Type.Method()`, `: Type` |
-
-## Path Resolution
-
-- Convention-based: namespace parts map to directory structure (`MyApp.Services` → `Services/`)
-- Namespace registry for cross-file resolution
-- Type-aware: only creates connections for types actually used in the file
-- Supports configurable root namespace stripping and source directories
+- `using` directives
+- type usage references

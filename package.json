@@ -1,7 +1,6 @@
 {
-	"name": "codegraphy-monorepo",
-	"private": true,
-	"version": "0.1.0",
+	"name": "codegraphy",
+	"version": "4.0.0",
 	"packageManager": "pnpm@10.32.0",
 	"workspaces": [
 		"packages/*"
@@ -30,25 +29,48 @@
 		"organize": "pnpm --filter @codegraphy/quality-tools run organize --",
 		"changeset": "changeset",
 		"version-packages": "changeset version",
+		"package:vsix": "mkdir -p artifacts/vsix && pnpm exec vsce package --no-dependencies --out artifacts/vsix/codegraphy.codegraphy-${npm_package_version}.vsix",
+		"publish:vsce": "pnpm exec vsce publish --no-dependencies --skip-duplicate",
+		"release:check": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
+		"release:package": "node scripts/release.mjs package",
+		"release:publish": "node scripts/release.mjs publish",
 		"typecheck": "turbo run typecheck",
 		"typecheck:extension": "pnpm --filter @codegraphy/extension run typecheck",
 		"typecheck:plugin-api": "pnpm --filter @codegraphy/plugin-api run typecheck",
-		"typecheck:plugins": "turbo run typecheck --filter=@codegraphy/plugin-typescript --filter=@codegraphy/plugin-python --filter=@codegraphy/plugin-csharp --filter=@codegraphy/plugin-godot --filter=@codegraphy/plugin-markdown",
+		"typecheck:plugins": "turbo run typecheck --filter=codegraphy-typescript --filter=codegraphy-python --filter=codegraphy-csharp --filter=codegraphy-godot --filter=@codegraphy/plugin-markdown",
 		"prepare": "husky",
 		"test:e2e": "pnpm run build:e2e && node dist-e2e/e2e/runTest.js",
 		"build:e2e": "pnpm run build && tsc -p packages/extension/src/e2e/tsconfig.json"
 	},
 	"displayName": "CodeGraphy",
 	"description": "Visualize your codebase as an interactive 2D force graph",
-	"publisher": "joesobo",
+	"publisher": "codegraphy",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/joesobo/CodeGraphyV4.git"
+	},
+	"homepage": "https://github.com/joesobo/CodeGraphyV4#readme",
+	"bugs": {
+		"url": "https://github.com/joesobo/CodeGraphyV4/issues"
+	},
 	"engines": {
 		"vscode": "^1.85.0"
 	},
+	"files": [
+		"dist/**",
+		"assets/**",
+		"packages/plugin-markdown/codegraphy.json",
+		"README.md",
+		"CHANGELOG.md",
+		"LICENSE"
+	],
 	"categories": [
 		"Visualization",
 		"Other"
 	],
 	"keywords": [
+		"codegraphy",
 		"graph",
 		"visualization",
 		"dependencies",
@@ -430,6 +452,7 @@
 		}
 	},
 	"devDependencies": {
+		"@vscode/vsce": "^3.7.1",
 		"@changesets/changelog-github": "^0.6.0",
 		"@changesets/cli": "^2.30.0",
 		"@eslint/js": "^9.0.0",

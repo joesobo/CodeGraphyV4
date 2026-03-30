@@ -3,7 +3,7 @@
  * Tests that the example project files are correctly analyzed.
  */
 
-import { describe, it, expect } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
 import { createPythonPlugin } from '../src';
@@ -39,7 +39,7 @@ describe('Python Example Project', () => {
 
     it('should resolve "import config" to src/config.py', async () => {
       const connections = await getConnections('src/main.py');
-      const configConn = connections.find(c => c.specifier === 'config');
+      const configConn = connections.find(connection => connection.specifier === 'config');
       expect(configConn).toBeDefined();
 
       const resolved = toRelative(configConn!.resolvedPath);
@@ -48,7 +48,7 @@ describe('Python Example Project', () => {
 
     it('should resolve "from services.api import fetch_data" to src/services/api.py', async () => {
       const connections = await getConnections('src/main.py');
-      const apiConn = connections.find(c => c.specifier.includes('services.api'));
+      const apiConn = connections.find(connection => connection.specifier.includes('services.api'));
       expect(apiConn).toBeDefined();
 
       const resolved = toRelative(apiConn!.resolvedPath);
@@ -57,7 +57,7 @@ describe('Python Example Project', () => {
 
     it('should resolve "from utils.helpers import process_data" to src/utils/helpers.py', async () => {
       const connections = await getConnections('src/main.py');
-      const helpersConn = connections.find(c => c.specifier.includes('utils.helpers'));
+      const helpersConn = connections.find(connection => connection.specifier.includes('utils.helpers'));
       expect(helpersConn).toBeDefined();
 
       const resolved = toRelative(helpersConn!.resolvedPath);
@@ -73,7 +73,7 @@ describe('Python Example Project', () => {
 
     it('should resolve "from utils.helpers import process_data" to src/utils/helpers.py', async () => {
       const connections = await getConnections('src/services/api.py');
-      const helpersConn = connections.find(c => c.specifier.includes('utils.helpers'));
+      const helpersConn = connections.find(connection => connection.specifier.includes('utils.helpers'));
       expect(helpersConn).toBeDefined();
 
       const resolved = toRelative(helpersConn!.resolvedPath);
@@ -89,7 +89,7 @@ describe('Python Example Project', () => {
 
     it('should resolve "from utils.format import format_output" to src/utils/format.py', async () => {
       const connections = await getConnections('src/utils/helpers.py');
-      const formatConn = connections.find(c => c.specifier.includes('utils.format'));
+      const formatConn = connections.find(connection => connection.specifier.includes('utils.format'));
       expect(formatConn).toBeDefined();
 
       const resolved = toRelative(formatConn!.resolvedPath);
@@ -100,7 +100,7 @@ describe('Python Example Project', () => {
   describe('member_imports.py imports', () => {
     it('should resolve "from services import api" to src/services/api.py', async () => {
       const connections = await getConnections('src/member_imports.py');
-      const apiConn = connections.find(c => c.specifier === 'from services import api');
+      const apiConn = connections.find(connection => connection.specifier === 'from services import api');
       expect(apiConn).toBeDefined();
 
       const resolved = toRelative(apiConn!.resolvedPath);
@@ -109,7 +109,7 @@ describe('Python Example Project', () => {
 
     it('should resolve "from utils import helpers" to src/utils/helpers.py', async () => {
       const connections = await getConnections('src/member_imports.py');
-      const helpersConn = connections.find(c => c.specifier === 'from utils import helpers');
+      const helpersConn = connections.find(connection => connection.specifier === 'from utils import helpers');
       expect(helpersConn).toBeDefined();
 
       const resolved = toRelative(helpersConn!.resolvedPath);
@@ -118,7 +118,7 @@ describe('Python Example Project', () => {
 
     it('should keep third-party imports unresolved', async () => {
       const connections = await getConnections('src/member_imports.py');
-      const requestsConn = connections.find(c => c.specifier === 'from requests import Session');
+      const requestsConn = connections.find(connection => connection.specifier === 'from requests import Session');
       expect(requestsConn).toBeDefined();
       expect(requestsConn?.resolvedPath).toBeNull();
     });
@@ -127,7 +127,7 @@ describe('Python Example Project', () => {
   describe('namespace_consumer.py imports', () => {
     it('should resolve namespace package import to src/ns_pkg/member.py', async () => {
       const connections = await getConnections('src/namespace_consumer.py');
-      const namespaceConn = connections.find(c => c.specifier === 'from ns_pkg import member');
+      const namespaceConn = connections.find(connection => connection.specifier === 'from ns_pkg import member');
       expect(namespaceConn).toBeDefined();
 
       const resolved = toRelative(namespaceConn!.resolvedPath);

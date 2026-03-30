@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Package artifacts only or publish them
+        required: true
+        default: package
+        type: choice
+        options:
+          - package
+          - publish
+      target:
+        description: Which release target to run
+        required: true
+        default: all
+        type: choice
+        options:
+          - core
+          - typescript
+          - python
+          - csharp
+          - godot
+          - plugin-api
+          - all
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.workflow }}-${{ github.ref }}-${{ inputs.mode }}-${{ inputs.target }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      VSCE_PAT: ${{ secrets.VSCE_PAT }}
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.32.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Release checks
+        run: pnpm run release:check
+
+      - name: Package selected VS Code extension artifacts
+        if: ${{ inputs.target != 'plugin-api' }}
+        run: pnpm run release:package ${{ inputs.target }}
+
+      - name: Upload VSIX artifacts
+        if: ${{ inputs.target != 'plugin-api' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: vsix-artifacts
+          path: artifacts/vsix/
+          retention-days: 30
+
+      - name: Publish selected target
+        if: ${{ inputs.mode == 'publish' }}
+        run: pnpm run release:publish ${{ inputs.target }}

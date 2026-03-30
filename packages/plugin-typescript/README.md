@@ -1,17 +1,12 @@
-# TypeScript/JavaScript Plugin
+# CodeGraphy TypeScript/JavaScript Plugin
 
-Detects import relationships in TypeScript and JavaScript files using the TypeScript Compiler API for accurate AST-based parsing.
+Adds TypeScript and JavaScript dependency analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
-## Supported Extensions
-.ts .tsx .js .jsx .mjs .cjs
+Requires the core CodeGraphy extension: `codegraphy.codegraphy`.
 
-## Rules
-| Rule | Description |
-|------|-------------|
-| ES6 Imports | import/export statements |
-| Re-exports | export { x } from "y" |
-| Dynamic Imports | import("module") |
-| CommonJS Require | require("module") |
+Install this plugin alongside the core CodeGraphy extension to detect:
 
-## Path Resolution
-Uses tsconfig.json / jsconfig.json for path aliases, baseUrl, extension inference, and index file resolution.
+- ES module imports and exports
+- re-exports
+- dynamic imports
+- CommonJS `require()`

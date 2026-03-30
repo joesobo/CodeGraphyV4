@@ -1,11 +1,53 @@
 {
-  "name": "@codegraphy/plugin-typescript",
-  "version": "0.1.0",
-  "private": true,
-  "description": "CodeGraphy typescript plugin",
+  "name": "codegraphy-typescript",
+  "displayName": "CodeGraphy TypeScript",
+  "version": "1.0.0",
+  "description": "Adds TypeScript and JavaScript dependency detection to CodeGraphy. Requires codegraphy.codegraphy.",
+  "publisher": "codegraphy",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joesobo/CodeGraphyV4.git"
+  },
+  "homepage": "https://github.com/joesobo/CodeGraphyV4/tree/main/packages/plugin-typescript",
+  "bugs": {
+    "url": "https://github.com/joesobo/CodeGraphyV4/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "codegraphy",
+    "codegraphy-plugin",
+    "graph",
+    "typescript",
+    "javascript",
+    "dependencies"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionDependencies": [
+    "codegraphy.codegraphy"
+  ],
+  "main": "./dist/extension.js",
+  "files": [
+    "dist/**",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
-    "lint": "eslint src",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "vscode:prepublish": "pnpm run build",
+    "build": "esbuild src/activate.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "test": "vitest run",
+    "lint": "eslint \"src/**/*.ts\" \"__tests__/activate.test.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "package:vsix": "mkdir -p ../../artifacts/vsix && pnpm exec vsce package --no-dependencies --out ../../artifacts/vsix/codegraphy.codegraphy-typescript-${npm_package_version}.vsix",
+    "publish:vsce": "pnpm exec vsce publish --no-dependencies --skip-duplicate"
   },
   "dependencies": {
     "@codegraphy/plugin-api": "workspace:*"

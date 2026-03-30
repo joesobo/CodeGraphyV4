@@ -3,12 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGroup } from '../../../src/shared/settings/groups';
 import { createGraphViewProviderTestHarness } from './testHarness';
 import { getGraphViewProviderInternals } from './internals';
+import { createTypeScriptPlugin } from '../../../../plugin-typescript/src';
+import { createPythonPlugin } from '../../../../plugin-python/src';
 
 type GroupSummary = Pick<IGroup, 'id'> & Partial<Pick<IGroup, 'pattern' | 'color' | 'disabled' | 'isPluginDefault' | 'pluginName'>>;
 
 interface PluginDefaultsProvider {
   _analyzer: {
     initialize(): Promise<void>;
+    registry: {
+      register(plugin: unknown): void;
+    };
   };
   _disabledPlugins: Set<string>;
   _groups: IGroup[];
@@ -18,6 +23,11 @@ interface PluginDefaultsProvider {
 
 function getProvider(harness: { provider: unknown }) {
   return harness.provider as unknown as PluginDefaultsProvider;
+}
+
+function registerOptionalPlugins(provider: PluginDefaultsProvider): void {
+  provider._analyzer.registry.register(createTypeScriptPlugin());
+  provider._analyzer.registry.register(createPythonPlugin());
 }
 
 describe('GraphViewProvider plugin defaults and toggles', () => {
@@ -33,6 +43,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     const internals = getGraphViewProviderInternals(harness.provider);
     provider._userGroups = [];
     await provider._analyzer.initialize();
+    registerOptionalPlugins(provider);
 
     const pluginGroups = internals._pluginResourceMethods._getPluginDefaultGroups() as GroupSummary[];
     expect(pluginGroups.length).toBeGreaterThan(0);
@@ -47,6 +58,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     provider._userGroups = [{ id: 'user-group-1', pattern: 'src/**', color: '#FF0000' }] as IGroup[];
     provider._hiddenPluginGroupIds = new Set<string>();
     await provider._analyzer.initialize();
+    registerOptionalPlugins(provider);
 
     internals._pluginResourceMethods._computeMergedGroups();
 
@@ -62,6 +74,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     provider._userGroups = [];
     provider._hiddenPluginGroupIds = new Set(['plugin:codegraphy.typescript:*.ts']);
     await provider._analyzer.initialize();
+    registerOptionalPlugins(provider);
 
     internals._pluginResourceMethods._computeMergedGroups();
 
@@ -117,6 +130,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     const internals = getGraphViewProviderInternals(harness.provider);
     provider._disabledPlugins = new Set(['codegraphy.typescript']);
     await provider._analyzer.initialize();
+    registerOptionalPlugins(provider);
 
     const pluginGroups = internals._pluginResourceMethods._getPluginDefaultGroups() as GroupSummary[];
     expect(pluginGroups.some(g => g.id.startsWith('plugin:codegraphy.typescript:'))).toBe(false);
@@ -131,6 +145,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     provider._userGroups = [];
     provider._hiddenPluginGroupIds = new Set<string>();
     await provider._analyzer.initialize();
+    registerOptionalPlugins(provider);
 
     const handler = getMessageHandler();
     await handler({ type: 'TOGGLE_PLUGIN_GROUP_DISABLED', payload: { groupId: 'plugin:codegraphy.typescript:*.ts', disabled: true } });
@@ -148,6 +163,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     provider._userGroups = [];
     provider._hiddenPluginGroupIds = new Set(['plugin:codegraphy.typescript:*.ts']);
     await provider._analyzer.initialize();
+    registerOptionalPlugins(provider);
 
     const handler = getMessageHandler();
     await handler({ type: 'TOGGLE_PLUGIN_GROUP_DISABLED', payload: { groupId: 'plugin:codegraphy.typescript:*.ts', disabled: false } });
@@ -165,6 +181,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     provider._userGroups = [];
     provider._hiddenPluginGroupIds = new Set<string>();
     await provider._analyzer.initialize();
+    registerOptionalPlugins(provider);
 
     const handler = getMessageHandler();
     await handler({ type: 'TOGGLE_PLUGIN_SECTION_DISABLED', payload: { pluginId: 'codegraphy.typescript', disabled: true } });
@@ -188,6 +205,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     provider._userGroups = [];
     provider._hiddenPluginGroupIds = new Set(['plugin:codegraphy.typescript', 'plugin:codegraphy.typescript:*.ts']);
     await provider._analyzer.initialize();
+    registerOptionalPlugins(provider);
 
     const handler = getMessageHandler();
     await handler({ type: 'TOGGLE_PLUGIN_SECTION_DISABLED', payload: { pluginId: 'codegraphy.typescript', disabled: false } });
