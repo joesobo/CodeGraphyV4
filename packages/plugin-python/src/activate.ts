@@ -5,7 +5,7 @@ interface CodeGraphyExports {
   registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;
 }
 
-const CODEGRAPHY_EXTENSION_ID = 'joesobo.codegraphy';
+const CODEGRAPHY_EXTENSION_ID = 'codegraphy.codegraphy';
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   const extension = vscode.extensions.getExtension<CodeGraphyExports>(CODEGRAPHY_EXTENSION_ID);

@@ -31,19 +31,19 @@ pnpm run release:publish godot
 pnpm run release:publish all
 ```
 
-Before the first local publish of the new Marketplace identity, verify the authenticated publisher:
+Before the first local publish from this release setup, verify the authenticated publisher:
 
 ```bash
 vsce ls-publishers
-vsce verify-pat joesobo
+vsce verify-pat codegraphy
 ```
 
 ## First publish checklist
 
-1. Create or confirm the `joesobo` publisher in the VS Code Marketplace.
-2. Sign `vsce` into `joesobo`.
-3. Confirm `vsce ls-publishers` shows `joesobo`.
-4. Confirm `vsce verify-pat joesobo` succeeds.
+1. Confirm the `codegraphy` publisher in the VS Code Marketplace is the one you own.
+2. Sign `vsce` into `codegraphy`.
+3. Confirm `vsce ls-publishers` shows `codegraphy`.
+4. Confirm `vsce verify-pat codegraphy` succeeds.
 5. Run `pnpm install`.
 6. Run `pnpm run release:check`.
 7. Publish `@codegraphy/plugin-api` with `pnpm run release:publish plugin-api`.
@@ -54,7 +54,7 @@ vsce verify-pat joesobo
    - `pnpm run release:publish csharp`
    - `pnpm run release:publish godot`
 10. Open each Marketplace listing and verify the dependency text, README, icon, and version.
-11. Update the old `codegraphy.codegraphy` listing to point users at `joesobo.codegraphy`.
+11. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
 
 ## GitHub Actions
 
@@ -71,10 +71,10 @@ Required secrets:
 
 ## Marketplace migration note
 
-V4 is prepared to publish as `joesobo.codegraphy`.
+V4 is prepared to publish as `codegraphy.codegraphy`.
 
-The existing Marketplace identifier is still `codegraphy.codegraphy`. Marketplace ownership and publisher ID are different things: the owner account can be Joseph Soboleski while the immutable extension identifier still uses the publisher ID `codegraphy`.
+The existing Marketplace identifier is `codegraphy.codegraphy`. Marketplace ownership and publisher ID are different things: the owner account can be Joseph Soboleski while the immutable extension identifier still uses the publisher ID `codegraphy`.
 
-Publishing `joesobo.codegraphy` therefore requires a new publisher ID and a new Marketplace listing.
+That means the core V4 release can update the existing Marketplace listing in place, while the language plugins publish as new listings under the same `codegraphy` publisher.
 
-After the new listing is live, deprecate the old extension in favor of the new one.
+If you ever move the core to a different publisher later, that would require a new Marketplace listing.
