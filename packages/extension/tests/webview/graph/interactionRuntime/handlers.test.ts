@@ -127,7 +127,7 @@ describe('graph/interactionRuntime/handlers', () => {
 
   it('updates node selection and opens the node context menu', () => {
     const dependencies = createDependencies();
-    const dispatchEvent = vi.spyOn(dependencies.containerRef.current, 'dispatchEvent');
+    const dispatchEvent = vi.spyOn(dependencies.containerRef.current as EventTarget, 'dispatchEvent');
     const handlers = createGraphInteractionHandlers(dependencies);
     const event = new MouseEvent('contextmenu', {
       button: 2,
@@ -293,7 +293,16 @@ describe('graph/interactionRuntime/handlers', () => {
     );
     const dependencies = createDependencies();
     const handlers = createHandlers(dependencies);
-    const clickCallbacks = createClickHandlers.mock.calls[0]?.[1];
+    const clickCallbacks = createClickHandlers.mock.calls[0] as unknown as [
+      unknown,
+      {
+        applyGraphInteractionEffects: typeof effectHandlers.applyGraphInteractionEffects;
+        setGraphCursor: typeof applyCursorToGraphSurface;
+      },
+    ];
+    if (!clickCallbacks) {
+      throw new Error('missing click handler call');
+    }
 
     expect(createSelectionHandlers).toHaveBeenCalledWith(dependencies);
     expect(createContextMenuHandlers).toHaveBeenCalledWith(
@@ -312,7 +321,7 @@ describe('graph/interactionRuntime/handlers', () => {
     });
     expect(createClickHandlers).toHaveBeenCalledWith(dependencies, {
       applyGraphInteractionEffects: effectHandlers.applyGraphInteractionEffects,
-      setGraphCursor: clickCallbacks.setGraphCursor,
+      setGraphCursor: clickCallbacks[1].setGraphCursor,
     });
 
     expect(handlers.applyGraphInteractionEffects).toBe(effectHandlers.applyGraphInteractionEffects);
@@ -329,7 +338,7 @@ describe('graph/interactionRuntime/handlers', () => {
     expect(handlers.requestNodeOpenById).toBe(effectHandlers.requestNodeOpenById);
     expect(handlers.selectOnlyNode).toBe(selectionHandlers.selectOnlyNode);
     expect(handlers.sendGraphInteraction).toBe(effectHandlers.sendGraphInteraction);
-    expect(handlers.setGraphCursor).toBe(clickCallbacks.setGraphCursor);
+    expect(handlers.setGraphCursor).toBe(clickCallbacks[1].setGraphCursor);
     expect(handlers.setHighlight).toBe(selectionHandlers.setHighlight);
     expect(handlers.setSelection).toBe(selectionHandlers.setSelection);
     expect(handlers.updateAccessCount).toBe(viewHandlers.updateAccessCount);

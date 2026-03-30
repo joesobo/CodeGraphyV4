@@ -270,7 +270,7 @@ describe('usePhysicsRuntime', () => {
       { initialProps: { graphMode: '2d' as const } },
     );
 
-    rerender({ graphMode: '3d' });
+    rerender({ graphMode: '3d' as never });
 
     expect(physicsHarness.initPhysics).toHaveBeenNthCalledWith(1, graph2D, SETTINGS);
     expect(physicsHarness.initPhysics).toHaveBeenNthCalledWith(2, graph3D, SETTINGS);
