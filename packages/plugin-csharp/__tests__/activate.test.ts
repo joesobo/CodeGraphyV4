@@ -8,7 +8,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-describe('extension-csharp/activate', () => {
+describe('plugin-csharp/activate', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();

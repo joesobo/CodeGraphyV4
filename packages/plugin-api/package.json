@@ -26,6 +26,10 @@
     "lint": "eslint src",
     "typecheck": "tsc --noEmit -p tsconfig.json"
   },
-  "files": ["src"],
+  "files": [
+    "src",
+    "README.md",
+    "LICENSE"
+  ],
   "license": "MIT"
 }

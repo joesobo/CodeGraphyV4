@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { createPythonPlugin } from '../../plugin-python/src';
+import { createPythonPlugin } from './index';
 
 interface CodeGraphyExports {
   registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;
