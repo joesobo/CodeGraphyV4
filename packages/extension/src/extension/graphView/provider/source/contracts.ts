@@ -8,58 +8,20 @@ import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
 import { WorkspaceAnalyzer } from '../../../workspaceAnalyzer/service';
-import {
-  createGraphViewProviderAnalysisMethods,
-  type GraphViewProviderAnalysisMethodsSource,
-} from '../analysis/methods';
-import {
-  createGraphViewProviderCommandMethods,
-  type GraphViewProviderCommandMethodsSource,
-} from '../commands';
-import {
-  createGraphViewProviderFileActionMethods,
-  type GraphViewProviderFileActionMethodsSource,
-} from '../file/actions';
-import {
-  createGraphViewProviderFileVisitMethods,
-  type GraphViewProviderFileVisitMethodsSource,
-} from '../file/visits';
-import {
-  createGraphViewProviderPhysicsSettingsMethods,
-  type GraphViewProviderPhysicsSettingsMethodsSource,
-} from '../physicsSettings';
-import {
-  createGraphViewProviderPluginMethods,
-  type GraphViewProviderPluginMethodsSource,
-} from '../plugins';
-import {
-  createGraphViewProviderPluginResourceMethods,
-  type GraphViewProviderPluginResourceMethodsSource,
-} from '../pluginResources';
-import {
-  createGraphViewProviderRefreshMethods,
-  type GraphViewProviderRefreshMethodsSource,
-} from '../refresh';
-import {
-  createGraphViewProviderSettingsStateMethods,
-  type GraphViewProviderSettingsStateMethodsSource,
-} from '../settingsState';
-import {
-  createGraphViewProviderTimelineMethods,
-  type GraphViewProviderTimelineMethodsSource,
-} from '../timeline/methods';
-import {
-  createGraphViewProviderViewContextMethods,
-  type GraphViewProviderViewContextMethodsSource,
-} from '../view/context';
-import {
-  createGraphViewProviderViewSelectionMethods,
-  type GraphViewProviderViewSelectionMethodsSource,
-} from '../view/selection';
-import {
-  createGraphViewProviderWebviewMethods,
-  type GraphViewProviderWebviewSource,
-} from '../webview/host';
+import type { GraphViewProviderAnalysisMethodsSource } from '../analysis/methods';
+import type { GraphViewProviderCommandMethodsSource } from '../commands';
+import type { GraphViewProviderFileActionMethodsSource } from '../file/actions';
+import type { GraphViewProviderFileVisitMethodsSource } from '../file/visits';
+import type { GraphViewProviderPhysicsSettingsMethodsSource } from '../physicsSettings';
+import type { GraphViewProviderPluginMethodsSource } from '../plugins';
+import type { GraphViewProviderPluginResourceMethodsSource } from '../pluginResources';
+import type { GraphViewProviderRefreshMethodsSource } from '../refresh';
+import type { GraphViewProviderMethodContainers } from '../methodContainers';
+import type { GraphViewProviderSettingsStateMethodsSource } from '../settingsState';
+import type { GraphViewProviderTimelineMethodsSource } from '../timeline/methods';
+import type { GraphViewProviderViewContextMethodsSource } from '../view/context';
+import type { GraphViewProviderViewSelectionMethodsSource } from '../view/selection';
+import type { GraphViewProviderWebviewSource } from '../webview/host';
 
 export type GraphViewProviderMethodSource =
   & GraphViewProviderAnalysisMethodsSource
@@ -110,17 +72,18 @@ export interface GraphViewProviderMethodSourceOwner {
   _pluginExtensionUris: Map<string, vscode.Uri>;
   _extensionUri: vscode.Uri;
   _context: vscode.ExtensionContext;
-  _analysisMethods: ReturnType<typeof createGraphViewProviderAnalysisMethods>;
-  _commandMethods: ReturnType<typeof createGraphViewProviderCommandMethods>;
-  _fileActionMethods: ReturnType<typeof createGraphViewProviderFileActionMethods>;
-  _fileVisitMethods: ReturnType<typeof createGraphViewProviderFileVisitMethods>;
-  _pluginMethods: ReturnType<typeof createGraphViewProviderPluginMethods>;
-  _pluginResourceMethods: ReturnType<typeof createGraphViewProviderPluginResourceMethods>;
-  _physicsSettingsMethods: ReturnType<typeof createGraphViewProviderPhysicsSettingsMethods>;
-  _refreshMethods: ReturnType<typeof createGraphViewProviderRefreshMethods>;
-  _settingsStateMethods: ReturnType<typeof createGraphViewProviderSettingsStateMethods>;
-  _timelineMethods: ReturnType<typeof createGraphViewProviderTimelineMethods>;
-  _viewContextMethods: ReturnType<typeof createGraphViewProviderViewContextMethods>;
-  _viewSelectionMethods: ReturnType<typeof createGraphViewProviderViewSelectionMethods>;
-  _webviewMethods: ReturnType<typeof createGraphViewProviderWebviewMethods>;
+  _methodContainers: GraphViewProviderMethodContainers;
+  readonly _analysisMethods: GraphViewProviderMethodContainers['analysis'];
+  readonly _commandMethods: GraphViewProviderMethodContainers['command'];
+  readonly _fileActionMethods: GraphViewProviderMethodContainers['fileAction'];
+  readonly _fileVisitMethods: GraphViewProviderMethodContainers['fileVisit'];
+  readonly _pluginMethods: GraphViewProviderMethodContainers['plugin'];
+  readonly _pluginResourceMethods: GraphViewProviderMethodContainers['pluginResource'];
+  readonly _physicsSettingsMethods: GraphViewProviderMethodContainers['physicsSettings'];
+  readonly _refreshMethods: GraphViewProviderMethodContainers['refresh'];
+  readonly _settingsStateMethods: GraphViewProviderMethodContainers['settingsState'];
+  readonly _timelineMethods: GraphViewProviderMethodContainers['timeline'];
+  readonly _viewContextMethods: GraphViewProviderMethodContainers['viewContext'];
+  readonly _viewSelectionMethods: GraphViewProviderMethodContainers['viewSelection'];
+  readonly _webviewMethods: GraphViewProviderMethodContainers['webview'];
 }

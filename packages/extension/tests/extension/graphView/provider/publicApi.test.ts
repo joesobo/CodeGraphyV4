@@ -14,6 +14,52 @@ function createTarget() {
   const disposable = { dispose: vi.fn() };
   const getGraphData = vi.fn(() => graphData);
   const onWebviewMessage = vi.fn(() => disposable as unknown as vscode.Disposable);
+  const refreshMethods = {
+    refresh: vi.fn(async () => undefined),
+    refreshPhysicsSettings: vi.fn(),
+    refreshSettings: vi.fn(),
+    refreshToggleSettings: vi.fn(),
+    clearCacheAndRefresh: vi.fn(async () => undefined),
+  };
+  const commandMethods = {
+    sendCommand: vi.fn(),
+    undo: vi.fn(async () => 'undo'),
+    redo: vi.fn(async () => 'redo'),
+    canUndo: vi.fn(() => true),
+    canRedo: vi.fn(() => false),
+    requestExportPng: vi.fn(),
+    requestExportSvg: vi.fn(),
+    requestExportJpeg: vi.fn(),
+    requestExportJson: vi.fn(),
+    requestExportMarkdown: vi.fn(),
+    emitEvent: vi.fn(),
+  };
+  const fileVisitMethods = {
+    trackFileVisit: vi.fn(async () => undefined),
+  };
+  const pluginMethods = {
+    registerExternalPlugin: vi.fn(),
+  };
+  const timelineMethods = {
+    sendPlaybackSpeed: vi.fn(),
+    invalidateTimelineCache: vi.fn(async () => undefined),
+  };
+  const viewContextMethods = {
+    updateGraphData: vi.fn(),
+    getGraphData,
+  };
+  const viewSelectionMethods = {
+    changeView: vi.fn(async () => undefined),
+    setFocusedFile: vi.fn(),
+    setDepthLimit: vi.fn(async () => undefined),
+    getDepthLimit: vi.fn(() => 7),
+  };
+  const webviewMethods = {
+    resolveWebviewView: vi.fn(),
+    openInEditor: vi.fn(),
+    sendToWebview: vi.fn(),
+    onWebviewMessage,
+  };
 
   const target = {
     refresh: vi.fn(async () => undefined),
@@ -46,51 +92,15 @@ function createTarget() {
     openInEditor: vi.fn(),
     sendToWebview: vi.fn(),
     onWebviewMessage,
-    _refreshMethods: {
-      refresh: vi.fn(async () => undefined),
-      refreshPhysicsSettings: vi.fn(),
-      refreshSettings: vi.fn(),
-      refreshToggleSettings: vi.fn(),
-      clearCacheAndRefresh: vi.fn(async () => undefined),
-    },
-    _commandMethods: {
-      sendCommand: vi.fn(),
-      undo: vi.fn(async () => 'undo'),
-      redo: vi.fn(async () => 'redo'),
-      canUndo: vi.fn(() => true),
-      canRedo: vi.fn(() => false),
-      requestExportPng: vi.fn(),
-      requestExportSvg: vi.fn(),
-      requestExportJpeg: vi.fn(),
-      requestExportJson: vi.fn(),
-      requestExportMarkdown: vi.fn(),
-      emitEvent: vi.fn(),
-    },
-    _fileVisitMethods: {
-      trackFileVisit: vi.fn(async () => undefined),
-    },
-    _pluginMethods: {
-      registerExternalPlugin: vi.fn(),
-    },
-    _timelineMethods: {
-      sendPlaybackSpeed: vi.fn(),
-      invalidateTimelineCache: vi.fn(async () => undefined),
-    },
-    _viewContextMethods: {
-      updateGraphData: vi.fn(),
-      getGraphData,
-    },
-    _viewSelectionMethods: {
-      changeView: vi.fn(async () => undefined),
-      setFocusedFile: vi.fn(),
-      setDepthLimit: vi.fn(async () => undefined),
-      getDepthLimit: vi.fn(() => 7),
-    },
-    _webviewMethods: {
-      resolveWebviewView: vi.fn(),
-      openInEditor: vi.fn(),
-      sendToWebview: vi.fn(),
-      onWebviewMessage,
+    _methodContainers: {
+      refresh: refreshMethods,
+      command: commandMethods,
+      fileVisit: fileVisitMethods,
+      plugin: pluginMethods,
+      timeline: timelineMethods,
+      viewContext: viewContextMethods,
+      viewSelection: viewSelectionMethods,
+      webview: webviewMethods,
     },
   } as unknown as GraphViewProviderPublicMethodsTarget;
 
@@ -123,22 +133,22 @@ describe('assignGraphViewProviderPublicMethods', () => {
       duration: 1,
     });
 
-    expect(target._refreshMethods.refresh).toHaveBeenCalledTimes(1);
-    expect(target._refreshMethods.refreshPhysicsSettings).toHaveBeenCalledTimes(1);
-    expect(target._refreshMethods.refreshSettings).toHaveBeenCalledTimes(1);
-    expect(target._refreshMethods.refreshToggleSettings).toHaveBeenCalledTimes(1);
-    expect(target._refreshMethods.clearCacheAndRefresh).toHaveBeenCalledTimes(1);
-    expect(target._commandMethods.sendCommand).toHaveBeenCalledWith('FIT_VIEW');
-    expect(target._commandMethods.undo).toHaveBeenCalledTimes(1);
-    expect(target._commandMethods.redo).toHaveBeenCalledTimes(1);
-    expect(target._commandMethods.canUndo).toHaveBeenCalledTimes(1);
-    expect(target._commandMethods.canRedo).toHaveBeenCalledTimes(1);
-    expect(target._commandMethods.requestExportPng).toHaveBeenCalledTimes(1);
-    expect(target._commandMethods.requestExportSvg).toHaveBeenCalledTimes(1);
-    expect(target._commandMethods.requestExportJpeg).toHaveBeenCalledTimes(1);
-    expect(target._commandMethods.requestExportJson).toHaveBeenCalledTimes(1);
-    expect(target._commandMethods.requestExportMarkdown).toHaveBeenCalledTimes(1);
-    expect(target._commandMethods.emitEvent).toHaveBeenCalledWith(
+    expect(target._methodContainers.refresh.refresh).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.refresh.refreshPhysicsSettings).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.refresh.refreshSettings).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.refresh.refreshToggleSettings).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.refresh.clearCacheAndRefresh).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.command.sendCommand).toHaveBeenCalledWith('FIT_VIEW');
+    expect(target._methodContainers.command.undo).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.command.redo).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.command.canUndo).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.command.canRedo).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.command.requestExportPng).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.command.requestExportSvg).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.command.requestExportJpeg).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.command.requestExportJson).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.command.requestExportMarkdown).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.command.emitEvent).toHaveBeenCalledWith(
       'analysis:completed',
       {
         graph: { nodes: [], edges: [] },
@@ -167,19 +177,25 @@ describe('assignGraphViewProviderPublicMethods', () => {
     await target.setDepthLimit(3);
     expect(target.getDepthLimit()).toBe(7);
 
-    expect(target._viewContextMethods.updateGraphData).toHaveBeenCalledWith(graphData);
+    expect(target._methodContainers.viewContext.updateGraphData).toHaveBeenCalledWith(graphData);
     expect(getGraphData).toHaveBeenCalledTimes(1);
-    expect(target._timelineMethods.sendPlaybackSpeed).toHaveBeenCalledTimes(1);
-    expect(target._timelineMethods.invalidateTimelineCache).toHaveBeenCalledTimes(1);
-    expect(target._fileVisitMethods.trackFileVisit).toHaveBeenCalledWith('src/feature.ts');
-    expect(target._pluginMethods.registerExternalPlugin).toHaveBeenCalledWith(
+    expect(target._methodContainers.timeline.sendPlaybackSpeed).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.timeline.invalidateTimelineCache).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.fileVisit.trackFileVisit).toHaveBeenCalledWith(
+      'src/feature.ts',
+    );
+    expect(target._methodContainers.plugin.registerExternalPlugin).toHaveBeenCalledWith(
       { id: 'plugin.test' },
       undefined,
     );
-    expect(target._viewSelectionMethods.changeView).toHaveBeenCalledWith('codegraphy.folder');
-    expect(target._viewSelectionMethods.setFocusedFile).toHaveBeenCalledWith('src/feature.ts');
-    expect(target._viewSelectionMethods.setDepthLimit).toHaveBeenCalledWith(3);
-    expect(target._viewSelectionMethods.getDepthLimit).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.viewSelection.changeView).toHaveBeenCalledWith(
+      'codegraphy.folder',
+    );
+    expect(target._methodContainers.viewSelection.setFocusedFile).toHaveBeenCalledWith(
+      'src/feature.ts',
+    );
+    expect(target._methodContainers.viewSelection.setDepthLimit).toHaveBeenCalledWith(3);
+    expect(target._methodContainers.viewSelection.getDepthLimit).toHaveBeenCalledTimes(1);
   });
 
   it('assigns webview delegates', () => {
@@ -197,14 +213,14 @@ describe('assignGraphViewProviderPublicMethods', () => {
     target.sendToWebview(message);
     const registeredDisposable = target.onWebviewMessage(handler);
 
-    expect(target._webviewMethods.resolveWebviewView).toHaveBeenCalledWith(
+    expect(target._methodContainers.webview.resolveWebviewView).toHaveBeenCalledWith(
       webviewView,
       context,
       token,
     );
-    expect(target._webviewMethods.openInEditor).toHaveBeenCalledTimes(1);
-    expect(target._webviewMethods.sendToWebview).toHaveBeenCalledWith(message);
-    expect(target._webviewMethods.onWebviewMessage).toHaveBeenCalledWith(handler);
+    expect(target._methodContainers.webview.openInEditor).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.webview.sendToWebview).toHaveBeenCalledWith(message);
+    expect(target._methodContainers.webview.onWebviewMessage).toHaveBeenCalledWith(handler);
     expect(registeredDisposable).toBe(onWebviewMessage.mock.results[0]?.value);
   });
 });
