@@ -1,6 +1,6 @@
 # Message Flow
 
-The extension and webview communicate through typed messages defined in `src/shared/contracts.ts`.
+The extension and webview communicate through typed messages defined in the shared modules under `src/shared/`.
 
 ## Extension to webview
 
@@ -28,8 +28,8 @@ Plugin-facing messaging is layered on top of the core bridge.
 
 - The extension tracks readiness and plugin lifecycle state.
 - Webview plugin APIs send plugin-scoped actions through the provider bridge.
-- The shared contracts file is the canonical source for message payload shapes.
+- The shared message modules are the canonical source for message payload shapes.
 
 ## Practical rule
 
-If a message changes the UI, define it in shared contracts and add a test on both sides of the boundary.
+If a message changes the UI, define it in the shared message modules and add a test on both sides of the boundary.
