@@ -8,7 +8,7 @@ interface GraphViewPluginRegistry {
 }
 
 interface GraphViewPluginAnalyzer {
-  clearCache(): void;
+  clearCache?(): void;
   registry: GraphViewPluginRegistry;
 }
 
@@ -56,7 +56,7 @@ export function registerGraphViewExternalPlugin(
   analyzer.registry.register(plugin as IPlugin, {
     deferReadinessReplay: shouldDeferReadinessReplay,
   });
-  analyzer.clearCache();
+  analyzer.clearCache?.();
 
   const initializePromise = (async () => {
     const workspaceRoot = handlers.getWorkspaceRoot();
