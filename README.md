@@ -14,7 +14,7 @@ Reading code is linear. Codebases aren't. CodeGraphy gives you a bird's-eye view
 
 **A live dependency graph.** Open any project and watch it map itself. Files naturally cluster based on their relationships. Drag nodes, zoom in, search, and the graph responds instantly.
 
-**Five languages built in.** TypeScript, JavaScript, Python, C#, GDScript, and Markdown are all supported out of the box. Each plugin detects imports using proper parsers, not regex guesses. You can toggle individual detection rules on or off from the Plugins panel, and those toggles persist in VS Code settings.
+**Markdown built in, language plugins optional.** The core extension ships with Markdown support so the graph works out of the box. Add TypeScript/JavaScript, Python, C#, and GDScript support as separate CodeGraphy plugin extensions when you want them. Each plugin detects imports using proper parsers, not regex guesses, and you can toggle individual detection rules on or off from the Plugins panel.
 
 **Multiple perspectives.** Switch between views to see your project differently:
 - **Connections** shows the full dependency graph
@@ -37,19 +37,20 @@ Reading code is linear. Codebases aren't. CodeGraphy gives you a bird's-eye view
 
 ## Quick start
 
-1. Install CodeGraphy from the VS Code Marketplace
-2. Click the **CodeGraphy** icon in the activity bar
-3. Explore
+1. Install `CodeGraphy`
+2. Optionally install language plugins such as `CodeGraphy TypeScript/JavaScript Plugin` or `CodeGraphy Python Plugin`
+3. Click the **CodeGraphy** icon in the activity bar
+4. Explore
 
 ## Language support
 
-| Plugin | Extensions | Detection |
-|--------|-----------|-----------|
-| TypeScript / JavaScript | `.ts` `.tsx` `.js` `.jsx` `.mjs` `.cjs` | ES6 imports, CommonJS, dynamic imports, re-exports |
-| Python | `.py` `.pyi` | `import`, `from ... import`, relative imports |
-| C# | `.cs` | `using` directives, type usage |
-| GDScript | `.gd` | `preload`, `load`, `extends`, `class_name` |
-| Markdown | `.md` `.mdx` | `[[wikilinks]]` with aliases, paths, and embeds |
+| Plugin | Delivery | Extensions | Detection |
+|--------|----------|------------|-----------|
+| TypeScript / JavaScript | Separate plugin extension | `.ts` `.tsx` `.js` `.jsx` `.mjs` `.cjs` | ES6 imports, CommonJS, dynamic imports, re-exports |
+| Python | Separate plugin extension | `.py` `.pyi` | `import`, `from ... import`, relative imports |
+| C# | Separate plugin extension | `.cs` | `using` directives, type usage |
+| GDScript | Separate plugin extension | `.gd` | `preload`, `load`, `extends`, `class_name` |
+| Markdown | Built in | `.md` `.mdx` | `[[wikilinks]]` with aliases, paths, and embeds |
 
 Want to add a language? See the [Plugin Guide](./docs/PLUGINS.md).
 

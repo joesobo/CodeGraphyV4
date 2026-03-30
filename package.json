@@ -1,7 +1,7 @@
 {
-	"name": "codegraphy-monorepo",
+	"name": "codegraphy",
 	"private": true,
-	"version": "0.1.0",
+	"version": "4.0.0",
 	"packageManager": "pnpm@10.32.0",
 	"workspaces": [
 		"packages/*"
@@ -30,6 +30,16 @@
 		"organize": "pnpm --filter @codegraphy/quality-tools run organize --",
 		"changeset": "changeset",
 		"version-packages": "changeset version",
+		"package:vsix": "mkdir -p artifacts/vsix && pnpm exec vsce package --no-dependencies --out artifacts/vsix/joesobo.codegraphy-${npm_package_version}.vsix",
+		"publish:vsce": "pnpm exec vsce publish --no-dependencies --skip-duplicate",
+		"release:check": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
+		"release:package:core": "pnpm run package:vsix",
+		"release:package:plugins": "pnpm --filter codegraphy-typescript --filter codegraphy-python --filter codegraphy-csharp --filter codegraphy-godot run package:vsix",
+		"release:package:all": "pnpm run release:package:core && pnpm run release:package:plugins",
+		"release:publish:core": "pnpm run publish:vsce",
+		"release:publish:plugins": "pnpm --filter codegraphy-typescript --filter codegraphy-python --filter codegraphy-csharp --filter codegraphy-godot run publish:vsce",
+		"release:publish:plugin-api": "pnpm --filter @codegraphy/plugin-api publish --access public --no-git-checks",
+		"release:publish:all": "pnpm run release:publish:plugin-api && pnpm run release:publish:core && pnpm run release:publish:plugins",
 		"typecheck": "turbo run typecheck",
 		"typecheck:extension": "pnpm --filter @codegraphy/extension run typecheck",
 		"typecheck:plugin-api": "pnpm --filter @codegraphy/plugin-api run typecheck",
@@ -41,9 +51,26 @@
 	"displayName": "CodeGraphy",
 	"description": "Visualize your codebase as an interactive 2D force graph",
 	"publisher": "joesobo",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/joesobo/CodeGraphyV4.git"
+	},
+	"homepage": "https://github.com/joesobo/CodeGraphyV4#readme",
+	"bugs": {
+		"url": "https://github.com/joesobo/CodeGraphyV4/issues"
+	},
 	"engines": {
 		"vscode": "^1.85.0"
 	},
+	"files": [
+		"dist/**",
+		"assets/**",
+		"packages/plugin-markdown/codegraphy.json",
+		"README.md",
+		"CHANGELOG.md",
+		"LICENSE"
+	],
 	"categories": [
 		"Visualization",
 		"Other"
@@ -430,6 +457,7 @@
 		}
 	},
 	"devDependencies": {
+		"@vscode/vsce": "^3.7.1",
 		"@changesets/changelog-github": "^0.6.0",
 		"@changesets/cli": "^2.30.0",
 		"@eslint/js": "^9.0.0",

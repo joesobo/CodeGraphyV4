@@ -5,6 +5,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
 import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer/service';
+import { createTypeScriptPlugin } from '../../../../plugin-typescript/src';
+import { createPythonPlugin } from '../../../../plugin-python/src';
 
 // Set up workspace folders before tests
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
@@ -46,6 +48,11 @@ describe('WorkspaceAnalyzer rules', () => {
     );
   });
 
+  function registerOptionalLanguagePlugins(): void {
+    analyzer.registry.register(createTypeScriptPlugin());
+    analyzer.registry.register(createPythonPlugin());
+  }
+
   describe('rebuildGraph', () => {
     it('returns empty graph when no prior analysis', () => {
       const result = analyzer.rebuildGraph(new Set(), new Set(), true);
@@ -59,15 +66,9 @@ describe('WorkspaceAnalyzer rules', () => {
 
       const statuses = analyzer.getPluginStatuses(new Set(), new Set());
 
-      // Should have 5 built-in plugins
-      expect(statuses.length).toBe(5);
+      expect(statuses.length).toBe(1);
 
-      // Verify plugin names are present (sorted alphabetically)
       const names = statuses.map(s => s.name);
-      expect(names).toContain('TypeScript/JavaScript');
-      expect(names).toContain('GDScript (Godot)');
-      expect(names).toContain('Python');
-      expect(names).toContain('C#');
       expect(names).toContain('Markdown');
     });
 
@@ -82,6 +83,7 @@ describe('WorkspaceAnalyzer rules', () => {
 
     it('marks a plugin as disabled when in disabled set', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
       const disabledPlugins = new Set(['codegraphy.typescript']);
       const statuses = analyzer.getPluginStatuses(new Set(), disabledPlugins);
 
@@ -97,6 +99,7 @@ describe('WorkspaceAnalyzer rules', () => {
 
     it('includes rule statuses for each plugin', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
       const statuses = analyzer.getPluginStatuses(new Set(), new Set());
 
       const tsStatus = statuses.find(s => s.id === 'codegraphy.typescript');
@@ -112,6 +115,7 @@ describe('WorkspaceAnalyzer rules', () => {
 
     it('marks rules as disabled via qualified IDs', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
       const disabledRules = new Set(['codegraphy.typescript:dynamic-import']);
       const statuses = analyzer.getPluginStatuses(disabledRules, new Set());
 
@@ -128,6 +132,7 @@ describe('WorkspaceAnalyzer rules', () => {
 
     it('rule statuses include qualifiedId in the format pluginId:ruleId', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
       const statuses = analyzer.getPluginStatuses(new Set(), new Set());
 
       const tsStatus = statuses.find(s => s.id === 'codegraphy.typescript');
@@ -138,6 +143,7 @@ describe('WorkspaceAnalyzer rules', () => {
 
     it('all plugins report inactive status when no files discovered', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
       const statuses = analyzer.getPluginStatuses(new Set(), new Set());
 
       // No files have been discovered/analyzed so all should be inactive
@@ -156,6 +162,7 @@ describe('WorkspaceAnalyzer rules', () => {
 
     it('filters out connections from disabled rules', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
 
       // Manually populate internal state to simulate a prior analysis.
       // We use the internal fields directly to set up the scenario.
@@ -193,6 +200,7 @@ describe('WorkspaceAnalyzer rules', () => {
 
     it('filters out all connections from disabled plugins', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
 
       const fileConnections = new Map<string, { specifier: string; resolvedPath: string | null; type: 'static' | 'dynamic' | 'require' | 'reexport'; ruleId?: string }[]>();
 
@@ -230,6 +238,7 @@ describe('WorkspaceAnalyzer rules', () => {
 
     it('respects both disabled rules and disabled plugins simultaneously', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
 
       const fileConnections = new Map<string, { specifier: string; resolvedPath: string | null; type: 'static' | 'dynamic' | 'require' | 'reexport'; ruleId?: string }[]>();
 
@@ -269,6 +278,7 @@ describe('WorkspaceAnalyzer rules', () => {
 
     it('collects multiple ruleIds when different rules detect the same edge', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
 
       const fileConnections = new Map<string, { specifier: string; resolvedPath: string | null; type: 'static' | 'dynamic' | 'require' | 'reexport'; ruleId?: string }[]>();
 
@@ -304,6 +314,7 @@ describe('WorkspaceAnalyzer rules', () => {
 
     it('orphan nodes are hidden when showOrphans is false', async () => {
       await analyzer.initialize();
+      registerOptionalLanguagePlugins();
 
       const fileConnections = new Map<string, { specifier: string; resolvedPath: string | null; type: 'static' | 'dynamic' | 'require' | 'reexport'; ruleId?: string }[]>();
 

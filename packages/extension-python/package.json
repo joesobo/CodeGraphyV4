@@ -1,0 +1,50 @@
+{
+  "name": "codegraphy-python",
+  "displayName": "CodeGraphy Python Plugin",
+  "version": "4.0.0",
+  "private": true,
+  "description": "Adds Python dependency detection to CodeGraphy.",
+  "publisher": "joesobo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/joesobo/CodeGraphyV4.git"
+  },
+  "homepage": "https://github.com/joesobo/CodeGraphyV4/tree/main/packages/extension-python",
+  "bugs": {
+    "url": "https://github.com/joesobo/CodeGraphyV4/issues"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Visualization",
+    "Programming Languages"
+  ],
+  "keywords": [
+    "codegraphy",
+    "graph",
+    "python",
+    "dependencies"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "extensionDependencies": [
+    "joesobo.codegraphy"
+  ],
+  "main": "./dist/extension.js",
+  "files": [
+    "dist/**",
+    "README.md"
+  ],
+  "scripts": {
+    "vscode:prepublish": "pnpm run build",
+    "build": "esbuild src/activate.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "test": "vitest run tests/activate.test.ts",
+    "lint": "eslint \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "package:vsix": "mkdir -p ../../artifacts/vsix && pnpm exec vsce package --no-dependencies --skip-license --out ../../artifacts/vsix/joesobo.codegraphy-python-${npm_package_version}.vsix",
+    "publish:vsce": "pnpm exec vsce publish --no-dependencies --skip-license --skip-duplicate"
+  }
+}

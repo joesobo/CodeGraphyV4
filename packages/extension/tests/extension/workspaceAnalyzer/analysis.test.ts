@@ -40,12 +40,9 @@ describe('WorkspaceAnalyzer analysis', () => {
 
     await analyzer.initialize();
 
-    expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.builtIn)).toEqual([
-      true,
-      true,
-      true,
-      true,
-      true,
+    expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.builtIn)).toEqual([true]);
+    expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual([
+      'codegraphy.markdown',
     ]);
   });
 
@@ -62,7 +59,6 @@ describe('WorkspaceAnalyzer analysis', () => {
       ),
     ];
 
-    expect(expectedPatterns.length).toBeGreaterThan(0);
     expect(analyzer.getPluginFilterPatterns()).toEqual(expectedPatterns);
   });
 
