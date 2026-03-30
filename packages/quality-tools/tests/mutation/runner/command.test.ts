@@ -65,17 +65,17 @@ describe('command', () => {
     runMutationCli([
       'extension/',
       '--mutate',
-      'packages/extension/src/webview/components/DepthSlider.tsx',
+      'packages/extension/src/webview/components/Graph.tsx',
     ], dependencies);
 
     expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(
       REPO_ROOT,
-      'packages/extension/src/webview/components/DepthSlider.tsx',
+      'packages/extension/src/webview/components/Graph.tsx',
     );
     expect(dependencies.runMutation).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: 'file',
-        relativePath: 'packages/extension/src/webview/components/DepthSlider.tsx',
+        relativePath: 'packages/extension/src/webview/components/Graph.tsx',
       }),
     );
   });

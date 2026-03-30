@@ -1,12 +1,7 @@
 /**
- * Legacy static color palette for file extensions.
+ * Static default color palette for built-in file extensions.
  *
- * @deprecated Use {@link ColorPaletteManager} for dynamic color generation.
- * This is kept for backwards compatibility with tests and mock data.
- * The extension now uses ColorPaletteManager which:
- * - Generates distinct colors for any number of file types
- * - Allows plugins to define preferred colors
- * - Allows users to override colors via settings
+ * These values back the current extension and webview defaults.
  */
 export const FILE_TYPE_COLORS: Readonly<Record<string, string>> = Object.freeze({
   '.ts': '#93C5FD',    // Soft blue
