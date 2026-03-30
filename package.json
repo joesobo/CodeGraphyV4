@@ -24,6 +24,7 @@
 		"lint:playwright": "eslint tests/playwright --max-warnings=0",
 		"crap": "pnpm --filter @codegraphy/quality-tools run crap --",
 		"boundaries": "pnpm --filter @codegraphy/quality-tools run boundaries --",
+		"reachability": "pnpm --filter @codegraphy/quality-tools run reachability --",
 		"mutate": "pnpm --filter @codegraphy/quality-tools run mutate --",
 		"scrap": "pnpm --filter @codegraphy/quality-tools run scrap --",
 		"organize": "pnpm --filter @codegraphy/quality-tools run organize --",

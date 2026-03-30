@@ -132,6 +132,9 @@
         ]
       },
       "boundaries": {
+        "entrypoints": [
+          "src/**/command.ts"
+        ],
         "exclude": [
           "src/cli/**/*.ts",
           "tests/**/*.ts"

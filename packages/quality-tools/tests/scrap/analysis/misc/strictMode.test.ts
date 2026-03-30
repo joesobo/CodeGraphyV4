@@ -4,7 +4,7 @@ import {
   hasSplitViolation,
   hasStrictViolations,
   STRICT_FAILURE_MESSAGE
-} from '../../../../src/scrap/policy/strictMode';
+} from '../../policy/strictModeSupport';
 import type { ScrapFileMetric } from '../../../../src/scrap/analysis/metrics';
 import { createMetrics } from '../../test/run/support';
 

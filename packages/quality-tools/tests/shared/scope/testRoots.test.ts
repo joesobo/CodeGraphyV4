@@ -2,7 +2,7 @@ import { mkdtempSync, mkdirSync } from 'fs';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { describe, expect, it } from 'vitest';
-import { existingTestRoots, isTestPath } from '../../../src/shared/scope/testRoots';
+import { existingTestRoots, isTestPath } from './testRootsSupport';
 
 describe('isTestPath', () => {
   it('recognizes test roots and nested test paths', () => {
