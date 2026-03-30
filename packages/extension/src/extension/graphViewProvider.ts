@@ -4,7 +4,7 @@
 
 import * as vscode from 'vscode';
 import { GraphViewProviderRuntime } from './graphView/provider/runtime';
-import type { GraphViewProviderPublicMethods } from './graphView/provider/publicApi';
+import type { GraphViewProviderPublicMethods } from './graphView/provider/wiring/publicApi';
 
 /**
  * Exposes the host runtime through the public API used by commands, tests,

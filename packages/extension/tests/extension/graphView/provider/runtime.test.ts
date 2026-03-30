@@ -71,7 +71,7 @@ async function loadSubject(
   vi.doMock('../../../../src/core/plugins/decoration/manager', () => ({
     DecorationManager: class DecorationManager {},
   }));
-  vi.doMock('../../../../src/extension/graphView/provider/methodContainers', () => ({
+  vi.doMock('../../../../src/extension/graphView/provider/wiring/methodContainers', () => ({
     createGraphViewProviderMethodContainers: vi.fn(() => methodContainers),
   }));
   vi.doMock('vscode', async () => {
@@ -105,8 +105,8 @@ describe('graphView/provider/runtime', () => {
     vi.doUnmock('../../../../src/core/views');
     vi.doUnmock('../../../../src/core/plugins/eventBus');
     vi.doUnmock('../../../../src/core/plugins/decoration/manager');
-    vi.doUnmock('../../../../src/extension/graphView/provider/methodContainers');
-    vi.doUnmock('../../../../src/extension/graphView/provider/bootstrap');
+    vi.doUnmock('../../../../src/extension/graphView/provider/wiring/methodContainers');
+    vi.doUnmock('../../../../src/extension/graphView/provider/wiring/bootstrap');
     vi.resetModules();
   });
 
@@ -114,7 +114,7 @@ describe('graphView/provider/runtime', () => {
     const initializeGraphViewProviderServices = vi.fn();
     const restoreGraphViewProviderState = vi.fn(() => createRestoredState());
 
-    vi.doMock('../../../../src/extension/graphView/provider/bootstrap', () => ({
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices,
       restoreGraphViewProviderState,
     }));
@@ -201,7 +201,7 @@ describe('graphView/provider/runtime', () => {
   it('forwards bootstrap callbacks through the extracted method containers', async () => {
     const initializeGraphViewProviderServices = vi.fn();
 
-    vi.doMock('../../../../src/extension/graphView/provider/bootstrap', () => ({
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices,
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
     }));
@@ -233,7 +233,7 @@ describe('graphView/provider/runtime', () => {
   });
 
   it('keeps the method containers available through the internals helper', async () => {
-    vi.doMock('../../../../src/extension/graphView/provider/bootstrap', () => ({
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices: vi.fn(),
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
     }));
@@ -275,7 +275,7 @@ describe('graphView/provider/runtime', () => {
   it('passes an empty workspace root to provider services when no folder is open', async () => {
     const initializeGraphViewProviderServices = vi.fn();
 
-    vi.doMock('../../../../src/extension/graphView/provider/bootstrap', () => ({
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices,
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
     }));
@@ -297,7 +297,7 @@ describe('graphView/provider/runtime', () => {
   it('passes an empty workspace root to provider services when the folder list is empty', async () => {
     const initializeGraphViewProviderServices = vi.fn();
 
-    vi.doMock('../../../../src/extension/graphView/provider/bootstrap', () => ({
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices,
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
     }));

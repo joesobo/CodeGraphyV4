@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   initializeGraphViewProviderServices,
   restoreGraphViewProviderState,
-} from '../../../../src/extension/graphView/provider/bootstrap';
+} from '../../../../../src/extension/graphView/provider/wiring/bootstrap';
 
 describe('graph view provider bootstrap helper', () => {
   it('registers core views, configures analyzer services, and forwards decoration updates', () => {

@@ -48,57 +48,57 @@ const mockedFactories = vi.hoisted(() => {
   };
 });
 
-vi.mock('../../../../src/extension/graphView/provider/source/create', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/source/create', () => ({
   createGraphViewProviderMethodSource: mockedFactories.createGraphViewProviderMethodSource,
 }));
-vi.mock('../../../../src/extension/graphView/provider/analysis/methods', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/analysis/methods', () => ({
   createGraphViewProviderAnalysisMethods: mockedFactories.createGraphViewProviderAnalysisMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/commands', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/commands', () => ({
   createGraphViewProviderCommandMethods: mockedFactories.createGraphViewProviderCommandMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/file/actions', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/file/actions', () => ({
   createGraphViewProviderFileActionMethods: mockedFactories.createGraphViewProviderFileActionMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/file/visits', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/file/visits', () => ({
   createGraphViewProviderFileVisitMethods: mockedFactories.createGraphViewProviderFileVisitMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/physicsSettings', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/physicsSettings', () => ({
   createGraphViewProviderPhysicsSettingsMethods:
     mockedFactories.createGraphViewProviderPhysicsSettingsMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/plugins', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/plugins', () => ({
   createGraphViewProviderPluginMethods: mockedFactories.createGraphViewProviderPluginMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/pluginResources', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/pluginResources', () => ({
   createGraphViewProviderPluginResourceMethods:
     mockedFactories.createGraphViewProviderPluginResourceMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/refresh', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/refresh', () => ({
   createGraphViewProviderRefreshMethods: mockedFactories.createGraphViewProviderRefreshMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/settingsState', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/settingsState', () => ({
   createGraphViewProviderSettingsStateMethods:
     mockedFactories.createGraphViewProviderSettingsStateMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/timeline/methods', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/timeline/methods', () => ({
   createGraphViewProviderTimelineMethods: mockedFactories.createGraphViewProviderTimelineMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/view/context', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/view/context', () => ({
   createGraphViewProviderViewContextMethods:
     mockedFactories.createGraphViewProviderViewContextMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/view/selection', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/view/selection', () => ({
   createGraphViewProviderViewSelectionMethods:
     mockedFactories.createGraphViewProviderViewSelectionMethods,
 }));
-vi.mock('../../../../src/extension/graphView/provider/webview/host', () => ({
+vi.mock('../../../../../src/extension/graphView/provider/webview/host', () => ({
   createGraphViewProviderWebviewMethods: mockedFactories.createGraphViewProviderWebviewMethods,
 }));
 
-import { createGraphViewProviderMethodContainers } from '../../../../src/extension/graphView/provider/methodContainers';
+import { createGraphViewProviderMethodContainers } from '../../../../../src/extension/graphView/provider/wiring/methodContainers';
 
-describe('graphView/provider/methodContainers', () => {
+describe('graphView/provider/wiring/methodContainers', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

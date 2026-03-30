@@ -16,7 +16,7 @@ import type { GraphViewProviderPhysicsSettingsMethodsSource } from '../physicsSe
 import type { GraphViewProviderPluginMethodsSource } from '../plugins';
 import type { GraphViewProviderPluginResourceMethodsSource } from '../pluginResources';
 import type { GraphViewProviderRefreshMethodsSource } from '../refresh';
-import type { GraphViewProviderMethodContainers } from '../methodContainers';
+import type { GraphViewProviderMethodContainers } from '../wiring/methodContainers';
 import type { GraphViewProviderSettingsStateMethodsSource } from '../settingsState';
 import type { GraphViewProviderTimelineMethodsSource } from '../timeline/methods';
 import type { GraphViewProviderViewContextMethodsSource } from '../view/context';

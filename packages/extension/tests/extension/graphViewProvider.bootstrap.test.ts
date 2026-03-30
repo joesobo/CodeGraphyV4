@@ -132,7 +132,7 @@ describe('GraphViewProvider bootstrap wiring', () => {
     vi.doUnmock('../../src/extension/graphView/provider/view/context');
     vi.doUnmock('../../src/extension/graphView/provider/view/selection');
     vi.doUnmock('../../src/extension/graphView/provider/webview/host');
-    vi.doUnmock('../../src/extension/graphView/provider/bootstrap');
+    vi.doUnmock('../../src/extension/graphView/provider/wiring/bootstrap');
     vi.resetModules();
   });
 
@@ -140,7 +140,7 @@ describe('GraphViewProvider bootstrap wiring', () => {
     const initializeGraphViewProviderServices = vi.fn();
     const restoreGraphViewProviderState = vi.fn(() => createRestoredState());
 
-    vi.doMock('../../src/extension/graphView/provider/bootstrap', () => ({
+    vi.doMock('../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices,
       restoreGraphViewProviderState,
     }));
@@ -222,7 +222,7 @@ describe('GraphViewProvider bootstrap wiring', () => {
     const initializeGraphViewProviderServices = vi.fn();
     const restoreGraphViewProviderState = vi.fn(() => createRestoredState());
 
-    vi.doMock('../../src/extension/graphView/provider/bootstrap', () => ({
+    vi.doMock('../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices,
       restoreGraphViewProviderState,
     }));
@@ -245,7 +245,7 @@ describe('GraphViewProvider bootstrap wiring', () => {
     const initializeGraphViewProviderServices = vi.fn();
     const restoreGraphViewProviderState = vi.fn(() => createRestoredState());
 
-    vi.doMock('../../src/extension/graphView/provider/bootstrap', () => ({
+    vi.doMock('../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices,
       restoreGraphViewProviderState,
     }));

@@ -1,22 +1,22 @@
 import {
   createGraphViewProviderAnalysisMethods,
-} from './analysis/methods';
-import { createGraphViewProviderCommandMethods } from './commands';
-import { createGraphViewProviderFileActionMethods } from './file/actions';
-import { createGraphViewProviderFileVisitMethods } from './file/visits';
-import { createGraphViewProviderPhysicsSettingsMethods } from './physicsSettings';
-import { createGraphViewProviderPluginMethods } from './plugins';
-import { createGraphViewProviderPluginResourceMethods } from './pluginResources';
-import { createGraphViewProviderRefreshMethods } from './refresh';
-import { createGraphViewProviderSettingsStateMethods } from './settingsState';
+} from '../analysis/methods';
+import { createGraphViewProviderCommandMethods } from '../commands';
+import { createGraphViewProviderFileActionMethods } from '../file/actions';
+import { createGraphViewProviderFileVisitMethods } from '../file/visits';
+import { createGraphViewProviderPhysicsSettingsMethods } from '../physicsSettings';
+import { createGraphViewProviderPluginMethods } from '../plugins';
+import { createGraphViewProviderPluginResourceMethods } from '../pluginResources';
+import { createGraphViewProviderRefreshMethods } from '../refresh';
+import { createGraphViewProviderSettingsStateMethods } from '../settingsState';
 import {
   createGraphViewProviderMethodSource,
   type GraphViewProviderMethodSourceOwner,
-} from './source/create';
-import { createGraphViewProviderTimelineMethods } from './timeline/methods';
-import { createGraphViewProviderViewContextMethods } from './view/context';
-import { createGraphViewProviderViewSelectionMethods } from './view/selection';
-import { createGraphViewProviderWebviewMethods } from './webview/host';
+} from '../source/create';
+import { createGraphViewProviderTimelineMethods } from '../timeline/methods';
+import { createGraphViewProviderViewContextMethods } from '../view/context';
+import { createGraphViewProviderViewSelectionMethods } from '../view/selection';
+import { createGraphViewProviderWebviewMethods } from '../webview/host';
 
 export interface GraphViewProviderMethodContainers {
   analysis: ReturnType<typeof createGraphViewProviderAnalysisMethods>;

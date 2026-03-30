@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/types';
 import {
   assignGraphViewProviderPublicMethods,
   type GraphViewProviderPublicMethodsTarget,
-} from '../../../../src/extension/graphView/provider/publicApi';
+} from '../../../../../src/extension/graphView/provider/wiring/publicApi';
 
 function createTarget() {
   const graphData: IGraphData = {

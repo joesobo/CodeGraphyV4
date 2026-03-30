@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
-import type { EventName, EventPayloads } from '../../../core/plugins/eventBus';
-import type { IGraphData } from '../../../shared/graph/types';
-import type { GraphViewExternalPluginRegistrationOptions } from '../webview/plugins/registration';
+import type { EventName, EventPayloads } from '../../../../core/plugins/eventBus';
+import type { IGraphData } from '../../../../shared/graph/types';
+import type { GraphViewExternalPluginRegistrationOptions } from '../../webview/plugins/registration';
 import type { GraphViewProviderMethodContainers } from './methodContainers';
 
 interface GraphViewProviderPublicMethodsOwner {

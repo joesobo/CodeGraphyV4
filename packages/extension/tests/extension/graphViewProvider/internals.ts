@@ -1,6 +1,6 @@
 import type { IGraphData } from '../../../src/shared/graph/types';
 import type { GraphViewProvider } from '../../../src/extension/graphViewProvider';
-import type { GraphViewProviderMethodContainers } from '../../../src/extension/graphView/provider/methodContainers';
+import type { GraphViewProviderMethodContainers } from '../../../src/extension/graphView/provider/wiring/methodContainers';
 
 export interface GraphViewProviderInternals {
   _analysisMethods: GraphViewProviderMethodContainers['analysis'];

@@ -14,15 +14,18 @@ import type { IGroup } from '../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../gitHistory/analyzer';
 import { WorkspaceAnalyzer } from '../../workspaceAnalyzer/service';
-import { initializeGraphViewProviderServices, restoreGraphViewProviderState } from './bootstrap';
+import {
+  initializeGraphViewProviderServices,
+  restoreGraphViewProviderState,
+} from './wiring/bootstrap';
 import {
   createGraphViewProviderMethodContainers,
   type GraphViewProviderMethodContainers,
-} from './methodContainers';
+} from './wiring/methodContainers';
 import {
   assignGraphViewProviderPublicMethods,
   type GraphViewProviderPublicMethodsTarget,
-} from './publicApi';
+} from './wiring/publicApi';
 import type { GraphViewProviderMethodSourceOwner } from './source/create';
 
 const SELECTED_VIEW_KEY = 'codegraphy.selectedView';

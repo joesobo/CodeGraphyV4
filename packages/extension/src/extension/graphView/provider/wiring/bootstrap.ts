@@ -1,4 +1,4 @@
-import type { DagMode, NodeSizeMode } from '../../../shared/settings/modes';
+import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 
 interface GraphViewCoreViewLike {
   id: string;
