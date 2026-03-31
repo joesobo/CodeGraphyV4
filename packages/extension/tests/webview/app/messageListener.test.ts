@@ -12,6 +12,7 @@ import { postMessage } from '../../../src/webview/vscodeApi';
 describe('app message listener', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.clearAllMocks();
     delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
       .__codegraphyWebviewReadyPosted;
   });
