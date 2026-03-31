@@ -4,7 +4,14 @@ All notable changes to CodeGraphy will be documented in this file.
 
 This project uses [Changesets](https://github.com/changesets/changesets) for versioning.
 
-## 0.1.0 (Unreleased)
+## 4.0.1
+
+### Patch Changes
+
+- Fix companion extension activation so installed language plugins register with the core graph and their connections appear reliably.
+- Refresh the published README links, package icons, and marketplace metadata for the core extension and companion packages.
+
+## 4.0.0
 
 Initial development release. Core features:
 
