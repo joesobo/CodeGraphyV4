@@ -1,13 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IGroup } from '../../../../../../shared/settings/groups';
-import { createGroupActions, updateSettingsPanelUserGroups } from '../actions';
+import { createGroupActions } from '../actions';
 import { createGroupDragHandlers } from '../drag';
 import {
   clearTimeoutMap,
   createGroupPersistenceHandlers,
 } from '../persistence';
 import { graphStore } from '../../../../../store/state';
-import { replaceSettingsPanelUserGroups } from '../sections';
 
 export interface GroupEditorState {
   customExpanded: boolean;
@@ -78,14 +77,6 @@ export function useEditorState({
     colorDebounceRef,
     overridePluginGroup: actions.overridePluginGroup,
     patternDebounceRef,
-    previewGroupUpdate: (groupId, updates) => {
-      graphStore.getState().setGroups(
-        replaceSettingsPanelUserGroups(
-          groups,
-          updateSettingsPanelUserGroups(userGroups, groupId, updates),
-        ),
-      );
-    },
     setOptimisticGroupUpdate: (groupId, updates) => {
       graphStore.getState().setOptimisticGroupUpdate(groupId, updates);
     },
