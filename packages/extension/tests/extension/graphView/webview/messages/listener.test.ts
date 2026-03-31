@@ -150,6 +150,28 @@ describe('graph view webview message listener', () => {
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
   });
 
+  it('ignores duplicate WEBVIEW_READY messages from the same listener', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext();
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.({ type: 'WEBVIEW_READY' });
+    await messageHandler?.({ type: 'WEBVIEW_READY' });
+
+    expect(context.analyzeAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(1);
+    expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(1);
+    expect(context.notifyWebviewReady).toHaveBeenCalledTimes(1);
+    expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
+    expect(context.setWebviewReadyNotified).toHaveBeenCalledTimes(1);
+  });
+
   it('does not store ready state for handled plugin messages without a ready flag', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {

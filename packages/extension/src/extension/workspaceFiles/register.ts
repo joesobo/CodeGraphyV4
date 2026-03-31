@@ -6,6 +6,35 @@ import {
   shouldIgnoreWorkspaceFileWatcherRefresh,
 } from './ignore';
 
+interface PendingWorkspaceRefresh {
+  logMessage: string;
+  timeout: ReturnType<typeof setTimeout>;
+}
+
+const pendingWorkspaceRefreshes = new WeakMap<GraphViewProvider, PendingWorkspaceRefresh>();
+
+function scheduleWorkspaceRefresh(
+  provider: GraphViewProvider,
+  logMessage: string,
+  delayMs: number = 500,
+): void {
+  const pending = pendingWorkspaceRefreshes.get(provider);
+  if (pending) {
+    clearTimeout(pending.timeout);
+  }
+
+  const nextPending: PendingWorkspaceRefresh = {
+    logMessage,
+    timeout: setTimeout(() => {
+      pendingWorkspaceRefreshes.delete(provider);
+      console.log(nextPending.logMessage);
+      void provider.refresh();
+    }, delayMs),
+  };
+
+  pendingWorkspaceRefreshes.set(provider, nextPending);
+}
+
 /** Registers the active editor change listener that tracks file visits. */
 export function registerEditorChangeHandler(
   context: vscode.ExtensionContext,
@@ -40,20 +69,13 @@ export function registerSaveHandler(
   context: vscode.ExtensionContext,
   provider: GraphViewProvider
 ): void {
-  let saveTimeout: ReturnType<typeof setTimeout> | undefined;
   context.subscriptions.push(
     vscode.workspace.onDidSaveTextDocument((document) => {
       if (shouldIgnoreSaveForGraphRefresh(document)) {
         return;
       }
-      if (saveTimeout) {
-        clearTimeout(saveTimeout);
-      }
-      saveTimeout = setTimeout(() => {
-        console.log('[CodeGraphy] File saved, refreshing graph');
-        void provider.refresh();
-        provider.emitEvent('workspace:fileChanged', { filePath: document.uri.fsPath });
-      }, 500);
+      scheduleWorkspaceRefresh(provider, '[CodeGraphy] File saved, refreshing graph');
+      provider.emitEvent('workspace:fileChanged', { filePath: document.uri.fsPath });
     })
   );
 }
@@ -69,8 +91,7 @@ export function registerFileWatcher(
       if (shouldIgnoreWorkspaceFileWatcherRefresh(uri.fsPath)) {
         return;
       }
-      console.log('[CodeGraphy] File created, refreshing graph');
-      void provider.refresh();
+      scheduleWorkspaceRefresh(provider, '[CodeGraphy] File created, refreshing graph');
       provider.emitEvent('workspace:fileCreated', { filePath: uri.fsPath });
     })
   );
@@ -79,8 +100,7 @@ export function registerFileWatcher(
       if (shouldIgnoreWorkspaceFileWatcherRefresh(uri.fsPath)) {
         return;
       }
-      console.log('[CodeGraphy] File deleted, refreshing graph');
-      void provider.refresh();
+      scheduleWorkspaceRefresh(provider, '[CodeGraphy] File deleted, refreshing graph');
       provider.emitEvent('workspace:fileDeleted', { filePath: uri.fsPath });
     })
   );

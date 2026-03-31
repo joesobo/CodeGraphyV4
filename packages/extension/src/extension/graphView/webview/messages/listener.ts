@@ -22,7 +22,16 @@ export function setGraphViewWebviewMessageListener(
   webview: vscode.Webview,
   context: GraphViewMessageListenerContext,
 ): void {
+  let webviewReadyHandled = false;
+
   webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
+    if (message.type === 'WEBVIEW_READY') {
+      if (webviewReadyHandled) {
+        return;
+      }
+      webviewReadyHandled = true;
+    }
+
     const primaryResult = await dispatchGraphViewPrimaryMessage(message, context);
     if (primaryResult.handled) {
       if (primaryResult.userGroups !== undefined) {
