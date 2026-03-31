@@ -18,6 +18,7 @@ function createSource(
   _graphData: IGraphData;
   _loadDisabledRulesAndPlugins: ReturnType<typeof vi.fn>;
   _analyzeAndSendData: ReturnType<typeof vi.fn>;
+  _sendAllSettings: ReturnType<typeof vi.fn>;
   _sendSettings: ReturnType<typeof vi.fn>;
   _sendPhysicsSettings: ReturnType<typeof vi.fn>;
   _updateViewContext: ReturnType<typeof vi.fn>;
@@ -41,6 +42,7 @@ function createSource(
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _loadDisabledRulesAndPlugins: vi.fn(() => true),
     _analyzeAndSendData: vi.fn(async () => undefined),
+    _sendAllSettings: vi.fn(),
     _sendSettings: vi.fn(),
     _sendPhysicsSettings: vi.fn(),
     _updateViewContext: vi.fn(),
@@ -141,6 +143,21 @@ describe('graphView/provider/refresh', () => {
     methods.refreshToggleSettings();
 
     expect(rebuildGraphData).toHaveBeenCalledOnce();
+  });
+
+  it('refreshGroupSettings re-sends the current settings snapshot', () => {
+    const source = createSource();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+      shouldRebuild: vi.fn(() => true),
+    });
+
+    methods.refreshGroupSettings();
+
+    expect(source._sendAllSettings).toHaveBeenCalledOnce();
+    expect(source._sendSettings).not.toHaveBeenCalled();
   });
 
   it('rebuild and smart rebuild delegate to the graph view rebuild helpers', () => {

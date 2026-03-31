@@ -6,6 +6,7 @@ function makeProvider() {
     refreshPhysicsSettings: vi.fn(),
     refreshToggleSettings: vi.fn(),
     refreshSettings: vi.fn(),
+    refreshGroupSettings: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
     emitEvent: vi.fn(),
     invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
@@ -55,16 +56,27 @@ describe('executeConfigAction', () => {
     expect(provider.refresh).not.toHaveBeenCalled();
   });
 
-  it('does not call any refresh method for groups category', () => {
+  it('debounces group settings syncs and refreshes group settings once', () => {
+    vi.useFakeTimers();
     const provider = makeProvider();
     const event = makeEvent();
 
+    executeConfigAction('groups', event as never, provider as never);
     executeConfigAction('groups', event as never, provider as never);
 
     expect(provider.refreshPhysicsSettings).not.toHaveBeenCalled();
     expect(provider.refreshToggleSettings).not.toHaveBeenCalled();
     expect(provider.refreshSettings).not.toHaveBeenCalled();
+    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
     expect(provider.refresh).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(299);
+    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(provider.refreshGroupSettings).toHaveBeenCalledOnce();
+
+    vi.useRealTimers();
   });
 
   describe('general category', () => {
