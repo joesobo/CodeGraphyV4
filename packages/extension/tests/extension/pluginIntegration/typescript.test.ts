@@ -8,7 +8,7 @@ import { activate } from '../../../src/extension/activate';
 import type { GraphViewProvider } from '../../../src/extension/graphViewProvider';
 import { getGraphViewProviderInternals } from '../graphViewProvider/internals';
 
-const fixtureWorkspacePath = path.resolve(__dirname, '../../../../../test-fixtures/workspace');
+const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
