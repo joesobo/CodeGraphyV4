@@ -97,6 +97,22 @@ describe('search filtering', () => {
     });
   });
 
+  it('applies folder-based group patterns by folder basename at any depth', () => {
+    const nestedGraphData: IGraphData = {
+      nodes: [
+        { id: 'packages/extension/src/App.ts', label: 'App', color: '#111111' },
+        { id: 'packages/extension/docs/README.md', label: 'README', color: '#333333' },
+      ],
+      edges: [],
+    };
+    const groups: IGroup[] = [{ id: 'source', pattern: 'src/*', color: '#ff0000' }];
+
+    const result = applyGroupColors(nestedGraphData, groups);
+
+    expect(result?.nodes[0]).toMatchObject({ color: '#ff0000' });
+    expect(result?.nodes[1]).toMatchObject({ color: '#333333' });
+  });
+
   it('falls back to the existing node color or the default color when no group matches', () => {
     const groups: IGroup[] = [{ id: 'markdown', pattern: '*.md', color: '#00ff00' }];
 
