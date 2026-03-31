@@ -40,6 +40,8 @@ export function setGraphViewWebviewMessageListener(
     if (primaryResult.handled) {
       if (primaryResult.userGroups !== undefined) {
         context.setUserGroups(primaryResult.userGroups);
+        context.recomputeGroups();
+        context.sendGroupsUpdated();
       }
       if (primaryResult.filterPatterns !== undefined) {
         context.setFilterPatterns(primaryResult.filterPatterns);

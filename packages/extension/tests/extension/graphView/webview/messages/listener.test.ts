@@ -113,6 +113,25 @@ describe('graph view webview message listener', () => {
     expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
   });
 
+  it('recomputes and sends groups after storing user group updates', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const userGroups: IGroup[] = [{ id: 'user:docs', pattern: 'docs/**', color: '#445566' }];
+    const context = createContext();
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.({ type: 'UPDATE_GROUPS', payload: { groups: userGroups } });
+
+    expect(context.setUserGroups).toHaveBeenCalledWith(userGroups);
+    expect(context.recomputeGroups).toHaveBeenCalledTimes(1);
+    expect(context.sendGroupsUpdated).toHaveBeenCalledTimes(1);
+  });
+
   it('stores filter pattern updates from primary dispatch flows', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {
