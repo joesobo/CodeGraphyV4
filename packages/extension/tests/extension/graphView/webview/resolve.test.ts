@@ -23,6 +23,7 @@ describe('graphView/webview/resolve', () => {
       setWebviewMessageListener,
       getHtml: () => '<div id="root"></div>',
       executeCommand,
+      sendAllSettings: vi.fn(),
       analyzeAndSendData: vi.fn(() => Promise.resolve()),
       log: vi.fn(),
     });
@@ -39,6 +40,7 @@ describe('graphView/webview/resolve', () => {
 
   it('re-analyzes when the view becomes visible again', () => {
     const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const sendAllSettings = vi.fn();
     const executeCommand = vi.fn(() => Promise.resolve());
     const log = vi.fn();
     let visibilityHandler: (() => void) | undefined;
@@ -59,6 +61,7 @@ describe('graphView/webview/resolve', () => {
       setWebviewMessageListener: vi.fn(),
       getHtml: () => '<div id="root"></div>',
       executeCommand,
+      sendAllSettings,
       analyzeAndSendData,
       log,
     });
@@ -67,6 +70,10 @@ describe('graphView/webview/resolve', () => {
 
     expect(executeCommand).toHaveBeenLastCalledWith('setContext', 'codegraphy.viewVisible', true);
     expect(log).toHaveBeenCalledWith('[CodeGraphy] View became visible, re-sending data');
+    expect(sendAllSettings).toHaveBeenCalledOnce();
+    expect(sendAllSettings.mock.invocationCallOrder[0]).toBeLessThan(
+      analyzeAndSendData.mock.invocationCallOrder[0],
+    );
     expect(analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
@@ -90,6 +97,7 @@ describe('graphView/webview/resolve', () => {
       setWebviewMessageListener: vi.fn(),
       getHtml: () => '<div id="root"></div>',
       executeCommand: vi.fn(() => Promise.resolve()),
+      sendAllSettings: vi.fn(),
       analyzeAndSendData,
       log: vi.fn(),
     });

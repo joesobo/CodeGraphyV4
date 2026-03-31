@@ -32,6 +32,7 @@ export function executeConfigAction(
       break;
     case 'general':
       console.log('[CodeGraphy] Configuration changed, refreshing graph');
+      provider.refreshGroupSettings();
       void provider.refresh();
       provider.emitEvent('workspace:configChanged', { key: 'codegraphy', value: undefined, old: undefined });
       if (

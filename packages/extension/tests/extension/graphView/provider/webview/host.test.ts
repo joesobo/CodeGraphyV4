@@ -94,15 +94,17 @@ describe('graphView/provider/webview/host', () => {
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview);
   });
 
-  it('exposes live command, analysis, and log callbacks to the sidebar resolver', async () => {
+  it('exposes live command, settings-sync, analysis, and log callbacks to the sidebar resolver', async () => {
     const resolveWebviewView = vi.fn();
     const executeCommand = vi.fn(() => Promise.resolve('executed'));
     const log = vi.fn();
+    const sendAllSettings = vi.fn();
     const analyzeAndSendData = vi.fn(async () => undefined);
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
       _panels: [],
+      _sendAllSettings: sendAllSettings,
       _analyzeAndSendData: analyzeAndSendData,
       _getLocalResourceRoots: vi.fn(() => []),
     };
@@ -128,6 +130,7 @@ describe('graphView/provider/webview/host', () => {
 
     const options = resolveWebviewView.mock.calls[0]?.[1] as {
       executeCommand(command: string, key: string, value: boolean): Promise<unknown>;
+      sendAllSettings(): void;
       analyzeAndSendData(): Promise<void>;
       log(message: string): void;
     };
@@ -135,6 +138,7 @@ describe('graphView/provider/webview/host', () => {
     await expect(options.executeCommand('setContext', 'codegraphy.graphViewVisible', true)).resolves.toBe(
       'executed',
     );
+    options.sendAllSettings();
     await options.analyzeAndSendData();
     options.log('sidebar ready');
 
@@ -143,6 +147,7 @@ describe('graphView/provider/webview/host', () => {
       'codegraphy.graphViewVisible',
       true,
     );
+    expect(sendAllSettings).toHaveBeenCalledOnce();
     expect(analyzeAndSendData).toHaveBeenCalledOnce();
     expect(log).toHaveBeenCalledWith('sidebar ready');
   });

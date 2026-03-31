@@ -80,6 +80,19 @@ describe('executeConfigAction', () => {
   });
 
   describe('general category', () => {
+    it('syncs the full settings snapshot before refreshing for general category changes', () => {
+      const provider = makeProvider();
+      const event = makeEvent('codegraphy.maxFiles');
+
+      executeConfigAction('general', event as never, provider as never);
+
+      expect(provider.refreshGroupSettings).toHaveBeenCalledOnce();
+      expect(provider.refresh).toHaveBeenCalledOnce();
+      expect(provider.refreshGroupSettings.mock.invocationCallOrder[0]).toBeLessThan(
+        provider.refresh.mock.invocationCallOrder[0],
+      );
+    });
+
     it('calls refresh and emitEvent for general category', () => {
       const provider = makeProvider();
       const event = makeEvent();
