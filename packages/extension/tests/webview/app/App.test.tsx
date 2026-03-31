@@ -53,6 +53,8 @@ function resetStore() {
 describe('App', () => {
   beforeEach(() => {
     messageListeners.length = 0;
+    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
+      .__codegraphyWebviewReadyPosted;
     resetStore();
     vi.useFakeTimers();
   });
@@ -158,6 +160,8 @@ function sendMessage(data: unknown) {
 describe('App: message handlers', () => {
   beforeEach(() => {
     messageListeners.length = 0;
+    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
+      .__codegraphyWebviewReadyPosted;
     resetStore();
     vi.useFakeTimers();
   });
