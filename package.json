@@ -1,6 +1,6 @@
 {
 	"name": "codegraphy",
-	"version": "4.0.0",
+	"version": "4.0.1",
 	"packageManager": "pnpm@10.32.0",
 	"workspaces": [
 		"packages/*"
@@ -14,7 +14,7 @@
 		"watch:extension": "pnpm --filter @codegraphy/extension run watch:extension",
 		"watch:webview": "pnpm --filter @codegraphy/extension run watch:webview",
 		"dev": "pnpm --filter @codegraphy/extension run dev",
-		"test": "turbo run test",
+		"test": "turbo run test && pnpm run test:release",
 		"test:playwright": "playwright test",
 		"test:playwright:ui": "playwright test --ui",
 		"playwright:install": "playwright install chromium",
@@ -34,6 +34,7 @@
 		"release:check": "pnpm run lint && pnpm run typecheck && pnpm run test && pnpm run build",
 		"release:package": "node scripts/release.mjs package",
 		"release:publish": "node scripts/release.mjs publish",
+		"test:release": "node --test tests/release/changesets.test.mjs",
 		"typecheck": "turbo run typecheck",
 		"typecheck:extension": "pnpm --filter @codegraphy/extension run typecheck",
 		"typecheck:plugin-api": "pnpm --filter @codegraphy-vscode/plugin-api run typecheck",
