@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import type { IGroup } from '../../../../../../shared/settings/groups';
-import { createGroupActions } from '../actions';
+import { createGroupActions, updateSettingsPanelUserGroups } from '../actions';
 import { createGroupDragHandlers } from '../drag';
 import {
   clearTimeoutMap,
   createGroupPersistenceHandlers,
 } from '../persistence';
+import { graphStore } from '../../../../../store/state';
+import { replaceSettingsPanelUserGroups } from '../sections';
 
 export interface GroupEditorState {
   customExpanded: boolean;
@@ -38,9 +40,11 @@ export interface GroupEditorState {
 }
 
 export function useEditorState({
+  groups,
   userGroups,
   setExpandedGroupId,
 }: {
+  groups: IGroup[];
   userGroups: IGroup[];
   setExpandedGroupId: (groupId: string | null) => void;
 }): GroupEditorState {
@@ -62,6 +66,7 @@ export function useEditorState({
     };
   }, []);
   const actions = createGroupActions({
+    groups,
     newColor,
     newPattern,
     setExpandedGroupId,
@@ -73,6 +78,17 @@ export function useEditorState({
     colorDebounceRef,
     overridePluginGroup: actions.overridePluginGroup,
     patternDebounceRef,
+    previewGroupUpdate: (groupId, updates) => {
+      graphStore.getState().setGroups(
+        replaceSettingsPanelUserGroups(
+          groups,
+          updateSettingsPanelUserGroups(userGroups, groupId, updates),
+        ),
+      );
+    },
+    setOptimisticGroupUpdate: (groupId, updates) => {
+      graphStore.getState().setOptimisticGroupUpdate(groupId, updates);
+    },
     setLocalColorOverrides,
     setLocalPatternOverrides,
     updateGroup: actions.updateGroup,

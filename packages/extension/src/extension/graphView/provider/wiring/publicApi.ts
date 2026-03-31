@@ -20,6 +20,7 @@ interface GraphViewProviderPublicMethodsOwner {
 
 export interface GraphViewProviderPublicMethods {
   refresh: () => Promise<void>;
+  refreshGroupSettings: () => void;
   refreshPhysicsSettings: () => void;
   refreshSettings: () => void;
   refreshToggleSettings: () => void;
@@ -74,6 +75,7 @@ export function assignGraphViewProviderPublicMethods(
   target: GraphViewProviderPublicMethodsTarget,
 ): void {
   target.refresh = () => target._methodContainers.refresh.refresh();
+  target.refreshGroupSettings = () => target._methodContainers.refresh.refreshGroupSettings();
   target.refreshPhysicsSettings = () => target._methodContainers.refresh.refreshPhysicsSettings();
   target.refreshSettings = () => target._methodContainers.refresh.refreshSettings();
   target.refreshToggleSettings = () => target._methodContainers.refresh.refreshToggleSettings();

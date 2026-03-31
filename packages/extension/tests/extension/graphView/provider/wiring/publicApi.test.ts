@@ -16,6 +16,7 @@ function createTarget() {
   const onWebviewMessage = vi.fn(() => disposable as unknown as vscode.Disposable);
   const refreshMethods = {
     refresh: vi.fn(async () => undefined),
+    refreshGroupSettings: vi.fn(),
     refreshPhysicsSettings: vi.fn(),
     refreshSettings: vi.fn(),
     refreshToggleSettings: vi.fn(),
@@ -63,6 +64,7 @@ function createTarget() {
 
   const target = {
     refresh: vi.fn(async () => undefined),
+    refreshGroupSettings: vi.fn(),
     refreshPhysicsSettings: vi.fn(),
     refreshSettings: vi.fn(),
     refreshToggleSettings: vi.fn(),
@@ -114,6 +116,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     assignGraphViewProviderPublicMethods(target);
 
     await target.refresh();
+    target.refreshGroupSettings();
     target.refreshPhysicsSettings();
     target.refreshSettings();
     target.refreshToggleSettings();
@@ -134,6 +137,7 @@ describe('assignGraphViewProviderPublicMethods', () => {
     });
 
     expect(target._methodContainers.refresh.refresh).toHaveBeenCalledTimes(1);
+    expect(target._methodContainers.refresh.refreshGroupSettings).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.refresh.refreshPhysicsSettings).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.refresh.refreshSettings).toHaveBeenCalledTimes(1);
     expect(target._methodContainers.refresh.refreshToggleSettings).toHaveBeenCalledTimes(1);

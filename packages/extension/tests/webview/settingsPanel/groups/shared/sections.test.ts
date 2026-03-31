@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import type { IGroup } from '../../../../../src/shared/settings/groups';
-import { groupSettingsPanelSections } from '../../../../../src/webview/components/settingsPanel/groups/shared/sections';
+import {
+  groupSettingsPanelSections,
+  replaceSettingsPanelUserGroups,
+} from '../../../../../src/webview/components/settingsPanel/groups/shared/sections';
 
 describe('settingsPanel groups sections', () => {
   it('groups custom and default settings panel groups into visible sections', () => {
@@ -170,5 +173,33 @@ describe('settingsPanel groups sections', () => {
         },
       ],
     });
+  });
+
+  it('replaces only the custom groups while preserving default section groups', () => {
+    const groups: IGroup[] = [
+      { id: 'custom:src', pattern: 'src/**', color: '#3B82F6' },
+      {
+        id: 'plugin:python:tests',
+        pattern: '**/test_*.py',
+        color: '#10B981',
+        isPluginDefault: true,
+        pluginName: 'Python',
+      },
+    ];
+
+    expect(
+      replaceSettingsPanelUserGroups(groups, [
+        { id: 'custom:test', pattern: 'test/**', color: '#F97316' },
+      ]),
+    ).toEqual([
+      { id: 'custom:test', pattern: 'test/**', color: '#F97316' },
+      {
+        id: 'plugin:python:tests',
+        pattern: '**/test_*.py',
+        color: '#10B981',
+        isPluginDefault: true,
+        pluginName: 'Python',
+      },
+    ]);
   });
 });
