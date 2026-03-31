@@ -20,6 +20,7 @@ function createSource(
   _loadGroupsAndFilterPatterns: ReturnType<typeof vi.fn>;
   _analyzeAndSendData: ReturnType<typeof vi.fn>;
   _sendAllSettings: ReturnType<typeof vi.fn>;
+  _sendFavorites: ReturnType<typeof vi.fn>;
   _sendGroupsUpdated: ReturnType<typeof vi.fn>;
   _sendSettings: ReturnType<typeof vi.fn>;
   _sendPhysicsSettings: ReturnType<typeof vi.fn>;
@@ -46,6 +47,7 @@ function createSource(
     _loadGroupsAndFilterPatterns: vi.fn(),
     _analyzeAndSendData: vi.fn(async () => undefined),
     _sendAllSettings: vi.fn(),
+    _sendFavorites: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
     _sendSettings: vi.fn(),
     _sendPhysicsSettings: vi.fn(),
@@ -60,7 +62,7 @@ function createSource(
 }
 
 describe('graphView/provider/refresh', () => {
-  it('refresh reloads disabled settings, re-analyzes, and resends settings', async () => {
+  it('refresh reloads disabled settings and group state before re-analysis', async () => {
     const source = createSource();
     const methods = createGraphViewProviderRefreshMethods(source as never, {
       getShowOrphans: vi.fn(() => true),
@@ -72,9 +74,38 @@ describe('graphView/provider/refresh', () => {
     await methods.refresh();
 
     expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
+    expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(source._sendSettings).toHaveBeenCalledOnce();
-    expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
+  });
+
+  it('refresh resends the full settings snapshot after re-analysis', async () => {
+    const source = createSource();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+      shouldRebuild: vi.fn(() => true),
+    });
+
+    await methods.refresh();
+
+    expect(source._sendAllSettings).toHaveBeenCalledOnce();
+    expect(source._sendSettings).not.toHaveBeenCalled();
+    expect(source._sendPhysicsSettings).not.toHaveBeenCalled();
+  });
+
+  it('refresh resends favorites after re-analysis', async () => {
+    const source = createSource();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+      shouldRebuild: vi.fn(() => true),
+    });
+
+    await methods.refresh();
+
+    expect(source._sendFavorites).toHaveBeenCalledOnce();
   });
 
   it('refreshToggleSettings rebuilds only when the disabled state changes', () => {

@@ -92,6 +92,17 @@ export function createGraphViewProviderSettingsStateMethods(
   dependencies: GraphViewProviderSettingsStateMethodDependencies =
     createDefaultGraphViewProviderSettingsStateMethodDependencies(),
 ): GraphViewProviderSettingsStateMethods {
+  const syncGroupStateToSource = (state: {
+    userGroups: IGroup[] | undefined;
+    hiddenPluginGroupIds: Set<string> | undefined;
+    filterPatterns: string[] | undefined;
+  }): void => {
+    source._userGroups = Array.isArray(state.userGroups) ? state.userGroups : [];
+    source._hiddenPluginGroupIds =
+      state.hiddenPluginGroupIds instanceof Set ? state.hiddenPluginGroupIds : new Set<string>();
+    source._filterPatterns = Array.isArray(state.filterPatterns) ? state.filterPatterns : [];
+  };
+
   const _loadGroupsAndFilterPatterns = (): void => {
     const config = dependencies.getConfiguration('codegraphy');
     const groupState = dependencies.loadGroupState(config, source._context.workspaceState);
@@ -102,7 +113,10 @@ export function createGraphViewProviderSettingsStateMethods(
     };
 
     dependencies.applyLoadedGroupState(groupState, state, {
-      recomputeGroups: () => source._computeMergedGroups(),
+      recomputeGroups: () => {
+        syncGroupStateToSource(state);
+        source._computeMergedGroups();
+      },
       persistLegacyGroups: groups => {
         const target = dependencies.getConfigTarget(dependencies.getWorkspaceFolders());
         void dependencies.getConfiguration('codegraphy').update('groups', groups, target);
@@ -112,9 +126,7 @@ export function createGraphViewProviderSettingsStateMethods(
       },
     });
 
-    source._userGroups = state.userGroups;
-    source._hiddenPluginGroupIds = state.hiddenPluginGroupIds;
-    source._filterPatterns = state.filterPatterns;
+    syncGroupStateToSource(state);
   };
 
   const _loadDisabledRulesAndPlugins = (): boolean => {
@@ -151,21 +163,22 @@ export function createGraphViewProviderSettingsStateMethods(
     };
 
     dependencies.sendProviderAllSettings(state, {
-        captureSettingsSnapshot: () =>
-          dependencies.captureSettingsSnapshot(
-            dependencies.getConfiguration('codegraphy'),
-            source._getPhysicsSettings(),
-            source._nodeSizeMode,
-          ),
+      captureSettingsSnapshot: () =>
+        dependencies.captureSettingsSnapshot(
+          dependencies.getConfiguration('codegraphy'),
+          source._getPhysicsSettings(),
+          source._nodeSizeMode,
+        ),
       getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
       sendMessage: message => source._sendMessage(message),
-      recomputeGroups: () => source._computeMergedGroups(),
+      recomputeGroups: () => {
+        syncGroupStateToSource(state);
+        source._computeMergedGroups();
+      },
       sendGroupsUpdated: () => source._sendGroupsUpdated(),
     });
 
-    source._hiddenPluginGroupIds = state.hiddenPluginGroupIds;
-    source._userGroups = state.userGroups;
-    source._filterPatterns = state.filterPatterns;
+    syncGroupStateToSource(state);
   };
 
   return {

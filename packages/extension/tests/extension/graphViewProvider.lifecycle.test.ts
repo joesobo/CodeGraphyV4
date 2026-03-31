@@ -66,7 +66,7 @@ describe('GraphViewProvider lifecycle', () => {
     expect(sendDecorationsSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('refresh re-analyzes and sends both settings payloads', async () => {
+  it('refresh reloads persisted settings, re-analyzes, and resends the full settings snapshot', async () => {
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
       createContext() as unknown as vscode.ExtensionContext
@@ -76,22 +76,26 @@ describe('GraphViewProvider lifecycle', () => {
     const loadSpy = vi
       .spyOn(internals._settingsStateMethods, '_loadDisabledRulesAndPlugins')
       .mockReturnValue(true);
+    const loadGroupsSpy = vi
+      .spyOn(internals._settingsStateMethods, '_loadGroupsAndFilterPatterns')
+      .mockImplementation(() => {});
     const analyzeSpy = vi
       .spyOn(internals._analysisMethods, '_analyzeAndSendData')
       .mockResolvedValue();
     const settingsSpy = vi
-      .spyOn(internals._settingsStateMethods, '_sendSettings')
+      .spyOn(internals._settingsStateMethods, '_sendAllSettings')
       .mockImplementation(() => {});
-    const physicsSpy = vi
-      .spyOn(internals._physicsSettingsMethods, '_sendPhysicsSettings')
+    const favoritesSpy = vi
+      .spyOn(internals._fileVisitMethods, '_sendFavorites')
       .mockImplementation(() => {});
 
     await provider.refresh();
 
     expect(loadSpy).toHaveBeenCalledTimes(1);
+    expect(loadGroupsSpy).toHaveBeenCalledTimes(1);
     expect(analyzeSpy).toHaveBeenCalledTimes(1);
     expect(settingsSpy).toHaveBeenCalledTimes(1);
-    expect(physicsSpy).toHaveBeenCalledTimes(1);
+    expect(favoritesSpy).toHaveBeenCalledTimes(1);
   });
 
   it('refreshToggleSettings only rebuilds when toggle state changed', () => {
