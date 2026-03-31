@@ -10,7 +10,6 @@ interface GroupPersistenceDependencies {
   colorDebounceRef: TimeoutMap;
   overridePluginGroup: (group: IGroup, updates: Partial<IGroup>) => void;
   patternDebounceRef: TimeoutMap;
-  previewGroupUpdate: (groupId: string, updates: Partial<IGroup>) => void;
   setOptimisticGroupUpdate: (groupId: string, updates: Partial<IGroup>) => void;
   setLocalColorOverrides: OverrideSetter;
   setLocalPatternOverrides: OverrideSetter;
@@ -69,7 +68,6 @@ export function createGroupPersistenceHandlers(
   return {
     changeGroupColor: (groupId: string, color: string) => {
       dependencies.setOptimisticGroupUpdate(groupId, { color });
-      dependencies.previewGroupUpdate(groupId, { color });
       scheduleOverride(
         groupId,
         color,
@@ -82,7 +80,6 @@ export function createGroupPersistenceHandlers(
     },
     changeGroupPattern: (groupId: string, pattern: string) => {
       dependencies.setOptimisticGroupUpdate(groupId, { pattern });
-      dependencies.previewGroupUpdate(groupId, { pattern });
       scheduleOverride(
         groupId,
         pattern,

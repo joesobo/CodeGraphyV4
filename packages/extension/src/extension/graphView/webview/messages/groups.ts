@@ -10,8 +10,6 @@ export interface GraphViewGroupMessageState {
 export interface GraphViewGroupMessageHandlers {
   workspaceFolder?: { uri: vscode.Uri };
   persistGroups(groups: IGroup[]): Promise<void>;
-  recomputeGroups(): void;
-  sendGroupsUpdated(): void;
   showOpenDialog(
     options: vscode.OpenDialogOptions,
   ): PromiseLike<readonly vscode.Uri[] | undefined>;
@@ -64,8 +62,6 @@ async function pickGroupImage(
 
   group.imagePath = `.codegraphy/assets/${fileName}`;
   await handlers.persistGroups(state.userGroups);
-  handlers.recomputeGroups();
-  handlers.sendGroupsUpdated();
 }
 
 export async function applyGroupMessage(
@@ -77,8 +73,6 @@ export async function applyGroupMessage(
     case 'UPDATE_GROUPS':
       state.userGroups = message.payload.groups.map(toPersistableGroup);
       await handlers.persistGroups(state.userGroups);
-      handlers.recomputeGroups();
-      handlers.sendGroupsUpdated();
       return true;
 
     case 'PICK_GROUP_IMAGE':
