@@ -1,7 +1,10 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../graphViewProvider';
-import { shouldIgnoreSaveForGraphRefresh } from './ignore';
+import {
+  shouldIgnoreSaveForGraphRefresh,
+  shouldIgnoreWorkspaceFileWatcherRefresh,
+} from './ignore';
 
 /** Registers the active editor change listener that tracks file visits. */
 export function registerEditorChangeHandler(
@@ -63,6 +66,9 @@ export function registerFileWatcher(
   const fileWatcher = vscode.workspace.createFileSystemWatcher('**/*');
   context.subscriptions.push(
     fileWatcher.onDidCreate((uri) => {
+      if (shouldIgnoreWorkspaceFileWatcherRefresh(uri.fsPath)) {
+        return;
+      }
       console.log('[CodeGraphy] File created, refreshing graph');
       void provider.refresh();
       provider.emitEvent('workspace:fileCreated', { filePath: uri.fsPath });
@@ -70,6 +76,9 @@ export function registerFileWatcher(
   );
   context.subscriptions.push(
     fileWatcher.onDidDelete((uri) => {
+      if (shouldIgnoreWorkspaceFileWatcherRefresh(uri.fsPath)) {
+        return;
+      }
       console.log('[CodeGraphy] File deleted, refreshing graph');
       void provider.refresh();
       provider.emitEvent('workspace:fileDeleted', { filePath: uri.fsPath });

@@ -325,4 +325,50 @@ describe('registerFileWatcher', () => {
       filePath: '/workspace/deleted-file.ts',
     });
   });
+
+  it('does not refresh for discovery-excluded file creation events', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    let createListener: ((uri: { fsPath: string }) => void) | undefined;
+    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
+      onDidCreate: vi.fn((cb) => {
+        createListener = cb;
+        return { dispose: vi.fn() };
+      }),
+      onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+      dispose: vi.fn(),
+    } as unknown as vscode.FileSystemWatcher);
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+
+    createListener!({ fsPath: '/workspace/node_modules/react/index.js' });
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not refresh for workspace config artifact deletion events', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    let deleteListener: ((uri: { fsPath: string }) => void) | undefined;
+    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
+      onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidDelete: vi.fn((cb) => {
+        deleteListener = cb;
+        return { dispose: vi.fn() };
+      }),
+      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+      dispose: vi.fn(),
+    } as unknown as vscode.FileSystemWatcher);
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+
+    deleteListener!({ fsPath: '/workspace/.vscode/settings.json' });
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
+  });
 });
