@@ -5,6 +5,7 @@ import {
   type GraphViewProviderSettingsStateMethodDependencies,
   type GraphViewProviderSettingsStateMethodsSource,
 } from '../../../../src/extension/graphView/provider/settingsState';
+import { sendGraphViewProviderAllSettings } from '../../../../src/extension/graphView/settings/lifecycle';
 
 type WorkspaceStateGetMock = ReturnType<typeof vi.fn> & (<T>(key: string) => T | undefined);
 
@@ -339,6 +340,41 @@ describe('graphView/provider/settingsState', () => {
     methods._sendAllSettings();
 
     expect(computeMergedGroups).toHaveBeenCalledOnce();
+  });
+
+  it('defaults missing snapshot groups and filters before recomputing', () => {
+    const source = createSource({
+      _userGroups: [{ id: 'group.current' } as never],
+      _hiddenPluginGroupIds: new Set<string>(['plugin.current']),
+      _filterPatterns: ['current/**'],
+    });
+    const computeMergedGroups = vi.fn(() => {
+      expect(source._userGroups).toEqual([]);
+      expect([...source._hiddenPluginGroupIds]).toEqual([]);
+      expect(source._filterPatterns).toEqual([]);
+    });
+    source._computeMergedGroups = computeMergedGroups;
+
+    const { dependencies } = createDependencies({
+      captureSettingsSnapshot: vi.fn(
+        () =>
+          ({
+            hiddenPluginGroups: undefined,
+            groups: undefined,
+            filterPatterns: undefined,
+          }) as never,
+      ),
+      sendProviderAllSettings: sendGraphViewProviderAllSettings,
+    });
+
+    const methods = createGraphViewProviderSettingsStateMethods(source, dependencies);
+
+    methods._sendAllSettings();
+
+    expect(computeMergedGroups).toHaveBeenCalledOnce();
+    expect(source._userGroups).toEqual([]);
+    expect([...source._hiddenPluginGroupIds]).toEqual([]);
+    expect(source._filterPatterns).toEqual([]);
   });
 
   it('falls back to an empty plugin filter list when no analyzer is attached', () => {
