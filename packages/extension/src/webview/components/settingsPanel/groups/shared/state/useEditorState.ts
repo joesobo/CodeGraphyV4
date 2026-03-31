@@ -6,7 +6,7 @@ import {
   clearTimeoutMap,
   createGroupPersistenceHandlers,
 } from '../persistence';
-import { graphStore } from '../../../../../store/state';
+import { graphStore, useGraphStore } from '../../../../../store/state';
 
 export interface GroupEditorState {
   customExpanded: boolean;
@@ -57,6 +57,7 @@ export function useEditorState({
   const [localPatternOverrides, setLocalPatternOverrides] = useState<Record<string, string>>({});
   const colorDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const patternDebounceRef = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const optimisticGroupUpdates = useGraphStore((state) => state.optimisticGroupUpdates);
 
   useEffect(() => {
     return () => {
@@ -64,6 +65,23 @@ export function useEditorState({
       clearTimeoutMap(patternDebounceRef);
     };
   }, []);
+
+  useEffect(() => {
+    setLocalPatternOverrides((current) => {
+      let changed = false;
+      const next: Record<string, string> = {};
+
+      for (const [groupId, pattern] of Object.entries(current)) {
+        if (optimisticGroupUpdates[groupId]) {
+          next[groupId] = pattern;
+        } else {
+          changed = true;
+        }
+      }
+
+      return changed ? next : current;
+    });
+  }, [optimisticGroupUpdates]);
   const actions = createGroupActions({
     groups,
     newColor,

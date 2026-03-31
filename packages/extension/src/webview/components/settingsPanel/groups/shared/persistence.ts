@@ -50,6 +50,21 @@ function scheduleOverride(
   }, COLOR_DEBOUNCE_MS);
 }
 
+function schedulePersistentOverride(
+  id: string,
+  value: string,
+  ref: TimeoutMap,
+  setOverrides: OverrideSetter,
+  persist: () => void,
+): void {
+  setOverrides((current) => ({ ...current, [id]: value }));
+  clearPendingTimer(ref, id);
+  ref.current[id] = setTimeout(() => {
+    persist();
+    delete ref.current[id];
+  }, COLOR_DEBOUNCE_MS);
+}
+
 export function clearTimeoutMap(ref: TimeoutMap): void {
   for (const timer of Object.values(ref.current)) {
     if (timer) {
@@ -80,7 +95,7 @@ export function createGroupPersistenceHandlers(
     },
     changeGroupPattern: (groupId: string, pattern: string) => {
       dependencies.setOptimisticGroupUpdate(groupId, { pattern });
-      scheduleOverride(
+      schedulePersistentOverride(
         groupId,
         pattern,
         dependencies.patternDebounceRef,

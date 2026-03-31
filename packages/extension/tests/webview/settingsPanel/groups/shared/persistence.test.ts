@@ -157,7 +157,7 @@ describe('settingsPanel groups persistence', () => {
     expect(colorOverrides.value).toEqual({});
   });
 
-  it('persists debounced pattern changes and keeps only the latest pending value', () => {
+  it('persists debounced pattern changes and keeps only the latest visible override', () => {
     vi.useFakeTimers();
     const patternOverrides = createOverrideSetter();
     const updateGroup = vi.fn();
@@ -181,7 +181,7 @@ describe('settingsPanel groups persistence', () => {
     expect(setOptimisticGroupUpdate).toHaveBeenNthCalledWith(2, 'g1', { pattern: '*.cts' });
     expect(updateGroup).toHaveBeenCalledTimes(1);
     expect(updateGroup).toHaveBeenCalledWith('g1', { pattern: '*.cts' });
-    expect(patternOverrides.value).toEqual({});
+    expect(patternOverrides.value).toEqual({ g1: '*.cts' });
   });
 
   it('updates local overrides immediately while queuing persistence', () => {

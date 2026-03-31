@@ -92,6 +92,23 @@ describe('useEditorState', () => {
     expect(result.current.localColorOverrides).toEqual({ g1: '#ff00ff' });
   });
 
+  it('clears a local pattern override after the host resolves the optimistic update', () => {
+    const { result } = renderHook(() =>
+      useEditorState({
+        groups: [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }],
+        userGroups: [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }],
+        setExpandedGroupId: vi.fn(),
+      })
+    );
+
+    act(() => {
+      result.current.changeGroupPattern('g1', '*.tsx');
+      graphStore.getState().clearOptimisticGroupUpdate('g1');
+    });
+
+    expect(result.current.localPatternOverrides).toEqual({});
+  });
+
   it('wires drag handlers through to reordered group updates', () => {
     const { result } = renderHook(() =>
       useEditorState({
