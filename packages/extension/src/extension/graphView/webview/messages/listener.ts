@@ -18,13 +18,17 @@ export interface GraphViewMessageListenerContext
   setWebviewReadyNotified(nextValue: boolean): void;
 }
 
+const webviewMessageListenerDisposables = new WeakMap<vscode.Webview, vscode.Disposable>();
+
 export function setGraphViewWebviewMessageListener(
   webview: vscode.Webview,
   context: GraphViewMessageListenerContext,
 ): void {
+  webviewMessageListenerDisposables.get(webview)?.dispose();
+
   let webviewReadyHandled = false;
 
-  webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
+  const listenerDisposable = webview.onDidReceiveMessage(async (message: WebviewToExtensionMessage) => {
     if (message.type === 'WEBVIEW_READY') {
       if (webviewReadyHandled) {
         return;
@@ -48,4 +52,6 @@ export function setGraphViewWebviewMessageListener(
       context.setWebviewReadyNotified(pluginResult.readyNotified);
     }
   });
+
+  webviewMessageListenerDisposables.set(webview, listenerDisposable);
 }

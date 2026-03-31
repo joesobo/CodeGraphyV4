@@ -172,6 +172,32 @@ describe('graph view webview message listener', () => {
     expect(context.setWebviewReadyNotified).toHaveBeenCalledTimes(1);
   });
 
+  it('replaces the previous listener when the same webview is wired again', async () => {
+    const activeHandlers = new Set<(message: unknown) => Promise<void>>();
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        activeHandlers.add(handler);
+        return {
+          dispose: () => {
+            activeHandlers.delete(handler);
+          },
+        };
+      }),
+    };
+    const context = createContext();
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    setGraphViewWebviewMessageListener(webview as never, context);
+
+    expect(activeHandlers.size).toBe(1);
+
+    await Promise.all(
+      [...activeHandlers].map(handler => handler({ type: 'REFRESH_GRAPH' })),
+    );
+
+    expect(context.analyzeAndSendData).toHaveBeenCalledTimes(1);
+  });
+
   it('does not store ready state for handled plugin messages without a ready flag', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {
