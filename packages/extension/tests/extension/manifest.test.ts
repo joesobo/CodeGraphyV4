@@ -41,7 +41,7 @@ describe('extension manifest', () => {
     const container = manifest.contributes?.viewsContainers?.activitybar?.find(entry => entry.id === 'codegraphy');
 
     expect(container).toBeDefined();
-    expect(container?.icon).toBe('assets/icon.svg');
+    expect(container?.icon).toBe('assets/icon-dark.svg');
     expect(existsSync(resolve(repoRoot, String(container?.icon)))).toBe(true);
   });
 
