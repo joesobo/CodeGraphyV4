@@ -154,6 +154,8 @@ function sendAppMessage(data: unknown): void {
 describe('App behavior', () => {
   beforeEach(() => {
     messageListeners.length = 0;
+    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
+      .__codegraphyWebviewReadyPosted;
     harness.graphProps = null;
     harness.searchBarProps = null;
     harness.createApiCalls.length = 0;

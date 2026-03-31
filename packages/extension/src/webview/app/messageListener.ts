@@ -9,6 +9,10 @@ import { graphStore } from '../store/state';
 import { normalizePluginInjectPayload, parsePluginScopedMessage } from './messages';
 import type { WebviewPluginHost } from '../pluginHost/manager';
 
+type WindowWithCodeGraphyReadyFlag = Window & {
+  __codegraphyWebviewReadyPosted?: boolean;
+};
+
 export interface InjectAssetsParams {
   pluginId: string;
   scripts: string[];
@@ -60,7 +64,13 @@ export function setupMessageListener(
 ): () => void {
   const handleMessage = createMessageHandler(injectPluginAssets, pluginHost);
   window.addEventListener('message', handleMessage);
-  postMessage({ type: 'WEBVIEW_READY', payload: null });
+  const codeGraphyWindow = window as WindowWithCodeGraphyReadyFlag;
+  // Keep the ready handshake single-shot for one webview page load. This avoids
+  // duplicate ready messages during React development replays such as StrictMode.
+  if (!codeGraphyWindow.__codegraphyWebviewReadyPosted) {
+    codeGraphyWindow.__codegraphyWebviewReadyPosted = true;
+    postMessage({ type: 'WEBVIEW_READY', payload: null });
+  }
 
   return () => {
     window.removeEventListener('message', handleMessage);
