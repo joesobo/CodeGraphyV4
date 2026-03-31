@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { IPluginContextMenuItem } from '../../src/shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../src/shared/plugins/decorations';
+import type { IGroup } from '../../src/shared/settings/groups';
 import { createGraphStore } from '../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
@@ -70,6 +71,35 @@ describe('GraphStore message routing', () => {
 
     expect(store.getState().nodeDecorations).toBe(nodeDecorations);
     expect(store.getState().edgeDecorations).toBe(edgeDecorations);
+  });
+
+  it('ignores GROUPS_UPDATED messages when the payload is unchanged', () => {
+    const groups: IGroup[] = [
+      {
+        id: 'src-group',
+        pattern: 'src/**',
+        color: '#00ff00',
+      },
+    ];
+    const optimisticGroupUpdates = {};
+
+    store.setState({ groups, optimisticGroupUpdates });
+
+    store.getState().handleExtensionMessage({
+      type: 'GROUPS_UPDATED',
+      payload: {
+        groups: [
+          {
+            id: 'src-group',
+            pattern: 'src/**',
+            color: '#00ff00',
+          },
+        ],
+      },
+    });
+
+    expect(store.getState().groups).toBe(groups);
+    expect(store.getState().optimisticGroupUpdates).toBe(optimisticGroupUpdates);
   });
 
   it('handles CONTEXT_MENU_ITEMS messages', () => {

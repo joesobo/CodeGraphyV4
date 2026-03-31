@@ -252,6 +252,44 @@ describe('App behavior', () => {
     expect(harness.graphRenderCount).toBe(1);
   });
 
+  it('does not rerender Graph for unchanged groups before a refresh data update', async () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
+        edges: [],
+      },
+      groups: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
+    });
+
+    render(<App />);
+    expect(screen.getByTestId('mock-graph')).toBeInTheDocument();
+
+    harness.graphRenderCount = 0;
+
+    await act(async () => {
+      sendAppMessage({
+        type: 'GROUPS_UPDATED',
+        payload: {
+          groups: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
+        },
+      });
+    });
+
+    expect(harness.graphRenderCount).toBe(0);
+
+    await act(async () => {
+      sendAppMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
+          edges: [],
+        },
+      });
+    });
+
+    expect(harness.graphRenderCount).toBe(1);
+  });
+
   it('surfaces regex errors and renders an empty filtered graph when the regex is invalid', () => {
     graphStore.setState({
       graphData: {
