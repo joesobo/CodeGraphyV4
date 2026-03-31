@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGroup } from '../../../../../src/shared/settings/groups';
+import { graphStore } from '../../../../../src/webview/store/state';
 import { createGroupActions } from '../../../../../src/webview/components/settingsPanel/groups/shared/actions';
 
 const sentMessages: unknown[] = [];
@@ -11,11 +12,13 @@ vi.mock('../../../../../src/webview/vscodeApi', () => ({
 describe('settingsPanel groups actions', () => {
   beforeEach(() => {
     sentMessages.length = 0;
+    graphStore.setState({ groups: [] });
   });
 
   it('ignores blank patterns when adding a group', () => {
     const setExpandedGroupId = vi.fn();
     const actions = createGroupActions({
+      groups: [],
       newColor: '#3B82F6',
       newPattern: '   ',
       setExpandedGroupId,
@@ -35,6 +38,7 @@ describe('settingsPanel groups actions', () => {
     const setNewColor = vi.fn();
     const setNewPattern = vi.fn();
     const actions = createGroupActions({
+      groups: [],
       newColor: '#ff00ff',
       newPattern: '  src/**  ',
       setExpandedGroupId,
@@ -62,6 +66,7 @@ describe('settingsPanel groups actions', () => {
       { id: 'g2', pattern: '*.tsx', color: '#22C55E' },
     ];
     const actions = createGroupActions({
+      groups,
       newColor: '#3B82F6',
       newPattern: '',
       setExpandedGroupId: vi.fn(),
@@ -99,6 +104,7 @@ describe('settingsPanel groups actions', () => {
   it('builds plugin overrides and expands the new override group', () => {
     const setExpandedGroupId = vi.fn();
     const actions = createGroupActions({
+      groups: [],
       newColor: '#3B82F6',
       newPattern: '',
       setExpandedGroupId,
@@ -133,6 +139,7 @@ describe('settingsPanel groups actions', () => {
 
   it('posts image-pick and plugin-toggle messages', () => {
     const actions = createGroupActions({
+      groups: [],
       newColor: '#3B82F6',
       newPattern: '',
       setExpandedGroupId: vi.fn(),
@@ -149,6 +156,35 @@ describe('settingsPanel groups actions', () => {
       { type: 'PICK_GROUP_IMAGE', payload: { groupId: 'g1' } },
       { type: 'TOGGLE_PLUGIN_GROUP_DISABLED', payload: { groupId: 'g1', disabled: true } },
       { type: 'TOGGLE_PLUGIN_SECTION_DISABLED', payload: { pluginId: 'typescript', disabled: true } },
+    ]);
+  });
+
+  it('keeps default groups in the optimistic store when a custom group changes', () => {
+    const defaultGroup = {
+      id: 'plugin:typescript:ts',
+      pattern: '*.ts',
+      color: '#3178C6',
+      isPluginDefault: true,
+      pluginName: 'TypeScript',
+    } satisfies IGroup;
+    const actions = createGroupActions({
+      groups: [
+        { id: 'g1', pattern: '*.tsx', color: '#22C55E' },
+        defaultGroup,
+      ],
+      newColor: '#3B82F6',
+      newPattern: '',
+      setExpandedGroupId: vi.fn(),
+      setNewColor: vi.fn(),
+      setNewPattern: vi.fn(),
+      userGroups: [{ id: 'g1', pattern: '*.tsx', color: '#22C55E' }],
+    });
+
+    actions.updateGroup('g1', { pattern: '*.cts' });
+
+    expect(graphStore.getState().groups).toEqual([
+      { id: 'g1', pattern: '*.cts', color: '#22C55E' },
+      defaultGroup,
     ]);
   });
 });

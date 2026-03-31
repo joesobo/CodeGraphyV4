@@ -9,6 +9,7 @@ import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type { ICommitInfo } from '../../shared/timeline/types';
 import type { IAvailableView } from '../../shared/view/types';
+import type { PendingGroupUpdates } from './optimisticGroups';
 
 /** All fields that the store can hold — used to type partial state updates. */
 export interface IStoreFields {
@@ -29,6 +30,7 @@ export interface IStoreFields {
   physicsSettings: IPhysicsSettings;
   depthLimit: number;
   groups: IGroup[];
+  optimisticGroupUpdates: PendingGroupUpdates;
   filterPatterns: string[];
   pluginFilterPatterns: string[];
   availableViews: IAvailableView[];

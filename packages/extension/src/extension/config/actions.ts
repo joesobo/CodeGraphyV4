@@ -2,6 +2,9 @@ import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../graphViewProvider';
 import type { ConfigCategory } from './classify';
 
+const GROUP_SETTINGS_DEBOUNCE_MS = 300;
+let pendingGroupSettingsRefresh: ReturnType<typeof setTimeout> | undefined;
+
 /** Executes the appropriate provider action for a given config category. */
 export function executeConfigAction(
   category: ConfigCategory,
@@ -19,9 +22,13 @@ export function executeConfigAction(
       provider.refreshSettings();
       break;
     case 'groups':
-      // Groups/hidden groups: already handled by the webview message handlers
-      // (UPDATE_GROUPS, TOGGLE_PLUGIN_GROUP_DISABLED, etc.) which call _sendGroupsUpdated() directly.
-      // No re-analysis needed — skip to avoid double refresh.
+      if (pendingGroupSettingsRefresh) {
+        clearTimeout(pendingGroupSettingsRefresh);
+      }
+      pendingGroupSettingsRefresh = setTimeout(() => {
+        pendingGroupSettingsRefresh = undefined;
+        provider.refreshGroupSettings();
+      }, GROUP_SETTINGS_DEBOUNCE_MS);
       break;
     case 'general':
       console.log('[CodeGraphy] Configuration changed, refreshing graph');

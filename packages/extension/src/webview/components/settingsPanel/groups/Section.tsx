@@ -10,7 +10,7 @@ export function GroupsSection(): React.ReactElement {
   const expandedGroupId = useGraphStore((state) => state.expandedGroupId);
   const setExpandedGroupId = useGraphStore((state) => state.setExpandedGroupId);
   const { userGroups, defaultSections } = groupSettingsPanelSections(groups);
-  const controller = useEditorState({ userGroups, setExpandedGroupId });
+  const controller = useEditorState({ groups, userGroups, setExpandedGroupId });
 
   return (
     <div className="mb-2 space-y-2">

@@ -244,4 +244,107 @@ describe('GroupsSection', () => {
       });
     vi.useRealTimers();
   });
+
+  it('keeps the edited custom group pattern visible after debounce before the host echoes it back', () => {
+    vi.useFakeTimers();
+    renderSection({
+      groups: [
+        { id: 'g1', pattern: '*.ts', color: '#3178C6' },
+        {
+          id: 'plugin:codegraphy.typescript:*.ts',
+          pattern: '*.ts',
+          color: '#2563EB',
+          isPluginDefault: true,
+          pluginName: 'TypeScript',
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByText('*.ts'));
+    fireEvent.change(screen.getByDisplayValue('*.ts'), { target: { value: '*.tsx' } });
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+    });
+
+    expect(screen.getByDisplayValue('*.tsx')).toBeInTheDocument();
+    expect(graphStore.getState().groups).toEqual([
+      expect.objectContaining({ id: 'g1', pattern: '*.tsx' }),
+      expect.objectContaining({
+        id: 'plugin:codegraphy.typescript:*.ts',
+        pattern: '*.ts',
+      }),
+    ]);
+
+    vi.useRealTimers();
+  });
+
+  it('keeps the edited custom group pattern visible when a stale host update arrives before the final echo', () => {
+    vi.useFakeTimers();
+    renderSection({
+      groups: [
+        { id: 'g1', pattern: '*.ts', color: '#3178C6' },
+        {
+          id: 'plugin:codegraphy.typescript:*.ts',
+          pattern: '*.ts',
+          color: '#2563EB',
+          isPluginDefault: true,
+          pluginName: 'TypeScript',
+        },
+      ],
+    });
+
+    fireEvent.click(screen.getByText('*.ts'));
+    fireEvent.change(screen.getByDisplayValue('*.ts'), { target: { value: '*.tsx' } });
+
+    act(() => {
+      vi.advanceTimersByTime(300);
+      graphStore.getState().handleExtensionMessage({
+        type: 'GROUPS_UPDATED',
+        payload: {
+          groups: [
+            { id: 'g1', pattern: '*.ts', color: '#3178C6' },
+            {
+              id: 'plugin:codegraphy.typescript:*.ts',
+              pattern: '*.ts',
+              color: '#2563EB',
+              isPluginDefault: true,
+              pluginName: 'TypeScript',
+            },
+          ],
+        },
+      });
+    });
+
+    expect(screen.getByDisplayValue('*.tsx')).toBeInTheDocument();
+    expect(graphStore.getState().groups).toEqual([
+      expect.objectContaining({ id: 'g1', pattern: '*.tsx' }),
+      expect.objectContaining({
+        id: 'plugin:codegraphy.typescript:*.ts',
+        pattern: '*.ts',
+      }),
+    ]);
+
+    act(() => {
+      graphStore.getState().handleExtensionMessage({
+        type: 'GROUPS_UPDATED',
+        payload: {
+          groups: [
+            { id: 'g1', pattern: '*.tsx', color: '#3178C6' },
+            {
+              id: 'plugin:codegraphy.typescript:*.ts',
+              pattern: '*.ts',
+              color: '#2563EB',
+              isPluginDefault: true,
+              pluginName: 'TypeScript',
+            },
+          ],
+        },
+      });
+    });
+
+    expect(screen.getByDisplayValue('*.tsx')).toBeInTheDocument();
+
+    vi.useRealTimers();
+  });
 });
