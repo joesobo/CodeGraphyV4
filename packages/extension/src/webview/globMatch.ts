@@ -6,8 +6,8 @@
  *
  * Supported patterns:
  *  - `*.ext`     — matches any filename ending with `.ext` (e.g. `*.gd`)
- *  - `src/*`     — matches files directly inside `src/`
- *  - `src/**`    — matches files at any depth under `src/`
+ *  - `src/*`     — matches files directly inside any `src/` folder
+ *  - `src/**`    — matches files at any depth under any `src/` folder
  *  - `*.test.*`  — multiple wildcards
  *  - `file.txt`  — exact basename match
  */
@@ -21,12 +21,10 @@
  *  - `.`  → escaped literal dot
  *  - All other regex meta-characters are escaped
  *
- * If the pattern has no `/`, it is matched against the basename only
- * (like minimatch's `matchBase`).
+ * Patterns are matched against the basename or path suffix, so `src/*`
+ * works anywhere in the tree while still keeping `*` and `**` semantics.
  */
 export function globToRegex(pattern: string): RegExp {
-  const hasSlash = pattern.includes('/');
-
   // Escape regex special chars except * which we handle
   // Split on ** first, process each segment for single *, then rejoin with .*
   const segments = pattern.split('**');
@@ -38,13 +36,7 @@ export function globToRegex(pattern: string): RegExp {
     )
     .join('.*');
 
-  const re = hasSlash
-    // Pattern has path separators — match against the full path
-    ? `^${body}$`
-    // No slash — match against basename (last path segment)
-    : `(?:^|/)${body}$`;
-
-  return new RegExp(re);
+  return new RegExp(`(?:^|/)${body}$`);
 }
 
 /**
