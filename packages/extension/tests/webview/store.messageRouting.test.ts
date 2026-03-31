@@ -38,6 +38,40 @@ describe('GraphStore message routing', () => {
     expect(store.getState().edgeDecorations).toEqual(edgeDecorations);
   });
 
+  it('ignores DECORATIONS_UPDATED messages when the payload is unchanged', () => {
+    const nodeDecorations: Record<string, NodeDecorationPayload> = {
+      'src/app.ts': {
+        badge: { text: 'A', color: '#00ff00' },
+      },
+    };
+    const edgeDecorations: Record<string, EdgeDecorationPayload> = {
+      'src/app.ts->src/lib.ts': {
+        particles: { count: 2, color: '#ff00ff', speed: 0.1 },
+      },
+    };
+
+    store.setState({ nodeDecorations, edgeDecorations });
+
+    store.getState().handleExtensionMessage({
+      type: 'DECORATIONS_UPDATED',
+      payload: {
+        nodeDecorations: {
+          'src/app.ts': {
+            badge: { text: 'A', color: '#00ff00' },
+          },
+        },
+        edgeDecorations: {
+          'src/app.ts->src/lib.ts': {
+            particles: { count: 2, color: '#ff00ff', speed: 0.1 },
+          },
+        },
+      },
+    });
+
+    expect(store.getState().nodeDecorations).toBe(nodeDecorations);
+    expect(store.getState().edgeDecorations).toBe(edgeDecorations);
+  });
+
   it('handles CONTEXT_MENU_ITEMS messages', () => {
     const items: IPluginContextMenuItem[] = [
       {
