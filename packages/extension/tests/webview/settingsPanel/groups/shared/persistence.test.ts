@@ -61,7 +61,6 @@ describe('settingsPanel groups persistence', () => {
       colorDebounceRef: { current: {} },
       overridePluginGroup: vi.fn(),
       patternDebounceRef: { current: {} },
-      previewGroupUpdate: vi.fn(),
       setOptimisticGroupUpdate: vi.fn(),
       setLocalColorOverrides: createOverrideSetter().setter,
       setLocalPatternOverrides: createOverrideSetter().setter,
@@ -83,7 +82,6 @@ describe('settingsPanel groups persistence', () => {
       colorDebounceRef: { current: {} },
       overridePluginGroup: vi.fn(),
       patternDebounceRef: { current: {} },
-      previewGroupUpdate: vi.fn(),
       setOptimisticGroupUpdate,
       setLocalColorOverrides: colorOverrides.setter,
       setLocalPatternOverrides: patternOverrides.setter,
@@ -109,7 +107,6 @@ describe('settingsPanel groups persistence', () => {
       colorDebounceRef: { current: {} },
       overridePluginGroup: vi.fn(),
       patternDebounceRef: { current: {} },
-      previewGroupUpdate: vi.fn(),
       setOptimisticGroupUpdate: vi.fn(),
       setLocalColorOverrides: colorOverrides.setter,
       setLocalPatternOverrides: createOverrideSetter().setter,
@@ -134,7 +131,6 @@ describe('settingsPanel groups persistence', () => {
       colorDebounceRef: { current: {} },
       overridePluginGroup,
       patternDebounceRef: { current: {} },
-      previewGroupUpdate: vi.fn(),
       setOptimisticGroupUpdate: vi.fn(),
       setLocalColorOverrides: colorOverrides.setter,
       setLocalPatternOverrides: createOverrideSetter().setter,
@@ -161,7 +157,7 @@ describe('settingsPanel groups persistence', () => {
     expect(colorOverrides.value).toEqual({});
   });
 
-  it('persists debounced pattern changes and keeps only the latest pending value', () => {
+  it('persists debounced pattern changes and keeps only the latest visible override', () => {
     vi.useFakeTimers();
     const patternOverrides = createOverrideSetter();
     const updateGroup = vi.fn();
@@ -170,7 +166,6 @@ describe('settingsPanel groups persistence', () => {
       colorDebounceRef: { current: {} },
       overridePluginGroup: vi.fn(),
       patternDebounceRef: { current: {} },
-      previewGroupUpdate: vi.fn(),
       setOptimisticGroupUpdate,
       setLocalColorOverrides: createOverrideSetter().setter,
       setLocalPatternOverrides: patternOverrides.setter,
@@ -186,30 +181,30 @@ describe('settingsPanel groups persistence', () => {
     expect(setOptimisticGroupUpdate).toHaveBeenNthCalledWith(2, 'g1', { pattern: '*.cts' });
     expect(updateGroup).toHaveBeenCalledTimes(1);
     expect(updateGroup).toHaveBeenCalledWith('g1', { pattern: '*.cts' });
-    expect(patternOverrides.value).toEqual({});
+    expect(patternOverrides.value).toEqual({ g1: '*.cts' });
   });
 
-  it('previews custom group changes immediately before persistence completes', () => {
+  it('updates local overrides immediately while queuing persistence', () => {
     vi.useFakeTimers();
-    const previewGroupUpdate = vi.fn();
     const setOptimisticGroupUpdate = vi.fn();
+    const colorOverrides = createOverrideSetter();
+    const patternOverrides = createOverrideSetter();
     const handlers = createGroupPersistenceHandlers({
       colorDebounceRef: { current: {} },
       overridePluginGroup: vi.fn(),
       patternDebounceRef: { current: {} },
-      previewGroupUpdate,
       setOptimisticGroupUpdate,
-      setLocalColorOverrides: createOverrideSetter().setter,
-      setLocalPatternOverrides: createOverrideSetter().setter,
+      setLocalColorOverrides: colorOverrides.setter,
+      setLocalPatternOverrides: patternOverrides.setter,
       updateGroup: vi.fn(),
     });
 
     handlers.changeGroupPattern('g1', '*.tsx');
     handlers.changeGroupColor('g1', '#ff00ff');
 
-    expect(previewGroupUpdate).toHaveBeenNthCalledWith(1, 'g1', { pattern: '*.tsx' });
-    expect(previewGroupUpdate).toHaveBeenNthCalledWith(2, 'g1', { color: '#ff00ff' });
     expect(setOptimisticGroupUpdate).toHaveBeenNthCalledWith(1, 'g1', { pattern: '*.tsx' });
     expect(setOptimisticGroupUpdate).toHaveBeenNthCalledWith(2, 'g1', { color: '#ff00ff' });
+    expect(patternOverrides.value).toEqual({ g1: '*.tsx' });
+    expect(colorOverrides.value).toEqual({ g1: '#ff00ff' });
   });
 });

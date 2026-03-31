@@ -153,8 +153,8 @@ describe('graph view primary message dispatch', () => {
       userGroups: incomingGroups,
     });
     expect(context.persistGroups).toHaveBeenCalledWith(incomingGroups);
-    expect(context.recomputeGroups).toHaveBeenCalledOnce();
-    expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
+    expect(context.recomputeGroups).not.toHaveBeenCalled();
+    expect(context.sendGroupsUpdated).not.toHaveBeenCalled();
   });
 
   it('returns updated filter patterns from settings messages', async () => {

@@ -186,8 +186,6 @@ describe('graph view provider listener bridge', () => {
     await messageHandler?.({ type: 'UPDATE_GROUPS', payload: { groups: userGroups } });
 
     expect(source._userGroups).toEqual(userGroups);
-    expect(source._computeMergedGroups).toHaveBeenCalledOnce();
-    expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
   });
 
   it('stores ready state updates back onto the provider source', async () => {

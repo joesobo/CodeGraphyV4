@@ -10,7 +10,6 @@ interface GroupPersistenceDependencies {
   colorDebounceRef: TimeoutMap;
   overridePluginGroup: (group: IGroup, updates: Partial<IGroup>) => void;
   patternDebounceRef: TimeoutMap;
-  previewGroupUpdate: (groupId: string, updates: Partial<IGroup>) => void;
   setOptimisticGroupUpdate: (groupId: string, updates: Partial<IGroup>) => void;
   setLocalColorOverrides: OverrideSetter;
   setLocalPatternOverrides: OverrideSetter;
@@ -51,6 +50,21 @@ function scheduleOverride(
   }, COLOR_DEBOUNCE_MS);
 }
 
+function schedulePersistentOverride(
+  id: string,
+  value: string,
+  ref: TimeoutMap,
+  setOverrides: OverrideSetter,
+  persist: () => void,
+): void {
+  setOverrides((current) => ({ ...current, [id]: value }));
+  clearPendingTimer(ref, id);
+  ref.current[id] = setTimeout(() => {
+    persist();
+    delete ref.current[id];
+  }, COLOR_DEBOUNCE_MS);
+}
+
 export function clearTimeoutMap(ref: TimeoutMap): void {
   for (const timer of Object.values(ref.current)) {
     if (timer) {
@@ -69,7 +83,6 @@ export function createGroupPersistenceHandlers(
   return {
     changeGroupColor: (groupId: string, color: string) => {
       dependencies.setOptimisticGroupUpdate(groupId, { color });
-      dependencies.previewGroupUpdate(groupId, { color });
       scheduleOverride(
         groupId,
         color,
@@ -82,8 +95,7 @@ export function createGroupPersistenceHandlers(
     },
     changeGroupPattern: (groupId: string, pattern: string) => {
       dependencies.setOptimisticGroupUpdate(groupId, { pattern });
-      dependencies.previewGroupUpdate(groupId, { pattern });
-      scheduleOverride(
+      schedulePersistentOverride(
         groupId,
         pattern,
         dependencies.patternDebounceRef,

@@ -269,7 +269,7 @@ describe('GroupsSection', () => {
 
     expect(screen.getByDisplayValue('*.tsx')).toBeInTheDocument();
     expect(graphStore.getState().groups).toEqual([
-      expect.objectContaining({ id: 'g1', pattern: '*.tsx' }),
+      expect.objectContaining({ id: 'g1', pattern: '*.ts' }),
       expect.objectContaining({
         id: 'plugin:codegraphy.typescript:*.ts',
         pattern: '*.ts',
