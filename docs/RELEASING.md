@@ -1,5 +1,15 @@
 # Releasing
 
+## Release surfaces
+
+Release-facing metadata is not all in one package:
+
+- Core extension marketplace metadata lives in the repo root [`package.json`](../package.json)
+- Plugin extension marketplace metadata lives in each `packages/plugin-*/package.json`
+- Plugin API npm metadata lives in [`packages/plugin-api/package.json`](../packages/plugin-api/package.json)
+- The core extension icon source lives at [`assets/icon.svg`](../assets/icon.svg)
+- Each published plugin ships its own badged icon at `packages/plugin-*/assets/icon.svg`
+
 ## Local release commands
 
 Run the full release gate first:
@@ -53,8 +63,9 @@ vsce verify-pat codegraphy
    - `pnpm run release:publish python`
    - `pnpm run release:publish csharp`
    - `pnpm run release:publish godot`
-10. Open each Marketplace listing and verify the dependency text, README, icon, and version.
+10. Open each Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
 11. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
+12. Open the npm package page for [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api) and verify the README and repository links.
 
 ## GitHub Actions
 
@@ -78,3 +89,12 @@ The existing Marketplace identifier is `codegraphy.codegraphy`. Marketplace owne
 That means the core V4 release can update the existing Marketplace listing in place, while the language plugins publish as new listings under the same `codegraphy` publisher.
 
 If you ever move the core to a different publisher later, that would require a new Marketplace listing.
+
+## Current public listings
+
+- Core: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy>
+- TypeScript/JavaScript plugin: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-typescript>
+- Python plugin: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python>
+- C# plugin: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp>
+- GDScript plugin: <https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-godot>
+- Plugin API: <https://www.npmjs.com/package/@codegraphy-vscode/plugin-api>

@@ -5,6 +5,11 @@
   "description": "Adds GDScript dependency detection to CodeGraphy. Requires codegraphy.codegraphy.",
   "publisher": "codegraphy",
   "license": "MIT",
+  "icon": "assets/icon.png",
+  "galleryBanner": {
+    "color": "#023859",
+    "theme": "dark"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/joesobo/CodeGraphyV4.git"

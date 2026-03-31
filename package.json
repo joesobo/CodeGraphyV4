@@ -43,9 +43,14 @@
 		"build:e2e": "pnpm run build && tsc -p packages/extension/src/e2e/tsconfig.json"
 	},
 	"displayName": "CodeGraphy",
-	"description": "Visualize your codebase as an interactive 2D force graph",
+	"description": "Visualize your codebase as an interactive dependency graph inside VS Code",
 	"publisher": "codegraphy",
 	"license": "MIT",
+	"icon": "assets/icon.png",
+	"galleryBanner": {
+		"color": "#023859",
+		"theme": "dark"
+	},
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/joesobo/CodeGraphyV4.git"
@@ -60,9 +65,11 @@
 	"files": [
 		"dist/**",
 		"assets/**",
+		"docs/**",
 		"packages/plugin-markdown/codegraphy.json",
 		"README.md",
 		"CHANGELOG.md",
+		"CONTRIBUTING.md",
 		"LICENSE"
 	],
 	"categories": [
@@ -205,7 +212,10 @@
 					{
 						"id": "codegraphy",
 						"title": "CodeGraphy",
-						"icon": "assets/icon.svg"
+						"icon": {
+							"dark": "assets/icon-dark.svg",
+							"light": "assets/icon-light.svg"
+						}
 					}
 				]
 			},
@@ -214,7 +224,8 @@
 				{
 					"type": "webview",
 					"id": "codegraphy.graphView",
-					"name": "Graph"
+					"name": "Graph",
+					"icon": "assets/icon.svg"
 				}
 			]
 		},

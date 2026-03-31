@@ -1,10 +1,13 @@
 # Docs
 
-Current docs are split by purpose:
+Use the root [README](../README.md) for the release overview, marketplace links, published plugins, and the V2 to V4 migration story.
+
+The rest of the docs are split by purpose:
 
 - `docs/COMMANDS.md`, `docs/INTERACTIONS.md`, `docs/KEYBINDINGS.md`, `docs/PHILOSOPHY.md`, `docs/SETTINGS.md`, `docs/TIMELINE.md` - product and user-facing docs
 - `docs/plugin-api/` - plugin contract, lifecycle, and type reference
 - `docs/quality/` - quality-tooling docs and commands
+- `packages/plugin-*/README.md` and `packages/plugin-api/README.md` - release-facing package readmes for marketplace and npm
 - `packages/extension/docs/` - current extension-package architecture, messages, lifecycle, and testing notes
 - `docs/archive/` - historical plans, specs, and superseded guides
 

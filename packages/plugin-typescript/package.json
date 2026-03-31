@@ -1,10 +1,15 @@
 {
   "name": "codegraphy-typescript",
-  "displayName": "CodeGraphy TypeScript",
+  "displayName": "CodeGraphy TypeScript/JavaScript",
   "version": "1.0.0",
   "description": "Adds TypeScript and JavaScript dependency detection to CodeGraphy. Requires codegraphy.codegraphy.",
   "publisher": "codegraphy",
   "license": "MIT",
+  "icon": "assets/icon.png",
+  "galleryBanner": {
+    "color": "#023859",
+    "theme": "dark"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/joesobo/CodeGraphyV4.git"
@@ -37,6 +42,7 @@
   "main": "./dist/extension.js",
   "files": [
     "dist/**",
+    "assets/**",
     "README.md",
     "LICENSE"
   ],

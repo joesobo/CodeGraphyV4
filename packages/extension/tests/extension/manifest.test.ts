@@ -8,9 +8,19 @@ function readExtensionManifest() {
   const repoRoot = resolve(testDir, '../../../..');
   const manifestPath = resolve(repoRoot, 'package.json');
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8')) as {
+    icon?: string;
     contributes?: {
       viewsContainers?: {
-        activitybar?: Array<{ id?: string; icon?: unknown }>;
+        activitybar?: Array<{
+          id?: string;
+          icon?: string | { dark?: string; light?: string };
+        }>;
+      };
+      views?: {
+        codegraphy?: Array<{
+          id?: string;
+          icon?: string;
+        }>;
       };
     };
   };
@@ -19,12 +29,34 @@ function readExtensionManifest() {
 }
 
 describe('extension manifest', () => {
-  it('declares the activity bar icon as a single file path string', () => {
+  it('declares a packaged extension icon', () => {
+    const { manifest, repoRoot } = readExtensionManifest();
+
+    expect(typeof manifest.icon).toBe('string');
+    expect(existsSync(resolve(repoRoot, String(manifest.icon)))).toBe(true);
+  });
+
+  it('declares theme-aware activity bar icons', () => {
     const { manifest, repoRoot } = readExtensionManifest();
     const container = manifest.contributes?.viewsContainers?.activitybar?.find(entry => entry.id === 'codegraphy');
 
     expect(container).toBeDefined();
-    expect(typeof container?.icon).toBe('string');
-    expect(existsSync(resolve(repoRoot, String(container?.icon)))).toBe(true);
+    expect(container?.icon).toMatchObject({
+      dark: 'assets/icon-dark.svg',
+      light: 'assets/icon-light.svg',
+    });
+
+    const icon = container?.icon as { dark?: string; light?: string };
+    expect(existsSync(resolve(repoRoot, String(icon.dark)))).toBe(true);
+    expect(existsSync(resolve(repoRoot, String(icon.light)))).toBe(true);
+  });
+
+  it('declares a graph view icon', () => {
+    const { manifest, repoRoot } = readExtensionManifest();
+    const view = manifest.contributes?.views?.codegraphy?.find(entry => entry.id === 'codegraphy.graphView');
+
+    expect(view).toBeDefined();
+    expect(view?.icon).toBe('assets/icon.svg');
+    expect(existsSync(resolve(repoRoot, String(view?.icon)))).toBe(true);
   });
 });
