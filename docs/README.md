@@ -5,6 +5,7 @@ Use the root [README](../README.md) for the release overview, marketplace links,
 The rest of the docs are split by purpose:
 
 - `docs/COMMANDS.md`, `docs/INTERACTIONS.md`, `docs/KEYBINDINGS.md`, `docs/PHILOSOPHY.md`, `docs/SETTINGS.md`, `docs/TIMELINE.md` - product and user-facing docs
+- `docs/plans/` - active task plans and working notes
 - `docs/plugin-api/` - plugin contract, lifecycle, and type reference
 - `docs/quality/` - quality-tooling docs and commands
 - `packages/plugin-*/README.md` and `packages/plugin-api/README.md` - release-facing package readmes for marketplace and npm
@@ -13,4 +14,4 @@ The rest of the docs are split by purpose:
 
 If a doc describes old refactor intent instead of current behavior, it belongs in `docs/archive/`.
 
-Historical `docs/plans/` and `docs/superpowers/` material now lives under `docs/archive/`.
+Historical plans, specs, and superseded guides live under `docs/archive/`.

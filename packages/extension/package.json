@@ -13,8 +13,11 @@
     "watch:webview": "cd ../.. && vite build --config packages/extension/vite.config.ts --watch",
     "dev": "pnpm run watch",
     "test": "vitest run --config vitest.config.ts",
+    "test:playwright": "playwright test --config playwright.config.ts",
+    "test:playwright:ui": "playwright test --config playwright.config.ts --ui",
     "test:watch": "vitest --config vitest.config.ts",
     "lint": "eslint \"src/**/*.{ts,tsx}\" \"tests/**/*.{ts,tsx}\"",
+    "lint:playwright": "eslint tests/playwright --max-warnings=0",
     "typecheck": "tsc --noEmit -p tsconfig.json && tsc --noEmit -p tsconfig.tests.json"
   },
   "dependencies": {

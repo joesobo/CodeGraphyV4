@@ -16,4 +16,4 @@ pnpm run mutate -- extension/src/webview/components/NodeTooltip.tsx
 pnpm run mutate -- quality-tools/
 ```
 
-Mutation scope is defined in the repo-root [quality.config.json](/Users/poleski/Desktop/Projects/CodeGraphyV4-agent-worktrees/refactor-core-extension/quality.config.json). The Stryker config files now only carry runner settings like the Vitest config path and reporters.
+Mutation scope is defined in the repo root [quality.config.json](../../quality.config.json). The Stryker config files now only carry runner settings like the Vitest config path and reporters.

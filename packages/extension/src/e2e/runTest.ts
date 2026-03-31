@@ -17,7 +17,7 @@ async function main(): Promise<void> {
   const extensionTestsPath = path.resolve(__dirname, './suite/run');
 
   // A minimal workspace VS Code opens during the test run
-  const workspacePath = path.resolve(__dirname, '../../test-fixtures/workspace');
+  const workspacePath = path.resolve(__dirname, '../../packages/extension/test-fixtures/workspace');
 
   await runTests({
     extensionDevelopmentPath,
