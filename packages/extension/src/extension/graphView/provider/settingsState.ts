@@ -93,13 +93,14 @@ export function createGraphViewProviderSettingsStateMethods(
     createDefaultGraphViewProviderSettingsStateMethodDependencies(),
 ): GraphViewProviderSettingsStateMethods {
   const syncGroupStateToSource = (state: {
-    userGroups: IGroup[];
-    hiddenPluginGroupIds: Set<string>;
-    filterPatterns: string[];
+    userGroups: IGroup[] | undefined;
+    hiddenPluginGroupIds: Set<string> | undefined;
+    filterPatterns: string[] | undefined;
   }): void => {
-    source._userGroups = state.userGroups;
-    source._hiddenPluginGroupIds = state.hiddenPluginGroupIds;
-    source._filterPatterns = state.filterPatterns;
+    source._userGroups = Array.isArray(state.userGroups) ? state.userGroups : [];
+    source._hiddenPluginGroupIds =
+      state.hiddenPluginGroupIds instanceof Set ? state.hiddenPluginGroupIds : new Set<string>();
+    source._filterPatterns = Array.isArray(state.filterPatterns) ? state.filterPatterns : [];
   };
 
   const _loadGroupsAndFilterPatterns = (): void => {
