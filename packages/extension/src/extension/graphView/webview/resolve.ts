@@ -17,6 +17,7 @@ interface ResolveGraphViewWebviewOptions {
   setWebviewMessageListener: (webview: GraphViewWebviewLike) => void;
   getHtml: (webview: GraphViewWebviewLike) => string;
   executeCommand: (command: string, key: string, value: boolean) => unknown;
+  sendAllSettings: () => void;
   analyzeAndSendData: () => Promise<void>;
   log: (message: string) => void;
 }
@@ -28,6 +29,7 @@ export function resolveGraphViewWebviewView(
     setWebviewMessageListener,
     getHtml,
     executeCommand,
+    sendAllSettings,
     analyzeAndSendData,
     log,
   }: ResolveGraphViewWebviewOptions,
@@ -47,6 +49,7 @@ export function resolveGraphViewWebviewView(
 
     if (webviewView.visible) {
       log('[CodeGraphy] View became visible, re-sending data');
+      sendAllSettings();
       void analyzeAndSendData();
     }
   });

@@ -96,6 +96,7 @@ export function createGraphViewProviderWebviewMethods(
       getHtml: nextWebview => _getHtmlForWebview(nextWebview as vscode.Webview),
       executeCommand: (command, key, value) =>
         resolvedDependencies.executeCommand(command, key, value),
+      sendAllSettings: () => source._sendAllSettings(),
       analyzeAndSendData: () => source._analyzeAndSendData(),
       log: message => {
         resolvedDependencies.log(message);
