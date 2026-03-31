@@ -106,9 +106,9 @@ export function createGraphViewProviderRefreshMethods(
 
   const refresh = async (): Promise<void> => {
     source._loadDisabledRulesAndPlugins();
+    source._loadGroupsAndFilterPatterns();
     await source._analyzeAndSendData();
-    source._sendSettings();
-    source._sendPhysicsSettings();
+    source._sendAllSettings();
   };
 
   const refreshPhysicsSettings = (): void => {

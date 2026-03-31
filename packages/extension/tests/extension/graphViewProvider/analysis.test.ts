@@ -16,21 +16,21 @@ describe('GraphViewProvider analysis refresh', () => {
     const loadSpy = vi
       .spyOn(internals._settingsStateMethods, '_loadDisabledRulesAndPlugins')
       .mockReturnValue(true);
+    const loadGroupsSpy = vi
+      .spyOn(internals._settingsStateMethods, '_loadGroupsAndFilterPatterns')
+      .mockImplementation(() => {});
     const analyzeSpy = vi
       .spyOn(internals._analysisMethods, '_analyzeAndSendData')
       .mockResolvedValue();
     const settingsSpy = vi
-      .spyOn(internals._settingsStateMethods, '_sendSettings')
-      .mockImplementation(() => {});
-    const physicsSpy = vi
-      .spyOn(internals._physicsSettingsMethods, '_sendPhysicsSettings')
+      .spyOn(internals._settingsStateMethods, '_sendAllSettings')
       .mockImplementation(() => {});
 
     await harness.provider.refresh();
 
     expect(loadSpy).toHaveBeenCalledOnce();
+    expect(loadGroupsSpy).toHaveBeenCalledOnce();
     expect(analyzeSpy).toHaveBeenCalledOnce();
     expect(settingsSpy).toHaveBeenCalledOnce();
-    expect(physicsSpy).toHaveBeenCalledOnce();
   });
 });

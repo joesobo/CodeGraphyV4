@@ -60,7 +60,7 @@ function createSource(
 }
 
 describe('graphView/provider/refresh', () => {
-  it('refresh reloads disabled settings, re-analyzes, and resends settings', async () => {
+  it('refresh reloads disabled settings and group state before re-analysis', async () => {
     const source = createSource();
     const methods = createGraphViewProviderRefreshMethods(source as never, {
       getShowOrphans: vi.fn(() => true),
@@ -72,9 +72,24 @@ describe('graphView/provider/refresh', () => {
     await methods.refresh();
 
     expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
+    expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(source._sendSettings).toHaveBeenCalledOnce();
-    expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
+  });
+
+  it('refresh resends the full settings snapshot after re-analysis', async () => {
+    const source = createSource();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+      shouldRebuild: vi.fn(() => true),
+    });
+
+    await methods.refresh();
+
+    expect(source._sendAllSettings).toHaveBeenCalledOnce();
+    expect(source._sendSettings).not.toHaveBeenCalled();
+    expect(source._sendPhysicsSettings).not.toHaveBeenCalled();
   });
 
   it('refreshToggleSettings rebuilds only when the disabled state changes', () => {
