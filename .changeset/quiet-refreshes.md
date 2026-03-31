@@ -2,4 +2,4 @@
 "@codegraphy/extension": patch
 ---
 
-Reduce duplicate graph refreshes triggered by overlapping save and file watcher events.
+Reduce random and duplicate graph refreshes caused by overlapping watcher, ready, and decoration update events.

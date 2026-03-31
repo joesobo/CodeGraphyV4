@@ -6,6 +6,7 @@ import { graphStore } from '../../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({
   graphProps: null as null | Record<string, unknown>,
+  graphRenderCount: 0,
   searchBarProps: null as null | Record<string, unknown>,
   createApiCalls: [] as string[],
   deliveries: [] as Array<{ pluginId: string; message: { type: string; data: unknown } }>,
@@ -15,6 +16,7 @@ const messageListeners: Array<(event: MessageEvent) => void> = [];
 
 vi.mock('../../../src/webview/components/Graph', () => ({
   default: (props: Record<string, unknown>) => {
+    harness.graphRenderCount += 1;
     harness.graphProps = props;
     const data = props.data as { nodes: Array<{ id: string; color?: string; shape2D?: string; shape3D?: string; imageUrl?: string }>; edges: Array<{ id: string }> };
     return (
@@ -157,6 +159,7 @@ describe('App behavior', () => {
     delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
       .__codegraphyWebviewReadyPosted;
     harness.graphProps = null;
+    harness.graphRenderCount = 0;
     harness.searchBarProps = null;
     harness.createApiCalls.length = 0;
     harness.deliveries.length = 0;
@@ -207,6 +210,46 @@ describe('App behavior', () => {
 
     expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('src/App.ts,src/Todo.ts');
     expect(screen.getByTestId('graph-edge-ids')).toHaveTextContent('src/App.ts->src/Todo.ts');
+  });
+
+  it('does not rerender Graph for unchanged decorations after a refresh data update', async () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
+        edges: [],
+      },
+      nodeDecorations: {},
+      edgeDecorations: {},
+    });
+
+    render(<App />);
+    expect(screen.getByTestId('mock-graph')).toBeInTheDocument();
+
+    harness.graphRenderCount = 0;
+
+    await act(async () => {
+      sendAppMessage({
+        type: 'GRAPH_DATA_UPDATED',
+        payload: {
+          nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
+          edges: [],
+        },
+      });
+    });
+
+    expect(harness.graphRenderCount).toBe(1);
+
+    await act(async () => {
+      sendAppMessage({
+        type: 'DECORATIONS_UPDATED',
+        payload: {
+          nodeDecorations: {},
+          edgeDecorations: {},
+        },
+      });
+    });
+
+    expect(harness.graphRenderCount).toBe(1);
   });
 
   it('surfaces regex errors and renders an empty filtered graph when the regex is invalid', () => {
