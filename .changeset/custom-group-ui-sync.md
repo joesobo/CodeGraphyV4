@@ -2,4 +2,4 @@
 "@codegraphy/extension": patch
 ---
 
-Sync new custom groups back to the settings UI immediately after they are added.
+Keep CodeGraphy settings, favorites, and custom groups in sync between VS Code settings and the sidebar UI.
