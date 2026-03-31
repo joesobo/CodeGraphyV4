@@ -62,6 +62,7 @@ describe('settingsPanel groups persistence', () => {
       overridePluginGroup: vi.fn(),
       patternDebounceRef: { current: {} },
       previewGroupUpdate: vi.fn(),
+      setOptimisticGroupUpdate: vi.fn(),
       setLocalColorOverrides: createOverrideSetter().setter,
       setLocalPatternOverrides: createOverrideSetter().setter,
       updateGroup: vi.fn(),
@@ -77,11 +78,13 @@ describe('settingsPanel groups persistence', () => {
     const colorOverrides = createOverrideSetter();
     const patternOverrides = createOverrideSetter();
     const updateGroup = vi.fn();
+    const setOptimisticGroupUpdate = vi.fn();
     const handlers = createGroupPersistenceHandlers({
       colorDebounceRef: { current: {} },
       overridePluginGroup: vi.fn(),
       patternDebounceRef: { current: {} },
       previewGroupUpdate: vi.fn(),
+      setOptimisticGroupUpdate,
       setLocalColorOverrides: colorOverrides.setter,
       setLocalPatternOverrides: patternOverrides.setter,
       updateGroup,
@@ -92,6 +95,7 @@ describe('settingsPanel groups persistence', () => {
 
     vi.advanceTimersByTime(300);
 
+    expect(setOptimisticGroupUpdate).toHaveBeenCalledWith('g1', { color: '#ff00ff' });
     expect(updateGroup).toHaveBeenCalledWith('g1', { color: '#ff00ff' });
     expect(colorOverrides.value).toEqual({});
   });
@@ -106,6 +110,7 @@ describe('settingsPanel groups persistence', () => {
       overridePluginGroup: vi.fn(),
       patternDebounceRef: { current: {} },
       previewGroupUpdate: vi.fn(),
+      setOptimisticGroupUpdate: vi.fn(),
       setLocalColorOverrides: colorOverrides.setter,
       setLocalPatternOverrides: createOverrideSetter().setter,
       updateGroup,
@@ -130,6 +135,7 @@ describe('settingsPanel groups persistence', () => {
       overridePluginGroup,
       patternDebounceRef: { current: {} },
       previewGroupUpdate: vi.fn(),
+      setOptimisticGroupUpdate: vi.fn(),
       setLocalColorOverrides: colorOverrides.setter,
       setLocalPatternOverrides: createOverrideSetter().setter,
       updateGroup: vi.fn(),
@@ -159,11 +165,13 @@ describe('settingsPanel groups persistence', () => {
     vi.useFakeTimers();
     const patternOverrides = createOverrideSetter();
     const updateGroup = vi.fn();
+    const setOptimisticGroupUpdate = vi.fn();
     const handlers = createGroupPersistenceHandlers({
       colorDebounceRef: { current: {} },
       overridePluginGroup: vi.fn(),
       patternDebounceRef: { current: {} },
       previewGroupUpdate: vi.fn(),
+      setOptimisticGroupUpdate,
       setLocalColorOverrides: createOverrideSetter().setter,
       setLocalPatternOverrides: patternOverrides.setter,
       updateGroup,
@@ -174,6 +182,8 @@ describe('settingsPanel groups persistence', () => {
 
     vi.advanceTimersByTime(300);
 
+    expect(setOptimisticGroupUpdate).toHaveBeenNthCalledWith(1, 'g1', { pattern: '*.tsx' });
+    expect(setOptimisticGroupUpdate).toHaveBeenNthCalledWith(2, 'g1', { pattern: '*.cts' });
     expect(updateGroup).toHaveBeenCalledTimes(1);
     expect(updateGroup).toHaveBeenCalledWith('g1', { pattern: '*.cts' });
     expect(patternOverrides.value).toEqual({});
@@ -182,11 +192,13 @@ describe('settingsPanel groups persistence', () => {
   it('previews custom group changes immediately before persistence completes', () => {
     vi.useFakeTimers();
     const previewGroupUpdate = vi.fn();
+    const setOptimisticGroupUpdate = vi.fn();
     const handlers = createGroupPersistenceHandlers({
       colorDebounceRef: { current: {} },
       overridePluginGroup: vi.fn(),
       patternDebounceRef: { current: {} },
       previewGroupUpdate,
+      setOptimisticGroupUpdate,
       setLocalColorOverrides: createOverrideSetter().setter,
       setLocalPatternOverrides: createOverrideSetter().setter,
       updateGroup: vi.fn(),
@@ -197,5 +209,7 @@ describe('settingsPanel groups persistence', () => {
 
     expect(previewGroupUpdate).toHaveBeenNthCalledWith(1, 'g1', { pattern: '*.tsx' });
     expect(previewGroupUpdate).toHaveBeenNthCalledWith(2, 'g1', { color: '#ff00ff' });
+    expect(setOptimisticGroupUpdate).toHaveBeenNthCalledWith(1, 'g1', { pattern: '*.tsx' });
+    expect(setOptimisticGroupUpdate).toHaveBeenNthCalledWith(2, 'g1', { color: '#ff00ff' });
   });
 });

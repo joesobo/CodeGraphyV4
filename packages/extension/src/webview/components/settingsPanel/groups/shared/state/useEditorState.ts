@@ -86,6 +86,9 @@ export function useEditorState({
         ),
       );
     },
+    setOptimisticGroupUpdate: (groupId, updates) => {
+      graphStore.getState().setOptimisticGroupUpdate(groupId, updates);
+    },
     setLocalColorOverrides,
     setLocalPatternOverrides,
     updateGroup: actions.updateGroup,

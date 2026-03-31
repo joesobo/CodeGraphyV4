@@ -45,8 +45,11 @@ export const MESSAGE_HANDLERS: Record<
     handleFavoritesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>),
   SETTINGS_UPDATED: (msg) =>
     handleSettingsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'SETTINGS_UPDATED' }>),
-  GROUPS_UPDATED: (msg) =>
-    handleGroupsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GROUPS_UPDATED' }>),
+  GROUPS_UPDATED: (msg, ctx) =>
+    handleGroupsUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'GROUPS_UPDATED' }>,
+      ctx,
+    ),
   FILTER_PATTERNS_UPDATED: (msg) =>
     handleFilterPatternsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FILTER_PATTERNS_UPDATED' }>),
   VIEWS_UPDATED: (msg) =>

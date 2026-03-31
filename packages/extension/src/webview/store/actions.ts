@@ -9,6 +9,10 @@ import { postMessage } from '../vscodeApi';
 import { MESSAGE_HANDLERS } from './messages';
 import { createDisplayActions } from './displayActions';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
+import {
+  clearPendingGroupUpdate,
+  mergePendingGroupUpdate,
+} from './optimisticGroups';
 
 type SetState = StoreApi<GraphState>['setState'];
 type GetState = StoreApi<GraphState>['getState'];
@@ -27,6 +31,21 @@ export function createActions(set: SetState, get: GetState) {
     setMaxFiles: (max: number) => set({ maxFiles: max }),
     setPlaybackSpeed: (speed: number) => set({ playbackSpeed: speed }),
     setIsPlaying: (playing: boolean) => set({ isPlaying: playing }),
+    setOptimisticGroupUpdate: (groupId: string, updates: Partial<GraphState['groups'][number]>) =>
+      set((state) => ({
+        optimisticGroupUpdates: mergePendingGroupUpdate(
+          state.optimisticGroupUpdates,
+          groupId,
+          updates,
+        ),
+      })),
+    clearOptimisticGroupUpdate: (groupId: string) =>
+      set((state) => ({
+        optimisticGroupUpdates: clearPendingGroupUpdate(
+          state.optimisticGroupUpdates,
+          groupId,
+        ),
+      })),
     handleExtensionMessage: (message: ExtensionToWebviewMessage) => {
       const handler = MESSAGE_HANDLERS[message.type];
       if (!handler) return;
