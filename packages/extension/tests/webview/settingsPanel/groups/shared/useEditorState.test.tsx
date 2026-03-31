@@ -16,7 +16,7 @@ describe('useEditorState', () => {
 
   it('starts new custom groups with the default color', () => {
     const { result } = renderHook(() =>
-      useEditorState({ userGroups: [], setExpandedGroupId: vi.fn() })
+      useEditorState({ groups: [], userGroups: [], setExpandedGroupId: vi.fn() })
     );
 
     expect(result.current.newColor).toBe('#3B82F6');
@@ -24,7 +24,7 @@ describe('useEditorState', () => {
 
   it('tracks plugin section expansion state', () => {
     const { result } = renderHook(() =>
-      useEditorState({ userGroups: [], setExpandedGroupId: vi.fn() })
+      useEditorState({ groups: [], userGroups: [], setExpandedGroupId: vi.fn() })
     );
 
     act(() => {
@@ -41,7 +41,11 @@ describe('useEditorState', () => {
   it('cancels pending timers on unmount', () => {
     vi.useFakeTimers();
     const { result, unmount } = renderHook(() =>
-      useEditorState({ userGroups: [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }], setExpandedGroupId: vi.fn() })
+      useEditorState({
+        groups: [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }],
+        userGroups: [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }],
+        setExpandedGroupId: vi.fn(),
+      })
     );
 
     act(() => {
@@ -61,6 +65,10 @@ describe('useEditorState', () => {
   it('wires drag handlers through to reordered group updates', () => {
     const { result } = renderHook(() =>
       useEditorState({
+        groups: [
+          { id: 'g1', pattern: '*.ts', color: '#3178C6' },
+          { id: 'g2', pattern: '*.tsx', color: '#22C55E' },
+        ],
         userGroups: [
           { id: 'g1', pattern: '*.ts', color: '#3178C6' },
           { id: 'g2', pattern: '*.tsx', color: '#22C55E' },
