@@ -7,6 +7,7 @@ function makeProvider() {
     refreshPhysicsSettings: vi.fn(),
     refreshToggleSettings: vi.fn(),
     refreshSettings: vi.fn(),
+    refreshGroupSettings: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
     emitEvent: vi.fn(),
     invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
@@ -79,6 +80,28 @@ describe('configListener', () => {
 
     expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.refreshSettings).not.toHaveBeenCalled();
+  });
+
+  it('debounces group configuration syncs and refreshes group settings once', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const listener = getConfigListener();
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.groups' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.hiddenPluginGroups' });
+
+    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(299);
+    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(provider.refreshGroupSettings).toHaveBeenCalledOnce();
+
+    vi.useRealTimers();
   });
 
   it('triggers full refresh for unrecognized codegraphy settings', () => {

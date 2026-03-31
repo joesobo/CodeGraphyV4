@@ -13,6 +13,7 @@ import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type { ICommitInfo } from '../../shared/timeline/types';
 import type { IAvailableView } from '../../shared/view/types';
+import type { PendingGroupUpdates } from './optimisticGroups';
 
 export interface GraphState {
   graphData: IGraphData | null;
@@ -32,6 +33,7 @@ export interface GraphState {
   physicsSettings: IPhysicsSettings;
   depthLimit: number;
   groups: IGroup[];
+  optimisticGroupUpdates: PendingGroupUpdates;
   filterPatterns: string[];
   pluginFilterPatterns: string[];
   availableViews: IAvailableView[];
@@ -60,6 +62,8 @@ export interface GraphState {
   setNodeSizeMode: (mode: NodeSizeMode) => void;
   setPhysicsSettings: (settings: IPhysicsSettings) => void;
   setGroups: (groups: IGroup[]) => void;
+  setOptimisticGroupUpdate: (groupId: string, updates: Partial<IGroup>) => void;
+  clearOptimisticGroupUpdate: (groupId: string) => void;
   setFilterPatterns: (patterns: string[]) => void;
   setShowOrphans: (show: boolean) => void;
   setDirectionMode: (mode: DirectionMode) => void;

@@ -13,7 +13,7 @@ function readExtensionManifest() {
       viewsContainers?: {
         activitybar?: Array<{
           id?: string;
-          icon?: string | { dark?: string; light?: string };
+          icon?: string;
         }>;
       };
       views?: {
@@ -36,19 +36,13 @@ describe('extension manifest', () => {
     expect(existsSync(resolve(repoRoot, String(manifest.icon)))).toBe(true);
   });
 
-  it('declares theme-aware activity bar icons', () => {
+  it('declares a string activity bar icon', () => {
     const { manifest, repoRoot } = readExtensionManifest();
     const container = manifest.contributes?.viewsContainers?.activitybar?.find(entry => entry.id === 'codegraphy');
 
     expect(container).toBeDefined();
-    expect(container?.icon).toMatchObject({
-      dark: 'assets/icon-dark.svg',
-      light: 'assets/icon-light.svg',
-    });
-
-    const icon = container?.icon as { dark?: string; light?: string };
-    expect(existsSync(resolve(repoRoot, String(icon.dark)))).toBe(true);
-    expect(existsSync(resolve(repoRoot, String(icon.light)))).toBe(true);
+    expect(container?.icon).toBe('assets/icon-dark.svg');
+    expect(existsSync(resolve(repoRoot, String(container?.icon)))).toBe(true);
   });
 
   it('declares a graph view icon', () => {

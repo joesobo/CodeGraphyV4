@@ -1,5 +1,6 @@
-import type { PartialState } from '../messageTypes';
+import type { IHandlerContext, PartialState } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import { applyPendingGroupUpdates } from '../optimisticGroups';
 
 export function handleGraphDataUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>,
@@ -24,8 +25,17 @@ export function handleSettingsUpdated(
 
 export function handleGroupsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GROUPS_UPDATED' }>,
+  ctx: IHandlerContext,
 ): PartialState {
-  return { groups: message.payload.groups };
+  const resolved = applyPendingGroupUpdates(
+    message.payload.groups,
+    ctx.getState().optimisticGroupUpdates,
+  );
+
+  return {
+    groups: resolved.groups,
+    optimisticGroupUpdates: resolved.pendingUpdates,
+  };
 }
 
 export function handleFilterPatternsUpdated(

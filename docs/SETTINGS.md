@@ -86,13 +86,14 @@ Assigns colors to files based on glob patterns. All nodes are grey (`#A1A1AA`) b
 - Drag groups to reorder priority.
 - Changes sync back to the extension immediately.
 
-Patterns use the same glob syntax as `codegraphy.include`. Both simple extension patterns (`*.ts`) and full path patterns (`src/components/**`) work.
+Group patterns match by basename or path suffix. Simple extension patterns like `*.ts` match files at any depth, `src/*` matches files directly inside any `src/` folder, and `src/**` matches files at any depth under any `src/` folder.
 
 **Example groups:**
 ```
 Pattern: src/**    Color: #3B82F6   (blue, all source files)
 Pattern: *.test.*  Color: #10B981   (green, test files)
 Pattern: *.md      Color: #6B7280   (grey, documentation)
+Pattern: tests/*   Color: #F59E0B   (amber, files directly inside any tests folder)
 ```
 
 To share groups across a team, add them to `settings.json`:

@@ -11,6 +11,16 @@ export interface SettingsPanelGroupSections {
   defaultSections: SettingsPanelGroupSection[];
 }
 
+export function replaceSettingsPanelUserGroups(
+  groups: IGroup[],
+  userGroups: IGroup[],
+): IGroup[] {
+  return [
+    ...userGroups,
+    ...groups.filter((group) => group.isPluginDefault),
+  ];
+}
+
 export function groupSettingsPanelSections(groups: IGroup[]): SettingsPanelGroupSections {
   const userGroups = groups.filter((group) => !group.isPluginDefault);
   const defaultGroups = groups.filter((group) => group.isPluginDefault);

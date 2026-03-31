@@ -20,6 +20,7 @@ export const INITIAL_STATE: GraphStateFields = {
   physicsSettings: DEFAULT_PHYSICS,
   depthLimit: 1,
   groups: [],
+  optimisticGroupUpdates: {},
   filterPatterns: [],
   pluginFilterPatterns: [],
   availableViews: [],

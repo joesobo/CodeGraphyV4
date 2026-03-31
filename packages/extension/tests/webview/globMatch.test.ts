@@ -32,8 +32,14 @@ describe('globMatch', () => {
       expect(globMatch('src/utils.ts', 'src/*')).toBe(true);
     });
 
+    it('matches files directly in nested folders with the same basename', () => {
+      expect(globMatch('packages/extension/src/main.gd', 'src/*')).toBe(true);
+      expect(globMatch('packages/plugin/tests/index.ts', 'tests/*')).toBe(true);
+    });
+
     it('does not match files in subdirectories', () => {
       expect(globMatch('src/sub/file.gd', 'src/*')).toBe(false);
+      expect(globMatch('packages/extension/src/sub/file.gd', 'src/*')).toBe(false);
     });
 
     it('does not match files in other folders', () => {
@@ -46,6 +52,7 @@ describe('globMatch', () => {
       expect(globMatch('src/main.gd', 'src/**')).toBe(true);
       expect(globMatch('src/sub/file.gd', 'src/**')).toBe(true);
       expect(globMatch('src/a/b/c/file.gd', 'src/**')).toBe(true);
+      expect(globMatch('packages/extension/src/sub/file.gd', 'src/**')).toBe(true);
     });
 
     it('does not match files outside the folder', () => {

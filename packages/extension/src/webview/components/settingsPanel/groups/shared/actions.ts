@@ -1,8 +1,11 @@
 import type { IGroup } from '../../../../../shared/settings/groups';
 import { postMessage } from '../../../../vscodeApi';
+import { graphStore } from '../../../../store/state';
 import { buildSettingsGroupOverride } from './override';
+import { replaceSettingsPanelUserGroups } from './sections';
 
 interface GroupActionDependencies {
+  groups: IGroup[];
   newColor: string;
   newPattern: string;
   setExpandedGroupId: (groupId: string | null) => void;
@@ -23,6 +26,16 @@ export interface GroupActionHandlers {
   updateGroup: (groupId: string, updates: Partial<IGroup>) => void;
 }
 
+export function updateSettingsPanelUserGroups(
+  userGroups: IGroup[],
+  groupId: string,
+  updates: Partial<IGroup>,
+): IGroup[] {
+  return userGroups.map((group) =>
+    group.id === groupId ? { ...group, ...updates } : group,
+  );
+}
+
 function postSettingsGroups(updated: IGroup[]): void {
   postMessage({ type: 'UPDATE_GROUPS', payload: { groups: updated } });
 }
@@ -30,15 +43,20 @@ function postSettingsGroups(updated: IGroup[]): void {
 export function createGroupActions(
   dependencies: GroupActionDependencies,
 ): GroupActionHandlers {
+  const syncOptimisticGroups = (updated: IGroup[]) => {
+    graphStore.getState().setGroups(
+      replaceSettingsPanelUserGroups(dependencies.groups, updated),
+    );
+  };
+
   const sendUserGroups = (updated: IGroup[]) => {
+    syncOptimisticGroups(updated);
     postSettingsGroups(updated);
   };
 
   const updateGroup = (groupId: string, updates: Partial<IGroup>) => {
     sendUserGroups(
-      dependencies.userGroups.map((group) =>
-        group.id === groupId ? { ...group, ...updates } : group,
-      ),
+      updateSettingsPanelUserGroups(dependencies.userGroups, groupId, updates),
     );
   };
 

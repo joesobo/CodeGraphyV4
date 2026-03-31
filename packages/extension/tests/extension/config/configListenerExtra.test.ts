@@ -11,6 +11,7 @@ function makeProvider() {
     refreshPhysicsSettings: vi.fn(),
     refreshToggleSettings: vi.fn(),
     refreshSettings: vi.fn(),
+    refreshGroupSettings: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
     emitEvent: vi.fn(),
     invalidateTimelineCache: vi.fn().mockResolvedValue(undefined),
@@ -96,6 +97,7 @@ describe('configListener (extra mutant coverage)', () => {
   });
 
   it('handles hiddenPluginGroups changes as groups category', () => {
+    vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
 
@@ -104,11 +106,16 @@ describe('configListener (extra mutant coverage)', () => {
     const listener = getConfigListener();
     listener({ affectsConfiguration: (key) => key === 'codegraphy.hiddenPluginGroups' });
 
-    // groups category should not trigger any refresh
+    expect(provider.refreshGroupSettings).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(300);
+
+    expect(provider.refreshGroupSettings).toHaveBeenCalledOnce();
     expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.refreshPhysicsSettings).not.toHaveBeenCalled();
     expect(provider.refreshToggleSettings).not.toHaveBeenCalled();
     expect(provider.refreshSettings).not.toHaveBeenCalled();
+    vi.useRealTimers();
   });
 
   it('invalidates timeline cache for timeline.maxCommits changes', () => {
