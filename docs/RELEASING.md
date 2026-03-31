@@ -12,6 +12,14 @@ Release-facing metadata is not all in one package:
 
 ## Local release commands
 
+Version the pending workspace releases first:
+
+```bash
+pnpm run version-packages
+```
+
+If the core Marketplace extension changed, also bump the repo-root [`package.json`](../package.json) version and add the matching top entry to [`CHANGELOG.md`](../CHANGELOG.md). The core extension is published from the repo root, not from `packages/extension`.
+
 Run the full release gate first:
 
 ```bash
@@ -55,17 +63,21 @@ vsce verify-pat codegraphy
 3. Confirm `vsce ls-publishers` shows `codegraphy`.
 4. Confirm `vsce verify-pat codegraphy` succeeds.
 5. Run `pnpm install`.
-6. Run `pnpm run release:check`.
-7. Publish `@codegraphy-vscode/plugin-api` with `pnpm run release:publish plugin-api`.
-8. Publish the core extension with `pnpm run release:publish core`.
-9. Publish each plugin extension separately:
+6. Add changesets only for unreleased user-facing workspace packages. Archive shipped changesets under [`docs/archive/changesets/`](./archive/changesets/).
+7. Run `pnpm run version-packages`.
+8. If the core Marketplace extension changed, bump the root `package.json` version and add the matching top entry to `CHANGELOG.md`.
+9. Commit the generated version and changelog updates.
+10. Run `pnpm run release:check`.
+11. Publish `@codegraphy-vscode/plugin-api` with `pnpm run release:publish plugin-api`.
+12. Publish the core extension with `pnpm run release:publish core`.
+13. Publish each plugin extension separately:
    - `pnpm run release:publish typescript`
    - `pnpm run release:publish python`
    - `pnpm run release:publish csharp`
    - `pnpm run release:publish godot`
-10. Open each Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
-11. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
-12. Open the npm package page for [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api) and verify the README and repository links.
+14. Open each Marketplace listing and verify the dependency text, README, icon, gallery banner, and version.
+15. Verify the existing `codegraphy.codegraphy` listing has been updated in place to the new V4 release metadata.
+16. Open the npm package page for [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api) and verify the README and repository links.
 
 ## GitHub Actions
 
