@@ -213,10 +213,7 @@
 					{
 						"id": "codegraphy",
 						"title": "CodeGraphy",
-						"icon": {
-							"dark": "assets/icon-dark.svg",
-							"light": "assets/icon-light.svg"
-						}
+						"icon": "assets/icon.svg"
 					}
 				]
 			},
