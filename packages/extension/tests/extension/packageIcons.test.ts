@@ -8,6 +8,7 @@ type PackageSpec = {
   label: string;
   manifestPath: string;
   expectedIcon: string;
+  expectedSvgIcon: string;
 };
 
 type PackageManifest = {
@@ -15,11 +16,11 @@ type PackageManifest = {
 };
 
 const packageSpecs: PackageSpec[] = [
-  { label: 'core extension', manifestPath: 'package.json', expectedIcon: 'assets/icon.png' },
-  { label: 'TypeScript plugin', manifestPath: 'packages/plugin-typescript/package.json', expectedIcon: 'assets/icon.png' },
-  { label: 'Python plugin', manifestPath: 'packages/plugin-python/package.json', expectedIcon: 'assets/icon.png' },
-  { label: 'C# plugin', manifestPath: 'packages/plugin-csharp/package.json', expectedIcon: 'assets/icon.png' },
-  { label: 'GDScript plugin', manifestPath: 'packages/plugin-godot/package.json', expectedIcon: 'assets/icon.png' },
+  { label: 'core extension', manifestPath: 'package.json', expectedIcon: 'assets/icon.png', expectedSvgIcon: 'assets/icon.svg' },
+  { label: 'TypeScript plugin', manifestPath: 'packages/plugin-typescript/package.json', expectedIcon: 'assets/icon.png', expectedSvgIcon: 'assets/icon.svg' },
+  { label: 'Python plugin', manifestPath: 'packages/plugin-python/package.json', expectedIcon: 'assets/icon.png', expectedSvgIcon: 'assets/icon.svg' },
+  { label: 'C# plugin', manifestPath: 'packages/plugin-csharp/package.json', expectedIcon: 'assets/icon.png', expectedSvgIcon: 'assets/icon.svg' },
+  { label: 'GDScript plugin', manifestPath: 'packages/plugin-godot/package.json', expectedIcon: 'assets/icon.png', expectedSvgIcon: 'assets/icon.svg' },
 ];
 
 function resolveRepoRoot() {
@@ -48,6 +49,7 @@ describe('package icon metadata', () => {
       expect(manifest.icon, `${spec.label} manifest icon`).toBe(spec.expectedIcon);
       expect(manifest.icon, `${spec.label} manifest icon name`).not.toContain('marketplace');
       expect(existsSync(resolve(packageDir, spec.expectedIcon)), `${spec.label} icon file`).toBe(true);
+      expect(existsSync(resolve(packageDir, spec.expectedSvgIcon)), `${spec.label} svg icon file`).toBe(true);
     }
   });
 
@@ -64,5 +66,16 @@ describe('package icon metadata', () => {
     });
 
     expect(new Set(pluginHashes).size).toBe(pluginHashes.length);
+  });
+
+  it('ships svg sources without hard outline strokes', () => {
+    for (const spec of packageSpecs) {
+      const { manifestPath } = readManifest(spec);
+      const packageDir = dirname(manifestPath);
+      const svgIconPath = resolve(packageDir, spec.expectedSvgIcon);
+      const svg = readFileSync(svgIconPath, 'utf8');
+
+      expect(svg, `${spec.label} svg outline`).not.toContain('stroke=');
+    }
   });
 });
