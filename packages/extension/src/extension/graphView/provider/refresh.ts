@@ -31,6 +31,7 @@ export interface GraphViewProviderRefreshMethodsSource {
   _loadGroupsAndFilterPatterns(): void;
   _analyzeAndSendData(): Promise<void>;
   _sendAllSettings(): void;
+  _sendFavorites(): void;
   _sendGroupsUpdated(): void;
   _sendSettings(): void;
   _sendPhysicsSettings(): void;
@@ -109,6 +110,7 @@ export function createGraphViewProviderRefreshMethods(
     source._loadGroupsAndFilterPatterns();
     await source._analyzeAndSendData();
     source._sendAllSettings();
+    source._sendFavorites();
   };
 
   const refreshPhysicsSettings = (): void => {

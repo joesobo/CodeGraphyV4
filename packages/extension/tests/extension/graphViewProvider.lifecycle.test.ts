@@ -85,6 +85,9 @@ describe('GraphViewProvider lifecycle', () => {
     const settingsSpy = vi
       .spyOn(internals._settingsStateMethods, '_sendAllSettings')
       .mockImplementation(() => {});
+    const favoritesSpy = vi
+      .spyOn(internals._fileVisitMethods, '_sendFavorites')
+      .mockImplementation(() => {});
 
     await provider.refresh();
 
@@ -92,6 +95,7 @@ describe('GraphViewProvider lifecycle', () => {
     expect(loadGroupsSpy).toHaveBeenCalledTimes(1);
     expect(analyzeSpy).toHaveBeenCalledTimes(1);
     expect(settingsSpy).toHaveBeenCalledTimes(1);
+    expect(favoritesSpy).toHaveBeenCalledTimes(1);
   });
 
   it('refreshToggleSettings only rebuilds when toggle state changed', () => {

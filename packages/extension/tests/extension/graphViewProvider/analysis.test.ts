@@ -25,6 +25,9 @@ describe('GraphViewProvider analysis refresh', () => {
     const settingsSpy = vi
       .spyOn(internals._settingsStateMethods, '_sendAllSettings')
       .mockImplementation(() => {});
+    const favoritesSpy = vi
+      .spyOn(internals._fileVisitMethods, '_sendFavorites')
+      .mockImplementation(() => {});
 
     await harness.provider.refresh();
 
@@ -32,5 +35,6 @@ describe('GraphViewProvider analysis refresh', () => {
     expect(loadGroupsSpy).toHaveBeenCalledOnce();
     expect(analyzeSpy).toHaveBeenCalledOnce();
     expect(settingsSpy).toHaveBeenCalledOnce();
+    expect(favoritesSpy).toHaveBeenCalledOnce();
   });
 });
