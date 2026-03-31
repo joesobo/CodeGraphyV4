@@ -76,8 +76,11 @@ export const MESSAGE_HANDLERS: Record<
     handlePlaybackSpeedUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLAYBACK_SPEED_UPDATED' }>),
   CACHE_INVALIDATED: () => handleCacheInvalidated(),
   PLAYBACK_ENDED: () => handlePlaybackEnded(),
-  DECORATIONS_UPDATED: (msg) =>
-    handleDecorationsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DECORATIONS_UPDATED' }>),
+  DECORATIONS_UPDATED: (msg, ctx) =>
+    handleDecorationsUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'DECORATIONS_UPDATED' }>,
+      ctx,
+    ),
   CONTEXT_MENU_ITEMS: (msg) =>
     handleContextMenuItems(msg as Extract<ExtensionToWebviewMessage, { type: 'CONTEXT_MENU_ITEMS' }>),
   PLUGIN_WEBVIEW_INJECT: () => undefined,

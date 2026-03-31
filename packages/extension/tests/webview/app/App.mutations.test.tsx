@@ -133,6 +133,8 @@ function resetStore(): void {
 describe('App (mutation targets)', () => {
   beforeEach(() => {
     messageListeners.length = 0;
+    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
+      .__codegraphyWebviewReadyPosted;
     harness.graphProps = null;
     harness.searchBarProps = null;
     harness.pluginsPanelProps = null;
@@ -279,6 +281,8 @@ describe('App (mutation targets)', () => {
 describe('App panel isOpen mutations (L59-60)', () => {
   beforeEach(() => {
     messageListeners.length = 0;
+    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
+      .__codegraphyWebviewReadyPosted;
     harness.graphProps = null;
     harness.searchBarProps = null;
     harness.pluginsPanelProps = null;
@@ -346,6 +350,8 @@ describe('App panel isOpen mutations (L59-60)', () => {
 describe('App effectiveGraphData and filteredData mutations (L39, L49)', () => {
   beforeEach(() => {
     messageListeners.length = 0;
+    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
+      .__codegraphyWebviewReadyPosted;
     harness.graphProps = null;
     harness.searchBarProps = null;
     resetStore();

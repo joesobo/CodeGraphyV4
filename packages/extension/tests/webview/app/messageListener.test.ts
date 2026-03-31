@@ -12,6 +12,9 @@ import { postMessage } from '../../../src/webview/vscodeApi';
 describe('app message listener', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.clearAllMocks();
+    delete (window as Window & { __codegraphyWebviewReadyPosted?: boolean })
+      .__codegraphyWebviewReadyPosted;
   });
 
   afterEach(() => {
@@ -149,5 +152,19 @@ describe('app message listener', () => {
     cleanup();
 
     expect(removeEventListenerSpy).toHaveBeenCalledWith('message', registeredHandler);
+  });
+
+  it('posts WEBVIEW_READY only once when the listener is set up twice in the same page lifecycle', () => {
+    const injectPluginAssets = vi.fn<(_params: InjectAssetsParams) => Promise<void>>().mockResolvedValue();
+    const pluginHost = { deliverMessage: vi.fn() } as unknown as WebviewPluginHost;
+
+    const firstCleanup = setupMessageListener(injectPluginAssets, pluginHost);
+    const secondCleanup = setupMessageListener(injectPluginAssets, pluginHost);
+
+    expect(postMessage).toHaveBeenCalledTimes(1);
+    expect(postMessage).toHaveBeenCalledWith({ type: 'WEBVIEW_READY', payload: null });
+
+    firstCleanup();
+    secondCleanup();
   });
 });

@@ -1,5 +1,7 @@
 import type { PartialState } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../shared/plugins/decorations';
+import { arePlainValuesEqual } from './equality';
 
 export function handlePluginsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'PLUGINS_UPDATED' }>,
@@ -9,10 +11,21 @@ export function handlePluginsUpdated(
 
 export function handleDecorationsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'DECORATIONS_UPDATED' }>,
-): PartialState {
+  ctx: { getState: () => { nodeDecorations: Record<string, NodeDecorationPayload>; edgeDecorations: Record<string, EdgeDecorationPayload> } },
+): PartialState | void {
+  const state = ctx.getState();
+  const { nodeDecorations, edgeDecorations } = message.payload;
+
+  if (
+    arePlainValuesEqual(state.nodeDecorations, nodeDecorations) &&
+    arePlainValuesEqual(state.edgeDecorations, edgeDecorations)
+  ) {
+    return;
+  }
+
   return {
-    nodeDecorations: message.payload.nodeDecorations,
-    edgeDecorations: message.payload.edgeDecorations,
+    nodeDecorations,
+    edgeDecorations,
   };
 }
 

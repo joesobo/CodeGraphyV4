@@ -198,6 +198,7 @@ describe('fileWatcherSetup console.log messages', () => {
   });
 
   it('logs the correct message when a file is created (L66 mutant)', () => {
+    vi.useFakeTimers();
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     let createListener: ((uri: { fsPath: string }) => void) | undefined;
@@ -218,6 +219,7 @@ describe('fileWatcherSetup console.log messages', () => {
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
     createListener!({ fsPath: '/workspace/new-file.ts' });
+    vi.advanceTimersByTime(500);
 
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created, refreshing graph');
 
@@ -225,6 +227,7 @@ describe('fileWatcherSetup console.log messages', () => {
   });
 
   it('logs the correct message when a file is deleted (L73 mutant)', () => {
+    vi.useFakeTimers();
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
 
     let deleteListener: ((uri: { fsPath: string }) => void) | undefined;
@@ -245,6 +248,7 @@ describe('fileWatcherSetup console.log messages', () => {
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
     deleteListener!({ fsPath: '/workspace/deleted-file.ts' });
+    vi.advanceTimersByTime(500);
 
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File deleted, refreshing graph');
 

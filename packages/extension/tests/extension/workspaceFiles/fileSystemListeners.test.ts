@@ -5,7 +5,10 @@ import {
   registerSaveHandler,
   registerFileWatcher,
 } from '../../../src/extension/workspaceFiles/register';
-import { shouldIgnoreSaveForGraphRefresh } from '../../../src/extension/workspaceFiles/ignore';
+import {
+  shouldIgnoreSaveForGraphRefresh,
+  shouldIgnoreWorkspaceFileWatcherRefresh,
+} from '../../../src/extension/workspaceFiles/ignore';
 
 function makeProvider() {
   return {
@@ -45,12 +48,33 @@ describe('shouldIgnoreSaveForGraphRefresh', () => {
     expect(shouldIgnoreSaveForGraphRefresh(makeDocument('/project/my-project.code-workspace'))).toBe(true);
   });
 
+  it('ignores discovery-excluded saves', () => {
+    expect(shouldIgnoreSaveForGraphRefresh(makeDocument('/project/node_modules/react/index.js'))).toBe(true);
+    expect(shouldIgnoreSaveForGraphRefresh(makeDocument('/project/dist/app.bundle.js'))).toBe(true);
+  });
+
   it('does not ignore normal source file saves', () => {
     expect(shouldIgnoreSaveForGraphRefresh(makeDocument('/project/src/app.ts'))).toBe(false);
   });
 
   it('returns false when the document has no file path', () => {
     expect(shouldIgnoreSaveForGraphRefresh(makeDocument(undefined))).toBe(false);
+  });
+});
+
+describe('shouldIgnoreWorkspaceFileWatcherRefresh', () => {
+  it('ignores workspace config artifact paths', () => {
+    expect(shouldIgnoreWorkspaceFileWatcherRefresh('/project/.vscode/settings.json')).toBe(true);
+    expect(shouldIgnoreWorkspaceFileWatcherRefresh('/project/my-project.code-workspace')).toBe(true);
+  });
+
+  it('ignores discovery-excluded watcher paths', () => {
+    expect(shouldIgnoreWorkspaceFileWatcherRefresh('/project/node_modules/react/index.js')).toBe(true);
+    expect(shouldIgnoreWorkspaceFileWatcherRefresh('/project/.git/index.lock')).toBe(true);
+  });
+
+  it('keeps source file watcher paths refreshable', () => {
+    expect(shouldIgnoreWorkspaceFileWatcherRefresh('/project/src/app.ts')).toBe(false);
   });
 });
 

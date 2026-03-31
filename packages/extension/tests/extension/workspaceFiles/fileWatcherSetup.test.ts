@@ -264,6 +264,10 @@ describe('registerFileWatcher', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('adds three subscriptions (create, delete, watcher)', () => {
     const context = makeContext();
     const provider = makeProvider();
@@ -274,6 +278,7 @@ describe('registerFileWatcher', () => {
   });
 
   it('refreshes graph and emits event on file creation', () => {
+    vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
 
@@ -293,6 +298,7 @@ describe('registerFileWatcher', () => {
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
     createListener!({ fsPath: '/workspace/new-file.ts' });
+    vi.advanceTimersByTime(500);
 
     expect(provider.refresh).toHaveBeenCalledOnce();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
@@ -301,6 +307,7 @@ describe('registerFileWatcher', () => {
   });
 
   it('refreshes graph and emits event on file deletion', () => {
+    vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
 
@@ -319,10 +326,135 @@ describe('registerFileWatcher', () => {
     registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
 
     deleteListener!({ fsPath: '/workspace/deleted-file.ts' });
+    vi.advanceTimersByTime(500);
 
     expect(provider.refresh).toHaveBeenCalledOnce();
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileDeleted', {
       filePath: '/workspace/deleted-file.ts',
     });
+  });
+
+  it('does not refresh for discovery-excluded file creation events', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    let createListener: ((uri: { fsPath: string }) => void) | undefined;
+    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
+      onDidCreate: vi.fn((cb) => {
+        createListener = cb;
+        return { dispose: vi.fn() };
+      }),
+      onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+      dispose: vi.fn(),
+    } as unknown as vscode.FileSystemWatcher);
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+
+    createListener!({ fsPath: '/workspace/node_modules/react/index.js' });
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not refresh for workspace config artifact deletion events', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    let deleteListener: ((uri: { fsPath: string }) => void) | undefined;
+    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
+      onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidDelete: vi.fn((cb) => {
+        deleteListener = cb;
+        return { dispose: vi.fn() };
+      }),
+      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+      dispose: vi.fn(),
+    } as unknown as vscode.FileSystemWatcher);
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+
+    deleteListener!({ fsPath: '/workspace/.vscode/settings.json' });
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
+  });
+});
+
+describe('workspace refresh coalescing', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('coalesces a save followed by a create event into one refresh', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+
+    let createListener: ((uri: { fsPath: string }) => void) | undefined;
+    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
+      onDidCreate: vi.fn((cb) => {
+        createListener = cb;
+        return { dispose: vi.fn() };
+      }),
+      onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+      dispose: vi.fn(),
+    } as unknown as vscode.FileSystemWatcher);
+
+    registerSaveHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const saveMock = vscode.workspace.onDidSaveTextDocument as unknown as {
+      mock: { calls: unknown[][] };
+    };
+    const saveListener = saveMock.mock.calls[0]?.[0] as (doc: unknown) => void;
+
+    saveListener({ uri: { fsPath: '/workspace/src/app.ts' } });
+    vi.advanceTimersByTime(250);
+    createListener!({ fsPath: '/workspace/src/app.ts.tmp' });
+
+    vi.advanceTimersByTime(499);
+    expect(provider.refresh).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(provider.refresh).toHaveBeenCalledOnce();
+  });
+
+  it('coalesces rapid create and delete events into one refresh', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+
+    let createListener: ((uri: { fsPath: string }) => void) | undefined;
+    let deleteListener: ((uri: { fsPath: string }) => void) | undefined;
+    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
+      onDidCreate: vi.fn((cb) => {
+        createListener = cb;
+        return { dispose: vi.fn() };
+      }),
+      onDidDelete: vi.fn((cb) => {
+        deleteListener = cb;
+        return { dispose: vi.fn() };
+      }),
+      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+      dispose: vi.fn(),
+    } as unknown as vscode.FileSystemWatcher);
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+
+    createListener!({ fsPath: '/workspace/src/app.ts.tmp' });
+    vi.advanceTimersByTime(250);
+    deleteListener!({ fsPath: '/workspace/src/app.ts.tmp' });
+
+    vi.advanceTimersByTime(499);
+    expect(provider.refresh).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(1);
+    expect(provider.refresh).toHaveBeenCalledOnce();
   });
 });

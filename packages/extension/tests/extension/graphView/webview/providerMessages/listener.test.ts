@@ -170,6 +170,31 @@ function createSource(
 }
 
 describe('graph view provider listener bridge', () => {
+  it('does not analyze twice when the same webview listener is registered twice and refresh is clicked once', async () => {
+    const activeHandlers = new Set<(message: unknown) => Promise<void>>();
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        activeHandlers.add(handler);
+        return {
+          dispose: () => {
+            activeHandlers.delete(handler);
+          },
+        };
+      }),
+    };
+    const deps = createDependencies();
+    const source = createSource();
+
+    setGraphViewProviderMessageListener(webview as never, source, deps);
+    setGraphViewProviderMessageListener(webview as never, source, deps);
+
+    expect(activeHandlers.size).toBe(1);
+
+    await Promise.all([...activeHandlers].map(handler => handler({ type: 'REFRESH_GRAPH' })));
+
+    expect(source._analyzeAndSendData).toHaveBeenCalledTimes(1);
+  });
+
   it('stores updated user groups back onto the provider source', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {

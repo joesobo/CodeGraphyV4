@@ -150,6 +150,54 @@ describe('graph view webview message listener', () => {
     expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
   });
 
+  it('ignores duplicate WEBVIEW_READY messages from the same listener', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext();
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.({ type: 'WEBVIEW_READY' });
+    await messageHandler?.({ type: 'WEBVIEW_READY' });
+
+    expect(context.analyzeAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(1);
+    expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(1);
+    expect(context.notifyWebviewReady).toHaveBeenCalledTimes(1);
+    expect(context.setWebviewReadyNotified).toHaveBeenCalledWith(true);
+    expect(context.setWebviewReadyNotified).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces the previous listener when the same webview is wired again', async () => {
+    const activeHandlers = new Set<(message: unknown) => Promise<void>>();
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        activeHandlers.add(handler);
+        return {
+          dispose: () => {
+            activeHandlers.delete(handler);
+          },
+        };
+      }),
+    };
+    const context = createContext();
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    setGraphViewWebviewMessageListener(webview as never, context);
+
+    expect(activeHandlers.size).toBe(1);
+
+    await Promise.all(
+      [...activeHandlers].map(handler => handler({ type: 'REFRESH_GRAPH' })),
+    );
+
+    expect(context.analyzeAndSendData).toHaveBeenCalledTimes(1);
+  });
+
   it('does not store ready state for handled plugin messages without a ready flag', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {
