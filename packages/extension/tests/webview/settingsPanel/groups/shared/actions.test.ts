@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGroup } from '../../../../../src/shared/settings/groups';
+import type { GraphState } from '../../../../../src/webview/store/state';
 import { graphStore } from '../../../../../src/webview/store/state';
 import { createGroupActions } from '../../../../../src/webview/components/settingsPanel/groups/shared/actions';
 
@@ -10,9 +11,17 @@ vi.mock('../../../../../src/webview/vscodeApi', () => ({
 }));
 
 describe('settingsPanel groups actions', () => {
+  let originalSetGroups: GraphState['setGroups'];
+
   beforeEach(() => {
     sentMessages.length = 0;
     graphStore.setState({ groups: [] });
+    originalSetGroups = graphStore.getState().setGroups;
+    graphStore.getState().setGroups = vi.fn();
+  });
+
+  afterEach(() => {
+    graphStore.getState().setGroups = originalSetGroups;
   });
 
   it('ignores blank patterns when adding a group', () => {
@@ -79,6 +88,7 @@ describe('settingsPanel groups actions', () => {
     actions.clearImage('g1');
     actions.deleteGroup('g1');
 
+    expect(graphStore.getState().setGroups).not.toHaveBeenCalled();
     expect(sentMessages[0]).toEqual({
       type: 'UPDATE_GROUPS',
       payload: {
@@ -159,7 +169,7 @@ describe('settingsPanel groups actions', () => {
     ]);
   });
 
-  it('keeps default groups in the optimistic store when a custom group changes', () => {
+  it('posts updated custom groups without rewriting the shared graph store', () => {
     const defaultGroup = {
       id: 'plugin:typescript:ts',
       pattern: '*.ts',
@@ -182,9 +192,14 @@ describe('settingsPanel groups actions', () => {
 
     actions.updateGroup('g1', { pattern: '*.cts' });
 
-    expect(graphStore.getState().groups).toEqual([
-      { id: 'g1', pattern: '*.cts', color: '#22C55E' },
-      defaultGroup,
-    ]);
+    expect(graphStore.getState().setGroups).not.toHaveBeenCalled();
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_GROUPS',
+      payload: {
+        groups: [
+          { id: 'g1', pattern: '*.cts', color: '#22C55E' },
+        ],
+      },
+    });
   });
 });

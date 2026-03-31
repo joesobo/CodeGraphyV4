@@ -7,6 +7,11 @@ import {
   type GraphViewGroupMessageState,
 } from '../../../../../src/extension/graphView/webview/messages/groups';
 
+type TestGroupMessageHandlers = GraphViewGroupMessageHandlers & {
+  recomputeGroups: ReturnType<typeof vi.fn>;
+  sendGroupsUpdated: ReturnType<typeof vi.fn>;
+};
+
 function createState(
   overrides: Partial<GraphViewGroupMessageState> = {},
 ): GraphViewGroupMessageState {
@@ -17,8 +22,8 @@ function createState(
 }
 
 function createHandlers(
-  overrides: Partial<GraphViewGroupMessageHandlers> = {},
-): GraphViewGroupMessageHandlers {
+  overrides: Partial<TestGroupMessageHandlers> = {},
+): TestGroupMessageHandlers {
   return {
     workspaceFolder: { uri: vscode.Uri.file('/test/workspace') },
     persistGroups: vi.fn(() => Promise.resolve()),
@@ -64,8 +69,8 @@ describe('graph view group message', () => {
       },
     ]);
     expect(handlers.persistGroups).toHaveBeenCalledWith(state.userGroups);
-    expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
-    expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
+    expect(handlers.recomputeGroups).not.toHaveBeenCalled();
+    expect(handlers.sendGroupsUpdated).not.toHaveBeenCalled();
   });
 
   it('copies a selected image into workspace assets and updates the target group', async () => {
@@ -100,8 +105,8 @@ describe('graph view group message', () => {
     );
     expect(state.userGroups[0]?.imagePath).toBe('.codegraphy/assets/python.svg');
     expect(handlers.persistGroups).toHaveBeenCalledWith(state.userGroups);
-    expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
-    expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
+    expect(handlers.recomputeGroups).not.toHaveBeenCalled();
+    expect(handlers.sendGroupsUpdated).not.toHaveBeenCalled();
   });
 
   it('continues when the assets directory already exists', async () => {

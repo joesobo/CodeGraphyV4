@@ -17,8 +17,10 @@ function createSource(
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
   _loadDisabledRulesAndPlugins: ReturnType<typeof vi.fn>;
+  _loadGroupsAndFilterPatterns: ReturnType<typeof vi.fn>;
   _analyzeAndSendData: ReturnType<typeof vi.fn>;
   _sendAllSettings: ReturnType<typeof vi.fn>;
+  _sendGroupsUpdated: ReturnType<typeof vi.fn>;
   _sendSettings: ReturnType<typeof vi.fn>;
   _sendPhysicsSettings: ReturnType<typeof vi.fn>;
   _updateViewContext: ReturnType<typeof vi.fn>;
@@ -41,8 +43,10 @@ function createSource(
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _loadDisabledRulesAndPlugins: vi.fn(() => true),
+    _loadGroupsAndFilterPatterns: vi.fn(),
     _analyzeAndSendData: vi.fn(async () => undefined),
     _sendAllSettings: vi.fn(),
+    _sendGroupsUpdated: vi.fn(),
     _sendSettings: vi.fn(),
     _sendPhysicsSettings: vi.fn(),
     _updateViewContext: vi.fn(),
@@ -145,7 +149,7 @@ describe('graphView/provider/refresh', () => {
     expect(rebuildGraphData).toHaveBeenCalledOnce();
   });
 
-  it('refreshGroupSettings re-sends the current settings snapshot', () => {
+  it('refreshGroupSettings reloads group state from configuration and re-sends only groups', () => {
     const source = createSource();
     const methods = createGraphViewProviderRefreshMethods(source as never, {
       getShowOrphans: vi.fn(() => true),
@@ -156,7 +160,9 @@ describe('graphView/provider/refresh', () => {
 
     methods.refreshGroupSettings();
 
-    expect(source._sendAllSettings).toHaveBeenCalledOnce();
+    expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
+    expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
+    expect(source._sendAllSettings).not.toHaveBeenCalled();
     expect(source._sendSettings).not.toHaveBeenCalled();
   });
 

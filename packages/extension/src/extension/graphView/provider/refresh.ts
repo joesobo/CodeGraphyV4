@@ -28,8 +28,10 @@ export interface GraphViewProviderRefreshMethodsSource {
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
   _loadDisabledRulesAndPlugins(): boolean;
+  _loadGroupsAndFilterPatterns(): void;
   _analyzeAndSendData(): Promise<void>;
   _sendAllSettings(): void;
+  _sendGroupsUpdated(): void;
   _sendSettings(): void;
   _sendPhysicsSettings(): void;
   _updateViewContext(): void;
@@ -114,7 +116,8 @@ export function createGraphViewProviderRefreshMethods(
   };
 
   const refreshGroupSettings = (): void => {
-    source._sendAllSettings();
+    source._loadGroupsAndFilterPatterns();
+    source._sendGroupsUpdated();
   };
 
   const refreshSettings = (): void => {
