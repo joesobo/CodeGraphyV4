@@ -9,12 +9,16 @@ import {
 import type { ICommitInfo } from '../../../../shared/timeline/types';
 import { bindTimelineDragListeners } from '../dragListeners';
 import { getResponsiveAxisTickCount } from '../format/dates';
-import { runJumpToEndAction, runPlayPauseAction } from '../playbackActions';
+import {
+  runJumpToCommitAction,
+  runJumpToEndAction,
+  runPlayPauseAction,
+} from '../playbackActions';
 import { jumpToTrackPosition } from '../scrubPosition';
+import { getTimelineViewState } from '../viewState';
 import { useTimelineCleanup } from './cleanup';
 import { useTimelineCommitSync } from './commitSync';
 import { useTimelinePlaybackAnimation } from './playbackAnimation';
-import { getTimelineViewState } from '../viewState';
 
 export interface UseTimelineControllerOptions {
   currentCommitSha: string | null;
@@ -25,8 +29,13 @@ export interface UseTimelineControllerOptions {
 }
 
 export interface UseTimelineControllerResult {
+  currentIndex: number;
   dateTicks: number[];
+  handleJumpToCommit: (sha: string) => void;
   handleJumpToEnd: () => void;
+  handleJumpToNext: () => void;
+  handleJumpToPrevious: () => void;
+  handleJumpToStart: () => void;
   handlePlayPause: () => void;
   handleTrackMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void;
   indicatorPosition: number;
@@ -62,6 +71,7 @@ export function useTimelineController({
     rafRef,
     scrubResetTimerRef,
   });
+
   useTimelinePlaybackAnimation({
     isPlaying,
     refs: {
@@ -75,6 +85,7 @@ export function useTimelineController({
     setPlaybackTime,
     timelineCommits,
   });
+
   useTimelineCommitSync({
     currentCommitSha,
     isPlaying,
@@ -101,6 +112,7 @@ export function useTimelineController({
     if (isPlaying) {
       setIsPlaying(false);
     }
+
     isDraggingRef.current = true;
     scrubToClientX(event.clientX);
   }, [isPlaying, scrubToClientX, setIsPlaying]);
@@ -166,6 +178,56 @@ export function useTimelineController({
     });
   }, [isPlaying, setIsPlaying, timelineCommits]);
 
+  const handleJumpToStart = useCallback(() => {
+    runJumpToCommitAction({
+      isPlaying,
+      lastSentCommitIndexRef,
+      setIsPlaying,
+      setPlaybackTime,
+      targetIndex: 0,
+      timelineCommits,
+    });
+  }, [isPlaying, setIsPlaying, timelineCommits]);
+
+  const handleJumpToPrevious = useCallback(() => {
+    runJumpToCommitAction({
+      isPlaying,
+      lastSentCommitIndexRef,
+      setIsPlaying,
+      setPlaybackTime,
+      targetIndex: viewState.currentIndex - 1,
+      timelineCommits,
+    });
+  }, [isPlaying, setIsPlaying, timelineCommits, viewState.currentIndex]);
+
+  const handleJumpToNext = useCallback(() => {
+    runJumpToCommitAction({
+      isPlaying,
+      lastSentCommitIndexRef,
+      setIsPlaying,
+      setPlaybackTime,
+      targetIndex: viewState.currentIndex + 1,
+      timelineCommits,
+    });
+  }, [isPlaying, setIsPlaying, timelineCommits, viewState.currentIndex]);
+
+  const handleJumpToCommit = useCallback((sha: string) => {
+    const targetIndex = timelineCommits.findIndex((commit) => commit.sha === sha);
+
+    if (targetIndex < 0) {
+      return;
+    }
+
+    runJumpToCommitAction({
+      isPlaying,
+      lastSentCommitIndexRef,
+      setIsPlaying,
+      setPlaybackTime,
+      targetIndex,
+      timelineCommits,
+    });
+  }, [isPlaying, setIsPlaying, timelineCommits]);
+
   const setTrackElement = useCallback((element: HTMLDivElement | null) => {
     trackElementRef.current = element;
     setTrackWidth(element?.getBoundingClientRect().width ?? 0);
@@ -173,8 +235,13 @@ export function useTimelineController({
   }, []);
 
   return {
+    currentIndex: viewState.currentIndex,
     dateTicks: viewState.dateTicks,
+    handleJumpToCommit,
     handleJumpToEnd,
+    handleJumpToNext,
+    handleJumpToPrevious,
+    handleJumpToStart,
     handlePlayPause,
     handleTrackMouseDown,
     indicatorPosition: viewState.indicatorPosition,

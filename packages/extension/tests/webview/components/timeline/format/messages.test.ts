@@ -1,7 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { truncateMessage } from '../../../../../src/webview/components/timeline/format/messages';
+import {
+  getMessageBody,
+  getMessageTitle,
+  truncateMessage,
+} from '../../../../../src/webview/components/timeline/format/messages';
 
 describe('timeline/messages', () => {
+  it('returns the first line as the message title', () => {
+    expect(getMessageTitle('Title line\n\nBody line')).toBe('Title line');
+  });
+
+  it('returns the remaining lines as the message body', () => {
+    expect(getMessageBody('Title line\n\nBody line')).toBe('Body line');
+  });
+
   it('returns the full message when it is shorter than the max length', () => {
     expect(truncateMessage('short message', 20)).toBe('short message');
   });
