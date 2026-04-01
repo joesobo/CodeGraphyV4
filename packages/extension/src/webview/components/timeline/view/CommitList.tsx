@@ -1,7 +1,7 @@
 import React from 'react';
 import type { ICommitInfo } from '../../../../shared/timeline/types';
 import { buildBranchGraphModel } from '../branchGraph/model';
-import { BranchGraphRowView } from '../branchGraph/view';
+import { BranchGraphRowView, getBranchGraphWidth } from '../branchGraph/view';
 import { ChevronIcon } from '../../settingsPanel/SectionHeader';
 import { formatDate } from '../format/dates';
 import { getMessageTitle, truncateMessage } from '../format/messages';
@@ -24,6 +24,8 @@ export default function CommitList({
   const commits = [...timelineCommits].reverse();
   const branchGraphModel = buildBranchGraphModel(commits);
   const branchRowsBySha = new Map(branchGraphModel.rows.map((row) => [row.sha, row]));
+  const maxLaneCount = branchGraphModel.maxLane + 1;
+  const branchRailWidth = getBranchGraphWidth(maxLaneCount) + 12;
 
   return (
     <section
@@ -53,7 +55,7 @@ export default function CommitList({
               <button
                 key={commit.sha}
                 type="button"
-                className={`flex w-full items-stretch gap-3 border-b border-border px-3 py-2 text-left transition-colors last:border-b-0 ${
+                className={`relative block w-full border-b border-border px-3 py-2 text-left transition-colors last:border-b-0 ${
                   isCurrent
                     ? 'bg-[var(--vscode-list-activeSelectionBackground,#264f78)] text-[var(--vscode-list-activeSelectionForeground,#fff)]'
                     : 'hover:bg-[var(--vscode-list-hoverBackground,#2a2d2e)]'
@@ -63,13 +65,20 @@ export default function CommitList({
                 onClick={() => onSelectCommit(commit.sha)}
               >
                 {branchRow && (
-                  <BranchGraphRowView
-                    isCurrent={isCurrent}
-                    maxLaneCount={branchGraphModel.maxLane + 1}
-                    row={branchRow}
-                  />
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-y-0 left-0 flex items-center"
+                    data-testid="timeline-commit-branch-rail"
+                    style={{ width: `${branchRailWidth}px` }}
+                  >
+                    <BranchGraphRowView
+                      isCurrent={isCurrent}
+                      maxLaneCount={maxLaneCount}
+                      row={branchRow}
+                    />
+                  </span>
                 )}
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0" style={{ paddingLeft: `${branchRailWidth}px` }}>
                   <div className="mb-1 flex items-center gap-2 text-xs font-medium">
                     <span>{truncateMessage(getMessageTitle(commit.message), 48)}</span>
                     {commit.parents.length > 1 && (

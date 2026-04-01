@@ -77,4 +77,35 @@ describe('timeline/branchGraph/model', () => {
       topLanes: [{ lane: 0 }, { lane: 1 }],
     });
   });
+
+  it('stops side-branch lanes when the parent falls outside the visible history', () => {
+    const model = buildBranchGraphModel([
+      createCommit('merge', 400, ['main', 'feature']),
+      createCommit('main', 300, ['root']),
+      createCommit('root', 100),
+    ]);
+
+    expect(model.maxLane).toBe(0);
+    expect(model.rows.map((row) => ({ sha: row.sha, lane: row.lane }))).toEqual([
+      { sha: 'merge', lane: 0 },
+      { sha: 'main', lane: 0 },
+      { sha: 'root', lane: 0 },
+    ]);
+    expect(model.rows[0]).toMatchObject({
+      bottomConnections: [],
+      bottomLanes: [{ lane: 0 }],
+      lane: 0,
+      sha: 'merge',
+      topConnections: [],
+      topLanes: [],
+    });
+    expect(model.rows[2]).toMatchObject({
+      bottomConnections: [],
+      bottomLanes: [],
+      lane: 0,
+      sha: 'root',
+      topConnections: [],
+      topLanes: [{ lane: 0 }],
+    });
+  });
 });

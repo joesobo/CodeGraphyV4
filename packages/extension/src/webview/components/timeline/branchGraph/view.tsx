@@ -20,19 +20,23 @@ export interface BranchGraphRowViewProps {
   row: BranchGraphRow;
 }
 
+export function getBranchGraphWidth(maxLaneCount: number): number {
+  return Math.max(1, maxLaneCount) * LANE_GAP + SIDE_PADDING * 2;
+}
+
 export function BranchGraphRowView({
   isCurrent,
   maxLaneCount,
   row,
 }: BranchGraphRowViewProps): React.ReactElement {
-  const width = Math.max(1, maxLaneCount) * LANE_GAP + SIDE_PADDING * 2;
+  const width = getBranchGraphWidth(maxLaneCount);
   const topConnectedLanes = new Set(row.topConnections.map(({ fromLane }) => fromLane));
   const bottomConnectedLanes = new Set(row.bottomConnections.map(({ toLane }) => toLane));
 
   return (
     <svg
       aria-hidden="true"
-      className="mt-0.5 flex-shrink-0"
+      className="block"
       data-testid="timeline-commit-branch-graph"
       height={ROW_HEIGHT}
       viewBox={`0 0 ${width} ${ROW_HEIGHT}`}

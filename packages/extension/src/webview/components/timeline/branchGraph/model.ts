@@ -25,6 +25,7 @@ export interface BranchGraphModel {
 
 export function buildBranchGraphModel(commitsNewestFirst: ICommitInfo[]): BranchGraphModel {
   const active: string[] = [];
+  const visibleShas = new Set(commitsNewestFirst.map(({ sha }) => sha));
   const rows: BranchGraphRow[] = [];
   let maxLane = 0;
 
@@ -43,11 +44,12 @@ export function buildBranchGraphModel(commitsNewestFirst: ICommitInfo[]): Branch
         : [],
     );
     const bottomConnections: BranchGraphConnection[] = [];
+    const visibleParents = commit.parents.filter((parentSha) => visibleShas.has(parentSha));
 
-    if (commit.parents.length === 0) {
+    if (visibleParents.length === 0) {
       removeAllOccurrences(active, commit.sha);
     } else {
-      const [firstParentSha, ...otherParents] = commit.parents;
+      const [firstParentSha, ...otherParents] = visibleParents;
 
       if (firstParentSha) {
         active[lane] = firstParentSha;

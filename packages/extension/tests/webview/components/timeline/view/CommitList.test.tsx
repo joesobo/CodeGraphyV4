@@ -131,4 +131,25 @@ describe('timeline/CommitList', () => {
 
     expect(screen.getAllByTestId('timeline-commit-branch-graph')).toHaveLength(4);
   });
+
+  it('anchors branch graphs in an overlay rail instead of a detached gutter column', () => {
+    render(
+      <CommitList
+        collapsed={false}
+        currentCommitSha={mergeCommits[3].sha}
+        onSelectCommit={vi.fn()}
+        onToggle={vi.fn()}
+        timelineCommits={mergeCommits}
+      />,
+    );
+
+    const item = screen.getAllByTestId('timeline-commit-item')[0];
+
+    expect(item).toHaveClass('relative');
+    expect(within(item).getByTestId('timeline-commit-branch-rail')).toHaveClass(
+      'absolute',
+      'inset-y-0',
+      'left-0',
+    );
+  });
 });
