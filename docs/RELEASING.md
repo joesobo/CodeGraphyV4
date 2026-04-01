@@ -40,6 +40,8 @@ pnpm run release:package godot
 pnpm run release:package all
 ```
 
+`core` release packaging rebuilds `@codegraphy/extension` from source first, so it does not rely on whatever `dist/` happened to be left in the repo.
+
 Publish from a machine that already has `VSCE_PAT` and npm auth configured:
 
 ```bash
@@ -51,6 +53,8 @@ pnpm run release:publish csharp
 pnpm run release:publish godot
 pnpm run release:publish all
 ```
+
+`pnpm run release:publish core` also rebuilds the core extension before staging and publishing.
 
 Before the first local publish from this release setup, verify the authenticated publisher:
 

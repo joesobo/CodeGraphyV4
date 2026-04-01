@@ -4,6 +4,16 @@ All notable changes to CodeGraphy will be documented in this file.
 
 This project uses [Changesets](https://github.com/changesets/changesets) for versioning.
 
+## 4.1.0
+
+### Minor Changes
+
+- Split the CodeGraphy sidebar into separate Graph and Timeline views, move the graph controls into a vertical toolbar so they stay usable in narrow sidebars, keep both views stable when the sidebar is collapsed or expanded, and turn the Timeline view into a richer playback panel with current commit details, transport controls, and a compact commit list.
+
+### Patch Changes
+
+- Fix custom group editing in the sidebar so new groups, toggles, and edits update immediately instead of lagging behind VS Code settings.
+
 ## 4.0.2
 
 ### Patch Changes
