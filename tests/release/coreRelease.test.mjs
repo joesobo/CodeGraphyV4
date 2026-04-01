@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   buildCoreReleaseManifest,
   collectCoreReleaseEntries,
+  prepareCoreReleaseBase,
 } from '../../scripts/release-core.mjs';
 
 test('buildCoreReleaseManifest uses the extension package version for core releases', () => {
@@ -54,5 +55,21 @@ test('collectCoreReleaseEntries collapses packaged directories and preserves exp
     'packages/plugin-markdown/codegraphy.json',
     'README.md',
     'CHANGELOG.md',
+  ]);
+});
+
+test('prepareCoreReleaseBase rebuilds the extension bundle before staging a core release', () => {
+  const calls = [];
+
+  prepareCoreReleaseBase('/repo/codegraphy', (command, args, options = {}) => {
+    calls.push({ command, args, options });
+  });
+
+  assert.deepEqual(calls, [
+    {
+      command: 'pnpm',
+      args: ['--filter', '@codegraphy/extension', 'run', 'build'],
+      options: { cwd: '/repo/codegraphy' },
+    },
   ]);
 });

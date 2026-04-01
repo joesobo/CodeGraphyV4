@@ -84,12 +84,19 @@ function run(command, args, options = {}) {
   }
 }
 
+export function prepareCoreReleaseBase(baseDir = repoRoot, runCommand = run) {
+  runCommand('pnpm', ['--filter', '@codegraphy/extension', 'run', 'build'], {
+    cwd: baseDir,
+  });
+}
+
 export function runCoreRelease(mode, baseDir = repoRoot) {
   if (mode !== 'package' && mode !== 'publish') {
     console.error('Usage: node scripts/release-core.mjs <package|publish>');
     process.exit(1);
   }
 
+  prepareCoreReleaseBase(baseDir);
   const { stageDir, version } = createCoreReleaseStage(baseDir);
   const artifactsDir = path.join(baseDir, 'artifacts', 'vsix');
   const env = {
