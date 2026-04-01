@@ -1,5 +1,11 @@
 # @codegraphy/extension
 
+## 4.1.1
+
+### Patch Changes
+
+- [#164](https://github.com/joesobo/CodeGraphyV4/pull/164) [`24bef90`](https://github.com/joesobo/CodeGraphyV4/commit/24bef90cdc5fb8a4b70254c0fa8b4423e7fc4545) Thanks [@joesobo](https://github.com/joesobo)! - Fix the published core extension package so the Graph and Timeline sidebar views ship the latest bundled UI instead of stale build output.
+
 ## 4.1.0
 
 ### Minor Changes
