@@ -1,6 +1,9 @@
 import type { IHandlerContext, PartialState } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
-import { applyPendingGroupUpdates } from '../optimisticGroups';
+import {
+  applyPendingGroupUpdates,
+  applyPendingUserGroupsUpdate,
+} from '../optimisticGroups';
 import { arePlainValuesEqual } from './equality';
 
 export function handleGraphDataUpdated(
@@ -28,14 +31,19 @@ export function handleGroupsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GROUPS_UPDATED' }>,
   ctx: IHandlerContext,
 ): PartialState | void {
-  const resolved = applyPendingGroupUpdates(
+  const state = ctx.getState();
+  const resolvedUserGroups = applyPendingUserGroupsUpdate(
     message.payload.groups,
-    ctx.getState().optimisticGroupUpdates,
+    state.optimisticUserGroups,
+  );
+  const resolved = applyPendingGroupUpdates(
+    resolvedUserGroups.groups,
+    state.optimisticGroupUpdates,
   );
 
-  const state = ctx.getState();
   if (
     arePlainValuesEqual(state.groups, resolved.groups) &&
+    arePlainValuesEqual(state.optimisticUserGroups, resolvedUserGroups.pendingUserGroups) &&
     arePlainValuesEqual(state.optimisticGroupUpdates, resolved.pendingUpdates)
   ) {
     return;
@@ -43,6 +51,7 @@ export function handleGroupsUpdated(
 
   return {
     groups: resolved.groups,
+    optimisticUserGroups: resolvedUserGroups.pendingUserGroups,
     optimisticGroupUpdates: resolved.pendingUpdates,
   };
 }

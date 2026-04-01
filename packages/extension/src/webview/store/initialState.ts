@@ -21,6 +21,7 @@ export const INITIAL_STATE: GraphStateFields = {
   depthLimit: 1,
   groups: [],
   optimisticGroupUpdates: {},
+  optimisticUserGroups: null,
   filterPatterns: [],
   pluginFilterPatterns: [],
   availableViews: [],
