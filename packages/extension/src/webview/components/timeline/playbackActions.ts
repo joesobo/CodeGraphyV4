@@ -49,6 +49,12 @@ export interface JumpToCommitActionOptions extends JumpToEndActionOptions {
   targetIndex: number;
 }
 
+export interface ResetTimelineActionOptions {
+  isPlaying: boolean;
+  lastSentCommitIndexRef: MutableRefObject<number>;
+  setIsPlaying: (value: boolean) => void;
+}
+
 export function runJumpToCommitAction({
   isPlaying,
   lastSentCommitIndexRef,
@@ -88,6 +94,19 @@ export function runJumpToEndAction({
     targetIndex: timelineCommits.length - 1,
     timelineCommits,
   });
+}
+
+export function runResetTimelineAction({
+  isPlaying,
+  lastSentCommitIndexRef,
+  setIsPlaying,
+}: ResetTimelineActionOptions): void {
+  if (isPlaying) {
+    setIsPlaying(false);
+  }
+
+  lastSentCommitIndexRef.current = -1;
+  postMessage({ type: 'RESET_TIMELINE' });
 }
 
 export const handleTimelinePlayPause = runPlayPauseAction;

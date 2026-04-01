@@ -52,6 +52,7 @@ function createContext(
     updateNodeSizeMode: vi.fn(() => Promise.resolve()),
     indexRepository: vi.fn(() => Promise.resolve()),
     jumpToCommit: vi.fn(() => Promise.resolve()),
+    resetTimeline: vi.fn(() => Promise.resolve()),
     sendPhysicsSettings: vi.fn(),
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     resetPhysicsSettings: vi.fn(() => Promise.resolve()),
@@ -124,6 +125,17 @@ describe('graph view primary message dispatch', () => {
     });
 
     expect(context.indexRepository).toHaveBeenCalledOnce();
+    expect(context.sendPhysicsSettings).not.toHaveBeenCalled();
+  });
+
+  it('routes reset-timeline messages through the timeline handlers', async () => {
+    const context = createContext();
+
+    await expect(
+      dispatchGraphViewPrimaryMessage({ type: 'RESET_TIMELINE' }, context),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.resetTimeline).toHaveBeenCalledOnce();
     expect(context.sendPhysicsSettings).not.toHaveBeenCalled();
   });
 

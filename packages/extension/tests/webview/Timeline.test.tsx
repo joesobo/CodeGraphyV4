@@ -4,6 +4,7 @@ import Timeline from '../../src/webview/components/Timeline';
 import { graphStore } from '../../src/webview/store/state';
 import type { IGraphData } from '../../src/shared/graph/types';
 import type { ICommitInfo } from '../../src/shared/timeline/types';
+import { formatDate } from '../../src/webview/components/timeline/format/dates';
 
 // Capture postMessage calls
 const sentMessages: unknown[] = [];
@@ -118,19 +119,27 @@ describe('Timeline', () => {
     render(<Timeline />);
 
     expect(screen.getByTestId('timeline-panel')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('timeline-track-shell').compareDocumentPosition(screen.getByTestId('timeline-summary'))
+        & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     expect(screen.getByTestId('timeline-summary')).toBeInTheDocument();
     expect(within(screen.getByTestId('timeline-summary')).getByText('Current Commit')).toBeInTheDocument();
     expect(within(screen.getByTestId('timeline-summary')).getByText('Add feature X')).toBeInTheDocument();
     expect(screen.getByTestId('timeline-controls')).toBeInTheDocument();
-    expect(screen.getByText('Viewing Date')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-track-shell')).toHaveClass('px-3');
+    expect(within(screen.getByTestId('timeline-controls')).getByText(formatDate(MOCK_COMMITS[1].timestamp))).toBeInTheDocument();
+    expect(screen.queryByText('Viewing Date')).not.toBeInTheDocument();
     expect(screen.getByTestId('timeline-commit-list')).toBeInTheDocument();
+    expect(within(screen.getByTestId('timeline-commit-list')).getByText('Commits')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-commit-list-scroll')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Current' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Fix bug in feature X/i })).toBeInTheDocument();
     // "Now" label at end of axis
     expect(screen.getByText('Now')).toBeInTheDocument();
   });
 
-  it('jumps to the first commit when Reset is clicked', () => {
+  it('requests a safe timeline reset when Reset is clicked', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -140,10 +149,7 @@ describe('Timeline', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
 
-    expect(sentMessages).toContainEqual({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: MOCK_COMMITS[0].sha },
-    });
+    expect(sentMessages).toContainEqual({ type: 'RESET_TIMELINE' });
   });
 
   it('jumps to a selected commit when a commit list entry is clicked', () => {

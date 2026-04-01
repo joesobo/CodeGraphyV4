@@ -43,28 +43,30 @@ function ReadyTimeline({
       className="flex min-h-0 flex-1 flex-col border-t border-border"
       data-testid="timeline-panel"
     >
+      <section className="flex-shrink-0 px-3 py-2" data-testid="timeline-track-shell">
+        <Track
+          dateTicks={controller.dateTicks}
+          indicatorPosition={controller.indicatorPosition}
+          onTrackMouseDown={controller.handleTrackMouseDown}
+          setTrackElement={controller.setTrackElement}
+          timelineCommits={timelineCommits}
+        />
+        <Controls
+          currentDateLabel={formatDate(currentCommit.timestamp)}
+          isAtEnd={controller.isAtEnd}
+          isAtStart={controller.currentIndex === 0}
+          isPlaying={isPlaying}
+          onReset={controller.handleReset}
+          onJumpToCurrent={controller.handleJumpToEnd}
+          onJumpToNext={controller.handleJumpToNext}
+          onJumpToPrevious={controller.handleJumpToPrevious}
+          onPlayPause={controller.handlePlayPause}
+        />
+      </section>
       <Summary
         currentCommit={currentCommit}
         currentIndex={controller.currentIndex}
         totalCommits={timelineCommits.length}
-      />
-      <Controls
-        currentDateLabel={formatDate(currentCommit.timestamp)}
-        isAtEnd={controller.isAtEnd}
-        isAtStart={controller.currentIndex === 0}
-        isPlaying={isPlaying}
-        onJumpToCurrent={controller.handleJumpToEnd}
-        onJumpToNext={controller.handleJumpToNext}
-        onJumpToPrevious={controller.handleJumpToPrevious}
-        onJumpToStart={controller.handleJumpToStart}
-        onPlayPause={controller.handlePlayPause}
-      />
-      <Track
-        dateTicks={controller.dateTicks}
-        indicatorPosition={controller.indicatorPosition}
-        onTrackMouseDown={controller.handleTrackMouseDown}
-        setTrackElement={controller.setTrackElement}
-        timelineCommits={timelineCommits}
       />
       <CommitList
         currentCommitSha={currentCommit.sha}

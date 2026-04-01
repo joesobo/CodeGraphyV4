@@ -115,6 +115,7 @@ export interface GraphViewProviderMessageListenerSource {
   setDepthLimit(depthLimit: number): Promise<void>;
   _indexRepository(): Promise<void>;
   _jumpToCommit(sha: string): Promise<void>;
+  _resetTimeline(): Promise<void>;
   _sendPhysicsSettings(): void;
   _updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
   _resetPhysicsSettings(): Promise<void>;

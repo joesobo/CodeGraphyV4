@@ -4,6 +4,7 @@ import type { ExtensionToWebviewMessage } from '../../../../../src/shared/protoc
 import {
   indexGraphViewProviderRepository,
   jumpGraphViewProviderToCommit,
+  resetGraphViewProviderTimeline,
   sendGraphViewProviderCachedTimeline,
 } from '../../../../../src/extension/graphView/timeline/provider/indexing';
 
@@ -304,6 +305,76 @@ describe('graph view provider timeline indexing', () => {
       type: 'COMMIT_GRAPH_DATA',
       payload: { sha: 'sha-2', graphData },
     } satisfies ExtensionToWebviewMessage);
+  });
+
+  it('resets to the first commit that still produces graph nodes', async () => {
+    const sendMessage = vi.fn();
+    const source = {
+      _analyzer: { registry: { kind: 'registry' } } as never,
+      _gitAnalyzer: {
+        getCachedCommitList: vi.fn(() => [
+          { sha: 'sha-1', timestamp: 1, message: 'empty', author: 'A', parents: [] },
+          { sha: 'sha-2', timestamp: 2, message: 'first graph', author: 'B', parents: ['sha-1'] },
+        ]),
+        getGraphDataForCommit: vi
+          .fn()
+          .mockResolvedValueOnce({ nodes: [], edges: [] })
+          .mockResolvedValueOnce({ nodes: ['raw'], edges: [] }),
+      } as never,
+      _currentCommitSha: 'sha-9',
+      _disabledPlugins: new Set<string>(),
+      _disabledRules: new Set<string>(),
+      _graphData: { nodes: [createGraphNode('src/current.ts')], edges: [] } satisfies IGraphData,
+      _sendMessage: sendMessage,
+    };
+    const graphData = { nodes: [createGraphNode('src/index.ts')], edges: [] } satisfies IGraphData;
+    const deps = {
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
+      getShowOrphans: vi.fn(() => true),
+      buildTimelineGraphData: vi
+        .fn()
+        .mockReturnValueOnce({ nodes: [], edges: [] })
+        .mockReturnValueOnce(graphData),
+    };
+
+    await resetGraphViewProviderTimeline(source as never, deps as never);
+
+    expect(source._currentCommitSha).toBe('sha-2');
+    expect(source._graphData).toBe(graphData);
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'COMMIT_GRAPH_DATA',
+      payload: { sha: 'sha-2', graphData },
+    } satisfies ExtensionToWebviewMessage);
+  });
+
+  it('keeps the current graph when no reset candidate produces nodes', async () => {
+    const sendMessage = vi.fn();
+    const currentGraph = { nodes: [createGraphNode('src/current.ts')], edges: [] } satisfies IGraphData;
+    const source = {
+      _analyzer: { registry: { kind: 'registry' } } as never,
+      _gitAnalyzer: {
+        getCachedCommitList: vi.fn(() => [
+          { sha: 'sha-1', timestamp: 1, message: 'empty', author: 'A', parents: [] },
+        ]),
+        getGraphDataForCommit: vi.fn(async () => ({ nodes: [], edges: [] })),
+      } as never,
+      _currentCommitSha: 'sha-9',
+      _disabledPlugins: new Set<string>(),
+      _disabledRules: new Set<string>(),
+      _graphData: currentGraph,
+      _sendMessage: sendMessage,
+    };
+    const deps = {
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
+      getShowOrphans: vi.fn(() => true),
+      buildTimelineGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
+    };
+
+    await resetGraphViewProviderTimeline(source as never, deps as never);
+
+    expect(source._currentCommitSha).toBe('sha-9');
+    expect(source._graphData).toBe(currentGraph);
+    expect(sendMessage).not.toHaveBeenCalled();
   });
 
   it('syncs cached timeline state back onto the provider source', () => {

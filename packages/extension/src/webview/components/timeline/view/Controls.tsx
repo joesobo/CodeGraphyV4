@@ -1,4 +1,12 @@
 import React from 'react';
+import {
+  mdiPause,
+  mdiPlay,
+  mdiSkipBackward,
+  mdiSkipForward,
+  mdiSkipPrevious,
+} from '@mdi/js';
+import { MdiIcon } from '../../icons/MdiIcon';
 import { Button } from '../../ui/button';
 
 export interface TimelineControlsProps {
@@ -6,10 +14,10 @@ export interface TimelineControlsProps {
   isAtEnd: boolean;
   isAtStart: boolean;
   isPlaying: boolean;
+  onReset: () => void;
   onJumpToCurrent: () => void;
   onJumpToNext: () => void;
   onJumpToPrevious: () => void;
-  onJumpToStart: () => void;
   onPlayPause: () => void;
 }
 
@@ -18,57 +26,57 @@ export default function Controls({
   isAtEnd,
   isAtStart,
   isPlaying,
+  onReset,
   onJumpToCurrent,
   onJumpToNext,
   onJumpToPrevious,
-  onJumpToStart,
   onPlayPause,
 }: TimelineControlsProps): React.ReactElement {
   return (
-    <section className="border-t border-border px-3 py-2" data-testid="timeline-controls">
-      <div className="mb-2 flex items-center justify-between gap-3">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--vscode-descriptionForeground,#999)]">
-          Viewing Date
-        </span>
-        <span className="text-xs text-[var(--vscode-foreground,#ccc)]">
-          {currentDateLabel}
-        </span>
-      </div>
-      <div className="flex flex-wrap items-center gap-1">
+    <div className="mt-2 flex items-center justify-between gap-3" data-testid="timeline-controls">
+      <div className="flex items-center gap-1">
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
+          className="h-8 w-8 rounded-sm"
+          aria-label="Reset"
           disabled={isAtStart}
-          onClick={onJumpToStart}
-          title="Reset to start"
+          onClick={onReset}
+          title="Reset to first graph commit"
         >
-          Reset
+          <MdiIcon path={mdiSkipBackward} size={16} />
         </Button>
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
+          className="h-8 w-8 rounded-sm"
+          aria-label="Prev"
           disabled={isAtStart}
           onClick={onJumpToPrevious}
           title="Previous commit"
         >
-          Prev
+          <MdiIcon path={mdiSkipPrevious} size={16} />
         </Button>
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
+          className="h-8 w-8 rounded-sm"
+          aria-label={isPlaying ? 'Pause' : 'Play'}
           onClick={onPlayPause}
           title={isPlaying ? 'Pause' : 'Play'}
         >
-          {isPlaying ? 'Pause' : 'Play'}
+          <MdiIcon path={isPlaying ? mdiPause : mdiPlay} size={16} />
         </Button>
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
+          className="h-8 w-8 rounded-sm"
+          aria-label="Next"
           disabled={isAtEnd}
           onClick={onJumpToNext}
           title="Next commit"
         >
-          Next
+          <MdiIcon path={mdiSkipForward} size={16} />
         </Button>
         <Button
           variant="outline"
@@ -80,6 +88,9 @@ export default function Controls({
           Current
         </Button>
       </div>
-    </section>
+      <span className="text-[10px] text-[var(--vscode-descriptionForeground,#777)]">
+          {currentDateLabel}
+      </span>
+    </div>
   );
 }
