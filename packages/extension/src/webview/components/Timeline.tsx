@@ -48,6 +48,7 @@ export default function Timeline(): React.ReactElement | null {
   const timelineActive = useGraphStore((state) => state.timelineActive);
   const timelineCommits = useGraphStore((state) => state.timelineCommits);
   const currentCommitSha = useGraphStore((state) => state.currentCommitSha);
+  const isLoading = useGraphStore((state) => state.isLoading);
   const isIndexing = useGraphStore((state) => state.isIndexing);
   const indexProgress = useGraphStore((state) => state.indexProgress);
   const isPlaying = useGraphStore((state) => state.isPlaying);
@@ -63,6 +64,7 @@ export default function Timeline(): React.ReactElement | null {
     return (
       <Status
         hasGraphData={Boolean(graphData)}
+        isGraphLoading={isLoading}
         isIndexing={isIndexing}
         indexProgress={indexProgress}
         onIndexRepo={handleIndexRepo}
