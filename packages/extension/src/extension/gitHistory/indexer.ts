@@ -32,30 +32,28 @@ export async function indexGitHistory(
   }
 
   const total = commits.length;
-  const firstCommit = commits[0];
+  const graphDataBySha = new Map<string, IGraphData>();
 
-  if (signal.aborted) {
-    throw createAbortError();
-  }
-
-  onProgress('Indexing commits', 1, total);
-  let previousGraphData: IGraphData = await dependencies.analyzeFullCommit(firstCommit.sha, signal);
-  await dependencies.writeCachedGraphData(firstCommit.sha, previousGraphData);
-
-  for (let index = 1; index < commits.length; index++) {
+  for (let index = 0; index < commits.length; index++) {
     if (signal.aborted) {
       throw createAbortError();
     }
 
     const commit = commits[index];
     onProgress('Indexing commits', index + 1, total);
-    previousGraphData = await dependencies.analyzeDiffCommit(
-      commit.sha,
-      commits[index - 1].sha,
-      previousGraphData,
-      signal
-    );
-    await dependencies.writeCachedGraphData(commit.sha, previousGraphData);
+    const firstParentSha = commit.parents[0];
+    const parentGraphData = firstParentSha ? graphDataBySha.get(firstParentSha) : undefined;
+    const graphData = !firstParentSha || !parentGraphData
+      ? await dependencies.analyzeFullCommit(commit.sha, signal)
+      : await dependencies.analyzeDiffCommit(
+          commit.sha,
+          firstParentSha,
+          parentGraphData,
+          signal
+        );
+
+    graphDataBySha.set(commit.sha, graphData);
+    await dependencies.writeCachedGraphData(commit.sha, graphData);
   }
 
   await dependencies.persistCachedCommitState(commits);
