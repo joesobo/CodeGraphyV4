@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import Summary from '../../../../../src/webview/components/timeline/view/Summary';
 
@@ -14,8 +14,10 @@ describe('timeline/Summary', () => {
   it('renders current commit metadata and message details', () => {
     render(
       <Summary
+        collapsed={false}
         currentCommit={mergeCommit}
         currentIndex={2}
+        onToggle={() => {}}
         totalCommits={8}
       />,
     );
@@ -32,6 +34,7 @@ describe('timeline/Summary', () => {
   it('omits the merge badge and body when the commit is a simple one-line commit', () => {
     render(
       <Summary
+        collapsed={false}
         currentCommit={{
           author: 'Alice',
           message: 'Initial import',
@@ -40,11 +43,33 @@ describe('timeline/Summary', () => {
           timestamp: 1709208000,
         }}
         currentIndex={0}
+        onToggle={() => {}}
         totalCommits={1}
       />,
     );
 
     expect(screen.queryByText('Merge commit')).not.toBeInTheDocument();
     expect(screen.queryByTestId('timeline-summary-body')).not.toBeInTheDocument();
+  });
+
+  it('collapses the current commit details behind a toggle', () => {
+    const onToggle = vi.fn();
+
+    render(
+      <Summary
+        collapsed={true}
+        currentCommit={mergeCommit}
+        currentIndex={2}
+        onToggle={onToggle}
+        totalCommits={8}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Current Commit' })).toBeInTheDocument();
+    expect(screen.queryByText('Stabilize timeline panel')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Current Commit' }));
+
+    expect(onToggle).toHaveBeenCalledTimes(1);
   });
 });

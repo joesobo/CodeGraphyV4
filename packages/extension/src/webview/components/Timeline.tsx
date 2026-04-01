@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import type { ICommitInfo } from '../../shared/timeline/types';
 import { useGraphStore } from '../store/state';
 import { postMessage } from '../vscodeApi';
@@ -25,6 +25,8 @@ function ReadyTimeline({
   setIsPlaying,
   timelineCommits,
 }: ReadyTimelineProps): React.ReactElement | null {
+  const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(false);
+  const [isCommitListCollapsed, setIsCommitListCollapsed] = useState(false);
   const controller = useTimelineController({
     currentCommitSha,
     isPlaying,
@@ -40,7 +42,7 @@ function ReadyTimeline({
 
   return (
     <div
-      className="flex min-h-0 flex-1 flex-col border-t border-border"
+      className="flex min-h-0 flex-1 flex-col overflow-hidden border-t border-border"
       data-testid="timeline-panel"
     >
       <section className="flex-shrink-0 px-3 py-2" data-testid="timeline-track-shell">
@@ -64,13 +66,17 @@ function ReadyTimeline({
         />
       </section>
       <Summary
+        collapsed={isSummaryCollapsed}
         currentCommit={currentCommit}
         currentIndex={controller.currentIndex}
+        onToggle={() => setIsSummaryCollapsed((value) => !value)}
         totalCommits={timelineCommits.length}
       />
       <CommitList
+        collapsed={isCommitListCollapsed}
         currentCommitSha={currentCommit.sha}
         onSelectCommit={controller.handleJumpToCommit}
+        onToggle={() => setIsCommitListCollapsed((value) => !value)}
         timelineCommits={timelineCommits}
       />
     </div>
