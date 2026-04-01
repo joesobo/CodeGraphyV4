@@ -11,6 +11,7 @@ import { createDisplayActions } from './displayActions';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 import {
   clearPendingGroupUpdate,
+  createPendingUserGroupsUpdate,
   mergePendingGroupUpdate,
 } from './optimisticGroups';
 
@@ -18,6 +19,14 @@ type SetState = StoreApi<GraphState>['setState'];
 type GetState = StoreApi<GraphState>['getState'];
 
 export function createActions(set: SetState, get: GetState) {
+  const replaceUserGroups = (
+    currentGroups: GraphState['groups'],
+    userGroups: GraphState['groups'],
+  ): GraphState['groups'] => [
+    ...userGroups,
+    ...currentGroups.filter((group) => group.isPluginDefault),
+  ];
+
   return {
     ...createDisplayActions(set),
     setDirectionMode: (mode: GraphState['directionMode']) => set({ directionMode: mode }),
@@ -45,6 +54,11 @@ export function createActions(set: SetState, get: GetState) {
           state.optimisticGroupUpdates,
           groupId,
         ),
+      })),
+    setOptimisticUserGroups: (groups: GraphState['groups']) =>
+      set((state) => ({
+        groups: replaceUserGroups(state.groups, groups),
+        optimisticUserGroups: createPendingUserGroupsUpdate(groups),
       })),
     handleExtensionMessage: (message: ExtensionToWebviewMessage) => {
       const handler = MESSAGE_HANDLERS[message.type];

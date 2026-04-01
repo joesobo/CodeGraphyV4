@@ -66,6 +66,17 @@ describe('GroupsSection', () => {
       });
   });
 
+  it('shows a newly added custom group immediately before the host echoes it back', () => {
+    renderSection();
+
+    fireEvent.change(screen.getByPlaceholderText('src/**'), {
+      target: { value: 'src/utils/**' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^Add$/i }));
+
+    expect(screen.getByText('src/utils/**')).toBeInTheDocument();
+  });
+
   it('removes a custom group', () => {
     renderSection({
       groups: [{ id: 'g1', pattern: 'src/**', color: '#00ff00' }],
@@ -90,6 +101,16 @@ describe('GroupsSection', () => {
       .toMatchObject({
         payload: { groups: [expect.objectContaining({ disabled: true })] },
       });
+  });
+
+  it('updates a custom group disabled toggle immediately before the host echoes it back', () => {
+    renderSection({
+      groups: [{ id: 'g1', pattern: 'src/**', color: '#00ff00' }],
+    });
+
+    fireEvent.click(screen.getByTitle('Disable group'));
+
+    expect(screen.getByTitle('Enable group')).toBeInTheDocument();
   });
 
   it('shows built-in default groups under the CodeGraphy section', () => {
@@ -269,7 +290,7 @@ describe('GroupsSection', () => {
 
     expect(screen.getByDisplayValue('*.tsx')).toBeInTheDocument();
     expect(graphStore.getState().groups).toEqual([
-      expect.objectContaining({ id: 'g1', pattern: '*.ts' }),
+      expect.objectContaining({ id: 'g1', pattern: '*.tsx' }),
       expect.objectContaining({
         id: 'plugin:codegraphy.typescript:*.ts',
         pattern: '*.ts',

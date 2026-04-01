@@ -1,5 +1,6 @@
 import type { IGroup } from '../../../../../shared/settings/groups';
 import { postMessage } from '../../../../vscodeApi';
+import { graphStore } from '../../../../store/state';
 import { buildSettingsGroupOverride } from './override';
 
 interface GroupActionDependencies {
@@ -41,7 +42,12 @@ function postSettingsGroups(updated: IGroup[]): void {
 export function createGroupActions(
   dependencies: GroupActionDependencies,
 ): GroupActionHandlers {
+  const syncOptimisticGroups = (updated: IGroup[]) => {
+    graphStore.getState().setOptimisticUserGroups(updated);
+  };
+
   const sendUserGroups = (updated: IGroup[]) => {
+    syncOptimisticGroups(updated);
     postSettingsGroups(updated);
   };
 

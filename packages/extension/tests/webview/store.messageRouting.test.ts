@@ -102,6 +102,61 @@ describe('GraphStore message routing', () => {
     expect(store.getState().optimisticGroupUpdates).toBe(optimisticGroupUpdates);
   });
 
+  it('keeps optimistic custom groups visible when a stale GROUPS_UPDATED payload arrives', () => {
+    store.setState({
+      groups: [
+        { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
+      ],
+    });
+    store.getState().setOptimisticUserGroups([
+      { id: 'g1', pattern: 'src/**', color: '#22C55E' },
+    ]);
+
+    store.getState().handleExtensionMessage({
+      type: 'GROUPS_UPDATED',
+      payload: {
+        groups: [
+          { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
+        ],
+      },
+    });
+
+    expect(store.getState().groups).toEqual([
+      { id: 'g1', pattern: 'src/**', color: '#22C55E' },
+      { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
+    ]);
+    expect(store.getState().optimisticUserGroups?.groups).toEqual([
+      { id: 'g1', pattern: 'src/**', color: '#22C55E' },
+    ]);
+  });
+
+  it('clears optimistic custom groups once GROUPS_UPDATED matches the host echo', () => {
+    store.setState({
+      groups: [
+        { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
+      ],
+    });
+    store.getState().setOptimisticUserGroups([
+      { id: 'g1', pattern: 'src/**', color: '#22C55E' },
+    ]);
+
+    store.getState().handleExtensionMessage({
+      type: 'GROUPS_UPDATED',
+      payload: {
+        groups: [
+          { id: 'g1', pattern: 'src/**', color: '#22C55E' },
+          { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
+        ],
+      },
+    });
+
+    expect(store.getState().groups).toEqual([
+      { id: 'g1', pattern: 'src/**', color: '#22C55E' },
+      { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
+    ]);
+    expect(store.getState().optimisticUserGroups).toBeNull();
+  });
+
   it('handles CONTEXT_MENU_ITEMS messages', () => {
     const items: IPluginContextMenuItem[] = [
       {
