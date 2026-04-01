@@ -76,6 +76,17 @@ const commits: ICommitInfo[] = [
   },
 ];
 
+const commitsWithEmptyStart: ICommitInfo[] = [
+  {
+    author: 'Alice',
+    message: 'Init repo',
+    parents: [],
+    sha: '0000000000000000000000000000000000000000',
+    timestamp: 500,
+  },
+  ...commits,
+];
+
 function createTrack(width: number = 300): HTMLDivElement {
   const track = document.createElement('div');
   vi.spyOn(track, 'getBoundingClientRect').mockReturnValue({
@@ -168,25 +179,25 @@ describe('timeline/useController', () => {
     );
   });
 
-  it('restarts from the first commit when playback resumes at the end', () => {
+  it('requests a reset when playback resumes at the end', () => {
     const setIsPlaying = vi.fn();
     const { result } = renderHook(() => useTimelineController({
-      currentCommitSha: commits[2].sha,
+      currentCommitSha: commitsWithEmptyStart[3].sha,
       isPlaying: false,
       playbackSpeed: 1,
       setIsPlaying,
-      timelineCommits: commits,
+      timelineCommits: commitsWithEmptyStart,
     }));
 
     act(() => {
       result.current.handlePlayPause();
     });
 
-    expectJumpToCommit(commits[0].sha);
-    expect(setIsPlaying).toHaveBeenCalledWith(true);
+    expect(findMessage('RESET_TIMELINE')).toEqual({ type: 'RESET_TIMELINE' });
+    expect(setIsPlaying).not.toHaveBeenCalled();
   });
 
-  it('stores a start-from timestamp when play resumes from the end after a rerender', () => {
+  it('starts playback after reset selects the first graphable commit', () => {
     const setIsPlaying = vi.fn();
     const { result, rerender } = renderHook(
       (props: { currentCommitSha: string | null }) => useTimelineController({
@@ -194,23 +205,21 @@ describe('timeline/useController', () => {
         isPlaying: false,
         playbackSpeed: 1,
         setIsPlaying,
-        timelineCommits: commits,
+        timelineCommits: commitsWithEmptyStart,
       }),
       {
-        initialProps: { currentCommitSha: commits[0].sha },
+        initialProps: { currentCommitSha: commitsWithEmptyStart[3].sha },
       },
     );
-
-    rerender({ currentCommitSha: commits[2].sha });
 
     act(() => {
       result.current.handlePlayPause();
     });
 
-    const playbackOptions = vi.mocked(playbackAnimationModule.useTimelinePlaybackAnimation).mock.calls.at(-1)?.[0];
+    rerender({ currentCommitSha: commits[0].sha });
 
-    expectJumpToCommit(commits[0].sha);
-    expect(playbackOptions?.refs.startFromTimeRef.current).toBe(commits[0].timestamp);
+    expect(findMessage('RESET_TIMELINE')).toEqual({ type: 'RESET_TIMELINE' });
+    expect(setIsPlaying).toHaveBeenCalledWith(true);
   });
 
   it('jumps to the latest commit and stops playback when requested', () => {
@@ -231,14 +240,14 @@ describe('timeline/useController', () => {
     expectJumpToCommit(commits[2].sha);
   });
 
-  it('jumps to the first commit and stops playback when requested', () => {
+  it('resets to the first graphable commit and stops playback when requested', () => {
     const setIsPlaying = vi.fn();
     const { result } = renderHook(() => useTimelineController({
       currentCommitSha: commits[2].sha,
       isPlaying: true,
       playbackSpeed: 1,
       setIsPlaying,
-      timelineCommits: commits,
+      timelineCommits: commitsWithEmptyStart,
     }));
 
     act(() => {
@@ -246,7 +255,7 @@ describe('timeline/useController', () => {
     });
 
     expect(setIsPlaying).toHaveBeenCalledWith(false);
-    expectJumpToCommit(commits[0].sha);
+    expect(findMessage('RESET_TIMELINE')).toEqual({ type: 'RESET_TIMELINE' });
   });
 
   it('updates the jump-to-end handler when playback state and commits change', () => {

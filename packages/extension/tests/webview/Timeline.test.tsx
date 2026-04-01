@@ -19,6 +19,11 @@ const MOCK_COMMITS: ICommitInfo[] = [
   { sha: 'ccc333ccc333ccc333ccc333ccc333ccc333ccc3', timestamp: 3000, message: 'Fix bug in feature X', author: 'Alice', parents: ['bbb222bbb222bbb222bbb222bbb222bbb222bbb2'] },
 ];
 
+const MOCK_COMMITS_WITH_EMPTY_START: ICommitInfo[] = [
+  { sha: 'zero000zero000zero000zero000zero000zero0', timestamp: 500, message: 'Init repo', author: 'Alice', parents: [] },
+  ...MOCK_COMMITS,
+];
+
 const MOCK_GRAPH_DATA: IGraphData = {
   nodes: [{ id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' }],
   edges: [],
@@ -157,10 +162,10 @@ describe('Timeline', () => {
     expect(screen.queryByTestId('timeline-commit-list-scroll')).not.toBeInTheDocument();
   });
 
-  it('jumps to the first commit when Start is clicked', () => {
+  it('resets to the first graphable commit when Start is clicked', () => {
     resetStore({
       timelineActive: true,
-      timelineCommits: MOCK_COMMITS,
+      timelineCommits: MOCK_COMMITS_WITH_EMPTY_START,
       currentCommitSha: MOCK_COMMITS[1].sha,
     });
     render(<Timeline />);
@@ -168,8 +173,7 @@ describe('Timeline', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Start' }));
 
     expect(sentMessages).toContainEqual({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: MOCK_COMMITS[0].sha },
+      type: 'RESET_TIMELINE',
     });
   });
 
@@ -233,10 +237,10 @@ describe('Timeline', () => {
     expect(graphStore.getState().isPlaying).toBe(false);
   });
 
-  it('jumps to first commit when play is pressed at the end', () => {
+  it('resumes playback from the first graphable commit when play is pressed at the end', () => {
     resetStore({
       timelineActive: true,
-      timelineCommits: MOCK_COMMITS,
+      timelineCommits: MOCK_COMMITS_WITH_EMPTY_START,
       currentCommitSha: MOCK_COMMITS[2].sha, // last commit
       isPlaying: false,
     });
@@ -244,11 +248,21 @@ describe('Timeline', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Play' }));
 
-    expect(graphStore.getState().isPlaying).toBe(true);
     expect(sentMessages).toContainEqual({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: MOCK_COMMITS[0].sha },
+      type: 'RESET_TIMELINE',
     });
+
+    act(() => {
+      graphStore.getState().handleExtensionMessage({
+        type: 'COMMIT_GRAPH_DATA',
+        payload: {
+          sha: MOCK_COMMITS[0].sha,
+          graphData: MOCK_GRAPH_DATA,
+        },
+      });
+    });
+
+    expect(graphStore.getState().isPlaying).toBe(true);
   });
 
   it('End button stops playback', () => {

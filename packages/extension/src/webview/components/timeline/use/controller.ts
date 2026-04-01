@@ -16,6 +16,7 @@ import {
 } from '../playbackActions';
 import { jumpToTrackPosition } from '../scrubPosition';
 import { getTimelineViewState } from '../viewState';
+import { postMessage } from '../../../vscodeApi';
 import { useTimelineCleanup } from './cleanup';
 import { useTimelineCommitSync } from './commitSync';
 import { useTimelinePlaybackAnimation } from './playbackAnimation';
@@ -58,6 +59,7 @@ export function useTimelineController({
   const userScrubActiveRef = useRef(false);
   const lastFrameTimeRef = useRef(0);
   const lastSentCommitIndexRef = useRef(-1);
+  const pendingPlayFromStartRef = useRef(false);
   const startFromTimeRef = useRef<number | null>(null);
   const playbackSpeedRef = useRef(playbackSpeed);
   const [trackElement, setTrackElementState] = useState<HTMLDivElement | null>(null);
@@ -94,6 +96,22 @@ export function useTimelineController({
     timelineCommits,
     userScrubActiveRef,
   });
+
+  useEffect(() => {
+    if (!pendingPlayFromStartRef.current || !currentCommitSha) {
+      return;
+    }
+
+    const targetIndex = timelineCommits.findIndex((commit) => commit.sha === currentCommitSha);
+    if (targetIndex < 0) {
+      return;
+    }
+
+    pendingPlayFromStartRef.current = false;
+    lastSentCommitIndexRef.current = targetIndex;
+    setPlaybackTime(timelineCommits[targetIndex].timestamp);
+    setIsPlaying(true);
+  }, [currentCommitSha, setIsPlaying, timelineCommits]);
 
   const scrubToClientX = useCallback((clientX: number) => {
     jumpToTrackPosition({
@@ -157,6 +175,12 @@ export function useTimelineController({
   );
 
   const handlePlayPause = useCallback(() => {
+    if (!isPlaying && viewState.isAtEnd) {
+      pendingPlayFromStartRef.current = true;
+      postMessage({ type: 'RESET_TIMELINE' });
+      return;
+    }
+
     runPlayPauseAction({
       isAtEnd: viewState.isAtEnd,
       isPlaying,
@@ -179,15 +203,14 @@ export function useTimelineController({
   }, [isPlaying, setIsPlaying, timelineCommits]);
 
   const handleJumpToStart = useCallback(() => {
-    runJumpToCommitAction({
-      isPlaying,
-      lastSentCommitIndexRef,
-      setIsPlaying,
-      setPlaybackTime,
-      targetIndex: 0,
-      timelineCommits,
-    });
-  }, [isPlaying, setIsPlaying, timelineCommits]);
+    pendingPlayFromStartRef.current = false;
+
+    if (isPlaying) {
+      setIsPlaying(false);
+    }
+
+    postMessage({ type: 'RESET_TIMELINE' });
+  }, [isPlaying, setIsPlaying]);
 
   const handleJumpToPrevious = useCallback(() => {
     runJumpToCommitAction({
