@@ -61,6 +61,7 @@ describe('Toolbar', () => {
       expect(toolbar?.className).toContain('flex-col');
       expect(toolbar?.className).toContain('items-center');
       expect(toolbar?.className).toContain('bg-transparent');
+      expect(toolbar?.className).not.toContain('py-1');
       expect(toolbar?.className).not.toContain('rounded-md');
       expect(toolbar?.className).not.toContain('border');
       expect(toolbar?.className).not.toContain('shadow-lg');

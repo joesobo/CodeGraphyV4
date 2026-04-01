@@ -11,7 +11,7 @@ export default function Toolbar(): React.ReactElement {
     <TooltipProvider delayDuration={300}>
       <div
         data-testid="toolbar"
-        className="flex h-full min-h-0 flex-col items-center justify-between gap-3 bg-transparent py-1"
+        className="flex h-full min-h-0 flex-col items-center justify-between gap-3 bg-transparent"
       >
         <div
           data-testid="toolbar-top-group"
