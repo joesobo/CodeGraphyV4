@@ -4,6 +4,15 @@ All notable changes to CodeGraphy will be documented in this file.
 
 This project uses [Changesets](https://github.com/changesets/changesets) for versioning.
 
+## 4.0.2
+
+### Patch Changes
+
+- Keep CodeGraphy settings, favorites, and custom groups in sync between VS Code settings and the sidebar UI.
+- Fix custom group glob patterns so nested folders like `DIR_NAME/*` and `DIR_NAME/**` are matched correctly.
+- Reduce random and duplicate graph refreshes caused by overlapping watcher, ready, group, decoration, and settings update events.
+- Fix extra graph refreshes while editing custom groups in the settings panel.
+
 ## 4.0.1
 
 ### Patch Changes
