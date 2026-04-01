@@ -437,4 +437,36 @@ describe('timeline/useController', () => {
     expect(result.current.indicatorPosition).toBe(100);
     expect(result.current.isAtEnd).toBe(true);
   });
+
+  it('reduces date ticks when the timeline track is narrow', () => {
+    const { result } = renderHook(() => useTimelineController({
+      currentCommitSha: commits[1].sha,
+      isPlaying: false,
+      playbackSpeed: 1,
+      setIsPlaying: vi.fn(),
+      timelineCommits: commits,
+    }));
+
+    act(() => {
+      result.current.setTrackElement(createTrack(240));
+    });
+
+    expect(result.current.dateTicks.length).toBeLessThan(7);
+  });
+
+  it('uses four interior date ticks on a medium-narrow track', () => {
+    const { result } = renderHook(() => useTimelineController({
+      currentCommitSha: commits[1].sha,
+      isPlaying: false,
+      playbackSpeed: 1,
+      setIsPlaying: vi.fn(),
+      timelineCommits: commits,
+    }));
+
+    act(() => {
+      result.current.setTrackElement(createTrack(560));
+    });
+
+    expect(result.current.dateTicks).toHaveLength(4);
+  });
 });

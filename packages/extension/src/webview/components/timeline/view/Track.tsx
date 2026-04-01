@@ -6,7 +6,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../
 import { formatAxisLabel, formatDate } from '../format/dates';
 import { truncateMessage } from '../format/messages';
 
-const TRACK_HEIGHT = 24;
+const TRACK_HEIGHT = 20;
 
 export interface TimelineTrackProps {
   dateTicks: number[];
@@ -40,7 +40,7 @@ export default function Track({
   return (
     <TooltipProvider delayDuration={150}>
       <div className="flex-shrink-0 border-t border-border" data-testid="timeline">
-        <div className="flex items-center gap-0 px-3 pt-1.5 pb-0">
+        <div className="flex items-center gap-0 px-2.5 pt-1 pb-0">
           <button
             onClick={onPlayPause}
             className="flex-shrink-0 mr-2 p-0.5 rounded text-[var(--vscode-descriptionForeground,#999)] hover:text-[var(--vscode-foreground,#ccc)] transition-colors"
@@ -144,8 +144,8 @@ export default function Track({
           </button>
         </div>
 
-        <div className="relative px-3 pb-1.5" style={{ marginLeft: 22 }}>
-          <div className="relative h-3.5">
+        <div className="relative px-2.5 pb-1" style={{ marginLeft: 22 }}>
+          <div className="relative h-3">
             {dateTicks.map((timestamp) => {
               const position = ((timestamp - minTimestamp) / timeRange) * 100;
               return (
@@ -160,7 +160,7 @@ export default function Track({
             })}
             <span
               className="absolute text-[10px] leading-none text-[var(--vscode-descriptionForeground,#777)] select-none"
-              style={{ right: 56, top: 2 }}
+              style={{ right: 48, top: 2 }}
             >
               Now
             </span>

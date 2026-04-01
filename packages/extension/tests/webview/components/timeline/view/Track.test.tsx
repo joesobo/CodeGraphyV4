@@ -163,7 +163,7 @@ describe('timeline/Track', () => {
 
     expect(track).toHaveStyle({
       border: '1px solid var(--vscode-panel-border, #333)',
-      height: '24px',
+      height: '20px',
     });
     expect(markers[0]).toHaveStyle({ left: '0%', width: '2px', zIndex: '1' });
     expect(markers[1]).toHaveStyle({ left: '50%' });
@@ -262,7 +262,7 @@ describe('timeline/Track', () => {
 
     expect(firstAxisLabel).toHaveStyle({ left: '25%', top: '2px' });
     expect(secondAxisLabel).toHaveStyle({ left: '75%', top: '2px' });
-    expect(nowLabel).toHaveStyle({ right: '56px', top: '2px' });
+    expect(nowLabel).toHaveStyle({ right: '48px', top: '2px' });
   });
 
   it('renders the formatted author and date line in the tooltip', () => {
