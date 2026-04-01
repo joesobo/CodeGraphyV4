@@ -87,6 +87,52 @@ describe('graphView/provider/webview/host', () => {
     );
   });
 
+  it('clears the stored graph sidebar view when that webview is disposed', () => {
+    const resolveWebviewView = vi.fn();
+    let disposeListener: (() => void) | undefined;
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: { viewType: 'codegraphy.timelineView' } as unknown as vscode.WebviewView,
+      _panels: [],
+      _analyzeAndSendData: vi.fn(async () => undefined),
+      _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
+    };
+    const webviewView = {
+      onDidDispose: vi.fn(listener => {
+        disposeListener = listener;
+        return { dispose: vi.fn() };
+      }),
+      viewType: 'codegraphy.graphView',
+      webview: {},
+      visible: true,
+    } as unknown as vscode.WebviewView;
+    const methods = createGraphViewProviderWebviewMethods(source as never, {
+      viewType: 'codegraphy.graphView',
+      createHtml: vi.fn(() => '<html />'),
+      resolveWebviewView,
+      openInEditor: vi.fn(),
+      sendWebviewMessage: vi.fn(),
+      onWebviewMessage: vi.fn(() => ({ dispose: () => {} })),
+      setWebviewMessageListener: vi.fn(),
+      executeCommand: vi.fn(() => Promise.resolve()),
+      createPanel: vi.fn() as never,
+    });
+
+    methods.resolveWebviewView(
+      webviewView,
+      {} as vscode.WebviewViewResolveContext,
+      {} as vscode.CancellationToken,
+    );
+
+    expect(source._view).toBe(webviewView);
+
+    disposeListener?.();
+
+    expect(source._view).toBeUndefined();
+    expect(source._timelineView).toBeDefined();
+  });
+
   it('exposes live resource, listener, and html callbacks to the sidebar resolver', () => {
     const resolveWebviewView = vi.fn();
     const setWebviewMessageListener = vi.fn();
@@ -133,6 +179,59 @@ describe('graphView/provider/webview/host', () => {
 
     expect(options.getHtml(nextWebview)).toBe('<html />');
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview, 'graph');
+  });
+
+  it('serves timeline html and clears the stored timeline view on dispose', () => {
+    const resolveWebviewView = vi.fn();
+    const createHtml = vi.fn(() => '<timeline html />');
+    let disposeListener: (() => void) | undefined;
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: { viewType: 'codegraphy.graphView' } as unknown as vscode.WebviewView,
+      _timelineView: undefined,
+      _panels: [],
+      _analyzeAndSendData: vi.fn(async () => undefined),
+      _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
+    };
+    const timelineView = {
+      onDidDispose: vi.fn(listener => {
+        disposeListener = listener;
+        return { dispose: vi.fn() };
+      }),
+      viewType: 'codegraphy.timelineView',
+      webview: {},
+      visible: true,
+    } as unknown as vscode.WebviewView;
+    const methods = createGraphViewProviderWebviewMethods(source as never, {
+      viewType: 'codegraphy.graphView',
+      createHtml,
+      resolveWebviewView,
+      openInEditor: vi.fn(),
+      sendWebviewMessage: vi.fn(),
+      onWebviewMessage: vi.fn(() => ({ dispose: () => {} })),
+      setWebviewMessageListener: vi.fn(),
+      executeCommand: vi.fn(() => Promise.resolve()),
+      createPanel: vi.fn() as never,
+    });
+    const nextWebview = { kind: 'next-webview' } as unknown as vscode.Webview;
+
+    methods.resolveWebviewView(
+      timelineView,
+      {} as vscode.WebviewViewResolveContext,
+      {} as vscode.CancellationToken,
+    );
+
+    const options = resolveWebviewView.mock.calls[0]?.[1] as {
+      getHtml(webview: vscode.Webview): string;
+    };
+
+    expect(options.getHtml(nextWebview)).toBe('<timeline html />');
+    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview, 'timeline');
+
+    disposeListener?.();
+
+    expect(source._timelineView).toBeUndefined();
+    expect(source._view).toBeDefined();
   });
 
   it('exposes live command callbacks to the sidebar resolver', async () => {
