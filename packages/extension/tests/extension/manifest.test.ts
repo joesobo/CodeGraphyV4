@@ -21,6 +21,7 @@ function readExtensionManifest() {
           id?: string;
           name?: string;
           icon?: string;
+          visibility?: string;
         }>;
       };
     };
@@ -61,5 +62,6 @@ describe('extension manifest', () => {
 
     expect(view).toBeDefined();
     expect(view?.name).toBe('Timeline');
+    expect(view?.visibility).toBe('collapsed');
   });
 });

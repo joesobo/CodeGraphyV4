@@ -59,10 +59,6 @@ vi.mock('../../../src/webview/components/plugins/Panel', () => ({
   },
 }));
 
-vi.mock('../../../src/webview/components/Timeline', () => ({
-  default: () => <div data-testid="timeline" />,
-}));
-
 vi.mock('../../../src/webview/components/Toolbar', () => ({
   default: () => <div data-testid="toolbar" />,
 }));
@@ -157,24 +153,24 @@ describe('App (mutation targets)', () => {
     expect(screen.queryByTestId('plugins-panel')).not.toBeInTheDocument();
   });
 
-  it('renders panels instead of toolbar when activePanel is plugins', () => {
+  it('renders plugins panel alongside the toolbar when activePanel is plugins', () => {
     graphStore.setState({
       graphData: { nodes: [{ id: 'a.ts', label: 'a', color: '#111' }], edges: [] },
       activePanel: 'plugins',
     });
     render(<App />);
     expect(screen.getByTestId('plugins-panel')).toBeInTheDocument();
-    expect(screen.queryByTestId('toolbar')).not.toBeInTheDocument();
+    expect(screen.getByTestId('toolbar')).toBeInTheDocument();
   });
 
-  it('renders panels instead of toolbar when activePanel is settings', () => {
+  it('renders settings panel alongside the toolbar when activePanel is settings', () => {
     graphStore.setState({
       graphData: { nodes: [{ id: 'a.ts', label: 'a', color: '#111' }], edges: [] },
       activePanel: 'settings',
     });
     render(<App />);
     expect(screen.getByTestId('settings-panel')).toBeInTheDocument();
-    expect(screen.queryByTestId('toolbar')).not.toBeInTheDocument();
+    expect(screen.getByTestId('toolbar')).toBeInTheDocument();
   });
 
   it('shows loading state when isLoading is true regardless of graphData', () => {
@@ -187,16 +183,16 @@ describe('App (mutation targets)', () => {
     expect(screen.queryByTestId('mock-graph')).not.toBeInTheDocument();
   });
 
-  it('shows graph when timelineActive is true even with empty graph data', () => {
+  it('shows empty state when graph data has zero nodes even if timelineActive is true', () => {
     graphStore.setState({
       graphData: { nodes: [], edges: [] },
       timelineActive: true,
     });
     render(<App />);
-    expect(screen.getByTestId('mock-graph')).toBeInTheDocument();
+    expect(screen.getByText(/No files found/)).toBeInTheDocument();
   });
 
-  it('shows empty state when timelineActive is false and graphData is null', () => {
+  it('shows empty state when graphData is null', () => {
     graphStore.setState({
       graphData: null,
       timelineActive: false,
@@ -205,7 +201,7 @@ describe('App (mutation targets)', () => {
     expect(screen.getByText(/No files found/)).toBeInTheDocument();
   });
 
-  it('shows empty state when timelineActive is false and graphData has zero nodes', () => {
+  it('shows empty state when graphData has zero nodes', () => {
     graphStore.setState({
       graphData: { nodes: [], edges: [] },
       timelineActive: false,
@@ -214,27 +210,12 @@ describe('App (mutation targets)', () => {
     expect(screen.getByText(/No files found/)).toBeInTheDocument();
   });
 
-  it('renders graph with effectiveGraphData fallback when graphData is null and timeline is active', () => {
-    graphStore.setState({
-      graphData: null,
-      timelineActive: true,
-    });
-    render(<App />);
-    // effectiveGraphData should be { nodes: [], edges: [] }
-    expect(screen.getByTestId('graph-node-count')).toHaveTextContent('0');
-    // Graph component should receive empty arrays, not undefined
-    expect(harness.graphProps).not.toBeNull();
-    const data = harness.graphProps!.data as { nodes: unknown[]; edges: unknown[] };
-    expect(data.nodes).toEqual([]);
-    expect(data.edges).toEqual([]);
-  });
-
-  it('always renders the timeline component when graph data is available', () => {
+  it('does not render the embedded timeline component when graph data is available', () => {
     graphStore.setState({
       graphData: { nodes: [{ id: 'a.ts', label: 'a', color: '#111' }], edges: [] },
     });
     render(<App />);
-    expect(screen.getByTestId('timeline')).toBeInTheDocument();
+    expect(screen.queryByTestId('timeline')).not.toBeInTheDocument();
   });
 
   it('always renders the search bar when graph data is available', () => {
@@ -361,16 +342,6 @@ describe('App effectiveGraphData and filteredData mutations (L39, L49)', () => {
     vi.restoreAllMocks();
   });
 
-  it('passes totalCount from effectiveGraphData when graphData is null and timeline is active', () => {
-    graphStore.setState({
-      graphData: null,
-      timelineActive: true,
-    });
-    render(<App />);
-    // SearchBar should get totalCount of 0 from effectiveGraphData.nodes.length
-    expect(screen.getByTestId('mock-search-bar')).toHaveAttribute('data-total-count', '0');
-  });
-
   it('passes totalCount from graphData when graphData has nodes', () => {
     graphStore.setState({
       graphData: {
@@ -417,15 +388,11 @@ describe('App effectiveGraphData and filteredData mutations (L39, L49)', () => {
     expect(resultCount).toBe('1');
   });
 
-  it('passes undefined resultCount when graphData is null and timeline is active', () => {
+  it('does not render the search bar when graphData is null', () => {
     graphStore.setState({
       graphData: null,
-      timelineActive: true,
     });
     render(<App />);
-    // filteredData is null when graphData is null, so filteredData?.nodes.length is undefined
-    const searchBar = screen.getByTestId('mock-search-bar');
-    const resultCount = searchBar.getAttribute('data-result-count');
-    expect(resultCount).toBe('');
+    expect(screen.queryByTestId('mock-search-bar')).not.toBeInTheDocument();
   });
 });

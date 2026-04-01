@@ -8,11 +8,12 @@ describe('graphView/provider/webview/host', () => {
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
+      _timelineView: undefined,
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
     };
-    const webviewView = { webview: {}, visible: true } as unknown as vscode.WebviewView;
+    const webviewView = { viewType: 'codegraphy.graphView', webview: {}, visible: true } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {
       viewType: 'codegraphy.graphView',
       createHtml: vi.fn(() => '<html />'),
@@ -46,6 +47,50 @@ describe('graphView/provider/webview/host', () => {
     );
   });
 
+  it('stores the timeline sidebar view separately from the graph view', () => {
+    const resolveWebviewView = vi.fn();
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: undefined,
+      _panels: [],
+      _analyzeAndSendData: vi.fn(async () => undefined),
+      _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
+    };
+    const timelineView = {
+      viewType: 'codegraphy.timelineView',
+      webview: {},
+      visible: true,
+    } as unknown as vscode.WebviewView;
+    const methods = createGraphViewProviderWebviewMethods(source as never, {
+      viewType: 'codegraphy.graphView',
+      createHtml: vi.fn(() => '<html />'),
+      resolveWebviewView,
+      openInEditor: vi.fn(),
+      sendWebviewMessage: vi.fn(),
+      onWebviewMessage: vi.fn(() => ({ dispose: () => {} })),
+      setWebviewMessageListener: vi.fn(),
+      executeCommand: vi.fn(() => Promise.resolve()),
+      createPanel: vi.fn() as never,
+      log: vi.fn(),
+    });
+
+    methods.resolveWebviewView(
+      timelineView,
+      {} as vscode.WebviewViewResolveContext,
+      {} as vscode.CancellationToken,
+    );
+
+    expect(source._view).toBeUndefined();
+    expect(source._timelineView).toBe(timelineView);
+    expect(resolveWebviewView).toHaveBeenCalledWith(
+      timelineView,
+      expect.objectContaining({
+        getLocalResourceRoots: expect.any(Function),
+      }),
+    );
+  });
+
   it('exposes live resource, listener, and html callbacks to the sidebar resolver', () => {
     const resolveWebviewView = vi.fn();
     const setWebviewMessageListener = vi.fn();
@@ -54,11 +99,12 @@ describe('graphView/provider/webview/host', () => {
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
+      _timelineView: undefined,
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => resourceRoots),
     };
-    const webviewView = { webview: {}, visible: true } as unknown as vscode.WebviewView;
+    const webviewView = { viewType: 'codegraphy.graphView', webview: {}, visible: true } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {
       viewType: 'codegraphy.graphView',
       createHtml,
@@ -91,7 +137,7 @@ describe('graphView/provider/webview/host', () => {
     expect(setWebviewMessageListener).toHaveBeenCalledWith(nextWebview, source);
 
     expect(options.getHtml(nextWebview)).toBe('<html />');
-    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview);
+    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview, 'graph');
   });
 
   it('exposes live command, settings-sync, analysis, and log callbacks to the sidebar resolver', async () => {
@@ -103,12 +149,13 @@ describe('graphView/provider/webview/host', () => {
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
+      _timelineView: undefined,
       _panels: [],
       _sendAllSettings: sendAllSettings,
       _analyzeAndSendData: analyzeAndSendData,
       _getLocalResourceRoots: vi.fn(() => []),
     };
-    const webviewView = { webview: {}, visible: true } as unknown as vscode.WebviewView;
+    const webviewView = { viewType: 'codegraphy.graphView', webview: {}, visible: true } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {
       viewType: 'codegraphy.graphView',
       createHtml: vi.fn(() => '<html />'),
@@ -163,6 +210,7 @@ describe('graphView/provider/webview/host', () => {
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
+      _timelineView: undefined,
       _panels: [] as vscode.WebviewPanel[],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
@@ -210,6 +258,7 @@ describe('graphView/provider/webview/host', () => {
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
+      _timelineView: undefined,
       _panels: [] as vscode.WebviewPanel[],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => resourceRoots),
@@ -260,7 +309,7 @@ describe('graphView/provider/webview/host', () => {
       { enableScripts: true },
     );
     expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source);
-    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview);
+    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'graph');
   });
 
   it('keeps panel registration state live across editor opener callbacks', () => {
@@ -268,6 +317,7 @@ describe('graphView/provider/webview/host', () => {
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
+      _timelineView: undefined,
       _panels: [] as vscode.WebviewPanel[],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
@@ -313,7 +363,8 @@ describe('graphView/provider/webview/host', () => {
     const onWebviewMessage = vi.fn(() => disposable);
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
-      _view: { kind: 'view' } as unknown as vscode.WebviewView,
+      _view: { kind: 'graph-view' } as unknown as vscode.WebviewView,
+      _timelineView: { kind: 'timeline-view' } as unknown as vscode.WebviewView,
       _panels: [{ kind: 'panel' } as unknown as vscode.WebviewPanel],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
@@ -338,13 +389,13 @@ describe('graphView/provider/webview/host', () => {
 
     expect(sendWebviewMessage).toHaveBeenNthCalledWith(
       1,
-      source._view,
+      [source._view, source._timelineView],
       source._panels,
       { type: 'PING' },
     );
     expect(sendWebviewMessage).toHaveBeenNthCalledWith(
       2,
-      source._view,
+      [source._view, source._timelineView],
       source._panels,
       { type: 'PONG' },
     );
@@ -358,6 +409,7 @@ describe('graphView/provider/webview/host', () => {
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
+      _timelineView: undefined,
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
@@ -380,7 +432,7 @@ describe('graphView/provider/webview/host', () => {
     const html = methods._getHtmlForWebview(webview);
 
     expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source);
-    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview);
+    expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'graph');
     expect(html).toBe('<html />');
   });
 });

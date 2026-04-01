@@ -40,6 +40,7 @@ export type GraphViewProviderMethodSource =
 
 export interface GraphViewProviderMethodSourceOwner {
   _view?: vscode.WebviewView;
+  _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];
   _graphData: IGraphData;
   _analyzer?: WorkspaceAnalyzer;

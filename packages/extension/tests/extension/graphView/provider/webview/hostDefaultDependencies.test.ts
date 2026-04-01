@@ -80,11 +80,12 @@ describe('graphView/provider/webview/host default dependencies', () => {
     const source = {
       _extensionUri: { fsPath: '/test/extension' },
       _view: undefined,
+      _timelineView: undefined,
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [{ fsPath: '/test/root' }]),
     };
-    const webviewView = { webview: {}, visible: true };
+    const webviewView = { viewType: 'codegraphy.graphView', webview: {}, visible: true };
     const nextWebview = { kind: 'next-webview' };
     const methods = createGraphViewProviderWebviewMethods(source as never);
 
@@ -107,7 +108,12 @@ describe('graphView/provider/webview/host default dependencies', () => {
     options.log('sidebar ready');
 
     expect(mocks.createGraphViewNonce).toHaveBeenCalledOnce();
-    expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview, 'nonce-123');
+    expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(
+      source._extensionUri,
+      nextWebview,
+      'nonce-123',
+      'graph',
+    );
     expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(nextWebview, source);
     expect(mocks.executeCommand).toHaveBeenCalledWith(
       'setContext',
@@ -124,6 +130,7 @@ describe('graphView/provider/webview/host default dependencies', () => {
     const source = {
       _extensionUri: { fsPath: '/test/extension' },
       _view: undefined,
+      _timelineView: undefined,
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [{ fsPath: '/test/root' }]),
@@ -154,6 +161,11 @@ describe('graphView/provider/webview/host default dependencies', () => {
     );
     expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(nextWebview, source);
     expect(mocks.createGraphViewNonce).toHaveBeenCalledOnce();
-    expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview, 'nonce-123');
+    expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(
+      source._extensionUri,
+      nextWebview,
+      'nonce-123',
+      'graph',
+    );
   });
 });

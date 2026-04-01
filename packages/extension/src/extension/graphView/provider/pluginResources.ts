@@ -20,6 +20,7 @@ export interface GraphViewProviderPluginResourceMethodsSource {
   _hiddenPluginGroupIds: Set<string>;
   _groups: IGroup[];
   _view?: vscode.WebviewView;
+  _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];
 }
 
@@ -96,7 +97,7 @@ export function createGraphViewProviderPluginResourceMethods(
       assetPath,
       source._extensionUri,
       source._pluginExtensionUris,
-      source._view,
+      source._view ?? source._timelineView,
       source._panels,
       pluginId,
     );
@@ -114,6 +115,14 @@ export function createGraphViewProviderPluginResourceMethods(
       source._panels,
       _getLocalResourceRoots(),
     );
+
+    if (source._timelineView) {
+      resolvedDependencies.refreshWebviewResourceRoots(
+        source._timelineView,
+        [],
+        _getLocalResourceRoots(),
+      );
+    }
   };
 
   const _normalizeExternalExtensionUri = (

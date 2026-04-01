@@ -229,7 +229,8 @@
 					"type": "webview",
 					"id": "codegraphy.timelineView",
 					"name": "Timeline",
-					"icon": "assets/icon.svg"
+					"icon": "assets/icon.svg",
+					"visibility": "collapsed"
 				}
 			]
 		},
