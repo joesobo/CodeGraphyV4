@@ -224,6 +224,12 @@
 					"id": "codegraphy.graphView",
 					"name": "Graph",
 					"icon": "assets/icon.svg"
+				},
+				{
+					"type": "webview",
+					"id": "codegraphy.timelineView",
+					"name": "Timeline",
+					"icon": "assets/icon.svg"
 				}
 			]
 		},

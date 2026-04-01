@@ -56,6 +56,10 @@ describe('extension activate API', () => {
       'codegraphy.graphView',
       expect.any(Object)
     );
+    expect(vscode.window.registerWebviewViewProvider).toHaveBeenCalledWith(
+      'codegraphy.timelineView',
+      expect.any(Object)
+    );
   });
 
   it('registers configuration change listener', () => {
