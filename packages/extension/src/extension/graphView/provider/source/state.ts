@@ -6,6 +6,7 @@ import { attachMutableAccessors, attachReadonlyAccessors } from './accessors';
 
 const MUTABLE_STATE_KEYS = [
   '_view',
+  '_timelineView',
   '_panels',
   '_graphData',
   '_analyzer',

@@ -17,7 +17,15 @@ vi.mock('react-dom/client', () => ({
 }));
 
 vi.mock('../../src/webview/app/App', () => ({
-  default: () => null,
+  default: function GraphApp() {
+    return null;
+  },
+}));
+
+vi.mock('../../src/webview/app/TimelineApp', () => ({
+  default: function TimelineApp() {
+    return null;
+  },
 }));
 
 vi.mock('../../src/webview/index.css', () => ({}));
@@ -32,6 +40,7 @@ describe('main', () => {
     mocks.createRoot.mockClear();
     mocks.render.mockClear();
     (window as unknown as { vscode?: unknown }).vscode = undefined;
+    delete document.body.dataset.codegraphyView;
   });
 
   afterEach(() => {
@@ -48,6 +57,31 @@ describe('main', () => {
     expect(mocks.createRoot).toHaveBeenCalledWith(container);
     expect(mocks.render).toHaveBeenCalledTimes(1);
     expect((window as unknown as { vscode: unknown }).vscode).toBe(mocks.vscodeApi);
+  });
+
+  it('renders the graph shell by default', async () => {
+    const container = document.createElement('div');
+    vi.spyOn(document, 'getElementById').mockReturnValue(container);
+
+    await import('../../src/webview/main');
+
+    const rootElement = mocks.render.mock.calls[0]?.[0] as {
+      props: { children: { type: { name: string } } };
+    };
+    expect(rootElement.props.children.type.name).toBe('GraphApp');
+  });
+
+  it('renders the timeline shell when the host marks the view as timeline', async () => {
+    const container = document.createElement('div');
+    document.body.dataset.codegraphyView = 'timeline';
+    vi.spyOn(document, 'getElementById').mockReturnValue(container);
+
+    await import('../../src/webview/main');
+
+    const rootElement = mocks.render.mock.calls[0]?.[0] as {
+      props: { children: { type: { name: string } } };
+    };
+    expect(rootElement.props.children.type.name).toBe('TimelineApp');
   });
 
   it('skips root creation when the root element is missing', async () => {

@@ -31,6 +31,7 @@ export interface GraphViewProviderPluginMethodsSource {
   _disabledRules: Set<string>;
   _groups: IGroup[];
   _view?: vscode.WebviewView;
+  _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];
   _viewRegistry: ViewRegistry;
   _viewContext: IViewContext;
@@ -134,7 +135,7 @@ export function createGraphViewProviderPluginMethods(
       {
         registerPluginRoots: () => source._registerBuiltInPluginRoots(),
         workspaceFolder: dependencies.getWorkspaceFolders()?.[0],
-        view: source._view,
+        view: source._view ?? source._timelineView,
         panels: source._panels,
         resolvePluginAssetPath: (assetPath, pluginId) =>
           source._resolveWebviewAssetPath(assetPath, pluginId),

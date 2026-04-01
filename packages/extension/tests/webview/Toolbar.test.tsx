@@ -47,6 +47,25 @@ describe('Toolbar', () => {
     vi.clearAllMocks();
   });
 
+  describe('layout', () => {
+    it('renders a vertical toolbar with top and bottom groups', () => {
+      const { container } = render(<Toolbar />);
+      const toolbar = container.querySelector('[data-testid="toolbar"]') as HTMLElement | null;
+      const topGroup = container.querySelector('[data-testid="toolbar-top-group"]');
+      const bottomGroup = container.querySelector('[data-testid="toolbar-bottom-group"]');
+
+      expect(toolbar).toBeTruthy();
+      expect(toolbar?.className).toContain('flex-col');
+      expect(topGroup).toBeTruthy();
+      expect(bottomGroup).toBeTruthy();
+      expect(topGroup?.querySelector('[data-testid="view-buttons"]')).toBeTruthy();
+      expect(topGroup?.querySelector('[data-testid="dag-buttons"]')).toBeTruthy();
+      expect(topGroup?.querySelector('[data-testid="node-size-buttons"]')).toBeTruthy();
+      expect(screen.getByTitle('Refresh Graph').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
+      expect(screen.getByTitle('Settings').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
+    });
+  });
+
   describe('view buttons', () => {
     it('renders a button for each available view', () => {
       const { container } = render(<Toolbar />);

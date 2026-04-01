@@ -30,7 +30,7 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
       provider
     ),
     vscode.window.registerWebviewViewProvider(
-      'codegraphy.timelineView',
+      GraphViewProvider.timelineViewType,
       provider
     )
   );
