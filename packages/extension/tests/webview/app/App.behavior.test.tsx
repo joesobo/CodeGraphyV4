@@ -557,6 +557,23 @@ describe('App behavior', () => {
     expect(screen.getByTestId('toolbar')).toBeInTheDocument();
   });
 
+  it('anchors the toolbar flush to the top-left graph corner', () => {
+    graphStore.setState({
+      graphData: { nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }], edges: [] },
+      activePanel: 'none',
+    });
+
+    render(<App />);
+
+    const toolbarShell = screen.getByTestId('toolbar').parentElement?.parentElement as HTMLElement | null;
+    expect(toolbarShell).toBeTruthy();
+    expect(toolbarShell?.className).toContain('absolute');
+    expect(toolbarShell?.className).toContain('left-0');
+    expect(toolbarShell?.className).toContain('inset-y-0');
+    expect(toolbarShell?.className).not.toContain('left-2');
+    expect(toolbarShell?.className).not.toContain('inset-y-2');
+  });
+
   it('keeps the toolbar visible while the settings panel is open', () => {
     graphStore.setState({
       graphData: { nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }], edges: [] },
