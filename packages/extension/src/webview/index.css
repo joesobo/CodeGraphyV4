@@ -58,6 +58,22 @@ body {
   padding: 0;
 }
 
+body[data-codegraphy-view='timeline'] {
+  display: flex;
+  height: 100vh;
+  min-height: 0;
+  overflow: hidden;
+}
+
+body[data-codegraphy-view='timeline'] #root {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
+}
+
 @layer utilities {
   .text-primary {
     color: var(--vscode-foreground, hsl(var(--foreground)));

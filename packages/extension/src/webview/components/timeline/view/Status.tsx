@@ -11,6 +11,7 @@ export interface TimelineStatusProgress {
 
 export interface TimelineStatusProps {
   hasGraphData: boolean;
+  isGraphLoading: boolean;
   isIndexing: boolean;
   indexProgress: TimelineStatusProgress | null;
   onIndexRepo: () => void;
@@ -18,6 +19,7 @@ export interface TimelineStatusProps {
 
 export default function Status({
   hasGraphData,
+  isGraphLoading,
   isIndexing,
   indexProgress,
   onIndexRepo,
@@ -59,16 +61,20 @@ export default function Status({
     );
   }
 
-  if (!hasGraphData) {
-    return null;
-  }
+  const canIndexRepo = hasGraphData && !isGraphLoading;
 
   return (
     <div
       className="flex-shrink-0 border-t border-border p-2 flex items-center justify-center"
       data-testid="timeline-status"
     >
-      <Button variant="outline" size="sm" onClick={onIndexRepo} title="Index repository git history">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onIndexRepo}
+        title="Index repository git history"
+        disabled={!canIndexRepo}
+      >
         <MdiIcon path={mdiClockOutline} size={16} className="mr-1" />
         Index Repo
       </Button>

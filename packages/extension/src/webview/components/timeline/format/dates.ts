@@ -10,6 +10,8 @@ const AXIS_LABEL_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 };
 
 const DEFAULT_MAX_TICKS = 7;
+const NOW_LABEL_RESERVED_WIDTH = 112;
+const MIN_TICK_LABEL_SPACING = 96;
 
 export function formatDate(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleDateString(undefined, DATE_FORMAT_OPTIONS);
@@ -17,6 +19,24 @@ export function formatDate(timestamp: number): string {
 
 export function formatAxisLabel(timestamp: number): string {
   return new Date(timestamp * 1000).toLocaleDateString(undefined, AXIS_LABEL_FORMAT_OPTIONS);
+}
+
+export function getResponsiveAxisTickCount(
+  trackWidth: number,
+  maxTicks: number = DEFAULT_MAX_TICKS,
+): number {
+  if (maxTicks <= 0) {
+    return 0;
+  }
+
+  if (trackWidth <= 0) {
+    return maxTicks;
+  }
+
+  const availableWidth = Math.max(trackWidth - NOW_LABEL_RESERVED_WIDTH, MIN_TICK_LABEL_SPACING);
+  const responsiveTickCount = Math.floor(availableWidth / MIN_TICK_LABEL_SPACING);
+
+  return Math.max(1, Math.min(maxTicks, responsiveTickCount));
 }
 
 export function generateDateTicks(

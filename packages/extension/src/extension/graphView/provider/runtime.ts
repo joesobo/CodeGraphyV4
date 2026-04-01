@@ -49,6 +49,7 @@ function createFirstWorkspaceReadyState(): {
 
 export class GraphViewProviderRuntime {
   protected _view?: vscode.WebviewView;
+  protected _timelineView?: vscode.WebviewView;
   protected _panels: vscode.WebviewPanel[] = [];
   protected _graphData: IGraphData = { nodes: [], edges: [] };
   protected _analyzer?: WorkspaceAnalyzer;

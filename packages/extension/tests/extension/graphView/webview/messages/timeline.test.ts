@@ -10,6 +10,7 @@ function createHandlers(
   return {
     indexRepository: vi.fn(() => Promise.resolve()),
     jumpToCommit: vi.fn(() => Promise.resolve()),
+    resetTimeline: vi.fn(() => Promise.resolve()),
     previewFileAtCommit: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
@@ -27,6 +28,16 @@ describe('graph view timeline message', () => {
     ).resolves.toBe(true);
 
     expect(handlers.jumpToCommit).toHaveBeenCalledWith('abc123');
+  });
+
+  it('awaits timeline resets', async () => {
+    const handlers = createHandlers();
+
+    await expect(
+      applyTimelineMessage({ type: 'RESET_TIMELINE' }, handlers),
+    ).resolves.toBe(true);
+
+    expect(handlers.resetTimeline).toHaveBeenCalledTimes(1);
   });
 
   it('starts file previews at a commit without blocking the caller', async () => {

@@ -152,7 +152,7 @@ describe('ViewButtons', () => {
     expect(screen.getByText('3')).toBeInTheDocument();
   });
 
-  it('hides depth slider when depth view is not active', () => {
+  it('does not render the depth slider when depth view is not active', () => {
     graphStore.setState({
       availableViews: [
         createAvailableView('codegraphy.connections', 'Connections'),
@@ -161,11 +161,8 @@ describe('ViewButtons', () => {
       activeViewId: 'codegraphy.connections',
       depthLimit: 2,
     });
-    const { container } = renderWithProviders();
-    const sliderContainer = container.querySelector('[style*="max-width"]') as HTMLElement | null;
-    expect(sliderContainer).not.toBeNull();
-    expect(sliderContainer!.style.opacity).toBe('0');
-    expect(sliderContainer!.style.maxWidth).toBe('0px');
+    renderWithProviders();
+    expect(screen.queryByTestId('depth-slider')).not.toBeInTheDocument();
   });
 
   it('sets opacity to 1 and maxWidth to 8rem when depth view is active', () => {
@@ -284,13 +281,14 @@ describe('ViewButtons availableViews guard', () => {
     expect(screen.getByTestId('view-buttons')).toBeInTheDocument();
   });
 
-  it('renders correct border styling on the view-buttons container', () => {
+  it('keeps the view-buttons container inline without toolbar chrome', () => {
     graphStore.setState({
       availableViews: [{ id: 'codegraphy.connections', name: 'Connections', icon: 'symbol-file', description: 'Shows all files', active: true }],
     });
     renderWithProviders();
     const container = screen.getByTestId('view-buttons');
-    expect(container.className).toContain('border');
-    expect(container.className).toContain('rounded');
+    expect(container.className).toContain('flex-col');
+    expect(container.className).not.toContain('border');
+    expect(container.className).not.toContain('rounded');
   });
 });

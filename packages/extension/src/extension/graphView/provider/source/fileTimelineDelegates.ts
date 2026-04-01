@@ -23,6 +23,7 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
   | '_addToExclude'
   | '_indexRepository'
   | '_jumpToCommit'
+  | '_resetTimeline'
   | '_openSelectedNode'
   | '_activateNode'
   | '_previewFileAtCommit'
@@ -43,6 +44,7 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
     _addToExclude: patterns => owner._methodContainers.fileVisit._addToExclude(patterns),
     _indexRepository: () => owner._methodContainers.timeline._indexRepository(),
     _jumpToCommit: sha => owner._methodContainers.timeline._jumpToCommit(sha),
+    _resetTimeline: () => owner._methodContainers.timeline._resetTimeline(),
     _openSelectedNode: nodeId => owner._methodContainers.timeline._openSelectedNode(nodeId),
     _activateNode: nodeId => owner._methodContainers.timeline._activateNode(nodeId),
     _previewFileAtCommit: (sha, filePath, behavior?: EditorOpenBehavior) =>

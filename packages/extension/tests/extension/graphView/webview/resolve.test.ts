@@ -23,14 +23,12 @@ describe('graphView/webview/resolve', () => {
       setWebviewMessageListener,
       getHtml: () => '<div id="root"></div>',
       executeCommand,
-      sendAllSettings: vi.fn(),
-      analyzeAndSendData: vi.fn(() => Promise.resolve()),
-      log: vi.fn(),
     });
 
     expect(webviewView.webview.options).toEqual({
       enableScripts: true,
       localResourceRoots: ['/workspace'],
+      retainContextWhenHidden: true,
     });
     expect(setWebviewMessageListener).toHaveBeenCalledWith(webviewView.webview);
     expect(webviewView.webview.html).toBe('<div id="root"></div>');
@@ -38,11 +36,8 @@ describe('graphView/webview/resolve', () => {
     expect(visibilityHandler).toBeTypeOf('function');
   });
 
-  it('re-analyzes when the view becomes visible again', () => {
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
-    const sendAllSettings = vi.fn();
+  it('updates visibility context without triggering reload work when the view becomes visible again', () => {
     const executeCommand = vi.fn(() => Promise.resolve());
-    const log = vi.fn();
     let visibilityHandler: (() => void) | undefined;
     const webviewView = {
       visible: true,
@@ -61,24 +56,16 @@ describe('graphView/webview/resolve', () => {
       setWebviewMessageListener: vi.fn(),
       getHtml: () => '<div id="root"></div>',
       executeCommand,
-      sendAllSettings,
-      analyzeAndSendData,
-      log,
     });
 
     visibilityHandler?.();
 
+    expect(executeCommand).toHaveBeenCalledTimes(2);
     expect(executeCommand).toHaveBeenLastCalledWith('setContext', 'codegraphy.viewVisible', true);
-    expect(log).toHaveBeenCalledWith('[CodeGraphy] View became visible, re-sending data');
-    expect(sendAllSettings).toHaveBeenCalledOnce();
-    expect(sendAllSettings.mock.invocationCallOrder[0]).toBeLessThan(
-      analyzeAndSendData.mock.invocationCallOrder[0],
-    );
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
-  it('does not re-analyze while the view stays hidden', () => {
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+  it('updates visibility context while the view stays hidden', () => {
+    const executeCommand = vi.fn(() => Promise.resolve());
     let visibilityHandler: (() => void) | undefined;
     const webviewView = {
       visible: false,
@@ -96,14 +83,12 @@ describe('graphView/webview/resolve', () => {
       getLocalResourceRoots: () => ['/workspace'],
       setWebviewMessageListener: vi.fn(),
       getHtml: () => '<div id="root"></div>',
-      executeCommand: vi.fn(() => Promise.resolve()),
-      sendAllSettings: vi.fn(),
-      analyzeAndSendData,
-      log: vi.fn(),
+      executeCommand,
     });
 
     visibilityHandler?.();
 
-    expect(analyzeAndSendData).not.toHaveBeenCalled();
+    expect(executeCommand).toHaveBeenCalledTimes(2);
+    expect(executeCommand).toHaveBeenLastCalledWith('setContext', 'codegraphy.viewVisible', false);
   });
 });

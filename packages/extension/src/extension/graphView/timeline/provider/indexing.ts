@@ -168,21 +168,40 @@ export async function jumpGraphViewProviderToCommit(
 ): Promise<void> {
   if (!source._gitAnalyzer) return;
 
-  const rawGraphData = await source._gitAnalyzer.getGraphDataForCommit(sha);
-  source._currentCommitSha = sha;
-  const graphData = dependencies.buildTimelineGraphData(rawGraphData, {
-    disabledPlugins: source._disabledPlugins,
-    disabledRules: source._disabledRules,
-    showOrphans: dependencies.getShowOrphans(),
-    workspaceRoot: dependencies.getWorkspaceFolder()?.uri.fsPath,
-    registry: source._analyzer?.registry,
-  });
-  source._graphData = graphData;
+  const graphData = await buildTimelineCommitGraphData(source, sha, dependencies);
+  applyTimelineCommitGraph(source, sha, graphData);
+}
 
-  source._sendMessage({
-    type: 'COMMIT_GRAPH_DATA',
-    payload: { sha, graphData },
-  });
+export async function resetGraphViewProviderTimeline(
+  source: Pick<
+    GraphViewProviderTimelineSource,
+    | '_analyzer'
+    | '_gitAnalyzer'
+    | '_currentCommitSha'
+    | '_disabledPlugins'
+    | '_disabledRules'
+    | '_graphData'
+    | '_sendMessage'
+  >,
+  dependencies: Pick<
+    GraphViewProviderTimelineDependencies,
+    'buildTimelineGraphData' | 'getShowOrphans' | 'getWorkspaceFolder'
+  > = createDefaultGraphViewProviderTimelineDependencies(),
+): Promise<void> {
+  const commits = source._gitAnalyzer?.getCachedCommitList();
+
+  if (!source._gitAnalyzer || !commits || commits.length === 0) {
+    return;
+  }
+
+  for (const commit of commits) {
+    const graphData = await buildTimelineCommitGraphData(source, commit.sha, dependencies);
+
+    if (graphData.nodes.length > 0) {
+      applyTimelineCommitGraph(source, commit.sha, graphData);
+      return;
+    }
+  }
 }
 
 export function sendGraphViewProviderCachedTimeline(
@@ -207,4 +226,45 @@ export function sendGraphViewProviderCachedTimeline(
 
 function toErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+async function buildTimelineCommitGraphData(
+  source: Pick<
+    GraphViewProviderTimelineSource,
+    | '_analyzer'
+    | '_gitAnalyzer'
+    | '_disabledPlugins'
+    | '_disabledRules'
+  >,
+  sha: string,
+  dependencies: Pick<
+    GraphViewProviderTimelineDependencies,
+    'buildTimelineGraphData' | 'getShowOrphans' | 'getWorkspaceFolder'
+  >,
+): Promise<IGraphData> {
+  const rawGraphData = await source._gitAnalyzer!.getGraphDataForCommit(sha);
+
+  return dependencies.buildTimelineGraphData(rawGraphData, {
+    disabledPlugins: source._disabledPlugins,
+    disabledRules: source._disabledRules,
+    showOrphans: dependencies.getShowOrphans(),
+    workspaceRoot: dependencies.getWorkspaceFolder()?.uri.fsPath,
+    registry: source._analyzer?.registry,
+  });
+}
+
+function applyTimelineCommitGraph(
+  source: Pick<
+    GraphViewProviderTimelineSource,
+    '_currentCommitSha' | '_graphData' | '_sendMessage'
+  >,
+  sha: string,
+  graphData: IGraphData,
+): void {
+  source._currentCommitSha = sha;
+  source._graphData = graphData;
+  source._sendMessage({
+    type: 'COMMIT_GRAPH_DATA',
+    payload: { sha, graphData },
+  });
 }

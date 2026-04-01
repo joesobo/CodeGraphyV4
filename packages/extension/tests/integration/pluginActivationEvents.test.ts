@@ -29,6 +29,7 @@ describe('plugin extension activation events', () => {
         'onStartupFinished',
         'onCommand:codegraphy.open',
         'onView:codegraphy.graphView',
+        'onView:codegraphy.timelineView',
       ]),
     );
   });

@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import Timeline from '../../src/webview/components/Timeline';
 import { graphStore } from '../../src/webview/store/state';
 import type { IGraphData } from '../../src/shared/graph/types';
 import type { ICommitInfo } from '../../src/shared/timeline/types';
+import { formatDate } from '../../src/webview/components/timeline/format/dates';
 
 // Capture postMessage calls
 const sentMessages: unknown[] = [];
@@ -16,6 +17,11 @@ const MOCK_COMMITS: ICommitInfo[] = [
   { sha: 'aaa111aaa111aaa111aaa111aaa111aaa111aaa1', timestamp: 1000, message: 'Initial commit', author: 'Alice', parents: [] },
   { sha: 'bbb222bbb222bbb222bbb222bbb222bbb222bbb2', timestamp: 2000, message: 'Add feature X', author: 'Bob', parents: ['aaa111aaa111aaa111aaa111aaa111aaa111aaa1'] },
   { sha: 'ccc333ccc333ccc333ccc333ccc333ccc333ccc3', timestamp: 3000, message: 'Fix bug in feature X', author: 'Alice', parents: ['bbb222bbb222bbb222bbb222bbb222bbb222bbb2'] },
+];
+
+const MOCK_COMMITS_WITH_EMPTY_START: ICommitInfo[] = [
+  { sha: 'zero000zero000zero000zero000zero000zero0', timestamp: 500, message: 'Init repo', author: 'Alice', parents: [] },
+  ...MOCK_COMMITS,
 ];
 
 const MOCK_GRAPH_DATA: IGraphData = {
@@ -51,10 +57,22 @@ describe('Timeline', () => {
 
   // ── State 1: Returns null ──────────────────────────────────────────────
 
-  it('returns null when no timeline, not indexing, and no graph data', () => {
+  it('shows a disabled "Index Repo" button when no graph data is available yet', () => {
     resetStore({ graphData: null, timelineActive: false, isIndexing: false });
-    const { container } = render(<Timeline />);
-    expect(container.innerHTML).toBe('');
+    render(<Timeline />);
+    expect(screen.getByText('Index Repo')).toBeDisabled();
+  });
+
+  it('shows a disabled "Index Repo" button while the graph is still loading', () => {
+    resetStore({
+      graphData: null,
+      isLoading: true,
+      timelineActive: false,
+      isIndexing: false,
+    });
+    render(<Timeline />);
+
+    expect(screen.getByText('Index Repo')).toBeDisabled();
   });
 
   // ── State 1: Index Repo button ─────────────────────────────────────────
@@ -96,7 +114,7 @@ describe('Timeline', () => {
 
   // ── State 3: Timeline ready ────────────────────────────────────────────
 
-  it('shows timeline with Current button when timeline is active', () => {
+  it('shows the timeline panel summary, controls, and commit list when timeline is active', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -105,10 +123,74 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    expect(screen.getByTestId('timeline')).toBeInTheDocument();
-    expect(screen.getByText('Current')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-panel')).toBeInTheDocument();
+    expect(
+      screen.getByTestId('timeline-track-shell').compareDocumentPosition(screen.getByTestId('timeline-summary'))
+        & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(screen.getByTestId('timeline-summary')).toBeInTheDocument();
+    expect(within(screen.getByTestId('timeline-summary')).getByText('Current Commit')).toBeInTheDocument();
+    expect(within(screen.getByTestId('timeline-summary')).getByText('Add feature X')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-controls')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-track-shell')).toHaveClass('px-3');
+    expect(within(screen.getByTestId('timeline-controls')).getByText(formatDate(MOCK_COMMITS[1].timestamp))).toBeInTheDocument();
+    expect(screen.queryByText('Viewing Date')).not.toBeInTheDocument();
+    expect(screen.getByTestId('timeline-commit-list')).toBeInTheDocument();
+    expect(within(screen.getByTestId('timeline-commit-list')).getByText('Commits')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-commit-list-scroll')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'End' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Fix bug in feature X/i })).toBeInTheDocument();
     // "Now" label at end of axis
     expect(screen.getByText('Now')).toBeInTheDocument();
+  });
+
+  it('allows collapsing the current commit and commit list sections', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[1].sha,
+      graphData: MOCK_GRAPH_DATA,
+    });
+    render(<Timeline />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Current Commit' }));
+    expect(
+      within(screen.getByTestId('timeline-summary')).queryByText('Add feature X'),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Commits' }));
+    expect(screen.queryByTestId('timeline-commit-list-scroll')).not.toBeInTheDocument();
+  });
+
+  it('resets to the first graphable commit when Start is clicked', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS_WITH_EMPTY_START,
+      currentCommitSha: MOCK_COMMITS[1].sha,
+    });
+    render(<Timeline />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
+
+    expect(sentMessages).toContainEqual({
+      type: 'RESET_TIMELINE',
+    });
+  });
+
+  it('jumps to a selected commit when a commit list entry is clicked', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[1].sha,
+    });
+    render(<Timeline />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Initial commit/i }));
+
+    expect(sentMessages).toContainEqual({
+      type: 'JUMP_TO_COMMIT',
+      payload: { sha: MOCK_COMMITS[0].sha },
+    });
   });
 
   it('shows play button when not playing', () => {
@@ -120,7 +202,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    expect(screen.getByTitle('Play')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
   });
 
   it('sets isPlaying to true when play button is clicked', () => {
@@ -133,7 +215,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    const playBtn = screen.getByTitle('Play');
+    const playBtn = screen.getByRole('button', { name: 'Play' });
     fireEvent.click(playBtn);
 
     expect(graphStore.getState().isPlaying).toBe(true);
@@ -149,31 +231,41 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    const pauseBtn = screen.getByTitle('Pause');
+    const pauseBtn = screen.getByRole('button', { name: 'Pause' });
     fireEvent.click(pauseBtn);
 
     expect(graphStore.getState().isPlaying).toBe(false);
   });
 
-  it('jumps to first commit when play is pressed at the end', () => {
+  it('resumes playback from the first graphable commit when play is pressed at the end', () => {
     resetStore({
       timelineActive: true,
-      timelineCommits: MOCK_COMMITS,
+      timelineCommits: MOCK_COMMITS_WITH_EMPTY_START,
       currentCommitSha: MOCK_COMMITS[2].sha, // last commit
       isPlaying: false,
     });
     render(<Timeline />);
 
-    fireEvent.click(screen.getByTitle('Play'));
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
+
+    expect(sentMessages).toContainEqual({
+      type: 'RESET_TIMELINE',
+    });
+
+    act(() => {
+      graphStore.getState().handleExtensionMessage({
+        type: 'COMMIT_GRAPH_DATA',
+        payload: {
+          sha: MOCK_COMMITS[0].sha,
+          graphData: MOCK_GRAPH_DATA,
+        },
+      });
+    });
 
     expect(graphStore.getState().isPlaying).toBe(true);
-    expect(sentMessages).toContainEqual({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: MOCK_COMMITS[0].sha },
-    });
   });
 
-  it('Current button stops playback', () => {
+  it('End button stops playback', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -182,7 +274,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    fireEvent.click(screen.getByText('Current'));
+    fireEvent.click(screen.getByRole('button', { name: 'End' }));
 
     expect(graphStore.getState().isPlaying).toBe(false);
     expect(sentMessages).toContainEqual({
@@ -191,7 +283,7 @@ describe('Timeline', () => {
     });
   });
 
-  it('Current button jumps to last commit', () => {
+  it('End button jumps to last commit', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -199,7 +291,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    fireEvent.click(screen.getByText('Current'));
+    fireEvent.click(screen.getByRole('button', { name: 'End' }));
 
     expect(sentMessages).toContainEqual({
       type: 'JUMP_TO_COMMIT',
@@ -207,7 +299,7 @@ describe('Timeline', () => {
     });
   });
 
-  it('Current button is disabled when already at the last commit', () => {
+  it('End button is disabled when already at the last commit', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -215,7 +307,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    const btn = screen.getByText('Current');
+    const btn = screen.getByRole('button', { name: 'End' });
     expect(btn).toBeDisabled();
   });
 
@@ -228,15 +320,12 @@ describe('Timeline', () => {
     render(<Timeline />);
 
     // Simulate clicking in the middle of the track
-    const track = screen.getByTestId('timeline').querySelector('[class*="cursor-pointer"]') as HTMLElement;
-    if (track) {
-      // Mock getBoundingClientRect
-      vi.spyOn(track, 'getBoundingClientRect').mockReturnValue({
-        left: 0, right: 300, width: 300, top: 0, bottom: 28, height: 28,
-        x: 0, y: 0, toJSON: () => {},
-      });
-      fireEvent.mouseDown(track, { clientX: 150 });
-    }
+    const track = screen.getByTestId('timeline-track');
+    vi.spyOn(track, 'getBoundingClientRect').mockReturnValue({
+      left: 0, right: 300, width: 300, top: 0, bottom: 28, height: 28,
+      x: 0, y: 0, toJSON: () => {},
+    });
+    fireEvent.mouseDown(track, { clientX: 150 });
 
     // After debounce
     act(() => {
@@ -269,8 +358,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    const track = screen.getByTestId('timeline').querySelector('[class*="cursor-pointer"]') as HTMLElement;
-    expect(track).toBeTruthy();
+    const track = screen.getByTestId('timeline-track');
     // Should use VS Code theme variable, not hardcoded #000
     expect(track.style.backgroundColor).toContain('--vscode-editor-background');
   });
@@ -283,15 +371,12 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    // The smooth indicator is a separate pointer-events-none element
-    const timeline = screen.getByTestId('timeline');
-    const indicator = timeline.querySelector('[class*="pointer-events-none"]') as HTMLElement;
-    expect(indicator).toBeTruthy();
-    const bar = indicator?.querySelector('div') as HTMLElement;
+    const indicator = screen.getByTestId('timeline-indicator');
+    const bar = indicator.firstElementChild as HTMLElement;
     expect(bar?.style.backgroundColor).toContain('--vscode-focusBorder');
   });
 
-  it('play button has accessible size', () => {
+  it('play control is rendered as an enabled button', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -300,11 +385,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    const playBtn = screen.getByTitle('Play');
-    const svg = playBtn.querySelector('svg');
-    expect(svg).toBeTruthy();
-    expect(svg?.getAttribute('width')).toBe('16');
-    expect(svg?.getAttribute('height')).toBe('16');
+    expect(screen.getByRole('button', { name: 'Play' })).toBeEnabled();
   });
 
   it('timeline wrapper has border-t for visual separation', () => {
@@ -315,7 +396,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    const timeline = screen.getByTestId('timeline');
+    const timeline = screen.getByTestId('timeline-panel');
     expect(timeline.className).toContain('border-t');
   });
 
@@ -331,7 +412,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    fireEvent.click(screen.getByTitle('Play'));
+    fireEvent.click(screen.getByRole('button', { name: 'Play' }));
 
     // Playback is now webview-driven via requestAnimationFrame
     expect(graphStore.getState().isPlaying).toBe(true);

@@ -15,9 +15,11 @@ export function getTimelineViewState(
   currentCommitSha: string | null,
   playbackTime: number | null,
   timelineCommits: ICommitInfo[],
+  maxDateTicks?: number,
 ): TimelineViewState {
   return buildTimelineViewState({
     currentCommitSha,
+    maxDateTicks,
     playbackTime,
     timelineCommits,
   });
@@ -25,10 +27,11 @@ export function getTimelineViewState(
 
 export function buildTimelineViewState(options: {
   currentCommitSha: string | null;
+  maxDateTicks?: number;
   playbackTime: number | null;
   timelineCommits: ICommitInfo[];
 }): TimelineViewState {
-  const { currentCommitSha, playbackTime, timelineCommits } = options;
+  const { currentCommitSha, maxDateTicks, playbackTime, timelineCommits } = options;
 
   if (timelineCommits.length === 0) {
     return {
@@ -47,7 +50,7 @@ export function buildTimelineViewState(options: {
 
   return {
     currentIndex,
-    dateTicks: generateDateTicks(minTimestamp, maxTimestamp),
+    dateTicks: generateDateTicks(minTimestamp, maxTimestamp, maxDateTicks),
     indicatorPosition: Math.max(
       0,
       Math.min(100, ((indicatorTimestamp - minTimestamp) / timeRange) * 100),

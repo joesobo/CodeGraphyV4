@@ -47,6 +47,45 @@ describe('Toolbar', () => {
     vi.clearAllMocks();
   });
 
+  describe('layout', () => {
+    it('renders a vertical transparent toolbar with top and bottom groups', () => {
+      const { container } = render(<Toolbar />);
+      const toolbar = container.querySelector('[data-testid="toolbar"]') as HTMLElement | null;
+      const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
+      const bottomGroup = container.querySelector('[data-testid="toolbar-bottom-group"]') as HTMLElement | null;
+      const viewButtons = container.querySelector('[data-testid="view-buttons"]') as HTMLElement | null;
+      const dagButtons = container.querySelector('[data-testid="dag-buttons"]') as HTMLElement | null;
+      const nodeSizeButtons = container.querySelector('[data-testid="node-size-buttons"]') as HTMLElement | null;
+
+      expect(toolbar).toBeTruthy();
+      expect(toolbar?.className).toContain('flex-col');
+      expect(toolbar?.className).toContain('items-center');
+      expect(toolbar?.className).toContain('bg-transparent');
+      expect(toolbar?.className).not.toContain('py-1');
+      expect(toolbar?.className).not.toContain('rounded-md');
+      expect(toolbar?.className).not.toContain('border');
+      expect(toolbar?.className).not.toContain('shadow-lg');
+      expect(topGroup).toBeTruthy();
+      expect(bottomGroup).toBeTruthy();
+      expect(topGroup?.className).toContain('flex-col');
+      expect(bottomGroup?.className).toContain('flex-col');
+      expect(topGroup?.querySelector('[data-testid="view-buttons"]')).toBeTruthy();
+      expect(topGroup?.querySelector('[data-testid="dag-buttons"]')).toBeTruthy();
+      expect(topGroup?.querySelector('[data-testid="node-size-buttons"]')).toBeTruthy();
+      expect(viewButtons?.className).toContain('flex-col');
+      expect(viewButtons?.className).not.toContain('bg-popover/80');
+      expect(viewButtons?.className).not.toContain('border');
+      expect(dagButtons?.className).toContain('flex-col');
+      expect(dagButtons?.className).not.toContain('bg-popover/80');
+      expect(dagButtons?.className).not.toContain('border');
+      expect(nodeSizeButtons?.className).toContain('flex-col');
+      expect(nodeSizeButtons?.className).not.toContain('bg-popover/80');
+      expect(nodeSizeButtons?.className).not.toContain('border');
+      expect(screen.getByTitle('Refresh Graph').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
+      expect(screen.getByTitle('Settings').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
+    });
+  });
+
   describe('view buttons', () => {
     it('renders a button for each available view', () => {
       const { container } = render(<Toolbar />);
@@ -145,12 +184,11 @@ describe('Toolbar', () => {
   });
 
   describe('depth slider', () => {
-    it('is hidden when depth view is not active', () => {
+    it('does not render a depth-slider placeholder when depth view is not active', () => {
       const { container } = render(<Toolbar />);
-      const sliderContainer = container.querySelector('[style*="max-width"]');
-      expect(sliderContainer).toBeTruthy();
-      expect(sliderContainer?.getAttribute('style')).toContain('max-width: 0px');
-      expect(sliderContainer?.getAttribute('style')).toContain('opacity: 0');
+      const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
+      expect(screen.queryByTestId('depth-slider')).toBeNull();
+      expect(topGroup?.firstElementChild?.getAttribute('data-testid')).toBe('view-buttons');
     });
 
     it('is visible when depth view is active', () => {

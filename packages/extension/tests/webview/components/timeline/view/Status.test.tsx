@@ -3,23 +3,25 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import Status from '../../../../../src/webview/components/timeline/view/Status';
 
 describe('timeline/Status', () => {
-  it('returns null when not indexing and graph data is unavailable', () => {
-    const { container } = render(
+  it('renders a disabled Index Repo button when graph data is unavailable', () => {
+    render(
       <Status
         hasGraphData={false}
+        isGraphLoading={false}
         isIndexing={false}
         indexProgress={null}
         onIndexRepo={vi.fn()}
       />,
     );
 
-    expect(container.innerHTML).toBe('');
+    expect(screen.getByRole('button', { name: 'Index Repo' })).toBeDisabled();
   });
 
   it('renders an Index Repo button when graph data is available', () => {
     render(
       <Status
         hasGraphData
+        isGraphLoading={false}
         isIndexing={false}
         indexProgress={null}
         onIndexRepo={vi.fn()}
@@ -35,6 +37,7 @@ describe('timeline/Status', () => {
     render(
       <Status
         hasGraphData
+        isGraphLoading={false}
         isIndexing={false}
         indexProgress={null}
         onIndexRepo={onIndexRepo}
@@ -50,6 +53,7 @@ describe('timeline/Status', () => {
     render(
       <Status
         hasGraphData={false}
+        isGraphLoading={true}
         isIndexing
         indexProgress={{ phase: 'Scanning commits', current: 50, total: 200 }}
         onIndexRepo={vi.fn()}
@@ -64,6 +68,7 @@ describe('timeline/Status', () => {
     render(
       <Status
         hasGraphData={false}
+        isGraphLoading={true}
         isIndexing
         indexProgress={{ phase: 'Scanning commits', current: 50, total: 0 }}
         onIndexRepo={vi.fn()}
@@ -78,6 +83,7 @@ describe('timeline/Status', () => {
     render(
       <Status
         hasGraphData={false}
+        isGraphLoading={true}
         isIndexing
         indexProgress={null}
         onIndexRepo={vi.fn()}
@@ -85,5 +91,19 @@ describe('timeline/Status', () => {
     );
 
     expect(screen.getByText('Indexing repository...')).toBeInTheDocument();
+  });
+
+  it('keeps the Index Repo button disabled while the graph is still loading', () => {
+    render(
+      <Status
+        hasGraphData={false}
+        isGraphLoading
+        isIndexing={false}
+        indexProgress={null}
+        onIndexRepo={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Index Repo' })).toBeDisabled();
   });
 });
