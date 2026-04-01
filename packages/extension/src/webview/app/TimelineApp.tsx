@@ -21,7 +21,7 @@ export default function TimelineApp(): React.ReactElement {
   }
 
   return (
-    <div className="w-full h-screen overflow-auto">
+    <div className="w-full">
       <Timeline />
     </div>
   );
