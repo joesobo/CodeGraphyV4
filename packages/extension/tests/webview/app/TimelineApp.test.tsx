@@ -83,4 +83,17 @@ describe('TimelineApp', () => {
     expect(shell?.className).not.toContain('h-screen');
     expect(shell?.className).not.toContain('overflow-auto');
   });
+
+  it('does not show the graph loading screen while the graph is still loading', () => {
+    graphStore.setState({
+      graphData: null,
+      isLoading: true,
+      timelineActive: false,
+    });
+
+    render(<TimelineApp />);
+
+    expect(screen.getByTestId('timeline-content')).toBeInTheDocument();
+    expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+  });
 });

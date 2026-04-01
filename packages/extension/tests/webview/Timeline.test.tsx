@@ -51,10 +51,22 @@ describe('Timeline', () => {
 
   // ── State 1: Returns null ──────────────────────────────────────────────
 
-  it('returns null when no timeline, not indexing, and no graph data', () => {
+  it('shows a disabled "Index Repo" button when no graph data is available yet', () => {
     resetStore({ graphData: null, timelineActive: false, isIndexing: false });
-    const { container } = render(<Timeline />);
-    expect(container.innerHTML).toBe('');
+    render(<Timeline />);
+    expect(screen.getByText('Index Repo')).toBeDisabled();
+  });
+
+  it('shows a disabled "Index Repo" button while the graph is still loading', () => {
+    resetStore({
+      graphData: null,
+      isLoading: true,
+      timelineActive: false,
+      isIndexing: false,
+    });
+    render(<Timeline />);
+
+    expect(screen.getByText('Index Repo')).toBeDisabled();
   });
 
   // ── State 1: Index Repo button ─────────────────────────────────────────
