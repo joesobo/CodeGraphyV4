@@ -13,7 +13,6 @@ import {
   runJumpToCommitAction,
   runJumpToEndAction,
   runPlayPauseAction,
-  runResetTimelineAction,
 } from '../playbackActions';
 import { jumpToTrackPosition } from '../scrubPosition';
 import { getTimelineViewState } from '../viewState';
@@ -37,7 +36,6 @@ export interface UseTimelineControllerResult {
   handleJumpToNext: () => void;
   handleJumpToPrevious: () => void;
   handleJumpToStart: () => void;
-  handleReset: () => void;
   handlePlayPause: () => void;
   handleTrackMouseDown: (event: ReactMouseEvent<HTMLDivElement>) => void;
   indicatorPosition: number;
@@ -230,14 +228,6 @@ export function useTimelineController({
     });
   }, [isPlaying, setIsPlaying, timelineCommits]);
 
-  const handleReset = useCallback(() => {
-    runResetTimelineAction({
-      isPlaying,
-      lastSentCommitIndexRef,
-      setIsPlaying,
-    });
-  }, [isPlaying, setIsPlaying]);
-
   const setTrackElement = useCallback((element: HTMLDivElement | null) => {
     trackElementRef.current = element;
     setTrackWidth(element?.getBoundingClientRect().width ?? 0);
@@ -252,7 +242,6 @@ export function useTimelineController({
     handleJumpToNext,
     handleJumpToPrevious,
     handleJumpToStart,
-    handleReset,
     handlePlayPause,
     handleTrackMouseDown,
     indicatorPosition: viewState.indicatorPosition,

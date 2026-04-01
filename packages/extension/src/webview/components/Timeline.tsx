@@ -58,10 +58,10 @@ function ReadyTimeline({
           isAtEnd={controller.isAtEnd}
           isAtStart={controller.currentIndex === 0}
           isPlaying={isPlaying}
-          onReset={controller.handleReset}
-          onJumpToCurrent={controller.handleJumpToEnd}
+          onJumpToEnd={controller.handleJumpToEnd}
           onJumpToNext={controller.handleJumpToNext}
           onJumpToPrevious={controller.handleJumpToPrevious}
+          onJumpToStart={controller.handleJumpToStart}
           onPlayPause={controller.handlePlayPause}
         />
       </section>

@@ -133,7 +133,7 @@ describe('Timeline', () => {
     expect(screen.getByTestId('timeline-commit-list')).toBeInTheDocument();
     expect(within(screen.getByTestId('timeline-commit-list')).getByText('Commits')).toBeInTheDocument();
     expect(screen.getByTestId('timeline-commit-list-scroll')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Current' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'End' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Fix bug in feature X/i })).toBeInTheDocument();
     // "Now" label at end of axis
     expect(screen.getByText('Now')).toBeInTheDocument();
@@ -157,7 +157,7 @@ describe('Timeline', () => {
     expect(screen.queryByTestId('timeline-commit-list-scroll')).not.toBeInTheDocument();
   });
 
-  it('requests a safe timeline reset when Reset is clicked', () => {
+  it('jumps to the first commit when Start is clicked', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -165,9 +165,12 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
 
-    expect(sentMessages).toContainEqual({ type: 'RESET_TIMELINE' });
+    expect(sentMessages).toContainEqual({
+      type: 'JUMP_TO_COMMIT',
+      payload: { sha: MOCK_COMMITS[0].sha },
+    });
   });
 
   it('jumps to a selected commit when a commit list entry is clicked', () => {
@@ -248,7 +251,7 @@ describe('Timeline', () => {
     });
   });
 
-  it('Current button stops playback', () => {
+  it('End button stops playback', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -257,7 +260,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Current' }));
+    fireEvent.click(screen.getByRole('button', { name: 'End' }));
 
     expect(graphStore.getState().isPlaying).toBe(false);
     expect(sentMessages).toContainEqual({
@@ -266,7 +269,7 @@ describe('Timeline', () => {
     });
   });
 
-  it('Current button jumps to last commit', () => {
+  it('End button jumps to last commit', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -274,7 +277,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Current' }));
+    fireEvent.click(screen.getByRole('button', { name: 'End' }));
 
     expect(sentMessages).toContainEqual({
       type: 'JUMP_TO_COMMIT',
@@ -282,7 +285,7 @@ describe('Timeline', () => {
     });
   });
 
-  it('Current button is disabled when already at the last commit', () => {
+  it('End button is disabled when already at the last commit', () => {
     resetStore({
       timelineActive: true,
       timelineCommits: MOCK_COMMITS,
@@ -290,7 +293,7 @@ describe('Timeline', () => {
     });
     render(<Timeline />);
 
-    const btn = screen.getByRole('button', { name: 'Current' });
+    const btn = screen.getByRole('button', { name: 'End' });
     expect(btn).toBeDisabled();
   });
 

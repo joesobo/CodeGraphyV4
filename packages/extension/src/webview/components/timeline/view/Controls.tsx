@@ -3,6 +3,7 @@ import {
   mdiPause,
   mdiPlay,
   mdiSkipBackward,
+  mdiSkipNext,
   mdiSkipForward,
   mdiSkipPrevious,
 } from '@mdi/js';
@@ -14,10 +15,10 @@ export interface TimelineControlsProps {
   isAtEnd: boolean;
   isAtStart: boolean;
   isPlaying: boolean;
-  onReset: () => void;
-  onJumpToCurrent: () => void;
+  onJumpToEnd: () => void;
   onJumpToNext: () => void;
   onJumpToPrevious: () => void;
+  onJumpToStart: () => void;
   onPlayPause: () => void;
 }
 
@@ -26,10 +27,10 @@ export default function Controls({
   isAtEnd,
   isAtStart,
   isPlaying,
-  onReset,
-  onJumpToCurrent,
+  onJumpToEnd,
   onJumpToNext,
   onJumpToPrevious,
+  onJumpToStart,
   onPlayPause,
 }: TimelineControlsProps): React.ReactElement {
   return (
@@ -39,10 +40,10 @@ export default function Controls({
           variant="outline"
           size="icon"
           className="h-8 w-8 rounded-sm"
-          aria-label="Reset"
+          aria-label="Start"
           disabled={isAtStart}
-          onClick={onReset}
-          title="Reset to first graph commit"
+          onClick={onJumpToStart}
+          title="First commit"
         >
           <MdiIcon path={mdiSkipBackward} size={16} />
         </Button>
@@ -76,16 +77,18 @@ export default function Controls({
           onClick={onJumpToNext}
           title="Next commit"
         >
-          <MdiIcon path={mdiSkipForward} size={16} />
+          <MdiIcon path={mdiSkipNext} size={16} />
         </Button>
         <Button
           variant="outline"
-          size="sm"
+          size="icon"
+          className="h-8 w-8 rounded-sm"
           disabled={isAtEnd}
-          onClick={onJumpToCurrent}
-          title="Jump to current"
+          aria-label="End"
+          onClick={onJumpToEnd}
+          title="Latest commit"
         >
-          Current
+          <MdiIcon path={mdiSkipForward} size={16} />
         </Button>
       </div>
       <span className="text-[10px] text-[var(--vscode-descriptionForeground,#777)]">

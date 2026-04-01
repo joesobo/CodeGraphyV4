@@ -231,6 +231,24 @@ describe('timeline/useController', () => {
     expectJumpToCommit(commits[2].sha);
   });
 
+  it('jumps to the first commit and stops playback when requested', () => {
+    const setIsPlaying = vi.fn();
+    const { result } = renderHook(() => useTimelineController({
+      currentCommitSha: commits[2].sha,
+      isPlaying: true,
+      playbackSpeed: 1,
+      setIsPlaying,
+      timelineCommits: commits,
+    }));
+
+    act(() => {
+      result.current.handleJumpToStart();
+    });
+
+    expect(setIsPlaying).toHaveBeenCalledWith(false);
+    expectJumpToCommit(commits[0].sha);
+  });
+
   it('updates the jump-to-end handler when playback state and commits change', () => {
     const setIsPlaying = vi.fn();
     const extendedCommits = [

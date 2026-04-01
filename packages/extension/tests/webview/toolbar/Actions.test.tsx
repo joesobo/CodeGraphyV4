@@ -9,28 +9,40 @@ vi.mock('../../../src/webview/vscodeApi', () => ({
 }));
 
 // Mock dropdown components to render inline (Radix portals don't work in jsdom)
-vi.mock('../../../src/webview/components/ui/menus/dropdown-menu', () => ({
-  DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-content">{children}</div>
-  ),
-  DropdownMenuItem: ({
-    children,
-    onSelect,
-  }: {
-    children: React.ReactNode;
-    onSelect?: () => void;
-  }) => (
-    <button type="button" onClick={onSelect}>
+vi.mock('../../../src/webview/components/ui/menus/dropdown-menu', () => {
+  const DropdownMenuTrigger = React.forwardRef<HTMLDivElement, { children: React.ReactNode }>(
+    ({ children }, ref) => <div ref={ref}>{children}</div>,
+  );
+  DropdownMenuTrigger.displayName = 'DropdownMenuTrigger';
+
+  const DropdownMenuContent = React.forwardRef<HTMLDivElement, { children: React.ReactNode }>(
+    ({ children }, ref) => (
+      <div ref={ref} data-testid="dropdown-content">{children}</div>
+    ),
+  );
+  DropdownMenuContent.displayName = 'DropdownMenuContent';
+
+  const DropdownMenuItem = React.forwardRef<
+    HTMLButtonElement,
+    { children: React.ReactNode; onSelect?: () => void }
+  >(({ children, onSelect }, ref) => (
+    <button ref={ref} type="button" onClick={onSelect}>
       {children}
     </button>
-  ),
-  DropdownMenuSeparator: () => <hr data-testid="dropdown-separator" />,
-  DropdownMenuLabel: ({ children }: { children: React.ReactNode }) => (
-    <span data-testid="dropdown-label">{children}</span>
-  ),
-}));
+  ));
+  DropdownMenuItem.displayName = 'DropdownMenuItem';
+
+  return {
+    DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator: () => <hr data-testid="dropdown-separator" />,
+    DropdownMenuLabel: ({ children }: { children: React.ReactNode }) => (
+      <span data-testid="dropdown-label">{children}</span>
+    ),
+  };
+});
 
 import { postMessage } from '../../../src/webview/vscodeApi';
 import { ToolbarActions } from '../../../src/webview/components/toolbar/Actions';

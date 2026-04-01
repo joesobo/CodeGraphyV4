@@ -10,29 +10,29 @@ describe('timeline/Controls', () => {
         isAtEnd={false}
         isAtStart={true}
         isPlaying={false}
-        onReset={vi.fn()}
-        onJumpToCurrent={vi.fn()}
+        onJumpToEnd={vi.fn()}
         onJumpToNext={vi.fn()}
         onJumpToPrevious={vi.fn()}
+        onJumpToStart={vi.fn()}
         onPlayPause={vi.fn()}
       />,
     );
 
     expect(screen.getByText('Jan 4, 2024')).toBeInTheDocument();
     expect(screen.queryByText('Viewing Date')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Reset' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Prev' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Play' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
-    expect(screen.getByRole('button', { name: 'Current' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'End' })).toBeEnabled();
   });
 
   it('delegates click handlers for the navigation controls', () => {
-    const onReset = vi.fn();
+    const onJumpToStart = vi.fn();
     const onJumpToPrevious = vi.fn();
     const onPlayPause = vi.fn();
     const onJumpToNext = vi.fn();
-    const onJumpToCurrent = vi.fn();
+    const onJumpToEnd = vi.fn();
 
     render(
       <Controls
@@ -40,24 +40,24 @@ describe('timeline/Controls', () => {
         isAtEnd={false}
         isAtStart={false}
         isPlaying={true}
-        onReset={onReset}
-        onJumpToCurrent={onJumpToCurrent}
+        onJumpToEnd={onJumpToEnd}
         onJumpToNext={onJumpToNext}
         onJumpToPrevious={onJumpToPrevious}
+        onJumpToStart={onJumpToStart}
         onPlayPause={onPlayPause}
       />,
     );
 
-    fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start' }));
     fireEvent.click(screen.getByRole('button', { name: 'Prev' }));
     fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
     fireEvent.click(screen.getByRole('button', { name: 'Next' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Current' }));
+    fireEvent.click(screen.getByRole('button', { name: 'End' }));
 
-    expect(onReset).toHaveBeenCalledTimes(1);
+    expect(onJumpToStart).toHaveBeenCalledTimes(1);
     expect(onJumpToPrevious).toHaveBeenCalledTimes(1);
     expect(onPlayPause).toHaveBeenCalledTimes(1);
     expect(onJumpToNext).toHaveBeenCalledTimes(1);
-    expect(onJumpToCurrent).toHaveBeenCalledTimes(1);
+    expect(onJumpToEnd).toHaveBeenCalledTimes(1);
   });
 });
