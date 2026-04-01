@@ -1,5 +1,7 @@
 import React from 'react';
 import type { ICommitInfo } from '../../../../shared/timeline/types';
+import { buildBranchGraphModel } from '../branchGraph/model';
+import { BranchGraphRowView } from '../branchGraph/view';
 import { ChevronIcon } from '../../settingsPanel/SectionHeader';
 import { formatDate } from '../format/dates';
 import { getMessageTitle, truncateMessage } from '../format/messages';
@@ -20,6 +22,8 @@ export default function CommitList({
   timelineCommits,
 }: TimelineCommitListProps): React.ReactElement {
   const commits = [...timelineCommits].reverse();
+  const branchGraphModel = buildBranchGraphModel(commits);
+  const branchRowsBySha = new Map(branchGraphModel.rows.map((row) => [row.sha, row]));
 
   return (
     <section
@@ -44,11 +48,12 @@ export default function CommitList({
         <div className="min-h-0 flex-1 overflow-y-auto" data-testid="timeline-commit-list-scroll">
           {commits.map((commit) => {
             const isCurrent = commit.sha === currentCommitSha;
+            const branchRow = branchRowsBySha.get(commit.sha);
             return (
               <button
                 key={commit.sha}
                 type="button"
-                className={`block w-full border-b border-border px-3 py-2 text-left transition-colors last:border-b-0 ${
+                className={`flex w-full items-stretch gap-3 border-b border-border px-3 py-2 text-left transition-colors last:border-b-0 ${
                   isCurrent
                     ? 'bg-[var(--vscode-list-activeSelectionBackground,#264f78)] text-[var(--vscode-list-activeSelectionForeground,#fff)]'
                     : 'hover:bg-[var(--vscode-list-hoverBackground,#2a2d2e)]'
@@ -57,18 +62,27 @@ export default function CommitList({
                 aria-current={isCurrent ? 'true' : undefined}
                 onClick={() => onSelectCommit(commit.sha)}
               >
-                <div className="mb-1 flex items-center gap-2 text-xs font-medium">
-                  <span>{truncateMessage(getMessageTitle(commit.message), 48)}</span>
-                  {commit.parents.length > 1 && (
-                    <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-normal text-[var(--vscode-descriptionForeground,#999)]">
-                      Merge
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2 text-[11px] text-[var(--vscode-descriptionForeground,#999)]">
-                  <span className="font-mono">{commit.sha.slice(0, 7)}</span>
-                  <span>{commit.author}</span>
-                  <span>{formatDate(commit.timestamp)}</span>
+                {branchRow && (
+                  <BranchGraphRowView
+                    isCurrent={isCurrent}
+                    maxLaneCount={branchGraphModel.maxLane + 1}
+                    row={branchRow}
+                  />
+                )}
+                <div className="min-w-0 flex-1">
+                  <div className="mb-1 flex items-center gap-2 text-xs font-medium">
+                    <span>{truncateMessage(getMessageTitle(commit.message), 48)}</span>
+                    {commit.parents.length > 1 && (
+                      <span className="rounded border border-border px-1.5 py-0.5 text-[10px] font-normal text-[var(--vscode-descriptionForeground,#999)]">
+                        Merge
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 text-[11px] text-[var(--vscode-descriptionForeground,#999)]">
+                    <span className="font-mono">{commit.sha.slice(0, 7)}</span>
+                    <span>{commit.author}</span>
+                    <span>{formatDate(commit.timestamp)}</span>
+                  </div>
                 </div>
               </button>
             );
