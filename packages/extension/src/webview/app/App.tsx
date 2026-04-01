@@ -57,7 +57,7 @@ export default function App(): React.ReactElement {
           edgeDecorations={edgeDecorations}
           pluginHost={pluginHost}
         />
-        <div className="absolute inset-y-0 left-0 z-10 pointer-events-none">
+        <div className="absolute inset-y-2 left-2 z-10 pointer-events-none">
           <div className="h-full pointer-events-auto">
             <Toolbar />
           </div>
