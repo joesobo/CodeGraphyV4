@@ -68,7 +68,7 @@ describe('TimelineApp', () => {
     vi.restoreAllMocks();
   });
 
-  it('renders the timeline in a content-height shell instead of a full-screen wrapper', () => {
+  it('renders the timeline in a full-height shell so internal sections can scroll', () => {
     graphStore.setState({
       graphData: { nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }], edges: [] },
       timelineActive: true,
@@ -79,8 +79,10 @@ describe('TimelineApp', () => {
     expect(screen.getByTestId('timeline-content')).toBeInTheDocument();
     const shell = container.firstElementChild as HTMLElement | null;
     expect(shell).toBeTruthy();
-    expect(shell?.className).toContain('inline-flex');
+    expect(shell?.className).toContain('flex');
     expect(shell?.className).toContain('w-full');
+    expect(shell?.className).toContain('h-full');
+    expect(shell?.className).toContain('min-h-0');
     expect(shell?.className).toContain('overflow-hidden');
     expect(shell?.className).not.toContain('h-screen');
   });

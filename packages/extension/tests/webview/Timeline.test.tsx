@@ -139,6 +139,24 @@ describe('Timeline', () => {
     expect(screen.getByText('Now')).toBeInTheDocument();
   });
 
+  it('allows collapsing the current commit and commit list sections', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[1].sha,
+      graphData: MOCK_GRAPH_DATA,
+    });
+    render(<Timeline />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Current Commit' }));
+    expect(
+      within(screen.getByTestId('timeline-summary')).queryByText('Add feature X'),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Commits' }));
+    expect(screen.queryByTestId('timeline-commit-list-scroll')).not.toBeInTheDocument();
+  });
+
   it('requests a safe timeline reset when Reset is clicked', () => {
     resetStore({
       timelineActive: true,
