@@ -166,6 +166,22 @@ describe('timeline/viewState', () => {
         isAtEnd: false,
       });
     });
+
+    it('limits the number of date ticks when a smaller max is provided', () => {
+      expect(
+        buildTimelineViewState({
+          currentCommitSha: 'bbb',
+          playbackTime: null,
+          timelineCommits,
+          maxDateTicks: 3,
+        }),
+      ).toEqual({
+        currentIndex: 1,
+        dateTicks: [20, 40, 60],
+        indicatorPosition: 50,
+        isAtEnd: false,
+      });
+    });
   });
 
   describe('getTimelineViewState', () => {

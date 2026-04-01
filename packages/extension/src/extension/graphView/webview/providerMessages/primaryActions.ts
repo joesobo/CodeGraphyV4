@@ -28,6 +28,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'setDepthLimit'
   | 'indexRepository'
   | 'jumpToCommit'
+  | 'resetTimeline'
   | 'sendPhysicsSettings'
   | 'updatePhysicsSetting'
   | 'resetPhysicsSettings'
@@ -69,6 +70,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     setDepthLimit: depthLimit => source.setDepthLimit(depthLimit),
     indexRepository: () => source._indexRepository(),
     jumpToCommit: sha => source._jumpToCommit(sha),
+    resetTimeline: () => source._resetTimeline(),
     sendPhysicsSettings: () => source._sendPhysicsSettings(),
     updatePhysicsSetting: (key, value) => source._updatePhysicsSetting(key, value),
     resetPhysicsSettings: () => source._resetPhysicsSettings(),

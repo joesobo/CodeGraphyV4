@@ -125,10 +125,6 @@ function renderTrack(overrides: Partial<React.ComponentProps<typeof Track>> = {}
     <Track
       dateTicks={[firstTickTimestamp, secondTickTimestamp]}
       indicatorPosition={50}
-      isAtEnd={false}
-      isPlaying={false}
-      onJumpToEnd={vi.fn()}
-      onPlayPause={vi.fn()}
       onTrackMouseDown={vi.fn()}
       setTrackElement={vi.fn()}
       timelineCommits={commits}
@@ -138,10 +134,9 @@ function renderTrack(overrides: Partial<React.ComponentProps<typeof Track>> = {}
 }
 
 describe('timeline/Track', () => {
-  it('renders the controls, markers, and axis labels', () => {
+  it('renders the track, markers, and axis labels', () => {
     renderTrack();
 
-    expect(screen.getByTitle('Play')).toBeInTheDocument();
     expect(screen.getByTestId('timeline-track')).toBeInTheDocument();
     expect(screen.getAllByTestId('timeline-commit-marker')).toHaveLength(3);
     expect(screen.getByText('Now')).toBeInTheDocument();
@@ -159,11 +154,9 @@ describe('timeline/Track', () => {
     const track = screen.getByTestId('timeline-track');
     const markers = screen.getAllByTestId('timeline-commit-marker');
     const firstMarkerFill = markers[0].firstElementChild as HTMLElement;
-    const axisWrapper = screen.getByText('Now').parentElement?.parentElement as HTMLElement;
-
     expect(track).toHaveStyle({
       border: '1px solid var(--vscode-panel-border, #333)',
-      height: '24px',
+      height: '20px',
     });
     expect(markers[0]).toHaveStyle({ left: '0%', width: '2px', zIndex: '1' });
     expect(markers[1]).toHaveStyle({ left: '50%' });
@@ -173,27 +166,18 @@ describe('timeline/Track', () => {
       opacity: '0.4',
     });
     expect(screen.getByTestId('timeline-indicator')).toHaveStyle({ left: '37%' });
-    expect(axisWrapper).toHaveStyle({ marginLeft: '22px' });
   });
 
-  it('delegates playback, current, and track interactions', () => {
-    const onPlayPause = vi.fn();
-    const onJumpToEnd = vi.fn();
+  it('delegates track scrubbing interactions', () => {
     const onTrackMouseDown = vi.fn();
 
     renderTrack({
       indicatorPosition: 25,
-      onJumpToEnd,
-      onPlayPause,
       onTrackMouseDown,
     });
 
-    fireEvent.click(screen.getByTitle('Play'));
-    fireEvent.click(screen.getByTestId('timeline-current'));
     fireEvent.mouseDown(screen.getByTestId('timeline-track'), { clientX: 120 });
 
-    expect(onPlayPause).toHaveBeenCalledTimes(1);
-    expect(onJumpToEnd).toHaveBeenCalledTimes(1);
     expect(onTrackMouseDown).toHaveBeenCalledTimes(1);
   });
 
@@ -262,7 +246,7 @@ describe('timeline/Track', () => {
 
     expect(firstAxisLabel).toHaveStyle({ left: '25%', top: '2px' });
     expect(secondAxisLabel).toHaveStyle({ left: '75%', top: '2px' });
-    expect(nowLabel).toHaveStyle({ right: '56px', top: '2px' });
+    expect(nowLabel).toHaveStyle({ right: '0px', top: '2px' });
   });
 
   it('renders the formatted author and date line in the tooltip', () => {
@@ -279,12 +263,5 @@ describe('timeline/Track', () => {
         year: 'numeric',
       }).format(new Date(startTimestamp * 1000)),
     );
-  });
-
-  it('disables the current button when the latest commit is already selected', () => {
-    renderTrack({ indicatorPosition: 100, isAtEnd: true, isPlaying: true });
-
-    expect(screen.getByTestId('timeline-current')).toBeDisabled();
-    expect(screen.getByTitle('Pause')).toBeInTheDocument();
   });
 });

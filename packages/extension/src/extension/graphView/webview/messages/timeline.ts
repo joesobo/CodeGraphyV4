@@ -3,6 +3,7 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 export interface GraphViewTimelineHandlers {
   indexRepository(): Promise<void>;
   jumpToCommit(sha: string): Promise<void>;
+  resetTimeline(): Promise<void>;
   previewFileAtCommit(sha: string, filePath: string): Promise<void>;
 }
 
@@ -17,6 +18,10 @@ export async function applyTimelineMessage(
 
     case 'JUMP_TO_COMMIT':
       await handlers.jumpToCommit(message.payload.sha);
+      return true;
+
+    case 'RESET_TIMELINE':
+      await handlers.resetTimeline();
       return true;
 
     case 'PREVIEW_FILE_AT_COMMIT':

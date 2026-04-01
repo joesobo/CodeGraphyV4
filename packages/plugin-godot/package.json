@@ -36,7 +36,8 @@
   "activationEvents": [
     "onStartupFinished",
     "onCommand:codegraphy.open",
-    "onView:codegraphy.graphView"
+    "onView:codegraphy.graphView",
+    "onView:codegraphy.timelineView"
   ],
   "extensionDependencies": [
     "codegraphy.codegraphy"

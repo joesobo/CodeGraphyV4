@@ -24,20 +24,20 @@ export function ToolbarActions(): React.ReactElement {
   const setActivePanel = useGraphStore(s => s.setActivePanel);
 
   return (
-    <div className="flex items-center gap-1.5">
+    <div className="flex flex-col items-center gap-1.5">
       <Tooltip>
         <TooltipTrigger asChild>
           <Button
             variant="outline"
             size="icon"
-            className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+            className="h-7 w-7 bg-transparent"
             onClick={() => postMessage({ type: 'REFRESH_GRAPH' })}
             title="Refresh Graph"
           >
             <MdiIcon path={mdiAutorenew} size={16} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">Refresh Graph</TooltipContent>
+        <TooltipContent side="right">Refresh Graph</TooltipContent>
       </Tooltip>
 
       <DropdownMenu>
@@ -47,16 +47,16 @@ export function ToolbarActions(): React.ReactElement {
               <Button
                 variant="outline"
                 size="icon"
-                className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+                className="h-7 w-7 bg-transparent"
                 title="Export"
               >
                 <MdiIcon path={mdiExport} size={16} />
               </Button>
             </DropdownMenuTrigger>
           </TooltipTrigger>
-          <TooltipContent side="bottom">Export</TooltipContent>
+          <TooltipContent side="right">Export</TooltipContent>
         </Tooltip>
-        <DropdownMenuContent align="end" side="top">
+        <DropdownMenuContent align="start" side="right">
           <DropdownMenuLabel>Images</DropdownMenuLabel>
           <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_PNG' }, '*')}>
             Export as PNG
@@ -83,14 +83,14 @@ export function ToolbarActions(): React.ReactElement {
           <Button
             variant="outline"
             size="icon"
-            className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+            className="h-7 w-7 bg-transparent"
             onClick={() => setActivePanel('plugins')}
             title="Plugins"
           >
             <MdiIcon path={mdiPuzzleOutline} size={16} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">Plugins</TooltipContent>
+        <TooltipContent side="right">Plugins</TooltipContent>
       </Tooltip>
 
       <Tooltip>
@@ -98,14 +98,14 @@ export function ToolbarActions(): React.ReactElement {
           <Button
             variant="outline"
             size="icon"
-            className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+            className="h-7 w-7 bg-transparent"
             onClick={() => setActivePanel('settings')}
             title="Settings"
           >
             <MdiIcon path={mdiCogOutline} size={16} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom">Settings</TooltipContent>
+        <TooltipContent side="right">Settings</TooltipContent>
       </Tooltip>
     </div>
   );

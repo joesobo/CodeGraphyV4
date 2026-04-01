@@ -51,6 +51,7 @@ describe('graph view provider listener primary actions', () => {
     await actions.setDepthLimit(4);
     await actions.indexRepository();
     await actions.jumpToCommit('sha-1');
+    await actions.resetTimeline();
     actions.sendPhysicsSettings();
     await actions.updatePhysicsSetting('damping', 300);
     await actions.resetPhysicsSettings();
@@ -62,6 +63,7 @@ describe('graph view provider listener primary actions', () => {
     expect(source.setDepthLimit).toHaveBeenCalledWith(4);
     expect(source._indexRepository).toHaveBeenCalledOnce();
     expect(source._jumpToCommit).toHaveBeenCalledWith('sha-1');
+    expect(source._resetTimeline).toHaveBeenCalledOnce();
     expect(source._sendPhysicsSettings).toHaveBeenCalledOnce();
     expect(source._updatePhysicsSetting).toHaveBeenCalledWith('damping', 300);
     expect(source._resetPhysicsSettings).toHaveBeenCalledOnce();
@@ -157,6 +159,7 @@ function createSource() {
     setDepthLimit: vi.fn(() => Promise.resolve()),
     _indexRepository: vi.fn(() => Promise.resolve()),
     _jumpToCommit: vi.fn(() => Promise.resolve()),
+    _resetTimeline: vi.fn(() => Promise.resolve()),
     _sendPhysicsSettings: vi.fn(),
     _updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     _resetPhysicsSettings: vi.fn(() => Promise.resolve()),

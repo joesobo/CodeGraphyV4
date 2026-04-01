@@ -21,6 +21,7 @@ describe('source/fileTimelineDelegates', () => {
     await delegates._addToExclude(['dist/**']);
     await delegates._indexRepository();
     await delegates._jumpToCommit('abc123');
+    await delegates._resetTimeline();
     await delegates._openSelectedNode('src/app.ts');
     await delegates._activateNode('src/app.ts');
     await (
@@ -45,6 +46,7 @@ describe('source/fileTimelineDelegates', () => {
     expect(owner._fileVisitMethods._addToExclude).toHaveBeenCalledWith(['dist/**']);
     expect(owner._timelineMethods._indexRepository).toHaveBeenCalledTimes(1);
     expect(owner._timelineMethods._jumpToCommit).toHaveBeenCalledWith('abc123');
+    expect(owner._timelineMethods._resetTimeline).toHaveBeenCalledTimes(1);
     expect(owner._timelineMethods._openSelectedNode).toHaveBeenCalledWith('src/app.ts');
     expect(owner._timelineMethods._activateNode).toHaveBeenCalledWith('src/app.ts');
     expect(owner._timelineMethods._previewFileAtCommit).toHaveBeenCalledWith(

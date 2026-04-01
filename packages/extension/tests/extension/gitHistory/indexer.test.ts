@@ -144,6 +144,39 @@ describe('gitHistory/indexer', () => {
     expect(dependencies.writeCachedGraphData).toHaveBeenNthCalledWith(3, 'sha3', graphC);
   });
 
+  it('trims leading commits that never produce graph nodes from the cached timeline list', async () => {
+    const emptyGraph: IGraphData = { nodes: [], edges: [] };
+    const graphB = createGraph('b');
+    const graphC = createGraph('c');
+    const commits = [
+      createCommit('sha0'),
+      createCommit('sha1', ['sha0']),
+      createCommit('sha2', ['sha1']),
+    ];
+    const dependencies = {
+      analyzeDiffCommit: vi.fn()
+        .mockResolvedValueOnce(graphB)
+        .mockResolvedValueOnce(graphC),
+      analyzeFullCommit: vi.fn(async () => emptyGraph),
+      getCommitList: vi.fn(async () => commits),
+      persistCachedCommitState: vi.fn(),
+      writeCachedGraphData: vi.fn(),
+    };
+
+    await expect(
+      indexGitHistory({
+        dependencies,
+        onProgress: vi.fn(),
+        signal: new AbortController().signal,
+      }),
+    ).resolves.toEqual(commits.slice(1));
+
+    expect(dependencies.writeCachedGraphData).toHaveBeenNthCalledWith(1, 'sha0', emptyGraph);
+    expect(dependencies.writeCachedGraphData).toHaveBeenNthCalledWith(2, 'sha1', graphB);
+    expect(dependencies.writeCachedGraphData).toHaveBeenNthCalledWith(3, 'sha2', graphC);
+    expect(dependencies.persistCachedCommitState).toHaveBeenCalledWith(commits.slice(1));
+  });
+
   it('throws before first-commit analysis when the signal is already aborted', async () => {
     const controller = new AbortController();
     controller.abort();

@@ -75,16 +75,16 @@ describe('graphView/provider/webview/host default dependencies', () => {
     mocks.onGraphViewWebviewMessage.mockReturnValue({ dispose: vi.fn() });
   });
 
-  it('uses the default sidebar delegates for html, commands, listener wiring, analysis, and logging', async () => {
-    const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  it('uses the default sidebar delegates for html, commands, and listener wiring', async () => {
     const source = {
       _extensionUri: { fsPath: '/test/extension' },
       _view: undefined,
+      _timelineView: undefined,
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [{ fsPath: '/test/root' }]),
     };
-    const webviewView = { webview: {}, visible: true };
+    const webviewView = { viewType: 'codegraphy.graphView', webview: {}, visible: true };
     const nextWebview = { kind: 'next-webview' };
     const methods = createGraphViewProviderWebviewMethods(source as never);
 
@@ -94,8 +94,6 @@ describe('graphView/provider/webview/host default dependencies', () => {
       getHtml(webview: unknown): string;
       setWebviewMessageListener(webview: unknown): void;
       executeCommand(command: string, key: string, value: boolean): Promise<unknown>;
-      analyzeAndSendData(): Promise<void>;
-      log(message: string): void;
     };
 
     expect(options.getHtml(nextWebview)).toBe('<default html />');
@@ -103,27 +101,27 @@ describe('graphView/provider/webview/host default dependencies', () => {
     await expect(options.executeCommand('setContext', 'codegraphy.graphViewVisible', true)).resolves.toBe(
       'executed',
     );
-    await options.analyzeAndSendData();
-    options.log('sidebar ready');
 
     expect(mocks.createGraphViewNonce).toHaveBeenCalledOnce();
-    expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview, 'nonce-123');
+    expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(
+      source._extensionUri,
+      nextWebview,
+      'nonce-123',
+      'graph',
+    );
     expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(nextWebview, source);
     expect(mocks.executeCommand).toHaveBeenCalledWith(
       'setContext',
       'codegraphy.graphViewVisible',
       true,
     );
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(consoleLog).toHaveBeenCalledWith('sidebar ready');
-
-    consoleLog.mockRestore();
   });
 
   it('uses the default editor-opening delegates for panels, view type, html, and listener wiring', () => {
     const source = {
       _extensionUri: { fsPath: '/test/extension' },
       _view: undefined,
+      _timelineView: undefined,
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [{ fsPath: '/test/root' }]),
@@ -154,6 +152,11 @@ describe('graphView/provider/webview/host default dependencies', () => {
     );
     expect(mocks.setGraphViewProviderMessageListener).toHaveBeenCalledWith(nextWebview, source);
     expect(mocks.createGraphViewNonce).toHaveBeenCalledOnce();
-    expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview, 'nonce-123');
+    expect(mocks.createGraphViewHtml).toHaveBeenCalledWith(
+      source._extensionUri,
+      nextWebview,
+      'nonce-123',
+      'graph',
+    );
   });
 });

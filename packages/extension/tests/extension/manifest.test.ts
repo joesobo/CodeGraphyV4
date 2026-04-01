@@ -19,7 +19,9 @@ function readExtensionManifest() {
       views?: {
         codegraphy?: Array<{
           id?: string;
+          name?: string;
           icon?: string;
+          visibility?: string;
         }>;
       };
     };
@@ -52,5 +54,14 @@ describe('extension manifest', () => {
     expect(view).toBeDefined();
     expect(view?.icon).toBe('assets/icon.svg');
     expect(existsSync(resolve(repoRoot, String(view?.icon)))).toBe(true);
+  });
+
+  it('declares a dedicated timeline view in the CodeGraphy container', () => {
+    const { manifest } = readExtensionManifest();
+    const view = manifest.contributes?.views?.codegraphy?.find(entry => entry.id === 'codegraphy.timelineView');
+
+    expect(view).toBeDefined();
+    expect(view?.name).toBe('Timeline');
+    expect(view?.visibility).toBe('collapsed');
   });
 });

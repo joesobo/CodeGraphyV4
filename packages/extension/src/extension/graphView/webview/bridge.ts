@@ -1,12 +1,14 @@
 import type * as vscode from 'vscode';
 
 export function sendGraphViewWebviewMessage(
-  view: vscode.WebviewView | undefined,
+  views: readonly (vscode.WebviewView | undefined)[],
   panels: readonly vscode.WebviewPanel[],
   message: unknown,
 ): void {
-  if (view) {
-    void view.webview.postMessage(message);
+  for (const view of views) {
+    if (view) {
+      void view.webview.postMessage(message);
+    }
   }
 
   for (const panel of panels) {

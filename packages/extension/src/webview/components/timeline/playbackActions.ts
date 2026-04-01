@@ -45,6 +45,34 @@ export interface JumpToEndActionOptions {
   timelineCommits: ICommitInfo[];
 }
 
+export interface JumpToCommitActionOptions extends JumpToEndActionOptions {
+  targetIndex: number;
+}
+
+export function runJumpToCommitAction({
+  isPlaying,
+  lastSentCommitIndexRef,
+  setIsPlaying,
+  setPlaybackTime,
+  targetIndex,
+  timelineCommits,
+}: JumpToCommitActionOptions): void {
+  if (timelineCommits.length === 0) {
+    return;
+  }
+
+  const clampedIndex = Math.max(0, Math.min(targetIndex, timelineCommits.length - 1));
+
+  if (isPlaying) {
+    setIsPlaying(false);
+  }
+
+  const targetCommit = timelineCommits[clampedIndex];
+  setPlaybackTime(targetCommit.timestamp);
+  lastSentCommitIndexRef.current = clampedIndex;
+  postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: targetCommit.sha } });
+}
+
 export function runJumpToEndAction({
   isPlaying,
   lastSentCommitIndexRef,
@@ -52,18 +80,14 @@ export function runJumpToEndAction({
   setPlaybackTime,
   timelineCommits,
 }: JumpToEndActionOptions): void {
-  if (timelineCommits.length === 0) {
-    return;
-  }
-
-  if (isPlaying) {
-    setIsPlaying(false);
-  }
-
-  const lastCommit = timelineCommits[timelineCommits.length - 1];
-  setPlaybackTime(lastCommit.timestamp);
-  lastSentCommitIndexRef.current = timelineCommits.length - 1;
-  postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: lastCommit.sha } });
+  runJumpToCommitAction({
+    isPlaying,
+    lastSentCommitIndexRef,
+    setIsPlaying,
+    setPlaybackTime,
+    targetIndex: timelineCommits.length - 1,
+    timelineCommits,
+  });
 }
 
 export const handleTimelinePlayPause = runPlayPauseAction;

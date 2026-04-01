@@ -39,6 +39,53 @@ const commits: ICommitInfo[] = [
   },
 ];
 
+interface PlaybackScenarioOptions {
+  lastFrameTime?: number;
+  lastSentCommitIndex?: number;
+  maxTimestamp?: number;
+  playbackSpeed?: number;
+  playbackTime?: number | null;
+  rafId?: number | null;
+  timelineCommits?: ICommitInfo[];
+}
+
+function createPlaybackScenario({
+  lastFrameTime = 1000,
+  lastSentCommitIndex = -1,
+  maxTimestamp = 300000,
+  playbackSpeed = 1,
+  playbackTime: initialPlaybackTime = 1000,
+  rafId = null,
+  timelineCommits = commits,
+}: PlaybackScenarioOptions = {}) {
+  let playbackTime = initialPlaybackTime;
+  const refs = {
+    lastFrameTimeRef: createRef(lastFrameTime),
+    lastSentCommitIndexRef: createRef(lastSentCommitIndex),
+    playbackSpeedRef: createRef(playbackSpeed),
+    rafRef: createRef<number | null>(rafId),
+  };
+  const setIsPlaying = vi.fn();
+  const setPlaybackTime = vi.fn((update: number | null | ((value: number | null) => number | null)) => {
+    playbackTime = typeof update === 'function' ? update(playbackTime) : update;
+  });
+  const tick = createTimelinePlaybackTick({
+    maxTimestamp,
+    refs,
+    setIsPlaying,
+    setPlaybackTime,
+    timelineCommits,
+  });
+
+  return {
+    getPlaybackTime: () => playbackTime,
+    refs,
+    setIsPlaying,
+    setPlaybackTime,
+    tick,
+  };
+}
+
 describe('timeline/playbackTick', () => {
   let requestAnimationFrameMock: ReturnType<typeof vi.fn>;
 
@@ -53,123 +100,60 @@ describe('timeline/playbackTick', () => {
   });
 
   it('keeps playback time unchanged when no current playback position exists', () => {
-    let playbackTime: number | null = null;
-    const refs = {
-      lastFrameTimeRef: createRef(100),
-      lastSentCommitIndexRef: createRef(-1),
-      playbackSpeedRef: createRef(1),
-      rafRef: createRef<number | null>(null),
-    };
-    const setIsPlaying = vi.fn();
-    const setPlaybackTime = vi.fn((update: number | null | ((value: number | null) => number | null)) => {
-      playbackTime = typeof update === 'function' ? update(playbackTime) : update;
+    const scenario = createPlaybackScenario({
+      lastFrameTime: 100,
+      playbackTime: null,
     });
 
-    const tick = createTimelinePlaybackTick({
-      maxTimestamp: 300000,
-      refs,
-      setIsPlaying,
-      setPlaybackTime,
-      timelineCommits: commits,
-    });
+    scenario.tick(200);
 
-    tick(200);
-
-    expect(playbackTime).toBeNull();
-    expect(refs.lastFrameTimeRef.current).toBe(200);
+    expect(scenario.getPlaybackTime()).toBeNull();
+    expect(scenario.refs.lastFrameTimeRef.current).toBe(200);
     expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
-    expect(setIsPlaying).not.toHaveBeenCalled();
+    expect(scenario.setIsPlaying).not.toHaveBeenCalled();
     expect(requestAnimationFrameMock).toHaveBeenCalledTimes(1);
-    expect(refs.rafRef.current).toBe(91);
+    expect(scenario.refs.rafRef.current).toBe(91);
   });
 
   it('treats the first animation frame as zero elapsed time', () => {
-    let playbackTime: number | null = 1000;
-    const refs = {
-      lastFrameTimeRef: createRef(0),
-      lastSentCommitIndexRef: createRef(0),
-      playbackSpeedRef: createRef(4),
-      rafRef: createRef<number | null>(null),
-    };
-    const setIsPlaying = vi.fn();
-    const setPlaybackTime = vi.fn((update: number | null | ((value: number | null) => number | null)) => {
-      playbackTime = typeof update === 'function' ? update(playbackTime) : update;
+    const scenario = createPlaybackScenario({
+      lastFrameTime: 0,
+      lastSentCommitIndex: 0,
+      playbackSpeed: 4,
     });
 
-    const tick = createTimelinePlaybackTick({
-      maxTimestamp: 300000,
-      refs,
-      setIsPlaying,
-      setPlaybackTime,
-      timelineCommits: commits,
-    });
+    scenario.tick(5000);
 
-    tick(5000);
-
-    expect(playbackTime).toBe(1000);
+    expect(scenario.getPlaybackTime()).toBe(1000);
     expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
-    expect(setIsPlaying).not.toHaveBeenCalled();
+    expect(scenario.setIsPlaying).not.toHaveBeenCalled();
   });
 
   it('advances playback time and jumps to newly crossed commits', () => {
-    let playbackTime: number | null = 1000;
-    const refs = {
-      lastFrameTimeRef: createRef(1000),
-      lastSentCommitIndexRef: createRef(-1),
-      playbackSpeedRef: createRef(1),
-      rafRef: createRef<number | null>(null),
-    };
-    const setIsPlaying = vi.fn();
-    const setPlaybackTime = vi.fn((update: number | null | ((value: number | null) => number | null)) => {
-      playbackTime = typeof update === 'function' ? update(playbackTime) : update;
-    });
+    const scenario = createPlaybackScenario();
 
-    const tick = createTimelinePlaybackTick({
-      maxTimestamp: 300000,
-      refs,
-      setIsPlaying,
-      setPlaybackTime,
-      timelineCommits: commits,
-    });
+    scenario.tick(2000);
 
-    tick(2000);
-
-    expect(playbackTime).toBe(173800);
-    expect(refs.lastSentCommitIndexRef.current).toBe(1);
+    expect(scenario.getPlaybackTime()).toBe(173800);
+    expect(scenario.refs.lastSentCommitIndexRef.current).toBe(1);
     expectJumpToCommit(commits[1].sha);
-    expect(setIsPlaying).not.toHaveBeenCalled();
+    expect(scenario.setIsPlaying).not.toHaveBeenCalled();
   });
 
   it('uses playback speed as a multiplier when advancing playback time', () => {
-    let playbackTime: number | null = 1000;
-    const refs = {
-      lastFrameTimeRef: createRef(1000),
-      lastSentCommitIndexRef: createRef(0),
-      playbackSpeedRef: createRef(2),
-      rafRef: createRef<number | null>(null),
-    };
-    const setIsPlaying = vi.fn();
-    const setPlaybackTime = vi.fn((update: number | null | ((value: number | null) => number | null)) => {
-      playbackTime = typeof update === 'function' ? update(playbackTime) : update;
+    const scenario = createPlaybackScenario({
+      lastSentCommitIndex: 0,
+      playbackSpeed: 2,
     });
 
-    const tick = createTimelinePlaybackTick({
-      maxTimestamp: 300000,
-      refs,
-      setIsPlaying,
-      setPlaybackTime,
-      timelineCommits: commits,
-    });
+    scenario.tick(1500);
 
-    tick(1500);
-
-    expect(playbackTime).toBe(173800);
+    expect(scenario.getPlaybackTime()).toBe(173800);
     expectJumpToCommit(commits[1].sha);
-    expect(setIsPlaying).not.toHaveBeenCalled();
+    expect(scenario.setIsPlaying).not.toHaveBeenCalled();
   });
 
   it('emits a jump when playback lands on the first commit', () => {
-    let playbackTime: number | null = 1000;
     const edgeCommits: ICommitInfo[] = [
       {
         author: 'Alice',
@@ -186,91 +170,46 @@ describe('timeline/playbackTick', () => {
         timestamp: 5000,
       },
     ];
-    const refs = {
-      lastFrameTimeRef: createRef(1000),
-      lastSentCommitIndexRef: createRef(-1),
-      playbackSpeedRef: createRef(1),
-      rafRef: createRef<number | null>(null),
-    };
-    const setIsPlaying = vi.fn();
-    const setPlaybackTime = vi.fn((update: number | null | ((value: number | null) => number | null)) => {
-      playbackTime = typeof update === 'function' ? update(playbackTime) : update;
-    });
-
-    const tick = createTimelinePlaybackTick({
+    const scenario = createPlaybackScenario({
       maxTimestamp: 10000,
-      refs,
-      setIsPlaying,
-      setPlaybackTime,
       timelineCommits: edgeCommits,
     });
 
-    tick(1000);
+    scenario.tick(1000);
 
-    expect(playbackTime).toBe(1000);
-    expect(refs.lastSentCommitIndexRef.current).toBe(0);
+    expect(scenario.getPlaybackTime()).toBe(1000);
+    expect(scenario.refs.lastSentCommitIndexRef.current).toBe(0);
     expectJumpToCommit(edgeCommits[0].sha);
   });
 
   it('does not emit a jump when playback remains before the first commit', () => {
-    let playbackTime: number | null = 100;
-    const refs = {
-      lastFrameTimeRef: createRef(1000),
-      lastSentCommitIndexRef: createRef(-2),
-      playbackSpeedRef: createRef(1),
-      rafRef: createRef<number | null>(null),
-    };
-    const setIsPlaying = vi.fn();
-    const setPlaybackTime = vi.fn((update: number | null | ((value: number | null) => number | null)) => {
-      playbackTime = typeof update === 'function' ? update(playbackTime) : update;
+    const scenario = createPlaybackScenario({
+      lastSentCommitIndex: -2,
+      playbackTime: 100,
     });
 
-    const tick = createTimelinePlaybackTick({
-      maxTimestamp: 300000,
-      refs,
-      setIsPlaying,
-      setPlaybackTime,
-      timelineCommits: commits,
-    });
+    scenario.tick(1001);
 
-    tick(1001);
-
-    expect(playbackTime).toBeCloseTo(272.8, 5);
-    expect(refs.lastSentCommitIndexRef.current).toBe(-2);
+    expect(scenario.getPlaybackTime()).toBeCloseTo(272.8, 5);
+    expect(scenario.refs.lastSentCommitIndexRef.current).toBe(-2);
     expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
-    expect(setIsPlaying).not.toHaveBeenCalled();
+    expect(scenario.setIsPlaying).not.toHaveBeenCalled();
   });
 
   it('clamps playback to the maximum timestamp and stops playback at the end', () => {
-    let playbackTime: number | null = 250000;
-    const refs = {
-      lastFrameTimeRef: createRef(1000),
-      lastSentCommitIndexRef: createRef(2),
-      playbackSpeedRef: createRef(1),
-      rafRef: createRef<number | null>(null),
-    };
-    const setIsPlaying = vi.fn();
-    const setPlaybackTime = vi.fn((update: number | null | ((value: number | null) => number | null)) => {
-      playbackTime = typeof update === 'function' ? update(playbackTime) : update;
+    const scenario = createPlaybackScenario({
+      lastSentCommitIndex: 2,
+      playbackTime: 250000,
     });
 
-    const tick = createTimelinePlaybackTick({
-      maxTimestamp: 300000,
-      refs,
-      setIsPlaying,
-      setPlaybackTime,
-      timelineCommits: commits,
-    });
+    scenario.tick(2000);
 
-    tick(2000);
-
-    expect(playbackTime).toBe(300000);
-    expect(setIsPlaying).toHaveBeenCalledWith(false);
+    expect(scenario.getPlaybackTime()).toBe(300000);
+    expect(scenario.setIsPlaying).toHaveBeenCalledWith(false);
     expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
   });
 
   it('stops playback when it lands exactly on the maximum timestamp', () => {
-    let playbackTime: number | null = 1000;
     const edgeCommits: ICommitInfo[] = [
       {
         author: 'Alice',
@@ -287,29 +226,16 @@ describe('timeline/playbackTick', () => {
         timestamp: 173800,
       },
     ];
-    const refs = {
-      lastFrameTimeRef: createRef(1000),
-      lastSentCommitIndexRef: createRef(1),
-      playbackSpeedRef: createRef(1),
-      rafRef: createRef<number | null>(null),
-    };
-    const setIsPlaying = vi.fn();
-    const setPlaybackTime = vi.fn((update: number | null | ((value: number | null) => number | null)) => {
-      playbackTime = typeof update === 'function' ? update(playbackTime) : update;
-    });
-
-    const tick = createTimelinePlaybackTick({
+    const scenario = createPlaybackScenario({
+      lastSentCommitIndex: 1,
       maxTimestamp: 173800,
-      refs,
-      setIsPlaying,
-      setPlaybackTime,
       timelineCommits: edgeCommits,
     });
 
-    tick(2000);
+    scenario.tick(2000);
 
-    expect(playbackTime).toBe(173800);
-    expect(setIsPlaying).toHaveBeenCalledWith(false);
+    expect(scenario.getPlaybackTime()).toBe(173800);
+    expect(scenario.setIsPlaying).toHaveBeenCalledWith(false);
     expect(findMessage('JUMP_TO_COMMIT')).toBeUndefined();
   });
 });

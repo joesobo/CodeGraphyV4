@@ -148,6 +148,7 @@ function createSource(
     setDepthLimit: vi.fn(() => Promise.resolve()),
     _indexRepository: vi.fn(() => Promise.resolve()),
     _jumpToCommit: vi.fn(() => Promise.resolve()),
+    _resetTimeline: vi.fn(() => Promise.resolve()),
     _sendPhysicsSettings: vi.fn(),
     _updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     _resetPhysicsSettings: vi.fn(() => Promise.resolve()),

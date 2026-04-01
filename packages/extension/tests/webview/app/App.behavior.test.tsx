@@ -557,7 +557,24 @@ describe('App behavior', () => {
     expect(screen.getByTestId('toolbar')).toBeInTheDocument();
   });
 
-  it('shows timeline component regardless of activePanel', () => {
+  it('keeps even top, left, and bottom padding around the toolbar rail', () => {
+    graphStore.setState({
+      graphData: { nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }], edges: [] },
+      activePanel: 'none',
+    });
+
+    render(<App />);
+
+    const toolbarShell = screen.getByTestId('toolbar').parentElement?.parentElement as HTMLElement | null;
+    expect(toolbarShell).toBeTruthy();
+    expect(toolbarShell?.className).toContain('absolute');
+    expect(toolbarShell?.className).toContain('left-2');
+    expect(toolbarShell?.className).toContain('inset-y-2');
+    expect(toolbarShell?.className).not.toContain('left-0');
+    expect(toolbarShell?.className).not.toContain('inset-y-0');
+  });
+
+  it('keeps the toolbar visible while the settings panel is open', () => {
     graphStore.setState({
       graphData: { nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }], edges: [] },
       activePanel: 'settings',
@@ -565,10 +582,11 @@ describe('App behavior', () => {
 
     render(<App />);
 
-    expect(screen.getByTestId('timeline')).toBeInTheDocument();
+    expect(screen.getByTestId('toolbar')).toBeInTheDocument();
+    expect(screen.getByTestId('settings-panel')).toBeInTheDocument();
   });
 
-  it('renders the graph when timeline is active even with empty graph data', () => {
+  it('renders empty state when graph has no nodes even if timelineActive is true', () => {
     graphStore.setState({
       graphData: { nodes: [], edges: [] },
       timelineActive: true,
@@ -576,10 +594,10 @@ describe('App behavior', () => {
 
     render(<App />);
 
-    expect(screen.getByTestId('mock-graph')).toBeInTheDocument();
+    expect(screen.getByText(/No files found/)).toBeInTheDocument();
   });
 
-  it('renders empty state when timeline is inactive and graph has no nodes', () => {
+  it('renders empty state when graph has no nodes', () => {
     graphStore.setState({
       graphData: { nodes: [], edges: [] },
       timelineActive: false,
@@ -638,5 +656,16 @@ describe('App behavior', () => {
     render(<App />);
 
     expect(screen.getByText(/No files found/)).toBeInTheDocument();
+  });
+
+  it('does not render the embedded timeline in the graph shell', () => {
+    graphStore.setState({
+      graphData: { nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }], edges: [] },
+      activePanel: 'none',
+    });
+
+    render(<App />);
+
+    expect(screen.queryByTestId('timeline')).not.toBeInTheDocument();
   });
 });

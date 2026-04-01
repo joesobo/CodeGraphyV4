@@ -50,6 +50,7 @@ export interface GraphViewPrimaryMessageContext {
   updateNodeSizeMode(nodeSizeMode: NodeSizeMode): Promise<void>;
   indexRepository(): Promise<void>;
   jumpToCommit(sha: string): Promise<void>;
+  resetTimeline(): Promise<void>;
   sendPhysicsSettings(): void;
   updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
   resetPhysicsSettings(): Promise<void>;

@@ -5,6 +5,7 @@ import type { ExtensionToWebviewMessage } from '../../../../../src/shared/protoc
 const timelineMethodMocks = vi.hoisted(() => ({
   indexRepository: vi.fn(async () => undefined),
   jumpToCommit: vi.fn(async () => undefined),
+  resetTimeline: vi.fn(async () => undefined),
   sendCachedTimeline: vi.fn(),
   sendPlaybackSpeed: vi.fn(),
   invalidateTimelineCache: vi.fn(async () => undefined),
@@ -15,6 +16,7 @@ const timelineMethodMocks = vi.hoisted(() => ({
 vi.mock('../../../../../src/extension/graphView/timeline/provider/indexing', () => ({
   indexGraphViewProviderRepository: timelineMethodMocks.indexRepository,
   jumpGraphViewProviderToCommit: timelineMethodMocks.jumpToCommit,
+  resetGraphViewProviderTimeline: timelineMethodMocks.resetTimeline,
   sendGraphViewProviderCachedTimeline: timelineMethodMocks.sendCachedTimeline,
 }));
 
@@ -34,6 +36,7 @@ describe('graphView/provider/timeline methods', () => {
   beforeEach(() => {
     timelineMethodMocks.indexRepository.mockReset();
     timelineMethodMocks.jumpToCommit.mockReset();
+    timelineMethodMocks.resetTimeline.mockReset();
     timelineMethodMocks.sendCachedTimeline.mockReset();
     timelineMethodMocks.sendPlaybackSpeed.mockReset();
     timelineMethodMocks.invalidateTimelineCache.mockReset();
@@ -59,10 +62,12 @@ describe('graphView/provider/timeline methods', () => {
     };
     const indexRepository = vi.fn(async () => undefined);
     const jumpToCommit = vi.fn(async () => undefined);
+    const resetTimeline = vi.fn(async () => undefined);
     const sendCachedTimeline = vi.fn();
     const methods = createGraphViewProviderTimelineMethods(source as never, {
       indexRepository,
       jumpToCommit,
+      resetTimeline,
       openNodeInEditor: vi.fn(async () => undefined),
       previewFileAtCommit: vi.fn(async () => undefined),
       sendCachedTimeline,
@@ -77,10 +82,12 @@ describe('graphView/provider/timeline methods', () => {
 
     await methods._indexRepository();
     await methods._jumpToCommit('abc123');
+    await methods._resetTimeline();
     methods._sendCachedTimeline();
 
     expect(indexRepository).toHaveBeenCalledWith(source);
     expect(jumpToCommit).toHaveBeenCalledWith(source, 'abc123');
+    expect(resetTimeline).toHaveBeenCalledWith(source);
     expect(sendCachedTimeline).toHaveBeenCalledWith(source);
   });
 
@@ -103,6 +110,7 @@ describe('graphView/provider/timeline methods', () => {
     } as never, {
       indexRepository: vi.fn(async () => undefined),
       jumpToCommit: vi.fn(async () => undefined),
+      resetTimeline: vi.fn(async () => undefined),
       openNodeInEditor,
       previewFileAtCommit: vi.fn(async () => undefined),
       sendCachedTimeline: vi.fn(),
@@ -238,6 +246,7 @@ describe('graphView/provider/timeline methods', () => {
     } as never, {
       indexRepository: vi.fn(async () => undefined),
       jumpToCommit: vi.fn(async () => undefined),
+      resetTimeline: vi.fn(async () => undefined),
       openNodeInEditor: vi.fn(async () => undefined),
       previewFileAtCommit,
       sendCachedTimeline: vi.fn(),
@@ -300,6 +309,7 @@ describe('graphView/provider/timeline methods', () => {
     const methods = createGraphViewProviderTimelineMethods(source as never, {
       indexRepository: vi.fn(async () => undefined),
       jumpToCommit: vi.fn(async () => undefined),
+      resetTimeline: vi.fn(async () => undefined),
       openNodeInEditor: vi.fn(async () => undefined),
       previewFileAtCommit: vi.fn(async () => undefined),
       sendCachedTimeline: vi.fn(),

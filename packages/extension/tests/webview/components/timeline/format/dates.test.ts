@@ -3,6 +3,7 @@ import {
   formatAxisLabel,
   formatDate,
   generateDateTicks,
+  getResponsiveAxisTickCount,
 } from '../../../../../src/webview/components/timeline/format/dates';
 
 function formatExpectedDate(
@@ -59,6 +60,20 @@ describe('timeline/dates', () => {
 
     it('supports fractional spacing when the range does not divide evenly', () => {
       expect(generateDateTicks(0, 10, 3)).toEqual([2.5, 5, 7.5]);
+    });
+  });
+
+  describe('getResponsiveAxisTickCount', () => {
+    it('uses fewer ticks in a narrow timeline track', () => {
+      expect(getResponsiveAxisTickCount(220)).toBe(1);
+    });
+
+    it('reserves enough room to keep the trailing tick away from the now label', () => {
+      expect(getResponsiveAxisTickCount(560)).toBe(4);
+    });
+
+    it('caps the tick count at the default maximum on wide tracks', () => {
+      expect(getResponsiveAxisTickCount(900)).toBe(7);
     });
   });
 });

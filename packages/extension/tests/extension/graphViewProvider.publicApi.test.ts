@@ -203,7 +203,7 @@ describe('GraphViewProvider public API', () => {
     expect(result).toBe(disposable);
   });
 
-  it('re-analyzes when a resolved webview becomes visible', () => {
+  it('does not re-analyze when a resolved webview becomes visible again', () => {
     const executeCommandMock = vi.fn(() => Promise.resolve());
     (vscode.commands as Record<string, unknown>).executeCommand = executeCommandMock;
 
@@ -243,10 +243,15 @@ describe('GraphViewProvider public API', () => {
     );
 
     expect(mockView.webview.html).toContain('<div id="root"></div>');
+    expect(mockView.webview.options).toEqual(
+      expect.objectContaining({
+        retainContextWhenHidden: true,
+      }),
+    );
     visibilityHandler?.();
 
     expect(executeCommandMock).toHaveBeenCalledWith('setContext', 'codegraphy.viewVisible', true);
-    expect(analyzeSpy).toHaveBeenCalledTimes(1);
+    expect(analyzeSpy).not.toHaveBeenCalled();
   });
 
   it('does not re-analyze when a resolved webview stays hidden', () => {

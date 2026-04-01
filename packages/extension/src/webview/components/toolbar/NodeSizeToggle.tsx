@@ -28,7 +28,7 @@ export function NodeSizeToggle(): React.ReactElement {
   };
 
   return (
-    <div data-testid="node-size-buttons" className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
+    <div data-testid="node-size-buttons" className="flex flex-col items-center gap-1">
       {NODE_SIZE_MODES.map(({ mode, label, icon }) => (
         <Tooltip key={mode}>
           <TooltipTrigger asChild>
@@ -41,7 +41,7 @@ export function NodeSizeToggle(): React.ReactElement {
               <MdiIcon path={icon} size={16} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">{label}</TooltipContent>
+          <TooltipContent side="right">{label}</TooltipContent>
         </Tooltip>
       ))}
     </div>

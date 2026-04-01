@@ -9,31 +9,53 @@ vi.mock('../../../src/webview/vscodeApi', () => ({
 }));
 
 // Mock dropdown components to render inline (Radix portals don't work in jsdom)
-vi.mock('../../../src/webview/components/ui/menus/dropdown-menu', () => ({
-  DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  DropdownMenuContent: ({ children }: { children: React.ReactNode }) => (
-    <div data-testid="dropdown-content">{children}</div>
-  ),
-  DropdownMenuItem: ({
-    children,
-    onSelect,
-  }: {
-    children: React.ReactNode;
-    onSelect?: () => void;
-  }) => (
-    <button type="button" onClick={onSelect}>
+vi.mock('../../../src/webview/components/ui/menus/dropdown-menu', () => {
+  const DropdownMenuTrigger = React.forwardRef<HTMLDivElement, { children: React.ReactNode }>(
+    ({ children }, ref) => <div ref={ref}>{children}</div>,
+  );
+  DropdownMenuTrigger.displayName = 'DropdownMenuTrigger';
+
+  const DropdownMenuContent = React.forwardRef<HTMLDivElement, { children: React.ReactNode }>(
+    ({ children }, ref) => (
+      <div ref={ref} data-testid="dropdown-content">{children}</div>
+    ),
+  );
+  DropdownMenuContent.displayName = 'DropdownMenuContent';
+
+  const DropdownMenuItem = React.forwardRef<
+    HTMLButtonElement,
+    { children: React.ReactNode; onSelect?: () => void }
+  >(({ children, onSelect }, ref) => (
+    <button ref={ref} type="button" onClick={onSelect}>
       {children}
     </button>
-  ),
-  DropdownMenuSeparator: () => <hr data-testid="dropdown-separator" />,
-  DropdownMenuLabel: ({ children }: { children: React.ReactNode }) => (
-    <span data-testid="dropdown-label">{children}</span>
-  ),
-}));
+  ));
+  DropdownMenuItem.displayName = 'DropdownMenuItem';
+
+  return {
+    DropdownMenu: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator: () => <hr data-testid="dropdown-separator" />,
+    DropdownMenuLabel: ({ children }: { children: React.ReactNode }) => (
+      <span data-testid="dropdown-label">{children}</span>
+    ),
+  };
+});
 
 import { postMessage } from '../../../src/webview/vscodeApi';
 import { ToolbarActions } from '../../../src/webview/components/toolbar/Actions';
+
+const exportCases = [
+  ['Export as PNG', 'REQUEST_EXPORT_PNG'],
+  ['Export as SVG', 'REQUEST_EXPORT_SVG'],
+  ['Export as JPEG', 'REQUEST_EXPORT_JPEG'],
+  ['Export as JSON', 'REQUEST_EXPORT_JSON'],
+  ['Export as Markdown', 'REQUEST_EXPORT_MD'],
+] as const;
+
+const iconButtonTitles = ['Export', 'Refresh Graph', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders() {
   return render(
@@ -41,6 +63,19 @@ function renderWithProviders() {
       <ToolbarActions />
     </TooltipProvider>,
   );
+}
+
+function clickAction(title: string) {
+  fireEvent.click(screen.getByTitle(title));
+}
+
+function clickExportItem(label: string) {
+  const postMessageSpy = vi.spyOn(window, 'postMessage');
+
+  renderWithProviders();
+  fireEvent.click(screen.getByText(label));
+
+  return postMessageSpy;
 }
 
 describe('ToolbarActions', () => {
@@ -62,7 +97,7 @@ describe('ToolbarActions', () => {
 
   it('sends REFRESH_GRAPH message when refresh button is clicked', () => {
     renderWithProviders();
-    fireEvent.click(screen.getByTitle('Refresh Graph'));
+    clickAction('Refresh Graph');
     expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
   });
 
@@ -78,7 +113,7 @@ describe('ToolbarActions', () => {
 
   it('sets active panel to plugins when plugins button is clicked', () => {
     renderWithProviders();
-    fireEvent.click(screen.getByTitle('Plugins'));
+    clickAction('Plugins');
     expect(graphStore.getState().activePanel).toBe('plugins');
   });
 
@@ -89,7 +124,7 @@ describe('ToolbarActions', () => {
 
   it('sets active panel to settings when settings button is clicked', () => {
     renderWithProviders();
-    fireEvent.click(screen.getByTitle('Settings'));
+    clickAction('Settings');
     expect(graphStore.getState().activePanel).toBe('settings');
   });
 
@@ -99,10 +134,11 @@ describe('ToolbarActions', () => {
     expect(svgs.length).toBeGreaterThanOrEqual(4);
   });
 
-  it('applies backdrop-blur styling to buttons', () => {
+  it('keeps action buttons transparent', () => {
     renderWithProviders();
     const refreshButton = screen.getByTitle('Refresh Graph');
-    expect(refreshButton.className).toContain('backdrop-blur');
+    expect(refreshButton.className).toContain('bg-transparent');
+    expect(refreshButton.className).not.toContain('backdrop-blur');
   });
 
   it('applies correct button sizing classes', () => {
@@ -133,76 +169,17 @@ describe('ToolbarActions export dropdown items', () => {
     expect(screen.getByText('Connections')).toBeInTheDocument();
   });
 
-  it('posts REQUEST_EXPORT_PNG when export PNG is clicked', () => {
-    const postMessageSpy = vi.spyOn(window, 'postMessage');
-    renderWithProviders();
-    fireEvent.click(screen.getByText('Export as PNG'));
-    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'REQUEST_EXPORT_PNG' }, '*');
+  it.each(exportCases)('posts %s when clicked', (label, type) => {
+    const postMessageSpy = clickExportItem(label);
+
+    expect(postMessageSpy).toHaveBeenCalledWith({ type }, '*');
     postMessageSpy.mockRestore();
   });
 
-  it('posts REQUEST_EXPORT_SVG when export SVG is clicked', () => {
-    const postMessageSpy = vi.spyOn(window, 'postMessage');
+  it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {
     renderWithProviders();
-    fireEvent.click(screen.getByText('Export as SVG'));
-    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'REQUEST_EXPORT_SVG' }, '*');
-    postMessageSpy.mockRestore();
-  });
+    const path = screen.getByTitle(title).querySelector('svg path');
 
-  it('posts REQUEST_EXPORT_JPEG when export JPEG is clicked', () => {
-    const postMessageSpy = vi.spyOn(window, 'postMessage');
-    renderWithProviders();
-    fireEvent.click(screen.getByText('Export as JPEG'));
-    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'REQUEST_EXPORT_JPEG' }, '*');
-    postMessageSpy.mockRestore();
-  });
-
-  it('posts REQUEST_EXPORT_JSON when export JSON is clicked', () => {
-    const postMessageSpy = vi.spyOn(window, 'postMessage');
-    renderWithProviders();
-    fireEvent.click(screen.getByText('Export as JSON'));
-    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'REQUEST_EXPORT_JSON' }, '*');
-    postMessageSpy.mockRestore();
-  });
-
-  it('posts REQUEST_EXPORT_MD when export Markdown is clicked', () => {
-    const postMessageSpy = vi.spyOn(window, 'postMessage');
-    renderWithProviders();
-    fireEvent.click(screen.getByText('Export as Markdown'));
-    expect(postMessageSpy).toHaveBeenCalledWith({ type: 'REQUEST_EXPORT_MD' }, '*');
-    postMessageSpy.mockRestore();
-  });
-
-  it('renders the export icon SVG path for the export button', () => {
-    renderWithProviders();
-    const exportButton = screen.getByTitle('Export');
-    const svg = exportButton.querySelector('svg');
-    expect(svg).not.toBeNull();
-    const path = svg?.querySelector('path');
-    expect(path).not.toBeNull();
-    expect(path?.getAttribute('d')).toBeTruthy();
-  });
-
-  it('renders the refresh icon SVG path', () => {
-    renderWithProviders();
-    const refreshButton = screen.getByTitle('Refresh Graph');
-    const path = refreshButton.querySelector('svg path');
-    expect(path).not.toBeNull();
-    expect(path?.getAttribute('d')).toBeTruthy();
-  });
-
-  it('renders the plugins icon SVG path', () => {
-    renderWithProviders();
-    const pluginsButton = screen.getByTitle('Plugins');
-    const path = pluginsButton.querySelector('svg path');
-    expect(path).not.toBeNull();
-    expect(path?.getAttribute('d')).toBeTruthy();
-  });
-
-  it('renders the settings icon SVG path', () => {
-    renderWithProviders();
-    const settingsButton = screen.getByTitle('Settings');
-    const path = settingsButton.querySelector('svg path');
     expect(path).not.toBeNull();
     expect(path?.getAttribute('d')).toBeTruthy();
   });

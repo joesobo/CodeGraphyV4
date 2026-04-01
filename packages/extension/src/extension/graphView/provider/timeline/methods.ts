@@ -5,6 +5,7 @@ import type { GraphViewProviderTimelineSource } from '../../timeline/provider/in
 import {
   indexGraphViewProviderRepository,
   jumpGraphViewProviderToCommit,
+  resetGraphViewProviderTimeline,
   sendGraphViewProviderCachedTimeline,
 } from '../../timeline/provider/indexing';
 import {
@@ -48,6 +49,7 @@ export interface GraphViewProviderTimelineMethodsSource
 export interface GraphViewProviderTimelineMethods {
   _indexRepository(): Promise<void>;
   _jumpToCommit(sha: string): Promise<void>;
+  _resetTimeline(): Promise<void>;
   _openSelectedNode(nodeId: string): Promise<void>;
   _activateNode(nodeId: string): Promise<void>;
   _openNodeInEditor(nodeId: string, behavior: EditorOpenBehavior): Promise<void>;
@@ -68,6 +70,9 @@ export interface GraphViewProviderTimelineMethodDependencies {
   jumpToCommit(
     source: Parameters<typeof jumpGraphViewProviderToCommit>[0],
     sha: string,
+  ): Promise<void>;
+  resetTimeline(
+    source: Parameters<typeof resetGraphViewProviderTimeline>[0],
   ): Promise<void>;
   openNodeInEditor(
     nodeId: string,
@@ -152,6 +157,7 @@ function createDefaultDependencies(): GraphViewProviderTimelineMethodDependencie
   return {
     indexRepository: indexGraphViewProviderRepository,
     jumpToCommit: jumpGraphViewProviderToCommit,
+    resetTimeline: resetGraphViewProviderTimeline,
     openNodeInEditor: openGraphViewNodeInEditor,
     previewFileAtCommit: previewGraphViewFileAtCommit,
     sendCachedTimeline: sendGraphViewProviderCachedTimeline,
@@ -220,6 +226,10 @@ export function createGraphViewProviderTimelineMethods(
     await dependencies.jumpToCommit(source, sha);
   };
 
+  const _resetTimeline = async (): Promise<void> => {
+    await dependencies.resetTimeline(source);
+  };
+
   const _openSelectedNode = async (nodeId: string): Promise<void> => {
     await _openNodeInEditor(nodeId, createTemporaryNodeOpenBehavior());
   };
@@ -256,6 +266,7 @@ export function createGraphViewProviderTimelineMethods(
   return {
     _indexRepository,
     _jumpToCommit,
+    _resetTimeline,
     _openSelectedNode,
     _activateNode,
     _openNodeInEditor,

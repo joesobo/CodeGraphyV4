@@ -25,13 +25,13 @@ export function DimensionToggle(): React.ReactElement {
         <Button
           variant="outline"
           size="icon"
-          className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+          className="h-7 w-7 bg-transparent"
           onClick={() => setGraphMode(graphMode === '2d' ? '3d' : '2d')}
         >
           <MdiIcon path={graphMode === '2d' ? mdiCircleOutline : mdiSphere} size={16} />
         </Button>
       </TooltipTrigger>
-      <TooltipContent side="bottom">{getDimensionToggleTooltipLabel(graphMode)}</TooltipContent>
+      <TooltipContent side="right">{getDimensionToggleTooltipLabel(graphMode)}</TooltipContent>
     </Tooltip>
   );
 }

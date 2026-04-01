@@ -43,6 +43,7 @@ function createContext(
     updateNodeSizeMode: vi.fn(() => Promise.resolve()),
     indexRepository: vi.fn(() => Promise.resolve()),
     jumpToCommit: vi.fn(() => Promise.resolve()),
+    resetTimeline: vi.fn(() => Promise.resolve()),
     sendPhysicsSettings: vi.fn(),
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     resetPhysicsSettings: vi.fn(() => Promise.resolve()),
