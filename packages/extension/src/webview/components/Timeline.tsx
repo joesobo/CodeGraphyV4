@@ -2,7 +2,11 @@ import React, { useCallback } from 'react';
 import type { ICommitInfo } from '../../shared/timeline/types';
 import { useGraphStore } from '../store/state';
 import { postMessage } from '../vscodeApi';
+import { formatDate } from './timeline/format/dates';
+import Controls from './timeline/view/Controls';
+import CommitList from './timeline/view/CommitList';
 import Status from './timeline/view/Status';
+import Summary from './timeline/view/Summary';
 import Track from './timeline/view/Track';
 import { useTimelineController } from './timeline/use/controller';
 
@@ -20,7 +24,7 @@ function ReadyTimeline({
   playbackSpeed,
   setIsPlaying,
   timelineCommits,
-}: ReadyTimelineProps): React.ReactElement {
+}: ReadyTimelineProps): React.ReactElement | null {
   const controller = useTimelineController({
     currentCommitSha,
     isPlaying,
@@ -28,19 +32,46 @@ function ReadyTimeline({
     setIsPlaying,
     timelineCommits,
   });
+  const currentCommit = timelineCommits[controller.currentIndex] ?? timelineCommits[0];
+
+  if (!currentCommit) {
+    return null;
+  }
 
   return (
-    <Track
-      dateTicks={controller.dateTicks}
-      indicatorPosition={controller.indicatorPosition}
-      isAtEnd={controller.isAtEnd}
-      isPlaying={isPlaying}
-      onJumpToEnd={controller.handleJumpToEnd}
-      onPlayPause={controller.handlePlayPause}
-      onTrackMouseDown={controller.handleTrackMouseDown}
-      setTrackElement={controller.setTrackElement}
-      timelineCommits={timelineCommits}
-    />
+    <div
+      className="flex min-h-0 flex-1 flex-col border-t border-border"
+      data-testid="timeline-panel"
+    >
+      <Summary
+        currentCommit={currentCommit}
+        currentIndex={controller.currentIndex}
+        totalCommits={timelineCommits.length}
+      />
+      <Controls
+        currentDateLabel={formatDate(currentCommit.timestamp)}
+        isAtEnd={controller.isAtEnd}
+        isAtStart={controller.currentIndex === 0}
+        isPlaying={isPlaying}
+        onJumpToCurrent={controller.handleJumpToEnd}
+        onJumpToNext={controller.handleJumpToNext}
+        onJumpToPrevious={controller.handleJumpToPrevious}
+        onJumpToStart={controller.handleJumpToStart}
+        onPlayPause={controller.handlePlayPause}
+      />
+      <Track
+        dateTicks={controller.dateTicks}
+        indicatorPosition={controller.indicatorPosition}
+        onTrackMouseDown={controller.handleTrackMouseDown}
+        setTrackElement={controller.setTrackElement}
+        timelineCommits={timelineCommits}
+      />
+      <CommitList
+        currentCommitSha={currentCommit.sha}
+        onSelectCommit={controller.handleJumpToCommit}
+        timelineCommits={timelineCommits}
+      />
+    </div>
   );
 }
 
