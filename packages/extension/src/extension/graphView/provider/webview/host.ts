@@ -53,7 +53,6 @@ export interface GraphViewProviderWebviewMethodDependencies {
   setWebviewMessageListener: typeof setGraphViewProviderMessageListener;
   executeCommand(command: string, key: string, value: boolean): Thenable<unknown>;
   createPanel: typeof vscode.window.createWebviewPanel;
-  log(message: string): void;
 }
 
 function createDefaultGraphViewProviderWebviewMethodDependencies(): GraphViewProviderWebviewMethodDependencies {
@@ -69,9 +68,6 @@ function createDefaultGraphViewProviderWebviewMethodDependencies(): GraphViewPro
     executeCommand: (command, key, value) => vscode.commands.executeCommand(command, key, value),
     createPanel: (viewType, title, column, options) =>
       vscode.window.createWebviewPanel(viewType, title, column, options),
-    log: message => {
-      console.log(message);
-    },
   };
 }
 
@@ -132,11 +128,6 @@ export function createGraphViewProviderWebviewMethods(
         ),
       executeCommand: (command, key, value) =>
         resolvedDependencies.executeCommand(command, key, value),
-      sendAllSettings: () => source._sendAllSettings(),
-      analyzeAndSendData: () => source._analyzeAndSendData(),
-      log: message => {
-        resolvedDependencies.log(message);
-      },
     });
   };
 

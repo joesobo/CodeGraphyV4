@@ -99,10 +99,11 @@ describe('ToolbarActions', () => {
     expect(svgs.length).toBeGreaterThanOrEqual(4);
   });
 
-  it('applies backdrop-blur styling to buttons', () => {
+  it('keeps action buttons transparent', () => {
     renderWithProviders();
     const refreshButton = screen.getByTitle('Refresh Graph');
-    expect(refreshButton.className).toContain('backdrop-blur');
+    expect(refreshButton.className).toContain('bg-transparent');
+    expect(refreshButton.className).not.toContain('backdrop-blur');
   });
 
   it('applies correct button sizing classes', () => {

@@ -2,6 +2,7 @@ interface GraphViewWebviewLike {
   options: {
     enableScripts?: boolean;
     localResourceRoots?: readonly unknown[];
+    retainContextWhenHidden?: boolean;
   };
   html: string;
 }
@@ -17,9 +18,6 @@ interface ResolveGraphViewWebviewOptions {
   setWebviewMessageListener: (webview: GraphViewWebviewLike) => void;
   getHtml: (webview: GraphViewWebviewLike) => string;
   executeCommand: (command: string, key: string, value: boolean) => unknown;
-  sendAllSettings: () => void;
-  analyzeAndSendData: () => Promise<void>;
-  log: (message: string) => void;
 }
 
 export function resolveGraphViewWebviewView(
@@ -29,14 +27,12 @@ export function resolveGraphViewWebviewView(
     setWebviewMessageListener,
     getHtml,
     executeCommand,
-    sendAllSettings,
-    analyzeAndSendData,
-    log,
   }: ResolveGraphViewWebviewOptions,
 ): void {
   webviewView.webview.options = {
     enableScripts: true,
     localResourceRoots: getLocalResourceRoots(),
+    retainContextWhenHidden: true,
   };
 
   setWebviewMessageListener(webviewView.webview);
@@ -46,11 +42,5 @@ export function resolveGraphViewWebviewView(
 
   webviewView.onDidChangeVisibility(() => {
     void executeCommand('setContext', 'codegraphy.viewVisible', webviewView.visible);
-
-    if (webviewView.visible) {
-      log('[CodeGraphy] View became visible, re-sending data');
-      sendAllSettings();
-      void analyzeAndSendData();
-    }
   });
 }

@@ -56,7 +56,7 @@ export function ViewButtons(): React.ReactElement {
       </div>
 
       {availableViews.length > 0 && (
-        <div data-testid="view-buttons" className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
+        <div data-testid="view-buttons" className="flex flex-col items-center gap-1">
           {availableViews.map(view => {
             const iconPath = VIEW_ICONS[view.id];
             return (
@@ -75,7 +75,7 @@ export function ViewButtons(): React.ReactElement {
                     )}
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">{view.name}</TooltipContent>
+                <TooltipContent side="right">{view.name}</TooltipContent>
               </Tooltip>
             );
           })}

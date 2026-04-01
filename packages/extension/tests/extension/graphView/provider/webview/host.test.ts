@@ -24,7 +24,6 @@ describe('graphView/provider/webview/host', () => {
       setWebviewMessageListener: vi.fn(),
       executeCommand: vi.fn(() => Promise.resolve()),
       createPanel: vi.fn() as never,
-      log: vi.fn(),
     });
 
     methods.resolveWebviewView(
@@ -41,8 +40,6 @@ describe('graphView/provider/webview/host', () => {
         setWebviewMessageListener: expect.any(Function),
         getHtml: expect.any(Function),
         executeCommand: expect.any(Function),
-        analyzeAndSendData: expect.any(Function),
-        log: expect.any(Function),
       }),
     );
   });
@@ -72,7 +69,6 @@ describe('graphView/provider/webview/host', () => {
       setWebviewMessageListener: vi.fn(),
       executeCommand: vi.fn(() => Promise.resolve()),
       createPanel: vi.fn() as never,
-      log: vi.fn(),
     });
 
     methods.resolveWebviewView(
@@ -115,7 +111,6 @@ describe('graphView/provider/webview/host', () => {
       setWebviewMessageListener,
       executeCommand: vi.fn(() => Promise.resolve()),
       createPanel: vi.fn() as never,
-      log: vi.fn(),
     });
     const nextWebview = { kind: 'next-webview' } as unknown as vscode.Webview;
 
@@ -140,19 +135,16 @@ describe('graphView/provider/webview/host', () => {
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, nextWebview, 'graph');
   });
 
-  it('exposes live command, settings-sync, analysis, and log callbacks to the sidebar resolver', async () => {
+  it('exposes live command callbacks to the sidebar resolver', async () => {
     const resolveWebviewView = vi.fn();
     const executeCommand = vi.fn(() => Promise.resolve('executed'));
-    const log = vi.fn();
-    const sendAllSettings = vi.fn();
-    const analyzeAndSendData = vi.fn(async () => undefined);
     const source = {
       _extensionUri: vscode.Uri.file('/test/extension'),
       _view: undefined,
       _timelineView: undefined,
       _panels: [],
-      _sendAllSettings: sendAllSettings,
-      _analyzeAndSendData: analyzeAndSendData,
+      _sendAllSettings: vi.fn(),
+      _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
     };
     const webviewView = { viewType: 'codegraphy.graphView', webview: {}, visible: true } as unknown as vscode.WebviewView;
@@ -166,7 +158,6 @@ describe('graphView/provider/webview/host', () => {
       setWebviewMessageListener: vi.fn(),
       executeCommand,
       createPanel: vi.fn() as never,
-      log,
     });
 
     methods.resolveWebviewView(
@@ -177,26 +168,17 @@ describe('graphView/provider/webview/host', () => {
 
     const options = resolveWebviewView.mock.calls[0]?.[1] as {
       executeCommand(command: string, key: string, value: boolean): Promise<unknown>;
-      sendAllSettings(): void;
-      analyzeAndSendData(): Promise<void>;
-      log(message: string): void;
     };
 
     await expect(options.executeCommand('setContext', 'codegraphy.graphViewVisible', true)).resolves.toBe(
       'executed',
     );
-    options.sendAllSettings();
-    await options.analyzeAndSendData();
-    options.log('sidebar ready');
 
     expect(executeCommand).toHaveBeenCalledWith(
       'setContext',
       'codegraphy.graphViewVisible',
       true,
     );
-    expect(sendAllSettings).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(log).toHaveBeenCalledWith('sidebar ready');
   });
 
   it('opens an editor panel and keeps panel registration in sync', () => {
@@ -225,7 +207,6 @@ describe('graphView/provider/webview/host', () => {
       setWebviewMessageListener,
       executeCommand: vi.fn(() => Promise.resolve()),
       createPanel: vi.fn() as never,
-      log: vi.fn(),
     });
 
     methods.openInEditor();
@@ -273,7 +254,6 @@ describe('graphView/provider/webview/host', () => {
       setWebviewMessageListener,
       executeCommand: vi.fn(() => Promise.resolve()),
       createPanel: createPanel as never,
-      log: vi.fn(),
     });
 
     methods.openInEditor();
@@ -332,7 +312,6 @@ describe('graphView/provider/webview/host', () => {
       setWebviewMessageListener: vi.fn(),
       executeCommand: vi.fn(() => Promise.resolve()),
       createPanel: vi.fn() as never,
-      log: vi.fn(),
     });
     const panelA = { id: 'panel-a' } as unknown as vscode.WebviewPanel;
     const panelB = { id: 'panel-b' } as unknown as vscode.WebviewPanel;
@@ -379,7 +358,6 @@ describe('graphView/provider/webview/host', () => {
       setWebviewMessageListener: vi.fn(),
       executeCommand: vi.fn(() => Promise.resolve()),
       createPanel: vi.fn() as never,
-      log: vi.fn(),
     });
     const handler = vi.fn();
 
@@ -424,7 +402,6 @@ describe('graphView/provider/webview/host', () => {
       setWebviewMessageListener,
       executeCommand: vi.fn(() => Promise.resolve()),
       createPanel: vi.fn() as never,
-      log: vi.fn(),
     });
     const webview = { kind: 'webview' } as unknown as vscode.Webview;
 

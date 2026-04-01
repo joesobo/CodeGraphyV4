@@ -54,11 +54,13 @@ describe('extension activate API', () => {
 
     expect(vscode.window.registerWebviewViewProvider).toHaveBeenCalledWith(
       'codegraphy.graphView',
-      expect.any(Object)
+      expect.any(Object),
+      { webviewOptions: { retainContextWhenHidden: true } }
     );
     expect(vscode.window.registerWebviewViewProvider).toHaveBeenCalledWith(
       'codegraphy.timelineView',
-      expect.any(Object)
+      expect.any(Object),
+      { webviewOptions: { retainContextWhenHidden: true } }
     );
   });
 

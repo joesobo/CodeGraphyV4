@@ -30,7 +30,7 @@ export function ToolbarActions(): React.ReactElement {
           <Button
             variant="outline"
             size="icon"
-            className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+            className="h-7 w-7 bg-transparent"
             onClick={() => postMessage({ type: 'REFRESH_GRAPH' })}
             title="Refresh Graph"
           >
@@ -47,7 +47,7 @@ export function ToolbarActions(): React.ReactElement {
               <Button
                 variant="outline"
                 size="icon"
-                className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+                className="h-7 w-7 bg-transparent"
                 title="Export"
               >
                 <MdiIcon path={mdiExport} size={16} />
@@ -83,7 +83,7 @@ export function ToolbarActions(): React.ReactElement {
           <Button
             variant="outline"
             size="icon"
-            className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+            className="h-7 w-7 bg-transparent"
             onClick={() => setActivePanel('plugins')}
             title="Plugins"
           >
@@ -98,7 +98,7 @@ export function ToolbarActions(): React.ReactElement {
           <Button
             variant="outline"
             size="icon"
-            className="h-7 w-7 bg-popover/80 backdrop-blur-sm"
+            className="h-7 w-7 bg-transparent"
             onClick={() => setActivePanel('settings')}
             title="Settings"
           >

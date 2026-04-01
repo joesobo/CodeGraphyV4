@@ -11,7 +11,7 @@ export default function Toolbar(): React.ReactElement {
     <TooltipProvider delayDuration={300}>
       <div
         data-testid="toolbar"
-        className="flex h-full min-h-0 flex-col justify-between gap-3 rounded-md border border-[var(--vscode-panel-border,#3c3c3c)] bg-[var(--vscode-sideBar-background,#1e1e1e)] p-1.5 shadow-lg"
+        className="flex h-full min-h-0 flex-col items-center justify-between gap-3 bg-transparent py-1"
       >
         <div
           data-testid="toolbar-top-group"

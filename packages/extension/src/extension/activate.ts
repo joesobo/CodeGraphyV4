@@ -27,11 +27,21 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(
       GraphViewProvider.viewType,
-      provider
+      provider,
+      {
+        webviewOptions: {
+          retainContextWhenHidden: true,
+        },
+      }
     ),
     vscode.window.registerWebviewViewProvider(
       GraphViewProvider.timelineViewType,
-      provider
+      provider,
+      {
+        webviewOptions: {
+          retainContextWhenHidden: true,
+        },
+      }
     )
   );
 

@@ -30,7 +30,7 @@ export function DagModeToggle(): React.ReactElement {
   };
 
   return (
-    <div data-testid="dag-buttons" className="flex items-center bg-popover/80 backdrop-blur-sm rounded-md border border-border">
+    <div data-testid="dag-buttons" className="flex flex-col items-center gap-1">
       {DAG_MODES.map(({ mode, label, Icon }) => (
         <Tooltip key={label}>
           <TooltipTrigger asChild>
@@ -43,7 +43,7 @@ export function DagModeToggle(): React.ReactElement {
               <Icon size={16} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom">{label}</TooltipContent>
+          <TooltipContent side="right">{label}</TooltipContent>
         </Tooltip>
       ))}
     </div>

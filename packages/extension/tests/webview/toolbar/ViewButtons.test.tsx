@@ -284,13 +284,14 @@ describe('ViewButtons availableViews guard', () => {
     expect(screen.getByTestId('view-buttons')).toBeInTheDocument();
   });
 
-  it('renders correct border styling on the view-buttons container', () => {
+  it('keeps the view-buttons container inline without toolbar chrome', () => {
     graphStore.setState({
       availableViews: [{ id: 'codegraphy.connections', name: 'Connections', icon: 'symbol-file', description: 'Shows all files', active: true }],
     });
     renderWithProviders();
     const container = screen.getByTestId('view-buttons');
-    expect(container.className).toContain('border');
-    expect(container.className).toContain('rounded');
+    expect(container.className).toContain('flex-col');
+    expect(container.className).not.toContain('border');
+    expect(container.className).not.toContain('rounded');
   });
 });
