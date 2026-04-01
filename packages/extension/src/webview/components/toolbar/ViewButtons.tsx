@@ -36,24 +36,25 @@ export function ViewButtons(): React.ReactElement {
 
   return (
     <>
-      {/* Depth slider — animated, only visible when Depth view active */}
-      <div
-        className="flex items-center gap-1 overflow-hidden transition-all duration-200 ease-in-out"
-        style={{
-          maxWidth: isDepthView ? '8rem' : '0px',
-          opacity: isDepthView ? 1 : 0,
-        }}
-      >
-        <span className="text-xs text-muted-foreground whitespace-nowrap">{depthLimit}</span>
-        <Slider
-          min={1}
-          max={5}
-          step={1}
-          value={[depthLimit]}
-          onValueChange={handleDepthChange}
-          className="w-16"
-        />
-      </div>
+      {isDepthView && (
+        <div
+          className="flex items-center gap-1 overflow-hidden transition-all duration-200 ease-in-out"
+          style={{
+            maxWidth: '8rem',
+            opacity: 1,
+          }}
+        >
+          <span className="text-xs text-muted-foreground whitespace-nowrap">{depthLimit}</span>
+          <Slider
+            min={1}
+            max={5}
+            step={1}
+            value={[depthLimit]}
+            onValueChange={handleDepthChange}
+            className="w-16"
+          />
+        </div>
+      )}
 
       {availableViews.length > 0 && (
         <div data-testid="view-buttons" className="flex flex-col items-center gap-1">

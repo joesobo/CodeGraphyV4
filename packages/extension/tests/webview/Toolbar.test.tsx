@@ -184,12 +184,11 @@ describe('Toolbar', () => {
   });
 
   describe('depth slider', () => {
-    it('is hidden when depth view is not active', () => {
+    it('does not render a depth-slider placeholder when depth view is not active', () => {
       const { container } = render(<Toolbar />);
-      const sliderContainer = container.querySelector('[style*="max-width"]');
-      expect(sliderContainer).toBeTruthy();
-      expect(sliderContainer?.getAttribute('style')).toContain('max-width: 0px');
-      expect(sliderContainer?.getAttribute('style')).toContain('opacity: 0');
+      const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
+      expect(screen.queryByTestId('depth-slider')).toBeNull();
+      expect(topGroup?.firstElementChild?.getAttribute('data-testid')).toBe('view-buttons');
     });
 
     it('is visible when depth view is active', () => {

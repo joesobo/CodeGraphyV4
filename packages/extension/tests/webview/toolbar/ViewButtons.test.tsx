@@ -152,7 +152,7 @@ describe('ViewButtons', () => {
     expect(screen.getByText('3')).toBeInTheDocument();
   });
 
-  it('hides depth slider when depth view is not active', () => {
+  it('does not render the depth slider when depth view is not active', () => {
     graphStore.setState({
       availableViews: [
         createAvailableView('codegraphy.connections', 'Connections'),
@@ -161,11 +161,8 @@ describe('ViewButtons', () => {
       activeViewId: 'codegraphy.connections',
       depthLimit: 2,
     });
-    const { container } = renderWithProviders();
-    const sliderContainer = container.querySelector('[style*="max-width"]') as HTMLElement | null;
-    expect(sliderContainer).not.toBeNull();
-    expect(sliderContainer!.style.opacity).toBe('0');
-    expect(sliderContainer!.style.maxWidth).toBe('0px');
+    renderWithProviders();
+    expect(screen.queryByTestId('depth-slider')).not.toBeInTheDocument();
   });
 
   it('sets opacity to 1 and maxWidth to 8rem when depth view is active', () => {
