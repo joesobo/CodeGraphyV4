@@ -58,6 +58,17 @@ body {
   padding: 0;
 }
 
+body[data-codegraphy-view='timeline'] {
+  overflow: hidden;
+}
+
+body[data-codegraphy-view='timeline'] #root {
+  display: inline-flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+}
+
 @layer utilities {
   .text-primary {
     color: var(--vscode-foreground, hsl(var(--foreground)));

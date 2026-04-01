@@ -79,9 +79,10 @@ describe('TimelineApp', () => {
     expect(screen.getByTestId('timeline-content')).toBeInTheDocument();
     const shell = container.firstElementChild as HTMLElement | null;
     expect(shell).toBeTruthy();
+    expect(shell?.className).toContain('inline-flex');
     expect(shell?.className).toContain('w-full');
+    expect(shell?.className).toContain('overflow-hidden');
     expect(shell?.className).not.toContain('h-screen');
-    expect(shell?.className).not.toContain('overflow-auto');
   });
 
   it('does not show the graph loading screen while the graph is still loading', () => {
