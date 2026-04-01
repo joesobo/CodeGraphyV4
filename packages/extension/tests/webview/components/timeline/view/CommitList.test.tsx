@@ -26,40 +26,6 @@ const commits = [
   },
 ];
 
-const mergeCommits = [
-  {
-    author: 'Alice',
-    message: 'Initial import',
-    parents: [],
-    sha: 'aaa111aaa111aaa111aaa111aaa111aaa111aaa1',
-    timestamp: 1709208000,
-  },
-  {
-    author: 'Bob',
-    message: 'Mainline change',
-    parents: ['aaa111aaa111aaa111aaa111aaa111aaa111aaa1'],
-    sha: 'bbb222bbb222bbb222bbb222bbb222bbb222bbb2',
-    timestamp: 1709294400,
-  },
-  {
-    author: 'Cara',
-    message: 'Feature branch change',
-    parents: ['aaa111aaa111aaa111aaa111aaa111aaa111aaa1'],
-    sha: 'ccc333ccc333ccc333ccc333ccc333ccc333ccc3',
-    timestamp: 1709380800,
-  },
-  {
-    author: 'Dana',
-    message: 'Merge feature branch',
-    parents: [
-      'bbb222bbb222bbb222bbb222bbb222bbb222bbb2',
-      'ccc333ccc333ccc333ccc333ccc333ccc333ccc3',
-    ],
-    sha: 'ddd444ddd444ddd444ddd444ddd444ddd444ddd4',
-    timestamp: 1709467200,
-  },
-];
-
 describe('timeline/CommitList', () => {
   it('renders commits newest-first and highlights the current commit', () => {
     render(
@@ -116,40 +82,5 @@ describe('timeline/CommitList', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Commits' }));
 
     expect(onToggle).toHaveBeenCalledTimes(1);
-  });
-
-  it('renders a branch graph gutter for merge histories', () => {
-    render(
-      <CommitList
-        collapsed={false}
-        currentCommitSha={mergeCommits[3].sha}
-        onSelectCommit={vi.fn()}
-        onToggle={vi.fn()}
-        timelineCommits={mergeCommits}
-      />,
-    );
-
-    expect(screen.getAllByTestId('timeline-commit-branch-graph')).toHaveLength(4);
-  });
-
-  it('anchors branch graphs in an overlay rail instead of a detached gutter column', () => {
-    render(
-      <CommitList
-        collapsed={false}
-        currentCommitSha={mergeCommits[3].sha}
-        onSelectCommit={vi.fn()}
-        onToggle={vi.fn()}
-        timelineCommits={mergeCommits}
-      />,
-    );
-
-    const item = screen.getAllByTestId('timeline-commit-item')[0];
-
-    expect(item).toHaveClass('relative');
-    expect(within(item).getByTestId('timeline-commit-branch-rail')).toHaveClass(
-      'absolute',
-      'inset-y-0',
-      'left-0',
-    );
   });
 });

@@ -101,8 +101,7 @@ describe('gitHistory/commits/list', () => {
 
       expect(args).toEqual([
         'log',
-        '--topo-order',
-        '--date-order',
+        '--first-parent',
         'main',
         '--format=%H|%at|%s|%an|%P',
         '-n',
@@ -132,56 +131,5 @@ describe('gitHistory/commits/list', () => {
       args: ['rev-parse', '--abbrev-ref', 'HEAD'],
       signal,
     });
-  });
-
-  it('preserves non-linear commits reachable from the current branch', async () => {
-    const signal = new AbortController().signal;
-    const execGit = async (args: string[]) => {
-      if (args[0] === 'rev-parse') {
-        return 'main\n';
-      }
-
-      expect(args).toContain('--topo-order');
-      expect(args).toContain('--date-order');
-      expect(args).not.toContain('--first-parent');
-
-      return [
-        'merge|400|Merge feature|Alice|main-2 feature-1',
-        'feature-1|300|Feature work|Bob|root',
-        'main-2|200|Main work|Alice|root',
-        'root|100|Initial|Alice|',
-      ].join('\n');
-    };
-
-    await expect(getCommitList({ execGit }, 4, signal)).resolves.toEqual([
-      {
-        sha: 'root',
-        timestamp: 100,
-        message: 'Initial',
-        author: 'Alice',
-        parents: [],
-      },
-      {
-        sha: 'main-2',
-        timestamp: 200,
-        message: 'Main work',
-        author: 'Alice',
-        parents: ['root'],
-      },
-      {
-        sha: 'feature-1',
-        timestamp: 300,
-        message: 'Feature work',
-        author: 'Bob',
-        parents: ['root'],
-      },
-      {
-        sha: 'merge',
-        timestamp: 400,
-        message: 'Merge feature',
-        author: 'Alice',
-        parents: ['main-2', 'feature-1'],
-      },
-    ]);
   });
 });

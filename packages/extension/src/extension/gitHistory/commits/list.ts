@@ -33,14 +33,13 @@ export async function getCommitList(
   maxCommits: number,
   signal: AbortSignal
 ): Promise<ICommitInfo[]> {
-  const currentBranch = (await git.execGit(['rev-parse', '--abbrev-ref', 'HEAD'], signal)).trim();
+  const defaultBranch = (await git.execGit(['rev-parse', '--abbrev-ref', 'HEAD'], signal)).trim();
 
   const output = await git.execGit(
     [
       'log',
-      '--topo-order',
-      '--date-order',
-      currentBranch,
+      '--first-parent',
+      defaultBranch,
       '--format=%H|%at|%s|%an|%P',
       '-n',
       String(maxCommits),
