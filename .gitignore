@@ -2,6 +2,7 @@ node_modules/
 dist/
 *.vsix
 .vscode-test/
+.vscode/settings.json
 /coverage/
 *.log
 .DS_Store
