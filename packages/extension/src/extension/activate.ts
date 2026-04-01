@@ -28,6 +28,10 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
     vscode.window.registerWebviewViewProvider(
       GraphViewProvider.viewType,
       provider
+    ),
+    vscode.window.registerWebviewViewProvider(
+      'codegraphy.timelineView',
+      provider
     )
   );
 
