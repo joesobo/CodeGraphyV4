@@ -45,6 +45,7 @@ function createSource(
     ),
     _sendMessage: vi.fn(),
     _analyzeAndSendData: vi.fn(async () => undefined),
+    _invalidateTimelineCache: vi.fn(async () => undefined),
     ...overrides,
   };
 }
@@ -249,17 +250,18 @@ describe('graphView/provider/plugins', () => {
         pluginExtensionUris: source._pluginExtensionUris,
       }),
     );
-    expect(registrationHandlers).toEqual(
-      expect.objectContaining({
-        normalizeExtensionUri: expect.any(Function),
-        getWorkspaceRoot: expect.any(Function),
-        refreshWebviewResourceRoots: expect.any(Function),
-        sendPluginStatuses: expect.any(Function),
-        sendContextMenuItems: expect.any(Function),
-        sendPluginWebviewInjections: expect.any(Function),
-        analyzeAndSendData: expect.any(Function),
-      }),
-    );
+      expect(registrationHandlers).toEqual(
+        expect.objectContaining({
+          normalizeExtensionUri: expect.any(Function),
+          getWorkspaceRoot: expect.any(Function),
+          refreshWebviewResourceRoots: expect.any(Function),
+          sendPluginStatuses: expect.any(Function),
+          sendContextMenuItems: expect.any(Function),
+          sendPluginWebviewInjections: expect.any(Function),
+          invalidateTimelineCache: expect.any(Function),
+          analyzeAndSendData: expect.any(Function),
+        }),
+      );
 
     const capturedRegistrationState = registerExternalPlugin.mock.calls[0]?.[2] as {
       firstAnalysis: boolean;
@@ -311,8 +313,13 @@ describe('graphView/provider/plugins', () => {
     const sendContextMenuItems = vi.fn();
     const sendPluginWebviewInjections = vi.fn();
     const analyzeAndSendData = vi.fn(async () => undefined);
+    const invalidateTimelineCache = vi.fn(async () => undefined);
+    const source = createSource({
+      _analyzeAndSendData: analyzeAndSendData,
+      _invalidateTimelineCache: invalidateTimelineCache,
+    });
     const methods = createGraphViewProviderPluginMethods(
-      createSource({ _analyzeAndSendData: analyzeAndSendData }),
+      source,
       {
         sendAvailableViews: vi.fn(),
         sendPluginStatuses,
@@ -331,17 +338,20 @@ describe('graphView/provider/plugins', () => {
       sendPluginStatuses(): void;
       sendContextMenuItems(): void;
       sendPluginWebviewInjections(): void;
+      invalidateTimelineCache(): Promise<void>;
       analyzeAndSendData(): Promise<void>;
     };
 
     registrationHandlers.sendPluginStatuses();
     registrationHandlers.sendContextMenuItems();
     registrationHandlers.sendPluginWebviewInjections();
+    await registrationHandlers.invalidateTimelineCache();
     await registrationHandlers.analyzeAndSendData();
 
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
+    expect(source._invalidateTimelineCache).toHaveBeenCalledOnce();
     expect(analyzeAndSendData).toHaveBeenCalledOnce();
   });
 });

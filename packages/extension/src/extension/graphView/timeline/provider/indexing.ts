@@ -31,7 +31,9 @@ export interface GraphViewProviderTimelineSource {
   _currentCommitSha: string | undefined;
   _disabledPlugins: Set<string>;
   _disabledRules: Set<string>;
+  _rawGraphData: IGraphData;
   _graphData: IGraphData;
+  _applyViewTransform?(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
 }
 
@@ -157,7 +159,9 @@ export async function jumpGraphViewProviderToCommit(
     | '_currentCommitSha'
     | '_disabledPlugins'
     | '_disabledRules'
+    | '_rawGraphData'
     | '_graphData'
+    | '_applyViewTransform'
     | '_sendMessage'
   >,
   sha: string,
@@ -180,7 +184,9 @@ export async function resetGraphViewProviderTimeline(
     | '_currentCommitSha'
     | '_disabledPlugins'
     | '_disabledRules'
+    | '_rawGraphData'
     | '_graphData'
+    | '_applyViewTransform'
     | '_sendMessage'
   >,
   dependencies: Pick<
@@ -256,15 +262,20 @@ async function buildTimelineCommitGraphData(
 function applyTimelineCommitGraph(
   source: Pick<
     GraphViewProviderTimelineSource,
-    '_currentCommitSha' | '_graphData' | '_sendMessage'
+    '_currentCommitSha' | '_rawGraphData' | '_graphData' | '_applyViewTransform' | '_sendMessage'
   >,
   sha: string,
   graphData: IGraphData,
 ): void {
   source._currentCommitSha = sha;
-  source._graphData = graphData;
+  source._rawGraphData = graphData;
+  if (source._applyViewTransform) {
+    source._applyViewTransform();
+  } else {
+    source._graphData = graphData;
+  }
   source._sendMessage({
     type: 'COMMIT_GRAPH_DATA',
-    payload: { sha, graphData },
+    payload: { sha, graphData: source._graphData },
   });
 }

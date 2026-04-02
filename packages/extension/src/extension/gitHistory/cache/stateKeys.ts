@@ -1,3 +1,4 @@
 export const COMMITS_STATE_KEY = 'codegraphy.timelineCommits';
 export const CACHE_VERSION_KEY = 'codegraphy.timelineCacheVersion';
-export const CACHE_VERSION = '1.1.0';
+export const PLUGIN_SIGNATURE_KEY = 'codegraphy.timelinePluginSignature';
+export const CACHE_VERSION = '1.2.0';

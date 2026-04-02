@@ -4,6 +4,12 @@ All notable changes to CodeGraphy will be documented in this file.
 
 This project uses [Changesets](https://github.com/changesets/changesets) for versioning.
 
+## 4.1.1
+
+### Patch Changes
+
+- Fix the published core extension package so the Graph and Timeline sidebar views ship the latest bundled UI instead of stale build output.
+
 ## 4.1.0
 
 ### Minor Changes

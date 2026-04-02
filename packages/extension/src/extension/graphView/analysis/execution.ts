@@ -19,6 +19,7 @@ export interface GraphViewAnalysisExecutionState {
   analyzer: GraphViewAnalyzerLike | undefined;
   analyzerInitialized: boolean;
   analyzerInitPromise: Promise<void> | undefined;
+  installedPluginActivationPromise?: Promise<void>;
   filterPatterns: string[];
   disabledRules: Set<string>;
   disabledPlugins: Set<string>;
@@ -64,6 +65,9 @@ export async function executeGraphViewAnalysis(
     publishEmptyGraph(handlers);
     return;
   }
+
+  await (state.installedPluginActivationPromise ?? Promise.resolve());
+  if (handlers.isAnalysisStale(signal, requestId)) return;
 
   if (!state.analyzerInitialized) {
     if (!state.analyzerInitPromise) {

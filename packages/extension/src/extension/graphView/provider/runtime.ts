@@ -83,6 +83,7 @@ export class GraphViewProviderRuntime {
   protected _webviewReadyNotified = false;
   protected _indexingController?: AbortController;
   protected readonly _pluginExtensionUris = new Map<string, vscode.Uri>();
+  protected _installedPluginActivationPromise: Promise<void> = Promise.resolve();
   protected readonly _methodContainers: GraphViewProviderMethodContainers;
 
   constructor(
@@ -113,6 +114,10 @@ export class GraphViewProviderRuntime {
 
   public get viewRegistry(): ViewRegistry {
     return this._viewRegistry;
+  }
+
+  public setInstalledPluginActivationPromise(promise: Promise<void>): void {
+    this._installedPluginActivationPromise = promise;
   }
 
   private initializeCoreServices(): void {

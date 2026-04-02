@@ -33,6 +33,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _analyzer?: GraphViewProviderAnalysisState['analyzer'] & GraphViewProviderAnalysisAnalyzerLike;
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;
+  _installedPluginActivationPromise?: Promise<void>;
   _filterPatterns: string[];
   _disabledRules: Set<string>;
   _disabledPlugins: Set<string>;

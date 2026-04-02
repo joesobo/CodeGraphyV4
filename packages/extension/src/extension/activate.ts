@@ -2,12 +2,15 @@ import * as vscode from 'vscode';
 import { GraphViewProvider } from './graphViewProvider';
 import { registerConfigHandler } from './config/listener';
 import { registerCommands } from './commands/register';
+import { activateInstalledCodeGraphyPlugins } from './pluginActivation/installed';
 import {
   registerEditorChangeHandler,
   registerFileWatcher,
   registerSaveHandler,
 } from './workspaceFiles/register';
 import type { IGraphData } from '../shared/graph/types';
+
+const CODEGRAPHY_EXTENSION_ID = 'codegraphy.codegraphy';
 
 /** Public API returned by activate() — usable from e2e tests. */
 export interface CodeGraphyAPI {
@@ -23,6 +26,9 @@ export interface CodeGraphyAPI {
 
 export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
   const provider = new GraphViewProvider(context.extensionUri, context);
+  provider.setInstalledPluginActivationPromise(
+    activateInstalledCodeGraphyPlugins(vscode.extensions.all, CODEGRAPHY_EXTENSION_ID),
+  );
 
   context.subscriptions.push(
     vscode.window.registerWebviewViewProvider(

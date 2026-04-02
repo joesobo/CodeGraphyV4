@@ -6,9 +6,10 @@
  * WorkspaceAnalyzer expects absolute paths (like TypeScript plugin).
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { afterAll, describe, it, expect, beforeAll } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import { createPythonPlugin } from '../src';
 import { createTypeScriptPlugin } from '../../plugin-typescript/src';
 
@@ -17,9 +18,14 @@ const PYTHON_EXAMPLE_ROOT = path.join(__dirname, '../examples');
 describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
   const pythonPlugin = createPythonPlugin();
   const workspaceRoot = PYTHON_EXAMPLE_ROOT;
+  const tempTypeScriptWorkspace = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-python-ts-'));
 
   beforeAll(async () => {
     await pythonPlugin.initialize?.(workspaceRoot);
+  });
+
+  afterAll(() => {
+    fs.rmSync(tempTypeScriptWorkspace, { recursive: true, force: true });
   });
 
   /**
@@ -44,7 +50,7 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     expect(connections.length).toBeGreaterThan(0);
     
     // The bug: resolvedPath should be absolute, but Python plugin returns relative
-    const configConnection = connections.find(c => c.specifier.includes('config'));
+    const configConnection = connections.find(connection => connection.specifier.includes('config'));
     expect(configConnection).toBeDefined();
     expect(configConnection!.resolvedPath).not.toBeNull();
 
@@ -132,16 +138,16 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     
     // Create a minimal TS file to test with
     const tsContent = `import { something } from './other';`;
-    const mockTsFile = path.join(workspaceRoot, 'test.ts');
-    const mockOtherFile = path.join(workspaceRoot, 'other.ts');
+    const mockTsFile = path.join(tempTypeScriptWorkspace, 'test.ts');
+    const mockOtherFile = path.join(tempTypeScriptWorkspace, 'other.ts');
     
     // Write temp files
     fs.writeFileSync(mockTsFile, tsContent);
     fs.writeFileSync(mockOtherFile, 'export const something = 1;');
     
     try {
-      await tsPlugin.initialize?.(workspaceRoot);
-      const connections = await tsPlugin.detectConnections(mockTsFile, tsContent, workspaceRoot);
+      await tsPlugin.initialize?.(tempTypeScriptWorkspace);
+      const connections = await tsPlugin.detectConnections(mockTsFile, tsContent, tempTypeScriptWorkspace);
       
       expect(connections.length).toBe(1);
       expect(connections[0].resolvedPath).not.toBeNull();
@@ -150,12 +156,11 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
       expect(path.isAbsolute(connections[0].resolvedPath!)).toBe(true);
       
       // path.relative works correctly
-      const targetRelative = path.relative(workspaceRoot, connections[0].resolvedPath!);
+      const targetRelative = path.relative(tempTypeScriptWorkspace, connections[0].resolvedPath!);
       expect(targetRelative).toBe('other.ts');
     } finally {
-      // Cleanup
-      fs.unlinkSync(mockTsFile);
-      fs.unlinkSync(mockOtherFile);
+      fs.rmSync(mockTsFile, { force: true });
+      fs.rmSync(mockOtherFile, { force: true });
     }
   });
 });

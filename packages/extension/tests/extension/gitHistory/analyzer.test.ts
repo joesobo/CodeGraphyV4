@@ -80,10 +80,19 @@ function createMockRegistry() {
     analyzeFile: vi.fn().mockResolvedValue([]),
     supportsFile: vi.fn().mockReturnValue(true),
     getSupportedExtensions: vi.fn().mockReturnValue(['.ts', '.js']),
+    list: vi.fn().mockReturnValue([
+      {
+        plugin: {
+          id: 'test.plugin',
+          version: '1.0.0',
+        },
+      },
+    ]),
   } as unknown as PluginRegistry & {
     analyzeFile: Mock;
     supportsFile: Mock;
     getSupportedExtensions: Mock;
+    list: Mock;
   };
 }
 
@@ -729,13 +738,27 @@ describe('GitHistoryAnalyzer', () => {
       expect(analyzer.hasCachedTimeline()).toBe(false);
     });
 
-    it('should return true when correct cache version is stored', () => {
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.1.0');
+    it('should return true when correct cache version and plugin signature are stored', () => {
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set(
+        'codegraphy.timelinePluginSignature',
+        'test.plugin@1.0.0',
+      );
       expect(analyzer.hasCachedTimeline()).toBe(true);
     });
 
     it('should return false when cache version does not match', () => {
       context._stateStore.set('codegraphy.timelineCacheVersion', '0.9.0');
+      expect(analyzer.hasCachedTimeline()).toBe(false);
+    });
+
+    it('should return false when plugin signature does not match the current registry', () => {
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set(
+        'codegraphy.timelinePluginSignature',
+        'stale.plugin@1.0.0',
+      );
+
       expect(analyzer.hasCachedTimeline()).toBe(false);
     });
   });
@@ -745,14 +768,32 @@ describe('GitHistoryAnalyzer', () => {
       expect(analyzer.getCachedCommitList()).toBeNull();
     });
 
-    it('should return cached commits when cache version matches', () => {
+    it('should return cached commits when cache version and plugin signature match', () => {
       const commits = [
         { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
       ];
-      context._stateStore.set('codegraphy.timelineCacheVersion', '1.1.0');
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set(
+        'codegraphy.timelinePluginSignature',
+        'test.plugin@1.0.0',
+      );
       context._stateStore.set('codegraphy.timelineCommits', commits);
 
       expect(analyzer.getCachedCommitList()).toEqual(commits);
+    });
+
+    it('should return null when the cached plugin signature does not match', () => {
+      const commits = [
+        { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
+      ];
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set(
+        'codegraphy.timelinePluginSignature',
+        'stale.plugin@1.0.0',
+      );
+      context._stateStore.set('codegraphy.timelineCommits', commits);
+
+      expect(analyzer.getCachedCommitList()).toBeNull();
     });
   });
 });
