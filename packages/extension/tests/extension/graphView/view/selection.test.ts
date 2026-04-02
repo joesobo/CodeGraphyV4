@@ -63,8 +63,39 @@ describe('graphView/view/selection', () => {
     expect(sendAvailableViews).toHaveBeenCalledTimes(1);
     expect(applyViewTransform).toHaveBeenCalledTimes(1);
     expect(sendMessage).toHaveBeenCalledWith({
+      type: 'ACTIVE_FILE_UPDATED',
+      payload: { filePath: 'src/app.ts' },
+    });
+    expect(sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
+    });
+  });
+
+  it('broadcasts the active file even when depth view is inactive', () => {
+    const state = {
+      _activeViewId: 'codegraphy.connections',
+      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _viewContext: {
+        activePlugins: new Set(['plugin.alpha']),
+        focusedFile: undefined,
+      } satisfies IViewContext,
+    };
+    const applyViewTransform = vi.fn();
+    const sendAvailableViews = vi.fn();
+    const sendMessage = vi.fn();
+
+    setGraphViewFocusedFile(state, 'src/game/player.gd', {
+      getActiveViewInfo: () => ({ view: { id: 'codegraphy.connections' } }),
+      applyViewTransform,
+      sendAvailableViews,
+      sendMessage,
+    });
+
+    expect(applyViewTransform).not.toHaveBeenCalled();
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'ACTIVE_FILE_UPDATED',
+      payload: { filePath: 'src/game/player.gd' },
     });
   });
 

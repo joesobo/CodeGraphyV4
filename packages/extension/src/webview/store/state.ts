@@ -50,6 +50,7 @@ export interface GraphState {
   pluginContextMenuItems: IPluginContextMenuItem[];
   activePanel: 'none' | 'settings' | 'plugins';
   maxFiles: number;
+  activeFilePath: string | null;
   timelineActive: boolean;
   timelineCommits: ICommitInfo[];
   currentCommitSha: string | null;

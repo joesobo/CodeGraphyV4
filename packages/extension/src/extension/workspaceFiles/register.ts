@@ -35,6 +35,33 @@ function scheduleWorkspaceRefresh(
   pendingWorkspaceRefreshes.set(provider, nextPending);
 }
 
+async function syncActiveEditor(
+  provider: GraphViewProvider,
+  editor: vscode.TextEditor | undefined,
+): Promise<void> {
+  if (editor && editor.document.uri.scheme === 'file') {
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    if (workspaceFolder) {
+      const relativePath = path.relative(
+        workspaceFolder.uri.fsPath,
+        editor.document.uri.fsPath
+      );
+      if (!relativePath.startsWith('..')) {
+        const normalizedPath = relativePath.replace(/\\/g, '/');
+        await provider.trackFileVisit(normalizedPath);
+        provider.setFocusedFile(normalizedPath);
+        provider.emitEvent('workspace:activeEditorChanged', { filePath: normalizedPath });
+        return;
+      }
+    }
+  }
+
+  if (!editor) {
+    provider.setFocusedFile(undefined);
+    provider.emitEvent('workspace:activeEditorChanged', { filePath: undefined });
+  }
+}
+
 /** Registers the active editor change listener that tracks file visits. */
 export function registerEditorChangeHandler(
   context: vscode.ExtensionContext,
@@ -42,26 +69,10 @@ export function registerEditorChangeHandler(
 ): void {
   context.subscriptions.push(
     vscode.window.onDidChangeActiveTextEditor(async (editor) => {
-      if (editor && editor.document.uri.scheme === 'file') {
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (workspaceFolder) {
-          const relativePath = path.relative(
-            workspaceFolder.uri.fsPath,
-            editor.document.uri.fsPath
-          );
-          if (!relativePath.startsWith('..')) {
-            const normalizedPath = relativePath.replace(/\\/g, '/');
-            await provider.trackFileVisit(normalizedPath);
-            provider.setFocusedFile(normalizedPath);
-            provider.emitEvent('workspace:activeEditorChanged', { filePath: normalizedPath });
-          }
-        }
-      } else {
-        provider.setFocusedFile(undefined);
-        provider.emitEvent('workspace:activeEditorChanged', { filePath: undefined });
-      }
+      await syncActiveEditor(provider, editor);
     })
   );
+  void syncActiveEditor(provider, vscode.window.activeTextEditor);
 }
 
 /** Registers the save listener that debounces graph refresh on file saves. */

@@ -108,3 +108,9 @@ export function handleMaxFilesUpdated(
 ): PartialState {
   return { maxFiles: message.payload.maxFiles };
 }
+
+export function handleActiveFileUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'ACTIVE_FILE_UPDATED' }>,
+): PartialState {
+  return { activeFilePath: message.payload.filePath ?? null };
+}

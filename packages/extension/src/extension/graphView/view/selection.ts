@@ -75,6 +75,10 @@ export function setGraphViewFocusedFile(
 
   if (previousFocusedFile !== filePath) {
     sendAvailableViews();
+    sendMessage({
+      type: 'ACTIVE_FILE_UPDATED',
+      payload: { filePath },
+    });
   }
 
   if (getActiveViewInfo(state._activeViewId)?.view.id === 'codegraphy.depth-graph') {

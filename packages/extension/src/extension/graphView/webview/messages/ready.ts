@@ -8,6 +8,7 @@ export interface GraphViewReadyState {
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
   folderNodeColor: string;
+  focusedFile: string | undefined;
   hasWorkspace: boolean;
   firstAnalysis: boolean;
   readyNotified: boolean;
@@ -26,6 +27,7 @@ export interface GraphViewReadyHandlers {
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginWebviewInjections(): void;
+  sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
   notifyWebviewReady(): void;
 }
@@ -72,6 +74,7 @@ export async function applyWebviewReady(
   handlers.sendDecorations();
   handlers.sendContextMenuItems();
   handlers.sendPluginWebviewInjections();
+  handlers.sendActiveFile();
 
   if (state.hasWorkspace && state.firstAnalysis) {
     await handlers.waitForFirstWorkspaceReady();

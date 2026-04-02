@@ -16,8 +16,9 @@ export function useAppState() {
   const activePanel = useGraphStore(s => s.activePanel);
   const nodeDecorations = useGraphStore(s => s.nodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
+  const activeFilePath = useGraphStore(s => s.activeFilePath);
 
-  return { graphData, isLoading, searchQuery, searchOptions, groups, showOrphans, timelineActive, activePanel, nodeDecorations, edgeDecorations };
+  return { graphData, isLoading, searchQuery, searchOptions, groups, showOrphans, timelineActive, activePanel, nodeDecorations, edgeDecorations, activeFilePath };
 }
 
 export function useAppActions() {

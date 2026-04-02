@@ -143,6 +143,7 @@ function resetStore(): void {
     nodeDecorations: {},
     edgeDecorations: {},
     maxFiles: 500,
+    activeFilePath: null,
   });
 }
 
@@ -555,6 +556,17 @@ describe('App behavior', () => {
     render(<App />);
 
     expect(screen.getByTestId('toolbar')).toBeInTheDocument();
+  });
+
+  it('renders the active file breadcrumb under the search bar', () => {
+    graphStore.setState({
+      graphData: { nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }], edges: [] },
+      activeFilePath: 'src/game/player.gd',
+    });
+
+    render(<App />);
+
+    expect(screen.getByRole('button', { name: 'Open src/game/player.gd' })).toBeInTheDocument();
   });
 
   it('keeps even top, left, and bottom padding around the toolbar rail', () => {

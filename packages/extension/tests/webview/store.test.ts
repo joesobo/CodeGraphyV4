@@ -146,6 +146,14 @@ describe('GraphStore', () => {
     expect(store.getState().maxFiles).toBe(1000);
   });
 
+  it('handles ACTIVE_FILE_UPDATED message', () => {
+    store.getState().handleExtensionMessage({
+      type: 'ACTIVE_FILE_UPDATED',
+      payload: { filePath: 'src/game/player.gd' },
+    });
+    expect(store.getState().activeFilePath).toBe('src/game/player.gd');
+  });
+
   it('setSearchQuery updates search query', () => {
     store.getState().setSearchQuery('test');
     expect(store.getState().searchQuery).toBe('test');

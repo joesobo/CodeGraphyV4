@@ -4,6 +4,7 @@ import { SearchBar } from '../components/searchBar/Field';
 import SettingsPanel from '../components/settingsPanel/Drawer';
 import PluginsPanel from '../components/plugins/Panel';
 import Toolbar from '../components/Toolbar';
+import { ActiveFileBreadcrumb } from '../components/activeFileBreadcrumb/view';
 import { useTheme } from '../theme/useTheme';
 import { usePluginManager } from '../pluginRuntime/useManager';
 import { useFilteredGraph } from '../search/useFilteredGraph';
@@ -15,7 +16,7 @@ import { useAppState, useAppActions } from './storeSelectors';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
-  const { graphData, isLoading, searchQuery, searchOptions, groups, showOrphans, activePanel, nodeDecorations, edgeDecorations } = useAppState();
+  const { graphData, isLoading, searchQuery, searchOptions, groups, showOrphans, activePanel, nodeDecorations, edgeDecorations, activeFilePath } = useAppState();
   const { setSearchQuery, setSearchOptions, setActivePanel } = useAppActions();
 
   const theme = useTheme();
@@ -48,6 +49,9 @@ export default function App(): React.ReactElement {
           placeholder="Search files... (Ctrl+F)"
           regexError={regexError}
         />
+        <div className="mt-1.5 min-h-5">
+          <ActiveFileBreadcrumb filePath={activeFilePath} />
+        </div>
       </div>
       <div className="flex-1 min-h-0 relative">
         <Graph
