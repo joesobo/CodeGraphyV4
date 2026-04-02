@@ -109,7 +109,11 @@ export class GitHistoryAnalyzer {
         analyzeFullCommit: (sha, abortSignal) => this._analyzeFullCommit(sha, abortSignal),
         getCommitList: (limit, abortSignal) => this.getCommitList(limit, abortSignal),
         persistCachedCommitState: (commits) =>
-          persistCachedCommitState(this._context.workspaceState, commits),
+          persistCachedCommitState(
+            this._context.workspaceState,
+            commits,
+            this._getPluginSignature(),
+          ),
         writeCachedGraphData: (sha, graphData) =>
           writeCachedGraphData(this._context.storageUri, sha, graphData),
       },
@@ -131,14 +135,14 @@ export class GitHistoryAnalyzer {
    * Checks whether a cached timeline exists in workspaceState.
    */
   hasCachedTimeline(): boolean {
-    return hasStoredTimeline(this._context.workspaceState);
+    return hasStoredTimeline(this._context.workspaceState, this._getPluginSignature());
   }
 
   /**
    * Returns the cached commit list from workspaceState, or null if none.
    */
   getCachedCommitList(): ICommitInfo[] | null {
-    return getStoredCommitList(this._context.workspaceState);
+    return getStoredCommitList(this._context.workspaceState, this._getPluginSignature());
   }
 
   // ---------------------------------------------------------------------------
@@ -214,5 +218,13 @@ export class GitHistoryAnalyzer {
       workspaceRoot: this._workspaceRoot,
       signal,
     });
+  }
+
+  private _getPluginSignature(): string {
+    return this._registry
+      .list()
+      .map(({ plugin }) => `${plugin.id}@${plugin.version}`)
+      .sort((left, right) => left.localeCompare(right))
+      .join('|');
   }
 }

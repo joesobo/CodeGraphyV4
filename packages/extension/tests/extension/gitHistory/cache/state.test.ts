@@ -31,42 +31,65 @@ describe('gitHistory/cache/state', () => {
   it('persists and clears cached commit state', async () => {
     const workspaceState = createWorkspaceState();
     const commits = [{ sha: 'abc', timestamp: 1, message: 'init', author: 'Dev', parents: [] }];
+    const pluginSignature = 'codegraphy.markdown@1.0.0|codegraphy.typescript@1.0.0';
 
-    await persistCachedCommitState(workspaceState, commits);
+    await persistCachedCommitState(workspaceState, commits, pluginSignature);
 
     expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineCommits', commits);
-    expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineCacheVersion', '1.1.0');
+    expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineCacheVersion', '1.2.0');
+    expect(workspaceState.update).toHaveBeenCalledWith(
+      'codegraphy.timelinePluginSignature',
+      pluginSignature,
+    );
 
     await clearCachedCommitState(workspaceState);
 
     expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineCommits', undefined);
     expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.timelineCacheVersion', undefined);
+    expect(workspaceState.update).toHaveBeenCalledWith(
+      'codegraphy.timelinePluginSignature',
+      undefined,
+    );
   });
 
-  it('reports timeline cache availability from the stored version', () => {
+  it('reports timeline cache availability from the stored version and plugin signature', () => {
     const workspaceState = createWorkspaceState();
+    const pluginSignature = 'codegraphy.markdown@1.0.0';
 
-    expect(hasCachedTimeline(workspaceState)).toBe(false);
+    expect(hasCachedTimeline(workspaceState, pluginSignature)).toBe(false);
 
-    workspaceState.store.set('codegraphy.timelineCacheVersion', '1.1.0');
-    expect(hasCachedTimeline(workspaceState)).toBe(true);
+    workspaceState.store.set('codegraphy.timelineCacheVersion', '1.2.0');
+    expect(hasCachedTimeline(workspaceState, pluginSignature)).toBe(false);
+
+    workspaceState.store.set('codegraphy.timelinePluginSignature', pluginSignature);
+    expect(hasCachedTimeline(workspaceState, pluginSignature)).toBe(true);
 
     workspaceState.store.set('codegraphy.timelineCacheVersion', '0.9.0');
-    expect(hasCachedTimeline(workspaceState)).toBe(false);
+    expect(hasCachedTimeline(workspaceState, pluginSignature)).toBe(false);
+
+    workspaceState.store.set('codegraphy.timelineCacheVersion', '1.2.0');
+    workspaceState.store.set('codegraphy.timelinePluginSignature', 'codegraphy.markdown@0.9.0');
+    expect(hasCachedTimeline(workspaceState, pluginSignature)).toBe(false);
   });
 
-  it('returns cached commits only when the cache version matches', () => {
+  it('returns cached commits only when the cache version and plugin signature match', () => {
     const workspaceState = createWorkspaceState();
     const commits = [{ sha: 'abc', timestamp: 1, message: 'init', author: 'Dev', parents: [] }];
+    const pluginSignature = 'codegraphy.markdown@1.0.0';
 
-    expect(getCachedCommitList(workspaceState)).toBeNull();
+    expect(getCachedCommitList(workspaceState, pluginSignature)).toBeNull();
 
     workspaceState.store.set('codegraphy.timelineCommits', commits);
     workspaceState.store.set('codegraphy.timelineCacheVersion', '0.9.0');
-    expect(getCachedCommitList(workspaceState)).toBeNull();
+    workspaceState.store.set('codegraphy.timelinePluginSignature', pluginSignature);
+    expect(getCachedCommitList(workspaceState, pluginSignature)).toBeNull();
 
-    workspaceState.store.set('codegraphy.timelineCacheVersion', '1.1.0');
+    workspaceState.store.set('codegraphy.timelineCacheVersion', '1.2.0');
+    workspaceState.store.set('codegraphy.timelinePluginSignature', 'codegraphy.markdown@0.9.0');
+    expect(getCachedCommitList(workspaceState, pluginSignature)).toBeNull();
 
-    expect(getCachedCommitList(workspaceState)).toEqual(commits);
+    workspaceState.store.set('codegraphy.timelinePluginSignature', pluginSignature);
+
+    expect(getCachedCommitList(workspaceState, pluginSignature)).toEqual(commits);
   });
 });
