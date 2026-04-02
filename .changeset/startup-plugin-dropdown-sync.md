@@ -2,4 +2,4 @@
 "@codegraphy/extension": patch
 ---
 
-Load installed CodeGraphy plugins before the first graph analysis so the Plugins panel shows external plugins and their rules as soon as the sidebar opens.
+Load installed CodeGraphy plugins before the first graph analysis so external plugins, rules, and timeline connections are available as soon as the sidebar opens.
