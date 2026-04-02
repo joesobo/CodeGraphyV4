@@ -14,41 +14,39 @@ describe('extension/pluginActivation/installed', () => {
         activate: vi.fn(),
       },
       {
-        id: 'codegraphy.typescript',
+        id: 'codegraphy.codegraphy-typescript',
         isActive: false,
         packageJSON: { extensionDependencies: ['codegraphy.codegraphy'] },
         activate: vi.fn(),
       },
       {
-        id: 'theme.example',
+        id: 'someone.else',
         isActive: false,
-        packageJSON: { extensionDependencies: [] },
+        packageJSON: { extensionDependencies: ['other.extension'] },
         activate: vi.fn(),
       },
     ];
 
-    expect(
-      getInstalledCodeGraphyPluginExtensions(extensions, 'codegraphy.codegraphy').map(
-        extension => extension.id,
-      ),
-    ).toEqual(['codegraphy.typescript']);
+    expect(getInstalledCodeGraphyPluginExtensions(extensions, 'codegraphy.codegraphy')).toEqual([
+      extensions[1],
+    ]);
   });
 
   it('activates inactive dependent extensions and ignores failures', async () => {
     const activeExtension = {
-      id: 'codegraphy.python',
+      id: 'codegraphy.codegraphy-python',
       isActive: true,
       packageJSON: { extensionDependencies: ['codegraphy.codegraphy'] },
       activate: vi.fn(),
     };
     const inactiveExtension = {
-      id: 'codegraphy.gdscript',
+      id: 'codegraphy.codegraphy-godot',
       isActive: false,
       packageJSON: { extensionDependencies: ['codegraphy.codegraphy'] },
       activate: vi.fn(async () => undefined),
     };
     const failingExtension = {
-      id: 'codegraphy.csharp',
+      id: 'codegraphy.codegraphy-csharp',
       isActive: false,
       packageJSON: { extensionDependencies: ['codegraphy.codegraphy'] },
       activate: vi.fn(async () => {
@@ -67,7 +65,7 @@ describe('extension/pluginActivation/installed', () => {
     expect(inactiveExtension.activate).toHaveBeenCalledOnce();
     expect(failingExtension.activate).toHaveBeenCalledOnce();
     expect(logError).toHaveBeenCalledWith(
-      '[CodeGraphy] Failed to activate dependent extension codegraphy.csharp:',
+      '[CodeGraphy] Failed to activate dependent extension codegraphy.codegraphy-csharp:',
       expect.any(Error),
     );
   });
