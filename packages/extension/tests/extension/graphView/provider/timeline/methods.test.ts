@@ -56,7 +56,9 @@ describe('graphView/provider/timeline methods', () => {
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(),
       _disabledRules: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _applyViewTransform: vi.fn(),
       _sendMessage: vi.fn(),
       _openFile: vi.fn(async () => undefined),
     };
@@ -91,6 +93,57 @@ describe('graphView/provider/timeline methods', () => {
     expect(sendCachedTimeline).toHaveBeenCalledWith(source);
   });
 
+  it('waits for the first workspace-ready pass before indexing timeline history', async () => {
+    let resolveFirstWorkspaceReady!: () => void;
+    const firstWorkspaceReadyPromise = new Promise<void>((resolve) => {
+      resolveFirstWorkspaceReady = resolve;
+    });
+    const source = {
+      _context: {} as never,
+      _analyzer: undefined,
+      _analyzerInitialized: false,
+      _gitAnalyzer: undefined,
+      _indexingController: undefined,
+      _filterPatterns: [],
+      _timelineActive: false,
+      _currentCommitSha: undefined,
+      _disabledPlugins: new Set<string>(),
+      _disabledRules: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _applyViewTransform: vi.fn(),
+      _sendMessage: vi.fn(),
+      _openFile: vi.fn(async () => undefined),
+      _firstWorkspaceReadyPromise: firstWorkspaceReadyPromise,
+    };
+    const indexRepository = vi.fn(async () => undefined);
+    const methods = createGraphViewProviderTimelineMethods(source as never, {
+      indexRepository,
+      jumpToCommit: vi.fn(async () => undefined),
+      resetTimeline: vi.fn(async () => undefined),
+      openNodeInEditor: vi.fn(async () => undefined),
+      previewFileAtCommit: vi.fn(async () => undefined),
+      sendCachedTimeline: vi.fn(),
+      sendPlaybackSpeed: vi.fn(),
+      invalidateTimelineCache: vi.fn(async () => undefined),
+      getPlaybackSpeed: vi.fn(() => 1),
+      getWorkspaceFolder: vi.fn(),
+      openTextDocument: vi.fn(),
+      showTextDocument: vi.fn(),
+      logError: vi.fn(),
+    });
+
+    const indexing = methods._indexRepository();
+
+    await Promise.resolve();
+    expect(indexRepository).not.toHaveBeenCalled();
+
+    resolveFirstWorkspaceReady();
+    await indexing;
+
+    expect(indexRepository).toHaveBeenCalledWith(source);
+  });
+
   it('opens timeline nodes with the correct editor behavior', async () => {
     const openNodeInEditor = vi.fn(async () => undefined);
     const methods = createGraphViewProviderTimelineMethods({
@@ -104,7 +157,9 @@ describe('graphView/provider/timeline methods', () => {
       _currentCommitSha: 'sha-1',
       _disabledPlugins: new Set<string>(),
       _disabledRules: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] },
       _graphData: { nodes: [], edges: [] },
+      _applyViewTransform: vi.fn(),
       _sendMessage: vi.fn(),
       _openFile: vi.fn(async () => undefined),
     } as never, {
@@ -160,7 +215,9 @@ describe('graphView/provider/timeline methods', () => {
       _currentCommitSha: 'sha-1',
       _disabledPlugins: new Set<string>(),
       _disabledRules: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _applyViewTransform: vi.fn(),
       _sendMessage: vi.fn(),
       _openFile: vi.fn(async () => undefined),
     };
@@ -196,7 +253,9 @@ describe('graphView/provider/timeline methods', () => {
       _currentCommitSha: 'sha-1',
       _disabledPlugins: new Set<string>(),
       _disabledRules: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _applyViewTransform: vi.fn(),
       _sendMessage: vi.fn(),
       _openFile: vi.fn(async () => undefined),
     };
@@ -240,7 +299,9 @@ describe('graphView/provider/timeline methods', () => {
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(),
       _disabledRules: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] },
       _graphData: { nodes: [], edges: [] },
+      _applyViewTransform: vi.fn(),
       _sendMessage: vi.fn(),
       _openFile: vi.fn(async () => undefined),
     } as never, {
@@ -290,7 +351,9 @@ describe('graphView/provider/timeline methods', () => {
       _currentCommitSha: 'sha-1',
       _disabledPlugins: new Set<string>(),
       _disabledRules: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _applyViewTransform: vi.fn(),
       _sendMessage: sendMessage,
       _openFile: vi.fn(async () => undefined),
     };
@@ -350,7 +413,9 @@ describe('graphView/provider/timeline methods', () => {
       _currentCommitSha: 'sha-1',
       _disabledPlugins: new Set<string>(),
       _disabledRules: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _applyViewTransform: vi.fn(),
       _sendMessage: vi.fn(),
       _openFile: vi.fn(async () => undefined),
     };
