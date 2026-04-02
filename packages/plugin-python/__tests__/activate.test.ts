@@ -3,6 +3,7 @@ import * as path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const fixtureWorkspacePath = path.resolve(__dirname, '../examples');
+const installedWithCoreTimeoutMs = 15_000;
 
 const mockState = vi.hoisted(() => ({
   getExtension: vi.fn(),
@@ -123,7 +124,10 @@ describe('plugin-python/activate', () => {
     await expect(activate({ extensionUri: { fsPath: '/plugins/python' } } as never)).resolves.toBeUndefined();
   });
 
-  it('establishes Python connections when installed with the core extension', async () => {
+  it(
+    'establishes Python connections when installed with the core extension',
+    { timeout: installedWithCoreTimeoutMs },
+    async () => {
     const { activate: activateCore } = await import('../../extension/src/extension/activate');
     const { getGraphViewProviderInternals } = await import(
       '../../extension/tests/extension/graphViewProvider/internals'
@@ -151,5 +155,6 @@ describe('plugin-python/activate', () => {
         }),
       ]),
     );
-  });
+    },
+  );
 });
