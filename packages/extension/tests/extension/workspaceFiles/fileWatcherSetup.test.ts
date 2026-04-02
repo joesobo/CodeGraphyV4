@@ -24,6 +24,11 @@ function makeContext() {
 describe('registerEditorChangeHandler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (
+      vscode.window as unknown as {
+        activeTextEditor: unknown;
+      }
+    ).activeTextEditor = undefined;
   });
 
   it('adds a subscription to the context', () => {
@@ -38,19 +43,22 @@ describe('registerEditorChangeHandler', () => {
   it('tracks file visit and sets focused file for workspace-relative files', async () => {
     const context = makeContext();
     const provider = makeProvider();
+    let listener: ((editor: unknown) => Promise<void>) | undefined;
 
     (vscode.workspace as unknown as { workspaceFolders: unknown[] }).workspaceFolders = [
       { uri: { fsPath: '/workspace' } },
     ];
+    vi.mocked(vscode.window.onDidChangeActiveTextEditor).mockImplementation((callback) => {
+      listener = callback as (editor: unknown) => Promise<void>;
+      return { dispose: vi.fn() } as unknown as vscode.Disposable;
+    });
 
     registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    provider.trackFileVisit.mockClear();
+    provider.setFocusedFile.mockClear();
+    provider.emitEvent.mockClear();
 
-    const mock = vscode.window.onDidChangeActiveTextEditor as unknown as {
-      mock: { calls: unknown[][] };
-    };
-    const listener = mock.mock.calls[0]?.[0] as (editor: unknown) => Promise<void>;
-
-    await listener({
+    await listener!({
       document: {
         uri: { scheme: 'file', fsPath: '/workspace/src/app.ts' },
       },
@@ -63,22 +71,52 @@ describe('registerEditorChangeHandler', () => {
     });
   });
 
-  it('does not track files outside the workspace', async () => {
+  it('seeds the current active editor when registering the listener', async () => {
     const context = makeContext();
     const provider = makeProvider();
 
     (vscode.workspace as unknown as { workspaceFolders: unknown[] }).workspaceFolders = [
       { uri: { fsPath: '/workspace' } },
     ];
+    (
+      vscode.window as unknown as {
+        activeTextEditor: { document: { uri: { scheme: string; fsPath: string } } } | undefined;
+      }
+    ).activeTextEditor = {
+      document: {
+        uri: { scheme: 'file', fsPath: '/workspace/src/game/player.gd' },
+      },
+    };
 
     registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    await Promise.resolve();
 
-    const mock = vscode.window.onDidChangeActiveTextEditor as unknown as {
-      mock: { calls: unknown[][] };
-    };
-    const listener = mock.mock.calls[0]?.[0] as (editor: unknown) => Promise<void>;
+    expect(provider.trackFileVisit).toHaveBeenCalledWith('src/game/player.gd');
+    expect(provider.setFocusedFile).toHaveBeenCalledWith('src/game/player.gd');
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
+      filePath: 'src/game/player.gd',
+    });
+  });
 
-    await listener({
+  it('does not track files outside the workspace', async () => {
+    const context = makeContext();
+    const provider = makeProvider();
+    let listener: ((editor: unknown) => Promise<void>) | undefined;
+
+    (vscode.workspace as unknown as { workspaceFolders: unknown[] }).workspaceFolders = [
+      { uri: { fsPath: '/workspace' } },
+    ];
+    vi.mocked(vscode.window.onDidChangeActiveTextEditor).mockImplementation((callback) => {
+      listener = callback as (editor: unknown) => Promise<void>;
+      return { dispose: vi.fn() } as unknown as vscode.Disposable;
+    });
+
+    registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    provider.trackFileVisit.mockClear();
+    provider.setFocusedFile.mockClear();
+    provider.emitEvent.mockClear();
+
+    await listener!({
       document: {
         uri: { scheme: 'file', fsPath: '/other-project/src/app.ts' },
       },

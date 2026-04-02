@@ -11,6 +11,7 @@ import {
   handleDirectionSettingsUpdated,
   handleShowLabelsUpdated,
   handleMaxFilesUpdated,
+  handleActiveFileUpdated,
 } from './messageHandlers/graph';
 import {
   handleIndexProgress,
@@ -66,6 +67,8 @@ export const MESSAGE_HANDLERS: Record<
     handlePluginsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLUGINS_UPDATED' }>),
   MAX_FILES_UPDATED: (msg) =>
     handleMaxFilesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'MAX_FILES_UPDATED' }>),
+  ACTIVE_FILE_UPDATED: (msg) =>
+    handleActiveFileUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'ACTIVE_FILE_UPDATED' }>),
   INDEX_PROGRESS: (msg) =>
     handleIndexProgress(msg as Extract<ExtensionToWebviewMessage, { type: 'INDEX_PROGRESS' }>),
   TIMELINE_DATA: (msg) =>

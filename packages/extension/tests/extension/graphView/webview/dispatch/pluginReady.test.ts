@@ -16,6 +16,7 @@ function createContext(
     getDagMode: vi.fn(() => 'td' as DagMode),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
     getFolderNodeColor: vi.fn(() => '#111111'),
+    getFocusedFile: vi.fn(() => undefined),
     hasWorkspace: vi.fn(() => false),
     isFirstAnalysis: vi.fn(() => false),
     isWebviewReadyNotified: vi.fn(() => false),
@@ -31,6 +32,7 @@ function createContext(
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
+    sendActiveFile: vi.fn(),
     waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),
     notifyWebviewReady: vi.fn(),
     ...overrides,
@@ -55,6 +57,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
     expect(context.sendDecorations).toHaveBeenCalledOnce();
     expect(context.sendContextMenuItems).toHaveBeenCalledOnce();
     expect(context.sendPluginWebviewInjections).toHaveBeenCalledOnce();
+    expect(context.sendActiveFile).toHaveBeenCalledOnce();
     expect(context.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(context.sendMessage).toHaveBeenCalledWith({
       type: 'FILTER_PATTERNS_UPDATED',
