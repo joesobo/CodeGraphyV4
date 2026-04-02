@@ -91,6 +91,7 @@ describe('graph view analysis execution', () => {
     const { handlers } = createHandlers({
       isAnalysisStale: vi.fn()
         .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false)
         .mockReturnValueOnce(true),
     });
 
@@ -213,6 +214,7 @@ describe('graph view analysis execution', () => {
     });
     const { handlers } = createHandlers({
       isAnalysisStale: vi.fn()
+        .mockReturnValueOnce(false)
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(false)
         .mockReturnValueOnce(true),
