@@ -45,6 +45,7 @@ describe('app store selectors', () => {
       showOrphans: false,
       timelineActive: true,
       activePanel: 'plugins',
+      activeFilePath: null,
       nodeDecorations: { 'src/app.ts': { badge: { text: 'A' } } },
       edgeDecorations: { edge1: { opacity: 0.5 } },
     });
