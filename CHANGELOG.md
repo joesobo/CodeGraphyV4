@@ -4,6 +4,12 @@ All notable changes to CodeGraphy will be documented in this file.
 
 This project uses [Changesets](https://github.com/changesets/changesets) for versioning.
 
+## 4.1.2
+
+### Patch Changes
+
+- Load installed CodeGraphy plugins before the first graph analysis so external plugins, rules, and timeline connections are available as soon as the sidebar opens.
+
 ## 4.1.1
 
 ### Patch Changes
