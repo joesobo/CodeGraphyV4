@@ -48,6 +48,7 @@ export interface GraphViewProviderPluginMethodsSource {
     uri: vscode.Uri | string | undefined,
   ): vscode.Uri | undefined;
   _sendMessage(message: ExtensionToWebviewMessage): void;
+  _invalidateTimelineCache(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
 }
 
@@ -174,6 +175,7 @@ export function createGraphViewProviderPluginMethods(
         sendPluginStatuses: () => _sendPluginStatuses(),
         sendContextMenuItems: () => _sendContextMenuItems(),
         sendPluginWebviewInjections: () => _sendPluginWebviewInjections(),
+        invalidateTimelineCache: () => source._invalidateTimelineCache(),
         analyzeAndSendData: () => source._analyzeAndSendData(),
       },
     );

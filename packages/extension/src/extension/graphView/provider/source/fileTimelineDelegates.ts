@@ -24,6 +24,7 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
   | '_indexRepository'
   | '_jumpToCommit'
   | '_resetTimeline'
+  | '_invalidateTimelineCache'
   | '_openSelectedNode'
   | '_activateNode'
   | '_previewFileAtCommit'
@@ -45,6 +46,7 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
     _indexRepository: () => owner._methodContainers.timeline._indexRepository(),
     _jumpToCommit: sha => owner._methodContainers.timeline._jumpToCommit(sha),
     _resetTimeline: () => owner._methodContainers.timeline._resetTimeline(),
+    _invalidateTimelineCache: () => owner._methodContainers.timeline.invalidateTimelineCache(),
     _openSelectedNode: nodeId => owner._methodContainers.timeline._openSelectedNode(nodeId),
     _activateNode: nodeId => owner._methodContainers.timeline._activateNode(nodeId),
     _previewFileAtCommit: (sha, filePath, behavior?: EditorOpenBehavior) =>
