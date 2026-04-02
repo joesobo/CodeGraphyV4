@@ -17,6 +17,7 @@ export interface GraphViewPluginMessageContext {
   getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
   getFolderNodeColor(): string;
+  getFocusedFile(): string | undefined;
   hasWorkspace(): boolean;
   isFirstAnalysis(): boolean;
   isWebviewReadyNotified(): boolean;
@@ -34,6 +35,7 @@ export interface GraphViewPluginMessageContext {
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginWebviewInjections(): void;
+  sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
   notifyWebviewReady(): void;
   getInteractionPluginApi(pluginId: string):

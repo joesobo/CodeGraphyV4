@@ -12,6 +12,7 @@ export interface GraphViewPluginReadyContext {
   getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
   getFolderNodeColor(): string;
+  getFocusedFile(): string | undefined;
   hasWorkspace(): boolean;
   isFirstAnalysis(): boolean;
   isWebviewReadyNotified(): boolean;
@@ -27,6 +28,7 @@ export interface GraphViewPluginReadyContext {
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginWebviewInjections(): void;
+  sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
   notifyWebviewReady(): void;
 }
@@ -40,13 +42,14 @@ export async function dispatchGraphViewPluginReadyMessage(
       filterPatterns: context.getFilterPatterns(),
       pluginFilterPatterns: context.getPluginFilterPatterns(),
       maxFiles: context.getMaxFiles(),
-      playbackSpeed: context.getPlaybackSpeed(),
-      dagMode: context.getDagMode(),
-      nodeSizeMode: context.getNodeSizeMode(),
-      folderNodeColor: context.getFolderNodeColor(),
-      hasWorkspace: context.hasWorkspace(),
-      firstAnalysis: context.isFirstAnalysis(),
-      readyNotified: context.isWebviewReadyNotified(),
+        playbackSpeed: context.getPlaybackSpeed(),
+        dagMode: context.getDagMode(),
+        nodeSizeMode: context.getNodeSizeMode(),
+        folderNodeColor: context.getFolderNodeColor(),
+        focusedFile: context.getFocusedFile(),
+        hasWorkspace: context.hasWorkspace(),
+        firstAnalysis: context.isFirstAnalysis(),
+        readyNotified: context.isWebviewReadyNotified(),
     },
     {
       loadGroupsAndFilterPatterns: () => context.loadGroupsAndFilterPatterns(),
@@ -61,6 +64,7 @@ export async function dispatchGraphViewPluginReadyMessage(
       sendDecorations: () => context.sendDecorations(),
       sendContextMenuItems: () => context.sendContextMenuItems(),
       sendPluginWebviewInjections: () => context.sendPluginWebviewInjections(),
+      sendActiveFile: () => context.sendActiveFile(),
       waitForFirstWorkspaceReady: () => context.waitForFirstWorkspaceReady(),
       notifyWebviewReady: () => context.notifyWebviewReady(),
     },

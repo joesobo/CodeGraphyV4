@@ -27,6 +27,7 @@ type GraphViewProviderPluginContext = Pick<
   | 'sendDecorations'
   | 'sendContextMenuItems'
   | 'sendPluginWebviewInjections'
+  | 'sendActiveFile'
   | 'waitForFirstWorkspaceReady'
   | 'notifyWebviewReady'
   | 'getInteractionPluginApi'
@@ -57,6 +58,10 @@ export function createGraphViewProviderMessagePluginContext(
     sendDecorations: () => source._sendDecorations(),
     sendContextMenuItems: () => source._sendContextMenuItems(),
     sendPluginWebviewInjections: () => source._sendPluginWebviewInjections(),
+    sendActiveFile: () => source._sendMessage({
+      type: 'ACTIVE_FILE_UPDATED',
+      payload: { filePath: source._viewContext.focusedFile },
+    }),
     waitForFirstWorkspaceReady: () => source._firstWorkspaceReadyPromise,
     notifyWebviewReady: () => source._analyzer?.registry?.notifyWebviewReady(),
     getInteractionPluginApi: pluginId =>

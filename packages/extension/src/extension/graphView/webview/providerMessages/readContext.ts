@@ -15,6 +15,7 @@ type GraphViewProviderReadContext = Pick<
   | 'getFilterPatterns'
   | 'getGraphData'
   | 'getViewContext'
+  | 'getFocusedFile'
   | 'workspaceFolder'
   | 'findNode'
   | 'findEdge'
@@ -34,6 +35,7 @@ export function createGraphViewProviderMessageReadContext(
     getFilterPatterns: () => source._filterPatterns,
     getGraphData: () => source._graphData,
     getViewContext: () => source._viewContext,
+    getFocusedFile: () => source._viewContext.focusedFile,
     workspaceFolder: dependencies.workspace.workspaceFolders?.[0],
     findNode: targetId => source._graphData.nodes.find(node => node.id === targetId),
     findEdge: targetId => source._graphData.edges.find(edge => edge.id === targetId),
