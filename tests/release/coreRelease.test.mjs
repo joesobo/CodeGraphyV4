@@ -44,7 +44,6 @@ test('collectCoreReleaseEntries collapses packaged directories and preserves exp
       'docs/**',
       'packages/plugin-markdown/codegraphy.json',
       'README.md',
-      'CHANGELOG.md',
     ],
   });
 
@@ -54,7 +53,6 @@ test('collectCoreReleaseEntries collapses packaged directories and preserves exp
     'docs',
     'packages/plugin-markdown/codegraphy.json',
     'README.md',
-    'CHANGELOG.md',
   ]);
 });
 

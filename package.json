@@ -69,7 +69,6 @@
 		"docs/**",
 		"packages/plugin-markdown/codegraphy.json",
 		"README.md",
-		"CHANGELOG.md",
 		"CONTRIBUTING.md",
 		"LICENSE"
 	],

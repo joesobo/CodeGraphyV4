@@ -43,21 +43,6 @@ test('pending changesets only reference workspace packages', () => {
   }
 });
 
-test('root changelog stays aligned with the published extension version', () => {
-  const extensionPackageJson = JSON.parse(
-    readFileSync(path.join(repoRoot, 'packages', 'extension', 'package.json'), 'utf8'),
-  );
-  const changelog = readFileSync(path.join(repoRoot, 'CHANGELOG.md'), 'utf8');
-  const topVersion = changelog.match(/^##\s+([0-9]+\.[0-9]+\.[0-9]+)/m)?.[1];
-
-  assert.ok(topVersion, 'expected CHANGELOG.md to start with a version heading');
-  assert.equal(
-    topVersion,
-    extensionPackageJson.version,
-    'expected CHANGELOG.md top version to match packages/extension/package.json version',
-  );
-});
-
 test('extension changelog stays aligned with the published extension version', () => {
   const extensionPackageJson = JSON.parse(
     readFileSync(path.join(repoRoot, 'packages', 'extension', 'package.json'), 'utf8'),

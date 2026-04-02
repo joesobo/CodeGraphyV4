@@ -21,8 +21,6 @@ pnpm run version-packages
 
 The repo-root [`package.json`](../package.json) is workspace metadata for the monorepo and stays pinned. The core Marketplace extension release version comes from [`packages/extension/package.json`](../packages/extension/package.json), while the root manifest still provides the marketplace metadata and packaged file list for `core` releases.
 
-If the core Marketplace extension changed, keep the top entries in [`CHANGELOG.md`](../CHANGELOG.md) and [`packages/extension/CHANGELOG.md`](../packages/extension/CHANGELOG.md) aligned with [`packages/extension/package.json`](../packages/extension/package.json).
-
 Run the full release gate first:
 
 ```bash
@@ -72,7 +70,7 @@ vsce verify-pat codegraphy
 5. Run `pnpm install`.
 6. Add changesets only for unreleased user-facing workspace packages. Archive shipped changesets under [`docs/archive/changesets/`](./archive/changesets/).
 7. Run `pnpm run version-packages`.
-8. If the core Marketplace extension changed, verify `packages/extension/package.json` has the release version and that `CHANGELOG.md` plus `packages/extension/CHANGELOG.md` have matching top entries.
+8. If the core Marketplace extension changed, verify `packages/extension/package.json` and [`packages/extension/CHANGELOG.md`](../packages/extension/CHANGELOG.md) have matching top entries.
 9. Commit the generated version and changelog updates.
 10. Run `pnpm run release:check`.
 11. Publish `@codegraphy-vscode/plugin-api` with `pnpm run release:publish plugin-api`.
