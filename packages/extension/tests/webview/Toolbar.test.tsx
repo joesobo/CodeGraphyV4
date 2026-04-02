@@ -84,6 +84,28 @@ describe('Toolbar', () => {
       expect(screen.getByTitle('Refresh Graph').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
       expect(screen.getByTitle('Settings').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
     });
+
+    it('renders a collapse toggle at the bottom of the top toolbar group', () => {
+      const { container } = render(<Toolbar />);
+      const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
+      const collapseTrigger = screen.getByTitle('Collapse Toolbar');
+
+      expect(collapseTrigger.closest('[data-testid="toolbar-top-group"]')).toBe(topGroup);
+      expect(topGroup?.lastElementChild).toBe(collapseTrigger);
+    });
+
+    it('collapses only the top toolbar controls and keeps the bottom actions visible', () => {
+      const { container } = render(<Toolbar />);
+      const controls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
+
+      fireEvent.click(screen.getByTitle('Collapse Toolbar'));
+
+      expect(screen.getByTitle('Expand Toolbar')).toBeTruthy();
+      expect(controls?.className).toContain('max-h-0');
+      expect(controls?.className).toContain('opacity-0');
+      expect(screen.getByTitle('Refresh Graph')).toBeTruthy();
+      expect(screen.getByTitle('Settings')).toBeTruthy();
+    });
   });
 
   describe('view buttons', () => {
@@ -187,8 +209,10 @@ describe('Toolbar', () => {
     it('does not render a depth-slider placeholder when depth view is not active', () => {
       const { container } = render(<Toolbar />);
       const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
+      const controls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
       expect(screen.queryByTestId('depth-slider')).toBeNull();
-      expect(topGroup?.firstElementChild?.getAttribute('data-testid')).toBe('view-buttons');
+      expect(topGroup?.querySelector('[data-testid="view-buttons"]')).toBeTruthy();
+      expect(controls?.className).not.toContain('max-h-0');
     });
 
     it('is visible when depth view is active', () => {
