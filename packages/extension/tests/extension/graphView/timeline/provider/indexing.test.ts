@@ -31,7 +31,9 @@ describe('graph view provider timeline indexing', () => {
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(),
       _disabledRules: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _applyViewTransform: vi.fn(),
       _sendMessage: vi.fn(),
       ...overrides,
     };
@@ -215,9 +217,23 @@ describe('graph view provider timeline indexing', () => {
     expect(source._currentCommitSha).toBe('abc123');
   });
 
-  it('builds commit graph data and stores the active commit on jump', async () => {
+  it('stores the commit graph as the raw source and reapplies the current view on jump', async () => {
     const sendMessage = vi.fn();
-    const graphData = { nodes: [createGraphNode('src/index.ts')], edges: [] } satisfies IGraphData;
+    const rawTimelineGraph = {
+      nodes: [createGraphNode('src/index.ts')],
+      edges: [],
+    } satisfies IGraphData;
+    const transformedGraph = {
+      nodes: [createGraphNode('folder/src')],
+      edges: [],
+    } satisfies IGraphData;
+    const applyViewTransform = vi.fn(function applyViewTransform(this: {
+      _rawGraphData: IGraphData;
+      _graphData: IGraphData;
+    }) {
+      expect(this._rawGraphData).toBe(rawTimelineGraph);
+      this._graphData = transformedGraph;
+    });
     const source = {
       _analyzer: { registry: { kind: 'registry' } } as never,
       _gitAnalyzer: {
@@ -226,22 +242,26 @@ describe('graph view provider timeline indexing', () => {
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(['plugin.test']),
       _disabledRules: new Set<string>(['rule.test']),
+      _rawGraphData: { nodes: [createGraphNode('live.ts')], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _applyViewTransform: applyViewTransform,
       _sendMessage: sendMessage,
     };
     const deps = {
       getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
       getShowOrphans: vi.fn(() => false),
-      buildTimelineGraphData: vi.fn(() => graphData),
+      buildTimelineGraphData: vi.fn(() => rawTimelineGraph),
     };
 
     await jumpGraphViewProviderToCommit(source as never, 'sha-1', deps as never);
 
     expect(source._currentCommitSha).toBe('sha-1');
-    expect(source._graphData).toBe(graphData);
+    expect(source._rawGraphData).toBe(rawTimelineGraph);
+    expect(source._graphData).toBe(transformedGraph);
+    expect(applyViewTransform).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'COMMIT_GRAPH_DATA',
-      payload: { sha: 'sha-1', graphData },
+      payload: { sha: 'sha-1', graphData: transformedGraph },
     } satisfies ExtensionToWebviewMessage);
   });
 

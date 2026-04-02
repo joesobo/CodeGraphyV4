@@ -33,11 +33,14 @@ export interface GraphViewProviderTimelineMethodsSource
     | '_currentCommitSha'
     | '_disabledPlugins'
     | '_disabledRules'
+    | '_rawGraphData'
     | '_graphData'
+    | '_applyViewTransform'
     | '_sendMessage'
     >,
     '_gitAnalyzer'
   > {
+  _firstWorkspaceReadyPromise?: Promise<void>;
   _gitAnalyzer?: GraphViewProviderTimelineSource['_gitAnalyzer'] & {
     invalidateCache(): PromiseLike<void>;
     getCachedCommitList(): ICommitInfo[] | null | undefined;
@@ -219,6 +222,7 @@ export function createGraphViewProviderTimelineMethods(
   };
 
   const _indexRepository = async (): Promise<void> => {
+    await source._firstWorkspaceReadyPromise;
     await dependencies.indexRepository(source);
   };
 

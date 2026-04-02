@@ -26,6 +26,14 @@ function createState(
   };
 }
 
+async function flushPluginRegistration(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+}
+
 describe('graphView/webview/plugins/registration', () => {
   it('ignores plugin registrations when the plugin value is not an object', () => {
     const state = createState();
@@ -107,8 +115,7 @@ describe('graphView/webview/plugins/registration', () => {
       },
     );
 
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushPluginRegistration();
 
     expect(state.pluginExtensionUris.get('plugin.test')?.fsPath).toBe('/test/external-extension');
     expect(state.analyzer?.registry.register).toHaveBeenCalledWith(plugin, {
@@ -155,8 +162,7 @@ describe('graphView/webview/plugins/registration', () => {
       },
     );
 
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushPluginRegistration();
 
     expect(state.analyzer?.registry.register).toHaveBeenCalledWith(expect.any(Object), {
       deferReadinessReplay: true,
@@ -194,8 +200,7 @@ describe('graphView/webview/plugins/registration', () => {
       },
     );
 
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushPluginRegistration();
 
     expect(state.analyzer?.registry.register).toHaveBeenCalledWith(expect.any(Object), {
       deferReadinessReplay: true,
@@ -238,8 +243,7 @@ describe('graphView/webview/plugins/registration', () => {
       },
     );
 
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushPluginRegistration();
 
     expect(state.analyzer?.registry.initializePlugin).not.toHaveBeenCalled();
     expect(refreshWebviewResourceRoots).toHaveBeenCalledOnce();
@@ -312,12 +316,51 @@ describe('graphView/webview/plugins/registration', () => {
 
     resolveAnalyzerInit?.();
     await analyzerInitPromise;
-    await Promise.resolve();
-    await Promise.resolve();
+    await flushPluginRegistration();
 
     expect(initializePlugin).toHaveBeenCalledWith('plugin.test', '/test/workspace');
     expect(replayReadinessForPlugin).toHaveBeenCalledWith('plugin.test');
     expect(analyzeAndSendData).toHaveBeenCalledOnce();
+  });
+
+  it('invalidates cached timeline history after registering an external plugin', async () => {
+    const invalidateTimelineCache = vi.fn(async () => undefined);
+    const analyzeAndSendData = vi.fn(async () => undefined);
+    const state = createState({
+      firstAnalysis: false,
+      readyNotified: true,
+    });
+
+    registerGraphViewExternalPlugin(
+      {
+        id: 'plugin.test',
+        name: 'Plugin',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        detectConnections: async () => [],
+      },
+      undefined,
+      state,
+      {
+        normalizeExtensionUri: () => undefined,
+        getWorkspaceRoot: () => '/test/workspace',
+        refreshWebviewResourceRoots: vi.fn(),
+        sendPluginStatuses: vi.fn(),
+        sendContextMenuItems: vi.fn(),
+        sendPluginWebviewInjections: vi.fn(),
+        invalidateTimelineCache,
+        analyzeAndSendData,
+      },
+    );
+
+    await flushPluginRegistration();
+
+    expect(invalidateTimelineCache).toHaveBeenCalledOnce();
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(invalidateTimelineCache.mock.invocationCallOrder[0]).toBeLessThan(
+      analyzeAndSendData.mock.invocationCallOrder[0],
+    );
   });
 
   it('ignores invalid plugin registrations when there is no analyzer or plugin id', () => {

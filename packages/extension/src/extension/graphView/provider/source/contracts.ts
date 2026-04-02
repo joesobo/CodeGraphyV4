@@ -71,6 +71,7 @@ export interface GraphViewProviderMethodSourceOwner {
   _webviewReadyNotified: boolean;
   _indexingController?: AbortController;
   _pluginExtensionUris: Map<string, vscode.Uri>;
+  _installedPluginActivationPromise?: Promise<void>;
   _extensionUri: vscode.Uri;
   _context: vscode.ExtensionContext;
   _methodContainers: GraphViewProviderMethodContainers;
