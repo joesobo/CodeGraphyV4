@@ -41,6 +41,9 @@ export function createGraphViewProviderAnalysisState(
     set analyzerInitPromise(promise) {
       source._analyzerInitPromise = promise;
     },
+    get installedPluginActivationPromise() {
+      return source._installedPluginActivationPromise;
+    },
     get filterPatterns() {
       return source._filterPatterns;
     },

@@ -43,6 +43,7 @@ const READONLY_STATE_KEYS = [
   '_decorationManager',
   '_firstWorkspaceReadyPromise',
   '_pluginExtensionUris',
+  '_installedPluginActivationPromise',
   '_extensionUri',
   '_context',
 ] as const satisfies readonly Extract<

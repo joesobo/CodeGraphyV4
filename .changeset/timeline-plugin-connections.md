@@ -2,4 +2,4 @@
 "@codegraphy/extension": patch
 ---
 
-Fix timeline playback dropping graph connections by waiting for the initial graph analysis before indexing history, invalidating stale timeline caches when external plugins register, and keeping view changes synced to the active timeline commit.
+Fix external CodeGraphy plugins failing to load on first open, keep timeline playback using the active commit's full graph data, and invalidate stale timeline caches when plugin registrations change.
