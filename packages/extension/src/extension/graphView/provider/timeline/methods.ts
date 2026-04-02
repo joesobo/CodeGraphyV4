@@ -1,6 +1,9 @@
 import * as vscode from 'vscode';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { ICommitInfo } from '../../../../shared/timeline/types';
+import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../../config/defaults';
+import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
 import type { GraphViewProviderTimelineSource } from '../../timeline/provider/indexing';
 import {
   indexGraphViewProviderRepository,
@@ -37,10 +40,12 @@ export interface GraphViewProviderTimelineMethodsSource
     | '_graphData'
     | '_applyViewTransform'
     | '_sendMessage'
-    >,
+  >,
     '_gitAnalyzer'
   > {
   _firstWorkspaceReadyPromise?: Promise<void>;
+  _analyzerInitPromise?: Promise<void>;
+  _installedPluginActivationPromise?: Promise<void>;
   _gitAnalyzer?: GraphViewProviderTimelineSource['_gitAnalyzer'] & {
     invalidateCache(): PromiseLike<void>;
     getCachedCommitList(): ICommitInfo[] | null | undefined;
@@ -61,7 +66,7 @@ export interface GraphViewProviderTimelineMethods {
     filePath: string,
     behavior?: EditorOpenBehavior,
   ): Promise<void>;
-  _sendCachedTimeline(): void;
+  _sendCachedTimeline(): Promise<void>;
   sendPlaybackSpeed(): void;
   invalidateTimelineCache(): Promise<void>;
 }
@@ -113,6 +118,12 @@ export interface GraphViewProviderTimelineMethodDependencies {
   sendCachedTimeline(
     source: Parameters<typeof sendGraphViewProviderCachedTimeline>[0],
   ): void;
+  createGitAnalyzer?(
+    context: GraphViewProviderTimelineMethodsSource['_context'],
+    registry: NonNullable<GraphViewProviderTimelineMethodsSource['_analyzer']>['registry'],
+    workspaceRoot: string,
+    mergedExclude: string[],
+  ): NonNullable<GraphViewProviderTimelineMethodsSource['_gitAnalyzer']>;
   sendPlaybackSpeed(
     playbackSpeed: number,
     sendMessage: (message: ExtensionToWebviewMessage) => void,
@@ -156,6 +167,59 @@ function createPermanentNodeOpenBehavior(): EditorOpenBehavior {
   };
 }
 
+async function ensureGitAnalyzerForCachedTimeline(
+  source: GraphViewProviderTimelineMethodsSource,
+  dependencies: Pick<
+    GraphViewProviderTimelineMethodDependencies,
+    'createGitAnalyzer' | 'getWorkspaceFolder'
+  >,
+): Promise<void> {
+  if (source._gitAnalyzer || !source._analyzer) {
+    return;
+  }
+
+  if (!dependencies.createGitAnalyzer) {
+    return;
+  }
+
+  const workspaceFolder = dependencies.getWorkspaceFolder();
+  if (!workspaceFolder) {
+    return;
+  }
+
+  await (source._installedPluginActivationPromise ?? Promise.resolve());
+
+  if (!source._analyzerInitialized) {
+    if (!source._analyzerInitPromise) {
+      source._analyzerInitPromise = source._analyzer
+        .initialize()
+        .then(() => {
+          source._analyzerInitialized = true;
+        })
+        .finally(() => {
+          source._analyzerInitPromise = undefined;
+        });
+    }
+
+    await source._analyzerInitPromise;
+  }
+
+  const mergedExclude = [
+    ...new Set([
+      ...DEFAULT_EXCLUDE_PATTERNS,
+      ...source._analyzer.getPluginFilterPatterns(),
+      ...source._filterPatterns,
+    ]),
+  ];
+
+  source._gitAnalyzer = dependencies.createGitAnalyzer(
+    source._context,
+    source._analyzer.registry,
+    workspaceFolder.uri.fsPath,
+    mergedExclude,
+  );
+}
+
 function createDefaultDependencies(): GraphViewProviderTimelineMethodDependencies {
   return {
     indexRepository: indexGraphViewProviderRepository,
@@ -164,6 +228,8 @@ function createDefaultDependencies(): GraphViewProviderTimelineMethodDependencie
     openNodeInEditor: openGraphViewNodeInEditor,
     previewFileAtCommit: previewGraphViewFileAtCommit,
     sendCachedTimeline: sendGraphViewProviderCachedTimeline,
+    createGitAnalyzer: (context, registry, workspaceRoot, mergedExclude) =>
+      new GitHistoryAnalyzer(context, registry as PluginRegistry, workspaceRoot, mergedExclude),
     sendPlaybackSpeed: sendGraphViewPlaybackSpeed,
     invalidateTimelineCache: invalidateGraphViewTimelineCache,
     getPlaybackSpeed: () =>
@@ -242,8 +308,24 @@ export function createGraphViewProviderTimelineMethods(
     await _openNodeInEditor(nodeId, createPermanentNodeOpenBehavior());
   };
 
-  const _sendCachedTimeline = (): void => {
+  const _sendCachedTimeline = async (): Promise<void> => {
+    const previousTimelineActive = source._timelineActive;
+    const previousCommitSha = source._currentCommitSha;
+
+    await ensureGitAnalyzerForCachedTimeline(source, dependencies);
     dependencies.sendCachedTimeline(source);
+
+    const didReplayCachedTimeline =
+      source._timelineActive &&
+      source._currentCommitSha !== undefined &&
+      (!previousTimelineActive || source._currentCommitSha !== previousCommitSha);
+
+    if (didReplayCachedTimeline) {
+      const currentCommitSha = source._currentCommitSha;
+      if (currentCommitSha) {
+        await dependencies.jumpToCommit(source, currentCommitSha);
+      }
+    }
   };
 
   const sendPlaybackSpeed = (): void => {

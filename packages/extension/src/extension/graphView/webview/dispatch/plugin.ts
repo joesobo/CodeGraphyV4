@@ -31,7 +31,7 @@ export interface GraphViewPluginMessageContext {
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: unknown): void;
-  sendCachedTimeline(): void;
+  sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginWebviewInjections(): void;

@@ -129,7 +129,7 @@ export interface GraphViewProviderMessageListenerSource {
   _loadDisabledRulesAndPlugins(): boolean;
   _sendFavorites(): void;
   _sendSettings(): void;
-  _sendCachedTimeline(): void;
+  _sendCachedTimeline(): Promise<void>;
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
   _sendPluginWebviewInjections(): void;

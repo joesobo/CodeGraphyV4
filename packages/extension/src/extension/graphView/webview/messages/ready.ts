@@ -23,7 +23,7 @@ export interface GraphViewReadyHandlers {
   sendPhysicsSettings(): void;
   sendGroupsUpdated(): void;
   sendMessage(message: { type: string; payload: unknown }): void;
-  sendCachedTimeline(): void;
+  sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginWebviewInjections(): void;
@@ -54,7 +54,7 @@ export async function applyWebviewReady(
     type: 'MAX_FILES_UPDATED',
     payload: { maxFiles: state.maxFiles },
   });
-  handlers.sendCachedTimeline();
+  await handlers.sendCachedTimeline();
   handlers.sendMessage({
     type: 'PLAYBACK_SPEED_UPDATED',
     payload: { speed: state.playbackSpeed },

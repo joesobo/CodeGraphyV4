@@ -154,4 +154,36 @@ describe('graph view ready message', () => {
     expect(handlers.notifyWebviewReady).not.toHaveBeenCalled();
     expect(readyNotified).toBe(true);
   });
+
+  it('waits for cached timeline replay before notifying readiness', async () => {
+    const events: string[] = [];
+    const handlers = createHandlers();
+    handlers.sendCachedTimeline.mockImplementation(async () => {
+      events.push('timeline:start');
+      await Promise.resolve();
+      events.push('timeline:end');
+    });
+    handlers.notifyWebviewReady.mockImplementation(() => {
+      events.push('ready');
+    });
+
+    await applyWebviewReady(
+      {
+        filterPatterns: [],
+        pluginFilterPatterns: [],
+        maxFiles: 500,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        folderNodeColor: '#111111',
+        focusedFile: undefined,
+        hasWorkspace: false,
+        firstAnalysis: false,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    expect(events).toEqual(['timeline:start', 'timeline:end', 'ready']);
+  });
 });
