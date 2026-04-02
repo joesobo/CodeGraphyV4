@@ -106,7 +106,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     );
   });
 
-  it('sends installed external plugins to the webview after startup', async () => {
+  it('sends installed external plugins and their rules to the webview after startup', async () => {
     const apiRef: { current?: ReturnType<typeof activate> } = {};
     const coreExtensionRef = {
       id: 'codegraphy.codegraphy',
@@ -157,19 +157,34 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     await new Promise(resolve => setTimeout(resolve, 50));
 
     const pluginMessages = mockWebview.postMessage.mock.calls
-      .map((call: unknown[]) => call[0] as { type?: string; payload?: { plugins?: Array<{ id: string }> } })
+      .map((call: unknown[]) => call[0] as {
+        type?: string;
+        payload?: {
+          plugins?: Array<{
+            id: string;
+            rules: Array<{ qualifiedId: string }>;
+          }>;
+        };
+      })
       .filter(message => message.type === 'PLUGINS_UPDATED');
 
     expect(pluginMessages.length).toBeGreaterThan(0);
 
     const lastPluginMessage = pluginMessages.at(-1);
-    const pluginIds = lastPluginMessage?.payload?.plugins?.map(plugin => plugin.id) ?? [];
+    const plugins = lastPluginMessage?.payload?.plugins ?? [];
 
-    expect(pluginIds).toEqual(
+    expect(plugins).toEqual(
       expect.arrayContaining([
-        'codegraphy.markdown',
-        'codegraphy.typescript',
-        'codegraphy.gdscript',
+        expect.objectContaining({ id: 'codegraphy.markdown' }),
+        expect.objectContaining({
+          id: 'codegraphy.typescript',
+          rules: expect.arrayContaining([
+            expect.objectContaining({
+              qualifiedId: expect.stringContaining('codegraphy.typescript'),
+            }),
+          ]),
+        }),
+        expect.objectContaining({ id: 'codegraphy.gdscript' }),
       ]),
     );
   });
