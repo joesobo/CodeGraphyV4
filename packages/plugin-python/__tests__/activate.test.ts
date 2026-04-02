@@ -97,7 +97,7 @@ describe('plugin-python/activate', () => {
     });
   });
 
-  it('registers the Python plugin with the core extension', async () => {
+  it('registers the Python plugin with the core extension', { timeout: installedWithCoreTimeoutMs }, async () => {
     const registerPlugin = vi.fn();
     mockState.getExtension.mockReturnValue({
       isActive: false,

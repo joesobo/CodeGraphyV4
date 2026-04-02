@@ -97,7 +97,7 @@ describe('plugin-godot/activate', () => {
     });
   });
 
-  it('registers the GDScript plugin with the core extension', async () => {
+  it('registers the GDScript plugin with the core extension', { timeout: installedWithCoreTimeoutMs }, async () => {
     const registerPlugin = vi.fn();
     mockState.getExtension.mockReturnValue({
       isActive: false,
