@@ -225,6 +225,7 @@ describe('graphView/provider/timeline methods', () => {
 
   it('opens timeline nodes with the correct editor behavior', async () => {
     const openNodeInEditor = vi.fn(async () => undefined);
+    const setFocusedFile = vi.fn();
     const methods = createGraphViewProviderTimelineMethods({
       _context: {} as never,
       _analyzer: undefined,
@@ -241,6 +242,7 @@ describe('graphView/provider/timeline methods', () => {
       _applyViewTransform: vi.fn(),
       _sendMessage: vi.fn(),
       _openFile: vi.fn(async () => undefined),
+      _setFocusedFile: setFocusedFile,
     } as never, {
       indexRepository: vi.fn(async () => undefined),
       jumpToCommit: vi.fn(async () => undefined),
@@ -280,9 +282,12 @@ describe('graphView/provider/timeline methods', () => {
       }),
       { preview: false, preserveFocus: false },
     );
+    expect(setFocusedFile).toHaveBeenNthCalledWith(1, 'src/app.ts');
+    expect(setFocusedFile).toHaveBeenNthCalledWith(2, 'src/lib.ts');
   });
 
   it('uses the live default selected-node behavior', async () => {
+    const setFocusedFile = vi.fn();
     const source = {
       _context: {} as never,
       _analyzer: undefined,
@@ -299,6 +304,7 @@ describe('graphView/provider/timeline methods', () => {
       _applyViewTransform: vi.fn(),
       _sendMessage: vi.fn(),
       _openFile: vi.fn(async () => undefined),
+      _setFocusedFile: setFocusedFile,
     };
     timelineMethodMocks.openNodeInEditor.mockImplementation(
       (async (
@@ -318,9 +324,12 @@ describe('graphView/provider/timeline methods', () => {
     const methods = createGraphViewProviderTimelineMethods(source as never);
 
     await methods._openSelectedNode('src/app.ts');
+
+    expect(setFocusedFile).toHaveBeenCalledWith('src/app.ts');
   });
 
   it('uses the live default activated-node behavior', async () => {
+    const setFocusedFile = vi.fn();
     const source = {
       _context: {} as never,
       _analyzer: undefined,
@@ -337,6 +346,7 @@ describe('graphView/provider/timeline methods', () => {
       _applyViewTransform: vi.fn(),
       _sendMessage: vi.fn(),
       _openFile: vi.fn(async () => undefined),
+      _setFocusedFile: setFocusedFile,
     };
     timelineMethodMocks.openNodeInEditor.mockImplementation(
       (async (
@@ -356,6 +366,8 @@ describe('graphView/provider/timeline methods', () => {
     const methods = createGraphViewProviderTimelineMethods(source as never);
 
     await methods._activateNode('src/app.ts');
+
+    expect(setFocusedFile).toHaveBeenCalledWith('src/app.ts');
   });
 
   it('previews files at a commit using workspace/editor dependencies', async () => {

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as vscode from 'vscode';
+import type { IGraphData } from '../../src/shared/graph/types';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 type MessageHandler = (message: unknown) => Promise<void>;
@@ -105,6 +106,33 @@ describe('GraphViewProvider node open behavior', () => {
       preview: true,
       preserveFocus: true,
     });
+  });
+
+  it('filters the graph immediately after selecting a node in depth view', async () => {
+    (provider as unknown as { _rawGraphData: IGraphData })._rawGraphData = {
+      nodes: [
+        { id: 'src/app.ts', label: 'app.ts', color: '#ffffff' },
+        { id: 'src/lib.ts', label: 'lib.ts', color: '#ffffff' },
+        { id: 'src/deep.ts', label: 'deep.ts', color: '#ffffff' },
+      ],
+      edges: [
+        { id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts' },
+        { id: 'src/lib.ts->src/deep.ts', from: 'src/lib.ts', to: 'src/deep.ts' },
+      ],
+    };
+
+    await provider.changeView('codegraphy.depth-graph');
+    await messageHandler({ type: 'NODE_SELECTED', payload: { nodeId: 'src/app.ts' } });
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect((provider as unknown as { _viewContext: { focusedFile?: string } })._viewContext.focusedFile).toBe(
+      'src/app.ts',
+    );
+    expect(
+      (provider as unknown as { _graphData: IGraphData })._graphData.nodes.map(
+        (node: { id: string }) => node.id,
+      ),
+    ).toEqual(['src/app.ts', 'src/lib.ts']);
   });
 
   it('opens NODE_DOUBLE_CLICKED as permanent in normal mode', async () => {

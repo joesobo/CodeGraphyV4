@@ -29,6 +29,7 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
   | '_activateNode'
   | '_previewFileAtCommit'
   | '_sendCachedTimeline'
+  | '_setFocusedFile'
 > {
   return {
     _openFile: (filePath, behavior?: EditorOpenBehavior) =>
@@ -52,5 +53,6 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
     _previewFileAtCommit: (sha, filePath, behavior?: EditorOpenBehavior) =>
       owner._methodContainers.timeline._previewFileAtCommit(sha, filePath, behavior),
     _sendCachedTimeline: () => owner._methodContainers.timeline._sendCachedTimeline(),
+    _setFocusedFile: filePath => owner._methodContainers.viewSelection.setFocusedFile(filePath),
   };
 }

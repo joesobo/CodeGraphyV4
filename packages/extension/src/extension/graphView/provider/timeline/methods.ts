@@ -46,6 +46,7 @@ export interface GraphViewProviderTimelineMethodsSource
   _firstWorkspaceReadyPromise?: Promise<void>;
   _analyzerInitPromise?: Promise<void>;
   _installedPluginActivationPromise?: Promise<void>;
+  _setFocusedFile?(filePath: string | undefined): void;
   _gitAnalyzer?: GraphViewProviderTimelineSource['_gitAnalyzer'] & {
     invalidateCache(): PromiseLike<void>;
     getCachedCommitList(): ICommitInfo[] | null | undefined;
@@ -301,10 +302,12 @@ export function createGraphViewProviderTimelineMethods(
   };
 
   const _openSelectedNode = async (nodeId: string): Promise<void> => {
+    source._setFocusedFile?.(nodeId);
     await _openNodeInEditor(nodeId, createTemporaryNodeOpenBehavior());
   };
 
   const _activateNode = async (nodeId: string): Promise<void> => {
+    source._setFocusedFile?.(nodeId);
     await _openNodeInEditor(nodeId, createPermanentNodeOpenBehavior());
   };
 

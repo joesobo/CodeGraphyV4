@@ -30,8 +30,9 @@ describe('source/fileTimelineDelegates', () => {
         filePath: string,
         behavior?: { preview: boolean; preserveFocus: boolean },
       ) => Promise<void>
-    )('abc123', 'src/app.ts', undefined);
+      )('abc123', 'src/app.ts', undefined);
     delegates._sendCachedTimeline!();
+    delegates._setFocusedFile!('src/app.ts');
 
     expect(owner._fileActionMethods._openFile).toHaveBeenCalledWith('src/app.ts', behavior);
     expect(owner._fileActionMethods._revealInExplorer).toHaveBeenCalledWith('src/app.ts');
@@ -55,5 +56,6 @@ describe('source/fileTimelineDelegates', () => {
       undefined,
     );
     expect(owner._timelineMethods._sendCachedTimeline).toHaveBeenCalledTimes(1);
+    expect(owner._viewSelectionMethods.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
   });
 });
