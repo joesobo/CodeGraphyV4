@@ -3,13 +3,19 @@
   "tasks": [
     {
       "type": "npm",
-      "script": "build",
+      "script": "build:devhost",
       "problemMatcher": [],
-      "label": "npm: build",
+      "label": "npm: build:devhost",
       "group": {
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "problemMatcher": [],
+      "label": "npm: build"
     },
     {
       "type": "npm",
