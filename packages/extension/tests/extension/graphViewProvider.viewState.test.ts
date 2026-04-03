@@ -51,14 +51,21 @@ describe('GraphViewProvider view state and internal helpers', () => {
     vi.clearAllMocks();
   });
 
-  it('warns and skips unavailable view changes', async () => {
+  it('persists and broadcasts depth view changes without a focused file', async () => {
     const context = createContext();
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
     );
     const internals = getGraphViewProviderInternals(provider);
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const applySpy = vi.spyOn(
+      internals._viewContextMethods,
+      '_applyViewTransform'
+    ).mockImplementation(() => {});
+    const sendViewsSpy = vi.spyOn(
+      internals._viewContextMethods,
+      '_sendAvailableViews'
+    ).mockImplementation(() => {});
     const sendMessageSpy = vi.spyOn(
       internals._webviewMethods,
       '_sendMessage'
@@ -66,9 +73,19 @@ describe('GraphViewProvider view state and internal helpers', () => {
 
     await provider.changeView('codegraphy.depth-graph');
 
-    expect(warnSpy).toHaveBeenCalledWith("[CodeGraphy] View 'codegraphy.depth-graph' is not available");
-    expect(context.workspaceState.update).not.toHaveBeenCalled();
-    expect(sendMessageSpy).not.toHaveBeenCalled();
+    expect((provider as unknown as { _activeViewId: string })._activeViewId).toBe(
+      'codegraphy.depth-graph'
+    );
+    expect(context.workspaceState.update).toHaveBeenCalledWith(
+      'codegraphy.selectedView',
+      'codegraphy.depth-graph'
+    );
+    expect(applySpy).toHaveBeenCalledTimes(1);
+    expect(sendViewsSpy).toHaveBeenCalledTimes(1);
+    expect(sendMessageSpy).toHaveBeenCalledWith({
+      type: 'GRAPH_DATA_UPDATED',
+      payload: { nodes: [], edges: [] },
+    });
   });
 
   it('persists and broadcasts available view changes when a target view is available', async () => {
@@ -125,15 +142,18 @@ describe('GraphViewProvider view state and internal helpers', () => {
       internals._webviewMethods,
       '_sendMessage'
     ).mockImplementation(() => {});
+    (provider as unknown as {
+      _viewContext: { maxDepthLimit?: number };
+    })._viewContext.maxDepthLimit = 4;
 
     await provider.setDepthLimit(99);
 
-    expect((provider as unknown as { _viewContext: { depthLimit: number } })._viewContext.depthLimit).toBe(10);
-    expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.depthLimit', 10);
+    expect((provider as unknown as { _viewContext: { depthLimit: number } })._viewContext.depthLimit).toBe(4);
+    expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.depthLimit', 4);
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'DEPTH_LIMIT_UPDATED',
-      payload: { depthLimit: 10 },
+      payload: { depthLimit: 4, maxDepthLimit: 4 },
     });
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
@@ -164,7 +184,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     expect(applySpy).not.toHaveBeenCalled();
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'DEPTH_LIMIT_UPDATED',
-      payload: { depthLimit: 1 },
+      payload: { depthLimit: 1, maxDepthLimit: undefined },
     });
     expect(sendMessageSpy).not.toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',

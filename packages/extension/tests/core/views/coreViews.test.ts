@@ -111,12 +111,11 @@ describe('Core Views (fresh imports)', () => {
       expect(depthGraphView.icon).toBe('target');
     });
 
-    it('returns empty graph when no file is focused', async () => {
+    it('returns the full graph when no file is focused', async () => {
       const { depthGraphView } = await import('../../../src/core/views/builtIns');
       const context = createContext({ focusedFile: undefined });
       const result = depthGraphView.transform(sampleGraphData, context);
-      expect(result.nodes).toHaveLength(0);
-      expect(result.edges).toHaveLength(0);
+      expect(result).toEqual(sampleGraphData);
     });
 
     it('returns focused file and immediate connections with default depth 1', async () => {
@@ -135,10 +134,10 @@ describe('Core Views (fresh imports)', () => {
       expect(result.nodes.map(n => n.id)).toContain('src/utils/format.ts');
     });
 
-    it('is unavailable when no file is focused', async () => {
+    it('is available when no file is focused', async () => {
       const { depthGraphView } = await import('../../../src/core/views/builtIns');
       const context = createContext({ focusedFile: undefined });
-      expect(depthGraphView.isAvailable?.(context)).toBe(false);
+      expect(depthGraphView.isAvailable?.(context)).toBe(true);
     });
 
     it('is available when a file is focused', async () => {
