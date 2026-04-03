@@ -7,8 +7,9 @@
 	],
 	"scripts": {
 		"vscode:prepublish": "pnpm run build",
-		"build": "turbo run build",
-		"build:extension": "pnpm --filter @codegraphy/extension run build:extension",
+    "build": "turbo run build",
+    "build:devhost": "pnpm --filter @codegraphy/extension run build && pnpm --filter codegraphy-typescript run build && pnpm --filter codegraphy-python run build && pnpm --filter codegraphy-csharp run build && pnpm --filter codegraphy-godot run build",
+    "build:extension": "pnpm --filter @codegraphy/extension run build:extension",
 		"build:webview": "pnpm --filter @codegraphy/extension run build:webview",
 		"watch": "pnpm --filter @codegraphy/extension run watch",
 		"watch:extension": "pnpm --filter @codegraphy/extension run watch:extension",

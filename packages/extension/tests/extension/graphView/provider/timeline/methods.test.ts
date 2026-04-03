@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../../src/shared/protocol/extensionToWebview';
+import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../../src/extension/config/defaults';
 const timelineMethodMocks = vi.hoisted(() => ({
   indexRepository: vi.fn(async () => undefined),
   jumpToCommit: vi.fn(async () => undefined),
@@ -85,12 +86,90 @@ describe('graphView/provider/timeline methods', () => {
     await methods._indexRepository();
     await methods._jumpToCommit('abc123');
     await methods._resetTimeline();
-    methods._sendCachedTimeline();
+    await methods._sendCachedTimeline();
 
     expect(indexRepository).toHaveBeenCalledWith(source);
     expect(jumpToCommit).toHaveBeenCalledWith(source, 'abc123');
     expect(resetTimeline).toHaveBeenCalledWith(source);
     expect(sendCachedTimeline).toHaveBeenCalledWith(source);
+  });
+
+  it('warms timeline cache on startup before replaying cached timeline state', async () => {
+    let resolveInstalledPlugins!: () => void;
+    const installedPluginActivationPromise = new Promise<void>((resolve) => {
+      resolveInstalledPlugins = resolve;
+    });
+    const gitAnalyzer = { kind: 'git-analyzer' } as never;
+    const analyzer = {
+      registry: { kind: 'registry' },
+      initialize: vi.fn(async () => undefined),
+      getPluginFilterPatterns: vi.fn(() => ['plugin-cache/**']),
+    };
+    const source = {
+      _context: { storageUri: { fsPath: '/storage' } } as never,
+      _analyzer: analyzer as never,
+      _analyzerInitialized: false,
+      _analyzerInitPromise: undefined,
+      _gitAnalyzer: undefined,
+      _indexingController: undefined,
+      _filterPatterns: ['dist/**'],
+      _timelineActive: false,
+      _currentCommitSha: undefined,
+      _disabledPlugins: new Set<string>(),
+      _disabledRules: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _applyViewTransform: vi.fn(),
+      _sendMessage: vi.fn(),
+      _openFile: vi.fn(async () => undefined),
+      _installedPluginActivationPromise: installedPluginActivationPromise,
+    };
+    const createGitAnalyzer = vi.fn(() => gitAnalyzer);
+    const jumpToCommit = vi.fn(async () => undefined);
+    const sendCachedTimeline = vi.fn(nextSource => {
+      nextSource._timelineActive = true;
+      nextSource._currentCommitSha = 'sha-latest';
+    });
+    const methods = createGraphViewProviderTimelineMethods(source as never, {
+      indexRepository: vi.fn(async () => undefined),
+      createGitAnalyzer,
+      jumpToCommit,
+      resetTimeline: vi.fn(async () => undefined),
+      openNodeInEditor: vi.fn(async () => undefined),
+      previewFileAtCommit: vi.fn(async () => undefined),
+      sendCachedTimeline,
+      sendPlaybackSpeed: vi.fn(),
+      invalidateTimelineCache: vi.fn(async () => undefined),
+      getPlaybackSpeed: vi.fn(() => 1),
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
+      openTextDocument: vi.fn(),
+      showTextDocument: vi.fn(),
+      logError: vi.fn(),
+    } as never);
+
+    const replay = methods._sendCachedTimeline();
+
+    await Promise.resolve();
+    expect(analyzer.initialize).not.toHaveBeenCalled();
+    expect(createGitAnalyzer).not.toHaveBeenCalled();
+
+    resolveInstalledPlugins();
+    await replay;
+
+    expect(analyzer.initialize).toHaveBeenCalledOnce();
+    expect(createGitAnalyzer).toHaveBeenCalledWith(
+      source._context,
+      analyzer.registry,
+      '/workspace',
+      expect.arrayContaining([
+        ...DEFAULT_EXCLUDE_PATTERNS,
+        'plugin-cache/**',
+        'dist/**',
+      ]),
+    );
+    expect(source._gitAnalyzer).toBe(gitAnalyzer);
+    expect(sendCachedTimeline).toHaveBeenCalledWith(source);
+    expect(jumpToCommit).toHaveBeenCalledWith(source, 'sha-latest');
   });
 
   it('waits for the first workspace-ready pass before indexing timeline history', async () => {

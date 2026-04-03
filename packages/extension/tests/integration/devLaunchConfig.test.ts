@@ -7,10 +7,21 @@ interface LaunchConfiguration {
   type?: string;
   request?: string;
   args?: string[];
+  preLaunchTask?: string;
 }
 
 interface LaunchFile {
   configurations?: LaunchConfiguration[];
+}
+
+interface TaskConfiguration {
+  label?: string;
+  type?: string;
+  script?: string;
+}
+
+interface TasksFile {
+  tasks?: TaskConfiguration[];
 }
 
 function readLaunchConfig(): LaunchConfiguration {
@@ -22,6 +33,15 @@ function readLaunchConfig(): LaunchConfiguration {
 
   expect(configuration).toBeDefined();
   return configuration!;
+}
+
+function readTaskConfig(label: string): TaskConfiguration {
+  const tasksPath = path.resolve(__dirname, '../../../../.vscode/tasks.json');
+  const tasksFile = JSON.parse(fs.readFileSync(tasksPath, 'utf8')) as TasksFile;
+  const task = tasksFile.tasks?.find((entry) => entry.label === label);
+
+  expect(task).toBeDefined();
+  return task!;
 }
 
 describe('dev launch config', () => {
@@ -39,5 +59,14 @@ describe('dev launch config', () => {
         '--extensionDevelopmentPath=${workspaceFolder}/packages/plugin-godot',
       ]),
     );
+  });
+
+  it('uses a dedicated prelaunch build that materializes extension and plugin outputs in the active worktree', () => {
+    const configuration = readLaunchConfig();
+    const task = readTaskConfig('npm: build:devhost');
+
+    expect(configuration.preLaunchTask).toBe('npm: build:devhost');
+    expect(task.type).toBe('npm');
+    expect(task.script).toBe('build:devhost');
   });
 });
