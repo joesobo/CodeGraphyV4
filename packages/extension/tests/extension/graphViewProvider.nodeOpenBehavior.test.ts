@@ -5,7 +5,12 @@ import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 
 type MessageHandler = (message: unknown) => Promise<void>;
 
-function resolveMessageHandler(provider: GraphViewProvider): MessageHandler {
+function resolveWebview(provider: GraphViewProvider): {
+  messageHandler: MessageHandler;
+  mockWebview: {
+    postMessage: ReturnType<typeof vi.fn>;
+  };
+} {
   let messageHandler: MessageHandler | null = null;
 
   const mockWebview = {
@@ -35,12 +40,13 @@ function resolveMessageHandler(provider: GraphViewProvider): MessageHandler {
   );
 
   expect(messageHandler).not.toBeNull();
-  return messageHandler!;
+  return { messageHandler: messageHandler!, mockWebview };
 }
 
 describe('GraphViewProvider node open behavior', () => {
   let provider: GraphViewProvider;
   let messageHandler: MessageHandler;
+  let mockWebview: { postMessage: ReturnType<typeof vi.fn> };
   let openTextDocumentMock: ReturnType<typeof vi.fn>;
   let showTextDocumentMock: ReturnType<typeof vi.fn>;
   const mockDocument = { uri: vscode.Uri.file('/test/workspace/src/app.ts') } as unknown as vscode.TextDocument;
@@ -87,7 +93,7 @@ describe('GraphViewProvider node open behavior', () => {
       mockContext.extensionUri,
       mockContext as unknown as vscode.ExtensionContext
     );
-    messageHandler = resolveMessageHandler(provider);
+    ({ messageHandler, mockWebview } = resolveWebview(provider));
   });
 
   afterEach(() => {
@@ -108,7 +114,7 @@ describe('GraphViewProvider node open behavior', () => {
     });
   });
 
-  it('filters the graph immediately after selecting a node in depth view', async () => {
+  it('posts filtered graph data and depth state after selecting a node in depth view', async () => {
     (provider as unknown as { _rawGraphData: IGraphData })._rawGraphData = {
       nodes: [
         { id: 'src/app.ts', label: 'app.ts', color: '#ffffff' },
@@ -122,6 +128,7 @@ describe('GraphViewProvider node open behavior', () => {
     };
 
     await provider.changeView('codegraphy.depth-graph');
+    mockWebview.postMessage.mockClear();
     await messageHandler({ type: 'NODE_SELECTED', payload: { nodeId: 'src/app.ts' } });
     await new Promise(resolve => setTimeout(resolve, 0));
 
@@ -133,6 +140,22 @@ describe('GraphViewProvider node open behavior', () => {
         (node: { id: string }) => node.id,
       ),
     ).toEqual(['src/app.ts', 'src/lib.ts']);
+
+    const postedMessages = mockWebview.postMessage.mock.calls.map(([message]) => message);
+    expect(postedMessages).toContainEqual({
+      type: 'DEPTH_LIMIT_UPDATED',
+      payload: { depthLimit: 1, maxDepthLimit: 2 },
+    });
+    expect(postedMessages).toContainEqual({
+      type: 'GRAPH_DATA_UPDATED',
+      payload: {
+        nodes: [
+          { id: 'src/app.ts', label: 'app.ts', color: '#ffffff', depthLevel: 0 },
+          { id: 'src/lib.ts', label: 'lib.ts', color: '#ffffff', depthLevel: 1 },
+        ],
+        edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts' }],
+      },
+    });
   });
 
   it('opens NODE_DOUBLE_CLICKED as permanent in normal mode', async () => {

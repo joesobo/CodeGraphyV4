@@ -226,6 +226,44 @@ describe('registerEditorChangeHandler', () => {
     });
   });
 
+  it('waits for a file editor to become visible before clearing focus on undefined editor events', async () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    (vscode.workspace as unknown as { workspaceFolders: unknown[] }).workspaceFolders = [
+      { uri: { fsPath: '/workspace' } },
+    ];
+    (vscode.window as unknown as { visibleTextEditors: unknown[] }).visibleTextEditors = [];
+
+    registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const mock = vscode.window.onDidChangeActiveTextEditor as unknown as {
+      mock: { calls: unknown[][] };
+    };
+    const listener = mock.mock.calls[0]?.[0] as (editor: undefined) => Promise<void>;
+
+    provider.trackFileVisit.mockClear();
+    provider.setFocusedFile.mockClear();
+    provider.emitEvent.mockClear();
+
+    const listenerPromise = listener(undefined);
+    (vscode.window as unknown as { visibleTextEditors: unknown[] }).visibleTextEditors = [
+      {
+        document: {
+          uri: { scheme: 'file', fsPath: '/workspace/src/depth-focus.ts' },
+        },
+      },
+    ];
+    await listenerPromise;
+
+    expect(provider.trackFileVisit).toHaveBeenCalledWith('src/depth-focus.ts');
+    expect(provider.setFocusedFile).toHaveBeenCalledWith('src/depth-focus.ts');
+    expect(provider.setFocusedFile).not.toHaveBeenCalledWith(undefined);
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
+      filePath: 'src/depth-focus.ts',
+    });
+  });
+
   it('normalizes backslashes in paths', async () => {
     const context = makeContext();
     const provider = makeProvider();
