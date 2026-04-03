@@ -58,7 +58,11 @@ export const MESSAGE_HANDLERS: Record<
   PHYSICS_SETTINGS_UPDATED: (msg) =>
     handlePhysicsSettingsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PHYSICS_SETTINGS_UPDATED' }>),
   DEPTH_LIMIT_UPDATED: (msg) =>
-    handleDepthLimitUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DEPTH_LIMIT_UPDATED' }>),
+    handleDepthLimitUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'DEPTH_LIMIT_UPDATED' }> & {
+        payload: { depthLimit: number; maxDepthLimit?: number };
+      },
+    ),
   DIRECTION_SETTINGS_UPDATED: (msg) =>
     handleDirectionSettingsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DIRECTION_SETTINGS_UPDATED' }>),
   SHOW_LABELS_UPDATED: (msg) =>

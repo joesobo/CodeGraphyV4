@@ -32,6 +32,7 @@ export interface IStoreFields {
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
   depthLimit: number;
+  maxDepthLimit: number | null;
   groups: IGroup[];
   optimisticGroupUpdates: PendingGroupUpdates;
   optimisticUserGroups: PendingUserGroupsUpdate | null;
@@ -67,6 +68,11 @@ export interface IHandlerContext {
 }
 
 export type PartialState = Partial<IStoreFields>;
+
+export type DepthLimitUpdatedMessage = {
+  type: 'DEPTH_LIMIT_UPDATED';
+  payload: { depthLimit: number; maxDepthLimit?: number };
+};
 
 export type MessageHandler = (
   message: ExtensionToWebviewMessage,

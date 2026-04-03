@@ -13,10 +13,8 @@ import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type { ICommitInfo } from '../../shared/timeline/types';
 import type { IAvailableView } from '../../shared/view/types';
-import type {
-  PendingGroupUpdates,
-  PendingUserGroupsUpdate,
-} from './optimisticGroups';
+import type { PendingGroupUpdates, PendingUserGroupsUpdate } from './optimisticGroups';
+import type { DepthLimitUpdatedMessage } from './messageTypes';
 
 export interface GraphState {
   graphData: IGraphData | null;
@@ -35,6 +33,7 @@ export interface GraphState {
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
   depthLimit: number;
+  maxDepthLimit: number | null;
   groups: IGroup[];
   optimisticGroupUpdates: PendingGroupUpdates;
   optimisticUserGroups: PendingUserGroupsUpdate | null;
@@ -84,7 +83,7 @@ export interface GraphState {
   setMaxFiles: (max: number) => void;
   setPlaybackSpeed: (speed: number) => void;
   setIsPlaying: (playing: boolean) => void;
-  handleExtensionMessage: (message: ExtensionToWebviewMessage) => void;
+  handleExtensionMessage: (message: ExtensionToWebviewMessage | DepthLimitUpdatedMessage) => void;
 }
 
 export type GraphStateFields = Omit<GraphState, keyof ReturnType<typeof createActions>>;

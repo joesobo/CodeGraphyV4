@@ -17,6 +17,8 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
     dagMode: null,
     graphMode: '2d',
     depthLimit: 1,
+    maxDepthLimit: null,
+    activeFilePath: null,
     activePanel: 'none',
     ...overrides,
   });
@@ -216,7 +218,7 @@ describe('Toolbar', () => {
     });
 
     it('is visible when depth view is active', () => {
-      setDefaultState({ activeViewId: 'codegraphy.depth-graph' });
+      setDefaultState({ activeViewId: 'codegraphy.depth-graph', activeFilePath: 'src/app.ts' });
       const { container } = render(<Toolbar />);
       const sliderContainer = container.querySelector('[style*="max-width"]');
       expect(sliderContainer?.getAttribute('style')).toContain('max-width: 8rem');
@@ -224,7 +226,7 @@ describe('Toolbar', () => {
     });
 
     it('displays current depth limit value', () => {
-      setDefaultState({ activeViewId: 'codegraphy.depth-graph', depthLimit: 3 });
+      setDefaultState({ activeViewId: 'codegraphy.depth-graph', depthLimit: 3, activeFilePath: 'src/app.ts' });
       render(<Toolbar />);
       expect(screen.getByText('3')).toBeTruthy();
     });

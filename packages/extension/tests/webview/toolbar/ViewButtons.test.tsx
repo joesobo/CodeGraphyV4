@@ -13,7 +13,15 @@ const sliderHarness = vi.hoisted(() => ({
 
 // Mock Slider so we can trigger onValueChange directly
 vi.mock('../../../src/webview/components/ui/controls/slider', () => ({
-  Slider: (props: { value: number[]; onValueChange: (value: number[]) => void; min: number; max: number; step: number; className: string }) => {
+  Slider: (props: {
+    value: number[];
+    onValueChange: (value: number[]) => void;
+    min: number;
+    max: number;
+    step: number;
+    className: string;
+    disabled?: boolean;
+  }) => {
     sliderHarness.onValueChange = props.onValueChange;
     return (
       <input
@@ -22,6 +30,7 @@ vi.mock('../../../src/webview/components/ui/controls/slider', () => ({
         min={props.min}
         max={props.max}
         value={props.value[0]}
+        disabled={props.disabled}
         onChange={(e) => props.onValueChange([Number(e.target.value)])}
       />
     );
@@ -57,6 +66,8 @@ describe('ViewButtons', () => {
       availableViews: [],
       activeViewId: 'codegraphy.connections',
       depthLimit: 1,
+      maxDepthLimit: null,
+      activeFilePath: null,
     });
   });
 
@@ -147,6 +158,8 @@ describe('ViewButtons', () => {
       ],
       activeViewId: 'codegraphy.depth-graph',
       depthLimit: 3,
+      maxDepthLimit: 4,
+      activeFilePath: 'src/app.ts',
     });
     renderWithProviders();
     expect(screen.getByText('3')).toBeInTheDocument();
@@ -172,6 +185,8 @@ describe('ViewButtons', () => {
       ],
       activeViewId: 'codegraphy.depth-graph',
       depthLimit: 1,
+      maxDepthLimit: 2,
+      activeFilePath: 'src/app.ts',
     });
     const { container } = renderWithProviders();
     const sliderContainer = container.querySelector('[style*="max-width"]') as HTMLElement | null;
@@ -203,9 +218,53 @@ describe('ViewButtons', () => {
       ],
       activeViewId: 'codegraphy.depth-graph',
       depthLimit: 4,
+      maxDepthLimit: 4,
+      activeFilePath: 'src/app.ts',
     });
     renderWithProviders();
     expect(screen.getByText('4')).toBeInTheDocument();
+  });
+
+  it('uses the focused file max depth as the slider maximum', () => {
+    graphStore.setState({
+      availableViews: [
+        createAvailableView('codegraphy.depth-graph', 'Depth'),
+      ],
+      activeViewId: 'codegraphy.depth-graph',
+      depthLimit: 2,
+      maxDepthLimit: 5,
+      activeFilePath: 'src/app.ts',
+    });
+    renderWithProviders();
+    expect(screen.getByTestId('depth-slider')).toHaveAttribute('max', '5');
+  });
+
+  it('keeps the depth slider visible when no file is focused in depth view', () => {
+    graphStore.setState({
+      availableViews: [
+        createAvailableView('codegraphy.depth-graph', 'Depth'),
+      ],
+      activeViewId: 'codegraphy.depth-graph',
+      depthLimit: 3,
+      maxDepthLimit: null,
+      activeFilePath: null,
+    });
+    renderWithProviders();
+    expect(screen.getByTestId('depth-slider')).toBeInTheDocument();
+  });
+
+  it('disables the depth slider when no file is focused', () => {
+    graphStore.setState({
+      availableViews: [
+        createAvailableView('codegraphy.depth-graph', 'Depth'),
+      ],
+      activeViewId: 'codegraphy.depth-graph',
+      depthLimit: 3,
+      maxDepthLimit: null,
+      activeFilePath: null,
+    });
+    renderWithProviders();
+    expect(screen.getByTestId('depth-slider')).toBeDisabled();
   });
 });
 
@@ -219,6 +278,8 @@ describe('ViewButtons depth slider interaction', () => {
       ],
       activeViewId: 'codegraphy.depth-graph',
       depthLimit: 2,
+      maxDepthLimit: 5,
+      activeFilePath: 'src/app.ts',
     });
   });
 
@@ -264,6 +325,8 @@ describe('ViewButtons availableViews guard', () => {
       availableViews: [],
       activeViewId: 'codegraphy.connections',
       depthLimit: 1,
+      maxDepthLimit: null,
+      activeFilePath: null,
     });
   });
 

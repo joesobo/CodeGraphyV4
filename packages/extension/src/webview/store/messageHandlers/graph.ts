@@ -1,4 +1,4 @@
-import type { IHandlerContext, PartialState } from '../messageTypes';
+import type { DepthLimitUpdatedMessage, IHandlerContext, PartialState } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import {
   applyPendingGroupUpdates,
@@ -81,9 +81,12 @@ export function handlePhysicsSettingsUpdated(
 }
 
 export function handleDepthLimitUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'DEPTH_LIMIT_UPDATED' }>,
+  message: DepthLimitUpdatedMessage,
 ): PartialState {
-  return { depthLimit: message.payload.depthLimit };
+  return {
+    depthLimit: message.payload.depthLimit,
+    maxDepthLimit: message.payload.maxDepthLimit ?? null,
+  };
 }
 
 export function handleDirectionSettingsUpdated(

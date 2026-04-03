@@ -115,9 +115,10 @@ describe('GraphStore', () => {
   it('handles DEPTH_LIMIT_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'DEPTH_LIMIT_UPDATED',
-      payload: { depthLimit: 4 },
+      payload: { depthLimit: 4, maxDepthLimit: 6 },
     });
     expect(store.getState().depthLimit).toBe(4);
+    expect(store.getState().maxDepthLimit).toBe(6);
   });
 
   it('handles PLUGINS_UPDATED message', () => {

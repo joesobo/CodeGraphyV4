@@ -23,8 +23,13 @@ export function ViewButtons(): React.ReactElement {
   const availableViews = useGraphStore(s => s.availableViews);
   const activeViewId = useGraphStore(s => s.activeViewId);
   const depthLimit = useGraphStore(s => s.depthLimit);
+  const maxDepthLimit = useGraphStore(s => s.maxDepthLimit);
+  const activeFilePath = useGraphStore(s => s.activeFilePath);
 
   const isDepthView = activeViewId === 'codegraphy.depth-graph';
+  const sliderMax = Math.max(1, maxDepthLimit ?? depthLimit);
+  const sliderValue = Math.max(1, Math.min(depthLimit, sliderMax));
+  const sliderDisabled = activeFilePath === null;
 
   const handleViewChange = (viewId: string) => {
     postMessage({ type: 'CHANGE_VIEW', payload: { viewId } });
@@ -47,9 +52,10 @@ export function ViewButtons(): React.ReactElement {
           <span className="text-xs text-muted-foreground whitespace-nowrap">{depthLimit}</span>
           <Slider
             min={1}
-            max={5}
+            max={sliderMax}
             step={1}
-            value={[depthLimit]}
+            value={[sliderValue]}
+            disabled={sliderDisabled}
             onValueChange={handleDepthChange}
             className="w-16"
           />

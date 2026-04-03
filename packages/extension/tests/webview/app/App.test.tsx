@@ -39,6 +39,7 @@ function resetStore() {
     nodeSizeMode: 'connections',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     depthLimit: 1,
+    maxDepthLimit: null,
     groups: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
@@ -47,6 +48,7 @@ function resetStore() {
     pluginStatuses: [],
     activePanel: 'none',
     maxFiles: 500,
+    activeFilePath: null,
   });
 }
 
@@ -241,8 +243,9 @@ describe('App: message handlers', () => {
   it('DEPTH_LIMIT_UPDATED message is handled', async () => {
     render(<App />);
     await act(async () => {
-      sendMessage({ type: 'DEPTH_LIMIT_UPDATED', payload: { depthLimit: 3 } });
+      sendMessage({ type: 'DEPTH_LIMIT_UPDATED', payload: { depthLimit: 3, maxDepthLimit: 4 } });
     });
     expect(graphStore.getState().depthLimit).toBe(3);
+    expect(graphStore.getState().maxDepthLimit).toBe(4);
   });
 });

@@ -33,6 +33,7 @@ describe('GraphStore initial state', () => {
     expect(state.availableViews).toEqual([]);
     expect(state.activeViewId).toBe('codegraphy.connections');
     expect(state.depthLimit).toBe(1);
+    expect(state.maxDepthLimit).toBeNull();
     expect(state.dagMode).toBeNull();
     expect(state.maxFiles).toBe(500);
   });
