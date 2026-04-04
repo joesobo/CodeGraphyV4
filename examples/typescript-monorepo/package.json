@@ -1,0 +1,7 @@
+{
+  "name": "codegraphy-typescript-monorepo-example",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ]
+}

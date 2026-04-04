@@ -20,8 +20,8 @@ async function main(): Promise<void> {
   // The compiled Mocha suite entry point
   const extensionTestsPath = path.resolve(__dirname, './suite/run');
 
-  // A minimal workspace VS Code opens during the test run
-  const workspacePath = path.resolve(__dirname, '../../packages/extension/test-fixtures/workspace');
+  // Open the shared example workspace so e2e covers a realistic multi-package graph.
+  const workspacePath = path.resolve(__dirname, '../../examples/typescript-monorepo');
 
   await runTests({
     extensionDevelopmentPath,

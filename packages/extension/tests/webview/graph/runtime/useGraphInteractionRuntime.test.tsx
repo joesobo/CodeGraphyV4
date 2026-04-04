@@ -113,6 +113,7 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     const setContextSelection = vi.fn();
 
     renderHook(() => useGraphInteractionRuntime({
+      activeViewId: 'codegraphy.connections',
       dataRef: { current: { edges: [], nodes: [] } as never },
       fileInfoCacheRef: fileInfoCacheRef as never,
       graphContextSelection: createSelection(['src/selected.ts']),
@@ -178,6 +179,7 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
 
     const { result, rerender } = renderHook(
       ({ graphContextSelection }) => useGraphInteractionRuntime({
+        activeViewId: 'codegraphy.connections',
         dataRef: { current: { edges: [], nodes: [] } as never },
         fileInfoCacheRef: { current: new Map() } as never,
         graphContextSelection,
@@ -281,6 +283,7 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
 
     const { result, rerender } = renderHook(
       ({ graphMode }) => useGraphInteractionRuntime({
+        activeViewId: 'codegraphy.connections',
         dataRef: { current: { edges: [], nodes: [] } as never },
         fileInfoCacheRef: { current: new Map() } as never,
         graphContextSelection: createSelection(['src/one.ts']),
@@ -365,6 +368,7 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
 
     const container = document.createElement('div');
     const { unmount } = renderHook(() => useGraphInteractionRuntime({
+      activeViewId: 'codegraphy.connections',
       dataRef: { current: { edges: [], nodes: [] } as never },
       fileInfoCacheRef: { current: new Map() } as never,
       graphContextSelection: createSelection([]),
@@ -418,6 +422,7 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     }));
 
     renderHook(() => useGraphInteractionRuntime({
+      activeViewId: 'codegraphy.connections',
       dataRef: { current: { edges: [], nodes: [] } as never },
       fileInfoCacheRef: { current: new Map() } as never,
       graphContextSelection: createSelection([]),

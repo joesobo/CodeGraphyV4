@@ -64,7 +64,7 @@ suite('File Ops: Graph refresh', function () {
     const folders = vscode.workspace.workspaceFolders;
     assert.ok(folders && folders.length > 0, 'Workspace folder required');
     workspaceRoot = folders[0].uri.fsPath;
-    tmpFile = path.join(workspaceRoot, 'src', '__e2e_temp__.ts');
+    tmpFile = path.join(workspaceRoot, 'packages', 'app', 'src', '__e2e_temp__.ts');
     const previousNodeCount = api.getGraphData().nodes.length;
 
     const updatePromise = waitForGraphUpdate(api);
@@ -106,7 +106,7 @@ suite('File Ops: Graph refresh', function () {
       return;
     }
     const root = folders[0].uri.fsPath;
-    const indexFile = path.join(root, 'src', 'index.ts');
+    const indexFile = path.join(root, 'packages', 'app', 'src', 'index.ts');
     if (!fs.existsSync(indexFile)) {
       console.log('[e2e] index.ts not found, skipping');
       return;
