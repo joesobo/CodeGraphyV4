@@ -31,7 +31,7 @@ async function getAPI(): Promise<CodeGraphyAPI> {
 suite('Graph: Workspace Analysis', function () {
   this.timeout(60_000);
 
-  test('graph data is produced for the fixture workspace', async function() {
+  test('graph data is produced for the example workspace', async function() {
     const api = await getAPI();
 
     // Open the graph view so the webview initializes and triggers analysis
@@ -57,8 +57,13 @@ suite('Graph: Workspace Analysis', function () {
     const graphData = api.getGraphData();
     const nodeIds = graphData.nodes.map((n) => n.id);
 
-    // The fixture workspace has src/index.ts, src/utils.ts, src/types.ts
-    const expected = ['src/index.ts', 'src/utils.ts', 'src/types.ts'];
+    // The example workspace spans multiple packages and still exposes
+    // workspace-relative file IDs to the graph.
+    const expected = [
+      'packages/app/src/index.ts',
+      'packages/app/src/utils.ts',
+      'packages/shared/src/types.ts',
+    ];
     for (const rel of expected) {
       assert.ok(
         nodeIds.some((id) => id.endsWith(rel.replace(/\//g, path.sep)) || id.endsWith(rel)),
@@ -120,6 +125,14 @@ function waitForWebviewMessage(
       }
     });
   });
+}
+
+async function waitForGraphDataUpdate(
+  api: CodeGraphyAPI,
+  timeoutMs = 15_000,
+): Promise<import('../../shared/graph/types').IGraphData> {
+  await waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', timeoutMs);
+  return api.getGraphData();
 }
 
 interface NodeBoundsResponse {
@@ -254,6 +267,34 @@ suite('Graph: Webview Messaging', function () {
 suite('Graph: Depth View', function () {
   this.timeout(60_000);
 
+  test('depth view falls back to the full connections graph when no file is active', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(5_000);
+
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+    await sleep(1_000);
+
+    const fullGraph = api.getGraphData();
+    assert.ok(fullGraph.nodes.length > 0, 'Expected connections graph data before switching views');
+
+    const depthGraphPromise = waitForGraphDataUpdate(api);
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.depth-graph' },
+    });
+    const depthGraph = await depthGraphPromise;
+
+    assert.deepStrictEqual(
+      depthGraph.nodes.map(node => String(node.id)).sort(),
+      fullGraph.nodes.map(node => String(node.id)).sort(),
+    );
+    assert.deepStrictEqual(
+      depthGraph.edges.map(edge => String(edge.id)).sort(),
+      fullGraph.edges.map(edge => String(edge.id)).sort(),
+    );
+  });
+
   test('depth view filters the graph around the active file and still renders bounds', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
@@ -263,52 +304,53 @@ suite('Graph: Depth View', function () {
     assert.ok(workspaceRoot, 'Workspace folder required');
 
     const indexDocument = await vscode.workspace.openTextDocument(
-      vscode.Uri.file(path.join(workspaceRoot, 'src', 'index.ts'))
+      vscode.Uri.file(path.join(workspaceRoot, 'packages', 'app', 'src', 'index.ts'))
     );
     await vscode.window.showTextDocument(indexDocument, { preview: false });
     await sleep(1_000);
 
+    const depthOnePromise = waitForGraphDataUpdate(api);
     await api.dispatchWebviewMessage({
       type: 'CHANGE_VIEW',
       payload: { viewId: 'codegraphy.depth-graph' },
     });
-    await sleep(2_000);
-
-    const depthOneGraph = api.getGraphData();
+    const depthOneGraph = await depthOnePromise;
     const depthOneNodeIds = depthOneGraph.nodes.map((node) => String(node.id)).sort();
 
     assert.deepStrictEqual(depthOneNodeIds, [
-      'src/index.ts',
-      'src/types.ts',
-      'src/utils.ts',
+      'packages/app/src/index.ts',
+      'packages/app/src/utils.ts',
+      'packages/shared/src/types.ts',
     ]);
     assert.deepStrictEqual(
       depthOneGraph.edges.map((edge) => String(edge.id)).sort(),
       [
-        'src/index.ts->src/types.ts',
-        'src/index.ts->src/utils.ts',
-        'src/utils.ts->src/types.ts',
+        'packages/app/src/index.ts->packages/app/src/utils.ts',
+        'packages/app/src/index.ts->packages/shared/src/types.ts',
+        'packages/app/src/utils.ts->packages/shared/src/types.ts',
       ],
     );
 
     const depthOneBounds = await requestNodeBounds(api);
     assert.strictEqual(depthOneBounds.length, depthOneGraph.nodes.length);
 
+    const depthTwoPromise = waitForGraphDataUpdate(api);
     await api.dispatchWebviewMessage({
       type: 'CHANGE_DEPTH_LIMIT',
       payload: { depthLimit: 2 },
     });
-    await sleep(2_000);
-
-    const depthTwoGraph = api.getGraphData();
+    const depthTwoGraph = await depthTwoPromise;
     const depthTwoNodeIds = depthTwoGraph.nodes.map((node) => String(node.id)).sort();
     assert.deepStrictEqual(depthTwoNodeIds, [
-      'src/deep.ts',
-      'src/index.ts',
-      'src/types.ts',
-      'src/utils.ts',
+      'packages/app/src/index.ts',
+      'packages/app/src/utils.ts',
+      'packages/feature-depth/src/deep.ts',
+      'packages/shared/src/types.ts',
     ]);
-    assert.ok(!depthTwoNodeIds.includes('src/leaf.ts'), 'depth 2 should exclude 3-hop leaf');
+    assert.ok(
+      !depthTwoNodeIds.includes('packages/feature-depth/src/leaf.ts'),
+      'depth 2 should exclude the 3-hop leaf'
+    );
 
     const depthTwoBounds = await requestNodeBounds(api);
     assert.strictEqual(depthTwoBounds.length, depthTwoGraph.nodes.length);

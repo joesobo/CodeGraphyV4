@@ -48,6 +48,7 @@ function createDependencies(
   } as unknown as FG3DMethods<FGNode, FGLink>;
 
   return {
+    activeViewId: 'codegraphy.connections',
     containerRef: createRef(container),
     dataRef: createRef(graphData),
     fg2dRef: createRef(fg2d),

@@ -1,0 +1,9 @@
+{
+  "codegraphy.showOrphans": true,
+  "codegraphy.filterPatterns": [],
+  "codegraphy.directionMode": "arrows",
+  "codegraphy.groups": [],
+  "codegraphy.favorites": [
+    ".vscode/settings.json"
+  ]
+}

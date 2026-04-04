@@ -75,6 +75,46 @@ describe('Graph', () => {
     const { container } = render(<Graph data={dataWithPositions} />);
     expect(container.querySelector('div')).toBeInTheDocument();
   });
+
+  it('fits a newly rendered graph once after physics stabilizes', () => {
+    const methods = ForceGraph2D.getMockMethods();
+    methods.zoomToFit.mockClear();
+
+    const { rerender } = render(<Graph data={mockData} />);
+
+    expect(methods.zoomToFit).not.toHaveBeenCalled();
+
+    act(() => {
+      ForceGraph2D.simulateEngineStop();
+    });
+
+    expect(methods.zoomToFit).toHaveBeenCalledTimes(1);
+    expect(methods.zoomToFit.mock.calls[0]?.[0]).toBe(300);
+
+    act(() => {
+      ForceGraph2D.simulateEngineStop();
+    });
+
+    expect(methods.zoomToFit).toHaveBeenCalledTimes(1);
+
+    rerender(<Graph data={{
+      nodes: [
+        ...mockData.nodes,
+        { id: 'd.ts', label: 'd.ts', color: '#22C55E' },
+      ],
+      edges: [
+        ...mockData.edges,
+        { id: 'c.ts->d.ts', from: 'c.ts', to: 'd.ts' },
+      ],
+    }} />);
+
+    act(() => {
+      ForceGraph2D.simulateEngineStop();
+    });
+
+    expect(methods.zoomToFit).toHaveBeenCalledTimes(2);
+    expect(methods.zoomToFit.mock.calls[1]?.[0]).toBe(300);
+  });
 });
 
 describe('Graph Messages', () => {
