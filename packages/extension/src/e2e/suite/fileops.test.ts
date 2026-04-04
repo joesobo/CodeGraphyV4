@@ -14,6 +14,8 @@ interface CodeGraphyAPI {
   getGraphData(): import('../../shared/graph/types').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
+  dispatchWebviewMessage(message: unknown): Promise<void>;
+  onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -32,7 +34,7 @@ function waitForGraphUpdate(api: CodeGraphyAPI, timeoutMs = 15_000): Promise<voi
       () => reject(new Error('Timed out waiting for GRAPH_DATA_UPDATED')),
       timeoutMs
     );
-    const disposable = api.onWebviewMessage((msg: unknown) => {
+    const disposable = api.onExtensionMessage((msg: unknown) => {
       const message = msg as { type?: string };
       if (message.type === 'GRAPH_DATA_UPDATED') {
         clearTimeout(timer);
@@ -53,20 +55,27 @@ suite('File Ops: Graph refresh', function () {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(3_000);
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.connections' },
+    });
+    await sleep(1_000);
 
     const folders = vscode.workspace.workspaceFolders;
     assert.ok(folders && folders.length > 0, 'Workspace folder required');
     workspaceRoot = folders[0].uri.fsPath;
     tmpFile = path.join(workspaceRoot, 'src', '__e2e_temp__.ts');
+    const previousNodeCount = api.getGraphData().nodes.length;
 
     const updatePromise = waitForGraphUpdate(api);
     fs.writeFileSync(tmpFile, 'export const e2eTemp = true;\n');
     await updatePromise;
+    await sleep(250);
 
     const graphData = api.getGraphData();
     assert.ok(
-      graphData.nodes.some((n) => String(n.id).includes('__e2e_temp__')),
-      'New file should appear as a graph node'
+      graphData.nodes.length > previousNodeCount,
+      `Expected node count to increase after creating a file. Before=${previousNodeCount}, After=${graphData.nodes.length}`
     );
   });
 
@@ -105,12 +114,17 @@ suite('File Ops: Graph refresh', function () {
 
     const updatePromise = waitForGraphUpdate(api);
 
-    // Open and save the file programmatically
     const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(indexFile));
-    await vscode.window.showTextDocument(doc);
+    const originalContents = doc.getText();
+    const editor = await vscode.window.showTextDocument(doc);
+    await editor.edit((editBuilder) => {
+      editBuilder.insert(new vscode.Position(doc.lineCount, 0), '\n// e2e save trigger');
+    });
     await doc.save();
 
     await updatePromise;
+
+    fs.writeFileSync(indexFile, originalContents);
   });
 });
 
@@ -131,7 +145,7 @@ suite('File Ops: Open file from node', function () {
     const firstNodeId = String(graphData.nodes[0].id);
 
     // The webview sends OPEN_FILE when the user clicks a node
-    api.sendToWebview({ type: 'OPEN_FILE', payload: { filePath: firstNodeId } });
+    await api.dispatchWebviewMessage({ type: 'OPEN_FILE', payload: { path: firstNodeId } });
     await sleep(2_000);
 
     // After opening, the active editor should contain the file

@@ -9,6 +9,7 @@ import {
   registerSaveHandler,
 } from './workspaceFiles/register';
 import type { IGraphData } from '../shared/graph/types';
+import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 
 const CODEGRAPHY_EXTENSION_ID = 'codegraphy.codegraphy';
 
@@ -20,6 +21,10 @@ export interface CodeGraphyAPI {
   sendToWebview(message: unknown): void;
   /** Listen for messages sent from the webview. Returns a disposable. */
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
+  /** Simulate a message sent from the webview to the extension host. */
+  dispatchWebviewMessage(message: WebviewToExtensionMessage): Promise<void>;
+  /** Listen for messages the extension sends to the webview. */
+  onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
   /** Register an external v2 plugin. */
   registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;
 }
@@ -61,6 +66,8 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
     getGraphData: () => provider.getGraphData(),
     sendToWebview: (message) => provider.sendToWebview(message),
     onWebviewMessage: (handler) => provider.onWebviewMessage(handler),
+    dispatchWebviewMessage: (message) => provider.dispatchWebviewMessage(message),
+    onExtensionMessage: (handler) => provider.onExtensionMessage(handler),
     registerPlugin: (plugin: unknown, options?: { extensionUri?: vscode.Uri | string }) =>
       provider.registerExternalPlugin(plugin, options),
   };

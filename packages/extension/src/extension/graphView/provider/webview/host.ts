@@ -21,6 +21,7 @@ export interface GraphViewProviderWebviewSource
   _view?: vscode.WebviewView;
   _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];
+  _notifyExtensionMessage(message: unknown): void;
   _analyzeAndSendData(): Promise<void>;
   _getLocalResourceRoots(): vscode.Uri[];
 }
@@ -84,6 +85,7 @@ export function createGraphViewProviderWebviewMethods(
 
   const _sendMessage = (message: unknown): void => {
     resolvedDependencies.sendWebviewMessage(getSidebarViews(), source._panels, message);
+    source._notifyExtensionMessage(message);
   };
 
   const _setWebviewMessageListener = (webview: vscode.Webview): void => {

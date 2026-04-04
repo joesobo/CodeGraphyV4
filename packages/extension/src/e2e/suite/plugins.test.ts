@@ -15,6 +15,8 @@ interface CodeGraphyAPI {
   getGraphData(): import('../../shared/graph/types').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
+  dispatchWebviewMessage(message: unknown): Promise<void>;
+  onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -83,7 +85,10 @@ suite('Plugin: View switching', function () {
     await sleep(3_000);
 
     // Send the CHANGE_VIEW message
-    api.sendToWebview({ type: 'CHANGE_VIEW', payload: { viewId: 'codegraphy.folder' } });
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.folder' },
+    });
     await sleep(2_000);
 
     // The graph should still have nodes (folder view creates folder + file nodes)
@@ -96,7 +101,10 @@ suite('Plugin: View switching', function () {
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(3_000);
 
-    api.sendToWebview({ type: 'CHANGE_VIEW', payload: { viewId: 'codegraphy.connections' } });
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.connections' },
+    });
     await sleep(1_000);
 
     const graphData = api.getGraphData();
@@ -128,7 +136,7 @@ suite('Plugin: Favorites', function () {
         10_000
       );
 
-      const disposable = api.onWebviewMessage((msg: unknown) => {
+      const disposable = api.onExtensionMessage((msg: unknown) => {
         const message = msg as { type: string; payload: unknown };
         if (message.type === 'FAVORITES_UPDATED') {
           clearTimeout(timer);
@@ -137,9 +145,9 @@ suite('Plugin: Favorites', function () {
         }
       });
 
-      api.sendToWebview({
+      void api.dispatchWebviewMessage({
         type: 'TOGGLE_FAVORITE',
-        payload: { filePath: firstNodeId },
+        payload: { paths: [firstNodeId] },
       });
     });
   });

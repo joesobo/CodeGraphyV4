@@ -10,8 +10,12 @@ import * as path from 'path';
 import { runTests } from '@vscode/test-electron';
 
 async function main(): Promise<void> {
-  // The root of the extension (contains package.json)
-  const extensionDevelopmentPath = path.resolve(__dirname, '../../');
+  // Load the core extension plus the TypeScript plugin so fixture imports
+  // produce real graph edges in the extension host.
+  const extensionDevelopmentPath = [
+    path.resolve(__dirname, '../../'),
+    path.resolve(__dirname, '../../packages/plugin-typescript'),
+  ];
 
   // The compiled Mocha suite entry point
   const extensionTestsPath = path.resolve(__dirname, './suite/run');

@@ -14,6 +14,8 @@ interface CodeGraphyAPI {
   getGraphData(): import('../../shared/graph/types').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
+  dispatchWebviewMessage(message: unknown): Promise<void>;
+  onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -80,9 +82,27 @@ suite('Graph: Workspace Analysis', function () {
   });
 });
 
-// Helper: returns a promise that resolves with the first webview message
-// matching the given type, or rejects after timeoutMs.
-function waitForMessage(
+function waitForExtensionMessage(
+  api: CodeGraphyAPI,
+  type: string,
+  timeoutMs: number
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`Timed out waiting for webview message: ${type}`)),
+      timeoutMs
+    );
+    const disposable = api.onExtensionMessage((msg: unknown) => {
+      if ((msg as { type: string }).type === type) {
+        clearTimeout(timer);
+        disposable.dispose();
+        resolve(msg);
+      }
+    });
+  });
+}
+
+function waitForWebviewMessage(
   api: CodeGraphyAPI,
   type: string,
   timeoutMs: number
@@ -102,58 +122,87 @@ function waitForMessage(
   });
 }
 
+interface NodeBoundsResponse {
+  payload: {
+    nodes: Array<{ id: string; x: number; y: number; size: number }>;
+  };
+}
+
+async function requestNodeBounds(
+  api: CodeGraphyAPI,
+  timeoutMs = 5_000,
+): Promise<NodeBoundsResponse['payload']['nodes']> {
+  const boundsPromise = waitForWebviewMessage(api, 'NODE_BOUNDS_RESPONSE', timeoutMs);
+  api.sendToWebview({ type: 'GET_NODE_BOUNDS' });
+  const boundsMessage = await boundsPromise as NodeBoundsResponse;
+  return boundsMessage.payload.nodes;
+}
+
+function didNodeLayoutStabilize(
+  previousNodes: NodeBoundsResponse['payload']['nodes'],
+  nextNodes: NodeBoundsResponse['payload']['nodes'],
+  movementThreshold = 0.75,
+): boolean {
+  if (previousNodes.length === 0 || previousNodes.length !== nextNodes.length) {
+    return false;
+  }
+
+  const previousById = new Map(previousNodes.map(node => [node.id, node]));
+
+  return nextNodes.every(node => {
+    const previousNode = previousById.get(node.id);
+    if (!previousNode) {
+      return false;
+    }
+
+    const deltaX = node.x - previousNode.x;
+    const deltaY = node.y - previousNode.y;
+    return Math.sqrt(deltaX * deltaX + deltaY * deltaY) <= movementThreshold;
+  });
+}
+
+async function waitForStableNodeBounds(
+  api: CodeGraphyAPI,
+  timeoutMs: number,
+): Promise<NodeBoundsResponse['payload']['nodes']> {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const firstSample = await requestNodeBounds(api);
+    if (firstSample.length === 0) {
+      await sleep(500);
+      continue;
+    }
+
+    await sleep(750);
+
+    const secondSample = await requestNodeBounds(api);
+    if (didNodeLayoutStabilize(firstSample, secondSample)) {
+      return secondSample;
+    }
+  }
+
+  throw new Error('Rendered node positions never stabilized');
+}
+
 suite('Graph: Physics Stabilization', function () {
   this.timeout(30_000);
 
-  // This test catches the class of bug where physics settings cause the graph
-  // to never stabilize (e.g. avoidOverlap: 1.0 creates persistent border forces
-  // that keep velocity above minVelocity indefinitely). If PHYSICS_STABILIZED
-  // never arrives, the graph is jittering and the test fails.
-  test('graph physics stabilizes within 10 seconds of opening', async function() {
+  test('graph layout stabilizes within 10 seconds of opening', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
-
-    return new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(
-        () => reject(new Error('Physics never stabilized — graph may be jittering')),
-        10_000
-      );
-
-      const disposable = api.onWebviewMessage((msg: unknown) => {
-        const message = msg as { type: string };
-        if (message.type === 'PHYSICS_STABILIZED') {
-          clearTimeout(timeout);
-          disposable.dispose();
-          resolve();
-        }
-      });
-    });
+    await waitForStableNodeBounds(api, 10_000);
   });
 });
 
 suite('Graph: No Node Overlap After Stabilization', function () {
   this.timeout(30_000);
 
-  // This test catches physics settings that leave nodes visually overlapping
-  // in dense graphs. It waits for PHYSICS_STABILIZED, then requests the actual
-  // canvas positions and radii from the webview and computes pairwise distances.
-  // Two nodes overlap when dist(centers) < radius_a + radius_b.
   test('no two nodes overlap after physics stabilizes', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
 
-    // Wait for physics to stabilize (fails if it never does — see jitter test)
-    await waitForMessage(api, 'PHYSICS_STABILIZED', 15_000);
-
-    // Small settling buffer so positions are fully committed
-    await sleep(500);
-
-    // Request node positions + sizes from the webview
-    const boundsPromise = waitForMessage(api, 'NODE_BOUNDS_RESPONSE', 5_000);
-    api.sendToWebview({ type: 'GET_NODE_BOUNDS' });
-    const boundsMsg = await boundsPromise as { type: string; payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> } };
-
-    const nodes = boundsMsg.payload.nodes;
+    const nodes = await waitForStableNodeBounds(api, 15_000);
     assert.ok(nodes.length > 0, 'Expected at least one node');
 
     // Check every pair for overlap
@@ -186,21 +235,9 @@ suite('Graph: Webview Messaging', function () {
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(2_000);
 
-    return new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Timed out waiting for GRAPH_DATA_UPDATED')), 15_000);
-
-      const disposable = api.onWebviewMessage((msg: unknown) => {
-        const message = msg as { type: string };
-        if (message.type === 'GRAPH_DATA_UPDATED') {
-          clearTimeout(timeout);
-          disposable.dispose();
-          resolve();
-        }
-      });
-
-      // Simulate the webview becoming ready (triggers analysis + data send)
-      api.sendToWebview({ type: 'WEBVIEW_READY', payload: null });
-    });
+    const updatePromise = waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', 15_000);
+    void api.dispatchWebviewMessage({ type: 'WEBVIEW_READY', payload: null });
+    await updatePromise;
   });
 
   test('FIT_VIEW command sends FIT_VIEW message to webview', async function() {
@@ -208,19 +245,77 @@ suite('Graph: Webview Messaging', function () {
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(1_000);
 
-    return new Promise<void>((resolve, reject) => {
-      const timeout = setTimeout(() => reject(new Error('Timed out waiting for FIT_VIEW message')), 10_000);
+    const fitViewPromise = waitForExtensionMessage(api, 'FIT_VIEW', 10_000);
+    void vscode.commands.executeCommand('codegraphy.fitView');
+    await fitViewPromise;
+  });
+});
 
-      const disposable = api.onWebviewMessage((msg: unknown) => {
-        const message = msg as { type: string };
-        if (message.type === 'FIT_VIEW') {
-          clearTimeout(timeout);
-          disposable.dispose();
-          resolve();
-        }
-      });
+suite('Graph: Depth View', function () {
+  this.timeout(60_000);
 
-      vscode.commands.executeCommand('codegraphy.fitView');
+  test('depth view filters the graph around the active file and still renders bounds', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(5_000);
+
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    assert.ok(workspaceRoot, 'Workspace folder required');
+
+    const indexDocument = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(path.join(workspaceRoot, 'src', 'index.ts'))
+    );
+    await vscode.window.showTextDocument(indexDocument, { preview: false });
+    await sleep(1_000);
+
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.depth-graph' },
+    });
+    await sleep(2_000);
+
+    const depthOneGraph = api.getGraphData();
+    const depthOneNodeIds = depthOneGraph.nodes.map((node) => String(node.id)).sort();
+
+    assert.deepStrictEqual(depthOneNodeIds, [
+      'src/index.ts',
+      'src/types.ts',
+      'src/utils.ts',
+    ]);
+    assert.deepStrictEqual(
+      depthOneGraph.edges.map((edge) => String(edge.id)).sort(),
+      [
+        'src/index.ts->src/types.ts',
+        'src/index.ts->src/utils.ts',
+        'src/utils.ts->src/types.ts',
+      ],
+    );
+
+    const depthOneBounds = await requestNodeBounds(api);
+    assert.strictEqual(depthOneBounds.length, depthOneGraph.nodes.length);
+
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_DEPTH_LIMIT',
+      payload: { depthLimit: 2 },
+    });
+    await sleep(2_000);
+
+    const depthTwoGraph = api.getGraphData();
+    const depthTwoNodeIds = depthTwoGraph.nodes.map((node) => String(node.id)).sort();
+    assert.deepStrictEqual(depthTwoNodeIds, [
+      'src/deep.ts',
+      'src/index.ts',
+      'src/types.ts',
+      'src/utils.ts',
+    ]);
+    assert.ok(!depthTwoNodeIds.includes('src/leaf.ts'), 'depth 2 should exclude 3-hop leaf');
+
+    const depthTwoBounds = await requestNodeBounds(api);
+    assert.strictEqual(depthTwoBounds.length, depthTwoGraph.nodes.length);
+
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.connections' },
     });
   });
 });
