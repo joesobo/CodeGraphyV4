@@ -9,6 +9,7 @@ import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
 import * as fs from 'fs';
+import { getCurrentE2EScenario } from '../scenarios';
 
 interface CodeGraphyAPI {
   getGraphData(): import('../../shared/graph/types').IGraphData;
@@ -27,6 +28,8 @@ async function getAPI(): Promise<CodeGraphyAPI> {
   assert.ok(ext, 'Extension not found');
   return ext.activate();
 }
+
+const scenario = getCurrentE2EScenario();
 
 function waitForGraphUpdate(api: CodeGraphyAPI, timeoutMs = 15_000): Promise<void> {
   return new Promise((resolve, reject) => {
@@ -64,11 +67,11 @@ suite('File Ops: Graph refresh', function () {
     const folders = vscode.workspace.workspaceFolders;
     assert.ok(folders && folders.length > 0, 'Workspace folder required');
     workspaceRoot = folders[0].uri.fsPath;
-    tmpFile = path.join(workspaceRoot, 'packages', 'app', 'src', '__e2e_temp__.ts');
+    tmpFile = path.join(workspaceRoot, ...scenario.tempFileRelativePath.split('/'));
     const previousNodeCount = api.getGraphData().nodes.length;
 
     const updatePromise = waitForGraphUpdate(api);
-    fs.writeFileSync(tmpFile, 'export const e2eTemp = true;\n');
+    fs.writeFileSync(tmpFile, scenario.tempFileContents);
     await updatePromise;
     await sleep(250);
 
@@ -106,25 +109,25 @@ suite('File Ops: Graph refresh', function () {
       return;
     }
     const root = folders[0].uri.fsPath;
-    const indexFile = path.join(root, 'packages', 'app', 'src', 'index.ts');
-    if (!fs.existsSync(indexFile)) {
-      console.log('[e2e] index.ts not found, skipping');
+    const primaryFile = path.join(root, ...scenario.primaryFileRelativePath.split('/'));
+    if (!fs.existsSync(primaryFile)) {
+      console.log(`[e2e] ${scenario.primaryFileRelativePath} not found, skipping`);
       return;
     }
 
     const updatePromise = waitForGraphUpdate(api);
 
-    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(indexFile));
+    const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(primaryFile));
     const originalContents = doc.getText();
     const editor = await vscode.window.showTextDocument(doc);
     await editor.edit((editBuilder) => {
-      editBuilder.insert(new vscode.Position(doc.lineCount, 0), '\n// e2e save trigger');
+      editBuilder.insert(new vscode.Position(doc.lineCount, 0), scenario.saveTriggerText);
     });
     await doc.save();
 
     await updatePromise;
 
-    fs.writeFileSync(indexFile, originalContents);
+    fs.writeFileSync(primaryFile, originalContents);
   });
 });
 

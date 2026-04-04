@@ -8,33 +8,37 @@
  */
 import * as path from 'path';
 import { runTests } from '@vscode/test-electron';
+import { e2eScenarios } from './scenarios';
 
 async function main(): Promise<void> {
-  // Load the core extension plus the TypeScript plugin so fixture imports
-  // produce real graph edges in the extension host.
-  const extensionDevelopmentPath = [
-    path.resolve(__dirname, '../../'),
-    path.resolve(__dirname, '../../packages/plugin-typescript'),
-  ];
-
   // The compiled Mocha suite entry point
   const extensionTestsPath = path.resolve(__dirname, './suite/run');
 
-  // Open the shared example workspace so e2e covers a realistic multi-package graph.
-  const workspacePath = path.resolve(__dirname, '../../examples/typescript-monorepo');
+  for (const scenario of e2eScenarios) {
+    const extensionDevelopmentPath = [
+      path.resolve(__dirname, '../../'),
+      ...scenario.pluginDevelopmentRelativePaths.map((relativePath) =>
+        path.resolve(__dirname, relativePath),
+      ),
+    ];
+    const workspacePath = path.resolve(__dirname, scenario.workspaceRelativePath);
 
-  await runTests({
-    extensionDevelopmentPath,
-    extensionTestsPath,
-    launchArgs: [
-      workspacePath,
-      // Disable other extensions so they don't interfere
-      '--disable-extensions',
-      // Don't show the welcome tab
-      '--skip-welcome',
-      '--skip-release-notes',
-    ],
-  });
+    await runTests({
+      extensionDevelopmentPath,
+      extensionTestsPath,
+      extensionTestsEnv: {
+        CODEGRAPHY_E2E_SCENARIO: scenario.name,
+      },
+      launchArgs: [
+        workspacePath,
+        // Disable other extensions so they don't interfere
+        '--disable-extensions',
+        // Don't show the welcome tab
+        '--skip-welcome',
+        '--skip-release-notes',
+      ],
+    });
+  }
 }
 
 main().catch((err) => {

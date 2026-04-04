@@ -8,6 +8,7 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { getCurrentE2EScenario } from '../scenarios';
 
 // The type exported by the extension's activate() function
 interface CodeGraphyAPI {
@@ -27,6 +28,8 @@ async function getAPI(): Promise<CodeGraphyAPI> {
   assert.ok(ext, 'Extension not found');
   return ext.activate();
 }
+
+const scenario = getCurrentE2EScenario();
 
 suite('Graph: Workspace Analysis', function () {
   this.timeout(60_000);
@@ -59,12 +62,7 @@ suite('Graph: Workspace Analysis', function () {
 
     // The example workspace spans multiple packages and still exposes
     // workspace-relative file IDs to the graph.
-    const expected = [
-      'packages/app/src/index.ts',
-      'packages/app/src/utils.ts',
-      'packages/shared/src/types.ts',
-    ];
-    for (const rel of expected) {
+    for (const rel of scenario.expectedNodeIds) {
       assert.ok(
         nodeIds.some((id) => id.endsWith(rel.replace(/\//g, path.sep)) || id.endsWith(rel)),
         `Node for '${rel}' should be in the graph. Got: ${nodeIds.join(', ')}`
@@ -72,18 +70,21 @@ suite('Graph: Workspace Analysis', function () {
     }
   });
 
-  test('import edges are detected between fixture files', async function() {
+  test('scenario edges are detected between fixture files', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(5_000);
 
     const graphData = api.getGraphData();
-    assert.ok(
-      graphData.edges.length > 0,
-      `Expected at least one edge. Graph has ${graphData.edges.length} edges.`
-    );
+    const edgeIds = graphData.edges.map((edge) => String(edge.id));
+    for (const edgeId of scenario.minimumExpectedEdgeIds) {
+      assert.ok(
+        edgeIds.includes(edgeId),
+        `Expected edge '${edgeId}' in scenario '${scenario.name}'. Got: ${edgeIds.join(', ')}`
+      );
+    }
 
-    console.log('[e2e] Edges:', graphData.edges.map((e) => `${e.from} → ${e.to}`).join(', '));
+    console.log(`[e2e:${scenario.name}] Edges:`, graphData.edges.map((e) => `${e.from} → ${e.to}`).join(', '));
   });
 });
 
@@ -303,10 +304,10 @@ suite('Graph: Depth View', function () {
     const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
     assert.ok(workspaceRoot, 'Workspace folder required');
 
-    const indexDocument = await vscode.workspace.openTextDocument(
-      vscode.Uri.file(path.join(workspaceRoot, 'packages', 'app', 'src', 'index.ts'))
+    const document = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(path.join(workspaceRoot, ...scenario.depth.rootFileRelativePath.split('/')))
     );
-    await vscode.window.showTextDocument(indexDocument, { preview: false });
+    await vscode.window.showTextDocument(document, { preview: false });
     await sleep(1_000);
 
     const depthOnePromise = waitForGraphDataUpdate(api);
@@ -317,18 +318,10 @@ suite('Graph: Depth View', function () {
     const depthOneGraph = await depthOnePromise;
     const depthOneNodeIds = depthOneGraph.nodes.map((node) => String(node.id)).sort();
 
-    assert.deepStrictEqual(depthOneNodeIds, [
-      'packages/app/src/index.ts',
-      'packages/app/src/utils.ts',
-      'packages/shared/src/types.ts',
-    ]);
+    assert.deepStrictEqual(depthOneNodeIds, scenario.depth.depthOneNodeIds);
     assert.deepStrictEqual(
       depthOneGraph.edges.map((edge) => String(edge.id)).sort(),
-      [
-        'packages/app/src/index.ts->packages/app/src/utils.ts',
-        'packages/app/src/index.ts->packages/shared/src/types.ts',
-        'packages/app/src/utils.ts->packages/shared/src/types.ts',
-      ],
+      scenario.depth.depthOneEdgeIds,
     );
 
     const depthOneBounds = await requestNodeBounds(api);
@@ -341,16 +334,13 @@ suite('Graph: Depth View', function () {
     });
     const depthTwoGraph = await depthTwoPromise;
     const depthTwoNodeIds = depthTwoGraph.nodes.map((node) => String(node.id)).sort();
-    assert.deepStrictEqual(depthTwoNodeIds, [
-      'packages/app/src/index.ts',
-      'packages/app/src/utils.ts',
-      'packages/feature-depth/src/deep.ts',
-      'packages/shared/src/types.ts',
-    ]);
-    assert.ok(
-      !depthTwoNodeIds.includes('packages/feature-depth/src/leaf.ts'),
-      'depth 2 should exclude the 3-hop leaf'
-    );
+    assert.deepStrictEqual(depthTwoNodeIds, scenario.depth.depthTwoNodeIds);
+    for (const excludedNodeId of scenario.depth.excludedAtDepthTwo) {
+      assert.ok(
+        !depthTwoNodeIds.includes(excludedNodeId),
+        `depth 2 should exclude '${excludedNodeId}'`
+      );
+    }
 
     const depthTwoBounds = await requestNodeBounds(api);
     assert.strictEqual(depthTwoBounds.length, depthTwoGraph.nodes.length);
