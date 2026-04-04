@@ -277,4 +277,39 @@ describe('App: message handlers', () => {
     });
     expect(graphStore.getState().activeFilePath).toBe('src/app.ts');
   });
+
+  it('REQUEST_STORE_SNAPSHOT posts the current webview store state back to the extension', async () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [{ id: 'src/a.ts', label: 'a.ts', color: '#123456' }],
+        edges: [{ id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts' }],
+      },
+      activeViewId: 'codegraphy.depth-graph',
+      activeFilePath: 'src/a.ts',
+      depthLimit: 2,
+      maxDepthLimit: 4,
+      isLoading: false,
+    });
+    render(<App />);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const sentMessages = (globalThis as any).__vscodeSentMessages as Array<{ type?: string; payload?: unknown }>;
+    sentMessages.length = 0;
+
+    await act(async () => {
+      sendMessage({ type: 'REQUEST_STORE_SNAPSHOT' });
+    });
+
+    expect(sentMessages).toContainEqual({
+      type: 'STORE_SNAPSHOT_RESPONSE',
+      payload: {
+        activeViewId: 'codegraphy.depth-graph',
+        activeFilePath: 'src/a.ts',
+        depthLimit: 2,
+        maxDepthLimit: 4,
+        graphNodeIds: ['src/a.ts'],
+        graphEdgeIds: ['src/a.ts->src/b.ts'],
+      },
+    });
+  });
 });

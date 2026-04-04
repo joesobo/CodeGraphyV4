@@ -50,6 +50,22 @@ export function createMessageHandler(
       return;
     }
 
+    if (raw.type === 'REQUEST_STORE_SNAPSHOT') {
+      const state = graphStore.getState();
+      postMessage({
+        type: 'STORE_SNAPSHOT_RESPONSE',
+        payload: {
+          activeViewId: state.activeViewId,
+          activeFilePath: state.activeFilePath,
+          depthLimit: state.depthLimit,
+          maxDepthLimit: state.maxDepthLimit,
+          graphNodeIds: state.graphData?.nodes.map(node => node.id) ?? [],
+          graphEdgeIds: state.graphData?.edges.map(edge => edge.id) ?? [],
+        },
+      });
+      return;
+    }
+
     graphStore.getState().handleExtensionMessage(raw as ExtensionToWebviewMessage);
   };
 }

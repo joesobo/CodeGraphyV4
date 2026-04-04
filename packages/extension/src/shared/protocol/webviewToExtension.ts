@@ -57,6 +57,17 @@ export type WebviewToExtensionMessage =
       type: 'NODE_BOUNDS_RESPONSE';
       payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> };
     }
+  | {
+      type: 'STORE_SNAPSHOT_RESPONSE';
+      payload: {
+        activeViewId: string;
+        activeFilePath: string | null;
+        depthLimit: number;
+        maxDepthLimit: number | null;
+        graphNodeIds: string[];
+        graphEdgeIds: string[];
+      };
+    }
   | { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }
   | {
       type: 'PLUGIN_CONTEXT_MENU_ACTION';

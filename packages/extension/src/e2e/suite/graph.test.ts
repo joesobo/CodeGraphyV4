@@ -8,16 +8,41 @@
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import * as path from 'path';
+import * as fs from 'fs';
 
 // The type exported by the extension's activate() function
 interface CodeGraphyAPI {
   getGraphData(): import('../../shared/graph/types').IGraphData;
+  setGraphData(data: import('../../shared/graph/types').IGraphData): void;
+  changeView(viewId: string): Promise<void>;
+  setFocusedFile(filePath: string | undefined): void;
+  setDepthLimit(depthLimit: number): Promise<void>;
+  previewNode(nodeId: string): Promise<void>;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
 }
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function waitForGraphPredicate(
+  api: CodeGraphyAPI,
+  predicate: (graphData: import('../../shared/graph/types').IGraphData) => boolean,
+  timeoutMs = 15_000,
+): Promise<import('../../shared/graph/types').IGraphData> {
+  const started = Date.now();
+
+  while (Date.now() - started < timeoutMs) {
+    const graphData = api.getGraphData();
+    if (predicate(graphData)) {
+      return graphData;
+    }
+
+    await sleep(250);
+  }
+
+  throw new Error('Timed out waiting for graph predicate');
 }
 
 async function getAPI(): Promise<CodeGraphyAPI> {
@@ -97,6 +122,44 @@ function waitForMessage(
         clearTimeout(timer);
         disposable.dispose();
         resolve(msg);
+      }
+    });
+  });
+}
+
+function waitForStoreSnapshot(
+  api: CodeGraphyAPI,
+  timeoutMs = 10_000,
+): Promise<{
+  activeViewId: string;
+  activeFilePath: string | null;
+  depthLimit: number;
+  maxDepthLimit: number | null;
+  graphNodeIds: string[];
+  graphEdgeIds: string[];
+}> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error('Timed out waiting for STORE_SNAPSHOT_RESPONSE')),
+      timeoutMs,
+    );
+    const disposable = api.onWebviewMessage((msg: unknown) => {
+      const message = msg as {
+        type?: string;
+        payload?: {
+          activeViewId: string;
+          activeFilePath: string | null;
+          depthLimit: number;
+          maxDepthLimit: number | null;
+          graphNodeIds: string[];
+          graphEdgeIds: string[];
+        };
+      };
+
+      if (message.type === 'STORE_SNAPSHOT_RESPONSE' && message.payload) {
+        clearTimeout(timer);
+        disposable.dispose();
+        resolve(message.payload);
       }
     });
   });
@@ -222,5 +285,82 @@ suite('Graph: Webview Messaging', function () {
 
       vscode.commands.executeCommand('codegraphy.fitView');
     });
+  });
+});
+
+suite('Graph: Depth View', function () {
+  this.timeout(60_000);
+
+  test('previewing a node in depth view filters the graph to depth 1', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(1_000);
+
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspaceFolder, 'Workspace folder required for depth view e2e');
+
+    const srcRoot = path.join(workspaceFolder.uri.fsPath, 'src');
+    const depthAPath = path.join(srcRoot, '__depth_a__.ts');
+    const depthBPath = path.join(srcRoot, '__depth_b__.ts');
+    const depthCPath = path.join(srcRoot, '__depth_c__.ts');
+
+    fs.writeFileSync(depthAPath, "import { depthB } from './__depth_b__';\nexport const depthA = depthB;\n");
+    fs.writeFileSync(depthBPath, "import { depthC } from './__depth_c__';\nexport const depthB = depthC;\n");
+    fs.writeFileSync(depthCPath, "export const depthC = 'depth-c';\n");
+
+    try {
+      api.setGraphData({
+        nodes: [
+          { id: 'src/__depth_a__.ts', label: '__depth_a__.ts', color: '#ffffff' },
+          { id: 'src/__depth_b__.ts', label: '__depth_b__.ts', color: '#ffffff' },
+          { id: 'src/__depth_c__.ts', label: '__depth_c__.ts', color: '#ffffff' },
+        ],
+        edges: [
+          { id: 'src/__depth_a__.ts->src/__depth_b__.ts', from: 'src/__depth_a__.ts', to: 'src/__depth_b__.ts' },
+          { id: 'src/__depth_b__.ts->src/__depth_c__.ts', from: 'src/__depth_b__.ts', to: 'src/__depth_c__.ts' },
+        ],
+      });
+
+      await api.changeView('codegraphy.depth-graph');
+      await api.setDepthLimit(1);
+      await api.previewNode('src/__depth_a__.ts');
+
+      const graphData = await waitForGraphPredicate(api, nextGraphData =>
+        nextGraphData.nodes.length === 2
+        && nextGraphData.nodes.every(
+          node => node.id === 'src/__depth_a__.ts' || node.id === 'src/__depth_b__.ts',
+        ),
+      );
+
+      assert.deepStrictEqual(
+        graphData.nodes.map(node => node.id).sort(),
+        ['src/__depth_a__.ts', 'src/__depth_b__.ts'],
+      );
+      assert.deepStrictEqual(
+        graphData.edges.map(edge => edge.id),
+        ['src/__depth_a__.ts->src/__depth_b__.ts'],
+      );
+
+      const storeSnapshotPromise = waitForStoreSnapshot(api);
+      api.sendToWebview({ type: 'REQUEST_STORE_SNAPSHOT' });
+      const storeSnapshot = await storeSnapshotPromise;
+
+      assert.strictEqual(storeSnapshot.activeViewId, 'codegraphy.depth-graph');
+      assert.strictEqual(storeSnapshot.activeFilePath, 'src/__depth_a__.ts');
+      assert.deepStrictEqual(
+        [...storeSnapshot.graphNodeIds].sort(),
+        ['src/__depth_a__.ts', 'src/__depth_b__.ts'],
+      );
+      assert.deepStrictEqual(
+        storeSnapshot.graphEdgeIds,
+        ['src/__depth_a__.ts->src/__depth_b__.ts'],
+      );
+    } finally {
+      for (const filePath of [depthAPath, depthBPath, depthCPath]) {
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+    }
   });
 });

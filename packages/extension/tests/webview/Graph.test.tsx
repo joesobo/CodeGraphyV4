@@ -49,6 +49,21 @@ describe('Graph', () => {
     expect(screen.getByTestId('force-graph-2d')).toBeInTheDocument();
   });
 
+  it('remounts the graph surface when the graph scope shrinks', () => {
+    const { rerender } = render(<Graph data={mockData} />);
+
+    const initialCanvas = screen.getByTestId('force-graph-2d');
+    const smallerData: IGraphData = {
+      nodes: mockData.nodes.slice(0, 2),
+      edges: mockData.edges.slice(0, 1),
+    };
+
+    rerender(<Graph data={smallerData} />);
+
+    const updatedCanvas = screen.getByTestId('force-graph-2d');
+    expect(updatedCanvas).not.toBe(initialCanvas);
+  });
+
   it('should handle empty graph data', () => {
     const emptyData: IGraphData = { nodes: [], edges: [] };
     const { container } = render(<Graph data={emptyData} />);

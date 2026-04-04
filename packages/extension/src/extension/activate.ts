@@ -16,6 +16,16 @@ const CODEGRAPHY_EXTENSION_ID = 'codegraphy.codegraphy';
 export interface CodeGraphyAPI {
   /** Current graph data (nodes + edges) after the last analysis. */
   getGraphData(): IGraphData;
+  /** Replace graph data directly for extension-host e2e tests. */
+  setGraphData(data: IGraphData): void;
+  /** Change the active graph view. Used by extension-host e2e tests. */
+  changeView(viewId: string): Promise<void>;
+  /** Set the focused file for the active graph view. Used by extension-host e2e tests. */
+  setFocusedFile(filePath: string | undefined): void;
+  /** Set the depth limit for depth view. Used by extension-host e2e tests. */
+  setDepthLimit(depthLimit: number): Promise<void>;
+  /** Open the given node using the same preview path as NODE_SELECTED. */
+  previewNode(nodeId: string): Promise<void>;
   /** Send a raw message to the webview panel (mirrors extension→webview channel). */
   sendToWebview(message: unknown): void;
   /** Listen for messages sent from the webview. Returns a disposable. */
@@ -59,6 +69,32 @@ export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
 
   return {
     getGraphData: () => provider.getGraphData(),
+    setGraphData: (data: IGraphData) => {
+      const target = provider as unknown as {
+        _rawGraphData: IGraphData;
+        _graphData: IGraphData;
+        _methodContainers: {
+          viewContext: {
+            _applyViewTransform(): void;
+          };
+        };
+      };
+
+      target._rawGraphData = data;
+      target._graphData = data;
+      target._methodContainers.viewContext._applyViewTransform();
+    },
+    changeView: viewId => provider.changeView(viewId),
+    setFocusedFile: filePath => provider.setFocusedFile(filePath),
+    setDepthLimit: depthLimit => provider.setDepthLimit(depthLimit),
+    previewNode: nodeId =>
+      (
+        provider as unknown as {
+          _methodContainers: {
+            timeline: { _openSelectedNode(nodeId: string): Promise<void> };
+          };
+        }
+      )._methodContainers.timeline._openSelectedNode(nodeId),
     sendToWebview: (message) => provider.sendToWebview(message),
     onWebviewMessage: (handler) => provider.onWebviewMessage(handler),
     registerPlugin: (plugin: unknown, options?: { extensionUri?: vscode.Uri | string }) =>

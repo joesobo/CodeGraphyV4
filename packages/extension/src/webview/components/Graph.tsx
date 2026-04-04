@@ -48,6 +48,27 @@ export default function Graph({
   const timelineActive = useGraphStore(state => state.timelineActive);
   const pluginContextMenuItems = useGraphStore(state => state.pluginContextMenuItems);
 
+  const graphScopeKey = useMemo(() => {
+    let hash = 2166136261;
+
+    const updateHash = (value: string) => {
+      for (let index = 0; index < value.length; index += 1) {
+        hash ^= value.charCodeAt(index);
+        hash = Math.imul(hash, 16777619);
+      }
+    };
+
+    for (const node of data.nodes) {
+      updateHash(node.id);
+    }
+
+    for (const edge of data.edges) {
+      updateHash(edge.id);
+    }
+
+    return `${data.nodes.length}:${data.edges.length}:${hash >>> 0}`;
+  }, [data]);
+
   const graphState = useGraphState({
     bidirectionalMode,
     data,
@@ -203,6 +224,7 @@ export default function Graph({
 
   return (
     <Viewport
+      key={graphScopeKey}
       backgroundColor={backgroundColor}
       borderColor={borderColor}
       containerRef={graphState.containerRef}

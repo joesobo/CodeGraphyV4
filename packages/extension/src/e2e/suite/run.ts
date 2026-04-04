@@ -12,6 +12,10 @@ export async function run(): Promise<void> {
     color: true,
     timeout: 30_000,
   });
+  const grep = process.env.MOCHA_GREP;
+  if (grep) {
+    mocha.grep(grep);
+  }
 
   const testsRoot = path.resolve(__dirname, '.');
   const files = await glob('**/*.test.js', { cwd: testsRoot });
