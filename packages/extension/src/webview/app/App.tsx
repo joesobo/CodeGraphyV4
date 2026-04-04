@@ -4,6 +4,7 @@ import { SearchBar } from '../components/searchBar/Field';
 import SettingsPanel from '../components/settingsPanel/Drawer';
 import PluginsPanel from '../components/plugins/Panel';
 import Toolbar from '../components/Toolbar';
+import { DepthViewControls } from '../components/depthView/view';
 import { ActiveFileBreadcrumb } from '../components/activeFileBreadcrumb/view';
 import { useTheme } from '../theme/useTheme';
 import { usePluginManager } from '../pluginRuntime/useManager';
@@ -61,6 +62,7 @@ export default function App(): React.ReactElement {
           edgeDecorations={edgeDecorations}
           pluginHost={pluginHost}
         />
+        <DepthViewControls />
         <div className="absolute inset-y-2 left-2 z-10 pointer-events-none">
           <div className="h-full pointer-events-auto">
             <Toolbar />
