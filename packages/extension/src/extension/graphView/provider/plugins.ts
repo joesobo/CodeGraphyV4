@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import type { IViewContext } from '../../../core/views/contracts';
 import type { ViewRegistry } from '../../../core/views/registry';
+import type { IGraphData } from '../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../shared/settings/groups';
 import {
@@ -36,6 +37,7 @@ export interface GraphViewProviderPluginMethodsSource {
   _viewRegistry: ViewRegistry;
   _viewContext: IViewContext;
   _activeViewId: string;
+  _rawGraphData: IGraphData;
   _decorationManager: GraphViewDecorationManagerLike;
   _firstAnalysis: boolean;
   _webviewReadyNotified: boolean;
@@ -96,8 +98,9 @@ export function createGraphViewProviderPluginMethods(
       source._viewRegistry,
       source._viewContext,
       source._activeViewId,
+      source._rawGraphData,
       DEFAULT_DEPTH_LIMIT,
-      message => source._sendMessage(message as ExtensionToWebviewMessage),
+      (message: unknown) => source._sendMessage(message as ExtensionToWebviewMessage),
     );
   };
 

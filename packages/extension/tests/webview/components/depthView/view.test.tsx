@@ -44,6 +44,7 @@ describe('DepthViewControls', () => {
     graphStore.setState({
       activeViewId: 'codegraphy.connections',
       depthLimit: 1,
+      maxDepthLimit: 10,
     });
   });
 
@@ -57,6 +58,7 @@ describe('DepthViewControls', () => {
     graphStore.setState({
       activeViewId: 'codegraphy.depth-graph',
       depthLimit: 3,
+      maxDepthLimit: 4,
     });
 
     render(<DepthViewControls />);
@@ -69,12 +71,14 @@ describe('DepthViewControls', () => {
     expect(screen.getByTestId('depth-view-value')).toBeInTheDocument();
     expect(screen.getByText('Depth')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getByText('4')).toBeInTheDocument();
   });
 
   it('posts CHANGE_DEPTH_LIMIT when the slider changes', () => {
     graphStore.setState({
       activeViewId: 'codegraphy.depth-graph',
       depthLimit: 2,
+      maxDepthLimit: 4,
     });
 
     render(<DepthViewControls />);

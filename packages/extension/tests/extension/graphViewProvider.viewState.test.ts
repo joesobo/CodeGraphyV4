@@ -140,12 +140,12 @@ describe('GraphViewProvider view state and internal helpers', () => {
 
     await provider.setDepthLimit(99);
 
-    expect((provider as unknown as { _viewContext: { depthLimit: number } })._viewContext.depthLimit).toBe(5);
-    expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.depthLimit', 5);
+    expect((provider as unknown as { _viewContext: { depthLimit: number } })._viewContext.depthLimit).toBe(10);
+    expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.depthLimit', 10);
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'DEPTH_LIMIT_UPDATED',
-      payload: { depthLimit: 5 },
+      payload: { depthLimit: 10 },
     });
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',

@@ -21,6 +21,7 @@ describe('graphView/view/broadcast', () => {
       viewRegistry,
       { activePlugins: new Set(['plugin.alpha']), depthLimit: 3 } satisfies IViewContext,
       'codegraphy.connections',
+      { nodes: [], edges: [] },
       1,
       sendMessage,
     );
@@ -35,6 +36,10 @@ describe('graphView/view/broadcast', () => {
     expect(sendMessage).toHaveBeenNthCalledWith(2, {
       type: 'DEPTH_LIMIT_UPDATED',
       payload: { depthLimit: 3 },
+    });
+    expect(sendMessage).toHaveBeenNthCalledWith(3, {
+      type: 'DEPTH_LIMIT_RANGE_UPDATED',
+      payload: { maxDepthLimit: 10 },
     });
   });
 

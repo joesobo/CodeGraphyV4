@@ -35,6 +35,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } }
   | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings }
   | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }
+  | { type: 'DEPTH_LIMIT_RANGE_UPDATED'; payload: { maxDepthLimit: number } }
   | { type: 'GROUPS_UPDATED'; payload: { groups: IGroup[] } }
   | {
       type: 'FILTER_PATTERNS_UPDATED';

@@ -1,15 +1,18 @@
 import type { IGraphData } from '../../../shared/graph/types';
 import type { IView, IViewContext } from '../contracts';
 
-const MIN_DEPTH_LIMIT = 1;
-const MAX_DEPTH_LIMIT = 5;
+export const MIN_DEPTH_LIMIT = 1;
+export const MAX_DEPTH_LIMIT = 10;
 
-function clampDepthLimit(depthLimit: number | undefined): number {
+function clampDepthLimit(
+  depthLimit: number | undefined,
+  maxDepthLimit: number = MAX_DEPTH_LIMIT,
+): number {
   if (depthLimit === undefined) {
     return MIN_DEPTH_LIMIT;
   }
 
-  return Math.max(MIN_DEPTH_LIMIT, Math.min(MAX_DEPTH_LIMIT, depthLimit));
+  return Math.max(MIN_DEPTH_LIMIT, Math.min(maxDepthLimit, depthLimit));
 }
 
 function buildUndirectedAdjacencyList(data: IGraphData): Map<string, Set<string>> {
@@ -60,6 +63,44 @@ function walkDepthFromNode(
   return depths;
 }
 
+export function getDepthGraphMaxDepthLimit(
+  data: IGraphData,
+  focusedFile: string | undefined,
+  fallbackMaxDepthLimit: number = MAX_DEPTH_LIMIT,
+): number {
+  if (!focusedFile) {
+    return fallbackMaxDepthLimit;
+  }
+
+  const adjacencyList = buildUndirectedAdjacencyList(data);
+  const depths = walkDepthFromNode(focusedFile, MAX_DEPTH_LIMIT, adjacencyList);
+  if (depths.size === 0) {
+    return fallbackMaxDepthLimit;
+  }
+
+  let maxReachableDepth = 0;
+  for (const depth of depths.values()) {
+    if (depth > maxReachableDepth) {
+      maxReachableDepth = depth;
+    }
+  }
+
+  return clampDepthLimit(maxReachableDepth, MAX_DEPTH_LIMIT);
+}
+
+export function getDepthGraphEffectiveDepthLimit(
+  data: IGraphData,
+  context: IViewContext,
+  fallbackMaxDepthLimit: number = MAX_DEPTH_LIMIT,
+): number {
+  const maxDepthLimit = getDepthGraphMaxDepthLimit(
+    data,
+    context.focusedFile,
+    fallbackMaxDepthLimit,
+  );
+  return clampDepthLimit(context.depthLimit, maxDepthLimit);
+}
+
 function filterDepthGraph(data: IGraphData, context: IViewContext): IGraphData {
   const focusedFile = context.focusedFile;
   if (!focusedFile) {
@@ -67,7 +108,11 @@ function filterDepthGraph(data: IGraphData, context: IViewContext): IGraphData {
   }
 
   const adjacencyList = buildUndirectedAdjacencyList(data);
-  const depths = walkDepthFromNode(focusedFile, clampDepthLimit(context.depthLimit), adjacencyList);
+  const depths = walkDepthFromNode(
+    focusedFile,
+    getDepthGraphEffectiveDepthLimit(data, context),
+    adjacencyList,
+  );
 
   if (depths.size === 0) {
     return data;

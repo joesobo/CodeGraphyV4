@@ -1,22 +1,25 @@
 import React from 'react';
+import { mdiBullseye } from '@mdi/js';
 import { postMessage } from '../../vscodeApi';
 import { useGraphStore } from '../../store/state';
 import { Slider } from '../ui/controls/slider';
+import { MdiIcon } from '../icons/MdiIcon';
 
 const MIN_DEPTH = 1;
-const MAX_DEPTH = 5;
 const ACTIVE_VIEW_ID = 'codegraphy.depth-graph';
 
 export function DepthViewControls(): React.ReactElement | null {
   const activeViewId = useGraphStore(state => state.activeViewId);
   const depthLimit = useGraphStore(state => state.depthLimit);
+  const maxDepthLimit = useGraphStore(state => state.maxDepthLimit);
+  const effectiveDepthLimit = Math.min(depthLimit, maxDepthLimit);
 
   if (activeViewId !== ACTIVE_VIEW_ID) {
     return null;
   }
 
   const handleDepthChange = (value: number[]): void => {
-    const nextDepthLimit = value[0] ?? depthLimit;
+    const nextDepthLimit = value[0] ?? effectiveDepthLimit;
     postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: nextDepthLimit } });
   };
 
@@ -27,35 +30,38 @@ export function DepthViewControls(): React.ReactElement | null {
     >
       <div
         data-testid="depth-view-shell"
-        className="pointer-events-auto flex w-full max-w-xl items-center gap-3 rounded-xl border border-[var(--vscode-panel-border,#3c3c3c)] bg-[color:color-mix(in_srgb,var(--vscode-editorWidget-background,#1f1f1f)_88%,transparent)] px-3 py-2 shadow-[0_12px_36px_rgba(0,0,0,0.28)] backdrop-blur-md"
+        className="pointer-events-auto flex w-full max-w-md items-center gap-2 rounded-lg bg-[color:color-mix(in_srgb,var(--vscode-editorWidget-background,#1f1f1f)_84%,transparent)] px-2.5 py-1 shadow-[0_10px_28px_rgba(0,0,0,0.22)] backdrop-blur-md"
       >
-        <div className="flex shrink-0 items-center gap-2 rounded-lg border border-[var(--vscode-panel-border,#3c3c3c)] bg-[var(--vscode-sideBar-background,#181818)]/80 px-3 py-1.5">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+        <div className="flex shrink-0 items-center gap-1.5 px-0.5">
+          <MdiIcon path={mdiBullseye} size={13} className="text-primary/85" />
+          <div className="text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
             Depth
           </div>
           <div
             data-testid="depth-view-value"
-            className="inline-flex min-w-6 items-center justify-center rounded-full bg-primary/15 px-2 py-0.5 text-xs font-semibold leading-none text-primary"
+            className="inline-flex min-w-4 items-center justify-center text-[11px] font-semibold leading-none text-foreground"
           >
-            {depthLimit}
+            {effectiveDepthLimit}
           </div>
         </div>
-        <div className="flex flex-1 items-center gap-3 rounded-lg border border-[var(--vscode-panel-border,#3c3c3c)] bg-[var(--vscode-sideBar-background,#181818)]/65 px-3 py-2">
-          <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            1
+        <div className="flex flex-1 items-center gap-1.5 px-0.5">
+          <span className="text-[9px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            {MIN_DEPTH}
           </span>
           <Slider
             data-testid="depth-view-slider"
             aria-label="Depth limit"
             className="flex-1"
             min={MIN_DEPTH}
-            max={MAX_DEPTH}
+            max={maxDepthLimit}
             step={1}
-            value={[depthLimit]}
+            value={[effectiveDepthLimit]}
             onValueChange={handleDepthChange}
+            trackClassName="h-1 bg-primary/15"
+            thumbClassName="h-3 w-3 border-0 bg-primary shadow-[0_0_0_1px_rgba(15,23,42,0.16),0_2px_6px_rgba(15,23,42,0.28)] focus-visible:ring-[1.5px]"
           />
-          <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-muted-foreground">
-            5
+          <span className="text-[9px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
+            {maxDepthLimit}
           </span>
         </div>
       </div>

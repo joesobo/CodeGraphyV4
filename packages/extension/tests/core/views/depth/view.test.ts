@@ -8,6 +8,7 @@ const sampleData: IGraphData = {
     { id: 'src/lib.ts', label: 'lib.ts', color: '#93C5FD' },
     { id: 'src/deep.ts', label: 'deep.ts', color: '#93C5FD' },
     { id: 'src/leaf.ts', label: 'leaf.ts', color: '#93C5FD' },
+    { id: 'src/orphan.ts', label: 'orphan.ts', color: '#93C5FD' },
   ],
   edges: [
     { id: 'app->lib', from: 'src/app.ts', to: 'src/lib.ts' },
@@ -80,5 +81,39 @@ describe('core/views/depth/view', () => {
     );
 
     expect(result).toEqual(sampleData);
+  });
+
+  it('computes the max depth range from the focused node and clamps orphan roots to 1', async () => {
+    const { getDepthGraphMaxDepthLimit } = await import('../../../../src/core/views/depth/view');
+
+    expect(getDepthGraphMaxDepthLimit(sampleData, 'src/lib.ts')).toBe(2);
+    expect(getDepthGraphMaxDepthLimit(sampleData, 'src/app.ts')).toBe(3);
+    expect(getDepthGraphMaxDepthLimit(sampleData, 'src/orphan.ts')).toBe(1);
+    expect(getDepthGraphMaxDepthLimit(sampleData, 'src/missing.ts')).toBe(10);
+  });
+
+  it('caps the effective depth limit to the reachable max depth', async () => {
+    const { depthGraphView, getDepthGraphEffectiveDepthLimit } = await import(
+      '../../../../src/core/views/depth/view'
+    );
+
+    expect(
+      getDepthGraphEffectiveDepthLimit(
+        sampleData,
+        context({ focusedFile: 'src/lib.ts', depthLimit: 9 }),
+      ),
+    ).toBe(2);
+
+    const result = depthGraphView.transform(
+      sampleData,
+      context({ focusedFile: 'src/lib.ts', depthLimit: 9 }),
+    );
+
+    expect(result.nodes.map(node => node.id)).toEqual([
+      'src/app.ts',
+      'src/lib.ts',
+      'src/deep.ts',
+      'src/leaf.ts',
+    ]);
   });
 });

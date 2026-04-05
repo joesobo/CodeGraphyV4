@@ -97,7 +97,7 @@ export async function setGraphViewDepthLimit(
     applyViewTransform,
   }: SetGraphViewDepthLimitDependencies,
 ): Promise<void> {
-  const clampedDepthLimit = Math.max(1, Math.min(5, depthLimit));
+  const clampedDepthLimit = Math.max(1, Math.min(10, depthLimit));
   state._viewContext.depthLimit = clampedDepthLimit;
 
   await persistDepthLimit(clampedDepthLimit);

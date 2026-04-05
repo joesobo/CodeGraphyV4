@@ -116,11 +116,11 @@ describe('graphView/view/selection', () => {
       applyViewTransform,
     });
 
-    expect(state._viewContext.depthLimit).toBe(5);
-    expect(persistDepthLimit).toHaveBeenCalledWith(5);
+    expect(state._viewContext.depthLimit).toBe(10);
+    expect(persistDepthLimit).toHaveBeenCalledWith(10);
     expect(sendMessage).toHaveBeenNthCalledWith(1, {
       type: 'DEPTH_LIMIT_UPDATED',
-      payload: { depthLimit: 5 },
+      payload: { depthLimit: 10 },
     });
     expect(applyViewTransform).toHaveBeenCalledTimes(1);
     expect(sendMessage).toHaveBeenNthCalledWith(2, {
