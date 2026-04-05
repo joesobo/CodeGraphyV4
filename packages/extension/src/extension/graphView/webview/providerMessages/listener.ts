@@ -101,6 +101,7 @@ export interface GraphViewProviderMessageListenerSource {
   _getPhysicsSettings(): IPhysicsSettings;
   _openSelectedNode(nodeId: string): Promise<void>;
   _activateNode(nodeId: string): Promise<void>;
+  setFocusedFile(filePath: string | undefined): void;
   _previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   _openFile(filePath: string): Promise<void>;
   _revealInExplorer(filePath: string): Promise<void>;

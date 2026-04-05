@@ -131,6 +131,7 @@ function createSource(
     })),
     _openSelectedNode: vi.fn(() => Promise.resolve()),
     _activateNode: vi.fn(() => Promise.resolve()),
+    setFocusedFile: vi.fn(),
     _previewFileAtCommit: vi.fn(() => Promise.resolve()),
     _openFile: vi.fn(() => Promise.resolve()),
     _revealInExplorer: vi.fn(() => Promise.resolve()),

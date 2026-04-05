@@ -22,6 +22,7 @@ function createContext(
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
     getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
     getFocusedFile: vi.fn(() => undefined),
+    setFocusedFile: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
     previewFileAtCommit: vi.fn(() => Promise.resolve()),

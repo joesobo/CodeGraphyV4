@@ -390,4 +390,55 @@ suite('Graph: Depth View', function () {
       payload: { viewId: 'codegraphy.connections' },
     });
   });
+
+  test('depth view re-roots around the selected node even when another editor stays active', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(5_000);
+
+    const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+    assert.ok(workspaceRoot, 'Workspace folder required');
+
+    const document = await vscode.workspace.openTextDocument(
+      vscode.Uri.file(path.join(workspaceRoot, ...scenario.depth.rootFileRelativePath.split('/')))
+    );
+    await vscode.window.showTextDocument(document, { preview: false });
+    await sleep(1_000);
+
+    const depthGraphPromise = waitForGraphDataUpdate(api);
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.depth-graph' },
+    });
+    const depthGraph = await depthGraphPromise;
+
+    assert.deepStrictEqual(
+      depthGraph.nodes.map(node => String(node.id)).sort(),
+      scenario.depth.depthOneNodeIds,
+    );
+
+    const selectedNodeGraphPromise = waitForGraphDataUpdate(api);
+    await api.dispatchWebviewMessage({
+      type: 'NODE_SELECTED',
+      payload: { nodeId: scenario.depth.selectedNodeId },
+    });
+    const selectedNodeGraph = await selectedNodeGraphPromise;
+
+    assert.deepStrictEqual(
+      selectedNodeGraph.nodes.map(node => String(node.id)).sort(),
+      scenario.depth.selectedNodeDepthOneNodeIds,
+    );
+    assert.deepStrictEqual(
+      selectedNodeGraph.edges.map(edge => String(edge.id)).sort(),
+      scenario.depth.selectedNodeDepthOneEdgeIds,
+    );
+
+    const renderedBounds = await requestNodeBounds(api);
+    assert.strictEqual(renderedBounds.length, selectedNodeGraph.nodes.length);
+
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.connections' },
+    });
+  });
 });
