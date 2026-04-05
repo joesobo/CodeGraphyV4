@@ -4,7 +4,12 @@
  */
 
 import type { Disposable } from '../disposable';
-import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from './renderers';
+import type {
+  GraphPluginSlot,
+  NodeRenderFn,
+  OverlayRenderFn,
+  TooltipProviderFn,
+} from './renderers';
 import type { BadgeOpts, RingOpts, LabelOpts } from './types';
 
 /**
@@ -16,6 +21,9 @@ import type { BadgeOpts, RingOpts, LabelOpts } from './types';
 export interface CodeGraphyWebviewAPI {
   /** Get a hidden, plugin-scoped container element for DOM-based UI. */
   getContainer(): HTMLDivElement;
+
+  /** Get a plugin-scoped container for a named host surface when available. */
+  getSlotContainer(slot: GraphPluginSlot): HTMLDivElement;
 
   /**
    * Register a node renderer for a node type (typically file extension, e.g. ".ts").

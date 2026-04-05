@@ -68,6 +68,7 @@ export function handleTooltipNodeHover(
 			nodeId,
 			rect: getNodeRect(node),
 			cachedInfo: fileInfoCacheRef.current.get(nodeId) ?? null,
+			pluginActions: pluginTooltip?.actions ?? [],
 			pluginSections: pluginTooltip?.sections ?? [],
 		});
 		setTooltipData(tooltipState.tooltipData);

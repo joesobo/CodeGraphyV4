@@ -7,7 +7,7 @@
 import type { Disposable } from './disposable';
 import type { EventPayloads } from './events';
 import type { NodeDecoration, EdgeDecoration } from './decorations';
-import type { IGraphData, IGraphNode, IGraphEdge } from './graph';
+import type { GraphEdgeKind, IGraphData, IGraphNode, IGraphEdge } from './graph';
 import type { IView } from './views';
 import type { ICommand, IContextMenuItem } from './commands';
 
@@ -110,8 +110,23 @@ export interface CodeGraphyAPI {
   /** Get all nodes directly connected to the given node. */
   getNeighbors(id: string): IGraphNode[];
 
+  /** Get all edges that point into the given node. */
+  getIncomingEdges(nodeId: string): IGraphEdge[];
+
+  /** Get all edges that originate from the given node. */
+  getOutgoingEdges(nodeId: string): IGraphEdge[];
+
   /** Get all edges where the given node is either `from` or `to`. */
   getEdgesFor(nodeId: string): IGraphEdge[];
+
+  /** Filter the graph's edges by one or more semantic kinds. */
+  filterEdgesByKind(kind: GraphEdgeKind | GraphEdgeKind[]): IGraphEdge[];
+
+  /** Build an induced subgraph around a seed node for the requested hop depth. */
+  getSubgraph(nodeId: string, hops: number): IGraphData;
+
+  /** Find the shortest directed path between two nodes, if one exists. */
+  findPath(fromId: string, toId: string): IGraphNode[] | null;
 
   // ---------------------------------------------------------------------------
   // Registration

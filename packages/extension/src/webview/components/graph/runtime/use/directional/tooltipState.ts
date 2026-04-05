@@ -23,6 +23,7 @@ export function useTooltipState(): UseTooltipStateResult {
 		nodeRect: { x: 0, y: 0, radius: 0 },
 		path: '',
 		info: null,
+		pluginActions: [],
 		pluginSections: [],
 	});
 

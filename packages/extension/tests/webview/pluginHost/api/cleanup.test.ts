@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { removePluginRegistrations } from '../../../../src/webview/pluginHost/api/cleanup';
-import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../src/webview/pluginHost/api/contracts';
+import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../src/webview/pluginHost/api/contracts';
 
 describe('removePluginRegistrations', () => {
   let nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>;
@@ -8,6 +8,8 @@ describe('removePluginRegistrations', () => {
   let tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }>;
   let messageHandlers: Map<string, Set<(msg: { type: string; data: unknown }) => void>>;
   let containers: Map<string, HTMLDivElement>;
+  let slotContainers: Map<string, Map<GraphPluginSlot, HTMLDivElement>>;
+  let slotHosts: Map<GraphPluginSlot, HTMLDivElement>;
 
   beforeEach(() => {
     nodeRenderers = new Map();
@@ -15,6 +17,8 @@ describe('removePluginRegistrations', () => {
     tooltipProviders = [];
     messageHandlers = new Map();
     containers = new Map();
+    slotContainers = new Map();
+    slotHosts = new Map();
     document.body.innerHTML = '';
   });
 
@@ -23,7 +27,7 @@ describe('removePluginRegistrations', () => {
     nodeRenderers.set('.ts', { pluginId: 'target', fn });
     nodeRenderers.set('.js', { pluginId: 'other', fn });
 
-    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers);
+    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers, slotContainers, slotHosts);
 
     expect(nodeRenderers.has('.ts')).toBe(false);
     expect(nodeRenderers.has('.js')).toBe(true);
@@ -34,7 +38,7 @@ describe('removePluginRegistrations', () => {
     overlays.set('target:heatmap', { pluginId: 'target', fn });
     overlays.set('other:overlay', { pluginId: 'other', fn });
 
-    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers);
+    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers, slotContainers, slotHosts);
 
     expect(overlays.has('target:heatmap')).toBe(false);
     expect(overlays.has('other:overlay')).toBe(true);
@@ -46,7 +50,7 @@ describe('removePluginRegistrations', () => {
     tooltipProviders.push({ pluginId: 'other', fn });
     tooltipProviders.push({ pluginId: 'target', fn });
 
-    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers);
+    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers, slotContainers, slotHosts);
 
     expect(tooltipProviders).toHaveLength(1);
     expect(tooltipProviders[0].pluginId).toBe('other');
@@ -56,7 +60,7 @@ describe('removePluginRegistrations', () => {
     messageHandlers.set('target', new Set());
     messageHandlers.set('other', new Set());
 
-    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers);
+    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers, slotContainers, slotHosts);
 
     expect(messageHandlers.has('target')).toBe(false);
     expect(messageHandlers.has('other')).toBe(true);
@@ -67,7 +71,7 @@ describe('removePluginRegistrations', () => {
     document.body.appendChild(container);
     containers.set('target', container);
 
-    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers);
+    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers, slotContainers, slotHosts);
 
     expect(containers.has('target')).toBe(false);
     expect(document.body.contains(container)).toBe(false);
@@ -75,7 +79,7 @@ describe('removePluginRegistrations', () => {
 
   it('handles the case when no container exists for the plugin', () => {
     // Should not throw when no container exists
-    removePluginRegistrations('nonexistent', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers);
+    removePluginRegistrations('nonexistent', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers, slotContainers, slotHosts);
 
     expect(containers.size).toBe(0);
   });
@@ -88,9 +92,23 @@ describe('removePluginRegistrations', () => {
     tooltipProviders.push({ pluginId: 'target', fn: fn2 });
     tooltipProviders.push({ pluginId: 'target', fn: fn3 });
 
-    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers);
+    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers, slotContainers, slotHosts);
 
     expect(tooltipProviders).toHaveLength(1);
     expect(tooltipProviders[0].fn).toBe(fn1);
+  });
+
+  it('removes slot containers for the specified plugin and hides emptied slot hosts', () => {
+    const toolbarHost = document.createElement('div');
+    const toolbarContainer = document.createElement('div');
+    toolbarHost.appendChild(toolbarContainer);
+    slotHosts.set('toolbar', toolbarHost);
+    slotContainers.set('target', new Map([['toolbar', toolbarContainer]]));
+
+    removePluginRegistrations('target', nodeRenderers, overlays, tooltipProviders, messageHandlers, containers, slotContainers, slotHosts);
+
+    expect(slotContainers.has('target')).toBe(false);
+    expect(toolbarHost.childElementCount).toBe(0);
+    expect(toolbarHost.style.display).toBe('none');
   });
 });

@@ -5,8 +5,10 @@
 
 import type { Disposable } from '../../../../../plugin-api/src/disposable';
 import type {
+  GraphPluginSlot,
   NodeRenderFn,
   OverlayRenderFn,
+  TooltipAction,
   TooltipProviderFn,
   TooltipContent,
   TooltipContext,
@@ -18,8 +20,10 @@ import type {
 
 export type WebviewDisposable = Disposable;
 export type {
+  GraphPluginSlot,
   NodeRenderFn,
   OverlayRenderFn,
+  TooltipAction,
   TooltipProviderFn,
   TooltipContent,
   TooltipContext,

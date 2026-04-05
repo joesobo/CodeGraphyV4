@@ -69,8 +69,19 @@ vi.mock('../../../src/webview/pluginHost/manager', () => {
       harness.createApiCalls.push(pluginId);
       const container = document.createElement('div');
       container.setAttribute('data-plugin-id', pluginId);
+      const slotContainers = new Map<string, HTMLDivElement>();
       return {
         getContainer: () => container,
+        getSlotContainer: (slot: string) => {
+          let slotContainer = slotContainers.get(slot);
+          if (!slotContainer) {
+            slotContainer = document.createElement('div');
+            slotContainer.setAttribute('data-plugin-id', pluginId);
+            slotContainer.setAttribute('data-plugin-slot', slot);
+            slotContainers.set(slot, slotContainer);
+          }
+          return slotContainer;
+        },
         registerNodeRenderer: () => ({ dispose() {} }),
         registerOverlay: () => ({ dispose() {} }),
         registerTooltipProvider: () => ({ dispose() {} }),
@@ -88,6 +99,12 @@ vi.mock('../../../src/webview/pluginHost/manager', () => {
         onMessage: () => ({ dispose() {} }),
       };
     }
+
+    attachSlotHost(_slot: string, host: HTMLDivElement) {
+      host.style.display = 'none';
+    }
+
+    detachSlotHost(_slot: string) {}
 
     deliverMessage(pluginId: string, message: { type: string; data: unknown }) {
       harness.deliveries.push({ pluginId, message });
