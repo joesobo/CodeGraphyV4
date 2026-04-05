@@ -62,7 +62,11 @@ describe('DepthViewControls', () => {
     render(<DepthViewControls />);
 
     expect(screen.getByTestId('depth-view-controls')).toBeInTheDocument();
+    expect(screen.getByTestId('depth-view-controls').className).toContain('pl-16');
+    expect(screen.getByTestId('depth-view-controls').className).toContain('pr-4');
     expect(screen.getByTestId('depth-view-slider')).toBeInTheDocument();
+    expect(screen.getByTestId('depth-view-shell')).toBeInTheDocument();
+    expect(screen.getByTestId('depth-view-value')).toBeInTheDocument();
     expect(screen.getByText('Depth')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
   });
