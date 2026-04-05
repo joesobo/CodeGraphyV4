@@ -4,6 +4,7 @@
  */
 
 import type {
+  GraphPluginSlot,
   NodeRenderFn,
   OverlayRenderFn,
   TooltipProviderFn,
@@ -30,6 +31,7 @@ export function createPluginWebviewApi(
   pluginId: string,
   postMessage: (msg: GraphInteractionMessage) => void,
   getOrCreateContainer: (pluginId: string) => HTMLDivElement,
+  getOrCreateSlotContainer: (pluginId: string, slot: GraphPluginSlot) => HTMLDivElement,
   registerNodeRenderer: (pluginId: string, type: string, fn: NodeRenderFn) => WebviewDisposable,
   registerOverlay: (pluginId: string, id: string, fn: OverlayRenderFn) => WebviewDisposable,
   registerTooltipProvider: (pluginId: string, fn: TooltipProviderFn) => WebviewDisposable,
@@ -38,6 +40,7 @@ export function createPluginWebviewApi(
 ): CodeGraphyWebviewAPI {
   return {
     getContainer: () => getOrCreateContainer(pluginId),
+    getSlotContainer: (slot: GraphPluginSlot) => getOrCreateSlotContainer(pluginId, slot),
     registerNodeRenderer: (type: string, fn: NodeRenderFn) => registerNodeRenderer(pluginId, type, fn),
     registerOverlay: (id: string, fn: OverlayRenderFn) => registerOverlay(pluginId, id, fn),
     registerTooltipProvider: (fn: TooltipProviderFn) => registerTooltipProvider(pluginId, fn),

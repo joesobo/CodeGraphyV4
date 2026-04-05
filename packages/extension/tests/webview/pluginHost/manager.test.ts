@@ -149,6 +149,7 @@ describe('WebviewPluginHost', () => {
       neighbors: [],
       edges: [],
     })).toEqual({
+      actions: [],
       sections: [
         { title: 'One', content: 'First' },
         { title: 'Two', content: 'Second' },

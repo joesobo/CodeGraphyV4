@@ -14,6 +14,7 @@ import { getNoDataHint } from './messages';
 import { setupMessageListener } from './messageListener';
 import { LoadingState, EmptyState } from './states';
 import { useAppState, useAppActions } from './storeSelectors';
+import { SlotHost } from '../pluginHost/slotHost/view';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
@@ -65,10 +66,16 @@ export default function App(): React.ReactElement {
         <DepthViewControls />
         <div className="absolute inset-y-2 left-2 z-10 pointer-events-none">
           <div className="h-full pointer-events-auto">
-            <Toolbar />
+            <Toolbar pluginHost={pluginHost} />
           </div>
         </div>
         <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
+          <SlotHost
+            pluginHost={pluginHost}
+            slot="node-details"
+            data-testid="node-details-slot"
+            className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
+          />
           <PluginsPanel isOpen={activePanel === 'plugins'} onClose={() => setActivePanel('none')} />
           <SettingsPanel isOpen={activePanel === 'settings'} onClose={() => setActivePanel('none')} />
         </div>

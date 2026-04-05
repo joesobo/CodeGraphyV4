@@ -3,7 +3,8 @@
  * @module webview/pluginHost/cleanup
  */
 
-import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from './contracts';
+import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from './contracts';
+import { syncSlotHostVisibility } from './registration';
 
 /**
  * Remove all registrations for a plugin from plugin host collections.
@@ -15,6 +16,8 @@ export function removePluginRegistrations(
   tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }>,
   messageHandlers: Map<string, Set<(msg: { type: string; data: unknown }) => void>>,
   containers: Map<string, HTMLDivElement>,
+  slotContainers: Map<string, Map<GraphPluginSlot, HTMLDivElement>>,
+  slotHosts: Map<GraphPluginSlot, HTMLDivElement>,
 ): void {
   // Remove node renderers
   for (const [type, entry] of nodeRenderers) {
@@ -37,5 +40,13 @@ export function removePluginRegistrations(
   if (container) {
     container.remove();
     containers.delete(pluginId);
+  }
+  const pluginSlotContainers = slotContainers.get(pluginId);
+  if (pluginSlotContainers) {
+    for (const [slot, container] of pluginSlotContainers.entries()) {
+      container.remove();
+      syncSlotHostVisibility(slot, slotHosts);
+    }
+    slotContainers.delete(pluginId);
   }
 }

@@ -4,6 +4,7 @@
  */
 
 import type {
+  GraphPluginSlot,
   NodeRenderFn,
   OverlayRenderFn,
   TooltipProviderFn,
@@ -19,7 +20,15 @@ import { createPluginWebviewApi } from './api';
 import { removePluginRegistrations } from './api/cleanup';
 import { deliverPluginMessage } from './api/messages';
 import { aggregateTooltipContent } from './api/tooltip';
-import { registerNodeRenderer, registerOverlay, registerTooltipProvider, getOrCreateContainer } from './api/registration';
+import {
+  attachSlotHost,
+  detachSlotHost,
+  getOrCreateContainer,
+  getOrCreateSlotContainer,
+  registerNodeRenderer,
+  registerOverlay,
+  registerTooltipProvider,
+} from './api/registration';
 
 type GraphInteractionMessage = {
   type: 'GRAPH_INTERACTION';
@@ -31,12 +40,15 @@ export class WebviewPluginHost {
   private readonly _overlays = new Map<string, { pluginId: string; fn: OverlayRenderFn }>();
   private readonly _tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }> = [];
   private readonly _containers = new Map<string, HTMLDivElement>();
+  private readonly _slotContainers = new Map<string, Map<GraphPluginSlot, HTMLDivElement>>();
+  private readonly _slotHosts = new Map<GraphPluginSlot, HTMLDivElement>();
   private readonly _messageHandlers = new Map<string, Set<(msg: { type: string; data: unknown }) => void>>();
 
   createAPI(pluginId: string, postMessage: (msg: GraphInteractionMessage) => void): CodeGraphyWebviewAPI {
     return createPluginWebviewApi(
       pluginId, postMessage,
       (pid) => getOrCreateContainer(pid, this._containers),
+      (pid, slot) => getOrCreateSlotContainer(pid, slot, this._slotContainers, this._slotHosts),
       (pid, type, fn) => registerNodeRenderer(pid, type, fn, this._nodeRenderers),
       (pid, id, fn) => registerOverlay(pid, id, fn, this._overlays),
       (pid, fn) => registerTooltipProvider(pid, fn, this._tooltipProviders),
@@ -53,8 +65,25 @@ export class WebviewPluginHost {
   getOverlays(): Array<{ id: string; fn: OverlayRenderFn }> { return Array.from(this._overlays.entries()).map(([id, entry]) => ({ id, fn: entry.fn })); }
   getTooltipContent(context: TooltipContext): TooltipContent | null { return aggregateTooltipContent(context, this._tooltipProviders); }
 
+  attachSlotHost(slot: GraphPluginSlot, host: HTMLDivElement): void {
+    attachSlotHost(slot, host, this._slotContainers, this._slotHosts);
+  }
+
+  detachSlotHost(slot: GraphPluginSlot): void {
+    detachSlotHost(slot, this._slotHosts);
+  }
+
   removePlugin(pluginId: string): void {
-    removePluginRegistrations(pluginId, this._nodeRenderers, this._overlays, this._tooltipProviders, this._messageHandlers, this._containers);
+    removePluginRegistrations(
+      pluginId,
+      this._nodeRenderers,
+      this._overlays,
+      this._tooltipProviders,
+      this._messageHandlers,
+      this._containers,
+      this._slotContainers,
+      this._slotHosts,
+    );
   }
 
   static drawBadge(ctx: CanvasRenderingContext2D, opts: BadgeOpts): void { drawBadge(ctx, opts); }

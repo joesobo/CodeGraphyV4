@@ -12,9 +12,14 @@ import { ViewRegistry } from '../views/registry';
 import { IView } from '../views/contracts';
 import type { IGraphData, IGraphNode, IGraphEdge } from '../../shared/graph/types';
 import {
+  filterEdgesByKind as facadeFilterEdgesByKind,
+  findPath as facadeFindPath,
   getGraph as facadeGetGraph,
+  getIncomingEdges as facadeGetIncomingEdges,
   getNode as facadeGetNode,
   getNeighbors as facadeGetNeighbors,
+  getOutgoingEdges as facadeGetOutgoingEdges,
+  getSubgraph as facadeGetSubgraph,
   getEdgesFor as facadeGetEdgesFor,
 } from './graphQueryFacade';
 
@@ -136,8 +141,28 @@ export class CodeGraphyAPIImpl {
     return facadeGetNeighbors(id, this._graphProvider);
   }
 
+  getIncomingEdges(nodeId: string): IGraphEdge[] {
+    return facadeGetIncomingEdges(nodeId, this._graphProvider);
+  }
+
+  getOutgoingEdges(nodeId: string): IGraphEdge[] {
+    return facadeGetOutgoingEdges(nodeId, this._graphProvider);
+  }
+
   getEdgesFor(nodeId: string): IGraphEdge[] {
     return facadeGetEdgesFor(nodeId, this._graphProvider);
+  }
+
+  filterEdgesByKind(kind: IGraphEdge['kind'] | IGraphEdge['kind'][]): IGraphEdge[] {
+    return facadeFilterEdgesByKind(kind, this._graphProvider);
+  }
+
+  getSubgraph(nodeId: string, hops: number): IGraphData {
+    return facadeGetSubgraph(nodeId, hops, this._graphProvider);
+  }
+
+  findPath(fromId: string, toId: string): IGraphNode[] | null {
+    return facadeFindPath(fromId, toId, this._graphProvider);
   }
 
   // ── Registration ──

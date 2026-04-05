@@ -22,6 +22,8 @@ import {
   Surface3d,
   type Surface3dProps,
 } from './rendering/surface/view3d';
+import type { WebviewPluginHost } from '../../pluginHost/manager';
+import { SlotHost } from '../../pluginHost/slotHost/view';
 
 export interface ViewportProps {
   backgroundColor: string;
@@ -39,6 +41,7 @@ export interface ViewportProps {
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
   surface3dProps: Omit<Surface3dProps, 'backgroundColor' | 'directionMode'>;
   tooltipData: GraphTooltipState;
+  pluginHost?: WebviewPluginHost;
 }
 
 export function Viewport({
@@ -57,6 +60,7 @@ export function Viewport({
   surface2dProps,
   surface3dProps,
   tooltipData,
+  pluginHost,
 }: ViewportProps): ReactElement {
   return (
     <ContextMenu>
@@ -85,6 +89,14 @@ export function Viewport({
               directionMode={directionMode}
             />
           )}
+          {pluginHost ? (
+            <SlotHost
+              pluginHost={pluginHost}
+              slot="graph-overlay"
+              data-testid="graph-overlay-slot"
+              className="absolute inset-0 z-10 pointer-events-none"
+            />
+          ) : null}
         </div>
       </ContextMenuTrigger>
 
@@ -114,7 +126,9 @@ export function Viewport({
         visits={tooltipData.info?.visits}
         nodeRect={tooltipData.nodeRect}
         visible={tooltipData.visible}
+        extraActions={tooltipData.pluginActions}
         extraSections={tooltipData.pluginSections}
+        pluginHost={pluginHost}
       />
     </ContextMenu>
   );

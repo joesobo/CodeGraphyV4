@@ -51,4 +51,62 @@ describe('CodeGraphyAPIImpl graph queries', () => {
 
     expect(api.getEdgesFor('x.ts')).toEqual([]);
   });
+
+  it('returns incoming and outgoing edges separately', () => {
+    const { api } = createTestAPI();
+
+    expect(api.getIncomingEdges('b.ts').map((edge) => edge.id)).toEqual(['a.ts->b.ts']);
+    expect(api.getOutgoingEdges('b.ts').map((edge) => edge.id)).toEqual(['b.ts->c.ts']);
+  });
+
+  it('filters edges by kind', () => {
+    const { api, graphProvider, graphData } = createTestAPI();
+    graphProvider.mockReturnValue({
+      ...graphData,
+      edges: [
+        ...graphData.edges,
+        { id: 'c.ts->a.ts', from: 'c.ts', to: 'a.ts', kind: 'reference', sources: [] },
+      ],
+    });
+
+    expect(api.filterEdgesByKind('reference').map((edge) => edge.id)).toEqual(['c.ts->a.ts']);
+    expect(api.filterEdgesByKind(['import', 'reference'])).toHaveLength(3);
+  });
+
+  it('builds an induced subgraph around a node for the requested hop depth', () => {
+    const { api, graphProvider, graphData } = createTestAPI();
+    graphProvider.mockReturnValue({
+      ...graphData,
+      nodes: [
+        ...graphData.nodes,
+        { id: 'd.ts', label: 'd.ts', color: '#fff' },
+      ],
+      edges: [
+        ...graphData.edges,
+        { id: 'c.ts->d.ts', from: 'c.ts', to: 'd.ts', kind: 'reference', sources: [] },
+      ],
+    });
+
+    expect(api.getSubgraph('b.ts', 1).nodes.map((node) => node.id)).toEqual(['a.ts', 'b.ts', 'c.ts']);
+    expect(api.getSubgraph('b.ts', 2).nodes.map((node) => node.id)).toEqual(['a.ts', 'b.ts', 'c.ts', 'd.ts']);
+  });
+
+  it('finds the shortest directed path between two nodes', () => {
+    const { api, graphProvider, graphData } = createTestAPI();
+    graphProvider.mockReturnValue({
+      ...graphData,
+      nodes: [
+        ...graphData.nodes,
+        { id: 'd.ts', label: 'd.ts', color: '#fff' },
+      ],
+      edges: [
+        ...graphData.edges,
+        { id: 'a.ts->d.ts', from: 'a.ts', to: 'd.ts', kind: 'reference', sources: [] },
+        { id: 'd.ts->c.ts', from: 'd.ts', to: 'c.ts', kind: 'reference', sources: [] },
+      ],
+    });
+
+    expect(api.findPath('a.ts', 'c.ts')?.map((node) => node.id)).toEqual(['a.ts', 'b.ts', 'c.ts']);
+    expect(api.findPath('c.ts', 'a.ts')).toBeNull();
+  });
 });

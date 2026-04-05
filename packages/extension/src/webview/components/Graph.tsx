@@ -337,6 +337,7 @@ export default function Graph({
         sharedProps,
       }}
       tooltipData={interactions.tooltipData}
+      pluginHost={pluginHost}
     />
   );
 }

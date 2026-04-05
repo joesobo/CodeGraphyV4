@@ -66,8 +66,18 @@ vi.mock('../../../src/webview/components/Toolbar', () => ({
 vi.mock('../../../src/webview/pluginHost/manager', () => {
   class MockWebviewPluginHost {
     createAPI() {
+      const slotContainers = new Map<string, HTMLDivElement>();
       return {
         getContainer: () => document.createElement('div'),
+        getSlotContainer: (slot: string) => {
+          let slotContainer = slotContainers.get(slot);
+          if (!slotContainer) {
+            slotContainer = document.createElement('div');
+            slotContainer.setAttribute('data-plugin-slot', slot);
+            slotContainers.set(slot, slotContainer);
+          }
+          return slotContainer;
+        },
         registerNodeRenderer: () => ({ dispose() {} }),
         registerOverlay: () => ({ dispose() {} }),
         registerTooltipProvider: () => ({ dispose() {} }),
@@ -76,6 +86,8 @@ vi.mock('../../../src/webview/pluginHost/manager', () => {
         onMessage: () => ({ dispose() {} }),
       };
     }
+    attachSlotHost(_slot: string, host: HTMLDivElement) { host.style.display = 'none'; }
+    detachSlotHost(_slot: string) {}
     deliverMessage() {}
   }
   return { WebviewPluginHost: MockWebviewPluginHost };

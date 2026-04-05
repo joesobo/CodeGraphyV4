@@ -90,6 +90,7 @@ describe('tooltipModel', () => {
         nodeRect: { x: 10, y: 20, radius: 30 },
         path: 'src/app.ts',
         info: cachedInfo,
+        pluginActions: [],
         pluginSections: [{ title: 'Rule', content: 'Value' }],
       },
       shouldRequestFileInfo: false,
@@ -110,6 +111,7 @@ describe('tooltipModel', () => {
         nodeRect: { x: 0, y: 0, radius: 0 },
         path: 'src/app.ts',
         info: null,
+        pluginActions: [],
         pluginSections: [],
       },
       shouldRequestFileInfo: true,
@@ -130,6 +132,7 @@ describe('tooltipModel', () => {
       nodeRect: { x: 10, y: 20, radius: 30 },
       path: 'src/app.ts',
       info: cachedInfo,
+      pluginActions: [],
       pluginSections: [],
     });
   });

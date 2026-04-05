@@ -1,8 +1,13 @@
 import { describe, it, expect, vi } from 'vitest';
 import {
+  filterEdgesByKind,
+  findPath,
   getGraph,
+  getIncomingEdges,
   getNode,
   getNeighbors,
+  getOutgoingEdges,
+  getSubgraph,
   getEdgesFor,
 } from '../../../src/core/plugins/graphQueryFacade';
 import type { IGraphData } from '../../../src/shared/graph/types';
@@ -95,6 +100,99 @@ describe('graphQueryFacade', () => {
       const getter = vi.fn().mockReturnValue(sampleGraph);
 
       expect(getEdgesFor('c.ts', getter)).toEqual([{ id: 'b->c', from: 'b.ts', to: 'c.ts' , kind: 'import', sources: [] }]);
+    });
+  });
+
+  describe('getIncomingEdges', () => {
+    it('returns only edges where the node is the target', () => {
+      const getter = vi.fn().mockReturnValue(sampleGraph);
+
+      expect(getIncomingEdges('b.ts', getter)).toEqual([
+        { id: 'a->b', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+      ]);
+    });
+  });
+
+  describe('getOutgoingEdges', () => {
+    it('returns only edges where the node is the source', () => {
+      const getter = vi.fn().mockReturnValue(sampleGraph);
+
+      expect(getOutgoingEdges('b.ts', getter)).toEqual([
+        { id: 'b->c', from: 'b.ts', to: 'c.ts' , kind: 'import', sources: [] },
+      ]);
+    });
+  });
+
+  describe('filterEdgesByKind', () => {
+    it('returns only edges matching the requested kinds', () => {
+      const getter = vi.fn().mockReturnValue({
+        nodes: sampleGraph.nodes,
+        edges: [
+          ...sampleGraph.edges,
+          { id: 'c->a', from: 'c.ts', to: 'a.ts', kind: 'reference', sources: [] },
+        ],
+      } satisfies IGraphData);
+
+      expect(filterEdgesByKind('reference', getter)).toEqual([
+        { id: 'c->a', from: 'c.ts', to: 'a.ts', kind: 'reference', sources: [] },
+      ]);
+      expect(filterEdgesByKind(['import', 'reference'], getter)).toHaveLength(3);
+    });
+  });
+
+  describe('getSubgraph', () => {
+    it('returns an induced subgraph around the seed node for the requested hop depth', () => {
+      const getter = vi.fn().mockReturnValue({
+        nodes: [
+          ...sampleGraph.nodes,
+          { id: 'd.ts', label: 'd.ts', color: '#fff' },
+        ],
+        edges: [
+          ...sampleGraph.edges,
+          { id: 'c->d', from: 'c.ts', to: 'd.ts', kind: 'reference', sources: [] },
+        ],
+      } satisfies IGraphData);
+
+      expect(getSubgraph('b.ts', 1, getter)).toEqual({
+        nodes: [
+          { id: 'a.ts', label: 'a.ts', color: '#fff' },
+          { id: 'b.ts', label: 'b.ts', color: '#fff' },
+          { id: 'c.ts', label: 'c.ts', color: '#fff' },
+        ],
+        edges: [
+          { id: 'a->b', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+          { id: 'b->c', from: 'b.ts', to: 'c.ts' , kind: 'import', sources: [] },
+        ],
+      });
+      expect(getSubgraph('b.ts', 2, getter).nodes.map((node) => node.id)).toEqual(['a.ts', 'b.ts', 'c.ts', 'd.ts']);
+    });
+  });
+
+  describe('findPath', () => {
+    it('returns the shortest node path when a route exists', () => {
+      const getter = vi.fn().mockReturnValue({
+        nodes: [
+          ...sampleGraph.nodes,
+          { id: 'd.ts', label: 'd.ts', color: '#fff' },
+        ],
+        edges: [
+          ...sampleGraph.edges,
+          { id: 'a->d', from: 'a.ts', to: 'd.ts', kind: 'reference', sources: [] },
+          { id: 'd->c', from: 'd.ts', to: 'c.ts', kind: 'reference', sources: [] },
+        ],
+      } satisfies IGraphData);
+
+      expect(findPath('a.ts', 'c.ts', getter)?.map((node) => node.id)).toEqual([
+        'a.ts',
+        'b.ts',
+        'c.ts',
+      ]);
+    });
+
+    it('returns null when no path exists', () => {
+      const getter = vi.fn().mockReturnValue(sampleGraph);
+
+      expect(findPath('c.ts', 'a.ts', getter)).toBeNull();
     });
   });
 });

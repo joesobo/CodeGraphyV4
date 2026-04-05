@@ -5,6 +5,13 @@
 
 import type { IGraphNode, IGraphEdge } from '../graph';
 
+export type GraphPluginSlot =
+  | 'toolbar'
+  | 'node-details'
+  | 'tooltip'
+  | 'timeline-panel'
+  | 'graph-overlay';
+
 /** Context passed to custom node renderers. */
 export interface NodeRenderContext {
   node: IGraphNode;
@@ -34,9 +41,18 @@ export interface TooltipContext {
   edges: IGraphEdge[];
 }
 
-/** Tooltip sections contributed by plugins. */
+/** Lightweight tooltip action contributed by a plugin. */
+export interface TooltipAction {
+  id: string;
+  label: string;
+  icon?: string;
+  action: () => void | Promise<void>;
+}
+
+/** Tooltip sections and actions contributed by plugins. */
 export interface TooltipContent {
   sections: Array<{ title: string; content: string }>;
+  actions?: TooltipAction[];
 }
 
 /** Tooltip provider callback. */
