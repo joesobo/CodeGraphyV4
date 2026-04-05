@@ -9,6 +9,9 @@ interface DepthExpectation {
   selectedNodeId: string;
   selectedNodeDepthOneNodeIds: string[];
   selectedNodeDepthOneEdgeIds: string[];
+  rerootNodeId: string;
+  rerootDepthOneNodeIds: string[];
+  rerootDepthOneEdgeIds: string[];
 }
 
 export interface E2EScenario {
@@ -66,6 +69,19 @@ export const e2eScenarios: E2EScenario[] = [
       selectedNodeId: 'packages/app/src/orphan.ts',
       selectedNodeDepthOneNodeIds: ['packages/app/src/orphan.ts'],
       selectedNodeDepthOneEdgeIds: [],
+      rerootNodeId: 'packages/app/src/utils.ts',
+      rerootDepthOneNodeIds: [
+        'packages/app/src/index.ts',
+        'packages/app/src/utils.ts',
+        'packages/feature-depth/src/deep.ts',
+        'packages/shared/src/types.ts',
+      ],
+      rerootDepthOneEdgeIds: [
+        'packages/app/src/index.ts->packages/app/src/utils.ts',
+        'packages/app/src/index.ts->packages/shared/src/types.ts',
+        'packages/app/src/utils.ts->packages/feature-depth/src/deep.ts',
+        'packages/app/src/utils.ts->packages/shared/src/types.ts',
+      ],
     },
   },
   {
@@ -112,6 +128,21 @@ export const e2eScenarios: E2EScenario[] = [
       selectedNodeId: 'scripts/orphan.gd',
       selectedNodeDepthOneNodeIds: ['scripts/orphan.gd'],
       selectedNodeDepthOneEdgeIds: [],
+      rerootNodeId: 'scripts/enemy.gd',
+      rerootDepthOneNodeIds: [
+        'scripts/base/entity.gd',
+        'scripts/enemy.gd',
+        'scripts/game_manager.gd',
+        'scripts/player.gd',
+        'scripts/utils/math_helpers.gd',
+      ],
+      rerootDepthOneEdgeIds: [
+        'scripts/base/entity.gd->scripts/enemy.gd',
+        'scripts/enemy.gd->scripts/player.gd',
+        'scripts/enemy.gd->scripts/utils/math_helpers.gd',
+        'scripts/game_manager.gd->scripts/enemy.gd',
+        'scripts/game_manager.gd->scripts/player.gd',
+      ],
     },
   },
 ];
