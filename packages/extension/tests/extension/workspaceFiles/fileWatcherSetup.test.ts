@@ -27,8 +27,14 @@ describe('registerEditorChangeHandler', () => {
     (
       vscode.window as unknown as {
         activeTextEditor: unknown;
+        visibleTextEditors: unknown[];
       }
     ).activeTextEditor = undefined;
+    (
+      vscode.window as unknown as {
+        visibleTextEditors: unknown[];
+      }
+    ).visibleTextEditors = [];
   });
 
   it('adds a subscription to the context', () => {
@@ -172,9 +178,15 @@ describe('registerEditorChangeHandler', () => {
     expect(provider.trackFileVisit).not.toHaveBeenCalled();
   });
 
-  it('clears focused file when editor is undefined', async () => {
+  it('clears focused file when editor is undefined and no workspace editors remain visible', async () => {
     const context = makeContext();
     const provider = makeProvider();
+
+    (
+      vscode.window as unknown as {
+        visibleTextEditors: unknown[];
+      }
+    ).visibleTextEditors = [];
 
     registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
@@ -189,6 +201,40 @@ describe('registerEditorChangeHandler', () => {
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
       filePath: undefined,
     });
+  });
+
+  it('preserves the focused file when editor is undefined but a workspace editor is still visible', async () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    (vscode.workspace as unknown as { workspaceFolders: unknown[] }).workspaceFolders = [
+      { uri: { fsPath: '/workspace' } },
+    ];
+    (
+      vscode.window as unknown as {
+        visibleTextEditors: Array<{ document: { uri: { scheme: string; fsPath: string } } }>;
+      }
+    ).visibleTextEditors = [
+      {
+        document: {
+          uri: { scheme: 'file', fsPath: '/workspace/src/app.ts' },
+        },
+      },
+    ];
+
+    registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    provider.setFocusedFile.mockClear();
+    provider.emitEvent.mockClear();
+
+    const mock = vscode.window.onDidChangeActiveTextEditor as unknown as {
+      mock: { calls: unknown[][] };
+    };
+    const listener = mock.mock.calls[0]?.[0] as (editor: undefined) => Promise<void>;
+
+    await listener(undefined);
+
+    expect(provider.setFocusedFile).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
   });
 
   it('normalizes backslashes in paths', async () => {
