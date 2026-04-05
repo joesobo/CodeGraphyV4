@@ -6,6 +6,9 @@ interface DepthExpectation {
   depthOneEdgeIds: string[];
   depthTwoNodeIds: string[];
   excludedAtDepthTwo: string[];
+  selectedNodeId: string;
+  selectedNodeDepthOneNodeIds: string[];
+  selectedNodeDepthOneEdgeIds: string[];
 }
 
 export interface E2EScenario {
@@ -60,6 +63,9 @@ export const e2eScenarios: E2EScenario[] = [
         'packages/shared/src/types.ts',
       ],
       excludedAtDepthTwo: ['packages/feature-depth/src/leaf.ts'],
+      selectedNodeId: 'packages/app/src/orphan.ts',
+      selectedNodeDepthOneNodeIds: ['packages/app/src/orphan.ts'],
+      selectedNodeDepthOneEdgeIds: [],
     },
   },
   {
@@ -103,6 +109,9 @@ export const e2eScenarios: E2EScenario[] = [
         'scripts/utils/math_helpers.gd',
       ],
       excludedAtDepthTwo: ['project.godot'],
+      selectedNodeId: 'scripts/orphan.gd',
+      selectedNodeDepthOneNodeIds: ['scripts/orphan.gd'],
+      selectedNodeDepthOneEdgeIds: [],
     },
   },
 ];

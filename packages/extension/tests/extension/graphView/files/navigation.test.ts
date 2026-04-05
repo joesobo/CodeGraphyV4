@@ -28,6 +28,7 @@ describe('graphView/files/navigation', () => {
     const openTextDocument = vi.fn(async () => document);
     const showTextDocument = vi.fn(async () => undefined);
     const incrementVisitCount = vi.fn(async () => undefined);
+    const didOpenFile = vi.fn(async () => undefined);
 
     await openGraphViewFile(
       'src/app.ts',
@@ -39,6 +40,7 @@ describe('graphView/files/navigation', () => {
         openTextDocument,
         showTextDocument,
         incrementVisitCount,
+        didOpenFile,
         logError: vi.fn(),
       },
       { preview: false, preserveFocus: false },
@@ -50,6 +52,7 @@ describe('graphView/files/navigation', () => {
       { preview: false, preserveFocus: false },
     );
     expect(incrementVisitCount).toHaveBeenCalledWith('src/app.ts');
+    expect(didOpenFile).toHaveBeenCalledWith('src/app.ts');
   });
 
   it('uses the default editor behavior when none is provided', async () => {
@@ -75,6 +78,7 @@ describe('graphView/files/navigation', () => {
   it('falls back to a mock-file message when the file is missing from disk', async () => {
     const showInformationMessage = vi.fn();
     const openTextDocument = vi.fn();
+    const didOpenFile = vi.fn();
 
     await openGraphViewFile('src/app.ts', {
       workspaceFolder: { uri: vscode.Uri.file('/workspace') },
@@ -86,11 +90,13 @@ describe('graphView/files/navigation', () => {
       openTextDocument,
       showTextDocument: vi.fn(),
       incrementVisitCount: vi.fn(),
+      didOpenFile,
       logError: vi.fn(),
     });
 
     expect(showInformationMessage).toHaveBeenCalledWith('Mock file: src/app.ts');
     expect(openTextDocument).not.toHaveBeenCalled();
+    expect(didOpenFile).not.toHaveBeenCalled();
   });
 
   it('shows an error when opening the file fails', async () => {
