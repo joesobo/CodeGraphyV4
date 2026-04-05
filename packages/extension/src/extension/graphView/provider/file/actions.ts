@@ -18,6 +18,7 @@ import {
 type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
 
 export interface GraphViewProviderFileActionMethodsSource {
+  _getFocusedFile(): string | undefined;
   _incrementVisitCount(filePath: string): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
   _sendFavorites(): void;
@@ -107,6 +108,7 @@ export function createGraphViewProviderFileActionMethods(
     behavior: EditorOpenBehavior = { preview: false, preserveFocus: false },
   ): Promise<void> => {
     const navigationSource: GraphViewProviderFileNavigationSource = {
+      _getFocusedFile: () => source._getFocusedFile(),
       _incrementVisitCount: nextFilePath => source._incrementVisitCount(nextFilePath),
       _setFocusedFile: filePath => source._setFocusedFile(filePath),
     };

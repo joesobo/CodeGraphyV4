@@ -10,6 +10,7 @@ describe('graphView/provider/file/navigation', () => {
   it('syncs the focused file after a successful open', async () => {
     const source = {
       _incrementVisitCount: vi.fn(() => Promise.resolve()),
+      _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _setFocusedFile: vi.fn(),
     };
 
@@ -35,6 +36,37 @@ describe('graphView/provider/file/navigation', () => {
     );
 
     expect(source._setFocusedFile).toHaveBeenCalledWith('src/index.ts');
+  });
+
+  it('does not restore a stale focused file after selection moved elsewhere', async () => {
+    const source = {
+      _incrementVisitCount: vi.fn(() => Promise.resolve()),
+      _getFocusedFile: vi.fn(() => 'src/other.ts'),
+      _setFocusedFile: vi.fn(),
+    };
+
+    await openGraphViewProviderFile(
+      source as never,
+      'src/index.ts',
+      { preview: true, preserveFocus: true },
+      {
+        getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
+        showInformationMessage: vi.fn(),
+        showErrorMessage: vi.fn(),
+        statFile: vi.fn(),
+        openTextDocument: vi.fn(),
+        showTextDocument: vi.fn(),
+        openFile: vi.fn(async (_filePath, handlers) => {
+          await handlers.didOpenFile?.('src/index.ts');
+        }),
+        revealFile: vi.fn(),
+        writeText: vi.fn(() => Promise.resolve()),
+        copyText: vi.fn(),
+        logError: vi.fn(),
+      } as never,
+    );
+
+    expect(source._setFocusedFile).not.toHaveBeenCalled();
   });
 
   it('opens files with the provider visit-count callback', async () => {

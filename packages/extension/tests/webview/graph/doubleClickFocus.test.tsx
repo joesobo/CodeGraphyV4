@@ -116,7 +116,7 @@ describe('Graph double-click behavior', () => {
     expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
   });
 
-  it('keeps the same node selected across repeated single clicks', async () => {
+  it('clears the focused file on a repeated single click for the same node', async () => {
     vi.useFakeTimers();
     try {
       const methods = ForceGraph2D.getMockMethods();
@@ -134,10 +134,37 @@ describe('Graph double-click behavior', () => {
       const selectedMessages = getSentMessages().filter(
         msg => msg.type === 'NODE_SELECTED' && msg.payload.nodeId === 'src/app.ts'
       );
-      expect(selectedMessages).toHaveLength(2);
+      expect(selectedMessages).toHaveLength(1);
+      expect(findMessage('CLEAR_FOCUSED_FILE')).toEqual({ type: 'CLEAR_FOCUSED_FILE' });
       expect(methods.centerAt).not.toHaveBeenCalled();
       expect(methods.zoom).not.toHaveBeenCalled();
       expect(findMessage('NODE_DOUBLE_CLICKED')).toBeUndefined();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('preview-opens a different node after clearing the current selection with a repeated click', async () => {
+    vi.useFakeTimers();
+    try {
+      render(<Graph data={graphData} />);
+
+      await act(async () => {
+        ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+        vi.advanceTimersByTime(600);
+        ForceGraph2D.simulateNodeClick({ id: 'src/app.ts' }, { button: 0, clientX: 100, clientY: 100 });
+        vi.advanceTimersByTime(600);
+        ForceGraph2D.simulateNodeClick({ id: 'src/utils.ts' }, { button: 0, clientX: 140, clientY: 120 });
+      });
+
+      expect(findMessage('CLEAR_FOCUSED_FILE')).toBeTruthy();
+      const nodeSelectedMessages = getSentMessages().filter(
+        msg => msg.type === 'NODE_SELECTED',
+      );
+      expect(nodeSelectedMessages).toEqual([
+        { type: 'NODE_SELECTED', payload: { nodeId: 'src/app.ts' } },
+        { type: 'NODE_SELECTED', payload: { nodeId: 'src/utils.ts' } },
+      ]);
     } finally {
       vi.useRealTimers();
     }
