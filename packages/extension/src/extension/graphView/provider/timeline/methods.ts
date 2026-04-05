@@ -156,7 +156,7 @@ function createDefaultTimelinePreviewBehavior(): EditorOpenBehavior {
 function createTemporaryNodeOpenBehavior(): EditorOpenBehavior {
   return {
     preview: true,
-    preserveFocus: true,
+    preserveFocus: false,
   };
 }
 

@@ -6,10 +6,10 @@
 
 import { IView } from './contracts';
 
-export { depthGraphView } from './depthGraph';
+export { depthGraphView } from './depth/view';
 export { folderView } from './folder/view';
 
-import { depthGraphView } from './depthGraph';
+import { depthGraphView } from './depth/view';
 import { folderView } from './folder/view';
 
 /**

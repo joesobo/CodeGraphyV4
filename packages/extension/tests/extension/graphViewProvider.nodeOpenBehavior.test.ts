@@ -103,7 +103,7 @@ describe('GraphViewProvider node open behavior', () => {
     });
     expect(showTextDocumentMock).toHaveBeenCalledWith(mockDocument, {
       preview: true,
-      preserveFocus: true,
+      preserveFocus: false,
     });
   });
 
@@ -135,7 +135,7 @@ describe('GraphViewProvider node open behavior', () => {
     expect(timelineUri.path).toContain('"ref":"abc123"');
     expect(showTextDocumentMock).toHaveBeenCalledWith(mockDocument, {
       preview: true,
-      preserveFocus: true,
+      preserveFocus: false,
     });
   });
 

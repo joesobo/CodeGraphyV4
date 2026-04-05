@@ -268,7 +268,7 @@ describe('graphView/provider/timeline methods', () => {
         previewFileAtCommit: expect.any(Function),
         openFile: expect.any(Function),
       }),
-      { preview: true, preserveFocus: true },
+      { preview: true, preserveFocus: false },
     );
     expect(openNodeInEditor).toHaveBeenNthCalledWith(
       2,
@@ -311,7 +311,7 @@ describe('graphView/provider/timeline methods', () => {
           timelineActive: true,
           currentCommitSha: 'sha-1',
         });
-        expect(behavior).toEqual({ preview: true, preserveFocus: true });
+        expect(behavior).toEqual({ preview: true, preserveFocus: false });
       }) as never,
     );
 

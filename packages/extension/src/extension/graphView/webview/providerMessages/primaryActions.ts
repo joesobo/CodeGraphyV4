@@ -10,6 +10,7 @@ type GraphViewProviderPrimaryActions = Pick<
   GraphViewMessageListenerContext,
   | 'openSelectedNode'
   | 'activateNode'
+  | 'setFocusedFile'
   | 'previewFileAtCommit'
   | 'openFile'
   | 'revealInExplorer'
@@ -50,6 +51,7 @@ export function createGraphViewProviderMessagePrimaryActions(
   return {
     openSelectedNode: nodeId => source._openSelectedNode(nodeId),
     activateNode: nodeId => source._activateNode(nodeId),
+    setFocusedFile: filePath => source.setFocusedFile(filePath),
     previewFileAtCommit: (sha, filePath) => source._previewFileAtCommit(sha, filePath),
     openFile: filePath => source._openFile(filePath),
     revealInExplorer: filePath => source._revealInExplorer(filePath),

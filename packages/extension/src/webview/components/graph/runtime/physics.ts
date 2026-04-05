@@ -57,4 +57,5 @@ export function initPhysics(
 	graph.d3Force('forceX', forceX(0).strength(settings.centerForce));
 	graph.d3Force('forceY', forceY(0).strength(settings.centerForce));
 	graph.d3Force('collision', forceCollide((node: FGNode) => node.size + 4));
+	graph.d3ReheatSimulation();
 }

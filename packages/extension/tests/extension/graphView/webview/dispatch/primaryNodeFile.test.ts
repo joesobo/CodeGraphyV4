@@ -21,6 +21,7 @@ function createContext(
     getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
+    setFocusedFile: vi.fn(),
     previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),
@@ -75,6 +76,7 @@ describe('createGraphViewPrimaryNodeFileHandlers', () => {
     expect(handlers.timelineActive).toBe(true);
     expect(handlers.currentCommitSha).toBe('abc123');
     expect(handlers.openSelectedNode).toBe(context.openSelectedNode);
+    expect(handlers.setFocusedFile).toBe(context.setFocusedFile);
     expect(handlers.previewFileAtCommit).toBe(context.previewFileAtCommit);
     expect(handlers.getFileInfo).toBe(context.getFileInfo);
   });

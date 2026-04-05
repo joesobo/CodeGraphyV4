@@ -10,6 +10,7 @@ function createHandlers(
   return {
     timelineActive: false,
     currentCommitSha: undefined,
+    setFocusedFile: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
     previewFileAtCommit: vi.fn(() => Promise.resolve()),
@@ -28,6 +29,7 @@ describe('graph view node/file open message', () => {
     );
 
     expect(handled).toBe(true);
+    expect(handlers.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(handlers.openSelectedNode).toHaveBeenCalledWith('src/app.ts');
   });
 
@@ -42,6 +44,20 @@ describe('graph view node/file open message', () => {
     expect(handlers.activateNode).toHaveBeenCalledWith('src/app.ts');
   });
 
+  it('clears the focused file without opening another node', async () => {
+    const handlers = createHandlers();
+
+    const handled = await applyNodeFileOpenMessage(
+      { type: 'CLEAR_FOCUSED_FILE' },
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.setFocusedFile).toHaveBeenCalledWith(undefined);
+    expect(handlers.openSelectedNode).not.toHaveBeenCalled();
+    expect(handlers.activateNode).not.toHaveBeenCalled();
+  });
+
   it('previews the current commit when timeline mode is active', async () => {
     const handlers = createHandlers({
       timelineActive: true,
@@ -53,6 +69,7 @@ describe('graph view node/file open message', () => {
       handlers,
     );
 
+    expect(handlers.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(handlers.previewFileAtCommit).toHaveBeenCalledWith('abc123', 'src/app.ts');
     expect(handlers.openFile).not.toHaveBeenCalled();
   });
@@ -68,6 +85,7 @@ describe('graph view node/file open message', () => {
       handlers,
     );
 
+    expect(handlers.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(handlers.openFile).toHaveBeenCalledWith('src/app.ts');
     expect(handlers.previewFileAtCommit).not.toHaveBeenCalled();
   });

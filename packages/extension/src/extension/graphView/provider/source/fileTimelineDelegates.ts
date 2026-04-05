@@ -17,6 +17,8 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
   | '_renameFile'
   | '_createFile'
   | '_toggleFavorites'
+  | '_setFocusedFile'
+  | '_getFocusedFile'
   | '_getFileInfo'
   | '_getVisitCount'
   | '_incrementVisitCount'
@@ -39,6 +41,8 @@ export function createGraphViewProviderFileTimelineMethodDelegates(
     _renameFile: filePath => owner._methodContainers.fileAction._renameFile(filePath),
     _createFile: directory => owner._methodContainers.fileAction._createFile(directory),
     _toggleFavorites: paths => owner._methodContainers.fileAction._toggleFavorites(paths),
+    _setFocusedFile: filePath => owner._methodContainers.viewSelection.setFocusedFile(filePath),
+    _getFocusedFile: () => owner._viewContext.focusedFile,
     _getFileInfo: filePath => owner._methodContainers.fileVisit._getFileInfo(filePath),
     _getVisitCount: filePath => owner._methodContainers.fileVisit._getVisitCount(filePath),
     _incrementVisitCount: filePath => owner._methodContainers.fileVisit._incrementVisitCount(filePath),

@@ -120,6 +120,14 @@ describe('GraphStore', () => {
     expect(store.getState().depthLimit).toBe(4);
   });
 
+  it('handles DEPTH_LIMIT_RANGE_UPDATED message', () => {
+    store.getState().handleExtensionMessage({
+      type: 'DEPTH_LIMIT_RANGE_UPDATED',
+      payload: { maxDepthLimit: 2 },
+    });
+    expect(store.getState().maxDepthLimit).toBe(2);
+  });
+
   it('handles PLUGINS_UPDATED message', () => {
     const plugins = [{
       id: 'ts',

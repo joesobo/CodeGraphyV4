@@ -142,6 +142,7 @@ describe('physics', () => {
     expect(d3Force).toHaveBeenCalledWith('forceX', expect.anything());
     expect(d3Force).toHaveBeenCalledWith('forceY', expect.anything());
     expect(d3Force).toHaveBeenCalledWith('collision', expect.anything());
+    expect(instance.d3ReheatSimulation).toHaveBeenCalledTimes(2);
   });
 
   it('uses node size plus padding for the collision radius', () => {

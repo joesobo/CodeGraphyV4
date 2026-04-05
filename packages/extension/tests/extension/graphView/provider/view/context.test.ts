@@ -212,7 +212,7 @@ describe('graphView/provider/view/context', () => {
       } satisfies IViewContext,
     });
     const sendAvailableViews = vi.fn(
-      (_registry, _viewContext, _activeViewId, _defaultDepthLimit, sendMessage) => {
+      (_registry, _viewContext, _activeViewId, _rawGraphData, _defaultDepthLimit, sendMessage) => {
         sendMessage({
           type: 'VIEWS_UPDATED',
           payload: { views: [], activeViewId: 'codegraphy.depth-graph' },
@@ -232,6 +232,7 @@ describe('graphView/provider/view/context', () => {
       source._viewRegistry,
       source._viewContext,
       'codegraphy.depth-graph',
+      source._rawGraphData,
       1,
       expect.any(Function),
     );
@@ -300,7 +301,7 @@ describe('graphView/provider/view/context', () => {
       persistSelectedViewId: 'codegraphy.connections',
     } satisfies IGraphViewTransformResult);
     providerViewContextMethodMocks.sendAvailableViews.mockImplementation(
-      (_registry, _viewContext, _activeViewId, _defaultDepthLimit, sendMessage) => {
+      (_registry, _viewContext, _activeViewId, _rawGraphData, _defaultDepthLimit, sendMessage) => {
         sendMessage({
           type: 'VIEWS_UPDATED',
           payload: { views: [], activeViewId: 'codegraphy.connections' },
@@ -332,6 +333,7 @@ describe('graphView/provider/view/context', () => {
       source._viewRegistry,
       source._viewContext,
       'codegraphy.connections',
+      source._rawGraphData,
       1,
       expect.any(Function),
     );

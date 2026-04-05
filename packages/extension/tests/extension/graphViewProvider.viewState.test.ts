@@ -51,14 +51,17 @@ describe('GraphViewProvider view state and internal helpers', () => {
     vi.clearAllMocks();
   });
 
-  it('warns and skips unavailable view changes', async () => {
+  it('allows switching to depth view without a focused file', async () => {
     const context = createContext();
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
     );
     const internals = getGraphViewProviderInternals(provider);
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const applySpy = vi.spyOn(
+      internals._viewContextMethods,
+      '_applyViewTransform'
+    ).mockImplementation(() => {});
     const sendMessageSpy = vi.spyOn(
       internals._webviewMethods,
       '_sendMessage'
@@ -66,9 +69,18 @@ describe('GraphViewProvider view state and internal helpers', () => {
 
     await provider.changeView('codegraphy.depth-graph');
 
-    expect(warnSpy).toHaveBeenCalledWith("[CodeGraphy] View 'codegraphy.depth-graph' is not available");
-    expect(context.workspaceState.update).not.toHaveBeenCalled();
-    expect(sendMessageSpy).not.toHaveBeenCalled();
+    expect((provider as unknown as { _activeViewId: string })._activeViewId).toBe(
+      'codegraphy.depth-graph'
+    );
+    expect(context.workspaceState.update).toHaveBeenCalledWith(
+      'codegraphy.selectedView',
+      'codegraphy.depth-graph'
+    );
+    expect(applySpy).toHaveBeenCalledTimes(1);
+    expect(sendMessageSpy).toHaveBeenCalledWith({
+      type: 'GRAPH_DATA_UPDATED',
+      payload: { nodes: [], edges: [] },
+    });
   });
 
   it('persists and broadcasts available view changes when a target view is available', async () => {

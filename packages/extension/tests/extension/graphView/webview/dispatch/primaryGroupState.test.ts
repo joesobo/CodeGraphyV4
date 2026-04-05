@@ -22,6 +22,7 @@ function createContext(
     getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
+    setFocusedFile: vi.fn(),
     previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
     revealInExplorer: vi.fn(() => Promise.resolve()),

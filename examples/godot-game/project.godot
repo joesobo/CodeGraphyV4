@@ -1,0 +1,12 @@
+; Example Godot project for CodeGraphy GDScript plugin demo
+[gd_resource type="ProjectSettings" load_steps=1 format=3]
+
+config_version=5
+
+[application]
+config/name="CodeGraphy GDScript Demo"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.2")
+
+[rendering]
+renderer/rendering_method="forward_plus"

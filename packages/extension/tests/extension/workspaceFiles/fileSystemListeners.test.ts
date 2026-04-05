@@ -83,6 +83,10 @@ describe('registerEditorChangeHandler', () => {
     vi.clearAllMocks();
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('adds a subscription for the active editor change listener', () => {
     const context = makeContext();
     const provider = makeProvider();
@@ -93,6 +97,7 @@ describe('registerEditorChangeHandler', () => {
   });
 
   it('clears the focused file when no editor is active', async () => {
+    vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
 
@@ -103,6 +108,7 @@ describe('registerEditorChangeHandler', () => {
     };
     const listener = mock.mock.calls[0]?.[0] as (editor: undefined) => Promise<void>;
     await listener(undefined);
+    vi.advanceTimersByTime(150);
 
     expect(provider.setFocusedFile).toHaveBeenCalledWith(undefined);
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', { filePath: undefined });

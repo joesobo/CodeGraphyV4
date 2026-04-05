@@ -11,6 +11,7 @@ function createHandlers() {
     selectOnlyNode: vi.fn(),
     setSelection: vi.fn(),
     clearSelection: vi.fn(),
+    clearFocusedFile: vi.fn(),
     previewNode: vi.fn(),
     openNode: vi.fn(),
     focusNode: vi.fn(),
@@ -68,6 +69,14 @@ describe('graph effects interaction', () => {
     applyInteractionEffects([{ kind: 'clearSelection' }], handlers);
 
     expect(handlers.clearSelection).toHaveBeenCalledOnce();
+  });
+
+  it('clears the focused file', () => {
+    const handlers = createHandlers();
+
+    applyInteractionEffects([{ kind: 'clearFocusedFile' }], handlers);
+
+    expect(handlers.clearFocusedFile).toHaveBeenCalledOnce();
   });
 
   it('previews the node', () => {

@@ -37,6 +37,10 @@ export function createEffectHandlers(
     postMessage({ type: 'NODE_SELECTED', payload: { nodeId } });
   };
 
+  const clearFocusedFile = (): void => {
+    postMessage({ type: 'CLEAR_FOCUSED_FILE' });
+  };
+
   const requestNodeOpenById = (nodeId: string): void => {
     dependencies.fileInfoCacheRef.current.delete(nodeId);
     postMessage({ type: 'NODE_DOUBLE_CLICKED', payload: { nodeId } });
@@ -50,6 +54,7 @@ export function createEffectHandlers(
       effects,
       {
         clearSelection: handlers.clearSelection,
+        clearFocusedFile,
         focusNode: handlers.focusNodeById,
         openBackgroundContextMenu: handlers.openBackgroundContextMenu,
         openEdgeContextMenu: handlers.openEdgeContextMenu,
