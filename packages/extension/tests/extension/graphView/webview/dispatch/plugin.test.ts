@@ -31,6 +31,7 @@ function createContext(
     ),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
+    sendAvailableViews: vi.fn(),
     analyzeAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
