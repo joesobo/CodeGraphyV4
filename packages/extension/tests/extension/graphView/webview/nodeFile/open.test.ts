@@ -44,6 +44,20 @@ describe('graph view node/file open message', () => {
     expect(handlers.activateNode).toHaveBeenCalledWith('src/app.ts');
   });
 
+  it('clears the focused file without opening another node', async () => {
+    const handlers = createHandlers();
+
+    const handled = await applyNodeFileOpenMessage(
+      { type: 'CLEAR_FOCUSED_FILE' },
+      handlers,
+    );
+
+    expect(handled).toBe(true);
+    expect(handlers.setFocusedFile).toHaveBeenCalledWith(undefined);
+    expect(handlers.openSelectedNode).not.toHaveBeenCalled();
+    expect(handlers.activateNode).not.toHaveBeenCalled();
+  });
+
   it('previews the current commit when timeline mode is active', async () => {
     const handlers = createHandlers({
       timelineActive: true,

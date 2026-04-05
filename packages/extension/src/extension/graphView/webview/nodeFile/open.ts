@@ -20,6 +20,10 @@ export async function applyNodeFileOpenMessage(
       void handlers.openSelectedNode(message.payload.nodeId);
       return true;
 
+    case 'CLEAR_FOCUSED_FILE':
+      handlers.setFocusedFile(undefined);
+      return true;
+
     case 'NODE_DOUBLE_CLICKED':
       void handlers.activateNode(message.payload.nodeId);
       return true;

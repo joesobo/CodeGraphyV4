@@ -217,6 +217,7 @@ describe('graph/interactionRuntime/handlers', () => {
     expect(dependencies.highlightedNodeRef.current).toBeNull();
     expect(dependencies.selectedNodesSetRef.current.size).toBe(0);
     expect(dependencies.setSelectedNodes).toHaveBeenCalledWith([]);
+    expect(findMessage('CLEAR_FOCUSED_FILE')).toEqual({ type: 'CLEAR_FOCUSED_FILE' });
     expect(
       getSentMessages().some(
         message =>
@@ -224,6 +225,33 @@ describe('graph/interactionRuntime/handlers', () => {
           && message.payload.event === 'graph:backgroundClick',
       ),
     ).toBe(true);
+  });
+
+  it('clears the focused file when re-clicking the only selected node outside double-click timing', () => {
+    const dependencies = createDependencies();
+    const handlers = createGraphInteractionHandlers(dependencies);
+    const event = new MouseEvent('click', {
+      clientX: 100,
+      clientY: 100,
+    });
+    const nowSpy = vi.spyOn(Date, 'now');
+    nowSpy.mockReturnValueOnce(100);
+    handlers.handleNodeClick(
+      { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' } as FGNode,
+      event,
+    );
+    clearSentMessages();
+    nowSpy.mockReturnValueOnce(1000);
+
+    handlers.handleNodeClick(
+      { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' } as FGNode,
+      event,
+    );
+
+    expect(dependencies.selectedNodesSetRef.current.size).toBe(0);
+    expect(dependencies.setSelectedNodes).toHaveBeenLastCalledWith([]);
+    expect(findMessage('CLEAR_FOCUSED_FILE')).toEqual({ type: 'CLEAR_FOCUSED_FILE' });
+    nowSpy.mockRestore();
   });
 
   it('wires the composed handler factories and re-exports their handlers', async () => {

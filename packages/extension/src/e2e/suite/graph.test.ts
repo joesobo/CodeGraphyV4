@@ -410,7 +410,14 @@ suite('Graph: Depth View', function () {
       type: 'CHANGE_VIEW',
       payload: { viewId: 'codegraphy.depth-graph' },
     });
-    const depthGraph = await depthGraphPromise;
+    await depthGraphPromise;
+
+    const depthLimitResetPromise = waitForGraphDataUpdate(api);
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_DEPTH_LIMIT',
+      payload: { depthLimit: 1 },
+    });
+    const depthGraph = await depthLimitResetPromise;
 
     assert.deepStrictEqual(
       depthGraph.nodes.map(node => String(node.id)).sort(),
@@ -435,6 +442,67 @@ suite('Graph: Depth View', function () {
 
     const renderedBounds = await requestNodeBounds(api);
     assert.strictEqual(renderedBounds.length, selectedNodeGraph.nodes.length);
+
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.connections' },
+    });
+  });
+
+  test('depth view returns to the full graph when the focused node is cleared', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(5_000);
+
+    const connectionsGraphPromise = waitForGraphDataUpdate(api);
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.connections' },
+    });
+    await connectionsGraphPromise;
+
+    const fullGraph = api.getGraphData();
+    const fullNodeIds = fullGraph.nodes.map(node => String(node.id)).sort();
+    const fullEdgeIds = fullGraph.edges.map(edge => String(edge.id)).sort();
+
+    const depthGraphPromise = waitForGraphDataUpdate(api);
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.depth-graph' },
+    });
+    await depthGraphPromise;
+
+    const depthLimitResetPromise = waitForGraphDataUpdate(api);
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_DEPTH_LIMIT',
+      payload: { depthLimit: 1 },
+    });
+    await depthLimitResetPromise;
+
+    const selectedNodeGraphPromise = waitForGraphDataUpdate(api);
+    await api.dispatchWebviewMessage({
+      type: 'NODE_SELECTED',
+      payload: { nodeId: scenario.depth.selectedNodeId },
+    });
+    const selectedNodeGraph = await selectedNodeGraphPromise;
+
+    assert.ok(
+      selectedNodeGraph.nodes.length < fullGraph.nodes.length,
+      'Selecting a depth root should reduce the rendered graph before clearing it',
+    );
+
+    const restoredGraphPromise = waitForGraphDataUpdate(api);
+    await api.dispatchWebviewMessage({ type: 'CLEAR_FOCUSED_FILE' });
+    const restoredGraph = await restoredGraphPromise;
+
+    assert.deepStrictEqual(
+      restoredGraph.nodes.map(node => String(node.id)).sort(),
+      fullNodeIds,
+    );
+    assert.deepStrictEqual(
+      restoredGraph.edges.map(edge => String(edge.id)).sort(),
+      fullEdgeIds,
+    );
 
     await api.dispatchWebviewMessage({
       type: 'CHANGE_VIEW',
