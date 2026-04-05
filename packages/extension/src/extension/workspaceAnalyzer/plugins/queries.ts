@@ -12,7 +12,7 @@ interface WorkspaceAnalyzerPluginRegistry {
 
 export interface WorkspaceAnalyzerPluginStatusDependencies {
   disabledPlugins: ReadonlySet<string>;
-  disabledRules: ReadonlySet<string>;
+  disabledSources: ReadonlySet<string>;
   discoveredFiles: IDiscoveredFile[];
   fileConnections: Map<string, IConnection[]>;
   registry: WorkspaceAnalyzerPluginRegistry;
@@ -24,7 +24,7 @@ export function getWorkspaceAnalyzerPluginStatuses(
 ): IPluginStatus[] {
   return buildWorkspacePluginStatuses({
     disabledPlugins: dependencies.disabledPlugins,
-    disabledRules: dependencies.disabledRules,
+    disabledSources: dependencies.disabledSources,
     discoveredFiles: dependencies.discoveredFiles,
     fileConnections: dependencies.fileConnections,
     pluginInfos: dependencies.registry.list(),

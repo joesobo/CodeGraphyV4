@@ -2,7 +2,7 @@
 
 `@codegraphy/quality-tools` holds the repo's quality tooling:
 
-- `Boundaries` for dependency-layer rules and dead-surface detection
+- `Boundaries` for dependency-layer sources and dead-surface detection
 - `Organize` for directory structure, file naming, and cohesion analysis
 - `CRAP` for production-code complexity and coverage risk
 - mutation testing orchestration and mutation-site checks

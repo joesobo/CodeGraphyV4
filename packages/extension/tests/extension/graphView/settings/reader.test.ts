@@ -51,7 +51,7 @@ describe('graphView/settings/reader', () => {
       ['stored-plugin']
     );
 
-    expect([...result.disabledRules]).toEqual(['configured-rule']);
+    expect([...result.disabledSources]).toEqual(['configured-rule']);
     expect([...result.disabledPlugins]).toEqual(['configured-plugin']);
     expect(result.changed).toBe(true);
   });
@@ -66,7 +66,7 @@ describe('graphView/settings/reader', () => {
       ['stored-plugin']
     );
 
-    expect([...result.disabledRules]).toEqual(['stored-rule']);
+    expect([...result.disabledSources]).toEqual(['stored-rule']);
     expect([...result.disabledPlugins]).toEqual(['stored-plugin']);
     expect(result.changed).toBe(false);
   });

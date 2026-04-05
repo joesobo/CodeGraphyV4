@@ -9,9 +9,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { createGDScriptPlugin as createGodotPlugin } from '../src';
 import { GDScriptPathResolver } from '../src/PathResolver';
-import { detect as detectPreload } from '../src/rules/preload';
-import { detect as detectLoad } from '../src/rules/load';
-import { detect as detectExtends } from '../src/rules/extends';
+import { detect as detectPreload } from '../src/sources/preload';
+import { detect as detectLoad } from '../src/sources/load';
+import { detect as detectExtends } from '../src/sources/extends';
 import type { GDScriptRuleContext } from '../src/parser';
 
 const GDSCRIPT_ROOT = path.join(__dirname, '../../../examples/godot-game');
@@ -64,6 +64,7 @@ describe('createGDScriptPlugin lifecycle', () => {
     const content = 'var p: Player';
     const conns = await plugin.detectConnections('/workspace/scripts/test.gd', content, '/workspace');
     expect(conns.some(conn => conn.specifier === 'Player')).toBe(true);
+    expect(conns.some(conn => conn.kind === 'reference')).toBe(true);
   });
 
   it('onPreAnalyze should register files for snake_case fallback', async () => {
@@ -84,6 +85,7 @@ describe('createGDScriptPlugin lifecycle', () => {
     const content = 'var x: SpiritCapSpawner';
     const conns = await plugin.detectConnections('/workspace/scripts/test.gd', content, '/workspace');
     expect(conns.some(conn => conn.specifier === 'SpiritCapSpawner')).toBe(true);
+    expect(conns.some(conn => conn.kind === 'reference')).toBe(true);
   });
 
   it('onPreAnalyze should work without prior initialize', async () => {
@@ -137,7 +139,7 @@ describe('createGDScriptPlugin lifecycle', () => {
     expect(conns.some(conn => conn.specifier === 'MyClass')).toBe(true);
   });
 
-  it('detectConnections should combine results from all rules', async () => {
+  it('detectConnections should combine results from all sources', async () => {
     const plugin = createGodotPlugin();
     await plugin.initialize('/workspace');
 
@@ -147,9 +149,11 @@ var config = load("res://data/config.tres")`;
 
     const conns = await plugin.detectConnections('/workspace/scripts/test.gd', content, '/workspace');
 
-    expect(conns.some(conn => conn.ruleId === 'extends')).toBe(true);
-    expect(conns.some(conn => conn.ruleId === 'preload')).toBe(true);
-    expect(conns.some(conn => conn.ruleId === 'load')).toBe(true);
+    expect(conns.some(conn => conn.sourceId === 'extends')).toBe(true);
+    expect(conns.some(conn => conn.sourceId === 'preload')).toBe(true);
+    expect(conns.some(conn => conn.sourceId === 'load')).toBe(true);
+    expect(conns.some(conn => conn.kind === 'inherit')).toBe(true);
+    expect(conns.some(conn => conn.kind === 'load')).toBe(true);
   });
 
   it('onUnload should clean up resolver state', async () => {
@@ -169,11 +173,11 @@ var config = load("res://data/config.tres")`;
     expect(conns.some(conn => conn.specifier === 'Player')).toBe(false);
   });
 
-  it('should expose rules from manifest', () => {
+  it('should expose sources from manifest', () => {
     const plugin = createGodotPlugin();
 
-    expect(plugin.rules).toBeDefined();
-    expect(Array.isArray(plugin.rules)).toBe(true);
+    expect(plugin.sources).toBeDefined();
+    expect(Array.isArray(plugin.sources)).toBe(true);
   });
 
   it('should expose fileColors from manifest', () => {
@@ -251,8 +255,8 @@ var config = load("res://data/config.tres")`;
     const content = 'extends "res://base.gd"\n\nconst X = preload("res://x.gd")\n';
     const conns = await plugin.detectConnections('/workspace/test.gd', content, '/workspace');
 
-    expect(conns.some(conn => conn.ruleId === 'extends')).toBe(true);
-    expect(conns.some(conn => conn.ruleId === 'preload')).toBe(true);
+    expect(conns.some(conn => conn.sourceId === 'extends')).toBe(true);
+    expect(conns.some(conn => conn.sourceId === 'preload')).toBe(true);
   });
 
   it('detectConnections should create workspace-relative path from filePath', async () => {
@@ -372,7 +376,7 @@ describe('Godot GDScript Plugin Integration', () => {
   });
 });
 
-describe('all rules combined', () => {
+describe('all sources combined', () => {
   let resolver: GDScriptPathResolver;
   let ctx: GDScriptRuleContext;
   const workspaceRoot = '/workspace/my-game';

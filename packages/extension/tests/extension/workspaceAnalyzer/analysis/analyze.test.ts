@@ -11,9 +11,9 @@ function createSource() {
     _analyzeFiles: vi.fn<
       (files: IDiscoveredFile[], workspaceRoot: string) => Promise<Map<string, IConnection[]>>
     >(async () => new Map()),
-    _buildGraphData: vi.fn(() => ({
+    _buildGraphData: vi.fn<() => IGraphData>(() => ({
       nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
-      edges: [{ id: 'src/index.ts->src/utils.ts', from: 'src/index.ts', to: 'src/utils.ts' }],
+      edges: [{ id: 'src/index.ts->src/utils.ts', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     } satisfies IGraphData)),
     _eventBus: { emit },
     _lastDiscoveredFiles: [] as IDiscoveredFile[],
@@ -87,7 +87,7 @@ describe('workspaceAnalyzer/analysis/analyze', () => {
     const fileConnections = new Map<string, IConnection[]>([['src/index.ts', []]]);
     const graphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
-      edges: [{ id: 'src/index.ts->src/utils.ts', from: 'src/index.ts', to: 'src/utils.ts' }],
+      edges: [{ id: 'src/index.ts->src/utils.ts', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     };
 
     dependencies.discover.mockResolvedValue({
@@ -131,7 +131,7 @@ describe('workspaceAnalyzer/analysis/analyze', () => {
     expect(source._eventBus.emit).toHaveBeenNthCalledWith(2, 'analysis:completed', {
       graph: {
         nodes: [{ id: 'src/index.ts' }],
-        edges: [{ id: 'src/index.ts->src/utils.ts' }],
+        edges: [{ id: 'src/index.ts->src/utils.ts#import' }],
       },
       duration: 0,
     });

@@ -10,8 +10,8 @@ describe('graph/model/build', () => {
         { id: 'favorite.ts', label: 'favorite.ts', color: '#80c0ff', accessCount: 5 },
       ],
       edges: [
-        { id: 'focus.ts->favorite.ts', from: 'focus.ts', to: 'favorite.ts' },
-        { id: 'favorite.ts->focus.ts', from: 'favorite.ts', to: 'focus.ts' },
+        { id: 'focus.ts->favorite.ts', from: 'focus.ts', to: 'favorite.ts' , kind: 'import', sources: [] },
+        { id: 'favorite.ts->focus.ts', from: 'favorite.ts', to: 'focus.ts' , kind: 'import', sources: [] },
       ],
     };
 

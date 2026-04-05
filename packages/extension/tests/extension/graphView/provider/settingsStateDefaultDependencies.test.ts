@@ -32,7 +32,7 @@ const mocks = vi.hoisted(() => {
     })),
     applyLoadedGroupState: vi.fn(),
     loadDisabledState: vi.fn(() => ({
-      disabledRules: new Set<string>(),
+      disabledSources: new Set<string>(),
       disabledPlugins: new Set<string>(),
       changed: false,
     })),
@@ -98,7 +98,7 @@ function createSource(
     _hiddenPluginGroupIds: new Set<string>(['plugin.current']),
     _userGroups: [{ id: 'group.current' } as never],
     _filterPatterns: ['current/**'],
-    _disabledRules: new Set<string>(['rule.current']),
+    _disabledSources: new Set<string>(['rule.current']),
     _disabledPlugins: new Set<string>(['plugin.current']),
     _nodeSizeMode: 'connections',
     _analyzer: undefined,
@@ -138,7 +138,7 @@ describe('graphView/provider/settingsState default dependencies', () => {
       filterPatterns: [],
     });
     mocks.loadDisabledState.mockReturnValue({
-      disabledRules: new Set<string>(),
+      disabledSources: new Set<string>(),
       disabledPlugins: new Set<string>(),
       changed: false,
     });
@@ -198,7 +198,7 @@ describe('graphView/provider/settingsState default dependencies', () => {
 
   it('loads disabled state through the default configuration inspection', () => {
     const get = vi.fn((key: string) =>
-      key === 'codegraphy.disabledRules' ? ['rule.saved'] : ['plugin.saved']
+      key === 'codegraphy.disabledSources' ? ['rule.saved'] : ['plugin.saved']
     ) as WorkspaceStateGetMock;
     const workspaceState = {
       get,
@@ -207,13 +207,13 @@ describe('graphView/provider/settingsState default dependencies', () => {
     const source = createSource({
       _context: { workspaceState },
     });
-    const disabledRulesInspect = { workspaceValue: ['rule.config'] };
+    const disabledSourcesInspect = { workspaceValue: ['rule.config'] };
     const disabledPluginsInspect = { workspaceValue: ['plugin.config'] };
     mocks.configuration.inspect.mockImplementation(((
       key: string,
-    ) => (key === 'disabledRules' ? disabledRulesInspect : disabledPluginsInspect)) as never);
+    ) => (key === 'disabledSources' ? disabledSourcesInspect : disabledPluginsInspect)) as never);
     mocks.loadDisabledState.mockReturnValue({
-      disabledRules: new Set<string>(['rule.saved']),
+      disabledSources: new Set<string>(['rule.saved']),
       disabledPlugins: new Set<string>(['plugin.saved']),
       changed: true,
     });
@@ -223,21 +223,21 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(methods._loadDisabledRulesAndPlugins()).toBe(true);
 
     expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
-    expect(mocks.configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledRules');
+    expect(mocks.configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledSources');
     expect(mocks.configuration.inspect).toHaveBeenNthCalledWith(2, 'disabledPlugins');
-    expect(workspaceState.get).toHaveBeenNthCalledWith(1, 'codegraphy.disabledRules');
+    expect(workspaceState.get).toHaveBeenNthCalledWith(1, 'codegraphy.disabledSources');
     expect(workspaceState.get).toHaveBeenNthCalledWith(2, 'codegraphy.disabledPlugins');
     expect(mocks.loadDisabledState).toHaveBeenCalledWith(
       new Set<string>(['rule.current']),
       new Set<string>(['plugin.current']),
       {
-        disabledRulesInspect,
+        disabledSourcesInspect,
         disabledPluginsInspect,
         persistedDisabledRules: ['rule.saved'],
         persistedDisabledPlugins: ['plugin.saved'],
       },
     );
-    expect([...source._disabledRules]).toEqual(['rule.saved']);
+    expect([...source._disabledSources]).toEqual(['rule.saved']);
     expect([...source._disabledPlugins]).toEqual(['plugin.saved']);
   });
 

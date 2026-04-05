@@ -8,8 +8,13 @@ function createPlugin(id: string): IPlugin {
     id,
     name: id,
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: ['.ts'],
+    sources: [
+      { id: 'es6-import', name: 'ES6 import', description: 'ES module import' },
+      { id: 'dynamic-import', name: 'Dynamic import', description: 'Dynamic import()' },
+      { id: 'reexport', name: 'Re-export', description: 'Export from relation' },
+    ],
     detectConnections: vi.fn(async () => []),
   };
 }
@@ -18,7 +23,7 @@ describe('workspaceAnalyzer/graph/data', () => {
   it('builds connected nodes and edges with cached size and visit counts', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
     const fileConnections = new Map<string, IConnection[]>([
-      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' }]],
+      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' }]],
       ['src/utils.ts', []],
     ]);
 
@@ -28,7 +33,7 @@ describe('workspaceAnalyzer/graph/data', () => {
         'src/utils.ts': { size: 20 },
       },
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       fileConnections,
       showOrphans: true,
       visitCounts: {
@@ -56,32 +61,40 @@ describe('workspaceAnalyzer/graph/data', () => {
     ]);
     expect(graph.edges).toEqual([
       {
-        id: 'src/index.ts->src/utils.ts',
+        id: 'src/index.ts->src/utils.ts#import',
         from: 'src/index.ts',
         to: 'src/utils.ts',
-        ruleIds: ['plugin.typescript:es6-import'],
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:es6-import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'es6-import',
+            label: 'ES6 import',
+          },
+        ],
       },
     ]);
   });
 
-  it('filters disabled plugins and rules', () => {
+  it('filters disabled plugins and sources', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
     const pythonPlugin = createPlugin('plugin.python');
     const fileConnections = new Map<string, IConnection[]>([
       ['src/index.ts', [
-        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' },
-        { specifier: './lazy', resolvedPath: '/workspace/src/lazy.ts', type: 'dynamic', ruleId: 'dynamic-import' },
+        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
+        { specifier: './lazy', resolvedPath: '/workspace/src/lazy.ts', kind: 'import', sourceId: 'dynamic-import' },
       ]],
       ['src/utils.ts', []],
       ['src/lazy.ts', []],
-      ['main.py', [{ specifier: 'config', resolvedPath: '/workspace/config.py', type: 'static', ruleId: 'import-module' }]],
+      ['main.py', [{ specifier: 'config', resolvedPath: '/workspace/config.py', kind: 'import', sourceId: 'import-module' }]],
       ['config.py', []],
     ]);
 
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(['plugin.python']),
-      disabledRules: new Set(['plugin.typescript:dynamic-import']),
+      disabledSources: new Set(['plugin.typescript:dynamic-import']),
       fileConnections,
       showOrphans: true,
       visitCounts: {},
@@ -96,21 +109,29 @@ describe('workspaceAnalyzer/graph/data', () => {
 
     expect(graph.edges).toEqual([
       {
-        id: 'src/index.ts->src/utils.ts',
+        id: 'src/index.ts->src/utils.ts#import',
         from: 'src/index.ts',
         to: 'src/utils.ts',
-        ruleIds: ['plugin.typescript:es6-import'],
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:es6-import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'es6-import',
+            label: 'ES6 import',
+          },
+        ],
       },
     ]);
   });
 
-  it('deduplicates repeated edges and accumulates distinct rule ids', () => {
+  it('deduplicates repeated same-kind edges and accumulates distinct sources', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
     const fileConnections = new Map<string, IConnection[]>([
       ['src/index.ts', [
-        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' },
-        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'reexport', ruleId: 'reexport' },
-        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'reexport', ruleId: 'reexport' },
+        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
+        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reexport', sourceId: 'reexport' },
+        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reexport', sourceId: 'reexport' },
       ]],
       ['src/utils.ts', []],
     ]);
@@ -118,7 +139,7 @@ describe('workspaceAnalyzer/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       fileConnections,
       showOrphans: true,
       visitCounts: {},
@@ -128,12 +149,31 @@ describe('workspaceAnalyzer/graph/data', () => {
 
     expect(graph.edges).toEqual([
       {
-        id: 'src/index.ts->src/utils.ts',
+        id: 'src/index.ts->src/utils.ts#import',
         from: 'src/index.ts',
         to: 'src/utils.ts',
-        ruleIds: [
-          'plugin.typescript:es6-import',
-          'plugin.typescript:reexport',
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:es6-import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'es6-import',
+            label: 'ES6 import',
+          },
+        ],
+      },
+      {
+        id: 'src/index.ts->src/utils.ts#reexport',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+        kind: 'reexport',
+        sources: [
+          {
+            id: 'plugin.typescript:reexport',
+            pluginId: 'plugin.typescript',
+            sourceId: 'reexport',
+            label: 'Re-export',
+          },
         ],
       },
     ]);
@@ -143,8 +183,8 @@ describe('workspaceAnalyzer/graph/data', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
     const fileConnections = new Map<string, IConnection[]>([
       ['src/index.ts', [
-        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' },
-        { specifier: './missing', resolvedPath: '/workspace/src/missing.ts', type: 'static' },
+        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
+        { specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', sourceId: 'es6-import' },
       ]],
       ['src/utils.ts', []],
       ['src/orphan.ts', []],
@@ -153,7 +193,7 @@ describe('workspaceAnalyzer/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       fileConnections,
       showOrphans: false,
       visitCounts: {},
@@ -164,9 +204,18 @@ describe('workspaceAnalyzer/graph/data', () => {
     expect(graph.nodes.map((node) => node.id)).toEqual(['src/index.ts', 'src/utils.ts']);
     expect(graph.edges).toEqual([
       {
-        id: 'src/index.ts->src/utils.ts',
+        id: 'src/index.ts->src/utils.ts#import',
         from: 'src/index.ts',
         to: 'src/utils.ts',
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:es6-import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'es6-import',
+            label: 'ES6 import',
+          },
+        ],
       },
     ]);
   });
@@ -175,9 +224,9 @@ describe('workspaceAnalyzer/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       fileConnections: new Map<string, IConnection[]>([
-        ['src/index.ts', [{ specifier: './utils', resolvedPath: null, type: 'static' }]],
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: null, kind: 'import', sourceId: 'es6-import' }]],
         ['src/utils.ts', []],
       ]),
       showOrphans: true,
@@ -193,9 +242,9 @@ describe('workspaceAnalyzer/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       fileConnections: new Map<string, IConnection[]>([
-        ['src/index.ts', [{ specifier: './missing', resolvedPath: '/workspace/src/missing.ts', type: 'static' }]],
+        ['src/index.ts', [{ specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', sourceId: 'es6-import' }]],
       ]),
       showOrphans: true,
       visitCounts: {},
@@ -206,15 +255,15 @@ describe('workspaceAnalyzer/graph/data', () => {
     expect(graph.edges).toEqual([]);
   });
 
-  it('creates a rule list when a later duplicate edge adds the first rule id', () => {
+  it('creates a source list when a later duplicate edge adds another source', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       fileConnections: new Map<string, IConnection[]>([
         ['src/index.ts', [
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' },
-          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
         ]],
         ['src/utils.ts', []],
       ]),
@@ -226,21 +275,35 @@ describe('workspaceAnalyzer/graph/data', () => {
 
     expect(graph.edges).toEqual([
       {
-        id: 'src/index.ts->src/utils.ts',
+        id: 'src/index.ts->src/utils.ts#import',
         from: 'src/index.ts',
         to: 'src/utils.ts',
-        ruleIds: ['plugin.typescript:es6-import'],
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:dynamic-import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'dynamic-import',
+            label: 'Dynamic import',
+          },
+          {
+            id: 'plugin.typescript:es6-import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'es6-import',
+            label: 'ES6 import',
+          },
+        ],
       },
     ]);
   });
 
-  it('does not qualify rule ids when no plugin matches the source file', () => {
+  it('omits source provenance when no plugin matches the source file', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledRules: new Set(['plugin.typescript:es6-import']),
+      disabledSources: new Set(['plugin.typescript:es6-import']),
       fileConnections: new Map<string, IConnection[]>([
-        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' }]],
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' }]],
         ['src/utils.ts', []],
       ]),
       showOrphans: true,
@@ -251,9 +314,11 @@ describe('workspaceAnalyzer/graph/data', () => {
 
     expect(graph.edges).toEqual([
       {
-        id: 'src/index.ts->src/utils.ts',
+        id: 'src/index.ts->src/utils.ts#import',
         from: 'src/index.ts',
         to: 'src/utils.ts',
+        kind: 'import',
+        sources: [],
       },
     ]);
   });

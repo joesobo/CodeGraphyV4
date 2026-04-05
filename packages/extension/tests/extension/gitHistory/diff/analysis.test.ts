@@ -46,8 +46,8 @@ describe('gitHistory/diff/analysis', () => {
           { id: 'src/drop.ts', label: 'drop.ts', color: '#fff' },
         ],
         edges: [
-          { id: 'keep', from: 'src/keep.ts', to: 'src/keep.ts' },
-          { id: 'drop', from: 'src/drop.ts', to: 'src/missing.ts' },
+          { id: 'keep', from: 'src/keep.ts', to: 'src/keep.ts' , kind: 'import', sources: [] },
+          { id: 'drop', from: 'src/drop.ts', to: 'src/missing.ts' , kind: 'import', sources: [] },
         ],
       },
       registry: {
@@ -88,7 +88,7 @@ describe('gitHistory/diff/analysis', () => {
       expect.any(Map),
       expect.any(Set)
     );
-    expect(result.edges).toEqual([{ id: 'keep', from: 'src/keep.ts', to: 'src/keep.ts' }]);
+    expect(result.edges).toEqual([{ id: 'keep', from: 'src/keep.ts', to: 'src/keep.ts' , kind: 'import', sources: [] }]);
   });
 
   it('throws an abort error when the signal is already aborted before the first diff line', async () => {

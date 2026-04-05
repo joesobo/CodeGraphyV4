@@ -10,7 +10,7 @@ describe('graphView/view/rebuild', () => {
   it('returns early when rebuild graph data is requested without an analyzer', () => {
     const state = {
       _analyzer: undefined,
-      _disabledRules: new Set<string>(),
+      _disabledSources: new Set<string>(),
       _disabledPlugins: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -53,7 +53,7 @@ describe('graphView/view/rebuild', () => {
         registry: { notifyGraphRebuild },
         getPluginStatuses: vi.fn(() => statuses),
       },
-      _disabledRules: new Set<string>(),
+      _disabledSources: new Set<string>(),
       _disabledPlugins: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -100,7 +100,7 @@ describe('graphView/view/rebuild', () => {
         status: 'active' as const,
         enabled: false,
         connectionCount: 0,
-        rules: [],
+        sources: [],
       },
     ] satisfies IPluginStatus[];
     const state = {
@@ -109,7 +109,7 @@ describe('graphView/view/rebuild', () => {
         registry: { notifyGraphRebuild },
         getPluginStatuses: vi.fn(() => statuses),
       },
-      _disabledRules: new Set<string>(),
+      _disabledSources: new Set<string>(),
       _disabledPlugins: new Set<string>(),
     };
     const rebuildAndSend = vi.fn();
@@ -140,7 +140,7 @@ describe('graphView/view/rebuild', () => {
     smartRebuildGraphView(
       {
         _analyzer: undefined,
-        _disabledRules: new Set<string>(),
+        _disabledSources: new Set<string>(),
         _disabledPlugins: new Set<string>(),
       },
       'rule',
@@ -167,7 +167,7 @@ describe('graphView/view/rebuild', () => {
         status: 'active' as const,
         enabled: true,
         connectionCount: 0,
-        rules: [],
+        sources: [],
       },
     ] satisfies IPluginStatus[];
     const state = {
@@ -176,7 +176,7 @@ describe('graphView/view/rebuild', () => {
         registry: { notifyGraphRebuild: vi.fn() },
         getPluginStatuses: vi.fn(() => statuses),
       },
-      _disabledRules: new Set<string>(['rule.alpha']),
+      _disabledSources: new Set<string>(['rule.alpha']),
       _disabledPlugins: new Set<string>(['plugin.alpha']),
     };
     const shouldRebuild = vi.fn(() => true);
@@ -190,7 +190,7 @@ describe('graphView/view/rebuild', () => {
     });
 
     expect(state._analyzer.getPluginStatuses).toHaveBeenCalledWith(
-      state._disabledRules,
+      state._disabledSources,
       state._disabledPlugins,
     );
     expect(shouldRebuild).toHaveBeenCalledWith(statuses, 'plugin', 'plugin.alpha');

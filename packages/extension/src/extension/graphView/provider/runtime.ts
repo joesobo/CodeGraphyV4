@@ -99,7 +99,7 @@ export class GraphViewProviderRuntime {
   protected _userGroups: IGroup[] = [];
   protected _hiddenPluginGroupIds = new Set<string>();
   protected _filterPatterns: string[] = [];
-  protected _disabledRules: Set<string> = new Set();
+  protected _disabledSources: Set<string> = new Set();
   protected _disabledPlugins: Set<string> = new Set();
   protected _gitAnalyzer?: GitHistoryAnalyzer;
   protected _currentCommitSha?: string;

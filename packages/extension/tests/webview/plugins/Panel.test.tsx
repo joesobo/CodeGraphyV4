@@ -50,7 +50,7 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        rules: [],
+        sources: [],
       },
     ]);
 
@@ -66,7 +66,7 @@ describe('PluginsPanel', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('expands a plugin to show its rules and rule descriptions', () => {
+  it('expands a plugin to show its sources and rule descriptions', () => {
     const { container } = renderPanel([
       {
         id: 'codegraphy.typescript',
@@ -76,10 +76,10 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        rules: [
+        sources: [
           {
             id: 'imports',
-            qualifiedId: 'codegraphy.typescript:imports',
+            qualifiedSourceId: 'codegraphy.typescript:imports',
             name: 'Imports',
             description: 'Tracks import declarations.',
             enabled: true,
@@ -107,10 +107,10 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        rules: [
+        sources: [
           {
             id: 'imports',
-            qualifiedId: 'codegraphy.typescript:imports',
+            qualifiedSourceId: 'codegraphy.typescript:imports',
             name: 'Imports',
             description: 'Tracks import declarations.',
             enabled: true,
@@ -127,7 +127,7 @@ describe('PluginsPanel', () => {
     expect(screen.getByText('7')).toHaveClass('text-xs', 'flex-shrink-0', 'tabular-nums');
   });
 
-  it('shows a no-rules message when an expanded plugin has no rules', () => {
+  it('shows a no-sources message when an expanded plugin has no sources', () => {
     const { container } = renderPanel([
       {
         id: 'codegraphy.markdown',
@@ -137,14 +137,14 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 0,
-        rules: [],
+        sources: [],
       },
     ]);
 
     const expandButtons = container.querySelectorAll('button.h-5.w-5');
     fireEvent.click(expandButtons[0]);
 
-    expect(screen.getByText('No rules declared.')).toBeInTheDocument();
+    expect(screen.getByText('No sources declared.')).toBeInTheDocument();
   });
 
   it('posts a plugin toggle message when the plugin switch changes', () => {
@@ -157,7 +157,7 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        rules: [],
+        sources: [],
       },
     ]);
 
@@ -179,10 +179,10 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        rules: [
+        sources: [
           {
             id: 'imports',
-            qualifiedId: 'codegraphy.typescript:imports',
+            qualifiedSourceId: 'codegraphy.typescript:imports',
             name: 'Imports',
             description: 'Tracks import declarations.',
             enabled: true,
@@ -199,8 +199,8 @@ describe('PluginsPanel', () => {
     fireEvent.click(switches[1]);
 
     expect(sentMessages).toContainEqual({
-      type: 'TOGGLE_RULE',
-      payload: { qualifiedId: 'codegraphy.typescript:imports', enabled: false },
+      type: 'TOGGLE_SOURCE',
+      payload: { qualifiedSourceId: 'codegraphy.typescript:imports', enabled: false },
     });
   });
 
@@ -214,10 +214,10 @@ describe('PluginsPanel', () => {
         status: 'inactive',
         enabled: false,
         connectionCount: 12,
-        rules: [
+        sources: [
           {
             id: 'imports',
-            qualifiedId: 'codegraphy.typescript:imports',
+            qualifiedSourceId: 'codegraphy.typescript:imports',
             name: 'Imports',
             description: 'Tracks import declarations.',
             enabled: false,
@@ -244,7 +244,7 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        rules: [],
+        sources: [],
       },
       {
         id: 'codegraphy.markdown',
@@ -254,7 +254,7 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 1,
-        rules: [],
+        sources: [],
       },
     ]);
 

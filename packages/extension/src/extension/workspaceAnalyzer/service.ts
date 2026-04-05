@@ -121,7 +121,7 @@ export class WorkspaceAnalyzer {
    */
   async analyze(
     filterPatterns: string[] = [],
-    disabledRules: Set<string> = new Set(),
+    disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal
   ): Promise<IGraphData> {
@@ -184,7 +184,7 @@ export class WorkspaceAnalyzer {
       this._context.workspaceState,
       () => this._getWorkspaceRoot(),
       filterPatterns,
-      disabledRules,
+      disabledSources,
       disabledPlugins,
       signal,
     );
@@ -192,9 +192,9 @@ export class WorkspaceAnalyzer {
 
   /**
    * Rebuilds graph data from cached connections without re-analyzing files.
-   * Used for instant graph updates when toggling rules/plugins.
+   * Used for instant graph updates when toggling sources/plugins.
    */
-  rebuildGraph(disabledRules: Set<string>, disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
+  rebuildGraph(disabledSources: Set<string>, disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
     const source = {
       _buildGraphData: (
         fileConnections: Map<string, IConnection[]>,
@@ -222,7 +222,7 @@ export class WorkspaceAnalyzer {
 
     return rebuildWorkspaceAnalyzerGraphForSource(
       source,
-      disabledRules,
+      disabledSources,
       disabledPlugins,
       showOrphans,
     );
@@ -231,10 +231,10 @@ export class WorkspaceAnalyzer {
   /**
    * Computes the status of each registered plugin for the webview's Plugins panel.
    */
-  getPluginStatuses(disabledRules: Set<string>, disabledPlugins: Set<string>): IPluginStatus[] {
+  getPluginStatuses(disabledSources: Set<string>, disabledPlugins: Set<string>): IPluginStatus[] {
     return getWorkspaceAnalyzerPluginStatuses({
       disabledPlugins,
-      disabledRules,
+      disabledSources,
       discoveredFiles: this._lastDiscoveredFiles,
       fileConnections: this._lastFileConnections,
       registry: this._registry,
@@ -328,7 +328,7 @@ export class WorkspaceAnalyzer {
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledRules: Set<string> = new Set(),
+    disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set()
   ): IGraphData {
     const source: WorkspaceAnalyzerGraphSource = {
@@ -342,7 +342,7 @@ export class WorkspaceAnalyzer {
       fileConnections,
       workspaceRoot,
       showOrphans,
-      disabledRules,
+      disabledSources,
       disabledPlugins,
     );
   }

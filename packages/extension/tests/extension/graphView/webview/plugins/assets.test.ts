@@ -21,7 +21,7 @@ describe('graphView/webview/plugins/assets', () => {
       status: enabled ? 'active' : 'inactive',
       enabled,
       connectionCount: 0,
-      rules: [],
+      sources: [],
     };
   }
 
@@ -57,7 +57,7 @@ describe('graphView/webview/plugins/assets', () => {
             status: 'active',
             enabled: true,
             connectionCount: 0,
-            rules: [],
+            sources: [],
           },
         ],
       },

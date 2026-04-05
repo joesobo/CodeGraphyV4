@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { detect } from '../src/rules/es6-import';
+import { detect } from '../src/sources/es6-import';
 import { PathResolver } from '../src/PathResolver';
 import type { TsRuleContext } from '../src/types';
 
@@ -15,8 +15,9 @@ describe('es6-import rule', () => {
     const connections = detect(`import foo from './bar';`, testFile, context);
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('./bar');
+    expect(connections[0].kind).toBe('import');
     expect(connections[0].type).toBe('static');
-    expect(connections[0].ruleId).toBe('es6-import');
+    expect(connections[0].sourceId).toBe('es6-import');
   });
 
   it('should detect named import', () => {

@@ -66,7 +66,7 @@ export function renameGitHistoryGraphFile(
     }
 
     edgeSet.delete(previousId);
-    edge.id = `${edge.from}->${edge.to}`;
+    edge.id = `${edge.from}->${edge.to}#${edge.kind}`;
     edgeSet.add(edge.id);
   }
 }

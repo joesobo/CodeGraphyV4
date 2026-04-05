@@ -29,7 +29,7 @@ export function appendGitHistoryConnectionEdges(
     }
 
     const targetRelative = path.relative(workspaceRoot, connection.resolvedPath);
-    const edgeId = `${sourcePath}->${targetRelative}`;
+    const edgeId = `${sourcePath}->${targetRelative}#${connection.kind}`;
     if (edgeSet.has(edgeId)) {
       continue;
     }
@@ -38,14 +38,16 @@ export function appendGitHistoryConnectionEdges(
       id: edgeId,
       from: sourcePath,
       to: targetRelative,
+      kind: connection.kind,
+      sources: plugin ? [{
+        id: `${plugin.id}:${connection.sourceId}`,
+        pluginId: plugin.id,
+        sourceId: connection.sourceId,
+        label: connection.sourceId,
+        metadata: connection.metadata,
+        variant: connection.variant,
+      }] : [],
     };
-
-    if (connection.ruleId) {
-      edge.ruleId = connection.ruleId;
-      if (plugin) {
-        edge.ruleIds = [`${plugin.id}:${connection.ruleId}`];
-      }
-    }
 
     edgeSet.add(edgeId);
     edges.push(edge);

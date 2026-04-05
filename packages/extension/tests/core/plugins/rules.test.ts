@@ -6,17 +6,17 @@ import { createCSharpPlugin } from '../../../../plugin-csharp/src';
 import { createMarkdownPlugin } from '../../../../plugin-markdown/src';
 
 describe('Plugin Rules', () => {
-  it('TypeScript plugin declares rules', () => {
+  it('TypeScript plugin declares sources', () => {
     const plugin = createTypeScriptPlugin();
-    expect(plugin.rules).toBeDefined();
-    expect(plugin.rules!.length).toBeGreaterThan(0);
-    const ruleIds = plugin.rules!.map(r => r.id);
-    expect(ruleIds).toContain('es6-import');
-    expect(ruleIds).toContain('reexport');
-    expect(ruleIds).toContain('dynamic-import');
-    expect(ruleIds).toContain('commonjs-require');
-    // Verify IRule shape
-    for (const rule of plugin.rules!) {
+    expect(plugin.sources).toBeDefined();
+    expect(plugin.sources!.length).toBeGreaterThan(0);
+    const sourceIds = plugin.sources!.map(r => r.id);
+    expect(sourceIds).toContain('es6-import');
+    expect(sourceIds).toContain('reexport');
+    expect(sourceIds).toContain('dynamic-import');
+    expect(sourceIds).toContain('commonjs-require');
+    // Verify IConnectionSource shape
+    for (const rule of plugin.sources!) {
       expect(rule).toHaveProperty('id');
       expect(rule).toHaveProperty('name');
       expect(rule).toHaveProperty('description');
@@ -26,41 +26,41 @@ describe('Plugin Rules', () => {
     }
   });
 
-  it('GDScript plugin declares rules', () => {
+  it('GDScript plugin declares sources', () => {
     const plugin = createGDScriptPlugin();
-    expect(plugin.rules).toBeDefined();
-    const ruleIds = plugin.rules!.map(r => r.id);
-    expect(ruleIds).toContain('preload');
-    expect(ruleIds).toContain('load');
-    expect(ruleIds).toContain('extends');
-    expect(ruleIds).toContain('class-name-usage');
+    expect(plugin.sources).toBeDefined();
+    const sourceIds = plugin.sources!.map(r => r.id);
+    expect(sourceIds).toContain('preload');
+    expect(sourceIds).toContain('load');
+    expect(sourceIds).toContain('extends');
+    expect(sourceIds).toContain('class-name-usage');
   });
 
-  it('Python plugin declares rules', () => {
+  it('Python plugin declares sources', () => {
     const plugin = createPythonPlugin();
-    expect(plugin.rules).toBeDefined();
-    const ruleIds = plugin.rules!.map(r => r.id);
-    expect(ruleIds).toContain('import-module');
-    expect(ruleIds).toContain('from-import-absolute');
-    expect(ruleIds).toContain('from-import-relative');
+    expect(plugin.sources).toBeDefined();
+    const sourceIds = plugin.sources!.map(r => r.id);
+    expect(sourceIds).toContain('import-module');
+    expect(sourceIds).toContain('from-import-absolute');
+    expect(sourceIds).toContain('from-import-relative');
   });
 
-  it('C# plugin declares rules', () => {
+  it('C# plugin declares sources', () => {
     const plugin = createCSharpPlugin();
-    expect(plugin.rules).toBeDefined();
-    const ruleIds = plugin.rules!.map(r => r.id);
-    expect(ruleIds).toContain('using-directive');
-    expect(ruleIds).toContain('type-usage');
+    expect(plugin.sources).toBeDefined();
+    const sourceIds = plugin.sources!.map(r => r.id);
+    expect(sourceIds).toContain('using-directive');
+    expect(sourceIds).toContain('type-usage');
   });
 
-  it('Markdown plugin declares rules', () => {
+  it('Markdown plugin declares sources', () => {
     const plugin = createMarkdownPlugin();
-    expect(plugin.rules).toBeDefined();
-    const ruleIds = plugin.rules!.map(r => r.id);
-    expect(ruleIds).toContain('wikilink');
+    expect(plugin.sources).toBeDefined();
+    const sourceIds = plugin.sources!.map(r => r.id);
+    expect(sourceIds).toContain('wikilink');
   });
 
-  it('all plugins have unique rule IDs within their rules', () => {
+  it('all plugins have unique rule IDs within their sources', () => {
     const plugins = [
       createTypeScriptPlugin(),
       createGDScriptPlugin(),
@@ -69,8 +69,8 @@ describe('Plugin Rules', () => {
       createMarkdownPlugin(),
     ];
     for (const plugin of plugins) {
-      if (plugin.rules) {
-        const ids = plugin.rules.map(r => r.id);
+      if (plugin.sources) {
+        const ids = plugin.sources.map(r => r.id);
         expect(new Set(ids).size).toBe(ids.length);
       }
     }

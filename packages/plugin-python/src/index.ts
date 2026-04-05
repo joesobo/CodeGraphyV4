@@ -1,7 +1,7 @@
 /**
  * @fileoverview Python plugin for CodeGraphy.
  * Thin orchestrator that loads metadata from codegraphy.json and delegates
- * detection to individual rule modules in rules/.
+ * detection to individual source modules in sources/.
  * @module plugins/python
  */
 
@@ -11,10 +11,10 @@ import { loadPythonConfig } from './projectConfig';
 import { assertPythonAstRuntimeAvailable, parsePythonImports } from './astParser';
 import manifest from '../codegraphy.json';
 
-// Rule detect functions
-import { detect as detectImportModule } from './rules/import-module';
-import { detect as detectFromImportAbsolute } from './rules/from-import-absolute';
-import { detect as detectFromImportRelative } from './rules/from-import-relative';
+// Source detect functions
+import { detect as detectImportModule } from './sources/import-module';
+import { detect as detectFromImportAbsolute } from './sources/from-import-absolute';
+import { detect as detectFromImportRelative } from './sources/from-import-relative';
 
 export { PathResolver } from './PathResolver';
 export type { IPythonPathResolverConfig, IDetectedImport } from './PathResolver';
@@ -23,7 +23,7 @@ export type { IPythonPathResolverConfig, IDetectedImport } from './PathResolver'
  * Built-in plugin for Python files.
  *
  * Uses Python AST parsing to detect import statements, then resolves
- * local imports to file paths using Python module resolution rules.
+ * local imports to file paths using Python module resolution sources.
  *
  * Supports:
  * - Python source files (.py)
@@ -52,7 +52,7 @@ export function createPythonPlugin(): IPlugin {
     apiVersion: manifest.apiVersion,
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
-    rules: manifest.rules,
+    sources: manifest.sources,
     fileColors: manifest.fileColors,
 
     async initialize(workspaceRoot: string): Promise<void> {

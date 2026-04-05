@@ -2,10 +2,10 @@
  * @fileoverview Wikilink detection rule for Markdown files.
  * Detects [[wikilink]] and [[wikilink|alias]] syntax used by Obsidian and other
  * Markdown tools to express connections between notes.
- * @module plugins/markdown/rules/wikilink
+ * @module plugins/markdown/sources/wikilink
  */
 
-import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
+import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { PathResolver } from '../PathResolver';
 import {
   isFenceStart,
@@ -13,7 +13,7 @@ import {
   stripInlineCode,
 } from './wikilinkHelpers';
 
-/** Shared context for Markdown rules */
+/** Shared context for Markdown sources */
 export interface MarkdownRuleContext {
   resolver: PathResolver;
 }
@@ -75,10 +75,11 @@ export function detect(
 
       const resolvedPath = ctx.resolver.resolve(parsed.target, filePath);
       connections.push({
+        kind: 'reference',
         specifier: parsed.specifier,
         resolvedPath,
         type: 'static',
-        ruleId: 'wikilink',
+        sourceId: 'wikilink',
       });
     }
   }
@@ -86,5 +87,5 @@ export function detect(
   return connections;
 }
 
-const rule: IRuleDetector<MarkdownRuleContext> = { id: 'wikilink', detect };
+const rule: IConnectionDetector<MarkdownRuleContext> = { id: 'wikilink', detect };
 export default rule;

@@ -11,9 +11,9 @@ const sampleData: IGraphData = {
     { id: 'src/orphan.ts', label: 'orphan.ts', color: '#93C5FD' },
   ],
   edges: [
-    { id: 'app->lib', from: 'src/app.ts', to: 'src/lib.ts' },
-    { id: 'lib->deep', from: 'src/lib.ts', to: 'src/deep.ts' },
-    { id: 'deep->leaf', from: 'src/deep.ts', to: 'src/leaf.ts' },
+    { id: 'app->lib', from: 'src/app.ts', to: 'src/lib.ts' , kind: 'import', sources: [] },
+    { id: 'lib->deep', from: 'src/lib.ts', to: 'src/deep.ts' , kind: 'import', sources: [] },
+    { id: 'deep->leaf', from: 'src/deep.ts', to: 'src/leaf.ts' , kind: 'import', sources: [] },
   ],
 };
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { detect, default as rule } from '../src/rules/type-usage';
+import { detect, default as rule } from '../src/sources/type-usage';
 import type { CSharpRuleContext } from '../src/parser';
 
 describe('type-usage rule', () => {
@@ -30,22 +30,25 @@ describe('type-usage rule', () => {
 
     expect(connections).toEqual([
       {
+        kind: 'reference',
         specifier: '[same namespace: MyApp.Services]',
         resolvedPath: '/workspace/src/Services/Worker.cs',
         type: 'static',
-        ruleId: 'type-usage',
+        sourceId: 'type-usage',
       },
       {
+        kind: 'reference',
         specifier: '[same namespace: MyApp.Services]',
         resolvedPath: '/workspace/src/Services/Config.cs',
         type: 'static',
-        ruleId: 'type-usage',
+        sourceId: 'type-usage',
       },
       {
+        kind: 'reference',
         specifier: '[same namespace: MyApp.Domain]',
         resolvedPath: '/workspace/src/Domain/Entity.cs',
         type: 'static',
-        ruleId: 'type-usage',
+        sourceId: 'type-usage',
       },
     ]);
 

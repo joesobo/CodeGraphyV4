@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GDScriptPathResolver } from '../src/PathResolver';
-import { detect as detectClassNameUsage } from '../src/rules/class-name-usage';
+import { detect as detectClassNameUsage } from '../src/sources/class-name-usage';
 import type { GDScriptRuleContext } from '../src/parser';
 
 describe('class-name-usage rule', () => {
@@ -27,7 +27,8 @@ describe('class-name-usage rule', () => {
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('RoundManager');
     expect(connections[0].specifier).not.toBe('');
-    expect(connections[0].ruleId).toBe('class-name-usage');
+    expect(connections[0].kind).toBe('reference');
+    expect(connections[0].sourceId).toBe('class-name-usage');
     expect(connections[0].resolvedPath).toContain('scripts/round_manager.gd');
     expect(connections[0].resolvedPath).not.toBe('');
   });

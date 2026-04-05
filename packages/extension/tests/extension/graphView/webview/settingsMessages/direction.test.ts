@@ -15,7 +15,7 @@ function createState(
   return {
     activeViewId: 'codegraphy.graphView',
     disabledPlugins: new Set<string>(),
-    disabledRules: new Set<string>(),
+    disabledSources: new Set<string>(),
     filterPatterns: [],
     graphData: { nodes: [], edges: [] } satisfies IGraphData,
     viewContext: { folderNodeColor: '#111111' },

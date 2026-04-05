@@ -1,11 +1,11 @@
 /**
- * @fileoverview CommonJS require detection rule.
- * Finds `require('module')` calls anywhere in the AST.
- * @module plugins/typescript/rules/commonjs-require
+ * @fileoverview Re-export detection rule.
+ * Finds `export { x } from 'y'`, `export * from 'y'`, etc.
+ * @module plugins/typescript/sources/reexport
  */
 
 import * as ts from 'typescript';
-import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
+import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { TsRuleContext } from '../types';
 import { getScriptKind } from '../getScriptKind';
 
@@ -25,20 +25,15 @@ function detect(
   );
 
   const visit = (node: ts.Node): void => {
-    if (
-      ts.isCallExpression(node) &&
-      ts.isIdentifier(node.expression) &&
-      node.expression.text === 'require' &&
-      node.arguments.length > 0
-    ) {
-      const arg = node.arguments[0];
-      if (ts.isStringLiteral(arg)) {
-        const specifier = arg.text;
+    if (ts.isExportDeclaration(node) && node.moduleSpecifier) {
+      if (ts.isStringLiteral(node.moduleSpecifier)) {
+        const specifier = node.moduleSpecifier.text;
         connections.push({
+          kind: 'reexport',
           specifier,
           resolvedPath: context.resolver.resolve(specifier, filePath),
-          type: 'require',
-          ruleId: 'commonjs-require',
+          type: 'reexport',
+          sourceId: 'reexport',
         });
       }
     }
@@ -50,8 +45,8 @@ function detect(
   return connections;
 }
 
-const rule: IRuleDetector<TsRuleContext> = {
-  id: 'commonjs-require',
+const rule: IConnectionDetector<TsRuleContext> = {
+  id: 'reexport',
   detect,
 };
 

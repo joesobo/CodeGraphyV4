@@ -14,8 +14,8 @@ const sampleGraph: IGraphData = {
     { id: 'c.ts', label: 'c.ts', color: '#fff' },
   ],
   edges: [
-    { id: 'a->b', from: 'a.ts', to: 'b.ts' },
-    { id: 'b->c', from: 'b.ts', to: 'c.ts' },
+    { id: 'a->b', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+    { id: 'b->c', from: 'b.ts', to: 'c.ts' , kind: 'import', sources: [] },
   ],
 };
 
@@ -79,7 +79,7 @@ describe('graphQueryFacade', () => {
 
       const result = getEdgesFor('a.ts', getter);
 
-      expect(result).toEqual([{ id: 'a->b', from: 'a.ts', to: 'b.ts' }]);
+      expect(result).toEqual([{ id: 'a->b', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] }]);
     });
 
     it('returns edges where the node is the target', () => {
@@ -94,7 +94,7 @@ describe('graphQueryFacade', () => {
     it('returns empty array for a node with no edges', () => {
       const getter = vi.fn().mockReturnValue(sampleGraph);
 
-      expect(getEdgesFor('c.ts', getter)).toEqual([{ id: 'b->c', from: 'b.ts', to: 'c.ts' }]);
+      expect(getEdgesFor('c.ts', getter)).toEqual([{ id: 'b->c', from: 'b.ts', to: 'c.ts' , kind: 'import', sources: [] }]);
     });
   });
 });

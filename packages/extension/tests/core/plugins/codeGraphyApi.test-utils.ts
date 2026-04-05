@@ -16,8 +16,8 @@ export function createTestAPI(pluginId = 'test-plugin') {
       { id: 'c.ts', label: 'c.ts', color: '#fff' },
     ],
     edges: [
-      { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
-      { id: 'b.ts->c.ts', from: 'b.ts', to: 'c.ts' },
+      { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+      { id: 'b.ts->c.ts', from: 'b.ts', to: 'c.ts' , kind: 'import', sources: [] },
     ],
   };
   const graphProvider = vi.fn(() => graphData);

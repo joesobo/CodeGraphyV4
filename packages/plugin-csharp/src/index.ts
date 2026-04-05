@@ -1,7 +1,7 @@
 /**
  * @fileoverview C# plugin for CodeGraphy.
  * Thin orchestrator that loads metadata from codegraphy.json and delegates
- * detection to individual rule modules in rules/.
+ * detection to individual source modules in sources/.
  * @module plugins/csharp
  */
 
@@ -10,9 +10,9 @@ import { PathResolver, ICSharpPathResolverConfig } from './PathResolver';
 import { parseContent, extractUsedTypes, CSharpRuleContext } from './parser';
 import manifest from '../codegraphy.json';
 
-// Rule detect functions
-import { detect as detectUsingDirective } from './rules/using-directive';
-import { detect as detectTypeUsage } from './rules/type-usage';
+// Source detect functions
+import { detect as detectUsingDirective } from './sources/using-directive';
+import { detect as detectTypeUsage } from './sources/type-usage';
 
 export { PathResolver } from './PathResolver';
 export type { ICSharpPathResolverConfig } from './PathResolver';
@@ -48,7 +48,7 @@ export function createCSharpPlugin(): IPlugin {
     apiVersion: manifest.apiVersion,
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
-    rules: manifest.rules,
+    sources: manifest.sources,
     fileColors: manifest.fileColors,
 
     async initialize(workspaceRoot: string): Promise<void> {
@@ -67,7 +67,7 @@ export function createCSharpPlugin(): IPlugin {
         resolver = new PathResolver(workspaceRoot, config);
       }
 
-      // Parse once, share results with all rules
+      // Parse once, share results with all sources
       const { usings, namespaces } = parseContent(content);
 
       // Register namespaces for cross-file resolution

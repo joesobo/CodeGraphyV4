@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GDScriptPathResolver } from '../src/PathResolver';
-import { detect as detectPreload } from '../src/rules/preload';
+import { detect as detectPreload } from '../src/sources/preload';
 import type { GDScriptRuleContext } from '../src/parser';
 
 describe('preload rule', () => {
@@ -24,8 +24,9 @@ describe('preload rule', () => {
 
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('res://scenes/player.gd');
+    expect(connections[0].kind).toBe('load');
     expect(connections[0].type).toBe('static');
-    expect(connections[0].ruleId).toBe('preload');
+    expect(connections[0].sourceId).toBe('preload');
   });
 
   it('should detect preload with single quotes', () => {

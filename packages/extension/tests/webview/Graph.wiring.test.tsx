@@ -74,7 +74,7 @@ const baseData: IGraphData = {
 		{ id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
 		{ id: 'src/lib.ts', label: 'lib.ts', color: '#67E8F9' },
 	],
-	edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts' }],
+	edges: [{ id: 'src/app.ts->src/lib.ts', from: 'src/app.ts', to: 'src/lib.ts' , kind: 'import', sources: [] }],
 };
 
 function createGraphState(graphData: IGraphData = baseData) {

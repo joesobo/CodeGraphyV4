@@ -6,7 +6,7 @@ interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
   analyze(
     filterPatterns?: string[],
-    disabledRules?: Set<string>,
+    disabledSources?: Set<string>,
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
   ): Promise<IGraphData>;
@@ -21,7 +21,7 @@ export interface GraphViewAnalysisExecutionState {
   analyzerInitPromise: Promise<void> | undefined;
   installedPluginActivationPromise?: Promise<void>;
   filterPatterns: string[];
-  disabledRules: Set<string>;
+  disabledSources: Set<string>;
   disabledPlugins: Set<string>;
 }
 
@@ -97,7 +97,7 @@ export async function executeGraphViewAnalysis(
   try {
     const rawGraphData = await state.analyzer.analyze(
       state.filterPatterns,
-      state.disabledRules,
+      state.disabledSources,
       state.disabledPlugins,
       signal,
     );

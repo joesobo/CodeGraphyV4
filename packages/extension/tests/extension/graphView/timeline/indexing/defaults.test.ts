@@ -116,7 +116,7 @@ describe('graph view provider timeline default dependencies', () => {
       _timelineActive: false,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(),
-      _disabledRules: new Set<string>(),
+      _disabledSources: new Set<string>(),
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _sendMessage: vi.fn(),
     };
@@ -165,7 +165,7 @@ describe('graph view provider timeline default dependencies', () => {
       } as never,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(['plugin.test']),
-      _disabledRules: new Set<string>(['rule.test']),
+      _disabledSources: new Set<string>(['rule.test']),
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _sendMessage: vi.fn(),
     };
@@ -185,7 +185,7 @@ describe('graph view provider timeline default dependencies', () => {
       { nodes: ['raw'], edges: [] },
       {
         disabledPlugins: new Set<string>(['plugin.test']),
-        disabledRules: new Set<string>(['rule.test']),
+        disabledSources: new Set<string>(['rule.test']),
         showOrphans: true,
         workspaceRoot: undefined,
         registry: undefined,

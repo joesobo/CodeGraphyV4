@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { detect } from '../src/rules/commonjs-require';
+import { detect } from '../src/sources/commonjs-require';
 import { PathResolver } from '../src/PathResolver';
 import type { TsRuleContext } from '../src/types';
 
@@ -15,8 +15,9 @@ describe('commonjs-require rule', () => {
     const connections = detect(`const foo = require('./bar');`, testFile, context);
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('./bar');
+    expect(connections[0].kind).toBe('import');
     expect(connections[0].type).toBe('require');
-    expect(connections[0].ruleId).toBe('commonjs-require');
+    expect(connections[0].sourceId).toBe('commonjs-require');
   });
 
   it('should detect require without assignment', () => {

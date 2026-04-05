@@ -5,11 +5,11 @@
 
 import * as path from 'path';
 import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
-import type { IGraphEdge } from '../../../shared/graph/types';
+import type { IGraphEdge, IGraphEdgeSource } from '../../../shared/graph/types';
 
 export interface IWorkspaceGraphEdgesOptions {
   disabledPlugins: ReadonlySet<string>;
-  disabledRules: ReadonlySet<string>;
+  disabledSources: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IConnection[]>;
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
   workspaceRoot: string;
@@ -21,11 +21,36 @@ export interface IWorkspaceGraphEdgeBuildResult {
   nodeIds: Set<string>;
 }
 
-function createQualifiedRuleId(
+function createQualifiedSourceId(
   plugin: IPlugin | undefined,
-  connection: Pick<IConnection, 'ruleId'>,
+  connection: Pick<IConnection, 'sourceId'>,
 ): string | undefined {
-  return plugin && connection.ruleId ? `${plugin.id}:${connection.ruleId}` : undefined;
+  return plugin && connection.sourceId ? `${plugin.id}:${connection.sourceId}` : undefined;
+}
+
+function createEdgeSource(
+  plugin: IPlugin | undefined,
+  connection: IConnection,
+): IGraphEdgeSource | undefined {
+  if (!plugin) {
+    return undefined;
+  }
+
+  const qualifiedSourceId = createQualifiedSourceId(plugin, connection);
+  if (!qualifiedSourceId) {
+    return undefined;
+  }
+
+  const pluginSource = plugin.sources?.find((source) => source.id === connection.sourceId);
+
+  return {
+    id: qualifiedSourceId,
+    pluginId: plugin.id,
+    sourceId: connection.sourceId,
+    label: pluginSource?.name ?? connection.sourceId,
+    metadata: connection.metadata,
+    variant: connection.variant,
+  };
 }
 
 export function buildWorkspaceGraphEdges(
@@ -33,7 +58,7 @@ export function buildWorkspaceGraphEdges(
 ): IWorkspaceGraphEdgeBuildResult {
   const {
     disabledPlugins,
-    disabledRules,
+    disabledSources,
     fileConnections,
     getPluginForFile,
     workspaceRoot,
@@ -53,8 +78,8 @@ export function buildWorkspaceGraphEdges(
     }
 
     for (const connection of connections) {
-      const qualifiedRuleId = createQualifiedRuleId(plugin, connection);
-      if (qualifiedRuleId && disabledRules.has(qualifiedRuleId)) {
+      const qualifiedSourceId = createQualifiedSourceId(plugin, connection);
+      if (qualifiedSourceId && disabledSources.has(qualifiedSourceId)) {
         continue;
       }
 
@@ -70,19 +95,18 @@ export function buildWorkspaceGraphEdges(
       connectedIds.add(filePath);
       connectedIds.add(targetRelative);
 
-      const edgeId = `${filePath}->${targetRelative}`;
+      const edgeId = `${filePath}->${targetRelative}#${connection.kind}`;
       const existing = edgeMap.get(edgeId);
+      const edgeSource = createEdgeSource(plugin, connection);
 
       if (!existing) {
         const edge: IGraphEdge = {
           id: edgeId,
           from: filePath,
           to: targetRelative,
+          kind: connection.kind,
+          sources: edgeSource ? [edgeSource] : [],
         };
-
-        if (qualifiedRuleId) {
-          edge.ruleIds = [qualifiedRuleId];
-        }
 
         edges.push(edge);
         edgeMap.set(edgeId, edge);
@@ -90,14 +114,10 @@ export function buildWorkspaceGraphEdges(
       }
 
       if (
-        qualifiedRuleId &&
-        (!existing.ruleIds || !existing.ruleIds.includes(qualifiedRuleId))
+        edgeSource &&
+        !existing.sources.some((source) => source.id === edgeSource.id)
       ) {
-        if (!existing.ruleIds) {
-          existing.ruleIds = [];
-        }
-
-        existing.ruleIds.push(qualifiedRuleId);
+        existing.sources.push(edgeSource);
       }
     }
   }

@@ -94,8 +94,8 @@ describe('graph/model/build', () => {
     expect(
       processEdges(
       [
-        { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
-        { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
+        { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
+        { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
         ],
         'combined'
       )
@@ -108,8 +108,8 @@ describe('graph/model/build', () => {
     expect(
       processEdges(
       [
-        { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
-        { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
+        { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+        { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
         ],
         'separate'
       )
@@ -125,7 +125,7 @@ describe('graph/model/build', () => {
         { id: 'anchor.ts', label: 'anchor.ts', color: '#93C5FD' },
         { id: 'new.ts', label: 'new.ts', color: '#67E8F9' },
       ],
-      edges: [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' }],
+      edges: [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
     };
 
     const graphData = buildGraphData({
@@ -150,8 +150,8 @@ describe('graph/model/build', () => {
         { id: 'favorite.ts', label: 'favorite.ts', color: '#80c0ff' },
       ],
       edges: [
-        { id: 'focus.ts->favorite.ts', from: 'focus.ts', to: 'favorite.ts' },
-        { id: 'favorite.ts->focus.ts', from: 'favorite.ts', to: 'focus.ts' },
+        { id: 'focus.ts->favorite.ts', from: 'focus.ts', to: 'favorite.ts' , kind: 'import', sources: [] },
+        { id: 'favorite.ts->focus.ts', from: 'favorite.ts', to: 'focus.ts' , kind: 'import', sources: [] },
       ],
     };
 

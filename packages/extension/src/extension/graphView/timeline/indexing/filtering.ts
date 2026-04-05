@@ -7,7 +7,7 @@ interface GraphViewTimelineRegistry {
 
 export interface GraphViewTimelineGraphOptions {
   disabledPlugins: ReadonlySet<string>;
-  disabledRules: ReadonlySet<string>;
+  disabledSources: ReadonlySet<string>;
   showOrphans: boolean;
   workspaceRoot?: string;
   registry?: GraphViewTimelineRegistry;
@@ -44,7 +44,7 @@ function filterGraphViewTimelineEdges(
 ) {
   if (
     options.disabledPlugins.size === 0 &&
-    options.disabledRules.size === 0
+    options.disabledSources.size === 0
   ) {
     return rawGraphData.edges;
   }
@@ -55,11 +55,27 @@ function filterGraphViewTimelineEdges(
 
   const { registry, workspaceRoot } = options;
 
-  return rawGraphData.edges.filter((edge) => {
+  return rawGraphData.edges.flatMap((edge) => {
     const plugin = registry.getPluginForFile(path.join(workspaceRoot, edge.from));
-    if (!plugin) return true;
-    if (options.disabledPlugins.has(plugin.id)) return false;
-    if (edge.ruleId && options.disabledRules.has(`${plugin.id}:${edge.ruleId}`)) return false;
-    return true;
+    if (!plugin) return [edge];
+    if (options.disabledPlugins.has(plugin.id)) return [];
+
+    if (edge.sources.length === 0) {
+      return [edge];
+    }
+
+    const sources = edge.sources.filter((source) => {
+      if (options.disabledPlugins.has(source.pluginId)) {
+        return false;
+      }
+
+      return !options.disabledSources.has(source.id);
+    });
+
+    if (sources.length === 0) {
+      return [];
+    }
+
+    return [{ ...edge, sources }];
   });
 }

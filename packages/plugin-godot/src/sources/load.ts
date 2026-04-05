@@ -1,11 +1,11 @@
 /**
  * @fileoverview Load detection rule for GDScript.
  * Finds `load("res://...")` and `ResourceLoader.load("res://...")` calls.
- * @module plugins/godot/rules/load
+ * @module plugins/godot/sources/load
  */
 
 import * as path from 'path';
-import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
+import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { isResPath, normalizePath } from '../parser';
 
@@ -26,10 +26,11 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
       if (isResPath(resPath)) {
         const resolved = ctx.resolver.resolve(resPath, ctx.relativeFilePath);
         connections.push({
+          kind: 'load',
           specifier: resPath,
           resolvedPath: resolved ? normalizePath(path.join(ctx.workspaceRoot, resolved)) : null,
           type: 'dynamic',
-          ruleId: 'load',
+          sourceId: 'load',
         });
       }
     }
@@ -38,5 +39,5 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
   return connections;
 }
 
-const rule: IRuleDetector<GDScriptRuleContext> = { id: 'load', detect };
+const rule: IConnectionDetector<GDScriptRuleContext> = { id: 'load', detect };
 export default rule;

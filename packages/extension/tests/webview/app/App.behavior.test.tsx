@@ -181,7 +181,7 @@ describe('App behavior', () => {
           { id: 'src/App.ts', label: 'App', color: '#123456' },
           { id: 'src/AppService.ts', label: 'AppService', color: '#654321' },
         ],
-        edges: [{ id: 'src/App.ts->src/AppService.ts', from: 'src/App.ts', to: 'src/AppService.ts' }],
+        edges: [{ id: 'src/App.ts->src/AppService.ts', from: 'src/App.ts', to: 'src/AppService.ts' , kind: 'import', sources: [] }],
       },
       searchQuery: 'App',
       searchOptions: { matchCase: false, wholeWord: true, regex: false },
@@ -202,7 +202,7 @@ describe('App behavior', () => {
           { id: 'src/App.ts', label: 'App', color: '#123456' },
           { id: 'src/Todo.ts', label: 'Todo', color: '#654321' },
         ],
-        edges: [{ id: 'src/App.ts->src/Todo.ts', from: 'src/App.ts', to: 'src/Todo.ts' }],
+        edges: [{ id: 'src/App.ts->src/Todo.ts', from: 'src/App.ts', to: 'src/Todo.ts' , kind: 'import', sources: [] }],
       },
       searchQuery: '   ',
     });

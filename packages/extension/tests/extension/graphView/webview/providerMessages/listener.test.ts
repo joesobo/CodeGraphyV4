@@ -97,7 +97,7 @@ function createSource(
     _userGroups: [],
     _activeViewId: 'codegraphy.connections',
     _disabledPlugins: new Set<string>(),
-    _disabledRules: new Set<string>(),
+    _disabledSources: new Set<string>(),
     _filterPatterns: ['dist/**'],
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _viewContext: { activePlugins: new Set() } satisfies IViewContext,
@@ -526,7 +526,7 @@ async function loadDefaultListenerHarness() {
   const source = createSource({
     _graphData: {
       nodes: [{ id: 'node-1', label: 'node-1', color: '#93C5FD' }],
-      edges: [{ id: 'edge-1', from: 'node-1', to: 'node-2' }],
+      edges: [{ id: 'edge-1', from: 'node-1', to: 'node-2' , kind: 'import', sources: [] }],
     } satisfies IGraphData,
   });
   const webview = {

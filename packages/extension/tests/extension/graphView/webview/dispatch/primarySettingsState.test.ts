@@ -67,13 +67,13 @@ function createContext(
 describe('createGraphViewPrimarySettingsMessageState', () => {
   it('reads the current settings state from the primary message context', () => {
     const disabledPlugins = new Set(['plugin-a']);
-    const disabledRules = new Set(['rule-a']);
+    const disabledSources = new Set(['rule-a']);
     const graphData = { nodes: [], edges: [] } satisfies IGraphData;
     const viewContext = { activePlugins: new Set(), folderNodeColor: '#abcdef' } satisfies IViewContext;
     const context = createContext({
       getActiveViewId: vi.fn(() => 'codegraphy.authors'),
       getDisabledPlugins: vi.fn(() => disabledPlugins),
-      getDisabledRules: vi.fn(() => disabledRules),
+      getDisabledRules: vi.fn(() => disabledSources),
       getFilterPatterns: vi.fn(() => ['dist/**']),
       getGraphData: vi.fn(() => graphData),
       getViewContext: vi.fn(() => viewContext),
@@ -82,7 +82,7 @@ describe('createGraphViewPrimarySettingsMessageState', () => {
     expect(createGraphViewPrimarySettingsMessageState(context)).toEqual({
       activeViewId: 'codegraphy.authors',
       disabledPlugins,
-      disabledRules,
+      disabledSources,
       filterPatterns: ['dist/**'],
       graphData,
       viewContext,

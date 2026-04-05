@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GDScriptPathResolver } from '../src/PathResolver';
-import { detect as detectLoad } from '../src/rules/load';
+import { detect as detectLoad } from '../src/sources/load';
 import type { GDScriptRuleContext } from '../src/parser';
 
 describe('load rule', () => {
@@ -24,8 +24,9 @@ describe('load rule', () => {
 
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('res://scenes/enemy.tscn');
+    expect(connections[0].kind).toBe('load');
     expect(connections[0].type).toBe('dynamic');
-    expect(connections[0].ruleId).toBe('load');
+    expect(connections[0].sourceId).toBe('load');
   });
 
   it('should detect ResourceLoader.load', () => {
@@ -98,11 +99,11 @@ describe('load rule', () => {
     expect(connections).toHaveLength(0);
   });
 
-  it('should include ruleId as load', () => {
+  it('should include sourceId as load', () => {
     const content = 'var x = load("res://test.gd")';
     const connections = detectLoad(content, testFile, ctx);
 
-    expect(connections[0].ruleId).toBe('load');
+    expect(connections[0].sourceId).toBe('load');
   });
 
   it('should handle empty file', () => {

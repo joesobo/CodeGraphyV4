@@ -41,15 +41,15 @@ vi.mock('../src/PathResolver', () => ({
   },
 }));
 
-vi.mock('../src/rules/import-module', () => ({
+vi.mock('../src/sources/import-module', () => ({
   detect: mocks.detectImportModule,
 }));
 
-vi.mock('../src/rules/from-import-absolute', () => ({
+vi.mock('../src/sources/from-import-absolute', () => ({
   detect: mocks.detectFromImportAbsolute,
 }));
 
-vi.mock('../src/rules/from-import-relative', () => ({
+vi.mock('../src/sources/from-import-relative', () => ({
   detect: mocks.detectFromImportRelative,
 }));
 
@@ -72,7 +72,7 @@ describe('createPythonPlugin lifecycle', () => {
     mocks.parsePythonImports.mockReturnValue(parsedImports);
 
     mocks.detectImportModule.mockReturnValue([
-      { specifier: 'pkg', resolvedPath: '/workspace/pkg.py', type: 'static', ruleId: 'import-module' },
+      { kind: 'import', specifier: 'pkg', resolvedPath: '/workspace/pkg.py', type: 'static', sourceId: 'import-module' },
     ]);
     mocks.detectFromImportAbsolute.mockReturnValue([]);
     mocks.detectFromImportRelative.mockReturnValue([]);
@@ -168,7 +168,7 @@ describe('createPythonPlugin lifecycle', () => {
     const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
 
     expect(connections).toEqual([
-      { specifier: 'pkg', resolvedPath: '/workspace/pkg.py', type: 'static', ruleId: 'import-module' },
+      { kind: 'import', specifier: 'pkg', resolvedPath: '/workspace/pkg.py', type: 'static', sourceId: 'import-module' },
     ]);
   });
 

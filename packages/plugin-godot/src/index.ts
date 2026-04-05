@@ -1,7 +1,7 @@
 /**
  * @fileoverview GDScript (Godot) plugin for CodeGraphy.
  * Thin orchestrator that loads metadata from codegraphy.json and delegates
- * detection to individual rule modules in rules/.
+ * detection to individual source modules in sources/.
  * @module plugins/godot
  */
 
@@ -11,11 +11,11 @@ import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration, normalizePath } from './parser';
 import manifest from '../codegraphy.json';
 
-// Rule detect functions
-import { detect as detectPreload } from './rules/preload';
-import { detect as detectLoad } from './rules/load';
-import { detect as detectExtends } from './rules/extends';
-import { detect as detectClassNameUsage } from './rules/class-name-usage';
+// Source detect functions
+import { detect as detectPreload } from './sources/preload';
+import { detect as detectLoad } from './sources/load';
+import { detect as detectExtends } from './sources/extends';
+import { detect as detectClassNameUsage } from './sources/class-name-usage';
 
 export { GDScriptPathResolver } from './PathResolver';
 export type { IGDScriptReference, GDScriptReferenceType } from './parser';
@@ -50,7 +50,7 @@ export function createGDScriptPlugin(): IPlugin {
     apiVersion: manifest.apiVersion,
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
-    rules: manifest.rules,
+    sources: manifest.sources,
     fileColors: manifest.fileColors as IPlugin['fileColors'],
 
     async initialize(workspaceRoot: string): Promise<void> {

@@ -1,4 +1,4 @@
-import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
+import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { PythonRuleContext } from '../context';
 import { buildFromImportConnections } from './from-import-shared';
 
@@ -22,7 +22,7 @@ function detect(
   return connections;
 }
 
-const rule: IRuleDetector<PythonRuleContext> = {
+const rule: IConnectionDetector<PythonRuleContext> = {
   id: 'from-import-absolute',
   detect,
 };

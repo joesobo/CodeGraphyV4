@@ -51,7 +51,7 @@ describe('createMarkdownPlugin', () => {
     it('exposes the wikilink rule definition', () => {
       const plugin = createMarkdownPlugin();
 
-      expect(plugin.rules).toEqual([
+      expect(plugin.sources).toEqual([
         { id: 'wikilink', name: 'Wikilinks', description: '[[Note Name]], ![[embed]]' },
       ]);
     });

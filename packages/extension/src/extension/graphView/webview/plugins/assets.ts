@@ -35,7 +35,7 @@ interface GraphViewPluginRegistry {
 
 interface GraphViewPluginAnalyzer {
   getPluginStatuses(
-    disabledRules: ReadonlySet<string>,
+    disabledSources: ReadonlySet<string>,
     disabledPlugins: ReadonlySet<string>,
   ): IPluginStatus[];
   registry: GraphViewPluginRegistry;
@@ -48,7 +48,7 @@ interface GraphViewDecorationManagerLike {
 
 export function sendGraphViewPluginStatuses(
   analyzer: Pick<GraphViewPluginAnalyzer, 'getPluginStatuses'> | undefined,
-  disabledRules: ReadonlySet<string>,
+  disabledSources: ReadonlySet<string>,
   disabledPlugins: ReadonlySet<string>,
   sendMessage: (
     message: Extract<ExtensionToWebviewMessage, { type: 'PLUGINS_UPDATED' }>
@@ -56,7 +56,7 @@ export function sendGraphViewPluginStatuses(
 ): void {
   if (!analyzer) return;
 
-  const plugins = analyzer.getPluginStatuses(disabledRules, disabledPlugins);
+  const plugins = analyzer.getPluginStatuses(disabledSources, disabledPlugins);
   sendMessage({ type: 'PLUGINS_UPDATED', payload: { plugins } });
 }
 

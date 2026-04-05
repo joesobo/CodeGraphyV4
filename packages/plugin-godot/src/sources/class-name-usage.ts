@@ -2,11 +2,11 @@
  * @fileoverview Class name usage detection rule for GDScript.
  * Detects references to class names defined via `class_name` in other files.
  * Pattern matching logic is in class-name-detector.ts.
- * @module plugins/godot/rules/class-name-usage
+ * @module plugins/godot/sources/class-name-usage
  */
 
 import * as path from 'path';
-import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
+import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { normalizePath } from '../parser';
 import { detectUsagesInLine } from './class-name-detector';
@@ -30,10 +30,11 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
 			const resolved = ctx.resolver.resolve(ref.resPath, ctx.relativeFilePath);
 			if (resolved) {
 				connections.push({
+					kind: 'reference',
 					specifier: ref.resPath,
 					resolvedPath: normalizePath(path.join(ctx.workspaceRoot, resolved)),
 					type: 'static',
-					ruleId: 'class-name-usage',
+					sourceId: 'class-name-usage',
 				});
 			}
 		}
@@ -42,5 +43,5 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
 	return connections;
 }
 
-const rule: IRuleDetector<GDScriptRuleContext> = { id: 'class-name-usage', detect };
+const rule: IConnectionDetector<GDScriptRuleContext> = { id: 'class-name-usage', detect };
 export default rule;

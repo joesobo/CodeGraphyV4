@@ -47,7 +47,7 @@ describe('WorkspaceAnalyzer delegates', () => {
       context as unknown as vscode.ExtensionContext,
     );
     const signal = new AbortController().signal;
-    const disabledRules = new Set(['plugin.typescript:rule']);
+    const disabledSources = new Set(['plugin.typescript:rule']);
     const disabledPlugins = new Set(['plugin.python']);
     const expectedGraph = createGraph();
     const runSpy = vi
@@ -78,7 +78,7 @@ describe('WorkspaceAnalyzer delegates', () => {
           expect(source._lastWorkspaceRoot).toBe('');
           expect(getWorkspaceRoot()).toBe('/test/workspace');
           expect(filterPatterns).toEqual(['**/*.generated.ts']);
-          expect(nextDisabledRules).toBe(disabledRules);
+          expect(nextDisabledRules).toBe(disabledSources);
           expect(nextDisabledPlugins).toBe(disabledPlugins);
           expect(nextSignal).toBe(signal);
           return expectedGraph;
@@ -86,7 +86,7 @@ describe('WorkspaceAnalyzer delegates', () => {
       );
 
     await expect(
-      analyzer.analyze(['**/*.generated.ts'], disabledRules, disabledPlugins, signal),
+      analyzer.analyze(['**/*.generated.ts'], disabledSources, disabledPlugins, signal),
     ).resolves.toEqual(expectedGraph);
     expect(runSpy).toHaveBeenCalledOnce();
   });
@@ -128,6 +128,8 @@ describe('WorkspaceAnalyzer delegates', () => {
             resolvedPath: '/test/workspace/src/utils.ts',
             specifier: './utils',
             type: 'static' as const,
+            sourceId: 'import',
+            kind: 'import' as const,
           },
         ],
       ],
@@ -167,7 +169,7 @@ describe('WorkspaceAnalyzer delegates', () => {
     const analyzer = new WorkspaceAnalyzer(
       createContext() as unknown as vscode.ExtensionContext,
     );
-    const disabledRules = new Set(['plugin.typescript:rule']);
+    const disabledSources = new Set(['plugin.typescript:rule']);
     const disabledPlugins = new Set(['plugin.python']);
     const expectedGraph = createGraph();
     const rebuildSpy = vi
@@ -175,7 +177,7 @@ describe('WorkspaceAnalyzer delegates', () => {
       .mockReturnValue(expectedGraph);
 
     expect(
-      analyzer.rebuildGraph(disabledRules, disabledPlugins, false),
+      analyzer.rebuildGraph(disabledSources, disabledPlugins, false),
     ).toEqual(expectedGraph);
     const [source, nextDisabledRules, nextDisabledPlugins, nextShowOrphans] =
       rebuildSpy.mock.calls[0];
@@ -183,7 +185,7 @@ describe('WorkspaceAnalyzer delegates', () => {
       (analyzer as unknown as { _lastFileConnections: unknown })._lastFileConnections,
     );
     expect(source._lastWorkspaceRoot).toBe('');
-    expect(nextDisabledRules).toBe(disabledRules);
+    expect(nextDisabledRules).toBe(disabledSources);
     expect(nextDisabledPlugins).toBe(disabledPlugins);
     expect(nextShowOrphans).toBe(false);
   });
@@ -198,7 +200,7 @@ describe('WorkspaceAnalyzer delegates', () => {
       _lastWorkspaceRoot: string;
       _registry: unknown;
     };
-    const disabledRules = new Set(['plugin.typescript:rule']);
+    const disabledSources = new Set(['plugin.typescript:rule']);
     const disabledPlugins = new Set(['plugin.python']);
     const expectedStatuses = [{ id: 'plugin.typescript', status: 'active' }];
 
@@ -211,11 +213,11 @@ describe('WorkspaceAnalyzer delegates', () => {
       .mockReturnValue(expectedStatuses as never);
 
     expect(
-      analyzer.getPluginStatuses(disabledRules, disabledPlugins),
+      analyzer.getPluginStatuses(disabledSources, disabledPlugins),
     ).toEqual(expectedStatuses);
     expect(statusSpy).toHaveBeenCalledWith({
       disabledPlugins,
-      disabledRules,
+      disabledSources,
       discoveredFiles: analyzerPrivate._lastDiscoveredFiles,
       fileConnections: analyzerPrivate._lastFileConnections,
       registry: analyzerPrivate._registry,

@@ -25,7 +25,7 @@ function createSource(
       getPluginStatuses: vi.fn(() => []),
     },
     _disabledPlugins: new Set<string>(),
-    _disabledRules: new Set<string>(),
+    _disabledSources: new Set<string>(),
     _groups: [],
     _view: undefined,
     _panels: [],
@@ -127,7 +127,7 @@ describe('graphView/provider/plugins', () => {
           payload: { views: [], activeViewId: 'codegraphy.connections' },
         }),
       ),
-      sendPluginStatuses: vi.fn((_analyzer, _disabledRules, _disabledPlugins, callback) =>
+      sendPluginStatuses: vi.fn((_analyzer, _disabledSources, _disabledPlugins, callback) =>
         callback({ type: 'PLUGINS_UPDATED', payload: { plugins: [] } }),
       ),
       sendDecorations: vi.fn((_manager, callback) =>

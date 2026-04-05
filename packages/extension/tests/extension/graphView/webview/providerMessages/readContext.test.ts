@@ -12,11 +12,11 @@ describe('graph view provider listener read context', () => {
       _userGroups: [{ id: 'user:src', pattern: 'src/**', color: '#112233' }],
       _activeViewId: 'codegraphy.depth-graph',
       _disabledPlugins: new Set(['plugin.disabled']),
-      _disabledRules: new Set(['rule.disabled']),
+      _disabledSources: new Set(['rule.disabled']),
       _filterPatterns: ['dist/**'],
       _graphData: {
         nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' }],
-        edges: [{ id: 'edge-1', from: 'src/app.ts', to: 'src/lib.ts' }],
+        edges: [{ id: 'edge-1', from: 'src/app.ts', to: 'src/lib.ts' , kind: 'import', sources: [] }],
       } satisfies IGraphData,
       _viewContext: { activePlugins: new Set(['plugin.enabled']) },
     };
@@ -36,7 +36,7 @@ describe('graph view provider listener read context', () => {
     expect(context.getUserGroups()).toEqual(source._userGroups);
     expect(context.getActiveViewId()).toBe('codegraphy.depth-graph');
     expect(context.getDisabledPlugins()).toBe(source._disabledPlugins);
-    expect(context.getDisabledRules()).toBe(source._disabledRules);
+    expect(context.getDisabledRules()).toBe(source._disabledSources);
     expect(context.getFilterPatterns()).toEqual(['dist/**']);
     expect(context.getGraphData()).toBe(source._graphData);
     expect(context.getViewContext()).toBe(source._viewContext);

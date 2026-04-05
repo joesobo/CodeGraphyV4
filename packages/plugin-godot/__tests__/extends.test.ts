@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GDScriptPathResolver } from '../src/PathResolver';
-import { detect as detectExtends } from '../src/rules/extends';
+import { detect as detectExtends } from '../src/sources/extends';
 import type { GDScriptRuleContext } from '../src/parser';
 
 describe('extends rule', () => {
@@ -24,8 +24,9 @@ describe('extends rule', () => {
 
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('res://scripts/base_character.gd');
+    expect(connections[0].kind).toBe('inherit');
     expect(connections[0].type).toBe('static');
-    expect(connections[0].ruleId).toBe('extends');
+    expect(connections[0].sourceId).toBe('extends');
   });
 
   it('should ignore extends with built-in class (no quotes)', () => {
@@ -59,11 +60,11 @@ describe('extends rule', () => {
     expect(connections[0].specifier).toBe('res://first.gd');
   });
 
-  it('should include ruleId as extends', () => {
+  it('should include sourceId as extends', () => {
     const content = 'extends "res://base.gd"';
     const connections = detectExtends(content, testFile, ctx);
 
-    expect(connections[0].ruleId).toBe('extends');
+    expect(connections[0].sourceId).toBe('extends');
   });
 
   it('should require extends at start of line', () => {

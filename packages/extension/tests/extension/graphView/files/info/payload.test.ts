@@ -9,9 +9,9 @@ describe('graphViewFileInfo', () => {
       {
         nodes: [],
         edges: [
-          { id: 'a', from: 'src/app.ts', to: 'src/lib.ts' },
-          { id: 'b', from: 'src/lib.ts', to: 'src/app.ts' },
-          { id: 'c', from: 'src/app.ts', to: 'src/util.ts' },
+          { id: 'a', from: 'src/app.ts', to: 'src/lib.ts' , kind: 'import', sources: [] },
+          { id: 'b', from: 'src/lib.ts', to: 'src/app.ts' , kind: 'import', sources: [] },
+          { id: 'c', from: 'src/app.ts', to: 'src/util.ts' , kind: 'import', sources: [] },
         ],
       },
       'TypeScript',
@@ -35,7 +35,7 @@ describe('graphViewFileInfo', () => {
       { size: 64, mtime: 7 },
       {
         nodes: [],
-        edges: [{ id: 'a', from: 'src/other.ts', to: 'src/lib.ts' }],
+        edges: [{ id: 'a', from: 'src/other.ts', to: 'src/lib.ts' , kind: 'import', sources: [] }],
       },
       undefined,
       0

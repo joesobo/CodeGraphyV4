@@ -16,7 +16,7 @@ describe('workspaceAnalyzer/plugins/queries', () => {
           version: '1.0.0',
           apiVersion: '^2.0.0',
           supportedExtensions: ['.ts'],
-          rules: [],
+          sources: [],
         },
       },
     ]);
@@ -24,7 +24,7 @@ describe('workspaceAnalyzer/plugins/queries', () => {
     expect(
       getWorkspaceAnalyzerPluginStatuses({
         disabledPlugins: new Set<string>(),
-        disabledRules: new Set<string>(),
+        disabledSources: new Set<string>(),
         discoveredFiles: [{ relativePath: 'src/index.ts' }] as never,
         fileConnections: new Map([['src/index.ts', []]]),
         registry: {

@@ -129,7 +129,7 @@ Floating bottom-right, same gear button entry point. Width: `w-72`. Four indepen
 
 ## Breaking Changes
 
-- `codegraphy.fileColors` setting removed — replaced by Groups. No migration path; users should recreate their color rules as Groups entries.
+- `codegraphy.fileColors` setting removed — replaced by Groups. No migration path; users should recreate their color sources as Groups entries.
 - `codegraphy.exclude` setting removed — consolidated into `codegraphy.filterPatterns`. The Filters section is now the single place for all file exclusions. Default exclusion patterns (node_modules, dist, etc.) are baked into `WorkspaceAnalyzer` as hardcoded defaults, not from config.
 
 ## Files Changed

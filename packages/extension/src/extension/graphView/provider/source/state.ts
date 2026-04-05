@@ -23,7 +23,7 @@ const MUTABLE_STATE_KEYS = [
   '_userGroups',
   '_hiddenPluginGroupIds',
   '_filterPatterns',
-  '_disabledRules',
+  '_disabledSources',
   '_disabledPlugins',
   '_gitAnalyzer',
   '_currentCommitSha',

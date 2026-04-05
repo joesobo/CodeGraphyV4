@@ -58,7 +58,7 @@ export interface GraphViewProviderMethodSourceOwner {
   _userGroups: IGroup[];
   _hiddenPluginGroupIds: Set<string>;
   _filterPatterns: string[];
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _gitAnalyzer?: GitHistoryAnalyzer;
   _currentCommitSha?: string;

@@ -1,6 +1,6 @@
 # Boundaries
 
-`boundaries` checks dependency-layer rules inside a package source graph.
+`boundaries` checks dependency-layer sources inside a package source graph.
 
 ## Quick start
 
@@ -21,7 +21,7 @@ Use `pnpm run reachability -- ...` when you want focused dead-surface and dead-e
 The command reads `quality.config.json`:
 
 - `defaults.boundaries.include` / `exclude` define the source file surface
-- `packages.<name>.boundaries.layers` define the layer rules for that package
+- `packages.<name>.boundaries.layers` define the layer sources for that package
 - `packages.<name>.boundaries.entrypoints` define files that may have no inbound edges
 
 ## Notes

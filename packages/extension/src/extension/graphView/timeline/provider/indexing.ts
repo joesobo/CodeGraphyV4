@@ -30,7 +30,7 @@ export interface GraphViewProviderTimelineSource {
   _timelineActive: boolean;
   _currentCommitSha: string | undefined;
   _disabledPlugins: Set<string>;
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
   _applyViewTransform?(): void;
@@ -54,7 +54,7 @@ export interface GraphViewProviderTimelineDependencies {
     rawGraphData: IGraphData,
     options: {
       disabledPlugins: Set<string>;
-      disabledRules: Set<string>;
+      disabledSources: Set<string>;
       showOrphans: boolean;
       workspaceRoot: string | undefined;
       registry: unknown;
@@ -158,7 +158,7 @@ export async function jumpGraphViewProviderToCommit(
     | '_gitAnalyzer'
     | '_currentCommitSha'
     | '_disabledPlugins'
-    | '_disabledRules'
+    | '_disabledSources'
     | '_rawGraphData'
     | '_graphData'
     | '_applyViewTransform'
@@ -183,7 +183,7 @@ export async function resetGraphViewProviderTimeline(
     | '_gitAnalyzer'
     | '_currentCommitSha'
     | '_disabledPlugins'
-    | '_disabledRules'
+    | '_disabledSources'
     | '_rawGraphData'
     | '_graphData'
     | '_applyViewTransform'
@@ -240,7 +240,7 @@ async function buildTimelineCommitGraphData(
     | '_analyzer'
     | '_gitAnalyzer'
     | '_disabledPlugins'
-    | '_disabledRules'
+    | '_disabledSources'
   >,
   sha: string,
   dependencies: Pick<
@@ -252,7 +252,7 @@ async function buildTimelineCommitGraphData(
 
   return dependencies.buildTimelineGraphData(rawGraphData, {
     disabledPlugins: source._disabledPlugins,
-    disabledRules: source._disabledRules,
+    disabledSources: source._disabledSources,
     showOrphans: dependencies.getShowOrphans(),
     workspaceRoot: dependencies.getWorkspaceFolder()?.uri.fsPath,
     registry: source._analyzer?.registry,

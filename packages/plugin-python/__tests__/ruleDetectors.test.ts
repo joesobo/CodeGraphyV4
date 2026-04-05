@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDetectedImport } from '../src/PathResolver';
 import type { PythonRuleContext } from '../src/context';
-import { detect as detectFromImportAbsolute } from '../src/rules/from-import-absolute';
-import { buildFromImportConnections } from '../src/rules/from-import-shared';
-import { detect as detectImportModule } from '../src/rules/import-module';
+import { detect as detectFromImportAbsolute } from '../src/sources/from-import-absolute';
+import { buildFromImportConnections } from '../src/sources/from-import-shared';
+import { detect as detectImportModule } from '../src/sources/import-module';
 
 function createContext(
   resolveImpl: (imp: IDetectedImport, fromFile: string) => string | null,
@@ -46,10 +46,11 @@ describe('python rule detectors', () => {
 
     expect(connections).toEqual([
       {
+        kind: 'import',
         specifier: 'from ..pkg import member',
         resolvedPath: '/workspace/pkg/member.py',
         type: 'static',
-        ruleId: 'from-import-relative',
+        sourceId: 'from-import-relative',
       },
     ]);
 
@@ -92,10 +93,11 @@ describe('python rule detectors', () => {
 
     expect(connections).toEqual([
       {
+        kind: 'import',
         specifier: 'from ..pkg import *',
         resolvedPath: '/workspace/pkg/__init__.py',
         type: 'static',
-        ruleId: 'from-import-relative',
+        sourceId: 'from-import-relative',
       },
     ]);
   });
@@ -123,10 +125,11 @@ describe('python rule detectors', () => {
 
     expect(connections).toEqual([
       {
+        kind: 'import',
         specifier: 'from pkg import mod',
         resolvedPath: '/workspace/pkg/mod.py',
         type: 'static',
-        ruleId: 'from-import-absolute',
+        sourceId: 'from-import-absolute',
       },
     ]);
   });
@@ -143,10 +146,11 @@ describe('python rule detectors', () => {
 
     expect(connections).toEqual([
       {
+        kind: 'import',
         specifier: 'pkg',
         resolvedPath: '/workspace/pkg.py',
         type: 'static',
-        ruleId: 'import-module',
+        sourceId: 'import-module',
       },
     ]);
   });

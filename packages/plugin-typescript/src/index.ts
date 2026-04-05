@@ -1,7 +1,7 @@
 /**
  * @fileoverview TypeScript/JavaScript plugin for CodeGraphy.
  * Thin orchestrator that loads metadata from codegraphy.json and delegates
- * detection to individual rule modules in rules/.
+ * detection to individual source modules in sources/.
  * @module plugins/typescript
  */
 
@@ -10,11 +10,11 @@ import { PathResolver } from './PathResolver';
 import { loadTsConfig } from './tsconfig';
 import manifest from '../codegraphy.json';
 
-// Rule detect functions
-import { detect as detectEs6Import } from './rules/es6-import';
-import { detect as detectReexport } from './rules/reexport';
-import { detect as detectDynamicImport } from './rules/dynamic-import';
-import { detect as detectCommonjsRequire } from './rules/commonjs-require';
+// Source detect functions
+import { detect as detectEs6Import } from './sources/es6-import';
+import { detect as detectReexport } from './sources/reexport';
+import { detect as detectDynamicImport } from './sources/dynamic-import';
+import { detect as detectCommonjsRequire } from './sources/commonjs-require';
 
 export { PathResolver } from './PathResolver';
 export type { IPathResolverConfig } from './PathResolver';
@@ -43,7 +43,7 @@ export function createTypeScriptPlugin(): IPlugin {
     apiVersion: manifest.apiVersion,
     supportedExtensions: manifest.supportedExtensions,
     defaultFilters: manifest.defaultFilters,
-    rules: manifest.rules,
+    sources: manifest.sources,
     fileColors: manifest.fileColors,
     async initialize(workspaceRoot: string): Promise<void> {
       const config = loadTsConfig(workspaceRoot);

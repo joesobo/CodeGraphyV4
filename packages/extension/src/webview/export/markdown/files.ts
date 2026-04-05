@@ -1,10 +1,10 @@
 import { UNATTRIBUTED_RULE_KEY, type ExportConnectionsSection, type ExportFile } from '../shared/contracts';
 
-type ExportRules = ExportConnectionsSection['rules'];
+type ExportRules = ExportConnectionsSection['sources'];
 
 export function renderMarkdownFiles(
   files: Record<string, ExportFile>,
-  rules: ExportRules,
+  sources: ExportRules,
 ): string[] {
   const lines: string[] = [];
 
@@ -29,7 +29,7 @@ export function renderMarkdownFiles(
         continue;
       }
 
-      lines.push(`  - *${resolveMarkdownRuleLabel(ruleKey, rules)}*`);
+      lines.push(`  - *${resolveMarkdownRuleLabel(ruleKey, sources)}*`);
       for (const target of targets) {
         lines.push(`    - ${target}`);
       }
@@ -41,11 +41,11 @@ export function renderMarkdownFiles(
 
 export function resolveMarkdownRuleLabel(
   ruleKey: string,
-  rules: ExportRules,
+  sources: ExportRules,
 ): string {
   if (ruleKey === UNATTRIBUTED_RULE_KEY) {
     return 'unattributed';
   }
 
-  return rules[ruleKey]?.name ?? ruleKey;
+  return sources[ruleKey]?.name ?? ruleKey;
 }

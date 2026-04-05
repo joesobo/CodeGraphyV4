@@ -7,7 +7,7 @@
  * @module @codegraphy-vscode/plugin-api/plugin
  */
 
-import type { IConnection, IRule } from './connection';
+import type { IConnection, IConnectionSource } from './connection';
 import type { IGraphData } from './graph';
 import type { CodeGraphyAPI } from './api';
 
@@ -67,11 +67,11 @@ export interface IPlugin {
   supportedExtensions: string[];
 
   /**
-   * Detection rules this plugin supports.
-   * Each rule describes a category of connections the plugin can detect.
-   * Used by the Plugins panel to let users toggle individual rule types.
+   * Connection sources this plugin supports.
+   * Each source describes a category of relations the plugin can emit.
+   * Used by the Plugins panel to let users toggle individual source types.
    */
-  rules?: IRule[];
+  sources?: IConnectionSource[];
 
   /**
    * Preferred colors for supported file extensions.
@@ -110,7 +110,7 @@ export interface IPlugin {
   // ---------------------------------------------------------------------------
 
   /**
-   * Detect connections (imports/dependencies) in a single file.
+   * Detect connections in a single file.
    *
    * @param filePath      - Absolute path to the file being analyzed
    * @param content       - The file's content as a string

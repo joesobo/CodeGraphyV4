@@ -1,11 +1,11 @@
 /**
- * @fileoverview Re-export detection rule.
- * Finds `export { x } from 'y'`, `export * from 'y'`, etc.
- * @module plugins/typescript/rules/reexport
+ * @fileoverview Dynamic import detection rule.
+ * Finds `import('module')` expressions anywhere in the AST.
+ * @module plugins/typescript/sources/dynamic-import
  */
 
 import * as ts from 'typescript';
-import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
+import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { TsRuleContext } from '../types';
 import { getScriptKind } from '../getScriptKind';
 
@@ -25,14 +25,19 @@ function detect(
   );
 
   const visit = (node: ts.Node): void => {
-    if (ts.isExportDeclaration(node) && node.moduleSpecifier) {
-      if (ts.isStringLiteral(node.moduleSpecifier)) {
-        const specifier = node.moduleSpecifier.text;
+    if (
+      ts.isCallExpression(node) &&
+      node.expression.kind === ts.SyntaxKind.ImportKeyword
+    ) {
+      const arg = node.arguments[0];
+      if (arg && ts.isStringLiteral(arg)) {
+        const specifier = arg.text;
         connections.push({
+          kind: 'import',
           specifier,
           resolvedPath: context.resolver.resolve(specifier, filePath),
-          type: 'reexport',
-          ruleId: 'reexport',
+          type: 'dynamic',
+          sourceId: 'dynamic-import',
         });
       }
     }
@@ -44,8 +49,8 @@ function detect(
   return connections;
 }
 
-const rule: IRuleDetector<TsRuleContext> = {
-  id: 'reexport',
+const rule: IConnectionDetector<TsRuleContext> = {
+  id: 'dynamic-import',
   detect,
 };
 

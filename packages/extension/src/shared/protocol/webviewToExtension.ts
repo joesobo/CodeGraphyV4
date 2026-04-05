@@ -47,7 +47,7 @@ export type WebviewToExtensionMessage =
     }
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
   | { type: 'PHYSICS_STABILIZED' }
-  | { type: 'TOGGLE_RULE'; payload: { qualifiedId: string; enabled: boolean } }
+  | { type: 'TOGGLE_SOURCE'; payload: { qualifiedSourceId: string; enabled: boolean } }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; enabled: boolean } }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
   | { type: 'INDEX_REPO' }

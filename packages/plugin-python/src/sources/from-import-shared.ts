@@ -7,7 +7,7 @@ export function buildFromImportConnections(
   filePath: string,
   entry: Extract<ParsedPythonImport, { kind: 'from' }>,
   ctx: PythonRuleContext,
-  ruleId: string
+  sourceId: string
 ): IConnection[] {
   const connections: IConnection[] = [];
 
@@ -26,10 +26,11 @@ export function buildFromImportConnections(
   for (const importedName of entry.names) {
     if (importedName === '*') {
       connections.push({
+        kind: 'import',
         specifier: `from ${moduleSpecifier} import *`,
         resolvedPath: ctx.resolver.resolve(baseImport, filePath),
         type: 'static',
-        ruleId,
+        sourceId,
       });
       continue;
     }
@@ -43,10 +44,11 @@ export function buildFromImportConnections(
     const resolvedPath = memberResolved ?? baseResolved;
 
     connections.push({
+      kind: 'import',
       specifier: `from ${moduleSpecifier} import ${importedName}`,
       resolvedPath,
       type: 'static',
-      ruleId,
+      sourceId,
     });
   }
 

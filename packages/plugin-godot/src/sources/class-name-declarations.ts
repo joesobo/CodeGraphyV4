@@ -1,7 +1,7 @@
 /**
  * @fileoverview Declaration-side regex matchers for class_name usage patterns.
  * Handles: extends, type annotations, return types.
- * @module plugins/godot/rules/class-name-declarations
+ * @module plugins/godot/sources/class-name-declarations
  */
 
 /** Match `extends ClassName` (unquoted, class_name-based inheritance) */

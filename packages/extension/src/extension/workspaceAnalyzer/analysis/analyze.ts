@@ -20,7 +20,7 @@ export interface WorkspaceAnalyzerAnalysisSource {
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledRules: Set<string>,
+    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
   _eventBus?: EventBus;
@@ -48,7 +48,7 @@ export async function analyzeWorkspaceWithAnalyzer(
   source: WorkspaceAnalyzerAnalysisSource,
   dependencies: WorkspaceAnalyzerAnalysisDependencies,
   filterPatterns: string[] = [],
-  disabledRules: Set<string> = new Set(),
+  disabledSources: Set<string> = new Set(),
   disabledPlugins: Set<string> = new Set(),
   signal?: AbortSignal,
 ): Promise<IGraphData> {
@@ -105,7 +105,7 @@ export async function analyzeWorkspaceWithAnalyzer(
     fileConnections,
     workspaceRoot,
     config.showOrphans,
-    disabledRules,
+    disabledSources,
     disabledPlugins,
   );
 

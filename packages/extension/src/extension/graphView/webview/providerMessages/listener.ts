@@ -70,7 +70,7 @@ export interface GraphViewProviderMessageListenerSource {
   _userGroups: IGroup[];
   _activeViewId: string;
   _disabledPlugins: Set<string>;
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _filterPatterns: string[];
   _graphData: IGraphData;
   _viewContext: IViewContext;

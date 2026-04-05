@@ -1,11 +1,11 @@
 /**
  * @fileoverview ES6 static import detection rule.
  * Finds `import x from 'y'`, `import { a } from 'y'`, etc.
- * @module plugins/typescript/rules/es6-import
+ * @module plugins/typescript/sources/es6-import
  */
 
 import * as ts from 'typescript';
-import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
+import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { TsRuleContext } from '../types';
 import { getScriptKind } from '../getScriptKind';
 
@@ -29,10 +29,11 @@ function detect(
       if (ts.isStringLiteral(node.moduleSpecifier)) {
         const specifier = node.moduleSpecifier.text;
         connections.push({
+          kind: 'import',
           specifier,
           resolvedPath: context.resolver.resolve(specifier, filePath),
           type: 'static',
-          ruleId: 'es6-import',
+          sourceId: 'es6-import',
         });
       }
     }
@@ -44,7 +45,7 @@ function detect(
   return connections;
 }
 
-const rule: IRuleDetector<TsRuleContext> = {
+const rule: IConnectionDetector<TsRuleContext> = {
   id: 'es6-import',
   detect,
 };

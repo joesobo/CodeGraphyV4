@@ -107,7 +107,7 @@ export function createGraphViewPrimarySettingsMessageState(
   return {
     activeViewId: context.getActiveViewId(),
     disabledPlugins: context.getDisabledPlugins(),
-    disabledRules: context.getDisabledRules(),
+    disabledSources: context.getDisabledRules(),
     filterPatterns: context.getFilterPatterns(),
     graphData: context.getGraphData(),
     viewContext: context.getViewContext(),

@@ -57,7 +57,7 @@
     "mypy.ini": "#4B8BBE",
     ".pre-commit-config.yaml": "#FAB040"
   },
-  "rules": [
+  "sources": [
     { "id": "import-module", "name": "Import Module", "description": "import module statements" },
     { "id": "from-import-absolute", "name": "From Import (Absolute)", "description": "from package import name" },
     { "id": "from-import-relative", "name": "From Import (Relative)", "description": "from .package import name" }

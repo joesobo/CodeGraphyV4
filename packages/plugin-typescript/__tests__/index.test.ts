@@ -42,10 +42,10 @@ describe('createTypeScriptPlugin manifest', () => {
     expect(plugin.supportedExtensions).toContain('.jsx');
   });
 
-  it('should expose rules from manifest', () => {
+  it('should expose sources from manifest', () => {
     const plugin = createTypeScriptPlugin();
-    expect(plugin.rules).toBeDefined();
-    expect(plugin.rules!.length).toBe(4);
+    expect(plugin.sources).toBeDefined();
+    expect(plugin.sources!.length).toBe(4);
   });
 
   it('should expose fileColors from manifest', () => {
@@ -176,7 +176,7 @@ describe('createTypeScriptPlugin lifecycle', () => {
   });
 });
 
-describe('rule identification', () => {
+describe('source identification', () => {
   const plugin = createTypeScriptPlugin();
   const workspaceRoot = TS_EXAMPLE_ROOT;
 
@@ -184,43 +184,47 @@ describe('rule identification', () => {
     await plugin.initialize?.(workspaceRoot);
   });
 
-  it('sets es6-import ruleId for static imports', async () => {
+  it('sets es6-import sourceId for static imports', async () => {
     const content = `import { foo } from './bar';`;
     const connections = await plugin.detectConnections(
       path.join(workspaceRoot, 'test.ts'), content, workspaceRoot
     );
     expect(connections.length).toBeGreaterThan(0);
-    expect(connections[0].ruleId).toBe('es6-import');
+    expect(connections[0].kind).toBe('import');
+    expect(connections[0].sourceId).toBe('es6-import');
   });
 
-  it('sets dynamic-import ruleId for dynamic imports', async () => {
+  it('sets dynamic-import sourceId for dynamic imports', async () => {
     const content = `const mod = import('./bar');`;
     const connections = await plugin.detectConnections(
       path.join(workspaceRoot, 'test.ts'), content, workspaceRoot
     );
     expect(connections.length).toBeGreaterThan(0);
-    expect(connections[0].ruleId).toBe('dynamic-import');
+    expect(connections[0].kind).toBe('import');
+    expect(connections[0].sourceId).toBe('dynamic-import');
   });
 
-  it('sets commonjs-require ruleId for require calls', async () => {
+  it('sets commonjs-require sourceId for require calls', async () => {
     const content = `const foo = require('./bar');`;
     const connections = await plugin.detectConnections(
       path.join(workspaceRoot, 'test.ts'), content, workspaceRoot
     );
     expect(connections.length).toBeGreaterThan(0);
-    expect(connections[0].ruleId).toBe('commonjs-require');
+    expect(connections[0].kind).toBe('import');
+    expect(connections[0].sourceId).toBe('commonjs-require');
   });
 
-  it('sets reexport ruleId for re-exports', async () => {
+  it('sets reexport sourceId for re-exports', async () => {
     const content = `export { foo } from './bar';`;
     const connections = await plugin.detectConnections(
       path.join(workspaceRoot, 'test.ts'), content, workspaceRoot
     );
     expect(connections.length).toBeGreaterThan(0);
-    expect(connections[0].ruleId).toBe('reexport');
+    expect(connections[0].kind).toBe('reexport');
+    expect(connections[0].sourceId).toBe('reexport');
   });
 
-  it('every connection has a ruleId set', async () => {
+  it('every connection has sourceId and kind set', async () => {
     const content = `
       import { a } from './a';
       const b = require('./b');
@@ -231,8 +235,10 @@ describe('rule identification', () => {
       path.join(workspaceRoot, 'test.ts'), content, workspaceRoot
     );
     for (const conn of connections) {
-      expect(conn.ruleId).toBeDefined();
-      expect(typeof conn.ruleId).toBe('string');
+      expect(conn.sourceId).toBeDefined();
+      expect(typeof conn.sourceId).toBe('string');
+      expect(conn.kind).toBeDefined();
+      expect(typeof conn.kind).toBe('string');
     }
   });
 });

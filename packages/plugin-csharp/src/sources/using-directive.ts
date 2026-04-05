@@ -1,10 +1,10 @@
 /**
  * @fileoverview Using directive detection rule.
  * Finds `using System;`, `using static System.Math;`, `global using X;`, `using Alias = X;`.
- * @module plugins/csharp/rules/using-directive
+ * @module plugins/csharp/sources/using-directive
  */
 
-import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
+import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { CSharpRuleContext } from '../parser';
 
 /** Detects using directive connections: using System; using static X; global using X; */
@@ -22,10 +22,11 @@ export function detect(_content: string, filePath: string, ctx: CSharpRuleContex
       else specifier = `using ${specifier}`;
 
       connections.push({
+        kind: 'import',
         specifier,
         resolvedPath,
         type: 'static',
-        ruleId: 'using-directive',
+        sourceId: 'using-directive',
       });
     }
   }
@@ -33,5 +34,5 @@ export function detect(_content: string, filePath: string, ctx: CSharpRuleContex
   return connections;
 }
 
-const rule: IRuleDetector<CSharpRuleContext> = { id: 'using-directive', detect };
+const rule: IConnectionDetector<CSharpRuleContext> = { id: 'using-directive', detect };
 export default rule;

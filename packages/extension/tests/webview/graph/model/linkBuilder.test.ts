@@ -5,8 +5,8 @@ describe('graph/model/link/build', () => {
   it('marks combined reverse edges as bidirectional links', () => {
     const links = buildGraphLinks(
       [
-        { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
-        { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
+        { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+        { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
       ],
       'combined'
     );
@@ -25,8 +25,8 @@ describe('graph/model/link/build', () => {
   it('computes curvature for overlapping non-bidirectional links', () => {
     const links = buildGraphLinks(
       [
-        { id: 'edge-1', from: 'a.ts', to: 'b.ts' },
-        { id: 'edge-2', from: 'a.ts', to: 'b.ts' },
+        { id: 'edge-1', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+        { id: 'edge-2', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
       ],
       'separate'
     );

@@ -1,6 +1,6 @@
 import { renderMarkdownGroupsSection, renderMarkdownUngroupedSection } from './groups';
 import { renderMarkdownImagesSection } from './images';
-import { renderMarkdownRulesSection } from './rules';
+import { renderMarkdownRulesSection } from './sources';
 import type { ExportData } from '../shared/contracts';
 
 export function renderMarkdownExport(data: ExportData): string {
@@ -18,13 +18,13 @@ export function renderMarkdownExport(data: ExportData): string {
 
   lines.push('', '## Connections', '');
 
-  lines.push(...renderMarkdownRulesSection(data.sections.connections.rules));
+  lines.push(...renderMarkdownRulesSection(data.sections.connections.sources));
   lines.push('### Groups', '');
   lines.push(
-    ...renderMarkdownGroupsSection(data.sections.connections.groups, data.sections.connections.rules),
+    ...renderMarkdownGroupsSection(data.sections.connections.groups, data.sections.connections.sources),
   );
   lines.push(
-    ...renderMarkdownUngroupedSection(data.sections.connections.ungrouped, data.sections.connections.rules),
+    ...renderMarkdownUngroupedSection(data.sections.connections.ungrouped, data.sections.connections.sources),
   );
 
   lines.push('## Images', '');

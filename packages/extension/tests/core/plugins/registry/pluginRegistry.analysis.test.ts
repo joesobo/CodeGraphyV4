@@ -6,7 +6,7 @@ describe('PluginRegistry analysis', () => {
   it('calls detectConnections on the appropriate plugin', async () => {
     const registry = createConfiguredRegistry();
     const connections: IConnection[] = [
-      { specifier: './utils', resolvedPath: '/src/utils.ts', type: 'static' },
+      { specifier: './utils', resolvedPath: '/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' },
     ];
     const plugin = createMockPlugin({
       supportedExtensions: ['.ts'],

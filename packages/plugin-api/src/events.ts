@@ -194,8 +194,8 @@ export interface PluginDisabledPayload {
   pluginId: string;
 }
 
-export interface PluginRuleToggledPayload {
-  qualifiedId: string;
+export interface PluginSourceToggledPayload {
+  qualifiedSourceId: string;
   enabled: boolean;
 }
 
@@ -278,7 +278,7 @@ export interface EventPayloads {
   'plugin:unregistered': PluginUnregisteredPayload;
   'plugin:enabled': PluginEnabledPayload;
   'plugin:disabled': PluginDisabledPayload;
-  'plugin:ruleToggled': PluginRuleToggledPayload;
+  'plugin:sourceToggled': PluginSourceToggledPayload;
   'plugin:message': PluginMessagePayload;
 
   // Timeline (4)

@@ -15,11 +15,23 @@
 // Disposable
 export type { Disposable } from './disposable';
 
-// Connection / Rule
-export type { IConnection, IRule, IRuleDetector } from './connection';
+// Connection / Source
+export type { IConnection, IConnectionSource, IConnectionDetector } from './connection';
 
 // Graph data
-export type { IGraphNode, IGraphEdge, IGraphData } from './graph';
+export type {
+  CoreEdgeKind,
+  GraphEdgeKind,
+  GraphMetadata,
+  GraphMetadataValue,
+  GraphNodeShape2D,
+  GraphNodeShape3D,
+  IGraphNode,
+  IGraphEdge,
+  IGraphEdgeSource,
+  IGraphData,
+  NodeType,
+} from './graph';
 
 // Decorations
 export type { NodeDecoration, EdgeDecoration, TooltipSection } from './decorations';
@@ -65,7 +77,7 @@ export type {
   PluginUnregisteredPayload,
   PluginEnabledPayload,
   PluginDisabledPayload,
-  PluginRuleToggledPayload,
+  PluginSourceToggledPayload,
   PluginMessagePayload,
   // Timeline
   TimelineCommitSelectedPayload,

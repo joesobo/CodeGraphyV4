@@ -57,7 +57,7 @@ describe('graph/model/node/build', () => {
         { id: 'anchor.ts', label: 'anchor.ts', color: '#93C5FD' },
         { id: 'new.ts', label: 'new.ts', color: '#67E8F9' },
       ],
-      edges: [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' }],
+      edges: [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
       nodeSizes: new Map([
         ['anchor.ts', 16],
         ['new.ts', 16],

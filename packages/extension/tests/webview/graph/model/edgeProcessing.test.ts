@@ -6,8 +6,8 @@ describe('graph/model/edgeProcessing', () => {
     expect(
       processEdges(
         [
-          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
-          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
+          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
+          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
         ],
         'combined'
       )
@@ -20,8 +20,8 @@ describe('graph/model/edgeProcessing', () => {
     expect(
       processEdges(
         [
-          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
-          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
+          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
         ],
         'separate'
       )
@@ -35,10 +35,10 @@ describe('graph/model/edgeProcessing', () => {
     expect(
       processEdges(
         [
-          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
-          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
-          { id: 'b.ts->a.ts#2', from: 'b.ts', to: 'a.ts' },
-          { id: 'b.ts->c.ts', from: 'b.ts', to: 'c.ts' },
+          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->a.ts#2', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->c.ts', from: 'b.ts', to: 'c.ts' , kind: 'import', sources: [] },
         ],
         'combined'
       )

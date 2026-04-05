@@ -29,7 +29,7 @@ export interface GraphViewProviderPluginMethodsSource {
   _pluginExtensionUris: Map<string, vscode.Uri>;
   _analyzer?: GraphViewPluginAnalyzerLike;
   _disabledPlugins: Set<string>;
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _groups: IGroup[];
   _view?: vscode.WebviewView;
   _timelineView?: vscode.WebviewView;
@@ -107,7 +107,7 @@ export function createGraphViewProviderPluginMethods(
   const _sendPluginStatuses = (): void => {
     dependencies.sendPluginStatuses(
       source._analyzer,
-      source._disabledRules,
+      source._disabledSources,
       source._disabledPlugins,
       message => source._sendMessage(message as ExtensionToWebviewMessage),
     );

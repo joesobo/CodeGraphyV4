@@ -25,9 +25,9 @@ export function registerOverlay(
   fn: OverlayRenderFn,
   overlays: Map<string, { pluginId: string; fn: OverlayRenderFn }>,
 ): WebviewDisposable {
-  const qualifiedId = `${pluginId}:${id}`;
-  overlays.set(qualifiedId, { pluginId, fn });
-  return { dispose: () => overlays.delete(qualifiedId) };
+  const qualifiedSourceId = `${pluginId}:${id}`;
+  overlays.set(qualifiedSourceId, { pluginId, fn });
+  return { dispose: () => overlays.delete(qualifiedSourceId) };
 }
 
 export function registerTooltipProvider(

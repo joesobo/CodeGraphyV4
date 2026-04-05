@@ -3,12 +3,12 @@ import type { IPluginStatus } from '../../../shared/plugins/status';
 
 interface GraphViewAnalyzerLike {
   rebuildGraph(
-    disabledRules: Set<string>,
+    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
     showOrphans: boolean,
   ): IGraphData;
   getPluginStatuses(
-    disabledRules: Set<string>,
+    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): readonly IPluginStatus[];
   registry: {
@@ -18,7 +18,7 @@ interface GraphViewAnalyzerLike {
 
 interface GraphViewRebuildState {
   _analyzer: GraphViewAnalyzerLike | undefined;
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
@@ -55,7 +55,7 @@ export function rebuildGraphViewData(
   if (!state._analyzer) return;
 
   state._rawGraphData = state._analyzer.rebuildGraph(
-    state._disabledRules,
+    state._disabledSources,
     state._disabledPlugins,
     getShowOrphans(),
   );
@@ -69,7 +69,7 @@ export function rebuildGraphViewData(
 }
 
 export function smartRebuildGraphView(
-  state: Pick<GraphViewRebuildState, '_analyzer' | '_disabledRules' | '_disabledPlugins'>,
+  state: Pick<GraphViewRebuildState, '_analyzer' | '_disabledSources' | '_disabledPlugins'>,
   kind: 'rule' | 'plugin',
   id: string,
   {
@@ -81,7 +81,7 @@ export function smartRebuildGraphView(
   if (!state._analyzer) return;
 
   const statuses = state._analyzer.getPluginStatuses(
-    state._disabledRules,
+    state._disabledSources,
     state._disabledPlugins,
   );
   if (shouldRebuild(statuses, kind, id)) {

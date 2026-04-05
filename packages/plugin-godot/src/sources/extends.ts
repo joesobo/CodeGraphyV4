@@ -1,35 +1,34 @@
 /**
- * @fileoverview Preload detection rule for GDScript.
- * Finds `preload("res://path/to/file.gd")` calls.
- * @module plugins/godot/rules/preload
+ * @fileoverview Extends detection rule for GDScript.
+ * Finds `extends "res://scripts/base.gd"` statements with file paths.
+ * @module plugins/godot/sources/extends
  */
 
 import * as path from 'path';
-import type { IConnection, IRuleDetector } from '@codegraphy-vscode/plugin-api';
+import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { isResPath, normalizePath } from '../parser';
 
-/** Detects preload() calls: preload("res://path/to/file.gd") */
+/** Detects extends statements with file paths: extends "res://scripts/base.gd" */
 export function detect(content: string, _filePath: string, ctx: GDScriptRuleContext): IConnection[] {
   const connections: IConnection[] = [];
   const lines = content.split('\n');
-  const regex = /preload\s*\(\s*["']([^"']+)["']\s*\)/g;
 
   for (let i = 0; i < lines.length; i++) {
     const lineWithoutComment = lines[i].split('#')[0];
     if (!lineWithoutComment.trim()) continue;
 
-    regex.lastIndex = 0;
-    let match;
-    while ((match = regex.exec(lineWithoutComment)) !== null) {
+    const match = lineWithoutComment.trim().match(/^extends\s+["']([^"']+)["']/);
+    if (match) {
       const resPath = match[1];
       if (isResPath(resPath)) {
         const resolved = ctx.resolver.resolve(resPath, ctx.relativeFilePath);
         connections.push({
+          kind: 'inherit',
           specifier: resPath,
           resolvedPath: resolved ? normalizePath(path.join(ctx.workspaceRoot, resolved)) : null,
           type: 'static',
-          ruleId: 'preload',
+          sourceId: 'extends',
         });
       }
     }
@@ -38,5 +37,5 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
   return connections;
 }
 
-const rule: IRuleDetector<GDScriptRuleContext> = { id: 'preload', detect };
+const rule: IConnectionDetector<GDScriptRuleContext> = { id: 'extends', detect };
 export default rule;

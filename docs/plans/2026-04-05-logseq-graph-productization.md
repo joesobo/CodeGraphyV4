@@ -31,8 +31,8 @@ Bring over the useful product ideas from Logseq without copying its whole stack.
 - Users can disable plugin relations via plugin popup and per-rule toggles
 - `node-details` + `selection-panel` collapse into one inspector surface
 - Semantic relations merge into the base graph cache
-- Cache full graph data, then filter disabled plugin rules at runtime
-- Fully convert edge meaning to explicit `kind`; do not keep `ruleId/ruleIds` as the meaning field
+- Cache full graph data, then filter disabled plugin sources at runtime
+- Fully convert edge meaning to explicit `kind`; do not keep `sourceId/sourceIds` as the meaning field
 - Relation identity should include plugin provenance, e.g. `pluginId:kind:source->target[:variant]`
 - `variant` stays optional as an escape hatch when `pluginId:kind:source->target` is not unique enough
 - Merge same-direction same-kind edges between the same two nodes; keep multiple contributing sources on the merged edge
@@ -101,7 +101,7 @@ Bring over the useful product ideas from Logseq without copying its whole stack.
   - `id`, `from`, `to`, `kind`, `sources[]`?
 - Exact provenance/toggle shape:
   - one `source` object per contributing plugin rule?
-  - fields like `pluginId`, `ruleId`, `label`, `enabledByDefault`?
+  - fields like `pluginId`, `sourceId`, `label`, `enabledByDefault`?
 - Where should the `graphology` index live first:
   - analyzer-side cache
   - shared graph service

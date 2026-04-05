@@ -22,8 +22,8 @@ describe('classifyConfigChange', () => {
   });
 
   describe('toggles category', () => {
-    it('returns toggles when codegraphy.disabledRules is affected', () => {
-      const event = makeEvent('codegraphy.disabledRules');
+    it('returns toggles when codegraphy.disabledSources is affected', () => {
+      const event = makeEvent('codegraphy.disabledSources');
       expect(classifyConfigChange(event)).toBe('toggles');
     });
 
@@ -33,7 +33,7 @@ describe('classifyConfigChange', () => {
     });
 
     it('returns toggles when both disabled settings are affected', () => {
-      const event = makeEvent('codegraphy.disabledRules', 'codegraphy.disabledPlugins');
+      const event = makeEvent('codegraphy.disabledSources', 'codegraphy.disabledPlugins');
       expect(classifyConfigChange(event)).toBe('toggles');
     });
   });
@@ -108,12 +108,12 @@ describe('classifyConfigChange', () => {
 
   describe('priority ordering', () => {
     it('physics takes priority over toggles', () => {
-      const event = makeEvent('codegraphy.physics', 'codegraphy.disabledRules');
+      const event = makeEvent('codegraphy.physics', 'codegraphy.disabledSources');
       expect(classifyConfigChange(event)).toBe('physics');
     });
 
     it('toggles takes priority over display', () => {
-      const event = makeEvent('codegraphy.disabledRules', 'codegraphy.showLabels');
+      const event = makeEvent('codegraphy.disabledSources', 'codegraphy.showLabels');
       expect(classifyConfigChange(event)).toBe('toggles');
     });
 

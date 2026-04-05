@@ -16,8 +16,8 @@ import type {
   EventName,
   EventPayloads,
   IConnection,
-  IRule,
-  IRuleDetector,
+  IConnectionSource,
+  IConnectionDetector,
   IGraphNode,
   IGraphEdge,
   IGraphData,
@@ -78,14 +78,14 @@ Main groups:
 
 ### Connections (`connection.ts`)
 
-- `IRule`
-- `IRuleDetector<TContext>`
+- `IConnectionSource`
+- `IConnectionDetector<TContext>`
 - `IConnection` with `type: 'static' | 'dynamic' | 'require' | 'reexport'`
 
 ### Graph (`graph.ts`)
 
 - `IGraphNode` (id/label/color + optional position/favorite/size/access/depth fields)
-- `IGraphEdge` (`id`, `from`, `to`, optional `ruleId`)
+- `IGraphEdge` (`id`, `from`, `to`, optional `sourceId`)
 - `IGraphData` (`nodes`, `edges`)
 
 ### Decorations (`decorations.ts`)

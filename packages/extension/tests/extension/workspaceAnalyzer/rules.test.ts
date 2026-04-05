@@ -4,6 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
+import type { IConnection } from '../../../src/core/plugins/types/contracts';
 import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer/service';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src';
 import { createPythonPlugin } from '../../../../plugin-python/src';
@@ -20,7 +21,7 @@ Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   size: 100,
 });
 
-describe('WorkspaceAnalyzer rules', () => {
+describe('WorkspaceAnalyzer sources', () => {
   let analyzer: WorkspaceAnalyzer;
   let mockContext: {
     subscriptions: { dispose: () => void }[];
@@ -97,47 +98,46 @@ describe('WorkspaceAnalyzer rules', () => {
       expect(pyStatus!.enabled).toBe(true);
     });
 
-    it('includes rule statuses for each plugin', async () => {
+    it('includes source statuses for each plugin', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
       const statuses = analyzer.getPluginStatuses(new Set(), new Set());
 
       const tsStatus = statuses.find(s => s.id === 'codegraphy.typescript');
       expect(tsStatus).toBeDefined();
-      expect(tsStatus!.rules.length).toBe(4);
+      expect(tsStatus!.sources.length).toBe(4);
 
-      const ruleIds = tsStatus!.rules.map(r => r.id);
-      expect(ruleIds).toContain('es6-import');
-      expect(ruleIds).toContain('reexport');
-      expect(ruleIds).toContain('dynamic-import');
-      expect(ruleIds).toContain('commonjs-require');
+      const sourceIds = tsStatus!.sources.map((source) => source.id);
+      expect(sourceIds).toContain('es6-import');
+      expect(sourceIds).toContain('reexport');
+      expect(sourceIds).toContain('dynamic-import');
+      expect(sourceIds).toContain('commonjs-require');
     });
 
-    it('marks rules as disabled via qualified IDs', async () => {
+    it('marks sources as disabled via qualified IDs', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
-      const disabledRules = new Set(['codegraphy.typescript:dynamic-import']);
-      const statuses = analyzer.getPluginStatuses(disabledRules, new Set());
+      const disabledSources = new Set(['codegraphy.typescript:dynamic-import']);
+      const statuses = analyzer.getPluginStatuses(disabledSources, new Set());
 
       const tsStatus = statuses.find(s => s.id === 'codegraphy.typescript');
-      const dynamicRule = tsStatus!.rules.find(r => r.id === 'dynamic-import');
-      expect(dynamicRule).toBeDefined();
-      expect(dynamicRule!.enabled).toBe(false);
+      const dynamicSource = tsStatus!.sources.find((source) => source.id === 'dynamic-import');
+      expect(dynamicSource).toBeDefined();
+      expect(dynamicSource!.enabled).toBe(false);
 
-      // Other rules should still be enabled
-      const es6Rule = tsStatus!.rules.find(r => r.id === 'es6-import');
-      expect(es6Rule).toBeDefined();
-      expect(es6Rule!.enabled).toBe(true);
+      const es6Source = tsStatus!.sources.find((source) => source.id === 'es6-import');
+      expect(es6Source).toBeDefined();
+      expect(es6Source!.enabled).toBe(true);
     });
 
-    it('rule statuses include qualifiedId in the format pluginId:ruleId', async () => {
+    it('source statuses include qualifiedSourceId in the format pluginId:sourceId', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
       const statuses = analyzer.getPluginStatuses(new Set(), new Set());
 
       const tsStatus = statuses.find(s => s.id === 'codegraphy.typescript');
-      for (const rule of tsStatus!.rules) {
-        expect(rule.qualifiedId).toBe(`codegraphy.typescript:${rule.id}`);
+      for (const source of tsStatus!.sources) {
+        expect(source.qualifiedSourceId).toBe(`codegraphy.typescript:${source.id}`);
       }
     });
 
@@ -160,17 +160,17 @@ describe('WorkspaceAnalyzer rules', () => {
      * populating the analyzer's internal state.
      */
 
-    it('filters out connections from disabled rules', async () => {
+    it('filters out connections from disabled sources', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
       // Manually populate internal state to simulate a prior analysis.
       // We use the internal fields directly to set up the scenario.
-      const fileConnections = new Map<string, { specifier: string; resolvedPath: string | null; type: 'static' | 'dynamic' | 'require' | 'reexport'; ruleId?: string }[]>();
+      const fileConnections = new Map<string, IConnection[]>();
 
       fileConnections.set('src/index.ts', [
-        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' },
-        { specifier: './lazy', resolvedPath: '/test/workspace/src/lazy.ts', type: 'dynamic', ruleId: 'dynamic-import' },
+        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
+        { specifier: './lazy', resolvedPath: '/test/workspace/src/lazy.ts', type: 'dynamic', sourceId: 'dynamic-import' , kind: 'import' },
       ]);
       fileConnections.set('src/utils.ts', []);
       fileConnections.set('src/lazy.ts', []);
@@ -186,13 +186,13 @@ describe('WorkspaceAnalyzer rules', () => {
         { absolutePath: '/test/workspace/src/lazy.ts', relativePath: 'src/lazy.ts' },
       ];
 
-      // No disabled rules: should have 2 edges
+      // No disabled sources: should have 2 edges
       const fullResult = analyzer.rebuildGraph(new Set(), new Set(), true);
       expect(fullResult.edges.length).toBe(2);
 
-      // Disable dynamic-import rule: should filter out the dynamic import edge
-      const disabledRules = new Set(['codegraphy.typescript:dynamic-import']);
-      const filteredResult = analyzer.rebuildGraph(disabledRules, new Set(), true);
+      // Disable dynamic-import source: should filter out the dynamic import edge
+      const disabledSources = new Set(['codegraphy.typescript:dynamic-import']);
+      const filteredResult = analyzer.rebuildGraph(disabledSources, new Set(), true);
       expect(filteredResult.edges.length).toBe(1);
       expect(filteredResult.edges[0].from).toBe('src/index.ts');
       expect(filteredResult.edges[0].to).toBe('src/utils.ts');
@@ -202,14 +202,14 @@ describe('WorkspaceAnalyzer rules', () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
-      const fileConnections = new Map<string, { specifier: string; resolvedPath: string | null; type: 'static' | 'dynamic' | 'require' | 'reexport'; ruleId?: string }[]>();
+      const fileConnections = new Map<string, IConnection[]>();
 
       fileConnections.set('src/index.ts', [
-        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' },
+        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
       ]);
       fileConnections.set('src/utils.ts', []);
       fileConnections.set('main.py', [
-        { specifier: 'config', resolvedPath: '/test/workspace/config.py', type: 'static', ruleId: 'import-module' },
+        { specifier: 'config', resolvedPath: '/test/workspace/config.py', type: 'static', sourceId: 'import-module' , kind: 'import' },
       ]);
       fileConnections.set('config.py', []);
 
@@ -236,20 +236,20 @@ describe('WorkspaceAnalyzer rules', () => {
       expect(filteredResult.edges[0].to).toBe('config.py');
     });
 
-    it('respects both disabled rules and disabled plugins simultaneously', async () => {
+    it('respects both disabled sources and disabled plugins simultaneously', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
-      const fileConnections = new Map<string, { specifier: string; resolvedPath: string | null; type: 'static' | 'dynamic' | 'require' | 'reexport'; ruleId?: string }[]>();
+      const fileConnections = new Map<string, IConnection[]>();
 
       fileConnections.set('src/index.ts', [
-        { specifier: './a', resolvedPath: '/test/workspace/src/a.ts', type: 'static', ruleId: 'es6-import' },
-        { specifier: './b', resolvedPath: '/test/workspace/src/b.ts', type: 'dynamic', ruleId: 'dynamic-import' },
+        { specifier: './a', resolvedPath: '/test/workspace/src/a.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
+        { specifier: './b', resolvedPath: '/test/workspace/src/b.ts', type: 'dynamic', sourceId: 'dynamic-import' , kind: 'import' },
       ]);
       fileConnections.set('src/a.ts', []);
       fileConnections.set('src/b.ts', []);
       fileConnections.set('main.py', [
-        { specifier: 'config', resolvedPath: '/test/workspace/config.py', type: 'static', ruleId: 'import-module' },
+        { specifier: 'config', resolvedPath: '/test/workspace/config.py', type: 'static', sourceId: 'import-module' , kind: 'import' },
       ]);
       fileConnections.set('config.py', []);
 
@@ -265,10 +265,10 @@ describe('WorkspaceAnalyzer rules', () => {
         { absolutePath: '/test/workspace/config.py', relativePath: 'config.py' },
       ];
 
-      // Disable Python plugin AND TypeScript dynamic-import rule
-      const disabledRules = new Set(['codegraphy.typescript:dynamic-import']);
+      // Disable Python plugin AND TypeScript dynamic-import source
+      const disabledSources = new Set(['codegraphy.typescript:dynamic-import']);
       const disabledPlugins = new Set(['codegraphy.python']);
-      const result = analyzer.rebuildGraph(disabledRules, disabledPlugins, true);
+      const result = analyzer.rebuildGraph(disabledSources, disabledPlugins, true);
 
       // Only the es6-import edge from TS should remain
       expect(result.edges.length).toBe(1);
@@ -276,16 +276,16 @@ describe('WorkspaceAnalyzer rules', () => {
       expect(result.edges[0].to).toBe('src/a.ts');
     });
 
-    it('collects multiple ruleIds when different rules detect the same edge', async () => {
+    it('collects multiple sources when different sources detect the same edge', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
-      const fileConnections = new Map<string, { specifier: string; resolvedPath: string | null; type: 'static' | 'dynamic' | 'require' | 'reexport'; ruleId?: string }[]>();
+      const fileConnections = new Map<string, IConnection[]>();
 
-      // Two different rules detect connections to the same target
+      // Two different sources detect connections to the same target
       fileConnections.set('src/index.ts', [
-        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' },
-        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'reexport', ruleId: 'reexport' },
+        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
+        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'reexport', sourceId: 'reexport' , kind: 'import' },
       ]);
       fileConnections.set('src/utils.ts', []);
 
@@ -305,10 +305,19 @@ describe('WorkspaceAnalyzer rules', () => {
       expect(result.edges[0].from).toBe('src/index.ts');
       expect(result.edges[0].to).toBe('src/utils.ts');
 
-      // Both rules should be recorded
-      expect(result.edges[0].ruleIds).toEqual([
-        'codegraphy.typescript:es6-import',
-        'codegraphy.typescript:reexport',
+      expect(result.edges[0].sources).toEqual([
+        {
+          id: 'codegraphy.typescript:es6-import',
+          pluginId: 'codegraphy.typescript',
+          sourceId: 'es6-import',
+          label: 'ES6 Imports',
+        },
+        {
+          id: 'codegraphy.typescript:reexport',
+          pluginId: 'codegraphy.typescript',
+          sourceId: 'reexport',
+          label: 'Re-exports',
+        },
       ]);
     });
 
@@ -316,10 +325,10 @@ describe('WorkspaceAnalyzer rules', () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
-      const fileConnections = new Map<string, { specifier: string; resolvedPath: string | null; type: 'static' | 'dynamic' | 'require' | 'reexport'; ruleId?: string }[]>();
+      const fileConnections = new Map<string, IConnection[]>();
 
       fileConnections.set('src/index.ts', [
-        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' },
+        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
       ]);
       fileConnections.set('src/utils.ts', []);
       fileConnections.set('src/orphan.ts', []);

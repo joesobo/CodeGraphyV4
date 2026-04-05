@@ -10,8 +10,20 @@ const rawGraphData: IGraphData = {
     { id: 'src/c.ts', label: 'c.ts', color: '#333333' },
   ],
   edges: [
-    { id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts', ruleId: 'import' },
-    { id: 'src/c.ts->src/b.ts', from: 'src/c.ts', to: 'src/b.ts', ruleId: 'import' },
+    {
+      id: 'src/a.ts->src/b.ts#import',
+      from: 'src/a.ts',
+      to: 'src/b.ts',
+      kind: 'import',
+      sources: [{ id: 'codegraphy.typescript:import', pluginId: 'codegraphy.typescript', sourceId: 'import', label: 'Import' }],
+    },
+    {
+      id: 'src/c.ts->src/b.ts#import',
+      from: 'src/c.ts',
+      to: 'src/b.ts',
+      kind: 'import',
+      sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+    },
   ],
 };
 
@@ -19,7 +31,7 @@ describe('graphView/timeline/indexing/filtering', () => {
   it('filters out edges from disabled plugins', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledRules: new Set<string>(),
+      disabledSources: new Set<string>(),
       showOrphans: true,
       workspaceRoot: '/workspace',
       registry: {
@@ -34,14 +46,20 @@ describe('graphView/timeline/indexing/filtering', () => {
     });
 
     expect(graphData.edges).toEqual([
-      { id: 'src/c.ts->src/b.ts', from: 'src/c.ts', to: 'src/b.ts', ruleId: 'import' },
+      {
+        id: 'src/c.ts->src/b.ts#import',
+        from: 'src/c.ts',
+        to: 'src/b.ts',
+        kind: 'import',
+        sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+      },
     ]);
   });
 
   it('keeps all nodes when showOrphans is enabled', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledRules: new Set<string>(),
+      disabledSources: new Set<string>(),
       showOrphans: true,
       workspaceRoot: '/workspace',
       registry: {
@@ -59,10 +77,10 @@ describe('graphView/timeline/indexing/filtering', () => {
     expect(graphData.nodes.map((node) => node.id)).toEqual(['src/a.ts', 'src/b.ts', 'src/c.ts']);
   });
 
-  it('filters out edges from disabled rules', () => {
+  it('filters out edges from disabled sources', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set<string>(),
-      disabledRules: new Set(['codegraphy.python:import']),
+      disabledSources: new Set(['codegraphy.python:import']),
       showOrphans: true,
       workspaceRoot: '/workspace',
       registry: {
@@ -78,7 +96,7 @@ describe('graphView/timeline/indexing/filtering', () => {
   it('drops orphaned nodes when showOrphans is disabled', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledRules: new Set<string>(),
+      disabledSources: new Set<string>(),
       showOrphans: false,
       workspaceRoot: '/workspace',
       registry: {
@@ -100,7 +118,7 @@ describe('graphView/timeline/indexing/filtering', () => {
 
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set<string>(),
-      disabledRules: new Set<string>(),
+      disabledSources: new Set<string>(),
       showOrphans: true,
       workspaceRoot: '/workspace',
       registry: { getPluginForFile },
@@ -113,7 +131,7 @@ describe('graphView/timeline/indexing/filtering', () => {
   it('returns the original edge array when the registry is missing', () => {
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledRules: new Set<string>(),
+      disabledSources: new Set<string>(),
       showOrphans: true,
       workspaceRoot: '/workspace',
     });
@@ -126,7 +144,7 @@ describe('graphView/timeline/indexing/filtering', () => {
 
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledRules: new Set<string>(),
+      disabledSources: new Set<string>(),
       showOrphans: true,
       registry: { getPluginForFile },
     });
@@ -146,7 +164,7 @@ describe('graphView/timeline/indexing/filtering', () => {
 
     const graphData = buildGraphViewTimelineGraphData(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledRules: new Set<string>(),
+      disabledSources: new Set<string>(),
       showOrphans: true,
       workspaceRoot: '/workspace',
       registry: { getPluginForFile },

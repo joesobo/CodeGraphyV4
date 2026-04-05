@@ -1,9 +1,9 @@
 import type { ExportConnectionsSection } from '../shared/contracts';
 
 export function renderMarkdownRulesSection(
-  rules: ExportConnectionsSection['rules'],
+  sources: ExportConnectionsSection['sources'],
 ): string[] {
-  const ruleEntries = Object.entries(rules);
+  const ruleEntries = Object.entries(sources);
   if (ruleEntries.length === 0) {
     return [];
   }

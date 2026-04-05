@@ -35,7 +35,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _analyzerInitPromise?: Promise<void>;
   _installedPluginActivationPromise?: Promise<void>;
   _filterPatterns: string[];
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _graphData: IGraphData;
   _rawGraphData: IGraphData;

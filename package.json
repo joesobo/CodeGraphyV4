@@ -266,13 +266,13 @@
 					"default": [],
 					"description": "List of CodeGraphy plugin extension names to enable (e.g., 'codegraphy-rust')."
 				},
-				"codegraphy.disabledRules": {
+				"codegraphy.disabledSources": {
 					"type": "array",
 					"items": {
 						"type": "string"
 					},
 					"default": [],
-					"description": "Disabled plugin rules by qualified ID ('<pluginId>:<ruleId>'). Managed by the Plugins panel."
+					"description": "Disabled plugin sources by qualified ID ('<pluginId>:<sourceId>'). Managed by the Plugins panel."
 				},
 				"codegraphy.disabledPlugins": {
 					"type": "array",

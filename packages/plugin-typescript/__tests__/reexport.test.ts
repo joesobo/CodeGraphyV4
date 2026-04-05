@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { detect } from '../src/rules/reexport';
+import { detect } from '../src/sources/reexport';
 import { PathResolver } from '../src/PathResolver';
 import type { TsRuleContext } from '../src/types';
 
@@ -15,8 +15,9 @@ describe('reexport rule', () => {
     const connections = detect(`export { foo } from './bar';`, testFile, context);
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('./bar');
+    expect(connections[0].kind).toBe('reexport');
     expect(connections[0].type).toBe('reexport');
-    expect(connections[0].ruleId).toBe('reexport');
+    expect(connections[0].sourceId).toBe('reexport');
   });
 
   it('should detect star re-export', () => {

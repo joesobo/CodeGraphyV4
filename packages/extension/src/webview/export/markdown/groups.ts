@@ -1,11 +1,11 @@
 import { renderMarkdownFiles } from './files';
 import type { ExportConnectionsSection, ExportGroup } from '../shared/contracts';
 
-type ExportRules = ExportConnectionsSection['rules'];
+type ExportRules = ExportConnectionsSection['sources'];
 
 export function renderMarkdownGroupsSection(
   groups: ExportConnectionsSection['groups'],
-  rules: ExportRules,
+  sources: ExportRules,
 ): string[] {
   const groupEntries = Object.entries(groups);
   if (groupEntries.length === 0) {
@@ -17,7 +17,7 @@ export function renderMarkdownGroupsSection(
   for (const [pattern, group] of groupEntries) {
     lines.push(`#### \`${pattern}\``);
     lines.push(`- style: ${renderMarkdownGroupStyle(group)}`);
-    lines.push(...renderMarkdownFiles(group.files, rules));
+    lines.push(...renderMarkdownFiles(group.files, sources));
     lines.push('');
   }
 
@@ -26,7 +26,7 @@ export function renderMarkdownGroupsSection(
 
 export function renderMarkdownUngroupedSection(
   files: ExportConnectionsSection['ungrouped'],
-  rules: ExportRules,
+  sources: ExportRules,
 ): string[] {
   if (Object.keys(files).length === 0) {
     return [];
@@ -35,7 +35,7 @@ export function renderMarkdownUngroupedSection(
   return [
     '### Ungrouped',
     '',
-    ...renderMarkdownFiles(files, rules),
+    ...renderMarkdownFiles(files, sources),
     '',
   ];
 }
