@@ -8,7 +8,6 @@ import React from 'react';
 import { mdiGraphOutline, mdiBullseye, mdiFolderOutline } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
-import { Slider } from '../ui/controls/slider';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
 import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
@@ -22,40 +21,13 @@ const VIEW_ICONS: Record<string, string> = {
 export function ViewButtons(): React.ReactElement {
   const availableViews = useGraphStore(s => s.availableViews);
   const activeViewId = useGraphStore(s => s.activeViewId);
-  const depthLimit = useGraphStore(s => s.depthLimit);
-
-  const isDepthView = activeViewId === 'codegraphy.depth-graph';
 
   const handleViewChange = (viewId: string) => {
     postMessage({ type: 'CHANGE_VIEW', payload: { viewId } });
   };
 
-  const handleDepthChange = (value: number[]) => {
-    postMessage({ type: 'CHANGE_DEPTH_LIMIT', payload: { depthLimit: value[0] } });
-  };
-
   return (
     <>
-      {isDepthView && (
-        <div
-          className="flex items-center gap-1 overflow-hidden transition-all duration-200 ease-in-out"
-          style={{
-            maxWidth: '8rem',
-            opacity: 1,
-          }}
-        >
-          <span className="text-xs text-muted-foreground whitespace-nowrap">{depthLimit}</span>
-          <Slider
-            min={1}
-            max={5}
-            step={1}
-            value={[depthLimit]}
-            onValueChange={handleDepthChange}
-            className="w-16"
-          />
-        </div>
-      )}
-
       {availableViews.length > 0 && (
         <div data-testid="view-buttons" className="flex flex-col items-center gap-1">
           {availableViews.map(view => {

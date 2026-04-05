@@ -25,6 +25,7 @@ export interface GraphViewPluginMessageContext {
   getGraphData(): IGraphData;
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
+  sendAvailableViews(): void;
   analyzeAndSendData(): Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;

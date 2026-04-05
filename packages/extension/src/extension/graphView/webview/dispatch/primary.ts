@@ -30,6 +30,7 @@ export interface GraphViewPrimaryMessageContext {
   getViewContext(): IViewContext;
   openSelectedNode(nodeId: string): Promise<void>;
   activateNode(nodeId: string): Promise<void>;
+  setFocusedFile(filePath: string | undefined): void;
   previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
   revealInExplorer(filePath: string): Promise<void>;

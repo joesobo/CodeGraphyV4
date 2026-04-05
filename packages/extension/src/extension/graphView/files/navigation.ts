@@ -20,6 +20,7 @@ export interface GraphViewFileNavigationHandlers {
     behavior: GraphViewEditorOpenBehavior,
   ): PromiseLike<unknown>;
   incrementVisitCount(filePath: string): Promise<void>;
+  didOpenFile?(filePath: string): PromiseLike<void> | void;
   logError(label: string, error: unknown): void;
 }
 
@@ -56,6 +57,7 @@ export async function openGraphViewFile(
     const document = await handlers.openTextDocument(fileUri);
     await handlers.showTextDocument(document, behavior);
     await handlers.incrementVisitCount(filePath);
+    await handlers.didOpenFile?.(filePath);
   } catch (error) {
     handlers.logError('[CodeGraphy] Failed to open file:', error);
     handlers.showErrorMessage(`Could not open file: ${filePath}`);

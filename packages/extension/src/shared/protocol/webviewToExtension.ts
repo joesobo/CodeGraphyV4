@@ -10,6 +10,7 @@ import type { IPhysicsSettings } from '../settings/physics';
 export type WebviewToExtensionMessage =
   | { type: 'NODE_SELECTED'; payload: { nodeId: string } }
   | { type: 'NODE_DOUBLE_CLICKED'; payload: { nodeId: string } }
+  | { type: 'CLEAR_FOCUSED_FILE' }
   | { type: 'WEBVIEW_READY'; payload: null }
   | { type: 'OPEN_FILE'; payload: { path: string } }
   | { type: 'REVEAL_IN_EXPLORER'; payload: { path: string } }

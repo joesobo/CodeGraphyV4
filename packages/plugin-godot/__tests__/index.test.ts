@@ -1,6 +1,6 @@
 /**
  * @fileoverview Integration tests for the Godot GDScript plugin.
- * Uses the example GDScript project in src/plugins/godot/examples to verify
+ * Uses the shared example GDScript project in repo-root examples/godot-game to verify
  * that the plugin detects connections end-to-end.
  */
 
@@ -14,7 +14,7 @@ import { detect as detectLoad } from '../src/rules/load';
 import { detect as detectExtends } from '../src/rules/extends';
 import type { GDScriptRuleContext } from '../src/parser';
 
-const GDSCRIPT_ROOT = path.join(__dirname, '../examples');
+const GDSCRIPT_ROOT = path.join(__dirname, '../../../examples/godot-game');
 
 describe('createGDScriptPlugin lifecycle', () => {
   it('should expose manifest metadata', () => {

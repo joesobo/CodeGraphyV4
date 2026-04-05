@@ -24,6 +24,7 @@ describe('graph view provider listener plugin context', () => {
         _filterPatterns: [],
         _loadGroupsAndFilterPatterns: vi.fn(),
         _loadDisabledRulesAndPlugins: vi.fn(() => false),
+        _sendAvailableViews: vi.fn(),
       } as never,
       {
         workspace: {
@@ -71,6 +72,7 @@ describe('graph view provider listener plugin context', () => {
       _filterPatterns: ['dist/**'],
       _loadGroupsAndFilterPatterns: vi.fn(),
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
+      _sendAvailableViews: vi.fn(),
     };
     const dependencies = {
       workspace: {
@@ -135,6 +137,7 @@ describe('graph view provider listener plugin context', () => {
       _filterPatterns: [],
       _loadGroupsAndFilterPatterns: vi.fn(),
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
+      _sendAvailableViews: vi.fn(),
     };
     const context = createGraphViewProviderMessagePluginContext(
       source as never,

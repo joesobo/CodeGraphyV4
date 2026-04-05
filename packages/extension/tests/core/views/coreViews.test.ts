@@ -111,40 +111,11 @@ describe('Core Views (fresh imports)', () => {
       expect(depthGraphView.icon).toBe('target');
     });
 
-    it('returns empty graph when no file is focused', async () => {
+    it('passes through the graph during the teardown phase', async () => {
       const { depthGraphView } = await import('../../../src/core/views/builtIns');
       const context = createContext({ focusedFile: undefined });
       const result = depthGraphView.transform(sampleGraphData, context);
-      expect(result.nodes).toHaveLength(0);
-      expect(result.edges).toHaveLength(0);
-    });
-
-    it('returns focused file and immediate connections with default depth 1', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      const context = createContext({ focusedFile: 'src/app.ts' });
-      const result = depthGraphView.transform(sampleGraphData, context);
-      expect(result.nodes).toHaveLength(4);
-      expect(result.edges).toHaveLength(3);
-    });
-
-    it('includes 2-hop nodes when depthLimit is 2', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      const context = createContext({ focusedFile: 'src/app.ts', depthLimit: 2 });
-      const result = depthGraphView.transform(sampleGraphData, context);
-      expect(result.nodes).toHaveLength(5);
-      expect(result.nodes.map(n => n.id)).toContain('src/utils/format.ts');
-    });
-
-    it('is unavailable when no file is focused', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      const context = createContext({ focusedFile: undefined });
-      expect(depthGraphView.isAvailable?.(context)).toBe(false);
-    });
-
-    it('is available when a file is focused', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      const context = createContext({ focusedFile: 'src/app.ts' });
-      expect(depthGraphView.isAvailable?.(context)).toBe(true);
+      expect(result).toBe(sampleGraphData);
     });
   });
 });

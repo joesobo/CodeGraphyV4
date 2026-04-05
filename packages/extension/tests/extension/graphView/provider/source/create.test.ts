@@ -12,11 +12,13 @@ describe('source/create', () => {
     source._analysisRequestId = 9;
     await source.undo();
     await source.changeView('codegraphy.folder');
+    source._setFocusedFile('src/app.ts');
     const undoDescriptor = Object.getOwnPropertyDescriptor(source, 'undo');
 
     expect(owner._analysisRequestId).toBe(9);
     expect(owner._commandMethods.undo).toHaveBeenCalledTimes(1);
     expect(owner._viewSelectionMethods.changeView).toHaveBeenCalledWith('codegraphy.folder');
+    expect(owner._viewSelectionMethods.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(undoDescriptor).toMatchObject({
       configurable: true,
       enumerable: true,

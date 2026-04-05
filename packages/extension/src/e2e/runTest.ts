@@ -8,29 +8,37 @@
  */
 import * as path from 'path';
 import { runTests } from '@vscode/test-electron';
+import { e2eScenarios } from './scenarios';
 
 async function main(): Promise<void> {
-  // The root of the extension (contains package.json)
-  const extensionDevelopmentPath = path.resolve(__dirname, '../../');
-
   // The compiled Mocha suite entry point
   const extensionTestsPath = path.resolve(__dirname, './suite/run');
 
-  // A minimal workspace VS Code opens during the test run
-  const workspacePath = path.resolve(__dirname, '../../packages/extension/test-fixtures/workspace');
+  for (const scenario of e2eScenarios) {
+    const extensionDevelopmentPath = [
+      path.resolve(__dirname, '../../'),
+      ...scenario.pluginDevelopmentRelativePaths.map((relativePath) =>
+        path.resolve(__dirname, relativePath),
+      ),
+    ];
+    const workspacePath = path.resolve(__dirname, scenario.workspaceRelativePath);
 
-  await runTests({
-    extensionDevelopmentPath,
-    extensionTestsPath,
-    launchArgs: [
-      workspacePath,
-      // Disable other extensions so they don't interfere
-      '--disable-extensions',
-      // Don't show the welcome tab
-      '--skip-welcome',
-      '--skip-release-notes',
-    ],
-  });
+    await runTests({
+      extensionDevelopmentPath,
+      extensionTestsPath,
+      extensionTestsEnv: {
+        CODEGRAPHY_E2E_SCENARIO: scenario.name,
+      },
+      launchArgs: [
+        workspacePath,
+        // Disable other extensions so they don't interfere
+        '--disable-extensions',
+        // Don't show the welcome tab
+        '--skip-welcome',
+        '--skip-release-notes',
+      ],
+    });
+  }
 }
 
 main().catch((err) => {

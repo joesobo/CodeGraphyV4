@@ -62,10 +62,30 @@ describe('graph/viewHandlers', () => {
 
   it('fits the 2d graph view', () => {
     const dependencies = createInteractionDependencies();
+    Object.defineProperty(dependencies.containerRef.current, 'clientWidth', {
+      configurable: true,
+      value: 400,
+    });
+    Object.defineProperty(dependencies.containerRef.current, 'clientHeight', {
+      configurable: true,
+      value: 300,
+    });
+    dependencies.graphDataRef.current.nodes = dependencies.graphDataRef.current.nodes.map((node, index) => ({
+      ...node,
+      size: [80, 80, 80][index],
+    }));
 
     createViewHandlers(dependencies).fitView();
 
-    expect(dependencies.fg2dRef.current?.zoomToFit).toHaveBeenCalledWith(300, 20);
+    const zoom = dependencies.fg2dRef.current?.zoom;
+    expect(zoom).toBeDefined();
+    if (!zoom) {
+      throw new Error('Expected 2d zoom control to be available');
+    }
+
+    expect(dependencies.fg2dRef.current?.centerAt).toHaveBeenCalledWith(50, 50, 300);
+    expect(zoom).toHaveBeenNthCalledWith(1, expect.closeTo(0.8461538461538461, 5), 300);
+    expect(dependencies.fg2dRef.current?.zoomToFit).not.toHaveBeenCalled();
     expect(dependencies.fg3dRef.current?.zoomToFit).not.toHaveBeenCalled();
   });
 
@@ -77,6 +97,70 @@ describe('graph/viewHandlers', () => {
     createViewHandlers(dependencies).fitView();
 
     expect(dependencies.fg3dRef.current?.zoomToFit).toHaveBeenCalledWith(300, 20);
+  });
+
+  it('pads 2d fit view by the largest rendered node size when available', () => {
+    const dependencies = createInteractionDependencies();
+    Object.defineProperty(dependencies.containerRef.current, 'clientWidth', {
+      configurable: true,
+      value: 0,
+    });
+    Object.defineProperty(dependencies.containerRef.current, 'clientHeight', {
+      configurable: true,
+      value: 0,
+    });
+    dependencies.graphDataRef.current.nodes = dependencies.graphDataRef.current.nodes.map((node, index) => ({
+      ...node,
+      size: [24, 36, 52][index],
+    }));
+
+    createViewHandlers(dependencies).fitView();
+
+    expect(dependencies.fg2dRef.current?.zoomToFit).toHaveBeenCalledWith(300, 176);
+  });
+
+  it('adds extra bottom clearance when fitting the depth view in 2d', () => {
+    const dependencies = createInteractionDependencies({
+      activeViewId: 'codegraphy.depth-graph',
+    });
+    Object.defineProperty(dependencies.containerRef.current, 'clientWidth', {
+      configurable: true,
+      value: 400,
+    });
+    Object.defineProperty(dependencies.containerRef.current, 'clientHeight', {
+      configurable: true,
+      value: 300,
+    });
+    dependencies.graphDataRef.current.nodes = dependencies.graphDataRef.current.nodes.map((node, index) => ({
+      ...node,
+      size: [80, 80, 80][index],
+    }));
+
+    createViewHandlers(dependencies).fitView();
+
+    const zoom = dependencies.fg2dRef.current?.zoom;
+    expect(zoom).toBeDefined();
+    if (!zoom) {
+      throw new Error('Expected 2d zoom control to be available');
+    }
+
+    expect(dependencies.fg2dRef.current?.centerAt).toHaveBeenCalledWith(50, 103.33333333333334, 300);
+    expect(zoom).toHaveBeenNthCalledWith(1, expect.closeTo(0.6, 5), 300);
+    expect(dependencies.fg2dRef.current?.zoomToFit).not.toHaveBeenCalled();
+  });
+
+  it('pads 3d fit view by the largest rendered node size when available', () => {
+    const dependencies = createInteractionDependencies({
+      graphMode: '3d',
+    });
+    dependencies.graphDataRef.current.nodes = dependencies.graphDataRef.current.nodes.map((node, index) => ({
+      ...node,
+      size: [18, 28, 44][index],
+    }));
+
+    createViewHandlers(dependencies).fitView();
+
+    expect(dependencies.fg3dRef.current?.zoomToFit).toHaveBeenCalledWith(300, 152);
   });
 
   it('tolerates a missing 3d graph ref when fitting the view', () => {

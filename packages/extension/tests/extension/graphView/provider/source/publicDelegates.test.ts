@@ -8,11 +8,13 @@ describe('source/publicDelegates', () => {
     const delegates = createGraphViewProviderPublicMethodDelegates(owner);
 
     await delegates.changeView('codegraphy.folder');
+    delegates.setFocusedFile('src/app.ts');
     await delegates.setDepthLimit(4);
     expect(await delegates.undo()).toBe('undo');
     expect(await delegates.redo()).toBe('redo');
 
     expect(owner._viewSelectionMethods.changeView).toHaveBeenCalledWith('codegraphy.folder');
+    expect(owner._viewSelectionMethods.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(owner._viewSelectionMethods.setDepthLimit).toHaveBeenCalledWith(4);
     expect(owner._commandMethods.undo).toHaveBeenCalledTimes(1);
     expect(owner._commandMethods.redo).toHaveBeenCalledTimes(1);

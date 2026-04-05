@@ -3,6 +3,7 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 export interface GraphViewNodeFileOpenHandlers {
   timelineActive: boolean;
   currentCommitSha?: string;
+  setFocusedFile(filePath: string | undefined): void;
   openSelectedNode(nodeId: string): Promise<void>;
   activateNode(nodeId: string): Promise<void>;
   previewFileAtCommit(sha: string, filePath: string): Promise<void>;
@@ -15,7 +16,12 @@ export async function applyNodeFileOpenMessage(
 ): Promise<boolean> {
   switch (message.type) {
     case 'NODE_SELECTED':
+      handlers.setFocusedFile(message.payload.nodeId);
       void handlers.openSelectedNode(message.payload.nodeId);
+      return true;
+
+    case 'CLEAR_FOCUSED_FILE':
+      handlers.setFocusedFile(undefined);
       return true;
 
     case 'NODE_DOUBLE_CLICKED':
@@ -23,6 +29,7 @@ export async function applyNodeFileOpenMessage(
       return true;
 
     case 'OPEN_FILE':
+      handlers.setFocusedFile(message.payload.path);
       if (handlers.timelineActive && handlers.currentCommitSha) {
         void handlers.previewFileAtCommit(handlers.currentCommitSha, message.payload.path);
       } else {

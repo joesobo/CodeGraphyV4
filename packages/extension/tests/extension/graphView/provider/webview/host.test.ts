@@ -437,6 +437,7 @@ describe('graphView/provider/webview/host', () => {
 
   it('forwards direct webview messaging helpers', () => {
     const sendWebviewMessage = vi.fn();
+    const notifyExtensionMessage = vi.fn();
     const disposable = { dispose: vi.fn() };
     const onWebviewMessage = vi.fn(() => disposable);
     const source = {
@@ -444,6 +445,7 @@ describe('graphView/provider/webview/host', () => {
       _view: { kind: 'graph-view' } as unknown as vscode.WebviewView,
       _timelineView: { kind: 'timeline-view' } as unknown as vscode.WebviewView,
       _panels: [{ kind: 'panel' } as unknown as vscode.WebviewPanel],
+      _notifyExtensionMessage: notifyExtensionMessage,
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
     };
@@ -477,6 +479,8 @@ describe('graphView/provider/webview/host', () => {
       { type: 'PONG' },
     );
     expect(onWebviewMessage).toHaveBeenCalledWith(source._view, handler);
+    expect(notifyExtensionMessage).toHaveBeenNthCalledWith(1, { type: 'PING' });
+    expect(notifyExtensionMessage).toHaveBeenNthCalledWith(2, { type: 'PONG' });
     expect(result).toBe(disposable);
   });
 

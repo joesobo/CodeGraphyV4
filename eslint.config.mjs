@@ -63,6 +63,7 @@ export default defineConfig(
   },
   {
     files: [
+      'examples/**/*.{ts,tsx}',
       'packages/**/playwright.config.ts',
       'packages/**/test-fixtures/**/*.ts',
       'packages/**/tests/**/*.{ts,tsx}',

@@ -86,6 +86,12 @@ export function handleDepthLimitUpdated(
   return { depthLimit: message.payload.depthLimit };
 }
 
+export function handleDepthLimitRangeUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'DEPTH_LIMIT_RANGE_UPDATED' }>,
+): PartialState {
+  return { maxDepthLimit: message.payload.maxDepthLimit };
+}
+
 export function handleDirectionSettingsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'DIRECTION_SETTINGS_UPDATED' }>,
 ): PartialState {

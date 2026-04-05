@@ -35,6 +35,35 @@ const DEFAULT_DEPTH_LIMIT = 1;
 const DEFAULT_VIEW_ID = 'codegraphy.connections';
 const DEFAULT_NODE_SIZE_MODE: NodeSizeMode = 'connections';
 
+interface ExtensionMessageEmitter {
+  event(handler: (message: unknown) => void): vscode.Disposable;
+  fire(message: unknown): void;
+  dispose(): void;
+}
+
+function createExtensionMessageEmitter(): ExtensionMessageEmitter {
+  const handlers = new Set<(message: unknown) => void>();
+
+  return {
+    event(handler) {
+      handlers.add(handler);
+      return {
+        dispose: () => {
+          handlers.delete(handler);
+        },
+      };
+    },
+    fire(message) {
+      for (const handler of handlers) {
+        handler(message);
+      }
+    },
+    dispose() {
+      handlers.clear();
+    },
+  };
+}
+
 function createFirstWorkspaceReadyState(): {
   promise: Promise<void>;
   resolve: () => void;
@@ -84,6 +113,7 @@ export class GraphViewProviderRuntime {
   protected _indexingController?: AbortController;
   protected readonly _pluginExtensionUris = new Map<string, vscode.Uri>();
   protected _installedPluginActivationPromise: Promise<void> = Promise.resolve();
+  protected readonly _extensionMessageEmitter = createExtensionMessageEmitter();
   protected readonly _methodContainers: GraphViewProviderMethodContainers;
 
   constructor(
@@ -99,6 +129,11 @@ export class GraphViewProviderRuntime {
     this._viewRegistry = new ViewRegistry();
     this._eventBus = new EventBus();
     this._decorationManager = new DecorationManager();
+    this._context.subscriptions.push({
+      dispose: () => {
+        this._extensionMessageEmitter.dispose();
+      },
+    });
 
     this.initializeCoreServices();
     this.restorePersistedState();
@@ -157,5 +192,9 @@ export class GraphViewProviderRuntime {
     this._activeViewId = restoredState.activeViewId;
     this._dagMode = restoredState.dagMode;
     this._nodeSizeMode = restoredState.nodeSizeMode;
+  }
+
+  protected _notifyExtensionMessage(message: unknown): void {
+    this._extensionMessageEmitter.fire(message);
   }
 }

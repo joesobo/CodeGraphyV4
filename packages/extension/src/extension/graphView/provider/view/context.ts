@@ -116,6 +116,7 @@ export function createGraphViewProviderViewContextMethods(
       source._viewRegistry,
       source._viewContext,
       source._activeViewId,
+      source._rawGraphData,
       dependencies.defaultDepthLimit,
       message => source._sendMessage(message as ExtensionToWebviewMessage),
     );

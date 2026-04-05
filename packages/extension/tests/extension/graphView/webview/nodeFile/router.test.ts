@@ -10,6 +10,7 @@ function createHandlers(
   return {
     timelineActive: false,
     currentCommitSha: undefined,
+    setFocusedFile: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
     previewFileAtCommit: vi.fn(() => Promise.resolve()),

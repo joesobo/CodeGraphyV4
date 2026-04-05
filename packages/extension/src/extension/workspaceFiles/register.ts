@@ -12,6 +12,58 @@ interface PendingWorkspaceRefresh {
 }
 
 const pendingWorkspaceRefreshes = new WeakMap<GraphViewProvider, PendingWorkspaceRefresh>();
+const pendingFocusedFileClears = new WeakMap<GraphViewProvider, ReturnType<typeof setTimeout>>();
+const ACTIVE_EDITOR_CLEAR_DELAY_MS = 150;
+
+function hasVisibleWorkspaceFileEditor(
+  workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined,
+  visibleTextEditors: readonly vscode.TextEditor[] | undefined,
+): boolean {
+  const workspaceFolder = workspaceFolders?.[0];
+  if (!workspaceFolder) {
+    return false;
+  }
+
+  return (visibleTextEditors ?? []).some(editor => {
+    if (editor.document.uri.scheme !== 'file') {
+      return false;
+    }
+
+    const relativePath = path.relative(workspaceFolder.uri.fsPath, editor.document.uri.fsPath);
+    return !relativePath.startsWith('..');
+  });
+}
+
+function cancelPendingFocusedFileClear(provider: GraphViewProvider): void {
+  const pending = pendingFocusedFileClears.get(provider);
+  if (!pending) {
+    return;
+  }
+
+  clearTimeout(pending);
+  pendingFocusedFileClears.delete(provider);
+}
+
+function scheduleFocusedFileClear(provider: GraphViewProvider): void {
+  cancelPendingFocusedFileClear(provider);
+
+  const timeout = setTimeout(() => {
+    pendingFocusedFileClears.delete(provider);
+
+    if (vscode.window.activeTextEditor) {
+      return;
+    }
+
+    if (hasVisibleWorkspaceFileEditor(vscode.workspace.workspaceFolders, vscode.window.visibleTextEditors)) {
+      return;
+    }
+
+    provider.setFocusedFile(undefined);
+    provider.emitEvent('workspace:activeEditorChanged', { filePath: undefined });
+  }, ACTIVE_EDITOR_CLEAR_DELAY_MS);
+
+  pendingFocusedFileClears.set(provider, timeout);
+}
 
 function scheduleWorkspaceRefresh(
   provider: GraphViewProvider,
@@ -40,6 +92,7 @@ async function syncActiveEditor(
   editor: vscode.TextEditor | undefined,
 ): Promise<void> {
   if (editor && editor.document.uri.scheme === 'file') {
+    cancelPendingFocusedFileClear(provider);
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
     if (workspaceFolder) {
       const relativePath = path.relative(
@@ -57,8 +110,12 @@ async function syncActiveEditor(
   }
 
   if (!editor) {
-    provider.setFocusedFile(undefined);
-    provider.emitEvent('workspace:activeEditorChanged', { filePath: undefined });
+    if (hasVisibleWorkspaceFileEditor(vscode.workspace.workspaceFolders, vscode.window.visibleTextEditors)) {
+      cancelPendingFocusedFileClear(provider);
+      return;
+    }
+
+    scheduleFocusedFileClear(provider);
   }
 }
 

@@ -24,7 +24,7 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
 
 /**
  * Helper to get button groups from the toolbar DOM using data-testid attributes.
- * Layout: [depth-slider] [view-buttons] [dag-buttons] [2d/3d] [node-size-buttons] | [refresh] [export] [plugins] [settings]
+ * Layout: [view-buttons] [dag-buttons] [2d/3d] [node-size-buttons] | [refresh] [export] [plugins] [settings]
  */
 function getButtonGroups(container: HTMLElement) {
   const viewGroup = container.querySelector('[data-testid="view-buttons"]');
@@ -202,31 +202,6 @@ describe('Toolbar', () => {
       );
       fireEvent.click(standaloneButtons[0]);
       expect(graphStore.getState().graphMode).toBe('2d');
-    });
-  });
-
-  describe('depth slider', () => {
-    it('does not render a depth-slider placeholder when depth view is not active', () => {
-      const { container } = render(<Toolbar />);
-      const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
-      const controls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
-      expect(screen.queryByTestId('depth-slider')).toBeNull();
-      expect(topGroup?.querySelector('[data-testid="view-buttons"]')).toBeTruthy();
-      expect(controls?.className).not.toContain('max-h-0');
-    });
-
-    it('is visible when depth view is active', () => {
-      setDefaultState({ activeViewId: 'codegraphy.depth-graph' });
-      const { container } = render(<Toolbar />);
-      const sliderContainer = container.querySelector('[style*="max-width"]');
-      expect(sliderContainer?.getAttribute('style')).toContain('max-width: 8rem');
-      expect(sliderContainer?.getAttribute('style')).toContain('opacity: 1');
-    });
-
-    it('displays current depth limit value', () => {
-      setDefaultState({ activeViewId: 'codegraphy.depth-graph', depthLimit: 3 });
-      render(<Toolbar />);
-      expect(screen.getByText('3')).toBeTruthy();
     });
   });
 

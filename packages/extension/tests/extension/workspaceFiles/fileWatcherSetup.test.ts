@@ -27,8 +27,18 @@ describe('registerEditorChangeHandler', () => {
     (
       vscode.window as unknown as {
         activeTextEditor: unknown;
+        visibleTextEditors: unknown[];
       }
     ).activeTextEditor = undefined;
+    (
+      vscode.window as unknown as {
+        visibleTextEditors: unknown[];
+      }
+    ).visibleTextEditors = [];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('adds a subscription to the context', () => {
@@ -172,9 +182,16 @@ describe('registerEditorChangeHandler', () => {
     expect(provider.trackFileVisit).not.toHaveBeenCalled();
   });
 
-  it('clears focused file when editor is undefined', async () => {
+  it('clears focused file when editor is undefined and no workspace editors remain visible', async () => {
+    vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
+
+    (
+      vscode.window as unknown as {
+        visibleTextEditors: unknown[];
+      }
+    ).visibleTextEditors = [];
 
     registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
@@ -184,10 +201,79 @@ describe('registerEditorChangeHandler', () => {
     const listener = mock.mock.calls[0]?.[0] as (editor: undefined) => Promise<void>;
 
     await listener(undefined);
+    vi.advanceTimersByTime(150);
 
     expect(provider.setFocusedFile).toHaveBeenCalledWith(undefined);
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
       filePath: undefined,
+    });
+  });
+
+  it('preserves the focused file when editor is undefined but a workspace editor is still visible', async () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    (vscode.workspace as unknown as { workspaceFolders: unknown[] }).workspaceFolders = [
+      { uri: { fsPath: '/workspace' } },
+    ];
+    (
+      vscode.window as unknown as {
+        visibleTextEditors: Array<{ document: { uri: { scheme: string; fsPath: string } } }>;
+      }
+    ).visibleTextEditors = [
+      {
+        document: {
+          uri: { scheme: 'file', fsPath: '/workspace/src/app.ts' },
+        },
+      },
+    ];
+
+    registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    provider.setFocusedFile.mockClear();
+    provider.emitEvent.mockClear();
+
+    const mock = vscode.window.onDidChangeActiveTextEditor as unknown as {
+      mock: { calls: unknown[][] };
+    };
+    const listener = mock.mock.calls[0]?.[0] as (editor: undefined) => Promise<void>;
+
+    await listener(undefined);
+
+    expect(provider.setFocusedFile).not.toHaveBeenCalled();
+    expect(provider.emitEvent).not.toHaveBeenCalled();
+  });
+
+  it('ignores a transient undefined active editor before the next workspace file becomes active', async () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+
+    (vscode.workspace as unknown as { workspaceFolders: unknown[] }).workspaceFolders = [
+      { uri: { fsPath: '/workspace' } },
+    ];
+
+    registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    provider.setFocusedFile.mockClear();
+    provider.emitEvent.mockClear();
+
+    const mock = vscode.window.onDidChangeActiveTextEditor as unknown as {
+      mock: { calls: unknown[][] };
+    };
+    const listener = mock.mock.calls[0]?.[0] as (editor: unknown) => Promise<void>;
+
+    await listener(undefined);
+    await listener({
+      document: {
+        uri: { scheme: 'file', fsPath: '/workspace/src/utils.ts' },
+      },
+    });
+    vi.advanceTimersByTime(150);
+
+    expect(provider.setFocusedFile).toHaveBeenCalledTimes(1);
+    expect(provider.setFocusedFile).toHaveBeenCalledWith('src/utils.ts');
+    expect(provider.emitEvent).toHaveBeenCalledTimes(1);
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
+      filePath: 'src/utils.ts',
     });
   });
 

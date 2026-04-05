@@ -39,6 +39,7 @@ function resetStore() {
     nodeSizeMode: 'connections',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
     depthLimit: 1,
+    maxDepthLimit: 10,
     groups: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
@@ -244,5 +245,13 @@ describe('App: message handlers', () => {
       sendMessage({ type: 'DEPTH_LIMIT_UPDATED', payload: { depthLimit: 3 } });
     });
     expect(graphStore.getState().depthLimit).toBe(3);
+  });
+
+  it('DEPTH_LIMIT_RANGE_UPDATED message is handled', async () => {
+    render(<App />);
+    await act(async () => {
+      sendMessage({ type: 'DEPTH_LIMIT_RANGE_UPDATED', payload: { maxDepthLimit: 2 } });
+    });
+    expect(graphStore.getState().maxDepthLimit).toBe(2);
   });
 });

@@ -7,7 +7,9 @@ import {
 } from '../../files/navigation';
 
 export interface GraphViewProviderFileNavigationSource {
+  _getFocusedFile(): string | undefined;
   _incrementVisitCount(filePath: string): Promise<void>;
+  _setFocusedFile(filePath: string | undefined): void;
 }
 
 export interface GraphViewProviderFileNavigationDependencies {
@@ -73,6 +75,11 @@ export async function openGraphViewProviderFile(
       showTextDocument: (document, nextBehavior) =>
         resolvedDependencies.showTextDocument(document, nextBehavior),
       incrementVisitCount: nextFilePath => source._incrementVisitCount(nextFilePath),
+      didOpenFile: nextFilePath => {
+        if (source._getFocusedFile() === nextFilePath) {
+          source._setFocusedFile(nextFilePath);
+        }
+      },
       logError: (label, error) => {
         resolvedDependencies.logError(label, error);
       },
