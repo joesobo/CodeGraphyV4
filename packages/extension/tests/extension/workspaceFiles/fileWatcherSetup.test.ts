@@ -37,6 +37,10 @@ describe('registerEditorChangeHandler', () => {
     ).visibleTextEditors = [];
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('adds a subscription to the context', () => {
     const context = makeContext();
     const provider = makeProvider();
@@ -179,6 +183,7 @@ describe('registerEditorChangeHandler', () => {
   });
 
   it('clears focused file when editor is undefined and no workspace editors remain visible', async () => {
+    vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
 
@@ -196,6 +201,7 @@ describe('registerEditorChangeHandler', () => {
     const listener = mock.mock.calls[0]?.[0] as (editor: undefined) => Promise<void>;
 
     await listener(undefined);
+    vi.advanceTimersByTime(150);
 
     expect(provider.setFocusedFile).toHaveBeenCalledWith(undefined);
     expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
@@ -235,6 +241,40 @@ describe('registerEditorChangeHandler', () => {
 
     expect(provider.setFocusedFile).not.toHaveBeenCalled();
     expect(provider.emitEvent).not.toHaveBeenCalled();
+  });
+
+  it('ignores a transient undefined active editor before the next workspace file becomes active', async () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+
+    (vscode.workspace as unknown as { workspaceFolders: unknown[] }).workspaceFolders = [
+      { uri: { fsPath: '/workspace' } },
+    ];
+
+    registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
+    provider.setFocusedFile.mockClear();
+    provider.emitEvent.mockClear();
+
+    const mock = vscode.window.onDidChangeActiveTextEditor as unknown as {
+      mock: { calls: unknown[][] };
+    };
+    const listener = mock.mock.calls[0]?.[0] as (editor: unknown) => Promise<void>;
+
+    await listener(undefined);
+    await listener({
+      document: {
+        uri: { scheme: 'file', fsPath: '/workspace/src/utils.ts' },
+      },
+    });
+    vi.advanceTimersByTime(150);
+
+    expect(provider.setFocusedFile).toHaveBeenCalledTimes(1);
+    expect(provider.setFocusedFile).toHaveBeenCalledWith('src/utils.ts');
+    expect(provider.emitEvent).toHaveBeenCalledTimes(1);
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:activeEditorChanged', {
+      filePath: 'src/utils.ts',
+    });
   });
 
   it('normalizes backslashes in paths', async () => {
