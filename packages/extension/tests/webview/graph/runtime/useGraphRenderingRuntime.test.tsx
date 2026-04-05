@@ -151,11 +151,13 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 			graphMode: '2d',
 			particleSize: 3,
 			particleSpeed: 0.2,
+			physicsPaused: false,
 		});
 		expect(renderingHarness.usePhysicsRuntime).toHaveBeenCalledWith({
 			fg2dRef,
 			fg3dRef,
 			graphMode: '2d',
+			physicsPaused: false,
 			physicsSettings: PHYSICS_SETTINGS,
 		});
 		expect(result.current.containerSize).toEqual({ height: 360, width: 640 });

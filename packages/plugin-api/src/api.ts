@@ -11,6 +11,23 @@ import type { GraphEdgeKind, IGraphData, IGraphNode, IGraphEdge } from './graph'
 import type { IView } from './views';
 import type { ICommand, IContextMenuItem } from './commands';
 
+export interface ExportRequest {
+  /** Default filename shown in the save dialog. */
+  filename: string;
+
+  /** File content to write. */
+  content: string | Uint8Array;
+
+  /** Optional save-dialog filters keyed by human-readable label. */
+  filters?: Record<string, string[]>;
+
+  /** Optional custom save-dialog title. */
+  title?: string;
+
+  /** Optional success toast message after saving. */
+  successMessage?: string;
+}
+
 /**
  * The host API provided to v2 plugins via the `onLoad(api)` lifecycle hook.
  *
@@ -167,6 +184,12 @@ export interface CodeGraphyAPI {
   onWebviewMessage(
     handler: (msg: { type: string; data: unknown }) => void
   ): Disposable;
+
+  /**
+   * Save plugin-generated export content through the host's file-save flow.
+   * Useful for plugin toolbar actions, custom views, and semantic exporters.
+   */
+  saveExport(request: ExportRequest): Promise<void>;
 
   // ---------------------------------------------------------------------------
   // Utilities

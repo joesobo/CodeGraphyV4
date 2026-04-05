@@ -9,6 +9,7 @@ const defaults: IPhysicsSettings = {
   linkForce: 0.15,
   damping: 0.7,
   centerForce: 0.1,
+  chargeRange: 200,
 };
 
 describe('graphView/settings/physics/reader', () => {
@@ -22,6 +23,7 @@ describe('graphView/settings/physics/reader', () => {
       linkForce: 1.15,
       damping: 1.7,
       centerForce: 1.1,
+      chargeRange: 201,
     });
     expect(get.mock.calls.map(([key]) => key)).toEqual([
       'repelForce',
@@ -29,6 +31,7 @@ describe('graphView/settings/physics/reader', () => {
       'linkForce',
       'damping',
       'centerForce',
+      'chargeRange',
     ]);
   });
 });

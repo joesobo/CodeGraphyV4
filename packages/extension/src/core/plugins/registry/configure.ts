@@ -5,7 +5,7 @@
 
 import type { EventBus } from '../eventBus';
 import type { DecorationManager } from '../decoration/manager';
-import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender } from '../codeGraphyApi';
+import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../codeGraphyApi';
 import type { ViewRegistry } from '../../views/registry';
 import type { RegistryV2Config } from './register';
 
@@ -16,6 +16,7 @@ export interface ConfigureV2Options {
   graphProvider: GraphDataProvider;
   commandRegistrar: CommandRegistrar;
   webviewSender: WebviewMessageSender;
+  exportSaver?: ExportSaver;
   workspaceRoot: string;
   logFn?: (level: string, ...args: unknown[]) => void;
 }
@@ -37,6 +38,7 @@ export function buildV2Config(options: ConfigureV2Options, currentLogFn: (level:
     graphProvider: options.graphProvider,
     commandRegistrar: options.commandRegistrar,
     webviewSender: options.webviewSender,
+    exportSaver: options.exportSaver,
     workspaceRoot: options.workspaceRoot,
     logFn: options.logFn ?? currentLogFn,
   };

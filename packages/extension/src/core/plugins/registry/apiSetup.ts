@@ -4,7 +4,7 @@
  */
 
 import type { IPlugin } from '../types/contracts';
-import { CodeGraphyAPIImpl, GraphDataProvider, CommandRegistrar, WebviewMessageSender } from '../codeGraphyApi';
+import { CodeGraphyAPIImpl, GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../codeGraphyApi';
 import type { EventBus } from '../eventBus';
 import type { DecorationManager } from '../decoration/manager';
 import type { ViewRegistry } from '../../views/registry';
@@ -16,6 +16,7 @@ export interface IApiDependencies {
   graphProvider: GraphDataProvider;
   commandRegistrar: CommandRegistrar;
   webviewSender: WebviewMessageSender;
+  exportSaver?: ExportSaver;
   workspaceRoot: string;
 }
 
@@ -35,6 +36,7 @@ export function createPluginApi(
     deps.graphProvider,
     deps.commandRegistrar,
     deps.webviewSender,
+    deps.exportSaver ?? (async () => undefined),
     deps.workspaceRoot,
     logFn,
   );

@@ -74,6 +74,7 @@ export default function Graph({
   const directionColor = useGraphStore(state => state.directionColor);
   const particleSpeed = useGraphStore(state => state.particleSpeed);
   const particleSize = useGraphStore(state => state.particleSize);
+  const physicsPaused = useGraphStore(state => state.physicsPaused);
   const showLabels = useGraphStore(state => state.showLabels);
   const graphMode = useGraphStore(state => state.graphMode);
   const activeViewId = useGraphStore(state => state.activeViewId);
@@ -223,6 +224,7 @@ export default function Graph({
     nodeSizeMode,
     particleSize,
     particleSpeed,
+    physicsPaused,
     physicsSettings,
     pluginHost,
     selectedNodesSetRef: graphState.selectedNodesSetRef,

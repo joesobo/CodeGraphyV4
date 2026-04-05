@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import { postMessage } from '../../../vscodeApi';
 import { useGraphStore } from '../../../store/state';
+import { Button } from '../../ui/button';
 import { Label } from '../../ui/form/label';
 import { Slider } from '../../ui/controls/slider';
 import {
@@ -16,7 +17,9 @@ const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
 
 export function ForcesSection(): React.ReactElement {
   const settings = useGraphStore((state) => state.physicsSettings);
+  const physicsPaused = useGraphStore((state) => state.physicsPaused);
   const setPhysicsSettings = useGraphStore((state) => state.setPhysicsSettings);
+  const setPhysicsPaused = useGraphStore((state) => state.setPhysicsPaused);
   const pendingPhysicsValuesRef = useRef<PendingPhysicsMap>({});
   const physicsPersistTimersRef = useRef<PhysicsTimerMap>({});
   const cleanupRef = useRef<(node: HTMLDivElement | null) => void>((node) => {
@@ -54,6 +57,18 @@ export function ForcesSection(): React.ReactElement {
 
   return (
     <div className="mb-2 space-y-3 pt-1" ref={cleanupRef.current}>
+      <div className="flex items-center justify-between">
+        <Label className="text-xs">Simulation</Label>
+        <Button
+          data-testid="physics-pause-toggle"
+          variant="outline"
+          size="sm"
+          className="h-7 px-2 text-xs"
+          onClick={() => setPhysicsPaused(!physicsPaused)}
+        >
+          {physicsPaused ? 'Resume Physics' : 'Pause Physics'}
+        </Button>
+      </div>
       <div>
         <div className="flex items-center justify-between mb-1">
           <Label className="text-xs">Repel Force</Label>
@@ -117,6 +132,26 @@ export function ForcesSection(): React.ReactElement {
           value={[settings.linkForce]}
           onValueChange={(values) => handlePhysicsChange('linkForce', values[0])}
           onValueCommit={() => flushPhysicsSetting('linkForce')}
+        />
+      </div>
+      <div>
+        <div className="flex items-center justify-between mb-1">
+          <Label
+            className="text-xs"
+            title="Limits how far node repulsion reaches. Lower values produce tighter local clusters."
+          >
+            Charge Range
+          </Label>
+          <span className="text-xs text-muted-foreground font-mono">{settings.chargeRange ?? 200}</span>
+        </div>
+        <Slider
+          data-testid="charge-range-slider"
+          min={50}
+          max={1000}
+          step={10}
+          value={[settings.chargeRange ?? 200]}
+          onValueChange={(values) => handlePhysicsChange('chargeRange', values[0])}
+          onValueCommit={() => flushPhysicsSetting('chargeRange')}
         />
       </div>
     </div>

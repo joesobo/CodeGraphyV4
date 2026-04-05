@@ -51,6 +51,7 @@ describe('CodeGraphyAPIImpl registration', () => {
       () => ({ nodes: [], edges: [] }),
       commandRegistrar,
       vi.fn(),
+      vi.fn(async () => undefined),
       '/workspace',
       vi.fn(),
     );
@@ -121,5 +122,19 @@ describe('CodeGraphyAPIImpl registration', () => {
 
     expect(api.contextMenuItems).toHaveLength(1);
     expect(api.contextMenuItems[0]?.label).toBe('Second Item');
+  });
+
+  it('delegates plugin export saves through the host saver', async () => {
+    const { api, exportSaver } = createTestAPI();
+
+    await api.saveExport({
+      filename: 'graph.json',
+      content: '{"graph":true}',
+    });
+
+    expect(exportSaver).toHaveBeenCalledWith({
+      filename: 'graph.json',
+      content: '{"graph":true}',
+    });
   });
 });

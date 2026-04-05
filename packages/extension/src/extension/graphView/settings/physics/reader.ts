@@ -11,5 +11,6 @@ export function readGraphViewPhysicsSettings(
     linkForce: config.get<number>('linkForce', defaults.linkForce),
     damping: config.get<number>('damping', defaults.damping),
     centerForce: config.get<number>('centerForce', defaults.centerForce),
+    chargeRange: config.get<number>('chargeRange', defaults.chargeRange ?? 200),
   };
 }

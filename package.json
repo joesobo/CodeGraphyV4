@@ -339,14 +339,21 @@
 					"maximum": 1,
 					"description": "How quickly motion settles. Higher = less jitter after dragging."
 				},
-				"codegraphy.physics.centerForce": {
-					"type": "number",
-					"default": 0.1,
-					"minimum": 0,
-					"maximum": 1,
-					"description": "Pull toward the viewport center (0 = none, 1 = max)."
-				},
-				"codegraphy.groups": {
+					"codegraphy.physics.centerForce": {
+						"type": "number",
+						"default": 0.1,
+						"minimum": 0,
+						"maximum": 1,
+						"description": "Pull toward the viewport center (0 = none, 1 = max)."
+					},
+					"codegraphy.physics.chargeRange": {
+						"type": "number",
+						"default": 200,
+						"minimum": 50,
+						"maximum": 1000,
+						"description": "Maximum distance at which node repulsion applies. Lower values produce tighter local clusters."
+					},
+					"codegraphy.groups": {
 					"type": "array",
 					"default": [],
 					"description": "Groups for matching files. Each entry defines a glob pattern with color, shape, and optional image.",

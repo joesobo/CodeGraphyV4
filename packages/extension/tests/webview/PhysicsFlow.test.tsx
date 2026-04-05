@@ -30,10 +30,11 @@ function resetStore() {
     directionMode: 'arrows',
     particleSpeed: 0.005,
     particleSize: 4,
+    physicsPaused: false,
     showLabels: true,
     graphMode: '2d',
     nodeSizeMode: 'connections',
-    physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
+    physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1, chargeRange: 200 },
     depthLimit: 1,
     groups: [],
     filterPatterns: [],
@@ -70,7 +71,7 @@ describe('Physics flow', () => {
     await act(async () => {
       sendMessage({
         type: 'PHYSICS_SETTINGS_UPDATED',
-        payload: { repelForce: 7, linkDistance: 120, linkForce: 0.3, damping: 0.55, centerForce: 0.2 },
+        payload: { repelForce: 7, linkDistance: 120, linkForce: 0.3, damping: 0.55, centerForce: 0.2, chargeRange: 240 },
       });
     });
 
@@ -80,6 +81,7 @@ describe('Physics flow', () => {
       linkForce: 0.3,
       damping: 0.55,
       centerForce: 0.2,
+      chargeRange: 240,
     });
   });
 

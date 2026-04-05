@@ -30,6 +30,7 @@ describe('graph view physics update helpers', () => {
       ['linkForce', undefined, 'workspace'],
       ['damping', undefined, 'workspace'],
       ['centerForce', undefined, 'workspace'],
+      ['chargeRange', undefined, 'workspace'],
     ]);
   });
 });

@@ -10,6 +10,7 @@ import type { FGLink, FGNode } from '../../../model/build';
 import {
 	applyPhysicsSettings,
 	initPhysics,
+	syncPhysicsAnimation,
 } from '../../physics';
 import {
   resolvePhysicsInitAction,
@@ -21,6 +22,7 @@ interface UsePhysicsRuntimeOptions {
 	fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
 	fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
 	graphMode: '2d' | '3d';
+	physicsPaused?: boolean;
 	physicsSettings: IPhysicsSettings;
 }
 
@@ -28,6 +30,7 @@ export function usePhysicsRuntime({
 	fg2dRef,
 	fg3dRef,
 	graphMode,
+	physicsPaused = false,
 	physicsSettings,
 }: UsePhysicsRuntimeOptions): void {
 	const physicsInitialisedRef = useRef(false);
@@ -50,6 +53,13 @@ export function usePhysicsRuntime({
 	}, [fg2dRef, fg3dRef, graphMode, physicsSettings]);
 
 	useEffect(() => {
+		const graph = selectActivePhysicsGraph(graphMode, fg2dRef.current, fg3dRef.current);
+		if (!graph) return;
+
+		syncPhysicsAnimation(graph, physicsPaused);
+	}, [fg2dRef, fg3dRef, graphMode, physicsPaused]);
+
+	useEffect(() => {
 		physicsInitialisedRef.current = false;
 		previousPhysicsRef.current = null;
 	}, [graphMode]);
@@ -69,6 +79,7 @@ export function usePhysicsRuntime({
 				physicsInitialisedRef.current = true;
 				previousPhysicsRef.current = { ...physicsSettingsRef.current };
 				initPhysics(action.instance, physicsSettingsRef.current);
+				syncPhysicsAnimation(action.instance, physicsPaused);
 				return;
 			}
 
@@ -80,5 +91,5 @@ export function usePhysicsRuntime({
 		return () => {
 			if (frame !== null) cancelAnimationFrame(frame);
 		};
-	}, [fg2dRef, fg3dRef, graphMode]);
+	}, [fg2dRef, fg3dRef, graphMode, physicsPaused]);
 }
