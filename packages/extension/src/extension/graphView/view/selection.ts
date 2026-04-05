@@ -10,7 +10,15 @@ interface GraphViewSelectionState {
 interface GraphViewViewInfoLike {
   view: {
     id: string;
+    recomputeOn?: readonly ('focusedFile' | 'depthLimit')[];
   };
+}
+
+function shouldRefreshActiveView(
+  viewInfo: GraphViewViewInfoLike | undefined,
+  dependency: 'focusedFile' | 'depthLimit',
+): boolean {
+  return Boolean(viewInfo?.view.recomputeOn?.includes(dependency));
 }
 
 interface ChangeGraphViewViewDependencies {
@@ -81,7 +89,7 @@ export function setGraphViewFocusedFile(
     });
   }
 
-  if (getActiveViewInfo(state._activeViewId)?.view.id === 'codegraphy.depth-graph') {
+  if (shouldRefreshActiveView(getActiveViewInfo(state._activeViewId), 'focusedFile')) {
     applyViewTransform();
     sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
   }
@@ -106,7 +114,7 @@ export async function setGraphViewDepthLimit(
     payload: { depthLimit: clampedDepthLimit },
   });
 
-  if (getActiveViewInfo(state._activeViewId)?.view.id === 'codegraphy.depth-graph') {
+  if (shouldRefreshActiveView(getActiveViewInfo(state._activeViewId), 'depthLimit')) {
     applyViewTransform();
     sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
   }

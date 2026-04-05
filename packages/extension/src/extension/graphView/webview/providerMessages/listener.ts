@@ -90,6 +90,7 @@ export interface GraphViewProviderMessageListenerSource {
           ):
             | { deliverWebviewMessage(message: { type: string; data: unknown }): void }
             | { contextMenuItems: ReadonlyArray<{ action(target: unknown): Promise<void> | void }> }
+            | { exporters: ReadonlyArray<{ run(): Promise<void> | void }> }
             | undefined;
         };
       }
@@ -137,6 +138,7 @@ export interface GraphViewProviderMessageListenerSource {
   _sendCachedTimeline(): Promise<void>;
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
+  _sendPluginExporters?(): void;
   _sendPluginWebviewInjections(): void;
 }
 

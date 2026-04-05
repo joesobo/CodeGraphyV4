@@ -20,6 +20,15 @@ CodeGraphy has two plugin surfaces:
 - [Plugin types](./plugin-api/TYPES.md)
 - [Plugin events](./plugin-api/EVENTS.md)
 
+The current plugin API supports more than file analysis:
+
+- semantic relations via `kind` + `sourceId`
+- graph queries backed by the host graph cache
+- custom views with `recomputeOn` dependencies
+- context menu items, commands, and exporters
+- host-saved exports via `api.saveExport(...)`
+- Tier 2 webview slots such as `toolbar`, `node-details`, `tooltip`, `timeline-panel`, `graph-overlay`
+
 ## Packaging model
 
 Third-party plugins should ship as their own VS Code extensions.

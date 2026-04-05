@@ -41,12 +41,14 @@ function createContext(
     sendCachedTimeline: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
+    sendPluginExporters: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
     sendActiveFile: vi.fn(),
     waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),
     notifyWebviewReady: vi.fn(),
     getInteractionPluginApi: vi.fn(),
     getContextMenuPluginApi: vi.fn(),
+    getExporterPluginApi: vi.fn(),
     emitEvent: vi.fn(),
     findNode: vi.fn((targetId: string) => ({ id: targetId })),
     findEdge: vi.fn((targetId: string) => ({ id: targetId })),
@@ -119,6 +121,32 @@ describe('graph view plugin message dispatch', () => {
     expect(context.getContextMenuPluginApi).toHaveBeenCalledWith('plugin.test');
     expect(context.findNode).toHaveBeenCalledWith('src/index.ts');
     expect(action).toHaveBeenCalledWith({ id: 'src/index.ts', label: 'Index' });
+    expect(context.logError).not.toHaveBeenCalled();
+  });
+
+  it('runs plugin exporters through the extension-side plugin api', async () => {
+    const run = vi.fn(() => Promise.resolve());
+    const context = createContext({
+      getExporterPluginApi: vi.fn(() => ({
+        exporters: [{ run }],
+      })),
+    });
+
+    await expect(
+      dispatchGraphViewPluginMessage(
+        {
+          type: 'RUN_PLUGIN_EXPORT',
+          payload: {
+            pluginId: 'plugin.test',
+            index: 0,
+          },
+        },
+        context,
+      ),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.getExporterPluginApi).toHaveBeenCalledWith('plugin.test');
+    expect(run).toHaveBeenCalledOnce();
     expect(context.logError).not.toHaveBeenCalled();
   });
 

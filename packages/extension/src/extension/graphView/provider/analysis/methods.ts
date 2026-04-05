@@ -50,6 +50,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _sendPluginStatuses(): void;
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
+  _sendPluginExporters?(): void;
   _doAnalyzeAndSendData?(this: void, signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady?(this: void, graph: IGraphData): void;
   _isAnalysisStale?(this: void, signal: AbortSignal, requestId: number): boolean;

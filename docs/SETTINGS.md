@@ -31,6 +31,7 @@ CodeGraphy can be configured in two ways:
 | `codegraphy.physics.linkForce` | number | `0.15` | Spring stiffness (0-1) |
 | `codegraphy.physics.damping` | number | `0.7` | Motion settling speed (0-1) |
 | `codegraphy.physics.centerForce` | number | `0.1` | Pull toward viewport center (0-1) |
+| `codegraphy.physics.chargeRange` | number | `200` | Maximum distance where node repulsion applies (50-1000) |
 
 ## Plugin and rule toggles
 
@@ -72,9 +73,12 @@ Adjusts the physics simulation in real time.
 | Control | Range | Description |
 |---------|-------|-------------|
 | Repel Force | 0-20 | How strongly nodes push apart. Higher values spread nodes out more. |
+| Charge Range | 50-1000 | Maximum distance where repel force applies. Lower values create tighter local clusters. |
 | Center Force | 0-1 | Pull toward the viewport center. |
 | Link Distance | 30-500 | Preferred distance between connected nodes in pixels. |
 | Link Force | 0-1 | How strongly edges pull connected nodes together. |
+
+Use the pause toggle in the graph settings when you want to freeze the current layout for inspection without restarting the simulation.
 
 ### Groups
 

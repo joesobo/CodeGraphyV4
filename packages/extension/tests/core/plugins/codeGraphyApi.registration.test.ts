@@ -103,6 +103,22 @@ describe('CodeGraphyAPIImpl registration', () => {
     expect(api.contextMenuItems).toHaveLength(0);
   });
 
+  it('registers and removes exporters', () => {
+    const { api } = createTestAPI();
+    const exporter = {
+      id: 'test.exporter',
+      label: 'Test Exporter',
+      run: vi.fn(),
+    };
+
+    const disposable = api.registerExporter(exporter);
+    expect(api.exporters).toHaveLength(1);
+    expect(api.exporters[0]).toBe(exporter);
+
+    disposable.dispose();
+    expect(api.exporters).toHaveLength(0);
+  });
+
   it('does not remove other context menu items when a disposable is disposed twice', () => {
     const { api } = createTestAPI();
 

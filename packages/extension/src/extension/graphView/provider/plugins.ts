@@ -11,6 +11,7 @@ import {
 import {
   sendGraphViewContextMenuItems,
   sendGraphViewDecorations,
+  sendGraphViewPluginExporters,
   sendGraphViewPluginStatuses,
   sendGraphViewPluginWebviewInjections,
 } from '../webview/plugins/assets';
@@ -59,6 +60,7 @@ export interface GraphViewProviderPluginMethods {
   _sendPluginStatuses(): void;
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
+  _sendPluginExporters(): void;
   _sendPluginWebviewInjections(): void;
   _sendGroupsUpdated(): void;
   registerExternalPlugin(
@@ -72,6 +74,7 @@ export interface GraphViewProviderPluginMethodDependencies {
   sendPluginStatuses: typeof sendGraphViewPluginStatuses;
   sendDecorations: typeof sendGraphViewDecorations;
   sendContextMenuItems: typeof sendGraphViewContextMenuItems;
+  sendPluginExporters?: typeof sendGraphViewPluginExporters;
   sendPluginWebviewInjections: typeof sendGraphViewPluginWebviewInjections;
   sendGroupsUpdated: typeof sendGraphViewGroupsUpdated;
   registerExternalPlugin: typeof registerGraphViewExternalPlugin;
@@ -83,6 +86,7 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderPluginMethodDependencies = {
   sendPluginStatuses: sendGraphViewPluginStatuses,
   sendDecorations: sendGraphViewDecorations,
   sendContextMenuItems: sendGraphViewContextMenuItems,
+  sendPluginExporters: sendGraphViewPluginExporters,
   sendPluginWebviewInjections: sendGraphViewPluginWebviewInjections,
   sendGroupsUpdated: sendGraphViewGroupsUpdated,
   registerExternalPlugin: registerGraphViewExternalPlugin,
@@ -121,6 +125,12 @@ export function createGraphViewProviderPluginMethods(
 
   const _sendContextMenuItems = (): void => {
     dependencies.sendContextMenuItems(source._analyzer, message =>
+      source._sendMessage(message as ExtensionToWebviewMessage),
+    );
+  };
+
+  const _sendPluginExporters = (): void => {
+    dependencies.sendPluginExporters?.(source._analyzer, message =>
       source._sendMessage(message as ExtensionToWebviewMessage),
     );
   };
@@ -177,6 +187,7 @@ export function createGraphViewProviderPluginMethods(
         refreshWebviewResourceRoots: () => source._refreshWebviewResourceRoots(),
         sendPluginStatuses: () => _sendPluginStatuses(),
         sendContextMenuItems: () => _sendContextMenuItems(),
+        sendPluginExporters: () => _sendPluginExporters(),
         sendPluginWebviewInjections: () => _sendPluginWebviewInjections(),
         invalidateTimelineCache: () => source._invalidateTimelineCache(),
         analyzeAndSendData: () => source._analyzeAndSendData(),
@@ -189,6 +200,7 @@ export function createGraphViewProviderPluginMethods(
     _sendPluginStatuses,
     _sendDecorations,
     _sendContextMenuItems,
+    _sendPluginExporters,
     _sendPluginWebviewInjections,
     _sendGroupsUpdated,
     registerExternalPlugin,

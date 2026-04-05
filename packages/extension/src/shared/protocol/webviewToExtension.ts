@@ -63,6 +63,7 @@ export type WebviewToExtensionMessage =
       type: 'PLUGIN_CONTEXT_MENU_ACTION';
       payload: { pluginId: string; index: number; targetId: string; targetType: 'node' | 'edge' };
     }
+  | { type: 'RUN_PLUGIN_EXPORT'; payload: { pluginId: string; index: number } }
   | { type: 'TOGGLE_PLUGIN_GROUP_DISABLED'; payload: { groupId: string; disabled: boolean } }
   | { type: 'TOGGLE_PLUGIN_SECTION_DISABLED'; payload: { pluginId: string; disabled: boolean } }
   | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } }

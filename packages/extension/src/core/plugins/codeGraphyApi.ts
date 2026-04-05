@@ -11,7 +11,7 @@ import { DecorationManager, NodeDecoration, EdgeDecoration } from './decoration/
 import { ViewRegistry } from '../views/registry';
 import { IView } from '../views/contracts';
 import type { IGraphData, IGraphNode, IGraphEdge } from '../../shared/graph/types';
-import type { ExportRequest } from '../../../../plugin-api/src/api';
+import type { ExportRequest, IExporter } from '../../../../plugin-api/src/api';
 import {
   filterEdgesByKind as facadeFilterEdgesByKind,
   findPath as facadeFindPath,
@@ -75,6 +75,7 @@ export class CodeGraphyAPIImpl {
   private readonly _disposables = new DisposableStore();
   private readonly _commands: ICommand[] = [];
   private readonly _contextMenuItems: IContextMenuItem[] = [];
+  private readonly _exporters: IExporter[] = [];
   private readonly _webviewMessageHandlers = new Set<(msg: { type: string; data: unknown }) => void>();
   private readonly _logFn: (level: string, ...args: unknown[]) => void;
 
@@ -210,6 +211,17 @@ export class CodeGraphyAPIImpl {
     );
   }
 
+  registerExporter(exporter: IExporter): Disposable {
+    this._exporters.push(exporter);
+
+    return this._disposables.add(
+      toDisposable(() => {
+        const idx = this._exporters.indexOf(exporter);
+        if (idx !== -1) this._exporters.splice(idx, 1);
+      }),
+    );
+  }
+
   // ── Webview Communication (Tier 2) ──
 
   sendToWebview(msg: { type: string; data: unknown }): void {
@@ -270,6 +282,10 @@ export class CodeGraphyAPIImpl {
     return this._contextMenuItems;
   }
 
+  get exporters(): readonly IExporter[] {
+    return this._exporters;
+  }
+
   /**
    * Dispose all resources registered by this plugin.
    */
@@ -279,6 +295,7 @@ export class CodeGraphyAPIImpl {
     this._disposables.dispose();
     this._commands.length = 0;
     this._contextMenuItems.length = 0;
+    this._exporters.length = 0;
     this._webviewMessageHandlers.clear();
   }
 }

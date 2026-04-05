@@ -30,6 +30,24 @@ export type { IPathResolverConfig } from './PathResolver';
 
 const TS_FOCUSED_IMPORT_VIEW_ID = 'codegraphy.typescript.focused-imports';
 const TS_FOCUSED_IMPORT_VIEW_NAME = 'Focused Imports';
+const TS_VIEW_EDGE_KINDS = new Set(['import', 'reexport']);
+
+function filterTypeScriptImportEdges(data: IGraphData): IGraphData {
+  const edges = data.edges.filter(edge =>
+    TS_VIEW_EDGE_KINDS.has(edge.kind)
+    && edge.sources.some(source => source.pluginId === manifest.id),
+  );
+  const nodeIds = new Set<string>();
+  for (const edge of edges) {
+    nodeIds.add(edge.from);
+    nodeIds.add(edge.to);
+  }
+
+  return {
+    nodes: data.nodes.filter(node => nodeIds.has(node.id)),
+    edges,
+  };
+}
 
 function buildUndirectedAdjacencyList(data: IGraphData): Map<string, Set<string>> {
   const adjacencyList = new Map<string, Set<string>>();
@@ -80,26 +98,27 @@ function walkDepthFromNode(
 }
 
 function filterFocusedImportGraph(data: IGraphData, context: IViewContext): IGraphData {
+  const importGraph = filterTypeScriptImportEdges(data);
   const focusedFile = context.focusedFile;
   if (!focusedFile) {
-    return data;
+    return importGraph;
   }
 
-  const adjacencyList = buildUndirectedAdjacencyList(data);
+  const adjacencyList = buildUndirectedAdjacencyList(importGraph);
   const depthLimit = Math.max(1, context.depthLimit ?? 1);
   const depths = walkDepthFromNode(focusedFile, depthLimit, adjacencyList);
   if (depths.size === 0) {
-    return data;
+    return importGraph;
   }
 
   const includedNodeIds = new Set(depths.keys());
-  const nodes: IGraphNode[] = data.nodes
+  const nodes: IGraphNode[] = importGraph.nodes
     .filter(node => includedNodeIds.has(node.id))
     .map(node => ({
       ...node,
       depthLevel: depths.get(node.id),
     }));
-  const edges = data.edges.filter(
+  const edges = importGraph.edges.filter(
     edge => includedNodeIds.has(edge.from) && includedNodeIds.has(edge.to),
   );
 

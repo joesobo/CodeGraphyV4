@@ -34,6 +34,7 @@ export const INITIAL_STATE: GraphStateFields = {
   nodeDecorations: {},
   edgeDecorations: {},
   pluginContextMenuItems: [],
+  pluginExporters: [],
   expandedGroupId: null,
   activePanel: 'none' as const,
   maxFiles: 500,

@@ -7,6 +7,7 @@ import {
   resolveGraphViewPluginAssetPath,
   sendGraphViewContextMenuItems,
   sendGraphViewDecorations,
+  sendGraphViewPluginExporters,
   sendGraphViewPluginStatuses,
   sendGraphViewPluginWebviewInjections,
 } from '../../../../../src/extension/graphView/webview/plugins/assets';
@@ -126,6 +127,48 @@ describe('graphView/webview/plugins/assets', () => {
     const sendMessage = vi.fn();
 
     sendGraphViewContextMenuItems(undefined, sendMessage);
+
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('sends collected plugin exporters', () => {
+    const sendMessage = vi.fn();
+
+    sendGraphViewPluginExporters(
+      {
+        registry: {
+          list: () => [{ plugin: { id: 'plugin.test', name: 'Test Plugin' } }],
+          getPluginAPI: () => ({
+            contextMenuItems: [],
+            exporters: [{ id: 'summary', label: 'Summary Export', group: 'Reports' }],
+          }),
+        },
+      },
+      sendMessage,
+    );
+
+    expect(sendMessage).toHaveBeenCalledWith({
+      type: 'PLUGIN_EXPORTERS_UPDATED',
+      payload: {
+        items: [
+          {
+            id: 'summary',
+            label: 'Summary Export',
+            description: undefined,
+            group: 'Reports',
+            pluginId: 'plugin.test',
+            pluginName: 'Test Plugin',
+            index: 0,
+          },
+        ],
+      },
+    });
+  });
+
+  it('skips plugin exporter updates when no analyzer is available', () => {
+    const sendMessage = vi.fn();
+
+    sendGraphViewPluginExporters(undefined, sendMessage);
 
     expect(sendMessage).not.toHaveBeenCalled();
   });

@@ -13,6 +13,7 @@ describe('CodeGraphyAPIImpl cleanup', () => {
     api.decorateEdge('a.ts->b.ts', { color: '#00ff00' });
     api.registerCommand({ id: 'cmd1', title: 'Cmd 1', action: vi.fn() });
     api.registerContextMenuItem({ label: 'Item 1', when: 'node', action: vi.fn() });
+    api.registerExporter({ id: 'export.1', label: 'Export 1', run: vi.fn() });
     api.onWebviewMessage(vi.fn());
     api.registerView({
       id: 'test-view',
@@ -31,6 +32,7 @@ describe('CodeGraphyAPIImpl cleanup', () => {
     expect(handler).not.toHaveBeenCalled();
     expect(api.commands).toHaveLength(0);
     expect(api.contextMenuItems).toHaveLength(0);
+    expect(api.exporters).toHaveLength(0);
     expect(viewRegistry.get('test-view')).toBeUndefined();
     expect(decorationManager.getMergedNodeDecorations().get('a.ts')).toEqual({ color: '#0000ff' });
     expect(decorationManager.getMergedEdgeDecorations().has('a.ts->b.ts')).toBe(false);

@@ -81,7 +81,7 @@ function clickExportItem(label: string) {
 describe('ToolbarActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    graphStore.setState({ activePanel: 'none' });
+    graphStore.setState({ activePanel: 'none', pluginExporters: [] });
   });
 
   it('renders all four action buttons', () => {
@@ -152,6 +152,7 @@ describe('ToolbarActions', () => {
 describe('ToolbarActions export dropdown items', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    graphStore.setState({ pluginExporters: [] });
   });
 
   it('renders all five export menu items', () => {
@@ -182,5 +183,51 @@ describe('ToolbarActions export dropdown items', () => {
 
     expect(path).not.toBeNull();
     expect(path?.getAttribute('d')).toBeTruthy();
+  });
+
+  it('renders plugin exporter sections when plugin exporters are available', () => {
+    graphStore.setState({
+      pluginExporters: [
+        {
+          id: 'summary',
+          label: 'Summary Export',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 0,
+          group: 'Reports',
+        },
+      ],
+    });
+
+    renderWithProviders();
+
+    expect(screen.getByText('Plugins')).toBeInTheDocument();
+    expect(screen.getByText('Docs Plugin / Reports')).toBeInTheDocument();
+    expect(screen.getByText('Summary Export')).toBeInTheDocument();
+  });
+
+  it('posts RUN_PLUGIN_EXPORT through the host api when a plugin exporter is clicked', () => {
+    graphStore.setState({
+      pluginExporters: [
+        {
+          id: 'summary',
+          label: 'Summary Export',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 0,
+        },
+      ],
+    });
+
+    renderWithProviders();
+    fireEvent.click(screen.getByText('Summary Export'));
+
+    expect(postMessage).toHaveBeenCalledWith({
+      type: 'RUN_PLUGIN_EXPORT',
+      payload: {
+        pluginId: 'plugin.docs',
+        index: 0,
+      },
+    });
   });
 });

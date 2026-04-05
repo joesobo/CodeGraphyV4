@@ -175,10 +175,39 @@ describe('GraphStore message routing', () => {
     expect(store.getState().pluginContextMenuItems).toEqual(items);
   });
 
+  it('handles PLUGIN_EXPORTERS_UPDATED messages', () => {
+    const items = [
+      {
+        id: 'summary',
+        label: 'Summary Export',
+        pluginId: 'plugin.docs',
+        pluginName: 'Docs Plugin',
+        index: 0,
+        group: 'Reports',
+      },
+    ];
+
+    store.getState().handleExtensionMessage({
+      type: 'PLUGIN_EXPORTERS_UPDATED',
+      payload: { items },
+    });
+
+    expect(store.getState().pluginExporters).toEqual(items);
+  });
+
   it('ignores PLUGIN_WEBVIEW_INJECT messages without mutating state', () => {
     store.setState({
       pluginContextMenuItems: [
         { label: 'Existing', when: 'both', pluginId: 'plugin.existing', index: 0 },
+      ],
+      pluginExporters: [
+        {
+          id: 'existing',
+          label: 'Existing Export',
+          pluginId: 'plugin.existing',
+          pluginName: 'Existing Plugin',
+          index: 0,
+        },
       ],
       playbackSpeed: 2,
       dagMode: 'td',
@@ -197,6 +226,15 @@ describe('GraphStore message routing', () => {
 
     expect(store.getState().pluginContextMenuItems).toEqual([
       { label: 'Existing', when: 'both', pluginId: 'plugin.existing', index: 0 },
+    ]);
+    expect(store.getState().pluginExporters).toEqual([
+      {
+        id: 'existing',
+        label: 'Existing Export',
+        pluginId: 'plugin.existing',
+        pluginName: 'Existing Plugin',
+        index: 0,
+      },
     ]);
     expect(store.getState().playbackSpeed).toBe(2);
     expect(store.getState().dagMode).toBe('td');

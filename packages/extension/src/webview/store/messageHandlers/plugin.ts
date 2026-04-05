@@ -35,6 +35,12 @@ export function handleContextMenuItems(
   return { pluginContextMenuItems: message.payload.items };
 }
 
+export function handlePluginExportersUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_EXPORTERS_UPDATED' }>,
+): PartialState {
+  return { pluginExporters: message.payload.items };
+}
+
 export function handleDagModeUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>,
 ): PartialState {

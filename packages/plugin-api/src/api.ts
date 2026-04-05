@@ -28,6 +28,23 @@ export interface ExportRequest {
   successMessage?: string;
 }
 
+export interface IExporter {
+  /** Unique identifier within the plugin. */
+  id: string;
+
+  /** Human-readable label shown in the export menu. */
+  label: string;
+
+  /** Optional extra description for menus and docs. */
+  description?: string;
+
+  /** Optional menu grouping label. */
+  group?: string;
+
+  /** Export implementation. Usually calls `api.saveExport(...)`. */
+  run(): void | Promise<void>;
+}
+
 /**
  * The host API provided to v2 plugins via the `onLoad(api)` lifecycle hook.
  *
@@ -166,6 +183,11 @@ export interface CodeGraphyAPI {
    * in the graph canvas.
    */
   registerContextMenuItem(item: IContextMenuItem): Disposable;
+
+  /**
+   * Register an exporter that appears in the main export menu.
+   */
+  registerExporter(exporter: IExporter): Disposable;
 
   // ---------------------------------------------------------------------------
   // Webview messaging

@@ -1,6 +1,7 @@
 import type { EdgeDecoration, NodeDecoration } from '../../../../core/plugins/decoration/manager';
 import type { IPluginContextMenuItem } from '../../../../shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
+import type { IPluginExporterItem } from '../../../../shared/plugins/exporters';
 
 interface IContextMenuContribution {
   label: string;
@@ -13,6 +14,17 @@ interface IPluginApiWithContextMenu {
   readonly contextMenuItems: readonly IContextMenuContribution[];
 }
 
+interface IExporterContribution {
+  id: string;
+  label: string;
+  description?: string;
+  group?: string;
+}
+
+interface IPluginApiWithExporters {
+  readonly exporters: readonly IExporterContribution[];
+}
+
 interface IPluginWebviewContributions {
   scripts?: string[];
   styles?: string[];
@@ -21,6 +33,7 @@ interface IPluginWebviewContributions {
 interface IGraphViewPluginInfo {
   plugin: {
     id: string;
+    name?: string;
     webviewContributions?: IPluginWebviewContributions;
   };
 }
@@ -78,6 +91,33 @@ export function collectGraphViewContextMenuItems(
         icon: item.icon,
         group: item.group,
         pluginId: pluginInfo.plugin.id,
+        index,
+      });
+    }
+  }
+
+  return items;
+}
+
+export function collectGraphViewExporters(
+  pluginInfos: readonly IGraphViewPluginInfo[],
+  getPluginApi: (pluginId: string) => IPluginApiWithExporters | undefined,
+): IPluginExporterItem[] {
+  const items: IPluginExporterItem[] = [];
+
+  for (const pluginInfo of pluginInfos) {
+    const api = getPluginApi(pluginInfo.plugin.id);
+    if (!api) continue;
+
+    for (let index = 0; index < api.exporters.length; index += 1) {
+      const exporter = api.exporters[index];
+      items.push({
+        id: exporter.id,
+        label: exporter.label,
+        description: exporter.description,
+        group: exporter.group,
+        pluginId: pluginInfo.plugin.id,
+        pluginName: pluginInfo.plugin.name ?? pluginInfo.plugin.id,
         index,
       });
     }

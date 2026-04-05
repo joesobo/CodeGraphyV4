@@ -12,6 +12,10 @@ type GraphViewContextMenuPluginApi = {
   contextMenuItems: ReadonlyArray<{ action(target: unknown): Promise<void> | void }>;
 };
 
+type GraphViewExporterPluginApi = {
+  exporters: ReadonlyArray<{ run(): Promise<void> | void }>;
+};
+
 type GraphViewProviderPluginContext = Pick<
   GraphViewMessageListenerContext,
   | 'getPluginFilterPatterns'
@@ -27,12 +31,14 @@ type GraphViewProviderPluginContext = Pick<
   | 'sendCachedTimeline'
   | 'sendDecorations'
   | 'sendContextMenuItems'
+  | 'sendPluginExporters'
   | 'sendPluginWebviewInjections'
   | 'sendActiveFile'
   | 'waitForFirstWorkspaceReady'
   | 'notifyWebviewReady'
   | 'getInteractionPluginApi'
   | 'getContextMenuPluginApi'
+  | 'getExporterPluginApi'
   | 'emitEvent'
   | 'logError'
   | 'updateHiddenPluginGroups'
@@ -59,6 +65,7 @@ export function createGraphViewProviderMessagePluginContext(
     sendCachedTimeline: () => source._sendCachedTimeline(),
     sendDecorations: () => source._sendDecorations(),
     sendContextMenuItems: () => source._sendContextMenuItems(),
+    sendPluginExporters: () => source._sendPluginExporters?.(),
     sendPluginWebviewInjections: () => source._sendPluginWebviewInjections(),
     sendActiveFile: () => source._sendMessage({
       type: 'ACTIVE_FILE_UPDATED',
@@ -73,6 +80,10 @@ export function createGraphViewProviderMessagePluginContext(
     getContextMenuPluginApi: pluginId =>
       source._analyzer?.registry?.getPluginAPI(pluginId) as
         | GraphViewContextMenuPluginApi
+        | undefined,
+    getExporterPluginApi: pluginId =>
+      source._analyzer?.registry?.getPluginAPI(pluginId) as
+        | GraphViewExporterPluginApi
         | undefined,
     emitEvent: (event, payload) => {
       source._eventBus.emit(event, payload);

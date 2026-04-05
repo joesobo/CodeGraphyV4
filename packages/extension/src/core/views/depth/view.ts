@@ -137,6 +137,7 @@ export const depthGraphView: IView = {
   name: 'Depth Graph',
   icon: 'target',
   description: 'Shows a local graph around the focused file',
+  recomputeOn: ['focusedFile', 'depthLimit'],
   transform(data: IGraphData, context: IViewContext) {
     return filterDepthGraph(data, context);
   },

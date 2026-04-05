@@ -267,6 +267,20 @@ describe('createTypeScriptPlugin lifecycle', () => {
             },
           ],
         },
+        {
+          id: 'docs/Note.md->src/index.ts#reference',
+          from: 'docs/Note.md',
+          to: 'src/index.ts',
+          kind: 'reference',
+          sources: [
+            {
+              id: 'codegraphy.markdown:wikilink',
+              pluginId: 'codegraphy.markdown',
+              sourceId: 'wikilink',
+              label: 'Wikilinks',
+            },
+          ],
+        },
       ],
     };
 
@@ -296,6 +310,7 @@ describe('createTypeScriptPlugin lifecycle', () => {
     ]);
     expect(transformed.nodes.some(node => node.id === 'src/config.ts')).toBe(false);
     expect(transformed.nodes.some(node => node.id === 'src/unrelated.ts')).toBe(false);
+    expect(transformed.nodes.some(node => node.id === 'docs/Note.md')).toBe(false);
   });
 });
 

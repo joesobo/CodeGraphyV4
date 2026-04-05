@@ -16,6 +16,7 @@ export function createGraphViewProviderAnalysisMethodDelegates(
   | '_sendPluginStatuses'
   | '_sendDecorations'
   | '_sendContextMenuItems'
+  | '_sendPluginExporters'
   | '_sendPluginWebviewInjections'
   | '_analyzeAndSendData'
   | '_doAnalyzeAndSendData'
@@ -33,6 +34,7 @@ export function createGraphViewProviderAnalysisMethodDelegates(
     _sendPluginStatuses: () => owner._methodContainers.plugin._sendPluginStatuses(),
     _sendDecorations: () => owner._methodContainers.plugin._sendDecorations(),
     _sendContextMenuItems: () => owner._methodContainers.plugin._sendContextMenuItems(),
+    _sendPluginExporters: () => owner._methodContainers.plugin._sendPluginExporters(),
     _sendPluginWebviewInjections: () => owner._methodContainers.plugin._sendPluginWebviewInjections(),
     _analyzeAndSendData: () => owner._methodContainers.analysis._analyzeAndSendData(),
     _doAnalyzeAndSendData: (signal, requestId) =>

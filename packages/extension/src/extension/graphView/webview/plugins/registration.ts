@@ -31,6 +31,7 @@ export interface GraphViewExternalPluginRegistrationHandlers {
   refreshWebviewResourceRoots(): void;
   sendPluginStatuses(): void;
   sendContextMenuItems(): void;
+  sendPluginExporters?(): void;
   sendPluginWebviewInjections(): void;
   invalidateTimelineCache?(): Promise<void>;
   analyzeAndSendData(): Promise<void>;
@@ -73,6 +74,7 @@ export function registerGraphViewExternalPlugin(
   handlers.refreshWebviewResourceRoots();
   handlers.sendPluginStatuses();
   handlers.sendContextMenuItems();
+  handlers.sendPluginExporters?.();
   handlers.sendPluginWebviewInjections();
   void initializePromise.finally(async () => {
     if (shouldDeferReadinessReplay) {

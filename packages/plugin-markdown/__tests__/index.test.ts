@@ -1,7 +1,8 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import type { CodeGraphyAPI, IGraphData } from '@codegraphy-vscode/plugin-api';
 import { createMarkdownPlugin } from '../src';
 
 interface AnalyzeFile {
@@ -148,6 +149,67 @@ describe('createMarkdownPlugin', () => {
 
       expect(firstPass.map((conn) => conn.resolvedPath)).toEqual([targetA.absolutePath]);
       expect(secondPass.map((conn) => conn.resolvedPath)).toEqual([targetB.absolutePath]);
+    });
+  });
+
+  describe('exporter integration', () => {
+    it('registers a wikilink summary exporter on load and saves the markdown summary', async () => {
+      const plugin = createMarkdownPlugin();
+      const dispose = vi.fn();
+      const registerExporter = vi.fn(() => ({ dispose }));
+      const graph: IGraphData = {
+        nodes: [
+          { id: 'Home.md', label: 'Home.md', color: '#ffffff' },
+          { id: 'Guide.md', label: 'Guide.md', color: '#ffffff' },
+          { id: 'Orphan.md', label: 'Orphan.md', color: '#ffffff' },
+        ],
+        edges: [
+          { id: 'Home.md->Guide.md#reference', from: 'Home.md', to: 'Guide.md', kind: 'reference', sources: [] },
+          { id: 'Guide.md->Home.md#reference', from: 'Guide.md', to: 'Home.md', kind: 'reference', sources: [] },
+        ],
+      };
+      const referenceEdges = graph.edges;
+      const getGraph = vi.fn(() => graph);
+      const filterEdgesByKind = vi.fn((kind: IGraphData['edges'][number]['kind']) =>
+        kind === 'reference' ? referenceEdges : [],
+      );
+      const saveExport = vi.fn(async () => undefined);
+
+      const api = {
+        registerExporter,
+        getGraph,
+        filterEdgesByKind,
+        saveExport,
+      } as unknown as CodeGraphyAPI;
+
+      plugin.onLoad?.(api);
+
+      expect(registerExporter).toHaveBeenCalledOnce();
+      const exporter = registerExporter.mock.calls[0]?.[0];
+      expect(exporter?.id).toBe('wikilink-summary');
+      expect(exporter?.label).toBe('Wikilink Summary');
+
+      await exporter?.run();
+
+      expect(getGraph).toHaveBeenCalledOnce();
+      expect(filterEdgesByKind).toHaveBeenCalledWith('reference');
+      expect(saveExport).toHaveBeenCalledWith(
+        expect.objectContaining({
+          filename: 'wikilink-summary.md',
+          title: 'Export Wikilink Summary',
+          successMessage: 'Wikilink summary exported',
+        }),
+      );
+
+      const content = String(saveExport.mock.calls[0]?.[0]?.content ?? '');
+      expect(content).toContain('# Wikilink Summary');
+      expect(content).toContain('Most linked notes');
+      expect(content).toContain('Orphan notes');
+      expect(content).toContain('`Home.md`');
+      expect(content).toContain('`Orphan.md`');
+
+      plugin.onUnload?.();
+      expect(dispose).toHaveBeenCalledOnce();
     });
   });
 });

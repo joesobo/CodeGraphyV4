@@ -6,6 +6,7 @@ import { createActions } from './actions';
 import type { IGraphData } from '../../shared/graph/types';
 import type { IPluginContextMenuItem } from '../../shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/plugins/decorations';
+import type { IPluginExporterItem } from '../../shared/plugins/exporters';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../shared/settings/groups';
@@ -50,6 +51,7 @@ export interface GraphState {
   nodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;
   pluginContextMenuItems: IPluginContextMenuItem[];
+  pluginExporters: IPluginExporterItem[];
   activePanel: 'none' | 'settings' | 'plugins';
   maxFiles: number;
   activeFilePath: string | null;

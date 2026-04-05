@@ -22,6 +22,13 @@ import type { CodeGraphyAPI, IPlugin } from '@codegraphy-vscode/plugin-api';
 
 This package is type-only. Use `import type` in plugin code.
 
+Main seams in the current API:
+
+- graph queries backed by the host cache: `getGraph`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getSubgraph`, `findPath`
+- registrations: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`
+- host-side export saving: `saveExport`
+- graph/webview product surfaces: plugin slots, tooltip actions, and custom view transforms
+
 The published CodeGraphy marketplace plugins use the same API surface:
 
 - [CodeGraphy TypeScript/JavaScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-typescript)

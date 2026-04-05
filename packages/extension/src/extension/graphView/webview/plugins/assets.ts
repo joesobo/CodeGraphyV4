@@ -4,6 +4,7 @@ import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/exte
 import {
   buildGraphViewDecorationPayload,
   collectGraphViewContextMenuItems,
+  collectGraphViewExporters,
   collectGraphViewWebviewInjections,
 } from './messages';
 import {
@@ -15,6 +16,7 @@ interface GraphViewPluginRegistry {
   list(): Array<{
     plugin: {
       id: string;
+      name?: string;
       webviewContributions?: {
         scripts?: string[];
         styles?: string[];
@@ -27,6 +29,12 @@ interface GraphViewPluginRegistry {
           label: string;
           when: 'node' | 'edge' | 'both';
           icon?: string;
+          group?: string;
+        }>;
+        readonly exporters?: ReadonlyArray<{
+          id: string;
+          label: string;
+          description?: string;
           group?: string;
         }>;
       }
@@ -89,6 +97,27 @@ export function sendGraphViewContextMenuItems(
     (pluginId) => analyzer.registry.getPluginAPI(pluginId),
   );
   sendMessage({ type: 'CONTEXT_MENU_ITEMS', payload: { items } });
+}
+
+export function sendGraphViewPluginExporters(
+  analyzer: Pick<GraphViewPluginAnalyzer, 'registry'> | undefined,
+  sendMessage: (
+    message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_EXPORTERS_UPDATED' }>
+  ) => void,
+): void {
+  if (!analyzer) return;
+
+  const items = collectGraphViewExporters(
+    analyzer.registry.list(),
+    (pluginId) => {
+      const api = analyzer.registry.getPluginAPI(pluginId);
+      if (!api) return undefined;
+      return {
+        exporters: api.exporters ?? [],
+      };
+    },
+  );
+  sendMessage({ type: 'PLUGIN_EXPORTERS_UPDATED', payload: { items } });
 }
 
 export function sendGraphViewPluginWebviewInjections(

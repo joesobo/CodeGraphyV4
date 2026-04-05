@@ -40,6 +40,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   sendPluginStatuses(): void;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendPluginExporters?(): void;
   markWorkspaceReady(graphData: IGraphData): void;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;
@@ -113,6 +114,7 @@ export async function executeGraphViewAnalysis(
     handlers.sendPluginStatuses();
     handlers.sendDecorations();
     handlers.sendContextMenuItems();
+    handlers.sendPluginExporters?.();
     state.analyzer.registry.notifyPostAnalyze(graphData);
     handlers.markWorkspaceReady(graphData);
   } catch (error) {
@@ -123,6 +125,7 @@ export async function executeGraphViewAnalysis(
     handlers.logError('[CodeGraphy] Analysis failed:', error);
     const graphData = publishEmptyGraph(handlers);
     handlers.sendPluginStatuses();
+    handlers.sendPluginExporters?.();
     handlers.markWorkspaceReady(graphData);
   }
 }

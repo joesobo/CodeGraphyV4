@@ -90,10 +90,10 @@ export type {
 export type { IPlugin, IAnalysisFile } from './plugin';
 
 // Host API
-export type { CodeGraphyAPI, ExportRequest } from './api';
+export type { CodeGraphyAPI, ExportRequest, IExporter } from './api';
 
 // Views
-export type { IView, IViewContext } from './views';
+export type { IView, IViewContext, ViewDependency } from './views';
 
 // Commands
 export type { ICommand, IContextMenuItem } from './commands';

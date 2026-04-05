@@ -7,6 +7,7 @@ import {
 } from './pluginHiddenGroups';
 import { dispatchGraphViewPluginReadyMessage } from './pluginReady';
 import { applyPluginContextMenuAction } from '../pluginMessages/contextMenu';
+import { applyPluginExporterAction } from '../pluginMessages/exporter';
 import { applyPluginInteraction } from '../pluginMessages/interaction';
 
 export interface GraphViewPluginMessageContext {
@@ -35,6 +36,7 @@ export interface GraphViewPluginMessageContext {
   sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendPluginExporters?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
@@ -44,6 +46,9 @@ export interface GraphViewPluginMessageContext {
     | undefined;
   getContextMenuPluginApi(pluginId: string):
     | { contextMenuItems: ReadonlyArray<{ action(target: unknown): Promise<void> | void }> }
+    | undefined;
+  getExporterPluginApi?(pluginId: string):
+    | { exporters: ReadonlyArray<{ run(): Promise<void> | void }> }
     | undefined;
   emitEvent(event: string, payload: unknown): void;
   findNode(targetId: string): unknown;
@@ -81,6 +86,13 @@ export async function dispatchGraphViewPluginMessage(
         getPluginApi: pluginId => context.getContextMenuPluginApi(pluginId),
         findNode: targetId => context.findNode(targetId),
         findEdge: targetId => context.findEdge(targetId),
+        logError: (label, error) => context.logError(label, error),
+      });
+      return { handled: true };
+
+    case 'RUN_PLUGIN_EXPORT':
+      await applyPluginExporterAction(message.payload, {
+        getPluginApi: pluginId => context.getExporterPluginApi?.(pluginId),
         logError: (label, error) => context.logError(label, error),
       });
       return { handled: true };

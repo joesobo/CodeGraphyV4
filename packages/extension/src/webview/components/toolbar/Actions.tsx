@@ -22,6 +22,28 @@ import { postMessage } from '../../vscodeApi';
 
 export function ToolbarActions(): React.ReactElement {
   const setActivePanel = useGraphStore(s => s.setActivePanel);
+  const pluginExporters = useGraphStore(s => s.pluginExporters);
+  const pluginExporterGroups = pluginExporters.reduce<Array<{
+    key: string;
+    label: string;
+    items: typeof pluginExporters;
+  }>>((groups, exporter) => {
+    const label = exporter.group
+      ? `${exporter.pluginName} / ${exporter.group}`
+      : exporter.pluginName;
+    const existing = groups.find(group => group.key === label);
+    if (existing) {
+      existing.items.push(exporter);
+      return groups;
+    }
+
+    groups.push({
+      key: label,
+      label,
+      items: [exporter],
+    });
+    return groups;
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -75,6 +97,31 @@ export function ToolbarActions(): React.ReactElement {
           <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_MD' }, '*')}>
             Export as Markdown
           </DropdownMenuItem>
+          {pluginExporterGroups.length > 0 && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Plugins</DropdownMenuLabel>
+              {pluginExporterGroups.map(group => (
+                <React.Fragment key={group.key}>
+                  <DropdownMenuLabel>{group.label}</DropdownMenuLabel>
+                  {group.items.map(item => (
+                    <DropdownMenuItem
+                      key={`${item.pluginId}:${item.id}:${item.index}`}
+                      onSelect={() => postMessage({
+                        type: 'RUN_PLUGIN_EXPORT',
+                        payload: {
+                          pluginId: item.pluginId,
+                          index: item.index,
+                        },
+                      })}
+                    >
+                      {item.label}
+                    </DropdownMenuItem>
+                  ))}
+                </React.Fragment>
+              ))}
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

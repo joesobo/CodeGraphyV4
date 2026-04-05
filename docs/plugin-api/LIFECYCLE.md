@@ -59,7 +59,21 @@ onLoad(api: CodeGraphyAPI) {
     name: 'My View',
     icon: 'graph',
     description: 'A custom graph view',
+    recomputeOn: ['focusedFile'],
     transform(data, context) { return data; },
+  });
+
+  // Register an exporter
+  api.registerExporter({
+    id: 'my-plugin.export.summary',
+    label: 'Summary Export',
+    async run() {
+      const graph = api.getGraph();
+      await api.saveExport({
+        filename: 'summary.json',
+        content: JSON.stringify(graph, null, 2),
+      });
+    },
   });
 }
 ```
@@ -166,6 +180,7 @@ onLoad(api: CodeGraphyAPI) {
   api.registerView(myView);
   api.registerCommand(myCommand);
   api.registerContextMenuItem(myMenuItem);
+  api.registerExporter(myExporter);
   api.decorateNode('file.ts', decoration);
 
   // Manual disposal if needed during runtime:
@@ -205,6 +220,17 @@ export function createMetricsPlugin(): IPlugin {
         label: 'View Metrics',
         when: 'node',
         action: (node) => showMetricsPanel(node),
+      });
+
+      api.registerExporter({
+        id: 'codegraphy-metrics.export',
+        label: 'Metrics Snapshot',
+        async run() {
+          await api.saveExport({
+            filename: 'metrics.json',
+            content: JSON.stringify(api.getGraph(), null, 2),
+          });
+        },
       });
     },
 

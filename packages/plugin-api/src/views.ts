@@ -6,6 +6,10 @@
 
 import type { IGraphData } from './graph';
 
+export type ViewDependency =
+  | 'focusedFile'
+  | 'depthLimit';
+
 /**
  * A view that transforms graph data into a specific visualization.
  *
@@ -55,6 +59,12 @@ export interface IView {
    * Core views should leave this undefined.
    */
   pluginId?: string;
+
+  /**
+   * Declares which context changes should re-run this view's transform
+   * while it is active.
+   */
+  recomputeOn?: readonly ViewDependency[];
 
   /**
    * Transforms the base graph data into the view's representation.

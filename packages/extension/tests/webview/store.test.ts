@@ -146,6 +146,22 @@ describe('GraphStore', () => {
     expect(store.getState().pluginStatuses).toEqual(plugins);
   });
 
+  it('handles PLUGIN_EXPORTERS_UPDATED message', () => {
+    const items = [{
+      id: 'summary',
+      label: 'Summary Export',
+      pluginId: 'plugin.docs',
+      pluginName: 'Docs Plugin',
+      index: 0,
+      group: 'Reports',
+    }];
+    store.getState().handleExtensionMessage({
+      type: 'PLUGIN_EXPORTERS_UPDATED',
+      payload: { items },
+    });
+    expect(store.getState().pluginExporters).toEqual(items);
+  });
+
   it('handles MAX_FILES_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'MAX_FILES_UPDATED',

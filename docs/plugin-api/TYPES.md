@@ -28,6 +28,9 @@ import type {
   ICommand,
   IContextMenuItem,
   Disposable,
+  ExportRequest,
+  IExporter,
+  ViewDependency,
 } from '@codegraphy-vscode/plugin-api';
 
 import type {
@@ -69,9 +72,10 @@ Defined in `api.ts`.
 Main groups:
 - Events: `on`, `once`, `off`
 - Decorations: `decorateNode`, `decorateEdge`, `clearDecorations`
-- Graph queries: `getGraph`, `getNode`, `getNeighbors`, `getEdgesFor`
-- Registration: `registerView`, `registerCommand`, `registerContextMenuItem`
+- Graph queries: `getGraph`, `getNode`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getEdgesFor`, `filterEdgesByKind`, `getSubgraph`, `findPath`
+- Registration: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`
 - Tier 2 bridge: `sendToWebview`, `onWebviewMessage`
+- Export saving: `saveExport`
 - Utilities: `getWorkspaceRoot`, `log`
 
 ## Data Types
@@ -80,13 +84,15 @@ Main groups:
 
 - `IConnectionSource`
 - `IConnectionDetector<TContext>`
-- `IConnection` with `type: 'static' | 'dynamic' | 'require' | 'reexport'`
+- `IConnection` with `kind`, `sourceId`, optional `type`, optional `variant`, and scalar-only `metadata`
 
 ### Graph (`graph.ts`)
 
 - `IGraphNode` (id/label/color + optional position/favorite/size/access/depth fields)
-- `IGraphEdge` (`id`, `from`, `to`, optional `sourceId`)
+- `IGraphEdge` (`id`, `from`, `to`, `kind`, `sources[]`)
+- `IGraphEdgeSource` (`id`, `pluginId`, `sourceId`, `label`, optional `variant`, optional scalar `metadata`)
 - `IGraphData` (`nodes`, `edges`)
+- `GraphEdgeKind` = reserved core kinds plus namespaced custom kinds (`pluginId:kind`)
 
 ### Decorations (`decorations.ts`)
 
@@ -96,8 +102,9 @@ Main groups:
 
 ### Views and Commands
 
-- `IView`, `IViewContext` in `views.ts`
+- `IView`, `IViewContext`, `ViewDependency` in `views.ts`
 - `ICommand`, `IContextMenuItem` in `commands.ts`
+- `IExporter`, `ExportRequest` in `api.ts`
 - `Disposable` in `disposable.ts`
 
 ## Webview Types (Tier 2)

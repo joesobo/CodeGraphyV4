@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   buildGraphViewDecorationPayload,
   collectGraphViewContextMenuItems,
+  collectGraphViewExporters,
   collectGraphViewWebviewInjections,
 } from '../../../../../src/extension/graphView/webview/plugins/messages';
 
@@ -116,6 +117,45 @@ describe('graphView/webview/plugins/messages', () => {
       },
     ]);
     expect(resolveAssetPath).toHaveBeenCalledTimes(2);
+  });
+
+  it('collects plugin exporters with plugin-scoped indexes', () => {
+    const items = collectGraphViewExporters(
+      [
+        { plugin: { id: 'plugin.test', name: 'Test Plugin' } },
+        { plugin: { id: 'plugin.other', name: 'Other Plugin' } },
+      ],
+      (pluginId) => {
+        if (pluginId !== 'plugin.test') return undefined;
+        return {
+          exporters: [
+            { id: 'summary', label: 'Summary Export' },
+            { id: 'trace', label: 'Trace Export', description: 'Detailed trace', group: 'Debug' },
+          ],
+        };
+      },
+    );
+
+    expect(items).toEqual([
+      {
+        id: 'summary',
+        label: 'Summary Export',
+        description: undefined,
+        group: undefined,
+        pluginId: 'plugin.test',
+        pluginName: 'Test Plugin',
+        index: 0,
+      },
+      {
+        id: 'trace',
+        label: 'Trace Export',
+        description: 'Detailed trace',
+        group: 'Debug',
+        pluginId: 'plugin.test',
+        pluginName: 'Test Plugin',
+        index: 1,
+      },
+    ]);
   });
 
   it('collects style-only webview injections when scripts are omitted', () => {

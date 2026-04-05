@@ -18,6 +18,7 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
     graphMode: '2d',
     depthLimit: 1,
     activePanel: 'none',
+    pluginExporters: [],
     ...overrides,
   });
 }
