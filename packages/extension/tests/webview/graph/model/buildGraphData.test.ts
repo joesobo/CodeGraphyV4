@@ -28,7 +28,7 @@ describe('graph/model/build', () => {
     expect(graphData.nodes.find(node => node.id === 'favorite.ts')?.size).toBe(40);
     expect(graphData.links).toEqual([
       expect.objectContaining({
-        id: 'favorite.ts<->focus.ts',
+        id: 'favorite.ts<->focus.ts#import',
         bidirectional: true,
         baseColor: '#60a5fa',
       }),

@@ -206,8 +206,8 @@ describe('folderView', () => {
 
     const edgeIds = result.edges.map(e => e.id).sort();
     expect(edgeIds).toEqual([
-      'src->src/utils',
-      'src/utils->src/utils/helper.ts',
+      'src->src/utils#codegraphy:contains',
+      'src/utils->src/utils/helper.ts#codegraphy:contains',
     ]);
   });
 

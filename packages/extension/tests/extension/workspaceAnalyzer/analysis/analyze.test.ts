@@ -13,7 +13,7 @@ function createSource() {
     >(async () => new Map()),
     _buildGraphData: vi.fn<() => IGraphData>(() => ({
       nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
-      edges: [{ id: 'src/index.ts->src/utils.ts', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
+      edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     } satisfies IGraphData)),
     _eventBus: { emit },
     _lastDiscoveredFiles: [] as IDiscoveredFile[],
@@ -87,7 +87,7 @@ describe('workspaceAnalyzer/analysis/analyze', () => {
     const fileConnections = new Map<string, IConnection[]>([['src/index.ts', []]]);
     const graphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
-      edges: [{ id: 'src/index.ts->src/utils.ts', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
+      edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     };
 
     dependencies.discover.mockResolvedValue({
