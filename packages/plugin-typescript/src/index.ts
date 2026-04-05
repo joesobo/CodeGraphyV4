@@ -5,7 +5,16 @@
  * @module plugins/typescript
  */
 
-import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
+import type {
+  CodeGraphyAPI,
+  Disposable,
+  IConnection,
+  IGraphData,
+  IGraphNode,
+  IPlugin,
+  IView,
+  IViewContext,
+} from '@codegraphy-vscode/plugin-api';
 import { PathResolver } from './PathResolver';
 import { loadTsConfig } from './tsconfig';
 import manifest from '../codegraphy.json';
@@ -18,6 +27,97 @@ import { detect as detectCommonjsRequire } from './sources/commonjs-require';
 
 export { PathResolver } from './PathResolver';
 export type { IPathResolverConfig } from './PathResolver';
+
+const TS_FOCUSED_IMPORT_VIEW_ID = 'codegraphy.typescript.focused-imports';
+const TS_FOCUSED_IMPORT_VIEW_NAME = 'Focused Imports';
+
+function buildUndirectedAdjacencyList(data: IGraphData): Map<string, Set<string>> {
+  const adjacencyList = new Map<string, Set<string>>();
+
+  for (const node of data.nodes) {
+    adjacencyList.set(node.id, new Set());
+  }
+
+  for (const edge of data.edges) {
+    adjacencyList.get(edge.from)?.add(edge.to);
+    adjacencyList.get(edge.to)?.add(edge.from);
+  }
+
+  return adjacencyList;
+}
+
+function walkDepthFromNode(
+  rootNodeId: string,
+  depthLimit: number,
+  adjacencyList: Map<string, Set<string>>,
+): Map<string, number> {
+  const depths = new Map<string, number>();
+
+  if (!adjacencyList.has(rootNodeId)) {
+    return depths;
+  }
+
+  const queue: Array<{ nodeId: string; depth: number }> = [{ nodeId: rootNodeId, depth: 0 }];
+  depths.set(rootNodeId, 0);
+
+  for (let index = 0; index < queue.length; index += 1) {
+    const current = queue[index];
+    if (!current) continue;
+
+    if (current.depth >= depthLimit) {
+      continue;
+    }
+
+    for (const neighbor of adjacencyList.get(current.nodeId) ?? []) {
+      if (depths.has(neighbor)) continue;
+      const nextDepth = current.depth + 1;
+      depths.set(neighbor, nextDepth);
+      queue.push({ nodeId: neighbor, depth: nextDepth });
+    }
+  }
+
+  return depths;
+}
+
+function filterFocusedImportGraph(data: IGraphData, context: IViewContext): IGraphData {
+  const focusedFile = context.focusedFile;
+  if (!focusedFile) {
+    return data;
+  }
+
+  const adjacencyList = buildUndirectedAdjacencyList(data);
+  const depthLimit = Math.max(1, context.depthLimit ?? 1);
+  const depths = walkDepthFromNode(focusedFile, depthLimit, adjacencyList);
+  if (depths.size === 0) {
+    return data;
+  }
+
+  const includedNodeIds = new Set(depths.keys());
+  const nodes: IGraphNode[] = data.nodes
+    .filter(node => includedNodeIds.has(node.id))
+    .map(node => ({
+      ...node,
+      depthLevel: depths.get(node.id),
+    }));
+  const edges = data.edges.filter(
+    edge => includedNodeIds.has(edge.from) && includedNodeIds.has(edge.to),
+  );
+
+  return { nodes, edges };
+}
+
+function createFocusedImportView(): IView {
+  return {
+    id: TS_FOCUSED_IMPORT_VIEW_ID,
+    name: TS_FOCUSED_IMPORT_VIEW_NAME,
+    icon: 'symbol-file',
+    description: 'Shows the import neighborhood around the focused file',
+    recomputeOn: ['focusedFile', 'depthLimit'],
+    transform(data: IGraphData, context: IViewContext): IGraphData {
+      return filterFocusedImportGraph(data, context);
+    },
+  };
+}
 
 /**
  * Built-in plugin for TypeScript and JavaScript files.
@@ -35,6 +135,7 @@ export type { IPathResolverConfig } from './PathResolver';
  */
 export function createTypeScriptPlugin(): IPlugin {
   let resolver: PathResolver | null = null;
+  let focusedImportViewDisposable: Disposable | null = null;
 
   return {
     id: manifest.id,
@@ -45,6 +146,10 @@ export function createTypeScriptPlugin(): IPlugin {
     defaultFilters: manifest.defaultFilters,
     sources: manifest.sources,
     fileColors: manifest.fileColors,
+    onLoad(api: CodeGraphyAPI): void {
+      focusedImportViewDisposable?.dispose();
+      focusedImportViewDisposable = api.registerView(createFocusedImportView());
+    },
     async initialize(workspaceRoot: string): Promise<void> {
       const config = loadTsConfig(workspaceRoot);
       resolver = new PathResolver(workspaceRoot, config);
@@ -73,6 +178,8 @@ export function createTypeScriptPlugin(): IPlugin {
     },
 
     onUnload(): void {
+      focusedImportViewDisposable?.dispose();
+      focusedImportViewDisposable = null;
       resolver = null;
     },
   };

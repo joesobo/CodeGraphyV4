@@ -10,6 +10,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { createTypeScriptPlugin } from '../src';
 import * as tsconfig from '../src/tsconfig';
+import type { CodeGraphyAPI, IGraphData } from '@codegraphy-vscode/plugin-api';
 
 const TS_EXAMPLE_ROOT = path.join(__dirname, '../examples');
 
@@ -173,6 +174,128 @@ describe('createTypeScriptPlugin lifecycle', () => {
     // After unload, detectConnections must have called loadTsConfig once more
     expect(loadSpy.mock.calls.length).toBeGreaterThan(callCountAfterInit);
     loadSpy.mockRestore();
+  });
+
+  it('registers a focused imports view on load', () => {
+    const plugin = createTypeScriptPlugin();
+    const registerView = vi.fn(() => ({ dispose: vi.fn() }));
+    const api = { registerView } as unknown as Pick<CodeGraphyAPI, 'registerView'>;
+
+    plugin.onLoad?.(api as CodeGraphyAPI);
+
+    expect(registerView).toHaveBeenCalledOnce();
+    const view = registerView.mock.calls[0]?.[0];
+    expect(view).toMatchObject({
+      id: 'codegraphy.typescript.focused-imports',
+      name: 'Focused Imports',
+      icon: 'symbol-file',
+      description: 'Shows the import neighborhood around the focused file',
+      recomputeOn: ['focusedFile', 'depthLimit'],
+    });
+  });
+
+  it('filters the graph around the focused file when the view transforms data', () => {
+    const plugin = createTypeScriptPlugin();
+    const registerView = vi.fn(() => ({ dispose: vi.fn() }));
+    const api = { registerView } as unknown as Pick<CodeGraphyAPI, 'registerView'>;
+
+    plugin.onLoad?.(api as CodeGraphyAPI);
+
+    const view = registerView.mock.calls[0]?.[0];
+    const graphData: IGraphData = {
+      nodes: [
+        { id: 'src/index.ts', label: 'index.ts', color: '#fff' },
+        { id: 'src/components/App.tsx', label: 'App.tsx', color: '#fff' },
+        { id: 'src/utils/helpers.ts', label: 'helpers.ts', color: '#fff' },
+        { id: 'src/config.ts', label: 'config.ts', color: '#fff' },
+        { id: 'src/unrelated.ts', label: 'unrelated.ts', color: '#fff' },
+      ],
+      edges: [
+        {
+          id: 'src/index.ts->src/components/App.tsx#import',
+          from: 'src/index.ts',
+          to: 'src/components/App.tsx',
+          kind: 'import',
+          sources: [
+            {
+              id: 'codegraphy.typescript:es6-import',
+              pluginId: 'codegraphy.typescript',
+              sourceId: 'es6-import',
+              label: 'ES6 Imports',
+            },
+          ],
+        },
+        {
+          id: 'src/index.ts->src/utils/helpers.ts#import',
+          from: 'src/index.ts',
+          to: 'src/utils/helpers.ts',
+          kind: 'import',
+          sources: [
+            {
+              id: 'codegraphy.typescript:es6-import',
+              pluginId: 'codegraphy.typescript',
+              sourceId: 'es6-import',
+              label: 'ES6 Imports',
+            },
+          ],
+        },
+        {
+          id: 'src/utils/helpers.ts->src/config.ts#import',
+          from: 'src/utils/helpers.ts',
+          to: 'src/config.ts',
+          kind: 'import',
+          sources: [
+            {
+              id: 'codegraphy.typescript:es6-import',
+              pluginId: 'codegraphy.typescript',
+              sourceId: 'es6-import',
+              label: 'ES6 Imports',
+            },
+          ],
+        },
+        {
+          id: 'src/unrelated.ts->src/config.ts#import',
+          from: 'src/unrelated.ts',
+          to: 'src/config.ts',
+          kind: 'import',
+          sources: [
+            {
+              id: 'codegraphy.typescript:es6-import',
+              pluginId: 'codegraphy.typescript',
+              sourceId: 'es6-import',
+              label: 'ES6 Imports',
+            },
+          ],
+        },
+      ],
+    };
+
+    const transformed = view.transform(graphData, {
+      activePlugins: new Set(),
+      focusedFile: 'src/index.ts',
+      depthLimit: 1,
+    });
+
+    expect(transformed.nodes.map(node => node.id)).toEqual([
+      'src/index.ts',
+      'src/components/App.tsx',
+      'src/utils/helpers.ts',
+    ]);
+    expect(transformed.nodes.find(node => node.id === 'src/index.ts')?.depthLevel).toBe(0);
+    expect(transformed.nodes.find(node => node.id === 'src/components/App.tsx')?.depthLevel).toBe(1);
+    expect(transformed.nodes.find(node => node.id === 'src/utils/helpers.ts')?.depthLevel).toBe(1);
+    expect(transformed.edges).toEqual([
+      expect.objectContaining({
+        from: 'src/index.ts',
+        to: 'src/components/App.tsx',
+      }),
+      expect.objectContaining({
+        from: 'src/index.ts',
+        to: 'src/utils/helpers.ts',
+      }),
+    ]);
+    expect(transformed.nodes.some(node => node.id === 'src/config.ts')).toBe(false);
+    expect(transformed.nodes.some(node => node.id === 'src/unrelated.ts')).toBe(false);
   });
 });
 
