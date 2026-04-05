@@ -71,7 +71,8 @@ describe('DepthViewControls', () => {
     expect(screen.getByTestId('depth-view-value')).toBeInTheDocument();
     expect(screen.getByText('Depth')).toBeInTheDocument();
     expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('4')).toBeInTheDocument();
+    expect(screen.getByTestId('depth-view-max')).toHaveTextContent('4');
+    expect(screen.queryByText('1')).not.toBeInTheDocument();
   });
 
   it('posts CHANGE_DEPTH_LIMIT when the slider changes', () => {
@@ -90,5 +91,22 @@ describe('DepthViewControls', () => {
       type: 'CHANGE_DEPTH_LIMIT',
       payload: { depthLimit: 4 },
     });
+  });
+
+  it('renders a compact icon and value pill when only one depth is available', () => {
+    graphStore.setState({
+      activeViewId: 'codegraphy.depth-graph',
+      depthLimit: 3,
+      maxDepthLimit: 1,
+    });
+
+    render(<DepthViewControls />);
+
+    expect(screen.getByTestId('depth-view-controls')).toBeInTheDocument();
+    expect(screen.getByTestId('depth-view-compact')).toBeInTheDocument();
+    expect(screen.getByTestId('depth-view-value')).toHaveTextContent('1');
+    expect(screen.queryByTestId('depth-view-slider')).not.toBeInTheDocument();
+    expect(screen.queryByText('Depth')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('depth-view-max')).not.toBeInTheDocument();
   });
 });

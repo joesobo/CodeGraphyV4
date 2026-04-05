@@ -13,6 +13,7 @@ export function DepthViewControls(): React.ReactElement | null {
   const depthLimit = useGraphStore(state => state.depthLimit);
   const maxDepthLimit = useGraphStore(state => state.maxDepthLimit);
   const effectiveDepthLimit = Math.min(depthLimit, maxDepthLimit);
+  const isCompactControl = maxDepthLimit === MIN_DEPTH;
 
   if (activeViewId !== ACTIVE_VIEW_ID) {
     return null;
@@ -30,40 +31,57 @@ export function DepthViewControls(): React.ReactElement | null {
     >
       <div
         data-testid="depth-view-shell"
-        className="pointer-events-auto flex w-full max-w-md items-center gap-2 rounded-lg bg-[color:color-mix(in_srgb,var(--vscode-editorWidget-background,#1f1f1f)_84%,transparent)] px-2.5 py-1 shadow-[0_10px_28px_rgba(0,0,0,0.22)] backdrop-blur-md"
+        className="pointer-events-auto flex w-full max-w-sm items-center gap-2 rounded-md bg-[color:color-mix(in_srgb,var(--vscode-editorWidget-background,#1f1f1f)_86%,transparent)] px-2 py-1 shadow-[0_10px_24px_rgba(0,0,0,0.18)] backdrop-blur-md"
       >
-        <div className="flex shrink-0 items-center gap-1.5 px-0.5">
-          <MdiIcon path={mdiBullseye} size={13} className="text-primary/85" />
-          <div className="text-[9px] font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-            Depth
-          </div>
+        {isCompactControl ? (
           <div
-            data-testid="depth-view-value"
-            className="inline-flex min-w-4 items-center justify-center text-[11px] font-semibold leading-none text-foreground"
+            data-testid="depth-view-compact"
+            className="flex items-center gap-1.5 px-0.5"
           >
-            {effectiveDepthLimit}
+            <MdiIcon path={mdiBullseye} size={13} className="text-primary/85" />
+            <div
+              data-testid="depth-view-value"
+              className="inline-flex min-w-4 items-center justify-center text-[11px] font-semibold leading-none tabular-nums text-foreground"
+            >
+              {effectiveDepthLimit}
+            </div>
           </div>
-        </div>
-        <div className="flex flex-1 items-center gap-1.5 px-0.5">
-          <span className="text-[9px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-            {MIN_DEPTH}
-          </span>
-          <Slider
-            data-testid="depth-view-slider"
-            aria-label="Depth limit"
-            className="flex-1"
-            min={MIN_DEPTH}
-            max={maxDepthLimit}
-            step={1}
-            value={[effectiveDepthLimit]}
-            onValueChange={handleDepthChange}
-            trackClassName="h-1 bg-primary/15"
-            thumbClassName="h-3 w-3 border-0 bg-primary shadow-[0_0_0_1px_rgba(15,23,42,0.16),0_2px_6px_rgba(15,23,42,0.28)] focus-visible:ring-[1.5px]"
-          />
-          <span className="text-[9px] font-medium uppercase tracking-[0.16em] text-muted-foreground">
-            {maxDepthLimit}
-          </span>
-        </div>
+        ) : (
+          <>
+            <div className="flex shrink-0 items-center gap-1.5 px-0.5">
+              <MdiIcon path={mdiBullseye} size={13} className="text-primary/85" />
+              <div className="text-[9px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Depth
+              </div>
+              <div
+                data-testid="depth-view-value"
+                className="inline-flex min-w-4 items-center justify-center text-[11px] font-semibold leading-none tabular-nums text-foreground"
+              >
+                {effectiveDepthLimit}
+              </div>
+            </div>
+            <div className="flex flex-1 items-center gap-1.5 px-0.5">
+              <Slider
+                data-testid="depth-view-slider"
+                aria-label="Depth limit"
+                className="flex-1"
+                min={MIN_DEPTH}
+                max={maxDepthLimit}
+                step={1}
+                value={[effectiveDepthLimit]}
+                onValueChange={handleDepthChange}
+                trackClassName="h-1 bg-primary/15"
+                thumbClassName="h-3 w-3 border-0 bg-primary shadow-[0_0_0_1px_rgba(15,23,42,0.16),0_2px_6px_rgba(15,23,42,0.28)] focus-visible:ring-[1.5px]"
+              />
+              <span
+                data-testid="depth-view-max"
+                className="text-[10px] font-medium leading-none tabular-nums text-muted-foreground"
+              >
+                {maxDepthLimit}
+              </span>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
