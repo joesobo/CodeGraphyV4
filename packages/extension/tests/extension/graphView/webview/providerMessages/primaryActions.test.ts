@@ -15,6 +15,7 @@ describe('graph view provider listener primary actions', () => {
 
     await actions.openSelectedNode('src/app.ts');
     await actions.activateNode('src/app.ts');
+    actions.setFocusedFile('src/app.ts');
     await actions.previewFileAtCommit('sha-1', 'src/app.ts');
     await actions.openFile('src/app.ts');
     await actions.revealInExplorer('src/app.ts');
@@ -28,6 +29,7 @@ describe('graph view provider listener primary actions', () => {
 
     expect(source._openSelectedNode).toHaveBeenCalledWith('src/app.ts');
     expect(source._activateNode).toHaveBeenCalledWith('src/app.ts');
+    expect(source.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(source._previewFileAtCommit).toHaveBeenCalledWith('sha-1', 'src/app.ts');
     expect(source._openFile).toHaveBeenCalledWith('src/app.ts');
     expect(source._revealInExplorer).toHaveBeenCalledWith('src/app.ts');
@@ -142,6 +144,7 @@ function createSource() {
   return {
     _openSelectedNode: vi.fn(() => Promise.resolve()),
     _activateNode: vi.fn(() => Promise.resolve()),
+    setFocusedFile: vi.fn(),
     _previewFileAtCommit: vi.fn(() => Promise.resolve()),
     _openFile: vi.fn(() => Promise.resolve()),
     _revealInExplorer: vi.fn(() => Promise.resolve()),

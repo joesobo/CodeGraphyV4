@@ -5,6 +5,7 @@ function createHandlers() {
   return {
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
+    sendAvailableViews: vi.fn(),
     analyzeAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
@@ -44,6 +45,7 @@ describe('graph view ready message', () => {
 
     expect(handlers.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(handlers.loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
+    expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
     expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
     expect(handlers.sendFavorites).toHaveBeenCalledOnce();
     expect(handlers.sendSettings).toHaveBeenCalledOnce();
@@ -83,6 +85,38 @@ describe('graph view ready message', () => {
     });
     expect(handlers.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(readyNotified).toBe(true);
+  });
+
+  it('sends available views before kicking off analysis', async () => {
+    const callOrder: string[] = [];
+    const handlers = createHandlers();
+    handlers.sendAvailableViews.mockImplementation(() => {
+      callOrder.push('views');
+    });
+    handlers.analyzeAndSendData.mockImplementation(() => {
+      callOrder.push('analyze');
+    });
+
+    await applyWebviewReady(
+      {
+        filterPatterns: [],
+        pluginFilterPatterns: [],
+        maxFiles: 500,
+        playbackSpeed: 1,
+        dagMode: null,
+        nodeSizeMode: 'connections',
+        folderNodeColor: '#111111',
+        focusedFile: undefined,
+        hasWorkspace: true,
+        firstAnalysis: true,
+        readyNotified: false,
+      },
+      handlers
+    );
+
+    expect(callOrder.indexOf('views')).toBeGreaterThanOrEqual(0);
+    expect(callOrder.indexOf('analyze')).toBeGreaterThanOrEqual(0);
+    expect(callOrder.indexOf('views')).toBeLessThan(callOrder.indexOf('analyze'));
   });
 
   it('waits for workspace readiness during the first workspace-backed analysis', async () => {

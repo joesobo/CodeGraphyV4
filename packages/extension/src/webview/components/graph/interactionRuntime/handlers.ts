@@ -21,6 +21,7 @@ import { createSelectionHandlers } from './selection';
 import { createViewHandlers } from './view';
 
 export interface GraphInteractionHandlersDependencies {
+  activeViewId: string;
   containerRef: MutableRefObject<HTMLDivElement | null>;
   dataRef: MutableRefObject<IGraphData>;
   fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;

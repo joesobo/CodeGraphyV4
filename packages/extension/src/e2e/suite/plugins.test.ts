@@ -10,11 +10,14 @@
  */
 import * as assert from 'assert';
 import * as vscode from 'vscode';
+import { getCurrentE2EScenario } from '../scenarios';
 
 interface CodeGraphyAPI {
   getGraphData(): import('../../shared/graph/types').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
+  dispatchWebviewMessage(message: unknown): Promise<void>;
+  onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -27,33 +30,41 @@ async function getAPI(): Promise<CodeGraphyAPI> {
   return ext.activate();
 }
 
-// ── TypeScript plugin ──────────────────────────────────────────────────────
+const scenario = getCurrentE2EScenario();
+const pluginSuiteName = `Plugin: ${scenario.name}`;
 
-suite('Plugin: TypeScript', function () {
+// ── Active plugin scenario ─────────────────────────────────────────────────
+
+suite(pluginSuiteName, function () {
   this.timeout(60_000);
 
-  test('TypeScript fixture files appear as graph nodes', async function() {
+  test('scenario fixture files appear as graph nodes', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(5_000);
 
     const graphData = api.getGraphData();
-    assert.ok(graphData.nodes.length > 0, 'Expected TypeScript nodes in the graph');
+    assert.ok(graphData.nodes.length > 0, `Expected ${scenario.name} nodes in the graph`);
 
-    // The default fixture workspace contains .ts files
-    const tsNodes = graphData.nodes.filter(
-      (n) => typeof n.id === 'string' && n.id.endsWith('.ts')
+    const scenarioNodes = graphData.nodes.filter(
+      (n) => typeof n.id === 'string' && n.id.endsWith(scenario.graphNodeExtension)
     );
-    assert.ok(tsNodes.length > 0, `Expected .ts nodes, found: ${graphData.nodes.map(n => n.id).join(', ')}`);
+    assert.ok(
+      scenarioNodes.length > 0,
+      `Expected ${scenario.graphNodeExtension} nodes, found: ${graphData.nodes.map(n => n.id).join(', ')}`
+    );
   });
 
-  test('TypeScript import edges are detected', async function() {
+  test('scenario import edges are detected', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(5_000);
 
     const graphData = api.getGraphData();
-    assert.ok(graphData.edges.length > 0, 'Expected at least one edge between TypeScript files');
+    const edgeIds = graphData.edges.map((edge) => String(edge.id));
+    for (const edgeId of scenario.minimumExpectedEdgeIds) {
+      assert.ok(edgeIds.includes(edgeId), `Expected edge '${edgeId}' in ${scenario.name} graph`);
+    }
   });
 
   test('node IDs are workspace-relative paths (no absolute paths)', async function() {
@@ -83,7 +94,10 @@ suite('Plugin: View switching', function () {
     await sleep(3_000);
 
     // Send the CHANGE_VIEW message
-    api.sendToWebview({ type: 'CHANGE_VIEW', payload: { viewId: 'codegraphy.folder' } });
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.folder' },
+    });
     await sleep(2_000);
 
     // The graph should still have nodes (folder view creates folder + file nodes)
@@ -96,7 +110,10 @@ suite('Plugin: View switching', function () {
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(3_000);
 
-    api.sendToWebview({ type: 'CHANGE_VIEW', payload: { viewId: 'codegraphy.connections' } });
+    await api.dispatchWebviewMessage({
+      type: 'CHANGE_VIEW',
+      payload: { viewId: 'codegraphy.connections' },
+    });
     await sleep(1_000);
 
     const graphData = api.getGraphData();
@@ -128,7 +145,7 @@ suite('Plugin: Favorites', function () {
         10_000
       );
 
-      const disposable = api.onWebviewMessage((msg: unknown) => {
+      const disposable = api.onExtensionMessage((msg: unknown) => {
         const message = msg as { type: string; payload: unknown };
         if (message.type === 'FAVORITES_UPDATED') {
           clearTimeout(timer);
@@ -137,9 +154,9 @@ suite('Plugin: Favorites', function () {
         }
       });
 
-      api.sendToWebview({
+      void api.dispatchWebviewMessage({
         type: 'TOGGLE_FAVORITE',
-        payload: { filePath: firstNodeId },
+        payload: { paths: [firstNodeId] },
       });
     });
   });

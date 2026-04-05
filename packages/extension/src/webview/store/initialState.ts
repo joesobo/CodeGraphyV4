@@ -19,6 +19,7 @@ export const INITIAL_STATE: GraphStateFields = {
   nodeSizeMode: 'connections' as const,
   physicsSettings: DEFAULT_PHYSICS,
   depthLimit: 1,
+  maxDepthLimit: 10,
   groups: [],
   optimisticGroupUpdates: {},
   optimisticUserGroups: null,

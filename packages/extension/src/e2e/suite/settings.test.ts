@@ -13,6 +13,8 @@ interface CodeGraphyAPI {
   getGraphData(): import('../../shared/graph/types').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
+  dispatchWebviewMessage(message: unknown): Promise<void>;
+  onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -36,7 +38,7 @@ function waitForMessage(
       () => reject(new Error(`Timed out waiting for message type '${type}'`)),
       timeoutMs
     );
-    const disposable = api.onWebviewMessage((msg: unknown) => {
+    const disposable = api.onExtensionMessage((msg: unknown) => {
       const message = msg as { type: string; payload: unknown };
       if (message.type === type) {
         clearTimeout(timer);
@@ -56,9 +58,9 @@ suite('Settings: Physics', function () {
     await sleep(1_000);
 
     // Should not throw
-    api.sendToWebview({
+    await api.dispatchWebviewMessage({
       type: 'UPDATE_PHYSICS_SETTING',
-      payload: { key: 'springLength', value: 200 },
+      payload: { key: 'linkDistance', value: 200 },
     });
 
     await sleep(500);
@@ -67,7 +69,7 @@ suite('Settings: Physics', function () {
 
   test('RESET_PHYSICS_SETTINGS is accepted without error', async function() {
     const api = await getAPI();
-    api.sendToWebview({ type: 'RESET_PHYSICS_SETTINGS' });
+    await api.dispatchWebviewMessage({ type: 'RESET_PHYSICS_SETTINGS' });
     await sleep(500);
   });
 });
@@ -81,7 +83,7 @@ suite('Settings: Filter Patterns', function () {
     await sleep(1_000);
 
     const patterns = ['**/*.test.ts', '**/*.spec.ts'];
-    api.sendToWebview({
+    await api.dispatchWebviewMessage({
       type: 'UPDATE_FILTER_PATTERNS',
       payload: { patterns },
     });
@@ -105,7 +107,7 @@ suite('Settings: Orphans', function () {
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(1_000);
 
-    api.sendToWebview({ type: 'UPDATE_SHOW_ORPHANS', payload: { showOrphans: false } });
+    await api.dispatchWebviewMessage({ type: 'UPDATE_SHOW_ORPHANS', payload: { showOrphans: false } });
     await sleep(1_000);
 
     const config = vscode.workspace.getConfiguration('codegraphy');
@@ -126,7 +128,10 @@ suite('Settings: Direction Mode', function () {
     await sleep(1_000);
 
     const echo = waitForMessage(api, 'DIRECTION_SETTINGS_UPDATED');
-    api.sendToWebview({ type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: 'particles' } });
+    await api.dispatchWebviewMessage({
+      type: 'UPDATE_DIRECTION_MODE',
+      payload: { directionMode: 'particles' },
+    });
 
     const msg = (await echo) as { type: string; payload: { directionMode: string; directionColor: string; particleSpeed: number; particleSize: number } };
     assert.strictEqual(msg.payload.directionMode, 'particles');
@@ -146,7 +151,7 @@ suite('Settings: Groups', function () {
     await sleep(1_000);
 
     const groups = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
-    api.sendToWebview({ type: 'UPDATE_GROUPS', payload: { groups } });
+    await api.dispatchWebviewMessage({ type: 'UPDATE_GROUPS', payload: { groups } });
     await sleep(1_000);
 
     const config = vscode.workspace.getConfiguration('codegraphy');

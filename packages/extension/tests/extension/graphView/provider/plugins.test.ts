@@ -1,10 +1,13 @@
 import * as vscode from 'vscode';
 import { describe, expect, it, vi } from 'vitest';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import {
   createGraphViewProviderPluginMethods,
   type GraphViewProviderPluginMethodsSource,
 } from '../../../../src/extension/graphView/provider/plugins';
+
+const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
 
 function createSource(
   overrides: Partial<GraphViewProviderPluginMethodsSource> = {},
@@ -29,6 +32,7 @@ function createSource(
     _viewRegistry: { getAvailableViews: vi.fn(() => []) } as never,
     _viewContext: { activePlugins: new Set(), depthLimit: 1 } as never,
     _activeViewId: 'codegraphy.connections',
+    _rawGraphData: EMPTY_GRAPH_DATA,
     _decorationManager: {
       getMergedNodeDecorations: vi.fn(() => new Map()),
       getMergedEdgeDecorations: vi.fn(() => new Map()),
@@ -110,8 +114,18 @@ describe('graphView/provider/plugins', () => {
       _groups: [{ id: 'user', pattern: '*.ts', color: '#fff' } as IGroup],
     });
     const methods = createGraphViewProviderPluginMethods(source, {
-      sendAvailableViews: vi.fn((_registry, _context, _activeViewId, _defaultDepthLimit, callback) =>
-        callback({ type: 'VIEWS_UPDATED', payload: { views: [], activeViewId: 'codegraphy.connections' } }),
+      sendAvailableViews: vi.fn((
+        _registry,
+        _context,
+        _activeViewId,
+        _rawGraphData,
+        _defaultDepthLimit,
+        callback,
+      ) =>
+        callback({
+          type: 'VIEWS_UPDATED',
+          payload: { views: [], activeViewId: 'codegraphy.connections' },
+        }),
       ),
       sendPluginStatuses: vi.fn((_analyzer, _disabledRules, _disabledPlugins, callback) =>
         callback({ type: 'PLUGINS_UPDATED', payload: { plugins: [] } }),

@@ -15,6 +15,7 @@ describe('source/fileTimelineDelegates', () => {
     await delegates._renameFile('src/app.ts');
     await delegates._createFile('src');
     delegates._toggleFavorites(['src/app.ts']);
+    delegates._setFocusedFile('src/app.ts');
     delegates._getFileInfo!('src/app.ts');
     delegates._getVisitCount!('src/app.ts');
     delegates._incrementVisitCount!('src/app.ts');
@@ -40,6 +41,7 @@ describe('source/fileTimelineDelegates', () => {
     expect(owner._fileActionMethods._renameFile).toHaveBeenCalledWith('src/app.ts');
     expect(owner._fileActionMethods._createFile).toHaveBeenCalledWith('src');
     expect(owner._fileActionMethods._toggleFavorites).toHaveBeenCalledWith(['src/app.ts']);
+    expect(owner._viewSelectionMethods.setFocusedFile).toHaveBeenCalledWith('src/app.ts');
     expect(owner._fileVisitMethods._getFileInfo).toHaveBeenCalledWith('src/app.ts');
     expect(owner._fileVisitMethods._getVisitCount).toHaveBeenCalledWith('src/app.ts');
     expect(owner._fileVisitMethods._incrementVisitCount).toHaveBeenCalledWith('src/app.ts');

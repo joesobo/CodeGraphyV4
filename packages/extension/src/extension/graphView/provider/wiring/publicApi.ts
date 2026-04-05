@@ -1,8 +1,15 @@
 import * as vscode from 'vscode';
 import type { EventName, EventPayloads } from '../../../../core/plugins/eventBus';
 import type { IGraphData } from '../../../../shared/graph/types';
+import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { GraphViewExternalPluginRegistrationOptions } from '../../webview/plugins/registration';
+import { dispatchGraphViewProviderMessage } from '../../webview/providerMessages/listener';
 import type { GraphViewProviderMethodContainers } from './methodContainers';
+import type { GraphViewProviderMessageListenerSource } from '../../webview/providerMessages/listener';
+import {
+  createGraphViewProviderMethodSource,
+  type GraphViewProviderMethodSourceOwner,
+} from '../source/create';
 
 interface GraphViewProviderPublicMethodsOwner {
   _methodContainers: Pick<
@@ -16,6 +23,9 @@ interface GraphViewProviderPublicMethodsOwner {
     | 'viewSelection'
     | 'webview'
   >;
+  _extensionMessageEmitter: {
+    event(handler: (message: unknown) => void): vscode.Disposable;
+  };
 }
 
 export interface GraphViewProviderPublicMethods {
@@ -65,11 +75,15 @@ export interface GraphViewProviderPublicMethods {
   openInEditor: () => void;
   sendToWebview: (message: unknown) => void;
   onWebviewMessage: (handler: (message: unknown) => void) => vscode.Disposable;
+  dispatchWebviewMessage: (message: WebviewToExtensionMessage) => Promise<void>;
+  onExtensionMessage: (handler: (message: unknown) => void) => vscode.Disposable;
 }
 
 export type GraphViewProviderPublicMethodsTarget =
   & GraphViewProviderPublicMethods
-  & GraphViewProviderPublicMethodsOwner;
+  & GraphViewProviderPublicMethodsOwner
+  & GraphViewProviderMethodSourceOwner
+  & GraphViewProviderMessageListenerSource;
 
 export function assignGraphViewProviderPublicMethods(
   target: GraphViewProviderPublicMethodsTarget,
@@ -107,4 +121,7 @@ export function assignGraphViewProviderPublicMethods(
   target.openInEditor = () => target._methodContainers.webview.openInEditor();
   target.sendToWebview = message => target._methodContainers.webview.sendToWebview(message);
   target.onWebviewMessage = handler => target._methodContainers.webview.onWebviewMessage(handler);
+  target.dispatchWebviewMessage = message =>
+    dispatchGraphViewProviderMessage(message, createGraphViewProviderMethodSource(target));
+  target.onExtensionMessage = handler => target._extensionMessageEmitter.event(handler);
 }

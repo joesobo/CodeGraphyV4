@@ -15,6 +15,7 @@ export type GraphInteractionEffect =
   | { kind: 'selectOnlyNode'; nodeId: string }
   | { kind: 'setSelection'; nodeIds: string[] }
   | { kind: 'clearSelection' }
+  | { kind: 'clearFocusedFile' }
   | { kind: 'previewNode'; nodeId: string }
   | { kind: 'openNode'; nodeId: string }
   | { kind: 'focusNode'; nodeId: string }

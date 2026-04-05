@@ -32,6 +32,7 @@ export interface IStoreFields {
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
   depthLimit: number;
+  maxDepthLimit: number;
   groups: IGroup[];
   optimisticGroupUpdates: PendingGroupUpdates;
   optimisticUserGroups: PendingUserGroupsUpdate | null;

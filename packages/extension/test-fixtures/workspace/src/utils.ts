@@ -1,7 +1,8 @@
 import type { User } from './types';
+import { padLabel } from './deep';
 
 export function formatUser(user: User): string {
-  return `${user.name} (${user.id})`;
+  return `${padLabel(user.name)} (${user.id})`;
 }
 
 export function clamp(value: number, min: number, max: number): number {

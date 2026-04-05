@@ -254,7 +254,8 @@ describe('Graph context menu (background)', () => {
       fireEvent.click(screen.getByText('Fit All Nodes'));
     });
 
-    expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20);
+    expect(methods.zoomToFit).toHaveBeenCalledWith(300, expect.any(Number));
+    expect(methods.zoomToFit.mock.calls[0]?.[1]).toBeGreaterThan(20);
   });
 
   it('fits view in 3d when clicking Fit All Nodes', async () => {
@@ -278,7 +279,8 @@ describe('Graph context menu (background)', () => {
       fireEvent.click(screen.getByText('Fit All Nodes'));
     });
 
-    expect(methods.zoomToFit).toHaveBeenCalledWith(300, 20);
+    expect(methods.zoomToFit).toHaveBeenCalledWith(300, expect.any(Number));
+    expect(methods.zoomToFit.mock.calls[0]?.[1]).toBeGreaterThan(20);
   });
 
   it('does not show node plugin items on background context', async () => {

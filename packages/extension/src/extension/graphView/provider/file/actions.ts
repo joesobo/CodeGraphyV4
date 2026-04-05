@@ -21,6 +21,7 @@ export interface GraphViewProviderFileActionMethodsSource {
   _incrementVisitCount(filePath: string): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
   _sendFavorites(): void;
+  _setFocusedFile(filePath: string | undefined): void;
 }
 
 export interface GraphViewProviderFileActionMethods {
@@ -107,6 +108,7 @@ export function createGraphViewProviderFileActionMethods(
   ): Promise<void> => {
     const navigationSource: GraphViewProviderFileNavigationSource = {
       _incrementVisitCount: nextFilePath => source._incrementVisitCount(nextFilePath),
+      _setFocusedFile: filePath => source._setFocusedFile(filePath),
     };
     await dependencies.openFile(navigationSource, filePath, behavior);
   };

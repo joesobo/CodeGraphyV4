@@ -40,6 +40,7 @@ describe('graphView/provider/file/actions', () => {
       _incrementVisitCount: vi.fn(async () => undefined),
       _analyzeAndSendData: vi.fn(async () => undefined),
       _sendFavorites: vi.fn(),
+      _setFocusedFile: vi.fn(),
     };
     const methods = createGraphViewProviderFileActionMethods(source as never, {
       openFile,
@@ -96,6 +97,7 @@ describe('graphView/provider/file/actions', () => {
       _incrementVisitCount: vi.fn(async () => undefined),
       _analyzeAndSendData: vi.fn(async () => undefined),
       _sendFavorites: vi.fn(),
+      _setFocusedFile: vi.fn(),
     };
     const methods = createGraphViewProviderFileActionMethods(source as never, {
       openFile: vi.fn(async () => undefined),
@@ -156,6 +158,7 @@ describe('graphView/provider/file/actions', () => {
       _incrementVisitCount: vi.fn(async () => undefined),
       _analyzeAndSendData: vi.fn(async () => undefined),
       _sendFavorites: vi.fn(),
+      _setFocusedFile: vi.fn(),
     };
     const methods = createGraphViewProviderFileActionMethods(source as never, {
       openFile: vi.fn(async () => undefined),
@@ -430,6 +433,7 @@ async function createDefaultDependencyHarness(
     _incrementVisitCount: vi.fn(async () => undefined),
     _analyzeAndSendData: vi.fn(async () => undefined),
     _sendFavorites: vi.fn(),
+    _setFocusedFile: vi.fn(),
   };
 
   return {

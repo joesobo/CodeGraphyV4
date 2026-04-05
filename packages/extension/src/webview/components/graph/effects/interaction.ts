@@ -12,6 +12,7 @@ export interface GraphInteractionEffectHandlers<TLink = unknown> {
   selectOnlyNode(nodeId: string): void;
   setSelection(nodeIds: string[]): void;
   clearSelection(): void;
+  clearFocusedFile(): void;
   previewNode(nodeId: string): void;
   openNode(nodeId: string): void;
   focusNode(nodeId: string): void;
@@ -51,6 +52,9 @@ export function applyInteractionEffects<TLink = unknown>(
         break;
       case 'clearSelection':
         handlers.clearSelection();
+        break;
+      case 'clearFocusedFile':
+        handlers.clearFocusedFile();
         break;
       case 'previewNode':
         handlers.previewNode(effect.nodeId);

@@ -79,6 +79,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
   it('passes the current workspace folder through the default file opener', async () => {
     const source = {
       _incrementVisitCount: vi.fn(async () => undefined),
+      _setFocusedFile: vi.fn(),
     };
     const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
 
@@ -98,6 +99,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
   it('routes default open-file info messages through vscode', async () => {
     const source = {
       _incrementVisitCount: vi.fn(async () => undefined),
+      _setFocusedFile: vi.fn(),
     };
     const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
 
@@ -117,6 +119,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
   it('routes default open-file error messages through vscode', async () => {
     const source = {
       _incrementVisitCount: vi.fn(async () => undefined),
+      _setFocusedFile: vi.fn(),
     };
     const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
 
@@ -136,6 +139,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
   it('routes default file stat requests through vscode workspace fs', async () => {
     const source = {
       _incrementVisitCount: vi.fn(async () => undefined),
+      _setFocusedFile: vi.fn(),
     };
     const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
 
@@ -155,6 +159,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
   it('routes default document opening through vscode workspace', async () => {
     const source = {
       _incrementVisitCount: vi.fn(async () => undefined),
+      _setFocusedFile: vi.fn(),
     };
     const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
 
@@ -174,6 +179,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
   it('routes default editor showing through vscode window', async () => {
     const source = {
       _incrementVisitCount: vi.fn(async () => undefined),
+      _setFocusedFile: vi.fn(),
     };
     const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
 
@@ -199,6 +205,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
   it('routes provider visit counting through the default file opener handlers', async () => {
     const source = {
       _incrementVisitCount: vi.fn(async () => undefined),
+      _setFocusedFile: vi.fn(),
     };
     const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
 
@@ -218,6 +225,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
   it('routes default open-file logging through console.error', async () => {
     const source = {
       _incrementVisitCount: vi.fn(async () => undefined),
+      _setFocusedFile: vi.fn(),
     };
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
@@ -235,6 +243,26 @@ describe('graphView/provider/file/navigation default dependencies', () => {
     expect(consoleError).toHaveBeenCalledWith('open failed', 'raw failure');
 
     consoleError.mockRestore();
+  });
+
+  it('routes provider focus updates through the default file opener handlers', async () => {
+    const source = {
+      _incrementVisitCount: vi.fn(async () => undefined),
+      _setFocusedFile: vi.fn(),
+    };
+    const { openGraphViewProviderFile } = await loadProviderFileNavigationModule();
+
+    mocks.openGraphViewFile.mockImplementation(async (_filePath, handlers) => {
+      await handlers.didOpenFile?.('src/index.ts');
+    });
+
+    await openGraphViewProviderFile(
+      source as never,
+      'src/index.ts',
+      { preview: true, preserveFocus: true },
+    );
+
+    expect(source._setFocusedFile).toHaveBeenCalledWith('src/index.ts');
   });
 
   it('uses the default explorer and clipboard delegates with the current workspace folder', async () => {
