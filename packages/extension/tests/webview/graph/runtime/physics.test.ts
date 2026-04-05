@@ -4,10 +4,12 @@ import {
   applyPhysicsSettings,
   havePhysicsSettingsChanged,
   initPhysics,
+  syncPhysicsAnimation,
 } from '../../../../src/webview/components/graph/runtime/physics';
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.12,
+  chargeRange: 240,
   damping: 0.7,
   linkDistance: 140,
   linkForce: 0.33,
@@ -15,7 +17,7 @@ const SETTINGS: IPhysicsSettings = {
 };
 
 function createPhysicsInstance() {
-  const charge = { strength: vi.fn() };
+  const charge = { distanceMax: vi.fn(), strength: vi.fn() };
   const link = { distance: vi.fn(), strength: vi.fn() };
   const forceXInstance = { strength: vi.fn() };
   const forceYInstance = { strength: vi.fn() };
@@ -78,6 +80,7 @@ describe('physics', () => {
     ['linkDistance', { linkDistance: SETTINGS.linkDistance + 1 }],
     ['linkForce', { linkForce: SETTINGS.linkForce + 0.01 }],
     ['damping', { damping: SETTINGS.damping + 0.01 }],
+    ['chargeRange', { chargeRange: SETTINGS.chargeRange! + 10 }],
   ])('detects %s changes', (_field, patch) => {
     expect(havePhysicsSettingsChanged(SETTINGS, {
       ...SETTINGS,
@@ -91,6 +94,7 @@ describe('physics', () => {
     applyPhysicsSettings(instance, SETTINGS);
 
     expect(charge.strength).toHaveBeenCalledOnce();
+    expect(charge.distanceMax).toHaveBeenCalledWith(SETTINGS.chargeRange);
     expect(link.distance).toHaveBeenCalledWith(SETTINGS.linkDistance);
     expect(link.strength).toHaveBeenCalledWith(SETTINGS.linkForce);
     expect(forceXInstance.strength).toHaveBeenCalledWith(SETTINGS.centerForce);
@@ -155,5 +159,21 @@ describe('physics', () => {
     };
 
     expect(collisionForce.radius()({ size: 9 })).toBe(13);
+  });
+
+  it('pauses and resumes the graph animation', () => {
+    const instance = {
+      d3Force: vi.fn(),
+      d3ReheatSimulation: vi.fn(),
+      pauseAnimation: vi.fn(),
+      resumeAnimation: vi.fn(),
+    } as unknown as Parameters<typeof syncPhysicsAnimation>[0];
+
+    syncPhysicsAnimation(instance, true);
+    syncPhysicsAnimation(instance, false);
+
+    expect(instance.pauseAnimation).toHaveBeenCalledOnce();
+    expect(instance.resumeAnimation).toHaveBeenCalledOnce();
+    expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
   });
 });

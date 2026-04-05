@@ -45,6 +45,7 @@ export interface UseGraphRenderingRuntimeOptions {
   nodeSizeMode: string;
   particleSize: number;
   particleSpeed: number;
+  physicsPaused?: boolean;
   physicsSettings: IPhysicsSettings;
   pluginHost?: WebviewPluginHost;
   selectedNodesSetRef: MutableRefObject<Set<string>>;
@@ -78,6 +79,7 @@ export function useGraphRenderingRuntime({
   nodeSizeMode,
   particleSize,
   particleSpeed,
+  physicsPaused = false,
   physicsSettings,
   pluginHost,
   selectedNodesSetRef,
@@ -122,12 +124,14 @@ export function useGraphRenderingRuntime({
     graphMode,
     particleSize,
     particleSpeed,
+    physicsPaused,
   });
 
   usePhysicsRuntime({
     fg2dRef,
     fg3dRef,
     graphMode,
+    physicsPaused,
     physicsSettings,
   });
 

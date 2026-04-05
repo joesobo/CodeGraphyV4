@@ -11,6 +11,7 @@ import { DecorationManager, NodeDecoration, EdgeDecoration } from './decoration/
 import { ViewRegistry } from '../views/registry';
 import { IView } from '../views/contracts';
 import type { IGraphData, IGraphNode, IGraphEdge } from '../../shared/graph/types';
+import type { ExportRequest } from '../../../../plugin-api/src/api';
 import {
   filterEdgesByKind as facadeFilterEdgesByKind,
   findPath as facadeFindPath,
@@ -52,6 +53,9 @@ export type CommandRegistrar = (id: string, action: () => void | Promise<void>) 
 /** Function that sends a message to the webview */
 export type WebviewMessageSender = (msg: { type: string; data: unknown }) => void;
 
+/** Function that saves plugin-generated export content through the host. */
+export type ExportSaver = (request: ExportRequest) => Promise<void>;
+
 /**
  * Concrete implementation of the CodeGraphy API for a single plugin.
  * Each plugin gets its own scoped instance that tracks its disposables.
@@ -66,6 +70,7 @@ export class CodeGraphyAPIImpl {
   private readonly _graphProvider: GraphDataProvider;
   private readonly _commandRegistrar: CommandRegistrar;
   private readonly _webviewSender: WebviewMessageSender;
+  private readonly _exportSaver: ExportSaver;
   private readonly _workspaceRoot: string;
   private readonly _disposables = new DisposableStore();
   private readonly _commands: ICommand[] = [];
@@ -81,6 +86,7 @@ export class CodeGraphyAPIImpl {
     graphProvider: GraphDataProvider,
     commandRegistrar: CommandRegistrar,
     webviewSender: WebviewMessageSender,
+    exportSaver: ExportSaver,
     workspaceRoot: string,
     logFn: (level: string, ...args: unknown[]) => void,
   ) {
@@ -91,6 +97,7 @@ export class CodeGraphyAPIImpl {
     this._graphProvider = graphProvider;
     this._commandRegistrar = commandRegistrar;
     this._webviewSender = webviewSender;
+    this._exportSaver = exportSaver;
     this._workspaceRoot = workspaceRoot;
     this._logFn = logFn;
   }
@@ -219,6 +226,10 @@ export class CodeGraphyAPIImpl {
         this._webviewMessageHandlers.delete(handler);
       })
     );
+  }
+
+  saveExport(request: ExportRequest): Promise<void> {
+    return this._exportSaver(request);
   }
 
   /**

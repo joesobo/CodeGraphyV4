@@ -8,11 +8,13 @@ const runtimeHarness = vi.hoisted(() => ({
   resolvePhysicsInitAction: vi.fn(),
   selectActivePhysicsGraph: vi.fn(),
   shouldApplyPhysicsUpdate: vi.fn(),
+  syncPhysicsAnimation: vi.fn(),
 }));
 
 vi.mock('../../../../src/webview/components/graph/runtime/physics', () => ({
   applyPhysicsSettings: runtimeHarness.applyPhysicsSettings,
   initPhysics: runtimeHarness.initPhysics,
+  syncPhysicsAnimation: runtimeHarness.syncPhysicsAnimation,
 }));
 
 vi.mock('../../../../src/webview/components/graph/runtime/physicsLifecycle', () => ({
@@ -25,6 +27,7 @@ import { usePhysicsRuntime } from '../../../../src/webview/components/graph/runt
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
+  chargeRange: 200,
   damping: 0.7,
   linkDistance: 120,
   linkForce: 0.4,

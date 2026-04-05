@@ -41,6 +41,7 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
   linkDistance: 100,
   linkForce: 0.08,
   damping: 0.4,
+  chargeRange: 200,
 };
 
 function setStoreState(overrides: Record<string, unknown> = {}) {
@@ -60,13 +61,15 @@ describe('ForcesSection', () => {
     sentMessages.length = 0;
   });
 
-  it('renders the four physics controls', () => {
+  it('renders the physics controls and simulation toggle', () => {
     renderSection();
 
+    expect(screen.getByText('Simulation')).toBeInTheDocument();
     expect(screen.getByText('Repel Force')).toBeInTheDocument();
     expect(screen.getByText('Center Force')).toBeInTheDocument();
     expect(screen.getByText('Link Distance')).toBeInTheDocument();
     expect(screen.getByText('Link Force')).toBeInTheDocument();
+    expect(screen.getByText('Charge Range')).toBeInTheDocument();
   });
 
   it('persists repel force updates after debounce', () => {
@@ -122,6 +125,28 @@ describe('ForcesSection', () => {
       type: 'UPDATE_PHYSICS_SETTING',
       payload: { key: 'linkForce', value: 0.09 },
     });
+  });
+
+  it('persists charge range updates on commit', () => {
+    renderSection();
+
+    fireEvent.click(screen.getByTestId('charge-range-slider-change'));
+    fireEvent.click(screen.getByTestId('charge-range-slider-commit'));
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_PHYSICS_SETTING',
+      payload: { key: 'chargeRange', value: 210 },
+    });
+  });
+
+  it('toggles physics pause state locally', () => {
+    renderSection();
+
+    fireEvent.click(screen.getByTestId('physics-pause-toggle'));
+    expect(graphStore.getState().physicsPaused).toBe(true);
+
+    fireEvent.click(screen.getByTestId('physics-pause-toggle'));
+    expect(graphStore.getState().physicsPaused).toBe(false);
   });
 
   it('keeps only the latest pending value for the same slider', () => {

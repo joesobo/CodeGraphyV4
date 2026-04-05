@@ -90,7 +90,7 @@ export type {
 export type { IPlugin, IAnalysisFile } from './plugin';
 
 // Host API
-export type { CodeGraphyAPI } from './api';
+export type { CodeGraphyAPI, ExportRequest } from './api';
 
 // Views
 export type { IView, IViewContext } from './views';

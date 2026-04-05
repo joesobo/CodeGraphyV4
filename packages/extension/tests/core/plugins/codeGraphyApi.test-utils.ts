@@ -23,6 +23,7 @@ export function createTestAPI(pluginId = 'test-plugin') {
   const graphProvider = vi.fn(() => graphData);
   const commandRegistrar = vi.fn(() => ({ dispose: vi.fn() }));
   const webviewSender = vi.fn();
+  const exportSaver = vi.fn(async () => undefined);
   const logFn = vi.fn();
 
   const api = new CodeGraphyAPIImpl(
@@ -33,6 +34,7 @@ export function createTestAPI(pluginId = 'test-plugin') {
     graphProvider,
     commandRegistrar,
     webviewSender,
+    exportSaver,
     '/workspace',
     logFn,
   );
@@ -45,6 +47,7 @@ export function createTestAPI(pluginId = 'test-plugin') {
     graphProvider,
     commandRegistrar,
     webviewSender,
+    exportSaver,
     logFn,
     graphData,
   };

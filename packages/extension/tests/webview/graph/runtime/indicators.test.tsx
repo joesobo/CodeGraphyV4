@@ -30,6 +30,7 @@ function createDirectionalOptions(
     getParticleColor: vi.fn(),
     particleSize: 3,
     particleSpeed: 0.15,
+    physicsPaused: false,
     ...overrides,
   };
 }
@@ -69,6 +70,15 @@ describe('useDirectional', () => {
     expect(graph.linkDirectionalParticleColor).toHaveBeenCalledWith(options.getParticleColor);
     expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
     expect(graph.resumeAnimation).toHaveBeenCalledOnce();
+  });
+
+  it('does not resume animation while physics is paused', () => {
+    const graph = createGraph();
+
+    applyDirectionalSettings(graph, createDirectionalOptions({ physicsPaused: true }));
+
+    expect(graph.d3ReheatSimulation).toHaveBeenCalledOnce();
+    expect(graph.resumeAnimation).not.toHaveBeenCalled();
   });
 
   it('applies arrow settings without directional particles', () => {

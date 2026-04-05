@@ -1,9 +1,9 @@
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import { forceCollide, forceX, forceY } from 'd3-force';
-import type { IPhysicsSettings } from '../../../../shared/settings/physics';
+import { DEFAULT_PHYSICS_SETTINGS, type IPhysicsSettings } from '../../../../shared/settings/physics';
 import { toD3Repel, type FGLink, type FGNode } from '../model/build';
-import { hasDistanceAndStrength, hasStrength } from '../support/guards';
+import { hasDistanceAndStrength, hasDistanceMax, hasStrength } from '../support/guards';
 
 export type GraphPhysicsInstance = FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>;
 
@@ -11,6 +11,8 @@ interface GraphPhysicsControls {
 	d3Force(name: string): unknown;
 	d3Force(name: string, force: unknown): unknown;
 	d3ReheatSimulation(): void;
+	pauseAnimation?(): void;
+	resumeAnimation?(): void;
 }
 
 export function havePhysicsSettingsChanged(
@@ -22,7 +24,9 @@ export function havePhysicsSettingsChanged(
 		|| previous.centerForce !== next.centerForce
 		|| previous.linkDistance !== next.linkDistance
 		|| previous.linkForce !== next.linkForce
-		|| previous.damping !== next.damping;
+		|| previous.damping !== next.damping
+		|| (previous.chargeRange ?? DEFAULT_PHYSICS_SETTINGS.chargeRange)
+			!== (next.chargeRange ?? DEFAULT_PHYSICS_SETTINGS.chargeRange);
 }
 
 export function applyPhysicsSettings(
@@ -32,6 +36,9 @@ export function applyPhysicsSettings(
 	const graph = instance as GraphPhysicsControls;
 	const chargeForce = graph.d3Force('charge');
 	if (hasStrength(chargeForce)) chargeForce.strength(toD3Repel(settings.repelForce));
+	if (hasDistanceMax(chargeForce)) {
+		chargeForce.distanceMax(settings.chargeRange ?? DEFAULT_PHYSICS_SETTINGS.chargeRange);
+	}
 
 	const linkForce = graph.d3Force('link');
 	if (hasDistanceAndStrength(linkForce)) {
@@ -45,6 +52,20 @@ export function applyPhysicsSettings(
 	const forceYInstance = graph.d3Force('forceY');
 	if (hasStrength(forceYInstance)) forceYInstance.strength(settings.centerForce);
 
+	graph.d3ReheatSimulation();
+}
+
+export function syncPhysicsAnimation(
+	instance: GraphPhysicsInstance,
+	paused: boolean,
+): void {
+	const graph = instance as GraphPhysicsControls;
+	if (paused) {
+		graph.pauseAnimation?.();
+		return;
+	}
+
+	graph.resumeAnimation?.();
 	graph.d3ReheatSimulation();
 }
 

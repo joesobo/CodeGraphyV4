@@ -1,7 +1,7 @@
 import type { DecorationManager } from './decoration/manager';
 import type { EventBus } from './eventBus';
 import type { ViewRegistry } from '../views/registry';
-import type { CommandRegistrar, GraphDataProvider, WebviewMessageSender } from './codeGraphyApi';
+import type { CommandRegistrar, ExportSaver, GraphDataProvider, WebviewMessageSender } from './codeGraphyApi';
 
 export interface IPluginApiConfiguration {
   eventBus?: EventBus;
@@ -10,6 +10,7 @@ export interface IPluginApiConfiguration {
   graphProvider?: GraphDataProvider;
   commandRegistrar?: CommandRegistrar;
   webviewSender?: WebviewMessageSender;
+  exportSaver?: ExportSaver;
   workspaceRoot?: string;
 }
 

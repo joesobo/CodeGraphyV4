@@ -1,4 +1,5 @@
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
+import { savePluginExport } from '../../../export/pluginSave';
 
 interface GraphViewCoreViewLike {
   id: string;
@@ -23,6 +24,7 @@ interface GraphViewAnalyzerLike {
       graphProvider: () => unknown;
       commandRegistrar: (id: string, action: () => void) => unknown;
       webviewSender: (message: unknown) => void;
+      exportSaver: (request: unknown) => Promise<void>;
       workspaceRoot: string;
     }): void;
   };
@@ -94,6 +96,7 @@ export function initializeGraphViewProviderServices({
     webviewSender: (message: unknown) => {
       sendMessage(message);
     },
+    exportSaver: (request: unknown) => savePluginExport(request as Parameters<typeof savePluginExport>[0]),
     workspaceRoot,
   });
 

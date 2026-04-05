@@ -9,16 +9,19 @@ const physicsHarness = vi.hoisted(() => ({
   applyPhysicsSettings: vi.fn(),
   havePhysicsSettingsChanged: vi.fn(),
   initPhysics: vi.fn(),
+  syncPhysicsAnimation: vi.fn(),
 }));
 
 vi.mock('../../../../src/webview/components/graph/runtime/physics', () => ({
   applyPhysicsSettings: physicsHarness.applyPhysicsSettings,
   havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
   initPhysics: physicsHarness.initPhysics,
+  syncPhysicsAnimation: physicsHarness.syncPhysicsAnimation,
 }));
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
+  chargeRange: 200,
   damping: 0.7,
   linkDistance: 120,
   linkForce: 0.4,
@@ -46,7 +49,8 @@ function havePhysicsChanged(
     || previous.damping !== next.damping
     || previous.linkDistance !== next.linkDistance
     || previous.linkForce !== next.linkForce
-    || previous.repelForce !== next.repelForce;
+    || previous.repelForce !== next.repelForce
+    || previous.chargeRange !== next.chargeRange;
 }
 
 describe('usePhysicsRuntime', () => {
@@ -54,6 +58,7 @@ describe('usePhysicsRuntime', () => {
     physicsHarness.applyPhysicsSettings.mockReset();
     physicsHarness.havePhysicsSettingsChanged.mockReset();
     physicsHarness.initPhysics.mockReset();
+    physicsHarness.syncPhysicsAnimation.mockReset();
     physicsHarness.havePhysicsSettingsChanged.mockReturnValue(false);
     vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
       callback(0);
@@ -274,5 +279,26 @@ describe('usePhysicsRuntime', () => {
 
     expect(physicsHarness.initPhysics).toHaveBeenNthCalledWith(1, graph2D, SETTINGS);
     expect(physicsHarness.initPhysics).toHaveBeenNthCalledWith(2, graph3D, SETTINGS);
+  });
+
+  it('syncs pause and resume requests to the active graph', () => {
+    const graph = create2DGraph();
+
+    const { rerender } = renderHook(
+      ({ physicsPaused }: { physicsPaused: boolean }) => usePhysicsRuntime({
+        fg2dRef: { current: graph },
+        fg3dRef: { current: undefined },
+        graphMode: '2d',
+        physicsPaused,
+        physicsSettings: SETTINGS,
+      }),
+      { initialProps: { physicsPaused: false } },
+    );
+
+    rerender({ physicsPaused: true });
+
+    expect(physicsHarness.syncPhysicsAnimation).toHaveBeenNthCalledWith(1, graph, false);
+    expect(physicsHarness.syncPhysicsAnimation).toHaveBeenNthCalledWith(2, graph, false);
+    expect(physicsHarness.syncPhysicsAnimation).toHaveBeenNthCalledWith(3, graph, true);
   });
 });

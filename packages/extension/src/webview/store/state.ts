@@ -30,6 +30,7 @@ export interface GraphState {
   directionColor: string;
   particleSpeed: number;
   particleSize: number;
+  physicsPaused: boolean;
   showLabels: boolean;
   graphMode: '2d' | '3d';
   nodeSizeMode: NodeSizeMode;
@@ -77,6 +78,7 @@ export interface GraphState {
   setDirectionColor: (color: string) => void;
   setParticleSpeed: (speed: number) => void;
   setParticleSize: (size: number) => void;
+  setPhysicsPaused: (paused: boolean) => void;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
   setActiveViewId: (id: string) => void;
