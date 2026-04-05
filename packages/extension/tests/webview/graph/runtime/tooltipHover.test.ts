@@ -171,6 +171,7 @@ describe('handleTooltipNodeHover', () => {
       info: cachedInfo,
       nodeRect: { x: 1, y: 2, radius: 3 },
       path: 'src/App.ts',
+      pluginActions: [],
       pluginSections: [],
       visible: true,
     });

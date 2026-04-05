@@ -13,7 +13,7 @@ describe('graph/model/link/build', () => {
 
     expect(links).toEqual([
       expect.objectContaining({
-        id: 'a.ts<->b.ts',
+        id: 'a.ts<->b.ts#import',
         source: 'a.ts',
         target: 'b.ts',
         bidirectional: true,

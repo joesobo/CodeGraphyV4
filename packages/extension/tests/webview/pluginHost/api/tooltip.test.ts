@@ -37,6 +37,7 @@ describe('aggregateTooltipContent', () => {
     ];
 
     expect(aggregateTooltipContent(context, providers)).toEqual({
+      actions: [],
       sections: [
         { title: 'A', content: 'a-content' },
         { title: 'B', content: 'b-content' },
@@ -53,7 +54,7 @@ describe('aggregateTooltipContent', () => {
 
     const result = aggregateTooltipContent(context, providers);
 
-    expect(result).toEqual({ sections: [{ title: 'OK', content: 'works' }] });
+    expect(result).toEqual({ actions: [], sections: [{ title: 'OK', content: 'works' }] });
     expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('Tooltip provider error'), expect.any(Error));
     errorSpy.mockRestore();
   });
@@ -65,6 +66,7 @@ describe('aggregateTooltipContent', () => {
     ];
 
     expect(aggregateTooltipContent(context, providers)).toEqual({
+      actions: [],
       sections: [{ title: 'B', content: 'ok' }],
     });
   });
@@ -83,6 +85,7 @@ describe('aggregateTooltipContent', () => {
     ];
 
     expect(aggregateTooltipContent(context, providers)).toEqual({
+      actions: [],
       sections: [
         { title: 'Section1', content: 'content1' },
         { title: 'Section2', content: 'content2' },

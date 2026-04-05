@@ -247,6 +247,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
             linkForce: 0.25,
             damping: 0.6,
             centerForce: 0.2,
+            chargeRange: 220,
           });
         }
         return createConfiguration({});
@@ -272,6 +273,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
         linkForce: 0.25,
         damping: 0.6,
         centerForce: 0.2,
+        chargeRange: 220,
       },
     });
   });

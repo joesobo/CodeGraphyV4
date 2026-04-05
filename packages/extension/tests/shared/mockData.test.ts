@@ -104,7 +104,7 @@ describe('Mock Data', () => {
         expect(edge.id).toBeDefined();
         expect(edge.from).toBeDefined();
         expect(edge.to).toBeDefined();
-        expect(edge.id).toBe(`${edge.from}->${edge.to}`);
+        expect(edge.id).toBe(`${edge.from}->${edge.to}#${edge.kind}`);
       });
     });
 

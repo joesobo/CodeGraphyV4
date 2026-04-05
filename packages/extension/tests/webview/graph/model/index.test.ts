@@ -100,7 +100,14 @@ describe('graph/model/build', () => {
         'combined'
       )
     ).toEqual([
-      { id: 'a.ts<->b.ts', from: 'a.ts', to: 'b.ts', bidirectional: true },
+      {
+        id: 'a.ts<->b.ts#import',
+        from: 'a.ts',
+        to: 'b.ts',
+        kind: 'import',
+        sources: [],
+        bidirectional: true,
+      },
     ]);
   });
 
@@ -114,8 +121,22 @@ describe('graph/model/build', () => {
         'separate'
       )
     ).toEqual([
-      { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts', bidirectional: false },
-      { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts', bidirectional: false },
+      {
+        id: 'a.ts->b.ts',
+        from: 'a.ts',
+        to: 'b.ts',
+        kind: 'import',
+        sources: [],
+        bidirectional: false,
+      },
+      {
+        id: 'b.ts->a.ts',
+        from: 'b.ts',
+        to: 'a.ts',
+        kind: 'import',
+        sources: [],
+        bidirectional: false,
+      },
     ]);
   });
 
@@ -175,7 +196,7 @@ describe('graph/model/build', () => {
     });
     expect(graphData.links).toEqual([
       expect.objectContaining({
-        id: 'favorite.ts<->focus.ts',
+        id: 'favorite.ts<->focus.ts#import',
         bidirectional: true,
         baseColor: '#60a5fa',
       }),

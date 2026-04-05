@@ -73,6 +73,7 @@ describe('graphView/provider/physicsSettings default dependencies', () => {
         linkForce: 0.15,
         damping: 0.7,
         centerForce: 0.1,
+        chargeRange: 200,
       },
     );
     expect(source._sendMessage).toHaveBeenCalledWith({

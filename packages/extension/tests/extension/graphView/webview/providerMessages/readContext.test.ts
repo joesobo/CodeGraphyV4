@@ -50,6 +50,8 @@ describe('graph view provider listener read context', () => {
       id: 'edge-1',
       from: 'src/app.ts',
       to: 'src/lib.ts',
+      kind: 'import',
+      sources: [],
     });
   });
 });

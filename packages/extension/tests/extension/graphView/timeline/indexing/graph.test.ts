@@ -90,7 +90,15 @@ describe('graphView/timeline/indexing/filtering', () => {
       },
     });
 
-    expect(graphData.edges).toEqual([]);
+    expect(graphData.edges).toEqual([
+      {
+        id: 'src/a.ts->src/b.ts#import',
+        from: 'src/a.ts',
+        to: 'src/b.ts',
+        kind: 'import',
+        sources: [{ id: 'codegraphy.typescript:import', pluginId: 'codegraphy.typescript', sourceId: 'import', label: 'Import' }],
+      },
+    ]);
   });
 
   it('drops orphaned nodes when showOrphans is disabled', () => {
