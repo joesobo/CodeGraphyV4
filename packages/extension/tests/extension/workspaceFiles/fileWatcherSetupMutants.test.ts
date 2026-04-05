@@ -29,6 +29,21 @@ import {
   registerFileWatcher,
 } from '../../../src/extension/workspaceFiles/register';
 
+function captureEditorChangeListener(): (editor: unknown) => Promise<void> {
+  let listener: ((editor: unknown) => Promise<void>) | undefined;
+  vi.mocked(vscode.window.onDidChangeActiveTextEditor).mockImplementation((callback) => {
+    listener = callback as (editor: unknown) => Promise<void>;
+    return { dispose: vi.fn() } as unknown as vscode.Disposable;
+  });
+  return async (editor: unknown) => {
+    if (!listener) {
+      throw new Error('missing active editor listener');
+    }
+
+    await listener(editor);
+  };
+}
+
 function makeProvider() {
   return {
     trackFileVisit: vi.fn().mockResolvedValue(undefined),
@@ -47,6 +62,11 @@ function makeContext() {
 describe('fileWatcherSetup backslash normalization (L21 mutant)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (
+      vscode.window as unknown as {
+        visibleTextEditors: unknown[];
+      }
+    ).visibleTextEditors = [];
   });
 
   it('replaces backslashes with forward slashes in relative paths', async () => {
@@ -59,15 +79,11 @@ describe('fileWatcherSetup backslash normalization (L21 mutant)', () => {
 
     // Mock path.relative to return a path with backslashes (Windows-style)
     vi.mocked(path.relative).mockReturnValue('src\\utils\\helper.ts');
+    const triggerEditorChange = captureEditorChangeListener();
 
     registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
-    const mock = vscode.window.onDidChangeActiveTextEditor as unknown as {
-      mock: { calls: unknown[][] };
-    };
-    const listener = mock.mock.calls[0]?.[0] as (editor: unknown) => Promise<void>;
-
-    await listener({
+    await triggerEditorChange({
       document: {
         uri: { scheme: 'file', fsPath: '/workspace/src/utils/helper.ts' },
       },
@@ -86,20 +102,23 @@ describe('fileWatcherSetup backslash normalization (L21 mutant)', () => {
 describe('fileWatcherSetup event payload shape (L29 mutant)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    (
+      vscode.window as unknown as {
+        visibleTextEditors: unknown[];
+      }
+    ).visibleTextEditors = [];
   });
 
   it('emits activeEditorChanged with filePath: undefined when editor is undefined', async () => {
+    vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
+    const triggerEditorChange = captureEditorChangeListener();
 
     registerEditorChangeHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
-    const mock = vscode.window.onDidChangeActiveTextEditor as unknown as {
-      mock: { calls: unknown[][] };
-    };
-    const listener = mock.mock.calls[0]?.[0] as (editor: undefined) => Promise<void>;
-
-    await listener(undefined);
+    await triggerEditorChange(undefined);
+    vi.advanceTimersByTime(150);
 
     // Verify the payload contains the filePath key (not just an empty object)
     const emitCall = provider.emitEvent.mock.calls[0];

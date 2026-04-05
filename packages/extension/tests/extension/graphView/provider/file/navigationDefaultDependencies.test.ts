@@ -78,6 +78,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
 
   it('passes the current workspace folder through the default file opener', async () => {
     const source = {
+      _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _incrementVisitCount: vi.fn(async () => undefined),
       _setFocusedFile: vi.fn(),
     };
@@ -98,6 +99,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
 
   it('routes default open-file info messages through vscode', async () => {
     const source = {
+      _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _incrementVisitCount: vi.fn(async () => undefined),
       _setFocusedFile: vi.fn(),
     };
@@ -118,6 +120,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
 
   it('routes default open-file error messages through vscode', async () => {
     const source = {
+      _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _incrementVisitCount: vi.fn(async () => undefined),
       _setFocusedFile: vi.fn(),
     };
@@ -138,6 +141,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
 
   it('routes default file stat requests through vscode workspace fs', async () => {
     const source = {
+      _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _incrementVisitCount: vi.fn(async () => undefined),
       _setFocusedFile: vi.fn(),
     };
@@ -158,6 +162,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
 
   it('routes default document opening through vscode workspace', async () => {
     const source = {
+      _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _incrementVisitCount: vi.fn(async () => undefined),
       _setFocusedFile: vi.fn(),
     };
@@ -178,6 +183,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
 
   it('routes default editor showing through vscode window', async () => {
     const source = {
+      _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _incrementVisitCount: vi.fn(async () => undefined),
       _setFocusedFile: vi.fn(),
     };
@@ -204,6 +210,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
 
   it('routes provider visit counting through the default file opener handlers', async () => {
     const source = {
+      _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _incrementVisitCount: vi.fn(async () => undefined),
       _setFocusedFile: vi.fn(),
     };
@@ -224,6 +231,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
 
   it('routes default open-file logging through console.error', async () => {
     const source = {
+      _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _incrementVisitCount: vi.fn(async () => undefined),
       _setFocusedFile: vi.fn(),
     };
@@ -247,6 +255,7 @@ describe('graphView/provider/file/navigation default dependencies', () => {
 
   it('routes provider focus updates through the default file opener handlers', async () => {
     const source = {
+      _getFocusedFile: vi.fn(() => 'src/index.ts'),
       _incrementVisitCount: vi.fn(async () => undefined),
       _setFocusedFile: vi.fn(),
     };
