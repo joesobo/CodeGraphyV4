@@ -20,7 +20,7 @@ describe('DimensionToggle', () => {
 
   it('renders a button element', () => {
     renderWithProviders();
-    expect(screen.getByRole('button')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Toggle 2D/3D Mode' })).toBeInTheDocument();
   });
 
   it('uses the circle icon path in 2d mode', () => {
@@ -42,14 +42,14 @@ describe('DimensionToggle', () => {
   it('toggles graphMode from 2d to 3d on click', () => {
     graphStore.setState({ graphMode: '2d' });
     renderWithProviders();
-    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle 2D/3D Mode' }));
     expect(graphStore.getState().graphMode).toBe('3d');
   });
 
   it('toggles graphMode from 3d to 2d on click', () => {
     graphStore.setState({ graphMode: '3d' });
     renderWithProviders();
-    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle 2D/3D Mode' }));
     expect(graphStore.getState().graphMode).toBe('2d');
   });
 
@@ -69,9 +69,14 @@ describe('DimensionToggle', () => {
 
   it('renders with specific button sizing class', () => {
     renderWithProviders();
-    const button = screen.getByRole('button');
+    const button = screen.getByRole('button', { name: 'Toggle 2D/3D Mode' });
     expect(button.className).toContain('h-7');
     expect(button.className).toContain('w-7');
+  });
+
+  it('exposes a stable title for browser automation and accessibility', () => {
+    renderWithProviders();
+    expect(screen.getByTitle('Toggle 2D/3D Mode')).toBeInTheDocument();
   });
 
   it('renders different icons for 2d vs 3d mode', () => {
@@ -91,7 +96,7 @@ describe('DimensionToggle', () => {
     graphStore.setState({ graphMode: '2d' });
     renderWithProviders();
     // Click toggles from 2d to 3d
-    fireEvent.click(screen.getByRole('button'));
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle 2D/3D Mode' }));
     expect(graphStore.getState().graphMode).toBe('3d');
     // Verify the toggle went the right direction (not staying at 2d)
     expect(graphStore.getState().graphMode).not.toBe('2d');

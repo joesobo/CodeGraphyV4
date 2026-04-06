@@ -18,6 +18,7 @@ import { useGraphState } from './graph/runtime/use/graph/state';
 import { ThemeKind } from '../theme/useTheme';
 import type { WebviewPluginHost } from '../pluginHost/manager';
 import { useGraphStore } from '../store/state';
+import { postMessage } from '../vscodeApi';
 
 interface GraphDebugSnapshot {
   containerHeight: number;
@@ -35,8 +36,9 @@ interface GraphDebugSnapshot {
 }
 
 interface GraphDebugControls {
-  graph2ScreenCoords(x: number, y: number): { x: number; y: number };
-  zoom(): number;
+  graph2ScreenCoords(x: number, y: number, z?: number): { x: number; y: number };
+  zoom?(): number;
+  zoomToFit(durationMs?: number, padding?: number): void;
 }
 
 declare global {
@@ -96,6 +98,11 @@ export default function Graph({
     theme,
     timelineActive,
   });
+  const graphLayoutKey = useMemo(() => {
+    const nodeIds = graphState.graphData.nodes.map(node => node.id).join('|');
+    const linkIds = graphState.graphData.links.map(link => link.id).join('|');
+    return `${nodeSizeMode}::${nodeIds}::${linkIds}`;
+  }, [graphState.graphData.links, graphState.graphData.nodes, nodeSizeMode]);
 
   const isMacPlatform = useMemo(
     () => typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.platform),
@@ -134,6 +141,30 @@ export default function Graph({
     pendingAutoFitRef.current = true;
   }, [graphMode, graphState.graphData]);
 
+  useEffect(() => {
+    if (graphMode !== '3d' || !pendingAutoFitRef.current || typeof window === 'undefined') {
+      return;
+    }
+
+    const graph = graphState.fg3dRef.current;
+    if (!graph) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      if (!pendingAutoFitRef.current) {
+        return;
+      }
+
+      pendingAutoFitRef.current = false;
+      interactions.interactionHandlers.fitView();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [graphMode, graphState.fg3dRef, graphState.graphData, interactions.interactionHandlers]);
+
   const handleEngineStop = React.useCallback(() => {
     if (pendingAutoFitRef.current) {
       pendingAutoFitRef.current = false;
@@ -153,19 +184,28 @@ export default function Graph({
         interactions.interactionHandlers.fitView();
       },
       fitViewWithPadding: (padding: number) => {
-        const graph = graphState.fg2dRef.current as { zoomToFit(durationMs?: number, padding?: number): void } | undefined;
+        const graph = (
+          graphMode === '2d'
+            ? graphState.fg2dRef.current
+            : graphState.fg3dRef.current
+        ) as GraphDebugControls | undefined;
         graph?.zoomToFit(300, padding);
       },
       getSnapshot: () => {
         const containerRect = graphState.containerRef.current?.getBoundingClientRect();
-        const graph = graphState.fg2dRef.current as GraphDebugControls | undefined;
+        const graph = (
+          graphMode === '2d'
+            ? graphState.fg2dRef.current
+            : graphState.fg3dRef.current
+        ) as GraphDebugControls | undefined;
 
         return {
           containerHeight: containerRect?.height ?? 0,
           containerWidth: containerRect?.width ?? 0,
           graphMode,
           nodes: graphState.graphDataRef.current.nodes.map((node) => {
-            const screen = graph?.graph2ScreenCoords(node.x ?? 0, node.y ?? 0) ?? {
+            const z = typeof node.z === 'number' ? node.z : 0;
+            const screen = graph?.graph2ScreenCoords(node.x ?? 0, node.y ?? 0, z) ?? {
               x: node.x ?? 0,
               y: node.y ?? 0,
             };
@@ -179,7 +219,7 @@ export default function Graph({
               y: node.y ?? 0,
             };
           }),
-          zoom: graphMode === '2d' ? (graph?.zoom() ?? null) : null,
+          zoom: graphMode === '2d' ? (graph?.zoom?.() ?? null) : null,
         };
       },
     };
@@ -187,7 +227,7 @@ export default function Graph({
     return () => {
       delete window.__CODEGRAPHY_GRAPH_DEBUG__;
     };
-  }, [graphMode, graphState.containerRef, graphState.fg2dRef, graphState.graphDataRef, interactions.interactionHandlers]);
+  }, [graphMode, graphState.containerRef, graphState.fg2dRef, graphState.fg3dRef, graphState.graphDataRef, interactions.interactionHandlers]);
 
   const callbacks = useGraphCallbacks({
     pluginHost,
@@ -217,6 +257,7 @@ export default function Graph({
     getLinkParticles: callbacks.getLinkParticles,
     getParticleColor: callbacks.getParticleColor,
     graphDataRef: graphState.graphDataRef,
+    graphLayoutKey,
     graphMode,
     highlightVersion: graphState.highlightVersion,
     highlightedNeighborsRef: graphState.highlightedNeighborsRef,
@@ -298,6 +339,12 @@ export default function Graph({
   const borderColor = isLight ? '#d4d4d4' : 'rgb(63, 63, 70)';
   const handleSurface3dError = React.useCallback((error: Error) => {
     console.error('[CodeGraphy] 3D graph unavailable, falling back to 2D.', error);
+    postMessage({
+      type: 'GRAPH_3D_UNAVAILABLE',
+      payload: {
+        message: error.message,
+      },
+    });
     setGraphMode('2d');
   }, [setGraphMode]);
 

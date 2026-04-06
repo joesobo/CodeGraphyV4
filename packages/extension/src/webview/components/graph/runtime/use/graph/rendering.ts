@@ -37,6 +37,7 @@ export interface UseGraphRenderingRuntimeOptions {
   getLinkParticles: (this: void, link: LinkObject) => number;
   getParticleColor: (this: void, link: LinkObject) => string;
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
+  graphLayoutKey: string;
   graphMode: '2d' | '3d';
   highlightVersion: number;
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
@@ -71,6 +72,7 @@ export function useGraphRenderingRuntime({
   getLinkParticles,
   getParticleColor,
   graphDataRef,
+  graphLayoutKey,
   graphMode,
   highlightVersion,
   highlightedNeighborsRef,
@@ -131,6 +133,7 @@ export function useGraphRenderingRuntime({
     fg2dRef,
     fg3dRef,
     graphMode,
+    layoutKey: graphLayoutKey,
     physicsPaused,
     physicsSettings,
   });

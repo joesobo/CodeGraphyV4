@@ -104,6 +104,7 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 			getLinkParticles,
 			getParticleColor,
 			graphDataRef,
+			graphLayoutKey: 'uniform::',
 			graphMode: '2d',
 			highlightVersion: 4,
 			highlightedNeighborsRef,
@@ -157,6 +158,7 @@ describe('graph/runtime/useGraphRenderingRuntime', () => {
 			fg2dRef,
 			fg3dRef,
 			graphMode: '2d',
+			layoutKey: 'uniform::',
 			physicsPaused: false,
 			physicsSettings: PHYSICS_SETTINGS,
 		});

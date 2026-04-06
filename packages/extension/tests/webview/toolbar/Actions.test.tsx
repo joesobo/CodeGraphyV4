@@ -111,14 +111,14 @@ describe('ToolbarActions', () => {
       pluginToolbarActions: [
         {
           id: 'wikilinks',
-          label: 'Wikilinks',
+          label: 'Markdown Wikilinks',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
           items: [
             {
               id: 'wikilink-summary',
-              label: 'Wikilink Summary',
+              label: 'Markdown Wikilink Summary',
               index: 0,
             },
           ],
@@ -128,7 +128,7 @@ describe('ToolbarActions', () => {
 
     renderWithProviders();
 
-    const wikilinksButton = screen.getByTitle('Wikilinks');
+    const wikilinksButton = screen.getByTitle('Markdown Wikilinks');
     const exportButton = screen.getByTitle('Export');
     expect(wikilinksButton.compareDocumentPosition(exportButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -263,14 +263,14 @@ describe('ToolbarActions export dropdown items', () => {
       pluginToolbarActions: [
         {
           id: 'wikilinks',
-          label: 'Wikilinks',
+          label: 'Markdown Wikilinks',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
           items: [
             {
               id: 'wikilink-summary',
-              label: 'Wikilink Summary',
+              label: 'Markdown Wikilink Summary',
               index: 0,
             },
           ],
@@ -280,8 +280,8 @@ describe('ToolbarActions export dropdown items', () => {
 
     renderWithProviders();
 
-    expect(screen.getByTitle('Wikilinks')).toBeInTheDocument();
-    expect(screen.getByText('Wikilink Summary')).toBeInTheDocument();
+    expect(screen.getByTitle('Markdown Wikilinks')).toBeInTheDocument();
+    expect(screen.getByText('Markdown Wikilink Summary')).toBeInTheDocument();
   });
 
   it('posts RUN_PLUGIN_TOOLBAR_ACTION through the host api when a toolbar action item is clicked', () => {
@@ -289,14 +289,14 @@ describe('ToolbarActions export dropdown items', () => {
       pluginToolbarActions: [
         {
           id: 'wikilinks',
-          label: 'Wikilinks',
+          label: 'Markdown Wikilinks',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
           items: [
             {
               id: 'wikilink-summary',
-              label: 'Wikilink Summary',
+              label: 'Markdown Wikilink Summary',
               index: 0,
             },
           ],
@@ -307,7 +307,7 @@ describe('ToolbarActions export dropdown items', () => {
     const postMessageSpy = vi.spyOn(window, 'postMessage');
 
     renderWithProviders();
-    fireEvent.click(screen.getByText('Wikilink Summary'));
+    fireEvent.click(screen.getByText('Markdown Wikilink Summary'));
 
     expect(postMessageSpy).toHaveBeenCalledWith({
       type: 'RUN_PLUGIN_TOOLBAR_ACTION',

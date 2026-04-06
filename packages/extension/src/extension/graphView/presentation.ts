@@ -14,6 +14,30 @@ export interface IGraphViewTransformResult {
   persistSelectedViewId?: string;
 }
 
+const PACKAGE_NODE_VIEW_IDS = new Set(['codegraphy.typescript.focused-imports']);
+
+function filterSyntheticPackageNodes(
+  graphData: IGraphData,
+  activeViewId: string,
+): IGraphData {
+  if (PACKAGE_NODE_VIEW_IDS.has(activeViewId)) {
+    return graphData;
+  }
+
+  const allowedNodeIds = new Set(
+    graphData.nodes
+      .filter((node) => node.nodeType !== 'package')
+      .map((node) => node.id),
+  );
+
+  return {
+    nodes: graphData.nodes.filter((node) => allowedNodeIds.has(node.id)),
+    edges: graphData.edges.filter(
+      (edge) => allowedNodeIds.has(edge.from) && allowedNodeIds.has(edge.to),
+    ),
+  };
+}
+
 export function getRelativeWorkspacePath(
   uri: vscode.Uri,
   workspaceFolders: readonly IWorkspaceFolderLike[] | undefined,
@@ -32,6 +56,7 @@ export function applyGraphViewTransform(
   viewContext: IViewContext,
   rawGraphData: IGraphData
 ): IGraphViewTransformResult {
+  const graphDataForActiveView = filterSyntheticPackageNodes(rawGraphData, activeViewId);
   const viewInfo = viewRegistry.get(activeViewId);
 
   if (!viewInfo || !viewRegistry.isViewAvailable(activeViewId, viewContext)) {
@@ -39,9 +64,10 @@ export function applyGraphViewTransform(
     if (defaultId && defaultId !== activeViewId) {
       const defaultView = viewRegistry.get(defaultId);
       if (defaultView) {
+        const graphDataForDefaultView = filterSyntheticPackageNodes(rawGraphData, defaultId);
         return {
           activeViewId: defaultId,
-          graphData: defaultView.view.transform(rawGraphData, viewContext),
+          graphData: defaultView.view.transform(graphDataForDefaultView, viewContext),
           persistSelectedViewId: defaultId,
         };
       }
@@ -49,13 +75,13 @@ export function applyGraphViewTransform(
 
     return {
       activeViewId,
-      graphData: rawGraphData,
+      graphData: graphDataForActiveView,
     };
   }
 
   return {
     activeViewId,
-    graphData: viewInfo.view.transform(rawGraphData, viewContext),
+    graphData: viewInfo.view.transform(graphDataForActiveView, viewContext),
   };
 }
 

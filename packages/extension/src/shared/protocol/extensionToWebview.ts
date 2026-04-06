@@ -63,6 +63,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'CACHE_INVALIDATED' }
   | { type: 'PLAYBACK_ENDED' }
   | { type: 'GET_NODE_BOUNDS' }
+  | { type: 'GET_GRAPH_RUNTIME_STATE' }
   | {
       type: 'DECORATIONS_UPDATED';
       payload: {

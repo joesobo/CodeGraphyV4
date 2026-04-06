@@ -108,12 +108,12 @@ export function createMarkdownPlugin(): IPlugin {
       toolbarActionDisposables.push(
         api.registerToolbarAction({
           id: 'wikilinks',
-          label: 'Wikilinks',
-          description: 'Open Markdown wikilink summaries',
+          label: 'Markdown Wikilinks',
+          description: 'Open Markdown-specific wikilink summaries',
           items: [
             {
               id: 'wikilink-summary',
-              label: 'Wikilink Summary',
+              label: 'Markdown Wikilink Summary',
               description: 'Export a markdown summary of linked and orphan notes',
               async run() {
                 const graph = api.getGraph();

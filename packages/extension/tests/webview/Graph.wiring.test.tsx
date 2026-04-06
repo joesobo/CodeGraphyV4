@@ -5,6 +5,10 @@ import type { IGraphData } from '../../src/shared/graph/types';
 import Graph from '../../src/webview/components/Graph';
 import { graphStore } from '../../src/webview/store/state';
 
+const vscodeApiHarness = vi.hoisted(() => ({
+	postMessage: vi.fn(),
+}));
+
 const harness = vi.hoisted(() => ({
 	buildGraphContextMenuEntries: vi.fn(() => []),
 	buildSharedGraphProps: vi.fn((options: Record<string, unknown>) => ({
@@ -69,6 +73,10 @@ vi.mock('../../src/webview/components/graph/Viewport', () => ({
 	},
 }));
 
+vi.mock('../../src/webview/vscodeApi', () => ({
+	postMessage: vscodeApiHarness.postMessage,
+}));
+
 const baseData: IGraphData = {
 	nodes: [
 		{ id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
@@ -86,7 +94,7 @@ function createGraphState(graphData: IGraphData = baseData) {
 		directionModeRef: { current: 'arrows' },
 		edgeDecorationsRef: { current: {} },
 		fg2dRef: { current: undefined },
-		fg3dRef: { current: undefined },
+		fg3dRef: { current: undefined as { zoomToFit?: ReturnType<typeof vi.fn> } | undefined },
 		fileInfoCacheRef: { current: new Map() },
 		graphContextSelection: { kind: 'background', targets: [] },
 		graphCursorRef: { current: 'default' },
@@ -136,6 +144,7 @@ function createInteractionRuntime() {
 		handleNodeHover: vi.fn(),
 		handleNodeRightClick: vi.fn(),
 		interactionHandlers: {
+			fitView: vi.fn(),
 			handleBackgroundClick: vi.fn(),
 			handleLinkClick: vi.fn(),
 			handleNodeClick: vi.fn(),
@@ -215,6 +224,7 @@ describe('Graph wiring', () => {
 	});
 
 	afterEach(() => {
+		vi.useRealTimers();
 		setStoreState();
 	});
 
@@ -347,5 +357,45 @@ describe('Graph wiring', () => {
 				}),
 			}),
 		);
+	});
+
+	it('auto-fits after switching into 3d mode when the graph ref is ready', () => {
+		vi.useFakeTimers();
+		const graphState = createGraphState();
+		graphState.fg3dRef.current = { zoomToFit: vi.fn() };
+		const interactionRuntime = createInteractionRuntime();
+		setStoreState({ graphMode: '3d' });
+		harness.useGraphState.mockReturnValue(graphState);
+		harness.useGraphInteractionRuntime.mockReturnValue(interactionRuntime);
+
+		render(<Graph data={baseData} />);
+		expect(interactionRuntime.interactionHandlers.fitView).not.toHaveBeenCalled();
+
+		act(() => {
+			vi.runAllTimers();
+		});
+
+		expect(interactionRuntime.interactionHandlers.fitView).toHaveBeenCalledOnce();
+	});
+
+	it('posts a 3d unavailable warning and falls back to 2d when the 3d surface errors', () => {
+		setStoreState({ graphMode: '3d' });
+
+		render(<Graph data={baseData} />);
+
+		const viewportProps = harness.viewport.mock.calls.at(-1)?.[0] as {
+			onSurface3dError: (error: Error) => void;
+		};
+		expect(viewportProps).toBeDefined();
+
+		act(() => {
+			viewportProps.onSurface3dError(new Error('Error creating WebGL context.'));
+		});
+
+		expect(vscodeApiHarness.postMessage).toHaveBeenCalledWith({
+			type: 'GRAPH_3D_UNAVAILABLE',
+			payload: { message: 'Error creating WebGL context.' },
+		});
+		expect(graphStore.getState().graphMode).toBe('2d');
 	});
 });

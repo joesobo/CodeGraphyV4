@@ -8,6 +8,7 @@ import {
   getExportEffects,
   getFileInfoEffects,
   getFitViewEffects,
+  getGraphRuntimeStateEffects,
   getNodeBoundsEffects,
   getZoomEffects,
 } from './effectBuilders';
@@ -47,6 +48,8 @@ export function getGraphWebviewMessageEffects(
       return getFileInfoEffects(tooltipPath, message.payload);
     case 'GET_NODE_BOUNDS':
       return getNodeBoundsEffects(graphNodes);
+    case 'GET_GRAPH_RUNTIME_STATE':
+      return getGraphRuntimeStateEffects(graphMode, graphNodes);
     case 'REQUEST_EXPORT_PNG':
     case 'REQUEST_EXPORT_SVG':
     case 'REQUEST_EXPORT_JPEG':

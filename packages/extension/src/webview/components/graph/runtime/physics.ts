@@ -7,6 +7,8 @@ import { hasDistanceAndStrength, hasDistanceMax, hasStrength } from '../support/
 
 export type GraphPhysicsInstance = FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>;
 const DEFAULT_CHARGE_RANGE = 1000;
+const COLLISION_PADDING = 4;
+const COLLISION_ITERATIONS = 16;
 
 interface GraphPhysicsControls {
 	d3Force(name: string): unknown;
@@ -76,6 +78,9 @@ export function initPhysics(
 	applyPhysicsSettings(instance, settings);
 	graph.d3Force('forceX', forceX(0).strength(settings.centerForce));
 	graph.d3Force('forceY', forceY(0).strength(settings.centerForce));
-	graph.d3Force('collision', forceCollide((node: FGNode) => node.size + 4));
+	graph.d3Force(
+		'collision',
+		forceCollide((node: FGNode) => node.size + COLLISION_PADDING).iterations(COLLISION_ITERATIONS),
+	);
 	graph.d3ReheatSimulation();
 }

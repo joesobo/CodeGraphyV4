@@ -58,6 +58,14 @@ export type WebviewToExtensionMessage =
       type: 'NODE_BOUNDS_RESPONSE';
       payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> };
     }
+  | {
+      type: 'GRAPH_RUNTIME_STATE_RESPONSE';
+      payload: { graphMode: '2d' | '3d'; nodeCount: number };
+    }
+  | {
+      type: 'GRAPH_3D_UNAVAILABLE';
+      payload: { message: string };
+    }
   | { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }
   | {
       type: 'PLUGIN_CONTEXT_MENU_ACTION';
