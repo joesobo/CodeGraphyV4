@@ -108,8 +108,8 @@ export function createMarkdownPlugin(): IPlugin {
       toolbarActionDisposables.push(
         api.registerToolbarAction({
           id: 'wikilinks',
-          label: 'Markdown Wikilinks',
-          description: 'Open Markdown-specific wikilink summaries',
+          label: 'Wikilinks',
+          description: 'Open plugin-provided wikilink tools',
           items: [
             {
               id: 'wikilink-summary',

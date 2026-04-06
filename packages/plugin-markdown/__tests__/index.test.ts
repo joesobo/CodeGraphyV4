@@ -187,7 +187,7 @@ describe('createMarkdownPlugin', () => {
       expect(registerToolbarAction).toHaveBeenCalledOnce();
       const action = registerToolbarAction.mock.calls[0]?.[0];
       expect(action?.id).toBe('wikilinks');
-      expect(action?.label).toBe('Markdown Wikilinks');
+      expect(action?.label).toBe('Wikilinks');
       expect(action?.items).toHaveLength(1);
       expect(action?.items[0]?.id).toBe('wikilink-summary');
       expect(action?.items[0]?.label).toBe('Markdown Wikilink Summary');

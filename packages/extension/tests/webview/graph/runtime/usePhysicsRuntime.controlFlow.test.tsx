@@ -166,6 +166,13 @@ describe('webview/graph/runtime/usePhysicsRuntime control flow', () => {
       frames.shift()?.(0);
     });
 
+    expect(runtimeHarness.initPhysics).not.toHaveBeenCalled();
+    expect(runtimeHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
+
+    act(() => {
+      frames.shift()?.(0);
+    });
+
     expect(runtimeHarness.initPhysics).toHaveBeenCalledWith(graph, SETTINGS);
     expect(runtimeHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
   });

@@ -111,7 +111,7 @@ describe('ToolbarActions', () => {
       pluginToolbarActions: [
         {
           id: 'wikilinks',
-          label: 'Markdown Wikilinks',
+          label: 'Wikilinks',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
@@ -128,7 +128,7 @@ describe('ToolbarActions', () => {
 
     renderWithProviders();
 
-    const wikilinksButton = screen.getByTitle('Markdown Wikilinks');
+    const wikilinksButton = screen.getByTitle('Wikilinks');
     const exportButton = screen.getByTitle('Export');
     expect(wikilinksButton.compareDocumentPosition(exportButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
@@ -263,7 +263,7 @@ describe('ToolbarActions export dropdown items', () => {
       pluginToolbarActions: [
         {
           id: 'wikilinks',
-          label: 'Markdown Wikilinks',
+          label: 'Wikilinks',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
@@ -280,7 +280,7 @@ describe('ToolbarActions export dropdown items', () => {
 
     renderWithProviders();
 
-    expect(screen.getByTitle('Markdown Wikilinks')).toBeInTheDocument();
+    expect(screen.getByTitle('Wikilinks')).toBeInTheDocument();
     expect(screen.getByText('Markdown Wikilink Summary')).toBeInTheDocument();
   });
 
@@ -289,7 +289,7 @@ describe('ToolbarActions export dropdown items', () => {
       pluginToolbarActions: [
         {
           id: 'wikilinks',
-          label: 'Markdown Wikilinks',
+          label: 'Wikilinks',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
