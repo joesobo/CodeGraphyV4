@@ -80,6 +80,7 @@ describe('webview/graph/runtime/usePhysicsRuntime control flow', () => {
         fg2dRef: { current: graph },
         fg3dRef: { current: undefined },
         graphMode: '2d',
+        layoutKey: 'layout:a',
         physicsSettings,
       }),
       { initialProps: { physicsSettings: SETTINGS } },
@@ -116,6 +117,7 @@ describe('webview/graph/runtime/usePhysicsRuntime control flow', () => {
       fg2dRef: { current: create2DGraph() },
       fg3dRef: { current: undefined },
       graphMode: '2d',
+      layoutKey: 'layout:a',
       physicsSettings: SETTINGS,
     }));
 
@@ -127,5 +129,44 @@ describe('webview/graph/runtime/usePhysicsRuntime control flow', () => {
     });
     expect(requestAnimationFrame).not.toHaveBeenCalled();
     expect(runtimeHarness.initPhysics).not.toHaveBeenCalled();
+  });
+
+  it('does not sync animation before initialization finishes for a newly selected graph mode', () => {
+    const graph = create2DGraph();
+    const frames: FrameRequestCallback[] = [];
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+
+    runtimeHarness.selectActivePhysicsGraph.mockReturnValue(graph);
+
+    let resolveCalls = 0;
+    runtimeHarness.resolvePhysicsInitAction.mockImplementation(() => {
+      resolveCalls += 1;
+      return resolveCalls === 1
+        ? { type: 'wait' }
+        : { instance: graph, type: 'init' };
+    });
+
+    renderHook(() => usePhysicsRuntime({
+      fg2dRef: { current: undefined },
+      fg3dRef: { current: graph },
+      graphMode: '3d',
+      layoutKey: 'layout:a',
+      physicsPaused: false,
+      physicsSettings: SETTINGS,
+    }));
+
+    expect(runtimeHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
+
+    act(() => {
+      frames.shift()?.(0);
+    });
+
+    expect(runtimeHarness.initPhysics).toHaveBeenCalledWith(graph, SETTINGS);
+    expect(runtimeHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
   });
 });

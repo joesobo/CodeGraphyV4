@@ -31,21 +31,6 @@ export type { IPathResolverConfig } from './PathResolver';
 const TS_FOCUSED_IMPORT_VIEW_ID = 'codegraphy.typescript.focused-imports';
 const TS_FOCUSED_IMPORT_VIEW_NAME = 'Focused Imports';
 const TS_VIEW_EDGE_KINDS = new Set(['import', 'reexport']);
-const TS_VIEW_FILE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts', '.mjs', '.cjs']);
-
-function isTypeScriptFocusedFile(focusedFile: string | undefined): boolean {
-  if (!focusedFile) {
-    return false;
-  }
-
-  const dotIndex = focusedFile.lastIndexOf('.');
-  if (dotIndex === -1) {
-    return false;
-  }
-
-  return TS_VIEW_FILE_EXTENSIONS.has(focusedFile.slice(dotIndex).toLowerCase());
-}
-
 function filterTypeScriptImportEdges(data: IGraphData): IGraphData {
   const edges = data.edges.filter(edge =>
     TS_VIEW_EDGE_KINDS.has(edge.kind)
@@ -146,9 +131,6 @@ function createFocusedImportView(): IView {
     icon: 'symbol-file',
     description: 'Shows the import neighborhood around the focused file',
     recomputeOn: ['focusedFile', 'depthLimit'],
-    isAvailable(context: IViewContext): boolean {
-      return isTypeScriptFocusedFile(context.focusedFile);
-    },
     transform(data: IGraphData, context: IViewContext): IGraphData {
       return filterFocusedImportGraph(data, context);
     },

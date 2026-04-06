@@ -15,6 +15,7 @@ import { applyExportMessage } from '../messages/exports';
 import { applyGroupMessage, type GraphViewGroupMessageState } from '../messages/groups';
 import { applyNodeFileMessage, type GraphViewNodeFileHandlers } from '../nodeFile/router';
 import { applyPhysicsMessage } from '../messages/physics';
+import { applySurfaceMessage } from '../messages/surface';
 import { applySettingsMessage, type GraphViewSettingsMessageState } from '../settingsMessages/router';
 import { applyTimelineMessage } from '../messages/timeline';
 
@@ -145,6 +146,10 @@ export async function dispatchGraphViewPrimaryMessage(
   }
 
   if (await applyPhysicsMessage(message, context)) {
+    return { handled: true };
+  }
+
+  if (await applySurfaceMessage(message)) {
     return { handled: true };
   }
 

@@ -366,7 +366,7 @@ describe('createTypeScriptPlugin lifecycle', () => {
     ]);
   });
 
-  it('hides focused imports when the focused file is not TypeScript or JavaScript', () => {
+  it('keeps focused imports available even without a TypeScript-focused editor', () => {
     const plugin = createTypeScriptPlugin();
     const registerView = vi.fn(() => ({ dispose: vi.fn() }));
     const api = { registerView } as unknown as Pick<CodeGraphyAPI, 'registerView'>;
@@ -374,18 +374,7 @@ describe('createTypeScriptPlugin lifecycle', () => {
     plugin.onLoad?.(api as CodeGraphyAPI);
 
     const view = registerView.mock.calls[0]?.[0];
-    expect(view.isAvailable?.({
-      activePlugins: new Set(),
-      focusedFile: undefined,
-    })).toBe(false);
-    expect(view.isAvailable?.({
-      activePlugins: new Set(),
-      focusedFile: 'docs/Note.md',
-    })).toBe(false);
-    expect(view.isAvailable?.({
-      activePlugins: new Set(),
-      focusedFile: 'src/index.ts',
-    })).toBe(true);
+    expect(view.isAvailable).toBeUndefined();
   });
 
   it('returns an empty graph when the focused file is outside the import graph', () => {

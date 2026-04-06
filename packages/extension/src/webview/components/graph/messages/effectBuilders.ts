@@ -85,6 +85,22 @@ export function getNodeBoundsEffects(graphNodes: GraphNodeBounds[]): GraphWebvie
   }];
 }
 
+export function getGraphRuntimeStateEffects(
+  graphMode: '2d' | '3d',
+  graphNodes: GraphNodeBounds[],
+): GraphWebviewMessageEffect[] {
+  return [{
+    kind: 'postMessage',
+    message: {
+      type: 'GRAPH_RUNTIME_STATE_RESPONSE',
+      payload: {
+        graphMode,
+        nodeCount: graphNodes.length,
+      },
+    },
+  }];
+}
+
 export function getExportEffects(messageType: ExportMessageType): GraphWebviewMessageEffect[] {
   return singleEffect(EXPORT_EFFECT_KIND_BY_MESSAGE[messageType]);
 }

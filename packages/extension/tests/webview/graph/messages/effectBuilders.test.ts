@@ -5,6 +5,7 @@ import {
   getExportEffects,
   getFileInfoEffects,
   getFitViewEffects,
+  getGraphRuntimeStateEffects,
   getNodeBoundsEffects,
   getZoomEffects,
 } from '../../../../src/webview/components/graph/messages/effectBuilders';
@@ -63,6 +64,24 @@ describe('graph/messages/effectBuilders', () => {
               { id: 'src/app.ts', x: 10, y: 20, size: 12 },
               { id: 'src/utils.ts', x: 0, y: 0, size: 8 },
             ],
+          },
+        },
+      },
+    ]);
+  });
+
+  it('creates graph runtime state effects', () => {
+    expect(getGraphRuntimeStateEffects('3d', [
+      { id: 'src/app.ts', size: 12, x: 10, y: 20 },
+      { id: 'src/utils.ts', size: 8 },
+    ])).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'GRAPH_RUNTIME_STATE_RESPONSE',
+          payload: {
+            graphMode: '3d',
+            nodeCount: 2,
           },
         },
       },

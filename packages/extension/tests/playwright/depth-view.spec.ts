@@ -108,8 +108,7 @@ test.describe('webview depth view', () => {
 
     await expect(page.locator('.graph-container canvas').first()).toBeVisible();
 
-    const toolbarButtons = page.locator('[data-testid="toolbar-primary-controls"] button');
-    await toolbarButtons.nth(7).click();
+    await page.getByTitle('Toggle 2D/3D Mode').click();
 
     await expect.poll(async () => page.locator('.graph-container canvas').count()).toBeGreaterThan(0);
     await expect.poll(async () => page.evaluate(() => document.body.innerText)).toContain('Aa');
@@ -131,8 +130,7 @@ test.describe('webview depth view', () => {
     await page.goto('/depth-view');
     await waitForGraphDebugBridge(page);
 
-    const toolbarButtons = page.locator('[data-testid="toolbar-primary-controls"] button');
-    await toolbarButtons.nth(7).click();
+    await page.getByTitle('Toggle 2D/3D Mode').click();
 
     await expect.poll(async () => {
       const snapshot = await getGraphDebugSnapshot(page);

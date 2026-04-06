@@ -22,6 +22,7 @@ interface UsePhysicsRuntimeOptions {
 	fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
 	fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
 	graphMode: '2d' | '3d';
+	layoutKey: string;
 	physicsPaused?: boolean;
 	physicsSettings: IPhysicsSettings;
 }
@@ -30,12 +31,14 @@ export function usePhysicsRuntime({
 	fg2dRef,
 	fg3dRef,
 	graphMode,
+	layoutKey,
 	physicsPaused = false,
 	physicsSettings,
 }: UsePhysicsRuntimeOptions): void {
 	const physicsInitialisedRef = useRef(false);
 	const physicsSettingsRef = useRef(physicsSettings);
 	const previousPhysicsRef = useRef<IPhysicsSettings | null>(null);
+	const previousLayoutKeyRef = useRef<string | null>(null);
 
 	physicsSettingsRef.current = physicsSettings;
 
@@ -54,7 +57,7 @@ export function usePhysicsRuntime({
 
 	useEffect(() => {
 		const graph = selectActivePhysicsGraph(graphMode, fg2dRef.current, fg3dRef.current);
-		if (!graph) return;
+		if (!graph || !physicsInitialisedRef.current) return;
 
 		syncPhysicsAnimation(graph, physicsPaused);
 	}, [fg2dRef, fg3dRef, graphMode, physicsPaused]);
@@ -62,6 +65,7 @@ export function usePhysicsRuntime({
 	useEffect(() => {
 		physicsInitialisedRef.current = false;
 		previousPhysicsRef.current = null;
+		previousLayoutKeyRef.current = null;
 	}, [graphMode]);
 
 	useEffect(() => {
@@ -79,7 +83,9 @@ export function usePhysicsRuntime({
 				physicsInitialisedRef.current = true;
 				previousPhysicsRef.current = { ...physicsSettingsRef.current };
 				initPhysics(action.instance, physicsSettingsRef.current);
-				syncPhysicsAnimation(action.instance, physicsPaused);
+				if (physicsPaused) {
+					syncPhysicsAnimation(action.instance, true);
+				}
 				return;
 			}
 
@@ -92,4 +98,26 @@ export function usePhysicsRuntime({
 			if (frame !== null) cancelAnimationFrame(frame);
 		};
 	}, [fg2dRef, fg3dRef, graphMode, physicsPaused]);
+
+	useEffect(() => {
+		const graph = selectActivePhysicsGraph(graphMode, fg2dRef.current, fg3dRef.current);
+		if (!graph || !physicsInitialisedRef.current) {
+			return;
+		}
+
+		if (previousLayoutKeyRef.current === null) {
+			previousLayoutKeyRef.current = layoutKey;
+			return;
+		}
+
+		if (previousLayoutKeyRef.current === layoutKey) {
+			return;
+		}
+
+		previousLayoutKeyRef.current = layoutKey;
+		applyPhysicsSettings(graph, physicsSettingsRef.current);
+		if (physicsPaused) {
+			syncPhysicsAnimation(graph, true);
+		}
+	}, [fg2dRef, fg3dRef, graphMode, layoutKey, physicsPaused]);
 }

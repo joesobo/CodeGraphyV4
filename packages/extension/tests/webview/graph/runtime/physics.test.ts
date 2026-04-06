@@ -162,9 +162,11 @@ describe('physics', () => {
 
     const collisionForce = d3Force.mock.calls.find(([name]) => name === 'collision')?.[1] as {
       radius: () => (node: { size: number }) => number;
+      iterations: () => number;
     };
 
     expect(collisionForce.radius()({ size: 9 })).toBe(13);
+    expect(collisionForce.iterations()).toBe(16);
   });
 
   it('pauses and resumes the graph animation', () => {

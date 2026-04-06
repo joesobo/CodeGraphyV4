@@ -1,4 +1,5 @@
-import { describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '@/shared/graph/types';
 import type { IGroup } from '@/shared/settings/groups';
 import type { DagMode } from '@/shared/settings/modes';
@@ -76,6 +77,11 @@ function createContext(
 }
 
 describe('graph view primary message dispatch', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (vscode.window as Record<string, unknown>).showWarningMessage = vi.fn();
+  });
+
   it('returns handled for node/file messages before later handlers run', async () => {
     const context = createContext();
 
@@ -148,6 +154,17 @@ describe('graph view primary message dispatch', () => {
     ).resolves.toEqual({ handled: true });
 
     expect(context.sendPhysicsSettings).toHaveBeenCalledOnce();
+  });
+
+  it('returns handled for surface fallback messages', async () => {
+    const context = createContext();
+
+    await expect(
+      dispatchGraphViewPrimaryMessage(
+        { type: 'GRAPH_3D_UNAVAILABLE', payload: { message: 'Error creating WebGL context.' } },
+        context,
+      ),
+    ).resolves.toEqual({ handled: true });
   });
 
   it('persists updated user groups returned by the group message handler', async () => {

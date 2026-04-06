@@ -14,6 +14,22 @@ const rawGraphData: IGraphData = {
   edges: [],
 };
 
+const rawGraphWithPackageData: IGraphData = {
+  nodes: [
+    { id: 'src/app.ts', label: 'app.ts', color: '#ffffff' },
+    { id: 'pkg:fs', label: 'fs', color: '#F59E0B', nodeType: 'package', shape2D: 'hexagon', shape3D: 'cube' },
+  ],
+  edges: [
+    {
+      id: 'src/app.ts->pkg:fs#import',
+      from: 'src/app.ts',
+      to: 'pkg:fs',
+      kind: 'import',
+      sources: [],
+    },
+  ],
+};
+
 const viewContext: IViewContext = {
   activePlugins: new Set<string>(),
 };
@@ -150,6 +166,68 @@ describe('graphViewPresentation', () => {
         nodes: [{ id: 'folder', label: 'folder', color: '#000000' }],
         edges: [],
       },
+    });
+  });
+
+  it('hides synthetic package nodes outside the focused imports view', () => {
+    const registry = new ViewRegistry();
+    registry.register(
+      {
+        id: 'codegraphy.connections',
+        name: 'Connections',
+        icon: 'symbol-file',
+        description: 'Default view',
+        transform: (graphData) => graphData,
+      },
+      { core: true, isDefault: true }
+    );
+
+    const result = applyGraphViewTransform(
+      registry,
+      'codegraphy.connections',
+      viewContext,
+      rawGraphWithPackageData,
+    );
+
+    expect(result).toEqual({
+      activeViewId: 'codegraphy.connections',
+      graphData: {
+        nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#ffffff' }],
+        edges: [],
+      },
+    });
+  });
+
+  it('keeps synthetic package nodes inside the focused imports view', () => {
+    const registry = new ViewRegistry();
+    registry.register(
+      {
+        id: 'codegraphy.connections',
+        name: 'Connections',
+        icon: 'symbol-file',
+        description: 'Default view',
+        transform: (graphData) => graphData,
+      },
+      { core: true, isDefault: true }
+    );
+    registry.register({
+      id: 'codegraphy.typescript.focused-imports',
+      name: 'Focused Imports',
+      icon: 'symbol-file',
+      description: 'TypeScript imports',
+      transform: (graphData) => graphData,
+    });
+
+    const result = applyGraphViewTransform(
+      registry,
+      'codegraphy.typescript.focused-imports',
+      viewContext,
+      rawGraphWithPackageData,
+    );
+
+    expect(result).toEqual({
+      activeViewId: 'codegraphy.typescript.focused-imports',
+      graphData: rawGraphWithPackageData,
     });
   });
 

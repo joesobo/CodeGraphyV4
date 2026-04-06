@@ -142,6 +142,13 @@ interface NodeBoundsResponse {
   };
 }
 
+interface GraphRuntimeStateResponse {
+  payload: {
+    graphMode: '2d' | '3d';
+    nodeCount: number;
+  };
+}
+
 async function requestNodeBounds(
   api: CodeGraphyAPI,
   timeoutMs = 5_000,
@@ -150,6 +157,16 @@ async function requestNodeBounds(
   api.sendToWebview({ type: 'GET_NODE_BOUNDS' });
   const boundsMessage = await boundsPromise as NodeBoundsResponse;
   return boundsMessage.payload.nodes;
+}
+
+async function requestGraphRuntimeState(
+  api: CodeGraphyAPI,
+  timeoutMs = 5_000,
+): Promise<GraphRuntimeStateResponse['payload']> {
+  const statePromise = waitForWebviewMessage(api, 'GRAPH_RUNTIME_STATE_RESPONSE', timeoutMs);
+  api.sendToWebview({ type: 'GET_GRAPH_RUNTIME_STATE' });
+  const stateMessage = await statePromise as GraphRuntimeStateResponse;
+  return stateMessage.payload;
 }
 
 function didNodeLayoutStabilize(
@@ -262,6 +279,26 @@ suite('Graph: Webview Messaging', function () {
     const fitViewPromise = waitForExtensionMessage(api, 'FIT_VIEW', 10_000);
     void vscode.commands.executeCommand('codegraphy.fitView');
     await fitViewPromise;
+  });
+});
+
+suite('Graph: 3D Mode', function () {
+  this.timeout(30_000);
+
+  test('toggle dimension switches the runtime into 3d without dropping rendered nodes', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(5_000);
+
+    await vscode.commands.executeCommand('codegraphy.toggleDimension');
+    await sleep(2_000);
+
+    const runtimeState = await requestGraphRuntimeState(api);
+    const nodeBounds = await requestNodeBounds(api);
+
+    assert.strictEqual(runtimeState.graphMode, '3d');
+    assert.ok(runtimeState.nodeCount > 0, '3d mode should keep graph nodes loaded');
+    assert.strictEqual(nodeBounds.length, runtimeState.nodeCount);
   });
 });
 
