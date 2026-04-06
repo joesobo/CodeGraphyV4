@@ -16,7 +16,7 @@ import type {
   BadgeOpts,
   RingOpts,
   LabelOpts,
-} from '../../../../../plugin-api/src/webview';
+} from '../../../../../plugin-api/src/webview/contract';
 
 export type WebviewDisposable = Disposable;
 export type {

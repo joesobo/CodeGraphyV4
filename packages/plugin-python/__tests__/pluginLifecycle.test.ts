@@ -53,7 +53,7 @@ vi.mock('../src/sources/from-import-relative', () => ({
   detect: mocks.detectFromImportRelative,
 }));
 
-import { createPythonPlugin } from '../src';
+import { createPythonPlugin } from '../src/plugin';
 
 describe('createPythonPlugin lifecycle', () => {
   const workspaceRoot = '/workspace';

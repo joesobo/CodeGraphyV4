@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import { describe, it, expect, vi } from 'vitest';
-import createCSharpPlugin, { createCSharpPlugin as namedCreateCSharpPlugin } from '../src';
+import createCSharpPlugin, { createCSharpPlugin as namedCreateCSharpPlugin } from '../src/plugin';
 
 describe('createCSharpPlugin', () => {
   it('exports both default and named factory functions', () => {

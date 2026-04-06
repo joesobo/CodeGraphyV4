@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createGraphViewProviderTestHarness } from './testHarness';
-import { createTypeScriptPlugin } from '../../../../plugin-typescript/src';
+import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 
 describe('GraphViewProvider focused file updates', () => {
   let harness = createGraphViewProviderTestHarness();

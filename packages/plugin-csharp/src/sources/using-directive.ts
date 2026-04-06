@@ -5,7 +5,7 @@
  */
 
 import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
-import type { CSharpRuleContext } from '../parser';
+import type { CSharpRuleContext } from '../parserTypes';
 
 /** Detects using directive connections: using System; using static X; global using X; */
 export function detect(_content: string, filePath: string, ctx: CSharpRuleContext): IConnection[] {

@@ -1,11 +1,9 @@
-import { stripCommentsAndLiteralsForTypeExtraction } from './parserComments';
-import {
-  collectConstructorTypes,
-  collectDeclarationTypes,
-  collectGenericArgumentTypes,
-  collectInheritanceTypes,
-  collectStaticAccessTypes,
-} from './parserUsedTypePatterns';
+import { stripCommentsAndLiteralsForTypeExtraction } from './parserTypeExtractionSanitizer';
+import { collectConstructorTypes } from './parserUsedTypeConstructor';
+import { collectDeclarationTypes } from './parserUsedTypeDeclarations';
+import { collectGenericArgumentTypes } from './parserUsedTypeGenericArgs';
+import { collectInheritanceTypes } from './parserUsedTypeInheritance';
+import { collectStaticAccessTypes } from './parserUsedTypeStaticAccess';
 
 export function extractUsedTypes(content: string): Set<string> {
   const types = new Set<string>();

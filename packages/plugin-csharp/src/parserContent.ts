@@ -1,5 +1,6 @@
-import { parseNamespaceDeclaration, parseUsingDirective } from './parserLineParsers';
-import { stripCommentsFromLine, type LineParseState } from './parserComments';
+import { parseNamespaceDeclaration } from './parseNamespaceDeclaration';
+import { parseUsingDirective } from './parseUsingDirective';
+import { stripCommentsFromLine, type LineParseState } from './parserLineCommentStripper';
 import type { IDetectedNamespace, IDetectedUsing } from './parserTypes';
 
 export function parseContent(content: string): {

@@ -20,15 +20,16 @@ export type {
   IGraphEdgeSource,
   IGraphNode,
   IPlugin,
+  IPluginFileColorDefinition,
   NodeType,
-} from '../../../../../plugin-api/src';
+} from '../../../../../plugin-api/src/contract';
 
 /**
  * Information about a registered plugin.
  */
 export interface IPluginInfo {
   /** The plugin instance */
-  plugin: import('../../../../../plugin-api/src').IPlugin;
+  plugin: import('../../../../../plugin-api/src/contract').IPlugin;
   /** Whether this is a built-in plugin */
   builtIn: boolean;
   /** Source extension ID for community plugins */

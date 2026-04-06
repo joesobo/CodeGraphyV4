@@ -12,6 +12,7 @@ import { ViewRegistry } from '../views/registry';
 import { IView } from '../views/contracts';
 import type { IGraphData, IGraphNode, IGraphEdge } from '../../shared/graph/types';
 import type { ExportRequest, IExporter, IToolbarAction } from '../../../../plugin-api/src/api';
+import type { ICommand, IContextMenuItem } from '../../../../plugin-api/src/commands';
 import {
   filterEdgesByKind as facadeFilterEdgesByKind,
   findPath as facadeFindPath,
@@ -23,26 +24,6 @@ import {
   getSubgraph as facadeGetSubgraph,
   getEdgesFor as facadeGetEdgesFor,
 } from './graphQueryFacade';
-
-/**
- * Command registered by a plugin.
- */
-export interface ICommand {
-  id: string;
-  title: string;
-  action: () => void | Promise<void>;
-}
-
-/**
- * Context menu item registered by a plugin.
- */
-export interface IContextMenuItem {
-  label: string;
-  when: 'node' | 'edge' | 'both';
-  action: (target: IGraphNode | IGraphEdge) => void | Promise<void>;
-  icon?: string;
-  group?: string;
-}
 
 /** Function that provides current graph data */
 export type GraphDataProvider = () => IGraphData;

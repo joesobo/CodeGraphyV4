@@ -140,6 +140,51 @@
           "tests/**/*.ts"
         ]
       }
+    },
+    "plugin-api": {
+      "boundaries": {
+        "entrypoints": [
+          "src/contract.ts",
+          "src/webview/contract.ts",
+          "src/plugin.ts",
+          "src/events.ts"
+        ]
+      }
+    },
+    "plugin-csharp": {
+      "boundaries": {
+        "entrypoints": [
+          "src/activate.ts"
+        ]
+      }
+    },
+    "plugin-godot": {
+      "boundaries": {
+        "entrypoints": [
+          "src/activate.ts"
+        ]
+      }
+    },
+    "plugin-markdown": {
+      "boundaries": {
+        "entrypoints": [
+          "src/plugin.ts"
+        ]
+      }
+    },
+    "plugin-python": {
+      "boundaries": {
+        "entrypoints": [
+          "src/activate.ts"
+        ]
+      }
+    },
+    "plugin-typescript": {
+      "boundaries": {
+        "entrypoints": [
+          "src/activate.ts"
+        ]
+      }
     }
   }
 }

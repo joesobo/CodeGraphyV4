@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createPythonPlugin } from '../src';
+import { createPythonPlugin } from '../src/plugin';
 import * as path from 'path';
 import * as os from 'os';
 

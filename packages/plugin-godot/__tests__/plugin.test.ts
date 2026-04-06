@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createGDScriptPlugin as createGodotPlugin } from '../src';
+import { createGDScriptPlugin as createGodotPlugin } from '../src/plugin';
 import { GDScriptPathResolver } from '../src/PathResolver';
 import { detect as detectPreload } from '../src/sources/preload';
 import { detect as detectLoad } from '../src/sources/load';

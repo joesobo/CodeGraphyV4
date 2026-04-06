@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { detect, default as rule } from '../src/sources/type-usage';
-import type { CSharpRuleContext } from '../src/parser';
+import type { CSharpRuleContext } from '../src/parserTypes';
 
 describe('type-usage rule', () => {
   it('creates one connection per resolved intra-namespace type', () => {

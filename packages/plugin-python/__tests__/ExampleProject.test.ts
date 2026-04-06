@@ -6,7 +6,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createPythonPlugin } from '../src';
+import { createPythonPlugin } from '../src/plugin';
 
 const EXAMPLE_ROOT = path.join(__dirname, '../examples');
 

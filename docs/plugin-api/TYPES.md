@@ -52,6 +52,8 @@ Defined in `plugin.ts`.
 Key points:
 - `apiVersion: string` is required (for example `'^2.0.0'`).
 - `webviewApiVersion?: string` and `webviewContributions?: { scripts?: string[]; styles?: string[] }` support Tier 2.
+- `sources?: IConnectionSource[]` declares the plugin’s toggleable relation sources.
+- `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
 - `detectConnections(filePath, content, workspaceRoot)` is required.
 - Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
@@ -87,6 +89,7 @@ Main groups:
 - `IConnectionSource`
 - `IConnectionDetector<TContext>`
 - `IConnection` with `kind`, `sourceId`, optional `type`, optional `variant`, and scalar-only `metadata`
+- `IPluginFileColorDefinition` with `color`, optional `shape2D`, optional `shape3D`, and optional `imagePath`
 
 ### Graph (`graph.ts`)
 

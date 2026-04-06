@@ -87,7 +87,7 @@ export type {
 } from './events';
 
 // Plugin interface
-export type { IPlugin, IAnalysisFile } from './plugin';
+export type { IPlugin, IAnalysisFile, IPluginFileColorDefinition } from './plugin';
 
 // Host API
 export type { CodeGraphyAPI, ExportRequest, IExporter, IToolbarAction, IToolbarActionItem } from './api';
@@ -111,4 +111,4 @@ export type {
   BadgeOpts,
   RingOpts,
   LabelOpts,
-} from './webview';
+} from './webview/contract';

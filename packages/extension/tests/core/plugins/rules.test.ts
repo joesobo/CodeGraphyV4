@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { createTypeScriptPlugin } from '../../../../plugin-typescript/src';
-import { createGDScriptPlugin } from '../../../../plugin-godot/src';
-import { createPythonPlugin } from '../../../../plugin-python/src';
-import { createCSharpPlugin } from '../../../../plugin-csharp/src';
-import { createMarkdownPlugin } from '../../../../plugin-markdown/src';
+import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
+import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
+import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
+import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
+import { createMarkdownPlugin } from '../../../../plugin-markdown/src/plugin';
 
 describe('Plugin Rules', () => {
   it('TypeScript plugin declares sources', () => {

@@ -1,5 +1,5 @@
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';
-import { createMarkdownPlugin } from '../../../../../plugin-markdown/src';
+import { createMarkdownPlugin } from '../../../../../plugin-markdown/src/plugin';
 
 export interface WorkspaceAnalyzerPluginFilterSource {
   list(): Array<{ plugin: { defaultFilters?: string[] } }>;

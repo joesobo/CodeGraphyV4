@@ -46,7 +46,7 @@ export interface TooltipAction {
   id: string;
   label: string;
   icon?: string;
-  action: () => void | Promise<void>;
+  action: (this: void) => void | Promise<void>;
 }
 
 /** Tooltip sections and actions contributed by plugins. */

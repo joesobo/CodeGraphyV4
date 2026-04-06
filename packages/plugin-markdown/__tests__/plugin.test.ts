@@ -3,7 +3,7 @@ import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
 import type { CodeGraphyAPI, IGraphData } from '@codegraphy-vscode/plugin-api';
-import { createMarkdownPlugin } from '../src';
+import { createMarkdownPlugin } from '../src/plugin';
 
 interface AnalyzeFile {
   absolutePath: string;

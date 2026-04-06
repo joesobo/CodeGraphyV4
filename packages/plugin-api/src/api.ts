@@ -42,7 +42,7 @@ export interface IExporter {
   group?: string;
 
   /** Export implementation. Usually calls `api.saveExport(...)`. */
-  run(): void | Promise<void>;
+  run(this: void): void | Promise<void>;
 }
 
 export interface IToolbarActionItem {
@@ -56,7 +56,7 @@ export interface IToolbarActionItem {
   description?: string;
 
   /** Action implementation for the menu item. */
-  run(): void | Promise<void>;
+  run(this: void): void | Promise<void>;
 }
 
 export interface IToolbarAction {

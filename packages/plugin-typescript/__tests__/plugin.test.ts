@@ -8,7 +8,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createTypeScriptPlugin } from '../src';
+import { createTypeScriptPlugin } from '../src/plugin';
 import * as tsconfig from '../src/tsconfig';
 import type { CodeGraphyAPI, IGraphData } from '@codegraphy-vscode/plugin-api';
 

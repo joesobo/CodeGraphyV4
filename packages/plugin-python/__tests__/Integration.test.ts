@@ -10,8 +10,8 @@ import { afterAll, describe, it, expect, beforeAll } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as os from 'os';
-import { createPythonPlugin } from '../src';
-import { createTypeScriptPlugin } from '../../plugin-typescript/src';
+import { createPythonPlugin } from '../src/plugin';
+import { createTypeScriptPlugin } from '../../plugin-typescript/src/plugin';
 
 const PYTHON_EXAMPLE_ROOT = path.join(__dirname, '../examples');
 

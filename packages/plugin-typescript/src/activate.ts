@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { createTypeScriptPlugin } from './index';
+import { createTypeScriptPlugin } from './plugin';
 
 interface CodeGraphyExports {
   registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;

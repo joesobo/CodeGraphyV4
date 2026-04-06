@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { detect, default as rule } from '../src/sources/using-directive';
-import type { CSharpRuleContext } from '../src/parser';
+import type { CSharpRuleContext } from '../src/parserTypes';
 import type { IDetectedUsing } from '../src/parserTypes';
 
 describe('using-directive rule', () => {

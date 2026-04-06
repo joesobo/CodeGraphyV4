@@ -6,8 +6,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
 import type { IConnection } from '../../../src/core/plugins/types/contracts';
 import { WorkspaceAnalyzer } from '../../../src/extension/workspaceAnalyzer/service';
-import { createTypeScriptPlugin } from '../../../../plugin-typescript/src';
-import { createPythonPlugin } from '../../../../plugin-python/src';
+import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
+import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
 
 // Set up workspace folders before tests
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {

@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import * as fs from 'fs';
 import { PathResolver } from '../src/PathResolver';
-import { IDetectedUsing, IDetectedNamespace } from '../src/parser';
+import type { IDetectedUsing, IDetectedNamespace } from '../src/parserTypes';
 
 // Mock fs module
 vi.mock('fs');

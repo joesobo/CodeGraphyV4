@@ -7,7 +7,9 @@
 
 import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
 import { PathResolver, ICSharpPathResolverConfig } from './PathResolver';
-import { parseContent, extractUsedTypes, CSharpRuleContext } from './parser';
+import { parseContent } from './parserContent';
+import type { CSharpRuleContext } from './parserTypes';
+import { extractUsedTypes } from './parserUsedTypes';
 import manifest from '../codegraphy.json';
 
 // Source detect functions
@@ -16,7 +18,7 @@ import { detect as detectTypeUsage } from './sources/type-usage';
 
 export { PathResolver } from './PathResolver';
 export type { ICSharpPathResolverConfig } from './PathResolver';
-export type { IDetectedUsing, IDetectedNamespace } from './parser';
+export type { IDetectedUsing, IDetectedNamespace } from './parserTypes';
 
 /**
  * Built-in plugin for C# files.
