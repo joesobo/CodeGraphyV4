@@ -198,14 +198,14 @@ describe('createMarkdownPlugin', () => {
       expect(filterEdgesByKind).toHaveBeenCalledWith('reference');
       expect(saveExport).toHaveBeenCalledWith(
         expect.objectContaining({
-          filename: 'wikilink-summary.md',
-          title: 'Export Wikilink Summary',
-          successMessage: 'Wikilink summary exported',
+          filename: 'markdown-wikilink-summary.md',
+          title: 'Export Markdown Wikilink Summary',
+          successMessage: 'Markdown wikilink summary exported',
         }),
       );
 
       const content = String(saveExport.mock.calls[0]?.[0]?.content ?? '');
-      expect(content).toContain('# Wikilink Summary');
+      expect(content).toContain('# Markdown Wikilink Summary');
       expect(content).toContain('Most linked notes');
       expect(content).toContain('Orphan notes');
       expect(content).toContain('`Home.md`');
