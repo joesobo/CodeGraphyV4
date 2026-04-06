@@ -19,9 +19,18 @@ const resolveMutationProfile = vi.fn(() => ({
 }));
 const resolveScopedVitestIncludes = vi.fn<(target: QualityTarget) => string[] | undefined>(() => undefined);
 
-vi.mock('child_process', () => ({
-  execFileSync
-}));
+vi.mock('child_process', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('child_process')>();
+
+  return {
+    ...actual,
+    default: {
+      ...actual,
+      execFileSync,
+    },
+    execFileSync,
+  };
+});
 
 vi.mock('../../../src/mutation/reporting/reportArtifacts', () => ({
   copySharedMutationReports,
