@@ -3,6 +3,7 @@ import type { IGraphData } from '../../shared/graph/types';
 import type { IPluginContextMenuItem } from '../../shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/plugins/decorations';
 import type { IPluginExporterItem } from '../../shared/plugins/exporters';
+import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../shared/settings/groups';
@@ -48,6 +49,7 @@ export interface IStoreFields {
   edgeDecorations: Record<string, EdgeDecorationPayload>;
   pluginContextMenuItems: IPluginContextMenuItem[];
   pluginExporters: IPluginExporterItem[];
+  pluginToolbarActions: IPluginToolbarAction[];
   activePanel: 'none' | 'settings' | 'plugins';
   maxFiles: number;
   activeFilePath: string | null;

@@ -12,6 +12,7 @@ import {
   sendGraphViewContextMenuItems,
   sendGraphViewDecorations,
   sendGraphViewPluginExporters,
+  sendGraphViewPluginToolbarActions,
   sendGraphViewPluginStatuses,
   sendGraphViewPluginWebviewInjections,
 } from '../webview/plugins/assets';
@@ -61,6 +62,7 @@ export interface GraphViewProviderPluginMethods {
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
   _sendPluginExporters(): void;
+  _sendPluginToolbarActions(): void;
   _sendPluginWebviewInjections(): void;
   _sendGroupsUpdated(): void;
   registerExternalPlugin(
@@ -75,6 +77,7 @@ export interface GraphViewProviderPluginMethodDependencies {
   sendDecorations: typeof sendGraphViewDecorations;
   sendContextMenuItems: typeof sendGraphViewContextMenuItems;
   sendPluginExporters?: typeof sendGraphViewPluginExporters;
+  sendPluginToolbarActions?: typeof sendGraphViewPluginToolbarActions;
   sendPluginWebviewInjections: typeof sendGraphViewPluginWebviewInjections;
   sendGroupsUpdated: typeof sendGraphViewGroupsUpdated;
   registerExternalPlugin: typeof registerGraphViewExternalPlugin;
@@ -87,6 +90,7 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderPluginMethodDependencies = {
   sendDecorations: sendGraphViewDecorations,
   sendContextMenuItems: sendGraphViewContextMenuItems,
   sendPluginExporters: sendGraphViewPluginExporters,
+  sendPluginToolbarActions: sendGraphViewPluginToolbarActions,
   sendPluginWebviewInjections: sendGraphViewPluginWebviewInjections,
   sendGroupsUpdated: sendGraphViewGroupsUpdated,
   registerExternalPlugin: registerGraphViewExternalPlugin,
@@ -131,6 +135,12 @@ export function createGraphViewProviderPluginMethods(
 
   const _sendPluginExporters = (): void => {
     dependencies.sendPluginExporters?.(source._analyzer, message =>
+      source._sendMessage(message as ExtensionToWebviewMessage),
+    );
+  };
+
+  const _sendPluginToolbarActions = (): void => {
+    dependencies.sendPluginToolbarActions?.(source._analyzer, message =>
       source._sendMessage(message as ExtensionToWebviewMessage),
     );
   };
@@ -188,6 +198,7 @@ export function createGraphViewProviderPluginMethods(
         sendPluginStatuses: () => _sendPluginStatuses(),
         sendContextMenuItems: () => _sendContextMenuItems(),
         sendPluginExporters: () => _sendPluginExporters(),
+        sendPluginToolbarActions: () => _sendPluginToolbarActions(),
         sendPluginWebviewInjections: () => _sendPluginWebviewInjections(),
         invalidateTimelineCache: () => source._invalidateTimelineCache(),
         analyzeAndSendData: () => source._analyzeAndSendData(),
@@ -201,6 +212,7 @@ export function createGraphViewProviderPluginMethods(
     _sendDecorations,
     _sendContextMenuItems,
     _sendPluginExporters,
+    _sendPluginToolbarActions,
     _sendPluginWebviewInjections,
     _sendGroupsUpdated,
     registerExternalPlugin,

@@ -14,11 +14,12 @@ export function useAppState() {
   const showOrphans = useGraphStore(s => s.showOrphans);
   const timelineActive = useGraphStore(s => s.timelineActive);
   const activePanel = useGraphStore(s => s.activePanel);
+  const activeViewId = useGraphStore(s => s.activeViewId);
   const nodeDecorations = useGraphStore(s => s.nodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
   const activeFilePath = useGraphStore(s => s.activeFilePath);
 
-  return { graphData, isLoading, searchQuery, searchOptions, groups, showOrphans, timelineActive, activePanel, nodeDecorations, edgeDecorations, activeFilePath };
+  return { graphData, isLoading, searchQuery, searchOptions, groups, showOrphans, timelineActive, activePanel, activeViewId, nodeDecorations, edgeDecorations, activeFilePath };
 }
 
 export function useAppActions() {

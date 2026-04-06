@@ -27,6 +27,7 @@ import {
   handleDecorationsUpdated,
   handleContextMenuItems,
   handlePluginExportersUpdated,
+  handlePluginToolbarActionsUpdated,
   handleDagModeUpdated,
   handleFolderNodeColorUpdated,
   handleNodeSizeModeUpdated,
@@ -94,6 +95,8 @@ export const MESSAGE_HANDLERS: Record<
     handleContextMenuItems(msg as Extract<ExtensionToWebviewMessage, { type: 'CONTEXT_MENU_ITEMS' }>),
   PLUGIN_EXPORTERS_UPDATED: (msg) =>
     handlePluginExportersUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_EXPORTERS_UPDATED' }>),
+  PLUGIN_TOOLBAR_ACTIONS_UPDATED: (msg) =>
+    handlePluginToolbarActionsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED' }>),
   PLUGIN_WEBVIEW_INJECT: () => undefined,
   DAG_MODE_UPDATED: (msg) =>
     handleDagModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>),

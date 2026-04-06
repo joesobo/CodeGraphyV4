@@ -238,6 +238,63 @@ describe('workspaceAnalyzer/graph/data', () => {
     expect(graph.edges).toEqual([]);
   });
 
+  it('materializes external package nodes for unresolved TypeScript imports', () => {
+    const graph = buildWorkspaceGraphData({
+      cacheFiles: {
+        'src/index.ts': { size: 10 },
+      },
+      disabledPlugins: new Set(),
+      disabledSources: new Set(),
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [
+          { specifier: 'node:fs/promises', resolvedPath: null, kind: 'import', sourceId: 'es6-import' },
+        ]],
+      ]),
+      showOrphans: true,
+      visitCounts: {
+        'src/index.ts': 2,
+      },
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => createPlugin('codegraphy.typescript'),
+    });
+
+    expect(graph.nodes).toEqual([
+      {
+        id: 'src/index.ts',
+        label: 'index.ts',
+        color: DEFAULT_NODE_COLOR,
+        fileSize: 10,
+        accessCount: 2,
+      },
+      {
+        id: 'pkg:fs',
+        label: 'fs',
+        color: '#F59E0B',
+        nodeType: 'package',
+        shape2D: 'hexagon',
+        shape3D: 'cube',
+        fileSize: undefined,
+        accessCount: 0,
+      },
+    ]);
+    expect(graph.edges).toEqual([
+      {
+        id: 'src/index.ts->pkg:fs#import',
+        from: 'src/index.ts',
+        to: 'pkg:fs',
+        kind: 'import',
+        sources: [
+          {
+            id: 'codegraphy.typescript:es6-import',
+            pluginId: 'codegraphy.typescript',
+            sourceId: 'es6-import',
+            label: 'ES6 import',
+          },
+        ],
+      },
+    ]);
+  });
+
   it('returns no edges when resolved targets are not discovered files', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},

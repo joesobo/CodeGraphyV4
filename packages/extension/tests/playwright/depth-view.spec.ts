@@ -3,6 +3,7 @@ import { expect, test, type Page } from '@playwright/test';
 interface GraphDebugSnapshot {
   containerHeight: number;
   containerWidth: number;
+  graphMode: '2d' | '3d';
   nodes: Array<{
     id: string;
     screenX: number;
@@ -100,5 +101,49 @@ test.describe('webview depth view', () => {
     await expect(page.getByTestId('depth-harness-bounds-count')).toHaveText('5');
     await expect(page.getByTestId('depth-view-controls')).toHaveCount(0);
     expectNodesToFit(await refitGraphForVisualAssertion(page));
+  });
+
+  test('falls back to 2d when 3d mode cannot create a WebGL context', async ({ page }) => {
+    await page.goto('/depth-view');
+
+    await expect(page.locator('.graph-container canvas').first()).toBeVisible();
+
+    const toolbarButtons = page.locator('[data-testid="toolbar-primary-controls"] button');
+    await toolbarButtons.nth(7).click();
+
+    await expect.poll(async () => page.locator('.graph-container canvas').count()).toBeGreaterThan(0);
+    await expect.poll(async () => page.evaluate(() => document.body.innerText)).toContain('Aa');
+  });
+
+  test('keeps the app alive when 3d mode falls back to 2d', async ({ page }) => {
+    const pageErrors: string[] = [];
+    const consoleErrors: string[] = [];
+
+    page.on('pageerror', error => {
+      pageErrors.push(error.message);
+    });
+    page.on('console', message => {
+      if (message.type() === 'error') {
+        consoleErrors.push(message.text());
+      }
+    });
+
+    await page.goto('/depth-view');
+    await waitForGraphDebugBridge(page);
+
+    const toolbarButtons = page.locator('[data-testid="toolbar-primary-controls"] button');
+    await toolbarButtons.nth(7).click();
+
+    await expect.poll(async () => {
+      const snapshot = await getGraphDebugSnapshot(page);
+      return snapshot.graphMode;
+    }).toBe('2d');
+
+    await expect(page.locator('.graph-container canvas').first()).toBeVisible();
+
+    expect(pageErrors).toEqual([]);
+    expect(consoleErrors).not.toContain(
+      expect.stringContaining('Cannot read properties of undefined (reading \'tick\')'),
+    );
   });
 });

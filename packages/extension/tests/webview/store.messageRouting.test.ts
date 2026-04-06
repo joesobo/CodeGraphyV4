@@ -195,6 +195,32 @@ describe('GraphStore message routing', () => {
     expect(store.getState().pluginExporters).toEqual(items);
   });
 
+  it('handles PLUGIN_TOOLBAR_ACTIONS_UPDATED messages', () => {
+    const items = [
+      {
+        id: 'wikilinks',
+        label: 'Wikilinks',
+        pluginId: 'plugin.docs',
+        pluginName: 'Docs Plugin',
+        index: 0,
+        items: [
+          {
+            id: 'wikilink-summary',
+            label: 'Wikilink Summary',
+            index: 0,
+          },
+        ],
+      },
+    ];
+
+    store.getState().handleExtensionMessage({
+      type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED',
+      payload: { items },
+    });
+
+    expect(store.getState().pluginToolbarActions).toEqual(items);
+  });
+
   it('ignores PLUGIN_WEBVIEW_INJECT messages without mutating state', () => {
     store.setState({
       pluginContextMenuItems: [
@@ -207,6 +233,18 @@ describe('GraphStore message routing', () => {
           pluginId: 'plugin.existing',
           pluginName: 'Existing Plugin',
           index: 0,
+        },
+      ],
+      pluginToolbarActions: [
+        {
+          id: 'wikilinks',
+          label: 'Wikilinks',
+          pluginId: 'plugin.existing',
+          pluginName: 'Existing Plugin',
+          index: 0,
+          items: [
+            { id: 'wikilink-summary', label: 'Wikilink Summary', index: 0 },
+          ],
         },
       ],
       playbackSpeed: 2,
@@ -234,6 +272,18 @@ describe('GraphStore message routing', () => {
         pluginId: 'plugin.existing',
         pluginName: 'Existing Plugin',
         index: 0,
+      },
+    ]);
+    expect(store.getState().pluginToolbarActions).toEqual([
+      {
+        id: 'wikilinks',
+        label: 'Wikilinks',
+        pluginId: 'plugin.existing',
+        pluginName: 'Existing Plugin',
+        index: 0,
+        items: [
+          { id: 'wikilink-summary', label: 'Wikilink Summary', index: 0 },
+        ],
       },
     ]);
     expect(store.getState().playbackSpeed).toBe(2);

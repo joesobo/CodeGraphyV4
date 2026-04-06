@@ -41,6 +41,12 @@ export function handlePluginExportersUpdated(
   return { pluginExporters: message.payload.items };
 }
 
+export function handlePluginToolbarActionsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED' }>,
+): PartialState {
+  return { pluginToolbarActions: message.payload.items };
+}
+
 export function handleDagModeUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>,
 ): PartialState {

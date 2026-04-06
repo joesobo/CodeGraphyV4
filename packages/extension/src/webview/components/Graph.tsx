@@ -77,6 +77,7 @@ export default function Graph({
   const physicsPaused = useGraphStore(state => state.physicsPaused);
   const showLabels = useGraphStore(state => state.showLabels);
   const graphMode = useGraphStore(state => state.graphMode);
+  const setGraphMode = useGraphStore(state => state.setGraphMode);
   const activeViewId = useGraphStore(state => state.activeViewId);
   const dagMode = useGraphStore(state => state.dagMode);
   const timelineActive = useGraphStore(state => state.timelineActive);
@@ -295,6 +296,10 @@ export default function Graph({
   const isLight = theme === 'light';
   const backgroundColor = isLight ? '#f5f5f5' : '#18181b';
   const borderColor = isLight ? '#d4d4d4' : 'rgb(63, 63, 70)';
+  const handleSurface3dError = React.useCallback((error: Error) => {
+    console.error('[CodeGraphy] 3D graph unavailable, falling back to 2D.', error);
+    setGraphMode('2d');
+  }, [setGraphMode]);
 
   return (
     <Viewport
@@ -339,6 +344,7 @@ export default function Graph({
         sharedProps,
       }}
       tooltipData={interactions.tooltipData}
+      onSurface3dError={handleSurface3dError}
       pluginHost={pluginHost}
     />
   );

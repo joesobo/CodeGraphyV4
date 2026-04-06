@@ -16,6 +16,10 @@ type GraphViewExporterPluginApi = {
   exporters: ReadonlyArray<{ run(): Promise<void> | void }>;
 };
 
+type GraphViewToolbarActionPluginApi = {
+  toolbarActions: ReadonlyArray<{ items: ReadonlyArray<{ run(): Promise<void> | void }> }>;
+};
+
 type GraphViewProviderPluginContext = Pick<
   GraphViewMessageListenerContext,
   | 'getPluginFilterPatterns'
@@ -32,6 +36,7 @@ type GraphViewProviderPluginContext = Pick<
   | 'sendDecorations'
   | 'sendContextMenuItems'
   | 'sendPluginExporters'
+  | 'sendPluginToolbarActions'
   | 'sendPluginWebviewInjections'
   | 'sendActiveFile'
   | 'waitForFirstWorkspaceReady'
@@ -39,6 +44,7 @@ type GraphViewProviderPluginContext = Pick<
   | 'getInteractionPluginApi'
   | 'getContextMenuPluginApi'
   | 'getExporterPluginApi'
+  | 'getToolbarActionPluginApi'
   | 'emitEvent'
   | 'logError'
   | 'updateHiddenPluginGroups'
@@ -66,6 +72,7 @@ export function createGraphViewProviderMessagePluginContext(
     sendDecorations: () => source._sendDecorations(),
     sendContextMenuItems: () => source._sendContextMenuItems(),
     sendPluginExporters: () => source._sendPluginExporters?.(),
+    sendPluginToolbarActions: () => source._sendPluginToolbarActions?.(),
     sendPluginWebviewInjections: () => source._sendPluginWebviewInjections(),
     sendActiveFile: () => source._sendMessage({
       type: 'ACTIVE_FILE_UPDATED',
@@ -84,6 +91,10 @@ export function createGraphViewProviderMessagePluginContext(
     getExporterPluginApi: pluginId =>
       source._analyzer?.registry?.getPluginAPI(pluginId) as
         | GraphViewExporterPluginApi
+        | undefined,
+    getToolbarActionPluginApi: (pluginId: string) =>
+      source._analyzer?.registry?.getPluginAPI(pluginId) as
+        | GraphViewToolbarActionPluginApi
         | undefined,
     emitEvent: (event, payload) => {
       source._eventBus.emit(event, payload);

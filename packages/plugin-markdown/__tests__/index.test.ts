@@ -152,11 +152,11 @@ describe('createMarkdownPlugin', () => {
     });
   });
 
-  describe('exporter integration', () => {
-    it('registers a wikilink summary exporter on load and saves the markdown summary', async () => {
+  describe('toolbar action integration', () => {
+    it('registers a wikilink toolbar action on load and saves the markdown summary', async () => {
       const plugin = createMarkdownPlugin();
       const dispose = vi.fn();
-      const registerExporter = vi.fn(() => ({ dispose }));
+      const registerToolbarAction = vi.fn(() => ({ dispose }));
       const graph: IGraphData = {
         nodes: [
           { id: 'Home.md', label: 'Home.md', color: '#ffffff' },
@@ -176,7 +176,7 @@ describe('createMarkdownPlugin', () => {
       const saveExport = vi.fn(async () => undefined);
 
       const api = {
-        registerExporter,
+        registerToolbarAction,
         getGraph,
         filterEdgesByKind,
         saveExport,
@@ -184,12 +184,15 @@ describe('createMarkdownPlugin', () => {
 
       plugin.onLoad?.(api);
 
-      expect(registerExporter).toHaveBeenCalledOnce();
-      const exporter = registerExporter.mock.calls[0]?.[0];
-      expect(exporter?.id).toBe('wikilink-summary');
-      expect(exporter?.label).toBe('Wikilink Summary');
+      expect(registerToolbarAction).toHaveBeenCalledOnce();
+      const action = registerToolbarAction.mock.calls[0]?.[0];
+      expect(action?.id).toBe('wikilinks');
+      expect(action?.label).toBe('Wikilinks');
+      expect(action?.items).toHaveLength(1);
+      expect(action?.items[0]?.id).toBe('wikilink-summary');
+      expect(action?.items[0]?.label).toBe('Wikilink Summary');
 
-      await exporter?.run();
+      await action?.items[0]?.run();
 
       expect(getGraph).toHaveBeenCalledOnce();
       expect(filterEdgesByKind).toHaveBeenCalledWith('reference');

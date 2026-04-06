@@ -45,6 +45,37 @@ export interface IExporter {
   run(): void | Promise<void>;
 }
 
+export interface IToolbarActionItem {
+  /** Unique identifier within the toolbar action. */
+  id: string;
+
+  /** Human-readable label shown in the popup. */
+  label: string;
+
+  /** Optional extra description for menus and docs. */
+  description?: string;
+
+  /** Action implementation for the menu item. */
+  run(): void | Promise<void>;
+}
+
+export interface IToolbarAction {
+  /** Unique identifier within the plugin. */
+  id: string;
+
+  /** Human-readable label shown on the toolbar button. */
+  label: string;
+
+  /** Optional icon name or identifier for the toolbar button. */
+  icon?: string;
+
+  /** Optional extra description for tooltips and docs. */
+  description?: string;
+
+  /** Menu items shown when the toolbar button is opened. */
+  items: IToolbarActionItem[];
+}
+
 /**
  * The host API provided to v2 plugins via the `onLoad(api)` lifecycle hook.
  *
@@ -188,6 +219,12 @@ export interface CodeGraphyAPI {
    * Register an exporter that appears in the main export menu.
    */
   registerExporter(exporter: IExporter): Disposable;
+
+  /**
+   * Register a toolbar action that appears as a dedicated toolbar button.
+   * Each action can expose one or more popup items.
+   */
+  registerToolbarAction(action: IToolbarAction): Disposable;
 
   // ---------------------------------------------------------------------------
   // Webview messaging

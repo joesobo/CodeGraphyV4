@@ -178,4 +178,45 @@ describe('handleTooltipNodeHover', () => {
     expect(postMessage).not.toHaveBeenCalled();
     expect(startTracking).toHaveBeenCalledOnce();
   });
+
+  it('does not request file info for synthetic package nodes', () => {
+    const postMessage = vi.fn();
+    const node = {
+      baseOpacity: 1,
+      borderColor: '#F59E0B',
+      borderWidth: 2,
+      color: '#F59E0B',
+      id: 'pkg:fs',
+      isFavorite: false,
+      label: 'fs',
+      size: 16,
+      nodeType: 'package',
+    } as FGNode & { nodeType: 'package' };
+
+    handleTooltipNodeHover(node, {
+      dataRef: {
+        current: {
+          edges: [],
+          nodes: [node],
+        } as IGraphData,
+      },
+      fileInfoCacheRef: { current: new Map() },
+      getNodeRect: () => ({ x: 1, y: 2, radius: 3 }),
+      hoveredNodeRef: { current: null },
+      interactionHandlers: {
+        sendGraphInteraction: vi.fn(),
+        setGraphCursor: vi.fn(),
+      },
+      pluginHost: undefined,
+      postMessage,
+      setTooltipData: vi.fn(),
+      startTracking: vi.fn(),
+      stopTracking: vi.fn(),
+      tooltipTimeoutRef: { current: null },
+    });
+
+    vi.advanceTimersByTime(500);
+
+    expect(postMessage).not.toHaveBeenCalled();
+  });
 });

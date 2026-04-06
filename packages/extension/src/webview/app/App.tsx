@@ -18,7 +18,19 @@ import { SlotHost } from '../pluginHost/slotHost/view';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
-  const { graphData, isLoading, searchQuery, searchOptions, groups, showOrphans, activePanel, nodeDecorations, edgeDecorations, activeFilePath } = useAppState();
+  const {
+    graphData,
+    isLoading,
+    searchQuery,
+    searchOptions,
+    groups,
+    showOrphans,
+    activePanel,
+    activeViewId,
+    nodeDecorations,
+    edgeDecorations,
+    activeFilePath,
+  } = useAppState();
   const { setSearchQuery, setSearchOptions, setActivePanel } = useAppActions();
 
   const theme = useTheme();
@@ -35,7 +47,7 @@ export default function App(): React.ReactElement {
   if (isLoading) return <LoadingState />;
 
   if (!graphData) {
-    return <EmptyState hint={getNoDataHint(graphData, showOrphans)} />;
+    return <EmptyState hint={getNoDataHint(graphData, showOrphans, activeViewId)} />;
   }
 
   const hasGraphNodes = graphData.nodes.length > 0;
@@ -70,7 +82,7 @@ export default function App(): React.ReactElement {
             <DepthViewControls />
           </>
         ) : (
-          <EmptyState hint={getNoDataHint(graphData, showOrphans)} fullScreen={false} />
+          <EmptyState hint={getNoDataHint(graphData, showOrphans, activeViewId)} fullScreen={false} />
         )}
         <div className="absolute inset-y-2 left-2 z-10 pointer-events-none">
           <div className="h-full pointer-events-auto">

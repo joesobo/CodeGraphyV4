@@ -25,5 +25,8 @@ export const DEFAULT_NODE_COLOR = '#A1A1AA'; // Soft zinc
 /** Default color for folder nodes in Folder View. Same as DEFAULT_NODE_COLOR. */
 export const DEFAULT_FOLDER_NODE_COLOR = '#A1A1AA';
 
+/** Default color for synthetic external package nodes. */
+export const DEFAULT_PACKAGE_NODE_COLOR = '#F59E0B';
+
 /** Default color for direction indicators (arrows/particles). */
 export const DEFAULT_DIRECTION_COLOR = '#475569';

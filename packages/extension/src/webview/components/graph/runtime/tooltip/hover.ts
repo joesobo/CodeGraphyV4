@@ -13,6 +13,10 @@ import type { FGNode } from '../../model/build';
 import type { GraphTooltipInteractionDependencies } from '../use/graph/tooltip';
 import type { WebviewPluginHost } from '../../../../pluginHost/manager';
 
+function isPackageNodeId(nodeId: string): boolean {
+  return nodeId.startsWith('pkg:');
+}
+
 interface TooltipHoverOptions {
 	dataRef: MutableRefObject<IGraphData>;
 	fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;
@@ -73,7 +77,7 @@ export function handleTooltipNodeHover(
 		});
 		setTooltipData(tooltipState.tooltipData);
 
-		if (tooltipState.shouldRequestFileInfo) {
+		if (tooltipState.shouldRequestFileInfo && node.nodeType !== 'package' && !isPackageNodeId(nodeId)) {
 			postMessage({ type: 'GET_FILE_INFO', payload: { path: nodeId } });
 		}
 

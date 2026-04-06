@@ -54,6 +54,10 @@ describe('buildOpenBlock', () => {
     const revealEntry = findItem(entries, 'Reveal in Explorer');
     expect(revealEntry?.action).toMatchObject({ kind: 'builtin', action: 'reveal' });
   });
+
+  it('omits file actions for synthetic package nodes', () => {
+    expect(buildOpenBlock(['pkg:fs'], false)).toEqual([]);
+  });
 });
 
 describe('buildCopyBlock', () => {
@@ -93,5 +97,9 @@ describe('buildCopyBlock', () => {
     const entries = buildCopyBlock(['a.ts']);
     const absoluteEntry = findItem(entries, 'Copy Absolute Path');
     expect(absoluteEntry?.action).toMatchObject({ kind: 'builtin', action: 'copyAbsolute' });
+  });
+
+  it('omits copy actions for synthetic package nodes', () => {
+    expect(buildCopyBlock(['pkg:fs'])).toEqual([]);
   });
 });

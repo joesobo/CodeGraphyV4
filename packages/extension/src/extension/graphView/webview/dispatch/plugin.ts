@@ -8,6 +8,7 @@ import {
 import { dispatchGraphViewPluginReadyMessage } from './pluginReady';
 import { applyPluginContextMenuAction } from '../pluginMessages/contextMenu';
 import { applyPluginExporterAction } from '../pluginMessages/exporter';
+import { applyPluginToolbarAction } from '../pluginMessages/toolbarAction';
 import { applyPluginInteraction } from '../pluginMessages/interaction';
 
 export interface GraphViewPluginMessageContext {
@@ -37,6 +38,7 @@ export interface GraphViewPluginMessageContext {
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginExporters?(): void;
+  sendPluginToolbarActions?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
@@ -49,6 +51,9 @@ export interface GraphViewPluginMessageContext {
     | undefined;
   getExporterPluginApi?(pluginId: string):
     | { exporters: ReadonlyArray<{ run(): Promise<void> | void }> }
+    | undefined;
+  getToolbarActionPluginApi?(pluginId: string):
+    | { toolbarActions: ReadonlyArray<{ items: ReadonlyArray<{ run(): Promise<void> | void }> }> }
     | undefined;
   emitEvent(event: string, payload: unknown): void;
   findNode(targetId: string): unknown;
@@ -93,6 +98,13 @@ export async function dispatchGraphViewPluginMessage(
     case 'RUN_PLUGIN_EXPORT':
       await applyPluginExporterAction(message.payload, {
         getPluginApi: pluginId => context.getExporterPluginApi?.(pluginId),
+        logError: (label, error) => context.logError(label, error),
+      });
+      return { handled: true };
+
+    case 'RUN_PLUGIN_TOOLBAR_ACTION':
+      await applyPluginToolbarAction(message.payload, {
+        getPluginApi: pluginId => context.getToolbarActionPluginApi?.(pluginId),
         logError: (label, error) => context.logError(label, error),
       });
       return { handled: true };

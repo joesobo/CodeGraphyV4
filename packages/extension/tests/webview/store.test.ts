@@ -162,6 +162,26 @@ describe('GraphStore', () => {
     expect(store.getState().pluginExporters).toEqual(items);
   });
 
+  it('handles PLUGIN_TOOLBAR_ACTIONS_UPDATED message', () => {
+    const items = [{
+      id: 'wikilinks',
+      label: 'Wikilinks',
+      pluginId: 'plugin.docs',
+      pluginName: 'Docs Plugin',
+      index: 0,
+      items: [{
+        id: 'wikilink-summary',
+        label: 'Wikilink Summary',
+        index: 0,
+      }],
+    }];
+    store.getState().handleExtensionMessage({
+      type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED',
+      payload: { items },
+    });
+    expect(store.getState().pluginToolbarActions).toEqual(items);
+  });
+
   it('handles MAX_FILES_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'MAX_FILES_UPDATED',
