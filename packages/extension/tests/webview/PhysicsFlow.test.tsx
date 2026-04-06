@@ -71,7 +71,7 @@ describe('Physics flow', () => {
     await act(async () => {
       sendMessage({
         type: 'PHYSICS_SETTINGS_UPDATED',
-        payload: { repelForce: 7, linkDistance: 120, linkForce: 0.3, damping: 0.55, centerForce: 0.2, chargeRange: 240 },
+        payload: { repelForce: 7, linkDistance: 120, linkForce: 0.3, damping: 0.55, centerForce: 0.2 },
       });
     });
 
@@ -81,7 +81,6 @@ describe('Physics flow', () => {
       linkForce: 0.3,
       damping: 0.55,
       centerForce: 0.2,
-      chargeRange: 240,
     });
   });
 

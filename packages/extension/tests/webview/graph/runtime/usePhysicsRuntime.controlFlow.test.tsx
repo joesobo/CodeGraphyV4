@@ -27,7 +27,6 @@ import { usePhysicsRuntime } from '../../../../src/webview/components/graph/runt
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
-  chargeRange: 200,
   damping: 0.7,
   linkDistance: 120,
   linkForce: 0.4,

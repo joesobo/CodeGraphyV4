@@ -10,7 +10,7 @@ interface GraphViewPhysicsConfigOptions {
 }
 
 function getGraphViewPhysicsSettingKeys(): Array<keyof IPhysicsSettings> {
-  return ['repelForce', 'linkDistance', 'linkForce', 'damping', 'centerForce', 'chargeRange'];
+  return ['repelForce', 'linkDistance', 'linkForce', 'damping', 'centerForce'];
 }
 
 export async function updateGraphViewPhysicsSetting(

@@ -6,6 +6,7 @@ import { toD3Repel, type FGLink, type FGNode } from '../model/build';
 import { hasDistanceAndStrength, hasDistanceMax, hasStrength } from '../support/guards';
 
 export type GraphPhysicsInstance = FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>;
+const DEFAULT_CHARGE_RANGE = 1000;
 
 interface GraphPhysicsControls {
 	d3Force(name: string): unknown;
@@ -24,8 +25,7 @@ export function havePhysicsSettingsChanged(
 		|| previous.centerForce !== next.centerForce
 		|| previous.linkDistance !== next.linkDistance
 		|| previous.linkForce !== next.linkForce
-		|| previous.damping !== next.damping
-		|| previous.chargeRange !== next.chargeRange;
+		|| previous.damping !== next.damping;
 }
 
 export function applyPhysicsSettings(
@@ -36,7 +36,7 @@ export function applyPhysicsSettings(
 	const chargeForce = graph.d3Force('charge');
 	if (hasStrength(chargeForce)) chargeForce.strength(toD3Repel(settings.repelForce));
 	if (hasDistanceMax(chargeForce)) {
-		chargeForce.distanceMax(settings.chargeRange ?? Infinity);
+		chargeForce.distanceMax(DEFAULT_CHARGE_RANGE);
 	}
 
 	const linkForce = graph.d3Force('link');

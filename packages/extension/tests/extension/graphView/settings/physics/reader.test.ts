@@ -13,9 +13,7 @@ const defaults: IPhysicsSettings = {
 
 describe('graphView/settings/physics/reader', () => {
   it('reads each physics setting from configuration using the configured keys', () => {
-    const get = vi.fn((key: string, fallback: number | undefined) => (
-      key === 'chargeRange' ? 240 : (fallback as number) + 1
-    ));
+    const get = vi.fn((_: string, fallback: number) => fallback + 1);
     const config = { get } as unknown as vscode.WorkspaceConfiguration;
 
     expect(readGraphViewPhysicsSettings(config, defaults)).toEqual({
@@ -24,7 +22,6 @@ describe('graphView/settings/physics/reader', () => {
       linkForce: 1.15,
       damping: 1.7,
       centerForce: 1.1,
-      chargeRange: 240,
     });
     expect(get.mock.calls.map(([key]) => key)).toEqual([
       'repelForce',
@@ -32,14 +29,6 @@ describe('graphView/settings/physics/reader', () => {
       'linkForce',
       'damping',
       'centerForce',
-      'chargeRange',
     ]);
-  });
-
-  it('leaves charge range unset when no default or persisted value exists', () => {
-    const get = vi.fn((_: string, fallback: number | undefined) => fallback);
-    const config = { get } as unknown as vscode.WorkspaceConfiguration;
-
-    expect(readGraphViewPhysicsSettings(config, defaults).chargeRange).toBeUndefined();
   });
 });

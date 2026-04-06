@@ -9,7 +9,6 @@ import {
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.12,
-  chargeRange: 240,
   damping: 0.7,
   linkDistance: 140,
   linkForce: 0.33,
@@ -80,7 +79,6 @@ describe('physics', () => {
     ['linkDistance', { linkDistance: SETTINGS.linkDistance + 1 }],
     ['linkForce', { linkForce: SETTINGS.linkForce + 0.01 }],
     ['damping', { damping: SETTINGS.damping + 0.01 }],
-    ['chargeRange', { chargeRange: SETTINGS.chargeRange! + 10 }],
   ])('detects %s changes', (_field, patch) => {
     expect(havePhysicsSettingsChanged(SETTINGS, {
       ...SETTINGS,
@@ -94,7 +92,7 @@ describe('physics', () => {
     applyPhysicsSettings(instance, SETTINGS);
 
     expect(charge.strength).toHaveBeenCalledOnce();
-    expect(charge.distanceMax).toHaveBeenCalledWith(SETTINGS.chargeRange);
+    expect(charge.distanceMax).toHaveBeenCalledWith(1000);
     expect(link.distance).toHaveBeenCalledWith(SETTINGS.linkDistance);
     expect(link.strength).toHaveBeenCalledWith(SETTINGS.linkForce);
     expect(forceXInstance.strength).toHaveBeenCalledWith(SETTINGS.centerForce);
@@ -102,15 +100,12 @@ describe('physics', () => {
     expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
   });
 
-  it('uses an uncapped charge range when no explicit range is configured', () => {
+  it('uses the fixed graph charge range', () => {
     const { charge, instance } = createPhysicsInstance();
 
-    applyPhysicsSettings(instance, {
-      ...SETTINGS,
-      chargeRange: undefined,
-    });
+    applyPhysicsSettings(instance, SETTINGS);
 
-    expect(charge.distanceMax).toHaveBeenCalledWith(Infinity);
+    expect(charge.distanceMax).toHaveBeenCalledWith(1000);
   });
 
   it('skips non-callable strength forces and still reheats the simulation', () => {
