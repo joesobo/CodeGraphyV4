@@ -93,6 +93,12 @@ describe('runMutation', () => {
 
   it('runs stryker and reports site violations for the copied report', async () => {
     const { runMutation } = await import('../../../src/mutation/runner/run');
+    resolveScopedVitestIncludes.mockReturnValue([
+      'packages/quality-tools/tests/**/*.test.ts',
+      'packages/quality-tools/tests/**/*.test.tsx',
+      'packages/quality-tools/__tests__/**/*.test.ts',
+      'packages/quality-tools/__tests__/**/*.test.tsx',
+    ]);
 
     runMutation(target());
 
@@ -113,10 +119,21 @@ describe('runMutation', () => {
       ],
       expect.objectContaining({
         cwd: REPO_ROOT,
-        env: process.env,
+        env: expect.objectContaining({
+          ...process.env,
+          CODEGRAPHY_VITEST_INCLUDE_JSON: expect.any(String),
+        }),
         stdio: 'inherit',
       }),
     );
+    expect(
+      JSON.parse((execFileSync.mock.calls[0][2] as { env: Record<string, string> }).env.CODEGRAPHY_VITEST_INCLUDE_JSON)
+    ).toEqual([
+      'packages/quality-tools/tests/**/*.test.ts',
+      'packages/quality-tools/tests/**/*.test.tsx',
+      'packages/quality-tools/__tests__/**/*.test.ts',
+      'packages/quality-tools/__tests__/**/*.test.tsx',
+    ]);
     expect(copySharedMutationReports).toHaveBeenCalledWith('quality-tools', REPO_ROOT);
     expect(reportMutationSiteViolations).toHaveBeenCalledWith('/repo/reports/mutation.json');
   });

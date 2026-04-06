@@ -15,8 +15,13 @@ function target(overrides: Partial<QualityTarget>): QualityTarget {
 }
 
 describe('resolveScopedVitestIncludes', () => {
-  it('returns undefined for package targets', () => {
-    expect(resolveScopedVitestIncludes(target({ kind: 'package' }))).toBeUndefined();
+  it('returns package-local test patterns for package targets', () => {
+    expect(resolveScopedVitestIncludes(target({ kind: 'package' }))).toEqual([
+      'packages/extension/tests/**/*.test.ts',
+      'packages/extension/tests/**/*.test.tsx',
+      'packages/extension/__tests__/**/*.test.ts',
+      'packages/extension/__tests__/**/*.test.tsx',
+    ]);
   });
 
   it('returns mirrored file and split-folder test patterns for file targets', () => {

@@ -12,6 +12,15 @@ function unique(values: string[]): string[] {
   return [...new Set(values)];
 }
 
+function packageIncludes(packageName: string): string[] {
+  return unique(
+    baseTestRoots(packageName).flatMap((root) => [
+      `${root}/**/*.test.ts`,
+      `${root}/**/*.test.tsx`,
+    ]),
+  );
+}
+
 const BROAD_FALLBACK_DISABLED_BASENAMES = new Set([
   'create',
   'runtime',
@@ -75,8 +84,12 @@ function directoryIncludes(packageName: string, relativeSourceDirectory: string)
 }
 
 export function resolveScopedVitestIncludes(target: QualityTarget): string[] | undefined {
-  if (target.kind === 'package' || !target.packageName) {
+  if (!target.packageName) {
     return undefined;
+  }
+
+  if (target.kind === 'package') {
+    return packageIncludes(target.packageName);
   }
 
   const relativeSource = relativeSourcePath(target);
