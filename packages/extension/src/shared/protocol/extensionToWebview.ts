@@ -3,6 +3,7 @@ import type { IGraphData } from '../graph/types';
 import type { IPluginContextMenuItem } from '../plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../plugins/decorations';
 import type { IPluginExporterItem } from '../plugins/exporters';
+import type { IPluginToolbarAction } from '../plugins/toolbarActions';
 import type { IPluginStatus } from '../plugins/status';
 import type {
   BidirectionalEdgeMode,
@@ -71,6 +72,7 @@ export type ExtensionToWebviewMessage =
     }
   | { type: 'CONTEXT_MENU_ITEMS'; payload: { items: IPluginContextMenuItem[] } }
   | { type: 'PLUGIN_EXPORTERS_UPDATED'; payload: { items: IPluginExporterItem[] } }
+  | { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED'; payload: { items: IPluginToolbarAction[] } }
   | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }
   | { type: 'FOLDER_NODE_COLOR_UPDATED'; payload: { folderNodeColor: string } }
   | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } }

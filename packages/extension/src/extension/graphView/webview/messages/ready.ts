@@ -28,6 +28,7 @@ export interface GraphViewReadyHandlers {
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginExporters?(): void;
+  sendPluginToolbarActions?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
@@ -77,6 +78,7 @@ export async function applyWebviewReady(
   handlers.sendDecorations();
   handlers.sendContextMenuItems();
   handlers.sendPluginExporters?.();
+  handlers.sendPluginToolbarActions?.();
   handlers.sendPluginWebviewInjections();
   handlers.sendActiveFile();
 

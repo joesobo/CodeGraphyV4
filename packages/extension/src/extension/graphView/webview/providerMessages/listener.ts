@@ -139,6 +139,7 @@ export interface GraphViewProviderMessageListenerSource {
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
   _sendPluginExporters?(): void;
+  _sendPluginToolbarActions?(): void;
   _sendPluginWebviewInjections(): void;
 }
 

@@ -32,6 +32,7 @@ function createContext(
     sendCachedTimeline: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
+    sendPluginToolbarActions: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
     sendActiveFile: vi.fn(),
     waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),

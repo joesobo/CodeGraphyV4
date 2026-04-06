@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { mdiAutorenew, mdiPuzzleOutline, mdiCogOutline, mdiExport } from '@mdi/js';
+import { mdiAutorenew, mdiPuzzleOutline, mdiCogOutline, mdiExport, mdiLinkVariant } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
@@ -22,6 +22,7 @@ import { postMessage } from '../../vscodeApi';
 
 export function ToolbarActions(): React.ReactElement {
   const setActivePanel = useGraphStore(s => s.setActivePanel);
+  const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
   const pluginExporters = useGraphStore(s => s.pluginExporters);
   const pluginExporterGroups = pluginExporters.reduce<Array<{
     key: string;
@@ -61,6 +62,44 @@ export function ToolbarActions(): React.ReactElement {
         </TooltipTrigger>
         <TooltipContent side="right">Refresh Graph</TooltipContent>
       </Tooltip>
+
+      {pluginToolbarActions.map(action => (
+        <DropdownMenu key={`${action.pluginId}:${action.id}:${action.index}`}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7 bg-transparent"
+                  title={action.label}
+                >
+                  <MdiIcon path={action.icon ?? mdiLinkVariant} size={16} />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="right">{action.label}</TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent align="start" side="right">
+            <DropdownMenuLabel>{action.label}</DropdownMenuLabel>
+            {action.items.map(item => (
+              <DropdownMenuItem
+                key={`${action.pluginId}:${action.id}:${item.index}`}
+                onSelect={() => window.postMessage({
+                  type: 'RUN_PLUGIN_TOOLBAR_ACTION',
+                  payload: {
+                    pluginId: action.pluginId,
+                    index: action.index,
+                    itemIndex: item.index,
+                  },
+                }, '*')}
+              >
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ))}
 
       <DropdownMenu>
         <Tooltip>

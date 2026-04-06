@@ -31,6 +31,20 @@ export type { IPathResolverConfig } from './PathResolver';
 const TS_FOCUSED_IMPORT_VIEW_ID = 'codegraphy.typescript.focused-imports';
 const TS_FOCUSED_IMPORT_VIEW_NAME = 'Focused Imports';
 const TS_VIEW_EDGE_KINDS = new Set(['import', 'reexport']);
+const TS_VIEW_FILE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mts', '.cts', '.mjs', '.cjs']);
+
+function isTypeScriptFocusedFile(focusedFile: string | undefined): boolean {
+  if (!focusedFile) {
+    return false;
+  }
+
+  const dotIndex = focusedFile.lastIndexOf('.');
+  if (dotIndex === -1) {
+    return false;
+  }
+
+  return TS_VIEW_FILE_EXTENSIONS.has(focusedFile.slice(dotIndex).toLowerCase());
+}
 
 function filterTypeScriptImportEdges(data: IGraphData): IGraphData {
   const edges = data.edges.filter(edge =>
@@ -108,7 +122,7 @@ function filterFocusedImportGraph(data: IGraphData, context: IViewContext): IGra
   const depthLimit = Math.max(1, context.depthLimit ?? 1);
   const depths = walkDepthFromNode(focusedFile, depthLimit, adjacencyList);
   if (depths.size === 0) {
-    return importGraph;
+    return { nodes: [], edges: [] };
   }
 
   const includedNodeIds = new Set(depths.keys());
@@ -132,6 +146,9 @@ function createFocusedImportView(): IView {
     icon: 'symbol-file',
     description: 'Shows the import neighborhood around the focused file',
     recomputeOn: ['focusedFile', 'depthLimit'],
+    isAvailable(context: IViewContext): boolean {
+      return isTypeScriptFocusedFile(context.focusedFile);
+    },
     transform(data: IGraphData, context: IViewContext): IGraphData {
       return filterFocusedImportGraph(data, context);
     },

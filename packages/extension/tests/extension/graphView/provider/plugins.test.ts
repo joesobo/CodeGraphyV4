@@ -271,6 +271,7 @@ describe('graphView/provider/plugins', () => {
           refreshWebviewResourceRoots: expect.any(Function),
           sendPluginStatuses: expect.any(Function),
           sendContextMenuItems: expect.any(Function),
+          sendPluginToolbarActions: expect.any(Function),
           sendPluginWebviewInjections: expect.any(Function),
           invalidateTimelineCache: expect.any(Function),
           analyzeAndSendData: expect.any(Function),
@@ -325,6 +326,7 @@ describe('graphView/provider/plugins', () => {
     const registerExternalPlugin = vi.fn();
     const sendPluginStatuses = vi.fn();
     const sendContextMenuItems = vi.fn();
+    const sendPluginToolbarActions = vi.fn();
     const sendPluginWebviewInjections = vi.fn();
     const analyzeAndSendData = vi.fn(async () => undefined);
     const invalidateTimelineCache = vi.fn(async () => undefined);
@@ -339,6 +341,7 @@ describe('graphView/provider/plugins', () => {
         sendPluginStatuses,
         sendDecorations: vi.fn(),
         sendContextMenuItems,
+        sendPluginToolbarActions,
         sendPluginWebviewInjections,
         sendGroupsUpdated: vi.fn(),
         registerExternalPlugin,
@@ -351,6 +354,7 @@ describe('graphView/provider/plugins', () => {
     const registrationHandlers = registerExternalPlugin.mock.calls[0]?.[3] as {
       sendPluginStatuses(): void;
       sendContextMenuItems(): void;
+      sendPluginToolbarActions(): void;
       sendPluginWebviewInjections(): void;
       invalidateTimelineCache(): Promise<void>;
       analyzeAndSendData(): Promise<void>;
@@ -358,12 +362,14 @@ describe('graphView/provider/plugins', () => {
 
     registrationHandlers.sendPluginStatuses();
     registrationHandlers.sendContextMenuItems();
+    registrationHandlers.sendPluginToolbarActions();
     registrationHandlers.sendPluginWebviewInjections();
     await registrationHandlers.invalidateTimelineCache();
     await registrationHandlers.analyzeAndSendData();
 
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
+    expect(sendPluginToolbarActions).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(source._invalidateTimelineCache).toHaveBeenCalledOnce();
     expect(analyzeAndSendData).toHaveBeenCalledOnce();

@@ -72,6 +72,47 @@ describe('core/views/depth/view', () => {
     expect(result.nodes.find(node => node.id === 'src/leaf.ts')?.depthLevel).toBe(2);
   });
 
+  it('keeps induced edges between visible neighbors when re-rooting a depth-1 graph', async () => {
+    const { depthGraphView } = await import('../../../../src/core/views/depth/view');
+
+    const result = depthGraphView.transform(
+      {
+        nodes: [
+          { id: 'enemy.gd', label: 'enemy.gd', color: '#93C5FD' },
+          { id: 'player.gd', label: 'player.gd', color: '#93C5FD' },
+          { id: 'game_manager.gd', label: 'game_manager.gd', color: '#93C5FD' },
+          { id: 'math_helpers.gd', label: 'math_helpers.gd', color: '#93C5FD' },
+          { id: 'entity.gd', label: 'entity.gd', color: '#93C5FD' },
+        ],
+        edges: [
+          { id: 'enemy->entity', from: 'enemy.gd', to: 'entity.gd', kind: 'inherit', sources: [] },
+          { id: 'enemy->player', from: 'enemy.gd', to: 'player.gd', kind: 'reference', sources: [] },
+          { id: 'enemy->math', from: 'enemy.gd', to: 'math_helpers.gd', kind: 'load', sources: [] },
+          { id: 'manager->enemy', from: 'game_manager.gd', to: 'enemy.gd', kind: 'reference', sources: [] },
+          { id: 'manager->player', from: 'game_manager.gd', to: 'player.gd', kind: 'reference', sources: [] },
+          { id: 'player->math', from: 'player.gd', to: 'math_helpers.gd', kind: 'load', sources: [] },
+        ],
+      },
+      context({ focusedFile: 'enemy.gd', depthLimit: 1 }),
+    );
+
+    expect(result.nodes.map(node => node.id)).toEqual([
+      'enemy.gd',
+      'player.gd',
+      'game_manager.gd',
+      'math_helpers.gd',
+      'entity.gd',
+    ]);
+    expect(result.edges.map(edge => edge.id)).toEqual([
+      'enemy->entity',
+      'enemy->player',
+      'enemy->math',
+      'manager->enemy',
+      'manager->player',
+      'player->math',
+    ]);
+  });
+
   it('falls back to the full graph when the focused file is not in the graph', async () => {
     const { depthGraphView } = await import('../../../../src/core/views/depth/view');
 

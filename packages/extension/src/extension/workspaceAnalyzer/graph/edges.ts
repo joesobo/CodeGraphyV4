@@ -6,6 +6,7 @@
 import * as path from 'path';
 import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
 import type { IGraphEdge, IGraphEdgeSource } from '../../../shared/graph/types';
+import { getExternalPackageNodeId } from './packageSpecifiers';
 
 export interface IWorkspaceGraphEdgesOptions {
   disabledPlugins: ReadonlySet<string>;
@@ -19,6 +20,24 @@ export interface IWorkspaceGraphEdgeBuildResult {
   connectedIds: Set<string>;
   edges: IGraphEdge[];
   nodeIds: Set<string>;
+}
+
+function getConnectionTargetId(
+  plugin: IPlugin | undefined,
+  connection: IConnection,
+  fileConnections: ReadonlyMap<string, IConnection[]>,
+  workspaceRoot: string,
+): string | null {
+  if (connection.resolvedPath) {
+    const targetRelative = path.relative(workspaceRoot, connection.resolvedPath);
+    return fileConnections.has(targetRelative) ? targetRelative : null;
+  }
+
+  if (plugin?.id !== 'codegraphy.typescript') {
+    return null;
+  }
+
+  return getExternalPackageNodeId(connection.specifier);
 }
 
 function createQualifiedSourceId(
@@ -83,19 +102,16 @@ export function buildWorkspaceGraphEdges(
         continue;
       }
 
-      if (!connection.resolvedPath) {
-        continue;
-      }
-
-      const targetRelative = path.relative(workspaceRoot, connection.resolvedPath);
-      if (!fileConnections.has(targetRelative)) {
+      const targetId = getConnectionTargetId(plugin, connection, fileConnections, workspaceRoot);
+      if (!targetId) {
         continue;
       }
 
       connectedIds.add(filePath);
-      connectedIds.add(targetRelative);
+      connectedIds.add(targetId);
+      nodeIds.add(targetId);
 
-      const edgeId = `${filePath}->${targetRelative}#${connection.kind}`;
+      const edgeId = `${filePath}->${targetId}#${connection.kind}`;
       const existing = edgeMap.get(edgeId);
       const edgeSource = createEdgeSource(plugin, connection);
 
@@ -103,7 +119,7 @@ export function buildWorkspaceGraphEdges(
         const edge: IGraphEdge = {
           id: edgeId,
           from: filePath,
-          to: targetRelative,
+          to: targetId,
           kind: connection.kind,
           sources: edgeSource ? [edgeSource] : [],
         };

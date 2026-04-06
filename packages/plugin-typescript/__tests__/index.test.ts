@@ -312,6 +312,119 @@ describe('createTypeScriptPlugin lifecycle', () => {
     expect(transformed.nodes.some(node => node.id === 'src/unrelated.ts')).toBe(false);
     expect(transformed.nodes.some(node => node.id === 'docs/Note.md')).toBe(false);
   });
+
+  it('keeps external package nodes in the focused imports view', () => {
+    const plugin = createTypeScriptPlugin();
+    const registerView = vi.fn(() => ({ dispose: vi.fn() }));
+    const api = { registerView } as unknown as Pick<CodeGraphyAPI, 'registerView'>;
+
+    plugin.onLoad?.(api as CodeGraphyAPI);
+
+    const view = registerView.mock.calls[0]?.[0];
+    const graphData: IGraphData = {
+      nodes: [
+        { id: 'src/index.ts', label: 'index.ts', color: '#fff' },
+        {
+          id: 'pkg:fs',
+          label: 'fs',
+          color: '#F59E0B',
+          nodeType: 'package',
+          shape2D: 'hexagon',
+          shape3D: 'cube',
+        },
+      ],
+      edges: [
+        {
+          id: 'src/index.ts->pkg:fs#import',
+          from: 'src/index.ts',
+          to: 'pkg:fs',
+          kind: 'import',
+          sources: [
+            {
+              id: 'codegraphy.typescript:es6-import',
+              pluginId: 'codegraphy.typescript',
+              sourceId: 'es6-import',
+              label: 'ES6 Imports',
+            },
+          ],
+        },
+      ],
+    };
+
+    const transformed = view.transform(graphData, {
+      activePlugins: new Set(),
+      focusedFile: 'src/index.ts',
+      depthLimit: 1,
+    });
+
+    expect(transformed.nodes.map(node => node.id)).toEqual(['src/index.ts', 'pkg:fs']);
+    expect(transformed.edges).toEqual([
+      expect.objectContaining({
+        from: 'src/index.ts',
+        to: 'pkg:fs',
+      }),
+    ]);
+  });
+
+  it('hides focused imports when the focused file is not TypeScript or JavaScript', () => {
+    const plugin = createTypeScriptPlugin();
+    const registerView = vi.fn(() => ({ dispose: vi.fn() }));
+    const api = { registerView } as unknown as Pick<CodeGraphyAPI, 'registerView'>;
+
+    plugin.onLoad?.(api as CodeGraphyAPI);
+
+    const view = registerView.mock.calls[0]?.[0];
+    expect(view.isAvailable?.({
+      activePlugins: new Set(),
+      focusedFile: undefined,
+    })).toBe(false);
+    expect(view.isAvailable?.({
+      activePlugins: new Set(),
+      focusedFile: 'docs/Note.md',
+    })).toBe(false);
+    expect(view.isAvailable?.({
+      activePlugins: new Set(),
+      focusedFile: 'src/index.ts',
+    })).toBe(true);
+  });
+
+  it('returns an empty graph when the focused file is outside the import graph', () => {
+    const plugin = createTypeScriptPlugin();
+    const registerView = vi.fn(() => ({ dispose: vi.fn() }));
+    const api = { registerView } as unknown as Pick<CodeGraphyAPI, 'registerView'>;
+
+    plugin.onLoad?.(api as CodeGraphyAPI);
+
+    const view = registerView.mock.calls[0]?.[0];
+    const transformed = view.transform({
+      nodes: [
+        { id: 'src/index.ts', label: 'index.ts', color: '#fff' },
+        { id: 'src/utils.ts', label: 'utils.ts', color: '#fff' },
+      ],
+      edges: [
+        {
+          id: 'src/utils.ts->pkg:fs#import',
+          from: 'src/utils.ts',
+          to: 'pkg:fs',
+          kind: 'import',
+          sources: [
+            {
+              id: 'codegraphy.typescript:es6-import',
+              pluginId: 'codegraphy.typescript',
+              sourceId: 'es6-import',
+              label: 'ES6 Imports',
+            },
+          ],
+        },
+      ],
+    }, {
+      activePlugins: new Set(),
+      focusedFile: 'src/index.ts',
+      depthLimit: 1,
+    });
+
+    expect(transformed).toEqual({ nodes: [], edges: [] });
+  });
 });
 
 describe('source identification', () => {

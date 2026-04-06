@@ -92,7 +92,7 @@ function buildWikilinkSummaryMarkdown(
  */
 export function createMarkdownPlugin(): IPlugin {
   const resolver = new PathResolver(String());
-  const exporterDisposables: Disposable[] = [];
+  const toolbarActionDisposables: Disposable[] = [];
 
   return {
     id: manifest.id,
@@ -105,31 +105,37 @@ export function createMarkdownPlugin(): IPlugin {
     fileColors: manifest.fileColors,
 
     onLoad(api: CodeGraphyAPI): void {
-      exporterDisposables.push(
-        api.registerExporter({
-          id: 'wikilink-summary',
-          label: 'Wikilink Summary',
-          description: 'Export a markdown summary of linked and orphan notes',
-          group: 'Markdown',
-          async run() {
-            const graph = api.getGraph();
-            const wikilinkEdges = api
-              .filterEdgesByKind('reference')
-              .filter(edge =>
-                edge.sources.some(source => source.pluginId === manifest.id),
-              );
-            const markdown = buildWikilinkSummaryMarkdown(
-              graph,
-              wikilinkEdges,
-            );
+      toolbarActionDisposables.push(
+        api.registerToolbarAction({
+          id: 'wikilinks',
+          label: 'Wikilinks',
+          description: 'Open Markdown wikilink summaries',
+          items: [
+            {
+              id: 'wikilink-summary',
+              label: 'Wikilink Summary',
+              description: 'Export a markdown summary of linked and orphan notes',
+              async run() {
+                const graph = api.getGraph();
+                const wikilinkEdges = api
+                  .filterEdgesByKind('reference')
+                  .filter(edge =>
+                    edge.sources.some(source => source.pluginId === manifest.id),
+                  );
+                const markdown = buildWikilinkSummaryMarkdown(
+                  graph,
+                  wikilinkEdges,
+                );
 
-            await api.saveExport({
-              filename: 'wikilink-summary.md',
-              content: markdown,
-              title: 'Export Wikilink Summary',
-              successMessage: 'Wikilink summary exported',
-            });
-          },
+                await api.saveExport({
+                  filename: 'wikilink-summary.md',
+                  content: markdown,
+                  title: 'Export Wikilink Summary',
+                  successMessage: 'Wikilink summary exported',
+                });
+              },
+            },
+          ],
         }),
       );
     },
@@ -159,8 +165,8 @@ export function createMarkdownPlugin(): IPlugin {
     },
 
     onUnload(): void {
-      while (exporterDisposables.length > 0) {
-        exporterDisposables.pop()?.dispose();
+      while (toolbarActionDisposables.length > 0) {
+        toolbarActionDisposables.pop()?.dispose();
       }
     },
   };

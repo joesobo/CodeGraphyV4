@@ -5,6 +5,7 @@ import {
   buildGraphViewDecorationPayload,
   collectGraphViewContextMenuItems,
   collectGraphViewExporters,
+  collectGraphViewToolbarActions,
   collectGraphViewWebviewInjections,
 } from './messages';
 import {
@@ -36,6 +37,17 @@ interface GraphViewPluginRegistry {
           label: string;
           description?: string;
           group?: string;
+        }>;
+        readonly toolbarActions?: ReadonlyArray<{
+          id: string;
+          label: string;
+          icon?: string;
+          description?: string;
+          items: ReadonlyArray<{
+            id: string;
+            label: string;
+            description?: string;
+          }>;
         }>;
       }
     | undefined;
@@ -118,6 +130,27 @@ export function sendGraphViewPluginExporters(
     },
   );
   sendMessage({ type: 'PLUGIN_EXPORTERS_UPDATED', payload: { items } });
+}
+
+export function sendGraphViewPluginToolbarActions(
+  analyzer: Pick<GraphViewPluginAnalyzer, 'registry'> | undefined,
+  sendMessage: (
+    message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED' }>
+  ) => void,
+): void {
+  if (!analyzer) return;
+
+  const items = collectGraphViewToolbarActions(
+    analyzer.registry.list(),
+    (pluginId) => {
+      const api = analyzer.registry.getPluginAPI(pluginId);
+      if (!api) return undefined;
+      return {
+        toolbarActions: api.toolbarActions ?? [],
+      };
+    },
+  );
+  sendMessage({ type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED', payload: { items } });
 }
 
 export function sendGraphViewPluginWebviewInjections(

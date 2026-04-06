@@ -81,7 +81,7 @@ function clickExportItem(label: string) {
 describe('ToolbarActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    graphStore.setState({ activePanel: 'none', pluginExporters: [] });
+    graphStore.setState({ activePanel: 'none', pluginExporters: [], pluginToolbarActions: [] });
   });
 
   it('renders all four action buttons', () => {
@@ -104,6 +104,33 @@ describe('ToolbarActions', () => {
   it('renders the export button with title', () => {
     renderWithProviders();
     expect(screen.getByTitle('Export')).toBeInTheDocument();
+  });
+
+  it('renders toolbar action buttons before the export button when plugin toolbar actions are available', () => {
+    graphStore.setState({
+      pluginToolbarActions: [
+        {
+          id: 'wikilinks',
+          label: 'Wikilinks',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 0,
+          items: [
+            {
+              id: 'wikilink-summary',
+              label: 'Wikilink Summary',
+              index: 0,
+            },
+          ],
+        },
+      ],
+    });
+
+    renderWithProviders();
+
+    const wikilinksButton = screen.getByTitle('Wikilinks');
+    const exportButton = screen.getByTitle('Export');
+    expect(wikilinksButton.compareDocumentPosition(exportButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('renders the plugins button with title', () => {
@@ -229,5 +256,67 @@ describe('ToolbarActions export dropdown items', () => {
         index: 0,
       },
     });
+  });
+
+  it('renders a toolbar action popup when plugin toolbar actions are available', () => {
+    graphStore.setState({
+      pluginToolbarActions: [
+        {
+          id: 'wikilinks',
+          label: 'Wikilinks',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 0,
+          items: [
+            {
+              id: 'wikilink-summary',
+              label: 'Wikilink Summary',
+              index: 0,
+            },
+          ],
+        },
+      ],
+    });
+
+    renderWithProviders();
+
+    expect(screen.getByTitle('Wikilinks')).toBeInTheDocument();
+    expect(screen.getByText('Wikilink Summary')).toBeInTheDocument();
+  });
+
+  it('posts RUN_PLUGIN_TOOLBAR_ACTION through the host api when a toolbar action item is clicked', () => {
+    graphStore.setState({
+      pluginToolbarActions: [
+        {
+          id: 'wikilinks',
+          label: 'Wikilinks',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 0,
+          items: [
+            {
+              id: 'wikilink-summary',
+              label: 'Wikilink Summary',
+              index: 0,
+            },
+          ],
+        },
+      ],
+    });
+
+    const postMessageSpy = vi.spyOn(window, 'postMessage');
+
+    renderWithProviders();
+    fireEvent.click(screen.getByText('Wikilink Summary'));
+
+    expect(postMessageSpy).toHaveBeenCalledWith({
+      type: 'RUN_PLUGIN_TOOLBAR_ACTION',
+      payload: {
+        pluginId: 'plugin.docs',
+        index: 0,
+        itemIndex: 0,
+      },
+    }, '*');
+    postMessageSpy.mockRestore();
   });
 });

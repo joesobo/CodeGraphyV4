@@ -75,6 +75,21 @@ onLoad(api: CodeGraphyAPI) {
       });
     },
   });
+
+  // Register a dedicated toolbar button with plugin-owned actions
+  api.registerToolbarAction({
+    id: 'my-plugin.tools',
+    label: 'Plugin Tools',
+    items: [
+      {
+        id: 'open-summary',
+        label: 'Open Summary',
+        run: async () => {
+          await showSummaryPanel(api.getGraph());
+        },
+      },
+    ],
+  });
 }
 ```
 
@@ -181,6 +196,7 @@ onLoad(api: CodeGraphyAPI) {
   api.registerCommand(myCommand);
   api.registerContextMenuItem(myMenuItem);
   api.registerExporter(myExporter);
+  api.registerToolbarAction(myToolbarAction);
   api.decorateNode('file.ts', decoration);
 
   // Manual disposal if needed during runtime:
@@ -231,6 +247,18 @@ export function createMetricsPlugin(): IPlugin {
             content: JSON.stringify(api.getGraph(), null, 2),
           });
         },
+      });
+
+      api.registerToolbarAction({
+        id: 'codegraphy-metrics.tools',
+        label: 'Metrics',
+        items: [
+          {
+            id: 'open-metrics-panel',
+            label: 'Open Metrics Panel',
+            run: () => showMetricsPanel(api.getGraph()),
+          },
+        ],
       });
     },
 

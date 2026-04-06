@@ -19,13 +19,14 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
     depthLimit: 1,
     activePanel: 'none',
     pluginExporters: [],
+    pluginToolbarActions: [],
     ...overrides,
   });
 }
 
 /**
  * Helper to get button groups from the toolbar DOM using data-testid attributes.
- * Layout: [view-buttons] [dag-buttons] [2d/3d] [node-size-buttons] | [refresh] [export] [plugins] [settings]
+ * Layout: [view-buttons] [dag-buttons] [2d/3d] [node-size-buttons] | [refresh] [plugin-action] [export] [plugins] [settings]
  */
 function getButtonGroups(container: HTMLElement) {
   const viewGroup = container.querySelector('[data-testid="view-buttons"]');

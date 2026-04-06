@@ -41,6 +41,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   sendDecorations(): void;
   sendContextMenuItems(): void;
   sendPluginExporters?(): void;
+  sendPluginToolbarActions?(): void;
   markWorkspaceReady(graphData: IGraphData): void;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;
@@ -115,6 +116,7 @@ export async function executeGraphViewAnalysis(
     handlers.sendDecorations();
     handlers.sendContextMenuItems();
     handlers.sendPluginExporters?.();
+    handlers.sendPluginToolbarActions?.();
     state.analyzer.registry.notifyPostAnalyze(graphData);
     handlers.markWorkspaceReady(graphData);
   } catch (error) {
@@ -126,6 +128,7 @@ export async function executeGraphViewAnalysis(
     const graphData = publishEmptyGraph(handlers);
     handlers.sendPluginStatuses();
     handlers.sendPluginExporters?.();
+    handlers.sendPluginToolbarActions?.();
     handlers.markWorkspaceReady(graphData);
   }
 }

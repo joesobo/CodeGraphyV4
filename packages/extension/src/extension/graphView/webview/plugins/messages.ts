@@ -2,6 +2,7 @@ import type { EdgeDecoration, NodeDecoration } from '../../../../core/plugins/de
 import type { IPluginContextMenuItem } from '../../../../shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../../shared/plugins/decorations';
 import type { IPluginExporterItem } from '../../../../shared/plugins/exporters';
+import type { IPluginToolbarAction } from '../../../../shared/plugins/toolbarActions';
 
 interface IContextMenuContribution {
   label: string;
@@ -23,6 +24,24 @@ interface IExporterContribution {
 
 interface IPluginApiWithExporters {
   readonly exporters: readonly IExporterContribution[];
+}
+
+interface IToolbarActionItemContribution {
+  id: string;
+  label: string;
+  description?: string;
+}
+
+interface IToolbarActionContribution {
+  id: string;
+  label: string;
+  icon?: string;
+  description?: string;
+  items: readonly IToolbarActionItemContribution[];
+}
+
+interface IPluginApiWithToolbarActions {
+  readonly toolbarActions: readonly IToolbarActionContribution[];
 }
 
 interface IPluginWebviewContributions {
@@ -119,6 +138,39 @@ export function collectGraphViewExporters(
         pluginId: pluginInfo.plugin.id,
         pluginName: pluginInfo.plugin.name ?? pluginInfo.plugin.id,
         index,
+      });
+    }
+  }
+
+  return items;
+}
+
+export function collectGraphViewToolbarActions(
+  pluginInfos: readonly IGraphViewPluginInfo[],
+  getPluginApi: (pluginId: string) => IPluginApiWithToolbarActions | undefined,
+): IPluginToolbarAction[] {
+  const items: IPluginToolbarAction[] = [];
+
+  for (const pluginInfo of pluginInfos) {
+    const api = getPluginApi(pluginInfo.plugin.id);
+    if (!api) continue;
+
+    for (let index = 0; index < api.toolbarActions.length; index += 1) {
+      const action = api.toolbarActions[index];
+      items.push({
+        id: action.id,
+        label: action.label,
+        icon: action.icon,
+        description: action.description,
+        pluginId: pluginInfo.plugin.id,
+        pluginName: pluginInfo.plugin.name ?? pluginInfo.plugin.id,
+        index,
+        items: action.items.map((item, itemIndex) => ({
+          id: item.id,
+          label: item.label,
+          description: item.description,
+          index: itemIndex,
+        })),
       });
     }
   }

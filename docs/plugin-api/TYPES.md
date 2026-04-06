@@ -30,6 +30,8 @@ import type {
   Disposable,
   ExportRequest,
   IExporter,
+  IToolbarAction,
+  IToolbarActionItem,
   ViewDependency,
 } from '@codegraphy-vscode/plugin-api';
 
@@ -73,7 +75,7 @@ Main groups:
 - Events: `on`, `once`, `off`
 - Decorations: `decorateNode`, `decorateEdge`, `clearDecorations`
 - Graph queries: `getGraph`, `getNode`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getEdgesFor`, `filterEdgesByKind`, `getSubgraph`, `findPath`
-- Registration: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`
+- Registration: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`
 - Tier 2 bridge: `sendToWebview`, `onWebviewMessage`
 - Export saving: `saveExport`
 - Utilities: `getWorkspaceRoot`, `log`
@@ -88,11 +90,13 @@ Main groups:
 
 ### Graph (`graph.ts`)
 
+- `NodeType` = `file | folder | package`
 - `IGraphNode` (id/label/color + optional position/favorite/size/access/depth fields)
 - `IGraphEdge` (`id`, `from`, `to`, `kind`, `sources[]`)
 - `IGraphEdgeSource` (`id`, `pluginId`, `sourceId`, `label`, optional `variant`, optional scalar `metadata`)
 - `IGraphData` (`nodes`, `edges`)
 - `GraphEdgeKind` = reserved core kinds plus namespaced custom kinds (`pluginId:kind`)
+- Synthetic package nodes let plugins and host views include unresolved external imports like `fs` or `react` without pretending they are workspace files.
 
 ### Decorations (`decorations.ts`)
 
@@ -104,7 +108,7 @@ Main groups:
 
 - `IView`, `IViewContext`, `ViewDependency` in `views.ts`
 - `ICommand`, `IContextMenuItem` in `commands.ts`
-- `IExporter`, `ExportRequest` in `api.ts`
+- `IExporter`, `ExportRequest`, `IToolbarAction`, `IToolbarActionItem` in `api.ts`
 - `Disposable` in `disposable.ts`
 
 ## Webview Types (Tier 2)

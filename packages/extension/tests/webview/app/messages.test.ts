@@ -17,4 +17,10 @@ describe('app messages', () => {
       'Open a folder to visualize its structure.',
     );
   });
+
+  it('prompts to switch views when a scoped view resolves to an empty graph', () => {
+    expect(getNoDataHint({ nodes: [], edges: [] }, true, 'codegraphy.typescript.focused-imports')).toBe(
+      'No nodes match the current view. Try switching views or changing the focused file.',
+    );
+  });
 });
