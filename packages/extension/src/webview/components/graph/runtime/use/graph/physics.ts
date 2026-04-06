@@ -37,6 +37,7 @@ export function usePhysicsRuntime({
 }: UsePhysicsRuntimeOptions): void {
 	const physicsInitialisedRef = useRef(false);
 	const physicsSettingsRef = useRef(physicsSettings);
+	const pendingThreeDimensionalInitRef = useRef(graphMode === '3d');
 	const previousPhysicsRef = useRef<IPhysicsSettings | null>(null);
 	const previousLayoutKeyRef = useRef<string | null>(null);
 
@@ -64,6 +65,7 @@ export function usePhysicsRuntime({
 
 	useEffect(() => {
 		physicsInitialisedRef.current = false;
+		pendingThreeDimensionalInitRef.current = graphMode === '3d';
 		previousPhysicsRef.current = null;
 		previousLayoutKeyRef.current = null;
 	}, [graphMode]);
@@ -80,6 +82,11 @@ export function usePhysicsRuntime({
 			});
 			if (action.type === 'skip') return;
 			if (action.type === 'init') {
+				if (graphMode === '3d' && pendingThreeDimensionalInitRef.current) {
+					pendingThreeDimensionalInitRef.current = false;
+					frame = requestAnimationFrame(tryInit);
+					return;
+				}
 				physicsInitialisedRef.current = true;
 				previousPhysicsRef.current = { ...physicsSettingsRef.current };
 				initPhysics(action.instance, physicsSettingsRef.current);

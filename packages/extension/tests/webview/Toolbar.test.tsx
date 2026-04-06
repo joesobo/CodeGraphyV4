@@ -179,30 +179,15 @@ describe('Toolbar', () => {
 
   describe('2D/3D toggle', () => {
     it('toggles graphMode from 2d to 3d', () => {
-      const { container } = render(<Toolbar />);
-      // The 2D/3D toggle is a standalone outline button after the DAG group
-      const outlineButtons = container.querySelectorAll('button');
-      // Find it by process of elimination: not in view/dag/node-size group, not title="..."
-      const { viewButtons, dagButtons, nodeSizeButtons } = getButtonGroups(container);
-      const groupButtonSet = new Set([...viewButtons, ...dagButtons, ...nodeSizeButtons]);
-      const standaloneButtons = Array.from(outlineButtons).filter(
-        btn => !groupButtonSet.has(btn) && !btn.getAttribute('title')
-      );
-      // First standalone button without title is the 2D/3D toggle
-      fireEvent.click(standaloneButtons[0]);
+      render(<Toolbar />);
+      fireEvent.click(screen.getByTitle('Toggle 2D/3D Mode'));
       expect(graphStore.getState().graphMode).toBe('3d');
     });
 
     it('toggles graphMode from 3d back to 2d', () => {
       setDefaultState({ graphMode: '3d' });
-      const { container } = render(<Toolbar />);
-      const outlineButtons = container.querySelectorAll('button');
-      const { viewButtons, dagButtons, nodeSizeButtons } = getButtonGroups(container);
-      const groupButtonSet = new Set([...viewButtons, ...dagButtons, ...nodeSizeButtons]);
-      const standaloneButtons = Array.from(outlineButtons).filter(
-        btn => !groupButtonSet.has(btn) && !btn.getAttribute('title')
-      );
-      fireEvent.click(standaloneButtons[0]);
+      render(<Toolbar />);
+      fireEvent.click(screen.getByTitle('Toggle 2D/3D Mode'));
       expect(graphStore.getState().graphMode).toBe('2d');
     });
   });

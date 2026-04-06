@@ -56,7 +56,7 @@ function buildWikilinkSummaryMarkdown(
   const orphanNodes = rankedNodes.filter(entry => entry.neighborCount === 0);
 
   return [
-    '# Wikilink Summary',
+    '# Markdown Wikilink Summary',
     '',
     `- Notes: ${nodes.length}`,
     `- Wikilinks: ${referenceEdges.length}`,
@@ -128,10 +128,10 @@ export function createMarkdownPlugin(): IPlugin {
                 );
 
                 await api.saveExport({
-                  filename: 'wikilink-summary.md',
+                  filename: 'markdown-wikilink-summary.md',
                   content: markdown,
-                  title: 'Export Wikilink Summary',
-                  successMessage: 'Wikilink summary exported',
+                  title: 'Export Markdown Wikilink Summary',
+                  successMessage: 'Markdown wikilink summary exported',
                 });
               },
             },

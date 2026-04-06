@@ -270,6 +270,13 @@ describe('usePhysicsRuntime', () => {
   it('reinitializes physics when the graph mode changes', () => {
     const graph2D = create2DGraph();
     const graph3D = create3DGraph();
+    const frames: FrameRequestCallback[] = [];
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
 
     const { rerender } = renderHook(
       ({ graphMode }: { graphMode: '2d' | '3d' }) => usePhysicsRuntime({
@@ -285,6 +292,12 @@ describe('usePhysicsRuntime', () => {
     rerender({ graphMode: '3d' as never });
 
     expect(physicsHarness.initPhysics).toHaveBeenNthCalledWith(1, graph2D, SETTINGS);
+    expect(physicsHarness.initPhysics).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      frames.shift()?.(16);
+    });
+
     expect(physicsHarness.initPhysics).toHaveBeenNthCalledWith(2, graph3D, SETTINGS);
   });
 
@@ -311,6 +324,13 @@ describe('usePhysicsRuntime', () => {
 
   it('syncs the active graph immediately when initialization completes in a paused state', () => {
     const graph = create3DGraph();
+    const frames: FrameRequestCallback[] = [];
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
 
     renderHook(() => usePhysicsRuntime({
       fg2dRef: { current: undefined },
@@ -320,6 +340,13 @@ describe('usePhysicsRuntime', () => {
       physicsPaused: true,
       physicsSettings: SETTINGS,
     }));
+
+    expect(physicsHarness.initPhysics).not.toHaveBeenCalled();
+    expect(physicsHarness.syncPhysicsAnimation).not.toHaveBeenCalled();
+
+    act(() => {
+      frames.shift()?.(16);
+    });
 
     expect(physicsHarness.initPhysics).toHaveBeenCalledWith(graph, SETTINGS);
     expect(physicsHarness.syncPhysicsAnimation).toHaveBeenCalledOnce();
