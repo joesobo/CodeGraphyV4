@@ -1,7 +1,7 @@
 import type { ForceGraphMethods as FG2DMethods } from 'react-force-graph-2d';
 import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import { forceCollide, forceX, forceY } from 'd3-force';
-import { DEFAULT_PHYSICS_SETTINGS, type IPhysicsSettings } from '../../../../shared/settings/physics';
+import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import { toD3Repel, type FGLink, type FGNode } from '../model/build';
 import { hasDistanceAndStrength, hasDistanceMax, hasStrength } from '../support/guards';
 
@@ -25,8 +25,7 @@ export function havePhysicsSettingsChanged(
 		|| previous.linkDistance !== next.linkDistance
 		|| previous.linkForce !== next.linkForce
 		|| previous.damping !== next.damping
-		|| (previous.chargeRange ?? DEFAULT_PHYSICS_SETTINGS.chargeRange)
-			!== (next.chargeRange ?? DEFAULT_PHYSICS_SETTINGS.chargeRange);
+		|| previous.chargeRange !== next.chargeRange;
 }
 
 export function applyPhysicsSettings(
@@ -37,7 +36,7 @@ export function applyPhysicsSettings(
 	const chargeForce = graph.d3Force('charge');
 	if (hasStrength(chargeForce)) chargeForce.strength(toD3Repel(settings.repelForce));
 	if (hasDistanceMax(chargeForce)) {
-		chargeForce.distanceMax(settings.chargeRange ?? DEFAULT_PHYSICS_SETTINGS.chargeRange);
+		chargeForce.distanceMax(settings.chargeRange ?? Infinity);
 	}
 
 	const linkForce = graph.d3Force('link');

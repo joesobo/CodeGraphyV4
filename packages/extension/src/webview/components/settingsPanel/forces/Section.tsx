@@ -14,6 +14,7 @@ import {
 } from './persistence';
 
 const PHYSICS_PERSIST_DEBOUNCE_MS = 350;
+const AUTO_CHARGE_RANGE_SLIDER_VALUE = 1000;
 
 export function ForcesSection(): React.ReactElement {
   const settings = useGraphStore((state) => state.physicsSettings);
@@ -54,6 +55,8 @@ export function ForcesSection(): React.ReactElement {
     setPhysicsSettings({ ...settings, [key]: value });
     schedulePhysicsSettingPersist(key, value);
   };
+
+  const chargeRangeValue = settings.chargeRange ?? AUTO_CHARGE_RANGE_SLIDER_VALUE;
 
   return (
     <div className="mb-2 space-y-3 pt-1" ref={cleanupRef.current}>
@@ -138,18 +141,20 @@ export function ForcesSection(): React.ReactElement {
         <div className="flex items-center justify-between mb-1">
           <Label
             className="text-xs"
-            title="Limits how far node repulsion reaches. Lower values produce tighter local clusters."
+            title="Limits how far node repulsion reaches. Auto leaves repulsion uncapped until you choose a range."
           >
             Charge Range
           </Label>
-          <span className="text-xs text-muted-foreground font-mono">{settings.chargeRange ?? 200}</span>
+          <span className="text-xs text-muted-foreground font-mono">
+            {settings.chargeRange ?? 'Auto'}
+          </span>
         </div>
         <Slider
           data-testid="charge-range-slider"
           min={50}
           max={1000}
           step={10}
-          value={[settings.chargeRange ?? 200]}
+          value={[chargeRangeValue]}
           onValueChange={(values) => handlePhysicsChange('chargeRange', values[0])}
           onValueCommit={() => flushPhysicsSetting('chargeRange')}
         />

@@ -41,7 +41,6 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
   linkDistance: 100,
   linkForce: 0.08,
   damping: 0.4,
-  chargeRange: 200,
 };
 
 function setStoreState(overrides: Record<string, unknown> = {}) {
@@ -70,6 +69,7 @@ describe('ForcesSection', () => {
     expect(screen.getByText('Link Distance')).toBeInTheDocument();
     expect(screen.getByText('Link Force')).toBeInTheDocument();
     expect(screen.getByText('Charge Range')).toBeInTheDocument();
+    expect(screen.getByText('Auto')).toBeInTheDocument();
   });
 
   it('persists repel force updates after debounce', () => {
@@ -128,7 +128,12 @@ describe('ForcesSection', () => {
   });
 
   it('persists charge range updates on commit', () => {
-    renderSection();
+    renderSection({
+      physicsSettings: {
+        ...DEFAULT_PHYSICS,
+        chargeRange: 200,
+      },
+    });
 
     fireEvent.click(screen.getByTestId('charge-range-slider-change'));
     fireEvent.click(screen.getByTestId('charge-range-slider-commit'));

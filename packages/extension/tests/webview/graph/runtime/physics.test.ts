@@ -102,6 +102,17 @@ describe('physics', () => {
     expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
   });
 
+  it('uses an uncapped charge range when no explicit range is configured', () => {
+    const { charge, instance } = createPhysicsInstance();
+
+    applyPhysicsSettings(instance, {
+      ...SETTINGS,
+      chargeRange: undefined,
+    });
+
+    expect(charge.distanceMax).toHaveBeenCalledWith(Infinity);
+  });
+
   it('skips non-callable strength forces and still reheats the simulation', () => {
     const { instance } = createCustomPhysicsInstance({
       charge: { strength: SETTINGS.repelForce },
