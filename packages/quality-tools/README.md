@@ -23,6 +23,16 @@ pnpm run scrap -- quality-tools/ --policy split
 pnpm run scrap -- quality-tools/ --policy review
 ```
 
+Mutation target forms:
+
+```bash
+pnpm run mutate                    # all supported mutation packages
+pnpm run mutate -- plugin-csharp/  # one package
+pnpm run mutate -- --mutate packages/plugin-csharp/src/parserContent.ts  # one file
+```
+
+The mutation configs ignore heavyweight local artifacts like `.vscode-test/` and `.stryker-tmp/`, so downloaded VS Code test bundles do not get copied into Stryker sandboxes.
+
 Documentation lives in the repo docs:
 
 - [docs/quality/boundaries.md](../../docs/quality/boundaries.md)

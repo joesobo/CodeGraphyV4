@@ -27,6 +27,10 @@ module.exports = {
   incrementalFile: 'reports/mutation/extension/stryker-incremental-extension.json',
   ignorePatterns: [
     '/coverage',
+    '/.vscode-test',
+    '/.vscode-test/**',
+    '/.stryker-tmp',
+    '/.stryker-tmp/**',
   ],
   ignoreStatic: true,
   thresholds: {
