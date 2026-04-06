@@ -13,6 +13,27 @@ interface GraphDebugSnapshot {
   zoom: number | null;
 }
 
+async function disableWebgl(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    const originalGetContext = HTMLCanvasElement.prototype.getContext;
+
+    Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+      configurable: true,
+      value(this: HTMLCanvasElement, contextId: string, options?: unknown) {
+        if (
+          contextId === 'webgl'
+          || contextId === 'webgl2'
+          || contextId === 'experimental-webgl'
+        ) {
+          return null;
+        }
+
+        return originalGetContext.call(this, contextId, options as never);
+      },
+    });
+  });
+}
+
 async function waitForGraphDebugBridge(page: Page): Promise<void> {
   await expect.poll(async () =>
     page.evaluate(() => Boolean(window.__CODEGRAPHY_GRAPH_DEBUG__)),
@@ -104,6 +125,7 @@ test.describe('webview depth view', () => {
   });
 
   test('falls back to 2d when 3d mode cannot create a WebGL context', async ({ page }) => {
+    await disableWebgl(page);
     await page.goto('/depth-view');
 
     await expect(page.locator('.graph-container canvas').first()).toBeVisible();
@@ -111,10 +133,14 @@ test.describe('webview depth view', () => {
     await page.getByTitle('Toggle 2D/3D Mode').click();
 
     await expect.poll(async () => page.locator('.graph-container canvas').count()).toBeGreaterThan(0);
-    await expect.poll(async () => page.evaluate(() => document.body.innerText)).toContain('Aa');
+    await expect.poll(async () => {
+      const snapshot = await getGraphDebugSnapshot(page);
+      return snapshot.graphMode;
+    }).toBe('2d');
   });
 
   test('keeps the app alive when 3d mode falls back to 2d', async ({ page }) => {
+    await disableWebgl(page);
     const pageErrors: string[] = [];
     const consoleErrors: string[] = [];
 
