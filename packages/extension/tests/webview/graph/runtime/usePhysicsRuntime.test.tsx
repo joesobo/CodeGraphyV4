@@ -21,7 +21,6 @@ vi.mock('../../../../src/webview/components/graph/runtime/physics', () => ({
 
 const SETTINGS: IPhysicsSettings = {
   centerForce: 0.1,
-  chargeRange: 200,
   damping: 0.7,
   linkDistance: 120,
   linkForce: 0.4,
@@ -49,8 +48,7 @@ function havePhysicsChanged(
     || previous.damping !== next.damping
     || previous.linkDistance !== next.linkDistance
     || previous.linkForce !== next.linkForce
-    || previous.repelForce !== next.repelForce
-    || previous.chargeRange !== next.chargeRange;
+    || previous.repelForce !== next.repelForce;
 }
 
 describe('usePhysicsRuntime', () => {

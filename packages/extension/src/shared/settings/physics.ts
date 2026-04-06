@@ -4,7 +4,6 @@ export interface IPhysicsSettings {
   linkForce: number;
   damping: number;
   centerForce: number;
-  chargeRange?: number;
 }
 
 export const DEFAULT_PHYSICS_SETTINGS: IPhysicsSettings = {
