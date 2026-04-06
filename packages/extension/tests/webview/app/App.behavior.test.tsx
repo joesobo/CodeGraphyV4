@@ -637,6 +637,19 @@ describe('App behavior', () => {
     expect(screen.getByText(/No files found/)).toBeInTheDocument();
   });
 
+  it('keeps the toolbar visible when a scoped view resolves to an empty graph', () => {
+    graphStore.setState({
+      graphData: { nodes: [], edges: [] },
+      activePanel: 'none',
+      timelineActive: false,
+    });
+
+    render(<App />);
+
+    expect(screen.getByText(/No files found/)).toBeInTheDocument();
+    expect(screen.getByTestId('toolbar')).toBeInTheDocument();
+  });
+
   it('renders the graph with colored data when available', () => {
     graphStore.setState({
       graphData: {

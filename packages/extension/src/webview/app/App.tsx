@@ -34,9 +34,11 @@ export default function App(): React.ReactElement {
 
   if (isLoading) return <LoadingState />;
 
-  if (!graphData || graphData.nodes.length === 0) {
+  if (!graphData) {
     return <EmptyState hint={getNoDataHint(graphData, showOrphans)} />;
   }
+
+  const hasGraphNodes = graphData.nodes.length > 0;
 
   return (
     <div className="relative w-full h-screen flex flex-col">
@@ -56,14 +58,20 @@ export default function App(): React.ReactElement {
         </div>
       </div>
       <div className="flex-1 min-h-0 relative">
-        <Graph
-          data={coloredData || graphData}
-          theme={theme}
-          nodeDecorations={nodeDecorations}
-          edgeDecorations={edgeDecorations}
-          pluginHost={pluginHost}
-        />
-        <DepthViewControls />
+        {hasGraphNodes ? (
+          <>
+            <Graph
+              data={coloredData || graphData}
+              theme={theme}
+              nodeDecorations={nodeDecorations}
+              edgeDecorations={edgeDecorations}
+              pluginHost={pluginHost}
+            />
+            <DepthViewControls />
+          </>
+        ) : (
+          <EmptyState hint={getNoDataHint(graphData, showOrphans)} fullScreen={false} />
+        )}
         <div className="absolute inset-y-2 left-2 z-10 pointer-events-none">
           <div className="h-full pointer-events-auto">
             <Toolbar pluginHost={pluginHost} />
