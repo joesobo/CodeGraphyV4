@@ -1,0 +1,43 @@
+import { describe, expect, it } from 'vitest';
+import {
+  fileIncludeParts,
+  sharedDetectorTestIncludes
+} from '../../../src/mutation/runner/includeParts';
+
+describe('fileIncludeParts', () => {
+  it('derives include parts for nested hyphenated source files', () => {
+    expect(fileIncludeParts('sources/type-usage.ts')).toEqual({
+      camelName: 'typeUsage',
+      directory: 'sources',
+      dottedRelativePath: 'sources.type-usage',
+      includeBroadFallback: true,
+      name: 'type-usage',
+      relativeTestDirectory: 'sources/'
+    });
+  });
+
+  it('disables broad fallback for generic file names', () => {
+    expect(fileIncludeParts('extension/graphView/provider/runtime.ts').includeBroadFallback).toBe(false);
+  });
+});
+
+describe('sharedDetectorTestIncludes', () => {
+  it('returns no detector globs outside source rule directories', () => {
+    expect(sharedDetectorTestIncludes('packages/extension/tests', 'extension')).toEqual([]);
+  });
+
+  it('returns direct and recursive detector globs for source rule directories', () => {
+    expect(sharedDetectorTestIncludes('packages/plugin-csharp/__tests__', 'sources')).toEqual([
+      'packages/plugin-csharp/__tests__/ruleDetectors.test.ts',
+      'packages/plugin-csharp/__tests__/ruleDetectors.test.tsx',
+      'packages/plugin-csharp/__tests__/*Detectors.test.ts',
+      'packages/plugin-csharp/__tests__/*Detectors.test.tsx'
+    ]);
+    expect(sharedDetectorTestIncludes('packages/plugin-csharp/__tests__', 'sources', true)).toEqual([
+      'packages/plugin-csharp/__tests__/**/ruleDetectors.test.ts',
+      'packages/plugin-csharp/__tests__/**/ruleDetectors.test.tsx',
+      'packages/plugin-csharp/__tests__/**/*Detectors.test.ts',
+      'packages/plugin-csharp/__tests__/**/*Detectors.test.tsx'
+    ]);
+  });
+});

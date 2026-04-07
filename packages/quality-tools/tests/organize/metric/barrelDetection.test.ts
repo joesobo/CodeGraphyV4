@@ -1,5 +1,6 @@
+import * as ts from 'typescript';
 import { describe, expect, it } from 'vitest';
-import { checkBarrelFile } from '../../../src/organize/metric/barrelDetection';
+import { checkBarrelFile, scriptKindForExtension } from '../../../src/organize/metric/barrelDetection';
 import { BARREL_CODE, TS_CODE } from '../testHelpers';
 
 describe('checkBarrelFile', () => {
@@ -55,6 +56,15 @@ describe('checkBarrelFile', () => {
       } else {
         expect(issue).toBeUndefined();
       }
+    });
+
+    it.each([
+      ['.ts', ts.ScriptKind.TS],
+      ['.tsx', ts.ScriptKind.TSX],
+      ['.js', ts.ScriptKind.JS],
+      ['.jsx', ts.ScriptKind.JSX]
+    ])('maps %s to the expected TypeScript script kind', (extension, expectedScriptKind) => {
+      expect(scriptKindForExtension(extension)).toBe(expectedScriptKind);
     });
   });
 

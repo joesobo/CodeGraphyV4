@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  resolvePackageBoundaryConfig,
   resolvePackageToolGlobs,
   resolvePackageToolPatterns
 } from '../../src/config/quality';
@@ -42,6 +43,22 @@ describe('resolvePackageToolGlobs', () => {
         'packages/example/**/index.ts',
         'packages/example/src/ignored.ts'
       ]
+    });
+  });
+});
+
+describe('resolvePackageBoundaryConfig', () => {
+  it('returns empty defaults when the config has no defaults or package override', () => {
+    expect(
+      resolvePackageBoundaryConfig(
+        createQualityConfigRepo({ packages: {} }, 'quality-tools-boundary-empty-'),
+        'missing'
+      )
+    ).toEqual({
+      entrypoints: [],
+      exclude: [],
+      include: [],
+      layers: []
     });
   });
 });

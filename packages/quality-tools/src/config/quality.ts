@@ -1,10 +1,11 @@
 import { readFileSync } from 'fs';
 import { join, matchesGlob } from 'path';
+import { mergeBoundaryPatterns, mergeToolPatterns, packagePattern } from './patterns';
 import { toPosix } from '../shared/util/pathUtils';
 
 export type QualityToolName = 'boundaries' | 'crap' | 'mutation' | 'scrap' | 'organize';
 
-interface QualityToolPatterns {
+export interface QualityToolPatterns {
   exclude?: string[];
   include?: string[];
 }
@@ -44,39 +45,6 @@ export interface ResolvedBoundaryConfig extends ResolvedToolPatterns {
 }
 
 const CONFIG_FILE = 'quality.config.json';
-
-function normalizePatterns(patterns: string[] | undefined): string[] {
-  return (patterns ?? []).map(toPosix);
-}
-
-function mergeToolPatterns(
-  defaults: QualityToolPatterns | undefined,
-  overrides: QualityToolPatterns | undefined
-): ResolvedToolPatterns {
-  return {
-    exclude: [...normalizePatterns(defaults?.exclude), ...normalizePatterns(overrides?.exclude)],
-    include: [...normalizePatterns(defaults?.include), ...normalizePatterns(overrides?.include)]
-  };
-}
-
-function mergeBoundaryPatterns(
-  defaults: BoundaryToolPatterns | undefined,
-  overrides: BoundaryToolPatterns | undefined
-): ResolvedBoundaryConfig {
-  return {
-    exclude: [...normalizePatterns(defaults?.exclude), ...normalizePatterns(overrides?.exclude)],
-    include: [...normalizePatterns(defaults?.include), ...normalizePatterns(overrides?.include)],
-    entrypoints: [
-      ...normalizePatterns(defaults?.entrypoints),
-      ...normalizePatterns(overrides?.entrypoints)
-    ],
-    layers: overrides?.layers ?? defaults?.layers ?? []
-  };
-}
-
-function packagePattern(packageName: string, pattern: string): string {
-  return toPosix(join('packages', packageName, pattern));
-}
 
 export function loadQualityConfig(repoRoot: string): QualityConfig {
   const configPath = join(repoRoot, CONFIG_FILE);
