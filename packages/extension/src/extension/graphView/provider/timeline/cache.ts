@@ -21,16 +21,14 @@ export async function sendGraphViewProviderCachedTimeline(
   source._timelineActive = state.timelineActive;
   source._currentCommitSha = state.currentCommitSha;
 
-  const didReplayCachedTimeline =
+  const currentCommitSha = state.currentCommitSha;
+  const shouldJumpToReplayedCommit =
     state.timelineActive &&
-    state.currentCommitSha !== undefined &&
-    (!previousTimelineActive || state.currentCommitSha !== previousCommitSha);
+    !!currentCommitSha &&
+    (!previousTimelineActive || currentCommitSha !== previousCommitSha);
 
-  if (didReplayCachedTimeline) {
-    const currentCommitSha = state.currentCommitSha;
-    if (currentCommitSha) {
-      await dependencies.jumpToCommit(source, currentCommitSha);
-    }
+  if (shouldJumpToReplayedCommit) {
+    await dependencies.jumpToCommit(source, currentCommitSha);
   }
 }
 
