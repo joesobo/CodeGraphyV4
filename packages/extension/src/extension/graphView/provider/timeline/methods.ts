@@ -1,224 +1,41 @@
 import * as vscode from 'vscode';
-import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import type { ICommitInfo } from '../../../../shared/timeline/types';
-import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
-import { DEFAULT_EXCLUDE_PATTERNS } from '../../../config/defaults';
-import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
-import type { GraphViewProviderTimelineSource } from '../../timeline/provider/indexing';
+import {
+  createPermanentNodeOpenBehavior,
+  createTemporaryNodeOpenBehavior,
+} from './behavior';
 import {
   indexGraphViewProviderRepository,
   jumpGraphViewProviderToCommit,
   resetGraphViewProviderTimeline,
-  sendGraphViewProviderCachedTimeline,
 } from '../../timeline/provider/indexing';
 import {
+  invalidateGraphViewProviderTimelineCache,
+  sendGraphViewProviderCachedTimeline as replayGraphViewProviderCachedTimeline,
+} from './cache';
+import {
   invalidateGraphViewTimelineCache,
+  sendCachedGraphViewTimeline,
   sendGraphViewPlaybackSpeed,
 } from '../../timeline/playback';
 import {
   openGraphViewNodeInEditor,
   previewGraphViewFileAtCommit,
 } from '../../timeline/open';
+import type {
+  EditorOpenBehavior,
+  GraphViewProviderTimelineMethodDependencies,
+  GraphViewProviderTimelineMethods,
+  GraphViewProviderTimelineMethodsSource,
+} from './types';
+import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
+import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 
-type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
-
-export interface GraphViewProviderTimelineMethodsSource
-  extends Omit<
-    Pick<
-    GraphViewProviderTimelineSource,
-    | '_context'
-    | '_analyzer'
-    | '_analyzerInitialized'
-    | '_gitAnalyzer'
-    | '_indexingController'
-    | '_filterPatterns'
-    | '_timelineActive'
-    | '_currentCommitSha'
-    | '_disabledPlugins'
-    | '_disabledSources'
-    | '_rawGraphData'
-    | '_graphData'
-    | '_applyViewTransform'
-    | '_sendMessage'
-  >,
-    '_gitAnalyzer'
-  > {
-  _firstWorkspaceReadyPromise?: Promise<void>;
-  _analyzerInitPromise?: Promise<void>;
-  _installedPluginActivationPromise?: Promise<void>;
-  _gitAnalyzer?: GraphViewProviderTimelineSource['_gitAnalyzer'] & {
-    invalidateCache(): PromiseLike<void>;
-    getCachedCommitList(): ICommitInfo[] | null | undefined;
-  };
-  _sendMessage(message: ExtensionToWebviewMessage): void;
-  _openFile(filePath: string, behavior?: EditorOpenBehavior): Promise<void>;
-}
-
-export interface GraphViewProviderTimelineMethods {
-  _indexRepository(): Promise<void>;
-  _jumpToCommit(sha: string): Promise<void>;
-  _resetTimeline(): Promise<void>;
-  _openSelectedNode(nodeId: string): Promise<void>;
-  _activateNode(nodeId: string): Promise<void>;
-  _openNodeInEditor(nodeId: string, behavior: EditorOpenBehavior): Promise<void>;
-  _previewFileAtCommit(
-    sha: string,
-    filePath: string,
-    behavior?: EditorOpenBehavior,
-  ): Promise<void>;
-  _sendCachedTimeline(): Promise<void>;
-  sendPlaybackSpeed(): void;
-  invalidateTimelineCache(): Promise<void>;
-}
-
-export interface GraphViewProviderTimelineMethodDependencies {
-  indexRepository(
-    source: Parameters<typeof indexGraphViewProviderRepository>[0],
-  ): Promise<void>;
-  jumpToCommit(
-    source: Parameters<typeof jumpGraphViewProviderToCommit>[0],
-    sha: string,
-  ): Promise<void>;
-  resetTimeline(
-    source: Parameters<typeof resetGraphViewProviderTimeline>[0],
-  ): Promise<void>;
-  openNodeInEditor(
-    nodeId: string,
-    state: {
-      timelineActive: boolean;
-      currentCommitSha: string | undefined;
-    },
-    handlers: {
-      previewFileAtCommit(
-        sha: string,
-        filePath: string,
-        behavior?: EditorOpenBehavior,
-      ): Promise<void>;
-      openFile(
-        filePath: string,
-        behavior?: EditorOpenBehavior,
-      ): Promise<void>;
-    },
-    behavior: EditorOpenBehavior,
-  ): Promise<void>;
-  previewFileAtCommit(
-    sha: string,
-    filePath: string,
-    handlers: {
-      workspaceFolder: vscode.WorkspaceFolder | undefined;
-      openTextDocument(fileUri: vscode.Uri): Thenable<vscode.TextDocument>;
-      showTextDocument(
-        document: vscode.TextDocument,
-        options: EditorOpenBehavior,
-      ): Thenable<vscode.TextEditor>;
-      logError(message: string, error: unknown): void;
-    },
-    behavior: EditorOpenBehavior,
-  ): Promise<void>;
-  sendCachedTimeline(
-    source: Parameters<typeof sendGraphViewProviderCachedTimeline>[0],
-  ): void;
-  createGitAnalyzer?(
-    context: GraphViewProviderTimelineMethodsSource['_context'],
-    registry: NonNullable<GraphViewProviderTimelineMethodsSource['_analyzer']>['registry'],
-    workspaceRoot: string,
-    mergedExclude: string[],
-  ): NonNullable<GraphViewProviderTimelineMethodsSource['_gitAnalyzer']>;
-  sendPlaybackSpeed(
-    playbackSpeed: number,
-    sendMessage: (message: ExtensionToWebviewMessage) => void,
-  ): void;
-  invalidateTimelineCache(
-    gitAnalyzer: GraphViewProviderTimelineMethodsSource['_gitAnalyzer'],
-    state: {
-      timelineActive: boolean;
-      currentCommitSha: string | undefined;
-    },
-    sendMessage: (message: ExtensionToWebviewMessage) => void,
-  ): Promise<GraphViewProviderTimelineMethodsSource['_gitAnalyzer']>;
-  getPlaybackSpeed(): number;
-  getWorkspaceFolder(): vscode.WorkspaceFolder | undefined;
-  openTextDocument(fileUri: vscode.Uri): Thenable<vscode.TextDocument>;
-  showTextDocument(
-    document: vscode.TextDocument,
-    options: EditorOpenBehavior,
-  ): Thenable<vscode.TextEditor>;
-  logError(message: string, error: unknown): void;
-}
-
-function createDefaultTimelinePreviewBehavior(): EditorOpenBehavior {
-  return {
-    preview: true,
-    preserveFocus: false,
-  };
-}
-
-function createTemporaryNodeOpenBehavior(): EditorOpenBehavior {
-  return {
-    preview: true,
-    preserveFocus: false,
-  };
-}
-
-function createPermanentNodeOpenBehavior(): EditorOpenBehavior {
-  return {
-    preview: false,
-    preserveFocus: false,
-  };
-}
-
-async function ensureGitAnalyzerForCachedTimeline(
-  source: GraphViewProviderTimelineMethodsSource,
-  dependencies: Pick<
-    GraphViewProviderTimelineMethodDependencies,
-    'createGitAnalyzer' | 'getWorkspaceFolder'
-  >,
-): Promise<void> {
-  if (source._gitAnalyzer || !source._analyzer) {
-    return;
-  }
-
-  if (!dependencies.createGitAnalyzer) {
-    return;
-  }
-
-  const workspaceFolder = dependencies.getWorkspaceFolder();
-  if (!workspaceFolder) {
-    return;
-  }
-
-  await (source._installedPluginActivationPromise ?? Promise.resolve());
-
-  if (!source._analyzerInitialized) {
-    if (!source._analyzerInitPromise) {
-      source._analyzerInitPromise = source._analyzer
-        .initialize()
-        .then(() => {
-          source._analyzerInitialized = true;
-        })
-        .finally(() => {
-          source._analyzerInitPromise = undefined;
-        });
-    }
-
-    await source._analyzerInitPromise;
-  }
-
-  const mergedExclude = [
-    ...new Set([
-      ...DEFAULT_EXCLUDE_PATTERNS,
-      ...source._analyzer.getPluginFilterPatterns(),
-      ...source._filterPatterns,
-    ]),
-  ];
-
-  source._gitAnalyzer = dependencies.createGitAnalyzer(
-    source._context,
-    source._analyzer.registry,
-    workspaceFolder.uri.fsPath,
-    mergedExclude,
-  );
-}
+export type {
+  EditorOpenBehavior,
+  GraphViewProviderTimelineMethodDependencies,
+  GraphViewProviderTimelineMethods,
+  GraphViewProviderTimelineMethodsSource,
+} from './types';
 
 function createDefaultDependencies(): GraphViewProviderTimelineMethodDependencies {
   return {
@@ -227,7 +44,7 @@ function createDefaultDependencies(): GraphViewProviderTimelineMethodDependencie
     resetTimeline: resetGraphViewProviderTimeline,
     openNodeInEditor: openGraphViewNodeInEditor,
     previewFileAtCommit: previewGraphViewFileAtCommit,
-    sendCachedTimeline: sendGraphViewProviderCachedTimeline,
+    sendCachedTimeline: sendCachedGraphViewTimeline,
     createGitAnalyzer: (context, registry, workspaceRoot, mergedExclude) =>
       new GitHistoryAnalyzer(context, registry as PluginRegistry, workspaceRoot, mergedExclude),
     sendPlaybackSpeed: sendGraphViewPlaybackSpeed,
@@ -250,7 +67,10 @@ export function createGraphViewProviderTimelineMethods(
   const _previewFileAtCommit = async (
     sha: string,
     filePath: string,
-    behavior: EditorOpenBehavior = createDefaultTimelinePreviewBehavior(),
+    behavior: EditorOpenBehavior = {
+      preview: true,
+      preserveFocus: false,
+    },
   ): Promise<void> => {
     await dependencies.previewFileAtCommit(
       sha,
@@ -309,23 +129,7 @@ export function createGraphViewProviderTimelineMethods(
   };
 
   const _sendCachedTimeline = async (): Promise<void> => {
-    const previousTimelineActive = source._timelineActive;
-    const previousCommitSha = source._currentCommitSha;
-
-    await ensureGitAnalyzerForCachedTimeline(source, dependencies);
-    dependencies.sendCachedTimeline(source);
-
-    const didReplayCachedTimeline =
-      source._timelineActive &&
-      source._currentCommitSha !== undefined &&
-      (!previousTimelineActive || source._currentCommitSha !== previousCommitSha);
-
-    if (didReplayCachedTimeline) {
-      const currentCommitSha = source._currentCommitSha;
-      if (currentCommitSha) {
-        await dependencies.jumpToCommit(source, currentCommitSha);
-      }
-    }
+    await replayGraphViewProviderCachedTimeline(source, dependencies);
   };
 
   const sendPlaybackSpeed = (): void => {
@@ -335,18 +139,7 @@ export function createGraphViewProviderTimelineMethods(
   };
 
   const invalidateTimelineCache = async (): Promise<void> => {
-    const state = {
-      timelineActive: source._timelineActive,
-      currentCommitSha: source._currentCommitSha,
-    };
-    const nextGitAnalyzer = await dependencies.invalidateTimelineCache(
-      source._gitAnalyzer,
-      state,
-      message => source._sendMessage(message),
-    );
-    source._timelineActive = state.timelineActive;
-    source._currentCommitSha = state.currentCommitSha;
-    source._gitAnalyzer = nextGitAnalyzer;
+    await invalidateGraphViewProviderTimelineCache(source, dependencies);
   };
 
   return {

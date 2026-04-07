@@ -1,25 +1,18 @@
 import {
-  useCallback,
-  useEffect,
   useMemo,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
 } from 'react';
 import type { ICommitInfo } from '../../../../shared/timeline/types';
-import { bindTimelineDragListeners } from '../dragListeners';
 import { getResponsiveAxisTickCount } from '../format/dates';
-import {
-  runJumpToCommitAction,
-  runJumpToEndAction,
-  runPlayPauseAction,
-} from '../playbackActions';
-import { jumpToTrackPosition } from '../scrubPosition';
 import { getTimelineViewState } from '../viewState';
-import { postMessage } from '../../../vscodeApi';
 import { useTimelineCleanup } from './cleanup';
 import { useTimelineCommitSync } from './commitSync';
+import { useTimelineNavigation } from './navigation';
 import { useTimelinePlaybackAnimation } from './playbackAnimation';
+import { useTimelineScrub } from './scrub';
+import { useTimelineTrackElement } from './trackElement';
 
 export interface UseTimelineControllerOptions {
   currentCommitSha: string | null;
@@ -55,15 +48,11 @@ export function useTimelineController({
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrubResetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const rafRef = useRef<number | null>(null);
-  const isDraggingRef = useRef(false);
   const userScrubActiveRef = useRef(false);
   const lastFrameTimeRef = useRef(0);
   const lastSentCommitIndexRef = useRef(-1);
-  const pendingPlayFromStartRef = useRef(false);
   const startFromTimeRef = useRef<number | null>(null);
   const playbackSpeedRef = useRef(playbackSpeed);
-  const [trackElement, setTrackElementState] = useState<HTMLDivElement | null>(null);
-  const [trackWidth, setTrackWidth] = useState(0);
   const [playbackTime, setPlaybackTime] = useState<number | null>(null);
 
   playbackSpeedRef.current = playbackSpeed;
@@ -97,72 +86,9 @@ export function useTimelineController({
     userScrubActiveRef,
   });
 
-  useEffect(() => {
-    if (!pendingPlayFromStartRef.current || !currentCommitSha) {
-      return;
-    }
-
-    const targetIndex = timelineCommits.findIndex((commit) => commit.sha === currentCommitSha);
-    if (targetIndex < 0) {
-      return;
-    }
-
-    pendingPlayFromStartRef.current = false;
-    lastSentCommitIndexRef.current = targetIndex;
-    setPlaybackTime(timelineCommits[targetIndex].timestamp);
-    setIsPlaying(true);
-  }, [currentCommitSha, setIsPlaying, timelineCommits]);
-
-  const scrubToClientX = useCallback((clientX: number) => {
-    jumpToTrackPosition({
-      clientX,
-      debounceTimerRef,
-      lastSentCommitIndexRef,
-      scrubResetTimerRef,
-      setPlaybackTime,
-      timelineCommits,
-      trackElement: trackElementRef.current,
-      userScrubActiveRef,
-    });
-  }, [timelineCommits]);
-
-  const handleTrackMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-    if (isPlaying) {
-      setIsPlaying(false);
-    }
-
-    isDraggingRef.current = true;
-    scrubToClientX(event.clientX);
-  }, [isPlaying, scrubToClientX, setIsPlaying]);
-
-  useEffect(() => bindTimelineDragListeners({
-    isDraggingRef,
-    onDrag: scrubToClientX,
-  }), [isDraggingRef, scrubToClientX]);
-
-  useEffect(() => {
-    if (!trackElement) {
-      setTrackWidth(0);
-      return;
-    }
-
-    if (typeof ResizeObserver === 'undefined') {
-      setTrackWidth(trackElement.getBoundingClientRect().width);
-      return;
-    }
-
-    const resizeObserver = new ResizeObserver((entries) => {
-      const entry = entries[0];
-      if (entry) {
-        setTrackWidth(entry.contentRect.width);
-      }
-    });
-
-    resizeObserver.observe(trackElement);
-    setTrackWidth(trackElement.getBoundingClientRect().width);
-
-    return () => resizeObserver.disconnect();
-  }, [trackElement]);
+  const { setTrackElement, trackWidth } = useTimelineTrackElement({
+    trackElementRef,
+  });
 
   const maxDateTicks = useMemo(
     () => getResponsiveAxisTickCount(trackWidth),
@@ -174,88 +100,35 @@ export function useTimelineController({
     [currentCommitSha, maxDateTicks, playbackTime, timelineCommits],
   );
 
-  const handlePlayPause = useCallback(() => {
-    if (!isPlaying && viewState.isAtEnd) {
-      pendingPlayFromStartRef.current = true;
-      postMessage({ type: 'RESET_TIMELINE' });
-      return;
-    }
-
-    runPlayPauseAction({
-      isAtEnd: viewState.isAtEnd,
-      isPlaying,
-      lastSentCommitIndexRef,
-      setIsPlaying,
-      setPlaybackTime,
-      startFromTimeRef,
-      timelineCommits,
-    });
-  }, [isPlaying, setIsPlaying, timelineCommits, viewState.isAtEnd]);
-
-  const handleJumpToEnd = useCallback(() => {
-    runJumpToEndAction({
-      isPlaying,
-      lastSentCommitIndexRef,
-      setIsPlaying,
-      setPlaybackTime,
-      timelineCommits,
-    });
-  }, [isPlaying, setIsPlaying, timelineCommits]);
-
-  const handleJumpToStart = useCallback(() => {
-    pendingPlayFromStartRef.current = false;
-
-    if (isPlaying) {
-      setIsPlaying(false);
-    }
-
-    postMessage({ type: 'RESET_TIMELINE' });
-  }, [isPlaying, setIsPlaying]);
-
-  const handleJumpToPrevious = useCallback(() => {
-    runJumpToCommitAction({
-      isPlaying,
-      lastSentCommitIndexRef,
-      setIsPlaying,
-      setPlaybackTime,
-      targetIndex: viewState.currentIndex - 1,
-      timelineCommits,
-    });
-  }, [isPlaying, setIsPlaying, timelineCommits, viewState.currentIndex]);
-
-  const handleJumpToNext = useCallback(() => {
-    runJumpToCommitAction({
-      isPlaying,
-      lastSentCommitIndexRef,
-      setIsPlaying,
-      setPlaybackTime,
-      targetIndex: viewState.currentIndex + 1,
-      timelineCommits,
-    });
-  }, [isPlaying, setIsPlaying, timelineCommits, viewState.currentIndex]);
-
-  const handleJumpToCommit = useCallback((sha: string) => {
-    const targetIndex = timelineCommits.findIndex((commit) => commit.sha === sha);
-
-    if (targetIndex < 0) {
-      return;
-    }
-
-    runJumpToCommitAction({
-      isPlaying,
-      lastSentCommitIndexRef,
-      setIsPlaying,
-      setPlaybackTime,
-      targetIndex,
-      timelineCommits,
-    });
-  }, [isPlaying, setIsPlaying, timelineCommits]);
-
-  const setTrackElement = useCallback((element: HTMLDivElement | null) => {
-    trackElementRef.current = element;
-    setTrackWidth(element?.getBoundingClientRect().width ?? 0);
-    setTrackElementState(element);
-  }, []);
+  const {
+    handleJumpToCommit,
+    handleJumpToEnd,
+    handleJumpToNext,
+    handleJumpToPrevious,
+    handleJumpToStart,
+    handlePlayPause,
+  } = useTimelineNavigation({
+    currentCommitSha,
+    currentIndex: viewState.currentIndex,
+    isAtEnd: viewState.isAtEnd,
+    isPlaying,
+    lastSentCommitIndexRef,
+    setIsPlaying,
+    setPlaybackTime,
+    startFromTimeRef,
+    timelineCommits,
+  });
+  const { handleTrackMouseDown } = useTimelineScrub({
+    debounceTimerRef,
+    isPlaying,
+    lastSentCommitIndexRef,
+    scrubResetTimerRef,
+    setIsPlaying,
+    setPlaybackTime,
+    timelineCommits,
+    trackElementRef,
+    userScrubActiveRef,
+  });
 
   return {
     currentIndex: viewState.currentIndex,

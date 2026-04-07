@@ -1,0 +1,55 @@
+import { describe, expect, it } from 'vitest';
+import {
+  applyPendingUserGroupsUpdate,
+  createPendingUserGroupsUpdate,
+} from '../../../src/webview/store/optimisticGroupsUser';
+
+describe('webview/store/optimisticGroupsUser', () => {
+  it('creates a defensive pending user-group snapshot', () => {
+    const groups = [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }];
+    const pending = createPendingUserGroupsUpdate(groups, 1000);
+
+    groups[0]!.pattern = '*.ts';
+
+    expect(pending).toEqual({
+      groups: [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+      expiresAt: 3000,
+    });
+  });
+
+  it('keeps a pending user-group list applied when the host payload is stale', () => {
+    const pending = createPendingUserGroupsUpdate(
+      [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+      1000,
+    );
+
+    expect(
+      applyPendingUserGroupsUpdate(
+        [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }],
+        pending,
+        1500,
+      ),
+    ).toEqual({
+      groups: [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+      pendingUserGroups: pending,
+    });
+  });
+
+  it('clears a pending user-group list once the host payload matches it', () => {
+    const pending = createPendingUserGroupsUpdate(
+      [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+      1000,
+    );
+
+    expect(
+      applyPendingUserGroupsUpdate(
+        [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+        pending,
+        1500,
+      ),
+    ).toEqual({
+      groups: [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+      pendingUserGroups: null,
+    });
+  });
+});

@@ -18,7 +18,7 @@ import type { GraphViewProviderPluginResourceMethodsSource } from '../pluginReso
 import type { GraphViewProviderRefreshMethodsSource } from '../refresh';
 import type { GraphViewProviderMethodContainers } from '../wiring/methodContainers';
 import type { GraphViewProviderSettingsStateMethodsSource } from '../settingsState';
-import type { GraphViewProviderTimelineMethodsSource } from '../timeline/methods';
+import type { GraphViewProviderTimelineMethodsSource } from '../timeline/types';
 import type { GraphViewProviderViewContextMethodsSource } from '../view/context';
 import type { GraphViewProviderViewSelectionMethodsSource } from '../view/selection';
 import type { GraphViewProviderWebviewSource } from '../webview/host';
