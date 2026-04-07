@@ -65,7 +65,7 @@ describe('Timeline', () => {
 
   it('shows a disabled "Index Repo" button while the graph is still loading', () => {
     resetStore({
-      graphData: null,
+      graphData: MOCK_GRAPH_DATA,
       isLoading: true,
       timelineActive: false,
       isIndexing: false,
@@ -160,6 +160,18 @@ describe('Timeline', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Commits' }));
     expect(screen.queryByTestId('timeline-commit-list-scroll')).not.toBeInTheDocument();
+  });
+
+  it('disables Start when the first timeline commit is selected', () => {
+    resetStore({
+      timelineActive: true,
+      timelineCommits: MOCK_COMMITS,
+      currentCommitSha: MOCK_COMMITS[0].sha,
+      graphData: MOCK_GRAPH_DATA,
+    });
+    render(<Timeline />);
+
+    expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
   });
 
   it('resets to the first graphable commit when Start is clicked', () => {

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import type { ICommitInfo } from '../../shared/timeline/types';
 import { useGraphStore } from '../store/state';
 import { postMessage } from '../vscodeApi';
@@ -39,10 +39,6 @@ function ReadyTimeline({
     timelineCommits,
   });
   const currentCommit = timelineCommits[controller.currentIndex] ?? timelineCommits[0];
-
-  if (!currentCommit) {
-    return null;
-  }
 
   return (
     <div
@@ -111,9 +107,9 @@ export default function Timeline({ pluginHost }: TimelineProps): React.ReactElem
   const graphData = useGraphStore((state) => state.graphData);
   const setIsPlaying = useGraphStore((state) => state.setIsPlaying);
 
-  const handleIndexRepo = useCallback(() => {
+  const handleIndexRepo = () => {
     postMessage({ type: 'INDEX_REPO' });
-  }, []);
+  };
 
   if (!timelineActive || isIndexing) {
     return (
