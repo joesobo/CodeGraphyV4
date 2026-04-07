@@ -30,4 +30,20 @@ describe('graph/browser', () => {
     expect(getGraphNavigator()).toBeUndefined();
     expect(getGraphWindow()).toBeUndefined();
   });
+
+  it('returns undefined for navigator when the navigator global is missing', async () => {
+    vi.stubGlobal('navigator', undefined);
+
+    const { getGraphNavigator } = await import('../../../src/webview/components/graph/browser');
+
+    expect(getGraphNavigator()).toBeUndefined();
+  });
+
+  it('returns undefined for window when the window global is missing', async () => {
+    vi.stubGlobal('window', undefined);
+
+    const { getGraphWindow } = await import('../../../src/webview/components/graph/browser');
+
+    expect(getGraphWindow()).toBeUndefined();
+  });
 });

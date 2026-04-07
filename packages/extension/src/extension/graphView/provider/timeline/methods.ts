@@ -1,7 +1,7 @@
 import {
-  invalidateGraphViewProviderTimelineCache,
   sendGraphViewProviderCachedTimeline as replayGraphViewProviderCachedTimeline,
 } from './cache';
+import { invalidateGraphViewProviderTimelineCache } from './invalidate';
 import type {
   GraphViewProviderTimelineMethodDependencies,
   GraphViewProviderTimelineMethods,

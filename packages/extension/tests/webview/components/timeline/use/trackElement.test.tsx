@@ -77,4 +77,73 @@ describe('timeline/use/trackElement', () => {
     expect(result.current.trackWidth).toBe(480);
     expect(disconnect).not.toHaveBeenCalled();
   });
+
+  it('measures the track width without ResizeObserver support', () => {
+    vi.stubGlobal('ResizeObserver', undefined);
+
+    const trackElementRef = { current: null } as { current: HTMLDivElement | null };
+    const { result } = renderHook(() => useTimelineTrackElement({ trackElementRef }));
+    const track = createTrack(420);
+
+    act(() => {
+      result.current.setTrackElement(track);
+    });
+
+    expect(result.current.trackWidth).toBe(420);
+  });
+
+  it('clears the measured width when the track element is removed', () => {
+    const trackElementRef = { current: null } as { current: HTMLDivElement | null };
+    const { result } = renderHook(() => useTimelineTrackElement({ trackElementRef }));
+    const track = createTrack(280);
+
+    act(() => {
+      result.current.setTrackElement(track);
+    });
+    expect(result.current.trackWidth).toBe(280);
+
+    act(() => {
+      result.current.setTrackElement(null);
+    });
+
+    expect(trackElementRef.current).toBeNull();
+    expect(result.current.trackElement).toBeNull();
+    expect(result.current.trackWidth).toBe(0);
+  });
+
+  it('disconnects the resize observer when the track element changes or unmounts', () => {
+    let callback: ResizeObserverCallback = () => undefined;
+    const observe = vi.fn();
+    const disconnect = vi.fn();
+
+    class MockResizeObserver {
+      constructor(nextCallback: ResizeObserverCallback) {
+        callback = nextCallback;
+      }
+
+      observe = observe;
+      disconnect = disconnect;
+    }
+
+    vi.stubGlobal('ResizeObserver', MockResizeObserver as never);
+
+    const trackElementRef = { current: null } as { current: HTMLDivElement | null };
+    const { result, unmount } = renderHook(() => useTimelineTrackElement({ trackElementRef }));
+    const track = createTrack(300);
+
+    act(() => {
+      result.current.setTrackElement(track);
+    });
+
+    act(() => {
+      callback([] as ResizeObserverEntry[], {} as ResizeObserver);
+    });
+
+    expect(result.current.trackWidth).toBe(300);
+
+    unmount();
+
+    expect(observe).toHaveBeenCalledWith(track);
+    expect(disconnect).toHaveBeenCalledOnce();
+  });
 });

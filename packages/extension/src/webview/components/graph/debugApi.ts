@@ -1,5 +1,6 @@
 import { useEffect, type MutableRefObject, type RefObject } from 'react';
-import type { GraphDebugControls, GraphDebugSnapshot } from './debug';
+import './debugWindow';
+import type { GraphDebugControls, GraphDebugSnapshot } from './debugTypes';
 
 interface DebugNode {
   id: string;

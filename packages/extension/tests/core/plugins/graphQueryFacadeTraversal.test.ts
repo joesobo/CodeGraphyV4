@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { findPath, getSubgraph } from '../../../src/core/plugins/graphQueryFacadeTraversal';
+import { findNodePath as findPath } from '../../../src/core/plugins/graphQueryFacadePath';
+import { buildSubgraph as getSubgraph } from '../../../src/core/plugins/graphQueryFacadeSubgraph';
 import type { IGraphData } from '../../../src/shared/graph/types';
 
 const sampleGraph: IGraphData = {
