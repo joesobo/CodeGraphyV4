@@ -16,4 +16,11 @@ describe('webview/store/messageHandlers/equality/plainEquality', () => {
       ),
     ).toBe(false);
   });
+
+  it('handles primitives, nulls, and mismatched container shapes', () => {
+    expect(arePlainObjectValuesEqual('alpha', 'alpha')).toBe(true);
+    expect(arePlainObjectValuesEqual(null, null)).toBe(true);
+    expect(arePlainObjectValuesEqual({ value: 1 }, ['value', 1])).toBe(false);
+    expect(arePlainObjectValuesEqual({ value: 1 }, { value: 2 })).toBe(false);
+  });
 });
