@@ -1,7 +1,7 @@
 import type { GraphInteractionHandlersDependencies } from './handlers';
 import { focusNodeById } from './focus';
-import { get2dFitTransform, getFitViewPadding, type GraphView2dControls, type GraphView3dControls } from './fit';
 import { updateAccessCount } from './accessCount';
+import { fitGraphView } from './fitView';
 import { zoom2d } from './zoom';
 
 export interface ViewHandlers {
@@ -14,32 +14,8 @@ export interface ViewHandlers {
 export function createViewHandlers(
   dependencies: GraphInteractionHandlersDependencies,
 ): ViewHandlers {
-  const fitView = (): void => {
-    const padding = getFitViewPadding(dependencies.graphDataRef.current.nodes);
-
-    if (dependencies.graphMode === '2d') {
-      const graph2d = dependencies.fg2dRef.current as GraphView2dControls | undefined;
-      const transform = get2dFitTransform(
-        dependencies.containerRef.current,
-        dependencies.graphDataRef.current.nodes,
-        dependencies.activeViewId,
-      );
-
-      if (transform) {
-        graph2d?.centerAt(transform.centerX, transform.centerY, 300);
-        graph2d?.zoom(transform.zoom, 300);
-        return;
-      }
-
-      graph2d?.zoomToFit(300, padding);
-      return;
-    }
-
-    (dependencies.fg3dRef.current as GraphView3dControls | undefined)?.zoomToFit(300, padding);
-  };
-
   return {
-    fitView,
+    fitView: () => fitGraphView(dependencies),
     focusNodeById: (nodeId: string) => focusNodeById(dependencies, nodeId),
     updateAccessCount: (nodeId: string, accessCount: number) =>
       updateAccessCount(dependencies, nodeId, accessCount),
