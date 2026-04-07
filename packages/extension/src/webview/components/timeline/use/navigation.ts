@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
+import { useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
 import type { ICommitInfo } from '../../../../shared/timeline/types';
 import { postMessage } from '../../../vscodeApi';
 import {
@@ -6,6 +6,7 @@ import {
   runJumpToEndAction,
   runPlayPauseAction,
 } from '../playbackActions';
+import { useTimelinePlayFromStart } from './playFromStart';
 
 export interface UseTimelineNavigationOptions {
   currentCommitSha: string | null;
@@ -40,24 +41,16 @@ export function useTimelineNavigation({
   timelineCommits,
 }: UseTimelineNavigationOptions): UseTimelineNavigationResult {
   const pendingPlayFromStartRef = useRef(false);
+  useTimelinePlayFromStart({
+    currentCommitSha,
+    lastSentCommitIndexRef,
+    pendingPlayFromStartRef,
+    setIsPlaying,
+    setPlaybackTime,
+    timelineCommits,
+  });
 
-  useEffect(() => {
-    if (!pendingPlayFromStartRef.current || !currentCommitSha) {
-      return;
-    }
-
-    const targetIndex = timelineCommits.findIndex((commit) => commit.sha === currentCommitSha);
-    if (targetIndex < 0) {
-      return;
-    }
-
-    pendingPlayFromStartRef.current = false;
-    lastSentCommitIndexRef.current = targetIndex;
-    setPlaybackTime(timelineCommits[targetIndex].timestamp);
-    setIsPlaying(true);
-  }, [currentCommitSha, lastSentCommitIndexRef, setIsPlaying, setPlaybackTime, timelineCommits]);
-
-  const handlePlayPause = useCallback(() => {
+  const handlePlayPause = () => {
     if (!isPlaying && isAtEnd) {
       pendingPlayFromStartRef.current = true;
       postMessage({ type: 'RESET_TIMELINE' });
@@ -73,9 +66,9 @@ export function useTimelineNavigation({
       startFromTimeRef,
       timelineCommits,
     });
-  }, [isAtEnd, isPlaying, lastSentCommitIndexRef, setIsPlaying, setPlaybackTime, startFromTimeRef, timelineCommits]);
+  };
 
-  const handleJumpToEnd = useCallback(() => {
+  const handleJumpToEnd = () => {
     runJumpToEndAction({
       isPlaying,
       lastSentCommitIndexRef,
@@ -83,9 +76,9 @@ export function useTimelineNavigation({
       setPlaybackTime,
       timelineCommits,
     });
-  }, [isPlaying, lastSentCommitIndexRef, setIsPlaying, setPlaybackTime, timelineCommits]);
+  };
 
-  const handleJumpToStart = useCallback(() => {
+  const handleJumpToStart = () => {
     pendingPlayFromStartRef.current = false;
 
     if (isPlaying) {
@@ -93,9 +86,9 @@ export function useTimelineNavigation({
     }
 
     postMessage({ type: 'RESET_TIMELINE' });
-  }, [isPlaying, setIsPlaying]);
+  };
 
-  const handleJumpToPrevious = useCallback(() => {
+  const handleJumpToPrevious = () => {
     runJumpToCommitAction({
       isPlaying,
       lastSentCommitIndexRef,
@@ -104,9 +97,9 @@ export function useTimelineNavigation({
       targetIndex: currentIndex - 1,
       timelineCommits,
     });
-  }, [currentIndex, isPlaying, lastSentCommitIndexRef, setIsPlaying, setPlaybackTime, timelineCommits]);
+  };
 
-  const handleJumpToNext = useCallback(() => {
+  const handleJumpToNext = () => {
     runJumpToCommitAction({
       isPlaying,
       lastSentCommitIndexRef,
@@ -115,9 +108,9 @@ export function useTimelineNavigation({
       targetIndex: currentIndex + 1,
       timelineCommits,
     });
-  }, [currentIndex, isPlaying, lastSentCommitIndexRef, setIsPlaying, setPlaybackTime, timelineCommits]);
+  };
 
-  const handleJumpToCommit = useCallback((sha: string) => {
+  const handleJumpToCommit = (sha: string) => {
     const targetIndex = timelineCommits.findIndex((commit) => commit.sha === sha);
 
     if (targetIndex < 0) {
@@ -132,7 +125,7 @@ export function useTimelineNavigation({
       targetIndex,
       timelineCommits,
     });
-  }, [isPlaying, lastSentCommitIndexRef, setIsPlaying, setPlaybackTime, timelineCommits]);
+  };
 
   return {
     handleJumpToCommit,
