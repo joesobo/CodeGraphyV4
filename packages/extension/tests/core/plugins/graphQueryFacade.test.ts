@@ -10,6 +10,21 @@ import {
   getSubgraph,
   getEdgesFor,
 } from '../../../src/core/plugins/graphQueryFacade';
+import {
+  filterEdgesByKind as filterEdgesByKindDirect,
+  getEdgesFor as getEdgesForDirect,
+  getIncomingEdges as getIncomingEdgesDirect,
+  getOutgoingEdges as getOutgoingEdgesDirect,
+} from '../../../src/core/plugins/graphQueryFacadeEdges';
+import {
+  getGraph as getGraphDirect,
+  getNeighbors as getNeighborsDirect,
+  getNode as getNodeDirect,
+} from '../../../src/core/plugins/graphQueryFacadeNodes';
+import {
+  findPath as findPathDirect,
+  getSubgraph as getSubgraphDirect,
+} from '../../../src/core/plugins/graphQueryFacadeTraversal';
 import type { IGraphData } from '../../../src/shared/graph/types';
 
 const sampleGraph: IGraphData = {
@@ -25,6 +40,18 @@ const sampleGraph: IGraphData = {
 };
 
 describe('graphQueryFacade', () => {
+  it('re-exports the underlying facade helpers', () => {
+    expect(getGraph).toBe(getGraphDirect);
+    expect(getNode).toBe(getNodeDirect);
+    expect(getNeighbors).toBe(getNeighborsDirect);
+    expect(getEdgesFor).toBe(getEdgesForDirect);
+    expect(getIncomingEdges).toBe(getIncomingEdgesDirect);
+    expect(getOutgoingEdges).toBe(getOutgoingEdgesDirect);
+    expect(filterEdgesByKind).toBe(filterEdgesByKindDirect);
+    expect(getSubgraph).toBe(getSubgraphDirect);
+    expect(findPath).toBe(findPathDirect);
+  });
+
   describe('getGraph', () => {
     it('returns the graph from the getter', () => {
       const getter = vi.fn().mockReturnValue(sampleGraph);
