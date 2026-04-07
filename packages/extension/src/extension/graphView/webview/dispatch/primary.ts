@@ -5,20 +5,8 @@ import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
-import { applyCommandMessage } from '../messages/commands';
-import { applyExportMessage } from '../messages/exports';
-import { applyGroupMessage } from '../messages/groups';
-import { applyNodeFileMessage } from '../nodeFile/router';
-import { applyPhysicsMessage } from '../messages/physics';
-import { applySurfaceMessage } from '../messages/surface';
-import { applySettingsMessage } from '../settingsMessages/router';
-import { applyTimelineMessage } from '../messages/timeline';
-import {
-  createGraphViewPrimaryGroupMessageState,
-  createGraphViewPrimaryNodeFileHandlers,
-  createGraphViewPrimarySettingsMessageState,
-} from './primaryState';
-import { createGraphViewPrimaryExportHandlers } from './exportHandlers';
+import { dispatchGraphViewPrimaryRouteMessage } from './routed';
+import { dispatchGraphViewPrimaryStateMessage } from './stateful';
 
 export interface GraphViewPrimaryMessageContext {
   getTimelineActive(): boolean;
@@ -89,45 +77,10 @@ export async function dispatchGraphViewPrimaryMessage(
   message: WebviewToExtensionMessage,
   context: GraphViewPrimaryMessageContext,
 ): Promise<GraphViewPrimaryMessageResult> {
-  if (await applyNodeFileMessage(message, createGraphViewPrimaryNodeFileHandlers(context))) {
-    return { handled: true };
+  const routedResult = await dispatchGraphViewPrimaryRouteMessage(message, context);
+  if (routedResult.handled) {
+    return routedResult;
   }
 
-  if (await applyExportMessage(message, createGraphViewPrimaryExportHandlers())) {
-    return { handled: true };
-  }
-
-  if (await applyCommandMessage(message, context)) {
-    return { handled: true };
-  }
-
-  if (await applyTimelineMessage(message, context)) {
-    return { handled: true };
-  }
-
-  if (await applyPhysicsMessage(message, context)) {
-    return { handled: true };
-  }
-
-  if (await applySurfaceMessage(message)) {
-    return { handled: true };
-  }
-
-  const groupState = createGraphViewPrimaryGroupMessageState(context);
-  if (await applyGroupMessage(message, groupState, context)) {
-    return {
-      handled: true,
-      userGroups: groupState.userGroups,
-    };
-  }
-
-  const settingsState = createGraphViewPrimarySettingsMessageState(context);
-  if (await applySettingsMessage(message, settingsState, context)) {
-    return {
-      handled: true,
-      filterPatterns: settingsState.filterPatterns,
-    };
-  }
-
-  return { handled: false };
+  return dispatchGraphViewPrimaryStateMessage(message, context);
 }
