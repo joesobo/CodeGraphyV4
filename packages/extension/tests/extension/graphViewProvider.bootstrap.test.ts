@@ -195,6 +195,7 @@ describe('GraphViewProvider bootstrap wiring', () => {
       ),
     ).toEqual([]);
     expect((provider as unknown as { _filterPatterns: unknown[] })._filterPatterns).toEqual([]);
+    expect(GraphViewProvider.timelineViewType).toBe('codegraphy.timelineView');
 
     expect(initArgs.workspaceRoot).toBe('/test/workspace');
     expect(initArgs.getGraphData()).toEqual({ nodes: [], edges: [] });
