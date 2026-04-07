@@ -20,9 +20,6 @@ function areGroupListsEqual(left: IGroup[], right: IGroup[]): boolean {
 
   return left.every((group, index) => {
     const candidate = right[index];
-    if (!candidate) {
-      return false;
-    }
 
     const leftKeys = Object.keys(group) as Array<keyof IGroup>;
     const rightKeys = Object.keys(candidate) as Array<keyof IGroup>;
