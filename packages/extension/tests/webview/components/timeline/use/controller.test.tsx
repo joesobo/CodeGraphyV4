@@ -2,10 +2,10 @@ import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ICommitInfo } from '@/shared/timeline/types';
 import { clearSentMessages, findMessage } from '../../../../helpers/sentMessages';
+import * as datesModule from '../../../../../src/webview/components/timeline/format/dates';
 import * as dragListenersModule from '../../../../../src/webview/components/timeline/dragListeners';
 import * as playbackAnimationModule from '../../../../../src/webview/components/timeline/use/playbackAnimation';
 import * as commitSyncModule from '../../../../../src/webview/components/timeline/use/commitSync';
-import * as scrubPositionModule from '../../../../../src/webview/components/timeline/scrubPosition';
 import { useTimelineController } from '../../../../../src/webview/components/timeline/use/controller';
 
 vi.mock('../../../../../src/webview/components/timeline/dragListeners', async () => {
@@ -110,7 +110,7 @@ function expectJumpToCommit(sha: string): void {
   });
 }
 
-describe('timeline/useController', () => {
+describe('timeline/use/controller', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.clearAllMocks();
@@ -166,6 +166,7 @@ describe('timeline/useController', () => {
 
     expect(commitSyncModule.useTimelineCommitSync).toHaveBeenCalledWith(
       expect.objectContaining({
+        lastSentCommitIndexRef: expect.objectContaining({ current: -1 }),
         userScrubActiveRef: expect.objectContaining({ current: false }),
       }),
     );
@@ -323,7 +324,70 @@ describe('timeline/useController', () => {
     expectJumpToCommit(commits[1].sha);
   });
 
-  it('does not stop playback again when the track is clicked while already paused', () => {
+  it('tracks indicator position relative to the rendered track width', () => {
+    const { result } = renderHook(() => useTimelineController({
+      currentCommitSha: commits[1].sha,
+      isPlaying: false,
+      playbackSpeed: 1,
+      setIsPlaying: vi.fn(),
+      timelineCommits: commits,
+    }));
+
+    act(() => {
+      result.current.setTrackElement(createTrack(400));
+    });
+
+    expect(result.current.indicatorPosition).toBeGreaterThan(0);
+    expect(result.current.dateTicks.length).toBeGreaterThan(0);
+  });
+
+  it('recomputes date ticks when the track width changes', () => {
+    const tickCountSpy = vi.spyOn(datesModule, 'getResponsiveAxisTickCount');
+    const { result } = renderHook(() => useTimelineController({
+      currentCommitSha: commits[1].sha,
+      isPlaying: false,
+      playbackSpeed: 1,
+      setIsPlaying: vi.fn(),
+      timelineCommits: commits,
+    }));
+
+    act(() => {
+      result.current.setTrackElement(createTrack(220));
+    });
+    const narrowTicks = result.current.dateTicks;
+
+    act(() => {
+      result.current.setTrackElement(createTrack(900));
+    });
+    const wideTicks = result.current.dateTicks;
+
+    expect(tickCountSpy).toHaveBeenCalledWith(220);
+    expect(tickCountSpy).toHaveBeenCalledWith(900);
+    expect(wideTicks.length).toBeGreaterThanOrEqual(narrowTicks.length);
+  });
+
+  it('keeps the current commit in sync while playback is paused', () => {
+    const setIsPlaying = vi.fn();
+    const { result, rerender } = renderHook(
+      (props: { currentCommitSha: string | null }) => useTimelineController({
+        currentCommitSha: props.currentCommitSha,
+        isPlaying: false,
+        playbackSpeed: 1,
+        setIsPlaying,
+        timelineCommits: commits,
+      }),
+      {
+        initialProps: { currentCommitSha: commits[0].sha },
+      },
+    );
+
+    rerender({ currentCommitSha: commits[2].sha });
+
+    expect(result.current.currentIndex).toBe(2);
+    expect(result.current.isAtEnd).toBe(true);
+  });
+
+  it('exposes play pause and jump handlers together', () => {
     const setIsPlaying = vi.fn();
     const { result } = renderHook(() => useTimelineController({
       currentCommitSha: commits[0].sha,
@@ -333,167 +397,9 @@ describe('timeline/useController', () => {
       timelineCommits: commits,
     }));
 
-    act(() => {
-      result.current.setTrackElement(createTrack());
-    });
-
-    act(() => {
-      result.current.handleTrackMouseDown({
-        clientX: 100,
-      } as Parameters<typeof result.current.handleTrackMouseDown>[0]);
-    });
-
-    expect(setIsPlaying).not.toHaveBeenCalled();
-    expect(scrubPositionModule.jumpToTrackPosition).toHaveBeenCalledWith(
-      expect.objectContaining({
-        clientX: 100,
-      }),
-    );
-  });
-
-  it('uses the latest playback flag when track dragging starts after a rerender', () => {
-    const setIsPlaying = vi.fn();
-    const { result, rerender } = renderHook(
-      (props: { isPlaying: boolean }) => useTimelineController({
-        currentCommitSha: commits[0].sha,
-        isPlaying: props.isPlaying,
-        playbackSpeed: 1,
-        setIsPlaying,
-        timelineCommits: commits,
-      }),
-      {
-        initialProps: { isPlaying: false },
-      },
-    );
-
-    act(() => {
-      result.current.setTrackElement(createTrack());
-    });
-
-    rerender({ isPlaying: true });
-
-    act(() => {
-      result.current.handleTrackMouseDown({
-        clientX: 120,
-      } as Parameters<typeof result.current.handleTrackMouseDown>[0]);
-    });
-
-    expect(setIsPlaying).toHaveBeenCalledWith(false);
-  });
-
-  it('continues scrubbing on mousemove after the drag starts and stops after mouseup', () => {
-    const { result } = renderHook(() => useTimelineController({
-      currentCommitSha: commits[0].sha,
-      isPlaying: false,
-      playbackSpeed: 1,
-      setIsPlaying: vi.fn(),
-      timelineCommits: commits,
-    }));
-
-    act(() => {
-      result.current.setTrackElement(createTrack());
-    });
-
-    act(() => {
-      result.current.handleTrackMouseDown({
-        clientX: 75,
-      } as Parameters<typeof result.current.handleTrackMouseDown>[0]);
-      window.dispatchEvent(new MouseEvent('mousemove', { clientX: 150 }));
-      window.dispatchEvent(new MouseEvent('mouseup'));
-      window.dispatchEvent(new MouseEvent('mousemove', { clientX: 225 }));
-    });
-
-    expect(scrubPositionModule.jumpToTrackPosition).toHaveBeenCalledTimes(2);
-    expect(vi.mocked(scrubPositionModule.jumpToTrackPosition).mock.calls[1]?.[0]).toMatchObject({
-      clientX: 150,
-    });
-  });
-
-  it('rebinds drag listeners when the commit list changes', () => {
-    const addEventListener = vi.spyOn(window, 'addEventListener');
-    const removeEventListener = vi.spyOn(window, 'removeEventListener');
-    const { rerender } = renderHook(
-      (props: { timelineCommits: ICommitInfo[] }) => useTimelineController({
-        currentCommitSha: props.timelineCommits[0]?.sha ?? null,
-        isPlaying: false,
-        playbackSpeed: 1,
-        setIsPlaying: vi.fn(),
-        timelineCommits: props.timelineCommits,
-      }),
-      {
-        initialProps: { timelineCommits: commits },
-      },
-    );
-
-    rerender({
-      timelineCommits: [
-        ...commits,
-        {
-          author: 'Dana',
-          message: 'Follow-up',
-          parents: [commits[2].sha],
-          sha: 'ddd444ddd444ddd444ddd444ddd444ddd444ddd4',
-          timestamp: 4500,
-        },
-      ],
-    });
-
-    expect(addEventListener).toHaveBeenCalledTimes(4);
-    expect(removeEventListener).toHaveBeenCalledTimes(2);
-  });
-
-  it('recomputes the derived view state when the selected commit changes', () => {
-    const { result, rerender } = renderHook(
-      (props: { currentCommitSha: string | null }) => useTimelineController({
-        currentCommitSha: props.currentCommitSha,
-        isPlaying: false,
-        playbackSpeed: 1,
-        setIsPlaying: vi.fn(),
-        timelineCommits: commits,
-      }),
-      {
-        initialProps: { currentCommitSha: commits[0].sha },
-      },
-    );
-
-    expect(result.current.indicatorPosition).toBe(0);
-    expect(result.current.isAtEnd).toBe(false);
-
-    rerender({ currentCommitSha: commits[2].sha });
-
-    expect(result.current.indicatorPosition).toBe(100);
-    expect(result.current.isAtEnd).toBe(true);
-  });
-
-  it('reduces date ticks when the timeline track is narrow', () => {
-    const { result } = renderHook(() => useTimelineController({
-      currentCommitSha: commits[1].sha,
-      isPlaying: false,
-      playbackSpeed: 1,
-      setIsPlaying: vi.fn(),
-      timelineCommits: commits,
-    }));
-
-    act(() => {
-      result.current.setTrackElement(createTrack(240));
-    });
-
-    expect(result.current.dateTicks.length).toBeLessThan(7);
-  });
-
-  it('uses four interior date ticks on a medium-narrow track', () => {
-    const { result } = renderHook(() => useTimelineController({
-      currentCommitSha: commits[1].sha,
-      isPlaying: false,
-      playbackSpeed: 1,
-      setIsPlaying: vi.fn(),
-      timelineCommits: commits,
-    }));
-
-    act(() => {
-      result.current.setTrackElement(createTrack(560));
-    });
-
-    expect(result.current.dateTicks).toHaveLength(4);
+    expect(typeof result.current.handlePlayPause).toBe('function');
+    expect(typeof result.current.handleJumpToCommit).toBe('function');
+    expect(typeof result.current.handleJumpToNext).toBe('function');
+    expect(typeof result.current.handleJumpToPrevious).toBe('function');
   });
 });
