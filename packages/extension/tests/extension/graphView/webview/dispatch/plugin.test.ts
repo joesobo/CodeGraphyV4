@@ -150,6 +150,76 @@ describe('graph view plugin message dispatch', () => {
     expect(context.logError).not.toHaveBeenCalled();
   });
 
+  it('treats missing plugin exporters as a no-op', async () => {
+    const context = createContext({
+      getExporterPluginApi: undefined,
+    });
+
+    await expect(
+      dispatchGraphViewPluginMessage(
+        {
+          type: 'RUN_PLUGIN_EXPORT',
+          payload: {
+            pluginId: 'plugin.test',
+            index: 0,
+          },
+        },
+        context,
+      ),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.logError).not.toHaveBeenCalled();
+  });
+
+  it('runs plugin toolbar actions through the extension-side plugin api', async () => {
+    const run = vi.fn(() => Promise.resolve());
+    const context = createContext({
+      getToolbarActionPluginApi: vi.fn(() => ({
+        toolbarActions: [{ items: [{ run }] }],
+      })),
+    });
+
+    await expect(
+      dispatchGraphViewPluginMessage(
+        {
+          type: 'RUN_PLUGIN_TOOLBAR_ACTION',
+          payload: {
+            pluginId: 'plugin.test',
+            index: 0,
+            itemIndex: 0,
+          },
+        },
+        context,
+      ),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.getToolbarActionPluginApi).toHaveBeenCalledWith('plugin.test');
+    expect(run).toHaveBeenCalledOnce();
+    expect(context.logError).not.toHaveBeenCalled();
+  });
+
+  it('treats missing plugin toolbar actions as a no-op', async () => {
+    const context = createContext({
+      getToolbarActionPluginApi: undefined,
+    });
+
+    await expect(
+      dispatchGraphViewPluginMessage(
+        {
+          type: 'RUN_PLUGIN_TOOLBAR_ACTION',
+          payload: {
+            pluginId: 'plugin.test',
+            index: 0,
+            itemIndex: 0,
+          },
+        },
+        context,
+      ),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.logError).not.toHaveBeenCalled();
+  });
+
   it('updates hidden plugin groups for direct group toggles', async () => {
     const hiddenPluginGroupIds = new Set<string>();
     const context = createContext({
@@ -170,6 +240,36 @@ describe('graph view plugin message dispatch', () => {
     expect(context.updateHiddenPluginGroups).toHaveBeenCalledWith(['plugin:test:*.ts']);
     expect(context.recomputeGroups).toHaveBeenCalledOnce();
     expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
+  });
+
+  it('runs plugin context menu edge actions against resolved graph edges', async () => {
+    const action = vi.fn(() => Promise.resolve());
+    const context = createContext({
+      getContextMenuPluginApi: vi.fn(() => ({
+        contextMenuItems: [{ action }],
+      })),
+      findEdge: vi.fn(() => ({ id: 'src/index.ts->src/lib.ts', label: 'Edge' })),
+    });
+
+    await expect(
+      dispatchGraphViewPluginMessage(
+        {
+          type: 'PLUGIN_CONTEXT_MENU_ACTION',
+          payload: {
+            pluginId: 'plugin.test',
+            index: 0,
+            targetId: 'src/index.ts->src/lib.ts',
+            targetType: 'edge',
+          },
+        },
+        context,
+      ),
+    ).resolves.toEqual({ handled: true });
+
+    expect(context.getContextMenuPluginApi).toHaveBeenCalledWith('plugin.test');
+    expect(context.findEdge).toHaveBeenCalledWith('src/index.ts->src/lib.ts');
+    expect(action).toHaveBeenCalledWith({ id: 'src/index.ts->src/lib.ts', label: 'Edge' });
+    expect(context.logError).not.toHaveBeenCalled();
   });
 
   it('updates hidden plugin groups for section toggles', async () => {

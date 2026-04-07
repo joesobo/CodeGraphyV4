@@ -72,6 +72,16 @@ export async function dispatchGraphViewPluginMessage(
   message: WebviewToExtensionMessage,
   context: GraphViewPluginMessageContext,
 ): Promise<GraphViewPluginMessageResult> {
+  const getExporterPluginApi = (pluginId: string) => context.getExporterPluginApi?.(pluginId);
+  const getToolbarActionPluginApi = (pluginId: string) =>
+    context.getToolbarActionPluginApi?.(pluginId);
+  const getContextMenuPluginApi = (pluginId: string) => context.getContextMenuPluginApi(pluginId);
+  const findNode = (targetId: string) => context.findNode(targetId);
+  const findEdge = (targetId: string) => context.findEdge(targetId);
+  const logError = (messageText: string, error: unknown) => context.logError(messageText, error);
+  const updateHiddenPluginGroups = (groupIds: string[]) => context.updateHiddenPluginGroups(groupIds);
+  const recomputeGroups = () => context.recomputeGroups();
+
   switch (message.type) {
     case 'WEBVIEW_READY':
       return {
@@ -88,33 +98,41 @@ export async function dispatchGraphViewPluginMessage(
 
     case 'PLUGIN_CONTEXT_MENU_ACTION':
       await applyPluginContextMenuAction(message.payload, {
-        getPluginApi: pluginId => context.getContextMenuPluginApi(pluginId),
-        findNode: targetId => context.findNode(targetId),
-        findEdge: targetId => context.findEdge(targetId),
-        logError: (label, error) => context.logError(label, error),
+        getPluginApi: getContextMenuPluginApi,
+        findNode,
+        findEdge,
+        logError,
       });
       return { handled: true };
 
     case 'RUN_PLUGIN_EXPORT':
       await applyPluginExporterAction(message.payload, {
-        getPluginApi: pluginId => context.getExporterPluginApi?.(pluginId),
-        logError: (label, error) => context.logError(label, error),
+        getPluginApi: getExporterPluginApi,
+        logError,
       });
       return { handled: true };
 
     case 'RUN_PLUGIN_TOOLBAR_ACTION':
       await applyPluginToolbarAction(message.payload, {
-        getPluginApi: pluginId => context.getToolbarActionPluginApi?.(pluginId),
-        logError: (label, error) => context.logError(label, error),
+        getPluginApi: getToolbarActionPluginApi,
+        logError,
       });
       return { handled: true };
 
     case 'TOGGLE_PLUGIN_GROUP_DISABLED':
-      await dispatchGraphViewPluginGroupToggleMessage(message, context);
+      await dispatchGraphViewPluginGroupToggleMessage(message, {
+        ...context,
+        updateHiddenPluginGroups,
+        recomputeGroups,
+      });
       return { handled: true };
 
     case 'TOGGLE_PLUGIN_SECTION_DISABLED':
-      await dispatchGraphViewPluginSectionToggleMessage(message, context);
+      await dispatchGraphViewPluginSectionToggleMessage(message, {
+        ...context,
+        updateHiddenPluginGroups,
+        recomputeGroups,
+      });
       return { handled: true };
 
     default:
