@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GDScriptPathResolver } from '../src/PathResolver';
-import { detect as detectPreload } from '../src/sources/preload';
+import rule, { detect as detectPreload } from '../src/sources/preload';
 import type { GDScriptRuleContext } from '../src/parser';
 
 describe('preload rule', () => {
@@ -140,5 +140,10 @@ describe('preload rule', () => {
   it('should handle file with only comments', () => {
     const content = '# This is a comment\n# Another comment';
     expect(detectPreload(content, testFile, ctx)).toHaveLength(0);
+  });
+
+  it('exports the expected rule descriptor', () => {
+    expect(rule.id).toBe('preload');
+    expect(rule.detect).toBe(detectPreload);
   });
 });

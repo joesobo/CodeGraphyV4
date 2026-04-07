@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GDScriptPathResolver } from '../src/PathResolver';
-import { detect as detectLoad } from '../src/sources/load';
+import rule, { detect as detectLoad } from '../src/sources/load';
 import type { GDScriptRuleContext } from '../src/parser';
 
 describe('load rule', () => {
@@ -113,5 +113,10 @@ describe('load rule', () => {
   it('should handle file with only comments', () => {
     const content = '# This is a comment\n# Another comment';
     expect(detectLoad(content, testFile, ctx)).toHaveLength(0);
+  });
+
+  it('exports the expected rule descriptor', () => {
+    expect(rule.id).toBe('load');
+    expect(rule.detect).toBe(detectLoad);
   });
 });

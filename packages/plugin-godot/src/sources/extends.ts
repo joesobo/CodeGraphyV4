@@ -37,5 +37,10 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
   return connections;
 }
 
-const rule: IConnectionDetector<GDScriptRuleContext> = { id: 'extends', detect };
+class ExtendsRule implements IConnectionDetector<GDScriptRuleContext> {
+	readonly id = 'extends';
+	readonly detect = detect;
+}
+
+const rule = new ExtendsRule();
 export default rule;

@@ -7,6 +7,10 @@
 import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { CSharpRuleContext } from '../parserTypes';
 
+function getSourceId(): string {
+  return 'using-directive';
+}
+
 /** Detects using directive connections: using System; using static X; global using X; */
 export function detect(_content: string, filePath: string, ctx: CSharpRuleContext): IConnection[] {
   const connections: IConnection[] = [];
@@ -26,7 +30,7 @@ export function detect(_content: string, filePath: string, ctx: CSharpRuleContex
         specifier,
         resolvedPath,
         type: 'static',
-        sourceId: 'using-directive',
+        sourceId: getSourceId(),
       });
     }
   }
@@ -34,5 +38,13 @@ export function detect(_content: string, filePath: string, ctx: CSharpRuleContex
   return connections;
 }
 
-const rule: IConnectionDetector<CSharpRuleContext> = { id: 'using-directive', detect };
+class UsingDirectiveRule implements IConnectionDetector<CSharpRuleContext> {
+  get id(): string {
+    return getSourceId();
+  }
+
+  readonly detect = detect;
+}
+
+const rule = new UsingDirectiveRule();
 export default rule;

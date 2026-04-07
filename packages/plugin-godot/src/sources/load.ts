@@ -39,5 +39,10 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
   return connections;
 }
 
-const rule: IConnectionDetector<GDScriptRuleContext> = { id: 'load', detect };
+class LoadRule implements IConnectionDetector<GDScriptRuleContext> {
+	readonly id = 'load';
+	readonly detect = detect;
+}
+
+const rule = new LoadRule();
 export default rule;

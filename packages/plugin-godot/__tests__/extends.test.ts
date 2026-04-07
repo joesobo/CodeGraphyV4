@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { GDScriptPathResolver } from '../src/PathResolver';
-import { detect as detectExtends } from '../src/sources/extends';
+import rule, { detect as detectExtends } from '../src/sources/extends';
 import type { GDScriptRuleContext } from '../src/parser';
 
 describe('extends rule', () => {
@@ -111,5 +111,10 @@ describe('extends rule', () => {
   it('should handle file with only comments', () => {
     const content = '# This is a comment\n# Another comment';
     expect(detectExtends(content, testFile, ctx)).toHaveLength(0);
+  });
+
+  it('exports the expected rule descriptor', () => {
+    expect(rule.id).toBe('extends');
+    expect(rule.detect).toBe(detectExtends);
   });
 });

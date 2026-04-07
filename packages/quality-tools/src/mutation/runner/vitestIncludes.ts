@@ -12,6 +12,10 @@ function unique(values: string[]): string[] {
   return [...new Set(values)];
 }
 
+function toCamelCase(value: string): string {
+  return value.replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
+}
+
 function packageIncludes(packageName: string): string[] {
   return unique(
     baseTestRoots(packageName).flatMap((root) => [
@@ -45,6 +49,7 @@ function fileIncludes(packageName: string, relativeSourceFile: string): string[]
     .split('/')
     .join('.');
   const includeBroadFallback = !BROAD_FALLBACK_DISABLED_BASENAMES.has(name);
+  const camelName = toCamelCase(name);
 
   return unique(
     baseTestRoots(packageName).flatMap((root) => {
@@ -61,6 +66,8 @@ function fileIncludes(packageName: string, relativeSourceFile: string): string[]
         `${root}/${dottedRelativePath}.test.tsx`,
         `${root}/${dottedRelativePath}.mutations.test.ts`,
         `${root}/${dottedRelativePath}.mutations.test.tsx`,
+        `${root}/${relativeTestDirectory}${camelName}Rule.test.ts`,
+        `${root}/${relativeTestDirectory}${camelName}Rule.test.tsx`,
         ...sharedDetectorTestIncludes(root, directory),
       ];
 
@@ -80,6 +87,8 @@ function fileIncludes(packageName: string, relativeSourceFile: string): string[]
         `${root}/**/${dottedRelativePath}.test.tsx`,
         `${root}/**/${dottedRelativePath}.mutations.test.ts`,
         `${root}/**/${dottedRelativePath}.mutations.test.tsx`,
+        `${root}/**/${camelName}Rule.test.ts`,
+        `${root}/**/${camelName}Rule.test.tsx`,
         ...sharedDetectorTestIncludes(root, directory, true),
         `${root}/**/${name}/**/*.test.ts`,
         `${root}/**/${name}/**/*.test.tsx`,

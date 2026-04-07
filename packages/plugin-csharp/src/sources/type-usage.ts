@@ -7,6 +7,10 @@
 import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
 import type { CSharpRuleContext } from '../parserTypes';
 
+function getSourceId(): string {
+  return 'type-usage';
+}
+
 /** Detects intra-namespace type usage: same namespace, no using needed */
 export function detect(_content: string, filePath: string, ctx: CSharpRuleContext): IConnection[] {
   const connections: IConnection[] = [];
@@ -19,7 +23,7 @@ export function detect(_content: string, filePath: string, ctx: CSharpRuleContex
         specifier: `[same namespace: ${ns.name}]`,
         resolvedPath,
         type: 'static',
-        sourceId: 'type-usage',
+        sourceId: getSourceId(),
       });
     }
   }
@@ -27,5 +31,13 @@ export function detect(_content: string, filePath: string, ctx: CSharpRuleContex
   return connections;
 }
 
-const rule: IConnectionDetector<CSharpRuleContext> = { id: 'type-usage', detect };
+class TypeUsageRule implements IConnectionDetector<CSharpRuleContext> {
+  get id(): string {
+    return getSourceId();
+  }
+
+  readonly detect = detect;
+}
+
+const rule = new TypeUsageRule();
 export default rule;

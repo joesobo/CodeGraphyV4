@@ -72,6 +72,22 @@ describe('resolveScopedVitestIncludes', () => {
     expect(includes).toContain('packages/plugin-python/__tests__/**/*Detectors.test.ts');
   });
 
+  it('includes camel-cased rule tests for hyphenated source rule files', () => {
+    const includes = resolveScopedVitestIncludes(
+      target({
+        absolutePath: '/repo/packages/plugin-csharp/src/sources/type-usage.ts',
+        kind: 'file',
+        packageName: 'plugin-csharp',
+        packageRelativePath: 'src/sources/type-usage.ts',
+        packageRoot: '/repo/packages/plugin-csharp',
+        relativePath: 'packages/plugin-csharp/src/sources/type-usage.ts',
+      }),
+    );
+
+    expect(includes).toContain('packages/plugin-csharp/__tests__/sources/typeUsageRule.test.ts');
+    expect(includes).toContain('packages/plugin-csharp/__tests__/**/typeUsageRule.test.ts');
+  });
+
   it('skips broad basename fallback patterns for generic file names', () => {
     const includes = resolveScopedVitestIncludes(
       target({

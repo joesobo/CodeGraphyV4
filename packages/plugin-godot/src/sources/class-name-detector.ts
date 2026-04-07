@@ -13,7 +13,7 @@ import { matchStaticAccess, matchIsAs, matchGenerics } from './class-name-expres
  * Only identifiers starting with uppercase are considered, matching GDScript convention.
  * Deduplicates multiple references to the same class on the same line.
  */
-export function detectUsagesInLine(line: string, lineNumber: number): IGDScriptReference[] {
+export function detectUsagesInLine(line: string, lineNumber = 0): IGDScriptReference[] {
 	const references: IGDScriptReference[] = [];
 	const seen = new Set<string>();
 
