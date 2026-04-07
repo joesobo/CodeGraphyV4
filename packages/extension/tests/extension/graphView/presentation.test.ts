@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { ViewRegistry } from '../../../src/core/views/registry';
 import type { IViewContext } from '../../../src/core/views/contracts';
+import type { IViewInfo } from '../../../src/core/views/contracts';
 import type { IGraphData } from '../../../src/shared/graph/types';
 import {
   applyGraphViewTransform,
@@ -120,6 +121,37 @@ describe('graphViewPresentation', () => {
       get: vi.fn(() => undefined),
       isViewAvailable: vi.fn(() => false),
       getDefaultViewId: vi.fn(() => 'missing.view'),
+    };
+
+    const result = applyGraphViewTransform(
+      registry,
+      'missing.view',
+      viewContext,
+      rawGraphData
+    );
+
+    expect(result).toEqual({
+      activeViewId: 'missing.view',
+      graphData: rawGraphData,
+    });
+  });
+
+  it('returns raw graph data when the default view id is falsy', () => {
+    const fallbackView: IViewInfo = {
+      core: false,
+      order: 0,
+      view: {
+        id: '',
+        name: 'Fallback',
+        icon: 'symbol-file',
+        description: 'Fallback view',
+        transform: () => ({ nodes: [{ id: 'fallback', label: 'fallback', color: '#000000' }], edges: [] }),
+      },
+    };
+    const registry = {
+      get: vi.fn((viewId: string) => (viewId === '' ? fallbackView : undefined)),
+      isViewAvailable: vi.fn(() => false),
+      getDefaultViewId: vi.fn(() => ''),
     };
 
     const result = applyGraphViewTransform(

@@ -3,6 +3,7 @@ import type { IGraphData } from '../../shared/graph/types';
 import type { IAvailableView } from '../../shared/view/types';
 import type { IViewContext, IViewInfo } from '../../core/views/contracts';
 import type { ViewRegistry } from '../../core/views/registry';
+import { filterDanglingDiffGraphEdges } from '../gitHistory/diff/snapshot';
 
 interface IWorkspaceFolderLike {
   uri: vscode.Uri;
@@ -29,12 +30,11 @@ function filterSyntheticPackageNodes(
       .filter((node) => node.nodeType !== 'package')
       .map((node) => node.id),
   );
+  const nodes = graphData.nodes.filter((node) => allowedNodeIds.has(node.id));
 
   return {
-    nodes: graphData.nodes.filter((node) => allowedNodeIds.has(node.id)),
-    edges: graphData.edges.filter(
-      (edge) => allowedNodeIds.has(edge.from) && allowedNodeIds.has(edge.to),
-    ),
+    nodes,
+    edges: filterDanglingDiffGraphEdges(nodes, graphData.edges),
   };
 }
 
