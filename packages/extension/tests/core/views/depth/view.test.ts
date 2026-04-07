@@ -29,6 +29,16 @@ describe('core/views/depth/view', () => {
     vi.resetModules();
   });
 
+  it('exposes the expected depth view metadata', async () => {
+    const { depthGraphView } = await import('../../../../src/core/views/depth/view');
+
+    expect(depthGraphView.id).toBe('codegraphy.depth-graph');
+    expect(depthGraphView.name).toBe('Depth Graph');
+    expect(depthGraphView.icon).toBe('target');
+    expect(depthGraphView.description).toBe('Shows a local graph around the focused file');
+    expect(depthGraphView.recomputeOn).toEqual(['focusedFile', 'depthLimit']);
+  });
+
   it('returns the full graph when there is no focused file', async () => {
     const { depthGraphView } = await import('../../../../src/core/views/depth/view');
 

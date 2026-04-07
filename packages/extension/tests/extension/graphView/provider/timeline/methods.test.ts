@@ -22,6 +22,7 @@ vi.mock('../../../../../src/extension/graphView/timeline/provider/indexing', () 
 }));
 
 vi.mock('../../../../../src/extension/graphView/timeline/playback', () => ({
+  sendCachedGraphViewTimeline: timelineMethodMocks.sendCachedTimeline,
   invalidateGraphViewTimelineCache: timelineMethodMocks.invalidateTimelineCache,
   sendGraphViewPlaybackSpeed: timelineMethodMocks.sendPlaybackSpeed,
 }));
@@ -91,7 +92,14 @@ describe('graphView/provider/timeline methods', () => {
     expect(indexRepository).toHaveBeenCalledWith(source);
     expect(jumpToCommit).toHaveBeenCalledWith(source, 'abc123');
     expect(resetTimeline).toHaveBeenCalledWith(source);
-    expect(sendCachedTimeline).toHaveBeenCalledWith(source);
+    expect(sendCachedTimeline).toHaveBeenCalledWith(
+      undefined,
+      {
+        timelineActive: false,
+        currentCommitSha: undefined,
+      },
+      expect.any(Function),
+    );
   });
 
   it('warms timeline cache on startup before replaying cached timeline state', async () => {
@@ -126,9 +134,9 @@ describe('graphView/provider/timeline methods', () => {
     };
     const createGitAnalyzer = vi.fn(() => gitAnalyzer);
     const jumpToCommit = vi.fn(async () => undefined);
-    const sendCachedTimeline = vi.fn(nextSource => {
-      nextSource._timelineActive = true;
-      nextSource._currentCommitSha = 'sha-latest';
+    const sendCachedTimeline = vi.fn((_gitAnalyzer, state) => {
+      state.timelineActive = true;
+      state.currentCommitSha = 'sha-latest';
     });
     const methods = createGraphViewProviderTimelineMethods(source as never, {
       indexRepository: vi.fn(async () => undefined),
@@ -168,7 +176,14 @@ describe('graphView/provider/timeline methods', () => {
       ]),
     );
     expect(source._gitAnalyzer).toBe(gitAnalyzer);
-    expect(sendCachedTimeline).toHaveBeenCalledWith(source);
+    expect(sendCachedTimeline).toHaveBeenCalledWith(
+      gitAnalyzer,
+      {
+        timelineActive: true,
+        currentCommitSha: 'sha-latest',
+      },
+      expect.any(Function),
+    );
     expect(jumpToCommit).toHaveBeenCalledWith(source, 'sha-latest');
   });
 
