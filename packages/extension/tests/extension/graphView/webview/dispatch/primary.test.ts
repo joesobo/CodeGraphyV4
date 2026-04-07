@@ -1,220 +1,65 @@
-import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '@/shared/graph/types';
-import type { IGroup } from '@/shared/settings/groups';
-import type { DagMode } from '@/shared/settings/modes';
-import type { IViewContext } from '@/core/views/contracts';
+import type { GraphViewPrimaryMessageResult } from '../../../../../src/extension/graphView/webview/dispatch/primary';
+import { dispatchGraphViewPrimaryMessage } from '../../../../../src/extension/graphView/webview/dispatch/primary';
+import { createPrimaryMessageContext } from './context';
 
-const exportSaverMocks = vi.hoisted(() => ({
-  savePng: vi.fn(() => Promise.resolve()),
+const primaryDispatchMocks = vi.hoisted(() => ({
+  route: vi.fn(),
+  stateful: vi.fn(),
 }));
 
-vi.mock('../../../../../src/extension/export/savePng', () => ({
-  saveExportedPng: exportSaverMocks.savePng,
+vi.mock('../../../../../src/extension/graphView/webview/dispatch/routed', () => ({
+  dispatchGraphViewPrimaryRouteMessage: primaryDispatchMocks.route,
 }));
 
-import {
-  dispatchGraphViewPrimaryMessage,
-  type GraphViewPrimaryMessageContext,
-} from '../../../../../src/extension/graphView/webview/dispatch/primary';
-
-function createContext(
-  overrides: Partial<GraphViewPrimaryMessageContext> = {},
-): GraphViewPrimaryMessageContext {
-  return {
-    getTimelineActive: vi.fn(() => false),
-    getCurrentCommitSha: vi.fn(() => undefined),
-    getUserGroups: vi.fn(() => []),
-    getActiveViewId: vi.fn(() => 'codegraphy.connections'),
-    getDisabledPlugins: vi.fn(() => new Set<string>()),
-    getDisabledRules: vi.fn(() => new Set<string>()),
-    getFilterPatterns: vi.fn(() => []),
-    getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
-    getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
-    openSelectedNode: vi.fn(() => Promise.resolve()),
-    activateNode: vi.fn(() => Promise.resolve()),
-    setFocusedFile: vi.fn(),
-    previewFileAtCommit: vi.fn(() => Promise.resolve()),
-    openFile: vi.fn(() => Promise.resolve()),
-    revealInExplorer: vi.fn(() => Promise.resolve()),
-    copyToClipboard: vi.fn(() => Promise.resolve()),
-    deleteFiles: vi.fn(() => Promise.resolve()),
-    renameFile: vi.fn(() => Promise.resolve()),
-    createFile: vi.fn(() => Promise.resolve()),
-    toggleFavorites: vi.fn(() => Promise.resolve()),
-    addToExclude: vi.fn(() => Promise.resolve()),
-    analyzeAndSendData: vi.fn(() => Promise.resolve()),
-    getFileInfo: vi.fn(() => Promise.resolve()),
-    undo: vi.fn(() => Promise.resolve(undefined)),
-    redo: vi.fn(() => Promise.resolve(undefined)),
-    showInformationMessage: vi.fn(),
-    changeView: vi.fn(() => Promise.resolve()),
-    setDepthLimit: vi.fn(() => Promise.resolve()),
-    updateDagMode: vi.fn(() => Promise.resolve()),
-    updateNodeSizeMode: vi.fn(() => Promise.resolve()),
-    indexRepository: vi.fn(() => Promise.resolve()),
-    jumpToCommit: vi.fn(() => Promise.resolve()),
-    resetTimeline: vi.fn(() => Promise.resolve()),
-    sendPhysicsSettings: vi.fn(),
-    updatePhysicsSetting: vi.fn(() => Promise.resolve()),
-    resetPhysicsSettings: vi.fn(() => Promise.resolve()),
-    workspaceFolder: undefined,
-    persistGroups: vi.fn(() => Promise.resolve()),
-    recomputeGroups: vi.fn(),
-    sendGroupsUpdated: vi.fn(),
-    showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
-    createDirectory: vi.fn(() => Promise.resolve()),
-    copyFile: vi.fn(() => Promise.resolve()),
-    getConfig: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
-    updateConfig: vi.fn(() => Promise.resolve()),
-    getPluginFilterPatterns: vi.fn(() => []),
-    sendMessage: vi.fn(),
-    applyViewTransform: vi.fn(),
-    smartRebuild: vi.fn(),
-    resetAllSettings: vi.fn(() => Promise.resolve()),
-    ...overrides,
-  };
-}
+vi.mock('../../../../../src/extension/graphView/webview/dispatch/stateful', () => ({
+  dispatchGraphViewPrimaryStateMessage: primaryDispatchMocks.stateful,
+}));
 
 describe('graph view primary message dispatch', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (vscode.window as Record<string, unknown>).showWarningMessage = vi.fn();
+    primaryDispatchMocks.route.mockReset();
+    primaryDispatchMocks.stateful.mockReset();
   });
 
-  it('returns handled for node/file messages before later handlers run', async () => {
-    const context = createContext();
+  it('returns the routed result when the routed handlers handle the message', async () => {
+    const context = createPrimaryMessageContext();
+    const routedResult: GraphViewPrimaryMessageResult = { handled: true };
+    primaryDispatchMocks.route.mockResolvedValue(routedResult);
 
     await expect(
       dispatchGraphViewPrimaryMessage({ type: 'NODE_SELECTED', payload: { nodeId: 'src/app.ts' } }, context),
-    ).resolves.toEqual({ handled: true });
+    ).resolves.toBe(routedResult);
 
-    expect(context.openSelectedNode).toHaveBeenCalledWith('src/app.ts');
-    expect(context.updateDagMode).not.toHaveBeenCalled();
-  });
-
-  it('routes export messages through the live export saver handlers', async () => {
-    const context = createContext();
-
-    await expect(
-      dispatchGraphViewPrimaryMessage(
-        {
-          type: 'EXPORT_PNG',
-          payload: { dataUrl: 'data:image/png;base64,abc', filename: 'graph.png' },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(exportSaverMocks.savePng).toHaveBeenCalledWith('data:image/png;base64,abc', 'graph.png');
-    expect(context.updateDagMode).not.toHaveBeenCalled();
-  });
-
-  it('returns handled for command messages before timeline handlers run', async () => {
-    const context = createContext();
-
-    await expect(
-      dispatchGraphViewPrimaryMessage(
-        { type: 'UPDATE_DAG_MODE', payload: { dagMode: 'td' as DagMode } },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(context.updateDagMode).toHaveBeenCalledWith('td');
-    expect(context.indexRepository).not.toHaveBeenCalled();
-  });
-
-  it('returns handled for timeline messages before physics handlers run', async () => {
-    const context = createContext();
-
-    await expect(dispatchGraphViewPrimaryMessage({ type: 'INDEX_REPO' }, context)).resolves.toEqual({
-      handled: true,
-    });
-
-    expect(context.indexRepository).toHaveBeenCalledOnce();
-    expect(context.sendPhysicsSettings).not.toHaveBeenCalled();
-  });
-
-  it('routes reset-timeline messages through the timeline handlers', async () => {
-    const context = createContext();
-
-    await expect(
-      dispatchGraphViewPrimaryMessage({ type: 'RESET_TIMELINE' }, context),
-    ).resolves.toEqual({ handled: true });
-
-    expect(context.resetTimeline).toHaveBeenCalledOnce();
-    expect(context.sendPhysicsSettings).not.toHaveBeenCalled();
-  });
-
-  it('returns handled for physics messages', async () => {
-    const context = createContext();
-
-    await expect(
-      dispatchGraphViewPrimaryMessage({ type: 'GET_PHYSICS_SETTINGS' }, context),
-    ).resolves.toEqual({ handled: true });
-
-    expect(context.sendPhysicsSettings).toHaveBeenCalledOnce();
-  });
-
-  it('returns handled for surface fallback messages', async () => {
-    const context = createContext();
-
-    await expect(
-      dispatchGraphViewPrimaryMessage(
-        { type: 'GRAPH_3D_UNAVAILABLE', payload: { message: 'Error creating WebGL context.' } },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-  });
-
-  it('persists updated user groups returned by the group message handler', async () => {
-    const incomingGroups: IGroup[] = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
-    const context = createContext({
-      getUserGroups: vi.fn(() => incomingGroups),
-    });
-
-    const result = await dispatchGraphViewPrimaryMessage(
-      { type: 'UPDATE_GROUPS', payload: { groups: incomingGroups } },
+    expect(primaryDispatchMocks.route).toHaveBeenCalledWith(
+      { type: 'NODE_SELECTED', payload: { nodeId: 'src/app.ts' } },
       context,
     );
-
-    expect(result).toEqual({
-      handled: true,
-      userGroups: incomingGroups,
-    });
-    expect(context.persistGroups).toHaveBeenCalledWith(incomingGroups);
-    expect(context.recomputeGroups).not.toHaveBeenCalled();
-    expect(context.sendGroupsUpdated).not.toHaveBeenCalled();
+    expect(primaryDispatchMocks.stateful).not.toHaveBeenCalled();
   });
 
-  it('returns updated filter patterns from settings messages', async () => {
-    const context = createContext({
-      getFilterPatterns: vi.fn(() => []),
-      getPluginFilterPatterns: vi.fn(() => ['venv/**']),
-    });
-
-    const result = await dispatchGraphViewPrimaryMessage(
-      { type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: ['dist/**'] } },
-      context,
-    );
-
-    expect(result).toEqual({
+  it('falls through to the stateful handlers when routed handlers do not handle the message', async () => {
+    const context = createPrimaryMessageContext();
+    primaryDispatchMocks.route.mockResolvedValue({ handled: false });
+    primaryDispatchMocks.stateful.mockResolvedValue({
       handled: true,
       filterPatterns: ['dist/**'],
     });
-    expect(context.updateConfig).toHaveBeenCalledWith('filterPatterns', ['dist/**']);
-    expect(context.sendMessage).toHaveBeenCalledWith({
-      type: 'FILTER_PATTERNS_UPDATED',
-      payload: {
-        patterns: ['dist/**'],
-        pluginPatterns: ['venv/**'],
-      },
-    });
-  });
 
-  it('returns false when no primary message family handles the input', async () => {
     await expect(
-      dispatchGraphViewPrimaryMessage({ type: 'WEBVIEW_READY', payload: null }, createContext()),
-    ).resolves.toEqual({ handled: false });
+      dispatchGraphViewPrimaryMessage(
+        { type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: ['dist/**'] } },
+        context,
+      ),
+    ).resolves.toEqual({
+      handled: true,
+      filterPatterns: ['dist/**'],
+    });
+
+    expect(primaryDispatchMocks.stateful).toHaveBeenCalledWith(
+      { type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: ['dist/**'] } },
+      context,
+    );
   });
 });
