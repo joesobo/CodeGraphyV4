@@ -18,6 +18,8 @@ describe('core/plugins/graphQueryFacadeIndex', () => {
     const index = getGraphIndex(graph);
 
     expect(index.nodeById.get('a')?.id).toBe('a');
+    expect(index.graph.getNodeAttributes('a')).toEqual({ node: graph.nodes[0] });
+    expect(index.graph.getEdgeAttributes('a-b')).toEqual({ edge: graph.edges[0] });
     expect(index.edgeById.has('a-b')).toBe(true);
     expect(index.edgeById.has('skip')).toBe(false);
   });
@@ -28,5 +30,12 @@ describe('core/plugins/graphQueryFacadeIndex', () => {
     expect(getEdgesByKeys(['a-b', 'missing'], index.edgeById)).toEqual([
       { id: 'a-b', from: 'a', to: 'b', kind: 'import', sources: [] },
     ]);
+  });
+
+  it('reuses the cached index for the same graph object', () => {
+    const first = getGraphIndex(graph);
+    const second = getGraphIndex(graph);
+
+    expect(second).toBe(first);
   });
 });

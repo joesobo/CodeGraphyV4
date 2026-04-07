@@ -9,7 +9,11 @@ export function getSubgraph(
 ): IGraphData {
   const graphData = getGraphData();
   const { graph } = getGraphIndex(graphData);
-  if (!graph.hasNode(nodeId) || hops < 0) {
+  if (!graph.hasNode(nodeId)) {
+    return { nodes: [], edges: [] };
+  }
+
+  if (hops < 0) {
     return { nodes: [], edges: [] };
   }
 
@@ -46,7 +50,11 @@ export function findPath(
   getGraphData: GraphDataGetter,
 ): IGraphNode[] | null {
   const { graph, nodeById } = getGraphIndex(getGraphData());
-  if (!graph.hasNode(fromId) || !graph.hasNode(toId)) {
+  if (!graph.hasNode(fromId)) {
+    return null;
+  }
+
+  if (!graph.hasNode(toId)) {
     return null;
   }
 
@@ -54,14 +62,7 @@ export function findPath(
   const previous = new Map<string, string | null>([[fromId, null]]);
 
   while (queue.length > 0) {
-    const currentId = queue.shift();
-    if (!currentId) {
-      continue;
-    }
-
-    if (currentId === toId) {
-      break;
-    }
+    const currentId = queue.shift()!;
 
     for (const neighborId of graph.outNeighbors(currentId)) {
       if (previous.has(neighborId)) {
@@ -86,6 +87,5 @@ export function findPath(
 
   return nodeIds
     .reverse()
-    .map((id) => nodeById.get(id))
-    .filter((node): node is IGraphNode => Boolean(node));
+    .map((id) => nodeById.get(id)!);
 }
