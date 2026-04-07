@@ -1,27 +1,29 @@
 import { builtInItem, separator } from '../common/entryFactories';
 import type { GraphContextMenuEntry } from '../contracts';
-
-function isPackageNodeId(nodeId: string): boolean {
-  return nodeId.startsWith('pkg:');
-}
+import {
+  areOnlyPackageNodes,
+  buildCopyRelativeLabel,
+  buildOpenBlockLabel,
+  shouldShowAbsoluteCopy,
+  shouldShowRevealInExplorer,
+} from './targets';
 
 /** Builds the "open" block: Open File/Files and optionally Reveal in Explorer. */
 export function buildOpenBlock(
   targets: readonly string[],
   timelineActive: boolean
 ): GraphContextMenuEntry[] {
-  if (targets.every(target => isPackageNodeId(target))) {
+  if (areOnlyPackageNodes(targets)) {
     return [];
   }
 
-  const isMultiSelect = targets.length > 1;
   const entries: GraphContextMenuEntry[] = [];
 
   entries.push(
-    builtInItem('node-open', isMultiSelect ? `Open ${targets.length} Files` : 'Open File', 'open')
+    builtInItem('node-open', buildOpenBlockLabel(targets), 'open')
   );
 
-  if (!isMultiSelect && !timelineActive) {
+  if (shouldShowRevealInExplorer(targets, timelineActive)) {
     entries.push(builtInItem('node-reveal', 'Reveal in Explorer', 'reveal'));
   }
 
@@ -30,23 +32,22 @@ export function buildOpenBlock(
 
 /** Builds the "copy" block: Copy Relative Path and optionally Copy Absolute Path. */
 export function buildCopyBlock(targets: readonly string[]): GraphContextMenuEntry[] {
-  if (targets.every(target => isPackageNodeId(target))) {
+  if (areOnlyPackageNodes(targets)) {
     return [];
   }
 
-  const isMultiSelect = targets.length > 1;
   const entries: GraphContextMenuEntry[] = [];
 
   entries.push(separator('node-separator-copy'));
   entries.push(
     builtInItem(
       'node-copy-relative',
-      isMultiSelect ? 'Copy Relative Paths' : 'Copy Relative Path',
+      buildCopyRelativeLabel(targets),
       'copyRelative'
     )
   );
 
-  if (!isMultiSelect) {
+  if (shouldShowAbsoluteCopy(targets)) {
     entries.push(builtInItem('node-copy-absolute', 'Copy Absolute Path', 'copyAbsolute'));
   }
 

@@ -5,19 +5,20 @@ import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
-import { saveExportedJpeg } from '../../../export/saveJpeg';
-import { saveExportedJson } from '../../../export/saveJson';
-import { saveExportedMarkdown } from '../../../export/saveMarkdown';
-import { saveExportedPng } from '../../../export/savePng';
-import { saveExportedSvg } from '../../../export/saveSvg';
 import { applyCommandMessage } from '../messages/commands';
 import { applyExportMessage } from '../messages/exports';
-import { applyGroupMessage, type GraphViewGroupMessageState } from '../messages/groups';
-import { applyNodeFileMessage, type GraphViewNodeFileHandlers } from '../nodeFile/router';
+import { applyGroupMessage } from '../messages/groups';
+import { applyNodeFileMessage } from '../nodeFile/router';
 import { applyPhysicsMessage } from '../messages/physics';
 import { applySurfaceMessage } from '../messages/surface';
-import { applySettingsMessage, type GraphViewSettingsMessageState } from '../settingsMessages/router';
+import { applySettingsMessage } from '../settingsMessages/router';
 import { applyTimelineMessage } from '../messages/timeline';
+import {
+  createGraphViewPrimaryGroupMessageState,
+  createGraphViewPrimaryNodeFileHandlers,
+  createGraphViewPrimarySettingsMessageState,
+} from './primaryState';
+import { createGraphViewPrimaryExportHandlers } from './exportHandlers';
 
 export interface GraphViewPrimaryMessageContext {
   getTimelineActive(): boolean;
@@ -82,47 +83,6 @@ export interface GraphViewPrimaryMessageResult {
   handled: boolean;
   userGroups?: IGroup[];
   filterPatterns?: string[];
-}
-
-export function createGraphViewPrimaryGroupMessageState(
-  context: GraphViewPrimaryMessageContext,
-): GraphViewGroupMessageState {
-  return {
-    userGroups: context.getUserGroups(),
-  };
-}
-
-export function createGraphViewPrimaryNodeFileHandlers(
-  context: GraphViewPrimaryMessageContext,
-): GraphViewNodeFileHandlers {
-  return {
-    ...context,
-    timelineActive: context.getTimelineActive(),
-    currentCommitSha: context.getCurrentCommitSha(),
-  };
-}
-
-export function createGraphViewPrimarySettingsMessageState(
-  context: GraphViewPrimaryMessageContext,
-): GraphViewSettingsMessageState {
-  return {
-    activeViewId: context.getActiveViewId(),
-    disabledPlugins: context.getDisabledPlugins(),
-    disabledSources: context.getDisabledRules(),
-    filterPatterns: context.getFilterPatterns(),
-    graphData: context.getGraphData(),
-    viewContext: context.getViewContext(),
-  };
-}
-
-function createGraphViewPrimaryExportHandlers() {
-  return {
-    savePng: saveExportedPng,
-    saveSvg: saveExportedSvg,
-    saveJpeg: saveExportedJpeg,
-    saveJson: saveExportedJson,
-    saveMarkdown: saveExportedMarkdown,
-  };
 }
 
 export async function dispatchGraphViewPrimaryMessage(

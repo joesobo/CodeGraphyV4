@@ -1,10 +1,6 @@
 import { renderHook } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import {
-  buildGraphDebugSnapshot,
-  installGraphDebugApi,
-  useGraphDebugApi,
-} from '../../../src/webview/components/graph/debug';
+import { buildGraphDebugSnapshot, installGraphDebugApi, useGraphDebugApi } from '../../../src/webview/components/graph/debugApi';
 
 describe('webview/graph/debug', () => {
   it('builds a snapshot from container and node coordinates', () => {

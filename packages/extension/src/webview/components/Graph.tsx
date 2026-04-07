@@ -12,7 +12,7 @@ import {
 } from './graph/autoFit';
 import { getGraphNavigator, getGraphWindow } from './graph/browser';
 import { buildGraphCallbackOptions } from './graph/callbackOptions';
-import { useGraphDebugApi } from './graph/debug';
+import { useGraphDebugApi } from './graph/debugApi';
 import { buildGraphDebugOptions } from './graph/debugOptions';
 import { buildGraphLayoutKey } from './graph/layoutKey';
 import { detectMacPlatform } from './graph/platform';
