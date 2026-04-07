@@ -1,6 +1,7 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { mdiLinkVariant } from '@mdi/js';
 import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
 import { graphStore } from '../../../src/webview/store/state';
 
@@ -45,7 +46,16 @@ vi.mock('../../../src/webview/components/ui/menus/dropdown-menu', () => {
 });
 
 import { postMessage } from '../../../src/webview/vscodeApi';
-import { ToolbarActions } from '../../../src/webview/components/toolbar/Actions';
+import {
+  ToolbarActions,
+  getToolbarActionIconPath,
+  getToolbarActionItemKey,
+  getToolbarActionKey,
+} from '../../../src/webview/components/toolbar/Actions';
+import {
+  buildPluginExporterGroups,
+  getPluginExporterKey,
+} from '../../../src/webview/components/toolbar/exportMenu';
 
 const exportCases = [
   ['Export as PNG', 'REQUEST_EXPORT_PNG'],
@@ -179,7 +189,7 @@ describe('ToolbarActions', () => {
 describe('ToolbarActions export dropdown items', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    graphStore.setState({ pluginExporters: [] });
+    graphStore.setState({ pluginExporters: [], pluginToolbarActions: [] });
   });
 
   it('renders all five export menu items', () => {
@@ -195,6 +205,14 @@ describe('ToolbarActions export dropdown items', () => {
     renderWithProviders();
     expect(screen.getByText('Images')).toBeInTheDocument();
     expect(screen.getByText('Connections')).toBeInTheDocument();
+  });
+
+  it('does not render a plugin exporter section when no exporters are available', () => {
+    renderWithProviders();
+
+    expect(
+      screen.queryAllByTestId('dropdown-label').map(label => label.textContent),
+    ).toEqual(['Images', 'Connections']);
   });
 
   it.each(exportCases)('posts %s when clicked', (label, type) => {
@@ -231,6 +249,35 @@ describe('ToolbarActions export dropdown items', () => {
     expect(screen.getByText('Plugins')).toBeInTheDocument();
     expect(screen.getByText('Docs Plugin / Reports')).toBeInTheDocument();
     expect(screen.getByText('Summary Export')).toBeInTheDocument();
+  });
+
+  it('renders duplicate exporters under the same plugin group label', () => {
+    graphStore.setState({
+      pluginExporters: [
+        {
+          id: 'summary',
+          label: 'Summary Export',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 0,
+          group: 'Reports',
+        },
+        {
+          id: 'details',
+          label: 'Details Export',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 1,
+          group: 'Reports',
+        },
+      ],
+    });
+
+    renderWithProviders();
+
+    expect(screen.getAllByText('Docs Plugin / Reports')).toHaveLength(1);
+    expect(screen.getByText('Summary Export')).toBeInTheDocument();
+    expect(screen.getByText('Details Export')).toBeInTheDocument();
   });
 
   it('posts RUN_PLUGIN_EXPORT through the host api when a plugin exporter is clicked', () => {
@@ -318,5 +365,146 @@ describe('ToolbarActions export dropdown items', () => {
       },
     }, '*');
     postMessageSpy.mockRestore();
+  });
+
+  it('renders the default link icon when a toolbar action has no custom icon', () => {
+    graphStore.setState({
+      pluginToolbarActions: [
+        {
+          id: 'wikilinks',
+          label: 'Wikilinks',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 0,
+          items: [
+            {
+              id: 'wikilink-summary',
+              label: 'Markdown Wikilink Summary',
+              index: 0,
+            },
+          ],
+        },
+      ],
+    });
+
+    renderWithProviders();
+
+    expect(screen.getByTitle('Wikilinks').querySelector('path')).toHaveAttribute(
+      'd',
+      mdiLinkVariant,
+    );
+  });
+});
+
+describe('ToolbarActions helpers', () => {
+  it('builds stable keys for toolbar actions and exporter items', () => {
+    expect(
+      getToolbarActionKey({
+        id: 'wikilinks',
+        label: 'Wikilinks',
+        pluginId: 'plugin.docs',
+        pluginName: 'Docs Plugin',
+        index: 0,
+        items: [],
+      }),
+    ).toBe('plugin.docs:wikilinks:0');
+
+    expect(
+      getToolbarActionItemKey(
+        {
+          id: 'wikilinks',
+          label: 'Wikilinks',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 0,
+          items: [],
+        },
+        {
+          id: 'wikilink-summary',
+          label: 'Markdown Wikilink Summary',
+          index: 1,
+        },
+      ),
+    ).toBe('plugin.docs:wikilinks:1');
+
+    expect(
+      getPluginExporterKey({
+        id: 'summary',
+        label: 'Summary Export',
+        pluginId: 'plugin.docs',
+        pluginName: 'Docs Plugin',
+        index: 0,
+      }),
+    ).toBe('plugin.docs:summary:0');
+  });
+
+  it('groups plugin exporters by plugin label and group label', () => {
+    expect(
+      buildPluginExporterGroups([
+        {
+          id: 'summary',
+          label: 'Summary Export',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 0,
+          group: 'Reports',
+        },
+        {
+          id: 'details',
+          label: 'Details Export',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 1,
+          group: 'Reports',
+        },
+        {
+          id: 'archive',
+          label: 'Archive Export',
+          pluginId: 'plugin.docs',
+          pluginName: 'Docs Plugin',
+          index: 2,
+        },
+      ]),
+    ).toEqual([
+      {
+        key: 'Docs Plugin / Reports',
+        label: 'Docs Plugin / Reports',
+        items: [
+          {
+            id: 'summary',
+            label: 'Summary Export',
+            pluginId: 'plugin.docs',
+            pluginName: 'Docs Plugin',
+            index: 0,
+            group: 'Reports',
+          },
+          {
+            id: 'details',
+            label: 'Details Export',
+            pluginId: 'plugin.docs',
+            pluginName: 'Docs Plugin',
+            index: 1,
+            group: 'Reports',
+          },
+        ],
+      },
+      {
+        key: 'Docs Plugin',
+        label: 'Docs Plugin',
+        items: [
+          {
+            id: 'archive',
+            label: 'Archive Export',
+            pluginId: 'plugin.docs',
+            pluginName: 'Docs Plugin',
+            index: 2,
+          },
+        ],
+      },
+    ]);
+  });
+
+  it('uses the link icon fallback when a toolbar action has no icon', () => {
+    expect(getToolbarActionIconPath({ icon: undefined })).toBe(mdiLinkVariant);
   });
 });
