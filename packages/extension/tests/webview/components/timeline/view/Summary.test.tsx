@@ -29,9 +29,11 @@ describe('timeline/Summary', () => {
     expect(screen.getByText('Grace Hopper')).toBeInTheDocument();
     expect(screen.getByText('3 of 8')).toBeInTheDocument();
     expect(screen.getByText('Merge commit')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Current Commit' })).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByTestId('settings-panel-chevron')).toHaveClass('rotate-90');
   });
 
-  it('omits the merge badge and body when the commit is a simple one-line commit', () => {
+  it('renders a root-commit badge and omits the body for a simple one-line root commit', () => {
     render(
       <Summary
         collapsed={false}
@@ -49,6 +51,7 @@ describe('timeline/Summary', () => {
     );
 
     expect(screen.queryByText('Merge commit')).not.toBeInTheDocument();
+    expect(screen.getByText('Root commit')).toBeInTheDocument();
     expect(screen.queryByTestId('timeline-summary-body')).not.toBeInTheDocument();
   });
 
@@ -65,7 +68,10 @@ describe('timeline/Summary', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Current Commit' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Current Commit' })).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByTestId('settings-panel-chevron')).not.toHaveClass('rotate-90');
+    expect(screen.getByText('3 of 8')).toBeInTheDocument();
+    expect(screen.queryByText('Merge commit')).not.toBeInTheDocument();
     expect(screen.queryByText('Stabilize timeline panel')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Current Commit' }));

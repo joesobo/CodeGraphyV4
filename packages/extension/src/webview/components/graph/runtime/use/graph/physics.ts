@@ -9,7 +9,7 @@ import { usePhysicsRuntimePause } from './pause';
 import { usePhysicsRuntimeUpdates } from './updates';
 
 interface GraphPhysicsAnimationControls {
-	d3ReheatSimulation(): void;
+	d3ReheatSimulation?(): void;
 	pauseAnimation?(): void;
 	resumeAnimation?(): void;
 }
@@ -97,5 +97,5 @@ export function syncPhysicsAnimation(
 		instance.resumeAnimation?.();
 	}
 
-	instance.d3ReheatSimulation();
+	instance.d3ReheatSimulation?.();
 }

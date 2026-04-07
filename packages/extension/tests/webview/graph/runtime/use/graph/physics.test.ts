@@ -39,4 +39,16 @@ describe('webview/graph/runtime/use/graph/physics', () => {
     expect(() => syncPhysicsAnimation(instance, false)).not.toThrow();
     expect(instance.d3ReheatSimulation).toHaveBeenCalledTimes(2);
   });
+
+  it('does not throw when the graph cannot reheat', () => {
+    const instance = {
+      pauseAnimation: vi.fn(),
+      resumeAnimation: vi.fn(),
+    };
+
+    expect(() => syncPhysicsAnimation(instance, true)).not.toThrow();
+    expect(() => syncPhysicsAnimation(instance, false)).not.toThrow();
+    expect(instance.pauseAnimation).toHaveBeenCalledOnce();
+    expect(instance.resumeAnimation).toHaveBeenCalledOnce();
+  });
 });

@@ -62,4 +62,21 @@ describe('core/views/depth/transform', () => {
       ['src/leaf.ts', 2],
     ]);
   });
+
+  it('drops edges that leave the induced depth-limited subgraph', () => {
+    const result = filterDepthGraph(
+      sampleData,
+      context({ focusedFile: 'src/lib.ts', depthLimit: 1 }),
+    );
+
+    expect(result.nodes.map((node) => node.id)).toEqual([
+      'src/app.ts',
+      'src/lib.ts',
+      'src/deep.ts',
+    ]);
+    expect(result.edges.map((edge) => edge.id)).toEqual([
+      'app->lib',
+      'lib->deep',
+    ]);
+  });
 });

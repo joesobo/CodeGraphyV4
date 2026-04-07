@@ -80,14 +80,18 @@ export function runJumpToEndAction({
   setPlaybackTime,
   timelineCommits,
 }: JumpToEndActionOptions): void {
-  runJumpToCommitAction({
-    isPlaying,
-    lastSentCommitIndexRef,
-    setIsPlaying,
-    setPlaybackTime,
-    targetIndex: timelineCommits.length - 1,
-    timelineCommits,
-  });
+  if (timelineCommits.length === 0) {
+    return;
+  }
+
+  if (isPlaying) {
+    setIsPlaying(false);
+  }
+
+  const targetCommit = timelineCommits[timelineCommits.length - 1];
+  setPlaybackTime(targetCommit.timestamp);
+  lastSentCommitIndexRef.current = timelineCommits.length - 1;
+  postMessage({ type: 'JUMP_TO_COMMIT', payload: { sha: targetCommit.sha } });
 }
 
 export const handleTimelinePlayPause = runPlayPauseAction;
