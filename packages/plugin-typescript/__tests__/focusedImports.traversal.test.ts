@@ -36,4 +36,17 @@ describe('focusedImports/traversal', () => {
     ]));
     expect(walkDepthFromNode('missing.ts', 2, adjacencyList)).toEqual(new Map());
   });
+
+  it('skips revisiting nodes in cycles and tolerates neighbors missing from the adjacency map', () => {
+    const adjacencyList = new Map<string, Set<string>>([
+      ['a.ts', new Set(['b.ts'])],
+      ['b.ts', new Set(['a.ts', 'ghost.ts'])],
+    ]);
+
+    expect(walkDepthFromNode('a.ts', 3, adjacencyList)).toEqual(new Map([
+      ['a.ts', 0],
+      ['b.ts', 1],
+      ['ghost.ts', 2],
+    ]));
+  });
 });

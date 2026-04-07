@@ -12,7 +12,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   if (!extension) return;
 
   const codeGraphy = extension.isActive ? extension.exports : await extension.activate();
-  codeGraphy?.registerPlugin(createTypeScriptPlugin(), {
+  if (!codeGraphy) return;
+
+  codeGraphy.registerPlugin(createTypeScriptPlugin(), {
     extensionUri: context.extensionUri,
   });
 }

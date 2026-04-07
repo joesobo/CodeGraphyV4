@@ -4,10 +4,6 @@ export function projectFocusedImportGraph(
   data: IGraphData,
   depths: Map<string, number>,
 ): IGraphData {
-  if (depths.size === 0) {
-    return { nodes: [], edges: [] };
-  }
-
   const includedNodeIds = new Set(depths.keys());
   const nodes: IGraphNode[] = data.nodes
     .filter(node => includedNodeIds.has(node.id))
