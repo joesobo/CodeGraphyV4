@@ -19,6 +19,83 @@ describe('ensureGitAnalyzerForCachedTimeline', () => {
     expect(createGitAnalyzer).not.toHaveBeenCalled();
   });
 
+  it('skips warmup when the source has no analyzer', async () => {
+    const createGitAnalyzer = vi.fn();
+    const getWorkspaceFolder = vi.fn(() => ({ uri: { fsPath: '/workspace' } } as never));
+
+    await ensureGitAnalyzerForCachedTimeline(createSource() as never, {
+      createGitAnalyzer,
+      getWorkspaceFolder,
+    });
+
+    expect(getWorkspaceFolder).not.toHaveBeenCalled();
+    expect(createGitAnalyzer).not.toHaveBeenCalled();
+  });
+
+  it('skips warmup when no git-analyzer factory is available', async () => {
+    const getWorkspaceFolder = vi.fn(() => ({ uri: { fsPath: '/workspace' } } as never));
+    const source = createSource({
+      _analyzer: {
+        initialize: vi.fn(async () => undefined),
+        getPluginFilterPatterns: vi.fn(() => []),
+        registry: { kind: 'registry' },
+      },
+      _analyzerInitialized: true,
+    });
+
+    await ensureGitAnalyzerForCachedTimeline(source as never, {
+      createGitAnalyzer: undefined,
+      getWorkspaceFolder,
+    });
+
+    expect(getWorkspaceFolder).not.toHaveBeenCalled();
+    expect(source._gitAnalyzer).toBeUndefined();
+  });
+
+  it('skips warmup when no workspace folder is available', async () => {
+    const createGitAnalyzer = vi.fn();
+    const initialize = vi.fn(async () => undefined);
+    const source = createSource({
+      _analyzer: {
+        initialize,
+        getPluginFilterPatterns: vi.fn(() => []),
+        registry: { kind: 'registry' },
+      },
+      _analyzerInitialized: true,
+    });
+
+    await ensureGitAnalyzerForCachedTimeline(source as never, {
+      createGitAnalyzer,
+      getWorkspaceFolder: vi.fn(() => undefined),
+    });
+
+    expect(initialize).not.toHaveBeenCalled();
+    expect(createGitAnalyzer).not.toHaveBeenCalled();
+  });
+
+  it('creates the cached git analyzer without reinitializing an analyzer that is already ready', async () => {
+    const initialize = vi.fn(async () => undefined);
+    const analyzer = {
+      registry: { kind: 'registry' },
+      initialize,
+      getPluginFilterPatterns: vi.fn(() => ['plugin-cache/**']),
+    };
+    const createGitAnalyzer = vi.fn(() => ({ kind: 'git-analyzer' } as never));
+    const source = createSource({
+      _analyzer: analyzer,
+      _analyzerInitialized: true,
+      _filterPatterns: ['dist/**'],
+    });
+
+    await ensureGitAnalyzerForCachedTimeline(source as never, {
+      createGitAnalyzer,
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } } as never)),
+    });
+
+    expect(initialize).not.toHaveBeenCalled();
+    expect(createGitAnalyzer).toHaveBeenCalledOnce();
+  });
+
   it('initializes the analyzer and creates a cached git analyzer with merged excludes', async () => {
     const initialize = vi.fn(async () => undefined);
     const analyzer = {
@@ -47,7 +124,35 @@ describe('ensureGitAnalyzerForCachedTimeline', () => {
       '/workspace',
       expect.arrayContaining(['plugin-cache/**', 'dist/**']),
     );
+    expect(source._analyzerInitialized).toBe(true);
+    expect(source._analyzerInitPromise).toBeUndefined();
     expect(source._gitAnalyzer).toEqual({ kind: 'git-analyzer' });
+  });
+
+  it('reuses an in-flight analyzer initialization promise instead of starting a second one', async () => {
+    const initialize = vi.fn(async () => undefined);
+    const analyzer = {
+      registry: { kind: 'registry' },
+      initialize,
+      getPluginFilterPatterns: vi.fn(() => []),
+    };
+    const createGitAnalyzer = vi.fn(() => ({ kind: 'git-analyzer' } as never));
+    const source = createSource({
+      _analyzer: analyzer,
+      _analyzerInitialized: false,
+    });
+    (source as { _analyzerInitPromise: Promise<void> | undefined })._analyzerInitPromise = Promise.resolve().then(() => {
+      source._analyzerInitialized = true;
+    });
+
+    await ensureGitAnalyzerForCachedTimeline(source as never, {
+      createGitAnalyzer,
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } } as never)),
+    });
+
+    expect(initialize).not.toHaveBeenCalled();
+    expect(source._analyzerInitialized).toBe(true);
+    expect(createGitAnalyzer).toHaveBeenCalledOnce();
   });
 });
 
