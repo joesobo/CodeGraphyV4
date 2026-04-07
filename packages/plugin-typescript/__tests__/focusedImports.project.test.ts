@@ -39,4 +39,31 @@ describe('focusedImports/project', () => {
 
     expect(projectFocusedImportGraph(graphData, new Map())).toEqual({ nodes: [], edges: [] });
   });
+
+  it('drops edges whose target depths are missing even when source nodes remain', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        { id: 'a.ts', label: 'a.ts', color: '#fff' },
+        { id: 'b.ts', label: 'b.ts', color: '#fff' },
+        { id: 'c.ts', label: 'c.ts', color: '#fff' },
+      ],
+      edges: [
+        { id: 'a->b#import', from: 'a.ts', to: 'b.ts', kind: 'import', sources: [] },
+        { id: 'b->c#import', from: 'b.ts', to: 'c.ts', kind: 'import', sources: [] },
+      ],
+    };
+
+    expect(projectFocusedImportGraph(graphData, new Map([
+      ['a.ts', 0],
+      ['b.ts', 1],
+    ]))).toEqual({
+      nodes: [
+        { id: 'a.ts', label: 'a.ts', color: '#fff', depthLevel: 0 },
+        { id: 'b.ts', label: 'b.ts', color: '#fff', depthLevel: 1 },
+      ],
+      edges: [
+        expect.objectContaining({ id: 'a->b#import' }),
+      ],
+    });
+  });
 });

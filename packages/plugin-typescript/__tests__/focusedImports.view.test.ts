@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData, IViewContext } from '@codegraphy-vscode/plugin-api';
-import {
-  createFocusedImportView,
-  FOCUSED_IMPORT_VIEW_ID,
-  FOCUSED_IMPORT_VIEW_NAME,
-} from '../src/focusedImports/view';
+import { createFocusedImportView } from '../src/focusedImports/view';
 
 const pluginId = 'codegraphy.typescript';
 
@@ -13,8 +9,8 @@ describe('focusedImports/view', () => {
     const view = createFocusedImportView(pluginId);
 
     expect(view).toMatchObject({
-      id: FOCUSED_IMPORT_VIEW_ID,
-      name: FOCUSED_IMPORT_VIEW_NAME,
+      id: 'codegraphy.typescript.focused-imports',
+      name: 'Focused Imports',
       icon: 'symbol-file',
       description: 'Shows the import neighborhood around the focused file',
       recomputeOn: ['focusedFile', 'depthLimit'],
