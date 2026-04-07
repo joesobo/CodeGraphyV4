@@ -181,3 +181,44 @@ describe('EventBus error handling in emit (L75-L76 mutants)', () => {
     errorSpy.mockRestore();
   });
 });
+
+describe('EventBus wrapper map and plugin tracking mutants', () => {
+  type EventBusInternals = {
+    _handlerWrappers: Map<string, WeakMap<object, unknown>>;
+    _pluginHandlers: Map<string, Set<unknown>>;
+  };
+
+  it('keeps earlier handler lookup alive when registering another handler for the same event', () => {
+    const bus = new EventBus();
+    const firstHandler = vi.fn();
+    const secondHandler = vi.fn();
+
+    bus.on('analysis:started', firstHandler);
+    bus.on('analysis:started', secondHandler);
+
+    bus.off('analysis:started', firstHandler);
+    bus.emit('analysis:started', { fileCount: 1 });
+
+    expect(firstHandler).not.toHaveBeenCalled();
+    expect(secondHandler).toHaveBeenCalledOnce();
+  });
+
+  it('does not create plugin tracking entries when pluginId is omitted', () => {
+    const bus = new EventBus();
+
+    bus.on('analysis:started', () => {});
+
+    expect((bus as unknown as EventBusInternals)._pluginHandlers.size).toBe(0);
+  });
+
+  it('keeps dispose safe if the wrapper map entry disappears before cleanup', () => {
+    const bus = new EventBus();
+    const handler = vi.fn();
+    const disposable = bus.on('analysis:started', handler);
+
+    (bus as unknown as EventBusInternals)._handlerWrappers.delete('analysis:started');
+
+    expect(() => disposable.dispose()).not.toThrow();
+    expect(bus.listenerCount('analysis:started')).toBe(0);
+  });
+});
