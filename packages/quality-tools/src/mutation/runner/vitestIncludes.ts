@@ -61,6 +61,7 @@ function fileIncludes(packageName: string, relativeSourceFile: string): string[]
         `${root}/${dottedRelativePath}.test.tsx`,
         `${root}/${dottedRelativePath}.mutations.test.ts`,
         `${root}/${dottedRelativePath}.mutations.test.tsx`,
+        ...sharedDetectorTestIncludes(root, directory),
       ];
 
       if (!includeBroadFallback) {
@@ -79,11 +80,26 @@ function fileIncludes(packageName: string, relativeSourceFile: string): string[]
         `${root}/**/${dottedRelativePath}.test.tsx`,
         `${root}/**/${dottedRelativePath}.mutations.test.ts`,
         `${root}/**/${dottedRelativePath}.mutations.test.tsx`,
+        ...sharedDetectorTestIncludes(root, directory, true),
         `${root}/**/${name}/**/*.test.ts`,
         `${root}/**/${name}/**/*.test.tsx`,
       ];
     }),
   );
+}
+
+function sharedDetectorTestIncludes(root: string, directory: string, recursive = false): string[] {
+  if (directory !== 'sources') {
+    return [];
+  }
+
+  const prefix = recursive ? `${root}/**/` : `${root}/`;
+  return [
+    `${prefix}ruleDetectors.test.ts`,
+    `${prefix}ruleDetectors.test.tsx`,
+    `${prefix}*Detectors.test.ts`,
+    `${prefix}*Detectors.test.tsx`,
+  ];
 }
 
 function directoryIncludes(packageName: string, relativeSourceDirectory: string): string[] {

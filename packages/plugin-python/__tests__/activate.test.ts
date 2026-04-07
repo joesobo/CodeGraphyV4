@@ -124,6 +124,30 @@ describe('plugin-python/activate', () => {
     await expect(activate({ extensionUri: { fsPath: '/plugins/python' } } as never)).resolves.toBeUndefined();
   });
 
+  it('returns without throwing when the core extension exports no registerPlugin hook', async () => {
+    mockState.getExtension.mockReturnValue({
+      isActive: true,
+      exports: {},
+      activate: vi.fn(),
+    });
+
+    const { activate } = await import('../src/activate');
+
+    await expect(activate({ extensionUri: { fsPath: '/plugins/python' } } as never)).resolves.toBeUndefined();
+  });
+
+  it('returns without throwing when the core extension activates to an undefined export object', async () => {
+    mockState.getExtension.mockReturnValue({
+      isActive: false,
+      exports: undefined,
+      activate: vi.fn(async () => undefined),
+    });
+
+    const { activate } = await import('../src/activate');
+
+    await expect(activate({ extensionUri: { fsPath: '/plugins/python' } } as never)).resolves.toBeUndefined();
+  });
+
   it(
     'establishes Python connections when installed with the core extension',
     { timeout: installedWithCoreTimeoutMs },

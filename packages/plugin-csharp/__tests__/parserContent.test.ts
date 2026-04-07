@@ -24,4 +24,38 @@ describe('parseContent', () => {
     expect(parsed.usings).toHaveLength(1);
     expect(parsed.usings[0].namespace).toBe('MyApp.Visible');
   });
+
+  it('skips comment-stripped blank lines and still records later namespace declarations', () => {
+    const parsed = parseContent('using MyApp.Services;\n/* hidden namespace */\nnamespace MyApp.Features;');
+
+    expect(parsed).toEqual({
+      usings: [
+        {
+          namespace: 'MyApp.Services',
+          isStatic: false,
+          isGlobal: false,
+          line: 1,
+        },
+      ],
+      namespaces: [
+        {
+          name: 'MyApp.Features',
+          isFileScoped: true,
+          line: 3,
+        },
+      ],
+    });
+  });
+
+  it('does not record namespaces for non-empty lines that are not namespace declarations', () => {
+    const parsed = parseContent('public class FeatureService {}\nnamespace MyApp.Features;');
+
+    expect(parsed.namespaces).toEqual([
+      {
+        name: 'MyApp.Features',
+        isFileScoped: true,
+        line: 2,
+      },
+    ]);
+  });
 });
