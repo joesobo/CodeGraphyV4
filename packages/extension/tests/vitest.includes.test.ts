@@ -13,13 +13,13 @@ describe('vitest includes', () => {
   });
 
   it('defaults mutation scope to extension tests', () => {
-    expect(resolveMutationVitestIncludes()).toEqual(extensionMutationIncludes);
+    expect(resolveMutationVitestIncludes({})).toEqual(extensionMutationIncludes);
   });
 
   it('switches mutation scope to workspace tests when requested', () => {
-    process.env.CODEGRAPHY_VITEST_SCOPE = 'workspace';
-
-    expect(resolveMutationVitestIncludes()).toEqual(workspaceMutationIncludes);
+    expect(resolveMutationVitestIncludes({
+      CODEGRAPHY_VITEST_SCOPE: 'workspace',
+    })).toEqual(workspaceMutationIncludes);
   });
 
   it('prefers explicit mutation include overrides', () => {
