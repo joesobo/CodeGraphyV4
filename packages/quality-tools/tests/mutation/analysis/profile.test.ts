@@ -9,6 +9,7 @@ import { resolveQualityTarget } from '../../../src/shared/resolve/target';
 describe('mutation profiles', () => {
   afterEach(() => {
     delete process.env.CODEGRAPHY_VITEST_SCOPE;
+    delete process.env.CODEGRAPHY_VITEST_INCLUDE_JSON;
     vi.resetModules();
   });
 
@@ -30,6 +31,7 @@ describe('mutation profiles', () => {
   });
 
   it('scopes extension mutation test discovery to extension tests', async () => {
+    delete process.env.CODEGRAPHY_VITEST_INCLUDE_JSON;
     vi.resetModules();
     const { default: config } = await import('../../../../extension/vitest.stryker.config');
 
@@ -41,6 +43,7 @@ describe('mutation profiles', () => {
 
   it('scopes shared mutation test discovery to workspace tests when requested', async () => {
     process.env.CODEGRAPHY_VITEST_SCOPE = 'workspace';
+    delete process.env.CODEGRAPHY_VITEST_INCLUDE_JSON;
     vi.resetModules();
     const { default: config } = await import('../../../../extension/vitest.stryker.config');
 
