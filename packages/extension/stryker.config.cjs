@@ -23,6 +23,7 @@ module.exports = {
     fileName: 'reports/mutation/mutation.html',
   },
   coverageAnalysis: 'perTest',
+  dryRunTimeoutMinutes: 15,
   incremental: true,
   incrementalFile: 'reports/mutation/extension/stryker-incremental-extension.json',
   ignorePatterns: [
