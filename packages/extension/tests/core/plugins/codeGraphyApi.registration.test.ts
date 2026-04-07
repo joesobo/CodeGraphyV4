@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { CodeGraphyAPIImpl } from '@/core/plugins/codeGraphyApi';
+import { registerPluginToolbarAction } from '@/core/plugins/codeGraphyApi.registration';
 import { EventBus } from '@/core/plugins/eventBus';
 import { DecorationManager } from '@/core/plugins/decoration/manager';
 import { ViewRegistry } from '@/core/views/registry';
@@ -119,6 +120,22 @@ describe('CodeGraphyAPIImpl registration', () => {
     expect(api.exporters).toHaveLength(0);
   });
 
+  it('registers and removes toolbar actions', () => {
+    const { api } = createTestAPI();
+    const action = {
+      id: 'test.toolbar',
+      label: 'Toolbar Action',
+      items: [{ id: 'test.toolbar.item', label: 'Toolbar Action Item', run: vi.fn() }],
+    };
+
+    const disposable = api.registerToolbarAction(action);
+    expect(api.toolbarActions).toHaveLength(1);
+    expect(api.toolbarActions[0]).toBe(action);
+
+    disposable.dispose();
+    expect(api.toolbarActions).toHaveLength(0);
+  });
+
   it('does not remove other context menu items when a disposable is disposed twice', () => {
     const { api } = createTestAPI();
 
@@ -152,5 +169,33 @@ describe('CodeGraphyAPIImpl registration', () => {
       filename: 'graph.json',
       content: '{"graph":true}',
     });
+  });
+
+  it('leaves the remaining toolbar actions untouched when the removed action is already missing', () => {
+    const otherAction = {
+      id: 'other.toolbar',
+      label: 'Other Toolbar Action',
+      items: [{ id: 'other.toolbar.item', label: 'Other Toolbar Action Item', run: vi.fn() }],
+    };
+    const action = {
+      id: 'missing.toolbar',
+      label: 'Missing Toolbar Action',
+      items: [{ id: 'missing.toolbar.item', label: 'Missing Toolbar Action Item', run: vi.fn() }],
+    };
+    const context = {
+      pluginId: 'test-plugin',
+      viewRegistry: new ViewRegistry(),
+      commandRegistrar: vi.fn(),
+      commands: [],
+      contextMenuItems: [],
+      exporters: [],
+      toolbarActions: [otherAction],
+    } as unknown as Parameters<typeof registerPluginToolbarAction>[0];
+
+    const disposable = registerPluginToolbarAction(context, action);
+    context.toolbarActions.pop();
+    disposable.dispose();
+
+    expect(context.toolbarActions).toEqual([otherAction]);
   });
 });

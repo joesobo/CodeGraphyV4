@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { createTestAPI } from './codeGraphyApi.test-utils';
 
 describe('CodeGraphyAPIImpl utilities', () => {
@@ -29,5 +29,27 @@ describe('CodeGraphyAPIImpl utilities', () => {
   it('returns the plugin ID', () => {
     const { api } = createTestAPI('my-plugin');
     expect(api.pluginId).toBe('my-plugin');
+  });
+
+  it('returns the live registered collections', () => {
+    const { api } = createTestAPI();
+    const command = { id: 'cmd', title: 'Command', action: vi.fn() };
+    const contextMenuItem = { label: 'Item', when: 'node' as const, action: vi.fn() };
+    const exporter = { id: 'exporter', label: 'Exporter', run: vi.fn() };
+    const toolbarAction = {
+      id: 'toolbar',
+      label: 'Toolbar',
+      items: [{ id: 'toolbar.item', label: 'Toolbar Item', run: vi.fn() }],
+    };
+
+    api.registerCommand(command);
+    api.registerContextMenuItem(contextMenuItem);
+    api.registerExporter(exporter);
+    api.registerToolbarAction(toolbarAction);
+
+    expect(api.commands).toEqual([command]);
+    expect(api.contextMenuItems).toEqual([contextMenuItem]);
+    expect(api.exporters).toEqual([exporter]);
+    expect(api.toolbarActions).toEqual([toolbarAction]);
   });
 });

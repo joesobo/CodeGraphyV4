@@ -5,7 +5,7 @@
  * @module core/plugins/CodeGraphyAPI
  */
 
-import { Disposable, DisposableStore, toDisposable } from './disposable';
+import { Disposable, DisposableStore } from './disposable';
 import { EventBus, EventPayloads, EventName } from './eventBus';
 import { DecorationManager, NodeDecoration, EdgeDecoration } from './decoration/manager';
 import { ViewRegistry } from '../views/registry';
@@ -13,17 +13,42 @@ import { IView } from '../views/contracts';
 import type { IGraphData, IGraphNode, IGraphEdge } from '../../shared/graph/types';
 import type { ExportRequest, IExporter, IToolbarAction } from '../../../../plugin-api/src/api';
 import type { ICommand, IContextMenuItem } from '../../../../plugin-api/src/commands';
+import { onCodeGraphyEvent, onceCodeGraphyEvent, offCodeGraphyEvent } from './codeGraphyApi.events';
+import { decoratePluginEdge, decoratePluginNode, clearPluginDecorations } from './codeGraphyApi.decorations';
 import {
-  filterEdgesByKind as facadeFilterEdgesByKind,
-  findPath as facadeFindPath,
-  getGraph as facadeGetGraph,
-  getIncomingEdges as facadeGetIncomingEdges,
-  getNode as facadeGetNode,
-  getNeighbors as facadeGetNeighbors,
-  getOutgoingEdges as facadeGetOutgoingEdges,
-  getSubgraph as facadeGetSubgraph,
-  getEdgesFor as facadeGetEdgesFor,
-} from './graphQueryFacade';
+  getGraphData,
+  getNodeData,
+  getNodeNeighbors,
+  getNodeIncomingEdges,
+  getNodeOutgoingEdges,
+  getNodeEdgesFor,
+  filterNodeEdgesByKind,
+  getNodeSubgraph,
+  findNodePath,
+} from './codeGraphyApi.graph';
+import {
+  getPluginId,
+  getCommands,
+  getContextMenuItems,
+  getExporters,
+  getToolbarActions,
+  getWorkspaceRoot,
+  logPluginMessage,
+} from './codeGraphyApi.utilities';
+import {
+  registerPluginCommand,
+  registerPluginContextMenuItem,
+  registerPluginExporter,
+  registerPluginToolbarAction,
+  registerPluginView,
+} from './codeGraphyApi.registration';
+import {
+  sendPluginWebviewMessage,
+  onPluginWebviewMessage,
+  savePluginExport,
+  deliverPluginWebviewMessage,
+} from './codeGraphyApi.webview';
+import { disposePluginApi } from './codeGraphyApi.cleanup';
 
 /** Function that provides current graph data */
 export type GraphDataProvider = () => IGraphData;
@@ -37,29 +62,32 @@ export type WebviewMessageSender = (msg: { type: string; data: unknown }) => voi
 /** Function that saves plugin-generated export content through the host. */
 export type ExportSaver = (request: ExportRequest) => Promise<void>;
 
+export interface CodeGraphyApiContext {
+  readonly pluginId: string;
+  readonly eventBus: EventBus;
+  readonly decorationManager: DecorationManager;
+  readonly viewRegistry: ViewRegistry;
+  readonly graphProvider: GraphDataProvider;
+  readonly commandRegistrar: CommandRegistrar;
+  readonly webviewSender: WebviewMessageSender;
+  readonly exportSaver: ExportSaver;
+  readonly workspaceRoot: string;
+  readonly disposables: DisposableStore;
+  readonly commands: ICommand[];
+  readonly contextMenuItems: IContextMenuItem[];
+  readonly exporters: IExporter[];
+  readonly toolbarActions: IToolbarAction[];
+  readonly webviewMessageHandlers: Set<(msg: { type: string; data: unknown }) => void>;
+  readonly logFn: (level: string, ...args: unknown[]) => void;
+}
+
 /**
  * Concrete implementation of the CodeGraphy API for a single plugin.
  * Each plugin gets its own scoped instance that tracks its disposables.
  */
 export class CodeGraphyAPIImpl {
   readonly version = '2.0.0';
-
-  private readonly _pluginId: string;
-  private readonly _eventBus: EventBus;
-  private readonly _decorationManager: DecorationManager;
-  private readonly _viewRegistry: ViewRegistry;
-  private readonly _graphProvider: GraphDataProvider;
-  private readonly _commandRegistrar: CommandRegistrar;
-  private readonly _webviewSender: WebviewMessageSender;
-  private readonly _exportSaver: ExportSaver;
-  private readonly _workspaceRoot: string;
-  private readonly _disposables = new DisposableStore();
-  private readonly _commands: ICommand[] = [];
-  private readonly _contextMenuItems: IContextMenuItem[] = [];
-  private readonly _exporters: IExporter[] = [];
-  private readonly _toolbarActions: IToolbarAction[] = [];
-  private readonly _webviewMessageHandlers = new Set<(msg: { type: string; data: unknown }) => void>();
-  private readonly _logFn: (level: string, ...args: unknown[]) => void;
+  private readonly _context: CodeGraphyApiContext;
 
   constructor(
     pluginId: string,
@@ -73,168 +101,126 @@ export class CodeGraphyAPIImpl {
     workspaceRoot: string,
     logFn: (level: string, ...args: unknown[]) => void,
   ) {
-    this._pluginId = pluginId;
-    this._eventBus = eventBus;
-    this._decorationManager = decorationManager;
-    this._viewRegistry = viewRegistry;
-    this._graphProvider = graphProvider;
-    this._commandRegistrar = commandRegistrar;
-    this._webviewSender = webviewSender;
-    this._exportSaver = exportSaver;
-    this._workspaceRoot = workspaceRoot;
-    this._logFn = logFn;
+    this._context = {
+      pluginId,
+      eventBus,
+      decorationManager,
+      viewRegistry,
+      graphProvider,
+      commandRegistrar,
+      webviewSender,
+      exportSaver,
+      workspaceRoot,
+      disposables: new DisposableStore(),
+      commands: [],
+      contextMenuItems: [],
+      exporters: [],
+      toolbarActions: [],
+      webviewMessageHandlers: new Set(),
+      logFn,
+    };
   }
 
   // ── Events ──
 
   on<E extends EventName>(event: E, handler: (payload: EventPayloads[E]) => void): Disposable {
-    const sub = this._eventBus.on(event, handler, this._pluginId);
-    return this._disposables.add(sub);
+    return this._context.disposables.add(onCodeGraphyEvent(this._context, event, handler));
   }
 
   once<E extends EventName>(event: E, handler: (payload: EventPayloads[E]) => void): Disposable {
-    const sub = this._eventBus.once(event, handler, this._pluginId);
-    return this._disposables.add(sub);
+    return this._context.disposables.add(onceCodeGraphyEvent(this._context, event, handler));
   }
 
   off<E extends EventName>(event: E, handler: (payload: EventPayloads[E]) => void): void {
-    this._eventBus.off(event, handler);
+    offCodeGraphyEvent(this._context, event, handler);
   }
 
   // ── Decorations ──
 
   decorateNode(nodeId: string, decoration: NodeDecoration): Disposable {
-    const sub = this._decorationManager.decorateNode(this._pluginId, nodeId, decoration);
-    return this._disposables.add(sub);
+    return this._context.disposables.add(decoratePluginNode(this._context, nodeId, decoration));
   }
 
   decorateEdge(edgeId: string, decoration: EdgeDecoration): Disposable {
-    const sub = this._decorationManager.decorateEdge(this._pluginId, edgeId, decoration);
-    return this._disposables.add(sub);
+    return this._context.disposables.add(decoratePluginEdge(this._context, edgeId, decoration));
   }
 
   clearDecorations(): void {
-    this._decorationManager.clearDecorations(this._pluginId);
+    clearPluginDecorations(this._context);
   }
 
   // ── Graph Queries ──
 
   getGraph(): IGraphData {
-    return facadeGetGraph(this._graphProvider);
+    return getGraphData(this._context);
   }
 
   getNode(id: string): IGraphNode | null {
-    return facadeGetNode(id, this._graphProvider);
+    return getNodeData(id, this._context);
   }
 
   getNeighbors(id: string): IGraphNode[] {
-    return facadeGetNeighbors(id, this._graphProvider);
+    return getNodeNeighbors(id, this._context);
   }
 
   getIncomingEdges(nodeId: string): IGraphEdge[] {
-    return facadeGetIncomingEdges(nodeId, this._graphProvider);
+    return getNodeIncomingEdges(nodeId, this._context);
   }
 
   getOutgoingEdges(nodeId: string): IGraphEdge[] {
-    return facadeGetOutgoingEdges(nodeId, this._graphProvider);
+    return getNodeOutgoingEdges(nodeId, this._context);
   }
 
   getEdgesFor(nodeId: string): IGraphEdge[] {
-    return facadeGetEdgesFor(nodeId, this._graphProvider);
+    return getNodeEdgesFor(nodeId, this._context);
   }
 
   filterEdgesByKind(kind: IGraphEdge['kind'] | IGraphEdge['kind'][]): IGraphEdge[] {
-    return facadeFilterEdgesByKind(kind, this._graphProvider);
+    return filterNodeEdgesByKind(kind, this._context);
   }
 
   getSubgraph(nodeId: string, hops: number): IGraphData {
-    return facadeGetSubgraph(nodeId, hops, this._graphProvider);
+    return getNodeSubgraph(nodeId, hops, this._context);
   }
 
   findPath(fromId: string, toId: string): IGraphNode[] | null {
-    return facadeFindPath(fromId, toId, this._graphProvider);
+    return findNodePath(fromId, toId, this._context);
   }
 
   // ── Registration ──
 
   registerView(view: IView): Disposable {
-    // Tag the view with the plugin ID
-    const taggedView = { ...view, pluginId: this._pluginId };
-    this._viewRegistry.register(taggedView);
-
-    return this._disposables.add(
-      toDisposable(() => {
-        this._viewRegistry.unregister(view.id);
-      })
-    );
+    return this._context.disposables.add(registerPluginView(this._context, view));
   }
 
   registerCommand(command: ICommand): Disposable {
-    this._commands.push(command);
-    const registration = this._commandRegistrar(command.id, command.action);
-
-    return this._disposables.add(
-      toDisposable(() => {
-        registration.dispose();
-        const idx = this._commands.indexOf(command);
-        if (idx !== -1) this._commands.splice(idx, 1);
-      })
-    );
+    return this._context.disposables.add(registerPluginCommand(this._context, command));
   }
 
   registerContextMenuItem(item: IContextMenuItem): Disposable {
-    this._contextMenuItems.push(item);
-
-    return this._disposables.add(
-      toDisposable(() => {
-        const idx = this._contextMenuItems.indexOf(item);
-        if (idx !== -1) this._contextMenuItems.splice(idx, 1);
-      })
-    );
+    return this._context.disposables.add(registerPluginContextMenuItem(this._context, item));
   }
 
   registerExporter(exporter: IExporter): Disposable {
-    this._exporters.push(exporter);
-
-    return this._disposables.add(
-      toDisposable(() => {
-        const idx = this._exporters.indexOf(exporter);
-        if (idx !== -1) this._exporters.splice(idx, 1);
-      }),
-    );
+    return this._context.disposables.add(registerPluginExporter(this._context, exporter));
   }
 
   registerToolbarAction(action: IToolbarAction): Disposable {
-    this._toolbarActions.push(action);
-
-    return this._disposables.add(
-      toDisposable(() => {
-        const idx = this._toolbarActions.indexOf(action);
-        if (idx !== -1) this._toolbarActions.splice(idx, 1);
-      }),
-    );
+    return this._context.disposables.add(registerPluginToolbarAction(this._context, action));
   }
 
   // ── Webview Communication (Tier 2) ──
 
   sendToWebview(msg: { type: string; data: unknown }): void {
-    this._webviewSender({
-      type: `plugin:${this._pluginId}:${msg.type}`,
-      data: msg.data,
-    });
+    sendPluginWebviewMessage(this._context, msg);
   }
 
   onWebviewMessage(handler: (msg: { type: string; data: unknown }) => void): Disposable {
-    this._webviewMessageHandlers.add(handler);
-    return this._disposables.add(
-      toDisposable(() => {
-        this._webviewMessageHandlers.delete(handler);
-      })
-    );
+    return this._context.disposables.add(onPluginWebviewMessage(this._context, handler));
   }
 
   saveExport(request: ExportRequest): Promise<void> {
-    return this._exportSaver(request);
+    return savePluginExport(this._context, request);
   }
 
   /**
@@ -242,58 +228,45 @@ export class CodeGraphyAPIImpl {
    * Called by the GraphViewProvider when it receives a plugin-targeted message.
    */
   deliverWebviewMessage(msg: { type: string; data: unknown }): void {
-    for (const handler of this._webviewMessageHandlers) {
-      try {
-        handler(msg);
-      } catch (e) {
-        console.error(`[CodeGraphy] Error in webview message handler for plugin ${this._pluginId}:`, e);
-      }
-    }
+    deliverPluginWebviewMessage(this._context, msg);
   }
 
   // ── Utilities ──
 
   getWorkspaceRoot(): string {
-    return this._workspaceRoot;
+    return getWorkspaceRoot(this._context);
   }
 
   log(level: 'info' | 'warn' | 'error', ...args: unknown[]): void {
-    this._logFn(level, `[${this._pluginId}]`, ...args);
+    logPluginMessage(this._context, level, ...args);
   }
 
   // ── Accessors for the host ──
 
   get pluginId(): string {
-    return this._pluginId;
+    return getPluginId(this._context);
   }
 
   get commands(): readonly ICommand[] {
-    return this._commands;
+    return getCommands(this._context);
   }
 
   get contextMenuItems(): readonly IContextMenuItem[] {
-    return this._contextMenuItems;
+    return getContextMenuItems(this._context);
   }
 
   get exporters(): readonly IExporter[] {
-    return this._exporters;
+    return getExporters(this._context);
   }
 
   get toolbarActions(): readonly IToolbarAction[] {
-    return this._toolbarActions;
+    return getToolbarActions(this._context);
   }
 
   /**
    * Dispose all resources registered by this plugin.
    */
   disposeAll(): void {
-    this._eventBus.removeAllForPlugin(this._pluginId);
-    this._decorationManager.clearDecorations(this._pluginId);
-    this._disposables.dispose();
-    this._commands.length = 0;
-    this._contextMenuItems.length = 0;
-    this._exporters.length = 0;
-    this._toolbarActions.length = 0;
-    this._webviewMessageHandlers.clear();
+    disposePluginApi(this._context);
   }
 }
