@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
@@ -13,12 +12,7 @@ import type { IUndoableAction } from '../../../undoManager';
 import { ResetSettingsAction } from '../../../actions/resetSettings';
 import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/reader';
 import { captureGraphViewSettingsSnapshot } from '../../settings/snapshotMessages';
-import { createGraphViewProviderMessagePluginContext } from './pluginContext';
-import { createGraphViewProviderMessagePrimaryActions } from './primaryActions';
-import { createGraphViewProviderMessageReadContext } from './readContext';
-import { createGraphViewProviderMessageSettingsContext } from './settingsContext';
-import { dispatchGraphViewPluginMessage } from '../dispatch/plugin';
-import { dispatchGraphViewPrimaryMessage } from '../dispatch/primary';
+import { createGraphViewProviderMessageContext } from './context';
 import { setGraphViewWebviewMessageListener } from '../messages/listener';
 
 interface GraphViewConfigurationLike {
@@ -143,7 +137,7 @@ export interface GraphViewProviderMessageListenerSource {
   _sendPluginWebviewInjections(): void;
 }
 
-const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {
+export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {
   workspace: vscode.workspace,
   window: vscode.window,
   getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
@@ -177,41 +171,8 @@ export function setGraphViewProviderMessageListener(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies = DEFAULT_DEPENDENCIES,
 ): void {
-  setGraphViewWebviewMessageListener(webview, {
-    ...createGraphViewProviderMessageReadContext(source, dependencies),
-    ...createGraphViewProviderMessagePrimaryActions(source, dependencies),
-    ...createGraphViewProviderMessageSettingsContext(source, dependencies),
-    ...createGraphViewProviderMessagePluginContext(source, dependencies),
-  });
-}
-
-export async function dispatchGraphViewProviderMessage(
-  message: WebviewToExtensionMessage,
-  source: GraphViewProviderMessageListenerSource,
-  dependencies: GraphViewProviderMessageListenerDependencies = DEFAULT_DEPENDENCIES,
-): Promise<void> {
-  const context = {
-    ...createGraphViewProviderMessageReadContext(source, dependencies),
-    ...createGraphViewProviderMessagePrimaryActions(source, dependencies),
-    ...createGraphViewProviderMessageSettingsContext(source, dependencies),
-    ...createGraphViewProviderMessagePluginContext(source, dependencies),
-  };
-
-  const primaryResult = await dispatchGraphViewPrimaryMessage(message, context);
-  if (primaryResult.handled) {
-    if (primaryResult.userGroups !== undefined) {
-      context.setUserGroups(primaryResult.userGroups);
-      context.recomputeGroups();
-      context.sendGroupsUpdated();
-    }
-    if (primaryResult.filterPatterns !== undefined) {
-      context.setFilterPatterns(primaryResult.filterPatterns);
-    }
-    return;
-  }
-
-  const pluginResult = await dispatchGraphViewPluginMessage(message, context);
-  if (pluginResult.handled && pluginResult.readyNotified !== undefined) {
-    context.setWebviewReadyNotified(pluginResult.readyNotified);
-  }
+  setGraphViewWebviewMessageListener(
+    webview,
+    createGraphViewProviderMessageContext(source, dependencies),
+  );
 }
