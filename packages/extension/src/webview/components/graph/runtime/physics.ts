@@ -56,20 +56,6 @@ export function applyPhysicsSettings(
 	graph.d3ReheatSimulation();
 }
 
-export function syncPhysicsAnimation(
-	instance: GraphPhysicsInstance,
-	paused: boolean,
-): void {
-	const graph = instance as GraphPhysicsControls;
-	if (paused) {
-		graph.pauseAnimation?.();
-		return;
-	}
-
-	graph.resumeAnimation?.();
-	graph.d3ReheatSimulation();
-}
-
 export function initPhysics(
 	instance: GraphPhysicsInstance,
 	settings: IPhysicsSettings,
@@ -84,3 +70,5 @@ export function initPhysics(
 	);
 	graph.d3ReheatSimulation();
 }
+
+export { syncPhysicsAnimation } from './use/graph/physics';

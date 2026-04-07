@@ -1,13 +1,11 @@
 import type { IGraphData } from '../../../shared/graph/types';
 import { filterDanglingDiffGraphEdges } from '../../gitHistory/diff/snapshot';
 
-const PACKAGE_NODE_VIEW_IDS = new Set(['codegraphy.typescript.focused-imports']);
-
 export function filterSyntheticPackageNodes(
   graphData: IGraphData,
   activeViewId: string,
 ): IGraphData {
-  if (PACKAGE_NODE_VIEW_IDS.has(activeViewId)) {
+  if (activeViewId === 'codegraphy.typescript.focused-imports') {
     return graphData;
   }
 

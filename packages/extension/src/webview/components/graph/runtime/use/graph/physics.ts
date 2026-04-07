@@ -8,6 +8,12 @@ import { usePhysicsRuntimeLayoutKey, usePhysicsRuntimeLayoutReset } from './layo
 import { usePhysicsRuntimePause } from './pause';
 import { usePhysicsRuntimeUpdates } from './updates';
 
+interface GraphPhysicsAnimationControls {
+	d3ReheatSimulation(): void;
+	pauseAnimation?(): void;
+	resumeAnimation?(): void;
+}
+
 interface UsePhysicsRuntimeProps {
   fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
   fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
@@ -79,4 +85,17 @@ export function usePhysicsRuntime({
     physicsSettingsRef,
     previousLayoutKeyRef,
   });
+}
+
+export function syncPhysicsAnimation(
+	instance: GraphPhysicsAnimationControls,
+	physicsPaused: boolean,
+): void {
+	if (physicsPaused) {
+		instance.pauseAnimation?.();
+	} else {
+		instance.resumeAnimation?.();
+	}
+
+	instance.d3ReheatSimulation();
 }

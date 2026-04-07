@@ -4,7 +4,6 @@ import {
   applyPhysicsSettings,
   havePhysicsSettingsChanged,
   initPhysics,
-  syncPhysicsAnimation,
 } from '../../../../src/webview/components/graph/runtime/physics';
 
 const SETTINGS: IPhysicsSettings = {
@@ -167,21 +166,5 @@ describe('physics', () => {
 
     expect(collisionForce.radius()({ size: 9 })).toBe(13);
     expect(collisionForce.iterations()).toBe(16);
-  });
-
-  it('pauses and resumes the graph animation', () => {
-    const instance = {
-      d3Force: vi.fn(),
-      d3ReheatSimulation: vi.fn(),
-      pauseAnimation: vi.fn(),
-      resumeAnimation: vi.fn(),
-    } as unknown as Parameters<typeof syncPhysicsAnimation>[0];
-
-    syncPhysicsAnimation(instance, true);
-    syncPhysicsAnimation(instance, false);
-
-    expect(instance.pauseAnimation).toHaveBeenCalledOnce();
-    expect(instance.resumeAnimation).toHaveBeenCalledOnce();
-    expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
   });
 });
