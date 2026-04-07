@@ -89,6 +89,30 @@ describe('graph/viewHandlers', () => {
     expect(dependencies.fg3dRef.current?.zoomToFit).not.toHaveBeenCalled();
   });
 
+  it('tolerates a missing 2d graph ref when fitting the view with measurable bounds', () => {
+    const dependencies = createInteractionDependencies({
+      fg2dRef: { current: undefined },
+    });
+    Object.defineProperty(dependencies.containerRef.current, 'clientWidth', {
+      configurable: true,
+      value: 400,
+    });
+    Object.defineProperty(dependencies.containerRef.current, 'clientHeight', {
+      configurable: true,
+      value: 300,
+    });
+
+    expect(() => createViewHandlers(dependencies).fitView()).not.toThrow();
+  });
+
+  it('tolerates a missing 2d graph ref when falling back to zoom-to-fit', () => {
+    const dependencies = createInteractionDependencies({
+      fg2dRef: { current: undefined },
+    });
+
+    expect(() => createViewHandlers(dependencies).fitView()).not.toThrow();
+  });
+
   it('fits the 3d graph view', () => {
     const dependencies = createInteractionDependencies({
       graphMode: '3d',
