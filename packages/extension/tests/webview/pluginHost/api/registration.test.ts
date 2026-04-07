@@ -7,6 +7,7 @@ import {
   registerOverlay,
   registerTooltipProvider,
   getOrCreateContainer,
+  syncSlotHostVisibility,
 } from '../../../../src/webview/pluginHost/api/registration';
 import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../src/webview/pluginHost/api/contracts';
 
@@ -198,5 +199,17 @@ describe('slot container registration', () => {
     detachSlotHost('toolbar', slotHosts);
 
     expect(slotHosts.has('toolbar')).toBe(false);
+  });
+
+  it('syncs slot host visibility through the public registration facade', () => {
+    const host = document.createElement('div');
+    const slotHosts = new Map<GraphPluginSlot, HTMLDivElement>([['toolbar', host]]);
+
+    syncSlotHostVisibility('toolbar', slotHosts);
+    expect(host.style.display).toBe('none');
+
+    host.appendChild(document.createElement('div'));
+    syncSlotHostVisibility('toolbar', slotHosts);
+    expect(host.style.display).toBe('');
   });
 });
