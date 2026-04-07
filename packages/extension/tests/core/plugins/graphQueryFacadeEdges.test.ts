@@ -28,6 +28,14 @@ describe('core/plugins/graphQueryFacadeEdges', () => {
     expect(getEdgesFor('b.ts', getter).map((edge) => edge.id)).toEqual(['a->b', 'b->c']);
   });
 
+  it('returns empty arrays when the node is missing', () => {
+    const getter = vi.fn().mockReturnValue(sampleGraph);
+
+    expect(getIncomingEdges('missing', getter)).toEqual([]);
+    expect(getOutgoingEdges('missing', getter)).toEqual([]);
+    expect(getEdgesFor('missing', getter)).toEqual([]);
+  });
+
   it('filters edges by one or more kinds', () => {
     const getter = vi.fn().mockReturnValue(sampleGraph);
 
