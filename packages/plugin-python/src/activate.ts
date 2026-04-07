@@ -12,7 +12,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   if (!extension) return;
 
   const codeGraphy = extension.isActive ? extension.exports : await extension.activate();
-  codeGraphy?.registerPlugin(createPythonPlugin(), {
+  codeGraphy?.registerPlugin?.(createPythonPlugin(), {
     extensionUri: context.extensionUri,
   });
 }

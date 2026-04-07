@@ -56,6 +56,22 @@ describe('resolveScopedVitestIncludes', () => {
     expect(includes).toContain('packages/plugin-typescript/__tests__/**/focusedImports.filter.test.ts');
   });
 
+  it('includes shared detector tests for source rule files', () => {
+    const includes = resolveScopedVitestIncludes(
+      target({
+        absolutePath: '/repo/packages/plugin-python/src/sources/from-import-relative.ts',
+        kind: 'file',
+        packageName: 'plugin-python',
+        packageRelativePath: 'src/sources/from-import-relative.ts',
+        packageRoot: '/repo/packages/plugin-python',
+        relativePath: 'packages/plugin-python/src/sources/from-import-relative.ts',
+      }),
+    );
+
+    expect(includes).toContain('packages/plugin-python/__tests__/**/ruleDetectors.test.ts');
+    expect(includes).toContain('packages/plugin-python/__tests__/**/*Detectors.test.ts');
+  });
+
   it('skips broad basename fallback patterns for generic file names', () => {
     const includes = resolveScopedVitestIncludes(
       target({
