@@ -11,7 +11,7 @@ import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
 import { ResetSettingsAction } from '../../../actions/resetSettings';
 import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/reader';
-import { captureGraphViewSettingsSnapshot } from '../../settings/snapshotMessages';
+import { captureGraphViewSettingsSnapshot } from '../../settings/snapshot';
 import { createGraphViewProviderMessageContext } from './context';
 import { setGraphViewWebviewMessageListener } from '../messages/listener';
 

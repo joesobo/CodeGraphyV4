@@ -3,22 +3,13 @@ import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
 } from './listener';
-
-type GraphViewInteractionPluginApi = {
-  deliverWebviewMessage(message: { type: string; data: unknown }): void;
-};
-
-type GraphViewContextMenuPluginApi = {
-  contextMenuItems: ReadonlyArray<{ action(target: unknown): Promise<void> | void }>;
-};
-
-type GraphViewExporterPluginApi = {
-  exporters: ReadonlyArray<{ run(): Promise<void> | void }>;
-};
-
-type GraphViewToolbarActionPluginApi = {
-  toolbarActions: ReadonlyArray<{ items: ReadonlyArray<{ run(): Promise<void> | void }> }>;
-};
+import { updateHiddenPluginGroups } from './hiddenPluginGroups';
+import { createGraphViewProviderPluginApis } from './pluginApis';
+import {
+  setPluginFilterPatterns,
+  setPluginUserGroups,
+  setPluginWebviewReadyNotified,
+} from './pluginState';
 
 type GraphViewProviderPluginContext = Pick<
   GraphViewMessageListenerContext,
@@ -57,6 +48,8 @@ export function createGraphViewProviderMessagePluginContext(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderPluginContext {
+  const pluginApis = createGraphViewProviderPluginApis(source);
+
   return {
     getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
     hasWorkspace: () => (dependencies.workspace.workspaceFolders?.length ?? 0) > 0,
@@ -79,47 +72,21 @@ export function createGraphViewProviderMessagePluginContext(
       payload: { filePath: source._viewContext.focusedFile },
     }),
     waitForFirstWorkspaceReady: () => source._firstWorkspaceReadyPromise,
-    notifyWebviewReady: () => source._analyzer?.registry?.notifyWebviewReady(),
-    getInteractionPluginApi: pluginId =>
-      source._analyzer?.registry?.getPluginAPI(pluginId) as
-        | GraphViewInteractionPluginApi
-        | undefined,
-    getContextMenuPluginApi: pluginId =>
-      source._analyzer?.registry?.getPluginAPI(pluginId) as
-        | GraphViewContextMenuPluginApi
-        | undefined,
-    getExporterPluginApi: pluginId =>
-      source._analyzer?.registry?.getPluginAPI(pluginId) as
-        | GraphViewExporterPluginApi
-        | undefined,
-    getToolbarActionPluginApi: (pluginId: string) =>
-      source._analyzer?.registry?.getPluginAPI(pluginId) as
-        | GraphViewToolbarActionPluginApi
-        | undefined,
+    notifyWebviewReady: pluginApis.notifyWebviewReady,
+    getInteractionPluginApi: pluginApis.getInteractionPluginApi,
+    getContextMenuPluginApi: pluginApis.getContextMenuPluginApi,
+    getExporterPluginApi: pluginApis.getExporterPluginApi,
+    getToolbarActionPluginApi: pluginApis.getToolbarActionPluginApi,
     emitEvent: (event, payload) => {
       source._eventBus.emit(event, payload);
     },
     logError: (label, error) => {
       console.error(label, error);
     },
-    updateHiddenPluginGroups: groupIds => {
-      const target = dependencies.getConfigTarget(dependencies.workspace.workspaceFolders);
-      return Promise.resolve(
-        dependencies.workspace.getConfiguration('codegraphy').update(
-          'hiddenPluginGroups',
-          groupIds,
-          target,
-        ),
-      );
-    },
-    setUserGroups: groups => {
-      source._userGroups = groups;
-    },
-    setFilterPatterns: patterns => {
-      source._filterPatterns = patterns;
-    },
-    setWebviewReadyNotified: readyNotified => {
-      source._webviewReadyNotified = readyNotified;
-    },
+    updateHiddenPluginGroups: groupIds => updateHiddenPluginGroups(dependencies, groupIds),
+    setUserGroups: groups => setPluginUserGroups(source, groups),
+    setFilterPatterns: patterns => setPluginFilterPatterns(source, patterns),
+    setWebviewReadyNotified: readyNotified =>
+      setPluginWebviewReadyNotified(source, readyNotified),
   };
 }

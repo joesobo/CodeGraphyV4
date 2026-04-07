@@ -5,5 +5,6 @@ export interface NavigatorLike {
 export function detectMacPlatform(
   navigatorLike: NavigatorLike | undefined,
 ): boolean {
-  return /Mac|iPhone|iPad|iPod/.test(navigatorLike?.platform ?? '');
+  return typeof navigatorLike?.platform === 'string'
+    && /Mac|iPhone|iPad|iPod/.test(navigatorLike.platform);
 }

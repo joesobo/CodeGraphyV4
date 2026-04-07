@@ -8,7 +8,8 @@ vi.mock('../../../../src/webview/components/graph/rendering/shapes/draw2d', () =
 
 import { drawShape } from '../../../../src/webview/components/graph/rendering/shapes/draw2d';
 import type { FGNode } from '../../../../src/webview/components/graph/model/build';
-import { renderNodeBody, renderNodeLabel } from '../../../../src/webview/components/graph/rendering/node/body';
+import { renderNodeBody } from '../../../../src/webview/components/graph/rendering/node/body';
+import { renderNodeLabel } from '../../../../src/webview/components/graph/rendering/node/label';
 
 interface ContextOperation {
   fillStyle: string;

@@ -13,6 +13,10 @@ describe('directIncludes', () => {
         relativeTestDirectory: 'extension/'
       })
     ).toEqual([
+      'packages/extension/tests/extension/**/*.test.ts',
+      'packages/extension/tests/extension/**/*.test.tsx',
+      'packages/extension/tests/extension/**/*.mutations.test.ts',
+      'packages/extension/tests/extension/**/*.mutations.test.tsx',
       'packages/extension/tests/extension/graphViewProvider.test.ts',
       'packages/extension/tests/extension/graphViewProvider.test.tsx',
       'packages/extension/tests/extension/graphViewProvider.mutations.test.ts',
