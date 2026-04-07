@@ -4,6 +4,7 @@ import type { CSharpRuleContext } from '../src/parserTypes';
 
 describe('type-usage rule', () => {
   it('creates one connection per resolved intra-namespace type', () => {
+    const usedTypes = new Set<string>(['Worker', 'Config', 'Entity']);
     const resolveIntraNamespace = vi.fn((namespace: string) => {
       if (namespace === 'MyApp.Services') {
         return ['/workspace/src/Services/Worker.cs', '/workspace/src/Services/Config.cs'];
@@ -17,7 +18,7 @@ describe('type-usage rule', () => {
         { name: 'MyApp.Services', isFileScoped: true, line: 1 },
         { name: 'MyApp.Domain', isFileScoped: true, line: 2 },
       ],
-      usedTypes: new Set<string>(['Worker', 'Config', 'Entity']),
+      usedTypes,
       resolver: {
         resolveIntraNamespace,
         resolveWithTypes: vi.fn(),
@@ -53,6 +54,18 @@ describe('type-usage rule', () => {
     ]);
 
     expect(resolveIntraNamespace).toHaveBeenCalledTimes(2);
+    expect(resolveIntraNamespace).toHaveBeenNthCalledWith(
+      1,
+      'MyApp.Services',
+      '/workspace/src/Program.cs',
+      usedTypes,
+    );
+    expect(resolveIntraNamespace).toHaveBeenNthCalledWith(
+      2,
+      'MyApp.Domain',
+      '/workspace/src/Program.cs',
+      usedTypes,
+    );
   });
 
   it('returns empty results when no namespace declarations exist', () => {
@@ -69,6 +82,38 @@ describe('type-usage rule', () => {
     } as unknown as CSharpRuleContext;
 
     expect(detect('', '/workspace/src/Program.cs', ctx)).toEqual([]);
+  });
+
+  it('skips namespaces that resolve to no connections', () => {
+    const resolveIntraNamespace = vi
+      .fn()
+      .mockReturnValueOnce([])
+      .mockReturnValueOnce(['/workspace/src/Domain/Entity.cs']);
+
+    const ctx = {
+      usings: [],
+      namespaces: [
+        { name: 'MyApp.Services', isFileScoped: true, line: 1 },
+        { name: 'MyApp.Domain', isFileScoped: true, line: 2 },
+      ],
+      usedTypes: new Set<string>(['Entity']),
+      resolver: {
+        resolveIntraNamespace,
+        resolveWithTypes: vi.fn(),
+        resolve: vi.fn(),
+        registerNamespace: vi.fn(),
+      },
+    } as unknown as CSharpRuleContext;
+
+    expect(detect('', '/workspace/src/Program.cs', ctx)).toEqual([
+      {
+        kind: 'reference',
+        specifier: '[same namespace: MyApp.Domain]',
+        resolvedPath: '/workspace/src/Domain/Entity.cs',
+        type: 'static',
+        sourceId: 'type-usage',
+      },
+    ]);
   });
 
   it('exports a rule descriptor with expected id', () => {

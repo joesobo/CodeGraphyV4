@@ -39,5 +39,10 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
   return connections;
 }
 
-const rule: IConnectionDetector<GDScriptRuleContext> = { id: 'preload', detect };
+class PreloadRule implements IConnectionDetector<GDScriptRuleContext> {
+	readonly id = 'preload';
+	readonly detect = detect;
+}
+
+const rule = new PreloadRule();
 export default rule;

@@ -1,22 +1,27 @@
 import { collectTypesFromPattern } from './parserUsedTypeCollector';
 
-const COMMON_STATIC_NON_PROJECT_TYPES = new Set([
-  'String',
-  'Console',
-  'Math',
-  'Convert',
-  'Guid',
-  'DateTime',
-  'TimeSpan',
-  'Task',
-  'File',
-  'Path',
-  'Directory',
-  'Environment',
-]);
+function isCommonStaticNonProjectType(typeName: string): boolean {
+  switch (typeName) {
+    case 'String':
+    case 'Console':
+    case 'Math':
+    case 'Convert':
+    case 'Guid':
+    case 'DateTime':
+    case 'TimeSpan':
+    case 'Task':
+    case 'File':
+    case 'Path':
+    case 'Directory':
+    case 'Environment':
+      return true;
+    default:
+      return false;
+  }
+}
 
 export function collectStaticAccessTypes(content: string, typeSet: Set<string>): void {
   collectTypesFromPattern(content, /\b([A-Z][A-Za-z0-9_]*)\s*\.\s*[A-Za-z_]/g, typeSet, typeName => {
-    return !COMMON_STATIC_NON_PROJECT_TYPES.has(typeName);
+    return !isCommonStaticNonProjectType(typeName);
   });
 }

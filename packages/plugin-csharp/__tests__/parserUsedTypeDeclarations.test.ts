@@ -2,6 +2,19 @@ import { describe, it, expect } from 'vitest';
 import { collectDeclarationTypes } from '../src/parserUsedTypeDeclarations';
 
 describe('collectDeclarationTypes', () => {
+  const commonFrameworkTypes = [
+    'String',
+    'Object',
+    'Boolean',
+    'Int32',
+    'Int64',
+    'Double',
+    'Decimal',
+    'Byte',
+    'Char',
+    'Void',
+  ] as const;
+
   it('collects project type declarations', () => {
     const types = new Set<string>();
 
@@ -10,24 +23,10 @@ describe('collectDeclarationTypes', () => {
     expect(types).toEqual(new Set(['UserService']));
   });
 
-  it('ignores common framework type declarations', () => {
+  it.each(commonFrameworkTypes)('ignores %s declarations', frameworkType => {
     const types = new Set<string>();
 
-    collectDeclarationTypes(
-      [
-        'String name = "x";',
-        'Object payload = value;',
-        'Boolean enabled = true;',
-        'Int32 count = 1;',
-        'Int64 total = 2;',
-        'Double ratio = 0.5;',
-        'Decimal amount = 3;',
-        'Byte flags = 4;',
-        'Char initial = c;',
-        'Void result = value;',
-      ].join(' '),
-      types,
-    );
+    collectDeclarationTypes(`${frameworkType} value = other;`, types);
 
     expect(types.size).toBe(0);
   });

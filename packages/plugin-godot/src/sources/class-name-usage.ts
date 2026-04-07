@@ -13,6 +13,8 @@ import { detectUsagesInLine } from './class-name-detector';
 
 export { detectUsagesInLine } from './class-name-detector';
 
+const SOURCE_ID = 'class-name-usage';
+
 /**
  * Detects class_name usage patterns in GDScript content.
  * Only identifiers starting with uppercase are considered, matching GDScript convention.
@@ -25,7 +27,7 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
 	for (let i = 0; i < lines.length; i++) {
 		const lineWithoutComment = lines[i].split('#')[0];
 
-		const usages = detectUsagesInLine(lineWithoutComment, i + 1);
+		const usages = detectUsagesInLine(lineWithoutComment);
 		for (const ref of usages) {
 			const resolved = ctx.resolver.resolve(ref.resPath, ctx.relativeFilePath);
 			if (resolved) {
@@ -34,14 +36,19 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
 					specifier: ref.resPath,
 					resolvedPath: normalizePath(path.join(ctx.workspaceRoot, resolved)),
 					type: 'static',
-					sourceId: 'class-name-usage',
+					sourceId: SOURCE_ID,
 				});
 			}
 		}
 	}
 
-	return connections;
+  return connections;
 }
 
-const rule: IConnectionDetector<GDScriptRuleContext> = { id: 'class-name-usage', detect };
+class ClassNameUsageRule implements IConnectionDetector<GDScriptRuleContext> {
+	readonly id = SOURCE_ID;
+	readonly detect = detect;
+}
+
+const rule = new ClassNameUsageRule();
 export default rule;

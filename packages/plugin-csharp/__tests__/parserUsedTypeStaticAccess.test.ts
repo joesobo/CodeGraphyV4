@@ -2,6 +2,21 @@ import { describe, expect, it } from 'vitest';
 import { collectStaticAccessTypes } from '../src/parserUsedTypeStaticAccess';
 
 describe('collectStaticAccessTypes', () => {
+  const commonFrameworkTypes = [
+    'String',
+    'Console',
+    'Math',
+    'Convert',
+    'Guid',
+    'DateTime',
+    'TimeSpan',
+    'Task',
+    'File',
+    'Path',
+    'Directory',
+    'Environment',
+  ] as const;
+
   it('collects project static accesses across zero-space and spaced dot forms', () => {
     const types = new Set<string>();
 
@@ -20,26 +35,10 @@ describe('collectStaticAccessTypes', () => {
     );
   });
 
-  it('ignores common framework static accesses', () => {
+  it.each(commonFrameworkTypes)('ignores %s static access', frameworkType => {
     const types = new Set<string>();
 
-    collectStaticAccessTypes(
-      [
-        'String.IsNullOrEmpty(value);',
-        'Console.WriteLine(value);',
-        'Math.Abs(delta);',
-        'Convert.ToInt32(raw);',
-        'Guid.NewGuid();',
-        'DateTime.UtcNow;',
-        'TimeSpan.FromSeconds(1);',
-        'Task.CompletedTask;',
-        'File.ReadAllText(path);',
-        'Path.Combine(root, leaf);',
-        'Directory.Exists(path);',
-        'Environment.GetEnvironmentVariable(name);',
-      ].join(' '),
-      types,
-    );
+    collectStaticAccessTypes(`${frameworkType}.Member;`, types);
 
     expect(types.size).toBe(0);
   });
