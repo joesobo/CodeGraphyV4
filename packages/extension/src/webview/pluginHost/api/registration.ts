@@ -5,17 +5,23 @@
 
 import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn, WebviewDisposable } from './contracts';
 import type { GraphPluginSlot } from './contracts';
-
-type SlotContainerMap = Map<string, Map<GraphPluginSlot, HTMLDivElement>>;
-type SlotHostMap = Map<GraphPluginSlot, HTMLDivElement>;
+import {
+  attachSlotHost as attachSlotHostImpl,
+  detachSlotHost as detachSlotHostImpl,
+  getOrCreateContainer as getOrCreateContainerImpl,
+  getOrCreateSlotContainer as getOrCreateSlotContainerImpl,
+  type SlotContainerMap,
+  type SlotHostMap,
+} from './containers';
+import {
+  registerNodeRenderer as registerNodeRendererImpl,
+  registerOverlay as registerOverlayImpl,
+  registerTooltipProvider as registerTooltipProviderImpl,
+} from './renderers';
+import { syncSlotHostVisibility as syncSlotHostVisibilityImpl } from './visibility';
 
 export function syncSlotHostVisibility(slot: GraphPluginSlot, slotHosts: SlotHostMap): void {
-  const host = slotHosts.get(slot);
-  if (!host) {
-    return;
-  }
-
-  host.style.display = host.childElementCount > 0 ? '' : 'none';
+  syncSlotHostVisibilityImpl(slot, slotHosts);
 }
 
 export function registerNodeRenderer(
@@ -24,12 +30,7 @@ export function registerNodeRenderer(
   fn: NodeRenderFn,
   nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>,
 ): WebviewDisposable {
-  nodeRenderers.set(type, { pluginId, fn });
-  return {
-    dispose: () => {
-      if (nodeRenderers.get(type)?.pluginId === pluginId) nodeRenderers.delete(type);
-    },
-  };
+  return registerNodeRendererImpl(pluginId, type, fn, nodeRenderers);
 }
 
 export function registerOverlay(
@@ -38,9 +39,7 @@ export function registerOverlay(
   fn: OverlayRenderFn,
   overlays: Map<string, { pluginId: string; fn: OverlayRenderFn }>,
 ): WebviewDisposable {
-  const qualifiedSourceId = `${pluginId}:${id}`;
-  overlays.set(qualifiedSourceId, { pluginId, fn });
-  return { dispose: () => overlays.delete(qualifiedSourceId) };
+  return registerOverlayImpl(pluginId, id, fn, overlays);
 }
 
 export function registerTooltipProvider(
@@ -48,29 +47,14 @@ export function registerTooltipProvider(
   fn: TooltipProviderFn,
   tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }>,
 ): WebviewDisposable {
-  const entry = { pluginId, fn };
-  tooltipProviders.push(entry);
-  return {
-    dispose: () => {
-      const idx = tooltipProviders.indexOf(entry);
-      if (idx !== -1) tooltipProviders.splice(idx, 1);
-    },
-  };
+  return registerTooltipProviderImpl(pluginId, fn, tooltipProviders);
 }
 
 export function getOrCreateContainer(
   pluginId: string,
   containers: Map<string, HTMLDivElement>,
 ): HTMLDivElement {
-  let container = containers.get(pluginId);
-  if (!container) {
-    container = document.createElement('div');
-    container.setAttribute('data-cg-plugin', pluginId);
-    container.style.display = 'none';
-    document.body.appendChild(container);
-    containers.set(pluginId, container);
-  }
-  return container;
+  return getOrCreateContainerImpl(pluginId, containers);
 }
 
 export function getOrCreateSlotContainer(
@@ -79,29 +63,7 @@ export function getOrCreateSlotContainer(
   slotContainers: SlotContainerMap,
   slotHosts: SlotHostMap,
 ): HTMLDivElement {
-  let pluginSlots = slotContainers.get(pluginId);
-  if (!pluginSlots) {
-    pluginSlots = new Map();
-    slotContainers.set(pluginId, pluginSlots);
-  }
-
-  let container = pluginSlots.get(slot);
-  if (!container) {
-    container = document.createElement('div');
-    container.setAttribute('data-cg-plugin', pluginId);
-    container.setAttribute('data-cg-slot', slot);
-    const host = slotHosts.get(slot);
-    if (host) {
-      host.appendChild(container);
-      syncSlotHostVisibility(slot, slotHosts);
-    } else {
-      container.style.display = 'none';
-      document.body.appendChild(container);
-    }
-    pluginSlots.set(slot, container);
-  }
-
-  return container;
+  return getOrCreateSlotContainerImpl(pluginId, slot, slotContainers, slotHosts);
 }
 
 export function attachSlotHost(
@@ -110,25 +72,12 @@ export function attachSlotHost(
   slotContainers: SlotContainerMap,
   slotHosts: SlotHostMap,
 ): void {
-  slotHosts.set(slot, host);
-  host.setAttribute('data-cg-slot-host', slot);
-
-  for (const pluginSlots of slotContainers.values()) {
-    const container = pluginSlots.get(slot);
-    if (!container) {
-      continue;
-    }
-
-    container.style.display = '';
-    host.appendChild(container);
-  }
-
-  syncSlotHostVisibility(slot, slotHosts);
+  attachSlotHostImpl(slot, host, slotContainers, slotHosts);
 }
 
 export function detachSlotHost(
   slot: GraphPluginSlot,
   slotHosts: SlotHostMap,
 ): void {
-  slotHosts.delete(slot);
+  detachSlotHostImpl(slot, slotHosts);
 }
