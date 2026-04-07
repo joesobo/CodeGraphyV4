@@ -22,9 +22,11 @@ import {
   getNode as getNodeDirect,
 } from '../../../src/core/plugins/graphQueryFacadeNodes';
 import {
-  findPath as findPathDirect,
-  getSubgraph as getSubgraphDirect,
-} from '../../../src/core/plugins/graphQueryFacadeTraversal';
+  findNodePath as findPathDirect,
+} from '../../../src/core/plugins/graphQueryFacadePath';
+import {
+  buildSubgraph as getSubgraphDirectFromSubgraph,
+} from '../../../src/core/plugins/graphQueryFacadeSubgraph';
 import type { IGraphData } from '../../../src/shared/graph/types';
 
 const sampleGraph: IGraphData = {
@@ -48,7 +50,7 @@ describe('graphQueryFacade', () => {
     expect(getIncomingEdges).toBe(getIncomingEdgesDirect);
     expect(getOutgoingEdges).toBe(getOutgoingEdgesDirect);
     expect(filterEdgesByKind).toBe(filterEdgesByKindDirect);
-    expect(getSubgraph).toBe(getSubgraphDirect);
+    expect(getSubgraph).toBe(getSubgraphDirectFromSubgraph);
     expect(findPath).toBe(findPathDirect);
   });
 

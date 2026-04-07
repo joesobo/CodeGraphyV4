@@ -1,7 +1,7 @@
 export function getGraphNavigator(): Navigator | undefined {
-  return typeof navigator === 'undefined' ? undefined : navigator;
+  return globalThis.navigator;
 }
 
 export function getGraphWindow(): Window | undefined {
-  return typeof window === 'undefined' ? undefined : window;
+  return globalThis.window;
 }

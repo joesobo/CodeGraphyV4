@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../../../../src/shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../../src/shared/protocol/extensionToWebview';
 import {
-  invalidateGraphViewProviderTimelineCache,
   sendGraphViewProviderCachedTimeline,
 } from '../../../../../src/extension/graphView/provider/timeline/cache';
+import { invalidateGraphViewProviderTimelineCache } from '../../../../../src/extension/graphView/provider/timeline/invalidate';
 
 describe('graphView/provider/timeline cache', () => {
   beforeEach(() => {

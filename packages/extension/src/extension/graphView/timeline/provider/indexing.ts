@@ -1,13 +1,15 @@
 import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/defaults';
 import type { ExtensionContext } from 'vscode';
+import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/defaults';
 import { applyTimelineCommitGraph, buildTimelineCommitGraphData } from './commitGraph';
 import type {
   GraphViewProviderTimelineAnalyzer,
   GraphViewProviderTimelineGitAnalyzer,
   GraphViewProviderTimelineSource,
 } from './types';
+export { indexGraphViewProviderRepository } from './repository';
+export { jumpGraphViewProviderToCommit } from './jump';
 
 export interface GraphViewProviderTimelineDependencies {
   getWorkspaceFolder(): { uri: { fsPath: string } } | undefined;
@@ -67,89 +69,6 @@ export interface GraphViewProviderTimelineDependencies {
     sendMessage: (message: ExtensionToWebviewMessage) => void,
   ): void;
   logError(message: string, error: unknown): void;
-}
-
-function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
-
-export async function indexGraphViewProviderRepository(
-  source: GraphViewProviderTimelineSource,
-  dependencies: GraphViewProviderTimelineDependencies =
-    createDefaultGraphViewProviderTimelineDependencies(),
-): Promise<void> {
-  const state = {
-    analyzer: source._analyzer,
-    analyzerInitialized: source._analyzerInitialized,
-    gitAnalyzer: source._gitAnalyzer,
-    indexingController: source._indexingController,
-    filterPatterns: source._filterPatterns,
-    timelineActive: source._timelineActive,
-    currentCommitSha: source._currentCommitSha,
-  };
-
-  await dependencies.indexRepository(state, {
-    workspaceFolder: dependencies.getWorkspaceFolder(),
-    verifyGitRepository: cwd => dependencies.verifyGitRepository(cwd),
-    createGitAnalyzer: (workspaceRoot, mergedExclude) =>
-      dependencies.createGitAnalyzer(
-        source._context,
-        source._analyzer!.registry,
-        workspaceRoot,
-        mergedExclude,
-      ),
-    getMaxCommits: () => dependencies.getMaxCommits(),
-    sendMessage: message => source._sendMessage(message),
-    showErrorMessage: message => {
-      dependencies.showErrorMessage(message);
-    },
-    showInformationMessage: message => {
-      dependencies.showInformationMessage(message);
-    },
-    toErrorMessage,
-    jumpToCommit: sha => {
-      source._analyzerInitialized = state.analyzerInitialized;
-      source._gitAnalyzer = state.gitAnalyzer;
-      source._indexingController = state.indexingController;
-      source._timelineActive = state.timelineActive ?? source._timelineActive;
-      source._currentCommitSha = state.currentCommitSha;
-      return jumpGraphViewProviderToCommit(source, sha, dependencies);
-    },
-    logError: (message, error) => {
-      dependencies.logError(message, error);
-    },
-  });
-
-  source._analyzerInitialized = state.analyzerInitialized;
-  source._gitAnalyzer = state.gitAnalyzer;
-  source._indexingController = state.indexingController;
-  source._timelineActive = state.timelineActive ?? source._timelineActive;
-  source._currentCommitSha = state.currentCommitSha;
-}
-
-export async function jumpGraphViewProviderToCommit(
-  source: Pick<
-    GraphViewProviderTimelineSource,
-    | '_analyzer'
-    | '_gitAnalyzer'
-    | '_currentCommitSha'
-    | '_disabledPlugins'
-    | '_disabledSources'
-    | '_rawGraphData'
-    | '_graphData'
-    | '_applyViewTransform'
-    | '_sendMessage'
-  >,
-  sha: string,
-  dependencies: Pick<
-    GraphViewProviderTimelineDependencies,
-    'buildTimelineGraphData' | 'getShowOrphans' | 'getWorkspaceFolder'
-  > = createDefaultGraphViewProviderTimelineDependencies(),
-): Promise<void> {
-  if (!source._gitAnalyzer) return;
-
-  const graphData = await buildTimelineCommitGraphData(source, sha, dependencies);
-  applyTimelineCommitGraph(source, sha, graphData);
 }
 
 export async function resetGraphViewProviderTimeline(

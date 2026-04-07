@@ -52,4 +52,43 @@ describe('webview/store/optimisticGroupsUser', () => {
       pendingUserGroups: null,
     });
   });
+
+  it('drops a pending user-group list once it expires', () => {
+    const pending = createPendingUserGroupsUpdate(
+      [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+      1000,
+    );
+
+    expect(
+      applyPendingUserGroupsUpdate(
+        [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }],
+        pending,
+        4000,
+      ),
+    ).toEqual({
+      groups: [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }],
+      pendingUserGroups: null,
+    });
+  });
+
+  it('keeps a pending user-group list applied when the host payload length differs', () => {
+    const pending = createPendingUserGroupsUpdate(
+      [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+      1000,
+    );
+
+    expect(
+      applyPendingUserGroupsUpdate(
+        [
+          { id: 'g1', pattern: '*.tsx', color: '#3178C6' },
+          { id: 'g2', pattern: '*.ts', color: '#0EA5E9' },
+        ],
+        pending,
+        1500,
+      ),
+    ).toEqual({
+      groups: [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+      pendingUserGroups: pending,
+    });
+  });
 });
