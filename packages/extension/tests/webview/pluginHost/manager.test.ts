@@ -160,12 +160,14 @@ describe('WebviewPluginHost', () => {
 
   it('returns null when no tooltip providers contribute content', () => {
     const host = new WebviewPluginHost();
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     expect(host.getTooltipContent({
       node: { id: 'src/App.ts', label: 'App', color: '#ffffff' },
       neighbors: [],
       edges: [],
     })).toBeNull();
+    expect(errorSpy).not.toHaveBeenCalled();
   });
 
   it('ignores tooltip providers that do not return sections', () => {
@@ -223,6 +225,38 @@ describe('WebviewPluginHost', () => {
     })).toBeNull();
     expect(host.getOverlays()).toEqual([{ id: 'other.plugin:other', fn: expect.any(Function) }]);
     expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('creates and attaches a slot container through the scoped plugin API', () => {
+    const host = new WebviewPluginHost();
+    const api = host.createAPI('acme.plugin', vi.fn());
+    const slotHost = document.createElement('div');
+
+    host.attachSlotHost('toolbar', slotHost);
+
+    const container = api.getSlotContainer('toolbar');
+
+    expect(container.getAttribute('data-cg-plugin')).toBe('acme.plugin');
+    expect(container.getAttribute('data-cg-slot')).toBe('toolbar');
+    expect(slotHost.getAttribute('data-cg-slot-host')).toBe('toolbar');
+    expect(slotHost.contains(container)).toBe(true);
+  });
+
+  it('detaches a slot host through the public manager API', () => {
+    const host = new WebviewPluginHost();
+    const slotHost = document.createElement('div');
+    const firstApi = host.createAPI('acme.plugin', vi.fn());
+    const secondApi = host.createAPI('other.plugin', vi.fn());
+
+    host.attachSlotHost('toolbar', slotHost);
+    const firstContainer = firstApi.getSlotContainer('toolbar');
+    host.detachSlotHost('toolbar');
+    const secondContainer = secondApi.getSlotContainer('toolbar');
+
+    expect(slotHost.getAttribute('data-cg-slot-host')).toBe('toolbar');
+    expect(slotHost.contains(firstContainer)).toBe(true);
+    expect(slotHost.contains(secondContainer)).toBe(false);
+    expect(secondContainer.style.display).toBe('none');
   });
 
   it('draws badges with default colors and centered text', () => {

@@ -16,12 +16,7 @@ export function SlotHost({
   const hostRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const host = hostRef.current;
-    if (!host) {
-      return undefined;
-    }
-
-    pluginHost.attachSlotHost(slot, host);
+    pluginHost.attachSlotHost(slot, hostRef.current!);
     return () => {
       pluginHost.detachSlotHost(slot);
     };
