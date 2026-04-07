@@ -56,6 +56,20 @@ describe('resolveScopedVitestIncludes', () => {
     expect(includes).toContain('packages/plugin-typescript/__tests__/**/focusedImports.filter.test.ts');
   });
 
+  it('includes the mirrored feature test tree for service-style source files', () => {
+    const includes = resolveScopedVitestIncludes(
+      target({
+        absolutePath: '/repo/packages/extension/src/extension/workspaceAnalyzer/service.ts',
+        kind: 'file',
+        packageRelativePath: 'src/extension/workspaceAnalyzer/service.ts',
+        relativePath: 'packages/extension/src/extension/workspaceAnalyzer/service.ts',
+      }),
+    );
+
+    expect(includes).toContain('packages/extension/tests/extension/workspaceAnalyzer/**/*.test.ts');
+    expect(includes).toContain('packages/extension/tests/extension/workspaceAnalyzer/**/*.test.tsx');
+  });
+
   it('includes shared detector tests for source rule files', () => {
     const includes = resolveScopedVitestIncludes(
       target({
@@ -147,6 +161,19 @@ describe('resolveScopedVitestIncludes', () => {
       'packages/extension/__tests__/webview/graph/runtime/use/graph/**/*.test.ts',
       'packages/extension/__tests__/webview/graph/runtime/use/graph/**/*.test.tsx',
     ]);
+  });
+
+  it('includes relocated hook tests that mirror the source directory', () => {
+    const includes = resolveScopedVitestIncludes(
+      target({
+        absolutePath: '/repo/packages/extension/src/webview/components/graph/runtime/use/graph/interaction.ts',
+        kind: 'file',
+        packageRelativePath: 'src/webview/components/graph/runtime/use/graph/interaction.ts',
+        relativePath: 'packages/extension/src/webview/components/graph/runtime/use/graph/interaction.ts',
+      }),
+    );
+
+    expect(includes).toContain('packages/extension/tests/webview/graph/runtime/use/graph/interaction.test.tsx');
   });
 
   it('returns undefined when the target is outside src', () => {

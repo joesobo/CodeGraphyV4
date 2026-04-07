@@ -2,6 +2,10 @@ import { sharedDetectorTestIncludes, type FileIncludeParts } from './includePart
 
 export function directIncludes(root: string, parts: FileIncludeParts): string[] {
   return [
+    `${root}/${parts.relativeTestDirectory}**/*.test.ts`,
+    `${root}/${parts.relativeTestDirectory}**/*.test.tsx`,
+    `${root}/${parts.relativeTestDirectory}**/*.mutations.test.ts`,
+    `${root}/${parts.relativeTestDirectory}**/*.mutations.test.tsx`,
     `${root}/${parts.relativeTestDirectory}${parts.name}.test.ts`,
     `${root}/${parts.relativeTestDirectory}${parts.name}.test.tsx`,
     `${root}/${parts.relativeTestDirectory}${parts.name}.mutations.test.ts`,
