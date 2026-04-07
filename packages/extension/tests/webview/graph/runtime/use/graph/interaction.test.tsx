@@ -1,8 +1,11 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { GraphContextMenuAction, GraphContextSelection } from '../../../../src/webview/components/graph/contextMenu/contracts';
-import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
-import { useGraphInteractionRuntime } from '../../../../src/webview/components/graph/runtime/use/graph/interaction';
+import type {
+  GraphContextMenuAction,
+  GraphContextSelection,
+} from '../../../../../../src/webview/components/graph/contextMenu/contracts';
+import type { FGLink, FGNode } from '../../../../../../src/webview/components/graph/model/build';
+import { useGraphInteractionRuntime } from '../../../../../../src/webview/components/graph/runtime/use/graph/interaction';
 
 const interactionRuntimeHarness = vi.hoisted(() => ({
   applyCursorToGraphSurface: vi.fn(),
@@ -12,23 +15,23 @@ const interactionRuntimeHarness = vi.hoisted(() => ({
   useGraphTooltip: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/graph/contextMenuRuntime/controller', () => ({
+vi.mock('../../../../../../src/webview/components/graph/contextMenuRuntime/controller', () => ({
   createGraphContextMenuRuntime: interactionRuntimeHarness.createGraphContextMenuRuntime,
 }));
 
-vi.mock('../../../../src/webview/components/graph/interactionRuntime/handlers', () => ({
+vi.mock('../../../../../../src/webview/components/graph/interactionRuntime/handlers', () => ({
   createGraphInteractionHandlers: interactionRuntimeHarness.createGraphInteractionHandlers,
 }));
 
-vi.mock('../../../../src/webview/components/graph/support/dom', () => ({
+vi.mock('../../../../../../src/webview/components/graph/support/dom', () => ({
   applyCursorToGraphSurface: interactionRuntimeHarness.applyCursorToGraphSurface,
 }));
 
-vi.mock('../../../../src/webview/components/graph/runtime/use/graph/tooltip', () => ({
+vi.mock('../../../../../../src/webview/components/graph/runtime/use/graph/tooltip', () => ({
   useGraphTooltip: interactionRuntimeHarness.useGraphTooltip,
 }));
 
-vi.mock('../../../../src/webview/vscodeApi', () => ({
+vi.mock('../../../../../../src/webview/vscodeApi', () => ({
   postMessage: interactionRuntimeHarness.postMessage,
 }));
 
