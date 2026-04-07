@@ -7,6 +7,7 @@ import {
   runPlayPauseAction,
 } from '../playbackActions';
 import { useTimelinePlayFromStart } from './playFromStart';
+import { resetTimelinePlaybackToStart } from './jumpToStart';
 
 export interface UseTimelineNavigationOptions {
   currentCommitSha: string | null;
@@ -79,13 +80,11 @@ export function useTimelineNavigation({
   };
 
   const handleJumpToStart = () => {
-    pendingPlayFromStartRef.current = false;
-
-    if (isPlaying) {
-      setIsPlaying(false);
-    }
-
-    postMessage({ type: 'RESET_TIMELINE' });
+    resetTimelinePlaybackToStart({
+      isPlaying,
+      pendingPlayFromStartRef,
+      setIsPlaying,
+    });
   };
 
   const handleJumpToPrevious = () => {

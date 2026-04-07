@@ -223,11 +223,20 @@ describe('timeline/use/navigation', () => {
       isPlaying: true,
     });
 
+    result.current.handleJumpToCommit(commits[0].sha);
     result.current.handleJumpToCommit(commits[2].sha);
     result.current.handleJumpToCommit('missing');
 
-    expect(runJumpToCommitAction).toHaveBeenCalledTimes(1);
-    expect(runJumpToCommitAction).toHaveBeenCalledWith({
+    expect(runJumpToCommitAction).toHaveBeenCalledTimes(2);
+    expect(runJumpToCommitAction).toHaveBeenNthCalledWith(1, {
+      isPlaying: true,
+      lastSentCommitIndexRef,
+      setIsPlaying,
+      setPlaybackTime,
+      targetIndex: 0,
+      timelineCommits: commits,
+    });
+    expect(runJumpToCommitAction).toHaveBeenNthCalledWith(2, {
       isPlaying: true,
       lastSentCommitIndexRef,
       setIsPlaying,
