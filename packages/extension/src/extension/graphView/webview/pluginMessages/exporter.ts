@@ -15,12 +15,13 @@ export async function applyPluginExporterAction(
   handlers: GraphViewPluginExporterHandlers,
 ): Promise<void> {
   const api = handlers.getPluginApi(payload.pluginId);
-  if (!api || payload.index >= api.exporters.length) {
+  const exporter = api?.exporters[payload.index];
+  if (!exporter) {
     return;
   }
 
   try {
-    await api.exporters[payload.index]?.run();
+    await exporter.run();
   } catch (error) {
     handlers.logError('[CodeGraphy] Plugin export action error:', error);
   }

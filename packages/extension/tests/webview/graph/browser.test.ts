@@ -1,26 +1,33 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 describe('graph/browser', () => {
   it('returns the browser navigator when available', async () => {
-    const originalNavigator = globalThis.navigator;
-    Object.defineProperty(globalThis, 'navigator', {
-      configurable: true,
-      value: { platform: 'MacIntel' },
-    });
+    vi.stubGlobal('navigator', { platform: 'MacIntel' });
 
     const { getGraphNavigator } = await import('../../../src/webview/components/graph/browser');
 
     expect(getGraphNavigator()).toEqual({ platform: 'MacIntel' });
-
-    Object.defineProperty(globalThis, 'navigator', {
-      configurable: true,
-      value: originalNavigator,
-    });
   });
 
   it('returns the browser window when available', async () => {
     const { getGraphWindow } = await import('../../../src/webview/components/graph/browser');
 
     expect(getGraphWindow()).toBe(window);
+  });
+
+  it('returns undefined when navigator or window are unavailable', async () => {
+    vi.stubGlobal('navigator', undefined);
+    vi.stubGlobal('window', undefined);
+
+    const { getGraphNavigator, getGraphWindow } = await import(
+      '../../../src/webview/components/graph/browser'
+    );
+
+    expect(getGraphNavigator()).toBeUndefined();
+    expect(getGraphWindow()).toBeUndefined();
   });
 });

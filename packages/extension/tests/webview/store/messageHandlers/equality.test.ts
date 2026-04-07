@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { arePlainValuesEqual } from '@/webview/store/messageHandlers/equality';
+
+afterEach(() => {
+  vi.resetModules();
+  vi.doUnmock('@/webview/store/messageHandlers/equality/isNumberPair');
+  vi.doUnmock('@/webview/store/messageHandlers/equality/numberEquality');
+  vi.doUnmock('@/webview/store/messageHandlers/equality/plainEquality');
+});
 
 describe('webview/store/messageHandlers/equality', () => {
   it('treats identical primitive values as equal', () => {
@@ -57,5 +64,62 @@ describe('webview/store/messageHandlers/equality', () => {
     expect(arePlainValuesEqual(null, null)).toBe(true);
     expect(arePlainValuesEqual(undefined, undefined)).toBe(true);
     expect(arePlainValuesEqual(null, undefined)).toBe(false);
+  });
+
+  it('routes number pairs through numeric comparison semantics', () => {
+    expect(arePlainValuesEqual(Number.NaN, Number.NaN)).toBe(true);
+    expect(arePlainValuesEqual(1, 2)).toBe(false);
+  });
+
+  it('treats mixed primitive and object values as unequal', () => {
+    expect(arePlainValuesEqual(1, { value: 1 })).toBe(false);
+    expect(arePlainValuesEqual('1', [1])).toBe(false);
+  });
+
+  it('delegates number pairs to numeric equality', async () => {
+    const areNumberValuesEqual = vi.fn(() => true);
+    const arePlainObjectValuesEqual = vi.fn(() => false);
+
+    vi.doMock('@/webview/store/messageHandlers/equality/isNumberPair', () => ({
+      isNumberPair: () => true,
+    }));
+    vi.doMock('@/webview/store/messageHandlers/equality/numberEquality', () => ({
+      areNumberValuesEqual,
+    }));
+    vi.doMock('@/webview/store/messageHandlers/equality/plainEquality', () => ({
+      arePlainObjectValuesEqual,
+    }));
+
+    const { arePlainValuesEqual: delegatedEquality } = await import(
+      '@/webview/store/messageHandlers/equality'
+    );
+
+    expect(delegatedEquality(1, 2)).toBe(true);
+    expect(areNumberValuesEqual).toHaveBeenCalledWith(1, 2);
+    expect(arePlainObjectValuesEqual).not.toHaveBeenCalled();
+  });
+
+  it('delegates non-number values to plain equality', async () => {
+    const areNumberValuesEqual = vi.fn(() => false);
+    const arePlainObjectValuesEqual = vi.fn(() => true);
+
+    vi.doMock('@/webview/store/messageHandlers/equality/isNumberPair', () => ({
+      isNumberPair: () => false,
+    }));
+    vi.doMock('@/webview/store/messageHandlers/equality/numberEquality', () => ({
+      areNumberValuesEqual,
+    }));
+    vi.doMock('@/webview/store/messageHandlers/equality/plainEquality', () => ({
+      arePlainObjectValuesEqual,
+    }));
+
+    const { arePlainValuesEqual: delegatedEquality } = await import(
+      '@/webview/store/messageHandlers/equality'
+    );
+
+    const value = { label: 'alpha' };
+    expect(delegatedEquality(value, value)).toBe(true);
+    expect(arePlainObjectValuesEqual).toHaveBeenCalledWith(value, value);
+    expect(areNumberValuesEqual).not.toHaveBeenCalled();
   });
 });

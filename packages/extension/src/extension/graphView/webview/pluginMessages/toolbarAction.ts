@@ -20,17 +20,18 @@ export async function applyPluginToolbarAction(
   handlers: GraphViewPluginToolbarActionHandlers,
 ): Promise<void> {
   const api = handlers.getPluginApi(payload.pluginId);
-  if (!api || payload.index >= api.toolbarActions.length) {
+  const action = api?.toolbarActions[payload.index];
+  if (!action) {
     return;
   }
 
-  const action = api.toolbarActions[payload.index];
-  if (!action || payload.itemIndex >= action.items.length) {
+  const item = action.items[payload.itemIndex];
+  if (!item) {
     return;
   }
 
   try {
-    await action.items[payload.itemIndex]?.run();
+    await item.run();
   } catch (error) {
     handlers.logError('[CodeGraphy] Plugin toolbar action error:', error);
   }
