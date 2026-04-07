@@ -67,7 +67,7 @@ vi.mock('../../../../src/extension/graphView/settings/disabled', () => ({
   loadGraphViewDisabledState: mocks.loadDisabledState,
 }));
 
-vi.mock('../../../../src/extension/graphView/settings/snapshotMessages', () => ({
+vi.mock('../../../../src/extension/graphView/settings/snapshot', () => ({
   captureGraphViewSettingsSnapshot: mocks.captureSettingsSnapshot,
 }));
 

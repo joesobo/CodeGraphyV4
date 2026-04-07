@@ -36,7 +36,8 @@ function createDependencies(): MutationCliDependencies {
         ? fileTarget(input)
         : packageTarget(input ?? 'quality-tools')
     )),
-    runMutation: vi.fn()
+    runMutation: vi.fn(),
+    runPreflightTypecheck: vi.fn(),
   };
 }
 
@@ -45,6 +46,7 @@ describe('command', () => {
     const dependencies = createDependencies();
     runMutationCli(['quality-tools/'], dependencies);
 
+    expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
     expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(REPO_ROOT, 'quality-tools/');
     expect(dependencies.runMutation).toHaveBeenCalledTimes(1);
   });
@@ -53,6 +55,7 @@ describe('command', () => {
     const dependencies = createDependencies();
     runMutationCli([], dependencies);
 
+    expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
     expect(dependencies.discoverMutationPackageNames).toHaveBeenCalledWith(REPO_ROOT);
     expect(dependencies.resolveQualityTarget).toHaveBeenNthCalledWith(1, REPO_ROOT, 'plugin-godot');
     expect(dependencies.resolveQualityTarget).toHaveBeenNthCalledWith(2, REPO_ROOT, 'quality-tools');
@@ -68,6 +71,7 @@ describe('command', () => {
       'packages/extension/src/webview/components/Graph.tsx',
     ], dependencies);
 
+    expect(dependencies.runPreflightTypecheck).toHaveBeenCalledOnce();
     expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(
       REPO_ROOT,
       'packages/extension/src/webview/components/Graph.tsx',

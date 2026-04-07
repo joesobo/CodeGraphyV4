@@ -8,7 +8,7 @@ import { getGraphViewConfigTarget } from '../settings/reader';
 import { loadGraphViewDisabledState } from '../settings/disabled';
 import { applyLoadedGraphViewGroupState } from '../groups/sync';
 import { loadGraphViewGroupState } from '../groups/state';
-import { captureGraphViewSettingsSnapshot } from '../settings/snapshotMessages';
+import { captureGraphViewSettingsSnapshot } from '../settings/snapshot';
 import { sendGraphViewProviderAllSettings, sendGraphViewProviderSettings } from '../settings/lifecycle';
 
 interface GraphViewProviderSettingsAnalyzerLike {
