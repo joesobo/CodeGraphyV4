@@ -121,6 +121,34 @@ describe('resolveScopedVitestIncludes', () => {
     ]);
   });
 
+  it('maps webview component source paths to the webview test tree', () => {
+    expect(
+      resolveScopedVitestIncludes(
+        target({
+          absolutePath: '/repo/packages/extension/src/webview/components/graph/runtime/use/graph/init.ts',
+          kind: 'file',
+          packageRelativePath: 'src/webview/components/graph/runtime/use/graph/init.ts',
+          relativePath: 'packages/extension/src/webview/components/graph/runtime/use/graph/init.ts',
+        }),
+      ),
+    ).toContain('packages/extension/tests/webview/graph/runtime/use/graph/init.test.ts');
+    expect(
+      resolveScopedVitestIncludes(
+        target({
+          absolutePath: '/repo/packages/extension/src/webview/components/graph/runtime/use/graph',
+          kind: 'directory',
+          packageRelativePath: 'src/webview/components/graph/runtime/use/graph',
+          relativePath: 'packages/extension/src/webview/components/graph/runtime/use/graph',
+        }),
+      ),
+    ).toEqual([
+      'packages/extension/tests/webview/graph/runtime/use/graph/**/*.test.ts',
+      'packages/extension/tests/webview/graph/runtime/use/graph/**/*.test.tsx',
+      'packages/extension/__tests__/webview/graph/runtime/use/graph/**/*.test.ts',
+      'packages/extension/__tests__/webview/graph/runtime/use/graph/**/*.test.tsx',
+    ]);
+  });
+
   it('returns undefined when the target is outside src', () => {
     expect(
       resolveScopedVitestIncludes(

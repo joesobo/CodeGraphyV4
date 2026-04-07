@@ -19,6 +19,17 @@ describe('fileIncludeParts', () => {
   it('disables broad fallback for generic file names', () => {
     expect(fileIncludeParts('extension/graphView/provider/runtime.ts').includeBroadFallback).toBe(false);
   });
+
+  it('normalizes webview component source paths to their test paths', () => {
+    expect(fileIncludeParts('webview/components/graph/runtime/use/graph/init.ts')).toEqual({
+      camelName: 'init',
+      directory: 'webview/graph/runtime/use/graph',
+      dottedRelativePath: 'webview.graph.runtime.use.graph.init',
+      includeBroadFallback: true,
+      name: 'init',
+      relativeTestDirectory: 'webview/graph/runtime/use/graph/'
+    });
+  });
 });
 
 describe('sharedDetectorTestIncludes', () => {

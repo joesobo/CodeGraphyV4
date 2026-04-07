@@ -34,4 +34,13 @@ describe('directoryIncludes', () => {
       'packages/extension/__tests__/core/views/**/*.test.tsx'
     ]);
   });
+
+  it('normalizes webview component directories to the test tree', () => {
+    expect(directoryIncludes('extension', 'webview/components/graph/runtime/use/graph')).toEqual([
+      'packages/extension/tests/webview/graph/runtime/use/graph/**/*.test.ts',
+      'packages/extension/tests/webview/graph/runtime/use/graph/**/*.test.tsx',
+      'packages/extension/__tests__/webview/graph/runtime/use/graph/**/*.test.ts',
+      'packages/extension/__tests__/webview/graph/runtime/use/graph/**/*.test.tsx'
+    ]);
+  });
 });

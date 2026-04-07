@@ -19,6 +19,10 @@ function toCamelCase(value: string): string {
   return value.replace(/-([a-z])/g, (_match, letter: string) => letter.toUpperCase());
 }
 
+export function normalizeSourcePathForTests(relativeSourcePath: string): string {
+  return relativeSourcePath.replace(/^webview\/components\//, 'webview/');
+}
+
 export function sharedDetectorTestIncludes(root: string, directory: string, recursive = false): string[] {
   if (directory !== 'sources') {
     return [];
@@ -34,14 +38,15 @@ export function sharedDetectorTestIncludes(root: string, directory: string, recu
 }
 
 export function fileIncludeParts(relativeSourceFile: string): FileIncludeParts {
-  const directory = dirname(relativeSourceFile);
-  const extension = extname(relativeSourceFile);
-  const name = basename(relativeSourceFile, extension);
+  const normalizedSourceFile = normalizeSourcePathForTests(relativeSourceFile);
+  const directory = dirname(normalizedSourceFile);
+  const extension = extname(normalizedSourceFile);
+  const name = basename(normalizedSourceFile, extension);
 
   return {
     camelName: toCamelCase(name),
     directory,
-    dottedRelativePath: relativeSourceFile.slice(0, -extension.length).split('/').join('.'),
+    dottedRelativePath: normalizedSourceFile.slice(0, -extension.length).split('/').join('.'),
     includeBroadFallback: !BROAD_FALLBACK_DISABLED_BASENAMES.has(name),
     name,
     relativeTestDirectory: directory === '.' ? '' : `${directory}/`

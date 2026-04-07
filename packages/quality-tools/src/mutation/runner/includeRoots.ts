@@ -1,3 +1,5 @@
+import { normalizeSourcePathForTests } from './includeParts';
+
 export function baseTestRoots(packageName: string): string[] {
   return [
     `packages/${packageName}/tests`,
@@ -19,10 +21,12 @@ export function packageIncludes(packageName: string): string[] {
 }
 
 export function directoryIncludes(packageName: string, relativeSourceDirectory: string): string[] {
+  const normalizedSourceDirectory = normalizeSourcePathForTests(relativeSourceDirectory);
+
   return unique(
     baseTestRoots(packageName).flatMap((root) => [
-      `${root}/${relativeSourceDirectory}/**/*.test.ts`,
-      `${root}/${relativeSourceDirectory}/**/*.test.tsx`,
+      `${root}/${normalizedSourceDirectory}/**/*.test.ts`,
+      `${root}/${normalizedSourceDirectory}/**/*.test.tsx`,
     ]),
   );
 }
