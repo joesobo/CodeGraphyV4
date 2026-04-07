@@ -92,13 +92,19 @@ describe('graph view provider timeline indexing', () => {
     const showErrorMessage = vi.fn();
     const showInformationMessage = vi.fn();
     const logError = vi.fn();
+    const createGitAnalyzer = vi.fn(() => ({ kind: 'created-git' }));
+    const getMaxCommits = vi.fn(() => 321);
     const deps = createTimelineDependencies({
+      createGitAnalyzer,
+      getMaxCommits,
       verifyGitRepository,
       showErrorMessage,
       showInformationMessage,
       logError,
       indexRepository: vi.fn(async (_state, handlers) => {
         await handlers.verifyGitRepository('/workspace');
+        expect(handlers.createGitAnalyzer('/workspace', ['dist/**'])).toEqual({ kind: 'created-git' });
+        expect(handlers.getMaxCommits()).toBe(321);
         handlers.sendMessage({ type: 'CACHE_INVALIDATED' } as ExtensionToWebviewMessage);
         handlers.showErrorMessage('timeline failed');
         handlers.showInformationMessage('timeline indexed');
@@ -110,11 +116,19 @@ describe('graph view provider timeline indexing', () => {
 
     await indexGraphViewProviderRepository(source as never, deps as never);
 
+    const analyzer = source._analyzer as { registry: unknown };
     expect(verifyGitRepository).toHaveBeenCalledWith('/workspace');
     expect(source._sendMessage).toHaveBeenCalledWith({ type: 'CACHE_INVALIDATED' });
     expect(showErrorMessage).toHaveBeenCalledWith('timeline failed');
     expect(showInformationMessage).toHaveBeenCalledWith('timeline indexed');
     expect(logError).toHaveBeenCalledWith('timeline error', 'raw failure');
+    expect(createGitAnalyzer).toHaveBeenCalledWith(
+      source._context,
+      analyzer.registry,
+      '/workspace',
+      ['dist/**'],
+    );
+    expect(getMaxCommits).toHaveBeenCalledOnce();
   });
 
   it('syncs false timeline state from the repository indexer before and after a jump', async () => {
@@ -395,6 +409,86 @@ describe('graph view provider timeline indexing', () => {
     expect(source._currentCommitSha).toBe('sha-9');
     expect(source._graphData).toBe(currentGraph);
     expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('returns early from reset when the cached commit list is missing', async () => {
+    const currentGraph = { nodes: [createGraphNode('src/current.ts')], edges: [] } satisfies IGraphData;
+    const source = {
+      _analyzer: { registry: { kind: 'registry' } } as never,
+      _gitAnalyzer: {
+        getCachedCommitList: vi.fn(() => undefined),
+        getGraphDataForCommit: vi.fn(),
+      } as never,
+      _currentCommitSha: 'sha-9',
+      _disabledPlugins: new Set<string>(),
+      _disabledSources: new Set<string>(),
+      _graphData: currentGraph,
+      _sendMessage: vi.fn(),
+    };
+    const deps = {
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
+      getShowOrphans: vi.fn(() => true),
+      buildTimelineGraphData: vi.fn(),
+    };
+
+    await resetGraphViewProviderTimeline(source as never, deps as never);
+
+    expect((source._gitAnalyzer as { getGraphDataForCommit: ReturnType<typeof vi.fn> }).getGraphDataForCommit).not.toHaveBeenCalled();
+    expect(deps.buildTimelineGraphData).not.toHaveBeenCalled();
+    expect(source._graphData).toBe(currentGraph);
+    expect(source._sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('returns early from reset when the cached commit list is empty', async () => {
+    const currentGraph = { nodes: [createGraphNode('src/current.ts')], edges: [] } satisfies IGraphData;
+    const source = {
+      _analyzer: { registry: { kind: 'registry' } } as never,
+      _gitAnalyzer: {
+        getCachedCommitList: vi.fn(() => []),
+        getGraphDataForCommit: vi.fn(),
+      } as never,
+      _currentCommitSha: 'sha-9',
+      _disabledPlugins: new Set<string>(),
+      _disabledSources: new Set<string>(),
+      _graphData: currentGraph,
+      _sendMessage: vi.fn(),
+    };
+    const deps = {
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
+      getShowOrphans: vi.fn(() => true),
+      buildTimelineGraphData: vi.fn(),
+    };
+
+    await resetGraphViewProviderTimeline(source as never, deps as never);
+
+    expect((source._gitAnalyzer as { getGraphDataForCommit: ReturnType<typeof vi.fn> }).getGraphDataForCommit).not.toHaveBeenCalled();
+    expect(deps.buildTimelineGraphData).not.toHaveBeenCalled();
+    expect(source._graphData).toBe(currentGraph);
+    expect(source._sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('returns early from reset when there is no git analyzer', async () => {
+    const currentGraph = { nodes: [createGraphNode('src/current.ts')], edges: [] } satisfies IGraphData;
+    const deps = {
+      getWorkspaceFolder: vi.fn(() => ({ uri: { fsPath: '/workspace' } })),
+      getShowOrphans: vi.fn(() => true),
+      buildTimelineGraphData: vi.fn(),
+    };
+    const source = {
+      _analyzer: { registry: { kind: 'registry' } } as never,
+      _gitAnalyzer: undefined,
+      _currentCommitSha: 'sha-9',
+      _disabledPlugins: new Set<string>(),
+      _disabledSources: new Set<string>(),
+      _graphData: currentGraph,
+      _sendMessage: vi.fn(),
+    };
+
+    await resetGraphViewProviderTimeline(source as never, deps as never);
+
+    expect(deps.buildTimelineGraphData).not.toHaveBeenCalled();
+    expect(source._graphData).toBe(currentGraph);
+    expect(source._sendMessage).not.toHaveBeenCalled();
   });
 
   it('syncs cached timeline state back onto the provider source', () => {

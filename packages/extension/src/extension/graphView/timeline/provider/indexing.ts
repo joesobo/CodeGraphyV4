@@ -172,7 +172,7 @@ export async function resetGraphViewProviderTimeline(
 ): Promise<void> {
   const commits = source._gitAnalyzer?.getCachedCommitList();
 
-  if (!source._gitAnalyzer || !commits || commits.length === 0) {
+  if (!source._gitAnalyzer || !commits) {
     return;
   }
 
