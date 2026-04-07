@@ -1,10 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createRequire } from 'module';
 import {
   discoverMutationPackageNames,
   resolveMutationProfile
 } from '../../../src/mutation/analysis/profile';
 import { REPO_ROOT } from '../../../src/shared/resolve/repoRoot';
 import { resolveQualityTarget } from '../../../src/shared/resolve/target';
+
+const require = createRequire(import.meta.url);
+const extensionStrykerConfig = require('../../../../extension/stryker.config.cjs') as {
+  dryRunTimeoutMinutes?: number;
+};
 
 describe('mutation profiles', () => {
   afterEach(() => {
@@ -28,6 +34,13 @@ describe('mutation profiles', () => {
     expect(resolveMutationProfile(resolveQualityTarget(REPO_ROOT, 'quality-tools/'))).toMatchObject({
       configPath: 'packages/quality-tools/stryker.config.json'
     });
+  });
+
+  it('raises the extension dry-run timeout above the stryker default', () => {
+    expect(extensionStrykerConfig).toMatchObject({
+      dryRunTimeoutMinutes: expect.any(Number),
+    });
+    expect(extensionStrykerConfig.dryRunTimeoutMinutes).toBeGreaterThan(5);
   });
 
   it('scopes extension mutation test discovery to extension tests', async () => {
