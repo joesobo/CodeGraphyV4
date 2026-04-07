@@ -4,11 +4,24 @@
  * @module webview/components/Graph
  */
 
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useMemo } from 'react';
 import type { IGraphData } from '../../shared/graph/types';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/plugins/decorations';
+import {
+  useGraphAutoFit,
+} from './graph/autoFit';
+import { getGraphNavigator, getGraphWindow } from './graph/browser';
+import { buildGraphCallbackOptions } from './graph/callbackOptions';
 import { buildGraphContextMenuEntries } from './graph/contextMenu/buildEntries';
+import { useGraphDebugApi } from './graph/debug';
+import { buildGraphDebugOptions } from './graph/debugOptions';
+import { buildGraphLayoutKey } from './graph/layoutKey';
+import { detectMacPlatform } from './graph/platform';
 import { buildSharedGraphProps } from './graph/rendering/surface/sharedProps';
+import { buildGraphSharedPropsOptions } from './graph/sharedPropsOptions';
+import { handleGraphSurface3dError } from './graph/surfaceError';
+import { useGraphViewStoreState } from './graph/store';
+import { getGraphSurfaceColors } from './graph/theme';
 import { Viewport } from './graph/Viewport';
 import { useGraphCallbacks } from './graph/rendering/useGraphCallbacks';
 import { useGraphEventEffects } from './graph/runtime/use/graph/events';
@@ -17,40 +30,7 @@ import { useGraphRenderingRuntime } from './graph/runtime/use/graph/rendering';
 import { useGraphState } from './graph/runtime/use/graph/state';
 import { ThemeKind } from '../theme/useTheme';
 import type { WebviewPluginHost } from '../pluginHost/manager';
-import { useGraphStore } from '../store/state';
 import { postMessage } from '../vscodeApi';
-
-interface GraphDebugSnapshot {
-  containerHeight: number;
-  containerWidth: number;
-  graphMode: '2d' | '3d';
-  nodes: Array<{
-    id: string;
-    screenX: number;
-    screenY: number;
-    size: number;
-    x: number;
-    y: number;
-  }>;
-  zoom: number | null;
-}
-
-interface GraphDebugControls {
-  graph2ScreenCoords(x: number, y: number, z?: number): { x: number; y: number };
-  zoom?(): number;
-  zoomToFit(durationMs?: number, padding?: number): void;
-}
-
-declare global {
-  interface Window {
-    __CODEGRAPHY_ENABLE_GRAPH_DEBUG__?: boolean;
-    __CODEGRAPHY_GRAPH_DEBUG__?: {
-      fitView(): void;
-      fitViewWithPadding(padding: number): void;
-      getSnapshot(): GraphDebugSnapshot;
-    };
-  }
-}
 
 interface GraphProps {
   data: IGraphData;
@@ -67,23 +47,24 @@ export default function Graph({
   edgeDecorations,
   pluginHost,
 }: GraphProps): React.ReactElement {
-  const pendingAutoFitRef = useRef(true);
-  const favorites = useGraphStore(state => state.favorites);
-  const bidirectionalMode = useGraphStore(state => state.bidirectionalMode);
-  const physicsSettings = useGraphStore(state => state.physicsSettings);
-  const nodeSizeMode = useGraphStore(state => state.nodeSizeMode);
-  const directionMode = useGraphStore(state => state.directionMode);
-  const directionColor = useGraphStore(state => state.directionColor);
-  const particleSpeed = useGraphStore(state => state.particleSpeed);
-  const particleSize = useGraphStore(state => state.particleSize);
-  const physicsPaused = useGraphStore(state => state.physicsPaused);
-  const showLabels = useGraphStore(state => state.showLabels);
-  const graphMode = useGraphStore(state => state.graphMode);
-  const setGraphMode = useGraphStore(state => state.setGraphMode);
-  const activeViewId = useGraphStore(state => state.activeViewId);
-  const dagMode = useGraphStore(state => state.dagMode);
-  const timelineActive = useGraphStore(state => state.timelineActive);
-  const pluginContextMenuItems = useGraphStore(state => state.pluginContextMenuItems);
+  const {
+    activeViewId,
+    bidirectionalMode,
+    dagMode,
+    directionColor,
+    directionMode,
+    favorites,
+    graphMode,
+    nodeSizeMode,
+    particleSize,
+    particleSpeed,
+    physicsPaused,
+    physicsSettings,
+    pluginContextMenuItems,
+    setGraphMode,
+    showLabels,
+    timelineActive,
+  } = useGraphViewStoreState();
 
   const graphState = useGraphState({
     bidirectionalMode,
@@ -98,16 +79,8 @@ export default function Graph({
     theme,
     timelineActive,
   });
-  const graphLayoutKey = useMemo(() => {
-    const nodeIds = graphState.graphData.nodes.map(node => node.id).join('|');
-    const linkIds = graphState.graphData.links.map(link => link.id).join('|');
-    return `${nodeSizeMode}::${nodeIds}::${linkIds}`;
-  }, [graphState.graphData.links, graphState.graphData.nodes, nodeSizeMode]);
-
-  const isMacPlatform = useMemo(
-    () => typeof navigator !== 'undefined' && /Mac|iPhone|iPad|iPod/.test(navigator.platform),
-    [],
-  );
+  const graphLayoutKey = buildGraphLayoutKey(graphState.graphData, nodeSizeMode);
+  const isMacPlatform = detectMacPlatform(getGraphNavigator());
 
   const interactions = useGraphInteractionRuntime({
     activeViewId,
@@ -137,115 +110,22 @@ export default function Graph({
     setSelectedNodes: graphState.setSelectedNodes,
   });
 
-  useEffect(() => {
-    pendingAutoFitRef.current = true;
-  }, [graphMode, graphState.graphData]);
-
-  useEffect(() => {
-    if (graphMode !== '3d' || !pendingAutoFitRef.current || typeof window === 'undefined') {
-      return;
-    }
-
-    const graph = graphState.fg3dRef.current;
-    if (!graph) {
-      return;
-    }
-
-    const timer = window.setTimeout(() => {
-      if (!pendingAutoFitRef.current) {
-        return;
-      }
-
-      pendingAutoFitRef.current = false;
-      interactions.interactionHandlers.fitView();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timer);
-    };
-  }, [graphMode, graphState.fg3dRef, graphState.graphData, interactions.interactionHandlers]);
-
-  const handleEngineStop = React.useCallback(() => {
-    if (pendingAutoFitRef.current) {
-      pendingAutoFitRef.current = false;
-      interactions.interactionHandlers.fitView();
-    }
-
-    interactions.handleEngineStop();
-  }, [interactions]);
-
-  useEffect(() => {
-    if (typeof window === 'undefined' || window.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ !== true) {
-      return;
-    }
-
-    window.__CODEGRAPHY_GRAPH_DEBUG__ = {
-      fitView: () => {
-        interactions.interactionHandlers.fitView();
-      },
-      fitViewWithPadding: (padding: number) => {
-        const graph = (
-          graphMode === '2d'
-            ? graphState.fg2dRef.current
-            : graphState.fg3dRef.current
-        ) as GraphDebugControls | undefined;
-        graph?.zoomToFit(300, padding);
-      },
-      getSnapshot: () => {
-        const containerRect = graphState.containerRef.current?.getBoundingClientRect();
-        const graph = (
-          graphMode === '2d'
-            ? graphState.fg2dRef.current
-            : graphState.fg3dRef.current
-        ) as GraphDebugControls | undefined;
-
-        return {
-          containerHeight: containerRect?.height ?? 0,
-          containerWidth: containerRect?.width ?? 0,
-          graphMode,
-          nodes: graphState.graphDataRef.current.nodes.map((node) => {
-            const z = typeof node.z === 'number' ? node.z : 0;
-            const screen = graph?.graph2ScreenCoords(node.x ?? 0, node.y ?? 0, z) ?? {
-              x: node.x ?? 0,
-              y: node.y ?? 0,
-            };
-
-            return {
-              id: node.id,
-              screenX: screen.x,
-              screenY: screen.y,
-              size: node.size,
-              x: node.x ?? 0,
-              y: node.y ?? 0,
-            };
-          }),
-          zoom: graphMode === '2d' ? (graph?.zoom?.() ?? null) : null,
-        };
-      },
-    };
-
-    return () => {
-      delete window.__CODEGRAPHY_GRAPH_DEBUG__;
-    };
-  }, [graphMode, graphState.containerRef, graphState.fg2dRef, graphState.fg3dRef, graphState.graphDataRef, interactions.interactionHandlers]);
-
-  const callbacks = useGraphCallbacks({
-    pluginHost,
-    refs: {
-      directionColorRef: graphState.directionColorRef,
-      directionModeRef: graphState.directionModeRef,
-      edgeDecorationsRef: graphState.edgeDecorationsRef,
-      highlightedNeighborsRef: graphState.highlightedNeighborsRef,
-      highlightedNodeRef: graphState.highlightedNodeRef,
-      meshesRef: graphState.meshesRef,
-      nodeDecorationsRef: graphState.nodeDecorationsRef,
-      selectedNodesSetRef: graphState.selectedNodesSetRef,
-      showLabelsRef: graphState.showLabelsRef,
-      spritesRef: graphState.spritesRef,
-      themeRef: graphState.themeRef,
-    },
-    triggerImageRerender: graphState.triggerImageRerender,
+  const handleEngineStop = useGraphAutoFit({
+    fitView: interactions.interactionHandlers.fitView,
+    graphData: graphState.graphData,
+    graphMode,
+    graphReady: Boolean(graphState.fg3dRef.current),
+    handleEngineStop: interactions.handleEngineStop,
   });
+
+  useGraphDebugApi(buildGraphDebugOptions({
+    graphMode,
+    graphState,
+    interactions,
+    win: getGraphWindow(),
+  }));
+
+  const callbacks = useGraphCallbacks(buildGraphCallbackOptions({ graphState, pluginHost }));
 
   const renderingRuntime = useGraphRenderingRuntime({
     containerRef: graphState.containerRef,
@@ -294,59 +174,41 @@ export default function Graph({
   });
 
   const sharedProps = useMemo(
-    () => buildSharedGraphProps({
+    () => buildSharedGraphProps(buildGraphSharedPropsOptions({
       containerSize: renderingRuntime.containerSize,
       dagMode,
-      graphData: graphState.graphData,
-      onBackgroundClick: event => interactions.interactionHandlers.handleBackgroundClick(event),
-      onBackgroundRightClick: interactions.handleBackgroundRightClick,
-      onEngineStop: handleEngineStop,
-      onLinkClick: (link, event) => interactions.interactionHandlers.handleLinkClick(link, event),
-      onLinkRightClick: interactions.handleLinkRightClick,
-      onNodeClick: (node, event) => interactions.interactionHandlers.handleNodeClick(node, event),
-      onNodeHover: interactions.handleNodeHover,
-      onNodeRightClick: interactions.handleNodeRightClick,
       damping: physicsSettings.damping,
+      graphData: graphState.graphData,
+      handleEngineStop,
+      interactions,
       timelineActive,
-    }),
+    })),
     [
       dagMode,
       graphState.graphData,
       handleEngineStop,
-      interactions.handleBackgroundRightClick,
-      interactions.handleLinkRightClick,
-      interactions.handleNodeHover,
-      interactions.handleNodeRightClick,
-      interactions.interactionHandlers,
+      interactions,
       physicsSettings.damping,
       renderingRuntime.containerSize,
       timelineActive,
     ],
   );
 
-  const menuEntries = useMemo(
-    () => buildGraphContextMenuEntries({
-      selection: graphState.contextSelection,
-      timelineActive,
-      favorites,
-      pluginItems: pluginContextMenuItems,
-    }),
-    [favorites, graphState.contextSelection, pluginContextMenuItems, timelineActive],
-  );
+  const menuEntries = buildGraphContextMenuEntries({
+    selection: graphState.contextSelection,
+    timelineActive,
+    favorites,
+    pluginItems: pluginContextMenuItems,
+  });
 
-  const isLight = theme === 'light';
-  const backgroundColor = isLight ? '#f5f5f5' : '#18181b';
-  const borderColor = isLight ? '#d4d4d4' : 'rgb(63, 63, 70)';
-  const handleSurface3dError = React.useCallback((error: Error) => {
-    console.error('[CodeGraphy] 3D graph unavailable, falling back to 2D.', error);
-    postMessage({
-      type: 'GRAPH_3D_UNAVAILABLE',
-      payload: {
-        message: error.message,
-      },
+  const { backgroundColor, borderColor } = getGraphSurfaceColors(theme);
+  const handleSurface3dError = (error: Error): void => {
+    handleGraphSurface3dError({
+      error,
+      postGraphMessage: postMessage,
+      setGraphMode,
     });
-    setGraphMode('2d');
-  }, [setGraphMode]);
+  };
 
   return (
     <Viewport
