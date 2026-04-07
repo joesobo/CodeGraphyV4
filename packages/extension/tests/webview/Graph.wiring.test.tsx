@@ -18,7 +18,7 @@ vi.mock('../../src/webview/components/graph/viewport/shell', () => ({
 	GraphViewportShell: harness.graphViewportShell,
 }));
 
-vi.mock('../../src/webview/components/graph/debugApi', () => ({
+vi.mock('../../src/webview/components/graph/useDebugApi', () => ({
 	useGraphDebugApi: harness.useGraphDebugApi,
 }));
 
