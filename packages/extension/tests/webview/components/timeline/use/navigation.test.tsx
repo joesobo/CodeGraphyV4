@@ -1,8 +1,29 @@
 import { renderHook } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ICommitInfo } from '@/shared/timeline/types';
-import { clearSentMessages, findMessage } from '../../../../helpers/sentMessages';
 import { useTimelineNavigation } from '../../../../../src/webview/components/timeline/use/navigation';
+
+const {
+  postMessage,
+  runJumpToCommitAction,
+  runJumpToEndAction,
+  runPlayPauseAction,
+} = vi.hoisted(() => ({
+  postMessage: vi.fn(),
+  runJumpToCommitAction: vi.fn(),
+  runJumpToEndAction: vi.fn(),
+  runPlayPauseAction: vi.fn(),
+}));
+
+vi.mock('../../../../../src/webview/vscodeApi', () => ({
+  postMessage,
+}));
+
+vi.mock('../../../../../src/webview/components/timeline/playbackActions', () => ({
+  runJumpToCommitAction,
+  runJumpToEndAction,
+  runPlayPauseAction,
+}));
 
 const commits: ICommitInfo[] = [
   {
@@ -28,70 +49,191 @@ const commits: ICommitInfo[] = [
   },
 ];
 
+function renderNavigationHook(
+  overrides: Partial<Parameters<typeof useTimelineNavigation>[0]> = {},
+) {
+  const setIsPlaying = vi.fn();
+  const setPlaybackTime = vi.fn();
+  const lastSentCommitIndexRef = { current: -1 } as { current: number };
+  const startFromTimeRef = { current: null } as { current: number | null };
+
+  const hook = renderHook(
+    (props: Partial<Parameters<typeof useTimelineNavigation>[0]>) => useTimelineNavigation({
+      currentCommitSha: commits[1].sha,
+      currentIndex: 1,
+      isAtEnd: false,
+      isPlaying: false,
+      lastSentCommitIndexRef,
+      setIsPlaying,
+      setPlaybackTime,
+      startFromTimeRef,
+      timelineCommits: commits,
+      ...props,
+    }),
+    {
+      initialProps: overrides,
+    },
+  );
+
+  return {
+    ...hook,
+    lastSentCommitIndexRef,
+    setIsPlaying,
+    setPlaybackTime,
+    startFromTimeRef,
+  };
+}
+
 describe('timeline/use/navigation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    clearSentMessages();
   });
 
-  it('requests a reset when playback resumes at the end', () => {
-    const setIsPlaying = vi.fn();
-    const setPlaybackTime = vi.fn();
-    const lastSentCommitIndexRef = { current: -1 } as { current: number };
-    const startFromTimeRef = { current: null } as { current: number | null };
-    const { result, rerender } = renderHook(
-      (props: { currentCommitSha: string | null; isAtEnd: boolean }) => useTimelineNavigation({
-        currentCommitSha: props.currentCommitSha,
-        currentIndex: 2,
-        isAtEnd: props.isAtEnd,
-        isPlaying: false,
-        lastSentCommitIndexRef,
-        setIsPlaying,
-        setPlaybackTime,
-        startFromTimeRef,
-        timelineCommits: commits,
-      }),
-      {
-        initialProps: { currentCommitSha: commits[2].sha, isAtEnd: true },
-      },
-    );
+  it('requests a reset when playback resumes at the end and then syncs the restart commit', () => {
+    const { lastSentCommitIndexRef, rerender, result, setIsPlaying, setPlaybackTime } = renderNavigationHook({
+      currentCommitSha: commits[2].sha,
+      currentIndex: 2,
+      isAtEnd: true,
+    });
 
     result.current.handlePlayPause();
-    expect(findMessage('RESET_TIMELINE')).toEqual({ type: 'RESET_TIMELINE' });
 
-    rerender({ currentCommitSha: commits[0].sha, isAtEnd: false });
+    expect(postMessage).toHaveBeenCalledWith({ type: 'RESET_TIMELINE' });
+    expect(runPlayPauseAction).not.toHaveBeenCalled();
+
+    rerender({
+      currentCommitSha: commits[0].sha,
+      currentIndex: 0,
+      isAtEnd: false,
+    });
 
     expect(setIsPlaying).toHaveBeenCalledWith(true);
     expect(lastSentCommitIndexRef.current).toBe(0);
     expect(setPlaybackTime).toHaveBeenCalledWith(commits[0].timestamp);
   });
 
-  it('jumps between commits using the current index and selected sha', () => {
-    const setIsPlaying = vi.fn();
-    const setPlaybackTime = vi.fn();
-    const lastSentCommitIndexRef = { current: 1 } as { current: number };
-    const startFromTimeRef = { current: null } as { current: number | null };
-    const { result } = renderHook(() => useTimelineNavigation({
-      currentCommitSha: commits[1].sha,
-      currentIndex: 1,
-      isAtEnd: false,
+  it('delegates play-pause with the latest props when playback should not reset', () => {
+    const { rerender, result, lastSentCommitIndexRef, setIsPlaying, setPlaybackTime, startFromTimeRef } =
+      renderNavigationHook({
+        isAtEnd: true,
+        isPlaying: false,
+      });
+
+    rerender({
+      isAtEnd: true,
+      isPlaying: true,
+    });
+
+    result.current.handlePlayPause();
+
+    expect(postMessage).not.toHaveBeenCalled();
+    expect(runPlayPauseAction).toHaveBeenCalledWith({
+      isAtEnd: true,
       isPlaying: true,
       lastSentCommitIndexRef,
       setIsPlaying,
       setPlaybackTime,
       startFromTimeRef,
       timelineCommits: commits,
-    }));
+    });
+  });
 
-    result.current.handleJumpToNext();
-    result.current.handleJumpToPrevious();
-    result.current.handleJumpToCommit(commits[2].sha);
+  it('delegates jump-to-end with the latest props', () => {
+    const nextCommits = [...commits, {
+      author: 'Dana',
+      message: 'Release',
+      parents: [commits[2].sha],
+      sha: 'ddd444ddd444ddd444ddd444ddd444ddd444ddd4',
+      timestamp: 4000,
+    }];
+    const { rerender, result, lastSentCommitIndexRef, setIsPlaying, setPlaybackTime } = renderNavigationHook();
+
+    rerender({
+      isPlaying: true,
+      timelineCommits: nextCommits,
+    });
+
+    result.current.handleJumpToEnd();
+
+    expect(runJumpToEndAction).toHaveBeenCalledWith({
+      isPlaying: true,
+      lastSentCommitIndexRef,
+      setIsPlaying,
+      setPlaybackTime,
+      timelineCommits: nextCommits,
+    });
+  });
+
+  it('resets to the start and stops playback when jump-to-start is used while playing', () => {
+    const { result, setIsPlaying } = renderNavigationHook({
+      isPlaying: true,
+    });
+
+    result.current.handleJumpToStart();
 
     expect(setIsPlaying).toHaveBeenCalledWith(false);
-    expect(findMessage('JUMP_TO_COMMIT')).toEqual({
-      type: 'JUMP_TO_COMMIT',
-      payload: { sha: commits[2].sha },
+    expect(postMessage).toHaveBeenCalledWith({ type: 'RESET_TIMELINE' });
+  });
+
+  it('resets to the start without stopping playback when already paused', () => {
+    const { result, setIsPlaying } = renderNavigationHook({
+      isPlaying: false,
     });
-    expect(setPlaybackTime).toHaveBeenCalledWith(commits[2].timestamp);
+
+    result.current.handleJumpToStart();
+
+    expect(setIsPlaying).not.toHaveBeenCalled();
+    expect(postMessage).toHaveBeenCalledWith({ type: 'RESET_TIMELINE' });
+  });
+
+  it('delegates previous and next jumps using the latest current index', () => {
+    const { rerender, result, lastSentCommitIndexRef, setIsPlaying, setPlaybackTime } = renderNavigationHook({
+      currentIndex: 1,
+      isPlaying: true,
+    });
+
+    rerender({
+      currentIndex: 2,
+      isPlaying: true,
+    });
+
+    result.current.handleJumpToPrevious();
+    result.current.handleJumpToNext();
+
+    expect(runJumpToCommitAction).toHaveBeenNthCalledWith(1, {
+      isPlaying: true,
+      lastSentCommitIndexRef,
+      setIsPlaying,
+      setPlaybackTime,
+      targetIndex: 1,
+      timelineCommits: commits,
+    });
+    expect(runJumpToCommitAction).toHaveBeenNthCalledWith(2, {
+      isPlaying: true,
+      lastSentCommitIndexRef,
+      setIsPlaying,
+      setPlaybackTime,
+      targetIndex: 3,
+      timelineCommits: commits,
+    });
+  });
+
+  it('delegates jump-to-commit for known shas and ignores missing shas', () => {
+    const { result, lastSentCommitIndexRef, setIsPlaying, setPlaybackTime } = renderNavigationHook({
+      isPlaying: true,
+    });
+
+    result.current.handleJumpToCommit(commits[2].sha);
+    result.current.handleJumpToCommit('missing');
+
+    expect(runJumpToCommitAction).toHaveBeenCalledTimes(1);
+    expect(runJumpToCommitAction).toHaveBeenCalledWith({
+      isPlaying: true,
+      lastSentCommitIndexRef,
+      setIsPlaying,
+      setPlaybackTime,
+      targetIndex: 2,
+      timelineCommits: commits,
+    });
   });
 });
