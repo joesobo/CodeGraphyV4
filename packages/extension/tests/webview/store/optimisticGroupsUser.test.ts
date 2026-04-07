@@ -91,4 +91,93 @@ describe('webview/store/optimisticGroupsUser', () => {
       pendingUserGroups: pending,
     });
   });
+
+  it('keeps a pending user-group list applied when the pending list is longer than the host payload', () => {
+    const pending = createPendingUserGroupsUpdate(
+      [
+        { id: 'g1', pattern: '*.tsx', color: '#3178C6' },
+        { id: 'g2', pattern: '*.ts', color: '#0EA5E9' },
+      ],
+      1000,
+    );
+
+    expect(
+      applyPendingUserGroupsUpdate(
+        [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+        pending,
+        1500,
+      ),
+    ).toEqual({
+      groups: [
+        { id: 'g1', pattern: '*.tsx', color: '#3178C6' },
+        { id: 'g2', pattern: '*.ts', color: '#0EA5E9' },
+      ],
+      pendingUserGroups: pending,
+    });
+  });
+
+  it('ignores plugin-default groups when deciding whether the host payload matches', () => {
+    const pending = createPendingUserGroupsUpdate(
+      [
+        { id: 'g1', pattern: '*.tsx', color: '#3178C6' },
+        { id: 'g2', pattern: '*.ts', color: '#0EA5E9' },
+      ],
+      1000,
+    );
+
+    expect(
+      applyPendingUserGroupsUpdate(
+        [
+          { id: 'g1', pattern: '*.tsx', color: '#3178C6' },
+          { id: 'g2', pattern: '*.ts', color: '#0EA5E9' },
+          { id: 'plugin:typescript', pattern: '*.md', color: '#6366F1', isPluginDefault: true },
+        ],
+        pending,
+        1500,
+      ),
+    ).toEqual({
+      groups: [
+        { id: 'g1', pattern: '*.tsx', color: '#3178C6' },
+        { id: 'g2', pattern: '*.ts', color: '#0EA5E9' },
+        { id: 'plugin:typescript', pattern: '*.md', color: '#6366F1', isPluginDefault: true },
+      ],
+      pendingUserGroups: null,
+    });
+  });
+
+  it('keeps a pending user-group list applied when a matching group has extra properties', () => {
+    const pending = createPendingUserGroupsUpdate(
+      [{ id: 'g1', pattern: '*.tsx', color: '#3178C6', description: 'tsx files' } as never],
+      1000,
+    );
+
+    expect(
+      applyPendingUserGroupsUpdate(
+        [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+        pending,
+        1500,
+      ),
+    ).toEqual({
+      groups: [{ id: 'g1', pattern: '*.tsx', color: '#3178C6', description: 'tsx files' } as never],
+      pendingUserGroups: pending,
+    });
+  });
+
+  it('drops a pending user-group list once it expires exactly at the current time', () => {
+    const pending = createPendingUserGroupsUpdate(
+      [{ id: 'g1', pattern: '*.tsx', color: '#3178C6' }],
+      1000,
+    );
+
+    expect(
+      applyPendingUserGroupsUpdate(
+        [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }],
+        pending,
+        3000,
+      ),
+    ).toEqual({
+      groups: [{ id: 'g1', pattern: '*.ts', color: '#3178C6' }],
+      pendingUserGroups: null,
+    });
+  });
 });
