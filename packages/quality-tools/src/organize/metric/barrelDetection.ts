@@ -2,7 +2,7 @@ import * as ts from 'typescript';
 import { type OrganizeFileIssue } from '../types';
 import { SUPPORTED_EXTENSIONS, getFileExtension, isReExportStatement } from './reExport';
 
-function scriptKindForExtension(ext: string): ts.ScriptKind {
+export function scriptKindForExtension(ext: string): ts.ScriptKind {
   if (ext === '.tsx') {
     return ts.ScriptKind.TSX;
   }
@@ -48,7 +48,11 @@ export function checkBarrelFile(fileName: string, fileContent: string): Organize
     }
   }
 
-  const reExportRatio = totalStatements > 0 ? reExportCount / totalStatements : 0;
+  if (totalStatements === 0) {
+    return undefined;
+  }
+
+  const reExportRatio = reExportCount / totalStatements;
 
   // Flag if 80% or more statements are re-exports
   if (reExportRatio >= 0.8) {

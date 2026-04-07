@@ -146,4 +146,86 @@ describe('loadOrganizeConfig', () => {
     expect(result.fileFanOut).toEqual({ warning: 8, split: 10 });
     expect(result.depth).toEqual({ warning: 5, deep: 6 });
   });
+
+  it('applies package organize config when defaults are missing', () => {
+    const customConfig = {
+      packages: {
+        extension: {
+          organize: {
+            fileFanOut: { warning: 6, split: 9 }
+          }
+        }
+      }
+    };
+
+    const result = loadOrganizeConfig(createOrganizeConfigRepo(customConfig), 'extension');
+
+    expect(result.fileFanOut).toEqual({ warning: 6, split: 9 });
+    expect(result.folderFanOut).toEqual({ warning: 10, split: 13 });
+  });
+
+  it('keeps defaults when packageName is requested but packages are absent', () => {
+    const customConfig = {
+      defaults: {
+        organize: {
+          redundancyThreshold: 0.55
+        }
+      }
+    };
+
+    const result = loadOrganizeConfig(createOrganizeConfigRepo(customConfig), 'extension');
+
+    expect(result.redundancyThreshold).toBe(0.55);
+    expect(result.fileFanOut).toEqual({ warning: 8, split: 10 });
+  });
+
+  it('keeps defaults when packageName is requested but that package has no organize block', () => {
+    const customConfig = {
+      defaults: {
+        organize: {
+          cohesionClusterMinSize: 4
+        }
+      },
+      packages: {
+        extension: {},
+        other: {
+          organize: {
+            cohesionClusterMinSize: 8
+          }
+        }
+      }
+    };
+
+    const result = loadOrganizeConfig(createOrganizeConfigRepo(customConfig), 'extension');
+
+    expect(result.cohesionClusterMinSize).toBe(4);
+  });
+
+  it('keeps defaults when packageName is requested but that package is missing', () => {
+    const customConfig = {
+      defaults: {
+        organize: {
+          fileFanOut: { warning: 9, split: 12 }
+        }
+      },
+      packages: {
+        other: {
+          organize: {
+            fileFanOut: { warning: 1, split: 2 }
+          }
+        }
+      }
+    };
+
+    const result = loadOrganizeConfig(createOrganizeConfigRepo(customConfig), 'extension');
+
+    expect(result.fileFanOut).toEqual({ warning: 9, split: 12 });
+  });
+
+  it('returns defaults when config file has no organize blocks', () => {
+    const result = loadOrganizeConfig(createOrganizeConfigRepo({ defaults: {}, packages: {} }), 'extension');
+
+    expect(result.lowInfoNames.banned).toContain('utils');
+    expect(result.redundancyThreshold).toBe(0.3);
+  });
 });

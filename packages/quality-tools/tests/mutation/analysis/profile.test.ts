@@ -31,32 +31,29 @@ describe('mutation profiles', () => {
   });
 
   it('scopes extension mutation test discovery to extension tests', async () => {
-    delete process.env.CODEGRAPHY_VITEST_INCLUDE_JSON;
-    vi.resetModules();
-    const { default: config } = await import('../../../../extension/vitest.stryker.config');
+    const { resolveMutationVitestIncludes } = await import('../../../../extension/vitest.includes');
 
-    expect(config.test?.include).toEqual([
+    expect(resolveMutationVitestIncludes({})).toEqual([
       'packages/extension/tests/**/*.test.{ts,tsx}',
       'packages/extension/__tests__/**/*.test.{ts,tsx}',
     ]);
   });
 
   it('scopes shared mutation test discovery to workspace tests when requested', async () => {
-    process.env.CODEGRAPHY_VITEST_SCOPE = 'workspace';
-    delete process.env.CODEGRAPHY_VITEST_INCLUDE_JSON;
-    vi.resetModules();
-    const { default: config } = await import('../../../../extension/vitest.stryker.config');
+    const { resolveMutationVitestIncludes } = await import('../../../../extension/vitest.includes');
 
-    expect(config.test?.include).toEqual([
+    expect(resolveMutationVitestIncludes({
+      CODEGRAPHY_VITEST_SCOPE: 'workspace',
+    })).toEqual([
       'packages/*/tests/**/*.test.{ts,tsx}',
       'packages/*/__tests__/**/*.test.{ts,tsx}',
     ]);
   });
 
   it('scopes regular extension vitest discovery to extension-owned tests', async () => {
-    const { default: config } = await import('../../../../extension/vitest.config');
+    const { extensionOwnedVitestIncludes } = await import('../../../../extension/vitest.includes');
 
-    expect(config.test?.include).toEqual([
+    expect(extensionOwnedVitestIncludes).toEqual([
       'tests/**/*.test.{ts,tsx}',
     ]);
   });

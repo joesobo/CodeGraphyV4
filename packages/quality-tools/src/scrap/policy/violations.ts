@@ -13,21 +13,15 @@ export function hasPolicyViolations(
   metrics: ScrapFileMetric[],
   policy: ScrapPolicyPreset
 ): boolean {
-  if (policy === 'advisory') {
-    return false;
+  switch (policy) {
+    case 'split':
+      return metrics.some(hasSplitViolation);
+    case 'review':
+      return metrics.some(hasReviewFirstViolation);
+    case 'strict':
+      return metrics.some(hasSplitViolation) || metrics.some(hasReviewFirstViolation);
+    case 'advisory':
+    default:
+      return false;
   }
-
-  if (policy === 'split') {
-    return metrics.some(hasSplitViolation);
-  }
-
-  if (policy === 'review') {
-    return metrics.some(hasReviewFirstViolation);
-  }
-
-  if (policy !== 'strict') {
-    return false;
-  }
-
-  return metrics.some(hasSplitViolation) || metrics.some(hasReviewFirstViolation);
 }

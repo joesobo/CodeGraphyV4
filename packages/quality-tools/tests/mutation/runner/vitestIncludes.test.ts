@@ -133,4 +133,30 @@ describe('resolveScopedVitestIncludes', () => {
       ),
     ).toBeUndefined();
   });
+
+  it('returns undefined when the package target has no package name', () => {
+    expect(
+      resolveScopedVitestIncludes({
+        absolutePath: '/repo/packages/extension',
+        kind: 'package',
+        packageName: undefined,
+        packageRelativePath: '.',
+        packageRoot: '/repo/packages/extension',
+        relativePath: 'packages/extension',
+      }),
+    ).toBeUndefined();
+  });
+
+  it('returns undefined when a file target has no src-relative package path', () => {
+    expect(
+      resolveScopedVitestIncludes(
+        target({
+          absolutePath: '/repo/packages/extension/src/core/views.ts',
+          kind: 'file',
+          packageRelativePath: undefined,
+          relativePath: 'packages/extension/src/core/views.ts',
+        }),
+      ),
+    ).toBeUndefined();
+  });
 });
