@@ -13,7 +13,21 @@ describe('collectDeclarationTypes', () => {
   it('ignores common framework type declarations', () => {
     const types = new Set<string>();
 
-    collectDeclarationTypes('String name = "x"; Int32 count = 1; Decimal total = 2;', types);
+    collectDeclarationTypes(
+      [
+        'String name = "x";',
+        'Object payload = value;',
+        'Boolean enabled = true;',
+        'Int32 count = 1;',
+        'Int64 total = 2;',
+        'Double ratio = 0.5;',
+        'Decimal amount = 3;',
+        'Byte flags = 4;',
+        'Char initial = c;',
+        'Void result = value;',
+      ].join(' '),
+      types,
+    );
 
     expect(types.size).toBe(0);
   });
@@ -25,5 +39,29 @@ describe('collectDeclarationTypes', () => {
     collectDeclarationTypes('UserService _service = new UserService();', types);
 
     expect(types).toEqual(new Set(['UserService']));
+  });
+
+  it('collects declarations with multiple spaces before the variable name', () => {
+    const types = new Set<string>();
+
+    collectDeclarationTypes('UserService   service = new UserService();', types);
+
+    expect(types).toEqual(new Set(['UserService']));
+  });
+
+  it('collects declarations when the assignment operator immediately follows the variable name', () => {
+    const types = new Set<string>();
+
+    collectDeclarationTypes('UserService service=new UserService();', types);
+
+    expect(types).toEqual(new Set(['UserService']));
+  });
+
+  it('does not collect when the token after the variable is not a declaration terminator', () => {
+    const types = new Set<string>();
+
+    collectDeclarationTypes('UserService service + fallback;', types);
+
+    expect(types.size).toBe(0);
   });
 });

@@ -40,6 +40,10 @@ function fileIncludes(packageName: string, relativeSourceFile: string): string[]
   const extension = extname(relativeSourceFile);
   const name = basename(relativeSourceFile, extension);
   const relativeTestDirectory = directory === '.' ? '' : `${directory}/`;
+  const dottedRelativePath = relativeSourceFile
+    .slice(0, -extension.length)
+    .split('/')
+    .join('.');
   const includeBroadFallback = !BROAD_FALLBACK_DISABLED_BASENAMES.has(name);
 
   return unique(
@@ -53,6 +57,10 @@ function fileIncludes(packageName: string, relativeSourceFile: string): string[]
         `${root}/${relativeTestDirectory}${name}*.test.tsx`,
         `${root}/${relativeTestDirectory}${name}/**/*.test.ts`,
         `${root}/${relativeTestDirectory}${name}/**/*.test.tsx`,
+        `${root}/${dottedRelativePath}.test.ts`,
+        `${root}/${dottedRelativePath}.test.tsx`,
+        `${root}/${dottedRelativePath}.mutations.test.ts`,
+        `${root}/${dottedRelativePath}.mutations.test.tsx`,
       ];
 
       if (!includeBroadFallback) {
@@ -67,6 +75,10 @@ function fileIncludes(packageName: string, relativeSourceFile: string): string[]
         `${root}/**/${name}.mutations.test.tsx`,
         `${root}/**/${name}*.test.ts`,
         `${root}/**/${name}*.test.tsx`,
+        `${root}/**/${dottedRelativePath}.test.ts`,
+        `${root}/**/${dottedRelativePath}.test.tsx`,
+        `${root}/**/${dottedRelativePath}.mutations.test.ts`,
+        `${root}/**/${dottedRelativePath}.mutations.test.tsx`,
         `${root}/**/${name}/**/*.test.ts`,
         `${root}/**/${name}/**/*.test.tsx`,
       ];

@@ -14,8 +14,13 @@ describe('toolbar/action', () => {
 
     expect(action.id).toBe('wikilinks');
     expect(action.label).toBe('Wikilinks');
+    expect(action.description).toBe('Open plugin-provided wikilink tools');
     expect(action.items).toHaveLength(1);
-    expect(action.items[0]?.id).toBe('wikilink-summary');
+    expect(action.items[0]).toMatchObject({
+      id: 'wikilink-summary',
+      label: 'Markdown Wikilink Summary',
+      description: 'Export a markdown summary of linked and orphan notes',
+    });
   });
 
   it('exports a markdown summary from markdown reference edges only', async () => {

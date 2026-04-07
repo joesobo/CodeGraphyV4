@@ -40,6 +40,22 @@ describe('resolveScopedVitestIncludes', () => {
     expect(includes).toContain('packages/extension/tests/**/graphViewProvider/**/*.test.ts');
   });
 
+  it('matches dotted test names for nested source files', () => {
+    const includes = resolveScopedVitestIncludes(
+      target({
+        absolutePath: '/repo/packages/plugin-typescript/src/focusedImports/filter.ts',
+        kind: 'file',
+        packageName: 'plugin-typescript',
+        packageRelativePath: 'src/focusedImports/filter.ts',
+        packageRoot: '/repo/packages/plugin-typescript',
+        relativePath: 'packages/plugin-typescript/src/focusedImports/filter.ts',
+      }),
+    );
+
+    expect(includes).toContain('packages/plugin-typescript/__tests__/focusedImports.filter.test.ts');
+    expect(includes).toContain('packages/plugin-typescript/__tests__/**/focusedImports.filter.test.ts');
+  });
+
   it('skips broad basename fallback patterns for generic file names', () => {
     const includes = resolveScopedVitestIncludes(
       target({

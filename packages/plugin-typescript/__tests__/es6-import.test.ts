@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { detect } from '../src/sources/es6-import';
+import { detect, SOURCE_ID } from '../src/sources/es6-import';
 import { PathResolver } from '../src/PathResolver';
 import type { TsRuleContext } from '../src/types';
 
@@ -85,5 +85,15 @@ describe('es6-import rule', () => {
   it('should not detect export declarations', () => {
     const connections = detect(`export { foo } from './bar';`, testFile, context);
     expect(connections).toHaveLength(0);
+  });
+
+  it('exports the stable source id', () => {
+    expect(SOURCE_ID).toBe('es6-import');
+  });
+
+  it('ignores invalid imports whose module specifier is not a string literal', () => {
+    expect(detect(`import foo from bar;`, testFile, context)).toHaveLength(0);
+    expect(detect('import foo from `./bar`;', testFile, context)).toHaveLength(0);
+    expect(detect('import foo from 1;', testFile, context)).toHaveLength(0);
   });
 });
