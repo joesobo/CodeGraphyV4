@@ -12,6 +12,7 @@ function createPlugin(id: string): IPlugin {
     sources: [
       { id: 'import', name: 'Import', description: 'Import relation' },
       { id: 'reexport', name: 'Re-export', description: 'Re-export relation' },
+      { id: 'dynamic-import', name: 'Dynamic Import', description: 'Dynamic import relation' },
     ],
     detectConnections: vi.fn(async () => []),
   };
@@ -133,5 +134,63 @@ describe('workspaceAnalyzer/graph/edges', () => {
     }));
 
     expect(result.edges).toEqual([]);
+  });
+
+  it('creates edges without sources when the connection plugin is unavailable', () => {
+    const result = buildWorkspaceGraphEdges(createOptions({
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
+        ]],
+        ['src/utils.ts', []],
+      ]),
+      getPluginForFile: () => undefined,
+    }));
+
+    expect(result.edges).toEqual([
+      {
+        id: 'src/index.ts->src/utils.ts#import',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+        sources: [],
+      },
+    ]);
+  });
+
+  it('appends distinct sources for the same edge kind but ignores duplicate source ids', () => {
+    const result = buildWorkspaceGraphEdges(createOptions({
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
+        ]],
+        ['src/utils.ts', []],
+      ]),
+    }));
+
+    expect(result.edges).toEqual([
+      {
+        id: 'src/index.ts->src/utils.ts#import',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'import',
+            label: 'Import',
+          },
+          {
+            id: 'plugin.typescript:dynamic-import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'dynamic-import',
+            label: 'Dynamic Import',
+          },
+        ],
+      },
+    ]);
   });
 });

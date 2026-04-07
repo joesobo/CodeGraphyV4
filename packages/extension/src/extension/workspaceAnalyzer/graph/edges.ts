@@ -5,8 +5,9 @@
 
 import * as path from 'path';
 import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
-import type { IGraphEdge, IGraphEdgeSource } from '../../../shared/graph/types';
-import { getExternalPackageNodeId } from './packageSpecifiers';
+import type { IGraphEdge } from '../../../shared/graph/types';
+import { createEdgeSource, createQualifiedSourceId } from './edgeSources';
+import { getConnectionTargetId } from './edgeTargets';
 
 export interface IWorkspaceGraphEdgesOptions {
   disabledPlugins: ReadonlySet<string>;
@@ -20,56 +21,6 @@ export interface IWorkspaceGraphEdgeBuildResult {
   connectedIds: Set<string>;
   edges: IGraphEdge[];
   nodeIds: Set<string>;
-}
-
-function getConnectionTargetId(
-  plugin: IPlugin | undefined,
-  connection: IConnection,
-  fileConnections: ReadonlyMap<string, IConnection[]>,
-  workspaceRoot: string,
-): string | null {
-  if (connection.resolvedPath) {
-    const targetRelative = path.relative(workspaceRoot, connection.resolvedPath);
-    return fileConnections.has(targetRelative) ? targetRelative : null;
-  }
-
-  if (plugin?.id !== 'codegraphy.typescript') {
-    return null;
-  }
-
-  return getExternalPackageNodeId(connection.specifier);
-}
-
-function createQualifiedSourceId(
-  plugin: IPlugin | undefined,
-  connection: Pick<IConnection, 'sourceId'>,
-): string | undefined {
-  return plugin && connection.sourceId ? `${plugin.id}:${connection.sourceId}` : undefined;
-}
-
-function createEdgeSource(
-  plugin: IPlugin | undefined,
-  connection: IConnection,
-): IGraphEdgeSource | undefined {
-  if (!plugin) {
-    return undefined;
-  }
-
-  const qualifiedSourceId = createQualifiedSourceId(plugin, connection);
-  if (!qualifiedSourceId) {
-    return undefined;
-  }
-
-  const pluginSource = plugin.sources?.find((source) => source.id === connection.sourceId);
-
-  return {
-    id: qualifiedSourceId,
-    pluginId: plugin.id,
-    sourceId: connection.sourceId,
-    label: pluginSource?.name ?? connection.sourceId,
-    metadata: connection.metadata,
-    variant: connection.variant,
-  };
 }
 
 export function buildWorkspaceGraphEdges(

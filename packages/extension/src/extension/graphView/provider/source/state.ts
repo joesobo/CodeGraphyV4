@@ -1,7 +1,4 @@
-import type {
-  GraphViewProviderMethodSource,
-  GraphViewProviderMethodSourceOwner,
-} from './contracts';
+import type { GraphViewProviderMethodSourceOwner } from './contracts';
 import { attachMutableAccessors, attachReadonlyAccessors } from './accessors';
 
 const MUTABLE_STATE_KEYS = [
@@ -33,7 +30,7 @@ const MUTABLE_STATE_KEYS = [
   '_webviewReadyNotified',
   '_indexingController',
 ] as const satisfies readonly Extract<
-  keyof GraphViewProviderMethodSource & keyof GraphViewProviderMethodSourceOwner,
+  keyof GraphViewProviderMethodSourceOwner,
   string
 >[];
 
@@ -47,18 +44,18 @@ const READONLY_STATE_KEYS = [
   '_extensionUri',
   '_context',
 ] as const satisfies readonly Extract<
-  keyof GraphViewProviderMethodSource & keyof GraphViewProviderMethodSourceOwner,
+  keyof GraphViewProviderMethodSourceOwner,
   string
 >[];
 
 export function createGraphViewProviderMethodStateSource(
   owner: GraphViewProviderMethodSourceOwner,
 ): Pick<
-  GraphViewProviderMethodSource,
+  GraphViewProviderMethodSourceOwner,
   (typeof MUTABLE_STATE_KEYS)[number] | (typeof READONLY_STATE_KEYS)[number]
 > {
   const source = {} as Pick<
-    GraphViewProviderMethodSource,
+    GraphViewProviderMethodSourceOwner,
     (typeof MUTABLE_STATE_KEYS)[number] | (typeof READONLY_STATE_KEYS)[number]
   >;
 

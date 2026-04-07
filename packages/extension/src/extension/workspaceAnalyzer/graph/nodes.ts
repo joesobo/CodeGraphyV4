@@ -10,7 +10,7 @@ import { DEFAULT_PACKAGE_NODE_COLOR } from '../../../shared/fileColors';
 import {
   getExternalPackageLabelFromNodeId,
   isExternalPackageNodeId,
-} from './packageSpecifiers';
+} from './packageSpecifiers/nodeId';
 
 export interface IWorkspaceGraphNodesOptions {
   cacheFiles: Record<string, { size?: number }>;

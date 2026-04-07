@@ -8,34 +8,87 @@ import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
 import { WorkspaceAnalyzer } from '../../../workspaceAnalyzer/service';
-import type { GraphViewProviderAnalysisMethodsSource } from '../analysis/methods';
-import type { GraphViewProviderCommandMethodsSource } from '../commands';
-import type { GraphViewProviderFileActionMethodsSource } from '../file/actions';
-import type { GraphViewProviderFileVisitMethodsSource } from '../file/visits';
-import type { GraphViewProviderPhysicsSettingsMethodsSource } from '../physicsSettings';
-import type { GraphViewProviderPluginMethodsSource } from '../plugins';
-import type { GraphViewProviderPluginResourceMethodsSource } from '../pluginResources';
-import type { GraphViewProviderRefreshMethodsSource } from '../refresh';
+import type {
+  GraphViewProviderAnalysisMethods,
+  GraphViewProviderAnalysisMethodsSource,
+} from '../analysis/methods';
+import type {
+  GraphViewProviderCommandMethods,
+  GraphViewProviderCommandMethodsSource,
+} from '../commands';
+import type {
+  GraphViewProviderFileActionMethods,
+  GraphViewProviderFileActionMethodsSource,
+} from '../file/actions';
+import type {
+  GraphViewProviderFileVisitMethods,
+  GraphViewProviderFileVisitMethodsSource,
+} from '../file/visits';
+import type {
+  GraphViewProviderPhysicsSettingsMethods,
+  GraphViewProviderPhysicsSettingsMethodsSource,
+} from '../physicsSettings';
+import type {
+  GraphViewProviderPluginMethods,
+  GraphViewProviderPluginMethodsSource,
+} from '../plugins';
+import type {
+  GraphViewProviderPluginResourceMethods,
+  GraphViewProviderPluginResourceMethodsSource,
+} from '../pluginResources';
+import type {
+  GraphViewProviderRefreshMethods,
+  GraphViewProviderRefreshMethodsSource,
+} from '../refresh';
 import type { GraphViewProviderMethodContainers } from '../wiring/methodContainers';
-import type { GraphViewProviderSettingsStateMethodsSource } from '../settingsState';
-import type { GraphViewProviderTimelineMethodsSource } from '../timeline/types';
-import type { GraphViewProviderViewContextMethodsSource } from '../view/context';
-import type { GraphViewProviderViewSelectionMethodsSource } from '../view/selection';
-import type { GraphViewProviderWebviewSource } from '../webview/host';
+import type {
+  GraphViewProviderSettingsStateMethods,
+  GraphViewProviderSettingsStateMethodsSource,
+} from '../settingsState';
+import type {
+  GraphViewProviderTimelineMethods,
+  GraphViewProviderTimelineMethodsSource,
+} from '../timeline/types';
+import type {
+  GraphViewProviderViewContextMethods,
+  GraphViewProviderViewContextMethodsSource,
+} from '../view/context';
+import type {
+  GraphViewProviderViewSelectionMethods,
+  GraphViewProviderViewSelectionMethodsSource,
+} from '../view/selection';
+import type {
+  GraphViewProviderWebviewMethods,
+  GraphViewProviderWebviewSource,
+} from '../webview/host';
 
 export type GraphViewProviderMethodSource =
+  & GraphViewProviderMethodSourceOwner
+  & GraphViewProviderAnalysisMethods
   & GraphViewProviderAnalysisMethodsSource
+  & GraphViewProviderCommandMethods
   & GraphViewProviderCommandMethodsSource
+  & GraphViewProviderFileActionMethods
   & GraphViewProviderFileActionMethodsSource
+  & GraphViewProviderFileVisitMethods
   & GraphViewProviderFileVisitMethodsSource
+  & GraphViewProviderPluginMethods
   & GraphViewProviderPluginMethodsSource
+  & GraphViewProviderPluginResourceMethods
   & GraphViewProviderPluginResourceMethodsSource
+  & GraphViewProviderPhysicsSettingsMethods
   & GraphViewProviderPhysicsSettingsMethodsSource
+  & GraphViewProviderRefreshMethods
   & GraphViewProviderRefreshMethodsSource
+  & GraphViewProviderSettingsStateMethods
   & GraphViewProviderSettingsStateMethodsSource
+  & GraphViewProviderTimelineMethods
   & GraphViewProviderTimelineMethodsSource
+  & GraphViewProviderViewContextMethods
   & GraphViewProviderViewContextMethodsSource
+  & GraphViewProviderViewSelectionMethods
   & GraphViewProviderViewSelectionMethodsSource
+  & GraphViewProviderWebviewMethods
   & GraphViewProviderWebviewSource;
 
 export interface GraphViewProviderMethodSourceOwner {
