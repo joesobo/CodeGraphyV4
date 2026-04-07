@@ -2,7 +2,7 @@ const DEFAULT_MESSAGE_MAX_LENGTH = 50;
 const ELLIPSIS_LENGTH = 3;
 
 export function getMessageTitle(message: string): string {
-  return message.split(/\r?\n/, 1)[0] ?? '';
+  return message.split(/\r?\n/, 1)[0];
 }
 
 export function getMessageBody(message: string): string {

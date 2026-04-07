@@ -1,5 +1,44 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+
+vi.mock('../../src/webview/components/ui/overlay/tooltip', async () => {
+  const React = await import('react');
+
+  function TooltipProvider({ children }: React.PropsWithChildren): React.ReactElement {
+    return <>{children}</>;
+  }
+
+  function Tooltip({ children }: React.PropsWithChildren): React.ReactElement {
+    return <>{children}</>;
+  }
+
+  function TooltipTrigger({
+    asChild: _asChild,
+    children,
+  }: React.PropsWithChildren<{ asChild?: boolean }>): React.ReactElement {
+    return React.Children.only(children) as React.ReactElement;
+  }
+
+  function TooltipContent({
+    children,
+    side: _side,
+    sideOffset: _sideOffset,
+    ...props
+  }: React.PropsWithChildren<{
+    className?: string;
+    side?: string;
+    sideOffset?: number;
+  }>): React.ReactElement {
+    return (
+      <div role="tooltip" {...props}>
+        {children}
+      </div>
+    );
+  }
+
+  return { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
+});
+
 import Toolbar from '../../src/webview/components/Toolbar';
 import { graphStore } from '../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
@@ -90,21 +129,44 @@ describe('Toolbar', () => {
     it('renders a collapse toggle at the bottom of the top toolbar group', () => {
       const { container } = render(<Toolbar />);
       const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
-      const collapseTrigger = screen.getByTitle('Collapse Toolbar');
+      const controls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
+      const collapseTrigger = screen.getByRole('button', { name: 'Collapse Toolbar' });
 
       expect(collapseTrigger.closest('[data-testid="toolbar-top-group"]')).toBe(topGroup);
-      expect(topGroup?.lastElementChild).toBe(collapseTrigger);
+      expect(collapseTrigger).toHaveAttribute('title', 'Collapse Toolbar');
+      expect(topGroup).toContainElement(collapseTrigger);
+      expect(controls).toHaveClass(
+        'overflow-hidden',
+        'transition-[max-height,opacity,margin,transform]',
+        'duration-200',
+        'ease-out',
+        'mb-1.5',
+        'max-h-96',
+        'opacity-100',
+        'translate-y-0',
+      );
+      expect(screen.getAllByText('Collapse Toolbar').length).toBeGreaterThanOrEqual(1);
     });
 
     it('collapses only the top toolbar controls and keeps the bottom actions visible', () => {
       const { container } = render(<Toolbar />);
       const controls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
 
-      fireEvent.click(screen.getByTitle('Collapse Toolbar'));
+      fireEvent.click(screen.getByRole('button', { name: 'Collapse Toolbar' }));
 
-      expect(screen.getByTitle('Expand Toolbar')).toBeTruthy();
-      expect(controls?.className).toContain('max-h-0');
-      expect(controls?.className).toContain('opacity-0');
+      expect(screen.getByRole('button', { name: 'Expand Toolbar' })).toHaveAttribute('title', 'Expand Toolbar');
+      expect(controls).toHaveClass(
+        'overflow-hidden',
+        'transition-[max-height,opacity,margin,transform]',
+        'duration-200',
+        'ease-out',
+        'mb-0',
+        'max-h-0',
+        'opacity-0',
+        '-translate-y-1',
+        'pointer-events-none',
+      );
+      expect(screen.getAllByText('Expand Toolbar').length).toBeGreaterThanOrEqual(1);
       expect(screen.getByTitle('Refresh Graph')).toBeTruthy();
       expect(screen.getByTitle('Settings')).toBeTruthy();
     });

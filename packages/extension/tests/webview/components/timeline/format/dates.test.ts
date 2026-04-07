@@ -64,6 +64,16 @@ describe('timeline/dates', () => {
   });
 
   describe('getResponsiveAxisTickCount', () => {
+    it('returns zero when maxTicks is zero or negative', () => {
+      expect(getResponsiveAxisTickCount(300, 0)).toBe(0);
+      expect(getResponsiveAxisTickCount(300, -3)).toBe(0);
+    });
+
+    it('returns the provided max tick count when the track width is not positive', () => {
+      expect(getResponsiveAxisTickCount(0, 4)).toBe(4);
+      expect(getResponsiveAxisTickCount(-50, 4)).toBe(4);
+    });
+
     it('uses fewer ticks in a narrow timeline track', () => {
       expect(getResponsiveAxisTickCount(220)).toBe(1);
     });
