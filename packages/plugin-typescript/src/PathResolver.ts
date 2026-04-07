@@ -5,7 +5,7 @@
  */
 
 import * as path from 'path';
-import { isBuiltIn, isBareSpecifier } from './builtins';
+import { isBuiltIn } from './builtins';
 import { resolveFile } from './fileResolver';
 import { resolveWithPaths } from './pathMatcher';
 
@@ -94,16 +94,7 @@ export class PathResolver {
     // Try baseUrl-relative (when baseUrl is set)
     if (this._config.baseUrl) {
       const resolved = path.resolve(this._baseUrl, specifier);
-      const result = resolveFile(resolved);
-      if (result) {
-        return result;
-      }
-    }
-
-    // At this point, it's either a node_modules package or unresolved
-    // Bare specifiers (packages) return null
-    if (isBareSpecifier(specifier)) {
-      return null;
+      return resolveFile(resolved);
     }
 
     return null;

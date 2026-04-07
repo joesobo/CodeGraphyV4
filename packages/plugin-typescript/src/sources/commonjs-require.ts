@@ -5,9 +5,11 @@
  */
 
 import * as ts from 'typescript';
-import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
+import type { IConnection } from '@codegraphy-vscode/plugin-api';
 import type { TsRuleContext } from '../types';
 import { getScriptKind } from '../getScriptKind';
+
+export const SOURCE_ID = 'commonjs-require';
 
 function detect(
   content: string,
@@ -20,7 +22,7 @@ function detect(
     filePath,
     content,
     ts.ScriptTarget.Latest,
-    true,
+    undefined,
     getScriptKind(filePath)
   );
 
@@ -39,7 +41,7 @@ function detect(
           specifier,
           resolvedPath: context.resolver.resolve(specifier, filePath),
           type: 'require',
-          sourceId: 'commonjs-require',
+          sourceId: SOURCE_ID,
         });
       }
     }
@@ -51,10 +53,4 @@ function detect(
   return connections;
 }
 
-const rule: IConnectionDetector<TsRuleContext> = {
-  id: 'commonjs-require',
-  detect,
-};
-
-export default rule;
 export { detect };

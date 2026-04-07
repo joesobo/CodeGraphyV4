@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { detect } from '../src/sources/reexport';
+import { detect, SOURCE_ID } from '../src/sources/reexport';
 import { PathResolver } from '../src/PathResolver';
 import type { TsRuleContext } from '../src/types';
 
@@ -61,5 +61,15 @@ describe('reexport rule', () => {
   it('should not detect export default declaration', () => {
     const connections = detect(`export default function myFunc() {}`, testFile, context);
     expect(connections).toHaveLength(0);
+  });
+
+  it('exports the stable source id', () => {
+    expect(SOURCE_ID).toBe('reexport');
+  });
+
+  it('ignores invalid re-exports whose module specifier is not a string literal', () => {
+    expect(detect(`export { foo } from bar;`, testFile, context)).toHaveLength(0);
+    expect(detect('export { foo } from `./bar`;', testFile, context)).toHaveLength(0);
+    expect(detect('export { foo } from 1;', testFile, context)).toHaveLength(0);
   });
 });

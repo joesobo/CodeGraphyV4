@@ -117,4 +117,86 @@ describe('focusedImports/filter', () => {
     expect(transformed.nodes.find(node => node.id === 'src/utils.ts')?.depthLevel).toBe(1);
     expect(transformed.nodes.some(node => node.id === 'src/deep.ts')).toBe(false);
   });
+
+  it('uses the provided depth limit when it is greater than one', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        { id: 'src/index.ts', label: 'index.ts', color: '#fff' },
+        { id: 'src/utils.ts', label: 'utils.ts', color: '#fff' },
+        { id: 'src/deep.ts', label: 'deep.ts', color: '#fff' },
+      ],
+      edges: [
+        {
+          id: 'src/index.ts->src/utils.ts#import',
+          from: 'src/index.ts',
+          to: 'src/utils.ts',
+          kind: 'import',
+          sources: [
+            {
+              id: `${PLUGIN_ID}:es6-import`,
+              pluginId: PLUGIN_ID,
+              sourceId: 'es6-import',
+              label: 'ES6 Imports',
+            },
+          ],
+        },
+        {
+          id: 'src/utils.ts->src/deep.ts#import',
+          from: 'src/utils.ts',
+          to: 'src/deep.ts',
+          kind: 'import',
+          sources: [
+            {
+              id: `${PLUGIN_ID}:reexport`,
+              pluginId: PLUGIN_ID,
+              sourceId: 'reexport',
+              label: 'Re-exports',
+            },
+          ],
+        },
+      ],
+    };
+
+    const transformed = filterFocusedImportGraph(graphData, createContext({
+      focusedFile: 'src/index.ts',
+      depthLimit: 2,
+    }), PLUGIN_ID);
+
+    expect(transformed.nodes.map(node => node.id)).toEqual(['src/index.ts', 'src/utils.ts', 'src/deep.ts']);
+    expect(transformed.nodes.find(node => node.id === 'src/deep.ts')?.depthLevel).toBe(2);
+    expect(transformed.edges.map(edge => edge.id)).toEqual([
+      'src/index.ts->src/utils.ts#import',
+      'src/utils.ts->src/deep.ts#import',
+    ]);
+  });
+
+  it('returns an empty graph when the focused file is outside the import graph', () => {
+    const graphData: IGraphData = {
+      nodes: [
+        { id: 'src/index.ts', label: 'index.ts', color: '#fff' },
+        { id: 'src/utils.ts', label: 'utils.ts', color: '#fff' },
+      ],
+      edges: [
+        {
+          id: 'src/index.ts->src/utils.ts#import',
+          from: 'src/index.ts',
+          to: 'src/utils.ts',
+          kind: 'import',
+          sources: [
+            {
+              id: `${PLUGIN_ID}:es6-import`,
+              pluginId: PLUGIN_ID,
+              sourceId: 'es6-import',
+              label: 'ES6 Imports',
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(filterFocusedImportGraph(graphData, createContext({
+      focusedFile: 'docs/Note.md',
+      depthLimit: 2,
+    }), PLUGIN_ID)).toEqual({ nodes: [], edges: [] });
+  });
 });
