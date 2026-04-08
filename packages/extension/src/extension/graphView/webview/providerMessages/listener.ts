@@ -10,6 +10,7 @@ import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/fileColors';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
 import { ResetSettingsAction } from '../../../actions/resetSettings';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/reader';
 import { captureGraphViewSettingsSnapshot } from '../../settings/snapshot';
 import { createGraphViewProviderMessageContext } from './context';
@@ -138,7 +139,13 @@ export interface GraphViewProviderMessageListenerSource {
 }
 
 export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {
-  workspace: vscode.workspace,
+  workspace: {
+    ...vscode.workspace,
+    getConfiguration: section =>
+      section === 'codegraphy'
+        ? getCodeGraphyConfiguration()
+        : vscode.workspace.getConfiguration(section),
+  },
   window: vscode.window,
   getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
   captureSettingsSnapshot: (configuration, physicsSettings, nodeSizeMode) =>

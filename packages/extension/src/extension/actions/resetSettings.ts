@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import type { IUndoableAction } from '../undoManager';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../shared/settings/snapshot';
+import { getCodeGraphyConfiguration } from '../repoSettings/current';
 
 /** Physics keys live under `codegraphy.physics.*` */
 const PHYSICS_KEYS: (keyof IPhysicsSettings)[] = [
@@ -59,12 +60,11 @@ export class ResetSettingsAction implements IUndoableAction {
   ) {}
 
   async execute(): Promise<void> {
-    const physics = vscode.workspace.getConfiguration('codegraphy.physics');
-    const config = vscode.workspace.getConfiguration('codegraphy');
+    const config = getCodeGraphyConfiguration();
     const target = this._configTarget;
 
     for (const key of PHYSICS_KEYS) {
-      await physics.update(key, undefined, target);
+      await config.update(`physics.${key}`, undefined, target);
     }
     for (const configKey of Object.keys(CONFIG_TO_SNAPSHOT)) {
       await config.update(configKey, undefined, target);
@@ -78,13 +78,12 @@ export class ResetSettingsAction implements IUndoableAction {
   }
 
   async undo(): Promise<void> {
-    const physics = vscode.workspace.getConfiguration('codegraphy.physics');
-    const config = vscode.workspace.getConfiguration('codegraphy');
+    const config = getCodeGraphyConfiguration();
     const target = this._configTarget;
     const before = this._stateBefore;
 
     for (const key of PHYSICS_KEYS) {
-      await physics.update(key, before.physics[key], target);
+      await config.update(`physics.${key}`, before.physics[key], target);
     }
     for (const [configKey, snapshotField] of Object.entries(CONFIG_TO_SNAPSHOT)) {
       await config.update(configKey, before[snapshotField], target);

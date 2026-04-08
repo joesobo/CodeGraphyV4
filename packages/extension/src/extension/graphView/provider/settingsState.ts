@@ -4,6 +4,7 @@ import type { IViewContext } from '../../../core/views/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../shared/settings/groups';
 import type { IPhysicsSettings } from '../../../shared/settings/physics';
+import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { getGraphViewConfigTarget } from '../settings/reader';
 import { loadGraphViewDisabledState } from '../settings/disabled';
 import { applyLoadedGraphViewGroupState } from '../groups/sync';
@@ -75,7 +76,10 @@ export interface GraphViewProviderSettingsStateMethodDependencies {
 
 export function createDefaultGraphViewProviderSettingsStateMethodDependencies(): GraphViewProviderSettingsStateMethodDependencies {
   return {
-    getConfiguration: section => vscode.workspace.getConfiguration(section),
+    getConfiguration: section =>
+      section === 'codegraphy'
+        ? getCodeGraphyConfiguration()
+        : vscode.workspace.getConfiguration(section),
     getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
     getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
     loadGroupState: loadGraphViewGroupState,

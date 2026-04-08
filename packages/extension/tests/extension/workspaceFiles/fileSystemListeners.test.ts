@@ -32,6 +32,11 @@ function makeDocument(fsPath: string | undefined) {
 }
 
 describe('shouldIgnoreSaveForGraphRefresh', () => {
+  it('ignores .codegraphy settings saves', () => {
+    expect(shouldIgnoreSaveForGraphRefresh(makeDocument('/project/.codegraphy/settings.json'))).toBe(true);
+    expect(shouldIgnoreSaveForGraphRefresh(makeDocument('/project/.codegraphy/meta.json'))).toBe(true);
+  });
+
   it('ignores VS Code settings.json saves', () => {
     expect(shouldIgnoreSaveForGraphRefresh(makeDocument('/project/.vscode/settings.json'))).toBe(true);
   });
@@ -64,6 +69,7 @@ describe('shouldIgnoreSaveForGraphRefresh', () => {
 
 describe('shouldIgnoreWorkspaceFileWatcherRefresh', () => {
   it('ignores workspace config artifact paths', () => {
+    expect(shouldIgnoreWorkspaceFileWatcherRefresh('/project/.codegraphy/settings.json')).toBe(true);
     expect(shouldIgnoreWorkspaceFileWatcherRefresh('/project/.vscode/settings.json')).toBe(true);
     expect(shouldIgnoreWorkspaceFileWatcherRefresh('/project/my-project.code-workspace')).toBe(true);
   });

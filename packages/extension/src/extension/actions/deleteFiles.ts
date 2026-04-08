@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import { IUndoableAction } from '../undoManager';
+import { getCodeGraphyConfiguration } from '../repoSettings/current';
 
 /**
  * Stored file data for restoration on undo.
@@ -51,7 +52,7 @@ export class DeleteFilesAction implements IUndoableAction {
     this._storedFiles = [];
 
     // Store favorites state before deletion
-    const config = vscode.workspace.getConfiguration('codegraphy');
+    const config = getCodeGraphyConfiguration();
     this._favoritesBefore = [...config.get<string[]>('favorites', [])];
     
     // Calculate new favorites (remove deleted files)
@@ -90,7 +91,7 @@ export class DeleteFilesAction implements IUndoableAction {
     }
 
     // Restore favorites state (full replacement)
-    const config = vscode.workspace.getConfiguration('codegraphy');
+    const config = getCodeGraphyConfiguration();
     await config.update('favorites', this._favoritesBefore, vscode.ConfigurationTarget.Workspace);
 
     await this._refreshGraph();

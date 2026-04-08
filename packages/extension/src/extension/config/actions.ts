@@ -1,6 +1,9 @@
-import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../graphViewProvider';
 import type { ConfigCategory } from './classify';
+
+interface CodeGraphyConfigurationChangeLike {
+  affectsConfiguration(section: string): boolean;
+}
 
 const GROUP_SETTINGS_DEBOUNCE_MS = 300;
 let pendingGroupSettingsRefresh: ReturnType<typeof setTimeout> | undefined;
@@ -8,7 +11,7 @@ let pendingGroupSettingsRefresh: ReturnType<typeof setTimeout> | undefined;
 /** Executes the appropriate provider action for a given config category. */
 export function executeConfigAction(
   category: ConfigCategory,
-  event: vscode.ConfigurationChangeEvent,
+  event: CodeGraphyConfigurationChangeLike,
   provider: GraphViewProvider
 ): void {
   switch (category) {

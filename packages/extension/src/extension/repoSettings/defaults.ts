@@ -1,0 +1,142 @@
+import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
+import type { IGroup } from '../../shared/settings/groups';
+
+export interface ICodeGraphyRepoSettings {
+  version: 1;
+  maxFiles: number;
+  include: string[];
+  respectGitignore: boolean;
+  showOrphans: boolean;
+  plugins: string[];
+  pluginOrder: string[];
+  disabledSources: string[];
+  disabledPlugins: string[];
+  hiddenPluginGroups: string[];
+  favorites: string[];
+  bidirectionalEdges: 'separate' | 'combined';
+  groups: IGroup[];
+  filterPatterns: string[];
+  exclude: string[];
+  showLabels: boolean;
+  directionMode: 'arrows' | 'particles' | 'none';
+  directionColor: string;
+  folderNodeColor: string;
+  particleSpeed: number;
+  particleSize: number;
+  physics: {
+    repelForce: number;
+    linkDistance: number;
+    linkForce: number;
+    damping: number;
+    centerForce: number;
+    chargeRange: number;
+  };
+  timeline: {
+    maxCommits: number;
+    playbackSpeed: number;
+  };
+}
+
+export interface LegacyCodeGraphyConfigurationLike {
+  get<T>(key: string, defaultValue: T): T;
+}
+
+export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
+  return {
+    version: 1,
+    maxFiles: 500,
+    include: ['**/*'],
+    respectGitignore: true,
+    showOrphans: true,
+    plugins: [],
+    pluginOrder: [],
+    disabledSources: [],
+    disabledPlugins: [],
+    hiddenPluginGroups: [],
+    favorites: [],
+    bidirectionalEdges: 'separate',
+    groups: [],
+    filterPatterns: [],
+    exclude: [],
+    showLabels: true,
+    directionMode: 'arrows',
+    directionColor: DEFAULT_DIRECTION_COLOR,
+    folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
+    particleSpeed: 0.005,
+    particleSize: 4,
+    physics: {
+      repelForce: 10,
+      linkDistance: 80,
+      linkForce: 0.15,
+      damping: 0.7,
+      centerForce: 0.1,
+      chargeRange: 200,
+    },
+    timeline: {
+      maxCommits: 500,
+      playbackSpeed: 1,
+    },
+  };
+}
+
+export function createCodeGraphyRepoSettingsFromLegacyConfig(
+  legacyConfig?: LegacyCodeGraphyConfigurationLike,
+): ICodeGraphyRepoSettings {
+  const defaults = createDefaultCodeGraphyRepoSettings();
+  if (!legacyConfig) {
+    return defaults;
+  }
+
+  const legacyFilterPatterns = legacyConfig.get<string[]>('filterPatterns', []);
+  const legacyExcludePatterns = legacyConfig.get<string[]>('exclude', []);
+
+  return {
+    version: 1,
+    maxFiles: legacyConfig.get<number>('maxFiles', defaults.maxFiles),
+    include: legacyConfig.get<string[]>('include', defaults.include),
+    respectGitignore: legacyConfig.get<boolean>('respectGitignore', defaults.respectGitignore),
+    showOrphans: legacyConfig.get<boolean>('showOrphans', defaults.showOrphans),
+    plugins: legacyConfig.get<string[]>('plugins', defaults.plugins),
+    pluginOrder: defaults.pluginOrder,
+    disabledSources: legacyConfig.get<string[]>('disabledSources', defaults.disabledSources),
+    disabledPlugins: legacyConfig.get<string[]>('disabledPlugins', defaults.disabledPlugins),
+    hiddenPluginGroups: legacyConfig.get<string[]>(
+      'hiddenPluginGroups',
+      defaults.hiddenPluginGroups,
+    ),
+    favorites: legacyConfig.get<string[]>('favorites', defaults.favorites),
+    bidirectionalEdges: legacyConfig.get<'separate' | 'combined'>(
+      'bidirectionalEdges',
+      defaults.bidirectionalEdges,
+    ),
+    groups: legacyConfig.get<IGroup[]>('groups', defaults.groups),
+    filterPatterns:
+      legacyFilterPatterns.length > 0 ? legacyFilterPatterns : legacyExcludePatterns,
+    exclude:
+      legacyExcludePatterns.length > 0 ? legacyExcludePatterns : legacyFilterPatterns,
+    showLabels: legacyConfig.get<boolean>('showLabels', defaults.showLabels),
+    directionMode: legacyConfig.get<'arrows' | 'particles' | 'none'>(
+      'directionMode',
+      defaults.directionMode,
+    ),
+    directionColor: legacyConfig.get<string>('directionColor', defaults.directionColor),
+    folderNodeColor: legacyConfig.get<string>('folderNodeColor', defaults.folderNodeColor),
+    particleSpeed: legacyConfig.get<number>('particleSpeed', defaults.particleSpeed),
+    particleSize: legacyConfig.get<number>('particleSize', defaults.particleSize),
+    physics: {
+      repelForce: legacyConfig.get<number>('physics.repelForce', defaults.physics.repelForce),
+      linkDistance: legacyConfig.get<number>('physics.linkDistance', defaults.physics.linkDistance),
+      linkForce: legacyConfig.get<number>('physics.linkForce', defaults.physics.linkForce),
+      damping: legacyConfig.get<number>('physics.damping', defaults.physics.damping),
+      centerForce: legacyConfig.get<number>('physics.centerForce', defaults.physics.centerForce),
+      chargeRange: legacyConfig.get<number>('physics.chargeRange', defaults.physics.chargeRange),
+    },
+    timeline: {
+      maxCommits: legacyConfig.get<number>('timeline.maxCommits', defaults.timeline.maxCommits),
+      playbackSpeed: legacyConfig.get<number>(
+        'timeline.playbackSpeed',
+        defaults.timeline.playbackSpeed,
+      ),
+    },
+  };
+}

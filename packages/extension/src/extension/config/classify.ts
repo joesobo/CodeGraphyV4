@@ -1,5 +1,3 @@
-import * as vscode from 'vscode';
-
 export type ConfigCategory =
   | 'physics'
   | 'toggles'
@@ -7,8 +5,12 @@ export type ConfigCategory =
   | 'groups'
   | 'general';
 
+interface CodeGraphyConfigurationChangeLike {
+  affectsConfiguration(section: string): boolean;
+}
+
 /** Determines which category a configuration change falls into. */
-export function classifyConfigChange(event: vscode.ConfigurationChangeEvent): ConfigCategory | null {
+export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): ConfigCategory | null {
   if (event.affectsConfiguration('codegraphy.physics')) {
     return 'physics';
   }

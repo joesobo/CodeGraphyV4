@@ -4,6 +4,7 @@ import type { ViewRegistry } from '../../../../core/views/registry';
 import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/fileColors';
 import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import { applyGraphViewTransform } from '../../presentation';
 import { normalizeFolderNodeColor } from '../../settings/reader';
 import { sendGraphViewAvailableViews } from '../../view/broadcast';
@@ -59,7 +60,10 @@ export interface GraphViewProviderViewContextMethodDependencies {
 
 function createDefaultDependencies(): GraphViewProviderViewContextMethodDependencies {
   return {
-    getConfiguration: section => vscode.workspace.getConfiguration(section),
+    getConfiguration: section =>
+      section === 'codegraphy'
+        ? getCodeGraphyConfiguration()
+        : vscode.workspace.getConfiguration(section),
     getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
     getActiveTextEditor: () => vscode.window.activeTextEditor,
     asRelativePath: uri => vscode.workspace.asRelativePath(uri),

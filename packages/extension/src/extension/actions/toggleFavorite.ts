@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import { IUndoableAction } from '../undoManager';
+import { getCodeGraphyConfiguration } from '../repoSettings/current';
 
 /**
  * Action for toggling favorite status of files.
@@ -36,7 +37,7 @@ export class ToggleFavoriteAction implements IUndoableAction {
   }
 
   async execute(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('codegraphy');
+    const config = getCodeGraphyConfiguration();
     const currentFavorites = config.get<string[]>('favorites', []);
     
     // Only capture "before" state on first execution
@@ -63,7 +64,7 @@ export class ToggleFavoriteAction implements IUndoableAction {
   }
 
   async undo(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('codegraphy');
+    const config = getCodeGraphyConfiguration();
     
     // Restore to the "before" state (full replacement, not delta)
     await config.update('favorites', this._stateBefore, vscode.ConfigurationTarget.Workspace);

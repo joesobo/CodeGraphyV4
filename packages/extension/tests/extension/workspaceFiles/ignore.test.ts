@@ -13,6 +13,8 @@ function makeDocument(fsPath?: string): vscode.TextDocument {
 
 describe('extension/workspaceFiles/ignore', () => {
   it.each([
+    'C:\\workspace\\.codegraphy\\settings.json',
+    'C:\\workspace\\.codegraphy\\meta.json',
     'C:\\workspace\\.vscode\\settings.json',
     'C:\\workspace\\.vscode\\tasks.json',
     'C:\\workspace\\.vscode\\launch.json',

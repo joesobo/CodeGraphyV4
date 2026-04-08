@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../graphViewProvider';
+import { onDidChangeCodeGraphyConfiguration } from '../repoSettings/current';
 import { classifyConfigChange } from './classify';
 import { executeConfigAction } from './actions';
 
@@ -12,7 +13,7 @@ export function registerConfigHandler(
   provider: GraphViewProvider
 ): void {
   context.subscriptions.push(
-    vscode.workspace.onDidChangeConfiguration((event) => {
+    onDidChangeCodeGraphyConfiguration((event) => {
       const category = classifyConfigChange(event);
       if (category !== null) {
         executeConfigAction(category, event, provider);

@@ -1,7 +1,7 @@
-import * as vscode from 'vscode';
 import type { IGraphData } from '../../../shared/graph/types';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { shouldRebuildGraphView } from '../rebuild';
 import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 
@@ -64,7 +64,7 @@ export interface GraphViewProviderRefreshMethodDependencies {
 
 const DEFAULT_DEPENDENCIES: GraphViewProviderRefreshMethodDependencies = {
   getShowOrphans: () =>
-    vscode.workspace.getConfiguration('codegraphy').get<boolean>('showOrphans', true),
+    getCodeGraphyConfiguration().get<boolean>('showOrphans', true),
   rebuildGraphData: rebuildGraphViewData,
   smartRebuildGraphData: smartRebuildGraphView,
   shouldRebuild: shouldRebuildGraphView,

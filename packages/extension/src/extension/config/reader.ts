@@ -5,7 +5,12 @@
 
 import * as vscode from 'vscode';
 import type { IGroup } from '../../shared/settings/groups';
+import { getCodeGraphyConfiguration, onDidChangeCodeGraphyConfiguration } from '../repoSettings/current';
 import type { ICodeGraphyConfig } from './defaults';
+
+interface CodeGraphyConfigurationLike {
+  get<T>(key: string, defaultValue: T): T;
+}
 
 /**
  * Type-safe wrapper for accessing CodeGraphy extension settings.
@@ -28,10 +33,10 @@ export class Configuration {
   private readonly _section = 'codegraphy';
 
   /**
-   * Gets the VSCode workspace configuration for CodeGraphy.
+   * Gets the repo-local CodeGraphy configuration.
    */
-  private get config(): vscode.WorkspaceConfiguration {
-    return vscode.workspace.getConfiguration(this._section);
+  private get config(): CodeGraphyConfigurationLike {
+    return getCodeGraphyConfiguration();
   }
 
   /**
@@ -173,7 +178,7 @@ export class Configuration {
    * ```
    */
   onDidChange(callback: () => void): vscode.Disposable {
-    return vscode.workspace.onDidChangeConfiguration((event) => {
+    return onDidChangeCodeGraphyConfiguration((event) => {
       if (event.affectsConfiguration(this._section)) {
         callback();
       }

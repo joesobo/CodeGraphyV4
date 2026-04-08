@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { GraphViewProvider } from './graphViewProvider';
 import { registerConfigHandler } from './config/listener';
+import { initializeCurrentCodeGraphyConfiguration } from './repoSettings/current';
 import { registerCommands } from './commands/register';
 import { activateInstalledCodeGraphyPlugins } from './pluginActivation/installed';
 import {
@@ -30,6 +31,7 @@ export interface CodeGraphyAPI {
 }
 
 export function activate(context: vscode.ExtensionContext): CodeGraphyAPI {
+  initializeCurrentCodeGraphyConfiguration(context);
   const provider = new GraphViewProvider(context.extensionUri, context);
   provider.setInstalledPluginActivationPromise(
     activateInstalledCodeGraphyPlugins(vscode.extensions.all, CODEGRAPHY_EXTENSION_ID),

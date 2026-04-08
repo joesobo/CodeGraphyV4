@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import { IUndoableAction } from '../undoManager';
+import { getCodeGraphyConfiguration } from '../repoSettings/current';
 
 /**
  * Action for renaming a file with undo support.
@@ -43,7 +44,7 @@ export class RenameFileAction implements IUndoableAction {
     const oldUri = vscode.Uri.joinPath(this._workspaceFolder, this._oldPath);
     const newUri = vscode.Uri.joinPath(this._workspaceFolder, this._newPath);
 
-    const config = vscode.workspace.getConfiguration('codegraphy');
+    const config = getCodeGraphyConfiguration();
     const currentFavorites = config.get<string[]>('favorites', []);
     
     // Only capture "before" state on first execution
@@ -79,7 +80,7 @@ export class RenameFileAction implements IUndoableAction {
     // Only restore favorites if the file was originally in favorites
     const favoritesChanged = this._favoritesBefore.includes(this._oldPath);
     if (favoritesChanged) {
-      const config = vscode.workspace.getConfiguration('codegraphy');
+      const config = getCodeGraphyConfiguration();
       await config.update('favorites', this._favoritesBefore, vscode.ConfigurationTarget.Workspace);
     }
 
