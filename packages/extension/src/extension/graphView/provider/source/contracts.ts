@@ -7,7 +7,7 @@ import type { IGraphData } from '../../../../shared/graph/types';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
-import { WorkspaceAnalyzer } from '../../../workspaceAnalyzer/service';
+import { WorkspacePipeline } from '../../../pipeline/service';
 import type {
   GraphViewProviderAnalysisMethods,
   GraphViewProviderAnalysisMethodsSource,
@@ -96,7 +96,7 @@ export interface GraphViewProviderMethodSourceOwner {
   _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];
   _graphData: IGraphData;
-  _analyzer?: WorkspaceAnalyzer;
+  _analyzer?: WorkspacePipeline;
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;
   _analysisController?: AbortController;

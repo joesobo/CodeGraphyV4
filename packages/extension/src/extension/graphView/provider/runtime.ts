@@ -11,7 +11,7 @@ import type { IGraphData } from '../../../shared/graph/types';
 import type { IGroup } from '../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../gitHistory/analyzer';
-import { WorkspaceAnalyzer } from '../../workspaceAnalyzer/service';
+import { WorkspacePipeline } from '../../pipeline/service';
 import {
   createGraphViewProviderMethodContainers,
   type GraphViewProviderMethodContainers,
@@ -44,7 +44,7 @@ export class GraphViewProviderRuntime {
   protected _timelineView?: vscode.WebviewView;
   protected _panels: vscode.WebviewPanel[] = [];
   protected _graphData: IGraphData = createEmptyGraphData();
-  protected _analyzer?: WorkspaceAnalyzer;
+  protected _analyzer?: WorkspacePipeline;
   protected _analyzerInitialized = false;
   protected _analyzerInitPromise?: Promise<void>;
   protected _analysisController?: AbortController;
@@ -85,7 +85,7 @@ export class GraphViewProviderRuntime {
     this._firstWorkspaceReadyPromise = firstWorkspaceReady.promise;
     this._resolveFirstWorkspaceReady = firstWorkspaceReady.resolve;
 
-    this._analyzer = new WorkspaceAnalyzer(_context);
+    this._analyzer = new WorkspacePipeline(_context);
     this._viewRegistry = new ViewRegistry();
     this._eventBus = new EventBus();
     this._decorationManager = new DecorationManager();

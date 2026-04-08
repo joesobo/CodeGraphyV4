@@ -54,8 +54,8 @@ async function loadSubject(
     },
   };
 
-  vi.doMock('../../../../src/extension/workspaceAnalyzer/service', () => ({
-    WorkspaceAnalyzer: class WorkspaceAnalyzer {},
+  vi.doMock('../../../../src/extension/pipeline/service', () => ({
+    WorkspacePipeline: class WorkspacePipeline {},
   }));
   vi.doMock('../../../../src/core/views', () => ({
     ViewRegistry: class ViewRegistry {
@@ -101,7 +101,7 @@ describe('graphView/provider/runtime', () => {
   afterEach(() => {
     vi.restoreAllMocks();
     vi.doUnmock('vscode');
-    vi.doUnmock('../../../../src/extension/workspaceAnalyzer/service');
+    vi.doUnmock('../../../../src/extension/pipeline/service');
     vi.doUnmock('../../../../src/core/views');
     vi.doUnmock('../../../../src/core/plugins/events/bus');
     vi.doUnmock('../../../../src/core/plugins/decoration/manager');
