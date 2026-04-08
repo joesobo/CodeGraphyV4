@@ -25,6 +25,7 @@ import {
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
 } from './plugins/bootstrap';
+import { analyzeFileWithTreeSitter } from './treesitter/analyze';
 import {
   getWorkspacePipelinePluginStatuses,
   resolveWorkspacePipelinePluginNameForFile,
@@ -125,6 +126,7 @@ export class WorkspacePipeline {
    * Initializes the analyzer and registers built-in plugins.
    */
   async initialize(): Promise<void> {
+    this._registry.setCoreAnalyzeFileResult(analyzeFileWithTreeSitter);
     await initializeWorkspacePipeline(this._registry, {
       getWorkspaceRoot: () => readWorkspacePipelineRoot(vscode.workspace.workspaceFolders),
     });

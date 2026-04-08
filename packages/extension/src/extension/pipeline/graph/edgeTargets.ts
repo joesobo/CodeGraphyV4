@@ -1,9 +1,10 @@
 import * as path from 'path';
 import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
+import { isExternalPackageSpecifier } from './packageSpecifiers/match';
 import { getExternalPackageNodeId } from './packageSpecifiers/nodeId';
 
 export function getConnectionTargetId(
-  plugin: IPlugin | undefined,
+  _plugin: IPlugin | undefined,
   connection: IConnection,
   fileConnections: ReadonlyMap<string, IConnection[]>,
   workspaceRoot: string,
@@ -13,7 +14,7 @@ export function getConnectionTargetId(
     return fileConnections.has(targetRelative) ? targetRelative : null;
   }
 
-  if (plugin?.id !== 'codegraphy.typescript') {
+  if (!isExternalPackageSpecifier(connection.specifier)) {
     return null;
   }
 

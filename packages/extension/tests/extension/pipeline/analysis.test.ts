@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
+
+const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -60,6 +64,32 @@ describe('WorkspacePipeline analysis', () => {
     ];
 
     expect(analyzer.getPluginFilterPatterns()).toEqual(expectedPatterns);
+  });
+
+  it('wires the core Tree-sitter analyzer into the registry during initialize', async () => {
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const appPath = `${fixtureWorkspacePath}/src/index.ts`;
+    const content = await fs.readFile(appPath, 'utf8');
+
+    await analyzer.initialize();
+
+    const result = await analyzer.registry.analyzeFileResult(
+      appPath,
+      content,
+      fixtureWorkspacePath,
+    );
+
+    expect(result?.relations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'import',
+          sourceId: 'codegraphy.core.treesitter:import',
+          specifier: './utils',
+        }),
+      ]),
+    );
   });
 
   it('returns an empty graph when no workspace folder is open', async () => {

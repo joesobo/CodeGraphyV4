@@ -32,7 +32,7 @@ describe('pipeline/graph/edgeTargets', () => {
     ).toBe('src/utils.ts');
   });
 
-  it('returns null for undiscovered resolved targets and non-typescript unresolved imports', () => {
+  it('returns null for undiscovered resolved targets and unresolved relative imports', () => {
     const connection: IConnection = {
       kind: 'import',
       resolvedPath: '/workspace/src/missing.ts',
@@ -61,11 +61,22 @@ describe('pipeline/graph/edgeTargets', () => {
         new Map(),
         '/workspace',
       ),
+    ).toBe('pkg:react');
+    expect(getConnectionTargetId(undefined, unresolved, new Map(), '/workspace')).toBe('pkg:react');
+    expect(
+      getConnectionTargetId(
+        undefined,
+        {
+          ...unresolved,
+          specifier: './missing',
+        },
+        new Map(),
+        '/workspace',
+      ),
     ).toBeNull();
-    expect(getConnectionTargetId(undefined, unresolved, new Map(), '/workspace')).toBeNull();
   });
 
-  it('creates package node ids for unresolved typescript package imports', () => {
+  it('creates package node ids for unresolved package imports from any analyzer source', () => {
     const connection: IConnection = {
       kind: 'import',
       resolvedPath: null,
@@ -75,7 +86,7 @@ describe('pipeline/graph/edgeTargets', () => {
 
     expect(
       getConnectionTargetId(
-        createPlugin('codegraphy.typescript'),
+        createPlugin('codegraphy.anything'),
         connection,
         new Map(),
         '/workspace',
