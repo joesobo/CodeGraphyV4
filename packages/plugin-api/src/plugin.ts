@@ -7,6 +7,11 @@
  * @module @codegraphy-vscode/plugin-api/plugin
  */
 
+import type {
+  IFileAnalysisResult,
+  IPluginEdgeType,
+  IPluginNodeType,
+} from './analysis';
 import type { IConnection, IConnectionSource } from './connection';
 import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
 import type { CodeGraphyAPI } from './api';
@@ -125,6 +130,26 @@ export interface IPlugin {
     content: string,
     workspaceRoot: string
   ): Promise<IConnection[]>;
+
+  /**
+   * New per-file analysis result contract.
+   * When present, the host prefers this over `detectConnections(...)`.
+   */
+  analyzeFile?(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<IFileAnalysisResult>;
+
+  /**
+   * Optional node-type contributions shown in graph controls and legends.
+   */
+  contributeNodeTypes?(): IPluginNodeType[];
+
+  /**
+   * Optional edge-type contributions shown in graph controls and legends.
+   */
+  contributeEdgeTypes?(): IPluginEdgeType[];
 
   // ---------------------------------------------------------------------------
   // Optional analysis hooks

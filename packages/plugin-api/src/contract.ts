@@ -18,8 +18,20 @@ export type { Disposable } from './disposable';
 // Connection / Source
 export type { IConnection, IConnectionSource, IConnectionDetector } from './connection';
 
+// Analysis
+export type {
+  IAnalysisNode,
+  IAnalysisRange,
+  IAnalysisRelation,
+  IAnalysisSymbol,
+  IFileAnalysisResult,
+  IPluginEdgeType,
+  IPluginNodeType,
+} from './analysis';
+
 // Graph data
 export type {
+  CoreNodeType,
   CoreEdgeKind,
   GraphEdgeKind,
   GraphMetadata,

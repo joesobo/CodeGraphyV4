@@ -3,7 +3,7 @@
  * @module core/plugins/registry/manager
  */
 
-import type { IPlugin, IPluginInfo, IConnection } from '../types/contracts';
+import type { IPlugin, IPluginInfo, IConnection, IFileAnalysisResult } from '../types/contracts';
 import type { EventBus } from '../events/bus';
 import type { CodeGraphyAPIImpl } from '../api/instance';
 import type { IGraphData } from '../../../shared/graph/types';
@@ -18,6 +18,7 @@ import {
   supportsFile,
   getSupportedExtensions,
   analyzeFile,
+  analyzeFileResult,
 } from '../routing/router';
 import {
   initializeAll as lifecycleInitializeAll,
@@ -74,6 +75,7 @@ export class PluginRegistry {
   getPluginForFile(filePath: string): IPlugin | undefined { return getPluginForFile(filePath, this._plugins, this._extensionMap); }
   getPluginsForExtension(extension: string): IPlugin[] { return getPluginsForExtension(extension, this._plugins, this._extensionMap); }
   async analyzeFile(filePath: string, content: string, workspaceRoot: string): Promise<IConnection[]> { return analyzeFile(filePath, content, workspaceRoot, this._plugins, this._extensionMap); }
+  async analyzeFileResult(filePath: string, content: string, workspaceRoot: string): Promise<IFileAnalysisResult | null> { return analyzeFileResult(filePath, content, workspaceRoot, this._plugins, this._extensionMap); }
   list(): IPluginInfo[] { return Array.from(this._plugins.values()); }
   get size(): number { return this._plugins.size; }
   getSupportedExtensions(): string[] { return getSupportedExtensions(this._extensionMap); }

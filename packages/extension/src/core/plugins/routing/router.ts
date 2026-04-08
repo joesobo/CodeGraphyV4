@@ -4,7 +4,7 @@
  * @module core/plugins/routing/router
  */
 
-import { IPlugin, IConnection } from '../types/contracts';
+import { IPlugin, IConnection, IFileAnalysisResult } from '../types/contracts';
 import { getFileExtension, normalizePluginExtension } from './fileExtensions';
 
 /** Minimal plugin info subset needed for routing lookups. */
@@ -103,5 +103,53 @@ export async function analyzeFile(
   } catch (error) {
     console.error(`[CodeGraphy] Error analyzing ${filePath} with ${plugin.id}:`, error);
     return [];
+  }
+}
+
+function toLegacyFileAnalysisResult(
+  filePath: string,
+  connections: IConnection[],
+): IFileAnalysisResult {
+  return {
+    filePath,
+    relations: connections.map(connection => ({
+      kind: connection.kind,
+      sourceId: connection.sourceId,
+      specifier: connection.specifier,
+      type: connection.type,
+      variant: connection.variant,
+      resolvedPath: connection.resolvedPath,
+      metadata: connection.metadata,
+      fromFilePath: filePath,
+      toFilePath: connection.resolvedPath,
+    })),
+  };
+}
+
+export async function analyzeFileResult(
+  filePath: string,
+  content: string,
+  workspaceRoot: string,
+  plugins: Map<string, IRoutablePluginInfo>,
+  extensionMap: Map<string, string[]>,
+): Promise<IFileAnalysisResult | null> {
+  const plugin = getPluginForFile(filePath, plugins, extensionMap);
+
+  if (!plugin) {
+    return null;
+  }
+
+  try {
+    if (plugin.analyzeFile) {
+      return await plugin.analyzeFile(filePath, content, workspaceRoot);
+    }
+
+    return toLegacyFileAnalysisResult(
+      filePath,
+      await plugin.detectConnections(filePath, content, workspaceRoot),
+    );
+  } catch (error) {
+    console.error(`[CodeGraphy] Error analyzing ${filePath} with ${plugin.id}:`, error);
+    return null;
   }
 }

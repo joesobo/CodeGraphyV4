@@ -4,6 +4,7 @@
  */
 
 export type {
+  CoreNodeType,
   CodeGraphyAPI,
   CoreEdgeKind,
   GraphEdgeKind,
@@ -12,15 +13,22 @@ export type {
   GraphNodeShape2D,
   GraphNodeShape3D,
   IAnalysisFile,
+  IAnalysisNode,
+  IAnalysisRange,
+  IAnalysisRelation,
+  IAnalysisSymbol,
   IConnection,
   IConnectionDetector,
   IConnectionSource,
+  IFileAnalysisResult,
   IGraphData,
   IGraphEdge,
   IGraphEdgeSource,
   IGraphNode,
   IPlugin,
+  IPluginEdgeType,
   IPluginFileColorDefinition,
+  IPluginNodeType,
   NodeType,
 } from '../../../../../plugin-api/src/contract';
 
