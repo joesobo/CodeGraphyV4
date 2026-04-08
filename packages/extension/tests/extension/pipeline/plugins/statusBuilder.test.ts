@@ -52,8 +52,8 @@ describe('pipeline/plugins/statusBuilder', () => {
       { relativePath: 'README.md' },
     ];
     const fileConnections = new Map<string, IConnection[]>([
-      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
-      ['README.md', [{ specifier: './guide', resolvedPath: null, type: 'static' , sourceId: 'test-source', kind: 'import' }]],
+      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , pluginId: 'plugin.alpha', sourceId: 'test-source', kind: 'import' }]],
+      ['README.md', [{ specifier: './guide', resolvedPath: null, type: 'static' , pluginId: 'plugin.markdown', sourceId: 'test-source', kind: 'import' }]],
     ]);
 
     const statuses = buildWorkspacePluginStatuses({
@@ -62,16 +62,6 @@ describe('pipeline/plugins/statusBuilder', () => {
       discoveredFiles,
       fileConnections,
       pluginInfos,
-      workspaceRoot: '/workspace',
-      getPluginForFile: (absolutePath) => {
-        if (absolutePath.endsWith('.ts')) {
-          return pluginInfos[1].plugin;
-        }
-        if (absolutePath.endsWith('.md')) {
-          return pluginInfos[2].plugin;
-        }
-        return undefined;
-      },
     });
 
     expect(statuses.map((status) => status.name)).toEqual(['Python', 'Alpha', 'Markdown']);
@@ -94,9 +84,9 @@ describe('pipeline/plugins/statusBuilder', () => {
     ];
     const fileConnections = new Map<string, IConnection[]>([
       ['src/index.ts', [
-        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
-        { specifier: './lazy', resolvedPath: '/workspace/src/lazy.ts', type: 'dynamic', sourceId: 'dynamic-import' , kind: 'import' },
-        { specifier: 'external-package', resolvedPath: null, type: 'static', sourceId: 'es6-import' , kind: 'import' },
+        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import', pluginId: 'plugin.typescript' },
+        { specifier: './lazy', resolvedPath: '/workspace/src/lazy.ts', type: 'dynamic', sourceId: 'dynamic-import' , kind: 'import', pluginId: 'plugin.typescript' },
+        { specifier: 'external-package', resolvedPath: null, type: 'static', sourceId: 'es6-import' , kind: 'import', pluginId: 'plugin.typescript' },
       ]],
     ]);
 
@@ -106,8 +96,6 @@ describe('pipeline/plugins/statusBuilder', () => {
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections,
       pluginInfos,
-      workspaceRoot: '/workspace',
-      getPluginForFile: () => pluginInfos[0].plugin,
     });
 
     expect(statuses[0]).toMatchObject({
@@ -145,8 +133,8 @@ describe('pipeline/plugins/statusBuilder', () => {
       }),
     ];
     const fileConnections = new Map<string, IConnection[]>([
-      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
-      ['main.py', [{ specifier: 'config', resolvedPath: '/workspace/config.py', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
+      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , pluginId: 'plugin.typescript', sourceId: 'test-source', kind: 'import' }]],
+      ['main.py', [{ specifier: 'config', resolvedPath: '/workspace/config.py', type: 'static' , pluginId: 'plugin.python', sourceId: 'test-source', kind: 'import' }]],
     ]);
 
     const statuses = buildWorkspacePluginStatuses({
@@ -155,23 +143,13 @@ describe('pipeline/plugins/statusBuilder', () => {
       discoveredFiles: [{ relativePath: 'src/index.ts' }, { relativePath: 'main.py' }],
       fileConnections,
       pluginInfos,
-      workspaceRoot: '/workspace',
-      getPluginForFile: (absolutePath) => {
-        if (absolutePath.endsWith('.ts')) {
-          return pluginInfos[0].plugin;
-        }
-        if (absolutePath.endsWith('.py')) {
-          return pluginInfos[1].plugin;
-        }
-        return undefined;
-      },
     });
 
     expect(statuses.find((status) => status.id === 'plugin.typescript')?.connectionCount).toBe(1);
     expect(statuses.find((status) => status.id === 'plugin.python')?.connectionCount).toBe(1);
   });
 
-  it('ignores files when no plugin matches their path', () => {
+  it('treats legacy connections without plugin provenance as unowned', () => {
     const pluginInfos = [
       createPluginInfo({
         id: 'plugin.typescript',
@@ -188,8 +166,6 @@ describe('pipeline/plugins/statusBuilder', () => {
         ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
       ]),
       pluginInfos,
-      workspaceRoot: '/workspace',
-      getPluginForFile: () => undefined,
     });
 
     expect(statuses[0].connectionCount).toBe(0);
@@ -211,11 +187,9 @@ describe('pipeline/plugins/statusBuilder', () => {
       disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections: new Map<string, IConnection[]>([
-        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import', pluginId: 'plugin.typescript' }]],
       ]),
       pluginInfos,
-      workspaceRoot: '/workspace',
-      getPluginForFile: () => pluginInfos[0].plugin,
     });
 
     expect(statuses[0].connectionCount).toBe(1);
@@ -240,8 +214,6 @@ describe('pipeline/plugins/statusBuilder', () => {
         ['README.md', []],
       ]),
       pluginInfos,
-      workspaceRoot: '/workspace',
-      getPluginForFile: () => pluginInfos[0].plugin,
     });
 
     expect(statuses[0].sources).toEqual([]);
@@ -262,11 +234,9 @@ describe('pipeline/plugins/statusBuilder', () => {
       disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections: new Map<string, IConnection[]>([
-        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: '' , kind: 'import' }]],
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: '' , kind: 'import', pluginId: 'plugin.typescript' }]],
       ]),
       pluginInfos,
-      workspaceRoot: '/workspace',
-      getPluginForFile: () => pluginInfos[0].plugin,
     });
 
     expect(statuses[0].connectionCount).toBe(1);
@@ -301,13 +271,68 @@ describe('pipeline/plugins/statusBuilder', () => {
         pluginInfos[1],
         pluginInfos[0],
       ],
-      workspaceRoot: '/workspace',
-      getPluginForFile: () => undefined,
     });
 
     expect(statuses.map((status) => status.id)).toEqual([
       'plugin.typescript',
       'plugin.markdown',
+    ]);
+  });
+
+  it('counts enrichment plugin connections on the same file extension independently', () => {
+    const pluginInfos = [
+      createPluginInfo({
+        id: 'plugin.base',
+        name: 'Base',
+        supportedExtensions: ['.ts'],
+        sources: [createRule('base-import', 'Base import')],
+      }),
+      createPluginInfo({
+        id: 'plugin.enricher',
+        name: 'Enricher',
+        supportedExtensions: ['.ts'],
+        sources: [createRule('framework-call', 'Framework call')],
+      }),
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      disabledSources: new Set(),
+      discoveredFiles: [{ relativePath: 'src/index.ts' }],
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [
+          {
+            specifier: './utils',
+            resolvedPath: '/workspace/src/utils.ts',
+            type: 'static',
+            sourceId: 'base-import',
+            kind: 'import',
+            pluginId: 'plugin.base',
+          },
+          {
+            specifier: './framework',
+            resolvedPath: '/workspace/src/framework.ts',
+            type: 'static',
+            sourceId: 'framework-call',
+            kind: 'call',
+            pluginId: 'plugin.enricher',
+          },
+        ]],
+      ]),
+      pluginInfos,
+    });
+
+    expect(statuses).toEqual([
+      expect.objectContaining({
+        id: 'plugin.base',
+        status: 'active',
+        connectionCount: 1,
+      }),
+      expect.objectContaining({
+        id: 'plugin.enricher',
+        status: 'active',
+        connectionCount: 1,
+      }),
     ]);
   });
 });

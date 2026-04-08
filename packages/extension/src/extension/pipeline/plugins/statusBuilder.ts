@@ -5,7 +5,7 @@
 
 import * as path from 'path';
 import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import type { IConnection, IPlugin, IPluginInfo } from '../../../core/plugins/types/contracts';
+import type { IConnection, IPluginInfo } from '../../../core/plugins/types/contracts';
 import type { IPluginStatus, IPluginRuleStatus } from '../../../shared/plugins/status';
 
 export interface IWorkspacePluginStatusOptions {
@@ -14,8 +14,18 @@ export interface IWorkspacePluginStatusOptions {
   discoveredFiles: Pick<IDiscoveredFile, 'relativePath'>[];
   fileConnections: ReadonlyMap<string, IConnection[]>;
   pluginInfos: IPluginInfo[];
-  workspaceRoot: string;
-  getPluginForFile: (absolutePath: string) => IPlugin | undefined;
+}
+
+function getQualifiedSourceId(connection: IConnection): string | undefined {
+  if (!connection.sourceId) {
+    return undefined;
+  }
+
+  if (connection.pluginId) {
+    return `${connection.pluginId}:${connection.sourceId}`;
+  }
+
+  return undefined;
 }
 
 export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOptions): IPluginStatus[] {
@@ -25,8 +35,6 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
     discoveredFiles,
     fileConnections,
     pluginInfos,
-    workspaceRoot,
-    getPluginForFile,
   } = options;
 
   const statuses: IPluginStatus[] = [];
@@ -42,21 +50,23 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
     let totalConnections = 0;
 
     for (const [filePath, connections] of fileConnections) {
-      const filePlugin = getPluginForFile(path.join(workspaceRoot, filePath));
-      if (filePlugin?.id !== plugin.id) {
+      const extension = path.extname(filePath).toLowerCase();
+      if (!plugin.supportedExtensions.includes(extension)) {
         continue;
       }
 
       for (const connection of connections) {
-        if (!connection.resolvedPath) {
+        if (connection.pluginId !== plugin.id || !connection.resolvedPath) {
           continue;
         }
 
         totalConnections += 1;
-        if (connection.sourceId) {
+        const qualifiedSourceId = getQualifiedSourceId(connection);
+        if (qualifiedSourceId) {
+          const sourceId = qualifiedSourceId.slice(plugin.id.length + 1);
           ruleConnectionCounts.set(
-            connection.sourceId,
-            (ruleConnectionCounts.get(connection.sourceId) ?? 0) + 1
+            sourceId,
+            (ruleConnectionCounts.get(sourceId) ?? 0) + 1,
           );
         }
       }

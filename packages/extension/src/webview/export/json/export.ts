@@ -56,6 +56,7 @@ export function buildExportData(
       id: group.id,
       pattern: group.pattern,
       color: group.color,
+      target: group.target ?? 'node',
       shape2D: group.shape2D,
       shape3D: group.shape3D,
       imagePath: group.imagePath,
@@ -89,6 +90,15 @@ export function buildExportData(
       to: edge.to,
       kind: edge.kind,
       color: edge.color,
+      legendIds: activeLegendRules
+        .filter((group) => group.target !== 'node')
+        .filter((group) =>
+          globMatch(edge.id, group.pattern)
+          || globMatch(edge.kind, group.pattern)
+          || globMatch(`${edge.from}->${edge.to}`, group.pattern)
+          || globMatch(`${edge.from}->${edge.to}#${edge.kind}`, group.pattern),
+        )
+        .map((group) => group.id),
       sources: [...edge.sources]
         .sort((left, right) => left.id.localeCompare(right.id))
         .map((source) => ({

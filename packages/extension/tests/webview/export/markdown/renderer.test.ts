@@ -75,6 +75,7 @@ describe('renderMarkdownExport', () => {
             id: 'g1',
             pattern: 'src/**',
             color: '#3B82F6',
+            target: 'node',
             shape2D: 'diamond',
             imagePath: '.codegraphy/images/src.png',
           },
@@ -101,6 +102,7 @@ describe('renderMarkdownExport', () => {
             from: 'src/App.ts',
             to: 'README.md',
             kind: 'reference',
+            legendIds: [],
             sources: [
               {
                 id: 'ts:import',

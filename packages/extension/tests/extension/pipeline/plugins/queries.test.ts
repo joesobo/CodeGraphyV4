@@ -31,7 +31,6 @@ describe('pipeline/plugins/queries', () => {
           getPluginForFile: vi.fn(() => ({ name: 'TypeScript' })),
           list,
         } as never,
-        workspaceRoot: '/workspace',
       }),
     ).toEqual([
       expect.objectContaining({

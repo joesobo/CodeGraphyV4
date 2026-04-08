@@ -9,6 +9,7 @@ export interface ExportLegendRule {
   id: string;
   pattern: string;
   color: string;
+  target: 'node' | 'edge' | 'both';
   shape2D?: string;
   shape3D?: string;
   imagePath?: string;
@@ -46,6 +47,7 @@ export interface ExportEdgeEntry {
   to: string;
   kind: string;
   color?: string;
+  legendIds: string[];
   sources: ExportEdgeSourceEntry[];
 }
 

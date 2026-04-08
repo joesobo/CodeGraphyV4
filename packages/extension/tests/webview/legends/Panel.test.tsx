@@ -4,10 +4,6 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import LegendsPanel from '../../../src/webview/components/legends/Panel';
 import { graphStore } from '../../../src/webview/store/state';
 
-vi.mock('../../../src/webview/components/settingsPanel/groups/Section', () => ({
-  GroupsSection: () => <div data-testid="groups-section">Groups Section</div>,
-}));
-
 const sentMessages: unknown[] = [];
 
 vi.mock('../../../src/webview/vscodeApi', () => ({
@@ -22,6 +18,7 @@ describe('LegendsPanel', () => {
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
       nodeColors: { file: '#333333' },
       edgeColors: { import: '#444444' },
+      groups: [],
     });
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
@@ -37,6 +34,7 @@ describe('LegendsPanel', () => {
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
       nodeColors: { file: '#333333' },
       edgeColors: { import: '#444444' },
+      groups: [],
     });
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
@@ -54,17 +52,58 @@ describe('LegendsPanel', () => {
     });
   });
 
-  it('returns null when closed', () => {
-    const { container } = render(<LegendsPanel isOpen={false} onClose={vi.fn()} />);
+  it('renders the rules editor when open', () => {
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
+      nodeColors: { file: '#333333' },
+      edgeColors: { import: '#444444' },
+      groups: [],
+    });
 
-    expect(container).toBeEmptyDOMElement();
-  });
-
-  it('renders the legends header and groups content when open', () => {
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByText('Legends')).toBeInTheDocument();
-    expect(screen.getByTestId('groups-section')).toBeInTheDocument();
+    expect(screen.getByText('Rules')).toBeInTheDocument();
+    expect(screen.getByText('Top overrides bottom')).toBeInTheDocument();
+    expect(screen.getByText('No custom legend rules yet.')).toBeInTheDocument();
+  });
+
+  it('creates a new legend rule through UPDATE_GROUPS', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      edgeColors: {},
+      groups: [],
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.change(screen.getByLabelText('New legend rule pattern'), {
+      target: { value: '*/tests/**' },
+    });
+    fireEvent.change(screen.getByLabelText('New legend rule target'), {
+      target: { value: 'edge' },
+    });
+    fireEvent.change(screen.getByLabelText('New legend rule color'), {
+      target: { value: '#123abc' },
+    });
+    fireEvent.click(screen.getByTitle('Add legend rule'));
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_GROUPS',
+      payload: {
+        groups: [
+          expect.objectContaining({
+            pattern: '*/tests/**',
+            target: 'edge',
+            color: '#123abc',
+          }),
+        ],
+      },
+    });
   });
 
   it('calls onClose when the close button is clicked', () => {

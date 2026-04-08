@@ -92,6 +92,7 @@ describe('buildExportData', () => {
         to: 'b.ts',
         kind: 'import',
         color: undefined,
+        legendIds: [],
         sources: [
           {
             id: 'ts:es6',
@@ -110,6 +111,7 @@ describe('buildExportData', () => {
         to: 'c.ts',
         kind: 'import',
         color: undefined,
+        legendIds: [],
         sources: [
           {
             id: 'ts:dynamic',
@@ -142,6 +144,7 @@ describe('buildExportData', () => {
         to: 'b.ts',
         kind: 'import',
         color: undefined,
+        legendIds: [],
         sources: [],
       },
     ]);
@@ -163,6 +166,7 @@ describe('buildExportData', () => {
         id: 'g1',
         pattern: '*.tsx',
         color: '#3B82F6',
+        target: 'node',
         shape2D: undefined,
         shape3D: undefined,
         imagePath: undefined,
@@ -258,6 +262,7 @@ describe('buildExportData', () => {
             id: 'g1',
             pattern: '*.tsx',
             color: '#3B82F6',
+            target: 'node',
           },
         ],
         nodes: [

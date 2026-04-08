@@ -16,7 +16,6 @@ export interface WorkspacePipelinePluginStatusDependencies {
   discoveredFiles: IDiscoveredFile[];
   fileConnections: Map<string, IConnection[]>;
   registry: WorkspacePipelinePluginRegistry;
-  workspaceRoot: string;
 }
 
 export function getWorkspacePipelinePluginStatuses(
@@ -28,9 +27,6 @@ export function getWorkspacePipelinePluginStatuses(
     discoveredFiles: dependencies.discoveredFiles,
     fileConnections: dependencies.fileConnections,
     pluginInfos: dependencies.registry.list(),
-    workspaceRoot: dependencies.workspaceRoot,
-    getPluginForFile: absolutePath =>
-      dependencies.registry.getPluginForFile(absolutePath),
   });
 }
 

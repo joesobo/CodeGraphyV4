@@ -45,6 +45,9 @@ export interface IConnection {
   /** Semantic meaning of the connection. */
   kind: GraphEdgeKind;
 
+  /** Provenance for the plugin or core analyzer that emitted this connection. */
+  pluginId?: string;
+
   /** The source that detected this connection. */
   sourceId: string;
 

@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 import type { SearchOptions } from '../components/searchBar/field/model';
-import { filterGraphData, applyGroupColors } from './filtering';
+import { filterGraphData, applyLegendRules } from './filtering';
 import type { IGraphData } from '../../shared/graph/types';
 import type { IGroup } from '../../shared/settings/groups';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
@@ -57,7 +57,7 @@ export function useFilteredGraph(
   );
 
   const coloredData = useMemo(
-    () => applyGroupColors(filteredData, groups),
+    () => applyLegendRules(filteredData, groups),
     [filteredData, groups],
   );
 

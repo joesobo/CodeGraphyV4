@@ -150,6 +150,7 @@ describe('plugin routing', () => {
       expect(result).toEqual([
         {
           kind: 'import',
+          pluginId: 'ts-plugin',
           sourceId: 'ts:import',
           specifier: './b',
           resolvedPath: '/ws/src/b.ts',
@@ -193,6 +194,7 @@ describe('plugin routing', () => {
       expect(coreAnalyzeFileResult).toHaveBeenCalledWith('src/app.ts', 'content', '/ws');
       expect(result).toEqual([{
         kind: 'reference',
+        pluginId: undefined,
         sourceId: 'codegraphy.core.tree-sitter',
         specifier: './base',
         resolvedPath: 'src/base.ts',
@@ -248,6 +250,7 @@ describe('plugin routing', () => {
       );
       expect(result?.relations).toEqual([{
         kind: 'import',
+        pluginId: 'high-priority',
         sourceId: 'shared:import',
         fromFilePath: 'src/app.ts',
         toFilePath: 'src/high.ts',
@@ -290,6 +293,7 @@ describe('plugin routing', () => {
 
       expect(result?.relations).toEqual([{
         kind: 'import',
+        pluginId: 'plugin',
         sourceId: 'shared:import',
         fromFilePath: 'src/app.ts',
         toFilePath: 'src/plugin.ts',

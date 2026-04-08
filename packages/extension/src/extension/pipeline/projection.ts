@@ -5,6 +5,7 @@ export function projectConnectionsFromFileAnalysis(
 ): IConnection[] {
   return (analysis.relations ?? []).map(relation => ({
     kind: relation.kind,
+    pluginId: relation.pluginId,
     sourceId: relation.sourceId,
     specifier: relation.specifier ?? '',
     resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,

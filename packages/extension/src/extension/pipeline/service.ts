@@ -290,7 +290,6 @@ export class WorkspacePipeline {
       discoveredFiles: this._lastDiscoveredFiles,
       fileConnections: this._lastFileConnections,
       registry: this._registry,
-      workspaceRoot: this._lastWorkspaceRoot,
     });
   }
 

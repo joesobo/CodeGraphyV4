@@ -42,6 +42,7 @@ export interface IAnalysisSymbol {
 
 export interface IAnalysisRelation {
   kind: GraphEdgeKind;
+  pluginId?: string;
   sourceId: string;
   fromFilePath: string;
   toFilePath?: string | null;

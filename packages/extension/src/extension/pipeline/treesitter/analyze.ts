@@ -302,7 +302,10 @@ export async function analyzeFileWithTreeSitter(
 
   return {
     filePath,
-    relations,
+    relations: relations.map((relation) => ({
+      ...relation,
+      pluginId: 'codegraphy.core.treesitter',
+    })),
     symbols,
   };
 }

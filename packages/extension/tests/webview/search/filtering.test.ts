@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_NODE_COLOR } from '../../../src/shared/fileColors';
 import type { IGraphData } from '../../../src/shared/graph/types';
 import type { IGroup } from '../../../src/shared/settings/groups';
-import { applyGroupColors, filterGraphData } from '../../../src/webview/search/filtering';
+import { applyLegendRules, filterGraphData } from '../../../src/webview/search/filtering';
 
 const graphData: IGraphData = {
   nodes: [
@@ -59,22 +59,28 @@ describe('search filtering', () => {
   });
 
   it('returns null when applying group colors to null data', () => {
-    expect(applyGroupColors(null, [])).toBeNull();
+    expect(applyLegendRules(null, [])).toBeNull();
   });
 
   it('returns null for null data even when groups are provided', () => {
     const groups: IGroup[] = [{ id: 'typescript', pattern: '*.ts', color: '#ff0000' }];
 
-    expect(() => applyGroupColors(null, groups)).not.toThrow();
-    expect(applyGroupColors(null, groups)).toBeNull();
+    expect(() => applyLegendRules(null, groups)).not.toThrow();
+    expect(applyLegendRules(null, groups)).toBeNull();
   });
 
   it('returns the original data when no groups are provided', () => {
-    expect(applyGroupColors(graphData, [])).toBe(graphData);
+    expect(applyLegendRules(graphData, [])).toBe(graphData);
   });
 
   it('applies legend rules from bottom to top so later matches override earlier ones', () => {
     const groups: IGroup[] = [
+      {
+        id: 'specific',
+        pattern: 'src/App.ts',
+        color: '#00ff00',
+        imageUrl: 'icon.png',
+      },
       { id: 'disabled', pattern: 'src/**', color: '#999999', disabled: true },
       {
         id: 'typescript',
@@ -83,15 +89,9 @@ describe('search filtering', () => {
         shape2D: 'diamond',
         shape3D: 'cube',
       },
-      {
-        id: 'specific',
-        pattern: 'src/App.ts',
-        color: '#00ff00',
-        imageUrl: 'icon.png',
-      },
     ];
 
-    const result = applyGroupColors(graphData, groups);
+    const result = applyLegendRules(graphData, groups);
 
     expect(result?.nodes[0]).toMatchObject({
       color: '#00ff00',
@@ -111,7 +111,7 @@ describe('search filtering', () => {
     };
     const groups: IGroup[] = [{ id: 'source', pattern: 'src/*', color: '#ff0000' }];
 
-    const result = applyGroupColors(nestedGraphData, groups);
+    const result = applyLegendRules(nestedGraphData, groups);
 
     expect(result?.nodes[0]).toMatchObject({ color: '#ff0000' });
     expect(result?.nodes[1]).toMatchObject({ color: '#333333' });
@@ -120,10 +120,22 @@ describe('search filtering', () => {
   it('falls back to the existing node color or the default color when no group matches', () => {
     const groups: IGroup[] = [{ id: 'markdown', pattern: '*.md', color: '#00ff00' }];
 
-    const result = applyGroupColors(graphData, groups);
+    const result = applyLegendRules(graphData, groups);
 
     expect(result?.nodes[0]?.color).toBe('#111111');
     expect(result?.nodes[1]?.color).toBe(DEFAULT_NODE_COLOR);
     expect(result?.nodes[2]?.color).toBe('#00ff00');
+  });
+
+  it('applies edge-targeted legend rules without changing matching nodes', () => {
+    const groups: IGroup[] = [
+      { id: 'import-edges', pattern: 'import', color: '#ff8800', target: 'edge' },
+    ];
+
+    const result = applyLegendRules(graphData, groups);
+
+    expect(result?.edges[0]?.color).toBe('#ff8800');
+    expect(result?.edges[1]?.color).toBe('#ff8800');
+    expect(result?.nodes[0]?.color).toBe('#111111');
   });
 });

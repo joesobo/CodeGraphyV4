@@ -34,7 +34,14 @@ describe('PluginRegistry analysis', () => {
       'content',
       '/workspace'
     );
-    expect(result).toEqual(connections);
+    expect(result).toEqual([
+      {
+        ...connections[0],
+        pluginId: 'test.plugin',
+        metadata: undefined,
+        variant: undefined,
+      },
+    ]);
   });
 
   it('returns empty array for unsupported file', async () => {
@@ -50,6 +57,7 @@ describe('PluginRegistry analysis', () => {
       relations: [
         {
           kind: 'reference',
+          pluginId: undefined,
           sourceId: 'codegraphy.core.tree-sitter',
           fromFilePath: '/src/styles.css',
           toFilePath: '/src/theme.css',
@@ -70,6 +78,7 @@ describe('PluginRegistry analysis', () => {
       relations: [
         {
           kind: 'reference',
+          pluginId: undefined,
           sourceId: 'codegraphy.core.tree-sitter',
           fromFilePath: '/src/styles.css',
           toFilePath: '/src/theme.css',
@@ -97,6 +106,7 @@ describe('PluginRegistry analysis', () => {
       relations: [
         {
           kind: 'import',
+          pluginId: 'test.plugin',
           sourceId: 'typescript:es6-import',
           fromFilePath: '/src/app.ts',
           toFilePath: '/src/utils.ts',
@@ -141,6 +151,7 @@ describe('PluginRegistry analysis', () => {
       relations: [
         {
           kind: 'import',
+          pluginId: 'test.plugin',
           sourceId: 'test-source',
           specifier: './utils',
           type: 'static',
@@ -166,6 +177,7 @@ describe('PluginRegistry analysis', () => {
         relations: [
           {
             kind: 'import',
+            pluginId: 'plugin.high',
             sourceId: 'shared:import',
             fromFilePath: '/src/app.ts',
             toFilePath: '/src/high.ts',
@@ -183,6 +195,7 @@ describe('PluginRegistry analysis', () => {
         relations: [
           {
             kind: 'import',
+            pluginId: 'plugin.low',
             sourceId: 'shared:import',
             fromFilePath: '/src/app.ts',
             toFilePath: '/src/low.ts',
@@ -202,6 +215,7 @@ describe('PluginRegistry analysis', () => {
       relations: [
         {
           kind: 'import',
+          pluginId: 'plugin.high',
           sourceId: 'shared:import',
           fromFilePath: '/src/app.ts',
           toFilePath: '/src/high.ts',
@@ -219,6 +233,7 @@ describe('PluginRegistry analysis', () => {
       relations: [
         {
           kind: 'import',
+          pluginId: undefined,
           sourceId: 'shared:import',
           fromFilePath: '/src/app.ts',
           toFilePath: '/src/core.ts',
@@ -233,6 +248,7 @@ describe('PluginRegistry analysis', () => {
         relations: [
           {
             kind: 'import',
+            pluginId: 'test.plugin',
             sourceId: 'shared:import',
             fromFilePath: '/src/app.ts',
             toFilePath: '/src/plugin.ts',
@@ -252,6 +268,7 @@ describe('PluginRegistry analysis', () => {
       relations: [
         {
           kind: 'import',
+          pluginId: 'test.plugin',
           sourceId: 'shared:import',
           fromFilePath: '/src/app.ts',
           toFilePath: '/src/plugin.ts',

@@ -86,6 +86,7 @@ describe('pipeline/treesitter/analyze', () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: 'import',
+          pluginId: 'codegraphy.core.treesitter',
           specifier: './lib',
           resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
           fromFilePath: appPath,
@@ -94,6 +95,7 @@ describe('pipeline/treesitter/analyze', () => {
         }),
         expect.objectContaining({
           kind: 'import',
+          pluginId: 'codegraphy.core.treesitter',
           specifier: 'node:fs',
           resolvedPath: null,
           fromFilePath: appPath,
@@ -102,6 +104,7 @@ describe('pipeline/treesitter/analyze', () => {
         }),
         expect.objectContaining({
           kind: 'reexport',
+          pluginId: 'codegraphy.core.treesitter',
           specifier: './helper',
           resolvedPath: path.join(workspaceRoot, 'src/helper.ts'),
           fromFilePath: appPath,
@@ -110,6 +113,7 @@ describe('pipeline/treesitter/analyze', () => {
         }),
         expect.objectContaining({
           kind: 'call',
+          pluginId: 'codegraphy.core.treesitter',
           specifier: './lib',
           resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
           fromFilePath: appPath,
@@ -119,6 +123,7 @@ describe('pipeline/treesitter/analyze', () => {
         }),
         expect.objectContaining({
           kind: 'call',
+          pluginId: 'codegraphy.core.treesitter',
           specifier: './lib',
           resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
           fromFilePath: appPath,

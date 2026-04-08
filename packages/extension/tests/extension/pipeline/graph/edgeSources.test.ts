@@ -24,6 +24,12 @@ describe('pipeline/graph/edgeSources', () => {
     expect(createQualifiedSourceId(createPlugin('plugin.typescript'), { sourceId: 'import' })).toBe(
       'plugin.typescript:import',
     );
+    expect(
+      createQualifiedSourceId(
+        createPlugin('plugin.typescript'),
+        { pluginId: 'plugin.markdown', sourceId: 'wikilink' },
+      ),
+    ).toBe('plugin.markdown:wikilink');
     expect(createQualifiedSourceId(undefined, { sourceId: 'import' })).toBeUndefined();
     expect(
       createQualifiedSourceId(
@@ -37,6 +43,7 @@ describe('pipeline/graph/edgeSources', () => {
     const connection: IConnection = {
       kind: 'import',
       metadata: { line: 42 },
+      pluginId: 'plugin.typescript',
       resolvedPath: '/workspace/src/utils.ts',
       sourceId: 'import',
       specifier: './utils',
@@ -51,7 +58,14 @@ describe('pipeline/graph/edgeSources', () => {
       metadata: { line: 42 },
       variant: 'dynamic',
     });
-    expect(createEdgeSource(undefined, connection)).toBeUndefined();
+    expect(createEdgeSource(undefined, connection)).toEqual({
+      id: 'plugin.typescript:import',
+      pluginId: 'plugin.typescript',
+      sourceId: 'import',
+      label: 'import',
+      metadata: { line: 42 },
+      variant: 'dynamic',
+    });
   });
 
   it('returns undefined when a connection has no source id', () => {
@@ -68,6 +82,7 @@ describe('pipeline/graph/edgeSources', () => {
   it('falls back to the raw source id when plugin metadata is missing', () => {
     const connection: IConnection = {
       kind: 'import',
+      pluginId: 'plugin.typescript',
       resolvedPath: null,
       sourceId: 'reexport',
       specifier: 'react',

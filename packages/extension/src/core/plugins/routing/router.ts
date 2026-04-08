@@ -169,9 +169,23 @@ function mergeFileAnalysisResults(
   };
 }
 
+function withPluginProvenance(
+  plugin: IPlugin,
+  result: IFileAnalysisResult,
+): IFileAnalysisResult {
+  return {
+    ...result,
+    relations: result.relations?.map((relation) => ({
+      ...relation,
+      pluginId: relation.pluginId ?? plugin.id,
+    })),
+  };
+}
+
 function toConnectionsFromFileAnalysis(analysis: IFileAnalysisResult): IConnection[] {
   return (analysis.relations ?? []).map(relation => ({
     kind: relation.kind,
+    pluginId: relation.pluginId,
     sourceId: relation.sourceId,
     specifier: relation.specifier ?? '',
     resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
@@ -206,11 +220,13 @@ export async function analyzeFile(
 function toLegacyFileAnalysisResult(
   filePath: string,
   connections: IConnection[],
+  pluginId?: string,
 ): IFileAnalysisResult {
   return {
     filePath,
     relations: connections.map(connection => ({
       kind: connection.kind,
+      pluginId: connection.pluginId ?? pluginId,
       sourceId: connection.sourceId,
       specifier: connection.specifier,
       type: connection.type,
@@ -248,10 +264,14 @@ export async function analyzeFileResult(
 
     try {
       const pluginResult = plugin.analyzeFile
-        ? await plugin.analyzeFile(filePath, content, workspaceRoot)
+        ? withPluginProvenance(
+            plugin,
+            await plugin.analyzeFile(filePath, content, workspaceRoot),
+          )
         : toLegacyFileAnalysisResult(
             filePath,
             await plugin.detectConnections(filePath, content, workspaceRoot),
+            plugin.id,
           );
 
       mergedResult = mergeFileAnalysisResults(mergedResult, pluginResult);

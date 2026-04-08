@@ -111,6 +111,49 @@ describe('pipeline/graph/edges', () => {
     expect(result.edges).toEqual([]);
   });
 
+  it('filters only the disabled plugin provenance when multiple plugins contribute to one file', () => {
+    const result = buildWorkspaceGraphEdges(createOptions({
+      disabledPlugins: new Set<string>(['plugin.markdown']),
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [
+          {
+            specifier: './utils',
+            resolvedPath: '/workspace/src/utils.ts',
+            kind: 'import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'import',
+          },
+          {
+            specifier: './docs',
+            resolvedPath: '/workspace/src/docs.ts',
+            kind: 'reference',
+            pluginId: 'plugin.markdown',
+            sourceId: 'wikilink',
+          },
+        ]],
+        ['src/utils.ts', []],
+        ['src/docs.ts', []],
+      ]),
+    }));
+
+    expect(result.edges).toEqual([
+      {
+        id: 'src/index.ts->src/utils.ts#import',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'import',
+            label: 'Import',
+          },
+        ],
+      },
+    ]);
+  });
+
   it('skips edges without resolved targets', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
       fileConnections: new Map<string, IConnection[]>([

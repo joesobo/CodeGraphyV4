@@ -43,11 +43,13 @@ export function buildWorkspaceGraphEdges(
     nodeIds.add(filePath);
 
     const plugin = getPluginForFile(path.join(workspaceRoot, filePath));
-    if (plugin && disabledPlugins.has(plugin.id)) {
-      continue;
-    }
 
     for (const connection of connections) {
+      const sourcePluginId = connection.pluginId ?? plugin?.id;
+      if (sourcePluginId && disabledPlugins.has(sourcePluginId)) {
+        continue;
+      }
+
       const qualifiedSourceId = createQualifiedSourceId(plugin, connection);
       if (qualifiedSourceId && disabledSources.has(qualifiedSourceId)) {
         continue;
