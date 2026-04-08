@@ -237,7 +237,6 @@ describe('WorkspacePipeline delegates', () => {
       discoveredFiles: analyzerPrivate._lastDiscoveredFiles,
       fileConnections: analyzerPrivate._lastFileConnections,
       registry: analyzerPrivate._registry,
-      workspaceRoot: '/test/workspace',
     });
   });
 

@@ -93,7 +93,7 @@ export function createGraphViewProviderViewContextMethods(
       activeEditor: dependencies.getActiveTextEditor(),
       readSavedDepthLimit: () => config.get<number>('depthLimit', dependencies.defaultDepthLimit),
       readFolderNodeColor: () => {
-        const nodeColors = config.get<GraphViewProviderNodeColors>('nodeColors', {});
+        const nodeColors = config.get<GraphViewProviderNodeColors>('nodeColors', {}) ?? {};
         return dependencies.normalizeFolderNodeColor(
           nodeColors.folder ?? dependencies.defaultFolderNodeColor,
         );

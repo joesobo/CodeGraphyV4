@@ -88,6 +88,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       showLabels: true,
       maxFiles: 500,
       hiddenPluginGroups: [],
+      nodeSizeMode: 'file-size',
     };
   });
 
@@ -153,6 +154,16 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(updatedKeys).toContain('showLabels');
     expect(updatedKeys).toContain('maxFiles');
     expect(updatedKeys).toContain('hiddenPluginGroups');
+    expect(updatedKeys).toContain('nodeSizeMode');
+
+    for (const call of cgUpdateCalls) {
+      if (call[0] === 'nodeSizeMode') {
+        expect(call[1]).toBe('connections');
+        continue;
+      }
+
+      expect(call[1]).toBeUndefined();
+    }
   });
 
   it('undo restores each physics key to its original value', async () => {

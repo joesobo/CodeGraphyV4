@@ -10,6 +10,7 @@ interface ReanalyzeGraphFileRegistry {
     content: string,
     workspaceRoot: string,
   ): Promise<IConnection[]>;
+  getPluginForFile?(absolutePath: string): { id: string } | undefined;
   supportsFile(filePath: string): boolean;
 }
 
@@ -53,6 +54,7 @@ export async function reanalyzeGraphFile(
   const content = await getFileAtCommit(sha, filePath, signal);
   const absolutePath = path.join(workspaceRoot, filePath);
   const connections = await registry.analyzeFile(absolutePath, content, workspaceRoot);
+  const plugin = registry.getPluginForFile?.(absolutePath);
 
   if (!nodeMap.has(filePath)) {
     const node = createGitHistoryNode(filePath);
@@ -64,6 +66,7 @@ export async function reanalyzeGraphFile(
     connections,
     edgeSet,
     edges,
+    plugin,
     sourcePath: filePath,
     workspaceRoot,
   });

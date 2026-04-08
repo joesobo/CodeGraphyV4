@@ -72,7 +72,7 @@ export function resolveGraphViewDisabledState(
 export function readGraphViewSettings(
   config: IGraphViewSettingsReader
 ): IGraphViewSettingsSnapshot {
-  const nodeColors = config.get<Record<string, string>>('nodeColors', {});
+  const nodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
 
   return {
     bidirectionalEdges: config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate'),

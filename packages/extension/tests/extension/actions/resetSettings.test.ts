@@ -113,6 +113,7 @@ describe('ResetSettingsAction', () => {
       showLabels: false,
       maxFiles: 1000,
       hiddenPluginGroups: ['group-1', 'group-2'],
+      nodeSizeMode: 'file-size',
     };
 
     mockConfig = createMockConfig(settingsStore);
@@ -132,27 +133,30 @@ describe('ResetSettingsAction', () => {
     expect(createAction().description).toBe('Reset all settings');
   });
 
-  it('execute resets all config keys to undefined', async () => {
+  it('execute resets config keys and sets nodeSizeMode to connections', async () => {
     await createAction().execute();
 
-    // Every physics key should be reset
     const updateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls;
 
     for (const call of updateCalls.filter(([key]) => String(key).startsWith('physics.'))) {
       expect(call[1]).toBeUndefined();
     }
-    for (const call of updateCalls.filter(([key]) => !String(key).startsWith('physics.'))) {
+
+    for (const call of updateCalls.filter(([key]) => String(key) === 'nodeSizeMode')) {
+      expect(call[1]).toBe('connections');
+    }
+    for (const call of updateCalls.filter(([key]) => !String(key).startsWith('physics.') && String(key) !== 'nodeSizeMode')) {
       expect(call[1]).toBeUndefined();
     }
 
-    expect(Object.keys(settingsStore)).toHaveLength(0);
+    expect(settingsStore.nodeSizeMode).toBe('connections');
+    expect(Object.keys(settingsStore)).toEqual(['nodeSizeMode']);
   });
 
   it('execute resets nodeSizeMode to connections and refreshes graph', async () => {
     await createAction().execute();
 
     expect(mockSetNodeSizeMode).toHaveBeenCalledWith('connections');
-    expect(mockContext._state['codegraphy.nodeSizeMode']).toBe('connections');
     expect(mockSendAllSettings).toHaveBeenCalled();
     expect(mockRefreshGraph).toHaveBeenCalled();
   });
@@ -161,8 +165,8 @@ describe('ResetSettingsAction', () => {
     const action = createAction();
     await action.execute();
 
-    // Stores are now empty after execute
-    expect(Object.keys(settingsStore)).toHaveLength(0);
+    expect(settingsStore.nodeSizeMode).toBe('connections');
+    expect(Object.keys(settingsStore)).toEqual(['nodeSizeMode']);
 
     vi.clearAllMocks();
     wireConfigMocks();
@@ -178,6 +182,7 @@ describe('ResetSettingsAction', () => {
     expect(settingsStore.maxFiles).toBe(1000);
     expect(settingsStore.hiddenPluginGroups).toEqual(['group-1', 'group-2']);
     expect(settingsStore.bidirectionalEdges).toBe('combined');
+    expect(settingsStore.nodeSizeMode).toBe('file-size');
   });
 
   it('undo restores original nodeSizeMode and refreshes graph', async () => {
@@ -189,7 +194,6 @@ describe('ResetSettingsAction', () => {
     await action.undo();
 
     expect(mockSetNodeSizeMode).toHaveBeenCalledWith('file-size');
-    expect(mockContext._state['codegraphy.nodeSizeMode']).toBe('file-size');
     expect(mockSendAllSettings).toHaveBeenCalled();
     expect(mockRefreshGraph).toHaveBeenCalled();
   });
