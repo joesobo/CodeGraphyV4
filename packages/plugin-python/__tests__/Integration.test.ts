@@ -1,6 +1,6 @@
 /**
  * @fileoverview Integration tests for Python plugin.
- * Simulates how WorkspaceAnalyzer calls the plugin to reproduce the 0 edges bug.
+ * Simulates how the analysis pipeline consumes per-file relations.
  * 
  * Bug: Python PathResolver returns workspace-relative paths, but
  * WorkspaceAnalyzer expects absolute paths (like TypeScript plugin).
@@ -29,9 +29,9 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
   });
 
   /**
-   * This test simulates exactly what WorkspaceAnalyzer does:
-   * 1. Calls detectConnections with ABSOLUTE file path
-   * 2. Gets resolvedPath from connections
+   * This test simulates the new file-analysis path:
+   * 1. Calls analyzeFile with ABSOLUTE file path
+   * 2. Gets resolvedPath from relations
    * 3. Calls path.relative(workspaceRoot, resolvedPath) to get the node ID
    * 
    * BUG: Python plugin returns relative paths, so path.relative() produces garbage.
@@ -41,16 +41,16 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     const content = fs.readFileSync(mainPy, 'utf-8');
 
     // This is exactly what WorkspaceAnalyzer does
-    const connections = await pythonPlugin.detectConnections(
+    const relations = (await pythonPlugin.analyzeFile?.(
       mainPy, // absolute path
       content,
       workspaceRoot
-    );
+    ))?.relations ?? [];
 
-    expect(connections.length).toBeGreaterThan(0);
+    expect(relations.length).toBeGreaterThan(0);
     
     // The bug: resolvedPath should be absolute, but Python plugin returns relative
-    const configConnection = connections.find(connection => connection.specifier.includes('config'));
+    const configConnection = relations.find(connection => connection.specifier?.includes('config'));
     expect(configConnection).toBeDefined();
     expect(configConnection!.resolvedPath).not.toBeNull();
 
@@ -96,9 +96,9 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
       if (!fs.existsSync(absPath)) continue;
 
       const content = fs.readFileSync(absPath, 'utf-8');
-      const connections = await pythonPlugin.detectConnections(absPath, content, workspaceRoot);
+      const relations = (await pythonPlugin.analyzeFile?.(absPath, content, workspaceRoot))?.relations ?? [];
 
-      for (const conn of connections) {
+      for (const conn of relations) {
         if (conn.resolvedPath) {
           // Simulate what WorkspaceAnalyzer does
           const targetRelative = path.relative(workspaceRoot, conn.resolvedPath);

@@ -31,9 +31,9 @@ describe('Python plugin from-import resolution', () => {
     await plugin.initialize?.(workspaceRoot);
 
     const content = fs.readFileSync(mainPath, 'utf8');
-    const connections = await plugin.detectConnections(mainPath, content, workspaceRoot);
+    const relations = (await plugin.analyzeFile?.(mainPath, content, workspaceRoot))?.relations ?? [];
 
-    const moduleConn = connections.find(
+    const moduleConn = relations.find(
       (connection) => connection.specifier.includes('from pkg import module') && connection.resolvedPath !== null,
     );
 
@@ -48,9 +48,9 @@ describe('Python plugin from-import resolution', () => {
     await plugin.initialize?.(workspaceRoot);
 
     const content = fs.readFileSync(mainPath, 'utf8');
-    const connections = await plugin.detectConnections(mainPath, content, workspaceRoot);
+    const relations = (await plugin.analyzeFile?.(mainPath, content, workspaceRoot))?.relations ?? [];
 
-    const namespaceConn = connections.find(
+    const namespaceConn = relations.find(
       (connection) => connection.specifier.includes('from ns_pkg import member') && connection.resolvedPath !== null,
     );
 
@@ -64,11 +64,11 @@ describe('Python plugin from-import resolution', () => {
     await plugin.initialize?.(workspaceRoot);
 
     const content = fs.readFileSync(mainPath, 'utf8');
-    const connections = await plugin.detectConnections(mainPath, content, workspaceRoot);
+    const relations = (await plugin.analyzeFile?.(mainPath, content, workspaceRoot))?.relations ?? [];
 
-    expect(connections).toHaveLength(1);
-    expect(connections[0].specifier).toBe('from requests import Session');
-    expect(connections[0].resolvedPath).toBeNull();
+    expect(relations).toHaveLength(1);
+    expect(relations[0].specifier).toBe('from requests import Session');
+    expect(relations[0].resolvedPath).toBeNull();
   });
 
   it('maps unresolved imported members to the imported module target', async () => {
@@ -79,10 +79,10 @@ describe('Python plugin from-import resolution', () => {
     await plugin.initialize?.(workspaceRoot);
 
     const content = fs.readFileSync(mainPath, 'utf8');
-    const connections = await plugin.detectConnections(mainPath, content, workspaceRoot);
+    const relations = (await plugin.analyzeFile?.(mainPath, content, workspaceRoot))?.relations ?? [];
 
-    expect(connections).toHaveLength(1);
-    expect(connections[0].specifier).toBe('from pkg import missing_member');
-    expect(connections[0].resolvedPath).toBe(path.join(workspaceRoot, 'pkg/__init__.py'));
+    expect(relations).toHaveLength(1);
+    expect(relations[0].specifier).toBe('from pkg import missing_member');
+    expect(relations[0].resolvedPath).toBe(path.join(workspaceRoot, 'pkg/__init__.py'));
   });
 });
