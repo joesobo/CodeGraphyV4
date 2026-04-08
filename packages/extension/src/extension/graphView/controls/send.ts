@@ -225,28 +225,20 @@ export function captureGraphControlsSnapshot(
   pluginEdgeTypes: GraphEdgeTypeLike[],
 ): IGraphControlsSnapshot {
   const folderNodeColor = config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR);
+  const configuredNodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
+  const configuredNodeVisibility = config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
+  const configuredEdgeVisibility = config.get<Record<string, boolean>>('edgeVisibility', {}) ?? {};
+  const configuredEdgeColors = config.get<Record<string, string>>('edgeColors', {}) ?? {};
   const nodeTypes = mergeNodeTypes(graphData, pluginNodeTypes, folderNodeColor);
   const edgeTypes = mergeEdgeTypes(graphData, pluginEdgeTypes);
 
   return {
     nodeTypes,
     edgeTypes,
-    nodeColors: resolveNodeColors(
-      nodeTypes,
-      config.get<Record<string, string>>('nodeColors', {}),
-    ),
-    nodeVisibility: resolveVisibilityMap(
-      nodeTypes,
-      config.get<Record<string, boolean>>('nodeVisibility', {}),
-    ),
-    edgeVisibility: resolveVisibilityMap(
-      edgeTypes,
-      config.get<Record<string, boolean>>('edgeVisibility', {}),
-    ),
-    edgeColors: resolveEdgeColors(
-      edgeTypes,
-      config.get<Record<string, string>>('edgeColors', {}),
-    ),
+    nodeColors: resolveNodeColors(nodeTypes, configuredNodeColors),
+    nodeVisibility: resolveVisibilityMap(nodeTypes, configuredNodeVisibility),
+    edgeVisibility: resolveVisibilityMap(edgeTypes, configuredEdgeVisibility),
+    edgeColors: resolveEdgeColors(edgeTypes, configuredEdgeColors),
   };
 }
 
