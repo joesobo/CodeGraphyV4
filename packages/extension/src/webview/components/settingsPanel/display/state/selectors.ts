@@ -1,9 +1,8 @@
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../../shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '../../../../../shared/fileColors';
 import type { BidirectionalEdgeMode, DirectionMode } from '../../../../../shared/settings/modes';
 import {
   particleSpeedToDisplay,
   resolveDisplayColor,
-  shouldShowFolderNodeColor,
   shouldShowParticleControls,
 } from './model';
 import type { ModeButtonOption } from '../ModeButtons';
@@ -17,24 +16,18 @@ export type DisplayViewState = {
   directionOptions: ModeButtonOption<DirectionMode>[];
   displayParticleSpeed: number;
   resolvedDirectionColor: string;
-  resolvedFolderNodeColor: string;
-  showFolderNodeColor: boolean;
   showParticleControls: boolean;
 };
 
 export function getDisplayViewState({
-  activeViewId,
   bidirectionalMode,
   directionColor,
   directionMode,
-  folderNodeColor,
   particleSpeed,
 }: {
-  activeViewId: string;
   bidirectionalMode: BidirectionalEdgeMode;
   directionColor: string;
   directionMode: DirectionMode;
-  folderNodeColor: string;
   particleSpeed: number;
 }): DisplayViewState {
   return {
@@ -42,8 +35,6 @@ export function getDisplayViewState({
     directionOptions: createDirectionOptions(directionMode),
     displayParticleSpeed: particleSpeedToDisplay(particleSpeed),
     resolvedDirectionColor: resolveDisplayColor(directionColor, DEFAULT_DIRECTION_COLOR),
-    resolvedFolderNodeColor: resolveDisplayColor(folderNodeColor, DEFAULT_FOLDER_NODE_COLOR),
-    showFolderNodeColor: shouldShowFolderNodeColor(activeViewId),
     showParticleControls: shouldShowParticleControls(directionMode),
   };
 }

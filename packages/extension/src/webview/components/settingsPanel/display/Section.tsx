@@ -12,17 +12,14 @@ import { getDisplayViewState } from './state/selectors';
 
 export function DisplaySection(): React.ReactElement {
   const {
-    activeViewId,
     bidirectionalMode,
     directionColor,
     directionMode,
-    folderNodeColor,
     particleSize,
     particleSpeed,
     setBidirectionalMode,
     setDirectionColor,
     setDirectionMode,
-    setFolderNodeColor,
     setParticleSize,
     setParticleSpeed,
     setShowLabels,
@@ -33,20 +30,15 @@ export function DisplaySection(): React.ReactElement {
     directionOptions,
     displayParticleSpeed,
     resolvedDirectionColor,
-    resolvedFolderNodeColor,
-    showFolderNodeColor,
     showParticleControls,
   } = getDisplayViewState({
-    activeViewId,
     bidirectionalMode,
     directionColor,
     directionMode,
-    folderNodeColor,
     particleSpeed,
   });
-  const { onDirectionColorChange, onFolderNodeColorChange } = useColorUpdates({
+  const { onDirectionColorChange } = useColorUpdates({
     setDirectionColor,
-    setFolderNodeColor,
   });
   const {
     onParticleSizeChange,
@@ -93,16 +85,6 @@ export function DisplaySection(): React.ReactElement {
         onChange={onDirectionColorChange}
         value={resolvedDirectionColor}
       />
-
-      {showFolderNodeColor && (
-        <ColorField
-          id="folder-node-color"
-          label="Folder Node Color"
-          onChange={onFolderNodeColorChange}
-          value={resolvedFolderNodeColor}
-        />
-      )}
-
       {showParticleControls && (
         <Particles
           displayParticleSpeed={displayParticleSpeed}

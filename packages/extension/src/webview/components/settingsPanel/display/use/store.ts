@@ -2,17 +2,14 @@ import type { BidirectionalEdgeMode, DirectionMode } from '../../../../../shared
 import { useGraphStore } from '../../../../store/state';
 
 export type DisplayStoreState = {
-  activeViewId: string;
   bidirectionalMode: BidirectionalEdgeMode;
   directionColor: string;
   directionMode: DirectionMode;
-  folderNodeColor: string;
   particleSize: number;
   particleSpeed: number;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setDirectionColor: (color: string) => void;
   setDirectionMode: (mode: DirectionMode) => void;
-  setFolderNodeColor: (color: string) => void;
   setParticleSize: (size: number) => void;
   setParticleSpeed: (speed: number) => void;
   setShowLabels: (showLabels: boolean) => void;
@@ -20,34 +17,28 @@ export type DisplayStoreState = {
 };
 
 export function useDisplayStore(): DisplayStoreState {
-  const activeViewId = useGraphStore((state) => state.activeViewId);
   const bidirectionalMode = useGraphStore((state) => state.bidirectionalMode);
   const directionColor = useGraphStore((state) => state.directionColor);
   const directionMode = useGraphStore((state) => state.directionMode);
-  const folderNodeColor = useGraphStore((state) => state.folderNodeColor);
   const particleSize = useGraphStore((state) => state.particleSize);
   const particleSpeed = useGraphStore((state) => state.particleSpeed);
   const setBidirectionalMode = useGraphStore((state) => state.setBidirectionalMode);
   const setDirectionColor = useGraphStore((state) => state.setDirectionColor);
   const setDirectionMode = useGraphStore((state) => state.setDirectionMode);
-  const setFolderNodeColor = useGraphStore((state) => state.setFolderNodeColor);
   const setParticleSize = useGraphStore((state) => state.setParticleSize);
   const setParticleSpeed = useGraphStore((state) => state.setParticleSpeed);
   const setShowLabels = useGraphStore((state) => state.setShowLabels);
   const showLabels = useGraphStore((state) => state.showLabels);
 
   return {
-    activeViewId,
     bidirectionalMode,
     directionColor,
     directionMode,
-    folderNodeColor,
     particleSize,
     particleSpeed,
     setBidirectionalMode,
     setDirectionColor,
     setDirectionMode,
-    setFolderNodeColor,
     setParticleSize,
     setParticleSpeed,
     setShowLabels,

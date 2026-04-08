@@ -5,7 +5,6 @@ import {
   particleSpeedFromDisplay,
   particleSpeedToDisplay,
   resolveDisplayColor,
-  shouldShowFolderNodeColor,
   shouldShowParticleControls,
 } from '../../../../../src/webview/components/settingsPanel/display/state/model';
 
@@ -39,11 +38,6 @@ describe('settingsPanel display model', () => {
 
   it('keeps valid display colors unchanged', () => {
     expect(resolveDisplayColor('#123ABC', '#A1A1AA')).toBe('#123ABC');
-  });
-
-  it('shows the folder node color control only in folder view', () => {
-    expect(shouldShowFolderNodeColor('codegraphy.folder')).toBe(true);
-    expect(shouldShowFolderNodeColor('codegraphy.connections')).toBe(false);
   });
 
   it('shows particle controls only for particle direction mode', () => {
