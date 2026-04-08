@@ -71,15 +71,15 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 - React webview
 - Vite
 - `react-force-graph` + Three.js
-- Tree-sitter in core
-- LadybugDB for repo-local indexed storage
+- repo-local `.codegraphy/` settings + metadata
+- plugin-driven analysis pipeline with shared per-file analysis results
 - pnpm monorepo
 
 ## What you get
 
 **A unified repo graph** Open any project and CodeGraphy shows discovered file nodes immediately. Index the repo to project richer edges into the same graph surface. Drag nodes, zoom, search, and filter without switching to a separate built-in view.
 
-**Tree-sitter in core, plugins for enrichment** The core extension handles baseline parsing/indexing itself and ships with built-in Markdown-style wikilink detection. Language plugins still matter for unsupported languages and richer ecosystem-specific semantics.
+**Core pipeline, plugins for enrichment** The core extension owns discovery, caching, graph projection, repo-local settings, and export flow. Built-in and external plugins contribute per-file analysis results, richer relations, extra node/edge kinds, and UI integrations.
 
 **One graph, configurable surfaces** Use the `Nodes`, `Edges`, `Legends`, and `Plugins` popups to decide what kinds of nodes and edges are visible. Turn on depth mode from the toolbar when you want the old focused depth behavior.
 

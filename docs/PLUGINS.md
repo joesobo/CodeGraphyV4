@@ -59,12 +59,13 @@ Use `import type` because the package is type-only.
 
 ## Analysis model
 
-The core extension now does baseline parsing/indexing itself. Plugins run after core and can:
+The core extension owns discovery, repo-local settings, caching, graph projection, and export flow. Plugins contribute analysis and UI on top of that pipeline and can:
 
-- enrich or override the core per-file analysis result
+- return per-file analysis results with relations, symbols, and extra nodes
+- override or enrich lower-priority plugin results for the same file
 - add node kinds
 - add edge kinds
-- contribute richer language or framework semantics
+- contribute language or framework-specific semantics
 - add views, exporters, commands, toolbar actions, and other UI surfaces through the host API
 
 Built-in plugins follow the same rules as external plugins and appear in the **Plugins** popup. Plugin processing order is bottom-to-top, so plugins nearer the top win merge conflicts.
