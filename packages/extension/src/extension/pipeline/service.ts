@@ -5,7 +5,10 @@
  */
 
 import * as vscode from 'vscode';
-import type { IConnection } from '../../core/plugins/types/contracts';
+import type {
+  IConnection,
+  IFileAnalysisResult,
+} from '../../core/plugins/types/contracts';
 import { PluginRegistry } from '../../core/plugins/registry/manager';
 import { FileDiscovery } from '../../core/discovery/file/service';
 import type { IDiscoveredFile } from '../../core/discovery/contracts';
@@ -43,6 +46,19 @@ import {
   readWorkspacePipelineFileStat,
   readWorkspacePipelineRoot,
 } from './serviceAdapters';
+import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';
+import type {
+  WorkspacePipelineDiscoveryDependencies,
+  WorkspacePipelineDiscoveryResult,
+} from './discovery';
+import {
+  discoverWorkspacePipelineFiles,
+  formatWorkspacePipelineLimitReachedMessage,
+} from './discovery';
+import {
+  readCodeGraphyRepoMeta,
+  writeCodeGraphyRepoMeta,
+} from '../repoSettings/meta';
 
 /**
  * Orchestrates workspace analysis.
@@ -66,6 +82,7 @@ export class WorkspacePipeline {
   private readonly _discovery: FileDiscovery;
   private readonly _context: vscode.ExtensionContext;
   private _cache: IWorkspaceAnalysisCache;
+  private _lastFileAnalysis: Map<string, IFileAnalysisResult> = new Map();
   private _lastFileConnections: Map<string, IConnection[]> = new Map();
   private _lastDiscoveredFiles: IDiscoveredFile[] = [];
   private _lastWorkspaceRoot: string = '';
@@ -95,6 +112,10 @@ export class WorkspacePipeline {
     return this._registry;
   }
 
+  get lastFileAnalysis(): ReadonlyMap<string, IFileAnalysisResult> {
+    return this._lastFileAnalysis;
+  }
+
   /**
    * Initializes the analyzer and registers built-in plugins.
    */
@@ -113,6 +134,76 @@ export class WorkspacePipeline {
     return getWorkspacePipelinePluginFilterPatterns(this._registry);
   }
 
+  hasIndex(): boolean {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return false;
+    }
+
+    return readCodeGraphyRepoMeta(workspaceRoot).lastIndexedAt !== null;
+  }
+
+  async discoverGraph(
+    filterPatterns: string[] = [],
+    disabledSources: Set<string> = new Set(),
+    disabledPlugins: Set<string> = new Set(),
+    signal?: AbortSignal,
+  ): Promise<IGraphData> {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      console.log('[CodeGraphy] No workspace folder open');
+      return { nodes: [], edges: [] };
+    }
+
+    const config = this._config.getAll();
+    const discoveryDependencies: WorkspacePipelineDiscoveryDependencies<IDiscoveredFile> = {
+      discover: async options => {
+        const result = await this._discovery.discover(options);
+        const discoveryResult: WorkspacePipelineDiscoveryResult<IDiscoveredFile> = {
+          durationMs: result.durationMs,
+          files: result.files,
+          limitReached: result.limitReached,
+          totalFound: result.totalFound ?? result.files.length,
+        };
+        return discoveryResult;
+      },
+    };
+    const discoveryResult = await discoverWorkspacePipelineFiles(
+      discoveryDependencies,
+      workspaceRoot,
+      config,
+      filterPatterns,
+      this.getPluginFilterPatterns(),
+      signal,
+    );
+
+    if (discoveryResult.limitReached) {
+      vscode.window.showWarningMessage(
+        formatWorkspacePipelineLimitReachedMessage(
+          discoveryResult.totalFound,
+          config.maxFiles,
+        ),
+      );
+    }
+
+    const fileConnections = new Map<string, IConnection[]>(
+      discoveryResult.files.map((file: IDiscoveredFile) => [file.relativePath, []]),
+    );
+
+    this._lastDiscoveredFiles = discoveryResult.files;
+    this._lastFileAnalysis = new Map();
+    this._lastFileConnections = fileConnections;
+    this._lastWorkspaceRoot = workspaceRoot;
+
+    return this._buildGraphData(
+      fileConnections,
+      workspaceRoot,
+      config.showOrphans,
+      disabledSources,
+      disabledPlugins,
+    );
+  }
+
   /**
    * Analyzes the workspace and returns graph data.
    * Uses caching for performance.
@@ -123,7 +214,7 @@ export class WorkspacePipeline {
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal
   ): Promise<IGraphData> {
-    return runWorkspacePipelineAnalysis(
+    const graphData = await runWorkspacePipelineAnalysis(
       createWorkspacePipelineAnalysisSource(
         this as unknown as WorkspacePipelineSourceOwner,
       ),
@@ -137,6 +228,21 @@ export class WorkspacePipeline {
       disabledPlugins,
       signal,
     );
+
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (workspaceRoot) {
+      try {
+        const meta = readCodeGraphyRepoMeta(workspaceRoot);
+        writeCodeGraphyRepoMeta(workspaceRoot, {
+          ...meta,
+          lastIndexedAt: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.warn('[CodeGraphy] Failed to update repo index metadata.', error);
+      }
+    }
+
+    return graphData;
   }
 
   /**
@@ -224,7 +330,7 @@ export class WorkspacePipeline {
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal
-  ): Promise<Map<string, IConnection[]>> {
+  ): Promise<IWorkspaceFileAnalysisResult> {
     return analyzeWorkspacePipelineFiles(
       this._cache,
       this._discovery,

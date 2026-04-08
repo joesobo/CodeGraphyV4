@@ -6,6 +6,7 @@ import type { PluginRegistry } from '../../core/plugins/registry/manager';
 import type { IConnection } from '../../core/plugins/types/contracts';
 import type { IGraphData } from '../../shared/graph/types';
 import type { IWorkspaceAnalysisCache } from './cache';
+import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';
 import {
   analyzeWorkspacePipelineSourceFiles,
   type WorkspacePipelineFilesSource,
@@ -48,7 +49,7 @@ export function analyzeWorkspacePipelineFiles(
   files: IDiscoveredFile[],
   workspaceRoot: string,
   signal?: AbortSignal,
-): Promise<Map<string, IConnection[]>> {
+): Promise<IWorkspaceFileAnalysisResult> {
   const source: WorkspacePipelineFilesSource = {
     _cache: cache,
     _discovery: discovery,

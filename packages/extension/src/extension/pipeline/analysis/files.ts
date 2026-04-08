@@ -1,8 +1,11 @@
 import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import type { IConnection, IFileAnalysisResult } from '../../../core/plugins/types/contracts';
+import type { IFileAnalysisResult } from '../../../core/plugins/types/contracts';
 import type { EventBus } from '../../../core/plugins/events/bus';
 import { analyzeWorkspaceFiles } from '../fileAnalysis';
-import type { IWorkspaceFileProcessedPayload } from '../fileAnalysis';
+import type {
+  IWorkspaceFileAnalysisResult,
+  IWorkspaceFileProcessedPayload,
+} from '../fileAnalysis';
 import type { IWorkspaceAnalysisCache } from '../cache';
 
 export interface WorkspacePipelineFilesDependencies {
@@ -39,7 +42,7 @@ export interface WorkspacePipelineFilesSource {
 
 export async function analyzeWorkspacePipelineFiles(
   dependencies: WorkspacePipelineFilesDependencies,
-): Promise<Map<string, IConnection[]>> {
+): Promise<IWorkspaceFileAnalysisResult> {
   const result = await analyzeWorkspaceFiles({
     analyzeFile: dependencies.analyzeFile,
     cache: dependencies.cache,
@@ -54,7 +57,7 @@ export async function analyzeWorkspacePipelineFiles(
   dependencies.logInfo(
     `[CodeGraphy] Analysis: ${result.cacheHits} cache hits, ${result.cacheMisses} misses`,
   );
-  return result.fileConnections;
+  return result;
 }
 
 export async function analyzeWorkspacePipelineSourceFiles(
@@ -63,7 +66,7 @@ export async function analyzeWorkspacePipelineSourceFiles(
   workspaceRoot: string,
   logInfo: (message: string) => void,
   signal?: AbortSignal,
-): Promise<Map<string, IConnection[]>> {
+): Promise<IWorkspaceFileAnalysisResult> {
   const eventBus = source._eventBus;
 
   return analyzeWorkspacePipelineFiles({

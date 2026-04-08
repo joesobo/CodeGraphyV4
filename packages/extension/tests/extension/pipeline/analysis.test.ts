@@ -75,6 +75,87 @@ describe('WorkspacePipeline analysis', () => {
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] No workspace folder open');
   });
 
+  it('discovers disconnected file nodes without running full analysis', async () => {
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const analyzerPrivate = analyzer as unknown as {
+      _buildGraphData: (
+        fileConnections: Map<string, never[]>,
+        workspaceRoot: string,
+        showOrphans: boolean,
+      ) => { nodes: [{ id: string }]; edges: [] };
+      _config: {
+        getAll: () => {
+          include: string[];
+          maxFiles: number;
+          respectGitignore: boolean;
+          showOrphans: boolean;
+        };
+      };
+      _discovery: {
+        discover: () => Promise<{
+          durationMs: number;
+          files: [{ absolutePath: string; relativePath: string }];
+          limitReached: boolean;
+          totalFound: number;
+        }>;
+      };
+      _preAnalyzePlugins: () => Promise<void>;
+      _analyzeFiles: () => Promise<Map<string, never[]>>;
+      _lastFileConnections: Map<string, never[]>;
+      _lastDiscoveredFiles: Array<{ absolutePath: string; relativePath: string }>;
+      _lastWorkspaceRoot: string;
+    };
+
+    vi.spyOn(analyzerPrivate._config, 'getAll').mockReturnValue({
+      include: ['**/*'],
+      maxFiles: 25,
+      respectGitignore: true,
+      showOrphans: true,
+    });
+    vi.spyOn(analyzer, 'getPluginFilterPatterns').mockReturnValue([]);
+    vi.spyOn(analyzerPrivate._discovery, 'discover').mockResolvedValue({
+      durationMs: 3,
+      files: [{ absolutePath: '/test/workspace/src/index.ts', relativePath: 'src/index.ts' }],
+      limitReached: false,
+      totalFound: 1,
+    });
+    const preAnalyzeSpy = vi.spyOn(analyzerPrivate, '_preAnalyzePlugins').mockResolvedValue();
+    const analyzeFilesSpy = vi.spyOn(analyzerPrivate, '_analyzeFiles').mockResolvedValue({
+      cacheHits: 0,
+      cacheMisses: 0,
+      fileAnalysis: new Map(),
+      fileConnections: new Map(),
+    } as never);
+    const buildGraphDataSpy = vi.spyOn(analyzerPrivate, '_buildGraphData').mockImplementation(
+      (fileConnections, workspaceRoot, showOrphans) => {
+        expect([...fileConnections.entries()]).toEqual([['src/index.ts', []]]);
+        expect(workspaceRoot).toBe('/test/workspace');
+        expect(showOrphans).toBe(true);
+        return {
+          nodes: [{ id: 'src/index.ts' }],
+          edges: [],
+        };
+      },
+    );
+
+    const result = await analyzer.discoverGraph();
+
+    expect(result).toEqual({
+      nodes: [{ id: 'src/index.ts' }],
+      edges: [],
+    });
+    expect(preAnalyzeSpy).not.toHaveBeenCalled();
+    expect(analyzeFilesSpy).not.toHaveBeenCalled();
+    expect(buildGraphDataSpy).toHaveBeenCalledOnce();
+    expect(analyzerPrivate._lastDiscoveredFiles).toEqual([
+      { absolutePath: '/test/workspace/src/index.ts', relativePath: 'src/index.ts' },
+    ]);
+    expect([...analyzerPrivate._lastFileConnections.entries()]).toEqual([['src/index.ts', []]]);
+    expect(analyzerPrivate._lastWorkspaceRoot).toBe('/test/workspace');
+  });
+
   it('merges default and plugin filters into discovery options without an event bus', async () => {
     const context = createContext();
     const analyzer = new WorkspacePipeline(

@@ -4,6 +4,7 @@ import {
   WORKSPACE_ANALYSIS_CACHE_KEY,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
 } from '../../../src/extension/pipeline/cache';
+import * as repoMetaModule from '../../../src/extension/repoSettings/meta';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
 
 let workspaceFoldersValue:
@@ -224,5 +225,34 @@ describe('WorkspacePipeline lifecycle', () => {
     expect((analyzer as unknown as {
       _getWorkspaceRoot: () => string | undefined;
     })._getWorkspaceRoot()).toBeUndefined();
+  });
+
+  it('reports whether the repo already has an indexed graph', () => {
+    const analyzer = new WorkspacePipeline({
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    } as unknown as vscode.ExtensionContext);
+
+    vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
+      version: 1,
+      lastIndexedAt: '2026-04-08T00:00:00.000Z',
+      lastIndexedCommit: null,
+      pluginSignature: null,
+      settingsSignature: null,
+    });
+    expect(analyzer.hasIndex()).toBe(true);
+
+    vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
+      version: 1,
+      lastIndexedAt: null,
+      lastIndexedCommit: null,
+      pluginSignature: null,
+      settingsSignature: null,
+    });
+    expect(analyzer.hasIndex()).toBe(false);
   });
 });
