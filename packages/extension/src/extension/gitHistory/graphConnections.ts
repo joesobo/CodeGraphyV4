@@ -34,14 +34,16 @@ export function appendGitHistoryConnectionEdges(
       continue;
     }
 
+    const pluginId = connection.pluginId ?? plugin?.id;
+
     const edge: IGraphEdge = {
       id: edgeId,
       from: sourcePath,
       to: targetRelative,
       kind: connection.kind,
-      sources: plugin ? [{
-        id: `${plugin.id}:${connection.sourceId}`,
-        pluginId: plugin.id,
+      sources: pluginId ? [{
+        id: `${pluginId}:${connection.sourceId}`,
+        pluginId,
         sourceId: connection.sourceId,
         label: connection.sourceId,
         metadata: connection.metadata,

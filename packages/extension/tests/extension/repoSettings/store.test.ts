@@ -53,7 +53,8 @@ describe('extension/repoSettings/store', () => {
     expect(store.get('timeline.maxCommits', 0)).toBe(123);
     expect(persisted.showOrphans).toBe(false);
     expect(persisted.timeline).toEqual({ maxCommits: 123, playbackSpeed: 1 });
-    expect(persisted.groups).toEqual([{ id: 'group.from-legacy', pattern: 'src/**', color: '#ffffff' }]);
+    expect(persisted.legend).toEqual([{ id: 'group.from-legacy', pattern: 'src/**', color: '#ffffff' }]);
+    expect(persisted.groups).toBeUndefined();
   });
 
   it('creates .gitignore when missing and adds .codegraphy/ once', () => {
@@ -131,5 +132,28 @@ describe('extension/repoSettings/store', () => {
 
     expect(store.get('timeline.playbackSpeed', 0)).toBe(2);
     expect(changes).toEqual([['timeline.playbackSpeed']]);
+  });
+
+  it('reads the cleaner legend key and folder color from node colors', () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(
+      settingsPath,
+      JSON.stringify({
+        ...createSettingsWithOverrides({}),
+        legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#112233' }],
+        nodeColors: { file: '#999999', folder: '#445566' },
+      }, null, 2),
+      'utf8',
+    );
+
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+
+    expect(store.get('groups', [])).toEqual([
+      { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
+    ]);
+    expect(store.get('folderNodeColor', '')).toBe('#445566');
   });
 });

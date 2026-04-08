@@ -1,16 +1,9 @@
-import * as path from 'path';
 import type { IGraphData } from '../../../../shared/graph/types';
-
-interface GraphViewTimelineRegistry {
-  getPluginForFile(filePath: string): { id: string } | undefined;
-}
 
 export interface GraphViewTimelineGraphOptions {
   disabledPlugins: ReadonlySet<string>;
   disabledSources: ReadonlySet<string>;
   showOrphans: boolean;
-  workspaceRoot?: string;
-  registry?: GraphViewTimelineRegistry;
 }
 
 export function filterGraphViewTimelineEdges(
@@ -21,17 +14,7 @@ export function filterGraphViewTimelineEdges(
     return rawGraphData.edges;
   }
 
-  if (!options.registry || !options.workspaceRoot) {
-    return rawGraphData.edges;
-  }
-
-  const { registry, workspaceRoot } = options;
-
   return rawGraphData.edges.flatMap((edge) => {
-    const plugin = registry.getPluginForFile(path.join(workspaceRoot, edge.from));
-    if (!plugin) return [edge];
-    if (options.disabledPlugins.has(plugin.id)) return [];
-
     if (edge.sources.length === 0) {
       return [edge];
     }

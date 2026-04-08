@@ -29,6 +29,39 @@ const SETTINGS_DIR_NAME = '.codegraphy';
 const SETTINGS_FILE_NAME = 'settings.json';
 const SETTINGS_IGNORE_ENTRY = '.codegraphy/';
 
+function normalizePersistedSettingsShape(
+  value: unknown,
+): Record<string, unknown> {
+  if (!isPlainObject(value)) {
+    return {};
+  }
+
+  const normalized: Record<string, unknown> = { ...value };
+  const legend = normalized.legend;
+  const groups = normalized.groups;
+  if (
+    Array.isArray(legend)
+    && (!Array.isArray(groups) || groups.length === 0)
+  ) {
+    normalized.groups = legend;
+  }
+
+  const nodeColors = isPlainObject(normalized.nodeColors)
+    ? { ...normalized.nodeColors }
+    : {};
+  if (typeof normalized.folderNodeColor === 'string' && !('folder' in nodeColors)) {
+    nodeColors.folder = normalized.folderNodeColor;
+  }
+  if (Object.keys(nodeColors).length > 0) {
+    normalized.nodeColors = nodeColors;
+  }
+  if (typeof nodeColors.folder === 'string') {
+    normalized.folderNodeColor = nodeColors.folder;
+  }
+
+  return normalized;
+}
+
 function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
@@ -107,7 +140,20 @@ function setNestedValue(value: Record<string, unknown>, key: string, nextValue: 
 }
 
 function serializeSettings(value: ICodeGraphyRepoSettings): string {
-  return `${JSON.stringify(value, null, 2)}\n`;
+  const persisted = deepClone(value) as unknown as Record<string, unknown>;
+  persisted.legend = persisted.groups;
+  delete persisted.groups;
+
+  const nodeColors = isPlainObject(persisted.nodeColors)
+    ? { ...persisted.nodeColors }
+    : {};
+  if (typeof persisted.folderNodeColor === 'string') {
+    nodeColors.folder = persisted.folderNodeColor;
+  }
+  persisted.nodeColors = nodeColors;
+  delete persisted.folderNodeColor;
+
+  return `${JSON.stringify(persisted, null, 2)}\n`;
 }
 
 function areValuesEqual(left: unknown, right: unknown): boolean {
@@ -276,7 +322,10 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
       return;
     }
 
-    this._settings = deepMerge(this._defaults, JSON.parse(nextSerialized) as object);
+    this._settings = deepMerge(
+      this._defaults,
+      normalizePersistedSettingsShape(JSON.parse(nextSerialized)),
+    );
     this._serializedSettings = serializeSettings(this._settings);
     const changedKeys = collectChangedKeys(previousSettings, this._settings);
     this._emit(changedKeys.length > 0 ? changedKeys : ['codegraphy']);
@@ -291,7 +340,9 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
 
   private _readSettingsFromDisk(): ICodeGraphyRepoSettings {
     try {
-      const parsed = JSON.parse(fs.readFileSync(this._settingsPath, 'utf8')) as object;
+      const parsed = normalizePersistedSettingsShape(
+        JSON.parse(fs.readFileSync(this._settingsPath, 'utf8')),
+      );
       const merged = deepMerge(this._defaults, parsed);
       this._serializedSettings = serializeSettings(merged);
       return merged;

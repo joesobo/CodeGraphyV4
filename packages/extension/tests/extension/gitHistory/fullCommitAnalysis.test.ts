@@ -31,6 +31,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
               specifier: './b',
               type: 'static' as const,
               kind: 'import' as const,
+              pluginId: 'ts',
             },
             {
               resolvedPath: '/workspace/src/missing.ts',
@@ -38,13 +39,13 @@ describe('gitHistory/fullCommitAnalysis', () => {
               type: 'static' as const,
               sourceId: 'import',
               kind: 'import' as const,
+              pluginId: 'ts',
             },
           ];
         }
 
         return [];
       }),
-      getPluginForFile: vi.fn(() => ({ id: 'ts' })),
     };
 
     const result = await analyzeFullCommitGraph({

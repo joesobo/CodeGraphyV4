@@ -13,7 +13,6 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     const getFileAtCommit = vi.fn(async () => '');
     const registry = {
       analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
-      getPluginForFile: vi.fn(() => ({ id: 'ts' })),
       supportsFile: vi.fn(() => false),
     };
     const edges: IGraphEdge[] = [{ id: 'src/a.txt->src/b.txt#import', from: 'src/a.txt', to: 'src/b.txt' , kind: 'import', sources: [] }];
@@ -36,7 +35,6 @@ describe('gitHistory/reanalyzeGraphFile', () => {
 
     expect(getFileAtCommit).not.toHaveBeenCalled();
     expect(registry.analyzeFile).not.toHaveBeenCalled();
-    expect(registry.getPluginForFile).not.toHaveBeenCalled();
     expect(nodes).toEqual([{ id: 'src/a.txt', label: 'a.txt', color: '#CBD5E1' }]);
     expect(edges).toEqual([{ id: 'src/a.txt->src/b.txt#import', from: 'src/a.txt', to: 'src/b.txt' , kind: 'import', sources: [] }]);
   });
@@ -53,9 +51,9 @@ describe('gitHistory/reanalyzeGraphFile', () => {
           type: 'static',
           resolvedPath: '/workspace/src/b.ts',
           kind: 'import',
+          pluginId: 'ts',
         } satisfies IConnection,
       ]),
-      getPluginForFile: vi.fn(() => ({ id: 'ts' })),
       supportsFile: vi.fn(() => true),
     };
 
@@ -105,7 +103,6 @@ describe('gitHistory/reanalyzeGraphFile', () => {
           kind: 'import',
         } satisfies IConnection,
       ]),
-      getPluginForFile: vi.fn(() => undefined),
       supportsFile: vi.fn(() => true),
     };
 
@@ -123,7 +120,6 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     });
 
     expect(getFileAtCommit).toHaveBeenCalled();
-    expect(registry.getPluginForFile).toHaveBeenCalledWith('/workspace/src/a.ts');
     expect(edges).toEqual([
       {
         id: 'src/a.ts->src/b.ts#import',

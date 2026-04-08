@@ -73,4 +73,42 @@ describe('gitHistory/graphConnections', () => {
       },
     ]);
   });
+
+  it('prefers connection provenance over the fallback plugin when both exist', () => {
+    const edges: IGraphEdge[] = [];
+    const edgeSet = new Set<string>();
+
+    appendGitHistoryConnectionEdges({
+      connections: [{
+        sourceId: 'import',
+        specifier: './b',
+        type: 'static',
+        resolvedPath: '/workspace/src/b.ts',
+        kind: 'import',
+        pluginId: 'plugin.enricher',
+      }],
+      edgeSet,
+      edges,
+      plugin: { id: 'plugin.base' },
+      sourcePath: 'src/a.ts',
+      workspaceRoot: '/workspace',
+    });
+
+    expect(edges).toEqual([
+      {
+        id: 'src/a.ts->src/b.ts#import',
+        from: 'src/a.ts',
+        to: 'src/b.ts',
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.enricher:import',
+            pluginId: 'plugin.enricher',
+            sourceId: 'import',
+            label: 'import',
+          },
+        ],
+      },
+    ]);
+  });
 });
