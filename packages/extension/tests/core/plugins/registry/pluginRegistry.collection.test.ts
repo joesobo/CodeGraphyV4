@@ -39,4 +39,92 @@ describe('PluginRegistry collection', () => {
 
     expect(registry.getSupportedExtensions()).toEqual([]);
   });
+
+  it('returns plugin-contributed node types', () => {
+    const registry = createConfiguredRegistry();
+    registry.register(createMockPlugin({
+      id: 'first',
+      contributeNodeTypes: () => [
+        {
+          id: 'route',
+          label: 'Route',
+          defaultColor: '#00ff00',
+          defaultVisible: true,
+        },
+      ],
+    }));
+    registry.register(createMockPlugin({
+      id: 'second',
+      contributeNodeTypes: () => [
+        {
+          id: 'tool',
+          label: 'Tool',
+          defaultColor: '#0000ff',
+          defaultVisible: true,
+        },
+      ],
+    }));
+
+    expect(registry.listNodeTypes()).toEqual([
+      {
+        id: 'route',
+        label: 'Route',
+        defaultColor: '#00ff00',
+        defaultVisible: true,
+      },
+      {
+        id: 'tool',
+        label: 'Tool',
+        defaultColor: '#0000ff',
+        defaultVisible: true,
+      },
+    ]);
+  });
+
+  it('returns plugin-contributed edge types with later plugins overriding duplicate ids', () => {
+    const registry = createConfiguredRegistry();
+    registry.register(createMockPlugin({
+      id: 'first',
+      contributeEdgeTypes: () => [
+        {
+          id: 'call',
+          label: 'Calls',
+          defaultColor: '#ff0000',
+          defaultVisible: true,
+        },
+      ],
+    }));
+    registry.register(createMockPlugin({
+      id: 'second',
+      contributeEdgeTypes: () => [
+        {
+          id: 'call',
+          label: 'Calls Override',
+          defaultColor: '#ffaa00',
+          defaultVisible: false,
+        },
+        {
+          id: 'test',
+          label: 'Tests',
+          defaultColor: '#00aaff',
+          defaultVisible: true,
+        },
+      ],
+    }));
+
+    expect(registry.listEdgeTypes()).toEqual([
+      {
+        id: 'call',
+        label: 'Calls Override',
+        defaultColor: '#ffaa00',
+        defaultVisible: false,
+      },
+      {
+        id: 'test',
+        label: 'Tests',
+        defaultColor: '#00aaff',
+        defaultVisible: true,
+      },
+    ]);
+  });
 });

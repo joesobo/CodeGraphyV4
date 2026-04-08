@@ -44,7 +44,14 @@ describe('pipeline/analysis/files', () => {
       workspaceRoot: '/workspace',
     });
 
-    expect(result).toEqual(new Map([['src/index.ts', []]]));
+    expect(result).toEqual({
+      cacheHits: 2,
+      cacheMisses: 3,
+      fileAnalysis: new Map([
+        ['src/index.ts', { filePath: '/workspace/src/index.ts', relations: [] }],
+      ]),
+      fileConnections: new Map([['src/index.ts', []]]),
+    });
     expect(logInfo).toHaveBeenCalledWith(
       '[CodeGraphy] Analysis: 2 cache hits, 3 misses',
     );

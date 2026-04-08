@@ -146,7 +146,10 @@ describe('WorkspacePipeline adapters', () => {
       _analyzeFiles: (
         files: Array<{ absolutePath: string; extension: string; name: string; relativePath: string }>,
         workspaceRoot: string
-      ) => Promise<Map<string, IConnection[]>>;
+      ) => Promise<{
+        fileAnalysis: Map<string, IFileAnalysisResult>;
+        fileConnections: Map<string, IConnection[]>;
+      }>;
     };
     const eventBus = { emit: vi.fn() };
     const expectedConnections = new Map<string, IConnection[]>([['src/index.ts', []]]);
@@ -169,7 +172,14 @@ describe('WorkspacePipeline adapters', () => {
     const result = await analyzerPrivate._analyzeFiles([file], '/test/workspace');
     const options = analyzeWorkspaceFilesSpy.mock.calls[0][0];
 
-    expect(result).toBe(expectedConnections);
+    expect(result).toEqual({
+      cacheHits: 1,
+      cacheMisses: 2,
+      fileAnalysis: new Map([
+        ['src/index.ts', createEmptyAnalysisResult(file.absolutePath)],
+      ]),
+      fileConnections: expectedConnections,
+    });
     expect(options.cache).toBe(analyzerPrivate._cache);
     expect(options.files).toEqual([file]);
     expect(options.workspaceRoot).toBe('/test/workspace');

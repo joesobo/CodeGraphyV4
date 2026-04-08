@@ -1,4 +1,6 @@
-import type { IConnection } from '../../core/plugins/types/contracts';
+import type {
+  IConnection,
+} from '../../core/plugins/types/contracts';
 import type { IDiscoveredFile } from '../../core/discovery/contracts';
 import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
@@ -8,12 +10,13 @@ import type { IWorkspaceAnalysisCache } from './cache';
 import type { IGraphData } from '../../shared/graph/types';
 import type { WorkspacePipelineAnalysisSource } from './analysis/analyze';
 import type { WorkspacePipelineRebuildSource } from './analysis/state';
+import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';
 export interface WorkspacePipelineSourceOwner {
   _analyzeFiles(
     files: IDiscoveredFile[],
     workspaceRoot: string,
     nextSignal?: AbortSignal,
-  ): Promise<Map<string, IConnection[]>>;
+  ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,

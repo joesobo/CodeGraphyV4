@@ -3,6 +3,7 @@ import type { IConnection } from '../../../core/plugins/types/contracts';
 import type { EventBus } from '../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../shared/graph/types';
 import { throwIfWorkspaceAnalysisAborted } from '../abort';
+import type { IWorkspaceFileAnalysisResult } from '../fileAnalysis';
 import {
   discoverWorkspacePipelineFiles,
   formatWorkspacePipelineLimitReachedMessage,
@@ -15,7 +16,7 @@ export interface WorkspacePipelineAnalysisSource {
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal,
-  ): Promise<Map<string, IConnection[]>>;
+  ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
@@ -89,7 +90,7 @@ export async function analyzeWorkspaceWithAnalyzer(
   });
 
   await source._preAnalyzePlugins(discoveryResult.files, workspaceRoot, signal);
-  const fileConnections = await source._analyzeFiles(
+  const analysisResult = await source._analyzeFiles(
     discoveryResult.files,
     workspaceRoot,
     signal,
@@ -97,12 +98,12 @@ export async function analyzeWorkspaceWithAnalyzer(
 
   throwIfWorkspaceAnalysisAborted(signal);
 
-  source._lastFileConnections = fileConnections;
+  source._lastFileConnections = analysisResult.fileConnections;
   source._lastDiscoveredFiles = discoveryResult.files;
   source._lastWorkspaceRoot = workspaceRoot;
 
   const graphData = source._buildGraphData(
-    fileConnections,
+    analysisResult.fileConnections,
     workspaceRoot,
     config.showOrphans,
     disabledSources,

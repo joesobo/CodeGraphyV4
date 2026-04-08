@@ -3,7 +3,14 @@
  * @module core/plugins/registry/manager
  */
 
-import type { IPlugin, IPluginInfo, IConnection, IFileAnalysisResult } from '../types/contracts';
+import type {
+  IPlugin,
+  IPluginInfo,
+  IConnection,
+  IFileAnalysisResult,
+  IPluginEdgeType,
+  IPluginNodeType,
+} from '../types/contracts';
 import type { EventBus } from '../events/bus';
 import type { CodeGraphyAPIImpl } from '../api/instance';
 import type { IGraphData } from '../../../shared/graph/types';
@@ -77,6 +84,8 @@ export class PluginRegistry {
   async analyzeFile(filePath: string, content: string, workspaceRoot: string): Promise<IConnection[]> { return analyzeFile(filePath, content, workspaceRoot, this._plugins, this._extensionMap); }
   async analyzeFileResult(filePath: string, content: string, workspaceRoot: string): Promise<IFileAnalysisResult | null> { return analyzeFileResult(filePath, content, workspaceRoot, this._plugins, this._extensionMap); }
   list(): IPluginInfo[] { return Array.from(this._plugins.values()); }
+  listNodeTypes(): IPluginNodeType[] { return listPluginContributions(this._plugins, plugin => plugin.contributeNodeTypes?.() ?? [], definition => definition.id); }
+  listEdgeTypes(): IPluginEdgeType[] { return listPluginContributions(this._plugins, plugin => plugin.contributeEdgeTypes?.() ?? [], definition => definition.id); }
   get size(): number { return this._plugins.size; }
   getSupportedExtensions(): string[] { return getSupportedExtensions(this._extensionMap); }
   supportsFile(filePath: string): boolean { return supportsFile(filePath, this._extensionMap); }
@@ -111,4 +120,20 @@ export class PluginRegistry {
   private _replayReadinessForPlugin(info: IPluginInfoV2): void {
     lifecycleReplayReadiness(info, this._workspaceReadyNotified, this._lastWorkspaceReadyGraph, this._webviewReadyNotified);
   }
+}
+
+function listPluginContributions<TDefinition>(
+  plugins: Map<string, IPluginInfoV2>,
+  getDefinitions: (plugin: IPlugin) => TDefinition[],
+  getId: (definition: TDefinition) => string,
+): TDefinition[] {
+  const definitionsById = new Map<string, TDefinition>();
+
+  for (const { plugin } of plugins.values()) {
+    for (const definition of getDefinitions(plugin)) {
+      definitionsById.set(getId(definition), definition);
+    }
+  }
+
+  return Array.from(definitionsById.values());
 }

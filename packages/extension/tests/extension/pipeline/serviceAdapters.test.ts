@@ -51,7 +51,7 @@ describe('pipeline/serviceAdapters', () => {
       })),
     };
 
-    const fileConnections = await analyzeWorkspacePipelineFiles(
+    const analysisResult = await analyzeWorkspacePipelineFiles(
       cache as never,
       discovery as never,
       undefined,
@@ -61,7 +61,7 @@ describe('pipeline/serviceAdapters', () => {
       '/workspace',
     );
 
-    expect(Array.from(fileConnections.values())[0]).toEqual([
+    expect(Array.from(analysisResult.fileConnections.values())[0]).toEqual([
       {
         kind: 'import',
         sourceId: 'test-source',
@@ -69,6 +69,19 @@ describe('pipeline/serviceAdapters', () => {
         resolvedPath: '/workspace/src/lib.ts',
       },
     ]);
+    expect(analysisResult.fileAnalysis.get('src/app.ts')).toEqual({
+      filePath: '/workspace/src/app.ts',
+      relations: [
+        {
+          kind: 'import',
+          sourceId: 'test-source',
+          specifier: './lib',
+          resolvedPath: '/workspace/src/lib.ts',
+          fromFilePath: '/workspace/src/app.ts',
+          toFilePath: '/workspace/src/lib.ts',
+        },
+      ],
+    });
 
     const graphData = buildWorkspacePipelineGraphData(
       cache as never,
@@ -78,7 +91,7 @@ describe('pipeline/serviceAdapters', () => {
         getAllPlugins: vi.fn(() => []),
         getPluginForFile: vi.fn(() => undefined),
       } as never,
-      fileConnections,
+      analysisResult.fileConnections,
       '/workspace',
       true,
     );

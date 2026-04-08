@@ -9,14 +9,21 @@ function createSource() {
   const emit = vi.fn();
   return {
     _analyzeFiles: vi.fn<
-      (files: IDiscoveredFile[], workspaceRoot: string) => Promise<Map<string, IConnection[]>>
-    >(async () => new Map()),
+      (files: IDiscoveredFile[], workspaceRoot: string) => Promise<{
+        fileAnalysis: Map<string, { filePath: string; relations: never[] }>;
+        fileConnections: Map<string, IConnection[]>;
+      }>
+    >(async () => ({
+      fileAnalysis: new Map(),
+      fileConnections: new Map(),
+    })),
     _buildGraphData: vi.fn<() => IGraphData>(() => ({
       nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
       edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     } satisfies IGraphData)),
     _eventBus: { emit },
     _lastDiscoveredFiles: [] as IDiscoveredFile[],
+    _lastFileAnalysis: new Map(),
     _lastFileConnections: new Map<string, IConnection[]>(),
     _lastWorkspaceRoot: '',
     _preAnalyzePlugins: vi.fn(async () => undefined),
@@ -84,6 +91,9 @@ describe('pipeline/analysis/analyze', () => {
     const files = [
       { absolutePath: '/workspace/src/index.ts', relativePath: 'src/index.ts' },
     ] as IDiscoveredFile[];
+    const fileAnalysis = new Map([
+      ['src/index.ts', { filePath: '/workspace/src/index.ts', relations: [] }],
+    ]);
     const fileConnections = new Map<string, IConnection[]>([['src/index.ts', []]]);
     const graphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
@@ -96,7 +106,10 @@ describe('pipeline/analysis/analyze', () => {
       limitReached: false,
       totalFound: 1,
     });
-    source._analyzeFiles.mockResolvedValue(fileConnections);
+    source._analyzeFiles.mockResolvedValue({
+      fileAnalysis,
+      fileConnections,
+    });
     source._buildGraphData.mockReturnValue(graphData);
 
     await expect(
