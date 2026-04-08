@@ -6,11 +6,19 @@ export function handleCycleView(
   _message: ExtensionToWebviewMessage,
   ctx: IHandlerContext,
 ): void {
-  const { availableViews, activeViewId } = ctx.getState();
-  if (availableViews.length === 0) return;
-  const idx = availableViews.findIndex((view) => view.id === activeViewId);
-  const next = availableViews[(idx + 1) % availableViews.length];
-  ctx.postMessage({ type: 'CHANGE_VIEW', payload: { viewId: next.id } });
+  const { activeViewId, graphHasIndex } = ctx.getState();
+  if (!graphHasIndex) {
+    return;
+  }
+
+  ctx.postMessage({
+    type: 'CHANGE_VIEW',
+    payload: {
+      viewId: activeViewId === 'codegraphy.depth-graph'
+        ? 'codegraphy.connections'
+        : 'codegraphy.depth-graph',
+    },
+  });
 }
 
 export function handleCycleLayout(

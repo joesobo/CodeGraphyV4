@@ -115,7 +115,7 @@ test.describe('webview depth view', () => {
     await expect(page.getByTestId('depth-harness-bounds-count')).toHaveText('4');
     expectNodesToFit(await refitGraphForVisualAssertion(page));
 
-    await page.locator('[data-testid="view-buttons"] button').first().click();
+    await page.getByTitle('Disable Depth Mode').click();
 
     await expect(page.getByTestId('depth-harness-view')).toHaveText('codegraphy.connections');
     await expect(page.getByTestId('depth-harness-node-count')).toHaveText('5');

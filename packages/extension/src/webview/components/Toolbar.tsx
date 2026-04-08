@@ -6,7 +6,7 @@ import { Button } from './ui/button';
 import { MdiIcon } from './icons/MdiIcon';
 import { cn } from './ui/cn';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './ui/disclosure/collapsible';
-import { ViewButtons } from './toolbar/ViewButtons';
+import { DepthModeToggle } from './toolbar/DepthModeToggle';
 import { DagModeToggle } from './toolbar/DagModeToggle';
 import { DimensionToggle } from './toolbar/DimensionToggle';
 import { NodeSizeToggle } from './toolbar/NodeSizeToggle';
@@ -44,7 +44,7 @@ export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElemen
             )}
           >
             <div className="flex flex-col items-center gap-1.5">
-              <ViewButtons />
+              <DepthModeToggle />
               <DagModeToggle />
               <DimensionToggle />
               <NodeSizeToggle />

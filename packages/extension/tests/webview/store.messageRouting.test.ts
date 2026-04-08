@@ -323,30 +323,15 @@ describe('GraphStore message routing', () => {
     expect(store.getState().indexProgress).toBeNull();
   });
 
-  it('CYCLE_VIEW falls back to the first view when the active view is missing', () => {
+  it('CYCLE_VIEW keeps depth mode unavailable before indexing', () => {
     store.setState({
-      availableViews: [
-        {
-          id: 'codegraphy.connections',
-          name: 'Connections',
-          icon: 'graph',
-          description: '',
-          active: false,
-        },
-        {
-          id: 'codegraphy.depth-graph',
-          name: 'Depth Graph',
-          icon: 'target',
-          description: '',
-          active: false,
-        },
-      ],
-      activeViewId: 'codegraphy.unknown',
+      activeViewId: 'codegraphy.connections',
+      graphHasIndex: false,
     });
 
     store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
 
-    expect(findMessage('CHANGE_VIEW')?.payload.viewId).toBe('codegraphy.connections');
+    expect(findMessage('CHANGE_VIEW')).toBeUndefined();
   });
 
   it('CYCLE_LAYOUT falls back to free-form when dagMode is outside the cycle', () => {

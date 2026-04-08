@@ -259,16 +259,10 @@ describe('GraphStore', () => {
     expect(store.getState().graphMode).toBe('2d');
   });
 
-  it('CYCLE_VIEW advances to next available view', () => {
+  it('CYCLE_VIEW enables depth mode when an index exists', () => {
     store.getState().handleExtensionMessage({
-      type: 'VIEWS_UPDATED',
-      payload: {
-        views: [
-          { id: 'codegraphy.connections', name: 'Connections', icon: 'graph', description: '', active: true },
-          { id: 'codegraphy.depth-graph', name: 'Depth Graph', icon: 'target', description: '', active: false },
-        ],
-        activeViewId: 'codegraphy.connections',
-      },
+      type: 'GRAPH_INDEX_STATUS_UPDATED',
+      payload: { hasIndex: true },
     });
     store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
     const msg = findMessage('CHANGE_VIEW');
@@ -276,16 +270,14 @@ describe('GraphStore', () => {
     expect(msg!.payload.viewId).toBe('codegraphy.depth-graph');
   });
 
-  it('CYCLE_VIEW wraps from last view back to first', () => {
+  it('CYCLE_VIEW returns to the main graph when depth mode is already active', () => {
+    store.getState().handleExtensionMessage({
+      type: 'GRAPH_INDEX_STATUS_UPDATED',
+      payload: { hasIndex: true },
+    });
     store.getState().handleExtensionMessage({
       type: 'VIEWS_UPDATED',
-      payload: {
-        views: [
-          { id: 'codegraphy.connections', name: 'Connections', icon: 'graph', description: '', active: false },
-          { id: 'codegraphy.depth-graph', name: 'Depth Graph', icon: 'target', description: '', active: true },
-        ],
-        activeViewId: 'codegraphy.depth-graph',
-      },
+      payload: { views: [], activeViewId: 'codegraphy.depth-graph' },
     });
     store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
     const msg = findMessage('CHANGE_VIEW');
@@ -293,7 +285,7 @@ describe('GraphStore', () => {
     expect(msg!.payload.viewId).toBe('codegraphy.connections');
   });
 
-  it('CYCLE_VIEW is a no-op when no views available', () => {
+  it('CYCLE_VIEW is a no-op before the repo has been indexed', () => {
     store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
     expect(findMessage('CHANGE_VIEW')).toBeUndefined();
   });

@@ -43,15 +43,8 @@ import Toolbar from '../../src/webview/components/Toolbar';
 import { graphStore } from '../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
-const mockViews = [
-  { id: 'codegraphy.connections', name: 'Connections', icon: 'symbol-file', description: 'Shows all files', active: true },
-  { id: 'codegraphy.depth-graph', name: 'Depth Graph', icon: 'target', description: 'Focus on current file', active: false },
-  { id: 'codegraphy.folder', name: 'Folder', icon: 'folder', description: 'Shows folder hierarchy', active: false },
-];
-
 function setDefaultState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
-    availableViews: mockViews,
     activeViewId: 'codegraphy.connections',
     dagMode: null,
     graphMode: '2d',
@@ -67,14 +60,13 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
 
 /**
  * Helper to get button groups from the toolbar DOM using data-testid attributes.
- * Layout: [view-buttons] [dag-buttons] [2d/3d] [node-size-buttons] | [refresh] [plugin-action] [export] [plugins] [settings]
+ * Layout: [depth-mode] [dag-buttons] [2d/3d] [node-size-buttons] | [refresh] [plugin-action] [export] [plugins] [settings]
  */
 function getButtonGroups(container: HTMLElement) {
-  const viewGroup = container.querySelector('[data-testid="view-buttons"]');
   const dagGroup = container.querySelector('[data-testid="dag-buttons"]');
   const nodeSizeGroup = container.querySelector('[data-testid="node-size-buttons"]');
   return {
-    viewButtons: viewGroup ? Array.from(viewGroup.querySelectorAll('button')) : [],
+    depthButtons: Array.from(container.querySelectorAll('button[title="Enable Depth Mode"], button[title="Disable Depth Mode"]')),
     dagButtons: dagGroup ? Array.from(dagGroup.querySelectorAll('button')) : [],
     nodeSizeButtons: nodeSizeGroup ? Array.from(nodeSizeGroup.querySelectorAll('button')) : [],
   };
@@ -96,7 +88,6 @@ describe('Toolbar', () => {
       const toolbar = container.querySelector('[data-testid="toolbar"]') as HTMLElement | null;
       const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
       const bottomGroup = container.querySelector('[data-testid="toolbar-bottom-group"]') as HTMLElement | null;
-      const viewButtons = container.querySelector('[data-testid="view-buttons"]') as HTMLElement | null;
       const dagButtons = container.querySelector('[data-testid="dag-buttons"]') as HTMLElement | null;
       const nodeSizeButtons = container.querySelector('[data-testid="node-size-buttons"]') as HTMLElement | null;
 
@@ -112,12 +103,8 @@ describe('Toolbar', () => {
       expect(bottomGroup).toBeTruthy();
       expect(topGroup?.className).toContain('flex-col');
       expect(bottomGroup?.className).toContain('flex-col');
-      expect(topGroup?.querySelector('[data-testid="view-buttons"]')).toBeTruthy();
       expect(topGroup?.querySelector('[data-testid="dag-buttons"]')).toBeTruthy();
       expect(topGroup?.querySelector('[data-testid="node-size-buttons"]')).toBeTruthy();
-      expect(viewButtons?.className).toContain('flex-col');
-      expect(viewButtons?.className).not.toContain('bg-popover/80');
-      expect(viewButtons?.className).not.toContain('border');
       expect(dagButtons?.className).toContain('flex-col');
       expect(dagButtons?.className).not.toContain('bg-popover/80');
       expect(dagButtons?.className).not.toContain('border');
@@ -175,30 +162,25 @@ describe('Toolbar', () => {
     });
   });
 
-  describe('view buttons', () => {
-    it('renders a button for each available view', () => {
+  describe('depth mode button', () => {
+    it('renders a depth toggle button', () => {
       const { container } = render(<Toolbar />);
-      const { viewButtons } = getButtonGroups(container);
-      expect(viewButtons).toHaveLength(mockViews.length);
+      const { depthButtons } = getButtonGroups(container);
+      expect(depthButtons).toHaveLength(1);
     });
 
-    it('sends CHANGE_VIEW with correct viewId when view button is clicked', () => {
-      const { container } = render(<Toolbar />);
-      const { viewButtons } = getButtonGroups(container);
-      // Click the second view button (Depth Graph)
-      fireEvent.click(viewButtons[1]);
+    it('sends CHANGE_VIEW with the depth graph when enabled after indexing', () => {
+      setDefaultState({ graphHasIndex: true });
+      render(<Toolbar />);
+      fireEvent.click(screen.getByTitle('Enable Depth Mode'));
       const msg = findMessage('CHANGE_VIEW');
       expect(msg).toBeTruthy();
       expect(msg!.payload.viewId).toBe('codegraphy.depth-graph');
     });
 
-    it('active view button has default variant', () => {
-      const { container } = render(<Toolbar />);
-      const { viewButtons } = getButtonGroups(container);
-      // First button (Connections) is active — should NOT have ghost class
-      expect(viewButtons[0].className).not.toContain('hover:bg-accent');
-      // Second button should have ghost variant
-      expect(viewButtons[1].className).toContain('hover:bg-accent');
+    it('disables the depth button before indexing', () => {
+      render(<Toolbar />);
+      expect(screen.getByTitle('Enable Depth Mode')).toBeDisabled();
     });
   });
 
@@ -289,10 +271,10 @@ describe('Toolbar', () => {
   });
 
   describe('action buttons', () => {
-    it('refresh button sends REFRESH_GRAPH', () => {
+    it('refresh button sends INDEX_GRAPH before a graph index exists', () => {
       render(<Toolbar />);
       fireEvent.click(screen.getByTitle('Index Repo'));
-      expect(findMessage('REFRESH_GRAPH')).toBeTruthy();
+      expect(findMessage('INDEX_GRAPH')).toBeTruthy();
     });
 
     it('shows Refresh Graph when an index already exists', () => {
