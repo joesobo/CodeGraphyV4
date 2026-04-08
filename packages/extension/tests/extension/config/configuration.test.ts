@@ -133,6 +133,7 @@ describe('Configuration', () => {
         plugins: [],
         disabledSources: [],
         disabledPlugins: [],
+        pluginOrder: [],
       });
     });
 

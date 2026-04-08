@@ -36,7 +36,7 @@ describe('app store selectors', () => {
 
     const { result } = renderHook(() => useAppState());
 
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       graphData,
       isLoading: true,
       searchQuery: 'query',
@@ -50,6 +50,13 @@ describe('app store selectors', () => {
       nodeDecorations: { 'src/app.ts': { badge: { text: 'A' } } },
       edgeDecorations: { edge1: { opacity: 0.5 } },
     });
+    expect(result.current.nodeColors).toEqual({});
+    expect(result.current.nodeVisibility).toEqual({});
+    expect(result.current.edgeVisibility).toEqual({});
+    expect(result.current.edgeColors).toEqual({});
+    expect(result.current.folderNodeColor).toBeTypeOf('string');
+    expect(result.current.isIndexing).toBe(false);
+    expect(result.current.indexProgress).toBeNull();
   });
 
   it('returns the search and panel action references', () => {

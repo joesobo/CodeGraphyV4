@@ -49,8 +49,7 @@ function createMockContext() {
 }
 
 describe('ResetSettingsAction (extra mutant coverage)', () => {
-  let physicsStore: Record<string, unknown>;
-  let codegraphyStore: Record<string, unknown>;
+  let settingsStore: Record<string, unknown>;
 
   const SNAPSHOT: ISettingsSnapshot = {
     physics: { repelForce: 10, linkDistance: 100, linkForce: 0.2, damping: 0.5, centerForce: 0.3 },
@@ -71,8 +70,12 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    physicsStore = { ...SNAPSHOT.physics };
-    codegraphyStore = {
+    settingsStore = {
+      'physics.repelForce': SNAPSHOT.physics.repelForce,
+      'physics.linkDistance': SNAPSHOT.physics.linkDistance,
+      'physics.linkForce': SNAPSHOT.physics.linkForce,
+      'physics.damping': SNAPSHOT.physics.damping,
+      'physics.centerForce': SNAPSHOT.physics.centerForce,
       groups: [],
       filterPatterns: [],
       showOrphans: true,
@@ -89,12 +92,8 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
   });
 
   it('resets all five physics keys to undefined during execute', async () => {
-    const mockPhysicsConfig = createMockConfig(physicsStore);
-    const mockCodegraphyConfig = createMockConfig(codegraphyStore);
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    const mockConfig = createMockConfig(settingsStore);
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
     const ctx = createMockContext();
     const action = new ResetSettingsAction(
@@ -108,13 +107,14 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
 
     await action.execute();
 
-    const physicsUpdateCalls = (mockPhysicsConfig.update as ReturnType<typeof vi.fn>).mock.calls;
+    const physicsUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([key]) => String(key).startsWith('physics.'));
     const updatedKeys = physicsUpdateCalls.map((call) => call[0]);
-    expect(updatedKeys).toContain('repelForce');
-    expect(updatedKeys).toContain('linkDistance');
-    expect(updatedKeys).toContain('linkForce');
-    expect(updatedKeys).toContain('damping');
-    expect(updatedKeys).toContain('centerForce');
+    expect(updatedKeys).toContain('physics.repelForce');
+    expect(updatedKeys).toContain('physics.linkDistance');
+    expect(updatedKeys).toContain('physics.linkForce');
+    expect(updatedKeys).toContain('physics.damping');
+    expect(updatedKeys).toContain('physics.centerForce');
 
     // All values should be undefined
     for (const call of physicsUpdateCalls) {
@@ -123,12 +123,8 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
   });
 
   it('resets all CONFIG_TO_SNAPSHOT config keys to undefined during execute', async () => {
-    const mockPhysicsConfig = createMockConfig(physicsStore);
-    const mockCodegraphyConfig = createMockConfig(codegraphyStore);
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    const mockConfig = createMockConfig(settingsStore);
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
     const ctx = createMockContext();
     const action = new ResetSettingsAction(
@@ -142,7 +138,8 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
 
     await action.execute();
 
-    const cgUpdateCalls = (mockCodegraphyConfig.update as ReturnType<typeof vi.fn>).mock.calls;
+    const cgUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([key]) => !String(key).startsWith('physics.'));
     const updatedKeys = cgUpdateCalls.map((call) => call[0]);
     expect(updatedKeys).toContain('groups');
     expect(updatedKeys).toContain('filterPatterns');
@@ -160,12 +157,8 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
 
   it('undo restores each physics key to its original value', async () => {
     const originalPhysics = { repelForce: 10, linkDistance: 100, linkForce: 0.2, damping: 0.5, centerForce: 0.3 };
-    const mockPhysicsConfig = createMockConfig({ ...physicsStore });
-    const mockCodegraphyConfig = createMockConfig({ ...codegraphyStore });
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    const mockConfig = createMockConfig({ ...settingsStore });
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
     const ctx = createMockContext();
     const action = new ResetSettingsAction(
@@ -179,27 +172,21 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
 
     await action.execute();
     vi.clearAllMocks();
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
     await action.undo();
 
-    const physicsUpdateCalls = (mockPhysicsConfig.update as ReturnType<typeof vi.fn>).mock.calls;
+    const physicsUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([key]) => String(key).startsWith('physics.'));
     for (const call of physicsUpdateCalls) {
-      const key = call[0] as keyof typeof originalPhysics;
+      const key = String(call[0]).replace('physics.', '') as keyof typeof originalPhysics;
       expect(call[1]).toBe(originalPhysics[key]);
     }
   });
 
   it('uses the correct config target in execute and undo', async () => {
-    const mockPhysicsConfig = createMockConfig({ ...physicsStore });
-    const mockCodegraphyConfig = createMockConfig({ ...codegraphyStore });
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    const mockConfig = createMockConfig({ ...settingsStore });
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
     const ctx = createMockContext();
     const action = new ResetSettingsAction(
@@ -213,7 +200,8 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
 
     await action.execute();
 
-    const physicsUpdateCalls = (mockPhysicsConfig.update as ReturnType<typeof vi.fn>).mock.calls;
+    const physicsUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([key]) => String(key).startsWith('physics.'));
     for (const call of physicsUpdateCalls) {
       expect(call[2]).toBe(vscode.ConfigurationTarget.Global);
     }
