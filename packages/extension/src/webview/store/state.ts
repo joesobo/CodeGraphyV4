@@ -22,6 +22,7 @@ import type {
 
 export interface GraphState {
   graphData: IGraphData | null;
+  graphHasIndex: boolean;
   isLoading: boolean;
   searchQuery: string;
   searchOptions: SearchOptions;

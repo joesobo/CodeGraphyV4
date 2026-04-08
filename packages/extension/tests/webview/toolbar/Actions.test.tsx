@@ -65,7 +65,7 @@ const exportCases = [
   ['Export as Markdown', 'REQUEST_EXPORT_MD'],
 ] as const;
 
-const iconButtonTitles = ['Export', 'Refresh Graph', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Export', 'Index Repo', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders() {
   return render(
@@ -91,7 +91,13 @@ function clickExportItem(label: string) {
 describe('ToolbarActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    graphStore.setState({ activePanel: 'none', pluginExporters: [], pluginToolbarActions: [] });
+    graphStore.setState({
+      activePanel: 'none',
+      pluginExporters: [],
+      pluginToolbarActions: [],
+      graphHasIndex: false,
+      isIndexing: false,
+    });
   });
 
   it('renders all four action buttons', () => {
@@ -100,15 +106,23 @@ describe('ToolbarActions', () => {
     expect(buttons.length).toBeGreaterThanOrEqual(4);
   });
 
-  it('renders the refresh button with title', () => {
+  it('renders the index button with title when no graph index exists', () => {
     renderWithProviders();
-    expect(screen.getByTitle('Refresh Graph')).toBeInTheDocument();
+    expect(screen.getByTitle('Index Repo')).toBeInTheDocument();
   });
 
-  it('sends REFRESH_GRAPH message when refresh button is clicked', () => {
+  it('sends REFRESH_GRAPH message when index button is clicked', () => {
     renderWithProviders();
-    clickAction('Refresh Graph');
+    clickAction('Index Repo');
     expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
+  });
+
+  it('renders the refresh button title when a graph index exists', () => {
+    graphStore.setState({ graphHasIndex: true });
+
+    renderWithProviders();
+
+    expect(screen.getByTitle('Refresh Graph')).toBeInTheDocument();
   });
 
   it('renders the export button with title', () => {
@@ -173,14 +187,14 @@ describe('ToolbarActions', () => {
 
   it('keeps action buttons transparent', () => {
     renderWithProviders();
-    const refreshButton = screen.getByTitle('Refresh Graph');
+    const refreshButton = screen.getByTitle('Index Repo');
     expect(refreshButton.className).toContain('bg-transparent');
     expect(refreshButton.className).not.toContain('backdrop-blur');
   });
 
   it('applies correct button sizing classes', () => {
     renderWithProviders();
-    const refreshButton = screen.getByTitle('Refresh Graph');
+    const refreshButton = screen.getByTitle('Index Repo');
     expect(refreshButton.className).toContain('h-7');
     expect(refreshButton.className).toContain('w-7');
   });

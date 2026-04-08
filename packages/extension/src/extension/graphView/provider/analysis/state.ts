@@ -1,4 +1,5 @@
 import type { IGraphData } from '../../../../shared/graph/types';
+import type { GraphViewAnalysisMode } from '../../analysis/execution';
 import type { GraphViewProviderAnalysisState } from '../../analysis/lifecycle';
 import type { GraphViewProviderAnalysisMethodsSource } from './methods';
 
@@ -9,6 +10,7 @@ interface GraphViewProviderWorkspaceReadyState {
 
 export function createGraphViewProviderAnalysisState(
   source: GraphViewProviderAnalysisMethodsSource,
+  mode: GraphViewAnalysisMode,
 ): GraphViewProviderAnalysisState {
   return {
     get analysisController() {
@@ -44,6 +46,7 @@ export function createGraphViewProviderAnalysisState(
     get installedPluginActivationPromise() {
       return source._installedPluginActivationPromise;
     },
+    mode,
     get filterPatterns() {
       return source._filterPatterns;
     },

@@ -13,9 +13,23 @@ function createState(
     analyzer: undefined,
     analyzerInitialized: false,
     analyzerInitPromise: undefined,
+    mode: 'analyze',
     filterPatterns: [],
     disabledSources: new Set<string>(),
     disabledPlugins: new Set<string>(),
+    ...overrides,
+  };
+}
+
+function createAnalyzer(overrides: Partial<NonNullable<GraphViewAnalysisExecutionState['analyzer']>> = {}) {
+  return {
+    initialize: vi.fn(async () => undefined),
+    hasIndex: vi.fn(() => true),
+    discoverGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
+    analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
+    registry: {
+      notifyPostAnalyze: vi.fn(),
+    },
     ...overrides,
   };
 }
@@ -42,6 +56,7 @@ function createHandlers(
     sendPluginStatuses: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
+    sendGraphIndexStatusUpdated: vi.fn(),
     markWorkspaceReady: vi.fn(),
     isAbortError: vi.fn(() => false),
     logError: vi.fn(),
@@ -77,16 +92,65 @@ describe('graph view analysis execution', () => {
     expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
   });
 
-  it('initializes the analyzer once and stops when the request turns stale after initialization', async () => {
-    const initialize = vi.fn(async () => undefined);
+  it('discovers a disconnected graph when loading without an existing index', async () => {
+    const discoverGraph = vi.fn(async () => ({
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    }));
+    const analyze = vi.fn(async () => ({ nodes: [], edges: [] }));
     const state = createState({
+      mode: 'load',
       analyzer: {
-        initialize,
-        analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
+        initialize: vi.fn(async () => undefined),
+        hasIndex: vi.fn(() => false),
+        discoverGraph,
+        analyze,
         registry: {
           notifyPostAnalyze: vi.fn(),
         },
       },
+      analyzerInitialized: true,
+    });
+    const { handlers } = createHandlers();
+
+    await executeGraphViewAnalysis(new AbortController().signal, 1, state, handlers);
+
+    expect(discoverGraph).toHaveBeenCalledOnce();
+    expect(analyze).not.toHaveBeenCalled();
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(false);
+  });
+
+  it('analyzes the workspace when loading from an existing index', async () => {
+    const discoverGraph = vi.fn(async () => ({ nodes: [], edges: [] }));
+    const analyze = vi.fn(async () => ({ nodes: [], edges: [] }));
+    const state = createState({
+      mode: 'load',
+      analyzer: {
+        initialize: vi.fn(async () => undefined),
+        hasIndex: vi.fn(() => true),
+        discoverGraph,
+        analyze,
+        registry: {
+          notifyPostAnalyze: vi.fn(),
+        },
+      },
+      analyzerInitialized: true,
+    });
+    const { handlers } = createHandlers();
+
+    await executeGraphViewAnalysis(new AbortController().signal, 1, state, handlers);
+
+    expect(analyze).toHaveBeenCalledOnce();
+    expect(discoverGraph).not.toHaveBeenCalled();
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(true);
+  });
+
+  it('initializes the analyzer once and stops when the request turns stale after initialization', async () => {
+    const initialize = vi.fn(async () => undefined);
+    const state = createState({
+      analyzer: createAnalyzer({
+        initialize,
+      }),
     });
     const { handlers } = createHandlers({
       isAnalysisStale: vi.fn()
@@ -107,13 +171,9 @@ describe('graph view analysis execution', () => {
     const initialize = vi.fn(async () => undefined);
     const analyzerInitPromise = Promise.resolve().then(() => undefined);
     const state = createState({
-      analyzer: {
+      analyzer: createAnalyzer({
         initialize,
-        analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
-        registry: {
-          notifyPostAnalyze: vi.fn(),
-        },
-      },
+      }),
       analyzerInitPromise,
     });
     const { handlers } = createHandlers({
@@ -134,13 +194,9 @@ describe('graph view analysis execution', () => {
       edges: [],
     }));
     const state = createState({
-      analyzer: {
-        initialize: vi.fn(async () => undefined),
+      analyzer: createAnalyzer({
         analyze,
-        registry: {
-          notifyPostAnalyze: vi.fn(),
-        },
-      },
+      }),
       analyzerInitialized: true,
     });
     const { handlers } = createHandlers({
@@ -167,13 +223,9 @@ describe('graph view analysis execution', () => {
       edges: [],
     };
     const state = createState({
-      analyzer: {
-        initialize: vi.fn(async () => undefined),
+      analyzer: createAnalyzer({
         analyze: vi.fn(() => Promise.resolve(rawGraphData)),
-        registry: {
-          notifyPostAnalyze: vi.fn(),
-        },
-      },
+      }),
       analyzerInitialized: true,
     });
     const { handlers, getGraphData } = createHandlers({
@@ -195,6 +247,7 @@ describe('graph view analysis execution', () => {
     expect(handlers.sendContextMenuItems).toHaveBeenCalledOnce();
     expect(state.analyzer?.registry.notifyPostAnalyze).toHaveBeenCalledWith(getGraphData());
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(true);
   });
 
   it('drops analyzed graph results when the request turns stale after analyze resolves', async () => {
@@ -203,13 +256,9 @@ describe('graph view analysis execution', () => {
       edges: [],
     };
     const state = createState({
-      analyzer: {
-        initialize: vi.fn(async () => undefined),
+      analyzer: createAnalyzer({
         analyze: vi.fn(async () => rawGraphData),
-        registry: {
-          notifyPostAnalyze: vi.fn(),
-        },
-      },
+      }),
       analyzerInitialized: true,
     });
     const { handlers } = createHandlers({
@@ -232,15 +281,11 @@ describe('graph view analysis execution', () => {
   it('logs non-abort analysis failures and publishes an empty graph fallback', async () => {
     const error = new Error('boom');
     const state = createState({
-      analyzer: {
-        initialize: vi.fn(async () => undefined),
+      analyzer: createAnalyzer({
         analyze: vi.fn(async () => {
           throw error;
         }),
-        registry: {
-          notifyPostAnalyze: vi.fn(),
-        },
-      },
+      }),
       analyzerInitialized: true,
     });
     const { handlers } = createHandlers();
@@ -258,15 +303,11 @@ describe('graph view analysis execution', () => {
   it('returns quietly for abort errors raised during analysis', async () => {
     const error = Object.assign(new Error('aborted'), { name: 'AbortError' });
     const state = createState({
-      analyzer: {
-        initialize: vi.fn(async () => undefined),
+      analyzer: createAnalyzer({
         analyze: vi.fn(async () => {
           throw error;
         }),
-        registry: {
-          notifyPostAnalyze: vi.fn(),
-        },
-      },
+      }),
       analyzerInitialized: true,
     });
     const { handlers } = createHandlers({

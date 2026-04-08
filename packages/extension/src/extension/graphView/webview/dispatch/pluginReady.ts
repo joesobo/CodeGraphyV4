@@ -19,7 +19,7 @@ export interface GraphViewPluginReadyContext {
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
   sendAvailableViews(): void;
-  analyzeAndSendData(): Promise<void>;
+  loadAndSendData(): Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;
   sendPhysicsSettings(): void;
@@ -58,7 +58,7 @@ export async function dispatchGraphViewPluginReadyMessage(
       loadGroupsAndFilterPatterns: () => context.loadGroupsAndFilterPatterns(),
       loadDisabledRulesAndPlugins: () => context.loadDisabledRulesAndPlugins(),
       sendAvailableViews: () => context.sendAvailableViews(),
-      analyzeAndSendData: () => void context.analyzeAndSendData(),
+      loadAndSendData: () => void context.loadAndSendData(),
       sendFavorites: () => context.sendFavorites(),
       sendSettings: () => context.sendSettings(),
       sendPhysicsSettings: () => context.sendPhysicsSettings(),

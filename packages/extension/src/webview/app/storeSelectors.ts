@@ -18,8 +18,25 @@ export function useAppState() {
   const nodeDecorations = useGraphStore(s => s.nodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
   const activeFilePath = useGraphStore(s => s.activeFilePath);
+  const isIndexing = useGraphStore(s => s.isIndexing);
+  const indexProgress = useGraphStore(s => s.indexProgress);
 
-  return { graphData, isLoading, searchQuery, searchOptions, groups, showOrphans, timelineActive, activePanel, activeViewId, nodeDecorations, edgeDecorations, activeFilePath };
+  return {
+    graphData,
+    isLoading,
+    searchQuery,
+    searchOptions,
+    groups,
+    showOrphans,
+    timelineActive,
+    activePanel,
+    activeViewId,
+    nodeDecorations,
+    edgeDecorations,
+    activeFilePath,
+    isIndexing,
+    indexProgress,
+  };
 }
 
 export function useAppActions() {

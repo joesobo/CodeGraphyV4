@@ -23,7 +23,7 @@ function createContext(
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendAvailableViews: vi.fn(),
-    analyzeAndSendData: vi.fn(),
+    loadAndSendData: vi.fn(() => Promise.resolve()),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
     sendPhysicsSettings: vi.fn(),

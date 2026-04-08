@@ -1,6 +1,7 @@
 import type { PartialState, IHandlerContext } from './messageTypes';
 import {
   handleGraphDataUpdated,
+  handleGraphIndexStatusUpdated,
   handleFavoritesUpdated,
   handleSettingsUpdated,
   handleGroupsUpdated,
@@ -45,6 +46,10 @@ export const MESSAGE_HANDLERS: Record<
 > = {
   GRAPH_DATA_UPDATED: (msg) =>
     handleGraphDataUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>),
+  GRAPH_INDEX_STATUS_UPDATED: (msg) =>
+    handleGraphIndexStatusUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>
+    ),
   FAVORITES_UPDATED: (msg) =>
     handleFavoritesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>),
   SETTINGS_UPDATED: (msg) =>

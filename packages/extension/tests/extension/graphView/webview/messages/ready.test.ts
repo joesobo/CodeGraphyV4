@@ -6,7 +6,7 @@ function createHandlers() {
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendAvailableViews: vi.fn(),
-    analyzeAndSendData: vi.fn(),
+    loadAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
     sendPhysicsSettings: vi.fn(),
@@ -47,7 +47,7 @@ describe('graph view ready message', () => {
     expect(handlers.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(handlers.loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
     expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.loadAndSendData).toHaveBeenCalledOnce();
     expect(handlers.sendFavorites).toHaveBeenCalledOnce();
     expect(handlers.sendSettings).toHaveBeenCalledOnce();
     expect(handlers.sendPhysicsSettings).toHaveBeenCalledOnce();
@@ -94,7 +94,7 @@ describe('graph view ready message', () => {
     handlers.sendAvailableViews.mockImplementation(() => {
       callOrder.push('views');
     });
-    handlers.analyzeAndSendData.mockImplementation(() => {
+    handlers.loadAndSendData.mockImplementation(() => {
       callOrder.push('analyze');
     });
 

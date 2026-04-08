@@ -75,6 +75,7 @@ function createContext(
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendAvailableViews: vi.fn(),
+    loadAndSendData: vi.fn(() => Promise.resolve()),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
     sendCachedTimeline: vi.fn(),
@@ -188,7 +189,7 @@ describe('graph view webview message listener', () => {
     await messageHandler?.({ type: 'WEBVIEW_READY' });
     await messageHandler?.({ type: 'WEBVIEW_READY' });
 
-    expect(context.analyzeAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.loadAndSendData).toHaveBeenCalledTimes(1);
     expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(1);
     expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledTimes(1);
     expect(context.notifyWebviewReady).toHaveBeenCalledTimes(1);

@@ -107,6 +107,7 @@ export interface GraphViewProviderMessageListenerSource {
   _createFile(directory: string): Promise<void>;
   _toggleFavorites(paths: string[]): Promise<void>;
   _addToExclude(patterns: string[]): Promise<void>;
+  _loadAndSendData(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
   _getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;

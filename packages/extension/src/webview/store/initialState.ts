@@ -4,6 +4,7 @@ import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared
 
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
+  graphHasIndex: false,
   isLoading: true,
   searchQuery: '',
   searchOptions: DEFAULT_SEARCH_OPTIONS,

@@ -16,6 +16,7 @@ export interface GraphViewProviderWebviewSource
   _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];
   _notifyExtensionMessage(message: unknown): void;
+  _loadAndSendData(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
   _getLocalResourceRoots(): vscode.Uri[];
 }

@@ -9,7 +9,18 @@ import { arePlainValuesEqual } from './equality';
 export function handleGraphDataUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>,
 ): PartialState {
-  return { graphData: message.payload, isLoading: false };
+  return {
+    graphData: message.payload,
+    isLoading: false,
+    isIndexing: false,
+    indexProgress: null,
+  };
+}
+
+export function handleGraphIndexStatusUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>,
+): PartialState {
+  return { graphHasIndex: message.payload.hasIndex };
 }
 
 export function handleFavoritesUpdated(

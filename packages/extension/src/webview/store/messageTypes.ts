@@ -19,6 +19,7 @@ import type {
 /** All fields that the store can hold — used to type partial state updates. */
 export interface IStoreFields {
   graphData: IGraphData | null;
+  graphHasIndex: boolean;
   isLoading: boolean;
   searchQuery: string;
   searchOptions: SearchOptions;

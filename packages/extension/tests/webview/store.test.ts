@@ -24,6 +24,7 @@ describe('GraphStore', () => {
     expect(state.showLabels).toBe(true);
     expect(state.graphMode).toBe('2d');
     expect(state.activePanel).toBe('none');
+    expect(state.graphHasIndex).toBe(false);
   });
 
   it('handles GRAPH_DATA_UPDATED message', () => {
@@ -37,6 +38,17 @@ describe('GraphStore', () => {
     });
     expect(store.getState().graphData).toEqual(data);
     expect(store.getState().isLoading).toBe(false);
+    expect(store.getState().isIndexing).toBe(false);
+    expect(store.getState().indexProgress).toBeNull();
+  });
+
+  it('handles GRAPH_INDEX_STATUS_UPDATED message', () => {
+    store.getState().handleExtensionMessage({
+      type: 'GRAPH_INDEX_STATUS_UPDATED',
+      payload: { hasIndex: true },
+    });
+
+    expect(store.getState().graphHasIndex).toBe(true);
   });
 
   it('handles FAVORITES_UPDATED message', () => {

@@ -2,8 +2,17 @@ import type { IGraphData } from '../../../shared/graph/types';
 
 const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
 
+export type GraphViewAnalysisMode = 'analyze' | 'load';
+
 interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
+  hasIndex(): boolean;
+  discoverGraph(
+    filterPatterns?: string[],
+    disabledSources?: Set<string>,
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+  ): Promise<IGraphData>;
   analyze(
     filterPatterns?: string[],
     disabledSources?: Set<string>,
@@ -20,6 +29,7 @@ export interface GraphViewAnalysisExecutionState {
   analyzerInitialized: boolean;
   analyzerInitPromise: Promise<void> | undefined;
   installedPluginActivationPromise?: Promise<void>;
+  mode: GraphViewAnalysisMode;
   filterPatterns: string[];
   disabledSources: Set<string>;
   disabledPlugins: Set<string>;
@@ -40,6 +50,8 @@ export interface GraphViewAnalysisExecutionHandlers {
   sendPluginStatuses(): void;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendGraphIndexStatusUpdated(hasIndex: boolean): void;
+  sendIndexProgress?(progress: { phase: string; current: number; total: number }): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
   markWorkspaceReady(graphData: IGraphData): void;
@@ -47,10 +59,14 @@ export interface GraphViewAnalysisExecutionHandlers {
   logError(message: string, error: unknown): void;
 }
 
-function publishEmptyGraph(handlers: GraphViewAnalysisExecutionHandlers): IGraphData {
+function publishEmptyGraph(
+  handlers: GraphViewAnalysisExecutionHandlers,
+  hasIndex: boolean = false,
+): IGraphData {
   handlers.setRawGraphData(EMPTY_GRAPH_DATA);
   handlers.setGraphData(EMPTY_GRAPH_DATA);
   handlers.sendGraphDataUpdated(EMPTY_GRAPH_DATA);
+  handlers.sendGraphIndexStatusUpdated(hasIndex);
   handlers.sendAvailableViews();
   return EMPTY_GRAPH_DATA;
 }
@@ -97,19 +113,42 @@ export async function executeGraphViewAnalysis(
   }
 
   try {
-    const rawGraphData = await state.analyzer.analyze(
-      state.filterPatterns,
-      state.disabledSources,
-      state.disabledPlugins,
-      signal,
-    );
+    const shouldDiscover = state.mode === 'load' && !state.analyzer.hasIndex();
+    if (!shouldDiscover) {
+      handlers.sendIndexProgress?.({
+        phase: 'Indexing Repo',
+        current: 0,
+        total: 1,
+      });
+    }
+    const rawGraphData = shouldDiscover
+      ? await state.analyzer.discoverGraph(
+          state.filterPatterns,
+          state.disabledSources,
+          state.disabledPlugins,
+          signal,
+        )
+      : await state.analyzer.analyze(
+          state.filterPatterns,
+          state.disabledSources,
+          state.disabledPlugins,
+          signal,
+        );
     if (handlers.isAnalysisStale(signal, requestId)) return;
 
     handlers.setRawGraphData(rawGraphData);
+    handlers.sendGraphIndexStatusUpdated(!shouldDiscover);
     handlers.updateViewContext();
     handlers.applyViewTransform();
 
     const graphData = handlers.getGraphData();
+    if (!shouldDiscover) {
+      handlers.sendIndexProgress?.({
+        phase: 'Indexing Repo',
+        current: 1,
+        total: 1,
+      });
+    }
     handlers.sendGraphDataUpdated(graphData);
     handlers.sendAvailableViews();
     handlers.sendPluginStatuses();

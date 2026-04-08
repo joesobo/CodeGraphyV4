@@ -19,6 +19,7 @@ export function createGraphViewProviderAnalysisMethodDelegates(
   | '_sendPluginExporters'
   | '_sendPluginToolbarActions'
   | '_sendPluginWebviewInjections'
+  | '_loadAndSendData'
   | '_analyzeAndSendData'
   | '_doAnalyzeAndSendData'
   | '_markWorkspaceReady'
@@ -38,6 +39,7 @@ export function createGraphViewProviderAnalysisMethodDelegates(
     _sendPluginExporters: () => owner._methodContainers.plugin._sendPluginExporters(),
     _sendPluginToolbarActions: () => owner._methodContainers.plugin._sendPluginToolbarActions(),
     _sendPluginWebviewInjections: () => owner._methodContainers.plugin._sendPluginWebviewInjections(),
+    _loadAndSendData: () => owner._methodContainers.analysis._loadAndSendData(),
     _analyzeAndSendData: () => owner._methodContainers.analysis._analyzeAndSendData(),
     _doAnalyzeAndSendData: (signal, requestId) =>
       owner._methodContainers.analysis._doAnalyzeAndSendData(signal, requestId),

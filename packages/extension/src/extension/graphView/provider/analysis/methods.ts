@@ -52,6 +52,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _sendContextMenuItems(): void;
   _sendPluginExporters?(): void;
   _sendPluginToolbarActions?(): void;
+  _loadAndSendData?(this: void): Promise<void>;
   _doAnalyzeAndSendData?(this: void, signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady?(this: void, graph: IGraphData): void;
   _isAnalysisStale?(this: void, signal: AbortSignal, requestId: number): boolean;
@@ -59,6 +60,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
 }
 
 export interface GraphViewProviderAnalysisMethods {
+  _loadAndSendData(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
   _doAnalyzeAndSendData(signal: AbortSignal, requestId: number): Promise<void>;
   _markWorkspaceReady(graph: IGraphData): void;
@@ -132,19 +134,35 @@ export function createGraphViewProviderAnalysisMethods(
     isAnalysisStale: (signal, requestId) => _isAnalysisStale(signal, requestId),
     isAbortError: error => _isAbortError(error),
   });
+  const _doLoadAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    'load',
+  );
   const _doAnalyzeAndSendData = createGraphViewProviderDoAnalyzeAndSendData(
     source,
     dependencies,
     delegates,
+    'analyze',
+  );
+  const _loadAndSendData = createGraphViewProviderAnalyzeAndSendData(
+    source,
+    dependencies,
+    delegates,
+    _doLoadAndSendData,
+    'load',
   );
   const _analyzeAndSendData = createGraphViewProviderAnalyzeAndSendData(
     source,
     dependencies,
     delegates,
     _doAnalyzeAndSendData,
+    'analyze',
   );
 
   const methods: GraphViewProviderAnalysisMethods = {
+    _loadAndSendData,
     _analyzeAndSendData,
     _doAnalyzeAndSendData,
     _markWorkspaceReady,

@@ -73,7 +73,7 @@ describe('graphView/provider/analysis/execution', () => {
       callIsAbortError: vi.fn(() => false),
     };
 
-    await createGraphViewProviderDoAnalyzeAndSendData(source, dependencies, delegates)(
+    await createGraphViewProviderDoAnalyzeAndSendData(source, dependencies, delegates, 'analyze')(
       new AbortController().signal,
       9,
     );

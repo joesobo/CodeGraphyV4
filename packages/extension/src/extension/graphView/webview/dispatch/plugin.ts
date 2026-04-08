@@ -28,6 +28,7 @@ export interface GraphViewPluginMessageContext {
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
   sendAvailableViews(): void;
+  loadAndSendData(): Promise<void>;
   analyzeAndSendData(): Promise<void>;
   sendFavorites(): void;
   sendSettings(): void;

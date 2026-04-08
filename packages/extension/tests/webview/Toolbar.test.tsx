@@ -59,6 +59,8 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
     activePanel: 'none',
     pluginExporters: [],
     pluginToolbarActions: [],
+    graphHasIndex: false,
+    isIndexing: false,
     ...overrides,
   });
 }
@@ -122,7 +124,7 @@ describe('Toolbar', () => {
       expect(nodeSizeButtons?.className).toContain('flex-col');
       expect(nodeSizeButtons?.className).not.toContain('bg-popover/80');
       expect(nodeSizeButtons?.className).not.toContain('border');
-      expect(screen.getByTitle('Refresh Graph').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
+      expect(screen.getByTitle('Index Repo').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
       expect(screen.getByTitle('Settings').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
     });
 
@@ -167,7 +169,7 @@ describe('Toolbar', () => {
         'pointer-events-none',
       );
       expect(screen.getAllByText('Expand Toolbar').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByTitle('Refresh Graph')).toBeTruthy();
+      expect(screen.getByTitle('Index Repo')).toBeTruthy();
       expect(screen.getByTitle('Settings')).toBeTruthy();
     });
   });
@@ -288,8 +290,16 @@ describe('Toolbar', () => {
   describe('action buttons', () => {
     it('refresh button sends REFRESH_GRAPH', () => {
       render(<Toolbar />);
-      fireEvent.click(screen.getByTitle('Refresh Graph'));
+      fireEvent.click(screen.getByTitle('Index Repo'));
       expect(findMessage('REFRESH_GRAPH')).toBeTruthy();
+    });
+
+    it('shows Refresh Graph when an index already exists', () => {
+      setDefaultState({ graphHasIndex: true });
+
+      render(<Toolbar />);
+
+      expect(screen.getByTitle('Refresh Graph')).toBeTruthy();
     });
 
     it('settings button opens settings panel', () => {

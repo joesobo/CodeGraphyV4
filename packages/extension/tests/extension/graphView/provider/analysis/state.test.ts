@@ -49,7 +49,7 @@ describe('graphView/provider/analysis/state', () => {
       _analyzerInitPromise: Promise.resolve(),
     });
 
-    const state = createGraphViewProviderAnalysisState(source);
+    const state = createGraphViewProviderAnalysisState(source, 'analyze');
     state.analysisController = undefined;
     state.analysisRequestId = 7;
 
@@ -67,7 +67,8 @@ describe('graphView/provider/analysis/state', () => {
       _analyzerInitPromise: Promise.resolve(),
     });
     const nextAnalyzer = { initialize: vi.fn(async () => undefined) } as never;
-    const state = createGraphViewProviderAnalysisState(source);
+    const state = createGraphViewProviderAnalysisState(source, 'load');
+    expect(state.mode).toBe('load');
 
     expect(state.analyzer).toBe(source._analyzer);
     expect(state.analyzerInitPromise).toBe(source._analyzerInitPromise);
@@ -98,6 +99,7 @@ describe('graphView/provider/analysis/state', () => {
         analyzer: source._analyzer,
         analyzerInitialized: source._analyzerInitialized,
         analyzerInitPromise: source._analyzerInitPromise,
+        mode: 'analyze',
         filterPatterns: source._filterPatterns,
         disabledSources: source._disabledSources,
         disabledPlugins: source._disabledPlugins,
@@ -121,6 +123,7 @@ describe('graphView/provider/analysis/state', () => {
         analyzer: source._analyzer,
         analyzerInitialized: true,
         analyzerInitPromise,
+        mode: 'analyze',
         filterPatterns: source._filterPatterns,
         disabledSources: source._disabledSources,
         disabledPlugins: source._disabledPlugins,
@@ -135,7 +138,7 @@ describe('graphView/provider/analysis/state', () => {
 
   it('reflects analyzer initialization progress onto the provider source immediately', () => {
     const source = createSource();
-    const state = createGraphViewProviderAnalysisState(source);
+    const state = createGraphViewProviderAnalysisState(source, 'analyze');
     const initializePromise = Promise.resolve();
 
     state.analyzerInitPromise = initializePromise;

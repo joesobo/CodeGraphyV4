@@ -15,6 +15,7 @@ import { setupMessageListener } from './messageListener';
 import { LoadingState, EmptyState } from './states';
 import { useAppState, useAppActions } from './storeSelectors';
 import { SlotHost } from '../pluginHost/slotHost/view';
+import { GraphIndexStatus } from '../components/graphIndexStatus/view';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
@@ -30,6 +31,8 @@ export default function App(): React.ReactElement {
     nodeDecorations,
     edgeDecorations,
     activeFilePath,
+    isIndexing,
+    indexProgress,
   } = useAppState();
   const { setSearchQuery, setSearchOptions, setActivePanel } = useAppActions();
 
@@ -99,6 +102,7 @@ export default function App(): React.ReactElement {
           <PluginsPanel isOpen={activePanel === 'plugins'} onClose={() => setActivePanel('none')} />
           <SettingsPanel isOpen={activePanel === 'settings'} onClose={() => setActivePanel('none')} />
         </div>
+        <GraphIndexStatus isIndexing={isIndexing} progress={indexProgress} />
       </div>
     </div>
   );

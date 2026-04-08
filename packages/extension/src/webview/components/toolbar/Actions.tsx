@@ -54,6 +54,9 @@ export function getToolbarActionIconPath(action: { icon?: string }): string {
 export function ToolbarActions(): React.ReactElement {
   const setActivePanel = useGraphStore(s => s.setActivePanel);
   const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
+  const graphHasIndex = useGraphStore(s => s.graphHasIndex);
+  const isIndexing = useGraphStore(s => s.isIndexing);
+  const refreshTitle = graphHasIndex ? 'Refresh Graph' : 'Index Repo';
 
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -64,12 +67,13 @@ export function ToolbarActions(): React.ReactElement {
             size="icon"
             className="h-7 w-7 bg-transparent"
             onClick={() => postMessage({ type: 'REFRESH_GRAPH' })}
-            title="Refresh Graph"
+            title={refreshTitle}
+            disabled={isIndexing}
           >
             <MdiIcon path={mdiAutorenew} size={16} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="right">Refresh Graph</TooltipContent>
+        <TooltipContent side="right">{refreshTitle}</TooltipContent>
       </Tooltip>
 
       {pluginToolbarActions.map(action => (
