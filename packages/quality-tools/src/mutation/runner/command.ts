@@ -3,17 +3,25 @@ import { REPO_ROOT } from '../../shared/resolve/repoRoot';
 import { resolveQualityTarget, type QualityTarget } from '../../shared/resolve/target';
 import { discoverMutationPackageNames } from '../analysis/profile';
 import { runMutation } from './run';
+import { execFileSync } from 'child_process';
 
 export interface MutationCliDependencies {
   discoverMutationPackageNames: typeof discoverMutationPackageNames;
   resolveQualityTarget: typeof resolveQualityTarget;
   runMutation: typeof runMutation;
+  runPreflightTypecheck: () => void;
 }
 
 const DEFAULT_DEPENDENCIES: MutationCliDependencies = {
   discoverMutationPackageNames,
   resolveQualityTarget,
-  runMutation
+  runMutation,
+  runPreflightTypecheck: () => {
+    execFileSync('pnpm', ['run', 'typecheck'], {
+      cwd: REPO_ROOT,
+      stdio: 'inherit',
+    });
+  },
 };
 
 function resolveCliTargets(
@@ -39,6 +47,7 @@ export function runMutationCli(
   dependencies: MutationCliDependencies = DEFAULT_DEPENDENCIES
 ): void {
   const args = cleanCliArgs(rawArgs);
+  dependencies.runPreflightTypecheck();
   const targets = resolveCliTargets(
     parseBareTargetArg(args),
     flagValue(args, '--mutate'),

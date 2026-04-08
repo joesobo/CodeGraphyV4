@@ -15,8 +15,8 @@ describe('Graph', () => {
       { id: 'c.ts', label: 'c.ts', color: '#93C5FD' },
     ],
     edges: [
-      { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
-      { id: 'a.ts->c.ts', from: 'a.ts', to: 'c.ts' },
+      { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+      { id: 'a.ts->c.ts', from: 'a.ts', to: 'c.ts' , kind: 'import', sources: [] },
     ],
   };
 
@@ -70,7 +70,7 @@ describe('Graph', () => {
         { id: 'a.ts', label: 'a.ts', color: '#93C5FD', x: 100, y: 200 },
         { id: 'b.ts', label: 'b.ts', color: '#67E8F9', x: 300, y: 400 },
       ],
-      edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' }],
+      edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] }],
     };
     const { container } = render(<Graph data={dataWithPositions} />);
     expect(container.querySelector('div')).toBeInTheDocument();
@@ -104,7 +104,7 @@ describe('Graph', () => {
       ],
       edges: [
         ...mockData.edges,
-        { id: 'c.ts->d.ts', from: 'c.ts', to: 'd.ts' },
+        { id: 'c.ts->d.ts', from: 'c.ts', to: 'd.ts' , kind: 'import', sources: [] },
       ],
     }} />);
 
@@ -143,8 +143,8 @@ describe('node sizing', () => {
         { id: 'leaf2.ts', label: 'leaf2.ts', color: '#93C5FD' },
       ],
       edges: [
-        { id: 'hub.ts->leaf1.ts', from: 'hub.ts', to: 'leaf1.ts' },
-        { id: 'hub.ts->leaf2.ts', from: 'hub.ts', to: 'leaf2.ts' },
+        { id: 'hub.ts->leaf1.ts', from: 'hub.ts', to: 'leaf1.ts' , kind: 'import', sources: [] },
+        { id: 'hub.ts->leaf2.ts', from: 'hub.ts', to: 'leaf2.ts' , kind: 'import', sources: [] },
       ],
     };
     const { container } = render(<Graph data={data} />);
@@ -157,7 +157,7 @@ describe('node sizing', () => {
         { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
         { id: 'leaf.ts', label: 'leaf.ts', color: '#93C5FD' },
       ],
-      edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' }],
+      edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' , kind: 'import', sources: [] }],
     };
     graphStore.setState({ nodeSizeMode: 'uniform' });
     const { container } = render(<Graph data={data} />);
@@ -196,7 +196,7 @@ describe('node sizing', () => {
         { id: 'hub.ts', label: 'hub.ts', color: '#93C5FD' },
         { id: 'leaf.ts', label: 'leaf.ts', color: '#93C5FD' },
       ],
-      edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' }],
+      edges: [{ id: 'hub.ts->leaf.ts', from: 'hub.ts', to: 'leaf.ts' , kind: 'import', sources: [] }],
     };
     graphStore.setState({ nodeSizeMode: 'access-count' });
     const { container } = render(<Graph data={data} />);
@@ -210,7 +210,7 @@ describe('Graph dagMode', () => {
       { id: 'a.ts', label: 'a.ts', color: '#93C5FD' },
       { id: 'b.ts', label: 'b.ts', color: '#67E8F9' },
     ],
-    edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' }],
+    edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] }],
   };
 
   beforeEach(() => {
@@ -250,7 +250,7 @@ describe('Export Functionality', () => {
       { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD', fileSize: 1234, accessCount: 5 },
       { id: 'src/utils.ts', label: 'utils.ts', color: '#67E8F9', fileSize: 567 },
     ],
-    edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' }],
+    edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
   };
 
   beforeEach(() => {

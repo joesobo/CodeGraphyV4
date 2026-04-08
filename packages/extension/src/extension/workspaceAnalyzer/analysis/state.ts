@@ -11,7 +11,7 @@ export interface WorkspaceAnalyzerRebuildDependencies {
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledRules: Set<string>,
+    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
   fileConnections: Map<string, IConnection[]>;
@@ -23,7 +23,7 @@ export interface WorkspaceAnalyzerRebuildSource {
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledRules: Set<string>,
+    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
   _lastFileConnections: Map<string, IConnection[]>;
@@ -32,7 +32,7 @@ export interface WorkspaceAnalyzerRebuildSource {
 
 export function rebuildWorkspaceAnalyzerGraph(
   dependencies: WorkspaceAnalyzerRebuildDependencies,
-  disabledRules: Set<string>,
+  disabledSources: Set<string>,
   disabledPlugins: Set<string>,
   showOrphans: boolean,
 ): IGraphData {
@@ -44,14 +44,14 @@ export function rebuildWorkspaceAnalyzerGraph(
     dependencies.fileConnections,
     dependencies.workspaceRoot,
     showOrphans,
-    disabledRules,
+    disabledSources,
     disabledPlugins,
   );
 }
 
 export function rebuildWorkspaceAnalyzerGraphForSource(
   source: WorkspaceAnalyzerRebuildSource,
-  disabledRules: Set<string>,
+  disabledSources: Set<string>,
   disabledPlugins: Set<string>,
   showOrphans: boolean,
 ): IGraphData {
@@ -74,7 +74,7 @@ export function rebuildWorkspaceAnalyzerGraphForSource(
       fileConnections: source._lastFileConnections,
       workspaceRoot: source._lastWorkspaceRoot,
     },
-    disabledRules,
+    disabledSources,
     disabledPlugins,
     showOrphans,
   );

@@ -59,7 +59,36 @@ onLoad(api: CodeGraphyAPI) {
     name: 'My View',
     icon: 'graph',
     description: 'A custom graph view',
+    recomputeOn: ['focusedFile'],
     transform(data, context) { return data; },
+  });
+
+  // Register an exporter
+  api.registerExporter({
+    id: 'my-plugin.export.summary',
+    label: 'Summary Export',
+    async run() {
+      const graph = api.getGraph();
+      await api.saveExport({
+        filename: 'summary.json',
+        content: JSON.stringify(graph, null, 2),
+      });
+    },
+  });
+
+  // Register a dedicated toolbar button with plugin-owned actions
+  api.registerToolbarAction({
+    id: 'my-plugin.tools',
+    label: 'Plugin Tools',
+    items: [
+      {
+        id: 'open-summary',
+        label: 'Open Summary',
+        run: async () => {
+          await showSummaryPanel(api.getGraph());
+        },
+      },
+    ],
   });
 }
 ```
@@ -166,6 +195,8 @@ onLoad(api: CodeGraphyAPI) {
   api.registerView(myView);
   api.registerCommand(myCommand);
   api.registerContextMenuItem(myMenuItem);
+  api.registerExporter(myExporter);
+  api.registerToolbarAction(myToolbarAction);
   api.decorateNode('file.ts', decoration);
 
   // Manual disposal if needed during runtime:
@@ -205,6 +236,29 @@ export function createMetricsPlugin(): IPlugin {
         label: 'View Metrics',
         when: 'node',
         action: (node) => showMetricsPanel(node),
+      });
+
+      api.registerExporter({
+        id: 'codegraphy-metrics.export',
+        label: 'Metrics Snapshot',
+        async run() {
+          await api.saveExport({
+            filename: 'metrics.json',
+            content: JSON.stringify(api.getGraph(), null, 2),
+          });
+        },
+      });
+
+      api.registerToolbarAction({
+        id: 'codegraphy-metrics.tools',
+        label: 'Metrics',
+        items: [
+          {
+            id: 'open-metrics-panel',
+            label: 'Open Metrics Panel',
+            run: () => showMetricsPanel(api.getGraph()),
+          },
+        ],
       });
     },
 

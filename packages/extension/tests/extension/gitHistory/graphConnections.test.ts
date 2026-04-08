@@ -1,15 +1,16 @@
 import { describe, expect, it } from 'vitest';
+import type { IGraphEdge } from '../../../src/shared/graph/types';
 import { appendGitHistoryConnectionEdges } from '../../../src/extension/gitHistory/graphConnections';
 
 describe('gitHistory/graphConnections', () => {
   it('skips connections without resolved paths and suppresses duplicate edges', () => {
-    const edges = [{ id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts' }];
-    const edgeSet = new Set(['src/a.ts->src/b.ts']);
+    const edges: IGraphEdge[] = [{ id: 'src/a.ts->src/b.ts#import', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] }];
+    const edgeSet = new Set(['src/a.ts->src/b.ts#import']);
 
     appendGitHistoryConnectionEdges({
       connections: [
-        { specifier: './missing', type: 'static', resolvedPath: null },
-        { specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts' },
+        { specifier: './missing', type: 'static', resolvedPath: null, kind: 'import', sourceId: 'import' },
+        { specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts', kind: 'import', sourceId: 'import' },
       ],
       edgeSet,
       edges,
@@ -17,35 +18,36 @@ describe('gitHistory/graphConnections', () => {
       workspaceRoot: '/workspace',
     });
 
-    expect(edges).toEqual([{ id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts' }]);
-    expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts']));
+    expect(edges).toEqual([{ id: 'src/a.ts->src/b.ts#import', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] }]);
+    expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts#import']));
   });
 
-  it('adds plain edges without rule metadata when no plugin rule is present', () => {
-    const edges: Array<{ id: string; from: string; to: string; ruleId?: string; ruleIds?: string[] }> = [];
+  it('adds plain edges without source metadata when no plugin source is present', () => {
+    const edges: IGraphEdge[] = [];
     const edgeSet = new Set<string>();
 
     appendGitHistoryConnectionEdges({
-      connections: [{ specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts' }],
+      connections: [{ specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts', kind: 'import', sourceId: 'import' }],
       edgeSet,
       edges,
       sourcePath: 'src/a.ts',
       workspaceRoot: '/workspace',
     });
 
-    expect(edges).toEqual([{ id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts' }]);
+    expect(edges).toEqual([{ id: 'src/a.ts->src/b.ts#import', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] }]);
   });
 
-  it('adds rule metadata and plugin-qualified rule ids when available', () => {
-    const edges: Array<{ id: string; from: string; to: string; ruleId?: string; ruleIds?: string[] }> = [];
+  it('adds source provenance when plugin metadata is available', () => {
+    const edges: IGraphEdge[] = [];
     const edgeSet = new Set<string>();
 
     appendGitHistoryConnectionEdges({
       connections: [{
-        ruleId: 'import',
+        sourceId: 'import',
         specifier: './b',
         type: 'static',
         resolvedPath: '/workspace/src/b.ts',
+        kind: 'import',
       }],
       edgeSet,
       edges,
@@ -56,11 +58,18 @@ describe('gitHistory/graphConnections', () => {
 
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts',
+        id: 'src/a.ts->src/b.ts#import',
         from: 'src/a.ts',
         to: 'src/b.ts',
-        ruleId: 'import',
-        ruleIds: ['ts:import'],
+        kind: 'import',
+        sources: [
+          {
+            id: 'ts:import',
+            pluginId: 'ts',
+            sourceId: 'import',
+            label: 'import',
+          },
+        ],
       },
     ]);
   });

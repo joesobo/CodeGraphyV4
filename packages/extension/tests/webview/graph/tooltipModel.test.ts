@@ -15,8 +15,8 @@ const graphSnapshot: IGraphData = {
     { id: 'src/other.ts', label: 'other.ts', color: '#FCA5A5' },
   ],
   edges: [
-    { id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' },
-    { id: 'src/other.ts->src/utils.ts', from: 'src/other.ts', to: 'src/utils.ts' },
+    { id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] },
+    { id: 'src/other.ts->src/utils.ts', from: 'src/other.ts', to: 'src/utils.ts' , kind: 'import', sources: [] },
   ],
 };
 
@@ -40,7 +40,7 @@ describe('tooltipModel', () => {
     expect(context).toEqual({
       node: { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
       neighbors: [{ id: 'src/utils.ts', label: 'utils.ts', color: '#67E8F9' }],
-      edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' }],
+      edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
     });
   });
 
@@ -70,8 +70,8 @@ describe('tooltipModel', () => {
         { id: 'src/other.ts', label: 'other.ts', color: '#FCA5A5' },
       ],
       edges: [
-        { id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' },
-        { id: 'src/other.ts->src/utils.ts', from: 'src/other.ts', to: 'src/utils.ts' },
+        { id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] },
+        { id: 'src/other.ts->src/utils.ts', from: 'src/other.ts', to: 'src/utils.ts' , kind: 'import', sources: [] },
       ],
     });
   });
@@ -90,6 +90,7 @@ describe('tooltipModel', () => {
         nodeRect: { x: 10, y: 20, radius: 30 },
         path: 'src/app.ts',
         info: cachedInfo,
+        pluginActions: [],
         pluginSections: [{ title: 'Rule', content: 'Value' }],
       },
       shouldRequestFileInfo: false,
@@ -110,6 +111,7 @@ describe('tooltipModel', () => {
         nodeRect: { x: 0, y: 0, radius: 0 },
         path: 'src/app.ts',
         info: null,
+        pluginActions: [],
         pluginSections: [],
       },
       shouldRequestFileInfo: true,
@@ -130,6 +132,7 @@ describe('tooltipModel', () => {
       nodeRect: { x: 10, y: 20, radius: 30 },
       path: 'src/app.ts',
       info: cachedInfo,
+      pluginActions: [],
       pluginSections: [],
     });
   });

@@ -1,6 +1,6 @@
 export interface IPluginRuleStatus {
   id: string;
-  qualifiedId: string;
+  qualifiedSourceId: string;
   name: string;
   description: string;
   enabled: boolean;
@@ -15,5 +15,5 @@ export interface IPluginStatus {
   status: 'active' | 'installed' | 'inactive';
   enabled: boolean;
   connectionCount: number;
-  rules: IPluginRuleStatus[];
+  sources: IPluginRuleStatus[];
 }

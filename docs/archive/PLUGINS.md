@@ -12,11 +12,11 @@ Each plugin is responsible for:
 
 1. Declaring which file extensions it supports
 2. Detecting connections (imports/dependencies) in source files
-3. Declaring detection rules that users can toggle individually
+3. Declaring detection sources that users can toggle individually
 
 Runtime toggle state is persisted in VS Code settings:
 - `codegraphy.disabledPlugins` for whole-plugin toggles
-- `codegraphy.disabledRules` for per-rule toggles (`<pluginId>:<ruleId>`)
+- `codegraphy.disabledSources` for per-rule toggles (`<pluginId>:<sourceId>`)
 
 ## Plugin structure
 
@@ -28,7 +28,7 @@ packages/plugin-my-language/
   src/
     index.ts
     PathResolver.ts
-    rules/
+    sources/
       rule-a.ts
       rule-b.ts
 ```

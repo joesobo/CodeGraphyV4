@@ -12,7 +12,7 @@ export default function TimelineApp(): React.ReactElement {
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col overflow-hidden">
-      <Timeline />
+      <Timeline pluginHost={pluginHost} />
     </div>
   );
 }

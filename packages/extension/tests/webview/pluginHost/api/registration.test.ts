@@ -1,11 +1,15 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
+  attachSlotHost,
+  detachSlotHost,
+  getOrCreateSlotContainer,
   registerNodeRenderer,
   registerOverlay,
   registerTooltipProvider,
   getOrCreateContainer,
+  syncSlotHostVisibility,
 } from '../../../../src/webview/pluginHost/api/registration';
-import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../src/webview/pluginHost/api/contracts';
+import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from '../../../../src/webview/pluginHost/api/contracts';
 
 describe('registerNodeRenderer', () => {
   let nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>;
@@ -148,5 +152,64 @@ describe('getOrCreateContainer', () => {
 
     expect(containerA).not.toBe(containerB);
     expect(containers.size).toBe(2);
+  });
+});
+
+describe('slot container registration', () => {
+  let slotContainers: Map<string, Map<GraphPluginSlot, HTMLDivElement>>;
+  let slotHosts: Map<GraphPluginSlot, HTMLDivElement>;
+
+  beforeEach(() => {
+    slotContainers = new Map();
+    slotHosts = new Map();
+    document.body.innerHTML = '';
+  });
+
+  it('creates a hidden slot container when no host is attached yet', () => {
+    const container = getOrCreateSlotContainer('plugin-a', 'toolbar', slotContainers, slotHosts);
+
+    expect(container.getAttribute('data-cg-plugin')).toBe('plugin-a');
+    expect(container.getAttribute('data-cg-slot')).toBe('toolbar');
+    expect(container.style.display).toBe('none');
+    expect(document.body.contains(container)).toBe(true);
+  });
+
+  it('reuses an existing slot container for the same plugin and slot', () => {
+    const first = getOrCreateSlotContainer('plugin-a', 'toolbar', slotContainers, slotHosts);
+    const second = getOrCreateSlotContainer('plugin-a', 'toolbar', slotContainers, slotHosts);
+
+    expect(first).toBe(second);
+  });
+
+  it('moves existing slot containers into an attached host and shows the host', () => {
+    const container = getOrCreateSlotContainer('plugin-a', 'toolbar', slotContainers, slotHosts);
+    const host = document.createElement('div');
+
+    attachSlotHost('toolbar', host, slotContainers, slotHosts);
+
+    expect(host.getAttribute('data-cg-slot-host')).toBe('toolbar');
+    expect(host.contains(container)).toBe(true);
+    expect(host.style.display).toBe('');
+  });
+
+  it('removes slot hosts from the active host map on detach', () => {
+    const host = document.createElement('div');
+
+    attachSlotHost('toolbar', host, slotContainers, slotHosts);
+    detachSlotHost('toolbar', slotHosts);
+
+    expect(slotHosts.has('toolbar')).toBe(false);
+  });
+
+  it('syncs slot host visibility through the public registration facade', () => {
+    const host = document.createElement('div');
+    const slotHosts = new Map<GraphPluginSlot, HTMLDivElement>([['toolbar', host]]);
+
+    syncSlotHostVisibility('toolbar', slotHosts);
+    expect(host.style.display).toBe('none');
+
+    host.appendChild(document.createElement('div'));
+    syncSlotHostVisibility('toolbar', slotHosts);
+    expect(host.style.display).toBe('');
   });
 });

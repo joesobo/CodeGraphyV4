@@ -22,7 +22,7 @@ export interface ICommand {
   /**
    * The function to execute when the command is invoked.
    */
-  action(): void | Promise<void>;
+  action(this: void): void | Promise<void>;
 }
 
 /**
@@ -42,7 +42,7 @@ export interface IContextMenuItem {
    * Action to execute when the item is clicked.
    * Receives the right-click target.
    */
-  action(target: IGraphNode | IGraphEdge): void | Promise<void>;
+  action(this: void, target: IGraphNode | IGraphEdge): void | Promise<void>;
 
   /** Optional codicon icon name (without `codicon-` prefix). */
   icon?: string;

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { mdiAutorenew, mdiPuzzleOutline, mdiCogOutline, mdiExport } from '@mdi/js';
+import { mdiAutorenew, mdiPuzzleOutline, mdiCogOutline, mdiLinkVariant } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
@@ -14,14 +14,46 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '../ui/menus/dropdown-menu';
 import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
+import { ToolbarExportMenu } from './exportMenu';
+
+export interface ToolbarActionItemLike {
+  id: string;
+  label: string;
+  index: number;
+}
+
+export interface ToolbarActionLike {
+  id: string;
+  label: string;
+  icon?: string;
+  pluginId: string;
+  pluginName: string;
+  index: number;
+  items: ToolbarActionItemLike[];
+}
+
+export function getToolbarActionKey(action: ToolbarActionLike): string {
+  return `${action.pluginId}:${action.id}:${action.index}`;
+}
+
+export function getToolbarActionItemKey(
+  action: ToolbarActionLike,
+  item: ToolbarActionItemLike,
+): string {
+  return `${action.pluginId}:${action.id}:${item.index}`;
+}
+
+export function getToolbarActionIconPath(action: { icon?: string }): string {
+  return action.icon ?? mdiLinkVariant;
+}
 
 export function ToolbarActions(): React.ReactElement {
   const setActivePanel = useGraphStore(s => s.setActivePanel);
+  const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
 
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -40,43 +72,45 @@ export function ToolbarActions(): React.ReactElement {
         <TooltipContent side="right">Refresh Graph</TooltipContent>
       </Tooltip>
 
-      <DropdownMenu>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="h-7 w-7 bg-transparent"
-                title="Export"
+      {pluginToolbarActions.map(action => (
+        <DropdownMenu key={getToolbarActionKey(action)}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7 bg-transparent"
+                  title={action.label}
+                >
+                  <MdiIcon path={getToolbarActionIconPath(action)} size={16} />
+                </Button>
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="right">{action.label}</TooltipContent>
+          </Tooltip>
+          <DropdownMenuContent align="start" side="right">
+            <DropdownMenuLabel>{action.label}</DropdownMenuLabel>
+            {action.items.map(item => (
+              <DropdownMenuItem
+                key={getToolbarActionItemKey(action, item)}
+                onSelect={() => window.postMessage({
+                  type: 'RUN_PLUGIN_TOOLBAR_ACTION',
+                  payload: {
+                    pluginId: action.pluginId,
+                    index: action.index,
+                    itemIndex: item.index,
+                  },
+                }, '*')}
               >
-                <MdiIcon path={mdiExport} size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-          </TooltipTrigger>
-          <TooltipContent side="right">Export</TooltipContent>
-        </Tooltip>
-        <DropdownMenuContent align="start" side="right">
-          <DropdownMenuLabel>Images</DropdownMenuLabel>
-          <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_PNG' }, '*')}>
-            Export as PNG
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_SVG' }, '*')}>
-            Export as SVG
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JPEG' }, '*')}>
-            Export as JPEG
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuLabel>Connections</DropdownMenuLabel>
-          <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JSON' }, '*')}>
-            Export as JSON
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_MD' }, '*')}>
-            Export as Markdown
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+                {item.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      ))}
+
+      <ToolbarExportMenu />
 
       <Tooltip>
         <TooltipTrigger asChild>

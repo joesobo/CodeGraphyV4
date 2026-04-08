@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useState } from 'react';
 import type { ICommitInfo } from '../../shared/timeline/types';
 import { useGraphStore } from '../store/state';
 import { postMessage } from '../vscodeApi';
@@ -9,6 +9,8 @@ import Status from './timeline/view/Status';
 import Summary from './timeline/view/Summary';
 import Track from './timeline/view/Track';
 import { useTimelineController } from './timeline/use/controller';
+import type { WebviewPluginHost } from '../pluginHost/manager';
+import { SlotHost } from '../pluginHost/slotHost/view';
 
 interface ReadyTimelineProps {
   currentCommitSha: string | null;
@@ -16,6 +18,7 @@ interface ReadyTimelineProps {
   playbackSpeed: number;
   setIsPlaying: (value: boolean) => void;
   timelineCommits: ICommitInfo[];
+  pluginHost?: WebviewPluginHost;
 }
 
 function ReadyTimeline({
@@ -24,6 +27,7 @@ function ReadyTimeline({
   playbackSpeed,
   setIsPlaying,
   timelineCommits,
+  pluginHost,
 }: ReadyTimelineProps): React.ReactElement | null {
   const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(false);
   const [isCommitListCollapsed, setIsCommitListCollapsed] = useState(false);
@@ -35,10 +39,6 @@ function ReadyTimeline({
     timelineCommits,
   });
   const currentCommit = timelineCommits[controller.currentIndex] ?? timelineCommits[0];
-
-  if (!currentCommit) {
-    return null;
-  }
 
   return (
     <div
@@ -65,6 +65,14 @@ function ReadyTimeline({
           onPlayPause={controller.handlePlayPause}
         />
       </section>
+      {pluginHost ? (
+        <SlotHost
+          pluginHost={pluginHost}
+          slot="timeline-panel"
+          data-testid="timeline-plugin-slot"
+          className="px-3 pb-2"
+        />
+      ) : null}
       <Summary
         collapsed={isSummaryCollapsed}
         currentCommit={currentCommit}
@@ -83,7 +91,11 @@ function ReadyTimeline({
   );
 }
 
-export default function Timeline(): React.ReactElement | null {
+interface TimelineProps {
+  pluginHost?: WebviewPluginHost;
+}
+
+export default function Timeline({ pluginHost }: TimelineProps): React.ReactElement | null {
   const timelineActive = useGraphStore((state) => state.timelineActive);
   const timelineCommits = useGraphStore((state) => state.timelineCommits);
   const currentCommitSha = useGraphStore((state) => state.currentCommitSha);
@@ -95,9 +107,9 @@ export default function Timeline(): React.ReactElement | null {
   const graphData = useGraphStore((state) => state.graphData);
   const setIsPlaying = useGraphStore((state) => state.setIsPlaying);
 
-  const handleIndexRepo = useCallback(() => {
+  const handleIndexRepo = () => {
     postMessage({ type: 'INDEX_REPO' });
-  }, []);
+  };
 
   if (!timelineActive || isIndexing) {
     return (
@@ -120,6 +132,7 @@ export default function Timeline(): React.ReactElement | null {
       currentCommitSha={currentCommitSha}
       isPlaying={isPlaying}
       playbackSpeed={playbackSpeed}
+      pluginHost={pluginHost}
       setIsPlaying={setIsPlaying}
       timelineCommits={timelineCommits}
     />

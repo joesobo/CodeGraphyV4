@@ -11,8 +11,14 @@ import { DagModeToggle } from './toolbar/DagModeToggle';
 import { DimensionToggle } from './toolbar/DimensionToggle';
 import { NodeSizeToggle } from './toolbar/NodeSizeToggle';
 import { ToolbarActions } from './toolbar/Actions';
+import type { WebviewPluginHost } from '../pluginHost/manager';
+import { SlotHost } from '../pluginHost/slotHost/view';
 
-export default function Toolbar(): React.ReactElement {
+interface ToolbarProps {
+  pluginHost?: WebviewPluginHost;
+}
+
+export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElement {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -63,6 +69,14 @@ export default function Toolbar(): React.ReactElement {
             </TooltipContent>
           </Tooltip>
         </Collapsible>
+        {pluginHost ? (
+          <SlotHost
+            pluginHost={pluginHost}
+            slot="toolbar"
+            data-testid="toolbar-plugin-slot"
+            className="flex flex-col items-center gap-1.5"
+          />
+        ) : null}
         <div
           data-testid="toolbar-bottom-group"
           className="flex flex-col items-center gap-1.5"

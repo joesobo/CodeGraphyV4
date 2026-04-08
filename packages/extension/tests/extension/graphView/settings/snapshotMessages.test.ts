@@ -2,8 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   buildGraphViewAllSettingsMessages,
   buildGraphViewSettingsMessages,
-  captureGraphViewSettingsSnapshot,
-} from '../../../../src/extension/graphView/settings/snapshotMessages';
+} from '../../../../src/extension/graphView/settings/messages';
+import { captureGraphViewSettingsSnapshot } from '../../../../src/extension/graphView/settings/snapshot';
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/fileColors';
 
 function createConfig(values: Record<string, unknown>) {

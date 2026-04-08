@@ -1,7 +1,8 @@
 import type { IGraphEdge, IGraphNode } from '../../../../../shared/graph/types';
 import type { NodeSizeMode } from '../../../../../shared/settings/modes';
 import { computeConnectionSizes } from '../sizing/calculations';
-import { computeAccessCountSizes, computeFileSizeSizes } from '../sizing/byMetric';
+import { computeAccessCountSizes } from '../sizing/accessCount';
+import { computeFileSizeSizes } from '../sizing/fileSize';
 import { DEFAULT_NODE_SIZE } from './display';
 
 /** Map normalized repelForce (0-20) to d3 forceManyBody strength (0 to -500) */

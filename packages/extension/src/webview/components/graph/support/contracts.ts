@@ -15,6 +15,7 @@ export type FG2DExtMethods<NodeT extends NodeObject = NodeObject, LinkT extends 
 
 export type StrengthForce = { strength: (value: number) => unknown };
 export type LinkDistanceForce = { distance: (value: number) => unknown; strength: (value: number) => unknown };
+export type DistanceMaxForce = { distanceMax: (value: number) => unknown };
 
 export function as2DExtMethods<NodeT extends NodeObject, LinkT extends LinkObject>(
   instance: FG2DMethods<NodeT, LinkT> | undefined

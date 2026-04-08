@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { detect } from '../src/rules/wikilink';
+import { detect } from '../src/sources/wikilink';
 
 describe('Markdown wikilink rule', () => {
   function createResolver() {
@@ -37,7 +37,7 @@ describe('Markdown wikilink rule', () => {
   });
 
   describe('connection metadata', () => {
-    it('sets ruleId to wikilink', () => {
+    it('sets sourceId to wikilink', () => {
       const resolver = createResolver();
 
       const connections = detect(
@@ -47,7 +47,8 @@ describe('Markdown wikilink rule', () => {
       );
 
       expect(connections).toHaveLength(1);
-      expect(connections[0].ruleId).toBe('wikilink');
+      expect(connections[0].kind).toBe('reference');
+      expect(connections[0].sourceId).toBe('wikilink');
     });
 
     it('sets type to static', () => {

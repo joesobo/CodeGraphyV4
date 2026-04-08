@@ -139,6 +139,29 @@ describe('graph/messages/effects', () => {
     ]);
   });
 
+  it('responds with the graph runtime state for GET_GRAPH_RUNTIME_STATE messages', () => {
+    expect(getGraphWebviewMessageEffects({
+      message: { type: 'GET_GRAPH_RUNTIME_STATE' },
+      graphMode: '3d',
+      tooltipPath: null,
+      graphNodes: [
+        { id: 'src/app.ts', size: 12, x: 10, y: 20 },
+        { id: 'src/utils.ts', size: 8 },
+      ],
+    })).toEqual([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'GRAPH_RUNTIME_STATE_RESPONSE',
+          payload: {
+            graphMode: '3d',
+            nodeCount: 2,
+          },
+        },
+      },
+    ]);
+  });
+
   it('maps export requests to export effects', () => {
     expect(getGraphWebviewMessageEffects({
       message: { type: 'REQUEST_EXPORT_PNG' },

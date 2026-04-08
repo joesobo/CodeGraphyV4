@@ -9,8 +9,5 @@ export function isBuiltIn(specifier: string): boolean {
 }
 
 export function isBareSpecifier(specifier: string): boolean {
-  if (specifier.startsWith('.') || specifier.startsWith('/')) {
-    return false;
-  }
   return /^(@[\w-]+\/)?[\w-]/.test(specifier);
 }

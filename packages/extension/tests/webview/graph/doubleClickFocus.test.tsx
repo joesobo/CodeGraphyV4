@@ -13,7 +13,7 @@ const graphData: IGraphData = {
     { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
     { id: 'src/utils.ts', label: 'utils.ts', color: '#67E8F9' },
   ],
-  edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' }],
+  edges: [{ id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
 };
 
 describe('Graph double-click behavior', () => {

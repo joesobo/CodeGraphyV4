@@ -8,7 +8,7 @@ import { applySettingsToggleMessage } from './toggle';
 export interface GraphViewSettingsMessageState {
   activeViewId: string;
   disabledPlugins: Set<string>;
-  disabledRules: Set<string>;
+  disabledSources: Set<string>;
   filterPatterns: string[];
   graphData: IGraphData;
   viewContext: { folderNodeColor?: string };

@@ -14,6 +14,30 @@ export interface ContextMenuHandlers {
   openNodeContextMenu(this: void, nodeId: string, event: MouseEvent): void;
 }
 
+export interface ContextMenuPointerState {
+  clientX: number;
+  clientY: number;
+  ctrlKey: boolean;
+}
+
+export function getContextMenuPointerState(
+  event?: MouseEvent,
+): ContextMenuPointerState {
+  if (!event) {
+    return {
+      clientX: 0,
+      clientY: 0,
+      ctrlKey: false,
+    };
+  }
+
+  return {
+    clientX: event.clientX,
+    clientY: event.clientY,
+    ctrlKey: event.ctrlKey,
+  };
+}
+
 function openContextMenuFromGraphCallback(
   dependencies: GraphInteractionHandlersDependencies,
   event?: MouseEvent,
@@ -21,17 +45,7 @@ function openContextMenuFromGraphCallback(
   const container = dependencies.containerRef.current;
   if (!container) return;
 
-  const pointerState = event
-    ? {
-        clientX: event.clientX,
-        clientY: event.clientY,
-        ctrlKey: event.ctrlKey,
-      }
-    : {
-        clientX: 0,
-        clientY: 0,
-        ctrlKey: false,
-      };
+  const pointerState = getContextMenuPointerState(event);
 
   const syntheticContextMenu = new MouseEvent('contextmenu', {
     bubbles: true,

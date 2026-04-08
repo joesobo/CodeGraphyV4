@@ -5,7 +5,7 @@ import {
 } from '../../../../src/webview/export/markdown/files';
 import { UNATTRIBUTED_RULE_KEY, type ExportConnectionsSection } from '../../../../src/webview/export/shared/contracts';
 
-const rules: ExportConnectionsSection['rules'] = {
+const sources: ExportConnectionsSection['sources'] = {
   'ts:import': {
     name: 'Import',
     plugin: 'TypeScript',
@@ -16,14 +16,14 @@ const rules: ExportConnectionsSection['rules'] = {
 describe('exportMarkdownFiles', () => {
   describe('resolveMarkdownRuleLabel', () => {
     it('returns unattributed for the reserved rule key and falls back to the raw key when unknown', () => {
-      expect(resolveMarkdownRuleLabel(UNATTRIBUTED_RULE_KEY, rules)).toBe('unattributed');
-      expect(resolveMarkdownRuleLabel('unknown', rules)).toBe('unknown');
+      expect(resolveMarkdownRuleLabel(UNATTRIBUTED_RULE_KEY, sources)).toBe('unattributed');
+      expect(resolveMarkdownRuleLabel('unknown', sources)).toBe('unknown');
     });
   });
 
   describe('renderMarkdownFiles', () => {
     it('renders plain file entries when a file has no imports', () => {
-      expect(renderMarkdownFiles({ 'README.md': {} }, rules)).toEqual(['- README.md']);
+      expect(renderMarkdownFiles({ 'README.md': {} }, sources)).toEqual(['- README.md']);
     });
 
     it('renders unattributed-only imports without a nested rule heading', () => {
@@ -33,7 +33,7 @@ describe('exportMarkdownFiles', () => {
             [UNATTRIBUTED_RULE_KEY]: ['src/App.ts'],
           },
         },
-      }, rules)).toEqual([
+      }, sources)).toEqual([
         '- **README.md**',
         '  - src/App.ts',
       ]);
@@ -48,7 +48,7 @@ describe('exportMarkdownFiles', () => {
             [UNATTRIBUTED_RULE_KEY]: ['README.md'],
           },
         },
-      }, rules)).toEqual([
+      }, sources)).toEqual([
         '- **src/App.ts**',
         '  - *Import*',
         '    - src/utils.ts',

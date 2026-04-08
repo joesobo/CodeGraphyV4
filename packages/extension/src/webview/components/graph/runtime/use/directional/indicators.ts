@@ -14,6 +14,7 @@ interface DirectionalOptions {
 	getParticleColor(this: void, link: LinkObject): string;
 	particleSize: number;
 	particleSpeed: number;
+	physicsPaused: boolean;
 }
 
 interface UseDirectionalOptions extends DirectionalOptions {
@@ -31,6 +32,7 @@ export function applyDirectionalSettings(
 		getParticleColor,
 		particleSize,
 		particleSpeed,
+		physicsPaused,
 	}: DirectionalOptions,
 ): void {
 	graph.linkDirectionalArrowLength?.(directionMode === 'arrows' ? 12 : 0);
@@ -41,7 +43,9 @@ export function applyDirectionalSettings(
 	graph.linkDirectionalArrowColor?.(getArrowColor);
 	graph.linkDirectionalParticleColor?.(getParticleColor);
 	graph.d3ReheatSimulation?.();
-	graph.resumeAnimation?.();
+	if (!physicsPaused) {
+		graph.resumeAnimation?.();
+	}
 }
 
 export function useDirectional({
@@ -54,6 +58,7 @@ export function useDirectional({
 	graphMode,
 	particleSize,
 	particleSpeed,
+	physicsPaused,
 }: UseDirectionalOptions): void {
 	useEffect(() => {
 		if (graphMode !== '2d') return;
@@ -69,6 +74,7 @@ export function useDirectional({
 			getParticleColor,
 			particleSize,
 			particleSpeed,
+			physicsPaused,
 		});
 	}, [
 		directionMode,
@@ -80,5 +86,6 @@ export function useDirectional({
 		graphMode,
 		particleSize,
 		particleSpeed,
+		physicsPaused,
 	]);
 }

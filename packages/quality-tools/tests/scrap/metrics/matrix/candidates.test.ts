@@ -72,7 +72,7 @@ describe('coverageMatrixCandidates', () => {
     }), 2, 0, 2)).toBe(true);
   });
 
-  it('counts only the repeated examples that match the candidate rules', () => {
+  it('counts only the repeated examples that match the candidate sources', () => {
     const examples = [
       example({ exampleFingerprint: 'a', literalShapeFingerprint: 'literal-a' }),
       example({ exampleFingerprint: 'a', literalShapeFingerprint: 'literal-a' }),

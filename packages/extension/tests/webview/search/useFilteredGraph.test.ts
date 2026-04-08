@@ -9,7 +9,7 @@ const sampleGraph: IGraphData = {
     { id: 'src/App.ts', label: 'App', color: '#aaa' },
     { id: 'src/util.ts', label: 'util', color: '#bbb' },
   ],
-  edges: [{ id: 'e1', from: 'src/App.ts', to: 'src/util.ts' }],
+  edges: [{ id: 'e1', from: 'src/App.ts', to: 'src/util.ts' , kind: 'import', sources: [] }],
 };
 
 const defaultOptions = { matchCase: false, wholeWord: false, regex: false };

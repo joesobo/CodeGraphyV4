@@ -17,7 +17,7 @@ import { adjustColorForLightTheme } from '../../../../src/webview/theme/useTheme
 function createData(nodes: IGraphData['nodes']): IGraphData {
     return {
       edges: nodes.length > 1
-      ? nodes.slice(1).map((node) => ({ id: `${nodes[0].id}->${node.id}`, from: nodes[0].id, to: node.id }))
+      ? nodes.slice(1).map((node) => ({ id: `${nodes[0].id}->${node.id}`, from: nodes[0].id, to: node.id , kind: 'import', sources: [] }))
       : [],
       nodes,
     };

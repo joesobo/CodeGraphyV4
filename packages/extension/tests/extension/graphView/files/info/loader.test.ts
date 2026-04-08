@@ -37,9 +37,9 @@ describe('graphView/files/info/loader', () => {
       graphData: {
         nodes: [],
         edges: [
-          { id: 'a', from: 'src/main.py', to: 'src/config.py' },
-          { id: 'b', from: 'src/input.py', to: 'src/main.py' },
-          { id: 'c', from: 'src/main.py', to: 'src/other.py' },
+          { id: 'a', from: 'src/main.py', to: 'src/config.py' , kind: 'import', sources: [] },
+          { id: 'b', from: 'src/input.py', to: 'src/main.py' , kind: 'import', sources: [] },
+          { id: 'c', from: 'src/main.py', to: 'src/other.py' , kind: 'import', sources: [] },
         ],
       },
       getVisitCount,

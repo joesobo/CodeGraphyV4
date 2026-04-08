@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { createRequire } from 'module';
 import {
   discoverMutationPackageNames,
   resolveMutationProfile
@@ -6,9 +7,15 @@ import {
 import { REPO_ROOT } from '../../../src/shared/resolve/repoRoot';
 import { resolveQualityTarget } from '../../../src/shared/resolve/target';
 
+const require = createRequire(import.meta.url);
+const extensionStrykerConfig = require('../../../../extension/stryker.config.cjs') as {
+  dryRunTimeoutMinutes?: number;
+};
+
 describe('mutation profiles', () => {
   afterEach(() => {
     delete process.env.CODEGRAPHY_VITEST_SCOPE;
+    delete process.env.CODEGRAPHY_VITEST_INCLUDE_JSON;
     vi.resetModules();
   });
 
@@ -29,31 +36,37 @@ describe('mutation profiles', () => {
     });
   });
 
-  it('scopes extension mutation test discovery to extension tests', async () => {
-    vi.resetModules();
-    const { default: config } = await import('../../../../extension/vitest.stryker.config');
+  it('raises the extension dry-run timeout above the stryker default', () => {
+    expect(extensionStrykerConfig).toMatchObject({
+      dryRunTimeoutMinutes: expect.any(Number),
+    });
+    expect(extensionStrykerConfig.dryRunTimeoutMinutes).toBeGreaterThan(5);
+  });
 
-    expect(config.test?.include).toEqual([
+  it('scopes extension mutation test discovery to extension tests', async () => {
+    const { resolveMutationVitestIncludes } = await import('../../../../extension/vitest.includes');
+
+    expect(resolveMutationVitestIncludes({})).toEqual([
       'packages/extension/tests/**/*.test.{ts,tsx}',
       'packages/extension/__tests__/**/*.test.{ts,tsx}',
     ]);
   });
 
   it('scopes shared mutation test discovery to workspace tests when requested', async () => {
-    process.env.CODEGRAPHY_VITEST_SCOPE = 'workspace';
-    vi.resetModules();
-    const { default: config } = await import('../../../../extension/vitest.stryker.config');
+    const { resolveMutationVitestIncludes } = await import('../../../../extension/vitest.includes');
 
-    expect(config.test?.include).toEqual([
+    expect(resolveMutationVitestIncludes({
+      CODEGRAPHY_VITEST_SCOPE: 'workspace',
+    })).toEqual([
       'packages/*/tests/**/*.test.{ts,tsx}',
       'packages/*/__tests__/**/*.test.{ts,tsx}',
     ]);
   });
 
   it('scopes regular extension vitest discovery to extension-owned tests', async () => {
-    const { default: config } = await import('../../../../extension/vitest.config');
+    const { extensionOwnedVitestIncludes } = await import('../../../../extension/vitest.includes');
 
-    expect(config.test?.include).toEqual([
+    expect(extensionOwnedVitestIncludes).toEqual([
       'tests/**/*.test.{ts,tsx}',
     ]);
   });

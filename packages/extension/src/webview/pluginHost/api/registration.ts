@@ -4,6 +4,25 @@
  */
 
 import type { NodeRenderFn, OverlayRenderFn, TooltipProviderFn, WebviewDisposable } from './contracts';
+import type { GraphPluginSlot } from './contracts';
+import {
+  attachSlotHost as attachSlotHostImpl,
+  detachSlotHost as detachSlotHostImpl,
+  getOrCreateContainer as getOrCreateContainerImpl,
+  getOrCreateSlotContainer as getOrCreateSlotContainerImpl,
+  type SlotContainerMap,
+  type SlotHostMap,
+} from './containers';
+import {
+  registerNodeRenderer as registerNodeRendererImpl,
+  registerOverlay as registerOverlayImpl,
+  registerTooltipProvider as registerTooltipProviderImpl,
+} from './renderers';
+import { syncSlotHostVisibility as syncSlotHostVisibilityImpl } from './visibility';
+
+export function syncSlotHostVisibility(slot: GraphPluginSlot, slotHosts: SlotHostMap): void {
+  syncSlotHostVisibilityImpl(slot, slotHosts);
+}
 
 export function registerNodeRenderer(
   pluginId: string,
@@ -11,12 +30,7 @@ export function registerNodeRenderer(
   fn: NodeRenderFn,
   nodeRenderers: Map<string, { pluginId: string; fn: NodeRenderFn }>,
 ): WebviewDisposable {
-  nodeRenderers.set(type, { pluginId, fn });
-  return {
-    dispose: () => {
-      if (nodeRenderers.get(type)?.pluginId === pluginId) nodeRenderers.delete(type);
-    },
-  };
+  return registerNodeRendererImpl(pluginId, type, fn, nodeRenderers);
 }
 
 export function registerOverlay(
@@ -25,9 +39,7 @@ export function registerOverlay(
   fn: OverlayRenderFn,
   overlays: Map<string, { pluginId: string; fn: OverlayRenderFn }>,
 ): WebviewDisposable {
-  const qualifiedId = `${pluginId}:${id}`;
-  overlays.set(qualifiedId, { pluginId, fn });
-  return { dispose: () => overlays.delete(qualifiedId) };
+  return registerOverlayImpl(pluginId, id, fn, overlays);
 }
 
 export function registerTooltipProvider(
@@ -35,27 +47,37 @@ export function registerTooltipProvider(
   fn: TooltipProviderFn,
   tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }>,
 ): WebviewDisposable {
-  const entry = { pluginId, fn };
-  tooltipProviders.push(entry);
-  return {
-    dispose: () => {
-      const idx = tooltipProviders.indexOf(entry);
-      if (idx !== -1) tooltipProviders.splice(idx, 1);
-    },
-  };
+  return registerTooltipProviderImpl(pluginId, fn, tooltipProviders);
 }
 
 export function getOrCreateContainer(
   pluginId: string,
   containers: Map<string, HTMLDivElement>,
 ): HTMLDivElement {
-  let container = containers.get(pluginId);
-  if (!container) {
-    container = document.createElement('div');
-    container.setAttribute('data-cg-plugin', pluginId);
-    container.style.display = 'none';
-    document.body.appendChild(container);
-    containers.set(pluginId, container);
-  }
-  return container;
+  return getOrCreateContainerImpl(pluginId, containers);
+}
+
+export function getOrCreateSlotContainer(
+  pluginId: string,
+  slot: GraphPluginSlot,
+  slotContainers: SlotContainerMap,
+  slotHosts: SlotHostMap,
+): HTMLDivElement {
+  return getOrCreateSlotContainerImpl(pluginId, slot, slotContainers, slotHosts);
+}
+
+export function attachSlotHost(
+  slot: GraphPluginSlot,
+  host: HTMLDivElement,
+  slotContainers: SlotContainerMap,
+  slotHosts: SlotHostMap,
+): void {
+  attachSlotHostImpl(slot, host, slotContainers, slotHosts);
+}
+
+export function detachSlotHost(
+  slot: GraphPluginSlot,
+  slotHosts: SlotHostMap,
+): void {
+  detachSlotHostImpl(slot, slotHosts);
 }

@@ -4,20 +4,14 @@
 
 import * as vscode from 'vscode';
 import type { IViewContext } from '../../../core/views/contracts';
-import { coreViews } from '../../../core/views/builtIns';
 import { ViewRegistry } from '../../../core/views/registry';
 import { DecorationManager } from '../../../core/plugins/decoration/manager';
-import { EventBus } from '../../../core/plugins/eventBus';
+import { EventBus } from '../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../shared/graph/types';
-import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../gitHistory/analyzer';
 import { WorkspaceAnalyzer } from '../../workspaceAnalyzer/service';
-import {
-  initializeGraphViewProviderServices,
-  restoreGraphViewProviderState,
-} from './wiring/bootstrap';
 import {
   createGraphViewProviderMethodContainers,
   type GraphViewProviderMethodContainers,
@@ -27,60 +21,29 @@ import {
   type GraphViewProviderPublicMethodsTarget,
 } from './wiring/publicApi';
 import type { GraphViewProviderMethodSourceOwner } from './source/create';
-
-const SELECTED_VIEW_KEY = 'codegraphy.selectedView';
-const DAG_MODE_KEY = 'codegraphy.dagMode';
-const NODE_SIZE_MODE_KEY = 'codegraphy.nodeSizeMode';
-const DEFAULT_DEPTH_LIMIT = 1;
-const DEFAULT_VIEW_ID = 'codegraphy.connections';
-const DEFAULT_NODE_SIZE_MODE: NodeSizeMode = 'connections';
-
-interface ExtensionMessageEmitter {
-  event(handler: (message: unknown) => void): vscode.Disposable;
-  fire(message: unknown): void;
-  dispose(): void;
-}
-
-function createExtensionMessageEmitter(): ExtensionMessageEmitter {
-  const handlers = new Set<(message: unknown) => void>();
-
-  return {
-    event(handler) {
-      handlers.add(handler);
-      return {
-        dispose: () => {
-          handlers.delete(handler);
-        },
-      };
-    },
-    fire(message) {
-      for (const handler of handlers) {
-        handler(message);
-      }
-    },
-    dispose() {
-      handlers.clear();
-    },
-  };
-}
-
-function createFirstWorkspaceReadyState(): {
-  promise: Promise<void>;
-  resolve: () => void;
-} {
-  let resolve!: () => void;
-  const promise = new Promise<void>((resolved) => {
-    resolve = resolved;
-  });
-
-  return { promise, resolve };
-}
+import {
+  createExtensionMessageEmitter,
+} from './extensionMessages';
+import { createFirstWorkspaceReadyState } from './firstWorkspaceReady';
+import {
+  initializeGraphViewProviderRuntimeServices,
+  restoreGraphViewProviderRuntimeState,
+  type RuntimeBootstrapSource,
+} from './runtimeBootstrap';
+import {
+  createEmptyGraphData,
+  createEmptyGroups,
+  createInitialViewContext,
+  createPluginExtensionUris,
+  createStringSet,
+  DEFAULT_NODE_SIZE_MODE,
+} from './runtimeDefaults';
 
 export class GraphViewProviderRuntime {
   protected _view?: vscode.WebviewView;
   protected _timelineView?: vscode.WebviewView;
   protected _panels: vscode.WebviewPanel[] = [];
-  protected _graphData: IGraphData = { nodes: [], edges: [] };
+  protected _graphData: IGraphData = createEmptyGraphData();
   protected _analyzer?: WorkspaceAnalyzer;
   protected _analyzerInitialized = false;
   protected _analyzerInitPromise?: Promise<void>;
@@ -90,28 +53,25 @@ export class GraphViewProviderRuntime {
   protected _activeViewId!: string;
   protected _dagMode: DagMode = null;
   protected _nodeSizeMode!: NodeSizeMode;
-  protected _rawGraphData: IGraphData = { nodes: [], edges: [] };
-  protected _viewContext: IViewContext = {
-    activePlugins: new Set(),
-    depthLimit: DEFAULT_DEPTH_LIMIT,
-  };
-  protected _groups: IGroup[] = [];
-  protected _userGroups: IGroup[] = [];
-  protected _hiddenPluginGroupIds = new Set<string>();
+  protected _rawGraphData: IGraphData = createEmptyGraphData();
+  protected _viewContext: IViewContext = createInitialViewContext();
+  protected _groups: IGroup[] = createEmptyGroups();
+  protected _userGroups: IGroup[] = createEmptyGroups();
+  protected _hiddenPluginGroupIds = createStringSet();
   protected _filterPatterns: string[] = [];
-  protected _disabledRules: Set<string> = new Set();
-  protected _disabledPlugins: Set<string> = new Set();
+  protected _disabledSources: Set<string> = createStringSet();
+  protected _disabledPlugins: Set<string> = createStringSet();
   protected _gitAnalyzer?: GitHistoryAnalyzer;
   protected _currentCommitSha?: string;
   protected _timelineActive = false;
-  private _eventBus: EventBus;
-  private _decorationManager: DecorationManager;
+  protected _eventBus: EventBus;
+  protected _decorationManager: DecorationManager;
   protected _firstAnalysis = true;
   protected _resolveFirstWorkspaceReady?: () => void;
   protected readonly _firstWorkspaceReadyPromise: Promise<void>;
   protected _webviewReadyNotified = false;
   protected _indexingController?: AbortController;
-  protected readonly _pluginExtensionUris = new Map<string, vscode.Uri>();
+  protected readonly _pluginExtensionUris = createPluginExtensionUris();
   protected _installedPluginActivationPromise: Promise<void> = Promise.resolve();
   protected readonly _extensionMessageEmitter = createExtensionMessageEmitter();
   protected readonly _methodContainers: GraphViewProviderMethodContainers;
@@ -156,38 +116,32 @@ export class GraphViewProviderRuntime {
   }
 
   private initializeCoreServices(): void {
-    initializeGraphViewProviderServices({
-      analyzer:
-        this._analyzer as Parameters<typeof initializeGraphViewProviderServices>[0]['analyzer'],
-      viewRegistry: this._viewRegistry,
-      coreViews,
-      eventBus: this._eventBus,
-      decorationManager: this._decorationManager,
-      getGraphData: () => this._graphData,
-      registerCommand: (id, action) => vscode.commands.registerCommand(id, action),
-      pushSubscription: (subscription) => {
-        this._context.subscriptions.push(subscription as vscode.Disposable);
+    const source = {
+      _analyzer: this._analyzer,
+      _context: this._context,
+      _viewRegistry: this._viewRegistry,
+      _eventBus: this._eventBus,
+      _decorationManager: this._decorationManager,
+    } as RuntimeBootstrapSource;
+
+    Object.defineProperties(source, {
+      _graphData: {
+        get: () => this._graphData,
       },
-      sendMessage: (message) => {
-        this._methodContainers.webview._sendMessage(message as ExtensionToWebviewMessage);
-      },
-      workspaceRoot: vscode.workspace.workspaceFolders?.[0]?.uri.fsPath ?? '',
-      onDecorationsChanged: () => {
-        this._methodContainers.plugin._sendDecorations();
+      getMethodContainers: {
+        value: () => this._methodContainers,
       },
     });
+
+    initializeGraphViewProviderRuntimeServices(source);
   }
 
   private restorePersistedState(): void {
-    const restoredState = restoreGraphViewProviderState({
-      workspaceState: this._context.workspaceState,
-      viewRegistry: this._viewRegistry,
-      selectedViewKey: SELECTED_VIEW_KEY,
-      dagModeKey: DAG_MODE_KEY,
-      nodeSizeModeKey: NODE_SIZE_MODE_KEY,
-      fallbackViewId: DEFAULT_VIEW_ID,
-      fallbackNodeSizeMode: DEFAULT_NODE_SIZE_MODE,
-    });
+    const restoredState = restoreGraphViewProviderRuntimeState(
+      this._context,
+      this._viewRegistry,
+      DEFAULT_NODE_SIZE_MODE,
+    );
 
     this._activeViewId = restoredState.activeViewId;
     this._dagMode = restoredState.dagMode;

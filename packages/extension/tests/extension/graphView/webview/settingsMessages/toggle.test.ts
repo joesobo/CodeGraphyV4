@@ -14,7 +14,7 @@ function createState(
   return {
     activeViewId: 'codegraphy.graphView',
     disabledPlugins: new Set<string>(),
-    disabledRules: new Set<string>(),
+    disabledSources: new Set<string>(),
     filterPatterns: [],
     graphData: { nodes: [], edges: [] } satisfies IGraphData,
     viewContext: { folderNodeColor: '#111111' },
@@ -38,23 +38,23 @@ function createHandlers(
 }
 
 describe('graph view settings toggle message', () => {
-  it('disables rules and triggers a targeted rebuild', async () => {
+  it('disables sources and triggers a targeted rebuild', async () => {
     const state = createState();
     const handlers = createHandlers();
 
     const handled = await applySettingsToggleMessage(
       {
-        type: 'TOGGLE_RULE',
-        payload: { qualifiedId: 'codegraphy.typescript:dynamic-import', enabled: false },
+        type: 'TOGGLE_SOURCE',
+        payload: { qualifiedSourceId: 'codegraphy.typescript:dynamic-import', enabled: false },
       },
       state,
       handlers,
     );
 
     expect(handled).toBe(true);
-    expect([...state.disabledRules]).toEqual(['codegraphy.typescript:dynamic-import']);
-    expect(state.disabledRules.has('codegraphy.typescript:dynamic-import')).toBe(true);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledRules', [
+    expect([...state.disabledSources]).toEqual(['codegraphy.typescript:dynamic-import']);
+    expect(state.disabledSources.has('codegraphy.typescript:dynamic-import')).toBe(true);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledSources', [
       'codegraphy.typescript:dynamic-import',
     ]);
     expect(handlers.smartRebuild).toHaveBeenCalledWith(
@@ -63,34 +63,34 @@ describe('graph view settings toggle message', () => {
     );
   });
 
-  it('re-enables rules and persists the reduced disabled-rule set', async () => {
+  it('re-enables sources and persists the reduced disabled-rule set', async () => {
     const state = createState({
-      disabledRules: new Set(['codegraphy.typescript:dynamic-import']),
+      disabledSources: new Set(['codegraphy.typescript:dynamic-import']),
     });
     const handlers = createHandlers();
 
     const handled = await applySettingsToggleMessage(
       {
-        type: 'TOGGLE_RULE',
-        payload: { qualifiedId: 'codegraphy.typescript:dynamic-import', enabled: true },
+        type: 'TOGGLE_SOURCE',
+        payload: { qualifiedSourceId: 'codegraphy.typescript:dynamic-import', enabled: true },
       },
       state,
       handlers,
     );
 
     expect(handled).toBe(true);
-    expect([...state.disabledRules]).toEqual([]);
-    expect(state.disabledRules.has('codegraphy.typescript:dynamic-import')).toBe(false);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledRules', []);
+    expect([...state.disabledSources]).toEqual([]);
+    expect(state.disabledSources.has('codegraphy.typescript:dynamic-import')).toBe(false);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledSources', []);
     expect(handlers.smartRebuild).toHaveBeenCalledWith(
       'rule',
       'codegraphy.typescript:dynamic-import',
     );
   });
 
-  it('re-enables one rule without dropping other disabled rules', async () => {
+  it('re-enables one rule without dropping other disabled sources', async () => {
     const state = createState({
-      disabledRules: new Set([
+      disabledSources: new Set([
         'codegraphy.typescript:dynamic-import',
         'codegraphy.python:unused-import',
       ]),
@@ -100,16 +100,16 @@ describe('graph view settings toggle message', () => {
     await expect(
       applySettingsToggleMessage(
         {
-          type: 'TOGGLE_RULE',
-          payload: { qualifiedId: 'codegraphy.typescript:dynamic-import', enabled: true },
+          type: 'TOGGLE_SOURCE',
+          payload: { qualifiedSourceId: 'codegraphy.typescript:dynamic-import', enabled: true },
         },
         state,
         handlers,
       ),
     ).resolves.toBe(true);
 
-    expect([...state.disabledRules]).toEqual(['codegraphy.python:unused-import']);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledRules', [
+    expect([...state.disabledSources]).toEqual(['codegraphy.python:unused-import']);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledSources', [
       'codegraphy.python:unused-import',
     ]);
   });

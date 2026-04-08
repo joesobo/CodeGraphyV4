@@ -118,6 +118,16 @@ describe('ViewButtons', () => {
     expect(letterSpan.className).toContain('text-xs');
   });
 
+  it('renders plugin view buttons with the first letter fallback', () => {
+    graphStore.setState({
+      availableViews: [
+        createAvailableView('codegraphy.typescript.focused-imports', 'Focused Imports'),
+      ],
+    });
+    renderWithProviders();
+    expect(screen.getByText('F')).toBeInTheDocument();
+  });
+
   it('applies default variant to the active view button', () => {
     graphStore.setState({
       availableViews: [

@@ -7,12 +7,12 @@ import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 
 interface GraphViewProviderRefreshAnalyzerLike {
   rebuildGraph(
-    disabledRules: Set<string>,
+    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
     showOrphans: boolean,
   ): IGraphData;
   getPluginStatuses(
-    disabledRules: Set<string>,
+    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): readonly IPluginStatus[];
   registry: {
@@ -23,7 +23,7 @@ interface GraphViewProviderRefreshAnalyzerLike {
 
 export interface GraphViewProviderRefreshMethodsSource {
   _analyzer: GraphViewProviderRefreshAnalyzerLike | undefined;
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;

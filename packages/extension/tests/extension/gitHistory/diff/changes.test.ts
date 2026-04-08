@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IConnection } from '../../../../src/core/plugins/types/contracts';
+import type { IGraphEdge } from '../../../../src/shared/graph/types';
 import {
   addGitHistoryGraphFile,
   modifyGitHistoryGraphFile,
@@ -34,16 +35,17 @@ describe('gitHistory/diff/changes', () => {
   });
 
   it('adds supported files by fetching content and appending analyzed edges', async () => {
-    const edges: Array<{ id: string; from: string; to: string; ruleId?: string }> = [];
+    const edges: Array<{ id: string; from: string; to: string; kind: 'import'; sources: { id: string; pluginId: string; sourceId: string; label: string }[] }> = [];
     const edgeSet = new Set<string>();
     const getFileAtCommit = vi.fn(async () => 'import "./b";');
     const registry = {
       analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
         {
-          ruleId: 'import',
+          sourceId: 'import',
           specifier: './b',
           type: 'static',
           resolvedPath: '/workspace/src/b.ts',
+          kind: 'import',
         } satisfies IConnection,
       ]),
       supportsFile: vi.fn(() => true),
@@ -74,29 +76,31 @@ describe('gitHistory/diff/changes', () => {
     expect(nodes).toEqual([{ id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' }]);
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts',
+        id: 'src/a.ts->src/b.ts#import',
         from: 'src/a.ts',
         to: 'src/b.ts',
-        ruleId: 'import',
+        kind: 'import',
+        sources: [],
       },
     ]);
-    expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts']));
+    expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts#import']));
   });
 
   it('reuses an existing supported node while reanalyzing its edges', async () => {
     const existingNode = { id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' };
     const nodes = [existingNode];
     const nodeMap = new Map([[existingNode.id, existingNode]]);
-    const edges: Array<{ id: string; from: string; to: string; ruleId?: string }> = [];
+    const edges: Array<{ id: string; from: string; to: string; kind: 'import'; sources: { id: string; pluginId: string; sourceId: string; label: string }[] }> = [];
     const edgeSet = new Set<string>();
     const getFileAtCommit = vi.fn(async () => 'import "./c";');
     const registry = {
       analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
         {
-          ruleId: 'import',
+          sourceId: 'import',
           specifier: './c',
           type: 'static',
           resolvedPath: '/workspace/src/c.ts',
+          kind: 'import',
         } satisfies IConnection,
       ]),
       supportsFile: vi.fn(() => true),
@@ -126,13 +130,14 @@ describe('gitHistory/diff/changes', () => {
     expect(nodeMap.get(existingNode.id)).toBe(existingNode);
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/c.ts',
+        id: 'src/a.ts->src/c.ts#import',
         from: 'src/a.ts',
         to: 'src/c.ts',
-        ruleId: 'import',
+        kind: 'import',
+        sources: [],
       },
     ]);
-    expect(edgeSet).toEqual(new Set(['src/a.ts->src/c.ts']));
+    expect(edgeSet).toEqual(new Set(['src/a.ts->src/c.ts#import']));
   });
 
   it('does not duplicate unsupported nodes that already exist', async () => {
@@ -162,18 +167,19 @@ describe('gitHistory/diff/changes', () => {
   it('rebuilds outgoing edges for supported modified files', async () => {
     const nodes = [{ id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' }];
     const nodeMap = new Map([[nodes[0].id, nodes[0]]]);
-    const edges: Array<{ id: string; from: string; to: string; ruleId?: string; ruleIds?: string[] }> = [
-      { id: 'src/a.ts->src/old.ts', from: 'src/a.ts', to: 'src/old.ts' },
-      { id: 'src/c.ts->src/a.ts', from: 'src/c.ts', to: 'src/a.ts' },
+    const edges: Array<{ id: string; from: string; to: string; kind: 'import'; sources: { id: string; pluginId: string; sourceId: string; label: string }[] }> = [
+      { id: 'src/a.ts->src/old.ts#import', from: 'src/a.ts', to: 'src/old.ts' , kind: 'import', sources: [] },
+      { id: 'src/c.ts->src/a.ts#import', from: 'src/c.ts', to: 'src/a.ts' , kind: 'import', sources: [] },
     ];
     const edgeSet = new Set(edges.map((edge) => edge.id));
     const registry = {
       analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
         {
-          ruleId: 'import',
+          sourceId: 'import',
           specifier: './new',
           type: 'static',
           resolvedPath: '/workspace/src/new.ts',
+          kind: 'import',
         } satisfies IConnection,
       ]),
       getPluginForFile: vi.fn(() => ({ id: 'ts' })),
@@ -194,22 +200,29 @@ describe('gitHistory/diff/changes', () => {
     });
 
     expect(edges).toEqual([
-      { id: 'src/c.ts->src/a.ts', from: 'src/c.ts', to: 'src/a.ts' },
+      { id: 'src/c.ts->src/a.ts#import', from: 'src/c.ts', to: 'src/a.ts' , kind: 'import', sources: [] },
       {
-        id: 'src/a.ts->src/new.ts',
+        id: 'src/a.ts->src/new.ts#import',
         from: 'src/a.ts',
         to: 'src/new.ts',
-        ruleId: 'import',
-        ruleIds: ['ts:import'],
+        kind: 'import',
+        sources: [
+          {
+            id: 'ts:import',
+            pluginId: 'ts',
+            sourceId: 'import',
+            label: 'import',
+          },
+        ],
       },
     ]);
-    expect(edgeSet).toEqual(new Set(['src/c.ts->src/a.ts', 'src/a.ts->src/new.ts']));
+    expect(edgeSet).toEqual(new Set(['src/c.ts->src/a.ts#import', 'src/a.ts->src/new.ts#import']));
   });
 
   it('skips modify reanalysis for unsupported files', async () => {
     const getFileAtCommit = vi.fn(async () => '');
-    const edges = [{ id: 'src/a.txt->src/b.txt', from: 'src/a.txt', to: 'src/b.txt' }];
-    const edgeSet = new Set(['src/a.txt->src/b.txt']);
+    const edges: IGraphEdge[] = [{ id: 'src/a.txt->src/b.txt#import', from: 'src/a.txt', to: 'src/b.txt' , kind: 'import', sources: [] }];
+    const edgeSet = new Set(['src/a.txt->src/b.txt#import']);
     const registry = {
       analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
       supportsFile: vi.fn(() => false),
@@ -230,7 +243,7 @@ describe('gitHistory/diff/changes', () => {
 
     expect(registry.analyzeFile).not.toHaveBeenCalled();
     expect(getFileAtCommit).not.toHaveBeenCalled();
-    expect(edges).toEqual([{ id: 'src/a.txt->src/b.txt', from: 'src/a.txt', to: 'src/b.txt' }]);
-    expect(edgeSet).toEqual(new Set(['src/a.txt->src/b.txt']));
+    expect(edges).toEqual([{ id: 'src/a.txt->src/b.txt#import', from: 'src/a.txt', to: 'src/b.txt' , kind: 'import', sources: [] }]);
+    expect(edgeSet).toEqual(new Set(['src/a.txt->src/b.txt#import']));
   });
 });

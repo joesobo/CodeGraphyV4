@@ -75,12 +75,8 @@ export function loadOrganizeConfig(repoRoot: string, packageName?: string): Reso
     const rawConfig = JSON.parse(readFileSync(configPath, 'utf-8')) as QualityConfig;
     const defaultConfig = rawConfig.defaults?.organize;
     const packageConfig = packageName ? rawConfig.packages?.[packageName]?.organize : undefined;
-
-    if (defaultConfig || packageConfig) {
-      const mergedDefaults = defaultConfig ? mergeConfig(DEFAULT_CONFIG, defaultConfig) : DEFAULT_CONFIG;
-      return packageConfig ? mergeConfig(mergedDefaults, packageConfig) : mergedDefaults;
-    }
-    return DEFAULT_CONFIG;
+    const mergedDefaults = defaultConfig ? mergeConfig(DEFAULT_CONFIG, defaultConfig) : DEFAULT_CONFIG;
+    return packageConfig ? mergeConfig(mergedDefaults, packageConfig) : mergedDefaults;
   } catch {
     return DEFAULT_CONFIG;
   }

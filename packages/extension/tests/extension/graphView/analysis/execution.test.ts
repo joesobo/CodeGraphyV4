@@ -14,7 +14,7 @@ function createState(
     analyzerInitialized: false,
     analyzerInitPromise: undefined,
     filterPatterns: [],
-    disabledRules: new Set<string>(),
+    disabledSources: new Set<string>(),
     disabledPlugins: new Set<string>(),
     ...overrides,
   };

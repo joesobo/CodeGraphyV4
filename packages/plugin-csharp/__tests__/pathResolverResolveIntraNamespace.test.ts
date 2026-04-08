@@ -16,18 +16,33 @@ describe('resolveIntraNamespaceTypes', () => {
   it('adds registered namespace matches and excludes the source file itself', () => {
     const resolved = resolveIntraNamespaceTypes({
       namespace: 'MyApp.Services',
-      fromFile: '/workspace/src/Services/CurrentService.cs',
-      usedTypes: new Set(['CurrentService', 'OrderService']),
+      fromFile: '/workspace/src/Services/OrderService.cs',
+      usedTypes: new Set(['OrderService']),
       workspaceRoot: '/workspace',
       sourceDirs: ['src'],
       namespaceToFileMap: new Map<string, string>([
-        ['MyApp.Services', 'src/Services/CurrentService.cs'],
         ['MyApp.Services', 'src/Services/OrderService.cs'],
       ]),
       fsOps: createFsOps([]),
     });
 
-    expect(resolved).toEqual(['/workspace/src/Services/OrderService.cs']);
+    expect(resolved).toEqual([]);
+  });
+
+  it('adds registered namespace matches when the namespace and used type both match', () => {
+    const resolved = resolveIntraNamespaceTypes({
+      namespace: 'MyApp.Services',
+      fromFile: '/workspace/src/Services/Program.cs',
+      usedTypes: new Set(['Worker']),
+      workspaceRoot: '/workspace',
+      sourceDirs: [],
+      namespaceToFileMap: new Map<string, string>([
+        ['MyApp.Services', 'src/Services/Worker.cs'],
+      ]),
+      fsOps: createFsOps([]),
+    });
+
+    expect(resolved).toEqual(['/workspace/src/Services/Worker.cs']);
   });
 
   it('adds used-type convention matches and skips paths equal to fromFile', () => {
@@ -70,5 +85,53 @@ describe('resolveIntraNamespaceTypes', () => {
     });
 
     expect(resolved).toEqual(['/workspace/src/Services/Worker.cs']);
+  });
+
+  it('ignores registered namespace entries from other namespaces', () => {
+    const resolved = resolveIntraNamespaceTypes({
+      namespace: 'MyApp.Services',
+      fromFile: '/workspace/src/Services/Program.cs',
+      usedTypes: new Set(['Worker']),
+      workspaceRoot: '/workspace',
+      sourceDirs: ['src'],
+      namespaceToFileMap: new Map<string, string>([
+        ['MyApp.Other', 'src/Other/Worker.cs'],
+      ]),
+      fsOps: createFsOps([]),
+    });
+
+    expect(resolved).toEqual([]);
+  });
+
+  it('ignores registered namespace entries when the file name is not used', () => {
+    const resolved = resolveIntraNamespaceTypes({
+      namespace: 'MyApp.Services',
+      fromFile: '/workspace/src/Services/Program.cs',
+      usedTypes: new Set(['DifferentType']),
+      workspaceRoot: '/workspace',
+      sourceDirs: ['src'],
+      namespaceToFileMap: new Map<string, string>([
+        ['MyApp.Services', 'src/Services/Worker.cs'],
+      ]),
+      fsOps: createFsOps([]),
+    });
+
+    expect(resolved).toEqual([]);
+  });
+
+  it('adds root source-dir matches across source directories and skips the current file', () => {
+    const resolved = resolveIntraNamespaceTypes({
+      namespace: 'MyApp',
+      fromFile: '/workspace/Program.cs',
+      usedTypes: new Set(['Program', 'Config', 'Helper']),
+      workspaceRoot: '/workspace',
+      sourceDirs: ['', 'src'],
+      namespaceToFileMap: new Map(),
+      fsOps: createFsOps(['Program.cs', 'Config.cs', 'src/Helper.cs']),
+    });
+
+    expect(new Set(resolved)).toEqual(
+      new Set(['/workspace/Config.cs', '/workspace/src/Helper.cs']),
+    );
   });
 });

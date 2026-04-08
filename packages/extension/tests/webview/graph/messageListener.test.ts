@@ -66,4 +66,29 @@ describe('graph/messageListener', () => {
       },
     ]);
   });
+
+  it('reads the latest graph mode when responding to runtime-state requests', () => {
+    const applyEffects = vi.fn();
+    const handleMessage = createGraphMessageListener({
+      applyEffects,
+      graphMode: '3d',
+      getGraphNodes: () => [{ id: 'b.ts', size: 8, x: 5, y: 6 }],
+      tooltipPath: null,
+    });
+
+    handleMessage({ data: { type: 'GET_GRAPH_RUNTIME_STATE' } } as never);
+
+    expect(applyEffects).toHaveBeenCalledWith([
+      {
+        kind: 'postMessage',
+        message: {
+          type: 'GRAPH_RUNTIME_STATE_RESPONSE',
+          payload: {
+            graphMode: '3d',
+            nodeCount: 1,
+          },
+        },
+      },
+    ]);
+  });
 });

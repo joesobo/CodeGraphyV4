@@ -20,7 +20,13 @@ describe('tryResolveNamespaceParts', () => {
   }
 
   it('returns null when namespace is empty', () => {
-    const resolved = tryResolveNamespaceParts([], ['src'], createFsOps());
+    const resolved = tryResolveNamespaceParts([], ['src'], createFsOps({
+      dirs: ['src'],
+      discoveredByDir: {
+        src: 'src/Fallback.cs',
+      },
+      files: ['src/undefined.cs'],
+    }));
 
     expect(resolved).toBeNull();
   });
@@ -58,6 +64,63 @@ describe('tryResolveNamespaceParts', () => {
     );
 
     expect(resolved).toBe('src/OrderService.cs');
+  });
+
+  it('falls back to simple file name when namespace discovery returns no file', () => {
+    const resolved = tryResolveNamespaceParts(
+      ['MyApp', 'Services'],
+      ['src'],
+      createFsOps({
+        dirs: ['src/MyApp/Services'],
+        discoveredByDir: {
+          'src/MyApp/Services': null,
+        },
+        files: ['src/Services.cs'],
+      }),
+    );
+
+    expect(resolved).toBe('src/Services.cs');
+  });
+
+  it('does not use namespace discovery when the namespace directory does not exist', () => {
+    const fsOps = createFsOps({
+      discoveredByDir: {
+        'src/MyApp/Services': 'src/MyApp/Services/Unexpected.cs',
+      },
+    });
+
+    const resolved = tryResolveNamespaceParts(
+      ['MyApp', 'Services'],
+      ['src'],
+      fsOps,
+    );
+
+    expect(resolved).toBeNull();
+  });
+
+  it('supports namespace directory discovery without a source directory prefix', () => {
+    const resolved = tryResolveNamespaceParts(
+      ['MyApp', 'Services'],
+      [''],
+      createFsOps({
+        dirs: ['MyApp/Services'],
+        discoveredByDir: {
+          'MyApp/Services': 'MyApp/Services/ApiService.cs',
+        },
+      }),
+    );
+
+    expect(resolved).toBe('MyApp/Services/ApiService.cs');
+  });
+
+  it('supports simple file fallback without a source directory prefix', () => {
+    const resolved = tryResolveNamespaceParts(
+      ['MyApp', 'Services', 'OrderService'],
+      [''],
+      createFsOps({ files: ['OrderService.cs'] }),
+    );
+
+    expect(resolved).toBe('OrderService.cs');
   });
 
   it('returns null when no resolution candidates exist', () => {

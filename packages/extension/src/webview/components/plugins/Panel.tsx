@@ -42,8 +42,8 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
     postMessage({ type: 'TOGGLE_PLUGIN', payload: { pluginId, enabled } });
   };
 
-  const handleToggleRule = (qualifiedId: string, enabled: boolean) => {
-    postMessage({ type: 'TOGGLE_RULE', payload: { qualifiedId, enabled } });
+  const handleToggleRule = (qualifiedSourceId: string, enabled: boolean) => {
+    postMessage({ type: 'TOGGLE_SOURCE', payload: { qualifiedSourceId, enabled } });
   };
 
   return (
@@ -89,16 +89,16 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
                       </span>
                     </div>
 
-                    {/* Expanded rules */}
+                    {/* Expanded sources */}
                     <CollapsibleContent>
-                      {plugin.rules.length > 0 ? (
+                      {plugin.sources.length > 0 ? (
                         <div className="ml-5 mb-2 space-y-1.5">
-                          {plugin.rules.map(rule => (
-                            <div key={rule.qualifiedId} className="flex items-start gap-2">
+                          {plugin.sources.map(rule => (
+                            <div key={rule.qualifiedSourceId} className="flex items-start gap-2">
                               <div className="flex-shrink-0 pt-0.5">
                                 <Switch
                                   checked={rule.enabled}
-                                  onCheckedChange={(val) => handleToggleRule(rule.qualifiedId, val)}
+                                  onCheckedChange={(val) => handleToggleRule(rule.qualifiedSourceId, val)}
                                   disabled={!plugin.enabled}
                                   className="scale-[0.7] origin-left"
                                 />
@@ -129,7 +129,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
                         </div>
                       ) : (
                         <div className="ml-5 mb-2">
-                          <p className="text-xs text-muted-foreground">No rules declared.</p>
+                          <p className="text-xs text-muted-foreground">No sources declared.</p>
                         </div>
                       )}
                     </CollapsibleContent>

@@ -26,7 +26,7 @@ describe('graph/model/timelinePositionSeeding', () => {
     const previousPositions = new Map([['anchor.ts', { x: 100, y: 200 }]]);
     seedTimelinePositions(
       [node],
-      [{ id: 'a.ts->anchor.ts', from: 'a.ts', to: 'anchor.ts' }],
+      [{ id: 'a.ts->anchor.ts', from: 'a.ts', to: 'anchor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -41,7 +41,7 @@ describe('graph/model/timelinePositionSeeding', () => {
 
     seedTimelinePositions(
       [anchor, newNode],
-      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' }],
+      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -56,7 +56,7 @@ describe('graph/model/timelinePositionSeeding', () => {
 
     seedTimelinePositions(
       [orphan],
-      [{ id: 'orphan.ts->anchor.ts', from: 'orphan.ts', to: 'anchor.ts' }],
+      [{ id: 'orphan.ts->anchor.ts', from: 'orphan.ts', to: 'anchor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );

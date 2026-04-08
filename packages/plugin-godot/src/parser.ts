@@ -24,7 +24,7 @@ export interface IGDScriptReference {
   isDeclaration?: boolean;
 }
 
-/** Shared context for GDScript rules */
+/** Shared context for GDScript sources */
 export interface GDScriptRuleContext {
   resolver: GDScriptPathResolver;
   workspaceRoot: string;

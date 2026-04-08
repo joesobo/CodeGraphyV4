@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
-import type { IPhysicsSettings } from '../../../shared/settings/physics';
+import { DEFAULT_PHYSICS_SETTINGS, type IPhysicsSettings } from '../../../shared/settings/physics';
 import { readGraphViewPhysicsSettings } from '../settings/physics/reader';
 import { getGraphViewConfigTarget } from '../settings/reader';
 import { resetGraphViewPhysicsSettings, updateGraphViewPhysicsSetting } from '../settings/physics/updates';
@@ -42,13 +42,7 @@ function createDefaultGraphViewProviderPhysicsSettingsMethodDependencies(): Grap
     readPhysicsSettings: readGraphViewPhysicsSettings,
     updatePhysicsSetting: updateGraphViewPhysicsSetting,
     resetPhysicsSettings: resetGraphViewPhysicsSettings,
-    defaultPhysics: {
-      repelForce: 10,
-      linkDistance: 80,
-      linkForce: 0.15,
-      damping: 0.7,
-      centerForce: 0.1,
-    },
+    defaultPhysics: DEFAULT_PHYSICS_SETTINGS,
   };
 }
 

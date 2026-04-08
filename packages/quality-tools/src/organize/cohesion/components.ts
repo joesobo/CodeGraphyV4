@@ -11,9 +11,7 @@ export function findImportComponents(fileNames: string[], importGraph: ImportAdj
     if (!visited.has(fileName)) {
       const component = new Set<string>();
       bfsComponent(fileName, importGraph, visited, component);
-      if (component.size > 0) {
-        components.push(component);
-      }
+      components.push(component);
     }
   }
 
@@ -30,29 +28,36 @@ export function bfsComponent(
   component: Set<string>
 ) {
   const queue: string[] = [startFile];
+  const queued = new Set<string>(visited);
+  queued.add(startFile);
   visited.add(startFile);
   component.add(startFile);
 
-  while (queue.length > 0) {
-    const current = queue.shift()!;
-
+  for (let index = 0; index < queue.length; index++) {
+    const current = queue[index];
     // Forward edges: files that current imports
     const importedFiles = importGraph.get(current) ?? new Set();
     for (const imported of importedFiles) {
-      if (!visited.has(imported)) {
-        visited.add(imported);
-        component.add(imported);
-        queue.push(imported);
+      if (queued.has(imported)) {
+        continue;
       }
+
+      queued.add(imported);
+      visited.add(imported);
+      component.add(imported);
+      queue.push(imported);
     }
 
     // Backward edges: files that import current (treat as undirected)
     for (const [file, imports] of importGraph) {
-      if (imports.has(current) && !visited.has(file)) {
-        visited.add(file);
-        component.add(file);
-        queue.push(file);
+      if (!imports.has(current) || queued.has(file)) {
+        continue;
       }
+
+      queued.add(file);
+      visited.add(file);
+      component.add(file);
+      queue.push(file);
     }
   }
 }

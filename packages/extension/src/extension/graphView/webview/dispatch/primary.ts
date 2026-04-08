@@ -5,18 +5,8 @@ import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { IViewContext } from '../../../../core/views/contracts';
-import { saveExportedJpeg } from '../../../export/saveJpeg';
-import { saveExportedJson } from '../../../export/saveJson';
-import { saveExportedMarkdown } from '../../../export/saveMarkdown';
-import { saveExportedPng } from '../../../export/savePng';
-import { saveExportedSvg } from '../../../export/saveSvg';
-import { applyCommandMessage } from '../messages/commands';
-import { applyExportMessage } from '../messages/exports';
-import { applyGroupMessage, type GraphViewGroupMessageState } from '../messages/groups';
-import { applyNodeFileMessage, type GraphViewNodeFileHandlers } from '../nodeFile/router';
-import { applyPhysicsMessage } from '../messages/physics';
-import { applySettingsMessage, type GraphViewSettingsMessageState } from '../settingsMessages/router';
-import { applyTimelineMessage } from '../messages/timeline';
+import { dispatchGraphViewPrimaryRouteMessage } from './routed';
+import { dispatchGraphViewPrimaryStateMessage } from './stateful';
 
 export interface GraphViewPrimaryMessageContext {
   getTimelineActive(): boolean;
@@ -83,86 +73,14 @@ export interface GraphViewPrimaryMessageResult {
   filterPatterns?: string[];
 }
 
-export function createGraphViewPrimaryGroupMessageState(
-  context: GraphViewPrimaryMessageContext,
-): GraphViewGroupMessageState {
-  return {
-    userGroups: context.getUserGroups(),
-  };
-}
-
-export function createGraphViewPrimaryNodeFileHandlers(
-  context: GraphViewPrimaryMessageContext,
-): GraphViewNodeFileHandlers {
-  return {
-    ...context,
-    timelineActive: context.getTimelineActive(),
-    currentCommitSha: context.getCurrentCommitSha(),
-  };
-}
-
-export function createGraphViewPrimarySettingsMessageState(
-  context: GraphViewPrimaryMessageContext,
-): GraphViewSettingsMessageState {
-  return {
-    activeViewId: context.getActiveViewId(),
-    disabledPlugins: context.getDisabledPlugins(),
-    disabledRules: context.getDisabledRules(),
-    filterPatterns: context.getFilterPatterns(),
-    graphData: context.getGraphData(),
-    viewContext: context.getViewContext(),
-  };
-}
-
-function createGraphViewPrimaryExportHandlers() {
-  return {
-    savePng: saveExportedPng,
-    saveSvg: saveExportedSvg,
-    saveJpeg: saveExportedJpeg,
-    saveJson: saveExportedJson,
-    saveMarkdown: saveExportedMarkdown,
-  };
-}
-
 export async function dispatchGraphViewPrimaryMessage(
   message: WebviewToExtensionMessage,
   context: GraphViewPrimaryMessageContext,
 ): Promise<GraphViewPrimaryMessageResult> {
-  if (await applyNodeFileMessage(message, createGraphViewPrimaryNodeFileHandlers(context))) {
-    return { handled: true };
+  const routedResult = await dispatchGraphViewPrimaryRouteMessage(message, context);
+  if (routedResult.handled) {
+    return routedResult;
   }
 
-  if (await applyExportMessage(message, createGraphViewPrimaryExportHandlers())) {
-    return { handled: true };
-  }
-
-  if (await applyCommandMessage(message, context)) {
-    return { handled: true };
-  }
-
-  if (await applyTimelineMessage(message, context)) {
-    return { handled: true };
-  }
-
-  if (await applyPhysicsMessage(message, context)) {
-    return { handled: true };
-  }
-
-  const groupState = createGraphViewPrimaryGroupMessageState(context);
-  if (await applyGroupMessage(message, groupState, context)) {
-    return {
-      handled: true,
-      userGroups: groupState.userGroups,
-    };
-  }
-
-  const settingsState = createGraphViewPrimarySettingsMessageState(context);
-  if (await applySettingsMessage(message, settingsState, context)) {
-    return {
-      handled: true,
-      filterPatterns: settingsState.filterPatterns,
-    };
-  }
-
-  return { handled: false };
+  return dispatchGraphViewPrimaryStateMessage(message, context);
 }

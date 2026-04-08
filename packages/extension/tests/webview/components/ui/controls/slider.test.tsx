@@ -42,4 +42,31 @@ describe('Slider', () => {
     expect(root).toHaveClass('data-[disabled]:cursor-not-allowed');
     expect(root).toHaveClass('data-[disabled]:[&_*]:cursor-not-allowed');
   });
+
+  it('applies custom classes to the slider root, track, range, and thumb', () => {
+    const { container } = render(
+      <Slider
+        className="root-class"
+        trackClassName="track-class"
+        rangeClassName="range-class"
+        thumbClassName="thumb-class"
+        value={[50]}
+        min={0}
+        max={100}
+        step={1}
+        onValueChange={() => undefined}
+      />
+    );
+
+    const root = container.firstElementChild as HTMLElement;
+    const track = root.firstElementChild as HTMLElement;
+    const range = track.firstElementChild as HTMLElement;
+    const thumb = screen.getByRole('slider');
+
+    expect(root).toHaveClass('root-class');
+    expect(track).toHaveClass('track-class');
+    expect(range).toHaveClass('range-class');
+    expect(range).toHaveClass('bg-primary');
+    expect(thumb).toHaveClass('thumb-class');
+  });
 });

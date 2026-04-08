@@ -53,7 +53,7 @@ describe('buildExportData', () => {
       totalImages: 0,
     });
     expect(result.sections.connections).toEqual({
-      rules: {},
+      sources: {},
       groups: {},
       ungrouped: {},
     });
@@ -66,7 +66,7 @@ describe('buildExportData', () => {
     expect(result.scope.timeline).toEqual({ active: true, commitSha: 'abc123' });
   });
 
-  it('builds rule-attributed imports and computes rule counts from edges', () => {
+  it('builds source-attributed imports and computes source counts from edges', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'a.ts', label: 'a.ts', color: '#fff' },
@@ -74,16 +74,16 @@ describe('buildExportData', () => {
         { id: 'c.ts', label: 'c.ts', color: '#fff' },
       ],
       edges: [
-        { id: 'e1', from: 'a.ts', to: 'b.ts', ruleIds: ['ts:es6'] },
-        { id: 'e2', from: 'a.ts', to: 'c.ts', ruleIds: ['ts:dynamic'] },
+        { id: 'e1', from: 'a.ts', to: 'b.ts', kind: 'import', sources: [{ id: 'ts:es6', pluginId: 'ts', sourceId: 'es6', label: 'ES6 Import' }] },
+        { id: 'e2', from: 'a.ts', to: 'c.ts', kind: 'import', sources: [{ id: 'ts:dynamic', pluginId: 'ts', sourceId: 'dynamic', label: 'Dynamic Import' }] },
       ],
     };
     const plugins: IPluginStatus[] = [{
       id: 'ts', name: 'TS', version: '1.0.0', supportedExtensions: ['.ts'],
       status: 'active', enabled: true, connectionCount: 2,
-      rules: [
-        { id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 99 },
-        { id: 'dynamic', qualifiedId: 'ts:dynamic', name: 'Dynamic Import', description: '', enabled: true, connectionCount: 99 },
+      sources: [
+        { id: 'es6', qualifiedSourceId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 99 },
+        { id: 'dynamic', qualifiedSourceId: 'ts:dynamic', name: 'Dynamic Import', description: '', enabled: true, connectionCount: 99 },
       ],
     }];
 
@@ -92,47 +92,47 @@ describe('buildExportData', () => {
       'ts:es6': ['b.ts'],
       'ts:dynamic': ['c.ts'],
     });
-    expect(result.sections.connections.rules['ts:es6']).toEqual({
+    expect(result.sections.connections.sources['ts:es6']).toEqual({
       name: 'ES6 Import', plugin: 'TS', connections: 1,
     });
-    expect(result.sections.connections.rules['ts:dynamic']).toEqual({
+    expect(result.sections.connections.sources['ts:dynamic']).toEqual({
       name: 'Dynamic Import', plugin: 'TS', connections: 1,
     });
   });
 
-  it('falls back to unattributed imports when edges have no rule identifiers', () => {
+  it('falls back to unattributed imports when edges have no source identifiers', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'a.ts', label: 'a.ts', color: '#fff' },
         { id: 'b.ts', label: 'b.ts', color: '#fff' },
       ],
-      edges: [{ id: 'e1', from: 'a.ts', to: 'b.ts' }],
+      edges: [{ id: 'e1', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] }],
     };
 
     const result = buildExportData(data, noGroups);
     expect(result.sections.connections.ungrouped['a.ts'].imports).toEqual({
       [UNATTRIBUTED_RULE_KEY]: ['b.ts'],
     });
-    expect(result.sections.connections.rules).toEqual({});
+    expect(result.sections.connections.sources).toEqual({});
   });
 
-  it('supports legacy ruleId by resolving to qualified rule when unambiguous', () => {
+  it('resolves source ids to qualified ids when unambiguous', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'a.ts', label: 'a.ts', color: '#fff' },
         { id: 'b.ts', label: 'b.ts', color: '#fff' },
       ],
-      edges: [{ id: 'e1', from: 'a.ts', to: 'b.ts', ruleId: 'es6' }],
+      edges: [{ id: 'e1', from: 'a.ts', to: 'b.ts', kind: 'import', sources: [{ id: 'ts:any', pluginId: 'ts', sourceId: 'es6', label: 'ES6 Import' }] }],
     };
     const plugins: IPluginStatus[] = [{
       id: 'ts', name: 'TS', version: '1.0.0', supportedExtensions: ['.ts'],
       status: 'active', enabled: true, connectionCount: 1,
-      rules: [{ id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 }],
+      sources: [{ id: 'es6', qualifiedSourceId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 }],
     }];
 
     const result = buildExportData(data, noGroups, plugins);
     expect(result.sections.connections.ungrouped['a.ts'].imports).toEqual({ 'ts:es6': ['b.ts'] });
-    expect(result.sections.connections.rules['ts:es6']).toBeDefined();
+    expect(result.sections.connections.sources['ts:es6']).toBeDefined();
   });
 
   it('nests files under groups and separates ungrouped files', () => {
@@ -254,7 +254,7 @@ describe('buildExportData', () => {
       },
       sections: {
         connections: {
-          rules: {},
+          sources: {},
           groups: {
             '*.tsx': {
               style: {

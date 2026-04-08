@@ -2,7 +2,7 @@
 
 `@codegraphy/quality-tools` holds the repo's quality tooling:
 
-- `Boundaries` for dependency-layer rules and dead-surface detection
+- `Boundaries` for dependency-layer sources and dead-surface detection
 - `Organize` for directory structure, file naming, and cohesion analysis
 - `CRAP` for production-code complexity and coverage risk
 - mutation testing orchestration and mutation-site checks
@@ -22,6 +22,16 @@ pnpm run scrap -- quality-tools/ --compare reports/scrap/quality-tools.json --ve
 pnpm run scrap -- quality-tools/ --policy split
 pnpm run scrap -- quality-tools/ --policy review
 ```
+
+Mutation target forms:
+
+```bash
+pnpm run mutate                    # all supported mutation packages
+pnpm run mutate -- plugin-csharp/  # one package
+pnpm run mutate -- --mutate packages/plugin-csharp/src/parserContent.ts  # one file
+```
+
+The mutation configs ignore heavyweight local artifacts like `.vscode-test/` and `.stryker-tmp/`, so downloaded VS Code test bundles do not get copied into Stryker sandboxes.
 
 Documentation lives in the repo docs:
 

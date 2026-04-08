@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { createPythonPlugin } from './index';
+import { createPythonPlugin } from './plugin';
 
 interface CodeGraphyExports {
   registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;
@@ -12,7 +12,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   if (!extension) return;
 
   const codeGraphy = extension.isActive ? extension.exports : await extension.activate();
-  codeGraphy?.registerPlugin(createPythonPlugin(), {
+  codeGraphy?.registerPlugin?.(createPythonPlugin(), {
     extensionUri: context.extensionUri,
   });
 }

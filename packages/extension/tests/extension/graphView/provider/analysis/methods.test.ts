@@ -27,7 +27,7 @@ function createSource(
   _analyzerInitialized: boolean;
   _analyzerInitPromise?: Promise<void>;
   _filterPatterns: string[];
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _graphData: IGraphData;
   _rawGraphData: IGraphData;
@@ -60,7 +60,7 @@ function createSource(
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,
     _filterPatterns: [],
-    _disabledRules: new Set<string>(),
+    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(),
     _graphData: { nodes: [], edges: [] },
     _rawGraphData: { nodes: [], edges: [] },

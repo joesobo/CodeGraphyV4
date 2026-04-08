@@ -31,7 +31,7 @@ export function createGraphViewProviderMessageReadContext(
     getUserGroups: () => source._userGroups,
     getActiveViewId: () => source._activeViewId,
     getDisabledPlugins: () => source._disabledPlugins,
-    getDisabledRules: () => source._disabledRules,
+    getDisabledRules: () => source._disabledSources,
     getFilterPatterns: () => source._filterPatterns,
     getGraphData: () => source._graphData,
     getViewContext: () => source._viewContext,

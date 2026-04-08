@@ -57,8 +57,17 @@ describe('GraphViewProvider error handling', () => {
 
     (provider as unknown as { _analysisRequestId: number })._analysisRequestId = 1;
     (provider as unknown as { _analyzerInitialized: boolean })._analyzerInitialized = true;
-    (provider as unknown as { _analyzer: { analyze: () => Promise<IGraphData> } })._analyzer = {
+    (provider as unknown as {
+      _analyzer: {
+        analyze: () => Promise<IGraphData>;
+        registry: { list(): unknown[]; notifyPostAnalyze(graph: IGraphData): void };
+      };
+    })._analyzer = {
       analyze: vi.fn().mockRejectedValueOnce(new Error('analysis failed')),
+      registry: {
+        list: () => [],
+        notifyPostAnalyze: () => {},
+      },
     };
     vi.spyOn(internals._pluginResourceMethods, '_computeMergedGroups').mockImplementation(() => {});
     vi.spyOn(internals._pluginMethods, '_sendGroupsUpdated').mockImplementation(() => {});
@@ -70,6 +79,9 @@ describe('GraphViewProvider error handling', () => {
       .mockImplementation(() => {});
     const sendPluginStatusesSpy = vi
       .spyOn(internals._pluginMethods, '_sendPluginStatuses')
+      .mockImplementation(() => {});
+    const sendPluginExportersSpy = vi
+      .spyOn(internals._pluginMethods, '_sendPluginExporters')
       .mockImplementation(() => {});
     const markWorkspaceReadySpy = vi
       .spyOn(internals._analysisMethods, '_markWorkspaceReady')
@@ -85,6 +97,7 @@ describe('GraphViewProvider error handling', () => {
     });
     expect(sendAvailableViewsSpy).toHaveBeenCalledTimes(1);
     expect(sendPluginStatusesSpy).toHaveBeenCalledTimes(1);
+    expect(sendPluginExportersSpy).toHaveBeenCalledTimes(1);
     expect(markWorkspaceReadySpy).toHaveBeenCalledWith({ nodes: [], edges: [] });
   });
 

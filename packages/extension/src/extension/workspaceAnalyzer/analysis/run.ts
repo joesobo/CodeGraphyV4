@@ -23,7 +23,7 @@ export function runWorkspaceAnalyzerAnalysis(
   workspaceState: WorkspaceAnalyzerRunWorkspaceState,
   getWorkspaceRoot: () => string | undefined,
   filterPatterns: string[] = [],
-  disabledRules: Set<string> = new Set(),
+  disabledSources: Set<string> = new Set(),
   disabledPlugins: Set<string> = new Set(),
   signal?: AbortSignal,
 ): Promise<IGraphData> {
@@ -52,7 +52,7 @@ export function runWorkspaceAnalyzerAnalysis(
       },
     },
     filterPatterns,
-    disabledRules,
+    disabledSources,
     disabledPlugins,
     signal,
   );

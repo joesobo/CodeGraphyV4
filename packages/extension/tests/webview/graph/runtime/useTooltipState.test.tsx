@@ -14,6 +14,7 @@ describe('graph/runtime/useTooltipState', () => {
 			nodeRect: { x: 0, y: 0, radius: 0 },
 			path: '',
 			info: null,
+			pluginActions: [],
 			pluginSections: [],
 		});
 	});

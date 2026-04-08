@@ -26,6 +26,17 @@ const commits = [
   },
 ];
 
+const mergeCommits = [
+  commits[0],
+  {
+    author: 'Bob',
+    message: 'Merge feature branch',
+    parents: [commits[0].sha, commits[1].sha],
+    sha: 'mmm444mmm444mmm444mmm444mmm444mmm444mmm4',
+    timestamp: 1709294400,
+  },
+];
+
 describe('timeline/CommitList', () => {
   it('renders commits newest-first and highlights the current commit', () => {
     render(
@@ -38,29 +49,50 @@ describe('timeline/CommitList', () => {
       />,
     );
 
+    expect(screen.getByTestId('timeline-commit-list')).toHaveClass(
+      'border-t',
+      'border-border',
+      'min-h-0',
+      'flex',
+      'flex-1',
+      'flex-col',
+      'overflow-hidden',
+    );
+
     const buttons = within(screen.getByTestId('timeline-commit-list-scroll')).getAllByRole('button');
     expect(buttons[0]).toHaveTextContent('Tighten timeline layout');
+    expect(within(buttons[0]).getByText('ccc333c', { selector: 'span.font-mono' })).toBeInTheDocument();
+    expect(within(buttons[0]).queryByText(commits[2].sha, { selector: 'span.font-mono' })).not.toBeInTheDocument();
+    expect(buttons[0]).toHaveClass('hover:bg-[var(--vscode-list-hoverBackground,#2a2d2e)]');
     expect(buttons[1]).toHaveAttribute('aria-current', 'true');
     expect(buttons[1]).toHaveTextContent('Add timeline controls');
+    expect(buttons[1]).toHaveClass(
+      'bg-[var(--vscode-list-activeSelectionBackground,#264f78)]',
+      'text-[var(--vscode-list-activeSelectionForeground,#fff)]',
+    );
+
     expect(screen.getByTestId('timeline-commit-list-scroll')).toHaveClass('overflow-y-auto');
+    expect(screen.getByTestId('settings-panel-chevron')).toHaveClass('rotate-90');
   });
 
-  it('calls onSelectCommit with the selected sha', () => {
+  it('calls onSelectCommit with the selected sha and shows merge commits', () => {
     const onSelectCommit = vi.fn();
 
     render(
       <CommitList
         collapsed={false}
-        currentCommitSha={commits[1].sha}
+        currentCommitSha={mergeCommits[0].sha}
         onSelectCommit={onSelectCommit}
         onToggle={vi.fn()}
-        timelineCommits={commits}
+        timelineCommits={mergeCommits}
       />,
     );
 
+    const buttons = within(screen.getByTestId('timeline-commit-list-scroll')).getAllByRole('button');
+    expect(within(buttons[0]).getByText('Merge', { selector: 'span.rounded' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /Initial import/i }));
 
-    expect(onSelectCommit).toHaveBeenCalledWith(commits[0].sha);
+    expect(onSelectCommit).toHaveBeenCalledWith(mergeCommits[0].sha);
   });
 
   it('collapses the commit list behind a section toggle', () => {
@@ -76,10 +108,15 @@ describe('timeline/CommitList', () => {
       />,
     );
 
-    expect(screen.getByRole('button', { name: 'Commits' })).toBeInTheDocument();
+    const toggle = screen.getByRole('button', { name: 'Commits' });
+
+    expect(toggle).toBeInTheDocument();
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.getByTestId('timeline-commit-list')).toHaveClass('flex-shrink-0');
+    expect(screen.getByTestId('settings-panel-chevron')).not.toHaveClass('rotate-90');
     expect(screen.queryByTestId('timeline-commit-list-scroll')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Commits' }));
+    fireEvent.click(toggle);
 
     expect(onToggle).toHaveBeenCalledTimes(1);
   });

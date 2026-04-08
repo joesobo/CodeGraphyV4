@@ -45,7 +45,7 @@
       },
       "description": "Capabilities this plugin provides"
     },
-    "rules": {
+    "sources": {
       "type": "array",
       "items": {
         "type": "object",
@@ -66,7 +66,7 @@
           }
         }
       },
-      "description": "Connection detection rules provided by this plugin"
+      "description": "Connection sources provided by this plugin"
     },
     "fileColors": {
       "type": "object",
@@ -76,16 +76,17 @@
           {
             "type": "object",
             "required": ["color"],
+            "additionalProperties": false,
             "properties": {
               "color": { "type": "string" },
               "shape2D": { "type": "string", "enum": ["circle", "square", "diamond", "triangle", "hexagon", "star"] },
               "shape3D": { "type": "string", "enum": ["sphere", "cube", "octahedron", "cone", "dodecahedron", "icosahedron"] },
-              "image": { "type": "string", "description": "Relative path from plugin root to image file" }
+              "imagePath": { "type": "string", "description": "Relative path from plugin root to image file" }
             }
           }
         ]
       },
-      "description": "Mapping of file extensions or filenames to color strings or shape/image objects"
+      "description": "Mapping of file extensions or filenames to color strings or shape/imagePath objects"
     },
     "defaultFilters": {
       "type": "array",

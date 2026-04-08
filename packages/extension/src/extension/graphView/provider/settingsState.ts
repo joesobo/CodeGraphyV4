@@ -8,7 +8,7 @@ import { getGraphViewConfigTarget } from '../settings/reader';
 import { loadGraphViewDisabledState } from '../settings/disabled';
 import { applyLoadedGraphViewGroupState } from '../groups/sync';
 import { loadGraphViewGroupState } from '../groups/state';
-import { captureGraphViewSettingsSnapshot } from '../settings/snapshotMessages';
+import { captureGraphViewSettingsSnapshot } from '../settings/snapshot';
 import { sendGraphViewProviderAllSettings, sendGraphViewProviderSettings } from '../settings/lifecycle';
 
 interface GraphViewProviderSettingsAnalyzerLike {
@@ -37,7 +37,7 @@ export interface GraphViewProviderSettingsStateMethodsSource {
   _hiddenPluginGroupIds: Set<string>;
   _userGroups: IGroup[];
   _filterPatterns: string[];
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _nodeSizeMode: NodeSizeMode;
   _analyzer?: GraphViewProviderSettingsAnalyzerLike;
@@ -132,17 +132,17 @@ export function createGraphViewProviderSettingsStateMethods(
   const _loadDisabledRulesAndPlugins = (): boolean => {
     const config = dependencies.getConfiguration('codegraphy');
     const disabledState = dependencies.loadDisabledState(
-      source._disabledRules,
+      source._disabledSources,
       source._disabledPlugins,
       {
-        disabledRulesInspect: config.inspect<string[]>('disabledRules'),
+        disabledSourcesInspect: config.inspect<string[]>('disabledSources'),
         disabledPluginsInspect: config.inspect<string[]>('disabledPlugins'),
-        persistedDisabledRules: source._context.workspaceState.get<string[]>('codegraphy.disabledRules'),
+        persistedDisabledRules: source._context.workspaceState.get<string[]>('codegraphy.disabledSources'),
         persistedDisabledPlugins: source._context.workspaceState.get<string[]>('codegraphy.disabledPlugins'),
       },
     );
 
-    source._disabledRules = disabledState.disabledRules;
+    source._disabledSources = disabledState.disabledSources;
     source._disabledPlugins = disabledState.disabledPlugins;
     return disabledState.changed;
   };

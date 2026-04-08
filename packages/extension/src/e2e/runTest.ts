@@ -11,17 +11,18 @@ import { runTests } from '@vscode/test-electron';
 import { e2eScenarios } from './scenarios';
 
 async function main(): Promise<void> {
+  const repoRoot = path.resolve(__dirname, '../../../..');
   // The compiled Mocha suite entry point
   const extensionTestsPath = path.resolve(__dirname, './suite/run');
 
   for (const scenario of e2eScenarios) {
     const extensionDevelopmentPath = [
-      path.resolve(__dirname, '../../'),
+      repoRoot,
       ...scenario.pluginDevelopmentRelativePaths.map((relativePath) =>
-        path.resolve(__dirname, relativePath),
+        path.resolve(repoRoot, relativePath),
       ),
     ];
-    const workspacePath = path.resolve(__dirname, scenario.workspaceRelativePath);
+    const workspacePath = path.resolve(repoRoot, scenario.workspaceRelativePath);
 
     await runTests({
       extensionDevelopmentPath,

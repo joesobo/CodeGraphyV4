@@ -37,6 +37,7 @@ export interface UseGraphRenderingRuntimeOptions {
   getLinkParticles: (this: void, link: LinkObject) => number;
   getParticleColor: (this: void, link: LinkObject) => string;
   graphDataRef: MutableRefObject<{ nodes: FGNode[]; links: FGLink[] }>;
+  graphLayoutKey: string;
   graphMode: '2d' | '3d';
   highlightVersion: number;
   highlightedNeighborsRef: MutableRefObject<Set<string>>;
@@ -45,6 +46,7 @@ export interface UseGraphRenderingRuntimeOptions {
   nodeSizeMode: string;
   particleSize: number;
   particleSpeed: number;
+  physicsPaused?: boolean;
   physicsSettings: IPhysicsSettings;
   pluginHost?: WebviewPluginHost;
   selectedNodesSetRef: MutableRefObject<Set<string>>;
@@ -70,6 +72,7 @@ export function useGraphRenderingRuntime({
   getLinkParticles,
   getParticleColor,
   graphDataRef,
+  graphLayoutKey,
   graphMode,
   highlightVersion,
   highlightedNeighborsRef,
@@ -78,6 +81,7 @@ export function useGraphRenderingRuntime({
   nodeSizeMode,
   particleSize,
   particleSpeed,
+  physicsPaused = false,
   physicsSettings,
   pluginHost,
   selectedNodesSetRef,
@@ -122,12 +126,15 @@ export function useGraphRenderingRuntime({
     graphMode,
     particleSize,
     particleSpeed,
+    physicsPaused,
   });
 
   usePhysicsRuntime({
     fg2dRef,
     fg3dRef,
     graphMode,
+    layoutKey: graphLayoutKey,
+    physicsPaused,
     physicsSettings,
   });
 

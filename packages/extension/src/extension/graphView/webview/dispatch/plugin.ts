@@ -7,6 +7,8 @@ import {
 } from './pluginHiddenGroups';
 import { dispatchGraphViewPluginReadyMessage } from './pluginReady';
 import { applyPluginContextMenuAction } from '../pluginMessages/contextMenu';
+import { applyPluginExporterAction } from '../pluginMessages/exporter';
+import { applyPluginToolbarAction } from '../pluginMessages/toolbarAction';
 import { applyPluginInteraction } from '../pluginMessages/interaction';
 
 export interface GraphViewPluginMessageContext {
@@ -35,6 +37,8 @@ export interface GraphViewPluginMessageContext {
   sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendPluginExporters?(): void;
+  sendPluginToolbarActions?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
@@ -44,6 +48,12 @@ export interface GraphViewPluginMessageContext {
     | undefined;
   getContextMenuPluginApi(pluginId: string):
     | { contextMenuItems: ReadonlyArray<{ action(target: unknown): Promise<void> | void }> }
+    | undefined;
+  getExporterPluginApi?(pluginId: string):
+    | { exporters: ReadonlyArray<{ run(): Promise<void> | void }> }
+    | undefined;
+  getToolbarActionPluginApi?(pluginId: string):
+    | { toolbarActions: ReadonlyArray<{ items: ReadonlyArray<{ run(): Promise<void> | void }> }> }
     | undefined;
   emitEvent(event: string, payload: unknown): void;
   findNode(targetId: string): unknown;
@@ -62,6 +72,16 @@ export async function dispatchGraphViewPluginMessage(
   message: WebviewToExtensionMessage,
   context: GraphViewPluginMessageContext,
 ): Promise<GraphViewPluginMessageResult> {
+  const getExporterPluginApi = (pluginId: string) => context.getExporterPluginApi?.(pluginId);
+  const getToolbarActionPluginApi = (pluginId: string) =>
+    context.getToolbarActionPluginApi?.(pluginId);
+  const getContextMenuPluginApi = (pluginId: string) => context.getContextMenuPluginApi(pluginId);
+  const findNode = (targetId: string) => context.findNode(targetId);
+  const findEdge = (targetId: string) => context.findEdge(targetId);
+  const logError = (messageText: string, error: unknown) => context.logError(messageText, error);
+  const updateHiddenPluginGroups = (groupIds: string[]) => context.updateHiddenPluginGroups(groupIds);
+  const recomputeGroups = () => context.recomputeGroups();
+
   switch (message.type) {
     case 'WEBVIEW_READY':
       return {
@@ -78,19 +98,41 @@ export async function dispatchGraphViewPluginMessage(
 
     case 'PLUGIN_CONTEXT_MENU_ACTION':
       await applyPluginContextMenuAction(message.payload, {
-        getPluginApi: pluginId => context.getContextMenuPluginApi(pluginId),
-        findNode: targetId => context.findNode(targetId),
-        findEdge: targetId => context.findEdge(targetId),
-        logError: (label, error) => context.logError(label, error),
+        getPluginApi: getContextMenuPluginApi,
+        findNode,
+        findEdge,
+        logError,
+      });
+      return { handled: true };
+
+    case 'RUN_PLUGIN_EXPORT':
+      await applyPluginExporterAction(message.payload, {
+        getPluginApi: getExporterPluginApi,
+        logError,
+      });
+      return { handled: true };
+
+    case 'RUN_PLUGIN_TOOLBAR_ACTION':
+      await applyPluginToolbarAction(message.payload, {
+        getPluginApi: getToolbarActionPluginApi,
+        logError,
       });
       return { handled: true };
 
     case 'TOGGLE_PLUGIN_GROUP_DISABLED':
-      await dispatchGraphViewPluginGroupToggleMessage(message, context);
+      await dispatchGraphViewPluginGroupToggleMessage(message, {
+        ...context,
+        updateHiddenPluginGroups,
+        recomputeGroups,
+      });
       return { handled: true };
 
     case 'TOGGLE_PLUGIN_SECTION_DISABLED':
-      await dispatchGraphViewPluginSectionToggleMessage(message, context);
+      await dispatchGraphViewPluginSectionToggleMessage(message, {
+        ...context,
+        updateHiddenPluginGroups,
+        recomputeGroups,
+      });
       return { handled: true };
 
     default:

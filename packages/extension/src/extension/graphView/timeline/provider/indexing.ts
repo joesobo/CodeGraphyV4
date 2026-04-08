@@ -1,41 +1,15 @@
 import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import type { ICommitInfo } from '../../../../shared/timeline/types';
-import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/defaults';
 import type { ExtensionContext } from 'vscode';
-
-interface GraphViewProviderTimelineAnalyzer {
-  registry: unknown;
-  initialize(): Promise<void>;
-  getPluginFilterPatterns(): string[];
-}
-
-interface GraphViewProviderTimelineGitAnalyzer {
-  indexHistory(
-    onProgress: (phase: string, current: number, total: number) => void,
-    signal: AbortSignal,
-    maxCommits: number,
-  ): Promise<ICommitInfo[]>;
-  getCachedCommitList(): ICommitInfo[] | null | undefined;
-  getGraphDataForCommit(sha: string): Promise<IGraphData>;
-}
-
-export interface GraphViewProviderTimelineSource {
-  _context: ExtensionContext;
-  _analyzer?: GraphViewProviderTimelineAnalyzer;
-  _analyzerInitialized: boolean;
-  _gitAnalyzer?: GraphViewProviderTimelineGitAnalyzer;
-  _indexingController?: AbortController;
-  _filterPatterns: string[];
-  _timelineActive: boolean;
-  _currentCommitSha: string | undefined;
-  _disabledPlugins: Set<string>;
-  _disabledRules: Set<string>;
-  _rawGraphData: IGraphData;
-  _graphData: IGraphData;
-  _applyViewTransform?(): void;
-  _sendMessage(message: ExtensionToWebviewMessage): void;
-}
+import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/defaults';
+import { applyTimelineCommitGraph, buildTimelineCommitGraphData } from './commitGraph';
+import type {
+  GraphViewProviderTimelineAnalyzer,
+  GraphViewProviderTimelineGitAnalyzer,
+  GraphViewProviderTimelineSource,
+} from './types';
+export { indexGraphViewProviderRepository } from './repository';
+export { jumpGraphViewProviderToCommit } from './jump';
 
 export interface GraphViewProviderTimelineDependencies {
   getWorkspaceFolder(): { uri: { fsPath: string } } | undefined;
@@ -54,7 +28,7 @@ export interface GraphViewProviderTimelineDependencies {
     rawGraphData: IGraphData,
     options: {
       disabledPlugins: Set<string>;
-      disabledRules: Set<string>;
+      disabledSources: Set<string>;
       showOrphans: boolean;
       workspaceRoot: string | undefined;
       registry: unknown;
@@ -97,85 +71,6 @@ export interface GraphViewProviderTimelineDependencies {
   logError(message: string, error: unknown): void;
 }
 
-export async function indexGraphViewProviderRepository(
-  source: GraphViewProviderTimelineSource,
-  dependencies: GraphViewProviderTimelineDependencies =
-    createDefaultGraphViewProviderTimelineDependencies(),
-): Promise<void> {
-  const state = {
-    analyzer: source._analyzer,
-    analyzerInitialized: source._analyzerInitialized,
-    gitAnalyzer: source._gitAnalyzer,
-    indexingController: source._indexingController,
-    filterPatterns: source._filterPatterns,
-    timelineActive: source._timelineActive,
-    currentCommitSha: source._currentCommitSha,
-  };
-
-  await dependencies.indexRepository(state, {
-    workspaceFolder: dependencies.getWorkspaceFolder(),
-    verifyGitRepository: cwd => dependencies.verifyGitRepository(cwd),
-    createGitAnalyzer: (workspaceRoot, mergedExclude) =>
-      dependencies.createGitAnalyzer(
-        source._context,
-        source._analyzer!.registry,
-        workspaceRoot,
-        mergedExclude,
-      ),
-    getMaxCommits: () => dependencies.getMaxCommits(),
-    sendMessage: message => source._sendMessage(message),
-    showErrorMessage: message => {
-      dependencies.showErrorMessage(message);
-    },
-    showInformationMessage: message => {
-      dependencies.showInformationMessage(message);
-    },
-    toErrorMessage,
-    jumpToCommit: sha => {
-      source._analyzerInitialized = state.analyzerInitialized;
-      source._gitAnalyzer = state.gitAnalyzer;
-      source._indexingController = state.indexingController;
-      source._timelineActive = state.timelineActive ?? source._timelineActive;
-      source._currentCommitSha = state.currentCommitSha;
-      return jumpGraphViewProviderToCommit(source, sha, dependencies);
-    },
-    logError: (message, error) => {
-      dependencies.logError(message, error);
-    },
-  });
-
-  source._analyzerInitialized = state.analyzerInitialized;
-  source._gitAnalyzer = state.gitAnalyzer;
-  source._indexingController = state.indexingController;
-  source._timelineActive = state.timelineActive ?? source._timelineActive;
-  source._currentCommitSha = state.currentCommitSha;
-}
-
-export async function jumpGraphViewProviderToCommit(
-  source: Pick<
-    GraphViewProviderTimelineSource,
-    | '_analyzer'
-    | '_gitAnalyzer'
-    | '_currentCommitSha'
-    | '_disabledPlugins'
-    | '_disabledRules'
-    | '_rawGraphData'
-    | '_graphData'
-    | '_applyViewTransform'
-    | '_sendMessage'
-  >,
-  sha: string,
-  dependencies: Pick<
-    GraphViewProviderTimelineDependencies,
-    'buildTimelineGraphData' | 'getShowOrphans' | 'getWorkspaceFolder'
-  > = createDefaultGraphViewProviderTimelineDependencies(),
-): Promise<void> {
-  if (!source._gitAnalyzer) return;
-
-  const graphData = await buildTimelineCommitGraphData(source, sha, dependencies);
-  applyTimelineCommitGraph(source, sha, graphData);
-}
-
 export async function resetGraphViewProviderTimeline(
   source: Pick<
     GraphViewProviderTimelineSource,
@@ -183,7 +78,7 @@ export async function resetGraphViewProviderTimeline(
     | '_gitAnalyzer'
     | '_currentCommitSha'
     | '_disabledPlugins'
-    | '_disabledRules'
+    | '_disabledSources'
     | '_rawGraphData'
     | '_graphData'
     | '_applyViewTransform'
@@ -196,7 +91,7 @@ export async function resetGraphViewProviderTimeline(
 ): Promise<void> {
   const commits = source._gitAnalyzer?.getCachedCommitList();
 
-  if (!source._gitAnalyzer || !commits || commits.length === 0) {
+  if (!source._gitAnalyzer || !commits) {
     return;
   }
 
@@ -228,54 +123,4 @@ export function sendGraphViewProviderCachedTimeline(
   );
   source._timelineActive = state.timelineActive;
   source._currentCommitSha = state.currentCommitSha;
-}
-
-function toErrorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
-}
-
-async function buildTimelineCommitGraphData(
-  source: Pick<
-    GraphViewProviderTimelineSource,
-    | '_analyzer'
-    | '_gitAnalyzer'
-    | '_disabledPlugins'
-    | '_disabledRules'
-  >,
-  sha: string,
-  dependencies: Pick<
-    GraphViewProviderTimelineDependencies,
-    'buildTimelineGraphData' | 'getShowOrphans' | 'getWorkspaceFolder'
-  >,
-): Promise<IGraphData> {
-  const rawGraphData = await source._gitAnalyzer!.getGraphDataForCommit(sha);
-
-  return dependencies.buildTimelineGraphData(rawGraphData, {
-    disabledPlugins: source._disabledPlugins,
-    disabledRules: source._disabledRules,
-    showOrphans: dependencies.getShowOrphans(),
-    workspaceRoot: dependencies.getWorkspaceFolder()?.uri.fsPath,
-    registry: source._analyzer?.registry,
-  });
-}
-
-function applyTimelineCommitGraph(
-  source: Pick<
-    GraphViewProviderTimelineSource,
-    '_currentCommitSha' | '_rawGraphData' | '_graphData' | '_applyViewTransform' | '_sendMessage'
-  >,
-  sha: string,
-  graphData: IGraphData,
-): void {
-  source._currentCommitSha = sha;
-  source._rawGraphData = graphData;
-  if (source._applyViewTransform) {
-    source._applyViewTransform();
-  } else {
-    source._graphData = graphData;
-  }
-  source._sendMessage({
-    type: 'COMMIT_GRAPH_DATA',
-    payload: { sha, graphData: source._graphData },
-  });
 }

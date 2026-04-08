@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { createPythonPlugin } from '../src';
+import { createPythonPlugin } from '../src/plugin';
 
 describe('Python plugin from-import resolution', () => {
   let workspaceRoot: string;
@@ -34,7 +34,7 @@ describe('Python plugin from-import resolution', () => {
     const connections = await plugin.detectConnections(mainPath, content, workspaceRoot);
 
     const moduleConn = connections.find(
-      c => c.specifier.includes('from pkg import module') && c.resolvedPath !== null,
+      (connection) => connection.specifier.includes('from pkg import module') && connection.resolvedPath !== null,
     );
 
     expect(moduleConn?.resolvedPath).toBe(path.join(workspaceRoot, 'pkg/module.py'));
@@ -51,7 +51,7 @@ describe('Python plugin from-import resolution', () => {
     const connections = await plugin.detectConnections(mainPath, content, workspaceRoot);
 
     const namespaceConn = connections.find(
-      c => c.specifier.includes('from ns_pkg import member') && c.resolvedPath !== null,
+      (connection) => connection.specifier.includes('from ns_pkg import member') && connection.resolvedPath !== null,
     );
 
     expect(namespaceConn?.resolvedPath).toBe(path.join(workspaceRoot, 'src/ns_pkg/member.py'));

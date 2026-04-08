@@ -6,6 +6,11 @@
 import * as path from 'path';
 import { DEFAULT_NODE_COLOR } from '../../../shared/fileColors';
 import type { IGraphNode } from '../../../shared/graph/types';
+import { DEFAULT_PACKAGE_NODE_COLOR } from '../../../shared/fileColors';
+import {
+  getExternalPackageLabelFromNodeId,
+  isExternalPackageNodeId,
+} from './packageSpecifiers/nodeId';
 
 export interface IWorkspaceGraphNodesOptions {
   cacheFiles: Record<string, { size?: number }>;
@@ -30,6 +35,19 @@ export function buildWorkspaceGraphNodes(
 
   for (const filePath of nodeIds) {
     if (!showOrphans && !connectedIds.has(filePath)) {
+      continue;
+    }
+
+    if (isExternalPackageNodeId(filePath)) {
+      nodes.push({
+        id: filePath,
+        label: getExternalPackageLabelFromNodeId(filePath),
+        color: DEFAULT_PACKAGE_NODE_COLOR,
+        nodeType: 'package',
+        shape2D: 'hexagon',
+        shape3D: 'cube',
+        accessCount: 0,
+      });
       continue;
     }
 

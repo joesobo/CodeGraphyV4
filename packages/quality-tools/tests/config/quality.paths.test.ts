@@ -6,7 +6,7 @@ import {
 } from './qualityRepo';
 
 describe('pathIncludedByTool', () => {
-  it('matches include and exclude rules for tool-specific paths', () => {
+  it('matches include and exclude sources for tool-specific paths', () => {
     const repoRoot = createQualityConfigRepo(DEFAULT_QUALITY_CONFIG);
 
     expect(pathIncludedByTool(repoRoot, 'example', 'crap', 'src/main.ts')).toBe(true);

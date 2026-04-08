@@ -56,6 +56,39 @@ describe('runReachabilityCli', () => {
     expect(dependencies.setExitCode).not.toHaveBeenCalled();
   });
 
+  it('treats a leading --verbose flag as a value flag during target parsing and still reports verbose output', () => {
+    const dependencies = createDependencies();
+
+    runReachabilityCli(['--verbose', 'extension/'], dependencies);
+
+    expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(REPO_ROOT, undefined);
+    expect(dependencies.reportReachability).toHaveBeenCalledWith(createReport(), { verbose: true });
+    expect(dependencies.setExitCode).not.toHaveBeenCalled();
+  });
+
+  it('treats a leading --json flag as a value flag during target parsing', () => {
+    const dependencies = createDependencies();
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    runReachabilityCli(['--json', 'extension/'], dependencies);
+
+    expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(REPO_ROOT, undefined);
+    expect(log).toHaveBeenCalledWith(JSON.stringify(createReport(), null, 2));
+    expect(dependencies.reportReachability).not.toHaveBeenCalled();
+
+    log.mockRestore();
+  });
+
+  it('treats a leading --strict flag as a value flag during target parsing', () => {
+    const dependencies = createDependencies();
+
+    runReachabilityCli(['--strict', 'extension/'], dependencies);
+
+    expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(REPO_ROOT, undefined);
+    expect(dependencies.reportReachability).toHaveBeenCalledWith(createReport(), { verbose: false });
+    expect(dependencies.setExitCode).not.toHaveBeenCalled();
+  });
+
   it('sets a failure exit code for dead ends', () => {
     const dependencies = createDependencies({
       ...createReport(),
@@ -65,6 +98,36 @@ describe('runReachabilityCli', () => {
     runReachabilityCli(['extension/'], dependencies);
 
     expect(dependencies.setExitCode).toHaveBeenCalledWith(1);
+  });
+
+  it('fails in strict mode when only dead surfaces are present', () => {
+    const dependencies = createDependencies({
+      ...createReport(),
+      deadSurfaces: [createFile('packages/extension/src/shared/orphan.ts', 0, 1)],
+    });
+
+    runReachabilityCli(['extension/', '--strict'], dependencies);
+
+    expect(dependencies.setExitCode).toHaveBeenCalledWith(1);
+  });
+
+  it('does not fail in strict mode when dead surfaces are absent', () => {
+    const dependencies = createDependencies();
+
+    runReachabilityCli(['extension/', '--strict'], dependencies);
+
+    expect(dependencies.setExitCode).not.toHaveBeenCalled();
+  });
+
+  it('does not fail for dead surfaces when strict mode is absent', () => {
+    const dependencies = createDependencies({
+      ...createReport(),
+      deadSurfaces: [createFile('packages/extension/src/shared/orphan.ts', 0, 1)],
+    });
+
+    runReachabilityCli(['extension/'], dependencies);
+
+    expect(dependencies.setExitCode).not.toHaveBeenCalled();
   });
 
   it('prints JSON and fails in strict mode for dead surfaces', () => {

@@ -15,6 +15,9 @@ import {
 import { cn } from './ui/cn';
 import { Separator } from './ui/separator';
 import { TooltipHeader, TooltipStats, TooltipExtraSections } from './nodeTooltipContent';
+import type { TooltipAction } from '../pluginHost/api/contracts';
+import type { WebviewPluginHost } from '../pluginHost/manager';
+import { SlotHost } from '../pluginHost/slotHost/view';
 
 interface NodeTooltipProps {
   /** File path relative to workspace */
@@ -36,7 +39,11 @@ interface NodeTooltipProps {
   /** Whether tooltip is visible */
   visible: boolean;
   /** Optional plugin-contributed sections */
+  extraActions?: TooltipAction[];
+  /** Optional plugin-contributed sections */
   extraSections?: Array<{ title: string; content: string }>;
+  /** Optional plugin host for mounted tooltip slot content */
+  pluginHost?: WebviewPluginHost;
 }
 
 export function NodeTooltip({
@@ -49,7 +56,9 @@ export function NodeTooltip({
   visits,
   nodeRect,
   visible,
+  extraActions = [],
   extraSections = [],
+  pluginHost,
 }: NodeTooltipProps): React.ReactElement | null {
   // Virtual element representing the node's bounding circle as a rect
   const virtualEl = useMemo(() => {
@@ -110,7 +119,19 @@ export function NodeTooltip({
         plugin={plugin}
       />
 
-      <TooltipExtraSections sections={extraSections} />
+      <TooltipExtraSections actions={extraActions} sections={extraSections} />
+
+      {pluginHost ? (
+        <>
+          <Separator className="bg-[var(--vscode-editorHoverWidget-border,#454545)]" />
+          <SlotHost
+            pluginHost={pluginHost}
+            slot="tooltip"
+            data-testid="tooltip-plugin-slot"
+            className="px-3 py-1.5 space-y-1 pointer-events-auto"
+          />
+        </>
+      ) : null}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { readGraphViewSettings } from './reader';
-import { buildGraphViewSettingsMessages } from './snapshotMessages';
+import { buildGraphViewSettingsMessages } from './messages';
 
 interface GraphViewConfigurationLike {
   get<T>(key: string, defaultValue: T): T;

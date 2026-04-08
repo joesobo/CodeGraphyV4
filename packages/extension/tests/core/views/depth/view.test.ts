@@ -11,9 +11,9 @@ const sampleData: IGraphData = {
     { id: 'src/orphan.ts', label: 'orphan.ts', color: '#93C5FD' },
   ],
   edges: [
-    { id: 'app->lib', from: 'src/app.ts', to: 'src/lib.ts' },
-    { id: 'lib->deep', from: 'src/lib.ts', to: 'src/deep.ts' },
-    { id: 'deep->leaf', from: 'src/deep.ts', to: 'src/leaf.ts' },
+    { id: 'app->lib', from: 'src/app.ts', to: 'src/lib.ts' , kind: 'import', sources: [] },
+    { id: 'lib->deep', from: 'src/lib.ts', to: 'src/deep.ts' , kind: 'import', sources: [] },
+    { id: 'deep->leaf', from: 'src/deep.ts', to: 'src/leaf.ts' , kind: 'import', sources: [] },
   ],
 };
 
@@ -27,6 +27,16 @@ function context(overrides: Partial<IViewContext> = {}): IViewContext {
 describe('core/views/depth/view', () => {
   beforeEach(() => {
     vi.resetModules();
+  });
+
+  it('exposes the expected depth view metadata', async () => {
+    const { depthGraphView } = await import('../../../../src/core/views/depth/view');
+
+    expect(depthGraphView.id).toBe('codegraphy.depth-graph');
+    expect(depthGraphView.name).toBe('Depth Graph');
+    expect(depthGraphView.icon).toBe('target');
+    expect(depthGraphView.description).toBe('Shows a local graph around the focused file');
+    expect(depthGraphView.recomputeOn).toEqual(['focusedFile', 'depthLimit']);
   });
 
   it('returns the full graph when there is no focused file', async () => {
@@ -70,6 +80,47 @@ describe('core/views/depth/view', () => {
     expect(result.nodes.find(node => node.id === 'src/lib.ts')?.depthLevel).toBe(0);
     expect(result.nodes.find(node => node.id === 'src/app.ts')?.depthLevel).toBe(1);
     expect(result.nodes.find(node => node.id === 'src/leaf.ts')?.depthLevel).toBe(2);
+  });
+
+  it('keeps induced edges between visible neighbors when re-rooting a depth-1 graph', async () => {
+    const { depthGraphView } = await import('../../../../src/core/views/depth/view');
+
+    const result = depthGraphView.transform(
+      {
+        nodes: [
+          { id: 'enemy.gd', label: 'enemy.gd', color: '#93C5FD' },
+          { id: 'player.gd', label: 'player.gd', color: '#93C5FD' },
+          { id: 'game_manager.gd', label: 'game_manager.gd', color: '#93C5FD' },
+          { id: 'math_helpers.gd', label: 'math_helpers.gd', color: '#93C5FD' },
+          { id: 'entity.gd', label: 'entity.gd', color: '#93C5FD' },
+        ],
+        edges: [
+          { id: 'enemy->entity', from: 'enemy.gd', to: 'entity.gd', kind: 'inherit', sources: [] },
+          { id: 'enemy->player', from: 'enemy.gd', to: 'player.gd', kind: 'reference', sources: [] },
+          { id: 'enemy->math', from: 'enemy.gd', to: 'math_helpers.gd', kind: 'load', sources: [] },
+          { id: 'manager->enemy', from: 'game_manager.gd', to: 'enemy.gd', kind: 'reference', sources: [] },
+          { id: 'manager->player', from: 'game_manager.gd', to: 'player.gd', kind: 'reference', sources: [] },
+          { id: 'player->math', from: 'player.gd', to: 'math_helpers.gd', kind: 'load', sources: [] },
+        ],
+      },
+      context({ focusedFile: 'enemy.gd', depthLimit: 1 }),
+    );
+
+    expect(result.nodes.map(node => node.id)).toEqual([
+      'enemy.gd',
+      'player.gd',
+      'game_manager.gd',
+      'math_helpers.gd',
+      'entity.gd',
+    ]);
+    expect(result.edges.map(edge => edge.id)).toEqual([
+      'enemy->entity',
+      'enemy->player',
+      'enemy->math',
+      'manager->enemy',
+      'manager->player',
+      'player->math',
+    ]);
   });
 
   it('falls back to the full graph when the focused file is not in the graph', async () => {

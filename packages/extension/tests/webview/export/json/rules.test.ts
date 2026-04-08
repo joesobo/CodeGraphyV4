@@ -3,12 +3,12 @@ import type { IGraphEdge } from '../../../../src/shared/graph/types';
 import type { IPluginStatus } from '../../../../src/shared/plugins/status';
 import {
   buildConnectionData,
-  buildRuleLookups,
-  resolveRuleKeys,
-} from '../../../../src/webview/export/json/rules';
+  buildSourceLookups,
+  resolveSourceKeys,
+} from '../../../../src/webview/export/json/sources';
 import { UNATTRIBUTED_RULE_KEY } from '../../../../src/webview/export/shared/contracts';
 
-describe('exportJsonRules', () => {
+describe('exportJsonSources', () => {
   const pluginStatuses: IPluginStatus[] = [
     {
       id: 'ts',
@@ -18,9 +18,9 @@ describe('exportJsonRules', () => {
       status: 'active',
       enabled: true,
       connectionCount: 2,
-      rules: [
-        { id: 'import', qualifiedId: 'ts:import', name: 'Import', description: '', enabled: true, connectionCount: 1 },
-        { id: 'dynamic', qualifiedId: 'ts:dynamic', name: 'Dynamic', description: '', enabled: true, connectionCount: 1 },
+      sources: [
+        { id: 'import', qualifiedSourceId: 'ts:import', name: 'Import', description: '', enabled: true, connectionCount: 1 },
+        { id: 'dynamic', qualifiedSourceId: 'ts:dynamic', name: 'Dynamic', description: '', enabled: true, connectionCount: 1 },
       ],
     },
     {
@@ -31,37 +31,37 @@ describe('exportJsonRules', () => {
       status: 'active',
       enabled: true,
       connectionCount: 1,
-      rules: [
-        { id: 'import', qualifiedId: 'js:import', name: 'Import', description: '', enabled: true, connectionCount: 1 },
+      sources: [
+        { id: 'import', qualifiedSourceId: 'js:import', name: 'Import', description: '', enabled: true, connectionCount: 1 },
       ],
     },
   ];
 
-  it('builds plugin rule lookup tables', () => {
-    const lookups = buildRuleLookups(pluginStatuses);
+  it('builds plugin source lookup tables', () => {
+    const lookups = buildSourceLookups(pluginStatuses);
 
-    expect(lookups.ruleMetaByQualified['ts:dynamic']).toEqual({
+    expect(lookups.sourceMetaByQualified['ts:dynamic']).toEqual({
       name: 'Dynamic',
       plugin: 'TypeScript',
     });
-    expect(lookups.qualifiedByRuleId.get('import')).toEqual(['ts:import', 'js:import']);
+    expect(lookups.qualifiedBySourceId.get('import')).toEqual(['ts:import', 'js:import']);
   });
 
-  it('resolves rule ids for explicit, unambiguous, ambiguous, and missing rule metadata', () => {
-    const lookups = buildRuleLookups(pluginStatuses);
+  it('resolves source ids for explicit, unambiguous, ambiguous, and missing source metadata', () => {
+    const lookups = buildSourceLookups(pluginStatuses);
 
-    expect(resolveRuleKeys({ ruleIds: ['ts:dynamic'] }, lookups.qualifiedByRuleId)).toEqual(['ts:dynamic']);
-    expect(resolveRuleKeys({ ruleId: 'dynamic' }, lookups.qualifiedByRuleId)).toEqual(['ts:dynamic']);
-    expect(resolveRuleKeys({ ruleId: 'import' }, lookups.qualifiedByRuleId)).toEqual(['import']);
-    expect(resolveRuleKeys({}, lookups.qualifiedByRuleId)).toEqual([UNATTRIBUTED_RULE_KEY]);
+    expect(resolveSourceKeys({ sources: [{ id: 'ts:dynamic', pluginId: 'ts', sourceId: 'dynamic', label: 'Dynamic' }] }, lookups.qualifiedBySourceId)).toEqual(['ts:dynamic']);
+    expect(resolveSourceKeys({ sources: [{ id: 'ts:any', pluginId: 'ts', sourceId: 'dynamic', label: 'Dynamic' }] }, lookups.qualifiedBySourceId)).toEqual(['ts:dynamic']);
+    expect(resolveSourceKeys({ sources: [{ id: 'ts:any', pluginId: 'ts', sourceId: 'import', label: 'Import' }] }, lookups.qualifiedBySourceId)).toEqual(['ts:any']);
+    expect(resolveSourceKeys({ sources: [] }, lookups.qualifiedBySourceId)).toEqual([UNATTRIBUTED_RULE_KEY]);
   });
 
-  it('builds grouped imports and sorted rule records with fallback metadata', () => {
-    const lookups = buildRuleLookups(pluginStatuses);
+  it('builds grouped imports and sorted source records with fallback metadata', () => {
+    const lookups = buildSourceLookups(pluginStatuses);
     const edges: IGraphEdge[] = [
-      { id: '1', from: 'a.ts', to: 'b.ts', ruleId: 'dynamic' },
-      { id: '2', from: 'a.ts', to: 'c.ts', ruleId: 'unknown' },
-      { id: '3', from: 'a.ts', to: 'd.ts' },
+      { id: '1', from: 'a.ts', to: 'b.ts', kind: 'import', sources: [{ id: 'ts:any', pluginId: 'ts', sourceId: 'dynamic', label: 'Dynamic' }] },
+      { id: '2', from: 'a.ts', to: 'c.ts', kind: 'import', sources: [{ id: 'unknown', pluginId: 'unknown', sourceId: 'unknown', label: 'unknown' }] },
+      { id: '3', from: 'a.ts', to: 'd.ts' , kind: 'import', sources: [] },
     ];
 
     const result = buildConnectionData(edges, lookups);
@@ -71,13 +71,13 @@ describe('exportJsonRules', () => {
       unknown: ['c.ts'],
       [UNATTRIBUTED_RULE_KEY]: ['d.ts'],
     });
-    expect(Object.keys(result.rulesRecord)).toEqual(['ts:dynamic', 'unknown']);
-    expect(result.rulesRecord['ts:dynamic']).toEqual({
+    expect(Object.keys(result.sourcesRecord)).toEqual(['ts:dynamic', 'unknown']);
+    expect(result.sourcesRecord['ts:dynamic']).toEqual({
       name: 'Dynamic',
       plugin: 'TypeScript',
       connections: 1,
     });
-    expect(result.rulesRecord.unknown).toEqual({
+    expect(result.sourcesRecord.unknown).toEqual({
       name: 'unknown',
       plugin: 'unknown',
       connections: 1,

@@ -11,7 +11,7 @@
     "*.md": "#7C3AED",
     "*.mdx": "#8B5CF6"
   },
-  "rules": [
+  "sources": [
     { "id": "wikilink", "name": "Wikilinks", "description": "[[Note Name]], ![[embed]]" }
   ]
 }

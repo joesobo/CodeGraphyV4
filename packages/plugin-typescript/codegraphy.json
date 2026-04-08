@@ -63,7 +63,7 @@
     "README.md": "#083FA1",
     "LICENSE": "#6B7280"
   },
-  "rules": [
+  "sources": [
     { "id": "es6-import", "name": "ES6 Imports", "description": "import/export statements" },
     { "id": "reexport", "name": "Re-exports", "description": "export { x } from \"y\"" },
     { "id": "dynamic-import", "name": "Dynamic Imports", "description": "import(\"module\")" },

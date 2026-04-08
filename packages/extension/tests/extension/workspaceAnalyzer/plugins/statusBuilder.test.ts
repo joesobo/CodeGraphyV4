@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
-import type { IConnection, IPlugin, IPluginInfo, IRule } from '../../../../src/core/plugins/types/contracts';
+import type { IConnection, IPlugin, IPluginInfo, IConnectionSource } from '../../../../src/core/plugins/types/contracts';
 import { buildWorkspacePluginStatuses } from '../../../../src/extension/workspaceAnalyzer/plugins/statusBuilder';
 
-function createRule(id: string, name: string): IRule {
+function createRule(id: string, name: string): IConnectionSource {
   return {
     id,
     name,
@@ -52,13 +52,13 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
       { relativePath: 'README.md' },
     ];
     const fileConnections = new Map<string, IConnection[]>([
-      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' }]],
-      ['README.md', [{ specifier: './guide', resolvedPath: null, type: 'static' }]],
+      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
+      ['README.md', [{ specifier: './guide', resolvedPath: null, type: 'static' , sourceId: 'test-source', kind: 'import' }]],
     ]);
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       discoveredFiles,
       fileConnections,
       pluginInfos,
@@ -80,13 +80,13 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
     expect(statuses.find((status) => status.id === 'plugin.python')?.status).toBe('inactive');
   });
 
-  it('counts resolved rule connections and marks disabled plugins and rules', () => {
+  it('counts resolved rule connections and marks disabled plugins and sources', () => {
     const pluginInfos = [
       createPluginInfo({
         id: 'plugin.typescript',
         name: 'TypeScript',
         supportedExtensions: ['.ts'],
-        rules: [
+        sources: [
           createRule('es6-import', 'ES6 import'),
           createRule('dynamic-import', 'Dynamic import'),
         ],
@@ -94,15 +94,15 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
     ];
     const fileConnections = new Map<string, IConnection[]>([
       ['src/index.ts', [
-        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', ruleId: 'es6-import' },
-        { specifier: './lazy', resolvedPath: '/workspace/src/lazy.ts', type: 'dynamic', ruleId: 'dynamic-import' },
-        { specifier: 'external-package', resolvedPath: null, type: 'static', ruleId: 'es6-import' },
+        { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
+        { specifier: './lazy', resolvedPath: '/workspace/src/lazy.ts', type: 'dynamic', sourceId: 'dynamic-import' , kind: 'import' },
+        { specifier: 'external-package', resolvedPath: null, type: 'static', sourceId: 'es6-import' , kind: 'import' },
       ]],
     ]);
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(['plugin.typescript']),
-      disabledRules: new Set(['plugin.typescript:dynamic-import']),
+      disabledSources: new Set(['plugin.typescript:dynamic-import']),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections,
       pluginInfos,
@@ -115,16 +115,16 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
       enabled: false,
       connectionCount: 2,
     });
-    expect(statuses[0].rules).toEqual([
+    expect(statuses[0].sources).toEqual([
       expect.objectContaining({
         id: 'es6-import',
-        qualifiedId: 'plugin.typescript:es6-import',
+        qualifiedSourceId: 'plugin.typescript:es6-import',
         enabled: true,
         connectionCount: 1,
       }),
       expect.objectContaining({
         id: 'dynamic-import',
-        qualifiedId: 'plugin.typescript:dynamic-import',
+        qualifiedSourceId: 'plugin.typescript:dynamic-import',
         enabled: false,
         connectionCount: 1,
       }),
@@ -145,13 +145,13 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
       }),
     ];
     const fileConnections = new Map<string, IConnection[]>([
-      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' }]],
-      ['main.py', [{ specifier: 'config', resolvedPath: '/workspace/config.py', type: 'static' }]],
+      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
+      ['main.py', [{ specifier: 'config', resolvedPath: '/workspace/config.py', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
     ]);
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }, { relativePath: 'main.py' }],
       fileConnections,
       pluginInfos,
@@ -182,10 +182,10 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections: new Map<string, IConnection[]>([
-        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' }]],
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
       ]),
       pluginInfos,
       workspaceRoot: '/workspace',
@@ -202,16 +202,16 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
         id: 'plugin.typescript',
         name: 'TypeScript',
         supportedExtensions: ['.ts'],
-        rules: [createRule('es6-import', 'ES6 import')],
+        sources: [createRule('es6-import', 'ES6 import')],
       }),
     ];
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections: new Map<string, IConnection[]>([
-        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' }]],
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
       ]),
       pluginInfos,
       workspaceRoot: '/workspace',
@@ -219,22 +219,22 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
     });
 
     expect(statuses[0].connectionCount).toBe(1);
-    expect(statuses[0].rules[0].connectionCount).toBe(0);
+    expect(statuses[0].sources[0].connectionCount).toBe(0);
   });
 
-  it('returns an empty rule list when a plugin declares no rules', () => {
+  it('returns an empty rule list when a plugin declares no sources', () => {
     const pluginInfos = [
       createPluginInfo({
         id: 'plugin.markdown',
         name: 'Markdown',
         supportedExtensions: ['.md'],
-        rules: undefined,
+        sources: undefined,
       }),
     ];
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'README.md' }],
       fileConnections: new Map<string, IConnection[]>([
         ['README.md', []],
@@ -244,7 +244,7 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
       getPluginForFile: () => pluginInfos[0].plugin,
     });
 
-    expect(statuses[0].rules).toEqual([]);
+    expect(statuses[0].sources).toEqual([]);
   });
 
   it('ignores falsey rule ids when counting rule-level connections', () => {
@@ -253,16 +253,16 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
         id: 'plugin.typescript',
         name: 'TypeScript',
         supportedExtensions: ['.ts'],
-        rules: [createRule('', 'Unnamed rule')],
+        sources: [createRule('', 'Unnamed rule')],
       }),
     ];
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledRules: new Set(),
+      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections: new Map<string, IConnection[]>([
-        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', ruleId: '' }]],
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: '' , kind: 'import' }]],
       ]),
       pluginInfos,
       workspaceRoot: '/workspace',
@@ -270,7 +270,7 @@ describe('workspaceAnalyzer/plugins/statusBuilder', () => {
     });
 
     expect(statuses[0].connectionCount).toBe(1);
-    expect(statuses[0].rules).toEqual([
+    expect(statuses[0].sources).toEqual([
       expect.objectContaining({
         id: '',
         connectionCount: 0,

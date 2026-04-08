@@ -99,7 +99,7 @@ describe('WorkspaceAnalyzer adapters', () => {
 
     analyzerPrivate._lastDiscoveredFiles = [{ relativePath: 'src/index.ts' }];
     analyzerPrivate._lastFileConnections = new Map([
-      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static' }]],
+      ['src/index.ts', [{ specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
     ]);
     analyzerPrivate._lastWorkspaceRoot = '/test/workspace';
     vi.spyOn(analyzerPrivate._registry, 'list').mockReturnValue([

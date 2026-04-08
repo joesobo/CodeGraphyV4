@@ -84,7 +84,12 @@ describe('graphView/provider/webview/host default dependencies', () => {
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [{ fsPath: '/test/root' }]),
     };
-    const webviewView = { viewType: 'codegraphy.graphView', webview: {}, visible: true };
+    const webviewView = {
+      viewType: 'codegraphy.graphView',
+      webview: {},
+      visible: true,
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    };
     const nextWebview = { kind: 'next-webview' };
     const methods = createGraphViewProviderWebviewMethods(source as never);
 

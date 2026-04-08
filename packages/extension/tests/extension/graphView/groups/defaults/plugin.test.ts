@@ -11,7 +11,7 @@ describe('graphView/pluginDefaultGroups', () => {
       name: string;
       fileColors?: Record<
         string,
-        string | { color: string; shape2D?: NodeShape2D; shape3D?: NodeShape3D; image?: string }
+        string | { color: string; shape2D?: NodeShape2D; shape3D?: NodeShape3D; imagePath?: string }
       >;
     };
   };
@@ -44,7 +44,7 @@ describe('graphView/pluginDefaultGroups', () => {
                   '*.mdx': {
                     color: '#577590',
                     shape2D: 'hexagon',
-                    image: 'assets/markdown.svg',
+                    imagePath: 'assets/markdown.svg',
                   },
                 },
               },
@@ -300,7 +300,7 @@ describe('graphView/pluginDefaultGroups', () => {
                   '*.gd': {
                     color: '#111111',
                     shape2D: 'hexagon',
-                    image: 'duplicate.svg',
+                    imagePath: 'duplicate.svg',
                   },
                 },
               },

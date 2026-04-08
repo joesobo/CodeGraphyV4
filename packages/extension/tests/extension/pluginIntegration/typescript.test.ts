@@ -3,7 +3,7 @@ import * as path from 'node:path';
 import { waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { createTypeScriptPlugin } from '../../../../plugin-typescript/src';
+import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { activate } from '../../../src/extension/activate';
 import type { GraphViewProvider } from '../../../src/extension/graphViewProvider';
 import { getGraphViewProviderInternals } from '../graphViewProvider/internals';

@@ -1,6 +1,7 @@
-import { existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join, resolve } from 'node:path';
+import { moduleDirectory } from './moduleDirectory';
+import { packageRootFrom } from './packageRoot';
+import { workspaceRootFrom } from './workspaceRoot';
 
 export interface RepoRootOptions {
   cwd?: string;
@@ -11,66 +12,6 @@ export interface RepoRootOptions {
 function envRepoRoot(env: NodeJS.ProcessEnv): string | undefined {
   const configuredRoot = env.TEST_REPO_ROOT ?? env.GITHUB_WORKSPACE;
   return configuredRoot ? resolve(configuredRoot) : undefined;
-}
-
-function moduleDirectory(moduleUrl?: string): string | undefined {
-  if (!moduleUrl) {
-    return undefined;
-  }
-
-  if (moduleUrl.startsWith('file:')) {
-    return dirname(fileURLToPath(moduleUrl));
-  }
-
-  if (moduleUrl.startsWith('/')) {
-    return dirname(moduleUrl);
-  }
-
-  return undefined;
-}
-
-function workspaceRootFrom(start?: string): string | undefined {
-  if (!start) {
-    return undefined;
-  }
-
-  let currentDirectory = resolve(start);
-
-  while (true) {
-    if (existsSync(join(currentDirectory, 'pnpm-workspace.yaml'))) {
-      return currentDirectory;
-    }
-
-    const parentDirectory = dirname(currentDirectory);
-    if (parentDirectory === currentDirectory) {
-      return undefined;
-    }
-
-    currentDirectory = parentDirectory;
-  }
-}
-
-function packageRootFrom(repoRoot: string, start?: string): string | undefined {
-  if (!start) {
-    return undefined;
-  }
-
-  let currentDirectory = resolve(start);
-
-  while (currentDirectory !== repoRoot) {
-    if (existsSync(join(currentDirectory, 'package.json'))) {
-      return currentDirectory;
-    }
-
-    const parentDirectory = dirname(currentDirectory);
-    if (parentDirectory === currentDirectory) {
-      return undefined;
-    }
-
-    currentDirectory = parentDirectory;
-  }
-
-  return undefined;
 }
 
 export function resolveRepoRoot(options: RepoRootOptions = {}): string {

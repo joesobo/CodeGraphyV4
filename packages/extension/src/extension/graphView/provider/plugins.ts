@@ -5,31 +5,35 @@ import type { IGraphData } from '../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../shared/settings/groups';
 import {
-  registerGraphViewExternalPlugin,
   type GraphViewExternalPluginRegistrationOptions,
 } from '../webview/plugins/registration';
 import {
-  sendGraphViewContextMenuItems,
-  sendGraphViewDecorations,
-  sendGraphViewPluginStatuses,
-  sendGraphViewPluginWebviewInjections,
-} from '../webview/plugins/assets';
-import { sendGraphViewAvailableViews, sendGraphViewGroupsUpdated } from '../view/broadcast';
+  GraphViewProviderPluginBroadcastMethods,
+  DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES,
+  createGraphViewProviderPluginBroadcastMethods,
+} from './pluginBroadcasts';
+import {
+  DEFAULT_GRAPH_VIEW_PROVIDER_EXTERNAL_PLUGIN_REGISTRATION_DEPENDENCIES,
+  createGraphViewProviderExternalPluginRegistration,
+} from './pluginExternalRegistration';
 
 const DEFAULT_DEPTH_LIMIT = 1;
 
 type GraphViewPluginAnalyzerLike =
-  NonNullable<Parameters<typeof registerGraphViewExternalPlugin>[2]['analyzer']>
-  & NonNullable<Parameters<typeof sendGraphViewContextMenuItems>[0]>
-  & NonNullable<Parameters<typeof sendGraphViewPluginStatuses>[0]>;
+  NonNullable<
+    Parameters<typeof import('../webview/plugins/registration').registerGraphViewExternalPlugin>[2]['analyzer']
+  >
+  & NonNullable<Parameters<typeof import('../webview/plugins/assets').sendGraphViewContextMenuItems>[0]>
+  & NonNullable<Parameters<typeof import('../webview/plugins/assets').sendGraphViewPluginStatuses>[0]>;
 
-type GraphViewDecorationManagerLike = Parameters<typeof sendGraphViewDecorations>[0];
+type GraphViewDecorationManagerLike =
+  Parameters<typeof import('../webview/plugins/assets').sendGraphViewDecorations>[0];
 
 export interface GraphViewProviderPluginMethodsSource {
   _pluginExtensionUris: Map<string, vscode.Uri>;
   _analyzer?: GraphViewPluginAnalyzerLike;
   _disabledPlugins: Set<string>;
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _groups: IGroup[];
   _view?: vscode.WebviewView;
   _timelineView?: vscode.WebviewView;
@@ -55,142 +59,45 @@ export interface GraphViewProviderPluginMethodsSource {
 }
 
 export interface GraphViewProviderPluginMethods {
-  _sendAvailableViews(): void;
-  _sendPluginStatuses(): void;
-  _sendDecorations(): void;
-  _sendContextMenuItems(): void;
-  _sendPluginWebviewInjections(): void;
-  _sendGroupsUpdated(): void;
+  _sendAvailableViews: GraphViewProviderPluginBroadcastMethods['_sendAvailableViews'];
+  _sendPluginStatuses: GraphViewProviderPluginBroadcastMethods['_sendPluginStatuses'];
+  _sendDecorations: GraphViewProviderPluginBroadcastMethods['_sendDecorations'];
+  _sendContextMenuItems: GraphViewProviderPluginBroadcastMethods['_sendContextMenuItems'];
+  _sendPluginExporters: GraphViewProviderPluginBroadcastMethods['_sendPluginExporters'];
+  _sendPluginToolbarActions: GraphViewProviderPluginBroadcastMethods['_sendPluginToolbarActions'];
+  _sendPluginWebviewInjections: GraphViewProviderPluginBroadcastMethods['_sendPluginWebviewInjections'];
+  _sendGroupsUpdated: GraphViewProviderPluginBroadcastMethods['_sendGroupsUpdated'];
   registerExternalPlugin(
     plugin: unknown,
     options?: GraphViewExternalPluginRegistrationOptions,
   ): void;
 }
-
-export interface GraphViewProviderPluginMethodDependencies {
-  sendAvailableViews: typeof sendGraphViewAvailableViews;
-  sendPluginStatuses: typeof sendGraphViewPluginStatuses;
-  sendDecorations: typeof sendGraphViewDecorations;
-  sendContextMenuItems: typeof sendGraphViewContextMenuItems;
-  sendPluginWebviewInjections: typeof sendGraphViewPluginWebviewInjections;
-  sendGroupsUpdated: typeof sendGraphViewGroupsUpdated;
-  registerExternalPlugin: typeof registerGraphViewExternalPlugin;
-  getWorkspaceFolders(): readonly vscode.WorkspaceFolder[] | undefined;
-}
+export type GraphViewProviderPluginMethodDependencies =
+  import('./pluginBroadcasts').GraphViewProviderPluginBroadcastDependencies
+  & import('./pluginExternalRegistration').GraphViewProviderExternalPluginRegistrationDependencies;
 
 const DEFAULT_DEPENDENCIES: GraphViewProviderPluginMethodDependencies = {
-  sendAvailableViews: sendGraphViewAvailableViews,
-  sendPluginStatuses: sendGraphViewPluginStatuses,
-  sendDecorations: sendGraphViewDecorations,
-  sendContextMenuItems: sendGraphViewContextMenuItems,
-  sendPluginWebviewInjections: sendGraphViewPluginWebviewInjections,
-  sendGroupsUpdated: sendGraphViewGroupsUpdated,
-  registerExternalPlugin: registerGraphViewExternalPlugin,
-  getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
+  ...DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES,
+  ...DEFAULT_GRAPH_VIEW_PROVIDER_EXTERNAL_PLUGIN_REGISTRATION_DEPENDENCIES,
 };
 
 export function createGraphViewProviderPluginMethods(
   source: GraphViewProviderPluginMethodsSource,
   dependencies: GraphViewProviderPluginMethodDependencies = DEFAULT_DEPENDENCIES,
 ): GraphViewProviderPluginMethods {
-  const _sendAvailableViews = (): void => {
-    dependencies.sendAvailableViews(
-      source._viewRegistry,
-      source._viewContext,
-      source._activeViewId,
-      source._rawGraphData,
-      DEFAULT_DEPTH_LIMIT,
-      (message: unknown) => source._sendMessage(message as ExtensionToWebviewMessage),
-    );
-  };
-
-  const _sendPluginStatuses = (): void => {
-    dependencies.sendPluginStatuses(
-      source._analyzer,
-      source._disabledRules,
-      source._disabledPlugins,
-      message => source._sendMessage(message as ExtensionToWebviewMessage),
-    );
-  };
-
-  const _sendDecorations = (): void => {
-    dependencies.sendDecorations(source._decorationManager, message =>
-      source._sendMessage(message as ExtensionToWebviewMessage),
-    );
-  };
-
-  const _sendContextMenuItems = (): void => {
-    dependencies.sendContextMenuItems(source._analyzer, message =>
-      source._sendMessage(message as ExtensionToWebviewMessage),
-    );
-  };
-
-  const _sendPluginWebviewInjections = (): void => {
-    dependencies.sendPluginWebviewInjections(
-      source._analyzer,
-      (assetPath, pluginId) => source._resolveWebviewAssetPath(assetPath, pluginId),
-      message => source._sendMessage(message as ExtensionToWebviewMessage),
-    );
-  };
-
-  const _sendGroupsUpdated = (): void => {
-    dependencies.sendGroupsUpdated(
-      source._groups,
-      {
-        registerPluginRoots: () => source._registerBuiltInPluginRoots(),
-        workspaceFolder: dependencies.getWorkspaceFolders()?.[0],
-        view: source._view ?? source._timelineView,
-        panels: source._panels,
-        resolvePluginAssetPath: (assetPath, pluginId) =>
-          source._resolveWebviewAssetPath(assetPath, pluginId),
-      },
-      message => source._sendMessage(message as ExtensionToWebviewMessage),
-    );
-  };
-
-  const registerExternalPlugin = (
-    plugin: unknown,
-    options?: GraphViewExternalPluginRegistrationOptions,
-  ): void => {
-    dependencies.registerExternalPlugin(
-      plugin,
-      options,
-      {
-        analyzer: source._analyzer,
-        pluginExtensionUris: source._pluginExtensionUris,
-        get firstAnalysis() {
-          return source._firstAnalysis;
-        },
-        get readyNotified() {
-          return source._webviewReadyNotified;
-        },
-        get analyzerInitialized() {
-          return source._analyzerInitialized;
-        },
-        get analyzerInitPromise() {
-          return source._analyzerInitPromise;
-        },
-      },
-      {
-        normalizeExtensionUri: uri => source._normalizeExternalExtensionUri(uri),
-        getWorkspaceRoot: () => dependencies.getWorkspaceFolders()?.[0]?.uri.fsPath,
-        refreshWebviewResourceRoots: () => source._refreshWebviewResourceRoots(),
-        sendPluginStatuses: () => _sendPluginStatuses(),
-        sendContextMenuItems: () => _sendContextMenuItems(),
-        sendPluginWebviewInjections: () => _sendPluginWebviewInjections(),
-        invalidateTimelineCache: () => source._invalidateTimelineCache(),
-        analyzeAndSendData: () => source._analyzeAndSendData(),
-      },
-    );
-  };
+  const broadcasts = createGraphViewProviderPluginBroadcastMethods(
+    source,
+    dependencies,
+    DEFAULT_DEPTH_LIMIT,
+  );
+  const registerExternalPlugin = createGraphViewProviderExternalPluginRegistration(
+    source,
+    dependencies,
+    broadcasts,
+  );
 
   return {
-    _sendAvailableViews,
-    _sendPluginStatuses,
-    _sendDecorations,
-    _sendContextMenuItems,
-    _sendPluginWebviewInjections,
-    _sendGroupsUpdated,
+    ...broadcasts,
     registerExternalPlugin,
   };
 }

@@ -31,8 +31,8 @@ function createDependencies(
       { id: 'src/other.ts', label: 'other.ts', color: '#93C5FD', x: 0, y: 100 },
     ],
     edges: [
-      { id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' },
-      { id: 'src/other.ts->src/app.ts', from: 'src/other.ts', to: 'src/app.ts' },
+      { id: 'src/app.ts->src/utils.ts', from: 'src/app.ts', to: 'src/utils.ts' , kind: 'import', sources: [] },
+      { id: 'src/other.ts->src/app.ts', from: 'src/other.ts', to: 'src/app.ts' , kind: 'import', sources: [] },
     ],
   };
   const container = document.createElement('div');
@@ -57,11 +57,12 @@ function createDependencies(
     graphCursorRef: createRef<'default' | 'pointer'>('default'),
     graphDataRef: createRef({
       nodes: graphData.nodes as FGNode[],
-      links: graphData.edges.map(edge => ({
+      links: graphData.edges.map((edge) => ({
         ...edge,
+        bidirectional: false,
         source: edge.from,
         target: edge.to,
-      })) as FGLink[],
+      }) as unknown as FGLink),
     }),
     graphMode: '2d',
     highlightedNeighborsRef: createRef(new Set<string>()),

@@ -14,7 +14,7 @@ function createState(
   return {
     activeViewId: 'codegraphy.graphView',
     disabledPlugins: new Set<string>(),
-    disabledRules: new Set<string>(),
+    disabledSources: new Set<string>(),
     filterPatterns: [],
     graphData: { nodes: [], edges: [] } satisfies IGraphData,
     viewContext: { folderNodeColor: '#111111' },
@@ -147,7 +147,7 @@ describe('graph view settings update message', () => {
     const handlers = createHandlers();
 
     await expect(
-      applySettingsUpdateMessage({ type: 'TOGGLE_RULE', payload: { qualifiedId: 'x', enabled: false } }, state, handlers),
+      applySettingsUpdateMessage({ type: 'TOGGLE_SOURCE', payload: { qualifiedSourceId: 'x', enabled: false } }, state, handlers),
     ).resolves.toBe(false);
   });
 });

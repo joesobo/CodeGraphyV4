@@ -124,6 +124,17 @@ describe('plugin-godot/activate', () => {
     await expect(activate({ extensionUri: { fsPath: '/plugins/godot' } } as never)).resolves.toBeUndefined();
   });
 
+  it('returns without registering when core activation yields no exports', async () => {
+    mockState.getExtension.mockReturnValue({
+      isActive: false,
+      activate: vi.fn(async () => undefined),
+    });
+
+    const { activate } = await import('../src/activate');
+
+    await expect(activate({ extensionUri: { fsPath: '/plugins/godot' } } as never)).resolves.toBeUndefined();
+  });
+
   it(
     'establishes GDScript connections when installed with the core extension',
     { timeout: installedWithCoreTimeoutMs },

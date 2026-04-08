@@ -7,8 +7,8 @@
  * @module @codegraphy-vscode/plugin-api/plugin
  */
 
-import type { IConnection, IRule } from './connection';
-import type { IGraphData } from './graph';
+import type { IConnection, IConnectionSource } from './connection';
+import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
 import type { CodeGraphyAPI } from './api';
 
 /**
@@ -21,6 +21,14 @@ export interface IAnalysisFile {
   relativePath: string;
   /** File content as a string. */
   content: string;
+}
+
+export interface IPluginFileColorDefinition {
+  color: string;
+  shape2D?: GraphNodeShape2D;
+  shape3D?: GraphNodeShape3D;
+  /** Relative path from the plugin root to an image asset. */
+  imagePath?: string;
 }
 
 /**
@@ -67,11 +75,11 @@ export interface IPlugin {
   supportedExtensions: string[];
 
   /**
-   * Detection rules this plugin supports.
-   * Each rule describes a category of connections the plugin can detect.
-   * Used by the Plugins panel to let users toggle individual rule types.
+   * Connection sources this plugin supports.
+   * Each source describes a category of relations the plugin can emit.
+   * Used by the Plugins panel to let users toggle individual source types.
    */
-  rules?: IRule[];
+  sources?: IConnectionSource[];
 
   /**
    * Preferred colors for supported file extensions.
@@ -82,12 +90,7 @@ export interface IPlugin {
    * - Exact filenames: `project.godot`, `Makefile`
    * - Glob patterns: `**\/*.test.ts`
    */
-  fileColors?: Record<string, string | {
-    color: string;
-    shape2D?: 'circle' | 'square' | 'diamond' | 'triangle' | 'hexagon' | 'star';
-    shape3D?: 'sphere' | 'cube' | 'octahedron' | 'cone' | 'dodecahedron' | 'icosahedron';
-    image?: string;
-  }>;
+  fileColors?: Record<string, string | IPluginFileColorDefinition>;
 
   /**
    * Default filter patterns for this plugin's ecosystem.
@@ -110,7 +113,7 @@ export interface IPlugin {
   // ---------------------------------------------------------------------------
 
   /**
-   * Detect connections (imports/dependencies) in a single file.
+   * Detect connections in a single file.
    *
    * @param filePath      - Absolute path to the file being analyzed
    * @param content       - The file's content as a string

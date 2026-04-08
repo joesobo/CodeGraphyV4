@@ -2,6 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 const sliderHarness = vi.hoisted(() => ({
   onValueChange: null as null | ((value: number[]) => void),
+  lastProps: null as null | {
+    value: number[];
+    onValueChange: (value: number[]) => void;
+    min: number;
+    max: number;
+    step: number;
+  },
 }));
 
 vi.mock('../../../../src/webview/vscodeApi', () => ({
@@ -17,6 +24,7 @@ vi.mock('../../../../src/webview/components/ui/controls/slider', () => ({
     step: number;
   }) => {
     sliderHarness.onValueChange = props.onValueChange;
+    sliderHarness.lastProps = props;
     return (
       <input
         data-testid="depth-view-slider"
@@ -41,6 +49,7 @@ describe('DepthViewControls', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sliderHarness.onValueChange = null;
+    sliderHarness.lastProps = null;
     graphStore.setState({
       activeViewId: 'codegraphy.connections',
       depthLimit: 1,
@@ -108,5 +117,20 @@ describe('DepthViewControls', () => {
     expect(screen.queryByTestId('depth-view-slider')).not.toBeInTheDocument();
     expect(screen.queryByText('Depth')).not.toBeInTheDocument();
     expect(screen.queryByTestId('depth-view-max')).not.toBeInTheDocument();
+  });
+
+  it('passes the effective depth as a single-value slider array', () => {
+    graphStore.setState({
+      activeViewId: 'codegraphy.depth-graph',
+      depthLimit: 4,
+      maxDepthLimit: 6,
+    });
+
+    render(<DepthViewControls />);
+
+    expect(sliderHarness.lastProps?.value).toEqual([4]);
+    expect(sliderHarness.lastProps?.min).toBe(1);
+    expect(sliderHarness.lastProps?.max).toBe(6);
+    expect(sliderHarness.lastProps?.step).toBe(1);
   });
 });

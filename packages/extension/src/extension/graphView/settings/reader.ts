@@ -18,7 +18,7 @@ interface IGraphViewSettingsReader {
 }
 
 export interface IGraphViewDisabledState {
-  disabledRules: Set<string>;
+  disabledSources: Set<string>;
   disabledPlugins: Set<string>;
   changed: boolean;
 }
@@ -57,14 +57,14 @@ export function resolveGraphViewDisabledState(
   storedRules: readonly string[] | undefined,
   storedPlugins: readonly string[] | undefined
 ): IGraphViewDisabledState {
-  const disabledRules = new Set(configuredRules ?? storedRules ?? []);
+  const disabledSources = new Set(configuredRules ?? storedRules ?? []);
   const disabledPlugins = new Set(configuredPlugins ?? storedPlugins ?? []);
 
   return {
-    disabledRules,
+    disabledSources,
     disabledPlugins,
     changed:
-      !areGraphViewSetsEqual(currentDisabledRules, disabledRules) ||
+      !areGraphViewSetsEqual(currentDisabledRules, disabledSources) ||
       !areGraphViewSetsEqual(currentDisabledPlugins, disabledPlugins),
   };
 }

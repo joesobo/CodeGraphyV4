@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { createGDScriptPlugin } from './index';
+import { createGDScriptPlugin } from './plugin';
 
 interface CodeGraphyExports {
   registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;

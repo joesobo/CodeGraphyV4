@@ -3,14 +3,19 @@ import type { ForceGraphMethods as FG3DMethods } from 'react-force-graph-3d';
 import { forceCollide, forceX, forceY } from 'd3-force';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import { toD3Repel, type FGLink, type FGNode } from '../model/build';
-import { hasDistanceAndStrength, hasStrength } from '../support/guards';
+import { hasDistanceAndStrength, hasDistanceMax, hasStrength } from '../support/guards';
 
 export type GraphPhysicsInstance = FG2DMethods<FGNode, FGLink> | FG3DMethods<FGNode, FGLink>;
+const DEFAULT_CHARGE_RANGE = 1000;
+const COLLISION_PADDING = 4;
+const COLLISION_ITERATIONS = 16;
 
 interface GraphPhysicsControls {
 	d3Force(name: string): unknown;
 	d3Force(name: string, force: unknown): unknown;
 	d3ReheatSimulation(): void;
+	pauseAnimation?(): void;
+	resumeAnimation?(): void;
 }
 
 export function havePhysicsSettingsChanged(
@@ -32,6 +37,9 @@ export function applyPhysicsSettings(
 	const graph = instance as GraphPhysicsControls;
 	const chargeForce = graph.d3Force('charge');
 	if (hasStrength(chargeForce)) chargeForce.strength(toD3Repel(settings.repelForce));
+	if (hasDistanceMax(chargeForce)) {
+		chargeForce.distanceMax(DEFAULT_CHARGE_RANGE);
+	}
 
 	const linkForce = graph.d3Force('link');
 	if (hasDistanceAndStrength(linkForce)) {
@@ -56,6 +64,11 @@ export function initPhysics(
 	applyPhysicsSettings(instance, settings);
 	graph.d3Force('forceX', forceX(0).strength(settings.centerForce));
 	graph.d3Force('forceY', forceY(0).strength(settings.centerForce));
-	graph.d3Force('collision', forceCollide((node: FGNode) => node.size + 4));
+	graph.d3Force(
+		'collision',
+		forceCollide((node: FGNode) => node.size + COLLISION_PADDING).iterations(COLLISION_ITERATIONS),
+	);
 	graph.d3ReheatSimulation();
 }
+
+export { syncPhysicsAnimation } from './use/graph/physics';

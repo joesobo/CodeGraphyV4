@@ -21,10 +21,10 @@
   "sideEffects": false,
   "exports": {
     ".": {
-      "types": "./src/index.ts"
+      "types": "./src/contract.ts"
     },
     "./webview": {
-      "types": "./src/webview/index.ts"
+      "types": "./src/webview/contract.ts"
     },
     "./events": {
       "types": "./src/events.ts"
@@ -33,7 +33,7 @@
       "types": "./src/plugin.ts"
     }
   },
-  "types": "src/index.ts",
+  "types": "src/contract.ts",
   "publishConfig": {
     "access": "public"
   },

@@ -37,11 +37,13 @@ describe('Graph Types', () => {
 
   it('should allow creating valid IGraphEdge', () => {
     const edge: IGraphEdge = {
-      id: 'src/a.ts->src/b.ts',
+      id: 'src/a.ts->src/b.ts#import',
       from: 'src/a.ts',
       to: 'src/b.ts',
+      kind: 'import',
+      sources: [],
     };
-    expect(edge.id).toBe('src/a.ts->src/b.ts');
+    expect(edge.id).toBe('src/a.ts->src/b.ts#import');
     expect(edge.from).toBe('src/a.ts');
     expect(edge.to).toBe('src/b.ts');
   });
@@ -52,7 +54,7 @@ describe('Graph Types', () => {
         { id: 'a.ts', label: 'a.ts', color: '#93C5FD' },
         { id: 'b.ts', label: 'b.ts', color: '#93C5FD' },
       ],
-      edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' }],
+      edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] }],
     };
     expect(graphData.nodes).toHaveLength(2);
     expect(graphData.edges).toHaveLength(1);

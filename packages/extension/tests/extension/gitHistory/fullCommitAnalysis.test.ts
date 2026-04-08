@@ -13,7 +13,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
     });
   });
 
-  it('filters excluded and unsupported files, adds plugin rule ids, and drops dangling edges', async () => {
+  it('filters excluded and unsupported files, adds plugin source provenance, and drops dangling edges', async () => {
     const getFileAtCommit = vi.fn(async (_sha: string, filePath: string) => {
       if (filePath === 'src/a.ts') {
         return 'import "./b"; import "./missing";';
@@ -27,14 +27,17 @@ describe('gitHistory/fullCommitAnalysis', () => {
           return [
             {
               resolvedPath: '/workspace/src/b.ts',
-              ruleId: 'import',
+              sourceId: 'import',
               specifier: './b',
               type: 'static' as const,
+              kind: 'import' as const,
             },
             {
               resolvedPath: '/workspace/src/missing.ts',
               specifier: './missing',
               type: 'static' as const,
+              sourceId: 'import',
+              kind: 'import' as const,
             },
           ];
         }
@@ -58,11 +61,18 @@ describe('gitHistory/fullCommitAnalysis', () => {
     expect(result.nodes.map((node) => node.id)).toEqual(['src/a.ts', 'src/b.ts']);
     expect(result.edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts',
+        id: 'src/a.ts->src/b.ts#import',
         from: 'src/a.ts',
         to: 'src/b.ts',
-        ruleId: 'import',
-        ruleIds: ['ts:import'],
+        kind: 'import',
+        sources: [
+          {
+            id: 'ts:import',
+            pluginId: 'ts',
+            sourceId: 'import',
+            label: 'import',
+          },
+        ],
       },
     ]);
     expect(getFileAtCommit).toHaveBeenCalledTimes(2);

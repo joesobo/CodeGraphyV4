@@ -11,10 +11,10 @@ const pluginStatuses: IPluginStatus[] = [
     status: 'active',
     enabled: true,
     connectionCount: 3,
-    rules: [
+    sources: [
       {
         id: 'es-import',
-        qualifiedId: 'plugin.typescript:es-import',
+        qualifiedSourceId: 'plugin.typescript:es-import',
         name: 'ES Import',
         description: 'Detects ES imports',
         enabled: true,
@@ -22,7 +22,7 @@ const pluginStatuses: IPluginStatus[] = [
       },
       {
         id: 'dynamic-import',
-        qualifiedId: 'plugin.typescript:dynamic-import',
+        qualifiedSourceId: 'plugin.typescript:dynamic-import',
         name: 'Dynamic import',
         description: 'Detects dynamic imports',
         enabled: true,
@@ -38,7 +38,7 @@ const pluginStatuses: IPluginStatus[] = [
     status: 'active',
     enabled: true,
     connectionCount: 0,
-    rules: [],
+    sources: [],
   },
 ];
 

@@ -5,7 +5,7 @@ import { graphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import { createExportTimestamp, getExportContext } from '../shared/context';
 import { buildGroupedSections } from './groups';
-import { buildConnectionData, buildRuleLookups } from './rules';
+import { buildConnectionData, buildSourceLookups } from './sources';
 import type { ExportBuildContext, ExportData } from '../shared/contracts';
 
 export { UNATTRIBUTED_RULE_KEY } from '../shared/contracts';
@@ -49,8 +49,8 @@ export function buildExportData(
   pluginStatuses: IPluginStatus[] = [],
   context: ExportBuildContext = {},
 ): ExportData {
-  const lookups = buildRuleLookups(pluginStatuses);
-  const { importsMap, rulesRecord } = buildConnectionData(graphData.edges, lookups);
+  const lookups = buildSourceLookups(pluginStatuses);
+  const { importsMap, sourcesRecord } = buildConnectionData(graphData.edges, lookups);
   const { groupsRecord, ungroupedFiles, imagesRecord } = buildGroupedSections(graphData.nodes, groups, importsMap);
 
   return {
@@ -67,13 +67,13 @@ export function buildExportData(
     summary: {
       totalFiles: graphData.nodes.length,
       totalConnections: graphData.edges.length,
-      totalRules: Object.keys(rulesRecord).length,
+      totalRules: Object.keys(sourcesRecord).length,
       totalGroups: Object.keys(groupsRecord).length,
       totalImages: Object.keys(imagesRecord).length,
     },
     sections: {
       connections: {
-        rules: rulesRecord,
+        sources: sourcesRecord,
         groups: groupsRecord,
         ungrouped: ungroupedFiles,
       },

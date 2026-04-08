@@ -86,11 +86,11 @@ export class Configuration {
 
   /**
    * Rule toggle state persisted in VS Code settings.
-   * Entries are qualified IDs in "<pluginId>:<ruleId>" format.
+   * Entries are qualified IDs in "<pluginId>:<sourceId>" format.
    * @default []
    */
-  get disabledRules(): string[] {
-    return this.config.get<string[]>('disabledRules', []);
+  get disabledSources(): string[] {
+    return this.config.get<string[]>('disabledSources', []);
   }
 
   /**
@@ -150,7 +150,7 @@ export class Configuration {
       showOrphans: this.showOrphans,
       bidirectionalEdges: this.bidirectionalEdges,
       plugins: this.plugins,
-      disabledRules: this.disabledRules,
+      disabledSources: this.disabledSources,
       disabledPlugins: this.disabledPlugins,
     };
   }

@@ -155,7 +155,7 @@ describe('GraphStore', () => {
   });
 
   it('handles PLUGINS_UPDATED message', () => {
-    const plugins = [{ id: 'ts', name: 'TypeScript', version: '1.0', supportedExtensions: ['.ts'], status: 'active' as const, enabled: true, connectionCount: 5, rules: [] }];
+    const plugins = [{ id: 'ts', name: 'TypeScript', version: '1.0', supportedExtensions: ['.ts'], status: 'active' as const, enabled: true, connectionCount: 5, sources: [] }];
     store.getState().handleExtensionMessage({
       type: 'PLUGINS_UPDATED',
       payload: { plugins },

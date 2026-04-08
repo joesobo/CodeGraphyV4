@@ -15,7 +15,7 @@ const SETTINGS: IPhysicsSettings = {
 };
 
 function createPhysicsInstance() {
-  const charge = { strength: vi.fn() };
+  const charge = { distanceMax: vi.fn(), strength: vi.fn() };
   const link = { distance: vi.fn(), strength: vi.fn() };
   const forceXInstance = { strength: vi.fn() };
   const forceYInstance = { strength: vi.fn() };
@@ -91,11 +91,20 @@ describe('physics', () => {
     applyPhysicsSettings(instance, SETTINGS);
 
     expect(charge.strength).toHaveBeenCalledOnce();
+    expect(charge.distanceMax).toHaveBeenCalledWith(1000);
     expect(link.distance).toHaveBeenCalledWith(SETTINGS.linkDistance);
     expect(link.strength).toHaveBeenCalledWith(SETTINGS.linkForce);
     expect(forceXInstance.strength).toHaveBeenCalledWith(SETTINGS.centerForce);
     expect(forceYInstance.strength).toHaveBeenCalledWith(SETTINGS.centerForce);
     expect(instance.d3ReheatSimulation).toHaveBeenCalledOnce();
+  });
+
+  it('uses the fixed graph charge range', () => {
+    const { charge, instance } = createPhysicsInstance();
+
+    applyPhysicsSettings(instance, SETTINGS);
+
+    expect(charge.distanceMax).toHaveBeenCalledWith(1000);
   });
 
   it('skips non-callable strength forces and still reheats the simulation', () => {
@@ -152,8 +161,10 @@ describe('physics', () => {
 
     const collisionForce = d3Force.mock.calls.find(([name]) => name === 'collision')?.[1] as {
       radius: () => (node: { size: number }) => number;
+      iterations: () => number;
     };
 
     expect(collisionForce.radius()({ size: 9 })).toBe(13);
+    expect(collisionForce.iterations()).toBe(16);
   });
 });

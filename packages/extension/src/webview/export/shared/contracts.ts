@@ -26,7 +26,7 @@ export interface ExportGroup {
 }
 
 export interface ExportConnectionsSection {
-  rules: Record<string, ExportRule>;
+  sources: Record<string, ExportRule>;
   groups: Record<string, ExportGroup>;
   ungrouped: Record<string, ExportFile>;
 }

@@ -28,7 +28,13 @@ import {
 function createData(suffix: string): IGraphData {
   return {
     edges: [
-      { id: `edge-${suffix}`, from: `src/${suffix}.ts`, to: `src/${suffix}-dep.ts` },
+      {
+        id: `edge-${suffix}`,
+        from: `src/${suffix}.ts`,
+        to: `src/${suffix}-dep.ts`,
+        kind: 'import',
+        sources: [],
+      },
     ],
     nodes: [
       { color: '#60a5fa', id: `src/${suffix}.ts`, label: `${suffix}.ts` },
@@ -44,6 +50,10 @@ function createBuiltGraph(id: string, x: number): { links: FGLink[]; nodes: FGNo
         bidirectional: false,
         from: `src/${id}.ts`,
         id: `edge-${id}`,
+        kind: 'import',
+        source: `src/${id}.ts`,
+        sources: [],
+        target: `src/${id}-dep.ts`,
         to: `src/${id}-dep.ts`,
       } as FGLink,
     ],

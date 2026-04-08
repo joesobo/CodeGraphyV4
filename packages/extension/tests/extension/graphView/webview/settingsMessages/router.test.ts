@@ -13,7 +13,7 @@ function createState(
   return {
     activeViewId: 'codegraphy.graphView',
     disabledPlugins: new Set<string>(),
-    disabledRules: new Set<string>(),
+    disabledSources: new Set<string>(),
     filterPatterns: [],
     graphData: { nodes: [], edges: [] } satisfies IGraphData,
     viewContext: { folderNodeColor: '#111111' },
@@ -251,21 +251,21 @@ describe('graph view settings router', () => {
     });
   });
 
-  it('disables rules and triggers a targeted rebuild', async () => {
+  it('disables sources and triggers a targeted rebuild', async () => {
     const state = createState();
     const handlers = createHandlers();
 
     await applySettingsMessage(
       {
-        type: 'TOGGLE_RULE',
-        payload: { qualifiedId: 'codegraphy.typescript:dynamic-import', enabled: false },
+        type: 'TOGGLE_SOURCE',
+        payload: { qualifiedSourceId: 'codegraphy.typescript:dynamic-import', enabled: false },
       },
       state,
       handlers,
     );
 
-    expect(state.disabledRules.has('codegraphy.typescript:dynamic-import')).toBe(true);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledRules', [
+    expect(state.disabledSources.has('codegraphy.typescript:dynamic-import')).toBe(true);
+    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledSources', [
       'codegraphy.typescript:dynamic-import',
     ]);
     expect(handlers.smartRebuild).toHaveBeenCalledWith(

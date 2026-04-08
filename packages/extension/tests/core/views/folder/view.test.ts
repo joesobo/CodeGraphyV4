@@ -57,7 +57,7 @@ describe('folderView', () => {
         { id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' },
       ],
       edges: [
-        { id: 'src/App.ts->src/index.ts', from: 'src/App.ts', to: 'src/index.ts' },
+        { id: 'src/App.ts->src/index.ts', from: 'src/App.ts', to: 'src/index.ts' , kind: 'import', sources: [] },
       ],
     };
 
@@ -145,8 +145,8 @@ describe('folderView', () => {
         { id: 'lib/c.ts', label: 'c.ts', color: '#93C5FD' },
       ],
       edges: [
-        { id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts' },
-        { id: 'src/a.ts->lib/c.ts', from: 'src/a.ts', to: 'lib/c.ts' },
+        { id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] },
+        { id: 'src/a.ts->lib/c.ts', from: 'src/a.ts', to: 'lib/c.ts' , kind: 'import', sources: [] },
       ],
     };
 
@@ -206,8 +206,8 @@ describe('folderView', () => {
 
     const edgeIds = result.edges.map(e => e.id).sort();
     expect(edgeIds).toEqual([
-      'src->src/utils',
-      'src/utils->src/utils/helper.ts',
+      'src->src/utils#codegraphy:contains',
+      'src/utils->src/utils/helper.ts#codegraphy:contains',
     ]);
   });
 
@@ -218,7 +218,7 @@ describe('folderView', () => {
         { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
       ],
       edges: [
-        { id: 'index.ts->src/app.ts', from: 'index.ts', to: 'src/app.ts' },
+        { id: 'index.ts->src/app.ts', from: 'index.ts', to: 'src/app.ts' , kind: 'import', sources: [] },
       ],
     };
 
@@ -282,8 +282,8 @@ describe('folderView', () => {
         { id: 'lib/c.ts', label: 'c.ts', color: '#93C5FD' },
       ],
       edges: [
-        { id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts' },
-        { id: 'src/a.ts->lib/c.ts', from: 'src/a.ts', to: 'lib/c.ts' },
+        { id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] },
+        { id: 'src/a.ts->lib/c.ts', from: 'src/a.ts', to: 'lib/c.ts' , kind: 'import', sources: [] },
       ],
     };
 

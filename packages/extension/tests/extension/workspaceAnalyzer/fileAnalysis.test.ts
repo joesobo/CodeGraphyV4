@@ -20,7 +20,7 @@ describe('workspaceAnalyzer/fileAnalysis', () => {
   it('reuses cached connections and backfills missing size on cache hits', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
     const cachedConnections: IConnection[] = [
-      { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' },
+      { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' },
     ];
     cache.files['src/index.ts'] = {
       mtime: 25,
@@ -70,7 +70,7 @@ describe('workspaceAnalyzer/fileAnalysis', () => {
   it('analyzes uncached files and stores the new cache entry', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
     const connections: IConnection[] = [
-      { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' },
+      { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' },
     ];
 
     const result = await analyzeWorkspaceFiles({
@@ -120,7 +120,7 @@ describe('workspaceAnalyzer/fileAnalysis', () => {
   it('emits file processed payloads for analyzed files', async () => {
     const emitFileProcessed = vi.fn();
     const connections: IConnection[] = [
-      { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' },
+      { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' },
     ];
 
     await analyzeWorkspaceFiles({
@@ -188,7 +188,7 @@ describe('workspaceAnalyzer/fileAnalysis', () => {
   it('reuses malformed cached entries without reading size from missing stats', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
     const cachedConnections: IConnection[] = [
-      { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' },
+      { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' },
     ];
     cache.files['src/index.ts'] = {
       mtime: undefined as unknown as number,

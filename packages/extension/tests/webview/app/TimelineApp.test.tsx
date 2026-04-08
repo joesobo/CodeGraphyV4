@@ -4,19 +4,25 @@ import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import { graphStore } from '../../../src/webview/store/state';
 
+const harness = vi.hoisted(() => ({
+  injectPluginAssets: vi.fn(),
+  pluginHost: {},
+  setupMessageListener: vi.fn(() => vi.fn()),
+}));
+
 vi.mock('../../../src/webview/components/Timeline', () => ({
   default: () => <div data-testid="timeline-content" />,
 }));
 
 vi.mock('../../../src/webview/pluginRuntime/useManager', () => ({
   usePluginManager: () => ({
-    pluginHost: {},
-    injectPluginAssets: vi.fn(),
+    pluginHost: harness.pluginHost,
+    injectPluginAssets: harness.injectPluginAssets,
   }),
 }));
 
 vi.mock('../../../src/webview/app/messageListener', () => ({
-  setupMessageListener: vi.fn(() => () => {}),
+  setupMessageListener: harness.setupMessageListener,
 }));
 
 import TimelineApp from '../../../src/webview/app/TimelineApp';
@@ -62,6 +68,9 @@ function resetStore(): void {
 describe('TimelineApp', () => {
   beforeEach(() => {
     resetStore();
+    harness.injectPluginAssets.mockReset();
+    harness.setupMessageListener.mockReset();
+    harness.setupMessageListener.mockReturnValue(vi.fn());
   });
 
   afterEach(() => {
@@ -98,5 +107,46 @@ describe('TimelineApp', () => {
 
     expect(screen.getByTestId('timeline-content')).toBeInTheDocument();
     expect(screen.queryByText('Loading graph...')).not.toBeInTheDocument();
+  });
+
+  it('registers the message listener with the current plugin manager hooks and cleans it up on unmount', () => {
+    const cleanup = vi.fn();
+    harness.setupMessageListener.mockReturnValue(cleanup);
+
+    const { unmount } = render(<TimelineApp />);
+
+    expect(harness.setupMessageListener).toHaveBeenCalledWith(
+      harness.injectPluginAssets,
+      harness.pluginHost,
+    );
+
+    unmount();
+
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
+
+  it('re-registers the message listener when the plugin manager dependencies change', () => {
+    const firstCleanup = vi.fn();
+    const secondCleanup = vi.fn();
+    harness.setupMessageListener
+      .mockReturnValueOnce(firstCleanup)
+      .mockReturnValueOnce(secondCleanup);
+
+    const { rerender, unmount } = render(<TimelineApp />);
+    const nextPluginHost = {};
+    const nextInjectPluginAssets = vi.fn();
+
+    harness.pluginHost = nextPluginHost;
+    harness.injectPluginAssets = nextInjectPluginAssets;
+
+    rerender(<TimelineApp />);
+
+    expect(firstCleanup).toHaveBeenCalledOnce();
+    expect(harness.setupMessageListener).toHaveBeenNthCalledWith(1, expect.any(Function), expect.any(Object));
+    expect(harness.setupMessageListener).toHaveBeenNthCalledWith(2, nextInjectPluginAssets, nextPluginHost);
+
+    unmount();
+
+    expect(secondCleanup).toHaveBeenCalledOnce();
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { detect } from '../src/rules/commonjs-require';
+import { detect, SOURCE_ID } from '../src/sources/commonjs-require';
 import { PathResolver } from '../src/PathResolver';
 import type { TsRuleContext } from '../src/types';
 
@@ -15,8 +15,9 @@ describe('commonjs-require rule', () => {
     const connections = detect(`const foo = require('./bar');`, testFile, context);
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('./bar');
+    expect(connections[0].kind).toBe('import');
     expect(connections[0].type).toBe('require');
-    expect(connections[0].ruleId).toBe('commonjs-require');
+    expect(connections[0].sourceId).toBe('commonjs-require');
   });
 
   it('should detect require without assignment', () => {
@@ -80,5 +81,14 @@ describe('commonjs-require rule', () => {
   it('should handle .cjs file extensions', () => {
     const connections = detect(`const foo = require('./bar');`, '/workspace/src/test.cjs', context);
     expect(connections).toHaveLength(1);
+  });
+
+  it('exports the stable source id', () => {
+    expect(SOURCE_ID).toBe('commonjs-require');
+  });
+
+  it('ignores require calls whose first argument is not a string literal', () => {
+    expect(detect('const load = require(`./bar`);', testFile, context)).toHaveLength(0);
+    expect(detect('const load = require(1);', testFile, context)).toHaveLength(0);
   });
 });

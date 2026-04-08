@@ -171,10 +171,140 @@ describe('handleTooltipNodeHover', () => {
       info: cachedInfo,
       nodeRect: { x: 1, y: 2, radius: 3 },
       path: 'src/App.ts',
+      pluginActions: [],
       pluginSections: [],
       visible: true,
     });
     expect(postMessage).not.toHaveBeenCalled();
     expect(startTracking).toHaveBeenCalledOnce();
+  });
+
+  it('does not request file info for synthetic package nodes', () => {
+    const postMessage = vi.fn();
+    const node = {
+      baseOpacity: 1,
+      borderColor: '#F59E0B',
+      borderWidth: 2,
+      color: '#F59E0B',
+      id: 'pkg:fs',
+      isFavorite: false,
+      label: 'fs',
+      size: 16,
+      nodeType: 'package',
+    } as FGNode & { nodeType: 'package' };
+
+    handleTooltipNodeHover(node, {
+      dataRef: {
+        current: {
+          edges: [],
+          nodes: [node],
+        } as IGraphData,
+      },
+      fileInfoCacheRef: { current: new Map() },
+      getNodeRect: () => ({ x: 1, y: 2, radius: 3 }),
+      hoveredNodeRef: { current: null },
+      interactionHandlers: {
+        sendGraphInteraction: vi.fn(),
+        setGraphCursor: vi.fn(),
+      },
+      pluginHost: undefined,
+      postMessage,
+      setTooltipData: vi.fn(),
+      startTracking: vi.fn(),
+      stopTracking: vi.fn(),
+      tooltipTimeoutRef: { current: null },
+    });
+
+    vi.advanceTimersByTime(500);
+
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  it('does not request file info for package-like node ids even when the node type is not package', () => {
+    const postMessage = vi.fn();
+    const setTooltipData = vi.fn();
+    const node = {
+      color: '#123456',
+      id: 'pkg:fs',
+      label: 'fs',
+    } as FGNode;
+
+    handleTooltipNodeHover(node, {
+      dataRef: {
+        current: {
+          edges: [],
+          nodes: [node],
+        } as IGraphData,
+      },
+      fileInfoCacheRef: { current: new Map() },
+      getNodeRect: () => ({ x: 1, y: 2, radius: 3 }),
+      hoveredNodeRef: { current: null },
+      interactionHandlers: {
+        sendGraphInteraction: vi.fn(),
+        setGraphCursor: vi.fn(),
+      },
+      pluginHost: undefined,
+      postMessage,
+      setTooltipData,
+      startTracking: vi.fn(),
+      stopTracking: vi.fn(),
+      tooltipTimeoutRef: { current: null },
+    });
+
+    vi.advanceTimersByTime(500);
+
+    expect(setTooltipData).toHaveBeenCalledOnce();
+    expect(postMessage).not.toHaveBeenCalled();
+  });
+
+  it('clears the previous hover timeout when a second node is hovered before the first delay elapses', () => {
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const setTooltipData = vi.fn();
+    const startTracking = vi.fn();
+    const firstNode = { color: '#123456', id: 'src/first.ts', label: 'First' } as FGNode;
+    const secondNode = { color: '#654321', id: 'src/second.ts', label: 'Second' } as FGNode;
+    const tooltipTimeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
+
+    handleTooltipNodeHover(firstNode, {
+      dataRef: { current: { edges: [], nodes: [firstNode] } as IGraphData },
+      fileInfoCacheRef: { current: new Map() },
+      getNodeRect: () => ({ x: 1, y: 2, radius: 3 }),
+      hoveredNodeRef: { current: null },
+      interactionHandlers: {
+        sendGraphInteraction: vi.fn(),
+        setGraphCursor: vi.fn(),
+      },
+      pluginHost: undefined,
+      postMessage: vi.fn(),
+      setTooltipData,
+      startTracking,
+      stopTracking: vi.fn(),
+      tooltipTimeoutRef,
+    });
+
+    handleTooltipNodeHover(secondNode, {
+      dataRef: { current: { edges: [], nodes: [secondNode] } as IGraphData },
+      fileInfoCacheRef: { current: new Map() },
+      getNodeRect: () => ({ x: 4, y: 5, radius: 6 }),
+      hoveredNodeRef: { current: null },
+      interactionHandlers: {
+        sendGraphInteraction: vi.fn(),
+        setGraphCursor: vi.fn(),
+      },
+      pluginHost: undefined,
+      postMessage: vi.fn(),
+      setTooltipData,
+      startTracking,
+      stopTracking: vi.fn(),
+      tooltipTimeoutRef,
+    });
+
+    expect(clearTimeoutSpy).toHaveBeenCalledOnce();
+
+    vi.advanceTimersByTime(500);
+
+    expect(setTooltipData).toHaveBeenCalledOnce();
+    expect(startTracking).toHaveBeenCalledOnce();
+    expect(tooltipTimeoutRef.current).not.toBeNull();
   });
 });

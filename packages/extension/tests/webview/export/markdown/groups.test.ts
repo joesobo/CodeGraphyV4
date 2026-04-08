@@ -6,7 +6,7 @@ import {
 } from '../../../../src/webview/export/markdown/groups';
 import type { ExportConnectionsSection, ExportGroup } from '../../../../src/webview/export/shared/contracts';
 
-const rules: ExportConnectionsSection['rules'] = {
+const sources: ExportConnectionsSection['sources'] = {
   'ts:import': {
     name: 'Import',
     plugin: 'TypeScript',
@@ -35,7 +35,7 @@ describe('exportMarkdownGroups', () => {
 
   describe('renderMarkdownGroupsSection', () => {
     it('renders the none state when no grouped files exist', () => {
-      expect(renderMarkdownGroupsSection({}, rules)).toEqual(['- none', '']);
+      expect(renderMarkdownGroupsSection({}, sources)).toEqual(['- none', '']);
     });
 
     it('renders grouped files with style metadata and nested file lines', () => {
@@ -54,7 +54,7 @@ describe('exportMarkdownGroups', () => {
             },
           },
         },
-      }, rules)).toEqual([
+      }, sources)).toEqual([
         '#### `src/**`',
         '- style: #3B82F6 | diamond | image: .codegraphy/images/src.png',
         '- **src/App.ts**',
@@ -67,13 +67,13 @@ describe('exportMarkdownGroups', () => {
 
   describe('renderMarkdownUngroupedSection', () => {
     it('skips the section when there are no ungrouped files', () => {
-      expect(renderMarkdownUngroupedSection({}, rules)).toEqual([]);
+      expect(renderMarkdownUngroupedSection({}, sources)).toEqual([]);
     });
 
     it('renders the ungrouped header and file lines', () => {
       expect(renderMarkdownUngroupedSection({
         'README.md': {},
-      }, rules)).toEqual([
+      }, sources)).toEqual([
         '### Ungrouped',
         '',
         '- README.md',

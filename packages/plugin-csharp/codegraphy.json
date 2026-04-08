@@ -32,7 +32,7 @@
     "appsettings.Development.json": "#F7DF1E",
     "launchSettings.json": "#F7DF1E"
   },
-  "rules": [
+  "sources": [
     { "id": "using-directive", "name": "Using Directives", "description": "using System; static/global/alias" },
     { "id": "type-usage", "name": "Type Usage", "description": "new Type(), Type.Method(), : Type" }
   ]

@@ -14,7 +14,7 @@ describe('seedTimelinePositions (mutation targets)', () => {
 
     seedTimelinePositions(
       [anchor, newNode],
-      [{ id: 'new.ts->anchor.ts', from: 'new.ts', to: 'anchor.ts' }],
+      [{ id: 'new.ts->anchor.ts', from: 'new.ts', to: 'anchor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.5
     );
@@ -31,7 +31,7 @@ describe('seedTimelinePositions (mutation targets)', () => {
 
     seedTimelinePositions(
       [anchor, newNode],
-      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' }],
+      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -48,7 +48,7 @@ describe('seedTimelinePositions (mutation targets)', () => {
     const previousPositions = new Map([['anchor.ts', { x: 100, y: 200 }]]);
     seedTimelinePositions(
       [node],
-      [{ id: 'a.ts->anchor.ts', from: 'a.ts', to: 'anchor.ts' }],
+      [{ id: 'a.ts->anchor.ts', from: 'a.ts', to: 'anchor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -62,7 +62,7 @@ describe('seedTimelinePositions (mutation targets)', () => {
     const previousPositions = new Map([['anchor.ts', { x: 100, y: 200 }]]);
     seedTimelinePositions(
       [node],
-      [{ id: 'a.ts->anchor.ts', from: 'a.ts', to: 'anchor.ts' }],
+      [{ id: 'a.ts->anchor.ts', from: 'a.ts', to: 'anchor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -77,7 +77,7 @@ describe('seedTimelinePositions (mutation targets)', () => {
 
     seedTimelinePositions(
       [neighborNode, newNode],
-      [{ id: 'new.ts->neighbor.ts', from: 'new.ts', to: 'neighbor.ts' }],
+      [{ id: 'new.ts->neighbor.ts', from: 'new.ts', to: 'neighbor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -93,7 +93,7 @@ describe('seedTimelinePositions (mutation targets)', () => {
 
     seedTimelinePositions(
       [neighborNode, newNode],
-      [{ id: 'new.ts->neighbor.ts', from: 'new.ts', to: 'neighbor.ts' }],
+      [{ id: 'new.ts->neighbor.ts', from: 'new.ts', to: 'neighbor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -109,7 +109,7 @@ describe('seedTimelinePositions (mutation targets)', () => {
 
     seedTimelinePositions(
       [anchor, newNode],
-      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' }],
+      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0
     );
@@ -126,7 +126,7 @@ describe('seedTimelinePositions (mutation targets)', () => {
 
     seedTimelinePositions(
       [anchor, newNode],
-      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' }],
+      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 1
     );

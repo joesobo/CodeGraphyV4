@@ -14,7 +14,7 @@ export function classifyConfigChange(event: vscode.ConfigurationChangeEvent): Co
   }
 
   if (
-    event.affectsConfiguration('codegraphy.disabledRules') ||
+    event.affectsConfiguration('codegraphy.disabledSources') ||
     event.affectsConfiguration('codegraphy.disabledPlugins')
   ) {
     return 'toggles';

@@ -77,7 +77,7 @@ CodeGraphyV4/
 │   │       ├── events.ts           # EventPayloads, event name constants
 │   │       ├── decorations.ts      # NodeDecoration, EdgeDecoration
 │   │       ├── views.ts            # IView, IViewContext
-│   │       ├── connections.ts      # IConnection, IRule
+│   │       ├── connections.ts      # IConnection, IConnectionSource
 │   │       ├── graph.ts            # IGraphNode, IGraphEdge, IGraphData
 │   │       ├── disposable.ts       # Disposable, DisposableGroup
 │   │       ├── webview/            # Tier 2 webview types
@@ -150,7 +150,7 @@ Every plugin (built-in and third-party) includes a `codegraphy.json` manifest.
   "tier": 1,
   "supportedExtensions": [".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"],
   "capabilities": ["connections", "decorations", "events", "views"],
-  "rules": [
+  "sources": [
     { "id": "es6-import", "name": "ES6 Imports", "description": "import/export statements" },
     { "id": "dynamic-import", "name": "Dynamic Imports", "description": "import() expressions" },
     { "id": "commonjs-require", "name": "CommonJS Require", "description": "require() calls" },
@@ -284,7 +284,7 @@ Plugins subscribe via `api.on(eventName, handler)`. All events are fully typed t
 | `plugin:unregistered` | `{ pluginId }` |
 | `plugin:enabled` | `{ pluginId }` |
 | `plugin:disabled` | `{ pluginId }` |
-| `plugin:ruleToggled` | `{ qualifiedId, enabled }` |
+| `plugin:sourceToggled` | `{ qualifiedSourceId, enabled }` |
 | `plugin:message` | `{ from, to?, data }` |
 
 ### Timeline (4 events)
@@ -557,8 +557,8 @@ All 5 built-in plugins migrate to use `registerPlugin()` — the same API as thi
 
 | Plugin | Scope | Showcases |
 |--------|-------|-----------|
-| TypeScript | Largest — 4 rules, 23 colors, AST, tsconfig | Gold standard reference |
-| Python | Small — 2 rules, regex | Simple plugin baseline |
+| TypeScript | Largest — 4 sources, 23 colors, AST, tsconfig | Gold standard reference |
+| Python | Small — 2 sources, regex | Simple plugin baseline |
 | C# | Medium — namespace resolution | Cross-file `onPreAnalyze` |
 | GDScript | Medium — res:// paths, class_name | `onPreAnalyze` index building |
 | Markdown | Small — wikilinks | File index + `onPreAnalyze` |

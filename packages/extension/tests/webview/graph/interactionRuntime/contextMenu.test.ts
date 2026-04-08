@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { FGLink } from '../../../../src/webview/components/graph/model/build';
-import { createContextMenuHandlers } from '../../../../src/webview/components/graph/interactionRuntime/contextMenu';
+import {
+  createContextMenuHandlers,
+  getContextMenuPointerState,
+} from '../../../../src/webview/components/graph/interactionRuntime/contextMenu';
 import { createInteractionDependencies } from './testUtils';
 
 function spyOnDispatchEvent(container: HTMLElement | null) {
@@ -98,6 +101,30 @@ describe('graph/contextMenuHandlers', () => {
     expect(syntheticEvent?.ctrlKey).toBe(false);
   });
 
+  it('returns explicit zeroed pointer state when the graph callback omits the event', () => {
+    expect(getContextMenuPointerState(undefined)).toEqual({
+      clientX: 0,
+      clientY: 0,
+      ctrlKey: false,
+    });
+  });
+
+  it('returns pointer state from the original mouse event', () => {
+    expect(
+      getContextMenuPointerState(
+        new MouseEvent('contextmenu', {
+          clientX: 12,
+          clientY: 16,
+          ctrlKey: true,
+        }),
+      ),
+    ).toEqual({
+      clientX: 12,
+      clientY: 16,
+      ctrlKey: true,
+    });
+  });
+
   it('keeps the existing selection when opening a selected node context menu', () => {
     const dependencies = createInteractionDependencies();
     dependencies.selectedNodesSetRef.current = new Set(['src/app.ts', 'src/utils.ts']);
@@ -146,6 +173,30 @@ describe('graph/contextMenuHandlers', () => {
       { kind: 'background', targets: [] },
     );
     expect(dispatchEvent).toHaveBeenCalledTimes(2);
+  });
+
+  it('falls back to legacy source and target endpoints when from and to are unresolved', () => {
+    const dependencies = createInteractionDependencies();
+    const dispatchEvent = spyOnDispatchEvent(dependencies.containerRef.current);
+    const handlers = createContextMenuHandlers(dependencies, vi.fn());
+
+    handlers.openEdgeContextMenu(
+      {
+        id: 'src/app.ts->src/utils.ts',
+        from: {},
+        to: {},
+        source: 'src/app.ts',
+        target: 'src/utils.ts',
+      } as unknown as FGLink,
+      new MouseEvent('contextmenu', { button: 2, buttons: 2 }),
+    );
+
+    expect(dependencies.setContextSelection).toHaveBeenCalledWith({
+      edgeId: 'src/app.ts->src/utils.ts',
+      kind: 'edge',
+      targets: ['src/app.ts', 'src/utils.ts'],
+    });
+    expect(dispatchEvent).toHaveBeenCalledOnce();
   });
 
   it.each([

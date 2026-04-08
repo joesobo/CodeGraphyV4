@@ -30,6 +30,7 @@ function resetStore() {
     directionMode: 'arrows',
     particleSpeed: 0.005,
     particleSize: 4,
+    physicsPaused: false,
     showLabels: true,
     graphMode: '2d',
     nodeSizeMode: 'connections',

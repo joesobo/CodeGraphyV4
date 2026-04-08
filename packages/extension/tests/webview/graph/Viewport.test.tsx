@@ -8,6 +8,7 @@ const harness = vi.hoisted(() => ({
   nodeTooltip: vi.fn(),
   surface2d: vi.fn(),
   surface3d: vi.fn(),
+  throwSurface3d: false,
 }));
 
 vi.mock('../../../src/webview/components/NodeTooltip', () => ({
@@ -27,6 +28,9 @@ vi.mock('../../../src/webview/components/graph/rendering/surface/view2d', () => 
 vi.mock('../../../src/webview/components/graph/rendering/surface/view3d', () => ({
   Surface3d: (props: Record<string, unknown>) => {
     harness.surface3d(props);
+    if (harness.throwSurface3d) {
+      throw new Error('Error creating WebGL context.');
+    }
     return <div data-testid="surface-3d" />;
   },
 }));
@@ -148,6 +152,21 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
 }
 
 describe('Viewport', () => {
+  it('falls back to the 2d surface when the 3d surface throws', () => {
+    harness.throwSurface3d = true;
+    const onSurface3dError = vi.fn();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    renderViewport({ graphMode: '3d', onSurface3dError });
+
+    expect(screen.getByTestId('surface-2d')).toBeInTheDocument();
+    expect(screen.queryByTestId('surface-3d')).not.toBeInTheDocument();
+    expect(onSurface3dError).toHaveBeenCalledWith(expect.any(Error));
+
+    harness.throwSurface3d = false;
+    consoleError.mockRestore();
+  });
+
   it('renders the 2d graph surface and forwards tooltip data', () => {
     renderViewport();
 

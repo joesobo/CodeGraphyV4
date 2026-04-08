@@ -12,7 +12,7 @@ function createSource(
     registry: { notifyGraphRebuild: ReturnType<typeof vi.fn> };
     clearCache: ReturnType<typeof vi.fn>;
   };
-  _disabledRules: Set<string>;
+  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
@@ -39,7 +39,7 @@ function createSource(
       registry: { notifyGraphRebuild: vi.fn() },
       clearCache: vi.fn(),
     },
-    _disabledRules: new Set<string>(),
+    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(),
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -224,7 +224,7 @@ describe('graphView/provider/refresh', () => {
         status: 'active' as const,
         enabled: true,
         connectionCount: 0,
-        rules: [],
+        sources: [],
       },
     ] satisfies IPluginStatus[];
     const smartRebuildGraphData = vi.fn((_nextSource, _kind, _id, handlers: {

@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { renderMarkdownRulesSection } from '../../../../src/webview/export/markdown/rules';
+import { renderMarkdownRulesSection } from '../../../../src/webview/export/markdown/sources';
 
-describe('exportMarkdownRules', () => {
-  it('returns no lines when there are no rule summaries', () => {
+describe('exportMarkdownSources', () => {
+  it('returns no lines when there are no source summaries', () => {
     expect(renderMarkdownRulesSection({})).toEqual([]);
   });
 
-  it('renders rule summaries in markdown bullet format', () => {
+  it('renders source summaries in markdown bullet format', () => {
     expect(renderMarkdownRulesSection({
       'ts:import': {
         name: 'Import',

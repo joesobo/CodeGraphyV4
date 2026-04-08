@@ -1,6 +1,7 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
+import { extensionOwnedVitestIncludes } from './vitest.includes';
 
 const root = resolve(__dirname, '../..');
 
@@ -12,9 +13,7 @@ export default defineConfig({
     server: {
       sourcemap: false,
     },
-    include: [
-      'tests/**/*.test.{ts,tsx}',
-    ],
+    include: extensionOwnedVitestIncludes,
     setupFiles: [resolve(__dirname, 'tests/setup.ts')],
     coverage: {
       provider: 'istanbul',

@@ -3,7 +3,7 @@
 CodeGraphy can be configured in two ways:
 
 - **Settings Panel** (the gear icon in the graph view). Changes apply immediately. Some values persist in workspace state, while others map directly to VS Code settings.
-- **`settings.json`** (standard VS Code settings). Better for team-shared configuration. Plugin/rule toggles are persisted here (`codegraphy.disabledPlugins`, `codegraphy.disabledRules`).
+- **`settings.json`** (standard VS Code settings). Better for team-shared configuration. Plugin/rule toggles are persisted here (`codegraphy.disabledPlugins`, `codegraphy.disabledSources`).
 
 ## VS Code settings reference
 
@@ -23,7 +23,7 @@ CodeGraphy can be configured in two ways:
 | `codegraphy.favorites` | string[] | `[]` | Favorite file paths (highlighted with yellow border) |
 | `codegraphy.groups` | object[] | `[]` | Color groups: `{ id, pattern, color }` |
 | `codegraphy.plugins` | string[] | `[]` | VS Code extension IDs that provide external CodeGraphy plugins |
-| `codegraphy.disabledRules` | string[] | `[]` | Disabled detection rules as qualified IDs: `<pluginId>:<ruleId>` |
+| `codegraphy.disabledSources` | string[] | `[]` | Disabled detection sources as qualified IDs: `<pluginId>:<sourceId>` |
 | `codegraphy.disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
 | `codegraphy.folderNodeColor` | string | `"#A1A1AA"` | Color for folder nodes in Folder View (`#RRGGBB`) |
 | `codegraphy.physics.repelForce` | number | `10` | Node repulsion strength (0-20) |
@@ -37,14 +37,14 @@ CodeGraphy can be configured in two ways:
 The Plugins panel writes toggle state to VS Code settings:
 
 - `codegraphy.disabledPlugins` for whole-plugin toggles
-- `codegraphy.disabledRules` for per-rule toggles (`<pluginId>:<ruleId>`)
+- `codegraphy.disabledSources` for per-rule toggles (`<pluginId>:<sourceId>`)
 
 Example:
 
 ```json
 {
   "codegraphy.disabledPlugins": ["codegraphy.python"],
-  "codegraphy.disabledRules": ["codegraphy.typescript:dynamic-import"]
+  "codegraphy.disabledSources": ["codegraphy.typescript:dynamic-import"]
 }
 ```
 
@@ -292,4 +292,4 @@ No groups are configured. Add groups in the Settings Panel or via `codegraphy.gr
 1. Make sure the file type has a supported plugin (TypeScript/JS, Python, C#, GDScript, Markdown)
 2. Check that imported files are within the `include` patterns
 3. `node_modules` imports are intentionally excluded
-4. Check `codegraphy.disabledPlugins` and `codegraphy.disabledRules` for an unintended toggle
+4. Check `codegraphy.disabledPlugins` and `codegraphy.disabledSources` for an unintended toggle
