@@ -20,6 +20,7 @@ export interface IGraphEdgeTypeDefinition {
 export interface IGraphControlsSnapshot {
   nodeTypes: IGraphNodeTypeDefinition[];
   edgeTypes: IGraphEdgeTypeDefinition[];
+  nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   edgeColors: Record<string, string>;

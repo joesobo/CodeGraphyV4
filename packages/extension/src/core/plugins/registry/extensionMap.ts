@@ -43,3 +43,14 @@ export function removePluginFromExtensionMap(
     }
   }
 }
+
+export function rebuildPluginExtensionMap(
+  plugins: Iterable<IPlugin>,
+  extensionMap: Map<string, string[]>,
+): void {
+  extensionMap.clear();
+
+  for (const plugin of plugins) {
+    addPluginToExtensionMap(plugin, extensionMap);
+  }
+}

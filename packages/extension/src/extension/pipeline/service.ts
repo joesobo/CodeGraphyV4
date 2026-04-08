@@ -149,6 +149,7 @@ export class WorkspacePipeline {
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
   ): Promise<IGraphData> {
+    this._syncPluginOrder();
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       console.log('[CodeGraphy] No workspace folder open');
@@ -214,6 +215,7 @@ export class WorkspacePipeline {
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal
   ): Promise<IGraphData> {
+    this._syncPluginOrder();
     const graphData = await runWorkspacePipelineAnalysis(
       createWorkspacePipelineAnalysisSource(
         this as unknown as WorkspacePipelineSourceOwner,
@@ -250,6 +252,7 @@ export class WorkspacePipeline {
    * Used for instant graph updates when toggling sources/plugins.
    */
   rebuildGraph(disabledSources: Set<string>, disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
+    this._syncPluginOrder();
     return rebuildWorkspacePipelineGraphForSource(
       createWorkspacePipelineRebuildSource(
         this as unknown as WorkspacePipelineSourceOwner,
@@ -264,6 +267,7 @@ export class WorkspacePipeline {
    * Computes the status of each registered plugin for the webview's Plugins panel.
    */
   getPluginStatuses(disabledSources: Set<string>, disabledPlugins: Set<string>): IPluginStatus[] {
+    this._syncPluginOrder();
     return getWorkspacePipelinePluginStatuses({
       disabledPlugins,
       disabledSources,
@@ -377,5 +381,9 @@ export class WorkspacePipeline {
    */
   private async _getFileStat(filePath: string): Promise<{ mtime: number; size: number } | null> {
     return readWorkspacePipelineFileStat(filePath, vscode.workspace.fs);
+  }
+
+  private _syncPluginOrder(): void {
+    this._registry.setPluginOrder(this._config.getAll().pluginOrder);
   }
 }

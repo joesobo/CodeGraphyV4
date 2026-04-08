@@ -17,6 +17,29 @@ describe('PluginRegistry collection', () => {
     expect(result.map((pluginInfo) => pluginInfo.plugin.id)).toContain('second');
   });
 
+  it('reorders registry listing and extension routing when plugin order changes', () => {
+    const registry = createConfiguredRegistry();
+    const first = createMockPlugin({ id: 'first', supportedExtensions: ['.ts'] });
+    const second = createMockPlugin({ id: 'second', supportedExtensions: ['.ts'] });
+    const third = createMockPlugin({ id: 'third', supportedExtensions: ['.md'] });
+
+    registry.register(first);
+    registry.register(second);
+    registry.register(third);
+    registry.setPluginOrder(['second', 'missing', 'first']);
+
+    expect(registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual([
+      'second',
+      'first',
+      'third',
+    ]);
+    expect(registry.getPluginForFile('app.ts')?.id).toBe('second');
+    expect(registry.getPluginsForExtension('.ts').map((plugin) => plugin.id)).toEqual([
+      'second',
+      'first',
+    ]);
+  });
+
   it('returns empty array when no plugins are registered', () => {
     const registry = createConfiguredRegistry();
 

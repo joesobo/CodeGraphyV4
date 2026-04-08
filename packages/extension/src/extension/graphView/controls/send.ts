@@ -124,6 +124,23 @@ function resolveVisibilityMap<TDefinition extends { id: string; defaultVisible: 
   return visibility;
 }
 
+function resolveNodeColors(
+  definitions: IGraphNodeTypeDefinition[],
+  configured: Record<string, unknown>,
+): Record<string, string> {
+  const colors: Record<string, string> = {};
+
+  for (const definition of definitions) {
+    const configuredColor =
+      typeof configured[definition.id] === 'string'
+        ? (configured[definition.id] as string)
+        : undefined;
+    colors[definition.id] = normalizeHexColor(configuredColor, definition.defaultColor);
+  }
+
+  return colors;
+}
+
 function resolveEdgeColors(
   definitions: IGraphEdgeTypeDefinition[],
   configured: Record<string, unknown>,
@@ -214,6 +231,10 @@ export function captureGraphControlsSnapshot(
   return {
     nodeTypes,
     edgeTypes,
+    nodeColors: resolveNodeColors(
+      nodeTypes,
+      config.get<Record<string, string>>('nodeColors', {}),
+    ),
     nodeVisibility: resolveVisibilityMap(
       nodeTypes,
       config.get<Record<string, boolean>>('nodeVisibility', {}),

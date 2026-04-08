@@ -11,9 +11,10 @@ import { Button } from '../ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '../ui/disclosure/collapsible';
 import {
   getPluginsPanelChevronClassName,
+  getPluginsPanelItemClassName,
   getPluginsPanelRuleCountClassName,
   getPluginsPanelRuleLabelClassName,
-  getPluginsPanelWrapperClassName,
+  reorderPluginStatuses,
   shouldRenderPluginsPanelRuleDescription,
   shouldRenderPluginsPanelSeparator,
   toggleExpandedPluginIds,
@@ -31,6 +32,8 @@ const ChevronIcon = ({ open }: { open: boolean }) => (
 export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): React.ReactElement | null {
   const plugins = useGraphStore(s => s.pluginStatuses);
   const [expandedPlugins, setExpandedPlugins] = useState<Set<string>>(new Set());
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   if (!isOpen) return null;
 
@@ -44,6 +47,27 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
 
   const handleToggleRule = (qualifiedSourceId: string, enabled: boolean) => {
     postMessage({ type: 'TOGGLE_SOURCE', payload: { qualifiedSourceId, enabled } });
+  };
+
+  const handleDropPlugin = (event: React.DragEvent, targetIndex: number) => {
+    event.preventDefault();
+    if (dragIndex === null) {
+      setDragOverIndex(null);
+      return;
+    }
+
+    const reordered = reorderPluginStatuses(plugins, dragIndex, targetIndex);
+    postMessage({
+      type: 'UPDATE_PLUGIN_ORDER',
+      payload: { pluginIds: reordered.map(plugin => plugin.id) },
+    });
+    setDragIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDragIndex(null);
+    setDragOverIndex(null);
   };
 
   return (
@@ -66,7 +90,23 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
               const isExpanded = expandedPlugins.has(plugin.id);
 
               return (
-                <div key={plugin.id} className={getPluginsPanelWrapperClassName(plugin.enabled)}>
+                <div
+                  key={plugin.id}
+                  draggable
+                  onDragStart={() => setDragIndex(index)}
+                  onDragOver={(event) => {
+                    event.preventDefault();
+                    setDragOverIndex(index);
+                  }}
+                  onDrop={(event) => handleDropPlugin(event, index)}
+                  onDragEnd={handleDragEnd}
+                  className={getPluginsPanelItemClassName(
+                    plugin.enabled,
+                    index,
+                    dragIndex,
+                    dragOverIndex,
+                  )}
+                >
                   <Collapsible open={isExpanded} onOpenChange={() => toggleExpanded(plugin.id)}>
                     {/* Plugin header */}
                     <div className="flex items-center gap-2 py-2.5">

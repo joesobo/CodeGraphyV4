@@ -19,6 +19,7 @@ import type { RegistryV2Config } from './register';
 import { removeFromRegistry } from './unregister';
 import { buildV2Config, DEFAULT_LOG_FN } from './configure';
 import type { ConfigureV2Options } from './configure';
+import { rebuildPluginExtensionMap } from './extensionMap';
 import {
   getPluginForFile,
   getPluginsForExtension,
@@ -89,6 +90,42 @@ export class PluginRegistry {
   get size(): number { return this._plugins.size; }
   getSupportedExtensions(): string[] { return getSupportedExtensions(this._extensionMap); }
   supportsFile(filePath: string): boolean { return supportsFile(filePath, this._extensionMap); }
+  setPluginOrder(pluginIds: string[]): void {
+    if (pluginIds.length === 0 || this._plugins.size <= 1) {
+      return;
+    }
+
+    const orderedIds = new Set<string>();
+    const reorderedPlugins = new Map<string, IPluginInfoV2>();
+
+    for (const pluginId of pluginIds) {
+      const info = this._plugins.get(pluginId);
+      if (!info || orderedIds.has(pluginId)) {
+        continue;
+      }
+
+      orderedIds.add(pluginId);
+      reorderedPlugins.set(pluginId, info);
+    }
+
+    for (const [pluginId, info] of this._plugins) {
+      if (orderedIds.has(pluginId)) {
+        continue;
+      }
+
+      reorderedPlugins.set(pluginId, info);
+    }
+
+    this._plugins.clear();
+    for (const [pluginId, info] of reorderedPlugins) {
+      this._plugins.set(pluginId, info);
+    }
+
+    rebuildPluginExtensionMap(
+      Array.from(this._plugins.values(), pluginInfo => pluginInfo.plugin),
+      this._extensionMap,
+    );
+  }
 
   async initializeAll(workspaceRoot: string): Promise<void> {
     this._v2Config.workspaceRoot = workspaceRoot;

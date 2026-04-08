@@ -34,6 +34,7 @@ export const INITIAL_STATE: GraphStateFields = {
   pluginStatuses: [],
   graphNodeTypes: [],
   graphEdgeTypes: [],
+  nodeColors: {},
   nodeVisibility: {},
   edgeVisibility: {},
   edgeColors: {},

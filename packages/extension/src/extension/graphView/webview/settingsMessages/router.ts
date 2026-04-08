@@ -18,6 +18,7 @@ export interface GraphViewSettingsMessageHandlers {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
   sendGraphControls(): void;
+  analyzeAndSendData(): Promise<void>;
   getPluginFilterPatterns(): string[];
   sendMessage(message: ExtensionToWebviewMessage): void;
   applyViewTransform(): void;

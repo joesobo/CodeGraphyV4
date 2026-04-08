@@ -43,6 +43,7 @@ function createHandlers(
     }),
     getPluginFilterPatterns: vi.fn(() => []),
     sendGraphControls: vi.fn(),
+    analyzeAndSendData: vi.fn(() => Promise.resolve()),
     sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),

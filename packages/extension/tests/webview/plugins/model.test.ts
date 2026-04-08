@@ -1,13 +1,16 @@
 import { describe, expect, it } from 'vitest';
 import {
   getPluginsPanelChevronClassName,
+  getPluginsPanelItemClassName,
   getPluginsPanelRuleCountClassName,
   getPluginsPanelRuleLabelClassName,
   getPluginsPanelWrapperClassName,
+  reorderPluginStatuses,
   shouldRenderPluginsPanelRuleDescription,
   shouldRenderPluginsPanelSeparator,
   toggleExpandedPluginIds,
 } from '../../../src/webview/components/plugins/model';
+import type { IPluginStatus } from '../../../src/shared/plugins/status';
 
 describe('plugins panel model', () => {
   it('adds the rotation class to expanded chevrons', () => {
@@ -24,6 +27,10 @@ describe('plugins panel model', () => {
 
   it('leaves enabled plugin rows undimmed', () => {
     expect(getPluginsPanelWrapperClassName(true)).toBe('');
+  });
+
+  it('highlights the active drop target row', () => {
+    expect(getPluginsPanelItemClassName(true, 1, 0, 1)).toContain('ring-1');
   });
 
   it('uses enabled rule label styling when the plugin is enabled', () => {
@@ -58,5 +65,35 @@ describe('plugins panel model', () => {
 
   it('removes an expanded plugin from the expanded set', () => {
     expect([...toggleExpandedPluginIds(new Set(['a', 'b']), 'b')]).toEqual(['a']);
+  });
+
+  it('reorders plugin statuses by drag indices', () => {
+    const plugins: IPluginStatus[] = [
+      {
+        id: 'plugin.a',
+        name: 'A',
+        version: '1.0.0',
+        supportedExtensions: ['.a'],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+        sources: [],
+      },
+      {
+        id: 'plugin.b',
+        name: 'B',
+        version: '1.0.0',
+        supportedExtensions: ['.b'],
+        status: 'installed',
+        enabled: true,
+        connectionCount: 0,
+        sources: [],
+      },
+    ];
+
+    expect(reorderPluginStatuses(plugins, 1, 0).map((plugin) => plugin.id)).toEqual([
+      'plugin.b',
+      'plugin.a',
+    ]);
   });
 });

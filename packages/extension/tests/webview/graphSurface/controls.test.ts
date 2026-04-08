@@ -17,10 +17,10 @@ describe('webview/graphSurface/controls', () => {
   it('adds folder nodes and nests edges when folders are visible', () => {
     const result = applyGraphControls({
       graphData,
+      nodeColors: { file: '#111111', folder: '#BBBBBB', package: '#333333' },
       nodeVisibility: { file: true, folder: true, package: false },
       edgeVisibility: { import: true, [STRUCTURAL_NESTS_EDGE_KIND]: true },
       edgeColors: { import: '#654321', [STRUCTURAL_NESTS_EDGE_KIND]: '#222222' },
-      folderNodeColor: '#BBBBBB',
     });
 
     expect(result).toEqual({
@@ -50,10 +50,10 @@ describe('webview/graphSurface/controls', () => {
   it('filters hidden node and edge types while keeping edge colors on visible semantic edges', () => {
     const result = applyGraphControls({
       graphData,
+      nodeColors: { file: '#111111', folder: '#BBBBBB', package: '#333333' },
       nodeVisibility: { file: true, folder: false, package: true },
       edgeVisibility: { import: false, [STRUCTURAL_NESTS_EDGE_KIND]: true },
       edgeColors: { import: '#654321' },
-      folderNodeColor: '#BBBBBB',
     });
 
     expect(result).toEqual({
@@ -71,10 +71,10 @@ describe('webview/graphSurface/controls', () => {
   it('returns null when no graph data is available', () => {
     expect(applyGraphControls({
       graphData: null,
+      nodeColors: {},
       nodeVisibility: {},
       edgeVisibility: {},
       edgeColors: {},
-      folderNodeColor: '#BBBBBB',
     })).toEqual({
       graphData: null,
       edgeDecorations: undefined,

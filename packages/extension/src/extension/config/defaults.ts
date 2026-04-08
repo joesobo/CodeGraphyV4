@@ -41,4 +41,6 @@ export interface ICodeGraphyConfig {
   disabledSources: string[];
   /** List of disabled plugin IDs */
   disabledPlugins: string[];
+  /** Ordered plugin IDs, highest priority first */
+  pluginOrder: string[];
 }

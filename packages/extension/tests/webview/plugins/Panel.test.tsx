@@ -169,6 +169,41 @@ describe('PluginsPanel', () => {
     });
   });
 
+  it('posts a plugin-order message when rows are dragged into a new order', () => {
+    const { container } = renderPanel([
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript',
+        version: '1.0.0',
+        supportedExtensions: ['.ts'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 12,
+        sources: [],
+      },
+      {
+        id: 'codegraphy.markdown',
+        name: 'Markdown',
+        version: '1.0.0',
+        supportedExtensions: ['.md'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 1,
+        sources: [],
+      },
+    ]);
+
+    const draggableRows = container.querySelectorAll('[draggable="true"]');
+    fireEvent.dragStart(draggableRows[1]);
+    fireEvent.dragOver(draggableRows[0]);
+    fireEvent.drop(draggableRows[0]);
+
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_PLUGIN_ORDER',
+      payload: { pluginIds: ['codegraphy.markdown', 'codegraphy.typescript'] },
+    });
+  });
+
   it('posts a rule toggle message when an enabled plugin rule switch changes', () => {
     const { container } = renderPanel([
       {

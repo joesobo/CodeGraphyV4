@@ -12,21 +12,13 @@ interface NodesPanelProps {
   onClose: () => void;
 }
 
-function getNodeTypeColor(
-  nodeTypeId: string,
-  defaultColor: string,
-  folderNodeColor: string,
-): string {
-  return nodeTypeId === 'folder' ? folderNodeColor : defaultColor;
-}
-
 export default function NodesPanel({
   isOpen,
   onClose,
 }: NodesPanelProps): React.ReactElement | null {
   const nodeTypes = useGraphStore((state) => state.graphNodeTypes);
   const nodeVisibility = useGraphStore((state) => state.nodeVisibility);
-  const folderNodeColor = useGraphStore((state) => state.folderNodeColor);
+  const nodeColors = useGraphStore((state) => state.nodeColors);
 
   if (!isOpen) {
     return null;
@@ -44,11 +36,7 @@ export default function NodesPanel({
       <ScrollArea className="flex-1">
         <div className="px-3 py-2 space-y-2">
           {nodeTypes.map((nodeType) => {
-            const color = getNodeTypeColor(
-              nodeType.id,
-              nodeType.defaultColor,
-              folderNodeColor,
-            );
+            const color = nodeColors[nodeType.id] ?? nodeType.defaultColor;
             const enabled = nodeVisibility[nodeType.id] ?? nodeType.defaultVisible;
 
             return (

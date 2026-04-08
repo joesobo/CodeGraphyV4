@@ -11,7 +11,6 @@ import type { IGraphData } from '../../shared/graph/types';
 import type { IGroup } from '../../shared/settings/groups';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
 import { applyGraphControls } from '../graphControls/filtering';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
 
 export interface IFilteredGraph {
   /** Graph after node/edge search filtering (null when no graph data). */
@@ -33,23 +32,23 @@ export function useFilteredGraph(
   searchQuery: string,
   searchOptions: SearchOptions,
   groups: IGroup[],
+  nodeColors: Record<string, string> = {},
   nodeVisibility: Record<string, boolean> = {},
   edgeVisibility: Record<string, boolean> = {},
   edgeColors: Record<string, string> = {},
-  folderNodeColor: string = DEFAULT_FOLDER_NODE_COLOR,
   edgeDecorations?: Record<string, EdgeDecorationPayload>,
 ): IFilteredGraph {
   const { graphData: controlsData, edgeDecorations: controlsEdgeDecorations } = useMemo(
     () =>
       applyGraphControls({
         graphData,
+        nodeColors,
         nodeVisibility,
         edgeVisibility,
         edgeColors,
-        folderNodeColor,
         edgeDecorations,
       }),
-    [edgeColors, edgeDecorations, edgeVisibility, folderNodeColor, graphData, nodeVisibility],
+    [edgeColors, edgeDecorations, edgeVisibility, graphData, nodeColors, nodeVisibility],
   );
 
   const { filteredData, regexError } = useMemo(

@@ -30,6 +30,7 @@ function createHandlers(
       updateConfig: vi.fn(() => Promise.resolve()),
       getPluginFilterPatterns: vi.fn(() => []),
       sendGraphControls: vi.fn(),
+      analyzeAndSendData: vi.fn(() => Promise.resolve()),
       sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),
@@ -128,6 +129,28 @@ describe('graph view settings update message', () => {
     ).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('maxFiles', 250);
+  });
+
+  it('persists plugin order and triggers a re-analysis', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applySettingsUpdateMessage(
+        {
+          type: 'UPDATE_PLUGIN_ORDER',
+          payload: { pluginIds: ['plugin.typescript', 'plugin.markdown'] },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('pluginOrder', [
+      'plugin.typescript',
+      'plugin.markdown',
+    ]);
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
   it('updates label visibility and publishes it immediately', async () => {

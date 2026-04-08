@@ -66,6 +66,34 @@ export async function applySettingsUpdateMessage(
       return true;
     }
 
+    case 'UPDATE_PLUGIN_ORDER':
+      await handlers.updateConfig('pluginOrder', message.payload.pluginIds);
+      await handlers.analyzeAndSendData();
+      return true;
+
+    case 'UPDATE_NODE_COLOR': {
+      const nextColors = {
+        ...handlers.getConfig<Record<string, string>>('nodeColors', {}),
+        [message.payload.nodeType]: message.payload.color,
+      };
+      await handlers.updateConfig('nodeColors', nextColors);
+      if (message.payload.nodeType === 'folder') {
+        await handlers.updateConfig('folderNodeColor', message.payload.color);
+      }
+      handlers.sendGraphControls();
+      return true;
+    }
+
+    case 'UPDATE_EDGE_COLOR': {
+      const nextColors = {
+        ...handlers.getConfig<Record<string, string>>('edgeColors', {}),
+        [message.payload.edgeKind]: message.payload.color,
+      };
+      await handlers.updateConfig('edgeColors', nextColors);
+      handlers.sendGraphControls();
+      return true;
+    }
+
     case 'UPDATE_MAX_FILES':
       await handlers.updateConfig('maxFiles', message.payload.maxFiles);
       return true;

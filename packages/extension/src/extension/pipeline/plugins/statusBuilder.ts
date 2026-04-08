@@ -92,7 +92,5 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
       sources,
     });
   }
-
-  statuses.sort((statusA, statusB) => statusA.name.localeCompare(statusB.name));
   return statuses;
 }

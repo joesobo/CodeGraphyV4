@@ -29,7 +29,7 @@ function createPluginInfo(overrides: Partial<IPlugin>): IPluginInfo {
 }
 
 describe('pipeline/plugins/statusBuilder', () => {
-  it('sorts statuses and classifies plugins as active, installed, or inactive', () => {
+  it('preserves plugin order and classifies plugins as active, installed, or inactive', () => {
     const pluginInfos = [
       createPluginInfo({
         id: 'plugin.python',
@@ -74,7 +74,7 @@ describe('pipeline/plugins/statusBuilder', () => {
       },
     });
 
-    expect(statuses.map((status) => status.name)).toEqual(['Alpha', 'Markdown', 'Python']);
+    expect(statuses.map((status) => status.name)).toEqual(['Python', 'Alpha', 'Markdown']);
     expect(statuses.find((status) => status.id === 'plugin.alpha')?.status).toBe('active');
     expect(statuses.find((status) => status.id === 'plugin.markdown')?.status).toBe('installed');
     expect(statuses.find((status) => status.id === 'plugin.python')?.status).toBe('inactive');
@@ -275,6 +275,39 @@ describe('pipeline/plugins/statusBuilder', () => {
         id: '',
         connectionCount: 0,
       }),
+    ]);
+  });
+
+  it('keeps unknown plugin ids out of ordering and appends unconfigured plugins', () => {
+    const pluginInfos = [
+      createPluginInfo({
+        id: 'plugin.markdown',
+        name: 'Markdown',
+        supportedExtensions: ['.md'],
+      }),
+      createPluginInfo({
+        id: 'plugin.typescript',
+        name: 'TypeScript',
+        supportedExtensions: ['.ts'],
+      }),
+    ];
+
+    const statuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      disabledSources: new Set(),
+      discoveredFiles: [{ relativePath: 'README.md' }, { relativePath: 'src/index.ts' }],
+      fileConnections: new Map<string, IConnection[]>(),
+      pluginInfos: [
+        pluginInfos[1],
+        pluginInfos[0],
+      ],
+      workspaceRoot: '/workspace',
+      getPluginForFile: () => undefined,
+    });
+
+    expect(statuses.map((status) => status.id)).toEqual([
+      'plugin.typescript',
+      'plugin.markdown',
     ]);
   });
 });

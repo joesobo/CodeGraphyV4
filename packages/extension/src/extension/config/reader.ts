@@ -108,6 +108,14 @@ export class Configuration {
   }
 
   /**
+   * Plugin processing order, highest priority first.
+   * @default []
+   */
+  get pluginOrder(): string[] {
+    return this.config.get<string[]>('pluginOrder', []);
+  }
+
+  /**
    * Maximum number of commits to index for the timeline.
    * @default 500
    */
@@ -157,6 +165,7 @@ export class Configuration {
       plugins: this.plugins,
       disabledSources: this.disabledSources,
       disabledPlugins: this.disabledPlugins,
+      pluginOrder: this.pluginOrder,
     };
   }
 

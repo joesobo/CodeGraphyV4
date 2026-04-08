@@ -29,6 +29,7 @@ export function handleGraphControlsUpdated(
   return {
     graphNodeTypes: message.payload.nodeTypes,
     graphEdgeTypes: message.payload.edgeTypes,
+    nodeColors: message.payload.nodeColors,
     nodeVisibility: message.payload.nodeVisibility,
     edgeVisibility: message.payload.edgeVisibility,
     edgeColors: message.payload.edgeColors,

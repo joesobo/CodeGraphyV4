@@ -52,6 +52,7 @@ export interface IStoreFields {
   pluginStatuses: IPluginStatus[];
   graphNodeTypes: IGraphNodeTypeDefinition[];
   graphEdgeTypes: IGraphEdgeTypeDefinition[];
+  nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   edgeColors: Record<string, string>;

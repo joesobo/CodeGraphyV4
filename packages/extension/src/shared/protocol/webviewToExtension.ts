@@ -49,7 +49,10 @@ export type WebviewToExtensionMessage =
   | { type: 'PHYSICS_STABILIZED' }
   | { type: 'TOGGLE_SOURCE'; payload: { qualifiedSourceId: string; enabled: boolean } }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; enabled: boolean } }
+  | { type: 'UPDATE_PLUGIN_ORDER'; payload: { pluginIds: string[] } }
+  | { type: 'UPDATE_NODE_COLOR'; payload: { nodeType: string; color: string } }
   | { type: 'UPDATE_NODE_VISIBILITY'; payload: { nodeType: string; visible: boolean } }
+  | { type: 'UPDATE_EDGE_COLOR'; payload: { edgeKind: string; color: string } }
   | { type: 'UPDATE_EDGE_VISIBILITY'; payload: { edgeKind: string; visible: boolean } }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
   | { type: 'INDEX_REPO' }

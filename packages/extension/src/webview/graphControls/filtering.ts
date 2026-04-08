@@ -8,13 +8,14 @@ import {
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
 import type { IGraphData, IGraphNode } from '../../shared/graph/types';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../../shared/graphControls/defaults';
+import { DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
 
 export interface GraphControlsFilteringOptions {
   graphData: IGraphData | null;
+  nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   edgeColors: Record<string, string>;
-  folderNodeColor: string;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
 }
 
@@ -33,12 +34,22 @@ function withResolvedNodeTypes(nodes: IGraphNode[]): IGraphNode[] {
   }));
 }
 
+function applyNodeTypeColors(
+  nodes: IGraphNode[],
+  nodeColors: Record<string, string>,
+): IGraphNode[] {
+  return nodes.map((node) => ({
+    ...node,
+    color: nodeColors[getResolvedNodeType(node)] ?? node.color,
+  }));
+}
+
 export function applyGraphControls({
   graphData,
+  nodeColors,
   nodeVisibility,
   edgeVisibility,
   edgeColors,
-  folderNodeColor,
   edgeDecorations,
 }: GraphControlsFilteringOptions): {
   graphData: IGraphData | null;
@@ -48,14 +59,16 @@ export function applyGraphControls({
     return { graphData: null, edgeDecorations };
   }
 
-  const baseNodes = withResolvedNodeTypes(graphData.nodes);
+  const baseNodes = applyNodeTypeColors(withResolvedNodeTypes(graphData.nodes), nodeColors);
   const visibleBaseNodes = baseNodes.filter((node) => isNodeVisible(node, nodeVisibility));
   const folderEnabled = nodeVisibility.folder ?? false;
   const nestsEnabled = edgeVisibility[STRUCTURAL_NESTS_EDGE_KIND] ?? true;
 
   const fileNodes = baseNodes.filter((node) => getResolvedNodeType(node) === 'file');
   const folderPaths = folderEnabled ? collectFolderPaths(fileNodes).paths : new Set<string>();
-  const folderNodes = folderEnabled ? createFolderNodes(folderPaths, folderNodeColor) : [];
+  const folderNodes = folderEnabled
+    ? createFolderNodes(folderPaths, nodeColors.folder ?? DEFAULT_FOLDER_NODE_COLOR)
+    : [];
 
   const nodes = [...visibleBaseNodes, ...folderNodes];
   const visibleNodeIds = new Set(nodes.map((node) => node.id));

@@ -1,4 +1,5 @@
 import type { GraphViewMessageListenerContext } from '../messages/listener';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
@@ -11,6 +12,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'getConfig'
   | 'updateConfig'
   | 'sendGraphControls'
+  | 'analyzeAndSendData'
   | 'resetAllSettings'
   | 'getMaxFiles'
   | 'getPlaybackSpeed'
@@ -23,7 +25,7 @@ export function createGraphViewProviderMessageSettingsContext(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderSettingsContext {
-  const config = dependencies.workspace.getConfiguration('codegraphy');
+  const config = getCodeGraphyConfiguration();
 
   return {
     updateDagMode: async dagMode => {
@@ -44,12 +46,12 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     getConfig: (key, defaultValue) => config.get(key, defaultValue),
     updateConfig: async (key, value) => {
-      const target = dependencies.getConfigTarget(dependencies.workspace.workspaceFolders);
-      await dependencies.workspace.getConfiguration('codegraphy').update(key, value, target);
+      await config.update(key, value);
     },
     sendGraphControls: () => {
       source._sendGraphControls();
     },
+    analyzeAndSendData: () => source._analyzeAndSendData(),
     resetAllSettings: async () => {
       const snapshot = dependencies.captureSettingsSnapshot(
         config,

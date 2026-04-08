@@ -3,6 +3,7 @@ import type { IGroup } from '../../shared/settings/groups';
 import {
   createDefaultEdgeColors,
   createDefaultEdgeVisibility,
+  createDefaultNodeColors,
   createDefaultNodeVisibility,
 } from '../../shared/graphControls/defaults';
 
@@ -16,6 +17,7 @@ export interface ICodeGraphyRepoSettings {
   pluginOrder: string[];
   disabledSources: string[];
   disabledPlugins: string[];
+  nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   edgeColors: Record<string, string>;
@@ -60,6 +62,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     pluginOrder: [],
     disabledSources: [],
     disabledPlugins: [],
+    nodeColors: createDefaultNodeColors(),
     nodeVisibility: createDefaultNodeVisibility(),
     edgeVisibility: createDefaultEdgeVisibility(),
     edgeColors: createDefaultEdgeColors(),
@@ -111,6 +114,7 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
     pluginOrder: defaults.pluginOrder,
     disabledSources: legacyConfig.get<string[]>('disabledSources', defaults.disabledSources),
     disabledPlugins: legacyConfig.get<string[]>('disabledPlugins', defaults.disabledPlugins),
+    nodeColors: defaults.nodeColors,
     nodeVisibility: defaults.nodeVisibility,
     edgeVisibility: defaults.edgeVisibility,
     edgeColors: defaults.edgeColors,

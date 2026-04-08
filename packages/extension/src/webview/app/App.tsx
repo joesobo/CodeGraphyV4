@@ -31,10 +31,10 @@ export default function App(): React.ReactElement {
     showOrphans,
     activePanel,
     activeViewId,
+    nodeColors,
     nodeVisibility,
     edgeVisibility,
     edgeColors,
-    folderNodeColor,
     nodeDecorations,
     edgeDecorations,
     activeFilePath,
@@ -54,10 +54,10 @@ export default function App(): React.ReactElement {
     searchQuery,
     searchOptions,
     groups,
+    nodeColors,
     nodeVisibility,
     edgeVisibility,
     edgeColors,
-    folderNodeColor,
     edgeDecorations,
   );
 
