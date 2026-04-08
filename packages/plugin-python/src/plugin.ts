@@ -5,7 +5,11 @@
  * @module plugins/python
  */
 
-import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
+import type {
+  IPlugin,
+  IConnection,
+  IFileAnalysisResult,
+} from '@codegraphy-vscode/plugin-api';
 import { PathResolver } from './PathResolver';
 import { loadPythonConfig } from './projectConfig';
 import { assertPythonAstRuntimeAvailable, parsePythonImports } from './astParser';
@@ -45,6 +49,51 @@ export function createPythonPlugin(): IPlugin {
   let resolver: PathResolver | null = null;
   let pythonRuntimeReady = false;
 
+  function toFileAnalysisResult(
+    filePath: string,
+    connections: IConnection[],
+  ): IFileAnalysisResult {
+    return {
+      filePath,
+      relations: connections.map(connection => ({
+        kind: connection.kind,
+        sourceId: connection.sourceId,
+        specifier: connection.specifier,
+        type: connection.type,
+        variant: connection.variant,
+        resolvedPath: connection.resolvedPath,
+        metadata: connection.metadata,
+        fromFilePath: filePath,
+        toFilePath: connection.resolvedPath,
+      })),
+    };
+  }
+
+  async function detectPythonConnections(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<IConnection[]> {
+    if (!pythonRuntimeReady) {
+      assertPythonAstRuntimeAvailable();
+      pythonRuntimeReady = true;
+    }
+
+    if (!resolver) {
+      const config = await loadPythonConfig(workspaceRoot);
+      resolver = new PathResolver(workspaceRoot, config);
+    }
+
+    const imports = parsePythonImports(content);
+    const ctx = { resolver, imports };
+
+    return [
+      ...detectImportModule(content, filePath, ctx),
+      ...detectFromImportAbsolute(content, filePath, ctx),
+      ...detectFromImportRelative(content, filePath, ctx),
+    ];
+  }
+
   return {
     id: manifest.id,
     name: manifest.name,
@@ -63,29 +112,23 @@ export function createPythonPlugin(): IPlugin {
       console.log('[CodeGraphy] Python plugin initialized');
     },
 
+    async analyzeFile(
+      filePath: string,
+      content: string,
+      workspaceRoot: string
+    ): Promise<IFileAnalysisResult> {
+      return toFileAnalysisResult(
+        filePath,
+        await detectPythonConnections(filePath, content, workspaceRoot),
+      );
+    },
+
     async detectConnections(
       filePath: string,
       content: string,
       workspaceRoot: string
     ): Promise<IConnection[]> {
-      if (!pythonRuntimeReady) {
-        assertPythonAstRuntimeAvailable();
-        pythonRuntimeReady = true;
-      }
-
-      if (!resolver) {
-        const config = await loadPythonConfig(workspaceRoot);
-        resolver = new PathResolver(workspaceRoot, config);
-      }
-
-      const imports = parsePythonImports(content);
-      const ctx = { resolver, imports };
-
-      return [
-        ...detectImportModule(content, filePath, ctx),
-        ...detectFromImportAbsolute(content, filePath, ctx),
-        ...detectFromImportRelative(content, filePath, ctx),
-      ];
+      return detectPythonConnections(filePath, content, workspaceRoot);
     },
 
     onUnload(): void {

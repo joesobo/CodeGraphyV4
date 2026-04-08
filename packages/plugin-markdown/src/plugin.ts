@@ -7,6 +7,7 @@
 
 import type {
   IConnection,
+  IFileAnalysisResult,
   IPlugin,
 } from '@codegraphy-vscode/plugin-api';
 import { PathResolver } from './PathResolver';
@@ -31,6 +32,33 @@ export type { IDetectedWikilink, MarkdownRuleContext } from './sources/wikilink'
  */
 export function createMarkdownPlugin(): IPlugin {
   const resolver = new PathResolver(String());
+
+  async function detectMarkdownConnections(
+    filePath: string,
+    content: string,
+  ): Promise<IConnection[]> {
+    return detectWikilink(content, filePath, { resolver });
+  }
+
+  function toFileAnalysisResult(
+    filePath: string,
+    connections: IConnection[],
+  ): IFileAnalysisResult {
+    return {
+      filePath,
+      relations: connections.map(connection => ({
+        kind: connection.kind,
+        sourceId: connection.sourceId,
+        specifier: connection.specifier,
+        type: connection.type,
+        variant: connection.variant,
+        resolvedPath: connection.resolvedPath,
+        metadata: connection.metadata,
+        fromFilePath: filePath,
+        toFilePath: connection.resolvedPath,
+      })),
+    };
+  }
 
   return {
     id: manifest.id,
@@ -58,12 +86,23 @@ export function createMarkdownPlugin(): IPlugin {
       resolver.buildIndex(files);
     },
 
+    async analyzeFile(
+      filePath: string,
+      content: string,
+      _workspaceRoot: string
+    ): Promise<IFileAnalysisResult> {
+      return toFileAnalysisResult(
+        filePath,
+        await detectMarkdownConnections(filePath, content),
+      );
+    },
+
     async detectConnections(
       filePath: string,
       content: string,
       _workspaceRoot: string
     ): Promise<IConnection[]> {
-      return detectWikilink(content, filePath, { resolver });
+      return detectMarkdownConnections(filePath, content);
     },
   };
 }

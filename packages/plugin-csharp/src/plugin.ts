@@ -5,7 +5,11 @@
  * @module plugins/csharp
  */
 
-import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
+import type {
+  IPlugin,
+  IConnection,
+  IFileAnalysisResult,
+} from '@codegraphy-vscode/plugin-api';
 import { PathResolver, ICSharpPathResolverConfig } from './PathResolver';
 import { parseContent } from './parserContent';
 import type { CSharpRuleContext } from './parserTypes';
@@ -43,6 +47,51 @@ export type { IDetectedUsing, IDetectedNamespace } from './parserTypes';
 export function createCSharpPlugin(): IPlugin {
   let resolver: PathResolver | null = null;
 
+  function toFileAnalysisResult(
+    filePath: string,
+    connections: IConnection[],
+  ): IFileAnalysisResult {
+    return {
+      filePath,
+      relations: connections.map(connection => ({
+        kind: connection.kind,
+        sourceId: connection.sourceId,
+        specifier: connection.specifier,
+        type: connection.type,
+        variant: connection.variant,
+        resolvedPath: connection.resolvedPath,
+        metadata: connection.metadata,
+        fromFilePath: filePath,
+        toFilePath: connection.resolvedPath,
+      })),
+    };
+  }
+
+  async function detectCSharpConnections(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<IConnection[]> {
+    if (!resolver) {
+      const config = await loadCSharpConfig(workspaceRoot);
+      resolver = new PathResolver(workspaceRoot, config);
+    }
+
+    const { usings, namespaces } = parseContent(content);
+
+    for (const ns of namespaces) {
+      resolver.registerNamespace(ns, filePath);
+    }
+
+    const usedTypes = extractUsedTypes(content);
+    const ctx: CSharpRuleContext = { resolver, usings, namespaces, usedTypes };
+
+    return [
+      ...detectUsingDirective(content, filePath, ctx),
+      ...detectTypeUsage(content, filePath, ctx),
+    ];
+  }
+
   return {
     id: manifest.id,
     name: manifest.name,
@@ -59,31 +108,23 @@ export function createCSharpPlugin(): IPlugin {
       console.log('[CodeGraphy] C# plugin initialized');
     },
 
+    async analyzeFile(
+      filePath: string,
+      content: string,
+      workspaceRoot: string
+    ): Promise<IFileAnalysisResult> {
+      return toFileAnalysisResult(
+        filePath,
+        await detectCSharpConnections(filePath, content, workspaceRoot),
+      );
+    },
+
     async detectConnections(
       filePath: string,
       content: string,
       workspaceRoot: string
     ): Promise<IConnection[]> {
-      if (!resolver) {
-        const config = await loadCSharpConfig(workspaceRoot);
-        resolver = new PathResolver(workspaceRoot, config);
-      }
-
-      // Parse once, share results with all sources
-      const { usings, namespaces } = parseContent(content);
-
-      // Register namespaces for cross-file resolution
-      for (const ns of namespaces) {
-        resolver.registerNamespace(ns, filePath);
-      }
-
-      const usedTypes = extractUsedTypes(content);
-      const ctx: CSharpRuleContext = { resolver, usings, namespaces, usedTypes };
-
-      return [
-        ...detectUsingDirective(content, filePath, ctx),
-        ...detectTypeUsage(content, filePath, ctx),
-      ];
+      return detectCSharpConnections(filePath, content, workspaceRoot);
     },
 
     onUnload(): void {
