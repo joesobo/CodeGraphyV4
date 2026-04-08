@@ -14,6 +14,7 @@ type GraphViewProviderReadContext = Pick<
   | 'getDisabledRules'
   | 'getFilterPatterns'
   | 'getGraphData'
+  | 'getAnalyzer'
   | 'getViewContext'
   | 'getFocusedFile'
   | 'workspaceFolder'
@@ -34,6 +35,7 @@ export function createGraphViewProviderMessageReadContext(
     getDisabledRules: () => source._disabledSources,
     getFilterPatterns: () => source._filterPatterns,
     getGraphData: () => source._graphData,
+    getAnalyzer: () => source._analyzer,
     getViewContext: () => source._viewContext,
     getFocusedFile: () => source._viewContext.focusedFile,
     workspaceFolder: dependencies.workspace.workspaceFolders?.[0],

@@ -5,7 +5,7 @@ import type { ExportData } from '../../../../src/webview/export/shared/contracts
 function createExportData(overrides: Partial<ExportData> = {}): ExportData {
   return {
     format: 'codegraphy-export',
-    version: '2.0',
+    version: '3.0',
     exportedAt: '2026-03-16T12:34:56.000Z',
     scope: {
       graph: 'current-view',
@@ -15,19 +15,15 @@ function createExportData(overrides: Partial<ExportData> = {}): ExportData {
       },
     },
     summary: {
-      totalFiles: 0,
-      totalConnections: 0,
-      totalRules: 0,
-      totalGroups: 0,
+      totalNodes: 0,
+      totalEdges: 0,
+      totalLegendRules: 0,
       totalImages: 0,
     },
     sections: {
-      connections: {
-        sources: {},
-        groups: {},
-        ungrouped: {},
-      },
-      images: {},
+      legend: [],
+      nodes: [],
+      edges: [],
     },
     ...overrides,
   };
@@ -40,23 +36,25 @@ describe('renderMarkdownExport', () => {
     expect(markdown).toBe([
       '# CodeGraphy Export',
       '',
-      '> 0 files, 0 connections',
+      '> 0 nodes, 0 edges',
       '> timeline: inactive',
       '',
-      '## Connections',
-      '',
-      '### Groups',
+      '## Legend',
       '',
       '- none',
       '',
-      '## Images',
+      '## Nodes',
+      '',
+      '- none',
+      '',
+      '## Edges',
       '',
       '- none',
       '',
     ].join('\n'));
   });
 
-  it('renders sources, grouped files, unattributed targets, and image ownership', () => {
+  it('renders legend entries, nodes, and sourced edges', () => {
     const markdown = renderMarkdownExport(createExportData({
       scope: {
         graph: 'current-view',
@@ -66,79 +64,76 @@ describe('renderMarkdownExport', () => {
         },
       },
       summary: {
-        totalFiles: 2,
-        totalConnections: 2,
-        totalRules: 1,
-        totalGroups: 1,
+        totalNodes: 2,
+        totalEdges: 1,
+        totalLegendRules: 1,
         totalImages: 1,
       },
       sections: {
-        connections: {
-          sources: {
-            'ts:import': {
-              name: 'Import',
-              plugin: 'TypeScript',
-              connections: 1,
-            },
+        legend: [
+          {
+            id: 'g1',
+            pattern: 'src/**',
+            color: '#3B82F6',
+            shape2D: 'diamond',
+            imagePath: '.codegraphy/images/src.png',
           },
-          groups: {
-            'src/**': {
-              style: {
-                color: '#3B82F6',
-                shape2D: 'diamond',
-                image: '.codegraphy/images/src.png',
+        ],
+        nodes: [
+          {
+            id: 'README.md',
+            label: 'README.md',
+            nodeType: 'file',
+            color: '#fff',
+            legendIds: [],
+          },
+          {
+            id: 'src/App.ts',
+            label: 'App.ts',
+            nodeType: 'file',
+            color: '#fff',
+            legendIds: ['g1'],
+          },
+        ],
+        edges: [
+          {
+            id: 'e1',
+            from: 'src/App.ts',
+            to: 'README.md',
+            kind: 'reference',
+            sources: [
+              {
+                id: 'ts:import',
+                pluginId: 'ts',
+                pluginName: 'TypeScript',
+                sourceId: 'import',
+                label: 'Import',
               },
-              files: {
-                'src/App.ts': {
-                  imports: {
-                    'ts:import': ['src/utils.ts'],
-                    unattributed: ['README.md'],
-                  },
-                },
-              },
-            },
+            ],
           },
-          ungrouped: {
-            'README.md': {},
-          },
-        },
-        images: {
-          '.codegraphy/images/src.png': {
-            groups: ['src/**'],
-          },
-        },
+        ],
       },
     }));
 
     expect(markdown).toBe([
       '# CodeGraphy Export',
       '',
-      '> 2 files, 2 connections',
+      '> 2 nodes, 1 edges',
       '> timeline commit: abc123',
       '',
-      '## Connections',
+      '## Legend',
       '',
-      '### Rules',
+      '- `src/**` (#3B82F6) | diamond | image: .codegraphy/images/src.png',
       '',
-      '- **Import** (`ts:import`, TypeScript) - 1 connections',
+      '## Nodes',
       '',
-      '### Groups',
+      '- `README.md` (file)',
+      '- `src/App.ts` (file) | legend: g1',
       '',
-      '#### `src/**`',
-      '- style: #3B82F6 | diamond | image: .codegraphy/images/src.png',
-      '- **src/App.ts**',
-      '  - *Import*',
-      '    - src/utils.ts',
-      '  - *unattributed*',
-      '    - README.md',
+      '## Edges',
       '',
-      '### Ungrouped',
-      '',
-      '- README.md',
-      '',
-      '## Images',
-      '',
-      '- `.codegraphy/images/src.png` (groups: `src/**`)',
+      '- `reference` `src/App.ts` -> `README.md`',
+      '  - Import (TypeScript)',
       '',
     ].join('\n'));
   });

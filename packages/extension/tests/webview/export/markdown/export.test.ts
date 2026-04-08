@@ -42,9 +42,10 @@ describe('buildMarkdownExport', () => {
     const result = buildMarkdownExport(data, noGroups);
 
     expect(result).toContain('# CodeGraphy Export');
-    expect(result).toContain('0 files, 0 connections');
-    expect(result).toContain('## Connections');
-    expect(result).toContain('## Images');
+    expect(result).toContain('0 nodes, 0 edges');
+    expect(result).toContain('## Legend');
+    expect(result).toContain('## Nodes');
+    expect(result).toContain('## Edges');
   });
 
   it('shows timeline scope when active', () => {
@@ -57,7 +58,7 @@ describe('buildMarkdownExport', () => {
     expect(result).toContain('timeline commit: abc123');
   });
 
-  it('renders sources and grouped imports', () => {
+  it('renders sourced edges', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'a.ts', label: 'a.ts', color: '#fff' },
@@ -71,13 +72,12 @@ describe('buildMarkdownExport', () => {
     }];
 
     const result = buildMarkdownExport(data, noGroups, plugins);
-    expect(result).toContain('### Rules');
-    expect(result).toContain('**ES6 Import**');
-    expect(result).toContain('*ES6 Import*');
-    expect(result).toContain('    - b.ts');
+    expect(result).toContain('## Edges');
+    expect(result).toContain('`import` `a.ts` -> `b.ts`');
+    expect(result).toContain('ES6 Import (TypeScript)');
   });
 
-  it('renders groups and ungrouped files', () => {
+  it('renders legend-backed nodes', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'src/App.tsx', label: 'App.tsx', color: '#fff' },
@@ -88,13 +88,13 @@ describe('buildMarkdownExport', () => {
     const groups: IGroup[] = [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }];
 
     const result = buildMarkdownExport(data, groups);
-    expect(result).toContain('### Groups');
-    expect(result).toContain('#### `*.tsx`');
-    expect(result).toContain('### Ungrouped');
+    expect(result).toContain('## Legend');
+    expect(result).toContain('`*.tsx` (#3B82F6)');
+    expect(result).toContain('## Nodes');
     expect(result).toContain('README.md');
   });
 
-  it('renders image section entries with owning groups', () => {
+  it('renders legend image metadata inline', () => {
     const data: IGraphData = {
       nodes: [{ id: 'src/App.tsx', label: 'App.tsx', color: '#fff' }],
       edges: [],
@@ -104,19 +104,17 @@ describe('buildMarkdownExport', () => {
     }];
 
     const result = buildMarkdownExport(data, groups);
-    expect(result).toContain('## Images');
-    expect(result).toContain('`.codegraphy/images/app.png`');
-    expect(result).toContain('groups: `*.tsx`');
+    expect(result).toContain('image: .codegraphy/images/app.png');
   });
 
-  it('lists "none" when there are no groups or images', () => {
+  it('lists "none" when there is no legend data', () => {
     const data: IGraphData = {
       nodes: [{ id: 'orphan.ts', label: 'orphan.ts', color: '#fff' }],
       edges: [],
     };
 
     const result = buildMarkdownExport(data, noGroups);
-    expect(result).toContain('### Groups');
+    expect(result).toContain('## Legend');
     expect(result).toContain('- none');
   });
 
@@ -140,18 +138,18 @@ describe('buildMarkdownExport', () => {
         markdown: [
           '# CodeGraphy Export',
           '',
-          '> 1 files, 0 connections',
+          '> 1 nodes, 0 edges',
           '> timeline commit: abc123',
           '',
-          '## Connections',
+          '## Legend',
           '',
-          '### Groups',
+          '- `*.tsx` (#3B82F6)',
           '',
-          '#### `*.tsx`',
-          '- style: #3B82F6',
-          '- src/App.tsx',
+          '## Nodes',
           '',
-          '## Images',
+          '- `src/App.tsx` (file) | legend: g1',
+          '',
+          '## Edges',
           '',
           '- none',
           '',

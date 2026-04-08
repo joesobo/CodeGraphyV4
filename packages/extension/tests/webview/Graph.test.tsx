@@ -298,18 +298,26 @@ describe('Export Functionality', () => {
 
     const parsed = JSON.parse(json);
     expect(parsed.format).toBe('codegraphy-export');
-    expect(parsed.version).toBe('2.0');
+    expect(parsed.version).toBe('3.0');
     expect(parsed.exportedAt).toBeDefined();
     expect(parsed.scope.graph).toBe('current-view');
-    expect(parsed.summary.totalFiles).toBe(2);
-    expect(parsed.summary.totalConnections).toBe(1);
-
-    expect(parsed.sections.connections.ungrouped['src/app.ts']).toBeDefined();
-    expect(parsed.sections.connections.ungrouped['src/app.ts'].imports).toEqual({ unattributed: ['src/utils.ts'] });
-
-    expect(parsed.sections.connections.ungrouped['src/utils.ts']).toBeDefined();
-    expect(parsed.sections.connections.ungrouped['src/utils.ts'].imports).toBeUndefined();
-    expect(parsed.sections.images).toEqual({});
+    expect(parsed.summary.totalNodes).toBe(2);
+    expect(parsed.summary.totalEdges).toBe(1);
+    expect(parsed.summary.totalLegendRules).toBe(0);
+    expect(parsed.summary.totalImages).toBe(0);
+    expect(parsed.sections.legend).toEqual([]);
+    expect(parsed.sections.nodes).toEqual([
+      expect.objectContaining({ id: 'src/app.ts', nodeType: 'file', legendIds: [] }),
+      expect.objectContaining({ id: 'src/utils.ts', nodeType: 'file', legendIds: [] }),
+    ]);
+    expect(parsed.sections.edges).toEqual([
+      expect.objectContaining({
+        from: 'src/app.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+        sources: [],
+      }),
+    ]);
   });
 
   it('should handle REQUEST_EXPORT_MD message and send EXPORT_MD response', async () => {

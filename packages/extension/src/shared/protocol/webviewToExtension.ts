@@ -28,6 +28,7 @@ export type WebviewToExtensionMessage =
   | { type: 'EXPORT_JPEG'; payload: { dataUrl: string; filename?: string } }
   | { type: 'EXPORT_JSON'; payload: { json: string; filename?: string } }
   | { type: 'EXPORT_MD'; payload: { markdown: string; filename?: string } }
+  | { type: 'EXPORT_SYMBOLS_JSON' }
   | { type: 'UPDATE_PHYSICS_SETTING'; payload: { key: keyof IPhysicsSettings; value: number } }
   | { type: 'RESET_PHYSICS_SETTINGS' }
   | { type: 'RESET_ALL_SETTINGS' }

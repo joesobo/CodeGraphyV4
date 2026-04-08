@@ -93,6 +93,9 @@ export function ToolbarExportMenu(): React.ReactElement {
         <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_MD' }, '*')}>
           Export as Markdown
         </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => postMessage({ type: 'EXPORT_SYMBOLS_JSON' })}>
+          Export Symbols as JSON
+        </DropdownMenuItem>
         {pluginExporterGroups.length > 0 && (
           <>
             <DropdownMenuSeparator />

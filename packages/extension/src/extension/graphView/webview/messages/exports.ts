@@ -6,6 +6,7 @@ export interface GraphViewExportHandlers {
   saveJpeg(dataUrl: string, filename?: string): Promise<void>;
   saveJson(json: string, filename?: string): Promise<void>;
   saveMarkdown(markdown: string, filename?: string): Promise<void>;
+  exportSymbolsJson(): Promise<void>;
 }
 
 export async function applyExportMessage(
@@ -31,6 +32,10 @@ export async function applyExportMessage(
 
     case 'EXPORT_MD':
       await handlers.saveMarkdown(message.payload.markdown, message.payload.filename);
+      return true;
+
+    case 'EXPORT_SYMBOLS_JSON':
+      await handlers.exportSymbolsJson();
       return true;
 
     default:
