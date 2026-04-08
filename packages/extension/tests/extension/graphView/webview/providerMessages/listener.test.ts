@@ -83,8 +83,8 @@ function createDependencies(): GraphViewProviderMessageListenerDependencies {
     executeUndoAction: vi.fn(() => Promise.resolve()),
     normalizeFolderNodeColor: vi.fn(color => color),
     defaultFolderNodeColor: '#336699',
-    dagModeKey: 'dag-mode',
-    nodeSizeModeKey: 'node-size-mode',
+    dagModeKey: 'dagMode',
+    nodeSizeModeKey: 'nodeSizeMode',
   };
 }
 
@@ -336,10 +336,15 @@ describe('graph view provider listener bridge', () => {
     await context.updateConfig('showOrphans', false);
     await context.resetAllSettings();
 
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith('codegraphy.dagMode', 'td');
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.nodeSizeMode',
+    expect(configurationUpdate).toHaveBeenCalledWith(
+      'dagMode',
+      'td',
+      vscode.ConfigurationTarget.Workspace,
+    );
+    expect(configurationUpdate).toHaveBeenCalledWith(
+      'nodeSizeMode',
       'file-size',
+      vscode.ConfigurationTarget.Workspace,
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'DAG_MODE_UPDATED',

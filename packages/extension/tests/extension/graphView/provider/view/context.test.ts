@@ -1,7 +1,6 @@
 import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../../src/shared/fileColors';
 import type { IGraphData } from '../../../../../src/shared/graph/types';
 import { buildGraphViewContext } from '../../../../../src/extension/graphView/view/context';
 import { applyGraphViewTransform, type IGraphViewTransformResult } from '../../../../../src/extension/graphView/presentation';
@@ -60,7 +59,16 @@ describe('graphView/provider/view/context', () => {
   it('builds view context from workspace and editor state', () => {
     const source = createSource();
     const configuration = {
-      get: vi.fn(<T>(_: string, _defaultValue: T): T => '#123456' as T),
+      get: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'depthLimit') {
+          return 1 as T;
+        }
+        if (key === 'nodeColors') {
+          return { folder: '#123456' } as T;
+        }
+        return defaultValue;
+      }),
+      update: vi.fn(() => Promise.resolve()),
     };
     const getConfiguration = vi.fn(() => configuration);
     const normalizeFolderNodeColor = vi.fn(() => '#654321');
@@ -107,8 +115,8 @@ describe('graphView/provider/view/context', () => {
     expect(options.readFolderNodeColor()).toBe('#654321');
     expect(options.asRelativePath({ fsPath: '/workspace/src/app.ts' })).toBe('src/app.ts');
     expect(options.defaultDepthLimit).toBe(1);
-    expect(source._context.workspaceState.get).toHaveBeenCalledWith('codegraphy.depthLimit');
-    expect(configuration.get).toHaveBeenCalledWith('folderNodeColor', '#93C5FD');
+    expect(configuration.get).toHaveBeenCalledWith('depthLimit', 1);
+    expect(configuration.get).toHaveBeenCalledWith('nodeColors', {});
     expect(normalizeFolderNodeColor).toHaveBeenCalledWith('#123456');
     expect(asRelativePath).toHaveBeenCalledWith({ fsPath: '/workspace/src/app.ts' });
     expect(source._viewContext).toEqual({
@@ -121,10 +129,18 @@ describe('graphView/provider/view/context', () => {
 
   it('uses the live vscode defaults to build the view context', () => {
     const source = createSource();
-    const configurationGet = vi.fn(() => '#123456');
+    const configurationGet = vi.fn(<T>(key: string, defaultValue: T): T => {
+      if (key === 'depthLimit') {
+        return 1 as T;
+      }
+      if (key === 'nodeColors') {
+        return { folder: '#123456' } as T;
+      }
+      return defaultValue;
+    });
     const getConfiguration = vi
       .spyOn(vscode.workspace, 'getConfiguration')
-      .mockReturnValue({ get: configurationGet } as never);
+      .mockReturnValue({ get: configurationGet, update: vi.fn(() => Promise.resolve()) } as never);
     const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
     const workspaceFolders = vi
       .spyOn(vscode.workspace, 'workspaceFolders', 'get')
@@ -172,8 +188,8 @@ describe('graphView/provider/view/context', () => {
     expect(options.readFolderNodeColor()).toBe('#654321');
     expect(options.asRelativePath(vscode.Uri.file('/workspace/src/app.ts'))).toBe('src/app.ts');
     expect(options.defaultDepthLimit).toBe(1);
-    expect(source._context.workspaceState.get).toHaveBeenCalledWith('codegraphy.depthLimit');
-    expect(configurationGet).toHaveBeenCalledWith('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR);
+    expect(configurationGet).toHaveBeenCalledWith('depthLimit', 1);
+    expect(configurationGet).toHaveBeenCalledWith('nodeColors', {});
     expect(providerViewContextMethodMocks.normalizeFolderNodeColor).toHaveBeenCalledWith('#123456');
     expect(asRelativePath).toHaveBeenCalledWith(vscode.Uri.file('/workspace/src/app.ts'));
     expect(source._viewContext).toEqual({
@@ -255,12 +271,13 @@ describe('graphView/provider/view/context', () => {
       persistSelectedViewId: 'codegraphy.connections',
     } satisfies IGraphViewTransformResult));
     const sendAvailableViews = vi.fn();
+    const dependencies = createDependencies({
+      applyViewTransform,
+      sendAvailableViews,
+    });
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
-      createDependencies({
-        applyViewTransform,
-        sendAvailableViews,
-      }),
+      dependencies,
     );
 
     methods._applyViewTransform();
@@ -277,8 +294,9 @@ describe('graphView/provider/view/context', () => {
       nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
       edges: [],
     });
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.selectedView',
+    const configuration = dependencies.getConfiguration('codegraphy');
+    expect(configuration.update).toHaveBeenCalledWith(
+      'selectedView',
       'codegraphy.connections',
     );
     expect(sendAvailableViews).toHaveBeenCalledOnce();
@@ -308,6 +326,9 @@ describe('graphView/provider/view/context', () => {
         });
       },
     );
+    const update = vi.fn(() => Promise.resolve());
+    vi.spyOn(vscode.workspace, 'getConfiguration')
+      .mockReturnValue({ get: vi.fn((_: string, fallback: unknown) => fallback), update } as never);
 
     const methods = createGraphViewProviderViewContextMethods(source as never);
 
@@ -325,8 +346,8 @@ describe('graphView/provider/view/context', () => {
       nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
       edges: [],
     });
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.selectedView',
+    expect(update).toHaveBeenCalledWith(
+      'selectedView',
       'codegraphy.connections',
     );
     expect(providerViewContextMethodMocks.sendAvailableViews).toHaveBeenCalledWith(
@@ -354,11 +375,12 @@ describe('graphView/provider/view/context', () => {
         edges: [],
       },
     } satisfies IGraphViewTransformResult));
+    const dependencies = createDependencies({
+      applyViewTransform,
+    });
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
-      createDependencies({
-        applyViewTransform,
-      }),
+      dependencies,
     );
 
     methods._applyViewTransform();
@@ -368,7 +390,7 @@ describe('graphView/provider/view/context', () => {
       nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
       edges: [],
     });
-    expect(source._context.workspaceState.update).not.toHaveBeenCalled();
+    expect(dependencies.getConfiguration('codegraphy').update).not.toHaveBeenCalled();
   });
 });
 
@@ -413,7 +435,11 @@ function createDependencies(
 ): GraphViewProviderViewContextMethodDependencies {
   const configuration = {
     get: vi.fn((_: string, fallback: unknown) => fallback),
-  } as { get<T>(section: string, defaultValue: T): T };
+    update: vi.fn(() => Promise.resolve()),
+  } as {
+    get<T>(section: string, defaultValue: T): T;
+    update(key: string, value: unknown, target?: unknown): Promise<void>;
+  };
   const getConfiguration: GraphViewProviderViewContextMethodDependencies['getConfiguration'] = vi.fn(
     () => configuration,
   );
@@ -441,7 +467,7 @@ function createDependencies(
     normalizeFolderNodeColor: vi.fn((color: string | undefined) => color ?? '#93C5FD'),
     defaultDepthLimit: 1,
     defaultFolderNodeColor: '#93C5FD',
-    selectedViewKey: 'codegraphy.selectedView',
+    selectedViewKey: 'selectedView',
     ...overrides,
   };
 }

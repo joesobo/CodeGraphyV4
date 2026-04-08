@@ -12,11 +12,11 @@ import { buildGraphViewContext } from '../../view/context';
 
 interface GraphViewProviderWorkspaceStateLike {
   get<T>(key: string): T | undefined;
-  update(key: string, value: unknown): PromiseLike<void>;
 }
 
 interface GraphViewProviderConfigLike {
   get<T>(key: string, defaultValue: T): T;
+  update(key: string, value: unknown, target?: unknown): PromiseLike<void>;
 }
 
 interface GraphViewProviderAnalyzerLike {
@@ -77,7 +77,7 @@ function createDefaultDependencies(): GraphViewProviderViewContextMethodDependen
     normalizeFolderNodeColor,
     defaultDepthLimit: 1,
     defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
-    selectedViewKey: 'codegraphy.selectedView',
+    selectedViewKey: 'selectedView',
   };
 }
 
@@ -91,7 +91,7 @@ export function createGraphViewProviderViewContextMethods(
       analyzer: source._analyzer,
       workspaceFolders: dependencies.getWorkspaceFolders(),
       activeEditor: dependencies.getActiveTextEditor(),
-      readSavedDepthLimit: () => source._context.workspaceState.get<number>('codegraphy.depthLimit'),
+      readSavedDepthLimit: () => config.get<number>('depthLimit', dependencies.defaultDepthLimit),
       readFolderNodeColor: () => {
         const nodeColors = config.get<GraphViewProviderNodeColors>('nodeColors', {});
         return dependencies.normalizeFolderNodeColor(
@@ -114,10 +114,9 @@ export function createGraphViewProviderViewContextMethods(
     source._graphData = result.graphData;
 
     if (result.persistSelectedViewId) {
-      void source._context.workspaceState.update(
-        dependencies.selectedViewKey,
-        result.persistSelectedViewId,
-      );
+      void dependencies
+        .getConfiguration('codegraphy')
+        .update(dependencies.selectedViewKey, result.persistSelectedViewId);
     }
   };
 

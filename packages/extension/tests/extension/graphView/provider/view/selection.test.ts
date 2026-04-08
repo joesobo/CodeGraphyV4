@@ -19,12 +19,13 @@ describe('graphView/provider/view/selection', () => {
       handlers.sendAvailableViews();
       handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
     });
+    const dependencies = createDependencies({
+      changeView,
+      setFocusedFile,
+    });
     const methods = createGraphViewProviderViewSelectionMethods(
       source as never,
-      createDependencies({
-        changeView,
-        setFocusedFile,
-      }),
+      dependencies,
     );
 
     await methods.changeView('codegraphy.depth-graph');
@@ -32,8 +33,8 @@ describe('graphView/provider/view/selection', () => {
 
     expect(changeView).toHaveBeenCalledOnce();
     expect(setFocusedFile).toHaveBeenCalledOnce();
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.selectedView',
+    expect(dependencies.getConfiguration().update).toHaveBeenCalledWith(
+      'selectedView',
       'codegraphy.depth-graph',
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
@@ -54,19 +55,20 @@ describe('graphView/provider/view/selection', () => {
       });
     });
     const getDepthLimit = vi.fn(() => 7);
+    const dependencies = createDependencies({
+      setDepthLimit,
+      getDepthLimit,
+    });
     const methods = createGraphViewProviderViewSelectionMethods(
       source as never,
-      createDependencies({
-        setDepthLimit,
-        getDepthLimit,
-      }),
+      dependencies,
     );
 
     await methods.setDepthLimit(7);
 
     expect(setDepthLimit).toHaveBeenCalledOnce();
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.depthLimit',
+    expect(dependencies.getConfiguration().update).toHaveBeenCalledWith(
+      'depthLimit',
       7,
     );
     expect(methods.getDepthLimit()).toBe(7);
@@ -129,22 +131,23 @@ describe('graphView/provider/view/selection', () => {
       handlers.sendMessage({
         type: 'DEPTH_LIMIT_UPDATED',
         payload: { depthLimit: nextDepthLimit },
-      });
+        });
+    });
+    const dependencies = createDependencies({
+      setFocusedFile,
+      setDepthLimit,
     });
     const methods = createGraphViewProviderViewSelectionMethods(
       source as never,
-      createDependencies({
-        setFocusedFile,
-        setDepthLimit,
-      }),
+      dependencies,
     );
 
     methods.setFocusedFile(undefined);
     await methods.setDepthLimit(4);
 
     expect(source._viewRegistry.get).toHaveBeenCalledWith('codegraphy.connections');
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.depthLimit',
+    expect(dependencies.getConfiguration().update).toHaveBeenCalledWith(
+      'depthLimit',
       4,
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
@@ -185,6 +188,9 @@ function createSource(overrides: Partial<Record<string, unknown>> = {}) {
 function createDependencies(
   overrides: Partial<Parameters<typeof createGraphViewProviderViewSelectionMethods>[1]> = {},
 ) {
+  const configuration = {
+    update: vi.fn(() => Promise.resolve()),
+  };
   return {
     changeView: vi.fn(async () => undefined),
     setFocusedFile: vi.fn(),
@@ -192,9 +198,10 @@ function createDependencies(
     getDepthLimit: vi.fn((viewContext: IViewContext, defaultDepthLimit: number) =>
       viewContext.depthLimit ?? defaultDepthLimit,
     ),
+    getConfiguration: vi.fn(() => configuration),
     defaultDepthLimit: 1,
-    selectedViewKey: 'codegraphy.selectedView',
-    depthLimitKey: 'codegraphy.depthLimit',
+    selectedViewKey: 'selectedView',
+    depthLimitKey: 'depthLimit',
     logUnavailableView: vi.fn(),
     ...overrides,
   };

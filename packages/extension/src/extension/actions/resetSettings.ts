@@ -35,8 +35,8 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   hiddenPluginGroups: 'hiddenPluginGroups',
 };
 
-/** Storage key for node size mode per workspace */
-const NODE_SIZE_MODE_KEY = 'codegraphy.nodeSizeMode';
+/** Repo settings key for node size mode */
+const NODE_SIZE_MODE_KEY = 'nodeSizeMode';
 
 /**
  * Action for resetting all settings to defaults.
@@ -62,6 +62,7 @@ export class ResetSettingsAction implements IUndoableAction {
   async execute(): Promise<void> {
     const config = getCodeGraphyConfiguration();
     const target = this._configTarget;
+    void this._context;
 
     for (const key of PHYSICS_KEYS) {
       await config.update(`physics.${key}`, undefined, target);
@@ -71,7 +72,7 @@ export class ResetSettingsAction implements IUndoableAction {
     }
 
     this._setNodeSizeMode('connections');
-    await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, 'connections');
+    await config.update(NODE_SIZE_MODE_KEY, 'connections', target);
 
     this._sendAllSettings();
     await this._refreshGraph();
@@ -81,6 +82,7 @@ export class ResetSettingsAction implements IUndoableAction {
     const config = getCodeGraphyConfiguration();
     const target = this._configTarget;
     const before = this._stateBefore;
+    void this._context;
 
     for (const key of PHYSICS_KEYS) {
       await config.update(`physics.${key}`, before.physics[key], target);
@@ -90,7 +92,7 @@ export class ResetSettingsAction implements IUndoableAction {
     }
 
     this._setNodeSizeMode(before.nodeSizeMode);
-    await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, before.nodeSizeMode);
+    await config.update(NODE_SIZE_MODE_KEY, before.nodeSizeMode, target);
 
     this._sendAllSettings();
     await this._refreshGraph();
