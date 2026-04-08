@@ -84,7 +84,7 @@ export interface IPlugin {
   /**
    * Connection sources this plugin supports.
    * Each source describes a category of relations the plugin can emit.
-   * Used by the Plugins panel to let users toggle individual source types.
+   * These source IDs flow into graph-edge provenance, exports, and any source-level filtering.
    */
   sources?: IConnectionSource[];
 

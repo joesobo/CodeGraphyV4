@@ -14,7 +14,7 @@ The timeline lets you visualize how your codebase's dependency graph evolved ove
 
 ## How it works
 
-Indexing analyzes the main branch's commit history (up to 500 commits). The first commit is fully analyzed, then each subsequent commit carries that previous indexed state forward and applies only the diff. Projected timeline snapshots are cached to disk so reopening the extension does not need to rebuild unchanged history.
+Indexing analyzes the main branch's commit history (up to 500 commits) and caches timeline snapshots to disk so reopening the extension does not need to rebuild unchanged history.
 
 Timeline state is stored under `.codegraphy/` alongside the live repo index and repo-local settings.
 

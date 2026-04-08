@@ -21,7 +21,7 @@ Common top-level sections include:
 - `nodeColors`
 - `edgeVisibility`
 - `edgeColors`
-- `groups`
+- `groups` (legend rules)
 - `pluginOrder`
 - `disabledPlugins`
 - `disabledSources`
@@ -77,7 +77,7 @@ Example:
 | `groups` | object[] | `[]` | Legend rules: `{ id, pattern, color, ... }` |
 | `pluginOrder` | string[] | `[]` | Plugin processing order, bottom-to-top |
 | `disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
-| `disabledSources` | string[] | `[]` | Disabled qualified source IDs |
+| `disabledSources` | string[] | `[]` | Disabled qualified source IDs kept for legacy migration and source-level filtering |
 | `nodeVisibility` | object | generated | Node-type visibility by id |
 | `nodeColors` | object | generated | Node-type colors by id |
 | `edgeVisibility` | object | generated | Edge-kind visibility by id |
@@ -125,9 +125,9 @@ Legend rules assign colors based on regex/glob-style matching and are applied in
 Legend rules can color files, folders, packages, and plugin-added node types through one shared priority system.
 
 - Enter a glob pattern and pick a hex color, then click Add.
-- Click the x button next to any group to delete it.
-- Groups are matched in order; the first matching group wins.
-- Drag groups to reorder priority.
+- Click the x button next to any legend rule to delete it.
+- Lower rules apply first, higher rules apply last.
+- Drag legend rules to reorder priority.
 - Changes sync back to the extension immediately.
 
 Group patterns match by basename or path suffix. Simple extension patterns like `*.ts` match files at any depth, `src/*` matches files directly inside any `src/` folder, and `src/**` matches files at any depth under any `src/` folder.
@@ -154,8 +154,8 @@ To share legend rules across a team, commit `.codegraphy/settings.json`:
 
 Controls which files appear in the graph. These are applied during file discovery, not as a visual filter.
 
-- **Show Orphans** toggles files with no import connections. Equivalent to `codegraphy.showOrphans`.
-- **Max Files** limits how many files are analyzed. Equivalent to `codegraphy.maxFiles`.
+- **Show Orphans** toggles files with no visible edges.
+- **Max Files** limits how many files are analyzed.
 - **Exclude patterns** are glob patterns for files to hide entirely. Patterns support `matchBase`, so `*.png` excludes PNG files at any depth.
 
 Exclude patterns are appended to the built-in excludes (`node_modules`, `dist`, `build`, etc.).
@@ -171,7 +171,7 @@ vendor/**       a vendor directory
 To version-control filter patterns, add them to `settings.json`:
 ```json
 {
-  "codegraphy.filterPatterns": ["*.png", "*.svg", "**/*.test.*"]
+  "filterPatterns": ["*.png", "*.svg", "**/*.test.*"]
 }
 ```
 
@@ -195,7 +195,7 @@ Node, edge, legend, and plugin controls are in dedicated toolbar popups. The gra
 
 ## File discovery settings
 
-### `codegraphy.maxFiles`
+### `maxFiles`
 
 Limits the number of files analyzed to prevent performance issues in large repos.
 
@@ -205,7 +205,7 @@ Limits the number of files analyzed to prevent performance issues in large repos
 
 When the limit is hit, a warning appears and only the first N files are processed. Use `include` and `filterPatterns` to narrow scope rather than raising this indefinitely.
 
-### `codegraphy.include`
+### `include`
 
 Glob patterns for which files to discover, relative to the workspace root.
 
@@ -221,7 +221,7 @@ Common patterns:
 - `**/*.ts` only TypeScript files
 - `{src,lib}/**/*` multiple directories
 
-### `codegraphy.filterPatterns`
+### `filterPatterns`
 
 Glob patterns for files to exclude, appended to built-in excludes. Supports `matchBase` so `*.png` matches at any depth.
 
@@ -245,7 +245,7 @@ Glob patterns for files to exclude, appended to built-in excludes. Supports `mat
 
 Your patterns are merged with the built-ins, so you don't need to repeat them.
 
-### `codegraphy.respectGitignore`
+### `respectGitignore`
 
 When `true`, reads `.gitignore` and excludes matching files automatically.
 
@@ -253,7 +253,7 @@ When `true`, reads `.gitignore` and excludes matching files automatically.
 { "respectGitignore": true }
 ```
 
-### `codegraphy.bidirectionalEdges`
+### `bidirectionalEdges`
 
 Controls how mutual imports (A imports B and B imports A) are drawn.
 
@@ -312,18 +312,18 @@ CodeGraphy’s graph/index behavior now lives with the repo under `.codegraphy/`
 ## Troubleshooting
 
 **Graph is empty**
-1. Check that `codegraphy.include` patterns match your files
+1. Check that `include` patterns match your files
 2. Verify files aren't excluded by `filterPatterns`, `.gitignore`, or the built-in excludes
-3. Make sure `codegraphy.maxFiles` is high enough
+3. Make sure `maxFiles` is high enough
 
 **Nodes are all grey**
 
 No legend rules are configured. Add them in the **Legends** popup or directly in `.codegraphy/settings.json`.
 
 **Too many files**
-1. Add exclusion patterns in the Filters section or `codegraphy.filterPatterns`
-2. Narrow `codegraphy.include` to specific directories
-3. Lower `codegraphy.maxFiles`
+1. Add exclusion patterns in the Filters section or `filterPatterns`
+2. Narrow `include` to specific directories
+3. Lower `maxFiles`
 
 **Missing connections**
 1. Make sure the file type has a supported plugin (TypeScript/JS, Python, C#, GDScript, Markdown)

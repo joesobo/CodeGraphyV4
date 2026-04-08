@@ -56,9 +56,10 @@ Defined in `plugin.ts`.
 Key points:
 - `apiVersion: string` is required (for example `'^2.0.0'`).
 - `webviewApiVersion?: string` and `webviewContributions?: { scripts?: string[]; styles?: string[] }` support Tier 2.
-- `sources?: IConnectionSource[]` declares the plugin’s toggleable relation sources.
+- `sources?: IConnectionSource[]` declares the plugin’s relation provenance/source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
 - `analyzeFile(filePath, content, workspaceRoot)` is the primary per-file analysis hook.
+- `detectConnections(filePath, content, workspaceRoot)` is still available as a legacy fallback, but new plugins should prefer `analyzeFile(...)`.
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new graph controls and defaults.
 - Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
@@ -107,7 +108,7 @@ Main groups:
 
 ### Graph (`graph.ts`)
 
-- `NodeType` = `file | folder | package`
+- `NodeType` = core `file | folder | package` plus plugin-defined string node kinds
 - `IGraphNode` (id/label/color + optional position/favorite/size/access/depth fields)
 - `IGraphEdge` (`id`, `from`, `to`, `kind`, `sources[]`)
 - `IGraphEdgeSource` (`id`, `pluginId`, `sourceId`, `label`, optional `variant`, optional scalar `metadata`)
