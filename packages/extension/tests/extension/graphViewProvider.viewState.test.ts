@@ -8,6 +8,7 @@ import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
   | undefined;
+let currentConfiguration: ReturnType<typeof createConfiguration>;
 
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => workspaceFoldersValue,
@@ -41,8 +42,9 @@ describe('GraphViewProvider view state and internal helpers', () => {
     workspaceFoldersValue = [
       { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },
     ];
+    currentConfiguration = createConfiguration({});
     (vscode.workspace as unknown as { getConfiguration: ReturnType<typeof vi.fn> }).getConfiguration =
-      vi.fn(() => createConfiguration({}));
+      vi.fn(() => currentConfiguration);
     (vscode.workspace as unknown as { asRelativePath: ReturnType<typeof vi.fn> }).asRelativePath =
       vi.fn((uri: vscode.Uri) => uri.fsPath.replace('/test/workspace/', ''));
     vi.clearAllMocks();
@@ -69,8 +71,8 @@ describe('GraphViewProvider view state and internal helpers', () => {
     expect((provider as unknown as { _activeViewId: string })._activeViewId).toBe(
       'codegraphy.depth-graph'
     );
-    expect(context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.selectedView',
+    expect(currentConfiguration.update).toHaveBeenCalledWith(
+      'selectedView',
       'codegraphy.depth-graph'
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
@@ -106,8 +108,8 @@ describe('GraphViewProvider view state and internal helpers', () => {
     expect((provider as unknown as { _activeViewId: string })._activeViewId).toBe(
       'codegraphy.depth-graph'
     );
-    expect(context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.selectedView',
+    expect(currentConfiguration.update).toHaveBeenCalledWith(
+      'selectedView',
       'codegraphy.depth-graph'
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
@@ -138,7 +140,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     await provider.setDepthLimit(99);
 
     expect((provider as unknown as { _viewContext: { depthLimit: number } })._viewContext.depthLimit).toBe(10);
-    expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.depthLimit', 10);
+    expect(currentConfiguration.update).toHaveBeenCalledWith('depthLimit', 10);
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'DEPTH_LIMIT_UPDATED',
@@ -169,7 +171,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     await provider.setDepthLimit(0);
 
     expect((provider as unknown as { _viewContext: { depthLimit: number } })._viewContext.depthLimit).toBe(1);
-    expect(context.workspaceState.update).toHaveBeenCalledWith('codegraphy.depthLimit', 1);
+    expect(currentConfiguration.update).toHaveBeenCalledWith('depthLimit', 1);
     expect(applySpy).not.toHaveBeenCalled();
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'DEPTH_LIMIT_UPDATED',
@@ -225,10 +227,6 @@ describe('GraphViewProvider view state and internal helpers', () => {
       },
     });
     expect(sendMessageSpy).toHaveBeenNthCalledWith(3, {
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: '#112233' },
-    });
-    expect(sendMessageSpy).toHaveBeenNthCalledWith(4, {
       type: 'SHOW_LABELS_UPDATED',
       payload: { showLabels: false },
     });

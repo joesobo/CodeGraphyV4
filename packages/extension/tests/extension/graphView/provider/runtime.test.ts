@@ -178,9 +178,9 @@ describe('graphView/provider/runtime', () => {
     );
     expect(restoreGraphViewProviderState).toHaveBeenCalledWith(
       expect.objectContaining({
-        selectedViewKey: 'codegraphy.selectedView',
-        dagModeKey: 'codegraphy.dagMode',
-        nodeSizeModeKey: 'codegraphy.nodeSizeMode',
+        selectedViewKey: 'selectedView',
+        dagModeKey: 'dagMode',
+        nodeSizeModeKey: 'nodeSizeMode',
         fallbackViewId: 'codegraphy.connections',
         fallbackNodeSizeMode: 'connections',
       }),

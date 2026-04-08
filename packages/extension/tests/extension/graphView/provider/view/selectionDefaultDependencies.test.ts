@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as vscode from 'vscode';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
 import type { IGraphData } from '../../../../../src/shared/graph/types';
 
@@ -19,11 +20,25 @@ vi.mock('../../../../../src/extension/graphView/view/selection', () => ({
 import { createGraphViewProviderViewSelectionMethods } from '../../../../../src/extension/graphView/provider/view/selection';
 
 describe('graphView/provider/view/selection default dependencies', () => {
+  let configuration: {
+    get: <T>(section: string, defaultValue: T) => T;
+    update: ReturnType<typeof vi.fn>;
+  };
+
   beforeEach(() => {
     mocks.changeGraphViewView.mockReset();
     mocks.setGraphViewFocusedFile.mockReset();
     mocks.setGraphViewDepthLimit.mockReset();
     mocks.getGraphViewDepthLimit.mockReset();
+    configuration = {
+      get: ((_: string, defaultValue: unknown) => defaultValue) as <T>(
+        section: string,
+        defaultValue: T,
+      ) => T,
+      update: vi.fn(() => Promise.resolve()),
+    };
+    (vscode.workspace as unknown as { getConfiguration: ReturnType<typeof vi.fn> }).getConfiguration =
+      vi.fn(() => configuration);
   });
 
   it('uses the default view switching delegates and persisted view key', async () => {
@@ -50,8 +65,8 @@ describe('graphView/provider/view/selection default dependencies', () => {
       'codegraphy.depth-graph',
       source._viewContext,
     );
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.selectedView',
+    expect(configuration.update).toHaveBeenCalledWith(
+      'selectedView',
       'codegraphy.depth-graph',
     );
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
@@ -106,8 +121,8 @@ describe('graphView/provider/view/selection default dependencies', () => {
     expect(mocks.setGraphViewFocusedFile).toHaveBeenCalledOnce();
     expect(mocks.setGraphViewDepthLimit).toHaveBeenCalledOnce();
     expect(source._viewRegistry.get).toHaveBeenCalledWith('codegraphy.connections');
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.depthLimit',
+    expect(configuration.update).toHaveBeenCalledWith(
+      'depthLimit',
       4,
     );
     expect(source._applyViewTransform).toHaveBeenCalledTimes(2);

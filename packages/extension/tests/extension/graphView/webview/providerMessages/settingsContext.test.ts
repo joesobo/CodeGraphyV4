@@ -22,8 +22,8 @@ describe('graph view provider listener settings context', () => {
       executeUndoAction: vi.fn(),
       normalizeFolderNodeColor: vi.fn(color => color),
       defaultFolderNodeColor: '#336699',
-      dagModeKey: 'codegraphy.dagMode',
-      nodeSizeModeKey: 'codegraphy.nodeSizeMode',
+      dagModeKey: 'dagMode',
+      nodeSizeModeKey: 'nodeSizeMode',
     };
     const context = createGraphViewProviderMessageSettingsContext(
       {
@@ -52,14 +52,13 @@ describe('graph view provider listener settings context', () => {
 
   it('persists mode updates and resets settings through the undoable reset action', async () => {
     const updateConfig = vi.fn(() => Promise.resolve());
-    const workspaceStateUpdate = vi.fn(() => Promise.resolve());
     const captureSettingsSnapshot = vi.fn(() => ({ snapshot: true }));
     const createResetSettingsAction = vi.fn(() => ({ kind: 'reset-settings' }));
     const executeUndoAction = vi.fn(() => Promise.resolve());
     const source = {
       _context: {
         workspaceState: {
-          update: workspaceStateUpdate,
+          update: vi.fn(() => Promise.resolve()),
         },
       },
       _dagMode: null,
@@ -90,8 +89,8 @@ describe('graph view provider listener settings context', () => {
       executeUndoAction,
       normalizeFolderNodeColor: vi.fn(color => color),
       defaultFolderNodeColor: '#336699',
-      dagModeKey: 'codegraphy.dagMode',
-      nodeSizeModeKey: 'codegraphy.nodeSizeMode',
+      dagModeKey: 'dagMode',
+      nodeSizeModeKey: 'nodeSizeMode',
     };
 
     const context = createGraphViewProviderMessageSettingsContext(
@@ -104,8 +103,8 @@ describe('graph view provider listener settings context', () => {
     await context.updateConfig('showOrphans', false);
     await context.resetAllSettings();
 
-    expect(workspaceStateUpdate).toHaveBeenCalledWith('codegraphy.dagMode', 'TB');
-    expect(workspaceStateUpdate).toHaveBeenCalledWith('codegraphy.nodeSizeMode', 'files');
+    expect(updateConfig).toHaveBeenCalledWith('dagMode', 'TB', 'workspace');
+    expect(updateConfig).toHaveBeenCalledWith('nodeSizeMode', 'files', 'workspace');
     expect(dependencies.workspace.getConfiguration).toHaveBeenCalledWith('codegraphy');
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'DAG_MODE_UPDATED',
@@ -174,8 +173,8 @@ describe('graph view provider listener settings context', () => {
       executeUndoAction: vi.fn(() => Promise.resolve()),
       normalizeFolderNodeColor: vi.fn(color => color),
       defaultFolderNodeColor: '#336699',
-      dagModeKey: 'codegraphy.dagMode',
-      nodeSizeModeKey: 'codegraphy.nodeSizeMode',
+      dagModeKey: 'dagMode',
+      nodeSizeModeKey: 'nodeSizeMode',
     };
 
     const context = createGraphViewProviderMessageSettingsContext(
