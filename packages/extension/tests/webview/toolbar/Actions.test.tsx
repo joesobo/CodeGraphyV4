@@ -120,15 +120,15 @@ describe('ToolbarActions', () => {
     graphStore.setState({
       pluginToolbarActions: [
         {
-          id: 'wikilinks',
-          label: 'Wikilinks',
+          id: 'docs',
+          label: 'Docs',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
           items: [
             {
-              id: 'wikilink-summary',
-              label: 'Markdown Wikilink Summary',
+              id: 'docs-summary',
+              label: 'Docs Summary',
               index: 0,
             },
           ],
@@ -138,9 +138,9 @@ describe('ToolbarActions', () => {
 
     renderWithProviders();
 
-    const wikilinksButton = screen.getByTitle('Wikilinks');
+    const docsButton = screen.getByTitle('Docs');
     const exportButton = screen.getByTitle('Export');
-    expect(wikilinksButton.compareDocumentPosition(exportButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(docsButton.compareDocumentPosition(exportButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('renders the plugins button with title', () => {
@@ -310,14 +310,14 @@ describe('ToolbarActions export dropdown items', () => {
       pluginToolbarActions: [
         {
           id: 'wikilinks',
-          label: 'Wikilinks',
+          label: 'Docs',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
           items: [
             {
-              id: 'wikilink-summary',
-              label: 'Markdown Wikilink Summary',
+              id: 'docs-summary',
+              label: 'Docs Summary',
               index: 0,
             },
           ],
@@ -327,8 +327,8 @@ describe('ToolbarActions export dropdown items', () => {
 
     renderWithProviders();
 
-    expect(screen.getByTitle('Wikilinks')).toBeInTheDocument();
-    expect(screen.getByText('Markdown Wikilink Summary')).toBeInTheDocument();
+    expect(screen.getByTitle('Docs')).toBeInTheDocument();
+    expect(screen.getByText('Docs Summary')).toBeInTheDocument();
   });
 
   it('posts RUN_PLUGIN_TOOLBAR_ACTION through the host api when a toolbar action item is clicked', () => {
@@ -336,14 +336,14 @@ describe('ToolbarActions export dropdown items', () => {
       pluginToolbarActions: [
         {
           id: 'wikilinks',
-          label: 'Wikilinks',
+          label: 'Docs',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
           items: [
             {
-              id: 'wikilink-summary',
-              label: 'Markdown Wikilink Summary',
+              id: 'docs-summary',
+              label: 'Docs Summary',
               index: 0,
             },
           ],
@@ -354,7 +354,7 @@ describe('ToolbarActions export dropdown items', () => {
     const postMessageSpy = vi.spyOn(window, 'postMessage');
 
     renderWithProviders();
-    fireEvent.click(screen.getByText('Markdown Wikilink Summary'));
+    fireEvent.click(screen.getByText('Docs Summary'));
 
     expect(postMessageSpy).toHaveBeenCalledWith({
       type: 'RUN_PLUGIN_TOOLBAR_ACTION',
@@ -372,14 +372,14 @@ describe('ToolbarActions export dropdown items', () => {
       pluginToolbarActions: [
         {
           id: 'wikilinks',
-          label: 'Wikilinks',
+          label: 'Docs',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
           items: [
             {
-              id: 'wikilink-summary',
-              label: 'Markdown Wikilink Summary',
+              id: 'docs-summary',
+              label: 'Docs Summary',
               index: 0,
             },
           ],
@@ -389,7 +389,7 @@ describe('ToolbarActions export dropdown items', () => {
 
     renderWithProviders();
 
-    expect(screen.getByTitle('Wikilinks').querySelector('path')).toHaveAttribute(
+    expect(screen.getByTitle('Docs').querySelector('path')).toHaveAttribute(
       'd',
       mdiLinkVariant,
     );
@@ -400,32 +400,32 @@ describe('ToolbarActions helpers', () => {
   it('builds stable keys for toolbar actions and exporter items', () => {
     expect(
       getToolbarActionKey({
-        id: 'wikilinks',
-        label: 'Wikilinks',
+        id: 'docs',
+        label: 'Docs',
         pluginId: 'plugin.docs',
         pluginName: 'Docs Plugin',
         index: 0,
         items: [],
       }),
-    ).toBe('plugin.docs:wikilinks:0');
+    ).toBe('plugin.docs:docs:0');
 
     expect(
       getToolbarActionItemKey(
         {
-          id: 'wikilinks',
-          label: 'Wikilinks',
+          id: 'docs',
+          label: 'Docs',
           pluginId: 'plugin.docs',
           pluginName: 'Docs Plugin',
           index: 0,
           items: [],
         },
         {
-          id: 'wikilink-summary',
-          label: 'Markdown Wikilink Summary',
+          id: 'docs-summary',
+          label: 'Docs Summary',
           index: 1,
         },
       ),
-    ).toBe('plugin.docs:wikilinks:1');
+    ).toBe('plugin.docs:docs:1');
 
     expect(
       getPluginExporterKey({

@@ -199,14 +199,14 @@ describe('GraphStore message routing', () => {
     const items = [
       {
         id: 'wikilinks',
-        label: 'Wikilinks',
+        label: 'Docs',
         pluginId: 'plugin.docs',
         pluginName: 'Docs Plugin',
         index: 0,
         items: [
           {
-            id: 'wikilink-summary',
-            label: 'Wikilink Summary',
+            id: 'docs-summary',
+            label: 'Docs Summary',
             index: 0,
           },
         ],
@@ -238,12 +238,12 @@ describe('GraphStore message routing', () => {
       pluginToolbarActions: [
         {
           id: 'wikilinks',
-          label: 'Wikilinks',
+          label: 'Docs',
           pluginId: 'plugin.existing',
           pluginName: 'Existing Plugin',
           index: 0,
           items: [
-            { id: 'wikilink-summary', label: 'Wikilink Summary', index: 0 },
+            { id: 'docs-summary', label: 'Docs Summary', index: 0 },
           ],
         },
       ],
@@ -277,12 +277,12 @@ describe('GraphStore message routing', () => {
     expect(store.getState().pluginToolbarActions).toEqual([
       {
         id: 'wikilinks',
-        label: 'Wikilinks',
+        label: 'Docs',
         pluginId: 'plugin.existing',
         pluginName: 'Existing Plugin',
         index: 0,
         items: [
-          { id: 'wikilink-summary', label: 'Wikilink Summary', index: 0 },
+          { id: 'docs-summary', label: 'Docs Summary', index: 0 },
         ],
       },
     ]);

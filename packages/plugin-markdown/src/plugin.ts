@@ -6,14 +6,11 @@
  */
 
 import type {
-  CodeGraphyAPI,
-  Disposable,
   IConnection,
   IPlugin,
 } from '@codegraphy-vscode/plugin-api';
 import { PathResolver } from './PathResolver';
 import manifest from '../codegraphy.json';
-import { registerWikilinkToolbarAction } from './toolbar/action';
 
 // Source detect functions
 import { detect as detectWikilink } from './sources/wikilink';
@@ -34,7 +31,6 @@ export type { IDetectedWikilink, MarkdownRuleContext } from './sources/wikilink'
  */
 export function createMarkdownPlugin(): IPlugin {
   const resolver = new PathResolver(String());
-  const toolbarActionDisposables: Disposable[] = [];
 
   return {
     id: manifest.id,
@@ -45,10 +41,6 @@ export function createMarkdownPlugin(): IPlugin {
     defaultFilters: manifest.defaultFilters,
     sources: manifest.sources,
     fileColors: manifest.fileColors,
-
-    onLoad(api: CodeGraphyAPI): void {
-      toolbarActionDisposables.push(registerWikilinkToolbarAction(api));
-    },
 
     async initialize(workspaceRoot: string): Promise<void> {
       resolver.setWorkspaceRoot(workspaceRoot);
@@ -72,12 +64,6 @@ export function createMarkdownPlugin(): IPlugin {
       _workspaceRoot: string
     ): Promise<IConnection[]> {
       return detectWikilink(content, filePath, { resolver });
-    },
-
-    onUnload(): void {
-      while (toolbarActionDisposables.length > 0) {
-        toolbarActionDisposables.pop()?.dispose();
-      }
     },
   };
 }
