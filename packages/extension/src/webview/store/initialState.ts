@@ -1,6 +1,6 @@
 import type { GraphStateFields } from './state';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
@@ -30,7 +30,6 @@ export const INITIAL_STATE: GraphStateFields = {
   availableViews: [],
   activeViewId: 'codegraphy.connections',
   dagMode: null,
-  folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
   pluginStatuses: [],
   graphNodeTypes: [],
   graphEdgeTypes: [],

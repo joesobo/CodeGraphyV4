@@ -37,7 +37,6 @@ export function createActions(set: SetState, get: GetState) {
     setBidirectionalMode: (mode: GraphState['bidirectionalMode']) => set({ bidirectionalMode: mode }),
     setActiveViewId: (id: string) => set({ activeViewId: id }),
     setDagMode: (mode: GraphState['dagMode']) => set({ dagMode: mode }),
-    setFolderNodeColor: (color: string) => set({ folderNodeColor: color }),
     setMaxFiles: (max: number) => set({ maxFiles: max }),
     setPlaybackSpeed: (speed: number) => set({ playbackSpeed: speed }),
     setIsPlaying: (playing: boolean) => set({ isPlaying: playing }),

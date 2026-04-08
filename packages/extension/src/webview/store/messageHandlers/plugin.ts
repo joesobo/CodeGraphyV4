@@ -53,12 +53,6 @@ export function handleDagModeUpdated(
   return { dagMode: message.payload.dagMode };
 }
 
-export function handleFolderNodeColorUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'FOLDER_NODE_COLOR_UPDATED' }>,
-): PartialState {
-  return { folderNodeColor: message.payload.folderNodeColor };
-}
-
 export function handleNodeSizeModeUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'NODE_SIZE_MODE_UPDATED' }>,
 ): PartialState {

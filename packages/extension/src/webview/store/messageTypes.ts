@@ -48,7 +48,6 @@ export interface IStoreFields {
   availableViews: IAvailableView[];
   activeViewId: string;
   dagMode: DagMode;
-  folderNodeColor: string;
   pluginStatuses: IPluginStatus[];
   graphNodeTypes: IGraphNodeTypeDefinition[];
   graphEdgeTypes: IGraphEdgeTypeDefinition[];

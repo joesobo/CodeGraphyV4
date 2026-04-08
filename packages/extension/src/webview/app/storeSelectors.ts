@@ -19,7 +19,6 @@ export function useAppState() {
   const nodeVisibility = useGraphStore(s => s.nodeVisibility);
   const edgeVisibility = useGraphStore(s => s.edgeVisibility);
   const edgeColors = useGraphStore(s => s.edgeColors);
-  const folderNodeColor = useGraphStore(s => s.folderNodeColor);
   const nodeDecorations = useGraphStore(s => s.nodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
   const activeFilePath = useGraphStore(s => s.activeFilePath);
@@ -40,7 +39,6 @@ export function useAppState() {
     nodeVisibility,
     edgeVisibility,
     edgeColors,
-    folderNodeColor,
     nodeDecorations,
     edgeDecorations,
     activeFilePath,

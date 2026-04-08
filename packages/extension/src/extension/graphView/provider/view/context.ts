@@ -25,6 +25,10 @@ interface GraphViewProviderAnalyzerLike {
   };
 }
 
+interface GraphViewProviderNodeColors {
+  folder?: string;
+}
+
 export interface GraphViewProviderViewContextMethodsSource {
   _context: { workspaceState: GraphViewProviderWorkspaceStateLike };
   _analyzer?: GraphViewProviderAnalyzerLike;
@@ -88,10 +92,12 @@ export function createGraphViewProviderViewContextMethods(
       workspaceFolders: dependencies.getWorkspaceFolders(),
       activeEditor: dependencies.getActiveTextEditor(),
       readSavedDepthLimit: () => source._context.workspaceState.get<number>('codegraphy.depthLimit'),
-      readFolderNodeColor: () =>
-        dependencies.normalizeFolderNodeColor(
-          config.get<string>('folderNodeColor', dependencies.defaultFolderNodeColor),
-        ),
+      readFolderNodeColor: () => {
+        const nodeColors = config.get<GraphViewProviderNodeColors>('nodeColors', {});
+        return dependencies.normalizeFolderNodeColor(
+          nodeColors.folder ?? dependencies.defaultFolderNodeColor,
+        );
+      },
       asRelativePath: uri => dependencies.asRelativePath(uri),
       defaultDepthLimit: dependencies.defaultDepthLimit,
     });

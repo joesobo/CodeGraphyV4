@@ -77,9 +77,6 @@ export async function applySettingsUpdateMessage(
         [message.payload.nodeType]: message.payload.color,
       };
       await handlers.updateConfig('nodeColors', nextColors);
-      if (message.payload.nodeType === 'folder') {
-        await handlers.updateConfig('folderNodeColor', message.payload.color);
-      }
       handlers.sendGraphControls();
       return true;
     }

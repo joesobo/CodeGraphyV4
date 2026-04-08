@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createGraphStore } from '../../src/webview/store/state';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/fileColors';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
 describe('GraphStore', () => {
@@ -236,19 +236,6 @@ describe('GraphStore', () => {
   it('setDagMode updates dagMode', () => {
     store.getState().setDagMode('lr');
     expect(store.getState().dagMode).toBe('lr');
-  });
-
-  it('has correct initial folderNodeColor state', () => {
-    const state = store.getState();
-    expect(state.folderNodeColor).toBe(DEFAULT_FOLDER_NODE_COLOR);
-  });
-
-  it('handles FOLDER_NODE_COLOR_UPDATED message', () => {
-    store.getState().handleExtensionMessage({
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: '#FF0000' },
-    });
-    expect(store.getState().folderNodeColor).toBe('#FF0000');
   });
 
   it('handles TOGGLE_DIMENSION message', () => {

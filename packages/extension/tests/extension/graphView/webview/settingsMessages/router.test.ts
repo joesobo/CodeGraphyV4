@@ -192,54 +192,6 @@ describe('graph view settings router', () => {
     });
   });
 
-  it('updates folder node color and refreshes folder graph data in folder view', async () => {
-    const graphData: IGraphData = {
-      nodes: [{ id: 'src', label: 'src', color: '#111111' }],
-      edges: [],
-    };
-    const state = createState({
-      activeViewId: 'codegraphy.folder',
-      graphData,
-    });
-    const handlers = createHandlers();
-
-    await expect(
-      applySettingsMessage(
-        { type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: '#123abc' } },
-        state,
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
-    expect(state.viewContext.folderNodeColor).toBe('#123ABC');
-    expect(handlers.updateConfig).toHaveBeenCalledWith('folderNodeColor', '#123ABC');
-    expect(handlers.sendMessage).toHaveBeenNthCalledWith(1, {
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: '#123ABC' },
-    });
-    expect(handlers.applyViewTransform).toHaveBeenCalledOnce();
-    expect(handlers.sendMessage).toHaveBeenNthCalledWith(2, {
-      type: 'GRAPH_DATA_UPDATED',
-      payload: graphData,
-    });
-  });
-
-  it('updates folder node color without re-sending graph data outside folder view', async () => {
-    const state = createState();
-    const handlers = createHandlers();
-
-    await expect(
-      applySettingsMessage(
-        { type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: '#123abc' } },
-        state,
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
-    expect(handlers.applyViewTransform).not.toHaveBeenCalled();
-    expect(handlers.sendMessage).toHaveBeenCalledTimes(1);
-  });
-
   it('updates label visibility and publishes it immediately', async () => {
     const state = createState();
     const handlers = createHandlers();

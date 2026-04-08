@@ -93,7 +93,6 @@ describe('webview/store/actions', () => {
     actions.setBidirectionalMode('combined');
     actions.setActiveViewId('codegraphy.depth-graph');
     actions.setDagMode('td');
-    actions.setFolderNodeColor('#ff00ff');
     actions.setMaxFiles(1200);
     actions.setPlaybackSpeed(1.75);
     actions.setIsPlaying(true);
@@ -104,7 +103,6 @@ describe('webview/store/actions', () => {
       dagMode: 'td',
       directionColor: '#00ff00',
       directionMode: 'particles',
-      folderNodeColor: '#ff00ff',
       isPlaying: true,
       maxFiles: 1200,
       particleSize: 8,

@@ -121,7 +121,6 @@ describe('graph view provider listener settings context', () => {
     expect(executeUndoAction).toHaveBeenCalledWith({ kind: 'reset-settings' });
     expect(context.getMaxFiles()).toBe(500);
     expect(context.getPlaybackSpeed()).toBe(1);
-    expect(context.getFolderNodeColor()).toBe('#336699');
   });
 
   it('wires reset callbacks to resend settings, store node size mode, and reanalyze', async () => {

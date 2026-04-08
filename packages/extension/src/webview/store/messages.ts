@@ -31,7 +31,6 @@ import {
   handlePluginExportersUpdated,
   handlePluginToolbarActionsUpdated,
   handleDagModeUpdated,
-  handleFolderNodeColorUpdated,
   handleNodeSizeModeUpdated,
 } from './messageHandlers/plugin';
 import {
@@ -110,8 +109,6 @@ export const MESSAGE_HANDLERS: Record<
   PLUGIN_WEBVIEW_INJECT: () => undefined,
   DAG_MODE_UPDATED: (msg) =>
     handleDagModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>),
-  FOLDER_NODE_COLOR_UPDATED: (msg) =>
-    handleFolderNodeColorUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FOLDER_NODE_COLOR_UPDATED' }>),
   NODE_SIZE_MODE_UPDATED: (msg) =>
     handleNodeSizeModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'NODE_SIZE_MODE_UPDATED' }>),
   CYCLE_VIEW: handleCycleView,

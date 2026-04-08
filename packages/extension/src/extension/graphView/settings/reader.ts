@@ -72,6 +72,8 @@ export function resolveGraphViewDisabledState(
 export function readGraphViewSettings(
   config: IGraphViewSettingsReader
 ): IGraphViewSettingsSnapshot {
+  const nodeColors = config.get<Record<string, string>>('nodeColors', {});
+
   return {
     bidirectionalEdges: config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate'),
     showOrphans: config.get<boolean>('showOrphans', true),
@@ -82,7 +84,7 @@ export function readGraphViewSettings(
       config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)
     ),
     folderNodeColor: normalizeFolderNodeColor(
-      config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)
+      nodeColors.folder ?? config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)
     ),
     showLabels: config.get<boolean>('showLabels', true),
   };

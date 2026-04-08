@@ -15,7 +15,6 @@ function createContext(
     getPlaybackSpeed: vi.fn(() => 2),
     getDagMode: vi.fn(() => 'td' as DagMode),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
-    getFolderNodeColor: vi.fn(() => '#111111'),
     getFocusedFile: vi.fn(() => undefined),
     hasWorkspace: vi.fn(() => false),
     isFirstAnalysis: vi.fn(() => false),

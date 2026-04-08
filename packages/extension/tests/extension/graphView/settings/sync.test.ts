@@ -89,10 +89,10 @@ describe('graphView/settings/sync', () => {
       'PHYSICS_SETTINGS_UPDATED',
       'SETTINGS_UPDATED',
       'DIRECTION_SETTINGS_UPDATED',
-      'FOLDER_NODE_COLOR_UPDATED',
       'SHOW_LABELS_UPDATED',
       'RECOMPUTE_GROUPS',
       'SEND_GROUPS_UPDATED',
+      'FILTER_PATTERNS_UPDATED',
     ]);
   });
 
