@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '@/shared/graph/types';
-import type { IViewContext } from '@/core/views/contracts';
 import {
   createGraphViewPrimarySettingsMessageState,
 } from '../../../../../src/extension/graphView/webview/dispatch/primaryState';
@@ -18,7 +17,7 @@ function createContext(
     getDisabledRules: vi.fn(() => new Set<string>()),
     getFilterPatterns: vi.fn(() => []),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
-    getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
+    getViewContext: vi.fn(() => ({ activePlugins: new Set() })),
     sendGraphControls: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
@@ -74,23 +73,18 @@ describe('createGraphViewPrimarySettingsMessageState', () => {
     const disabledPlugins = new Set(['plugin-a']);
     const disabledSources = new Set(['rule-a']);
     const graphData = { nodes: [], edges: [] } satisfies IGraphData;
-    const viewContext = { activePlugins: new Set(), folderNodeColor: '#abcdef' } satisfies IViewContext;
     const context = createContext({
-      getActiveViewId: vi.fn(() => 'codegraphy.authors'),
       getDisabledPlugins: vi.fn(() => disabledPlugins),
       getDisabledRules: vi.fn(() => disabledSources),
       getFilterPatterns: vi.fn(() => ['dist/**']),
       getGraphData: vi.fn(() => graphData),
-      getViewContext: vi.fn(() => viewContext),
     });
 
     expect(createGraphViewPrimarySettingsMessageState(context)).toEqual({
-      activeViewId: 'codegraphy.authors',
       disabledPlugins,
       disabledSources,
       filterPatterns: ['dist/**'],
       graphData,
-      viewContext,
     });
   });
 });

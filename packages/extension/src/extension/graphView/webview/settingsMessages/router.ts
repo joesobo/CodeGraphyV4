@@ -6,12 +6,10 @@ import { applySettingsDirectionMessage } from './direction';
 import { applySettingsToggleMessage } from './toggle';
 
 export interface GraphViewSettingsMessageState {
-  activeViewId: string;
   disabledPlugins: Set<string>;
   disabledSources: Set<string>;
   filterPatterns: string[];
   graphData: IGraphData;
-  viewContext: { folderNodeColor?: string };
 }
 
 export interface GraphViewSettingsMessageHandlers {

@@ -25,11 +25,9 @@ export function createGraphViewPrimarySettingsMessageState(
   context: GraphViewPrimaryMessageContext,
 ): GraphViewSettingsMessageState {
   return {
-    activeViewId: context.getActiveViewId(),
     disabledPlugins: context.getDisabledPlugins(),
     disabledSources: context.getDisabledRules(),
     filterPatterns: context.getFilterPatterns(),
     graphData: context.getGraphData(),
-    viewContext: context.getViewContext(),
   };
 }
