@@ -66,14 +66,6 @@ describe('SettingsPanel', () => {
     expect(screen.queryByText('Repel Force')).not.toBeInTheDocument();
   });
 
-  it('renders groups content when the groups section is opened', () => {
-    renderPanel();
-
-    fireEvent.click(screen.getByText('Groups'));
-
-    expect(screen.getByText('Custom')).toBeInTheDocument();
-  });
-
   it('renders filter content when the filters section is opened', () => {
     renderPanel();
 

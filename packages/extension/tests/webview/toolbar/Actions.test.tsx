@@ -65,7 +65,7 @@ const exportCases = [
   ['Export as Markdown', 'REQUEST_EXPORT_MD'],
 ] as const;
 
-const iconButtonTitles = ['Export', 'Index Repo', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Export', 'Index Repo', 'Legends', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders() {
   return render(
@@ -160,6 +160,12 @@ describe('ToolbarActions', () => {
   it('renders the plugins button with title', () => {
     renderWithProviders();
     expect(screen.getByTitle('Plugins')).toBeInTheDocument();
+  });
+
+  it('sets active panel to legends when legends button is clicked', () => {
+    renderWithProviders();
+    clickAction('Legends');
+    expect(graphStore.getState().activePanel).toBe('legends');
   });
 
   it('sets active panel to plugins when plugins button is clicked', () => {

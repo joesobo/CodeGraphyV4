@@ -51,7 +51,7 @@ export interface IStoreFields {
   pluginContextMenuItems: IPluginContextMenuItem[];
   pluginExporters: IPluginExporterItem[];
   pluginToolbarActions: IPluginToolbarAction[];
-  activePanel: 'none' | 'settings' | 'plugins';
+  activePanel: 'none' | 'settings' | 'plugins' | 'legends';
   maxFiles: number;
   activeFilePath: string | null;
   timelineActive: boolean;

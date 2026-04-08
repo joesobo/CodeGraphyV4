@@ -55,7 +55,7 @@ export interface GraphState {
   pluginContextMenuItems: IPluginContextMenuItem[];
   pluginExporters: IPluginExporterItem[];
   pluginToolbarActions: IPluginToolbarAction[];
-  activePanel: 'none' | 'settings' | 'plugins';
+  activePanel: 'none' | 'settings' | 'plugins' | 'legends';
   maxFiles: number;
   activeFilePath: string | null;
   timelineActive: boolean;
@@ -69,7 +69,7 @@ export interface GraphState {
   setExpandedGroupId: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
   setSearchOptions: (options: SearchOptions) => void;
-  setActivePanel: (panel: 'none' | 'settings' | 'plugins') => void;
+  setActivePanel: (panel: 'none' | 'settings' | 'plugins' | 'legends') => void;
   setGraphMode: (mode: '2d' | '3d') => void;
   setNodeSizeMode: (mode: NodeSizeMode) => void;
   setPhysicsSettings: (settings: IPhysicsSettings) => void;

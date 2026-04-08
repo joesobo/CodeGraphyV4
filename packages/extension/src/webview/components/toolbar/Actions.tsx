@@ -5,7 +5,13 @@
  */
 
 import React from 'react';
-import { mdiAutorenew, mdiPuzzleOutline, mdiCogOutline, mdiLinkVariant } from '@mdi/js';
+import {
+  mdiAutorenew,
+  mdiCogOutline,
+  mdiFormatColorFill,
+  mdiLinkVariant,
+  mdiPuzzleOutline,
+} from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
@@ -115,6 +121,21 @@ export function ToolbarActions(): React.ReactElement {
       ))}
 
       <ToolbarExportMenu />
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-7 w-7 bg-transparent"
+            onClick={() => setActivePanel('legends')}
+            title="Legends"
+          >
+            <MdiIcon path={mdiFormatColorFill} size={16} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">Legends</TooltipContent>
+      </Tooltip>
 
       <Tooltip>
         <TooltipTrigger asChild>

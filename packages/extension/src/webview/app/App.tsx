@@ -3,6 +3,7 @@ import Graph from '../components/Graph';
 import { SearchBar } from '../components/searchBar/Field';
 import SettingsPanel from '../components/settingsPanel/Drawer';
 import PluginsPanel from '../components/plugins/Panel';
+import LegendsPanel from '../components/legends/Panel';
 import Toolbar from '../components/Toolbar';
 import { DepthViewControls } from '../components/depthView/view';
 import { ActiveFileBreadcrumb } from '../components/activeFileBreadcrumb/view';
@@ -99,6 +100,7 @@ export default function App(): React.ReactElement {
             data-testid="node-details-slot"
             className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
           />
+          <LegendsPanel isOpen={activePanel === 'legends'} onClose={() => setActivePanel('none')} />
           <PluginsPanel isOpen={activePanel === 'plugins'} onClose={() => setActivePanel('none')} />
           <SettingsPanel isOpen={activePanel === 'settings'} onClose={() => setActivePanel('none')} />
         </div>

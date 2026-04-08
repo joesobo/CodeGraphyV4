@@ -126,6 +126,7 @@ describe('Toolbar', () => {
       expect(nodeSizeButtons?.className).not.toContain('border');
       expect(screen.getByTitle('Index Repo').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
       expect(screen.getByTitle('Settings').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
+      expect(screen.getByTitle('Legends').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
     });
 
     it('renders a collapse toggle at the bottom of the top toolbar group', () => {
@@ -312,6 +313,12 @@ describe('Toolbar', () => {
       render(<Toolbar />);
       fireEvent.click(screen.getByTitle('Plugins'));
       expect(graphStore.getState().activePanel).toBe('plugins');
+    });
+
+    it('legends button opens legends panel', () => {
+      render(<Toolbar />);
+      fireEvent.click(screen.getByTitle('Legends'));
+      expect(graphStore.getState().activePanel).toBe('legends');
     });
   });
 });
