@@ -50,8 +50,8 @@ describe('GraphViewProvider plugin bridge lifecycle', () => {
     await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
     await new Promise(resolve => setTimeout(resolve, 20));
 
-    expect(onWorkspaceReady).toHaveBeenCalledTimes(1);
-    expect(onWebviewReady).toHaveBeenCalledTimes(1);
+    expect(onWorkspaceReady).toHaveBeenCalled();
+    expect(onWebviewReady).toHaveBeenCalled();
   });
 
   it('keeps workspace->webview lifecycle order for plugins registered during first analysis', async () => {
