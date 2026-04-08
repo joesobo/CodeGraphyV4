@@ -17,7 +17,7 @@ export async function dispatchGraphViewPrimaryRouteMessage(
     return { handled: true };
   }
 
-  if (await applyExportMessage(message, createGraphViewPrimaryExportHandlers())) {
+  if (await applyExportMessage(message, createGraphViewPrimaryExportHandlers(context))) {
     return { handled: true };
   }
 

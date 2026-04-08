@@ -10,6 +10,7 @@ function createHandlers(
     saveJpeg: vi.fn(() => Promise.resolve()),
     saveJson: vi.fn(() => Promise.resolve()),
     saveMarkdown: vi.fn(() => Promise.resolve()),
+    exportSymbolsJson: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
 }
@@ -81,6 +82,16 @@ describe('graph view export message', () => {
     ).resolves.toBe(true);
 
     expect(handlers.saveJson).toHaveBeenCalledWith('{"nodes":[]}', 'graph.json');
+  });
+
+  it('routes symbol export requests to the symbol saver', async () => {
+    const handlers = createHandlers();
+
+    await expect(
+      applyExportMessage({ type: 'EXPORT_SYMBOLS_JSON' }, handlers),
+    ).resolves.toBe(true);
+
+    expect(handlers.exportSymbolsJson).toHaveBeenCalledOnce();
   });
 
   it('returns false for non-export messages', async () => {

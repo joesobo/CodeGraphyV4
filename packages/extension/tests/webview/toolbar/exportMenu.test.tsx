@@ -136,6 +136,13 @@ describe('ToolbarExportMenu', () => {
     postMessageSpy.mockRestore();
   });
 
+  it('posts EXPORT_SYMBOLS_JSON through the host api when clicked', () => {
+    renderWithProviders();
+    fireEvent.click(screen.getByText('Export Symbols as JSON'));
+
+    expect(postMessage).toHaveBeenCalledWith({ type: 'EXPORT_SYMBOLS_JSON' });
+  });
+
   it('groups plugin exporters by plugin label and group label', () => {
     expect(
       buildPluginExporterGroups([

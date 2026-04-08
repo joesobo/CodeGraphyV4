@@ -4,8 +4,7 @@ import type { IGroup } from '../../../shared/settings/groups';
 import { graphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import { createExportTimestamp, getExportContext } from '../shared/context';
-import { buildGroupedSections } from './groups';
-import { buildConnectionData, buildSourceLookups } from './sources';
+import { globMatch } from '../../globMatch';
 import type { ExportBuildContext, ExportData } from '../shared/contracts';
 
 export { UNATTRIBUTED_RULE_KEY } from '../shared/contracts';
@@ -49,13 +48,64 @@ export function buildExportData(
   pluginStatuses: IPluginStatus[] = [],
   context: ExportBuildContext = {},
 ): ExportData {
-  const lookups = buildSourceLookups(pluginStatuses);
-  const { importsMap, sourcesRecord } = buildConnectionData(graphData.edges, lookups);
-  const { groupsRecord, ungroupedFiles, imagesRecord } = buildGroupedSections(graphData.nodes, groups, importsMap);
+  const activeLegendRules = groups.filter((group) => !group.disabled);
+  const pluginNames = new Map(pluginStatuses.map((plugin) => [plugin.id, plugin.name]));
+
+  const legend = activeLegendRules
+    .map((group) => ({
+      id: group.id,
+      pattern: group.pattern,
+      color: group.color,
+      shape2D: group.shape2D,
+      shape3D: group.shape3D,
+      imagePath: group.imagePath,
+      imageUrl: group.imageUrl,
+      disabled: group.disabled,
+      isPluginDefault: group.isPluginDefault,
+      pluginName: group.pluginName,
+    }))
+    .sort((left, right) => left.pattern.localeCompare(right.pattern));
+
+  const nodes = [...graphData.nodes]
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .map((node) => ({
+      id: node.id,
+      label: node.label,
+      nodeType: node.nodeType ?? 'file',
+      color: node.color,
+      legendIds: activeLegendRules
+        .filter((group) => globMatch(node.id, group.pattern))
+        .map((group) => group.id),
+      fileSize: node.fileSize,
+      accessCount: node.accessCount,
+      x: node.x,
+      y: node.y,
+    }));
+
+  const edges = [...graphData.edges]
+    .sort((left, right) => left.id.localeCompare(right.id))
+    .map((edge) => ({
+      id: edge.id,
+      from: edge.from,
+      to: edge.to,
+      kind: edge.kind,
+      color: edge.color,
+      sources: [...edge.sources]
+        .sort((left, right) => left.id.localeCompare(right.id))
+        .map((source) => ({
+          id: source.id,
+          pluginId: source.pluginId,
+          pluginName: pluginNames.get(source.pluginId),
+          sourceId: source.sourceId,
+          label: source.label,
+          variant: source.variant,
+          metadata: source.metadata,
+        })),
+    }));
 
   return {
     format: 'codegraphy-export',
-    version: '2.0',
+    version: '3.0',
     exportedAt: new Date().toISOString(),
     scope: {
       graph: 'current-view',
@@ -65,19 +115,15 @@ export function buildExportData(
       },
     },
     summary: {
-      totalFiles: graphData.nodes.length,
-      totalConnections: graphData.edges.length,
-      totalRules: Object.keys(sourcesRecord).length,
-      totalGroups: Object.keys(groupsRecord).length,
-      totalImages: Object.keys(imagesRecord).length,
+      totalNodes: nodes.length,
+      totalEdges: edges.length,
+      totalLegendRules: legend.length,
+      totalImages: legend.filter((rule) => rule.imagePath).length,
     },
     sections: {
-      connections: {
-        sources: sourcesRecord,
-        groups: groupsRecord,
-        ungrouped: ungroupedFiles,
-      },
-      images: imagesRecord,
+      legend,
+      nodes,
+      edges,
     },
   };
 }
