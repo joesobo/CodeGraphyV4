@@ -12,7 +12,7 @@ import type { IDiscoveredFile } from '../../core/discovery/contracts';
 import { Configuration } from '../config/reader';
 import type { IGraphData } from '../../shared/graph/types';
 import type { IPluginStatus } from '../../shared/plugins/status';
-import { EventBus } from '../../core/plugins/eventBus';
+import { EventBus } from '../../core/plugins/events/bus';
 import {
   type IWorkspaceAnalysisCache,
   loadWorkspaceAnalysisCache,

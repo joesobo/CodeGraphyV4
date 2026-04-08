@@ -1,6 +1,6 @@
 import type { IConnection } from '../../core/plugins/types/contracts';
 import type { IDiscoveredFile } from '../../core/discovery/contracts';
-import type { EventBus } from '../../core/plugins/eventBus';
+import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
 import type { FileDiscovery } from '../../core/discovery/file/service';
 import type * as vscode from 'vscode';

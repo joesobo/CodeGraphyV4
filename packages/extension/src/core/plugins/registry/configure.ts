@@ -3,9 +3,9 @@
  * @module core/plugins/registry/configure
  */
 
-import type { EventBus } from '../eventBus';
+import type { EventBus } from '../events/bus';
 import type { DecorationManager } from '../decoration/manager';
-import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../codeGraphyApi';
+import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../api/context';
 import type { ViewRegistry } from '../../views/registry';
 import type { RegistryV2Config } from './register';
 

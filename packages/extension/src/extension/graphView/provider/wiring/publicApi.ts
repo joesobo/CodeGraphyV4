@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { EventName, EventPayloads } from '../../../../core/plugins/eventBus';
+import type { EventName, EventPayloads } from '../../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../../shared/graph/types';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { GraphViewExternalPluginRegistrationOptions } from '../../webview/plugins/registration';

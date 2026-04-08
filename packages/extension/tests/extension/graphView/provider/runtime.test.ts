@@ -65,7 +65,7 @@ async function loadSubject(
     },
     coreViews: [],
   }));
-  vi.doMock('../../../../src/core/plugins/eventBus', () => ({
+  vi.doMock('../../../../src/core/plugins/events/bus', () => ({
     EventBus: class EventBus {},
   }));
   vi.doMock('../../../../src/core/plugins/decoration/manager', () => ({
@@ -103,7 +103,7 @@ describe('graphView/provider/runtime', () => {
     vi.doUnmock('vscode');
     vi.doUnmock('../../../../src/extension/workspaceAnalyzer/service');
     vi.doUnmock('../../../../src/core/views');
-    vi.doUnmock('../../../../src/core/plugins/eventBus');
+    vi.doUnmock('../../../../src/core/plugins/events/bus');
     vi.doUnmock('../../../../src/core/plugins/decoration/manager');
     vi.doUnmock('../../../../src/extension/graphView/provider/wiring/methodContainers');
     vi.doUnmock('../../../../src/extension/graphView/provider/wiring/bootstrap');
