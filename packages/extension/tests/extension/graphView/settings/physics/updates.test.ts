@@ -13,7 +13,7 @@ describe('graph view physics update helpers', () => {
       getConfigTarget: () => 'workspace',
     });
 
-    expect(update).toHaveBeenCalledWith('repelForce', 25, 'workspace');
+    expect(update).toHaveBeenCalledWith('physics.repelForce', 25, 'workspace');
   });
 
   it('resets every persisted physics setting back to the config default', async () => {
@@ -25,11 +25,11 @@ describe('graph view physics update helpers', () => {
     });
 
     expect(update.mock.calls).toEqual([
-      ['repelForce', undefined, 'workspace'],
-      ['linkDistance', undefined, 'workspace'],
-      ['linkForce', undefined, 'workspace'],
-      ['damping', undefined, 'workspace'],
-      ['centerForce', undefined, 'workspace'],
+      ['physics.repelForce', undefined, 'workspace'],
+      ['physics.linkDistance', undefined, 'workspace'],
+      ['physics.linkForce', undefined, 'workspace'],
+      ['physics.damping', undefined, 'workspace'],
+      ['physics.centerForce', undefined, 'workspace'],
     ]);
   });
 });

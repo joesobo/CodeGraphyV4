@@ -18,7 +18,7 @@ export async function updateGraphViewPhysicsSetting(
   value: number,
   { getConfiguration, getConfigTarget }: GraphViewPhysicsConfigOptions,
 ): Promise<void> {
-  await getConfiguration().update(key, value, getConfigTarget());
+  await getConfiguration().update(`physics.${key}`, value, getConfigTarget());
 }
 
 export async function resetGraphViewPhysicsSettings(
@@ -28,6 +28,6 @@ export async function resetGraphViewPhysicsSettings(
   const target = getConfigTarget();
 
   for (const key of getGraphViewPhysicsSettingKeys()) {
-    await config.update(key, undefined, target);
+    await config.update(`physics.${key}`, undefined, target);
   }
 }

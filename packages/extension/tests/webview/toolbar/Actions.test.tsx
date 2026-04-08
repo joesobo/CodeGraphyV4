@@ -111,10 +111,10 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('Index Repo')).toBeInTheDocument();
   });
 
-  it('sends REFRESH_GRAPH message when index button is clicked', () => {
+  it('sends INDEX_GRAPH message when the initial index button is clicked', () => {
     renderWithProviders();
     clickAction('Index Repo');
-    expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
+    expect(postMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
   });
 
   it('renders the refresh button title when a graph index exists', () => {
@@ -123,6 +123,15 @@ describe('ToolbarActions', () => {
     renderWithProviders();
 
     expect(screen.getByTitle('Refresh Graph')).toBeInTheDocument();
+  });
+
+  it('sends REFRESH_GRAPH when a graph index already exists', () => {
+    graphStore.setState({ graphHasIndex: true });
+
+    renderWithProviders();
+    clickAction('Refresh Graph');
+
+    expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
   });
 
   it('renders the export button with title', () => {

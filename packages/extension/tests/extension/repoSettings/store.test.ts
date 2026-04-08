@@ -107,6 +107,29 @@ describe('extension/repoSettings/store', () => {
     store.reload();
 
     expect(store.get('maxFiles', 0)).toBe(900);
-    expect(changes).toEqual([['codegraphy']]);
+    expect(changes).toEqual([['maxFiles']]);
+  });
+
+  it('emits nested keys for manual edits to nested settings', () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+    const changes: string[][] = [];
+    store.onDidChange(event => {
+      changes.push(event.changedKeys);
+    });
+
+    fs.writeFileSync(
+      store.settingsPath,
+      JSON.stringify(createSettingsWithOverrides({
+        timeline: { maxCommits: 500, playbackSpeed: 2 },
+      }), null, 2),
+      'utf8',
+    );
+
+    store.reload();
+
+    expect(store.get('timeline.playbackSpeed', 0)).toBe(2);
+    expect(changes).toEqual([['timeline.playbackSpeed']]);
   });
 });

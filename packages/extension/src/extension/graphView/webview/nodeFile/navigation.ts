@@ -21,6 +21,7 @@ export async function applyNodeFileNavigationMessage(
       return true;
 
     case 'REFRESH_GRAPH':
+    case 'INDEX_GRAPH':
       await handlers.analyzeAndSendData();
       return true;
 

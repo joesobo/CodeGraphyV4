@@ -6,10 +6,10 @@ export function readGraphViewPhysicsSettings(
   defaults: IPhysicsSettings
 ): IPhysicsSettings {
   return {
-    repelForce: config.get<number>('repelForce', defaults.repelForce),
-    linkDistance: config.get<number>('linkDistance', defaults.linkDistance),
-    linkForce: config.get<number>('linkForce', defaults.linkForce),
-    damping: config.get<number>('damping', defaults.damping),
-    centerForce: config.get<number>('centerForce', defaults.centerForce),
+    repelForce: config.get<number>('physics.repelForce', defaults.repelForce),
+    linkDistance: config.get<number>('physics.linkDistance', defaults.linkDistance),
+    linkForce: config.get<number>('physics.linkForce', defaults.linkForce),
+    damping: config.get<number>('physics.damping', defaults.damping),
+    centerForce: config.get<number>('physics.centerForce', defaults.centerForce),
   };
 }

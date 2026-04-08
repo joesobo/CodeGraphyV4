@@ -65,6 +65,7 @@ export function ToolbarActions(): React.ReactElement {
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const isIndexing = useGraphStore(s => s.isIndexing);
   const refreshTitle = graphHasIndex ? 'Refresh Graph' : 'Index Repo';
+  const refreshMessageType = graphHasIndex ? 'REFRESH_GRAPH' : 'INDEX_GRAPH';
 
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -104,7 +105,7 @@ export function ToolbarActions(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-7 w-7 bg-transparent"
-            onClick={() => postMessage({ type: 'REFRESH_GRAPH' })}
+            onClick={() => postMessage({ type: refreshMessageType })}
             title={refreshTitle}
             disabled={isIndexing}
           >
