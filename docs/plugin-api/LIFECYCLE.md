@@ -150,6 +150,42 @@ onPreAnalyze(files, workspaceRoot) {
 
 **Example:** The GDScript plugin uses this to build a `class_name` map so `extends Player` resolves to the correct file. The Markdown plugin builds a file index for wikilink resolution.
 
+### analyzeFile(filePath, content, workspaceRoot)
+
+Called for each file after the core has prepared the file payload. Plugins return a per-file analysis object containing any mix of:
+
+- node type contributions
+- edge type contributions
+- analysis nodes
+- symbols
+- relations
+
+The host merges core output first and then plugin output in plugin priority order.
+
+```typescript
+async analyzeFile(filePath, content, workspaceRoot) {
+  return {
+    filePath,
+    symbols: [
+      {
+        id: `${filePath}:mySymbol`,
+        name: 'mySymbol',
+        kind: 'function',
+        filePath,
+      },
+    ],
+    relations: [
+      {
+        kind: 'reference',
+        sourceId: 'my-plugin:reference',
+        fromFilePath: filePath,
+        toFilePath: 'README.md',
+      },
+    ],
+  };
+}
+```
+
 ### onPostAnalyze(graph)
 
 Called after analysis completes with the full graph data. Use this to attach decorations, compute metrics, or update badges based on the latest graph state.
@@ -215,10 +251,16 @@ export function createMetricsPlugin(): IPlugin {
 
   return {
     id: 'codegraphy-metrics',
+    name: 'Metrics',
+    version: '1.0.0',
     apiVersion: '^2.0.0',
+    supportedExtensions: [],
 
-    detectConnections(filePath, content, workspaceRoot) {
-      return []; // This plugin doesn't detect connections
+    async analyzeFile(filePath) {
+      return {
+        filePath,
+        relations: [],
+      };
     },
 
     onLoad(_api) {

@@ -90,8 +90,8 @@ export class PluginRegistry {
   get size(): number { return this._plugins.size; }
   getSupportedExtensions(): string[] { return getSupportedExtensions(this._extensionMap); }
   supportsFile(filePath: string): boolean { return supportsFile(filePath, this._extensionMap); }
-  setPluginOrder(pluginIds: string[]): void {
-    if (pluginIds.length === 0 || this._plugins.size <= 1) {
+  setPluginOrder(pluginIds: string[] | undefined): void {
+    if (!pluginIds || pluginIds.length === 0 || this._plugins.size <= 1) {
       return;
     }
 

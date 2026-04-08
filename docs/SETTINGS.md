@@ -1,67 +1,103 @@
 # Settings
 
-CodeGraphy can be configured in two ways:
+CodeGraphy now keeps repo-specific graph settings under `.codegraphy/settings.json`.
 
-- **Settings Panel** (the gear icon in the graph view). Changes apply immediately. Some values persist in workspace state, while others map directly to VS Code settings.
-- **`settings.json`** (standard VS Code settings). Better for team-shared configuration. Plugin/rule toggles are persisted here (`codegraphy.disabledPlugins`, `codegraphy.disabledSources`).
+- The graph UI writes to that file for you.
+- The file is mostly internal, but still human-editable.
+- CodeGraphy watches it for changes and refreshes relevant graph state when it changes.
+- Legacy VS Code settings can still be read for migration, but `.codegraphy/settings.json` is now the source of truth for repo-local behavior.
 
-## VS Code settings reference
+## Repo-local settings file
 
-| Setting | Type | Default | Description |
-|---------|------|---------|-------------|
-| `codegraphy.maxFiles` | number | `500` | Maximum files to analyze |
-| `codegraphy.include` | string[] | `["**/*"]` | Glob patterns for files to include |
-| `codegraphy.filterPatterns` | string[] | `[]` | Glob patterns for files to exclude (appended to built-in excludes) |
-| `codegraphy.respectGitignore` | boolean | `true` | Honor `.gitignore` patterns |
-| `codegraphy.showOrphans` | boolean | `true` | Show files with no connections |
-| `codegraphy.showLabels` | boolean | `true` | Show file name labels on nodes |
-| `codegraphy.bidirectionalEdges` | string | `"separate"` | How to display bidirectional connections |
-| `codegraphy.directionMode` | string | `"arrows"` | Direction indicator mode: `arrows`, `particles`, or `none` |
-| `codegraphy.directionColor` | string | `"#475569"` | Direction indicator color (`#RRGGBB`) |
-| `codegraphy.particleSpeed` | number | `0.005` | Particle direction speed (internal range `0.0005`-`0.005`, UI scale `1`-`10`) |
-| `codegraphy.particleSize` | number | `4` | Particle size in pixels |
-| `codegraphy.favorites` | string[] | `[]` | Favorite file paths (highlighted with yellow border) |
-| `codegraphy.groups` | object[] | `[]` | Color groups: `{ id, pattern, color }` |
-| `codegraphy.plugins` | string[] | `[]` | VS Code extension IDs that provide external CodeGraphy plugins |
-| `codegraphy.disabledSources` | string[] | `[]` | Disabled detection sources as qualified IDs: `<pluginId>:<sourceId>` |
-| `codegraphy.disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
-| `codegraphy.folderNodeColor` | string | `"#A1A1AA"` | Color for folder nodes in Folder View (`#RRGGBB`) |
-| `codegraphy.physics.repelForce` | number | `10` | Node repulsion strength (0-20) |
-| `codegraphy.physics.linkDistance` | number | `80` | Preferred distance between connected nodes (30-500) |
-| `codegraphy.physics.linkForce` | number | `0.15` | Spring stiffness (0-1) |
-| `codegraphy.physics.damping` | number | `0.7` | Motion settling speed (0-1) |
-| `codegraphy.physics.centerForce` | number | `0.1` | Pull toward viewport center (0-1) |
+The repo-local settings file lives at:
 
-## Plugin and rule toggles
+```text
+.codegraphy/settings.json
+```
 
-The Plugins panel writes toggle state to VS Code settings:
+Common top-level sections include:
 
-- `codegraphy.disabledPlugins` for whole-plugin toggles
-- `codegraphy.disabledSources` for per-rule toggles (`<pluginId>:<sourceId>`)
+- `nodeVisibility`
+- `nodeColors`
+- `edgeVisibility`
+- `edgeColors`
+- `groups`
+- `pluginOrder`
+- `disabledPlugins`
+- `disabledSources`
+- `physics`
+- `timeline`
 
 Example:
 
 ```json
 {
-  "codegraphy.disabledPlugins": ["codegraphy.python"],
-  "codegraphy.disabledSources": ["codegraphy.typescript:dynamic-import"]
+  "version": 1,
+  "nodeVisibility": {
+    "file": true,
+    "folder": false,
+    "package": false
+  },
+  "edgeVisibility": {
+    "codegraphy:nests": true,
+    "import": true,
+    "reference": true
+  },
+  "edgeColors": {
+    "import": "#60A5FA",
+    "reference": "#F97316"
+  },
+  "pluginOrder": [
+    "codegraphy.markdown",
+    "codegraphy.typescript"
+  ],
+  "disabledPlugins": [],
+  "groups": [
+    { "id": "tests", "pattern": "*/tests/**", "color": "#22C55E" }
+  ]
 }
 ```
 
-These toggles are applied instantly from cached analysis data (no full re-analysis). On older workspaces, CodeGraphy can still read legacy toggle values from workspace state as a fallback.
+## Core settings reference
+
+| Setting | Type | Default | Description |
+|---------|------|---------|-------------|
+| `maxFiles` | number | `500` | Maximum files to discover/analyze |
+| `include` | string[] | `["**/*"]` | Glob patterns for files to include |
+| `filterPatterns` | string[] | `[]` | Glob patterns for files to exclude |
+| `respectGitignore` | boolean | `true` | Honor `.gitignore` patterns |
+| `showOrphans` | boolean | `true` | Show files with no edges |
+| `showLabels` | boolean | `true` | Show file name labels on nodes |
+| `bidirectionalEdges` | string | `"separate"` | How to render bidirectional file edges |
+| `directionMode` | string | `"arrows"` | Direction indicator mode |
+| `directionColor` | string | `"#475569"` | Direction indicator color |
+| `particleSpeed` | number | `0.005` | Particle direction speed |
+| `particleSize` | number | `4` | Particle size in pixels |
+| `favorites` | string[] | `[]` | Favorite file paths |
+| `groups` | object[] | `[]` | Legend rules: `{ id, pattern, color, ... }` |
+| `pluginOrder` | string[] | `[]` | Plugin processing order, bottom-to-top |
+| `disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
+| `disabledSources` | string[] | `[]` | Disabled qualified source IDs |
+| `nodeVisibility` | object | generated | Node-type visibility by id |
+| `nodeColors` | object | generated | Node-type colors by id |
+| `edgeVisibility` | object | generated | Edge-kind visibility by id |
+| `edgeColors` | object | generated | Edge-kind colors by id |
+| `folderNodeColor` | string | `"#A1A1AA"` | Default folder color |
+| `physics.*` | object | see file | Force simulation controls |
+| `timeline.*` | object | see file | Timeline indexing/playback controls |
 
 ## Timeline settings
 
 | Setting | Type | Default | Description |
 |---------|------|---------|-------------|
-| `codegraphy.timeline.maxCommits` | number | `500` | Maximum commits to index (10-5000) |
-| `codegraphy.timeline.playbackSpeed` | number | `1.0` | Playback speed multiplier (0.1-10.0) |
+| `timeline.maxCommits` | number | `500` | Maximum commits to index (10-5000) |
+| `timeline.playbackSpeed` | number | `1.0` | Playback speed multiplier (0.1-10.0) |
 
-Timeline indexing also respects `codegraphy.filterPatterns` and plugin/rule toggle states. See [Timeline](./TIMELINE.md) for details.
+Timeline indexing also respects the repo-local filter and plugin settings. See [Timeline](./TIMELINE.md) for details.
 
 ## Settings Panel
 
-Open by clicking the gear icon in the bottom-right corner of the graph view. It has four collapsible sections.
+Open by clicking the gear icon in the bottom-right corner of the graph view. This panel now focuses on physics and graph behavior, while node/edge visibility and legend coloring live in their own dedicated panels.
 
 ![Settings panel](./media/settings-panel.png)
 
@@ -76,9 +112,17 @@ Adjusts the physics simulation in real time.
 | Link Distance | 30-500 | Preferred distance between connected nodes in pixels. |
 | Link Force | 0-1 | How strongly edges pull connected nodes together. |
 
-### Groups
+### Legends
 
-Assigns colors to files based on glob patterns. All nodes are grey (`#A1A1AA`) by default. Groups are how you add color.
+Legend rules now live in their own **Legends** popup, not inside the settings panel.
+
+Legend rules assign colors based on regex/glob-style matching and are applied in drag order:
+
+- bottom rule applies first
+- top rule applies last
+- top rules can override lower rules
+
+Legend rules can color files, folders, packages, and plugin-added node types through one shared priority system.
 
 - Enter a glob pattern and pick a hex color, then click Add.
 - Click the x button next to any group to delete it.
@@ -96,10 +140,10 @@ Pattern: *.md      Color: #6B7280   (grey, documentation)
 Pattern: tests/*   Color: #F59E0B   (amber, files directly inside any tests folder)
 ```
 
-To share groups across a team, add them to `settings.json`:
+To share legend rules across a team, commit `.codegraphy/settings.json`:
 ```json
 {
-  "codegraphy.groups": [
+  "groups": [
     { "id": "src", "pattern": "src/**", "color": "#3B82F6" },
     { "id": "tests", "pattern": "*.test.*", "color": "#10B981" }
   ]
@@ -137,19 +181,17 @@ To version-control filter patterns, add them to `settings.json`:
 - **Direction Color** controls directional indicator color (hex only, `#RRGGBB`).
 - **Particle Speed** uses a normalized UI scale from `1` to `10` (mapped to internal `0.0005` to `0.005`).
 - **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
-- **Folder Node Color** (only visible in Folder View) sets the hex color for folder nodes (`#RRGGBB`).
+- **Folder Node Color** sets the default folder color when folder nodes are visible.
 
-View, layout, node size, and 2D/3D controls are in the **toolbar** at the bottom of the graph. Use the `V`, `L`, and `T` keyboard shortcuts or the toolbar buttons directly. See [Keybindings](./KEYBINDINGS.md) for details.
+Node, edge, legend, and plugin controls are in dedicated toolbar popups. The graph no longer switches between separate built-in Connections, Depth, and Folder views.
 
-## Graph views
+## Unified graph controls
 
-| View | Description |
-|------|-------------|
-| Connections | Default. Shows all files and their import connections. |
-| Depth Graph | Shows files within N hops of the currently focused file. Requires an open editor tab. |
-| Folder View | Shows directory containment hierarchy as a tree graph. Folder nodes use `codegraphy.folderNodeColor`. |
-
-![Depth graph](./media/depth-graph.png)
+- **Nodes**: toggle file, folder, package, and plugin-added node types
+- **Edges**: toggle `NESTS`, semantic edge kinds, and plugin-added edge kinds
+- **Legends**: edit regex/group color rules and their priority
+- **Plugins**: enable/disable plugins and reorder them
+- **Depth mode**: optional toolbar mode that brings back the old focused depth behavior on top of the unified graph
 
 ## File discovery settings
 
@@ -158,7 +200,7 @@ View, layout, node size, and 2D/3D controls are in the **toolbar** at the bottom
 Limits the number of files analyzed to prevent performance issues in large repos.
 
 ```json
-{ "codegraphy.maxFiles": 1000 }
+{ "maxFiles": 1000 }
 ```
 
 When the limit is hit, a warning appears and only the first N files are processed. Use `include` and `filterPatterns` to narrow scope rather than raising this indefinitely.
@@ -169,7 +211,7 @@ Glob patterns for which files to discover, relative to the workspace root.
 
 ```json
 {
-  "codegraphy.include": ["src/**/*", "lib/**/*"]
+  "include": ["src/**/*", "lib/**/*"]
 }
 ```
 
@@ -197,7 +239,7 @@ Glob patterns for files to exclude, appended to built-in excludes. Supports `mat
 **Adding custom exclusions:**
 ```json
 {
-  "codegraphy.filterPatterns": ["*.png", "*.svg", "**/__tests__/**", "vendor/**"]
+  "filterPatterns": ["*.png", "*.svg", "**/__tests__/**", "vendor/**"]
 }
 ```
 
@@ -208,7 +250,7 @@ Your patterns are merged with the built-ins, so you don't need to repeat them.
 When `true`, reads `.gitignore` and excludes matching files automatically.
 
 ```json
-{ "codegraphy.respectGitignore": true }
+{ "respectGitignore": true }
 ```
 
 ### `codegraphy.bidirectionalEdges`
@@ -216,46 +258,46 @@ When `true`, reads `.gitignore` and excludes matching files automatically.
 Controls how mutual imports (A imports B and B imports A) are drawn.
 
 ```json
-{ "codegraphy.bidirectionalEdges": "combined" }
+{ "bidirectionalEdges": "combined" }
 ```
 
 - `separate` (default): two arrows, one in each direction (overlapping links are automatically curved apart)
 - `combined`: a single line with arrowheads on both ends
 
-This setting is also accessible from the SettingsPanel **Display** section.
+This setting is also accessible from the Settings panel.
 
 ## Example configurations
 
 ### Small TypeScript project
 ```json
 {
-  "codegraphy.maxFiles": 50,
-  "codegraphy.include": ["src/**/*"],
-  "codegraphy.showOrphans": false
+  "maxFiles": 50,
+  "include": ["src/**/*"],
+  "showOrphans": false
 }
 ```
 
 ### Large monorepo (focus on one package)
 ```json
 {
-  "codegraphy.maxFiles": 1000,
-  "codegraphy.include": ["packages/my-package/src/**/*"],
-  "codegraphy.filterPatterns": ["**/*.test.ts", "**/*.spec.ts"]
+  "maxFiles": 1000,
+  "include": ["packages/my-package/src/**/*"],
+  "filterPatterns": ["**/*.test.ts", "**/*.spec.ts"]
 }
 ```
 
 ### Source files only, no assets
 ```json
 {
-  "codegraphy.include": ["**/*.{ts,tsx,js,jsx}"],
-  "codegraphy.filterPatterns": ["**/*.d.ts"]
+  "include": ["**/*.{ts,tsx,js,jsx}"],
+  "filterPatterns": ["**/*.d.ts"]
 }
 ```
 
 ### Team-shared color groups
 ```json
 {
-  "codegraphy.groups": [
+  "groups": [
     { "id": "features", "pattern": "src/features/**", "color": "#3B82F6" },
     { "id": "shared",   "pattern": "src/shared/**",   "color": "#8B5CF6" },
     { "id": "tests",    "pattern": "**/*.test.*",      "color": "#10B981" }
@@ -263,14 +305,9 @@ This setting is also accessible from the SettingsPanel **Display** section.
 }
 ```
 
-## Workspace vs user settings
+## Repo-local vs global settings
 
-| Level | File | Use for |
-|-------|------|---------|
-| User | `~/.config/Code/User/settings.json` | Personal defaults across all projects |
-| Workspace | `.vscode/settings.json` | Project-specific config, committable to version control |
-
-Workspace settings override user settings. We recommend committing `include`, `filterPatterns`, `groups`, and any shared plugin/rule toggles to `.vscode/settings.json` so the whole team sees the same graph.
+CodeGraphy’s graph/index behavior now lives with the repo under `.codegraphy/`. If you still use legacy VS Code settings, CodeGraphy can read them during migration, but the current setup should be committed under `.codegraphy/` instead of `.vscode/settings.json`.
 
 ## Troubleshooting
 
@@ -281,7 +318,7 @@ Workspace settings override user settings. We recommend committing `include`, `f
 
 **Nodes are all grey**
 
-No groups are configured. Add groups in the Settings Panel or via `codegraphy.groups` in `settings.json`.
+No legend rules are configured. Add them in the **Legends** popup or directly in `.codegraphy/settings.json`.
 
 **Too many files**
 1. Add exclusion patterns in the Filters section or `codegraphy.filterPatterns`
@@ -292,4 +329,4 @@ No groups are configured. Add groups in the Settings Panel or via `codegraphy.gr
 1. Make sure the file type has a supported plugin (TypeScript/JS, Python, C#, GDScript, Markdown)
 2. Check that imported files are within the `include` patterns
 3. `node_modules` imports are intentionally excluded
-4. Check `codegraphy.disabledPlugins` and `codegraphy.disabledSources` for an unintended toggle
+4. Check `.codegraphy/settings.json` for an unintended disabled plugin, source, node kind, or edge kind

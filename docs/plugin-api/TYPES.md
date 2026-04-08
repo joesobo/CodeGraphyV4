@@ -12,12 +12,16 @@ This document references the canonical type package in `packages-vscode/plugin-a
 import type {
   IPlugin,
   IAnalysisFile,
+  IAnalysisNode,
+  IAnalysisSymbol,
+  IAnalysisRelation,
+  IFileAnalysisResult,
+  IPluginNodeType,
+  IPluginEdgeType,
   CodeGraphyAPI,
   EventName,
   EventPayloads,
-  IConnection,
   IConnectionSource,
-  IConnectionDetector,
   IGraphNode,
   IGraphEdge,
   IGraphData,
@@ -54,7 +58,8 @@ Key points:
 - `webviewApiVersion?: string` and `webviewContributions?: { scripts?: string[]; styles?: string[] }` support Tier 2.
 - `sources?: IConnectionSource[]` declares the plugin’s toggleable relation sources.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
-- `detectConnections(filePath, content, workspaceRoot)` is required.
+- `analyzeFile(filePath, content, workspaceRoot)` is the primary per-file analysis hook.
+- `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new graph controls and defaults.
 - Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
 ### `IAnalysisFile`
@@ -83,6 +88,15 @@ Main groups:
 - Utilities: `getWorkspaceRoot`, `log`
 
 ## Data Types
+
+### Analysis (`analysis.ts`)
+
+- `IAnalysisNode`
+- `IAnalysisSymbol`
+- `IAnalysisRelation`
+- `IFileAnalysisResult`
+- `IPluginNodeType`
+- `IPluginEdgeType`
 
 ### Connections (`connection.ts`)
 

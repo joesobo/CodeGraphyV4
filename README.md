@@ -29,7 +29,7 @@
   <a href="https://www.npmjs.com/package/@codegraphy-vscode/plugin-api">Plugin API</a>
 </p>
 
-CodeGraphy turns file dependencies into an interactive force graph inside VS Code. Files become nodes, imports become edges, and your project's structure becomes something you can inspect, filter, and navigate instead of infer.
+CodeGraphy turns repository structure and code relationships into an interactive force graph inside VS Code. Files start as nodes, indexing projects richer edges into that graph, and the whole repo becomes something you can inspect, filter, and navigate instead of infer.
 
 ![CodeGraphy dependency graph](./docs/media/node-drag.gif)
 
@@ -49,7 +49,7 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 
 ## Monorepo
 
-- the core extension focused on graph rendering, workspace analysis orchestration, and the VS Code/webview bridge
+- the core extension focused on graph rendering, repo-local indexing, and the VS Code/webview bridge
 - example language plugins for:
   - Typescript
   - C#
@@ -64,23 +64,32 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
   - CRAP
   - SCRAP
 
+## Core Stack
+
+- TypeScript
+- VS Code extension host
+- React webview
+- Vite
+- `react-force-graph` + Three.js
+- Tree-sitter in core
+- LadybugDB for repo-local indexed storage
+- pnpm monorepo
+
 ## What you get
 
-**A live dependency graph** Open any project and watch it map itself. Files naturally cluster based on their relationships. Drag nodes, zoom in, search, and the graph responds instantly.
+**A unified repo graph** Open any project and CodeGraphy shows discovered file nodes immediately. Index the repo to project richer edges into the same graph surface. Drag nodes, zoom, search, and filter without switching to a separate built-in view.
 
-**Built-in Markdown support, optional language plugins** The core extension works out of the box for Markdown and MDX. Add TypeScript/JavaScript, Python, C#, and GDScript support as separate CodeGraphy plugin extensions when you want parser-backed dependency detection for those languages.
+**Tree-sitter in core, plugins for enrichment** The core extension handles baseline parsing/indexing itself and ships with built-in Markdown-style wikilink detection. Language plugins still matter for unsupported languages and richer ecosystem-specific semantics.
 
-**Multiple perspectives** Switch between views to inspect the same codebase in different ways:
-
-- **Connections** shows the full dependency graph
-- **Depth Graph** radiates outward from a chosen file, 1 to 5 hops deep
-- **Folder** traditional file hierarchy view, in graph form
+**One graph, configurable surfaces** Use the `Nodes`, `Edges`, `Legends`, and `Plugins` popups to decide what kinds of nodes and edges are visible. Turn on depth mode from the toolbar when you want the old focused depth behavior.
 
 **Git timeline playback** Index your repository history, scrub through commits, and watch the dependency graph evolve over time.
 
 ![Timeline playback](./docs/media/timeline-playback.gif)
 
-**Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, assign colors with glob patterns, and filter out noise.
+**Repo-local graph settings and cache** CodeGraphy stores its index and repo-specific settings under `.codegraphy/`, so graph behavior, colors, toggles, and cached analysis stay with the repo instead of polluting `.vscode/settings.json`.
+
+**Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, color node and edge types, assign regex-based legend rules, and filter out noise.
 
 | 2D | 3D |
 |:--:|:--:|
@@ -95,7 +104,8 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 1. Install the [CodeGraphy core extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 2. Install any language plugins you want.
 3. Click the **CodeGraphy** activity bar icon in VS Code.
-4. Open the graph and explore.
+4. Open the graph.
+5. Click **Index Repo** when you want semantic edges and timeline data.
 
 Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLUGINS.md), the [plugin lifecycle docs](./docs/plugin-api/LIFECYCLE.md), and [`@codegraphy-vscode/plugin-api`](https://www.npmjs.com/package/@codegraphy-vscode/plugin-api).
 
@@ -103,11 +113,11 @@ Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLU
 
 | | |
 |---|---|
-| [Timeline](./docs/TIMELINE.md) | Git history playback and scrubbing |
-| [Settings](./docs/SETTINGS.md) | Physics, groups, filters, and display options |
+| [Timeline](./docs/TIMELINE.md) | Git history playback and incremental indexing |
+| [Settings](./docs/SETTINGS.md) | `.codegraphy/settings.json`, panels, and graph controls |
 | [Commands](./docs/COMMANDS.md) | Command palette reference |
 | [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts |
-| [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, tooltips, and panels |
+| [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, toolbar, and panels |
 | [Plugin Guide](./docs/PLUGINS.md) | Build and package plugins for CodeGraphy |
 | [Contributing](./CONTRIBUTING.md) | Development setup and contribution workflow |
 

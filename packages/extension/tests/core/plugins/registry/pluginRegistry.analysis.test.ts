@@ -77,7 +77,14 @@ describe('PluginRegistry analysis', () => {
 
     expect(plugin.analyzeFile).toHaveBeenCalledWith('/src/app.ts', 'content', '/workspace');
     expect(plugin.detectConnections).not.toHaveBeenCalled();
-    expect(result).toEqual(fileResult);
+    expect(result).toEqual({
+      edgeTypes: [],
+      filePath: '/src/app.ts',
+      nodeTypes: [],
+      nodes: [],
+      relations: fileResult.relations,
+      symbols: [],
+    });
   });
 
   it('adapts legacy detectConnections output into the file analysis result shape', async () => {
@@ -90,7 +97,10 @@ describe('PluginRegistry analysis', () => {
     const result = await registry.analyzeFileResult('/src/app.ts', 'content', '/workspace');
 
     expect(result).toEqual({
+      edgeTypes: [],
       filePath: '/src/app.ts',
+      nodeTypes: [],
+      nodes: [],
       relations: [
         {
           kind: 'import',
@@ -98,10 +108,70 @@ describe('PluginRegistry analysis', () => {
           specifier: './utils',
           type: 'static',
           resolvedPath: '/src/utils.ts',
+          metadata: undefined,
+          variant: undefined,
           fromFilePath: '/src/app.ts',
           toFilePath: '/src/utils.ts',
         },
       ],
+      symbols: [],
+    });
+  });
+
+  it('merges all matching plugins and lets higher-priority plugins override conflicts', async () => {
+    const registry = createConfiguredRegistry();
+
+    registry.register(createMockPlugin({
+      id: 'plugin.high',
+      supportedExtensions: ['.ts'],
+      analyzeFile: vi.fn().mockResolvedValue({
+        filePath: '/src/app.ts',
+        relations: [
+          {
+            kind: 'import',
+            sourceId: 'shared:import',
+            fromFilePath: '/src/app.ts',
+            toFilePath: '/src/high.ts',
+            specifier: './utils',
+          },
+        ],
+      }),
+    }));
+
+    registry.register(createMockPlugin({
+      id: 'plugin.low',
+      supportedExtensions: ['.ts'],
+      analyzeFile: vi.fn().mockResolvedValue({
+        filePath: '/src/app.ts',
+        relations: [
+          {
+            kind: 'import',
+            sourceId: 'shared:import',
+            fromFilePath: '/src/app.ts',
+            toFilePath: '/src/low.ts',
+            specifier: './utils',
+          },
+        ],
+      }),
+    }));
+
+    const result = await registry.analyzeFileResult('/src/app.ts', 'content', '/workspace');
+
+    expect(result).toEqual({
+      filePath: '/src/app.ts',
+      edgeTypes: [],
+      nodeTypes: [],
+      nodes: [],
+      relations: [
+        {
+          kind: 'import',
+          sourceId: 'shared:import',
+          fromFilePath: '/src/app.ts',
+          toFilePath: '/src/high.ts',
+          specifier: './utils',
+        },
+      ],
+      symbols: [],
     });
   });
 });

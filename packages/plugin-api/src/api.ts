@@ -95,7 +95,9 @@ export interface IToolbarAction {
  *   apiVersion: '^2.0.0',
  *   supportedExtensions: ['.ts'],
  *
- *   async detectConnections() { return []; },
+ *   async analyzeFile(filePath) {
+ *     return { filePath, relations: [] };
+ *   },
  *
  *   onLoad(api) {
  *     const sub = api.on('graph:nodeClick', ({ node }) => {

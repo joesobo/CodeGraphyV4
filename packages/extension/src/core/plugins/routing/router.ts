@@ -82,6 +82,99 @@ export function getSupportedExtensions(
   return Array.from(extensionMap.keys());
 }
 
+function getPluginsForFile(
+  filePath: string,
+  plugins: Map<string, IRoutablePluginInfo>,
+  extensionMap: Map<string, string[]>,
+): IPlugin[] {
+  const ext = getFileExtension(filePath);
+  return getPluginsForExtension(ext, plugins, extensionMap);
+}
+
+function createEmptyFileAnalysisResult(filePath: string): IFileAnalysisResult {
+  return {
+    filePath,
+    edgeTypes: [],
+    nodeTypes: [],
+    nodes: [],
+    relations: [],
+    symbols: [],
+  };
+}
+
+function getRelationKey(relation: NonNullable<IFileAnalysisResult['relations']>[number]): string {
+  return [
+    relation.kind,
+    relation.sourceId,
+    relation.fromFilePath,
+    relation.fromNodeId ?? '',
+    relation.fromSymbolId ?? '',
+    relation.specifier ?? '',
+    relation.type ?? '',
+    relation.variant ?? '',
+  ].join('|');
+}
+
+function mergeById<TItem extends { id: string }>(
+  baseItems: TItem[] | undefined,
+  nextItems: TItem[] | undefined,
+): TItem[] {
+  const merged = new Map<string, TItem>();
+
+  for (const item of baseItems ?? []) {
+    merged.set(item.id, item);
+  }
+
+  for (const item of nextItems ?? []) {
+    merged.set(item.id, item);
+  }
+
+  return [...merged.values()];
+}
+
+function mergeRelations(
+  baseRelations: NonNullable<IFileAnalysisResult['relations']> | undefined,
+  nextRelations: NonNullable<IFileAnalysisResult['relations']> | undefined,
+): NonNullable<IFileAnalysisResult['relations']> {
+  const merged = new Map<string, NonNullable<IFileAnalysisResult['relations']>[number]>();
+
+  for (const relation of baseRelations ?? []) {
+    merged.set(getRelationKey(relation), relation);
+  }
+
+  for (const relation of nextRelations ?? []) {
+    merged.set(getRelationKey(relation), relation);
+  }
+
+  return [...merged.values()];
+}
+
+function mergeFileAnalysisResults(
+  baseResult: IFileAnalysisResult,
+  nextResult: IFileAnalysisResult,
+): IFileAnalysisResult {
+  return {
+    filePath: nextResult.filePath || baseResult.filePath,
+    edgeTypes: mergeById(baseResult.edgeTypes, nextResult.edgeTypes),
+    nodeTypes: mergeById(baseResult.nodeTypes, nextResult.nodeTypes),
+    nodes: mergeById(baseResult.nodes, nextResult.nodes),
+    relations: mergeRelations(baseResult.relations, nextResult.relations),
+    symbols: mergeById(baseResult.symbols, nextResult.symbols),
+  };
+}
+
+function toConnectionsFromFileAnalysis(analysis: IFileAnalysisResult): IConnection[] {
+  return (analysis.relations ?? []).map(relation => ({
+    kind: relation.kind,
+    sourceId: relation.sourceId,
+    specifier: relation.specifier ?? '',
+    resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
+    type: relation.type,
+    variant: relation.variant,
+    metadata: relation.metadata,
+  }));
+}
+
 /**
  * Analyzes a file using the appropriate plugin.
  */
@@ -92,18 +185,8 @@ export async function analyzeFile(
   plugins: Map<string, IRoutablePluginInfo>,
   extensionMap: Map<string, string[]>,
 ): Promise<IConnection[]> {
-  const plugin = getPluginForFile(filePath, plugins, extensionMap);
-
-  if (!plugin) {
-    return [];
-  }
-
-  try {
-    return await plugin.detectConnections(filePath, content, workspaceRoot);
-  } catch (error) {
-    console.error(`[CodeGraphy] Error analyzing ${filePath} with ${plugin.id}:`, error);
-    return [];
-  }
+  const analysis = await analyzeFileResult(filePath, content, workspaceRoot, plugins, extensionMap);
+  return analysis ? toConnectionsFromFileAnalysis(analysis) : [];
 }
 
 function toLegacyFileAnalysisResult(
@@ -133,23 +216,30 @@ export async function analyzeFileResult(
   plugins: Map<string, IRoutablePluginInfo>,
   extensionMap: Map<string, string[]>,
 ): Promise<IFileAnalysisResult | null> {
-  const plugin = getPluginForFile(filePath, plugins, extensionMap);
+  const matchingPlugins = getPluginsForFile(filePath, plugins, extensionMap);
 
-  if (!plugin) {
+  if (matchingPlugins.length === 0) {
     return null;
   }
 
-  try {
-    if (plugin.analyzeFile) {
-      return await plugin.analyzeFile(filePath, content, workspaceRoot);
+  let mergedResult = createEmptyFileAnalysisResult(filePath);
+
+  for (let index = matchingPlugins.length - 1; index >= 0; index -= 1) {
+    const plugin = matchingPlugins[index];
+
+    try {
+      const pluginResult = plugin.analyzeFile
+        ? await plugin.analyzeFile(filePath, content, workspaceRoot)
+        : toLegacyFileAnalysisResult(
+            filePath,
+            await plugin.detectConnections(filePath, content, workspaceRoot),
+          );
+
+      mergedResult = mergeFileAnalysisResults(mergedResult, pluginResult);
+    } catch (error) {
+      console.error(`[CodeGraphy] Error analyzing ${filePath} with ${plugin.id}:`, error);
     }
-
-    return toLegacyFileAnalysisResult(
-      filePath,
-      await plugin.detectConnections(filePath, content, workspaceRoot),
-    );
-  } catch (error) {
-    console.error(`[CodeGraphy] Error analyzing ${filePath} with ${plugin.id}:`, error);
-    return null;
   }
+
+  return mergedResult;
 }

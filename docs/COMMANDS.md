@@ -15,10 +15,10 @@ All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift
 | `CodeGraphy: Export as JPEG` | Save the graph as a JPEG image |
 | `CodeGraphy: Export Connections as JSON` | Save current graph connection data as structured JSON |
 | `CodeGraphy: Export Connections as Markdown` | Save current graph connection data as markdown |
-| `CodeGraphy: Cycle View` | Cycle through graph views (Connections → Depth → Folder) |
+| `CodeGraphy: Cycle View` | Toggle depth mode on the unified graph surface |
 | `CodeGraphy: Cycle Layout` | Cycle through DAG layouts (Default → Radial → Top Down → Left to Right) |
 | `CodeGraphy: Toggle 2D/3D` | Switch between 2D canvas and 3D WebGL rendering |
-| `CodeGraphy: Clear Cache and Refresh` | Clear analysis cache and re-scan the workspace |
+| `CodeGraphy: Clear Cache and Refresh` | Clear cached graph data and force a full refresh |
 
 ## Command IDs
 
@@ -37,7 +37,7 @@ For keybinding customization or extension integration:
 | `codegraphy.exportJpeg` | Export as JPEG |
 | `codegraphy.exportJson` | Export Connections as JSON |
 | `codegraphy.exportMarkdown` | Export Connections as Markdown |
-| `codegraphy.cycleView` | Cycle View |
+| `codegraphy.cycleView` | Toggle Depth Mode |
 | `codegraphy.cycleLayout` | Cycle Layout |
 | `codegraphy.toggleDimension` | Toggle 2D/3D |
 | `codegraphy.clearCache` | Clear Cache and Refresh |

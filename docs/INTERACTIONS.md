@@ -67,8 +67,8 @@ The toolbar sits at the bottom of the graph and is split into two sides.
 
 | Control | Description |
 |---------|-------------|
-| Depth slider | Adjusts depth limit (1-5). Only visible when Depth Graph view is active. |
-| View buttons | Switch between Connections, Depth Graph, and Folder views. |
+| Depth mode toggle | Turns the focused depth behavior on or off. |
+| Depth slider | Adjusts depth limit (1-5). Only visible when depth mode is active. |
 | DAG mode buttons | Switch layout: Default (free-form), Radial Out, Top Down, Left to Right. |
 | 2D/3D toggle | Switch between 2D canvas and 3D WebGL rendering. |
 | Node size buttons | Switch node sizing: Connections, File Size, Access Count, or Uniform. |
@@ -77,12 +77,15 @@ The toolbar sits at the bottom of the graph and is split into two sides.
 
 | Control | Description |
 |---------|-------------|
-| Refresh | Triggers a full graph re-analysis and layout reset. |
-| Export | Dropdown for exporting as PNG, SVG, JPEG, JSON, or Markdown. |
+| Nodes | Opens node visibility controls for core and plugin-added node kinds. |
+| Edges | Opens edge visibility controls and shows current edge colors. |
+| Index Repo / Refresh Graph | Before indexing: builds the repo index. After indexing: forces a full re-index. |
+| Export | Dropdown for exporting as PNG, SVG, JPEG, graph JSON, graph Markdown, or symbol JSON. |
+| Legends | Opens legend rule editing and color priority controls. |
 | Plugins | Opens the plugins panel. |
 | Settings | Opens the settings panel. |
 
-Node size mode and DAG layout mode persist across sessions (saved to workspace state).
+Toolbar and panel state are driven by repo-local settings in `.codegraphy/settings.json`.
 
 ## Panels
 
@@ -90,17 +93,29 @@ Panels open from the right side of the graph. Only one panel is open at a time.
 
 ### Settings (gear icon)
 
-Four collapsible sections: Forces, Groups, Filters, and Display. See [Settings](./SETTINGS.md) for details.
+Physics and general graph behavior. See [Settings](./SETTINGS.md) for details.
+
+### Nodes (shape icon)
+
+Toggle node kinds such as files, folders, packages, and plugin-added node types. Each row also shows the current color for that node kind.
+
+### Edges (line icon)
+
+Toggle edge kinds such as `NESTS`, imports, calls, references, and plugin-added edge types. Each row also shows the current color for that edge kind.
+
+### Legends (paint icon)
+
+Manage regex-based legend rules. Drag to reorder priority. Bottom rules apply first, top rules apply last and can override lower matches.
 
 ### Plugins (puzzle icon)
 
-Toggle entire plugins or individual detection sources. Shows live connection counts per rule. Toggle state persists in VS Code settings (`codegraphy.disabledPlugins`, `codegraphy.disabledSources`). See [Plugins](./PLUGINS.md) for plugin development.
+Toggle whole plugins on or off and drag them to change processing priority. Plugins are processed bottom-to-top, so entries nearer the top win merge conflicts. Built-in plugins show up here too. See [Plugins](./PLUGINS.md) for plugin development.
 
 ![Plugins panel](./media/plugins-panel.png)
 
-### Refresh (arrow icon)
+### Index / Refresh (autorenew icon)
 
-Triggers a full graph re-analysis and layout reset.
+Before the repo has an index, this button is **Index Repo**. After the repo is indexed, it becomes **Refresh Graph** and forces a full re-index.
 
 ## Timeline
 
@@ -123,4 +138,6 @@ Export the current graph via the Command Palette:
 
 - **PNG** for a rasterized snapshot at the current zoom and pan
 - **SVG** for a scalable vector preserving graph structure
-- **JSON** for node positions you can reload later
+- **JSON** for graph data with explicit `legend`, `nodes`, and `edges`
+- **Markdown** for a readable graph snapshot with legend, nodes, and edges
+- **Symbols JSON** for indexed symbol and relation data built from the cached analysis store

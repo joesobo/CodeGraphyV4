@@ -22,7 +22,7 @@ CodeGraphy has two plugin surfaces:
 
 The current plugin API supports more than file analysis:
 
-- semantic relations via `kind` + `sourceId`
+- per-file analysis objects with symbols, relations, node types, and edge types
 - graph queries backed by the host graph cache
 - custom views with `recomputeOn` dependencies
 - context menu items, commands, and exporters
@@ -56,3 +56,15 @@ import type { CodeGraphyAPI, IPlugin } from '@codegraphy-vscode/plugin-api';
 ```
 
 Use `import type` because the package is type-only.
+
+## Analysis model
+
+The core extension now does baseline parsing/indexing itself. Plugins run after core and can:
+
+- enrich or override the core per-file analysis result
+- add node kinds
+- add edge kinds
+- contribute richer language or framework semantics
+- add views, exporters, commands, toolbar actions, and other UI surfaces through the host API
+
+Built-in plugins follow the same rules as external plugins and appear in the **Plugins** popup. Plugin processing order is bottom-to-top, so plugins nearer the top win merge conflicts.

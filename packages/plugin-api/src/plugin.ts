@@ -49,7 +49,9 @@ export interface IPluginFileColorDefinition {
  *   version: '0.1.0',
  *   apiVersion: '^2.0.0',
  *   supportedExtensions: [],
- *   async detectConnections() { return []; },
+ *   async analyzeFile(filePath) {
+ *     return { filePath, relations: [] };
+ *   },
  *   onLoad(api) {
  *     api.on('analysis:completed', ({ graph }) => {
  *       // decorate nodes with coverage data
@@ -118,7 +120,8 @@ export interface IPlugin {
   // ---------------------------------------------------------------------------
 
   /**
-   * Detect connections in a single file.
+   * Legacy connection-only analysis hook.
+   * Prefer `analyzeFile(...)` for new plugins.
    *
    * @param filePath      - Absolute path to the file being analyzed
    * @param content       - The file's content as a string
@@ -132,7 +135,8 @@ export interface IPlugin {
   ): Promise<IConnection[]>;
 
   /**
-   * New per-file analysis result contract.
+   * Per-file analysis result contract.
+   * Plugins can return symbols, relations, extra nodes, and node/edge type contributions.
    * When present, the host prefers this over `detectConnections(...)`.
    */
   analyzeFile?(

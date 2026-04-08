@@ -5,6 +5,7 @@ import {
   supportsFile,
   getSupportedExtensions,
   analyzeFile,
+  analyzeFileResult,
 } from '../../../src/core/plugins/routing/router';
 import type { IPlugin } from '../../../src/core/plugins/types/contracts';
 
@@ -134,14 +135,29 @@ describe('plugin routing', () => {
 
   describe('analyzeFile', () => {
     it('delegates to the matching plugin and returns connections', async () => {
-      const connections = [{ from: 'src/a.ts', to: 'src/b.ts', label: '' }];
+      const connections = [{
+        kind: 'import',
+        sourceId: 'ts:import',
+        specifier: './b',
+        resolvedPath: '/ws/src/b.ts',
+      }];
       const ts = makePlugin('ts-plugin', ['.ts']);
       (ts.detectConnections as ReturnType<typeof vi.fn>).mockResolvedValue(connections);
       const { pluginsMap, extensionMap } = buildMaps([ts]);
 
       const result = await analyzeFile('src/app.ts', 'content', '/ws', pluginsMap, extensionMap);
 
-      expect(result).toBe(connections);
+      expect(result).toEqual([
+        {
+          kind: 'import',
+          sourceId: 'ts:import',
+          specifier: './b',
+          resolvedPath: '/ws/src/b.ts',
+          type: undefined,
+          variant: undefined,
+          metadata: undefined,
+        },
+      ]);
     });
 
     it('returns empty array when no plugin supports the file', async () => {
@@ -160,6 +176,49 @@ describe('plugin routing', () => {
       const result = await analyzeFile('src/app.ts', 'content', '/ws', pluginsMap, extensionMap);
 
       expect(result).toEqual([]);
+    });
+
+    it('merges matching plugins bottom-to-top so earlier plugins in the list win conflicts', async () => {
+      const highPriority = makePlugin('high-priority', ['.ts']);
+      highPriority.analyzeFile = vi.fn().mockResolvedValue({
+        filePath: 'src/app.ts',
+        relations: [{
+          kind: 'import',
+          sourceId: 'shared:import',
+          fromFilePath: 'src/app.ts',
+          toFilePath: 'src/high.ts',
+          specifier: './high',
+        }],
+      });
+
+      const lowPriority = makePlugin('low-priority', ['.ts']);
+      lowPriority.analyzeFile = vi.fn().mockResolvedValue({
+        filePath: 'src/app.ts',
+        relations: [{
+          kind: 'import',
+          sourceId: 'shared:import',
+          fromFilePath: 'src/app.ts',
+          toFilePath: 'src/low.ts',
+          specifier: './high',
+        }],
+      });
+
+      const { pluginsMap, extensionMap } = buildMaps([highPriority, lowPriority]);
+
+      const result = await analyzeFileResult('src/app.ts', 'content', '/ws', pluginsMap, extensionMap);
+
+      expect(
+        (lowPriority.analyzeFile as ReturnType<typeof vi.fn>).mock.invocationCallOrder[0],
+      ).toBeLessThan(
+        (highPriority.analyzeFile as ReturnType<typeof vi.fn>).mock.invocationCallOrder[0],
+      );
+      expect(result?.relations).toEqual([{
+        kind: 'import',
+        sourceId: 'shared:import',
+        fromFilePath: 'src/app.ts',
+        toFilePath: 'src/high.ts',
+        specifier: './high',
+      }]);
     });
   });
 });

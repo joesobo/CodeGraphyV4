@@ -24,6 +24,7 @@ This package is type-only. Use `import type` in plugin code.
 
 Main seams in the current API:
 
+- per-file analysis objects with symbols, relations, and node/edge type contributions
 - graph queries backed by the host cache: `getGraph`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getSubgraph`, `findPath`
 - registrations: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`
 - host-side export saving: `saveExport`
