@@ -1,6 +1,7 @@
 import type { GraphViewProviderMethodSource, GraphViewProviderMethodSourceOwner } from './contracts';
 import { createGraphViewProviderAnalysisMethodDelegates } from './analysisDelegates';
 import { createGraphViewProviderFileTimelineMethodDelegates } from './fileTimelineDelegates';
+import { createGraphViewProviderPluginMethodDelegates } from './pluginDelegates';
 import { createGraphViewProviderPublicMethodDelegates } from './publicDelegates';
 import { createGraphViewProviderSettingsMethodDelegates } from './settingsDelegates';
 import { createGraphViewProviderMethodStateSource } from './state';
@@ -32,6 +33,7 @@ export function createGraphViewProviderMethodSource(
     createGraphViewProviderAnalysisMethodDelegates,
     createGraphViewProviderSettingsMethodDelegates,
     createGraphViewProviderFileTimelineMethodDelegates,
+    createGraphViewProviderPluginMethodDelegates,
     createGraphViewProviderPublicMethodDelegates,
   ]) {
     attachDelegateProperties(source, createDelegates(owner));
