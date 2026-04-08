@@ -33,7 +33,7 @@ function createHandlers(
     ...Object.entries(initialConfig),
   ]);
 
-  return {
+  const handlers = {
     getConfig: vi.fn(<T>(key: string, defaultValue: T): T =>
       config.has(key) ? (config.get(key) as T) : defaultValue,
     ),
@@ -42,12 +42,17 @@ function createHandlers(
       return Promise.resolve();
     }),
     getPluginFilterPatterns: vi.fn(() => []),
+    sendGraphControls: vi.fn(),
     sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
+
+  handlers.sendGraphControls ??= vi.fn();
+
+  return handlers as GraphViewSettingsMessageHandlers;
 }
 
 describe('graph view settings router', () => {

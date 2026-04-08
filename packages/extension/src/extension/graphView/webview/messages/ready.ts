@@ -18,6 +18,7 @@ export interface GraphViewReadyHandlers {
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
   sendAvailableViews(): void;
+  sendGraphControls(): void;
   loadAndSendData(): void;
   sendFavorites(): void;
   sendSettings(): void;
@@ -42,6 +43,7 @@ export async function applyWebviewReady(
   handlers.loadGroupsAndFilterPatterns();
   handlers.loadDisabledRulesAndPlugins();
   handlers.sendAvailableViews();
+  handlers.sendGraphControls();
   handlers.loadAndSendData();
   handlers.sendFavorites();
   handlers.sendSettings();

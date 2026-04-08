@@ -91,7 +91,7 @@ function createDependencies(): GraphViewProviderMessageListenerDependencies {
 function createSource(
   overrides: Partial<GraphViewProviderMessageListenerSource> = {},
 ): GraphViewProviderMessageListenerSource {
-  return {
+  const source = {
     _timelineActive: false,
     _currentCommitSha: undefined,
     _userGroups: [],
@@ -168,9 +168,14 @@ function createSource(
     _sendCachedTimeline: vi.fn(),
     _sendDecorations: vi.fn(),
     _sendContextMenuItems: vi.fn(),
+    _sendGraphControls: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
     ...overrides,
   };
+
+  source._sendGraphControls ??= vi.fn();
+
+  return source as GraphViewProviderMessageListenerSource;
 }
 
 describe('graph view provider listener bridge', () => {

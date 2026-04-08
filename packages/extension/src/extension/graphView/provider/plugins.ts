@@ -41,6 +41,7 @@ export interface GraphViewProviderPluginMethodsSource {
   _viewRegistry: ViewRegistry;
   _viewContext: IViewContext;
   _activeViewId: string;
+  _graphData: IGraphData;
   _rawGraphData: IGraphData;
   _decorationManager: GraphViewDecorationManagerLike;
   _firstAnalysis: boolean;
@@ -60,6 +61,7 @@ export interface GraphViewProviderPluginMethodsSource {
 
 export interface GraphViewProviderPluginMethods {
   _sendAvailableViews: GraphViewProviderPluginBroadcastMethods['_sendAvailableViews'];
+  _sendGraphControls: GraphViewProviderPluginBroadcastMethods['_sendGraphControls'];
   _sendPluginStatuses: GraphViewProviderPluginBroadcastMethods['_sendPluginStatuses'];
   _sendDecorations: GraphViewProviderPluginBroadcastMethods['_sendDecorations'];
   _sendContextMenuItems: GraphViewProviderPluginBroadcastMethods['_sendContextMenuItems'];

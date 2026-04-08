@@ -4,6 +4,8 @@ import { SearchBar } from '../components/searchBar/Field';
 import SettingsPanel from '../components/settingsPanel/Drawer';
 import PluginsPanel from '../components/plugins/Panel';
 import LegendsPanel from '../components/legends/Panel';
+import NodesPanel from '../components/nodes/Panel';
+import EdgesPanel from '../components/edges/Panel';
 import Toolbar from '../components/Toolbar';
 import { DepthViewControls } from '../components/depthView/view';
 import { ActiveFileBreadcrumb } from '../components/activeFileBreadcrumb/view';
@@ -29,6 +31,10 @@ export default function App(): React.ReactElement {
     showOrphans,
     activePanel,
     activeViewId,
+    nodeVisibility,
+    edgeVisibility,
+    edgeColors,
+    folderNodeColor,
     nodeDecorations,
     edgeDecorations,
     activeFilePath,
@@ -38,7 +44,22 @@ export default function App(): React.ReactElement {
   const { setSearchQuery, setSearchOptions, setActivePanel } = useAppActions();
 
   const theme = useTheme();
-  const { filteredData, coloredData, regexError } = useFilteredGraph(graphData, searchQuery, searchOptions, groups);
+  const {
+    filteredData,
+    coloredData,
+    edgeDecorations: graphEdgeDecorations,
+    regexError,
+  } = useFilteredGraph(
+    graphData,
+    searchQuery,
+    searchOptions,
+    groups,
+    nodeVisibility,
+    edgeVisibility,
+    edgeColors,
+    folderNodeColor,
+    edgeDecorations,
+  );
 
   const handleSearchOptionsChange = useCallback((newOptions: SearchOptions) => {
     setSearchOptions(newOptions);
@@ -80,7 +101,7 @@ export default function App(): React.ReactElement {
               data={coloredData || graphData}
               theme={theme}
               nodeDecorations={nodeDecorations}
-              edgeDecorations={edgeDecorations}
+              edgeDecorations={graphEdgeDecorations}
               pluginHost={pluginHost}
             />
             <DepthViewControls />
@@ -100,6 +121,8 @@ export default function App(): React.ReactElement {
             data-testid="node-details-slot"
             className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
           />
+          <NodesPanel isOpen={activePanel === 'nodes'} onClose={() => setActivePanel('none')} />
+          <EdgesPanel isOpen={activePanel === 'edges'} onClose={() => setActivePanel('none')} />
           <LegendsPanel isOpen={activePanel === 'legends'} onClose={() => setActivePanel('none')} />
           <PluginsPanel isOpen={activePanel === 'plugins'} onClose={() => setActivePanel('none')} />
           <SettingsPanel isOpen={activePanel === 'settings'} onClose={() => setActivePanel('none')} />

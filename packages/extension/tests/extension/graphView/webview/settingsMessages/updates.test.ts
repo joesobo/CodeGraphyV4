@@ -25,16 +25,21 @@ function createState(
 function createHandlers(
   overrides: Partial<GraphViewSettingsMessageHandlers> = {},
 ): GraphViewSettingsMessageHandlers {
-  return {
-    getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
-    updateConfig: vi.fn(() => Promise.resolve()),
-    getPluginFilterPatterns: vi.fn(() => []),
-    sendMessage: vi.fn(),
+    const handlers = {
+      getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
+      updateConfig: vi.fn(() => Promise.resolve()),
+      getPluginFilterPatterns: vi.fn(() => []),
+      sendGraphControls: vi.fn(),
+      sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
+
+  handlers.sendGraphControls ??= vi.fn();
+
+  return handlers as GraphViewSettingsMessageHandlers;
 }
 
 describe('graph view settings update message', () => {

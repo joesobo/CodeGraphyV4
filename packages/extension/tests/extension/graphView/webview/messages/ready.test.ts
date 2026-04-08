@@ -6,6 +6,7 @@ function createHandlers() {
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendAvailableViews: vi.fn(),
+    sendGraphControls: vi.fn(),
     loadAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
@@ -47,6 +48,7 @@ describe('graph view ready message', () => {
     expect(handlers.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(handlers.loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
     expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
+    expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
     expect(handlers.loadAndSendData).toHaveBeenCalledOnce();
     expect(handlers.sendFavorites).toHaveBeenCalledOnce();
     expect(handlers.sendSettings).toHaveBeenCalledOnce();

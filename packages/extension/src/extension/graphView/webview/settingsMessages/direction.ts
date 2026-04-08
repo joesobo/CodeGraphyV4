@@ -60,6 +60,7 @@ export async function applySettingsDirectionMessage(
       const folderNodeColor = normalizeFolderNodeColor(message.payload.folderNodeColor);
       await handlers.updateConfig('folderNodeColor', folderNodeColor);
       state.viewContext.folderNodeColor = folderNodeColor;
+      handlers.sendGraphControls?.();
       handlers.sendMessage({
         type: 'FOLDER_NODE_COLOR_UPDATED',
         payload: { folderNodeColor },

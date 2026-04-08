@@ -159,6 +159,9 @@ export interface IGraphEdge {
   /** Semantic meaning of the connection. */
   kind: GraphEdgeKind;
 
+  /** Optional color override resolved by graph controls and legends. */
+  color?: string;
+
   /** All contributing plugin sources merged into this edge. */
   sources: IGraphEdgeSource[];
 }

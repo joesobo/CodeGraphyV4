@@ -6,6 +6,10 @@ import type { IPluginExporterItem } from '../../shared/plugins/exporters';
 import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
+import type {
+  IGraphEdgeTypeDefinition,
+  IGraphNodeTypeDefinition,
+} from '../../shared/graphControls/types';
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
@@ -46,12 +50,17 @@ export interface IStoreFields {
   dagMode: DagMode;
   folderNodeColor: string;
   pluginStatuses: IPluginStatus[];
+  graphNodeTypes: IGraphNodeTypeDefinition[];
+  graphEdgeTypes: IGraphEdgeTypeDefinition[];
+  nodeVisibility: Record<string, boolean>;
+  edgeVisibility: Record<string, boolean>;
+  edgeColors: Record<string, string>;
   nodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;
   pluginContextMenuItems: IPluginContextMenuItem[];
   pluginExporters: IPluginExporterItem[];
   pluginToolbarActions: IPluginToolbarAction[];
-  activePanel: 'none' | 'settings' | 'plugins' | 'legends';
+  activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'nodes' | 'edges';
   maxFiles: number;
   activeFilePath: string | null;
   timelineActive: boolean;

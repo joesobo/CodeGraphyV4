@@ -23,6 +23,7 @@ function createContext(
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendAvailableViews: vi.fn(),
+    sendGraphControls: vi.fn(),
     loadAndSendData: vi.fn(() => Promise.resolve()),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
@@ -52,6 +53,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
     expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
     expect(context.sendAvailableViews).toHaveBeenCalledOnce();
+    expect(context.sendGraphControls).toHaveBeenCalledOnce();
     expect(context.sendFavorites).toHaveBeenCalledOnce();
     expect(context.sendSettings).toHaveBeenCalledOnce();
     expect(context.sendPhysicsSettings).toHaveBeenCalledOnce();

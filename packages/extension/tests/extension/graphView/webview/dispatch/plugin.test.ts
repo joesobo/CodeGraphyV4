@@ -9,7 +9,7 @@ import {
 function createContext(
   overrides: Partial<GraphViewPluginMessageContext> = {},
 ): GraphViewPluginMessageContext {
-  return {
+  const context = {
     getFilterPatterns: vi.fn(() => []),
     getPluginFilterPatterns: vi.fn(() => []),
     getMaxFiles: vi.fn(() => 500),
@@ -32,6 +32,7 @@ function createContext(
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendAvailableViews: vi.fn(),
+    sendGraphControls: vi.fn(),
     loadAndSendData: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
@@ -58,6 +59,10 @@ function createContext(
     recomputeGroups: vi.fn(),
     ...overrides,
   };
+
+  context.sendGraphControls ??= vi.fn();
+
+  return context as GraphViewPluginMessageContext;
 }
 
 describe('graph view plugin message dispatch', () => {

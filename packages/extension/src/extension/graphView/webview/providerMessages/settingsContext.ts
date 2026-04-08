@@ -10,6 +10,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'updateNodeSizeMode'
   | 'getConfig'
   | 'updateConfig'
+  | 'sendGraphControls'
   | 'resetAllSettings'
   | 'getMaxFiles'
   | 'getPlaybackSpeed'
@@ -45,6 +46,9 @@ export function createGraphViewProviderMessageSettingsContext(
     updateConfig: async (key, value) => {
       const target = dependencies.getConfigTarget(dependencies.workspace.workspaceFolders);
       await dependencies.workspace.getConfiguration('codegraphy').update(key, value, target);
+    },
+    sendGraphControls: () => {
+      source._sendGraphControls();
     },
     resetAllSettings: async () => {
       const snapshot = dependencies.captureSettingsSnapshot(

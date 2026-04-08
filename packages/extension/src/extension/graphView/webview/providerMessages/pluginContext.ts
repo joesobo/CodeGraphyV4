@@ -21,6 +21,7 @@ type GraphViewProviderPluginContext = Pick<
   | 'loadGroupsAndFilterPatterns'
   | 'loadDisabledRulesAndPlugins'
   | 'sendAvailableViews'
+  | 'sendGraphControls'
   | 'sendFavorites'
   | 'sendSettings'
   | 'sendCachedTimeline'
@@ -59,6 +60,7 @@ export function createGraphViewProviderMessagePluginContext(
     loadGroupsAndFilterPatterns: () => source._loadGroupsAndFilterPatterns(),
     loadDisabledRulesAndPlugins: () => source._loadDisabledRulesAndPlugins(),
     sendAvailableViews: () => source._sendAvailableViews(),
+    sendGraphControls: () => source._sendGraphControls(),
     sendFavorites: () => source._sendFavorites(),
     sendSettings: () => source._sendSettings(),
     sendCachedTimeline: () => source._sendCachedTimeline(),

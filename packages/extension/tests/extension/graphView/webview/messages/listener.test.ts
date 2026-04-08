@@ -11,7 +11,7 @@ import {
 function createContext(
   overrides: Partial<GraphViewMessageListenerContext> = {},
 ): GraphViewMessageListenerContext {
-  return {
+  const context = {
     getTimelineActive: vi.fn(() => false),
     getCurrentCommitSha: vi.fn(() => undefined),
     getUserGroups: vi.fn(() => []),
@@ -59,6 +59,7 @@ function createContext(
     getConfig: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
     updateConfig: vi.fn(() => Promise.resolve()),
     getPluginFilterPatterns: vi.fn(() => []),
+    sendGraphControls: vi.fn(),
     sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),
@@ -97,6 +98,10 @@ function createContext(
     setWebviewReadyNotified: vi.fn(),
     ...overrides,
   };
+
+  context.sendGraphControls ??= vi.fn();
+
+  return context as GraphViewMessageListenerContext;
 }
 
 describe('graph view webview message listener', () => {

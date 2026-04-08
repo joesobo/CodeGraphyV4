@@ -130,6 +130,7 @@ export interface GraphViewProviderMessageListenerSource {
   _loadGroupsAndFilterPatterns(): void;
   _loadDisabledRulesAndPlugins(): boolean;
   _sendFavorites(): void;
+  _sendGraphControls(): void;
   _sendSettings(): void;
   _sendCachedTimeline(): Promise<void>;
   _sendDecorations(): void;

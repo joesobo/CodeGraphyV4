@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 
 const mocks = vi.hoisted(() => {
@@ -98,6 +99,7 @@ function createSource(
     _hiddenPluginGroupIds: new Set<string>(['plugin.current']),
     _userGroups: [{ id: 'group.current' } as never],
     _filterPatterns: ['current/**'],
+    _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _disabledSources: new Set<string>(['rule.current']),
     _disabledPlugins: new Set<string>(['plugin.current']),
     _nodeSizeMode: 'connections',
@@ -112,6 +114,8 @@ function createSource(
   if (!overrides._context) {
     source._context = { workspaceState };
   }
+
+  source._graphData ??= { nodes: [], edges: [] } satisfies IGraphData;
 
   return source;
 }
@@ -280,8 +284,12 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
     expect(mocks.sendProviderSettings).toHaveBeenCalledOnce();
     expect(mocks.sendProviderAllSettings).not.toHaveBeenCalled();
-    expect(source._sendMessage).toHaveBeenCalledOnce();
-    expect(source._sendMessage).toHaveBeenCalledWith(settingsMessage);
+    expect(source._sendMessage).toHaveBeenCalledTimes(2);
+    expect(source._sendMessage).toHaveBeenNthCalledWith(1, settingsMessage);
+    expect(source._sendMessage).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ type: 'GRAPH_CONTROLS_UPDATED' }),
+    );
   });
 
   it('sends all settings through the default snapshot bridge', () => {
@@ -320,8 +328,12 @@ describe('graphView/provider/settingsState default dependencies', () => {
       { damping: 1 },
       'connections',
     );
-    expect(source._sendMessage).toHaveBeenCalledOnce();
-    expect(source._sendMessage).toHaveBeenCalledWith(allSettingsMessage);
+    expect(source._sendMessage).toHaveBeenCalledTimes(2);
+    expect(source._sendMessage).toHaveBeenNthCalledWith(1, allSettingsMessage);
+    expect(source._sendMessage).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ type: 'GRAPH_CONTROLS_UPDATED' }),
+    );
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect([...source._hiddenPluginGroupIds]).toEqual(['plugin.updated']);

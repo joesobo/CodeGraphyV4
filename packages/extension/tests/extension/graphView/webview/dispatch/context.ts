@@ -7,7 +7,7 @@ import type { GraphViewPrimaryMessageContext } from '../../../../../src/extensio
 export function createPrimaryMessageContext(
   overrides: Partial<GraphViewPrimaryMessageContext> = {},
 ): GraphViewPrimaryMessageContext {
-  return {
+  const context = {
     getTimelineActive: vi.fn(() => false),
     getCurrentCommitSha: vi.fn(() => undefined),
     getUserGroups: vi.fn(() => []),
@@ -54,10 +54,15 @@ export function createPrimaryMessageContext(
     getConfig: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
     updateConfig: vi.fn(() => Promise.resolve()),
     getPluginFilterPatterns: vi.fn(() => []),
+    sendGraphControls: vi.fn(),
     sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
+
+  context.sendGraphControls ??= vi.fn();
+
+  return context as GraphViewPrimaryMessageContext;
 }

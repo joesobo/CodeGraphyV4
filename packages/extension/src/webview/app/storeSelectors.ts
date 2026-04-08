@@ -15,6 +15,10 @@ export function useAppState() {
   const timelineActive = useGraphStore(s => s.timelineActive);
   const activePanel = useGraphStore(s => s.activePanel);
   const activeViewId = useGraphStore(s => s.activeViewId);
+  const nodeVisibility = useGraphStore(s => s.nodeVisibility);
+  const edgeVisibility = useGraphStore(s => s.edgeVisibility);
+  const edgeColors = useGraphStore(s => s.edgeColors);
+  const folderNodeColor = useGraphStore(s => s.folderNodeColor);
   const nodeDecorations = useGraphStore(s => s.nodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
   const activeFilePath = useGraphStore(s => s.activeFilePath);
@@ -31,6 +35,10 @@ export function useAppState() {
     timelineActive,
     activePanel,
     activeViewId,
+    nodeVisibility,
+    edgeVisibility,
+    edgeColors,
+    folderNodeColor,
     nodeDecorations,
     edgeDecorations,
     activeFilePath,

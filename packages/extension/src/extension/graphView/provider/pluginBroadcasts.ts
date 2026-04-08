@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import { getCodeGraphyConfiguration } from '../../repoSettings/current';
+import { sendGraphControlsUpdated } from '../controls/send';
 import {
   sendGraphViewContextMenuItems,
   sendGraphViewDecorations,
@@ -13,6 +15,7 @@ import type { GraphViewProviderPluginMethodsSource } from './plugins';
 
 export interface GraphViewProviderPluginBroadcastMethods {
   _sendAvailableViews(): void;
+  _sendGraphControls(): void;
   _sendPluginStatuses(): void;
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
@@ -71,6 +74,14 @@ export function createGraphViewProviderPluginBroadcastMethods(
         source._rawGraphData,
         defaultDepthLimit,
         send,
+      );
+    },
+    _sendGraphControls: () => {
+      sendGraphControlsUpdated(
+        source._graphData,
+        source._analyzer,
+        message => send(message),
+        getCodeGraphyConfiguration(),
       );
     },
     _sendPluginStatuses: () => {

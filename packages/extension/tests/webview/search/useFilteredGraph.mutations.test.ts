@@ -3,6 +3,7 @@ import { renderHook } from '@testing-library/react';
 import { useFilteredGraph } from '../../../src/webview/search/useFilteredGraph';
 import type { IGraphData } from '../../../src/shared/graph/types';
 import type { IGroup } from '../../../src/shared/settings/groups';
+import { DEFAULT_FOLDER_NODE_COLOR } from '../../../src/shared/fileColors';
 
 const graphA: IGraphData = {
   nodes: [
@@ -25,7 +26,8 @@ const defaultOptions = { matchCase: false, wholeWord: false, regex: false };
 describe('useFilteredGraph dependency array mutations', () => {
   it('recomputes filteredData when graphData changes', () => {
     const { result, rerender } = renderHook(
-      ({ graphData }) => useFilteredGraph(graphData, 'App', defaultOptions, []),
+      ({ graphData }) =>
+        useFilteredGraph(graphData, 'App', defaultOptions, [], {}, {}, {}, DEFAULT_FOLDER_NODE_COLOR),
       { initialProps: { graphData: graphA as IGraphData | null } },
     );
 
@@ -38,7 +40,8 @@ describe('useFilteredGraph dependency array mutations', () => {
 
   it('recomputes filteredData when searchQuery changes', () => {
     const { result, rerender } = renderHook(
-      ({ query }) => useFilteredGraph(graphA, query, defaultOptions, []),
+      ({ query }) =>
+        useFilteredGraph(graphA, query, defaultOptions, [], {}, {}, {}, DEFAULT_FOLDER_NODE_COLOR),
       { initialProps: { query: 'App' } },
     );
 
@@ -51,7 +54,8 @@ describe('useFilteredGraph dependency array mutations', () => {
 
   it('recomputes filteredData when searchOptions change', () => {
     const { result, rerender } = renderHook(
-      ({ options }) => useFilteredGraph(graphA, 'app', options, []),
+      ({ options }) =>
+        useFilteredGraph(graphA, 'app', options, [], {}, {}, {}, DEFAULT_FOLDER_NODE_COLOR),
       { initialProps: { options: { matchCase: false, wholeWord: false, regex: false } } },
     );
 
@@ -67,7 +71,8 @@ describe('useFilteredGraph dependency array mutations', () => {
     const groupsB: IGroup[] = [{ id: 'g2', pattern: '**/*.ts', color: '#00ff00' }];
 
     const { result, rerender } = renderHook(
-      ({ groups }) => useFilteredGraph(graphA, '', defaultOptions, groups),
+      ({ groups }) =>
+        useFilteredGraph(graphA, '', defaultOptions, groups, {}, {}, {}, DEFAULT_FOLDER_NODE_COLOR),
       { initialProps: { groups: groupsA } },
     );
 
@@ -82,7 +87,8 @@ describe('useFilteredGraph dependency array mutations', () => {
     const groups: IGroup[] = [{ id: 'g1', pattern: '**/*.ts', color: '#ff0000' }];
 
     const { result, rerender } = renderHook(
-      ({ query }) => useFilteredGraph(graphA, query, defaultOptions, groups),
+      ({ query }) =>
+        useFilteredGraph(graphA, query, defaultOptions, groups, {}, {}, {}, DEFAULT_FOLDER_NODE_COLOR),
       { initialProps: { query: '' } },
     );
 

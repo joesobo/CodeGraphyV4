@@ -9,12 +9,17 @@ import type { SearchOptions } from '../components/searchBar/field/model';
 import { filterGraphData, applyGroupColors } from './filtering';
 import type { IGraphData } from '../../shared/graph/types';
 import type { IGroup } from '../../shared/settings/groups';
+import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
+import { applyGraphControls } from '../graphControls/filtering';
+import { DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
 
 export interface IFilteredGraph {
   /** Graph after node/edge search filtering (null when no graph data). */
   filteredData: IGraphData | null;
   /** Graph after group colors applied (null when no graph data). */
   coloredData: IGraphData | null;
+  /** Edge decorations merged with edge-kind colors after controls filtering. */
+  edgeDecorations: Record<string, EdgeDecorationPayload> | undefined;
   /** Regex parse error when regex search option is active. */
   regexError: string | null;
 }
@@ -28,10 +33,28 @@ export function useFilteredGraph(
   searchQuery: string,
   searchOptions: SearchOptions,
   groups: IGroup[],
+  nodeVisibility: Record<string, boolean> = {},
+  edgeVisibility: Record<string, boolean> = {},
+  edgeColors: Record<string, string> = {},
+  folderNodeColor: string = DEFAULT_FOLDER_NODE_COLOR,
+  edgeDecorations?: Record<string, EdgeDecorationPayload>,
 ): IFilteredGraph {
+  const { graphData: controlsData, edgeDecorations: controlsEdgeDecorations } = useMemo(
+    () =>
+      applyGraphControls({
+        graphData,
+        nodeVisibility,
+        edgeVisibility,
+        edgeColors,
+        folderNodeColor,
+        edgeDecorations,
+      }),
+    [edgeColors, edgeDecorations, edgeVisibility, folderNodeColor, graphData, nodeVisibility],
+  );
+
   const { filteredData, regexError } = useMemo(
-    () => filterGraphData(graphData, searchQuery, searchOptions),
-    [graphData, searchQuery, searchOptions],
+    () => filterGraphData(controlsData, searchQuery, searchOptions),
+    [controlsData, searchQuery, searchOptions],
   );
 
   const coloredData = useMemo(
@@ -39,5 +62,10 @@ export function useFilteredGraph(
     [filteredData, groups],
   );
 
-  return { filteredData, coloredData, regexError };
+  return {
+    filteredData,
+    coloredData,
+    edgeDecorations: controlsEdgeDecorations,
+    regexError,
+  };
 }

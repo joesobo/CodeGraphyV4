@@ -4,6 +4,7 @@
  */
 
 import type { IGraphData } from '../../../shared/graph/types';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../shared/graphControls/defaults';
 
 /**
  * Build containment edges: folder→subfolder and folder→file.
@@ -21,10 +22,10 @@ export function buildContainmentEdges(
     if (segments.length > 1) {
       const parent = segments.slice(0, -1).join('/');
       edges.push({
-        id: `${parent}->${fp}#codegraphy:contains`,
+        id: `${parent}->${fp}#${STRUCTURAL_NESTS_EDGE_KIND}`,
         from: parent,
         to: fp,
-        kind: 'codegraphy:contains',
+        kind: STRUCTURAL_NESTS_EDGE_KIND,
         sources: [],
       });
     }
@@ -35,19 +36,19 @@ export function buildContainmentEdges(
     const segments = node.id.split('/');
     if (segments.length === 1) {
       edges.push({
-        id: `(root)->${node.id}#codegraphy:contains`,
+        id: `(root)->${node.id}#${STRUCTURAL_NESTS_EDGE_KIND}`,
         from: '(root)',
         to: node.id,
-        kind: 'codegraphy:contains',
+        kind: STRUCTURAL_NESTS_EDGE_KIND,
         sources: [],
       });
     } else {
       const parent = segments.slice(0, -1).join('/');
       edges.push({
-        id: `${parent}->${node.id}#codegraphy:contains`,
+        id: `${parent}->${node.id}#${STRUCTURAL_NESTS_EDGE_KIND}`,
         from: parent,
         to: node.id,
-        kind: 'codegraphy:contains',
+        kind: STRUCTURAL_NESTS_EDGE_KIND,
         sources: [],
       });
     }

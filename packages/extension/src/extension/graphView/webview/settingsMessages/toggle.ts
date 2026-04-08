@@ -30,6 +30,26 @@ export async function applySettingsToggleMessage(
       handlers.smartRebuild('plugin', message.payload.pluginId);
       return true;
 
+    case 'UPDATE_NODE_VISIBILITY': {
+      const nodeVisibility = handlers.getConfig<Record<string, boolean>>('nodeVisibility', {});
+      await handlers.updateConfig('nodeVisibility', {
+        ...nodeVisibility,
+        [message.payload.nodeType]: message.payload.visible,
+      });
+      handlers.sendGraphControls?.();
+      return true;
+    }
+
+    case 'UPDATE_EDGE_VISIBILITY': {
+      const edgeVisibility = handlers.getConfig<Record<string, boolean>>('edgeVisibility', {});
+      await handlers.updateConfig('edgeVisibility', {
+        ...edgeVisibility,
+        [message.payload.edgeKind]: message.payload.visible,
+      });
+      handlers.sendGraphControls?.();
+      return true;
+    }
+
     default:
       return false;
   }
