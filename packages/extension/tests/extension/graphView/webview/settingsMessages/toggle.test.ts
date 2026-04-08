@@ -120,7 +120,7 @@ describe('graph view settings toggle message', () => {
     ]);
   });
 
-  it('re-enables plugins and triggers a targeted rebuild', async () => {
+  it('re-enables plugins and reruns analysis', async () => {
     const state = createState({
       disabledPlugins: new Set(['codegraphy.python']),
     });
@@ -139,10 +139,10 @@ describe('graph view settings toggle message', () => {
     expect([...state.disabledPlugins]).toEqual([]);
     expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('plugin', 'codegraphy.python');
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
-  it('disables plugins and persists the expanded disabled-plugin set', async () => {
+  it('disables plugins, persists the expanded disabled-plugin set, and reruns analysis', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -161,7 +161,7 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', [
       'codegraphy.python',
     ]);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('plugin', 'codegraphy.python');
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
   it('disables one plugin without dropping existing disabled plugins', async () => {
