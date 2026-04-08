@@ -77,18 +77,18 @@ describe('graph view provider bootstrap helper', () => {
   });
 
   it('restores the persisted view and modes when the saved view still exists', () => {
-    const workspaceState = {
-      get<T>(key: string): T | undefined {
+    const configuration = {
+      get<T>(key: string, defaultValue: T): T {
         if (key === 'selected') return 'codegraphy.depth-graph' as T;
         if (key === 'dag') return 'horizontal' as T;
         if (key === 'size') return 'visits' as T;
-        return undefined;
+        return defaultValue;
       },
     };
 
     expect(
       restoreGraphViewProviderState({
-        workspaceState,
+        configuration,
         viewRegistry: {
           register: vi.fn(),
           get: vi.fn((viewId: string) => (viewId === 'codegraphy.depth-graph' ? {} : undefined)),
@@ -110,10 +110,10 @@ describe('graph view provider bootstrap helper', () => {
   it('falls back to the default view and node size mode when persisted values are unavailable', () => {
     expect(
       restoreGraphViewProviderState({
-        workspaceState: {
-          get<T>(key: string): T | undefined {
+        configuration: {
+          get<T>(key: string, defaultValue: T): T {
             if (key === 'selected') return 'missing.view' as T;
-            return undefined;
+            return defaultValue;
           },
         },
         viewRegistry: {

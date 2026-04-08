@@ -34,8 +34,8 @@ interface GraphViewDecorationManagerLike {
   onDecorationsChanged(handler: () => void): void;
 }
 
-interface GraphViewWorkspaceStateLike {
-  get<T>(key: string): T | undefined;
+interface GraphViewConfigurationLike {
+  get<T>(key: string, defaultValue: T): T;
 }
 
 interface InitializeGraphViewProviderServicesOptions {
@@ -53,7 +53,7 @@ interface InitializeGraphViewProviderServicesOptions {
 }
 
 interface RestoreGraphViewProviderStateOptions {
-  workspaceState: GraphViewWorkspaceStateLike;
+  configuration: GraphViewConfigurationLike;
   viewRegistry: GraphViewViewRegistryLike;
   selectedViewKey: string;
   dagModeKey: string;
@@ -104,7 +104,7 @@ export function initializeGraphViewProviderServices({
 }
 
 export function restoreGraphViewProviderState({
-  workspaceState,
+  configuration,
   viewRegistry,
   selectedViewKey,
   dagModeKey,
@@ -116,15 +116,14 @@ export function restoreGraphViewProviderState({
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
 } {
-  const savedViewId = workspaceState.get<string>(selectedViewKey);
+  const savedViewId = configuration.get<string>(selectedViewKey, fallbackViewId);
 
   return {
     activeViewId:
       savedViewId && viewRegistry.get(savedViewId)
         ? savedViewId
         : viewRegistry.getDefaultViewId() ?? fallbackViewId,
-    dagMode: workspaceState.get<DagMode>(dagModeKey) ?? null,
-    nodeSizeMode:
-      workspaceState.get<NodeSizeMode>(nodeSizeModeKey) ?? fallbackNodeSizeMode,
+    dagMode: configuration.get<DagMode>(dagModeKey, null),
+    nodeSizeMode: configuration.get<NodeSizeMode>(nodeSizeModeKey, fallbackNodeSizeMode),
   };
 }

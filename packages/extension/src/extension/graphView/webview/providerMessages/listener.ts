@@ -173,8 +173,8 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies 
   executeUndoAction: action => getUndoManager().execute(action),
   normalizeFolderNodeColor,
   defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
-  dagModeKey: 'codegraphy.dagMode',
-  nodeSizeModeKey: 'codegraphy.nodeSizeMode',
+  dagModeKey: 'dagMode',
+  nodeSizeModeKey: 'nodeSizeMode',
 };
 
 export function setGraphViewProviderMessageListener(

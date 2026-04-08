@@ -1,6 +1,7 @@
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import {
   changeGraphViewView,
   getGraphViewDepthLimit,
@@ -8,8 +9,8 @@ import {
   setGraphViewFocusedFile,
 } from '../../view/selection';
 
-interface GraphViewProviderWorkspaceStateLike {
-  update(key: string, value: unknown): PromiseLike<void>;
+interface GraphViewProviderConfigLike {
+  update(key: string, value: unknown, target?: unknown): PromiseLike<void>;
 }
 
 interface GraphViewProviderViewInfoLike {
@@ -19,7 +20,7 @@ interface GraphViewProviderViewInfoLike {
 }
 
 export interface GraphViewProviderViewSelectionMethodsSource {
-  _context: { workspaceState: GraphViewProviderWorkspaceStateLike };
+  _context: { workspaceState: unknown };
   _viewRegistry: {
     get(viewId: string): GraphViewProviderViewInfoLike | undefined;
     isViewAvailable(viewId: string, viewContext: IViewContext): boolean;
@@ -40,6 +41,7 @@ export interface GraphViewProviderViewSelectionMethods {
 }
 
 export interface GraphViewProviderViewSelectionMethodDependencies {
+  getConfiguration(): GraphViewProviderConfigLike;
   changeView: typeof changeGraphViewView;
   setFocusedFile: typeof setGraphViewFocusedFile;
   setDepthLimit: typeof setGraphViewDepthLimit;
@@ -56,9 +58,10 @@ function createDefaultGraphViewProviderViewSelectionMethodDependencies(): GraphV
     setFocusedFile: setGraphViewFocusedFile,
     setDepthLimit: setGraphViewDepthLimit,
     getDepthLimit: getGraphViewDepthLimit,
+    getConfiguration: () => getCodeGraphyConfiguration(),
     defaultDepthLimit: 1,
-    selectedViewKey: 'codegraphy.selectedView',
-    depthLimitKey: 'codegraphy.depthLimit',
+    selectedViewKey: 'selectedView',
+    depthLimitKey: 'depthLimit',
     logUnavailableView: viewId => {
       console.warn(`[CodeGraphy] View '${viewId}' is not available`);
     },
@@ -83,7 +86,7 @@ export function createGraphViewProviderViewSelectionMethods(
       isViewAvailable: (nextViewId, viewContext) =>
         source._viewRegistry.isViewAvailable(nextViewId, viewContext),
       persistActiveViewId: async nextViewId => {
-        await source._context.workspaceState.update(dependencies.selectedViewKey, nextViewId);
+        await dependencies.getConfiguration().update(dependencies.selectedViewKey, nextViewId);
       },
       applyViewTransform: () => callApplyViewTransform(),
       sendAvailableViews: () => callSendAvailableViews(),
@@ -104,7 +107,7 @@ export function createGraphViewProviderViewSelectionMethods(
   const setDepthLimit = async (depthLimit: number): Promise<void> => {
     await dependencies.setDepthLimit(source, depthLimit, {
       persistDepthLimit: async nextDepthLimit => {
-        await source._context.workspaceState.update(dependencies.depthLimitKey, nextDepthLimit);
+        await dependencies.getConfiguration().update(dependencies.depthLimitKey, nextDepthLimit);
       },
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
       getActiveViewInfo: nextViewId => source._viewRegistry.get(nextViewId),

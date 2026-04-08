@@ -29,14 +29,15 @@ export function createGraphViewProviderMessageSettingsContext(
   return {
     updateDagMode: async dagMode => {
       source._dagMode = dagMode;
-      await source._context.workspaceState.update(dependencies.dagModeKey, source._dagMode);
+      await config.update(dependencies.dagModeKey, source._dagMode, getConfigTarget());
       source._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: source._dagMode } });
     },
     updateNodeSizeMode: async nodeSizeMode => {
       source._nodeSizeMode = nodeSizeMode;
-      await source._context.workspaceState.update(
+      await config.update(
         dependencies.nodeSizeModeKey,
         source._nodeSizeMode,
+        getConfigTarget(),
       );
       source._sendMessage({
         type: 'NODE_SIZE_MODE_UPDATED',

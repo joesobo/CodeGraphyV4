@@ -1,5 +1,6 @@
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
 import type { IGroup } from '../../shared/settings/groups';
+import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
 import {
   createDefaultEdgeColors,
   createDefaultEdgeVisibility,
@@ -33,6 +34,10 @@ export interface ICodeGraphyRepoSettings {
   folderNodeColor: string;
   particleSpeed: number;
   particleSize: number;
+  selectedView: string;
+  depthLimit: number;
+  dagMode: DagMode;
+  nodeSizeMode: NodeSizeMode;
   physics: {
     repelForce: number;
     linkDistance: number;
@@ -78,6 +83,10 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
     particleSpeed: 0.005,
     particleSize: 4,
+    selectedView: 'codegraphy.connections',
+    depthLimit: 1,
+    dagMode: null,
+    nodeSizeMode: 'connections',
     physics: {
       repelForce: 10,
       linkDistance: 80,
@@ -141,6 +150,10 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
     folderNodeColor: legacyConfig.get<string>('folderNodeColor', defaults.folderNodeColor),
     particleSpeed: legacyConfig.get<number>('particleSpeed', defaults.particleSpeed),
     particleSize: legacyConfig.get<number>('particleSize', defaults.particleSize),
+    selectedView: legacyConfig.get<string>('selectedView', defaults.selectedView),
+    depthLimit: legacyConfig.get<number>('depthLimit', defaults.depthLimit),
+    dagMode: legacyConfig.get<DagMode>('dagMode', defaults.dagMode),
+    nodeSizeMode: legacyConfig.get<NodeSizeMode>('nodeSizeMode', defaults.nodeSizeMode),
     physics: {
       repelForce: legacyConfig.get<number>('physics.repelForce', defaults.physics.repelForce),
       linkDistance: legacyConfig.get<number>('physics.linkDistance', defaults.physics.linkDistance),
