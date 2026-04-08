@@ -88,6 +88,7 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
       showLabels: true,
       maxFiles: 500,
       hiddenPluginGroups: [],
+      nodeSizeMode: 'connections',
     };
     mockConfig = createMockConfig(settingsStore);
     vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
@@ -138,7 +139,13 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     expect(keys).toContain('showOrphans');
     expect(keys).toContain('bidirectionalEdges');
     expect(keys).toContain('folderNodeColor');
+    expect(keys).toContain('nodeSizeMode');
     for (const call of calls) {
+      if (call[0] === 'nodeSizeMode') {
+        expect(call[1]).toBe('connections');
+        continue;
+      }
+
       expect(call[1]).toBeUndefined();
     }
   });

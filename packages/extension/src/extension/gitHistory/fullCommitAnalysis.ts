@@ -10,6 +10,7 @@ interface FullCommitAnalysisRegistry {
     content: string,
     workspaceRoot: string,
   ): Promise<IConnection[]>;
+  getPluginForFile?(absolutePath: string): { id: string } | undefined;
 }
 
 export interface AnalyzeFullCommitGraphOptions {
@@ -72,6 +73,7 @@ export async function analyzeFullCommitGraph(
     const content = await getFileAtCommit(sha, filePath, signal);
     const absolutePath = path.join(workspaceRoot, filePath);
     const connections = await registry.analyzeFile(absolutePath, content, workspaceRoot);
+    const plugin = registry.getPluginForFile?.(absolutePath);
 
     if (!nodeIds.has(filePath)) {
       nodeIds.add(filePath);
@@ -82,6 +84,7 @@ export async function analyzeFullCommitGraph(
       connections,
       edgeSet,
       edges,
+      plugin,
       sourcePath: filePath,
       workspaceRoot,
     });

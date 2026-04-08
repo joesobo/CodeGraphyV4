@@ -60,14 +60,21 @@ describe('extension/pluginIntegration/typescript', () => {
     );
   });
 
-  it('re-analyzes the graph when the TypeScript plugin registers after the first core-only analysis', async () => {
+  it('keeps the graph populated when the TypeScript plugin registers after the first analysis', async () => {
     const api = activate(createContext() as unknown as vscode.ExtensionContext);
     const provider = getRegisteredProvider();
     const internals = getGraphViewProviderInternals(provider);
 
     await internals._analysisMethods._analyzeAndSendData();
 
-    expect(api.getGraphData().edges).toHaveLength(0);
+    expect(api.getGraphData().edges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          from: 'src/index.ts',
+          to: 'src/utils.ts',
+        }),
+      ]),
+    );
 
     api.registerPlugin(createTypeScriptPlugin(), {
       extensionUri: vscode.Uri.file('/plugins/typescript'),
