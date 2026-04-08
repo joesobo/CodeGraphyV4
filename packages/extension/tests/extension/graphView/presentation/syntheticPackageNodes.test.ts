@@ -19,14 +19,11 @@ const graphData: IGraphData = {
 };
 
 describe('graphView/presentation/syntheticPackageNodes', () => {
-  it('removes package nodes outside the focused imports view', () => {
-    expect(filterSyntheticPackageNodes(graphData, 'codegraphy.connections')).toEqual({
-      nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#ffffff' }],
-      edges: [],
-    });
+  it('keeps package nodes in the unified graph surface', () => {
+    expect(filterSyntheticPackageNodes(graphData, 'codegraphy.connections')).toBe(graphData);
   });
 
-  it('keeps package nodes in the focused imports view', () => {
+  it('keeps package nodes in plugin-focused views too', () => {
     expect(filterSyntheticPackageNodes(graphData, 'codegraphy.typescript.focused-imports')).toBe(graphData);
   });
 });
