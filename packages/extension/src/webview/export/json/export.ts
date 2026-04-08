@@ -63,8 +63,7 @@ export function buildExportData(
       disabled: group.disabled,
       isPluginDefault: group.isPluginDefault,
       pluginName: group.pluginName,
-    }))
-    .sort((left, right) => left.pattern.localeCompare(right.pattern));
+    }));
 
   const nodes = [...graphData.nodes]
     .sort((left, right) => left.id.localeCompare(right.id))
