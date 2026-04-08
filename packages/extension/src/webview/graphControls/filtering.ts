@@ -1,10 +1,8 @@
 import {
   buildContainmentEdges,
-} from '../../core/views/folder/edges';
-import {
   collectFolderPaths,
   createFolderNodes,
-} from '../../core/views/folder/nodes';
+} from '../../shared/graphControls/nests';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
 import type { IGraphData, IGraphNode } from '../../shared/graph/types';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../../shared/graphControls/defaults';
