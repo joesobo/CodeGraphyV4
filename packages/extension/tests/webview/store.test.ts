@@ -165,13 +165,13 @@ describe('GraphStore', () => {
   it('handles PLUGIN_TOOLBAR_ACTIONS_UPDATED message', () => {
     const items = [{
       id: 'wikilinks',
-      label: 'Wikilinks',
+      label: 'Docs',
       pluginId: 'plugin.docs',
       pluginName: 'Docs Plugin',
       index: 0,
       items: [{
-        id: 'wikilink-summary',
-        label: 'Wikilink Summary',
+        id: 'docs-summary',
+        label: 'Docs Summary',
         index: 0,
       }],
     }];
