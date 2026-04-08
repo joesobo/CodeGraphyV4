@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/fileColors';
 import { createGraphStore } from '../../src/webview/store/state';
 
 describe('GraphStore initial state', () => {
@@ -21,7 +21,6 @@ describe('GraphStore initial state', () => {
     expect(state.showLabels).toBe(true);
     expect(state.graphMode).toBe('2d');
     expect(state.nodeSizeMode).toBe('connections');
-    expect(state.folderNodeColor).toBe(DEFAULT_FOLDER_NODE_COLOR);
   });
 
   it('starts with the expected filtering and view defaults', () => {

@@ -17,7 +17,6 @@ type GraphViewProviderSettingsContext = Pick<
   | 'getPlaybackSpeed'
   | 'getDagMode'
   | 'getNodeSizeMode'
-  | 'getFolderNodeColor'
 >;
 
 export function createGraphViewProviderMessageSettingsContext(
@@ -74,9 +73,5 @@ export function createGraphViewProviderMessageSettingsContext(
     getPlaybackSpeed: () => config.get<number>('timeline.playbackSpeed', 1.0),
     getDagMode: () => source._dagMode,
     getNodeSizeMode: () => source._nodeSizeMode,
-    getFolderNodeColor: () =>
-      dependencies.normalizeFolderNodeColor(
-        config.get<string>('folderNodeColor', dependencies.defaultFolderNodeColor),
-      ),
   };
 }

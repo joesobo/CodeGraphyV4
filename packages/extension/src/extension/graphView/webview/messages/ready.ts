@@ -7,7 +7,6 @@ export interface GraphViewReadyState {
   playbackSpeed: number;
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
-  folderNodeColor: string;
   focusedFile: string | undefined;
   hasWorkspace: boolean;
   firstAnalysis: boolean;
@@ -72,10 +71,6 @@ export async function applyWebviewReady(
   handlers.sendMessage({
     type: 'NODE_SIZE_MODE_UPDATED',
     payload: { nodeSizeMode: state.nodeSizeMode },
-  });
-  handlers.sendMessage({
-    type: 'FOLDER_NODE_COLOR_UPDATED',
-    payload: { folderNodeColor: state.folderNodeColor },
   });
   handlers.sendDecorations();
   handlers.sendContextMenuItems();

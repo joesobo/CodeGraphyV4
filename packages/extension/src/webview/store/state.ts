@@ -52,7 +52,6 @@ export interface GraphState {
   availableViews: IAvailableView[];
   activeViewId: string;
   dagMode: DagMode;
-  folderNodeColor: string;
   pluginStatuses: IPluginStatus[];
   nodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;
@@ -98,7 +97,6 @@ export interface GraphState {
   setShowLabels: (show: boolean) => void;
   setActiveViewId: (id: string) => void;
   setDagMode: (mode: DagMode) => void;
-  setFolderNodeColor: (color: string) => void;
   setMaxFiles: (max: number) => void;
   setPlaybackSpeed: (speed: number) => void;
   setIsPlaying: (playing: boolean) => void;

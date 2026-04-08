@@ -129,10 +129,6 @@ describe('graphView/settings/snapshotMessages', () => {
         },
       },
       {
-        type: 'FOLDER_NODE_COLOR_UPDATED',
-        payload: { folderNodeColor: '#112233' },
-      },
-      {
         type: 'SHOW_LABELS_UPDATED',
         payload: { showLabels: false },
       },
@@ -190,10 +186,6 @@ describe('graphView/settings/snapshotMessages', () => {
             particleSize: 6,
             directionColor: '#00FF00',
           },
-        },
-        {
-          type: 'FOLDER_NODE_COLOR_UPDATED',
-          payload: { folderNodeColor: '#112233' },
         },
         {
           type: 'SHOW_LABELS_UPDATED',

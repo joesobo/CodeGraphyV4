@@ -328,7 +328,6 @@ describe('graph view provider listener bridge', () => {
       getConfigTarget,
       configurationGet,
       configurationUpdate,
-      normalizeFolderNodeColor,
       workspaceFolders,
     } = await loadDefaultListenerHarness();
 
@@ -375,11 +374,8 @@ describe('graph view provider listener bridge', () => {
     expect(context.getPlaybackSpeed()).toBe(1);
     expect(context.getDagMode()).toBe('td');
     expect(context.getNodeSizeMode()).toBe('file-size');
-    expect(context.getFolderNodeColor()).toBe('#ABCDEF');
     expect(configurationGet).toHaveBeenCalledWith('maxFiles', 500);
     expect(configurationGet).toHaveBeenCalledWith('timeline.playbackSpeed', 1.0);
-    expect(configurationGet).toHaveBeenCalledWith('folderNodeColor', '#A1A1AA');
-    expect(normalizeFolderNodeColor).toHaveBeenCalledWith('#abcdef');
   });
 
   it('wires the default undo-execution dependency into the settings context', async () => {

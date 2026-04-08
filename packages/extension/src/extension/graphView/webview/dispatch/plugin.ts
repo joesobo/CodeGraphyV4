@@ -18,7 +18,6 @@ export interface GraphViewPluginMessageContext {
   getPlaybackSpeed(): number;
   getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
-  getFolderNodeColor(): string;
   getFocusedFile(): string | undefined;
   hasWorkspace(): boolean;
   isFirstAnalysis(): boolean;

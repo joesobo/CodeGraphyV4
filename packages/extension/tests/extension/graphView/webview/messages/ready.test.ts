@@ -36,7 +36,6 @@ describe('graph view ready message', () => {
         playbackSpeed: 1,
         dagMode: 'td',
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: 'src/game/player.gd',
         hasWorkspace: false,
         firstAnalysis: false,
@@ -82,10 +81,6 @@ describe('graph view ready message', () => {
       type: 'NODE_SIZE_MODE_UPDATED',
       payload: { nodeSizeMode: 'connections' },
     });
-    expect(handlers.sendMessage).toHaveBeenCalledWith({
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: '#111111' },
-    });
     expect(handlers.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(readyNotified).toBe(true);
   });
@@ -108,7 +103,6 @@ describe('graph view ready message', () => {
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: undefined,
         hasWorkspace: true,
         firstAnalysis: true,
@@ -133,7 +127,6 @@ describe('graph view ready message', () => {
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: undefined,
         hasWorkspace: true,
         firstAnalysis: true,
@@ -156,7 +149,6 @@ describe('graph view ready message', () => {
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: undefined,
         hasWorkspace: true,
         firstAnalysis: false,
@@ -179,7 +171,6 @@ describe('graph view ready message', () => {
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: undefined,
         hasWorkspace: false,
         firstAnalysis: false,
@@ -212,7 +203,6 @@ describe('graph view ready message', () => {
         playbackSpeed: 1,
         dagMode: null,
         nodeSizeMode: 'connections',
-        folderNodeColor: '#111111',
         focusedFile: undefined,
         hasWorkspace: false,
         firstAnalysis: false,

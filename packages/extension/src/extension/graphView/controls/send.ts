@@ -47,13 +47,19 @@ function prettifyIdentifier(value: string): string {
 function mergeNodeTypes(
   graphData: IGraphData,
   pluginNodeTypes: GraphNodeTypeLike[],
-  folderNodeColor: string,
+  configuredNodeColors: Record<string, string>,
 ): IGraphNodeTypeDefinition[] {
   const definitions = new Map<string, IGraphNodeTypeDefinition>(
     CORE_GRAPH_NODE_TYPES.map((definition) => [
       definition.id,
       definition.id === 'folder'
-        ? { ...definition, defaultColor: folderNodeColor }
+        ? {
+            ...definition,
+            defaultColor: normalizeHexColor(
+              configuredNodeColors.folder,
+              definition.defaultColor,
+            ),
+          }
         : definition,
     ]),
   );
@@ -224,12 +230,11 @@ export function captureGraphControlsSnapshot(
   pluginNodeTypes: GraphNodeTypeLike[],
   pluginEdgeTypes: GraphEdgeTypeLike[],
 ): IGraphControlsSnapshot {
-  const folderNodeColor = config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR);
   const configuredNodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
   const configuredNodeVisibility = config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
   const configuredEdgeVisibility = config.get<Record<string, boolean>>('edgeVisibility', {}) ?? {};
   const configuredEdgeColors = config.get<Record<string, string>>('edgeColors', {}) ?? {};
-  const nodeTypes = mergeNodeTypes(graphData, pluginNodeTypes, folderNodeColor);
+  const nodeTypes = mergeNodeTypes(graphData, pluginNodeTypes, configuredNodeColors);
   const edgeTypes = mergeEdgeTypes(graphData, pluginEdgeTypes);
 
   return {

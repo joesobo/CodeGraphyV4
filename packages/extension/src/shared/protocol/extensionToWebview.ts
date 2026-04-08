@@ -78,7 +78,6 @@ export type ExtensionToWebviewMessage =
   | { type: 'PLUGIN_EXPORTERS_UPDATED'; payload: { items: IPluginExporterItem[] } }
   | { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED'; payload: { items: IPluginToolbarAction[] } }
   | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }
-  | { type: 'FOLDER_NODE_COLOR_UPDATED'; payload: { folderNodeColor: string } }
   | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } }
   | { type: 'NODE_SIZE_MODE_UPDATED'; payload: { nodeSizeMode: NodeSizeMode } }
   | { type: 'CYCLE_VIEW' }

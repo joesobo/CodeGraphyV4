@@ -110,12 +110,6 @@ describe('GraphStore actions', () => {
     expect(store.getState().activeViewId).toBe('codegraphy.depth-graph');
   });
 
-  it('setFolderNodeColor updates the folder node color', () => {
-    store.getState().setFolderNodeColor('#ff00ff');
-
-    expect(store.getState().folderNodeColor).toBe('#ff00ff');
-  });
-
   it('setMaxFiles updates the file limit', () => {
     store.getState().setMaxFiles(1200);
 

@@ -249,7 +249,6 @@ describe('GraphStore message routing', () => {
       ],
       playbackSpeed: 2,
       dagMode: 'td',
-      folderNodeColor: '#112233',
       nodeSizeMode: 'uniform',
     });
 
@@ -288,7 +287,6 @@ describe('GraphStore message routing', () => {
     ]);
     expect(store.getState().playbackSpeed).toBe(2);
     expect(store.getState().dagMode).toBe('td');
-    expect(store.getState().folderNodeColor).toBe('#112233');
     expect(store.getState().nodeSizeMode).toBe('uniform');
   });
 
