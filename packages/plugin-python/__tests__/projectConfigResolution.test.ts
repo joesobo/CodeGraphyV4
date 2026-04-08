@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { createPythonPlugin } from '../src';
+import { createPythonPlugin } from '../src/plugin';
 
 describe('Python plugin project config source roots', () => {
   let workspaceRoot: string;
@@ -45,9 +45,11 @@ where = ["backend"]
     writeFile('backend/main.py', 'from pkg import mod\n');
 
     const connections = await detect('backend/main.py');
-    const conn = connections.find(c => c.specifier.includes('from pkg import mod') && c.resolvedPath !== null);
+    const connection = connections.find(
+      (candidate) => candidate.specifier.includes('from pkg import mod') && candidate.resolvedPath !== null
+    );
 
-    expect(conn?.resolvedPath).toBe(path.join(workspaceRoot, 'backend/pkg/mod.py'));
+    expect(connection?.resolvedPath).toBe(path.join(workspaceRoot, 'backend/pkg/mod.py'));
   });
 
   it('resolves imports from source roots declared in setup.cfg', async () => {
@@ -63,8 +65,10 @@ where = backend
     writeFile('backend/main.py', 'from pkg import mod\n');
 
     const connections = await detect('backend/main.py');
-    const conn = connections.find(c => c.specifier.includes('from pkg import mod') && c.resolvedPath !== null);
+    const connection = connections.find(
+      (candidate) => candidate.specifier.includes('from pkg import mod') && candidate.resolvedPath !== null
+    );
 
-    expect(conn?.resolvedPath).toBe(path.join(workspaceRoot, 'backend/pkg/mod.py'));
+    expect(connection?.resolvedPath).toBe(path.join(workspaceRoot, 'backend/pkg/mod.py'));
   });
 });

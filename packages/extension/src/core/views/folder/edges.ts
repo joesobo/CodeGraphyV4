@@ -20,7 +20,13 @@ export function buildContainmentEdges(
     const segments = fp.split('/');
     if (segments.length > 1) {
       const parent = segments.slice(0, -1).join('/');
-      edges.push({ id: `${parent}->${fp}`, from: parent, to: fp });
+      edges.push({
+        id: `${parent}->${fp}#codegraphy:contains`,
+        from: parent,
+        to: fp,
+        kind: 'codegraphy:contains',
+        sources: [],
+      });
     }
   }
 
@@ -28,10 +34,22 @@ export function buildContainmentEdges(
   for (const node of nodes) {
     const segments = node.id.split('/');
     if (segments.length === 1) {
-      edges.push({ id: `(root)->${node.id}`, from: '(root)', to: node.id });
+      edges.push({
+        id: `(root)->${node.id}#codegraphy:contains`,
+        from: '(root)',
+        to: node.id,
+        kind: 'codegraphy:contains',
+        sources: [],
+      });
     } else {
       const parent = segments.slice(0, -1).join('/');
-      edges.push({ id: `${parent}->${node.id}`, from: parent, to: node.id });
+      edges.push({
+        id: `${parent}->${node.id}#codegraphy:contains`,
+        from: parent,
+        to: node.id,
+        kind: 'codegraphy:contains',
+        sources: [],
+      });
     }
   }
 

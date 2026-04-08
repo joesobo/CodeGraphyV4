@@ -37,7 +37,7 @@ async function loadSubject(
     },
     coreViews: [],
   }));
-  vi.doMock('../../src/core/plugins/eventBus', () => ({
+  vi.doMock('../../src/core/plugins/events/bus', () => ({
     EventBus: class EventBus {},
   }));
   vi.doMock('../../src/core/plugins/decoration/manager', () => ({
@@ -117,7 +117,7 @@ describe('GraphViewProvider bootstrap wiring', () => {
     vi.doUnmock('vscode');
     vi.doUnmock('../../src/extension/workspaceAnalyzer/service');
     vi.doUnmock('../../src/core/views');
-    vi.doUnmock('../../src/core/plugins/eventBus');
+    vi.doUnmock('../../src/core/plugins/events/bus');
     vi.doUnmock('../../src/core/plugins/decoration/manager');
     vi.doUnmock('../../src/extension/graphView/provider/analysis/methods');
     vi.doUnmock('../../src/extension/graphView/provider/commands');
@@ -195,6 +195,7 @@ describe('GraphViewProvider bootstrap wiring', () => {
       ),
     ).toEqual([]);
     expect((provider as unknown as { _filterPatterns: unknown[] })._filterPatterns).toEqual([]);
+    expect(GraphViewProvider.timelineViewType).toBe('codegraphy.timelineView');
 
     expect(initArgs.workspaceRoot).toBe('/test/workspace');
     expect(initArgs.getGraphData()).toEqual({ nodes: [], edges: [] });

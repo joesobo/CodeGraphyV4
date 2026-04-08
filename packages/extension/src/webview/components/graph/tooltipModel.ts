@@ -1,6 +1,6 @@
 import type { IFileInfo } from '../../../shared/files/info';
 import type { IGraphData, IGraphNode } from '../../../shared/graph/types';
-import type { TooltipContext } from '../../pluginHost/api/contracts';
+import type { TooltipAction, TooltipContext } from '../../pluginHost/api/contracts';
 
 export interface GraphTooltipRect {
   x: number;
@@ -13,6 +13,7 @@ export interface GraphTooltipState {
   nodeRect: GraphTooltipRect;
   path: string;
   info: IFileInfo | null;
+  pluginActions?: TooltipAction[];
   pluginSections: Array<{ title: string; content: string }>;
 }
 
@@ -25,6 +26,7 @@ export interface GraphTooltipStateOptions {
   nodeId: string;
   rect: GraphTooltipRect | null;
   cachedInfo: IFileInfo | null;
+  pluginActions?: TooltipAction[];
   pluginSections: Array<{ title: string; content: string }>;
 }
 
@@ -60,6 +62,7 @@ export function buildGraphTooltipState(options: GraphTooltipStateOptions): Graph
       nodeRect: options.rect ?? EMPTY_TOOLTIP_RECT,
       path: options.nodeId,
       info: options.cachedInfo,
+      pluginActions: options.pluginActions ?? [],
       pluginSections: options.pluginSections,
     },
     shouldRequestFileInfo: options.cachedInfo === null,
@@ -69,6 +72,7 @@ export function buildGraphTooltipState(options: GraphTooltipStateOptions): Graph
 export function hideGraphTooltipState(previousState: GraphTooltipState): GraphTooltipState {
   return {
     ...previousState,
+    pluginActions: [],
     visible: false,
     pluginSections: [],
   };

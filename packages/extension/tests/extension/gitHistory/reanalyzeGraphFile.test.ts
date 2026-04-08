@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IConnection } from '../../../src/core/plugins/types/contracts';
+import type { IGraphEdge } from '../../../src/shared/graph/types';
 import {
   reanalyzeGraphFile,
   removeOutgoingGitHistoryEdges,
@@ -15,8 +16,8 @@ describe('gitHistory/reanalyzeGraphFile', () => {
       getPluginForFile: vi.fn(() => ({ id: 'ts' })),
       supportsFile: vi.fn(() => false),
     };
-    const edges = [{ id: 'src/a.txt->src/b.txt', from: 'src/a.txt', to: 'src/b.txt' }];
-    const edgeSet = new Set(['src/a.txt->src/b.txt']);
+    const edges: IGraphEdge[] = [{ id: 'src/a.txt->src/b.txt#import', from: 'src/a.txt', to: 'src/b.txt' , kind: 'import', sources: [] }];
+    const edgeSet = new Set(['src/a.txt->src/b.txt#import']);
     const nodes = [{ id: 'src/a.txt', label: 'a.txt', color: '#CBD5E1' }];
     const nodeMap = new Map([[nodes[0].id, nodes[0]]]);
 
@@ -37,20 +38,21 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     expect(registry.analyzeFile).not.toHaveBeenCalled();
     expect(registry.getPluginForFile).not.toHaveBeenCalled();
     expect(nodes).toEqual([{ id: 'src/a.txt', label: 'a.txt', color: '#CBD5E1' }]);
-    expect(edges).toEqual([{ id: 'src/a.txt->src/b.txt', from: 'src/a.txt', to: 'src/b.txt' }]);
+    expect(edges).toEqual([{ id: 'src/a.txt->src/b.txt#import', from: 'src/a.txt', to: 'src/b.txt' , kind: 'import', sources: [] }]);
   });
 
   it('adds missing nodes and plugin-qualified edges during reanalysis', async () => {
-    const edges: Array<{ id: string; from: string; to: string; ruleId?: string; ruleIds?: string[] }> = [];
+    const edges: IGraphEdge[] = [];
     const nodeMap = new Map();
     const nodes: Array<{ id: string; label: string; color: string }> = [];
     const registry = {
       analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
         {
-          ruleId: 'import',
+          sourceId: 'import',
           specifier: './b',
           type: 'static',
           resolvedPath: '/workspace/src/b.ts',
+          kind: 'import',
         } satisfies IConnection,
       ]),
       getPluginForFile: vi.fn(() => ({ id: 'ts' })),
@@ -73,26 +75,34 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     expect(nodes).toEqual([{ id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' }]);
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts',
+        id: 'src/a.ts->src/b.ts#import',
         from: 'src/a.ts',
         to: 'src/b.ts',
-        ruleId: 'import',
-        ruleIds: ['ts:import'],
+        kind: 'import',
+        sources: [
+          {
+            id: 'ts:import',
+            pluginId: 'ts',
+            sourceId: 'import',
+            label: 'import',
+          },
+        ],
       },
     ]);
   });
 
-  it('keeps plain rule ids when no plugin id is available', async () => {
-    const edges: Array<{ id: string; from: string; to: string; ruleId?: string; ruleIds?: string[] }> = [];
+  it('keeps plain edges when no plugin id is available', async () => {
+    const edges: IGraphEdge[] = [];
     const edgeSet = new Set<string>();
     const getFileAtCommit = vi.fn(async () => 'import "./b";');
     const registry = {
       analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
         {
-          ruleId: 'import',
+          sourceId: 'import',
           specifier: './b',
           type: 'static',
           resolvedPath: '/workspace/src/b.ts',
+          kind: 'import',
         } satisfies IConnection,
       ]),
       getPluginForFile: vi.fn(() => undefined),
@@ -116,10 +126,11 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     expect(registry.getPluginForFile).toHaveBeenCalledWith('/workspace/src/a.ts');
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts',
+        id: 'src/a.ts->src/b.ts#import',
         from: 'src/a.ts',
         to: 'src/b.ts',
-        ruleId: 'import',
+        kind: 'import',
+        sources: [],
       },
     ]);
   });
@@ -149,15 +160,15 @@ describe('gitHistory/reanalyzeGraphFile', () => {
   });
 
   it('removes only outgoing edges from the requested file', () => {
-    const edges = [
-      { id: 'src/a.ts->src/b.ts', from: 'src/a.ts', to: 'src/b.ts' },
-      { id: 'src/c.ts->src/a.ts', from: 'src/c.ts', to: 'src/a.ts' },
+    const edges: IGraphEdge[] = [
+      { id: 'src/a.ts->src/b.ts#import', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] },
+      { id: 'src/c.ts->src/a.ts#import', from: 'src/c.ts', to: 'src/a.ts' , kind: 'import', sources: [] },
     ];
     const edgeSet = new Set(edges.map((edge) => edge.id));
 
     removeOutgoingGitHistoryEdges('src/a.ts', edges, edgeSet);
 
-    expect(edges).toEqual([{ id: 'src/c.ts->src/a.ts', from: 'src/c.ts', to: 'src/a.ts' }]);
-    expect(edgeSet).toEqual(new Set(['src/c.ts->src/a.ts']));
+    expect(edges).toEqual([{ id: 'src/c.ts->src/a.ts#import', from: 'src/c.ts', to: 'src/a.ts' , kind: 'import', sources: [] }]);
+    expect(edgeSet).toEqual(new Set(['src/c.ts->src/a.ts#import']));
   });
 });

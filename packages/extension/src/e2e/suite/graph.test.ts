@@ -142,6 +142,20 @@ interface NodeBoundsResponse {
   };
 }
 
+interface GraphRuntimeStateResponse {
+  payload: {
+    graphMode: '2d' | '3d';
+    nodeCount: number;
+  };
+}
+
+interface ViewsUpdatedResponse {
+  payload: {
+    activeViewId: string;
+    views: Array<{ id: string; name: string }>;
+  };
+}
+
 async function requestNodeBounds(
   api: CodeGraphyAPI,
   timeoutMs = 5_000,
@@ -150,6 +164,16 @@ async function requestNodeBounds(
   api.sendToWebview({ type: 'GET_NODE_BOUNDS' });
   const boundsMessage = await boundsPromise as NodeBoundsResponse;
   return boundsMessage.payload.nodes;
+}
+
+async function requestGraphRuntimeState(
+  api: CodeGraphyAPI,
+  timeoutMs = 5_000,
+): Promise<GraphRuntimeStateResponse['payload']> {
+  const statePromise = waitForWebviewMessage(api, 'GRAPH_RUNTIME_STATE_RESPONSE', timeoutMs);
+  api.sendToWebview({ type: 'GET_GRAPH_RUNTIME_STATE' });
+  const stateMessage = await statePromise as GraphRuntimeStateResponse;
+  return stateMessage.payload;
 }
 
 function didNodeLayoutStabilize(
@@ -262,6 +286,57 @@ suite('Graph: Webview Messaging', function () {
     const fitViewPromise = waitForExtensionMessage(api, 'FIT_VIEW', 10_000);
     void vscode.commands.executeCommand('codegraphy.fitView');
     await fitViewPromise;
+  });
+
+  test('typescript workspaces expose the focused imports plugin view to the webview', async function() {
+    if (scenario.name !== 'typescript') {
+      this.skip();
+    }
+
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(5_000);
+
+    const viewsUpdatedPromise = waitForExtensionMessage(api, 'VIEWS_UPDATED', 15_000);
+    await api.dispatchWebviewMessage({ type: 'WEBVIEW_READY', payload: null });
+    const message = await viewsUpdatedPromise as ViewsUpdatedResponse;
+
+    assert.ok(
+      message.payload.views.some((view) => view.id === 'codegraphy.typescript.focused-imports'),
+      `Expected focused imports view in: ${message.payload.views.map((view) => view.id).join(', ')}`,
+    );
+  });
+});
+
+suite('Graph: 3D Mode', function () {
+  this.timeout(30_000);
+
+  test('toggle dimension switches the runtime into 3d without the webview reporting a fallback', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(5_000);
+
+    const webviewMessages: unknown[] = [];
+    const subscription = api.onWebviewMessage((message: unknown) => {
+      webviewMessages.push(message);
+    });
+
+    await vscode.commands.executeCommand('codegraphy.toggleDimension');
+    await sleep(2_000);
+
+    const runtimeState = await requestGraphRuntimeState(api);
+    const nodeBounds = await requestNodeBounds(api);
+    subscription.dispose();
+
+    assert.strictEqual(runtimeState.graphMode, '3d');
+    assert.ok(runtimeState.nodeCount > 0, '3d mode should keep graph nodes loaded');
+    assert.strictEqual(nodeBounds.length, runtimeState.nodeCount);
+    assert.ok(
+      !webviewMessages.some(
+        (message) => (message as { type?: string }).type === 'GRAPH_3D_UNAVAILABLE',
+      ),
+      `Webview reported 3d fallback: ${JSON.stringify(webviewMessages)}`,
+    );
   });
 });
 

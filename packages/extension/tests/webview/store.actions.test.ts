@@ -121,4 +121,58 @@ describe('GraphStore actions', () => {
 
     expect(store.getState().maxFiles).toBe(1200);
   });
+
+  it('setOptimisticGroupUpdate merges updates and refreshes the expiry', () => {
+    store.getState().setOptimisticGroupUpdate('docs', { pattern: 'docs/**' });
+    store.getState().setOptimisticGroupUpdate('docs', { color: '#00ff00' });
+
+    expect(store.getState().optimisticGroupUpdates.docs?.updates).toEqual({
+      pattern: 'docs/**',
+      color: '#00ff00',
+    });
+    expect(store.getState().optimisticGroupUpdates.docs?.expiresAt).toBeGreaterThan(0);
+  });
+
+  it('clearOptimisticGroupUpdate removes only the requested optimistic update', () => {
+    store.getState().setOptimisticGroupUpdate('docs', { pattern: 'docs/**' });
+    store.getState().setOptimisticGroupUpdate('src', { pattern: 'src/**' });
+
+    store.getState().clearOptimisticGroupUpdate('docs');
+
+    expect(store.getState().optimisticGroupUpdates).toEqual({
+      src: expect.objectContaining({
+        updates: { pattern: 'src/**' },
+      }),
+    });
+  });
+
+  it('setOptimisticUserGroups preserves plugin defaults while replacing the user groups', () => {
+    store.setState((state) => ({
+      ...state,
+      groups: [
+        { id: 'plugin:typescript', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
+        { id: 'existing', pattern: 'src/**', color: '#22C55E' },
+      ],
+    }));
+
+    store.getState().setOptimisticUserGroups([
+      { id: 'custom', pattern: 'docs/**', color: '#F59E0B' },
+    ]);
+
+    expect(store.getState().groups).toEqual([
+      { id: 'custom', pattern: 'docs/**', color: '#F59E0B' },
+      { id: 'plugin:typescript', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
+    ]);
+    expect(store.getState().optimisticUserGroups?.groups).toEqual([
+      { id: 'custom', pattern: 'docs/**', color: '#F59E0B' },
+    ]);
+  });
+
+  it('ignores unknown extension messages without mutating store state', () => {
+    const previousState = store.getState();
+
+    store.getState().handleExtensionMessage({ type: 'UNKNOWN_MESSAGE' } as never);
+
+    expect(store.getState()).toBe(previousState);
+  });
 });

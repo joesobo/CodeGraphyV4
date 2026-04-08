@@ -88,14 +88,14 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
-  describe('disabledRules', () => {
-    it('returns the configured disabled rules', () => {
-      mockConfig['disabledRules'] = ['ts:dynamic-import'];
-      expect(new Configuration().disabledRules).toEqual(['ts:dynamic-import']);
+  describe('disabledSources', () => {
+    it('returns the configured disabled sources', () => {
+      mockConfig['disabledSources'] = ['ts:dynamic-import'];
+      expect(new Configuration().disabledSources).toEqual(['ts:dynamic-import']);
     });
 
     it('defaults to empty array', () => {
-      expect(new Configuration().disabledRules).toEqual([]);
+      expect(new Configuration().disabledSources).toEqual([]);
     });
   });
 
@@ -163,7 +163,7 @@ describe('Configuration (configReaders)', () => {
       mockConfig['showOrphans'] = false;
       mockConfig['bidirectionalEdges'] = 'combined';
       mockConfig['plugins'] = ['p1'];
-      mockConfig['disabledRules'] = ['r1'];
+      mockConfig['disabledSources'] = ['r1'];
       mockConfig['disabledPlugins'] = ['d1'];
 
       const all = new Configuration().getAll();
@@ -174,7 +174,7 @@ describe('Configuration (configReaders)', () => {
       expect(all.showOrphans).toBe(false);
       expect(all.bidirectionalEdges).toBe('combined');
       expect(all.plugins).toEqual(['p1']);
-      expect(all.disabledRules).toEqual(['r1']);
+      expect(all.disabledSources).toEqual(['r1']);
       expect(all.disabledPlugins).toEqual(['d1']);
     });
 

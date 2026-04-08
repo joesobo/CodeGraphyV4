@@ -124,6 +124,17 @@ describe('plugin-csharp/activate', () => {
     await expect(activate({ extensionUri: { fsPath: '/plugins/csharp' } } as never)).resolves.toBeUndefined();
   });
 
+  it('returns without registering when the core extension exports are unavailable', async () => {
+    mockState.getExtension.mockReturnValue({
+      isActive: true,
+      exports: undefined,
+    });
+
+    const { activate } = await import('../src/activate');
+
+    await expect(activate({ extensionUri: { fsPath: '/plugins/csharp' } } as never)).resolves.toBeUndefined();
+  });
+
   it('establishes C# connections when installed with the core extension', { timeout: installedWithCoreTimeoutMs }, async () => {
     const { activate: activateCore } = await import('../../extension/src/extension/activate');
     const { getGraphViewProviderInternals } = await import(

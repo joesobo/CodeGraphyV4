@@ -14,6 +14,10 @@ describe('timeline/messages', () => {
     expect(getMessageBody('Title line\n\nBody line')).toBe('Body line');
   });
 
+  it('returns multiline bodies without the title line', () => {
+    expect(getMessageBody('Title line\nBody line 1\nBody line 2')).toBe('Body line 1\nBody line 2');
+  });
+
   it('returns the full message when it is shorter than the max length', () => {
     expect(truncateMessage('short message', 20)).toBe('short message');
   });

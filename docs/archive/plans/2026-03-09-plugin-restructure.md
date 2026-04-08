@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** Restructure plugins into manifest.json + rules/ folder pattern with per-rule detection logic, fix Plugins panel UI, update docs.
+**Goal:** Restructure plugins into manifest.json + sources/ folder pattern with per-rule detection logic, fix Plugins panel UI, update docs.
 
-**Architecture:** Each plugin becomes a self-contained folder with a `manifest.json` for static metadata, a `rules/` folder where each file contains one rule's detection logic, a `PathResolver.ts` for shared path resolution, a thin `index.ts` orchestrator, and a short `README.md`. The ImportDetector class is removed — its logic is split across rule files. The IPlugin interface gains a `loadManifest()` pattern where `index.ts` reads manifest.json and wires everything together.
+**Architecture:** Each plugin becomes a self-contained folder with a `manifest.json` for static metadata, a `sources/` folder where each file contains one rule's detection logic, a `PathResolver.ts` for shared path resolution, a thin `index.ts` orchestrator, and a short `README.md`. The ImportDetector class is removed — its logic is split across rule files. The IPlugin interface gains a `loadManifest()` pattern where `index.ts` reads manifest.json and wires everything together.
 
 **Tech Stack:** TypeScript, Vitest, React (webview)
 
@@ -13,7 +13,7 @@
 ## Summary of changes
 
 1. Fix Plugins panel UI (toggle switches, spacing, descriptions)
-2. Define the rule file interface (`IRuleDetector`)
+2. Define the rule file interface (`IConnectionDetector`)
 3. Restructure TypeScript plugin (reference example)
 4. Restructure remaining 4 plugins
 5. Update `docs/PLUGINS.md` with new API
@@ -97,8 +97,8 @@ export default function PluginsPanel({ isOpen, onClose, plugins }: PluginsPanelP
     postMessage({ type: 'TOGGLE_PLUGIN', payload: { pluginId, enabled } });
   };
 
-  const handleToggleRule = (qualifiedId: string, enabled: boolean) => {
-    postMessage({ type: 'TOGGLE_RULE', payload: { qualifiedId, enabled } });
+  const handleToggleRule = (qualifiedSourceId: string, enabled: boolean) => {
+    postMessage({ type: 'TOGGLE_SOURCE', payload: { qualifiedSourceId, enabled } });
   };
 
   const statusLabel = (status: string) => {
@@ -167,18 +167,18 @@ export default function PluginsPanel({ isOpen, onClose, plugins }: PluginsPanelP
                   </span>
                 </div>
 
-                {/* Expanded: rules list */}
+                {/* Expanded: sources list */}
                 {isExpanded && (
                   <div className="pb-2 pl-[22px] space-y-1.5">
-                    {plugin.rules.length === 0 ? (
-                      <p className="text-xs text-zinc-500 italic">No rules declared.</p>
+                    {plugin.sources.length === 0 ? (
+                      <p className="text-xs text-zinc-500 italic">No sources declared.</p>
                     ) : (
-                      plugin.rules.map(rule => (
-                        <div key={rule.qualifiedId} className="flex items-start gap-2">
+                      plugin.sources.map(rule => (
+                        <div key={rule.qualifiedSourceId} className="flex items-start gap-2">
                           <div className="pt-0.5">
                             <Toggle
                               checked={rule.enabled}
-                              onChange={(v) => handleToggleRule(rule.qualifiedId, v)}
+                              onChange={(v) => handleToggleRule(rule.qualifiedSourceId, v)}
                               disabled={!plugin.enabled}
                               size="sm"
                             />
@@ -240,26 +240,26 @@ git commit -m "fix: plugins panel toggle switches, spacing, and rule description
 
 ---
 
-### Task 2: Define IRuleDetector interface
+### Task 2: Define IConnectionDetector interface
 
 Add a shared interface for rule files so all plugins follow the same pattern.
 
 **Files:**
 - Modify: `src/core/plugins/types.ts`
 
-**Step 1: Add the IRuleDetector interface**
+**Step 1: Add the IConnectionDetector interface**
 
-Add after the `IRule` interface:
+Add after the `IConnectionSource` interface:
 
 ```typescript
 /**
  * Interface for a rule detection module.
- * Each rule file in a plugin's rules/ folder exports an object matching this shape.
+ * Each rule file in a plugin's sources/ folder exports an object matching this shape.
  *
  * @example
  * ```typescript
- * // plugins/typescript/rules/es6-import.ts
- * export const rule: IRuleDetector = {
+ * // plugins/typescript/sources/es6-import.ts
+ * export const rule: IConnectionDetector = {
  *   id: 'es6-import',
  *   detect(content, filePath, context) {
  *     // ... detect ES6 imports, return IConnection[]
@@ -267,7 +267,7 @@ Add after the `IRule` interface:
  * };
  * ```
  */
-export interface IRuleDetector<TContext = unknown> {
+export interface IConnectionDetector<TContext = unknown> {
   /** Rule ID — must match the corresponding entry in manifest.json */
   id: string;
 
@@ -277,7 +277,7 @@ export interface IRuleDetector<TContext = unknown> {
    * @param content - File content as string
    * @param filePath - Absolute path to the file
    * @param context - Plugin-specific context (e.g., PathResolver instance)
-   * @returns Array of connections. Each MUST have ruleId set to this rule's id.
+   * @returns Array of connections. Each MUST have sourceId set to this rule's id.
    */
   detect(
     content: string,
@@ -289,7 +289,7 @@ export interface IRuleDetector<TContext = unknown> {
 
 **Step 2: Export it from the barrel**
 
-The barrel `src/core/plugins/index.ts` already has `export * from './types'`, so `IRuleDetector` is automatically exported.
+The barrel `src/core/plugins/index.ts` already has `export * from './types'`, so `IConnectionDetector` is automatically exported.
 
 **Step 3: Run typecheck**
 
@@ -302,7 +302,7 @@ Expected: clean
 
 ```bash
 git add src/core/plugins/types.ts
-git commit -m "feat: add IRuleDetector interface for rule-based plugin structure"
+git commit -m "feat: add IConnectionDetector interface for rule-based plugin structure"
 ```
 
 ---
@@ -313,10 +313,10 @@ This is the reference example for all other plugins. Creates manifest.json, spli
 
 **Files:**
 - Create: `src/plugins/typescript/manifest.json`
-- Create: `src/plugins/typescript/rules/es6-import.ts`
-- Create: `src/plugins/typescript/rules/reexport.ts`
-- Create: `src/plugins/typescript/rules/dynamic-import.ts`
-- Create: `src/plugins/typescript/rules/commonjs-require.ts`
+- Create: `src/plugins/typescript/sources/es6-import.ts`
+- Create: `src/plugins/typescript/sources/reexport.ts`
+- Create: `src/plugins/typescript/sources/dynamic-import.ts`
+- Create: `src/plugins/typescript/sources/commonjs-require.ts`
 - Create: `src/plugins/typescript/README.md`
 - Modify: `src/plugins/typescript/index.ts` — thin orchestrator
 - Delete: `src/plugins/typescript/ImportDetector.ts`
@@ -387,7 +387,7 @@ This is the reference example for all other plugins. Creates manifest.json, spli
     "README.md": "#083FA1",
     "LICENSE": "#6B7280"
   },
-  "rules": [
+  "sources": [
     { "id": "es6-import", "name": "ES6 Imports", "description": "import/export statements" },
     { "id": "reexport", "name": "Re-exports", "description": "export { x } from \"y\"" },
     { "id": "dynamic-import", "name": "Dynamic Imports", "description": "import(\"module\")" },
@@ -400,7 +400,7 @@ This is the reference example for all other plugins. Creates manifest.json, spli
 
 Each rule file uses the TypeScript Compiler API directly. The `context` is `{ resolver: PathResolver }`.
 
-`src/plugins/typescript/rules/es6-import.ts`:
+`src/plugins/typescript/sources/es6-import.ts`:
 ```typescript
 import * as ts from 'typescript';
 import type { IConnection } from '../../../core/plugins/types';
@@ -417,7 +417,7 @@ export function detect(content: string, filePath: string, ctx: { resolver: PathR
         specifier: node.moduleSpecifier.text,
         resolvedPath: ctx.resolver.resolve(node.moduleSpecifier.text, filePath),
         type: 'static',
-        ruleId: 'es6-import',
+        sourceId: 'es6-import',
       });
     }
     ts.forEachChild(node, visit);
@@ -427,7 +427,7 @@ export function detect(content: string, filePath: string, ctx: { resolver: PathR
 }
 ```
 
-`src/plugins/typescript/rules/reexport.ts`:
+`src/plugins/typescript/sources/reexport.ts`:
 ```typescript
 import * as ts from 'typescript';
 import type { IConnection } from '../../../core/plugins/types';
@@ -444,7 +444,7 @@ export function detect(content: string, filePath: string, ctx: { resolver: PathR
         specifier: node.moduleSpecifier.text,
         resolvedPath: ctx.resolver.resolve(node.moduleSpecifier.text, filePath),
         type: 'reexport',
-        ruleId: 'reexport',
+        sourceId: 'reexport',
       });
     }
     ts.forEachChild(node, visit);
@@ -454,7 +454,7 @@ export function detect(content: string, filePath: string, ctx: { resolver: PathR
 }
 ```
 
-`src/plugins/typescript/rules/dynamic-import.ts`:
+`src/plugins/typescript/sources/dynamic-import.ts`:
 ```typescript
 import * as ts from 'typescript';
 import type { IConnection } from '../../../core/plugins/types';
@@ -476,7 +476,7 @@ export function detect(content: string, filePath: string, ctx: { resolver: PathR
         specifier: node.arguments[0].text,
         resolvedPath: ctx.resolver.resolve(node.arguments[0].text, filePath),
         type: 'dynamic',
-        ruleId: 'dynamic-import',
+        sourceId: 'dynamic-import',
       });
     }
     ts.forEachChild(node, visit);
@@ -486,7 +486,7 @@ export function detect(content: string, filePath: string, ctx: { resolver: PathR
 }
 ```
 
-`src/plugins/typescript/rules/commonjs-require.ts`:
+`src/plugins/typescript/sources/commonjs-require.ts`:
 ```typescript
 import * as ts from 'typescript';
 import type { IConnection } from '../../../core/plugins/types';
@@ -509,7 +509,7 @@ export function detect(content: string, filePath: string, ctx: { resolver: PathR
         specifier: node.arguments[0].text,
         resolvedPath: ctx.resolver.resolve(node.arguments[0].text, filePath),
         type: 'require',
-        ruleId: 'commonjs-require',
+        sourceId: 'commonjs-require',
       });
     }
     ts.forEachChild(node, visit);
@@ -529,15 +529,15 @@ import * as path from 'path';
 import type { IPlugin, IConnection } from '../../core/plugins/types';
 import { PathResolver, IPathResolverConfig } from './PathResolver';
 import manifest from './manifest.json';
-import * as es6Import from './rules/es6-import';
-import * as reexport from './rules/reexport';
-import * as dynamicImport from './rules/dynamic-import';
-import * as commonjsRequire from './rules/commonjs-require';
+import * as es6Import from './sources/es6-import';
+import * as reexport from './sources/reexport';
+import * as dynamicImport from './sources/dynamic-import';
+import * as commonjsRequire from './sources/commonjs-require';
 
 export { PathResolver } from './PathResolver';
 export type { IPathResolverConfig } from './PathResolver';
 
-const rules = [es6Import, reexport, dynamicImport, commonjsRequire];
+const sources = [es6Import, reexport, dynamicImport, commonjsRequire];
 
 export function createTypeScriptPlugin(): IPlugin {
   let resolver: PathResolver | null = null;
@@ -550,7 +550,7 @@ export function createTypeScriptPlugin(): IPlugin {
     defaultExclude: manifest.defaultExclude,
     defaultFilterPatterns: manifest.defaultFilterPatterns,
     fileColors: manifest.fileColors,
-    rules: manifest.rules,
+    sources: manifest.sources,
 
     async initialize(workspaceRoot: string): Promise<void> {
       const config = loadTsConfig(workspaceRoot);
@@ -570,7 +570,7 @@ export function createTypeScriptPlugin(): IPlugin {
 
       const ctx = { resolver };
       const connections: IConnection[] = [];
-      for (const rule of rules) {
+      for (const rule of sources) {
         connections.push(...rule.detect(content, filePath, ctx));
       }
       return connections;
@@ -650,9 +650,9 @@ Uses `tsconfig.json` / `jsconfig.json` for:
 
 **Step 6: Update tests**
 
-Tests in `tests/plugins/typescript/` that import from `ImportDetector` directly need updating. Grep for these imports and update them to test rules directly or remove them if they're now covered by the rule-level tests. Existing tests in `tests/plugins/typescript/ruleId.test.ts` should still pass since they test via `createTypeScriptPlugin()`.
+Tests in `tests/plugins/typescript/` that import from `ImportDetector` directly need updating. Grep for these imports and update them to test sources directly or remove them if they're now covered by the rule-level tests. Existing tests in `tests/plugins/typescript/sourceId.test.ts` should still pass since they test via `createTypeScriptPlugin()`.
 
-For `tests/plugins/typescript/ImportDetector.test.ts`: The ImportDetector class no longer exists. Its test coverage is now handled by the rule files. **Delete this test file** and ensure `ruleId.test.ts` covers the same scenarios. If there are edge-case tests in ImportDetector.test.ts not covered by ruleId.test.ts, add them to ruleId.test.ts.
+For `tests/plugins/typescript/ImportDetector.test.ts`: The ImportDetector class no longer exists. Its test coverage is now handled by the rule files. **Delete this test file** and ensure `sourceId.test.ts` covers the same scenarios. If there are edge-case tests in ImportDetector.test.ts not covered by sourceId.test.ts, add them to sourceId.test.ts.
 
 **Step 7: Add tsconfig resolveJsonModule support**
 
@@ -669,26 +669,26 @@ Expected: all pass
 
 ```bash
 git add -A src/plugins/typescript/ tests/plugins/typescript/
-git commit -m "refactor: restructure TypeScript plugin to manifest.json + rules/ pattern"
+git commit -m "refactor: restructure TypeScript plugin to manifest.json + sources/ pattern"
 ```
 
 ---
 
 ### Task 4: Restructure Python plugin
 
-Same pattern as TypeScript. Python has 2 rules and a simpler ImportDetector.
+Same pattern as TypeScript. Python has 2 sources and a simpler ImportDetector.
 
 **Files:**
 - Create: `src/plugins/python/manifest.json`
-- Create: `src/plugins/python/rules/standard-import.ts`
-- Create: `src/plugins/python/rules/from-import.ts`
+- Create: `src/plugins/python/sources/standard-import.ts`
+- Create: `src/plugins/python/sources/from-import.ts`
 - Create: `src/plugins/python/README.md`
 - Modify: `src/plugins/python/index.ts`
 - Delete: `src/plugins/python/ImportDetector.ts`
 
 **Step 1: Create manifest.json**
 
-Contains: id, name, version, supportedExtensions (`[".py", ".pyi"]`), defaultExclude (the venv/pycache patterns), fileColors, rules (standard-import and from-import).
+Contains: id, name, version, supportedExtensions (`[".py", ".pyi"]`), defaultExclude (the venv/pycache patterns), fileColors, sources (standard-import and from-import).
 
 **Step 2: Create rule files**
 
@@ -696,15 +696,15 @@ The Python ImportDetector uses regex. Split its logic:
 - `standard-import.ts` — detects `import module` statements (the `^import\s+` regex branch)
 - `from-import.ts` — detects `from module import name` statements (the `^from\s+` regex branch)
 
-Both rules need the multi-line preprocessing logic. Either:
+Both sources need the multi-line preprocessing logic. Either:
 - Put the preprocessor as a shared utility in a `utils.ts` file, OR
 - Each rule preprocesses independently (small duplication but simpler)
 
-Recommended: Create `src/plugins/python/preprocess.ts` with the `preprocessMultilineImports` and `createLineMapping` functions extracted from ImportDetector. Both rules import from there.
+Recommended: Create `src/plugins/python/preprocess.ts` with the `preprocessMultilineImports` and `createLineMapping` functions extracted from ImportDetector. Both sources import from there.
 
 Context type: `{ resolver: PathResolver }`
 
-**Step 3: Rewrite index.ts to use manifest + rules**
+**Step 3: Rewrite index.ts to use manifest + sources**
 
 Same pattern as TypeScript.
 
@@ -713,19 +713,19 @@ Same pattern as TypeScript.
 **Step 5: Run tests, commit**
 
 ```bash
-git commit -m "refactor: restructure Python plugin to manifest.json + rules/ pattern"
+git commit -m "refactor: restructure Python plugin to manifest.json + sources/ pattern"
 ```
 
 ---
 
 ### Task 5: Restructure C# plugin
 
-C# has 2 rules but more complex detection logic (using directives + type usage).
+C# has 2 sources but more complex detection logic (using directives + type usage).
 
 **Files:**
 - Create: `src/plugins/csharp/manifest.json`
-- Create: `src/plugins/csharp/rules/using-directive.ts`
-- Create: `src/plugins/csharp/rules/type-usage.ts`
+- Create: `src/plugins/csharp/sources/using-directive.ts`
+- Create: `src/plugins/csharp/sources/type-usage.ts`
 - Create: `src/plugins/csharp/README.md`
 - Modify: `src/plugins/csharp/index.ts`
 - Delete: `src/plugins/csharp/ImportDetector.ts`
@@ -734,7 +734,7 @@ C# has 2 rules but more complex detection logic (using directives + type usage).
 
 **Step 2: Create rule files**
 
-C# is trickier because both rules share the ImportDetector's comment-stripping logic and namespace detection. Create `src/plugins/csharp/parser.ts` with:
+C# is trickier because both sources share the ImportDetector's comment-stripping logic and namespace detection. Create `src/plugins/csharp/parser.ts` with:
 - `parseUsingsAndNamespaces(content)` — the comment-stripping + using/namespace detection logic extracted from ImportDetector
 - `extractUsedTypes(content)` — extracted from current index.ts
 
@@ -749,21 +749,21 @@ Context type: `{ resolver: PathResolver }`
 **Step 4: Run tests, commit**
 
 ```bash
-git commit -m "refactor: restructure C# plugin to manifest.json + rules/ pattern"
+git commit -m "refactor: restructure C# plugin to manifest.json + sources/ pattern"
 ```
 
 ---
 
 ### Task 6: Restructure GDScript plugin
 
-GDScript has 4 rules and a class-based ImportDetector with preAnalyze.
+GDScript has 4 sources and a class-based ImportDetector with preAnalyze.
 
 **Files:**
 - Create: `src/plugins/godot/manifest.json`
-- Create: `src/plugins/godot/rules/preload.ts`
-- Create: `src/plugins/godot/rules/load.ts`
-- Create: `src/plugins/godot/rules/extends.ts`
-- Create: `src/plugins/godot/rules/class-name-usage.ts`
+- Create: `src/plugins/godot/sources/preload.ts`
+- Create: `src/plugins/godot/sources/load.ts`
+- Create: `src/plugins/godot/sources/extends.ts`
+- Create: `src/plugins/godot/sources/class-name-usage.ts`
 - Create: `src/plugins/godot/README.md`
 - Modify: `src/plugins/godot/index.ts`
 - Delete: `src/plugins/godot/ImportDetector.ts`
@@ -788,7 +788,7 @@ The GDScript plugin has `preAnalyze` and class_name registration logic. This sta
 
 GDScript index.ts keeps:
 - `preAnalyze()` for building the class_name map
-- class_name declaration detection (in detectConnections, before calling rules)
+- class_name declaration detection (in detectConnections, before calling sources)
 - Calls each rule's `detect()` and concatenates results
 
 **Step 4: Delete ImportDetector.ts, update tests, create README.md**
@@ -796,7 +796,7 @@ GDScript index.ts keeps:
 **Step 5: Run tests, commit**
 
 ```bash
-git commit -m "refactor: restructure GDScript plugin to manifest.json + rules/ pattern"
+git commit -m "refactor: restructure GDScript plugin to manifest.json + sources/ pattern"
 ```
 
 ---
@@ -807,7 +807,7 @@ Simplest plugin — 1 rule.
 
 **Files:**
 - Create: `src/plugins/markdown/manifest.json`
-- Create: `src/plugins/markdown/rules/wikilink.ts`
+- Create: `src/plugins/markdown/sources/wikilink.ts`
 - Create: `src/plugins/markdown/README.md`
 - Modify: `src/plugins/markdown/index.ts`
 - Delete: `src/plugins/markdown/ImportDetector.ts`
@@ -827,7 +827,7 @@ Keeps `preAnalyze()` for building the file index. Calls wikilink rule's `detect(
 **Step 5: Run tests, commit**
 
 ```bash
-git commit -m "refactor: restructure Markdown plugin to manifest.json + rules/ pattern"
+git commit -m "refactor: restructure Markdown plugin to manifest.json + sources/ pattern"
 ```
 
 ---
@@ -843,12 +843,12 @@ Rewrite the plugin development guide to reflect the new structure.
 
 The doc should cover:
 1. Overview — what plugins do
-2. Plugin structure — manifest.json + rules/ + PathResolver + index.ts
+2. Plugin structure — manifest.json + sources/ + PathResolver + index.ts
 3. manifest.json format — all fields with descriptions
 4. Rule file format — the `detect()` function signature, what it returns
-5. index.ts orchestrator — how it loads manifest and calls rules
-6. IPlugin interface — current full interface (including `rules`, `ruleId` on IConnection)
-7. IConnection interface — with the new `ruleId` field
+5. index.ts orchestrator — how it loads manifest and calls sources
+6. IPlugin interface — current full interface (including `sources`, `sourceId` on IConnection)
+7. IConnection interface — with the new `sourceId` field
 8. Registration — how built-in plugins are registered
 9. Reference — point to TypeScript plugin as the canonical example
 
@@ -858,7 +858,7 @@ Remove the outdated example code (old PythonPlugin class, old ILanguagePlugin re
 
 ```bash
 git add docs/PLUGINS.md
-git commit -m "docs: update plugin development guide for manifest.json + rules/ structure"
+git commit -m "docs: update plugin development guide for manifest.json + sources/ structure"
 ```
 
 ---
@@ -874,7 +874,7 @@ Expected: all pass, no new lint errors
 
 **Step 2: Manual F5 test**
 
-- Open Plugins panel → verify all 5 plugins show with correct rules, counts, descriptions
+- Open Plugins panel → verify all 5 plugins show with correct sources, counts, descriptions
 - Toggle a rule off → connections from that rule disappear instantly
 - Toggle back on → connections reappear
 - Toggle entire plugin off → all connections disappear

@@ -11,7 +11,7 @@ export function shouldRebuildGraphView(
   }
 
   for (const plugin of pluginStatuses) {
-    const rule = plugin.rules.find((status) => status.qualifiedId === id);
+    const rule = plugin.sources.find((status) => status.qualifiedSourceId === id);
     if (rule) {
       return rule.connectionCount > 0;
     }

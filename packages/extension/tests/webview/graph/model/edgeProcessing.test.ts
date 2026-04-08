@@ -6,13 +6,20 @@ describe('graph/model/edgeProcessing', () => {
     expect(
       processEdges(
         [
-          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
-          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
+          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
+          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
         ],
         'combined'
       )
     ).toEqual([
-      { id: 'a.ts<->b.ts', from: 'a.ts', to: 'b.ts', bidirectional: true },
+      {
+        id: 'a.ts<->b.ts#import',
+        from: 'a.ts',
+        to: 'b.ts',
+        kind: 'import',
+        sources: [],
+        bidirectional: true,
+      },
     ]);
   });
 
@@ -20,14 +27,28 @@ describe('graph/model/edgeProcessing', () => {
     expect(
       processEdges(
         [
-          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
-          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
+          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
         ],
         'separate'
       )
     ).toEqual([
-      { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts', bidirectional: false },
-      { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts', bidirectional: false },
+      {
+        id: 'a.ts->b.ts',
+        from: 'a.ts',
+        to: 'b.ts',
+        kind: 'import',
+        sources: [],
+        bidirectional: false,
+      },
+      {
+        id: 'b.ts->a.ts',
+        from: 'b.ts',
+        to: 'a.ts',
+        kind: 'import',
+        sources: [],
+        bidirectional: false,
+      },
     ]);
   });
 
@@ -35,16 +56,30 @@ describe('graph/model/edgeProcessing', () => {
     expect(
       processEdges(
         [
-          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
-          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
-          { id: 'b.ts->a.ts#2', from: 'b.ts', to: 'a.ts' },
-          { id: 'b.ts->c.ts', from: 'b.ts', to: 'c.ts' },
+          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->a.ts#2', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->c.ts', from: 'b.ts', to: 'c.ts' , kind: 'import', sources: [] },
         ],
         'combined'
       )
     ).toEqual([
-      { id: 'a.ts<->b.ts', from: 'a.ts', to: 'b.ts', bidirectional: true },
-      { id: 'b.ts->c.ts', from: 'b.ts', to: 'c.ts', bidirectional: false },
+      {
+        id: 'a.ts<->b.ts#import',
+        from: 'a.ts',
+        to: 'b.ts',
+        kind: 'import',
+        sources: [],
+        bidirectional: true,
+      },
+      {
+        id: 'b.ts->c.ts',
+        from: 'b.ts',
+        to: 'c.ts',
+        kind: 'import',
+        sources: [],
+        bidirectional: false,
+      },
     ]);
   });
 });

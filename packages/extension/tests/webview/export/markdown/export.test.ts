@@ -57,17 +57,17 @@ describe('buildMarkdownExport', () => {
     expect(result).toContain('timeline commit: abc123');
   });
 
-  it('renders rules and grouped imports', () => {
+  it('renders sources and grouped imports', () => {
     const data: IGraphData = {
       nodes: [
         { id: 'a.ts', label: 'a.ts', color: '#fff' },
         { id: 'b.ts', label: 'b.ts', color: '#fff' },
       ],
-      edges: [{ id: 'e1', from: 'a.ts', to: 'b.ts', ruleIds: ['ts:es6'] }],
+      edges: [{ id: 'e1', from: 'a.ts', to: 'b.ts', kind: 'import', sources: [{ id: 'ts:es6', pluginId: 'ts', sourceId: 'es6', label: 'ES6 Import' }] }],
     };
     const plugins: IPluginStatus[] = [{
       id: 'ts', name: 'TypeScript', version: '1.0.0', supportedExtensions: ['.ts'], status: 'active', enabled: true, connectionCount: 1,
-      rules: [{ id: 'es6', qualifiedId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 }],
+      sources: [{ id: 'es6', qualifiedSourceId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 }],
     }];
 
     const result = buildMarkdownExport(data, noGroups, plugins);

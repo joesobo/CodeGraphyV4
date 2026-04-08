@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { detect } from '../src/rules/dynamic-import';
+import { detect, SOURCE_ID } from '../src/sources/dynamic-import';
 import { PathResolver } from '../src/PathResolver';
 import type { TsRuleContext } from '../src/types';
 
@@ -15,8 +15,9 @@ describe('dynamic-import rule', () => {
     const connections = detect(`const mod = import('./lazy');`, testFile, context);
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('./lazy');
+    expect(connections[0].kind).toBe('import');
     expect(connections[0].type).toBe('dynamic');
-    expect(connections[0].ruleId).toBe('dynamic-import');
+    expect(connections[0].sourceId).toBe('dynamic-import');
   });
 
   it('should detect dynamic import in async function', () => {
@@ -60,5 +61,14 @@ describe('dynamic-import rule', () => {
     const connections = detect(`const React = import('react');`, testFile, context);
     expect(connections).toHaveLength(1);
     expect(connections[0].resolvedPath).toBeNull();
+  });
+
+  it('exports the stable source id', () => {
+    expect(SOURCE_ID).toBe('dynamic-import');
+  });
+
+  it('ignores dynamic imports whose argument is not a string literal', () => {
+    expect(detect('const load = import(`./lazy`);', testFile, context)).toHaveLength(0);
+    expect(detect('const load = import(1);', testFile, context)).toHaveLength(0);
   });
 });

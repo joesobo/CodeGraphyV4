@@ -23,7 +23,7 @@ export interface WorkspaceAnalyzerGraphSource {
 export interface WorkspaceAnalyzerGraphDependencies {
   cacheFiles: Record<string, { size?: number }>;
   disabledPlugins: ReadonlySet<string>;
-  disabledRules: ReadonlySet<string>;
+  disabledSources: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IConnection[]>;
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
   showOrphans: boolean;
@@ -40,7 +40,7 @@ export function buildWorkspaceAnalyzerGraph(
   return buildWorkspaceGraphData({
     cacheFiles: dependencies.cacheFiles,
     disabledPlugins: dependencies.disabledPlugins,
-    disabledRules: dependencies.disabledRules,
+    disabledSources: dependencies.disabledSources,
     fileConnections: dependencies.fileConnections,
     showOrphans: dependencies.showOrphans,
     visitCounts,
@@ -54,13 +54,13 @@ export function buildWorkspaceAnalyzerGraphForSource(
   fileConnections: Map<string, IConnection[]>,
   workspaceRoot: string,
   showOrphans: boolean,
-  disabledRules: Set<string>,
+  disabledSources: Set<string>,
   disabledPlugins: Set<string>,
 ): IGraphData {
   return buildWorkspaceAnalyzerGraph({
     cacheFiles: source._cache.files,
     disabledPlugins,
-    disabledRules,
+    disabledSources,
     fileConnections,
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),
     showOrphans,

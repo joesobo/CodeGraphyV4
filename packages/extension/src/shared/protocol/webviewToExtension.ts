@@ -47,7 +47,7 @@ export type WebviewToExtensionMessage =
     }
   | { type: 'UPDATE_SHOW_LABELS'; payload: { showLabels: boolean } }
   | { type: 'PHYSICS_STABILIZED' }
-  | { type: 'TOGGLE_RULE'; payload: { qualifiedId: string; enabled: boolean } }
+  | { type: 'TOGGLE_SOURCE'; payload: { qualifiedSourceId: string; enabled: boolean } }
   | { type: 'TOGGLE_PLUGIN'; payload: { pluginId: string; enabled: boolean } }
   | { type: 'UPDATE_MAX_FILES'; payload: { maxFiles: number } }
   | { type: 'INDEX_REPO' }
@@ -58,11 +58,21 @@ export type WebviewToExtensionMessage =
       type: 'NODE_BOUNDS_RESPONSE';
       payload: { nodes: Array<{ id: string; x: number; y: number; size: number }> };
     }
+  | {
+      type: 'GRAPH_RUNTIME_STATE_RESPONSE';
+      payload: { graphMode: '2d' | '3d'; nodeCount: number };
+    }
+  | {
+      type: 'GRAPH_3D_UNAVAILABLE';
+      payload: { message: string };
+    }
   | { type: 'GRAPH_INTERACTION'; payload: { event: string; data: unknown } }
   | {
       type: 'PLUGIN_CONTEXT_MENU_ACTION';
       payload: { pluginId: string; index: number; targetId: string; targetType: 'node' | 'edge' };
     }
+  | { type: 'RUN_PLUGIN_EXPORT'; payload: { pluginId: string; index: number } }
+  | { type: 'RUN_PLUGIN_TOOLBAR_ACTION'; payload: { pluginId: string; index: number; itemIndex: number } }
   | { type: 'TOGGLE_PLUGIN_GROUP_DISABLED'; payload: { groupId: string; disabled: boolean } }
   | { type: 'TOGGLE_PLUGIN_SECTION_DISABLED'; payload: { pluginId: string; disabled: boolean } }
   | { type: 'PICK_GROUP_IMAGE'; payload: { groupId: string } }

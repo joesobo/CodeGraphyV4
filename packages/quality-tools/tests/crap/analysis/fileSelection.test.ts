@@ -45,7 +45,7 @@ describe('shouldIncludeFile', () => {
     expect(shouldIncludeFile(filePath, undefined, repoRoot)).toBe(true);
   });
 
-  it('uses the unified config include and exclude rules for package files', () => {
+  it('uses the unified config include and exclude sources for package files', () => {
     const { repoRoot } = createFile(
       'packages/example/src/allowed.ts',
       'export const allowed = true;',

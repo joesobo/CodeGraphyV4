@@ -5,7 +5,9 @@
 
 import React from 'react';
 import { Separator } from './ui/separator';
+import { Button } from './ui/button';
 import { formatSize, formatRelativeTime } from './tooltipFormatters';
+import type { TooltipAction } from '../pluginHost/api/contracts';
 
 export interface TooltipContentProps {
   path: string;
@@ -15,6 +17,7 @@ export interface TooltipContentProps {
   outgoingCount: number;
   plugin?: string;
   visits?: number;
+  extraActions?: TooltipAction[];
   extraSections?: Array<{ title: string; content: string }>;
 }
 
@@ -48,11 +51,13 @@ export function TooltipStats({
 }
 
 export function TooltipExtraSections({
+  actions = [],
   sections,
 }: {
+  actions?: TooltipAction[];
   sections: Array<{ title: string; content: string }>;
 }): React.ReactElement | null {
-  if (sections.length === 0) return null;
+  if (sections.length === 0 && actions.length === 0) return null;
   return (
     <>
       <Separator className="bg-[var(--vscode-editorHoverWidget-border,#454545)]" />
@@ -65,6 +70,21 @@ export function TooltipExtraSections({
             <p className="font-mono whitespace-pre-wrap break-words">{section.content}</p>
           </div>
         ))}
+        {actions.length > 0 ? (
+          <div className="flex flex-wrap gap-1 pt-1 pointer-events-auto">
+            {actions.map((action) => (
+              <Button
+                key={action.id}
+                size="sm"
+                variant="outline"
+                className="h-6 px-2 text-[10px]"
+                onClick={() => { void action.action(); }}
+              >
+                {action.label}
+              </Button>
+            ))}
+          </div>
+        ) : null}
       </div>
     </>
   );

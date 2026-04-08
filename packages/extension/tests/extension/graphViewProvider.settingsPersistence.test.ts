@@ -61,7 +61,7 @@ describe('GraphViewProvider settings persistence', () => {
     const legacyWorkspacePlugins = ['legacy.plugin'];
 
     configInspect.mockImplementation((key: string) => {
-      if (key === 'disabledRules') {
+      if (key === 'disabledSources') {
         return { workspaceValue: configuredRules } satisfies MockConfigInspect<string[]>;
       }
       if (key === 'disabledPlugins') {
@@ -71,7 +71,7 @@ describe('GraphViewProvider settings persistence', () => {
     });
 
     workspaceStateGet.mockImplementation((key: string) => {
-      if (key === 'codegraphy.disabledRules') return legacyWorkspaceRules;
+      if (key === 'codegraphy.disabledSources') return legacyWorkspaceRules;
       if (key === 'codegraphy.disabledPlugins') return legacyWorkspacePlugins;
       return undefined;
     });
@@ -82,17 +82,17 @@ describe('GraphViewProvider settings persistence', () => {
     );
 
     const providerState = provider as unknown as {
-      _disabledRules: Set<string>;
+      _disabledSources: Set<string>;
       _disabledPlugins: Set<string>;
     };
 
-    expect([...providerState._disabledRules]).toEqual(configuredRules);
+    expect([...providerState._disabledSources]).toEqual(configuredRules);
     expect([...providerState._disabledPlugins]).toEqual(configuredPlugins);
-    expect([...providerState._disabledRules]).not.toEqual(legacyWorkspaceRules);
+    expect([...providerState._disabledSources]).not.toEqual(legacyWorkspaceRules);
     expect([...providerState._disabledPlugins]).not.toEqual(legacyWorkspacePlugins);
   });
 
-  it('persists TOGGLE_RULE and TOGGLE_PLUGIN changes to VS Code settings', async () => {
+  it('persists TOGGLE_SOURCE and TOGGLE_PLUGIN changes to VS Code settings', async () => {
     const provider = new GraphViewProvider(
       mockContext.extensionUri,
       mockContext as unknown as vscode.ExtensionContext
@@ -127,9 +127,9 @@ describe('GraphViewProvider settings persistence', () => {
     expect(messageHandler).not.toBeNull();
 
     await messageHandler!({
-      type: 'TOGGLE_RULE',
+      type: 'TOGGLE_SOURCE',
       payload: {
-        qualifiedId: 'codegraphy.typescript:dynamic-import',
+        qualifiedSourceId: 'codegraphy.typescript:dynamic-import',
         enabled: false,
       },
     });
@@ -141,7 +141,7 @@ describe('GraphViewProvider settings persistence', () => {
       },
     });
 
-    const rulesUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'disabledRules');
+    const rulesUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'disabledSources');
     const pluginsUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'disabledPlugins');
 
     expect(rulesUpdateCall).toBeDefined();
@@ -151,7 +151,7 @@ describe('GraphViewProvider settings persistence', () => {
 
     expect(
       workspaceStateUpdate.mock.calls.some(
-        ([key]) => key === 'codegraphy.disabledRules' || key === 'codegraphy.disabledPlugins'
+        ([key]) => key === 'codegraphy.disabledSources' || key === 'codegraphy.disabledPlugins'
       )
     ).toBe(false);
   });

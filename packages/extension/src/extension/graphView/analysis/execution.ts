@@ -6,7 +6,7 @@ interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
   analyze(
     filterPatterns?: string[],
-    disabledRules?: Set<string>,
+    disabledSources?: Set<string>,
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
   ): Promise<IGraphData>;
@@ -21,7 +21,7 @@ export interface GraphViewAnalysisExecutionState {
   analyzerInitPromise: Promise<void> | undefined;
   installedPluginActivationPromise?: Promise<void>;
   filterPatterns: string[];
-  disabledRules: Set<string>;
+  disabledSources: Set<string>;
   disabledPlugins: Set<string>;
 }
 
@@ -40,6 +40,8 @@ export interface GraphViewAnalysisExecutionHandlers {
   sendPluginStatuses(): void;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendPluginExporters?(): void;
+  sendPluginToolbarActions?(): void;
   markWorkspaceReady(graphData: IGraphData): void;
   isAbortError(error: unknown): boolean;
   logError(message: string, error: unknown): void;
@@ -97,7 +99,7 @@ export async function executeGraphViewAnalysis(
   try {
     const rawGraphData = await state.analyzer.analyze(
       state.filterPatterns,
-      state.disabledRules,
+      state.disabledSources,
       state.disabledPlugins,
       signal,
     );
@@ -113,6 +115,8 @@ export async function executeGraphViewAnalysis(
     handlers.sendPluginStatuses();
     handlers.sendDecorations();
     handlers.sendContextMenuItems();
+    handlers.sendPluginExporters?.();
+    handlers.sendPluginToolbarActions?.();
     state.analyzer.registry.notifyPostAnalyze(graphData);
     handlers.markWorkspaceReady(graphData);
   } catch (error) {
@@ -123,6 +127,8 @@ export async function executeGraphViewAnalysis(
     handlers.logError('[CodeGraphy] Analysis failed:', error);
     const graphData = publishEmptyGraph(handlers);
     handlers.sendPluginStatuses();
+    handlers.sendPluginExporters?.();
+    handlers.sendPluginToolbarActions?.();
     handlers.markWorkspaceReady(graphData);
   }
 }

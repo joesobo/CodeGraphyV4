@@ -3,7 +3,7 @@ import {
   isFenceStart,
   parseWikilink,
   stripInlineCode,
-} from '../src/rules/wikilinkHelpers';
+} from '../src/sources/wikilinkHelpers';
 
 describe('isFenceStart', () => {
   it('returns true for a backtick fence', () => {

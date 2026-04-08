@@ -106,7 +106,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     );
   });
 
-  it('sends installed external plugins and their rules to the webview after startup', async () => {
+  it('sends installed external plugins and their sources to the webview after startup', async () => {
     const apiRef: { current?: ReturnType<typeof activate> } = {};
     const coreExtensionRef = {
       id: 'codegraphy.codegraphy',
@@ -162,7 +162,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
         payload?: {
           plugins?: Array<{
             id: string;
-            rules: Array<{ qualifiedId: string }>;
+            sources: Array<{ qualifiedSourceId: string }>;
           }>;
         };
       })
@@ -178,9 +178,9 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
         expect.objectContaining({ id: 'codegraphy.markdown' }),
         expect.objectContaining({
           id: 'codegraphy.typescript',
-          rules: expect.arrayContaining([
+          sources: expect.arrayContaining([
             expect.objectContaining({
-              qualifiedId: expect.stringContaining('codegraphy.typescript'),
+              qualifiedSourceId: expect.stringContaining('codegraphy.typescript'),
             }),
           ]),
         }),

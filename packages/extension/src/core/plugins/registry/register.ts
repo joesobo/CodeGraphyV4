@@ -5,12 +5,12 @@
 
 import type { IPlugin } from '../types/contracts';
 import type { IPluginInfoV2 } from './manager';
-import type { EventBus } from '../eventBus';
+import type { EventBus } from '../events/bus';
 import type { DecorationManager } from '../decoration/manager';
-import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender } from '../codeGraphyApi';
+import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../api/context';
 import type { ViewRegistry } from '../../views/registry';
 import { CORE_PLUGIN_API_VERSION } from '../versioning/apiVersions';
-import { hasScopedApiConfiguration } from '../apiConfiguration';
+import { hasScopedApiConfiguration } from '../api/configuration';
 import { assertCoreApiCompatibility, warnOnWebviewApiMismatch } from './compatibility';
 import { addPluginToExtensionMap } from './extensionMap';
 import { createPluginApi, callOnLoad } from './apiSetup';
@@ -22,6 +22,7 @@ export interface RegistryV2Config {
   graphProvider?: GraphDataProvider;
   commandRegistrar?: CommandRegistrar;
   webviewSender?: WebviewMessageSender;
+  exportSaver?: ExportSaver;
   workspaceRoot?: string;
   logFn: (level: string, ...args: unknown[]) => void;
 }
@@ -57,6 +58,7 @@ export function validateAndCreatePluginInfo(
     graphProvider: config.graphProvider,
     commandRegistrar: config.commandRegistrar,
     webviewSender: config.webviewSender,
+    exportSaver: config.exportSaver,
     workspaceRoot: config.workspaceRoot,
   };
   if (hasScopedApiConfiguration(apiConfiguration)) {

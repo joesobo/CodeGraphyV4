@@ -13,7 +13,12 @@ describe('graphView/provider/webview/host', () => {
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [vscode.Uri.file('/test/root')]),
     };
-    const webviewView = { viewType: 'codegraphy.graphView', webview: {}, visible: true } as unknown as vscode.WebviewView;
+    const webviewView = {
+      viewType: 'codegraphy.graphView',
+      webview: {},
+      visible: true,
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {
       viewType: 'codegraphy.graphView',
       createHtml: vi.fn(() => '<html />'),
@@ -58,6 +63,7 @@ describe('graphView/provider/webview/host', () => {
       viewType: 'codegraphy.timelineView',
       webview: {},
       visible: true,
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
     } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {
       viewType: 'codegraphy.graphView',
@@ -146,7 +152,12 @@ describe('graphView/provider/webview/host', () => {
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => resourceRoots),
     };
-    const webviewView = { viewType: 'codegraphy.graphView', webview: {}, visible: true } as unknown as vscode.WebviewView;
+    const webviewView = {
+      viewType: 'codegraphy.graphView',
+      webview: {},
+      visible: true,
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {
       viewType: 'codegraphy.graphView',
       createHtml,
@@ -246,7 +257,12 @@ describe('graphView/provider/webview/host', () => {
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => []),
     };
-    const webviewView = { viewType: 'codegraphy.graphView', webview: {}, visible: true } as unknown as vscode.WebviewView;
+    const webviewView = {
+      viewType: 'codegraphy.graphView',
+      webview: {},
+      visible: true,
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
     const methods = createGraphViewProviderWebviewMethods(source as never, {
       viewType: 'codegraphy.graphView',
       createHtml: vi.fn(() => '<html />'),

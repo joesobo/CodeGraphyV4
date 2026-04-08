@@ -12,30 +12,16 @@ import type { IDiscoveredFile } from '../../core/discovery/contracts';
 import { Configuration } from '../config/reader';
 import type { IGraphData } from '../../shared/graph/types';
 import type { IPluginStatus } from '../../shared/plugins/status';
-import { EventBus } from '../../core/plugins/eventBus';
+import { EventBus } from '../../core/plugins/events/bus';
 import {
-  IWorkspaceAnalysisCache,
+  type IWorkspaceAnalysisCache,
   loadWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_KEY,
 } from './cache';
-import { type WorkspaceAnalyzerAnalysisSource } from './analysis/analyze';
-import {
-  analyzeWorkspaceAnalyzerSourceFiles,
-  type WorkspaceAnalyzerFilesSource,
-} from './analysis/files';
-import {
-  buildWorkspaceAnalyzerGraphForSource,
-  type WorkspaceAnalyzerGraphSource,
-} from './graph/build';
 import {
   getWorkspaceAnalyzerPluginFilterPatterns,
   initializeWorkspaceAnalyzer,
 } from './plugins/bootstrap';
-import {
-  getWorkspaceAnalyzerFileStat,
-  getWorkspaceAnalyzerRoot,
-} from './io';
-import { preAnalyzeWorkspaceAnalyzerFiles } from './analysis/preAnalyze';
 import {
   getWorkspaceAnalyzerPluginStatuses,
   resolveWorkspaceAnalyzerPluginNameForFile,
@@ -45,6 +31,18 @@ import {
   rebuildWorkspaceAnalyzerGraphForSource,
 } from './analysis/state';
 import { runWorkspaceAnalyzerAnalysis } from './analysis/run';
+import {
+  createWorkspaceAnalyzerAnalysisSource,
+  createWorkspaceAnalyzerRebuildSource,
+  type WorkspaceAnalyzerSourceOwner,
+} from './analysisSource';
+import {
+  analyzeWorkspaceAnalyzerFiles,
+  buildWorkspaceAnalyzerGraphData,
+  preAnalyzeWorkspaceAnalyzerPlugins,
+  readWorkspaceAnalyzerFileStat,
+  readWorkspaceAnalyzerRoot,
+} from './serviceAdapters';
 
 /**
  * Orchestrates workspace analysis.
@@ -102,7 +100,7 @@ export class WorkspaceAnalyzer {
    */
   async initialize(): Promise<void> {
     await initializeWorkspaceAnalyzer(this._registry, {
-      getWorkspaceRoot: () => getWorkspaceAnalyzerRoot(vscode.workspace.workspaceFolders),
+      getWorkspaceRoot: () => readWorkspaceAnalyzerRoot(vscode.workspace.workspaceFolders),
     });
 
     console.log('[CodeGraphy] WorkspaceAnalyzer initialized');
@@ -121,70 +119,21 @@ export class WorkspaceAnalyzer {
    */
   async analyze(
     filterPatterns: string[] = [],
-    disabledRules: Set<string> = new Set(),
+    disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal
   ): Promise<IGraphData> {
-    const source = {
-      _analyzeFiles: (
-        files: IDiscoveredFile[],
-        workspaceRoot: string,
-        nextSignal?: AbortSignal,
-      ) => this._analyzeFiles(files, workspaceRoot, nextSignal),
-      _buildGraphData: (
-        fileConnections: Map<string, IConnection[]>,
-        workspaceRoot: string,
-        showOrphans: boolean,
-        nextDisabledRules: Set<string>,
-        nextDisabledPlugins: Set<string>,
-      ) =>
-        this._buildGraphData(
-          fileConnections,
-          workspaceRoot,
-          showOrphans,
-          nextDisabledRules,
-          nextDisabledPlugins,
-        ),
-      _preAnalyzePlugins: (
-        files: IDiscoveredFile[],
-        workspaceRoot: string,
-        nextSignal?: AbortSignal,
-      ) => this._preAnalyzePlugins(files, workspaceRoot, nextSignal),
-      getPluginFilterPatterns: () => this.getPluginFilterPatterns(),
-    } as WorkspaceAnalyzerAnalysisSource;
-    Object.defineProperties(source, {
-      _eventBus: {
-        get: () => this._eventBus,
-      },
-      _lastDiscoveredFiles: {
-        get: () => this._lastDiscoveredFiles,
-        set: (files: IDiscoveredFile[]) => {
-          this._lastDiscoveredFiles = files;
-        },
-      },
-      _lastFileConnections: {
-        get: () => this._lastFileConnections,
-        set: (fileConnections: Map<string, IConnection[]>) => {
-          this._lastFileConnections = fileConnections;
-        },
-      },
-      _lastWorkspaceRoot: {
-        get: () => this._lastWorkspaceRoot,
-        set: (workspaceRoot: string) => {
-          this._lastWorkspaceRoot = workspaceRoot;
-        },
-      },
-    });
-
     return runWorkspaceAnalyzerAnalysis(
-      source,
+      createWorkspaceAnalyzerAnalysisSource(
+        this as unknown as WorkspaceAnalyzerSourceOwner,
+      ),
       this._cache,
       this._config,
       this._discovery,
       this._context.workspaceState,
       () => this._getWorkspaceRoot(),
       filterPatterns,
-      disabledRules,
+      disabledSources,
       disabledPlugins,
       signal,
     );
@@ -192,37 +141,14 @@ export class WorkspaceAnalyzer {
 
   /**
    * Rebuilds graph data from cached connections without re-analyzing files.
-   * Used for instant graph updates when toggling rules/plugins.
+   * Used for instant graph updates when toggling sources/plugins.
    */
-  rebuildGraph(disabledRules: Set<string>, disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
-    const source = {
-      _buildGraphData: (
-        fileConnections: Map<string, IConnection[]>,
-        workspaceRoot: string,
-        nextShowOrphans: boolean,
-        nextDisabledRules: Set<string>,
-        nextDisabledPlugins: Set<string>,
-      ) =>
-        this._buildGraphData(
-          fileConnections,
-          workspaceRoot,
-          nextShowOrphans,
-          nextDisabledRules,
-          nextDisabledPlugins,
-        ),
-    } as import('./analysis/state').WorkspaceAnalyzerRebuildSource;
-    Object.defineProperties(source, {
-      _lastFileConnections: {
-        get: () => this._lastFileConnections,
-      },
-      _lastWorkspaceRoot: {
-        get: () => this._lastWorkspaceRoot,
-      },
-    });
-
+  rebuildGraph(disabledSources: Set<string>, disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
     return rebuildWorkspaceAnalyzerGraphForSource(
-      source,
-      disabledRules,
+      createWorkspaceAnalyzerRebuildSource(
+        this as unknown as WorkspaceAnalyzerSourceOwner,
+      ),
+      disabledSources,
       disabledPlugins,
       showOrphans,
     );
@@ -231,10 +157,10 @@ export class WorkspaceAnalyzer {
   /**
    * Computes the status of each registered plugin for the webview's Plugins panel.
    */
-  getPluginStatuses(disabledRules: Set<string>, disabledPlugins: Set<string>): IPluginStatus[] {
+  getPluginStatuses(disabledSources: Set<string>, disabledPlugins: Set<string>): IPluginStatus[] {
     return getWorkspaceAnalyzerPluginStatuses({
       disabledPlugins,
-      disabledRules,
+      disabledSources,
       discoveredFiles: this._lastDiscoveredFiles,
       fileConnections: this._lastFileConnections,
       registry: this._registry,
@@ -249,7 +175,7 @@ export class WorkspaceAnalyzer {
     return resolveWorkspaceAnalyzerPluginNameForFile(
       relativePath,
       this._lastWorkspaceRoot,
-      () => getWorkspaceAnalyzerRoot(vscode.workspace.workspaceFolders),
+      () => readWorkspaceAnalyzerRoot(vscode.workspace.workspaceFolders),
       this._registry,
     );
   }
@@ -277,19 +203,16 @@ export class WorkspaceAnalyzer {
    * Pre-analysis pass: dispatches onPreAnalyze to registered plugins.
    * Reads file content once and shares it with all plugins.
    */
-  private async _preAnalyzePlugins(
+  protected async _preAnalyzePlugins(
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal
   ): Promise<void> {
-    await preAnalyzeWorkspaceAnalyzerFiles(
+    await preAnalyzeWorkspaceAnalyzerPlugins(
       files,
       workspaceRoot,
-      {
-        notifyPreAnalyze: (v2Files, rootPath) =>
-          this._registry.notifyPreAnalyze(v2Files, rootPath),
-        readContent: file => this._discovery.readContent(file),
-      },
+      this._registry,
+      this._discovery,
       signal,
     );
   }
@@ -297,26 +220,19 @@ export class WorkspaceAnalyzer {
   /**
    * Analyzes discovered files, using cache where possible.
    */
-  private async _analyzeFiles(
+  protected async _analyzeFiles(
     files: IDiscoveredFile[],
     workspaceRoot: string,
     signal?: AbortSignal
   ): Promise<Map<string, IConnection[]>> {
-    const source: WorkspaceAnalyzerFilesSource = {
-      _cache: this._cache,
-      _discovery: this._discovery,
-      _eventBus: this._eventBus,
-      _getFileStat: (filePath: string) => this._getFileStat(filePath),
-      _registry: this._registry,
-    };
-
-    return analyzeWorkspaceAnalyzerSourceFiles(
-      source,
+    return analyzeWorkspaceAnalyzerFiles(
+      this._cache,
+      this._discovery,
+      this._eventBus,
+      this._registry,
+      (filePath: string) => this._getFileStat(filePath),
       files,
       workspaceRoot,
-      message => {
-        console.log(message);
-      },
       signal,
     );
   }
@@ -324,25 +240,21 @@ export class WorkspaceAnalyzer {
   /**
    * Builds graph data from file connections.
    */
-  private _buildGraphData(
+  protected _buildGraphData(
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledRules: Set<string> = new Set(),
+    disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set()
   ): IGraphData {
-    const source: WorkspaceAnalyzerGraphSource = {
-      _cache: this._cache,
-      _context: this._context,
-      _registry: this._registry,
-    };
-
-    return buildWorkspaceAnalyzerGraphForSource(
-      source,
+    return buildWorkspaceAnalyzerGraphData(
+      this._cache,
+      this._context,
+      this._registry,
       fileConnections,
       workspaceRoot,
       showOrphans,
-      disabledRules,
+      disabledSources,
       disabledPlugins,
     );
   }
@@ -351,14 +263,13 @@ export class WorkspaceAnalyzer {
    * Gets the workspace root folder path.
    */
   private _getWorkspaceRoot(): string | undefined {
-    return getWorkspaceAnalyzerRoot(vscode.workspace.workspaceFolders);
+    return readWorkspaceAnalyzerRoot(vscode.workspace.workspaceFolders);
   }
 
   /**
    * Gets file stat (mtime and size).
    */
   private async _getFileStat(filePath: string): Promise<{ mtime: number; size: number } | null> {
-    return getWorkspaceAnalyzerFileStat(filePath, vscode.workspace.fs);
+    return readWorkspaceAnalyzerFileStat(filePath, vscode.workspace.fs);
   }
-
 }

@@ -23,6 +23,8 @@ describe('timeline/Controls', () => {
     expect(screen.getByRole('button', { name: 'Start' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Prev' })).toBeDisabled();
     expect(screen.getByRole('button', { name: 'Play' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Play' })).toHaveAttribute('aria-label', 'Play');
+    expect(screen.getByRole('button', { name: 'Play' })).toHaveAttribute('title', 'Play');
     expect(screen.getByRole('button', { name: 'Next' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'End' })).toBeEnabled();
   });
@@ -59,5 +61,27 @@ describe('timeline/Controls', () => {
     expect(onPlayPause).toHaveBeenCalledTimes(1);
     expect(onJumpToNext).toHaveBeenCalledTimes(1);
     expect(onJumpToEnd).toHaveBeenCalledTimes(1);
+  });
+
+  it('switches to pause state and disables forward navigation at the end', () => {
+    render(
+      <Controls
+        currentDateLabel="Jan 5, 2024"
+        isAtEnd={true}
+        isAtStart={false}
+        isPlaying={true}
+        onJumpToEnd={vi.fn()}
+        onJumpToNext={vi.fn()}
+        onJumpToPrevious={vi.fn()}
+        onJumpToStart={vi.fn()}
+        onPlayPause={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole('button', { name: 'Pause' })).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Pause' })).toHaveAttribute('aria-label', 'Pause');
+    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'End' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Pause' })).toHaveAttribute('title', 'Pause');
   });
 });

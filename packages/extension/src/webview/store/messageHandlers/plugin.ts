@@ -35,6 +35,18 @@ export function handleContextMenuItems(
   return { pluginContextMenuItems: message.payload.items };
 }
 
+export function handlePluginExportersUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_EXPORTERS_UPDATED' }>,
+): PartialState {
+  return { pluginExporters: message.payload.items };
+}
+
+export function handlePluginToolbarActionsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED' }>,
+): PartialState {
+  return { pluginToolbarActions: message.payload.items };
+}
+
 export function handleDagModeUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>,
 ): PartialState {

@@ -3,7 +3,7 @@ import {
   matchStaticAccess,
   matchIsAs,
   matchGenerics,
-} from '../src/rules/class-name-expressions';
+} from '../src/sources/class-name-expressions';
 
 describe('matchStaticAccess', () => {
   it('should match uppercase class before dot access', () => {

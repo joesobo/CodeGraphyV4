@@ -12,7 +12,7 @@ const mockData: IGraphData = {
     { id: 'a.ts', label: 'a.ts', color: '#93C5FD' },
     { id: 'b.ts', label: 'b.ts', color: '#67E8F9' },
   ],
-  edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' }],
+  edges: [{ id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] }],
 };
 
 const bidirectionalData: IGraphData = {
@@ -21,8 +21,8 @@ const bidirectionalData: IGraphData = {
     { id: 'b.ts', label: 'b.ts', color: '#67E8F9' },
   ],
   edges: [
-    { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' },
-    { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' },
+    { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+    { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
   ],
 };
 

@@ -7,9 +7,74 @@
 import type { Disposable } from './disposable';
 import type { EventPayloads } from './events';
 import type { NodeDecoration, EdgeDecoration } from './decorations';
-import type { IGraphData, IGraphNode, IGraphEdge } from './graph';
+import type { GraphEdgeKind, IGraphData, IGraphNode, IGraphEdge } from './graph';
 import type { IView } from './views';
 import type { ICommand, IContextMenuItem } from './commands';
+
+export interface ExportRequest {
+  /** Default filename shown in the save dialog. */
+  filename: string;
+
+  /** File content to write. */
+  content: string | Uint8Array;
+
+  /** Optional save-dialog filters keyed by human-readable label. */
+  filters?: Record<string, string[]>;
+
+  /** Optional custom save-dialog title. */
+  title?: string;
+
+  /** Optional success toast message after saving. */
+  successMessage?: string;
+}
+
+export interface IExporter {
+  /** Unique identifier within the plugin. */
+  id: string;
+
+  /** Human-readable label shown in the export menu. */
+  label: string;
+
+  /** Optional extra description for menus and docs. */
+  description?: string;
+
+  /** Optional menu grouping label. */
+  group?: string;
+
+  /** Export implementation. Usually calls `api.saveExport(...)`. */
+  run(this: void): void | Promise<void>;
+}
+
+export interface IToolbarActionItem {
+  /** Unique identifier within the toolbar action. */
+  id: string;
+
+  /** Human-readable label shown in the popup. */
+  label: string;
+
+  /** Optional extra description for menus and docs. */
+  description?: string;
+
+  /** Action implementation for the menu item. */
+  run(this: void): void | Promise<void>;
+}
+
+export interface IToolbarAction {
+  /** Unique identifier within the plugin. */
+  id: string;
+
+  /** Human-readable label shown on the toolbar button. */
+  label: string;
+
+  /** Optional icon name or identifier for the toolbar button. */
+  icon?: string;
+
+  /** Optional extra description for tooltips and docs. */
+  description?: string;
+
+  /** Menu items shown when the toolbar button is opened. */
+  items: IToolbarActionItem[];
+}
 
 /**
  * The host API provided to v2 plugins via the `onLoad(api)` lifecycle hook.
@@ -110,8 +175,23 @@ export interface CodeGraphyAPI {
   /** Get all nodes directly connected to the given node. */
   getNeighbors(id: string): IGraphNode[];
 
+  /** Get all edges that point into the given node. */
+  getIncomingEdges(nodeId: string): IGraphEdge[];
+
+  /** Get all edges that originate from the given node. */
+  getOutgoingEdges(nodeId: string): IGraphEdge[];
+
   /** Get all edges where the given node is either `from` or `to`. */
   getEdgesFor(nodeId: string): IGraphEdge[];
+
+  /** Filter the graph's edges by one or more semantic kinds. */
+  filterEdgesByKind(kind: GraphEdgeKind | GraphEdgeKind[]): IGraphEdge[];
+
+  /** Build an induced subgraph around a seed node for the requested hop depth. */
+  getSubgraph(nodeId: string, hops: number): IGraphData;
+
+  /** Find the shortest directed path between two nodes, if one exists. */
+  findPath(fromId: string, toId: string): IGraphNode[] | null;
 
   // ---------------------------------------------------------------------------
   // Registration
@@ -135,6 +215,17 @@ export interface CodeGraphyAPI {
    */
   registerContextMenuItem(item: IContextMenuItem): Disposable;
 
+  /**
+   * Register an exporter that appears in the main export menu.
+   */
+  registerExporter(exporter: IExporter): Disposable;
+
+  /**
+   * Register a toolbar action that appears as a dedicated toolbar button.
+   * Each action can expose one or more popup items.
+   */
+  registerToolbarAction(action: IToolbarAction): Disposable;
+
   // ---------------------------------------------------------------------------
   // Webview messaging
   // ---------------------------------------------------------------------------
@@ -152,6 +243,12 @@ export interface CodeGraphyAPI {
   onWebviewMessage(
     handler: (msg: { type: string; data: unknown }) => void
   ): Disposable;
+
+  /**
+   * Save plugin-generated export content through the host's file-save flow.
+   * Useful for plugin toolbar actions, custom views, and semantic exporters.
+   */
+  saveExport(request: ExportRequest): Promise<void>;
 
   // ---------------------------------------------------------------------------
   // Utilities

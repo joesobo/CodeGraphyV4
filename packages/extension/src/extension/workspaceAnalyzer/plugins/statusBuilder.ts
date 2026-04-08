@@ -10,7 +10,7 @@ import type { IPluginStatus, IPluginRuleStatus } from '../../../shared/plugins/s
 
 export interface IWorkspacePluginStatusOptions {
   disabledPlugins: ReadonlySet<string>;
-  disabledRules: ReadonlySet<string>;
+  disabledSources: ReadonlySet<string>;
   discoveredFiles: Pick<IDiscoveredFile, 'relativePath'>[];
   fileConnections: ReadonlyMap<string, IConnection[]>;
   pluginInfos: IPluginInfo[];
@@ -21,7 +21,7 @@ export interface IWorkspacePluginStatusOptions {
 export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOptions): IPluginStatus[] {
   const {
     disabledPlugins,
-    disabledRules,
+    disabledSources,
     discoveredFiles,
     fileConnections,
     pluginInfos,
@@ -53,10 +53,10 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
         }
 
         totalConnections += 1;
-        if (connection.ruleId) {
+        if (connection.sourceId) {
           ruleConnectionCounts.set(
-            connection.ruleId,
-            (ruleConnectionCounts.get(connection.ruleId) ?? 0) + 1
+            connection.sourceId,
+            (ruleConnectionCounts.get(connection.sourceId) ?? 0) + 1
           );
         }
       }
@@ -68,15 +68,15 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
         ? 'active'
         : 'installed';
 
-    const rules: IPluginRuleStatus[] = (plugin.rules ?? []).map((rule) => {
-      const qualifiedId = `${plugin.id}:${rule.id}`;
+    const sources: IPluginRuleStatus[] = (plugin.sources ?? []).map((rule) => {
+      const qualifiedSourceId = `${plugin.id}:${rule.id}`;
 
       return {
         id: rule.id,
-        qualifiedId,
+        qualifiedSourceId,
         name: rule.name,
         description: rule.description,
-        enabled: !disabledRules.has(qualifiedId),
+        enabled: !disabledSources.has(qualifiedSourceId),
         connectionCount: ruleConnectionCounts.get(rule.id) ?? 0,
       };
     });
@@ -89,7 +89,7 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
       status,
       enabled: !disabledPlugins.has(plugin.id),
       connectionCount: totalConnections,
-      rules,
+      sources,
     });
   }
 

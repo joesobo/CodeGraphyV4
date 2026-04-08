@@ -18,15 +18,18 @@ export function getDimensionToggleTooltipLabel(graphMode: '2d' | '3d'): string {
 export function DimensionToggle(): React.ReactElement {
   const graphMode = useGraphStore(s => s.graphMode);
   const setGraphMode = useGraphStore(s => s.setGraphMode);
+  const title = 'Toggle 2D/3D Mode';
 
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <Button
+          aria-label={title}
           variant="outline"
           size="icon"
           className="h-7 w-7 bg-transparent"
           onClick={() => setGraphMode(graphMode === '2d' ? '3d' : '2d')}
+          title={title}
         >
           <MdiIcon path={graphMode === '2d' ? mdiCircleOutline : mdiSphere} size={16} />
         </Button>

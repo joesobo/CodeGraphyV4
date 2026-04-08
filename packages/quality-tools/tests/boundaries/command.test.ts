@@ -46,6 +46,121 @@ describe('runBoundariesCli', () => {
     expect(dependencies.setExitCode).not.toHaveBeenCalled();
   });
 
+  it('treats a leading --verbose flag as a value flag during target parsing and still reports verbose output', () => {
+    const dependencies = createDependencies();
+
+    runBoundariesCli(['--verbose', 'extension/'], dependencies);
+
+    expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(REPO_ROOT, undefined);
+    expect(dependencies.reportBoundaries).toHaveBeenCalledWith(createReport(), { verbose: true });
+    expect(dependencies.setExitCode).not.toHaveBeenCalled();
+  });
+
+  it('treats a leading --json flag as a value flag during target parsing', () => {
+    const dependencies = createDependencies();
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    runBoundariesCli(['--json', 'extension/'], dependencies);
+
+    expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(REPO_ROOT, undefined);
+    expect(log).toHaveBeenCalledWith(JSON.stringify(createReport(), null, 2));
+    expect(dependencies.reportBoundaries).not.toHaveBeenCalled();
+
+    log.mockRestore();
+  });
+
+  it('treats a leading --strict flag as a value flag during target parsing', () => {
+    const dependencies = createDependencies();
+
+    runBoundariesCli(['--strict', 'extension/'], dependencies);
+
+    expect(dependencies.resolveQualityTarget).toHaveBeenCalledWith(REPO_ROOT, undefined);
+    expect(dependencies.reportBoundaries).toHaveBeenCalledWith(createReport(), { verbose: false });
+    expect(dependencies.setExitCode).not.toHaveBeenCalled();
+  });
+
+  it('fails for layer violations even without dead ends or strict mode', () => {
+    const dependencies = createDependencies({
+      ...createReport(),
+      layerViolations: [
+        {
+          from: 'packages/extension/src/core/bad.ts',
+          reason: 'core cannot depend on webview',
+          to: 'packages/extension/src/webview/view.ts',
+        },
+      ],
+    });
+
+    runBoundariesCli(['extension/'], dependencies);
+
+    expect(dependencies.setExitCode).toHaveBeenCalledWith(1);
+  });
+
+  it('fails for dead ends even when there are no layer violations', () => {
+    const dependencies = createDependencies({
+      ...createReport(),
+      deadEnds: [
+        {
+          absolutePath: `${REPO_ROOT}/packages/extension/src/shared/isolated.ts`,
+          entrypoint: false,
+          incoming: 0,
+          outgoing: 0,
+          relativePath: 'packages/extension/src/shared/isolated.ts',
+        },
+      ],
+    });
+
+    runBoundariesCli(['extension/'], dependencies);
+
+    expect(dependencies.setExitCode).toHaveBeenCalledWith(1);
+  });
+
+  it('fails in strict mode when only dead surfaces are present', () => {
+    const dependencies = createDependencies({
+      ...createReport(),
+      deadSurfaces: [
+        {
+          absolutePath: `${REPO_ROOT}/packages/extension/src/shared/orphan.ts`,
+          entrypoint: false,
+          incoming: 0,
+          outgoing: 1,
+          relativePath: 'packages/extension/src/shared/orphan.ts',
+        },
+      ],
+    });
+
+    runBoundariesCli(['extension/', '--strict'], dependencies);
+
+    expect(dependencies.setExitCode).toHaveBeenCalledWith(1);
+  });
+
+  it('does not fail in strict mode when dead surfaces are absent', () => {
+    const dependencies = createDependencies();
+
+    runBoundariesCli(['extension/', '--strict'], dependencies);
+
+    expect(dependencies.setExitCode).not.toHaveBeenCalled();
+  });
+
+  it('does not fail for dead surfaces when strict mode is absent', () => {
+    const dependencies = createDependencies({
+      ...createReport(),
+      deadSurfaces: [
+        {
+          absolutePath: `${REPO_ROOT}/packages/extension/src/shared/orphan.ts`,
+          entrypoint: false,
+          incoming: 0,
+          outgoing: 1,
+          relativePath: 'packages/extension/src/shared/orphan.ts',
+        },
+      ],
+    });
+
+    runBoundariesCli(['extension/'], dependencies);
+
+    expect(dependencies.setExitCode).not.toHaveBeenCalled();
+  });
+
   it('prints JSON and sets a failure exit code when violations exist', () => {
     const report = {
       ...createReport(),

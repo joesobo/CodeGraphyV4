@@ -22,7 +22,7 @@ describe('workspaceAnalyzer/graph', () => {
       buildWorkspaceAnalyzerGraph({
         cacheFiles: {},
         disabledPlugins: new Set<string>(['plugin.python']),
-        disabledRules: new Set<string>(['plugin.typescript:rule']),
+        disabledSources: new Set<string>(['plugin.typescript:rule']),
         fileConnections: new Map([['src/index.ts', []]]),
         getPluginForFile: vi.fn(),
         showOrphans: true,
@@ -34,7 +34,7 @@ describe('workspaceAnalyzer/graph', () => {
     expect(workspaceGraphDataModule.buildWorkspaceGraphData).toHaveBeenCalledWith({
       cacheFiles: {},
       disabledPlugins: new Set<string>(['plugin.python']),
-      disabledRules: new Set<string>(['plugin.typescript:rule']),
+      disabledSources: new Set<string>(['plugin.typescript:rule']),
       fileConnections: new Map([['src/index.ts', []]]),
       getPluginForFile: expect.any(Function),
       showOrphans: true,

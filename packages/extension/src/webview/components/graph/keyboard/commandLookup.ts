@@ -11,6 +11,10 @@ import {
 } from './shortcutResolvers';
 import { getToolbarShortcutCommand } from './toolbarShortcutResolver';
 
+function isPackageNodeId(nodeId: string): boolean {
+  return nodeId.startsWith('pkg:');
+}
+
 export function getGraphKeyboardCommandImpl(
   options: GraphKeyboardOptions
 ): GraphKeyboardCommand | null {
@@ -26,7 +30,11 @@ export function getGraphKeyboardCommandImpl(
     case 'Escape':
       return createClearSelectionCommand();
     case 'Enter':
-      return selectedNodeIds.length > 0 ? createOpenSelectedNodesCommand(selectedNodeIds) : null;
+      return selectedNodeIds.length > 0
+        ? createOpenSelectedNodesCommand(
+            selectedNodeIds.filter(nodeId => !isPackageNodeId(nodeId)),
+          )
+        : null;
     case 'a':
       return isMod ? createSelectAllCommand(allNodeIds) : null;
     default:

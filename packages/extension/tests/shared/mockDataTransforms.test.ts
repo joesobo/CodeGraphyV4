@@ -49,7 +49,7 @@ describe('fileDataToEdges', () => {
 
   it('uses from->to path as the edge id', () => {
     const edges = fileDataToEdges(sampleFiles);
-    expect(edges[0].id).toBe('src/a.ts->src/b.ts');
+    expect(edges[0].id).toBe('src/a.ts->src/b.ts#import');
   });
 
   it('sets from and to correctly', () => {

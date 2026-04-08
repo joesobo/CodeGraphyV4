@@ -18,7 +18,7 @@ Indexing analyzes the main branch's commit history (up to 500 commits). The firs
 
 The timeline respects your current settings:
 - **Filter patterns** are applied during indexing
-- **Disabled plugins and rules** are applied at display time — toggle a rule off and it's off across all commits
+- **Disabled plugins and sources** are applied at display time — toggle a rule off and it's off across all commits
 - **Show Orphans** filtering is applied at display time
 
 ## Controls
@@ -57,7 +57,7 @@ During timeline mode, destructive file actions (Delete, Rename, Create File, Add
 
 Timeline data is cached in the extension's storage directory (`context.storageUri/git-cache/`). The cache is automatically invalidated when:
 - Filter patterns change
-- Disabled plugins or rules change (`codegraphy.disabledPlugins`, `codegraphy.disabledRules`)
+- Disabled plugins or sources change (`codegraphy.disabledPlugins`, `codegraphy.disabledSources`)
 - You click Index Repo again (re-indexes from scratch)
 
 To force a fresh index, click **Index Repo** again.

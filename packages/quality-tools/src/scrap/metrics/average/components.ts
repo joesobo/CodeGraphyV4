@@ -3,17 +3,21 @@ import { buildSimilarityEdges } from './edges';
 function collectComponent(start: number, edges: Map<number, number[]>, visited: Set<number>): number[] {
   const stack = [start];
   const component: number[] = [];
+  const queued = new Set<number>([start]);
+  visited.add(start);
 
-  for (const index of stack) {
-    if (visited.has(index)) {
-      continue;
-    }
+  for (let index = 0; index < stack.length; index++) {
+    const current = stack[index];
+    component.push(current);
+    for (const neighbor of edges.get(current) ?? []) {
+      if (queued.has(neighbor)) {
+        continue;
+      }
 
-    visited.add(index);
-    component.push(index);
-    edges.get(index)!.forEach((neighbor) => {
+      queued.add(neighbor);
+      visited.add(neighbor);
       stack.push(neighbor);
-    });
+    }
   }
 
   return component;

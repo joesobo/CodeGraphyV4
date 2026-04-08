@@ -13,7 +13,7 @@ const defaults: IPhysicsSettings = {
 
 describe('graphView/settings/physics/reader', () => {
   it('reads each physics setting from configuration using the configured keys', () => {
-    const get = vi.fn((key: string, fallback: number) => fallback + 1);
+    const get = vi.fn((_: string, fallback: number) => fallback + 1);
     const config = { get } as unknown as vscode.WorkspaceConfiguration;
 
     expect(readGraphViewPhysicsSettings(config, defaults)).toEqual({

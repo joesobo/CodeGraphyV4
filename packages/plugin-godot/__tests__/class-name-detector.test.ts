@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { detectUsagesInLine } from '../src/rules/class-name-detector';
+import { detectUsagesInLine } from '../src/sources/class-name-detector';
 
 describe('detectUsagesInLine', () => {
   it('should detect extends by class_name', () => {

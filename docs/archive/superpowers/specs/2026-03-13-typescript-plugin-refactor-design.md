@@ -25,7 +25,7 @@ Refactor the TypeScript plugin to meet project quality gates: mutation score ≥
 ### Key problems
 
 1. `getScriptKind()` duplicated across all 4 rule files
-2. No per-rule test files (rules tested indirectly via integration)
+2. No per-rule test files (sources tested indirectly via integration)
 3. `PathResolver.ts` (230 lines, 145 mutation sites) does too much
 4. `index.ts` (150 lines, 66 mutation sites) mixes orchestration with tsconfig parsing
 5. 123 surviving mutants + 49 with no coverage
@@ -82,8 +82,8 @@ The 4 rule files are already well-structured and under 50 mutation sites each. O
 ### Rename and consolidate
 
 - `Integration.test.ts` → `index.test.ts` (match source module naming convention)
-- Move manifest/metadata assertions from `ruleId.test.ts` into `index.test.ts`
-- Delete `ruleId.test.ts`
+- Move manifest/metadata assertions from `sourceId.test.ts` into `index.test.ts`
+- Delete `sourceId.test.ts`
 
 ### New per-module test files
 
@@ -95,10 +95,10 @@ Each extracted source module and each rule gets a dedicated test file:
 | `tsconfig.ts` | `tsconfig.test.ts` | tsconfig loading, parsing, edge cases |
 | `builtins.ts` | `builtins.test.ts` | Built-in detection, bare specifier regex |
 | `fileResolver.ts` | `fileResolver.test.ts` | Extension inference, index files, missing files |
-| `rules/es6-import.ts` | `es6-import.test.ts` | Static import detection edge cases |
-| `rules/dynamic-import.ts` | `dynamic-import.test.ts` | Dynamic import() detection |
-| `rules/commonjs-require.ts` | `commonjs-require.test.ts` | require() detection |
-| `rules/reexport.ts` | `reexport.test.ts` | Re-export detection |
+| `sources/es6-import.ts` | `es6-import.test.ts` | Static import detection edge cases |
+| `sources/dynamic-import.ts` | `dynamic-import.test.ts` | Dynamic import() detection |
+| `sources/commonjs-require.ts` | `commonjs-require.test.ts` | require() detection |
+| `sources/reexport.ts` | `reexport.test.ts` | Re-export detection |
 
 ### Existing test files (updated)
 
@@ -124,7 +124,7 @@ packages/plugin-typescript/
 │   ├── builtins.ts           (~40 lines, built-in detection)
 │   ├── fileResolver.ts       (~60 lines, file resolution)
 │   ├── getScriptKind.ts      (~15 lines, shared utility)
-│   └── rules/
+│   └── sources/
 │       ├── es6-import.ts     (unchanged except import)
 │       ├── reexport.ts       (unchanged except import)
 │       ├── dynamic-import.ts (unchanged except import)

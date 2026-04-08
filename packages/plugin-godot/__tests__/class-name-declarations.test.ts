@@ -3,7 +3,7 @@ import {
 	matchExtendsClass,
 	matchTypeAnnotations,
 	matchReturnType,
-} from '../src/rules/class-name-declarations';
+} from '../src/sources/class-name-declarations';
 
 describe('matchExtendsClass', () => {
 	it('should return the class name for a simple extends line', () => {

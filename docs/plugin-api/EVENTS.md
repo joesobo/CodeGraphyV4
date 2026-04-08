@@ -84,7 +84,7 @@ Notes:
 | `plugin:unregistered` | `{ pluginId }` |
 | `plugin:enabled` | `{ pluginId }` |
 | `plugin:disabled` | `{ pluginId }` |
-| `plugin:ruleToggled` | `{ qualifiedId, enabled }` |
+| `plugin:sourceToggled` | `{ qualifiedSourceId, enabled }` |
 | `plugin:message` | `{ from, to?, data }` |
 
 ### Timeline (4)

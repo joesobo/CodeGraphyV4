@@ -14,10 +14,23 @@ import { getNoDataHint } from './messages';
 import { setupMessageListener } from './messageListener';
 import { LoadingState, EmptyState } from './states';
 import { useAppState, useAppActions } from './storeSelectors';
+import { SlotHost } from '../pluginHost/slotHost/view';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
-  const { graphData, isLoading, searchQuery, searchOptions, groups, showOrphans, activePanel, nodeDecorations, edgeDecorations, activeFilePath } = useAppState();
+  const {
+    graphData,
+    isLoading,
+    searchQuery,
+    searchOptions,
+    groups,
+    showOrphans,
+    activePanel,
+    activeViewId,
+    nodeDecorations,
+    edgeDecorations,
+    activeFilePath,
+  } = useAppState();
   const { setSearchQuery, setSearchOptions, setActivePanel } = useAppActions();
 
   const theme = useTheme();
@@ -33,9 +46,11 @@ export default function App(): React.ReactElement {
 
   if (isLoading) return <LoadingState />;
 
-  if (!graphData || graphData.nodes.length === 0) {
-    return <EmptyState hint={getNoDataHint(graphData, showOrphans)} />;
+  if (!graphData) {
+    return <EmptyState hint={getNoDataHint(graphData, showOrphans, activeViewId)} />;
   }
+
+  const hasGraphNodes = graphData.nodes.length > 0;
 
   return (
     <div className="relative w-full h-screen flex flex-col">
@@ -55,20 +70,32 @@ export default function App(): React.ReactElement {
         </div>
       </div>
       <div className="flex-1 min-h-0 relative">
-        <Graph
-          data={coloredData || graphData}
-          theme={theme}
-          nodeDecorations={nodeDecorations}
-          edgeDecorations={edgeDecorations}
-          pluginHost={pluginHost}
-        />
-        <DepthViewControls />
+        {hasGraphNodes ? (
+          <>
+            <Graph
+              data={coloredData || graphData}
+              theme={theme}
+              nodeDecorations={nodeDecorations}
+              edgeDecorations={edgeDecorations}
+              pluginHost={pluginHost}
+            />
+            <DepthViewControls />
+          </>
+        ) : (
+          <EmptyState hint={getNoDataHint(graphData, showOrphans, activeViewId)} fullScreen={false} />
+        )}
         <div className="absolute inset-y-2 left-2 z-10 pointer-events-none">
           <div className="h-full pointer-events-auto">
-            <Toolbar />
+            <Toolbar pluginHost={pluginHost} />
           </div>
         </div>
         <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
+          <SlotHost
+            pluginHost={pluginHost}
+            slot="node-details"
+            data-testid="node-details-slot"
+            className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
+          />
           <PluginsPanel isOpen={activePanel === 'plugins'} onClose={() => setActivePanel('none')} />
           <SettingsPanel isOpen={activePanel === 'settings'} onClose={() => setActivePanel('none')} />
         </div>

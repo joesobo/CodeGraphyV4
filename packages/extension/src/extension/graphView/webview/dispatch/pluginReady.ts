@@ -28,6 +28,8 @@ export interface GraphViewPluginReadyContext {
   sendCachedTimeline(): Promise<void>;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendPluginExporters?(): void;
+  sendPluginToolbarActions?(): void;
   sendPluginWebviewInjections(): void;
   sendActiveFile(): void;
   waitForFirstWorkspaceReady(): PromiseLike<void>;
@@ -65,6 +67,8 @@ export async function dispatchGraphViewPluginReadyMessage(
       sendCachedTimeline: () => context.sendCachedTimeline(),
       sendDecorations: () => context.sendDecorations(),
       sendContextMenuItems: () => context.sendContextMenuItems(),
+      sendPluginExporters: () => context.sendPluginExporters?.(),
+      sendPluginToolbarActions: () => context.sendPluginToolbarActions?.(),
       sendPluginWebviewInjections: () => context.sendPluginWebviewInjections(),
       sendActiveFile: () => context.sendActiveFile(),
       waitForFirstWorkspaceReady: () => context.waitForFirstWorkspaceReady(),

@@ -54,7 +54,7 @@ afterEach(() => {
   vi.doUnmock('vscode');
   vi.doUnmock('../../../../../src/extension/graphView/webview/messages/listener');
   vi.doUnmock('../../../../../src/extension/graphView/settings/reader');
-  vi.doUnmock('../../../../../src/extension/graphView/settings/snapshotMessages');
+  vi.doUnmock('../../../../../src/extension/graphView/settings/snapshot');
   vi.doUnmock('../../../../../src/extension/actions/resetSettings');
   vi.doUnmock('../../../../../src/extension/undoManager');
   vi.resetModules();
@@ -97,7 +97,7 @@ function createSource(
     _userGroups: [],
     _activeViewId: 'codegraphy.connections',
     _disabledPlugins: new Set<string>(),
-    _disabledRules: new Set<string>(),
+    _disabledSources: new Set<string>(),
     _filterPatterns: ['dist/**'],
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _viewContext: { activePlugins: new Set() } satisfies IViewContext,
@@ -399,7 +399,7 @@ describe('graph view provider listener bridge', () => {
       getGraphViewConfigTarget: vi.fn(() => vscode.ConfigurationTarget.Workspace),
       normalizeFolderNodeColor: vi.fn((color: string) => color),
     }));
-    vi.doMock('../../../../../src/extension/graphView/settings/snapshotMessages', () => ({
+    vi.doMock('../../../../../src/extension/graphView/settings/snapshot', () => ({
       captureGraphViewSettingsSnapshot: vi.fn(() => createSettingsSnapshot()),
     }));
     vi.doMock('../../../../../src/extension/actions/resetSettings', () => ({
@@ -510,7 +510,7 @@ async function loadDefaultListenerHarness() {
     getGraphViewConfigTarget: getConfigTarget,
     normalizeFolderNodeColor,
   }));
-  vi.doMock('../../../../../src/extension/graphView/settings/snapshotMessages', () => ({
+  vi.doMock('../../../../../src/extension/graphView/settings/snapshot', () => ({
     captureGraphViewSettingsSnapshot: captureSettingsSnapshot,
   }));
   vi.doMock('../../../../../src/extension/actions/resetSettings', () => ({
@@ -526,7 +526,7 @@ async function loadDefaultListenerHarness() {
   const source = createSource({
     _graphData: {
       nodes: [{ id: 'node-1', label: 'node-1', color: '#93C5FD' }],
-      edges: [{ id: 'edge-1', from: 'node-1', to: 'node-2' }],
+      edges: [{ id: 'edge-1', from: 'node-1', to: 'node-2' , kind: 'import', sources: [] }],
     } satisfies IGraphData,
   });
   const webview = {

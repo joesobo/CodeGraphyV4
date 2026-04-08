@@ -26,7 +26,7 @@ describe('Configuration', () => {
       respectGitignore: true,
       showOrphans: true,
       plugins: [],
-      disabledRules: [],
+      disabledSources: [],
       disabledPlugins: [],
     };
 
@@ -64,9 +64,9 @@ describe('Configuration', () => {
       expect(config.plugins).toEqual([]);
     });
 
-    it('should return default disabledRules as empty array', () => {
+    it('should return default disabledSources as empty array', () => {
       const config = new Configuration();
-      expect(config.disabledRules).toEqual([]);
+      expect(config.disabledSources).toEqual([]);
     });
 
     it('should return default disabledPlugins as empty array', () => {
@@ -106,10 +106,10 @@ describe('Configuration', () => {
       expect(config.plugins).toEqual(['codegraphy-rust', 'codegraphy-go']);
     });
 
-    it('should return custom disabledRules', () => {
-      mockConfig.disabledRules = ['codegraphy.typescript:dynamic-import'];
+    it('should return custom disabledSources', () => {
+      mockConfig.disabledSources = ['codegraphy.typescript:dynamic-import'];
       const config = new Configuration();
-      expect(config.disabledRules).toEqual(['codegraphy.typescript:dynamic-import']);
+      expect(config.disabledSources).toEqual(['codegraphy.typescript:dynamic-import']);
     });
 
     it('should return custom disabledPlugins', () => {
@@ -131,7 +131,7 @@ describe('Configuration', () => {
         showOrphans: true,
         bidirectionalEdges: 'separate',
         plugins: [],
-        disabledRules: [],
+        disabledSources: [],
         disabledPlugins: [],
       });
     });
@@ -140,7 +140,7 @@ describe('Configuration', () => {
       mockConfig.maxFiles = 200;
       mockConfig.showOrphans = false;
       mockConfig.plugins = ['codegraphy-rust'];
-      mockConfig.disabledRules = ['codegraphy.typescript:dynamic-import'];
+      mockConfig.disabledSources = ['codegraphy.typescript:dynamic-import'];
       mockConfig.disabledPlugins = ['codegraphy.python'];
 
       const config = new Configuration();
@@ -149,7 +149,7 @@ describe('Configuration', () => {
       expect(all.maxFiles).toBe(200);
       expect(all.showOrphans).toBe(false);
       expect(all.plugins).toEqual(['codegraphy-rust']);
-      expect(all.disabledRules).toEqual(['codegraphy.typescript:dynamic-import']);
+      expect(all.disabledSources).toEqual(['codegraphy.typescript:dynamic-import']);
       expect(all.disabledPlugins).toEqual(['codegraphy.python']);
     });
   });

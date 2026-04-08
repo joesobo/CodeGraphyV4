@@ -16,6 +16,7 @@ function createHandlers() {
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
     sendPluginWebviewInjections: vi.fn(),
+    sendPluginToolbarActions: vi.fn(),
     sendActiveFile: vi.fn(),
     waitForFirstWorkspaceReady: vi.fn(() => Promise.resolve()),
     notifyWebviewReady: vi.fn(),

@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGroup } from '../../../src/shared/settings/groups';
 import { createGraphViewProviderTestHarness } from './testHarness';
 import { getGraphViewProviderInternals } from './internals';
-import { createTypeScriptPlugin } from '../../../../plugin-typescript/src';
-import { createPythonPlugin } from '../../../../plugin-python/src';
+import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
+import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
 
 type GroupSummary = Pick<IGroup, 'id'> & Partial<Pick<IGroup, 'pattern' | 'color' | 'disabled' | 'isPluginDefault' | 'pluginName'>>;
 

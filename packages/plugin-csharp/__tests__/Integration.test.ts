@@ -9,7 +9,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createCSharpPlugin } from '../src';
+import { createCSharpPlugin } from '../src/plugin';
 
 const CSHARP_EXAMPLE_ROOT = path.join(__dirname, '../examples');
 
@@ -40,9 +40,9 @@ describe('C# Plugin Integration', () => {
     expect(connections.length).toBeGreaterThan(0);
     
     // Find non-external connections (skip System namespace)
-    const internalConnections = connections.filter(c => 
-      c.resolvedPath !== null && 
-      !c.specifier.includes('System')
+    const internalConnections = connections.filter((connection) => 
+      connection.resolvedPath !== null && 
+      !connection.specifier.includes('System')
     );
 
     // At minimum, we should resolve MyApp.Services and MyApp.Utils
@@ -140,16 +140,16 @@ describe('C# Plugin Integration', () => {
     // The convention-based resolver should still find files
     const connections = await freshPlugin.detectConnections(programCs, content, workspaceRoot);
 
-    console.log('Fresh plugin connections:', connections.map(c => ({
-      specifier: c.specifier,
-      resolved: c.resolvedPath ? path.relative(workspaceRoot, c.resolvedPath) : null
+    console.log('Fresh plugin connections:', connections.map((connection) => ({
+      specifier: connection.specifier,
+      resolved: connection.resolvedPath ? path.relative(workspaceRoot, connection.resolvedPath) : null
     })));
 
     // Even without namespace registration, convention-based resolution
     // should find at least some files
-    const resolved = connections.filter(c => 
-      c.resolvedPath !== null && 
-      !c.specifier.includes('System')
+    const resolved = connections.filter((connection) => 
+      connection.resolvedPath !== null && 
+      !connection.specifier.includes('System')
     );
 
     // This is the key test - convention resolution should work

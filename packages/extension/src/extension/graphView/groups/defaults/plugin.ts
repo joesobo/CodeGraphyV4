@@ -1,21 +1,14 @@
 import * as vscode from 'vscode';
-import type { NodeShape2D, NodeShape3D } from '../../../../shared/settings/modes';
 import type { IGroup } from '../../../../shared/settings/groups';
+import type { IPluginFileColorDefinition } from '../../../../core/plugins/types/contracts';
 import { getBuiltInGraphViewPluginDir } from './pluginRoots';
-
-interface GraphViewPluginColorDefinition {
-  color: string;
-  shape2D?: NodeShape2D;
-  shape3D?: NodeShape3D;
-  image?: string;
-}
 
 interface GraphViewPluginInfoLike {
   builtIn?: boolean;
   plugin: {
     id: string;
     name: string;
-    fileColors?: Record<string, string | GraphViewPluginColorDefinition>;
+    fileColors?: Record<string, string | IPluginFileColorDefinition>;
   };
 }
 
@@ -70,7 +63,7 @@ export function getGraphViewPluginDefaultGroups(
       if (typeof value === 'object') {
         if (value.shape2D) group.shape2D = value.shape2D;
         if (value.shape3D) group.shape3D = value.shape3D;
-        if (value.image) group.imagePath = value.image;
+        if (value.imagePath) group.imagePath = value.imagePath;
       }
 
       result.push(group);

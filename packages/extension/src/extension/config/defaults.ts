@@ -37,7 +37,7 @@ export interface ICodeGraphyConfig {
   /** List of plugin extension names to enable */
   plugins: string[];
   /** List of disabled rule qualified IDs */
-  disabledRules: string[];
+  disabledSources: string[];
   /** List of disabled plugin IDs */
   disabledPlugins: string[];
 }

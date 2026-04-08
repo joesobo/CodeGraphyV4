@@ -43,6 +43,7 @@ describe('aggregateTooltipContent (mutation targets)', () => {
     const result = aggregateTooltipContent(context, providers);
 
     expect(result).toEqual({
+      actions: [],
       sections: [{ title: 'Valid', content: 'valid content' }],
     });
     expect(result!.sections).toHaveLength(1);
@@ -100,6 +101,7 @@ describe('aggregateTooltipContent (mutation targets)', () => {
     const result = aggregateTooltipContent(context, providers);
 
     expect(result).toEqual({
+      actions: [],
       sections: [{ title: 'Real', content: 'real content' }],
     });
     expect(result!.sections).toHaveLength(1);

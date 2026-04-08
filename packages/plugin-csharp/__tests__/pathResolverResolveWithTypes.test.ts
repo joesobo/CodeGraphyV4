@@ -28,9 +28,11 @@ describe('resolveUsingWithTypes', () => {
       usingDirective: createUsing('System.Collections.Generic'),
       usedTypes: new Set(['List']),
       workspaceRoot: '/workspace',
-      sourceDirs: ['src'],
-      namespaceToFileMap: new Map(),
-      fsOps: createFsOps(['src/List.cs']),
+      sourceDirs: [''],
+      namespaceToFileMap: new Map([
+        ['System.Collections.Generic', 'System/List.cs'],
+      ]),
+      fsOps: createFsOps(['List.cs', 'System/List.cs']),
     });
 
     expect(resolved).toEqual([]);
@@ -81,5 +83,18 @@ describe('resolveUsingWithTypes', () => {
     });
 
     expect(resolved).toEqual([]);
+  });
+
+  it('falls back to convention matches when no registered namespace file exists', () => {
+    const resolved = resolveUsingWithTypes({
+      usingDirective: createUsing('MyApp.Services'),
+      usedTypes: new Set(['OrderService']),
+      workspaceRoot: '/workspace',
+      sourceDirs: [''],
+      namespaceToFileMap: new Map(),
+      fsOps: createFsOps(['Services/OrderService.cs']),
+    });
+
+    expect(resolved).toEqual(['/workspace/Services/OrderService.cs']);
   });
 });

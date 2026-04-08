@@ -23,7 +23,7 @@ function createExportData(overrides: Partial<ExportData> = {}): ExportData {
     },
     sections: {
       connections: {
-        rules: {},
+        sources: {},
         groups: {},
         ungrouped: {},
       },
@@ -56,7 +56,7 @@ describe('renderMarkdownExport', () => {
     ].join('\n'));
   });
 
-  it('renders rules, grouped files, unattributed targets, and image ownership', () => {
+  it('renders sources, grouped files, unattributed targets, and image ownership', () => {
     const markdown = renderMarkdownExport(createExportData({
       scope: {
         graph: 'current-view',
@@ -74,7 +74,7 @@ describe('renderMarkdownExport', () => {
       },
       sections: {
         connections: {
-          rules: {
+          sources: {
             'ts:import': {
               name: 'Import',
               plugin: 'TypeScript',

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
-import { detect, default as rule } from '../src/rules/using-directive';
-import type { CSharpRuleContext } from '../src/parser';
+import { detect, default as rule } from '../src/sources/using-directive';
+import type { CSharpRuleContext } from '../src/parserTypes';
 import type { IDetectedUsing } from '../src/parserTypes';
 
 describe('using-directive rule', () => {
@@ -44,28 +44,32 @@ describe('using-directive rule', () => {
 
     expect(connections).toEqual([
       {
+        kind: 'import',
         specifier: 'using MyApp.Regular',
         resolvedPath: '/workspace/Regular.cs',
         type: 'static',
-        ruleId: 'using-directive',
+        sourceId: 'using-directive',
       },
       {
+        kind: 'import',
         specifier: 'global using MyApp.Global',
         resolvedPath: '/workspace/Global.cs',
         type: 'static',
-        ruleId: 'using-directive',
+        sourceId: 'using-directive',
       },
       {
+        kind: 'import',
         specifier: 'using static MyApp.StaticMath',
         resolvedPath: '/workspace/StaticMath.cs',
         type: 'static',
-        ruleId: 'using-directive',
+        sourceId: 'using-directive',
       },
       {
+        kind: 'import',
         specifier: 'using Json = MyApp.Serialization',
         resolvedPath: '/workspace/Serialization.cs',
         type: 'static',
-        ruleId: 'using-directive',
+        sourceId: 'using-directive',
       },
     ]);
 

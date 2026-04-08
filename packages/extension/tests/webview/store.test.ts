@@ -137,13 +137,49 @@ describe('GraphStore', () => {
       status: 'active' as const,
       enabled: true,
       connectionCount: 5,
-      rules: [],
+      sources: [],
     }];
     store.getState().handleExtensionMessage({
       type: 'PLUGINS_UPDATED',
       payload: { plugins },
     });
     expect(store.getState().pluginStatuses).toEqual(plugins);
+  });
+
+  it('handles PLUGIN_EXPORTERS_UPDATED message', () => {
+    const items = [{
+      id: 'summary',
+      label: 'Summary Export',
+      pluginId: 'plugin.docs',
+      pluginName: 'Docs Plugin',
+      index: 0,
+      group: 'Reports',
+    }];
+    store.getState().handleExtensionMessage({
+      type: 'PLUGIN_EXPORTERS_UPDATED',
+      payload: { items },
+    });
+    expect(store.getState().pluginExporters).toEqual(items);
+  });
+
+  it('handles PLUGIN_TOOLBAR_ACTIONS_UPDATED message', () => {
+    const items = [{
+      id: 'wikilinks',
+      label: 'Docs',
+      pluginId: 'plugin.docs',
+      pluginName: 'Docs Plugin',
+      index: 0,
+      items: [{
+        id: 'docs-summary',
+        label: 'Docs Summary',
+        index: 0,
+      }],
+    }];
+    store.getState().handleExtensionMessage({
+      type: 'PLUGIN_TOOLBAR_ACTIONS_UPDATED',
+      payload: { items },
+    });
+    expect(store.getState().pluginToolbarActions).toEqual(items);
   });
 
   it('handles MAX_FILES_UPDATED message', () => {

@@ -75,6 +75,11 @@ describe('isBareSpecifier', () => {
     expect(isBareSpecifier('/usr/local/lib')).toBe(false);
   });
 
+  it('should return false for dot-prefixed hidden file style specifiers', () => {
+    expect(isBareSpecifier('.env')).toBe(false);
+    expect(isBareSpecifier('.config/module')).toBe(false);
+  });
+
   it('should return true for packages with hyphens', () => {
     expect(isBareSpecifier('my-package')).toBe(true);
     expect(isBareSpecifier('@my-scope/my-package')).toBe(true);

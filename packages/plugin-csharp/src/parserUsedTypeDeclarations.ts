@@ -1,23 +1,28 @@
 import { collectTypesFromPattern } from './parserUsedTypeCollector';
 
-const COMMON_DECLARATION_NON_PROJECT_TYPES = new Set([
-  'String',
-  'Object',
-  'Boolean',
-  'Int32',
-  'Int64',
-  'Double',
-  'Decimal',
-  'Byte',
-  'Char',
-  'Void',
-]);
+function isCommonDeclarationNonProjectType(typeName: string): boolean {
+  switch (typeName) {
+    case 'String':
+    case 'Object':
+    case 'Boolean':
+    case 'Int32':
+    case 'Int64':
+    case 'Double':
+    case 'Decimal':
+    case 'Byte':
+    case 'Char':
+    case 'Void':
+      return true;
+    default:
+      return false;
+  }
+}
 
 export function collectDeclarationTypes(content: string, typeSet: Set<string>): void {
   collectTypesFromPattern(
     content,
     /\b([A-Z][A-Za-z0-9_]*)\s+[a-z_][A-Za-z0-9_]*\s*[=;,)]/g,
     typeSet,
-    typeName => !COMMON_DECLARATION_NON_PROJECT_TYPES.has(typeName),
+    typeName => !isCommonDeclarationNonProjectType(typeName),
   );
 }

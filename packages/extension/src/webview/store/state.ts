@@ -6,6 +6,8 @@ import { createActions } from './actions';
 import type { IGraphData } from '../../shared/graph/types';
 import type { IPluginContextMenuItem } from '../../shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/plugins/decorations';
+import type { IPluginExporterItem } from '../../shared/plugins/exporters';
+import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../shared/settings/groups';
@@ -30,6 +32,7 @@ export interface GraphState {
   directionColor: string;
   particleSpeed: number;
   particleSize: number;
+  physicsPaused: boolean;
   showLabels: boolean;
   graphMode: '2d' | '3d';
   nodeSizeMode: NodeSizeMode;
@@ -49,6 +52,8 @@ export interface GraphState {
   nodeDecorations: Record<string, NodeDecorationPayload>;
   edgeDecorations: Record<string, EdgeDecorationPayload>;
   pluginContextMenuItems: IPluginContextMenuItem[];
+  pluginExporters: IPluginExporterItem[];
+  pluginToolbarActions: IPluginToolbarAction[];
   activePanel: 'none' | 'settings' | 'plugins';
   maxFiles: number;
   activeFilePath: string | null;
@@ -77,6 +82,7 @@ export interface GraphState {
   setDirectionColor: (color: string) => void;
   setParticleSpeed: (speed: number) => void;
   setParticleSize: (size: number) => void;
+  setPhysicsPaused: (paused: boolean) => void;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
   setActiveViewId: (id: string) => void;

@@ -22,6 +22,9 @@ import {
   Surface3d,
   type Surface3dProps,
 } from './rendering/surface/view3d';
+import { SurfaceFallbackBoundary } from './rendering/surface/fallbackBoundary';
+import type { WebviewPluginHost } from '../../pluginHost/manager';
+import { SlotHost } from '../../pluginHost/slotHost/view';
 
 export interface ViewportProps {
   backgroundColor: string;
@@ -39,6 +42,8 @@ export interface ViewportProps {
   surface2dProps: Omit<Surface2dProps, 'backgroundColor' | 'directionMode'>;
   surface3dProps: Omit<Surface3dProps, 'backgroundColor' | 'directionMode'>;
   tooltipData: GraphTooltipState;
+  onSurface3dError?: (error: Error) => void;
+  pluginHost?: WebviewPluginHost;
 }
 
 export function Viewport({
@@ -57,6 +62,8 @@ export function Viewport({
   surface2dProps,
   surface3dProps,
   tooltipData,
+  onSurface3dError,
+  pluginHost,
 }: ViewportProps): ReactElement {
   return (
     <ContextMenu>
@@ -79,12 +86,32 @@ export function Viewport({
               directionMode={directionMode}
             />
           ) : (
-            <Surface3d
-              {...surface3dProps}
-              backgroundColor={backgroundColor}
-              directionMode={directionMode}
-            />
+            <SurfaceFallbackBoundary
+              resetKey={graphMode}
+              onError={onSurface3dError}
+              fallback={(
+                <Surface2d
+                  {...surface2dProps}
+                  backgroundColor={backgroundColor}
+                  directionMode={directionMode}
+                />
+              )}
+            >
+              <Surface3d
+                {...surface3dProps}
+                backgroundColor={backgroundColor}
+                directionMode={directionMode}
+              />
+            </SurfaceFallbackBoundary>
           )}
+          {pluginHost ? (
+            <SlotHost
+              pluginHost={pluginHost}
+              slot="graph-overlay"
+              data-testid="graph-overlay-slot"
+              className="absolute inset-0 z-10 pointer-events-none"
+            />
+          ) : null}
         </div>
       </ContextMenuTrigger>
 
@@ -114,7 +141,9 @@ export function Viewport({
         visits={tooltipData.info?.visits}
         nodeRect={tooltipData.nodeRect}
         visible={tooltipData.visible}
+        extraActions={tooltipData.pluginActions}
         extraSections={tooltipData.pluginSections}
+        pluginHost={pluginHost}
       />
     </ContextMenu>
   );

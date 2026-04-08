@@ -39,7 +39,7 @@ describe('graphView/view/selection', () => {
     });
   });
 
-  it('updates focused file and re-sends graph data when depth view is active', () => {
+  it('updates focused file and re-sends graph data when the active view depends on focusedFile', () => {
     const state = {
       _activeViewId: 'codegraphy.depth-graph',
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -53,7 +53,12 @@ describe('graphView/view/selection', () => {
     const sendMessage = vi.fn();
 
     setGraphViewFocusedFile(state, 'src/app.ts', {
-      getActiveViewInfo: () => ({ view: { id: 'codegraphy.depth-graph' } }),
+      getActiveViewInfo: () => ({
+        view: {
+          id: 'plugin.focused-view',
+          recomputeOn: ['focusedFile'],
+        },
+      }),
       applyViewTransform,
       sendAvailableViews,
       sendMessage,
@@ -99,7 +104,7 @@ describe('graphView/view/selection', () => {
     });
   });
 
-  it('clamps depth limits, persists them, and re-sends graph data in depth view', async () => {
+  it('clamps depth limits, persists them, and re-sends graph data when the active view depends on depthLimit', async () => {
     const state = {
       _activeViewId: 'codegraphy.depth-graph',
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -112,7 +117,12 @@ describe('graphView/view/selection', () => {
     await setGraphViewDepthLimit(state, 99, {
       persistDepthLimit,
       sendMessage,
-      getActiveViewInfo: () => ({ view: { id: 'codegraphy.depth-graph' } }),
+      getActiveViewInfo: () => ({
+        view: {
+          id: 'plugin.depth-view',
+          recomputeOn: ['depthLimit'],
+        },
+      }),
       applyViewTransform,
     });
 

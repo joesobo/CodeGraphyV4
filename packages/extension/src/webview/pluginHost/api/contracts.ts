@@ -5,8 +5,10 @@
 
 import type { Disposable } from '../../../../../plugin-api/src/disposable';
 import type {
+  GraphPluginSlot,
   NodeRenderFn,
   OverlayRenderFn,
+  TooltipAction,
   TooltipProviderFn,
   TooltipContent,
   TooltipContext,
@@ -14,12 +16,14 @@ import type {
   BadgeOpts,
   RingOpts,
   LabelOpts,
-} from '../../../../../plugin-api/src/webview';
+} from '../../../../../plugin-api/src/webview/contract';
 
 export type WebviewDisposable = Disposable;
 export type {
+  GraphPluginSlot,
   NodeRenderFn,
   OverlayRenderFn,
+  TooltipAction,
   TooltipProviderFn,
   TooltipContent,
   TooltipContext,

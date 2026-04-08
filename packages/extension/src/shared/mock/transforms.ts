@@ -59,9 +59,11 @@ export function fileDataToEdges(files: IFileData[]): IGraphEdge[] {
       // Only create edge if the imported file exists in our data
       if (filePaths.has(importPath)) {
         edges.push({
-          id: `${file.path}->${importPath}`,
+          id: `${file.path}->${importPath}#import`,
           from: file.path,
           to: importPath,
+          kind: 'import',
+          sources: [],
         });
       }
     }

@@ -9,7 +9,7 @@ const graphA: IGraphData = {
     { id: 'src/App.ts', label: 'App', color: '#aaa' },
     { id: 'src/util.ts', label: 'util', color: '#bbb' },
   ],
-  edges: [{ id: 'e1', from: 'src/App.ts', to: 'src/util.ts' }],
+  edges: [{ id: 'e1', from: 'src/App.ts', to: 'src/util.ts' , kind: 'import', sources: [] }],
 };
 
 const graphB: IGraphData = {
@@ -17,7 +17,7 @@ const graphB: IGraphData = {
     { id: 'src/foo.ts', label: 'foo', color: '#ccc' },
     { id: 'src/bar.ts', label: 'bar', color: '#ddd' },
   ],
-  edges: [{ id: 'e2', from: 'src/foo.ts', to: 'src/bar.ts' }],
+  edges: [{ id: 'e2', from: 'src/foo.ts', to: 'src/bar.ts' , kind: 'import', sources: [] }],
 };
 
 const defaultOptions = { matchCase: false, wholeWord: false, regex: false };

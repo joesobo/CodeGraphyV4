@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { detect } from '../src/rules/reexport';
+import { detect, SOURCE_ID } from '../src/sources/reexport';
 import { PathResolver } from '../src/PathResolver';
 import type { TsRuleContext } from '../src/types';
 
@@ -15,8 +15,9 @@ describe('reexport rule', () => {
     const connections = detect(`export { foo } from './bar';`, testFile, context);
     expect(connections).toHaveLength(1);
     expect(connections[0].specifier).toBe('./bar');
+    expect(connections[0].kind).toBe('reexport');
     expect(connections[0].type).toBe('reexport');
-    expect(connections[0].ruleId).toBe('reexport');
+    expect(connections[0].sourceId).toBe('reexport');
   });
 
   it('should detect star re-export', () => {
@@ -60,5 +61,15 @@ describe('reexport rule', () => {
   it('should not detect export default declaration', () => {
     const connections = detect(`export default function myFunc() {}`, testFile, context);
     expect(connections).toHaveLength(0);
+  });
+
+  it('exports the stable source id', () => {
+    expect(SOURCE_ID).toBe('reexport');
+  });
+
+  it('ignores invalid re-exports whose module specifier is not a string literal', () => {
+    expect(detect(`export { foo } from bar;`, testFile, context)).toHaveLength(0);
+    expect(detect('export { foo } from `./bar`;', testFile, context)).toHaveLength(0);
+    expect(detect('export { foo } from 1;', testFile, context)).toHaveLength(0);
   });
 });

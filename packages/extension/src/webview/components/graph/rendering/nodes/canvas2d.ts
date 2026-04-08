@@ -1,4 +1,5 @@
-import { renderNodeBody, renderNodeLabel } from '../node/body';
+import { renderNodeBody } from '../node/body';
+import { renderNodeLabel } from '../node/label';
 import { renderNodeImageOverlay, renderNodePluginOverlay } from '../node/media';
 import { paintNodePointerArea } from '../node/pointer';
 import type { NodeCanvasRendererDependencies } from '../node/canvasShared';

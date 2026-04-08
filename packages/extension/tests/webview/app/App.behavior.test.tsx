@@ -69,8 +69,19 @@ vi.mock('../../../src/webview/pluginHost/manager', () => {
       harness.createApiCalls.push(pluginId);
       const container = document.createElement('div');
       container.setAttribute('data-plugin-id', pluginId);
+      const slotContainers = new Map<string, HTMLDivElement>();
       return {
         getContainer: () => container,
+        getSlotContainer: (slot: string) => {
+          let slotContainer = slotContainers.get(slot);
+          if (!slotContainer) {
+            slotContainer = document.createElement('div');
+            slotContainer.setAttribute('data-plugin-id', pluginId);
+            slotContainer.setAttribute('data-plugin-slot', slot);
+            slotContainers.set(slot, slotContainer);
+          }
+          return slotContainer;
+        },
         registerNodeRenderer: () => ({ dispose() {} }),
         registerOverlay: () => ({ dispose() {} }),
         registerTooltipProvider: () => ({ dispose() {} }),
@@ -88,6 +99,12 @@ vi.mock('../../../src/webview/pluginHost/manager', () => {
         onMessage: () => ({ dispose() {} }),
       };
     }
+
+    attachSlotHost(_slot: string, host: HTMLDivElement) {
+      host.style.display = 'none';
+    }
+
+    detachSlotHost(_slot: string) {}
 
     deliverMessage(pluginId: string, message: { type: string; data: unknown }) {
       harness.deliveries.push({ pluginId, message });
@@ -181,7 +198,7 @@ describe('App behavior', () => {
           { id: 'src/App.ts', label: 'App', color: '#123456' },
           { id: 'src/AppService.ts', label: 'AppService', color: '#654321' },
         ],
-        edges: [{ id: 'src/App.ts->src/AppService.ts', from: 'src/App.ts', to: 'src/AppService.ts' }],
+        edges: [{ id: 'src/App.ts->src/AppService.ts', from: 'src/App.ts', to: 'src/AppService.ts' , kind: 'import', sources: [] }],
       },
       searchQuery: 'App',
       searchOptions: { matchCase: false, wholeWord: true, regex: false },
@@ -202,7 +219,7 @@ describe('App behavior', () => {
           { id: 'src/App.ts', label: 'App', color: '#123456' },
           { id: 'src/Todo.ts', label: 'Todo', color: '#654321' },
         ],
-        edges: [{ id: 'src/App.ts->src/Todo.ts', from: 'src/App.ts', to: 'src/Todo.ts' }],
+        edges: [{ id: 'src/App.ts->src/Todo.ts', from: 'src/App.ts', to: 'src/Todo.ts' , kind: 'import', sources: [] }],
       },
       searchQuery: '   ',
     });
@@ -618,6 +635,19 @@ describe('App behavior', () => {
     render(<App />);
 
     expect(screen.getByText(/No files found/)).toBeInTheDocument();
+  });
+
+  it('keeps the toolbar visible when a scoped view resolves to an empty graph', () => {
+    graphStore.setState({
+      graphData: { nodes: [], edges: [] },
+      activePanel: 'none',
+      timelineActive: false,
+    });
+
+    render(<App />);
+
+    expect(screen.getByText(/No files found/)).toBeInTheDocument();
+    expect(screen.getByTestId('toolbar')).toBeInTheDocument();
   });
 
   it('renders the graph with colored data when available', () => {

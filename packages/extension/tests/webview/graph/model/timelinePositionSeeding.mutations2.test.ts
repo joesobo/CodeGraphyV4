@@ -21,7 +21,7 @@ describe('seedTimelinePositions (mutation kill tests)', () => {
 
     seedTimelinePositions(
       [anchor, newNode],
-      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' }],
+      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.5
     );
@@ -47,7 +47,7 @@ describe('seedTimelinePositions (mutation kill tests)', () => {
 
     seedTimelinePositions(
       [anchor, newNode],
-      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' }],
+      [{ id: 'anchor.ts->new.ts', from: 'anchor.ts', to: 'new.ts' , kind: 'import', sources: [] }],
       emptyMap,
       () => 0.5
     );
@@ -71,7 +71,7 @@ describe('seedTimelinePositions (mutation kill tests)', () => {
 
     seedTimelinePositions(
       [existing, anchor],
-      [{ id: 'existing.ts->anchor.ts', from: 'existing.ts', to: 'anchor.ts' }],
+      [{ id: 'existing.ts->anchor.ts', from: 'existing.ts', to: 'anchor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -93,7 +93,7 @@ describe('seedTimelinePositions (mutation kill tests)', () => {
 
     seedTimelinePositions(
       [nodeWithX, anchor],
-      [{ id: 'partial.ts->anchor.ts', from: 'partial.ts', to: 'anchor.ts' }],
+      [{ id: 'partial.ts->anchor.ts', from: 'partial.ts', to: 'anchor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -117,7 +117,7 @@ describe('seedTimelinePositions (mutation kill tests)', () => {
     seedTimelinePositions(
       [isolated, anchor],
       // Edge between OTHER nodes, not involving 'isolated.ts'
-      [{ id: 'other.ts->anchor.ts', from: 'other.ts', to: 'anchor.ts' }],
+      [{ id: 'other.ts->anchor.ts', from: 'other.ts', to: 'anchor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -138,7 +138,7 @@ describe('seedTimelinePositions (mutation kill tests)', () => {
 
     seedTimelinePositions(
       [newNode], // ghost.ts is NOT in nodes
-      [{ id: 'new.ts->ghost.ts', from: 'new.ts', to: 'ghost.ts' }],
+      [{ id: 'new.ts->ghost.ts', from: 'new.ts', to: 'ghost.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.75
     );
@@ -160,7 +160,7 @@ describe('seedTimelinePositions (mutation kill tests)', () => {
 
     seedTimelinePositions(
       [newNode, neighbor],
-      [{ id: 'new.ts->neighbor.ts', from: 'new.ts', to: 'neighbor.ts' }],
+      [{ id: 'new.ts->neighbor.ts', from: 'new.ts', to: 'neighbor.ts' , kind: 'import', sources: [] }],
       previousPositions,
       () => 0.5
     );

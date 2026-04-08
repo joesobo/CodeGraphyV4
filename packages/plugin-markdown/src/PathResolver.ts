@@ -1,6 +1,6 @@
 /**
  * @fileoverview Resolves Markdown wikilink targets to actual file paths.
- * Follows Obsidian's resolution rules: shortest unique path match.
+ * Follows Obsidian's resolution sources: shortest unique path match.
  * @module plugins/markdown/PathResolver
  */
 
@@ -10,7 +10,7 @@ import * as fs from 'fs';
 /**
  * Resolves wikilink targets to absolute file paths.
  *
- * Resolution rules (mirrors Obsidian):
+ * Resolution sources (mirrors Obsidian):
  * 1. If the target contains a path separator, resolve relative to workspace root.
  * 2. Otherwise, search all known .md files for a filename match (case-insensitive).
  * 3. If no .md file matches, append .md and try again.

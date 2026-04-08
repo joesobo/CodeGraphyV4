@@ -74,6 +74,22 @@ describe('graph/keyboard/effects', () => {
     })).toBeNull();
   });
 
+  it('skips synthetic package nodes when opening selected nodes with Enter', () => {
+    expect(getGraphKeyboardCommand({
+      key: 'Enter',
+      isMod: false,
+      shiftKey: false,
+      graphMode: '2d',
+      selectedNodeIds: ['src/app.ts', 'pkg:fs'],
+      allNodeIds: ['src/app.ts', 'pkg:fs'],
+      targetIsEditable: false,
+    })).toEqual({
+      preventDefault: true,
+      stopPropagation: false,
+      effects: [{ kind: 'openSelectedNodes', nodeIds: ['src/app.ts'] }],
+    });
+  });
+
   it('selects all nodes for the modifier+a shortcut', () => {
     expect(getGraphKeyboardCommand({
       key: 'a',

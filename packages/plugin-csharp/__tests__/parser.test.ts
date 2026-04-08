@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { parseContent, extractUsedTypes } from '../src/parser';
+import { parseContent } from '../src/parserContent';
+import { extractUsedTypes } from '../src/parserUsedTypes';
 
 describe('C# parser', () => {
   describe('parseContent – using directives', () => {
@@ -29,7 +30,7 @@ using System.Linq;
 using System.Collections.Generic;`;
       const { usings } = parseContent(code);
       expect(usings).toHaveLength(3);
-      expect(usings.map(u => u.namespace)).toEqual([
+      expect(usings.map((usingDirective) => usingDirective.namespace)).toEqual([
         'System',
         'System.Linq',
         'System.Collections.Generic',
@@ -165,9 +166,9 @@ public class HomeController
       const { usings, namespaces } = parseContent(code);
 
       expect(usings).toHaveLength(7);
-      expect(usings.map(u => u.namespace)).toContain('System');
-      expect(usings.map(u => u.namespace)).toContain('MyApp.Models');
-      expect(usings.map(u => u.namespace)).toContain('MyApp.Services');
+      expect(usings.map((usingDirective) => usingDirective.namespace)).toContain('System');
+      expect(usings.map((usingDirective) => usingDirective.namespace)).toContain('MyApp.Models');
+      expect(usings.map((usingDirective) => usingDirective.namespace)).toContain('MyApp.Services');
 
       expect(namespaces).toHaveLength(1);
       expect(namespaces[0].name).toBe('MyApp.Controllers');
@@ -182,7 +183,7 @@ global using Microsoft.Extensions.DependencyInjection;`;
 
       const { usings } = parseContent(code);
       expect(usings).toHaveLength(4);
-      expect(usings.every(u => u.isGlobal)).toBe(true);
+      expect(usings.every((usingDirective) => usingDirective.isGlobal)).toBe(true);
     });
   });
 

@@ -124,6 +124,20 @@ describe('plugin-typescript/activate', () => {
     await expect(activate({ extensionUri: { fsPath: '/plugins/typescript' } } as never)).resolves.toBeUndefined();
   });
 
+  it('returns without registering when the core extension does not expose the api after activation', async () => {
+    const registerPlugin = vi.fn();
+    mockState.getExtension.mockReturnValue({
+      isActive: false,
+      activate: vi.fn(async () => undefined),
+      exports: { registerPlugin },
+    });
+
+    const { activate } = await import('../src/activate');
+
+    await expect(activate({ extensionUri: { fsPath: '/plugins/typescript' } } as never)).resolves.toBeUndefined();
+    expect(registerPlugin).not.toHaveBeenCalled();
+  });
+
   it(
     'establishes TypeScript connections when installed with the core extension',
     { timeout: installedWithCoreTimeoutMs },

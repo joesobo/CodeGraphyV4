@@ -13,7 +13,7 @@
 - Tests: `cd /Users/poleski/Desktop/Projects/CodeGraphyV4-agent-worktrees/refactor-core-extension && pnpm --filter @codegraphy/extension test`
 - Targeted tests: `pnpm --filter @codegraphy/extension exec vitest run --config vitest.config.ts <test-file-paths...>`
 
-**Important rules:**
+**Important sources:**
 - Use `git mv` for all moves (preserves git history)
 - After moving files, update ALL imports in both the moved files AND any files that import from them
 - Search with `grep -r` for old import paths to catch stragglers

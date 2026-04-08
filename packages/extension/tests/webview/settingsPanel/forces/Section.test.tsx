@@ -60,7 +60,7 @@ describe('ForcesSection', () => {
     sentMessages.length = 0;
   });
 
-  it('renders the four physics controls', () => {
+  it('renders the physics controls and simulation toggle', () => {
     renderSection();
 
     expect(screen.getByText('Repel Force')).toBeInTheDocument();

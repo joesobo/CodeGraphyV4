@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { createCSharpPlugin } from './index';
+import { createCSharpPlugin } from './plugin';
 
 interface CodeGraphyExports {
   registerPlugin(plugin: unknown, options?: { extensionUri?: vscode.Uri | string }): void;

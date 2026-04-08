@@ -3,7 +3,7 @@
 CodeGraphy uses five complementary quality checks:
 
 - `Organize`: directory structure, file naming, and cohesion analysis
-- `Boundaries`: dependency-layer rules and runtime/package boundary enforcement
+- `Boundaries`: dependency-layer sources and runtime/package boundary enforcement
 - `Reachability`: dead surfaces and dead ends inside a package source graph
 - `CRAP`: production-code complexity and coverage risk
 - `Mutation`: test effectiveness against injected faults

@@ -65,7 +65,7 @@ async function loadSubject(
     },
     coreViews: [],
   }));
-  vi.doMock('../../../../src/core/plugins/eventBus', () => ({
+  vi.doMock('../../../../src/core/plugins/events/bus', () => ({
     EventBus: class EventBus {},
   }));
   vi.doMock('../../../../src/core/plugins/decoration/manager', () => ({
@@ -103,7 +103,7 @@ describe('graphView/provider/runtime', () => {
     vi.doUnmock('vscode');
     vi.doUnmock('../../../../src/extension/workspaceAnalyzer/service');
     vi.doUnmock('../../../../src/core/views');
-    vi.doUnmock('../../../../src/core/plugins/eventBus');
+    vi.doUnmock('../../../../src/core/plugins/events/bus');
     vi.doUnmock('../../../../src/core/plugins/decoration/manager');
     vi.doUnmock('../../../../src/extension/graphView/provider/wiring/methodContainers');
     vi.doUnmock('../../../../src/extension/graphView/provider/wiring/bootstrap');
@@ -272,6 +272,39 @@ describe('graphView/provider/runtime', () => {
     expect(internals._webviewMethods).toBe(methodContainers.webview);
   });
 
+  it('disposes the extension message emitter through the registered subscription', async () => {
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+      initializeGraphViewProviderServices: vi.fn(),
+      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
+    }));
+
+    const { GraphViewProvider, vscodeModule } = await loadSubject([
+      {
+        uri: { fsPath: '/test/workspace', path: '/test/workspace' },
+        name: 'workspace',
+        index: 0,
+      },
+    ]);
+    const context = createContext(vscodeModule) as unknown as VSCode.ExtensionContext;
+    const provider = new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      context,
+    );
+    const emitter = (
+      provider as unknown as {
+        _extensionMessageEmitter: { dispose(): void };
+      }
+    )._extensionMessageEmitter;
+    const disposeSpy = vi.spyOn(emitter, 'dispose');
+
+    expect(context.subscriptions).toHaveLength(1);
+    expect(typeof context.subscriptions[0]?.dispose).toBe('function');
+
+    context.subscriptions[0]?.dispose();
+
+    expect(disposeSpy).toHaveBeenCalledOnce();
+  });
+
   it('passes an empty workspace root to provider services when no folder is open', async () => {
     const initializeGraphViewProviderServices = vi.fn();
 
@@ -314,5 +347,64 @@ describe('graphView/provider/runtime', () => {
         workspaceRoot: '',
       }),
     );
+  });
+
+  it('dispatches extension messages to listeners and stops after disposal', async () => {
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+      initializeGraphViewProviderServices: vi.fn(),
+      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
+    }));
+
+    const { GraphViewProvider, vscodeModule } = await loadSubject([
+      {
+        uri: { fsPath: '/test/workspace', path: '/test/workspace' },
+        name: 'workspace',
+        index: 0,
+      },
+    ]);
+    const context = createContext(vscodeModule) as unknown as VSCode.ExtensionContext;
+    const provider = new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      context,
+    );
+    const handler = vi.fn();
+    const dispose = provider.onExtensionMessage(handler);
+    const runtime = provider as unknown as { _notifyExtensionMessage(message: unknown): void };
+
+    runtime._notifyExtensionMessage({ type: 'FIRST' });
+    expect(handler).toHaveBeenCalledWith({ type: 'FIRST' });
+
+    dispose.dispose();
+    runtime._notifyExtensionMessage({ type: 'SECOND' });
+    expect(handler).toHaveBeenCalledTimes(1);
+
+    context.subscriptions[0]?.dispose();
+  });
+
+  it('tracks the installed plugin activation promise', async () => {
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+      initializeGraphViewProviderServices: vi.fn(),
+      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
+    }));
+
+    const { GraphViewProvider, vscodeModule } = await loadSubject([
+      {
+        uri: { fsPath: '/test/workspace', path: '/test/workspace' },
+        name: 'workspace',
+        index: 0,
+      },
+    ]);
+    const provider = new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
+    );
+    const activationPromise = Promise.resolve();
+
+    provider.setInstalledPluginActivationPromise(activationPromise);
+
+    expect(
+      (provider as unknown as { _installedPluginActivationPromise: Promise<void> })
+        ._installedPluginActivationPromise,
+    ).toBe(activationPromise);
   });
 });
