@@ -3,6 +3,7 @@ import type {
   GraphViewProviderAnalysisHandlers,
   GraphViewProviderAnalysisRequestHandlers,
 } from '../../analysis/lifecycle';
+import { sendGraphControlsUpdated } from '../../controls/send';
 import type {
   GraphViewProviderAnalysisMethodDependencies,
   GraphViewProviderAnalysisMethodsSource,
@@ -36,6 +37,11 @@ export function createGraphViewProviderAnalysisHandlers(
     getGraphData: () => source._graphData,
     sendGraphDataUpdated: graphData => {
       source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: graphData });
+      sendGraphControlsUpdated(
+        graphData,
+        source._analyzer,
+        message => source._sendMessage(message),
+      );
     },
     sendAvailableViews: () => source._sendAvailableViews(),
     computeMergedGroups: () => source._computeMergedGroups(),

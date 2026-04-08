@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { IGraphData } from '../../../../src/shared/graph/types';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   createGraphViewProviderSettingsStateMethods,
@@ -29,6 +30,7 @@ function createSource(
     _hiddenPluginGroupIds: new Set<string>(['plugin.current']),
     _userGroups: [{ id: 'group.current' } as never],
     _filterPatterns: ['current/**'],
+    _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _disabledSources: new Set<string>(['rule.current']),
     _disabledPlugins: new Set<string>(['plugin.current']),
     _nodeSizeMode: 'connections',
@@ -43,6 +45,8 @@ function createSource(
   if (!overrides._context) {
     source._context = { workspaceState };
   }
+
+  source._graphData ??= { nodes: [], edges: [] } satisfies IGraphData;
 
   return source;
 }

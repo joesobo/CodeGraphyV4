@@ -5,6 +5,7 @@ import type { EdgeDecorationPayload, NodeDecorationPayload } from '../plugins/de
 import type { IPluginExporterItem } from '../plugins/exporters';
 import type { IPluginToolbarAction } from '../plugins/toolbarActions';
 import type { IPluginStatus } from '../plugins/status';
+import type { IGraphControlsSnapshot } from '../graphControls/types';
 import type {
   BidirectionalEdgeMode,
   DagMode,
@@ -19,6 +20,7 @@ import type { IAvailableView } from '../view/types';
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
   | { type: 'GRAPH_INDEX_STATUS_UPDATED'; payload: { hasIndex: boolean } }
+  | { type: 'GRAPH_CONTROLS_UPDATED'; payload: IGraphControlsSnapshot }
   | { type: 'FIT_VIEW' }
   | { type: 'ZOOM_IN' }
   | { type: 'ZOOM_OUT' }

@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import type { IGraphData } from '../../../shared/graph/types';
 import type { NodeSizeMode } from '../../../shared/settings/modes';
 import type { IViewContext } from '../../../core/views/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
@@ -11,9 +12,11 @@ import { applyLoadedGraphViewGroupState } from '../groups/sync';
 import { loadGraphViewGroupState } from '../groups/state';
 import { captureGraphViewSettingsSnapshot } from '../settings/snapshot';
 import { sendGraphViewProviderAllSettings, sendGraphViewProviderSettings } from '../settings/lifecycle';
+import { sendGraphControlsUpdated } from '../controls/send';
 
 interface GraphViewProviderSettingsAnalyzerLike {
   getPluginFilterPatterns(): string[];
+  registry?: unknown;
 }
 
 interface GraphViewProviderSettingsWorkspaceStateLike {
@@ -38,6 +41,7 @@ export interface GraphViewProviderSettingsStateMethodsSource {
   _hiddenPluginGroupIds: Set<string>;
   _userGroups: IGroup[];
   _filterPatterns: string[];
+  _graphData: IGraphData;
   _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _nodeSizeMode: NodeSizeMode;
@@ -156,6 +160,12 @@ export function createGraphViewProviderSettingsStateMethods(
       getConfiguration: () => dependencies.getConfiguration('codegraphy'),
       sendMessage: message => source._sendMessage(message),
     });
+    sendGraphControlsUpdated(
+      source._graphData,
+      source._analyzer,
+      message => source._sendMessage(message),
+      dependencies.getConfiguration('codegraphy'),
+    );
   };
 
   const _sendAllSettings = (): void => {
@@ -181,6 +191,13 @@ export function createGraphViewProviderSettingsStateMethods(
       },
       sendGroupsUpdated: () => source._sendGroupsUpdated(),
     });
+
+    sendGraphControlsUpdated(
+      source._graphData,
+      source._analyzer,
+      message => source._sendMessage(message),
+      dependencies.getConfiguration('codegraphy'),
+    );
 
     syncGroupStateToSource(state);
   };

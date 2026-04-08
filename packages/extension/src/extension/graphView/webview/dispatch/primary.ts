@@ -60,6 +60,7 @@ export interface GraphViewPrimaryMessageContext {
   ): Thenable<void>;
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
+  sendGraphControls(): void;
   getPluginFilterPatterns(): string[];
   sendMessage(message: unknown): void;
   applyViewTransform(): void;

@@ -7,6 +7,7 @@ import { createPluginSource } from './pluginSource';
 function createBroadcasts(): GraphViewProviderPluginBroadcastMethods {
   return {
     _sendAvailableViews: vi.fn(),
+    _sendGraphControls: vi.fn(),
     _sendPluginStatuses: vi.fn(),
     _sendDecorations: vi.fn(),
     _sendContextMenuItems: vi.fn(),

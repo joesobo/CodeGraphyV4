@@ -10,6 +10,8 @@ import {
   mdiCogOutline,
   mdiFormatColorFill,
   mdiLinkVariant,
+  mdiShapeOutline,
+  mdiVectorLine,
   mdiPuzzleOutline,
 } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
@@ -66,6 +68,36 @@ export function ToolbarActions(): React.ReactElement {
 
   return (
     <div className="flex flex-col items-center gap-1.5">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-7 w-7 bg-transparent"
+            onClick={() => setActivePanel('nodes')}
+            title="Nodes"
+          >
+            <MdiIcon path={mdiShapeOutline} size={16} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">Nodes</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-7 w-7 bg-transparent"
+            onClick={() => setActivePanel('edges')}
+            title="Edges"
+          >
+            <MdiIcon path={mdiVectorLine} size={16} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">Edges</TooltipContent>
+      </Tooltip>
+
       <Tooltip>
         <TooltipTrigger asChild>
           <Button

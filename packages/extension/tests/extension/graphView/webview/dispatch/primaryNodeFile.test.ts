@@ -9,7 +9,7 @@ import type { GraphViewPrimaryMessageContext } from '../../../../../src/extensio
 function createContext(
   overrides: Partial<GraphViewPrimaryMessageContext> = {},
 ): GraphViewPrimaryMessageContext {
-  return {
+  const context = {
     getTimelineActive: vi.fn(() => false),
     getCurrentCommitSha: vi.fn(() => undefined),
     getUserGroups: vi.fn(() => []),
@@ -19,6 +19,7 @@ function createContext(
     getFilterPatterns: vi.fn(() => []),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
     getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
+    sendGraphControls: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
     setFocusedFile: vi.fn(),
@@ -62,6 +63,10 @@ function createContext(
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
+
+  context.sendGraphControls ??= vi.fn();
+
+  return context as GraphViewPrimaryMessageContext;
 }
 
 describe('createGraphViewPrimaryNodeFileHandlers', () => {

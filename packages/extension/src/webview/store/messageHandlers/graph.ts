@@ -23,6 +23,18 @@ export function handleGraphIndexStatusUpdated(
   return { graphHasIndex: message.payload.hasIndex };
 }
 
+export function handleGraphControlsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>,
+): PartialState {
+  return {
+    graphNodeTypes: message.payload.nodeTypes,
+    graphEdgeTypes: message.payload.edgeTypes,
+    nodeVisibility: message.payload.nodeVisibility,
+    edgeVisibility: message.payload.edgeVisibility,
+    edgeColors: message.payload.edgeColors,
+  };
+}
+
 export function handleFavoritesUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>,
 ): PartialState {

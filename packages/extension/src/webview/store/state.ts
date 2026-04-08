@@ -10,6 +10,10 @@ import type { IPluginExporterItem } from '../../shared/plugins/exporters';
 import type { IPluginToolbarAction } from '../../shared/plugins/toolbarActions';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionToWebview';
+import type {
+  IGraphEdgeTypeDefinition,
+  IGraphNodeTypeDefinition,
+} from '../../shared/graphControls/types';
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
@@ -55,7 +59,12 @@ export interface GraphState {
   pluginContextMenuItems: IPluginContextMenuItem[];
   pluginExporters: IPluginExporterItem[];
   pluginToolbarActions: IPluginToolbarAction[];
-  activePanel: 'none' | 'settings' | 'plugins' | 'legends';
+  graphNodeTypes: IGraphNodeTypeDefinition[];
+  graphEdgeTypes: IGraphEdgeTypeDefinition[];
+  nodeVisibility: Record<string, boolean>;
+  edgeVisibility: Record<string, boolean>;
+  edgeColors: Record<string, string>;
+  activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'nodes' | 'edges';
   maxFiles: number;
   activeFilePath: string | null;
   timelineActive: boolean;
@@ -69,7 +78,7 @@ export interface GraphState {
   setExpandedGroupId: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
   setSearchOptions: (options: SearchOptions) => void;
-  setActivePanel: (panel: 'none' | 'settings' | 'plugins' | 'legends') => void;
+  setActivePanel: (panel: 'none' | 'settings' | 'plugins' | 'legends' | 'nodes' | 'edges') => void;
   setGraphMode: (mode: '2d' | '3d') => void;
   setNodeSizeMode: (mode: NodeSizeMode) => void;
   setPhysicsSettings: (settings: IPhysicsSettings) => void;

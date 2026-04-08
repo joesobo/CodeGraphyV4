@@ -1,5 +1,10 @@
 import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
 import type { IGroup } from '../../shared/settings/groups';
+import {
+  createDefaultEdgeColors,
+  createDefaultEdgeVisibility,
+  createDefaultNodeVisibility,
+} from '../../shared/graphControls/defaults';
 
 export interface ICodeGraphyRepoSettings {
   version: 1;
@@ -11,6 +16,9 @@ export interface ICodeGraphyRepoSettings {
   pluginOrder: string[];
   disabledSources: string[];
   disabledPlugins: string[];
+  nodeVisibility: Record<string, boolean>;
+  edgeVisibility: Record<string, boolean>;
+  edgeColors: Record<string, string>;
   hiddenPluginGroups: string[];
   favorites: string[];
   bidirectionalEdges: 'separate' | 'combined';
@@ -52,6 +60,9 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     pluginOrder: [],
     disabledSources: [],
     disabledPlugins: [],
+    nodeVisibility: createDefaultNodeVisibility(),
+    edgeVisibility: createDefaultEdgeVisibility(),
+    edgeColors: createDefaultEdgeColors(),
     hiddenPluginGroups: [],
     favorites: [],
     bidirectionalEdges: 'separate',
@@ -100,6 +111,9 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
     pluginOrder: defaults.pluginOrder,
     disabledSources: legacyConfig.get<string[]>('disabledSources', defaults.disabledSources),
     disabledPlugins: legacyConfig.get<string[]>('disabledPlugins', defaults.disabledPlugins),
+    nodeVisibility: defaults.nodeVisibility,
+    edgeVisibility: defaults.edgeVisibility,
+    edgeColors: defaults.edgeColors,
     hiddenPluginGroups: legacyConfig.get<string[]>(
       'hiddenPluginGroups',
       defaults.hiddenPluginGroups,
