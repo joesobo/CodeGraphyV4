@@ -20,6 +20,7 @@ import type { IAvailableView } from '../view/types';
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
   | { type: 'GRAPH_INDEX_STATUS_UPDATED'; payload: { hasIndex: boolean } }
+  | { type: 'GRAPH_INDEX_PROGRESS'; payload: { phase: string; current: number; total: number } }
   | { type: 'GRAPH_CONTROLS_UPDATED'; payload: IGraphControlsSnapshot }
   | { type: 'FIT_VIEW' }
   | { type: 'ZOOM_IN' }

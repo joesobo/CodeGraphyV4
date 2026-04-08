@@ -38,8 +38,8 @@ export default function App(): React.ReactElement {
     nodeDecorations,
     edgeDecorations,
     activeFilePath,
-    isIndexing,
-    indexProgress,
+    graphIsIndexing,
+    graphIndexProgress,
   } = useAppState();
   const { setSearchQuery, setSearchOptions, setActivePanel } = useAppActions();
 
@@ -127,7 +127,7 @@ export default function App(): React.ReactElement {
           <PluginsPanel isOpen={activePanel === 'plugins'} onClose={() => setActivePanel('none')} />
           <SettingsPanel isOpen={activePanel === 'settings'} onClose={() => setActivePanel('none')} />
         </div>
-        <GraphIndexStatus isIndexing={isIndexing} progress={indexProgress} />
+        <GraphIndexStatus isIndexing={graphIsIndexing} progress={graphIndexProgress} />
       </div>
     </div>
   );

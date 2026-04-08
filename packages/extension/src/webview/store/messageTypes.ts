@@ -24,6 +24,8 @@ import type {
 export interface IStoreFields {
   graphData: IGraphData | null;
   graphHasIndex: boolean;
+  graphIsIndexing: boolean;
+  graphIndexProgress: { phase: string; current: number; total: number } | null;
   isLoading: boolean;
   searchQuery: string;
   searchOptions: SearchOptions;

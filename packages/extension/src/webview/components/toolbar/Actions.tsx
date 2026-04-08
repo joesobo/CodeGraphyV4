@@ -63,7 +63,7 @@ export function ToolbarActions(): React.ReactElement {
   const setActivePanel = useGraphStore(s => s.setActivePanel);
   const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
-  const isIndexing = useGraphStore(s => s.isIndexing);
+  const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
   const refreshTitle = graphHasIndex ? 'Refresh Graph' : 'Index Repo';
   const refreshMessageType = graphHasIndex ? 'REFRESH_GRAPH' : 'INDEX_GRAPH';
 
@@ -107,7 +107,7 @@ export function ToolbarActions(): React.ReactElement {
             className="h-7 w-7 bg-transparent"
             onClick={() => postMessage({ type: refreshMessageType })}
             title={refreshTitle}
-            disabled={isIndexing}
+            disabled={graphIsIndexing}
           >
             <MdiIcon path={mdiAutorenew} size={16} />
           </Button>

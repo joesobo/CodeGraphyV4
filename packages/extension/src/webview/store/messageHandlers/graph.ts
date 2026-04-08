@@ -12,8 +12,8 @@ export function handleGraphDataUpdated(
   return {
     graphData: message.payload,
     isLoading: false,
-    isIndexing: false,
-    indexProgress: null,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
   };
 }
 
@@ -21,6 +21,15 @@ export function handleGraphIndexStatusUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>,
 ): PartialState {
   return { graphHasIndex: message.payload.hasIndex };
+}
+
+export function handleGraphIndexProgress(
+  message: Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_PROGRESS' }>,
+): PartialState {
+  return {
+    graphIsIndexing: true,
+    graphIndexProgress: message.payload,
+  };
 }
 
 export function handleGraphControlsUpdated(

@@ -5,6 +5,8 @@ import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
   graphHasIndex: false,
+  graphIsIndexing: false,
+  graphIndexProgress: null,
   isLoading: true,
   searchQuery: '',
   searchOptions: DEFAULT_SEARCH_OPTIONS,

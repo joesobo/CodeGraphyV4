@@ -55,7 +55,7 @@ export function createGraphViewProviderAnalysisHandlers(
       source._sendMessage({ type: 'GRAPH_INDEX_STATUS_UPDATED', payload: { hasIndex } });
     },
     sendIndexProgress: progress => {
-      source._sendMessage({ type: 'INDEX_PROGRESS', payload: progress });
+      source._sendMessage({ type: 'GRAPH_INDEX_PROGRESS', payload: progress });
     },
     sendPluginExporters: () => source._sendPluginExporters?.(),
     sendPluginToolbarActions: () => source._sendPluginToolbarActions?.(),

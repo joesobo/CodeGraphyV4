@@ -54,8 +54,8 @@ describe('app store selectors', () => {
     expect(result.current.nodeVisibility).toEqual({});
     expect(result.current.edgeVisibility).toEqual({});
     expect(result.current.edgeColors).toEqual({});
-    expect(result.current.isIndexing).toBe(false);
-    expect(result.current.indexProgress).toBeNull();
+    expect(result.current.graphIsIndexing).toBe(false);
+    expect(result.current.graphIndexProgress).toBeNull();
   });
 
   it('returns the search and panel action references', () => {

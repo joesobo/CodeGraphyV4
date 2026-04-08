@@ -8,6 +8,8 @@ import { useGraphStore } from '../store/state';
 export function useAppState() {
   const graphData = useGraphStore(s => s.graphData);
   const isLoading = useGraphStore(s => s.isLoading);
+  const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
+  const graphIndexProgress = useGraphStore(s => s.graphIndexProgress);
   const searchQuery = useGraphStore(s => s.searchQuery);
   const searchOptions = useGraphStore(s => s.searchOptions);
   const groups = useGraphStore(s => s.groups);
@@ -22,12 +24,11 @@ export function useAppState() {
   const nodeDecorations = useGraphStore(s => s.nodeDecorations);
   const edgeDecorations = useGraphStore(s => s.edgeDecorations);
   const activeFilePath = useGraphStore(s => s.activeFilePath);
-  const isIndexing = useGraphStore(s => s.isIndexing);
-  const indexProgress = useGraphStore(s => s.indexProgress);
-
   return {
     graphData,
     isLoading,
+    graphIsIndexing,
+    graphIndexProgress,
     searchQuery,
     searchOptions,
     groups,
@@ -42,8 +43,6 @@ export function useAppState() {
     nodeDecorations,
     edgeDecorations,
     activeFilePath,
-    isIndexing,
-    indexProgress,
   };
 }
 
