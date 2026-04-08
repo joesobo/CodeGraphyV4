@@ -94,6 +94,17 @@ describe('graph view node/file router', () => {
     expect(analyzeAndSendData).toHaveBeenCalledTimes(1);
   });
 
+  it('awaits graph index requests', async () => {
+    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const handlers = createHandlers({ analyzeAndSendData });
+
+    await expect(
+      applyNodeFileMessage({ type: 'INDEX_GRAPH' }, handlers),
+    ).resolves.toBe(true);
+
+    expect(analyzeAndSendData).toHaveBeenCalledTimes(1);
+  });
+
   it('returns false for unrelated messages', async () => {
     const handlers = createHandlers();
 

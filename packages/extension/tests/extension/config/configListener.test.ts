@@ -69,6 +69,32 @@ describe('configListener', () => {
     expect(provider.refreshSettings).toHaveBeenCalledOnce();
   });
 
+  it('calls refreshSettings for node and edge control changes', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const listener = getConfigListener();
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.nodeColors' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.edgeVisibility' });
+
+    expect(provider.refreshSettings).toHaveBeenCalledTimes(2);
+    expect(provider.refresh).not.toHaveBeenCalled();
+  });
+
+  it('triggers a full refresh for plugin order changes', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const listener = getConfigListener();
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.pluginOrder' || key === 'codegraphy' });
+
+    expect(provider.refresh).toHaveBeenCalledOnce();
+  });
+
   it('skips re-analysis for groups configuration changes', () => {
     const context = makeContext();
     const provider = makeProvider();

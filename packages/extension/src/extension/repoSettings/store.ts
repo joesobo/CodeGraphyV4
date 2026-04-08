@@ -110,6 +110,40 @@ function serializeSettings(value: ICodeGraphyRepoSettings): string {
   return `${JSON.stringify(value, null, 2)}\n`;
 }
 
+function areValuesEqual(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function collectChangedKeys(
+  previous: unknown,
+  next: unknown,
+  basePath = '',
+): string[] {
+  if (areValuesEqual(previous, next)) {
+    return [];
+  }
+
+  if (!isPlainObject(previous) || !isPlainObject(next)) {
+    return basePath ? [basePath] : ['codegraphy'];
+  }
+
+  const keys = new Set([...Object.keys(previous), ...Object.keys(next)]);
+  const changedKeys: string[] = [];
+
+  for (const key of keys) {
+    const nextPath = basePath ? `${basePath}.${key}` : key;
+    changedKeys.push(
+      ...collectChangedKeys(
+        previous[key],
+        next[key],
+        nextPath,
+      ),
+    );
+  }
+
+  return changedKeys;
+}
+
 function createChangeEvent(changedKeys: string[]): ICodeGraphySettingsChangeEvent {
   const uniqueChangedKeys = Array.from(new Set(changedKeys));
   return {
@@ -224,10 +258,16 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
   }
 
   reload(): void {
+    const previousSettings = deepClone(this._settings);
+
     if (!fs.existsSync(this._settingsPath)) {
       this._settings = createDefaultCodeGraphyRepoSettings();
       this._writeSettingsToDisk();
-      this._emit(['codegraphy']);
+      this._emit(
+        collectChangedKeys(previousSettings, this._settings).length > 0
+          ? collectChangedKeys(previousSettings, this._settings)
+          : ['codegraphy'],
+      );
       return;
     }
 
@@ -238,7 +278,8 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
 
     this._settings = deepMerge(this._defaults, JSON.parse(nextSerialized) as object);
     this._serializedSettings = serializeSettings(this._settings);
-    this._emit(['codegraphy']);
+    const changedKeys = collectChangedKeys(previousSettings, this._settings);
+    this._emit(changedKeys.length > 0 ? changedKeys : ['codegraphy']);
   }
 
   private _emit(changedKeys: string[]): void {

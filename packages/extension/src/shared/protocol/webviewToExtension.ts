@@ -21,6 +21,7 @@ export type WebviewToExtensionMessage =
   | { type: 'TOGGLE_FAVORITE'; payload: { paths: string[] } }
   | { type: 'ADD_TO_EXCLUDE'; payload: { patterns: string[] } }
   | { type: 'REFRESH_GRAPH' }
+  | { type: 'INDEX_GRAPH' }
   | { type: 'GET_FILE_INFO'; payload: { path: string } }
   | { type: 'EXPORT_PNG'; payload: { dataUrl: string; filename?: string } }
   | { type: 'EXPORT_SVG'; payload: { svg: string; filename?: string } }

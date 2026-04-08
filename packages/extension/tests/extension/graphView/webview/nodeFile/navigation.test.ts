@@ -56,6 +56,21 @@ describe('graph view node/file navigation message', () => {
     expect(finished).toBe(true);
   });
 
+  it('awaits graph index requests', async () => {
+    let finished = false;
+    const handlers = createHandlers({
+      analyzeAndSendData: vi.fn(async () => {
+        await Promise.resolve();
+        finished = true;
+      }),
+    });
+
+    const handled = await applyNodeFileNavigationMessage({ type: 'INDEX_GRAPH' }, handlers);
+
+    expect(handled).toBe(true);
+    expect(finished).toBe(true);
+  });
+
   it('requests file info', async () => {
     const handlers = createHandlers();
 
