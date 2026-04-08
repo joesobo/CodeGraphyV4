@@ -31,7 +31,7 @@ describe('graph view provider bootstrap helper', () => {
       },
       coreViews: [
         { id: 'codegraphy.connections' },
-        { id: 'codegraphy.folder' },
+        { id: 'codegraphy.depth-graph' },
       ],
       eventBus: { id: 'event-bus' },
       decorationManager: {
@@ -54,7 +54,7 @@ describe('graph view provider bootstrap helper', () => {
     );
     expect(register).toHaveBeenNthCalledWith(
       2,
-      { id: 'codegraphy.folder' },
+      { id: 'codegraphy.depth-graph' },
       { core: true, isDefault: false },
     );
     expect(setEventBus).toHaveBeenCalledWith({ id: 'event-bus' });
@@ -79,7 +79,7 @@ describe('graph view provider bootstrap helper', () => {
   it('restores the persisted view and modes when the saved view still exists', () => {
     const workspaceState = {
       get<T>(key: string): T | undefined {
-        if (key === 'selected') return 'codegraphy.folder' as T;
+        if (key === 'selected') return 'codegraphy.depth-graph' as T;
         if (key === 'dag') return 'horizontal' as T;
         if (key === 'size') return 'visits' as T;
         return undefined;
@@ -91,7 +91,7 @@ describe('graph view provider bootstrap helper', () => {
         workspaceState,
         viewRegistry: {
           register: vi.fn(),
-          get: vi.fn((viewId: string) => (viewId === 'codegraphy.folder' ? {} : undefined)),
+          get: vi.fn((viewId: string) => (viewId === 'codegraphy.depth-graph' ? {} : undefined)),
           getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
         },
         selectedViewKey: 'selected',
@@ -101,7 +101,7 @@ describe('graph view provider bootstrap helper', () => {
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
-      activeViewId: 'codegraphy.folder',
+      activeViewId: 'codegraphy.depth-graph',
       dagMode: 'horizontal',
       nodeSizeMode: 'visits',
     });

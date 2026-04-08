@@ -71,16 +71,15 @@ describe('Core Views (fresh imports)', () => {
   });
 
   describe('coreViews array', () => {
-    it('contains exactly three views', async () => {
+    it('contains exactly two views', async () => {
       const { coreViews } = await import('../../../src/core/views/builtIns');
-      expect(coreViews).toHaveLength(3);
+      expect(coreViews).toHaveLength(2);
     });
 
-    it('contains connectionsView, depthGraphView, and folderView in order', async () => {
-      const { coreViews, connectionsView, depthGraphView, folderView } = await import('../../../src/core/views/builtIns');
+    it('contains connectionsView and depthGraphView in order', async () => {
+      const { coreViews, connectionsView, depthGraphView } = await import('../../../src/core/views/builtIns');
       expect(coreViews[0]).toBe(connectionsView);
       expect(coreViews[1]).toBe(depthGraphView);
-      expect(coreViews[2]).toBe(folderView);
     });
 
     it('contains views with valid IView properties', async () => {

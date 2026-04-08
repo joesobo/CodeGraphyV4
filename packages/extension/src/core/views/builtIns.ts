@@ -7,10 +7,8 @@
 import { IView } from './contracts';
 
 export { depthGraphView } from './depth/view';
-export { folderView } from './folder/view';
 
 import { depthGraphView } from './depth/view';
-import { folderView } from './folder/view';
 
 /**
  * Connections view - the default view.
@@ -36,5 +34,4 @@ export const connectionsView: IView = {
 export const coreViews: IView[] = [
   connectionsView,
   depthGraphView,
-  folderView,
 ];

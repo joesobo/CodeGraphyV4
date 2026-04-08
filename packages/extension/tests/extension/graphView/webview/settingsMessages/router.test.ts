@@ -280,7 +280,7 @@ describe('graph view settings router', () => {
     );
   });
 
-  it('re-enables plugins and triggers a targeted rebuild', async () => {
+  it('re-enables plugins and triggers a full re-analysis', async () => {
     const state = createState({
       disabledPlugins: new Set(['codegraphy.python']),
     });
@@ -297,7 +297,8 @@ describe('graph view settings router', () => {
 
     expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('plugin', 'codegraphy.python');
+    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('returns false for unrelated messages', async () => {
