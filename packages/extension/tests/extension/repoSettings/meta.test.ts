@@ -56,4 +56,19 @@ describe('extension/repoSettings/meta', () => {
 
     expect(readCodeGraphyRepoMeta(workspaceRoot)).toEqual(createDefaultCodeGraphyRepoMeta());
   });
+
+  it('skips writes when the workspace root does not exist', () => {
+    const workspaceRoot = path.join(os.tmpdir(), 'codegraphy-missing-workspace');
+    const meta = {
+      version: 1 as const,
+      lastIndexedAt: '2026-04-08T19:00:00.000Z',
+      lastIndexedCommit: 'abc123',
+      pluginSignature: 'codegraphy.markdown@1.0.0',
+      settingsSignature: 'settings-sha',
+    };
+
+    writeCodeGraphyRepoMeta(workspaceRoot, meta);
+
+    expect(fs.existsSync(getCodeGraphyRepoMetaPath(workspaceRoot))).toBe(false);
+  });
 });

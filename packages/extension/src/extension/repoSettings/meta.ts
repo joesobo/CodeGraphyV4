@@ -47,6 +47,10 @@ export function writeCodeGraphyRepoMeta(
   workspaceRoot: string,
   meta: ICodeGraphyRepoMeta,
 ): void {
+  if (!fs.existsSync(workspaceRoot)) {
+    return;
+  }
+
   const metaPath = getCodeGraphyRepoMetaPath(workspaceRoot);
   fs.mkdirSync(path.dirname(metaPath), { recursive: true });
   fs.writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`, 'utf8');
