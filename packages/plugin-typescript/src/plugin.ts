@@ -44,45 +44,43 @@ export function createTypeScriptPlugin(): IPlugin {
   let resolver: PathResolver | null = null;
   let focusedImportViewDisposable: Disposable | null = null;
 
-  function toFileAnalysisResult(
-    filePath: string,
-    connections: IConnection[],
-  ): IFileAnalysisResult {
-    return {
-      filePath,
-      relations: connections.map(connection => ({
-        kind: connection.kind,
-        sourceId: connection.sourceId,
-        specifier: connection.specifier,
-        type: connection.type,
-        variant: connection.variant,
-        resolvedPath: connection.resolvedPath,
-        metadata: connection.metadata,
-        fromFilePath: filePath,
-        toFilePath: connection.resolvedPath,
-      })),
-    };
-  }
-
-  async function detectTypeScriptConnections(
-    filePath: string,
-    content: string,
-    workspaceRoot: string,
-  ): Promise<IConnection[]> {
+  const ensureResolver = (workspaceRoot: string): PathResolver => {
     if (!resolver) {
       const config = loadTsConfig(workspaceRoot);
       resolver = new PathResolver(workspaceRoot, config);
     }
 
-    const ctx = { resolver };
+    return resolver;
+  };
 
-    return [
+  const buildAnalysisResult = async (
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<IFileAnalysisResult> => {
+    const ctx = { resolver: ensureResolver(workspaceRoot) };
+    const connections = [
       ...detectEs6Import(content, filePath, ctx),
       ...detectReexport(content, filePath, ctx),
       ...detectDynamicImport(content, filePath, ctx),
       ...detectCommonjsRequire(content, filePath, ctx),
     ];
-  }
+
+    return {
+      filePath,
+      relations: connections.map(connection => ({
+        kind: connection.kind,
+        sourceId: connection.sourceId,
+        fromFilePath: filePath,
+        toFilePath: connection.resolvedPath,
+        specifier: connection.specifier,
+        type: connection.type,
+        variant: connection.variant,
+        resolvedPath: connection.resolvedPath,
+        metadata: connection.metadata,
+      })),
+    };
+  };
 
   return {
     id: manifest.id,
@@ -107,12 +105,9 @@ export function createTypeScriptPlugin(): IPlugin {
     async analyzeFile(
       filePath: string,
       content: string,
-      workspaceRoot: string
+      workspaceRoot: string,
     ): Promise<IFileAnalysisResult> {
-      return toFileAnalysisResult(
-        filePath,
-        await detectTypeScriptConnections(filePath, content, workspaceRoot),
-      );
+      return buildAnalysisResult(filePath, content, workspaceRoot);
     },
 
     async detectConnections(
@@ -120,7 +115,17 @@ export function createTypeScriptPlugin(): IPlugin {
       content: string,
       workspaceRoot: string
     ): Promise<IConnection[]> {
-      return detectTypeScriptConnections(filePath, content, workspaceRoot);
+      const analysis = await buildAnalysisResult(filePath, content, workspaceRoot);
+
+      return (analysis.relations ?? []).map(relation => ({
+        kind: relation.kind,
+        sourceId: relation.sourceId,
+        specifier: relation.specifier ?? '',
+        resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
+        type: relation.type,
+        variant: relation.variant,
+        metadata: relation.metadata,
+      }));
     },
 
     onUnload(): void {

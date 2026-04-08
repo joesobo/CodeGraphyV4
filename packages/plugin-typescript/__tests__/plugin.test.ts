@@ -14,6 +14,20 @@ import type { CodeGraphyAPI, IGraphData } from '@codegraphy-vscode/plugin-api';
 
 const TS_EXAMPLE_ROOT = path.join(__dirname, '../examples');
 
+async function analyzeRelations(
+  plugin: ReturnType<typeof createTypeScriptPlugin>,
+  filePath: string,
+  content: string,
+  workspaceRoot: string,
+) {
+  expect(plugin.analyzeFile).toBeDefined();
+
+  const analysis = await plugin.analyzeFile!(filePath, content, workspaceRoot);
+
+  expect(analysis.filePath).toBe(filePath);
+  return analysis.relations ?? [];
+}
+
 describe('createTypeScriptPlugin manifest', () => {
   it('should expose the plugin id from codegraphy.json', () => {
     const plugin = createTypeScriptPlugin();
@@ -73,54 +87,54 @@ describe('createTypeScriptPlugin lifecycle', () => {
     const plugin = createTypeScriptPlugin();
     await plugin.initialize?.(workspaceRoot);
 
-    // After initialize, resolver exists, so detectConnections works with imports
+    // After initialize, resolver exists, so analyzeFile works with imports
     const filePath = path.join(workspaceRoot, 'src', 'index.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
-    expect(connections.length).toBeGreaterThan(0);
+    const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
+    expect(relations.length).toBeGreaterThan(0);
   });
 
-  it('should lazy-initialize resolver if not initialized', async () => {
+  it('should lazy-initialize resolver if analyzeFile is called before initialize', async () => {
     const plugin = createTypeScriptPlugin();
-    // Do NOT call initialize — go straight to detectConnections
     const filePath = path.join(workspaceRoot, 'src', 'index.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
-    expect(connections.length).toBeGreaterThan(0);
+    const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
+    expect(relations.length).toBeGreaterThan(0);
   });
 
-  it('should handle detectConnections without prior initialize', async () => {
+  it('should handle analyzeFile without prior initialize', async () => {
     const plugin = createTypeScriptPlugin();
-    const connections = await plugin.detectConnections(
+    const relations = await analyzeRelations(
+      plugin,
       path.join(workspaceRoot, 'src', 'config.ts'),
       fs.readFileSync(path.join(workspaceRoot, 'src', 'config.ts'), 'utf-8'),
-      workspaceRoot
+      workspaceRoot,
     );
-    expect(connections).toEqual([]);
+    expect(relations).toEqual([]);
   });
 
   it('should reset resolver on unload', async () => {
     const plugin = createTypeScriptPlugin();
     await plugin.initialize?.(workspaceRoot);
     plugin.onUnload?.();
-    const connections = await plugin.detectConnections(
+    const relations = await analyzeRelations(
+      plugin,
       path.join(workspaceRoot, 'src', 'config.ts'),
       fs.readFileSync(path.join(workspaceRoot, 'src', 'config.ts'), 'utf-8'),
-      workspaceRoot
+      workspaceRoot,
     );
-    expect(connections).toEqual([]);
+    expect(relations).toEqual([]);
   });
 
-  it('should re-create resolver after unload when detectConnections is called', async () => {
+  it('should re-create resolver after unload when analyzeFile is called', async () => {
     const plugin = createTypeScriptPlugin();
     await plugin.initialize?.(workspaceRoot);
     plugin.onUnload?.();
 
-    // Now calling detectConnections should lazy-init a new resolver
     const filePath = path.join(workspaceRoot, 'src', 'index.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
-    expect(connections.length).toBeGreaterThan(0);
+    const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
+    expect(relations.length).toBeGreaterThan(0);
   });
 
   it('should log during initialization', async () => {
@@ -136,10 +150,7 @@ describe('createTypeScriptPlugin lifecycle', () => {
     logSpy.mockRestore();
   });
 
-  it('should not call loadTsConfig again on second detectConnections after initialize', async () => {
-    // Distinguishes the !resolver always-true mutation: after initialize() creates
-    // the resolver, subsequent detectConnections calls must reuse it — not re-run
-    // loadTsConfig on every invocation.
+  it('should not call loadTsConfig again on second analyzeFile after initialize', async () => {
     const plugin = createTypeScriptPlugin();
     const loadSpy = vi.spyOn(tsconfig, 'loadTsConfig');
 
@@ -148,17 +159,14 @@ describe('createTypeScriptPlugin lifecycle', () => {
 
     const filePath = path.join(workspaceRoot, 'src', 'config.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
-    await plugin.detectConnections(filePath, content, workspaceRoot);
-    await plugin.detectConnections(filePath, content, workspaceRoot);
+    await plugin.analyzeFile?.(filePath, content, workspaceRoot);
+    await plugin.analyzeFile?.(filePath, content, workspaceRoot);
 
     expect(loadSpy.mock.calls.length).toBe(callCountAfterInit);
     loadSpy.mockRestore();
   });
 
   it('should re-initialize resolver with new workspace root after unload', async () => {
-    // Distinguishes the onUnload BlockStatement {} mutation: if onUnload does NOT
-    // clear resolver to null, detectConnections skips the lazy-init branch and reuses
-    // the stale resolver. We verify loadTsConfig is called again after unload.
     const plugin = createTypeScriptPlugin();
     const loadSpy = vi.spyOn(tsconfig, 'loadTsConfig');
 
@@ -169,11 +177,31 @@ describe('createTypeScriptPlugin lifecycle', () => {
 
     const filePath = path.join(workspaceRoot, 'src', 'config.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
-    await plugin.detectConnections(filePath, content, workspaceRoot);
+    await plugin.analyzeFile?.(filePath, content, workspaceRoot);
 
-    // After unload, detectConnections must have called loadTsConfig once more
     expect(loadSpy.mock.calls.length).toBeGreaterThan(callCountAfterInit);
     loadSpy.mockRestore();
+  });
+
+  it('keeps detectConnections as a compatibility wrapper around analyzeFile', async () => {
+    const plugin = createTypeScriptPlugin();
+    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
+    const content = fs.readFileSync(filePath, 'utf-8');
+
+    const analysis = await plugin.analyzeFile?.(filePath, content, workspaceRoot);
+    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
+
+    expect(connections).toEqual(
+      (analysis?.relations ?? []).map(relation => ({
+        kind: relation.kind,
+        sourceId: relation.sourceId,
+        specifier: relation.specifier ?? '',
+        resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
+        type: relation.type,
+        variant: relation.variant,
+        metadata: relation.metadata,
+      })),
+    );
   });
 
   it('registers a focused imports view on load', () => {
@@ -426,59 +454,75 @@ describe('source identification', () => {
 
   it('sets es6-import sourceId for static imports', async () => {
     const content = `import { foo } from './bar';`;
-    const connections = await plugin.detectConnections(
-      path.join(workspaceRoot, 'test.ts'), content, workspaceRoot
+    const relations = await analyzeRelations(
+      plugin,
+      path.join(workspaceRoot, 'test.ts'),
+      content,
+      workspaceRoot,
     );
-    expect(connections.length).toBeGreaterThan(0);
-    expect(connections[0].kind).toBe('import');
-    expect(connections[0].sourceId).toBe('es6-import');
+    expect(relations.length).toBeGreaterThan(0);
+    expect(relations[0].kind).toBe('import');
+    expect(relations[0].sourceId).toBe('es6-import');
+    expect(relations[0].fromFilePath).toBe(path.join(workspaceRoot, 'test.ts'));
   });
 
   it('sets dynamic-import sourceId for dynamic imports', async () => {
     const content = `const mod = import('./bar');`;
-    const connections = await plugin.detectConnections(
-      path.join(workspaceRoot, 'test.ts'), content, workspaceRoot
+    const relations = await analyzeRelations(
+      plugin,
+      path.join(workspaceRoot, 'test.ts'),
+      content,
+      workspaceRoot,
     );
-    expect(connections.length).toBeGreaterThan(0);
-    expect(connections[0].kind).toBe('import');
-    expect(connections[0].sourceId).toBe('dynamic-import');
+    expect(relations.length).toBeGreaterThan(0);
+    expect(relations[0].kind).toBe('import');
+    expect(relations[0].sourceId).toBe('dynamic-import');
   });
 
   it('sets commonjs-require sourceId for require calls', async () => {
     const content = `const foo = require('./bar');`;
-    const connections = await plugin.detectConnections(
-      path.join(workspaceRoot, 'test.ts'), content, workspaceRoot
+    const relations = await analyzeRelations(
+      plugin,
+      path.join(workspaceRoot, 'test.ts'),
+      content,
+      workspaceRoot,
     );
-    expect(connections.length).toBeGreaterThan(0);
-    expect(connections[0].kind).toBe('import');
-    expect(connections[0].sourceId).toBe('commonjs-require');
+    expect(relations.length).toBeGreaterThan(0);
+    expect(relations[0].kind).toBe('import');
+    expect(relations[0].sourceId).toBe('commonjs-require');
   });
 
   it('sets reexport sourceId for re-exports', async () => {
     const content = `export { foo } from './bar';`;
-    const connections = await plugin.detectConnections(
-      path.join(workspaceRoot, 'test.ts'), content, workspaceRoot
+    const relations = await analyzeRelations(
+      plugin,
+      path.join(workspaceRoot, 'test.ts'),
+      content,
+      workspaceRoot,
     );
-    expect(connections.length).toBeGreaterThan(0);
-    expect(connections[0].kind).toBe('reexport');
-    expect(connections[0].sourceId).toBe('reexport');
+    expect(relations.length).toBeGreaterThan(0);
+    expect(relations[0].kind).toBe('reexport');
+    expect(relations[0].sourceId).toBe('reexport');
   });
 
-  it('every connection has sourceId and kind set', async () => {
+  it('every relation has sourceId and kind set', async () => {
     const content = `
       import { a } from './a';
       const b = require('./b');
       export { c } from './c';
       const d = import('./d');
     `;
-    const connections = await plugin.detectConnections(
-      path.join(workspaceRoot, 'test.ts'), content, workspaceRoot
+    const relations = await analyzeRelations(
+      plugin,
+      path.join(workspaceRoot, 'test.ts'),
+      content,
+      workspaceRoot,
     );
-    for (const conn of connections) {
-      expect(conn.sourceId).toBeDefined();
-      expect(typeof conn.sourceId).toBe('string');
-      expect(conn.kind).toBeDefined();
-      expect(typeof conn.kind).toBe('string');
+    for (const relation of relations) {
+      expect(relation.sourceId).toBeDefined();
+      expect(typeof relation.sourceId).toBe('string');
+      expect(relation.kind).toBeDefined();
+      expect(typeof relation.kind).toBe('string');
     }
   });
 });
@@ -495,18 +539,18 @@ describe('TypeScript Plugin Integration', () => {
     const filePath = path.join(workspaceRoot, 'src', 'index.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
-    expect(connections.length).toBeGreaterThan(0);
+    const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
+    expect(relations.length).toBeGreaterThan(0);
   });
 
   it('resolves relative import from index.ts to config.ts', async () => {
     const filePath = path.join(workspaceRoot, 'src', 'index.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
-    const resolvedRels = connections
-      .filter(conn => conn.resolvedPath !== null)
-      .map(conn => path.relative(workspaceRoot, conn.resolvedPath!).replace(/\\/g, '/'));
+    const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
+    const resolvedRels = relations
+      .filter(relation => relation.resolvedPath !== null && relation.resolvedPath !== undefined)
+      .map(relation => path.relative(workspaceRoot, relation.resolvedPath!).replace(/\\/g, '/'));
 
     expect(resolvedRels).toContain('src/config.ts');
   });
@@ -515,9 +559,9 @@ describe('TypeScript Plugin Integration', () => {
     const filePath = path.join(workspaceRoot, 'src', 'index.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
-    for (const conn of connections.filter(connection => connection.resolvedPath !== null)) {
-      expect(path.isAbsolute(conn.resolvedPath!)).toBe(true);
+    const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
+    for (const relation of relations.filter(item => item.resolvedPath !== null && item.resolvedPath !== undefined)) {
+      expect(path.isAbsolute(relation.resolvedPath!)).toBe(true);
     }
   });
 
@@ -525,8 +569,8 @@ describe('TypeScript Plugin Integration', () => {
     const filePath = path.join(workspaceRoot, 'src', 'config.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
-    const resolved = connections.filter(conn => conn.resolvedPath !== null);
+    const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
+    const resolved = relations.filter(relation => relation.resolvedPath !== null && relation.resolvedPath !== undefined);
     expect(resolved.length).toBe(0);
   });
 
@@ -546,11 +590,11 @@ describe('TypeScript Plugin Integration', () => {
     for (const relPath of tsFiles) {
       const absPath = path.join(workspaceRoot, relPath);
       const content = fs.readFileSync(absPath, 'utf-8');
-      const connections = await plugin.detectConnections(absPath, content, workspaceRoot);
+      const relations = await analyzeRelations(plugin, absPath, content, workspaceRoot);
 
-      for (const conn of connections) {
-        if (conn.resolvedPath) {
-          const toRel = path.relative(workspaceRoot, conn.resolvedPath).replace(/\\/g, '/');
+      for (const relation of relations) {
+        if (relation.resolvedPath) {
+          const toRel = path.relative(workspaceRoot, relation.resolvedPath).replace(/\\/g, '/');
           if (tsFiles.includes(toRel)) {
             edges.push({ from: relPath, to: toRel });
           }
@@ -567,10 +611,10 @@ describe('TypeScript Plugin Integration', () => {
     const filePath = path.join(workspaceRoot, 'src', 'index.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
 
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
-    const resolvedRels = connections
-      .filter(conn => conn.resolvedPath !== null)
-      .map(conn => path.relative(workspaceRoot, conn.resolvedPath!).replace(/\\/g, '/'));
+    const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
+    const resolvedRels = relations
+      .filter(relation => relation.resolvedPath !== null && relation.resolvedPath !== undefined)
+      .map(relation => path.relative(workspaceRoot, relation.resolvedPath!).replace(/\\/g, '/'));
 
     expect(resolvedRels).toContain('src/components/App.tsx');
     expect(resolvedRels).toContain('src/services/api.ts');

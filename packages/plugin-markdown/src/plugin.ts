@@ -32,33 +32,27 @@ export type { IDetectedWikilink, MarkdownRuleContext } from './sources/wikilink'
  */
 export function createMarkdownPlugin(): IPlugin {
   const resolver = new PathResolver(String());
-
-  async function detectMarkdownConnections(
+  const buildAnalysisResult = async (
     filePath: string,
     content: string,
-  ): Promise<IConnection[]> {
-    return detectWikilink(content, filePath, { resolver });
-  }
+  ): Promise<IFileAnalysisResult> => {
+    const connections = detectWikilink(content, filePath, { resolver });
 
-  function toFileAnalysisResult(
-    filePath: string,
-    connections: IConnection[],
-  ): IFileAnalysisResult {
     return {
       filePath,
       relations: connections.map(connection => ({
         kind: connection.kind,
         sourceId: connection.sourceId,
+        fromFilePath: filePath,
+        toFilePath: connection.resolvedPath,
         specifier: connection.specifier,
         type: connection.type,
         variant: connection.variant,
         resolvedPath: connection.resolvedPath,
         metadata: connection.metadata,
-        fromFilePath: filePath,
-        toFilePath: connection.resolvedPath,
       })),
     };
-  }
+  };
 
   return {
     id: manifest.id,
@@ -89,12 +83,9 @@ export function createMarkdownPlugin(): IPlugin {
     async analyzeFile(
       filePath: string,
       content: string,
-      _workspaceRoot: string
+      _workspaceRoot: string,
     ): Promise<IFileAnalysisResult> {
-      return toFileAnalysisResult(
-        filePath,
-        await detectMarkdownConnections(filePath, content),
-      );
+      return buildAnalysisResult(filePath, content);
     },
 
     async detectConnections(
@@ -102,7 +93,17 @@ export function createMarkdownPlugin(): IPlugin {
       content: string,
       _workspaceRoot: string
     ): Promise<IConnection[]> {
-      return detectMarkdownConnections(filePath, content);
+      const analysis = await buildAnalysisResult(filePath, content);
+
+      return (analysis.relations ?? []).map(relation => ({
+        kind: relation.kind,
+        sourceId: relation.sourceId,
+        specifier: relation.specifier ?? '',
+        resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
+        type: relation.type,
+        variant: relation.variant,
+        metadata: relation.metadata,
+      }));
     },
   };
 }
