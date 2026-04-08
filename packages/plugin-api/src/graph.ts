@@ -3,7 +3,9 @@
  * @module @codegraphy-vscode/plugin-api/graph
  */
 
-export type NodeType = 'file' | 'folder' | 'package';
+export type CoreNodeType = 'file' | 'folder' | 'package';
+
+export type NodeType = CoreNodeType | (string & {});
 
 export type GraphNodeShape2D =
   | 'circle'
