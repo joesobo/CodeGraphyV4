@@ -6,9 +6,10 @@
  */
 
 import type {
-  IPlugin,
+  IAnalysisRelation,
   IConnection,
   IFileAnalysisResult,
+  IPlugin,
 } from '@codegraphy-vscode/plugin-api';
 import { PathResolver } from './PathResolver';
 import { loadPythonConfig } from './projectConfig';
@@ -49,31 +50,7 @@ export function createPythonPlugin(): IPlugin {
   let resolver: PathResolver | null = null;
   let pythonRuntimeReady = false;
 
-  function toFileAnalysisResult(
-    filePath: string,
-    connections: IConnection[],
-  ): IFileAnalysisResult {
-    return {
-      filePath,
-      relations: connections.map(connection => ({
-        kind: connection.kind,
-        sourceId: connection.sourceId,
-        specifier: connection.specifier,
-        type: connection.type,
-        variant: connection.variant,
-        resolvedPath: connection.resolvedPath,
-        metadata: connection.metadata,
-        fromFilePath: filePath,
-        toFilePath: connection.resolvedPath,
-      })),
-    };
-  }
-
-  async function detectPythonConnections(
-    filePath: string,
-    content: string,
-    workspaceRoot: string,
-  ): Promise<IConnection[]> {
+  async function getResolver(workspaceRoot: string): Promise<PathResolver> {
     if (!pythonRuntimeReady) {
       assertPythonAstRuntimeAvailable();
       pythonRuntimeReady = true;
@@ -84,14 +61,56 @@ export function createPythonPlugin(): IPlugin {
       resolver = new PathResolver(workspaceRoot, config);
     }
 
-    const imports = parsePythonImports(content);
-    const ctx = { resolver, imports };
+    return resolver;
+  }
 
-    return [
+  function toAnalysisRelations(
+    filePath: string,
+    connections: IConnection[],
+  ): IAnalysisRelation[] {
+    return connections.map((connection) => ({
+      kind: connection.kind,
+      sourceId: connection.sourceId,
+      specifier: connection.specifier,
+      type: connection.type,
+      variant: connection.variant,
+      resolvedPath: connection.resolvedPath,
+      metadata: connection.metadata,
+      fromFilePath: filePath,
+      toFilePath: connection.resolvedPath,
+    }));
+  }
+
+  function toLegacyConnections(relations: IAnalysisRelation[]): IConnection[] {
+    return relations.map((relation) => ({
+      kind: relation.kind,
+      sourceId: relation.sourceId,
+      specifier: relation.specifier ?? '',
+      resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
+      type: relation.type,
+      variant: relation.variant,
+      metadata: relation.metadata,
+    }));
+  }
+
+  async function analyzePythonFile(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<IFileAnalysisResult> {
+    const activeResolver = await getResolver(workspaceRoot);
+    const imports = parsePythonImports(content);
+    const ctx = { resolver: activeResolver, imports };
+    const connections = [
       ...detectImportModule(content, filePath, ctx),
       ...detectFromImportAbsolute(content, filePath, ctx),
       ...detectFromImportRelative(content, filePath, ctx),
     ];
+
+    return {
+      filePath,
+      relations: toAnalysisRelations(filePath, connections),
+    };
   }
 
   return {
@@ -115,12 +134,9 @@ export function createPythonPlugin(): IPlugin {
     async analyzeFile(
       filePath: string,
       content: string,
-      workspaceRoot: string
+      workspaceRoot: string,
     ): Promise<IFileAnalysisResult> {
-      return toFileAnalysisResult(
-        filePath,
-        await detectPythonConnections(filePath, content, workspaceRoot),
-      );
+      return analyzePythonFile(filePath, content, workspaceRoot);
     },
 
     async detectConnections(
@@ -128,7 +144,8 @@ export function createPythonPlugin(): IPlugin {
       content: string,
       workspaceRoot: string
     ): Promise<IConnection[]> {
-      return detectPythonConnections(filePath, content, workspaceRoot);
+      const analysis = await analyzePythonFile(filePath, content, workspaceRoot);
+      return toLegacyConnections(analysis.relations ?? []);
     },
 
     onUnload(): void {

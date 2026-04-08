@@ -22,13 +22,13 @@ describe('Python plugin project config source roots', () => {
     return fullPath;
   }
 
-  async function detect(mainRelativePath: string): Promise<ReturnType<Awaited<ReturnType<typeof createPythonPlugin>>['detectConnections']>> {
+  async function analyze(mainRelativePath: string) {
     const plugin = createPythonPlugin();
     await plugin.initialize?.(workspaceRoot);
 
     const mainPath = path.join(workspaceRoot, mainRelativePath);
     const content = fs.readFileSync(mainPath, 'utf8');
-    return plugin.detectConnections(mainPath, content, workspaceRoot);
+    return plugin.analyzeFile?.(mainPath, content, workspaceRoot);
   }
 
   it('resolves imports from source roots declared in pyproject.toml', async () => {
@@ -44,8 +44,8 @@ where = ["backend"]
     writeFile('backend/pkg/mod.py', 'VALUE = 1\n');
     writeFile('backend/main.py', 'from pkg import mod\n');
 
-    const connections = await detect('backend/main.py');
-    const connection = connections.find(
+    const relations = (await analyze('backend/main.py'))?.relations ?? [];
+    const connection = relations.find(
       (candidate) => candidate.specifier.includes('from pkg import mod') && candidate.resolvedPath !== null
     );
 
@@ -64,8 +64,8 @@ where = backend
     writeFile('backend/pkg/mod.py', 'VALUE = 1\n');
     writeFile('backend/main.py', 'from pkg import mod\n');
 
-    const connections = await detect('backend/main.py');
-    const connection = connections.find(
+    const relations = (await analyze('backend/main.py'))?.relations ?? [];
+    const connection = relations.find(
       (candidate) => candidate.specifier.includes('from pkg import mod') && candidate.resolvedPath !== null
     );
 
