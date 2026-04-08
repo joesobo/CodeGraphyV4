@@ -87,6 +87,7 @@ describe('graph view timeline setup', () => {
       '**/build/**',
       '**/out/**',
       '**/.git/**',
+      '**/.codegraphy/**',
       '**/coverage/**',
       '**/*.min.js',
       '**/*.bundle.js',

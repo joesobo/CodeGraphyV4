@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../src/shared/graphControls/defaults';
 import { buildContainmentEdges } from '../../../../src/core/views/folder/edges';
 
 describe('buildContainmentEdges', () => {
@@ -10,7 +11,7 @@ describe('buildContainmentEdges', () => {
 
     const folderToFolder = edges.find(e => e.from === 'src' && e.to === 'src/components');
     expect(folderToFolder).toBeDefined();
-    expect(folderToFolder!.id).toBe('src->src/components#codegraphy:contains');
+    expect(folderToFolder!.id).toBe(`src->src/components#${STRUCTURAL_NESTS_EDGE_KIND}`);
   });
 
   it('creates folder-to-file edges for files in subdirectories', () => {
@@ -21,7 +22,7 @@ describe('buildContainmentEdges', () => {
 
     const folderToFile = edges.find(e => e.from === 'src' && e.to === 'src/app.ts');
     expect(folderToFile).toBeDefined();
-    expect(folderToFile!.id).toBe('src->src/app.ts#codegraphy:contains');
+    expect(folderToFile!.id).toBe(`src->src/app.ts#${STRUCTURAL_NESTS_EDGE_KIND}`);
   });
 
   it('creates (root)-to-file edges for root-level files', () => {
@@ -32,7 +33,7 @@ describe('buildContainmentEdges', () => {
 
     const rootToFile = edges.find(e => e.from === '(root)' && e.to === 'index.ts');
     expect(rootToFile).toBeDefined();
-    expect(rootToFile!.id).toBe('(root)->index.ts#codegraphy:contains');
+    expect(rootToFile!.id).toBe(`(root)->index.ts#${STRUCTURAL_NESTS_EDGE_KIND}`);
   });
 
   it('skips (root) when creating folder-to-subfolder edges', () => {
@@ -95,7 +96,7 @@ describe('buildContainmentEdges', () => {
     const edges = buildContainmentEdges(folderPaths, nodes);
 
     const fileEdge = edges.find(e => e.to === 'src/main.ts');
-    expect(fileEdge!.id).toBe('src->src/main.ts#codegraphy:contains');
+    expect(fileEdge!.id).toBe(`src->src/main.ts#${STRUCTURAL_NESTS_EDGE_KIND}`);
   });
 
   it('handles root-level files identified by single segment IDs', () => {

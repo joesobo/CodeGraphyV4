@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../src/shared/fileColors';
+import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../../src/shared/graphControls/defaults';
 import type { IGraphData } from '../../../../src/shared/graph/types';
 import { IViewContext } from '../../../../src/core/views/contracts';
 import type { IView } from '../../../../src/core/views/contracts';
@@ -206,8 +207,8 @@ describe('folderView', () => {
 
     const edgeIds = result.edges.map(e => e.id).sort();
     expect(edgeIds).toEqual([
-      'src->src/utils#codegraphy:contains',
-      'src/utils->src/utils/helper.ts#codegraphy:contains',
+      `src->src/utils#${STRUCTURAL_NESTS_EDGE_KIND}`,
+      `src/utils->src/utils/helper.ts#${STRUCTURAL_NESTS_EDGE_KIND}`,
     ]);
   });
 
