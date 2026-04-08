@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { CodeGraphyAPIImpl } from '../../../../src/core/plugins/codeGraphyApi';
+import { CodeGraphyAPIImpl } from '../../../../src/core/plugins/api/instance';
 import { callOnLoad, createPluginApi, type IApiDependencies } from '../../../../src/core/plugins/registry/apiSetup';
 
 function createDependencies(overrides: Partial<IApiDependencies> = {}): IApiDependencies {

@@ -6,7 +6,7 @@ import * as vscode from 'vscode';
 import type { IViewContext } from '../../../core/views/contracts';
 import { ViewRegistry } from '../../../core/views/registry';
 import { DecorationManager } from '../../../core/plugins/decoration/manager';
-import { EventBus } from '../../../core/plugins/eventBus';
+import { EventBus } from '../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../shared/graph/types';
 import type { IGroup } from '../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../shared/settings/modes';

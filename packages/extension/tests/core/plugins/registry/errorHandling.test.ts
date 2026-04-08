@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import { PluginRegistry } from '@/core/plugins/registry/manager';
-import { EventBus } from '@/core/plugins/eventBus';
+import { EventBus } from '@/core/plugins/events/bus';
 import { DecorationManager } from '@/core/plugins/decoration/manager';
 import { ViewRegistry } from '@/core/views/registry';
-import { CodeGraphyAPIImpl } from '@/core/plugins/codeGraphyApi';
+import { CodeGraphyAPIImpl } from '@/core/plugins/api/instance';
 import { IPlugin } from '@/core/plugins/types/contracts';
 
 function createPlugin(id: string, overrides: Partial<IPlugin> = {}): IPlugin {

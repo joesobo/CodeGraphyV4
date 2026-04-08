@@ -4,8 +4,8 @@
  */
 
 import type { IPlugin, IPluginInfo, IConnection } from '../types/contracts';
-import type { EventBus } from '../eventBus';
-import type { CodeGraphyAPIImpl } from '../codeGraphyApi';
+import type { EventBus } from '../events/bus';
+import type { CodeGraphyAPIImpl } from '../api/instance';
 import type { IGraphData } from '../../../shared/graph/types';
 import { validateAndCreatePluginInfo, addToRegistry } from './register';
 import type { RegistryV2Config } from './register';

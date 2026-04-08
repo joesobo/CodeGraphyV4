@@ -1,7 +1,7 @@
 import { vi } from 'vitest';
 import type { IPlugin } from '@/core/plugins/types/contracts';
 import { PluginRegistry } from '@/core/plugins/registry/manager';
-import { EventBus } from '@/core/plugins/eventBus';
+import { EventBus } from '@/core/plugins/events/bus';
 import { DecorationManager } from '@/core/plugins/decoration/manager';
 import { ViewRegistry } from '@/core/views/registry';
 
