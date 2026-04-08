@@ -7,7 +7,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createGDScriptPlugin as createGodotPlugin } from '../src/plugin';
+import {
+  createGDScriptPlugin as createGodotPlugin,
+  type IGDScriptAnalyzeFilePlugin,
+} from '../src/plugin';
 import { GDScriptPathResolver } from '../src/PathResolver';
 import { detect as detectPreload } from '../src/sources/preload';
 import { detect as detectLoad } from '../src/sources/load';
@@ -27,22 +30,20 @@ describe('createGDScriptPlugin lifecycle', () => {
   });
 
   it('should initialize resolver', async () => {
-    const plugin = createGodotPlugin();
+    const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
     await plugin.initialize('/workspace');
-    // After initialize, detectConnections should work without error
-    const conns = await plugin.detectConnections('/workspace/test.gd', '', '/workspace');
-    expect(conns).toEqual([]);
+    const analysis = await plugin.analyzeFile('/workspace/test.gd', '', '/workspace');
+    expect(analysis).toEqual({ filePath: '/workspace/test.gd', relations: [] });
   });
 
-  it('should handle detectConnections without prior initialize', async () => {
-    const plugin = createGodotPlugin();
-    // detectConnections lazily creates resolver
-    const conns = await plugin.detectConnections('/workspace/test.gd', '', '/workspace');
-    expect(conns).toEqual([]);
+  it('should handle analyzeFile without prior initialize', async () => {
+    const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
+    const analysis = await plugin.analyzeFile('/workspace/test.gd', '', '/workspace');
+    expect(analysis).toEqual({ filePath: '/workspace/test.gd', relations: [] });
   });
 
   it('onPreAnalyze should build class_name map from file contents', async () => {
-    const plugin = createGodotPlugin();
+    const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
     await plugin.initialize('/workspace');
 
     const files = [
@@ -62,9 +63,9 @@ describe('createGDScriptPlugin lifecycle', () => {
 
     // Now class_name-based references should resolve
     const content = 'var p: Player';
-    const conns = await plugin.detectConnections('/workspace/scripts/test.gd', content, '/workspace');
-    expect(conns.some(conn => conn.specifier === 'Player')).toBe(true);
-    expect(conns.some(conn => conn.kind === 'reference')).toBe(true);
+    const analysis = await plugin.analyzeFile('/workspace/scripts/test.gd', content, '/workspace');
+    expect(analysis.relations.some(relation => relation.specifier === 'Player')).toBe(true);
+    expect(analysis.relations.some(relation => relation.kind === 'reference')).toBe(true);
   });
 
   it('onPreAnalyze should register files for snake_case fallback', async () => {
@@ -126,34 +127,54 @@ describe('createGDScriptPlugin lifecycle', () => {
     expect(conns.some(conn => conn.specifier === 'Player')).toBe(false);
   });
 
-  it('detectConnections should register class_name declarations from current file', async () => {
-    const plugin = createGodotPlugin();
+  it('analyzeFile should register class_name declarations from current file', async () => {
+    const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
     await plugin.initialize('/workspace');
 
     const content = 'class_name MyClass\nextends Node\n';
-    await plugin.detectConnections('/workspace/scripts/my_class.gd', content, '/workspace');
+    await plugin.analyzeFile('/workspace/scripts/my_class.gd', content, '/workspace');
 
     // Now MyClass should be resolvable from another file
     const otherContent = 'var x: MyClass';
-    const conns = await plugin.detectConnections('/workspace/scripts/other.gd', otherContent, '/workspace');
-    expect(conns.some(conn => conn.specifier === 'MyClass')).toBe(true);
+    const analysis = await plugin.analyzeFile('/workspace/scripts/other.gd', otherContent, '/workspace');
+    expect(analysis.relations.some(relation => relation.specifier === 'MyClass')).toBe(true);
   });
 
-  it('detectConnections should combine results from all sources', async () => {
-    const plugin = createGodotPlugin();
+  it('analyzeFile should combine results from all sources', async () => {
+    const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
     await plugin.initialize('/workspace');
 
     const content = `extends "res://scripts/base.gd"
 const Scene = preload("res://scenes/level.tscn")
 var config = load("res://data/config.tres")`;
 
-    const conns = await plugin.detectConnections('/workspace/scripts/test.gd', content, '/workspace');
+    const analysis = await plugin.analyzeFile('/workspace/scripts/test.gd', content, '/workspace');
 
-    expect(conns.some(conn => conn.sourceId === 'extends')).toBe(true);
-    expect(conns.some(conn => conn.sourceId === 'preload')).toBe(true);
-    expect(conns.some(conn => conn.sourceId === 'load')).toBe(true);
-    expect(conns.some(conn => conn.kind === 'inherit')).toBe(true);
-    expect(conns.some(conn => conn.kind === 'load')).toBe(true);
+    expect(analysis.relations.some(relation => relation.sourceId === 'extends')).toBe(true);
+    expect(analysis.relations.some(relation => relation.sourceId === 'preload')).toBe(true);
+    expect(analysis.relations.some(relation => relation.sourceId === 'load')).toBe(true);
+    expect(analysis.relations.some(relation => relation.kind === 'inherit')).toBe(true);
+    expect(analysis.relations.some(relation => relation.kind === 'load')).toBe(true);
+  });
+
+  it('keeps detectConnections compatible by mapping analyzeFile relations back to connections', async () => {
+    const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
+    await plugin.initialize('/workspace');
+
+    const content = 'extends "res://base.gd"\nconst X = preload("res://x.gd")';
+    const analysis = await plugin.analyzeFile('/workspace/test.gd', content, '/workspace');
+    const connections = await plugin.detectConnections('/workspace/test.gd', content, '/workspace');
+
+    expect(analysis.relations).toHaveLength(2);
+    expect(connections).toHaveLength(2);
+    expect(connections).toEqual(
+      analysis.relations.map((relation) => expect.objectContaining({
+        kind: relation.kind,
+        sourceId: relation.sourceId,
+        specifier: relation.specifier,
+        resolvedPath: relation.resolvedPath,
+      })),
+    );
   });
 
   it('onUnload should clean up resolver state', async () => {

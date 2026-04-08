@@ -9,12 +9,12 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import * as path from 'path';
 import * as fs from 'fs';
-import { createCSharpPlugin } from '../src/plugin';
+import { createCSharpPlugin, type ICSharpAnalyzeFilePlugin } from '../src/plugin';
 
 const CSHARP_EXAMPLE_ROOT = path.join(__dirname, '../examples');
 
 describe('C# Plugin Integration', () => {
-  const csharpPlugin = createCSharpPlugin();
+  const csharpPlugin = createCSharpPlugin() as ICSharpAnalyzeFilePlugin;
   const workspaceRoot = CSHARP_EXAMPLE_ROOT;
 
   beforeAll(async () => {
@@ -27,37 +27,30 @@ describe('C# Plugin Integration', () => {
    * 2. Gets resolvedPath from connections
    * 3. Calls path.relative(workspaceRoot, resolvedPath) to get the node ID
    */
-  it('should return absolute resolvedPath', async () => {
+  it('should return absolute toFilePath values from analyzeFile relations', async () => {
     const programCs = path.join(workspaceRoot, 'src', 'Program.cs');
     const content = fs.readFileSync(programCs, 'utf-8');
 
-    const connections = await csharpPlugin.detectConnections(
+    const analysis = await csharpPlugin.analyzeFile(
       programCs,
       content,
       workspaceRoot
     );
 
-    expect(connections.length).toBeGreaterThan(0);
+    expect(analysis.relations.length).toBeGreaterThan(0);
     
-    // Find non-external connections (skip System namespace)
-    const internalConnections = connections.filter((connection) => 
-      connection.resolvedPath !== null && 
-      !connection.specifier.includes('System')
+    const internalRelations = analysis.relations.filter((relation) => 
+      relation.toFilePath !== null &&
+      !relation.specifier.includes('System')
     );
 
-    // At minimum, we should resolve MyApp.Services and MyApp.Utils
-    // But since namespaces aren't registered yet, this might be 0 initially
-    // The fix should make this work via convention-based resolution
-    for (const conn of internalConnections) {
-      expect(conn.resolvedPath).not.toBeNull();
+    for (const relation of internalRelations) {
+      expect(relation.toFilePath).not.toBeNull();
       
-      // Verify path is absolute
-      expect(path.isAbsolute(conn.resolvedPath!)).toBe(true);
+      expect(path.isAbsolute(relation.toFilePath!)).toBe(true);
       
-      // This is what WorkspaceAnalyzer does to build edges
-      const targetRelative = path.relative(workspaceRoot, conn.resolvedPath!);
+      const targetRelative = path.relative(workspaceRoot, relation.toFilePath!);
       
-      // The path should NOT start with '..' because it's under workspaceRoot
       expect(targetRelative).not.toMatch(/^\.\./);
     }
   });
@@ -73,20 +66,16 @@ describe('C# Plugin Integration', () => {
       'src/Utils/Formatter.cs',
     ];
 
-    // IMPORTANT: C# requires two passes - first to register namespaces,
-    // then to resolve usings. Let's simulate what the plugin should do.
-    
-    // Pass 1: Register all namespaces by calling detectConnections on all files
+    // Pass 1: register namespaces by analyzing all files once.
     for (const relPath of csFiles) {
       const absPath = path.join(workspaceRoot, relPath);
       if (!fs.existsSync(absPath)) continue;
       
       const content = fs.readFileSync(absPath, 'utf-8');
-      // This registers namespaces as a side effect
-      await csharpPlugin.detectConnections(absPath, content, workspaceRoot);
+      await csharpPlugin.analyzeFile(absPath, content, workspaceRoot);
     }
 
-    // Pass 2: Now collect all connections (namespaces are registered)
+    // Pass 2: collect file-analysis relations with the populated namespace map.
     const allConnections: Array<{ from: string; to: string | null; specifier: string }> = [];
 
     for (const relPath of csFiles) {
@@ -94,18 +83,16 @@ describe('C# Plugin Integration', () => {
       if (!fs.existsSync(absPath)) continue;
 
       const content = fs.readFileSync(absPath, 'utf-8');
-      const connections = await csharpPlugin.detectConnections(absPath, content, workspaceRoot);
+      const analysis = await csharpPlugin.analyzeFile(absPath, content, workspaceRoot);
 
-      for (const conn of connections) {
-        if (conn.resolvedPath) {
-          // Simulate what WorkspaceAnalyzer does
-          const targetRelative = path.relative(workspaceRoot, conn.resolvedPath);
+      for (const relation of analysis.relations) {
+        if (relation.toFilePath) {
+          const targetRelative = path.relative(workspaceRoot, relation.toFilePath);
           // Normalize slashes for cross-platform comparison
           const normalized = targetRelative.replace(/\\/g, '/');
-          allConnections.push({ from: relPath, to: normalized, specifier: conn.specifier });
+          allConnections.push({ from: relPath, to: normalized, specifier: relation.specifier });
         } else {
-          // Track unresolved too for debugging
-          allConnections.push({ from: relPath, to: null, specifier: conn.specifier });
+          allConnections.push({ from: relPath, to: null, specifier: relation.specifier });
         }
       }
     }
@@ -138,18 +125,22 @@ describe('C# Plugin Integration', () => {
 
     // On first call, no namespaces are registered yet
     // The convention-based resolver should still find files
-    const connections = await freshPlugin.detectConnections(programCs, content, workspaceRoot);
+    const analysis = await (freshPlugin as ICSharpAnalyzeFilePlugin).analyzeFile(
+      programCs,
+      content,
+      workspaceRoot,
+    );
 
-    console.log('Fresh plugin connections:', connections.map((connection) => ({
-      specifier: connection.specifier,
-      resolved: connection.resolvedPath ? path.relative(workspaceRoot, connection.resolvedPath) : null
+    console.log('Fresh plugin connections:', analysis.relations.map((relation) => ({
+      specifier: relation.specifier,
+      resolved: relation.toFilePath ? path.relative(workspaceRoot, relation.toFilePath) : null
     })));
 
     // Even without namespace registration, convention-based resolution
     // should find at least some files
-    const resolved = connections.filter((connection) => 
-      connection.resolvedPath !== null && 
-      !connection.specifier.includes('System')
+    const resolved = analysis.relations.filter((relation) => 
+      relation.toFilePath !== null &&
+      !relation.specifier.includes('System')
     );
 
     // This is the key test - convention resolution should work

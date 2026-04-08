@@ -5,15 +5,16 @@
  * @module plugins/csharp
  */
 
-import type {
-  IPlugin,
-  IConnection,
-  IFileAnalysisResult,
-} from '@codegraphy-vscode/plugin-api';
+import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
 import { PathResolver, ICSharpPathResolverConfig } from './PathResolver';
 import { parseContent } from './parserContent';
 import type { CSharpRuleContext } from './parserTypes';
 import { extractUsedTypes } from './parserUsedTypes';
+import {
+  buildCSharpFileAnalysisResult,
+  toCSharpConnections,
+  type CSharpFileAnalysisResult,
+} from './analysis';
 import manifest from '../codegraphy.json';
 
 // Source detect functions
@@ -44,34 +45,22 @@ export type { IDetectedUsing, IDetectedNamespace } from './parserTypes';
  * registry.register(plugin, { builtIn: true });
  * ```
  */
-export function createCSharpPlugin(): IPlugin {
-  let resolver: PathResolver | null = null;
-
-  function toFileAnalysisResult(
-    filePath: string,
-    connections: IConnection[],
-  ): IFileAnalysisResult {
-    return {
-      filePath,
-      relations: connections.map(connection => ({
-        kind: connection.kind,
-        sourceId: connection.sourceId,
-        specifier: connection.specifier,
-        type: connection.type,
-        variant: connection.variant,
-        resolvedPath: connection.resolvedPath,
-        metadata: connection.metadata,
-        fromFilePath: filePath,
-        toFilePath: connection.resolvedPath,
-      })),
-    };
-  }
-
-  async function detectCSharpConnections(
+export interface ICSharpAnalyzeFilePlugin extends IPlugin {
+  analyzeFile(
     filePath: string,
     content: string,
     workspaceRoot: string,
-  ): Promise<IConnection[]> {
+  ): Promise<CSharpFileAnalysisResult>;
+}
+
+export function createCSharpPlugin(): ICSharpAnalyzeFilePlugin {
+  let resolver: PathResolver | null = null;
+
+  const analyzeFile = async (
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<CSharpFileAnalysisResult> => {
     if (!resolver) {
       const config = await loadCSharpConfig(workspaceRoot);
       resolver = new PathResolver(workspaceRoot, config);
@@ -85,12 +74,13 @@ export function createCSharpPlugin(): IPlugin {
 
     const usedTypes = extractUsedTypes(content);
     const ctx: CSharpRuleContext = { resolver, usings, namespaces, usedTypes };
-
-    return [
+    const connections = [
       ...detectUsingDirective(content, filePath, ctx),
       ...detectTypeUsage(content, filePath, ctx),
     ];
-  }
+
+    return buildCSharpFileAnalysisResult(filePath, connections);
+  };
 
   return {
     id: manifest.id,
@@ -108,23 +98,16 @@ export function createCSharpPlugin(): IPlugin {
       console.log('[CodeGraphy] C# plugin initialized');
     },
 
-    async analyzeFile(
-      filePath: string,
-      content: string,
-      workspaceRoot: string
-    ): Promise<IFileAnalysisResult> {
-      return toFileAnalysisResult(
-        filePath,
-        await detectCSharpConnections(filePath, content, workspaceRoot),
-      );
-    },
+    analyzeFile,
 
     async detectConnections(
       filePath: string,
       content: string,
       workspaceRoot: string
     ): Promise<IConnection[]> {
-      return detectCSharpConnections(filePath, content, workspaceRoot);
+      return toCSharpConnections(
+        await analyzeFile(filePath, content, workspaceRoot),
+      );
     },
 
     onUnload(): void {

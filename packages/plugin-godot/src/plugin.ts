@@ -6,13 +6,14 @@
  */
 
 import * as path from 'path';
-import type {
-  IPlugin,
-  IConnection,
-  IFileAnalysisResult,
-} from '@codegraphy-vscode/plugin-api';
+import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration, normalizePath } from './parser';
+import {
+  buildGDScriptFileAnalysisResult,
+  toGDScriptConnections,
+  type GDScriptFileAnalysisResult,
+} from './analysis';
 import manifest from '../codegraphy.json';
 
 // Source detect functions
@@ -44,34 +45,22 @@ export type { IGDScriptReference, GDScriptReferenceType } from './parser';
  * registry.register(plugin, { builtIn: true });
  * ```
  */
-export function createGDScriptPlugin(): IPlugin {
-  let resolver: GDScriptPathResolver | null = null;
-
-  function toFileAnalysisResult(
-    filePath: string,
-    connections: IConnection[],
-  ): IFileAnalysisResult {
-    return {
-      filePath,
-      relations: connections.map(connection => ({
-        kind: connection.kind,
-        sourceId: connection.sourceId,
-        specifier: connection.specifier,
-        type: connection.type,
-        variant: connection.variant,
-        resolvedPath: connection.resolvedPath,
-        metadata: connection.metadata,
-        fromFilePath: filePath,
-        toFilePath: connection.resolvedPath,
-      })),
-    };
-  }
-
-  async function detectGDScriptConnections(
+export interface IGDScriptAnalyzeFilePlugin extends IPlugin {
+  analyzeFile(
     filePath: string,
     content: string,
     workspaceRoot: string,
-  ): Promise<IConnection[]> {
+  ): Promise<GDScriptFileAnalysisResult>;
+}
+
+export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
+  let resolver: GDScriptPathResolver | null = null;
+
+  const analyzeFile = async (
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<GDScriptFileAnalysisResult> => {
     if (!resolver) resolver = new GDScriptPathResolver(workspaceRoot);
 
     const relativeFilePath = normalizePath(path.relative(workspaceRoot, filePath));
@@ -83,13 +72,15 @@ export function createGDScriptPlugin(): IPlugin {
       if (ref) resolver.registerClassName(ref.resPath, relativeFilePath);
     }
 
-    return [
+    const connections = [
       ...detectPreload(content, filePath, ctx),
       ...detectLoad(content, filePath, ctx),
       ...detectExtends(content, filePath, ctx),
       ...detectClassNameUsage(content, filePath, ctx),
     ];
-  }
+
+    return buildGDScriptFileAnalysisResult(filePath, connections);
+  };
 
   return {
     id: manifest.id,
@@ -127,19 +118,12 @@ export function createGDScriptPlugin(): IPlugin {
       console.log(`[CodeGraphy] GDScript class_name map: ${resolver.getClassNameMap().size} entries, ${resolver.getFileNameMap().size} files indexed`);
     },
 
-    async analyzeFile(
-      filePath: string,
-      content: string,
-      workspaceRoot: string,
-    ): Promise<IFileAnalysisResult> {
-      return toFileAnalysisResult(
-        filePath,
-        await detectGDScriptConnections(filePath, content, workspaceRoot),
-      );
-    },
+    analyzeFile,
 
     async detectConnections(filePath: string, content: string, workspaceRoot: string): Promise<IConnection[]> {
-      return detectGDScriptConnections(filePath, content, workspaceRoot);
+      return toGDScriptConnections(
+        await analyzeFile(filePath, content, workspaceRoot),
+      );
     },
 
     onUnload(): void {
