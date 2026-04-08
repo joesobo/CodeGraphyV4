@@ -6,6 +6,7 @@ import * as pluginModule from '../../../../src/extension/pipeline/plugins/querie
 import * as runModule from '../../../../src/extension/pipeline/analysis/run';
 import * as stateModule from '../../../../src/extension/pipeline/analysis/state';
 import * as repoMetaModule from '../../../../src/extension/repoSettings/meta';
+import * as gitExecModule from '../../../../src/extension/gitHistory/exec';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -55,6 +56,7 @@ describe('WorkspacePipeline delegates', () => {
     const disabledSources = new Set(['plugin.typescript:rule']);
     const disabledPlugins = new Set(['plugin.python']);
     const expectedGraph = createGraph();
+    vi.spyOn(gitExecModule, 'execGitCommand').mockResolvedValue('abc123\n');
     const runSpy = vi
       .spyOn(runModule, 'runWorkspacePipelineAnalysis')
       .mockImplementation(
@@ -94,6 +96,15 @@ describe('WorkspacePipeline delegates', () => {
       analyzer.analyze(['**/*.generated.ts'], disabledSources, disabledPlugins, signal),
     ).resolves.toEqual(expectedGraph);
     expect(runSpy).toHaveBeenCalledOnce();
+    expect(repoMetaModule.writeCodeGraphyRepoMeta).toHaveBeenCalledWith(
+      '/test/workspace',
+      expect.objectContaining({
+        lastIndexedAt: expect.any(String),
+        lastIndexedCommit: 'abc123',
+        pluginSignature: null,
+        settingsSignature: expect.any(String),
+      }),
+    );
   });
 
   it('updates cached discovered files when the shared runner writes them back', async () => {

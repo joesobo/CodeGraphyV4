@@ -241,9 +241,21 @@ describe('WorkspacePipeline lifecycle', () => {
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
       lastIndexedCommit: null,
-      pluginSignature: null,
-      settingsSignature: null,
+      pluginSignature: 'plugin-signature',
+      settingsSignature: 'settings-signature',
     });
+    vi.spyOn(
+      analyzer as unknown as {
+        _getPluginSignature(): string | null;
+      },
+      '_getPluginSignature',
+    ).mockReturnValue('plugin-signature');
+    vi.spyOn(
+      analyzer as unknown as {
+        _getSettingsSignature(): string;
+      },
+      '_getSettingsSignature',
+    ).mockReturnValue('settings-signature');
     expect(analyzer.hasIndex()).toBe(true);
 
     vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
@@ -253,6 +265,39 @@ describe('WorkspacePipeline lifecycle', () => {
       pluginSignature: null,
       settingsSignature: null,
     });
+    expect(analyzer.hasIndex()).toBe(false);
+  });
+
+  it('treats an index as stale when plugin or settings signatures no longer match', () => {
+    const analyzer = new WorkspacePipeline({
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    } as unknown as vscode.ExtensionContext);
+
+    vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
+      version: 1,
+      lastIndexedAt: '2026-04-08T00:00:00.000Z',
+      lastIndexedCommit: null,
+      pluginSignature: 'old-plugin-signature',
+      settingsSignature: 'settings-signature',
+    });
+    vi.spyOn(
+      analyzer as unknown as {
+        _getPluginSignature(): string | null;
+      },
+      '_getPluginSignature',
+    ).mockReturnValue('new-plugin-signature');
+    vi.spyOn(
+      analyzer as unknown as {
+        _getSettingsSignature(): string;
+      },
+      '_getSettingsSignature',
+    ).mockReturnValue('settings-signature');
+
     expect(analyzer.hasIndex()).toBe(false);
   });
 });

@@ -59,6 +59,11 @@ import {
   readCodeGraphyRepoMeta,
   writeCodeGraphyRepoMeta,
 } from '../repoSettings/meta';
+import {
+  createCodeGraphyPluginSignature,
+  createCodeGraphySettingsSignature,
+} from '../repoSettings/signatures';
+import { execGitCommand } from '../gitHistory/exec';
 
 /**
  * Orchestrates workspace analysis.
@@ -140,7 +145,13 @@ export class WorkspacePipeline {
       return false;
     }
 
-    return readCodeGraphyRepoMeta(workspaceRoot).lastIndexedAt !== null;
+    const meta = readCodeGraphyRepoMeta(workspaceRoot);
+    if (meta.lastIndexedAt === null) {
+      return false;
+    }
+
+    return meta.pluginSignature === this._getPluginSignature()
+      && meta.settingsSignature === this._getSettingsSignature();
   }
 
   async discoverGraph(
@@ -238,6 +249,9 @@ export class WorkspacePipeline {
         writeCodeGraphyRepoMeta(workspaceRoot, {
           ...meta,
           lastIndexedAt: new Date().toISOString(),
+          lastIndexedCommit: await this._getCurrentCommitSha(workspaceRoot),
+          pluginSignature: this._getPluginSignature(),
+          settingsSignature: this._getSettingsSignature(),
         });
       } catch (error) {
         console.warn('[CodeGraphy] Failed to update repo index metadata.', error);
@@ -385,5 +399,28 @@ export class WorkspacePipeline {
 
   private _syncPluginOrder(): void {
     this._registry.setPluginOrder(this._config.getAll().pluginOrder);
+  }
+
+  private _getPluginSignature(): string | null {
+    return createCodeGraphyPluginSignature(
+      this._registry.list().map(({ plugin }) => ({
+        plugin: {
+          id: plugin.id,
+          version: plugin.version,
+        },
+      })),
+    );
+  }
+
+  private _getSettingsSignature(): string {
+    return createCodeGraphySettingsSignature(this._config.getAll());
+  }
+
+  private async _getCurrentCommitSha(workspaceRoot: string): Promise<string | null> {
+    try {
+      return (await execGitCommand(['rev-parse', 'HEAD'], { workspaceRoot })).trim();
+    } catch {
+      return null;
+    }
   }
 }
