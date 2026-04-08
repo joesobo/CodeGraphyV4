@@ -33,7 +33,7 @@ export interface GraphViewProviderRefreshMethodsSource {
   _sendAllSettings(): void;
   _sendFavorites(): void;
   _sendGroupsUpdated(): void;
-  _sendGraphControls(): void;
+  _sendGraphControls?(): void;
   _sendSettings(): void;
   _sendPhysicsSettings(): void;
   _updateViewContext(): void;
@@ -111,7 +111,7 @@ export function createGraphViewProviderRefreshMethods(
     source._loadGroupsAndFilterPatterns();
     await source._analyzeAndSendData();
     source._sendAllSettings();
-    source._sendGraphControls();
+    source._sendGraphControls?.();
     source._sendFavorites();
   };
 
@@ -126,7 +126,7 @@ export function createGraphViewProviderRefreshMethods(
 
   const refreshSettings = (): void => {
     source._sendSettings();
-    source._sendGraphControls();
+    source._sendGraphControls?.();
   };
 
   const refreshToggleSettings = (): void => {

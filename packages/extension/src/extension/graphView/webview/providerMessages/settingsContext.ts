@@ -1,5 +1,4 @@
 import type { GraphViewMessageListenerContext } from '../messages/listener';
-import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
@@ -25,7 +24,8 @@ export function createGraphViewProviderMessageSettingsContext(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderSettingsContext {
-  const config = getCodeGraphyConfiguration();
+  const config = dependencies.workspace.getConfiguration('codegraphy');
+  const getConfigTarget = () => dependencies.getConfigTarget(dependencies.workspace.workspaceFolders);
 
   return {
     updateDagMode: async dagMode => {
@@ -46,10 +46,10 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     getConfig: (key, defaultValue) => config.get(key, defaultValue),
     updateConfig: async (key, value) => {
-      await config.update(key, value);
+      await config.update(key, value, getConfigTarget());
     },
     sendGraphControls: () => {
-      source._sendGraphControls();
+      source._sendGraphControls?.();
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
     resetAllSettings: async () => {

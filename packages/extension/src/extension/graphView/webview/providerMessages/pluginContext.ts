@@ -60,7 +60,7 @@ export function createGraphViewProviderMessagePluginContext(
     loadGroupsAndFilterPatterns: () => source._loadGroupsAndFilterPatterns(),
     loadDisabledRulesAndPlugins: () => source._loadDisabledRulesAndPlugins(),
     sendAvailableViews: () => source._sendAvailableViews(),
-    sendGraphControls: () => source._sendGraphControls(),
+    sendGraphControls: () => source._sendGraphControls?.(),
     sendFavorites: () => source._sendFavorites(),
     sendSettings: () => source._sendSettings(),
     sendCachedTimeline: () => source._sendCachedTimeline(),
@@ -85,7 +85,9 @@ export function createGraphViewProviderMessagePluginContext(
     logError: (label, error) => {
       console.error(label, error);
     },
-    updateHiddenPluginGroups: groupIds => updateHiddenPluginGroups(dependencies, groupIds),
+    updateHiddenPluginGroups: async groupIds => {
+      await updateHiddenPluginGroups(dependencies, groupIds);
+    },
     setUserGroups: groups => setPluginUserGroups(source, groups),
     setFilterPatterns: patterns => setPluginFilterPatterns(source, patterns),
     setWebviewReadyNotified: readyNotified =>

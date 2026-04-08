@@ -62,8 +62,8 @@ describe('graphView/provider/physicsSettings default dependencies', () => {
     expect(methods._getPhysicsSettings()).toEqual({ damping: 0.6 });
     methods._sendPhysicsSettings();
 
-    expect(mocks.getConfiguration).toHaveBeenNthCalledWith(1, 'codegraphy.physics');
-    expect(mocks.getConfiguration).toHaveBeenNthCalledWith(2, 'codegraphy.physics');
+    expect(mocks.getConfiguration).toHaveBeenNthCalledWith(1, 'codegraphy');
+    expect(mocks.getConfiguration).toHaveBeenNthCalledWith(2, 'codegraphy');
     expect(mocks.readPhysicsSettings).toHaveBeenNthCalledWith(
       1,
       mocks.configuration,
@@ -99,7 +99,7 @@ describe('graphView/provider/physicsSettings default dependencies', () => {
     ];
     expect(options[2].getConfiguration()).toBe(mocks.configuration);
     expect(options[2].getConfigTarget()).toBe('workspace-target');
-    expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy.physics');
+    expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
     expect(mocks.getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
   });
 
@@ -119,7 +119,7 @@ describe('graphView/provider/physicsSettings default dependencies', () => {
     ];
     expect(options[0].getConfiguration()).toBe(mocks.configuration);
     expect(options[0].getConfigTarget()).toBe('workspace-target');
-    expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy.physics');
+    expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
     expect(mocks.getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
   });
 });

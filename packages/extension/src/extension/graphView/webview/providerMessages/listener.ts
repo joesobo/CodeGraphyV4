@@ -132,7 +132,6 @@ export interface GraphViewProviderMessageListenerSource {
   _loadGroupsAndFilterPatterns(): void;
   _loadDisabledRulesAndPlugins(): boolean;
   _sendFavorites(): void;
-  _sendGraphControls(): void;
   _sendSettings(): void;
   _sendCachedTimeline(): Promise<void>;
   _sendDecorations(): void;
@@ -140,6 +139,7 @@ export interface GraphViewProviderMessageListenerSource {
   _sendPluginExporters?(): void;
   _sendPluginToolbarActions?(): void;
   _sendPluginWebviewInjections(): void;
+  _sendGraphControls?(): void;
 }
 
 export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {

@@ -60,7 +60,7 @@ describe('graphView/provider/physicsSettings', () => {
       },
     ];
     expect(options[2].getConfiguration()).toBe(configuration);
-    expect(options[2].getConfigTarget()).toBeUndefined();
+    expect(options[2].getConfigTarget()).toBeDefined();
     expect(getConfiguration).toHaveBeenCalledOnce();
   });
 
@@ -92,7 +92,7 @@ describe('graphView/provider/physicsSettings', () => {
       },
     ];
     expect(options[0].getConfiguration()).toBe(configuration);
-    expect(options[0].getConfigTarget()).toBeUndefined();
+    expect(options[0].getConfigTarget()).toBeDefined();
     expect(getConfiguration).toHaveBeenCalledOnce();
   });
 });

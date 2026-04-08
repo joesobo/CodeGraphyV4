@@ -1,6 +1,5 @@
 import * as vscode from 'vscode';
 import type { GraphViewMessageListenerContext } from '../messages/listener';
-import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
@@ -79,7 +78,11 @@ export function createGraphViewProviderMessagePrimaryActions(
     sendPhysicsSettings: () => source._sendPhysicsSettings(),
     updatePhysicsSetting: (key, value) => source._updatePhysicsSetting(key, value),
     resetPhysicsSettings: () => source._resetPhysicsSettings(),
-    persistGroups: async groups => getCodeGraphyConfiguration().update('groups', groups),
+    persistGroups: async groups => {
+      const configuration = dependencies.workspace.getConfiguration('codegraphy');
+      const target = dependencies.getConfigTarget(dependencies.workspace.workspaceFolders);
+      await configuration.update('groups', groups, target);
+    },
     recomputeGroups: () => source._computeMergedGroups(),
     sendGroupsUpdated: () => source._sendGroupsUpdated(),
     showOpenDialog: options => dependencies.window.showOpenDialog(options),

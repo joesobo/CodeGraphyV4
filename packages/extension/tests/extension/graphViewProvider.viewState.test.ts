@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IGraphData } from '../../src/shared/graph/types';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
+import { resetCurrentCodeGraphyConfigurationForTest } from '../../src/extension/repoSettings/current';
 import { getGraphViewProviderInternals } from './graphViewProvider/internals';
 
 let workspaceFoldersValue:
@@ -36,16 +37,12 @@ function createConfiguration(values: Record<string, unknown>) {
 
 describe('GraphViewProvider view state and internal helpers', () => {
   beforeEach(() => {
+    resetCurrentCodeGraphyConfigurationForTest();
     workspaceFoldersValue = [
       { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },
     ];
     (vscode.workspace as unknown as { getConfiguration: ReturnType<typeof vi.fn> }).getConfiguration =
-      vi.fn((section?: string) => {
-        if (section === 'codegraphy.physics') {
-          return createConfiguration({});
-        }
-        return createConfiguration({});
-      });
+      vi.fn(() => createConfiguration({}));
     (vscode.workspace as unknown as { asRelativePath: ReturnType<typeof vi.fn> }).asRelativePath =
       vi.fn((uri: vscode.Uri) => uri.fsPath.replace('/test/workspace/', ''));
     vi.clearAllMocks();
@@ -239,18 +236,15 @@ describe('GraphViewProvider view state and internal helpers', () => {
 
   it('sends physics settings from configuration', () => {
     (vscode.workspace as unknown as { getConfiguration: ReturnType<typeof vi.fn> }).getConfiguration =
-      vi.fn((section?: string) => {
-        if (section === 'codegraphy.physics') {
-          return createConfiguration({
-            repelForce: 14,
-            linkDistance: 90,
-            linkForce: 0.25,
-            damping: 0.6,
-            centerForce: 0.2,
-          });
-        }
-        return createConfiguration({});
-      });
+      vi.fn(() =>
+        createConfiguration({
+          'physics.repelForce': 14,
+          'physics.linkDistance': 90,
+          'physics.linkForce': 0.25,
+          'physics.damping': 0.6,
+          'physics.centerForce': 0.2,
+        })
+      );
 
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),

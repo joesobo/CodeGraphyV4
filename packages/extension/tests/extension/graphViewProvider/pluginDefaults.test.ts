@@ -105,7 +105,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     expect(groups.some(g => g.id === 'default:*.png')).toBe(true);
     expect(groups.some(g => g.id === 'default:*.jpg')).toBe(true);
     expect(groups.some(g => g.id === 'default:*.md')).toBe(true);
-    expect(groups.some(g => g.id === 'default:.vscode/settings.json')).toBe(true);
+    expect(groups.some(g => g.id === 'default:.codegraphy/settings.json')).toBe(true);
   });
 
   it('computeMergedGroups marks built-in defaults as disabled when section is disabled', async () => {
