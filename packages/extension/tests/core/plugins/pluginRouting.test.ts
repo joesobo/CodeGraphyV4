@@ -168,6 +168,40 @@ describe('plugin routing', () => {
       expect(result).toEqual([]);
     });
 
+    it('returns core analysis output when no plugin supports the file but core does', async () => {
+      const { pluginsMap, extensionMap } = buildMaps([]);
+      const coreAnalyzeFileResult = vi.fn().mockResolvedValue({
+        filePath: 'src/app.ts',
+        relations: [{
+          kind: 'reference',
+          sourceId: 'codegraphy.core.tree-sitter',
+          fromFilePath: 'src/app.ts',
+          toFilePath: 'src/base.ts',
+          specifier: './base',
+        }],
+      });
+
+      const result = await analyzeFile(
+        'src/app.ts',
+        'content',
+        '/ws',
+        pluginsMap,
+        extensionMap,
+        coreAnalyzeFileResult,
+      );
+
+      expect(coreAnalyzeFileResult).toHaveBeenCalledWith('src/app.ts', 'content', '/ws');
+      expect(result).toEqual([{
+        kind: 'reference',
+        sourceId: 'codegraphy.core.tree-sitter',
+        specifier: './base',
+        resolvedPath: 'src/base.ts',
+        type: undefined,
+        variant: undefined,
+        metadata: undefined,
+      }]);
+    });
+
     it('returns empty array and logs when the plugin throws', async () => {
       const ts = makePlugin('ts-plugin', ['.ts']);
       (ts.detectConnections as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('fail'));
@@ -218,6 +252,48 @@ describe('plugin routing', () => {
         fromFilePath: 'src/app.ts',
         toFilePath: 'src/high.ts',
         specifier: './high',
+      }]);
+    });
+
+    it('merges plugin output on top of core analysis so plugins can override the base relation', async () => {
+      const plugin = makePlugin('plugin', ['.ts']);
+      plugin.analyzeFile = vi.fn().mockResolvedValue({
+        filePath: 'src/app.ts',
+        relations: [{
+          kind: 'import',
+          sourceId: 'shared:import',
+          fromFilePath: 'src/app.ts',
+          toFilePath: 'src/plugin.ts',
+          specifier: './shared',
+        }],
+      });
+      const { pluginsMap, extensionMap } = buildMaps([plugin]);
+      const coreAnalyzeFileResult = vi.fn().mockResolvedValue({
+        filePath: 'src/app.ts',
+        relations: [{
+          kind: 'import',
+          sourceId: 'shared:import',
+          fromFilePath: 'src/app.ts',
+          toFilePath: 'src/core.ts',
+          specifier: './shared',
+        }],
+      });
+
+      const result = await analyzeFileResult(
+        'src/app.ts',
+        'content',
+        '/ws',
+        pluginsMap,
+        extensionMap,
+        coreAnalyzeFileResult,
+      );
+
+      expect(result?.relations).toEqual([{
+        kind: 'import',
+        sourceId: 'shared:import',
+        fromFilePath: 'src/app.ts',
+        toFilePath: 'src/plugin.ts',
+        specifier: './shared',
       }]);
     });
   });

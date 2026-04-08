@@ -12,6 +12,12 @@ export interface IRoutablePluginInfo {
   plugin: IPlugin;
 }
 
+export type CoreFileAnalysisResultProvider = (
+  filePath: string,
+  content: string,
+  workspaceRoot: string,
+) => Promise<IFileAnalysisResult | null>;
+
 /**
  * Gets the plugin that should handle a given file.
  * Returns the first registered plugin that supports the file's extension.
@@ -184,8 +190,16 @@ export async function analyzeFile(
   workspaceRoot: string,
   plugins: Map<string, IRoutablePluginInfo>,
   extensionMap: Map<string, string[]>,
+  coreAnalyzeFileResult?: CoreFileAnalysisResultProvider,
 ): Promise<IConnection[]> {
-  const analysis = await analyzeFileResult(filePath, content, workspaceRoot, plugins, extensionMap);
+  const analysis = await analyzeFileResult(
+    filePath,
+    content,
+    workspaceRoot,
+    plugins,
+    extensionMap,
+    coreAnalyzeFileResult,
+  );
   return analysis ? toConnectionsFromFileAnalysis(analysis) : [];
 }
 
@@ -215,14 +229,19 @@ export async function analyzeFileResult(
   workspaceRoot: string,
   plugins: Map<string, IRoutablePluginInfo>,
   extensionMap: Map<string, string[]>,
+  coreAnalyzeFileResult?: CoreFileAnalysisResultProvider,
 ): Promise<IFileAnalysisResult | null> {
   const matchingPlugins = getPluginsForFile(filePath, plugins, extensionMap);
+  const coreResult = await coreAnalyzeFileResult?.(filePath, content, workspaceRoot) ?? null;
+  const normalizedCoreResult = coreResult
+    ? mergeFileAnalysisResults(createEmptyFileAnalysisResult(filePath), coreResult)
+    : null;
 
   if (matchingPlugins.length === 0) {
-    return null;
+    return normalizedCoreResult;
   }
 
-  let mergedResult = createEmptyFileAnalysisResult(filePath);
+  let mergedResult = normalizedCoreResult ?? createEmptyFileAnalysisResult(filePath);
 
   for (let index = matchingPlugins.length - 1; index >= 0; index -= 1) {
     const plugin = matchingPlugins[index];

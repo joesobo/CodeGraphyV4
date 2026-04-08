@@ -27,6 +27,7 @@ import {
   getSupportedExtensions,
   analyzeFile,
   analyzeFileResult,
+  type CoreFileAnalysisResultProvider,
 } from '../routing/router';
 import {
   initializeAll as lifecycleInitializeAll,
@@ -55,6 +56,7 @@ export class PluginRegistry {
   private _lastWorkspaceReadyGraph?: IGraphData;
   private _workspaceReadyNotified = false;
   private _webviewReadyNotified = false;
+  private _coreAnalyzeFileResult?: CoreFileAnalysisResultProvider;
 
   configureV2(options: ConfigureV2Options): void {
     this._eventBus = options.eventBus;
@@ -82,14 +84,17 @@ export class PluginRegistry {
   get(pluginId: string): IPluginInfo | undefined { return this._plugins.get(pluginId); }
   getPluginForFile(filePath: string): IPlugin | undefined { return getPluginForFile(filePath, this._plugins, this._extensionMap); }
   getPluginsForExtension(extension: string): IPlugin[] { return getPluginsForExtension(extension, this._plugins, this._extensionMap); }
-  async analyzeFile(filePath: string, content: string, workspaceRoot: string): Promise<IConnection[]> { return analyzeFile(filePath, content, workspaceRoot, this._plugins, this._extensionMap); }
-  async analyzeFileResult(filePath: string, content: string, workspaceRoot: string): Promise<IFileAnalysisResult | null> { return analyzeFileResult(filePath, content, workspaceRoot, this._plugins, this._extensionMap); }
+  async analyzeFile(filePath: string, content: string, workspaceRoot: string): Promise<IConnection[]> { return analyzeFile(filePath, content, workspaceRoot, this._plugins, this._extensionMap, this._coreAnalyzeFileResult); }
+  async analyzeFileResult(filePath: string, content: string, workspaceRoot: string): Promise<IFileAnalysisResult | null> { return analyzeFileResult(filePath, content, workspaceRoot, this._plugins, this._extensionMap, this._coreAnalyzeFileResult); }
   list(): IPluginInfo[] { return Array.from(this._plugins.values()); }
   listNodeTypes(): IPluginNodeType[] { return listPluginContributions(this._plugins, plugin => plugin.contributeNodeTypes?.() ?? [], definition => definition.id); }
   listEdgeTypes(): IPluginEdgeType[] { return listPluginContributions(this._plugins, plugin => plugin.contributeEdgeTypes?.() ?? [], definition => definition.id); }
   get size(): number { return this._plugins.size; }
   getSupportedExtensions(): string[] { return getSupportedExtensions(this._extensionMap); }
   supportsFile(filePath: string): boolean { return supportsFile(filePath, this._extensionMap); }
+  setCoreAnalyzeFileResult(analyzeFileResult: CoreFileAnalysisResultProvider | undefined): void {
+    this._coreAnalyzeFileResult = analyzeFileResult;
+  }
   setPluginOrder(pluginIds: string[] | undefined): void {
     if (!pluginIds || pluginIds.length === 0 || this._plugins.size <= 1) {
       return;

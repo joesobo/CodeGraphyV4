@@ -43,6 +43,43 @@ describe('PluginRegistry analysis', () => {
     await expect(registry.analyzeFile('/src/styles.css', 'content', '/workspace')).resolves.toEqual([]);
   });
 
+  it('returns the configured core analysis result for unsupported files', async () => {
+    const registry = createConfiguredRegistry();
+    const coreAnalyzeFileResult = vi.fn().mockResolvedValue({
+      filePath: '/src/styles.css',
+      relations: [
+        {
+          kind: 'reference',
+          sourceId: 'codegraphy.core.tree-sitter',
+          fromFilePath: '/src/styles.css',
+          toFilePath: '/src/theme.css',
+          specifier: './theme.css',
+        },
+      ],
+    } satisfies IFileAnalysisResult);
+    registry.setCoreAnalyzeFileResult(coreAnalyzeFileResult);
+
+    const result = await registry.analyzeFileResult('/src/styles.css', 'content', '/workspace');
+
+    expect(coreAnalyzeFileResult).toHaveBeenCalledWith('/src/styles.css', 'content', '/workspace');
+    expect(result).toEqual({
+      filePath: '/src/styles.css',
+      edgeTypes: [],
+      nodeTypes: [],
+      nodes: [],
+      relations: [
+        {
+          kind: 'reference',
+          sourceId: 'codegraphy.core.tree-sitter',
+          fromFilePath: '/src/styles.css',
+          toFilePath: '/src/theme.css',
+          specifier: './theme.css',
+        },
+      ],
+      symbols: [],
+    });
+  });
+
   it('returns empty array on plugin error', async () => {
     const { registry } = registerPlugin({
       supportedExtensions: ['.ts'],
@@ -169,6 +206,56 @@ describe('PluginRegistry analysis', () => {
           fromFilePath: '/src/app.ts',
           toFilePath: '/src/high.ts',
           specifier: './utils',
+        },
+      ],
+      symbols: [],
+    });
+  });
+
+  it('merges plugin analysis on top of the configured core result', async () => {
+    const registry = createConfiguredRegistry();
+    registry.setCoreAnalyzeFileResult(vi.fn().mockResolvedValue({
+      filePath: '/src/app.ts',
+      relations: [
+        {
+          kind: 'import',
+          sourceId: 'shared:import',
+          fromFilePath: '/src/app.ts',
+          toFilePath: '/src/core.ts',
+          specifier: './shared',
+        },
+      ],
+    } satisfies IFileAnalysisResult));
+    registry.register(createMockPlugin({
+      supportedExtensions: ['.ts'],
+      analyzeFile: vi.fn().mockResolvedValue({
+        filePath: '/src/app.ts',
+        relations: [
+          {
+            kind: 'import',
+            sourceId: 'shared:import',
+            fromFilePath: '/src/app.ts',
+            toFilePath: '/src/plugin.ts',
+            specifier: './shared',
+          },
+        ],
+      }),
+    }));
+
+    const result = await registry.analyzeFileResult('/src/app.ts', 'content', '/workspace');
+
+    expect(result).toEqual({
+      filePath: '/src/app.ts',
+      edgeTypes: [],
+      nodeTypes: [],
+      nodes: [],
+      relations: [
+        {
+          kind: 'import',
+          sourceId: 'shared:import',
+          fromFilePath: '/src/app.ts',
+          toFilePath: '/src/plugin.ts',
+          specifier: './shared',
         },
       ],
       symbols: [],
