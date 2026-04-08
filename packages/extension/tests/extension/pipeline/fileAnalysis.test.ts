@@ -33,6 +33,15 @@ function createImportAnalysis(): IFileAnalysisResult {
   };
 }
 
+function createEmptyAnalysis(
+  filePath = '/workspace/src/index.ts',
+): IFileAnalysisResult {
+  return {
+    filePath,
+    relations: [],
+  };
+}
+
 describe('pipeline/fileAnalysis', () => {
   it('reuses cached connections and backfills missing size on cache hits', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
@@ -73,18 +82,12 @@ describe('pipeline/fileAnalysis', () => {
     const cache = createEmptyWorkspaceAnalysisCache();
     cache.files['src/index.ts'] = {
       mtime: 25,
-      analysis: {
-        filePath: '/workspace/src/index.ts',
-        relations: [],
-      },
+      analysis: createEmptyAnalysis(),
       size: 12,
     };
 
     await analyzeWorkspaceFiles({
-      analyzeFile: vi.fn(async () => ({
-        filePath: '/workspace/src/index.ts',
-        relations: [],
-      })),
+      analyzeFile: vi.fn(async () => createEmptyAnalysis()),
       cache,
       files: [createFile('src/index.ts')],
       getFileStat: vi.fn(async () => ({ mtime: 25, size: 99 })),
@@ -126,10 +129,7 @@ describe('pipeline/fileAnalysis', () => {
     const cache = createEmptyWorkspaceAnalysisCache();
     cache.files['src/index.ts'] = {
       mtime: 25,
-      analysis: {
-        filePath: '/workspace/src/index.ts',
-        relations: [],
-      },
+      analysis: createEmptyAnalysis(),
       size: 12,
     };
     const readContent = vi.fn(async () => "import './utils'");
@@ -182,10 +182,7 @@ describe('pipeline/fileAnalysis', () => {
     const cache = createEmptyWorkspaceAnalysisCache();
 
     await analyzeWorkspaceFiles({
-      analyzeFile: vi.fn(async () => ({
-        filePath: '/workspace/src/index.ts',
-        relations: [],
-      })),
+      analyzeFile: vi.fn(async () => createEmptyAnalysis()),
       cache,
       files: [createFile('src/index.ts')],
       getFileStat: vi.fn(async () => null),
@@ -195,10 +192,7 @@ describe('pipeline/fileAnalysis', () => {
 
     expect(cache.files['src/index.ts']).toEqual({
       mtime: 0,
-      analysis: {
-        filePath: '/workspace/src/index.ts',
-        relations: [],
-      },
+      analysis: createEmptyAnalysis(),
       size: undefined,
     });
   });
@@ -207,16 +201,10 @@ describe('pipeline/fileAnalysis', () => {
     const cache = createEmptyWorkspaceAnalysisCache();
     cache.files['src/index.ts'] = {
       mtime: 25,
-      analysis: {
-        filePath: '/workspace/src/index.ts',
-        relations: [],
-      },
+      analysis: createEmptyAnalysis(),
     };
     const readContent = vi.fn(async () => '');
-    const analyzeFile = vi.fn(async () => ({
-      filePath: '/workspace/src/index.ts',
-      relations: [],
-    }));
+    const analyzeFile = vi.fn(async () => createEmptyAnalysis());
 
     await analyzeWorkspaceFiles({
       analyzeFile,
@@ -242,10 +230,7 @@ describe('pipeline/fileAnalysis', () => {
       size: undefined,
     };
     const readContent = vi.fn(async () => 'ignored');
-    const analyzeFile = vi.fn(async () => ({
-      filePath: '/workspace/src/index.ts',
-      relations: [],
-    }));
+    const analyzeFile = vi.fn(async () => createEmptyAnalysis());
 
     const result = await analyzeWorkspaceFiles({
       analyzeFile,

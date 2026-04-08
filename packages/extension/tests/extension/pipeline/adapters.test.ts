@@ -45,6 +45,15 @@ function createDiscoveredFile(relativePath: string) {
   };
 }
 
+function createEmptyAnalysisResult(
+  filePath: string,
+): IFileAnalysisResult {
+  return {
+    filePath,
+    relations: [],
+  };
+}
+
 describe('WorkspacePipeline adapters', () => {
   beforeEach(() => {
     workspaceFoldersValue = [
@@ -146,16 +155,15 @@ describe('WorkspacePipeline adapters', () => {
       cacheHits: 1,
       cacheMisses: 2,
       fileAnalysis: new Map([
-        ['src/index.ts', { filePath: file.absolutePath, relations: [] }],
+        ['src/index.ts', createEmptyAnalysisResult(file.absolutePath)],
       ]),
       fileConnections: expectedConnections,
     });
     const getFileStatSpy = vi.spyOn(analyzerPrivate, '_getFileStat').mockResolvedValue({ mtime: 10, size: 4 });
     const readContentSpy = vi.spyOn(analyzerPrivate._discovery, 'readContent').mockResolvedValue("import './utils'");
-    const analyzeFileSpy = vi.spyOn(analyzerPrivate._registry, 'analyzeFileResult').mockResolvedValue({
-      filePath: file.absolutePath,
-      relations: [],
-    });
+    const analyzeFileSpy = vi
+      .spyOn(analyzerPrivate._registry, 'analyzeFileResult')
+      .mockResolvedValue(createEmptyAnalysisResult(file.absolutePath));
 
     analyzer.setEventBus(eventBus as never);
     const result = await analyzerPrivate._analyzeFiles([file], '/test/workspace');
