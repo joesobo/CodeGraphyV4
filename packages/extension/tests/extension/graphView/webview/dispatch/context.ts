@@ -45,7 +45,7 @@ export function createPrimaryMessageContext(
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     resetPhysicsSettings: vi.fn(() => Promise.resolve()),
     workspaceFolder: undefined,
-    persistGroups: vi.fn((_groups: IGroup[]) => Promise.resolve()),
+    persistLegends: vi.fn((_groups: IGroup[]) => Promise.resolve()),
     recomputeGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     showOpenDialog: vi.fn(() => Promise.resolve(undefined)),

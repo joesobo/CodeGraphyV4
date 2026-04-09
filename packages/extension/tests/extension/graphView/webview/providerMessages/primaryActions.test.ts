@@ -85,7 +85,7 @@ describe('graph view provider listener primary actions', () => {
     const groups = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
     const openDialogOptions = { canSelectFiles: true };
 
-    await actions.persistGroups(groups as never);
+    await actions.persistLegends(groups as never);
     actions.showInformationMessage('saved');
     await actions.showOpenDialog(openDialogOptions as never);
 
