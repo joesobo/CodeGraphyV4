@@ -61,9 +61,9 @@ Hover any node to see:
 
 ## Toolbar
 
-The toolbar sits at the bottom of the graph and is split into two sides.
+The toolbar lives in a left-side rail beside the graph. Buttons stay stacked in one column, and opening a control button reveals its panel on the right side of the graph.
 
-**Left side — toggle controls:**
+**Toolbar controls:**
 
 | Control | Description |
 |---------|-------------|
@@ -72,11 +72,6 @@ The toolbar sits at the bottom of the graph and is split into two sides.
 | DAG mode buttons | Switch layout: Default (free-form), Radial Out, Top Down, Left to Right. |
 | 2D/3D toggle | Switch between 2D canvas and 3D WebGL rendering. |
 | Node size buttons | Switch node sizing: Connections, File Size, Access Count, or Uniform. |
-
-**Right side — actions:**
-
-| Control | Description |
-|---------|-------------|
 | Nodes | Opens node visibility controls for core and plugin-added node kinds. |
 | Edges | Opens edge visibility controls and shows current edge colors. |
 | Index Repo / Refresh | Before indexing: builds the repo index. After indexing: forces a full re-index. |
@@ -89,7 +84,7 @@ Toolbar and panel state are driven by repo-local settings in `.codegraphy/settin
 
 ## Panels
 
-Panels open from the right side of the graph. Only one panel is open at a time.
+Panels open on the right side of the graph. Only one panel is open at a time.
 
 ### Settings (gear icon)
 

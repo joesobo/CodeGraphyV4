@@ -25,7 +25,7 @@ The current plugin API supports more than file analysis:
 - per-file analysis objects with symbols, relations, node types, and edge types
 - `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
 - graph queries backed by the projected repo-local index and current graph state
-- custom graph transforms / optional host-exposed views with `recomputeOn` dependencies
+- commands, exporters, toolbar actions, and the compatibility `registerView(...)` hook for optional future graph transforms
 - context menu items, commands, and exporters
 - host-saved exports via `api.saveExport(...)`
 - Tier 2 webview slots such as `toolbar`, `node-details`, `tooltip`, `timeline-panel`, `graph-overlay`
@@ -67,7 +67,8 @@ The core extension owns discovery, repo-local settings, caching, graph projectio
 - add node kinds
 - add edge kinds
 - contribute language or framework-specific semantics
-- add graph transforms, exporters, commands, toolbar actions, and other UI surfaces through the host API
+- add exporters, commands, toolbar actions, and other UI surfaces through the host API
+- register optional view transforms for compatibility, even though the current built-in UI stays on one unified graph surface
 
 Built-in plugins follow the same rules as external plugins and appear in the **Plugins** popup. Plugin processing order is bottom-to-top, so plugins nearer the top win merge conflicts.
 

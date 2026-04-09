@@ -26,9 +26,9 @@ Main seams in the current API:
 
 - per-file analysis objects with symbols, relations, and node/edge type contributions
 - graph queries backed by the projected repo-local index and current graph state: `getGraph`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getSubgraph`, `findPath`
-- registrations: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`
+- registrations: `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`, and the compatibility `registerView` hook
 - host-side export saving: `saveExport`
-- graph/webview product surfaces: plugin toolbar buttons, plugin slots, tooltip actions, and custom view transforms
+- graph/webview product surfaces: plugin toolbar buttons, plugin slots, tooltip actions, and optional future-facing view transforms
 
 Core runs its own base analysis first. Plugin `analyzeFile(...)` results are then merged on top in plugin order, with higher-priority plugins winning conflicts.
 

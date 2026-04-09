@@ -1,10 +1,10 @@
 # Event System
 
-![Event System Diagram](./diagrams/event-system.excalidraw)
-
-Diagram source: `docs/plugin-api/diagrams/event-system.excalidraw`
+Historical diagram source: `docs/plugin-api/diagrams/event-system.excalidraw`
 
 This document tracks the canonical event contract in [`packages/plugin-api/src/events.ts`](../../packages/plugin-api/src/events.ts).
+
+Important: this is the full typed event surface exposed by the plugin API. Not every event in the contract is emitted by the current host runtime today. Use this doc as the payload reference, and prefer the events you can observe in the current product such as graph interaction events, `analysis:fileProcessed`, and `plugin:registered` / `plugin:unregistered`.
 
 ## Usage
 
@@ -16,8 +16,8 @@ export function onLoad(api: CodeGraphyAPI): void {
     api.log('info', `Clicked ${node.id} at ${event.x},${event.y}`);
   });
 
-  api.once('analysis:completed', ({ graph }) => {
-    api.log('info', `Graph ready: ${graph.nodes.length} nodes`);
+  api.on('plugin:registered', ({ pluginId }) => {
+    api.log('info', `Plugin registered: ${pluginId}`);
   });
 }
 ```
@@ -70,6 +70,9 @@ Notes:
 
 ### Views & Navigation (6)
 
+Note:
+- Several view/navigation events remain part of the typed contract for compatibility, but the current unified-graph product does not emit all of them yet.
+
 | Event | Payload shape |
 |---|---|
 | `view:changed` | `{ viewId, previousId? }` |
@@ -81,6 +84,10 @@ Notes:
 
 ### Plugin Ecosystem (6)
 
+Note:
+- `plugin:registered` and `plugin:unregistered` are wired today.
+- The other plugin events remain reserved in the public contract but are not all emitted by the current host runtime.
+
 | Event | Payload shape |
 |---|---|
 | `plugin:registered` | `{ pluginId }` |
@@ -91,6 +98,9 @@ Notes:
 | `plugin:message` | `{ from, to?, data }` |
 
 ### Timeline (4)
+
+Note:
+- Timeline payload types remain part of the public event contract, but not every timeline event listed here is currently emitted by the host runtime.
 
 | Event | Payload shape |
 |---|---|

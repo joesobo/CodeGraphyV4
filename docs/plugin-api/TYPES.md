@@ -85,7 +85,7 @@ Main groups:
 - Graph queries: `getGraph`, `getNode`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getEdgesFor`, `filterEdgesByKind`, `getSubgraph`, `findPath`
   - these read from the projected repo-local index and current graph state, not only transient in-memory plugin output
 - Registration: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`
-  - `registerView` is for plugin-defined graph transforms the host may expose as optional custom views; the built-in graph experience is now one unified surface rather than separate core Connections/Folder/Depth views
+  - `registerView` is a compatibility / future-facing hook for plugin-defined graph transforms; the current built-in product stays on one unified graph surface rather than exposing separate core Connections/Folder/Depth views
 - Tier 2 bridge: `sendToWebview`, `onWebviewMessage`
 - Export saving: `saveExport`
 - Utilities: `getWorkspaceRoot`, `log`
@@ -135,7 +135,7 @@ If you see projected file-to-file edges inside the extension codebase, those are
 - `IExporter`, `ExportRequest`, `IToolbarAction`, `IToolbarActionItem` in `api.ts`
 - `Disposable` in `disposable.ts`
 
-Plugin views are optional graph transforms layered on top of the unified graph surface. They are no longer the built-in way users switch between `Connections`, `Folder`, and `Depth` views.
+Plugin views are an optional compatibility surface for graph transforms layered on top of the unified graph. They are not the built-in way users switch the graph anymore, and the current host experience stays centered on one unified surface.
 
 ## Webview Types (Tier 2)
 

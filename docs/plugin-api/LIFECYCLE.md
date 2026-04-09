@@ -53,7 +53,7 @@ onLoad(api: CodeGraphyAPI) {
     action: (node) => { /* ... */ },
   });
 
-  // Register a custom graph transform / optional host view
+  // Register an optional compatibility graph transform
   api.registerView({
     id: 'my-plugin.custom-view',
     name: 'My View',
@@ -92,6 +92,8 @@ onLoad(api: CodeGraphyAPI) {
   });
 }
 ```
+
+`registerView(...)` still exists in the API, but treat it as a compatibility / future-facing hook. The current built-in UI stays on one unified graph surface instead of surfacing plugin-defined views as a primary product concept.
 
 Every `api.on()`, `api.register*()`, and `api.decorateNode/Edge()` call returns a `Disposable`. See [Auto-Cleanup](#auto-cleanup-disposable-pattern) below.
 
@@ -255,10 +257,10 @@ export function createMetricsPlugin(): IPlugin {
     id: 'codegraphy-metrics',
     name: 'Metrics',
     version: '1.0.0',
-    apiVersion: '^3.0.0',
+    apiVersion: '^2.0.0',
     supportedExtensions: [],
 
-    async analyzeFile(filePath) {
+    async analyzeFile(filePath, content, workspaceRoot) {
       return {
         filePath,
         relations: [],

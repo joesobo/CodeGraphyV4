@@ -95,7 +95,7 @@ Timeline indexing also respects the repo-local filter and plugin settings. See [
 
 ## Settings Panel
 
-Open by clicking the gear icon in the bottom-right corner of the graph view. This panel now focuses on physics and graph behavior, while node/edge visibility and legend coloring live in their own dedicated panels.
+Open by clicking the gear button in the left toolbar rail. This panel now focuses on physics and graph behavior, while node/edge visibility and legend coloring live in their own dedicated panels on the right side.
 
 ![Settings panel](./media/settings-panel.png)
 
@@ -310,8 +310,8 @@ This setting is also accessible from the Settings panel.
 CodeGraphy’s graph/index behavior now lives with the repo under `.codegraphy/`. If you still use legacy VS Code settings, CodeGraphy can read them during migration, but the current setup should be committed under `.codegraphy/` instead of `.vscode/settings.json`.
 
 Legacy note:
-- older repos may still contain `disabledSources` from source-level rule toggles
 - older repos may still contain `folderNodeColor` as a standalone key
+- older repos may still contain `groups` before the rename to `legend`
 - CodeGraphy can still read that during migration, but the current graph controls are `nodeVisibility`, `edgeVisibility`, `legend`, `disabledPlugins`, and `pluginOrder`
 - current folder coloring should live under `nodeColors.folder`
 
