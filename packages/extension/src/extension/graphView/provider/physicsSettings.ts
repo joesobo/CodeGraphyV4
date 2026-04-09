@@ -3,12 +3,10 @@ import { DEFAULT_PHYSICS_SETTINGS, type IPhysicsSettings } from '../../../shared
 import { readGraphViewPhysicsSettings } from '../settings/physics/reader';
 import { resetGraphViewPhysicsSettings, updateGraphViewPhysicsSetting } from '../settings/physics/updates';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
-import { getGraphViewConfigTarget } from '../settings/reader';
-import * as vscode from 'vscode';
 
 interface GraphViewProviderSettingsConfigLike {
   get<T>(key: string, defaultValue: T): T;
-  update(key: string, value: unknown, target: unknown): PromiseLike<void>;
+  update(key: string, value: unknown, target?: unknown): PromiseLike<void>;
 }
 
 export interface GraphViewProviderPhysicsSettingsMethodsSource {
@@ -24,8 +22,6 @@ export interface GraphViewProviderPhysicsSettingsMethods {
 
 export interface GraphViewProviderPhysicsSettingsMethodDependencies {
   getConfiguration(): GraphViewProviderSettingsConfigLike;
-  getConfigTarget?(workspaceFolders: readonly unknown[] | undefined): unknown;
-  getWorkspaceFolders?(): readonly unknown[] | undefined;
   readPhysicsSettings(
     config: Pick<GraphViewProviderSettingsConfigLike, 'get'>,
     defaults: IPhysicsSettings,
@@ -38,8 +34,6 @@ export interface GraphViewProviderPhysicsSettingsMethodDependencies {
 function createDefaultGraphViewProviderPhysicsSettingsMethodDependencies(): GraphViewProviderPhysicsSettingsMethodDependencies {
   return {
     getConfiguration: () => getCodeGraphyConfiguration(),
-    getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
-    getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
     readPhysicsSettings: readGraphViewPhysicsSettings,
     updatePhysicsSetting: updateGraphViewPhysicsSetting,
     resetPhysicsSettings: resetGraphViewPhysicsSettings,
@@ -53,11 +47,6 @@ export function createGraphViewProviderPhysicsSettingsMethods(
 ): GraphViewProviderPhysicsSettingsMethods {
   const resolvedDependencies =
     dependencies ?? createDefaultGraphViewProviderPhysicsSettingsMethodDependencies();
-  const resolveConfigTarget = (): unknown => {
-    const workspaceFolders = resolvedDependencies.getWorkspaceFolders?.();
-    return resolvedDependencies.getConfigTarget?.(workspaceFolders)
-      ?? getGraphViewConfigTarget(workspaceFolders);
-  };
   const _getPhysicsSettings = (): IPhysicsSettings =>
     resolvedDependencies.readPhysicsSettings(
       resolvedDependencies.getConfiguration(),
@@ -77,14 +66,12 @@ export function createGraphViewProviderPhysicsSettingsMethods(
   ): Promise<void> => {
     await resolvedDependencies.updatePhysicsSetting(key, value, {
       getConfiguration: () => resolvedDependencies.getConfiguration(),
-      getConfigTarget: () => resolveConfigTarget(),
     });
   };
 
   const _resetPhysicsSettings = async (): Promise<void> => {
     await resolvedDependencies.resetPhysicsSettings({
       getConfiguration: () => resolvedDependencies.getConfiguration(),
-      getConfigTarget: () => resolveConfigTarget(),
     });
   };
 

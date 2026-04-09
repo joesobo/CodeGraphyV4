@@ -11,11 +11,6 @@ interface MockExtensionContext {
   };
 }
 
-interface MockConfigInspect<T> {
-  workspaceValue?: T;
-  globalValue?: T;
-}
-
 describe('GraphViewProvider settings persistence', () => {
   let workspaceStateGet: ReturnType<typeof vi.fn>;
   let workspaceStateUpdate: ReturnType<typeof vi.fn>;
@@ -54,7 +49,7 @@ describe('GraphViewProvider settings persistence', () => {
     };
   });
 
-  it('prefers disabled toggles from VS Code settings over workspaceState', () => {
+  it('prefers repo-local disabled toggles over workspaceState', () => {
     const configuredRules = ['codegraphy.typescript:dynamic-import'];
     const configuredPlugins = ['codegraphy.python'];
     const legacyWorkspaceRules = ['legacy:rule'];
@@ -62,11 +57,12 @@ describe('GraphViewProvider settings persistence', () => {
 
     configInspect.mockImplementation((key: string) => {
       if (key === 'disabledSources') {
-        return { workspaceValue: configuredRules } satisfies MockConfigInspect<string[]>;
+        return { workspaceValue: configuredRules };
       }
       if (key === 'disabledPlugins') {
-        return { workspaceValue: configuredPlugins } satisfies MockConfigInspect<string[]>;
+        return { workspaceValue: configuredPlugins };
       }
+
       return undefined;
     });
 
@@ -92,7 +88,7 @@ describe('GraphViewProvider settings persistence', () => {
     expect([...providerState._disabledPlugins]).not.toEqual(legacyWorkspacePlugins);
   });
 
-  it('persists TOGGLE_SOURCE and TOGGLE_PLUGIN changes to VS Code settings', async () => {
+  it('persists TOGGLE_SOURCE and TOGGLE_PLUGIN changes to the repo settings store', async () => {
     const provider = new GraphViewProvider(
       mockContext.extensionUri,
       mockContext as unknown as vscode.ExtensionContext

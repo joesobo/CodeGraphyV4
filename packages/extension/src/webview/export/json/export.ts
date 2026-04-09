@@ -7,15 +7,13 @@ import { createExportTimestamp, getExportContext } from '../shared/context';
 import { globMatch } from '../../globMatch';
 import type { ExportBuildContext, ExportData } from '../shared/contracts';
 
-export { UNATTRIBUTED_RULE_KEY } from '../shared/contracts';
 export type {
   ExportBuildContext,
-  ExportConnectionsSection,
   ExportData,
-  ExportFile,
-  ExportGroup,
-  ExportImagesSectionEntry,
-  ExportRule,
+  ExportEdgeEntry,
+  ExportEdgeSourceEntry,
+  ExportLegendRule,
+  ExportNodeEntry,
 } from '../shared/contracts';
 
 export function exportAsJson(data: IGraphData): void {

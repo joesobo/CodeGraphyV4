@@ -3,6 +3,7 @@ import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
 } from './listener';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,
@@ -25,22 +26,17 @@ export function createGraphViewProviderMessageSettingsContext(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderSettingsContext {
-  const config = dependencies.workspace.getConfiguration('codegraphy');
-  const getConfigTarget = () => dependencies.getConfigTarget(dependencies.workspace.workspaceFolders);
+  const config = getCodeGraphyConfiguration();
 
   return {
     updateDagMode: async dagMode => {
       source._dagMode = dagMode;
-      await config.update(dependencies.dagModeKey, source._dagMode, getConfigTarget());
+      await config.update(dependencies.dagModeKey, source._dagMode);
       source._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: source._dagMode } });
     },
     updateNodeSizeMode: async nodeSizeMode => {
       source._nodeSizeMode = nodeSizeMode;
-      await config.update(
-        dependencies.nodeSizeModeKey,
-        source._nodeSizeMode,
-        getConfigTarget(),
-      );
+      await config.update(dependencies.nodeSizeModeKey, source._nodeSizeMode);
       source._sendMessage({
         type: 'NODE_SIZE_MODE_UPDATED',
         payload: { nodeSizeMode: source._nodeSizeMode },
@@ -48,7 +44,7 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     getConfig: (key, defaultValue) => config.get(key, defaultValue),
     updateConfig: async (key, value) => {
-      await config.update(key, value, getConfigTarget());
+      await config.update(key, value);
     },
     sendGraphControls: () => {
       source._sendGraphControls?.();
@@ -66,7 +62,7 @@ export function createGraphViewProviderMessageSettingsContext(
       );
       const action = dependencies.createResetSettingsAction(
         snapshot,
-        dependencies.getConfigTarget(dependencies.workspace.workspaceFolders),
+        undefined,
         source._context,
         () => source._sendAllSettings(),
         mode => {

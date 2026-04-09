@@ -3,7 +3,6 @@
  * @module extension/actions/toggleFavorite
  */
 
-import * as vscode from 'vscode';
 import { IUndoableAction } from '../undoManager';
 import { getCodeGraphyConfiguration } from '../repoSettings/current';
 
@@ -59,7 +58,7 @@ export class ToggleFavoriteAction implements IUndoableAction {
     }
 
     // Apply the "after" state
-    await config.update('favorites', this._stateAfter, vscode.ConfigurationTarget.Workspace);
+    await config.update('favorites', this._stateAfter);
     this._sendFavorites();
   }
 
@@ -67,7 +66,7 @@ export class ToggleFavoriteAction implements IUndoableAction {
     const config = getCodeGraphyConfiguration();
     
     // Restore to the "before" state (full replacement, not delta)
-    await config.update('favorites', this._stateBefore, vscode.ConfigurationTarget.Workspace);
+    await config.update('favorites', this._stateBefore);
     this._sendFavorites();
   }
 }

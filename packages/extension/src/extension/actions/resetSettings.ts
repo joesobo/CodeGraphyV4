@@ -3,7 +3,6 @@
  * @module extension/actions/resetSettings
  */
 
-import * as vscode from 'vscode';
 import type { IUndoableAction } from '../undoManager';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../shared/settings/snapshot';
@@ -59,8 +58,8 @@ export class ResetSettingsAction implements IUndoableAction {
 
   constructor(
     private readonly _stateBefore: ISettingsSnapshot,
-    private readonly _configTarget: vscode.ConfigurationTarget,
-    private readonly _context: vscode.ExtensionContext,
+    private readonly _configTarget: unknown,
+    private readonly _context: unknown,
     private readonly _sendAllSettings: () => void,
     private readonly _setNodeSizeMode: (mode: ISettingsSnapshot['nodeSizeMode']) => void,
     private readonly _refreshGraph: () => Promise<void>,
@@ -68,18 +67,18 @@ export class ResetSettingsAction implements IUndoableAction {
 
   async execute(): Promise<void> {
     const config = getCodeGraphyConfiguration();
-    const target = this._configTarget;
+    void this._configTarget;
     void this._context;
 
     for (const key of PHYSICS_KEYS) {
-      await config.update(`physics.${key}`, undefined, target);
+      await config.update(`physics.${key}`, undefined);
     }
     for (const configKey of Object.keys(CONFIG_TO_SNAPSHOT)) {
-      await config.update(configKey, undefined, target);
+      await config.update(configKey, undefined);
     }
 
     this._setNodeSizeMode('connections');
-    await config.update(NODE_SIZE_MODE_KEY, 'connections', target);
+    await config.update(NODE_SIZE_MODE_KEY, 'connections');
 
     this._sendAllSettings();
     await this._refreshGraph();
@@ -87,19 +86,19 @@ export class ResetSettingsAction implements IUndoableAction {
 
   async undo(): Promise<void> {
     const config = getCodeGraphyConfiguration();
-    const target = this._configTarget;
     const before = this._stateBefore;
+    void this._configTarget;
     void this._context;
 
     for (const key of PHYSICS_KEYS) {
-      await config.update(`physics.${key}`, before.physics[key], target);
+      await config.update(`physics.${key}`, before.physics[key]);
     }
     for (const [configKey, snapshotField] of Object.entries(CONFIG_TO_SNAPSHOT)) {
-      await config.update(configKey, before[snapshotField], target);
+      await config.update(configKey, before[snapshotField]);
     }
 
     this._setNodeSizeMode(before.nodeSizeMode);
-    await config.update(NODE_SIZE_MODE_KEY, before.nodeSizeMode, target);
+    await config.update(NODE_SIZE_MODE_KEY, before.nodeSizeMode);
 
     this._sendAllSettings();
     await this._refreshGraph();

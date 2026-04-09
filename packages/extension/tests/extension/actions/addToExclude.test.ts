@@ -59,8 +59,7 @@ describe('AddToExcludeAction', () => {
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'exclude',
-        ['**/src/app.ts'],
-        vscode.ConfigurationTarget.Workspace
+        ['**/src/app.ts']
       );
     });
 
@@ -72,8 +71,7 @@ describe('AddToExcludeAction', () => {
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'exclude',
-        expect.arrayContaining(['**/node_modules/**', '**/dist/bundle.js']),
-        vscode.ConfigurationTarget.Workspace
+        expect.arrayContaining(['**/node_modules/**', '**/dist/bundle.js'])
       );
     });
 

@@ -91,6 +91,8 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 
 **Configurable graph presentation** Tune the physics, switch between 2D and 3D, adjust node sizes, color node and edge types, assign regex-based legend rules, and filter out noise.
 
+**Exports from cached graph data** Export the current graph as JSON/Markdown/image output, and export lightweight symbol JSON from the warmed index without rescanning the repo.
+
 | 2D | 3D |
 |:--:|:--:|
 | ![2D graph](./docs/media/hero-graph.png) | ![3D graph](./docs/media/graph-3d.png) |
@@ -115,6 +117,7 @@ Want to build your own language plugin? Start with the [Plugin Guide](./docs/PLU
 |---|---|
 | [Timeline](./docs/TIMELINE.md) | Git history playback and incremental indexing |
 | [Settings](./docs/SETTINGS.md) | `.codegraphy/settings.json`, panels, and graph controls |
+| Export menu | Graph JSON/Markdown/image plus symbol JSON from the current index |
 | [Commands](./docs/COMMANDS.md) | Command palette reference |
 | [Keybindings](./docs/KEYBINDINGS.md) | Keyboard shortcuts |
 | [Interactions](./docs/INTERACTIONS.md) | Mouse, context menu, toolbar, and panels |

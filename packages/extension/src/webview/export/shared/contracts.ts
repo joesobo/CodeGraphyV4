@@ -1,5 +1,3 @@
-export const UNATTRIBUTED_RULE_KEY = 'unattributed';
-
 export interface ExportBuildContext {
   timelineActive?: boolean;
   currentCommitSha?: string | null;
@@ -49,36 +47,6 @@ export interface ExportEdgeEntry {
   color?: string;
   legendIds: string[];
   sources: ExportEdgeSourceEntry[];
-}
-
-export interface ExportFile {
-  imports?: Record<string, string[]>;
-}
-
-export interface ExportRule {
-  name: string;
-  plugin: string;
-  connections: number;
-}
-
-export interface ExportGroup {
-  style: {
-    color: string;
-    shape2D?: string;
-    shape3D?: string;
-    image?: string;
-  };
-  files: Record<string, ExportFile>;
-}
-
-export interface ExportConnectionsSection {
-  sources: Record<string, ExportRule>;
-  groups: Record<string, ExportGroup>;
-  ungrouped: Record<string, ExportFile>;
-}
-
-export interface ExportImagesSectionEntry {
-  groups: string[];
 }
 
 export interface ExportData {

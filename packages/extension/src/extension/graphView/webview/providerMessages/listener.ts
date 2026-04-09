@@ -19,7 +19,11 @@ import { setGraphViewWebviewMessageListener } from '../messages/listener';
 
 interface GraphViewConfigurationLike {
   get<T>(key: string, defaultValue: T): T;
-  update(key: string, value: unknown, target: vscode.ConfigurationTarget): PromiseLike<void>;
+  update(
+    key: string,
+    value: unknown,
+    target?: vscode.ConfigurationTarget,
+  ): PromiseLike<void>;
 }
 
 interface GraphViewWorkspaceLike {
@@ -47,7 +51,7 @@ export interface GraphViewProviderMessageListenerDependencies {
   ): ISettingsSnapshot;
   createResetSettingsAction(
     snapshot: ISettingsSnapshot,
-    target: vscode.ConfigurationTarget,
+    target: vscode.ConfigurationTarget | undefined,
     context: vscode.ExtensionContext,
     sendAllSettings: () => void,
     setNodeSizeMode: (mode: NodeSizeMode) => void,

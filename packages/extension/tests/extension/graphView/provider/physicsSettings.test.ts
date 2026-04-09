@@ -30,7 +30,7 @@ describe('graphView/provider/physicsSettings', () => {
     });
   });
 
-  it('updates physics settings through the current config and workspace-target helpers', async () => {
+  it('updates physics settings through the current config helpers', async () => {
     const configuration = {
       get: vi.fn((_, fallback) => fallback),
       update: vi.fn(async () => undefined),
@@ -56,15 +56,13 @@ describe('graphView/provider/physicsSettings', () => {
       unknown,
       {
         getConfiguration(): unknown;
-        getConfigTarget(): unknown;
       },
     ];
     expect(options[2].getConfiguration()).toBe(configuration);
-    expect(options[2].getConfigTarget()).toBeDefined();
     expect(getConfiguration).toHaveBeenCalledOnce();
   });
 
-  it('resets physics settings through the current config and workspace-target helpers', async () => {
+  it('resets physics settings through the current config helpers', async () => {
     const configuration = {
       get: vi.fn((_, fallback) => fallback),
       update: vi.fn(async () => undefined),
@@ -88,11 +86,9 @@ describe('graphView/provider/physicsSettings', () => {
     const options = resetPhysicsSettings.mock.calls[0] as unknown as [
       {
         getConfiguration(): unknown;
-        getConfigTarget(): unknown;
       },
     ];
     expect(options[0].getConfiguration()).toBe(configuration);
-    expect(options[0].getConfigTarget()).toBeDefined();
     expect(getConfiguration).toHaveBeenCalledOnce();
   });
 });

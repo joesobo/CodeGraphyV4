@@ -73,7 +73,7 @@ export class DeleteFilesAction implements IUndoableAction {
     }
 
     // Update favorites (remove deleted files from favorites)
-    await config.update('favorites', this._favoritesAfter, vscode.ConfigurationTarget.Workspace);
+    await config.update('favorites', this._favoritesAfter);
 
     await this._refreshGraph();
   }
@@ -92,7 +92,7 @@ export class DeleteFilesAction implements IUndoableAction {
 
     // Restore favorites state (full replacement)
     const config = getCodeGraphyConfiguration();
-    await config.update('favorites', this._favoritesBefore, vscode.ConfigurationTarget.Workspace);
+    await config.update('favorites', this._favoritesBefore);
 
     await this._refreshGraph();
   }
