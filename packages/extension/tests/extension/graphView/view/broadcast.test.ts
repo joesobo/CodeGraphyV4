@@ -10,7 +10,7 @@ import {
 } from '../../../../src/extension/graphView/view/broadcast';
 
 describe('graphView/view/broadcast', () => {
-  it('sends available views and the current depth limit', () => {
+  it('sends depth mode and the current depth limit', () => {
     const viewRegistry = new ViewRegistry();
     for (const view of coreViews) {
       viewRegistry.register(view, { core: true, isDefault: view.id === 'codegraphy.connections' });
@@ -28,21 +28,14 @@ describe('graphView/view/broadcast', () => {
     );
 
     expect(sendMessage).toHaveBeenNthCalledWith(1, {
-      type: 'VIEWS_UPDATED',
-      payload: {
-        views: expect.any(Array),
-        activeViewId: 'codegraphy.connections',
-      },
-    });
-    expect(sendMessage).toHaveBeenNthCalledWith(2, {
       type: 'DEPTH_MODE_UPDATED',
       payload: { depthMode: false },
     });
-    expect(sendMessage).toHaveBeenNthCalledWith(3, {
+    expect(sendMessage).toHaveBeenNthCalledWith(2, {
       type: 'DEPTH_LIMIT_UPDATED',
       payload: { depthLimit: 3 },
     });
-    expect(sendMessage).toHaveBeenNthCalledWith(4, {
+    expect(sendMessage).toHaveBeenNthCalledWith(3, {
       type: 'DEPTH_LIMIT_RANGE_UPDATED',
       payload: { maxDepthLimit: 10 },
     });

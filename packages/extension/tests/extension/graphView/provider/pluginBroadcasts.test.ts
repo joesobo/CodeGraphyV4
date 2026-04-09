@@ -22,7 +22,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
           _rawGraphData,
           _defaultDepthLimit,
           callback,
-        ) => callback({ type: 'VIEWS_UPDATED', payload: { views: [], activeViewId: 'codegraphy.connections' } })),
+        ) => callback({ type: 'DEPTH_MODE_UPDATED', payload: { depthMode: false } })),
         sendPluginStatuses: vi.fn((_analyzer, _disabledSources, _disabledPlugins, callback) =>
           callback({ type: 'PLUGINS_UPDATED', payload: { plugins: [] } }),
         ),
@@ -59,8 +59,8 @@ describe('graphView/provider/pluginBroadcasts', () => {
     methods._sendGroupsUpdated();
 
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'VIEWS_UPDATED',
-      payload: { views: [], activeViewId: 'codegraphy.connections' },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: false },
     });
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'LEGENDS_UPDATED',

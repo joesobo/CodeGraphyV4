@@ -149,13 +149,6 @@ interface GraphRuntimeStateResponse {
   };
 }
 
-interface ViewsUpdatedResponse {
-  payload: {
-    activeViewId: string;
-    views: Array<{ id: string; name: string }>;
-  };
-}
-
 async function requestNodeBounds(
   api: CodeGraphyAPI,
   timeoutMs = 5_000,
@@ -288,24 +281,6 @@ suite('Graph: Webview Messaging', function () {
     await fitViewPromise;
   });
 
-  test('typescript workspaces expose the focused imports plugin view to the webview', async function() {
-    if (scenario.name !== 'typescript') {
-      this.skip();
-    }
-
-    const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(5_000);
-
-    const viewsUpdatedPromise = waitForExtensionMessage(api, 'VIEWS_UPDATED', 15_000);
-    await api.dispatchWebviewMessage({ type: 'WEBVIEW_READY', payload: null });
-    const message = await viewsUpdatedPromise as ViewsUpdatedResponse;
-
-    assert.ok(
-      message.payload.views.some((view) => view.id === 'codegraphy.typescript.focused-imports'),
-      `Expected focused imports view in: ${message.payload.views.map((view) => view.id).join(', ')}`,
-    );
-  });
 });
 
 suite('Graph: 3D Mode', function () {

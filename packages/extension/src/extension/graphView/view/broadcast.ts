@@ -4,7 +4,6 @@ import type { IGroup } from '../../../shared/settings/groups';
 import type { IViewContext } from '../../../core/views/contracts';
 import type { ViewRegistry } from '../../../core/views/registry';
 import type { IGraphData } from '../../../shared/graph/types';
-import { mapAvailableViews } from '../presentation';
 import { buildGraphViewLegendsUpdatedMessage } from '../groups/message';
 
 interface SendGraphViewGroupsUpdatedOptions {
@@ -16,23 +15,16 @@ interface SendGraphViewGroupsUpdatedOptions {
 }
 
 export function sendGraphViewAvailableViews(
-  viewRegistry: ViewRegistry,
+  _viewRegistry: ViewRegistry,
   viewContext: IViewContext,
-  activeViewId: string,
+  _activeViewId: string,
   depthMode: boolean,
   rawGraphData: IGraphData,
   defaultDepthLimit: number,
   sendMessage: (message: unknown) => void,
 ): void {
-  const availableViews = viewRegistry.getAvailableViews(viewContext);
-  const views = mapAvailableViews(availableViews, activeViewId);
   const maxDepthLimit = getDepthGraphMaxDepthLimit(rawGraphData, viewContext.focusedFile);
   const depthLimit = getDepthGraphEffectiveDepthLimit(rawGraphData, viewContext);
-
-  sendMessage({
-    type: 'VIEWS_UPDATED',
-    payload: { views, activeViewId },
-  });
   sendMessage({
     type: 'DEPTH_MODE_UPDATED',
     payload: { depthMode },

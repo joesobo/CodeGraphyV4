@@ -239,8 +239,8 @@ describe('graphView/provider/view/context', () => {
         sendMessage,
       ) => {
         sendMessage({
-          type: 'VIEWS_UPDATED',
-          payload: { views: [], activeViewId: 'codegraphy.depth-graph' },
+          type: 'DEPTH_MODE_UPDATED',
+          payload: { depthMode: true },
         });
       },
     );
@@ -263,8 +263,8 @@ describe('graphView/provider/view/context', () => {
       expect.any(Function),
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'VIEWS_UPDATED',
-      payload: { views: [], activeViewId: 'codegraphy.depth-graph' },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
     });
   });
 
@@ -340,8 +340,8 @@ describe('graphView/provider/view/context', () => {
         sendMessage,
       ) => {
         sendMessage({
-          type: 'VIEWS_UPDATED',
-          payload: { views: [], activeViewId: 'codegraphy.connections' },
+          type: 'DEPTH_MODE_UPDATED',
+          payload: { depthMode: true },
         });
       },
     );
@@ -379,8 +379,8 @@ describe('graphView/provider/view/context', () => {
       expect.any(Function),
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'VIEWS_UPDATED',
-      payload: { views: [], activeViewId: 'codegraphy.connections' },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
     });
   });
 

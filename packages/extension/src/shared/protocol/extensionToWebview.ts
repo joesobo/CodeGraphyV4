@@ -15,7 +15,6 @@ import type {
 import type { IPhysicsSettings } from '../settings/physics';
 import type { IGroup } from '../settings/groups';
 import type { ITimelineData } from '../timeline/types';
-import type { IAvailableView } from '../view/types';
 
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }
@@ -39,7 +38,6 @@ export type ExtensionToWebviewMessage =
   | { type: 'REQUEST_EXPORT_MD' }
   | { type: 'NODE_ACCESS_COUNT_UPDATED'; payload: { nodeId: string; accessCount: number } }
   | { type: 'DEPTH_MODE_UPDATED'; payload: { depthMode: boolean } }
-  | { type: 'VIEWS_UPDATED'; payload: { views: IAvailableView[]; activeViewId: string } }
   | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings }
   | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }
   | { type: 'DEPTH_LIMIT_RANGE_UPDATED'; payload: { maxDepthLimit: number } }

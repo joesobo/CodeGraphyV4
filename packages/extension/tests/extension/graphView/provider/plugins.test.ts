@@ -130,8 +130,8 @@ describe('graphView/provider/plugins', () => {
         callback,
       ) =>
         callback({
-          type: 'VIEWS_UPDATED',
-          payload: { views: [], activeViewId: 'codegraphy.connections' },
+          type: 'DEPTH_MODE_UPDATED',
+          payload: { depthMode: false },
         }),
       ),
       sendPluginStatuses: vi.fn((_analyzer, _disabledSources, _disabledPlugins, callback) =>
@@ -161,8 +161,8 @@ describe('graphView/provider/plugins', () => {
     methods._sendGroupsUpdated();
 
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'VIEWS_UPDATED',
-      payload: { views: [], activeViewId: 'codegraphy.connections' },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: false },
     });
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'PLUGINS_UPDATED',
