@@ -303,7 +303,7 @@ describe('graphView/provider/settingsState', () => {
     const snapshotHiddenPluginGroups = ['plugin.snapshot'];
     const snapshotFilterPatterns = ['snapshot/**'];
     const snapshot = {
-      groups: snapshotGroups,
+      legends: snapshotGroups,
       hiddenPluginGroups: snapshotHiddenPluginGroups,
       filterPatterns: snapshotFilterPatterns,
     } as never;
@@ -349,7 +349,7 @@ describe('graphView/provider/settingsState', () => {
         () =>
           ({
             hiddenPluginGroups: undefined,
-            groups: undefined,
+            legends: undefined,
             filterPatterns: undefined,
           }) as never,
       ),

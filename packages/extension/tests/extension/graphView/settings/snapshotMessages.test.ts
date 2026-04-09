@@ -36,7 +36,7 @@ describe('graphView/settings/snapshotMessages', () => {
         damping: 0.7,
         centerForce: 0.1,
       },
-      groups: [],
+      legends: [],
       filterPatterns: [],
       showOrphans: true,
       bidirectionalMode: 'separate',
@@ -62,7 +62,7 @@ describe('graphView/settings/snapshotMessages', () => {
   it('captures reset snapshots from configuration and normalized settings state', () => {
     const snapshot = captureGraphViewSettingsSnapshot(
       createConfig({
-        groups: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
+        legend: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
         filterPatterns: ['dist/**'],
         showOrphans: false,
         bidirectionalEdges: 'combined',
@@ -100,7 +100,7 @@ describe('graphView/settings/snapshotMessages', () => {
         damping: 0.7,
         centerForce: 0.1,
       },
-      groups: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
+      legends: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
       filterPatterns: ['dist/**'],
       showOrphans: false,
       bidirectionalMode: 'combined',
@@ -167,7 +167,7 @@ describe('graphView/settings/snapshotMessages', () => {
             damping: 0.7,
             centerForce: 0.1,
           },
-          groups: [],
+          legends: [],
           filterPatterns: ['dist/**'],
           showOrphans: false,
           bidirectionalMode: 'combined',

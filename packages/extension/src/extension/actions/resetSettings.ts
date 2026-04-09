@@ -20,7 +20,7 @@ const PHYSICS_KEYS: (keyof IPhysicsSettings)[] = [
  * `bidirectionalEdges` → `bidirectionalMode` is the only name mismatch.
  */
 const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
-  legend: 'groups',
+  legend: 'legends',
   filterPatterns: 'filterPatterns',
   showOrphans: 'showOrphans',
   bidirectionalEdges: 'bidirectionalMode',

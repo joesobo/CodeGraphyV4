@@ -29,13 +29,13 @@ const SETTINGS_DIR_NAME = '.codegraphy';
 const SETTINGS_FILE_NAME = 'settings.json';
 const SETTINGS_IGNORE_ENTRY = '.codegraphy/';
 
-function normalizeLegendKeyAlias(key: string): string {
-  if (key === 'legend') {
-    return 'groups';
+function normalizeGroupKeyAlias(key: string): string {
+  if (key === 'groups') {
+    return 'legend';
   }
 
-  if (key.startsWith('legend.')) {
-    return `groups.${key.slice('legend.'.length)}`;
+  if (key.startsWith('groups.')) {
+    return `legend.${key.slice('groups.'.length)}`;
   }
 
   return key;
@@ -52,10 +52,10 @@ function normalizePersistedSettingsShape(
   const legend = normalized.legend;
   const groups = normalized.groups;
   if (
-    Array.isArray(legend)
-    && (!Array.isArray(groups) || groups.length === 0)
+    Array.isArray(groups)
+    && (!Array.isArray(legend) || legend.length === 0)
   ) {
-    normalized.groups = legend;
+    normalized.legend = groups;
   }
 
   const nodeColors = isPlainObject(normalized.nodeColors)
@@ -102,7 +102,7 @@ function deepMerge<T>(base: T, overrides: unknown): T {
 }
 
 function getPathSegments(key: string): string[] {
-  return normalizeLegendKeyAlias(key).split('.').filter(Boolean);
+  return normalizeGroupKeyAlias(key).split('.').filter(Boolean);
 }
 
 function getNestedValue<T>(value: unknown, key: string): T | undefined {
@@ -153,8 +153,6 @@ function setNestedValue(value: Record<string, unknown>, key: string, nextValue: 
 
 function serializeSettings(value: ICodeGraphyRepoSettings): string {
   const persisted = deepClone(value) as unknown as Record<string, unknown>;
-  persisted.legend = persisted.groups;
-  delete persisted.groups;
 
   const nodeColors = isPlainObject(persisted.nodeColors)
     ? { ...persisted.nodeColors }
@@ -215,7 +213,7 @@ function createChangeEvent(changedKeys: string[]): ICodeGraphySettingsChangeEven
         return false;
       }
 
-      const key = normalizeLegendKeyAlias(section.slice('codegraphy.'.length));
+      const key = normalizeGroupKeyAlias(section.slice('codegraphy.'.length));
       return uniqueChangedKeys.some(
         changedKey =>
           changedKey === key ||

@@ -30,7 +30,7 @@ export function applyGraphViewAllSettingsSnapshot(
   }
 
   state.hiddenPluginGroupIds = new Set(snapshot.hiddenPluginGroups);
-  state.userGroups = snapshot.groups;
+  state.userGroups = snapshot.legends;
   state.filterPatterns = snapshot.filterPatterns;
   handlers.recomputeGroups();
   handlers.sendGroupsUpdated();
