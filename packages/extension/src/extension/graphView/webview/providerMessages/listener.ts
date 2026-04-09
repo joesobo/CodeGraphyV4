@@ -150,7 +150,9 @@ export interface GraphViewProviderMessageListenerSource {
 
 export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {
   workspace: {
-    ...vscode.workspace,
+    get workspaceFolders() {
+      return vscode.workspace.workspaceFolders;
+    },
     getConfiguration: section =>
       section === 'codegraphy'
         ? getCodeGraphyConfiguration()

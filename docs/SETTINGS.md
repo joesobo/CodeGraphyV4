@@ -141,7 +141,7 @@ Pattern: *.md      Color: #6B7280   (grey, documentation)
 Pattern: tests/*   Color: #F59E0B   (amber, files directly inside any tests folder)
 ```
 
-To share legend rules across a team, commit `.codegraphy/settings.json`:
+To reuse legend rules across repos or teammates, copy the relevant entries from `.codegraphy/settings.json`:
 ```json
 {
   "legend": [
@@ -308,7 +308,7 @@ This setting is also accessible from the Settings panel.
 
 ## Repo-local vs global settings
 
-CodeGraphy’s graph/index behavior lives with the repo under `.codegraphy/`. Current repos should commit `.codegraphy/settings.json` instead of relying on `.vscode/settings.json`.
+CodeGraphy’s graph/index behavior lives with the repo under `.codegraphy/`. By default CodeGraphy also adds `.codegraphy/` to the repo `.gitignore`, so these settings stay local unless you intentionally choose a different sharing strategy.
 
 Compatibility note:
 - older repos may still contain `folderNodeColor` as a standalone key

@@ -129,6 +129,12 @@ suite('Settings: Orphans', function () {
     const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
     const stored = readRepoSettingsFile(settingsPath).showOrphans;
     assert.strictEqual(stored, false, 'showOrphans should be persisted as false');
+
+    await api.dispatchWebviewMessage({
+      type: 'UPDATE_SHOW_ORPHANS',
+      payload: { showOrphans: true },
+    });
+    await sleep(1_000);
   });
 });
 

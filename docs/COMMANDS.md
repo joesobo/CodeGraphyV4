@@ -5,6 +5,7 @@ All commands are available from the Command Palette (`Ctrl+Shift+P` / `Cmd+Shift
 | Command | Description |
 |---------|-------------|
 | `CodeGraphy: Open` | Open the CodeGraphy panel |
+| `CodeGraphy: Open in Editor` | Open the current graph or export target in a regular editor tab |
 | `CodeGraphy: Fit All Nodes in View` | Reset zoom to show all nodes |
 | `CodeGraphy: Zoom In` | Increase zoom level |
 | `CodeGraphy: Zoom Out` | Decrease zoom level |
@@ -27,6 +28,7 @@ For keybinding customization or extension integration:
 | Command ID | Maps to |
 |-----------|---------|
 | `codegraphy.open` | Open |
+| `codegraphy.openInEditor` | Open in Editor |
 | `codegraphy.fitView` | Fit All Nodes in View |
 | `codegraphy.zoomIn` | Zoom In |
 | `codegraphy.zoomOut` | Zoom Out |
@@ -43,3 +45,5 @@ For keybinding customization or extension integration:
 | `codegraphy.clearCache` | Clear Cache and Refresh |
 
 See [Keybindings](./KEYBINDINGS.md) for default shortcuts and customization.
+
+Symbol export is available from the graph toolbar export menu as `Export Symbols as JSON`.

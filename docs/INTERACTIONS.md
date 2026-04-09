@@ -129,7 +129,7 @@ During timeline mode, destructive context menu actions (Delete, Rename, Create F
 
 ## Export
 
-Export the current graph via the Command Palette:
+Export the current graph from the graph toolbar export menu:
 
 - **PNG** for a rasterized snapshot at the current zoom and pan
 - **SVG** for a scalable vector preserving graph structure

@@ -483,6 +483,63 @@ describe('graph view provider listener bridge', () => {
       expect.objectContaining({ kind: 'reset-settings' }),
     );
   });
+
+  it('does not enumerate proposed workspace getters while building default dependencies', async () => {
+    vi.resetModules();
+
+    const proposedGetter = vi.fn(() => {
+      throw new Error('proposed getter should not be touched');
+    });
+    const workspace = {
+      workspaceFolders: undefined,
+      getConfiguration: vi.fn(() => ({
+        get: vi.fn(),
+        update: vi.fn(() => Promise.resolve()),
+      })),
+    };
+
+    Object.defineProperty(workspace, 'isAgentSessionsWorkspace', {
+      enumerable: true,
+      get: proposedGetter,
+    });
+
+    vi.doMock('vscode', () => ({
+      workspace,
+      window: {
+        showInformationMessage: vi.fn(),
+        showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
+      },
+      ConfigurationTarget: {
+        Workspace: 2,
+      },
+    }));
+    vi.doMock('../../../../../src/extension/graphView/settings/reader', () => ({
+      getGraphViewConfigTarget: vi.fn(() => vscode.ConfigurationTarget.Workspace),
+    }));
+    vi.doMock('../../../../../src/extension/graphView/settings/snapshot', () => ({
+      captureGraphViewSettingsSnapshot: vi.fn(() => createSettingsSnapshot()),
+    }));
+    vi.doMock('../../../../../src/extension/actions/resetSettings', () => ({
+      ResetSettingsAction: vi.fn(),
+    }));
+    vi.doMock('../../../../../src/extension/undoManager', () => ({
+      getUndoManager: () => ({ execute: vi.fn(() => Promise.resolve()) }),
+    }));
+    vi.doMock('../../../../../src/extension/repoSettings/current', () => ({
+      getCodeGraphyConfiguration: vi.fn(() => ({
+        get: vi.fn(),
+        update: vi.fn(() => Promise.resolve()),
+      })),
+    }));
+    vi.doMock('../../../../../src/extension/graphView/webview/messages/listener', () => ({
+      setGraphViewWebviewMessageListener: vi.fn(),
+    }));
+
+    await expect(import(
+      '../../../../../src/extension/graphView/webview/providerMessages/listener'
+    )).resolves.toBeDefined();
+    expect(proposedGetter).not.toHaveBeenCalled();
+  });
 });
 
 async function loadDefaultListenerHarness(
