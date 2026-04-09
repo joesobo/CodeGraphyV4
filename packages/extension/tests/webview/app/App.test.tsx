@@ -44,7 +44,7 @@ function resetStore() {
     depthMode: false,
     depthLimit: 1,
     maxDepthLimit: 10,
-    groups: [],
+    legends: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
     pluginStatuses: [],
@@ -223,10 +223,10 @@ describe('App: message handlers', () => {
     await act(async () => {
       sendMessage({
         type: 'LEGENDS_UPDATED',
-        payload: { groups: [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }] },
+        payload: { legends: [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }] },
       });
     });
-    expect(graphStore.getState().groups).toEqual([{ id: 'g1', pattern: 'src/**', color: '#ff0000' }]);
+    expect(graphStore.getState().legends).toEqual([{ id: 'g1', pattern: 'src/**', color: '#ff0000' }]);
   });
 
   it('PHYSICS_SETTINGS_UPDATED message is handled', async () => {

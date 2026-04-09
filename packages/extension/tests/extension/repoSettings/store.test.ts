@@ -151,9 +151,27 @@ describe('extension/repoSettings/store', () => {
 
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
 
+    expect(store.get('legend', [])).toEqual([
+      { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
+    ]);
     expect(store.get('groups', [])).toEqual([
       { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
     ]);
     expect(store.get('folderNodeColor', '')).toBe('#445566');
+  });
+
+  it('updates legend through the cleaner alias and persists only the legend key', async () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+    const nextLegend = [{ id: 'legend-rule', pattern: 'tests/**', color: '#00ff00' }];
+
+    await store.update('legend', nextLegend);
+
+    const persisted = readJson<Record<string, unknown>>(store.settingsPath);
+    expect(store.get('legend', [])).toEqual(nextLegend);
+    expect(store.get('groups', [])).toEqual(nextLegend);
+    expect(persisted.legend).toEqual(nextLegend);
+    expect(persisted.groups).toBeUndefined();
   });
 });

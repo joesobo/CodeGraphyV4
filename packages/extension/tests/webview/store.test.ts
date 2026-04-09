@@ -88,12 +88,12 @@ describe('GraphStore', () => {
   });
 
   it('handles LEGENDS_UPDATED message', () => {
-    const groups = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
+    const legends = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
     store.getState().handleExtensionMessage({
       type: 'LEGENDS_UPDATED',
-      payload: { groups },
+      payload: { legends },
     });
-    expect(store.getState().groups).toEqual(groups);
+    expect(store.getState().legends).toEqual(legends);
   });
 
   it('handles FILTER_PATTERNS_UPDATED message', () => {

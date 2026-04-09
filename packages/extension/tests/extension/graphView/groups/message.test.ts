@@ -17,7 +17,7 @@ describe('graphView/groupMessage', () => {
     expect(message).toEqual({
       type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           {
             id: 'plugin:codegraphy.python:*.py',
             pattern: '*.py',
@@ -48,7 +48,7 @@ describe('graphView/groupMessage', () => {
     );
 
     expect(resolvePluginAssetPath).toHaveBeenCalledWith('icons/python.svg', 'codegraphy.python');
-    expect(message.payload.groups[0]?.imageUrl).toBe('webview://plugin/python.svg');
+    expect(message.payload.legends[0]?.imageUrl).toBe('webview://plugin/python.svg');
   });
 
   it('resolves workspace-relative asset paths through the active webview', () => {
@@ -68,7 +68,7 @@ describe('graphView/groupMessage', () => {
     expect(asWebviewUri).toHaveBeenCalledWith(
       vscode.Uri.file('/test/workspace/.codegraphy/assets/icon.png'),
     );
-    expect(message.payload.groups[0]?.imageUrl).toBe(
+    expect(message.payload.legends[0]?.imageUrl).toBe(
       'webview:/test/workspace/.codegraphy/assets/icon.png',
     );
   });
@@ -80,7 +80,7 @@ describe('graphView/groupMessage', () => {
       resolvePluginAssetPath: vi.fn(),
     });
 
-    expect(message.payload.groups).toEqual([group]);
+    expect(message.payload.legends).toEqual([group]);
   });
 
   it('omits image urls when there is no workspace webview context', () => {
@@ -92,7 +92,7 @@ describe('graphView/groupMessage', () => {
       },
     );
 
-    expect(message.payload.groups[0]).toEqual({
+    expect(message.payload.legends[0]).toEqual({
       id: 'user-group',
       pattern: '*.png',
       color: '#112233',
@@ -111,7 +111,7 @@ describe('graphView/groupMessage', () => {
     );
 
     expect(resolvePluginAssetPath).toHaveBeenCalledWith('icons/python.svg', 'codegraphy.python');
-    expect(message.payload.groups[0]).toEqual({
+    expect(message.payload.legends[0]).toEqual({
       id: 'plugin:codegraphy.python:*.py',
       pattern: '*.py',
       color: '#112233',
@@ -145,7 +145,7 @@ describe('graphView/groupMessage', () => {
     expect(asWebviewUri).toHaveBeenCalledWith(
       vscode.Uri.file('/test/workspace/.codegraphy/assets/icon.png'),
     );
-    expect(message.payload.groups[0]?.imageUrl).toBe(
+    expect(message.payload.legends[0]?.imageUrl).toBe(
       'webview:/test/workspace/.codegraphy/assets/icon.png',
     );
   });
@@ -176,7 +176,7 @@ describe('graphView/groupMessage', () => {
     expect(asWebviewUri).toHaveBeenCalledWith(
       vscode.Uri.file('/test/workspace/icons/plugin:codegraphy.python:python.svg'),
     );
-    expect(message.payload.groups[0]?.imageUrl).toBe(
+    expect(message.payload.legends[0]?.imageUrl).toBe(
       'webview:/test/workspace/icons/plugin:codegraphy.python:python.svg',
     );
   });

@@ -98,23 +98,23 @@ function resolveLegendRuleTarget(rule: IGroup): LegendRuleTarget {
 
 function sendUserLegendRules(
   rules: IGroup[],
-  setOptimisticUserGroups: (groups: IGroup[]) => void,
+  setOptimisticUserLegends: (legends: IGroup[]) => void,
 ): void {
-  setOptimisticUserGroups(rules);
+  setOptimisticUserLegends(rules);
   postMessage({
     type: 'UPDATE_LEGENDS',
-    payload: { groups: rules },
+    payload: { legends: rules },
   });
 }
 
 interface LegendRulesSectionProps {
   rules: IGroup[];
-  setOptimisticUserGroups: (groups: IGroup[]) => void;
+  setOptimisticUserLegends: (legends: IGroup[]) => void;
 }
 
 function LegendRulesSection({
   rules,
-  setOptimisticUserGroups,
+  setOptimisticUserLegends,
 }: LegendRulesSectionProps): React.ReactElement {
   const [newPattern, setNewPattern] = useState('');
   const [newColor, setNewColor] = useState('#3B82F6');
@@ -122,7 +122,7 @@ function LegendRulesSection({
   const [draggingRuleId, setDraggingRuleId] = useState<string | null>(null);
 
   const updateRules = (nextRules: IGroup[]) => {
-    sendUserLegendRules(nextRules, setOptimisticUserGroups);
+    sendUserLegendRules(nextRules, setOptimisticUserLegends);
   };
 
   const addRule = () => {
@@ -326,12 +326,12 @@ export default function LegendsPanel({
   const edgeTypes = useGraphStore((state) => state.graphEdgeTypes);
   const nodeColors = useGraphStore((state) => state.nodeColors);
   const edgeColors = useGraphStore((state) => state.edgeColors);
-  const groups = useGraphStore((state) => state.groups);
-  const setOptimisticUserGroups = useGraphStore((state) => state.setOptimisticUserGroups);
+  const legends = useGraphStore((state) => state.legends);
+  const setOptimisticUserLegends = useGraphStore((state) => state.setOptimisticUserLegends);
 
   const userLegendRules = useMemo(
-    () => groups.filter((group) => !group.isPluginDefault),
-    [groups],
+    () => legends.filter((group) => !group.isPluginDefault),
+    [legends],
   );
 
   if (!isOpen) {
@@ -382,7 +382,7 @@ export default function LegendsPanel({
           />
           <LegendRulesSection
             rules={userLegendRules}
-            setOptimisticUserGroups={setOptimisticUserGroups}
+            setOptimisticUserLegends={setOptimisticUserLegends}
           />
         </div>
       </ScrollArea>

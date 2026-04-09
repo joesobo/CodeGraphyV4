@@ -14,7 +14,7 @@ function createSource(
   overrides: Partial<GraphViewProviderSettingsStateMethodsSource> = {},
 ): GraphViewProviderSettingsStateMethodsSource {
   const get = vi.fn((key: string) => {
-    if (key === 'codegraphy.groups') return undefined;
+    if (key === 'codegraphy.legend') return undefined;
     if (key === 'codegraphy.disabledSources') return ['rule.saved'];
     if (key === 'codegraphy.disabledPlugins') return ['plugin.saved'];
     return undefined;

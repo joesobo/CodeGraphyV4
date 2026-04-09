@@ -41,7 +41,7 @@ export type ExtensionToWebviewMessage =
   | { type: 'PHYSICS_SETTINGS_UPDATED'; payload: IPhysicsSettings }
   | { type: 'DEPTH_LIMIT_UPDATED'; payload: { depthLimit: number } }
   | { type: 'DEPTH_LIMIT_RANGE_UPDATED'; payload: { maxDepthLimit: number } }
-  | { type: 'LEGENDS_UPDATED'; payload: { groups: IGroup[] } }
+  | { type: 'LEGENDS_UPDATED'; payload: { legends: IGroup[] } }
   | {
       type: 'FILTER_PATTERNS_UPDATED';
       payload: { patterns: string[]; pluginPatterns: string[] };

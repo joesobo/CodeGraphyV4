@@ -7,8 +7,8 @@ import type { IGroup } from '../../shared/settings/groups';
 
 export { filterNodesAdvanced } from './matching';
 
-function getOrderedActiveRules(groups: IGroup[]): IGroup[] {
-  return groups
+function getOrderedActiveRules(legends: IGroup[]): IGroup[] {
+  return legends
     .filter((group) => !group.disabled)
     .slice()
     .reverse();
@@ -61,17 +61,17 @@ export function filterGraphData(
 
 export function applyLegendRules(
   data: IGraphData | null,
-  groups: IGroup[],
+  legends: IGroup[],
 ): IGraphData | null {
   if (!data) {
     return null;
   }
 
-  if (groups.length === 0) {
+  if (legends.length === 0) {
     return data;
   }
 
-  const activeRules = getOrderedActiveRules(groups);
+  const activeRules = getOrderedActiveRules(legends);
 
   return {
     ...data,

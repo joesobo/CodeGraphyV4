@@ -154,7 +154,7 @@ function resetStore(): void {
     depthMode: false,
     depthLimit: 1,
     maxDepthLimit: 10,
-    groups: [],
+    legends: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
     pluginStatuses: [],
@@ -279,13 +279,13 @@ describe('App behavior', () => {
     expect(harness.graphRenderCount).toBe(1);
   });
 
-  it('does not rerender Graph for unchanged groups before a refresh data update', async () => {
+  it('does not rerender Graph for unchanged legends before a refresh data update', async () => {
     graphStore.setState({
       graphData: {
         nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
         edges: [],
       },
-      groups: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
+      legends: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
     });
 
     render(<App />);
@@ -297,7 +297,7 @@ describe('App behavior', () => {
       sendAppMessage({
         type: 'LEGENDS_UPDATED',
         payload: {
-          groups: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
+          legends: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
         },
       });
     });
@@ -392,7 +392,7 @@ describe('App behavior', () => {
         ],
         edges: [],
       },
-      groups: [
+      legends: [
         { id: 'disabled-group', pattern: 'src/**', color: '#ff0000', disabled: true },
         { id: 'enabled-group', pattern: 'src/**', color: '#00ff00', shape2D: 'diamond', shape3D: 'cube', imageUrl: 'https://example.com/icon.png' },
       ],
@@ -665,7 +665,7 @@ describe('App behavior', () => {
         nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
         edges: [],
       },
-      groups: [{ id: 'g1', pattern: 'src/**', color: '#abcdef' }],
+      legends: [{ id: 'g1', pattern: 'src/**', color: '#abcdef' }],
     });
 
     render(<App />);
@@ -679,7 +679,7 @@ describe('App behavior', () => {
         nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
         edges: [],
       },
-      groups: [],
+      legends: [],
     });
 
     render(<App />);

@@ -71,7 +71,7 @@ export async function applyGroupMessage(
 ): Promise<boolean> {
   switch (message.type) {
     case 'UPDATE_LEGENDS':
-      state.userGroups = message.payload.groups.map(toPersistableGroup);
+      state.userGroups = message.payload.legends.map(toPersistableGroup);
       await handlers.persistGroups(state.userGroups);
       return true;
 

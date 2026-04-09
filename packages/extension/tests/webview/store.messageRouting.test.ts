@@ -74,21 +74,21 @@ describe('GraphStore message routing', () => {
   });
 
   it('ignores LEGENDS_UPDATED messages when the payload is unchanged', () => {
-    const groups: IGroup[] = [
+    const legends: IGroup[] = [
       {
         id: 'src-group',
         pattern: 'src/**',
         color: '#00ff00',
       },
     ];
-    const optimisticGroupUpdates = {};
+    const optimisticLegendUpdates = {};
 
-    store.setState({ groups, optimisticGroupUpdates });
+    store.setState({ legends, optimisticLegendUpdates });
 
     store.getState().handleExtensionMessage({
       type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           {
             id: 'src-group',
             pattern: 'src/**',
@@ -98,63 +98,63 @@ describe('GraphStore message routing', () => {
       },
     });
 
-    expect(store.getState().groups).toBe(groups);
-    expect(store.getState().optimisticGroupUpdates).toBe(optimisticGroupUpdates);
+    expect(store.getState().legends).toBe(legends);
+    expect(store.getState().optimisticLegendUpdates).toBe(optimisticLegendUpdates);
   });
 
   it('keeps optimistic custom groups visible when a stale LEGENDS_UPDATED payload arrives', () => {
     store.setState({
-      groups: [
+      legends: [
         { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
       ],
     });
-    store.getState().setOptimisticUserGroups([
+    store.getState().setOptimisticUserLegends([
       { id: 'g1', pattern: 'src/**', color: '#22C55E' },
     ]);
 
     store.getState().handleExtensionMessage({
       type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
         ],
       },
     });
 
-    expect(store.getState().groups).toEqual([
+    expect(store.getState().legends).toEqual([
       { id: 'g1', pattern: 'src/**', color: '#22C55E' },
       { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
     ]);
-    expect(store.getState().optimisticUserGroups?.groups).toEqual([
+    expect(store.getState().optimisticUserLegends?.groups).toEqual([
       { id: 'g1', pattern: 'src/**', color: '#22C55E' },
     ]);
   });
 
   it('clears optimistic custom groups once LEGENDS_UPDATED matches the host echo', () => {
     store.setState({
-      groups: [
+      legends: [
         { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
       ],
     });
-    store.getState().setOptimisticUserGroups([
+    store.getState().setOptimisticUserLegends([
       { id: 'g1', pattern: 'src/**', color: '#22C55E' },
     ]);
 
     store.getState().handleExtensionMessage({
       type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           { id: 'g1', pattern: 'src/**', color: '#22C55E' },
           { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
         ],
       },
     });
 
-    expect(store.getState().groups).toEqual([
+    expect(store.getState().legends).toEqual([
       { id: 'g1', pattern: 'src/**', color: '#22C55E' },
       { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
     ]);
-    expect(store.getState().optimisticUserGroups).toBeNull();
+    expect(store.getState().optimisticUserLegends).toBeNull();
   });
 
   it('handles CONTEXT_MENU_ITEMS messages', () => {

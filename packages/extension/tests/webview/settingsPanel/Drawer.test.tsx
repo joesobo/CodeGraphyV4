@@ -22,7 +22,7 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
 function setStoreState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
     physicsSettings: DEFAULT_PHYSICS,
-    groups: [],
+    legends: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
     showOrphans: true,

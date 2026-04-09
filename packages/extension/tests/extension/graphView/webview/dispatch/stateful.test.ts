@@ -16,7 +16,7 @@ describe('graph view primary stateful dispatch', () => {
 
     await expect(
       dispatchGraphViewPrimaryStateMessage(
-        { type: 'UPDATE_LEGENDS', payload: { groups: incomingGroups } },
+        { type: 'UPDATE_LEGENDS', payload: { legends: incomingGroups } },
         context,
       ),
     ).resolves.toEqual({

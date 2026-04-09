@@ -40,7 +40,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
           callback({ type: 'PLUGIN_WEBVIEW_INJECT', payload: { kind: 'script', src: 'asset://script.js' } }),
         ),
         sendGroupsUpdated: vi.fn((_groups, _options, callback) =>
-          callback({ type: 'LEGENDS_UPDATED', payload: { groups: [] } }),
+          callback({ type: 'LEGENDS_UPDATED', payload: { legends: [] } }),
         ),
         getWorkspaceFolders: vi.fn(() => []),
       },
@@ -62,7 +62,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
     });
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'LEGENDS_UPDATED',
-      payload: { groups: [] },
+      payload: { legends: [] },
     });
   });
 
@@ -92,7 +92,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
           expect(options.workspaceFolder).toBe(workspaceFolder);
           options.registerPluginRoots();
           expect(options.resolvePluginAssetPath('icon.svg', 'plugin.test')).toBe('asset://icon.svg');
-          callback({ type: 'LEGENDS_UPDATED', payload: { groups: [] } });
+          callback({ type: 'LEGENDS_UPDATED', payload: { legends: [] } });
         }),
         getWorkspaceFolders: vi.fn(() => [workspaceFolder]),
       },

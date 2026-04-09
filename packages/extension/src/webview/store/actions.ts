@@ -20,9 +20,9 @@ type GetState = StoreApi<GraphState>['getState'];
 
 export function createActions(set: SetState, get: GetState) {
   const replaceUserGroups = (
-    currentGroups: GraphState['groups'],
-    userGroups: GraphState['groups'],
-  ): GraphState['groups'] => [
+    currentGroups: GraphState['legends'],
+    userGroups: GraphState['legends'],
+  ): GraphState['legends'] => [
     ...userGroups,
     ...currentGroups.filter((group) => group.isPluginDefault),
   ];
@@ -40,25 +40,25 @@ export function createActions(set: SetState, get: GetState) {
     setMaxFiles: (max: number) => set({ maxFiles: max }),
     setPlaybackSpeed: (speed: number) => set({ playbackSpeed: speed }),
     setIsPlaying: (playing: boolean) => set({ isPlaying: playing }),
-    setOptimisticGroupUpdate: (groupId: string, updates: Partial<GraphState['groups'][number]>) =>
+    setOptimisticLegendUpdate: (groupId: string, updates: Partial<GraphState['legends'][number]>) =>
       set((state) => ({
-        optimisticGroupUpdates: mergePendingGroupUpdate(
-          state.optimisticGroupUpdates,
+        optimisticLegendUpdates: mergePendingGroupUpdate(
+          state.optimisticLegendUpdates,
           groupId,
           updates,
         ),
       })),
-    clearOptimisticGroupUpdate: (groupId: string) =>
+    clearOptimisticLegendUpdate: (groupId: string) =>
       set((state) => ({
-        optimisticGroupUpdates: clearPendingGroupUpdate(
-          state.optimisticGroupUpdates,
+        optimisticLegendUpdates: clearPendingGroupUpdate(
+          state.optimisticLegendUpdates,
           groupId,
         ),
       })),
-    setOptimisticUserGroups: (groups: GraphState['groups']) =>
+    setOptimisticUserLegends: (legends: GraphState['legends']) =>
       set((state) => ({
-        groups: replaceUserGroups(state.groups, groups),
-        optimisticUserGroups: createPendingUserGroupsUpdate(groups),
+        legends: replaceUserGroups(state.legends, legends),
+        optimisticUserLegends: createPendingUserGroupsUpdate(legends),
       })),
     handleExtensionMessage: (message: ExtensionToWebviewMessage) => {
       const handler = MESSAGE_HANDLERS[message.type];

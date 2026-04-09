@@ -18,8 +18,8 @@ export type {
 
 export function exportAsJson(data: IGraphData): void {
   try {
-    const { groups, pluginStatuses } = graphStore.getState();
-    const exportData = buildExportData(data, groups, pluginStatuses, getExportContext());
+    const { legends, pluginStatuses } = graphStore.getState();
+    const exportData = buildExportData(data, legends, pluginStatuses, getExportContext());
     const timestamp = createExportTimestamp();
 
     postMessage({
@@ -42,11 +42,11 @@ export function exportAsJson(data: IGraphData): void {
  */
 export function buildExportData(
   graphData: IGraphData,
-  groups: IGroup[],
+  legends: IGroup[],
   pluginStatuses: IPluginStatus[] = [],
   context: ExportBuildContext = {},
 ): ExportData {
-  const activeLegendRules = groups.filter((group) => !group.disabled);
+  const activeLegendRules = legends.filter((group) => !group.disabled);
   const pluginNames = new Map(pluginStatuses.map((plugin) => [plugin.id, plugin.name]));
 
   const legend = activeLegendRules

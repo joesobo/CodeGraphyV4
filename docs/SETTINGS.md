@@ -22,7 +22,7 @@ Common top-level sections include:
 - `nodeColors`
 - `edgeVisibility`
 - `edgeColors`
-- `groups` (the stored legend rule list used by the Legends popup)
+- `legend` (the stored legend rule list used by the Legends popup)
 - `pluginOrder`
 - `disabledPlugins`
 - `disabledSources`
@@ -53,7 +53,7 @@ Example:
     "codegraphy.typescript"
   ],
   "disabledPlugins": [],
-  "groups": [
+  "legend": [
     { "id": "tests", "pattern": "*/tests/**", "color": "#22C55E" }
   ]
 }
@@ -75,7 +75,7 @@ Example:
 | `particleSpeed` | number | `0.005` | Particle direction speed |
 | `particleSize` | number | `4` | Particle size in pixels |
 | `favorites` | string[] | `[]` | Favorite file paths |
-| `groups` | object[] | `[]` | Stored legend rules: `{ id, pattern, color, ... }` |
+| `legend` | object[] | `[]` | Stored legend rules: `{ id, pattern, color, ... }` |
 | `pluginOrder` | string[] | `[]` | Plugin processing order, bottom-to-top |
 | `disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
 | `disabledSources` | string[] | `[]` | Disabled qualified source IDs kept for legacy migration and source-level filtering |
@@ -116,7 +116,8 @@ Adjusts the physics simulation in real time.
 ### Legends
 
 Legend rules now live in their own **Legends** popup, not inside the settings panel.
-The popup label is **Legends**, while the persisted key in `.codegraphy/settings.json` remains `groups`.
+The popup label and persisted key are both **Legends** / `legend`.
+Older `.codegraphy/settings.json` files that still use `groups` are read for compatibility and rewritten as `legend`.
 
 Legend rules assign colors based on regex/glob-style matching and are applied in drag order:
 
@@ -134,7 +135,7 @@ Legend rules can color files, folders, packages, and plugin-added node types thr
 
 Group patterns match by basename or path suffix. Simple extension patterns like `*.ts` match files at any depth, `src/*` matches files directly inside any `src/` folder, and `src/**` matches files at any depth under any `src/` folder.
 
-**Example groups:**
+**Example legend rules:**
 ```
 Pattern: src/**    Color: #3B82F6   (blue, all source files)
 Pattern: *.test.*  Color: #10B981   (green, test files)
@@ -145,7 +146,7 @@ Pattern: tests/*   Color: #F59E0B   (amber, files directly inside any tests fold
 To share legend rules across a team, commit `.codegraphy/settings.json`:
 ```json
 {
-  "groups": [
+  "legend": [
     { "id": "src", "pattern": "src/**", "color": "#3B82F6" },
     { "id": "tests", "pattern": "*.test.*", "color": "#10B981" }
   ]
@@ -296,10 +297,10 @@ This setting is also accessible from the Settings panel.
 }
 ```
 
-### Team-shared color groups
+### Team-shared legend rules
 ```json
 {
-  "groups": [
+  "legend": [
     { "id": "features", "pattern": "src/features/**", "color": "#3B82F6" },
     { "id": "shared",   "pattern": "src/shared/**",   "color": "#8B5CF6" },
     { "id": "tests",    "pattern": "**/*.test.*",      "color": "#10B981" }

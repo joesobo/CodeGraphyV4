@@ -22,10 +22,10 @@ import type { IPluginStatus } from '../../../../src/shared/plugins/status';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { graphStore } from '../../../../src/webview/store/state';
 
-const noGroups: IGroup[] = [];
+const noLegends: IGroup[] = [];
 const initialStoreState = {
   currentCommitSha: graphStore.getState().currentCommitSha,
-  groups: graphStore.getState().groups,
+  legends: graphStore.getState().legends,
   pluginStatuses: graphStore.getState().pluginStatuses,
   timelineActive: graphStore.getState().timelineActive,
 };
@@ -39,7 +39,7 @@ afterEach(() => {
 describe('buildExportData', () => {
   it('returns labeled top-level sections for an empty graph', () => {
     const data: IGraphData = { nodes: [], edges: [] };
-    const result = buildExportData(data, noGroups);
+    const result = buildExportData(data, noLegends);
 
     expect(result.format).toBe('codegraphy-export');
     expect(result.version).toBe('3.0');
@@ -58,7 +58,7 @@ describe('buildExportData', () => {
 
   it('uses timeline scope context when provided', () => {
     const data: IGraphData = { nodes: [], edges: [] };
-    const result = buildExportData(data, noGroups, [], { timelineActive: true, currentCommitSha: 'abc123' });
+    const result = buildExportData(data, noLegends, [], { timelineActive: true, currentCommitSha: 'abc123' });
     expect(result.scope.timeline).toEqual({ active: true, commitSha: 'abc123' });
   });
 
@@ -83,7 +83,7 @@ describe('buildExportData', () => {
       ],
     }];
 
-    const result = buildExportData(data, noGroups, plugins);
+    const result = buildExportData(data, noLegends, plugins);
     expect(result.sections.nodes.map((node) => node.id)).toEqual(['a.ts', 'b.ts', 'c.ts']);
     expect(result.sections.edges).toEqual([
       {
@@ -136,7 +136,7 @@ describe('buildExportData', () => {
       edges: [{ id: 'e1', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] }],
     };
 
-    const result = buildExportData(data, noGroups);
+    const result = buildExportData(data, noLegends);
     expect(result.sections.edges).toEqual([
       {
         id: 'e1',
@@ -158,9 +158,9 @@ describe('buildExportData', () => {
       ],
       edges: [],
     };
-    const groups: IGroup[] = [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }];
+    const legends: IGroup[] = [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }];
 
-    const result = buildExportData(data, groups);
+    const result = buildExportData(data, legends);
     expect(result.sections.legend).toEqual([
       {
         id: 'g1',
@@ -207,11 +207,11 @@ describe('buildExportData', () => {
       nodes: [{ id: 'src/App.tsx', label: 'App.tsx', color: '#fff' }],
       edges: [],
     };
-    const groups: IGroup[] = [
+    const legends: IGroup[] = [
       { id: '1', pattern: '*.tsx', color: '#3B82F6', imagePath: '.codegraphy/images/app.png' },
     ];
 
-    const result = buildExportData(data, groups);
+    const result = buildExportData(data, legends);
     expect(result.summary.totalImages).toBe(1);
   });
 
@@ -222,7 +222,7 @@ describe('buildExportData', () => {
     };
     graphStore.setState({
       currentCommitSha: 'abc123',
-      groups: [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }],
+      legends: [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }],
       pluginStatuses: [],
       timelineActive: true,
     });

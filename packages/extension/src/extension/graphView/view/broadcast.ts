@@ -37,7 +37,7 @@ export function sendGraphViewDepthState(
 }
 
 export function sendGraphViewLegendsUpdated(
-  groups: IGroup[],
+  legends: IGroup[],
   {
     registerPluginRoots,
     workspaceFolder,
@@ -51,7 +51,7 @@ export function sendGraphViewLegendsUpdated(
 
   const webview = view?.webview ?? panels[0]?.webview;
   sendMessage(
-    buildGraphViewLegendsUpdatedMessage(groups, {
+    buildGraphViewLegendsUpdatedMessage(legends, {
       workspaceFolder,
       asWebviewUri: webview ? uri => webview.asWebviewUri(uri) : undefined,
       resolvePluginAssetPath,
