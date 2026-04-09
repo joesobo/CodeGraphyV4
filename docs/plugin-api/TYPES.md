@@ -59,7 +59,7 @@ Key points:
 - `sources?: IConnectionSource[]` declares the plugin’s relation provenance/source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
 - `analyzeFile(filePath, content, workspaceRoot)` is the primary per-file analysis hook.
-- `detectConnections(filePath, content, workspaceRoot)` is a legacy compatibility fallback for older plugins.
+- `analyzeFile(filePath, content, workspaceRoot)` is the plugin analysis hook for returning relations, symbols, and contributed node or edge types.
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new graph controls and defaults.
 - Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 

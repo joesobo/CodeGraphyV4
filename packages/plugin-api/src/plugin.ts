@@ -12,7 +12,7 @@ import type {
   IPluginEdgeType,
   IPluginNodeType,
 } from './analysis';
-import type { IConnection, IConnectionSource } from './connection';
+import type { IConnectionSource } from './connection';
 import type { GraphNodeShape2D, GraphNodeShape3D, IGraphData } from './graph';
 import type { CodeGraphyAPI } from './api';
 
@@ -122,30 +122,13 @@ export interface IPlugin {
   /**
    * Per-file analysis result contract.
    * Plugins can return symbols, relations, extra nodes, and node/edge type contributions.
-   * This is the primary analysis hook. Legacy plugins may still expose `detectConnections(...)`
-   * as a compatibility fallback, but new plugins should use this shape.
+   * This is the primary analysis hook for plugin-contributed code analysis.
    */
   analyzeFile?(
     filePath: string,
     content: string,
     workspaceRoot: string,
   ): Promise<IFileAnalysisResult>;
-
-  /**
-   * Legacy connection-only analysis hook.
-   * Prefer `analyzeFile(...)` for new plugins.
-   *
-   * @param filePath      - Absolute path to the file being analyzed
-   * @param content       - The file's content as a string
-   * @param workspaceRoot - Absolute path to the workspace root
-   * @returns Array of detected connections
-   * @deprecated Use `analyzeFile(...)` instead.
-   */
-  detectConnections?(
-    filePath: string,
-    content: string,
-    workspaceRoot: string
-  ): Promise<IConnection[]>;
 
   /**
    * Optional node-type contributions shown in graph controls and legends.

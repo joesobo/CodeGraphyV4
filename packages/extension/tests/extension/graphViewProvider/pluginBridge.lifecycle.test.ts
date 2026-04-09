@@ -20,7 +20,7 @@ describe('GraphViewProvider plugin bridge lifecycle', () => {
       version: '1.0.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['.ts'],
-      detectConnections: async () => [],
+      analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       onWebviewReady,
     });
 
@@ -42,7 +42,7 @@ describe('GraphViewProvider plugin bridge lifecycle', () => {
       version: '1.0.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['.ts'],
-      detectConnections: async () => [],
+      analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       onWorkspaceReady,
       onWebviewReady,
     });
@@ -82,7 +82,7 @@ describe('GraphViewProvider plugin bridge lifecycle', () => {
       version: '1.0.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['.ts'],
-      detectConnections: async () => [],
+      analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       onWorkspaceReady,
       onWebviewReady,
     });
@@ -109,7 +109,7 @@ describe('GraphViewProvider plugin bridge lifecycle', () => {
       version: '1.0.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['.ts'],
-      detectConnections: async () => [],
+      analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       onWorkspaceReady,
       onWebviewReady,
     });
@@ -136,7 +136,7 @@ describe('GraphViewProvider plugin bridge lifecycle', () => {
       version: '1.0.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['.ts'],
-      detectConnections: async () => [],
+      analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       initialize,
       onWebviewReady,
       webviewContributions: {

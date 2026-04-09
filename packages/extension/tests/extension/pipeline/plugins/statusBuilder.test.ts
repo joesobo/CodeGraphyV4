@@ -18,7 +18,7 @@ function createPluginInfo(overrides: Partial<IPlugin>): IPluginInfo {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: ['.ts'],
-    detectConnections: vi.fn(async () => []),
+    analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
   } as IPlugin;
 

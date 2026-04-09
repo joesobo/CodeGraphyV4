@@ -20,23 +20,32 @@ function createImportConnection(): IConnection {
 }
 
 describe('PluginRegistry analysis', () => {
-  it('calls detectConnections on the appropriate plugin', async () => {
-    const connections: IConnection[] = [createImportConnection()];
+  it('calls analyzeFile on the appropriate plugin', async () => {
     const { registry, plugin } = registerPlugin({
       supportedExtensions: ['.ts'],
-      detectConnections: vi.fn().mockResolvedValue(connections),
+      analyzeFile: vi.fn().mockResolvedValue({
+        filePath: '/src/app.ts',
+        relations: [{
+          kind: 'import',
+          sourceId: 'test-source',
+          specifier: './utils',
+          type: 'static',
+          fromFilePath: '/src/app.ts',
+          toFilePath: '/src/utils.ts',
+        }],
+      } satisfies IFileAnalysisResult),
     });
 
     const result = await registry.analyzeFile('/src/app.ts', 'content', '/workspace');
 
-    expect(plugin.detectConnections).toHaveBeenCalledWith(
+    expect(plugin.analyzeFile).toHaveBeenCalledWith(
       '/src/app.ts',
       'content',
       '/workspace'
     );
     expect(result).toEqual([
       {
-        ...connections[0],
+        ...createImportConnection(),
         pluginId: 'test.plugin',
         metadata: undefined,
         variant: undefined,
@@ -92,7 +101,7 @@ describe('PluginRegistry analysis', () => {
   it('returns empty array on plugin error', async () => {
     const { registry } = registerPlugin({
       supportedExtensions: ['.ts'],
-      detectConnections: vi.fn().mockRejectedValue(new Error('Parse error')),
+      analyzeFile: vi.fn().mockRejectedValue(new Error('Parse error')),
     });
 
     const result = await registry.analyzeFile('/src/app.ts', 'content', '/workspace');
@@ -100,7 +109,7 @@ describe('PluginRegistry analysis', () => {
     expect(result).toEqual([]);
   });
 
-  it('prefers analyzeFile when the plugin exposes the new file analysis hook', async () => {
+  it('uses analyzeFile results directly', async () => {
     const fileResult: IFileAnalysisResult = {
       filePath: '/src/app.ts',
       relations: [
@@ -117,51 +126,17 @@ describe('PluginRegistry analysis', () => {
     const { registry, plugin } = registerPlugin({
       supportedExtensions: ['.ts'],
       analyzeFile: vi.fn().mockResolvedValue(fileResult),
-      detectConnections: vi.fn().mockResolvedValue([]),
     });
 
     const result = await registry.analyzeFileResult('/src/app.ts', 'content', '/workspace');
 
     expect(plugin.analyzeFile).toHaveBeenCalledWith('/src/app.ts', 'content', '/workspace');
-    expect(plugin.detectConnections).not.toHaveBeenCalled();
     expect(result).toEqual({
       edgeTypes: [],
       filePath: '/src/app.ts',
       nodeTypes: [],
       nodes: [],
       relations: fileResult.relations,
-      symbols: [],
-    });
-  });
-
-  it('adapts legacy detectConnections output into the file analysis result shape', async () => {
-    const connections: IConnection[] = [createImportConnection()];
-    const { registry } = registerPlugin({
-      supportedExtensions: ['.ts'],
-      detectConnections: vi.fn().mockResolvedValue(connections),
-    });
-
-    const result = await registry.analyzeFileResult('/src/app.ts', 'content', '/workspace');
-
-    expect(result).toEqual({
-      edgeTypes: [],
-      filePath: '/src/app.ts',
-      nodeTypes: [],
-      nodes: [],
-      relations: [
-        {
-          kind: 'import',
-          pluginId: 'test.plugin',
-          sourceId: 'test-source',
-          specifier: './utils',
-          type: 'static',
-          resolvedPath: '/src/utils.ts',
-          metadata: undefined,
-          variant: undefined,
-          fromFilePath: '/src/app.ts',
-          toFilePath: '/src/utils.ts',
-        },
-      ],
       symbols: [],
     });
   });

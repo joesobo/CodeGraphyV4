@@ -20,7 +20,7 @@ describe('GraphViewProvider plugin bridge injection', () => {
       version: '1.0.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['.ts'],
-      detectConnections: async () => [],
+      analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       webviewContributions: {
         scripts: ['dist/webview/plugins/test-plugin.js'],
         styles: ['dist/webview/plugins/test-plugin.css'],
@@ -62,7 +62,7 @@ describe('GraphViewProvider plugin bridge injection', () => {
         version: '1.0.0',
         apiVersion: '^2.0.0',
         supportedExtensions: ['.ts'],
-        detectConnections: async () => [],
+        analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
         webviewContributions: {
           scripts: ['dist/webview/plugins/external.js'],
         },
