@@ -190,3 +190,51 @@ suite('Settings: Legends', function () {
     fs.writeFileSync(settingsPath, `${JSON.stringify(current, null, 2)}\n`, 'utf8');
   });
 });
+
+suite('Settings: Repo File Watch', function () {
+  this.timeout(30_000);
+
+  test('manual edits to .codegraphy/settings.json trigger a graph refresh', async function() {
+    const api = await getAPI();
+    await vscode.commands.executeCommand('codegraphy.open');
+    await sleep(1_000);
+
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspaceFolder, 'Expected an open workspace folder');
+    const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
+
+    const initialGraph = api.getGraphData();
+    const initialNodeCount = initialGraph.nodes.length;
+
+    const nextSettings = {
+      ...readRepoSettingsFile(settingsPath),
+      showOrphans: false,
+    };
+
+    const graphUpdated = waitForMessage(api, 'GRAPH_DATA_UPDATED', 15_000);
+    fs.writeFileSync(settingsPath, `${JSON.stringify(nextSettings, null, 2)}\n`, 'utf8');
+    await graphUpdated;
+    await sleep(500);
+
+    const updatedGraph = api.getGraphData();
+    assert.ok(
+      updatedGraph.nodes.length < initialNodeCount,
+      `Expected fewer visible nodes after disabling orphans. Before=${initialNodeCount}, after=${updatedGraph.nodes.length}`,
+    );
+
+    const restoredSettings = {
+      ...readRepoSettingsFile(settingsPath),
+      showOrphans: true,
+    };
+    const restoredGraphUpdated = waitForMessage(api, 'GRAPH_DATA_UPDATED', 15_000);
+    fs.writeFileSync(settingsPath, `${JSON.stringify(restoredSettings, null, 2)}\n`, 'utf8');
+    await restoredGraphUpdated;
+    await sleep(500);
+
+    assert.strictEqual(
+      readRepoSettingsFile(settingsPath).showOrphans,
+      true,
+      'Expected watcher cleanup to restore showOrphans=true',
+    );
+  });
+});

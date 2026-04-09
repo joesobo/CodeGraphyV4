@@ -450,10 +450,10 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
 - [ ] `MV11e` structural-edge default interaction:
   Open the graph with default settings, then enable `folder` nodes.
   Expected: structural edges appear immediately because that edge kind is already enabled by default.
-- [ ] `MV11f` depth mode:
+- [x] `MV11f` depth mode:
   Toggle depth mode on from the toolbar, adjust the depth slider, and click a node.
   Expected: graph enters the old depth-focused behavior; toggling depth mode off restores the normal graph.
-- [ ] `MV11g` settings file watch:
+- [x] `MV11g` settings file watch:
   Edit `.codegraphy/settings.json` by hand.
   Expected: CodeGraphy detects the change and refreshes the relevant graph/UI state.
 - [ ] `MV12` graph UX parity:
