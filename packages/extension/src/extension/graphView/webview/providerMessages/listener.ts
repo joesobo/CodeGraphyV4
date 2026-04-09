@@ -115,6 +115,7 @@ export interface GraphViewProviderMessageListenerSource {
   _addToExclude(patterns: string[]): Promise<void>;
   _loadAndSendData(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
+  clearCacheAndRefresh(): Promise<void>;
   _getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;
   redo(): Promise<string | undefined>;

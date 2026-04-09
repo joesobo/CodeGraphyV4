@@ -29,6 +29,7 @@ export function createPrimaryMessageContext(
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
     redo: vi.fn(() => Promise.resolve(undefined)),

@@ -32,6 +32,7 @@ function createContext(
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
     redo: vi.fn(() => Promise.resolve(undefined)),
@@ -83,5 +84,18 @@ describe('createGraphViewPrimaryNodeFileHandlers', () => {
     expect(handlers.setFocusedFile).toBe(context.setFocusedFile);
     expect(handlers.previewFileAtCommit).toBe(context.previewFileAtCommit);
     expect(handlers.getFileInfo).toBe(context.getFileInfo);
+    expect(handlers.indexGraph).toBeDefined();
+    expect(handlers.refreshGraph).toBeDefined();
+  });
+
+  it('routes graph index and refresh through the expected provider methods', async () => {
+    const context = createContext();
+    const handlers = createGraphViewPrimaryNodeFileHandlers(context);
+
+    await handlers.indexGraph();
+    await handlers.refreshGraph();
+
+    expect(context.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(context.clearCacheAndRefresh).toHaveBeenCalledOnce();
   });
 });

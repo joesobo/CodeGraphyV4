@@ -10,7 +10,8 @@ function createHandlers(
   return {
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
-    analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    indexGraph: vi.fn(() => Promise.resolve()),
+    refreshGraph: vi.fn(() => Promise.resolve()),
     getFileInfo: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
@@ -44,7 +45,7 @@ describe('graph view node/file navigation message', () => {
   it('awaits graph refresh requests', async () => {
     let finished = false;
     const handlers = createHandlers({
-      analyzeAndSendData: vi.fn(async () => {
+      refreshGraph: vi.fn(async () => {
         await Promise.resolve();
         finished = true;
       }),
@@ -59,7 +60,7 @@ describe('graph view node/file navigation message', () => {
   it('awaits graph index requests', async () => {
     let finished = false;
     const handlers = createHandlers({
-      analyzeAndSendData: vi.fn(async () => {
+      indexGraph: vi.fn(async () => {
         await Promise.resolve();
         finished = true;
       }),
