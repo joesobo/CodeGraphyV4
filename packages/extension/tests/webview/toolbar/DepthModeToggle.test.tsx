@@ -8,10 +8,7 @@ vi.mock('../../../src/webview/vscodeApi', () => ({
 }));
 
 import { postMessage } from '../../../src/webview/vscodeApi';
-import {
-  DepthModeToggle,
-  isDepthModeActive,
-} from '../../../src/webview/components/toolbar/DepthModeToggle';
+import { DepthModeToggle } from '../../../src/webview/components/toolbar/DepthModeToggle';
 
 function renderWithProviders() {
   return render(
@@ -71,12 +68,5 @@ describe('DepthModeToggle', () => {
     renderWithProviders();
 
     expect(screen.getByTitle('Disable Depth Mode').className).toContain('hover:bg-primary/90');
-  });
-});
-
-describe('isDepthModeActive', () => {
-  it('returns the depth-mode flag', () => {
-    expect(isDepthModeActive(true)).toBe(true);
-    expect(isDepthModeActive(false)).toBe(false);
   });
 });

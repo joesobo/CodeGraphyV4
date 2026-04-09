@@ -3,7 +3,6 @@ import type { GraphState } from '../../store/state';
 
 export type GraphViewStoreState = Pick<
   GraphState,
-  | 'activeViewId'
   | 'bidirectionalMode'
   | 'dagMode'
   | 'directionColor'
@@ -19,11 +18,11 @@ export type GraphViewStoreState = Pick<
   | 'setGraphMode'
   | 'showLabels'
   | 'timelineActive'
-> & { depthMode?: boolean };
+  | 'depthMode'
+>;
 
 export function useGraphViewStoreState(): GraphViewStoreState {
   return {
-    activeViewId: useGraphStore(state => state.activeViewId),
     bidirectionalMode: useGraphStore(state => state.bidirectionalMode),
     dagMode: useGraphStore(state => state.dagMode),
     depthMode: useGraphStore(state => state.depthMode),

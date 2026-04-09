@@ -15,7 +15,7 @@ function node(overrides: Partial<FGNode> = {}): FGNode {
 
 describe('graph/interactionRuntime/fitTransform', () => {
   it('returns null when container size is not measurable', () => {
-    expect(get2dFitTransform(null, [], 'codegraphy.connections')).toBeNull();
+    expect(get2dFitTransform(null, [], false)).toBeNull();
   });
 
   it('returns null when container width or height is zero', () => {
@@ -33,7 +33,7 @@ describe('graph/interactionRuntime/fitTransform', () => {
       get2dFitTransform(
         container,
         [node({ id: 'a', x: 0, y: 0, size: 10 })],
-        'codegraphy.connections',
+        false,
       ),
     ).toBeNull();
   });
@@ -53,7 +53,7 @@ describe('graph/interactionRuntime/fitTransform', () => {
       get2dFitTransform(
         container,
         [node({ id: 'a', x: 0, y: 0, size: 10 })],
-        'codegraphy.connections',
+        false,
       ),
     ).toBeNull();
   });
@@ -76,7 +76,7 @@ describe('graph/interactionRuntime/fitTransform', () => {
           node({ id: 'a', x: 0, y: 0, size: 10 }),
           node({ id: 'b', x: 100, y: 100, size: 10 }),
         ],
-        'codegraphy.depth-graph',
+        true,
       ),
     ).toEqual({
       centerX: 50,
@@ -103,7 +103,7 @@ describe('graph/interactionRuntime/fitTransform', () => {
           node({ id: 'a', x: 0, y: 0, size: 10 }),
           node({ id: 'b', x: 100, y: 100, size: 10 }),
         ],
-        'codegraphy.connections',
+        false,
       ),
     ).toEqual({
       centerX: 50,
@@ -130,7 +130,7 @@ describe('graph/interactionRuntime/fitTransform', () => {
           node({ id: 'a', x: 0, y: 0, size: 10 }),
           node({ id: 'b', x: 100, y: 100, size: 10 }),
         ],
-        'codegraphy.connections',
+        false,
       ),
     ).toEqual({
       centerX: 50,
@@ -154,7 +154,7 @@ describe('graph/interactionRuntime/fitTransform', () => {
       get2dFitTransform(
         container,
         [node({ x: undefined, y: undefined })],
-        'codegraphy.connections',
+        false,
       ),
     ).toBeNull();
   });

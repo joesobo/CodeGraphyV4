@@ -177,7 +177,7 @@ function createCallbacks() {
 
 function createViewState(): Pick<
 	GraphViewStoreState,
-	'activeViewId' | 'bidirectionalMode' | 'dagMode' | 'directionColor' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive'
+	'bidirectionalMode' | 'dagMode' | 'depthMode' | 'directionColor' | 'directionMode' | 'favorites' | 'graphMode' | 'nodeSizeMode' | 'particleSize' | 'particleSpeed' | 'physicsPaused' | 'physicsSettings' | 'pluginContextMenuItems' | 'setGraphMode' | 'showLabels' | 'timelineActive'
 > {
 	const physicsSettings: IPhysicsSettings = {
 		centerForce: 0.1,
@@ -188,9 +188,9 @@ function createViewState(): Pick<
 	};
 
 	return {
-		activeViewId: 'active',
 		bidirectionalMode: 'separate',
 		dagMode: 'td',
+		depthMode: false,
 		directionColor: '#22c55e',
 		directionMode: 'arrows',
 		favorites: new Set(['src/app.ts']),

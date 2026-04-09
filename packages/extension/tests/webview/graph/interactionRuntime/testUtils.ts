@@ -38,9 +38,9 @@ export function createInteractionDependencies(
   } as unknown as FG3DMethods<FGNode, FGLink>;
 
   return {
-    activeViewId: 'codegraphy.connections',
     containerRef: createRef(container),
     dataRef: createRef(graphData),
+    depthMode: false,
     fg2dRef: createRef(fg2d),
     fg3dRef: createRef(fg3d),
     fileInfoCacheRef: createRef(new Map()),

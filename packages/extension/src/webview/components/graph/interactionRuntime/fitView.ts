@@ -14,7 +14,7 @@ export function fitGraphView(dependencies: GraphInteractionHandlersDependencies)
     const transform = get2dFitTransform(
       dependencies.containerRef.current,
       dependencies.graphDataRef.current.nodes,
-      dependencies.depthMode ?? dependencies.activeViewId ?? false,
+      dependencies.depthMode ?? false,
     );
 
     if (transform) {
