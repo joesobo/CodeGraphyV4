@@ -194,7 +194,7 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     expect(calls.some(call => call[1] === SNAPSHOT.physics.damping)).toBe(true);
   });
 
-  it('uses the configured target in execute and undo', async () => {
+  it('updates repo settings without a VS Code target in execute and undo', async () => {
     const action = new ResetSettingsAction(
       SNAPSHOT,
       vscode.ConfigurationTarget.Workspace,
@@ -206,11 +206,11 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
 
     await action.execute();
     let calls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls;
-    expect(calls.every(call => call[2] === vscode.ConfigurationTarget.Workspace)).toBe(true);
+    expect(calls.every(call => call[2] === undefined)).toBe(true);
 
     (mockConfig.update as ReturnType<typeof vi.fn>).mockClear();
     await action.undo();
     calls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls;
-    expect(calls.every(call => call[2] === vscode.ConfigurationTarget.Workspace)).toBe(true);
+    expect(calls.every(call => call[2] === undefined)).toBe(true);
   });
 });

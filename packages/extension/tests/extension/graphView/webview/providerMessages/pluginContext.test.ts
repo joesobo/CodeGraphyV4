@@ -2,10 +2,18 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessagePluginContext,
 } from '../../../../../src/extension/graphView/webview/providerMessages/pluginContext';
+import * as repoSettings from '../../../../../src/extension/repoSettings/current';
+
+vi.mock('../../../../../src/extension/repoSettings/current', () => ({
+  getCodeGraphyConfiguration: vi.fn(),
+}));
 
 describe('graph view provider listener plugin context', () => {
   it('returns safe defaults when analyzer and workspace state are unavailable', async () => {
-    const getConfiguration = vi.fn(() => ({ update: vi.fn(() => Promise.resolve()) }));
+    const update = vi.fn(() => Promise.resolve());
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      update,
+    } as never);
     const context = createGraphViewProviderMessagePluginContext(
       {
         _analyzer: undefined,
@@ -29,7 +37,7 @@ describe('graph view provider listener plugin context', () => {
       {
         workspace: {
           workspaceFolders: undefined,
-          getConfiguration,
+          getConfiguration: vi.fn(),
         },
         getConfigTarget: vi.fn(() => 'workspace'),
       } as never,
@@ -42,11 +50,14 @@ describe('graph view provider listener plugin context', () => {
     context.notifyWebviewReady();
     await context.updateHiddenPluginGroups([]);
 
-    expect(getConfiguration).toHaveBeenCalledWith('codegraphy');
+    expect(update).toHaveBeenCalledWith('hiddenPluginGroups', []);
   });
 
   it('reads plugin state, mutates provider state, and persists hidden plugin groups', async () => {
     const update = vi.fn(() => Promise.resolve());
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      update,
+    } as never);
     const source = {
       _analyzer: {
         getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
@@ -77,7 +88,7 @@ describe('graph view provider listener plugin context', () => {
     const dependencies = {
       workspace: {
         workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
-        getConfiguration: vi.fn(() => ({ update })),
+        getConfiguration: vi.fn(),
       },
       getConfigTarget: vi.fn(() => 'workspace'),
     };
@@ -101,7 +112,6 @@ describe('graph view provider listener plugin context', () => {
     expect(update).toHaveBeenCalledWith(
       'hiddenPluginGroups',
       ['plugin.hidden', 'plugin.extra'],
-      'workspace',
     );
     expect(source._userGroups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#112233' },
@@ -114,6 +124,9 @@ describe('graph view provider listener plugin context', () => {
     const notifyWebviewReady = vi.fn();
     const getPluginAPI = vi.fn((pluginId: string) => ({ pluginId }));
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      update: vi.fn(() => Promise.resolve()),
+    } as never);
     const source = {
       _analyzer: {
         getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
@@ -144,7 +157,7 @@ describe('graph view provider listener plugin context', () => {
       {
         workspace: {
           workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
-          getConfiguration: vi.fn(() => ({ update: vi.fn(() => Promise.resolve()) })),
+          getConfiguration: vi.fn(),
         },
         getConfigTarget: vi.fn(() => 'workspace'),
       } as never,

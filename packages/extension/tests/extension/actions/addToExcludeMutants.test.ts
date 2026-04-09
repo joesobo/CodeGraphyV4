@@ -80,7 +80,6 @@ describe('AddToExcludeAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'exclude',
         expect.any(Array),
-        vscode.ConfigurationTarget.Workspace
       );
     });
 
@@ -94,7 +93,6 @@ describe('AddToExcludeAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'exclude',
         expect.any(Array),
-        vscode.ConfigurationTarget.Workspace
       );
     });
   });
@@ -132,7 +130,6 @@ describe('AddToExcludeAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'exclude',
         [],
-        vscode.ConfigurationTarget.Workspace
       );
     });
 

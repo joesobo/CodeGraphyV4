@@ -1,14 +1,22 @@
 import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { activate } from '../../../src/extension/activate';
 import type { GraphViewProvider } from '../../../src/extension/graphViewProvider';
-
-const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
+import { getGraphViewProviderInternals } from '../graphViewProvider/internals';
+import {
+  createPluginIntegrationWorkspace,
+  type PluginIntegrationWorkspace,
+} from './workspaceFixture';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
+  | undefined;
+let workspaceFixture: PluginIntegrationWorkspace | undefined;
+let currentContext:
+  | {
+      subscriptions: Array<{ dispose: () => void }>;
+    }
   | undefined;
 let installedExtensionsValue: Array<{
   id: string;
@@ -118,9 +126,14 @@ async function waitForPluginStatuses(
 }
 
 describe('extension/pluginIntegration/installedPluginStatuses', () => {
+  beforeAll(async () => {
+    workspaceFixture = await createPluginIntegrationWorkspace();
+  });
+
   beforeEach(() => {
+    currentContext = undefined;
     workspaceFoldersValue = [
-      { uri: vscode.Uri.file(fixtureWorkspacePath), name: 'workspace', index: 0 },
+      { uri: vscode.Uri.file(workspaceFixture!.workspacePath), name: 'workspace', index: 0 },
     ];
     installedExtensionsValue = [];
     vi.clearAllMocks();
@@ -140,6 +153,18 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
         };
       },
     );
+  });
+
+  afterEach(() => {
+    for (const subscription of [...(currentContext?.subscriptions ?? [])].reverse()) {
+      subscription?.dispose();
+    }
+    currentContext = undefined;
+  });
+
+  afterAll(async () => {
+    await workspaceFixture?.cleanup();
+    workspaceFixture = undefined;
   });
 
   it('sends installed external plugins and their sources to the webview after startup', async () => {
@@ -183,10 +208,12 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       },
     ];
 
-    const api = activate(createContext() as unknown as vscode.ExtensionContext);
+    currentContext = createContext();
+    const api = activate(currentContext as unknown as vscode.ExtensionContext);
     apiRef.current = api;
 
     const provider = getRegisteredProvider();
+    const internals = getGraphViewProviderInternals(provider);
     const { mockWebview, getMessageHandler } = resolveGraphWebview(provider);
 
     await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
@@ -219,5 +246,6 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
         expect.objectContaining({ id: 'codegraphy.gdscript' }),
       ]),
     );
-  });
+    await internals._analysisMethods._analyzeAndSendData();
+  }, 15000);
 });

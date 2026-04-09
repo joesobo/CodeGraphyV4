@@ -2,7 +2,6 @@ import type * as vscode from 'vscode';
 import { getDepthGraphEffectiveDepthLimit, getDepthGraphMaxDepthLimit } from '../../../core/views/depth/view';
 import type { IGroup } from '../../../shared/settings/groups';
 import type { IViewContext } from '../../../core/views/contracts';
-import type { ViewRegistry } from '../../../core/views/registry';
 import type { IGraphData } from '../../../shared/graph/types';
 import { buildGraphViewLegendsUpdatedMessage } from '../groups/message';
 
@@ -15,9 +14,7 @@ interface SendGraphViewGroupsUpdatedOptions {
 }
 
 export function sendGraphViewAvailableViews(
-  _viewRegistry: ViewRegistry,
   viewContext: IViewContext,
-  _activeViewId: string,
   depthMode: boolean,
   rawGraphData: IGraphData,
   defaultDepthLimit: number,

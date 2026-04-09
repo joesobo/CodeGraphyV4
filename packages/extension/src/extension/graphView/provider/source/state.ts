@@ -11,7 +11,6 @@ const MUTABLE_STATE_KEYS = [
   '_analyzerInitPromise',
   '_analysisController',
   '_analysisRequestId',
-  '_activeViewId',
   '_depthMode',
   '_dagMode',
   '_nodeSizeMode',

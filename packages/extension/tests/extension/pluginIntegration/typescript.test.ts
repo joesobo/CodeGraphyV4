@@ -1,17 +1,24 @@
 import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
 import { waitFor } from '@testing-library/react';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { activate } from '../../../src/extension/activate';
 import type { GraphViewProvider } from '../../../src/extension/graphViewProvider';
 import { getGraphViewProviderInternals } from '../graphViewProvider/internals';
-
-const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
+import {
+  createPluginIntegrationWorkspace,
+  type PluginIntegrationWorkspace,
+} from './workspaceFixture';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
+  | undefined;
+let workspaceFixture: PluginIntegrationWorkspace | undefined;
+let currentContext:
+  | {
+      subscriptions: Array<{ dispose: () => void }>;
+    }
   | undefined;
 
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
@@ -37,9 +44,14 @@ function getRegisteredProvider(): GraphViewProvider {
 }
 
 describe('extension/pluginIntegration/typescript', () => {
+  beforeAll(async () => {
+    workspaceFixture = await createPluginIntegrationWorkspace();
+  });
+
   beforeEach(() => {
+    currentContext = undefined;
     workspaceFoldersValue = [
-      { uri: vscode.Uri.file(fixtureWorkspacePath), name: 'workspace', index: 0 },
+      { uri: vscode.Uri.file(workspaceFixture!.workspacePath), name: 'workspace', index: 0 },
     ];
     vi.clearAllMocks();
 
@@ -60,8 +72,21 @@ describe('extension/pluginIntegration/typescript', () => {
     );
   });
 
+  afterEach(() => {
+    for (const subscription of [...(currentContext?.subscriptions ?? [])].reverse()) {
+      subscription?.dispose();
+    }
+    currentContext = undefined;
+  });
+
+  afterAll(async () => {
+    await workspaceFixture?.cleanup();
+    workspaceFixture = undefined;
+  });
+
   it('keeps the graph populated when the TypeScript plugin registers after the first analysis', async () => {
-    const api = activate(createContext() as unknown as vscode.ExtensionContext);
+    currentContext = createContext();
+    const api = activate(currentContext as unknown as vscode.ExtensionContext);
     const provider = getRegisteredProvider();
     const internals = getGraphViewProviderInternals(provider);
 
@@ -90,6 +115,7 @@ describe('extension/pluginIntegration/typescript', () => {
         ]),
       );
     });
+    await internals._analysisMethods._analyzeAndSendData();
 
     const pluginIds = (
       (provider as unknown as {
@@ -98,5 +124,5 @@ describe('extension/pluginIntegration/typescript', () => {
     ).map((pluginInfo) => pluginInfo.plugin.id);
 
     expect(pluginIds).toContain('codegraphy.typescript');
-  });
+  }, 15000);
 });

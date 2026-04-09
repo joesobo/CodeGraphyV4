@@ -226,7 +226,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'disabledSources' && value === SNAPSHOT.disabledSources)).toBe(true);
   });
 
-  it('uses the correct config target in execute and undo', async () => {
+  it('updates repo settings without a VS Code config target argument', async () => {
     const mockConfig = createMockConfig({ ...settingsStore });
     vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
@@ -245,7 +245,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     const physicsUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
       .filter(([key]) => String(key).startsWith('physics.'));
     for (const call of physicsUpdateCalls) {
-      expect(call[2]).toBe(vscode.ConfigurationTarget.Global);
+      expect(call[2]).toBeUndefined();
     }
   });
 });

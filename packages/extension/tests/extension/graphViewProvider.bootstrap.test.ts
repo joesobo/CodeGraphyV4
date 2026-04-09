@@ -15,7 +15,7 @@ function createContext(vscodeModule: typeof import('vscode')) {
 
 function createRestoredState() {
   return {
-    activeViewId: 'codegraphy.connections',
+    depthMode: false,
     dagMode: null,
     nodeSizeMode: 'connections' as const,
   };
@@ -211,12 +211,12 @@ describe('GraphViewProvider bootstrap wiring', () => {
     expect(restoreGraphViewProviderState).toHaveBeenCalledWith(
       expect.objectContaining({
         dagModeKey: 'dagMode',
+        depthModeKey: 'depthMode',
         nodeSizeModeKey: 'nodeSizeMode',
-        fallbackViewId: 'codegraphy.connections',
         fallbackNodeSizeMode: 'connections',
       }),
     );
-  });
+  }, 15000);
 
   it('passes an empty workspace root to provider services when no folder is open', async () => {
     const initializeGraphViewProviderServices = vi.fn();

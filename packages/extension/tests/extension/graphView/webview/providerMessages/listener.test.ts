@@ -102,7 +102,6 @@ function createSource(
     _timelineActive: false,
     _currentCommitSha: undefined,
     _userGroups: [],
-    _activeViewId: 'codegraphy.connections',
     _disabledPlugins: new Set<string>(),
     _disabledSources: new Set<string>(),
     _filterPatterns: ['dist/**'],
@@ -276,15 +275,13 @@ describe('graph view provider listener bridge', () => {
     expect(context.getTimelineActive()).toBe(false);
     expect(context.getCurrentCommitSha()).toBeUndefined();
     expect(context.getUserGroups()).toEqual([]);
-    expect(context.getActiveViewId()).toBe('codegraphy.connections');
     expect(context.getFilterPatterns()).toEqual(['dist/**']);
     expect(context.findNode('node-1')).toEqual(source._graphData.nodes[0]);
     expect(context.findEdge('edge-1')).toEqual(source._graphData.edges[0]);
   });
 
   it('wires plugin-context bridges into the captured listener context', async () => {
-    const { context, source, getConfigTarget, configurationUpdate, workspaceFolders } =
-      await loadDefaultListenerHarness();
+    const { context, source, configurationUpdate } = await loadDefaultListenerHarness();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     expect(context.getPluginFilterPatterns()).toEqual(['plugin/**']);
@@ -320,11 +317,9 @@ describe('graph view provider listener bridge', () => {
     expect(source._sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(source._analyzer?.registry?.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(source._eventBus.emit).toHaveBeenCalledWith('plugin:ready', { id: 'plugin.test' });
-    expect(getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
     expect(configurationUpdate).toHaveBeenCalledWith(
       'hiddenPluginGroups',
       ['plugin.test:group'],
-      vscode.ConfigurationTarget.Workspace,
     );
     expect(source._userGroups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#112233' },
@@ -342,10 +337,8 @@ describe('graph view provider listener bridge', () => {
       captureSettingsSnapshot,
       ResetSettingsAction,
       execute,
-      getConfigTarget,
       configurationGet,
       configurationUpdate,
-      workspaceFolders,
     } = await loadDefaultListenerHarness();
 
     await context.updateDagMode('td' as DagMode);
@@ -356,12 +349,10 @@ describe('graph view provider listener bridge', () => {
     expect(configurationUpdate).toHaveBeenCalledWith(
       'dagMode',
       'td',
-      vscode.ConfigurationTarget.Workspace,
     );
     expect(configurationUpdate).toHaveBeenCalledWith(
       'nodeSizeMode',
       'file-size',
-      vscode.ConfigurationTarget.Workspace,
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'DAG_MODE_UPDATED',
@@ -371,11 +362,9 @@ describe('graph view provider listener bridge', () => {
       type: 'NODE_SIZE_MODE_UPDATED',
       payload: { nodeSizeMode: 'file-size' },
     });
-    expect(getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
     expect(configurationUpdate).toHaveBeenCalledWith(
       'showOrphans',
       false,
-      vscode.ConfigurationTarget.Workspace,
     );
     expect(captureSettingsSnapshot).toHaveBeenCalledWith(
       expect.objectContaining({ get: configurationGet }),
@@ -384,7 +373,7 @@ describe('graph view provider listener bridge', () => {
     );
     expect(ResetSettingsAction).toHaveBeenCalledWith(
       createSettingsSnapshot(),
-      vscode.ConfigurationTarget.Workspace,
+      undefined,
       source._context,
       expect.any(Function),
       expect.any(Function),

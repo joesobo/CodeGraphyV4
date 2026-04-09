@@ -68,9 +68,7 @@ export function createGraphViewProviderPluginBroadcastMethods(
   return {
     _sendAvailableViews: () => {
       resolved.sendAvailableViews(
-        source._viewRegistry,
         source._viewContext,
-        source._activeViewId,
         source._depthMode,
         source._rawGraphData,
         defaultDepthLimit,

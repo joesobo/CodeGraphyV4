@@ -13,7 +13,6 @@ function createContext(
     getTimelineActive: vi.fn(() => false),
     getCurrentCommitSha: vi.fn(() => undefined),
     getUserGroups: vi.fn(() => []),
-    getActiveViewId: vi.fn(() => 'codegraphy.connections'),
     getDisabledPlugins: vi.fn(() => new Set<string>()),
     getDisabledRules: vi.fn(() => new Set<string>()),
     getFilterPatterns: vi.fn(() => []),

@@ -9,7 +9,6 @@ type GraphViewProviderReadContext = Pick<
   | 'getTimelineActive'
   | 'getCurrentCommitSha'
   | 'getUserGroups'
-  | 'getActiveViewId'
   | 'getDepthMode'
   | 'getDisabledPlugins'
   | 'getDisabledRules'
@@ -31,7 +30,6 @@ export function createGraphViewProviderMessageReadContext(
     getTimelineActive: () => source._timelineActive,
     getCurrentCommitSha: () => source._currentCommitSha,
     getUserGroups: () => source._userGroups,
-    getActiveViewId: () => source._activeViewId,
     getDepthMode: () => source._depthMode,
     getDisabledPlugins: () => source._disabledPlugins,
     getDisabledRules: () => source._disabledSources,

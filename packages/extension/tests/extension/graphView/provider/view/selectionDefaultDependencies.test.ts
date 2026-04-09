@@ -4,14 +4,12 @@ import type { IViewContext } from '../../../../../src/core/views/contracts';
 import type { IGraphData } from '../../../../../src/shared/graph/types';
 
 const mocks = vi.hoisted(() => ({
-  changeGraphViewView: vi.fn(),
   setGraphViewFocusedFile: vi.fn(),
   setGraphViewDepthLimit: vi.fn(),
   getGraphViewDepthLimit: vi.fn(),
 }));
 
 vi.mock('../../../../../src/extension/graphView/view/selection', () => ({
-  changeGraphViewView: mocks.changeGraphViewView,
   setGraphViewFocusedFile: mocks.setGraphViewFocusedFile,
   setGraphViewDepthLimit: mocks.setGraphViewDepthLimit,
   getGraphViewDepthLimit: mocks.getGraphViewDepthLimit,
@@ -26,7 +24,6 @@ describe('graphView/provider/view/selection default dependencies', () => {
   };
 
   beforeEach(() => {
-    mocks.changeGraphViewView.mockReset();
     mocks.setGraphViewFocusedFile.mockReset();
     mocks.setGraphViewDepthLimit.mockReset();
     mocks.getGraphViewDepthLimit.mockReset();
@@ -41,32 +38,17 @@ describe('graphView/provider/view/selection default dependencies', () => {
       vi.fn(() => configuration);
   });
 
-  it('uses the default view switching delegates without persisting a selected view', async () => {
+  it('uses the default depth mode persistence delegates', async () => {
     const source = createSource();
 
-    mocks.changeGraphViewView.mockImplementation(async (_state, nextViewId, handlers) => {
-      expect(nextViewId).toBe('codegraphy.depth-graph');
-      await handlers.persistDepthMode(true);
-      handlers.applyViewTransform();
-      handlers.sendMessage({
-        type: 'GRAPH_DATA_UPDATED',
-        payload: { nodes: [], edges: [] },
-      });
-    });
-
     const methods = createGraphViewProviderViewSelectionMethods(source as never);
-    await methods.changeView('codegraphy.depth-graph');
+    await methods.setDepthMode(true);
 
-    expect(mocks.changeGraphViewView).toHaveBeenCalledOnce();
-    expect(configuration.update).not.toHaveBeenCalledWith(
-      expect.stringMatching(/selectedView/),
-      expect.anything(),
-    );
     expect(configuration.update).toHaveBeenCalledWith('depthMode', true);
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'GRAPH_DATA_UPDATED',
-      payload: { nodes: [], edges: [] },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
     });
   });
 
@@ -128,18 +110,12 @@ function createSource() {
         update: vi.fn(() => Promise.resolve()),
       },
     },
-    _viewRegistry: {
-      get: vi.fn(() => ({ view: { id: 'codegraphy.connections' } })),
-      isViewAvailable: vi.fn(() => true),
-    },
     _viewContext: {
       activePlugins: new Set<string>(),
       depthLimit: 1,
     } satisfies IViewContext,
-    _activeViewId: 'codegraphy.connections',
     _depthMode: false,
     _applyViewTransform: vi.fn(),
-    _sendAvailableViews: vi.fn(),
     _sendMessage: vi.fn(),
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
   };

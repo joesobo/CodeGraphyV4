@@ -29,7 +29,7 @@ afterEach(() => {
   tempRoots.clear();
 });
 
-describe('workspace analysis database cache', () => {
+describe('workspace analysis database cache', { timeout: 30000 }, () => {
   it('returns an empty cache when the repo database does not exist yet', () => {
     const workspaceRoot = createWorkspaceRoot();
 

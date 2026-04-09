@@ -35,7 +35,6 @@ export interface GraphViewProviderViewContextMethodsSource {
   _analyzer?: GraphViewProviderAnalyzerLike;
   _viewRegistry: ViewRegistry;
   _viewContext: IViewContext;
-  _activeViewId: string;
   _depthMode: boolean;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
@@ -106,11 +105,9 @@ export function createGraphViewProviderViewContextMethods(
   const _applyViewTransform = (): void => {
     const result = dependencies.applyViewTransform(
       source._viewRegistry,
-      source._activeViewId,
       source._viewContext,
       source._rawGraphData,
     );
-    source._activeViewId = result.activeViewId;
     source._graphData = source._depthMode
       ? filterDepthGraph(result.graphData, source._viewContext)
       : result.graphData;
@@ -118,9 +115,7 @@ export function createGraphViewProviderViewContextMethods(
 
   const _sendAvailableViews = (): void => {
     dependencies.sendAvailableViews(
-      source._viewRegistry,
       source._viewContext,
-      source._activeViewId,
       source._depthMode,
       source._rawGraphData,
       dependencies.defaultDepthLimit,

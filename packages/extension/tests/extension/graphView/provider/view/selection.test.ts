@@ -4,21 +4,14 @@ import type { IGraphData } from '../../../../../src/shared/graph/types';
 import { createGraphViewProviderViewSelectionMethods } from '../../../../../src/extension/graphView/provider/view/selection';
 
 describe('graphView/provider/view/selection', () => {
-  it('delegates view switching and focused-file updates through view selection helpers', async () => {
+  it('delegates focused-file updates through view selection helpers', () => {
     const source = createSource();
-    const changeView = vi.fn(async (_state, nextViewId, handlers) => {
-      expect(nextViewId).toBe('codegraphy.depth-graph');
-      await handlers.persistDepthMode(true);
-      handlers.applyViewTransform();
-      handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
-    });
     const setFocusedFile = vi.fn((_state, nextFilePath, handlers) => {
       expect(nextFilePath).toBe('src/app.ts');
       handlers.applyViewTransform();
       handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
     });
     const dependencies = createDependencies({
-      changeView,
       setFocusedFile,
     });
     const methods = createGraphViewProviderViewSelectionMethods(
@@ -26,15 +19,9 @@ describe('graphView/provider/view/selection', () => {
       dependencies,
     );
 
-    await methods.changeView('codegraphy.depth-graph');
     methods.setFocusedFile('src/app.ts');
 
-    expect(changeView).toHaveBeenCalledOnce();
     expect(setFocusedFile).toHaveBeenCalledOnce();
-    expect(dependencies.getConfiguration().update).not.toHaveBeenCalledWith(
-      expect.stringMatching(/selectedView/),
-      expect.anything(),
-    );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
@@ -76,35 +63,26 @@ describe('graphView/provider/view/selection', () => {
   it('toggles depth mode and tolerates missing transform broadcasters', async () => {
     const source = createSource({
       _applyViewTransform: undefined,
-      _sendAvailableViews: undefined,
     });
-    const changeView = vi.fn(async (_state, nextViewId, handlers) => {
-      expect(nextViewId).toBe('codegraphy.depth-graph');
-      await handlers.persistDepthMode(true);
-      handlers.applyViewTransform();
-      handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
-    });
-    const dependencies = createDependencies({
-      changeView,
-    });
+    const dependencies = createDependencies();
     const methods = createGraphViewProviderViewSelectionMethods(
       source as never,
       dependencies,
     );
 
-    await methods.changeView('codegraphy.depth-graph');
+    await methods.setDepthMode(true);
 
     expect(dependencies.getConfiguration().update).toHaveBeenCalledWith('depthMode', true);
+    expect(source._depthMode).toBe(true);
     expect(source._sendMessage).toHaveBeenCalledWith({
-      type: 'GRAPH_DATA_UPDATED',
-      payload: { nodes: [], edges: [] },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
     });
   });
 
   it('delegates focused-file and depth-limit handlers without view lookup helpers', async () => {
     const source = createSource({
       _applyViewTransform: undefined,
-      _sendAvailableViews: undefined,
     });
     const setFocusedFile = vi.fn((_state, nextFilePath, handlers) => {
       expect(nextFilePath).toBeUndefined();
@@ -154,18 +132,12 @@ function createSource(overrides: Partial<Record<string, unknown>> = {}) {
         update: vi.fn(() => Promise.resolve()),
       },
     },
-    _viewRegistry: {
-      get: vi.fn(() => ({ view: { id: 'codegraphy.connections' } })),
-      isViewAvailable: vi.fn(() => true),
-    },
     _viewContext: {
       activePlugins: new Set<string>(),
       depthLimit: 1,
     } satisfies IViewContext,
-    _activeViewId: 'codegraphy.connections',
     _depthMode: false,
     _applyViewTransform: vi.fn(),
-    _sendAvailableViews: vi.fn(),
     _sendMessage: vi.fn(),
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     ...overrides,
@@ -179,7 +151,6 @@ function createDependencies(
     update: vi.fn(() => Promise.resolve()),
   };
   return {
-    changeView: vi.fn(async () => undefined),
     setFocusedFile: vi.fn(),
     setDepthLimit: vi.fn(async () => undefined),
     getDepthLimit: vi.fn((viewContext: IViewContext, defaultDepthLimit: number) =>
@@ -188,7 +159,6 @@ function createDependencies(
     getConfiguration: vi.fn(() => configuration),
     defaultDepthLimit: 1,
     depthLimitKey: 'depthLimit',
-    logUnavailableView: vi.fn(),
     ...overrides,
   };
 }

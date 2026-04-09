@@ -7,12 +7,6 @@ interface GraphViewSelectionState {
   _viewContext: IViewContext;
 }
 
-interface ChangeGraphViewViewDependencies {
-  persistDepthMode: (depthMode: boolean) => Promise<void>;
-  applyViewTransform: () => void;
-  sendMessage: (message: unknown) => void;
-}
-
 interface SetGraphViewFocusDependencies {
   applyViewTransform: () => void;
   sendMessage: (message: unknown) => void;
@@ -22,22 +16,6 @@ interface SetGraphViewDepthLimitDependencies {
   persistDepthLimit: (depthLimit: number) => Promise<void>;
   sendMessage: (message: unknown) => void;
   applyViewTransform: () => void;
-}
-
-export async function changeGraphViewView(
-  state: GraphViewSelectionState,
-  viewId: string,
-  {
-    persistDepthMode,
-    applyViewTransform,
-    sendMessage,
-  }: ChangeGraphViewViewDependencies,
-): Promise<void> {
-  const nextDepthMode = viewId === 'codegraphy.depth-graph';
-  state._depthMode = nextDepthMode;
-  await persistDepthMode(nextDepthMode);
-  applyViewTransform();
-  sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
 }
 
 export function setGraphViewFocusedFile(

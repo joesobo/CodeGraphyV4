@@ -55,7 +55,6 @@ export class GraphViewProviderRuntime {
   protected _analysisController?: AbortController;
   protected _analysisRequestId = 0;
   private readonly _viewRegistry: ViewRegistry;
-  protected _activeViewId!: string;
   protected _depthMode = false;
   protected _dagMode: DagMode = null;
   protected _nodeSizeMode!: NodeSizeMode;
@@ -191,11 +190,9 @@ export class GraphViewProviderRuntime {
   private restorePersistedState(): void {
     const restoredState = restoreGraphViewProviderRuntimeState(
       this._context,
-      this._viewRegistry,
       DEFAULT_NODE_SIZE_MODE,
     );
 
-    this._activeViewId = restoredState.activeViewId;
     this._depthMode = restoredState.depthMode;
     this._dagMode = restoredState.dagMode;
     this._nodeSizeMode = restoredState.nodeSizeMode;

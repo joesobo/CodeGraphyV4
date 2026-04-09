@@ -3,7 +3,6 @@ import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import {
-  changeGraphViewView,
   getGraphViewDepthLimit,
   setGraphViewDepthLimit,
   setGraphViewFocusedFile,
@@ -23,7 +22,6 @@ export interface GraphViewProviderViewSelectionMethodsSource {
 }
 
 export interface GraphViewProviderViewSelectionMethods {
-  changeView(viewId: string): Promise<void>;
   setDepthMode(depthMode: boolean): Promise<void>;
   setFocusedFile(filePath: string | undefined): void;
   setDepthLimit(depthLimit: number): Promise<void>;
@@ -32,7 +30,6 @@ export interface GraphViewProviderViewSelectionMethods {
 
 export interface GraphViewProviderViewSelectionMethodDependencies {
   getConfiguration(): GraphViewProviderConfigLike;
-  changeView: typeof changeGraphViewView;
   setFocusedFile: typeof setGraphViewFocusedFile;
   setDepthLimit: typeof setGraphViewDepthLimit;
   getDepthLimit: typeof getGraphViewDepthLimit;
@@ -43,7 +40,6 @@ export interface GraphViewProviderViewSelectionMethodDependencies {
 
 function createDefaultGraphViewProviderViewSelectionMethodDependencies(): GraphViewProviderViewSelectionMethodDependencies {
   return {
-    changeView: changeGraphViewView,
     setFocusedFile: setGraphViewFocusedFile,
     setDepthLimit: setGraphViewDepthLimit,
     getDepthLimit: getGraphViewDepthLimit,
@@ -61,18 +57,6 @@ export function createGraphViewProviderViewSelectionMethods(
 ): GraphViewProviderViewSelectionMethods {
   const callApplyViewTransform = (): void => {
     source._applyViewTransform?.();
-  };
-
-  const changeView = async (viewId: string): Promise<void> => {
-    await dependencies.changeView(source, viewId, {
-      persistDepthMode: async nextDepthMode => {
-        await dependencies
-          .getConfiguration()
-          .update(dependencies.depthModeKey ?? 'depthMode', nextDepthMode);
-      },
-      applyViewTransform: () => callApplyViewTransform(),
-      sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
-    });
   };
 
   const setFocusedFile = (filePath: string | undefined): void => {
@@ -109,7 +93,6 @@ export function createGraphViewProviderViewSelectionMethods(
     dependencies.getDepthLimit(source._viewContext, dependencies.defaultDepthLimit);
 
   return {
-    changeView,
     setDepthMode,
     setFocusedFile,
     setDepthLimit,

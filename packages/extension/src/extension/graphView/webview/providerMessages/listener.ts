@@ -68,7 +68,6 @@ export interface GraphViewProviderMessageListenerSource {
   _timelineActive: boolean;
   _currentCommitSha: string | undefined;
   _userGroups: IGroup[];
-  _activeViewId: string;
   _disabledPlugins: Set<string>;
   _disabledSources: Set<string>;
   _filterPatterns: string[];

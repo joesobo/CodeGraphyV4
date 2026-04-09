@@ -70,7 +70,7 @@ describe('graph view provider bootstrap helper', () => {
     expect(onDecorationsChanged).toHaveBeenCalledOnce();
   });
 
-  it('restores the default view and persisted modes', () => {
+  it('restores persisted modes', () => {
     const configuration = {
       get<T>(key: string, defaultValue: T): T {
         if (key === 'dag') return 'horizontal' as T;
@@ -82,47 +82,32 @@ describe('graph view provider bootstrap helper', () => {
     expect(
       restoreGraphViewProviderState({
         configuration,
-        viewRegistry: {
-          register: vi.fn(),
-          get: vi.fn(() => undefined),
-          getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
-        },
         dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
         depthModeKey: 'depth',
-        fallbackViewId: 'codegraphy.connections',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
-      activeViewId: 'codegraphy.connections',
       depthMode: false,
       dagMode: 'horizontal',
       nodeSizeMode: 'visits',
     });
   });
 
-  it('falls back to the default view and node size mode when persisted values are unavailable', () => {
+  it('falls back to the default node size mode when persisted values are unavailable', () => {
     expect(
       restoreGraphViewProviderState({
         configuration: {
           get<T>(key: string, defaultValue: T): T {
-            if (key === 'selected') return 'missing.view' as T;
             return defaultValue;
           },
-        },
-        viewRegistry: {
-          register: vi.fn(),
-          get: vi.fn(() => undefined),
-          getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
         },
         dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
         depthModeKey: 'depth',
-        fallbackViewId: 'codegraphy.connections',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
-      activeViewId: 'codegraphy.connections',
       depthMode: false,
       dagMode: null,
       nodeSizeMode: 'connections',

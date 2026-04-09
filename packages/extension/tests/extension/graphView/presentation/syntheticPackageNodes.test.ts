@@ -20,10 +20,10 @@ const graphData: IGraphData = {
 
 describe('graphView/presentation/syntheticPackageNodes', () => {
   it('keeps package nodes in the unified graph surface', () => {
-    expect(filterSyntheticPackageNodes(graphData, 'codegraphy.connections')).toBe(graphData);
+    expect(filterSyntheticPackageNodes(graphData)).toBe(graphData);
   });
 
   it('keeps package nodes in plugin-focused views too', () => {
-    expect(filterSyntheticPackageNodes(graphData, 'codegraphy.typescript.focused-imports')).toBe(graphData);
+    expect(filterSyntheticPackageNodes(graphData)).toBe(graphData);
   });
 });

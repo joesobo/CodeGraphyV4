@@ -13,7 +13,6 @@ export interface GraphViewPrimaryMessageContext {
   getTimelineActive(): boolean;
   getCurrentCommitSha(): string | undefined;
   getUserGroups(): IGroup[];
-  getActiveViewId(): string;
   getDisabledPlugins(): Set<string>;
   getDisabledRules(): Set<string>;
   getFilterPatterns(): string[];

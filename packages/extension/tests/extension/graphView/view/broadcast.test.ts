@@ -1,9 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IGroup } from '../../../../src/shared/settings/groups';
-import { ViewRegistry } from '../../../../src/core/views/registry';
 import type { IViewContext } from '../../../../src/core/views/contracts';
-import { coreViews } from '../../../../src/core/views/builtIns';
 import {
   sendGraphViewAvailableViews,
   sendGraphViewLegendsUpdated,
@@ -11,16 +9,10 @@ import {
 
 describe('graphView/view/broadcast', () => {
   it('sends depth mode and the current depth limit', () => {
-    const viewRegistry = new ViewRegistry();
-    for (const view of coreViews) {
-      viewRegistry.register(view, { core: true, isDefault: view.id === 'codegraphy.connections' });
-    }
     const sendMessage = vi.fn();
 
     sendGraphViewAvailableViews(
-      viewRegistry,
       { activePlugins: new Set(['plugin.alpha']), depthLimit: 3 } satisfies IViewContext,
-      'codegraphy.connections',
       false,
       { nodes: [], edges: [] },
       1,

@@ -7,30 +7,26 @@ const viewContext: IViewContext = { activePlugins: new Set<string>() };
 const rawGraphData: IGraphData = { nodes: [], edges: [] };
 
 describe('graphView/presentation/viewTransform', () => {
-  it('keeps the active view id and raw graph data when the registry is unavailable', () => {
+  it('keeps the raw graph data when the registry is unavailable', () => {
     const registry = {
       get: vi.fn(() => undefined),
       isViewAvailable: vi.fn(() => false),
       getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
     };
 
-    expect(applyGraphViewTransform(registry, 'missing.view', viewContext, rawGraphData)).toEqual({
-      activeViewId: 'missing.view',
+    expect(applyGraphViewTransform(registry, viewContext, rawGraphData)).toEqual({
       graphData: rawGraphData,
     });
   });
 
-  it('does not fall back to a different view when the active view is unavailable', () => {
+  it('does not mutate the graph data when no transform applies', () => {
     const registry = {
       get: vi.fn(() => undefined),
       isViewAvailable: vi.fn(() => false),
       getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
     };
 
-    expect(
-      applyGraphViewTransform(registry, 'codegraphy.depth-graph', viewContext, rawGraphData),
-    ).toEqual({
-      activeViewId: 'codegraphy.depth-graph',
+    expect(applyGraphViewTransform(registry, viewContext, rawGraphData)).toEqual({
       graphData: rawGraphData,
     });
   });

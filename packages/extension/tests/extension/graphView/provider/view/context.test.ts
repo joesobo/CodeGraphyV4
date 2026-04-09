@@ -221,7 +221,6 @@ describe('graphView/provider/view/context', () => {
 
   it('sends available views through the provider message bridge', () => {
     const source = createSource({
-      _activeViewId: 'codegraphy.depth-graph',
       _depthMode: true,
       _viewContext: {
         activePlugins: new Set<string>(['plugin.test']),
@@ -230,9 +229,7 @@ describe('graphView/provider/view/context', () => {
     });
     const sendAvailableViews = vi.fn(
       (
-        _registry,
         _viewContext,
-        _activeViewId,
         _depthMode,
         _rawGraphData,
         _defaultDepthLimit,
@@ -254,9 +251,7 @@ describe('graphView/provider/view/context', () => {
     methods._sendAvailableViews();
 
     expect(sendAvailableViews).toHaveBeenCalledWith(
-      source._viewRegistry,
       source._viewContext,
-      'codegraphy.depth-graph',
       true,
       source._rawGraphData,
       1,
@@ -269,11 +264,8 @@ describe('graphView/provider/view/context', () => {
   });
 
   it('applies the active transform without persisting fallback view selections', () => {
-    const source = createSource({
-      _activeViewId: 'codegraphy.depth-graph',
-    });
+    const source = createSource();
     const applyViewTransform = vi.fn(() => ({
-      activeViewId: 'codegraphy.connections',
       graphData: {
         nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
         edges: [],
@@ -295,11 +287,9 @@ describe('graphView/provider/view/context', () => {
 
     expect(applyViewTransform).toHaveBeenCalledWith(
       source._viewRegistry,
-      'codegraphy.depth-graph',
       source._viewContext,
       source._rawGraphData,
     );
-    expect(source._activeViewId).toBe('codegraphy.connections');
     expect(source._graphData).toEqual({
       nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
       edges: [],
@@ -314,7 +304,6 @@ describe('graphView/provider/view/context', () => {
 
   it('uses the live default transform and view broadcast helpers', () => {
     const source = createSource({
-      _activeViewId: 'codegraphy.depth-graph',
       _depthMode: true,
       _viewContext: {
         activePlugins: new Set<string>(['plugin.test']),
@@ -322,7 +311,6 @@ describe('graphView/provider/view/context', () => {
       } satisfies IViewContext,
     });
     providerViewContextMethodMocks.applyViewTransform.mockReturnValue({
-      activeViewId: 'codegraphy.connections',
       graphData: {
         nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
         edges: [],
@@ -331,9 +319,7 @@ describe('graphView/provider/view/context', () => {
     } satisfies IGraphViewTransformResult);
     providerViewContextMethodMocks.sendAvailableViews.mockImplementation(
       (
-        _registry,
         _viewContext,
-        _activeViewId,
         _depthMode,
         _rawGraphData,
         _defaultDepthLimit,
@@ -356,11 +342,9 @@ describe('graphView/provider/view/context', () => {
 
     expect(providerViewContextMethodMocks.applyViewTransform).toHaveBeenCalledWith(
       source._viewRegistry,
-      'codegraphy.depth-graph',
       source._viewContext,
       source._rawGraphData,
     );
-    expect(source._activeViewId).toBe('codegraphy.connections');
     expect(source._graphData).toEqual({
       nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
       edges: [],
@@ -370,9 +354,7 @@ describe('graphView/provider/view/context', () => {
       expect.anything(),
     );
     expect(providerViewContextMethodMocks.sendAvailableViews).toHaveBeenCalledWith(
-      source._viewRegistry,
       source._viewContext,
-      'codegraphy.connections',
       true,
       source._rawGraphData,
       1,
@@ -385,11 +367,8 @@ describe('graphView/provider/view/context', () => {
   });
 
   it('keeps the current selected view when the transform does not request persistence', () => {
-    const source = createSource({
-      _activeViewId: 'codegraphy.depth-graph',
-    });
+    const source = createSource();
     const applyViewTransform = vi.fn(() => ({
-      activeViewId: 'codegraphy.connections',
       graphData: {
         nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
         edges: [],
@@ -405,7 +384,6 @@ describe('graphView/provider/view/context', () => {
 
     methods._applyViewTransform();
 
-    expect(source._activeViewId).toBe('codegraphy.connections');
     expect(source._graphData).toEqual({
       nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
       edges: [],
@@ -420,7 +398,6 @@ function createSource(
     _analyzer: unknown;
     _viewRegistry: unknown;
     _viewContext: IViewContext;
-    _activeViewId: string;
     _depthMode: boolean;
     _rawGraphData: IGraphData;
     _graphData: IGraphData;
@@ -443,7 +420,6 @@ function createSource(
       activePlugins: new Set<string>(),
       depthLimit: 1,
     } satisfies IViewContext,
-    _activeViewId: 'codegraphy.connections',
     _depthMode: false,
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -472,9 +448,8 @@ function createDependencies(
     } satisfies IViewContext));
   const applyViewTransform: GraphViewProviderViewContextMethodDependencies['applyViewTransform'] =
     vi.fn((...args: Parameters<typeof applyGraphViewTransform>) => {
-      const [, activeViewId, , rawGraphData] = args;
+      const [, , rawGraphData] = args;
       return {
-        activeViewId,
         graphData: rawGraphData,
       } satisfies IGraphViewTransformResult;
     });

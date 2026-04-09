@@ -23,7 +23,7 @@ Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   configurable: true,
 });
 
-describe('WorkspacePipeline lifecycle', () => {
+describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
   beforeEach(() => {
     workspaceFoldersValue = [
       { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },

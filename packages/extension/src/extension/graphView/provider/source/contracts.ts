@@ -102,7 +102,6 @@ export interface GraphViewProviderMethodSourceOwner {
   _analysisController?: AbortController;
   _analysisRequestId: number;
   _viewRegistry: ViewRegistry;
-  _activeViewId: string;
   _depthMode: boolean;
   _dagMode: DagMode;
   _nodeSizeMode: NodeSizeMode;

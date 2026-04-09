@@ -6,15 +6,13 @@ import type { IGraphViewTransformResult } from './types';
 
 export function applyGraphViewTransform(
   viewRegistry: Pick<ViewRegistry, 'get' | 'isViewAvailable' | 'getDefaultViewId'>,
-  activeViewId: string,
   viewContext: IViewContext,
   rawGraphData: IGraphData,
 ): IGraphViewTransformResult {
   void viewRegistry;
   void viewContext;
-  const graphDataForActiveView = filterSyntheticPackageNodes(rawGraphData, activeViewId);
+  const graphDataForActiveView = filterSyntheticPackageNodes(rawGraphData);
   return {
-    activeViewId,
     graphData: graphDataForActiveView,
   };
 }

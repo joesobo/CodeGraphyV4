@@ -59,6 +59,6 @@ describe('GraphViewProvider DAG mode', () => {
 
     await getMessageHandler()({ type: 'UPDATE_DAG_MODE', payload: { dagMode: 'lr' } });
 
-    expect(updateSpy).toHaveBeenCalledWith('dagMode', 'lr', expect.anything());
+    expect(updateSpy).toHaveBeenCalledWith('dagMode', 'lr');
   });
 });

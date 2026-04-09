@@ -13,17 +13,12 @@ Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   configurable: true,
 });
 
-function createContext(savedViewId?: string) {
+function createContext() {
   return {
     subscriptions: [],
     extensionUri: vscode.Uri.file('/test/extension'),
     workspaceState: {
-      get: vi.fn((key: string) => {
-        if (key === 'codegraphy.selectedView') {
-          return savedViewId;
-        }
-        return undefined;
-      }),
+      get: vi.fn(() => undefined),
       update: vi.fn(() => Promise.resolve()),
     },
   };
@@ -35,18 +30,6 @@ describe('GraphViewProvider lifecycle', () => {
       { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },
     ];
     vi.clearAllMocks();
-  });
-
-  it('falls back to the default view when the saved view id is unavailable', () => {
-    const provider = new GraphViewProvider(
-      vscode.Uri.file('/test/extension'),
-      createContext('missing.view') as unknown as vscode.ExtensionContext
-    );
-
-    expect((provider as unknown as {
-      _activeViewId: string;
-      _viewRegistry: { getDefaultViewId: () => string | undefined };
-    })._activeViewId).toBe('codegraphy.connections');
   });
 
   it('forwards decoration manager change notifications to _sendDecorations', () => {

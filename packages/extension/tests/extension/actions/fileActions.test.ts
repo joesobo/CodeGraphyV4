@@ -212,7 +212,6 @@ describe('RenameFileAction', () => {
     expect(mockConfigUpdate).toHaveBeenCalledWith(
       'favorites',
       ['src/new.ts', 'other/file.ts'],
-      expect.anything()
     );
   });
 
@@ -238,7 +237,6 @@ describe('RenameFileAction', () => {
     expect(mockConfigUpdate).toHaveBeenLastCalledWith(
       'favorites',
       ['src/old.ts', 'other/file.ts'],
-      expect.anything()
     );
   });
 

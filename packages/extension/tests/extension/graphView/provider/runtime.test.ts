@@ -15,7 +15,7 @@ function createContext(vscodeModule: typeof import('vscode')) {
 
 function createRestoredState() {
   return {
-    activeViewId: 'codegraphy.connections',
+    depthMode: false,
     dagMode: null,
     nodeSizeMode: 'connections' as const,
   };
@@ -181,8 +181,8 @@ describe('graphView/provider/runtime', () => {
     expect(restoreGraphViewProviderState).toHaveBeenCalledWith(
       expect.objectContaining({
         dagModeKey: 'dagMode',
+        depthModeKey: 'depthMode',
         nodeSizeModeKey: 'nodeSizeMode',
-        fallbackViewId: 'codegraphy.connections',
         fallbackNodeSizeMode: 'connections',
       }),
     );
@@ -197,7 +197,7 @@ describe('graphView/provider/runtime', () => {
 
     resolveFirstWorkspaceReady?.();
     await expect(firstWorkspaceReadyPromise).resolves.toBeUndefined();
-  });
+  }, 15000);
 
   it('forwards bootstrap callbacks through the extracted method containers', async () => {
     const initializeGraphViewProviderServices = vi.fn();

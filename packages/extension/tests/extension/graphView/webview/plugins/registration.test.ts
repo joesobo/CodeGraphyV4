@@ -135,7 +135,7 @@ describe('graphView/webview/plugins/registration', () => {
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('defers readiness replay after first analysis even before the webview is marked ready', async () => {
@@ -258,7 +258,7 @@ describe('graphView/webview/plugins/registration', () => {
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
-    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('waits for analyzer initialization to settle before replaying readiness and reanalyzing', async () => {
@@ -371,6 +371,60 @@ describe('graphView/webview/plugins/registration', () => {
     expect(invalidateTimelineCache.mock.invocationCallOrder[0]).toBeLessThan(
       analyzeAndSendData.mock.invocationCallOrder[0],
     );
+  });
+
+  it('logs follow-up failures instead of leaking unhandled rejections', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const initializePlugin = vi.fn(async () => undefined);
+    const analyzeAndSendData = vi.fn(async () => {
+      throw new Error('reanalysis failed');
+    });
+    const state = createState({
+      firstAnalysis: false,
+      readyNotified: true,
+      analyzer: {
+        clearCache: vi.fn(),
+        registry: {
+          register: vi.fn(),
+          initializePlugin,
+          replayReadinessForPlugin: vi.fn(),
+        },
+      },
+    });
+
+    registerGraphViewExternalPlugin(
+      {
+        id: 'plugin.test',
+        name: 'Plugin',
+        version: '1.0.0',
+        apiVersion: '^2.0.0',
+        supportedExtensions: ['.ts'],
+        analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
+      },
+      undefined,
+      state,
+      {
+        normalizeExtensionUri: () => undefined,
+        getWorkspaceRoot: () => '/test/workspace',
+        refreshWebviewResourceRoots: vi.fn(),
+        sendAvailableViews: vi.fn(),
+        sendPluginStatuses: vi.fn(),
+        sendContextMenuItems: vi.fn(),
+        sendPluginWebviewInjections: vi.fn(),
+        analyzeAndSendData,
+      },
+    );
+
+    await flushPluginRegistration();
+
+    expect(initializePlugin).toHaveBeenCalledWith('plugin.test', '/test/workspace');
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(consoleError).toHaveBeenCalledWith(
+      '[CodeGraphy] External plugin registration follow-up failed for plugin.test:',
+      expect.any(Error),
+    );
+
+    consoleError.mockRestore();
   });
 
   it('ignores invalid plugin registrations when there is no analyzer or plugin id', () => {

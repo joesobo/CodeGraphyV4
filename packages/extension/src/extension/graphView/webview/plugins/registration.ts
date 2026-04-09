@@ -80,13 +80,19 @@ export function registerGraphViewExternalPlugin(
   handlers.sendPluginExporters?.();
   handlers.sendPluginToolbarActions?.();
   handlers.sendPluginWebviewInjections();
-  void initializePromise.finally(async () => {
-    if (shouldDeferReadinessReplay) {
-      analyzer.registry.replayReadinessForPlugin(pluginId);
+  void (async () => {
+    try {
+      await initializePromise;
+    } finally {
+      if (shouldDeferReadinessReplay) {
+        analyzer.registry.replayReadinessForPlugin(pluginId);
+        await handlers.invalidateTimelineCache?.();
+        if (state.analyzerInitialized) {
+          await handlers.analyzeAndSendData();
+        }
+      }
     }
-    await handlers.invalidateTimelineCache?.();
-    if (state.analyzerInitialized) {
-      void handlers.analyzeAndSendData();
-    }
+  })().catch(error => {
+    console.error(`[CodeGraphy] External plugin registration follow-up failed for ${pluginId}:`, error);
   });
 }

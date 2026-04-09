@@ -31,7 +31,6 @@ function createSource(
     _panels: [],
     _viewRegistry: { getAvailableViews: vi.fn(() => []) } as never,
     _viewContext: { activePlugins: new Set(), depthLimit: 1 } as never,
-    _activeViewId: 'codegraphy.connections',
     _depthMode: false,
     _graphData: EMPTY_GRAPH_DATA,
     _rawGraphData: EMPTY_GRAPH_DATA,
@@ -121,9 +120,7 @@ describe('graphView/provider/plugins', () => {
     });
     const methods = createGraphViewProviderPluginMethods(source, {
       sendAvailableViews: vi.fn((
-        _registry,
         _context,
-        _activeViewId,
         _depthMode,
         _rawGraphData,
         _defaultDepthLimit,

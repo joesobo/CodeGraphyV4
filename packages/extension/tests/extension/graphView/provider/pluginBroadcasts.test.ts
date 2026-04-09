@@ -15,9 +15,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
       source,
       {
         sendAvailableViews: vi.fn((
-          _registry,
           _context,
-          _activeViewId,
           _depthMode,
           _rawGraphData,
           _defaultDepthLimit,

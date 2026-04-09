@@ -7,7 +7,6 @@ import type { GraphViewProviderMethodContainers } from './wiring/methodContainer
 export const DAG_MODE_KEY = 'dagMode';
 export const NODE_SIZE_MODE_KEY = 'nodeSizeMode';
 export const DEPTH_MODE_KEY = 'depthMode';
-export const DEFAULT_VIEW_ID = 'codegraphy.connections';
 
 type GraphViewProviderServicesArgs = Parameters<typeof initializeGraphViewProviderServices>[0];
 type RestoredStateArgs = Parameters<typeof restoreGraphViewProviderState>[0];
@@ -48,16 +47,13 @@ export function initializeGraphViewProviderRuntimeServices(
 
 export function restoreGraphViewProviderRuntimeState(
   _context: vscode.ExtensionContext,
-  viewRegistry: RuntimeBootstrapSource['_viewRegistry'],
   fallbackNodeSizeMode: RestoredStateArgs['fallbackNodeSizeMode'],
 ) {
   return restoreGraphViewProviderState({
     configuration: getCodeGraphyConfiguration(),
-    viewRegistry: viewRegistry as RestoredStateArgs['viewRegistry'],
     dagModeKey: DAG_MODE_KEY,
     nodeSizeModeKey: NODE_SIZE_MODE_KEY,
     depthModeKey: DEPTH_MODE_KEY,
-    fallbackViewId: DEFAULT_VIEW_ID,
     fallbackNodeSizeMode,
   });
 }
