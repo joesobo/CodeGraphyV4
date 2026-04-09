@@ -8,15 +8,13 @@ describe('graphView/provider/view/selection', () => {
     const source = createSource();
     const changeView = vi.fn(async (_state, nextViewId, handlers) => {
       expect(nextViewId).toBe('codegraphy.depth-graph');
-      await handlers.persistActiveViewId(nextViewId);
+      await handlers.persistDepthMode(true);
       handlers.applyViewTransform();
-      handlers.sendAvailableViews();
       handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
     });
     const setFocusedFile = vi.fn((_state, nextFilePath, handlers) => {
       expect(nextFilePath).toBe('src/app.ts');
       handlers.applyViewTransform();
-      handlers.sendAvailableViews();
       handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
     });
     const dependencies = createDependencies({
@@ -75,57 +73,45 @@ describe('graphView/provider/view/selection', () => {
     expect(getDepthLimit).toHaveBeenCalledWith(source._viewContext, 1);
   });
 
-  it('forwards view-availability checks and tolerates missing transform broadcasters', async () => {
+  it('toggles depth mode and tolerates missing transform broadcasters', async () => {
     const source = createSource({
       _applyViewTransform: undefined,
       _sendAvailableViews: undefined,
     });
-    const logUnavailableView = vi.fn();
     const changeView = vi.fn(async (_state, nextViewId, handlers) => {
-      expect(handlers.isViewAvailable(nextViewId, source._viewContext)).toBe(true);
+      expect(nextViewId).toBe('codegraphy.depth-graph');
+      await handlers.persistDepthMode(true);
       handlers.applyViewTransform();
-      handlers.sendAvailableViews();
-      handlers.logUnavailableView('codegraphy.missing');
       handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
     });
     const methods = createGraphViewProviderViewSelectionMethods(
       source as never,
       createDependencies({
         changeView,
-        logUnavailableView,
       }),
     );
 
     await methods.changeView('codegraphy.depth-graph');
 
-    expect(source._viewRegistry.isViewAvailable).toHaveBeenCalledWith(
-      'codegraphy.depth-graph',
-      source._viewContext,
-    );
-    expect(logUnavailableView).toHaveBeenCalledWith('codegraphy.missing');
+    expect(createDependencies().getConfiguration).not.toHaveBeenCalled();
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
   });
 
-  it('forwards active view lookups through focused-file and depth-limit handlers', async () => {
+  it('delegates focused-file and depth-limit handlers without view lookup helpers', async () => {
     const source = createSource({
       _applyViewTransform: undefined,
       _sendAvailableViews: undefined,
     });
-    const viewInfo = { view: { id: 'codegraphy.connections' } };
-    source._viewRegistry.get = vi.fn(() => viewInfo);
     const setFocusedFile = vi.fn((_state, nextFilePath, handlers) => {
       expect(nextFilePath).toBeUndefined();
-      expect(handlers.getActiveViewInfo('codegraphy.connections')).toBe(viewInfo);
       handlers.applyViewTransform();
-      handlers.sendAvailableViews();
       handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
     });
     const setDepthLimit = vi.fn(async (_state, nextDepthLimit, handlers) => {
       expect(nextDepthLimit).toBe(4);
-      expect(handlers.getActiveViewInfo('codegraphy.connections')).toBe(viewInfo);
       handlers.applyViewTransform();
       await handlers.persistDepthLimit(nextDepthLimit);
       handlers.sendMessage({
@@ -145,7 +131,6 @@ describe('graphView/provider/view/selection', () => {
     methods.setFocusedFile(undefined);
     await methods.setDepthLimit(4);
 
-    expect(source._viewRegistry.get).toHaveBeenCalledWith('codegraphy.connections');
     expect(dependencies.getConfiguration().update).toHaveBeenCalledWith(
       'depthLimit',
       4,
@@ -177,10 +162,11 @@ function createSource(overrides: Partial<Record<string, unknown>> = {}) {
       depthLimit: 1,
     } satisfies IViewContext,
     _activeViewId: 'codegraphy.connections',
+    _depthMode: false,
     _applyViewTransform: vi.fn(),
     _sendAvailableViews: vi.fn(),
     _sendMessage: vi.fn(),
-    _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     ...overrides,
   };
 }

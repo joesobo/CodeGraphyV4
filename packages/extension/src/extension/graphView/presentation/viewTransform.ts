@@ -10,31 +10,11 @@ export function applyGraphViewTransform(
   viewContext: IViewContext,
   rawGraphData: IGraphData,
 ): IGraphViewTransformResult {
+  void viewRegistry;
+  void viewContext;
   const graphDataForActiveView = filterSyntheticPackageNodes(rawGraphData, activeViewId);
-  const viewInfo = viewRegistry.get(activeViewId);
-
-  if (!viewInfo || !viewRegistry.isViewAvailable(activeViewId, viewContext)) {
-    const defaultId = viewRegistry.getDefaultViewId();
-    if (defaultId && defaultId !== activeViewId) {
-      const defaultView = viewRegistry.get(defaultId);
-      if (defaultView) {
-        const graphDataForDefaultView = filterSyntheticPackageNodes(rawGraphData, defaultId);
-        return {
-          activeViewId: defaultId,
-          graphData: defaultView.view.transform(graphDataForDefaultView, viewContext),
-          persistSelectedViewId: defaultId,
-        };
-      }
-    }
-
-    return {
-      activeViewId,
-      graphData: graphDataForActiveView,
-    };
-  }
-
   return {
     activeViewId,
-    graphData: viewInfo.view.transform(graphDataForActiveView, viewContext),
+    graphData: graphDataForActiveView,
   };
 }

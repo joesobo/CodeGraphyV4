@@ -43,41 +43,31 @@ describe('graphView/provider/view/selection default dependencies', () => {
 
   it('uses the default view switching delegates without persisting a selected view', async () => {
     const source = createSource();
-    const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
     mocks.changeGraphViewView.mockImplementation(async (_state, nextViewId, handlers) => {
-      expect(handlers.isViewAvailable(nextViewId, source._viewContext)).toBe(true);
-      await handlers.persistActiveViewId(nextViewId);
+      expect(nextViewId).toBe('codegraphy.depth-graph');
+      await handlers.persistDepthMode(true);
       handlers.applyViewTransform();
-      handlers.sendAvailableViews();
       handlers.sendMessage({
         type: 'GRAPH_DATA_UPDATED',
         payload: { nodes: [], edges: [] },
       });
-      handlers.logUnavailableView('codegraphy.missing');
     });
 
     const methods = createGraphViewProviderViewSelectionMethods(source as never);
     await methods.changeView('codegraphy.depth-graph');
 
     expect(mocks.changeGraphViewView).toHaveBeenCalledOnce();
-    expect(source._viewRegistry.isViewAvailable).toHaveBeenCalledWith(
-      'codegraphy.depth-graph',
-      source._viewContext,
-    );
     expect(configuration.update).not.toHaveBeenCalledWith(
       expect.stringMatching(/selectedView/),
       expect.anything(),
     );
+    expect(configuration.update).toHaveBeenCalledWith('depthMode', true);
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
-    expect(source._sendAvailableViews).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
-    expect(consoleWarn).toHaveBeenCalledWith("[CodeGraphy] View 'codegraphy.missing' is not available");
-
-    consoleWarn.mockRestore();
   });
 
   it('uses the default focused-file, depth-limit, and readback delegates', async () => {
@@ -85,11 +75,7 @@ describe('graphView/provider/view/selection default dependencies', () => {
 
     mocks.setGraphViewFocusedFile.mockImplementation((_state, nextFilePath, handlers) => {
       expect(nextFilePath).toBe('src/index.ts');
-      expect(handlers.getActiveViewInfo('codegraphy.connections')).toEqual({
-        view: { id: 'codegraphy.connections' },
-      });
       handlers.applyViewTransform();
-      handlers.sendAvailableViews();
       handlers.sendMessage({
         type: 'GRAPH_DATA_UPDATED',
         payload: { nodes: [], edges: [] },
@@ -98,9 +84,6 @@ describe('graphView/provider/view/selection default dependencies', () => {
 
     mocks.setGraphViewDepthLimit.mockImplementation(async (_state, nextDepthLimit, handlers) => {
       expect(nextDepthLimit).toBe(4);
-      expect(handlers.getActiveViewInfo('codegraphy.connections')).toEqual({
-        view: { id: 'codegraphy.connections' },
-      });
       await handlers.persistDepthLimit(nextDepthLimit);
       handlers.applyViewTransform();
       handlers.sendMessage({
@@ -120,13 +103,11 @@ describe('graphView/provider/view/selection default dependencies', () => {
 
     expect(mocks.setGraphViewFocusedFile).toHaveBeenCalledOnce();
     expect(mocks.setGraphViewDepthLimit).toHaveBeenCalledOnce();
-    expect(source._viewRegistry.get).toHaveBeenCalledWith('codegraphy.connections');
     expect(configuration.update).toHaveBeenCalledWith(
       'depthLimit',
       4,
     );
     expect(source._applyViewTransform).toHaveBeenCalledTimes(2);
-    expect(source._sendAvailableViews).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
@@ -156,9 +137,10 @@ function createSource() {
       depthLimit: 1,
     } satisfies IViewContext,
     _activeViewId: 'codegraphy.connections',
+    _depthMode: false,
     _applyViewTransform: vi.fn(),
     _sendAvailableViews: vi.fn(),
     _sendMessage: vi.fn(),
-    _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
+    _graphData: { nodes: [], edges: [] } satisfies IGraphData,
   };
 }
