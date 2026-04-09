@@ -1,31 +1,31 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IGroup } from '../../../../../src/shared/settings/groups';
 import {
-  applyGroupMessage,
-  type GraphViewGroupMessageHandlers,
-  type GraphViewGroupMessageState,
-} from '../../../../../src/extension/graphView/webview/messages/groups';
+  applyLegendMessage,
+  type GraphViewLegendMessageHandlers,
+  type GraphViewLegendMessageState,
+} from '../../../../../src/extension/graphView/webview/messages/legends';
 
 function createState(
-  overrides: Partial<GraphViewGroupMessageState> = {},
-): GraphViewGroupMessageState {
+  overrides: Partial<GraphViewLegendMessageState> = {},
+): GraphViewLegendMessageState {
   return {
-    userGroups: [],
+    userLegends: [],
     ...overrides,
   };
 }
 
 function createHandlers(
-  overrides: Partial<GraphViewGroupMessageHandlers> = {},
-): GraphViewGroupMessageHandlers {
+  overrides: Partial<GraphViewLegendMessageHandlers> = {},
+): GraphViewLegendMessageHandlers {
   return {
-    persistGroups: vi.fn(() => Promise.resolve()),
+    persistLegends: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
 }
 
-describe('graph view group message', () => {
-  it('persists updated groups without transient webview fields', async () => {
+describe('graph view legend message', () => {
+  it('persists updated legends without transient webview fields', async () => {
     const incomingGroups: IGroup[] = [
       {
         id: 'user-group',
@@ -41,14 +41,14 @@ describe('graph view group message', () => {
     const handlers = createHandlers();
 
     await expect(
-      applyGroupMessage(
+      applyLegendMessage(
         { type: 'UPDATE_LEGENDS', payload: { legends: incomingGroups } },
         state,
         handlers,
       ),
     ).resolves.toBe(true);
 
-    expect(state.userGroups).toEqual([
+    expect(state.userLegends).toEqual([
       {
         id: 'user-group',
         pattern: 'src/**',
@@ -56,7 +56,7 @@ describe('graph view group message', () => {
         imagePath: '.codegraphy/assets/icon.png',
       },
     ]);
-    expect(handlers.persistGroups).toHaveBeenCalledWith(state.userGroups);
+    expect(handlers.persistLegends).toHaveBeenCalledWith(state.userLegends);
   });
 
   it('returns false for unrelated messages', async () => {
@@ -64,7 +64,7 @@ describe('graph view group message', () => {
     const handlers = createHandlers();
 
     await expect(
-      applyGroupMessage(
+      applyLegendMessage(
         { type: 'UPDATE_SHOW_LABELS', payload: { showLabels: false } },
         state,
         handlers,

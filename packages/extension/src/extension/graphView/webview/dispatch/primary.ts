@@ -57,7 +57,7 @@ export interface GraphViewPrimaryMessageContext {
   updatePhysicsSetting(key: keyof IPhysicsSettings, value: number): Promise<void>;
   resetPhysicsSettings(): Promise<void>;
   workspaceFolder: vscode.WorkspaceFolder | undefined;
-  persistGroups(groups: IGroup[]): Promise<void>;
+  persistLegends(legends: IGroup[]): Promise<void>;
   recomputeGroups(): void;
   sendGroupsUpdated(): void;
   showOpenDialog(

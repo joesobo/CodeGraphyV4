@@ -1,12 +1,12 @@
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IGroup } from '../../../../shared/settings/groups';
 
-export interface GraphViewGroupMessageState {
-  userGroups: IGroup[];
+export interface GraphViewLegendMessageState {
+  userLegends: IGroup[];
 }
 
-export interface GraphViewGroupMessageHandlers {
-  persistGroups(groups: IGroup[]): Promise<void>;
+export interface GraphViewLegendMessageHandlers {
+  persistLegends(legends: IGroup[]): Promise<void>;
 }
 
 function toPersistableGroup(group: IGroup): IGroup {
@@ -17,15 +17,15 @@ function toPersistableGroup(group: IGroup): IGroup {
   return persistable;
 }
 
-export async function applyGroupMessage(
+export async function applyLegendMessage(
   message: WebviewToExtensionMessage,
-  state: GraphViewGroupMessageState,
-  handlers: GraphViewGroupMessageHandlers,
+  state: GraphViewLegendMessageState,
+  handlers: GraphViewLegendMessageHandlers,
 ): Promise<boolean> {
   switch (message.type) {
     case 'UPDATE_LEGENDS':
-      state.userGroups = message.payload.legends.map(toPersistableGroup);
-      await handlers.persistGroups(state.userGroups);
+      state.userLegends = message.payload.legends.map(toPersistableGroup);
+      await handlers.persistLegends(state.userLegends);
       return true;
 
     default:

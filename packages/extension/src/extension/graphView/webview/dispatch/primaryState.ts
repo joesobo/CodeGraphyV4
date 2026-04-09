@@ -1,13 +1,13 @@
 import type { GraphViewPrimaryMessageContext } from './primary';
-import type { GraphViewGroupMessageState } from '../messages/groups';
+import type { GraphViewLegendMessageState } from '../messages/legends';
 import type { GraphViewNodeFileHandlers } from '../nodeFile/router';
 import type { GraphViewSettingsMessageState } from '../settingsMessages/router';
 
-export function createGraphViewPrimaryGroupMessageState(
+export function createGraphViewPrimaryLegendMessageState(
   context: GraphViewPrimaryMessageContext,
-): GraphViewGroupMessageState {
+): GraphViewLegendMessageState {
   return {
-    userGroups: context.getUserGroups(),
+    userLegends: context.getUserGroups(),
   };
 }
 

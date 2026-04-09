@@ -38,7 +38,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'sendPhysicsSettings'
   | 'updatePhysicsSetting'
   | 'resetPhysicsSettings'
-  | 'persistGroups'
+  | 'persistLegends'
   | 'recomputeGroups'
   | 'sendGroupsUpdated'
   | 'showOpenDialog'
@@ -85,8 +85,8 @@ export function createGraphViewProviderMessagePrimaryActions(
     sendPhysicsSettings: () => source._sendPhysicsSettings(),
     updatePhysicsSetting: (key, value) => source._updatePhysicsSetting(key, value),
     resetPhysicsSettings: () => source._resetPhysicsSettings(),
-    persistGroups: async groups => {
-      await getCodeGraphyConfiguration().update('legend', groups);
+    persistLegends: async legends => {
+      await getCodeGraphyConfiguration().update('legend', legends);
     },
     recomputeGroups: () => source._computeMergedGroups(),
     sendGroupsUpdated: () => source._sendGroupsUpdated(),

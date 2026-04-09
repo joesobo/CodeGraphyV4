@@ -3,7 +3,7 @@ import type { IGraphData } from '@/shared/graph/types';
 import type { IGroup } from '@/shared/settings/groups';
 import type { IViewContext } from '@/core/views/contracts';
 import {
-  createGraphViewPrimaryGroupMessageState,
+  createGraphViewPrimaryLegendMessageState,
 } from '../../../../../src/extension/graphView/webview/dispatch/primaryState';
 import type { GraphViewPrimaryMessageContext } from '../../../../../src/extension/graphView/webview/dispatch/primary';
 
@@ -48,7 +48,7 @@ function createContext(
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     resetPhysicsSettings: vi.fn(() => Promise.resolve()),
     workspaceFolder: undefined,
-    persistGroups: vi.fn(() => Promise.resolve()),
+    persistLegends: vi.fn(() => Promise.resolve()),
     recomputeGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
@@ -69,15 +69,15 @@ function createContext(
   return context as GraphViewPrimaryMessageContext;
 }
 
-describe('createGraphViewPrimaryGroupMessageState', () => {
-  it('seeds user groups from the primary message context', () => {
-    const groups: IGroup[] = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
+describe('createGraphViewPrimaryLegendMessageState', () => {
+  it('seeds user legends from the primary message context', () => {
+    const legends: IGroup[] = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
     const context = createContext({
-      getUserGroups: vi.fn(() => groups),
+      getUserGroups: vi.fn(() => legends),
     });
 
-    expect(createGraphViewPrimaryGroupMessageState(context)).toEqual({
-      userGroups: groups,
+    expect(createGraphViewPrimaryLegendMessageState(context)).toEqual({
+      userLegends: legends,
     });
   });
 });
