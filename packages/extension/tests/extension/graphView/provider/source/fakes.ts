@@ -84,7 +84,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
   };
   const viewSelectionMethods = {
-    changeView: vi.fn(async () => undefined),
+    setDepthMode: vi.fn(async () => undefined),
     setFocusedFile: vi.fn(),
     setDepthLimit: vi.fn(async () => undefined),
   };

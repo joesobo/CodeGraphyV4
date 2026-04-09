@@ -78,6 +78,25 @@ describe('workspace analysis database cache', () => {
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(cache);
   });
 
+  it('skips persistence when the workspace root no longer exists', () => {
+    const workspaceRoot = path.join(os.tmpdir(), `codegraphy-missing-${Date.now()}`);
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': {
+          mtime: 1,
+          analysis: {
+            filePath: '/workspace/src/index.ts',
+            relations: [],
+          },
+        },
+      },
+    });
+
+    expect(fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot))).toBe(false);
+  });
+
   it('supports repeated save and load cycles without corrupting the repo-local database', () => {
     const workspaceRoot = createWorkspaceRoot();
     const firstCache: IWorkspaceAnalysisCache = {

@@ -19,7 +19,10 @@ interface FileAnalysisRow {
 }
 
 function ensureDatabaseDirectory(workspaceRoot: string): void {
-  fs.mkdirSync(workspaceRoot, { recursive: true });
+  if (!fs.existsSync(workspaceRoot)) {
+    return;
+  }
+
   fs.mkdirSync(path.join(workspaceRoot, DATABASE_DIRECTORY_NAME), { recursive: true });
 }
 
@@ -122,6 +125,9 @@ export function saveWorkspaceAnalysisDatabaseCache(
 ): void {
   ensureDatabaseDirectory(workspaceRoot);
   const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
+  if (!fs.existsSync(path.dirname(databasePath))) {
+    return;
+  }
 
   withConnection(databasePath, (connection) => {
     connection.querySync('MATCH (entry:FileAnalysis) DELETE entry');
