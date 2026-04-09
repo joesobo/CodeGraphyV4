@@ -45,7 +45,7 @@ This example includes a **circular dependency** between `helpers.ts` and `format
 ### The Setting
 
 ```jsonc
-// .vscode/settings.json
+// .codegraphy/settings.json
 {
   "codegraphy.bidirectionalEdges": "separate"  // or "combined"
 }

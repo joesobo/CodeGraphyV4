@@ -70,7 +70,7 @@ export interface IView {
   /**
    * Transforms the base graph data into the view's representation.
    *
-   * @param data    - The complete graph data from workspace analysis
+   * @param data    - The complete projected graph data from the current repo index
    * @param context - Additional context for the transformation
    * @returns Transformed graph data for rendering
    */
