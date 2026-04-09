@@ -4,7 +4,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as vscode from 'vscode';
-import type { IConnection } from '../../../src/core/plugins/types/contracts';
+import type { IProjectedConnection } from '../../../src/core/plugins/types/contracts';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
 import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { createPythonPlugin } from '../../../../plugin-python/src/plugin';
@@ -142,7 +142,7 @@ describe('WorkspacePipeline sources', () => {
 
       // Manually populate internal state to simulate a prior analysis.
       // We use the internal fields directly to set up the scenario.
-      const fileConnections = new Map<string, IConnection[]>();
+      const fileConnections = new Map<string, IProjectedConnection[]>();
 
       fileConnections.set('src/index.ts', [
         { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
@@ -176,7 +176,7 @@ describe('WorkspacePipeline sources', () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
-      const fileConnections = new Map<string, IConnection[]>();
+      const fileConnections = new Map<string, IProjectedConnection[]>();
 
       fileConnections.set('src/index.ts', [
         { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
@@ -214,7 +214,7 @@ describe('WorkspacePipeline sources', () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
-      const fileConnections = new Map<string, IConnection[]>();
+      const fileConnections = new Map<string, IProjectedConnection[]>();
 
       fileConnections.set('src/index.ts', [
         { specifier: './a', resolvedPath: '/test/workspace/src/a.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
@@ -251,7 +251,7 @@ describe('WorkspacePipeline sources', () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
-      const fileConnections = new Map<string, IConnection[]>();
+      const fileConnections = new Map<string, IProjectedConnection[]>();
 
       // Two different sources detect connections to the same target
       fileConnections.set('src/index.ts', [
@@ -296,7 +296,7 @@ describe('WorkspacePipeline sources', () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
-      const fileConnections = new Map<string, IConnection[]>();
+      const fileConnections = new Map<string, IProjectedConnection[]>();
 
       fileConnections.set('src/index.ts', [
         { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
+import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
 import { buildWorkspaceGraphEdges } from '../../../../src/extension/pipeline/graph/edges';
 
 function createPlugin(id: string): IPlugin {
@@ -23,7 +23,7 @@ function createOptions(
 ): Parameters<typeof buildWorkspaceGraphEdges>[0] {
   return {
     disabledPlugins: new Set<string>(),
-    fileConnections: new Map<string, IConnection[]>([
+    fileConnections: new Map<string, IProjectedConnection[]>([
       ['src/index.ts', []],
       ['src/utils.ts', []],
     ]),
@@ -36,7 +36,7 @@ function createOptions(
 describe('pipeline/graph/edges', () => {
   it('merges same-direction edges by kind and accumulates contributing sources', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reexport', sourceId: 'reexport' },
@@ -83,7 +83,7 @@ describe('pipeline/graph/edges', () => {
   it('skips edges from disabled plugins', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
       disabledPlugins: new Set<string>(['plugin.typescript']),
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
         ]],
@@ -98,7 +98,7 @@ describe('pipeline/graph/edges', () => {
 
   it('keeps edges even when source ids would previously have been disabled', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
         ]],
@@ -127,7 +127,7 @@ describe('pipeline/graph/edges', () => {
   it('filters only the disabled plugin provenance when multiple plugins contribute to one file', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
       disabledPlugins: new Set<string>(['plugin.markdown']),
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           {
             specifier: './utils',
@@ -169,7 +169,7 @@ describe('pipeline/graph/edges', () => {
 
   it('skips edges without resolved targets', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: null, kind: 'import', sourceId: 'import' },
         ]],
@@ -182,7 +182,7 @@ describe('pipeline/graph/edges', () => {
 
   it('skips edges whose resolved target is not a discovered file', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', sourceId: 'import' },
         ]],
@@ -194,7 +194,7 @@ describe('pipeline/graph/edges', () => {
 
   it('creates edges without sources when the connection plugin is unavailable', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
         ]],
@@ -216,7 +216,7 @@ describe('pipeline/graph/edges', () => {
 
   it('appends distinct sources for the same edge kind but ignores duplicate source ids', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },

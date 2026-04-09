@@ -15,8 +15,8 @@
 // Disposable
 export type { Disposable } from './disposable';
 
-// Connection / Source
-export type { IConnection, IConnectionSource, IConnectionDetector } from './connection';
+// Connection source metadata
+export type { IConnectionSource } from './connection';
 
 // Analysis
 export type {

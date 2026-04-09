@@ -1,5 +1,5 @@
 import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import type { IConnection, IFileAnalysisResult } from '../../../core/plugins/types/contracts';
+import type { IProjectedConnection, IFileAnalysisResult } from '../../../core/plugins/types/contracts';
 import type { EventBus } from '../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../shared/graph/types';
 import { throwIfWorkspaceAnalysisAborted } from '../abort';
@@ -19,7 +19,7 @@ export interface WorkspacePipelineAnalysisSource {
     signal?: AbortSignal,
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
-    fileConnections: Map<string, IConnection[]>,
+    fileConnections: Map<string, IProjectedConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
     disabledPlugins: Set<string>,
@@ -33,7 +33,7 @@ export interface WorkspacePipelineAnalysisSource {
   _eventBus?: EventBus;
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
-  _lastFileConnections: Map<string, IConnection[]>;
+  _lastFileConnections: Map<string, IProjectedConnection[]>;
   _lastWorkspaceRoot: string;
   _preAnalyzePlugins(
     files: IDiscoveredFile[],

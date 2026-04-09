@@ -5,13 +5,13 @@
 
 import * as path from 'path';
 import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import type { IConnection, IPluginInfo } from '../../../core/plugins/types/contracts';
+import type { IProjectedConnection, IPluginInfo } from '../../../core/plugins/types/contracts';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 
 export interface IWorkspacePluginStatusOptions {
   disabledPlugins: ReadonlySet<string>;
   discoveredFiles: Pick<IDiscoveredFile, 'relativePath'>[];
-  fileConnections: ReadonlyMap<string, IConnection[]>;
+  fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
   pluginInfos: IPluginInfo[];
 }
 

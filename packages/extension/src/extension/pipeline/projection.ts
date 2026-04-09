@@ -1,8 +1,8 @@
-import type { IConnection, IFileAnalysisResult } from '../../core/plugins/types/contracts';
+import type { IProjectedConnection, IFileAnalysisResult } from '../../core/plugins/types/contracts';
 
-export function projectConnectionsFromFileAnalysis(
+export function projectProjectedConnectionsFromFileAnalysis(
   analysis: IFileAnalysisResult,
-): IConnection[] {
+): IProjectedConnection[] {
   return (analysis.relations ?? []).map(relation => ({
     kind: relation.kind,
     pluginId: relation.pluginId,
@@ -17,11 +17,11 @@ export function projectConnectionsFromFileAnalysis(
 
 export function projectConnectionMapFromFileAnalysis(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
-): Map<string, IConnection[]> {
+): Map<string, IProjectedConnection[]> {
   return new Map(
     Array.from(fileAnalysis.entries()).map(([filePath, analysis]) => [
       filePath,
-      projectConnectionsFromFileAnalysis(analysis),
+      projectProjectedConnectionsFromFileAnalysis(analysis),
     ]),
   );
 }

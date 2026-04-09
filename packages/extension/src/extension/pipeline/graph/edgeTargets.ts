@@ -1,12 +1,12 @@
 import * as path from 'path';
-import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
+import type { IProjectedConnection, IPlugin } from '../../../core/plugins/types/contracts';
 import { isExternalPackageSpecifier } from './packageSpecifiers/match';
 import { getExternalPackageNodeId } from './packageSpecifiers/nodeId';
 
 export function getConnectionTargetId(
   _plugin: IPlugin | undefined,
-  connection: IConnection,
-  fileConnections: ReadonlyMap<string, IConnection[]>,
+  connection: IProjectedConnection,
+  fileConnections: ReadonlyMap<string, IProjectedConnection[]>,
   workspaceRoot: string,
 ): string | null {
   if (connection.resolvedPath) {

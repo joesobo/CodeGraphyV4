@@ -1,4 +1,4 @@
-import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
+import type { IProjectedConnection, IPlugin } from '../../../core/plugins/types/contracts';
 import type { IGraphEdgeSource } from '../../../shared/graph/types';
 
 function splitQualifiedSourceId(
@@ -21,7 +21,7 @@ function splitQualifiedSourceId(
 
 export function createQualifiedSourceId(
   plugin: IPlugin | undefined,
-  connection: Pick<IConnection, 'pluginId' | 'sourceId'>,
+  connection: Pick<IProjectedConnection, 'pluginId' | 'sourceId'>,
 ): string | undefined {
   if (!connection.sourceId) {
     return undefined;
@@ -36,7 +36,7 @@ export function createQualifiedSourceId(
 
 export function createEdgeSource(
   plugin: IPlugin | undefined,
-  connection: IConnection,
+  connection: IProjectedConnection,
 ): IGraphEdgeSource | undefined {
   if (!connection.sourceId) {
     return undefined;

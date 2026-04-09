@@ -17,8 +17,6 @@ export type {
   IAnalysisRange,
   IAnalysisRelation,
   IAnalysisSymbol,
-  IConnection,
-  IConnectionDetector,
   IConnectionSource,
   IFileAnalysisResult,
   IGraphData,
@@ -31,6 +29,8 @@ export type {
   IPluginNodeType,
   NodeType,
 } from '../../../../../plugin-api/src/contract';
+
+export type { IProjectedConnection } from './projectedConnection';
 
 /**
  * Information about a registered plugin.

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import path from 'path';
 import * as vscode from 'vscode';
-import type { IConnection, IFileAnalysisResult, IPlugin } from '../../../src/core/plugins/types/contracts';
+import type { IProjectedConnection, IFileAnalysisResult, IPlugin } from '../../../src/core/plugins/types/contracts';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
 import * as workspaceFileAnalysisModule from '../../../src/extension/pipeline/fileAnalysis';
 
@@ -148,11 +148,11 @@ describe('WorkspacePipeline adapters', () => {
         workspaceRoot: string
       ) => Promise<{
         fileAnalysis: Map<string, IFileAnalysisResult>;
-        fileConnections: Map<string, IConnection[]>;
+        fileConnections: Map<string, IProjectedConnection[]>;
       }>;
     };
     const eventBus = { emit: vi.fn() };
-    const expectedConnections = new Map<string, IConnection[]>([['src/index.ts', []]]);
+    const expectedConnections = new Map<string, IProjectedConnection[]>([['src/index.ts', []]]);
     const file = createDiscoveredFile('src/index.ts');
     const analyzeWorkspaceFilesSpy = vi.spyOn(workspaceFileAnalysisModule, 'analyzeWorkspaceFiles').mockResolvedValue({
       cacheHits: 1,

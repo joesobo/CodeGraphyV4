@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
+import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
 import { DEFAULT_NODE_COLOR } from '../../../../src/shared/fileColors';
 import { buildWorkspaceGraphData } from '../../../../src/extension/pipeline/graph/data';
 
@@ -22,7 +22,7 @@ function createPlugin(id: string): IPlugin {
 describe('pipeline/graph/data', () => {
   it('builds connected nodes and edges with cached size and visit counts', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
-    const fileConnections = new Map<string, IConnection[]>([
+    const fileConnections = new Map<string, IProjectedConnection[]>([
       ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' }]],
       ['src/utils.ts', []],
     ]);
@@ -79,7 +79,7 @@ describe('pipeline/graph/data', () => {
   it('filters disabled plugins but keeps source-level provenance', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
     const pythonPlugin = createPlugin('plugin.python');
-    const fileConnections = new Map<string, IConnection[]>([
+    const fileConnections = new Map<string, IProjectedConnection[]>([
       ['src/index.ts', [
         { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
         { specifier: './lazy', resolvedPath: '/workspace/src/lazy.ts', kind: 'import', sourceId: 'dynamic-import' },
@@ -139,7 +139,7 @@ describe('pipeline/graph/data', () => {
 
   it('deduplicates repeated same-kind edges and accumulates distinct sources', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
-    const fileConnections = new Map<string, IConnection[]>([
+    const fileConnections = new Map<string, IProjectedConnection[]>([
       ['src/index.ts', [
         { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
         { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'reexport', sourceId: 'reexport' },
@@ -192,7 +192,7 @@ describe('pipeline/graph/data', () => {
 
   it('hides orphan nodes and removes edges to missing targets', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
-    const fileConnections = new Map<string, IConnection[]>([
+    const fileConnections = new Map<string, IProjectedConnection[]>([
       ['src/index.ts', [
         { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
         { specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', sourceId: 'es6-import' },
@@ -234,7 +234,7 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: null, kind: 'import', sourceId: 'es6-import' }]],
         ['src/utils.ts', []],
       ]),
@@ -253,7 +253,7 @@ describe('pipeline/graph/data', () => {
         'src/index.ts': { size: 10 },
       },
       disabledPlugins: new Set(),
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: 'node:fs/promises', resolvedPath: null, kind: 'import', sourceId: 'es6-import' },
         ]],
@@ -307,7 +307,7 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [{ specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', sourceId: 'es6-import' }]],
       ]),
       showOrphans: true,
@@ -323,7 +323,7 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' },
@@ -364,7 +364,7 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' }]],
         ['src/utils.ts', []],
       ]),

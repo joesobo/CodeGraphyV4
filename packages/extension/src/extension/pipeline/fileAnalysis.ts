@@ -4,10 +4,10 @@
  */
 
 import type { IDiscoveredFile } from '../../core/discovery/contracts';
-import type { IConnection, IFileAnalysisResult } from '../../core/plugins/types/contracts';
+import type { IProjectedConnection, IFileAnalysisResult } from '../../core/plugins/types/contracts';
 import { throwIfWorkspaceAnalysisAborted } from './abort';
 import type { IWorkspaceAnalysisCache } from './cache';
-import { projectConnectionsFromFileAnalysis } from './projection';
+import { projectProjectedConnectionsFromFileAnalysis } from './projection';
 
 interface IWorkspaceFileProcessedConnection {
   resolvedPath: string | null;
@@ -39,7 +39,7 @@ export interface IWorkspaceFileAnalysisResult {
   cacheHits: number;
   cacheMisses: number;
   fileAnalysis: Map<string, IFileAnalysisResult>;
-  fileConnections: Map<string, IConnection[]>;
+  fileConnections: Map<string, IProjectedConnection[]>;
 }
 
 export async function analyzeWorkspaceFiles(
@@ -59,7 +59,7 @@ export async function analyzeWorkspaceFiles(
   throwIfWorkspaceAnalysisAborted(signal);
 
   const fileAnalysis = new Map<string, IFileAnalysisResult>();
-  const fileConnections = new Map<string, IConnection[]>();
+  const fileConnections = new Map<string, IProjectedConnection[]>();
   let cacheHits = 0;
   let cacheMisses = 0;
 
@@ -77,7 +77,7 @@ export async function analyzeWorkspaceFiles(
       fileAnalysis.set(file.relativePath, cached.analysis);
       fileConnections.set(
         file.relativePath,
-        projectConnectionsFromFileAnalysis(cached.analysis),
+        projectProjectedConnectionsFromFileAnalysis(cached.analysis),
       );
       cacheHits += 1;
       options.onProgress?.({
@@ -93,7 +93,7 @@ export async function analyzeWorkspaceFiles(
     const content = await readContent(file);
     throwIfWorkspaceAnalysisAborted(signal);
     const analysis = await analyzeFile(file.absolutePath, content, workspaceRoot);
-    const connections = projectConnectionsFromFileAnalysis(analysis);
+    const connections = projectProjectedConnectionsFromFileAnalysis(analysis);
 
     fileAnalysis.set(file.relativePath, analysis);
     fileConnections.set(file.relativePath, connections);

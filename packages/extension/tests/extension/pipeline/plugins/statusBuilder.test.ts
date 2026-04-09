@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
-import type { IConnection, IPlugin, IPluginInfo } from '../../../../src/core/plugins/types/contracts';
+import type { IProjectedConnection, IPlugin, IPluginInfo } from '../../../../src/core/plugins/types/contracts';
 import { buildWorkspacePluginStatuses } from '../../../../src/extension/pipeline/plugins/statusBuilder';
 
 function createPluginInfo(overrides: Partial<IPlugin>): IPluginInfo {
@@ -43,7 +43,7 @@ describe('pipeline/plugins/statusBuilder', () => {
       { relativePath: 'src/index.ts' },
       { relativePath: 'README.md' },
     ];
-    const fileConnections = new Map<string, IConnection[]>([
+    const fileConnections = new Map<string, IProjectedConnection[]>([
       ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , pluginId: 'plugin.alpha', sourceId: 'test-source', kind: 'import' }]],
       ['README.md', [{ specifier: './guide', resolvedPath: null, type: 'static' , pluginId: 'plugin.markdown', sourceId: 'test-source', kind: 'import' }]],
     ]);
@@ -69,7 +69,7 @@ describe('pipeline/plugins/statusBuilder', () => {
         supportedExtensions: ['.ts'],
       }),
     ];
-    const fileConnections = new Map<string, IConnection[]>([
+    const fileConnections = new Map<string, IProjectedConnection[]>([
       ['src/index.ts', [
         { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import', pluginId: 'plugin.typescript' },
         { specifier: './lazy', resolvedPath: '/workspace/src/lazy.ts', type: 'dynamic', sourceId: 'dynamic-import' , kind: 'import', pluginId: 'plugin.typescript' },
@@ -104,7 +104,7 @@ describe('pipeline/plugins/statusBuilder', () => {
         supportedExtensions: ['.py'],
       }),
     ];
-    const fileConnections = new Map<string, IConnection[]>([
+    const fileConnections = new Map<string, IProjectedConnection[]>([
       ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , pluginId: 'plugin.typescript', sourceId: 'test-source', kind: 'import' }]],
       ['main.py', [{ specifier: 'config', resolvedPath: '/workspace/config.py', type: 'static' , pluginId: 'plugin.python', sourceId: 'test-source', kind: 'import' }]],
     ]);
@@ -132,7 +132,7 @@ describe('pipeline/plugins/statusBuilder', () => {
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
       ]),
       pluginInfos,
@@ -154,7 +154,7 @@ describe('pipeline/plugins/statusBuilder', () => {
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import', pluginId: 'plugin.typescript' }]],
       ]),
       pluginInfos,
@@ -182,7 +182,7 @@ describe('pipeline/plugins/statusBuilder', () => {
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
       discoveredFiles: [{ relativePath: 'README.md' }],
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['README.md', []],
       ]),
       pluginInfos,
@@ -203,7 +203,7 @@ describe('pipeline/plugins/statusBuilder', () => {
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: 'dynamic-import' , kind: 'import', pluginId: 'plugin.typescript' }]],
       ]),
       pluginInfos,
@@ -211,7 +211,7 @@ describe('pipeline/plugins/statusBuilder', () => {
     const disabledSourceStatuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: 'dynamic-import' , kind: 'import', pluginId: 'plugin.typescript' }]],
       ]),
       pluginInfos,
@@ -236,7 +236,7 @@ describe('pipeline/plugins/statusBuilder', () => {
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['README.md', []],
         ['src/index.ts', []],
       ]),
@@ -267,7 +267,7 @@ describe('pipeline/plugins/statusBuilder', () => {
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
-      fileConnections: new Map<string, IConnection[]>([
+      fileConnections: new Map<string, IProjectedConnection[]>([
         ['src/index.ts', [
           {
             specifier: './utils',

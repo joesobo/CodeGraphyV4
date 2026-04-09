@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../src/core/discovery/contracts';
-import type { IConnection, IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
+import type { IProjectedConnection, IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import { createEmptyWorkspaceAnalysisCache } from '../../../src/extension/pipeline/cache';
 import { analyzeWorkspaceFiles } from '../../../src/extension/pipeline/fileAnalysis';
 
@@ -45,7 +45,7 @@ function createEmptyAnalysis(
 describe('pipeline/fileAnalysis', () => {
   it('reuses cached connections and backfills missing size on cache hits', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
-    const cachedConnections: IConnection[] = [
+    const cachedConnections: IProjectedConnection[] = [
       { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' },
     ];
     const cachedAnalysis = createImportAnalysis();
@@ -100,7 +100,7 @@ describe('pipeline/fileAnalysis', () => {
 
   it('analyzes uncached files and stores the new cache entry', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
-    const connections: IConnection[] = [
+    const connections: IProjectedConnection[] = [
       { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' },
     ];
     const analysis = createImportAnalysis();
@@ -221,7 +221,7 @@ describe('pipeline/fileAnalysis', () => {
 
   it('reuses malformed cached entries without reading size from missing stats', async () => {
     const cache = createEmptyWorkspaceAnalysisCache();
-    const cachedConnections: IConnection[] = [
+    const cachedConnections: IProjectedConnection[] = [
       { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' },
     ];
     cache.files['src/index.ts'] = {

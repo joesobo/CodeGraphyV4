@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
+import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
 import { getConnectionTargetId } from '../../../../src/extension/pipeline/graph/edgeTargets';
 
 function createPlugin(id: string): IPlugin {
@@ -15,7 +15,7 @@ function createPlugin(id: string): IPlugin {
 
 describe('pipeline/graph/edgeTargets', () => {
   it('returns discovered workspace targets for resolved connections', () => {
-    const connection: IConnection = {
+    const connection: IProjectedConnection = {
       kind: 'import',
       resolvedPath: '/workspace/src/utils.ts',
       sourceId: 'import',
@@ -33,13 +33,13 @@ describe('pipeline/graph/edgeTargets', () => {
   });
 
   it('returns null for undiscovered resolved targets and unresolved relative imports', () => {
-    const connection: IConnection = {
+    const connection: IProjectedConnection = {
       kind: 'import',
       resolvedPath: '/workspace/src/missing.ts',
       sourceId: 'import',
       specifier: './missing',
     };
-    const unresolved: IConnection = {
+    const unresolved: IProjectedConnection = {
       kind: 'import',
       resolvedPath: null,
       sourceId: 'import',
@@ -77,7 +77,7 @@ describe('pipeline/graph/edgeTargets', () => {
   });
 
   it('creates package node ids for unresolved package imports from any analyzer source', () => {
-    const connection: IConnection = {
+    const connection: IProjectedConnection = {
       kind: 'import',
       resolvedPath: null,
       sourceId: 'import',

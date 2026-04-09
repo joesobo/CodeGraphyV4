@@ -1,4 +1,4 @@
-import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
+import type { IProjectedConnection, IPlugin } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/types';
 import { buildWorkspaceGraphData } from './data';
 
@@ -23,7 +23,7 @@ export interface WorkspacePipelineGraphSource {
 export interface WorkspacePipelineGraphDependencies {
   cacheFiles: Record<string, { size?: number }>;
   disabledPlugins: ReadonlySet<string>;
-  fileConnections: ReadonlyMap<string, IConnection[]>;
+  fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
   showOrphans: boolean;
   workspaceRoot: string;
@@ -49,7 +49,7 @@ export function buildWorkspacePipelineGraph(
 
 export function buildWorkspacePipelineGraphForSource(
   source: WorkspacePipelineGraphSource,
-  fileConnections: Map<string, IConnection[]>,
+  fileConnections: Map<string, IProjectedConnection[]>,
   workspaceRoot: string,
   showOrphans: boolean,
   disabledPlugins: Set<string>,

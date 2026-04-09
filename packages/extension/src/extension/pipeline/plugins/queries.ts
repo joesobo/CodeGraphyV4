@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
+import type { IProjectedConnection, IPlugin } from '../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';
 import type { IPluginStatus } from '../../../shared/plugins/status';
 import { buildWorkspacePluginStatuses } from './statusBuilder';
@@ -13,7 +13,7 @@ interface WorkspacePipelinePluginRegistry {
 export interface WorkspacePipelinePluginStatusDependencies {
   disabledPlugins: ReadonlySet<string>;
   discoveredFiles: IDiscoveredFile[];
-  fileConnections: Map<string, IConnection[]>;
+  fileConnections: Map<string, IProjectedConnection[]>;
   registry: WorkspacePipelinePluginRegistry;
 }
 
