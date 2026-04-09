@@ -56,6 +56,7 @@ function withConnection<T>(
     return callback(connection);
   } finally {
     connection.closeSync();
+    database.closeSync();
   }
 }
 

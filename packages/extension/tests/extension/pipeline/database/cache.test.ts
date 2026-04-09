@@ -78,6 +78,42 @@ describe('workspace analysis database cache', () => {
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(cache);
   });
 
+  it('supports repeated save and load cycles without corrupting the repo-local database', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    const firstCache: IWorkspaceAnalysisCache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/first.ts': {
+          mtime: 1,
+          size: 10,
+          analysis: {
+            filePath: '/workspace/src/first.ts',
+            relations: [],
+          },
+        },
+      },
+    };
+    const secondCache: IWorkspaceAnalysisCache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/second.ts': {
+          mtime: 2,
+          size: 20,
+          analysis: {
+            filePath: '/workspace/src/second.ts',
+            relations: [],
+          },
+        },
+      },
+    };
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, firstCache);
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(firstCache);
+
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, secondCache);
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(secondCache);
+  });
+
   it('falls back to an empty cache when the persisted database is unreadable', () => {
     const workspaceRoot = createWorkspaceRoot();
     const databasePath = getWorkspaceAnalysisDatabasePath(workspaceRoot);
