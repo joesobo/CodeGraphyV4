@@ -27,6 +27,8 @@ describe('load rule', () => {
     expect(connections[0].kind).toBe('load');
     expect(connections[0].type).toBe('dynamic');
     expect(connections[0].sourceId).toBe('load');
+    expect(connections[0].fromFilePath).toBe(testFile);
+    expect(connections[0].toFilePath).toContain('scenes/enemy.tscn');
   });
 
   it('should detect ResourceLoader.load', () => {

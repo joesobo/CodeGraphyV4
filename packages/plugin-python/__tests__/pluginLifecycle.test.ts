@@ -72,7 +72,15 @@ describe('createPythonPlugin lifecycle', () => {
     mocks.parsePythonImports.mockReturnValue(parsedImports);
 
     mocks.detectImportModule.mockReturnValue([
-      { kind: 'import', specifier: 'pkg', resolvedPath: '/workspace/pkg.py', type: 'static', sourceId: 'import-module' },
+      {
+        kind: 'import',
+        specifier: 'pkg',
+        resolvedPath: '/workspace/pkg.py',
+        fromFilePath: filePath,
+        toFilePath: '/workspace/pkg.py',
+        type: 'static',
+        sourceId: 'import-module',
+      },
     ]);
     mocks.detectFromImportAbsolute.mockReturnValue([]);
     mocks.detectFromImportRelative.mockReturnValue([]);

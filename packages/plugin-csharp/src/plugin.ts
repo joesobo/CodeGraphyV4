@@ -10,10 +10,7 @@ import { PathResolver, ICSharpPathResolverConfig } from './PathResolver';
 import { parseContent } from './parserContent';
 import type { CSharpRuleContext } from './parserTypes';
 import { extractUsedTypes } from './parserUsedTypes';
-import {
-  buildCSharpFileAnalysisResult,
-  type CSharpFileAnalysisResult,
-} from './analysis';
+import type { CSharpFileAnalysisResult } from './analysis';
 import manifest from '../codegraphy.json';
 
 // Source detect functions
@@ -73,12 +70,15 @@ export function createCSharpPlugin(): ICSharpAnalyzeFilePlugin {
 
     const usedTypes = extractUsedTypes(content);
     const ctx: CSharpRuleContext = { resolver, usings, namespaces, usedTypes };
-    const connections = [
+    const relations = [
       ...detectUsingDirective(content, filePath, ctx),
       ...detectTypeUsage(content, filePath, ctx),
     ];
 
-    return buildCSharpFileAnalysisResult(filePath, connections);
+    return {
+      filePath,
+      relations,
+    };
   };
 
   return {

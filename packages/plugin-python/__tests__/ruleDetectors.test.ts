@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDetectedImport } from '../src/PathResolver';
 import type { PythonRuleContext } from '../src/context';
-import { buildFromImportConnections } from '../src/sources/from-import-shared';
+import { buildFromImportRelations } from '../src/sources/from-import-shared';
 
 function createContext(
   resolveImpl: (imp: IDetectedImport, fromFile: string) => string | null,
@@ -45,7 +45,7 @@ describe('python rule detectors', () => {
     expect(module.default.detect).toBe(module.detect);
   });
 
-  it('builds relative from-import connections for named members', () => {
+  it('builds relative from-import relations for named members', () => {
     const { ctx, resolve } = createContext((imp) => {
       if (imp.module === 'pkg.member') {
         return '/workspace/pkg/member.py';
@@ -53,7 +53,7 @@ describe('python rule detectors', () => {
       return null;
     });
 
-    const connections = buildFromImportConnections(
+    const relations = buildFromImportRelations(
       '/workspace/current.py',
       {
         kind: 'from',
@@ -66,11 +66,13 @@ describe('python rule detectors', () => {
       'from-import-relative',
     );
 
-    expect(connections).toEqual([
+    expect(relations).toEqual([
       {
         kind: 'import',
         specifier: 'from ..pkg import member',
         resolvedPath: '/workspace/pkg/member.py',
+        fromFilePath: '/workspace/current.py',
+        toFilePath: '/workspace/pkg/member.py',
         type: 'static',
         sourceId: 'from-import-relative',
       },
@@ -89,7 +91,7 @@ describe('python rule detectors', () => {
     );
   });
 
-  it('resolves wildcard from-import connections to the package module', () => {
+  it('resolves wildcard from-import relations to the package module', () => {
     const { ctx } = createContext((imp) => {
       if (imp.module === 'pkg.*') {
         return '/workspace/pkg/wildcard-should-not-win.py';
@@ -100,7 +102,7 @@ describe('python rule detectors', () => {
       return null;
     });
 
-    const connections = buildFromImportConnections(
+    const relations = buildFromImportRelations(
       '/workspace/current.py',
       {
         kind: 'from',
@@ -113,11 +115,13 @@ describe('python rule detectors', () => {
       'from-import-relative',
     );
 
-    expect(connections).toEqual([
+    expect(relations).toEqual([
       {
         kind: 'import',
         specifier: 'from ..pkg import *',
         resolvedPath: '/workspace/pkg/__init__.py',
+        fromFilePath: '/workspace/current.py',
+        toFilePath: '/workspace/pkg/__init__.py',
         type: 'static',
         sourceId: 'from-import-relative',
       },
@@ -144,13 +148,15 @@ describe('python rule detectors', () => {
       { kind: 'from', module: 'pkg', names: ['rel'], level: 1, line: 4 },
     ];
 
-    const connections = detectFromImportAbsolute('', '/workspace/main.py', ctx);
+    const relations = detectFromImportAbsolute('', '/workspace/main.py', ctx);
 
-    expect(connections).toEqual([
+    expect(relations).toEqual([
       {
         kind: 'import',
         specifier: 'from pkg import mod',
         resolvedPath: '/workspace/pkg/mod.py',
+        fromFilePath: '/workspace/main.py',
+        toFilePath: '/workspace/pkg/mod.py',
         type: 'static',
         sourceId: 'from-import-absolute',
       },
@@ -172,20 +178,22 @@ describe('python rule detectors', () => {
       { kind: 'from', module: 'pkg', names: ['mod'], level: 1, line: 3 },
     ];
 
-    const connections = detectFromImportRelative('', '/workspace/main.py', ctx);
+    const relations = detectFromImportRelative('', '/workspace/main.py', ctx);
 
-    expect(connections).toEqual([
+    expect(relations).toEqual([
       {
         kind: 'import',
         specifier: 'from .pkg import mod',
         resolvedPath: '/workspace/pkg/mod.py',
+        fromFilePath: '/workspace/main.py',
+        toFilePath: '/workspace/pkg/mod.py',
         type: 'static',
         sourceId: 'from-import-relative',
       },
     ]);
   });
 
-  it('builds static import-module connections', async () => {
+  it('builds static import-module relations', async () => {
     const { detect: detectImportModule } = await import('../src/sources/import-module');
     const { ctx } = createContext(() => '/workspace/pkg.py');
 
@@ -194,13 +202,15 @@ describe('python rule detectors', () => {
       { kind: 'from', module: 'pkg', names: ['ignored'], level: 0, line: 8 },
     ];
 
-    const connections = detectImportModule('', '/workspace/main.py', ctx);
+    const relations = detectImportModule('', '/workspace/main.py', ctx);
 
-    expect(connections).toEqual([
+    expect(relations).toEqual([
       {
         kind: 'import',
         specifier: 'pkg',
         resolvedPath: '/workspace/pkg.py',
+        fromFilePath: '/workspace/main.py',
+        toFilePath: '/workspace/pkg.py',
         type: 'static',
         sourceId: 'import-module',
       },

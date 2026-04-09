@@ -5,13 +5,13 @@
  */
 
 import * as path from 'path';
-import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
 import type { GDScriptRuleContext } from '../parser';
 import { isResPath, normalizePath } from '../parser';
 
 /** Detects extends statements with file paths: extends "res://scripts/base.gd" */
-export function detect(content: string, _filePath: string, ctx: GDScriptRuleContext): IConnection[] {
-  const connections: IConnection[] = [];
+export function detect(content: string, filePath: string, ctx: GDScriptRuleContext): IAnalysisRelation[] {
+  const relations: IAnalysisRelation[] = [];
   const lines = content.split('\n');
 
   for (let i = 0; i < lines.length; i++) {
@@ -23,23 +23,26 @@ export function detect(content: string, _filePath: string, ctx: GDScriptRuleCont
       const resPath = match[1];
       if (isResPath(resPath)) {
         const resolved = ctx.resolver.resolve(resPath, ctx.relativeFilePath);
-        connections.push({
+        const resolvedPath = resolved ? normalizePath(path.join(ctx.workspaceRoot, resolved)) : null;
+        relations.push({
           kind: 'inherit',
           specifier: resPath,
-          resolvedPath: resolved ? normalizePath(path.join(ctx.workspaceRoot, resolved)) : null,
+          resolvedPath,
           type: 'static',
           sourceId: 'extends',
+          fromFilePath: filePath,
+          toFilePath: resolvedPath,
         });
       }
     }
   }
 
-  return connections;
+  return relations;
 }
 
-class ExtendsRule implements IConnectionDetector<GDScriptRuleContext> {
-	readonly id = 'extends';
-	readonly detect = detect;
+class ExtendsRule {
+    readonly id = 'extends';
+    readonly detect = detect;
 }
 
 const rule = new ExtendsRule();

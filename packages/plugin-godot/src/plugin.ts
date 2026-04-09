@@ -9,10 +9,7 @@ import * as path from 'path';
 import type { IPlugin } from '@codegraphy-vscode/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration, normalizePath } from './parser';
-import {
-  buildGDScriptFileAnalysisResult,
-  type GDScriptFileAnalysisResult,
-} from './analysis';
+import type { GDScriptFileAnalysisResult } from './analysis';
 import manifest from '../codegraphy.json';
 
 // Source detect functions
@@ -71,14 +68,17 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
       if (ref) resolver.registerClassName(ref.resPath, relativeFilePath);
     }
 
-    const connections = [
+    const relations = [
       ...detectPreload(content, filePath, ctx),
       ...detectLoad(content, filePath, ctx),
       ...detectExtends(content, filePath, ctx),
       ...detectClassNameUsage(content, filePath, ctx),
     ];
 
-    return buildGDScriptFileAnalysisResult(filePath, connections);
+    return {
+      filePath,
+      relations,
+    };
   };
 
   return {

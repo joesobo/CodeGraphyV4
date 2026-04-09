@@ -6,8 +6,6 @@
  */
 
 import type {
-  IAnalysisRelation,
-  IConnection,
   IFileAnalysisResult,
   IPlugin,
 } from '@codegraphy-vscode/plugin-api';
@@ -64,23 +62,6 @@ export function createPythonPlugin(): IPlugin {
     return resolver;
   }
 
-  function toAnalysisRelations(
-    filePath: string,
-    connections: IConnection[],
-  ): IAnalysisRelation[] {
-    return connections.map((connection) => ({
-      kind: connection.kind,
-      sourceId: connection.sourceId,
-      specifier: connection.specifier,
-      type: connection.type,
-      variant: connection.variant,
-      resolvedPath: connection.resolvedPath,
-      metadata: connection.metadata,
-      fromFilePath: filePath,
-      toFilePath: connection.resolvedPath,
-    }));
-  }
-
   async function analyzePythonFile(
     filePath: string,
     content: string,
@@ -89,7 +70,7 @@ export function createPythonPlugin(): IPlugin {
     const activeResolver = await getResolver(workspaceRoot);
     const imports = parsePythonImports(content);
     const ctx = { resolver: activeResolver, imports };
-    const connections = [
+    const relations = [
       ...detectImportModule(content, filePath, ctx),
       ...detectFromImportAbsolute(content, filePath, ctx),
       ...detectFromImportRelative(content, filePath, ctx),
@@ -97,7 +78,7 @@ export function createPythonPlugin(): IPlugin {
 
     return {
       filePath,
-      relations: toAnalysisRelations(filePath, connections),
+      relations,
     };
   }
 
