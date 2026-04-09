@@ -34,7 +34,7 @@ export function resolveGraphViewProviderWebviewView(
   });
 
   webviewView.onDidChangeVisibility(() => {
-    if (webviewView.visible) {
+    if (!isTimelineView && webviewView.visible) {
       source.flushPendingWorkspaceRefresh?.();
     }
   });
@@ -53,7 +53,7 @@ export function resolveGraphViewProviderWebviewView(
       dependencies.executeCommand(command, key, value),
   } as never);
 
-  if (webviewView.visible) {
+  if (!isTimelineView && webviewView.visible) {
     source.flushPendingWorkspaceRefresh?.();
   }
 }
