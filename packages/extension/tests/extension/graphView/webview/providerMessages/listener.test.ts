@@ -88,8 +88,6 @@ function createDependencies(): GraphViewProviderMessageListenerDependencies {
       createUndoableAction({ kind: 'reset-settings-action' }),
     ),
     executeUndoAction: vi.fn(() => Promise.resolve()),
-    normalizeFolderNodeColor: vi.fn(color => color),
-    defaultFolderNodeColor: '#336699',
     dagModeKey: 'dagMode',
     nodeSizeModeKey: 'nodeSizeMode',
   };
@@ -438,7 +436,6 @@ describe('graph view provider listener bridge', () => {
     }));
     vi.doMock('../../../../../src/extension/graphView/settings/reader', () => ({
       getGraphViewConfigTarget: vi.fn(() => vscode.ConfigurationTarget.Workspace),
-      normalizeFolderNodeColor: vi.fn((color: string) => color),
     }));
     vi.doMock('../../../../../src/extension/graphView/settings/snapshot', () => ({
       captureGraphViewSettingsSnapshot: vi.fn(() => createSettingsSnapshot()),
@@ -529,8 +526,6 @@ async function loadDefaultListenerHarness(
     this.setNodeSizeMode = setNodeSizeMode;
     this.analyzeAndSendData = analyzeAndSendData;
   });
-  const normalizeFolderNodeColor = vi.fn((color: string) => color.toUpperCase());
-
   vi.doMock('vscode', () => ({
     workspace: {
       workspaceFolders,
@@ -551,7 +546,6 @@ async function loadDefaultListenerHarness(
   }));
   vi.doMock('../../../../../src/extension/graphView/settings/reader', () => ({
     getGraphViewConfigTarget: getConfigTarget,
-    normalizeFolderNodeColor,
   }));
   vi.doMock('../../../../../src/extension/graphView/settings/snapshot', () => ({
     captureGraphViewSettingsSnapshot: captureSettingsSnapshot,
@@ -589,6 +583,5 @@ async function loadDefaultListenerHarness(
     captureSettingsSnapshot,
     ResetSettingsAction,
     execute,
-    normalizeFolderNodeColor,
   };
 }

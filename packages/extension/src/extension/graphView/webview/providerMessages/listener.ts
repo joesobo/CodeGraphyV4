@@ -7,13 +7,12 @@ import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../../../shared/settings/snapshot';
 import type { IViewContext } from '../../../../core/views/contracts';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/fileColors';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
 import { ResetSettingsAction } from '../../../actions/resetSettings';
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache';
-import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/reader';
+import { getGraphViewConfigTarget } from '../../settings/reader';
 import { captureGraphViewSettingsSnapshot } from '../../settings/snapshot';
 import { createGraphViewProviderMessageContext } from './context';
 import { setGraphViewWebviewMessageListener } from '../messages/listener';
@@ -59,8 +58,6 @@ export interface GraphViewProviderMessageListenerDependencies {
     analyzeAndSendData: () => Promise<void>,
   ): IUndoableAction;
   executeUndoAction(action: IUndoableAction): Promise<void>;
-  normalizeFolderNodeColor(folderNodeColor: string): string;
-  defaultFolderNodeColor: string;
   dagModeKey: string;
   nodeSizeModeKey: string;
 }
@@ -179,10 +176,8 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies 
       sendAllSettings,
       setNodeSizeMode,
       analyzeAndSendData,
-    ),
+      ),
   executeUndoAction: action => getUndoManager().execute(action),
-  normalizeFolderNodeColor,
-  defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
   dagModeKey: 'dagMode',
   nodeSizeModeKey: 'nodeSizeMode',
 };
