@@ -5,6 +5,7 @@ import type {
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '../../../core/plugins/types/contracts';
+import type { WorkspaceAnalysisDatabaseSnapshot } from '../../pipeline/database/cache';
 
 export interface SymbolExportFileEntry {
   filePath: string;
@@ -93,6 +94,43 @@ export function buildSymbolsExportData(
       metadata: symbol.metadata,
     })),
     relations: [...relations].sort((left, right) => {
+      const leftKey = `${left.fromFilePath}:${left.kind}:${left.toFilePath ?? ''}:${left.fromSymbolId ?? ''}:${left.toSymbolId ?? ''}`;
+      const rightKey = `${right.fromFilePath}:${right.kind}:${right.toFilePath ?? ''}:${right.fromSymbolId ?? ''}:${right.toSymbolId ?? ''}`;
+      return leftKey.localeCompare(rightKey);
+    }),
+  };
+}
+
+export function buildSymbolsExportDataFromSnapshot(
+  snapshot: WorkspaceAnalysisDatabaseSnapshot,
+): SymbolExportData {
+  return {
+    format: 'codegraphy-symbol-export',
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    summary: {
+      totalFiles: snapshot.files.length,
+      totalNodes: snapshot.files.reduce((total, file) => total + (file.analysis.nodes?.length ?? 0), 0),
+      totalSymbols: snapshot.symbols.length,
+      totalRelations: snapshot.relations.length,
+    },
+    files: snapshot.files.map((file) => ({
+      filePath: file.filePath,
+      nodeCount: file.analysis.nodes?.length ?? 0,
+      symbolCount: file.analysis.symbols?.length ?? 0,
+      relationCount: file.analysis.relations?.length ?? 0,
+    })),
+    nodes: sortById(snapshot.files.flatMap((file) => file.analysis.nodes ?? [])),
+    symbols: sortByFilePath(snapshot.symbols).map((symbol) => ({
+      id: symbol.id,
+      name: symbol.name,
+      kind: symbol.kind,
+      filePath: symbol.filePath,
+      signature: symbol.signature,
+      range: symbol.range,
+      metadata: symbol.metadata,
+    })),
+    relations: [...snapshot.relations].sort((left, right) => {
       const leftKey = `${left.fromFilePath}:${left.kind}:${left.toFilePath ?? ''}:${left.fromSymbolId ?? ''}:${left.toSymbolId ?? ''}`;
       const rightKey = `${right.fromFilePath}:${right.kind}:${right.toFilePath ?? ''}:${right.fromSymbolId ?? ''}:${right.toSymbolId ?? ''}`;
       return leftKey.localeCompare(rightKey);

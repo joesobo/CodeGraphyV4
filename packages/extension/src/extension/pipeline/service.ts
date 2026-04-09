@@ -23,7 +23,9 @@ import {
 } from './cache';
 import {
   loadWorkspaceAnalysisDatabaseCache,
+  readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
+  type WorkspaceAnalysisDatabaseSnapshot,
 } from './database/cache.ts';
 import {
   getWorkspacePipelinePluginFilterPatterns,
@@ -126,6 +128,15 @@ export class WorkspacePipeline {
 
   get lastFileAnalysis(): ReadonlyMap<string, IFileAnalysisResult> {
     return this._lastFileAnalysis;
+  }
+
+  readStructuredAnalysisSnapshot(): WorkspaceAnalysisDatabaseSnapshot {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return { files: [], symbols: [], relations: [] };
+    }
+
+    return readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
   }
 
   /**
