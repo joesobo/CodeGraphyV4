@@ -23,6 +23,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'addToExclude'
   | 'loadAndSendData'
   | 'analyzeAndSendData'
+  | 'clearCacheAndRefresh'
   | 'getFileInfo'
   | 'undo'
   | 'redo'
@@ -65,6 +66,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     addToExclude: patterns => source._addToExclude(patterns),
     loadAndSendData: () => source._loadAndSendData(),
     analyzeAndSendData: () => source._analyzeAndSendData(),
+    clearCacheAndRefresh: () => source.clearCacheAndRefresh(),
     getFileInfo: filePath => source._getFileInfo(filePath),
     undo: () => source.undo(),
     redo: () => source.redo(),

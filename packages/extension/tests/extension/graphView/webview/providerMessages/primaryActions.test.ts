@@ -158,6 +158,7 @@ function createSource() {
     _toggleFavorites: vi.fn(() => Promise.resolve()),
     _addToExclude: vi.fn(() => Promise.resolve()),
     _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     _getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve('undo')),
     redo: vi.fn(() => Promise.resolve('redo')),
