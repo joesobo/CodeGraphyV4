@@ -19,7 +19,6 @@ interface BuildGraphViewContextOptions {
   workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined;
   activeEditor: vscode.TextEditor | undefined;
   readSavedDepthLimit: () => number | undefined;
-  readFolderNodeColor: () => string;
   asRelativePath: (uri: vscode.Uri) => string;
   defaultDepthLimit: number;
 }
@@ -52,7 +51,6 @@ export function buildGraphViewContext({
   workspaceFolders,
   activeEditor,
   readSavedDepthLimit,
-  readFolderNodeColor,
   asRelativePath,
   defaultDepthLimit,
 }: BuildGraphViewContextOptions): IViewContext {
@@ -65,6 +63,5 @@ export function buildGraphViewContext({
       ? getGraphViewRelativePath(activeEditor.document.uri, workspaceFolders, asRelativePath)
       : undefined,
     depthLimit: readSavedDepthLimit() ?? defaultDepthLimit,
-    folderNodeColor: readFolderNodeColor(),
   };
 }

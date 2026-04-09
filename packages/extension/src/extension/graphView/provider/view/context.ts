@@ -1,12 +1,10 @@
 import * as vscode from 'vscode';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { ViewRegistry } from '../../../../core/views/registry';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/fileColors';
 import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import { applyGraphViewTransform } from '../../presentation';
-import { normalizeFolderNodeColor } from '../../settings/reader';
 import { sendGraphViewDepthState } from '../../view/broadcast';
 import { buildGraphViewContext } from '../../view/context';
 import { filterDepthGraph } from '../../../../core/views/depth/transform';
@@ -24,10 +22,6 @@ interface GraphViewProviderAnalyzerLike {
   registry: {
     list(): Array<{ plugin: { id: string } }>;
   };
-}
-
-interface GraphViewProviderNodeColors {
-  folder?: string;
 }
 
 export interface GraphViewProviderViewContextMethodsSource {
@@ -57,9 +51,7 @@ export interface GraphViewProviderViewContextMethodDependencies {
   buildViewContext: typeof buildGraphViewContext;
   applyViewTransform: typeof applyGraphViewTransform;
   sendDepthState: typeof sendGraphViewDepthState;
-  normalizeFolderNodeColor: typeof normalizeFolderNodeColor;
   defaultDepthLimit: number;
-  defaultFolderNodeColor: string;
 }
 
 function createDefaultDependencies(): GraphViewProviderViewContextMethodDependencies {
@@ -74,9 +66,7 @@ function createDefaultDependencies(): GraphViewProviderViewContextMethodDependen
     buildViewContext: buildGraphViewContext,
     applyViewTransform: applyGraphViewTransform,
     sendDepthState: sendGraphViewDepthState,
-    normalizeFolderNodeColor,
     defaultDepthLimit: 1,
-    defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
   };
 }
 
@@ -91,12 +81,6 @@ export function createGraphViewProviderViewContextMethods(
       workspaceFolders: dependencies.getWorkspaceFolders(),
       activeEditor: dependencies.getActiveTextEditor(),
       readSavedDepthLimit: () => config.get<number>('depthLimit', dependencies.defaultDepthLimit),
-      readFolderNodeColor: () => {
-        const nodeColors = config.get<GraphViewProviderNodeColors>('nodeColors', {}) ?? {};
-        return dependencies.normalizeFolderNodeColor(
-          nodeColors.folder ?? dependencies.defaultFolderNodeColor,
-        );
-      },
       asRelativePath: uri => dependencies.asRelativePath(uri),
       defaultDepthLimit: dependencies.defaultDepthLimit,
     });

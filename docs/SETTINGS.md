@@ -81,7 +81,6 @@ Example:
 | `nodeColors` | object | generated | Node-type colors by id |
 | `edgeVisibility` | object | generated | Edge-kind visibility by id |
 | `edgeColors` | object | generated | Edge-kind colors by id |
-| `folderNodeColor` | string | `"#A1A1AA"` | Default folder color |
 | `physics.*` | object | see file | Force simulation controls |
 | `timeline.*` | object | see file | Timeline indexing/playback controls |
 
@@ -182,7 +181,7 @@ To version-control filter patterns, add them to `settings.json`:
 - **Direction Color** controls directional indicator color (hex only, `#RRGGBB`).
 - **Particle Speed** uses a normalized UI scale from `1` to `10` (mapped to internal `0.0005` to `0.005`).
 - **Show Labels** toggles file name labels on nodes. Labels fade in smoothly as you zoom in.
-- **Folder Node Color** sets the default folder color when folder nodes are visible.
+- **Node / edge colors** now live in the **Legends** popup and are stored under `nodeColors` / `edgeColors`.
 
 Node, edge, legend, and plugin controls are in dedicated toolbar popups. The graph no longer switches between separate built-in Connections, Depth, and Folder views.
 
@@ -312,7 +311,9 @@ CodeGraphy’s graph/index behavior now lives with the repo under `.codegraphy/`
 
 Legacy note:
 - older repos may still contain `disabledSources` from source-level rule toggles
+- older repos may still contain `folderNodeColor` as a standalone key
 - CodeGraphy can still read that during migration, but the current graph controls are `nodeVisibility`, `edgeVisibility`, `legend`, `disabledPlugins`, and `pluginOrder`
+- current folder coloring should live under `nodeColors.folder`
 
 ## Troubleshooting
 

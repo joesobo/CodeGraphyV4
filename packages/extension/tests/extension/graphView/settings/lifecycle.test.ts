@@ -41,21 +41,19 @@ function createSnapshot(
 }
 
 describe('graph view settings lifecycle helper', () => {
-  it('updates folder-node color and sends current settings messages', () => {
-    const viewContext = { folderNodeColor: '#000000' };
+  it('sends current settings messages without mutating the view context', () => {
+    const viewContext = {};
     const sendMessage = vi.fn();
 
     sendGraphViewProviderSettings(viewContext as never, {
       getConfiguration: () => ({
         get: vi.fn(<T>(key: string, defaultValue: T) => {
-          if (key === 'folderNodeColor') return '#123456' as T;
           return defaultValue;
         }),
       }),
       sendMessage,
     });
 
-    expect(viewContext.folderNodeColor).toBe('#123456');
     expect(sendMessage).toHaveBeenCalled();
   });
 
@@ -64,7 +62,7 @@ describe('graph view settings lifecycle helper', () => {
     const recomputeGroups = vi.fn();
     const sendGroupsUpdated = vi.fn();
     const state = {
-      viewContext: { folderNodeColor: '#000000' },
+      viewContext: {},
       hiddenPluginGroupIds: new Set<string>(),
       userGroups: [],
       filterPatterns: [],
@@ -79,7 +77,6 @@ describe('graph view settings lifecycle helper', () => {
       sendGroupsUpdated,
     });
 
-    expect(state.viewContext.folderNodeColor).toBe('#123456');
     expect([...state.hiddenPluginGroupIds]).toEqual(['plugin:codegraphy.python']);
     expect(state.userGroups).toEqual(snapshot.legends);
     expect(state.filterPatterns).toEqual(['dist/**']);

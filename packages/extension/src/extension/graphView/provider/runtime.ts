@@ -127,7 +127,7 @@ export class GraphViewProviderRuntime {
   }
 
   public isGraphOpen(): boolean {
-    if (this._view?.visible || this._timelineView?.visible) {
+    if (this._view?.visible) {
       return true;
     }
 

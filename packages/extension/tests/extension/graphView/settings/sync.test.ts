@@ -44,7 +44,7 @@ function createState(
   overrides: Partial<GraphViewAllSettingsSyncState> = {},
 ): GraphViewAllSettingsSyncState {
   return {
-    viewContext: { folderNodeColor: '#000000' },
+    viewContext: {},
     hiddenPluginGroupIds: new Set<string>(),
     userGroups: [],
     filterPatterns: [],
@@ -66,7 +66,6 @@ describe('graphView/settings/sync', () => {
       sendGroupsUpdated,
     });
 
-    expect(state.viewContext.folderNodeColor).toBe('#123456');
     expect([...state.hiddenPluginGroupIds]).toEqual(['plugin:codegraphy.python']);
     expect(state.userGroups).toEqual(snapshot.legends);
     expect(state.filterPatterns).toEqual(['dist/**']);

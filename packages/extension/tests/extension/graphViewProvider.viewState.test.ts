@@ -194,7 +194,6 @@ describe('GraphViewProvider view state and internal helpers', () => {
           particleSpeed: 0.02,
           particleSize: 7,
           directionColor: '#00ff00',
-          folderNodeColor: '#112233',
           showLabels: false,
         })
       );
@@ -211,9 +210,6 @@ describe('GraphViewProvider view state and internal helpers', () => {
 
     internals._settingsStateMethods._sendSettings();
 
-    expect((provider as unknown as { _viewContext: { folderNodeColor: string } })._viewContext.folderNodeColor).toBe(
-      '#112233'
-    );
     expect(sendMessageSpy).toHaveBeenNthCalledWith(1, {
       type: 'SETTINGS_UPDATED',
       payload: { bidirectionalEdges: 'combined', showOrphans: false },

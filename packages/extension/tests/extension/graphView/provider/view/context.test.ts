@@ -9,7 +9,6 @@ const providerViewContextMethodMocks = vi.hoisted(() => ({
   buildViewContext: vi.fn(),
   applyViewTransform: vi.fn(),
   sendDepthState: vi.fn(),
-  normalizeFolderNodeColor: vi.fn(),
 }));
 
 vi.mock('../../../../../src/extension/graphView/view/context', () => ({
@@ -24,10 +23,6 @@ vi.mock('../../../../../src/extension/graphView/presentation', () => ({
   applyGraphViewTransform: providerViewContextMethodMocks.applyViewTransform,
 }));
 
-vi.mock('../../../../../src/extension/graphView/settings/reader', () => ({
-  normalizeFolderNodeColor: providerViewContextMethodMocks.normalizeFolderNodeColor,
-}));
-
 import { createGraphViewProviderViewContextMethods } from '../../../../../src/extension/graphView/provider/view/context';
 
 describe('graphView/provider/view/context', () => {
@@ -35,7 +30,6 @@ describe('graphView/provider/view/context', () => {
     providerViewContextMethodMocks.buildViewContext.mockReset();
     providerViewContextMethodMocks.applyViewTransform.mockReset();
     providerViewContextMethodMocks.sendDepthState.mockReset();
-    providerViewContextMethodMocks.normalizeFolderNodeColor.mockReset();
   });
 
   it('updates graph data and returns the current graph snapshot', () => {
@@ -71,7 +65,6 @@ describe('graphView/provider/view/context', () => {
       update: vi.fn(() => Promise.resolve()),
     };
     const getConfiguration = vi.fn(() => configuration);
-    const normalizeFolderNodeColor = vi.fn(() => '#654321');
     const asRelativePath = vi.fn(() => 'src/app.ts');
     const workspaceFolders = [{ uri: { fsPath: '/workspace' }, name: 'workspace', index: 0 }] as never;
     const activeEditor = { document: { uri: { fsPath: '/workspace/src/app.ts' } } } as never;
@@ -80,7 +73,6 @@ describe('graphView/provider/view/context', () => {
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
       focusedFile: 'src/app.ts',
-      folderNodeColor: '#123456',
       } satisfies IViewContext),
     );
     const methods = createGraphViewProviderViewContextMethods(
@@ -91,7 +83,6 @@ describe('graphView/provider/view/context', () => {
         getWorkspaceFolders: vi.fn(() => workspaceFolders),
         getActiveTextEditor: vi.fn(() => activeEditor),
         asRelativePath,
-        normalizeFolderNodeColor,
       }),
     );
 
@@ -104,7 +95,6 @@ describe('graphView/provider/view/context', () => {
       workspaceFolders: unknown;
       activeEditor: unknown;
       readSavedDepthLimit(): number;
-      readFolderNodeColor(): string;
       asRelativePath(uri: { fsPath: string }): string;
       defaultDepthLimit: number;
     };
@@ -112,18 +102,14 @@ describe('graphView/provider/view/context', () => {
     expect(options.workspaceFolders).toBe(workspaceFolders);
     expect(options.activeEditor).toBe(activeEditor);
     expect(options.readSavedDepthLimit()).toBe(1);
-    expect(options.readFolderNodeColor()).toBe('#654321');
     expect(options.asRelativePath({ fsPath: '/workspace/src/app.ts' })).toBe('src/app.ts');
     expect(options.defaultDepthLimit).toBe(1);
     expect(configuration.get).toHaveBeenCalledWith('depthLimit', 1);
-    expect(configuration.get).toHaveBeenCalledWith('nodeColors', {});
-    expect(normalizeFolderNodeColor).toHaveBeenCalledWith('#123456');
     expect(asRelativePath).toHaveBeenCalledWith({ fsPath: '/workspace/src/app.ts' });
     expect(source._viewContext).toEqual({
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
       focusedFile: 'src/app.ts',
-      folderNodeColor: '#123456',
     });
   });
 
@@ -158,12 +144,10 @@ describe('graphView/provider/view/context', () => {
       value: asRelativePath,
     });
 
-    providerViewContextMethodMocks.normalizeFolderNodeColor.mockReturnValue('#654321');
     providerViewContextMethodMocks.buildViewContext.mockReturnValue({
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
       focusedFile: 'src/app.ts',
-      folderNodeColor: '#654321',
     } satisfies IViewContext);
 
     const methods = createGraphViewProviderViewContextMethods(source as never);
@@ -177,7 +161,6 @@ describe('graphView/provider/view/context', () => {
       workspaceFolders: unknown;
       activeEditor: unknown;
       readSavedDepthLimit(): number;
-      readFolderNodeColor(): string;
       asRelativePath(uri: vscode.Uri): string;
       defaultDepthLimit: number;
     };
@@ -185,18 +168,14 @@ describe('graphView/provider/view/context', () => {
     expect(options.workspaceFolders).toEqual([workspaceFolder]);
     expect(options.activeEditor).toBe(activeEditor);
     expect(options.readSavedDepthLimit()).toBe(1);
-    expect(options.readFolderNodeColor()).toBe('#654321');
     expect(options.asRelativePath(vscode.Uri.file('/workspace/src/app.ts'))).toBe('src/app.ts');
     expect(options.defaultDepthLimit).toBe(1);
     expect(configurationGet).toHaveBeenCalledWith('depthLimit', 1);
-    expect(configurationGet).toHaveBeenCalledWith('nodeColors', {});
-    expect(providerViewContextMethodMocks.normalizeFolderNodeColor).toHaveBeenCalledWith('#123456');
     expect(asRelativePath).toHaveBeenCalledWith(vscode.Uri.file('/workspace/src/app.ts'));
     expect(source._viewContext).toEqual({
       activePlugins: new Set<string>(['plugin.test']),
       depthLimit: 3,
       focusedFile: 'src/app.ts',
-      folderNodeColor: '#654321',
     });
 
     if (originalAsRelativePath === undefined) {
@@ -459,9 +438,7 @@ function createDependencies(
     buildViewContext,
     applyViewTransform,
     sendDepthState: vi.fn(),
-    normalizeFolderNodeColor: vi.fn((color: string | undefined) => color ?? '#93C5FD'),
     defaultDepthLimit: 1,
-    defaultFolderNodeColor: '#93C5FD',
     ...overrides,
   };
 }

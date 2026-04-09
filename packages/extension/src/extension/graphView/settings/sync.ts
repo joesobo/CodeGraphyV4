@@ -4,7 +4,7 @@ import type { ISettingsSnapshot } from '../../../shared/settings/snapshot';
 import { buildGraphViewAllSettingsMessages } from './messages';
 
 export interface GraphViewAllSettingsSyncState {
-  viewContext: { folderNodeColor?: string };
+  viewContext: object;
   hiddenPluginGroupIds: Set<string>;
   userGroups: IGroup[];
   filterPatterns: string[];
@@ -24,7 +24,6 @@ export function applyGraphViewAllSettingsSnapshot(
 ): void {
   const messages = buildGraphViewAllSettingsMessages(snapshot, pluginFilterPatterns);
 
-  state.viewContext.folderNodeColor = snapshot.folderNodeColor;
   for (const message of messages.preGroupMessages) {
     handlers.sendMessage(message);
   }

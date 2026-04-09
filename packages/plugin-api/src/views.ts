@@ -106,6 +106,4 @@ export interface IViewContext {
    */
   depthLimit?: number;
 
-  /** Color for structural folder nodes when a transform renders them. */
-  folderNodeColor?: string;
 }
