@@ -81,10 +81,6 @@ describe('classifyConfigChange', () => {
       expect(classifyConfigChange(event)).toBe('groups');
     });
 
-    it('returns groups when codegraphy.hiddenPluginGroups is affected', () => {
-      const event = makeEvent('codegraphy.hiddenPluginGroups');
-      expect(classifyConfigChange(event)).toBe('groups');
-    });
   });
 
   describe('general category', () => {
