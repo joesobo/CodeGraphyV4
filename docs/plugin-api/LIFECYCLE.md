@@ -162,7 +162,7 @@ Called for each file after the core has prepared the file payload. Plugins retur
 
 The host merges core output first and then plugin output in plugin priority order.
 
-New plugins should implement this hook instead of `detectConnections(...)`.
+Plugins that contribute code analysis should implement this hook.
 
 ```typescript
 async analyzeFile(filePath, content, workspaceRoot) {

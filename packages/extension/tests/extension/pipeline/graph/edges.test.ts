@@ -14,7 +14,7 @@ function createPlugin(id: string): IPlugin {
       { id: 'reexport', name: 'Re-export', description: 'Re-export relation' },
       { id: 'dynamic-import', name: 'Dynamic Import', description: 'Dynamic import relation' },
     ],
-    detectConnections: vi.fn(async () => []),
+    analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
   } as IPlugin;
 }
 

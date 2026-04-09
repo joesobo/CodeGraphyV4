@@ -16,7 +16,10 @@ function makePlugin(id: string, extensions: string[]): IPlugin {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: extensions,
-    detectConnections: vi.fn().mockResolvedValue([]),
+    analyzeFile: vi.fn(async (filePath: string) => ({
+      filePath,
+      relations: [],
+    })),
   } as IPlugin;
 }
 
@@ -135,14 +138,17 @@ describe('plugin routing', () => {
 
   describe('analyzeFile', () => {
     it('delegates to the matching plugin and returns connections', async () => {
-      const connections = [{
-        kind: 'import',
-        sourceId: 'ts:import',
-        specifier: './b',
-        resolvedPath: '/ws/src/b.ts',
-      }];
       const ts = makePlugin('ts-plugin', ['.ts']);
-      (ts.detectConnections as ReturnType<typeof vi.fn>).mockResolvedValue(connections);
+      (ts.analyzeFile as ReturnType<typeof vi.fn>).mockResolvedValue({
+        filePath: 'src/app.ts',
+        relations: [{
+          kind: 'import',
+          sourceId: 'ts:import',
+          specifier: './b',
+          fromFilePath: 'src/app.ts',
+          toFilePath: '/ws/src/b.ts',
+        }],
+      });
       const { pluginsMap, extensionMap } = buildMaps([ts]);
 
       const result = await analyzeFile('src/app.ts', 'content', '/ws', pluginsMap, extensionMap);
@@ -206,7 +212,7 @@ describe('plugin routing', () => {
 
     it('returns empty array and logs when the plugin throws', async () => {
       const ts = makePlugin('ts-plugin', ['.ts']);
-      (ts.detectConnections as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('fail'));
+      (ts.analyzeFile as ReturnType<typeof vi.fn>).mockRejectedValue(new Error('fail'));
       const { pluginsMap, extensionMap } = buildMaps([ts]);
 
       const result = await analyzeFile('src/app.ts', 'content', '/ws', pluginsMap, extensionMap);

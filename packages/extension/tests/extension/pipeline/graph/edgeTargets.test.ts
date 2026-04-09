@@ -9,7 +9,7 @@ function createPlugin(id: string): IPlugin {
     version: '1.0.0',
     apiVersion: '^3.0.0',
     supportedExtensions: ['.ts'],
-    detectConnections: vi.fn(async () => []),
+    analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
   } as IPlugin;
 }
 

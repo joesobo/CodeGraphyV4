@@ -22,7 +22,7 @@ function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IP
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: ['.test'],
-    detectConnections: vi.fn().mockResolvedValue([]),
+    analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     onLoad: vi.fn(),
     onUnload: vi.fn(),
     onWorkspaceReady: vi.fn(),

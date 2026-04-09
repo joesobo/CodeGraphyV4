@@ -23,7 +23,7 @@ CodeGraphy has two plugin surfaces:
 The current plugin API supports more than file analysis:
 
 - per-file analysis objects with symbols, relations, node types, and edge types
-- `analyzeFile(...)` is the normal analysis path; `detectConnections(...)` remains only as a compatibility fallback
+- `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
 - graph queries backed by the host graph cache
 - custom views with `recomputeOn` dependencies
 - context menu items, commands, and exporters

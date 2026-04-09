@@ -15,7 +15,7 @@ function createPlugin(id: string, sources: IPlugin['sources'] = [
     apiVersion: '^3.0.0',
     supportedExtensions: ['.ts'],
     sources,
-    detectConnections: vi.fn(async () => []),
+    analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
   } as IPlugin;
 }
 

@@ -20,7 +20,7 @@ describe('GraphViewProvider plugin bridge dispatch', () => {
       version: '1.0.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['.ts'],
-      detectConnections: async () => [],
+      analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       onLoad: (api: { onWebviewMessage: (handler: (msg: { type: string; data: unknown }) => void) => void }) => {
         api.onWebviewMessage(pluginWebviewHandler);
       },
