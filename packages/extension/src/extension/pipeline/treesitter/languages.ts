@@ -10,7 +10,8 @@ interface ITreeSitterBindings {
   typeScript: Parser.Language;
 }
 
-let treeSitterBindingsPromise: Promise<ITreeSitterBindings> | undefined;
+let treeSitterBindingsPromise: Promise<ITreeSitterBindings | null> | undefined;
+let treeSitterBindingsUnavailableLogged = false;
 
 export const TREE_SITTER_SOURCE_IDS = {
   call: 'codegraphy.core.treesitter:call',
@@ -38,25 +39,36 @@ export function supportsTreeSitterFile(filePath: string): boolean {
   }
 }
 
-async function loadTreeSitterBindings(): Promise<ITreeSitterBindings> {
+async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | null> {
   treeSitterBindingsPromise ??= Promise.all([
     import('tree-sitter'),
     import('tree-sitter-javascript'),
     import('tree-sitter-typescript'),
-  ]).then(([parserModule, javaScriptModule, typeScriptModule]) => {
-    const ParserCtor = parserModule.default;
-    const typeScriptLanguages = typeScriptModule.default as unknown as {
-      tsx: Parser.Language;
-      typescript: Parser.Language;
-    };
+  ])
+    .then(([parserModule, javaScriptModule, typeScriptModule]) => {
+      const ParserCtor = parserModule.default;
+      const typeScriptLanguages = typeScriptModule.default as unknown as {
+        tsx: Parser.Language;
+        typescript: Parser.Language;
+      };
 
-    return {
-      ParserCtor,
-      javaScript: javaScriptModule.default as unknown as Parser.Language,
-      tsx: typeScriptLanguages.tsx,
-      typeScript: typeScriptLanguages.typescript,
-    };
-  });
+      return {
+        ParserCtor,
+        javaScript: javaScriptModule.default as unknown as Parser.Language,
+        tsx: typeScriptLanguages.tsx,
+        typeScript: typeScriptLanguages.typescript,
+      };
+    })
+    .catch((error: unknown) => {
+      if (!treeSitterBindingsUnavailableLogged) {
+        treeSitterBindingsUnavailableLogged = true;
+        console.warn(
+          `[CodeGraphy] Tree-sitter bindings unavailable; skipping core Tree-sitter analysis. ${String(error)}`,
+        );
+      }
+
+      return null;
+    });
 
   return treeSitterBindingsPromise;
 }
@@ -66,6 +78,9 @@ async function getTreeSitterLanguageForFile(filePath: string): Promise<{
   language: Parser.Language;
 } | null> {
   const bindings = await loadTreeSitterBindings();
+  if (!bindings) {
+    return null;
+  }
 
   switch (path.extname(filePath).toLowerCase()) {
     case '.cjs':

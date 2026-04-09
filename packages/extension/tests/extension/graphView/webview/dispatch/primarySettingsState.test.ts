@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '@/shared/graph/types';
 import {
   createGraphViewPrimarySettingsMessageState,
 } from '../../../../../src/extension/graphView/webview/dispatch/primaryState';
@@ -13,9 +12,7 @@ function createContext(
     getCurrentCommitSha: vi.fn(() => undefined),
     getUserGroups: vi.fn(() => []),
     getDisabledPlugins: vi.fn(() => new Set<string>()),
-    getDisabledRules: vi.fn(() => new Set<string>()),
     getFilterPatterns: vi.fn(() => []),
-    getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
     getViewContext: vi.fn(() => ({ activePlugins: new Set() })),
     sendGraphControls: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
@@ -57,7 +54,6 @@ function createContext(
     getPluginFilterPatterns: vi.fn(() => []),
     sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
-    smartRebuild: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
@@ -70,20 +66,14 @@ function createContext(
 describe('createGraphViewPrimarySettingsMessageState', () => {
   it('reads the current settings state from the primary message context', () => {
     const disabledPlugins = new Set(['plugin-a']);
-    const disabledSources = new Set(['rule-a']);
-    const graphData = { nodes: [], edges: [] } satisfies IGraphData;
     const context = createContext({
       getDisabledPlugins: vi.fn(() => disabledPlugins),
-      getDisabledRules: vi.fn(() => disabledSources),
       getFilterPatterns: vi.fn(() => ['dist/**']),
-      getGraphData: vi.fn(() => graphData),
     });
 
     expect(createGraphViewPrimarySettingsMessageState(context)).toEqual({
       disabledPlugins,
-      disabledSources,
       filterPatterns: ['dist/**'],
-      graphData,
     });
   });
 });

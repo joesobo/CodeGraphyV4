@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '@/shared/graph/types';
 import {
   applySettingsToggleMessage,
 } from '../../../../../src/extension/graphView/webview/settingsMessages/toggle';
@@ -13,9 +12,7 @@ function createState(
 ): GraphViewSettingsMessageState {
   return {
     disabledPlugins: new Set<string>(),
-    disabledSources: new Set<string>(),
     filterPatterns: [],
-    graphData: { nodes: [], edges: [] } satisfies IGraphData,
     ...overrides,
   };
 }
@@ -28,12 +25,9 @@ function createHandlers(
       updateConfig: vi.fn(() => Promise.resolve()),
       getPluginFilterPatterns: vi.fn(() => []),
       sendGraphControls: vi.fn(),
-      analyzeAndSendData: vi.fn(() => Promise.resolve()),
       reprocessPluginFiles: vi.fn(() => Promise.resolve()),
       sendMessage: vi.fn(),
-    applyViewTransform: vi.fn(),
-    smartRebuild: vi.fn(),
-    resetAllSettings: vi.fn(() => Promise.resolve()),
+      resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
 
@@ -63,7 +57,6 @@ describe('graph view settings toggle message', () => {
     expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
     expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('disables plugins, persists the expanded disabled-plugin set, and reprocesses plugin-owned files', async () => {
@@ -86,7 +79,6 @@ describe('graph view settings toggle message', () => {
       'codegraphy.python',
     ]);
     expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('disables one plugin without dropping existing disabled plugins', async () => {

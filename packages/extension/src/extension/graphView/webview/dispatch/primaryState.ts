@@ -28,8 +28,6 @@ export function createGraphViewPrimarySettingsMessageState(
 ): GraphViewSettingsMessageState {
   return {
     disabledPlugins: context.getDisabledPlugins(),
-    disabledSources: context.getDisabledRules(),
     filterPatterns: context.getFilterPatterns(),
-    graphData: context.getGraphData(),
   };
 }
