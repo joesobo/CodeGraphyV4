@@ -16,6 +16,33 @@ const mockState = vi.hoisted(() => ({
     | undefined,
 }));
 
+vi.mock('tree-sitter', () => {
+  class MockParser {
+    setLanguage(): void {}
+    parse() {
+      return {
+        rootNode: {
+          namedChildren: [],
+          descendantsOfType: () => [],
+        },
+      };
+    }
+  }
+
+  return { default: MockParser };
+});
+
+vi.mock('tree-sitter-javascript', () => ({
+  default: {},
+}));
+
+vi.mock('tree-sitter-typescript', () => ({
+  default: {
+    tsx: {},
+    typescript: {},
+  },
+}));
+
 vi.mock('vscode', () => ({
   Uri: {
     file: (filePath: string) => ({ fsPath: filePath, path: filePath }),
