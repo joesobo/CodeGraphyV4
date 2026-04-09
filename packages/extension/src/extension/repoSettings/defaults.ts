@@ -25,7 +25,7 @@ export interface ICodeGraphyRepoSettings {
   hiddenPluginGroups: string[];
   favorites: string[];
   bidirectionalEdges: 'separate' | 'combined';
-  groups: IGroup[];
+  legend: IGroup[];
   filterPatterns: string[];
   exclude: string[];
   showLabels: boolean;
@@ -74,7 +74,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     hiddenPluginGroups: [],
     favorites: [],
     bidirectionalEdges: 'separate',
-    groups: [],
+    legend: [],
     filterPatterns: [],
     exclude: [],
     showLabels: true,
@@ -136,7 +136,7 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
       'bidirectionalEdges',
       defaults.bidirectionalEdges,
     ),
-    groups: legacyConfig.get<IGroup[]>('groups', defaults.groups),
+    legend: legacyConfig.get<IGroup[]>('groups', defaults.legend),
     filterPatterns:
       legacyFilterPatterns.length > 0 ? legacyFilterPatterns : legacyExcludePatterns,
     exclude:

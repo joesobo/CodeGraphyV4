@@ -61,7 +61,7 @@ describe('ResetSettingsAction', () => {
 
   const NON_DEFAULT_SNAPSHOT: ISettingsSnapshot = {
     physics: { repelForce: 5, linkDistance: 200, linkForce: 0.5, damping: 0.3, centerForce: 0.5 },
-    groups: [{ id: 'g1', pattern: '*.ts', color: '#FF0000' }],
+    legends: [{ id: 'g1', pattern: '*.ts', color: '#FF0000' }],
     filterPatterns: ['**/*.test.ts'],
     showOrphans: false,
     bidirectionalMode: 'combined',
@@ -163,6 +163,7 @@ describe('ResetSettingsAction', () => {
       expect(call[1]).toBeUndefined();
     }
 
+    expect(settingsStore.legend).toBeUndefined();
     expect(settingsStore.nodeSizeMode).toBe('connections');
     expect(Object.keys(settingsStore)).toEqual(['nodeSizeMode']);
   });
@@ -179,6 +180,7 @@ describe('ResetSettingsAction', () => {
     const action = createAction();
     await action.execute();
 
+    expect(settingsStore.legend).toBeUndefined();
     expect(settingsStore.nodeSizeMode).toBe('connections');
     expect(Object.keys(settingsStore)).toEqual(['nodeSizeMode']);
 
@@ -191,6 +193,7 @@ describe('ResetSettingsAction', () => {
     expect(settingsStore['physics.linkForce']).toBe(0.5);
     expect(settingsStore['physics.damping']).toBe(0.3);
     expect(settingsStore['physics.centerForce']).toBe(0.5);
+    expect(settingsStore.groups).toEqual([{ id: 'g1', pattern: '*.ts', color: '#FF0000' }]);
     expect(settingsStore.showOrphans).toBe(false);
     expect(settingsStore.directionMode).toBe('particles');
     expect(settingsStore.nodeColors).toEqual({ file: '#111111', folder: '#222222' });

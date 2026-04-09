@@ -50,7 +50,7 @@ function createMockContext() {
 describe('ResetSettingsAction (config section mutant coverage)', () => {
   const SNAPSHOT: ISettingsSnapshot = {
     physics: { repelForce: 10, linkDistance: 100, linkForce: 0.2, damping: 0.5, centerForce: 0.3 },
-    groups: [],
+    legends: [],
     filterPatterns: [],
     showOrphans: true,
     bidirectionalMode: 'separate',
@@ -83,7 +83,7 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
       'physics.linkForce': SNAPSHOT.physics.linkForce,
       'physics.damping': SNAPSHOT.physics.damping,
       'physics.centerForce': SNAPSHOT.physics.centerForce,
-      groups: [],
+      legends: [],
       filterPatterns: [],
       showOrphans: true,
       bidirectionalEdges: 'separate',

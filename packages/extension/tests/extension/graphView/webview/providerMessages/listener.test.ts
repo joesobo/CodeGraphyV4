@@ -26,7 +26,7 @@ function createUndoableAction(overrides: Partial<MockUndoableAction> = {}): Mock
 
 function createSettingsSnapshot(): ISettingsSnapshot {
   return {
-    groups: [],
+    legends: [],
     filterPatterns: [],
     hiddenPluginGroups: [],
     showOrphans: true,
@@ -107,6 +107,7 @@ function createSource(
     _filterPatterns: ['dist/**'],
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _viewContext: { activePlugins: new Set() } satisfies IViewContext,
+    _depthMode: false,
     _dagMode: null,
     _nodeSizeMode: 'connections',
     _firstAnalysis: false,
@@ -149,10 +150,11 @@ function createSource(
     _addToExclude: vi.fn(() => Promise.resolve()),
     _loadAndSendData: vi.fn(() => Promise.resolve()),
     _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     _getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
     redo: vi.fn(() => Promise.resolve(undefined)),
-    changeView: vi.fn(() => Promise.resolve()),
+    setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
     _indexRepository: vi.fn(() => Promise.resolve()),
     _jumpToCommit: vi.fn(() => Promise.resolve()),
@@ -208,7 +210,7 @@ describe('graph view provider listener bridge', () => {
 
     await Promise.all([...activeHandlers].map(handler => handler({ type: 'REFRESH_GRAPH' })));
 
-    expect(source._analyzeAndSendData).toHaveBeenCalledTimes(1);
+    expect(source.clearCacheAndRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('stores updated user groups back onto the provider source', async () => {
@@ -320,6 +322,7 @@ describe('graph view provider listener bridge', () => {
     expect(configurationUpdate).toHaveBeenCalledWith(
       'hiddenPluginGroups',
       ['plugin.test:group'],
+      undefined,
     );
     expect(source._userGroups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#112233' },
@@ -349,10 +352,12 @@ describe('graph view provider listener bridge', () => {
     expect(configurationUpdate).toHaveBeenCalledWith(
       'dagMode',
       'td',
+      undefined,
     );
     expect(configurationUpdate).toHaveBeenCalledWith(
       'nodeSizeMode',
       'file-size',
+      undefined,
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'DAG_MODE_UPDATED',
@@ -365,12 +370,25 @@ describe('graph view provider listener bridge', () => {
     expect(configurationUpdate).toHaveBeenCalledWith(
       'showOrphans',
       false,
+      undefined,
     );
-    expect(captureSettingsSnapshot).toHaveBeenCalledWith(
-      expect.objectContaining({ get: configurationGet }),
-      source._getPhysicsSettings(),
-      'file-size',
-    );
+    expect(captureSettingsSnapshot).toHaveBeenCalledTimes(1);
+    const captureSettingsSnapshotCall = (
+      captureSettingsSnapshot as unknown as { mock: { calls: Array<[unknown, unknown, unknown]> } }
+    ).mock.calls[0];
+    expect(captureSettingsSnapshotCall).toBeDefined();
+    if (!captureSettingsSnapshotCall) {
+      throw new Error('expected captureSettingsSnapshot to receive one call');
+    }
+    const [capturedConfig, capturedPhysics, capturedNodeSizeMode] =
+      captureSettingsSnapshotCall as unknown as [unknown, unknown, unknown];
+    expect(capturedConfig).toEqual(expect.objectContaining({
+      get: expect.any(Function),
+      update: expect.any(Function),
+      inspect: expect.any(Function),
+    }));
+    expect(capturedPhysics).toEqual(source._getPhysicsSettings());
+    expect(capturedNodeSizeMode).toBe('file-size');
     expect(ResetSettingsAction).toHaveBeenCalledWith(
       createSettingsSnapshot(),
       undefined,

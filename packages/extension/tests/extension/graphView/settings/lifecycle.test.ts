@@ -16,7 +16,7 @@ function createSnapshot(
       damping: 0.7,
       centerForce: 0.1,
     },
-    groups: [{ id: 'group', pattern: 'src/**', color: '#112233' }],
+    legends: [{ id: 'group', pattern: 'src/**', color: '#112233' }],
     filterPatterns: ['dist/**'],
     showOrphans: false,
     bidirectionalMode: 'combined',
@@ -81,7 +81,7 @@ describe('graph view settings lifecycle helper', () => {
 
     expect(state.viewContext.folderNodeColor).toBe('#123456');
     expect([...state.hiddenPluginGroupIds]).toEqual(['plugin:codegraphy.python']);
-    expect(state.userGroups).toEqual(snapshot.groups);
+    expect(state.userGroups).toEqual(snapshot.legends);
     expect(state.filterPatterns).toEqual(['dist/**']);
     expect(recomputeGroups).toHaveBeenCalledOnce();
     expect(sendGroupsUpdated).toHaveBeenCalledOnce();

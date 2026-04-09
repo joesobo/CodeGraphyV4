@@ -131,6 +131,10 @@ export class Configuration {
     return this.config.get<IGroup[]>('legend', []);
   }
 
+  get legend(): IGroup[] {
+    return this.config.get<IGroup[]>('legend', []);
+  }
+
   /**
    * Timeline playback speed multiplier.
    * @default 1.0

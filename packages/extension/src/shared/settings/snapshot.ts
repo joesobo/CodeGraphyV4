@@ -4,7 +4,7 @@ import type { IPhysicsSettings } from './physics';
 
 export interface ISettingsSnapshot {
   physics: IPhysicsSettings;
-  groups: IGroup[];
+  legends: IGroup[];
   filterPatterns: string[];
   showOrphans: boolean;
   bidirectionalMode: BidirectionalEdgeMode;
