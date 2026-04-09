@@ -2,24 +2,14 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessagePluginContext,
 } from '../../../../../src/extension/graphView/webview/providerMessages/pluginContext';
-import * as repoSettings from '../../../../../src/extension/repoSettings/current';
-
-vi.mock('../../../../../src/extension/repoSettings/current', () => ({
-  getCodeGraphyConfiguration: vi.fn(),
-}));
 
 describe('graph view provider listener plugin context', () => {
   it('returns safe defaults when analyzer and workspace state are unavailable', async () => {
-    const update = vi.fn(() => Promise.resolve());
-    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
-      update,
-    } as never);
     const context = createGraphViewProviderMessagePluginContext(
       {
         _analyzer: undefined,
         _firstAnalysis: false,
         _webviewReadyNotified: false,
-        _hiddenPluginGroupIds: new Set<string>(),
         _sendFavorites: vi.fn(),
         _sendSettings: vi.fn(),
         _sendCachedTimeline: vi.fn(),
@@ -48,16 +38,9 @@ describe('graph view provider listener plugin context', () => {
     expect(context.getInteractionPluginApi('plugin.api')).toBeUndefined();
     expect(context.getContextMenuPluginApi('plugin.api')).toBeUndefined();
     context.notifyWebviewReady();
-    await context.updateHiddenPluginGroups([]);
-
-    expect(update).toHaveBeenCalledWith('hiddenPluginGroups', []);
   });
 
-  it('reads plugin state, mutates provider state, and persists hidden plugin groups', async () => {
-    const update = vi.fn(() => Promise.resolve());
-    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
-      update,
-    } as never);
+  it('reads plugin state and mutates provider state', () => {
     const source = {
       _analyzer: {
         getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
@@ -68,7 +51,6 @@ describe('graph view provider listener plugin context', () => {
       },
       _firstAnalysis: true,
       _webviewReadyNotified: false,
-      _hiddenPluginGroupIds: new Set(['plugin.hidden']),
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),
       _sendCachedTimeline: vi.fn(),
@@ -101,18 +83,12 @@ describe('graph view provider listener plugin context', () => {
     expect(context.getPluginFilterPatterns()).toEqual(['plugin/**']);
     expect(context.hasWorkspace()).toBe(true);
     expect(context.isFirstAnalysis()).toBe(true);
-    expect(context.getHiddenPluginGroupIds()).toBe(source._hiddenPluginGroupIds);
     context.emitEvent('graph:event', { id: 1 });
-    await context.updateHiddenPluginGroups(['plugin.hidden', 'plugin.extra']);
     context.setUserGroups([{ id: 'user:src', pattern: 'src/**', color: '#112233' }] as never);
     context.setFilterPatterns(['src/**']);
     context.setWebviewReadyNotified(true);
 
     expect(source._eventBus.emit).toHaveBeenCalledWith('graph:event', { id: 1 });
-    expect(update).toHaveBeenCalledWith(
-      'hiddenPluginGroups',
-      ['plugin.hidden', 'plugin.extra'],
-    );
     expect(source._userGroups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#112233' },
     ]);
@@ -124,9 +100,6 @@ describe('graph view provider listener plugin context', () => {
     const notifyWebviewReady = vi.fn();
     const getPluginAPI = vi.fn((pluginId: string) => ({ pluginId }));
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
-      update: vi.fn(() => Promise.resolve()),
-    } as never);
     const source = {
       _analyzer: {
         getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
@@ -137,7 +110,6 @@ describe('graph view provider listener plugin context', () => {
       },
       _firstAnalysis: false,
       _webviewReadyNotified: false,
-      _hiddenPluginGroupIds: new Set<string>(),
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),
       _sendCachedTimeline: vi.fn(),

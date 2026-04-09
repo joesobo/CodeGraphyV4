@@ -79,7 +79,6 @@ export interface GraphViewProviderMessageListenerSource {
   _nodeSizeMode: NodeSizeMode;
   _firstAnalysis: boolean;
   _webviewReadyNotified: boolean;
-  _hiddenPluginGroupIds: Set<string>;
   _context: vscode.ExtensionContext;
   _analyzer?:
     | {
