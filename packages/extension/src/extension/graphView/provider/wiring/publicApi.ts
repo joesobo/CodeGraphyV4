@@ -30,6 +30,8 @@ interface GraphViewProviderPublicMethodsOwner {
 
 export interface GraphViewProviderPublicMethods {
   refresh: () => Promise<void>;
+  refreshIndex: () => Promise<void>;
+  refreshChangedFiles: (filePaths: readonly string[]) => Promise<void>;
   refreshGroupSettings: () => void;
   refreshPhysicsSettings: () => void;
   refreshSettings: () => void;
@@ -89,6 +91,9 @@ export function assignGraphViewProviderPublicMethods(
   target: GraphViewProviderPublicMethodsTarget,
 ): void {
   target.refresh = () => target._methodContainers.refresh.refresh();
+  target.refreshIndex = () => target._methodContainers.refresh.refreshIndex();
+  target.refreshChangedFiles = filePaths =>
+    target._methodContainers.refresh.refreshChangedFiles(filePaths);
   target.refreshGroupSettings = () => target._methodContainers.refresh.refreshGroupSettings();
   target.refreshPhysicsSettings = () => target._methodContainers.refresh.refreshPhysicsSettings();
   target.refreshSettings = () => target._methodContainers.refresh.refreshSettings();

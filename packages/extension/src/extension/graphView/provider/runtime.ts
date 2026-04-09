@@ -54,6 +54,7 @@ export class GraphViewProviderRuntime {
   protected _analyzerInitPromise?: Promise<void>;
   protected _analysisController?: AbortController;
   protected _analysisRequestId = 0;
+  protected _changedFilePaths: string[] = [];
   private readonly _viewRegistry: ViewRegistry;
   protected _depthMode = false;
   protected _dagMode: DagMode = null;
@@ -161,8 +162,13 @@ export class GraphViewProviderRuntime {
 
     const pending = this._pendingWorkspaceRefresh;
     this._pendingWorkspaceRefresh = undefined;
-    this.invalidateWorkspaceFiles([...pending.filePaths]);
     console.log(pending.logMessage);
+    if (this._methodContainers.refresh.refreshChangedFiles) {
+      void this._methodContainers.refresh.refreshChangedFiles([...pending.filePaths]);
+      return;
+    }
+
+    this.invalidateWorkspaceFiles([...pending.filePaths]);
     void this._methodContainers.refresh.refresh();
   }
 

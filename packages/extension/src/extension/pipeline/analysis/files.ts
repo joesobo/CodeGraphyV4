@@ -19,6 +19,7 @@ export interface WorkspacePipelineFilesDependencies {
   files: IDiscoveredFile[];
   getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
   logInfo(message: string): void;
+  onProgress?: (progress: { current: number; total: number; filePath: string }) => void;
   readContent: (file: IDiscoveredFile) => Promise<string>;
   signal?: AbortSignal;
   workspaceRoot: string;
@@ -49,6 +50,7 @@ export async function analyzeWorkspacePipelineFiles(
     emitFileProcessed: dependencies.emitFileProcessed,
     files: dependencies.files,
     getFileStat: dependencies.getFileStat,
+    onProgress: dependencies.onProgress,
     readContent: dependencies.readContent,
     signal: dependencies.signal,
     workspaceRoot: dependencies.workspaceRoot,
@@ -65,6 +67,7 @@ export async function analyzeWorkspacePipelineSourceFiles(
   files: IDiscoveredFile[],
   workspaceRoot: string,
   logInfo: (message: string) => void,
+  onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
   signal?: AbortSignal,
 ): Promise<IWorkspaceFileAnalysisResult> {
   const eventBus = source._eventBus;
@@ -82,6 +85,7 @@ export async function analyzeWorkspacePipelineSourceFiles(
     files,
     getFileStat: filePath => source._getFileStat(filePath),
     logInfo,
+    onProgress,
     readContent: file => source._discovery.readContent(file),
     signal,
     workspaceRoot,

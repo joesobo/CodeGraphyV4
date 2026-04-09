@@ -18,6 +18,7 @@ export function runWorkspacePipelineAnalysis(
   filterPatterns: string[] = [],
   disabledSources: Set<string> = new Set(),
   disabledPlugins: Set<string> = new Set(),
+  onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   signal?: AbortSignal,
 ): Promise<IGraphData> {
   return analyzeWorkspaceWithAnalyzer(
@@ -50,6 +51,7 @@ export function runWorkspacePipelineAnalysis(
       showWarningMessage: message => {
         vscode.window.showWarningMessage(message);
       },
+      sendProgress: onProgress,
     },
     filterPatterns,
     disabledSources,

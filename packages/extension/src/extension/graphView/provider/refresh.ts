@@ -29,7 +29,10 @@ export interface GraphViewProviderRefreshMethodsSource {
   _graphData: IGraphData;
   _loadDisabledRulesAndPlugins(): boolean;
   _loadGroupsAndFilterPatterns(): void;
+  _loadAndSendData?(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
+  _refreshAndSendData?(): Promise<void>;
+  _incrementalAnalyzeAndSendData?(filePaths: readonly string[]): Promise<void>;
   _sendAllSettings(): void;
   _sendFavorites(): void;
   _sendGroupsUpdated(): void;
@@ -47,6 +50,8 @@ export interface GraphViewProviderRefreshMethodsSource {
 
 export interface GraphViewProviderRefreshMethods {
   refresh(): Promise<void>;
+  refreshIndex(): Promise<void>;
+  refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
   refreshGroupSettings(): void;
   refreshPhysicsSettings(): void;
   refreshSettings(): void;
@@ -109,7 +114,23 @@ export function createGraphViewProviderRefreshMethods(
   const refresh = async (): Promise<void> => {
     source._loadDisabledRulesAndPlugins();
     source._loadGroupsAndFilterPatterns();
-    await source._analyzeAndSendData();
+    if (source._loadAndSendData) {
+      await source._loadAndSendData();
+    } else {
+      await source._analyzeAndSendData();
+    }
+    source._sendAllSettings();
+    source._sendGraphControls?.();
+    source._sendFavorites();
+  };
+
+  const refreshIndex = async (): Promise<void> => {
+    source._loadDisabledRulesAndPlugins();
+    source._loadGroupsAndFilterPatterns();
+    const runRefresh = source._refreshAndSendData
+      ? () => source._refreshAndSendData?.()
+      : () => source._analyzeAndSendData();
+    await runRefresh();
     source._sendAllSettings();
     source._sendGraphControls?.();
     source._sendFavorites();
@@ -136,11 +157,26 @@ export function createGraphViewProviderRefreshMethods(
 
   const clearCacheAndRefresh = async (): Promise<void> => {
     source._analyzer?.clearCache();
-    await source._analyzeAndSendData();
+    await refreshIndex();
+  };
+
+  const refreshChangedFiles = async (filePaths: readonly string[]): Promise<void> => {
+    source._loadDisabledRulesAndPlugins();
+    source._loadGroupsAndFilterPatterns();
+    if (source._incrementalAnalyzeAndSendData) {
+      await source._incrementalAnalyzeAndSendData(filePaths);
+    } else {
+      await source._analyzeAndSendData();
+    }
+    source._sendAllSettings();
+    source._sendGraphControls?.();
+    source._sendFavorites();
   };
 
   const methods: GraphViewProviderRefreshMethods = {
     refresh,
+    refreshIndex,
+    refreshChangedFiles,
     refreshGroupSettings,
     refreshPhysicsSettings,
     refreshSettings,

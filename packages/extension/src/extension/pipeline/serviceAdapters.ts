@@ -48,6 +48,7 @@ export function analyzeWorkspacePipelineFiles(
   getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>,
   files: IDiscoveredFile[],
   workspaceRoot: string,
+  onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
   signal?: AbortSignal,
 ): Promise<IWorkspaceFileAnalysisResult> {
   const source: WorkspacePipelineFilesSource = {
@@ -65,6 +66,7 @@ export function analyzeWorkspacePipelineFiles(
     message => {
       console.log(message);
     },
+    onProgress,
     signal,
   );
 }

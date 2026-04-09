@@ -31,7 +31,9 @@ function createContext(
     createFile: vi.fn(() => Promise.resolve()),
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
+    indexAndSendData: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    refreshIndex: vi.fn(() => Promise.resolve()),
     clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
@@ -95,7 +97,7 @@ describe('createGraphViewPrimaryNodeFileHandlers', () => {
     await handlers.indexGraph();
     await handlers.refreshGraph();
 
-    expect(context.analyzeAndSendData).toHaveBeenCalledOnce();
-    expect(context.clearCacheAndRefresh).toHaveBeenCalledOnce();
+    expect(context.indexAndSendData).toHaveBeenCalledOnce();
+    expect(context.refreshIndex).toHaveBeenCalledOnce();
   });
 });

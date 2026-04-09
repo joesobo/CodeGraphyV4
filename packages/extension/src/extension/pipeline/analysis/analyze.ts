@@ -15,6 +15,7 @@ export interface WorkspacePipelineAnalysisSource {
   _analyzeFiles(
     files: IDiscoveredFile[],
     workspaceRoot: string,
+    onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     signal?: AbortSignal,
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
@@ -43,6 +44,7 @@ export interface WorkspacePipelineAnalysisDependencies
   logInfo(message: string): void;
   saveCache(): void;
   showWarningMessage(message: string): void;
+  sendProgress?(progress: { phase: string; current: number; total: number }): void;
 }
 
 export async function analyzeWorkspaceWithAnalyzer(
@@ -90,9 +92,21 @@ export async function analyzeWorkspaceWithAnalyzer(
   });
 
   await source._preAnalyzePlugins(discoveryResult.files, workspaceRoot, signal);
+  dependencies.sendProgress?.({
+    phase: 'Analyzing Files',
+    current: 0,
+    total: discoveryResult.files.length,
+  });
   const analysisResult = await source._analyzeFiles(
     discoveryResult.files,
     workspaceRoot,
+    progress => {
+      dependencies.sendProgress?.({
+        phase: 'Analyzing Files',
+        current: progress.current,
+        total: progress.total,
+      });
+    },
     signal,
   );
 

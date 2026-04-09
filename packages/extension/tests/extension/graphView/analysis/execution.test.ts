@@ -27,6 +27,8 @@ function createAnalyzer(overrides: Partial<NonNullable<GraphViewAnalysisExecutio
     hasIndex: vi.fn(() => true),
     discoverGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
     analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
+    refreshIndex: vi.fn(async () => ({ nodes: [], edges: [] })),
+    refreshChangedFiles: vi.fn(async () => ({ nodes: [], edges: [] })),
     registry: {
       notifyPostAnalyze: vi.fn(),
     },
@@ -57,6 +59,7 @@ function createHandlers(
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
     sendGraphIndexStatusUpdated: vi.fn(),
+    sendIndexProgress: vi.fn(),
     markWorkspaceReady: vi.fn(),
     isAbortError: vi.fn(() => false),
     logError: vi.fn(),
@@ -143,6 +146,79 @@ describe('graph view analysis execution', () => {
     expect(analyze).toHaveBeenCalledOnce();
     expect(discoverGraph).not.toHaveBeenCalled();
     expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(true);
+  });
+
+  it('runs explicit repo indexing through the analyzer analyze path and streams progress', async () => {
+    const analyze = vi.fn(async (_patterns, _disabledSources, _disabledPlugins, _signal, onProgress) => {
+      onProgress?.({ phase: 'Indexing Repo', current: 1, total: 3 });
+      onProgress?.({ phase: 'Indexing Repo', current: 3, total: 3 });
+      return { nodes: [], edges: [] };
+    });
+    const state = createState({
+      mode: 'index',
+      analyzer: createAnalyzer({
+        analyze,
+      }),
+      analyzerInitialized: true,
+    });
+    const { handlers } = createHandlers();
+
+    await executeGraphViewAnalysis(new AbortController().signal, 1, state, handlers);
+
+    expect(analyze).toHaveBeenCalledOnce();
+    expect(handlers.sendIndexProgress).toHaveBeenNthCalledWith(1, {
+      phase: 'Indexing Repo',
+      current: 1,
+      total: 3,
+    });
+    expect(handlers.sendIndexProgress).toHaveBeenNthCalledWith(2, {
+      phase: 'Indexing Repo',
+      current: 3,
+      total: 3,
+    });
+  });
+
+  it('runs explicit full refresh through the analyzer refresh path', async () => {
+    const refreshIndex = vi.fn(async () => ({ nodes: [], edges: [] }));
+    const analyze = vi.fn(async () => ({ nodes: [], edges: [] }));
+    const state = createState({
+      mode: 'refresh',
+      analyzer: createAnalyzer({
+        analyze,
+        refreshIndex,
+      }),
+      analyzerInitialized: true,
+    });
+    const { handlers } = createHandlers();
+
+    await executeGraphViewAnalysis(new AbortController().signal, 1, state, handlers);
+
+    expect(refreshIndex).toHaveBeenCalledOnce();
+    expect(analyze).not.toHaveBeenCalled();
+  });
+
+  it('runs scoped incremental refresh through the changed-file analyzer path', async () => {
+    const refreshChangedFiles = vi.fn(async () => ({ nodes: [], edges: [] }));
+    const state = createState({
+      mode: 'incremental',
+      changedFilePaths: ['src/index.ts'],
+      analyzer: createAnalyzer({
+        refreshChangedFiles,
+      }),
+      analyzerInitialized: true,
+    });
+    const { handlers } = createHandlers();
+
+    await executeGraphViewAnalysis(new AbortController().signal, 1, state, handlers);
+
+    expect(refreshChangedFiles).toHaveBeenCalledWith(
+      ['src/index.ts'],
+      [],
+      new Set<string>(),
+      new Set<string>(),
+      expect.any(AbortSignal),
+      expect.any(Function),
+    );
   });
 
   it('initializes the analyzer once and stops when the request turns stale after initialization', async () => {

@@ -243,7 +243,8 @@ export class WorkspacePipeline {
     filterPatterns: string[] = [],
     disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set(),
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
     this._syncPluginOrder();
     const graphData = await runWorkspacePipelineAnalysis(
@@ -257,6 +258,7 @@ export class WorkspacePipeline {
       filterPatterns,
       disabledSources,
       disabledPlugins,
+      onProgress,
       signal,
     );
 
@@ -293,6 +295,39 @@ export class WorkspacePipeline {
       disabledPlugins,
       showOrphans,
     );
+  }
+
+  async refreshIndex(
+    filterPatterns: string[] = [],
+    disabledSources: Set<string> = new Set(),
+    disabledPlugins: Set<string> = new Set(),
+    signal?: AbortSignal,
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
+  ): Promise<IGraphData> {
+    this.clearCache();
+    return this.analyze(filterPatterns, disabledSources, disabledPlugins, signal, progress => {
+      onProgress?.({
+        ...progress,
+        phase: 'Refreshing Index',
+      });
+    });
+  }
+
+  async refreshChangedFiles(
+    filePaths: readonly string[],
+    filterPatterns: string[] = [],
+    disabledSources: Set<string> = new Set(),
+    disabledPlugins: Set<string> = new Set(),
+    signal?: AbortSignal,
+    onProgress?: (progress: { phase: string; current: number; total: number }) => void,
+  ): Promise<IGraphData> {
+    this.invalidateWorkspaceFiles(filePaths);
+    return this.analyze(filterPatterns, disabledSources, disabledPlugins, signal, progress => {
+      onProgress?.({
+        ...progress,
+        phase: 'Applying Changes',
+      });
+    });
   }
 
   /**
@@ -421,6 +456,7 @@ export class WorkspacePipeline {
   protected async _analyzeFiles(
     files: IDiscoveredFile[],
     workspaceRoot: string,
+    onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     signal?: AbortSignal
   ): Promise<IWorkspaceFileAnalysisResult> {
     return analyzeWorkspacePipelineFiles(
@@ -431,6 +467,7 @@ export class WorkspacePipeline {
       (filePath: string) => this._getFileStat(filePath),
       files,
       workspaceRoot,
+      onProgress,
       signal,
     );
   }

@@ -37,7 +37,9 @@ export interface GraphViewPrimaryMessageContext {
   createFile(directory: string): Promise<void>;
   toggleFavorites(paths: string[]): Promise<void>;
   addToExclude(patterns: string[]): Promise<void>;
+  indexAndSendData(): Promise<void>;
   analyzeAndSendData(): Promise<void>;
+  refreshIndex(): Promise<void>;
   clearCacheAndRefresh(): Promise<void>;
   getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;

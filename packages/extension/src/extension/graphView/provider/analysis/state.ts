@@ -46,6 +46,12 @@ export function createGraphViewProviderAnalysisState(
     get installedPluginActivationPromise() {
       return source._installedPluginActivationPromise;
     },
+    get changedFilePaths() {
+      return source._changedFilePaths;
+    },
+    set changedFilePaths(filePaths) {
+      source._changedFilePaths = [...(filePaths ?? [])];
+    },
     mode,
     get filterPatterns() {
       return source._filterPatterns;
@@ -83,6 +89,7 @@ export function syncGraphViewProviderAnalysisExecutionState(
   syncGraphViewProviderAnalysisState(source, state);
   source._analyzerInitialized = state.analyzerInitialized;
   source._analyzerInitPromise = state.analyzerInitPromise;
+  source._changedFilePaths = [...(state.changedFilePaths ?? [])];
 }
 
 export function createGraphViewProviderWorkspaceReadyState(

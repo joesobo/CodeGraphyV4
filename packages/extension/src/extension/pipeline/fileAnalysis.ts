@@ -27,6 +27,7 @@ export interface IWorkspaceFileAnalysisOptions {
   ) => Promise<IFileAnalysisResult>;
   cache: IWorkspaceAnalysisCache;
   emitFileProcessed?: (payload: IWorkspaceFileProcessedPayload) => void;
+  onProgress?: (progress: { current: number; total: number; filePath: string }) => void;
   files: IDiscoveredFile[];
   getFileStat: (filePath: string) => Promise<{ mtime: number; size: number } | null>;
   readContent: (file: IDiscoveredFile) => Promise<string>;
@@ -79,6 +80,11 @@ export async function analyzeWorkspaceFiles(
         projectConnectionsFromFileAnalysis(cached.analysis),
       );
       cacheHits += 1;
+      options.onProgress?.({
+        current: cacheHits + cacheMisses,
+        total: files.length,
+        filePath: file.relativePath,
+      });
       continue;
     }
 
@@ -97,6 +103,11 @@ export async function analyzeWorkspaceFiles(
         specifier: connection.specifier,
         resolvedPath: connection.resolvedPath,
       })),
+    });
+    options.onProgress?.({
+      current: cacheHits + cacheMisses,
+      total: files.length,
+      filePath: file.relativePath,
     });
 
     cache.files[file.relativePath] = {

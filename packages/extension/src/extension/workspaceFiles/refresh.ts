@@ -59,8 +59,13 @@ export function scheduleWorkspaceRefresh(
         );
         return;
       }
-      provider.invalidateWorkspaceFiles?.([...nextPending.filePaths]);
       console.log(nextPending.logMessage);
+      if (provider.refreshChangedFiles) {
+        void provider.refreshChangedFiles([...nextPending.filePaths]);
+        return;
+      }
+
+      provider.invalidateWorkspaceFiles?.([...nextPending.filePaths]);
       void provider.refresh();
     }, delayMs),
   };

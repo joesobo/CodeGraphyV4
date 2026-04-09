@@ -15,6 +15,7 @@ export interface WorkspacePipelineSourceOwner {
   _analyzeFiles(
     files: IDiscoveredFile[],
     workspaceRoot: string,
+    onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
     nextSignal?: AbortSignal,
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
@@ -47,8 +48,9 @@ export function createWorkspacePipelineAnalysisSource(
     _analyzeFiles: (
       files: IDiscoveredFile[],
       workspaceRoot: string,
+      onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
       nextSignal?: AbortSignal,
-    ) => owner._analyzeFiles(files, workspaceRoot, nextSignal),
+    ) => owner._analyzeFiles(files, workspaceRoot, onProgress, nextSignal),
     _buildGraphData: (
       fileConnections: Map<string, IConnection[]>,
       workspaceRoot: string,

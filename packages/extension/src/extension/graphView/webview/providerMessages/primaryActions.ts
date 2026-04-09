@@ -22,7 +22,9 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'toggleFavorites'
   | 'addToExclude'
   | 'loadAndSendData'
+  | 'indexAndSendData'
   | 'analyzeAndSendData'
+  | 'refreshIndex'
   | 'clearCacheAndRefresh'
   | 'getFileInfo'
   | 'undo'
@@ -65,7 +67,9 @@ export function createGraphViewProviderMessagePrimaryActions(
     toggleFavorites: paths => source._toggleFavorites(paths),
     addToExclude: patterns => source._addToExclude(patterns),
     loadAndSendData: () => source._loadAndSendData(),
+    indexAndSendData: () => source._indexAndSendData(),
     analyzeAndSendData: () => source._analyzeAndSendData(),
+    refreshIndex: () => source.refreshIndex(),
     clearCacheAndRefresh: () => source.clearCacheAndRefresh(),
     getFileInfo: filePath => source._getFileInfo(filePath),
     undo: () => source.undo(),

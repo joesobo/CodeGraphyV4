@@ -16,8 +16,8 @@ export function createGraphViewPrimaryNodeFileHandlers(
 ): GraphViewNodeFileHandlers {
   return {
     ...context,
-    indexGraph: () => context.analyzeAndSendData(),
-    refreshGraph: () => context.clearCacheAndRefresh(),
+    indexGraph: () => context.indexAndSendData(),
+    refreshGraph: () => context.refreshIndex(),
     timelineActive: context.getTimelineActive(),
     currentCommitSha: context.getCurrentCommitSha(),
   };
