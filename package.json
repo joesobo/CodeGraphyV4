@@ -131,11 +131,11 @@
 			},
 			{
 				"command": "codegraphy.exportJson",
-				"title": "CodeGraphy: Export Connections as JSON"
+				"title": "CodeGraphy: Export Graph as JSON"
 			},
 			{
 				"command": "codegraphy.exportMarkdown",
-				"title": "CodeGraphy: Export Connections as Markdown"
+				"title": "CodeGraphy: Export Graph as Markdown"
 			},
 			{
 				"command": "codegraphy.clearCache",
@@ -143,7 +143,7 @@
 			},
 			{
 				"command": "codegraphy.cycleView",
-				"title": "CodeGraphy: Cycle View"
+				"title": "CodeGraphy: Toggle Depth Mode"
 			},
 			{
 				"command": "codegraphy.cycleLayout",
