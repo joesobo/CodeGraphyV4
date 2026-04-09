@@ -208,27 +208,21 @@ describe('graph view settings router', () => {
     });
   });
 
-  it('disables sources and triggers a targeted rebuild', async () => {
+  it('updates edge visibility and refreshes graph controls', async () => {
     const state = createState();
     const handlers = createHandlers();
 
     await applySettingsMessage(
       {
-        type: 'TOGGLE_SOURCE',
-        payload: { qualifiedSourceId: 'codegraphy.typescript:dynamic-import', enabled: false },
+        type: 'UPDATE_EDGE_VISIBILITY',
+        payload: { edgeKind: 'IMPORTS', visible: false },
       },
       state,
       handlers,
     );
 
-    expect(state.disabledSources.has('codegraphy.typescript:dynamic-import')).toBe(true);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledSources', [
-      'codegraphy.typescript:dynamic-import',
-    ]);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith(
-      'rule',
-      'codegraphy.typescript:dynamic-import',
-    );
+    expect(handlers.updateConfig).toHaveBeenCalledWith('edgeVisibility', { IMPORTS: false });
+    expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
   it('re-enables plugins and reprocesses the plugin-owned files', async () => {

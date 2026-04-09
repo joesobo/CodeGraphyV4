@@ -126,7 +126,11 @@ export function applyGraphControls({
     )
     : [];
 
-  const edges = [...semanticEdges, ...structuralEdges, ...packageEdges];
+  const visibleStructuralEdges = [...structuralEdges, ...packageEdges].filter((edge) =>
+    visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to),
+  );
+
+  const edges = [...semanticEdges, ...visibleStructuralEdges];
   const nextEdgeDecorations = mergeEdgeDecorations(
     edges,
     edgeColors,

@@ -40,7 +40,7 @@ describe('PluginsPanel', () => {
     expect(screen.getByText('No plugins registered.')).toBeInTheDocument();
   });
 
-  it('renders plugin rows with their connection counts', () => {
+  it('renders the plugin priority hint and plugin rows without connection counts', () => {
     renderPanel([
       {
         id: 'codegraphy.typescript',
@@ -54,8 +54,9 @@ describe('PluginsPanel', () => {
       },
     ]);
 
+    expect(screen.getByText('Bottom runs first. Top wins.')).toBeInTheDocument();
     expect(screen.getByText('TypeScript')).toBeInTheDocument();
-    expect(screen.getByText('12')).toBeInTheDocument();
+    expect(screen.queryByText('12')).not.toBeInTheDocument();
   });
 
   it('calls onClose when the close button is clicked', () => {

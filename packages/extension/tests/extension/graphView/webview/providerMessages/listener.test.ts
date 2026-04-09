@@ -150,6 +150,7 @@ function createSource(
     _addToExclude: vi.fn(() => Promise.resolve()),
     _loadAndSendData: vi.fn(() => Promise.resolve()),
     _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    refreshIndex: vi.fn(() => Promise.resolve()),
     clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     _getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
@@ -210,7 +211,8 @@ describe('graph view provider listener bridge', () => {
 
     await Promise.all([...activeHandlers].map(handler => handler({ type: 'REFRESH_GRAPH' })));
 
-    expect(source.clearCacheAndRefresh).toHaveBeenCalledTimes(1);
+    expect(source.refreshIndex).toHaveBeenCalledTimes(1);
+    expect(source.clearCacheAndRefresh).not.toHaveBeenCalled();
   });
 
   it('stores updated user groups back onto the provider source', async () => {

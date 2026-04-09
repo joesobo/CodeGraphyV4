@@ -88,7 +88,7 @@ describe('GraphViewProvider settings persistence', () => {
     expect([...providerState._disabledPlugins]).not.toEqual(legacyWorkspacePlugins);
   });
 
-  it('persists TOGGLE_SOURCE and TOGGLE_PLUGIN changes to the repo settings store', async () => {
+  it('persists edge visibility and plugin toggles to the repo settings store', async () => {
     const provider = new GraphViewProvider(
       mockContext.extensionUri,
       mockContext as unknown as vscode.ExtensionContext
@@ -123,10 +123,10 @@ describe('GraphViewProvider settings persistence', () => {
     expect(messageHandler).not.toBeNull();
 
     await messageHandler!({
-      type: 'TOGGLE_SOURCE',
+      type: 'UPDATE_EDGE_VISIBILITY',
       payload: {
-        qualifiedSourceId: 'codegraphy.typescript:dynamic-import',
-        enabled: false,
+        edgeKind: 'IMPORTS',
+        visible: false,
       },
     });
     await messageHandler!({
@@ -137,17 +137,17 @@ describe('GraphViewProvider settings persistence', () => {
       },
     });
 
-    const rulesUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'disabledSources');
+    const edgeVisibilityUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'edgeVisibility');
     const pluginsUpdateCall = configUpdate.mock.calls.find(([key]) => key === 'disabledPlugins');
 
-    expect(rulesUpdateCall).toBeDefined();
-    expect(rulesUpdateCall?.[1]).toEqual(['codegraphy.typescript:dynamic-import']);
+    expect(edgeVisibilityUpdateCall).toBeDefined();
+    expect(edgeVisibilityUpdateCall?.[1]).toEqual({ IMPORTS: false });
     expect(pluginsUpdateCall).toBeDefined();
     expect(pluginsUpdateCall?.[1]).toEqual(['codegraphy.python']);
 
     expect(
       workspaceStateUpdate.mock.calls.some(
-        ([key]) => key === 'codegraphy.disabledSources' || key === 'codegraphy.disabledPlugins'
+        ([key]) => key === 'codegraphy.edgeVisibility' || key === 'codegraphy.disabledPlugins'
       )
     ).toBe(false);
   });

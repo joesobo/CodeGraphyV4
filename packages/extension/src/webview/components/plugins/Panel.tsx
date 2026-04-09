@@ -53,7 +53,12 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
     <div className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b flex-shrink-0">
-        <span className="text-sm font-medium">Plugins</span>
+        <div className="min-w-0">
+          <div className="text-sm font-medium">Plugins</div>
+          <div className="text-[10px] text-muted-foreground">
+            Bottom runs first. Top wins.
+          </div>
+        </div>
         <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onClose} title="Close">
           <MdiIcon path={mdiClose} size={16} />
         </Button>
@@ -92,10 +97,6 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
                     />
 
                     <span className="text-xs flex-1 truncate">{plugin.name}</span>
-
-                    <span className="text-xs text-muted-foreground flex-shrink-0 tabular-nums">
-                      {plugin.connectionCount}
-                    </span>
                   </div>
 
                   {index < plugins.length - 1 ? <Separator className="opacity-50" /> : null}
