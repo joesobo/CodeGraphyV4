@@ -233,7 +233,7 @@ describe('buildExportData', () => {
       type: 'EXPORT_JSON',
       payload: {
         json: expect.any(String),
-        filename: 'codegraphy-connections-2026-03-16T12-34-56.json',
+        filename: 'codegraphy-graph-2026-03-16T12-34-56.json',
       },
     });
     const message = jsonHarness.postMessage.mock.calls[0][0] as {

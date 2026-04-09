@@ -26,7 +26,7 @@ export function exportAsJson(data: IGraphData): void {
       type: 'EXPORT_JSON',
       payload: {
         json: JSON.stringify(exportData, null, 2),
-        filename: `codegraphy-connections-${timestamp}.json`,
+        filename: `codegraphy-graph-${timestamp}.json`,
       },
     });
   } catch (error) {
@@ -35,7 +35,7 @@ export function exportAsJson(data: IGraphData): void {
 }
 
 /**
- * Build a structured export of the graph's connection data.
+ * Build a structured export of the current graph data.
  *
  * The output is designed to be easy for both humans and agents to parse,
  * while reflecting exactly what is currently rendered in the graph.

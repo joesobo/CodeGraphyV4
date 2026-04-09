@@ -122,14 +122,14 @@ describe('ToolbarActions', () => {
 
     renderWithProviders();
 
-    expect(screen.getByTitle('Refresh Graph')).toBeInTheDocument();
+    expect(screen.getByTitle('Refresh')).toBeInTheDocument();
   });
 
   it('sends REFRESH_GRAPH when a graph index already exists', () => {
     graphStore.setState({ graphHasIndex: true });
 
     renderWithProviders();
-    clickAction('Refresh Graph');
+    clickAction('Refresh');
 
     expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
   });
@@ -230,10 +230,10 @@ describe('ToolbarActions export dropdown items', () => {
     expect(screen.getByText('Export as Markdown')).toBeInTheDocument();
   });
 
-  it('renders Images and Connections section labels', () => {
+  it('renders Images and Graph section labels', () => {
     renderWithProviders();
     expect(screen.getByText('Images')).toBeInTheDocument();
-    expect(screen.getByText('Connections')).toBeInTheDocument();
+    expect(screen.getByText('Graph')).toBeInTheDocument();
   });
 
   it('does not render a plugin exporter section when no exporters are available', () => {
@@ -241,7 +241,7 @@ describe('ToolbarActions export dropdown items', () => {
 
     expect(
       screen.queryAllByTestId('dropdown-label').map(label => label.textContent),
-    ).toEqual(['Images', 'Connections']);
+    ).toEqual(['Images', 'Graph']);
   });
 
   it.each(exportCases)('posts %s when clicked', (label, type) => {

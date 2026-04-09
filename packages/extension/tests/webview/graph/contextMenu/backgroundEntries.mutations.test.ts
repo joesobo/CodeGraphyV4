@@ -25,17 +25,17 @@ describe('buildBackgroundEntries (mutation kill tests)', () => {
   });
 
   /**
-   * Kill L11:17 StringLiteral: "" — mutant replaces 'Refresh Graph' with ''
+   * Kill L11:17 StringLiteral: "" — mutant replaces 'Refresh' with ''
    * Kill L12:17 StringLiteral: "" — mutant replaces 'Fit All Nodes' with ''
    * Verify exact label AND action strings for Refresh and Fit entries.
    */
-  it('produces exact label "Refresh Graph" with action "refresh"', () => {
+  it('produces exact label "Refresh" with action "refresh"', () => {
     const entries = buildBackgroundEntries(false);
     const items = getItems(entries);
     const refreshItem = items.find(item => item.id === 'background-refresh');
 
     expect(refreshItem).toBeDefined();
-    expect(refreshItem!.label).toBe('Refresh Graph');
+    expect(refreshItem!.label).toBe('Refresh');
     expect(refreshItem!.action).toEqual({ kind: 'builtin', action: 'refresh' });
   });
 
@@ -54,7 +54,7 @@ describe('buildBackgroundEntries (mutation kill tests)', () => {
     const items = getItems(entries);
 
     expect(items).toHaveLength(2);
-    expect(items[0].label).toBe('Refresh Graph');
+    expect(items[0].label).toBe('Refresh');
     expect(items[0].action).toEqual({ kind: 'builtin', action: 'refresh' });
     expect(items[1].label).toBe('Fit All Nodes');
     expect(items[1].action).toEqual({ kind: 'builtin', action: 'fitView' });

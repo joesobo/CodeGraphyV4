@@ -37,7 +37,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(liveEntries)).toEqual(['New File...', 'Refresh Graph', 'Fit All Nodes']);
+    expect(menuLabels(liveEntries)).toEqual(['New File...', 'Refresh', 'Fit All Nodes']);
 
     const timelineEntries = buildGraphContextMenuEntries({
       selection: makeBackgroundContextSelection(),
@@ -45,7 +45,7 @@ describe('graph/contextMenuModel', () => {
       favorites: new Set(),
       pluginItems: [],
     });
-    expect(menuLabels(timelineEntries)).toEqual(['Refresh Graph', 'Fit All Nodes']);
+    expect(menuLabels(timelineEntries)).toEqual(['Refresh', 'Fit All Nodes']);
   });
 
   it('builds single-node menu with timeline filtering', () => {

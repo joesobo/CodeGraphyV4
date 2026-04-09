@@ -54,6 +54,6 @@ During timeline mode, destructive file actions (Delete, Rename, Create File, Add
 
 CodeGraphy keeps using the cached timeline data until you intentionally ask for a full rebuild.
 
-- Click **Refresh Graph** to force a full re-index from scratch.
+- Click **Refresh** to force a full re-index from scratch.
 - While CodeGraphy is open, normal file saves update the live index incrementally.
 - If files changed while CodeGraphy was closed, those pending changes are applied the next time you open it.

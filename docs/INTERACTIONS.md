@@ -79,7 +79,7 @@ The toolbar sits at the bottom of the graph and is split into two sides.
 |---------|-------------|
 | Nodes | Opens node visibility controls for core and plugin-added node kinds. |
 | Edges | Opens edge visibility controls and shows current edge colors. |
-| Index Repo / Refresh Graph | Before indexing: builds the repo index. After indexing: forces a full re-index. |
+| Index Repo / Refresh | Before indexing: builds the repo index. After indexing: forces a full re-index. |
 | Export | Dropdown for exporting as PNG, SVG, JPEG, graph JSON, graph Markdown, or symbol JSON. |
 | Legends | Opens legend rule editing and color priority controls. |
 | Plugins | Opens the plugins panel. |
@@ -115,7 +115,7 @@ Toggle whole plugins on or off and drag them to change processing priority. Plug
 
 ### Index / Refresh (autorenew icon)
 
-Before the repo has an index, this button is **Index Repo**. After the repo is indexed, it becomes **Refresh Graph** and forces a full re-index.
+Before the repo has an index, this button is **Index Repo**. After the repo is indexed, it becomes **Refresh** and forces a full re-index.
 
 ## Timeline
 

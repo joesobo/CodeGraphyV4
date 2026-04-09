@@ -32,8 +32,8 @@ describe('json', () => {
     expect(options).toEqual({
       defaultFilename: 'graph.json',
       filters: { 'JSON Files': ['json'] },
-      title: 'Export Graph Connections as JSON',
-      successMessage: 'Graph connections exported',
+      title: 'Export Graph as JSON',
+      successMessage: 'Graph JSON exported',
     });
   });
 

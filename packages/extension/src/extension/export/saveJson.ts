@@ -9,8 +9,8 @@ export async function saveExportedJson(jsonContent: string, filename?: string): 
     await saveExportBuffer(buffer, {
       defaultFilename,
       filters: { 'JSON Files': ['json'] },
-      title: 'Export Graph Connections as JSON',
-      successMessage: 'Graph connections exported',
+      title: 'Export Graph as JSON',
+      successMessage: 'Graph JSON exported',
     });
   } catch (error) {
     vscode.window.showErrorMessage(`Failed to export JSON: ${toErrorMessage(error)}`);

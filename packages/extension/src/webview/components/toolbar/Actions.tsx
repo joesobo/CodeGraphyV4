@@ -64,7 +64,7 @@ export function ToolbarActions(): React.ReactElement {
   const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
-  const refreshTitle = graphHasIndex ? 'Refresh Graph' : 'Index Repo';
+  const refreshTitle = graphHasIndex ? 'Refresh' : 'Index Repo';
   const refreshMessageType = graphHasIndex ? 'REFRESH_GRAPH' : 'INDEX_GRAPH';
 
   return (

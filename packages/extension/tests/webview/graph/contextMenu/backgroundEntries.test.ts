@@ -25,9 +25,9 @@ describe('buildBackgroundEntries', () => {
     expect(separatorCount(entries)).toBe(0);
   });
 
-  it('always includes Refresh Graph', () => {
-    expect(itemLabels(buildBackgroundEntries(false))).toContain('Refresh Graph');
-    expect(itemLabels(buildBackgroundEntries(true))).toContain('Refresh Graph');
+  it('always includes Refresh', () => {
+    expect(itemLabels(buildBackgroundEntries(false))).toContain('Refresh');
+    expect(itemLabels(buildBackgroundEntries(true))).toContain('Refresh');
   });
 
   it('always includes Fit All Nodes', () => {

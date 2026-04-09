@@ -158,7 +158,7 @@ describe('Graph context menu (node)', () => {
     expect(screen.getByText('Rename...')).toBeInTheDocument();
     expect(screen.getByText('Delete File')).toBeInTheDocument();
     expect(screen.queryByText('New File...')).not.toBeInTheDocument();
-    expect(screen.queryByText('Refresh Graph')).not.toBeInTheDocument();
+    expect(screen.queryByText('Refresh')).not.toBeInTheDocument();
   });
 
   it('shows Remove from Favorites for favorited nodes', async () => {

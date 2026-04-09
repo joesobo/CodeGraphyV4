@@ -154,7 +154,7 @@ describe('buildMarkdownExport', () => {
           '- none',
           '',
         ].join('\n'),
-        filename: 'codegraphy-connections-2026-03-16T12-34-56.md',
+        filename: 'codegraphy-graph-2026-03-16T12-34-56.md',
       },
     });
   });

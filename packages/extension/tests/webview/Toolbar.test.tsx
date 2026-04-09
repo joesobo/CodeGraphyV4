@@ -277,12 +277,12 @@ describe('Toolbar', () => {
       expect(findMessage('INDEX_GRAPH')).toBeTruthy();
     });
 
-    it('shows Refresh Graph when an index already exists', () => {
+    it('shows Refresh when an index already exists', () => {
       setDefaultState({ graphHasIndex: true });
 
       render(<Toolbar />);
 
-      expect(screen.getByTitle('Refresh Graph')).toBeTruthy();
+      expect(screen.getByTitle('Refresh')).toBeTruthy();
     });
 
     it('settings button opens settings panel', () => {

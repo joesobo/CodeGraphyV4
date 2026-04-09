@@ -86,7 +86,7 @@ export function ToolbarExportMenu(): React.ReactElement {
           Export as JPEG
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Connections</DropdownMenuLabel>
+        <DropdownMenuLabel>Graph</DropdownMenuLabel>
         <DropdownMenuItem onSelect={() => window.postMessage({ type: 'REQUEST_EXPORT_JSON' }, '*')}>
           Export as JSON
         </DropdownMenuItem>

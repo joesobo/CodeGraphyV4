@@ -76,7 +76,7 @@ describe('ToolbarExportMenu', () => {
 
     expect(screen.getByTitle('Export')).toBeInTheDocument();
     expect(screen.getByText('Images')).toBeInTheDocument();
-    expect(screen.getByText('Connections')).toBeInTheDocument();
+    expect(screen.getByText('Graph')).toBeInTheDocument();
     expect(screen.queryByText('Plugins')).not.toBeInTheDocument();
   });
 

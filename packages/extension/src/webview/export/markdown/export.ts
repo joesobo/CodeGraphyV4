@@ -18,7 +18,7 @@ export function exportAsMarkdown(data: IGraphData): void {
       type: 'EXPORT_MD',
       payload: {
         markdown,
-        filename: `codegraphy-connections-${timestamp}.md`,
+        filename: `codegraphy-graph-${timestamp}.md`,
       },
     });
   } catch (error) {
