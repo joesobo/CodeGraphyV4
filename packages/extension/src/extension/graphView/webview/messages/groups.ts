@@ -1,5 +1,3 @@
-import * as path from 'path';
-import * as vscode from 'vscode';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IGroup } from '../../../../shared/settings/groups';
 
@@ -8,17 +6,7 @@ export interface GraphViewGroupMessageState {
 }
 
 export interface GraphViewGroupMessageHandlers {
-  workspaceFolder?: { uri: vscode.Uri };
   persistGroups(groups: IGroup[]): Promise<void>;
-  showOpenDialog(
-    options: vscode.OpenDialogOptions,
-  ): PromiseLike<readonly vscode.Uri[] | undefined>;
-  createDirectory(uri: vscode.Uri): PromiseLike<void>;
-  copyFile(
-    source: vscode.Uri,
-    destination: vscode.Uri,
-    options: { overwrite: boolean },
-  ): PromiseLike<void>;
 }
 
 function toPersistableGroup(group: IGroup): IGroup {
@@ -27,41 +15,6 @@ function toPersistableGroup(group: IGroup): IGroup {
   delete persistable.isPluginDefault;
   delete persistable.pluginName;
   return persistable;
-}
-
-async function pickGroupImage(
-  groupId: string,
-  state: GraphViewGroupMessageState,
-  handlers: GraphViewGroupMessageHandlers,
-): Promise<void> {
-  const uris = await handlers.showOpenDialog({
-    canSelectMany: false,
-    filters: { Images: ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif', 'ico'] },
-    openLabel: 'Select Image',
-  });
-  if (!uris || uris.length === 0 || !handlers.workspaceFolder) {
-    return;
-  }
-
-  const assetsDir = vscode.Uri.joinPath(handlers.workspaceFolder.uri, '.codegraphy', 'assets');
-  try {
-    await handlers.createDirectory(assetsDir);
-  } catch {
-    // Directory may already exist; keep going.
-  }
-
-  const selectedUri = uris[0];
-  const fileName = path.basename(selectedUri.fsPath);
-  const destinationUri = vscode.Uri.joinPath(assetsDir, fileName);
-  await handlers.copyFile(selectedUri, destinationUri, { overwrite: true });
-
-  const group = state.userGroups.find((candidate) => candidate.id === groupId);
-  if (!group) {
-    return;
-  }
-
-  group.imagePath = `.codegraphy/assets/${fileName}`;
-  await handlers.persistGroups(state.userGroups);
 }
 
 export async function applyGroupMessage(
@@ -73,10 +26,6 @@ export async function applyGroupMessage(
     case 'UPDATE_LEGENDS':
       state.userGroups = message.payload.legends.map(toPersistableGroup);
       await handlers.persistGroups(state.userGroups);
-      return true;
-
-    case 'PICK_GROUP_IMAGE':
-      await pickGroupImage(message.payload.groupId, state, handlers);
       return true;
 
     default:

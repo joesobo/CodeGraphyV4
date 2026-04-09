@@ -112,7 +112,6 @@ function createSource(
     _nodeSizeMode: 'connections',
     _firstAnalysis: false,
     _webviewReadyNotified: false,
-    _hiddenPluginGroupIds: new Set<string>(),
     _context: {
       workspaceState: {
         update: vi.fn(() => Promise.resolve()),
@@ -285,14 +284,13 @@ describe('graph view provider listener bridge', () => {
   });
 
   it('wires plugin-context bridges into the captured listener context', async () => {
-    const { context, source, configurationUpdate } = await loadDefaultListenerHarness();
+    const { context, source } = await loadDefaultListenerHarness();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     expect(context.getPluginFilterPatterns()).toEqual(['plugin/**']);
     expect(context.hasWorkspace()).toBe(true);
     expect(context.isFirstAnalysis()).toBe(false);
     expect(context.isWebviewReadyNotified()).toBe(false);
-    expect(context.getHiddenPluginGroupIds()).toBe(source._hiddenPluginGroupIds);
 
     context.loadGroupsAndFilterPatterns();
     context.loadDisabledRulesAndPlugins();
@@ -306,7 +304,6 @@ describe('graph view provider listener bridge', () => {
     context.notifyWebviewReady();
     context.emitEvent('plugin:ready', { id: 'plugin.test' });
     context.logError('listener failed', new Error('boom'));
-    await context.updateHiddenPluginGroups(['plugin.test:group']);
     context.setUserGroups([{ id: 'user:src', pattern: 'src/**', color: '#112233' }]);
     context.setFilterPatterns(['src/**']);
     context.setWebviewReadyNotified(true);
@@ -321,11 +318,6 @@ describe('graph view provider listener bridge', () => {
     expect(source._sendPluginWebviewInjections).toHaveBeenCalledOnce();
     expect(source._analyzer?.registry?.notifyWebviewReady).toHaveBeenCalledOnce();
     expect(source._eventBus.emit).toHaveBeenCalledWith('plugin:ready', { id: 'plugin.test' });
-    expect(configurationUpdate).toHaveBeenCalledWith(
-      'hiddenPluginGroups',
-      ['plugin.test:group'],
-      undefined,
-    );
     expect(source._userGroups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#112233' },
     ]);

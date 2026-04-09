@@ -20,7 +20,6 @@ function createContext(
     hasWorkspace: vi.fn(() => false),
     isFirstAnalysis: vi.fn(() => false),
     isWebviewReadyNotified: vi.fn(() => false),
-    getHiddenPluginGroupIds: vi.fn(() => new Set<string>()),
     getGraphData: vi.fn(
       () =>
         ({
@@ -54,8 +53,6 @@ function createContext(
     findNode: vi.fn((targetId: string) => ({ id: targetId })),
     findEdge: vi.fn((targetId: string) => ({ id: targetId })),
     logError: vi.fn(),
-    updateHiddenPluginGroups: vi.fn(() => Promise.resolve()),
-    recomputeGroups: vi.fn(),
     ...overrides,
   };
 
@@ -225,28 +222,6 @@ describe('graph view plugin message dispatch', () => {
     expect(context.logError).not.toHaveBeenCalled();
   });
 
-  it('updates hidden plugin groups for direct group toggles', async () => {
-    const hiddenPluginGroupIds = new Set<string>();
-    const context = createContext({
-      getHiddenPluginGroupIds: vi.fn(() => hiddenPluginGroupIds),
-    });
-
-    await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'TOGGLE_PLUGIN_GROUP_DISABLED',
-          payload: { groupId: 'plugin:test:*.ts', disabled: true },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(hiddenPluginGroupIds.has('plugin:test:*.ts')).toBe(true);
-    expect(context.updateHiddenPluginGroups).toHaveBeenCalledWith(['plugin:test:*.ts']);
-    expect(context.recomputeGroups).toHaveBeenCalledOnce();
-    expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
-  });
-
   it('runs plugin context menu edge actions against resolved graph edges', async () => {
     const action = vi.fn(() => Promise.resolve());
     const context = createContext({
@@ -275,28 +250,6 @@ describe('graph view plugin message dispatch', () => {
     expect(context.findEdge).toHaveBeenCalledWith('src/index.ts->src/lib.ts');
     expect(action).toHaveBeenCalledWith({ id: 'src/index.ts->src/lib.ts', label: 'Edge' });
     expect(context.logError).not.toHaveBeenCalled();
-  });
-
-  it('updates hidden plugin groups for section toggles', async () => {
-    const hiddenPluginGroupIds = new Set<string>();
-    const context = createContext({
-      getHiddenPluginGroupIds: vi.fn(() => hiddenPluginGroupIds),
-    });
-
-    await expect(
-      dispatchGraphViewPluginMessage(
-        {
-          type: 'TOGGLE_PLUGIN_SECTION_DISABLED',
-          payload: { pluginId: 'test', disabled: true },
-        },
-        context,
-      ),
-    ).resolves.toEqual({ handled: true });
-
-    expect(hiddenPluginGroupIds.has('plugin:test')).toBe(true);
-    expect(context.updateHiddenPluginGroups).toHaveBeenCalledWith(['plugin:test']);
-    expect(context.recomputeGroups).toHaveBeenCalledOnce();
-    expect(context.sendGroupsUpdated).toHaveBeenCalledOnce();
   });
 
   it('returns false for unrelated messages', async () => {

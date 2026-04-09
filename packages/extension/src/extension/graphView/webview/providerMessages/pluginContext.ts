@@ -3,7 +3,6 @@ import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
 } from './listener';
-import { updateHiddenPluginGroups } from './hiddenPluginGroups';
 import { createGraphViewProviderPluginApis } from './pluginApis';
 import {
   setPluginFilterPatterns,
@@ -17,7 +16,6 @@ type GraphViewProviderPluginContext = Pick<
   | 'hasWorkspace'
   | 'isFirstAnalysis'
   | 'isWebviewReadyNotified'
-  | 'getHiddenPluginGroupIds'
   | 'loadGroupsAndFilterPatterns'
   | 'loadDisabledRulesAndPlugins'
   | 'sendDepthState'
@@ -39,7 +37,6 @@ type GraphViewProviderPluginContext = Pick<
   | 'getToolbarActionPluginApi'
   | 'emitEvent'
   | 'logError'
-  | 'updateHiddenPluginGroups'
   | 'setUserGroups'
   | 'setFilterPatterns'
   | 'setWebviewReadyNotified'
@@ -56,7 +53,6 @@ export function createGraphViewProviderMessagePluginContext(
     hasWorkspace: () => (dependencies.workspace.workspaceFolders?.length ?? 0) > 0,
     isFirstAnalysis: () => source._firstAnalysis,
     isWebviewReadyNotified: () => source._webviewReadyNotified,
-    getHiddenPluginGroupIds: () => source._hiddenPluginGroupIds,
     loadGroupsAndFilterPatterns: () => source._loadGroupsAndFilterPatterns(),
     loadDisabledRulesAndPlugins: () => source._loadDisabledRulesAndPlugins(),
     sendDepthState: () => source._sendDepthState(),
@@ -84,9 +80,6 @@ export function createGraphViewProviderMessagePluginContext(
     },
     logError: (label, error) => {
       console.error(label, error);
-    },
-    updateHiddenPluginGroups: async groupIds => {
-      await updateHiddenPluginGroups(dependencies, groupIds);
     },
     setUserGroups: groups => setPluginUserGroups(source, groups),
     setFilterPatterns: patterns => setPluginFilterPatterns(source, patterns),

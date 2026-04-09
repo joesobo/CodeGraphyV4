@@ -34,6 +34,7 @@ function createContext(
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    refreshIndex: vi.fn(() => Promise.resolve()),
     clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
@@ -71,7 +72,6 @@ function createContext(
     hasWorkspace: vi.fn(() => false),
     isFirstAnalysis: vi.fn(() => false),
     isWebviewReadyNotified: vi.fn(() => false),
-    getHiddenPluginGroupIds: vi.fn(() => new Set<string>()),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendDepthState: vi.fn(),
@@ -91,7 +91,6 @@ function createContext(
     findNode: vi.fn(),
     findEdge: vi.fn(),
     logError: vi.fn(),
-    updateHiddenPluginGroups: vi.fn(() => Promise.resolve()),
     setUserGroups: vi.fn(),
     setFilterPatterns: vi.fn(),
     setWebviewReadyNotified: vi.fn(),
@@ -224,7 +223,8 @@ describe('graph view webview message listener', () => {
       [...activeHandlers].map(handler => handler({ type: 'REFRESH_GRAPH' })),
     );
 
-    expect(context.clearCacheAndRefresh).toHaveBeenCalledTimes(1);
+    expect(context.refreshIndex).toHaveBeenCalledTimes(1);
+    expect(context.clearCacheAndRefresh).not.toHaveBeenCalled();
   });
 
   it('does not store ready state for handled plugin messages without a ready flag', async () => {
