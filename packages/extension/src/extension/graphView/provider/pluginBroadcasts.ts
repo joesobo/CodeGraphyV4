@@ -10,7 +10,7 @@ import {
   sendGraphViewPluginToolbarActions,
   sendGraphViewPluginWebviewInjections,
 } from '../webview/plugins/assets';
-import { sendGraphViewAvailableViews, sendGraphViewGroupsUpdated } from '../view/broadcast';
+import { sendGraphViewAvailableViews, sendGraphViewLegendsUpdated } from '../view/broadcast';
 import type { GraphViewProviderPluginMethodsSource } from './plugins';
 
 export interface GraphViewProviderPluginBroadcastMethods {
@@ -33,7 +33,7 @@ export interface GraphViewProviderPluginBroadcastDependencies {
   sendPluginExporters?: typeof sendGraphViewPluginExporters;
   sendPluginToolbarActions?: typeof sendGraphViewPluginToolbarActions;
   sendPluginWebviewInjections?: typeof sendGraphViewPluginWebviewInjections;
-  sendGroupsUpdated?: typeof sendGraphViewGroupsUpdated;
+  sendGroupsUpdated?: typeof sendGraphViewLegendsUpdated;
   getWorkspaceFolders?(): readonly vscode.WorkspaceFolder[] | undefined;
 }
 
@@ -46,7 +46,7 @@ export const DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES:
   sendPluginExporters: sendGraphViewPluginExporters,
   sendPluginToolbarActions: sendGraphViewPluginToolbarActions,
   sendPluginWebviewInjections: sendGraphViewPluginWebviewInjections,
-  sendGroupsUpdated: sendGraphViewGroupsUpdated,
+  sendGroupsUpdated: sendGraphViewLegendsUpdated,
   getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
 };
 
@@ -56,7 +56,7 @@ export function createGraphViewProviderPluginBroadcastMethods(
     DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES,
   defaultDepthLimit: number,
 ): GraphViewProviderPluginBroadcastMethods {
-  const resolved = {
+  const resolved: Required<GraphViewProviderPluginBroadcastDependencies> = {
     ...DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES,
     ...dependencies,
   };

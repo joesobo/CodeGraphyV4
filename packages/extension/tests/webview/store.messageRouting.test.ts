@@ -73,7 +73,7 @@ describe('GraphStore message routing', () => {
     expect(store.getState().edgeDecorations).toBe(edgeDecorations);
   });
 
-  it('ignores GROUPS_UPDATED messages when the payload is unchanged', () => {
+  it('ignores LEGENDS_UPDATED messages when the payload is unchanged', () => {
     const groups: IGroup[] = [
       {
         id: 'src-group',
@@ -86,7 +86,7 @@ describe('GraphStore message routing', () => {
     store.setState({ groups, optimisticGroupUpdates });
 
     store.getState().handleExtensionMessage({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
         groups: [
           {
@@ -102,7 +102,7 @@ describe('GraphStore message routing', () => {
     expect(store.getState().optimisticGroupUpdates).toBe(optimisticGroupUpdates);
   });
 
-  it('keeps optimistic custom groups visible when a stale GROUPS_UPDATED payload arrives', () => {
+  it('keeps optimistic custom groups visible when a stale LEGENDS_UPDATED payload arrives', () => {
     store.setState({
       groups: [
         { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
@@ -113,7 +113,7 @@ describe('GraphStore message routing', () => {
     ]);
 
     store.getState().handleExtensionMessage({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
         groups: [
           { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
@@ -130,7 +130,7 @@ describe('GraphStore message routing', () => {
     ]);
   });
 
-  it('clears optimistic custom groups once GROUPS_UPDATED matches the host echo', () => {
+  it('clears optimistic custom groups once LEGENDS_UPDATED matches the host echo', () => {
     store.setState({
       groups: [
         { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
@@ -141,7 +141,7 @@ describe('GraphStore message routing', () => {
     ]);
 
     store.getState().handleExtensionMessage({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
         groups: [
           { id: 'g1', pattern: 'src/**', color: '#22C55E' },

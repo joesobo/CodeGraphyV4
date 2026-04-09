@@ -286,7 +286,7 @@ describe('App behavior', () => {
 
     await act(async () => {
       sendAppMessage({
-        type: 'GROUPS_UPDATED',
+        type: 'LEGENDS_UPDATED',
         payload: {
           groups: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
         },

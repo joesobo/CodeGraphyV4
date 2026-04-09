@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { buildGraphViewGroupsUpdatedMessage } from '../../../../src/extension/graphView/groups/message';
+import { buildGraphViewLegendsUpdatedMessage } from '../../../../src/extension/graphView/groups/message';
 
 describe('graphView/groupMessage', () => {
   it('resolves plugin asset paths from plugin-backed group ids', () => {
     const resolvePluginAssetPath = vi.fn(() => 'webview://plugin/python.svg');
 
-    const message = buildGraphViewGroupsUpdatedMessage(
+    const message = buildGraphViewLegendsUpdatedMessage(
       [{ id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#112233', imagePath: 'icons/python.svg' }],
       {
         resolvePluginAssetPath,
@@ -15,7 +15,7 @@ describe('graphView/groupMessage', () => {
 
     expect(resolvePluginAssetPath).toHaveBeenCalledWith('icons/python.svg', 'codegraphy.python');
     expect(message).toEqual({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
         groups: [
           {
@@ -33,7 +33,7 @@ describe('graphView/groupMessage', () => {
   it('resolves inherited plugin asset paths from user group image metadata', () => {
     const resolvePluginAssetPath = vi.fn(() => 'webview://plugin/python.svg');
 
-    const message = buildGraphViewGroupsUpdatedMessage(
+    const message = buildGraphViewLegendsUpdatedMessage(
       [
         {
           id: 'user-group',
@@ -56,7 +56,7 @@ describe('graphView/groupMessage', () => {
       toString: () => `webview:${uri.fsPath}`,
     }));
 
-    const message = buildGraphViewGroupsUpdatedMessage(
+    const message = buildGraphViewLegendsUpdatedMessage(
       [{ id: 'user-group', pattern: '*.png', color: '#112233', imagePath: '.codegraphy/assets/icon.png' }],
       {
         workspaceFolder: { uri: vscode.Uri.file('/test/workspace') },
@@ -76,7 +76,7 @@ describe('graphView/groupMessage', () => {
   it('leaves groups without image metadata unchanged', () => {
     const group = { id: 'user-group', pattern: '*.png', color: '#112233' };
 
-    const message = buildGraphViewGroupsUpdatedMessage([group], {
+    const message = buildGraphViewLegendsUpdatedMessage([group], {
       resolvePluginAssetPath: vi.fn(),
     });
 
@@ -84,7 +84,7 @@ describe('graphView/groupMessage', () => {
   });
 
   it('omits image urls when there is no workspace webview context', () => {
-    const message = buildGraphViewGroupsUpdatedMessage(
+    const message = buildGraphViewLegendsUpdatedMessage(
       [{ id: 'user-group', pattern: '*.png', color: '#112233', imagePath: '.codegraphy/assets/icon.png' }],
       {
         workspaceFolder: { uri: vscode.Uri.file('/test/workspace') },
@@ -103,7 +103,7 @@ describe('graphView/groupMessage', () => {
   it('omits plugin image urls when plugin asset resolution fails', () => {
     const resolvePluginAssetPath = vi.fn(() => undefined);
 
-    const message = buildGraphViewGroupsUpdatedMessage(
+    const message = buildGraphViewLegendsUpdatedMessage(
       [{ id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#112233', imagePath: 'icons/python.svg' }],
       {
         resolvePluginAssetPath,
@@ -125,7 +125,7 @@ describe('graphView/groupMessage', () => {
       toString: () => `webview:${uri.fsPath}`,
     }));
 
-    const message = buildGraphViewGroupsUpdatedMessage(
+    const message = buildGraphViewLegendsUpdatedMessage(
       [
         {
           id: 'user-plugin:codegraphy.python:*.py',
@@ -156,7 +156,7 @@ describe('graphView/groupMessage', () => {
       toString: () => `webview:${uri.fsPath}`,
     }));
 
-    const message = buildGraphViewGroupsUpdatedMessage(
+    const message = buildGraphViewLegendsUpdatedMessage(
       [
         {
           id: 'user-group',

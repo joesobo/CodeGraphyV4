@@ -6,7 +6,7 @@ import {
   handleGraphControlsUpdated,
   handleFavoritesUpdated,
   handleSettingsUpdated,
-  handleGroupsUpdated,
+  handleLegendsUpdated,
   handleFilterPatternsUpdated,
   handleDepthModeUpdated,
   handleViewsUpdated,
@@ -68,9 +68,9 @@ export const MESSAGE_HANDLERS: Record<
     handleDepthModeUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'DEPTH_MODE_UPDATED' }>
     ),
-  GROUPS_UPDATED: (msg, ctx) =>
-    handleGroupsUpdated(
-      msg as Extract<ExtensionToWebviewMessage, { type: 'GROUPS_UPDATED' }>,
+  LEGENDS_UPDATED: (msg, ctx) =>
+    handleLegendsUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'LEGENDS_UPDATED' }>,
       ctx,
     ),
   FILTER_PATTERNS_UPDATED: (msg) =>

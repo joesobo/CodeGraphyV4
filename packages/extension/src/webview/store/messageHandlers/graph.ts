@@ -60,8 +60,8 @@ export function handleSettingsUpdated(
   };
 }
 
-export function handleGroupsUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'GROUPS_UPDATED' }>,
+export function handleLegendsUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'LEGENDS_UPDATED' }>,
   ctx: IHandlerContext,
 ): PartialState | void {
   const state = ctx.getState();

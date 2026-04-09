@@ -34,12 +34,12 @@ function resolveGroupImageUrl(
   return undefined;
 }
 
-export function buildGraphViewGroupsUpdatedMessage(
+export function buildGraphViewLegendsUpdatedMessage(
   groups: IGroup[],
   options: GraphViewGroupsUpdatedMessageOptions,
-): Extract<ExtensionToWebviewMessage, { type: 'GROUPS_UPDATED' }> {
+): Extract<ExtensionToWebviewMessage, { type: 'LEGENDS_UPDATED' }> {
   return {
-    type: 'GROUPS_UPDATED',
+    type: 'LEGENDS_UPDATED',
     payload: {
       groups: groups.map((group) => {
         const imageUrl = resolveGroupImageUrl(group, options);

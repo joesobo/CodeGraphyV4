@@ -70,7 +70,7 @@ export async function applyGroupMessage(
   handlers: GraphViewGroupMessageHandlers,
 ): Promise<boolean> {
   switch (message.type) {
-    case 'UPDATE_GROUPS':
+    case 'UPDATE_LEGENDS':
       state.userGroups = message.payload.groups.map(toPersistableGroup);
       await handlers.persistGroups(state.userGroups);
       return true;

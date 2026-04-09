@@ -81,7 +81,7 @@ describe('graphView/settings/sync', () => {
         order.push('RECOMPUTE_GROUPS');
       },
       sendGroupsUpdated: () => {
-        order.push('SEND_GROUPS_UPDATED');
+        order.push('SEND_LEGENDS_UPDATED');
       },
     });
 
@@ -91,7 +91,7 @@ describe('graphView/settings/sync', () => {
       'DIRECTION_SETTINGS_UPDATED',
       'SHOW_LABELS_UPDATED',
       'RECOMPUTE_GROUPS',
-      'SEND_GROUPS_UPDATED',
+      'SEND_LEGENDS_UPDATED',
       'FILTER_PATTERNS_UPDATED',
     ]);
   });
@@ -109,7 +109,7 @@ describe('graphView/settings/sync', () => {
         order.push('RECOMPUTE_GROUPS');
       },
       sendGroupsUpdated: () => {
-        order.push('SEND_GROUPS_UPDATED');
+        order.push('SEND_LEGENDS_UPDATED');
       },
     });
 

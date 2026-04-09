@@ -50,7 +50,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     vi.clearAllMocks();
   });
 
-  it('allows switching to depth view without a focused file', async () => {
+  it('allows enabling depth mode without a focused file', async () => {
     const context = createContext();
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
@@ -66,23 +66,25 @@ describe('GraphViewProvider view state and internal helpers', () => {
       '_sendMessage'
     ).mockImplementation(() => {});
 
-    await provider.changeView('codegraphy.depth-graph');
+    await provider.setDepthMode(true);
 
-    expect((provider as unknown as { _activeViewId: string })._activeViewId).toBe(
-      'codegraphy.depth-graph'
-    );
-    expect(currentConfiguration.update).not.toHaveBeenCalledWith(
-      expect.stringMatching(/selectedView/),
-      expect.anything(),
+    expect((provider as unknown as { _depthMode: boolean })._depthMode).toBe(true);
+    expect(currentConfiguration.update).toHaveBeenCalledWith(
+      'depthMode',
+      true,
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
+    expect(sendMessageSpy).toHaveBeenCalledWith({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
+    });
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
   });
 
-  it('persists and broadcasts available view changes when a target view is available', async () => {
+  it('persists and broadcasts available view changes when depth mode is enabled', async () => {
     const context = createContext();
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
@@ -103,31 +105,33 @@ describe('GraphViewProvider view state and internal helpers', () => {
       '_sendMessage'
     ).mockImplementation(() => {});
 
-    await provider.changeView('codegraphy.depth-graph');
+    await provider.setDepthMode(true);
 
-    expect((provider as unknown as { _activeViewId: string })._activeViewId).toBe(
-      'codegraphy.depth-graph'
-    );
-    expect(currentConfiguration.update).not.toHaveBeenCalledWith(
-      expect.stringMatching(/selectedView/),
-      expect.anything(),
+    expect((provider as unknown as { _depthMode: boolean })._depthMode).toBe(true);
+    expect(currentConfiguration.update).toHaveBeenCalledWith(
+      'depthMode',
+      true,
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(sendViewsSpy).toHaveBeenCalledTimes(1);
+    expect(sendMessageSpy).toHaveBeenCalledWith({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
+    });
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
   });
 
-  it('clamps depth limits and re-sends graph data when the depth graph is active', async () => {
+  it('clamps depth limits and re-sends graph data when depth mode is active', async () => {
     const context = createContext();
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
       context as unknown as vscode.ExtensionContext
     );
     const internals = getGraphViewProviderInternals(provider);
-    (provider as unknown as { _activeViewId: string })._activeViewId = 'codegraphy.depth-graph';
+    (provider as unknown as { _depthMode: boolean })._depthMode = true;
     const applySpy = vi.spyOn(
       internals._viewContextMethods,
       '_applyViewTransform'

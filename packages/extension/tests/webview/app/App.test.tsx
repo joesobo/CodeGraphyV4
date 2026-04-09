@@ -210,11 +210,11 @@ describe('App: message handlers', () => {
     expect(graphStore.getState().filterPatterns).toEqual(['**/*.test.ts']);
   });
 
-  it('GROUPS_UPDATED message is handled', async () => {
+  it('LEGENDS_UPDATED message is handled', async () => {
     render(<App />);
     await act(async () => {
       sendMessage({
-        type: 'GROUPS_UPDATED',
+        type: 'LEGENDS_UPDATED',
         payload: { groups: [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }] },
       });
     });

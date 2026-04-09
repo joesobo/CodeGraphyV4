@@ -69,7 +69,7 @@ describe('LegendsPanel', () => {
     expect(screen.getByText('No custom legend rules yet.')).toBeInTheDocument();
   });
 
-  it('creates a new legend rule through UPDATE_GROUPS', () => {
+  it('creates a new legend rule through UPDATE_LEGENDS', () => {
     sentMessages.length = 0;
     graphStore.setState({
       graphNodeTypes: [],
@@ -93,7 +93,7 @@ describe('LegendsPanel', () => {
     fireEvent.click(screen.getByTitle('Add legend rule'));
 
     expect(sentMessages).toContainEqual({
-      type: 'UPDATE_GROUPS',
+      type: 'UPDATE_LEGENDS',
       payload: {
         groups: [
           expect.objectContaining({

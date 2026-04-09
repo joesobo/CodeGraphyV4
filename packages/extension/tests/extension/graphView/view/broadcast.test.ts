@@ -6,7 +6,7 @@ import type { IViewContext } from '../../../../src/core/views/contracts';
 import { coreViews } from '../../../../src/core/views/builtIns';
 import {
   sendGraphViewAvailableViews,
-  sendGraphViewGroupsUpdated,
+  sendGraphViewLegendsUpdated,
 } from '../../../../src/extension/graphView/view/broadcast';
 
 describe('graphView/view/broadcast', () => {
@@ -55,7 +55,7 @@ describe('graphView/view/broadcast', () => {
     const registerPluginRoots = vi.fn();
     const sendMessage = vi.fn();
 
-    sendGraphViewGroupsUpdated(
+    sendGraphViewLegendsUpdated(
       groups,
       {
         registerPluginRoots,
@@ -69,7 +69,7 @@ describe('graphView/view/broadcast', () => {
 
     expect(registerPluginRoots).toHaveBeenCalledTimes(1);
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
         groups: [
           expect.objectContaining({
@@ -87,7 +87,7 @@ describe('graphView/view/broadcast', () => {
       toString: () => `view:${value.fsPath}`,
     }));
 
-    sendGraphViewGroupsUpdated(
+    sendGraphViewLegendsUpdated(
       [
         {
           id: 'user-group',
@@ -108,7 +108,7 @@ describe('graphView/view/broadcast', () => {
 
     expect(viewAsWebviewUri).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
         groups: [
           expect.objectContaining({
@@ -126,7 +126,7 @@ describe('graphView/view/broadcast', () => {
       toString: () => `panel:${value.fsPath}`,
     }));
 
-    sendGraphViewGroupsUpdated(
+    sendGraphViewLegendsUpdated(
       [
         {
           id: 'user-group',
@@ -147,7 +147,7 @@ describe('graphView/view/broadcast', () => {
 
     expect(panelAsWebviewUri).toHaveBeenCalledOnce();
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
         groups: [
           expect.objectContaining({

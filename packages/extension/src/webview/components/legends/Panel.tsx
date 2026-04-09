@@ -102,7 +102,7 @@ function sendUserLegendRules(
 ): void {
   setOptimisticUserGroups(rules);
   postMessage({
-    type: 'UPDATE_GROUPS',
+    type: 'UPDATE_LEGENDS',
     payload: { groups: rules },
   });
 }
