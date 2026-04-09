@@ -9,7 +9,6 @@ export async function buildTimelineCommitGraphData(
     | '_analyzer'
     | '_gitAnalyzer'
     | '_disabledPlugins'
-    | '_disabledSources'
   >,
   sha: string,
   dependencies: Pick<
@@ -21,7 +20,6 @@ export async function buildTimelineCommitGraphData(
 
   return dependencies.buildTimelineGraphData(rawGraphData, {
     disabledPlugins: source._disabledPlugins,
-    disabledSources: source._disabledSources,
     showOrphans: dependencies.getShowOrphans(),
     workspaceRoot: dependencies.getWorkspaceFolder()?.uri.fsPath,
     registry: source._analyzer?.registry,

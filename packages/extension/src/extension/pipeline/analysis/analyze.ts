@@ -22,14 +22,12 @@ export interface WorkspacePipelineAnalysisSource {
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
   _buildGraphDataFromAnalysis(
     fileAnalysis: Map<string, IFileAnalysisResult>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
   _eventBus?: EventBus;
@@ -59,7 +57,6 @@ export async function analyzeWorkspaceWithAnalyzer(
   source: WorkspacePipelineAnalysisSource,
   dependencies: WorkspacePipelineAnalysisDependencies,
   filterPatterns: string[] = [],
-  disabledSources: Set<string> = new Set(),
   disabledPlugins: Set<string> = new Set(),
   signal?: AbortSignal,
 ): Promise<IGraphData> {
@@ -129,7 +126,6 @@ export async function analyzeWorkspaceWithAnalyzer(
     analysisResult.fileAnalysis,
     workspaceRoot,
     config.showOrphans,
-    disabledSources,
     disabledPlugins,
   );
 

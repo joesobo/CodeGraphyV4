@@ -33,7 +33,6 @@ export interface GraphViewProviderPluginMethodsSource {
   _pluginExtensionUris: Map<string, vscode.Uri>;
   _analyzer?: GraphViewPluginAnalyzerLike;
   _disabledPlugins: Set<string>;
-  _disabledSources: Set<string>;
   _groups: IGroup[];
   _view?: vscode.WebviewView;
   _timelineView?: vscode.WebviewView;

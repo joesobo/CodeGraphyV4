@@ -10,7 +10,6 @@ export async function jumpGraphViewProviderToCommit(
     | '_gitAnalyzer'
     | '_currentCommitSha'
     | '_disabledPlugins'
-    | '_disabledSources'
     | '_rawGraphData'
     | '_graphData'
     | '_applyViewTransform'

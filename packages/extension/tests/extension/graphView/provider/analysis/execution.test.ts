@@ -17,7 +17,6 @@ function createSource(
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,
     _filterPatterns: ['src/**'],
-    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(),
     _graphData: { nodes: [], edges: [] },
     _rawGraphData: { nodes: [], edges: [] },

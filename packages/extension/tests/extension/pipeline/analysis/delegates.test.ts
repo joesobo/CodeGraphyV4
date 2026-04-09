@@ -71,7 +71,6 @@ describe('WorkspacePipeline delegates', () => {
           discovery,
           getWorkspaceRoot,
           filterPatterns,
-          nextDisabledRules,
           nextDisabledPlugins,
           nextProgress,
           nextSignal,
@@ -91,7 +90,6 @@ describe('WorkspacePipeline delegates', () => {
           expect(source._lastWorkspaceRoot).toBe('');
           expect(getWorkspaceRoot()).toBe('/test/workspace');
           expect(filterPatterns).toEqual(['**/*.generated.ts']);
-          expect(nextDisabledRules).toEqual(new Set());
           expect(nextDisabledPlugins).toBe(disabledPlugins);
           expect(nextProgress).toBeUndefined();
           expect(nextSignal).toBe(signal);
@@ -100,7 +98,7 @@ describe('WorkspacePipeline delegates', () => {
       );
 
     await expect(
-      analyzer.analyze(['**/*.generated.ts'], new Set(), disabledPlugins, signal),
+      analyzer.analyze(['**/*.generated.ts'], disabledPlugins, signal),
     ).resolves.toEqual(expectedGraph);
     expect(runSpy).toHaveBeenCalledOnce();
     expect(repoMetaModule.writeCodeGraphyRepoMeta).toHaveBeenCalledWith(
@@ -199,7 +197,6 @@ describe('WorkspacePipeline delegates', () => {
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext,
     );
-    const disabledSources = new Set(['plugin.typescript:rule']);
     const disabledPlugins = new Set(['plugin.python']);
     const expectedGraph = createGraph();
     const rebuildSpy = vi
@@ -207,9 +204,9 @@ describe('WorkspacePipeline delegates', () => {
       .mockReturnValue(expectedGraph);
 
     expect(
-      analyzer.rebuildGraph(disabledSources, disabledPlugins, false),
+      analyzer.rebuildGraph(disabledPlugins, false),
     ).toEqual(expectedGraph);
-    const [source, nextDisabledRules, nextDisabledPlugins, nextShowOrphans] =
+    const [source, nextDisabledPlugins, nextShowOrphans] =
       rebuildSpy.mock.calls[0];
     expect(source._lastFileAnalysis).toBe(
       (analyzer as unknown as { _lastFileAnalysis: unknown })._lastFileAnalysis,
@@ -218,7 +215,6 @@ describe('WorkspacePipeline delegates', () => {
       (analyzer as unknown as { _lastFileConnections: unknown })._lastFileConnections,
     );
     expect(source._lastWorkspaceRoot).toBe('');
-    expect(nextDisabledRules).toBe(disabledSources);
     expect(nextDisabledPlugins).toBe(disabledPlugins);
     expect(nextShowOrphans).toBe(false);
   });

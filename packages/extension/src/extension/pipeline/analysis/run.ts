@@ -16,7 +16,6 @@ export function runWorkspacePipelineAnalysis(
   discovery: Pick<FileDiscovery, 'discover'>,
   getWorkspaceRoot: () => string | undefined,
   filterPatterns: string[] = [],
-  disabledSources: Set<string> = new Set(),
   disabledPlugins: Set<string> = new Set(),
   onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   signal?: AbortSignal,
@@ -54,7 +53,6 @@ export function runWorkspacePipelineAnalysis(
       sendProgress: onProgress,
     },
     filterPatterns,
-    disabledSources,
     disabledPlugins,
     signal,
   );

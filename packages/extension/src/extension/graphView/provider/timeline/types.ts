@@ -18,7 +18,6 @@ export interface GraphViewProviderTimelineMethodsSource
       | '_timelineActive'
       | '_currentCommitSha'
       | '_disabledPlugins'
-      | '_disabledSources'
       | '_rawGraphData'
       | '_graphData'
       | '_applyViewTransform'

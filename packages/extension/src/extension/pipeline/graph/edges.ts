@@ -6,12 +6,11 @@
 import * as path from 'path';
 import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
 import type { IGraphEdge } from '../../../shared/graph/types';
-import { createEdgeSource, createQualifiedSourceId } from './edgeSources';
+import { createEdgeSource } from './edgeSources';
 import { getConnectionTargetId } from './edgeTargets';
 
 export interface IWorkspaceGraphEdgesOptions {
   disabledPlugins: ReadonlySet<string>;
-  disabledSources: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IConnection[]>;
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
   workspaceRoot: string;
@@ -28,7 +27,6 @@ export function buildWorkspaceGraphEdges(
 ): IWorkspaceGraphEdgeBuildResult {
   const {
     disabledPlugins,
-    disabledSources,
     fileConnections,
     getPluginForFile,
     workspaceRoot,
@@ -47,11 +45,6 @@ export function buildWorkspaceGraphEdges(
     for (const connection of connections) {
       const sourcePluginId = connection.pluginId ?? plugin?.id;
       if (sourcePluginId && disabledPlugins.has(sourcePluginId)) {
-        continue;
-      }
-
-      const qualifiedSourceId = createQualifiedSourceId(plugin, connection);
-      if (qualifiedSourceId && disabledSources.has(qualifiedSourceId)) {
         continue;
       }
 

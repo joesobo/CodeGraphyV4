@@ -3,7 +3,6 @@ import type { IPluginStatus } from '../../../shared/plugins/status';
 
 interface GraphViewAnalyzerLike {
   rebuildGraph(
-    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
     showOrphans: boolean,
   ): IGraphData;
@@ -15,7 +14,6 @@ interface GraphViewAnalyzerLike {
 
 interface GraphViewRebuildState {
   _analyzer: GraphViewAnalyzerLike | undefined;
-  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
@@ -52,7 +50,6 @@ export function rebuildGraphViewData(
   if (!state._analyzer) return;
 
   state._rawGraphData = state._analyzer.rebuildGraph(
-    state._disabledSources,
     state._disabledPlugins,
     getShowOrphans(),
   );
@@ -66,7 +63,7 @@ export function rebuildGraphViewData(
 }
 
 export function smartRebuildGraphView(
-  state: Pick<GraphViewRebuildState, '_analyzer' | '_disabledSources' | '_disabledPlugins'>,
+  state: Pick<GraphViewRebuildState, '_analyzer' | '_disabledPlugins'>,
   id: string,
   {
     shouldRebuild,

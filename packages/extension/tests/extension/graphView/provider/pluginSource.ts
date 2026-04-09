@@ -21,7 +21,6 @@ export function createPluginSource(
       getPluginStatuses: vi.fn(() => []),
     },
     _disabledPlugins: new Set<string>(),
-    _disabledSources: new Set<string>(),
     _groups: [],
     _view: undefined,
     _panels: [],

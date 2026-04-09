@@ -98,7 +98,6 @@ function createSource(
     _currentCommitSha: undefined,
     _userGroups: [],
     _disabledPlugins: new Set<string>(),
-    _disabledSources: new Set<string>(),
     _filterPatterns: ['dist/**'],
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _viewContext: { activePlugins: new Set() } satisfies IViewContext,

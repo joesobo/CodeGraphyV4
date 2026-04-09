@@ -57,7 +57,6 @@ describe('pipeline/analysis/run', () => {
         discovery as never,
         () => '/workspace',
         ['**/*.generated.ts'],
-        new Set(['plugin.typescript:rule']),
         new Set(['plugin.python']),
       ),
     ).resolves.toEqual({ nodes: [], edges: [] });
@@ -66,9 +65,6 @@ describe('pipeline/analysis/run', () => {
     expect(analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][0]).toBe(source);
     expect(analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][2]).toEqual(['**/*.generated.ts']);
     expect(analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][3]).toEqual(
-      new Set(['plugin.typescript:rule']),
-    );
-    expect(analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][4]).toEqual(
       new Set(['plugin.python']),
     );
     expect(dependencies.getConfig()).toEqual(config.getAll());
@@ -126,6 +122,5 @@ describe('pipeline/analysis/run', () => {
 
     expect(analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][2]).toEqual([]);
     expect(analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][3]).toEqual(new Set());
-    expect(analyzeWorkspaceWithAnalyzerSpy.mock.calls[0][4]).toEqual(new Set());
   });
 });

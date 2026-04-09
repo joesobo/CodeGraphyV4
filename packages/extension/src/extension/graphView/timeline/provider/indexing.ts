@@ -28,7 +28,6 @@ export interface GraphViewProviderTimelineDependencies {
     rawGraphData: IGraphData,
     options: {
       disabledPlugins: Set<string>;
-      disabledSources: Set<string>;
       showOrphans: boolean;
       workspaceRoot: string | undefined;
       registry: unknown;
@@ -78,7 +77,6 @@ export async function resetGraphViewProviderTimeline(
     | '_gitAnalyzer'
     | '_currentCommitSha'
     | '_disabledPlugins'
-    | '_disabledSources'
     | '_rawGraphData'
     | '_graphData'
     | '_applyViewTransform'

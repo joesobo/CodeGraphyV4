@@ -12,7 +12,6 @@ function createSource(
     registry: { notifyGraphRebuild: ReturnType<typeof vi.fn> };
     clearCache: ReturnType<typeof vi.fn>;
   };
-  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
@@ -39,7 +38,6 @@ function createSource(
       registry: { notifyGraphRebuild: vi.fn() },
       clearCache: vi.fn(),
     },
-    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(),
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,

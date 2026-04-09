@@ -19,7 +19,6 @@ const MUTABLE_STATE_KEYS = [
   '_groups',
   '_userGroups',
   '_filterPatterns',
-  '_disabledSources',
   '_disabledPlugins',
   '_gitAnalyzer',
   '_currentCommitSha',

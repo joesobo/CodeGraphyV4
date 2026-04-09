@@ -326,7 +326,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
 
     internals._refreshMethods._rebuildAndSend();
 
-    expect(rebuildGraph).toHaveBeenCalledWith(new Set(), new Set(), false);
+    expect(rebuildGraph).toHaveBeenCalledWith(new Set(), false);
     expect((provider as unknown as { _rawGraphData: IGraphData })._rawGraphData).toEqual(graphData);
     expect(updateViewContextSpy).toHaveBeenCalledTimes(1);
     expect(applySpy).toHaveBeenCalledTimes(1);

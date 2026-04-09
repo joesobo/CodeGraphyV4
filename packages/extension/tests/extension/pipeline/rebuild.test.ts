@@ -21,7 +21,7 @@ describe('WorkspacePipeline rebuild', () => {
       _buildGraphData: () => unknown;
     }), '_buildGraphData');
 
-    expect(analyzer.rebuildGraph(new Set(), new Set(), true)).toEqual({
+    expect(analyzer.rebuildGraph(new Set(), true)).toEqual({
       nodes: [],
       edges: [],
     });

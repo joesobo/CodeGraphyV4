@@ -23,7 +23,6 @@ function createOptions(
 ): Parameters<typeof buildWorkspaceGraphEdges>[0] {
   return {
     disabledPlugins: new Set<string>(),
-    disabledSources: new Set<string>(),
     fileConnections: new Map<string, IConnection[]>([
       ['src/index.ts', []],
       ['src/utils.ts', []],
@@ -97,9 +96,8 @@ describe('pipeline/graph/edges', () => {
     expect([...result.connectedIds]).toEqual([]);
   });
 
-  it('skips edges from disabled qualified sources', () => {
+  it('keeps edges even when source ids would previously have been disabled', () => {
     const result = buildWorkspaceGraphEdges(createOptions({
-      disabledSources: new Set<string>(['plugin.typescript:import']),
       fileConnections: new Map<string, IConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'import' },
@@ -108,7 +106,22 @@ describe('pipeline/graph/edges', () => {
       ]),
     }));
 
-    expect(result.edges).toEqual([]);
+    expect(result.edges).toEqual([
+      {
+        id: 'src/index.ts->src/utils.ts#import',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'import',
+            label: 'Import',
+          },
+        ],
+      },
+    ]);
   });
 
   it('filters only the disabled plugin provenance when multiple plugins contribute to one file', () => {

@@ -67,7 +67,6 @@ export interface GraphViewProviderMessageListenerSource {
   _currentCommitSha: string | undefined;
   _userGroups: IGroup[];
   _disabledPlugins: Set<string>;
-  _disabledSources: Set<string>;
   _filterPatterns: string[];
   _graphData: IGraphData;
   _viewContext: IViewContext;

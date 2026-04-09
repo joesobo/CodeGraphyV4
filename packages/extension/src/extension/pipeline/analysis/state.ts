@@ -11,14 +11,12 @@ export interface WorkspacePipelineRebuildDependencies {
     fileAnalysis: Map<string, IFileAnalysisResult>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
   buildGraphData(
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
   fileAnalysis: Map<string, IFileAnalysisResult>;
@@ -31,14 +29,12 @@ export interface WorkspacePipelineRebuildSource {
     fileAnalysis: Map<string, IFileAnalysisResult>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
   _buildGraphData(
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
@@ -48,7 +44,6 @@ export interface WorkspacePipelineRebuildSource {
 
 export function rebuildWorkspacePipelineGraph(
   dependencies: WorkspacePipelineRebuildDependencies,
-  disabledSources: Set<string>,
   disabledPlugins: Set<string>,
   showOrphans: boolean,
 ): IGraphData {
@@ -57,7 +52,6 @@ export function rebuildWorkspacePipelineGraph(
       dependencies.fileAnalysis,
       dependencies.workspaceRoot,
       showOrphans,
-      disabledSources,
       disabledPlugins,
     );
   }
@@ -70,14 +64,12 @@ export function rebuildWorkspacePipelineGraph(
     dependencies.fileConnections,
     dependencies.workspaceRoot,
     showOrphans,
-    disabledSources,
     disabledPlugins,
   );
 }
 
 export function rebuildWorkspacePipelineGraphForSource(
   source: WorkspacePipelineRebuildSource,
-  disabledSources: Set<string>,
   disabledPlugins: Set<string>,
   showOrphans: boolean,
 ): IGraphData {
@@ -87,35 +79,30 @@ export function rebuildWorkspacePipelineGraphForSource(
         fileAnalysis,
         workspaceRoot,
         nextShowOrphans,
-        nextDisabledRules,
         nextDisabledPlugins,
       ) =>
         source._buildGraphDataFromAnalysis(
           fileAnalysis,
           workspaceRoot,
           nextShowOrphans,
-          nextDisabledRules,
           nextDisabledPlugins,
         ),
       buildGraphData: (
         fileConnections,
         workspaceRoot,
         nextShowOrphans,
-        nextDisabledRules,
         nextDisabledPlugins,
       ) =>
         source._buildGraphData(
           fileConnections,
           workspaceRoot,
           nextShowOrphans,
-          nextDisabledRules,
           nextDisabledPlugins,
         ),
       fileAnalysis: source._lastFileAnalysis,
       fileConnections: source._lastFileConnections,
       workspaceRoot: source._lastWorkspaceRoot,
     },
-    disabledSources,
     disabledPlugins,
     showOrphans,
   );

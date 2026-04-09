@@ -125,7 +125,6 @@ describe('pipeline/analysis/analyze', () => {
         source as never,
         dependencies as never,
         ['**/*.user.ts'],
-        new Set<string>(['plugin.typescript:rule']),
         new Set<string>(['plugin.python']),
       ),
     ).resolves.toEqual(graphData);
@@ -142,7 +141,6 @@ describe('pipeline/analysis/analyze', () => {
       fileAnalysis,
       '/workspace',
       true,
-      new Set<string>(['plugin.typescript:rule']),
       new Set<string>(['plugin.python']),
     );
     expect(source._lastDiscoveredFiles).toEqual(files);

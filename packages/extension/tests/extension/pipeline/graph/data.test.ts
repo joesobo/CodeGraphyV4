@@ -33,7 +33,6 @@ describe('pipeline/graph/data', () => {
         'src/utils.ts': { size: 20 },
       },
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       fileConnections,
       showOrphans: true,
       visitCounts: {
@@ -77,7 +76,7 @@ describe('pipeline/graph/data', () => {
     ]);
   });
 
-  it('filters disabled plugins and sources', () => {
+  it('filters disabled plugins but keeps source-level provenance', () => {
     const typescriptPlugin = createPlugin('plugin.typescript');
     const pythonPlugin = createPlugin('plugin.python');
     const fileConnections = new Map<string, IConnection[]>([
@@ -94,7 +93,6 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(['plugin.python']),
-      disabledSources: new Set(['plugin.typescript:dynamic-import']),
       fileConnections,
       showOrphans: true,
       visitCounts: {},
@@ -122,6 +120,20 @@ describe('pipeline/graph/data', () => {
           },
         ],
       },
+      {
+        id: 'src/index.ts->src/lazy.ts#import',
+        from: 'src/index.ts',
+        to: 'src/lazy.ts',
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:dynamic-import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'dynamic-import',
+            label: 'Dynamic import',
+          },
+        ],
+      },
     ]);
   });
 
@@ -139,7 +151,6 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       fileConnections,
       showOrphans: true,
       visitCounts: {},
@@ -193,7 +204,6 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       fileConnections,
       showOrphans: false,
       visitCounts: {},
@@ -224,7 +234,6 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       fileConnections: new Map<string, IConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: null, kind: 'import', sourceId: 'es6-import' }]],
         ['src/utils.ts', []],
@@ -244,7 +253,6 @@ describe('pipeline/graph/data', () => {
         'src/index.ts': { size: 10 },
       },
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       fileConnections: new Map<string, IConnection[]>([
         ['src/index.ts', [
           { specifier: 'node:fs/promises', resolvedPath: null, kind: 'import', sourceId: 'es6-import' },
@@ -299,7 +307,6 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       fileConnections: new Map<string, IConnection[]>([
         ['src/index.ts', [{ specifier: './missing', resolvedPath: '/workspace/src/missing.ts', kind: 'import', sourceId: 'es6-import' }]],
       ]),
@@ -316,7 +323,6 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       fileConnections: new Map<string, IConnection[]>([
         ['src/index.ts', [
           { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'dynamic-import' },
@@ -358,7 +364,6 @@ describe('pipeline/graph/data', () => {
     const graph = buildWorkspaceGraphData({
       cacheFiles: {},
       disabledPlugins: new Set(),
-      disabledSources: new Set(['plugin.typescript:es6-import']),
       fileConnections: new Map<string, IConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', sourceId: 'es6-import' }]],
         ['src/utils.ts', []],

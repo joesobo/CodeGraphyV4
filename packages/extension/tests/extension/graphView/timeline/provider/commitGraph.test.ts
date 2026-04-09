@@ -19,7 +19,6 @@ describe('timeline commit graph', () => {
       _analyzer: { registry: { kind: 'registry' } },
       _gitAnalyzer: { getGraphDataForCommit },
       _disabledPlugins: new Set(['plugin.test']),
-      _disabledSources: new Set(['rule.test']),
     };
 
     await expect(buildTimelineCommitGraphData(source as never, 'sha-1', {
@@ -33,7 +32,6 @@ describe('timeline commit graph', () => {
       { nodes: [], edges: [] },
       {
         disabledPlugins: source._disabledPlugins,
-        disabledSources: source._disabledSources,
         showOrphans: false,
         workspaceRoot: '/workspace',
         registry: source._analyzer.registry,

@@ -176,7 +176,6 @@ export class WorkspacePipeline {
 
   async discoverGraph(
     filterPatterns: string[] = [],
-    disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
   ): Promise<IGraphData> {
@@ -231,7 +230,6 @@ export class WorkspacePipeline {
       fileConnections,
       workspaceRoot,
       config.showOrphans,
-      disabledSources,
       disabledPlugins,
     );
   }
@@ -242,7 +240,6 @@ export class WorkspacePipeline {
    */
   async analyze(
     filterPatterns: string[] = [],
-    disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
@@ -257,7 +254,6 @@ export class WorkspacePipeline {
       this._discovery,
       () => this._getWorkspaceRoot(),
       filterPatterns,
-      disabledSources,
       disabledPlugins,
       onProgress,
       signal,
@@ -286,13 +282,12 @@ export class WorkspacePipeline {
    * Rebuilds graph data from cached connections without re-analyzing files.
    * Used for instant graph updates when toggling sources/plugins.
    */
-  rebuildGraph(disabledSources: Set<string>, disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
+  rebuildGraph(disabledPlugins: Set<string>, showOrphans: boolean): IGraphData {
     this._syncPluginOrder();
     return rebuildWorkspacePipelineGraphForSource(
       createWorkspacePipelineRebuildSource(
         this as unknown as WorkspacePipelineSourceOwner,
       ),
-      disabledSources,
       disabledPlugins,
       showOrphans,
     );
@@ -300,13 +295,12 @@ export class WorkspacePipeline {
 
   async refreshIndex(
     filterPatterns: string[] = [],
-    disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
     this.clearCache();
-    return this.analyze(filterPatterns, disabledSources, disabledPlugins, signal, progress => {
+    return this.analyze(filterPatterns, disabledPlugins, signal, progress => {
       onProgress?.({
         ...progress,
         phase: 'Refreshing Index',
@@ -317,13 +311,12 @@ export class WorkspacePipeline {
   async refreshChangedFiles(
     filePaths: readonly string[],
     filterPatterns: string[] = [],
-    disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set(),
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
     this.invalidateWorkspaceFiles(filePaths);
-    return this.analyze(filterPatterns, disabledSources, disabledPlugins, signal, progress => {
+    return this.analyze(filterPatterns, disabledPlugins, signal, progress => {
       onProgress?.({
         ...progress,
         phase: 'Applying Changes',
@@ -479,7 +472,6 @@ export class WorkspacePipeline {
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set()
   ): IGraphData {
     return buildWorkspacePipelineGraphData(
@@ -489,7 +481,6 @@ export class WorkspacePipeline {
       fileConnections,
       workspaceRoot,
       showOrphans,
-      disabledSources,
       disabledPlugins,
     );
   }
@@ -498,14 +489,12 @@ export class WorkspacePipeline {
     fileAnalysis: Map<string, IFileAnalysisResult>,
     workspaceRoot: string,
     showOrphans: boolean,
-    disabledSources: Set<string> = new Set(),
     disabledPlugins: Set<string> = new Set(),
   ): IGraphData {
     return this._buildGraphData(
       projectConnectionMapFromFileAnalysis(fileAnalysis),
       workspaceRoot,
       showOrphans,
-      disabledSources,
       disabledPlugins,
     );
   }

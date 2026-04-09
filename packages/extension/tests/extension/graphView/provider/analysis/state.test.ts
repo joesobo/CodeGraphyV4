@@ -21,7 +21,6 @@ function createSource(
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,
     _filterPatterns: ['src/**'],
-    _disabledSources: new Set<string>(['rule-a']),
     _disabledPlugins: new Set<string>(['plugin-a']),
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -73,17 +72,14 @@ describe('graphView/provider/analysis/state', () => {
     expect(state.analyzer).toBe(source._analyzer);
     expect(state.analyzerInitPromise).toBe(source._analyzerInitPromise);
     expect(state.filterPatterns).toEqual(['src/**']);
-    expect([...state.disabledSources]).toEqual(['rule-a']);
     expect([...state.disabledPlugins]).toEqual(['plugin-a']);
 
     state.analyzer = nextAnalyzer;
     state.filterPatterns = ['dist/**'];
-    state.disabledSources = new Set<string>(['rule-b']);
     state.disabledPlugins = new Set<string>(['plugin-b']);
 
     expect(source._analyzer).toBe(nextAnalyzer);
     expect(source._filterPatterns).toEqual(['dist/**']);
-    expect([...source._disabledSources]).toEqual(['rule-b']);
     expect([...source._disabledPlugins]).toEqual(['plugin-b']);
   });
 
@@ -101,7 +97,6 @@ describe('graphView/provider/analysis/state', () => {
         analyzerInitPromise: source._analyzerInitPromise,
         mode: 'analyze',
         filterPatterns: source._filterPatterns,
-        disabledSources: source._disabledSources,
         disabledPlugins: source._disabledPlugins,
       } as never,
     );
@@ -125,7 +120,6 @@ describe('graphView/provider/analysis/state', () => {
         analyzerInitPromise,
         mode: 'analyze',
         filterPatterns: source._filterPatterns,
-        disabledSources: source._disabledSources,
         disabledPlugins: source._disabledPlugins,
       } as never,
     );

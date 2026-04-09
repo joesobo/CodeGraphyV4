@@ -10,20 +10,17 @@ interface GraphViewAnalyzerLike {
   hasIndex(): boolean;
   discoverGraph(
     filterPatterns?: string[],
-    disabledSources?: Set<string>,
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
   ): Promise<IGraphData>;
   analyze(
     filterPatterns?: string[],
-    disabledSources?: Set<string>,
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
     onProgress?: (progress: GraphViewIndexingProgress) => void,
   ): Promise<IGraphData>;
   refreshIndex?(
     filterPatterns?: string[],
-    disabledSources?: Set<string>,
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
     onProgress?: (progress: GraphViewIndexingProgress) => void,
@@ -31,7 +28,6 @@ interface GraphViewAnalyzerLike {
   refreshChangedFiles?(
     filePaths: readonly string[],
     filterPatterns?: string[],
-    disabledSources?: Set<string>,
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
     onProgress?: (progress: GraphViewIndexingProgress) => void,
@@ -49,7 +45,6 @@ export interface GraphViewAnalysisExecutionState {
   mode: GraphViewAnalysisMode;
   changedFilePaths?: readonly string[];
   filterPatterns: string[];
-  disabledSources: Set<string>;
   disabledPlugins: Set<string>;
 }
 
@@ -156,14 +151,12 @@ export async function executeGraphViewAnalysis(
     const rawGraphData = shouldDiscover
       ? await state.analyzer.discoverGraph(
           state.filterPatterns,
-          state.disabledSources,
           state.disabledPlugins,
           signal,
         )
       : state.mode === 'refresh'
         ? await (state.analyzer.refreshIndex ?? state.analyzer.analyze)(
             state.filterPatterns,
-            state.disabledSources,
             state.disabledPlugins,
             signal,
             forwardProgress,
@@ -173,21 +166,18 @@ export async function executeGraphViewAnalysis(
             ? await state.analyzer.refreshChangedFiles(
                 state.changedFilePaths ?? [],
                 state.filterPatterns,
-                state.disabledSources,
                 state.disabledPlugins,
                 signal,
                 forwardProgress,
               )
             : await state.analyzer.analyze(
                 state.filterPatterns,
-                state.disabledSources,
                 state.disabledPlugins,
                 signal,
                 forwardProgress,
               )
           : await state.analyzer.analyze(
               state.filterPatterns,
-              state.disabledSources,
               state.disabledPlugins,
               signal,
               forwardProgress,

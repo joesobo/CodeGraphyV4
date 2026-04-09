@@ -22,7 +22,6 @@ describe('pipeline/graph', () => {
       buildWorkspacePipelineGraph({
         cacheFiles: {},
         disabledPlugins: new Set<string>(['plugin.python']),
-        disabledSources: new Set<string>(['plugin.typescript:rule']),
         fileConnections: new Map([['src/index.ts', []]]),
         getPluginForFile: vi.fn(),
         showOrphans: true,
@@ -34,7 +33,6 @@ describe('pipeline/graph', () => {
     expect(workspaceGraphDataModule.buildWorkspaceGraphData).toHaveBeenCalledWith({
       cacheFiles: {},
       disabledPlugins: new Set<string>(['plugin.python']),
-      disabledSources: new Set<string>(['plugin.typescript:rule']),
       fileConnections: new Map([['src/index.ts', []]]),
       getPluginForFile: expect.any(Function),
       showOrphans: true,
@@ -60,7 +58,6 @@ describe('pipeline/graph', () => {
         new Map([['src/index.ts', []]]),
         '/workspace',
         true,
-        new Set(),
         new Set(),
       ),
     ).toEqual({ nodes: [], edges: [] });

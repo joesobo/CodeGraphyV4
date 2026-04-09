@@ -31,11 +31,10 @@ describe('pipeline/analysisSource', () => {
         '/workspace',
         true,
         new Set(),
-        new Set(),
       ),
     ).toEqual({ nodes: [], edges: [] });
     expect(
-      source._buildGraphData(new Map([['a.ts', []]]), '/workspace', true, new Set(), new Set()),
+      source._buildGraphData(new Map([['a.ts', []]]), '/workspace', true, new Set()),
     ).toEqual({ nodes: [], edges: [] });
 
     source._lastDiscoveredFiles = files as never;
@@ -73,11 +72,10 @@ describe('pipeline/analysisSource', () => {
         '/workspace',
         true,
         new Set(),
-        new Set(),
       ),
     ).toEqual({ nodes: [], edges: [] });
     expect(
-      source._buildGraphData(new Map([['a.ts', []]]), '/workspace', true, new Set(), new Set()),
+      source._buildGraphData(new Map([['a.ts', []]]), '/workspace', true, new Set()),
     ).toEqual({ nodes: [], edges: [] });
   });
 });

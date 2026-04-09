@@ -11,7 +11,6 @@ describe('graph view provider listener read context', () => {
       _currentCommitSha: 'abc123',
       _userGroups: [{ id: 'user:src', pattern: 'src/**', color: '#112233' }],
       _disabledPlugins: new Set(['plugin.disabled']),
-      _disabledSources: new Set(['rule.disabled']),
       _filterPatterns: ['dist/**'],
       _graphData: {
         nodes: [{ id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' }],
@@ -34,7 +33,6 @@ describe('graph view provider listener read context', () => {
     expect(context.getCurrentCommitSha()).toBe('abc123');
     expect(context.getUserGroups()).toEqual(source._userGroups);
     expect(context.getDisabledPlugins()).toBe(source._disabledPlugins);
-    expect(context.getDisabledRules()).toBe(source._disabledSources);
     expect(context.getFilterPatterns()).toEqual(['dist/**']);
     expect(context.getGraphData()).toBe(source._graphData);
     expect(context.getViewContext()).toBe(source._viewContext);

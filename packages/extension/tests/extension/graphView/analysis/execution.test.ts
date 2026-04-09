@@ -15,7 +15,6 @@ function createState(
     analyzerInitPromise: undefined,
     mode: 'analyze',
     filterPatterns: [],
-    disabledSources: new Set<string>(),
     disabledPlugins: new Set<string>(),
     ...overrides,
   };
@@ -149,7 +148,7 @@ describe('graph view analysis execution', () => {
   });
 
   it('runs explicit repo indexing through the analyzer analyze path and streams progress', async () => {
-    const analyze = vi.fn(async (_patterns, _disabledSources, _disabledPlugins, _signal, onProgress) => {
+    const analyze = vi.fn(async (_patterns, _disabledPlugins, _signal, onProgress) => {
       onProgress?.({ phase: 'Indexing Repo', current: 1, total: 3 });
       onProgress?.({ phase: 'Indexing Repo', current: 3, total: 3 });
       return { nodes: [], edges: [] };
@@ -214,7 +213,6 @@ describe('graph view analysis execution', () => {
     expect(refreshChangedFiles).toHaveBeenCalledWith(
       ['src/index.ts'],
       [],
-      new Set<string>(),
       new Set<string>(),
       expect.any(AbortSignal),
       expect.any(Function),

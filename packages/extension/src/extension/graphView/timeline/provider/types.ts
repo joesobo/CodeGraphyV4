@@ -29,7 +29,6 @@ export interface GraphViewProviderTimelineSource {
   _timelineActive: boolean;
   _currentCommitSha: string | undefined;
   _disabledPlugins: Set<string>;
-  _disabledSources: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
   _applyViewTransform?(): void;

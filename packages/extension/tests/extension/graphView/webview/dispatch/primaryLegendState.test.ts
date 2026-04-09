@@ -15,7 +15,6 @@ function createContext(
     getCurrentCommitSha: vi.fn(() => undefined),
     getUserGroups: vi.fn(() => []),
     getDisabledPlugins: vi.fn(() => new Set<string>()),
-    getDisabledRules: vi.fn(() => new Set<string>()),
     getFilterPatterns: vi.fn(() => []),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
     getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),

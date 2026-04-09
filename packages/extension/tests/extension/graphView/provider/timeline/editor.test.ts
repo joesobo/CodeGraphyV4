@@ -19,7 +19,6 @@ function createSource(
     _timelineActive: true,
     _currentCommitSha: 'sha-1',
     _disabledPlugins: new Set<string>(),
-    _disabledSources: new Set<string>(),
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _applyViewTransform: vi.fn(),

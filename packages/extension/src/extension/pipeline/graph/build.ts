@@ -23,7 +23,6 @@ export interface WorkspacePipelineGraphSource {
 export interface WorkspacePipelineGraphDependencies {
   cacheFiles: Record<string, { size?: number }>;
   disabledPlugins: ReadonlySet<string>;
-  disabledSources: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IConnection[]>;
   getPluginForFile: (absolutePath: string) => IPlugin | undefined;
   showOrphans: boolean;
@@ -40,7 +39,6 @@ export function buildWorkspacePipelineGraph(
   return buildWorkspaceGraphData({
     cacheFiles: dependencies.cacheFiles,
     disabledPlugins: dependencies.disabledPlugins,
-    disabledSources: dependencies.disabledSources,
     fileConnections: dependencies.fileConnections,
     showOrphans: dependencies.showOrphans,
     visitCounts,
@@ -54,13 +52,11 @@ export function buildWorkspacePipelineGraphForSource(
   fileConnections: Map<string, IConnection[]>,
   workspaceRoot: string,
   showOrphans: boolean,
-  disabledSources: Set<string>,
   disabledPlugins: Set<string>,
 ): IGraphData {
   return buildWorkspacePipelineGraph({
     cacheFiles: source._cache.files,
     disabledPlugins,
-    disabledSources,
     fileConnections,
     getPluginForFile: absolutePath => source._registry.getPluginForFile(absolutePath),
     showOrphans,

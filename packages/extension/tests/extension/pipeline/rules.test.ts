@@ -56,7 +56,7 @@ describe('WorkspacePipeline sources', () => {
 
   describe('rebuildGraph', () => {
     it('returns empty graph when no prior analysis', () => {
-      const result = analyzer.rebuildGraph(new Set(), new Set(), true);
+      const result = analyzer.rebuildGraph(new Set(), true);
       expect(result).toEqual({ nodes: [], edges: [] });
     });
   });
@@ -136,7 +136,7 @@ describe('WorkspacePipeline sources', () => {
      * populating the analyzer's internal state.
      */
 
-    it('filters out connections from disabled sources', async () => {
+    it('keeps connections when only source ids would previously have been disabled', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
@@ -163,15 +163,13 @@ describe('WorkspacePipeline sources', () => {
       ];
 
       // No disabled sources: should have 2 edges
-      const fullResult = analyzer.rebuildGraph(new Set(), new Set(), true);
+      const fullResult = analyzer.rebuildGraph(new Set(), true);
       expect(fullResult.edges.length).toBe(2);
 
-      // Disable dynamic-import source: should filter out the dynamic import edge
-      const disabledSources = new Set(['codegraphy.typescript:dynamic-import']);
-      const filteredResult = analyzer.rebuildGraph(disabledSources, new Set(), true);
-      expect(filteredResult.edges.length).toBe(1);
-      expect(filteredResult.edges[0].from).toBe('src/index.ts');
-      expect(filteredResult.edges[0].to).toBe('src/utils.ts');
+      // Source ids are still recorded on edges, but they no longer control visibility.
+      const filteredResult = analyzer.rebuildGraph(new Set(), true);
+      expect(filteredResult.edges.length).toBe(2);
+      expect(filteredResult.edges.map(edge => edge.to)).toEqual(['src/utils.ts', 'src/lazy.ts']);
     });
 
     it('filters out all connections from disabled plugins', async () => {
@@ -201,18 +199,18 @@ describe('WorkspacePipeline sources', () => {
       ];
 
       // No disabled plugins: should have edges from both TS and Python
-      const fullResult = analyzer.rebuildGraph(new Set(), new Set(), true);
+      const fullResult = analyzer.rebuildGraph(new Set(), true);
       expect(fullResult.edges.length).toBe(2);
 
       // Disable TypeScript plugin: only Python edges remain
       const disabledPlugins = new Set(['codegraphy.typescript']);
-      const filteredResult = analyzer.rebuildGraph(new Set(), disabledPlugins, true);
+      const filteredResult = analyzer.rebuildGraph(disabledPlugins, true);
       expect(filteredResult.edges.length).toBe(1);
       expect(filteredResult.edges[0].from).toBe('main.py');
       expect(filteredResult.edges[0].to).toBe('config.py');
     });
 
-    it('respects both disabled sources and disabled plugins simultaneously', async () => {
+    it('ignores source ids and still respects disabled plugins', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
@@ -241,15 +239,12 @@ describe('WorkspacePipeline sources', () => {
         { absolutePath: '/test/workspace/config.py', relativePath: 'config.py' },
       ];
 
-      // Disable Python plugin AND TypeScript dynamic-import source
-      const disabledSources = new Set(['codegraphy.typescript:dynamic-import']);
+      // Disable Python plugin. Source ids should not affect the remaining TypeScript edges.
       const disabledPlugins = new Set(['codegraphy.python']);
-      const result = analyzer.rebuildGraph(disabledSources, disabledPlugins, true);
+      const result = analyzer.rebuildGraph(disabledPlugins, true);
 
-      // Only the es6-import edge from TS should remain
-      expect(result.edges.length).toBe(1);
-      expect(result.edges[0].from).toBe('src/index.ts');
-      expect(result.edges[0].to).toBe('src/a.ts');
+      expect(result.edges.length).toBe(2);
+      expect(result.edges.map(edge => edge.to)).toEqual(['src/a.ts', 'src/b.ts']);
     });
 
     it('collects multiple sources when different sources detect the same edge', async () => {
@@ -274,7 +269,7 @@ describe('WorkspacePipeline sources', () => {
         { absolutePath: '/test/workspace/src/utils.ts', relativePath: 'src/utils.ts' },
       ];
 
-      const result = analyzer.rebuildGraph(new Set(), new Set(), true);
+      const result = analyzer.rebuildGraph(new Set(), true);
 
       // Should deduplicate into a single edge
       expect(result.edges.length).toBe(1);
@@ -320,11 +315,11 @@ describe('WorkspacePipeline sources', () => {
       ];
 
       // showOrphans=true: all 3 nodes
-      const withOrphans = analyzer.rebuildGraph(new Set(), new Set(), true);
+      const withOrphans = analyzer.rebuildGraph(new Set(), true);
       expect(withOrphans.nodes.length).toBe(3);
 
       // showOrphans=false: only connected nodes
-      const withoutOrphans = analyzer.rebuildGraph(new Set(), new Set(), false);
+      const withoutOrphans = analyzer.rebuildGraph(new Set(), false);
       expect(withoutOrphans.nodes.length).toBe(2);
       const nodeIds = withoutOrphans.nodes.map(n => n.id);
       expect(nodeIds).toContain('src/index.ts');

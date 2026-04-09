@@ -7,7 +7,6 @@ import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 
 interface GraphViewProviderRefreshAnalyzerLike {
   rebuildGraph(
-    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
     showOrphans: boolean,
   ): IGraphData;
@@ -20,7 +19,6 @@ interface GraphViewProviderRefreshAnalyzerLike {
 
 export interface GraphViewProviderRefreshMethodsSource {
   _analyzer: GraphViewProviderRefreshAnalyzerLike | undefined;
-  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;

@@ -30,7 +30,6 @@ describe('graph view provider timeline indexing', () => {
       _timelineActive: false,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _applyViewTransform: vi.fn(),
@@ -255,7 +254,6 @@ describe('graph view provider timeline indexing', () => {
       } as never,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(['plugin.test']),
-      _disabledSources: new Set<string>(['rule.test']),
       _rawGraphData: { nodes: [createGraphNode('live.ts')], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _applyViewTransform: applyViewTransform,
@@ -291,7 +289,6 @@ describe('graph view provider timeline indexing', () => {
       _gitAnalyzer: undefined,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(['plugin.test']),
-      _disabledSources: new Set<string>(['rule.test']),
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _sendMessage: sendMessage,
     };
@@ -312,7 +309,6 @@ describe('graph view provider timeline indexing', () => {
       buildTimelineGraphData: vi.fn((_rawGraphData, options) => {
         expect(options).toEqual({
           disabledPlugins: new Set<string>(['plugin.test']),
-          disabledSources: new Set<string>(['rule.test']),
           showOrphans: true,
           workspaceRoot: undefined,
           registry: undefined,
@@ -327,7 +323,6 @@ describe('graph view provider timeline indexing', () => {
       } as never,
       _currentCommitSha: undefined,
       _disabledPlugins: new Set<string>(['plugin.test']),
-      _disabledSources: new Set<string>(['rule.test']),
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
       _sendMessage: sendMessage,
     };
@@ -357,7 +352,6 @@ describe('graph view provider timeline indexing', () => {
       } as never,
       _currentCommitSha: 'sha-9',
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _graphData: { nodes: [createGraphNode('src/current.ts')], edges: [] } satisfies IGraphData,
       _sendMessage: sendMessage,
     };
@@ -394,7 +388,6 @@ describe('graph view provider timeline indexing', () => {
       } as never,
       _currentCommitSha: 'sha-9',
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _graphData: currentGraph,
       _sendMessage: sendMessage,
     };
@@ -421,7 +414,6 @@ describe('graph view provider timeline indexing', () => {
       } as never,
       _currentCommitSha: 'sha-9',
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _graphData: currentGraph,
       _sendMessage: vi.fn(),
     };
@@ -449,7 +441,6 @@ describe('graph view provider timeline indexing', () => {
       } as never,
       _currentCommitSha: 'sha-9',
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _graphData: currentGraph,
       _sendMessage: vi.fn(),
     };
@@ -479,7 +470,6 @@ describe('graph view provider timeline indexing', () => {
       _gitAnalyzer: undefined,
       _currentCommitSha: 'sha-9',
       _disabledPlugins: new Set<string>(),
-      _disabledSources: new Set<string>(),
       _graphData: currentGraph,
       _sendMessage: vi.fn(),
     };

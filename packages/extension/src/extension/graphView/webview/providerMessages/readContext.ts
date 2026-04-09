@@ -11,7 +11,6 @@ type GraphViewProviderReadContext = Pick<
   | 'getUserGroups'
   | 'getDepthMode'
   | 'getDisabledPlugins'
-  | 'getDisabledRules'
   | 'getFilterPatterns'
   | 'getGraphData'
   | 'getAnalyzer'
@@ -32,7 +31,6 @@ export function createGraphViewProviderMessageReadContext(
     getUserGroups: () => source._userGroups,
     getDepthMode: () => source._depthMode,
     getDisabledPlugins: () => source._disabledPlugins,
-    getDisabledRules: () => source._disabledSources,
     getFilterPatterns: () => source._filterPatterns,
     getGraphData: () => source._graphData,
     getAnalyzer: () => source._analyzer,

@@ -254,7 +254,7 @@ describe('WorkspacePipeline analysis', () => {
     });
     const signal = new AbortController().signal;
 
-    await expect(analyzer.analyze(undefined, undefined, undefined, signal)).resolves.toEqual({
+    await expect(analyzer.analyze(undefined, undefined, signal)).resolves.toEqual({
       nodes: [],
       edges: [],
     });

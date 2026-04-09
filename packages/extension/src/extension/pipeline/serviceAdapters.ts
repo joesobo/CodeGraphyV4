@@ -78,7 +78,6 @@ export function buildWorkspacePipelineGraphData(
   fileConnections: Map<string, IConnection[]>,
   workspaceRoot: string,
   showOrphans: boolean,
-  disabledSources: Set<string> = new Set(),
   disabledPlugins: Set<string> = new Set(),
 ): IGraphData {
   const source: WorkspacePipelineGraphSource = {
@@ -92,7 +91,6 @@ export function buildWorkspacePipelineGraphData(
     fileConnections,
     workspaceRoot,
     showOrphans,
-    disabledSources,
     disabledPlugins,
   );
 }

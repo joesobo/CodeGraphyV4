@@ -59,12 +59,6 @@ export function createGraphViewProviderAnalysisState(
     set filterPatterns(filterPatterns) {
       source._filterPatterns = filterPatterns;
     },
-    get disabledSources() {
-      return source._disabledSources;
-    },
-    set disabledSources(disabledSources) {
-      source._disabledSources = disabledSources;
-    },
     get disabledPlugins() {
       return source._disabledPlugins;
     },

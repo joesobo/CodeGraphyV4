@@ -19,7 +19,6 @@ describe('pipeline/analysis/state', () => {
           workspaceRoot: '/workspace',
         },
         new Set(),
-        new Set(),
         true,
       ),
     ).toEqual({ nodes: [], edges: [] });
@@ -40,7 +39,6 @@ describe('pipeline/analysis/state', () => {
           fileConnections: new Map([['src/index.ts', []]]),
           workspaceRoot: '/workspace',
         },
-        new Set(['plugin.typescript:rule']),
         new Set(['plugin.python']),
         true,
       ),
@@ -50,7 +48,6 @@ describe('pipeline/analysis/state', () => {
       fileAnalysis,
       '/workspace',
       true,
-      new Set(['plugin.typescript:rule']),
       new Set(['plugin.python']),
     );
   });
@@ -65,7 +62,6 @@ describe('pipeline/analysis/state', () => {
           _lastFileConnections: new Map([['src/index.ts', []]]),
           _lastWorkspaceRoot: '/workspace',
         },
-        new Set(['plugin.typescript:rule']),
         new Set(['plugin.python']),
         true,
       ),

@@ -11,7 +11,6 @@ import { buildWorkspaceGraphNodes } from './nodes';
 export interface IWorkspaceGraphDataOptions {
   cacheFiles: Record<string, { size?: number }>;
   disabledPlugins: ReadonlySet<string>;
-  disabledSources: ReadonlySet<string>;
   fileConnections: ReadonlyMap<string, IConnection[]>;
   showOrphans: boolean;
   visitCounts: Record<string, number>;
@@ -23,7 +22,6 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
   const {
     cacheFiles,
     disabledPlugins,
-    disabledSources,
     fileConnections,
     showOrphans,
     visitCounts,
@@ -33,7 +31,6 @@ export function buildWorkspaceGraphData(options: IWorkspaceGraphDataOptions): IG
 
   const { connectedIds, edges, nodeIds } = buildWorkspaceGraphEdges({
     disabledPlugins,
-    disabledSources,
     fileConnections,
     getPluginForFile,
     workspaceRoot,

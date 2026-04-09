@@ -10,7 +10,6 @@ describe('graphView/view/rebuild', () => {
   it('returns early when rebuild graph data is requested without an analyzer', () => {
     const state = {
       _analyzer: undefined,
-      _disabledSources: new Set<string>(),
       _disabledPlugins: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -53,7 +52,6 @@ describe('graphView/view/rebuild', () => {
         registry: { notifyGraphRebuild },
         getPluginStatuses: vi.fn(() => statuses),
       },
-      _disabledSources: new Set<string>(),
       _disabledPlugins: new Set<string>(),
       _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
       _graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -75,7 +73,7 @@ describe('graphView/view/rebuild', () => {
       sendMessage,
     });
 
-    expect(state._analyzer.rebuildGraph).toHaveBeenCalledWith(new Set(), new Set(), false);
+    expect(state._analyzer.rebuildGraph).toHaveBeenCalledWith(new Set(), false);
     expect(state._rawGraphData).toEqual(graphData);
     expect(updateViewContext).toHaveBeenCalledTimes(1);
     expect(applyViewTransform).toHaveBeenCalledTimes(1);
@@ -108,7 +106,6 @@ describe('graphView/view/rebuild', () => {
         registry: { notifyGraphRebuild },
         getPluginStatuses: vi.fn(() => statuses),
       },
-      _disabledSources: new Set<string>(),
       _disabledPlugins: new Set<string>(),
     };
     const rebuildAndSend = vi.fn();
@@ -139,7 +136,6 @@ describe('graphView/view/rebuild', () => {
     smartRebuildGraphView(
       {
         _analyzer: undefined,
-        _disabledSources: new Set<string>(),
         _disabledPlugins: new Set<string>(),
       },
       'rule.alpha',
@@ -173,7 +169,6 @@ describe('graphView/view/rebuild', () => {
         registry: { notifyGraphRebuild: vi.fn() },
         getPluginStatuses: vi.fn(() => statuses),
       },
-      _disabledSources: new Set<string>(['rule.alpha']),
       _disabledPlugins: new Set<string>(['plugin.alpha']),
     };
     const shouldRebuild = vi.fn(() => true);

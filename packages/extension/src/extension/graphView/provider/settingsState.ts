@@ -40,7 +40,6 @@ export interface GraphViewProviderSettingsStateMethodsSource {
   _userGroups: IGroup[];
   _filterPatterns: string[];
   _graphData: IGraphData;
-  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _nodeSizeMode: NodeSizeMode;
   _analyzer?: GraphViewProviderSettingsAnalyzerLike;
@@ -132,7 +131,6 @@ export function createGraphViewProviderSettingsStateMethods(
       },
     );
 
-    source._disabledSources = new Set<string>();
     source._disabledPlugins = disabledState.disabledPlugins;
     return disabledState.changed;
   };

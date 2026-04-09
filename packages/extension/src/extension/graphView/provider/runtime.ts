@@ -68,7 +68,6 @@ export class GraphViewProviderRuntime {
   protected _groups: IGroup[] = createEmptyGroups();
   protected _userGroups: IGroup[] = createEmptyGroups();
   protected _filterPatterns: string[] = [];
-  protected _disabledSources: Set<string> = createStringSet();
   protected _disabledPlugins: Set<string> = createStringSet();
   protected _gitAnalyzer?: GitHistoryAnalyzer;
   protected _currentCommitSha?: string;

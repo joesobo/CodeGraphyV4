@@ -30,7 +30,6 @@ describe('filterGraphViewTimelineEdges', () => {
   it('filters out edges from disabled plugins', () => {
     const edges = filterGraphViewTimelineEdges(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledSources: new Set<string>(),
       showOrphans: true,
     });
 
@@ -45,10 +44,9 @@ describe('filterGraphViewTimelineEdges', () => {
     ]);
   });
 
-  it('filters out edges from disabled sources', () => {
+  it('keeps edges when only source ids would previously have been disabled', () => {
     const edges = filterGraphViewTimelineEdges(rawGraphData, {
       disabledPlugins: new Set<string>(),
-      disabledSources: new Set(['codegraphy.python:import']),
       showOrphans: true,
     });
 
@@ -60,13 +58,19 @@ describe('filterGraphViewTimelineEdges', () => {
         kind: 'import',
         sources: [{ id: 'codegraphy.typescript:import', pluginId: 'codegraphy.typescript', sourceId: 'import', label: 'Import' }],
       },
+      {
+        id: 'src/c.ts->src/b.ts#import',
+        from: 'src/c.ts',
+        to: 'src/b.ts',
+        kind: 'import',
+        sources: [{ id: 'codegraphy.python:import', pluginId: 'codegraphy.python', sourceId: 'import', label: 'Import' }],
+      },
     ]);
   });
 
   it('returns the original edge array when no plugin or rule filters are disabled', () => {
     const edges = filterGraphViewTimelineEdges(rawGraphData, {
       disabledPlugins: new Set<string>(),
-      disabledSources: new Set<string>(),
       showOrphans: true,
     });
 
@@ -76,7 +80,6 @@ describe('filterGraphViewTimelineEdges', () => {
   it('keeps source-less edges even when a plugin is disabled', () => {
     const edges = filterGraphViewTimelineEdges(rawGraphData, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledSources: new Set<string>(),
       showOrphans: true,
     });
 
@@ -106,7 +109,6 @@ describe('filterGraphViewTimelineEdges', () => {
       ],
     }, {
       disabledPlugins: new Set(['codegraphy.typescript']),
-      disabledSources: new Set<string>(),
       showOrphans: true,
     });
 
