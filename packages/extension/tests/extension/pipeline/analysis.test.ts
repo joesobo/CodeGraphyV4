@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
+import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../../src/extension/pipeline/discovery';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
@@ -35,7 +36,7 @@ describe('WorkspacePipeline analysis', () => {
     workspaceFoldersValue = [
       { uri: vscode.Uri.file('/test/workspace'), name: 'workspace', index: 0 },
     ];
-    vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('registers all built-in plugins as built-in entries during initialize', async () => {
@@ -211,7 +212,20 @@ describe('WorkspacePipeline analysis', () => {
         }>;
       };
       _preAnalyzePlugins: (files: [], workspaceRoot: string, signal?: AbortSignal) => Promise<void>;
-      _analyzeFiles: (files: [], workspaceRoot: string, signal?: AbortSignal) => Promise<Map<string, never[]>>;
+      _analyzeFiles: (
+        files: [],
+        workspaceRoot: string,
+        onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
+        signal?: AbortSignal,
+      ) => Promise<{
+        cacheHits: number;
+        cacheMisses: number;
+        fileAnalysis: Map<string, IFileAnalysisResult>;
+        fileConnections: Map<string, never[]>;
+      }>;
+      _buildGraphDataFromAnalysis: (
+        fileAnalysis: Map<string, IFileAnalysisResult>,
+      ) => { nodes: []; edges: [] };
     };
 
     vi.spyOn(analyzer, 'getPluginFilterPatterns').mockReturnValue(['**/*.generated.ts']);
@@ -228,8 +242,16 @@ describe('WorkspacePipeline analysis', () => {
       totalFound: 0,
     });
     vi.spyOn(analyzerPrivate, '_preAnalyzePlugins').mockResolvedValue();
-    vi.spyOn(analyzerPrivate, '_analyzeFiles').mockResolvedValue(new Map());
-    vi.spyOn(analyzerPrivate, '_buildGraphData').mockReturnValue({ nodes: [], edges: [] });
+    vi.spyOn(analyzerPrivate, '_analyzeFiles').mockResolvedValue({
+      cacheHits: 0,
+      cacheMisses: 0,
+      fileAnalysis: new Map(),
+      fileConnections: new Map(),
+    });
+    vi.spyOn(analyzerPrivate, '_buildGraphDataFromAnalysis').mockReturnValue({
+      nodes: [],
+      edges: [],
+    });
     const signal = new AbortController().signal;
 
     await expect(analyzer.analyze(undefined, undefined, undefined, signal)).resolves.toEqual({
@@ -272,7 +294,15 @@ describe('WorkspacePipeline analysis', () => {
         }>;
       };
       _preAnalyzePlugins: () => Promise<void>;
-      _analyzeFiles: () => Promise<Map<string, never[]>>;
+      _analyzeFiles: () => Promise<{
+        cacheHits: number;
+        cacheMisses: number;
+        fileAnalysis: Map<string, IFileAnalysisResult>;
+        fileConnections: Map<string, never[]>;
+      }>;
+      _buildGraphDataFromAnalysis: (
+        fileAnalysis: Map<string, IFileAnalysisResult>,
+      ) => { nodes: []; edges: [] };
     };
 
     vi.spyOn(analyzerPrivate._config, 'getAll').mockReturnValue({
@@ -289,8 +319,16 @@ describe('WorkspacePipeline analysis', () => {
       totalFound: 27,
     });
     vi.spyOn(analyzerPrivate, '_preAnalyzePlugins').mockResolvedValue();
-    vi.spyOn(analyzerPrivate, '_analyzeFiles').mockResolvedValue(new Map());
-    vi.spyOn(analyzerPrivate, '_buildGraphData').mockReturnValue({ nodes: [], edges: [] });
+    vi.spyOn(analyzerPrivate, '_analyzeFiles').mockResolvedValue({
+      cacheHits: 0,
+      cacheMisses: 0,
+      fileAnalysis: new Map(),
+      fileConnections: new Map(),
+    });
+    vi.spyOn(analyzerPrivate, '_buildGraphDataFromAnalysis').mockReturnValue({
+      nodes: [],
+      edges: [],
+    });
 
     await analyzer.analyze();
 
@@ -326,9 +364,23 @@ describe('WorkspacePipeline analysis', () => {
         }>;
       };
       _preAnalyzePlugins: () => Promise<void>;
-      _analyzeFiles: () => Promise<Map<string, never[]>>;
+      _analyzeFiles: () => Promise<{
+        cacheHits: number;
+        cacheMisses: number;
+        fileAnalysis: Map<string, IFileAnalysisResult>;
+        fileConnections: Map<string, never[]>;
+      }>;
+      _buildGraphDataFromAnalysis: (
+        fileAnalysis: Map<string, IFileAnalysisResult>,
+      ) => {
+        edges: [{ id: string }];
+        nodes: [{ id: string }, { id: string }];
+      };
     };
     const eventBus = { emit: vi.fn() };
+    const fileAnalysis = new Map<string, IFileAnalysisResult>([
+      ['src/index.ts', { filePath: '/test/workspace/src/index.ts', relations: [] }],
+    ]);
 
     analyzer.setEventBus(eventBus as never);
     vi.spyOn(analyzer, 'getPluginFilterPatterns').mockReturnValue([]);
@@ -345,10 +397,13 @@ describe('WorkspacePipeline analysis', () => {
       totalFound: 1,
     });
     vi.spyOn(analyzerPrivate, '_preAnalyzePlugins').mockResolvedValue();
-    vi.spyOn(analyzerPrivate, '_analyzeFiles').mockResolvedValue(new Map([
-      ['src/index.ts', []],
-    ]));
-    vi.spyOn(analyzerPrivate, '_buildGraphData').mockReturnValue({
+    vi.spyOn(analyzerPrivate, '_analyzeFiles').mockResolvedValue({
+      cacheHits: 0,
+      cacheMisses: 1,
+      fileAnalysis,
+      fileConnections: new Map([['src/index.ts', []]]),
+    });
+    vi.spyOn(analyzerPrivate, '_buildGraphDataFromAnalysis').mockReturnValue({
       nodes: [
         { id: 'src/index.ts' },
         { id: 'src/utils.ts' },

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
 import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
 import {
@@ -20,6 +20,10 @@ function createDiscoveredFile(relativePath: string): IDiscoveredFile {
 }
 
 describe('pipeline/analysis/files', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('logs cache hit and miss counts from workspace file analysis', async () => {
     vi.spyOn(workspaceFileAnalysisModule, 'analyzeWorkspaceFiles').mockResolvedValue({
       cacheHits: 2,

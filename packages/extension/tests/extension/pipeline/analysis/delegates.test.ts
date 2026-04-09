@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
 import type { IGraphData } from '../../../../src/shared/graph/types';
@@ -46,6 +46,10 @@ describe('WorkspacePipeline delegates', () => {
       repoMetaModule.createDefaultCodeGraphyRepoMeta(),
     );
     vi.spyOn(repoMetaModule, 'writeCodeGraphyRepoMeta').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
   it('delegates analyze through the shared runner with the current workspace root', async () => {

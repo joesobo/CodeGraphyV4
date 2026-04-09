@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
 import type { IConnection } from '../../../../src/core/plugins/types/contracts';
@@ -7,6 +7,10 @@ import * as databaseCacheModule from '../../../../src/extension/pipeline/databas
 import { runWorkspacePipelineAnalysis } from '../../../../src/extension/pipeline/analysis/run';
 
 describe('pipeline/analysis/run', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('delegates analysis through the shared runner with workspace defaults', async () => {
     const analyzeWorkspaceWithAnalyzerSpy = vi
       .spyOn(analyzeModule, 'analyzeWorkspaceWithAnalyzer')
