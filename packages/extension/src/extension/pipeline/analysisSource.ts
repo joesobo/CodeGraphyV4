@@ -1,5 +1,6 @@
 import type {
   IConnection,
+  IFileAnalysisResult,
 } from '../../core/plugins/types/contracts';
 import type { IDiscoveredFile } from '../../core/discovery/contracts';
 import type { EventBus } from '../../core/plugins/events/bus';
@@ -25,6 +26,13 @@ export interface WorkspacePipelineSourceOwner {
     nextDisabledRules: Set<string>,
     nextDisabledPlugins: Set<string>,
   ): IGraphData;
+  _buildGraphDataFromAnalysis(
+    fileAnalysis: Map<string, IFileAnalysisResult>,
+    workspaceRoot: string,
+    showOrphans: boolean,
+    nextDisabledRules: Set<string>,
+    nextDisabledPlugins: Set<string>,
+  ): IGraphData;
   _preAnalyzePlugins(
     files: IDiscoveredFile[],
     workspaceRoot: string,
@@ -32,6 +40,7 @@ export interface WorkspacePipelineSourceOwner {
   ): Promise<void>;
   _eventBus?: EventBus;
   _lastDiscoveredFiles: IDiscoveredFile[];
+  _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IConnection[]>;
   _lastWorkspaceRoot: string;
   _cache: IWorkspaceAnalysisCache;
@@ -65,6 +74,20 @@ export function createWorkspacePipelineAnalysisSource(
         nextDisabledRules,
         nextDisabledPlugins,
       ),
+    _buildGraphDataFromAnalysis: (
+      fileAnalysis: Map<string, IFileAnalysisResult>,
+      workspaceRoot: string,
+      showOrphans: boolean,
+      nextDisabledRules: Set<string>,
+      nextDisabledPlugins: Set<string>,
+    ) =>
+      owner._buildGraphDataFromAnalysis(
+        fileAnalysis,
+        workspaceRoot,
+        showOrphans,
+        nextDisabledRules,
+        nextDisabledPlugins,
+      ),
     _preAnalyzePlugins: (
       files: IDiscoveredFile[],
       workspaceRoot: string,
@@ -89,6 +112,12 @@ export function createWorkspacePipelineAnalysisSource(
         owner._lastFileConnections = fileConnections;
       },
     },
+    _lastFileAnalysis: {
+      get: () => owner._lastFileAnalysis,
+      set: (fileAnalysis: Map<string, IFileAnalysisResult>) => {
+        owner._lastFileAnalysis = fileAnalysis;
+      },
+    },
     _lastWorkspaceRoot: {
       get: () => owner._lastWorkspaceRoot,
       set: (workspaceRoot: string) => {
@@ -104,6 +133,20 @@ export function createWorkspacePipelineRebuildSource(
   owner: WorkspacePipelineSourceOwner,
 ): WorkspacePipelineRebuildSource {
   const source = {
+    _buildGraphDataFromAnalysis: (
+      fileAnalysis: Map<string, IFileAnalysisResult>,
+      workspaceRoot: string,
+      nextShowOrphans: boolean,
+      nextDisabledRules: Set<string>,
+      nextDisabledPlugins: Set<string>,
+    ) =>
+      owner._buildGraphDataFromAnalysis(
+        fileAnalysis,
+        workspaceRoot,
+        nextShowOrphans,
+        nextDisabledRules,
+        nextDisabledPlugins,
+      ),
     _buildGraphData: (
       fileConnections: Map<string, IConnection[]>,
       workspaceRoot: string,
@@ -121,6 +164,9 @@ export function createWorkspacePipelineRebuildSource(
   } as WorkspacePipelineRebuildSource;
 
   Object.defineProperties(source, {
+    _lastFileAnalysis: {
+      get: () => owner._lastFileAnalysis,
+    },
     _lastFileConnections: {
       get: () => owner._lastFileConnections,
     },

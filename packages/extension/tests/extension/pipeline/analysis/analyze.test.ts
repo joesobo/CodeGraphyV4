@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
-import type { IConnection } from '../../../../src/core/plugins/types/contracts';
+import type {
+  IConnection,
+  IFileAnalysisResult,
+} from '../../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../src/extension/config/defaults';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../../../src/extension/pipeline/discovery';
 import type { IGraphData } from '../../../../src/shared/graph/types';
@@ -11,13 +14,17 @@ function createSource() {
   return {
     _analyzeFiles: vi.fn<
       (files: IDiscoveredFile[], workspaceRoot: string) => Promise<{
-        fileAnalysis: Map<string, { filePath: string; relations: never[] }>;
+        fileAnalysis: Map<string, IFileAnalysisResult>;
         fileConnections: Map<string, IConnection[]>;
       }>
     >(async () => ({
       fileAnalysis: new Map(),
       fileConnections: new Map(),
     })),
+    _buildGraphDataFromAnalysis: vi.fn<() => IGraphData>(() => ({
+      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+      edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
+    } satisfies IGraphData)),
     _buildGraphData: vi.fn<() => IGraphData>(() => ({
       nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
       edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],
@@ -92,7 +99,7 @@ describe('pipeline/analysis/analyze', () => {
     const files = [
       { absolutePath: '/workspace/src/index.ts', relativePath: 'src/index.ts' },
     ] as IDiscoveredFile[];
-    const fileAnalysis = new Map([
+    const fileAnalysis = new Map<string, IFileAnalysisResult>([
       ['src/index.ts', { filePath: '/workspace/src/index.ts', relations: [] }],
     ]);
     const fileConnections = new Map<string, IConnection[]>([['src/index.ts', []]]);
@@ -111,7 +118,7 @@ describe('pipeline/analysis/analyze', () => {
       fileAnalysis,
       fileConnections,
     });
-    source._buildGraphData.mockReturnValue(graphData);
+    source._buildGraphDataFromAnalysis.mockReturnValue(graphData);
 
     await expect(
       analyzeWorkspaceWithAnalyzer(
@@ -131,14 +138,15 @@ describe('pipeline/analysis/analyze', () => {
       expect.any(Function),
       undefined,
     );
-    expect(source._buildGraphData).toHaveBeenCalledWith(
-      fileConnections,
+    expect(source._buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      fileAnalysis,
       '/workspace',
       true,
       new Set<string>(['plugin.typescript:rule']),
       new Set<string>(['plugin.python']),
     );
     expect(source._lastDiscoveredFiles).toEqual(files);
+    expect(source._lastFileAnalysis).toBe(fileAnalysis);
     expect(source._lastFileConnections).toBe(fileConnections);
     expect(source._lastWorkspaceRoot).toBe('/workspace');
     expect(dependencies.saveCache).toHaveBeenCalledOnce();

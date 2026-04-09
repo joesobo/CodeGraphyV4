@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
 import {
   clearWorkspacePipelineCache,
   rebuildWorkspacePipelineGraph,
@@ -11,7 +12,9 @@ describe('pipeline/analysis/state', () => {
     expect(
       rebuildWorkspacePipelineGraph(
         {
+          buildGraphDataFromAnalysis: vi.fn(),
           buildGraphData: vi.fn(),
+          fileAnalysis: new Map(),
           fileConnections: new Map(),
           workspaceRoot: '/workspace',
         },
@@ -22,11 +25,43 @@ describe('pipeline/analysis/state', () => {
     ).toEqual({ nodes: [], edges: [] });
   });
 
+  it('prefers rebuilding from cached file analysis when it is available', () => {
+    const buildGraphDataFromAnalysis = vi.fn(() => ({ nodes: [], edges: [] }));
+    const fileAnalysis = new Map<string, IFileAnalysisResult>([
+      ['src/index.ts', { filePath: '/workspace/src/index.ts', relations: [] }],
+    ]);
+
+    expect(
+      rebuildWorkspacePipelineGraph(
+        {
+          buildGraphDataFromAnalysis,
+          buildGraphData: vi.fn(),
+          fileAnalysis,
+          fileConnections: new Map([['src/index.ts', []]]),
+          workspaceRoot: '/workspace',
+        },
+        new Set(['plugin.typescript:rule']),
+        new Set(['plugin.python']),
+        true,
+      ),
+    ).toEqual({ nodes: [], edges: [] });
+
+    expect(buildGraphDataFromAnalysis).toHaveBeenCalledWith(
+      fileAnalysis,
+      '/workspace',
+      true,
+      new Set(['plugin.typescript:rule']),
+      new Set(['plugin.python']),
+    );
+  });
+
   it('reads rebuild dependencies from the source state', () => {
     expect(
       rebuildWorkspacePipelineGraphForSource(
         {
+          _buildGraphDataFromAnalysis: vi.fn(() => ({ nodes: [], edges: [] })),
           _buildGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
+          _lastFileAnalysis: new Map(),
           _lastFileConnections: new Map([['src/index.ts', []]]),
           _lastWorkspaceRoot: '/workspace',
         },

@@ -14,3 +14,14 @@ export function projectConnectionsFromFileAnalysis(
     metadata: relation.metadata,
   }));
 }
+
+export function projectConnectionMapFromFileAnalysis(
+  fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
+): Map<string, IConnection[]> {
+  return new Map(
+    Array.from(fileAnalysis.entries()).map(([filePath, analysis]) => [
+      filePath,
+      projectConnectionsFromFileAnalysis(analysis),
+    ]),
+  );
+}

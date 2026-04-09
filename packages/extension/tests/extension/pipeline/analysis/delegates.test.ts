@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import type { IFileAnalysisResult } from '../../../../src/core/plugins/types/contracts';
 import type { IGraphData } from '../../../../src/shared/graph/types';
 import { WorkspacePipeline } from '../../../../src/extension/pipeline/service';
 import * as pluginModule from '../../../../src/extension/pipeline/plugins/queries';
@@ -78,6 +79,9 @@ describe('WorkspacePipeline delegates', () => {
           expect(source._lastDiscoveredFiles).toBe(
             (analyzer as unknown as { _lastDiscoveredFiles: unknown })._lastDiscoveredFiles,
           );
+          expect(source._lastFileAnalysis).toBe(
+            (analyzer as unknown as { _lastFileAnalysis: unknown })._lastFileAnalysis,
+          );
           expect(source._lastFileConnections).toBe(
             (analyzer as unknown as { _lastFileConnections: unknown })._lastFileConnections,
           );
@@ -132,10 +136,13 @@ describe('WorkspacePipeline delegates', () => {
     ).toBe(discoveredFiles);
   });
 
-  it('updates cached file connections when the shared runner writes them back', async () => {
+  it('updates cached file analysis and connections when the shared runner writes them back', async () => {
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext,
     );
+    const fileAnalysis = new Map<string, IFileAnalysisResult>([
+      ['src/index.ts', { filePath: '/test/workspace/src/index.ts', relations: [] }],
+    ]);
     const fileConnections = new Map([
       [
         'src/index.ts',
@@ -152,12 +159,16 @@ describe('WorkspacePipeline delegates', () => {
     ]);
 
     vi.spyOn(runModule, 'runWorkspacePipelineAnalysis').mockImplementation(async source => {
+      source._lastFileAnalysis = fileAnalysis;
       source._lastFileConnections = fileConnections;
       return { nodes: [], edges: [] };
     });
 
     await analyzer.analyze();
 
+    expect(
+      (analyzer as unknown as { _lastFileAnalysis: unknown })._lastFileAnalysis,
+    ).toBe(fileAnalysis);
     expect(
       (analyzer as unknown as { _lastFileConnections: unknown })._lastFileConnections,
     ).toBe(fileConnections);
@@ -197,6 +208,9 @@ describe('WorkspacePipeline delegates', () => {
     ).toEqual(expectedGraph);
     const [source, nextDisabledRules, nextDisabledPlugins, nextShowOrphans] =
       rebuildSpy.mock.calls[0];
+    expect(source._lastFileAnalysis).toBe(
+      (analyzer as unknown as { _lastFileAnalysis: unknown })._lastFileAnalysis,
+    );
     expect(source._lastFileConnections).toBe(
       (analyzer as unknown as { _lastFileConnections: unknown })._lastFileConnections,
     );
