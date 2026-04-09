@@ -9,7 +9,6 @@ export interface IGraphViewSettingsSnapshot {
   particleSpeed: number;
   particleSize: number;
   directionColor: string;
-  folderNodeColor: string;
   showLabels: boolean;
 }
 
@@ -72,8 +71,6 @@ export function resolveGraphViewDisabledState(
 export function readGraphViewSettings(
   config: IGraphViewSettingsReader
 ): IGraphViewSettingsSnapshot {
-  const nodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
-
   return {
     bidirectionalEdges: config.get<BidirectionalEdgeMode>('bidirectionalEdges', 'separate'),
     showOrphans: config.get<boolean>('showOrphans', true),
@@ -82,9 +79,6 @@ export function readGraphViewSettings(
     particleSize: config.get<number>('particleSize', 4),
     directionColor: normalizeDirectionColor(
       config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)
-    ),
-    folderNodeColor: normalizeFolderNodeColor(
-      nodeColors.folder ?? config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)
     ),
     showLabels: config.get<boolean>('showLabels', true),
   };

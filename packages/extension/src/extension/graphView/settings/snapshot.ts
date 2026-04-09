@@ -29,7 +29,6 @@ export function captureGraphViewSettingsSnapshot(
     bidirectionalMode: config.get('bidirectionalEdges', 'separate'),
     directionMode: config.get('directionMode', 'arrows'),
     directionColor: settings.directionColor,
-    folderNodeColor: settings.folderNodeColor,
     nodeColors,
     nodeVisibility,
     edgeVisibility,

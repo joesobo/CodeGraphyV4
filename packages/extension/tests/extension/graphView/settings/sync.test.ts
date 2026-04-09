@@ -22,7 +22,6 @@ function createSnapshot(
     bidirectionalMode: 'combined',
     directionMode: 'arrows',
     directionColor: '#475569',
-    folderNodeColor: '#123456',
     nodeColors: { file: '#999999', folder: '#888888' },
     nodeVisibility: { file: true, folder: true },
     edgeVisibility: { imports: true, nests: false },

@@ -1,4 +1,4 @@
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 import type { IGroup } from '../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../shared/settings/modes';
 import {
@@ -31,7 +31,6 @@ export interface ICodeGraphyRepoSettings {
   showLabels: boolean;
   directionMode: 'arrows' | 'particles' | 'none';
   directionColor: string;
-  folderNodeColor: string;
   particleSpeed: number;
   particleSize: number;
   depthMode: boolean;
@@ -80,7 +79,6 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     showLabels: true,
     directionMode: 'arrows',
     directionColor: DEFAULT_DIRECTION_COLOR,
-    folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
     particleSpeed: 0.005,
     particleSize: 4,
     depthMode: false,
@@ -123,7 +121,10 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
     pluginOrder: defaults.pluginOrder,
     disabledSources: legacyConfig.get<string[]>('disabledSources', defaults.disabledSources),
     disabledPlugins: legacyConfig.get<string[]>('disabledPlugins', defaults.disabledPlugins),
-    nodeColors: defaults.nodeColors,
+    nodeColors: {
+      ...defaults.nodeColors,
+      folder: legacyConfig.get<string>('folderNodeColor', defaults.nodeColors.folder),
+    },
     nodeVisibility: defaults.nodeVisibility,
     edgeVisibility: defaults.edgeVisibility,
     edgeColors: defaults.edgeColors,
@@ -147,7 +148,6 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
       defaults.directionMode,
     ),
     directionColor: legacyConfig.get<string>('directionColor', defaults.directionColor),
-    folderNodeColor: legacyConfig.get<string>('folderNodeColor', defaults.folderNodeColor),
     particleSpeed: legacyConfig.get<number>('particleSpeed', defaults.particleSpeed),
     particleSize: legacyConfig.get<number>('particleSize', defaults.particleSize),
     depthMode: legacyConfig.get<boolean>('depthMode', defaults.depthMode),

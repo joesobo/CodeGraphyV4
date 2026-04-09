@@ -50,7 +50,6 @@ export function buildGraphViewAllSettingsMessages(
         particleSpeed: snapshot.particleSpeed,
         particleSize: snapshot.particleSize,
         directionColor: snapshot.directionColor,
-        folderNodeColor: snapshot.folderNodeColor,
         showLabels: snapshot.showLabels,
       }),
     ],

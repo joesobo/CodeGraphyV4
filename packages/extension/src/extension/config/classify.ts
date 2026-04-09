@@ -28,7 +28,6 @@ export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): 
     'codegraphy.particleSize',
     'codegraphy.showLabels',
     'codegraphy.bidirectionalEdges',
-    'codegraphy.folderNodeColor',
     'codegraphy.nodeColors',
     'codegraphy.edgeColors',
     'codegraphy.nodeVisibility',
