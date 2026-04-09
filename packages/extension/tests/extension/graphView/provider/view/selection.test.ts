@@ -84,16 +84,17 @@ describe('graphView/provider/view/selection', () => {
       handlers.applyViewTransform();
       handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: { nodes: [], edges: [] } });
     });
+    const dependencies = createDependencies({
+      changeView,
+    });
     const methods = createGraphViewProviderViewSelectionMethods(
       source as never,
-      createDependencies({
-        changeView,
-      }),
+      dependencies,
     );
 
     await methods.changeView('codegraphy.depth-graph');
 
-    expect(createDependencies().getConfiguration).not.toHaveBeenCalled();
+    expect(dependencies.getConfiguration().update).toHaveBeenCalledWith('depthMode', true);
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
