@@ -11,6 +11,7 @@ import {
   clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache,
+  readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
 } from '../../../../src/extension/pipeline/database/cache';
 
@@ -76,6 +77,45 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
 
     expect(fs.existsSync(getWorkspaceAnalysisDatabasePath(workspaceRoot))).toBe(true);
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(cache);
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toEqual({
+      files: [
+        {
+          filePath: 'src/index.ts',
+          mtime: 123,
+          size: 456,
+          analysis: cache.files['src/index.ts']!.analysis,
+        },
+      ],
+      symbols: [
+        {
+          id: '/workspace/src/index.ts:function:main',
+          filePath: '/workspace/src/index.ts',
+          kind: 'function',
+          name: 'main',
+          signature: undefined,
+          range: undefined,
+          metadata: undefined,
+        },
+      ],
+      relations: [
+        {
+          kind: 'import',
+          pluginId: 'codegraphy.core.treesitter',
+          sourceId: 'treesitter:import',
+          fromFilePath: '/workspace/src/index.ts',
+          toFilePath: '/workspace/src/utils.ts',
+          specifier: './utils',
+          resolvedPath: '/workspace/src/utils.ts',
+          fromNodeId: undefined,
+          toNodeId: undefined,
+          fromSymbolId: undefined,
+          toSymbolId: undefined,
+          type: undefined,
+          variant: undefined,
+          metadata: undefined,
+        },
+      ],
+    });
   });
 
   it('skips persistence when the workspace root no longer exists', () => {
@@ -168,6 +208,11 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual(
       createEmptyWorkspaceAnalysisCache(),
     );
+    expect(readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot)).toEqual({
+      files: [],
+      symbols: [],
+      relations: [],
+    });
     expect(fs.existsSync(path.join(codeGraphyDirectory, 'settings.json'))).toBe(true);
   });
 });
