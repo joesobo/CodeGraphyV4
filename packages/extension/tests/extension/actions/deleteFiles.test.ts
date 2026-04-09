@@ -123,7 +123,8 @@ describe('DeleteFilesAction', () => {
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
-        ['src/other.ts']
+        ['src/other.ts'],
+        undefined,
       );
     });
 
@@ -137,7 +138,8 @@ describe('DeleteFilesAction', () => {
       // Still updates config with the same favorites list
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
-        ['src/other.ts']
+        ['src/other.ts'],
+        undefined,
       );
     });
 

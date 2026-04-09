@@ -104,6 +104,7 @@ describe('RenameFileAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
+        undefined,
       );
     });
 
@@ -120,6 +121,7 @@ describe('RenameFileAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
+        undefined,
       );
     });
   });
@@ -151,6 +153,7 @@ describe('RenameFileAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         ['new.ts', 'other.ts'],
+        undefined,
       );
 
       // Undo should restore original favorites

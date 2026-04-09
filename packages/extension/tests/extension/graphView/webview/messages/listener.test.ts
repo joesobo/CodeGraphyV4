@@ -34,6 +34,7 @@ function createContext(
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
     redo: vi.fn(() => Promise.resolve(undefined)),
@@ -223,7 +224,7 @@ describe('graph view webview message listener', () => {
       [...activeHandlers].map(handler => handler({ type: 'REFRESH_GRAPH' })),
     );
 
-    expect(context.analyzeAndSendData).toHaveBeenCalledTimes(1);
+    expect(context.clearCacheAndRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('does not store ready state for handled plugin messages without a ready flag', async () => {

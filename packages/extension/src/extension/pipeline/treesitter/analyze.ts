@@ -1,11 +1,11 @@
-import Parser from 'tree-sitter';
+import type Parser from 'tree-sitter';
 import type {
   IAnalysisRange,
   IAnalysisRelation,
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '../../../core/plugins/types/contracts';
-import { getTreeSitterLanguageForFile, TREE_SITTER_SOURCE_IDS } from './languages';
+import { createTreeSitterParser, TREE_SITTER_SOURCE_IDS } from './languages';
 import { resolveTreeSitterImportPath } from './resolve';
 
 interface ImportedBinding {
@@ -181,23 +181,12 @@ function pushImportRelation(
   });
 }
 
-function createTreeSitterParser(filePath: string): Parser | null {
-  const language = getTreeSitterLanguageForFile(filePath);
-  if (!language) {
-    return null;
-  }
-
-  const parser = new Parser();
-  parser.setLanguage(language);
-  return parser;
-}
-
 export async function analyzeFileWithTreeSitter(
   filePath: string,
   content: string,
   _workspaceRoot: string,
 ): Promise<IFileAnalysisResult | null> {
-  const parser = createTreeSitterParser(filePath);
+  const parser = await createTreeSitterParser(filePath);
   if (!parser) {
     return null;
   }

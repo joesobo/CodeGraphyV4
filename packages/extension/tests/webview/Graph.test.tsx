@@ -294,7 +294,7 @@ describe('Export Functionality', () => {
 
     const { json, filename } = exportMsg!.payload;
     expect(json).toBeDefined();
-    expect(filename).toMatch(/^codegraphy-connections-.*\.json$/);
+    expect(filename).toMatch(/^codegraphy-graph-.*\.json$/);
 
     const parsed = JSON.parse(json);
     expect(parsed.format).toBe('codegraphy-export');
@@ -341,7 +341,7 @@ describe('Export Functionality', () => {
     expect(exportMsg).toBeTruthy();
 
     expect(exportMsg!.payload.markdown).toContain('# CodeGraphy Export');
-    expect(exportMsg!.payload.filename).toMatch(/^codegraphy-connections-.*\.md$/);
+    expect(exportMsg!.payload.filename).toMatch(/^codegraphy-graph-.*\.md$/);
   });
 
   it('should handle REQUEST_EXPORT_SVG message and send EXPORT_SVG response', async () => {

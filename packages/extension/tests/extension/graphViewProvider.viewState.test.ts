@@ -72,6 +72,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     expect(currentConfiguration.update).toHaveBeenCalledWith(
       'depthMode',
       true,
+      undefined,
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(sendMessageSpy).toHaveBeenCalledWith({
@@ -107,6 +108,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     expect(currentConfiguration.update).toHaveBeenCalledWith(
       'depthMode',
       true,
+      undefined,
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(sendMessageSpy).toHaveBeenCalledWith({
@@ -139,7 +141,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     await provider.setDepthLimit(99);
 
     expect((provider as unknown as { _viewContext: { depthLimit: number } })._viewContext.depthLimit).toBe(10);
-    expect(currentConfiguration.update).toHaveBeenCalledWith('depthLimit', 10);
+    expect(currentConfiguration.update).toHaveBeenCalledWith('depthLimit', 10, undefined);
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'DEPTH_LIMIT_UPDATED',
@@ -170,7 +172,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     await provider.setDepthLimit(0);
 
     expect((provider as unknown as { _viewContext: { depthLimit: number } })._viewContext.depthLimit).toBe(1);
-    expect(currentConfiguration.update).toHaveBeenCalledWith('depthLimit', 1);
+    expect(currentConfiguration.update).toHaveBeenCalledWith('depthLimit', 1, undefined);
     expect(applySpy).not.toHaveBeenCalled();
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'DEPTH_LIMIT_UPDATED',

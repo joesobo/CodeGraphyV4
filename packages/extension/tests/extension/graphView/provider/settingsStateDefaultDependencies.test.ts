@@ -232,7 +232,13 @@ describe('graphView/provider/settingsState default dependencies', () => {
     } as never;
 
     mocks.sendProviderSettings.mockImplementation((_viewContext, handlers) => {
-      expect(handlers.getConfiguration()).toBe(mocks.configuration);
+      expect(handlers.getConfiguration()).toEqual(
+        expect.objectContaining({
+          get: expect.any(Function),
+          inspect: expect.any(Function),
+          update: expect.any(Function),
+        }),
+      );
       handlers.sendMessage(settingsMessage);
     });
     mocks.sendProviderAllSettings.mockImplementation((state, handlers) => {
@@ -297,7 +303,11 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(mocks.sendProviderSettings).not.toHaveBeenCalled();
     expect(mocks.sendProviderAllSettings).toHaveBeenCalledOnce();
     expect(mocks.captureSettingsSnapshot).toHaveBeenCalledWith(
-      mocks.configuration,
+      expect.objectContaining({
+        get: expect.any(Function),
+        inspect: expect.any(Function),
+        update: expect.any(Function),
+      }),
       { damping: 1 },
       'connections',
     );
