@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '@/shared/graph/types';
 import type { DirectionMode } from '@/shared/settings/modes';
 import {
   applySettingsMessage,
@@ -12,9 +11,7 @@ function createState(
 ): GraphViewSettingsMessageState {
   return {
     disabledPlugins: new Set<string>(),
-    disabledSources: new Set<string>(),
     filterPatterns: [],
-    graphData: { nodes: [], edges: [] } satisfies IGraphData,
     ...overrides,
   };
 }
@@ -41,11 +38,8 @@ function createHandlers(
     }),
     getPluginFilterPatterns: vi.fn(() => []),
     sendGraphControls: vi.fn(),
-    analyzeAndSendData: vi.fn(() => Promise.resolve()),
     reprocessPluginFiles: vi.fn(() => Promise.resolve()),
     sendMessage: vi.fn(),
-    applyViewTransform: vi.fn(),
-    smartRebuild: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
@@ -243,8 +237,6 @@ describe('graph view settings router', () => {
     expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
     expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
-    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
-    expect(handlers.smartRebuild).not.toHaveBeenCalled();
   });
 
   it('returns false for unrelated messages', async () => {

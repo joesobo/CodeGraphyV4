@@ -25,7 +25,6 @@ Common top-level sections include:
 - `legend` (the stored legend rule list used by the Legends popup)
 - `pluginOrder`
 - `disabledPlugins`
-- `disabledSources`
 - `physics`
 - `timeline`
 
@@ -78,7 +77,6 @@ Example:
 | `legend` | object[] | `[]` | Stored legend rules: `{ id, pattern, color, ... }` |
 | `pluginOrder` | string[] | `[]` | Plugin processing order, bottom-to-top |
 | `disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
-| `disabledSources` | string[] | `[]` | Disabled qualified source IDs kept for legacy migration and source-level filtering |
 | `nodeVisibility` | object | generated | Node-type visibility by id |
 | `nodeColors` | object | generated | Node-type colors by id |
 | `edgeVisibility` | object | generated | Edge-kind visibility by id |
@@ -312,6 +310,10 @@ This setting is also accessible from the Settings panel.
 
 CodeGraphy’s graph/index behavior now lives with the repo under `.codegraphy/`. If you still use legacy VS Code settings, CodeGraphy can read them during migration, but the current setup should be committed under `.codegraphy/` instead of `.vscode/settings.json`.
 
+Legacy note:
+- older repos may still contain `disabledSources` from source-level rule toggles
+- CodeGraphy can still read that during migration, but the current graph controls are `nodeVisibility`, `edgeVisibility`, `legend`, `disabledPlugins`, and `pluginOrder`
+
 ## Troubleshooting
 
 **Graph is empty**
@@ -332,4 +334,4 @@ No legend rules are configured. Add them in the **Legends** popup or directly in
 1. Make sure the file type has a supported plugin (TypeScript/JS, Python, C#, GDScript, Markdown)
 2. Check that imported files are within the `include` patterns
 3. `node_modules` imports are intentionally excluded
-4. Check `.codegraphy/settings.json` for an unintended disabled plugin, source, node kind, or edge kind
+4. Check `.codegraphy/settings.json` for an unintended disabled plugin, node kind, or edge kind

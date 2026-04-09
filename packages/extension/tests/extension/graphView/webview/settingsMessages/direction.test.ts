@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '@/shared/graph/types';
 import type { DirectionMode } from '@/shared/settings/modes';
 import {
   applySettingsDirectionMessage,
@@ -14,9 +13,7 @@ function createState(
 ): GraphViewSettingsMessageState {
   return {
     disabledPlugins: new Set<string>(),
-    disabledSources: new Set<string>(),
     filterPatterns: [],
-    graphData: { nodes: [], edges: [] } satisfies IGraphData,
     ...overrides,
   };
 }
@@ -43,10 +40,7 @@ function createHandlers(
     }),
     getPluginFilterPatterns: vi.fn(() => []),
     sendGraphControls: vi.fn(),
-    analyzeAndSendData: vi.fn(() => Promise.resolve()),
     sendMessage: vi.fn(),
-    applyViewTransform: vi.fn(),
-    smartRebuild: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };

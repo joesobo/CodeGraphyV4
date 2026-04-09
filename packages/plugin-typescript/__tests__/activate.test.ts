@@ -1,8 +1,9 @@
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-const fixtureWorkspacePath = path.resolve(__dirname, '../../extension/test-fixtures/workspace');
+const sourceFixtureWorkspacePath = path.resolve(__dirname, '../../extension/test-fixtures/workspace');
 const installedWithCoreTimeoutMs = 15_000;
 
 const mockState = vi.hoisted(() => ({
@@ -15,6 +16,8 @@ const mockState = vi.hoisted(() => ({
     | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
     | undefined,
 }));
+
+let fixtureWorkspacePath = sourceFixtureWorkspacePath;
 
 vi.mock('vscode', () => ({
   Uri: {
@@ -75,9 +78,11 @@ function getRegisteredProvider() {
 }
 
 describe('plugin-typescript/activate', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.resetModules();
     vi.clearAllMocks();
+    fixtureWorkspacePath = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-typescript-activate-'));
+    await fs.cp(sourceFixtureWorkspacePath, fixtureWorkspacePath, { recursive: true });
     mockState.workspaceFoldersValue = [
       { uri: vscode.Uri.file(fixtureWorkspacePath), name: 'workspace', index: 0 },
     ];
@@ -95,6 +100,11 @@ describe('plugin-typescript/activate', () => {
         size: stat.size,
       };
     });
+  });
+
+  afterEach(async () => {
+    await fs.rm(fixtureWorkspacePath, { recursive: true, force: true });
+    fixtureWorkspacePath = sourceFixtureWorkspacePath;
   });
 
   it('registers the TypeScript plugin with the core extension', { timeout: installedWithCoreTimeoutMs }, async () => {
