@@ -10,20 +10,14 @@ interface GraphViewGroupConfig {
   inspect<T>(section: string): GraphViewGroupConfigInspect<T> | undefined;
 }
 
-interface GraphViewGroupWorkspaceState {
-  get<T>(key: string): T | undefined;
-}
-
 export interface GraphViewGroupState {
   userGroups: IGroup[];
   filterPatterns: string[];
   hiddenPluginGroupIds: Set<string>;
-  legacyGroupsToMigrate?: IGroup[];
 }
 
 export function loadGraphViewGroupState(
   config: GraphViewGroupConfig,
-  workspaceState: GraphViewGroupWorkspaceState,
 ): GraphViewGroupState {
   const groupsInspect = config.inspect<IGroup[]>('groups');
   const patternsInspect = config.inspect<string[]>('filterPatterns');
@@ -35,24 +29,14 @@ export function loadGraphViewGroupState(
   if (configuredGroups) {
     return {
       userGroups: configuredGroups,
-      filterPatterns:
-        configuredFilterPatterns ??
-        workspaceState.get<string[]>('codegraphy.filterPatterns') ??
-        [],
+      filterPatterns: configuredFilterPatterns ?? [],
       hiddenPluginGroupIds: new Set(config.get<string[]>('hiddenPluginGroups', [])),
     };
   }
 
-  const legacyGroups = workspaceState.get<IGroup[]>('codegraphy.groups') ?? [];
-  const userGroups = legacyGroups.filter((group) => !group.id.startsWith('plugin:'));
-
   return {
-    userGroups,
-    filterPatterns:
-      configuredFilterPatterns ??
-      workspaceState.get<string[]>('codegraphy.filterPatterns') ??
-      [],
+    userGroups: [],
+    filterPatterns: configuredFilterPatterns ?? [],
     hiddenPluginGroupIds: new Set(config.get<string[]>('hiddenPluginGroups', [])),
-    legacyGroupsToMigrate: legacyGroups.length > 0 ? userGroups : undefined,
   };
 }

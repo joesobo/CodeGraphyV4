@@ -2,7 +2,6 @@ import type { IConnection } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/types';
 import {
   createEmptyWorkspaceAnalysisCache,
-  saveWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
 } from '../cache';
 import { clearWorkspaceAnalysisDatabaseCache } from '../database/cache';
@@ -82,14 +81,10 @@ export function rebuildWorkspacePipelineGraphForSource(
 }
 
 export function clearWorkspacePipelineCache(
-  workspaceState: {
-    update(key: string, value: unknown): PromiseLike<void>;
-  },
   workspaceRoot: string | undefined,
   logInfo: (message: string) => void,
 ): IWorkspaceAnalysisCache {
   const cache = createEmptyWorkspaceAnalysisCache();
-  saveWorkspaceAnalysisCache(workspaceState.update.bind(workspaceState), cache);
   if (workspaceRoot) {
     clearWorkspaceAnalysisDatabaseCache(workspaceRoot);
   }

@@ -2,26 +2,18 @@ import * as vscode from 'vscode';
 import type { FileDiscovery } from '../../../core/discovery/file/service';
 import type { IGraphData } from '../../../shared/graph/types';
 import type { Configuration } from '../../config/reader';
-import {
-  saveWorkspaceAnalysisCache,
-  type IWorkspaceAnalysisCache,
-} from '../cache';
+import type { IWorkspaceAnalysisCache } from '../cache';
 import { saveWorkspaceAnalysisDatabaseCache } from '../database/cache';
 import {
   analyzeWorkspaceWithAnalyzer,
   type WorkspacePipelineAnalysisSource,
 } from './analyze';
 
-interface WorkspacePipelineRunWorkspaceState {
-  update(key: string, value: unknown): PromiseLike<void>;
-}
-
 export function runWorkspacePipelineAnalysis(
   source: WorkspacePipelineAnalysisSource,
   cache: IWorkspaceAnalysisCache,
   config: Pick<Configuration, 'getAll'>,
   discovery: Pick<FileDiscovery, 'discover'>,
-  workspaceState: WorkspacePipelineRunWorkspaceState,
   getWorkspaceRoot: () => string | undefined,
   filterPatterns: string[] = [],
   disabledSources: Set<string> = new Set(),
@@ -46,7 +38,6 @@ export function runWorkspacePipelineAnalysis(
         console.log(message);
       },
       saveCache: () => {
-        saveWorkspaceAnalysisCache(workspaceState.update.bind(workspaceState), cache);
         const workspaceRoot = getWorkspaceRoot();
         if (workspaceRoot) {
           try {

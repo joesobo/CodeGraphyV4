@@ -45,17 +45,12 @@ describe('pipeline/analysis/run', () => {
         totalFound: 0,
       })),
     };
-    const workspaceState = {
-      update: vi.fn(() => Promise.resolve()),
-    };
-
     await expect(
       runWorkspacePipelineAnalysis(
         source as never,
         cache as never,
         config as never,
         discovery as never,
-        workspaceState,
         () => '/workspace',
         ['**/*.generated.ts'],
         new Set(['plugin.typescript:rule']),
@@ -87,10 +82,6 @@ describe('pipeline/analysis/run', () => {
     dependencies.showWarningMessage('warning');
     expect(showWarningMessageSpy).toHaveBeenCalledWith('warning');
     dependencies.saveCache();
-    expect(workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.analysisCache',
-      cache,
-    );
     expect(saveWorkspaceAnalysisDatabaseCacheSpy).toHaveBeenCalledWith('/workspace', cache);
   });
 
@@ -126,9 +117,6 @@ describe('pipeline/analysis/run', () => {
           totalFound: 0,
         })),
       } as never,
-      {
-        update: vi.fn(() => Promise.resolve()),
-      },
       () => '/workspace',
     );
 

@@ -38,21 +38,14 @@ describe('pipeline/analysis/state', () => {
   });
 
   it('creates and persists an empty analysis cache', () => {
-    const workspaceState = {
-      update: vi.fn(() => Promise.resolve()),
-    };
     const logInfo = vi.fn();
 
-    const cache = clearWorkspacePipelineCache(workspaceState, '/workspace', logInfo);
+    const cache = clearWorkspacePipelineCache('/workspace', logInfo);
 
     expect(cache).toEqual({
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,
       files: {},
     });
-    expect(workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.analysisCache',
-      cache,
-    );
     expect(logInfo).toHaveBeenCalledWith('[CodeGraphy] Cache cleared');
   });
 });

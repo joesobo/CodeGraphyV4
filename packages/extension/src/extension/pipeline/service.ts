@@ -18,10 +18,8 @@ import type { IGraphData } from '../../shared/graph/types';
 import type { IPluginStatus } from '../../shared/plugins/status';
 import { EventBus } from '../../core/plugins/events/bus';
 import {
+  createEmptyWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
-  loadWorkspaceAnalysisCache,
-  saveWorkspaceAnalysisCache,
-  WORKSPACE_ANALYSIS_CACHE_KEY,
 } from './cache';
 import {
   loadWorkspaceAnalysisDatabaseCache,
@@ -109,13 +107,7 @@ export class WorkspacePipeline {
     const repoCache = workspaceRoot
       ? loadWorkspaceAnalysisDatabaseCache(workspaceRoot)
       : undefined;
-    const hasRepoCache = repoCache && Object.keys(repoCache.files).length > 0;
-
-    this._cache = hasRepoCache
-      ? repoCache
-      : loadWorkspaceAnalysisCache(
-          this._context.workspaceState.get<IWorkspaceAnalysisCache>(WORKSPACE_ANALYSIS_CACHE_KEY)
-        );
+    this._cache = repoCache ?? createEmptyWorkspaceAnalysisCache();
   }
 
   /**
@@ -250,7 +242,6 @@ export class WorkspacePipeline {
       this._cache,
       this._config,
       this._discovery,
-      this._context.workspaceState,
       () => this._getWorkspaceRoot(),
       filterPatterns,
       disabledSources,
@@ -324,7 +315,6 @@ export class WorkspacePipeline {
    */
   clearCache(): void {
     this._cache = clearWorkspacePipelineCache(
-      this._context.workspaceState,
       this._getWorkspaceRoot(),
       message => {
         console.log(message);
@@ -472,8 +462,6 @@ export class WorkspacePipeline {
   }
 
   private _persistCache(): void {
-    saveWorkspaceAnalysisCache(this._context.workspaceState.update.bind(this._context.workspaceState), this._cache);
-
     const workspaceRoot = this._getWorkspaceRoot();
     if (!workspaceRoot) {
       return;

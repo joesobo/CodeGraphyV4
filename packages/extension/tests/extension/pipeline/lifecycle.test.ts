@@ -4,7 +4,6 @@ import * as path from 'node:path';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import {
-  WORKSPACE_ANALYSIS_CACHE_KEY,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
 } from '../../../src/extension/pipeline/cache';
 import {
@@ -84,10 +83,7 @@ describe('WorkspacePipeline lifecycle', () => {
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,
       files: {},
     });
-    expect(context.workspaceState.update).toHaveBeenCalledWith(
-      WORKSPACE_ANALYSIS_CACHE_KEY,
-      analyzerPrivate._cache
-    );
+    expect(context.workspaceState.update).not.toHaveBeenCalled();
     expect(logSpy).toHaveBeenCalledWith('[CodeGraphy] Cache cleared');
   });
 
@@ -476,10 +472,7 @@ describe('WorkspacePipeline lifecycle', () => {
     });
     expect(analyzerPrivate._lastFileAnalysis.has('src/remove.ts')).toBe(false);
     expect(analyzerPrivate._lastFileConnections.has('src/remove.ts')).toBe(false);
-    expect(context.workspaceState.update).toHaveBeenCalledWith(
-      WORKSPACE_ANALYSIS_CACHE_KEY,
-      analyzerPrivate._cache,
-    );
+    expect(context.workspaceState.update).not.toHaveBeenCalled();
     expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files['src/keep.ts']).toEqual({
       mtime: 10,
       size: 0,

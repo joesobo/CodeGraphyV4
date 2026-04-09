@@ -9,8 +9,6 @@ export interface GraphViewGroupSyncState {
 
 export interface GraphViewGroupSyncHandlers {
   recomputeGroups(): void;
-  persistLegacyGroups(groups: IGroup[]): void;
-  clearLegacyGroups(): void;
 }
 
 export function applyLoadedGraphViewGroupState(
@@ -22,9 +20,4 @@ export function applyLoadedGraphViewGroupState(
   state.hiddenPluginGroupIds = groupState.hiddenPluginGroupIds;
   state.filterPatterns = groupState.filterPatterns;
   handlers.recomputeGroups();
-
-  if (groupState.legacyGroupsToMigrate) {
-    handlers.persistLegacyGroups(groupState.legacyGroupsToMigrate);
-    handlers.clearLegacyGroups();
-  }
 }
