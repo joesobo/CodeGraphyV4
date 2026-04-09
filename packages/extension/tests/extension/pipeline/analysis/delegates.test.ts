@@ -65,7 +65,6 @@ describe('WorkspacePipeline delegates', () => {
           cache,
           config,
           discovery,
-          workspaceState,
           getWorkspaceRoot,
           filterPatterns,
           nextDisabledRules,
@@ -75,7 +74,6 @@ describe('WorkspacePipeline delegates', () => {
           expect(cache).toBe((analyzer as unknown as { _cache: unknown })._cache);
           expect(config).toBe((analyzer as unknown as { _config: unknown })._config);
           expect(discovery).toBe((analyzer as unknown as { _discovery: unknown })._discovery);
-          expect(workspaceState).toBe(context.workspaceState);
           expect(source._lastDiscoveredFiles).toBe(
             (analyzer as unknown as { _lastDiscoveredFiles: unknown })._lastDiscoveredFiles,
           );
@@ -274,8 +272,7 @@ describe('WorkspacePipeline delegates', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const clearSpy = vi
       .spyOn(stateModule, 'clearWorkspacePipelineCache')
-      .mockImplementation((workspaceState, workspaceRoot, logInfo: (message: string) => void) => {
-        expect(workspaceState).toBe(context.workspaceState);
+      .mockImplementation((workspaceRoot, logInfo: (message: string) => void) => {
         expect(workspaceRoot).toBe('/test/workspace');
         logInfo('[CodeGraphy] Cache cleared');
         return replacementCache as never;

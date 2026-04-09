@@ -90,7 +90,6 @@ function createSource(
 ): GraphViewProviderSettingsStateMethodsSource {
   const workspaceState = {
     get: vi.fn(() => undefined) as WorkspaceStateGetMock,
-    update: vi.fn(() => Promise.resolve()),
   };
 
   const source: GraphViewProviderSettingsStateMethodsSource = {
@@ -164,14 +163,9 @@ describe('graphView/provider/settingsState default dependencies', () => {
   });
 
   it('loads groups through the default codegraphy configuration', () => {
-    const workspaceFolders = [{ name: 'workspace-folder' }];
     const source = createSource();
-    const legacyGroups = [{ id: 'group.legacy' } as never];
-    mocks.workspaceFolders = workspaceFolders;
     mocks.applyLoadedGroupState.mockImplementation((_groupState, state, handlers) => {
       handlers.recomputeGroups();
-      handlers.persistLegacyGroups(legacyGroups);
-      handlers.clearLegacyGroups();
       state.userGroups = [{ id: 'group.updated' } as never];
       state.hiddenPluginGroupIds = new Set<string>(['plugin.updated']);
       state.filterPatterns = ['updated/**'];
@@ -181,19 +175,11 @@ describe('graphView/provider/settingsState default dependencies', () => {
 
     methods._loadGroupsAndFilterPatterns();
 
-    expect(mocks.getConfiguration).toHaveBeenNthCalledWith(1, 'codegraphy');
-    expect(mocks.getConfiguration).toHaveBeenNthCalledWith(2, 'codegraphy');
-    expect(mocks.getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
-    expect(mocks.configuration.update).toHaveBeenCalledWith(
-      'groups',
-      legacyGroups,
-      'workspace-target',
-    );
+    expect(mocks.getConfiguration).toHaveBeenCalledOnce();
+    expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
+    expect(mocks.getConfigTarget).not.toHaveBeenCalled();
     expect(mocks.otherConfiguration.update).not.toHaveBeenCalled();
-    expect(source._context.workspaceState.update).toHaveBeenCalledWith(
-      'codegraphy.groups',
-      undefined,
-    );
+    expect(mocks.configuration.update).not.toHaveBeenCalled();
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._userGroups).toEqual([{ id: 'group.updated' }]);
     expect([...source._hiddenPluginGroupIds]).toEqual(['plugin.updated']);
@@ -201,24 +187,15 @@ describe('graphView/provider/settingsState default dependencies', () => {
   });
 
   it('loads disabled state through the default configuration inspection', () => {
-    const get = vi.fn((key: string) =>
-      key === 'codegraphy.disabledSources' ? ['rule.saved'] : ['plugin.saved']
-    ) as WorkspaceStateGetMock;
-    const workspaceState = {
-      get,
-      update: vi.fn(() => Promise.resolve()),
-    };
-    const source = createSource({
-      _context: { workspaceState },
-    });
+    const source = createSource();
     const disabledSourcesInspect = { workspaceValue: ['rule.config'] };
     const disabledPluginsInspect = { workspaceValue: ['plugin.config'] };
     mocks.configuration.inspect.mockImplementation(((
       key: string,
     ) => (key === 'disabledSources' ? disabledSourcesInspect : disabledPluginsInspect)) as never);
     mocks.loadDisabledState.mockReturnValue({
-      disabledSources: new Set<string>(['rule.saved']),
-      disabledPlugins: new Set<string>(['plugin.saved']),
+      disabledSources: new Set<string>(['rule.config']),
+      disabledPlugins: new Set<string>(['plugin.config']),
       changed: true,
     });
 
@@ -229,20 +206,16 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
     expect(mocks.configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledSources');
     expect(mocks.configuration.inspect).toHaveBeenNthCalledWith(2, 'disabledPlugins');
-    expect(workspaceState.get).toHaveBeenNthCalledWith(1, 'codegraphy.disabledSources');
-    expect(workspaceState.get).toHaveBeenNthCalledWith(2, 'codegraphy.disabledPlugins');
     expect(mocks.loadDisabledState).toHaveBeenCalledWith(
       new Set<string>(['rule.current']),
       new Set<string>(['plugin.current']),
       {
         disabledSourcesInspect,
         disabledPluginsInspect,
-        persistedDisabledRules: ['rule.saved'],
-        persistedDisabledPlugins: ['plugin.saved'],
       },
     );
-    expect([...source._disabledSources]).toEqual(['rule.saved']);
-    expect([...source._disabledPlugins]).toEqual(['plugin.saved']);
+    expect([...source._disabledSources]).toEqual(['rule.config']);
+    expect([...source._disabledPlugins]).toEqual(['plugin.config']);
   });
 
   it('sends settings through the default provider message bridge', () => {
