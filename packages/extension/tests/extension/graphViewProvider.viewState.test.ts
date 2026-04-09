@@ -84,7 +84,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     });
   });
 
-  it('persists and broadcasts available view changes when depth mode is enabled', async () => {
+  it('persists depth mode and refreshes graph data when depth mode is enabled', async () => {
     const context = createContext();
     const provider = new GraphViewProvider(
       vscode.Uri.file('/test/extension'),
@@ -95,10 +95,6 @@ describe('GraphViewProvider view state and internal helpers', () => {
     const applySpy = vi.spyOn(
       internals._viewContextMethods,
       '_applyViewTransform'
-    ).mockImplementation(() => {});
-    const sendViewsSpy = vi.spyOn(
-      internals._viewContextMethods,
-      '_sendAvailableViews'
     ).mockImplementation(() => {});
     const sendMessageSpy = vi.spyOn(
       internals._webviewMethods,
@@ -113,7 +109,6 @@ describe('GraphViewProvider view state and internal helpers', () => {
       true,
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
-    expect(sendViewsSpy).toHaveBeenCalledTimes(1);
     expect(sendMessageSpy).toHaveBeenCalledWith({
       type: 'DEPTH_MODE_UPDATED',
       payload: { depthMode: true },

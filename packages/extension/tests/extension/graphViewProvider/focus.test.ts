@@ -11,7 +11,7 @@ describe('GraphViewProvider focused file updates', () => {
     harness = createGraphViewProviderTestHarness();
   });
 
-  it('sends VIEWS_UPDATED when focused file changes', async () => {
+  it('sends ACTIVE_FILE_UPDATED when focused file changes', async () => {
     const { mockWebview } = harness.createResolvedWebview();
 
     await new Promise(resolve => setTimeout(resolve, 50));
@@ -19,13 +19,15 @@ describe('GraphViewProvider focused file updates', () => {
 
     harness.provider.setFocusedFile('src/app.ts');
 
-    const viewsUpdatedCalls = mockWebview.postMessage.mock.calls.filter(
-      (call: unknown[]) => (call[0] as { type: string }).type === 'VIEWS_UPDATED'
+    const activeFileCalls = mockWebview.postMessage.mock.calls.filter(
+      (call: unknown[]) => (call[0] as { type: string }).type === 'ACTIVE_FILE_UPDATED'
     );
-    expect(viewsUpdatedCalls.length).toBe(1);
+    expect(activeFileCalls).toEqual([
+      [{ type: 'ACTIVE_FILE_UPDATED', payload: { filePath: 'src/app.ts' } }],
+    ]);
   });
 
-  it('sends VIEWS_UPDATED when focused file is cleared', async () => {
+  it('sends ACTIVE_FILE_UPDATED when focused file is cleared', async () => {
     const { mockWebview } = harness.createResolvedWebview();
 
     await new Promise(resolve => setTimeout(resolve, 50));
@@ -34,13 +36,15 @@ describe('GraphViewProvider focused file updates', () => {
     mockWebview.postMessage.mockClear();
     harness.provider.setFocusedFile(undefined);
 
-    const viewsUpdatedCalls = mockWebview.postMessage.mock.calls.filter(
-      (call: unknown[]) => (call[0] as { type: string }).type === 'VIEWS_UPDATED'
+    const activeFileCalls = mockWebview.postMessage.mock.calls.filter(
+      (call: unknown[]) => (call[0] as { type: string }).type === 'ACTIVE_FILE_UPDATED'
     );
-    expect(viewsUpdatedCalls.length).toBe(1);
+    expect(activeFileCalls).toEqual([
+      [{ type: 'ACTIVE_FILE_UPDATED', payload: { filePath: undefined } }],
+    ]);
   });
 
-  it('does not send VIEWS_UPDATED when focused file does not change', async () => {
+  it('does not send ACTIVE_FILE_UPDATED when focused file does not change', async () => {
     const { mockWebview } = harness.createResolvedWebview();
 
     await new Promise(resolve => setTimeout(resolve, 50));
@@ -49,10 +53,10 @@ describe('GraphViewProvider focused file updates', () => {
     mockWebview.postMessage.mockClear();
     harness.provider.setFocusedFile('src/app.ts');
 
-    const viewsUpdatedCalls = mockWebview.postMessage.mock.calls.filter(
-      (call: unknown[]) => (call[0] as { type: string }).type === 'VIEWS_UPDATED'
+    const activeFileCalls = mockWebview.postMessage.mock.calls.filter(
+      (call: unknown[]) => (call[0] as { type: string }).type === 'ACTIVE_FILE_UPDATED'
     );
-    expect(viewsUpdatedCalls.length).toBe(0);
+    expect(activeFileCalls.length).toBe(0);
   });
 
   it('includes the focused imports view after the TypeScript plugin registers', async () => {
