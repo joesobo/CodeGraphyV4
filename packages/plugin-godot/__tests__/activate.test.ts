@@ -43,6 +43,10 @@ vi.mock('tree-sitter-typescript', () => ({
   },
 }));
 
+vi.mock('../../extension/src/extension/pipeline/treesitter/analyze', () => ({
+  analyzeFileWithTreeSitter: vi.fn(async () => null),
+}));
+
 vi.mock('vscode', () => ({
   Uri: {
     file: (filePath: string) => ({ fsPath: filePath, path: filePath }),

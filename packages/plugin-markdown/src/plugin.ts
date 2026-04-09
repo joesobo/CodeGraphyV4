@@ -39,17 +39,7 @@ export function createMarkdownPlugin(): IPlugin {
 
     return {
       filePath,
-      relations: connections.map(connection => ({
-        kind: connection.kind,
-        sourceId: connection.sourceId,
-        fromFilePath: filePath,
-        toFilePath: connection.resolvedPath,
-        specifier: connection.specifier,
-        type: connection.type,
-        variant: connection.variant,
-        resolvedPath: connection.resolvedPath,
-        metadata: connection.metadata,
-      })),
+      relations: connections,
     };
   };
 

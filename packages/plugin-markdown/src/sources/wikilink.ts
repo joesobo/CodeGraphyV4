@@ -5,7 +5,7 @@
  * @module plugins/markdown/sources/wikilink
  */
 
-import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
 import type { PathResolver } from '../PathResolver';
 import {
   isFenceStart,
@@ -49,8 +49,8 @@ export function detect(
   content: string,
   filePath: string,
   ctx: MarkdownRuleContext
-): IConnection[] {
-  const connections: IConnection[] = [];
+): IAnalysisRelation[] {
+  const relations: IAnalysisRelation[] = [];
   const lines = content.split('\n');
   let inFencedBlock = false;
 
@@ -74,18 +74,20 @@ export function detect(
       if (!parsed) continue;
 
       const resolvedPath = ctx.resolver.resolve(parsed.target, filePath);
-      connections.push({
+      relations.push({
         kind: 'reference',
         specifier: parsed.specifier,
         resolvedPath,
+        fromFilePath: filePath,
+        toFilePath: resolvedPath,
         type: 'static',
         sourceId: 'wikilink',
       });
     }
   }
 
-  return connections;
+  return relations;
 }
 
-const rule: IConnectionDetector<MarkdownRuleContext> = { id: 'wikilink', detect };
+const rule = { id: 'wikilink', detect };
 export default rule;
