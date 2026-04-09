@@ -1,4 +1,4 @@
-import type { IConnection } from '../../../core/plugins/types/contracts';
+import type { IConnection, IFileAnalysisResult } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/types';
 import {
   createEmptyWorkspaceAnalysisCache,
@@ -7,6 +7,13 @@ import {
 import { clearWorkspaceAnalysisDatabaseCache } from '../database/cache';
 
 export interface WorkspacePipelineRebuildDependencies {
+  buildGraphDataFromAnalysis(
+    fileAnalysis: Map<string, IFileAnalysisResult>,
+    workspaceRoot: string,
+    showOrphans: boolean,
+    disabledSources: Set<string>,
+    disabledPlugins: Set<string>,
+  ): IGraphData;
   buildGraphData(
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
@@ -14,11 +21,19 @@ export interface WorkspacePipelineRebuildDependencies {
     disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
+  fileAnalysis: Map<string, IFileAnalysisResult>;
   fileConnections: Map<string, IConnection[]>;
   workspaceRoot: string;
 }
 
 export interface WorkspacePipelineRebuildSource {
+  _buildGraphDataFromAnalysis(
+    fileAnalysis: Map<string, IFileAnalysisResult>,
+    workspaceRoot: string,
+    showOrphans: boolean,
+    disabledSources: Set<string>,
+    disabledPlugins: Set<string>,
+  ): IGraphData;
   _buildGraphData(
     fileConnections: Map<string, IConnection[]>,
     workspaceRoot: string,
@@ -26,6 +41,7 @@ export interface WorkspacePipelineRebuildSource {
     disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
+  _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IConnection[]>;
   _lastWorkspaceRoot: string;
 }
@@ -36,6 +52,16 @@ export function rebuildWorkspacePipelineGraph(
   disabledPlugins: Set<string>,
   showOrphans: boolean,
 ): IGraphData {
+  if (dependencies.fileAnalysis.size > 0) {
+    return dependencies.buildGraphDataFromAnalysis(
+      dependencies.fileAnalysis,
+      dependencies.workspaceRoot,
+      showOrphans,
+      disabledSources,
+      disabledPlugins,
+    );
+  }
+
   if (dependencies.fileConnections.size === 0) {
     return { nodes: [], edges: [] };
   }
@@ -57,6 +83,20 @@ export function rebuildWorkspacePipelineGraphForSource(
 ): IGraphData {
   return rebuildWorkspacePipelineGraph(
     {
+      buildGraphDataFromAnalysis: (
+        fileAnalysis,
+        workspaceRoot,
+        nextShowOrphans,
+        nextDisabledRules,
+        nextDisabledPlugins,
+      ) =>
+        source._buildGraphDataFromAnalysis(
+          fileAnalysis,
+          workspaceRoot,
+          nextShowOrphans,
+          nextDisabledRules,
+          nextDisabledPlugins,
+        ),
       buildGraphData: (
         fileConnections,
         workspaceRoot,
@@ -71,6 +111,7 @@ export function rebuildWorkspacePipelineGraphForSource(
           nextDisabledRules,
           nextDisabledPlugins,
         ),
+      fileAnalysis: source._lastFileAnalysis,
       fileConnections: source._lastFileConnections,
       workspaceRoot: source._lastWorkspaceRoot,
     },

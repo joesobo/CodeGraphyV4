@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import type { IGraphData } from '../../../src/shared/graph/types';
 
 // Mock vscode module
@@ -77,7 +78,10 @@ function createMockContext() {
  */
 function createMockRegistry() {
   return {
-    analyzeFile: vi.fn().mockResolvedValue([]),
+    analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
+      filePath: absolutePath,
+      relations: [],
+    })),
     supportsFile: vi.fn().mockReturnValue(true),
     getSupportedExtensions: vi.fn().mockReturnValue(['.ts', '.js']),
     list: vi.fn().mockReturnValue([
@@ -89,10 +93,20 @@ function createMockRegistry() {
       },
     ]),
   } as unknown as PluginRegistry & {
-    analyzeFile: Mock;
+    analyzeFileResult: Mock;
     supportsFile: Mock;
     getSupportedExtensions: Mock;
     list: Mock;
+  };
+}
+
+function createAnalysisResult(
+  filePath: string,
+  relations: IFileAnalysisResult['relations'] = [],
+): IFileAnalysisResult {
+  return {
+    filePath,
+    relations,
   };
 }
 
@@ -329,26 +343,32 @@ describe('GitHistoryAnalyzer', () => {
       ]);
 
       // Configure registry to return connections
-      registry.analyzeFile.mockImplementation(
+      registry.analyzeFileResult.mockImplementation(
         async (filePath: string, content: string, _root: string) => {
           if (filePath.endsWith('a.ts') && content.includes('./b')) {
-            const conns = [
+            const relations = [
               {
                 specifier: './b',
                 resolvedPath: '/workspace/src/b.ts',
                 type: 'static' as const,
+                kind: 'import' as const,
+                sourceId: 'import',
+                fromFilePath: filePath,
               },
             ];
             if (content.includes('./c')) {
-              conns.push({
+              relations.push({
                 specifier: './c',
                 resolvedPath: '/workspace/src/c.ts',
                 type: 'static' as const,
+                kind: 'import' as const,
+                sourceId: 'import',
+                fromFilePath: filePath,
               });
             }
-            return conns;
+            return createAnalysisResult(filePath, relations);
           }
-          return [];
+          return createAnalysisResult(filePath);
         }
       );
 
@@ -453,35 +473,44 @@ describe('GitHistoryAnalyzer', () => {
       ]);
 
       let callCount = 0;
-      registry.analyzeFile.mockImplementation(
+      registry.analyzeFileResult.mockImplementation(
         async (filePath: string, _content: string) => {
           callCount++;
           if (filePath.endsWith('a.ts')) {
             if (callCount <= 3) {
               // First commit: only b
-              return [
+              return createAnalysisResult(filePath, [
                 {
                   specifier: './b',
                   resolvedPath: '/workspace/src/b.ts',
                   type: 'static' as const,
+                  kind: 'import',
+                  sourceId: 'import',
+                  fromFilePath: filePath,
                 },
-              ];
+              ]);
             }
             // Second commit: b and c
-            return [
+            return createAnalysisResult(filePath, [
               {
                 specifier: './b',
                 resolvedPath: '/workspace/src/b.ts',
                 type: 'static' as const,
+                kind: 'import',
+                sourceId: 'import',
+                fromFilePath: filePath,
               },
               {
                 specifier: './c',
                 resolvedPath: '/workspace/src/c.ts',
                 type: 'static' as const,
+                kind: 'import',
+                sourceId: 'import',
+                fromFilePath: filePath,
               },
-            ];
+            ]);
           }
-          return [];
+          return createAnalysisResult(filePath);
         }
       );
 
@@ -513,18 +542,21 @@ describe('GitHistoryAnalyzer', () => {
       ]);
 
       // main.ts imports old.ts at sha1
-      registry.analyzeFile.mockImplementation(
+      registry.analyzeFileResult.mockImplementation(
         async (filePath: string) => {
           if (filePath.endsWith('main.ts')) {
-            return [
+            return createAnalysisResult(filePath, [
               {
                 specifier: './old',
                 resolvedPath: '/workspace/src/old.ts',
                 type: 'static' as const,
+                kind: 'import',
+                sourceId: 'import',
+                fromFilePath: filePath,
               },
-            ];
+            ]);
           }
-          return [];
+          return createAnalysisResult(filePath);
         }
       );
 
@@ -577,7 +609,7 @@ describe('GitHistoryAnalyzer', () => {
       await analyzerWithExcludes.indexHistory(vi.fn(), liveAbortSignal());
 
       // Only non-excluded files should be analyzed
-      const analyzeCalls = registry.analyzeFile.mock.calls;
+      const analyzeCalls = registry.analyzeFileResult.mock.calls;
       const analyzedPaths = analyzeCalls.map((call) => call[0] as string);
       for (const analyzedPath of analyzedPaths) {
         expect(analyzedPath).not.toMatch(/assets\//);

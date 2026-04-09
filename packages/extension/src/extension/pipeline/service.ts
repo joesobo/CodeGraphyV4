@@ -36,6 +36,7 @@ import {
   getWorkspacePipelinePluginStatuses,
   resolveWorkspacePipelinePluginNameForFile,
 } from './plugins/queries';
+import { projectConnectionMapFromFileAnalysis } from './projection';
 import {
   clearWorkspacePipelineCache,
   rebuildWorkspacePipelineGraphForSource,
@@ -487,6 +488,22 @@ export class WorkspacePipeline {
       this._context,
       this._registry,
       fileConnections,
+      workspaceRoot,
+      showOrphans,
+      disabledSources,
+      disabledPlugins,
+    );
+  }
+
+  protected _buildGraphDataFromAnalysis(
+    fileAnalysis: Map<string, IFileAnalysisResult>,
+    workspaceRoot: string,
+    showOrphans: boolean,
+    disabledSources: Set<string> = new Set(),
+    disabledPlugins: Set<string> = new Set(),
+  ): IGraphData {
+    return this._buildGraphData(
+      projectConnectionMapFromFileAnalysis(fileAnalysis),
       workspaceRoot,
       showOrphans,
       disabledSources,

@@ -1,5 +1,5 @@
 import type { IDiscoveredFile } from '../../../core/discovery/contracts';
-import type { IConnection } from '../../../core/plugins/types/contracts';
+import type { IConnection, IFileAnalysisResult } from '../../../core/plugins/types/contracts';
 import type { EventBus } from '../../../core/plugins/events/bus';
 import type { IGraphData } from '../../../shared/graph/types';
 import { throwIfWorkspaceAnalysisAborted } from '../abort';
@@ -25,8 +25,16 @@ export interface WorkspacePipelineAnalysisSource {
     disabledSources: Set<string>,
     disabledPlugins: Set<string>,
   ): IGraphData;
+  _buildGraphDataFromAnalysis(
+    fileAnalysis: Map<string, IFileAnalysisResult>,
+    workspaceRoot: string,
+    showOrphans: boolean,
+    disabledSources: Set<string>,
+    disabledPlugins: Set<string>,
+  ): IGraphData;
   _eventBus?: EventBus;
   _lastDiscoveredFiles: IDiscoveredFile[];
+  _lastFileAnalysis: Map<string, IFileAnalysisResult>;
   _lastFileConnections: Map<string, IConnection[]>;
   _lastWorkspaceRoot: string;
   _preAnalyzePlugins(
@@ -112,12 +120,13 @@ export async function analyzeWorkspaceWithAnalyzer(
 
   throwIfWorkspaceAnalysisAborted(signal);
 
+  source._lastFileAnalysis = analysisResult.fileAnalysis;
   source._lastFileConnections = analysisResult.fileConnections;
   source._lastDiscoveredFiles = discoveryResult.files;
   source._lastWorkspaceRoot = workspaceRoot;
 
-  const graphData = source._buildGraphData(
-    analysisResult.fileConnections,
+  const graphData = source._buildGraphDataFromAnalysis(
+    analysisResult.fileAnalysis,
     workspaceRoot,
     config.showOrphans,
     disabledSources,
