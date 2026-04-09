@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphEdge } from '../../../src/shared/graph/types';
-import { appendGitHistoryConnectionEdges } from '../../../src/extension/gitHistory/graphConnections';
+import { appendGitHistoryAnalysisEdges } from '../../../src/extension/gitHistory/graphConnections';
 
 describe('gitHistory/graphConnections', () => {
-  it('skips connections without resolved paths and suppresses duplicate edges', () => {
+  it('skips unresolved relations and suppresses duplicate edges', () => {
     const edges: IGraphEdge[] = [{ id: 'src/a.ts->src/b.ts#import', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] }];
     const edgeSet = new Set(['src/a.ts->src/b.ts#import']);
 
-    appendGitHistoryConnectionEdges({
-      connections: [
-        { specifier: './missing', type: 'static', resolvedPath: null, kind: 'import', sourceId: 'import' },
-        { specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts', kind: 'import', sourceId: 'import' },
-      ],
+    appendGitHistoryAnalysisEdges({
+      analysis: {
+        relations: [
+          { specifier: './missing', type: 'static', resolvedPath: null, kind: 'import', sourceId: 'import', fromFilePath: '/workspace/src/a.ts' },
+          { specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts', kind: 'import', sourceId: 'import', fromFilePath: '/workspace/src/a.ts' },
+        ],
+      },
       edgeSet,
       edges,
       sourcePath: 'src/a.ts',
@@ -26,8 +28,10 @@ describe('gitHistory/graphConnections', () => {
     const edges: IGraphEdge[] = [];
     const edgeSet = new Set<string>();
 
-    appendGitHistoryConnectionEdges({
-      connections: [{ specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts', kind: 'import', sourceId: 'import' }],
+    appendGitHistoryAnalysisEdges({
+      analysis: {
+        relations: [{ specifier: './b', type: 'static', resolvedPath: '/workspace/src/b.ts', kind: 'import', sourceId: 'import', fromFilePath: '/workspace/src/a.ts' }],
+      },
       edgeSet,
       edges,
       sourcePath: 'src/a.ts',
@@ -41,14 +45,17 @@ describe('gitHistory/graphConnections', () => {
     const edges: IGraphEdge[] = [];
     const edgeSet = new Set<string>();
 
-    appendGitHistoryConnectionEdges({
-      connections: [{
-        sourceId: 'import',
-        specifier: './b',
-        type: 'static',
-        resolvedPath: '/workspace/src/b.ts',
-        kind: 'import',
-      }],
+    appendGitHistoryAnalysisEdges({
+      analysis: {
+        relations: [{
+          sourceId: 'import',
+          specifier: './b',
+          type: 'static',
+          resolvedPath: '/workspace/src/b.ts',
+          kind: 'import',
+          fromFilePath: '/workspace/src/a.ts',
+        }],
+      },
       edgeSet,
       edges,
       plugin: { id: 'ts' },
@@ -78,15 +85,18 @@ describe('gitHistory/graphConnections', () => {
     const edges: IGraphEdge[] = [];
     const edgeSet = new Set<string>();
 
-    appendGitHistoryConnectionEdges({
-      connections: [{
-        sourceId: 'import',
-        specifier: './b',
-        type: 'static',
-        resolvedPath: '/workspace/src/b.ts',
-        kind: 'import',
-        pluginId: 'plugin.enricher',
-      }],
+    appendGitHistoryAnalysisEdges({
+      analysis: {
+        relations: [{
+          sourceId: 'import',
+          specifier: './b',
+          type: 'static',
+          resolvedPath: '/workspace/src/b.ts',
+          kind: 'import',
+          pluginId: 'plugin.enricher',
+          fromFilePath: '/workspace/src/a.ts',
+        }],
+      },
       edgeSet,
       edges,
       plugin: { id: 'plugin.base' },

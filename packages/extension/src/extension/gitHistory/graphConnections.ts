@@ -1,9 +1,9 @@
 import * as path from 'path';
-import type { IConnection } from '../../core/plugins/types/contracts';
+import type { IFileAnalysisResult } from '../../core/plugins/types/contracts';
 import type { IGraphEdge } from '../../shared/graph/types';
 
-export interface AppendGitHistoryConnectionEdgesOptions {
-  connections: readonly IConnection[];
+export interface AppendGitHistoryAnalysisEdgesOptions {
+  analysis: Pick<IFileAnalysisResult, 'relations'> | null;
   edgeSet: Set<string>;
   edges: IGraphEdge[];
   plugin?: { id: string };
@@ -11,11 +11,11 @@ export interface AppendGitHistoryConnectionEdgesOptions {
   workspaceRoot: string;
 }
 
-export function appendGitHistoryConnectionEdges(
-  options: AppendGitHistoryConnectionEdgesOptions,
+export function appendGitHistoryAnalysisEdges(
+  options: AppendGitHistoryAnalysisEdgesOptions,
 ): void {
   const {
-    connections,
+    analysis,
     edgeSet,
     edges,
     plugin,
@@ -23,31 +23,32 @@ export function appendGitHistoryConnectionEdges(
     workspaceRoot,
   } = options;
 
-  for (const connection of connections) {
-    if (!connection.resolvedPath) {
+  for (const relation of analysis?.relations ?? []) {
+    const targetPath = relation.resolvedPath ?? relation.toFilePath;
+    if (!targetPath) {
       continue;
     }
 
-    const targetRelative = path.relative(workspaceRoot, connection.resolvedPath);
-    const edgeId = `${sourcePath}->${targetRelative}#${connection.kind}`;
+    const targetRelative = path.relative(workspaceRoot, targetPath);
+    const edgeId = `${sourcePath}->${targetRelative}#${relation.kind}`;
     if (edgeSet.has(edgeId)) {
       continue;
     }
 
-    const pluginId = connection.pluginId ?? plugin?.id;
+    const pluginId = relation.pluginId ?? plugin?.id;
 
     const edge: IGraphEdge = {
       id: edgeId,
       from: sourcePath,
       to: targetRelative,
-      kind: connection.kind,
+      kind: relation.kind,
       sources: pluginId ? [{
-        id: `${pluginId}:${connection.sourceId}`,
+        id: `${pluginId}:${relation.sourceId}`,
         pluginId,
-        sourceId: connection.sourceId,
-        label: connection.sourceId,
-        metadata: connection.metadata,
-        variant: connection.variant,
+        sourceId: relation.sourceId,
+        label: relation.sourceId,
+        metadata: relation.metadata,
+        variant: relation.variant,
       }] : [],
     };
 
