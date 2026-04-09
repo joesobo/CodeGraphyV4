@@ -125,7 +125,12 @@ describe('pipeline/analysis/analyze', () => {
 
     expect(dependencies.discover).toHaveBeenCalledOnce();
     expect(source._preAnalyzePlugins).toHaveBeenCalledWith(files, '/workspace', undefined);
-    expect(source._analyzeFiles).toHaveBeenCalledWith(files, '/workspace', undefined);
+    expect(source._analyzeFiles).toHaveBeenCalledWith(
+      files,
+      '/workspace',
+      expect.any(Function),
+      undefined,
+    );
     expect(source._buildGraphData).toHaveBeenCalledWith(
       fileConnections,
       '/workspace',

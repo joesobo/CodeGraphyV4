@@ -77,7 +77,7 @@ describe('Extension', () => {
       const provider = (
         vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
       ).mock.calls[0]?.[1] as GraphViewProvider;
-      const refreshSpy = vi.spyOn(provider, 'refresh').mockResolvedValue();
+      const refreshSpy = vi.spyOn(provider, 'refreshChangedFiles').mockResolvedValue();
 
       const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })
         .mock.calls[0]?.[0] as (document: { uri?: { fsPath?: string } }) => void;
@@ -98,7 +98,7 @@ describe('Extension', () => {
         vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
       ).mock.calls[0]?.[1] as GraphViewProvider;
       vi.spyOn(provider, 'isGraphOpen').mockReturnValue(true);
-      const refreshSpy = vi.spyOn(provider, 'refresh').mockResolvedValue();
+      const refreshChangedFilesSpy = vi.spyOn(provider, 'refreshChangedFiles').mockResolvedValue();
 
       const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })
         .mock.calls[0]?.[0] as (document: { uri?: { fsPath?: string } }) => void;
@@ -107,7 +107,8 @@ describe('Extension', () => {
       saveListener({ uri: { fsPath: '/test/workspace/src/app.ts' } });
       vi.advanceTimersByTime(600);
 
-      expect(refreshSpy).toHaveBeenCalledTimes(1);
+      expect(refreshChangedFilesSpy).toHaveBeenCalledTimes(1);
+      expect(refreshChangedFilesSpy).toHaveBeenCalledWith(['/test/workspace/src/app.ts']);
       vi.useRealTimers();
     });
   });

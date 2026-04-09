@@ -69,6 +69,7 @@ describe('WorkspacePipeline delegates', () => {
           filterPatterns,
           nextDisabledRules,
           nextDisabledPlugins,
+          nextProgress,
           nextSignal,
         ) => {
           expect(cache).toBe((analyzer as unknown as { _cache: unknown })._cache);
@@ -85,6 +86,7 @@ describe('WorkspacePipeline delegates', () => {
           expect(filterPatterns).toEqual(['**/*.generated.ts']);
           expect(nextDisabledRules).toBe(disabledSources);
           expect(nextDisabledPlugins).toBe(disabledPlugins);
+          expect(nextProgress).toBeUndefined();
           expect(nextSignal).toBe(signal);
           return expectedGraph;
         },

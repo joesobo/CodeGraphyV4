@@ -49,7 +49,10 @@ export function createGraphViewProviderMessagePluginContext(
   const pluginApis = createGraphViewProviderPluginApis(source);
 
   return {
-    getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
+    getPluginFilterPatterns: () =>
+      typeof source._analyzer?.getPluginFilterPatterns === 'function'
+        ? source._analyzer.getPluginFilterPatterns()
+        : [],
     hasWorkspace: () => (dependencies.workspace.workspaceFolders?.length ?? 0) > 0,
     isFirstAnalysis: () => source._firstAnalysis,
     isWebviewReadyNotified: () => source._webviewReadyNotified,

@@ -172,7 +172,10 @@ export function createGraphViewProviderSettingsStateMethods(
           source._getPhysicsSettings(),
           source._nodeSizeMode,
         ),
-      getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
+      getPluginFilterPatterns: () =>
+        typeof source._analyzer?.getPluginFilterPatterns === 'function'
+          ? source._analyzer.getPluginFilterPatterns()
+          : [],
       sendMessage: message => source._sendMessage(message),
       recomputeGroups: () => {
         syncGroupStateToSource(state);

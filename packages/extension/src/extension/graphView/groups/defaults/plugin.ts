@@ -26,7 +26,7 @@ export function getGraphViewPluginDefaultGroups(
   pluginExtensionUris: Map<string, vscode.Uri>,
   extensionUri: vscode.Uri,
 ): IGroup[] {
-  if (!analyzer) return [];
+  if (!analyzer?.registry?.list) return [];
 
   const result: IGroup[] = [];
   const addedIds = new Set<string>();

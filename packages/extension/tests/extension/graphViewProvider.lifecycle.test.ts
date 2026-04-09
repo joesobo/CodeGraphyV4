@@ -56,29 +56,13 @@ describe('GraphViewProvider lifecycle', () => {
     );
     const internals = getGraphViewProviderInternals(provider);
 
-    const loadSpy = vi
-      .spyOn(internals._settingsStateMethods, '_loadDisabledRulesAndPlugins')
-      .mockReturnValue(true);
-    const loadGroupsSpy = vi
-      .spyOn(internals._settingsStateMethods, '_loadGroupsAndFilterPatterns')
-      .mockImplementation(() => {});
-    const analyzeSpy = vi
-      .spyOn(internals._analysisMethods, '_analyzeAndSendData')
+    const refreshSpy = vi
+      .spyOn(internals._refreshMethods, 'refresh')
       .mockResolvedValue();
-    const settingsSpy = vi
-      .spyOn(internals._settingsStateMethods, '_sendAllSettings')
-      .mockImplementation(() => {});
-    const favoritesSpy = vi
-      .spyOn(internals._fileVisitMethods, '_sendFavorites')
-      .mockImplementation(() => {});
 
     await provider.refresh();
 
-    expect(loadSpy).toHaveBeenCalledTimes(1);
-    expect(loadGroupsSpy).toHaveBeenCalledTimes(1);
-    expect(analyzeSpy).toHaveBeenCalledTimes(1);
-    expect(settingsSpy).toHaveBeenCalledTimes(1);
-    expect(favoritesSpy).toHaveBeenCalledTimes(1);
+    expect(refreshSpy).toHaveBeenCalledTimes(1);
   });
 
   it('refreshToggleSettings only rebuilds when toggle state changed', () => {
@@ -110,9 +94,11 @@ describe('GraphViewProvider lifecycle', () => {
     );
     const clearCache = vi.fn();
     const internals = getGraphViewProviderInternals(provider);
-    const analyzeSpy = vi
-      .spyOn(internals._analysisMethods, '_analyzeAndSendData')
+    const refreshSpy = vi
+      .spyOn(internals._analysisMethods, '_refreshAndSendData')
       .mockResolvedValue();
+    vi.spyOn(internals._settingsStateMethods, '_sendAllSettings').mockImplementation(() => {});
+    vi.spyOn(internals._fileVisitMethods, '_sendFavorites').mockImplementation(() => {});
 
     (provider as unknown as {
       _analyzer: { clearCache: () => void };
@@ -121,7 +107,7 @@ describe('GraphViewProvider lifecycle', () => {
     await provider.clearCacheAndRefresh();
 
     expect(clearCache).toHaveBeenCalledTimes(1);
-    expect(analyzeSpy).toHaveBeenCalledTimes(1);
+    expect(refreshSpy).toHaveBeenCalledTimes(1);
   });
 
   it('sends empty graph data when _doAnalyzeAndSendData runs without an analyzer', async () => {
@@ -199,14 +185,14 @@ describe('GraphViewProvider lifecycle', () => {
       createContext() as unknown as vscode.ExtensionContext
     );
     const internals = getGraphViewProviderInternals(provider);
-    const analyzeSpy = vi
-      .spyOn(internals._analysisMethods, '_analyzeAndSendData')
+    const refreshSpy = vi
+      .spyOn(internals._analysisMethods, '_refreshAndSendData')
       .mockResolvedValue();
 
     (provider as unknown as { _analyzer?: unknown })._analyzer = undefined;
 
     await provider.clearCacheAndRefresh();
 
-    expect(analyzeSpy).toHaveBeenCalledTimes(1);
+    expect(refreshSpy).toHaveBeenCalledTimes(1);
   });
 });
