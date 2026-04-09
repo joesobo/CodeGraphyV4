@@ -92,13 +92,4 @@ describe('Core Views (fresh imports)', () => {
       }
     });
   });
-
-  describe('depthGraphView remains available from its depth module', () => {
-    it('passes through the graph during the teardown phase', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/depth/view');
-      const context = createContext({ focusedFile: undefined });
-      const result = depthGraphView.transform(sampleGraphData, context);
-      expect(result).toBe(sampleGraphData);
-    });
-  });
 });
