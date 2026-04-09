@@ -131,7 +131,7 @@ describe('graphView/provider/plugins', () => {
           payload: { depthMode: false },
         }),
       ),
-      sendPluginStatuses: vi.fn((_analyzer, _disabledSources, _disabledPlugins, callback) =>
+      sendPluginStatuses: vi.fn((_analyzer, _disabledPlugins, callback) =>
         callback({ type: 'PLUGINS_UPDATED', payload: { plugins: [] } }),
       ),
       sendDecorations: vi.fn((_manager, callback) =>

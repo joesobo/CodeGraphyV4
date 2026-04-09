@@ -50,7 +50,6 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        sources: [],
       },
     ]);
 
@@ -77,7 +76,6 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        sources: [],
       },
     ]);
 
@@ -89,7 +87,7 @@ describe('PluginsPanel', () => {
     });
   });
 
-  it('does not render source toggles or expanded source content', () => {
+  it('renders plugin-only rows without per-source content', () => {
     renderPanel([
       {
         id: 'codegraphy.typescript',
@@ -99,22 +97,10 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        sources: [
-          {
-            id: 'imports',
-            qualifiedSourceId: 'codegraphy.typescript:imports',
-            name: 'Imports',
-            description: 'Tracks import declarations.',
-            enabled: true,
-            connectionCount: 7,
-          },
-        ],
       },
     ]);
 
     expect(screen.getByRole('switch')).toBeInTheDocument();
-    expect(screen.queryByText('Imports')).not.toBeInTheDocument();
-    expect(screen.queryByText('Tracks import declarations.')).not.toBeInTheDocument();
     expect(screen.queryAllByRole('switch')).toHaveLength(1);
   });
 
@@ -128,7 +114,6 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        sources: [],
       },
       {
         id: 'codegraphy.markdown',
@@ -138,7 +123,6 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 1,
-        sources: [],
       },
     ]);
 
@@ -163,7 +147,6 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 12,
-        sources: [],
       },
       {
         id: 'codegraphy.markdown',
@@ -173,7 +156,6 @@ describe('PluginsPanel', () => {
         status: 'active',
         enabled: true,
         connectionCount: 1,
-        sources: [],
       },
     ]);
 

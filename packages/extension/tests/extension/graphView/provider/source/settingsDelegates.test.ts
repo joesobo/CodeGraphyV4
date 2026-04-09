@@ -19,7 +19,7 @@ describe('source/settingsDelegates', () => {
     delegates._sendSettings();
     delegates._sendPhysicsSettings();
     await delegates._rebuildAndSend!();
-    delegates._smartRebuild!('plugin', 'plugin.test');
+    delegates._smartRebuild!('plugin.test');
     delegates._getPhysicsSettings();
     delegates._loadGroupsAndFilterPatterns();
     delegates._sendAllSettings();
@@ -39,7 +39,7 @@ describe('source/settingsDelegates', () => {
     expect(owner._settingsStateMethods._sendSettings).toHaveBeenCalledTimes(1);
     expect(owner._physicsSettingsMethods._sendPhysicsSettings).toHaveBeenCalledTimes(1);
     expect(owner._refreshMethods._rebuildAndSend).toHaveBeenCalledTimes(1);
-    expect(owner._refreshMethods._smartRebuild).toHaveBeenCalledWith('plugin', 'plugin.test');
+    expect(owner._refreshMethods._smartRebuild).toHaveBeenCalledWith('plugin.test');
     expect(owner._physicsSettingsMethods._getPhysicsSettings).toHaveBeenCalledTimes(1);
     expect(owner._settingsStateMethods._loadGroupsAndFilterPatterns).toHaveBeenCalledTimes(1);
     expect(owner._settingsStateMethods._sendAllSettings).toHaveBeenCalledTimes(1);

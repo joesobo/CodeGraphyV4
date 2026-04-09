@@ -7,10 +7,7 @@ interface GraphViewAnalyzerLike {
     disabledPlugins: Set<string>,
     showOrphans: boolean,
   ): IGraphData;
-  getPluginStatuses(
-    disabledSources: Set<string>,
-    disabledPlugins: Set<string>,
-  ): readonly IPluginStatus[];
+  getPluginStatuses(disabledPlugins: Set<string>): readonly IPluginStatus[];
   registry: {
     notifyGraphRebuild(graphData: IGraphData): void;
   };
@@ -35,7 +32,7 @@ interface RebuildGraphViewDataDependencies {
 }
 
 interface SmartRebuildGraphViewDependencies {
-  shouldRebuild: (statuses: readonly IPluginStatus[], kind: 'rule' | 'plugin', id: string) => boolean;
+  shouldRebuild: (statuses: readonly IPluginStatus[], id: string) => boolean;
   rebuildAndSend: () => void;
   sendMessage: (message: unknown) => void;
 }
@@ -70,7 +67,6 @@ export function rebuildGraphViewData(
 
 export function smartRebuildGraphView(
   state: Pick<GraphViewRebuildState, '_analyzer' | '_disabledSources' | '_disabledPlugins'>,
-  kind: 'rule' | 'plugin',
   id: string,
   {
     shouldRebuild,
@@ -80,11 +76,8 @@ export function smartRebuildGraphView(
 ): void {
   if (!state._analyzer) return;
 
-  const statuses = state._analyzer.getPluginStatuses(
-    state._disabledSources,
-    state._disabledPlugins,
-  );
-  if (shouldRebuild(statuses, kind, id)) {
+  const statuses = state._analyzer.getPluginStatuses(state._disabledPlugins);
+  if (shouldRebuild(statuses, id)) {
     rebuildAndSend();
     return;
   }

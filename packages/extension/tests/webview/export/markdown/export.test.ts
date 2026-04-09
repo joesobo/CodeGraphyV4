@@ -68,7 +68,6 @@ describe('buildMarkdownExport', () => {
     };
     const plugins: IPluginStatus[] = [{
       id: 'ts', name: 'TypeScript', version: '1.0.0', supportedExtensions: ['.ts'], status: 'active', enabled: true, connectionCount: 1,
-      sources: [{ id: 'es6', qualifiedSourceId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 }],
     }];
 
     const result = buildMarkdownExport(data, noLegends, plugins);

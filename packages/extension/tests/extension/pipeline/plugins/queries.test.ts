@@ -24,7 +24,6 @@ describe('pipeline/plugins/queries', () => {
     expect(
       getWorkspacePipelinePluginStatuses({
         disabledPlugins: new Set<string>(),
-        disabledSources: new Set<string>(),
         discoveredFiles: [{ relativePath: 'src/index.ts' }] as never,
         fileConnections: new Map([['src/index.ts', []]]),
         registry: {

@@ -58,7 +58,6 @@ describe('WorkspacePipeline delegates', () => {
       context as unknown as vscode.ExtensionContext,
     );
     const signal = new AbortController().signal;
-    const disabledSources = new Set(['plugin.typescript:rule']);
     const disabledPlugins = new Set(['plugin.python']);
     const expectedGraph = createGraph();
     vi.spyOn(gitExecModule, 'execGitCommand').mockResolvedValue('abc123\n');
@@ -92,7 +91,7 @@ describe('WorkspacePipeline delegates', () => {
           expect(source._lastWorkspaceRoot).toBe('');
           expect(getWorkspaceRoot()).toBe('/test/workspace');
           expect(filterPatterns).toEqual(['**/*.generated.ts']);
-          expect(nextDisabledRules).toBe(disabledSources);
+          expect(nextDisabledRules).toEqual(new Set());
           expect(nextDisabledPlugins).toBe(disabledPlugins);
           expect(nextProgress).toBeUndefined();
           expect(nextSignal).toBe(signal);
@@ -101,7 +100,7 @@ describe('WorkspacePipeline delegates', () => {
       );
 
     await expect(
-      analyzer.analyze(['**/*.generated.ts'], disabledSources, disabledPlugins, signal),
+      analyzer.analyze(['**/*.generated.ts'], new Set(), disabledPlugins, signal),
     ).resolves.toEqual(expectedGraph);
     expect(runSpy).toHaveBeenCalledOnce();
     expect(repoMetaModule.writeCodeGraphyRepoMeta).toHaveBeenCalledWith(
@@ -234,7 +233,6 @@ describe('WorkspacePipeline delegates', () => {
       _lastWorkspaceRoot: string;
       _registry: unknown;
     };
-    const disabledSources = new Set(['plugin.typescript:rule']);
     const disabledPlugins = new Set(['plugin.python']);
     const expectedStatuses = [{ id: 'plugin.typescript', status: 'active' }];
 
@@ -247,11 +245,10 @@ describe('WorkspacePipeline delegates', () => {
       .mockReturnValue(expectedStatuses as never);
 
     expect(
-      analyzer.getPluginStatuses(disabledSources, disabledPlugins),
+      analyzer.getPluginStatuses(disabledPlugins),
     ).toEqual(expectedStatuses);
     expect(statusSpy).toHaveBeenCalledWith({
       disabledPlugins,
-      disabledSources,
       discoveredFiles: analyzerPrivate._lastDiscoveredFiles,
       fileConnections: analyzerPrivate._lastFileConnections,
       registry: analyzerPrivate._registry,

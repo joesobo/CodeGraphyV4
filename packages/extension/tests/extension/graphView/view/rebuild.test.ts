@@ -100,7 +100,6 @@ describe('graphView/view/rebuild', () => {
         status: 'active' as const,
         enabled: false,
         connectionCount: 0,
-        sources: [],
       },
     ] satisfies IPluginStatus[];
     const state = {
@@ -115,7 +114,7 @@ describe('graphView/view/rebuild', () => {
     const rebuildAndSend = vi.fn();
     const sendMessage = vi.fn();
 
-    smartRebuildGraphView(state, 'plugin', 'plugin.alpha', {
+    smartRebuildGraphView(state, 'plugin.alpha', {
       shouldRebuild: () => false,
       rebuildAndSend,
       sendMessage,
@@ -143,7 +142,6 @@ describe('graphView/view/rebuild', () => {
         _disabledSources: new Set<string>(),
         _disabledPlugins: new Set<string>(),
       },
-      'rule',
       'rule.alpha',
       {
         shouldRebuild,
@@ -167,7 +165,6 @@ describe('graphView/view/rebuild', () => {
         status: 'active' as const,
         enabled: true,
         connectionCount: 0,
-        sources: [],
       },
     ] satisfies IPluginStatus[];
     const state = {
@@ -183,17 +180,16 @@ describe('graphView/view/rebuild', () => {
     const rebuildAndSend = vi.fn();
     const sendMessage = vi.fn();
 
-    smartRebuildGraphView(state, 'plugin', 'plugin.alpha', {
+    smartRebuildGraphView(state, 'plugin.alpha', {
       shouldRebuild,
       rebuildAndSend,
       sendMessage,
     });
 
     expect(state._analyzer.getPluginStatuses).toHaveBeenCalledWith(
-      state._disabledSources,
       state._disabledPlugins,
     );
-    expect(shouldRebuild).toHaveBeenCalledWith(statuses, 'plugin', 'plugin.alpha');
+    expect(shouldRebuild).toHaveBeenCalledWith(statuses, 'plugin.alpha');
     expect(rebuildAndSend).toHaveBeenCalledOnce();
     expect(sendMessage).not.toHaveBeenCalled();
   });

@@ -65,7 +65,7 @@ describe('WorkspacePipeline sources', () => {
     it('returns statuses for all registered plugins after initialize', async () => {
       await analyzer.initialize();
 
-      const statuses = analyzer.getPluginStatuses(new Set(), new Set());
+      const statuses = analyzer.getPluginStatuses(new Set());
 
       expect(statuses.length).toBe(1);
 
@@ -75,7 +75,7 @@ describe('WorkspacePipeline sources', () => {
 
     it('marks all plugins as enabled when no disabled set', async () => {
       await analyzer.initialize();
-      const statuses = analyzer.getPluginStatuses(new Set(), new Set());
+      const statuses = analyzer.getPluginStatuses(new Set());
 
       for (const status of statuses) {
         expect(status.enabled).toBe(true);
@@ -86,7 +86,7 @@ describe('WorkspacePipeline sources', () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
       const disabledPlugins = new Set(['codegraphy.typescript']);
-      const statuses = analyzer.getPluginStatuses(new Set(), disabledPlugins);
+      const statuses = analyzer.getPluginStatuses(disabledPlugins);
 
       const tsStatus = statuses.find(s => s.id === 'codegraphy.typescript');
       expect(tsStatus).toBeDefined();
@@ -98,53 +98,29 @@ describe('WorkspacePipeline sources', () => {
       expect(pyStatus!.enabled).toBe(true);
     });
 
-    it('includes source statuses for each plugin', async () => {
+    it('returns plugin-only statuses for each plugin', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
-      const statuses = analyzer.getPluginStatuses(new Set(), new Set());
+      const statuses = analyzer.getPluginStatuses(new Set());
 
       const tsStatus = statuses.find(s => s.id === 'codegraphy.typescript');
       expect(tsStatus).toBeDefined();
-      expect(tsStatus!.sources.length).toBe(4);
-
-      const sourceIds = tsStatus!.sources.map((source) => source.id);
-      expect(sourceIds).toContain('es6-import');
-      expect(sourceIds).toContain('reexport');
-      expect(sourceIds).toContain('dynamic-import');
-      expect(sourceIds).toContain('commonjs-require');
+      expect(tsStatus).not.toHaveProperty('sources');
     });
 
-    it('marks sources as disabled via qualified IDs', async () => {
+    it('ignores disabled source ids when building plugin statuses', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
-      const disabledSources = new Set(['codegraphy.typescript:dynamic-import']);
-      const statuses = analyzer.getPluginStatuses(disabledSources, new Set());
+      const baselineStatuses = analyzer.getPluginStatuses(new Set());
+      const filteredStatuses = analyzer.getPluginStatuses(new Set());
 
-      const tsStatus = statuses.find(s => s.id === 'codegraphy.typescript');
-      const dynamicSource = tsStatus!.sources.find((source) => source.id === 'dynamic-import');
-      expect(dynamicSource).toBeDefined();
-      expect(dynamicSource!.enabled).toBe(false);
-
-      const es6Source = tsStatus!.sources.find((source) => source.id === 'es6-import');
-      expect(es6Source).toBeDefined();
-      expect(es6Source!.enabled).toBe(true);
-    });
-
-    it('source statuses include qualifiedSourceId in the format pluginId:sourceId', async () => {
-      await analyzer.initialize();
-      registerOptionalLanguagePlugins();
-      const statuses = analyzer.getPluginStatuses(new Set(), new Set());
-
-      const tsStatus = statuses.find(s => s.id === 'codegraphy.typescript');
-      for (const source of tsStatus!.sources) {
-        expect(source.qualifiedSourceId).toBe(`codegraphy.typescript:${source.id}`);
-      }
+      expect(filteredStatuses).toEqual(baselineStatuses);
     });
 
     it('all plugins report inactive status when no files discovered', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
-      const statuses = analyzer.getPluginStatuses(new Set(), new Set());
+      const statuses = analyzer.getPluginStatuses(new Set());
 
       // No files have been discovered/analyzed so all should be inactive
       for (const status of statuses) {

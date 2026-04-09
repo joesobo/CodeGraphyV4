@@ -6,26 +6,13 @@
 import * as path from 'path';
 import type { IDiscoveredFile } from '../../../core/discovery/contracts';
 import type { IConnection, IPluginInfo } from '../../../core/plugins/types/contracts';
-import type { IPluginStatus, IPluginRuleStatus } from '../../../shared/plugins/status';
+import type { IPluginStatus } from '../../../shared/plugins/status';
 
 export interface IWorkspacePluginStatusOptions {
   disabledPlugins: ReadonlySet<string>;
-  disabledSources: ReadonlySet<string>;
   discoveredFiles: Pick<IDiscoveredFile, 'relativePath'>[];
   fileConnections: ReadonlyMap<string, IConnection[]>;
   pluginInfos: IPluginInfo[];
-}
-
-function getQualifiedSourceId(connection: IConnection): string | undefined {
-  if (!connection.sourceId) {
-    return undefined;
-  }
-
-  if (connection.pluginId) {
-    return `${connection.pluginId}:${connection.sourceId}`;
-  }
-
-  return undefined;
 }
 
 function supportsExtension(pluginExtensions: readonly string[], extension: string): boolean {
@@ -35,7 +22,6 @@ function supportsExtension(pluginExtensions: readonly string[], extension: strin
 export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOptions): IPluginStatus[] {
   const {
     disabledPlugins,
-    disabledSources,
     discoveredFiles,
     fileConnections,
     pluginInfos,
@@ -50,7 +36,6 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
       return supportsExtension(plugin.supportedExtensions, extension);
     });
 
-    const ruleConnectionCounts = new Map<string, number>();
     let totalConnections = 0;
 
     for (const [filePath, connections] of fileConnections) {
@@ -65,14 +50,6 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
         }
 
         totalConnections += 1;
-        const qualifiedSourceId = getQualifiedSourceId(connection);
-        if (qualifiedSourceId) {
-          const sourceId = qualifiedSourceId.slice(plugin.id.length + 1);
-          ruleConnectionCounts.set(
-            sourceId,
-            (ruleConnectionCounts.get(sourceId) ?? 0) + 1,
-          );
-        }
       }
     }
 
@@ -82,19 +59,6 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
         ? 'active'
         : 'installed';
 
-    const sources: IPluginRuleStatus[] = (plugin.sources ?? []).map((rule) => {
-      const qualifiedSourceId = `${plugin.id}:${rule.id}`;
-
-      return {
-        id: rule.id,
-        qualifiedSourceId,
-        name: rule.name,
-        description: rule.description,
-        enabled: !disabledSources.has(qualifiedSourceId),
-        connectionCount: ruleConnectionCounts.get(rule.id) ?? 0,
-      };
-    });
-
     statuses.push({
       id: plugin.id,
       name: plugin.name,
@@ -103,7 +67,6 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
       status,
       enabled: !disabledPlugins.has(plugin.id),
       connectionCount: totalConnections,
-      sources,
     });
   }
   return statuses;

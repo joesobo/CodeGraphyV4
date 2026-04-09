@@ -1,15 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
-import type { IConnection, IPlugin, IPluginInfo, IConnectionSource } from '../../../../src/core/plugins/types/contracts';
+import type { IConnection, IPlugin, IPluginInfo } from '../../../../src/core/plugins/types/contracts';
 import { buildWorkspacePluginStatuses } from '../../../../src/extension/pipeline/plugins/statusBuilder';
-
-function createRule(id: string, name: string): IConnectionSource {
-  return {
-    id,
-    name,
-    description: `${name} description`,
-  };
-}
 
 function createPluginInfo(overrides: Partial<IPlugin>): IPluginInfo {
   const plugin: IPlugin = {
@@ -58,7 +50,6 @@ describe('pipeline/plugins/statusBuilder', () => {
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       discoveredFiles,
       fileConnections,
       pluginInfos,
@@ -70,16 +61,12 @@ describe('pipeline/plugins/statusBuilder', () => {
     expect(statuses.find((status) => status.id === 'plugin.python')?.status).toBe('inactive');
   });
 
-  it('counts resolved rule connections and marks disabled plugins and sources', () => {
+  it('counts resolved plugin connections and marks disabled plugins', () => {
     const pluginInfos = [
       createPluginInfo({
         id: 'plugin.typescript',
         name: 'TypeScript',
         supportedExtensions: ['.ts'],
-        sources: [
-          createRule('es6-import', 'ES6 import'),
-          createRule('dynamic-import', 'Dynamic import'),
-        ],
       }),
     ];
     const fileConnections = new Map<string, IConnection[]>([
@@ -92,7 +79,6 @@ describe('pipeline/plugins/statusBuilder', () => {
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(['plugin.typescript']),
-      disabledSources: new Set(['plugin.typescript:dynamic-import']),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections,
       pluginInfos,
@@ -103,20 +89,6 @@ describe('pipeline/plugins/statusBuilder', () => {
       enabled: false,
       connectionCount: 2,
     });
-    expect(statuses[0].sources).toEqual([
-      expect.objectContaining({
-        id: 'es6-import',
-        qualifiedSourceId: 'plugin.typescript:es6-import',
-        enabled: true,
-        connectionCount: 1,
-      }),
-      expect.objectContaining({
-        id: 'dynamic-import',
-        qualifiedSourceId: 'plugin.typescript:dynamic-import',
-        enabled: false,
-        connectionCount: 1,
-      }),
-    ]);
   });
 
   it('ignores connections that belong to other plugins', () => {
@@ -139,7 +111,6 @@ describe('pipeline/plugins/statusBuilder', () => {
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }, { relativePath: 'main.py' }],
       fileConnections,
       pluginInfos,
@@ -160,7 +131,6 @@ describe('pipeline/plugins/statusBuilder', () => {
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections: new Map<string, IConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' }]],
@@ -172,19 +142,17 @@ describe('pipeline/plugins/statusBuilder', () => {
     expect(statuses[0].status).toBe('installed');
   });
 
-  it('counts connections without rule ids toward plugin totals only', () => {
+  it('counts connections without rule ids toward plugin totals', () => {
     const pluginInfos = [
       createPluginInfo({
         id: 'plugin.typescript',
         name: 'TypeScript',
         supportedExtensions: ['.ts'],
-        sources: [createRule('es6-import', 'ES6 import')],
       }),
     ];
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections: new Map<string, IConnection[]>([
         ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import', pluginId: 'plugin.typescript' }]],
@@ -193,22 +161,26 @@ describe('pipeline/plugins/statusBuilder', () => {
     });
 
     expect(statuses[0].connectionCount).toBe(1);
-    expect(statuses[0].sources[0].connectionCount).toBe(0);
   });
 
-  it('returns an empty rule list when a plugin declares no sources', () => {
+  it('does not expose source status data when a plugin declares sources', () => {
     const pluginInfos = [
       createPluginInfo({
         id: 'plugin.markdown',
         name: 'Markdown',
         supportedExtensions: ['.md'],
-        sources: undefined,
+        sources: [
+          {
+            id: 'wiki-link',
+            name: 'Wiki Link',
+            description: 'Tracks wiki links.',
+          },
+        ],
       }),
     ];
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'README.md' }],
       fileConnections: new Map<string, IConnection[]>([
         ['README.md', []],
@@ -216,36 +188,36 @@ describe('pipeline/plugins/statusBuilder', () => {
       pluginInfos,
     });
 
-    expect(statuses[0].sources).toEqual([]);
+    expect(statuses[0]).not.toHaveProperty('sources');
   });
 
-  it('ignores falsey rule ids when counting rule-level connections', () => {
+  it('ignores disabled sources when building plugin-only statuses', () => {
     const pluginInfos = [
       createPluginInfo({
         id: 'plugin.typescript',
         name: 'TypeScript',
         supportedExtensions: ['.ts'],
-        sources: [createRule('', 'Unnamed rule')],
       }),
     ];
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections: new Map<string, IConnection[]>([
-        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: '' , kind: 'import', pluginId: 'plugin.typescript' }]],
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: 'dynamic-import' , kind: 'import', pluginId: 'plugin.typescript' }]],
+      ]),
+      pluginInfos,
+    });
+    const disabledSourceStatuses = buildWorkspacePluginStatuses({
+      disabledPlugins: new Set(),
+      discoveredFiles: [{ relativePath: 'src/index.ts' }],
+      fileConnections: new Map<string, IConnection[]>([
+        ['src/index.ts', [{ specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static', sourceId: 'dynamic-import' , kind: 'import', pluginId: 'plugin.typescript' }]],
       ]),
       pluginInfos,
     });
 
-    expect(statuses[0].connectionCount).toBe(1);
-    expect(statuses[0].sources).toEqual([
-      expect.objectContaining({
-        id: '',
-        connectionCount: 0,
-      }),
-    ]);
+    expect(disabledSourceStatuses).toEqual(statuses);
   });
 
   it('keeps unknown plugin ids out of ordering and appends unconfigured plugins', () => {
@@ -264,13 +236,12 @@ describe('pipeline/plugins/statusBuilder', () => {
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
+      fileConnections: new Map<string, IConnection[]>([
+        ['README.md', []],
+        ['src/index.ts', []],
+      ]),
       discoveredFiles: [{ relativePath: 'README.md' }, { relativePath: 'src/index.ts' }],
-      fileConnections: new Map<string, IConnection[]>(),
-      pluginInfos: [
-        pluginInfos[1],
-        pluginInfos[0],
-      ],
+      pluginInfos: [pluginInfos[1], pluginInfos[0]],
     });
 
     expect(statuses.map((status) => status.id)).toEqual([
@@ -285,19 +256,16 @@ describe('pipeline/plugins/statusBuilder', () => {
         id: 'plugin.base',
         name: 'Base',
         supportedExtensions: ['.ts'],
-        sources: [createRule('base-import', 'Base import')],
       }),
       createPluginInfo({
         id: 'plugin.enricher',
         name: 'Enricher',
         supportedExtensions: ['.ts'],
-        sources: [createRule('framework-call', 'Framework call')],
       }),
     ];
 
     const statuses = buildWorkspacePluginStatuses({
       disabledPlugins: new Set(),
-      disabledSources: new Set(),
       discoveredFiles: [{ relativePath: 'src/index.ts' }],
       fileConnections: new Map<string, IConnection[]>([
         ['src/index.ts', [
