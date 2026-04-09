@@ -409,7 +409,7 @@ describe('graphView/provider/runtime', () => {
     ).toBe(activationPromise);
   });
 
-  it('flushes queued workspace changes by invalidating files before refreshing', async () => {
+  it('flushes queued workspace changes through the incremental refresh path', async () => {
     vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
       initializeGraphViewProviderServices: vi.fn(),
       restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
@@ -432,12 +432,13 @@ describe('graphView/provider/runtime', () => {
       flushPendingWorkspaceRefresh(): void;
     };
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
-    const invalidateWorkspaceFiles = vi.fn(() => ['src/a.ts', 'src/b.ts']);
-    const refresh = vi.fn();
+    const refreshChangedFiles = vi.fn(() => Promise.resolve());
 
     provider._view = { visible: true };
-    provider._analyzer = { invalidateWorkspaceFiles };
-    methodContainers.refresh.refresh = refresh;
+    (methodContainers.refresh as unknown as {
+      refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
+    })
+      .refreshChangedFiles = refreshChangedFiles;
 
     provider.markWorkspaceRefreshPending('[CodeGraphy] File saved, refreshing graph', [
       '/test/workspace/src/a.ts',
@@ -447,12 +448,11 @@ describe('graphView/provider/runtime', () => {
     ]);
     provider.flushPendingWorkspaceRefresh();
 
-    expect(invalidateWorkspaceFiles).toHaveBeenCalledWith([
+    expect(refreshChangedFiles).toHaveBeenCalledWith([
       '/test/workspace/src/a.ts',
       '/test/workspace/src/b.ts',
     ]);
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created, refreshing graph');
-    expect(refresh).toHaveBeenCalledOnce();
 
     consoleSpy.mockRestore();
   });

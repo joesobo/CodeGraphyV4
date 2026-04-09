@@ -38,6 +38,7 @@ describe('extension/repoSettings/meta', () => {
       lastIndexedCommit: 'abc123',
       pluginSignature: 'codegraphy.markdown@1.0.0',
       settingsSignature: 'settings-sha',
+      pendingChangedFiles: ['src/index.ts'],
     };
 
     writeCodeGraphyRepoMeta(workspaceRoot, meta);
@@ -65,6 +66,7 @@ describe('extension/repoSettings/meta', () => {
       lastIndexedCommit: 'abc123',
       pluginSignature: 'codegraphy.markdown@1.0.0',
       settingsSignature: 'settings-sha',
+      pendingChangedFiles: ['src/index.ts'],
     };
 
     writeCodeGraphyRepoMeta(workspaceRoot, meta);
