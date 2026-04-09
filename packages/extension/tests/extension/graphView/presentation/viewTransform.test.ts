@@ -11,7 +11,7 @@ describe('graphView/presentation/viewTransform', () => {
     const registry = {
       get: vi.fn(() => undefined),
       isViewAvailable: vi.fn(() => false),
-      getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
+      getDefaultViewId: vi.fn(() => 'codegraphy.graph'),
     };
 
     expect(applyGraphViewTransform(registry, viewContext, rawGraphData)).toEqual({
@@ -23,7 +23,7 @@ describe('graphView/presentation/viewTransform', () => {
     const registry = {
       get: vi.fn(() => undefined),
       isViewAvailable: vi.fn(() => false),
-      getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
+      getDefaultViewId: vi.fn(() => 'codegraphy.graph'),
     };
 
     expect(applyGraphViewTransform(registry, viewContext, rawGraphData)).toEqual({

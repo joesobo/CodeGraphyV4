@@ -27,10 +27,10 @@ describe('graph view provider bootstrap helper', () => {
       viewRegistry: {
         register,
         get: vi.fn(() => undefined),
-        getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
+        getDefaultViewId: vi.fn(() => 'codegraphy.graph'),
       },
       coreViews: [
-        { id: 'codegraphy.connections' },
+        { id: 'codegraphy.graph' },
       ],
       eventBus: { id: 'event-bus' },
       decorationManager: {
@@ -48,7 +48,7 @@ describe('graph view provider bootstrap helper', () => {
 
     expect(register).toHaveBeenNthCalledWith(
       1,
-      { id: 'codegraphy.connections' },
+      { id: 'codegraphy.graph' },
       { core: true, isDefault: true },
     );
     expect(setEventBus).toHaveBeenCalledWith({ id: 'event-bus' });

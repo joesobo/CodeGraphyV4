@@ -31,41 +31,41 @@ describe('Core Views (fresh imports)', () => {
     vi.resetModules();
   });
 
-  describe('connectionsView properties', () => {
-    it('has id codegraphy.connections', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.id).toBe('codegraphy.connections');
+  describe('baseGraphView properties', () => {
+    it('has id codegraphy.graph', async () => {
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(baseGraphView.id).toBe('codegraphy.graph');
     });
 
     it('has name Graph', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.name).toBe('Graph');
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(baseGraphView.name).toBe('Graph');
     });
 
     it('has icon symbol-file', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.icon).toBe('symbol-file');
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(baseGraphView.icon).toBe('symbol-file');
     });
 
     it('has a unified-graph description', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.description).toBe('Base graph transform for the unified graph surface');
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(baseGraphView.description).toBe('Base graph transform for the unified graph surface');
     });
 
     it('has a transform function', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(typeof connectionsView.transform).toBe('function');
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(typeof baseGraphView.transform).toBe('function');
     });
 
     it('has no pluginId', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.pluginId).toBeUndefined();
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(baseGraphView.pluginId).toBeUndefined();
     });
 
     it('passes through data unchanged', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
       const context = createContext();
-      const result = connectionsView.transform(sampleGraphData, context);
+      const result = baseGraphView.transform(sampleGraphData, context);
       expect(result).toBe(sampleGraphData);
     });
   });
@@ -77,8 +77,8 @@ describe('Core Views (fresh imports)', () => {
     });
 
     it('contains the unified base graph transform', async () => {
-      const { coreViews, connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(coreViews[0]).toBe(connectionsView);
+      const { coreViews, baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(coreViews[0]).toBe(baseGraphView);
     });
 
     it('contains views with valid IView properties', async () => {

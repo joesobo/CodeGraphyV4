@@ -13,8 +13,8 @@ import { IView } from './contracts';
  * host still keeps a pass-through base transform registered for optional
  * plugin-defined view integrations.
  */
-export const connectionsView: IView = {
-  id: 'codegraphy.connections',
+export const baseGraphView: IView = {
+  id: 'codegraphy.graph',
   name: 'Graph',
   icon: 'symbol-file',
   description: 'Base graph transform for the unified graph surface',
@@ -27,5 +27,5 @@ export const connectionsView: IView = {
 
 /** Base transforms the host registers on startup. */
 export const coreViews: IView[] = [
-  connectionsView,
+  baseGraphView,
 ];
