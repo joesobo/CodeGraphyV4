@@ -308,6 +308,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       lastIndexedCommit: null,
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
+      pendingChangedFiles: [],
     });
     vi.spyOn(
       analyzer as unknown as {
@@ -329,6 +330,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       lastIndexedCommit: null,
       pluginSignature: null,
       settingsSignature: null,
+      pendingChangedFiles: [],
     });
     expect(analyzer.hasIndex()).toBe(false);
   });
@@ -473,6 +475,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       lastIndexedCommit: null,
       pluginSignature: 'old-plugin-signature',
       settingsSignature: 'settings-signature',
+      pendingChangedFiles: [],
     });
     vi.spyOn(
       analyzer as unknown as {

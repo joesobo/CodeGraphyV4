@@ -13,6 +13,10 @@ import type { DagMode, NodeSizeMode } from '../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../gitHistory/analyzer';
 import { WorkspacePipeline } from '../../pipeline/service';
 import {
+  readCodeGraphyRepoMeta,
+  writeCodeGraphyRepoMeta,
+} from '../../repoSettings/meta';
+import {
   createGraphViewProviderMethodContainers,
   type GraphViewProviderMethodContainers,
 } from './wiring/methodContainers';
@@ -153,15 +157,21 @@ export class GraphViewProviderRuntime {
     }
 
     this._pendingWorkspaceRefresh = pending;
+    this._persistPendingWorkspaceRefresh([...pending.filePaths]);
   }
 
   public flushPendingWorkspaceRefresh(): void {
-    if (!this.isGraphOpen() || !this._pendingWorkspaceRefresh) {
+    if (!this.isGraphOpen()) {
       return;
     }
 
-    const pending = this._pendingWorkspaceRefresh;
+    const pending = this._pendingWorkspaceRefresh ?? this._loadPersistedWorkspaceRefresh();
+    if (!pending) {
+      return;
+    }
+
     this._pendingWorkspaceRefresh = undefined;
+    this._persistPendingWorkspaceRefresh([]);
     console.log(pending.logMessage);
     if (this._methodContainers.refresh.refreshChangedFiles) {
       void this._methodContainers.refresh.refreshChangedFiles([...pending.filePaths]);
@@ -202,6 +212,40 @@ export class GraphViewProviderRuntime {
     this._depthMode = restoredState.depthMode;
     this._dagMode = restoredState.dagMode;
     this._nodeSizeMode = restoredState.nodeSizeMode;
+  }
+
+  private _getWorkspaceRoot(): string | undefined {
+    return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
+  }
+
+  private _persistPendingWorkspaceRefresh(filePaths: readonly string[]): void {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return;
+    }
+
+    const meta = readCodeGraphyRepoMeta(workspaceRoot);
+    writeCodeGraphyRepoMeta(workspaceRoot, {
+      ...meta,
+      pendingChangedFiles: [...filePaths],
+    });
+  }
+
+  private _loadPersistedWorkspaceRefresh(): PendingWorkspaceRefreshState | undefined {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return undefined;
+    }
+
+    const meta = readCodeGraphyRepoMeta(workspaceRoot);
+    if (meta.pendingChangedFiles.length === 0) {
+      return undefined;
+    }
+
+    return {
+      filePaths: new Set(meta.pendingChangedFiles),
+      logMessage: '[CodeGraphy] Applying pending workspace changes',
+    };
   }
 
   protected _notifyExtensionMessage(message: unknown): void {

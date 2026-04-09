@@ -7,6 +7,7 @@ export interface ICodeGraphyRepoMeta {
   lastIndexedCommit: string | null;
   pluginSignature: string | null;
   settingsSignature: string | null;
+  pendingChangedFiles: string[];
 }
 
 const META_FILE_NAME = 'meta.json';
@@ -18,6 +19,7 @@ export function createDefaultCodeGraphyRepoMeta(): ICodeGraphyRepoMeta {
     lastIndexedCommit: null,
     pluginSignature: null,
     settingsSignature: null,
+    pendingChangedFiles: [],
   };
 }
 
