@@ -77,7 +77,8 @@ describe('RenameFileAction', () => {
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
-        ['src/new.ts', 'src/other.ts']
+        ['src/new.ts', 'src/other.ts'],
+        undefined,
       );
     });
 
@@ -127,7 +128,8 @@ describe('RenameFileAction', () => {
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
-        ['src/keep1.ts', 'src/new.ts', 'src/keep2.ts']
+        ['src/keep1.ts', 'src/new.ts', 'src/keep2.ts'],
+        undefined,
       );
     });
   });

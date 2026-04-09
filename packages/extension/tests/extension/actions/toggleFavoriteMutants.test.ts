@@ -87,6 +87,7 @@ describe('ToggleFavoriteAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
+        undefined,
       );
     });
 
@@ -98,6 +99,7 @@ describe('ToggleFavoriteAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
+        undefined,
       );
     });
   });
@@ -112,6 +114,7 @@ describe('ToggleFavoriteAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         [],
+        undefined,
       );
     });
 

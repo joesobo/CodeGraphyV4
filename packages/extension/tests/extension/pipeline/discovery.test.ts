@@ -46,7 +46,7 @@ describe('pipeline/discovery', () => {
 
   it('formats the limit-reached warning message', () => {
     expect(formatWorkspacePipelineLimitReachedMessage(27, 10)).toBe(
-      'CodeGraphy: Found 27+ files, showing first 10. Increase codegraphy.maxFiles in settings to see more.',
+      'CodeGraphy: Found 27+ files, showing first 10. Increase maxFiles in .codegraphy/settings.json to see more.',
     );
   });
 });

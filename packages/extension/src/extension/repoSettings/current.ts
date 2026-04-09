@@ -8,7 +8,13 @@ import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from './meta';
 
 let currentCodeGraphySettingsStore: CodeGraphyRepoSettingsStore | undefined;
 
-function normalizeLegacyLegendKey(key: string): string {
+function normalizeLegacyLegendKey(key: string): string;
+function normalizeLegacyLegendKey(key: symbol): symbol;
+function normalizeLegacyLegendKey(key: string | symbol): string | symbol {
+  if (typeof key !== 'string') {
+    return key;
+  }
+
   if (key === 'legend') {
     return 'groups';
   }

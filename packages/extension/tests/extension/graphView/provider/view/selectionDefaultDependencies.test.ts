@@ -44,7 +44,7 @@ describe('graphView/provider/view/selection default dependencies', () => {
     const methods = createGraphViewProviderViewSelectionMethods(source as never);
     await methods.setDepthMode(true);
 
-    expect(configuration.update).toHaveBeenCalledWith('depthMode', true);
+    expect(configuration.update).toHaveBeenCalledWith('depthMode', true, undefined);
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'DEPTH_MODE_UPDATED',
@@ -88,6 +88,7 @@ describe('graphView/provider/view/selection default dependencies', () => {
     expect(configuration.update).toHaveBeenCalledWith(
       'depthLimit',
       4,
+      undefined,
     );
     expect(source._applyViewTransform).toHaveBeenCalledTimes(2);
     expect(source._sendMessage).toHaveBeenCalledWith({

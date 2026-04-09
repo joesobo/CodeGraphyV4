@@ -59,7 +59,8 @@ describe('AddToExcludeAction', () => {
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'exclude',
-        ['**/src/app.ts']
+        ['**/src/app.ts'],
+        undefined,
       );
     });
 
@@ -71,7 +72,8 @@ describe('AddToExcludeAction', () => {
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'exclude',
-        expect.arrayContaining(['**/node_modules/**', '**/dist/bundle.js'])
+        expect.arrayContaining(['**/node_modules/**', '**/dist/bundle.js']),
+        undefined,
       );
     });
 

@@ -18,18 +18,17 @@ interface FileAnalysisRow {
   analysis?: unknown;
 }
 
+interface LadybugQueryResultLike {
+  getAllSync?(): FileAnalysisRow[];
+  close?(): void;
+}
+
 function ensureDatabaseDirectory(workspaceRoot: string): void {
   if (!fs.existsSync(workspaceRoot)) {
     return;
   }
 
   fs.mkdirSync(path.join(workspaceRoot, DATABASE_DIRECTORY_NAME), { recursive: true });
-}
-
-function ensureSchema(connection: lb.Connection): void {
-  connection.querySync(
-    'CREATE NODE TABLE IF NOT EXISTS FileAnalysis(filePath STRING PRIMARY KEY, mtime INT64, size INT64, analysis STRING)',
-  );
 }
 
 function escapeCypherString(value: string): string {
@@ -44,6 +43,41 @@ function clearDatabaseArtifacts(databasePath: string): void {
       // Best effort only.
     }
   }
+}
+
+function closeQueryResults(result: unknown): void {
+  const queryResults = Array.isArray(result) ? result : [result];
+
+  for (const queryResult of queryResults) {
+    try {
+      (queryResult as LadybugQueryResultLike | undefined)?.close?.();
+    } catch {
+      // Best effort only.
+    }
+  }
+}
+
+function runStatementSync(connection: lb.Connection, statement: string): void {
+  const result = connection.querySync(statement);
+  closeQueryResults(result);
+}
+
+function readRowsSync(connection: lb.Connection, statement: string): FileAnalysisRow[] {
+  const result = connection.querySync(statement);
+
+  try {
+    const queryResult = Array.isArray(result) ? result[0] : result;
+    return (queryResult as LadybugQueryResultLike | undefined)?.getAllSync?.() ?? [];
+  } finally {
+    closeQueryResults(result);
+  }
+}
+
+function ensureSchema(connection: lb.Connection): void {
+  runStatementSync(
+    connection,
+    'CREATE NODE TABLE IF NOT EXISTS FileAnalysis(filePath STRING PRIMARY KEY, mtime INT64, size INT64, analysis STRING)',
+  );
 }
 
 function withConnection<T>(
@@ -77,13 +111,10 @@ export function loadWorkspaceAnalysisDatabaseCache(
 
   try {
     return withConnection(databasePath, (connection) => {
-      const result = connection.querySync(
+      const rows = readRowsSync(
+        connection,
         'MATCH (entry:FileAnalysis) RETURN entry.filePath AS filePath, entry.mtime AS mtime, entry.size AS size, entry.analysis AS analysis ORDER BY entry.filePath',
       );
-      const queryResult = (
-        Array.isArray(result) ? result[0] : result
-      ) as unknown as { getAllSync(): FileAnalysisRow[] } | undefined;
-      const rows = queryResult?.getAllSync() ?? [];
       const cache = createEmptyWorkspaceAnalysisCache();
 
       for (const row of rows) {
@@ -130,13 +161,14 @@ export function saveWorkspaceAnalysisDatabaseCache(
   }
 
   withConnection(databasePath, (connection) => {
-    connection.querySync('MATCH (entry:FileAnalysis) DELETE entry');
+    runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
 
     for (const [filePath, entry] of Object.entries(cache.files).sort(([left], [right]) =>
       left.localeCompare(right),
     )) {
       const size = entry.size ?? 0;
-      connection.querySync(
+      runStatementSync(
+        connection,
         `CREATE (entry:FileAnalysis {filePath: ${escapeCypherString(filePath)}, mtime: ${entry.mtime}, size: ${size}, analysis: ${escapeCypherString(JSON.stringify(entry.analysis))}})`,
       );
     }
@@ -150,6 +182,6 @@ export function clearWorkspaceAnalysisDatabaseCache(workspaceRoot: string): void
   }
 
   withConnection(databasePath, (connection) => {
-    connection.querySync('MATCH (entry:FileAnalysis) DELETE entry');
+    runStatementSync(connection, 'MATCH (entry:FileAnalysis) DELETE entry');
   });
 }

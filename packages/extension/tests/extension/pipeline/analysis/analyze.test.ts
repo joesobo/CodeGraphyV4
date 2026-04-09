@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
 import type { IConnection } from '../../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../src/extension/config/defaults';
+import { formatWorkspacePipelineLimitReachedMessage } from '../../../../src/extension/pipeline/discovery';
 import type { IGraphData } from '../../../../src/shared/graph/types';
 import { analyzeWorkspaceWithAnalyzer } from '../../../../src/extension/pipeline/analysis/analyze';
 
@@ -164,7 +165,7 @@ describe('pipeline/analysis/analyze', () => {
     await analyzeWorkspaceWithAnalyzer(source as never, dependencies as never);
 
     expect(dependencies.showWarningMessage).toHaveBeenCalledWith(
-      'CodeGraphy: Found 27+ files, showing first 25. Increase codegraphy.maxFiles in settings to see more.',
+      formatWorkspacePipelineLimitReachedMessage(27, 25),
     );
   });
 });

@@ -3,6 +3,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../src/extension/config/defaults';
+import { formatWorkspacePipelineLimitReachedMessage } from '../../../src/extension/pipeline/discovery';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
 
 const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
@@ -294,7 +295,7 @@ describe('WorkspacePipeline analysis', () => {
     await analyzer.analyze();
 
     expect(vscode.window.showWarningMessage).toHaveBeenCalledWith(
-      'CodeGraphy: Found 27+ files, showing first 10. Increase codegraphy.maxFiles in settings to see more.'
+      formatWorkspacePipelineLimitReachedMessage(27, 10),
     );
   });
 

@@ -107,6 +107,7 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
+        undefined,
       );
     });
 
@@ -120,6 +121,7 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
+        undefined,
       );
     });
   });
@@ -155,6 +157,7 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         [],
+        undefined,
       );
     });
 
@@ -168,6 +171,7 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         [],
+        undefined,
       );
     });
   });
@@ -294,6 +298,7 @@ describe('DeleteFilesAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         ['keep.ts', 'also-keep.ts'],
+        undefined,
       );
     });
   });

@@ -80,6 +80,7 @@ describe('AddToExcludeAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'exclude',
         expect.any(Array),
+        undefined,
       );
     });
 
@@ -93,6 +94,7 @@ describe('AddToExcludeAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'exclude',
         expect.any(Array),
+        undefined,
       );
     });
   });
@@ -130,6 +132,7 @@ describe('AddToExcludeAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'exclude',
         [],
+        undefined,
       );
     });
 

@@ -59,7 +59,8 @@ describe('ToggleFavoriteAction', () => {
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
-        expect.arrayContaining(['src/app.ts'])
+        expect.arrayContaining(['src/app.ts']),
+        undefined,
       );
     });
 
