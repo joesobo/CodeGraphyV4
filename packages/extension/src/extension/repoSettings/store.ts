@@ -30,6 +30,10 @@ const SETTINGS_FILE_NAME = 'settings.json';
 const SETTINGS_IGNORE_ENTRY = '.codegraphy/';
 
 function normalizeGroupKeyAlias(key: string): string {
+  if (key === 'folderNodeColor') {
+    return 'nodeColors.folder';
+  }
+
   if (key === 'groups') {
     return 'legend';
   }
@@ -66,9 +70,6 @@ function normalizePersistedSettingsShape(
   }
   if (Object.keys(nodeColors).length > 0) {
     normalized.nodeColors = nodeColors;
-  }
-  if (typeof nodeColors.folder === 'string') {
-    normalized.folderNodeColor = nodeColors.folder;
   }
 
   return normalized;

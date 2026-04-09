@@ -99,7 +99,6 @@ describe('DisplaySection', () => {
   it('renders the current direction color from store state', () => {
     renderContent({
       directionColor: '#123ABC',
-      folderNodeColor: '#654321',
     });
 
     expect(screen.getByLabelText('Direction Color')).toHaveValue('#123abc');
@@ -272,9 +271,7 @@ describe('DisplaySection', () => {
   });
 
   it('does not render the legacy folder color field', () => {
-    renderContent({
-      folderNodeColor: 'bad-color',
-    });
+    renderContent();
 
     expect(screen.queryByLabelText('Folder Node Color')).not.toBeInTheDocument();
   });

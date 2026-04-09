@@ -158,6 +158,7 @@ describe('extension/repoSettings/store', () => {
       { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
     ]);
     expect(store.get('folderNodeColor', '')).toBe('#445566');
+    expect(readJson<Record<string, unknown>>(store.settingsPath).folderNodeColor).toBeUndefined();
   });
 
   it('updates legend through the cleaner alias and persists only the legend key', async () => {

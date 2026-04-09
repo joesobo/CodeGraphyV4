@@ -85,7 +85,6 @@ describe('graphView/settings/reader', () => {
       particleSpeed: 0.005,
       particleSize: 4,
       directionColor: DEFAULT_DIRECTION_COLOR,
-      folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
       showLabels: true,
     });
   });
@@ -98,7 +97,6 @@ describe('graphView/settings/reader', () => {
       ['particleSpeed', 0.02],
       ['particleSize', 7],
       ['directionColor', '#00ff00'],
-      ['folderNodeColor', '#112233'],
       ['showLabels', false],
     ]);
     const config = {
@@ -114,7 +112,6 @@ describe('graphView/settings/reader', () => {
       particleSpeed: 0.02,
       particleSize: 7,
       directionColor: '#00FF00',
-      folderNodeColor: '#112233',
       showLabels: false,
     });
   });

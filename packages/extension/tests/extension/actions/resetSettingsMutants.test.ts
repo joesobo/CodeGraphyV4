@@ -56,7 +56,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     bidirectionalMode: 'separate',
     directionMode: 'arrows',
     directionColor: '#000000',
-    folderNodeColor: '#FFFFFF',
     nodeColors: { file: '#111111', folder: '#222222' },
     nodeVisibility: { file: true, folder: false },
     edgeVisibility: { imports: true, calls: false },
@@ -89,7 +88,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
       bidirectionalEdges: 'separate',
       directionMode: 'arrows',
       directionColor: '#000000',
-      folderNodeColor: '#FFFFFF',
       nodeColors: { file: '#111111', folder: '#222222' },
       nodeVisibility: { file: true, folder: false },
       edgeVisibility: { imports: true, calls: false },
@@ -152,7 +150,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     expect(keys).toContain('groups');
     expect(keys).toContain('showOrphans');
     expect(keys).toContain('bidirectionalEdges');
-    expect(keys).toContain('folderNodeColor');
     expect(keys).toContain('nodeColors');
     expect(keys).toContain('nodeVisibility');
     expect(keys).toContain('edgeVisibility');

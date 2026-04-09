@@ -10,7 +10,6 @@ export interface ISettingsSnapshot {
   bidirectionalMode: BidirectionalEdgeMode;
   directionMode: DirectionMode;
   directionColor: string;
-  folderNodeColor: string;
   nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;

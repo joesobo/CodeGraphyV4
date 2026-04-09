@@ -33,7 +33,6 @@ function createSettingsSnapshot(): ISettingsSnapshot {
     bidirectionalMode: 'separate',
     directionMode: 'arrows',
     directionColor: '#123456',
-    folderNodeColor: '#abcdef',
     nodeColors: { file: '#999999', folder: '#888888' },
     nodeVisibility: { file: true, folder: true },
     edgeVisibility: { imports: true, nests: false },
@@ -497,10 +496,6 @@ async function loadDefaultListenerHarness(
   let capturedContext: GraphViewMessageListenerContext | undefined;
   const workspaceFolders = [{ uri: { fsPath: '/workspace' }, name: 'workspace', index: 0 }];
   const configurationGet = vi.fn(<T>(key: string, defaultValue: T) => {
-    if (key === 'folderNodeColor') {
-      return '#abcdef' as T;
-    }
-
     return defaultValue;
   });
   const configurationUpdate = vi.fn(() => Promise.resolve());

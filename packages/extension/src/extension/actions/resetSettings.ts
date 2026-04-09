@@ -26,7 +26,6 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   bidirectionalEdges: 'bidirectionalMode',
   directionMode: 'directionMode',
   directionColor: 'directionColor',
-  folderNodeColor: 'folderNodeColor',
   nodeColors: 'nodeColors',
   nodeVisibility: 'nodeVisibility',
   edgeVisibility: 'edgeVisibility',
