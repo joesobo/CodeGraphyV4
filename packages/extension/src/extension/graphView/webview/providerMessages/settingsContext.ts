@@ -55,7 +55,7 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
     reprocessPluginFiles: async (pluginIds) => {
-      source.invalidatePluginFiles(pluginIds);
+      source.invalidatePluginFiles?.(pluginIds);
       await source._analyzeAndSendData();
     },
     resetAllSettings: async () => {
