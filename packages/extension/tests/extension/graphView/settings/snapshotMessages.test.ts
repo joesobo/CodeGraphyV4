@@ -53,7 +53,6 @@ describe('graphView/settings/snapshotMessages', () => {
       particleSize: 4,
       showLabels: true,
       maxFiles: 500,
-      hiddenPluginGroups: [],
       nodeSizeMode: 'uniform',
     });
   });
@@ -78,7 +77,6 @@ describe('graphView/settings/snapshotMessages', () => {
         particleSize: 6,
         showLabels: false,
         maxFiles: 250,
-        hiddenPluginGroups: ['plugin:codegraphy.typescript'],
       }),
       {
         repelForce: 10,
@@ -115,7 +113,6 @@ describe('graphView/settings/snapshotMessages', () => {
       particleSize: 6,
       showLabels: false,
       maxFiles: 250,
-      hiddenPluginGroups: ['plugin:codegraphy.typescript'],
       nodeSizeMode: 'access-count',
     });
   });
@@ -180,7 +177,6 @@ describe('graphView/settings/snapshotMessages', () => {
           particleSize: 6,
           showLabels: false,
           maxFiles: 250,
-          hiddenPluginGroups: [],
           nodeSizeMode: 'access-count',
         },
         ['venv/**'],

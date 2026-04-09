@@ -110,7 +110,6 @@ export interface GraphViewProviderMethodSourceOwner {
   _viewContext: IViewContext;
   _groups: IGroup[];
   _userGroups: IGroup[];
-  _hiddenPluginGroupIds: Set<string>;
   _filterPatterns: string[];
   _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;

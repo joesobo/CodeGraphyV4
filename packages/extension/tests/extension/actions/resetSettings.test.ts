@@ -78,7 +78,6 @@ describe('ResetSettingsAction', () => {
     particleSize: 8,
     showLabels: false,
     maxFiles: 1000,
-    hiddenPluginGroups: ['group-1', 'group-2'],
     nodeSizeMode: 'file-size',
   };
 
@@ -124,7 +123,6 @@ describe('ResetSettingsAction', () => {
       particleSize: 8,
       showLabels: false,
       maxFiles: 1000,
-      hiddenPluginGroups: ['group-1', 'group-2'],
       nodeSizeMode: 'file-size',
     };
 
@@ -202,7 +200,6 @@ describe('ResetSettingsAction', () => {
     expect(settingsStore.disabledPlugins).toEqual(['codegraphy.python']);
     expect(settingsStore.disabledSources).toEqual(['codegraphy.typescript:dynamic-import']);
     expect(settingsStore.maxFiles).toBe(1000);
-    expect(settingsStore.hiddenPluginGroups).toEqual(['group-1', 'group-2']);
     expect(settingsStore.bidirectionalEdges).toBe('combined');
     expect(settingsStore.nodeSizeMode).toBe('file-size');
   });

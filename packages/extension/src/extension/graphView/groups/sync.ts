@@ -3,7 +3,6 @@ import type { GraphViewGroupState } from './state';
 
 export interface GraphViewGroupSyncState {
   userGroups: IGroup[];
-  hiddenPluginGroupIds: Set<string>;
   filterPatterns: string[];
 }
 
@@ -17,7 +16,6 @@ export function applyLoadedGraphViewGroupState(
   handlers: GraphViewGroupSyncHandlers,
 ): void {
   state.userGroups = groupState.userGroups;
-  state.hiddenPluginGroupIds = groupState.hiddenPluginGroupIds;
   state.filterPatterns = groupState.filterPatterns;
   handlers.recomputeGroups();
 }

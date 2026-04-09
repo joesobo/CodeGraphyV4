@@ -37,7 +37,6 @@ interface GraphViewProviderSettingsConfigLike {
 export interface GraphViewProviderSettingsStateMethodsSource {
   _context: { workspaceState: GraphViewProviderSettingsWorkspaceStateLike };
   _viewContext: IViewContext;
-  _hiddenPluginGroupIds: Set<string>;
   _userGroups: IGroup[];
   _filterPatterns: string[];
   _graphData: IGraphData;
@@ -100,12 +99,9 @@ export function createGraphViewProviderSettingsStateMethods(
 ): GraphViewProviderSettingsStateMethods {
   const syncGroupStateToSource = (state: {
     userGroups: IGroup[] | undefined;
-    hiddenPluginGroupIds: Set<string> | undefined;
     filterPatterns: string[] | undefined;
   }): void => {
     source._userGroups = Array.isArray(state.userGroups) ? state.userGroups : [];
-    source._hiddenPluginGroupIds =
-      state.hiddenPluginGroupIds instanceof Set ? state.hiddenPluginGroupIds : new Set<string>();
     source._filterPatterns = Array.isArray(state.filterPatterns) ? state.filterPatterns : [];
   };
 
@@ -114,7 +110,6 @@ export function createGraphViewProviderSettingsStateMethods(
     const groupState = dependencies.loadGroupState(config);
     const state = {
       userGroups: source._userGroups,
-      hiddenPluginGroupIds: source._hiddenPluginGroupIds,
       filterPatterns: source._filterPatterns,
     };
 
@@ -160,7 +155,6 @@ export function createGraphViewProviderSettingsStateMethods(
   const _sendAllSettings = (): void => {
     const state = {
       viewContext: source._viewContext,
-      hiddenPluginGroupIds: source._hiddenPluginGroupIds,
       userGroups: source._userGroups,
       filterPatterns: source._filterPatterns,
     };

@@ -34,7 +34,6 @@ function createSnapshot(
     showLabels: true,
     nodeSizeMode: 'uniform',
     maxFiles: 500,
-    hiddenPluginGroups: ['plugin:codegraphy.python'],
     ...overrides,
   };
 }
@@ -44,7 +43,6 @@ function createState(
 ): GraphViewAllSettingsSyncState {
   return {
     viewContext: {},
-    hiddenPluginGroupIds: new Set<string>(),
     userGroups: [],
     filterPatterns: [],
     ...overrides,
@@ -65,7 +63,6 @@ describe('graphView/settings/sync', () => {
       sendGroupsUpdated,
     });
 
-    expect([...state.hiddenPluginGroupIds]).toEqual(['plugin:codegraphy.python']);
     expect(state.userGroups).toEqual(snapshot.legends);
     expect(state.filterPatterns).toEqual(['dist/**']);
     expect(recomputeGroups).toHaveBeenCalledOnce();

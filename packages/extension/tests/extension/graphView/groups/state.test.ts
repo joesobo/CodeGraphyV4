@@ -8,18 +8,12 @@ interface MockInspectResult<T> {
 }
 
 function createConfig(options?: {
-  hiddenPluginGroups?: string[];
   inspected?: Record<string, MockInspectResult<unknown> | undefined>;
 }) {
   const inspected = options?.inspected ?? {};
-  const hiddenPluginGroups = options?.hiddenPluginGroups ?? [];
 
   return {
     get<T>(section: string, defaultValue: T): T {
-      if (section === 'hiddenPluginGroups') {
-        return hiddenPluginGroups as T;
-      }
-
       return defaultValue;
     },
     inspect<T>(section: string): MockInspectResult<T> | undefined {
@@ -36,7 +30,6 @@ describe('graphView/groupState', () => {
 
     const state = loadGraphViewGroupState(
       createConfig({
-        hiddenPluginGroups: ['plugin:codegraphy.typescript'],
         inspected: {
           legend: { workspaceValue: configuredGroups },
           filterPatterns: { globalValue: ['dist/**'] },
@@ -46,7 +39,6 @@ describe('graphView/groupState', () => {
 
     expect(state.userGroups).toEqual(configuredGroups);
     expect(state.filterPatterns).toEqual(['dist/**']);
-    expect([...state.hiddenPluginGroupIds]).toEqual(['plugin:codegraphy.typescript']);
   });
 
   it('uses configured groups with an empty filter list when no filter patterns are configured', () => {
@@ -64,7 +56,6 @@ describe('graphView/groupState', () => {
 
     expect(state.userGroups).toEqual(configuredGroups);
     expect(state.filterPatterns).toEqual([]);
-    expect([...state.hiddenPluginGroupIds]).toEqual([]);
   });
 
   it('defaults configured groups to empty filter and hidden-group collections', () => {
@@ -82,7 +73,6 @@ describe('graphView/groupState', () => {
 
     expect(state.userGroups).toEqual(configuredGroups);
     expect(state.filterPatterns).toEqual([]);
-    expect([...state.hiddenPluginGroupIds]).toEqual([]);
   });
 
   it('returns configured filter patterns when no groups are configured', () => {
@@ -96,7 +86,6 @@ describe('graphView/groupState', () => {
 
     expect(state.userGroups).toEqual([]);
     expect(state.filterPatterns).toEqual(['coverage/**']);
-    expect([...state.hiddenPluginGroupIds]).toEqual([]);
   });
 
   it('returns empty state when no groups or filters have been configured', () => {
@@ -104,18 +93,5 @@ describe('graphView/groupState', () => {
 
     expect(state.userGroups).toEqual([]);
     expect(state.filterPatterns).toEqual([]);
-    expect([...state.hiddenPluginGroupIds]).toEqual([]);
-  });
-
-  it('keeps configured hidden plugin groups', () => {
-    const state = loadGraphViewGroupState(
-      createConfig({
-        hiddenPluginGroups: ['plugin:codegraphy.python'],
-      }),
-    );
-
-    expect(state.userGroups).toEqual([]);
-    expect(state.filterPatterns).toEqual([]);
-    expect([...state.hiddenPluginGroupIds]).toEqual(['plugin:codegraphy.python']);
   });
 });

@@ -17,7 +17,6 @@ export interface GraphViewProviderPluginResourceMethodsSource {
   _analyzer: Parameters<typeof getGraphViewPluginDefaultGroups>[0];
   _disabledPlugins: Set<string>;
   _userGroups: IGroup[];
-  _hiddenPluginGroupIds: Set<string>;
   _groups: IGroup[];
   _view?: vscode.WebviewView;
   _timelineView?: vscode.WebviewView;
@@ -86,7 +85,6 @@ export function createGraphViewProviderPluginResourceMethods(
   const _computeMergedGroups = (): void => {
     source._groups = resolvedDependencies.buildMergedGroups(
       source._userGroups,
-      source._hiddenPluginGroupIds,
       _getBuiltInDefaultGroups(),
       _getPluginDefaultGroups(),
     );

@@ -5,7 +5,6 @@ import { buildGraphViewAllSettingsMessages } from './messages';
 
 export interface GraphViewAllSettingsSyncState {
   viewContext: object;
-  hiddenPluginGroupIds: Set<string>;
   userGroups: IGroup[];
   filterPatterns: string[];
 }
@@ -28,7 +27,6 @@ export function applyGraphViewAllSettingsSnapshot(
     handlers.sendMessage(message);
   }
 
-  state.hiddenPluginGroupIds = new Set(snapshot.hiddenPluginGroups);
   state.userGroups = snapshot.legends;
   state.filterPatterns = snapshot.filterPatterns;
   handlers.recomputeGroups();

@@ -10,7 +10,6 @@ function createState(
 ): GraphViewGroupSyncState {
   return {
     userGroups: [],
-    hiddenPluginGroupIds: new Set<string>(),
     filterPatterns: [],
     ...overrides,
   };
@@ -23,7 +22,6 @@ describe('graphView/groupSync', () => {
     const groupState: GraphViewGroupState = {
       userGroups: [{ id: 'user', pattern: 'src/**', color: '#112233' }],
       filterPatterns: ['dist/**'],
-      hiddenPluginGroupIds: new Set(['plugin:codegraphy.python']),
     };
 
     applyLoadedGraphViewGroupState(groupState, state, {
@@ -32,7 +30,6 @@ describe('graphView/groupSync', () => {
 
     expect(state.userGroups).toEqual(groupState.userGroups);
     expect(state.filterPatterns).toEqual(['dist/**']);
-    expect([...state.hiddenPluginGroupIds]).toEqual(['plugin:codegraphy.python']);
     expect(recomputeGroups).toHaveBeenCalledOnce();
   });
 });

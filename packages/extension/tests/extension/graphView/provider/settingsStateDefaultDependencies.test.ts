@@ -28,7 +28,6 @@ const mocks = vi.hoisted(() => {
     getConfigTarget: vi.fn(() => 'workspace-target'),
     loadGroupState: vi.fn(() => ({
       userGroups: [],
-      hiddenPluginGroupIds: new Set<string>(),
       filterPatterns: [],
     })),
     applyLoadedGroupState: vi.fn(),
@@ -95,7 +94,6 @@ function createSource(
   const source: GraphViewProviderSettingsStateMethodsSource = {
     _context: { workspaceState },
     _viewContext: { activePlugins: new Set<string>(), depthLimit: 1 } as never,
-    _hiddenPluginGroupIds: new Set<string>(['plugin.current']),
     _userGroups: [{ id: 'group.current' } as never],
     _filterPatterns: ['current/**'],
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
@@ -137,7 +135,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
 
     mocks.loadGroupState.mockReturnValue({
       userGroups: [],
-      hiddenPluginGroupIds: new Set<string>(),
       filterPatterns: [],
     });
     mocks.loadDisabledState.mockReturnValue({
@@ -167,7 +164,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
     mocks.applyLoadedGroupState.mockImplementation((_groupState, state, handlers) => {
       handlers.recomputeGroups();
       state.userGroups = [{ id: 'group.updated' } as never];
-      state.hiddenPluginGroupIds = new Set<string>(['plugin.updated']);
       state.filterPatterns = ['updated/**'];
     });
 
@@ -182,7 +178,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(mocks.configuration.update).not.toHaveBeenCalled();
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._userGroups).toEqual([{ id: 'group.updated' }]);
-    expect([...source._hiddenPluginGroupIds]).toEqual(['plugin.updated']);
     expect(source._filterPatterns).toEqual(['updated/**']);
   });
 
@@ -243,7 +238,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
     });
     mocks.sendProviderAllSettings.mockImplementation((state, handlers) => {
       expect(state.viewContext).toBe(source._viewContext);
-      expect([...state.hiddenPluginGroupIds]).toEqual(['plugin.current']);
       expect(state.userGroups).toEqual([{ id: 'group.current' }]);
       expect(state.filterPatterns).toEqual(['current/**']);
       expect(handlers.captureSettingsSnapshot()).toEqual({ snapshot: true });
@@ -251,7 +245,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
       handlers.sendMessage(allSettingsMessage);
       handlers.recomputeGroups();
       handlers.sendGroupsUpdated();
-      state.hiddenPluginGroupIds = new Set<string>(['plugin.updated']);
       state.userGroups = [{ id: 'group.updated' } as never];
       state.filterPatterns = ['updated/**'];
     });
@@ -282,7 +275,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
 
     mocks.sendProviderAllSettings.mockImplementation((state, handlers) => {
       expect(state.viewContext).toBe(source._viewContext);
-      expect([...state.hiddenPluginGroupIds]).toEqual(['plugin.current']);
       expect(state.userGroups).toEqual([{ id: 'group.current' }]);
       expect(state.filterPatterns).toEqual(['current/**']);
       expect(handlers.captureSettingsSnapshot()).toEqual({ snapshot: true });
@@ -290,7 +282,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
       handlers.sendMessage(allSettingsMessage);
       handlers.recomputeGroups();
       handlers.sendGroupsUpdated();
-      state.hiddenPluginGroupIds = new Set<string>(['plugin.updated']);
       state.userGroups = [{ id: 'group.updated' } as never];
       state.filterPatterns = ['updated/**'];
     });
@@ -319,7 +310,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
     );
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
-    expect([...source._hiddenPluginGroupIds]).toEqual(['plugin.updated']);
     expect(source._userGroups).toEqual([{ id: 'group.updated' }]);
     expect(source._filterPatterns).toEqual(['updated/**']);
   });

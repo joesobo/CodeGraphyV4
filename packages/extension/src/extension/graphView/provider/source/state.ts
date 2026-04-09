@@ -18,7 +18,6 @@ const MUTABLE_STATE_KEYS = [
   '_viewContext',
   '_groups',
   '_userGroups',
-  '_hiddenPluginGroupIds',
   '_filterPatterns',
   '_disabledSources',
   '_disabledPlugins',

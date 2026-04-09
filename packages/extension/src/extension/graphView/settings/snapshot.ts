@@ -40,7 +40,6 @@ export function captureGraphViewSettingsSnapshot(
     particleSize: config.get('particleSize', 4),
     showLabels: config.get('showLabels', true),
     maxFiles: config.get('maxFiles', 500),
-    hiddenPluginGroups: config.get('hiddenPluginGroups', []),
     nodeSizeMode,
   };
 }

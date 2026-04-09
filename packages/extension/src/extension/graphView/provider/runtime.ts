@@ -67,7 +67,6 @@ export class GraphViewProviderRuntime {
   protected _viewContext: IViewContext = createInitialViewContext();
   protected _groups: IGroup[] = createEmptyGroups();
   protected _userGroups: IGroup[] = createEmptyGroups();
-  protected _hiddenPluginGroupIds = createStringSet();
   protected _filterPatterns: string[] = [];
   protected _disabledSources: Set<string> = createStringSet();
   protected _disabledPlugins: Set<string> = createStringSet();

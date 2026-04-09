@@ -13,7 +13,6 @@ interface GraphViewGroupConfig {
 export interface GraphViewGroupState {
   userGroups: IGroup[];
   filterPatterns: string[];
-  hiddenPluginGroupIds: Set<string>;
 }
 
 export function loadGraphViewGroupState(
@@ -30,13 +29,11 @@ export function loadGraphViewGroupState(
     return {
       userGroups: configuredGroups,
       filterPatterns: configuredFilterPatterns ?? [],
-      hiddenPluginGroupIds: new Set(config.get<string[]>('hiddenPluginGroups', [])),
     };
   }
 
   return {
     userGroups: [],
     filterPatterns: configuredFilterPatterns ?? [],
-    hiddenPluginGroupIds: new Set(config.get<string[]>('hiddenPluginGroups', [])),
   };
 }

@@ -28,7 +28,6 @@ function createSettingsSnapshot(): ISettingsSnapshot {
   return {
     legends: [],
     filterPatterns: [],
-    hiddenPluginGroups: [],
     showOrphans: true,
     bidirectionalMode: 'separate',
     directionMode: 'arrows',

@@ -70,7 +70,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     particleSize: 4,
     showLabels: true,
     maxFiles: 500,
-    hiddenPluginGroups: [],
     nodeSizeMode: 'connections',
   };
 
@@ -99,7 +98,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       particleSize: 4,
       showLabels: true,
       maxFiles: 500,
-      hiddenPluginGroups: [],
       nodeSizeMode: 'file-size',
     };
   });
@@ -171,7 +169,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(updatedKeys).toContain('particleSize');
     expect(updatedKeys).toContain('showLabels');
     expect(updatedKeys).toContain('maxFiles');
-    expect(updatedKeys).toContain('hiddenPluginGroups');
     expect(updatedKeys).toContain('nodeSizeMode');
 
     for (const call of cgUpdateCalls) {

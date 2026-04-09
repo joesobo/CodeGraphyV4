@@ -22,7 +22,6 @@ export interface ICodeGraphyRepoSettings {
   nodeVisibility: Record<string, boolean>;
   edgeVisibility: Record<string, boolean>;
   edgeColors: Record<string, string>;
-  hiddenPluginGroups: string[];
   favorites: string[];
   bidirectionalEdges: 'separate' | 'combined';
   legend: IGroup[];
@@ -70,7 +69,6 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     nodeVisibility: createDefaultNodeVisibility(),
     edgeVisibility: createDefaultEdgeVisibility(),
     edgeColors: createDefaultEdgeColors(),
-    hiddenPluginGroups: [],
     favorites: [],
     bidirectionalEdges: 'separate',
     legend: [],
@@ -128,10 +126,6 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
     nodeVisibility: defaults.nodeVisibility,
     edgeVisibility: defaults.edgeVisibility,
     edgeColors: defaults.edgeColors,
-    hiddenPluginGroups: legacyConfig.get<string[]>(
-      'hiddenPluginGroups',
-      defaults.hiddenPluginGroups,
-    ),
     favorites: legacyConfig.get<string[]>('favorites', defaults.favorites),
     bidirectionalEdges: legacyConfig.get<'separate' | 'combined'>(
       'bidirectionalEdges',
