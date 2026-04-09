@@ -210,7 +210,6 @@ describe('GraphViewProvider bootstrap wiring', () => {
     expect(sendDecorationsSpy).toHaveBeenCalledOnce();
     expect(restoreGraphViewProviderState).toHaveBeenCalledWith(
       expect.objectContaining({
-        selectedViewKey: 'selectedView',
         dagModeKey: 'dagMode',
         nodeSizeModeKey: 'nodeSizeMode',
         fallbackViewId: 'codegraphy.connections',

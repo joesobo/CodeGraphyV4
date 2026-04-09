@@ -71,9 +71,9 @@ describe('GraphViewProvider view state and internal helpers', () => {
     expect((provider as unknown as { _activeViewId: string })._activeViewId).toBe(
       'codegraphy.depth-graph'
     );
-    expect(currentConfiguration.update).toHaveBeenCalledWith(
-      'selectedView',
-      'codegraphy.depth-graph'
+    expect(currentConfiguration.update).not.toHaveBeenCalledWith(
+      expect.stringMatching(/selectedView/),
+      expect.anything(),
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(sendMessageSpy).toHaveBeenCalledWith({
@@ -108,9 +108,9 @@ describe('GraphViewProvider view state and internal helpers', () => {
     expect((provider as unknown as { _activeViewId: string })._activeViewId).toBe(
       'codegraphy.depth-graph'
     );
-    expect(currentConfiguration.update).toHaveBeenCalledWith(
-      'selectedView',
-      'codegraphy.depth-graph'
+    expect(currentConfiguration.update).not.toHaveBeenCalledWith(
+      expect.stringMatching(/selectedView/),
+      expect.anything(),
     );
     expect(applySpy).toHaveBeenCalledTimes(1);
     expect(sendViewsSpy).toHaveBeenCalledTimes(1);

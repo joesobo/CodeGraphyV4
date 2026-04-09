@@ -16,7 +16,7 @@ function createPlugin(id: string): IPlugin {
       { id: 'reexport', name: 'Re-export', description: 'Export from relation' },
     ],
     detectConnections: vi.fn(async () => []),
-  };
+  } as IPlugin;
 }
 
 describe('pipeline/graph/data', () => {

@@ -12,6 +12,7 @@ function makeProvider() {
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
+    isGraphOpen: vi.fn(() => true),
   };
 }
 
@@ -381,6 +382,28 @@ describe('registerSaveHandler', () => {
 
     expect(provider.refresh).not.toHaveBeenCalled();
   });
+
+  it('does not refresh on save when CodeGraphy is not open', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+    provider.isGraphOpen.mockReturnValue(false);
+
+    registerSaveHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const mock = vscode.workspace.onDidSaveTextDocument as unknown as {
+      mock: { calls: unknown[][] };
+    };
+    const listener = mock.mock.calls[0]?.[0] as (doc: unknown) => void;
+
+    listener({ uri: { fsPath: '/workspace/src/app.ts' } });
+    vi.advanceTimersByTime(600);
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileChanged', {
+      filePath: '/workspace/src/app.ts',
+    });
+  });
 });
 
 describe('registerFileWatcher', () => {
@@ -502,6 +525,34 @@ describe('registerFileWatcher', () => {
 
     expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.emitEvent).not.toHaveBeenCalled();
+  });
+
+  it('does not refresh on file watcher events when CodeGraphy is not open', () => {
+    vi.useFakeTimers();
+    const context = makeContext();
+    const provider = makeProvider();
+    provider.isGraphOpen.mockReturnValue(false);
+
+    let createListener: ((uri: { fsPath: string }) => void) | undefined;
+    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
+      onDidCreate: vi.fn((cb) => {
+        createListener = cb;
+        return { dispose: vi.fn() };
+      }),
+      onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+      dispose: vi.fn(),
+    } as unknown as vscode.FileSystemWatcher);
+
+    registerFileWatcher(context as unknown as vscode.ExtensionContext, provider as never);
+
+    createListener!({ fsPath: '/workspace/new-file.ts' });
+    vi.advanceTimersByTime(600);
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.emitEvent).toHaveBeenCalledWith('workspace:fileCreated', {
+      filePath: '/workspace/new-file.ts',
+    });
   });
 });
 

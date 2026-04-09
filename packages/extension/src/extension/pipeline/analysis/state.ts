@@ -5,6 +5,7 @@ import {
   saveWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
 } from '../cache';
+import { clearWorkspaceAnalysisDatabaseCache } from '../database/cache';
 
 export interface WorkspacePipelineRebuildDependencies {
   buildGraphData(
@@ -84,10 +85,14 @@ export function clearWorkspacePipelineCache(
   workspaceState: {
     update(key: string, value: unknown): PromiseLike<void>;
   },
+  workspaceRoot: string | undefined,
   logInfo: (message: string) => void,
 ): IWorkspaceAnalysisCache {
   const cache = createEmptyWorkspaceAnalysisCache();
   saveWorkspaceAnalysisCache(workspaceState.update.bind(workspaceState), cache);
+  if (workspaceRoot) {
+    clearWorkspaceAnalysisDatabaseCache(workspaceRoot);
+  }
   logInfo('[CodeGraphy] Cache cleared');
   return cache;
 }

@@ -78,7 +78,7 @@ export interface IPlugin {
   /** Optional semver range for the webview-side API contract. */
   webviewApiVersion?: string;
 
-  /** File extensions this plugin can handle (e.g., `['.ts', '.tsx']`). */
+  /** File extensions this plugin can handle (e.g., `['.ts', '.tsx']`, or `['*']` for all files). */
   supportedExtensions: string[];
 
   /**
@@ -120,6 +120,18 @@ export interface IPlugin {
   // ---------------------------------------------------------------------------
 
   /**
+   * Per-file analysis result contract.
+   * Plugins can return symbols, relations, extra nodes, and node/edge type contributions.
+   * This is the primary analysis hook. Legacy plugins may still expose `detectConnections(...)`
+   * as a compatibility fallback, but new plugins should use this shape.
+   */
+  analyzeFile?(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<IFileAnalysisResult>;
+
+  /**
    * Legacy connection-only analysis hook.
    * Prefer `analyzeFile(...)` for new plugins.
    *
@@ -127,23 +139,13 @@ export interface IPlugin {
    * @param content       - The file's content as a string
    * @param workspaceRoot - Absolute path to the workspace root
    * @returns Array of detected connections
+   * @deprecated Use `analyzeFile(...)` instead.
    */
-  detectConnections(
+  detectConnections?(
     filePath: string,
     content: string,
     workspaceRoot: string
   ): Promise<IConnection[]>;
-
-  /**
-   * Per-file analysis result contract.
-   * Plugins can return symbols, relations, extra nodes, and node/edge type contributions.
-   * When present, the host prefers this over `detectConnections(...)`.
-   */
-  analyzeFile?(
-    filePath: string,
-    content: string,
-    workspaceRoot: string,
-  ): Promise<IFileAnalysisResult>;
 
   /**
    * Optional node-type contributions shown in graph controls and legends.

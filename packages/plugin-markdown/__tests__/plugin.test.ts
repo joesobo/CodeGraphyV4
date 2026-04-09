@@ -50,10 +50,10 @@ describe('createMarkdownPlugin', () => {
       expect(plugin.apiVersion).toBe('^2.0.0');
     });
 
-    it('supports .md and .mdx extensions', () => {
+    it('supports wildcard file scanning', () => {
       const plugin = createMarkdownPlugin();
 
-      expect(plugin.supportedExtensions).toEqual(['.md', '.mdx']);
+      expect(plugin.supportedExtensions).toEqual(['*']);
     });
 
     it('exposes default filters as an empty array', () => {
@@ -119,6 +119,27 @@ describe('createMarkdownPlugin', () => {
       expect(relations[0].resolvedPath).toBe(target.absolutePath);
     });
 
+    it('scans wikilinks in non-markdown files', async () => {
+      const plugin = createMarkdownPlugin();
+      const target = createMarkdownFile(workspaceA, 'docs/Guide.md');
+
+      await plugin.initialize?.(workspaceA);
+      await plugin.onPreAnalyze?.([target], workspaceA);
+
+      const analysis = await plugin.analyzeFile(
+        path.join(workspaceA, 'src', 'component.ts'),
+        'const link = "[[docs/Guide]]";',
+        workspaceA,
+      );
+
+      expect(analysis.relations ?? []).toHaveLength(1);
+      expect(analysis.relations?.[0]).toMatchObject({
+        sourceId: 'wikilink',
+        fromFilePath: path.join(workspaceA, 'src', 'component.ts'),
+        resolvedPath: target.absolutePath,
+      });
+    });
+
     it('updates the workspace root when onPreAnalyze is called with a new root', async () => {
       const plugin = createMarkdownPlugin();
       const targetA = createMarkdownFile(workspaceA, 'docs/Shared.md');
@@ -171,30 +192,6 @@ describe('createMarkdownPlugin', () => {
       expect(secondPass.map((relation) => relation.resolvedPath)).toEqual([targetB.absolutePath]);
     });
 
-    it('keeps detectConnections as a compatibility wrapper around analyzeFile', async () => {
-      const plugin = createMarkdownPlugin();
-      const target = createMarkdownFile(workspaceA, 'docs/Guide.md');
-
-      await plugin.initialize?.(workspaceA);
-      await plugin.onPreAnalyze?.([target], workspaceA);
-
-      const filePath = path.join(workspaceA, 'Current.md');
-      const content = '[[docs/Guide]]';
-      const analysis = await plugin.analyzeFile?.(filePath, content, workspaceA);
-      const connections = await plugin.detectConnections(filePath, content, workspaceA);
-
-      expect(connections).toEqual(
-        (analysis?.relations ?? []).map(relation => ({
-          kind: relation.kind,
-          sourceId: relation.sourceId,
-          specifier: relation.specifier ?? '',
-          resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
-          type: relation.type,
-          variant: relation.variant,
-          metadata: relation.metadata,
-        })),
-      );
-    });
   });
 
 });

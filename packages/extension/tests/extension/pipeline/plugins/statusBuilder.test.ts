@@ -20,7 +20,7 @@ function createPluginInfo(overrides: Partial<IPlugin>): IPluginInfo {
     supportedExtensions: ['.ts'],
     detectConnections: vi.fn(async () => []),
     ...overrides,
-  };
+  } as IPlugin;
 
   return {
     plugin,

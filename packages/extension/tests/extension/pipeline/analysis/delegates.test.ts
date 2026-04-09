@@ -274,8 +274,9 @@ describe('WorkspacePipeline delegates', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const clearSpy = vi
       .spyOn(stateModule, 'clearWorkspacePipelineCache')
-      .mockImplementation((workspaceState, logInfo) => {
+      .mockImplementation((workspaceState, workspaceRoot, logInfo: (message: string) => void) => {
         expect(workspaceState).toBe(context.workspaceState);
+        expect(workspaceRoot).toBe('/test/workspace');
         logInfo('[CodeGraphy] Cache cleared');
         return replacementCache as never;
       });

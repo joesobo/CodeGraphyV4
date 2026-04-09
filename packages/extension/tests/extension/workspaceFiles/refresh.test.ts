@@ -12,6 +12,8 @@ function makeProvider() {
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
+    isGraphOpen: vi.fn(() => true),
+    markWorkspaceRefreshPending: vi.fn(),
   };
 }
 
@@ -43,6 +45,20 @@ describe('workspaceFiles/refresh', () => {
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created, refreshing graph');
 
     consoleSpy.mockRestore();
+  });
+
+  it('queues a pending refresh instead of refreshing while the graph is closed', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    provider.isGraphOpen.mockReturnValue(false);
+
+    scheduleWorkspaceRefresh(provider as never, '[CodeGraphy] File saved, refreshing graph');
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.markWorkspaceRefreshPending).toHaveBeenCalledWith(
+      '[CodeGraphy] File saved, refreshing graph',
+    );
   });
 
   it('registers save and watcher listeners through the public handlers', () => {

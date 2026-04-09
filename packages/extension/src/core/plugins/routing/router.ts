@@ -7,6 +7,8 @@
 import { IPlugin, IConnection, IFileAnalysisResult } from '../types/contracts';
 import { getFileExtension, normalizePluginExtension } from './fileExtensions';
 
+const WILDCARD_EXTENSION = '*';
+
 /** Minimal plugin info subset needed for routing lookups. */
 export interface IRoutablePluginInfo {
   plugin: IPlugin;
@@ -28,7 +30,7 @@ export function getPluginForFile(
   extensionMap: Map<string, string[]>,
 ): IPlugin | undefined {
   const ext = getFileExtension(filePath);
-  const pluginIds = extensionMap.get(ext);
+  const pluginIds = [...(extensionMap.get(ext) ?? []), ...(extensionMap.get(WILDCARD_EXTENSION) ?? [])];
 
   if (!pluginIds || pluginIds.length === 0) {
     return undefined;
@@ -53,10 +55,10 @@ export function getPluginsForExtension(
   extensionMap: Map<string, string[]>,
 ): IPlugin[] {
   const normalizedExt = normalizePluginExtension(extension);
-  const pluginIds = extensionMap.get(normalizedExt);
-  if (!pluginIds) {
-    return [];
-  }
+  const pluginIds = [
+    ...(extensionMap.get(normalizedExt) ?? []),
+    ...(extensionMap.get(WILDCARD_EXTENSION) ?? []),
+  ];
 
   const result: IPlugin[] = [];
   for (const pluginId of pluginIds) {
@@ -76,7 +78,7 @@ export function supportsFile(
   extensionMap: Map<string, string[]>,
 ): boolean {
   const ext = getFileExtension(filePath);
-  return extensionMap.has(ext);
+  return extensionMap.has(ext) || extensionMap.has(WILDCARD_EXTENSION);
 }
 
 /**
@@ -270,7 +272,7 @@ export async function analyzeFileResult(
           )
         : toLegacyFileAnalysisResult(
             filePath,
-            await plugin.detectConnections(filePath, content, workspaceRoot),
+            await plugin.detectConnections?.(filePath, content, workspaceRoot) ?? [],
             plugin.id,
           );
 

@@ -21,6 +21,7 @@ import {
   loadWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_KEY,
 } from './cache';
+import { loadWorkspaceAnalysisDatabaseCache } from './database/cache.ts';
 import {
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
@@ -99,9 +100,17 @@ export class WorkspacePipeline {
     this._config = new Configuration();
     this._registry = new PluginRegistry();
     this._discovery = new FileDiscovery();
-    this._cache = loadWorkspaceAnalysisCache(
-      this._context.workspaceState.get<IWorkspaceAnalysisCache>(WORKSPACE_ANALYSIS_CACHE_KEY)
-    );
+    const workspaceRoot = readWorkspacePipelineRoot(vscode.workspace.workspaceFolders);
+    const repoCache = workspaceRoot
+      ? loadWorkspaceAnalysisDatabaseCache(workspaceRoot)
+      : undefined;
+    const hasRepoCache = repoCache && Object.keys(repoCache.files).length > 0;
+
+    this._cache = hasRepoCache
+      ? repoCache
+      : loadWorkspaceAnalysisCache(
+          this._context.workspaceState.get<IWorkspaceAnalysisCache>(WORKSPACE_ANALYSIS_CACHE_KEY)
+        );
   }
 
   /**
@@ -311,6 +320,7 @@ export class WorkspacePipeline {
   clearCache(): void {
     this._cache = clearWorkspacePipelineCache(
       this._context.workspaceState,
+      this._getWorkspaceRoot(),
       message => {
         console.log(message);
       },

@@ -33,9 +33,9 @@ describe('graphView/provider/view/selection', () => {
 
     expect(changeView).toHaveBeenCalledOnce();
     expect(setFocusedFile).toHaveBeenCalledOnce();
-    expect(dependencies.getConfiguration().update).toHaveBeenCalledWith(
-      'selectedView',
-      'codegraphy.depth-graph',
+    expect(dependencies.getConfiguration().update).not.toHaveBeenCalledWith(
+      expect.stringMatching(/selectedView/),
+      expect.anything(),
     );
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',
@@ -200,7 +200,6 @@ function createDependencies(
     ),
     getConfiguration: vi.fn(() => configuration),
     defaultDepthLimit: 1,
-    selectedViewKey: 'selectedView',
     depthLimitKey: 'depthLimit',
     logUnavailableView: vi.fn(),
     ...overrides,

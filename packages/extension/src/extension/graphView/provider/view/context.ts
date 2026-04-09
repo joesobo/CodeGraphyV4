@@ -59,7 +59,6 @@ export interface GraphViewProviderViewContextMethodDependencies {
   normalizeFolderNodeColor: typeof normalizeFolderNodeColor;
   defaultDepthLimit: number;
   defaultFolderNodeColor: string;
-  selectedViewKey: string;
 }
 
 function createDefaultDependencies(): GraphViewProviderViewContextMethodDependencies {
@@ -77,7 +76,6 @@ function createDefaultDependencies(): GraphViewProviderViewContextMethodDependen
     normalizeFolderNodeColor,
     defaultDepthLimit: 1,
     defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
-    selectedViewKey: 'selectedView',
   };
 }
 
@@ -112,12 +110,6 @@ export function createGraphViewProviderViewContextMethods(
     );
     source._activeViewId = result.activeViewId;
     source._graphData = result.graphData;
-
-    if (result.persistSelectedViewId) {
-      void dependencies
-        .getConfiguration('codegraphy')
-        .update(dependencies.selectedViewKey, result.persistSelectedViewId);
-    }
   };
 
   const _sendAvailableViews = (): void => {

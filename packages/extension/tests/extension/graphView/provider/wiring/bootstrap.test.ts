@@ -76,10 +76,9 @@ describe('graph view provider bootstrap helper', () => {
     expect(onDecorationsChanged).toHaveBeenCalledOnce();
   });
 
-  it('restores the persisted view and modes when the saved view still exists', () => {
+  it('restores the default view and persisted modes', () => {
     const configuration = {
       get<T>(key: string, defaultValue: T): T {
-        if (key === 'selected') return 'codegraphy.depth-graph' as T;
         if (key === 'dag') return 'horizontal' as T;
         if (key === 'size') return 'visits' as T;
         return defaultValue;
@@ -91,17 +90,16 @@ describe('graph view provider bootstrap helper', () => {
         configuration,
         viewRegistry: {
           register: vi.fn(),
-          get: vi.fn((viewId: string) => (viewId === 'codegraphy.depth-graph' ? {} : undefined)),
+          get: vi.fn(() => undefined),
           getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
         },
-        selectedViewKey: 'selected',
         dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
         fallbackViewId: 'codegraphy.connections',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
-      activeViewId: 'codegraphy.depth-graph',
+      activeViewId: 'codegraphy.connections',
       dagMode: 'horizontal',
       nodeSizeMode: 'visits',
     });
@@ -121,7 +119,6 @@ describe('graph view provider bootstrap helper', () => {
           get: vi.fn(() => undefined),
           getDefaultViewId: vi.fn(() => 'codegraphy.connections'),
         },
-        selectedViewKey: 'selected',
         dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
         fallbackViewId: 'codegraphy.connections',

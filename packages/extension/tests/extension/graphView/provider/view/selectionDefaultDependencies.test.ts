@@ -41,7 +41,7 @@ describe('graphView/provider/view/selection default dependencies', () => {
       vi.fn(() => configuration);
   });
 
-  it('uses the default view switching delegates and persisted view key', async () => {
+  it('uses the default view switching delegates without persisting a selected view', async () => {
     const source = createSource();
     const consoleWarn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
@@ -65,9 +65,9 @@ describe('graphView/provider/view/selection default dependencies', () => {
       'codegraphy.depth-graph',
       source._viewContext,
     );
-    expect(configuration.update).toHaveBeenCalledWith(
-      'selectedView',
-      'codegraphy.depth-graph',
+    expect(configuration.update).not.toHaveBeenCalledWith(
+      expect.stringMatching(/selectedView/),
+      expect.anything(),
     );
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
     expect(source._sendAvailableViews).toHaveBeenCalledOnce();

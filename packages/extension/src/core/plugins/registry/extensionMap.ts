@@ -6,6 +6,8 @@
 import type { IPlugin } from '../types/contracts';
 import { normalizePluginExtension } from '../routing/fileExtensions';
 
+const WILDCARD_EXTENSION = '*';
+
 /**
  * Add a plugin's supported extensions to the extension map.
  */
@@ -14,6 +16,13 @@ export function addPluginToExtensionMap(
   extensionMap: Map<string, string[]>,
 ): void {
   for (const ext of plugin.supportedExtensions) {
+    if (ext === WILDCARD_EXTENSION) {
+      const plugins = extensionMap.get(WILDCARD_EXTENSION) ?? [];
+      plugins.push(plugin.id);
+      extensionMap.set(WILDCARD_EXTENSION, plugins);
+      continue;
+    }
+
     const normalizedExt = normalizePluginExtension(ext);
     const plugins = extensionMap.get(normalizedExt) ?? [];
     plugins.push(plugin.id);
@@ -30,6 +39,20 @@ export function removePluginFromExtensionMap(
   extensionMap: Map<string, string[]>,
 ): void {
   for (const ext of plugin.supportedExtensions) {
+    if (ext === WILDCARD_EXTENSION) {
+      const plugins = extensionMap.get(WILDCARD_EXTENSION);
+      if (plugins) {
+        const index = plugins.indexOf(pluginId);
+        if (index !== -1) {
+          plugins.splice(index, 1);
+        }
+        if (plugins.length === 0) {
+          extensionMap.delete(WILDCARD_EXTENSION);
+        }
+      }
+      continue;
+    }
+
     const normalizedExt = normalizePluginExtension(ext);
     const plugins = extensionMap.get(normalizedExt);
     if (plugins) {

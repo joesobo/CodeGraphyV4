@@ -15,7 +15,7 @@ function createPlugin(id: string): IPlugin {
       { id: 'dynamic-import', name: 'Dynamic Import', description: 'Dynamic import relation' },
     ],
     detectConnections: vi.fn(async () => []),
-  };
+  } as IPlugin;
 }
 
 function createOptions(

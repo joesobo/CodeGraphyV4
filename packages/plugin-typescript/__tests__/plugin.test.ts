@@ -2,7 +2,7 @@
  * @fileoverview Integration tests for the TypeScript plugin.
  * Uses the example TypeScript project in src/plugins/typescript/examples to verify
  * that the plugin detects connections end-to-end, matching what
- * WorkspaceAnalyzer would produce.
+ * the pipeline would produce.
  */
 
 import { describe, it, expect, beforeAll, vi } from 'vitest';
@@ -183,25 +183,18 @@ describe('createTypeScriptPlugin lifecycle', () => {
     loadSpy.mockRestore();
   });
 
-  it('keeps detectConnections as a compatibility wrapper around analyzeFile', async () => {
+  it('returns relations from analyzeFile', async () => {
     const plugin = createTypeScriptPlugin();
     const filePath = path.join(workspaceRoot, 'src', 'index.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
 
     const analysis = await plugin.analyzeFile?.(filePath, content, workspaceRoot);
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
 
-    expect(connections).toEqual(
-      (analysis?.relations ?? []).map(relation => ({
-        kind: relation.kind,
-        sourceId: relation.sourceId,
-        specifier: relation.specifier ?? '',
-        resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
-        type: relation.type,
-        variant: relation.variant,
-        metadata: relation.metadata,
-      })),
-    );
+    expect(analysis?.relations).toContainEqual(expect.objectContaining({
+      kind: 'import',
+      specifier: './config',
+      resolvedPath: path.join(workspaceRoot, 'src', 'config.ts'),
+    }));
   });
 
   it('registers a focused imports view on load', () => {

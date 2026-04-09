@@ -11,7 +11,7 @@ function createPlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     supportedExtensions: ['.ts'],
     detectConnections: async () => [],
     ...overrides,
-  };
+  } as IPlugin;
 }
 
 describe('addPluginToExtensionMap', () => {

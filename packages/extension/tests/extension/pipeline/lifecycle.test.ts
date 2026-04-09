@@ -1,15 +1,23 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import * as fs from 'node:fs';
+import * as os from 'node:os';
+import * as path from 'node:path';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import {
   WORKSPACE_ANALYSIS_CACHE_KEY,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
 } from '../../../src/extension/pipeline/cache';
+import {
+  loadWorkspaceAnalysisDatabaseCache,
+  saveWorkspaceAnalysisDatabaseCache,
+} from '../../../src/extension/pipeline/database/cache';
 import * as repoMetaModule from '../../../src/extension/repoSettings/meta';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
   | undefined;
+const tempWorkspaceRoots = new Set<string>();
 
 Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => workspaceFoldersValue,
@@ -23,6 +31,19 @@ describe('WorkspacePipeline lifecycle', () => {
     ];
     vi.clearAllMocks();
   });
+
+  afterEach(() => {
+    for (const workspaceRoot of tempWorkspaceRoots) {
+      fs.rmSync(workspaceRoot, { recursive: true, force: true });
+    }
+    tempWorkspaceRoots.clear();
+  });
+
+  function createWorkspaceRoot(): string {
+    const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'codegraphy-pipeline-lifecycle-'));
+    tempWorkspaceRoots.add(workspaceRoot);
+    return workspaceRoot;
+  }
 
   it('clears the cache and persists the empty state', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
@@ -227,6 +248,54 @@ describe('WorkspacePipeline lifecycle', () => {
     })._getWorkspaceRoot()).toBeUndefined();
   });
 
+  it('loads the repo-local persisted cache when .codegraphy/graph.lbug already exists', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': {
+          mtime: 42,
+          size: 10,
+          analysis: {
+            filePath: '/workspace/src/index.ts',
+            relations: [],
+          },
+        },
+      },
+    });
+
+    const analyzer = new WorkspacePipeline({
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    } as unknown as vscode.ExtensionContext);
+
+    expect((analyzer as unknown as {
+      _cache: {
+        version: string;
+        files: Record<string, unknown>;
+      };
+    })._cache).toEqual({
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': {
+          mtime: 42,
+          size: 10,
+          analysis: {
+            filePath: '/workspace/src/index.ts',
+            relations: [],
+          },
+        },
+      },
+    });
+  });
+
   it('reports whether the repo already has an indexed graph', () => {
     const analyzer = new WorkspacePipeline({
       subscriptions: [],
@@ -266,6 +335,53 @@ describe('WorkspacePipeline lifecycle', () => {
       settingsSignature: null,
     });
     expect(analyzer.hasIndex()).toBe(false);
+  });
+
+  it('clears the repo-local database cache alongside the legacy workspace mirror', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    saveWorkspaceAnalysisDatabaseCache(workspaceRoot, {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/index.ts': {
+          mtime: 10,
+          analysis: {
+            filePath: '/workspace/src/index.ts',
+            relations: [],
+          },
+        },
+      },
+    });
+
+    const analyzer = new WorkspacePipeline({
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    } as unknown as vscode.ExtensionContext);
+
+    analyzer.clearCache();
+
+    expect(fs.existsSync(path.join(workspaceRoot, '.codegraphy', 'graph.lbug'))).toBe(true);
+    expect(
+      (analyzer as unknown as {
+        _cache: {
+          version: string;
+          files: Record<string, unknown>;
+        };
+      })._cache,
+    ).toEqual({
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {},
+    });
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot)).toEqual({
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {},
+    });
   });
 
   it('treats an index as stale when plugin or settings signatures no longer match', () => {

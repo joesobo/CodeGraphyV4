@@ -16,7 +16,7 @@ function createPlugin(id: string, sources: IPlugin['sources'] = [
     supportedExtensions: ['.ts'],
     sources,
     detectConnections: vi.fn(async () => []),
-  };
+  } as IPlugin;
 }
 
 describe('pipeline/graph/edgeSources', () => {

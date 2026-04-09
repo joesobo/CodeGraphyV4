@@ -6,6 +6,7 @@ import {
   saveWorkspaceAnalysisCache,
   type IWorkspaceAnalysisCache,
 } from '../cache';
+import { saveWorkspaceAnalysisDatabaseCache } from '../database/cache';
 import {
   analyzeWorkspaceWithAnalyzer,
   type WorkspacePipelineAnalysisSource,
@@ -46,6 +47,14 @@ export function runWorkspacePipelineAnalysis(
       },
       saveCache: () => {
         saveWorkspaceAnalysisCache(workspaceState.update.bind(workspaceState), cache);
+        const workspaceRoot = getWorkspaceRoot();
+        if (workspaceRoot) {
+          try {
+            saveWorkspaceAnalysisDatabaseCache(workspaceRoot, cache);
+          } catch (error) {
+            console.warn('[CodeGraphy] Failed to persist repo-local analysis cache.', error);
+          }
+        }
       },
       showWarningMessage: message => {
         vscode.window.showWarningMessage(message);

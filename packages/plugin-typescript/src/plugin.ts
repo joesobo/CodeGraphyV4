@@ -8,7 +8,6 @@
 import type {
   CodeGraphyAPI,
   Disposable,
-  IConnection,
   IFileAnalysisResult,
   IPlugin,
 } from '@codegraphy-vscode/plugin-api';
@@ -108,24 +107,6 @@ export function createTypeScriptPlugin(): IPlugin {
       workspaceRoot: string,
     ): Promise<IFileAnalysisResult> {
       return buildAnalysisResult(filePath, content, workspaceRoot);
-    },
-
-    async detectConnections(
-      filePath: string,
-      content: string,
-      workspaceRoot: string
-    ): Promise<IConnection[]> {
-      const analysis = await buildAnalysisResult(filePath, content, workspaceRoot);
-
-      return (analysis.relations ?? []).map(relation => ({
-        kind: relation.kind,
-        sourceId: relation.sourceId,
-        specifier: relation.specifier ?? '',
-        resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
-        type: relation.type,
-        variant: relation.variant,
-        metadata: relation.metadata,
-      }));
     },
 
     onUnload(): void {

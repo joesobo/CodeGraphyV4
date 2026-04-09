@@ -5,6 +5,7 @@ import type { GraphViewProviderSidebarViewSource } from './sidebarViews';
 export interface GraphViewProviderWebviewResolveSource extends GraphViewProviderSidebarViewSource {
   _extensionUri: vscode.Uri;
   _getLocalResourceRoots(): vscode.Uri[];
+  flushPendingWorkspaceRefresh?(): void;
 }
 
 export function resolveGraphViewProviderWebviewView(
@@ -32,6 +33,12 @@ export function resolveGraphViewProviderWebviewView(
     }
   });
 
+  webviewView.onDidChangeVisibility(() => {
+    if (webviewView.visible) {
+      source.flushPendingWorkspaceRefresh?.();
+    }
+  });
+
   dependencies.resolveWebviewView(webviewView, {
     getLocalResourceRoots: () => source._getLocalResourceRoots(),
     setWebviewMessageListener: (nextWebview: vscode.Webview) =>
@@ -45,4 +52,8 @@ export function resolveGraphViewProviderWebviewView(
     executeCommand: (command: string, key: string, value: boolean) =>
       dependencies.executeCommand(command, key, value),
   } as never);
+
+  if (webviewView.visible) {
+    source.flushPendingWorkspaceRefresh?.();
+  }
 }

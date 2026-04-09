@@ -14,7 +14,7 @@ export function createMockPlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     supportedExtensions: ['.test'],
     detectConnections: vi.fn().mockResolvedValue([]),
     ...overrides,
-  };
+  } as IPlugin;
 }
 
 export function createConfiguredRegistry(): PluginRegistry {

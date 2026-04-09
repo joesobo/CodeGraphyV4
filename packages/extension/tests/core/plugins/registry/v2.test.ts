@@ -31,7 +31,7 @@ function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IP
     onGraphRebuild: vi.fn(),
     onWebviewReady: vi.fn(),
     ...overrides,
-  } as IPlugin & {
+  } as unknown as IPlugin & {
     onLoad: ReturnType<typeof vi.fn>;
     onUnload: ReturnType<typeof vi.fn>;
     onWorkspaceReady: ReturnType<typeof vi.fn>;

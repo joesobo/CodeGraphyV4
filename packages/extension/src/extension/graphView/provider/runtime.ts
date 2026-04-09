@@ -71,6 +71,7 @@ export class GraphViewProviderRuntime {
   protected readonly _firstWorkspaceReadyPromise: Promise<void>;
   protected _webviewReadyNotified = false;
   protected _indexingController?: AbortController;
+  protected _pendingWorkspaceRefreshLogMessage?: string;
   protected readonly _pluginExtensionUris = createPluginExtensionUris();
   protected _installedPluginActivationPromise: Promise<void> = Promise.resolve();
   protected readonly _extensionMessageEmitter = createExtensionMessageEmitter();
@@ -113,6 +114,29 @@ export class GraphViewProviderRuntime {
 
   public setInstalledPluginActivationPromise(promise: Promise<void>): void {
     this._installedPluginActivationPromise = promise;
+  }
+
+  public isGraphOpen(): boolean {
+    if (this._view?.visible || this._timelineView?.visible) {
+      return true;
+    }
+
+    return this._panels.some(panel => panel.visible);
+  }
+
+  public markWorkspaceRefreshPending(logMessage: string): void {
+    this._pendingWorkspaceRefreshLogMessage = logMessage;
+  }
+
+  public flushPendingWorkspaceRefresh(): void {
+    if (!this.isGraphOpen() || !this._pendingWorkspaceRefreshLogMessage) {
+      return;
+    }
+
+    const logMessage = this._pendingWorkspaceRefreshLogMessage;
+    this._pendingWorkspaceRefreshLogMessage = undefined;
+    console.log(logMessage);
+    void this._methodContainers.refresh.refresh();
   }
 
   private initializeCoreServices(): void {

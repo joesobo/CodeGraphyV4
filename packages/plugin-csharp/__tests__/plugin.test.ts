@@ -4,7 +4,6 @@ import * as path from 'path';
 import { describe, it, expect, vi } from 'vitest';
 import createCSharpPlugin, {
   createCSharpPlugin as namedCreateCSharpPlugin,
-  type ICSharpAnalyzeFilePlugin,
 } from '../src/plugin';
 
 describe('createCSharpPlugin', () => {
@@ -30,7 +29,7 @@ describe('createCSharpPlugin', () => {
 
     fs.writeFileSync(filePath, content, 'utf-8');
 
-    const plugin = createCSharpPlugin() as ICSharpAnalyzeFilePlugin;
+    const plugin = createCSharpPlugin();
 
     await expect(plugin.analyzeFile(filePath, content, workspaceRoot)).resolves.toEqual({
       filePath,
@@ -40,7 +39,7 @@ describe('createCSharpPlugin', () => {
     fs.rmSync(workspaceRoot, { recursive: true, force: true });
   });
 
-  it('keeps detectConnections compatible by deriving connections from analyzeFile relations', async () => {
+  it('returns relations from analyzeFile for cross-file references', async () => {
     const workspaceRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'csharp-plugin-compat-'));
     const namespaceFile = path.join(workspaceRoot, 'special', 'FooImpl.cs');
     const consumerFile = path.join(workspaceRoot, 'Program.cs');
@@ -57,16 +56,11 @@ describe('createCSharpPlugin', () => {
       'utf-8',
     );
 
-    const plugin = createCSharpPlugin() as ICSharpAnalyzeFilePlugin;
+    const plugin = createCSharpPlugin();
     await plugin.initialize?.(workspaceRoot);
 
     await plugin.analyzeFile(namespaceFile, fs.readFileSync(namespaceFile, 'utf-8'), workspaceRoot);
     const analysis = await plugin.analyzeFile(
-      consumerFile,
-      fs.readFileSync(consumerFile, 'utf-8'),
-      workspaceRoot,
-    );
-    const connections = await plugin.detectConnections(
       consumerFile,
       fs.readFileSync(consumerFile, 'utf-8'),
       workspaceRoot,
@@ -76,11 +70,6 @@ describe('createCSharpPlugin', () => {
       expect.objectContaining({
         fromFilePath: consumerFile,
         toFilePath: namespaceFile.replace(/\\/g, '/'),
-      }),
-    );
-    expect(connections).toContainEqual(
-      expect.objectContaining({
-        resolvedPath: namespaceFile.replace(/\\/g, '/'),
       }),
     );
 
@@ -116,10 +105,10 @@ public class Program {
     const plugin = createCSharpPlugin();
     await plugin.initialize?.(workspaceRoot);
 
-    await plugin.detectConnections(namespaceFile, namespaceContent, workspaceRoot);
-    const connections = await plugin.detectConnections(consumerFile, consumerContent, workspaceRoot);
+    await plugin.analyzeFile(namespaceFile, namespaceContent, workspaceRoot);
+    const analysis = await plugin.analyzeFile(consumerFile, consumerContent, workspaceRoot);
 
-    expect(connections).toContainEqual(
+    expect(analysis.relations).toContainEqual(
       expect.objectContaining({
         specifier: 'using Acme.Internal',
         resolvedPath: namespaceFile.replace(/\\/g, '/'),
@@ -159,9 +148,9 @@ public class Program {
     const plugin = createCSharpPlugin();
     await plugin.initialize?.(workspaceRoot);
 
-    await plugin.detectConnections(namespaceFile, namespaceContent, workspaceRoot);
-    const beforeUnload = await plugin.detectConnections(consumerFile, consumerContent, workspaceRoot);
-    expect(beforeUnload).toContainEqual(
+    await plugin.analyzeFile(namespaceFile, namespaceContent, workspaceRoot);
+    const beforeUnload = await plugin.analyzeFile(consumerFile, consumerContent, workspaceRoot);
+    expect(beforeUnload.relations).toContainEqual(
       expect.objectContaining({
         specifier: 'using Acme.Internal',
         resolvedPath: namespaceFile.replace(/\\/g, '/'),
@@ -170,8 +159,8 @@ public class Program {
 
     plugin.onUnload?.();
 
-    const afterUnload = await plugin.detectConnections(consumerFile, consumerContent, workspaceRoot);
-    const hasInternalUsingResolutionAfterUnload = afterUnload.some(connection => {
+    const afterUnload = await plugin.analyzeFile(consumerFile, consumerContent, workspaceRoot);
+    const hasInternalUsingResolutionAfterUnload = (afterUnload.relations ?? []).some(connection => {
       return connection.specifier === 'using Acme.Internal' && connection.resolvedPath === namespaceFile.replace(/\\/g, '/');
     });
 
@@ -207,9 +196,9 @@ public class Program {
     const plugin = createCSharpPlugin();
     await plugin.initialize?.(workspaceRoot);
 
-    const connections = await plugin.detectConnections(consumerFile, consumerContent, workspaceRoot);
+    const analysis = await plugin.analyzeFile(consumerFile, consumerContent, workspaceRoot);
 
-    expect(connections).toContainEqual(
+    expect(analysis.relations).toContainEqual(
       expect.objectContaining({
         specifier: '[same namespace: MyApp.App]',
         resolvedPath: helperFile.replace(/\\/g, '/'),

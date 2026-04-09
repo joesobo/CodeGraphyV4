@@ -81,18 +81,6 @@ export function createPythonPlugin(): IPlugin {
     }));
   }
 
-  function toLegacyConnections(relations: IAnalysisRelation[]): IConnection[] {
-    return relations.map((relation) => ({
-      kind: relation.kind,
-      sourceId: relation.sourceId,
-      specifier: relation.specifier ?? '',
-      resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
-      type: relation.type,
-      variant: relation.variant,
-      metadata: relation.metadata,
-    }));
-  }
-
   async function analyzePythonFile(
     filePath: string,
     content: string,
@@ -137,15 +125,6 @@ export function createPythonPlugin(): IPlugin {
       workspaceRoot: string,
     ): Promise<IFileAnalysisResult> {
       return analyzePythonFile(filePath, content, workspaceRoot);
-    },
-
-    async detectConnections(
-      filePath: string,
-      content: string,
-      workspaceRoot: string
-    ): Promise<IConnection[]> {
-      const analysis = await analyzePythonFile(filePath, content, workspaceRoot);
-      return toLegacyConnections(analysis.relations ?? []);
     },
 
     onUnload(): void {

@@ -47,7 +47,6 @@ export interface GraphViewProviderViewSelectionMethodDependencies {
   setDepthLimit: typeof setGraphViewDepthLimit;
   getDepthLimit: typeof getGraphViewDepthLimit;
   defaultDepthLimit: number;
-  selectedViewKey: string;
   depthLimitKey: string;
   logUnavailableView(viewId: string): void;
 }
@@ -60,7 +59,6 @@ function createDefaultGraphViewProviderViewSelectionMethodDependencies(): GraphV
     getDepthLimit: getGraphViewDepthLimit,
     getConfiguration: () => getCodeGraphyConfiguration(),
     defaultDepthLimit: 1,
-    selectedViewKey: 'selectedView',
     depthLimitKey: 'depthLimit',
     logUnavailableView: viewId => {
       console.warn(`[CodeGraphy] View '${viewId}' is not available`);
@@ -85,9 +83,7 @@ export function createGraphViewProviderViewSelectionMethods(
     await dependencies.changeView(source, viewId, {
       isViewAvailable: (nextViewId, viewContext) =>
         source._viewRegistry.isViewAvailable(nextViewId, viewContext),
-      persistActiveViewId: async nextViewId => {
-        await dependencies.getConfiguration().update(dependencies.selectedViewKey, nextViewId);
-      },
+      persistActiveViewId: async () => Promise.resolve(),
       applyViewTransform: () => callApplyViewTransform(),
       sendAvailableViews: () => callSendAvailableViews(),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),

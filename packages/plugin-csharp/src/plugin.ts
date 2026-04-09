@@ -5,14 +5,13 @@
  * @module plugins/csharp
  */
 
-import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
+import type { IPlugin } from '@codegraphy-vscode/plugin-api';
 import { PathResolver, ICSharpPathResolverConfig } from './PathResolver';
 import { parseContent } from './parserContent';
 import type { CSharpRuleContext } from './parserTypes';
 import { extractUsedTypes } from './parserUsedTypes';
 import {
   buildCSharpFileAnalysisResult,
-  toCSharpConnections,
   type CSharpFileAnalysisResult,
 } from './analysis';
 import manifest from '../codegraphy.json';
@@ -99,16 +98,6 @@ export function createCSharpPlugin(): ICSharpAnalyzeFilePlugin {
     },
 
     analyzeFile,
-
-    async detectConnections(
-      filePath: string,
-      content: string,
-      workspaceRoot: string
-    ): Promise<IConnection[]> {
-      return toCSharpConnections(
-        await analyzeFile(filePath, content, workspaceRoot),
-      );
-    },
 
     onUnload(): void {
       resolver = null;

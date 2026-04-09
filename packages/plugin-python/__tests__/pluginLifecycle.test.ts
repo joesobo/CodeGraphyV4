@@ -183,13 +183,21 @@ describe('createPythonPlugin lifecycle', () => {
     });
   });
 
-  it('detectConnections adapts analyzeFile relations for compatibility', async () => {
+  it('analyzeFile returns the expected relations', async () => {
     const plugin = createPythonPlugin();
 
-    const connections = await plugin.detectConnections(filePath, content, workspaceRoot);
+    const analysis = await plugin.analyzeFile?.(filePath, content, workspaceRoot);
 
-    expect(connections).toEqual([
-      { kind: 'import', specifier: 'pkg', resolvedPath: '/workspace/pkg.py', type: 'static', sourceId: 'import-module' },
+    expect(analysis?.relations).toEqual([
+      expect.objectContaining({
+        kind: 'import',
+        specifier: 'pkg',
+        resolvedPath: '/workspace/pkg.py',
+        toFilePath: '/workspace/pkg.py',
+        fromFilePath: filePath,
+        type: 'static',
+        sourceId: 'import-module',
+      }),
     ]);
   });
 

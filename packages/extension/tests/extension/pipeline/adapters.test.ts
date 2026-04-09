@@ -33,7 +33,7 @@ function createPlugin(id: string, name: string, supportedExtensions: string[]): 
     apiVersion: '^2.0.0',
     supportedExtensions,
     detectConnections: vi.fn(async () => []),
-  };
+  } as IPlugin;
 }
 
 function createDiscoveredFile(relativePath: string) {

@@ -3,6 +3,7 @@ import * as vscode from 'vscode';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
 import type { IConnection } from '../../../../src/core/plugins/types/contracts';
 import * as analyzeModule from '../../../../src/extension/pipeline/analysis/analyze';
+import * as databaseCacheModule from '../../../../src/extension/pipeline/database/cache';
 import { runWorkspacePipelineAnalysis } from '../../../../src/extension/pipeline/analysis/run';
 
 describe('pipeline/analysis/run', () => {
@@ -11,6 +12,9 @@ describe('pipeline/analysis/run', () => {
       .spyOn(analyzeModule, 'analyzeWorkspaceWithAnalyzer')
       .mockResolvedValue({ nodes: [], edges: [] });
     const showWarningMessageSpy = vi.fn();
+    const saveWorkspaceAnalysisDatabaseCacheSpy = vi
+      .spyOn(databaseCacheModule, 'saveWorkspaceAnalysisDatabaseCache')
+      .mockImplementation(() => undefined);
     (vscode.window as Record<string, unknown>).showWarningMessage = showWarningMessageSpy;
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const source = {
@@ -87,6 +91,7 @@ describe('pipeline/analysis/run', () => {
       'codegraphy.analysisCache',
       cache,
     );
+    expect(saveWorkspaceAnalysisDatabaseCacheSpy).toHaveBeenCalledWith('/workspace', cache);
   });
 
   it('passes empty user filters and disabled sets when they are omitted', async () => {

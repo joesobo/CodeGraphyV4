@@ -10,7 +10,7 @@ function createPlugin(id: string): IPlugin {
     apiVersion: '^3.0.0',
     supportedExtensions: ['.ts'],
     detectConnections: vi.fn(async () => []),
-  };
+  } as IPlugin;
 }
 
 describe('pipeline/graph/edgeTargets', () => {

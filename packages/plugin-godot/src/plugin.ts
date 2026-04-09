@@ -6,12 +6,11 @@
  */
 
 import * as path from 'path';
-import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
+import type { IPlugin } from '@codegraphy-vscode/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration, normalizePath } from './parser';
 import {
   buildGDScriptFileAnalysisResult,
-  toGDScriptConnections,
   type GDScriptFileAnalysisResult,
 } from './analysis';
 import manifest from '../codegraphy.json';
@@ -119,12 +118,6 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
     },
 
     analyzeFile,
-
-    async detectConnections(filePath: string, content: string, workspaceRoot: string): Promise<IConnection[]> {
-      return toGDScriptConnections(
-        await analyzeFile(filePath, content, workspaceRoot),
-      );
-    },
 
     onUnload(): void {
       resolver?.clearClassNames();

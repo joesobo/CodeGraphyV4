@@ -55,7 +55,8 @@ export async function analyzeFullCommitGraph(
       return false;
     }
 
-    return supportedExtensions.has(path.extname(filePath).toLowerCase());
+    const extension = path.extname(filePath).toLowerCase();
+    return supportedExtensions.has('*') || supportedExtensions.has(extension);
   });
 
   const nodes: IGraphNode[] = [];

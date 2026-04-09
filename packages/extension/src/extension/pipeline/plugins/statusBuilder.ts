@@ -28,6 +28,10 @@ function getQualifiedSourceId(connection: IConnection): string | undefined {
   return undefined;
 }
 
+function supportsExtension(pluginExtensions: readonly string[], extension: string): boolean {
+  return pluginExtensions.includes('*') || pluginExtensions.includes(extension);
+}
+
 export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOptions): IPluginStatus[] {
   const {
     disabledPlugins,
@@ -43,7 +47,7 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
     const plugin = pluginInfo.plugin;
     const matchingFiles = discoveredFiles.filter((file) => {
       const extension = path.extname(file.relativePath).toLowerCase();
-      return plugin.supportedExtensions.includes(extension);
+      return supportsExtension(plugin.supportedExtensions, extension);
     });
 
     const ruleConnectionCounts = new Map<string, number>();
@@ -51,7 +55,7 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
 
     for (const [filePath, connections] of fileConnections) {
       const extension = path.extname(filePath).toLowerCase();
-      if (!plugin.supportedExtensions.includes(extension)) {
+      if (!supportsExtension(plugin.supportedExtensions, extension)) {
         continue;
       }
 

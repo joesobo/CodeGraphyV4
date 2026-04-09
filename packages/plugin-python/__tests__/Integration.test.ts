@@ -3,7 +3,7 @@
  * Simulates how the analysis pipeline consumes per-file relations.
  * 
  * Bug: Python PathResolver returns workspace-relative paths, but
- * WorkspaceAnalyzer expects absolute paths (like TypeScript plugin).
+ * the pipeline expects absolute paths (like TypeScript plugin).
  */
 
 import { afterAll, describe, it, expect, beforeAll } from 'vitest';
@@ -40,7 +40,7 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     const mainPy = path.join(workspaceRoot, 'src', 'main.py');
     const content = fs.readFileSync(mainPy, 'utf-8');
 
-    // This is exactly what WorkspaceAnalyzer does
+    // This is exactly what the pipeline does
     const relations = (await pythonPlugin.analyzeFile?.(
       mainPy, // absolute path
       content,
@@ -54,7 +54,7 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     expect(configConnection).toBeDefined();
     expect(configConnection!.resolvedPath).not.toBeNull();
 
-    // This is what WorkspaceAnalyzer does to build edges
+    // This is what the pipeline does to build edges
     const resolvedPath = configConnection!.resolvedPath!;
     const targetRelative = path.relative(workspaceRoot, resolvedPath);
 
@@ -147,7 +147,7 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     
     try {
       await tsPlugin.initialize?.(tempTypeScriptWorkspace);
-      const connections = await tsPlugin.detectConnections(mockTsFile, tsContent, tempTypeScriptWorkspace);
+      const connections = (await tsPlugin.analyzeFile?.(mockTsFile, tsContent, tempTypeScriptWorkspace))?.relations ?? [];
       
       expect(connections.length).toBe(1);
       expect(connections[0].resolvedPath).not.toBeNull();

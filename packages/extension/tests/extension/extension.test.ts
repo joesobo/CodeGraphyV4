@@ -97,6 +97,7 @@ describe('Extension', () => {
       const provider = (
         vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
       ).mock.calls[0]?.[1] as GraphViewProvider;
+      vi.spyOn(provider, 'isGraphOpen').mockReturnValue(true);
       const refreshSpy = vi.spyOn(provider, 'refresh').mockResolvedValue();
 
       const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })

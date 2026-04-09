@@ -4,7 +4,6 @@ import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { initializeGraphViewProviderServices, restoreGraphViewProviderState } from './wiring/bootstrap';
 import type { GraphViewProviderMethodContainers } from './wiring/methodContainers';
 
-export const SELECTED_VIEW_KEY = 'selectedView';
 export const DAG_MODE_KEY = 'dagMode';
 export const NODE_SIZE_MODE_KEY = 'nodeSizeMode';
 export const DEFAULT_VIEW_ID = 'codegraphy.connections';
@@ -54,7 +53,6 @@ export function restoreGraphViewProviderRuntimeState(
   return restoreGraphViewProviderState({
     configuration: getCodeGraphyConfiguration(),
     viewRegistry: viewRegistry as RestoredStateArgs['viewRegistry'],
-    selectedViewKey: SELECTED_VIEW_KEY,
     dagModeKey: DAG_MODE_KEY,
     nodeSizeModeKey: NODE_SIZE_MODE_KEY,
     fallbackViewId: DEFAULT_VIEW_ID,

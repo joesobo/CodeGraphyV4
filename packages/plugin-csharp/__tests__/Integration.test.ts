@@ -1,6 +1,6 @@
 /**
  * @fileoverview Integration tests for C# plugin.
- * Simulates how WorkspaceAnalyzer calls the plugin to verify edge detection.
+ * Simulates how the pipeline calls the plugin to verify edge detection.
  * 
  * The key difference from Python: C# uses namespaces that need to be
  * registered across files before resolution can work.
@@ -22,8 +22,8 @@ describe('C# Plugin Integration', () => {
   });
 
   /**
-   * This test simulates exactly what WorkspaceAnalyzer does:
-   * 1. Calls detectConnections with ABSOLUTE file path
+   * This test simulates exactly what the pipeline does:
+   * 1. Calls analyzeFile with ABSOLUTE file path
    * 2. Gets resolvedPath from connections
    * 3. Calls path.relative(workspaceRoot, resolvedPath) to get the node ID
    */

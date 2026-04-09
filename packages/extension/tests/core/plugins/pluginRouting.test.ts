@@ -17,7 +17,7 @@ function makePlugin(id: string, extensions: string[]): IPlugin {
     apiVersion: '^2.0.0',
     supportedExtensions: extensions,
     detectConnections: vi.fn().mockResolvedValue([]),
-  };
+  } as IPlugin;
 }
 
 function buildMaps(

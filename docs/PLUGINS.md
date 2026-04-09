@@ -23,6 +23,7 @@ CodeGraphy has two plugin surfaces:
 The current plugin API supports more than file analysis:
 
 - per-file analysis objects with symbols, relations, node types, and edge types
+- `analyzeFile(...)` is the normal analysis path; `detectConnections(...)` remains only as a compatibility fallback
 - graph queries backed by the host graph cache
 - custom views with `recomputeOn` dependencies
 - context menu items, commands, and exporters
@@ -69,3 +70,5 @@ The core extension owns discovery, repo-local settings, caching, graph projectio
 - add views, exporters, commands, toolbar actions, and other UI surfaces through the host API
 
 Built-in plugins follow the same rules as external plugins and appear in the **Plugins** popup. Plugin processing order is bottom-to-top, so plugins nearer the top win merge conflicts.
+
+Markdown-style wikilink scanning is implemented as a wildcard plugin so it can inspect any file, not just `.md` files.

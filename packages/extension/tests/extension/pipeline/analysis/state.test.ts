@@ -43,7 +43,7 @@ describe('pipeline/analysis/state', () => {
     };
     const logInfo = vi.fn();
 
-    const cache = clearWorkspacePipelineCache(workspaceState, logInfo);
+    const cache = clearWorkspacePipelineCache(workspaceState, '/workspace', logInfo);
 
     expect(cache).toEqual({
       version: WORKSPACE_ANALYSIS_CACHE_VERSION,

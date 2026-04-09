@@ -24,7 +24,7 @@ function makePlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     supportedExtensions: ['.ts'],
     detectConnections: vi.fn().mockResolvedValue([]),
     ...overrides,
-  };
+  } as IPlugin;
 }
 
 function makePluginsMap(plugin: IPlugin): Map<string, { plugin: IPlugin }> {

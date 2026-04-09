@@ -12,11 +12,27 @@ interface PendingWorkspaceRefresh {
 
 const pendingWorkspaceRefreshes = new WeakMap<GraphViewProvider, PendingWorkspaceRefresh>();
 
+function isGraphOpen(provider: GraphViewProvider): boolean {
+  return provider.isGraphOpen?.() ?? true;
+}
+
+function markWorkspaceRefreshPending(
+  provider: GraphViewProvider,
+  logMessage: string,
+): void {
+  provider.markWorkspaceRefreshPending?.(logMessage);
+}
+
 export function scheduleWorkspaceRefresh(
   provider: GraphViewProvider,
   logMessage: string,
   delayMs: number = 500,
 ): void {
+  if (!isGraphOpen(provider)) {
+    markWorkspaceRefreshPending(provider, logMessage);
+    return;
+  }
+
   const pending = pendingWorkspaceRefreshes.get(provider);
   if (pending) {
     clearTimeout(pending.timeout);
@@ -26,6 +42,10 @@ export function scheduleWorkspaceRefresh(
     logMessage,
     timeout: setTimeout(() => {
       pendingWorkspaceRefreshes.delete(provider);
+      if (!isGraphOpen(provider)) {
+        markWorkspaceRefreshPending(provider, nextPending.logMessage);
+        return;
+      }
       console.log(nextPending.logMessage);
       void provider.refresh();
     }, delayMs),

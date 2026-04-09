@@ -258,7 +258,7 @@ describe('graphView/provider/view/context', () => {
     });
   });
 
-  it('applies the active transform and persists fallback view selections', () => {
+  it('applies the active transform without persisting fallback view selections', () => {
     const source = createSource({
       _activeViewId: 'codegraphy.depth-graph',
     });
@@ -295,9 +295,9 @@ describe('graphView/provider/view/context', () => {
       edges: [],
     });
     const configuration = dependencies.getConfiguration('codegraphy');
-    expect(configuration.update).toHaveBeenCalledWith(
-      'selectedView',
-      'codegraphy.connections',
+    expect(configuration.update).not.toHaveBeenCalledWith(
+      expect.stringMatching(/selectedView/),
+      expect.anything(),
     );
     expect(sendAvailableViews).toHaveBeenCalledOnce();
   });
@@ -346,9 +346,9 @@ describe('graphView/provider/view/context', () => {
       nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
       edges: [],
     });
-    expect(update).toHaveBeenCalledWith(
-      'selectedView',
-      'codegraphy.connections',
+    expect(update).not.toHaveBeenCalledWith(
+      expect.stringMatching(/selectedView/),
+      expect.anything(),
     );
     expect(providerViewContextMethodMocks.sendAvailableViews).toHaveBeenCalledWith(
       source._viewRegistry,
@@ -467,7 +467,6 @@ function createDependencies(
     normalizeFolderNodeColor: vi.fn((color: string | undefined) => color ?? '#93C5FD'),
     defaultDepthLimit: 1,
     defaultFolderNodeColor: '#93C5FD',
-    selectedViewKey: 'selectedView',
     ...overrides,
   };
 }

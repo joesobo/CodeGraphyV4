@@ -1,2 +1,4 @@
 packages:
   - "packages/*"
+allowBuilds:
+  '@ladybugdb/core': true

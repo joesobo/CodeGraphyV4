@@ -55,7 +55,6 @@ interface InitializeGraphViewProviderServicesOptions {
 interface RestoreGraphViewProviderStateOptions {
   configuration: GraphViewConfigurationLike;
   viewRegistry: GraphViewViewRegistryLike;
-  selectedViewKey: string;
   dagModeKey: string;
   nodeSizeModeKey: string;
   fallbackViewId: string;
@@ -106,7 +105,6 @@ export function initializeGraphViewProviderServices({
 export function restoreGraphViewProviderState({
   configuration,
   viewRegistry,
-  selectedViewKey,
   dagModeKey,
   nodeSizeModeKey,
   fallbackViewId,
@@ -116,13 +114,8 @@ export function restoreGraphViewProviderState({
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
 } {
-  const savedViewId = configuration.get<string>(selectedViewKey, fallbackViewId);
-
   return {
-    activeViewId:
-      savedViewId && viewRegistry.get(savedViewId)
-        ? savedViewId
-        : viewRegistry.getDefaultViewId() ?? fallbackViewId,
+    activeViewId: viewRegistry.getDefaultViewId() ?? fallbackViewId,
     dagMode: configuration.get<DagMode>(dagModeKey, null),
     nodeSizeMode: configuration.get<NodeSizeMode>(nodeSizeModeKey, fallbackNodeSizeMode),
   };
