@@ -3,6 +3,11 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessagePrimaryActions,
 } from '../../../../../src/extension/graphView/webview/providerMessages/primaryActions';
+import * as repoSettings from '../../../../../src/extension/repoSettings/current';
+
+vi.mock('../../../../../src/extension/repoSettings/current', () => ({
+  getCodeGraphyConfiguration: vi.fn(),
+}));
 
 describe('graph view provider listener primary actions', () => {
   afterEach(() => {
@@ -72,6 +77,10 @@ describe('graph view provider listener primary actions', () => {
   it('uses dependency-backed wrappers for group persistence and dialogs', async () => {
     const source = createSource();
     const dependencies = createDependencies();
+    const update = vi.fn(() => Promise.resolve());
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      update,
+    } as never);
     const actions = createActions(source, dependencies);
     const groups = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
     const openDialogOptions = { canSelectFiles: true };
@@ -80,11 +89,7 @@ describe('graph view provider listener primary actions', () => {
     actions.showInformationMessage('saved');
     await actions.showOpenDialog(openDialogOptions as never);
 
-    expect(dependencies.getConfigTarget).toHaveBeenCalledWith(
-      dependencies.workspace.workspaceFolders,
-    );
-    expect(dependencies.workspace.getConfiguration).toHaveBeenCalledWith('codegraphy');
-    expect(dependencies.update).toHaveBeenCalledWith('groups', groups, 'workspace');
+    expect(update).toHaveBeenCalledWith('groups', groups);
     expect(dependencies.window.showInformationMessage).toHaveBeenCalledWith('saved');
     expect(dependencies.window.showOpenDialog).toHaveBeenCalledWith(openDialogOptions);
   });
@@ -173,19 +178,16 @@ function createSource() {
 }
 
 function createDependencies() {
-  const update = vi.fn(() => Promise.resolve());
-
   return {
-    update,
     workspace: {
       workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
-      getConfiguration: vi.fn(() => ({ update })),
+      getConfiguration: vi.fn(),
     },
     window: {
       showInformationMessage: vi.fn(),
       showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
     },
-    getConfigTarget: vi.fn(() => 'workspace'),
+    getConfigTarget: vi.fn(),
   };
 }
 

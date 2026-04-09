@@ -2,6 +2,11 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessageSettingsContext,
 } from '../../../../../src/extension/graphView/webview/providerMessages/settingsContext';
+import * as repoSettings from '../../../../../src/extension/repoSettings/current';
+
+vi.mock('../../../../../src/extension/repoSettings/current', () => ({
+  getCodeGraphyConfiguration: vi.fn(),
+}));
 
 describe('graph view provider listener settings context', () => {
   it('reads config values from the codegraphy settings namespace', () => {
@@ -11,10 +16,11 @@ describe('graph view provider listener settings context', () => {
       ),
       update: vi.fn(() => Promise.resolve()),
     };
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue(configuration as never);
     const dependencies = {
       workspace: {
         workspaceFolders: [],
-        getConfiguration: vi.fn(() => configuration),
+        getConfiguration: vi.fn(),
       },
       getConfigTarget: vi.fn(() => 'workspace'),
       captureSettingsSnapshot: vi.fn(),
@@ -45,8 +51,6 @@ describe('graph view provider listener settings context', () => {
     );
 
     expect(context.getConfig('maxFiles', 500)).toBe(250);
-
-    expect(dependencies.workspace.getConfiguration).toHaveBeenCalledWith('codegraphy');
     expect(configuration.get).toHaveBeenCalledWith('maxFiles', 500);
   });
 
@@ -78,10 +82,11 @@ describe('graph view provider listener settings context', () => {
       get: vi.fn(<T>(_key: string, defaultValue: T) => defaultValue),
       update: updateConfig,
     };
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue(configuration as never);
     const dependencies = {
       workspace: {
         workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
-        getConfiguration: vi.fn(() => configuration),
+        getConfiguration: vi.fn(),
       },
       getConfigTarget: vi.fn(() => 'workspace'),
       captureSettingsSnapshot,
@@ -103,9 +108,8 @@ describe('graph view provider listener settings context', () => {
     await context.updateConfig('showOrphans', false);
     await context.resetAllSettings();
 
-    expect(updateConfig).toHaveBeenCalledWith('dagMode', 'TB', 'workspace');
-    expect(updateConfig).toHaveBeenCalledWith('nodeSizeMode', 'files', 'workspace');
-    expect(dependencies.workspace.getConfiguration).toHaveBeenCalledWith('codegraphy');
+    expect(updateConfig).toHaveBeenCalledWith('dagMode', 'TB');
+    expect(updateConfig).toHaveBeenCalledWith('nodeSizeMode', 'files');
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'DAG_MODE_UPDATED',
       payload: { dagMode: 'TB' },
@@ -114,7 +118,7 @@ describe('graph view provider listener settings context', () => {
       type: 'NODE_SIZE_MODE_UPDATED',
       payload: { nodeSizeMode: 'files' },
     });
-    expect(updateConfig).toHaveBeenCalledWith('showOrphans', false, 'workspace');
+    expect(updateConfig).toHaveBeenCalledWith('showOrphans', false);
     expect(captureSettingsSnapshot).toHaveBeenCalledOnce();
     expect(createResetSettingsAction).toHaveBeenCalledOnce();
     expect(executeUndoAction).toHaveBeenCalledWith({ kind: 'reset-settings' });
@@ -162,10 +166,7 @@ describe('graph view provider listener settings context', () => {
     const dependencies = {
       workspace: {
         workspaceFolders: [],
-        getConfiguration: vi.fn(() => ({
-          get: vi.fn((_: string, defaultValue: unknown) => defaultValue),
-          update: vi.fn(() => Promise.resolve()),
-        })),
+        getConfiguration: vi.fn(),
       },
       getConfigTarget: vi.fn(() => 'workspace'),
       captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
@@ -176,6 +177,11 @@ describe('graph view provider listener settings context', () => {
       dagModeKey: 'dagMode',
       nodeSizeModeKey: 'nodeSizeMode',
     };
+
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      get: vi.fn((_: string, defaultValue: unknown) => defaultValue),
+      update: vi.fn(() => Promise.resolve()),
+    } as never);
 
     const context = createGraphViewProviderMessageSettingsContext(
       source as never,

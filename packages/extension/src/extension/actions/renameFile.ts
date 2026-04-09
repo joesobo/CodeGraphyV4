@@ -64,7 +64,7 @@ export class RenameFileAction implements IUndoableAction {
     // Only update favorites if the file was in favorites (state actually changed)
     const favoritesChanged = this._favoritesBefore.includes(this._oldPath);
     if (favoritesChanged) {
-      await config.update('favorites', this._favoritesAfter, vscode.ConfigurationTarget.Workspace);
+      await config.update('favorites', this._favoritesAfter);
     }
 
     await this._refreshGraph();
@@ -81,7 +81,7 @@ export class RenameFileAction implements IUndoableAction {
     const favoritesChanged = this._favoritesBefore.includes(this._oldPath);
     if (favoritesChanged) {
       const config = getCodeGraphyConfiguration();
-      await config.update('favorites', this._favoritesBefore, vscode.ConfigurationTarget.Workspace);
+      await config.update('favorites', this._favoritesBefore);
     }
 
     await this._refreshGraph();

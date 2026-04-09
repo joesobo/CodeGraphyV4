@@ -1,12 +1,12 @@
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 
 interface GraphViewPhysicsConfigurationLike {
-  update(key: string, value: unknown, target: unknown): PromiseLike<void>;
+  update(key: string, value: unknown, target?: unknown): PromiseLike<void>;
 }
 
 interface GraphViewPhysicsConfigOptions {
   getConfiguration: () => GraphViewPhysicsConfigurationLike;
-  getConfigTarget: () => unknown;
+  getConfigTarget?: () => unknown;
 }
 
 function getGraphViewPhysicsSettingKeys(): Array<keyof IPhysicsSettings> {
@@ -18,14 +18,14 @@ export async function updateGraphViewPhysicsSetting(
   value: number,
   { getConfiguration, getConfigTarget }: GraphViewPhysicsConfigOptions,
 ): Promise<void> {
-  await getConfiguration().update(`physics.${key}`, value, getConfigTarget());
+  await getConfiguration().update(`physics.${key}`, value, getConfigTarget?.());
 }
 
 export async function resetGraphViewPhysicsSettings(
   { getConfiguration, getConfigTarget }: GraphViewPhysicsConfigOptions,
 ): Promise<void> {
   const config = getConfiguration();
-  const target = getConfigTarget();
+  const target = getConfigTarget?.();
 
   for (const key of getGraphViewPhysicsSettingKeys()) {
     await config.update(`physics.${key}`, undefined, target);

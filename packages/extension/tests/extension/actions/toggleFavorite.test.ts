@@ -59,8 +59,7 @@ describe('ToggleFavoriteAction', () => {
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
-        expect.arrayContaining(['src/app.ts']),
-        vscode.ConfigurationTarget.Workspace
+        expect.arrayContaining(['src/app.ts'])
       );
     });
 

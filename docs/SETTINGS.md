@@ -21,7 +21,7 @@ Common top-level sections include:
 - `nodeColors`
 - `edgeVisibility`
 - `edgeColors`
-- `groups` (legend rules)
+- `groups` (the stored legend rule list used by the Legends popup)
 - `pluginOrder`
 - `disabledPlugins`
 - `disabledSources`
@@ -74,7 +74,7 @@ Example:
 | `particleSpeed` | number | `0.005` | Particle direction speed |
 | `particleSize` | number | `4` | Particle size in pixels |
 | `favorites` | string[] | `[]` | Favorite file paths |
-| `groups` | object[] | `[]` | Legend rules: `{ id, pattern, color, ... }` |
+| `groups` | object[] | `[]` | Stored legend rules: `{ id, pattern, color, ... }` |
 | `pluginOrder` | string[] | `[]` | Plugin processing order, bottom-to-top |
 | `disabledPlugins` | string[] | `[]` | Disabled plugin IDs |
 | `disabledSources` | string[] | `[]` | Disabled qualified source IDs kept for legacy migration and source-level filtering |
@@ -115,6 +115,7 @@ Adjusts the physics simulation in real time.
 ### Legends
 
 Legend rules now live in their own **Legends** popup, not inside the settings panel.
+The popup label is **Legends**, while the persisted key in `.codegraphy/settings.json` remains `groups`.
 
 Legend rules assign colors based on regex/glob-style matching and are applied in drag order:
 
