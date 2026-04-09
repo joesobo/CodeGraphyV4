@@ -58,11 +58,6 @@ suite('File Ops: Graph refresh', function () {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(3_000);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
-    await sleep(1_000);
 
     const folders = vscode.workspace.workspaceFolders;
     assert.ok(folders && folders.length > 0, 'Workspace folder required');

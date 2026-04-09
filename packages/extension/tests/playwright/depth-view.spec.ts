@@ -93,7 +93,7 @@ test.describe('webview depth view', () => {
       page.getByRole('button', { name: /Open packages\/app\/src\/index\.ts/ }),
     ).toBeVisible();
 
-    await expect(page.getByTestId('depth-harness-view')).toHaveText('codegraphy.depth-graph');
+    await expect(page.getByTestId('depth-harness-view')).toHaveText('depth:on');
     await expect(page.getByTestId('depth-harness-depth')).toHaveText('1');
     await expect(page.getByTestId('depth-harness-node-count')).toHaveText('3');
     await expect(page.getByTestId('depth-harness-node-ids')).toContainText(
@@ -117,7 +117,7 @@ test.describe('webview depth view', () => {
 
     await page.getByTitle('Disable Depth Mode').click();
 
-    await expect(page.getByTestId('depth-harness-view')).toHaveText('codegraphy.connections');
+    await expect(page.getByTestId('depth-harness-view')).toHaveText('depth:off');
     await expect(page.getByTestId('depth-harness-node-count')).toHaveText('5');
     await expect(page.getByTestId('depth-harness-bounds-count')).toHaveText('5');
     await expect(page.getByTestId('depth-view-controls')).toHaveCount(0);

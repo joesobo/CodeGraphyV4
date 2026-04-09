@@ -39,7 +39,6 @@ export interface GraphViewPrimaryMessageContext {
   undo(): Promise<string | undefined>;
   redo(): Promise<string | undefined>;
   showInformationMessage(detail: string): void;
-  changeView(viewId: string): Promise<void>;
   setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
   getDepthMode(): boolean;

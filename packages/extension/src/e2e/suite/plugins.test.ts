@@ -83,44 +83,6 @@ suite(pluginSuiteName, function () {
   });
 });
 
-// ── View switching ─────────────────────────────────────────────────────────
-
-suite('Plugin: View switching', function () {
-  this.timeout(30_000);
-
-  test('CHANGE_VIEW message switches to Folder view', async function() {
-    const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(3_000);
-
-    // Send the CHANGE_VIEW message
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.folder' },
-    });
-    await sleep(2_000);
-
-    // The graph should still have nodes (folder view creates folder + file nodes)
-    const graphData = api.getGraphData();
-    assert.ok(graphData.nodes.length > 0, 'Folder view should still have nodes');
-  });
-
-  test('CHANGE_VIEW back to Connections view works', async function() {
-    const api = await getAPI();
-    await vscode.commands.executeCommand('codegraphy.open');
-    await sleep(3_000);
-
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
-    await sleep(1_000);
-
-    const graphData = api.getGraphData();
-    assert.ok(graphData.nodes.length > 0, 'Connections view should have nodes');
-  });
-});
-
 // ── Favorites ──────────────────────────────────────────────────────────────
 
 suite('Plugin: Favorites', function () {

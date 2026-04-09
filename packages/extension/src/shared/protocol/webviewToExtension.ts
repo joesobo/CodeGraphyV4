@@ -36,7 +36,6 @@ export type WebviewToExtensionMessage =
   | { type: 'UNDO' }
   | { type: 'REDO' }
   | { type: 'UPDATE_DEPTH_MODE'; payload: { depthMode: boolean } }
-  | { type: 'CHANGE_VIEW'; payload: { viewId: string } }
   | { type: 'CHANGE_DEPTH_LIMIT'; payload: { depthLimit: number } }
   | { type: 'UPDATE_LEGENDS'; payload: { groups: IGroup[] } }
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }

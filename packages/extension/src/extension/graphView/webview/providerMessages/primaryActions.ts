@@ -26,7 +26,6 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'undo'
   | 'redo'
   | 'showInformationMessage'
-  | 'changeView'
   | 'setDepthMode'
   | 'setDepthLimit'
   | 'indexRepository'
@@ -71,7 +70,6 @@ export function createGraphViewProviderMessagePrimaryActions(
     showInformationMessage: detail => {
       dependencies.window.showInformationMessage(detail);
     },
-    changeView: viewId => source.changeView(viewId),
     setDepthMode: depthMode => source.setDepthMode(depthMode),
     setDepthLimit: depthLimit => source.setDepthLimit(depthLimit),
     indexRepository: () => source._indexRepository(),

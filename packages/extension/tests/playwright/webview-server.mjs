@@ -54,27 +54,6 @@ const fullGraph = {
   ],
 };
 
-const availableViews = [
-  {
-    id: 'codegraphy.connections',
-    name: 'Connections',
-    icon: 'graph',
-    description: 'Show file connections',
-  },
-  {
-    id: 'codegraphy.depth-graph',
-    name: 'Depth Graph',
-    icon: 'bullseye',
-    description: 'Show a local graph around the active file',
-  },
-  {
-    id: 'codegraphy.folder',
-    name: 'Folders',
-    icon: 'folder',
-    description: 'Show folder relationships',
-  },
-];
-
 const smokeHtml = `<!doctype html>
 <html lang="en">
   <head>
@@ -112,14 +91,12 @@ const smokeHtml = `<!doctype html>
 
 const depthHarnessScript = `
   (() => {
-    const ACTIVE_VIEW_DEPTH = 'codegraphy.depth-graph';
     window.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ = true;
     const fullGraph = ${JSON.stringify(fullGraph)};
-    const baseViews = ${JSON.stringify(availableViews)};
     window.__CODEGRAPHY_ENABLE_GRAPH_DEBUG__ = true;
     const state = {
       activeFilePath: 'packages/app/src/index.ts',
-      activeViewId: ACTIVE_VIEW_DEPTH,
+      depthMode: true,
       boundsNodes: [],
       depthLimit: 1,
     };
@@ -132,7 +109,7 @@ const depthHarnessScript = `
     };
 
     const buildDepthGraph = () => {
-      if (state.activeViewId !== ACTIVE_VIEW_DEPTH || !state.activeFilePath) {
+      if (!state.depthMode || !state.activeFilePath) {
         return fullGraph;
       }
 
@@ -175,7 +152,7 @@ const depthHarnessScript = `
 
     const renderHarnessState = () => {
       const graph = currentGraph();
-      byTestId('depth-harness-view').textContent = state.activeViewId;
+      byTestId('depth-harness-view').textContent = state.depthMode ? 'depth:on' : 'depth:off';
       byTestId('depth-harness-depth').textContent = String(state.depthLimit);
       byTestId('depth-harness-node-count').textContent = String(graph.nodes.length);
       byTestId('depth-harness-node-ids').textContent = graph.nodes.map((node) => node.id).join('\\n');
@@ -200,19 +177,6 @@ const depthHarnessScript = `
         }
       };
       boundsProbeTimer = window.setTimeout(probe, 900);
-    };
-
-    const publishViews = () => {
-      postToWebview({
-        type: 'VIEWS_UPDATED',
-        payload: {
-          activeViewId: state.activeViewId,
-          views: baseViews.map((view) => ({
-            ...view,
-            active: view.id === state.activeViewId,
-          })),
-        },
-      });
     };
 
     const publishSettings = () => {
@@ -251,7 +215,6 @@ const depthHarnessScript = `
     };
 
     const publishAll = () => {
-      publishViews();
       publishSettings();
       publishDepthLimit();
       publishActiveFile();
@@ -263,9 +226,8 @@ const depthHarnessScript = `
         case 'WEBVIEW_READY':
           publishAll();
           break;
-        case 'CHANGE_VIEW':
-          state.activeViewId = message.payload.viewId;
-          publishViews();
+        case 'UPDATE_DEPTH_MODE':
+          state.depthMode = Boolean(message.payload?.depthMode);
           publishGraph();
           break;
         case 'CHANGE_DEPTH_LIMIT':

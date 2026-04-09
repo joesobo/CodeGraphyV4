@@ -216,6 +216,13 @@ async function waitForStableNodeBounds(
   throw new Error('Rendered node positions never stabilized');
 }
 
+async function setDepthMode(api: CodeGraphyAPI, depthMode: boolean): Promise<void> {
+  await api.dispatchWebviewMessage({
+    type: 'UPDATE_DEPTH_MODE',
+    payload: { depthMode },
+  });
+}
+
 suite('Graph: Physics Stabilization', function () {
   this.timeout(30_000);
 
@@ -330,10 +337,7 @@ suite('Graph: Depth View', function () {
     assert.ok(fullGraph.nodes.length > 0, 'Expected connections graph data before switching views');
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     const depthGraph = await depthGraphPromise;
 
     assert.deepStrictEqual(
@@ -361,10 +365,7 @@ suite('Graph: Depth View', function () {
     await sleep(1_000);
 
     const depthOnePromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     const depthOneGraph = await depthOnePromise;
     const depthOneNodeIds = depthOneGraph.nodes.map((node) => String(node.id)).sort();
 
@@ -395,10 +396,7 @@ suite('Graph: Depth View', function () {
     const depthTwoBounds = await requestNodeBounds(api);
     assert.strictEqual(depthTwoBounds.length, depthTwoGraph.nodes.length);
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 
   test('depth view re-roots around the selected node even without an active editor', async function() {
@@ -410,10 +408,7 @@ suite('Graph: Depth View', function () {
     await sleep(1_000);
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     await depthGraphPromise;
 
     const selectedNodeGraphPromise = waitForGraphDataUpdate(api);
@@ -435,10 +430,7 @@ suite('Graph: Depth View', function () {
     const renderedBounds = await requestNodeBounds(api);
     assert.strictEqual(renderedBounds.length, selectedNodeGraph.nodes.length);
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 
   test('depth view re-roots around the selected node even when another editor stays active', async function() {
@@ -456,10 +448,7 @@ suite('Graph: Depth View', function () {
     await sleep(1_000);
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     await depthGraphPromise;
 
     const depthLimitResetPromise = waitForGraphDataUpdate(api);
@@ -493,10 +482,7 @@ suite('Graph: Depth View', function () {
     const renderedBounds = await requestNodeBounds(api);
     assert.strictEqual(renderedBounds.length, selectedNodeGraph.nodes.length);
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 
   test('depth view stays filtered when re-rooting from the current node to a visible neighbor', async function() {
@@ -514,10 +500,7 @@ suite('Graph: Depth View', function () {
     await sleep(1_000);
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     await depthGraphPromise;
 
     const depthLimitResetPromise = waitForGraphDataUpdate(api);
@@ -578,10 +561,7 @@ suite('Graph: Depth View', function () {
       `Re-rooting should not clear the focused file. Active file updates: ${JSON.stringify(activeFileUpdates)}`,
     );
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 
   test('depth view returns to the full graph when the focused node is cleared', async function() {
@@ -590,10 +570,7 @@ suite('Graph: Depth View', function () {
     await sleep(5_000);
 
     const connectionsGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
     await connectionsGraphPromise;
 
     const fullGraph = api.getGraphData();
@@ -601,10 +578,7 @@ suite('Graph: Depth View', function () {
     const fullEdgeIds = fullGraph.edges.map(edge => String(edge.id)).sort();
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     await depthGraphPromise;
 
     const depthLimitResetPromise = waitForGraphDataUpdate(api);
@@ -639,10 +613,7 @@ suite('Graph: Depth View', function () {
       fullEdgeIds,
     );
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 
   test('depth view re-roots again after clearing a selected node and choosing a different node', async function() {
@@ -660,10 +631,7 @@ suite('Graph: Depth View', function () {
     await sleep(1_000);
 
     const depthGraphPromise = waitForGraphDataUpdate(api);
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
-    });
+    await setDepthMode(api, true);
     await depthGraphPromise;
 
     const depthLimitResetPromise = waitForGraphDataUpdate(api);
@@ -702,9 +670,6 @@ suite('Graph: Depth View', function () {
       scenario.depth.selectedNodeDepthOneEdgeIds,
     );
 
-    await api.dispatchWebviewMessage({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
-    });
+    await setDepthMode(api, false);
   });
 });

@@ -115,7 +115,6 @@ export interface GraphViewProviderMessageListenerSource {
   _getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;
   redo(): Promise<string | undefined>;
-  changeView(viewId: string): Promise<void>;
   setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
   _indexRepository(): Promise<void>;

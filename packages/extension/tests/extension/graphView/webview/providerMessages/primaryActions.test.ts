@@ -49,7 +49,6 @@ describe('graph view provider listener primary actions', () => {
     await actions.analyzeAndSendData();
     await actions.undo();
     await actions.redo();
-    await actions.changeView('codegraphy.depth-graph');
     await actions.setDepthLimit(4);
     await actions.indexRepository();
     await actions.jumpToCommit('sha-1');
@@ -61,7 +60,6 @@ describe('graph view provider listener primary actions', () => {
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
     expect(source.undo).toHaveBeenCalledOnce();
     expect(source.redo).toHaveBeenCalledOnce();
-    expect(source.changeView).toHaveBeenCalledWith('codegraphy.depth-graph');
     expect(source.setDepthLimit).toHaveBeenCalledWith(4);
     expect(source._indexRepository).toHaveBeenCalledOnce();
     expect(source._jumpToCommit).toHaveBeenCalledWith('sha-1');

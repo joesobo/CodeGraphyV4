@@ -6,7 +6,6 @@ function createHandlers() {
     undo: vi.fn(),
     redo: vi.fn(),
     showInformationMessage: vi.fn(),
-    changeView: vi.fn(() => Promise.resolve()),
     setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
     updateDagMode: vi.fn(() => Promise.resolve()),
@@ -53,18 +52,6 @@ describe('graph view command message', () => {
     const handled = await applyCommandMessage({ type: 'REDO' }, handlers);
 
     expect(handlers.showInformationMessage).toHaveBeenCalledWith('Nothing to redo');
-    expect(handled).toBe(true);
-  });
-
-  it('changes the active view', async () => {
-    const handlers = createHandlers();
-
-    const handled = await applyCommandMessage(
-      { type: 'CHANGE_VIEW', payload: { viewId: 'codegraphy.folder' } },
-      handlers,
-    );
-
-    expect(handlers.changeView).toHaveBeenCalledWith('codegraphy.folder');
     expect(handled).toBe(true);
   });
 
