@@ -39,7 +39,6 @@ describe('graphView/provider/pluginResources', () => {
     expect(source._pluginExtensionUris.get('plugin.test')?.fsPath).toBe('/extension');
     expect(buildMergedGroups).toHaveBeenCalledWith(
       source._userGroups,
-      source._hiddenPluginGroupIds,
       builtInGroups,
       pluginGroups,
     );

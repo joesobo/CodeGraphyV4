@@ -189,11 +189,6 @@ describe('GraphViewProvider bootstrap wiring', () => {
     ).toEqual([]);
     expect((provider as unknown as { _groups: unknown[] })._groups).toEqual([]);
     expect((provider as unknown as { _userGroups: unknown[] })._userGroups).toEqual([]);
-    expect(
-      Array.from(
-        (provider as unknown as { _hiddenPluginGroupIds: Set<string> })._hiddenPluginGroupIds,
-      ),
-    ).toEqual([]);
     expect((provider as unknown as { _filterPatterns: unknown[] })._filterPatterns).toEqual([]);
     expect(GraphViewProvider.timelineViewType).toBe('codegraphy.timelineView');
 
