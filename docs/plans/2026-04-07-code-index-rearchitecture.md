@@ -101,9 +101,22 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
 - This refactor needs a clean docs pass, updated changesets, and a README section describing the core programming stack.
 - `.codegraphy/settings.json` should be mostly internal but still human-editable.
 - CodeGraphy should watch `.codegraphy/settings.json` for manual edits and refresh relevant UI/index state when it changes.
+- `.codegraphy/meta.json` currently tracks:
+  - `version`
+  - `lastIndexedAt`
+  - `lastIndexedCommit`
+  - `pluginSignature`
+  - `settingsSignature`
+  - `pendingChangedFiles`
 - Built-in plugins should still appear in the `Plugins` popup and follow the same ordering rules as external plugins.
 - Plugin processing order is bottom-to-top in the `Plugins` popup.
 - Top plugin wins on merge conflicts.
+- The shared per-file analysis result now consists of:
+  - contributed node types
+  - contributed edge types
+  - analysis nodes
+  - symbols
+  - relations
 
 ## Product Shape
 
@@ -466,7 +479,5 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
 
 ## Unresolved Questions
 
-- Exact minimal field set for `.codegraphy/meta.json`
-- Exact shared per-file result object shape in `plugin-api`
 - Exact graph projection rules from symbol relations to merged file edges beyond the current same-kind/different-kind merge rule
 - Flow/logic traversal design after the core rewrite
