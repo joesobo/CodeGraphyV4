@@ -66,26 +66,26 @@ export function handleLegendsUpdated(
 ): PartialState | void {
   const state = ctx.getState();
   const resolvedUserGroups = applyPendingUserGroupsUpdate(
-    message.payload.groups,
-    state.optimisticUserGroups,
+    message.payload.legends,
+    state.optimisticUserLegends,
   );
   const resolved = applyPendingGroupUpdates(
     resolvedUserGroups.groups,
-    state.optimisticGroupUpdates,
+    state.optimisticLegendUpdates,
   );
 
   if (
-    arePlainValuesEqual(state.groups, resolved.groups) &&
-    arePlainValuesEqual(state.optimisticUserGroups, resolvedUserGroups.pendingUserGroups) &&
-    arePlainValuesEqual(state.optimisticGroupUpdates, resolved.pendingUpdates)
+    arePlainValuesEqual(state.legends, resolved.groups) &&
+    arePlainValuesEqual(state.optimisticUserLegends, resolvedUserGroups.pendingUserGroups) &&
+    arePlainValuesEqual(state.optimisticLegendUpdates, resolved.pendingUpdates)
   ) {
     return;
   }
 
   return {
-    groups: resolved.groups,
-    optimisticUserGroups: resolvedUserGroups.pendingUserGroups,
-    optimisticGroupUpdates: resolved.pendingUpdates,
+    legends: resolved.groups,
+    optimisticUserLegends: resolvedUserGroups.pendingUserGroups,
+    optimisticLegendUpdates: resolved.pendingUpdates,
   };
 }
 

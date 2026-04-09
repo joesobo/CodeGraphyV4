@@ -129,7 +129,7 @@ function resetStore(): void {
     depthMode: false,
     depthLimit: 1,
     maxDepthLimit: 10,
-    groups: [],
+    legends: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
     pluginStatuses: [],

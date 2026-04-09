@@ -23,7 +23,7 @@ export function captureGraphViewSettingsSnapshot(
 
   return {
     physics,
-    groups: config.get('groups', []),
+    groups: config.get('legend', []),
     filterPatterns: config.get('filterPatterns', []),
     showOrphans: config.get('showOrphans', true),
     bidirectionalMode: config.get('bidirectionalEdges', 'separate'),

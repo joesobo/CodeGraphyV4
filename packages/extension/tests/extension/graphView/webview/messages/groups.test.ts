@@ -54,7 +54,7 @@ describe('graph view group message', () => {
 
     await expect(
       applyGroupMessage(
-        { type: 'UPDATE_LEGENDS', payload: { groups: incomingGroups } },
+        { type: 'UPDATE_LEGENDS', payload: { legends: incomingGroups } },
         state,
         handlers,
       ),

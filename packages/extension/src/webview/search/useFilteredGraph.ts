@@ -31,7 +31,7 @@ export function useFilteredGraph(
   graphData: IGraphData | null,
   searchQuery: string,
   searchOptions: SearchOptions,
-  groups: IGroup[],
+  legends: IGroup[],
   nodeColors: Record<string, string> = {},
   nodeVisibility: Record<string, boolean> = {},
   edgeVisibility: Record<string, boolean> = {},
@@ -57,8 +57,8 @@ export function useFilteredGraph(
   );
 
   const coloredData = useMemo(
-    () => applyLegendRules(filteredData, groups),
-    [filteredData, groups],
+    () => applyLegendRules(filteredData, legends),
+    [filteredData, legends],
   );
 
   return {

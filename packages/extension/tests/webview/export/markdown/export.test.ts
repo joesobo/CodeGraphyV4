@@ -22,10 +22,10 @@ import type { IPluginStatus } from '../../../../src/shared/plugins/status';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { graphStore } from '../../../../src/webview/store/state';
 
-const noGroups: IGroup[] = [];
+const noLegends: IGroup[] = [];
 const initialStoreState = {
   currentCommitSha: graphStore.getState().currentCommitSha,
-  groups: graphStore.getState().groups,
+  legends: graphStore.getState().legends,
   pluginStatuses: graphStore.getState().pluginStatuses,
   timelineActive: graphStore.getState().timelineActive,
 };
@@ -39,7 +39,7 @@ afterEach(() => {
 describe('buildMarkdownExport', () => {
   it('includes summary and labeled top-level sections', () => {
     const data: IGraphData = { nodes: [], edges: [] };
-    const result = buildMarkdownExport(data, noGroups);
+    const result = buildMarkdownExport(data, noLegends);
 
     expect(result).toContain('# CodeGraphy Export');
     expect(result).toContain('0 nodes, 0 edges');
@@ -50,7 +50,7 @@ describe('buildMarkdownExport', () => {
 
   it('shows timeline scope when active', () => {
     const data: IGraphData = { nodes: [], edges: [] };
-    const result = buildMarkdownExport(data, noGroups, [], {
+    const result = buildMarkdownExport(data, noLegends, [], {
       timelineActive: true,
       currentCommitSha: 'abc123',
     });
@@ -71,7 +71,7 @@ describe('buildMarkdownExport', () => {
       sources: [{ id: 'es6', qualifiedSourceId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 1 }],
     }];
 
-    const result = buildMarkdownExport(data, noGroups, plugins);
+    const result = buildMarkdownExport(data, noLegends, plugins);
     expect(result).toContain('## Edges');
     expect(result).toContain('`import` `a.ts` -> `b.ts`');
     expect(result).toContain('ES6 Import (TypeScript)');
@@ -85,9 +85,9 @@ describe('buildMarkdownExport', () => {
       ],
       edges: [],
     };
-    const groups: IGroup[] = [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }];
+    const legends: IGroup[] = [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }];
 
-    const result = buildMarkdownExport(data, groups);
+    const result = buildMarkdownExport(data, legends);
     expect(result).toContain('## Legend');
     expect(result).toContain('`*.tsx` (#3B82F6)');
     expect(result).toContain('## Nodes');
@@ -99,11 +99,11 @@ describe('buildMarkdownExport', () => {
       nodes: [{ id: 'src/App.tsx', label: 'App.tsx', color: '#fff' }],
       edges: [],
     };
-    const groups: IGroup[] = [{
+    const legends: IGroup[] = [{
       id: 'g1', pattern: '*.tsx', color: '#3B82F6', imagePath: '.codegraphy/images/app.png',
     }];
 
-    const result = buildMarkdownExport(data, groups);
+    const result = buildMarkdownExport(data, legends);
     expect(result).toContain('image: .codegraphy/images/app.png');
   });
 
@@ -113,7 +113,7 @@ describe('buildMarkdownExport', () => {
       edges: [],
     };
 
-    const result = buildMarkdownExport(data, noGroups);
+    const result = buildMarkdownExport(data, noLegends);
     expect(result).toContain('## Legend');
     expect(result).toContain('- none');
   });
@@ -125,7 +125,7 @@ describe('buildMarkdownExport', () => {
     };
     graphStore.setState({
       currentCommitSha: 'abc123',
-      groups: [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }],
+      legends: [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }],
       pluginStatuses: [],
       timelineActive: true,
     });

@@ -18,7 +18,7 @@ describe('LegendsPanel', () => {
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
       nodeColors: { file: '#333333' },
       edgeColors: { import: '#444444' },
-      groups: [],
+      legends: [],
     });
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
@@ -34,7 +34,7 @@ describe('LegendsPanel', () => {
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
       nodeColors: { file: '#333333' },
       edgeColors: { import: '#444444' },
-      groups: [],
+      legends: [],
     });
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
@@ -58,7 +58,7 @@ describe('LegendsPanel', () => {
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
       nodeColors: { file: '#333333' },
       edgeColors: { import: '#444444' },
-      groups: [],
+      legends: [],
     });
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
@@ -76,7 +76,7 @@ describe('LegendsPanel', () => {
       graphEdgeTypes: [],
       nodeColors: {},
       edgeColors: {},
-      groups: [],
+      legends: [],
     });
 
     render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
@@ -95,7 +95,7 @@ describe('LegendsPanel', () => {
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_LEGENDS',
       payload: {
-        groups: [
+        legends: [
           expect.objectContaining({
             pattern: '*/tests/**',
             target: 'edge',

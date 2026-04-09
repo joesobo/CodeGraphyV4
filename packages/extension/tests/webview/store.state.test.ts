@@ -26,7 +26,7 @@ describe('GraphStore initial state', () => {
   it('starts with the expected filtering and view defaults', () => {
     const state = store.getState();
 
-    expect(state.groups).toEqual([]);
+    expect(state.legends).toEqual([]);
     expect(state.filterPatterns).toEqual([]);
     expect(state.pluginFilterPatterns).toEqual([]);
     expect(state.depthLimit).toBe(1);

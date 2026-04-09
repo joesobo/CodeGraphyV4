@@ -89,7 +89,7 @@ describe('graph view provider listener primary actions', () => {
     actions.showInformationMessage('saved');
     await actions.showOpenDialog(openDialogOptions as never);
 
-    expect(update).toHaveBeenCalledWith('groups', groups);
+    expect(update).toHaveBeenCalledWith('legend', groups);
     expect(dependencies.window.showInformationMessage).toHaveBeenCalledWith('saved');
     expect(dependencies.window.showOpenDialog).toHaveBeenCalledWith(openDialogOptions);
   });

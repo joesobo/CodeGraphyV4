@@ -165,8 +165,8 @@ suite('Settings: Legends', function () {
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(1_000);
 
-    const groups = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
-    await api.dispatchWebviewMessage({ type: 'UPDATE_LEGENDS', payload: { groups } });
+    const legends = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
+    await api.dispatchWebviewMessage({ type: 'UPDATE_LEGENDS', payload: { legends } });
     await sleep(1_000);
 
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0];

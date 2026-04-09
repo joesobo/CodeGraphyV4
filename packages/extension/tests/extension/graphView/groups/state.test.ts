@@ -38,7 +38,7 @@ describe('graphView/groupState', () => {
       createConfig({
         hiddenPluginGroups: ['plugin:codegraphy.typescript'],
         inspected: {
-          groups: { workspaceValue: configuredGroups },
+          legend: { workspaceValue: configuredGroups },
           filterPatterns: { globalValue: ['dist/**'] },
         },
       }),
@@ -57,7 +57,7 @@ describe('graphView/groupState', () => {
     const state = loadGraphViewGroupState(
       createConfig({
         inspected: {
-          groups: { globalValue: configuredGroups },
+          legend: { globalValue: configuredGroups },
         },
       }),
     );
@@ -75,7 +75,7 @@ describe('graphView/groupState', () => {
     const state = loadGraphViewGroupState(
       createConfig({
         inspected: {
-          groups: { workspaceValue: configuredGroups },
+          legend: { workspaceValue: configuredGroups },
         },
       }),
     );

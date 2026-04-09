@@ -95,20 +95,20 @@ describe('configListener', () => {
     expect(provider.refresh).toHaveBeenCalledOnce();
   });
 
-  it('skips re-analysis for groups configuration changes', () => {
+  it('skips re-analysis for legend configuration changes', () => {
     const context = makeContext();
     const provider = makeProvider();
 
     registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
     const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.groups' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.legend' });
 
     expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.refreshSettings).not.toHaveBeenCalled();
   });
 
-  it('debounces group configuration syncs and refreshes group settings once', () => {
+  it('debounces legend configuration syncs and refreshes group settings once', () => {
     vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
@@ -116,7 +116,7 @@ describe('configListener', () => {
     registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
     const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.groups' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.legend' });
     listener({ affectsConfiguration: (key) => key === 'codegraphy.hiddenPluginGroups' });
 
     expect(provider.refreshGroupSettings).not.toHaveBeenCalled();

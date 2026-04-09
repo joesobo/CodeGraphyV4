@@ -48,12 +48,12 @@ describe('GraphStore actions', () => {
     expect(store.getState().physicsSettings).toEqual(physicsSettings);
   });
 
-  it('setGroups updates the active groups', () => {
-    const groups = [{ id: 'docs', pattern: 'docs/**', color: '#00ff00' }];
+  it('setLegends updates the active legends', () => {
+    const legends = [{ id: 'docs', pattern: 'docs/**', color: '#00ff00' }];
 
-    store.getState().setGroups(groups);
+    store.getState().setLegends(legends);
 
-    expect(store.getState().groups).toEqual(groups);
+    expect(store.getState().legends).toEqual(legends);
   });
 
   it('setFilterPatterns updates filter patterns', () => {
@@ -110,48 +110,48 @@ describe('GraphStore actions', () => {
     expect(store.getState().maxFiles).toBe(1200);
   });
 
-  it('setOptimisticGroupUpdate merges updates and refreshes the expiry', () => {
-    store.getState().setOptimisticGroupUpdate('docs', { pattern: 'docs/**' });
-    store.getState().setOptimisticGroupUpdate('docs', { color: '#00ff00' });
+  it('setOptimisticLegendUpdate merges updates and refreshes the expiry', () => {
+    store.getState().setOptimisticLegendUpdate('docs', { pattern: 'docs/**' });
+    store.getState().setOptimisticLegendUpdate('docs', { color: '#00ff00' });
 
-    expect(store.getState().optimisticGroupUpdates.docs?.updates).toEqual({
+    expect(store.getState().optimisticLegendUpdates.docs?.updates).toEqual({
       pattern: 'docs/**',
       color: '#00ff00',
     });
-    expect(store.getState().optimisticGroupUpdates.docs?.expiresAt).toBeGreaterThan(0);
+    expect(store.getState().optimisticLegendUpdates.docs?.expiresAt).toBeGreaterThan(0);
   });
 
-  it('clearOptimisticGroupUpdate removes only the requested optimistic update', () => {
-    store.getState().setOptimisticGroupUpdate('docs', { pattern: 'docs/**' });
-    store.getState().setOptimisticGroupUpdate('src', { pattern: 'src/**' });
+  it('clearOptimisticLegendUpdate removes only the requested optimistic update', () => {
+    store.getState().setOptimisticLegendUpdate('docs', { pattern: 'docs/**' });
+    store.getState().setOptimisticLegendUpdate('src', { pattern: 'src/**' });
 
-    store.getState().clearOptimisticGroupUpdate('docs');
+    store.getState().clearOptimisticLegendUpdate('docs');
 
-    expect(store.getState().optimisticGroupUpdates).toEqual({
+    expect(store.getState().optimisticLegendUpdates).toEqual({
       src: expect.objectContaining({
         updates: { pattern: 'src/**' },
       }),
     });
   });
 
-  it('setOptimisticUserGroups preserves plugin defaults while replacing the user groups', () => {
+  it('setOptimisticUserLegends preserves plugin defaults while replacing the user legends', () => {
     store.setState((state) => ({
       ...state,
-      groups: [
+      legends: [
         { id: 'plugin:typescript', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
         { id: 'existing', pattern: 'src/**', color: '#22C55E' },
       ],
     }));
 
-    store.getState().setOptimisticUserGroups([
+    store.getState().setOptimisticUserLegends([
       { id: 'custom', pattern: 'docs/**', color: '#F59E0B' },
     ]);
 
-    expect(store.getState().groups).toEqual([
+    expect(store.getState().legends).toEqual([
       { id: 'custom', pattern: 'docs/**', color: '#F59E0B' },
       { id: 'plugin:typescript', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
     ]);
-    expect(store.getState().optimisticUserGroups?.groups).toEqual([
+    expect(store.getState().optimisticUserLegends?.groups).toEqual([
       { id: 'custom', pattern: 'docs/**', color: '#F59E0B' },
     ]);
   });

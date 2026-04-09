@@ -46,9 +46,9 @@ export interface GraphState {
   depthMode: boolean;
   depthLimit: number;
   maxDepthLimit: number;
-  groups: IGroup[];
-  optimisticGroupUpdates: PendingGroupUpdates;
-  optimisticUserGroups: PendingUserGroupsUpdate | null;
+  legends: IGroup[];
+  optimisticLegendUpdates: PendingGroupUpdates;
+  optimisticUserLegends: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
   pluginFilterPatterns: string[];
   dagMode: DagMode;
@@ -82,10 +82,10 @@ export interface GraphState {
   setGraphMode: (mode: '2d' | '3d') => void;
   setNodeSizeMode: (mode: NodeSizeMode) => void;
   setPhysicsSettings: (settings: IPhysicsSettings) => void;
-  setGroups: (groups: IGroup[]) => void;
-  setOptimisticGroupUpdate: (groupId: string, updates: Partial<IGroup>) => void;
-  clearOptimisticGroupUpdate: (groupId: string) => void;
-  setOptimisticUserGroups: (groups: IGroup[]) => void;
+  setLegends: (legends: IGroup[]) => void;
+  setOptimisticLegendUpdate: (legendId: string, updates: Partial<IGroup>) => void;
+  clearOptimisticLegendUpdate: (legendId: string) => void;
+  setOptimisticUserLegends: (legends: IGroup[]) => void;
   setFilterPatterns: (patterns: string[]) => void;
   setShowOrphans: (show: boolean) => void;
   setDirectionMode: (mode: DirectionMode) => void;

@@ -19,7 +19,7 @@ export interface GraphViewGroupState {
 export function loadGraphViewGroupState(
   config: GraphViewGroupConfig,
 ): GraphViewGroupState {
-  const groupsInspect = config.inspect<IGroup[]>('groups');
+  const groupsInspect = config.inspect<IGroup[]>('legend');
   const patternsInspect = config.inspect<string[]>('filterPatterns');
 
   const configuredGroups = groupsInspect?.workspaceValue ?? groupsInspect?.globalValue;

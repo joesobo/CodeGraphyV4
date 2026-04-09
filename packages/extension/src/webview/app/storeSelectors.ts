@@ -12,7 +12,7 @@ export function useAppState() {
   const graphIndexProgress = useGraphStore(s => s.graphIndexProgress);
   const searchQuery = useGraphStore(s => s.searchQuery);
   const searchOptions = useGraphStore(s => s.searchOptions);
-  const groups = useGraphStore(s => s.groups);
+  const legends = useGraphStore(s => s.legends);
   const showOrphans = useGraphStore(s => s.showOrphans);
   const timelineActive = useGraphStore(s => s.timelineActive);
   const activePanel = useGraphStore(s => s.activePanel);
@@ -31,7 +31,7 @@ export function useAppState() {
     graphIndexProgress,
     searchQuery,
     searchOptions,
-    groups,
+    legends,
     showOrphans,
     timelineActive,
     activePanel,

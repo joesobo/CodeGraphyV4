@@ -128,7 +128,7 @@ export class Configuration {
    * @default []
    */
   get groups(): IGroup[] {
-    return this.config.get<IGroup[]>('groups', []);
+    return this.config.get<IGroup[]>('legend', []);
   }
 
   /**

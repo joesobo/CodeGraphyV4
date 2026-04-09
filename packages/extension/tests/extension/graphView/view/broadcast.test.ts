@@ -33,15 +33,15 @@ describe('graphView/view/broadcast', () => {
     });
   });
 
-  it('builds the groups-updated payload with webview image urls', () => {
-    const groups: IGroup[] = [
+  it('builds the legends-updated payload with webview image urls', () => {
+    const legends: IGroup[] = [
       { id: 'plugin:test:src/**', pattern: 'src/**', color: '#112233', imagePath: 'icons/test.svg' },
     ];
     const registerPluginRoots = vi.fn();
     const sendMessage = vi.fn();
 
     sendGraphViewLegendsUpdated(
-      groups,
+      legends,
       {
         registerPluginRoots,
         workspaceFolder: undefined,
@@ -56,7 +56,7 @@ describe('graphView/view/broadcast', () => {
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           expect.objectContaining({
             id: 'plugin:test:src/**',
             imageUrl: '/resolved/icons/test.svg',
@@ -95,7 +95,7 @@ describe('graphView/view/broadcast', () => {
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           expect.objectContaining({
             id: 'user-group',
             imageUrl: 'view:/test/workspace/.codegraphy/assets/icon.png',
@@ -134,7 +134,7 @@ describe('graphView/view/broadcast', () => {
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           expect.objectContaining({
             id: 'user-group',
             imageUrl: 'panel:/test/workspace/.codegraphy/assets/icon.png',

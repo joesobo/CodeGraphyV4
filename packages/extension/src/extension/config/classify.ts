@@ -37,7 +37,7 @@ export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): 
     return 'display';
   }
 
-  if (affectsAny('codegraphy.groups', 'codegraphy.hiddenPluginGroups')) {
+  if (affectsAny('codegraphy.legend', 'codegraphy.groups', 'codegraphy.hiddenPluginGroups')) {
     return 'groups';
   }
 

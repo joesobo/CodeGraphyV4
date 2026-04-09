@@ -8,6 +8,37 @@ import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from './meta';
 
 let currentCodeGraphySettingsStore: CodeGraphyRepoSettingsStore | undefined;
 
+function normalizeLegacyLegendKey(key: string): string {
+  if (key === 'legend') {
+    return 'groups';
+  }
+
+  if (key.startsWith('legend.')) {
+    return `groups.${key.slice('legend.'.length)}`;
+  }
+
+  return key;
+}
+
+function createLegacyWorkspaceConfiguration(): ICodeGraphyConfigurationLike {
+  const configuration = vscode.workspace.getConfiguration('codegraphy');
+
+  return {
+    get: <T>(key: string, defaultValue: T): T =>
+      configuration.get<T>(normalizeLegacyLegendKey(key), defaultValue),
+    inspect: <T>(key: string) =>
+      configuration.inspect<T>(normalizeLegacyLegendKey(key)) as unknown as
+        | import('./store').ICodeGraphySettingsInspect<T>
+        | undefined,
+    update: (key: string, value: unknown, target?: unknown) =>
+      Promise.resolve(configuration.update(
+        normalizeLegacyLegendKey(key),
+        value,
+        target as vscode.ConfigurationTarget | undefined,
+      )),
+  };
+}
+
 function createWatcherDisposable(
   watcher: vscode.FileSystemWatcher,
   onChange: () => void,
@@ -59,7 +90,7 @@ export function initializeCurrentCodeGraphyConfiguration(
 
 export function getCodeGraphyConfiguration(): ICodeGraphyConfigurationLike {
   return currentCodeGraphySettingsStore
-    ?? (vscode.workspace.getConfiguration('codegraphy') as unknown as ICodeGraphyConfigurationLike);
+    ?? createLegacyWorkspaceConfiguration();
 }
 
 export function onDidChangeCodeGraphyConfiguration(

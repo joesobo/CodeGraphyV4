@@ -42,9 +42,9 @@ export interface IStoreFields {
   depthMode: boolean;
   depthLimit: number;
   maxDepthLimit: number;
-  groups: IGroup[];
-  optimisticGroupUpdates: PendingGroupUpdates;
-  optimisticUserGroups: PendingUserGroupsUpdate | null;
+  legends: IGroup[];
+  optimisticLegendUpdates: PendingGroupUpdates;
+  optimisticUserLegends: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
   pluginFilterPatterns: string[];
   dagMode: DagMode;

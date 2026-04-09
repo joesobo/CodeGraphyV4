@@ -29,6 +29,18 @@ const SETTINGS_DIR_NAME = '.codegraphy';
 const SETTINGS_FILE_NAME = 'settings.json';
 const SETTINGS_IGNORE_ENTRY = '.codegraphy/';
 
+function normalizeLegendKeyAlias(key: string): string {
+  if (key === 'legend') {
+    return 'groups';
+  }
+
+  if (key.startsWith('legend.')) {
+    return `groups.${key.slice('legend.'.length)}`;
+  }
+
+  return key;
+}
+
 function normalizePersistedSettingsShape(
   value: unknown,
 ): Record<string, unknown> {
@@ -90,7 +102,7 @@ function deepMerge<T>(base: T, overrides: unknown): T {
 }
 
 function getPathSegments(key: string): string[] {
-  return key.split('.').filter(Boolean);
+  return normalizeLegendKeyAlias(key).split('.').filter(Boolean);
 }
 
 function getNestedValue<T>(value: unknown, key: string): T | undefined {
@@ -203,7 +215,7 @@ function createChangeEvent(changedKeys: string[]): ICodeGraphySettingsChangeEven
         return false;
       }
 
-      const key = section.slice('codegraphy.'.length);
+      const key = normalizeLegendKeyAlias(section.slice('codegraphy.'.length));
       return uniqueChangedKeys.some(
         changedKey =>
           changedKey === key ||

@@ -124,7 +124,7 @@ describe('Configuration (configReaders)', () => {
   describe('groups', () => {
     it('returns the configured groups', () => {
       const groups = [{ id: 'g1', pattern: '*.ts', color: '#FFF' }];
-      mockConfig['groups'] = groups;
+      mockConfig.groups = groups;
       expect(new Configuration().groups).toEqual(groups);
     });
 

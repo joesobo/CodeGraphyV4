@@ -80,7 +80,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     updatePhysicsSetting: (key, value) => source._updatePhysicsSetting(key, value),
     resetPhysicsSettings: () => source._resetPhysicsSettings(),
     persistGroups: async groups => {
-      await getCodeGraphyConfiguration().update('groups', groups);
+      await getCodeGraphyConfiguration().update('legend', groups);
     },
     recomputeGroups: () => source._computeMergedGroups(),
     sendGroupsUpdated: () => source._sendGroupsUpdated(),
