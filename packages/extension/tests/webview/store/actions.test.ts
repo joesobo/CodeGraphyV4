@@ -91,16 +91,16 @@ describe('webview/store/actions', () => {
     actions.setParticleSize(8);
     actions.setPhysicsPaused(true);
     actions.setBidirectionalMode('combined');
-    actions.setActiveViewId('codegraphy.depth-graph');
+    actions.setDepthMode(true);
     actions.setDagMode('td');
     actions.setMaxFiles(1200);
     actions.setPlaybackSpeed(1.75);
     actions.setIsPlaying(true);
 
     expect(getState()).toMatchObject({
-      activeViewId: 'codegraphy.depth-graph',
       bidirectionalMode: 'combined',
       dagMode: 'td',
+      depthMode: true,
       directionColor: '#00ff00',
       directionMode: 'particles',
       isPlaying: true,

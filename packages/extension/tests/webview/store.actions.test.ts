@@ -104,12 +104,6 @@ describe('GraphStore actions', () => {
     expect(store.getState().showLabels).toBe(false);
   });
 
-  it('setActiveViewId updates the active view id', () => {
-    store.getState().setActiveViewId('codegraphy.depth-graph');
-
-    expect(store.getState().activeViewId).toBe('codegraphy.depth-graph');
-  });
-
   it('setMaxFiles updates the file limit', () => {
     store.getState().setMaxFiles(1200);
 

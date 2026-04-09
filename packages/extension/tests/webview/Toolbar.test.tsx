@@ -45,10 +45,10 @@ import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
 function setDefaultState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
-    activeViewId: 'codegraphy.connections',
     dagMode: null,
     graphMode: '2d',
     depthLimit: 1,
+    depthMode: false,
     activePanel: 'none',
     pluginExporters: [],
     pluginToolbarActions: [],

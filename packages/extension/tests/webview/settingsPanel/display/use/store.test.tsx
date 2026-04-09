@@ -6,13 +6,30 @@ import { graphStore } from '../../../../../src/webview/store/state';
 
 function setStoreState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
-    activeViewId: 'codegraphy.connections',
     bidirectionalMode: 'separate',
     directionColor: DEFAULT_DIRECTION_COLOR,
     directionMode: 'arrows',
     particleSize: 4,
     particleSpeed: 0.005,
     showLabels: true,
+    graphHasIndex: false,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
+    depthMode: false,
+    depthLimit: 1,
+    maxDepthLimit: 10,
+    groups: [],
+    filterPatterns: [],
+    pluginFilterPatterns: [],
+    pluginStatuses: [],
+    graphNodeTypes: [],
+    graphEdgeTypes: [],
+    nodeColors: {},
+    nodeVisibility: {},
+    edgeVisibility: {},
+    edgeColors: {},
+    activePanel: 'none',
+    maxFiles: 500,
     ...overrides,
   });
 }

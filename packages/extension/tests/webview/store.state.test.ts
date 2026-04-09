@@ -29,8 +29,6 @@ describe('GraphStore initial state', () => {
     expect(state.groups).toEqual([]);
     expect(state.filterPatterns).toEqual([]);
     expect(state.pluginFilterPatterns).toEqual([]);
-    expect(state.availableViews).toEqual([]);
-    expect(state.activeViewId).toBe('codegraphy.connections');
     expect(state.depthLimit).toBe(1);
     expect(state.maxDepthLimit).toBe(10);
     expect(state.dagMode).toBeNull();

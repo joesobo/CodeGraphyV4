@@ -321,17 +321,6 @@ describe('GraphStore message routing', () => {
     expect(store.getState().indexProgress).toBeNull();
   });
 
-  it('CYCLE_VIEW keeps depth mode unavailable before indexing', () => {
-    store.setState({
-      activeViewId: 'codegraphy.connections',
-      graphHasIndex: false,
-    });
-
-    store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
-
-    expect(findMessage('CHANGE_VIEW')).toBeUndefined();
-  });
-
   it('CYCLE_LAYOUT falls back to free-form when dagMode is outside the cycle', () => {
     store.setState({ dagMode: 'invalid-mode' as never });
 

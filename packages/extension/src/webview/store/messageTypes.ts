@@ -14,7 +14,6 @@ import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type { ICommitInfo } from '../../shared/timeline/types';
-import type { IAvailableView } from '../../shared/view/types';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
@@ -48,8 +47,6 @@ export interface IStoreFields {
   optimisticUserGroups: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
   pluginFilterPatterns: string[];
-  availableViews: IAvailableView[];
-  activeViewId: string;
   dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   graphNodeTypes: IGraphNodeTypeDefinition[];

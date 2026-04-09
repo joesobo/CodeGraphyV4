@@ -98,15 +98,6 @@ export function handleFilterPatternsUpdated(
   };
 }
 
-export function handleViewsUpdated(
-  message: Extract<ExtensionToWebviewMessage, { type: 'VIEWS_UPDATED' }>,
-): PartialState {
-  return {
-    availableViews: message.payload.views,
-    activeViewId: message.payload.activeViewId,
-  };
-}
-
 export function handleDepthModeUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'DEPTH_MODE_UPDATED' }>,
 ): PartialState {

@@ -105,16 +105,6 @@ describe('GraphStore', () => {
     expect(store.getState().pluginFilterPatterns).toEqual(['*.uid']);
   });
 
-  it('handles VIEWS_UPDATED message', () => {
-    const views = [{ id: 'v1', name: 'Connections', icon: 'graph', description: '', active: true }];
-    store.getState().handleExtensionMessage({
-      type: 'VIEWS_UPDATED',
-      payload: { views, activeViewId: 'v1' },
-    });
-    expect(store.getState().availableViews).toEqual(views);
-    expect(store.getState().activeViewId).toBe('v1');
-  });
-
   it('handles DEPTH_MODE_UPDATED message', () => {
     store.getState().handleExtensionMessage({
       type: 'DEPTH_MODE_UPDATED',

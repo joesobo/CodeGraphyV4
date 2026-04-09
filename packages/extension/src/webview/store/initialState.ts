@@ -30,8 +30,6 @@ export const INITIAL_STATE: GraphStateFields = {
   optimisticUserGroups: null,
   filterPatterns: [],
   pluginFilterPatterns: [],
-  availableViews: [],
-  activeViewId: 'codegraphy.connections',
   dagMode: null,
   pluginStatuses: [],
   graphNodeTypes: [],

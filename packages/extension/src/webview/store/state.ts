@@ -18,7 +18,6 @@ import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type { ICommitInfo } from '../../shared/timeline/types';
-import type { IAvailableView } from '../../shared/view/types';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,
@@ -52,8 +51,6 @@ export interface GraphState {
   optimisticUserGroups: PendingUserGroupsUpdate | null;
   filterPatterns: string[];
   pluginFilterPatterns: string[];
-  availableViews: IAvailableView[];
-  activeViewId: string;
   dagMode: DagMode;
   pluginStatuses: IPluginStatus[];
   nodeDecorations: Record<string, NodeDecorationPayload>;
@@ -98,7 +95,6 @@ export interface GraphState {
   setPhysicsPaused: (paused: boolean) => void;
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
-  setActiveViewId: (id: string) => void;
   setDepthMode: (depthMode: boolean) => void;
   setDagMode: (mode: DagMode) => void;
   setMaxFiles: (max: number) => void;

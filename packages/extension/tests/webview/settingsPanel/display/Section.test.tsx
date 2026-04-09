@@ -18,7 +18,24 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
-    activeViewId: 'codegraphy.connections',
+    graphHasIndex: false,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
+    depthMode: false,
+    depthLimit: 1,
+    maxDepthLimit: 10,
+    groups: [],
+    filterPatterns: [],
+    pluginFilterPatterns: [],
+    pluginStatuses: [],
+    graphNodeTypes: [],
+    graphEdgeTypes: [],
+    nodeColors: {},
+    nodeVisibility: {},
+    edgeVisibility: {},
+    edgeColors: {},
+    activePanel: 'none',
+    maxFiles: 500,
     ...overrides,
   });
 }
@@ -256,7 +273,6 @@ describe('DisplaySection', () => {
 
   it('does not render the legacy folder color field', () => {
     renderContent({
-      activeViewId: 'codegraphy.folder',
       folderNodeColor: 'bad-color',
     });
 

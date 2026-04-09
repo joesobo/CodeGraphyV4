@@ -35,7 +35,6 @@ export function createActions(set: SetState, get: GetState) {
     setParticleSize: (size: number) => set({ particleSize: size }),
     setPhysicsPaused: (paused: boolean) => set({ physicsPaused: paused }),
     setBidirectionalMode: (mode: GraphState['bidirectionalMode']) => set({ bidirectionalMode: mode }),
-    setActiveViewId: (id: string) => set({ activeViewId: id }),
     setDepthMode: (depthMode: boolean) => set({ depthMode }),
     setDagMode: (mode: GraphState['dagMode']) => set({ dagMode: mode }),
     setMaxFiles: (max: number) => set({ maxFiles: max }),
