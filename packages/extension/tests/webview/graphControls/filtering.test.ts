@@ -76,7 +76,7 @@ describe('webview/graphControls/filtering', () => {
     });
   });
 
-  it('keeps folder-only rendering connected through root and nested folder nests edges', () => {
+  it('keeps folder-only rendering connected through visible folder nests edges', () => {
     const result = applyGraphControls({
       graphData: {
         nodes: [
@@ -101,13 +101,6 @@ describe('webview/graphControls/filtering', () => {
         { id: 'src/lib', label: 'lib', color: DEFAULT_FOLDER_NODE_COLOR, nodeType: 'folder' },
       ],
       edges: [
-        {
-          id: '(root)->src#codegraphy:nests',
-          from: '(root)',
-          to: 'src',
-          kind: 'codegraphy:nests',
-          sources: [],
-        },
         {
           id: 'src->src/lib#codegraphy:nests',
           from: 'src',

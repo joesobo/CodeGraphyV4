@@ -178,7 +178,7 @@ describe('graph view settings update message', () => {
     const handlers = createHandlers();
 
     await expect(
-      applySettingsUpdateMessage({ type: 'TOGGLE_SOURCE', payload: { qualifiedSourceId: 'x', enabled: false } }, state, handlers),
+      applySettingsUpdateMessage({ type: 'TOGGLE_PLUGIN', payload: { pluginId: 'x', enabled: false } }, state, handlers),
     ).resolves.toBe(false);
   });
 });

@@ -43,82 +43,6 @@ function createHandlers(
 }
 
 describe('graph view settings toggle message', () => {
-  it('disables sources and triggers a targeted rebuild', async () => {
-    const state = createState();
-    const handlers = createHandlers();
-
-    const handled = await applySettingsToggleMessage(
-      {
-        type: 'TOGGLE_SOURCE',
-        payload: { qualifiedSourceId: 'codegraphy.typescript:dynamic-import', enabled: false },
-      },
-      state,
-      handlers,
-    );
-
-    expect(handled).toBe(true);
-    expect([...state.disabledSources]).toEqual(['codegraphy.typescript:dynamic-import']);
-    expect(state.disabledSources.has('codegraphy.typescript:dynamic-import')).toBe(true);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledSources', [
-      'codegraphy.typescript:dynamic-import',
-    ]);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith(
-      'rule',
-      'codegraphy.typescript:dynamic-import',
-    );
-  });
-
-  it('re-enables sources and persists the reduced disabled-rule set', async () => {
-    const state = createState({
-      disabledSources: new Set(['codegraphy.typescript:dynamic-import']),
-    });
-    const handlers = createHandlers();
-
-    const handled = await applySettingsToggleMessage(
-      {
-        type: 'TOGGLE_SOURCE',
-        payload: { qualifiedSourceId: 'codegraphy.typescript:dynamic-import', enabled: true },
-      },
-      state,
-      handlers,
-    );
-
-    expect(handled).toBe(true);
-    expect([...state.disabledSources]).toEqual([]);
-    expect(state.disabledSources.has('codegraphy.typescript:dynamic-import')).toBe(false);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledSources', []);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith(
-      'rule',
-      'codegraphy.typescript:dynamic-import',
-    );
-  });
-
-  it('re-enables one rule without dropping other disabled sources', async () => {
-    const state = createState({
-      disabledSources: new Set([
-        'codegraphy.typescript:dynamic-import',
-        'codegraphy.python:unused-import',
-      ]),
-    });
-    const handlers = createHandlers();
-
-    await expect(
-      applySettingsToggleMessage(
-        {
-          type: 'TOGGLE_SOURCE',
-          payload: { qualifiedSourceId: 'codegraphy.typescript:dynamic-import', enabled: true },
-        },
-        state,
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
-    expect([...state.disabledSources]).toEqual(['codegraphy.python:unused-import']);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledSources', [
-      'codegraphy.python:unused-import',
-    ]);
-  });
-
   it('re-enables plugins and reprocesses the plugin-owned files', async () => {
     const state = createState({
       disabledPlugins: new Set(['codegraphy.python']),
@@ -197,7 +121,7 @@ describe('graph view settings toggle message', () => {
     const handlers = createHandlers();
 
     const handled = await applySettingsToggleMessage(
-      { type: 'UPDATE_SHOW_LABELS', payload: { showLabels: false } },
+      { type: 'UPDATE_EDGE_VISIBILITY', payload: { edgeKind: 'CALLS', visible: false } },
       state,
       handlers,
     );
