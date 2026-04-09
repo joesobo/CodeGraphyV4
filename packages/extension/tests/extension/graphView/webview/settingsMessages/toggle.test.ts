@@ -29,6 +29,7 @@ function createHandlers(
       getPluginFilterPatterns: vi.fn(() => []),
       sendGraphControls: vi.fn(),
       analyzeAndSendData: vi.fn(() => Promise.resolve()),
+      reprocessPluginFiles: vi.fn(() => Promise.resolve()),
       sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),
@@ -118,7 +119,7 @@ describe('graph view settings toggle message', () => {
     ]);
   });
 
-  it('re-enables plugins and reruns analysis', async () => {
+  it('re-enables plugins and reprocesses the plugin-owned files', async () => {
     const state = createState({
       disabledPlugins: new Set(['codegraphy.python']),
     });
@@ -137,10 +138,11 @@ describe('graph view settings toggle message', () => {
     expect([...state.disabledPlugins]).toEqual([]);
     expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
   });
 
-  it('disables plugins, persists the expanded disabled-plugin set, and reruns analysis', async () => {
+  it('disables plugins, persists the expanded disabled-plugin set, and reprocesses plugin-owned files', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -159,7 +161,8 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', [
       'codegraphy.python',
     ]);
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('disables one plugin without dropping existing disabled plugins', async () => {

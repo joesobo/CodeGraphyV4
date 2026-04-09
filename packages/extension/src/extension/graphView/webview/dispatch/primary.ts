@@ -67,6 +67,7 @@ export interface GraphViewPrimaryMessageContext {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
   sendGraphControls(): void;
+  reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];
   sendMessage(message: unknown): void;
   applyViewTransform(): void;

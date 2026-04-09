@@ -353,6 +353,32 @@ export class WorkspacePipeline {
     return [...invalidated];
   }
 
+  invalidatePluginFiles(pluginIds: readonly string[]): string[] {
+    if (pluginIds.length === 0 || this._lastDiscoveredFiles.length === 0) {
+      return [];
+    }
+
+    const selectedPluginIds = new Set(pluginIds);
+    const pluginInfos = this._registry
+      .list()
+      .filter(({ plugin }) => selectedPluginIds.has(plugin.id));
+    if (pluginInfos.length === 0) {
+      return [];
+    }
+
+    const invalidateAllFiles = pluginInfos.some(({ plugin }) => plugin.supportedExtensions.includes('*'));
+    const absolutePaths = invalidateAllFiles
+      ? this._lastDiscoveredFiles.map(file => path.join(this._lastWorkspaceRoot, file.relativePath))
+      : this._lastDiscoveredFiles
+        .filter((file) => {
+          const extension = path.extname(file.relativePath).toLowerCase();
+          return pluginInfos.some(({ plugin }) => plugin.supportedExtensions.includes(extension));
+        })
+        .map(file => path.join(this._lastWorkspaceRoot, file.relativePath));
+
+    return this.invalidateWorkspaceFiles(absolutePaths);
+  }
+
   /**
    * Disposes of the analyzer and its resources.
    */

@@ -29,6 +29,7 @@ function createHandlers(
       getPluginFilterPatterns: vi.fn(() => []),
       sendGraphControls: vi.fn(),
       analyzeAndSendData: vi.fn(() => Promise.resolve()),
+      reprocessPluginFiles: vi.fn(() => Promise.resolve()),
       sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),
@@ -129,7 +130,7 @@ describe('graph view settings update message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('maxFiles', 250);
   });
 
-  it('persists plugin order and triggers a re-analysis', async () => {
+  it('persists plugin order and reprocesses the listed plugins', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -148,7 +149,11 @@ describe('graph view settings update message', () => {
       'plugin.typescript',
       'plugin.markdown',
     ]);
-    expect(handlers.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith([
+      'plugin.typescript',
+      'plugin.markdown',
+    ]);
+    expect(handlers.analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('updates label visibility and publishes it immediately', async () => {

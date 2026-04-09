@@ -134,6 +134,10 @@ export class GraphViewProviderRuntime {
     return this._analyzer?.invalidateWorkspaceFiles(filePaths) ?? [];
   }
 
+  public invalidatePluginFiles(pluginIds: readonly string[]): string[] {
+    return this._analyzer?.invalidatePluginFiles(pluginIds) ?? [];
+  }
+
   public markWorkspaceRefreshPending(
     logMessage: string,
     filePaths: readonly string[] = [],

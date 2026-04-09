@@ -27,7 +27,7 @@ export async function applySettingsToggleMessage(
         state.disabledPlugins.add(message.payload.pluginId);
       }
       await handlers.updateConfig('disabledPlugins', [...state.disabledPlugins]);
-      await handlers.analyzeAndSendData();
+      await handlers.reprocessPluginFiles([message.payload.pluginId]);
       return true;
 
     case 'UPDATE_NODE_VISIBILITY': {

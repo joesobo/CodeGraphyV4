@@ -142,6 +142,7 @@ export interface GraphViewProviderMessageListenerSource {
   _sendPluginToolbarActions?(): void;
   _sendPluginWebviewInjections(): void;
   _sendGraphControls?(): void;
+  invalidatePluginFiles(pluginIds: readonly string[]): string[];
 }
 
 export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {

@@ -380,6 +380,83 @@ describe('WorkspacePipeline lifecycle', () => {
     });
   });
 
+  it('invalidates only files owned by the selected plugins', () => {
+    const analyzer = new WorkspacePipeline({
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    } as unknown as vscode.ExtensionContext);
+    const invalidateWorkspaceFiles = vi
+      .spyOn(analyzer, 'invalidateWorkspaceFiles')
+      .mockReturnValue(['src/app.ts', 'src/util.py']);
+    const analyzerPrivate = analyzer as unknown as {
+      _lastWorkspaceRoot: string;
+      _lastDiscoveredFiles: Array<{ relativePath: string }>;
+      _registry: { list(): Array<{ plugin: { id: string; supportedExtensions: string[] } }> };
+    };
+
+    analyzerPrivate._lastWorkspaceRoot = '/test/workspace';
+    analyzerPrivate._lastDiscoveredFiles = [
+      { relativePath: 'src/app.ts' },
+      { relativePath: 'src/util.py' },
+      { relativePath: 'docs/readme.md' },
+    ];
+    vi.spyOn(analyzerPrivate._registry, 'list').mockReturnValue([
+      { plugin: { id: 'codegraphy.typescript', supportedExtensions: ['.ts', '.tsx'] } },
+      { plugin: { id: 'codegraphy.python', supportedExtensions: ['.py'] } },
+      { plugin: { id: 'codegraphy.markdown', supportedExtensions: ['*'] } },
+    ]);
+
+    expect(analyzer.invalidatePluginFiles(['codegraphy.typescript', 'codegraphy.python'])).toEqual([
+      'src/app.ts',
+      'src/util.py',
+    ]);
+    expect(invalidateWorkspaceFiles).toHaveBeenCalledWith([
+      '/test/workspace/src/app.ts',
+      '/test/workspace/src/util.py',
+    ]);
+  });
+
+  it('invalidates the whole discovered repo when a wildcard plugin changes', () => {
+    const analyzer = new WorkspacePipeline({
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    } as unknown as vscode.ExtensionContext);
+    const invalidateWorkspaceFiles = vi
+      .spyOn(analyzer, 'invalidateWorkspaceFiles')
+      .mockReturnValue(['src/app.ts', 'docs/readme.md']);
+    const analyzerPrivate = analyzer as unknown as {
+      _lastWorkspaceRoot: string;
+      _lastDiscoveredFiles: Array<{ relativePath: string }>;
+      _registry: { list(): Array<{ plugin: { id: string; supportedExtensions: string[] } }> };
+    };
+
+    analyzerPrivate._lastWorkspaceRoot = '/test/workspace';
+    analyzerPrivate._lastDiscoveredFiles = [
+      { relativePath: 'src/app.ts' },
+      { relativePath: 'docs/readme.md' },
+    ];
+    vi.spyOn(analyzerPrivate._registry, 'list').mockReturnValue([
+      { plugin: { id: 'codegraphy.markdown', supportedExtensions: ['*'] } },
+    ]);
+
+    expect(analyzer.invalidatePluginFiles(['codegraphy.markdown'])).toEqual([
+      'src/app.ts',
+      'docs/readme.md',
+    ]);
+    expect(invalidateWorkspaceFiles).toHaveBeenCalledWith([
+      '/test/workspace/src/app.ts',
+      '/test/workspace/docs/readme.md',
+    ]);
+  });
+
   it('treats an index as stale when plugin or settings signatures no longer match', () => {
     const analyzer = new WorkspacePipeline({
       subscriptions: [],

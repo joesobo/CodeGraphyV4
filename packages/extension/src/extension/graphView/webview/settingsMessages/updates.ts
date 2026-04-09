@@ -68,7 +68,7 @@ export async function applySettingsUpdateMessage(
 
     case 'UPDATE_PLUGIN_ORDER':
       await handlers.updateConfig('pluginOrder', message.payload.pluginIds);
-      await handlers.analyzeAndSendData();
+      await handlers.reprocessPluginFiles(message.payload.pluginIds);
       return true;
 
     case 'UPDATE_NODE_COLOR': {

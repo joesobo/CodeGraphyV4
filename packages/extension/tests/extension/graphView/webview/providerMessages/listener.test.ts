@@ -170,6 +170,7 @@ function createSource(
     _sendContextMenuItems: vi.fn(),
     _sendGraphControls: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
+    invalidatePluginFiles: vi.fn(() => []),
     ...overrides,
   };
 
@@ -220,6 +221,15 @@ describe('graph view provider listener bridge', () => {
     await messageHandler?.({ type: 'UPDATE_LEGENDS', payload: { groups: userGroups } });
 
     expect(source._userGroups).toEqual(userGroups);
+  });
+
+  it('reprocesses plugin-owned files before reanalyzing when the settings context requests it', async () => {
+    const { context, source } = await loadDefaultListenerHarness();
+
+    await context.reprocessPluginFiles(['codegraphy.python']);
+
+    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
   it('stores ready state updates back onto the provider source', async () => {

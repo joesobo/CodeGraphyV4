@@ -13,6 +13,7 @@ type GraphViewProviderSettingsContext = Pick<
   | 'updateConfig'
   | 'sendGraphControls'
   | 'analyzeAndSendData'
+  | 'reprocessPluginFiles'
   | 'resetAllSettings'
   | 'getMaxFiles'
   | 'getPlaybackSpeed'
@@ -53,6 +54,10 @@ export function createGraphViewProviderMessageSettingsContext(
       source._sendGraphControls?.();
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
+    reprocessPluginFiles: async (pluginIds) => {
+      source.invalidatePluginFiles(pluginIds);
+      await source._analyzeAndSendData();
+    },
     resetAllSettings: async () => {
       const snapshot = dependencies.captureSettingsSnapshot(
         config,
