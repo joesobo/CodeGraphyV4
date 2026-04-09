@@ -106,7 +106,7 @@ Main areas:
 - `IConnectionSource`
 - `IPluginFileColorDefinition` with `color`, optional `shape2D`, optional `shape3D`, and optional `imagePath`
 
-`connection.ts` is now only about source metadata: the relation families a plugin declares in `sources`.
+`connection.ts` is now only about source metadata: the relation families a plugin declares in `sources` so the host can preserve provenance in graph edges, inspectors, and exports.
 
 The public plugin API no longer exposes the old `IConnection` / `IConnectionDetector` analysis types. Plugins return `IFileAnalysisResult` objects from `analyzeFile(...)`, with relations expressed through `IAnalysisRelation`.
 

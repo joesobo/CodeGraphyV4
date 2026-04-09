@@ -6,7 +6,7 @@
 /**
  * Represents a connection source declared by a plugin.
  * Sources describe categories of relations a plugin can emit and
- * power per-plugin/per-source toggles in the UI.
+ * carry provenance metadata through graph edges, inspectors, and exports.
  */
 export interface IConnectionSource {
   /** Unique identifier within the plugin (e.g., 'es6-import', 'preload'). */

@@ -119,7 +119,7 @@ export interface IGraphEdgeSource {
   /** Plugin that contributed this source. */
   pluginId: string;
 
-  /** Plugin-local source identifier used for toggles and diagnostics. */
+  /** Plugin-local source identifier used for provenance, exports, and diagnostics. */
   sourceId: string;
 
   /** Human-readable label shown in inspectors, menus, and exports. */

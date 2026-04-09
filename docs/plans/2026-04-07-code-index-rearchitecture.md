@@ -62,7 +62,7 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
 - If CodeGraphy is closed while files change, changes should batch up and be applied the next time CodeGraphy opens.
 - Timeline should consume projected file-edge snapshots derived from the index, not symbol-graph rendering by default.
 - Timeline full refresh should replay from the first indexed commit forward, carrying the previous DB state into each next commit. No periodic checkpoints.
-- Graph toggles should support both relation kind and provenance/source controls.
+- Graph toggles should support relation-kind controls, while provenance/source metadata remains inspectable and exportable on edges.
 - `package` means real workspace/package boundaries such as monorepo packages or equivalent project units.
 - Built-in plugins should be aggressively simplified once the new Tree-sitter core covers their current baseline work.
 - Plugin output should override core output directly, like replacing object fields, not coexist as parallel conflicting results.
