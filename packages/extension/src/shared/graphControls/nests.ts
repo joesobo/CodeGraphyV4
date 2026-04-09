@@ -45,11 +45,9 @@ export function buildContainmentEdges(
     }
 
     const segments = folderPath.split('/');
-    if (segments.length <= 1) {
-      continue;
-    }
-
-    const parent = segments.slice(0, -1).join('/');
+    const parent = segments.length <= 1
+      ? '(root)'
+      : segments.slice(0, -1).join('/');
     edges.push({
       id: `${parent}->${folderPath}#${STRUCTURAL_NESTS_EDGE_KIND}`,
       from: parent,

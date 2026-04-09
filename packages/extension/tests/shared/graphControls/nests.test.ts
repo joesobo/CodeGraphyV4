@@ -34,6 +34,13 @@ describe('shared/graphControls/nests', () => {
       ],
     )).toEqual([
       {
+        id: '(root)->src#codegraphy:nests',
+        from: '(root)',
+        to: 'src',
+        kind: 'codegraphy:nests',
+        sources: [],
+      },
+      {
         id: 'src->src/lib#codegraphy:nests',
         from: 'src',
         to: 'src/lib',

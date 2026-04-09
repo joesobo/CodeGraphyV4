@@ -50,6 +50,25 @@ function applyNodeTypeColors(
   }));
 }
 
+function mergeEdgeDecorations(
+  edges: IGraphData['edges'],
+  edgeColors: Record<string, string>,
+  edgeDecorations?: Record<string, EdgeDecorationPayload>,
+): Record<string, EdgeDecorationPayload> {
+  return Object.fromEntries(
+    edges.map((edge) => {
+      const existingDecoration = edgeDecorations?.[edge.id] ?? {};
+      return [
+        edge.id,
+        {
+          ...existingDecoration,
+          color: edgeColors[edge.kind] ?? existingDecoration.color,
+        },
+      ];
+    }),
+  ) as Record<string, EdgeDecorationPayload>;
+}
+
 export function applyGraphControls({
   graphData,
   nodeColors,
@@ -108,23 +127,17 @@ export function applyGraphControls({
     : [];
 
   const edges = [...semanticEdges, ...structuralEdges, ...packageEdges];
-  const nextEdgeDecorations = Object.fromEntries(
-    edges.map((edge) => [
-      edge.id,
-      {
-        color: edgeColors[edge.kind],
-      },
-    ]),
-  ) as Record<string, EdgeDecorationPayload>;
+  const nextEdgeDecorations = mergeEdgeDecorations(
+    edges,
+    edgeColors,
+    edgeDecorations,
+  );
 
   return {
     graphData: {
       nodes,
       edges,
     },
-    edgeDecorations: {
-      ...nextEdgeDecorations,
-      ...edgeDecorations,
-    },
+    edgeDecorations: nextEdgeDecorations,
   };
 }
