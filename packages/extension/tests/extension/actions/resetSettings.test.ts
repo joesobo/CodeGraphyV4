@@ -68,6 +68,13 @@ describe('ResetSettingsAction', () => {
     directionMode: 'particles',
     directionColor: '#FF0000',
     folderNodeColor: '#00FF00',
+    nodeColors: { file: '#111111', folder: '#222222' },
+    nodeVisibility: { file: true, folder: false },
+    edgeVisibility: { imports: true, calls: false },
+    edgeColors: { imports: '#333333', calls: '#444444' },
+    pluginOrder: ['codegraphy.markdown', 'codegraphy.typescript'],
+    disabledPlugins: ['codegraphy.python'],
+    disabledSources: ['codegraphy.typescript:dynamic-import'],
     particleSpeed: 0.002,
     particleSize: 8,
     showLabels: false,
@@ -108,6 +115,13 @@ describe('ResetSettingsAction', () => {
       directionMode: 'particles',
       directionColor: '#FF0000',
       folderNodeColor: '#00FF00',
+      nodeColors: { file: '#111111', folder: '#222222' },
+      nodeVisibility: { file: true, folder: false },
+      edgeVisibility: { imports: true, calls: false },
+      edgeColors: { imports: '#333333', calls: '#444444' },
+      pluginOrder: ['codegraphy.markdown', 'codegraphy.typescript'],
+      disabledPlugins: ['codegraphy.python'],
+      disabledSources: ['codegraphy.typescript:dynamic-import'],
       particleSpeed: 0.002,
       particleSize: 8,
       showLabels: false,
@@ -179,6 +193,13 @@ describe('ResetSettingsAction', () => {
     expect(settingsStore['physics.centerForce']).toBe(0.5);
     expect(settingsStore.showOrphans).toBe(false);
     expect(settingsStore.directionMode).toBe('particles');
+    expect(settingsStore.nodeColors).toEqual({ file: '#111111', folder: '#222222' });
+    expect(settingsStore.nodeVisibility).toEqual({ file: true, folder: false });
+    expect(settingsStore.edgeVisibility).toEqual({ imports: true, calls: false });
+    expect(settingsStore.edgeColors).toEqual({ imports: '#333333', calls: '#444444' });
+    expect(settingsStore.pluginOrder).toEqual(['codegraphy.markdown', 'codegraphy.typescript']);
+    expect(settingsStore.disabledPlugins).toEqual(['codegraphy.python']);
+    expect(settingsStore.disabledSources).toEqual(['codegraphy.typescript:dynamic-import']);
     expect(settingsStore.maxFiles).toBe(1000);
     expect(settingsStore.hiddenPluginGroups).toEqual(['group-1', 'group-2']);
     expect(settingsStore.bidirectionalEdges).toBe('combined');

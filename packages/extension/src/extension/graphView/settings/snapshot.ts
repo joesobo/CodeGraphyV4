@@ -13,6 +13,13 @@ export function captureGraphViewSettingsSnapshot(
   nodeSizeMode: NodeSizeMode,
 ): ISettingsSnapshot {
   const settings = readGraphViewSettings(config);
+  const nodeColors = config.get<Record<string, string>>('nodeColors', {}) ?? {};
+  const nodeVisibility = config.get<Record<string, boolean>>('nodeVisibility', {}) ?? {};
+  const edgeVisibility = config.get<Record<string, boolean>>('edgeVisibility', {}) ?? {};
+  const edgeColors = config.get<Record<string, string>>('edgeColors', {}) ?? {};
+  const pluginOrder = config.get<string[]>('pluginOrder', []) ?? [];
+  const disabledPlugins = config.get<string[]>('disabledPlugins', []) ?? [];
+  const disabledSources = config.get<string[]>('disabledSources', []) ?? [];
 
   return {
     physics,
@@ -23,6 +30,13 @@ export function captureGraphViewSettingsSnapshot(
     directionMode: config.get('directionMode', 'arrows'),
     directionColor: settings.directionColor,
     folderNodeColor: settings.folderNodeColor,
+    nodeColors,
+    nodeVisibility,
+    edgeVisibility,
+    edgeColors,
+    pluginOrder,
+    disabledPlugins,
+    disabledSources,
     particleSpeed: config.get('particleSpeed', 0.005),
     particleSize: config.get('particleSize', 4),
     showLabels: config.get('showLabels', true),

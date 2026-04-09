@@ -11,6 +11,13 @@ export interface ISettingsSnapshot {
   directionMode: DirectionMode;
   directionColor: string;
   folderNodeColor: string;
+  nodeColors: Record<string, string>;
+  nodeVisibility: Record<string, boolean>;
+  edgeVisibility: Record<string, boolean>;
+  edgeColors: Record<string, string>;
+  pluginOrder: string[];
+  disabledPlugins: string[];
+  disabledSources: string[];
   particleSpeed: number;
   particleSize: number;
   showLabels: boolean;
