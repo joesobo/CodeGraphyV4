@@ -305,12 +305,12 @@ describe('Export Functionality', () => {
     expect(parsed.summary.totalEdges).toBe(1);
     expect(parsed.summary.totalLegendRules).toBe(0);
     expect(parsed.summary.totalImages).toBe(0);
-    expect(parsed.sections.legend).toEqual([]);
-    expect(parsed.sections.nodes).toEqual([
+    expect(parsed.legend).toEqual([]);
+    expect(parsed.nodes).toEqual([
       expect.objectContaining({ id: 'src/app.ts', nodeType: 'file', legendIds: [] }),
       expect.objectContaining({ id: 'src/utils.ts', nodeType: 'file', legendIds: [] }),
     ]);
-    expect(parsed.sections.edges).toEqual([
+    expect(parsed.edges).toEqual([
       expect.objectContaining({
         from: 'src/app.ts',
         to: 'src/utils.ts',

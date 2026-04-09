@@ -127,10 +127,8 @@ export function buildExportData(
       totalLegendRules: legend.length,
       totalImages: legend.filter((rule) => rule.imagePath).length,
     },
-    sections: {
-      legend,
-      nodes,
-      edges,
-    },
+    legend,
+    nodes,
+    edges,
   };
 }

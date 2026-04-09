@@ -14,7 +14,7 @@ describe('webview/export/json legend order', () => {
       { id: 'earlier', pattern: 'aaa/**', color: '#00ff00' },
     ]);
 
-    expect(exportData.sections.legend.map((legend) => legend.id)).toEqual([
+    expect(exportData.legend.map((legend) => legend.id)).toEqual([
       'later',
       'earlier',
     ]);

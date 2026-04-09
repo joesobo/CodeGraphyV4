@@ -51,9 +51,9 @@ describe('buildExportData', () => {
       totalLegendRules: 0,
       totalImages: 0,
     });
-    expect(result.sections.legend).toEqual([]);
-    expect(result.sections.nodes).toEqual([]);
-    expect(result.sections.edges).toEqual([]);
+    expect(result.legend).toEqual([]);
+    expect(result.nodes).toEqual([]);
+    expect(result.edges).toEqual([]);
   });
 
   it('uses timeline scope context when provided', () => {
@@ -80,8 +80,8 @@ describe('buildExportData', () => {
     }];
 
     const result = buildExportData(data, noLegends, plugins);
-    expect(result.sections.nodes.map((node) => node.id)).toEqual(['a.ts', 'b.ts', 'c.ts']);
-    expect(result.sections.edges).toEqual([
+    expect(result.nodes.map((node) => node.id)).toEqual(['a.ts', 'b.ts', 'c.ts']);
+    expect(result.edges).toEqual([
       {
         id: 'e1',
         from: 'a.ts',
@@ -133,7 +133,7 @@ describe('buildExportData', () => {
     };
 
     const result = buildExportData(data, noLegends);
-    expect(result.sections.edges).toEqual([
+    expect(result.edges).toEqual([
       {
         id: 'e1',
         from: 'a.ts',
@@ -157,7 +157,7 @@ describe('buildExportData', () => {
     const legends: IGroup[] = [{ id: 'g1', pattern: '*.tsx', color: '#3B82F6' }];
 
     const result = buildExportData(data, legends);
-    expect(result.sections.legend).toEqual([
+    expect(result.legend).toEqual([
       {
         id: 'g1',
         pattern: '*.tsx',
@@ -172,7 +172,7 @@ describe('buildExportData', () => {
         pluginName: undefined,
       },
     ]);
-    expect(result.sections.nodes).toEqual([
+    expect(result.nodes).toEqual([
       {
         id: 'README.md',
         label: 'README.md',
@@ -220,7 +220,7 @@ describe('buildExportData', () => {
     ];
 
     const result = buildExportData(data, legends);
-    expect(result.sections.edges).toEqual([
+    expect(result.edges).toEqual([
       {
         id: 'src/App.tsx->src/lib.ts#import',
         from: 'src/App.tsx',
@@ -287,26 +287,24 @@ describe('buildExportData', () => {
         totalLegendRules: 1,
         totalImages: 0,
       },
-      sections: {
-        legend: [
-          {
-            id: 'g1',
-            pattern: '*.tsx',
-            color: '#3B82F6',
-            target: 'node',
-          },
-        ],
-        nodes: [
-          {
-            id: 'src/App.tsx',
-            label: 'App.tsx',
-            nodeType: 'file',
-            color: '#fff',
-            legendIds: ['g1'],
-          },
-        ],
-        edges: [],
-      },
+      legend: [
+        {
+          id: 'g1',
+          pattern: '*.tsx',
+          color: '#3B82F6',
+          target: 'node',
+        },
+      ],
+      nodes: [
+        {
+          id: 'src/App.tsx',
+          label: 'App.tsx',
+          nodeType: 'file',
+          color: '#fff',
+          legendIds: ['g1'],
+        },
+      ],
+      edges: [],
     });
   });
 

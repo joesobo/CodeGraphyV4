@@ -14,10 +14,10 @@ export function renderMarkdownExport(data: ExportData): string {
   }
 
   lines.push('', '## Legend', '');
-  if (data.sections.legend.length === 0) {
+  if (data.legend.length === 0) {
     lines.push('- none');
   } else {
-    for (const rule of data.sections.legend) {
+    for (const rule of data.legend) {
       const extras = [
         rule.shape2D,
         rule.shape3D,
@@ -29,10 +29,10 @@ export function renderMarkdownExport(data: ExportData): string {
   }
 
   lines.push('', '## Nodes', '');
-  if (data.sections.nodes.length === 0) {
+  if (data.nodes.length === 0) {
     lines.push('- none');
   } else {
-    for (const node of data.sections.nodes) {
+    for (const node of data.nodes) {
       const legendSuffix = node.legendIds.length > 0
         ? ` | legend: ${node.legendIds.join(', ')}`
         : '';
@@ -41,10 +41,10 @@ export function renderMarkdownExport(data: ExportData): string {
   }
 
   lines.push('', '## Edges', '');
-  if (data.sections.edges.length === 0) {
+  if (data.edges.length === 0) {
     lines.push('- none');
   } else {
-    for (const edge of data.sections.edges) {
+    for (const edge of data.edges) {
       const edgeSuffix = [
         edge.color ? `color: ${edge.color}` : undefined,
         edge.legendIds.length > 0 ? `legend: ${edge.legendIds.join(', ')}` : undefined,

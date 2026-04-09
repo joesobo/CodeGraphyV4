@@ -66,9 +66,7 @@ export interface ExportData {
     totalLegendRules: number;
     totalImages: number;
   };
-  sections: {
-    legend: ExportLegendRule[];
-    nodes: ExportNodeEntry[];
-    edges: ExportEdgeEntry[];
-  };
+  legend: ExportLegendRule[];
+  nodes: ExportNodeEntry[];
+  edges: ExportEdgeEntry[];
 }

@@ -20,11 +20,9 @@ function createExportData(overrides: Partial<ExportData> = {}): ExportData {
       totalLegendRules: 0,
       totalImages: 0,
     },
-    sections: {
-      legend: [],
-      nodes: [],
-      edges: [],
-    },
+    legend: [],
+    nodes: [],
+    edges: [],
     ...overrides,
   };
 }
@@ -69,52 +67,50 @@ describe('renderMarkdownExport', () => {
         totalLegendRules: 1,
         totalImages: 1,
       },
-      sections: {
-        legend: [
-          {
-            id: 'g1',
-            pattern: 'src/**',
-            color: '#3B82F6',
-            target: 'node',
-            shape2D: 'diamond',
-            imagePath: '.codegraphy/images/src.png',
-          },
-        ],
-        nodes: [
-          {
-            id: 'README.md',
-            label: 'README.md',
-            nodeType: 'file',
-            color: '#fff',
-            legendIds: [],
-          },
-          {
-            id: 'src/App.ts',
-            label: 'App.ts',
-            nodeType: 'file',
-            color: '#fff',
-            legendIds: ['g1'],
-          },
-        ],
-        edges: [
-          {
-            id: 'e1',
-            from: 'src/App.ts',
-            to: 'README.md',
-            kind: 'reference',
-            legendIds: [],
-            sources: [
-              {
-                id: 'ts:import',
-                pluginId: 'ts',
-                pluginName: 'TypeScript',
-                sourceId: 'import',
-                label: 'Import',
-              },
-            ],
-          },
-        ],
-      },
+      legend: [
+        {
+          id: 'g1',
+          pattern: 'src/**',
+          color: '#3B82F6',
+          target: 'node',
+          shape2D: 'diamond',
+          imagePath: '.codegraphy/images/src.png',
+        },
+      ],
+      nodes: [
+        {
+          id: 'README.md',
+          label: 'README.md',
+          nodeType: 'file',
+          color: '#fff',
+          legendIds: [],
+        },
+        {
+          id: 'src/App.ts',
+          label: 'App.ts',
+          nodeType: 'file',
+          color: '#fff',
+          legendIds: ['g1'],
+        },
+      ],
+      edges: [
+        {
+          id: 'e1',
+          from: 'src/App.ts',
+          to: 'README.md',
+          kind: 'reference',
+          legendIds: [],
+          sources: [
+            {
+              id: 'ts:import',
+              pluginId: 'ts',
+              pluginName: 'TypeScript',
+              sourceId: 'import',
+              label: 'Import',
+            },
+          ],
+        },
+      ],
     }));
 
     expect(markdown).toBe([
@@ -148,43 +144,41 @@ describe('renderMarkdownExport', () => {
         totalLegendRules: 1,
         totalImages: 0,
       },
-      sections: {
-        legend: [
-          {
-            id: 'edge-import',
-            pattern: 'import',
-            color: '#3178C6',
-            target: 'edge',
-          },
-        ],
-        nodes: [
-          {
-            id: 'src/app.ts',
-            label: 'app.ts',
-            nodeType: 'file',
-            color: '#fff',
-            legendIds: [],
-          },
-          {
-            id: 'src/lib.ts',
-            label: 'lib.ts',
-            nodeType: 'file',
-            color: '#fff',
-            legendIds: [],
-          },
-        ],
-        edges: [
-          {
-            id: 'edge-1',
-            from: 'src/app.ts',
-            to: 'src/lib.ts',
-            kind: 'import',
-            color: '#3178C6',
-            legendIds: ['edge-import'],
-            sources: [],
-          },
-        ],
-      },
+      legend: [
+        {
+          id: 'edge-import',
+          pattern: 'import',
+          color: '#3178C6',
+          target: 'edge',
+        },
+      ],
+      nodes: [
+        {
+          id: 'src/app.ts',
+          label: 'app.ts',
+          nodeType: 'file',
+          color: '#fff',
+          legendIds: [],
+        },
+        {
+          id: 'src/lib.ts',
+          label: 'lib.ts',
+          nodeType: 'file',
+          color: '#fff',
+          legendIds: [],
+        },
+      ],
+      edges: [
+        {
+          id: 'edge-1',
+          from: 'src/app.ts',
+          to: 'src/lib.ts',
+          kind: 'import',
+          color: '#3178C6',
+          legendIds: ['edge-import'],
+          sources: [],
+        },
+      ],
     }));
 
     expect(markdown).toContain('- `import` `src/app.ts` -> `src/lib.ts` | color: #3178C6 | legend: edge-import');
