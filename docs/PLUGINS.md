@@ -24,7 +24,7 @@ The current plugin API supports more than file analysis:
 
 - per-file analysis objects with symbols, relations, node types, and edge types
 - `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
-- graph queries backed by the host graph cache
+- graph queries backed by the projected repo-local index and current graph state
 - custom graph transforms / optional host-exposed views with `recomputeOn` dependencies
 - context menu items, commands, and exporters
 - host-saved exports via `api.saveExport(...)`

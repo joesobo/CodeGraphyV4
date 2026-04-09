@@ -255,7 +255,7 @@ export function createMetricsPlugin(): IPlugin {
     id: 'codegraphy-metrics',
     name: 'Metrics',
     version: '1.0.0',
-    apiVersion: '^2.0.0',
+    apiVersion: '^3.0.0',
     supportedExtensions: [],
 
     async analyzeFile(filePath) {

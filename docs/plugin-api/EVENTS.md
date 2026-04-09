@@ -2,9 +2,9 @@
 
 ![Event System Diagram](./diagrams/event-system.excalidraw)
 
-Diagram source: `docs-vscode/plugin-api/diagrams/event-system.excalidraw`
+Diagram source: `docs/plugin-api/diagrams/event-system.excalidraw`
 
-This document tracks the canonical event contract in [`packages-vscode/plugin-api/src/events.ts`](../../packages-vscode/plugin-api/src/events.ts).
+This document tracks the canonical event contract in [`packages/plugin-api/src/events.ts`](../../packages/plugin-api/src/events.ts).
 
 ## Usage
 
@@ -53,6 +53,9 @@ Notes:
 | `analysis:fileProcessed` | `{ filePath, connections: Array<{specifier, resolvedPath}> }` |
 | `analysis:completed` | `{ graph: { nodes: Array<{id}>, edges: Array<{id}> }, duration }` |
 | `analysis:error` | `{ error, filePath? }` |
+
+Notes:
+- `analysis:fileProcessed` currently emits a lightweight compatibility summary derived from the per-file analysis result. It is progress-oriented, not the full symbol/relation payload.
 
 ### Workspace / Files (6)
 

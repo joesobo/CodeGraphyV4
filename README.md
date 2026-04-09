@@ -41,7 +41,7 @@ The first iteration was https://github.com/joesobo/CodeGraphy. Its pretty rough,
 
 V2 was the last published version: https://github.com/joesobo/CodeGraphyV2. This version was a huge upgrade, enabling dynamic physics and a ton more features. But it was largely limited to Javascript
 
-So I started working on V3 https://github.com/joesobo/CodeGraphyV3 this time with a broader scope. Instead of limited ourselves to a single language. Why not use the core of CodeGraphy to render a graph of connections for any language. All you would need to do is write your own plugin that was compatable with the CodeGraphy extension, and you could graph the connections of any language. 
+So I started working on V3 https://github.com/joesobo/CodeGraphyV3 this time with a broader scope. Instead of limited ourselves to a single language. The goal was to make the core renderer reusable and let plugins teach it new language semantics when needed.
 
 Unfortunetly I got quite busy and never was able to maintain V2 or finish V3.
 
@@ -70,9 +70,11 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 - VS Code extension host
 - React webview
 - Vite
+- native Tree-sitter in the extension core
+- LadybugDB for repo-local index storage
 - `react-force-graph` + Three.js
 - repo-local `.codegraphy/` settings + metadata
-- plugin-driven analysis pipeline with shared per-file analysis results
+- shared per-file analysis results merged in plugin priority order
 - pnpm monorepo
 
 ## What you get
@@ -104,7 +106,7 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 ## Install
 
 1. Install the [CodeGraphy core extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
-2. Install any language plugins you want.
+2. Optionally install plugins for unsupported languages or richer semantics. Core already handles supported Tree-sitter languages, and Markdown ships built in.
 3. Click the **CodeGraphy** activity bar icon in VS Code.
 4. Open the graph.
 5. Click **Index Repo** when you want semantic edges and timeline data.

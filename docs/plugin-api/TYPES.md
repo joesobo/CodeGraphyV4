@@ -2,9 +2,9 @@
 
 ![Type Surface Diagram](./diagrams/type-surface.excalidraw)
 
-Diagram source: `docs-vscode/plugin-api/diagrams/type-surface.excalidraw`
+Diagram source: `docs/plugin-api/diagrams/type-surface.excalidraw`
 
-This document references the canonical type package in `packages-vscode/plugin-api/src`.
+This document references the canonical type package in `packages/plugin-api/src`.
 
 ## Import Surface
 
@@ -59,6 +59,7 @@ Key points:
 - `sources?: IConnectionSource[]` declares the plugin’s relation provenance/source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
 - `analyzeFile(filePath, content, workspaceRoot)` is the plugin analysis hook for returning relations, symbols, and contributed node or edge types.
+- core builds the base file result first, then plugin results are merged on top in plugin order.
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new graph controls and defaults.
 - Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
@@ -82,6 +83,7 @@ Main groups:
 - Events: `on`, `once`, `off`
 - Decorations: `decorateNode`, `decorateEdge`, `clearDecorations`
 - Graph queries: `getGraph`, `getNode`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getEdgesFor`, `filterEdgesByKind`, `getSubgraph`, `findPath`
+  - these read from the projected repo-local index and current graph state, not only transient in-memory plugin output
 - Registration: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`
   - `registerView` is for plugin-defined graph transforms the host may expose as optional custom views; the built-in graph experience is now one unified surface rather than separate core Connections/Folder/Depth views
 - Tier 2 bridge: `sendToWebview`, `onWebviewMessage`
@@ -99,12 +101,14 @@ Main groups:
 - `IPluginNodeType`
 - `IPluginEdgeType`
 
-### Connections (`connection.ts`)
+### Connections and Provenance (`connection.ts`)
 
 - `IConnectionSource`
 - `IConnectionDetector<TContext>`
 - `IConnection` with `kind`, `sourceId`, optional `type`, optional `variant`, and scalar-only `metadata`
 - `IPluginFileColorDefinition` with `color`, optional `shape2D`, optional `shape3D`, and optional `imagePath`
+
+These types mainly support projected edges, provenance toggles, and compatibility with the graph/export layer. The primary plugin analysis surface is `analysis.ts`.
 
 ### Graph (`graph.ts`)
 
