@@ -19,7 +19,7 @@ export function sendGraphViewAvailableViews(
   viewRegistry: ViewRegistry,
   viewContext: IViewContext,
   activeViewId: string,
-  depthMode: boolean | undefined,
+  depthMode: boolean,
   rawGraphData: IGraphData,
   defaultDepthLimit: number,
   sendMessage: (message: unknown) => void,
@@ -35,7 +35,7 @@ export function sendGraphViewAvailableViews(
   });
   sendMessage({
     type: 'DEPTH_MODE_UPDATED',
-    payload: { depthMode: depthMode ?? activeViewId === 'codegraphy.depth-graph' },
+    payload: { depthMode },
   });
   sendMessage({
     type: 'DEPTH_LIMIT_UPDATED',

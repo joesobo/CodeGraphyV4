@@ -31,7 +31,6 @@ describe('graph view provider bootstrap helper', () => {
       },
       coreViews: [
         { id: 'codegraphy.connections' },
-        { id: 'codegraphy.depth-graph' },
       ],
       eventBus: { id: 'event-bus' },
       decorationManager: {
@@ -51,11 +50,6 @@ describe('graph view provider bootstrap helper', () => {
       1,
       { id: 'codegraphy.connections' },
       { core: true, isDefault: true },
-    );
-    expect(register).toHaveBeenNthCalledWith(
-      2,
-      { id: 'codegraphy.depth-graph' },
-      { core: true, isDefault: false },
     );
     expect(setEventBus).toHaveBeenCalledWith({ id: 'event-bus' });
 

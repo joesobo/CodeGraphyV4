@@ -47,7 +47,7 @@ describe('graphView/presentation/availableViews', () => {
     ]);
   });
 
-  it('hides internal toolbar-only views from the generic view payload', () => {
+  it('includes all registered views in the generic view payload', () => {
     const views = [
       {
         core: true,
@@ -80,6 +80,13 @@ describe('graphView/presentation/availableViews', () => {
         icon: 'symbol-file',
         description: 'Default view',
         active: false,
+      },
+      {
+        id: 'codegraphy.depth-graph',
+        name: 'Depth Graph',
+        icon: 'target',
+        description: 'Focused graph',
+        active: true,
       },
     ]);
   });

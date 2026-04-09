@@ -21,7 +21,6 @@ import { createSelectionHandlers } from './selection';
 import { createViewHandlers } from './view';
 
 export interface GraphInteractionHandlersDependencies {
-  activeViewId?: string;
   containerRef: MutableRefObject<HTMLDivElement | null>;
   dataRef: MutableRefObject<IGraphData>;
   depthMode?: boolean;

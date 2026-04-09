@@ -116,8 +116,8 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     const setContextSelection = vi.fn();
 
     renderHook(() => useGraphInteractionRuntime({
-      activeViewId: 'codegraphy.connections',
       dataRef: { current: { edges: [], nodes: [] } as never },
+      depthMode: false,
       fileInfoCacheRef: fileInfoCacheRef as never,
       graphContextSelection: createSelection(['src/selected.ts']),
       graphCursorRef: { current: 'pointer' as never },
@@ -182,8 +182,8 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
 
     const { result, rerender } = renderHook(
       ({ graphContextSelection }) => useGraphInteractionRuntime({
-        activeViewId: 'codegraphy.connections',
         dataRef: { current: { edges: [], nodes: [] } as never },
+        depthMode: false,
         fileInfoCacheRef: { current: new Map() } as never,
         graphContextSelection,
         graphCursorRef: { current: 'pointer' as never },
@@ -286,8 +286,8 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
 
     const { result, rerender } = renderHook(
       ({ graphMode }) => useGraphInteractionRuntime({
-        activeViewId: 'codegraphy.connections',
         dataRef: { current: { edges: [], nodes: [] } as never },
+        depthMode: false,
         fileInfoCacheRef: { current: new Map() } as never,
         graphContextSelection: createSelection(['src/one.ts']),
         graphCursorRef: { current: 'pointer' as never },
@@ -371,8 +371,8 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
 
     const container = document.createElement('div');
     const { unmount } = renderHook(() => useGraphInteractionRuntime({
-      activeViewId: 'codegraphy.connections',
       dataRef: { current: { edges: [], nodes: [] } as never },
+      depthMode: false,
       fileInfoCacheRef: { current: new Map() } as never,
       graphContextSelection: createSelection([]),
       graphCursorRef: { current: 'crosshair' as never },
@@ -425,8 +425,8 @@ describe('graph/runtime/useGraphInteractionRuntime', () => {
     }));
 
     renderHook(() => useGraphInteractionRuntime({
-      activeViewId: 'codegraphy.connections',
       dataRef: { current: { edges: [], nodes: [] } as never },
+      depthMode: false,
       fileInfoCacheRef: { current: new Map() } as never,
       graphContextSelection: createSelection([]),
       graphCursorRef: { current: 'pointer' as never },

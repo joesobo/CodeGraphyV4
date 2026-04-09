@@ -56,7 +56,7 @@ describe('graph/interactionRuntime/fit', () => {
         createNode({ id: 'a', x: 0, y: 0, size: 10 }),
         createNode({ id: 'b', x: 100, y: 100, size: 10 }),
       ],
-      'codegraphy.depth-graph',
+      true,
     );
 
     expect(transform).toEqual({
@@ -67,9 +67,9 @@ describe('graph/interactionRuntime/fit', () => {
   });
 
   it('returns null for non-measurable containers or nodes', () => {
-    expect(get2dFitTransform(null, [], 'codegraphy.connections')).toBeNull();
+    expect(get2dFitTransform(null, [], false)).toBeNull();
     expect(
-      get2dFitTransform(document.createElement('div'), [{ id: 'a', label: 'a', color: '#fff' } as FGNode], 'codegraphy.connections'),
+      get2dFitTransform(document.createElement('div'), [{ id: 'a', label: 'a', color: '#fff' } as FGNode], false),
     ).toBeNull();
   });
 });

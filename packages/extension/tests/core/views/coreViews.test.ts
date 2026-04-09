@@ -71,15 +71,14 @@ describe('Core Views (fresh imports)', () => {
   });
 
   describe('coreViews array', () => {
-    it('contains exactly two views', async () => {
+    it('contains exactly one built-in view', async () => {
       const { coreViews } = await import('../../../src/core/views/builtIns');
-      expect(coreViews).toHaveLength(2);
+      expect(coreViews).toHaveLength(1);
     });
 
-    it('contains connectionsView and depthGraphView in order', async () => {
-      const { coreViews, connectionsView, depthGraphView } = await import('../../../src/core/views/builtIns');
+    it('contains the unified connections view', async () => {
+      const { coreViews, connectionsView } = await import('../../../src/core/views/builtIns');
       expect(coreViews[0]).toBe(connectionsView);
-      expect(coreViews[1]).toBe(depthGraphView);
     });
 
     it('contains views with valid IView properties', async () => {
@@ -94,24 +93,9 @@ describe('Core Views (fresh imports)', () => {
     });
   });
 
-  describe('depthGraphView from builtIn re-export', () => {
-    it('has id codegraphy.depth-graph', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      expect(depthGraphView.id).toBe('codegraphy.depth-graph');
-    });
-
-    it('has name Depth Graph', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      expect(depthGraphView.name).toBe('Depth Graph');
-    });
-
-    it('has icon target', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      expect(depthGraphView.icon).toBe('target');
-    });
-
+  describe('depthGraphView remains available from its depth module', () => {
     it('passes through the graph during the teardown phase', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
+      const { depthGraphView } = await import('../../../src/core/views/depth/view');
       const context = createContext({ focusedFile: undefined });
       const result = depthGraphView.transform(sampleGraphData, context);
       expect(result).toBe(sampleGraphData);

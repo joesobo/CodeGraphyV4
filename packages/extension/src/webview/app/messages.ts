@@ -10,16 +10,13 @@ export { resolvePluginModuleActivator } from '../pluginRuntime/moduleResolver';
 export function getNoDataHint(
   graphData: IGraphData | null,
   showOrphans: boolean,
-  depthMode: boolean | string = false,
+  depthMode = false,
 ): string {
-  const depthModeEnabled =
-    typeof depthMode === 'string' ? depthMode !== 'codegraphy.connections' : depthMode;
-
   if (graphData && !showOrphans) {
     return 'All files are hidden. Try enabling "Show Orphans" in Settings → Filters.';
   }
 
-  if (graphData && depthModeEnabled) {
+  if (graphData && depthMode) {
     return 'No nodes match the current depth focus. Try changing the focused file or disabling depth mode.';
   }
 
