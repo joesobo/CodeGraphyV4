@@ -57,6 +57,13 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     directionMode: 'arrows',
     directionColor: '#000000',
     folderNodeColor: '#FFFFFF',
+    nodeColors: { file: '#111111', folder: '#222222' },
+    nodeVisibility: { file: true, folder: false },
+    edgeVisibility: { imports: true, calls: false },
+    edgeColors: { imports: '#333333', calls: '#444444' },
+    pluginOrder: ['codegraphy.markdown'],
+    disabledPlugins: ['codegraphy.python'],
+    disabledSources: ['codegraphy.markdown:link'],
     particleSpeed: 0.001,
     particleSize: 4,
     showLabels: true,
@@ -83,6 +90,13 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
       directionMode: 'arrows',
       directionColor: '#000000',
       folderNodeColor: '#FFFFFF',
+      nodeColors: { file: '#111111', folder: '#222222' },
+      nodeVisibility: { file: true, folder: false },
+      edgeVisibility: { imports: true, calls: false },
+      edgeColors: { imports: '#333333', calls: '#444444' },
+      pluginOrder: ['codegraphy.markdown'],
+      disabledPlugins: ['codegraphy.python'],
+      disabledSources: ['codegraphy.markdown:link'],
       particleSpeed: 0.001,
       particleSize: 4,
       showLabels: true,
@@ -139,6 +153,13 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     expect(keys).toContain('showOrphans');
     expect(keys).toContain('bidirectionalEdges');
     expect(keys).toContain('folderNodeColor');
+    expect(keys).toContain('nodeColors');
+    expect(keys).toContain('nodeVisibility');
+    expect(keys).toContain('edgeVisibility');
+    expect(keys).toContain('edgeColors');
+    expect(keys).toContain('pluginOrder');
+    expect(keys).toContain('disabledPlugins');
+    expect(keys).toContain('disabledSources');
     expect(keys).toContain('nodeSizeMode');
     for (const call of calls) {
       if (call[0] === 'nodeSizeMode') {

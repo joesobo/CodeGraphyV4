@@ -60,6 +60,13 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     directionMode: 'arrows',
     directionColor: '#000000',
     folderNodeColor: '#FFFFFF',
+    nodeColors: { file: '#999999', folder: '#888888' },
+    nodeVisibility: { file: true, folder: true },
+    edgeVisibility: { imports: true, nests: false },
+    edgeColors: { imports: '#777777', nests: '#666666' },
+    pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
+    disabledPlugins: ['codegraphy.python'],
+    disabledSources: ['codegraphy.markdown:link'],
     particleSpeed: 0.001,
     particleSize: 4,
     showLabels: true,
@@ -83,6 +90,13 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       directionMode: 'arrows',
       directionColor: '#000000',
       folderNodeColor: '#FFFFFF',
+      nodeColors: { file: '#999999', folder: '#888888' },
+      nodeVisibility: { file: true, folder: true },
+      edgeVisibility: { imports: true, nests: false },
+      edgeColors: { imports: '#777777', nests: '#666666' },
+      pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
+      disabledPlugins: ['codegraphy.python'],
+      disabledSources: ['codegraphy.markdown:link'],
       particleSpeed: 0.001,
       particleSize: 4,
       showLabels: true,
@@ -149,6 +163,13 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(updatedKeys).toContain('directionMode');
     expect(updatedKeys).toContain('directionColor');
     expect(updatedKeys).toContain('folderNodeColor');
+    expect(updatedKeys).toContain('nodeColors');
+    expect(updatedKeys).toContain('nodeVisibility');
+    expect(updatedKeys).toContain('edgeVisibility');
+    expect(updatedKeys).toContain('edgeColors');
+    expect(updatedKeys).toContain('pluginOrder');
+    expect(updatedKeys).toContain('disabledPlugins');
+    expect(updatedKeys).toContain('disabledSources');
     expect(updatedKeys).toContain('particleSpeed');
     expect(updatedKeys).toContain('particleSize');
     expect(updatedKeys).toContain('showLabels');
@@ -193,6 +214,16 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       const key = String(call[0]).replace('physics.', '') as keyof typeof originalPhysics;
       expect(call[1]).toBe(originalPhysics[key]);
     }
+
+    const nonPhysicsUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([key]) => !String(key).startsWith('physics.'));
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'nodeColors' && value === SNAPSHOT.nodeColors)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'nodeVisibility' && value === SNAPSHOT.nodeVisibility)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'edgeVisibility' && value === SNAPSHOT.edgeVisibility)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'edgeColors' && value === SNAPSHOT.edgeColors)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'pluginOrder' && value === SNAPSHOT.pluginOrder)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'disabledPlugins' && value === SNAPSHOT.disabledPlugins)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'disabledSources' && value === SNAPSHOT.disabledSources)).toBe(true);
   });
 
   it('uses the correct config target in execute and undo', async () => {
