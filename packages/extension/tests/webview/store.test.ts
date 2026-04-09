@@ -87,10 +87,10 @@ describe('GraphStore', () => {
     expect(store.getState().showLabels).toBe(false);
   });
 
-  it('handles GROUPS_UPDATED message', () => {
+  it('handles LEGENDS_UPDATED message', () => {
     const groups = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
     store.getState().handleExtensionMessage({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: { groups },
     });
     expect(store.getState().groups).toEqual(groups);

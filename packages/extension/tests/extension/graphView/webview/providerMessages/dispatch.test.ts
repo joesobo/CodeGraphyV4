@@ -66,11 +66,11 @@ describe('graph view provider message dispatch', () => {
       pluginResult: { handled: false },
     });
 
-    await harness.dispatchGraphViewProviderMessage({ type: 'UPDATE_GROUPS' } as never, {} as never, {} as never);
+    await harness.dispatchGraphViewProviderMessage({ type: 'UPDATE_LEGENDS' } as never, {} as never, {} as never);
 
     expect(harness.createContext).toHaveBeenCalledOnce();
     expect(harness.dispatchPrimary).toHaveBeenCalledWith(
-      { type: 'UPDATE_GROUPS' },
+      { type: 'UPDATE_LEGENDS' },
       harness.context,
     );
     expect(harness.context.setUserGroups).toHaveBeenCalledWith(userGroups);

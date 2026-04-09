@@ -116,7 +116,7 @@ describe('graph view webview message listener', () => {
     const context = createContext();
 
     setGraphViewWebviewMessageListener(webview as never, context);
-    await messageHandler?.({ type: 'UPDATE_GROUPS', payload: { groups: userGroups } });
+    await messageHandler?.({ type: 'UPDATE_LEGENDS', payload: { groups: userGroups } });
 
     expect(context.setUserGroups).toHaveBeenCalledWith(userGroups);
     expect(context.setFilterPatterns).not.toHaveBeenCalled();
@@ -135,7 +135,7 @@ describe('graph view webview message listener', () => {
     const context = createContext();
 
     setGraphViewWebviewMessageListener(webview as never, context);
-    await messageHandler?.({ type: 'UPDATE_GROUPS', payload: { groups: userGroups } });
+    await messageHandler?.({ type: 'UPDATE_LEGENDS', payload: { groups: userGroups } });
 
     expect(context.setUserGroups).toHaveBeenCalledWith(userGroups);
     expect(context.recomputeGroups).toHaveBeenCalledTimes(1);

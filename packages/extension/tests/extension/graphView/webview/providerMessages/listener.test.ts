@@ -217,7 +217,7 @@ describe('graph view provider listener bridge', () => {
     const userGroups: IGroup[] = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
 
     setGraphViewProviderMessageListener(webview as never, source, deps);
-    await messageHandler?.({ type: 'UPDATE_GROUPS', payload: { groups: userGroups } });
+    await messageHandler?.({ type: 'UPDATE_LEGENDS', payload: { groups: userGroups } });
 
     expect(source._userGroups).toEqual(userGroups);
   });

@@ -42,7 +42,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
           callback({ type: 'PLUGIN_WEBVIEW_INJECT', payload: { kind: 'script', src: 'asset://script.js' } }),
         ),
         sendGroupsUpdated: vi.fn((_groups, _options, callback) =>
-          callback({ type: 'GROUPS_UPDATED', payload: { groups: [] } }),
+          callback({ type: 'LEGENDS_UPDATED', payload: { groups: [] } }),
         ),
         getWorkspaceFolders: vi.fn(() => []),
       },
@@ -63,7 +63,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
       payload: { views: [], activeViewId: 'codegraphy.connections' },
     });
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: { groups: [] },
     });
   });
@@ -94,7 +94,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
           expect(options.workspaceFolder).toBe(workspaceFolder);
           options.registerPluginRoots();
           expect(options.resolvePluginAssetPath('icon.svg', 'plugin.test')).toBe('asset://icon.svg');
-          callback({ type: 'GROUPS_UPDATED', payload: { groups: [] } });
+          callback({ type: 'LEGENDS_UPDATED', payload: { groups: [] } });
         }),
         getWorkspaceFolders: vi.fn(() => [workspaceFolder]),
       },

@@ -7,7 +7,10 @@
  * settings or reflected in a subsequent SETTINGS_UPDATED broadcast.
  */
 import * as assert from 'assert';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
+import type { IGroup } from '../../shared/settings/groups';
 
 interface CodeGraphyAPI {
   getGraphData(): import('../../shared/graph/types').IGraphData;
@@ -15,6 +18,14 @@ interface CodeGraphyAPI {
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   dispatchWebviewMessage(message: unknown): Promise<void>;
   onExtensionMessage(handler: (message: unknown) => void): vscode.Disposable;
+}
+
+interface RepoSettingsFile {
+  legend?: IGroup[];
+}
+
+function readRepoSettingsFile(settingsPath: string): RepoSettingsFile {
+  return JSON.parse(fs.readFileSync(settingsPath, 'utf8')) as RepoSettingsFile;
 }
 
 function sleep(ms: number): Promise<void> {
@@ -142,26 +153,30 @@ suite('Settings: Direction Mode', function () {
   });
 });
 
-suite('Settings: Groups', function () {
+suite('Settings: Legends', function () {
   this.timeout(30_000);
 
-  test('UPDATE_GROUPS persists groups in VS Code settings', async function() {
+  test('UPDATE_LEGENDS persists legend rules in .codegraphy/settings.json', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(1_000);
 
     const groups = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
-    await api.dispatchWebviewMessage({ type: 'UPDATE_GROUPS', payload: { groups } });
+    await api.dispatchWebviewMessage({ type: 'UPDATE_LEGENDS', payload: { groups } });
     await sleep(1_000);
 
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const stored = config.get<typeof groups>('groups') ?? [];
+    const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+    assert.ok(workspaceFolder, 'Expected an open workspace folder');
+    const settingsPath = path.join(workspaceFolder.uri.fsPath, '.codegraphy', 'settings.json');
+    const stored = readRepoSettingsFile(settingsPath).legend ?? [];
     assert.ok(
       stored.some((g) => g.pattern === 'src/**'),
       `Expected group with pattern 'src/**'. Got: ${JSON.stringify(stored)}`
     );
 
     // Cleanup
-    await config.update('groups', [], vscode.ConfigurationTarget.Workspace);
+    const current = readRepoSettingsFile(settingsPath);
+    current.legend = [];
+    fs.writeFileSync(settingsPath, `${JSON.stringify(current, null, 2)}\n`, 'utf8');
   });
 });

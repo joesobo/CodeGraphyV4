@@ -5,7 +5,7 @@ import type { IViewContext } from '../../../core/views/contracts';
 import type { ViewRegistry } from '../../../core/views/registry';
 import type { IGraphData } from '../../../shared/graph/types';
 import { mapAvailableViews } from '../presentation';
-import { buildGraphViewGroupsUpdatedMessage } from '../groups/message';
+import { buildGraphViewLegendsUpdatedMessage } from '../groups/message';
 
 interface SendGraphViewGroupsUpdatedOptions {
   registerPluginRoots: () => void;
@@ -47,7 +47,7 @@ export function sendGraphViewAvailableViews(
   });
 }
 
-export function sendGraphViewGroupsUpdated(
+export function sendGraphViewLegendsUpdated(
   groups: IGroup[],
   {
     registerPluginRoots,
@@ -62,7 +62,7 @@ export function sendGraphViewGroupsUpdated(
 
   const webview = view?.webview ?? panels[0]?.webview;
   sendMessage(
-    buildGraphViewGroupsUpdatedMessage(groups, {
+    buildGraphViewLegendsUpdatedMessage(groups, {
       workspaceFolder,
       asWebviewUri: webview ? uri => webview.asWebviewUri(uri) : undefined,
       resolvePluginAssetPath,
