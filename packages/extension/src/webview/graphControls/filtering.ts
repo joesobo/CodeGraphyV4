@@ -3,10 +3,18 @@ import {
   collectFolderPaths,
   createFolderNodes,
 } from '../../shared/graphControls/nests';
+import {
+  buildWorkspacePackageEdges,
+  collectWorkspacePackageRoots,
+  createWorkspacePackageNodes,
+} from '../../shared/graphControls/packages';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
 import type { IGraphData, IGraphNode } from '../../shared/graph/types';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../../shared/graphControls/defaults';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
+import {
+  DEFAULT_FOLDER_NODE_COLOR,
+  DEFAULT_PACKAGE_NODE_COLOR,
+} from '../../shared/fileColors';
 
 export interface GraphControlsFilteringOptions {
   graphData: IGraphData | null;
@@ -60,6 +68,7 @@ export function applyGraphControls({
   const baseNodes = applyNodeTypeColors(withResolvedNodeTypes(graphData.nodes), nodeColors);
   const visibleBaseNodes = baseNodes.filter((node) => isNodeVisible(node, nodeVisibility));
   const folderEnabled = nodeVisibility.folder ?? false;
+  const packageEnabled = nodeVisibility.package ?? false;
   const nestsEnabled = edgeVisibility[STRUCTURAL_NESTS_EDGE_KIND] ?? true;
 
   const fileNodes = baseNodes.filter((node) => getResolvedNodeType(node) === 'file');
@@ -67,8 +76,17 @@ export function applyGraphControls({
   const folderNodes = folderEnabled
     ? createFolderNodes(folderPaths, nodeColors.folder ?? DEFAULT_FOLDER_NODE_COLOR)
     : [];
+  const workspacePackageRoots = packageEnabled
+    ? collectWorkspacePackageRoots(fileNodes)
+    : new Set<string>();
+  const packageNodes = packageEnabled
+    ? createWorkspacePackageNodes(
+      workspacePackageRoots,
+      nodeColors.package ?? DEFAULT_PACKAGE_NODE_COLOR,
+    )
+    : [];
 
-  const nodes = [...visibleBaseNodes, ...folderNodes];
+  const nodes = [...visibleBaseNodes, ...folderNodes, ...packageNodes];
   const visibleNodeIds = new Set(nodes.map((node) => node.id));
 
   const semanticEdges = graphData.edges.filter((edge) => {
@@ -82,8 +100,14 @@ export function applyGraphControls({
   const structuralEdges = folderEnabled && nestsEnabled
     ? buildContainmentEdges(folderPaths, visibleBaseNodes.filter((node) => getResolvedNodeType(node) === 'file'))
     : [];
+  const packageEdges = packageEnabled && nestsEnabled
+    ? buildWorkspacePackageEdges(
+      workspacePackageRoots,
+      visibleBaseNodes.filter((node) => getResolvedNodeType(node) === 'file'),
+    )
+    : [];
 
-  const edges = [...semanticEdges, ...structuralEdges];
+  const edges = [...semanticEdges, ...structuralEdges, ...packageEdges];
   const nextEdgeDecorations = Object.fromEntries(
     edges.map((edge) => [
       edge.id,

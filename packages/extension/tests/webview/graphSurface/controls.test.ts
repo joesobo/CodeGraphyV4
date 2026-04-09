@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { IGraphData } from '../../../src/shared/graph/types';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../src/shared/graphControls/defaults';
+import { WORKSPACE_PACKAGE_NODE_ID_PREFIX } from '../../../src/shared/graphControls/packages';
 import { applyGraphControls } from '../../../src/webview/graphControls/filtering';
 
 const graphData: IGraphData = {
@@ -65,6 +66,85 @@ describe('webview/graphSurface/controls', () => {
         edges: [],
       },
       edgeDecorations: {},
+    });
+  });
+
+  it('synthesizes workspace package nodes and nests edges from discovered package.json files', () => {
+    const packageGraphData: IGraphData = {
+      nodes: [
+        { id: 'package.json', label: 'package.json', color: '#111111', nodeType: 'file' },
+        { id: 'packages/extension/package.json', label: 'package.json', color: '#111111', nodeType: 'file' },
+        { id: 'packages/extension/src/index.ts', label: 'index.ts', color: '#111111', nodeType: 'file' },
+      ],
+      edges: [],
+    };
+
+    const result = applyGraphControls({
+      graphData: packageGraphData,
+      nodeColors: { file: '#111111', folder: '#BBBBBB', package: '#F59E0B' },
+      nodeVisibility: { file: true, folder: false, package: true },
+      edgeVisibility: { [STRUCTURAL_NESTS_EDGE_KIND]: true },
+      edgeColors: { [STRUCTURAL_NESTS_EDGE_KIND]: '#222222' },
+    });
+
+    expect(result).toEqual({
+      graphData: {
+        nodes: [
+          { id: 'package.json', label: 'package.json', color: '#111111', nodeType: 'file' },
+          { id: 'packages/extension/package.json', label: 'package.json', color: '#111111', nodeType: 'file' },
+          { id: 'packages/extension/src/index.ts', label: 'index.ts', color: '#111111', nodeType: 'file' },
+          {
+            id: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}.`,
+            label: 'workspace',
+            color: '#F59E0B',
+            nodeType: 'package',
+            shape2D: 'hexagon',
+            shape3D: 'cube',
+          },
+          {
+            id: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension`,
+            label: 'extension',
+            color: '#F59E0B',
+            nodeType: 'package',
+            shape2D: 'hexagon',
+            shape3D: 'cube',
+          },
+        ],
+        edges: [
+          {
+            id: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}.->package.json#${STRUCTURAL_NESTS_EDGE_KIND}`,
+            from: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}.`,
+            to: 'package.json',
+            kind: STRUCTURAL_NESTS_EDGE_KIND,
+            sources: [],
+          },
+          {
+            id: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension->packages/extension/package.json#${STRUCTURAL_NESTS_EDGE_KIND}`,
+            from: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension`,
+            to: 'packages/extension/package.json',
+            kind: STRUCTURAL_NESTS_EDGE_KIND,
+            sources: [],
+          },
+          {
+            id: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension->packages/extension/src/index.ts#${STRUCTURAL_NESTS_EDGE_KIND}`,
+            from: `${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension`,
+            to: 'packages/extension/src/index.ts',
+            kind: STRUCTURAL_NESTS_EDGE_KIND,
+            sources: [],
+          },
+        ],
+      },
+      edgeDecorations: {
+        [`${WORKSPACE_PACKAGE_NODE_ID_PREFIX}.->package.json#${STRUCTURAL_NESTS_EDGE_KIND}`]: {
+          color: '#222222',
+        },
+        [`${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension->packages/extension/package.json#${STRUCTURAL_NESTS_EDGE_KIND}`]: {
+          color: '#222222',
+        },
+        [`${WORKSPACE_PACKAGE_NODE_ID_PREFIX}packages/extension->packages/extension/src/index.ts#${STRUCTURAL_NESTS_EDGE_KIND}`]: {
+          color: '#222222',
+        },
+      },
     });
   });
 
