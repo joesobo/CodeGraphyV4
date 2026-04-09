@@ -5,7 +5,8 @@ CodeGraphy now keeps repo-specific graph settings under `.codegraphy/settings.js
 - The graph UI writes to that file for you.
 - The file is mostly internal, but still human-editable.
 - CodeGraphy watches it for changes and refreshes relevant graph state when it changes.
-- Legacy VS Code settings can still be read for migration, but `.codegraphy/settings.json` is now the source of truth for repo-local behavior.
+- `.codegraphy/settings.json` is the source of truth for repo-local behavior.
+- Older repos can still be migrated forward from legacy keys when needed.
 - These settings are no longer intended to be managed from VS Code's built-in Settings UI.
 
 ## Repo-local settings file
@@ -307,12 +308,12 @@ This setting is also accessible from the Settings panel.
 
 ## Repo-local vs global settings
 
-CodeGraphy’s graph/index behavior now lives with the repo under `.codegraphy/`. If you still use legacy VS Code settings, CodeGraphy can read them during migration, but the current setup should be committed under `.codegraphy/` instead of `.vscode/settings.json`.
+CodeGraphy’s graph/index behavior lives with the repo under `.codegraphy/`. Current repos should commit `.codegraphy/settings.json` instead of relying on `.vscode/settings.json`.
 
-Legacy note:
+Compatibility note:
 - older repos may still contain `folderNodeColor` as a standalone key
 - older repos may still contain `groups` before the rename to `legend`
-- CodeGraphy can still read that during migration, but the current graph controls are `nodeVisibility`, `edgeVisibility`, `legend`, `disabledPlugins`, and `pluginOrder`
+- those legacy keys can still be migrated forward, but the current graph controls are `nodeVisibility`, `edgeVisibility`, `legend`, `disabledPlugins`, and `pluginOrder`
 - current folder coloring should live under `nodeColors.folder`
 
 ## Troubleshooting

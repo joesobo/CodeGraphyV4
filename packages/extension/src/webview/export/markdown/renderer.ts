@@ -45,7 +45,14 @@ export function renderMarkdownExport(data: ExportData): string {
     lines.push('- none');
   } else {
     for (const edge of data.sections.edges) {
-      lines.push(`- \`${edge.kind}\` \`${edge.from}\` -> \`${edge.to}\``);
+      const edgeSuffix = [
+        edge.color ? `color: ${edge.color}` : undefined,
+        edge.legendIds.length > 0 ? `legend: ${edge.legendIds.join(', ')}` : undefined,
+      ].filter(Boolean);
+
+      lines.push(
+        `- \`${edge.kind}\` \`${edge.from}\` -> \`${edge.to}\`${edgeSuffix.length > 0 ? ` | ${edgeSuffix.join(' | ')}` : ''}`,
+      );
       if (edge.sources.length === 0) {
         lines.push('  - sources: none');
         continue;

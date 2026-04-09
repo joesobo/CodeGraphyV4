@@ -79,7 +79,7 @@ interface IAnalysisFile {
 
 Defined in `api.ts`.
 
-Main groups:
+Main areas:
 - Events: `on`, `once`, `off`
 - Decorations: `decorateNode`, `decorateEdge`, `clearDecorations`
 - Graph queries: `getGraph`, `getNode`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getEdgesFor`, `filterEdgesByKind`, `getSubgraph`, `findPath`

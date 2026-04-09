@@ -198,6 +198,41 @@ describe('buildExportData', () => {
     ]);
   });
 
+  it('adds legend ids to edges from edge-targeted legend rules', () => {
+    const data: IGraphData = {
+      nodes: [
+        { id: 'src/App.tsx', label: 'App.tsx', color: '#fff' },
+        { id: 'src/lib.ts', label: 'lib.ts', color: '#fff' },
+      ],
+      edges: [
+        {
+          id: 'src/App.tsx->src/lib.ts#import',
+          from: 'src/App.tsx',
+          to: 'src/lib.ts',
+          kind: 'import',
+          color: '#3178C6',
+          sources: [],
+        },
+      ],
+    };
+    const legends: IGroup[] = [
+      { id: 'edge-import', pattern: 'import', color: '#3178C6', target: 'edge' },
+    ];
+
+    const result = buildExportData(data, legends);
+    expect(result.sections.edges).toEqual([
+      {
+        id: 'src/App.tsx->src/lib.ts#import',
+        from: 'src/App.tsx',
+        to: 'src/lib.ts',
+        kind: 'import',
+        color: '#3178C6',
+        legendIds: ['edge-import'],
+        sources: [],
+      },
+    ]);
+  });
+
   it('counts legend images from active legend rules', () => {
     const data: IGraphData = {
       nodes: [{ id: 'src/App.tsx', label: 'App.tsx', color: '#fff' }],
