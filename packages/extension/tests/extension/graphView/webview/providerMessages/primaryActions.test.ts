@@ -133,13 +133,13 @@ describe('graph view provider listener primary actions', () => {
     actions.sendGroupsUpdated();
     actions.sendMessage(message as never);
     actions.applyViewTransform();
-    actions.smartRebuild('plugin', 'plugin.test');
+    actions.smartRebuild('plugin.test');
 
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith(message);
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
-    expect(source._smartRebuild).toHaveBeenCalledWith('plugin', 'plugin.test');
+    expect(source._smartRebuild).toHaveBeenCalledWith('plugin.test');
   });
 });
 

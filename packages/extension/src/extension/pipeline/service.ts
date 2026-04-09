@@ -334,11 +334,10 @@ export class WorkspacePipeline {
   /**
    * Computes the status of each registered plugin for the webview's Plugins panel.
    */
-  getPluginStatuses(disabledSources: Set<string>, disabledPlugins: Set<string>): IPluginStatus[] {
+  getPluginStatuses(disabledPlugins: Set<string>): IPluginStatus[] {
     this._syncPluginOrder();
     return getWorkspacePipelinePluginStatuses({
       disabledPlugins,
-      disabledSources,
       discoveredFiles: this._lastDiscoveredFiles,
       fileConnections: this._lastFileConnections,
       registry: this._registry,

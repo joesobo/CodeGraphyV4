@@ -86,7 +86,6 @@ export function createGraphViewProviderPluginBroadcastMethods(
     _sendPluginStatuses: () => {
       resolved.sendPluginStatuses(
         source._analyzer,
-        source._disabledSources,
         source._disabledPlugins,
         send,
       );

@@ -147,7 +147,6 @@ describe('GraphStore', () => {
       status: 'active' as const,
       enabled: true,
       connectionCount: 5,
-      sources: [],
     }];
     store.getState().handleExtensionMessage({
       type: 'PLUGINS_UPDATED',

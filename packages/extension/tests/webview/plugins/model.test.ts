@@ -29,7 +29,6 @@ describe('plugins panel model', () => {
         status: 'installed',
         enabled: true,
         connectionCount: 0,
-        sources: [],
       },
       {
         id: 'plugin.b',
@@ -39,7 +38,6 @@ describe('plugins panel model', () => {
         status: 'installed',
         enabled: true,
         connectionCount: 0,
-        sources: [],
       },
     ];
 

@@ -224,15 +224,14 @@ describe('graphView/provider/refresh', () => {
         status: 'active' as const,
         enabled: true,
         connectionCount: 0,
-        sources: [],
       },
     ] satisfies IPluginStatus[];
-    const smartRebuildGraphData = vi.fn((_nextSource, _kind, _id, handlers: {
-      shouldRebuild(statuses: readonly IPluginStatus[], nextKind: 'rule' | 'plugin', nextId: string): boolean;
+    const smartRebuildGraphData = vi.fn((_nextSource, _id, handlers: {
+      shouldRebuild(statuses: readonly IPluginStatus[], nextId: string): boolean;
       rebuildAndSend(): void;
       sendMessage(message: unknown): void;
     }) => {
-      expect(handlers.shouldRebuild(statuses, 'plugin', 'plugin.test')).toBe(false);
+      expect(handlers.shouldRebuild(statuses, 'plugin.test')).toBe(false);
       handlers.rebuildAndSend();
       handlers.sendMessage({ type: 'PLUGINS_UPDATED' });
     });
@@ -248,7 +247,7 @@ describe('graphView/provider/refresh', () => {
     source._rebuildAndSend = rebuildOverride;
 
     methods._rebuildAndSend();
-    methods._smartRebuild('plugin', 'plugin.test');
+    methods._smartRebuild('plugin.test');
 
     expect(source._updateViewContext).toHaveBeenCalledOnce();
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
@@ -257,14 +256,14 @@ describe('graphView/provider/refresh', () => {
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({ type: 'GRAPH_DATA_UPDATED' });
     expect(smartRebuildGraphData).toHaveBeenCalledOnce();
-    expect(shouldRebuild).toHaveBeenCalledWith(statuses, 'plugin', 'plugin.test');
+    expect(shouldRebuild).toHaveBeenCalledWith(statuses, 'plugin.test');
     expect(rebuildOverride).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({ type: 'PLUGINS_UPDATED' });
   });
 
   it('smart rebuild falls back to the local rebuild helper when the source callback is cleared', () => {
     const rebuildGraphData = vi.fn();
-    const smartRebuildGraphData = vi.fn((_nextSource, _kind, _id, handlers: {
+    const smartRebuildGraphData = vi.fn((_nextSource, _id, handlers: {
       rebuildAndSend(): void;
     }) => {
       handlers.rebuildAndSend();
@@ -279,7 +278,7 @@ describe('graphView/provider/refresh', () => {
 
     source._rebuildAndSend = undefined;
 
-    methods._smartRebuild('plugin', 'plugin.test');
+    methods._smartRebuild('plugin.test');
 
     expect(smartRebuildGraphData).toHaveBeenCalledOnce();
     expect(rebuildGraphData).toHaveBeenCalledOnce();
@@ -287,7 +286,7 @@ describe('graphView/provider/refresh', () => {
 
   it('smart rebuild ignores a self-installed rebuild implementation', () => {
     const rebuildGraphData = vi.fn();
-    const smartRebuildGraphData = vi.fn((_nextSource, _kind, _id, handlers: {
+    const smartRebuildGraphData = vi.fn((_nextSource, _id, handlers: {
       rebuildAndSend(): void;
     }) => {
       handlers.rebuildAndSend();
@@ -302,7 +301,7 @@ describe('graphView/provider/refresh', () => {
 
     source._rebuildAndSend = methods._rebuildAndSend;
 
-    methods._smartRebuild('plugin', 'plugin.test');
+    methods._smartRebuild('plugin.test');
 
     expect(smartRebuildGraphData).toHaveBeenCalledOnce();
     expect(rebuildGraphData).toHaveBeenCalledOnce();

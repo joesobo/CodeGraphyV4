@@ -77,10 +77,6 @@ describe('buildExportData', () => {
     const plugins: IPluginStatus[] = [{
       id: 'ts', name: 'TS', version: '1.0.0', supportedExtensions: ['.ts'],
       status: 'active', enabled: true, connectionCount: 2,
-      sources: [
-        { id: 'es6', qualifiedSourceId: 'ts:es6', name: 'ES6 Import', description: '', enabled: true, connectionCount: 99 },
-        { id: 'dynamic', qualifiedSourceId: 'ts:dynamic', name: 'Dynamic Import', description: '', enabled: true, connectionCount: 99 },
-      ],
     }];
 
     const result = buildExportData(data, noLegends, plugins);

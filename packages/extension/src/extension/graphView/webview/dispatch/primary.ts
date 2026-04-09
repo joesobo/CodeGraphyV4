@@ -76,7 +76,7 @@ export interface GraphViewPrimaryMessageContext {
   getPluginFilterPatterns(): string[];
   sendMessage(message: unknown): void;
   applyViewTransform(): void;
-  smartRebuild(kind: 'rule' | 'plugin', id: string): void;
+  smartRebuild(id: string): void;
   resetAllSettings(): Promise<void>;
 }
 

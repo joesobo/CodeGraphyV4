@@ -3,10 +3,7 @@ import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/exte
 import { buildGraphViewDecorationPayload } from './decorations';
 
 interface GraphViewPluginAnalyzer {
-  getPluginStatuses(
-    disabledSources: ReadonlySet<string>,
-    disabledPlugins: ReadonlySet<string>,
-  ): IPluginStatus[];
+  getPluginStatuses(disabledPlugins: ReadonlySet<string>): IPluginStatus[];
 }
 
 interface GraphViewDecorationManagerLike {
@@ -16,7 +13,6 @@ interface GraphViewDecorationManagerLike {
 
 export function sendGraphViewPluginStatuses(
   analyzer: Pick<GraphViewPluginAnalyzer, 'getPluginStatuses'> | undefined,
-  disabledSources: ReadonlySet<string>,
   disabledPlugins: ReadonlySet<string>,
   sendMessage: (
     message: Extract<ExtensionToWebviewMessage, { type: 'PLUGINS_UPDATED' }>
@@ -24,7 +20,7 @@ export function sendGraphViewPluginStatuses(
 ): void {
   if (!analyzer) return;
 
-  const plugins = analyzer.getPluginStatuses(disabledSources, disabledPlugins);
+  const plugins = analyzer.getPluginStatuses(disabledPlugins);
   sendMessage({ type: 'PLUGINS_UPDATED', payload: { plugins } });
 }
 

@@ -12,7 +12,6 @@ interface WorkspacePipelinePluginRegistry {
 
 export interface WorkspacePipelinePluginStatusDependencies {
   disabledPlugins: ReadonlySet<string>;
-  disabledSources: ReadonlySet<string>;
   discoveredFiles: IDiscoveredFile[];
   fileConnections: Map<string, IConnection[]>;
   registry: WorkspacePipelinePluginRegistry;
@@ -23,7 +22,6 @@ export function getWorkspacePipelinePluginStatuses(
 ): IPluginStatus[] {
   return buildWorkspacePluginStatuses({
     disabledPlugins: dependencies.disabledPlugins,
-    disabledSources: dependencies.disabledSources,
     discoveredFiles: dependencies.discoveredFiles,
     fileConnections: dependencies.fileConnections,
     pluginInfos: dependencies.registry.list(),

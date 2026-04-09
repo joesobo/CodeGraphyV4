@@ -96,6 +96,6 @@ export function createGraphViewProviderMessagePrimaryActions(
       vscode.workspace.fs.copy(sourceUri, destinationUri, options),
     sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
     applyViewTransform: () => source._applyViewTransform(),
-    smartRebuild: (kind, id) => source._smartRebuild(kind, id),
+    smartRebuild: id => source._smartRebuild(id),
   };
 }

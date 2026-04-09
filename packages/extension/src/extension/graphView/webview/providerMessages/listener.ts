@@ -133,7 +133,7 @@ export interface GraphViewProviderMessageListenerSource {
   _sendDepthState(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
   _applyViewTransform(): void;
-  _smartRebuild(kind: 'rule' | 'plugin', id: string): void;
+  _smartRebuild(id: string): void;
   _sendAllSettings(): void;
   _loadGroupsAndFilterPatterns(): void;
   _loadDisabledRulesAndPlugins(): boolean;

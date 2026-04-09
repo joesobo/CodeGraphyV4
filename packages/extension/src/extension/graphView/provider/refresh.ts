@@ -11,10 +11,7 @@ interface GraphViewProviderRefreshAnalyzerLike {
     disabledPlugins: Set<string>,
     showOrphans: boolean,
   ): IGraphData;
-  getPluginStatuses(
-    disabledSources: Set<string>,
-    disabledPlugins: Set<string>,
-  ): readonly IPluginStatus[];
+  getPluginStatuses(disabledPlugins: Set<string>): readonly IPluginStatus[];
   registry: {
     notifyGraphRebuild(graphData: IGraphData): void;
   };
@@ -58,14 +55,14 @@ export interface GraphViewProviderRefreshMethods {
   refreshToggleSettings(): void;
   clearCacheAndRefresh(): Promise<void>;
   _rebuildAndSend(): void;
-  _smartRebuild(kind: 'rule' | 'plugin', id: string): void;
+  _smartRebuild(id: string): void;
 }
 
 export interface GraphViewProviderRefreshMethodDependencies {
   getShowOrphans(): boolean;
   rebuildGraphData: typeof rebuildGraphViewData;
   smartRebuildGraphData: typeof smartRebuildGraphView;
-  shouldRebuild(statuses: readonly IPluginStatus[], kind: 'rule' | 'plugin', id: string): boolean;
+  shouldRebuild(statuses: readonly IPluginStatus[], id: string): boolean;
 }
 
 const DEFAULT_DEPENDENCIES: GraphViewProviderRefreshMethodDependencies = {
@@ -102,10 +99,10 @@ export function createGraphViewProviderRefreshMethods(
     _rebuildAndSend();
   };
 
-  const _smartRebuild = (kind: 'rule' | 'plugin', id: string): void => {
-    dependencies.smartRebuildGraphData(source, kind, id, {
-      shouldRebuild: (statuses, nextKind, nextId) =>
-        dependencies.shouldRebuild(statuses, nextKind, nextId),
+  const _smartRebuild = (id: string): void => {
+    dependencies.smartRebuildGraphData(source, id, {
+      shouldRebuild: (statuses, nextId) =>
+        dependencies.shouldRebuild(statuses, nextId),
       rebuildAndSend: () => runRebuildAndSend(),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
     });

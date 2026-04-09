@@ -38,7 +38,7 @@ export function createGraphViewProviderSettingsMethodDelegates(
     _sendSettings: () => owner._methodContainers.settingsState._sendSettings(),
     _sendPhysicsSettings: () => owner._methodContainers.physicsSettings._sendPhysicsSettings(),
     _rebuildAndSend: () => owner._methodContainers.refresh._rebuildAndSend(),
-    _smartRebuild: (kind, id) => owner._methodContainers.refresh._smartRebuild(kind, id),
+    _smartRebuild: id => owner._methodContainers.refresh._smartRebuild(id),
     _getPhysicsSettings: () => owner._methodContainers.physicsSettings._getPhysicsSettings(),
     _loadGroupsAndFilterPatterns: () =>
       owner._methodContainers.settingsState._loadGroupsAndFilterPatterns(),

@@ -116,7 +116,7 @@ describe('WorkspacePipeline adapters', () => {
     ]);
     vi.spyOn(analyzerPrivate._registry, 'getPluginForFile').mockReturnValue(typescriptPlugin);
 
-    const statuses = analyzer.getPluginStatuses(new Set(), new Set());
+    const statuses = analyzer.getPluginStatuses(new Set());
 
     expect(statuses).toEqual([
       expect.objectContaining({

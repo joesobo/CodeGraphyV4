@@ -93,13 +93,10 @@ async function waitForPluginStatuses(
   getMessages: () => Array<{
     type?: string;
     payload?: {
-      plugins?: Array<{
-        id: string;
-        sources: Array<{ qualifiedSourceId: string }>;
-      }>;
+      plugins?: Array<{ id: string }>;
     };
   }>,
-): Promise<Array<{ id: string; sources: Array<{ qualifiedSourceId: string }> }>> {
+): Promise<Array<{ id: string }>> {
   const requiredPluginIds = [
     'codegraphy.markdown',
     'codegraphy.typescript',
@@ -167,7 +164,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     workspaceFixture = undefined;
   });
 
-  it('sends installed external plugins and their sources to the webview after startup', async () => {
+  it('sends installed external plugins to the webview after startup', async () => {
     const apiRef: { current?: ReturnType<typeof activate> } = {};
     const coreExtensionRef = {
       id: 'codegraphy.codegraphy',
@@ -222,10 +219,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       mockWebview.postMessage.mock.calls.map((call: unknown[]) => call[0] as {
         type?: string;
         payload?: {
-          plugins?: Array<{
-            id: string;
-            sources: Array<{ qualifiedSourceId: string }>;
-          }>;
+          plugins?: Array<{ id: string }>;
         };
       });
 
@@ -235,14 +229,7 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     expect(plugins).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: 'codegraphy.markdown' }),
-        expect.objectContaining({
-          id: 'codegraphy.typescript',
-          sources: expect.arrayContaining([
-            expect.objectContaining({
-              qualifiedSourceId: expect.stringContaining('codegraphy.typescript'),
-            }),
-          ]),
-        }),
+        expect.objectContaining({ id: 'codegraphy.typescript' }),
         expect.objectContaining({ id: 'codegraphy.gdscript' }),
       ]),
     );
