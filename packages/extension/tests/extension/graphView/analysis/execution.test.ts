@@ -48,7 +48,7 @@ function createHandlers(
     }),
     getGraphData: vi.fn(() => graphData),
     sendGraphDataUpdated: vi.fn(),
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
     computeMergedGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     updateViewContext: vi.fn(),
@@ -77,7 +77,7 @@ describe('graph view analysis execution', () => {
 
     expect(handlers.computeMergedGroups).not.toHaveBeenCalled();
     expect(handlers.setRawGraphData).not.toHaveBeenCalled();
-    expect(handlers.sendAvailableViews).not.toHaveBeenCalled();
+    expect(handlers.sendDepthState).not.toHaveBeenCalled();
   });
 
   it('publishes an empty graph when no analyzer exists', async () => {
@@ -89,7 +89,7 @@ describe('graph view analysis execution', () => {
     expect(handlers.setRawGraphData).toHaveBeenCalledWith({ nodes: [], edges: [] });
     expect(handlers.setGraphData).toHaveBeenCalledWith({ nodes: [], edges: [] });
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith({ nodes: [], edges: [] });
-    expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
+    expect(handlers.sendDepthState).toHaveBeenCalledOnce();
   });
 
   it('discovers a disconnected graph when loading without an existing index', async () => {

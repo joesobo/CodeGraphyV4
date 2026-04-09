@@ -30,7 +30,7 @@ function createContext(
     ),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
     sendGraphControls: vi.fn(),
     loadAndSendData: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(),

@@ -7,7 +7,7 @@ import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/exte
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import { applyGraphViewTransform } from '../../presentation';
 import { normalizeFolderNodeColor } from '../../settings/reader';
-import { sendGraphViewAvailableViews } from '../../view/broadcast';
+import { sendGraphViewDepthState } from '../../view/broadcast';
 import { buildGraphViewContext } from '../../view/context';
 import { filterDepthGraph } from '../../../../core/views/depth/transform';
 
@@ -44,7 +44,7 @@ export interface GraphViewProviderViewContextMethodsSource {
 export interface GraphViewProviderViewContextMethods {
   _updateViewContext(): void;
   _applyViewTransform(): void;
-  _sendAvailableViews(): void;
+  _sendDepthState(): void;
   updateGraphData(data: IGraphData): void;
   getGraphData(): IGraphData;
 }
@@ -56,7 +56,7 @@ export interface GraphViewProviderViewContextMethodDependencies {
   asRelativePath(uri: vscode.Uri): string;
   buildViewContext: typeof buildGraphViewContext;
   applyViewTransform: typeof applyGraphViewTransform;
-  sendAvailableViews: typeof sendGraphViewAvailableViews;
+  sendDepthState: typeof sendGraphViewDepthState;
   normalizeFolderNodeColor: typeof normalizeFolderNodeColor;
   defaultDepthLimit: number;
   defaultFolderNodeColor: string;
@@ -73,7 +73,7 @@ function createDefaultDependencies(): GraphViewProviderViewContextMethodDependen
     asRelativePath: uri => vscode.workspace.asRelativePath(uri),
     buildViewContext: buildGraphViewContext,
     applyViewTransform: applyGraphViewTransform,
-    sendAvailableViews: sendGraphViewAvailableViews,
+    sendDepthState: sendGraphViewDepthState,
     normalizeFolderNodeColor,
     defaultDepthLimit: 1,
     defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
@@ -113,8 +113,8 @@ export function createGraphViewProviderViewContextMethods(
       : result.graphData;
   };
 
-  const _sendAvailableViews = (): void => {
-    dependencies.sendAvailableViews(
+  const _sendDepthState = (): void => {
+    dependencies.sendDepthState(
       source._viewContext,
       source._depthMode,
       source._rawGraphData,
@@ -133,7 +133,7 @@ export function createGraphViewProviderViewContextMethods(
   return {
     _updateViewContext,
     _applyViewTransform,
-    _sendAvailableViews,
+    _sendDepthState,
     updateGraphData,
     getGraphData,
   };

@@ -6,7 +6,7 @@ import { createPluginSource } from './pluginSource';
 
 function createBroadcasts(): GraphViewProviderPluginBroadcastMethods {
   return {
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _sendGraphControls: vi.fn(),
     _sendPluginStatuses: vi.fn(),
     _sendDecorations: vi.fn(),
@@ -49,7 +49,7 @@ describe('graphView/provider/pluginExternalRegistration', () => {
         normalizeExtensionUri: expect.any(Function),
         getWorkspaceRoot: expect.any(Function),
         refreshWebviewResourceRoots: expect.any(Function),
-        sendAvailableViews: expect.any(Function),
+        sendDepthState: expect.any(Function),
         sendPluginStatuses: expect.any(Function),
         sendContextMenuItems: expect.any(Function),
         sendPluginToolbarActions: expect.any(Function),

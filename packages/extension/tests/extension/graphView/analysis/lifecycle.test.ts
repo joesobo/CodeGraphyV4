@@ -53,7 +53,7 @@ function createHandlers(
     }),
     getGraphData: vi.fn(() => graphData),
     sendGraphDataUpdated: vi.fn(),
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
     computeMergedGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     updateViewContext: vi.fn(),
@@ -91,7 +91,7 @@ describe('graph view provider analysis lifecycle helper', () => {
     expect(state.analysisRequestId).toBe(1);
     expect(state.analysisController).toBeUndefined();
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith({ nodes: [], edges: [] });
-    expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
+    expect(handlers.sendDepthState).toHaveBeenCalledOnce();
     expect(updateAnalysisController).toHaveBeenNthCalledWith(
       1,
       expect.any(AbortController),

@@ -18,7 +18,7 @@ export interface GraphViewPluginReadyContext {
   isWebviewReadyNotified(): boolean;
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
-  sendAvailableViews(): void;
+  sendDepthState(): void;
   sendGraphControls(): void;
   loadAndSendData(): Promise<void>;
   sendFavorites(): void;
@@ -58,7 +58,7 @@ export async function dispatchGraphViewPluginReadyMessage(
     {
       loadGroupsAndFilterPatterns: () => context.loadGroupsAndFilterPatterns(),
       loadDisabledRulesAndPlugins: () => context.loadDisabledRulesAndPlugins(),
-      sendAvailableViews: () => context.sendAvailableViews(),
+      sendDepthState: () => context.sendDepthState(),
       sendGraphControls: () => context.sendGraphControls(),
       loadAndSendData: () => void context.loadAndSendData(),
       sendFavorites: () => context.sendFavorites(),

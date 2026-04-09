@@ -14,7 +14,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
     const methods = createGraphViewProviderPluginBroadcastMethods(
       source,
       {
-        sendAvailableViews: vi.fn((
+        sendDepthState: vi.fn((
           _context,
           _depthMode,
           _rawGraphData,
@@ -47,7 +47,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
       1,
     );
 
-    methods._sendAvailableViews();
+    methods._sendDepthState();
     methods._sendPluginStatuses();
     methods._sendDecorations();
     methods._sendContextMenuItems();
@@ -77,7 +77,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
     const methods = createGraphViewProviderPluginBroadcastMethods(
       source,
       {
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendDecorations: vi.fn(),
         sendContextMenuItems: vi.fn(),

@@ -1,5 +1,5 @@
 /**
- * @fileoverview Type-safe wrapper class for reading CodeGraphy extension settings.
+ * @fileoverview Type-safe wrapper class for reading CodeGraphy's repo-local settings.
  * @module extension/config/reader
  */
 
@@ -16,8 +16,8 @@ interface CodeGraphyConfigurationLike {
  * Type-safe wrapper for accessing CodeGraphy extension settings.
  *
  * This class provides methods to read configuration values with proper
- * type checking and default values. It reads from VSCode's workspace
- * configuration under the 'codegraphy' section.
+ * type checking and default values. It reads from CodeGraphy's repo-local
+ * settings store, with legacy VS Code settings only used for migration.
  *
  * @example
  * ```typescript
@@ -90,7 +90,7 @@ export class Configuration {
   }
 
   /**
-   * Rule toggle state persisted in VS Code settings.
+   * Rule toggle state persisted in repo-local settings.
    * Entries are qualified IDs in "<pluginId>:<sourceId>" format.
    * @default []
    */
@@ -99,7 +99,7 @@ export class Configuration {
   }
 
   /**
-   * Plugin toggle state persisted in VS Code settings.
+   * Plugin toggle state persisted in repo-local settings.
    * Entries are plugin IDs (e.g., "codegraphy.typescript").
    * @default []
    */

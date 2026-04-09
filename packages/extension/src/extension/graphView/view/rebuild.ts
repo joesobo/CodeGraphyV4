@@ -28,7 +28,7 @@ interface RebuildGraphViewDataDependencies {
   getShowOrphans: () => boolean;
   updateViewContext: () => void;
   applyViewTransform: () => void;
-  sendAvailableViews: () => void;
+  sendDepthState: () => void;
   sendPluginStatuses: () => void;
   sendDecorations: () => void;
   sendMessage: (message: unknown) => void;
@@ -46,7 +46,7 @@ export function rebuildGraphViewData(
     getShowOrphans,
     updateViewContext,
     applyViewTransform,
-    sendAvailableViews,
+    sendDepthState,
     sendPluginStatuses,
     sendDecorations,
     sendMessage,
@@ -62,7 +62,7 @@ export function rebuildGraphViewData(
   updateViewContext();
   applyViewTransform();
   sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
-  sendAvailableViews();
+  sendDepthState();
   sendPluginStatuses();
   sendDecorations();
   state._analyzer.registry.notifyGraphRebuild(state._graphData);

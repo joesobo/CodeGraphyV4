@@ -13,7 +13,7 @@ interface SendGraphViewGroupsUpdatedOptions {
   resolvePluginAssetPath: (assetPath: string, pluginId?: string) => string;
 }
 
-export function sendGraphViewAvailableViews(
+export function sendGraphViewDepthState(
   viewContext: IViewContext,
   depthMode: boolean,
   rawGraphData: IGraphData,

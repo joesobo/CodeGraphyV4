@@ -10,11 +10,11 @@ import {
   sendGraphViewPluginToolbarActions,
   sendGraphViewPluginWebviewInjections,
 } from '../webview/plugins/assets';
-import { sendGraphViewAvailableViews, sendGraphViewLegendsUpdated } from '../view/broadcast';
+import { sendGraphViewDepthState, sendGraphViewLegendsUpdated } from '../view/broadcast';
 import type { GraphViewProviderPluginMethodsSource } from './plugins';
 
 export interface GraphViewProviderPluginBroadcastMethods {
-  _sendAvailableViews(): void;
+  _sendDepthState(): void;
   _sendGraphControls(): void;
   _sendPluginStatuses(): void;
   _sendDecorations(): void;
@@ -26,7 +26,7 @@ export interface GraphViewProviderPluginBroadcastMethods {
 }
 
 export interface GraphViewProviderPluginBroadcastDependencies {
-  sendAvailableViews?: typeof sendGraphViewAvailableViews;
+  sendDepthState?: typeof sendGraphViewDepthState;
   sendPluginStatuses?: typeof sendGraphViewPluginStatuses;
   sendDecorations?: typeof sendGraphViewDecorations;
   sendContextMenuItems?: typeof sendGraphViewContextMenuItems;
@@ -39,7 +39,7 @@ export interface GraphViewProviderPluginBroadcastDependencies {
 
 export const DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES:
   Required<GraphViewProviderPluginBroadcastDependencies> = {
-  sendAvailableViews: sendGraphViewAvailableViews,
+  sendDepthState: sendGraphViewDepthState,
   sendPluginStatuses: sendGraphViewPluginStatuses,
   sendDecorations: sendGraphViewDecorations,
   sendContextMenuItems: sendGraphViewContextMenuItems,
@@ -66,8 +66,8 @@ export function createGraphViewProviderPluginBroadcastMethods(
   };
 
   return {
-    _sendAvailableViews: () => {
-      resolved.sendAvailableViews(
+    _sendDepthState: () => {
+      resolved.sendDepthState(
         source._viewContext,
         source._depthMode,
         source._rawGraphData,

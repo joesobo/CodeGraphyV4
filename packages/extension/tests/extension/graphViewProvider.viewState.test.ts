@@ -311,7 +311,7 @@ describe('GraphViewProvider view state and internal helpers', () => {
     ).mockImplementation(() => {});
     const sendViewsSpy = vi.spyOn(
       internals._viewContextMethods,
-      '_sendAvailableViews'
+      '_sendDepthState'
     ).mockImplementation(() => {});
     const sendStatusesSpy = vi.spyOn(
       internals._pluginMethods,

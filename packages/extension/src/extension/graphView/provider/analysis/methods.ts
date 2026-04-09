@@ -42,7 +42,7 @@ export interface GraphViewProviderAnalysisMethodsSource {
   _firstAnalysis: boolean;
   _resolveFirstWorkspaceReady?: () => void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
-  _sendAvailableViews(): void;
+  _sendDepthState(): void;
   _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;
   _updateViewContext(): void;

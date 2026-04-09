@@ -162,7 +162,7 @@ function createSource(
     _resetPhysicsSettings: vi.fn(() => Promise.resolve()),
     _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _sendMessage: vi.fn(),
     _applyViewTransform: vi.fn(),
     _smartRebuild: vi.fn(),

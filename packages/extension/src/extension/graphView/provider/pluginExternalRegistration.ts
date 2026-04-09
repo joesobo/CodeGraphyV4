@@ -51,7 +51,7 @@ export function createGraphViewProviderExternalPluginRegistration(
         normalizeExtensionUri: uri => source._normalizeExternalExtensionUri(uri),
         getWorkspaceRoot: () => resolved.getWorkspaceFolders()?.[0]?.uri.fsPath,
         refreshWebviewResourceRoots: () => source._refreshWebviewResourceRoots(),
-        sendAvailableViews: () => broadcasts._sendAvailableViews(),
+        sendDepthState: () => broadcasts._sendDepthState(),
         sendPluginStatuses: () => broadcasts._sendPluginStatuses(),
         sendContextMenuItems: () => broadcasts._sendContextMenuItems(),
         sendPluginExporters: () => broadcasts._sendPluginExporters(),

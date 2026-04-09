@@ -24,7 +24,7 @@ function createSource(
     _firstAnalysis: true,
     _resolveFirstWorkspaceReady: undefined,
     _sendMessage: vi.fn(),
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
     _updateViewContext: vi.fn(),

@@ -60,7 +60,7 @@ export interface GraphViewProviderPluginMethodsSource {
 }
 
 export interface GraphViewProviderPluginMethods {
-  _sendAvailableViews: GraphViewProviderPluginBroadcastMethods['_sendAvailableViews'];
+  _sendDepthState: GraphViewProviderPluginBroadcastMethods['_sendDepthState'];
   _sendGraphControls: GraphViewProviderPluginBroadcastMethods['_sendGraphControls'];
   _sendPluginStatuses: GraphViewProviderPluginBroadcastMethods['_sendPluginStatuses'];
   _sendDecorations: GraphViewProviderPluginBroadcastMethods['_sendDecorations'];

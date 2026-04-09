@@ -47,7 +47,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots,
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -73,7 +73,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots,
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -87,7 +87,7 @@ describe('graphView/webview/plugins/registration', () => {
 
   it('registers external plugins, stores extension roots, and refreshes plugin webview state', async () => {
     const refreshWebviewResourceRoots = vi.fn();
-    const sendAvailableViews = vi.fn();
+    const sendDepthState = vi.fn();
     const sendPluginStatuses = vi.fn();
     const sendContextMenuItems = vi.fn();
     const sendPluginWebviewInjections = vi.fn();
@@ -111,7 +111,7 @@ describe('graphView/webview/plugins/registration', () => {
           typeof uri === 'string' ? vscode.Uri.file(uri) : uri,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots,
-        sendAvailableViews,
+        sendDepthState,
         sendPluginStatuses,
         sendContextMenuItems,
         sendPluginWebviewInjections,
@@ -131,7 +131,7 @@ describe('graphView/webview/plugins/registration', () => {
       '/test/workspace',
     );
     expect(refreshWebviewResourceRoots).toHaveBeenCalledOnce();
-    expect(sendAvailableViews).toHaveBeenCalledOnce();
+    expect(sendDepthState).toHaveBeenCalledOnce();
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginWebviewInjections).toHaveBeenCalledOnce();
@@ -160,7 +160,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots: vi.fn(),
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -199,7 +199,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots: vi.fn(),
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -243,7 +243,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => undefined,
         refreshWebviewResourceRoots,
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses,
         sendContextMenuItems,
         sendPluginWebviewInjections,
@@ -312,7 +312,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots: vi.fn(),
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -355,7 +355,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots: vi.fn(),
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -407,7 +407,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => '/test/workspace',
         refreshWebviewResourceRoots: vi.fn(),
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),
@@ -438,7 +438,7 @@ describe('graphView/webview/plugins/registration', () => {
         normalizeExtensionUri: () => undefined,
         getWorkspaceRoot: () => undefined,
         refreshWebviewResourceRoots,
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendContextMenuItems: vi.fn(),
         sendPluginWebviewInjections: vi.fn(),

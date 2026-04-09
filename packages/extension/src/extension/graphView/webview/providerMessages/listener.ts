@@ -128,7 +128,7 @@ export interface GraphViewProviderMessageListenerSource {
   _resetPhysicsSettings(): Promise<void>;
   _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;
-  _sendAvailableViews(): void;
+  _sendDepthState(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
   _applyViewTransform(): void;
   _smartRebuild(kind: 'rule' | 'plugin', id: string): void;

@@ -42,7 +42,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   setGraphData(graphData: IGraphData): void;
   getGraphData(): IGraphData;
   sendGraphDataUpdated(graphData: IGraphData): void;
-  sendAvailableViews(): void;
+  sendDepthState(): void;
   computeMergedGroups(): void;
   sendGroupsUpdated(): void;
   updateViewContext(): void;
@@ -67,7 +67,7 @@ function publishEmptyGraph(
   handlers.setGraphData(EMPTY_GRAPH_DATA);
   handlers.sendGraphDataUpdated(EMPTY_GRAPH_DATA);
   handlers.sendGraphIndexStatusUpdated(hasIndex);
-  handlers.sendAvailableViews();
+  handlers.sendDepthState();
   return EMPTY_GRAPH_DATA;
 }
 
@@ -150,7 +150,7 @@ export async function executeGraphViewAnalysis(
       });
     }
     handlers.sendGraphDataUpdated(graphData);
-    handlers.sendAvailableViews();
+    handlers.sendDepthState();
     handlers.sendPluginStatuses();
     handlers.sendDecorations();
     handlers.sendContextMenuItems();

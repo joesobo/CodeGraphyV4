@@ -133,8 +133,8 @@ describe('GraphViewProvider lifecycle', () => {
     const sendMessageSpy = vi
       .spyOn(internals._webviewMethods, '_sendMessage')
       .mockImplementation(() => {});
-    const sendAvailableViewsSpy = vi
-      .spyOn(internals._viewContextMethods, '_sendAvailableViews')
+    const sendDepthStateSpy = vi
+      .spyOn(internals._viewContextMethods, '_sendDepthState')
       .mockImplementation(() => {});
 
     (provider as unknown as { _analyzer?: unknown })._analyzer = undefined;
@@ -154,7 +154,7 @@ describe('GraphViewProvider lifecycle', () => {
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
-    expect(sendAvailableViewsSpy).toHaveBeenCalledTimes(1);
+    expect(sendDepthStateSpy).toHaveBeenCalledTimes(1);
   });
 
   it('sends empty graph data when _doAnalyzeAndSendData has no workspace', async () => {
@@ -167,8 +167,8 @@ describe('GraphViewProvider lifecycle', () => {
     const sendMessageSpy = vi
       .spyOn(internals._webviewMethods, '_sendMessage')
       .mockImplementation(() => {});
-    const sendAvailableViewsSpy = vi
-      .spyOn(internals._viewContextMethods, '_sendAvailableViews')
+    const sendDepthStateSpy = vi
+      .spyOn(internals._viewContextMethods, '_sendDepthState')
       .mockImplementation(() => {});
     vi.spyOn(internals._pluginResourceMethods, '_computeMergedGroups').mockImplementation(() => {});
     vi.spyOn(internals._pluginMethods, '_sendGroupsUpdated').mockImplementation(() => {});
@@ -190,7 +190,7 @@ describe('GraphViewProvider lifecycle', () => {
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
-    expect(sendAvailableViewsSpy).toHaveBeenCalledTimes(1);
+    expect(sendDepthStateSpy).toHaveBeenCalledTimes(1);
   });
 
   it('clearCacheAndRefresh still analyzes when there is no analyzer cache to clear', async () => {

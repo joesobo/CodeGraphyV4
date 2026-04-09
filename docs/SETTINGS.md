@@ -6,6 +6,7 @@ CodeGraphy now keeps repo-specific graph settings under `.codegraphy/settings.js
 - The file is mostly internal, but still human-editable.
 - CodeGraphy watches it for changes and refreshes relevant graph state when it changes.
 - Legacy VS Code settings can still be read for migration, but `.codegraphy/settings.json` is now the source of truth for repo-local behavior.
+- These settings are no longer intended to be managed from VS Code's built-in Settings UI.
 
 ## Repo-local settings file
 

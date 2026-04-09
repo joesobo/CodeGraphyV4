@@ -22,7 +22,7 @@ function createContext(
     isWebviewReadyNotified: vi.fn(() => false),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
     sendGraphControls: vi.fn(),
     loadAndSendData: vi.fn(() => Promise.resolve()),
     sendFavorites: vi.fn(),
@@ -52,7 +52,7 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
 
     expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
-    expect(context.sendAvailableViews).toHaveBeenCalledOnce();
+    expect(context.sendDepthState).toHaveBeenCalledOnce();
     expect(context.sendGraphControls).toHaveBeenCalledOnce();
     expect(context.sendFavorites).toHaveBeenCalledOnce();
     expect(context.sendSettings).toHaveBeenCalledOnce();

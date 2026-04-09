@@ -43,7 +43,7 @@ export function createGraphViewProviderAnalysisHandlers(
         message => source._sendMessage(message),
       );
     },
-    sendAvailableViews: () => source._sendAvailableViews(),
+    sendDepthState: () => source._sendDepthState(),
     computeMergedGroups: () => source._computeMergedGroups(),
     sendGroupsUpdated: () => source._sendGroupsUpdated(),
     updateViewContext: () => source._updateViewContext(),

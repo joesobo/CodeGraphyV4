@@ -65,7 +65,7 @@ describe('graphView/provider/plugins', () => {
     const methods = createGraphViewProviderPluginMethods(
       createSource({ _sendMessage: sendMessage }),
       {
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendDecorations: vi.fn((_manager, callback) =>
           callback({ type: 'DECORATIONS_UPDATED', payload: { nodes: ['node'], edges: ['edge'] } }),
@@ -91,7 +91,7 @@ describe('graphView/provider/plugins', () => {
     const methods = createGraphViewProviderPluginMethods(
       createSource({ _sendMessage: sendMessage }),
       {
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendDecorations: vi.fn(),
         sendContextMenuItems: vi.fn((_analyzer, callback) =>
@@ -119,7 +119,7 @@ describe('graphView/provider/plugins', () => {
       _groups: [{ id: 'user', pattern: '*.ts', color: '#fff' } as IGroup],
     });
     const methods = createGraphViewProviderPluginMethods(source, {
-      sendAvailableViews: vi.fn((
+      sendDepthState: vi.fn((
         _context,
         _depthMode,
         _rawGraphData,
@@ -150,7 +150,7 @@ describe('graphView/provider/plugins', () => {
       getWorkspaceFolders: vi.fn(() => []),
     });
 
-    methods._sendAvailableViews();
+    methods._sendDepthState();
     methods._sendPluginStatuses();
     methods._sendDecorations();
     methods._sendContextMenuItems();
@@ -179,7 +179,7 @@ describe('graphView/provider/plugins', () => {
       _registerBuiltInPluginRoots: registerBuiltInPluginRoots,
     });
     const methods = createGraphViewProviderPluginMethods(source, {
-      sendAvailableViews: vi.fn(),
+      sendDepthState: vi.fn(),
       sendPluginStatuses: vi.fn(),
       sendDecorations: vi.fn(),
       sendContextMenuItems: vi.fn(),
@@ -210,7 +210,7 @@ describe('graphView/provider/plugins', () => {
   it('passes the current workspace folder into group updates', () => {
     const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
     const methods = createGraphViewProviderPluginMethods(createSource(), {
-      sendAvailableViews: vi.fn(),
+      sendDepthState: vi.fn(),
       sendPluginStatuses: vi.fn(),
       sendDecorations: vi.fn(),
       sendContextMenuItems: vi.fn(),
@@ -227,7 +227,7 @@ describe('graphView/provider/plugins', () => {
 
   it('omits the workspace folder from group updates when none exists', () => {
     const methods = createGraphViewProviderPluginMethods(createSource(), {
-      sendAvailableViews: vi.fn(),
+      sendDepthState: vi.fn(),
       sendPluginStatuses: vi.fn(),
       sendDecorations: vi.fn(),
       sendContextMenuItems: vi.fn(),
@@ -246,7 +246,7 @@ describe('graphView/provider/plugins', () => {
     const registerExternalPlugin = vi.fn();
     const source = createSource();
     const methods = createGraphViewProviderPluginMethods(source, {
-      sendAvailableViews: vi.fn(),
+      sendDepthState: vi.fn(),
       sendPluginStatuses: vi.fn(),
       sendDecorations: vi.fn(),
       sendContextMenuItems: vi.fn(),
@@ -273,7 +273,7 @@ describe('graphView/provider/plugins', () => {
           normalizeExtensionUri: expect.any(Function),
           getWorkspaceRoot: expect.any(Function),
           refreshWebviewResourceRoots: expect.any(Function),
-          sendAvailableViews: expect.any(Function),
+          sendDepthState: expect.any(Function),
           sendPluginStatuses: expect.any(Function),
           sendContextMenuItems: expect.any(Function),
           sendPluginToolbarActions: expect.any(Function),
@@ -304,7 +304,7 @@ describe('graphView/provider/plugins', () => {
     const registerExternalPlugin = vi.fn();
     let workspaceFolders: vscode.WorkspaceFolder[] | undefined = undefined;
     const methods = createGraphViewProviderPluginMethods(createSource(), {
-      sendAvailableViews: vi.fn(),
+      sendDepthState: vi.fn(),
       sendPluginStatuses: vi.fn(),
       sendDecorations: vi.fn(),
       sendContextMenuItems: vi.fn(),
@@ -333,7 +333,7 @@ describe('graphView/provider/plugins', () => {
     const sendContextMenuItems = vi.fn();
     const sendPluginToolbarActions = vi.fn();
     const sendPluginWebviewInjections = vi.fn();
-    const sendAvailableViews = vi.fn();
+    const sendDepthState = vi.fn();
     const analyzeAndSendData = vi.fn(async () => undefined);
     const invalidateTimelineCache = vi.fn(async () => undefined);
     const source = createSource({
@@ -343,7 +343,7 @@ describe('graphView/provider/plugins', () => {
     const methods = createGraphViewProviderPluginMethods(
       source,
       {
-        sendAvailableViews,
+        sendDepthState,
         sendPluginStatuses,
         sendDecorations: vi.fn(),
         sendContextMenuItems,
@@ -358,7 +358,7 @@ describe('graphView/provider/plugins', () => {
     methods.registerExternalPlugin({ id: 'plugin.test' });
 
     const registrationHandlers = registerExternalPlugin.mock.calls[0]?.[3] as {
-      sendAvailableViews(): void;
+      sendDepthState(): void;
       sendPluginStatuses(): void;
       sendContextMenuItems(): void;
       sendPluginToolbarActions(): void;
@@ -367,7 +367,7 @@ describe('graphView/provider/plugins', () => {
       analyzeAndSendData(): Promise<void>;
     };
 
-    registrationHandlers.sendAvailableViews();
+    registrationHandlers.sendDepthState();
     registrationHandlers.sendPluginStatuses();
     registrationHandlers.sendContextMenuItems();
     registrationHandlers.sendPluginToolbarActions();
@@ -375,7 +375,7 @@ describe('graphView/provider/plugins', () => {
     await registrationHandlers.invalidateTimelineCache();
     await registrationHandlers.analyzeAndSendData();
 
-    expect(sendAvailableViews).toHaveBeenCalledOnce();
+    expect(sendDepthState).toHaveBeenCalledOnce();
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginToolbarActions).toHaveBeenCalledOnce();

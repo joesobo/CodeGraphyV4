@@ -276,7 +276,7 @@ const depthHtml = `<!doctype html>
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CodeGraphy Depth View Harness</title>
+    <title>CodeGraphy Depth Mode Harness</title>
     <link rel="stylesheet" href="/dist/webview/index.css" />
     <style>
       body {

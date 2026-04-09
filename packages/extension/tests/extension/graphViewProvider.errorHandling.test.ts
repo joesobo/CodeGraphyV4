@@ -74,8 +74,8 @@ describe('GraphViewProvider error handling', () => {
     const sendMessageSpy = vi
       .spyOn(internals._webviewMethods, '_sendMessage')
       .mockImplementation(() => {});
-    const sendAvailableViewsSpy = vi
-      .spyOn(internals._viewContextMethods, '_sendAvailableViews')
+    const sendDepthStateSpy = vi
+      .spyOn(internals._viewContextMethods, '_sendDepthState')
       .mockImplementation(() => {});
     const sendPluginStatusesSpy = vi
       .spyOn(internals._pluginMethods, '_sendPluginStatuses')
@@ -95,7 +95,7 @@ describe('GraphViewProvider error handling', () => {
       type: 'GRAPH_DATA_UPDATED',
       payload: { nodes: [], edges: [] },
     });
-    expect(sendAvailableViewsSpy).toHaveBeenCalledTimes(1);
+    expect(sendDepthStateSpy).toHaveBeenCalledTimes(1);
     expect(sendPluginStatusesSpy).toHaveBeenCalledTimes(1);
     expect(sendPluginExportersSpy).toHaveBeenCalledTimes(1);
     expect(markWorkspaceReadySpy).toHaveBeenCalledWith({ nodes: [], edges: [] });

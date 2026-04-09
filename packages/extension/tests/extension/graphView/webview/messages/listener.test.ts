@@ -73,7 +73,7 @@ function createContext(
     getHiddenPluginGroupIds: vi.fn(() => new Set<string>()),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
     loadAndSendData: vi.fn(() => Promise.resolve()),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),

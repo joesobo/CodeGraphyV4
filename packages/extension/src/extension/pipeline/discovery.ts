@@ -54,6 +54,6 @@ export function formatWorkspacePipelineLimitReachedMessage(
 ): string {
   return (
     `CodeGraphy: Found ${totalFound}+ files, showing first ${maxFiles}. `
-    + 'Increase codegraphy.maxFiles in settings to see more.'
+    + 'Increase maxFiles in .codegraphy/settings.json to see more.'
   );
 }

@@ -38,7 +38,7 @@ export interface GraphViewProviderRefreshMethodsSource {
   _sendPhysicsSettings(): void;
   _updateViewContext(): void;
   _applyViewTransform(): void;
-  _sendAvailableViews(): void;
+  _sendDepthState(): void;
   _sendPluginStatuses(): void;
   _sendDecorations(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
@@ -80,7 +80,7 @@ export function createGraphViewProviderRefreshMethods(
       getShowOrphans: () => dependencies.getShowOrphans(),
       updateViewContext: () => source._updateViewContext(),
       applyViewTransform: () => source._applyViewTransform(),
-      sendAvailableViews: () => source._sendAvailableViews(),
+      sendDepthState: () => source._sendDepthState(),
       sendPluginStatuses: () => source._sendPluginStatuses(),
       sendDecorations: () => source._sendDecorations(),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),

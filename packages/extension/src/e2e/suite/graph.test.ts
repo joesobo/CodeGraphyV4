@@ -322,10 +322,10 @@ suite('Graph: 3D Mode', function () {
   });
 });
 
-suite('Graph: Depth View', function () {
+suite('Graph: Depth Mode', function () {
   this.timeout(60_000);
 
-  test('depth view falls back to the full connections graph when no file is active', async function() {
+  test('depth mode falls back to the full graph when no file is active', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(5_000);
@@ -350,7 +350,7 @@ suite('Graph: Depth View', function () {
     );
   });
 
-  test('depth view filters the graph around the active file and still renders bounds', async function() {
+  test('depth mode filters the graph around the active file and still renders bounds', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(5_000);
@@ -399,7 +399,7 @@ suite('Graph: Depth View', function () {
     await setDepthMode(api, false);
   });
 
-  test('depth view re-roots around the selected node even without an active editor', async function() {
+  test('depth mode re-roots around the selected node even without an active editor', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(5_000);
@@ -433,7 +433,7 @@ suite('Graph: Depth View', function () {
     await setDepthMode(api, false);
   });
 
-  test('depth view re-roots around the selected node even when another editor stays active', async function() {
+  test('depth mode re-roots around the selected node even when another editor stays active', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(5_000);
@@ -485,7 +485,7 @@ suite('Graph: Depth View', function () {
     await setDepthMode(api, false);
   });
 
-  test('depth view stays filtered when re-rooting from the current node to a visible neighbor', async function() {
+  test('depth mode stays filtered when re-rooting from the current node to a visible neighbor', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(5_000);
@@ -564,7 +564,7 @@ suite('Graph: Depth View', function () {
     await setDepthMode(api, false);
   });
 
-  test('depth view returns to the full graph when the focused node is cleared', async function() {
+  test('depth mode returns to the full graph when the focused node is cleared', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(5_000);
@@ -616,7 +616,7 @@ suite('Graph: Depth View', function () {
     await setDepthMode(api, false);
   });
 
-  test('depth view re-roots again after clearing a selected node and choosing a different node', async function() {
+  test('depth mode re-roots again after clearing a selected node and choosing a different node', async function() {
     const api = await getAPI();
     await vscode.commands.executeCommand('codegraphy.open');
     await sleep(5_000);

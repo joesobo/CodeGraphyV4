@@ -77,7 +77,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _sendCachedTimeline: vi.fn(),
   };
   const viewContextMethods = {
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _updateViewContext: vi.fn(),
     _applyViewTransform: vi.fn(),
     updateGraphData: vi.fn(),

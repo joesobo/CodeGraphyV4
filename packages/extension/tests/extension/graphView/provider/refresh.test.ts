@@ -26,7 +26,7 @@ function createSource(
   _sendPhysicsSettings: ReturnType<typeof vi.fn>;
   _updateViewContext: ReturnType<typeof vi.fn>;
   _applyViewTransform: ReturnType<typeof vi.fn>;
-  _sendAvailableViews: ReturnType<typeof vi.fn>;
+  _sendDepthState: ReturnType<typeof vi.fn>;
   _sendPluginStatuses: ReturnType<typeof vi.fn>;
   _sendDecorations: ReturnType<typeof vi.fn>;
   _sendMessage: ReturnType<typeof vi.fn>;
@@ -53,7 +53,7 @@ function createSource(
     _sendPhysicsSettings: vi.fn(),
     _updateViewContext: vi.fn(),
     _applyViewTransform: vi.fn(),
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _sendPluginStatuses: vi.fn(),
     _sendDecorations: vi.fn(),
     _sendMessage: vi.fn(),
@@ -202,7 +202,7 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans(): boolean;
       updateViewContext(): void;
       applyViewTransform(): void;
-      sendAvailableViews(): void;
+      sendDepthState(): void;
       sendPluginStatuses(): void;
       sendDecorations(): void;
       sendMessage(message: unknown): void;
@@ -210,7 +210,7 @@ describe('graphView/provider/refresh', () => {
       expect(handlers.getShowOrphans()).toBe(false);
       handlers.updateViewContext();
       handlers.applyViewTransform();
-      handlers.sendAvailableViews();
+      handlers.sendDepthState();
       handlers.sendPluginStatuses();
       handlers.sendDecorations();
       handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED' });
@@ -252,7 +252,7 @@ describe('graphView/provider/refresh', () => {
 
     expect(source._updateViewContext).toHaveBeenCalledOnce();
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
-    expect(source._sendAvailableViews).toHaveBeenCalledOnce();
+    expect(source._sendDepthState).toHaveBeenCalledOnce();
     expect(source._sendPluginStatuses).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({ type: 'GRAPH_DATA_UPDATED' });

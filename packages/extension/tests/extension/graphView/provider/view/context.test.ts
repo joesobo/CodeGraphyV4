@@ -8,7 +8,7 @@ import type { GraphViewProviderViewContextMethodDependencies } from '../../../..
 const providerViewContextMethodMocks = vi.hoisted(() => ({
   buildViewContext: vi.fn(),
   applyViewTransform: vi.fn(),
-  sendAvailableViews: vi.fn(),
+  sendDepthState: vi.fn(),
   normalizeFolderNodeColor: vi.fn(),
 }));
 
@@ -17,7 +17,7 @@ vi.mock('../../../../../src/extension/graphView/view/context', () => ({
 }));
 
 vi.mock('../../../../../src/extension/graphView/view/broadcast', () => ({
-  sendGraphViewAvailableViews: providerViewContextMethodMocks.sendAvailableViews,
+  sendGraphViewDepthState: providerViewContextMethodMocks.sendDepthState,
 }));
 
 vi.mock('../../../../../src/extension/graphView/presentation', () => ({
@@ -34,7 +34,7 @@ describe('graphView/provider/view/context', () => {
   beforeEach(() => {
     providerViewContextMethodMocks.buildViewContext.mockReset();
     providerViewContextMethodMocks.applyViewTransform.mockReset();
-    providerViewContextMethodMocks.sendAvailableViews.mockReset();
+    providerViewContextMethodMocks.sendDepthState.mockReset();
     providerViewContextMethodMocks.normalizeFolderNodeColor.mockReset();
   });
 
@@ -227,7 +227,7 @@ describe('graphView/provider/view/context', () => {
         depthLimit: 3,
       } satisfies IViewContext,
     });
-    const sendAvailableViews = vi.fn(
+    const sendDepthState = vi.fn(
       (
         _viewContext,
         _depthMode,
@@ -244,13 +244,13 @@ describe('graphView/provider/view/context', () => {
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
       createDependencies({
-        sendAvailableViews,
+        sendDepthState,
       }),
     );
 
-    methods._sendAvailableViews();
+    methods._sendDepthState();
 
-    expect(sendAvailableViews).toHaveBeenCalledWith(
+    expect(sendDepthState).toHaveBeenCalledWith(
       source._viewContext,
       true,
       source._rawGraphData,
@@ -271,10 +271,10 @@ describe('graphView/provider/view/context', () => {
         edges: [],
       },
     } satisfies IGraphViewTransformResult));
-    const sendAvailableViews = vi.fn();
+    const sendDepthState = vi.fn();
     const dependencies = createDependencies({
       applyViewTransform,
-      sendAvailableViews,
+      sendDepthState,
     });
     const methods = createGraphViewProviderViewContextMethods(
       source as never,
@@ -282,7 +282,7 @@ describe('graphView/provider/view/context', () => {
     );
 
     methods._applyViewTransform();
-    methods._sendAvailableViews();
+    methods._sendDepthState();
 
     expect(applyViewTransform).toHaveBeenCalledWith(
       source._viewRegistry,
@@ -298,7 +298,7 @@ describe('graphView/provider/view/context', () => {
       expect.stringMatching(/selectedView/),
       expect.anything(),
     );
-    expect(sendAvailableViews).toHaveBeenCalledOnce();
+    expect(sendDepthState).toHaveBeenCalledOnce();
   });
 
   it('uses the live default transform and view broadcast helpers', () => {
@@ -315,7 +315,7 @@ describe('graphView/provider/view/context', () => {
         edges: [],
       },
     } satisfies IGraphViewTransformResult);
-    providerViewContextMethodMocks.sendAvailableViews.mockImplementation(
+    providerViewContextMethodMocks.sendDepthState.mockImplementation(
       (
         _viewContext,
         _depthMode,
@@ -336,7 +336,7 @@ describe('graphView/provider/view/context', () => {
     const methods = createGraphViewProviderViewContextMethods(source as never);
 
     methods._applyViewTransform();
-    methods._sendAvailableViews();
+    methods._sendDepthState();
 
     expect(providerViewContextMethodMocks.applyViewTransform).toHaveBeenCalledWith(
       source._viewRegistry,
@@ -351,7 +351,7 @@ describe('graphView/provider/view/context', () => {
       expect.stringMatching(/selectedView/),
       expect.anything(),
     );
-    expect(providerViewContextMethodMocks.sendAvailableViews).toHaveBeenCalledWith(
+    expect(providerViewContextMethodMocks.sendDepthState).toHaveBeenCalledWith(
       source._viewContext,
       true,
       source._rawGraphData,
@@ -458,7 +458,7 @@ function createDependencies(
     asRelativePath: vi.fn((uri: { fsPath?: string }) => uri.fsPath ?? ''),
     buildViewContext,
     applyViewTransform,
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
     normalizeFolderNodeColor: vi.fn((color: string | undefined) => color ?? '#93C5FD'),
     defaultDepthLimit: 1,
     defaultFolderNodeColor: '#93C5FD',

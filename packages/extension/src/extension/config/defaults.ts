@@ -1,5 +1,5 @@
 /**
- * @fileoverview Configuration defaults and types for CodeGraphy extension settings.
+ * @fileoverview Configuration defaults and types for CodeGraphy's repo-local settings.
  * @module extension/config/defaults
  */
 
@@ -22,7 +22,7 @@ export const DEFAULT_EXCLUDE_PATTERNS: readonly string[] = [
 ];
 
 /**
- * Configuration interface matching the settings defined in package.json.
+ * Configuration interface matching the settings persisted under `.codegraphy/settings.json`.
  */
 export interface ICodeGraphyConfig {
   /** Maximum number of files to analyze */

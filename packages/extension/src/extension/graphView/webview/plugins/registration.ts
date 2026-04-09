@@ -29,7 +29,7 @@ export interface GraphViewExternalPluginRegistrationHandlers {
   normalizeExtensionUri(uri: vscode.Uri | string | undefined): vscode.Uri | undefined;
   getWorkspaceRoot(): string | undefined;
   refreshWebviewResourceRoots(): void;
-  sendAvailableViews(): void;
+  sendDepthState(): void;
   sendPluginStatuses(): void;
   sendContextMenuItems(): void;
   sendPluginExporters?(): void;
@@ -74,7 +74,7 @@ export function registerGraphViewExternalPlugin(
   })();
 
   handlers.refreshWebviewResourceRoots();
-  handlers.sendAvailableViews();
+  handlers.sendDepthState();
   handlers.sendPluginStatuses();
   handlers.sendContextMenuItems();
   handlers.sendPluginExporters?.();

@@ -5,7 +5,7 @@ function createHandlers() {
   return {
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
     sendGraphControls: vi.fn(),
     loadAndSendData: vi.fn(),
     sendFavorites: vi.fn(),
@@ -46,7 +46,7 @@ describe('graph view ready message', () => {
 
     expect(handlers.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(handlers.loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
-    expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
+    expect(handlers.sendDepthState).toHaveBeenCalledOnce();
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
     expect(handlers.loadAndSendData).toHaveBeenCalledOnce();
     expect(handlers.sendFavorites).toHaveBeenCalledOnce();
@@ -88,7 +88,7 @@ describe('graph view ready message', () => {
   it('sends available views before kicking off analysis', async () => {
     const callOrder: string[] = [];
     const handlers = createHandlers();
-    handlers.sendAvailableViews.mockImplementation(() => {
+    handlers.sendDepthState.mockImplementation(() => {
       callOrder.push('views');
     });
     handlers.loadAndSendData.mockImplementation(() => {

@@ -17,7 +17,7 @@ describe('graphView/view/rebuild', () => {
     };
     const updateViewContext = vi.fn();
     const applyViewTransform = vi.fn();
-    const sendAvailableViews = vi.fn();
+    const sendDepthState = vi.fn();
     const sendPluginStatuses = vi.fn();
     const sendDecorations = vi.fn();
     const sendMessage = vi.fn();
@@ -26,7 +26,7 @@ describe('graphView/view/rebuild', () => {
       getShowOrphans: () => true,
       updateViewContext,
       applyViewTransform,
-      sendAvailableViews,
+      sendDepthState,
       sendPluginStatuses,
       sendDecorations,
       sendMessage,
@@ -34,7 +34,7 @@ describe('graphView/view/rebuild', () => {
 
     expect(updateViewContext).not.toHaveBeenCalled();
     expect(applyViewTransform).not.toHaveBeenCalled();
-    expect(sendAvailableViews).not.toHaveBeenCalled();
+    expect(sendDepthState).not.toHaveBeenCalled();
     expect(sendPluginStatuses).not.toHaveBeenCalled();
     expect(sendDecorations).not.toHaveBeenCalled();
     expect(sendMessage).not.toHaveBeenCalled();
@@ -60,7 +60,7 @@ describe('graphView/view/rebuild', () => {
     };
     const updateViewContext = vi.fn();
     const applyViewTransform = vi.fn();
-    const sendAvailableViews = vi.fn();
+    const sendDepthState = vi.fn();
     const sendPluginStatuses = vi.fn();
     const sendDecorations = vi.fn();
     const sendMessage = vi.fn();
@@ -69,7 +69,7 @@ describe('graphView/view/rebuild', () => {
       getShowOrphans: () => false,
       updateViewContext,
       applyViewTransform,
-      sendAvailableViews,
+      sendDepthState,
       sendPluginStatuses,
       sendDecorations,
       sendMessage,
@@ -79,7 +79,7 @@ describe('graphView/view/rebuild', () => {
     expect(state._rawGraphData).toEqual(graphData);
     expect(updateViewContext).toHaveBeenCalledTimes(1);
     expect(applyViewTransform).toHaveBeenCalledTimes(1);
-    expect(sendAvailableViews).toHaveBeenCalledTimes(1);
+    expect(sendDepthState).toHaveBeenCalledTimes(1);
     expect(sendPluginStatuses).toHaveBeenCalledTimes(1);
     expect(sendDecorations).toHaveBeenCalledTimes(1);
     expect(sendMessage).toHaveBeenCalledWith({

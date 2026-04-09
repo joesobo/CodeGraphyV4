@@ -3,7 +3,7 @@ import * as vscode from 'vscode';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import type { IViewContext } from '../../../../src/core/views/contracts';
 import {
-  sendGraphViewAvailableViews,
+  sendGraphViewDepthState,
   sendGraphViewLegendsUpdated,
 } from '../../../../src/extension/graphView/view/broadcast';
 
@@ -11,7 +11,7 @@ describe('graphView/view/broadcast', () => {
   it('sends depth mode and the current depth limit', () => {
     const sendMessage = vi.fn();
 
-    sendGraphViewAvailableViews(
+    sendGraphViewDepthState(
       { activePlugins: new Set(['plugin.alpha']), depthLimit: 3 } satisfies IViewContext,
       false,
       { nodes: [], edges: [] },

@@ -26,7 +26,7 @@ function createSource(
     _firstAnalysis: true,
     _resolveFirstWorkspaceReady: undefined,
     _sendMessage: vi.fn(),
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
     _updateViewContext: vi.fn(),
@@ -75,7 +75,7 @@ describe('graphView/provider/analysis/handlers', () => {
     });
     handlers.setGraphData(graphData);
     handlers.sendGraphDataUpdated(graphData);
-    handlers.sendAvailableViews();
+    handlers.sendDepthState();
     handlers.computeMergedGroups();
     handlers.sendGroupsUpdated();
     handlers.updateViewContext();
@@ -96,7 +96,7 @@ describe('graphView/provider/analysis/handlers', () => {
       type: 'GRAPH_DATA_UPDATED',
       payload: graphData,
     });
-    expect(source._sendAvailableViews).toHaveBeenCalledOnce();
+    expect(source._sendDepthState).toHaveBeenCalledOnce();
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(source._updateViewContext).toHaveBeenCalledOnce();

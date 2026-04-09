@@ -8,7 +8,7 @@ export function createGraphViewProviderAnalysisMethodDelegates(
 ): Pick<
   GraphViewProviderMethodSource,
   | '_sendMessage'
-  | '_sendAvailableViews'
+  | '_sendDepthState'
   | '_computeMergedGroups'
   | '_sendGroupsUpdated'
   | '_updateViewContext'
@@ -28,7 +28,7 @@ export function createGraphViewProviderAnalysisMethodDelegates(
 > {
   return {
     _sendMessage: message => owner._methodContainers.webview._sendMessage(message),
-    _sendAvailableViews: () => owner._methodContainers.viewContext._sendAvailableViews(),
+    _sendDepthState: () => owner._methodContainers.viewContext._sendDepthState(),
     _computeMergedGroups: () => owner._methodContainers.pluginResource._computeMergedGroups(),
     _sendGroupsUpdated: () => owner._methodContainers.plugin._sendGroupsUpdated(),
     _updateViewContext: () => owner._methodContainers.viewContext._updateViewContext(),
