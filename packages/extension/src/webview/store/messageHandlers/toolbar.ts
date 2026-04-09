@@ -2,7 +2,7 @@ import type { IHandlerContext, PartialState } from '../messageTypes';
 import { DAG_MODE_CYCLE } from '../messageTypes';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 
-export function handleCycleView(
+export function handleToggleDepthMode(
   _message: ExtensionToWebviewMessage,
   ctx: IHandlerContext,
 ): void {

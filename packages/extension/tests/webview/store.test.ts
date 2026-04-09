@@ -244,18 +244,18 @@ describe('GraphStore', () => {
     expect(store.getState().graphMode).toBe('2d');
   });
 
-  it('CYCLE_VIEW enables depth mode when an index exists', () => {
+  it('TOGGLE_DEPTH_MODE enables depth mode when an index exists', () => {
     store.getState().handleExtensionMessage({
       type: 'GRAPH_INDEX_STATUS_UPDATED',
       payload: { hasIndex: true },
     });
-    store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
+    store.getState().handleExtensionMessage({ type: 'TOGGLE_DEPTH_MODE' });
     const msg = findMessage('UPDATE_DEPTH_MODE');
     expect(msg).toBeTruthy();
     expect(msg!.payload.depthMode).toBe(true);
   });
 
-  it('CYCLE_VIEW returns to the main graph when depth mode is already active', () => {
+  it('TOGGLE_DEPTH_MODE returns to the main graph when depth mode is already active', () => {
     store.getState().handleExtensionMessage({
       type: 'GRAPH_INDEX_STATUS_UPDATED',
       payload: { hasIndex: true },
@@ -264,14 +264,14 @@ describe('GraphStore', () => {
       type: 'DEPTH_MODE_UPDATED',
       payload: { depthMode: true },
     });
-    store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
+    store.getState().handleExtensionMessage({ type: 'TOGGLE_DEPTH_MODE' });
     const msg = findMessage('UPDATE_DEPTH_MODE');
     expect(msg).toBeTruthy();
     expect(msg!.payload.depthMode).toBe(false);
   });
 
-  it('CYCLE_VIEW is a no-op before the repo has been indexed', () => {
-    store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
+  it('TOGGLE_DEPTH_MODE is a no-op before the repo has been indexed', () => {
+    store.getState().handleExtensionMessage({ type: 'TOGGLE_DEPTH_MODE' });
     expect(findMessage('UPDATE_DEPTH_MODE')).toBeUndefined();
   });
 

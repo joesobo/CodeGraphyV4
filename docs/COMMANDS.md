@@ -37,7 +37,7 @@ For keybinding customization or extension integration:
 | `codegraphy.exportJpeg` | Export as JPEG |
 | `codegraphy.exportJson` | Export Graph as JSON |
 | `codegraphy.exportMarkdown` | Export Graph as Markdown |
-| `codegraphy.cycleView` | Toggle Depth Mode |
+| `codegraphy.toggleDepthMode` | Toggle Depth Mode |
 | `codegraphy.cycleLayout` | Cycle Layout |
 | `codegraphy.toggleDimension` | Toggle 2D/3D |
 | `codegraphy.clearCache` | Clear Cache and Refresh |

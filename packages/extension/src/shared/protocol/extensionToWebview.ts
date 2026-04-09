@@ -80,6 +80,6 @@ export type ExtensionToWebviewMessage =
   | { type: 'PLUGIN_WEBVIEW_INJECT'; payload: { pluginId: string; scripts: string[]; styles: string[] } }
   | { type: 'DAG_MODE_UPDATED'; payload: { dagMode: DagMode } }
   | { type: 'NODE_SIZE_MODE_UPDATED'; payload: { nodeSizeMode: NodeSizeMode } }
-  | { type: 'CYCLE_VIEW' }
+  | { type: 'TOGGLE_DEPTH_MODE' }
   | { type: 'CYCLE_LAYOUT' }
   | { type: 'TOGGLE_DIMENSION' };

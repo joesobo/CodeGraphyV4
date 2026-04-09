@@ -3,7 +3,10 @@ import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webv
 import type { GraphKeyboardCommand, GraphKeyboardEffect } from './effects';
 
 type HistoryMessageType = Extract<WebviewToExtensionMessage['type'], 'UNDO' | 'REDO'>;
-type StoreMessageType = Extract<ExtensionToWebviewMessage['type'], 'CYCLE_VIEW' | 'CYCLE_LAYOUT' | 'TOGGLE_DIMENSION'>;
+type StoreMessageType = Extract<
+  ExtensionToWebviewMessage['type'],
+  'TOGGLE_DEPTH_MODE' | 'CYCLE_LAYOUT' | 'TOGGLE_DIMENSION'
+>;
 
 function createCommand(effect: GraphKeyboardEffect, stopPropagation = false): GraphKeyboardCommand {
   return {

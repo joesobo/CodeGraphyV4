@@ -35,7 +35,7 @@ import {
   handleNodeSizeModeUpdated,
 } from './messageHandlers/plugin';
 import {
-  handleCycleView,
+  handleToggleDepthMode,
   handleCycleLayout,
   handleToggleDimension,
 } from './messageHandlers/toolbar';
@@ -118,7 +118,7 @@ export const MESSAGE_HANDLERS: Record<
     handleDagModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>),
   NODE_SIZE_MODE_UPDATED: (msg) =>
     handleNodeSizeModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'NODE_SIZE_MODE_UPDATED' }>),
-  CYCLE_VIEW: handleCycleView,
+  TOGGLE_DEPTH_MODE: handleToggleDepthMode,
   CYCLE_LAYOUT: handleCycleLayout,
   TOGGLE_DIMENSION: handleToggleDimension,
 };

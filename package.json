@@ -142,7 +142,7 @@
 				"title": "CodeGraphy: Clear Cache and Refresh"
 			},
 			{
-				"command": "codegraphy.cycleView",
+				"command": "codegraphy.toggleDepthMode",
 				"title": "CodeGraphy: Toggle Depth Mode"
 			},
 			{
@@ -193,7 +193,7 @@
 				"when": "codegraphy.viewVisible && activeViewlet == 'workbench.view.extension.codegraphy' && !editorTextFocus && !inputFocus"
 			},
 			{
-				"command": "codegraphy.cycleView",
+				"command": "codegraphy.toggleDepthMode",
 				"key": "v",
 				"when": "codegraphy.graphFocused"
 			},

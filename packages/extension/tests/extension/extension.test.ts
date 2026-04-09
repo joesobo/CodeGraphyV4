@@ -66,7 +66,7 @@ describe('Extension', () => {
 
       // view providers (2) + config listener (1) + active editor listener (1) + save listener (1)
       // + file watcher events (2) + file watcher (1) + runtime bridge listener (1)
-      // + 16 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache, cycleView, cycleLayout, toggleDimension)
+      // + 16 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache, toggleDepthMode, cycleLayout, toggleDimension)
       expect(mockContext.subscriptions.length).toBe(25);
     });
 

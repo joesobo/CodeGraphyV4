@@ -8,7 +8,7 @@ export function getToolbarShortcutCommand(
   switch (key) {
     case 'v':
     case 'V':
-      return !isMod ? createStoreMessageCommand('CYCLE_VIEW') : null;
+      return !isMod ? createStoreMessageCommand('TOGGLE_DEPTH_MODE') : null;
     case 'l':
     case 'L':
       return !isMod ? createStoreMessageCommand('CYCLE_LAYOUT') : null;
