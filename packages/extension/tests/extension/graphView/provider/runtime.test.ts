@@ -63,7 +63,7 @@ async function loadSubject(
     ViewRegistry: class ViewRegistry {
       register = vi.fn();
       get = vi.fn(() => undefined);
-      getDefaultViewId = vi.fn(() => 'codegraphy.connections');
+      getDefaultViewId = vi.fn(() => 'codegraphy.graph');
     },
     coreViews: [],
   }));

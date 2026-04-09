@@ -411,7 +411,7 @@ function createSource(
     },
     _analyzer: { registry: { list: vi.fn(() => []) } },
     _viewRegistry: {
-      get: vi.fn(() => ({ view: { id: 'codegraphy.connections' } })),
+      get: vi.fn(() => ({ view: { id: 'codegraphy.graph' } })),
       isViewAvailable: vi.fn(() => true),
     },
     _viewContext: {

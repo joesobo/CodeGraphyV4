@@ -18,8 +18,8 @@ import { getAvailableViews, isViewAvailable } from './viewAvailability';
  * ```typescript
  * const registry = new ViewRegistry();
  * 
- * // Register a core view
- * registry.register(connectionsView, { core: true });
+ * // Register the host's base graph transform
+ * registry.register(baseGraphView, { core: true });
  * 
  * // Register a plugin-provided view
  * registry.register(typeGraphView, { core: false });
