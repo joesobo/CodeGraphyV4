@@ -1,32 +1,31 @@
 /**
- * @fileoverview Core views that ship with CodeGraphy.
- * These views are always available regardless of which plugins are active.
+ * @fileoverview Host-defined base graph transforms kept for compatibility with
+ * the plugin view registry.
  * @module core/views/builtIns
  */
 
 import { IView } from './contracts';
 
 /**
- * Connections view - the default view.
- * Shows all files and their import relationships.
- * This is the current default behavior of CodeGraphy.
+ * Legacy base-graph view registration kept for plugin API compatibility.
+ *
+ * CodeGraphy's built-in experience is now one unified graph surface, but the
+ * host still keeps a pass-through base transform registered for optional
+ * plugin-defined view integrations.
  */
 export const connectionsView: IView = {
   id: 'codegraphy.connections',
-  name: 'Connections',
+  name: 'Graph',
   icon: 'symbol-file',
-  description: 'Shows all files and their import relationships',
+  description: 'Base graph transform for the unified graph surface',
 
   transform(data, _context) {
-    // Pass through - this is the default view that shows everything
+    // Pass through - the unified graph surface owns the built-in experience.
     return data;
   },
 };
 
-/**
- * All core views that ship with CodeGraphy.
- * Register these on startup.
- */
+/** Base transforms the host registers on startup. */
 export const coreViews: IView[] = [
   connectionsView,
 ];

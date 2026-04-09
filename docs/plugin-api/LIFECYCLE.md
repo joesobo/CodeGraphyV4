@@ -53,12 +53,12 @@ onLoad(api: CodeGraphyAPI) {
     action: (node) => { /* ... */ },
   });
 
-  // Register a custom view
+  // Register a custom graph transform / optional host view
   api.registerView({
     id: 'my-plugin.custom-view',
     name: 'My View',
     icon: 'graph',
-    description: 'A custom graph view',
+    description: 'A plugin-defined graph transform',
     recomputeOn: ['focusedFile'],
     transform(data, context) { return data; },
   });
@@ -202,7 +202,7 @@ onPostAnalyze(graph: IGraphData) {
 
 ### onGraphRebuild(graph)
 
-Called when the graph is rebuilt without re-analysis (e.g., when a user toggles a rule or plugin). The cached connection data is used to rebuild the graph. Plugins should re-apply their decorations since the node set may have changed.
+Called when the graph is rebuilt without re-analysis (for example after graph-control toggles or plugin toggles). The cached connection data is used to rebuild the graph. Plugins should re-apply their decorations since the rendered node set may have changed.
 
 ```typescript
 onGraphRebuild(graph: IGraphData) {
@@ -224,7 +224,7 @@ interface Disposable {
 }
 ```
 
-When `onUnload` fires, **all** Disposables registered by that plugin are automatically disposed. Event subscriptions are removed, commands are unregistered, views are removed, decorations are cleared, and webview contributions are torn down. No manual cleanup needed.
+When `onUnload` fires, **all** Disposables registered by that plugin are automatically disposed. Event subscriptions are removed, commands are unregistered, plugin-defined views/transforms are removed, decorations are cleared, and webview contributions are torn down. No manual cleanup needed.
 
 ```typescript
 onLoad(api: CodeGraphyAPI) {

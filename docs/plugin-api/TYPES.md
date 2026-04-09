@@ -58,7 +58,6 @@ Key points:
 - `webviewApiVersion?: string` and `webviewContributions?: { scripts?: string[]; styles?: string[] }` support Tier 2.
 - `sources?: IConnectionSource[]` declares the plugin’s relation provenance/source families.
 - `fileColors?: Record<string, string | IPluginFileColorDefinition>` lets plugins provide default color/shape/imagePath styling by pattern.
-- `analyzeFile(filePath, content, workspaceRoot)` is the primary per-file analysis hook.
 - `analyzeFile(filePath, content, workspaceRoot)` is the plugin analysis hook for returning relations, symbols, and contributed node or edge types.
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new graph controls and defaults.
 - Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
@@ -84,6 +83,7 @@ Main groups:
 - Decorations: `decorateNode`, `decorateEdge`, `clearDecorations`
 - Graph queries: `getGraph`, `getNode`, `getNeighbors`, `getIncomingEdges`, `getOutgoingEdges`, `getEdgesFor`, `filterEdgesByKind`, `getSubgraph`, `findPath`
 - Registration: `registerView`, `registerCommand`, `registerContextMenuItem`, `registerExporter`, `registerToolbarAction`
+  - `registerView` is for plugin-defined graph transforms the host may expose as optional custom views; the built-in graph experience is now one unified surface rather than separate core Connections/Folder/Depth views
 - Tier 2 bridge: `sendToWebview`, `onWebviewMessage`
 - Export saving: `saveExport`
 - Utilities: `getWorkspaceRoot`, `log`
@@ -128,6 +128,8 @@ Main groups:
 - `ICommand`, `IContextMenuItem` in `commands.ts`
 - `IExporter`, `ExportRequest`, `IToolbarAction`, `IToolbarActionItem` in `api.ts`
 - `Disposable` in `disposable.ts`
+
+Plugin views are optional graph transforms layered on top of the unified graph surface. They are no longer the built-in way users switch between `Connections`, `Folder`, and `Depth` views.
 
 ## Webview Types (Tier 2)
 

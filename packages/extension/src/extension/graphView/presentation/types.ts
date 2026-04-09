@@ -7,5 +7,4 @@ export interface IWorkspaceFolderLike {
 
 export interface IGraphViewTransformResult {
   graphData: IGraphData;
-  persistSelectedViewId?: string;
 }

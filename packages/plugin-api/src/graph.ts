@@ -88,7 +88,7 @@ export interface IGraphNode {
   accessCount?: number;
 
   /**
-   * Distance from the focused node in the depth graph view.
+   * Distance from the focused node when depth mode is active.
    * 0 = the focused node, 1 = direct neighbors, 2 = two hops away, etc.
    */
   depthLevel?: number;

@@ -76,7 +76,7 @@ export function initializeGraphViewProviderServices({
   for (const view of coreViews) {
     viewRegistry.register(view, {
       core: true,
-      isDefault: view.id === 'codegraphy.connections',
+      isDefault: view === coreViews[0],
     });
   }
 

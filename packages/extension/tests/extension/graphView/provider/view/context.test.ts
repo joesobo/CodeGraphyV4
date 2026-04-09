@@ -263,14 +263,13 @@ describe('graphView/provider/view/context', () => {
     });
   });
 
-  it('applies the active transform without persisting fallback view selections', () => {
+  it('applies the active transform without trying to persist a separate built-in view id', () => {
     const source = createSource();
     const applyViewTransform = vi.fn(() => ({
       graphData: {
         nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
         edges: [],
       },
-      persistSelectedViewId: 'codegraphy.connections',
     } satisfies IGraphViewTransformResult));
     const sendAvailableViews = vi.fn();
     const dependencies = createDependencies({
@@ -315,7 +314,6 @@ describe('graphView/provider/view/context', () => {
         nodes: [{ id: 'transformed', label: 'transformed', color: '#93C5FD' }],
         edges: [],
       },
-      persistSelectedViewId: 'codegraphy.connections',
     } satisfies IGraphViewTransformResult);
     providerViewContextMethodMocks.sendAvailableViews.mockImplementation(
       (
@@ -366,7 +364,7 @@ describe('graphView/provider/view/context', () => {
     });
   });
 
-  it('keeps the current selected view when the transform does not request persistence', () => {
+  it('keeps the current graph transform result when no persistence is requested', () => {
     const source = createSource();
     const applyViewTransform = vi.fn(() => ({
       graphData: {

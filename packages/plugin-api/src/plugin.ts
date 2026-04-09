@@ -157,7 +157,7 @@ export interface IPlugin {
   /**
    * Called when the plugin is loaded and the host API is available.
    * This is the primary entry point for plugins to register
-   * event handlers, views, commands, and decorations.
+   * event handlers, optional graph transforms, commands, and decorations.
    */
   onLoad?(api: CodeGraphyAPI): void;
 
@@ -188,7 +188,7 @@ export interface IPlugin {
 
   /**
    * Called whenever the graph is rebuilt (e.g., after file changes,
-   * view switches, or setting changes).
+   * graph-control toggles, plugin toggles, or setting changes).
    */
   onGraphRebuild?(graph: IGraphData): void;
 

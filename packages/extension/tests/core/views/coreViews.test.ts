@@ -37,9 +37,9 @@ describe('Core Views (fresh imports)', () => {
       expect(connectionsView.id).toBe('codegraphy.connections');
     });
 
-    it('has name Connections', async () => {
+    it('has name Graph', async () => {
       const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.name).toBe('Connections');
+      expect(connectionsView.name).toBe('Graph');
     });
 
     it('has icon symbol-file', async () => {
@@ -47,9 +47,9 @@ describe('Core Views (fresh imports)', () => {
       expect(connectionsView.icon).toBe('symbol-file');
     });
 
-    it('has description about import relationships', async () => {
+    it('has a unified-graph description', async () => {
       const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.description).toBe('Shows all files and their import relationships');
+      expect(connectionsView.description).toBe('Base graph transform for the unified graph surface');
     });
 
     it('has a transform function', async () => {
@@ -76,7 +76,7 @@ describe('Core Views (fresh imports)', () => {
       expect(coreViews).toHaveLength(1);
     });
 
-    it('contains the unified connections view', async () => {
+    it('contains the unified base graph transform', async () => {
       const { coreViews, connectionsView } = await import('../../../src/core/views/builtIns');
       expect(coreViews[0]).toBe(connectionsView);
     });
