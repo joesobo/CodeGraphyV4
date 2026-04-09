@@ -5,6 +5,7 @@
  */
 
 import * as vscode from 'vscode';
+import path from 'node:path';
 import type {
   IConnection,
   IFileAnalysisResult,
@@ -19,9 +20,13 @@ import { EventBus } from '../../core/plugins/events/bus';
 import {
   type IWorkspaceAnalysisCache,
   loadWorkspaceAnalysisCache,
+  saveWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_KEY,
 } from './cache';
-import { loadWorkspaceAnalysisDatabaseCache } from './database/cache.ts';
+import {
+  loadWorkspaceAnalysisDatabaseCache,
+  saveWorkspaceAnalysisDatabaseCache,
+} from './database/cache.ts';
 import {
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
@@ -327,6 +332,37 @@ export class WorkspacePipeline {
     );
   }
 
+  invalidateWorkspaceFiles(filePaths: readonly string[]): string[] {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot || filePaths.length === 0) {
+      return [];
+    }
+
+    const invalidated = new Set<string>();
+
+    for (const filePath of filePaths) {
+      const absolutePath = path.isAbsolute(filePath)
+        ? filePath
+        : path.join(workspaceRoot, filePath);
+      const relativePath = path.relative(workspaceRoot, absolutePath).replace(/\\/g, '/');
+
+      if (!relativePath || relativePath.startsWith('..')) {
+        continue;
+      }
+
+      delete this._cache.files[relativePath];
+      this._lastFileAnalysis.delete(relativePath);
+      this._lastFileConnections.delete(relativePath);
+      invalidated.add(relativePath);
+    }
+
+    if (invalidated.size > 0) {
+      this._persistCache();
+    }
+
+    return [...invalidated];
+  }
+
   /**
    * Disposes of the analyzer and its resources.
    */
@@ -432,6 +468,21 @@ export class WorkspacePipeline {
       return (await execGitCommand(['rev-parse', 'HEAD'], { workspaceRoot })).trim();
     } catch {
       return null;
+    }
+  }
+
+  private _persistCache(): void {
+    saveWorkspaceAnalysisCache(this._context.workspaceState.update.bind(this._context.workspaceState), this._cache);
+
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return;
+    }
+
+    try {
+      saveWorkspaceAnalysisDatabaseCache(workspaceRoot, this._cache);
+    } catch (error) {
+      console.warn('[CodeGraphy] Failed to persist repo-local analysis cache.', error);
     }
   }
 }

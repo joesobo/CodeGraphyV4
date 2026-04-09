@@ -39,6 +39,11 @@ import {
   DEFAULT_NODE_SIZE_MODE,
 } from './runtimeDefaults';
 
+interface PendingWorkspaceRefreshState {
+  filePaths: Set<string>;
+  logMessage: string;
+}
+
 export class GraphViewProviderRuntime {
   protected _view?: vscode.WebviewView;
   protected _timelineView?: vscode.WebviewView;
@@ -71,7 +76,7 @@ export class GraphViewProviderRuntime {
   protected readonly _firstWorkspaceReadyPromise: Promise<void>;
   protected _webviewReadyNotified = false;
   protected _indexingController?: AbortController;
-  protected _pendingWorkspaceRefreshLogMessage?: string;
+  protected _pendingWorkspaceRefresh?: PendingWorkspaceRefreshState;
   protected readonly _pluginExtensionUris = createPluginExtensionUris();
   protected _installedPluginActivationPromise: Promise<void> = Promise.resolve();
   protected readonly _extensionMessageEmitter = createExtensionMessageEmitter();
@@ -124,18 +129,36 @@ export class GraphViewProviderRuntime {
     return this._panels.some(panel => panel.visible);
   }
 
-  public markWorkspaceRefreshPending(logMessage: string): void {
-    this._pendingWorkspaceRefreshLogMessage = logMessage;
+  public invalidateWorkspaceFiles(filePaths: readonly string[]): string[] {
+    return this._analyzer?.invalidateWorkspaceFiles(filePaths) ?? [];
+  }
+
+  public markWorkspaceRefreshPending(
+    logMessage: string,
+    filePaths: readonly string[] = [],
+  ): void {
+    const pending = this._pendingWorkspaceRefresh ?? {
+      filePaths: new Set<string>(),
+      logMessage,
+    };
+
+    pending.logMessage = logMessage;
+    for (const filePath of filePaths) {
+      pending.filePaths.add(filePath);
+    }
+
+    this._pendingWorkspaceRefresh = pending;
   }
 
   public flushPendingWorkspaceRefresh(): void {
-    if (!this.isGraphOpen() || !this._pendingWorkspaceRefreshLogMessage) {
+    if (!this.isGraphOpen() || !this._pendingWorkspaceRefresh) {
       return;
     }
 
-    const logMessage = this._pendingWorkspaceRefreshLogMessage;
-    this._pendingWorkspaceRefreshLogMessage = undefined;
-    console.log(logMessage);
+    const pending = this._pendingWorkspaceRefresh;
+    this._pendingWorkspaceRefresh = undefined;
+    this.invalidateWorkspaceFiles([...pending.filePaths]);
+    console.log(pending.logMessage);
     void this._methodContainers.refresh.refresh();
   }
 

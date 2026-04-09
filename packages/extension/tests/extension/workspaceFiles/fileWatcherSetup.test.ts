@@ -12,7 +12,9 @@ function makeProvider() {
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
+    invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
+    markWorkspaceRefreshPending: vi.fn(),
   };
 }
 

@@ -416,4 +416,74 @@ describe('WorkspacePipeline lifecycle', () => {
 
     expect(analyzer.hasIndex()).toBe(false);
   });
+
+  it('invalidates selected workspace files from the cache and persists the updated cache', () => {
+    const workspaceRoot = createWorkspaceRoot();
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const context = {
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    };
+    const analyzer = new WorkspacePipeline(context as unknown as vscode.ExtensionContext);
+    const analyzerPrivate = analyzer as unknown as {
+      _cache: {
+        version: string;
+        files: Record<string, unknown>;
+      };
+      _lastFileAnalysis: Map<string, unknown>;
+      _lastFileConnections: Map<string, unknown>;
+    };
+
+    analyzerPrivate._cache = {
+      version: WORKSPACE_ANALYSIS_CACHE_VERSION,
+      files: {
+        'src/keep.ts': {
+          mtime: 10,
+          analysis: { filePath: '/workspace/src/keep.ts', relations: [] },
+        },
+        'src/remove.ts': {
+          mtime: 11,
+          analysis: { filePath: '/workspace/src/remove.ts', relations: [] },
+        },
+      },
+    };
+    analyzerPrivate._lastFileAnalysis = new Map([
+      ['src/keep.ts', { filePath: '/workspace/src/keep.ts', relations: [] }],
+      ['src/remove.ts', { filePath: '/workspace/src/remove.ts', relations: [] }],
+    ]);
+    analyzerPrivate._lastFileConnections = new Map([
+      ['src/keep.ts', []],
+      ['src/remove.ts', []],
+    ]);
+
+    expect(
+      analyzer.invalidateWorkspaceFiles([
+        path.join(workspaceRoot, 'src/remove.ts'),
+        path.join(workspaceRoot, '..', 'other.ts'),
+      ]),
+    ).toEqual(['src/remove.ts']);
+    expect(analyzerPrivate._cache.files).toEqual({
+      'src/keep.ts': {
+        mtime: 10,
+        analysis: { filePath: '/workspace/src/keep.ts', relations: [] },
+      },
+    });
+    expect(analyzerPrivate._lastFileAnalysis.has('src/remove.ts')).toBe(false);
+    expect(analyzerPrivate._lastFileConnections.has('src/remove.ts')).toBe(false);
+    expect(context.workspaceState.update).toHaveBeenCalledWith(
+      WORKSPACE_ANALYSIS_CACHE_KEY,
+      analyzerPrivate._cache,
+    );
+    expect(loadWorkspaceAnalysisDatabaseCache(workspaceRoot).files['src/keep.ts']).toEqual({
+      mtime: 10,
+      size: 0,
+      analysis: { filePath: '/workspace/src/keep.ts', relations: [] },
+    });
+  });
 });

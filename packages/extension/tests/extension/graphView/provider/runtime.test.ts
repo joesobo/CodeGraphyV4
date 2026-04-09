@@ -39,7 +39,9 @@ async function loadSubject(
       _sendDecorations: vi.fn(),
     },
     pluginResource: {},
-    refresh: {},
+    refresh: {
+      refresh: vi.fn(),
+    },
     settingsState: {
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
     },
@@ -405,5 +407,53 @@ describe('graphView/provider/runtime', () => {
       (provider as unknown as { _installedPluginActivationPromise: Promise<void> })
         ._installedPluginActivationPromise,
     ).toBe(activationPromise);
+  });
+
+  it('flushes queued workspace changes by invalidating files before refreshing', async () => {
+    vi.doMock('../../../../src/extension/graphView/provider/wiring/bootstrap', () => ({
+      initializeGraphViewProviderServices: vi.fn(),
+      restoreGraphViewProviderState: vi.fn(() => createRestoredState()),
+    }));
+
+    const { GraphViewProvider, methodContainers, vscodeModule } = await loadSubject([
+      {
+        uri: { fsPath: '/test/workspace', path: '/test/workspace' },
+        name: 'workspace',
+        index: 0,
+      },
+    ]);
+    const provider = new GraphViewProvider(
+      vscodeModule.Uri.file('/test/extension'),
+      createContext(vscodeModule) as unknown as VSCode.ExtensionContext,
+    ) as unknown as {
+      _view?: { visible: boolean };
+      _analyzer?: { invalidateWorkspaceFiles(filePaths: readonly string[]): string[] };
+      markWorkspaceRefreshPending(logMessage: string, filePaths?: readonly string[]): void;
+      flushPendingWorkspaceRefresh(): void;
+    };
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const invalidateWorkspaceFiles = vi.fn(() => ['src/a.ts', 'src/b.ts']);
+    const refresh = vi.fn();
+
+    provider._view = { visible: true };
+    provider._analyzer = { invalidateWorkspaceFiles };
+    methodContainers.refresh.refresh = refresh;
+
+    provider.markWorkspaceRefreshPending('[CodeGraphy] File saved, refreshing graph', [
+      '/test/workspace/src/a.ts',
+    ]);
+    provider.markWorkspaceRefreshPending('[CodeGraphy] File created, refreshing graph', [
+      '/test/workspace/src/b.ts',
+    ]);
+    provider.flushPendingWorkspaceRefresh();
+
+    expect(invalidateWorkspaceFiles).toHaveBeenCalledWith([
+      '/test/workspace/src/a.ts',
+      '/test/workspace/src/b.ts',
+    ]);
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created, refreshing graph');
+    expect(refresh).toHaveBeenCalledOnce();
+
+    consoleSpy.mockRestore();
   });
 });
