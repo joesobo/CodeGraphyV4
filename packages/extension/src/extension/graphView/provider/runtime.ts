@@ -56,6 +56,7 @@ export class GraphViewProviderRuntime {
   protected _analysisRequestId = 0;
   private readonly _viewRegistry: ViewRegistry;
   protected _activeViewId!: string;
+  protected _depthMode = false;
   protected _dagMode: DagMode = null;
   protected _nodeSizeMode!: NodeSizeMode;
   protected _rawGraphData: IGraphData = createEmptyGraphData();
@@ -191,6 +192,7 @@ export class GraphViewProviderRuntime {
     );
 
     this._activeViewId = restoredState.activeViewId;
+    this._depthMode = restoredState.depthMode;
     this._dagMode = restoredState.dagMode;
     this._nodeSizeMode = restoredState.nodeSizeMode;
   }

@@ -6,6 +6,7 @@ export interface GraphViewCommandHandlers {
   redo(): Promise<string | undefined>;
   showInformationMessage(message: string): void;
   changeView(viewId: string): PromiseLike<void>;
+  setDepthMode?(depthMode: boolean): PromiseLike<void>;
   setDepthLimit(depthLimit: number): PromiseLike<void>;
   updateDagMode(dagMode: DagMode): PromiseLike<void>;
   updateNodeSizeMode(nodeSizeMode: NodeSizeMode): PromiseLike<void>;
@@ -34,6 +35,10 @@ export async function applyCommandMessage(
 
     case 'CHANGE_VIEW':
       await handlers.changeView(message.payload.viewId);
+      return true;
+
+    case 'UPDATE_DEPTH_MODE':
+      await handlers.setDepthMode?.(message.payload.depthMode);
       return true;
 
     case 'CHANGE_DEPTH_LIMIT':

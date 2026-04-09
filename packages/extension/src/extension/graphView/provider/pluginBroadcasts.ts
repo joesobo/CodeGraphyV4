@@ -71,6 +71,7 @@ export function createGraphViewProviderPluginBroadcastMethods(
         source._viewRegistry,
         source._viewContext,
         source._activeViewId,
+        source._depthMode,
         source._rawGraphData,
         defaultDepthLimit,
         send,

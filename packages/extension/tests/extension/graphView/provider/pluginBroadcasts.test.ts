@@ -18,6 +18,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
           _registry,
           _context,
           _activeViewId,
+          _depthMode,
           _rawGraphData,
           _defaultDepthLimit,
           callback,

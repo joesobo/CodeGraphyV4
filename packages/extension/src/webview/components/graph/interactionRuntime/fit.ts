@@ -1,7 +1,6 @@
 export type { FitBounds2d } from './fitBounds';
 export {
   DEPTH_VIEW_BOTTOM_PADDING_2D,
-  DEPTH_VIEW_ID,
   FIT_VIEW_SCREEN_PADDING_2D,
   get2dFitBounds,
 } from './fitBounds';

@@ -69,6 +69,7 @@ export interface GraphViewProviderPublicMethods {
     options?: GraphViewExternalPluginRegistrationOptions,
   ) => void;
   changeView: (viewId: string) => Promise<void>;
+  setDepthMode: (depthMode: boolean) => Promise<void>;
   setFocusedFile: (filePath: string | undefined) => void;
   setDepthLimit: (depthLimit: number) => Promise<void>;
   getDepthLimit: () => number;
@@ -115,6 +116,7 @@ export function assignGraphViewProviderPublicMethods(
   target.registerExternalPlugin = (plugin, options) =>
     target._methodContainers.plugin.registerExternalPlugin(plugin, options);
   target.changeView = viewId => target._methodContainers.viewSelection.changeView(viewId);
+  target.setDepthMode = depthMode => target._methodContainers.viewSelection.setDepthMode(depthMode);
   target.setFocusedFile = filePath => target._methodContainers.viewSelection.setFocusedFile(filePath);
   target.setDepthLimit = depthLimit => target._methodContainers.viewSelection.setDepthLimit(depthLimit);
   target.getDepthLimit = () => target._methodContainers.viewSelection.getDepthLimit();

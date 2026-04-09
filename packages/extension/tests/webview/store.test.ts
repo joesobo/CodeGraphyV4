@@ -115,6 +115,14 @@ describe('GraphStore', () => {
     expect(store.getState().activeViewId).toBe('v1');
   });
 
+  it('handles DEPTH_MODE_UPDATED message', () => {
+    store.getState().handleExtensionMessage({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
+    });
+    expect(store.getState().depthMode).toBe(true);
+  });
+
   it('handles PHYSICS_SETTINGS_UPDATED message', () => {
     const physics = { repelForce: 15, linkDistance: 100, linkForce: 0.2, damping: 0.5, centerForce: 0.3 };
     store.getState().handleExtensionMessage({
@@ -252,9 +260,9 @@ describe('GraphStore', () => {
       payload: { hasIndex: true },
     });
     store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
-    const msg = findMessage('CHANGE_VIEW');
+    const msg = findMessage('UPDATE_DEPTH_MODE');
     expect(msg).toBeTruthy();
-    expect(msg!.payload.viewId).toBe('codegraphy.depth-graph');
+    expect(msg!.payload.depthMode).toBe(true);
   });
 
   it('CYCLE_VIEW returns to the main graph when depth mode is already active', () => {
@@ -263,18 +271,18 @@ describe('GraphStore', () => {
       payload: { hasIndex: true },
     });
     store.getState().handleExtensionMessage({
-      type: 'VIEWS_UPDATED',
-      payload: { views: [], activeViewId: 'codegraphy.depth-graph' },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
     });
     store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
-    const msg = findMessage('CHANGE_VIEW');
+    const msg = findMessage('UPDATE_DEPTH_MODE');
     expect(msg).toBeTruthy();
-    expect(msg!.payload.viewId).toBe('codegraphy.connections');
+    expect(msg!.payload.depthMode).toBe(false);
   });
 
   it('CYCLE_VIEW is a no-op before the repo has been indexed', () => {
     store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
-    expect(findMessage('CHANGE_VIEW')).toBeUndefined();
+    expect(findMessage('UPDATE_DEPTH_MODE')).toBeUndefined();
   });
 
   it('CYCLE_LAYOUT cycles through all DAG modes in order', () => {

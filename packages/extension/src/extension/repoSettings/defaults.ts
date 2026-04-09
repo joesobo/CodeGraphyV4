@@ -34,6 +34,7 @@ export interface ICodeGraphyRepoSettings {
   folderNodeColor: string;
   particleSpeed: number;
   particleSize: number;
+  depthMode: boolean;
   depthLimit: number;
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
@@ -82,6 +83,7 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
     particleSpeed: 0.005,
     particleSize: 4,
+    depthMode: false,
     depthLimit: 1,
     dagMode: null,
     nodeSizeMode: 'connections',
@@ -148,6 +150,7 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
     folderNodeColor: legacyConfig.get<string>('folderNodeColor', defaults.folderNodeColor),
     particleSpeed: legacyConfig.get<number>('particleSpeed', defaults.particleSpeed),
     particleSize: legacyConfig.get<number>('particleSize', defaults.particleSize),
+    depthMode: legacyConfig.get<boolean>('depthMode', defaults.depthMode),
     depthLimit: legacyConfig.get<number>('depthLimit', defaults.depthLimit),
     dagMode: legacyConfig.get<DagMode>('dagMode', defaults.dagMode),
     nodeSizeMode: legacyConfig.get<NodeSizeMode>('nodeSizeMode', defaults.nodeSizeMode),

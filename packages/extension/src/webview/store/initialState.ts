@@ -22,6 +22,7 @@ export const INITIAL_STATE: GraphStateFields = {
   graphMode: '2d' as const,
   nodeSizeMode: 'connections' as const,
   physicsSettings: DEFAULT_PHYSICS,
+  depthMode: false,
   depthLimit: 1,
   maxDepthLimit: 10,
   groups: [],

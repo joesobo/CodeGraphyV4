@@ -222,13 +222,22 @@ describe('graphView/provider/view/context', () => {
   it('sends available views through the provider message bridge', () => {
     const source = createSource({
       _activeViewId: 'codegraphy.depth-graph',
+      _depthMode: true,
       _viewContext: {
         activePlugins: new Set<string>(['plugin.test']),
         depthLimit: 3,
       } satisfies IViewContext,
     });
     const sendAvailableViews = vi.fn(
-      (_registry, _viewContext, _activeViewId, _rawGraphData, _defaultDepthLimit, sendMessage) => {
+      (
+        _registry,
+        _viewContext,
+        _activeViewId,
+        _depthMode,
+        _rawGraphData,
+        _defaultDepthLimit,
+        sendMessage,
+      ) => {
         sendMessage({
           type: 'VIEWS_UPDATED',
           payload: { views: [], activeViewId: 'codegraphy.depth-graph' },
@@ -248,6 +257,7 @@ describe('graphView/provider/view/context', () => {
       source._viewRegistry,
       source._viewContext,
       'codegraphy.depth-graph',
+      true,
       source._rawGraphData,
       1,
       expect.any(Function),
@@ -305,6 +315,7 @@ describe('graphView/provider/view/context', () => {
   it('uses the live default transform and view broadcast helpers', () => {
     const source = createSource({
       _activeViewId: 'codegraphy.depth-graph',
+      _depthMode: true,
       _viewContext: {
         activePlugins: new Set<string>(['plugin.test']),
         depthLimit: 2,
@@ -319,7 +330,15 @@ describe('graphView/provider/view/context', () => {
       persistSelectedViewId: 'codegraphy.connections',
     } satisfies IGraphViewTransformResult);
     providerViewContextMethodMocks.sendAvailableViews.mockImplementation(
-      (_registry, _viewContext, _activeViewId, _rawGraphData, _defaultDepthLimit, sendMessage) => {
+      (
+        _registry,
+        _viewContext,
+        _activeViewId,
+        _depthMode,
+        _rawGraphData,
+        _defaultDepthLimit,
+        sendMessage,
+      ) => {
         sendMessage({
           type: 'VIEWS_UPDATED',
           payload: { views: [], activeViewId: 'codegraphy.connections' },
@@ -354,6 +373,7 @@ describe('graphView/provider/view/context', () => {
       source._viewRegistry,
       source._viewContext,
       'codegraphy.connections',
+      true,
       source._rawGraphData,
       1,
       expect.any(Function),
@@ -401,6 +421,7 @@ function createSource(
     _viewRegistry: unknown;
     _viewContext: IViewContext;
     _activeViewId: string;
+    _depthMode: boolean;
     _rawGraphData: IGraphData;
     _graphData: IGraphData;
     _sendMessage: ReturnType<typeof vi.fn>;
@@ -423,6 +444,7 @@ function createSource(
       depthLimit: 1,
     } satisfies IViewContext,
     _activeViewId: 'codegraphy.connections',
+    _depthMode: false,
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _sendMessage: vi.fn(),

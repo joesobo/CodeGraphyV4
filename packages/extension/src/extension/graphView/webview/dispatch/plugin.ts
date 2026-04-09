@@ -16,6 +16,7 @@ export interface GraphViewPluginMessageContext {
   getPluginFilterPatterns(): string[];
   getMaxFiles(): number;
   getPlaybackSpeed(): number;
+  getDepthMode(): boolean;
   getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
   getFocusedFile(): string | undefined;

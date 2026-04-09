@@ -103,6 +103,7 @@ export interface GraphViewProviderMethodSourceOwner {
   _analysisRequestId: number;
   _viewRegistry: ViewRegistry;
   _activeViewId: string;
+  _depthMode: boolean;
   _dagMode: DagMode;
   _nodeSizeMode: NodeSizeMode;
   _rawGraphData: IGraphData;

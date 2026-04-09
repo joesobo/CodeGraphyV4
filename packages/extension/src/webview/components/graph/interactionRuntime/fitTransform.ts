@@ -1,7 +1,6 @@
 import type { FGNode } from '../model/build';
 import {
   DEPTH_VIEW_BOTTOM_PADDING_2D,
-  DEPTH_VIEW_ID,
   FIT_VIEW_SCREEN_PADDING_2D,
   get2dFitBounds,
 } from './fitBounds';
@@ -16,7 +15,7 @@ export interface FitTransform2d {
 export function get2dFitTransform(
   container: HTMLDivElement | null,
   nodes: FGNode[],
-  activeViewId: string,
+  depthMode: boolean | string,
 ): FitTransform2d | null {
   const width = getMeasuredSize(container, 'clientWidth');
   const height = getMeasuredSize(container, 'clientHeight');
@@ -29,8 +28,11 @@ export function get2dFitTransform(
     return null;
   }
 
+  const depthModeEnabled =
+    typeof depthMode === 'string' ? depthMode === 'codegraphy.depth-graph' : depthMode;
+
   const topPadding = FIT_VIEW_SCREEN_PADDING_2D;
-  const bottomPadding = activeViewId === DEPTH_VIEW_ID
+  const bottomPadding = depthModeEnabled
     ? DEPTH_VIEW_BOTTOM_PADDING_2D
     : FIT_VIEW_SCREEN_PADDING_2D;
 

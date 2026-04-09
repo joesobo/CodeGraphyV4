@@ -9,6 +9,7 @@ import { applyGraphViewTransform } from '../../presentation';
 import { normalizeFolderNodeColor } from '../../settings/reader';
 import { sendGraphViewAvailableViews } from '../../view/broadcast';
 import { buildGraphViewContext } from '../../view/context';
+import { filterDepthGraph } from '../../../../core/views/depth/transform';
 
 interface GraphViewProviderWorkspaceStateLike {
   get<T>(key: string): T | undefined;
@@ -35,6 +36,7 @@ export interface GraphViewProviderViewContextMethodsSource {
   _viewRegistry: ViewRegistry;
   _viewContext: IViewContext;
   _activeViewId: string;
+  _depthMode: boolean;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
   _sendMessage(message: ExtensionToWebviewMessage): void;
@@ -109,7 +111,9 @@ export function createGraphViewProviderViewContextMethods(
       source._rawGraphData,
     );
     source._activeViewId = result.activeViewId;
-    source._graphData = result.graphData;
+    source._graphData = source._depthMode
+      ? filterDepthGraph(result.graphData, source._viewContext)
+      : result.graphData;
   };
 
   const _sendAvailableViews = (): void => {
@@ -117,6 +121,7 @@ export function createGraphViewProviderViewContextMethods(
       source._viewRegistry,
       source._viewContext,
       source._activeViewId,
+      source._depthMode,
       source._rawGraphData,
       dependencies.defaultDepthLimit,
       message => source._sendMessage(message as ExtensionToWebviewMessage),

@@ -41,6 +41,7 @@ export interface GraphViewProviderPluginMethodsSource {
   _viewRegistry: ViewRegistry;
   _viewContext: IViewContext;
   _activeViewId: string;
+  _depthMode: boolean;
   _graphData: IGraphData;
   _rawGraphData: IGraphData;
   _decorationManager: GraphViewDecorationManagerLike;

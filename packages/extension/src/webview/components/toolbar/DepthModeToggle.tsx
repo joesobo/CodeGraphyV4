@@ -6,24 +6,23 @@ import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
 import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 
-const DEPTH_VIEW_ID = 'codegraphy.depth-graph';
-const CONNECTIONS_VIEW_ID = 'codegraphy.connections';
-
-export function isDepthModeActive(activeViewId: string): boolean {
-  return activeViewId === DEPTH_VIEW_ID;
+export function isDepthModeActive(depthMode: boolean | string): boolean {
+  return typeof depthMode === 'string'
+    ? depthMode === 'codegraphy.depth-graph'
+    : depthMode;
 }
 
 export function DepthModeToggle(): React.ReactElement {
-  const activeViewId = useGraphStore((state) => state.activeViewId);
+  const depthMode = useGraphStore((state) => state.depthMode);
   const graphHasIndex = useGraphStore((state) => state.graphHasIndex);
-  const depthModeActive = isDepthModeActive(activeViewId);
+  const depthModeActive = isDepthModeActive(depthMode);
   const title = depthModeActive ? 'Disable Depth Mode' : 'Enable Depth Mode';
 
   const handleToggleDepthMode = (): void => {
     postMessage({
-      type: 'CHANGE_VIEW',
+      type: 'UPDATE_DEPTH_MODE',
       payload: {
-        viewId: depthModeActive ? CONNECTIONS_VIEW_ID : DEPTH_VIEW_ID,
+        depthMode: !depthModeActive,
       },
     });
   };

@@ -8,6 +8,7 @@ export function createGraphViewProviderPublicMethodDelegates(
 ): Pick<
   GraphViewProviderMethodSource,
   | 'changeView'
+  | 'setDepthMode'
   | 'setFocusedFile'
   | 'setDepthLimit'
   | 'undo'
@@ -16,6 +17,7 @@ export function createGraphViewProviderPublicMethodDelegates(
 > {
   return {
     changeView: viewId => owner._methodContainers.viewSelection.changeView(viewId),
+    setDepthMode: depthMode => owner._methodContainers.viewSelection.setDepthMode(depthMode),
     setFocusedFile: filePath => owner._methodContainers.viewSelection.setFocusedFile(filePath),
     setDepthLimit: depthLimit => owner._methodContainers.viewSelection.setDepthLimit(depthLimit),
     undo: () => owner._methodContainers.command.undo(),

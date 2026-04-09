@@ -169,13 +169,13 @@ describe('Toolbar', () => {
       expect(depthButtons).toHaveLength(1);
     });
 
-    it('sends CHANGE_VIEW with the depth graph when enabled after indexing', () => {
+    it('sends UPDATE_DEPTH_MODE when enabled after indexing', () => {
       setDefaultState({ graphHasIndex: true });
       render(<Toolbar />);
       fireEvent.click(screen.getByTitle('Enable Depth Mode'));
-      const msg = findMessage('CHANGE_VIEW');
+      const msg = findMessage('UPDATE_DEPTH_MODE');
       expect(msg).toBeTruthy();
-      expect(msg!.payload.viewId).toBe('codegraphy.depth-graph');
+      expect(msg!.payload.depthMode).toBe(true);
     });
 
     it('disables the depth button before indexing', () => {

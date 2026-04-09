@@ -10,6 +10,7 @@ type GraphViewProviderReadContext = Pick<
   | 'getCurrentCommitSha'
   | 'getUserGroups'
   | 'getActiveViewId'
+  | 'getDepthMode'
   | 'getDisabledPlugins'
   | 'getDisabledRules'
   | 'getFilterPatterns'
@@ -31,6 +32,7 @@ export function createGraphViewProviderMessageReadContext(
     getCurrentCommitSha: () => source._currentCommitSha,
     getUserGroups: () => source._userGroups,
     getActiveViewId: () => source._activeViewId,
+    getDepthMode: () => source._depthMode,
     getDisabledPlugins: () => source._disabledPlugins,
     getDisabledRules: () => source._disabledSources,
     getFilterPatterns: () => source._filterPatterns,

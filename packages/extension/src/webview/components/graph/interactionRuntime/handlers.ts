@@ -21,9 +21,10 @@ import { createSelectionHandlers } from './selection';
 import { createViewHandlers } from './view';
 
 export interface GraphInteractionHandlersDependencies {
-  activeViewId: string;
+  activeViewId?: string;
   containerRef: MutableRefObject<HTMLDivElement | null>;
   dataRef: MutableRefObject<IGraphData>;
+  depthMode?: boolean;
   fg2dRef: MutableRefObject<FG2DMethods<FGNode, FGLink> | undefined>;
   fg3dRef: MutableRefObject<FG3DMethods<FGNode, FGLink> | undefined>;
   fileInfoCacheRef: MutableRefObject<Map<string, IFileInfo>>;

@@ -245,7 +245,7 @@ describe('WorkspacePipeline analysis', () => {
       signal,
     });
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
-    expect(context.workspaceState.update).toHaveBeenCalled();
+    expect(context.workspaceState.update).not.toHaveBeenCalled();
   });
 
   it('shows a warning when discovery hits the file limit', async () => {

@@ -38,6 +38,8 @@ export function createCodeGraphySettingsSignature(
     pluginOrder: settings.pluginOrder ?? [],
     disabledPlugins: [...(settings.disabledPlugins ?? [])].sort((left, right) => left.localeCompare(right)),
     disabledSources: [...(settings.disabledSources ?? [])].sort((left, right) => left.localeCompare(right)),
+    depthMode: settings.depthMode ?? false,
+    depthLimit: settings.depthLimit ?? 1,
     nodeVisibility: sortRecord(settings.nodeVisibility ?? {}),
     edgeVisibility: sortRecord(settings.edgeVisibility ?? {}),
   };

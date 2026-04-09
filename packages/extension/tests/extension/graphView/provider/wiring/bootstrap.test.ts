@@ -95,11 +95,13 @@ describe('graph view provider bootstrap helper', () => {
         },
         dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
+        depthModeKey: 'depth',
         fallbackViewId: 'codegraphy.connections',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
       activeViewId: 'codegraphy.connections',
+      depthMode: false,
       dagMode: 'horizontal',
       nodeSizeMode: 'visits',
     });
@@ -121,11 +123,13 @@ describe('graph view provider bootstrap helper', () => {
         },
         dagModeKey: 'dag',
         nodeSizeModeKey: 'size',
+        depthModeKey: 'depth',
         fallbackViewId: 'codegraphy.connections',
         fallbackNodeSizeMode: 'connections',
       }),
     ).toEqual({
       activeViewId: 'codegraphy.connections',
+      depthMode: false,
       dagMode: null,
       nodeSizeMode: 'connections',
     });

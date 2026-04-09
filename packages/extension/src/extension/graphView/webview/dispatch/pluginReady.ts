@@ -9,6 +9,7 @@ export interface GraphViewPluginReadyContext {
   getPluginFilterPatterns(): string[];
   getMaxFiles(): number;
   getPlaybackSpeed(): number;
+  getDepthMode?(): boolean;
   getDagMode(): DagMode;
   getNodeSizeMode(): NodeSizeMode;
   getFocusedFile(): string | undefined;
@@ -46,6 +47,7 @@ export async function dispatchGraphViewPluginReadyMessage(
       pluginFilterPatterns: context.getPluginFilterPatterns(),
       maxFiles: context.getMaxFiles(),
       playbackSpeed: context.getPlaybackSpeed(),
+      depthMode: context.getDepthMode?.() ?? false,
       dagMode: context.getDagMode(),
       nodeSizeMode: context.getNodeSizeMode(),
       focusedFile: context.getFocusedFile(),

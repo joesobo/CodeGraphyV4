@@ -51,7 +51,7 @@ describe('DepthViewControls', () => {
     sliderHarness.onValueChange = null;
     sliderHarness.lastProps = null;
     graphStore.setState({
-      activeViewId: 'codegraphy.connections',
+      depthMode: false,
       depthLimit: 1,
       maxDepthLimit: 10,
     });
@@ -65,7 +65,7 @@ describe('DepthViewControls', () => {
 
   it('renders the slider and current value when depth view is active', () => {
     graphStore.setState({
-      activeViewId: 'codegraphy.depth-graph',
+      depthMode: true,
       depthLimit: 3,
       maxDepthLimit: 4,
     });
@@ -86,7 +86,7 @@ describe('DepthViewControls', () => {
 
   it('posts CHANGE_DEPTH_LIMIT when the slider changes', () => {
     graphStore.setState({
-      activeViewId: 'codegraphy.depth-graph',
+      depthMode: true,
       depthLimit: 2,
       maxDepthLimit: 4,
     });
@@ -104,7 +104,7 @@ describe('DepthViewControls', () => {
 
   it('renders a compact icon and value pill when only one depth is available', () => {
     graphStore.setState({
-      activeViewId: 'codegraphy.depth-graph',
+      depthMode: true,
       depthLimit: 3,
       maxDepthLimit: 1,
     });
@@ -121,7 +121,7 @@ describe('DepthViewControls', () => {
 
   it('passes the effective depth as a single-value slider array', () => {
     graphStore.setState({
-      activeViewId: 'codegraphy.depth-graph',
+      depthMode: true,
       depthLimit: 4,
       maxDepthLimit: 6,
     });

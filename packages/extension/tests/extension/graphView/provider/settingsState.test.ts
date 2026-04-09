@@ -120,7 +120,7 @@ describe('graphView/provider/settingsState', () => {
     methods._loadGroupsAndFilterPatterns();
 
     expect(dependencies.getConfiguration).toHaveBeenCalledWith('codegraphy');
-    expect(dependencies.loadGroupState).toHaveBeenCalledWith(configuration, source._context.workspaceState);
+    expect(dependencies.loadGroupState).toHaveBeenCalledWith(configuration);
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._userGroups).toEqual([{ id: 'group.loaded' }]);
     expect([...source._hiddenPluginGroupIds]).toEqual(['plugin.loaded']);
@@ -159,40 +159,28 @@ describe('graphView/provider/settingsState', () => {
     expect(computeMergedGroups).toHaveBeenCalledOnce();
   });
 
-  it('migrates legacy groups into configuration and clears the persisted workspace value', () => {
-    const get = vi.fn((key: string) => {
-      if (key === 'codegraphy.groups') return undefined;
-      return undefined;
-    }) as WorkspaceStateGetMock;
+  it('loads groups without attempting legacy workspace-state migration', () => {
     const workspaceState = {
-      get,
+      get: vi.fn(() => [{ id: 'group.legacy' }]),
       update: vi.fn(() => Promise.resolve()),
     };
     const source = createSource({
-      _context: { workspaceState },
+      _context: { workspaceState: workspaceState as never },
     });
-    const legacyGroups = [{ id: 'group.legacy' } as never];
-    const workspaceFolders = [{ name: 'workspace-folder', uri: { fsPath: '/workspace' }, index: 0 }] as never;
-    const { configuration, dependencies } = createDependencies({
-      getWorkspaceFolders: vi.fn(() => workspaceFolders),
-      getConfigTarget: vi.fn(() => 'workspace-folder'),
-      applyLoadedGroupState: vi.fn((_groupState, _state, handlers) => {
-        handlers.persistLegacyGroups(legacyGroups);
-        handlers.clearLegacyGroups();
-      }),
-    });
+    const { configuration, dependencies } = createDependencies();
 
     const methods = createGraphViewProviderSettingsStateMethods(source, dependencies);
 
     methods._loadGroupsAndFilterPatterns();
 
-    expect(dependencies.getWorkspaceFolders).toHaveBeenCalledOnce();
-    expect(dependencies.getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
-    expect(configuration.update).toHaveBeenCalledWith('groups', legacyGroups, 'workspace-folder');
-    expect(workspaceState.update).toHaveBeenCalledWith('codegraphy.groups', undefined);
+    expect(dependencies.getWorkspaceFolders).not.toHaveBeenCalled();
+    expect(dependencies.getConfigTarget).not.toHaveBeenCalled();
+    expect(configuration.update).not.toHaveBeenCalled();
+    expect(workspaceState.get).not.toHaveBeenCalled();
+    expect(workspaceState.update).not.toHaveBeenCalled();
   });
 
-  it('loads disabled sources and plugins from inspected config and persisted workspace keys', () => {
+  it('loads disabled sources and plugins from inspected config only', () => {
     const get = vi.fn((key: string) =>
       key === 'codegraphy.disabledSources' ? ['rule.saved'] : ['plugin.saved']
     ) as WorkspaceStateGetMock;
@@ -226,14 +214,11 @@ describe('graphView/provider/settingsState', () => {
     expect(dependencies.getConfiguration).toHaveBeenCalledWith('codegraphy');
     expect(configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledSources');
     expect(configuration.inspect).toHaveBeenNthCalledWith(2, 'disabledPlugins');
-    expect(workspaceState.get).toHaveBeenNthCalledWith(1, 'codegraphy.disabledSources');
-    expect(workspaceState.get).toHaveBeenNthCalledWith(2, 'codegraphy.disabledPlugins');
     expect(dependencies.loadDisabledState).toHaveBeenCalledWith(initialDisabledRules, initialDisabledPlugins, {
       disabledSourcesInspect,
       disabledPluginsInspect,
-      persistedDisabledRules: ['rule.saved'],
-      persistedDisabledPlugins: ['plugin.saved'],
     });
+    expect(workspaceState.get).not.toHaveBeenCalled();
     expect([...source._disabledSources]).toEqual(['rule.saved']);
     expect([...source._disabledPlugins]).toEqual(['plugin.saved']);
   });

@@ -70,6 +70,7 @@ export interface GraphViewProviderMessageListenerSource {
   _filterPatterns: string[];
   _graphData: IGraphData;
   _viewContext: IViewContext;
+  _depthMode: boolean;
   _dagMode: DagMode;
   _nodeSizeMode: NodeSizeMode;
   _firstAnalysis: boolean;
@@ -115,6 +116,7 @@ export interface GraphViewProviderMessageListenerSource {
   undo(): Promise<string | undefined>;
   redo(): Promise<string | undefined>;
   changeView(viewId: string): Promise<void>;
+  setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
   _indexRepository(): Promise<void>;
   _jumpToCommit(sha: string): Promise<void>;

@@ -107,6 +107,12 @@ export function handleViewsUpdated(
   };
 }
 
+export function handleDepthModeUpdated(
+  message: Extract<ExtensionToWebviewMessage, { type: 'DEPTH_MODE_UPDATED' }>,
+): PartialState {
+  return { depthMode: message.payload.depthMode };
+}
+
 export function handlePhysicsSettingsUpdated(
   message: Extract<ExtensionToWebviewMessage, { type: 'PHYSICS_SETTINGS_UPDATED' }>,
 ): PartialState {

@@ -18,9 +18,9 @@ describe('app messages', () => {
     );
   });
 
-  it('prompts to switch views when a scoped view resolves to an empty graph', () => {
-    expect(getNoDataHint({ nodes: [], edges: [] }, true, 'codegraphy.typescript.focused-imports')).toBe(
-      'No nodes match the current view. Try switching views or changing the focused file.',
+  it('prompts to change depth focus when depth mode resolves to an empty graph', () => {
+    expect(getNoDataHint({ nodes: [], edges: [] }, true, true)).toBe(
+      'No nodes match the current depth focus. Try changing the focused file or disabling depth mode.',
     );
   });
 });

@@ -19,13 +19,14 @@ export type GraphViewStoreState = Pick<
   | 'setGraphMode'
   | 'showLabels'
   | 'timelineActive'
->;
+> & { depthMode?: boolean };
 
 export function useGraphViewStoreState(): GraphViewStoreState {
   return {
     activeViewId: useGraphStore(state => state.activeViewId),
     bidirectionalMode: useGraphStore(state => state.bidirectionalMode),
     dagMode: useGraphStore(state => state.dagMode),
+    depthMode: useGraphStore(state => state.depthMode),
     directionColor: useGraphStore(state => state.directionColor),
     directionMode: useGraphStore(state => state.directionMode),
     favorites: useGraphStore(state => state.favorites),

@@ -58,8 +58,8 @@ export default function Graph({
   const isMacPlatform = detectMacPlatform(getGraphNavigator());
 
   const interactions = useGraphInteractionRuntime({
-    activeViewId: viewState.activeViewId,
     dataRef: graphState.dataRef,
+    depthMode: viewState.depthMode,
     fileInfoCacheRef: graphState.fileInfoCacheRef,
     graphContextSelection: graphState.contextSelection,
     graphCursorRef: graphState.graphCursorRef,

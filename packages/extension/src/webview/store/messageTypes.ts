@@ -40,6 +40,7 @@ export interface IStoreFields {
   graphMode: '2d' | '3d';
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
+  depthMode: boolean;
   depthLimit: number;
   maxDepthLimit: number;
   groups: IGroup[];

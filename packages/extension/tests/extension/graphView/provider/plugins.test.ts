@@ -32,6 +32,7 @@ function createSource(
     _viewRegistry: { getAvailableViews: vi.fn(() => []) } as never,
     _viewContext: { activePlugins: new Set(), depthLimit: 1 } as never,
     _activeViewId: 'codegraphy.connections',
+    _depthMode: false,
     _graphData: EMPTY_GRAPH_DATA,
     _rawGraphData: EMPTY_GRAPH_DATA,
     _decorationManager: {
@@ -123,6 +124,7 @@ describe('graphView/provider/plugins', () => {
         _registry,
         _context,
         _activeViewId,
+        _depthMode,
         _rawGraphData,
         _defaultDepthLimit,
         callback,

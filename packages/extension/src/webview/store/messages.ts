@@ -8,6 +8,7 @@ import {
   handleSettingsUpdated,
   handleGroupsUpdated,
   handleFilterPatternsUpdated,
+  handleDepthModeUpdated,
   handleViewsUpdated,
   handlePhysicsSettingsUpdated,
   handleDepthLimitUpdated,
@@ -63,6 +64,10 @@ export const MESSAGE_HANDLERS: Record<
     handleFavoritesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>),
   SETTINGS_UPDATED: (msg) =>
     handleSettingsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'SETTINGS_UPDATED' }>),
+  DEPTH_MODE_UPDATED: (msg) =>
+    handleDepthModeUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'DEPTH_MODE_UPDATED' }>
+    ),
   GROUPS_UPDATED: (msg, ctx) =>
     handleGroupsUpdated(
       msg as Extract<ExtensionToWebviewMessage, { type: 'GROUPS_UPDATED' }>,

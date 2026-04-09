@@ -7,6 +7,7 @@ function createHandlers() {
     redo: vi.fn(),
     showInformationMessage: vi.fn(),
     changeView: vi.fn(() => Promise.resolve()),
+    setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
     updateDagMode: vi.fn(() => Promise.resolve()),
     updateNodeSizeMode: vi.fn(() => Promise.resolve()),
@@ -76,6 +77,18 @@ describe('graph view command message', () => {
     );
 
     expect(handlers.setDepthLimit).toHaveBeenCalledWith(2);
+    expect(handled).toBe(true);
+  });
+
+  it('updates depth mode', async () => {
+    const handlers = createHandlers();
+
+    const handled = await applyCommandMessage(
+      { type: 'UPDATE_DEPTH_MODE', payload: { depthMode: true } },
+      handlers,
+    );
+
+    expect(handlers.setDepthMode).toHaveBeenCalledWith(true);
     expect(handled).toBe(true);
   });
 

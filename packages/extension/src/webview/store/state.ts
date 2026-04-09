@@ -44,6 +44,7 @@ export interface GraphState {
   graphMode: '2d' | '3d';
   nodeSizeMode: NodeSizeMode;
   physicsSettings: IPhysicsSettings;
+  depthMode: boolean;
   depthLimit: number;
   maxDepthLimit: number;
   groups: IGroup[];
@@ -98,6 +99,7 @@ export interface GraphState {
   setBidirectionalMode: (mode: BidirectionalEdgeMode) => void;
   setShowLabels: (show: boolean) => void;
   setActiveViewId: (id: string) => void;
+  setDepthMode: (depthMode: boolean) => void;
   setDagMode: (mode: DagMode) => void;
   setMaxFiles: (max: number) => void;
   setPlaybackSpeed: (speed: number) => void;

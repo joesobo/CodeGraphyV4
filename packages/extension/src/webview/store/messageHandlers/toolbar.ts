@@ -6,17 +6,15 @@ export function handleCycleView(
   _message: ExtensionToWebviewMessage,
   ctx: IHandlerContext,
 ): void {
-  const { activeViewId, graphHasIndex } = ctx.getState();
+  const { depthMode, graphHasIndex } = ctx.getState();
   if (!graphHasIndex) {
     return;
   }
 
   ctx.postMessage({
-    type: 'CHANGE_VIEW',
+    type: 'UPDATE_DEPTH_MODE',
     payload: {
-      viewId: activeViewId === 'codegraphy.depth-graph'
-        ? 'codegraphy.connections'
-        : 'codegraphy.depth-graph',
+      depthMode: !depthMode,
     },
   });
 }

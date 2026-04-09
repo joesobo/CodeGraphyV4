@@ -35,6 +35,7 @@ export type WebviewToExtensionMessage =
   | { type: 'GET_PHYSICS_SETTINGS' }
   | { type: 'UNDO' }
   | { type: 'REDO' }
+  | { type: 'UPDATE_DEPTH_MODE'; payload: { depthMode: boolean } }
   | { type: 'CHANGE_VIEW'; payload: { viewId: string } }
   | { type: 'CHANGE_DEPTH_LIMIT'; payload: { depthLimit: number } }
   | { type: 'UPDATE_GROUPS'; payload: { groups: IGroup[] } }

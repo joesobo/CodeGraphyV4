@@ -5,6 +5,7 @@ export interface GraphViewReadyState {
   pluginFilterPatterns: string[];
   maxFiles: number;
   playbackSpeed: number;
+  depthMode?: boolean;
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
   focusedFile: string | undefined;
@@ -63,6 +64,10 @@ export async function applyWebviewReady(
   handlers.sendMessage({
     type: 'PLAYBACK_SPEED_UPDATED',
     payload: { speed: state.playbackSpeed },
+  });
+  handlers.sendMessage({
+    type: 'DEPTH_MODE_UPDATED',
+    payload: { depthMode: state.depthMode ?? false },
   });
   handlers.sendMessage({
     type: 'DAG_MODE_UPDATED',

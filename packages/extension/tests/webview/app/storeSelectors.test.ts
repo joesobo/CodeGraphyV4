@@ -29,6 +29,7 @@ describe('app store selectors', () => {
         showOrphans: false,
         timelineActive: true,
         activePanel: 'plugins',
+        depthMode: true,
         nodeDecorations: { 'src/app.ts': { badge: { text: 'A' } } },
         edgeDecorations: { edge1: { opacity: 0.5 } },
       });
@@ -45,7 +46,7 @@ describe('app store selectors', () => {
       showOrphans: false,
       timelineActive: true,
       activePanel: 'plugins',
-      activeViewId: 'codegraphy.connections',
+      depthMode: true,
       activeFilePath: null,
       nodeDecorations: { 'src/app.ts': { badge: { text: 'A' } } },
       edgeDecorations: { edge1: { opacity: 0.5 } },

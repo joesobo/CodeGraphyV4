@@ -13,6 +13,7 @@ function createContext(
     getPluginFilterPatterns: vi.fn(() => ['plugin:test/**']),
     getMaxFiles: vi.fn(() => 500),
     getPlaybackSpeed: vi.fn(() => 2),
+    getDepthMode: vi.fn(() => false),
     getDagMode: vi.fn(() => 'td' as DagMode),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
     getFocusedFile: vi.fn(() => undefined),
@@ -69,6 +70,10 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
         patterns: ['src/**'],
         pluginPatterns: ['plugin:test/**'],
       },
+    });
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: false },
     });
   });
 

@@ -25,7 +25,7 @@ describe('DepthModeToggle', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     graphStore.setState({
-      activeViewId: 'codegraphy.connections',
+      depthMode: false,
       graphHasIndex: false,
     });
   });
@@ -43,14 +43,14 @@ describe('DepthModeToggle', () => {
     fireEvent.click(screen.getByTitle('Enable Depth Mode'));
 
     expect(postMessage).toHaveBeenCalledWith({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.depth-graph' },
+      type: 'UPDATE_DEPTH_MODE',
+      payload: { depthMode: true },
     });
   });
 
   it('disables depth mode when clicked while already active', () => {
     graphStore.setState({
-      activeViewId: 'codegraphy.depth-graph',
+      depthMode: true,
       graphHasIndex: true,
     });
     renderWithProviders();
@@ -58,14 +58,14 @@ describe('DepthModeToggle', () => {
     fireEvent.click(screen.getByTitle('Disable Depth Mode'));
 
     expect(postMessage).toHaveBeenCalledWith({
-      type: 'CHANGE_VIEW',
-      payload: { viewId: 'codegraphy.connections' },
+      type: 'UPDATE_DEPTH_MODE',
+      payload: { depthMode: false },
     });
   });
 
   it('uses the active button variant while depth mode is enabled', () => {
     graphStore.setState({
-      activeViewId: 'codegraphy.depth-graph',
+      depthMode: true,
       graphHasIndex: true,
     });
     renderWithProviders();
@@ -75,9 +75,8 @@ describe('DepthModeToggle', () => {
 });
 
 describe('isDepthModeActive', () => {
-  it('returns true only for the depth graph view', () => {
-    expect(isDepthModeActive('codegraphy.depth-graph')).toBe(true);
-    expect(isDepthModeActive('codegraphy.connections')).toBe(false);
-    expect(isDepthModeActive('codegraphy.folder')).toBe(false);
+  it('returns the depth-mode flag', () => {
+    expect(isDepthModeActive(true)).toBe(true);
+    expect(isDepthModeActive(false)).toBe(false);
   });
 });

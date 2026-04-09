@@ -30,7 +30,7 @@ export default function App(): React.ReactElement {
     groups,
     showOrphans,
     activePanel,
-    activeViewId,
+    depthMode,
     nodeColors,
     nodeVisibility,
     edgeVisibility,
@@ -72,7 +72,7 @@ export default function App(): React.ReactElement {
   if (isLoading) return <LoadingState />;
 
   if (!graphData) {
-    return <EmptyState hint={getNoDataHint(graphData, showOrphans, activeViewId)} />;
+    return <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode)} />;
   }
 
   const hasGraphNodes = graphData.nodes.length > 0;
@@ -107,7 +107,7 @@ export default function App(): React.ReactElement {
             <DepthViewControls />
           </>
         ) : (
-          <EmptyState hint={getNoDataHint(graphData, showOrphans, activeViewId)} fullScreen={false} />
+          <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode)} fullScreen={false} />
         )}
         <div className="absolute inset-y-2 left-2 z-10 pointer-events-none">
           <div className="h-full pointer-events-auto">

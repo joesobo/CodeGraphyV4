@@ -10,14 +10,17 @@ export { resolvePluginModuleActivator } from '../pluginRuntime/moduleResolver';
 export function getNoDataHint(
   graphData: IGraphData | null,
   showOrphans: boolean,
-  activeViewId = 'codegraphy.connections',
+  depthMode: boolean | string = false,
 ): string {
+  const depthModeEnabled =
+    typeof depthMode === 'string' ? depthMode !== 'codegraphy.connections' : depthMode;
+
   if (graphData && !showOrphans) {
     return 'All files are hidden. Try enabling "Show Orphans" in Settings → Filters.';
   }
 
-  if (graphData && activeViewId !== 'codegraphy.connections') {
-    return 'No nodes match the current view. Try switching views or changing the focused file.';
+  if (graphData && depthModeEnabled) {
+    return 'No nodes match the current depth focus. Try changing the focused file or disabling depth mode.';
   }
 
   return 'Open a folder to visualize its structure.';

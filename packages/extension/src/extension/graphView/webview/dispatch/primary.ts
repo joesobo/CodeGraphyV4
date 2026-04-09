@@ -40,7 +40,9 @@ export interface GraphViewPrimaryMessageContext {
   redo(): Promise<string | undefined>;
   showInformationMessage(detail: string): void;
   changeView(viewId: string): Promise<void>;
+  setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
+  getDepthMode(): boolean;
   updateDagMode(dagMode: DagMode): Promise<void>;
   updateNodeSizeMode(nodeSizeMode: NodeSizeMode): Promise<void>;
   indexRepository(): Promise<void>;

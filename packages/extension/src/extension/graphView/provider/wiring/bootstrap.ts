@@ -57,6 +57,7 @@ interface RestoreGraphViewProviderStateOptions {
   viewRegistry: GraphViewViewRegistryLike;
   dagModeKey: string;
   nodeSizeModeKey: string;
+  depthModeKey?: string;
   fallbackViewId: string;
   fallbackNodeSizeMode: NodeSizeMode;
 }
@@ -107,15 +108,21 @@ export function restoreGraphViewProviderState({
   viewRegistry,
   dagModeKey,
   nodeSizeModeKey,
+  depthModeKey,
   fallbackViewId,
   fallbackNodeSizeMode,
 }: RestoreGraphViewProviderStateOptions): {
   activeViewId: string;
+  depthMode: boolean;
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
 } {
+  const depthMode = configuration.get<boolean>(depthModeKey ?? 'depthMode', false);
+  const defaultViewId = viewRegistry.getDefaultViewId() ?? fallbackViewId;
+
   return {
-    activeViewId: viewRegistry.getDefaultViewId() ?? fallbackViewId,
+    activeViewId: defaultViewId,
+    depthMode,
     dagMode: configuration.get<DagMode>(dagModeKey, null),
     nodeSizeMode: configuration.get<NodeSizeMode>(nodeSizeModeKey, fallbackNodeSizeMode),
   };

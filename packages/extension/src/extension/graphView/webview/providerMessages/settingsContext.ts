@@ -6,6 +6,7 @@ import type {
 
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,
+  | 'getDepthMode'
   | 'updateDagMode'
   | 'updateNodeSizeMode'
   | 'getConfig'
@@ -72,6 +73,7 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     getMaxFiles: () => config.get<number>('maxFiles', 500),
     getPlaybackSpeed: () => config.get<number>('timeline.playbackSpeed', 1.0),
+    getDepthMode: () => source._depthMode,
     getDagMode: () => source._dagMode,
     getNodeSizeMode: () => source._nodeSizeMode,
   };

@@ -3,6 +3,7 @@ import type { IViewContext } from '../../../core/views/contracts';
 
 interface GraphViewSelectionState {
   _activeViewId: string;
+  _depthMode?: boolean;
   _graphData: IGraphData;
   _viewContext: IViewContext;
 }
@@ -62,6 +63,7 @@ export async function changeGraphViewView(
   }
 
   state._activeViewId = viewId;
+  state._depthMode = viewId === 'codegraphy.depth-graph';
   await persistActiveViewId(viewId);
   applyViewTransform();
   sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
@@ -92,6 +94,12 @@ export function setGraphViewFocusedFile(
   if (shouldRefreshActiveView(getActiveViewInfo(state._activeViewId), 'focusedFile')) {
     applyViewTransform();
     sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
+    return;
+  }
+
+  if (state._depthMode) {
+    applyViewTransform();
+    sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
   }
 }
 
@@ -115,6 +123,12 @@ export async function setGraphViewDepthLimit(
   });
 
   if (shouldRefreshActiveView(getActiveViewInfo(state._activeViewId), 'depthLimit')) {
+    applyViewTransform();
+    sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
+    return;
+  }
+
+  if (state._depthMode) {
     applyViewTransform();
     sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
   }

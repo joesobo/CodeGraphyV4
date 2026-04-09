@@ -27,6 +27,7 @@ export interface GraphViewProviderViewSelectionMethodsSource {
   };
   _viewContext: IViewContext;
   _activeViewId: string;
+  _depthMode: boolean;
   _graphData: IGraphData;
   _applyViewTransform?(this: void): void;
   _sendAvailableViews?(this: void): void;
@@ -35,6 +36,7 @@ export interface GraphViewProviderViewSelectionMethodsSource {
 
 export interface GraphViewProviderViewSelectionMethods {
   changeView(viewId: string): Promise<void>;
+  setDepthMode(depthMode: boolean): Promise<void>;
   setFocusedFile(filePath: string | undefined): void;
   setDepthLimit(depthLimit: number): Promise<void>;
   getDepthLimit(): number;
@@ -47,6 +49,7 @@ export interface GraphViewProviderViewSelectionMethodDependencies {
   setDepthLimit: typeof setGraphViewDepthLimit;
   getDepthLimit: typeof getGraphViewDepthLimit;
   defaultDepthLimit: number;
+  depthModeKey?: string;
   depthLimitKey: string;
   logUnavailableView(viewId: string): void;
 }
@@ -59,6 +62,7 @@ function createDefaultGraphViewProviderViewSelectionMethodDependencies(): GraphV
     getDepthLimit: getGraphViewDepthLimit,
     getConfiguration: () => getCodeGraphyConfiguration(),
     defaultDepthLimit: 1,
+    depthModeKey: 'depthMode',
     depthLimitKey: 'depthLimit',
     logUnavailableView: viewId => {
       console.warn(`[CodeGraphy] View '${viewId}' is not available`);
@@ -100,6 +104,20 @@ export function createGraphViewProviderViewSelectionMethods(
     });
   };
 
+  const setDepthMode = async (depthMode: boolean): Promise<void> => {
+    source._depthMode = depthMode;
+    await dependencies
+      .getConfiguration()
+      .update(dependencies.depthModeKey ?? 'depthMode', depthMode);
+    callApplyViewTransform();
+    source._sendMessage({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: source._depthMode },
+    });
+    source._sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: source._graphData });
+    callSendAvailableViews();
+  };
+
   const setDepthLimit = async (depthLimit: number): Promise<void> => {
     await dependencies.setDepthLimit(source, depthLimit, {
       persistDepthLimit: async nextDepthLimit => {
@@ -116,6 +134,7 @@ export function createGraphViewProviderViewSelectionMethods(
 
   return {
     changeView,
+    setDepthMode,
     setFocusedFile,
     setDepthLimit,
     getDepthLimit,
