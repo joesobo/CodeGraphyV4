@@ -43,30 +43,22 @@ describe('graphView/settings/reader', () => {
 
   it('prefers configured disabled state over stored fallback state', () => {
     const result = resolveGraphViewDisabledState(
-      new Set(['old-rule']),
       new Set(['old-plugin']),
-      ['configured-rule'],
       ['configured-plugin'],
-      ['stored-rule'],
       ['stored-plugin']
     );
 
-    expect([...result.disabledSources]).toEqual(['configured-rule']);
     expect([...result.disabledPlugins]).toEqual(['configured-plugin']);
     expect(result.changed).toBe(true);
   });
 
   it('falls back to stored disabled state when config values are absent', () => {
     const result = resolveGraphViewDisabledState(
-      new Set(['stored-rule']),
       new Set(['stored-plugin']),
       undefined,
-      undefined,
-      ['stored-rule'],
       ['stored-plugin']
     );
 
-    expect([...result.disabledSources]).toEqual(['stored-rule']);
     expect([...result.disabledPlugins]).toEqual(['stored-plugin']);
     expect(result.changed).toBe(false);
   });

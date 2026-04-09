@@ -37,8 +37,6 @@ export interface ICodeGraphyConfig {
   bidirectionalEdges: 'separate' | 'combined';
   /** List of plugin extension names to enable */
   plugins: string[];
-  /** List of disabled rule qualified IDs */
-  disabledSources: string[];
   /** List of disabled plugin IDs */
   disabledPlugins: string[];
   /** Ordered plugin IDs, highest priority first */

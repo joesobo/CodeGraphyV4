@@ -73,7 +73,6 @@ describe('ResetSettingsAction', () => {
     edgeColors: { imports: '#333333', calls: '#444444' },
     pluginOrder: ['codegraphy.markdown', 'codegraphy.typescript'],
     disabledPlugins: ['codegraphy.python'],
-    disabledSources: ['codegraphy.typescript:dynamic-import'],
     particleSpeed: 0.002,
     particleSize: 8,
     showLabels: false,
@@ -118,7 +117,6 @@ describe('ResetSettingsAction', () => {
       edgeColors: { imports: '#333333', calls: '#444444' },
       pluginOrder: ['codegraphy.markdown', 'codegraphy.typescript'],
       disabledPlugins: ['codegraphy.python'],
-      disabledSources: ['codegraphy.typescript:dynamic-import'],
       particleSpeed: 0.002,
       particleSize: 8,
       showLabels: false,
@@ -198,7 +196,6 @@ describe('ResetSettingsAction', () => {
     expect(settingsStore.edgeColors).toEqual({ imports: '#333333', calls: '#444444' });
     expect(settingsStore.pluginOrder).toEqual(['codegraphy.markdown', 'codegraphy.typescript']);
     expect(settingsStore.disabledPlugins).toEqual(['codegraphy.python']);
-    expect(settingsStore.disabledSources).toEqual(['codegraphy.typescript:dynamic-import']);
     expect(settingsStore.maxFiles).toBe(1000);
     expect(settingsStore.bidirectionalEdges).toBe('combined');
     expect(settingsStore.nodeSizeMode).toBe('file-size');

@@ -16,7 +16,6 @@ export interface ICodeGraphyRepoSettings {
   showOrphans: boolean;
   plugins: string[];
   pluginOrder: string[];
-  disabledSources: string[];
   disabledPlugins: string[];
   nodeColors: Record<string, string>;
   nodeVisibility: Record<string, boolean>;
@@ -63,7 +62,6 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     showOrphans: true,
     plugins: [],
     pluginOrder: [],
-    disabledSources: [],
     disabledPlugins: [],
     nodeColors: createDefaultNodeColors(),
     nodeVisibility: createDefaultNodeVisibility(),
@@ -117,7 +115,6 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
     showOrphans: legacyConfig.get<boolean>('showOrphans', defaults.showOrphans),
     plugins: legacyConfig.get<string[]>('plugins', defaults.plugins),
     pluginOrder: defaults.pluginOrder,
-    disabledSources: legacyConfig.get<string[]>('disabledSources', defaults.disabledSources),
     disabledPlugins: legacyConfig.get<string[]>('disabledPlugins', defaults.disabledPlugins),
     nodeColors: {
       ...defaults.nodeColors,

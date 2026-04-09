@@ -45,14 +45,14 @@ describe('configListener', () => {
     expect(provider.refreshPhysicsSettings).toHaveBeenCalledOnce();
   });
 
-  it('calls refreshToggleSettings for disabledSources changes', () => {
+  it('calls refreshToggleSettings for disabledPlugins changes', () => {
     const context = makeContext();
     const provider = makeProvider();
 
     registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
     const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.disabledSources' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.disabledPlugins' });
 
     expect(provider.refreshToggleSettings).toHaveBeenCalledOnce();
   });

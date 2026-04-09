@@ -32,7 +32,6 @@ const mocks = vi.hoisted(() => {
     })),
     applyLoadedGroupState: vi.fn(),
     loadDisabledState: vi.fn(() => ({
-      disabledSources: new Set<string>(),
       disabledPlugins: new Set<string>(),
       changed: false,
     })),
@@ -97,7 +96,7 @@ function createSource(
     _userGroups: [{ id: 'group.current' } as never],
     _filterPatterns: ['current/**'],
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
-    _disabledSources: new Set<string>(['rule.current']),
+    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(['plugin.current']),
     _nodeSizeMode: 'connections',
     _analyzer: undefined,
@@ -113,6 +112,8 @@ function createSource(
   }
 
   source._graphData ??= { nodes: [], edges: [] } satisfies IGraphData;
+  source._disabledSources ??= new Set<string>();
+  source._disabledPlugins ??= new Set<string>();
 
   return source;
 }
@@ -138,7 +139,6 @@ describe('graphView/provider/settingsState default dependencies', () => {
       filterPatterns: [],
     });
     mocks.loadDisabledState.mockReturnValue({
-      disabledSources: new Set<string>(),
       disabledPlugins: new Set<string>(),
       changed: false,
     });
@@ -183,13 +183,9 @@ describe('graphView/provider/settingsState default dependencies', () => {
 
   it('loads disabled state through the default configuration inspection', () => {
     const source = createSource();
-    const disabledSourcesInspect = { workspaceValue: ['rule.config'] };
     const disabledPluginsInspect = { workspaceValue: ['plugin.config'] };
-    mocks.configuration.inspect.mockImplementation(((
-      key: string,
-    ) => (key === 'disabledSources' ? disabledSourcesInspect : disabledPluginsInspect)) as never);
+    mocks.configuration.inspect.mockImplementation(((_key: string) => disabledPluginsInspect) as never);
     mocks.loadDisabledState.mockReturnValue({
-      disabledSources: new Set<string>(['rule.config']),
       disabledPlugins: new Set<string>(['plugin.config']),
       changed: true,
     });
@@ -199,17 +195,13 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(methods._loadDisabledRulesAndPlugins()).toBe(true);
 
     expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
-    expect(mocks.configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledSources');
-    expect(mocks.configuration.inspect).toHaveBeenNthCalledWith(2, 'disabledPlugins');
+    expect(mocks.configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledPlugins');
     expect(mocks.loadDisabledState).toHaveBeenCalledWith(
-      new Set<string>(['rule.current']),
       new Set<string>(['plugin.current']),
       {
-        disabledSourcesInspect,
         disabledPluginsInspect,
       },
     );
-    expect([...source._disabledSources]).toEqual(['rule.config']);
     expect([...source._disabledPlugins]).toEqual(['plugin.config']);
   });
 

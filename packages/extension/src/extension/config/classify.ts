@@ -17,7 +17,7 @@ export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): 
     return 'physics';
   }
 
-  if (affectsAny('codegraphy.disabledSources', 'codegraphy.disabledPlugins')) {
+  if (affectsAny('codegraphy.disabledPlugins')) {
     return 'toggles';
   }
 

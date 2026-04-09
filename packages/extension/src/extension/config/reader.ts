@@ -90,15 +90,6 @@ export class Configuration {
   }
 
   /**
-   * Rule toggle state persisted in repo-local settings.
-   * Entries are qualified IDs in "<pluginId>:<sourceId>" format.
-   * @default []
-   */
-  get disabledSources(): string[] {
-    return this.config.get<string[]>('disabledSources', []);
-  }
-
-  /**
    * Plugin toggle state persisted in repo-local settings.
    * Entries are plugin IDs (e.g., "codegraphy.typescript").
    * @default []
@@ -167,7 +158,6 @@ export class Configuration {
       showOrphans: this.showOrphans,
       bidirectionalEdges: this.bidirectionalEdges,
       plugins: this.plugins,
-      disabledSources: this.disabledSources,
       disabledPlugins: this.disabledPlugins,
       pluginOrder: this.pluginOrder,
     };

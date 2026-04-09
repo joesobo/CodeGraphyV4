@@ -50,15 +50,10 @@ describe('GraphViewProvider settings persistence', () => {
   });
 
   it('prefers repo-local disabled toggles over workspaceState', () => {
-    const configuredRules = ['codegraphy.typescript:dynamic-import'];
     const configuredPlugins = ['codegraphy.python'];
-    const legacyWorkspaceRules = ['legacy:rule'];
     const legacyWorkspacePlugins = ['legacy.plugin'];
 
     configInspect.mockImplementation((key: string) => {
-      if (key === 'disabledSources') {
-        return { workspaceValue: configuredRules };
-      }
       if (key === 'disabledPlugins') {
         return { workspaceValue: configuredPlugins };
       }
@@ -67,7 +62,6 @@ describe('GraphViewProvider settings persistence', () => {
     });
 
     workspaceStateGet.mockImplementation((key: string) => {
-      if (key === 'codegraphy.disabledSources') return legacyWorkspaceRules;
       if (key === 'codegraphy.disabledPlugins') return legacyWorkspacePlugins;
       return undefined;
     });
@@ -78,13 +72,10 @@ describe('GraphViewProvider settings persistence', () => {
     );
 
     const providerState = provider as unknown as {
-      _disabledSources: Set<string>;
       _disabledPlugins: Set<string>;
     };
 
-    expect([...providerState._disabledSources]).toEqual(configuredRules);
     expect([...providerState._disabledPlugins]).toEqual(configuredPlugins);
-    expect([...providerState._disabledSources]).not.toEqual(legacyWorkspaceRules);
     expect([...providerState._disabledPlugins]).not.toEqual(legacyWorkspacePlugins);
   });
 

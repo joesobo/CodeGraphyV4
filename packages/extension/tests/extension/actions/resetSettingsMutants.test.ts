@@ -62,7 +62,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     edgeColors: { imports: '#333333', calls: '#444444' },
     pluginOrder: ['codegraphy.markdown'],
     disabledPlugins: ['codegraphy.python'],
-    disabledSources: ['codegraphy.markdown:link'],
     particleSpeed: 0.001,
     particleSize: 4,
     showLabels: true,
@@ -93,7 +92,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
       edgeColors: { imports: '#333333', calls: '#444444' },
       pluginOrder: ['codegraphy.markdown'],
       disabledPlugins: ['codegraphy.python'],
-      disabledSources: ['codegraphy.markdown:link'],
       particleSpeed: 0.001,
       particleSize: 4,
       showLabels: true,
@@ -154,7 +152,6 @@ describe('ResetSettingsAction (config section mutant coverage)', () => {
     expect(keys).toContain('edgeColors');
     expect(keys).toContain('pluginOrder');
     expect(keys).toContain('disabledPlugins');
-    expect(keys).toContain('disabledSources');
     expect(keys).toContain('nodeSizeMode');
     for (const call of calls) {
       if (call[0] === 'nodeSizeMode') {

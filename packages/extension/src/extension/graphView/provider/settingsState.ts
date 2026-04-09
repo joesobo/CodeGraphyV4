@@ -126,15 +126,13 @@ export function createGraphViewProviderSettingsStateMethods(
   const _loadDisabledRulesAndPlugins = (): boolean => {
     const config = dependencies.getConfiguration('codegraphy');
     const disabledState = dependencies.loadDisabledState(
-      source._disabledSources,
       source._disabledPlugins,
       {
-        disabledSourcesInspect: config.inspect<string[]>('disabledSources'),
         disabledPluginsInspect: config.inspect<string[]>('disabledPlugins'),
       },
     );
 
-    source._disabledSources = disabledState.disabledSources;
+    source._disabledSources = new Set<string>();
     source._disabledPlugins = disabledState.disabledPlugins;
     return disabledState.changed;
   };

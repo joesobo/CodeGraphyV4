@@ -19,7 +19,6 @@ export function captureGraphViewSettingsSnapshot(
   const edgeColors = config.get<Record<string, string>>('edgeColors', {}) ?? {};
   const pluginOrder = config.get<string[]>('pluginOrder', []) ?? [];
   const disabledPlugins = config.get<string[]>('disabledPlugins', []) ?? [];
-  const disabledSources = config.get<string[]>('disabledSources', []) ?? [];
 
   return {
     physics,
@@ -35,7 +34,6 @@ export function captureGraphViewSettingsSnapshot(
     edgeColors,
     pluginOrder,
     disabledPlugins,
-    disabledSources,
     particleSpeed: config.get('particleSpeed', 0.005),
     particleSize: config.get('particleSize', 4),
     showLabels: config.get('showLabels', true),

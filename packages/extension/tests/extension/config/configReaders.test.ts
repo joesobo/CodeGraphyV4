@@ -88,17 +88,6 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
-  describe('disabledSources', () => {
-    it('returns the configured disabled sources', () => {
-      mockConfig['disabledSources'] = ['ts:dynamic-import'];
-      expect(new Configuration().disabledSources).toEqual(['ts:dynamic-import']);
-    });
-
-    it('defaults to empty array', () => {
-      expect(new Configuration().disabledSources).toEqual([]);
-    });
-  });
-
   describe('disabledPlugins', () => {
     it('returns the configured disabled plugins', () => {
       mockConfig['disabledPlugins'] = ['codegraphy.python'];
@@ -163,7 +152,6 @@ describe('Configuration (configReaders)', () => {
       mockConfig['showOrphans'] = false;
       mockConfig['bidirectionalEdges'] = 'combined';
       mockConfig['plugins'] = ['p1'];
-      mockConfig['disabledSources'] = ['r1'];
       mockConfig['disabledPlugins'] = ['d1'];
 
       const all = new Configuration().getAll();
@@ -174,7 +162,6 @@ describe('Configuration (configReaders)', () => {
       expect(all.showOrphans).toBe(false);
       expect(all.bidirectionalEdges).toBe('combined');
       expect(all.plugins).toEqual(['p1']);
-      expect(all.disabledSources).toEqual(['r1']);
       expect(all.disabledPlugins).toEqual(['d1']);
     });
 

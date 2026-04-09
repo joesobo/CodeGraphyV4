@@ -65,7 +65,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     edgeColors: { imports: '#777777', nests: '#666666' },
     pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
     disabledPlugins: ['codegraphy.python'],
-    disabledSources: ['codegraphy.markdown:link'],
     particleSpeed: 0.001,
     particleSize: 4,
     showLabels: true,
@@ -93,7 +92,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       edgeColors: { imports: '#777777', nests: '#666666' },
       pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
       disabledPlugins: ['codegraphy.python'],
-      disabledSources: ['codegraphy.markdown:link'],
       particleSpeed: 0.001,
       particleSize: 4,
       showLabels: true,
@@ -164,7 +162,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(updatedKeys).toContain('edgeColors');
     expect(updatedKeys).toContain('pluginOrder');
     expect(updatedKeys).toContain('disabledPlugins');
-    expect(updatedKeys).toContain('disabledSources');
     expect(updatedKeys).toContain('particleSpeed');
     expect(updatedKeys).toContain('particleSize');
     expect(updatedKeys).toContain('showLabels');
@@ -217,7 +214,6 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'edgeColors' && value === SNAPSHOT.edgeColors)).toBe(true);
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'pluginOrder' && value === SNAPSHOT.pluginOrder)).toBe(true);
     expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'disabledPlugins' && value === SNAPSHOT.disabledPlugins)).toBe(true);
-    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'disabledSources' && value === SNAPSHOT.disabledSources)).toBe(true);
   });
 
   it('updates repo settings without a VS Code config target argument', async () => {

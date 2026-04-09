@@ -28,7 +28,6 @@ function createSnapshot(
     edgeColors: { imports: '#777777', nests: '#666666' },
     pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
     disabledPlugins: ['codegraphy.python'],
-    disabledSources: ['codegraphy.markdown:link'],
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,

@@ -32,7 +32,6 @@ const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
   edgeColors: 'edgeColors',
   pluginOrder: 'pluginOrder',
   disabledPlugins: 'disabledPlugins',
-  disabledSources: 'disabledSources',
   particleSpeed: 'particleSpeed',
   particleSize: 'particleSize',
   showLabels: 'showLabels',

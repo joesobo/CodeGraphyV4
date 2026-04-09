@@ -16,7 +16,6 @@ export interface ISettingsSnapshot {
   edgeColors: Record<string, string>;
   pluginOrder: string[];
   disabledPlugins: string[];
-  disabledSources: string[];
   particleSpeed: number;
   particleSize: number;
   showLabels: boolean;
