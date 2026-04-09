@@ -104,11 +104,13 @@ Main groups:
 ### Connections and Provenance (`connection.ts`)
 
 - `IConnectionSource`
-- `IConnectionDetector<TContext>`
-- `IConnection` with `kind`, `sourceId`, optional `type`, optional `variant`, and scalar-only `metadata`
 - `IPluginFileColorDefinition` with `color`, optional `shape2D`, optional `shape3D`, and optional `imagePath`
 
-These types mainly support projected edges, provenance toggles, and compatibility with the graph/export layer. The primary plugin analysis surface is `analysis.ts`.
+`connection.ts` is now only about source metadata: the relation families a plugin declares in `sources`.
+
+The public plugin API no longer exposes the old `IConnection` / `IConnectionDetector` analysis types. Plugins return `IFileAnalysisResult` objects from `analyzeFile(...)`, with relations expressed through `IAnalysisRelation`.
+
+If you see projected file-to-file edges inside the extension codebase, those are extension-internal compatibility shapes used by the current graph/timeline pipeline. They are not part of the public plugin API.
 
 ### Graph (`graph.ts`)
 
