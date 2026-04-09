@@ -150,6 +150,7 @@ function createSource(
     _loadAndSendData: vi.fn(() => Promise.resolve()),
     _analyzeAndSendData: vi.fn(() => Promise.resolve()),
     refreshIndex: vi.fn(() => Promise.resolve()),
+    refreshChangedFiles: vi.fn(() => Promise.resolve()),
     clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     _getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
@@ -232,12 +233,27 @@ describe('graph view provider listener bridge', () => {
     expect(source._userGroups).toEqual(userGroups);
   });
 
-  it('reprocesses plugin-owned files before reanalyzing when the settings context requests it', async () => {
-    const { context, source } = await loadDefaultListenerHarness();
+  it('reprocesses plugin-owned files with a scoped refresh when invalidated files are known', async () => {
+    const { context, source } = await loadDefaultListenerHarness({
+      invalidatePluginFiles: vi.fn(() => ['src/plugin.py']),
+    });
 
     await context.reprocessPluginFiles(['codegraphy.python']);
 
     expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(source.refreshChangedFiles).toHaveBeenCalledWith(['src/plugin.py']);
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+  });
+
+  it('falls back to a full reanalysis when plugin-owned invalidation has no concrete files', async () => {
+    const { context, source } = await loadDefaultListenerHarness({
+      invalidatePluginFiles: vi.fn(() => []),
+    });
+
+    await context.reprocessPluginFiles(['codegraphy.python']);
+
+    expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(source.refreshChangedFiles).not.toHaveBeenCalled();
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
   });
 
@@ -476,7 +492,9 @@ describe('graph view provider listener bridge', () => {
   });
 });
 
-async function loadDefaultListenerHarness() {
+async function loadDefaultListenerHarness(
+  sourceOverrides: Partial<GraphViewProviderMessageListenerSource> = {},
+) {
   vi.resetModules();
 
   let capturedContext: GraphViewMessageListenerContext | undefined;
@@ -553,6 +571,7 @@ async function loadDefaultListenerHarness() {
       nodes: [{ id: 'node-1', label: 'node-1', color: '#93C5FD' }],
       edges: [{ id: 'edge-1', from: 'node-1', to: 'node-2' , kind: 'import', sources: [] }],
     } satisfies IGraphData,
+    ...sourceOverrides,
   });
   const webview = {
     onDidReceiveMessage: vi.fn(),

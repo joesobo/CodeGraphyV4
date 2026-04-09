@@ -51,7 +51,12 @@ export function createGraphViewProviderMessageSettingsContext(
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
     reprocessPluginFiles: async (pluginIds) => {
-      source.invalidatePluginFiles?.(pluginIds);
+      const invalidatedFilePaths = source.invalidatePluginFiles?.(pluginIds) ?? [];
+      if (invalidatedFilePaths.length > 0) {
+        await source.refreshChangedFiles(invalidatedFilePaths);
+        return;
+      }
+
       await source._analyzeAndSendData();
     },
     resetAllSettings: async () => {

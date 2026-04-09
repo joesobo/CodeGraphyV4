@@ -195,4 +195,106 @@ describe('graph view provider listener settings context', () => {
     expect(source._nodeSizeMode).toBe('files');
     expect(analyzeAndSendData).toHaveBeenCalledOnce();
   });
+
+  it('reprocesses only invalidated plugin files when the pipeline reports affected files', async () => {
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      get: vi.fn((_: string, defaultValue: unknown) => defaultValue),
+      update: vi.fn(() => Promise.resolve()),
+    } as never);
+
+    const refreshChangedFiles = vi.fn(() => Promise.resolve());
+    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const invalidatePluginFiles = vi.fn(() => ['src/a.ts', 'src/b.ts']);
+
+    const context = createGraphViewProviderMessageSettingsContext(
+      {
+        _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
+        _dagMode: null,
+        _nodeSizeMode: 'connections',
+        _getPhysicsSettings: vi.fn(() => ({
+          repelForce: 1,
+          linkDistance: 2,
+          linkForce: 3,
+          damping: 4,
+          centerForce: 5,
+        })),
+        _sendMessage: vi.fn(),
+        _sendAllSettings: vi.fn(),
+        _analyzeAndSendData: analyzeAndSendData,
+        refreshChangedFiles,
+        invalidatePluginFiles,
+      } as never,
+      {
+        workspace: {
+          workspaceFolders: [],
+          getConfiguration: vi.fn(),
+        },
+        getConfigTarget: vi.fn(() => 'workspace'),
+        captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
+        createResetSettingsAction: vi.fn(),
+        executeUndoAction: vi.fn(() => Promise.resolve()),
+        normalizeFolderNodeColor: vi.fn(color => color),
+        defaultFolderNodeColor: '#336699',
+        dagModeKey: 'dagMode',
+        nodeSizeModeKey: 'nodeSizeMode',
+      } as never,
+    );
+
+    await context.reprocessPluginFiles(['codegraphy.python']);
+
+    expect(invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(refreshChangedFiles).toHaveBeenCalledWith(['src/a.ts', 'src/b.ts']);
+    expect(analyzeAndSendData).not.toHaveBeenCalled();
+  });
+
+  it('falls back to a full reanalysis when plugin invalidation returns no files', async () => {
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      get: vi.fn((_: string, defaultValue: unknown) => defaultValue),
+      update: vi.fn(() => Promise.resolve()),
+    } as never);
+
+    const refreshChangedFiles = vi.fn(() => Promise.resolve());
+    const analyzeAndSendData = vi.fn(() => Promise.resolve());
+    const invalidatePluginFiles = vi.fn(() => []);
+
+    const context = createGraphViewProviderMessageSettingsContext(
+      {
+        _context: { workspaceState: { update: vi.fn(() => Promise.resolve()) } },
+        _dagMode: null,
+        _nodeSizeMode: 'connections',
+        _getPhysicsSettings: vi.fn(() => ({
+          repelForce: 1,
+          linkDistance: 2,
+          linkForce: 3,
+          damping: 4,
+          centerForce: 5,
+        })),
+        _sendMessage: vi.fn(),
+        _sendAllSettings: vi.fn(),
+        _analyzeAndSendData: analyzeAndSendData,
+        refreshChangedFiles,
+        invalidatePluginFiles,
+      } as never,
+      {
+        workspace: {
+          workspaceFolders: [],
+          getConfiguration: vi.fn(),
+        },
+        getConfigTarget: vi.fn(() => 'workspace'),
+        captureSettingsSnapshot: vi.fn(() => ({ snapshot: true })),
+        createResetSettingsAction: vi.fn(),
+        executeUndoAction: vi.fn(() => Promise.resolve()),
+        normalizeFolderNodeColor: vi.fn(color => color),
+        defaultFolderNodeColor: '#336699',
+        dagModeKey: 'dagMode',
+        nodeSizeModeKey: 'nodeSizeMode',
+      } as never,
+    );
+
+    await context.reprocessPluginFiles(['codegraphy.python']);
+
+    expect(invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(refreshChangedFiles).not.toHaveBeenCalled();
+    expect(analyzeAndSendData).toHaveBeenCalledOnce();
+  });
 });
