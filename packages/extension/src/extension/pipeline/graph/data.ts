@@ -3,7 +3,7 @@
  * @module extension/workspaceGraphData
  */
 
-import type { IConnection, IPlugin } from '../../../core/plugins/types/contracts';
+import type { IProjectedConnection, IPlugin } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/types';
 import { buildWorkspaceGraphEdges } from './edges';
 import { buildWorkspaceGraphNodes } from './nodes';
@@ -11,7 +11,7 @@ import { buildWorkspaceGraphNodes } from './nodes';
 export interface IWorkspaceGraphDataOptions {
   cacheFiles: Record<string, { size?: number }>;
   disabledPlugins: ReadonlySet<string>;
-  fileConnections: ReadonlyMap<string, IConnection[]>;
+  fileConnections: ReadonlyMap<string, IProjectedConnection[]>;
   showOrphans: boolean;
   visitCounts: Record<string, number>;
   workspaceRoot: string;

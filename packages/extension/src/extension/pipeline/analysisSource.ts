@@ -1,5 +1,5 @@
 import type {
-  IConnection,
+  IProjectedConnection,
   IFileAnalysisResult,
 } from '../../core/plugins/types/contracts';
 import type { IDiscoveredFile } from '../../core/discovery/contracts';
@@ -20,7 +20,7 @@ export interface WorkspacePipelineSourceOwner {
     nextSignal?: AbortSignal,
   ): Promise<IWorkspaceFileAnalysisResult>;
   _buildGraphData(
-    fileConnections: Map<string, IConnection[]>,
+    fileConnections: Map<string, IProjectedConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
     nextDisabledRules: Set<string>,
@@ -41,7 +41,7 @@ export interface WorkspacePipelineSourceOwner {
   _eventBus?: EventBus;
   _lastDiscoveredFiles: IDiscoveredFile[];
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
-  _lastFileConnections: Map<string, IConnection[]>;
+  _lastFileConnections: Map<string, IProjectedConnection[]>;
   _lastWorkspaceRoot: string;
   _cache: IWorkspaceAnalysisCache;
   _discovery: FileDiscovery;
@@ -61,7 +61,7 @@ export function createWorkspacePipelineAnalysisSource(
       nextSignal?: AbortSignal,
     ) => owner._analyzeFiles(files, workspaceRoot, onProgress, nextSignal),
     _buildGraphData: (
-      fileConnections: Map<string, IConnection[]>,
+      fileConnections: Map<string, IProjectedConnection[]>,
       workspaceRoot: string,
       showOrphans: boolean,
       nextDisabledRules: Set<string>,
@@ -108,7 +108,7 @@ export function createWorkspacePipelineAnalysisSource(
     },
     _lastFileConnections: {
       get: () => owner._lastFileConnections,
-      set: (fileConnections: Map<string, IConnection[]>) => {
+      set: (fileConnections: Map<string, IProjectedConnection[]>) => {
         owner._lastFileConnections = fileConnections;
       },
     },
@@ -148,7 +148,7 @@ export function createWorkspacePipelineRebuildSource(
         nextDisabledPlugins,
       ),
     _buildGraphData: (
-      fileConnections: Map<string, IConnection[]>,
+      fileConnections: Map<string, IProjectedConnection[]>,
       workspaceRoot: string,
       nextShowOrphans: boolean,
       nextDisabledRules: Set<string>,

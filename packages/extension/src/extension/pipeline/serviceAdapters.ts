@@ -3,7 +3,7 @@ import type { IDiscoveredFile } from '../../core/discovery/contracts';
 import type { FileDiscovery } from '../../core/discovery/file/service';
 import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
-import type { IConnection } from '../../core/plugins/types/contracts';
+import type { IProjectedConnection } from '../../core/plugins/types/contracts';
 import type { IGraphData } from '../../shared/graph/types';
 import type { IWorkspaceAnalysisCache } from './cache';
 import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';
@@ -75,7 +75,7 @@ export function buildWorkspacePipelineGraphData(
   cache: IWorkspaceAnalysisCache,
   context: vscode.ExtensionContext,
   registry: PluginRegistry,
-  fileConnections: Map<string, IConnection[]>,
+  fileConnections: Map<string, IProjectedConnection[]>,
   workspaceRoot: string,
   showOrphans: boolean,
   disabledPlugins: Set<string> = new Set(),

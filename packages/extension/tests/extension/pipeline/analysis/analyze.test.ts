@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
 import type {
-  IConnection,
+  IProjectedConnection,
   IFileAnalysisResult,
 } from '../../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../src/extension/config/defaults';
@@ -15,7 +15,7 @@ function createSource() {
     _analyzeFiles: vi.fn<
       (files: IDiscoveredFile[], workspaceRoot: string) => Promise<{
         fileAnalysis: Map<string, IFileAnalysisResult>;
-        fileConnections: Map<string, IConnection[]>;
+        fileConnections: Map<string, IProjectedConnection[]>;
       }>
     >(async () => ({
       fileAnalysis: new Map(),
@@ -32,7 +32,7 @@ function createSource() {
     _eventBus: { emit },
     _lastDiscoveredFiles: [] as IDiscoveredFile[],
     _lastFileAnalysis: new Map(),
-    _lastFileConnections: new Map<string, IConnection[]>(),
+    _lastFileConnections: new Map<string, IProjectedConnection[]>(),
     _lastWorkspaceRoot: '',
     _preAnalyzePlugins: vi.fn(async () => undefined),
     getPluginFilterPatterns: vi.fn(() => ['**/*.generated.ts']),
@@ -102,7 +102,7 @@ describe('pipeline/analysis/analyze', () => {
     const fileAnalysis = new Map<string, IFileAnalysisResult>([
       ['src/index.ts', { filePath: '/workspace/src/index.ts', relations: [] }],
     ]);
-    const fileConnections = new Map<string, IConnection[]>([['src/index.ts', []]]);
+    const fileConnections = new Map<string, IProjectedConnection[]>([['src/index.ts', []]]);
     const graphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
       edges: [{ id: 'src/index.ts->src/utils.ts#import', from: 'src/index.ts', to: 'src/utils.ts' , kind: 'import', sources: [] }],

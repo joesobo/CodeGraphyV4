@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IDiscoveredFile } from '../../../../src/core/discovery/contracts';
-import type { IConnection } from '../../../../src/core/plugins/types/contracts';
+import type { IProjectedConnection } from '../../../../src/core/plugins/types/contracts';
 import * as analyzeModule from '../../../../src/extension/pipeline/analysis/analyze';
 import * as databaseCacheModule from '../../../../src/extension/pipeline/database/cache';
 import { runWorkspacePipelineAnalysis } from '../../../../src/extension/pipeline/analysis/run';
@@ -23,11 +23,11 @@ describe('pipeline/analysis/run', () => {
     const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     const source = {
       _analyzeFiles: vi.fn<
-        (files: IDiscoveredFile[], workspaceRoot: string) => Promise<Map<string, IConnection[]>>
+        (files: IDiscoveredFile[], workspaceRoot: string) => Promise<Map<string, IProjectedConnection[]>>
       >(async () => new Map()),
       _buildGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
       _lastDiscoveredFiles: [] as IDiscoveredFile[],
-      _lastFileConnections: new Map<string, IConnection[]>(),
+      _lastFileConnections: new Map<string, IProjectedConnection[]>(),
       _lastWorkspaceRoot: '',
       _preAnalyzePlugins: vi.fn(async () => undefined),
       getPluginFilterPatterns: vi.fn(() => []),

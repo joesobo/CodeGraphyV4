@@ -6,7 +6,7 @@
 import type {
   IPlugin,
   IPluginInfo,
-  IConnection,
+  IProjectedConnection,
   IFileAnalysisResult,
   IPluginEdgeType,
   IPluginNodeType,
@@ -84,7 +84,7 @@ export class PluginRegistry {
   get(pluginId: string): IPluginInfo | undefined { return this._plugins.get(pluginId); }
   getPluginForFile(filePath: string): IPlugin | undefined { return getPluginForFile(filePath, this._plugins, this._extensionMap); }
   getPluginsForExtension(extension: string): IPlugin[] { return getPluginsForExtension(extension, this._plugins, this._extensionMap); }
-  async analyzeFile(filePath: string, content: string, workspaceRoot: string): Promise<IConnection[]> { return analyzeFile(filePath, content, workspaceRoot, this._plugins, this._extensionMap, this._coreAnalyzeFileResult); }
+  async analyzeFile(filePath: string, content: string, workspaceRoot: string): Promise<IProjectedConnection[]> { return analyzeFile(filePath, content, workspaceRoot, this._plugins, this._extensionMap, this._coreAnalyzeFileResult); }
   async analyzeFileResult(filePath: string, content: string, workspaceRoot: string): Promise<IFileAnalysisResult | null> { return analyzeFileResult(filePath, content, workspaceRoot, this._plugins, this._extensionMap, this._coreAnalyzeFileResult); }
   list(): IPluginInfo[] { return Array.from(this._plugins.values()); }
   listNodeTypes(): IPluginNodeType[] { return listPluginContributions(this._plugins, plugin => plugin.contributeNodeTypes?.() ?? [], definition => definition.id); }

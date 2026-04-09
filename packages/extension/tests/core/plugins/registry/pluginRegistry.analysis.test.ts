@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection, IFileAnalysisResult, IPlugin } from '@/core/plugins/types/contracts';
+import type { IProjectedConnection, IFileAnalysisResult, IPlugin } from '@/core/plugins/types/contracts';
 import { createConfiguredRegistry, createMockPlugin } from './pluginRegistry.testSupport';
 
 function registerPlugin(overrides: Partial<IPlugin> = {}) {
@@ -9,7 +9,7 @@ function registerPlugin(overrides: Partial<IPlugin> = {}) {
   return { registry, plugin };
 }
 
-function createImportConnection(): IConnection {
+function createImportConnection(): IProjectedConnection {
   return {
     specifier: './utils',
     resolvedPath: '/src/utils.ts',

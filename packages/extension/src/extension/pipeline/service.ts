@@ -7,7 +7,7 @@
 import * as vscode from 'vscode';
 import path from 'node:path';
 import type {
-  IConnection,
+  IProjectedConnection,
   IFileAnalysisResult,
 } from '../../core/plugins/types/contracts';
 import { PluginRegistry } from '../../core/plugins/registry/manager';
@@ -96,7 +96,7 @@ export class WorkspacePipeline {
   private readonly _context: vscode.ExtensionContext;
   private _cache: IWorkspaceAnalysisCache;
   private _lastFileAnalysis: Map<string, IFileAnalysisResult> = new Map();
-  private _lastFileConnections: Map<string, IConnection[]> = new Map();
+  private _lastFileConnections: Map<string, IProjectedConnection[]> = new Map();
   private _lastDiscoveredFiles: IDiscoveredFile[] = [];
   private _lastWorkspaceRoot: string = '';
   private _eventBus?: EventBus;
@@ -217,7 +217,7 @@ export class WorkspacePipeline {
       );
     }
 
-    const fileConnections = new Map<string, IConnection[]>(
+    const fileConnections = new Map<string, IProjectedConnection[]>(
       discoveryResult.files.map((file: IDiscoveredFile) => [file.relativePath, []]),
     );
 
@@ -469,7 +469,7 @@ export class WorkspacePipeline {
    * Builds graph data from file connections.
    */
   protected _buildGraphData(
-    fileConnections: Map<string, IConnection[]>,
+    fileConnections: Map<string, IProjectedConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
     disabledPlugins: Set<string> = new Set()

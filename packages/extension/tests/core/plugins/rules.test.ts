@@ -15,7 +15,7 @@ describe('Plugin Rules', () => {
     expect(sourceIds).toContain('reexport');
     expect(sourceIds).toContain('dynamic-import');
     expect(sourceIds).toContain('commonjs-require');
-    // Verify IConnectionSource shape
+    // Verify connection source shape
     for (const rule of plugin.sources!) {
       expect(rule).toHaveProperty('id');
       expect(rule).toHaveProperty('name');

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
+import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
 import {
   createEdgeSource,
   createQualifiedSourceId,
@@ -40,7 +40,7 @@ describe('pipeline/graph/edgeSources', () => {
   });
 
   it('creates edge sources with plugin metadata and connection metadata', () => {
-    const connection: IConnection = {
+    const connection: IProjectedConnection = {
       kind: 'import',
       metadata: { line: 42 },
       pluginId: 'plugin.typescript',
@@ -69,7 +69,7 @@ describe('pipeline/graph/edgeSources', () => {
   });
 
   it('returns undefined when a connection has no source id', () => {
-    const connection: IConnection = {
+    const connection: IProjectedConnection = {
       kind: 'import',
       resolvedPath: '/workspace/src/utils.ts',
       sourceId: '',
@@ -80,7 +80,7 @@ describe('pipeline/graph/edgeSources', () => {
   });
 
   it('falls back to the raw source id when plugin metadata is missing', () => {
-    const connection: IConnection = {
+    const connection: IProjectedConnection = {
       kind: 'import',
       pluginId: 'plugin.typescript',
       resolvedPath: null,

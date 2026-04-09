@@ -1,4 +1,4 @@
-import type { IConnection, IFileAnalysisResult } from '../../../core/plugins/types/contracts';
+import type { IProjectedConnection, IFileAnalysisResult } from '../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../shared/graph/types';
 import {
   createEmptyWorkspaceAnalysisCache,
@@ -14,13 +14,13 @@ export interface WorkspacePipelineRebuildDependencies {
     disabledPlugins: Set<string>,
   ): IGraphData;
   buildGraphData(
-    fileConnections: Map<string, IConnection[]>,
+    fileConnections: Map<string, IProjectedConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
     disabledPlugins: Set<string>,
   ): IGraphData;
   fileAnalysis: Map<string, IFileAnalysisResult>;
-  fileConnections: Map<string, IConnection[]>;
+  fileConnections: Map<string, IProjectedConnection[]>;
   workspaceRoot: string;
 }
 
@@ -32,13 +32,13 @@ export interface WorkspacePipelineRebuildSource {
     disabledPlugins: Set<string>,
   ): IGraphData;
   _buildGraphData(
-    fileConnections: Map<string, IConnection[]>,
+    fileConnections: Map<string, IProjectedConnection[]>,
     workspaceRoot: string,
     showOrphans: boolean,
     disabledPlugins: Set<string>,
   ): IGraphData;
   _lastFileAnalysis: Map<string, IFileAnalysisResult>;
-  _lastFileConnections: Map<string, IConnection[]>;
+  _lastFileConnections: Map<string, IProjectedConnection[]>;
   _lastWorkspaceRoot: string;
 }
 

@@ -4,7 +4,7 @@
  * @module core/plugins/routing/router
  */
 
-import { IPlugin, IConnection, IFileAnalysisResult } from '../types/contracts';
+import type { IPlugin, IProjectedConnection, IFileAnalysisResult } from '../types/contracts';
 import { getFileExtension, normalizePluginExtension } from './fileExtensions';
 
 const WILDCARD_EXTENSION = '*';
@@ -184,7 +184,7 @@ function withPluginProvenance(
   };
 }
 
-function toConnectionsFromFileAnalysis(analysis: IFileAnalysisResult): IConnection[] {
+function toProjectedConnectionsFromFileAnalysis(analysis: IFileAnalysisResult): IProjectedConnection[] {
   return (analysis.relations ?? []).map(relation => ({
     kind: relation.kind,
     pluginId: relation.pluginId,
@@ -207,7 +207,7 @@ export async function analyzeFile(
   plugins: Map<string, IRoutablePluginInfo>,
   extensionMap: Map<string, string[]>,
   coreAnalyzeFileResult?: CoreFileAnalysisResultProvider,
-): Promise<IConnection[]> {
+): Promise<IProjectedConnection[]> {
   const analysis = await analyzeFileResult(
     filePath,
     content,
@@ -216,7 +216,7 @@ export async function analyzeFile(
     extensionMap,
     coreAnalyzeFileResult,
   );
-  return analysis ? toConnectionsFromFileAnalysis(analysis) : [];
+  return analysis ? toProjectedConnectionsFromFileAnalysis(analysis) : [];
 }
 
 export async function analyzeFileResult(
