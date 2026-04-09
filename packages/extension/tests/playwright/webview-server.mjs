@@ -186,6 +186,20 @@ const depthHarnessScript = `
       });
     };
 
+    const publishIndexStatus = () => {
+      postToWebview({
+        type: 'GRAPH_INDEX_STATUS_UPDATED',
+        payload: { hasIndex: true },
+      });
+    };
+
+    const publishDepthMode = () => {
+      postToWebview({
+        type: 'DEPTH_MODE_UPDATED',
+        payload: { depthMode: state.depthMode },
+      });
+    };
+
     const publishDepthLimit = () => {
       postToWebview({
         type: 'DEPTH_LIMIT_UPDATED',
@@ -215,6 +229,8 @@ const depthHarnessScript = `
     };
 
     const publishAll = () => {
+      publishIndexStatus();
+      publishDepthMode();
       publishSettings();
       publishDepthLimit();
       publishActiveFile();
@@ -228,6 +244,7 @@ const depthHarnessScript = `
           break;
         case 'UPDATE_DEPTH_MODE':
           state.depthMode = Boolean(message.payload?.depthMode);
+          publishDepthMode();
           publishGraph();
           break;
         case 'CHANGE_DEPTH_LIMIT':
