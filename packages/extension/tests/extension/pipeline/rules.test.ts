@@ -247,7 +247,7 @@ describe('WorkspacePipeline sources', () => {
       expect(result.edges.map(edge => edge.to)).toEqual(['src/a.ts', 'src/b.ts']);
     });
 
-    it('collects multiple sources when different sources detect the same edge', async () => {
+    it('collects multiple sources when different current plugin sources detect the same edge', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
@@ -255,8 +255,8 @@ describe('WorkspacePipeline sources', () => {
 
       // Two different sources detect connections to the same target
       fileConnections.set('src/index.ts', [
-        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'static', sourceId: 'es6-import' , kind: 'import' },
-        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'reexport', sourceId: 'reexport' , kind: 'import' },
+        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'dynamic', sourceId: 'dynamic-import' , kind: 'import' },
+        { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'require', sourceId: 'commonjs-require' , kind: 'import' },
       ]);
       fileConnections.set('src/utils.ts', []);
 
@@ -278,16 +278,20 @@ describe('WorkspacePipeline sources', () => {
 
       expect(result.edges[0].sources).toEqual([
         {
-          id: 'codegraphy.typescript:es6-import',
+          id: 'codegraphy.typescript:dynamic-import',
           pluginId: 'codegraphy.typescript',
-          sourceId: 'es6-import',
-          label: 'ES6 Imports',
+          sourceId: 'dynamic-import',
+          label: 'Dynamic Imports',
+          metadata: undefined,
+          variant: undefined,
         },
         {
-          id: 'codegraphy.typescript:reexport',
+          id: 'codegraphy.typescript:commonjs-require',
           pluginId: 'codegraphy.typescript',
-          sourceId: 'reexport',
-          label: 'Re-exports',
+          sourceId: 'commonjs-require',
+          label: 'CommonJS Require',
+          metadata: undefined,
+          variant: undefined,
         },
       ]);
     });

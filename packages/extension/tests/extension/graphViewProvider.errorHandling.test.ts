@@ -38,8 +38,26 @@ describe('GraphViewProvider error handling', () => {
       createContext() as unknown as vscode.ExtensionContext
     );
     const internals = getGraphViewProviderInternals(provider);
-    vi.spyOn(internals._analysisMethods, '_doAnalyzeAndSendData').mockRejectedValueOnce(new Error('boom'));
     const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    (provider as unknown as { _analyzerInitialized: boolean })._analyzerInitialized = true;
+    (provider as unknown as {
+      _analyzer: {
+        analyze: () => Promise<IGraphData>;
+        hasIndex(): boolean;
+        initialize(): Promise<void>;
+        discoverGraph(): Promise<IGraphData>;
+        registry: { notifyPostAnalyze(graph: IGraphData): void };
+      };
+    })._analyzer = {
+      analyze: vi.fn().mockRejectedValueOnce(new Error('boom')),
+      hasIndex: () => true,
+      initialize: vi.fn().mockResolvedValue(undefined),
+      discoverGraph: vi.fn().mockResolvedValue({ nodes: [], edges: [] }),
+      registry: {
+        notifyPostAnalyze: () => {},
+      },
+    };
 
     await internals._analysisMethods._analyzeAndSendData();
 

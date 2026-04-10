@@ -11,8 +11,6 @@ describe('Plugin Rules', () => {
     expect(plugin.sources).toBeDefined();
     expect(plugin.sources!.length).toBeGreaterThan(0);
     const sourceIds = plugin.sources!.map(r => r.id);
-    expect(sourceIds).toContain('es6-import');
-    expect(sourceIds).toContain('reexport');
     expect(sourceIds).toContain('dynamic-import');
     expect(sourceIds).toContain('commonjs-require');
     // Verify connection source shape
