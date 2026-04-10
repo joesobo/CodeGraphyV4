@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { IGroup } from '../../../shared/settings/groups';
+import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { getBuiltInGraphViewDefaultGroups } from '../groups/defaults/builtIn';
 import { registerBuiltInGraphViewPluginRoots } from '../groups/defaults/pluginRoots';
 import { buildGraphViewMergedGroups } from '../groups/merged';
@@ -45,6 +46,7 @@ export interface GraphViewProviderPluginResourceMethodDependencies {
   getWebviewResourceRoots: typeof getGraphViewWebviewResourceRoots;
   refreshWebviewResourceRoots: typeof refreshGraphViewResourceRoots;
   normalizeExtensionUri: typeof normalizeGraphViewExtensionUri;
+  getDefaultLegendVisibility(): Record<string, boolean>;
   getWorkspaceFolders(): readonly vscode.WorkspaceFolder[] | undefined;
 }
 
@@ -58,6 +60,8 @@ function createDefaultGraphViewProviderPluginResourceMethodDependencies(): Graph
     getWebviewResourceRoots: getGraphViewWebviewResourceRoots,
     refreshWebviewResourceRoots: refreshGraphViewResourceRoots,
     normalizeExtensionUri: normalizeGraphViewExtensionUri,
+    getDefaultLegendVisibility: () =>
+      getCodeGraphyConfiguration().get<Record<string, boolean>>('legendVisibility', {}) ?? {},
     getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
   };
 }
@@ -87,6 +91,7 @@ export function createGraphViewProviderPluginResourceMethods(
       source._userGroups,
       _getBuiltInDefaultGroups(),
       _getPluginDefaultGroups(),
+      resolvedDependencies.getDefaultLegendVisibility(),
     );
   };
 

@@ -23,7 +23,9 @@ function createSource(
   _analyzeAndSendData: ReturnType<typeof vi.fn>;
   _sendAllSettings: ReturnType<typeof vi.fn>;
   _sendFavorites: ReturnType<typeof vi.fn>;
+  _computeMergedGroups: ReturnType<typeof vi.fn>;
   _sendGroupsUpdated: ReturnType<typeof vi.fn>;
+  _sendGraphControls: ReturnType<typeof vi.fn>;
   _sendSettings: ReturnType<typeof vi.fn>;
   _sendPhysicsSettings: ReturnType<typeof vi.fn>;
   _updateViewContext: ReturnType<typeof vi.fn>;
@@ -52,7 +54,9 @@ function createSource(
     _analyzeAndSendData: vi.fn(async () => undefined),
     _sendAllSettings: vi.fn(),
     _sendFavorites: vi.fn(),
+    _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
+    _sendGraphControls: vi.fn(),
     _sendSettings: vi.fn(),
     _sendPhysicsSettings: vi.fn(),
     _updateViewContext: vi.fn(),
@@ -72,7 +76,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => true),
       rebuildGraphData: vi.fn(),
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
 
     await methods.refresh();
@@ -89,7 +92,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => true),
       rebuildGraphData: vi.fn(),
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
 
     await methods.refresh();
@@ -105,7 +107,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => true),
       rebuildGraphData: vi.fn(),
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
 
     await methods.refresh();
@@ -120,7 +121,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => true),
       rebuildGraphData: vi.fn(),
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
 
     await methods.refreshChangedFiles(['src/example.ts']);
@@ -140,7 +140,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => true),
       rebuildGraphData: vi.fn(),
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
 
     await methods.refreshChangedFiles(['src/example.ts']);
@@ -157,7 +156,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => false),
       rebuildGraphData,
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
 
     methods.refreshToggleSettings();
@@ -178,7 +176,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => false),
       rebuildGraphData,
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
     source._rebuildAndSend = rebuildOverride as never;
 
@@ -195,7 +192,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => false),
       rebuildGraphData,
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
 
     source._rebuildAndSend = undefined as never;
@@ -212,7 +208,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => false),
       rebuildGraphData,
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
 
     source._rebuildAndSend = methods._rebuildAndSend as never;
@@ -228,7 +223,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => true),
       rebuildGraphData: vi.fn(),
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
 
     methods.refreshGroupSettings();
@@ -242,48 +236,37 @@ describe('graphView/provider/refresh', () => {
   it('rebuild and smart rebuild delegate to the graph view rebuild helpers', () => {
     const rebuildGraphData = vi.fn((_nextSource, handlers: {
       getShowOrphans(): boolean;
+      computeMergedGroups(): void;
+      sendGroupsUpdated(): void;
       updateViewContext(): void;
       applyViewTransform(): void;
       sendDepthState(): void;
+      sendGraphControls(): void;
       sendPluginStatuses(): void;
       sendDecorations(): void;
       sendMessage(message: unknown): void;
     }) => {
       expect(handlers.getShowOrphans()).toBe(false);
+      handlers.computeMergedGroups();
+      handlers.sendGroupsUpdated();
       handlers.updateViewContext();
       handlers.applyViewTransform();
       handlers.sendDepthState();
+      handlers.sendGraphControls();
       handlers.sendPluginStatuses();
       handlers.sendDecorations();
       handlers.sendMessage({ type: 'GRAPH_DATA_UPDATED' });
     });
-    const statuses = [
-      {
-        id: 'plugin.test',
-        name: 'Plugin Test',
-        version: '1.0.0',
-        supportedExtensions: [],
-        status: 'active' as const,
-        enabled: true,
-        connectionCount: 0,
-      },
-    ] satisfies IPluginStatus[];
     const smartRebuildGraphData = vi.fn((_nextSource, _id, handlers: {
-      shouldRebuild(statuses: readonly IPluginStatus[], nextId: string): boolean;
       rebuildAndSend(): void;
-      sendMessage(message: unknown): void;
     }) => {
-      expect(handlers.shouldRebuild(statuses, 'plugin.test')).toBe(false);
       handlers.rebuildAndSend();
-      handlers.sendMessage({ type: 'PLUGINS_UPDATED' });
     });
-    const shouldRebuild = vi.fn(() => false);
     const source = createSource();
     const methods = createGraphViewProviderRefreshMethods(source as never, {
       getShowOrphans: vi.fn(() => false),
       rebuildGraphData,
       smartRebuildGraphData,
-      shouldRebuild,
     });
     const rebuildOverride = vi.fn();
     source._rebuildAndSend = rebuildOverride;
@@ -291,16 +274,17 @@ describe('graphView/provider/refresh', () => {
     methods._rebuildAndSend();
     methods._smartRebuild('plugin.test');
 
+    expect(source._computeMergedGroups).toHaveBeenCalledOnce();
+    expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(source._updateViewContext).toHaveBeenCalledOnce();
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
     expect(source._sendDepthState).toHaveBeenCalledOnce();
+    expect(source._sendGraphControls).toHaveBeenCalledOnce();
     expect(source._sendPluginStatuses).toHaveBeenCalledOnce();
     expect(source._sendDecorations).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({ type: 'GRAPH_DATA_UPDATED' });
     expect(smartRebuildGraphData).toHaveBeenCalledOnce();
-    expect(shouldRebuild).toHaveBeenCalledWith(statuses, 'plugin.test');
     expect(rebuildOverride).toHaveBeenCalledOnce();
-    expect(source._sendMessage).toHaveBeenCalledWith({ type: 'PLUGINS_UPDATED' });
   });
 
   it('smart rebuild falls back to the local rebuild helper when the source callback is cleared', () => {
@@ -315,7 +299,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => false),
       rebuildGraphData,
       smartRebuildGraphData,
-      shouldRebuild: vi.fn(() => true),
     });
 
     source._rebuildAndSend = undefined;
@@ -338,7 +321,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => false),
       rebuildGraphData,
       smartRebuildGraphData,
-      shouldRebuild: vi.fn(() => true),
     });
 
     source._rebuildAndSend = methods._rebuildAndSend;
@@ -358,7 +340,6 @@ describe('graphView/provider/refresh', () => {
       getShowOrphans: vi.fn(() => true),
       rebuildGraphData: vi.fn(),
       smartRebuildGraphData: vi.fn(),
-      shouldRebuild: vi.fn(() => true),
     });
 
     await methods.clearCacheAndRefresh();
@@ -389,9 +370,6 @@ describe('graphView/provider/refresh', () => {
       rebuildGraphViewData: rebuildGraphData,
       smartRebuildGraphView: vi.fn(),
     }));
-    vi.doMock('../../../../src/extension/graphView/rebuild', () => ({
-      shouldRebuildGraphView: vi.fn(() => true),
-    }));
 
     const { createGraphViewProviderRefreshMethods: createMethods } = await import(
       '../../../../src/extension/graphView/provider/refresh'
@@ -404,7 +382,6 @@ describe('graphView/provider/refresh', () => {
 
     vi.doUnmock('vscode');
     vi.doUnmock('../../../../src/extension/graphView/view/rebuild');
-    vi.doUnmock('../../../../src/extension/graphView/rebuild');
     vi.resetModules();
   });
 });

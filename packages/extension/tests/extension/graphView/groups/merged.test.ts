@@ -60,4 +60,21 @@ describe('graphView/mergedGroups', () => {
       { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' },
     ]);
   });
+
+  it('applies persisted visibility overrides to built-in and plugin defaults', () => {
+    const groups = buildGraphViewMergedGroups(
+      [],
+      [{ id: 'default:*.json', pattern: '*.json', color: '#F9C74F' }],
+      [{ id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB' }],
+      {
+        'default:*.json': false,
+        'plugin:codegraphy.python:*.py': true,
+      },
+    );
+
+    expect(groups).toEqual([
+      { id: 'default:*.json', pattern: '*.json', color: '#F9C74F', disabled: true },
+      { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB', disabled: false },
+    ]);
+  });
 });

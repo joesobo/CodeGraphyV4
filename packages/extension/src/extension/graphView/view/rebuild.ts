@@ -1,12 +1,10 @@
 import type { IGraphData } from '../../../shared/graph/types';
-import type { IPluginStatus } from '../../../shared/plugins/status';
 
 interface GraphViewAnalyzerLike {
   rebuildGraph(
     disabledPlugins: Set<string>,
     showOrphans: boolean,
   ): IGraphData;
-  getPluginStatuses(disabledPlugins: Set<string>): readonly IPluginStatus[];
   registry: {
     notifyGraphRebuild(graphData: IGraphData): void;
   };
@@ -21,27 +19,31 @@ interface GraphViewRebuildState {
 
 interface RebuildGraphViewDataDependencies {
   getShowOrphans: () => boolean;
+  computeMergedGroups: () => void;
+  sendGroupsUpdated: () => void;
   updateViewContext: () => void;
   applyViewTransform: () => void;
   sendDepthState: () => void;
+  sendGraphControls: () => void;
   sendPluginStatuses: () => void;
   sendDecorations: () => void;
   sendMessage: (message: unknown) => void;
 }
 
 interface SmartRebuildGraphViewDependencies {
-  shouldRebuild: (statuses: readonly IPluginStatus[], id: string) => boolean;
   rebuildAndSend: () => void;
-  sendMessage: (message: unknown) => void;
 }
 
 export function rebuildGraphViewData(
   state: GraphViewRebuildState,
   {
     getShowOrphans,
+    computeMergedGroups,
+    sendGroupsUpdated,
     updateViewContext,
     applyViewTransform,
     sendDepthState,
+    sendGraphControls,
     sendPluginStatuses,
     sendDecorations,
     sendMessage,
@@ -53,10 +55,13 @@ export function rebuildGraphViewData(
     state._disabledPlugins,
     getShowOrphans(),
   );
+  computeMergedGroups();
+  sendGroupsUpdated();
   updateViewContext();
   applyViewTransform();
   sendMessage({ type: 'GRAPH_DATA_UPDATED', payload: state._graphData });
   sendDepthState();
+  sendGraphControls();
   sendPluginStatuses();
   sendDecorations();
   state._analyzer.registry.notifyGraphRebuild(state._graphData);
@@ -64,20 +69,11 @@ export function rebuildGraphViewData(
 
 export function smartRebuildGraphView(
   state: Pick<GraphViewRebuildState, '_analyzer' | '_disabledPlugins'>,
-  id: string,
+  _id: string,
   {
-    shouldRebuild,
     rebuildAndSend,
-    sendMessage,
   }: SmartRebuildGraphViewDependencies,
 ): void {
   if (!state._analyzer) return;
-
-  const statuses = state._analyzer.getPluginStatuses(state._disabledPlugins);
-  if (shouldRebuild(statuses, id)) {
-    rebuildAndSend();
-    return;
-  }
-
-  sendMessage({ type: 'PLUGINS_UPDATED', payload: { plugins: statuses } });
+  rebuildAndSend();
 }

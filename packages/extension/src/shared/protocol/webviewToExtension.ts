@@ -39,6 +39,7 @@ export type WebviewToExtensionMessage =
   | { type: 'UPDATE_DEPTH_MODE'; payload: { depthMode: boolean } }
   | { type: 'CHANGE_DEPTH_LIMIT'; payload: { depthLimit: number } }
   | { type: 'UPDATE_LEGENDS'; payload: { legends: IGroup[] } }
+  | { type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY'; payload: { legendId: string; visible: boolean } }
   | { type: 'UPDATE_FILTER_PATTERNS'; payload: { patterns: string[] } }
   | { type: 'UPDATE_SHOW_ORPHANS'; payload: { showOrphans: boolean } }
   | { type: 'UPDATE_BIDIRECTIONAL_MODE'; payload: { bidirectionalMode: BidirectionalEdgeMode } }
