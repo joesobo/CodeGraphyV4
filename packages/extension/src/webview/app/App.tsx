@@ -127,12 +127,12 @@ export default function App(): React.ReactElement {
           <LegendsPanel isOpen={activePanel === 'legends'} onClose={() => setActivePanel('none')} />
           <PluginsPanel isOpen={activePanel === 'plugins'} onClose={() => setActivePanel('none')} />
           <SettingsPanel isOpen={activePanel === 'settings'} onClose={() => setActivePanel('none')} />
+          {hasGraphNodes ? (
+            <div className="mt-2 self-end">
+              <GraphCornerControls />
+            </div>
+          ) : null}
         </div>
-        {hasGraphNodes ? (
-          <div className="absolute bottom-2 right-2 z-10 pointer-events-none [&>*]:pointer-events-auto">
-            <GraphCornerControls />
-          </div>
-        ) : null}
         <GraphIndexStatus isIndexing={graphIsIndexing} progress={graphIndexProgress} />
       </div>
     </div>

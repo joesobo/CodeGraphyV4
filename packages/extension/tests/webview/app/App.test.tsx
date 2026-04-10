@@ -176,6 +176,29 @@ describe('App', () => {
     expect(screen.getByTitle('Zoom Out')).toBeInTheDocument();
     expect(screen.getByTitle('Fit to Screen')).toBeInTheDocument();
   });
+
+  it('should place graph corner controls inside the right-side popup stack', async () => {
+    graphStore.setState({ activePanel: 'edges' });
+
+    render(<App />);
+    await act(async () => {
+      messageListeners.forEach((listener) => listener(new MessageEvent('message', {
+        data: {
+          type: 'GRAPH_DATA_UPDATED',
+          payload: {
+            nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+            edges: [],
+          },
+        },
+      })));
+    });
+
+    const fitButton = screen.getByTitle('Fit to Screen');
+    const popupStack = fitButton.closest('.top-2.bottom-2.right-2');
+
+    expect(popupStack).not.toBeNull();
+    expect(screen.getByText('Edges')).toBeInTheDocument();
+  });
 });
 
 // ── Message Handler Coverage ────────────────────────────────────────────────
