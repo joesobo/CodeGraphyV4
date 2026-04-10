@@ -143,7 +143,7 @@ describe('PluginsPanel', () => {
     });
   });
 
-  it('renders separators only between plugin rows', () => {
+  it('renders plugin rows inside the shared divided list style', () => {
     const { container } = renderPanel([
       {
         id: 'codegraphy.typescript',
@@ -165,6 +165,6 @@ describe('PluginsPanel', () => {
       },
     ]);
 
-    expect(container.querySelectorAll('[data-orientation="horizontal"]')).toHaveLength(1);
+    expect(container.querySelector('[class*="divide-y"]')).not.toBeNull();
   });
 });

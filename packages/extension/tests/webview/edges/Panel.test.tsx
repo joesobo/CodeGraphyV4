@@ -22,8 +22,23 @@ describe('EdgesPanel', () => {
     render(<EdgesPanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByText('Imports')).toBeInTheDocument();
-    expect(screen.getByText('import')).toBeInTheDocument();
+    expect(screen.queryByText('import')).not.toBeInTheDocument();
     expect(screen.getByRole('switch')).toHaveAttribute('data-state', 'checked');
+  });
+
+  it('renders edge entries inside a divided list', () => {
+    graphStore.setState({
+      graphEdgeTypes: [
+        { id: 'import', label: 'Imports', defaultColor: '#111111', defaultVisible: true },
+        { id: 'call', label: 'Calls', defaultColor: '#222222', defaultVisible: true },
+      ],
+      edgeColors: {},
+      edgeVisibility: { import: true, call: true },
+    });
+
+    const { container } = render(<EdgesPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(container.querySelector('[class*="divide-y"]')).not.toBeNull();
   });
 
   it('posts edge visibility updates when a toggle changes', () => {

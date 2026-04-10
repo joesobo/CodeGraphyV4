@@ -30,6 +30,30 @@ describe('LegendsPanel', () => {
     expect(screen.queryByText('Top overrides bottom')).not.toBeInTheDocument();
   });
 
+  it('keeps the legend body scrollable when the content grows', () => {
+    graphStore.setState({
+      graphNodeTypes: Array.from({ length: 12 }, (_, index) => ({
+        id: `node-${index}`,
+        label: `Node ${index}`,
+        defaultColor: '#111111',
+        defaultVisible: true,
+      })),
+      graphEdgeTypes: Array.from({ length: 12 }, (_, index) => ({
+        id: `custom:edge-${index}`,
+        label: `Edge ${index}`,
+        defaultColor: '#222222',
+        defaultVisible: true,
+      })),
+      nodeColors: {},
+      edgeColors: {},
+      legends: [],
+    });
+
+    const { container } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(container.querySelector('.flex-1.min-h-0')).not.toBeNull();
+  });
+
   it('debounces color updates from the node and edge sections', () => {
     sentMessages.length = 0;
     vi.useFakeTimers();

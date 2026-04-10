@@ -5,7 +5,6 @@ import { mdiClose } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Switch } from '../ui/switch';
 import { ScrollArea } from '../ui/scroll-area';
-import { Separator } from '../ui/separator';
 import { Button } from '../ui/button';
 import {
   getPluginsPanelItemClassName,
@@ -70,44 +69,44 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
       </div>
 
       {/* Scrollable plugin list */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         <div className="px-3 pb-3">
           {plugins.length === 0 ? (
             <p className="text-xs text-muted-foreground py-3 text-center">No plugins registered.</p>
           ) : (
-            plugins.map((plugin, index) => {
-              return (
-                <div
-                  key={plugin.id}
-                  draggable
-                  onDragStart={() => setDragIndex(index)}
-                  onDragOver={(event) => {
-                    event.preventDefault();
-                    setDragOverIndex(index);
-                  }}
-                  onDrop={(event) => handleDropPlugin(event, index)}
-                  onDragEnd={handleDragEnd}
-                  className={getPluginsPanelItemClassName(
-                    plugin.enabled,
-                    index,
-                    dragIndex,
-                    dragOverIndex,
-                  )}
-                >
-                  <div className="flex items-center gap-2 py-2.5">
-                    <Switch
-                      checked={plugin.enabled}
-                      onCheckedChange={(val) => handleTogglePlugin(plugin.id, val)}
-                      className="scale-[0.8] origin-left"
-                    />
-
-                    <span className="text-xs flex-1 truncate">{plugin.name}</span>
+            <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
+              {plugins.map((plugin, index) => {
+                return (
+                  <div
+                    key={plugin.id}
+                    draggable
+                    onDragStart={() => setDragIndex(index)}
+                    onDragOver={(event) => {
+                      event.preventDefault();
+                      setDragOverIndex(index);
+                    }}
+                    onDrop={(event) => handleDropPlugin(event, index)}
+                    onDragEnd={handleDragEnd}
+                    className={getPluginsPanelItemClassName(
+                      plugin.enabled,
+                      index,
+                      dragIndex,
+                      dragOverIndex,
+                    )}
+                  >
+                    <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-accent/20">
+                      <div className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-medium">{plugin.name}</span>
+                      </div>
+                      <Switch
+                        checked={plugin.enabled}
+                        onCheckedChange={(val) => handleTogglePlugin(plugin.id, val)}
+                      />
+                    </div>
                   </div>
-
-                  {index < plugins.length - 1 ? <Separator className="opacity-50" /> : null}
-                </div>
-              );
-            })
+                );
+              })}
+            </div>
           )}
         </div>
       </ScrollArea>
