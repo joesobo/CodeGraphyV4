@@ -12,6 +12,7 @@ export interface GraphViewSettingsMessageState {
 export interface GraphViewSettingsMessageHandlers {
   getConfig<T>(key: string, defaultValue: T): T;
   updateConfig(key: string, value: unknown): Promise<void>;
+  smartRebuild(id: string): void;
   sendGraphControls(): void;
   reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   getPluginFilterPatterns(): string[];

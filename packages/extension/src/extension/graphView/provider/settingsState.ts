@@ -127,6 +127,7 @@ export function createGraphViewProviderSettingsStateMethods(
     const disabledState = dependencies.loadDisabledState(
       source._disabledPlugins,
       {
+        configuredDisabledPlugins: config.get<string[]>('disabledPlugins', []),
         disabledPluginsInspect: config.inspect<string[]>('disabledPlugins'),
       },
     );

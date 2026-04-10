@@ -179,9 +179,12 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(source._filterPatterns).toEqual(['updated/**']);
   });
 
-  it('loads disabled state through the default configuration inspection', () => {
+  it('loads disabled state through the current config value before inspection fallbacks', () => {
     const source = createSource();
     const disabledPluginsInspect = { workspaceValue: ['plugin.config'] };
+    mocks.configuration.get.mockImplementation((key: string, fallback: unknown) =>
+      key === 'disabledPlugins' ? ['plugin.current'] : fallback,
+    );
     mocks.configuration.inspect.mockImplementation(((_key: string) => disabledPluginsInspect) as never);
     mocks.loadDisabledState.mockReturnValue({
       disabledPlugins: new Set<string>(['plugin.config']),
@@ -193,10 +196,12 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(methods._loadDisabledRulesAndPlugins()).toBe(true);
 
     expect(mocks.getConfiguration).toHaveBeenCalledWith('codegraphy');
+    expect(mocks.configuration.get).toHaveBeenNthCalledWith(1, 'disabledPlugins', []);
     expect(mocks.configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledPlugins');
     expect(mocks.loadDisabledState).toHaveBeenCalledWith(
       new Set<string>(['plugin.current']),
       {
+        configuredDisabledPlugins: ['plugin.current'],
         disabledPluginsInspect,
       },
     );

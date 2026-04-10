@@ -26,10 +26,12 @@ export function groupLinksByNodePair<T extends CurvatureLink>(links: T[]): Group
   for (const link of links) {
     const sourceId = resolveId(link.source);
     const targetId = resolveId(link.target);
-    const groupId = link.curvatureGroupId ?? '';
-    const pairId = sourceId <= targetId
-      ? `${sourceId}_${targetId}_${groupId}`
-      : `${targetId}_${sourceId}_${groupId}`;
+    const orderedPairId = sourceId <= targetId
+      ? `${sourceId}_${targetId}`
+      : `${targetId}_${sourceId}`;
+    const pairId = link.curvatureGroupId
+      ? `${orderedPairId}_${link.curvatureGroupId}`
+      : orderedPairId;
     link.nodePairId = pairId;
     const map = sourceId === targetId ? selfLoopLinks : sameNodesLinks;
     if (!map[pairId]) map[pairId] = [];

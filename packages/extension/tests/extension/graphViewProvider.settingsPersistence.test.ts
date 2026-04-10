@@ -53,6 +53,13 @@ describe('GraphViewProvider settings persistence', () => {
     const configuredPlugins = ['codegraphy.python'];
     const legacyWorkspacePlugins = ['legacy.plugin'];
 
+    configGet.mockImplementation(<T>(key: string, defaultValue: T): T => {
+      if (key === 'disabledPlugins') {
+        return configuredPlugins as T;
+      }
+
+      return defaultValue;
+    });
     configInspect.mockImplementation((key: string) => {
       if (key === 'disabledPlugins') {
         return { workspaceValue: configuredPlugins };

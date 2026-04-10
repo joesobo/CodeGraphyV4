@@ -60,12 +60,18 @@ export function getToolbarActionIconPath(action: { icon?: string }): string {
 }
 
 export function ToolbarActions(): React.ReactElement {
+  const activePanel = useGraphStore(s => s.activePanel);
   const setActivePanel = useGraphStore(s => s.setActivePanel);
   const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
   const refreshTitle = graphHasIndex ? 'Refresh' : 'Index Repo';
   const refreshMessageType = graphHasIndex ? 'REFRESH_GRAPH' : 'INDEX_GRAPH';
+  const togglePanel = (
+    panel: 'nodes' | 'edges' | 'legends' | 'plugins' | 'settings',
+  ): void => {
+    setActivePanel(activePanel === panel ? 'none' : panel);
+  };
 
   return (
     <div className="flex flex-col items-center gap-1.5">
@@ -131,7 +137,7 @@ export function ToolbarActions(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-7 w-7 bg-transparent"
-            onClick={() => setActivePanel('nodes')}
+            onClick={() => togglePanel('nodes')}
             title="Nodes"
           >
             <MdiIcon path={mdiShapeOutline} size={16} />
@@ -146,7 +152,7 @@ export function ToolbarActions(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-7 w-7 bg-transparent"
-            onClick={() => setActivePanel('edges')}
+            onClick={() => togglePanel('edges')}
             title="Edges"
           >
             <MdiIcon path={mdiVectorLine} size={16} />
@@ -161,7 +167,7 @@ export function ToolbarActions(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-7 w-7 bg-transparent"
-            onClick={() => setActivePanel('legends')}
+            onClick={() => togglePanel('legends')}
             title="Legends"
           >
             <MdiIcon path={mdiPaletteOutline} size={16} />
@@ -176,7 +182,7 @@ export function ToolbarActions(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-7 w-7 bg-transparent"
-            onClick={() => setActivePanel('plugins')}
+            onClick={() => togglePanel('plugins')}
             title="Plugins"
           >
             <MdiIcon path={mdiPuzzleOutline} size={16} />
@@ -191,7 +197,7 @@ export function ToolbarActions(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-7 w-7 bg-transparent"
-            onClick={() => setActivePanel('settings')}
+            onClick={() => togglePanel('settings')}
             title="Settings"
           >
             <MdiIcon path={mdiCogOutline} size={16} />

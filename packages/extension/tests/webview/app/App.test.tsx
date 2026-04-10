@@ -197,7 +197,7 @@ describe('App', () => {
       })));
     });
 
-    expect(screen.getByText('2 nodes - 1 edge')).toBeInTheDocument();
+    expect(screen.getByText('2 nodes • 1 edge')).toBeInTheDocument();
   });
 
   it('should hide graph corner controls while a right-side popup is open', async () => {

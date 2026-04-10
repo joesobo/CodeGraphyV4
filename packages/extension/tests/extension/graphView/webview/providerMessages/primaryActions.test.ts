@@ -7,6 +7,7 @@ import * as repoSettings from '../../../../../src/extension/repoSettings/current
 
 vi.mock('../../../../../src/extension/repoSettings/current', () => ({
   getCodeGraphyConfiguration: vi.fn(),
+  updateCodeGraphyConfigurationSilently: vi.fn(() => Promise.resolve()),
 }));
 
 describe('graph view provider listener primary actions', () => {
@@ -77,10 +78,11 @@ describe('graph view provider listener primary actions', () => {
   it('uses dependency-backed wrappers for group persistence and dialogs', async () => {
     const source = createSource();
     const dependencies = createDependencies();
-    const update = vi.fn(() => Promise.resolve());
+    const updateSilently = vi.fn(() => Promise.resolve());
     vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
-      update,
+      update: vi.fn(() => Promise.resolve()),
     } as never);
+    vi.mocked(repoSettings.updateCodeGraphyConfigurationSilently).mockImplementation(updateSilently);
     const actions = createActions(source, dependencies);
     const groups = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
     const openDialogOptions = { canSelectFiles: true };
@@ -89,7 +91,7 @@ describe('graph view provider listener primary actions', () => {
     actions.showInformationMessage('saved');
     await actions.showOpenDialog(openDialogOptions as never);
 
-    expect(update).toHaveBeenCalledWith('legend', groups);
+    expect(updateSilently).toHaveBeenCalledWith('legend', groups);
     expect(dependencies.window.showInformationMessage).toHaveBeenCalledWith('saved');
     expect(dependencies.window.showOpenDialog).toHaveBeenCalledWith(openDialogOptions);
   });

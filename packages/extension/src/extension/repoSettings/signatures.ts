@@ -36,7 +36,6 @@ export function createCodeGraphySettingsSignature(
     filterPatterns: settings.filterPatterns ?? [],
     exclude: settings.exclude ?? [],
     pluginOrder: settings.pluginOrder ?? [],
-    disabledPlugins: [...(settings.disabledPlugins ?? [])].sort((left, right) => left.localeCompare(right)),
     depthMode: settings.depthMode ?? false,
     depthLimit: settings.depthLimit ?? 1,
     nodeVisibility: sortRecord(settings.nodeVisibility ?? {}),

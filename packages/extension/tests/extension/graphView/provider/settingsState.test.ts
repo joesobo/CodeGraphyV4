@@ -168,7 +168,7 @@ describe('graphView/provider/settingsState', () => {
     expect(workspaceState.update).not.toHaveBeenCalled();
   });
 
-  it('loads disabled plugins from inspected config only', () => {
+  it('loads disabled plugins from the current config value before inspection fallbacks', () => {
     const get = vi.fn((_key: string) => ['plugin.saved']) as WorkspaceStateGetMock;
     const workspaceState = {
       get,
@@ -186,6 +186,9 @@ describe('graphView/provider/settingsState', () => {
       })),
     });
 
+    configuration.get.mockImplementation((key: string, fallback: string[]) =>
+      key === 'disabledPlugins' ? ['plugin.current'] : fallback,
+    );
     configuration.inspect.mockImplementation((_key: string) => disabledPluginsInspect);
 
     const methods = createGraphViewProviderSettingsStateMethods(source, dependencies);
@@ -193,8 +196,10 @@ describe('graphView/provider/settingsState', () => {
     expect(methods._loadDisabledRulesAndPlugins()).toBe(true);
 
     expect(dependencies.getConfiguration).toHaveBeenCalledWith('codegraphy');
+    expect(configuration.get).toHaveBeenNthCalledWith(1, 'disabledPlugins', []);
     expect(configuration.inspect).toHaveBeenNthCalledWith(1, 'disabledPlugins');
     expect(dependencies.loadDisabledState).toHaveBeenCalledWith(initialDisabledPlugins, {
+      configuredDisabledPlugins: ['plugin.current'],
       disabledPluginsInspect,
     });
     expect(workspaceState.get).not.toHaveBeenCalled();
