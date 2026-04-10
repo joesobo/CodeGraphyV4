@@ -36,6 +36,18 @@ describe('computeLinkCurvature', () => {
     expect(links[0].curvature).not.toBe(links[1].curvature);
   });
 
+  it('keeps different curvature groups straight even when they share the same node pair', () => {
+    const links: CurvatureLink[] = [
+      { source: 'A', target: 'B', curvatureGroupId: 'import' },
+      { source: 'A', target: 'B', curvatureGroupId: 'call' },
+    ];
+
+    computeLinkCurvature(links);
+
+    expect(links[0].curvature).toBeUndefined();
+    expect(links[1].curvature).toBeUndefined();
+  });
+
   it('distributes curvatures evenly for 3+ parallel links', () => {
     const links = [makeLink('A', 'B'), makeLink('A', 'B'), makeLink('A', 'B')];
     computeLinkCurvature(links);

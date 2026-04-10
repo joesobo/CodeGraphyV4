@@ -13,6 +13,7 @@ export function buildGraphLinks(edges: IGraphEdge[], mode: BidirectionalEdgeMode
     target: edge.to,
     bidirectional: edge.bidirectional ?? false,
     baseColor: edge.bidirectional ? '#60a5fa' : undefined,
+    curvatureGroupId: edge.kind,
   }));
 
   computeLinkCurvature(links);

@@ -7,12 +7,17 @@ const mocks = vi.hoisted(() => ({
   setGraphViewFocusedFile: vi.fn(),
   setGraphViewDepthLimit: vi.fn(),
   getGraphViewDepthLimit: vi.fn(),
+  updateCodeGraphyConfigurationSilently: vi.fn(() => Promise.resolve()),
 }));
 
 vi.mock('../../../../../src/extension/graphView/view/selection', () => ({
   setGraphViewFocusedFile: mocks.setGraphViewFocusedFile,
   setGraphViewDepthLimit: mocks.setGraphViewDepthLimit,
   getGraphViewDepthLimit: mocks.getGraphViewDepthLimit,
+}));
+
+vi.mock('../../../../../src/extension/repoSettings/current', () => ({
+  updateCodeGraphyConfigurationSilently: mocks.updateCodeGraphyConfigurationSilently,
 }));
 
 import { createGraphViewProviderViewSelectionMethods } from '../../../../../src/extension/graphView/provider/view/selection';
@@ -27,6 +32,7 @@ describe('graphView/provider/view/selection default dependencies', () => {
     mocks.setGraphViewFocusedFile.mockReset();
     mocks.setGraphViewDepthLimit.mockReset();
     mocks.getGraphViewDepthLimit.mockReset();
+    mocks.updateCodeGraphyConfigurationSilently.mockReset();
     configuration = {
       get: ((_: string, defaultValue: unknown) => defaultValue) as <T>(
         section: string,
@@ -44,7 +50,8 @@ describe('graphView/provider/view/selection default dependencies', () => {
     const methods = createGraphViewProviderViewSelectionMethods(source as never);
     await methods.setDepthMode(true);
 
-    expect(configuration.update).toHaveBeenCalledWith('depthMode', true, undefined);
+    expect(mocks.updateCodeGraphyConfigurationSilently).toHaveBeenCalledWith('depthMode', true);
+    expect(configuration.update).not.toHaveBeenCalled();
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'DEPTH_MODE_UPDATED',
@@ -85,11 +92,8 @@ describe('graphView/provider/view/selection default dependencies', () => {
 
     expect(mocks.setGraphViewFocusedFile).toHaveBeenCalledOnce();
     expect(mocks.setGraphViewDepthLimit).toHaveBeenCalledOnce();
-    expect(configuration.update).toHaveBeenCalledWith(
-      'depthLimit',
-      4,
-      undefined,
-    );
+    expect(mocks.updateCodeGraphyConfigurationSilently).toHaveBeenCalledWith('depthLimit', 4);
+    expect(configuration.update).not.toHaveBeenCalled();
     expect(source._applyViewTransform).toHaveBeenCalledTimes(2);
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'GRAPH_DATA_UPDATED',

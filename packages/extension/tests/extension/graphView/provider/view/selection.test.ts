@@ -52,7 +52,7 @@ describe('graphView/provider/view/selection', () => {
     await methods.setDepthLimit(7);
 
     expect(setDepthLimit).toHaveBeenCalledOnce();
-    expect(dependencies.getConfiguration().update).toHaveBeenCalledWith(
+    expect(dependencies.persistSetting).toHaveBeenCalledWith(
       'depthLimit',
       7,
     );
@@ -72,7 +72,7 @@ describe('graphView/provider/view/selection', () => {
 
     await methods.setDepthMode(true);
 
-    expect(dependencies.getConfiguration().update).toHaveBeenCalledWith('depthMode', true);
+    expect(dependencies.persistSetting).toHaveBeenCalledWith('depthMode', true);
     expect(source._depthMode).toBe(true);
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'DEPTH_MODE_UPDATED',
@@ -110,7 +110,7 @@ describe('graphView/provider/view/selection', () => {
     methods.setFocusedFile(undefined);
     await methods.setDepthLimit(4);
 
-    expect(dependencies.getConfiguration().update).toHaveBeenCalledWith(
+    expect(dependencies.persistSetting).toHaveBeenCalledWith(
       'depthLimit',
       4,
     );
@@ -157,6 +157,7 @@ function createDependencies(
       viewContext.depthLimit ?? defaultDepthLimit,
     ),
     getConfiguration: vi.fn(() => configuration),
+    persistSetting: vi.fn((_: string, __: unknown) => Promise.resolve()),
     defaultDepthLimit: 1,
     depthLimitKey: 'depthLimit',
     ...overrides,

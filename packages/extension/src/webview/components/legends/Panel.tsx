@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { mdiClose, mdiDelete, mdiPlus } from '@mdi/js';
-import type { IGroup, LegendRuleTarget } from '../../../shared/settings/groups';
+import type { IGroup } from '../../../shared/settings/groups';
 import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import { MdiIcon } from '../icons/MdiIcon';
@@ -8,92 +8,36 @@ import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { Switch } from '../ui/switch';
 
-function LegendColorSection({
-  title,
-  entries,
-  onChange,
-}: {
-  title: string;
-  entries: Array<{ id: string; label: string; color: string }>;
-  onChange: (id: string, color: string) => void;
-}): React.ReactElement | null {
-  if (entries.length === 0) {
-    return null;
-  }
+const COLOR_DEBOUNCE_MS = 150;
 
-  return (
-    <section className="space-y-2">
-      <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-        {title}
-      </h3>
-      <div className="space-y-2">
-        {entries.map((entry) => (
-          <div key={entry.id} className="flex items-center gap-3">
-            <div className="flex-1 min-w-0">
-              <div className="text-xs font-medium truncate">{entry.label}</div>
-              <div className="text-[10px] text-muted-foreground truncate">{entry.id}</div>
-            </div>
-            <label className="flex items-center gap-2">
-              <input
-                aria-label={`${entry.label} color`}
-                type="color"
-                value={entry.color}
-                onChange={(event) => onChange(entry.id, event.target.value)}
-                className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
-              />
-              <span className="w-16 text-[10px] font-mono text-muted-foreground uppercase">
-                {entry.color}
-              </span>
-            </label>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
+type LegendTargetSection = 'node' | 'edge';
+
+interface LegendBuiltInEntry {
+  id: string;
+  label: string;
+  color: string;
 }
 
 function createLegendRuleId(): string {
   return `legend:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function reorderLegendRules(
+function shouldRenderRuleInSection(rule: IGroup, target: LegendTargetSection): boolean {
+  const ruleTarget = rule.target ?? 'node';
+  if (target === 'edge') {
+    return ruleTarget !== 'node';
+  }
+
+  return ruleTarget !== 'edge';
+}
+
+function replaceSectionRules(
   rules: IGroup[],
-  sourceIndex: number,
-  targetIndex: number,
+  target: LegendTargetSection,
+  nextSectionRules: IGroup[],
 ): IGroup[] {
-  if (
-    sourceIndex < 0
-    || targetIndex < 0
-    || sourceIndex >= rules.length
-    || targetIndex >= rules.length
-    || sourceIndex === targetIndex
-  ) {
-    return rules;
-  }
-
-  const nextRules = [...rules];
-  const [movedRule] = nextRules.splice(sourceIndex, 1);
-  if (!movedRule) {
-    return rules;
-  }
-
-  nextRules.splice(targetIndex, 0, movedRule);
-  return nextRules;
-}
-
-function ruleTargetLabel(target: LegendRuleTarget): string {
-  switch (target) {
-    case 'both':
-      return 'Both';
-    case 'edge':
-      return 'Edge';
-    default:
-      return 'Node';
-  }
-}
-
-function resolveLegendRuleTarget(rule: IGroup): LegendRuleTarget {
-  return rule.target ?? 'node';
+  const remainingRules = rules.filter(rule => !shouldRenderRuleInSection(rule, target));
+  return [...remainingRules, ...nextSectionRules];
 }
 
 function sendUserLegendRules(
@@ -107,208 +51,257 @@ function sendUserLegendRules(
   });
 }
 
-interface LegendRulesSectionProps {
-  rules: IGroup[];
-  setOptimisticUserLegends: (legends: IGroup[]) => void;
-}
+function LegendColorInput({
+  ariaLabel,
+  color,
+  onCommit,
+}: {
+  ariaLabel: string;
+  color: string;
+  onCommit: (color: string) => void;
+}): React.ReactElement {
+  const [draftColor, setDraftColor] = useState(color);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const pendingColorRef = useRef(color);
 
-function LegendRulesSection({
-  rules,
-  setOptimisticUserLegends,
-}: LegendRulesSectionProps): React.ReactElement {
-  const [newPattern, setNewPattern] = useState('');
-  const [newColor, setNewColor] = useState('#3B82F6');
-  const [newTarget, setNewTarget] = useState<LegendRuleTarget>('node');
-  const [draggingRuleId, setDraggingRuleId] = useState<string | null>(null);
+  useEffect(() => {
+    setDraftColor(color);
+    pendingColorRef.current = color;
+  }, [color]);
 
-  const updateRules = (nextRules: IGroup[]) => {
-    sendUserLegendRules(nextRules, setOptimisticUserLegends);
-  };
-
-  const addRule = () => {
-    const pattern = newPattern.trim();
-    if (!pattern) {
-      return;
+  useEffect(() => () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
     }
+  }, []);
 
-    updateRules([
-      ...rules,
-      {
-        id: createLegendRuleId(),
-        pattern,
-        color: newColor,
-        target: newTarget,
-      },
-    ]);
-    setNewPattern('');
-    setNewColor('#3B82F6');
-    setNewTarget('node');
+  const commitColor = (nextColor: string): void => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = undefined;
+    }
+    onCommit(nextColor);
   };
 
   return (
-    <section className="space-y-2">
-      <div className="flex items-center justify-between">
-        <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Rules
-        </h3>
-        <span className="text-[10px] text-muted-foreground">
-          Top overrides bottom
-        </span>
-      </div>
+    <input
+      aria-label={ariaLabel}
+      type="color"
+      value={draftColor}
+      onChange={(event) => {
+        const nextColor = event.target.value;
+        setDraftColor(nextColor);
+        pendingColorRef.current = nextColor;
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+        timeoutRef.current = setTimeout(() => {
+          commitColor(nextColor);
+        }, COLOR_DEBOUNCE_MS);
+      }}
+      onBlur={() => {
+        if (pendingColorRef.current !== color) {
+          commitColor(pendingColorRef.current);
+        }
+      }}
+      className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
+    />
+  );
+}
 
-      <div className="rounded border bg-background/40 p-2 space-y-2">
+function LegendBuiltInRow({
+  entry,
+  onChange,
+}: {
+  entry: LegendBuiltInEntry;
+  onChange: (id: string, color: string) => void;
+}): React.ReactElement {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="flex-1 min-w-0">
+        <div className="text-xs font-medium truncate">{entry.label}</div>
+        <div className="text-[10px] text-muted-foreground truncate">{entry.id}</div>
+      </div>
+      <LegendColorInput
+        ariaLabel={`${entry.label} color`}
+        color={entry.color}
+        onCommit={(color) => onChange(entry.id, color)}
+      />
+    </div>
+  );
+}
+
+function LegendRuleRow({
+  rule,
+  index,
+  onChange,
+  onRemove,
+}: {
+  rule: IGroup;
+  index: number;
+  onChange: (rule: IGroup) => void;
+  onRemove: () => void;
+}): React.ReactElement {
+  return (
+    <div className="rounded border bg-background/40 p-2 space-y-2">
+      <div className="flex items-center gap-2">
         <input
-          value={newPattern}
-          onChange={(event) => setNewPattern(event.target.value)}
-          placeholder="Pattern, e.g. */tests/**"
-          className="h-8 w-full rounded border bg-background px-2 text-xs"
-          aria-label="New legend rule pattern"
+          value={rule.pattern}
+          onChange={(event) => {
+            onChange({ ...rule, pattern: event.target.value });
+          }}
+          aria-label={`Legend pattern ${index + 1}`}
+          className="h-8 min-w-0 flex-1 rounded border bg-background px-2 text-xs"
         />
-        <div className="flex items-center gap-2">
-          <select
-            aria-label="New legend rule target"
-            value={newTarget}
-            onChange={(event) => setNewTarget(event.target.value as LegendRuleTarget)}
-            className="h-8 min-w-0 flex-1 rounded border bg-background px-2 text-xs"
-          >
-            <option value="node">Node</option>
-            <option value="edge">Edge</option>
-            <option value="both">Both</option>
-          </select>
-          <input
-            aria-label="New legend rule color"
-            type="color"
-            value={newColor}
-            onChange={(event) => setNewColor(event.target.value)}
-            className="h-8 w-12 cursor-pointer rounded border-0 bg-transparent p-0"
-          />
-          <Button
-            size="sm"
-            className="h-8 px-2 text-xs"
-            onClick={addRule}
-            title="Add legend rule"
-          >
-            <MdiIcon path={mdiPlus} size={14} />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7"
+          title="Delete legend rule"
+          onClick={onRemove}
+        >
+          <MdiIcon path={mdiDelete} size={14} />
+        </Button>
       </div>
+      <div className="flex items-center justify-end gap-2">
+        <LegendColorInput
+          ariaLabel={`Legend color ${index + 1}`}
+          color={rule.color}
+          onCommit={(color) => onChange({ ...rule, color })}
+        />
+        <Switch
+          checked={!rule.disabled}
+          onCheckedChange={(enabled) => {
+            onChange({ ...rule, disabled: !enabled });
+          }}
+        />
+      </div>
+    </div>
+  );
+}
 
-      {rules.length === 0 ? (
-        <p className="text-[11px] text-muted-foreground">
-          No custom legend rules yet.
-        </p>
-      ) : (
-        <div className="space-y-2">
-          {rules.map((rule, index) => {
-            const ruleTarget = resolveLegendRuleTarget(rule);
+function LegendRuleCreateRow({
+  target,
+  onAdd,
+}: {
+  target: LegendTargetSection;
+  onAdd: (rule: IGroup) => void;
+}): React.ReactElement {
+  const [pattern, setPattern] = useState('');
+  const [color, setColor] = useState('#3B82F6');
 
-            return (
-              <div
-                key={rule.id}
-                draggable
-                onDragStart={() => setDraggingRuleId(rule.id)}
-                onDragOver={(event) => event.preventDefault()}
-                onDrop={(event) => {
-                  event.preventDefault();
-                  const sourceIndex = rules.findIndex((candidate) => candidate.id === draggingRuleId);
-                  if (sourceIndex === -1) {
-                    return;
-                  }
+  return (
+    <div className="rounded border bg-background/40 p-2 space-y-2">
+      <input
+        value={pattern}
+        onChange={(event) => setPattern(event.target.value)}
+        placeholder="Pattern, e.g. */tests/**"
+        className="h-8 w-full rounded border bg-background px-2 text-xs"
+        aria-label={`New ${target} legend pattern`}
+      />
+      <div className="flex items-center justify-end gap-2">
+        <input
+          aria-label={`New ${target} legend color`}
+          type="color"
+          value={color}
+          onChange={(event) => setColor(event.target.value)}
+          className="h-8 w-12 cursor-pointer rounded border-0 bg-transparent p-0"
+        />
+        <Button
+          size="sm"
+          className="h-8 px-2 text-xs"
+          onClick={() => {
+            const nextPattern = pattern.trim();
+            if (!nextPattern) {
+              return;
+            }
 
-                  updateRules(reorderLegendRules(rules, sourceIndex, index));
-                  setDraggingRuleId(null);
-                }}
-                onDragEnd={() => setDraggingRuleId(null)}
-                className="rounded border bg-background/40 p-2 space-y-2"
-              >
-                <div className="flex items-center gap-2">
-                  <span className="cursor-grab text-[10px] text-muted-foreground" title="Drag to reorder">
-                    {index + 1}
-                  </span>
-                  <input
-                    value={rule.pattern}
-                    onChange={(event) => {
-                      updateRules(
-                        rules.map((candidate) =>
-                          candidate.id === rule.id
-                            ? { ...candidate, pattern: event.target.value }
-                            : candidate,
-                        ),
-                      );
-                    }}
-                    aria-label={`Legend rule pattern ${index + 1}`}
-                    className="h-8 min-w-0 flex-1 rounded border bg-background px-2 text-xs"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    title="Delete legend rule"
-                    onClick={() => {
-                      updateRules(rules.filter((candidate) => candidate.id !== rule.id));
-                    }}
-                  >
-                    <MdiIcon path={mdiDelete} size={14} />
-                  </Button>
-                </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    aria-label={`Legend rule target ${index + 1}`}
-                    value={ruleTarget}
-                    onChange={(event) => {
-                      updateRules(
-                        rules.map((candidate) =>
-                          candidate.id === rule.id
-                            ? {
-                              ...candidate,
-                              target: event.target.value as LegendRuleTarget,
-                            }
-                            : candidate,
-                        ),
-                      );
-                    }}
-                    className="h-8 min-w-0 flex-1 rounded border bg-background px-2 text-xs"
-                  >
-                    <option value="node">Node</option>
-                    <option value="edge">Edge</option>
-                    <option value="both">Both</option>
-                  </select>
-                  <div className="w-14 text-[10px] text-muted-foreground text-right">
-                    {ruleTargetLabel(ruleTarget)}
-                  </div>
-                  <input
-                    aria-label={`Legend rule color ${index + 1}`}
-                    type="color"
-                    value={rule.color}
-                    onChange={(event) => {
-                      updateRules(
-                        rules.map((candidate) =>
-                          candidate.id === rule.id
-                            ? { ...candidate, color: event.target.value }
-                            : candidate,
-                        ),
-                      );
-                    }}
-                    className="h-8 w-12 cursor-pointer rounded border-0 bg-transparent p-0"
-                  />
-                  <Switch
-                    checked={!rule.disabled}
-                    onCheckedChange={(enabled) => {
-                      updateRules(
-                        rules.map((candidate) =>
-                          candidate.id === rule.id
-                            ? { ...candidate, disabled: !enabled }
-                            : candidate,
-                        ),
-                      );
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+            onAdd({
+              id: createLegendRuleId(),
+              pattern: nextPattern,
+              color,
+              target,
+            });
+            setPattern('');
+            setColor('#3B82F6');
+          }}
+          title={`Add ${target} legend`}
+        >
+          <MdiIcon path={mdiPlus} size={14} />
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function LegendSection({
+  title,
+  builtInEntries,
+  rules,
+  target,
+  onBuiltInColorChange,
+  onRulesChange,
+  setOptimisticUserLegends,
+}: {
+  title: string;
+  builtInEntries: LegendBuiltInEntry[];
+  rules: IGroup[];
+  target: LegendTargetSection;
+  onBuiltInColorChange: (id: string, color: string) => void;
+  onRulesChange: (rules: IGroup[]) => void;
+  setOptimisticUserLegends: (legends: IGroup[]) => void;
+}): React.ReactElement | null {
+  if (builtInEntries.length === 0 && rules.length === 0) {
+    return (
+      <section className="space-y-2">
+        <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+          {title}
+        </h3>
+        <LegendRuleCreateRow
+          target={target}
+          onAdd={(rule) => {
+            sendUserLegendRules([...rules, rule], setOptimisticUserLegends);
+          }}
+        />
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-2">
+      <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+        {title}
+      </h3>
+      <div className="space-y-2">
+        {builtInEntries.map((entry) => (
+          <LegendBuiltInRow
+            key={entry.id}
+            entry={entry}
+            onChange={onBuiltInColorChange}
+          />
+        ))}
+        {rules.map((rule, index) => (
+          <LegendRuleRow
+            key={rule.id}
+            rule={rule}
+            index={index}
+            onChange={(nextRule) => {
+              onRulesChange(
+                rules.map((candidate) => (candidate.id === nextRule.id ? nextRule : candidate)),
+              );
+            }}
+            onRemove={() => {
+              onRulesChange(rules.filter((candidate) => candidate.id !== rule.id));
+            }}
+          />
+        ))}
+        <LegendRuleCreateRow
+          target={target}
+          onAdd={(rule) => {
+            onRulesChange([...rules, rule]);
+          }}
+        />
+      </div>
     </section>
   );
 }
@@ -332,6 +325,14 @@ export default function LegendsPanel({
   const userLegendRules = useMemo(
     () => legends.filter((group) => !group.isPluginDefault),
     [legends],
+  );
+  const nodeLegendRules = useMemo(
+    () => userLegendRules.filter((rule) => shouldRenderRuleInSection(rule, 'node')),
+    [userLegendRules],
+  );
+  const edgeLegendRules = useMemo(
+    () => userLegendRules.filter((rule) => shouldRenderRuleInSection(rule, 'edge')),
+    [userLegendRules],
   );
 
   if (!isOpen) {
@@ -360,28 +361,45 @@ export default function LegendsPanel({
 
       <ScrollArea className="flex-1 min-h-0">
         <div className="space-y-4 px-3 pb-3 pt-2">
-          <LegendColorSection
+          <div className="text-[10px] text-muted-foreground text-right">
+            Top overrides bottom
+          </div>
+          <LegendSection
             title="Nodes"
-            entries={nodeEntries}
-            onChange={(nodeType, color) => {
+            builtInEntries={nodeEntries}
+            rules={nodeLegendRules}
+            target="node"
+            onBuiltInColorChange={(nodeType, color) => {
               postMessage({
                 type: 'UPDATE_NODE_COLOR',
                 payload: { nodeType, color },
               });
             }}
+            onRulesChange={(nextSectionRules) => {
+              sendUserLegendRules(
+                replaceSectionRules(userLegendRules, 'node', nextSectionRules),
+                setOptimisticUserLegends,
+              );
+            }}
+            setOptimisticUserLegends={setOptimisticUserLegends}
           />
-          <LegendColorSection
+          <LegendSection
             title="Edges"
-            entries={edgeEntries}
-            onChange={(edgeKind, color) => {
+            builtInEntries={edgeEntries}
+            rules={edgeLegendRules}
+            target="edge"
+            onBuiltInColorChange={(edgeKind, color) => {
               postMessage({
                 type: 'UPDATE_EDGE_COLOR',
                 payload: { edgeKind, color },
               });
             }}
-          />
-          <LegendRulesSection
-            rules={userLegendRules}
+            onRulesChange={(nextSectionRules) => {
+              sendUserLegendRules(
+                replaceSectionRules(userLegendRules, 'edge', nextSectionRules),
+                setOptimisticUserLegends,
+              );
+            }}
             setOptimisticUserLegends={setOptimisticUserLegends}
           />
         </div>
