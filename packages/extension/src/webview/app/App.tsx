@@ -21,6 +21,13 @@ import { SlotHost } from '../pluginHost/slotHost/view';
 import { GraphIndexStatus } from '../components/graphIndexStatus/view';
 import { GraphCornerControls } from '../components/graphCornerControls/view';
 
+const COUNT_FORMATTER = new Intl.NumberFormat('en-US');
+
+function formatGraphStat(count: number, singular: string, plural: string): string {
+  const label = count === 1 ? singular : plural;
+  return `${COUNT_FORMATTER.format(count)} ${label}`;
+}
+
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
   const {
@@ -76,7 +83,9 @@ export default function App(): React.ReactElement {
     return <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode)} />;
   }
 
+  const displayGraphData = coloredData || graphData;
   const hasGraphNodes = graphData.nodes.length > 0;
+  const graphStatsLabel = `${formatGraphStat(displayGraphData.nodes.length, 'node', 'nodes')} - ${formatGraphStat(displayGraphData.edges.length, 'edge', 'edges')}`;
 
   return (
     <div className="relative w-full h-screen flex flex-col">
@@ -110,6 +119,9 @@ export default function App(): React.ReactElement {
         ) : (
           <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode)} fullScreen={false} />
         )}
+        <div className="pointer-events-none absolute right-2 top-2 z-10 rounded-md bg-background/50 px-2 py-1 text-xs text-muted-foreground backdrop-blur-sm">
+          {graphStatsLabel}
+        </div>
         <div className="absolute inset-y-2 left-2 z-10 pointer-events-none">
           <div className="h-full pointer-events-auto">
             <Toolbar pluginHost={pluginHost} />

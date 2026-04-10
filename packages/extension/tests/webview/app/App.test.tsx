@@ -175,6 +175,29 @@ describe('App', () => {
     expect(screen.getByTitle('Zoom In')).toBeInTheDocument();
     expect(screen.getByTitle('Zoom Out')).toBeInTheDocument();
     expect(screen.getByTitle('Fit to Screen')).toBeInTheDocument();
+    expect(screen.getByTitle('Open in Editor')).toBeInTheDocument();
+  });
+
+  it('should render current node and edge counts in the top right', async () => {
+    render(<App />);
+    await act(async () => {
+      messageListeners.forEach((listener) => listener(new MessageEvent('message', {
+        data: {
+          type: 'GRAPH_DATA_UPDATED',
+          payload: {
+            nodes: [
+              { id: 'a.ts', label: 'a.ts', color: '#3B82F6' },
+              { id: 'b.ts', label: 'b.ts', color: '#3B82F6' },
+            ],
+            edges: [
+              { id: 'a.ts->b.ts#import', from: 'a.ts', to: 'b.ts', kind: 'import', sources: [] },
+            ],
+          },
+        },
+      })));
+    });
+
+    expect(screen.getByText('2 nodes - 1 edge')).toBeInTheDocument();
   });
 
   it('should hide graph corner controls while a right-side popup is open', async () => {
@@ -197,6 +220,7 @@ describe('App', () => {
     expect(screen.queryByTitle('Zoom In')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Zoom Out')).not.toBeInTheDocument();
     expect(screen.queryByTitle('Fit to Screen')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Open in Editor')).not.toBeInTheDocument();
   });
 });
 

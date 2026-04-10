@@ -29,6 +29,7 @@ export interface GraphViewPrimaryMessageContext {
   setFocusedFile(filePath: string | undefined): void;
   previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   openFile(filePath: string): Promise<void>;
+  openInEditor(): void;
   revealInExplorer(filePath: string): Promise<void>;
   copyToClipboard(text: string): Promise<void>;
   deleteFiles(paths: string[]): Promise<void>;

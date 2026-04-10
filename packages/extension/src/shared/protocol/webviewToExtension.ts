@@ -13,6 +13,7 @@ export type WebviewToExtensionMessage =
   | { type: 'CLEAR_FOCUSED_FILE' }
   | { type: 'WEBVIEW_READY'; payload: null }
   | { type: 'OPEN_FILE'; payload: { path: string } }
+  | { type: 'OPEN_IN_EDITOR' }
   | { type: 'REVEAL_IN_EXPLORER'; payload: { path: string } }
   | { type: 'COPY_TO_CLIPBOARD'; payload: { text: string } }
   | { type: 'DELETE_FILES'; payload: { paths: string[] } }

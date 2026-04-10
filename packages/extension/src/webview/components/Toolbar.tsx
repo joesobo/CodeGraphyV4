@@ -19,35 +19,53 @@ interface ToolbarProps {
 }
 
 export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElement {
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isTopExpanded, setIsTopExpanded] = useState(true);
+  const [isBottomExpanded, setIsBottomExpanded] = useState(true);
 
   return (
     <TooltipProvider delayDuration={300}>
-      <Collapsible
-        open={isExpanded}
-        onOpenChange={setIsExpanded}
+      <div
         data-testid="toolbar"
         className="flex h-full min-h-0 flex-col items-center justify-between gap-3 bg-transparent"
       >
-        <div data-testid="toolbar-top-group" className="flex flex-col items-center">
-          <CollapsibleContent
-            forceMount
-            data-testid="toolbar-primary-controls"
-            className={cn(
-              'overflow-hidden transition-[max-height,opacity,margin,transform] duration-200 ease-out',
-              isExpanded
-                ? 'mb-1.5 max-h-96 opacity-100 translate-y-0'
-                : 'mb-0 max-h-0 opacity-0 -translate-y-1 pointer-events-none',
-            )}
-          >
-            <div className="flex flex-col items-center gap-1.5">
-              <DagModeToggle />
-              <DepthModeToggle />
-              <DimensionToggle />
-              <NodeSizeToggle />
-            </div>
-          </CollapsibleContent>
-        </div>
+        <Collapsible open={isTopExpanded} onOpenChange={setIsTopExpanded}>
+          <div data-testid="toolbar-top-group" className="flex flex-col items-center">
+            <CollapsibleContent
+              forceMount
+              data-testid="toolbar-primary-controls"
+              className={cn(
+                'overflow-hidden transition-[max-height,opacity,margin,transform] duration-200 ease-out',
+                isTopExpanded
+                  ? 'mb-1.5 max-h-96 opacity-100 translate-y-0'
+                  : 'mb-0 max-h-0 opacity-0 -translate-y-1 pointer-events-none',
+              )}
+            >
+              <div className="flex flex-col items-center gap-1.5">
+                <DagModeToggle />
+                <DepthModeToggle />
+                <DimensionToggle />
+                <NodeSizeToggle />
+              </div>
+            </CollapsibleContent>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 bg-transparent"
+                    title={isTopExpanded ? 'Collapse Top Toolbar' : 'Expand Top Toolbar'}
+                  >
+                    <MdiIcon path={isTopExpanded ? mdiChevronUp : mdiChevronDown} size={16} />
+                  </Button>
+                </CollapsibleTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {isTopExpanded ? 'Collapse Top Toolbar' : 'Expand Top Toolbar'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </Collapsible>
         {pluginHost ? (
           <SlotHost
             pluginHost={pluginHost}
@@ -56,30 +74,43 @@ export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElemen
             className="flex flex-col items-center gap-1.5"
           />
         ) : null}
-        <div
-          data-testid="toolbar-bottom-group"
-          className="flex flex-col items-center gap-1.5"
-        >
-          <ToolbarActions />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-7 w-7 bg-transparent"
-                  title={isExpanded ? 'Collapse Toolbar' : 'Expand Toolbar'}
-                >
-                  <MdiIcon path={isExpanded ? mdiChevronDown : mdiChevronUp} size={16} />
-                </Button>
-              </CollapsibleTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              {isExpanded ? 'Collapse Toolbar' : 'Expand Toolbar'}
-            </TooltipContent>
-          </Tooltip>
-        </div>
-      </Collapsible>
+        <Collapsible open={isBottomExpanded} onOpenChange={setIsBottomExpanded}>
+          <div
+            data-testid="toolbar-bottom-group"
+            className="flex flex-col items-center gap-1.5"
+          >
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <CollapsibleTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 bg-transparent"
+                    title={isBottomExpanded ? 'Collapse Bottom Toolbar' : 'Expand Bottom Toolbar'}
+                  >
+                    <MdiIcon path={isBottomExpanded ? mdiChevronDown : mdiChevronUp} size={16} />
+                  </Button>
+                </CollapsibleTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="right">
+                {isBottomExpanded ? 'Collapse Bottom Toolbar' : 'Expand Bottom Toolbar'}
+              </TooltipContent>
+            </Tooltip>
+            <CollapsibleContent
+              forceMount
+              data-testid="toolbar-secondary-controls"
+              className={cn(
+                'overflow-hidden transition-[max-height,opacity,margin,transform] duration-200 ease-out',
+                isBottomExpanded
+                  ? 'mt-1.5 max-h-96 opacity-100 translate-y-0'
+                  : 'mt-0 max-h-0 opacity-0 translate-y-1 pointer-events-none',
+              )}
+            >
+              <ToolbarActions />
+            </CollapsibleContent>
+          </div>
+        </Collapsible>
+      </div>
     </TooltipProvider>
   );
 }

@@ -5,6 +5,7 @@ function createHandlers() {
   return {
     undo: vi.fn(),
     redo: vi.fn(),
+    openInEditor: vi.fn(),
     showInformationMessage: vi.fn(),
     setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
@@ -100,6 +101,15 @@ describe('graph view command message', () => {
     );
 
     expect(handlers.updateNodeSizeMode).toHaveBeenCalledWith('uniform');
+    expect(handled).toBe(true);
+  });
+
+  it('opens the graph in the editor when requested', async () => {
+    const handlers = createHandlers();
+
+    const handled = await applyCommandMessage({ type: 'OPEN_IN_EDITOR' }, handlers);
+
+    expect(handlers.openInEditor).toHaveBeenCalledOnce();
     expect(handled).toBe(true);
   });
 

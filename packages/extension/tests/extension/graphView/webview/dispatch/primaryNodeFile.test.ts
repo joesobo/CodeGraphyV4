@@ -23,6 +23,7 @@ function createContext(
     setFocusedFile: vi.fn(),
     previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
+    openInEditor: vi.fn(),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
     deleteFiles: vi.fn(() => Promise.resolve()),

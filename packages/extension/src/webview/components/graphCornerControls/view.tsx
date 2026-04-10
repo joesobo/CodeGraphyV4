@@ -1,8 +1,14 @@
 import React from 'react';
-import { mdiFitToScreenOutline, mdiMagnifyMinusOutline, mdiMagnifyPlusOutline } from '@mdi/js';
+import {
+  mdiArrowExpandAll,
+  mdiMagnifyMinusOutline,
+  mdiMagnifyPlusOutline,
+  mdiOpenInNew,
+} from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/overlay/tooltip';
+import { postMessage } from '../../vscodeApi';
 
 function postGraphWindowMessage(type: 'ZOOM_IN' | 'ZOOM_OUT' | 'FIT_VIEW'): void {
   window.postMessage({ type }, '*');
@@ -51,10 +57,25 @@ export function GraphCornerControls(): React.ReactElement {
               title="Fit to Screen"
               onClick={() => postGraphWindowMessage('FIT_VIEW')}
             >
-              <MdiIcon path={mdiFitToScreenOutline} size={18} />
+              <MdiIcon path={mdiArrowExpandAll} size={18} />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">Fit to Screen</TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 bg-popover/95 backdrop-blur-sm"
+              title="Open in Editor"
+              onClick={() => postMessage({ type: 'OPEN_IN_EDITOR' })}
+            >
+              <MdiIcon path={mdiOpenInNew} size={18} />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="left">Open in Editor</TooltipContent>
         </Tooltip>
       </div>
     </TooltipProvider>

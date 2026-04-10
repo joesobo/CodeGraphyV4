@@ -4,6 +4,7 @@ import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 export interface GraphViewCommandHandlers {
   undo(): Promise<string | undefined>;
   redo(): Promise<string | undefined>;
+  openInEditor(): void;
   showInformationMessage(message: string): void;
   setDepthMode?(depthMode: boolean): PromiseLike<void>;
   setDepthLimit(depthLimit: number): PromiseLike<void>;
@@ -31,6 +32,10 @@ export async function applyCommandMessage(
       );
       return true;
     }
+
+    case 'OPEN_IN_EDITOR':
+      handlers.openInEditor();
+      return true;
 
     case 'UPDATE_DEPTH_MODE':
       await handlers.setDepthMode?.(message.payload.depthMode);

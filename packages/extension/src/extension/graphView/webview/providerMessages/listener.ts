@@ -103,6 +103,7 @@ export interface GraphViewProviderMessageListenerSource {
   setFocusedFile(filePath: string | undefined): void;
   _previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   _openFile(filePath: string): Promise<void>;
+  openInEditor(): void;
   _revealInExplorer(filePath: string): Promise<void>;
   _copyToClipboard(text: string): Promise<void>;
   _deleteFiles(paths: string[]): Promise<void>;

@@ -134,6 +134,7 @@ function createSource(
     setFocusedFile: vi.fn(),
     _previewFileAtCommit: vi.fn(() => Promise.resolve()),
     _openFile: vi.fn(() => Promise.resolve()),
+    openInEditor: vi.fn(),
     _revealInExplorer: vi.fn(() => Promise.resolve()),
     _copyToClipboard: vi.fn(() => Promise.resolve()),
     _deleteFiles: vi.fn(() => Promise.resolve()),
@@ -239,7 +240,7 @@ describe('graph view provider listener bridge', () => {
     expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 
-  it('falls back to a full reanalysis when plugin-owned invalidation has no concrete files', async () => {
+  it('skips a full reanalysis when plugin-owned invalidation reports no concrete files', async () => {
     const { context, source } = await loadDefaultListenerHarness({
       invalidatePluginFiles: vi.fn(() => []),
     });
@@ -248,7 +249,7 @@ describe('graph view provider listener bridge', () => {
 
     expect(source.invalidatePluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
     expect(source.refreshChangedFiles).not.toHaveBeenCalled();
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('stores ready state updates back onto the provider source', async () => {

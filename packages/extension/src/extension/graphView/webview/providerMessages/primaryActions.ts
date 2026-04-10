@@ -16,6 +16,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'setFocusedFile'
   | 'previewFileAtCommit'
   | 'openFile'
+  | 'openInEditor'
   | 'revealInExplorer'
   | 'copyToClipboard'
   | 'deleteFiles'
@@ -61,6 +62,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     setFocusedFile: filePath => source.setFocusedFile(filePath),
     previewFileAtCommit: (sha, filePath) => source._previewFileAtCommit(sha, filePath),
     openFile: filePath => source._openFile(filePath),
+    openInEditor: () => source.openInEditor(),
     revealInExplorer: filePath => source._revealInExplorer(filePath),
     copyToClipboard: text => source._copyToClipboard(text),
     deleteFiles: paths => source._deleteFiles(paths),

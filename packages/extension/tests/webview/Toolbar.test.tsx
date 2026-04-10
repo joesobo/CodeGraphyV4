@@ -60,7 +60,7 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
 
 /**
  * Helper to get button groups from the toolbar DOM using data-testid attributes.
- * Layout: [dag-buttons] [depth-mode] [2d/3d] [node-size-buttons] | [refresh] [plugin-action] [export] [plugins] [settings] [collapse]
+ * Layout: [dag-buttons] [depth-mode] [2d/3d] [node-size-buttons] [top-collapse] | [bottom-collapse] [refresh] [plugin-action] [export] [plugins] [settings]
  */
 function getButtonGroups(container: HTMLElement) {
   const dagGroup = container.querySelector('[data-testid="dag-buttons"]');
@@ -116,36 +116,28 @@ describe('Toolbar', () => {
       expect(screen.getByTitle('Legends').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
     });
 
-    it('renders a collapse toggle at the bottom of the bottom toolbar group', () => {
+    it('renders separate collapse toggles for the top and bottom toolbar groups', () => {
       const { container } = render(<Toolbar />);
+      const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
       const bottomGroup = container.querySelector('[data-testid="toolbar-bottom-group"]') as HTMLElement | null;
-      const controls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
-      const collapseTrigger = screen.getByRole('button', { name: 'Collapse Toolbar' });
+      const topCollapseTrigger = screen.getByRole('button', { name: 'Collapse Top Toolbar' });
+      const bottomCollapseTrigger = screen.getByRole('button', { name: 'Collapse Bottom Toolbar' });
 
-      expect(collapseTrigger.closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
-      expect(collapseTrigger).toHaveAttribute('title', 'Collapse Toolbar');
-      expect(bottomGroup).toContainElement(collapseTrigger);
-      expect(controls).toHaveClass(
-        'overflow-hidden',
-        'transition-[max-height,opacity,margin,transform]',
-        'duration-200',
-        'ease-out',
-        'mb-1.5',
-        'max-h-96',
-        'opacity-100',
-        'translate-y-0',
-      );
-      expect(screen.getAllByText('Collapse Toolbar').length).toBeGreaterThanOrEqual(1);
+      expect(topCollapseTrigger.closest('[data-testid="toolbar-top-group"]')).toBe(topGroup);
+      expect(bottomCollapseTrigger.closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
+      expect(topCollapseTrigger).toHaveAttribute('title', 'Collapse Top Toolbar');
+      expect(bottomCollapseTrigger).toHaveAttribute('title', 'Collapse Bottom Toolbar');
     });
 
     it('collapses only the top toolbar controls and keeps the bottom actions visible', () => {
       const { container } = render(<Toolbar />);
-      const controls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
+      const topControls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
+      const bottomControls = container.querySelector('[data-testid="toolbar-secondary-controls"]') as HTMLElement | null;
 
-      fireEvent.click(screen.getByRole('button', { name: 'Collapse Toolbar' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Collapse Top Toolbar' }));
 
-      expect(screen.getByRole('button', { name: 'Expand Toolbar' })).toHaveAttribute('title', 'Expand Toolbar');
-      expect(controls).toHaveClass(
+      expect(screen.getByRole('button', { name: 'Expand Top Toolbar' })).toHaveAttribute('title', 'Expand Top Toolbar');
+      expect(topControls).toHaveClass(
         'overflow-hidden',
         'transition-[max-height,opacity,margin,transform]',
         'duration-200',
@@ -156,9 +148,32 @@ describe('Toolbar', () => {
         '-translate-y-1',
         'pointer-events-none',
       );
-      expect(screen.getAllByText('Expand Toolbar').length).toBeGreaterThanOrEqual(1);
+      expect(bottomControls).toHaveClass('opacity-100');
       expect(screen.getByTitle('Index Repo')).toBeTruthy();
       expect(screen.getByTitle('Settings')).toBeTruthy();
+    });
+
+    it('collapses only the bottom toolbar controls and keeps the top actions visible', () => {
+      const { container } = render(<Toolbar />);
+      const topControls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
+      const bottomControls = container.querySelector('[data-testid="toolbar-secondary-controls"]') as HTMLElement | null;
+
+      fireEvent.click(screen.getByRole('button', { name: 'Collapse Bottom Toolbar' }));
+
+      expect(screen.getByRole('button', { name: 'Expand Bottom Toolbar' })).toHaveAttribute('title', 'Expand Bottom Toolbar');
+      expect(bottomControls).toHaveClass(
+        'overflow-hidden',
+        'transition-[max-height,opacity,margin,transform]',
+        'duration-200',
+        'ease-out',
+        'mt-0',
+        'max-h-0',
+        'opacity-0',
+        'translate-y-1',
+        'pointer-events-none',
+      );
+      expect(topControls).toHaveClass('opacity-100');
+      expect(screen.getByTitle('Toggle 2D/3D Mode')).toBeTruthy();
     });
   });
 
