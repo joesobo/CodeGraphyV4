@@ -5,7 +5,9 @@ import type {
   GraphViewProviderMessageListenerSource,
 } from './listener';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
+import {
+  updateCodeGraphyConfigurationSilently,
+} from '../../../repoSettings/current';
 
 type GraphViewProviderPrimaryActions = Pick<
   GraphViewMessageListenerContext,
@@ -86,7 +88,7 @@ export function createGraphViewProviderMessagePrimaryActions(
     updatePhysicsSetting: (key, value) => source._updatePhysicsSetting(key, value),
     resetPhysicsSettings: () => source._resetPhysicsSettings(),
     persistLegends: async legends => {
-      await getCodeGraphyConfiguration().update('legend', legends);
+      await updateCodeGraphyConfigurationSilently('legend', legends);
     },
     recomputeGroups: () => source._computeMergedGroups(),
     sendGroupsUpdated: () => source._sendGroupsUpdated(),

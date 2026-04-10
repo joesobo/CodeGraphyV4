@@ -23,6 +23,7 @@ export interface ICodeGraphyConfigurationLike {
   get<T>(key: string, defaultValue: T): T;
   inspect<T>(key: string): ICodeGraphySettingsInspect<T> | undefined;
   update(key: string, value: unknown, target?: unknown): Promise<void>;
+  updateSilently?(key: string, value: unknown): Promise<void>;
 }
 
 const SETTINGS_DIR_NAME = '.codegraphy';
@@ -301,6 +302,13 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
     this._settings = deepMerge(this._defaults, nextSettings);
     this._writeSettingsToDisk();
     this._emit([key]);
+  }
+
+  async updateSilently(key: string, value: unknown): Promise<void> {
+    const nextSettings = deepClone(this._settings) as unknown as Record<string, unknown>;
+    setNestedValue(nextSettings, key, value);
+    this._settings = deepMerge(this._defaults, nextSettings);
+    this._writeSettingsToDisk();
   }
 
   onDidChange(

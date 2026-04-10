@@ -22,6 +22,7 @@ export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): 
   }
 
   if (affectsAny(
+    'codegraphy.showOrphans',
     'codegraphy.directionMode',
     'codegraphy.directionColor',
     'codegraphy.particleSpeed',

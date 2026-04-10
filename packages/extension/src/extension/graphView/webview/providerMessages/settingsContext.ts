@@ -3,7 +3,10 @@ import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
 } from './listener';
-import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
+import {
+  getCodeGraphyConfiguration,
+  updateCodeGraphyConfigurationSilently,
+} from '../../../repoSettings/current';
 
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,
@@ -22,38 +25,69 @@ type GraphViewProviderSettingsContext = Pick<
   | 'getNodeSizeMode'
 >;
 
+const SILENT_CONFIG_KEYS = new Set([
+  'bidirectionalEdges',
+  'directionColor',
+  'directionMode',
+  'disabledPlugins',
+  'edgeColors',
+  'edgeVisibility',
+  'filterPatterns',
+  'maxFiles',
+  'nodeColors',
+  'nodeVisibility',
+  'particleSize',
+  'particleSpeed',
+  'pluginOrder',
+  'showLabels',
+]);
+
 export function createGraphViewProviderMessageSettingsContext(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderSettingsContext {
   const config = getCodeGraphyConfiguration();
+  const persistConfig = async (key: string, value: unknown): Promise<void> => {
+    if (
+      SILENT_CONFIG_KEYS.has(key)
+      || key === dependencies.dagModeKey
+      || key === dependencies.nodeSizeModeKey
+    ) {
+      await updateCodeGraphyConfigurationSilently(key, value);
+      return;
+    }
+
+    await config.update(key, value);
+  };
 
   return {
     updateDagMode: async dagMode => {
       source._dagMode = dagMode;
-      await config.update(dependencies.dagModeKey, source._dagMode);
+      await persistConfig(dependencies.dagModeKey, source._dagMode);
       source._sendMessage({ type: 'DAG_MODE_UPDATED', payload: { dagMode: source._dagMode } });
     },
     updateNodeSizeMode: async nodeSizeMode => {
       source._nodeSizeMode = nodeSizeMode;
-      await config.update(dependencies.nodeSizeModeKey, source._nodeSizeMode);
+      await persistConfig(dependencies.nodeSizeModeKey, source._nodeSizeMode);
       source._sendMessage({
         type: 'NODE_SIZE_MODE_UPDATED',
         payload: { nodeSizeMode: source._nodeSizeMode },
       });
     },
     getConfig: (key, defaultValue) => config.get(key, defaultValue),
-    updateConfig: async (key, value) => {
-      await config.update(key, value);
-    },
+    updateConfig: async (key, value) => persistConfig(key, value),
     sendGraphControls: () => {
       source._sendGraphControls?.();
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
     reprocessPluginFiles: async (pluginIds) => {
-      const invalidatedFilePaths = source.invalidatePluginFiles?.(pluginIds) ?? [];
-      if (invalidatedFilePaths.length > 0) {
+      const invalidatedFilePaths = source.invalidatePluginFiles?.(pluginIds);
+      if (invalidatedFilePaths && invalidatedFilePaths.length > 0) {
         await source.refreshChangedFiles(invalidatedFilePaths);
+        return;
+      }
+
+      if (invalidatedFilePaths) {
         return;
       }
 

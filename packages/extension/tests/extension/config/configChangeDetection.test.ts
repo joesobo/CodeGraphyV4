@@ -34,6 +34,11 @@ describe('classifyConfigChange', () => {
   });
 
   describe('display category', () => {
+    it('returns display when codegraphy.showOrphans is affected', () => {
+      const event = makeEvent('codegraphy.showOrphans');
+      expect(classifyConfigChange(event)).toBe('display');
+    });
+
     it('returns display when codegraphy.directionMode is affected', () => {
       const event = makeEvent('codegraphy.directionMode');
       expect(classifyConfigChange(event)).toBe('display');

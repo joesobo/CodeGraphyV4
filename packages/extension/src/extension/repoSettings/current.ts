@@ -99,6 +99,18 @@ export function getCodeGraphyConfiguration(): ICodeGraphyConfigurationLike {
     ?? createLegacyWorkspaceConfiguration();
 }
 
+export async function updateCodeGraphyConfigurationSilently(
+  key: string,
+  value: unknown,
+): Promise<void> {
+  if (currentCodeGraphySettingsStore?.updateSilently) {
+    await currentCodeGraphySettingsStore.updateSilently(key, value);
+    return;
+  }
+
+  await createLegacyWorkspaceConfiguration().update(key, value);
+}
+
 export function onDidChangeCodeGraphyConfiguration(
   listener: (event: { affectsConfiguration(section: string): boolean }) => void,
 ): vscode.Disposable {

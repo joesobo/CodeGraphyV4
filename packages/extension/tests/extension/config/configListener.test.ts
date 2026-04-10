@@ -69,6 +69,19 @@ describe('configListener', () => {
     expect(provider.refreshSettings).toHaveBeenCalledOnce();
   });
 
+  it('rebuilds display state instead of refreshing the graph when show-orphans changes', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const listener = getConfigListener();
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.showOrphans' });
+
+    expect(provider.refreshSettings).toHaveBeenCalledOnce();
+    expect(provider.refresh).not.toHaveBeenCalled();
+  });
+
   it('calls refreshSettings for node and edge control changes', () => {
     const context = makeContext();
     const provider = makeProvider();

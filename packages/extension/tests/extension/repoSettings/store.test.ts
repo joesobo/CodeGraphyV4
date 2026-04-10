@@ -90,6 +90,23 @@ describe('extension/repoSettings/store', () => {
     });
   });
 
+  it('persists silent updates without emitting a change event', async () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+    const changes: string[][] = [];
+    store.onDidChange(event => {
+      changes.push(event.changedKeys);
+    });
+
+    await store.updateSilently('disabledPlugins', ['codegraphy.python']);
+
+    const persisted = readJson<Record<string, unknown>>(store.settingsPath);
+    expect(store.get('disabledPlugins', [])).toEqual(['codegraphy.python']);
+    expect(persisted.disabledPlugins).toEqual(['codegraphy.python']);
+    expect(changes).toEqual([]);
+  });
+
   it('reloads manual file edits and emits a change event', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
