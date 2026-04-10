@@ -127,17 +127,17 @@ describe('createGDScriptPlugin lifecycle', () => {
     expect(conns.some(conn => conn.specifier === 'Player')).toBe(false);
   });
 
-  it('analyzeFile should register class_name declarations from current file', async () => {
+  it('analyzeFile should not mutate the resolver with class_name declarations from the current file', async () => {
     const plugin = createGodotPlugin() as IGDScriptAnalyzeFilePlugin;
     await plugin.initialize('/workspace');
 
     const content = 'class_name MyClass\nextends Node\n';
     await plugin.analyzeFile('/workspace/scripts/my_class.gd', content, '/workspace');
 
-    // Now MyClass should be resolvable from another file
+    // Current-file declarations should only become globally available through onPreAnalyze.
     const otherContent = 'var x: MyClass';
     const analysis = await plugin.analyzeFile('/workspace/scripts/other.gd', otherContent, '/workspace');
-    expect(analysis.relations.some(relation => relation.specifier === 'MyClass')).toBe(true);
+    expect(analysis.relations.some(relation => relation.specifier === 'MyClass')).toBe(false);
   });
 
   it('analyzeFile should combine results from all sources', async () => {

@@ -2,8 +2,7 @@
  * @fileoverview Integration tests for C# plugin.
  * Simulates how the pipeline calls the plugin to verify edge detection.
  * 
- * The key difference from Python: C# uses namespaces that need to be
- * registered across files before resolution can work.
+ * The pipeline prepass registers namespaces once, then analyzeFile can stay pure.
  */
 
 import { describe, it, expect, beforeAll } from 'vitest';
@@ -66,16 +65,20 @@ describe('C# Plugin Integration', () => {
       'src/Utils/Formatter.cs',
     ];
 
-    // Pass 1: register namespaces by analyzing all files once.
-    for (const relPath of csFiles) {
-      const absPath = path.join(workspaceRoot, relPath);
-      if (!fs.existsSync(absPath)) continue;
-      
-      const content = fs.readFileSync(absPath, 'utf-8');
-      await csharpPlugin.analyzeFile(absPath, content, workspaceRoot);
-    }
+    await csharpPlugin.onPreAnalyze?.(
+      csFiles
+        .filter((relPath) => fs.existsSync(path.join(workspaceRoot, relPath)))
+        .map((relPath) => {
+          const absPath = path.join(workspaceRoot, relPath);
+          return {
+            absolutePath: absPath,
+            relativePath: relPath,
+            content: fs.readFileSync(absPath, 'utf-8'),
+          };
+        }),
+      workspaceRoot,
+    );
 
-    // Pass 2: collect file-analysis relations with the populated namespace map.
     const allConnections: Array<{ from: string; to: string | null; specifier: string }> = [];
 
     for (const relPath of csFiles) {
@@ -106,7 +109,7 @@ describe('C# Plugin Integration', () => {
 
     console.log('Valid C# edges:', validEdges);
 
-    // We expect at least these edges after namespace registration:
+    // We expect at least these edges after namespace pre-analysis:
     // - Program.cs -> Services/ApiService.cs (via MyApp.Services)
     // - Program.cs -> Utils/Helpers.cs (via MyApp.Utils) or Utils/Formatter.cs
     // - Services/ApiService.cs -> Utils/Helpers.cs (via MyApp.Utils)
@@ -145,5 +148,26 @@ describe('C# Plugin Integration', () => {
 
     // This is the key test - convention resolution should work
     expect(resolved.length).toBeGreaterThan(0);
+  });
+
+  it('returns the same result when analyzeFile is called repeatedly after pre-analysis', async () => {
+    const programCs = path.join(workspaceRoot, 'src', 'Program.cs');
+    const content = fs.readFileSync(programCs, 'utf-8');
+
+    await csharpPlugin.onPreAnalyze?.(
+      [
+        {
+          absolutePath: programCs,
+          relativePath: 'src/Program.cs',
+          content,
+        },
+      ],
+      workspaceRoot,
+    );
+
+    const first = await csharpPlugin.analyzeFile(programCs, content, workspaceRoot);
+    const second = await csharpPlugin.analyzeFile(programCs, content, workspaceRoot);
+
+    expect(second).toEqual(first);
   });
 });

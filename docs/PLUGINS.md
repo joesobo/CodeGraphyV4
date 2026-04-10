@@ -72,4 +72,10 @@ The core extension owns discovery, repo-local settings, caching, graph projectio
 
 Built-in plugins follow the same rules as external plugins and appear in the **Plugins** popup. Plugin processing order is bottom-to-top, so plugins nearer the top win merge conflicts.
 
+In practice, "win merge conflicts" means:
+
+- `nodes`, `symbols`, `nodeTypes`, and `edgeTypes` override by matching `id`
+- imports/reexports/loads/inherits override when they describe the same source relation
+- distinct call/reference targets stay separate so symbol-aware routing is preserved
+
 Markdown-style wikilink scanning is implemented as a wildcard plugin so it can inspect any file, not just `.md` files.

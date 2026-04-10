@@ -51,25 +51,33 @@ export interface ICSharpAnalyzeFilePlugin extends IPlugin {
 
 export function createCSharpPlugin(): ICSharpAnalyzeFilePlugin {
   let resolver: PathResolver | null = null;
+  let resolverWorkspaceRoot: string | null = null;
+
+  const ensureResolver = async (workspaceRoot: string): Promise<PathResolver> => {
+    if (!resolver || resolverWorkspaceRoot !== workspaceRoot) {
+      const config = await loadCSharpConfig(workspaceRoot);
+      resolver = new PathResolver(workspaceRoot, config);
+      resolverWorkspaceRoot = workspaceRoot;
+    }
+
+    return resolver;
+  };
 
   const analyzeFile = async (
     filePath: string,
     content: string,
     workspaceRoot: string,
   ): Promise<CSharpFileAnalysisResult> => {
-    if (!resolver) {
-      const config = await loadCSharpConfig(workspaceRoot);
-      resolver = new PathResolver(workspaceRoot, config);
-    }
+    const activeResolver = await ensureResolver(workspaceRoot);
 
     const { usings, namespaces } = parseContent(content);
-
-    for (const ns of namespaces) {
-      resolver.registerNamespace(ns, filePath);
-    }
-
     const usedTypes = extractUsedTypes(content);
-    const ctx: CSharpRuleContext = { resolver, usings, namespaces, usedTypes };
+    const ctx: CSharpRuleContext = {
+      resolver: activeResolver,
+      usings,
+      namespaces,
+      usedTypes,
+    };
     const relations = [
       ...detectUsingDirective(content, filePath, ctx),
       ...detectTypeUsage(content, filePath, ctx),
@@ -92,15 +100,31 @@ export function createCSharpPlugin(): ICSharpAnalyzeFilePlugin {
     fileColors: manifest.fileColors,
 
     async initialize(workspaceRoot: string): Promise<void> {
+      await ensureResolver(workspaceRoot);
+      console.log('[CodeGraphy] C# plugin initialized');
+    },
+
+    async onPreAnalyze(
+      files: Array<{ absolutePath: string; relativePath: string; content: string }>,
+      workspaceRoot: string,
+    ): Promise<void> {
       const config = await loadCSharpConfig(workspaceRoot);
       resolver = new PathResolver(workspaceRoot, config);
-      console.log('[CodeGraphy] C# plugin initialized');
+      resolverWorkspaceRoot = workspaceRoot;
+
+      for (const { absolutePath, content } of files) {
+        const { namespaces } = parseContent(content);
+        for (const namespace of namespaces) {
+          resolver.registerNamespace(namespace, absolutePath);
+        }
+      }
     },
 
     analyzeFile,
 
     onUnload(): void {
       resolver = null;
+      resolverWorkspaceRoot = null;
     },
   };
 }

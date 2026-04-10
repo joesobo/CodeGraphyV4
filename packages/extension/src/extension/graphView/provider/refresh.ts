@@ -6,6 +6,7 @@ import { shouldRebuildGraphView } from '../rebuild';
 import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 
 interface GraphViewProviderRefreshAnalyzerLike {
+  hasIndex(): boolean;
   rebuildGraph(
     disabledPlugins: Set<string>,
     showOrphans: boolean,
@@ -158,7 +159,13 @@ export function createGraphViewProviderRefreshMethods(
   const refreshChangedFiles = async (filePaths: readonly string[]): Promise<void> => {
     source._loadDisabledRulesAndPlugins();
     source._loadGroupsAndFilterPatterns();
-    if (source._incrementalAnalyzeAndSendData) {
+    if (!source._analyzer?.hasIndex()) {
+      if (source._loadAndSendData) {
+        await source._loadAndSendData();
+      } else {
+        await source._analyzeAndSendData();
+      }
+    } else if (source._incrementalAnalyzeAndSendData) {
       await source._incrementalAnalyzeAndSendData(filePaths);
     } else {
       await source._analyzeAndSendData();

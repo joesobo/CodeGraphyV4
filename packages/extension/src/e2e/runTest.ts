@@ -8,6 +8,7 @@
  */
 import * as path from 'path';
 import * as fs from 'fs';
+import * as os from 'os';
 import { runTests } from '@vscode/test-electron';
 import { e2eScenarios } from './scenarios';
 
@@ -29,6 +30,11 @@ async function main(): Promise<void> {
   const extensionTestsPath = path.resolve(__dirname, './suite/run');
 
   for (const scenario of e2eScenarios) {
+    const vscodeProfilePath = fs.mkdtempSync(
+      path.join(os.tmpdir(), `codegraphy-e2e-${scenario.name.replace(/[^a-z0-9-]/gi, '-')}-`),
+    );
+    const userDataPath = path.join(vscodeProfilePath, 'u');
+    const extensionsPath = path.join(vscodeProfilePath, 'e');
     const extensionDevelopmentPath = [
       repoRoot,
       ...scenario.pluginDevelopmentRelativePaths.map((relativePath) =>
@@ -47,6 +53,10 @@ async function main(): Promise<void> {
         },
         launchArgs: [
           workspacePath,
+          '--user-data-dir',
+          userDataPath,
+          '--extensions-dir',
+          extensionsPath,
           // Disable other extensions so they don't interfere
           '--disable-extensions',
           // Don't show the welcome tab
@@ -56,6 +66,7 @@ async function main(): Promise<void> {
       });
     } finally {
       cleanupScenarioArtifacts(workspacePath, hadGitignore);
+      fs.rmSync(vscodeProfilePath, { recursive: true, force: true });
     }
   }
 }

@@ -306,5 +306,64 @@ describe('plugin routing', () => {
         specifier: './shared',
       }]);
     });
+
+    it('keeps distinct same-kind relations when they point at different targets', async () => {
+      const plugin = makePlugin('plugin', ['.ts']);
+      plugin.analyzeFile = vi.fn().mockResolvedValue({
+        filePath: 'src/app.ts',
+        relations: [
+          {
+            kind: 'call',
+            sourceId: 'shared:call',
+            fromFilePath: 'src/app.ts',
+            fromSymbolId: 'src/app.ts:function:run',
+            toFilePath: 'src/lib-a.ts',
+            toSymbolId: 'src/lib-a.ts:function:boot',
+            specifier: './lib',
+          },
+          {
+            kind: 'call',
+            sourceId: 'shared:call',
+            fromFilePath: 'src/app.ts',
+            fromSymbolId: 'src/app.ts:function:run',
+            toFilePath: 'src/lib-b.ts',
+            toSymbolId: 'src/lib-b.ts:function:boot',
+            specifier: './lib',
+          },
+        ],
+      });
+      const { pluginsMap, extensionMap } = buildMaps([plugin]);
+
+      const result = await analyzeFileResult(
+        'src/app.ts',
+        'content',
+        '/ws',
+        pluginsMap,
+        extensionMap,
+      );
+
+      expect(result?.relations).toEqual([
+        {
+          kind: 'call',
+          pluginId: 'plugin',
+          sourceId: 'shared:call',
+          fromFilePath: 'src/app.ts',
+          fromSymbolId: 'src/app.ts:function:run',
+          toFilePath: 'src/lib-a.ts',
+          toSymbolId: 'src/lib-a.ts:function:boot',
+          specifier: './lib',
+        },
+        {
+          kind: 'call',
+          pluginId: 'plugin',
+          sourceId: 'shared:call',
+          fromFilePath: 'src/app.ts',
+          fromSymbolId: 'src/app.ts:function:run',
+          toFilePath: 'src/lib-b.ts',
+          toSymbolId: 'src/lib-b.ts:function:boot',
+          specifier: './lib',
+        },
+      ]);
+    });
   });
 });

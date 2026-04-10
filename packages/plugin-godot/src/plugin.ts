@@ -62,12 +62,6 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
     const relativeFilePath = normalizePath(path.relative(workspaceRoot, filePath));
     const ctx = { resolver, workspaceRoot, relativeFilePath };
 
-    const lines = content.split('\n');
-    for (let i = 0; i < lines.length; i++) {
-      const ref = detectClassNameDeclaration(lines[i], i + 1);
-      if (ref) resolver.registerClassName(ref.resPath, relativeFilePath);
-    }
-
     const relations = [
       ...detectPreload(content, filePath, ctx),
       ...detectLoad(content, filePath, ctx),
