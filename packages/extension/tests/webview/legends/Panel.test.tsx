@@ -27,6 +27,7 @@ describe('LegendsPanel', () => {
     expect(screen.getByLabelText('Imports color')).toHaveValue('#444444');
     expect(screen.queryByText('Rules')).not.toBeInTheDocument();
     expect(screen.queryByText('#333333')).not.toBeInTheDocument();
+    expect(screen.queryByText('Top overrides bottom')).not.toBeInTheDocument();
   });
 
   it('debounces color updates from the node and edge sections', () => {
@@ -181,6 +182,20 @@ describe('LegendsPanel', () => {
     const edgesSection = screen.getByText('Edges').closest('section');
     expect(edgesSection).not.toBeNull();
     expect(within(edgesSection as HTMLElement).getByDisplayValue('src/**')).toBeInTheDocument();
+  });
+
+  it('does not render the old left-border bar styling on custom rows', () => {
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      edgeColors: {},
+      legends: [{ id: 'legend:node', pattern: '*/types.ts', color: '#ffffff', target: 'node' }],
+    });
+
+    const { container } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(container.querySelector('[class*="border-l"]')).toBeNull();
   });
 
   it('keeps custom node rules removable and toggleable inside the nodes section', () => {

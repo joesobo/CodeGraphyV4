@@ -145,7 +145,7 @@ function LegendRuleRow({
 }): React.ReactElement {
   return (
     <div className="flex items-center gap-2 px-2 py-1.5 transition-colors hover:bg-accent/20">
-      <div className="min-w-0 flex-1 border-l border-border/70 pl-3">
+      <div className="min-w-0 flex-1 pl-3">
         <Input
           value={rule.pattern}
           onChange={(event) => {
@@ -191,7 +191,7 @@ function LegendRuleCreateRow({
 
   return (
     <div className="flex items-center gap-2 px-2 py-1.5 transition-colors hover:bg-accent/20">
-      <div className="min-w-0 flex-1 border-l border-dashed border-border/70 pl-3">
+      <div className="min-w-0 flex-1 pl-3">
         <Input
           value={pattern}
           onChange={(event) => setPattern(event.target.value)}
@@ -361,9 +361,6 @@ export default function LegendsPanel({
 
       <ScrollArea className="flex-1 min-h-0">
         <div className="space-y-4 px-3 pb-3 pt-2">
-          <div className="text-[10px] text-muted-foreground text-right">
-            Top overrides bottom
-          </div>
           <LegendSection
             title="Nodes"
             builtInEntries={nodeEntries}
