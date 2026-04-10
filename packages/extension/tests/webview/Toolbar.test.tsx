@@ -218,6 +218,7 @@ describe('Toolbar', () => {
       const button = screen.getByTitle('Disable Depth Mode');
       expect(button).toHaveAttribute('aria-pressed', 'true');
       expect(button.className).not.toContain('hover:bg-accent');
+      expect(button.className).toContain('bg-primary');
     });
   });
 

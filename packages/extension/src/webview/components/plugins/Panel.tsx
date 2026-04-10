@@ -70,7 +70,7 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
 
       {/* Scrollable plugin list */}
       <ScrollArea className="flex-1 min-h-0">
-        <div className="px-3 pb-3">
+        <div className="px-3 pb-3 pt-2">
           {plugins.length === 0 ? (
             <p className="text-xs text-muted-foreground py-3 text-center">No plugins registered.</p>
           ) : (

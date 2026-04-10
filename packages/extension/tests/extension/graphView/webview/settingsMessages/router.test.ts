@@ -36,6 +36,7 @@ function createHandlers(
       config.set(key, value);
       return Promise.resolve();
     }),
+    smartRebuild: vi.fn(),
     getPluginFilterPatterns: vi.fn(() => []),
     sendGraphControls: vi.fn(),
     reprocessPluginFiles: vi.fn(() => Promise.resolve()),
@@ -219,7 +220,7 @@ describe('graph view settings router', () => {
     expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
-  it('re-enables plugins and reprocesses the plugin-owned files', async () => {
+  it('re-enables plugins and rebuilds the plugin-owned edges from cache', async () => {
     const state = createState({
       disabledPlugins: new Set(['codegraphy.python']),
     });
@@ -236,7 +237,8 @@ describe('graph view settings router', () => {
 
     expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
-    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
   it('returns false for unrelated messages', async () => {

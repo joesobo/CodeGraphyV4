@@ -1,9 +1,7 @@
 import React from 'react';
 import {
-  mdiArrowExpandAll,
   mdiMagnifyMinusOutline,
   mdiMagnifyPlusOutline,
-  mdiOpenInNew,
 } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
@@ -12,6 +10,31 @@ import { postMessage } from '../../vscodeApi';
 
 function postGraphWindowMessage(type: 'ZOOM_IN' | 'ZOOM_OUT' | 'FIT_VIEW'): void {
   window.postMessage({ type }, '*');
+}
+
+function FitToScreenIcon(): React.ReactElement {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8 4H5a1 1 0 0 0-1 1v3" />
+      <path d="M16 4h3a1 1 0 0 1 1 1v3" />
+      <path d="M20 16v3a1 1 0 0 1-1 1h-3" />
+      <path d="M4 16v3a1 1 0 0 0 1 1h3" />
+      <circle cx="12" cy="12" r="2.25" />
+    </svg>
+  );
+}
+
+function OpenInEditorIcon(): React.ReactElement {
+  return (
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M8 5H5v3" />
+      <path d="M16 19h3v-3" />
+      <path d="M5 8l6-6" />
+      <path d="M19 16l-6 6" />
+      <path d="M13 5h6v6" />
+      <path d="M11 19H5v-6" />
+    </svg>
+  );
 }
 
 export function GraphCornerControls(): React.ReactElement {
@@ -57,7 +80,7 @@ export function GraphCornerControls(): React.ReactElement {
               title="Fit to Screen"
               onClick={() => postGraphWindowMessage('FIT_VIEW')}
             >
-              <MdiIcon path={mdiArrowExpandAll} size={18} />
+              <FitToScreenIcon />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">Fit to Screen</TooltipContent>
@@ -72,7 +95,7 @@ export function GraphCornerControls(): React.ReactElement {
               title="Open in Editor"
               onClick={() => postMessage({ type: 'OPEN_IN_EDITOR' })}
             >
-              <MdiIcon path={mdiOpenInNew} size={18} />
+              <OpenInEditorIcon />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="left">Open in Editor</TooltipContent>

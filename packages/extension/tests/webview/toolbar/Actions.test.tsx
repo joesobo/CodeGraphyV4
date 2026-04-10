@@ -183,6 +183,24 @@ describe('ToolbarActions', () => {
     expect(graphStore.getState().activePanel).toBe('plugins');
   });
 
+  it('closes the nodes panel when the nodes button is clicked again', () => {
+    graphStore.setState({ activePanel: 'nodes' });
+
+    renderWithProviders();
+    clickAction('Nodes');
+
+    expect(graphStore.getState().activePanel).toBe('none');
+  });
+
+  it('closes the settings panel when the settings button is clicked again', () => {
+    graphStore.setState({ activePanel: 'settings' });
+
+    renderWithProviders();
+    clickAction('Settings');
+
+    expect(graphStore.getState().activePanel).toBe('none');
+  });
+
   it('renders the settings button with title', () => {
     renderWithProviders();
     expect(screen.getByTitle('Settings')).toBeInTheDocument();

@@ -85,7 +85,7 @@ export default function App(): React.ReactElement {
 
   const displayGraphData = coloredData || graphData;
   const hasGraphNodes = graphData.nodes.length > 0;
-  const graphStatsLabel = `${formatGraphStat(displayGraphData.nodes.length, 'node', 'nodes')} - ${formatGraphStat(displayGraphData.edges.length, 'edge', 'edges')}`;
+  const graphStatsLabel = `${formatGraphStat(displayGraphData.nodes.length, 'node', 'nodes')} • ${formatGraphStat(displayGraphData.edges.length, 'edge', 'edges')}`;
 
   return (
     <div className="relative w-full h-screen flex flex-col">

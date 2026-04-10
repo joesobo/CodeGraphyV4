@@ -28,4 +28,16 @@ describe('extension/repoSettings/signatures', () => {
       createCodeGraphySettingsSignature(reordered),
     );
   });
+
+  it('does not invalidate the stored index when only disabled plugins change', () => {
+    const enabledState = createDefaultCodeGraphyRepoSettings();
+    const disabledState = createDefaultCodeGraphyRepoSettings();
+
+    enabledState.disabledPlugins = [];
+    disabledState.disabledPlugins = ['codegraphy.python'];
+
+    expect(createCodeGraphySettingsSignature(enabledState)).toBe(
+      createCodeGraphySettingsSignature(disabledState),
+    );
+  });
 });

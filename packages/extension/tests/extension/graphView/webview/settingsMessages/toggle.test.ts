@@ -23,6 +23,7 @@ function createHandlers(
     const handlers = {
       getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
       updateConfig: vi.fn(() => Promise.resolve()),
+      smartRebuild: vi.fn(),
       getPluginFilterPatterns: vi.fn(() => []),
       sendGraphControls: vi.fn(),
       reprocessPluginFiles: vi.fn(() => Promise.resolve()),
@@ -37,7 +38,7 @@ function createHandlers(
 }
 
 describe('graph view settings toggle message', () => {
-  it('re-enables plugins and persists the disabled-plugin list without reprocessing', async () => {
+  it('re-enables plugins, persists the disabled-plugin list, and rebuilds cached plugin edges', async () => {
     const state = createState({
       disabledPlugins: new Set(['codegraphy.python']),
     });
@@ -56,10 +57,11 @@ describe('graph view settings toggle message', () => {
     expect([...state.disabledPlugins]).toEqual([]);
     expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
-  it('disables plugins and persists the expanded disabled-plugin set without reprocessing', async () => {
+  it('disables plugins, persists the expanded disabled-plugin set, and rebuilds cached plugin edges', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -78,6 +80,7 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', [
       'codegraphy.python',
     ]);
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
@@ -121,7 +124,7 @@ describe('graph view settings toggle message', () => {
     expect(handled).toBe(false);
   });
 
-  it('returns immediately because toggles do not reprocess plugin files', async () => {
+  it('returns immediately because toggles rebuild cached plugin edges instead of reprocessing files', async () => {
     const state = createState();
     const handlers = createHandlers({
       reprocessPluginFiles: vi.fn(() => new Promise<void>(() => undefined)),
@@ -136,6 +139,7 @@ describe('graph view settings toggle message', () => {
     );
 
     expect(handled).toBe(true);
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
     expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 });

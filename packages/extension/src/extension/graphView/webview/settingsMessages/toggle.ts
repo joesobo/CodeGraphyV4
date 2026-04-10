@@ -17,6 +17,7 @@ export async function applySettingsToggleMessage(
         state.disabledPlugins.add(message.payload.pluginId);
       }
       await handlers.updateConfig('disabledPlugins', [...state.disabledPlugins]);
+      handlers.smartRebuild(message.payload.pluginId);
       return true;
 
     default:

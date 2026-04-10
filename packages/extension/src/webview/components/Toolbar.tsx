@@ -102,7 +102,7 @@ export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElemen
               className={cn(
                 'overflow-hidden transition-[max-height,opacity,margin,transform] duration-200 ease-out',
                 isBottomExpanded
-                  ? 'mt-1.5 max-h-96 opacity-100 translate-y-0'
+                  ? 'mt-0 max-h-96 opacity-100 translate-y-0'
                   : 'mt-0 max-h-0 opacity-0 translate-y-1 pointer-events-none',
               )}
             >

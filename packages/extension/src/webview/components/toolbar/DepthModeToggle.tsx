@@ -2,6 +2,7 @@ import React from 'react';
 import { mdiBullseye } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
+import { cn } from '../ui/cn';
 import { Tooltip, TooltipTrigger, TooltipContent } from '../ui/overlay/tooltip';
 import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
@@ -28,7 +29,10 @@ export function DepthModeToggle(): React.ReactElement {
           variant={depthModeActive ? 'default' : 'outline'}
           size="icon"
           aria-pressed={depthModeActive}
-          className="h-7 w-7 bg-transparent"
+          className={cn(
+            'h-7 w-7',
+            depthModeActive ? 'bg-primary text-primary-foreground hover:bg-primary/90' : 'bg-transparent',
+          )}
           onClick={handleToggleDepthMode}
           title={title}
           disabled={!graphHasIndex}
