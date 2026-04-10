@@ -42,6 +42,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'updatePhysicsSetting'
   | 'resetPhysicsSettings'
   | 'persistLegends'
+  | 'persistDefaultLegendVisibility'
   | 'recomputeGroups'
   | 'sendGroupsUpdated'
   | 'showOpenDialog'
@@ -91,6 +92,16 @@ export function createGraphViewProviderMessagePrimaryActions(
     resetPhysicsSettings: () => source._resetPhysicsSettings(),
     persistLegends: async legends => {
       await updateCodeGraphyConfigurationSilently('legend', legends);
+    },
+    persistDefaultLegendVisibility: async (legendId, visible) => {
+      const currentVisibility =
+        dependencies.workspace
+          .getConfiguration('codegraphy')
+          .get<Record<string, boolean>>('legendVisibility', {}) ?? {};
+      await updateCodeGraphyConfigurationSilently('legendVisibility', {
+        ...currentVisibility,
+        [legendId]: visible,
+      });
     },
     recomputeGroups: () => source._computeMergedGroups(),
     sendGroupsUpdated: () => source._sendGroupsUpdated(),

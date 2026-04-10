@@ -20,6 +20,9 @@ function createHandlers(
 ): GraphViewLegendMessageHandlers {
   return {
     persistLegends: vi.fn(() => Promise.resolve()),
+    persistDefaultLegendVisibility: vi.fn(() => Promise.resolve()),
+    recomputeGroups: vi.fn(),
+    sendGroupsUpdated: vi.fn(),
     ...overrides,
   };
 }
@@ -70,5 +73,31 @@ describe('graph view legend message', () => {
         handlers,
       ),
     ).resolves.toBe(false);
+  });
+
+  it('persists plugin-default visibility overrides and resends groups', async () => {
+    const state = createState({
+      userLegends: [{ id: 'user-group', pattern: 'src/**', color: '#112233' }],
+    });
+    const handlers = createHandlers();
+
+    await expect(
+      applyLegendMessage(
+        {
+          type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',
+          payload: { legendId: 'plugin:codegraphy.typescript:*.ts', visible: false },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.persistDefaultLegendVisibility).toHaveBeenCalledWith(
+      'plugin:codegraphy.typescript:*.ts',
+      false,
+    );
+    expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
+    expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
+    expect(state.userLegends).toEqual([{ id: 'user-group', pattern: 'src/**', color: '#112233' }]);
   });
 });

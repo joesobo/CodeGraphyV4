@@ -132,6 +132,29 @@ describe('LegendsPanel', () => {
     expect(screen.getByDisplayValue('src/**')).toBeInTheDocument();
   });
 
+  it('shows plugin default legend rules without exposing delete controls', () => {
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphEdgeTypes: [],
+      nodeColors: { file: '#333333' },
+      edgeColors: {},
+      legends: [
+        {
+          id: 'plugin:codegraphy.typescript:*.ts',
+          pattern: '*.ts',
+          color: '#3178c6',
+          isPluginDefault: true,
+          pluginName: 'TypeScript/JavaScript',
+        },
+      ],
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(screen.getByText('*.ts')).toBeInTheDocument();
+    expect(screen.queryByTitle('Delete legend rule')).not.toBeInTheDocument();
+  });
+
   it('creates a new legend rule through the node and edge sections', () => {
     sentMessages.length = 0;
     graphStore.setState({
@@ -256,6 +279,37 @@ describe('LegendsPanel', () => {
     expect(sentMessages.at(-1)).toEqual({
       type: 'UPDATE_LEGENDS',
       payload: { legends: [] },
+    });
+  });
+
+  it('toggles plugin default legend visibility through a dedicated message', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      edgeColors: {},
+      legends: [
+        {
+          id: 'plugin:codegraphy.typescript:*.ts',
+          pattern: '*.ts',
+          color: '#3178c6',
+          isPluginDefault: true,
+          pluginName: 'TypeScript/JavaScript',
+        },
+      ],
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('switch'));
+
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',
+      payload: {
+        legendId: 'plugin:codegraphy.typescript:*.ts',
+        visible: false,
+      },
     });
   });
 

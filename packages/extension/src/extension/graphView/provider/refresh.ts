@@ -1,8 +1,6 @@
 import type { IGraphData } from '../../../shared/graph/types';
-import type { IPluginStatus } from '../../../shared/plugins/status';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
-import { shouldRebuildGraphView } from '../rebuild';
 import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 
 interface GraphViewProviderRefreshAnalyzerLike {
@@ -11,7 +9,6 @@ interface GraphViewProviderRefreshAnalyzerLike {
     disabledPlugins: Set<string>,
     showOrphans: boolean,
   ): IGraphData;
-  getPluginStatuses(disabledPlugins: Set<string>): readonly IPluginStatus[];
   registry: {
     notifyGraphRebuild(graphData: IGraphData): void;
   };
@@ -31,6 +28,7 @@ export interface GraphViewProviderRefreshMethodsSource {
   _incrementalAnalyzeAndSendData?(filePaths: readonly string[]): Promise<void>;
   _sendAllSettings(): void;
   _sendFavorites(): void;
+  _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;
   _sendGraphControls?(): void;
   _sendSettings(): void;
@@ -61,7 +59,6 @@ export interface GraphViewProviderRefreshMethodDependencies {
   getShowOrphans(): boolean;
   rebuildGraphData: typeof rebuildGraphViewData;
   smartRebuildGraphData: typeof smartRebuildGraphView;
-  shouldRebuild(statuses: readonly IPluginStatus[], id: string): boolean;
 }
 
 const DEFAULT_DEPENDENCIES: GraphViewProviderRefreshMethodDependencies = {
@@ -69,7 +66,6 @@ const DEFAULT_DEPENDENCIES: GraphViewProviderRefreshMethodDependencies = {
     getCodeGraphyConfiguration().get<boolean>('showOrphans', true),
   rebuildGraphData: rebuildGraphViewData,
   smartRebuildGraphData: smartRebuildGraphView,
-  shouldRebuild: shouldRebuildGraphView,
 };
 
 export function createGraphViewProviderRefreshMethods(
@@ -79,9 +75,12 @@ export function createGraphViewProviderRefreshMethods(
   const _rebuildAndSend = (): void => {
     dependencies.rebuildGraphData(source, {
       getShowOrphans: () => dependencies.getShowOrphans(),
+      computeMergedGroups: () => source._computeMergedGroups(),
+      sendGroupsUpdated: () => source._sendGroupsUpdated(),
       updateViewContext: () => source._updateViewContext(),
       applyViewTransform: () => source._applyViewTransform(),
       sendDepthState: () => source._sendDepthState(),
+      sendGraphControls: () => source._sendGraphControls?.(),
       sendPluginStatuses: () => source._sendPluginStatuses(),
       sendDecorations: () => source._sendDecorations(),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
@@ -100,10 +99,7 @@ export function createGraphViewProviderRefreshMethods(
 
   const _smartRebuild = (id: string): void => {
     dependencies.smartRebuildGraphData(source, id, {
-      shouldRebuild: (statuses, nextId) =>
-        dependencies.shouldRebuild(statuses, nextId),
       rebuildAndSend: () => runRebuildAndSend(),
-      sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
     });
   };
 

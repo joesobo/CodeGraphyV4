@@ -88,10 +88,14 @@ describe('graph view provider listener primary actions', () => {
     const openDialogOptions = { canSelectFiles: true };
 
     await actions.persistLegends(groups as never);
+    await actions.persistDefaultLegendVisibility('plugin:codegraphy.typescript:*.ts', false);
     actions.showInformationMessage('saved');
     await actions.showOpenDialog(openDialogOptions as never);
 
     expect(updateSilently).toHaveBeenCalledWith('legend', groups);
+    expect(updateSilently).toHaveBeenCalledWith('legendVisibility', {
+      'plugin:codegraphy.typescript:*.ts': false,
+    });
     expect(dependencies.window.showInformationMessage).toHaveBeenCalledWith('saved');
     expect(dependencies.window.showOpenDialog).toHaveBeenCalledWith(openDialogOptions);
   });
@@ -184,7 +188,9 @@ function createDependencies() {
   return {
     workspace: {
       workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
-      getConfiguration: vi.fn(),
+      getConfiguration: vi.fn(() => ({
+        get: vi.fn((_key: string, defaultValue: unknown) => defaultValue),
+      })),
     },
     window: {
       showInformationMessage: vi.fn(),
