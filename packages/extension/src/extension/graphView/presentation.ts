@@ -1,3 +1,3 @@
-export type { IGraphViewTransformResult, IWorkspaceFolderLike } from './presentation/types';
-export { applyGraphViewTransform } from './presentation/viewTransform';
+export type { IGraphViewTransformResult, IWorkspaceFolderLike } from './presentation/contracts';
+export { applyGraphViewTransform } from './presentation/transform';
 export { getRelativeWorkspacePath } from './presentation/workspacePath';

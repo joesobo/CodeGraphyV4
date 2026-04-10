@@ -2,7 +2,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import type { GraphViewProvider } from '../graphViewProvider';
 import { cancelPendingFocusedFileClear, scheduleFocusedFileClear } from './focusedFileClear';
-import { hasVisibleWorkspaceFileEditor } from './visibleWorkspaceEditor';
+import { hasVisibleWorkspaceFileEditor } from './visibleEditor';
 
 export async function syncActiveEditor(
   provider: GraphViewProvider,

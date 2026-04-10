@@ -15,4 +15,4 @@ export type {
   TooltipContext,
   TooltipContent,
 } from './renderers';
-export type { BadgeOpts, RingOpts, LabelOpts } from './types';
+export type { BadgeOpts, RingOpts, LabelOpts } from './drawOptions';

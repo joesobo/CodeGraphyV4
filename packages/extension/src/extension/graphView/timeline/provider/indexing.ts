@@ -2,12 +2,12 @@ import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { ExtensionContext } from 'vscode';
 import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/defaults';
-import { applyTimelineCommitGraph, buildTimelineCommitGraphData } from './commitGraph';
+import { applyTimelineCommitGraph, buildTimelineCommitGraphData } from './commitData';
 import type {
   GraphViewProviderTimelineAnalyzer,
   GraphViewProviderTimelineGitAnalyzer,
   GraphViewProviderTimelineSource,
-} from './types';
+} from './contracts';
 export { indexGraphViewProviderRepository } from './repository';
 export { jumpGraphViewProviderToCommit } from './jump';
 

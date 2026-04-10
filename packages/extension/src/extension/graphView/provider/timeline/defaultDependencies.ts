@@ -16,7 +16,7 @@ import {
 } from '../../timeline/open';
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
-import type { GraphViewProviderTimelineMethodDependencies } from './types';
+import type { GraphViewProviderTimelineMethodDependencies } from './contracts';
 
 export function createDefaultGraphViewProviderTimelineMethodDependencies(): GraphViewProviderTimelineMethodDependencies {
   return {

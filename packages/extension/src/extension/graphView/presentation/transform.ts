@@ -2,7 +2,7 @@ import type { IGraphData } from '../../../shared/graph/types';
 import type { IViewContext } from '../../../core/views/contracts';
 import type { ViewRegistry } from '../../../core/views/registry';
 import { filterSyntheticPackageNodes } from './syntheticPackageNodes';
-import type { IGraphViewTransformResult } from './types';
+import type { IGraphViewTransformResult } from './contracts';
 
 export function applyGraphViewTransform(
   viewRegistry: Pick<ViewRegistry, 'get' | 'isViewAvailable' | 'getDefaultViewId'>,

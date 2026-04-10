@@ -6,7 +6,7 @@
 
 import * as ts from 'typescript';
 import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
-import type { TsRuleContext } from '../types';
+import type { TsRuleContext } from '../ruleContext';
 import { getScriptKind } from '../getScriptKind';
 
 export const SOURCE_ID = 'commonjs-require';

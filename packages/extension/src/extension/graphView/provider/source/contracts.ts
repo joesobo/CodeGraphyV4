@@ -48,7 +48,7 @@ import type {
 import type {
   GraphViewProviderTimelineMethods,
   GraphViewProviderTimelineMethodsSource,
-} from '../timeline/types';
+} from '../timeline/contracts';
 import type {
   GraphViewProviderViewContextMethods,
   GraphViewProviderViewContextMethodsSource,

@@ -1,4 +1,4 @@
-import type { GraphViewProviderTimelineMethodDependencies, GraphViewProviderTimelineMethodsSource } from './types';
+import type { GraphViewProviderTimelineMethodDependencies, GraphViewProviderTimelineMethodsSource } from './contracts';
 
 export async function invalidateGraphViewProviderTimelineCache(
   source: GraphViewProviderTimelineMethodsSource,

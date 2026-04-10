@@ -144,8 +144,8 @@
     "plugin-api": {
       "boundaries": {
         "entrypoints": [
-          "src/contract.ts",
-          "src/webview/contract.ts",
+          "src/index.ts",
+          "src/webview/index.ts",
           "src/plugin.ts",
           "src/events.ts"
         ]

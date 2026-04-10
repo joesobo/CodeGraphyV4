@@ -1,5 +1,5 @@
 /**
- * Config file - no imports (orphan if showOrphans=false wouldn't show)
+ * App config file - no imports (orphan if showOrphans=false wouldn't show)
  * Expected: no outgoing edges, but incoming from index.ts
  */
 export const config = {

@@ -6,7 +6,7 @@ import type {
   EditorOpenBehavior,
   GraphViewProviderTimelineMethodDependencies,
   GraphViewProviderTimelineMethodsSource,
-} from './types';
+} from './contracts';
 
 export interface GraphViewProviderTimelineEditorMethods {
   _openSelectedNode(nodeId: string): Promise<void>;

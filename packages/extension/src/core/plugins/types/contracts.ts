@@ -28,7 +28,7 @@ export type {
   IPluginFileColorDefinition,
   IPluginNodeType,
   NodeType,
-} from '../../../../../plugin-api/src/contract';
+} from '../../../../../plugin-api/src';
 
 export type { IProjectedConnection } from './projectedConnection';
 
@@ -37,7 +37,7 @@ export type { IProjectedConnection } from './projectedConnection';
  */
 export interface IPluginInfo {
   /** The plugin instance */
-  plugin: import('../../../../../plugin-api/src/contract').IPlugin;
+  plugin: import('../../../../../plugin-api/src').IPlugin;
   /** Whether this is a built-in plugin */
   builtIn: boolean;
   /** Source extension ID for community plugins */

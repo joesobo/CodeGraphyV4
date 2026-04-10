@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createExtensionMessageEmitter } from '../../../../src/extension/graphView/provider/extensionMessages';
+import { createExtensionMessageEmitter } from '../../../../src/extension/graphView/provider/messageEmitter';
 
-describe('graphView/provider/extensionMessages', () => {
+describe('graphView/provider/messageEmitter', () => {
   it('delivers fired messages to registered handlers and removes disposed handlers', () => {
     const emitter = createExtensionMessageEmitter();
     const first = vi.fn();

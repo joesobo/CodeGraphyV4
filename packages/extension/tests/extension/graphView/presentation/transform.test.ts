@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../../src/core/views/contracts';
 import type { IGraphData } from '../../../../src/shared/graph/types';
-import { applyGraphViewTransform } from '../../../../src/extension/graphView/presentation/viewTransform';
+import { applyGraphViewTransform } from '../../../../src/extension/graphView/presentation/transform';
 
 const viewContext: IViewContext = { activePlugins: new Set<string>() };
 const rawGraphData: IGraphData = { nodes: [], edges: [] };
 
-describe('graphView/presentation/viewTransform', () => {
+describe('graphView/presentation/transform', () => {
   it('keeps the raw graph data when the registry is unavailable', () => {
     const registry = {
       get: vi.fn(() => undefined),
