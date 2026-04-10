@@ -60,7 +60,10 @@ describe('createTypeScriptPlugin manifest', () => {
   it('should expose sources from manifest', () => {
     const plugin = createTypeScriptPlugin();
     expect(plugin.sources).toBeDefined();
-    expect(plugin.sources!.length).toBe(4);
+    expect(plugin.sources).toEqual([
+      expect.objectContaining({ id: 'dynamic-import' }),
+      expect.objectContaining({ id: 'commonjs-require' }),
+    ]);
   });
 
   it('should expose fileColors from manifest', () => {
@@ -87,17 +90,16 @@ describe('createTypeScriptPlugin lifecycle', () => {
     const plugin = createTypeScriptPlugin();
     await plugin.initialize?.(workspaceRoot);
 
-    // After initialize, resolver exists, so analyzeFile works with imports
-    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
+    const content = `const mod = import('./config');`;
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     expect(relations.length).toBeGreaterThan(0);
   });
 
   it('should lazy-initialize resolver if analyzeFile is called before initialize', async () => {
     const plugin = createTypeScriptPlugin();
-    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
+    const content = `const mod = import('./config');`;
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     expect(relations.length).toBeGreaterThan(0);
   });
@@ -131,8 +133,8 @@ describe('createTypeScriptPlugin lifecycle', () => {
     await plugin.initialize?.(workspaceRoot);
     plugin.onUnload?.();
 
-    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
+    const content = `const mod = import('./config');`;
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     expect(relations.length).toBeGreaterThan(0);
   });
@@ -183,18 +185,32 @@ describe('createTypeScriptPlugin lifecycle', () => {
     loadSpy.mockRestore();
   });
 
-  it('returns relations from analyzeFile', async () => {
+  it('returns supplemental relations from analyzeFile', async () => {
     const plugin = createTypeScriptPlugin();
-    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
+    const content = `
+      const config = import('./config');
+      const helpers = require('./utils/helpers');
+    `;
 
     const analysis = await plugin.analyzeFile?.(filePath, content, workspaceRoot);
 
-    expect(analysis?.relations).toContainEqual(expect.objectContaining({
-      kind: 'import',
-      specifier: './config',
-      resolvedPath: path.join(workspaceRoot, 'src', 'config.ts'),
-    }));
+    expect(analysis?.relations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'import',
+          sourceId: 'dynamic-import',
+          specifier: './config',
+          resolvedPath: path.join(workspaceRoot, 'src', 'config.ts'),
+        }),
+        expect.objectContaining({
+          kind: 'import',
+          sourceId: 'commonjs-require',
+          specifier: './utils/helpers',
+          resolvedPath: path.join(workspaceRoot, 'src', 'utils', 'helpers.ts'),
+        }),
+      ]),
+    );
   });
 
   it('registers a focused imports view on load', () => {
@@ -445,7 +461,7 @@ describe('source identification', () => {
     await plugin.initialize?.(workspaceRoot);
   });
 
-  it('sets es6-import sourceId for static imports', async () => {
+  it('does not emit duplicate static-import relations already owned by the core pass', async () => {
     const content = `import { foo } from './bar';`;
     const relations = await analyzeRelations(
       plugin,
@@ -453,10 +469,7 @@ describe('source identification', () => {
       content,
       workspaceRoot,
     );
-    expect(relations.length).toBeGreaterThan(0);
-    expect(relations[0].kind).toBe('import');
-    expect(relations[0].sourceId).toBe('es6-import');
-    expect(relations[0].fromFilePath).toBe(path.join(workspaceRoot, 'test.ts'));
+    expect(relations).toEqual([]);
   });
 
   it('sets dynamic-import sourceId for dynamic imports', async () => {
@@ -485,7 +498,7 @@ describe('source identification', () => {
     expect(relations[0].sourceId).toBe('commonjs-require');
   });
 
-  it('sets reexport sourceId for re-exports', async () => {
+  it('does not emit duplicate re-export relations already owned by the core pass', async () => {
     const content = `export { foo } from './bar';`;
     const relations = await analyzeRelations(
       plugin,
@@ -493,16 +506,12 @@ describe('source identification', () => {
       content,
       workspaceRoot,
     );
-    expect(relations.length).toBeGreaterThan(0);
-    expect(relations[0].kind).toBe('reexport');
-    expect(relations[0].sourceId).toBe('reexport');
+    expect(relations).toEqual([]);
   });
 
   it('every relation has sourceId and kind set', async () => {
     const content = `
-      import { a } from './a';
       const b = require('./b');
-      export { c } from './c';
       const d = import('./d');
     `;
     const relations = await analyzeRelations(
@@ -528,17 +537,17 @@ describe('TypeScript Plugin Integration', () => {
     await plugin.initialize?.(workspaceRoot);
   });
 
-  it('detects imports in index.ts', async () => {
-    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
-    const content = fs.readFileSync(filePath, 'utf-8');
+  it('detects dynamic imports in JS/TS files', async () => {
+    const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
+    const content = `const mod = import('./config');`;
 
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     expect(relations.length).toBeGreaterThan(0);
   });
 
-  it('resolves relative import from index.ts to config.ts', async () => {
-    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
-    const content = fs.readFileSync(filePath, 'utf-8');
+  it('resolves dynamic imports to workspace files', async () => {
+    const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
+    const content = `const mod = import('./config');`;
 
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     const resolvedRels = relations
@@ -549,8 +558,11 @@ describe('TypeScript Plugin Integration', () => {
   });
 
   it('returns absolute resolvedPaths for all resolved connections', async () => {
-    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
-    const content = fs.readFileSync(filePath, 'utf-8');
+    const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
+    const content = `
+      const config = import('./config');
+      const helpers = require('./utils/helpers');
+    `;
 
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     for (const relation of relations.filter(item => item.resolvedPath !== null && item.resolvedPath !== undefined)) {
@@ -567,42 +579,44 @@ describe('TypeScript Plugin Integration', () => {
     expect(resolved.length).toBe(0);
   });
 
-  it('builds a complete edge graph across the example project', async () => {
-    const tsFiles = [
-      'src/index.ts',
-      'src/config.ts',
-      'src/orphan.ts',
-      'src/services/api.ts',
-      'src/utils/helpers.ts',
-      'src/utils/format.ts',
-      'src/utils/styles.ts',
-    ].filter(filePath => fs.existsSync(path.join(workspaceRoot, filePath)));
+  it('builds a small supplemental edge set for dynamic import and require', async () => {
+    const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
+    const content = `
+      const config = import('./config');
+      const helpers = require('./utils/helpers');
+    `;
 
-    const edges: Array<{ from: string; to: string }> = [];
+    const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
+    const edges = relations
+      .filter((relation) => relation.resolvedPath)
+      .map((relation) => ({
+        from: path.relative(workspaceRoot, relation.fromFilePath).replace(/\\/g, '/'),
+        to: path.relative(workspaceRoot, relation.resolvedPath!).replace(/\\/g, '/'),
+        sourceId: relation.sourceId,
+      }));
 
-    for (const relPath of tsFiles) {
-      const absPath = path.join(workspaceRoot, relPath);
-      const content = fs.readFileSync(absPath, 'utf-8');
-      const relations = await analyzeRelations(plugin, absPath, content, workspaceRoot);
-
-      for (const relation of relations) {
-        if (relation.resolvedPath) {
-          const toRel = path.relative(workspaceRoot, relation.resolvedPath).replace(/\\/g, '/');
-          if (tsFiles.includes(toRel)) {
-            edges.push({ from: relPath, to: toRel });
-          }
-        }
-      }
-    }
-
-    // index.ts must have at least one edge (to config.ts)
-    expect(edges.some(e => e.from === 'src/index.ts')).toBe(true);
-    expect(edges.some(e => e.to === 'src/config.ts')).toBe(true);
+    expect(edges).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          from: 'src/dynamic.ts',
+          to: 'src/config.ts',
+          sourceId: 'dynamic-import',
+        }),
+        expect.objectContaining({
+          from: 'src/dynamic.ts',
+          to: 'src/utils/helpers.ts',
+          sourceId: 'commonjs-require',
+        }),
+      ]),
+    );
   });
 
-  it('resolves tsconfig path aliases with slash patterns (e.g. "@/*", "@components/*")', async () => {
-    const filePath = path.join(workspaceRoot, 'src', 'index.ts');
-    const content = fs.readFileSync(filePath, 'utf-8');
+  it('resolves tsconfig path aliases in dynamic imports', async () => {
+    const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
+    const content = `
+      const app = import('@components/App');
+      const api = import('@services/api');
+    `;
 
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     const resolvedRels = relations

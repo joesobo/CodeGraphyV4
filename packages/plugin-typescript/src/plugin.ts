@@ -17,8 +17,6 @@ import manifest from '../codegraphy.json';
 import { createFocusedImportView } from './focusedImports/view';
 
 // Source detect functions
-import { detect as detectEs6Import } from './sources/es6-import';
-import { detect as detectReexport } from './sources/reexport';
 import { detect as detectDynamicImport } from './sources/dynamic-import';
 import { detect as detectCommonjsRequire } from './sources/commonjs-require';
 
@@ -28,8 +26,8 @@ export type { IPathResolverConfig } from './PathResolver';
 /**
  * Built-in plugin for TypeScript and JavaScript files.
  *
- * Uses the TypeScript Compiler API to accurately detect imports,
- * then resolves them to file paths using tsconfig settings.
+ * Uses the TypeScript compiler only for JS/TS cases the Tree-sitter core does
+ * not cover yet, then resolves them with tsconfig-aware paths.
  *
  * @example
  * ```typescript
@@ -59,8 +57,7 @@ export function createTypeScriptPlugin(): IPlugin {
   ): Promise<IFileAnalysisResult> => {
     const ctx = { resolver: ensureResolver(workspaceRoot) };
     const connections = [
-      ...detectEs6Import(content, filePath, ctx),
-      ...detectReexport(content, filePath, ctx),
+      // Static imports and re-exports now come from the core Tree-sitter pass.
       ...detectDynamicImport(content, filePath, ctx),
       ...detectCommonjsRequire(content, filePath, ctx),
     ];
