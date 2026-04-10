@@ -135,7 +135,6 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
   - query/agent surface over the index
   - symbol export from the index
   - updated connection export from projected graph/index data
-  - optional flow / logic traversal view or overlay
 
 ## Target Architecture
 
@@ -318,9 +317,6 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
 
 ## New Surfaces Worth Adding
 
-- flow / logic traversal
-  - highlight likely paths through the projected graph
-  - possibly separate from `depth`
 - query/agent integration
   - local tools can ask for context, impact, flow, hotspots, and relation summaries
 - graph control popups
@@ -480,4 +476,3 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
 ## Unresolved Questions
 
 - Exact graph projection rules from symbol relations to merged file edges beyond the current same-kind/different-kind merge rule
-- Flow/logic traversal design after the core rewrite

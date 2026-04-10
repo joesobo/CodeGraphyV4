@@ -80,6 +80,25 @@ suite('Graph: Workspace Analysis', function () {
     }
   });
 
+  test('manual refresh keeps the graph indexed and rebuilds scenario edges', async function() {
+    const api = await getAPI();
+    await ensureIndexedGraph(api);
+
+    const graphUpdated = waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', 30_000);
+    const indexUpdated = waitForGraphIndexStatus(api, true, 30_000);
+    await api.dispatchWebviewMessage({ type: 'REFRESH_GRAPH' });
+    await Promise.all([graphUpdated, indexUpdated]);
+
+    const graphData = api.getGraphData();
+    const edgeIds = graphData.edges.map((edge) => String(edge.id));
+    for (const edgeId of scenario.minimumExpectedEdgeIds) {
+      assert.ok(
+        edgeIds.includes(edgeId),
+        `Expected edge '${edgeId}' after refresh in scenario '${scenario.name}'. Got: ${edgeIds.join(', ')}`
+      );
+    }
+  });
+
   test('scenario edges are detected between fixture files', async function() {
     const api = await getAPI();
     await ensureIndexedGraph(api);
