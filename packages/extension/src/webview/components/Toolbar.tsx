@@ -23,16 +23,13 @@ export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElemen
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div
+      <Collapsible
+        open={isExpanded}
+        onOpenChange={setIsExpanded}
         data-testid="toolbar"
         className="flex h-full min-h-0 flex-col items-center justify-between gap-3 bg-transparent"
       >
-        <Collapsible
-          open={isExpanded}
-          onOpenChange={setIsExpanded}
-          data-testid="toolbar-top-group"
-          className="flex flex-col items-center"
-        >
+        <div data-testid="toolbar-top-group" className="flex flex-col items-center">
           <CollapsibleContent
             forceMount
             data-testid="toolbar-primary-controls"
@@ -44,31 +41,13 @@ export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElemen
             )}
           >
             <div className="flex flex-col items-center gap-1.5">
-              <DepthModeToggle />
               <DagModeToggle />
+              <DepthModeToggle />
               <DimensionToggle />
               <NodeSizeToggle />
             </div>
           </CollapsibleContent>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <CollapsibleTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-7 w-7 bg-transparent"
-                  title={isExpanded ? 'Collapse Toolbar' : 'Expand Toolbar'}
-                >
-                  <MdiIcon path={isExpanded ? mdiChevronUp : mdiChevronDown} size={16} />
-                </Button>
-              </CollapsibleTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              {isExpanded ? 'Collapse Toolbar' : 'Expand Toolbar'}
-            </TooltipContent>
-          </Tooltip>
-        </Collapsible>
+        </div>
         {pluginHost ? (
           <SlotHost
             pluginHost={pluginHost}
@@ -82,8 +61,25 @@ export default function Toolbar({ pluginHost }: ToolbarProps): React.ReactElemen
           className="flex flex-col items-center gap-1.5"
         >
           <ToolbarActions />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <CollapsibleTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-7 w-7 bg-transparent"
+                  title={isExpanded ? 'Collapse Toolbar' : 'Expand Toolbar'}
+                >
+                  <MdiIcon path={isExpanded ? mdiChevronDown : mdiChevronUp} size={16} />
+                </Button>
+              </CollapsibleTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {isExpanded ? 'Collapse Toolbar' : 'Expand Toolbar'}
+            </TooltipContent>
+          </Tooltip>
         </div>
-      </div>
+      </Collapsible>
     </TooltipProvider>
   );
 }

@@ -118,10 +118,9 @@ function LegendBuiltInRow({
   onChange: (id: string, color: string) => void;
 }): React.ReactElement {
   return (
-    <div className="flex items-center gap-3 px-2 py-1.5 transition-colors hover:bg-accent/20">
-      <div className="flex-1 min-w-0">
-        <div className="text-xs font-medium truncate">{entry.label}</div>
-        <div className="text-[10px] text-muted-foreground truncate">{entry.id}</div>
+    <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-accent/20">
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-xs font-medium">{entry.label}</div>
       </div>
       <LegendColorInput
         ariaLabel={`${entry.label} color`}
@@ -144,15 +143,15 @@ function LegendRuleRow({
   onRemove: () => void;
 }): React.ReactElement {
   return (
-    <div className="flex items-center gap-2 px-2 py-1.5 transition-colors hover:bg-accent/20">
-      <div className="min-w-0 flex-1 pl-3">
+    <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-accent/20">
+      <div className="min-w-0 flex-1">
         <Input
           value={rule.pattern}
           onChange={(event) => {
             onChange({ ...rule, pattern: event.target.value });
           }}
           aria-label={`Legend pattern ${index + 1}`}
-          className="h-8 min-w-0 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+          className="h-7 min-w-0 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
         />
       </div>
       <LegendColorInput
@@ -190,13 +189,13 @@ function LegendRuleCreateRow({
   const [color, setColor] = useState('#3B82F6');
 
   return (
-    <div className="flex items-center gap-2 px-2 py-1.5 transition-colors hover:bg-accent/20">
-      <div className="min-w-0 flex-1 pl-3">
+    <div className="flex items-center gap-3 px-3 py-2 transition-colors hover:bg-accent/20">
+      <div className="min-w-0 flex-1">
         <Input
           value={pattern}
           onChange={(event) => setPattern(event.target.value)}
           placeholder="Pattern, e.g. */tests/**"
-          className="h-8 min-w-0 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+          className="h-7 min-w-0 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
           aria-label={`New ${target} legend pattern`}
         />
       </div>

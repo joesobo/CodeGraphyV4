@@ -41,6 +41,18 @@ describe('NodesPanel', () => {
     expect(container.querySelector('[class*="divide-y"]')).not.toBeNull();
   });
 
+  it('renders node entries without subtitles', () => {
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      nodeColors: {},
+      nodeVisibility: { file: true },
+    });
+
+    render(<NodesPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(screen.queryByText('file')).not.toBeInTheDocument();
+  });
+
   it('posts node visibility updates when a toggle changes', () => {
     sentMessages.length = 0;
     graphStore.setState({

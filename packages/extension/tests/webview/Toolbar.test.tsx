@@ -60,7 +60,7 @@ function setDefaultState(overrides: Record<string, unknown> = {}) {
 
 /**
  * Helper to get button groups from the toolbar DOM using data-testid attributes.
- * Layout: [depth-mode] [dag-buttons] [2d/3d] [node-size-buttons] | [refresh] [plugin-action] [export] [plugins] [settings]
+ * Layout: [dag-buttons] [depth-mode] [2d/3d] [node-size-buttons] | [refresh] [plugin-action] [export] [plugins] [settings] [collapse]
  */
 function getButtonGroups(container: HTMLElement) {
   const dagGroup = container.querySelector('[data-testid="dag-buttons"]');
@@ -116,15 +116,15 @@ describe('Toolbar', () => {
       expect(screen.getByTitle('Legends').closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
     });
 
-    it('renders a collapse toggle at the bottom of the top toolbar group', () => {
+    it('renders a collapse toggle at the bottom of the bottom toolbar group', () => {
       const { container } = render(<Toolbar />);
-      const topGroup = container.querySelector('[data-testid="toolbar-top-group"]') as HTMLElement | null;
+      const bottomGroup = container.querySelector('[data-testid="toolbar-bottom-group"]') as HTMLElement | null;
       const controls = container.querySelector('[data-testid="toolbar-primary-controls"]') as HTMLElement | null;
       const collapseTrigger = screen.getByRole('button', { name: 'Collapse Toolbar' });
 
-      expect(collapseTrigger.closest('[data-testid="toolbar-top-group"]')).toBe(topGroup);
+      expect(collapseTrigger.closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
       expect(collapseTrigger).toHaveAttribute('title', 'Collapse Toolbar');
-      expect(topGroup).toContainElement(collapseTrigger);
+      expect(bottomGroup).toContainElement(collapseTrigger);
       expect(controls).toHaveClass(
         'overflow-hidden',
         'transition-[max-height,opacity,margin,transform]',
@@ -169,6 +169,18 @@ describe('Toolbar', () => {
       expect(depthButtons).toHaveLength(1);
     });
 
+    it('renders the depth toggle immediately before the dimension toggle', () => {
+      setDefaultState({ graphHasIndex: true });
+      render(<Toolbar />);
+
+      const depthButton = screen.getByTitle('Enable Depth Mode');
+      const dimensionButton = screen.getByTitle('Toggle 2D/3D Mode');
+
+      expect(
+        depthButton.compareDocumentPosition(dimensionButton) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+
     it('sends UPDATE_DEPTH_MODE when enabled after indexing', () => {
       setDefaultState({ graphHasIndex: true });
       render(<Toolbar />);
@@ -181,6 +193,16 @@ describe('Toolbar', () => {
     it('disables the depth button before indexing', () => {
       render(<Toolbar />);
       expect(screen.getByTitle('Enable Depth Mode')).toBeDisabled();
+    });
+
+    it('keeps the depth toggle in the on state while depth mode is enabled', () => {
+      setDefaultState({ graphHasIndex: true, depthMode: true });
+
+      render(<Toolbar />);
+
+      const button = screen.getByTitle('Disable Depth Mode');
+      expect(button).toHaveAttribute('aria-pressed', 'true');
+      expect(button.className).not.toContain('hover:bg-accent');
     });
   });
 

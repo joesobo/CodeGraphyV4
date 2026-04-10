@@ -27,6 +27,7 @@ export function DepthModeToggle(): React.ReactElement {
         <Button
           variant={depthModeActive ? 'default' : 'outline'}
           size="icon"
+          aria-pressed={depthModeActive}
           className="h-7 w-7 bg-transparent"
           onClick={handleToggleDepthMode}
           title={title}
