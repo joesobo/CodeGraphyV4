@@ -7,6 +7,7 @@ function createSource(
   overrides: Partial<Record<string, unknown>> = {},
 ): {
   _analyzer: {
+    hasIndex: ReturnType<typeof vi.fn>;
     rebuildGraph: ReturnType<typeof vi.fn>;
     getPluginStatuses: ReturnType<typeof vi.fn>;
     registry: { notifyGraphRebuild: ReturnType<typeof vi.fn> };
@@ -17,6 +18,8 @@ function createSource(
   _graphData: IGraphData;
   _loadDisabledRulesAndPlugins: ReturnType<typeof vi.fn>;
   _loadGroupsAndFilterPatterns: ReturnType<typeof vi.fn>;
+  _loadAndSendData?: ReturnType<typeof vi.fn>;
+  _incrementalAnalyzeAndSendData?: ReturnType<typeof vi.fn>;
   _analyzeAndSendData: ReturnType<typeof vi.fn>;
   _sendAllSettings: ReturnType<typeof vi.fn>;
   _sendFavorites: ReturnType<typeof vi.fn>;
@@ -33,6 +36,7 @@ function createSource(
 } {
   return {
     _analyzer: {
+      hasIndex: vi.fn(() => true),
       rebuildGraph: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
       getPluginStatuses: vi.fn(() => [] satisfies IPluginStatus[]),
       registry: { notifyGraphRebuild: vi.fn() },
@@ -43,6 +47,8 @@ function createSource(
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _loadDisabledRulesAndPlugins: vi.fn(() => true),
     _loadGroupsAndFilterPatterns: vi.fn(),
+    _loadAndSendData: vi.fn(async () => undefined),
+    _incrementalAnalyzeAndSendData: vi.fn(async () => undefined),
     _analyzeAndSendData: vi.fn(async () => undefined),
     _sendAllSettings: vi.fn(),
     _sendFavorites: vi.fn(),
@@ -60,7 +66,7 @@ function createSource(
 }
 
 describe('graphView/provider/refresh', () => {
-  it('refresh reloads disabled settings and group state before re-analysis', async () => {
+  it('refresh reloads disabled settings and group state before reloading graph data', async () => {
     const source = createSource();
     const methods = createGraphViewProviderRefreshMethods(source as never, {
       getShowOrphans: vi.fn(() => true),
@@ -73,7 +79,8 @@ describe('graphView/provider/refresh', () => {
 
     expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
     expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
-    expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('refresh resends the full settings snapshot after re-analysis', async () => {
@@ -104,6 +111,43 @@ describe('graphView/provider/refresh', () => {
     await methods.refresh();
 
     expect(source._sendFavorites).toHaveBeenCalledOnce();
+  });
+
+  it('refreshChangedFiles reloads discovered nodes instead of indexing when no index exists yet', async () => {
+    const source = createSource();
+    source._analyzer.hasIndex.mockReturnValue(false);
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+      shouldRebuild: vi.fn(() => true),
+    });
+
+    await methods.refreshChangedFiles(['src/example.ts']);
+
+    expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
+    expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._incrementalAnalyzeAndSendData).not.toHaveBeenCalled();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+    expect(source._sendAllSettings).toHaveBeenCalledOnce();
+    expect(source._sendFavorites).toHaveBeenCalledOnce();
+  });
+
+  it('refreshChangedFiles uses incremental analysis once an index exists', async () => {
+    const source = createSource();
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+      shouldRebuild: vi.fn(() => true),
+    });
+
+    await methods.refreshChangedFiles(['src/example.ts']);
+
+    expect(source._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/example.ts']);
+    expect(source._loadAndSendData).not.toHaveBeenCalled();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
   });
 
   it('refreshToggleSettings rebuilds only when the disabled state changes', () => {

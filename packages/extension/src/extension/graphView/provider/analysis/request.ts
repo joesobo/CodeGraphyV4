@@ -23,14 +23,7 @@ export function createGraphViewProviderAnalyzeAndSendData(
     await dependencies.runAnalysisRequest(
       state,
       createGraphViewProviderAnalysisRequestHandlers(source, dependencies, {
-        executeAnalysis: (signal, requestId) => {
-          const implementation = source._doAnalyzeAndSendData;
-          if (implementation && implementation !== doAnalyzeAndSendData) {
-            return implementation(signal, requestId);
-          }
-
-          return doAnalyzeAndSendData(signal, requestId);
-        },
+        executeAnalysis: (signal, requestId) => doAnalyzeAndSendData(signal, requestId),
         isAbortError: error => delegates.callIsAbortError(error),
       }),
     );

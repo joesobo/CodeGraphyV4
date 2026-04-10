@@ -14,13 +14,15 @@ The plugin's VS Code extension activates. It grabs CodeGraphy's exported API and
 
 ```typescript
 import * as vscode from 'vscode';
+import manifest from './codegraphy.json';
+import { createMyPlugin } from './plugin';
 
 export async function activate(context: vscode.ExtensionContext) {
   const cg = vscode.extensions.getExtension('codegraphy.codegraphy');
   if (!cg) return;
 
   const api = cg.isActive ? cg.exports : await cg.activate();
-  api.registerPlugin(myPlugin, { extensionUri: context.extensionUri });
+  api.registerPlugin(createMyPlugin(manifest), { extensionUri: context.extensionUri });
 }
 ```
 
@@ -29,6 +31,29 @@ At this point the core validates the plugin's `apiVersion` from its `codegraphy.
 - Compatible version range: proceed.
 - Future version: error with clear message.
 - Unsupported/deprecated version: reject registration with a migration message.
+
+More precisely: runtime validates `plugin.apiVersion` on the object you pass to `registerPlugin(...)`.
+
+- `codegraphy.json` is the recommended way to keep plugin metadata in one place
+- it is not the thing the host directly reads at registration time
+
+Minimum required plugin object:
+
+```typescript
+const plugin: IPlugin = {
+  id: 'acme.plugin',
+  name: 'Acme Plugin',
+  version: '1.0.0',
+  apiVersion: '^2.0.0',
+  supportedExtensions: ['.ts'],
+};
+```
+
+Recommended setup:
+
+- store metadata in `codegraphy.json`
+- import that manifest into `plugin.ts`
+- build the runtime `IPlugin` object from that manifest
 
 ### 2. onLoad(api)
 
@@ -166,14 +191,43 @@ The host merges core output first and then plugin output in plugin priority orde
 
 Plugins that contribute code analysis should implement this hook.
 
+Use plain plugin-local `sourceId` values in plugin output, like `import`, `reference`, `preload`, or `wikilink`.
+
+- plugin output: `sourceId: 'reference'`
+- merged graph provenance later: `id: 'acme.plugin:reference'`
+
 ```typescript
 async analyzeFile(filePath, content, workspaceRoot) {
   return {
     filePath,
+    nodeTypes: [
+      {
+        id: 'service',
+        label: 'Service',
+        defaultColor: '#22c55e',
+        defaultVisible: true,
+      },
+    ],
+    edgeTypes: [
+      {
+        id: 'acme:injects',
+        label: 'Injects',
+        defaultColor: '#f59e0b',
+        defaultVisible: true,
+      },
+    ],
+    nodes: [
+      {
+        id: `${filePath}#service:BillingService`,
+        nodeType: 'service',
+        label: 'BillingService',
+        filePath,
+      },
+    ],
     symbols: [
       {
-        id: `${filePath}:mySymbol`,
-        name: 'mySymbol',
+        id: `${filePath}:function:buildInvoice`,
+        name: 'buildInvoice',
         kind: 'function',
         filePath,
       },
@@ -181,12 +235,52 @@ async analyzeFile(filePath, content, workspaceRoot) {
     relations: [
       {
         kind: 'reference',
-        sourceId: 'my-plugin:reference',
+        sourceId: 'reference',
         fromFilePath: filePath,
-        toFilePath: 'README.md',
+        fromSymbolId: `${filePath}:function:buildInvoice`,
+        toFilePath: '/repo/src/shared/money.ts',
+        toSymbolId: '/repo/src/shared/money.ts:function:formatMoney',
+        specifier: './shared/money',
+      },
+      {
+        kind: 'acme:injects',
+        sourceId: 'injects',
+        fromFilePath: filePath,
+        fromNodeId: `${filePath}#service:BillingService`,
+        toFilePath: '/repo/src/runtime/container.ts',
+        specifier: '@runtime/container',
       },
     ],
   };
+}
+```
+
+Path contract:
+
+- `filePath` is the absolute workspace path for the file being analyzed
+- `fromFilePath` is also absolute
+- resolved `toFilePath` values are absolute workspace paths
+- unresolved package/runtime targets should use `toFilePath: null`
+
+Examples:
+
+```typescript
+// Resolved workspace file
+{
+  kind: 'import',
+  sourceId: 'import',
+  fromFilePath: '/repo/src/app.ts',
+  toFilePath: '/repo/src/shared/index.ts',
+  specifier: './shared',
+}
+
+// Unresolved package/runtime import
+{
+  kind: 'import',
+  sourceId: 'import',
+  fromFilePath: '/repo/src/app.ts',
+  toFilePath: null,
+  specifier: 'react',
 }
 ```
 
@@ -258,7 +352,7 @@ export function createMetricsPlugin(): IPlugin {
     name: 'Metrics',
     version: '1.0.0',
     apiVersion: '^2.0.0',
-    supportedExtensions: [],
+    supportedExtensions: ['*'],
 
     async analyzeFile(filePath, content, workspaceRoot) {
       return {

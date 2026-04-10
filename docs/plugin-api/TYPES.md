@@ -63,6 +63,69 @@ Key points:
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new graph controls and defaults.
 - Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
+### Merge Rules
+
+Higher-priority plugins only override data when both sides hit the same merge key.
+
+- `nodeTypes`, `edgeTypes`, `nodes`, and `symbols` merge by `id`
+- `relations` merge by relation identity
+
+Current relation identity:
+
+- always: `kind`, `sourceId`, `fromFilePath`, `fromNodeId`, `fromSymbolId`, `specifier`, `type`, `variant`
+- additionally for `call` and `reference`: `toFilePath`, `toNodeId`, `toSymbolId`, `resolvedPath`
+
+Practical result:
+
+- imports/reexports/loads/inherits with the same source identity override each other
+- distinct calls/references to different targets coexist
+
+Example:
+
+```typescript
+// Core result
+{
+  filePath,
+  relations: [
+    {
+      kind: 'import',
+      sourceId: 'import',
+      fromFilePath: filePath,
+      specifier: '@app/shared',
+      toFilePath: '/repo/src/shared/index.ts',
+    },
+  ],
+}
+
+// Higher-priority plugin
+{
+  filePath,
+  relations: [
+    {
+      kind: 'import',
+      sourceId: 'import',
+      fromFilePath: filePath,
+      specifier: '@app/shared',
+      toFilePath: '/repo/packages/shared/src/index.ts',
+    },
+    {
+      kind: 'call',
+      sourceId: 'call',
+      fromFilePath: filePath,
+      fromSymbolId: `${filePath}:function:run`,
+      toFilePath: '/repo/src/lib-b.ts',
+      toSymbolId: '/repo/src/lib-b.ts:function:boot',
+      specifier: './lib',
+    },
+  ],
+}
+```
+
+Merged result:
+
+- the import keeps only the higher-priority plugin target
+- call/reference relations with different targets remain separate
+
 ### `IAnalysisFile`
 
 ```typescript
@@ -109,6 +172,11 @@ Main areas:
 `connection.ts` is now only about source metadata: the relation families a plugin declares in `sources` so the host can preserve provenance in graph edges, inspectors, and exports.
 
 The public plugin API no longer exposes the old `IConnection` / `IConnectionDetector` analysis types. Plugins return `IFileAnalysisResult` objects from `analyzeFile(...)`, with relations expressed through `IAnalysisRelation`.
+
+`sourceId` is plugin-local. Use ids like `wikilink`, `import`, `preload`, or `call`.
+
+- plugin output: `sourceId: 'wikilink'`
+- merged graph provenance later: `id: 'codegraphy.markdown:wikilink'`
 
 If you see projected file-to-file edges inside the extension codebase, those are extension-internal compatibility shapes used by the current graph/timeline pipeline. They are not part of the public plugin API.
 

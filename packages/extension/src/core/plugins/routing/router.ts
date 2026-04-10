@@ -111,7 +111,7 @@ function createEmptyFileAnalysisResult(filePath: string): IFileAnalysisResult {
 }
 
 function getRelationKey(relation: NonNullable<IFileAnalysisResult['relations']>[number]): string {
-  return [
+  const key = [
     relation.kind,
     relation.sourceId,
     relation.fromFilePath,
@@ -120,7 +120,18 @@ function getRelationKey(relation: NonNullable<IFileAnalysisResult['relations']>[
     relation.specifier ?? '',
     relation.type ?? '',
     relation.variant ?? '',
-  ].join('|');
+  ];
+
+  if (relation.kind === 'call' || relation.kind === 'reference') {
+    key.push(
+      relation.toFilePath ?? '',
+      relation.toNodeId ?? '',
+      relation.toSymbolId ?? '',
+      relation.resolvedPath ?? '',
+    );
+  }
+
+  return key.join('|');
 }
 
 function mergeById<TItem extends { id: string }>(

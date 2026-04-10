@@ -83,4 +83,29 @@ describe('graphView/provider/analysis/request', () => {
     expect(source._analyzerInitialized).toBe(true);
     expect(delegates.callIsAbortError).toHaveBeenCalledOnce();
   });
+
+  it('keeps load-mode requests bound to the provided load implementation', async () => {
+    const source = createSource({
+      _doAnalyzeAndSendData: vi.fn(async () => undefined),
+    });
+    const loadAndSendData = vi.fn(async () => undefined);
+    const dependencies = createDependencies({
+      runAnalysisRequest: vi.fn(async (_state, handlers) => {
+        await handlers.executeAnalysis(new AbortController().signal, 7);
+      }),
+    });
+
+    await createGraphViewProviderAnalyzeAndSendData(
+      source,
+      dependencies,
+      {
+        callIsAbortError: vi.fn(() => false),
+      },
+      loadAndSendData,
+      'load',
+    )();
+
+    expect(loadAndSendData).toHaveBeenCalledWith(expect.any(AbortSignal), 7);
+    expect(source._doAnalyzeAndSendData).not.toHaveBeenCalled();
+  });
 });

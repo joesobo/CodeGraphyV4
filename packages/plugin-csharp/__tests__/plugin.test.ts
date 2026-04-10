@@ -58,8 +58,22 @@ describe('createCSharpPlugin', () => {
 
     const plugin = createCSharpPlugin();
     await plugin.initialize?.(workspaceRoot);
+    await plugin.onPreAnalyze?.(
+      [
+        {
+          absolutePath: namespaceFile,
+          relativePath: 'special/FooImpl.cs',
+          content: fs.readFileSync(namespaceFile, 'utf-8'),
+        },
+        {
+          absolutePath: consumerFile,
+          relativePath: 'Program.cs',
+          content: fs.readFileSync(consumerFile, 'utf-8'),
+        },
+      ],
+      workspaceRoot,
+    );
 
-    await plugin.analyzeFile(namespaceFile, fs.readFileSync(namespaceFile, 'utf-8'), workspaceRoot);
     const analysis = await plugin.analyzeFile(
       consumerFile,
       fs.readFileSync(consumerFile, 'utf-8'),
@@ -104,8 +118,22 @@ public class Program {
 
     const plugin = createCSharpPlugin();
     await plugin.initialize?.(workspaceRoot);
+    await plugin.onPreAnalyze?.(
+      [
+        {
+          absolutePath: namespaceFile,
+          relativePath: 'special/FooImpl.cs',
+          content: namespaceContent,
+        },
+        {
+          absolutePath: consumerFile,
+          relativePath: 'Program.cs',
+          content: consumerContent,
+        },
+      ],
+      workspaceRoot,
+    );
 
-    await plugin.analyzeFile(namespaceFile, namespaceContent, workspaceRoot);
     const analysis = await plugin.analyzeFile(consumerFile, consumerContent, workspaceRoot);
 
     expect(analysis.relations).toContainEqual(
@@ -147,8 +175,22 @@ public class Program {
 
     const plugin = createCSharpPlugin();
     await plugin.initialize?.(workspaceRoot);
+    await plugin.onPreAnalyze?.(
+      [
+        {
+          absolutePath: namespaceFile,
+          relativePath: 'special/FooImpl.cs',
+          content: namespaceContent,
+        },
+        {
+          absolutePath: consumerFile,
+          relativePath: 'Program.cs',
+          content: consumerContent,
+        },
+      ],
+      workspaceRoot,
+    );
 
-    await plugin.analyzeFile(namespaceFile, namespaceContent, workspaceRoot);
     const beforeUnload = await plugin.analyzeFile(consumerFile, consumerContent, workspaceRoot);
     expect(beforeUnload.relations).toContainEqual(
       expect.objectContaining({
