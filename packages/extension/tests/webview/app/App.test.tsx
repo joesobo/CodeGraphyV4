@@ -157,6 +157,25 @@ describe('App', () => {
     });
     expect(screen.getByTitle('Export')).toBeInTheDocument();
   });
+
+  it('should render graph corner controls when graph is loaded', async () => {
+    render(<App />);
+    await act(async () => {
+      messageListeners.forEach((listener) => listener(new MessageEvent('message', {
+        data: {
+          type: 'GRAPH_DATA_UPDATED',
+          payload: {
+            nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+            edges: [],
+          },
+        },
+      })));
+    });
+
+    expect(screen.getByTitle('Zoom In')).toBeInTheDocument();
+    expect(screen.getByTitle('Zoom Out')).toBeInTheDocument();
+    expect(screen.getByTitle('Fit to Screen')).toBeInTheDocument();
+  });
 });
 
 // ── Message Handler Coverage ────────────────────────────────────────────────

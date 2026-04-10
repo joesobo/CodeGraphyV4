@@ -34,22 +34,22 @@ export default function NodesPanel({
       </div>
 
       <ScrollArea className="flex-1">
-        <div className="px-3 py-2 space-y-2">
+        <div className="px-3 py-2">
+          <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
           {nodeTypes.map((nodeType) => {
             const color = nodeColors[nodeType.id] ?? nodeType.defaultColor;
             const enabled = nodeVisibility[nodeType.id] ?? nodeType.defaultVisible;
 
             return (
-              <div key={nodeType.id} className="flex items-center gap-3 py-1.5">
+              <div key={nodeType.id} className="flex items-center gap-3 px-2 py-1.5 transition-colors hover:bg-accent/20">
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-medium truncate">{nodeType.label}</div>
+                </div>
                 <span
-                  className="h-3 w-3 rounded-full border border-black/10 shrink-0"
+                  className="h-5 w-8 rounded-sm border border-black/10 shrink-0"
                   style={{ backgroundColor: color }}
                   aria-hidden="true"
                 />
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-medium truncate">{nodeType.label}</div>
-                  <div className="text-[10px] text-muted-foreground truncate">{nodeType.id}</div>
-                </div>
                 <Switch
                   checked={enabled}
                   onCheckedChange={(visible) => {
@@ -62,6 +62,7 @@ export default function NodesPanel({
               </div>
             );
           })}
+          </div>
         </div>
       </ScrollArea>
     </div>

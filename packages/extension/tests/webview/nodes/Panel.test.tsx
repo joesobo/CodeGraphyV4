@@ -22,8 +22,23 @@ describe('NodesPanel', () => {
     render(<NodesPanel isOpen={true} onClose={vi.fn()} />);
 
     expect(screen.getByText('Files')).toBeInTheDocument();
-    expect(screen.getByText('file')).toBeInTheDocument();
+    expect(screen.queryByText('file')).not.toBeInTheDocument();
     expect(screen.getByRole('switch')).toHaveAttribute('data-state', 'checked');
+  });
+
+  it('renders node entries inside a divided list', () => {
+    graphStore.setState({
+      graphNodeTypes: [
+        { id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true },
+        { id: 'folder', label: 'Folders', defaultColor: '#222222', defaultVisible: true },
+      ],
+      nodeColors: {},
+      nodeVisibility: { file: true, folder: true },
+    });
+
+    const { container } = render(<NodesPanel isOpen={true} onClose={vi.fn()} />);
+
+    expect(container.querySelector('[class*="divide-y"]')).not.toBeNull();
   });
 
   it('posts node visibility updates when a toggle changes', () => {

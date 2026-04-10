@@ -19,6 +19,7 @@ import { LoadingState, EmptyState } from './states';
 import { useAppState, useAppActions } from './storeSelectors';
 import { SlotHost } from '../pluginHost/slotHost/view';
 import { GraphIndexStatus } from '../components/graphIndexStatus/view';
+import { GraphCornerControls } from '../components/graphCornerControls/view';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
@@ -127,6 +128,11 @@ export default function App(): React.ReactElement {
           <PluginsPanel isOpen={activePanel === 'plugins'} onClose={() => setActivePanel('none')} />
           <SettingsPanel isOpen={activePanel === 'settings'} onClose={() => setActivePanel('none')} />
         </div>
+        {hasGraphNodes ? (
+          <div className="absolute bottom-2 right-2 z-10 pointer-events-none [&>*]:pointer-events-auto">
+            <GraphCornerControls />
+          </div>
+        ) : null}
         <GraphIndexStatus isIndexing={graphIsIndexing} progress={graphIndexProgress} />
       </div>
     </div>
