@@ -6,7 +6,7 @@ import type {
   GraphViewProviderTimelineMethodDependencies,
   GraphViewProviderTimelineMethods,
   GraphViewProviderTimelineMethodsSource,
-} from './types';
+} from './contracts';
 import { createDefaultGraphViewProviderTimelineMethodDependencies } from './defaultDependencies';
 import { createGraphViewProviderTimelineEditorMethods } from './editor';
 
@@ -15,7 +15,7 @@ export type {
   GraphViewProviderTimelineMethodDependencies,
   GraphViewProviderTimelineMethods,
   GraphViewProviderTimelineMethodsSource,
-} from './types';
+} from './contracts';
 
 export function createGraphViewProviderTimelineMethods(
   source: GraphViewProviderTimelineMethodsSource,

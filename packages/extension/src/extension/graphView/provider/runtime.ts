@@ -27,7 +27,7 @@ import {
 import type { GraphViewProviderMethodSourceOwner } from './source/create';
 import {
   createExtensionMessageEmitter,
-} from './extensionMessages';
+} from './messageEmitter';
 import { createFirstWorkspaceReadyState } from './firstWorkspaceReady';
 import {
   initializeGraphViewProviderRuntimeServices,

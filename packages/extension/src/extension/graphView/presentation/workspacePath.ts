@@ -1,5 +1,5 @@
 import type * as vscode from 'vscode';
-import type { IWorkspaceFolderLike } from './types';
+import type { IWorkspaceFolderLike } from './contracts';
 
 export function getRelativeWorkspacePath(
   uri: vscode.Uri,

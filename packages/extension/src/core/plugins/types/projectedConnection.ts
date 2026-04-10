@@ -3,7 +3,7 @@
  * @module core/plugins/types/projectedConnection
  */
 
-import type { GraphEdgeKind, GraphMetadata } from '../../../../../plugin-api/src/contract';
+import type { GraphEdgeKind, GraphMetadata } from '../../../../../plugin-api/src';
 
 /**
  * Represents one file-level edge projected from richer analysis relations.

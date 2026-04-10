@@ -3,7 +3,7 @@ import type { IGraphData } from '../../../../../src/shared/graph/types';
 import type {
   GraphViewProviderTimelineMethodDependencies,
   GraphViewProviderTimelineMethodsSource,
-} from '../../../../../src/extension/graphView/provider/timeline/types';
+} from '../../../../../src/extension/graphView/provider/timeline/contracts';
 import { createGraphViewProviderTimelineEditorMethods } from '../../../../../src/extension/graphView/provider/timeline/editor';
 
 function createSource(

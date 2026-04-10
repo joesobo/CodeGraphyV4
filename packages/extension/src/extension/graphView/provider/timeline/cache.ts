@@ -1,4 +1,4 @@
-import type { GraphViewProviderTimelineMethodDependencies, GraphViewProviderTimelineMethodsSource } from './types';
+import type { GraphViewProviderTimelineMethodDependencies, GraphViewProviderTimelineMethodsSource } from './contracts';
 import { ensureGitAnalyzerForCachedTimeline } from './warmup';
 
 export async function sendGraphViewProviderCachedTimeline(

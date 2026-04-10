@@ -4,9 +4,9 @@ import type { ExtensionToWebviewMessage } from '../../../../../src/shared/protoc
 import {
   applyTimelineCommitGraph,
   buildTimelineCommitGraphData,
-} from '../../../../../src/extension/graphView/timeline/provider/commitGraph';
+} from '../../../../../src/extension/graphView/timeline/provider/commitData';
 
-describe('timeline commit graph', () => {
+describe('timeline commit data', () => {
   function createGraphNode(id: string) {
     return { id, label: id, color: '#ffffff' };
   }

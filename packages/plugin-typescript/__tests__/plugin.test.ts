@@ -91,7 +91,7 @@ describe('createTypeScriptPlugin lifecycle', () => {
     await plugin.initialize?.(workspaceRoot);
 
     const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
-    const content = `const mod = import('./config');`;
+    const content = `const mod = import('./appConfig');`;
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     expect(relations.length).toBeGreaterThan(0);
   });
@@ -99,7 +99,7 @@ describe('createTypeScriptPlugin lifecycle', () => {
   it('should lazy-initialize resolver if analyzeFile is called before initialize', async () => {
     const plugin = createTypeScriptPlugin();
     const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
-    const content = `const mod = import('./config');`;
+    const content = `const mod = import('./appConfig');`;
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     expect(relations.length).toBeGreaterThan(0);
   });
@@ -108,8 +108,8 @@ describe('createTypeScriptPlugin lifecycle', () => {
     const plugin = createTypeScriptPlugin();
     const relations = await analyzeRelations(
       plugin,
-      path.join(workspaceRoot, 'src', 'config.ts'),
-      fs.readFileSync(path.join(workspaceRoot, 'src', 'config.ts'), 'utf-8'),
+      path.join(workspaceRoot, 'src', 'appConfig.ts'),
+      fs.readFileSync(path.join(workspaceRoot, 'src', 'appConfig.ts'), 'utf-8'),
       workspaceRoot,
     );
     expect(relations).toEqual([]);
@@ -121,8 +121,8 @@ describe('createTypeScriptPlugin lifecycle', () => {
     plugin.onUnload?.();
     const relations = await analyzeRelations(
       plugin,
-      path.join(workspaceRoot, 'src', 'config.ts'),
-      fs.readFileSync(path.join(workspaceRoot, 'src', 'config.ts'), 'utf-8'),
+      path.join(workspaceRoot, 'src', 'appConfig.ts'),
+      fs.readFileSync(path.join(workspaceRoot, 'src', 'appConfig.ts'), 'utf-8'),
       workspaceRoot,
     );
     expect(relations).toEqual([]);
@@ -134,7 +134,7 @@ describe('createTypeScriptPlugin lifecycle', () => {
     plugin.onUnload?.();
 
     const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
-    const content = `const mod = import('./config');`;
+    const content = `const mod = import('./appConfig');`;
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     expect(relations.length).toBeGreaterThan(0);
   });
@@ -159,7 +159,7 @@ describe('createTypeScriptPlugin lifecycle', () => {
     await plugin.initialize?.(workspaceRoot);
     const callCountAfterInit = loadSpy.mock.calls.length;
 
-    const filePath = path.join(workspaceRoot, 'src', 'config.ts');
+    const filePath = path.join(workspaceRoot, 'src', 'appConfig.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
     await plugin.analyzeFile?.(filePath, content, workspaceRoot);
     await plugin.analyzeFile?.(filePath, content, workspaceRoot);
@@ -177,7 +177,7 @@ describe('createTypeScriptPlugin lifecycle', () => {
 
     plugin.onUnload?.();
 
-    const filePath = path.join(workspaceRoot, 'src', 'config.ts');
+    const filePath = path.join(workspaceRoot, 'src', 'appConfig.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
     await plugin.analyzeFile?.(filePath, content, workspaceRoot);
 
@@ -189,8 +189,8 @@ describe('createTypeScriptPlugin lifecycle', () => {
     const plugin = createTypeScriptPlugin();
     const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
     const content = `
-      const config = import('./config');
-      const helpers = require('./utils/helpers');
+      const config = import('./appConfig');
+      const helpers = require('./utils/processing');
     `;
 
     const analysis = await plugin.analyzeFile?.(filePath, content, workspaceRoot);
@@ -200,14 +200,14 @@ describe('createTypeScriptPlugin lifecycle', () => {
         expect.objectContaining({
           kind: 'import',
           sourceId: 'dynamic-import',
-          specifier: './config',
-          resolvedPath: path.join(workspaceRoot, 'src', 'config.ts'),
+          specifier: './appConfig',
+          resolvedPath: path.join(workspaceRoot, 'src', 'appConfig.ts'),
         }),
         expect.objectContaining({
           kind: 'import',
           sourceId: 'commonjs-require',
-          specifier: './utils/helpers',
-          resolvedPath: path.join(workspaceRoot, 'src', 'utils', 'helpers.ts'),
+          specifier: './utils/processing',
+          resolvedPath: path.join(workspaceRoot, 'src', 'utils', 'processing.ts'),
         }),
       ]),
     );
@@ -243,8 +243,8 @@ describe('createTypeScriptPlugin lifecycle', () => {
       nodes: [
         { id: 'src/index.ts', label: 'index.ts', color: '#fff' },
         { id: 'src/components/App.tsx', label: 'App.tsx', color: '#fff' },
-        { id: 'src/utils/helpers.ts', label: 'helpers.ts', color: '#fff' },
-        { id: 'src/config.ts', label: 'config.ts', color: '#fff' },
+        { id: 'src/utils/processing.ts', label: 'processing.ts', color: '#fff' },
+        { id: 'src/appConfig.ts', label: 'appConfig.ts', color: '#fff' },
         { id: 'src/unrelated.ts', label: 'unrelated.ts', color: '#fff' },
       ],
       edges: [
@@ -263,9 +263,9 @@ describe('createTypeScriptPlugin lifecycle', () => {
           ],
         },
         {
-          id: 'src/index.ts->src/utils/helpers.ts#import',
+          id: 'src/index.ts->src/utils/processing.ts#import',
           from: 'src/index.ts',
-          to: 'src/utils/helpers.ts',
+          to: 'src/utils/processing.ts',
           kind: 'import',
           sources: [
             {
@@ -277,9 +277,9 @@ describe('createTypeScriptPlugin lifecycle', () => {
           ],
         },
         {
-          id: 'src/utils/helpers.ts->src/config.ts#import',
-          from: 'src/utils/helpers.ts',
-          to: 'src/config.ts',
+          id: 'src/utils/processing.ts->src/appConfig.ts#import',
+          from: 'src/utils/processing.ts',
+          to: 'src/appConfig.ts',
           kind: 'import',
           sources: [
             {
@@ -291,9 +291,9 @@ describe('createTypeScriptPlugin lifecycle', () => {
           ],
         },
         {
-          id: 'src/unrelated.ts->src/config.ts#import',
+          id: 'src/unrelated.ts->src/appConfig.ts#import',
           from: 'src/unrelated.ts',
-          to: 'src/config.ts',
+          to: 'src/appConfig.ts',
           kind: 'import',
           sources: [
             {
@@ -330,11 +330,11 @@ describe('createTypeScriptPlugin lifecycle', () => {
     expect(transformed.nodes.map(node => node.id)).toEqual([
       'src/index.ts',
       'src/components/App.tsx',
-      'src/utils/helpers.ts',
+      'src/utils/processing.ts',
     ]);
     expect(transformed.nodes.find(node => node.id === 'src/index.ts')?.depthLevel).toBe(0);
     expect(transformed.nodes.find(node => node.id === 'src/components/App.tsx')?.depthLevel).toBe(1);
-    expect(transformed.nodes.find(node => node.id === 'src/utils/helpers.ts')?.depthLevel).toBe(1);
+    expect(transformed.nodes.find(node => node.id === 'src/utils/processing.ts')?.depthLevel).toBe(1);
     expect(transformed.edges).toEqual([
       expect.objectContaining({
         from: 'src/index.ts',
@@ -342,10 +342,10 @@ describe('createTypeScriptPlugin lifecycle', () => {
       }),
       expect.objectContaining({
         from: 'src/index.ts',
-        to: 'src/utils/helpers.ts',
+        to: 'src/utils/processing.ts',
       }),
     ]);
-    expect(transformed.nodes.some(node => node.id === 'src/config.ts')).toBe(false);
+    expect(transformed.nodes.some(node => node.id === 'src/appConfig.ts')).toBe(false);
     expect(transformed.nodes.some(node => node.id === 'src/unrelated.ts')).toBe(false);
     expect(transformed.nodes.some(node => node.id === 'docs/Note.md')).toBe(false);
   });
@@ -539,7 +539,7 @@ describe('TypeScript Plugin Integration', () => {
 
   it('detects dynamic imports in JS/TS files', async () => {
     const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
-    const content = `const mod = import('./config');`;
+    const content = `const mod = import('./appConfig');`;
 
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     expect(relations.length).toBeGreaterThan(0);
@@ -547,21 +547,21 @@ describe('TypeScript Plugin Integration', () => {
 
   it('resolves dynamic imports to workspace files', async () => {
     const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
-    const content = `const mod = import('./config');`;
+    const content = `const mod = import('./appConfig');`;
 
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
     const resolvedRels = relations
       .filter(relation => relation.resolvedPath !== null && relation.resolvedPath !== undefined)
       .map(relation => path.relative(workspaceRoot, relation.resolvedPath!).replace(/\\/g, '/'));
 
-    expect(resolvedRels).toContain('src/config.ts');
+    expect(resolvedRels).toContain('src/appConfig.ts');
   });
 
   it('returns absolute resolvedPaths for all resolved connections', async () => {
     const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
     const content = `
-      const config = import('./config');
-      const helpers = require('./utils/helpers');
+      const config = import('./appConfig');
+      const helpers = require('./utils/processing');
     `;
 
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
@@ -570,8 +570,8 @@ describe('TypeScript Plugin Integration', () => {
     }
   });
 
-  it('config.ts has no outgoing connections (it imports nothing)', async () => {
-    const filePath = path.join(workspaceRoot, 'src', 'config.ts');
+  it('appConfig.ts has no outgoing connections (it imports nothing)', async () => {
+    const filePath = path.join(workspaceRoot, 'src', 'appConfig.ts');
     const content = fs.readFileSync(filePath, 'utf-8');
 
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
@@ -582,8 +582,8 @@ describe('TypeScript Plugin Integration', () => {
   it('builds a small supplemental edge set for dynamic import and require', async () => {
     const filePath = path.join(workspaceRoot, 'src', 'dynamic.ts');
     const content = `
-      const config = import('./config');
-      const helpers = require('./utils/helpers');
+      const config = import('./appConfig');
+      const helpers = require('./utils/processing');
     `;
 
     const relations = await analyzeRelations(plugin, filePath, content, workspaceRoot);
@@ -599,12 +599,12 @@ describe('TypeScript Plugin Integration', () => {
       expect.arrayContaining([
         expect.objectContaining({
           from: 'src/dynamic.ts',
-          to: 'src/config.ts',
+          to: 'src/appConfig.ts',
           sourceId: 'dynamic-import',
         }),
         expect.objectContaining({
           from: 'src/dynamic.ts',
-          to: 'src/utils/helpers.ts',
+          to: 'src/utils/processing.ts',
           sourceId: 'commonjs-require',
         }),
       ]),

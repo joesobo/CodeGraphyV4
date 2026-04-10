@@ -1,4 +1,4 @@
-export { hasVisibleWorkspaceFileEditor } from './visibleWorkspaceEditor';
+export { hasVisibleWorkspaceFileEditor } from './visibleEditor';
 export {
   cancelPendingFocusedFileClear,
   scheduleFocusedFileClear,

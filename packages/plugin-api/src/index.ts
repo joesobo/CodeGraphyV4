@@ -123,4 +123,4 @@ export type {
   BadgeOpts,
   RingOpts,
   LabelOpts,
-} from './webview/contract';
+} from './webview';

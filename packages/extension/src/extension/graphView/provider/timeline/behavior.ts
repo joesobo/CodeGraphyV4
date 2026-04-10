@@ -1,4 +1,4 @@
-import type { EditorOpenBehavior } from './types';
+import type { EditorOpenBehavior } from './contracts';
 
 export function createDefaultTimelinePreviewBehavior(): EditorOpenBehavior {
   return {

@@ -1,6 +1,6 @@
 /**
- * Helper utilities - imports format
- * Expected: bidirectional edge with format (helpers ↔ format)
+ * Processing utilities - imports format
+ * Expected: bidirectional edge with format (processing ↔ format)
  */
 import { formatDate } from './format';
 
