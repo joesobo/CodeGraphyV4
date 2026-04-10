@@ -177,7 +177,7 @@ describe('App', () => {
     expect(screen.getByTitle('Fit to Screen')).toBeInTheDocument();
   });
 
-  it('should place graph corner controls inside the right-side popup stack', async () => {
+  it('should hide graph corner controls while a right-side popup is open', async () => {
     graphStore.setState({ activePanel: 'edges' });
 
     render(<App />);
@@ -193,11 +193,10 @@ describe('App', () => {
       })));
     });
 
-    const fitButton = screen.getByTitle('Fit to Screen');
-    const popupStack = fitButton.closest('.top-2.bottom-2.right-2');
-
-    expect(popupStack).not.toBeNull();
     expect(screen.getByText('Edges')).toBeInTheDocument();
+    expect(screen.queryByTitle('Zoom In')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Zoom Out')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Fit to Screen')).not.toBeInTheDocument();
   });
 });
 

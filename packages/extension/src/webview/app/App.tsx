@@ -127,7 +127,7 @@ export default function App(): React.ReactElement {
           <LegendsPanel isOpen={activePanel === 'legends'} onClose={() => setActivePanel('none')} />
           <PluginsPanel isOpen={activePanel === 'plugins'} onClose={() => setActivePanel('none')} />
           <SettingsPanel isOpen={activePanel === 'settings'} onClose={() => setActivePanel('none')} />
-          {hasGraphNodes ? (
+          {hasGraphNodes && activePanel === 'none' ? (
             <div className="mt-2 self-end">
               <GraphCornerControls />
             </div>
