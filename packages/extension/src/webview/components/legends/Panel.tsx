@@ -118,7 +118,7 @@ function LegendBuiltInRow({
   onChange: (id: string, color: string) => void;
 }): React.ReactElement {
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex items-center gap-3 px-2 py-1.5 transition-colors hover:bg-accent/20">
       <div className="flex-1 min-w-0">
         <div className="text-xs font-medium truncate">{entry.label}</div>
         <div className="text-[10px] text-muted-foreground truncate">{entry.id}</div>
@@ -144,15 +144,17 @@ function LegendRuleRow({
   onRemove: () => void;
 }): React.ReactElement {
   return (
-    <div className="flex items-center gap-2 rounded-md border border-border/70 bg-background/40 px-2 py-1.5">
-      <Input
-        value={rule.pattern}
-        onChange={(event) => {
-          onChange({ ...rule, pattern: event.target.value });
-        }}
-        aria-label={`Legend pattern ${index + 1}`}
-        className="h-8 min-w-0 flex-1 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
-      />
+    <div className="flex items-center gap-2 px-2 py-1.5 transition-colors hover:bg-accent/20">
+      <div className="min-w-0 flex-1 border-l border-border/70 pl-3">
+        <Input
+          value={rule.pattern}
+          onChange={(event) => {
+            onChange({ ...rule, pattern: event.target.value });
+          }}
+          aria-label={`Legend pattern ${index + 1}`}
+          className="h-8 min-w-0 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+        />
+      </div>
       <LegendColorInput
         ariaLabel={`Legend color ${index + 1}`}
         color={rule.color}
@@ -188,14 +190,16 @@ function LegendRuleCreateRow({
   const [color, setColor] = useState('#3B82F6');
 
   return (
-    <div className="flex items-center gap-2 rounded-md border border-dashed border-border/70 bg-background/20 px-2 py-1.5">
-      <Input
-        value={pattern}
-        onChange={(event) => setPattern(event.target.value)}
-        placeholder="Pattern, e.g. */tests/**"
-        className="h-8 min-w-0 flex-1 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
-        aria-label={`New ${target} legend pattern`}
-      />
+    <div className="flex items-center gap-2 px-2 py-1.5 transition-colors hover:bg-accent/20">
+      <div className="min-w-0 flex-1 border-l border-dashed border-border/70 pl-3">
+        <Input
+          value={pattern}
+          onChange={(event) => setPattern(event.target.value)}
+          placeholder="Pattern, e.g. */tests/**"
+          className="h-8 min-w-0 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
+          aria-label={`New ${target} legend pattern`}
+        />
+      </div>
       <input
         aria-label={`New ${target} legend color`}
         type="color"
@@ -204,9 +208,9 @@ function LegendRuleCreateRow({
         className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
       />
       <Button
-        variant="outline"
+        variant="ghost"
         size="icon"
-        className="h-7 w-7 shrink-0 p-0"
+        className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-foreground"
         onClick={() => {
           const nextPattern = pattern.trim();
           if (!nextPattern) {
@@ -268,7 +272,7 @@ function LegendSection({
       <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
         {title}
       </h3>
-      <div className="space-y-2">
+      <div className="overflow-hidden rounded-md border border-border/60 bg-background/10 divide-y divide-border/50">
         {builtInEntries.map((entry) => (
           <LegendBuiltInRow
             key={entry.id}
