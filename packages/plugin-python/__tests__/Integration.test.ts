@@ -2,8 +2,8 @@
  * @fileoverview Integration tests for Python plugin.
  * Simulates how the analysis pipeline consumes per-file relations.
  * 
- * Bug: Python PathResolver returns workspace-relative paths, but
- * the pipeline expects absolute paths (like TypeScript plugin).
+ * Confirms Python returns absolute paths so the shared analysis pipeline can
+ * project file-to-file edges correctly.
  */
 
 import { afterAll, describe, it, expect, beforeAll } from 'vitest';
@@ -130,14 +130,12 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     expect(validEdges.length).toBeGreaterThanOrEqual(5);
   });
 
-  /**
-   * Compare with TypeScript plugin to show expected behavior.
-   */
-  it('TypeScript plugin returns absolute paths (reference behavior)', async () => {
+  it('TypeScript supplemental relations still return absolute paths', async () => {
     const tsPlugin = createTypeScriptPlugin();
     
-    // Create a minimal TS file to test with
-    const tsContent = `import { something } from './other';`;
+    // The TypeScript plugin now only owns supplemental JS/TS relations like
+    // dynamic import and require. Static imports come from the core pass.
+    const tsContent = `const mod = import('./other');`;
     const mockTsFile = path.join(tempTypeScriptWorkspace, 'test.ts');
     const mockOtherFile = path.join(tempTypeScriptWorkspace, 'other.ts');
     
@@ -151,11 +149,10 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
       
       expect(connections.length).toBe(1);
       expect(connections[0].resolvedPath).not.toBeNull();
+      expect(connections[0].sourceId).toBe('dynamic-import');
       
-      // TypeScript returns absolute path
       expect(path.isAbsolute(connections[0].resolvedPath!)).toBe(true);
       
-      // path.relative works correctly
       const targetRelative = path.relative(tempTypeScriptWorkspace, connections[0].resolvedPath!);
       expect(targetRelative).toBe('other.ts');
     } finally {
