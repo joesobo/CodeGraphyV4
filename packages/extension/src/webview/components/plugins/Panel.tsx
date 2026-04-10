@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { postMessage } from '../../vscodeApi';
-import { useGraphStore } from '../../store/state';
+import { graphStore, useGraphStore } from '../../store/state';
 import { mdiClose } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Switch } from '../ui/switch';
@@ -25,6 +25,11 @@ export default function PluginsPanel({ isOpen, onClose }: PluginsPanelProps): Re
   if (!isOpen) return null;
 
   const handleTogglePlugin = (pluginId: string, enabled: boolean) => {
+    graphStore.setState((state) => ({
+      pluginStatuses: state.pluginStatuses.map((plugin) =>
+        plugin.id === pluginId ? { ...plugin, enabled } : plugin
+      ),
+    }));
     postMessage({ type: 'TOGGLE_PLUGIN', payload: { pluginId, enabled } });
   };
 

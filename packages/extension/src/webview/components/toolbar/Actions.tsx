@@ -8,7 +8,7 @@ import React from 'react';
 import {
   mdiAutorenew,
   mdiCogOutline,
-  mdiFormatColorFill,
+  mdiPaletteOutline,
   mdiLinkVariant,
   mdiShapeOutline,
   mdiVectorLine,
@@ -75,36 +75,6 @@ export function ToolbarActions(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-7 w-7 bg-transparent"
-            onClick={() => setActivePanel('nodes')}
-            title="Nodes"
-          >
-            <MdiIcon path={mdiShapeOutline} size={16} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">Nodes</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 bg-transparent"
-            onClick={() => setActivePanel('edges')}
-            title="Edges"
-          >
-            <MdiIcon path={mdiVectorLine} size={16} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">Edges</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 bg-transparent"
             onClick={() => postMessage({ type: refreshMessageType })}
             title={refreshTitle}
             disabled={graphIsIndexing}
@@ -161,10 +131,40 @@ export function ToolbarActions(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-7 w-7 bg-transparent"
+            onClick={() => setActivePanel('nodes')}
+            title="Nodes"
+          >
+            <MdiIcon path={mdiShapeOutline} size={16} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">Nodes</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-7 w-7 bg-transparent"
+            onClick={() => setActivePanel('edges')}
+            title="Edges"
+          >
+            <MdiIcon path={mdiVectorLine} size={16} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">Edges</TooltipContent>
+      </Tooltip>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-7 w-7 bg-transparent"
             onClick={() => setActivePanel('legends')}
             title="Legends"
           >
-            <MdiIcon path={mdiFormatColorFill} size={16} />
+            <MdiIcon path={mdiPaletteOutline} size={16} />
           </Button>
         </TooltipTrigger>
         <TooltipContent side="right">Legends</TooltipContent>

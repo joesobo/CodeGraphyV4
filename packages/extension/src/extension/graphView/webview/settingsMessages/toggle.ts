@@ -17,7 +17,6 @@ export async function applySettingsToggleMessage(
         state.disabledPlugins.add(message.payload.pluginId);
       }
       await handlers.updateConfig('disabledPlugins', [...state.disabledPlugins]);
-      void handlers.reprocessPluginFiles([message.payload.pluginId]);
       return true;
 
     default:

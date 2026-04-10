@@ -65,7 +65,7 @@ const exportCases = [
   ['Export as Markdown', 'REQUEST_EXPORT_MD'],
 ] as const;
 
-const iconButtonTitles = ['Export', 'Index Repo', 'Legends', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Index Repo', 'Export', 'Nodes', 'Edges', 'Legends', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders() {
   return render(
@@ -186,6 +186,27 @@ describe('ToolbarActions', () => {
   it('renders the settings button with title', () => {
     renderWithProviders();
     expect(screen.getByTitle('Settings')).toBeInTheDocument();
+  });
+
+  it('renders the core toolbar buttons in the expected top-to-bottom order', () => {
+    renderWithProviders();
+
+    const orderedTitles = screen
+      .getAllByRole('button')
+      .map((button) => button.getAttribute('title'))
+      .filter((title): title is string =>
+        ['Index Repo', 'Export', 'Nodes', 'Edges', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
+      );
+
+    expect(orderedTitles).toEqual([
+      'Index Repo',
+      'Export',
+      'Nodes',
+      'Edges',
+      'Legends',
+      'Plugins',
+      'Settings',
+    ]);
   });
 
   it('sets active panel to settings when settings button is clicked', () => {

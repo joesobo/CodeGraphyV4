@@ -85,6 +85,12 @@ describe('PluginsPanel', () => {
       type: 'TOGGLE_PLUGIN',
       payload: { pluginId: 'codegraphy.typescript', enabled: false },
     });
+    expect(graphStore.getState().pluginStatuses).toEqual([
+      expect.objectContaining({
+        id: 'codegraphy.typescript',
+        enabled: false,
+      }),
+    ]);
   });
 
   it('renders plugin-only rows without per-source content', () => {

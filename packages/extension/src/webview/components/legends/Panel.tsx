@@ -5,6 +5,7 @@ import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
+import { Input } from '../ui/input';
 import { ScrollArea } from '../ui/scroll-area';
 import { Switch } from '../ui/switch';
 
@@ -143,39 +144,35 @@ function LegendRuleRow({
   onRemove: () => void;
 }): React.ReactElement {
   return (
-    <div className="rounded border bg-background/40 p-2 space-y-2">
-      <div className="flex items-center gap-2">
-        <input
-          value={rule.pattern}
-          onChange={(event) => {
-            onChange({ ...rule, pattern: event.target.value });
-          }}
-          aria-label={`Legend pattern ${index + 1}`}
-          className="h-8 min-w-0 flex-1 rounded border bg-background px-2 text-xs"
-        />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          title="Delete legend rule"
-          onClick={onRemove}
-        >
-          <MdiIcon path={mdiDelete} size={14} />
-        </Button>
-      </div>
-      <div className="flex items-center justify-end gap-2">
-        <LegendColorInput
-          ariaLabel={`Legend color ${index + 1}`}
-          color={rule.color}
-          onCommit={(color) => onChange({ ...rule, color })}
-        />
-        <Switch
-          checked={!rule.disabled}
-          onCheckedChange={(enabled) => {
-            onChange({ ...rule, disabled: !enabled });
-          }}
-        />
-      </div>
+    <div className="flex items-center gap-2 rounded-md border border-border/70 bg-background/40 px-2 py-1.5">
+      <Input
+        value={rule.pattern}
+        onChange={(event) => {
+          onChange({ ...rule, pattern: event.target.value });
+        }}
+        aria-label={`Legend pattern ${index + 1}`}
+        className="h-8 min-w-0 flex-1 border-0 bg-transparent px-0 shadow-none focus-visible:ring-0"
+      />
+      <LegendColorInput
+        ariaLabel={`Legend color ${index + 1}`}
+        color={rule.color}
+        onCommit={(color) => onChange({ ...rule, color })}
+      />
+      <Switch
+        checked={!rule.disabled}
+        onCheckedChange={(enabled) => {
+          onChange({ ...rule, disabled: !enabled });
+        }}
+      />
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-7 w-7 shrink-0"
+        title="Delete legend rule"
+        onClick={onRemove}
+      >
+        <MdiIcon path={mdiDelete} size={14} />
+      </Button>
     </div>
   );
 }
@@ -191,45 +188,44 @@ function LegendRuleCreateRow({
   const [color, setColor] = useState('#3B82F6');
 
   return (
-    <div className="rounded border bg-background/40 p-2 space-y-2">
-      <input
+    <div className="flex items-center gap-2 rounded-md border border-dashed border-border/70 bg-background/20 px-2 py-1.5">
+      <Input
         value={pattern}
         onChange={(event) => setPattern(event.target.value)}
         placeholder="Pattern, e.g. */tests/**"
-        className="h-8 w-full rounded border bg-background px-2 text-xs"
+        className="h-8 min-w-0 flex-1 border-0 bg-transparent px-0 text-xs shadow-none focus-visible:ring-0"
         aria-label={`New ${target} legend pattern`}
       />
-      <div className="flex items-center justify-end gap-2">
-        <input
-          aria-label={`New ${target} legend color`}
-          type="color"
-          value={color}
-          onChange={(event) => setColor(event.target.value)}
-          className="h-8 w-12 cursor-pointer rounded border-0 bg-transparent p-0"
-        />
-        <Button
-          size="sm"
-          className="h-8 px-2 text-xs"
-          onClick={() => {
-            const nextPattern = pattern.trim();
-            if (!nextPattern) {
-              return;
-            }
+      <input
+        aria-label={`New ${target} legend color`}
+        type="color"
+        value={color}
+        onChange={(event) => setColor(event.target.value)}
+        className="h-7 w-10 cursor-pointer rounded border-0 bg-transparent p-0"
+      />
+      <Button
+        variant="outline"
+        size="icon"
+        className="h-7 w-7 shrink-0 p-0"
+        onClick={() => {
+          const nextPattern = pattern.trim();
+          if (!nextPattern) {
+            return;
+          }
 
-            onAdd({
-              id: createLegendRuleId(),
-              pattern: nextPattern,
-              color,
-              target,
-            });
-            setPattern('');
-            setColor('#3B82F6');
-          }}
-          title={`Add ${target} legend`}
-        >
-          <MdiIcon path={mdiPlus} size={14} />
-        </Button>
-      </div>
+          onAdd({
+            id: createLegendRuleId(),
+            pattern: nextPattern,
+            color,
+            target,
+          });
+          setPattern('');
+          setColor('#3B82F6');
+        }}
+        title={`Add ${target} legend`}
+      >
+        <MdiIcon path={mdiPlus} size={14} />
+      </Button>
     </div>
   );
 }

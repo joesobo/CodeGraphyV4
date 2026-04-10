@@ -37,7 +37,7 @@ function createHandlers(
 }
 
 describe('graph view settings toggle message', () => {
-  it('re-enables plugins and reprocesses the plugin-owned files', async () => {
+  it('re-enables plugins and persists the disabled-plugin list without reprocessing', async () => {
     const state = createState({
       disabledPlugins: new Set(['codegraphy.python']),
     });
@@ -56,10 +56,10 @@ describe('graph view settings toggle message', () => {
     expect([...state.disabledPlugins]).toEqual([]);
     expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
-    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
-  it('disables plugins, persists the expanded disabled-plugin set, and reprocesses plugin-owned files', async () => {
+  it('disables plugins and persists the expanded disabled-plugin set without reprocessing', async () => {
     const state = createState();
     const handlers = createHandlers();
 
@@ -78,7 +78,7 @@ describe('graph view settings toggle message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', [
       'codegraphy.python',
     ]);
-    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith(['codegraphy.python']);
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
   it('disables one plugin without dropping existing disabled plugins', async () => {
@@ -121,16 +121,12 @@ describe('graph view settings toggle message', () => {
     expect(handled).toBe(false);
   });
 
-  it('does not block the toggle response on a long plugin reprocess', async () => {
+  it('returns immediately because toggles do not reprocess plugin files', async () => {
     const state = createState();
-    let resolveReprocess: (() => void) | undefined;
     const handlers = createHandlers({
-      reprocessPluginFiles: vi.fn(() => new Promise<void>((resolve) => {
-        resolveReprocess = resolve;
-      })),
+      reprocessPluginFiles: vi.fn(() => new Promise<void>(() => undefined)),
     });
-
-    const handledPromise = applySettingsToggleMessage(
+    const handled = await applySettingsToggleMessage(
       {
         type: 'TOGGLE_PLUGIN',
         payload: { pluginId: 'codegraphy.python', enabled: false },
@@ -139,12 +135,7 @@ describe('graph view settings toggle message', () => {
       handlers,
     );
 
-    await expect(Promise.race([
-      handledPromise,
-      new Promise((resolve) => setTimeout(() => resolve('timeout'), 0)),
-    ])).resolves.toBe(true);
-
-    resolveReprocess?.();
-    await handledPromise;
+    expect(handled).toBe(true);
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 });
