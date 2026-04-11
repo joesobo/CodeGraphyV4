@@ -46,6 +46,28 @@ function sortByFilePath<T extends { filePath: string }>(items: readonly T[]): T[
   return [...items].sort((left, right) => left.filePath.localeCompare(right.filePath));
 }
 
+function countByFilePath<T extends { filePath: string }>(items: readonly T[]): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  for (const item of items) {
+    counts.set(item.filePath, (counts.get(item.filePath) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
+function countRelationsByFromFilePath(
+  items: readonly IAnalysisRelation[],
+): Map<string, number> {
+  const counts = new Map<string, number>();
+
+  for (const item of items) {
+    counts.set(item.fromFilePath, (counts.get(item.fromFilePath) ?? 0) + 1);
+  }
+
+  return counts;
+}
+
 export function buildSymbolsExportData(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
 ): SymbolExportData {
@@ -104,23 +126,27 @@ export function buildSymbolsExportData(
 export function buildSymbolsExportDataFromSnapshot(
   snapshot: WorkspaceAnalysisDatabaseSnapshot,
 ): SymbolExportData {
+  const symbolCountsByFile = countByFilePath(snapshot.symbols);
+  const relationCountsByFile = countRelationsByFromFilePath(snapshot.relations);
+  const nodes = sortById(snapshot.files.flatMap((file) => file.analysis.nodes ?? []));
+
   return {
     format: 'codegraphy-symbol-export',
     version: '1.0',
     exportedAt: new Date().toISOString(),
     summary: {
       totalFiles: snapshot.files.length,
-      totalNodes: snapshot.files.reduce((total, file) => total + (file.analysis.nodes?.length ?? 0), 0),
+      totalNodes: nodes.length,
       totalSymbols: snapshot.symbols.length,
       totalRelations: snapshot.relations.length,
     },
     files: snapshot.files.map((file) => ({
       filePath: file.filePath,
       nodeCount: file.analysis.nodes?.length ?? 0,
-      symbolCount: file.analysis.symbols?.length ?? 0,
-      relationCount: file.analysis.relations?.length ?? 0,
+      symbolCount: symbolCountsByFile.get(file.filePath) ?? 0,
+      relationCount: relationCountsByFile.get(file.filePath) ?? 0,
     })),
-    nodes: sortById(snapshot.files.flatMap((file) => file.analysis.nodes ?? [])),
+    nodes,
     symbols: sortByFilePath(snapshot.symbols).map((symbol) => ({
       id: symbol.id,
       name: symbol.name,

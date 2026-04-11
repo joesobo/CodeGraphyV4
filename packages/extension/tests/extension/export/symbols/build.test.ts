@@ -78,6 +78,67 @@ describe('buildSymbolsExportData', () => {
 });
 
 describe('buildSymbolsExportDataFromSnapshot', () => {
+  it('uses the structured snapshot symbol and relation tables when per-file analysis fields are missing', () => {
+    const exportData = buildSymbolsExportDataFromSnapshot({
+      files: [
+        {
+          filePath: 'src/app.ts',
+          mtime: 1,
+          analysis: {
+            filePath: 'src/app.ts',
+            nodes: [
+              { id: 'node:file:src/app.ts', nodeType: 'file', label: 'app.ts', filePath: 'src/app.ts' },
+            ],
+          },
+        },
+        {
+          filePath: 'src/lib.ts',
+          mtime: 2,
+          analysis: {
+            filePath: 'src/lib.ts',
+          },
+        },
+      ],
+      symbols: [
+        {
+          id: 'symbol:src/app.ts:activate',
+          name: 'activate',
+          kind: 'function',
+          filePath: 'src/app.ts',
+          signature: '(): void',
+          range: { startLine: 1, endLine: 3 },
+        },
+        {
+          id: 'symbol:src/lib.ts:boot',
+          name: 'boot',
+          kind: 'function',
+          filePath: 'src/lib.ts',
+        },
+      ],
+      relations: [
+        {
+          kind: 'call',
+          sourceId: 'core:treesitter',
+          fromFilePath: 'src/app.ts',
+          toFilePath: 'src/lib.ts',
+          fromSymbolId: 'symbol:src/app.ts:activate',
+          toSymbolId: 'symbol:src/lib.ts:boot',
+        },
+      ],
+    });
+
+    expect(exportData.summary).toEqual({
+      totalFiles: 2,
+      totalNodes: 1,
+      totalSymbols: 2,
+      totalRelations: 1,
+    });
+    expect(exportData.files).toEqual([
+      { filePath: 'src/app.ts', nodeCount: 1, symbolCount: 1, relationCount: 1 },
+      { filePath: 'src/lib.ts', nodeCount: 0, symbolCount: 1, relationCount: 0 },
+    ]);
+  });
+
   it('builds the same lightweight export shape from the persisted structured snapshot', () => {
     const exportData = buildSymbolsExportDataFromSnapshot({
       files: [
