@@ -79,6 +79,33 @@ function getIdentifierText(node: Parser.SyntaxNode | null | undefined): string |
   }
 }
 
+function getVariableAssignedFunctionSymbol(
+  node: Parser.SyntaxNode,
+  filePath: string,
+): IAnalysisSymbol | null {
+  if (node.type !== 'variable_declarator') {
+    return null;
+  }
+
+  const nameNode = node.childForFieldName('name') ?? node.namedChildren[0];
+  const valueNode = node.childForFieldName('value') ?? node.namedChildren.at(-1);
+  const name = getIdentifierText(nameNode);
+
+  if (!name || !valueNode) {
+    return null;
+  }
+
+  if (
+    valueNode.type !== 'arrow_function'
+    && valueNode.type !== 'function'
+    && valueNode.type !== 'function_expression'
+  ) {
+    return null;
+  }
+
+  return createSymbol(filePath, 'function', name, nameNode);
+}
+
 function addNamedImportBindings(
   node: Parser.SyntaxNode,
   importedBindings: Map<string, ImportedBinding>,
@@ -259,6 +286,21 @@ export async function analyzeFileWithTreeSitter(
         const symbol = createSymbol(filePath, 'method', name, node);
         symbols.push(symbol);
         const body = node.childForFieldName('body') ?? node.namedChildren.at(-1);
+        if (body) {
+          walk(body, symbol.id);
+        }
+        return;
+      }
+
+      case 'variable_declarator': {
+        const symbol = getVariableAssignedFunctionSymbol(node, filePath);
+        if (!symbol) {
+          break;
+        }
+
+        symbols.push(symbol);
+        const valueNode = node.childForFieldName('value') ?? node.namedChildren.at(-1);
+        const body = valueNode?.childForFieldName('body') ?? valueNode?.namedChildren.at(-1);
         if (body) {
           walk(body, symbol.id);
         }

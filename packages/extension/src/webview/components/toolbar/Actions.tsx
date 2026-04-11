@@ -4,7 +4,7 @@
  * @module webview/components/toolbar/Actions
  */
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   mdiAutorenew,
   mdiCogOutline,
@@ -65,6 +65,7 @@ export function ToolbarActions(): React.ReactElement {
   const pluginToolbarActions = useGraphStore(s => s.pluginToolbarActions);
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const refreshTitle = graphHasIndex ? 'Refresh' : 'Index Repo';
   const refreshMessageType = graphHasIndex ? 'REFRESH_GRAPH' : 'INDEX_GRAPH';
   const refreshPhase = graphHasIndex ? 'Refreshing Index' : 'Indexing Repo';
@@ -75,6 +76,9 @@ export function ToolbarActions(): React.ReactElement {
   };
 
   const requestIndex = (): void => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     graphStore.setState({
       graphIsIndexing: true,
       graphIndexProgress: {
@@ -83,8 +87,35 @@ export function ToolbarActions(): React.ReactElement {
         total: 1,
       },
     });
+    timeoutRef.current = setTimeout(() => {
+      const state = graphStore.getState();
+      if (
+        state.graphIsIndexing
+        && state.graphIndexProgress?.phase === refreshPhase
+        && state.graphIndexProgress.current === 0
+        && state.graphIndexProgress.total === 1
+      ) {
+        graphStore.setState({
+          graphIsIndexing: false,
+          graphIndexProgress: null,
+        });
+      }
+    }, 10_000);
     postMessage({ type: refreshMessageType });
   };
+
+  useEffect(() => {
+    if (!graphIsIndexing && timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+  }, [graphIsIndexing]);
+
+  useEffect(() => () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  }, []);
 
   return (
     <div className="flex flex-col items-center gap-1.5">

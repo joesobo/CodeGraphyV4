@@ -56,13 +56,16 @@ function countByFilePath<T extends { filePath: string }>(items: readonly T[]): M
   return counts;
 }
 
-function countRelationsByFromFilePath(
+function countRelationsByFilePath(
   items: readonly IAnalysisRelation[],
 ): Map<string, number> {
   const counts = new Map<string, number>();
 
   for (const item of items) {
     counts.set(item.fromFilePath, (counts.get(item.fromFilePath) ?? 0) + 1);
+    if (item.toFilePath && item.toFilePath !== item.fromFilePath) {
+      counts.set(item.toFilePath, (counts.get(item.toFilePath) ?? 0) + 1);
+    }
   }
 
   return counts;
@@ -102,7 +105,7 @@ function ensureFileNode(
 export function buildSymbolsExportData(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
 ): SymbolExportData {
-  const files: SymbolExportFileEntry[] = [];
+  const filePaths: string[] = [];
   const nodes: IAnalysisNode[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const relations: IAnalysisRelation[] = [];
@@ -110,20 +113,27 @@ export function buildSymbolsExportData(
   for (const [filePath, analysis] of [...fileAnalysis.entries()].sort(([left], [right]) =>
     left.localeCompare(right),
   )) {
+    filePaths.push(filePath);
     const fileNodes = ensureFileNode(filePath, analysis.nodes);
     const fileSymbols = analysis.symbols ?? [];
     const fileRelations = analysis.relations ?? [];
 
-    files.push({
-      filePath,
-      nodeCount: fileNodes.length,
-      symbolCount: fileSymbols.length,
-      relationCount: fileRelations.length,
-    });
     nodes.push(...fileNodes);
     symbols.push(...fileSymbols);
     relations.push(...fileRelations);
   }
+
+  const nodeCountsByFile = countByFilePath(nodes.filter((node): node is IAnalysisNode & { filePath: string } =>
+    typeof node.filePath === 'string',
+  ));
+  const symbolCountsByFile = countByFilePath(symbols);
+  const relationCountsByFile = countRelationsByFilePath(relations);
+  const files: SymbolExportFileEntry[] = filePaths.map((filePath) => ({
+    filePath,
+    nodeCount: nodeCountsByFile.get(filePath) ?? 0,
+    symbolCount: symbolCountsByFile.get(filePath) ?? 0,
+    relationCount: relationCountsByFile.get(filePath) ?? 0,
+  }));
 
   return {
     format: 'codegraphy-symbol-export',
@@ -158,7 +168,7 @@ export function buildSymbolsExportDataFromSnapshot(
   snapshot: WorkspaceAnalysisDatabaseSnapshot,
 ): SymbolExportData {
   const symbolCountsByFile = countByFilePath(snapshot.symbols);
-  const relationCountsByFile = countRelationsByFromFilePath(snapshot.relations);
+  const relationCountsByFile = countRelationsByFilePath(snapshot.relations);
   const nodesByFile = snapshot.files.map((file) => ({
     filePath: file.filePath,
     nodes: ensureFileNode(file.filePath, file.analysis.nodes),

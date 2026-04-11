@@ -134,4 +134,37 @@ describe('pipeline/treesitter/analyze', () => {
       ]),
     );
   });
+
+  it('extracts symbols from arrow function and function expression variable declarations', async () => {
+    const workspaceRoot = await createWorkspace({});
+    const filePath = path.join(workspaceRoot, 'src/createFolder.ts');
+    const source = [
+      'export const createFolder = async () => {',
+      '  return true;',
+      '};',
+      '',
+      'const removeFolder = function () {',
+      '  return false;',
+      '};',
+      '',
+    ].join('\n');
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.symbols).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'createFolder',
+          kind: 'function',
+          filePath,
+        }),
+        expect.objectContaining({
+          name: 'removeFolder',
+          kind: 'function',
+          filePath,
+        }),
+      ]),
+    );
+    expect(result?.symbols).toHaveLength(2);
+  });
 });

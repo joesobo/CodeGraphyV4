@@ -1,6 +1,6 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { mdiLinkVariant } from '@mdi/js';
 import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
 import { graphStore } from '../../../src/webview/store/state';
@@ -74,6 +74,7 @@ function clickAction(title: string) {
 describe('ToolbarActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     graphStore.setState({
       activePanel: 'none',
       pluginExporters: [],
@@ -82,6 +83,10 @@ describe('ToolbarActions', () => {
       graphIsIndexing: false,
       graphIndexProgress: null,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders all four action buttons', () => {
@@ -128,6 +133,18 @@ describe('ToolbarActions', () => {
       current: 0,
       total: 1,
     });
+  });
+
+  it('clears the optimistic loading state if the extension never responds', () => {
+    renderWithProviders();
+    clickAction('Index Repo');
+
+    act(() => {
+      vi.advanceTimersByTime(10_000);
+    });
+
+    expect(graphStore.getState().graphIsIndexing).toBe(false);
+    expect(graphStore.getState().graphIndexProgress).toBeNull();
   });
 
   it('renders the export button with title', () => {
@@ -268,7 +285,12 @@ describe('ToolbarActions', () => {
 describe('ToolbarActions export dropdown items', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     graphStore.setState({ pluginExporters: [], pluginToolbarActions: [] });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {

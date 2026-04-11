@@ -57,7 +57,7 @@ describe('buildSymbolsExportData', () => {
       },
       files: [
         { filePath: 'src/app.ts', nodeCount: 1, symbolCount: 1, relationCount: 1 },
-        { filePath: 'src/lib.ts', nodeCount: 1, symbolCount: 1, relationCount: 0 },
+        { filePath: 'src/lib.ts', nodeCount: 1, symbolCount: 1, relationCount: 1 },
       ],
     });
     expect(exportData.symbols.map((symbol) => symbol.id)).toEqual([
@@ -135,7 +135,7 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
     });
     expect(exportData.files).toEqual([
       { filePath: 'src/app.ts', nodeCount: 1, symbolCount: 1, relationCount: 1 },
-      { filePath: 'src/lib.ts', nodeCount: 1, symbolCount: 1, relationCount: 0 },
+      { filePath: 'src/lib.ts', nodeCount: 1, symbolCount: 1, relationCount: 1 },
     ]);
   });
 
@@ -227,7 +227,7 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
       },
       files: [
         { filePath: 'src/app.ts', nodeCount: 1, symbolCount: 1, relationCount: 1 },
-        { filePath: 'src/lib.ts', nodeCount: 1, symbolCount: 1, relationCount: 0 },
+        { filePath: 'src/lib.ts', nodeCount: 1, symbolCount: 1, relationCount: 1 },
       ],
     });
     expect(exportData.symbols.map((symbol) => symbol.id)).toEqual([
@@ -298,6 +298,41 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
         label: 'lib.ts',
         filePath: 'src/lib.ts',
       },
+    ]);
+  });
+
+  it('counts both incoming and outgoing relations for each file summary entry', () => {
+    const exportData = buildSymbolsExportDataFromSnapshot({
+      files: [
+        {
+          filePath: 'src/createFolder.ts',
+          mtime: 1,
+          analysis: {
+            filePath: 'src/createFolder.ts',
+          },
+        },
+        {
+          filePath: 'src/app.ts',
+          mtime: 2,
+          analysis: {
+            filePath: 'src/app.ts',
+          },
+        },
+      ],
+      symbols: [],
+      relations: [
+        {
+          kind: 'import',
+          sourceId: 'core:treesitter',
+          fromFilePath: 'src/app.ts',
+          toFilePath: 'src/createFolder.ts',
+        },
+      ],
+    });
+
+    expect(exportData.files).toEqual([
+      { filePath: 'src/createFolder.ts', nodeCount: 1, symbolCount: 0, relationCount: 1 },
+      { filePath: 'src/app.ts', nodeCount: 1, symbolCount: 0, relationCount: 1 },
     ]);
   });
 });
