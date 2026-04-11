@@ -155,6 +155,24 @@ describe('LegendsPanel', () => {
     expect(screen.queryByTitle('Delete legend rule')).not.toBeInTheDocument();
   });
 
+  it('collapses the node and edge legend sections independently', () => {
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
+      nodeColors: { file: '#333333' },
+      edgeColors: { import: '#444444' },
+      legends: [{ id: 'legend:node', pattern: '*/tests/**', color: '#123abc', target: 'node' }],
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByTitle('Toggle Nodes legend section'));
+    expect(screen.queryByText('Files')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTitle('Toggle Edges legend section'));
+    expect(screen.queryByText('Imports')).not.toBeInTheDocument();
+  });
+
   it('creates a new legend rule through the node and edge sections', () => {
     sentMessages.length = 0;
     graphStore.setState({
@@ -309,6 +327,63 @@ describe('LegendsPanel', () => {
       payload: {
         legendId: 'plugin:codegraphy.typescript:*.ts',
         visible: false,
+      },
+    });
+  });
+
+  it('reorders node legend rules through drag and drop', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      edgeColors: {},
+      legends: [
+        { id: 'legend:first', pattern: 'src/**', color: '#111111', target: 'node' },
+        { id: 'legend:second', pattern: 'tests/**', color: '#222222', target: 'node' },
+      ],
+    });
+
+    const { container } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+    const draggableRows = container.querySelectorAll('[data-testid="legend-rule-row"][draggable="true"]');
+
+    fireEvent.dragStart(draggableRows[1] as Element);
+    fireEvent.dragOver(draggableRows[0] as Element);
+    fireEvent.drop(draggableRows[0] as Element);
+
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_LEGEND_ORDER',
+      payload: {
+        legendIds: ['legend:second', 'legend:first'],
+      },
+    });
+  });
+
+  it('reorders edge legend rules through drag and drop', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      edgeColors: {},
+      legends: [
+        { id: 'legend:node', pattern: 'src/**', color: '#111111', target: 'node' },
+        { id: 'legend:edge:first', pattern: 'import', color: '#222222', target: 'edge' },
+        { id: 'legend:edge:second', pattern: 'call', color: '#333333', target: 'edge' },
+      ],
+    });
+
+    const { container } = render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+    const draggableRows = container.querySelectorAll('[data-testid="legend-rule-row"][draggable="true"]');
+
+    fireEvent.dragStart(draggableRows[2] as Element);
+    fireEvent.dragOver(draggableRows[1] as Element);
+    fireEvent.drop(draggableRows[1] as Element);
+
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_LEGEND_ORDER',
+      payload: {
+        legendIds: ['legend:node', 'legend:edge:second', 'legend:edge:first'],
       },
     });
   });

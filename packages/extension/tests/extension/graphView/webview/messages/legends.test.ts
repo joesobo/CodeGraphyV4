@@ -21,6 +21,7 @@ function createHandlers(
   return {
     persistLegends: vi.fn(() => Promise.resolve()),
     persistDefaultLegendVisibility: vi.fn(() => Promise.resolve()),
+    persistLegendOrder: vi.fn(() => Promise.resolve()),
     recomputeGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     ...overrides,
@@ -99,5 +100,28 @@ describe('graph view legend message', () => {
     expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
     expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(state.userLegends).toEqual([{ id: 'user-group', pattern: 'src/**', color: '#112233' }]);
+  });
+
+  it('persists legend ordering and resends groups', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applyLegendMessage(
+        {
+          type: 'UPDATE_LEGEND_ORDER',
+          payload: { legendIds: ['plugin:codegraphy.typescript:*.ts', 'legend:user'] },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.persistLegendOrder).toHaveBeenCalledWith([
+      'plugin:codegraphy.typescript:*.ts',
+      'legend:user',
+    ]);
+    expect(handlers.recomputeGroups).toHaveBeenCalledOnce();
+    expect(handlers.sendGroupsUpdated).toHaveBeenCalledOnce();
   });
 });

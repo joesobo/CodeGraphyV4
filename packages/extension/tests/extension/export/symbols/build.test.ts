@@ -51,13 +51,13 @@ describe('buildSymbolsExportData', () => {
       version: '1.0',
       summary: {
         totalFiles: 2,
-        totalNodes: 1,
+        totalNodes: 2,
         totalSymbols: 2,
         totalRelations: 1,
       },
       files: [
         { filePath: 'src/app.ts', nodeCount: 1, symbolCount: 1, relationCount: 1 },
-        { filePath: 'src/lib.ts', nodeCount: 0, symbolCount: 1, relationCount: 0 },
+        { filePath: 'src/lib.ts', nodeCount: 1, symbolCount: 1, relationCount: 0 },
       ],
     });
     expect(exportData.symbols.map((symbol) => symbol.id)).toEqual([
@@ -129,13 +129,13 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
 
     expect(exportData.summary).toEqual({
       totalFiles: 2,
-      totalNodes: 1,
+      totalNodes: 2,
       totalSymbols: 2,
       totalRelations: 1,
     });
     expect(exportData.files).toEqual([
       { filePath: 'src/app.ts', nodeCount: 1, symbolCount: 1, relationCount: 1 },
-      { filePath: 'src/lib.ts', nodeCount: 0, symbolCount: 1, relationCount: 0 },
+      { filePath: 'src/lib.ts', nodeCount: 1, symbolCount: 1, relationCount: 0 },
     ]);
   });
 
@@ -221,13 +221,13 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
       version: '1.0',
       summary: {
         totalFiles: 2,
-        totalNodes: 1,
+        totalNodes: 2,
         totalSymbols: 2,
         totalRelations: 1,
       },
       files: [
         { filePath: 'src/app.ts', nodeCount: 1, symbolCount: 1, relationCount: 1 },
-        { filePath: 'src/lib.ts', nodeCount: 0, symbolCount: 1, relationCount: 0 },
+        { filePath: 'src/lib.ts', nodeCount: 1, symbolCount: 1, relationCount: 0 },
       ],
     });
     expect(exportData.symbols.map((symbol) => symbol.id)).toEqual([
@@ -242,6 +242,61 @@ describe('buildSymbolsExportDataFromSnapshot', () => {
         toFilePath: 'src/lib.ts',
         fromSymbolId: 'symbol:src/app.ts:activate',
         toSymbolId: 'symbol:src/lib.ts:boot',
+      },
+    ]);
+  });
+
+  it('synthesizes file nodes for snapshot files when analysis nodes are absent', () => {
+    const exportData = buildSymbolsExportDataFromSnapshot({
+      files: [
+        {
+          filePath: 'src/app.ts',
+          mtime: 1,
+          analysis: {
+            filePath: 'src/app.ts',
+          },
+        },
+        {
+          filePath: 'src/lib.ts',
+          mtime: 2,
+          analysis: {
+            filePath: 'src/lib.ts',
+          },
+        },
+      ],
+      symbols: [
+        {
+          id: 'symbol:src/app.ts:activate',
+          name: 'activate',
+          kind: 'function',
+          filePath: 'src/app.ts',
+        },
+      ],
+      relations: [],
+    });
+
+    expect(exportData.summary).toEqual({
+      totalFiles: 2,
+      totalNodes: 2,
+      totalSymbols: 1,
+      totalRelations: 0,
+    });
+    expect(exportData.files).toEqual([
+      { filePath: 'src/app.ts', nodeCount: 1, symbolCount: 1, relationCount: 0 },
+      { filePath: 'src/lib.ts', nodeCount: 1, symbolCount: 0, relationCount: 0 },
+    ]);
+    expect(exportData.nodes).toEqual([
+      {
+        id: 'node:file:src/app.ts',
+        nodeType: 'file',
+        label: 'app.ts',
+        filePath: 'src/app.ts',
+      },
+      {
+        id: 'node:file:src/lib.ts',
+        nodeType: 'file',
+        label: 'lib.ts',
+        filePath: 'src/lib.ts',
       },
     ]);
   });

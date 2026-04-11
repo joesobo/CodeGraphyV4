@@ -6,6 +6,7 @@ import PluginsPanel from '../components/plugins/Panel';
 import LegendsPanel from '../components/legends/Panel';
 import NodesPanel from '../components/nodes/Panel';
 import EdgesPanel from '../components/edges/Panel';
+import ExportPanel from '../components/export/Panel';
 import Toolbar from '../components/Toolbar';
 import { DepthViewControls } from '../components/depthView/view';
 import { ActiveFileBreadcrumb } from '../components/activeFileBreadcrumb/view';
@@ -137,6 +138,7 @@ export default function App(): React.ReactElement {
           <NodesPanel isOpen={activePanel === 'nodes'} onClose={() => setActivePanel('none')} />
           <EdgesPanel isOpen={activePanel === 'edges'} onClose={() => setActivePanel('none')} />
           <LegendsPanel isOpen={activePanel === 'legends'} onClose={() => setActivePanel('none')} />
+          <ExportPanel isOpen={activePanel === 'export'} onClose={() => setActivePanel('none')} />
           <PluginsPanel isOpen={activePanel === 'plugins'} onClose={() => setActivePanel('none')} />
           <SettingsPanel isOpen={activePanel === 'settings'} onClose={() => setActivePanel('none')} />
           {hasGraphNodes && activePanel === 'none' ? (

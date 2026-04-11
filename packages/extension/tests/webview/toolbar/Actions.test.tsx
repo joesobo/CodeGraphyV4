@@ -55,15 +55,7 @@ import {
 import {
   buildPluginExporterGroups,
   getPluginExporterKey,
-} from '../../../src/webview/components/toolbar/exportMenu';
-
-const exportCases = [
-  ['Export as PNG', 'REQUEST_EXPORT_PNG'],
-  ['Export as SVG', 'REQUEST_EXPORT_SVG'],
-  ['Export as JPEG', 'REQUEST_EXPORT_JPEG'],
-  ['Export as JSON', 'REQUEST_EXPORT_JSON'],
-  ['Export as Markdown', 'REQUEST_EXPORT_MD'],
-] as const;
+} from '../../../src/webview/components/export/model';
 
 const iconButtonTitles = ['Index Repo', 'Export', 'Nodes', 'Edges', 'Legends', 'Plugins', 'Settings'] as const;
 
@@ -79,15 +71,6 @@ function clickAction(title: string) {
   fireEvent.click(screen.getByTitle(title));
 }
 
-function clickExportItem(label: string) {
-  const postMessageSpy = vi.spyOn(window, 'postMessage');
-
-  renderWithProviders();
-  fireEvent.click(screen.getByText(label));
-
-  return postMessageSpy;
-}
-
 describe('ToolbarActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -96,7 +79,8 @@ describe('ToolbarActions', () => {
       pluginExporters: [],
       pluginToolbarActions: [],
       graphHasIndex: false,
-      isIndexing: false,
+      graphIsIndexing: false,
+      graphIndexProgress: null,
     });
   });
 
@@ -115,6 +99,12 @@ describe('ToolbarActions', () => {
     renderWithProviders();
     clickAction('Index Repo');
     expect(postMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
+    expect(graphStore.getState().graphIsIndexing).toBe(true);
+    expect(graphStore.getState().graphIndexProgress).toEqual({
+      phase: 'Indexing Repo',
+      current: 0,
+      total: 1,
+    });
   });
 
   it('renders the refresh button title when a graph index exists', () => {
@@ -132,11 +122,32 @@ describe('ToolbarActions', () => {
     clickAction('Refresh');
 
     expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
+    expect(graphStore.getState().graphIsIndexing).toBe(true);
+    expect(graphStore.getState().graphIndexProgress).toEqual({
+      phase: 'Refreshing Index',
+      current: 0,
+      total: 1,
+    });
   });
 
   it('renders the export button with title', () => {
     renderWithProviders();
     expect(screen.getByTitle('Export')).toBeInTheDocument();
+  });
+
+  it('sets active panel to export when the export button is clicked', () => {
+    renderWithProviders();
+    clickAction('Export');
+    expect(graphStore.getState().activePanel).toBe('export');
+  });
+
+  it('closes the export panel when the export button is clicked again', () => {
+    graphStore.setState({ activePanel: 'export' as never });
+
+    renderWithProviders();
+    clickAction('Export');
+
+    expect(graphStore.getState().activePanel).toBe('none');
   });
 
   it('renders toolbar action buttons before the export button when plugin toolbar actions are available', () => {
@@ -260,117 +271,12 @@ describe('ToolbarActions export dropdown items', () => {
     graphStore.setState({ pluginExporters: [], pluginToolbarActions: [] });
   });
 
-  it('renders all five export menu items', () => {
-    renderWithProviders();
-    expect(screen.getByText('Export as PNG')).toBeInTheDocument();
-    expect(screen.getByText('Export as SVG')).toBeInTheDocument();
-    expect(screen.getByText('Export as JPEG')).toBeInTheDocument();
-    expect(screen.getByText('Export as JSON')).toBeInTheDocument();
-    expect(screen.getByText('Export as Markdown')).toBeInTheDocument();
-  });
-
-  it('renders Images and Graph section labels', () => {
-    renderWithProviders();
-    expect(screen.getByText('Images')).toBeInTheDocument();
-    expect(screen.getByText('Graph')).toBeInTheDocument();
-  });
-
-  it('does not render a plugin exporter section when no exporters are available', () => {
-    renderWithProviders();
-
-    expect(
-      screen.queryAllByTestId('dropdown-label').map(label => label.textContent),
-    ).toEqual(['Images', 'Graph']);
-  });
-
-  it.each(exportCases)('posts %s when clicked', (label, type) => {
-    const postMessageSpy = clickExportItem(label);
-
-    expect(postMessageSpy).toHaveBeenCalledWith({ type }, '*');
-    postMessageSpy.mockRestore();
-  });
-
   it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {
     renderWithProviders();
     const path = screen.getByTitle(title).querySelector('svg path');
 
     expect(path).not.toBeNull();
     expect(path?.getAttribute('d')).toBeTruthy();
-  });
-
-  it('renders plugin exporter sections when plugin exporters are available', () => {
-    graphStore.setState({
-      pluginExporters: [
-        {
-          id: 'summary',
-          label: 'Summary Export',
-          pluginId: 'plugin.docs',
-          pluginName: 'Docs Plugin',
-          index: 0,
-          group: 'Reports',
-        },
-      ],
-    });
-
-    renderWithProviders();
-
-    expect(screen.getByText('Plugins')).toBeInTheDocument();
-    expect(screen.getByText('Docs Plugin / Reports')).toBeInTheDocument();
-    expect(screen.getByText('Summary Export')).toBeInTheDocument();
-  });
-
-  it('renders duplicate exporters under the same plugin group label', () => {
-    graphStore.setState({
-      pluginExporters: [
-        {
-          id: 'summary',
-          label: 'Summary Export',
-          pluginId: 'plugin.docs',
-          pluginName: 'Docs Plugin',
-          index: 0,
-          group: 'Reports',
-        },
-        {
-          id: 'details',
-          label: 'Details Export',
-          pluginId: 'plugin.docs',
-          pluginName: 'Docs Plugin',
-          index: 1,
-          group: 'Reports',
-        },
-      ],
-    });
-
-    renderWithProviders();
-
-    expect(screen.getAllByText('Docs Plugin / Reports')).toHaveLength(1);
-    expect(screen.getByText('Summary Export')).toBeInTheDocument();
-    expect(screen.getByText('Details Export')).toBeInTheDocument();
-  });
-
-  it('posts RUN_PLUGIN_EXPORT through the host api when a plugin exporter is clicked', () => {
-    graphStore.setState({
-      pluginExporters: [
-        {
-          id: 'summary',
-          label: 'Summary Export',
-          pluginId: 'plugin.docs',
-          pluginName: 'Docs Plugin',
-          index: 0,
-        },
-      ],
-    });
-
-    renderWithProviders();
-    fireEvent.click(screen.getByText('Summary Export'));
-
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'RUN_PLUGIN_EXPORT',
-      payload: {
-        pluginId: 'plugin.docs',
-        index: 0,
-      },
-    });
   });
 
   it('renders a toolbar action popup when plugin toolbar actions are available', () => {

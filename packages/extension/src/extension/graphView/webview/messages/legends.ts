@@ -8,6 +8,7 @@ export interface GraphViewLegendMessageState {
 export interface GraphViewLegendMessageHandlers {
   persistLegends(legends: IGroup[]): Promise<void>;
   persistDefaultLegendVisibility(legendId: string, visible: boolean): Promise<void>;
+  persistLegendOrder(legendIds: string[]): Promise<void>;
   recomputeGroups(): void;
   sendGroupsUpdated(): void;
 }
@@ -36,6 +37,12 @@ export async function applyLegendMessage(
         message.payload.legendId,
         message.payload.visible,
       );
+      handlers.recomputeGroups();
+      handlers.sendGroupsUpdated();
+      return true;
+
+    case 'UPDATE_LEGEND_ORDER':
+      await handlers.persistLegendOrder(message.payload.legendIds);
       handlers.recomputeGroups();
       handlers.sendGroupsUpdated();
       return true;

@@ -60,7 +60,7 @@ export interface IStoreFields {
   pluginContextMenuItems: IPluginContextMenuItem[];
   pluginExporters: IPluginExporterItem[];
   pluginToolbarActions: IPluginToolbarAction[];
-  activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'nodes' | 'edges';
+  activePanel: 'none' | 'settings' | 'plugins' | 'legends' | 'nodes' | 'edges' | 'export';
   maxFiles: number;
   activeFilePath: string | null;
   timelineActive: boolean;

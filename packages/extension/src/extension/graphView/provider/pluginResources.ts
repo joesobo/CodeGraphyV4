@@ -47,6 +47,7 @@ export interface GraphViewProviderPluginResourceMethodDependencies {
   refreshWebviewResourceRoots: typeof refreshGraphViewResourceRoots;
   normalizeExtensionUri: typeof normalizeGraphViewExtensionUri;
   getDefaultLegendVisibility(): Record<string, boolean>;
+  getLegendOrder(): string[];
   getWorkspaceFolders(): readonly vscode.WorkspaceFolder[] | undefined;
 }
 
@@ -62,6 +63,8 @@ function createDefaultGraphViewProviderPluginResourceMethodDependencies(): Graph
     normalizeExtensionUri: normalizeGraphViewExtensionUri,
     getDefaultLegendVisibility: () =>
       getCodeGraphyConfiguration().get<Record<string, boolean>>('legendVisibility', {}) ?? {},
+    getLegendOrder: () =>
+      getCodeGraphyConfiguration().get<string[]>('legendOrder', []) ?? [],
     getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
   };
 }
@@ -92,6 +95,7 @@ export function createGraphViewProviderPluginResourceMethods(
       _getBuiltInDefaultGroups(),
       _getPluginDefaultGroups(),
       resolvedDependencies.getDefaultLegendVisibility(),
+      resolvedDependencies.getLegendOrder(),
     );
   };
 
