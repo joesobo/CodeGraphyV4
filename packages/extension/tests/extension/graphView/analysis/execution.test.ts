@@ -167,10 +167,15 @@ describe('graph view analysis execution', () => {
     expect(analyze).toHaveBeenCalledOnce();
     expect(handlers.sendIndexProgress).toHaveBeenNthCalledWith(1, {
       phase: 'Indexing Repo',
+      current: 0,
+      total: 1,
+    });
+    expect(handlers.sendIndexProgress).toHaveBeenNthCalledWith(2, {
+      phase: 'Indexing Repo',
       current: 1,
       total: 3,
     });
-    expect(handlers.sendIndexProgress).toHaveBeenNthCalledWith(2, {
+    expect(handlers.sendIndexProgress).toHaveBeenNthCalledWith(3, {
       phase: 'Indexing Repo',
       current: 3,
       total: 3,
@@ -194,6 +199,26 @@ describe('graph view analysis execution', () => {
 
     expect(refreshIndex).toHaveBeenCalledOnce();
     expect(analyze).not.toHaveBeenCalled();
+  });
+
+  it('publishes an immediate refresh progress state before a small repo finishes reindexing', async () => {
+    const refreshIndex = vi.fn(async () => ({ nodes: [], edges: [] }));
+    const state = createState({
+      mode: 'refresh',
+      analyzer: createAnalyzer({
+        refreshIndex,
+      }),
+      analyzerInitialized: true,
+    });
+    const { handlers } = createHandlers();
+
+    await executeGraphViewAnalysis(new AbortController().signal, 1, state, handlers);
+
+    expect(handlers.sendIndexProgress).toHaveBeenCalledWith({
+      phase: 'Refreshing Index',
+      current: 0,
+      total: 1,
+    });
   });
 
   it('runs scoped incremental refresh through the changed-file analyzer path', async () => {

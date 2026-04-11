@@ -13,6 +13,7 @@ import {
   mdiShapeOutline,
   mdiVectorLine,
   mdiPuzzleOutline,
+  mdiExport,
 } from '@mdi/js';
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
@@ -24,9 +25,8 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
 } from '../ui/menus/dropdown-menu';
-import { useGraphStore } from '../../store/state';
+import { graphStore, useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
-import { ToolbarExportMenu } from './exportMenu';
 
 export interface ToolbarActionItemLike {
   id: string;
@@ -67,10 +67,23 @@ export function ToolbarActions(): React.ReactElement {
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
   const refreshTitle = graphHasIndex ? 'Refresh' : 'Index Repo';
   const refreshMessageType = graphHasIndex ? 'REFRESH_GRAPH' : 'INDEX_GRAPH';
+  const refreshPhase = graphHasIndex ? 'Refreshing Index' : 'Indexing Repo';
   const togglePanel = (
-    panel: 'nodes' | 'edges' | 'legends' | 'plugins' | 'settings',
+    panel: 'nodes' | 'edges' | 'legends' | 'plugins' | 'settings' | 'export',
   ): void => {
     setActivePanel(activePanel === panel ? 'none' : panel);
+  };
+
+  const requestIndex = (): void => {
+    graphStore.setState({
+      graphIsIndexing: true,
+      graphIndexProgress: {
+        phase: refreshPhase,
+        current: 0,
+        total: 1,
+      },
+    });
+    postMessage({ type: refreshMessageType });
   };
 
   return (
@@ -81,7 +94,7 @@ export function ToolbarActions(): React.ReactElement {
             variant="outline"
             size="icon"
             className="h-7 w-7 bg-transparent"
-            onClick={() => postMessage({ type: refreshMessageType })}
+            onClick={requestIndex}
             title={refreshTitle}
             disabled={graphIsIndexing}
           >
@@ -129,7 +142,20 @@ export function ToolbarActions(): React.ReactElement {
         </DropdownMenu>
       ))}
 
-      <ToolbarExportMenu />
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="h-7 w-7 bg-transparent"
+            onClick={() => togglePanel('export')}
+            title="Export"
+          >
+            <MdiIcon path={mdiExport} size={16} />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="right">Export</TooltipContent>
+      </Tooltip>
 
       <Tooltip>
         <TooltipTrigger asChild>

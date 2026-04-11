@@ -114,6 +114,27 @@ describe('graphView/provider/refresh', () => {
     expect(source._sendFavorites).toHaveBeenCalledOnce();
   });
 
+  it('refreshIndex uses the explicit reindex path when available', async () => {
+    const refreshAndSendData = vi.fn(async () => undefined);
+    const source = createSource({
+      _refreshAndSendData: refreshAndSendData,
+    });
+    const methods = createGraphViewProviderRefreshMethods(source as never, {
+      getShowOrphans: vi.fn(() => true),
+      rebuildGraphData: vi.fn(),
+      smartRebuildGraphData: vi.fn(),
+    });
+
+    await methods.refreshIndex();
+
+    expect(source._loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
+    expect(source._loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
+    expect(refreshAndSendData).toHaveBeenCalledOnce();
+    expect(source._analyzeAndSendData).not.toHaveBeenCalled();
+    expect(source._sendAllSettings).toHaveBeenCalledOnce();
+    expect(source._sendFavorites).toHaveBeenCalledOnce();
+  });
+
   it('refreshChangedFiles reloads discovered nodes instead of indexing when no index exists yet', async () => {
     const source = createSource();
     source._analyzer.hasIndex.mockReturnValue(false);

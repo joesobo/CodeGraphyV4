@@ -19,6 +19,7 @@ describe('graphView/provider/pluginResources', () => {
     const builtInGroups = [{ id: 'built-in', pattern: '*.md', color: '#000' }] satisfies IGroup[];
     const pluginGroups = [{ id: 'plugin', pattern: '*.gd', color: '#090' }] satisfies IGroup[];
     const defaultLegendVisibility = { plugin: false };
+    const legendOrder = ['plugin', 'user'];
     const buildMergedGroups = vi.fn(() => [...builtInGroups, ...pluginGroups]);
     const methods = createGraphViewProviderPluginResourceMethods(source as never, {
       registerBuiltInPluginRoots: vi.fn((extensionUri, roots) => {
@@ -32,6 +33,7 @@ describe('graphView/provider/pluginResources', () => {
       refreshWebviewResourceRoots: vi.fn(),
       normalizeExtensionUri: vi.fn(),
       getDefaultLegendVisibility: vi.fn(() => defaultLegendVisibility),
+      getLegendOrder: vi.fn(() => legendOrder),
       getWorkspaceFolders: vi.fn(() => []),
     });
 
@@ -44,6 +46,7 @@ describe('graphView/provider/pluginResources', () => {
       builtInGroups,
       pluginGroups,
       defaultLegendVisibility,
+      legendOrder,
     );
     expect(source._groups).toEqual([...builtInGroups, ...pluginGroups]);
   });
@@ -73,6 +76,7 @@ describe('graphView/provider/pluginResources', () => {
       refreshWebviewResourceRoots,
       normalizeExtensionUri: vi.fn(uri => (typeof uri === 'string' ? vscode.Uri.file(uri) : uri)),
       getDefaultLegendVisibility: vi.fn(() => ({})),
+      getLegendOrder: vi.fn(() => []),
       getWorkspaceFolders: vi.fn(() => [{ uri: vscode.Uri.file('/workspace') }] as never),
     });
 
@@ -120,6 +124,7 @@ describe('graphView/provider/pluginResources', () => {
       refreshWebviewResourceRoots: vi.fn(),
       normalizeExtensionUri,
       getDefaultLegendVisibility: vi.fn(() => ({})),
+      getLegendOrder: vi.fn(() => []),
       getWorkspaceFolders: vi.fn(() => []),
     });
 

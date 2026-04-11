@@ -104,6 +104,21 @@ function createProgressForwarder(
   };
 }
 
+function sendInitialProgressState(
+  mode: GraphViewAnalysisMode,
+  handlers: GraphViewAnalysisExecutionHandlers,
+): void {
+  if (mode !== 'index' && mode !== 'refresh' && mode !== 'incremental') {
+    return;
+  }
+
+  createProgressForwarder(mode, handlers)({
+    phase: '',
+    current: 0,
+    total: 1,
+  });
+}
+
 export async function executeGraphViewAnalysis(
   signal: AbortSignal,
   requestId: number,
@@ -148,6 +163,9 @@ export async function executeGraphViewAnalysis(
   try {
     const shouldDiscover = state.mode === 'load' && !state.analyzer.hasIndex();
     const forwardProgress = createProgressForwarder(state.mode, handlers);
+    if (!shouldDiscover) {
+      sendInitialProgressState(state.mode, handlers);
+    }
     const rawGraphData = shouldDiscover
       ? await state.analyzer.discoverGraph(
           state.filterPatterns,

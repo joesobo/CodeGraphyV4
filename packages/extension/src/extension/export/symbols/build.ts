@@ -68,6 +68,37 @@ function countRelationsByFromFilePath(
   return counts;
 }
 
+function getFileLabel(filePath: string): string {
+  const parts = filePath.split(/[/\\]/);
+  return parts.at(-1) || filePath;
+}
+
+function createFileNode(filePath: string): IAnalysisNode {
+  return {
+    id: `node:file:${filePath}`,
+    nodeType: 'file',
+    label: getFileLabel(filePath),
+    filePath,
+  };
+}
+
+function ensureFileNode(
+  filePath: string,
+  nodes: readonly IAnalysisNode[] | undefined,
+): IAnalysisNode[] {
+  const nextNodes = [...(nodes ?? [])];
+  const fileNodeId = `node:file:${filePath}`;
+  const hasFileNode = nextNodes.some((node) =>
+    node.id === fileNodeId || (node.nodeType === 'file' && node.filePath === filePath),
+  );
+
+  if (!hasFileNode) {
+    nextNodes.unshift(createFileNode(filePath));
+  }
+
+  return nextNodes;
+}
+
 export function buildSymbolsExportData(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
 ): SymbolExportData {
@@ -79,7 +110,7 @@ export function buildSymbolsExportData(
   for (const [filePath, analysis] of [...fileAnalysis.entries()].sort(([left], [right]) =>
     left.localeCompare(right),
   )) {
-    const fileNodes = analysis.nodes ?? [];
+    const fileNodes = ensureFileNode(filePath, analysis.nodes);
     const fileSymbols = analysis.symbols ?? [];
     const fileRelations = analysis.relations ?? [];
 
@@ -128,7 +159,11 @@ export function buildSymbolsExportDataFromSnapshot(
 ): SymbolExportData {
   const symbolCountsByFile = countByFilePath(snapshot.symbols);
   const relationCountsByFile = countRelationsByFromFilePath(snapshot.relations);
-  const nodes = sortById(snapshot.files.flatMap((file) => file.analysis.nodes ?? []));
+  const nodesByFile = snapshot.files.map((file) => ({
+    filePath: file.filePath,
+    nodes: ensureFileNode(file.filePath, file.analysis.nodes),
+  }));
+  const nodes = sortById(nodesByFile.flatMap((file) => file.nodes));
 
   return {
     format: 'codegraphy-symbol-export',
@@ -140,9 +175,9 @@ export function buildSymbolsExportDataFromSnapshot(
       totalSymbols: snapshot.symbols.length,
       totalRelations: snapshot.relations.length,
     },
-    files: snapshot.files.map((file) => ({
+    files: nodesByFile.map((file) => ({
       filePath: file.filePath,
-      nodeCount: file.analysis.nodes?.length ?? 0,
+      nodeCount: file.nodes.length,
       symbolCount: symbolCountsByFile.get(file.filePath) ?? 0,
       relationCount: relationCountsByFile.get(file.filePath) ?? 0,
     })),

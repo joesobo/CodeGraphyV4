@@ -43,6 +43,7 @@ type GraphViewProviderPrimaryActions = Pick<
   | 'resetPhysicsSettings'
   | 'persistLegends'
   | 'persistDefaultLegendVisibility'
+  | 'persistLegendOrder'
   | 'recomputeGroups'
   | 'sendGroupsUpdated'
   | 'showOpenDialog'
@@ -102,6 +103,9 @@ export function createGraphViewProviderMessagePrimaryActions(
         ...currentVisibility,
         [legendId]: visible,
       });
+    },
+    persistLegendOrder: async legendIds => {
+      await updateCodeGraphyConfigurationSilently('legendOrder', legendIds);
     },
     recomputeGroups: () => source._computeMergedGroups(),
     sendGroupsUpdated: () => source._sendGroupsUpdated(),

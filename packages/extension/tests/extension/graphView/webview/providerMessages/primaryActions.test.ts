@@ -89,6 +89,7 @@ describe('graph view provider listener primary actions', () => {
 
     await actions.persistLegends(groups as never);
     await actions.persistDefaultLegendVisibility('plugin:codegraphy.typescript:*.ts', false);
+    await actions.persistLegendOrder(['plugin:codegraphy.typescript:*.ts', 'legend:user']);
     actions.showInformationMessage('saved');
     await actions.showOpenDialog(openDialogOptions as never);
 
@@ -96,6 +97,10 @@ describe('graph view provider listener primary actions', () => {
     expect(updateSilently).toHaveBeenCalledWith('legendVisibility', {
       'plugin:codegraphy.typescript:*.ts': false,
     });
+    expect(updateSilently).toHaveBeenCalledWith('legendOrder', [
+      'plugin:codegraphy.typescript:*.ts',
+      'legend:user',
+    ]);
     expect(dependencies.window.showInformationMessage).toHaveBeenCalledWith('saved');
     expect(dependencies.window.showOpenDialog).toHaveBeenCalledWith(openDialogOptions);
   });
