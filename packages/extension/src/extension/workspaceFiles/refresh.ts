@@ -6,27 +6,66 @@ import {
 } from './ignore';
 
 interface PendingWorkspaceRefresh {
+  filePaths: Set<string>;
   logMessage: string;
   timeout: ReturnType<typeof setTimeout>;
 }
 
 const pendingWorkspaceRefreshes = new WeakMap<GraphViewProvider, PendingWorkspaceRefresh>();
 
+function isGraphOpen(provider: GraphViewProvider): boolean {
+  return provider.isGraphOpen?.() ?? true;
+}
+
+function markWorkspaceRefreshPending(
+  provider: GraphViewProvider,
+  logMessage: string,
+  filePaths: readonly string[],
+): void {
+  provider.markWorkspaceRefreshPending?.(logMessage, filePaths);
+}
+
 export function scheduleWorkspaceRefresh(
   provider: GraphViewProvider,
   logMessage: string,
+  filePaths: readonly string[] = [],
   delayMs: number = 500,
 ): void {
+  const nextFilePaths = new Set(filePaths);
+
+  if (!isGraphOpen(provider)) {
+    markWorkspaceRefreshPending(provider, logMessage, [...nextFilePaths]);
+    return;
+  }
+
   const pending = pendingWorkspaceRefreshes.get(provider);
   if (pending) {
     clearTimeout(pending.timeout);
+    for (const filePath of pending.filePaths) {
+      nextFilePaths.add(filePath);
+    }
   }
 
   const nextPending: PendingWorkspaceRefresh = {
+    filePaths: nextFilePaths,
     logMessage,
     timeout: setTimeout(() => {
       pendingWorkspaceRefreshes.delete(provider);
+      if (!isGraphOpen(provider)) {
+        markWorkspaceRefreshPending(
+          provider,
+          nextPending.logMessage,
+          [...nextPending.filePaths],
+        );
+        return;
+      }
       console.log(nextPending.logMessage);
+      if (provider.refreshChangedFiles) {
+        void provider.refreshChangedFiles([...nextPending.filePaths]);
+        return;
+      }
+
+      provider.invalidateWorkspaceFiles?.([...nextPending.filePaths]);
       void provider.refresh();
     }, delayMs),
   };
@@ -43,7 +82,11 @@ export function registerSaveHandler(
       if (shouldIgnoreSaveForGraphRefresh(document)) {
         return;
       }
-      scheduleWorkspaceRefresh(provider, '[CodeGraphy] File saved, refreshing graph');
+      scheduleWorkspaceRefresh(
+        provider,
+        '[CodeGraphy] File saved, refreshing graph',
+        [document.uri.fsPath],
+      );
       provider.emitEvent('workspace:fileChanged', { filePath: document.uri.fsPath });
     }),
   );
@@ -59,7 +102,11 @@ export function registerFileWatcher(
       if (shouldIgnoreWorkspaceFileWatcherRefresh(uri.fsPath)) {
         return;
       }
-      scheduleWorkspaceRefresh(provider, '[CodeGraphy] File created, refreshing graph');
+      scheduleWorkspaceRefresh(
+        provider,
+        '[CodeGraphy] File created, refreshing graph',
+        [uri.fsPath],
+      );
       provider.emitEvent('workspace:fileCreated', { filePath: uri.fsPath });
     }),
   );
@@ -68,7 +115,11 @@ export function registerFileWatcher(
       if (shouldIgnoreWorkspaceFileWatcherRefresh(uri.fsPath)) {
         return;
       }
-      scheduleWorkspaceRefresh(provider, '[CodeGraphy] File deleted, refreshing graph');
+      scheduleWorkspaceRefresh(
+        provider,
+        '[CodeGraphy] File deleted, refreshing graph',
+        [uri.fsPath],
+      );
       provider.emitEvent('workspace:fileDeleted', { filePath: uri.fsPath });
     }),
   );

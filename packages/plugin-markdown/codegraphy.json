@@ -5,7 +5,7 @@
   "version": "1.0.0",
   "apiVersion": "^2.0.0",
   "tier": 1,
-  "supportedExtensions": [".md", ".mdx"],
+  "supportedExtensions": ["*"],
   "defaultFilters": [],
   "fileColors": {
     "*.md": "#7C3AED",

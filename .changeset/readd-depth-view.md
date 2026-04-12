@@ -2,4 +2,4 @@
 "@codegraphy/extension": minor
 ---
 
-Reintroduce the depth view as a local graph around the active file with a bottom-mounted depth slider.
+Reintroduce depth mode on the unified graph surface, with a local graph around the active file and a bottom-mounted depth slider.

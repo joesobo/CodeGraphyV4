@@ -1,11 +1,14 @@
 import type { PartialState, IHandlerContext } from './messageTypes';
 import {
   handleGraphDataUpdated,
+  handleGraphIndexProgress,
+  handleGraphIndexStatusUpdated,
+  handleGraphControlsUpdated,
   handleFavoritesUpdated,
   handleSettingsUpdated,
-  handleGroupsUpdated,
+  handleLegendsUpdated,
   handleFilterPatternsUpdated,
-  handleViewsUpdated,
+  handleDepthModeUpdated,
   handlePhysicsSettingsUpdated,
   handleDepthLimitUpdated,
   handleDepthLimitRangeUpdated,
@@ -29,11 +32,10 @@ import {
   handlePluginExportersUpdated,
   handlePluginToolbarActionsUpdated,
   handleDagModeUpdated,
-  handleFolderNodeColorUpdated,
   handleNodeSizeModeUpdated,
 } from './messageHandlers/plugin';
 import {
-  handleCycleView,
+  handleToggleDepthMode,
   handleCycleLayout,
   handleToggleDimension,
 } from './messageHandlers/toolbar';
@@ -45,19 +47,33 @@ export const MESSAGE_HANDLERS: Record<
 > = {
   GRAPH_DATA_UPDATED: (msg) =>
     handleGraphDataUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_DATA_UPDATED' }>),
+  GRAPH_INDEX_STATUS_UPDATED: (msg) =>
+    handleGraphIndexStatusUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_STATUS_UPDATED' }>
+    ),
+  GRAPH_INDEX_PROGRESS: (msg) =>
+    handleGraphIndexProgress(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_INDEX_PROGRESS' }>
+    ),
+  GRAPH_CONTROLS_UPDATED: (msg) =>
+    handleGraphControlsUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'GRAPH_CONTROLS_UPDATED' }>
+    ),
   FAVORITES_UPDATED: (msg) =>
     handleFavoritesUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FAVORITES_UPDATED' }>),
   SETTINGS_UPDATED: (msg) =>
     handleSettingsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'SETTINGS_UPDATED' }>),
-  GROUPS_UPDATED: (msg, ctx) =>
-    handleGroupsUpdated(
-      msg as Extract<ExtensionToWebviewMessage, { type: 'GROUPS_UPDATED' }>,
+  DEPTH_MODE_UPDATED: (msg) =>
+    handleDepthModeUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'DEPTH_MODE_UPDATED' }>
+    ),
+  LEGENDS_UPDATED: (msg, ctx) =>
+    handleLegendsUpdated(
+      msg as Extract<ExtensionToWebviewMessage, { type: 'LEGENDS_UPDATED' }>,
       ctx,
     ),
   FILTER_PATTERNS_UPDATED: (msg) =>
     handleFilterPatternsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FILTER_PATTERNS_UPDATED' }>),
-  VIEWS_UPDATED: (msg) =>
-    handleViewsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'VIEWS_UPDATED' }>),
   PHYSICS_SETTINGS_UPDATED: (msg) =>
     handlePhysicsSettingsUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'PHYSICS_SETTINGS_UPDATED' }>),
   DEPTH_LIMIT_UPDATED: (msg) =>
@@ -100,11 +116,9 @@ export const MESSAGE_HANDLERS: Record<
   PLUGIN_WEBVIEW_INJECT: () => undefined,
   DAG_MODE_UPDATED: (msg) =>
     handleDagModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'DAG_MODE_UPDATED' }>),
-  FOLDER_NODE_COLOR_UPDATED: (msg) =>
-    handleFolderNodeColorUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'FOLDER_NODE_COLOR_UPDATED' }>),
   NODE_SIZE_MODE_UPDATED: (msg) =>
     handleNodeSizeModeUpdated(msg as Extract<ExtensionToWebviewMessage, { type: 'NODE_SIZE_MODE_UPDATED' }>),
-  CYCLE_VIEW: handleCycleView,
+  TOGGLE_DEPTH_MODE: handleToggleDepthMode,
   CYCLE_LAYOUT: handleCycleLayout,
   TOGGLE_DIMENSION: handleToggleDimension,
 };

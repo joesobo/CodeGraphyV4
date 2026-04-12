@@ -7,7 +7,6 @@ export function buildGraphViewSettingsMessages(
 ): Array<
   | Extract<ExtensionToWebviewMessage, { type: 'SETTINGS_UPDATED' }>
   | Extract<ExtensionToWebviewMessage, { type: 'DIRECTION_SETTINGS_UPDATED' }>
-  | Extract<ExtensionToWebviewMessage, { type: 'FOLDER_NODE_COLOR_UPDATED' }>
   | Extract<ExtensionToWebviewMessage, { type: 'SHOW_LABELS_UPDATED' }>
 > {
   return [
@@ -26,10 +25,6 @@ export function buildGraphViewSettingsMessages(
         particleSize: settings.particleSize,
         directionColor: settings.directionColor,
       },
-    },
-    {
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: settings.folderNodeColor },
     },
     {
       type: 'SHOW_LABELS_UPDATED',
@@ -55,7 +50,6 @@ export function buildGraphViewAllSettingsMessages(
         particleSpeed: snapshot.particleSpeed,
         particleSize: snapshot.particleSize,
         directionColor: snapshot.directionColor,
-        folderNodeColor: snapshot.folderNodeColor,
         showLabels: snapshot.showLabels,
       }),
     ],

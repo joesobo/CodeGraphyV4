@@ -22,7 +22,7 @@ export const FILE_TYPE_COLORS: Readonly<Record<string, string>> = Object.freeze(
  */
 export const DEFAULT_NODE_COLOR = '#A1A1AA'; // Soft zinc
 
-/** Default color for folder nodes in Folder View. Same as DEFAULT_NODE_COLOR. */
+/** Default color for structural folder nodes. Same as DEFAULT_NODE_COLOR. */
 export const DEFAULT_FOLDER_NODE_COLOR = '#A1A1AA';
 
 /** Default color for synthetic external package nodes. */

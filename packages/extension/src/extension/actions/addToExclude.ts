@@ -3,8 +3,8 @@
  * @module extension/actions/addToExclude
  */
 
-import * as vscode from 'vscode';
 import { IUndoableAction } from '../undoManager';
+import { getCodeGraphyConfiguration } from '../repoSettings/current';
 
 /**
  * Action for adding patterns to the exclude list.
@@ -36,7 +36,7 @@ export class AddToExcludeAction implements IUndoableAction {
   }
 
   async execute(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('codegraphy');
+    const config = getCodeGraphyConfiguration();
     const currentExclude = config.get<string[]>('exclude', []);
     
     // Only capture "before" state on first execution
@@ -54,15 +54,15 @@ export class AddToExcludeAction implements IUndoableAction {
     }
 
     // Apply the "after" state
-    await config.update('exclude', this._stateAfter, vscode.ConfigurationTarget.Workspace);
+    await config.update('exclude', this._stateAfter);
     await this._refreshGraph();
   }
 
   async undo(): Promise<void> {
-    const config = vscode.workspace.getConfiguration('codegraphy');
+    const config = getCodeGraphyConfiguration();
     
     // Restore to the "before" state (full replacement)
-    await config.update('exclude', this._stateBefore, vscode.ConfigurationTarget.Workspace);
+    await config.update('exclude', this._stateBefore);
     await this._refreshGraph();
   }
 }

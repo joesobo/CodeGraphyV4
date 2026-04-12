@@ -80,7 +80,7 @@ export interface IToolbarAction {
  * The host API provided to v2 plugins via the `onLoad(api)` lifecycle hook.
  *
  * Provides access to the event bus, graph data, decoration system,
- * view/command registration, webview messaging, and logging.
+ * optional view/command registration, webview messaging, and logging.
  *
  * All registration methods return a {@link Disposable} that unregisters
  * the resource when disposed. Plugins should collect disposables and
@@ -95,7 +95,9 @@ export interface IToolbarAction {
  *   apiVersion: '^2.0.0',
  *   supportedExtensions: ['.ts'],
  *
- *   async detectConnections() { return []; },
+ *   async analyzeFile(filePath) {
+ *     return { filePath, relations: [] };
+ *   },
  *
  *   onLoad(api) {
  *     const sub = api.on('graph:nodeClick', ({ node }) => {
@@ -198,8 +200,8 @@ export interface CodeGraphyAPI {
   // ---------------------------------------------------------------------------
 
   /**
-   * Register a custom view.
-   * The view will appear in the view switcher and can transform graph data.
+   * Register a custom graph transform.
+   * The host may surface it as an optional plugin-defined view or lens.
    */
   registerView(view: IView): Disposable;
 
@@ -246,7 +248,7 @@ export interface CodeGraphyAPI {
 
   /**
    * Save plugin-generated export content through the host's file-save flow.
-   * Useful for plugin toolbar actions, custom views, and semantic exporters.
+   * Useful for plugin toolbar actions, plugin-defined views, and semantic exporters.
    */
   saveExport(request: ExportRequest): Promise<void>;
 

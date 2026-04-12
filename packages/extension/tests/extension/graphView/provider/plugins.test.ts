@@ -12,7 +12,7 @@ const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
 function createSource(
   overrides: Partial<GraphViewProviderPluginMethodsSource> = {},
 ): GraphViewProviderPluginMethodsSource {
-  return {
+  const source = {
     _pluginExtensionUris: new Map<string, vscode.Uri>(),
     _analyzer: {
       registry: {
@@ -25,13 +25,13 @@ function createSource(
       getPluginStatuses: vi.fn(() => []),
     },
     _disabledPlugins: new Set<string>(),
-    _disabledSources: new Set<string>(),
     _groups: [],
     _view: undefined,
     _panels: [],
     _viewRegistry: { getAvailableViews: vi.fn(() => []) } as never,
     _viewContext: { activePlugins: new Set(), depthLimit: 1 } as never,
-    _activeViewId: 'codegraphy.connections',
+    _depthMode: false,
+    _graphData: EMPTY_GRAPH_DATA,
     _rawGraphData: EMPTY_GRAPH_DATA,
     _decorationManager: {
       getMergedNodeDecorations: vi.fn(() => new Map()),
@@ -52,6 +52,10 @@ function createSource(
     _invalidateTimelineCache: vi.fn(async () => undefined),
     ...overrides,
   };
+
+  source._graphData ??= EMPTY_GRAPH_DATA;
+
+  return source as GraphViewProviderPluginMethodsSource;
 }
 
 describe('graphView/provider/plugins', () => {
@@ -60,7 +64,7 @@ describe('graphView/provider/plugins', () => {
     const methods = createGraphViewProviderPluginMethods(
       createSource({ _sendMessage: sendMessage }),
       {
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendDecorations: vi.fn((_manager, callback) =>
           callback({ type: 'DECORATIONS_UPDATED', payload: { nodes: ['node'], edges: ['edge'] } }),
@@ -86,7 +90,7 @@ describe('graphView/provider/plugins', () => {
     const methods = createGraphViewProviderPluginMethods(
       createSource({ _sendMessage: sendMessage }),
       {
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendDecorations: vi.fn(),
         sendContextMenuItems: vi.fn((_analyzer, callback) =>
@@ -114,20 +118,19 @@ describe('graphView/provider/plugins', () => {
       _groups: [{ id: 'user', pattern: '*.ts', color: '#fff' } as IGroup],
     });
     const methods = createGraphViewProviderPluginMethods(source, {
-      sendAvailableViews: vi.fn((
-        _registry,
+      sendDepthState: vi.fn((
         _context,
-        _activeViewId,
+        _depthMode,
         _rawGraphData,
         _defaultDepthLimit,
         callback,
       ) =>
         callback({
-          type: 'VIEWS_UPDATED',
-          payload: { views: [], activeViewId: 'codegraphy.connections' },
+          type: 'DEPTH_MODE_UPDATED',
+          payload: { depthMode: false },
         }),
       ),
-      sendPluginStatuses: vi.fn((_analyzer, _disabledSources, _disabledPlugins, callback) =>
+      sendPluginStatuses: vi.fn((_analyzer, _disabledPlugins, callback) =>
         callback({ type: 'PLUGINS_UPDATED', payload: { plugins: [] } }),
       ),
       sendDecorations: vi.fn((_manager, callback) =>
@@ -140,13 +143,13 @@ describe('graphView/provider/plugins', () => {
         callback({ type: 'PLUGIN_WEBVIEW_INJECT', payload: { kind: 'script', src: 'asset://script.js' } }),
       ),
       sendGroupsUpdated: vi.fn((_groups, _options, callback) =>
-        callback({ type: 'GROUPS_UPDATED', payload: { groups: [] } }),
+        callback({ type: 'LEGENDS_UPDATED', payload: { legends: [] } }),
       ),
       registerExternalPlugin: vi.fn(),
       getWorkspaceFolders: vi.fn(() => []),
     });
 
-    methods._sendAvailableViews();
+    methods._sendDepthState();
     methods._sendPluginStatuses();
     methods._sendDecorations();
     methods._sendContextMenuItems();
@@ -154,16 +157,16 @@ describe('graphView/provider/plugins', () => {
     methods._sendGroupsUpdated();
 
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'VIEWS_UPDATED',
-      payload: { views: [], activeViewId: 'codegraphy.connections' },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: false },
     });
     expect(sendMessage).toHaveBeenCalledWith({
       type: 'PLUGINS_UPDATED',
       payload: { plugins: [] },
     });
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'GROUPS_UPDATED',
-      payload: { groups: [] },
+      type: 'LEGENDS_UPDATED',
+      payload: { legends: [] },
     });
   });
 
@@ -175,7 +178,7 @@ describe('graphView/provider/plugins', () => {
       _registerBuiltInPluginRoots: registerBuiltInPluginRoots,
     });
     const methods = createGraphViewProviderPluginMethods(source, {
-      sendAvailableViews: vi.fn(),
+      sendDepthState: vi.fn(),
       sendPluginStatuses: vi.fn(),
       sendDecorations: vi.fn(),
       sendContextMenuItems: vi.fn(),
@@ -190,7 +193,7 @@ describe('graphView/provider/plugins', () => {
         expect(options.view).toBe(source._view);
         expect(options.panels).toBe(source._panels);
         expect(options.resolvePluginAssetPath('icon.svg', 'plugin.test')).toBe('asset://icon.svg');
-        callback({ type: 'GROUPS_UPDATED', payload: { groups: [] } });
+        callback({ type: 'LEGENDS_UPDATED', payload: { legends: [] } });
       }),
       registerExternalPlugin: vi.fn(),
       getWorkspaceFolders: vi.fn(() => []),
@@ -206,7 +209,7 @@ describe('graphView/provider/plugins', () => {
   it('passes the current workspace folder into group updates', () => {
     const workspaceFolder = { uri: vscode.Uri.file('/workspace') } as vscode.WorkspaceFolder;
     const methods = createGraphViewProviderPluginMethods(createSource(), {
-      sendAvailableViews: vi.fn(),
+      sendDepthState: vi.fn(),
       sendPluginStatuses: vi.fn(),
       sendDecorations: vi.fn(),
       sendContextMenuItems: vi.fn(),
@@ -223,7 +226,7 @@ describe('graphView/provider/plugins', () => {
 
   it('omits the workspace folder from group updates when none exists', () => {
     const methods = createGraphViewProviderPluginMethods(createSource(), {
-      sendAvailableViews: vi.fn(),
+      sendDepthState: vi.fn(),
       sendPluginStatuses: vi.fn(),
       sendDecorations: vi.fn(),
       sendContextMenuItems: vi.fn(),
@@ -242,7 +245,7 @@ describe('graphView/provider/plugins', () => {
     const registerExternalPlugin = vi.fn();
     const source = createSource();
     const methods = createGraphViewProviderPluginMethods(source, {
-      sendAvailableViews: vi.fn(),
+      sendDepthState: vi.fn(),
       sendPluginStatuses: vi.fn(),
       sendDecorations: vi.fn(),
       sendContextMenuItems: vi.fn(),
@@ -269,7 +272,7 @@ describe('graphView/provider/plugins', () => {
           normalizeExtensionUri: expect.any(Function),
           getWorkspaceRoot: expect.any(Function),
           refreshWebviewResourceRoots: expect.any(Function),
-          sendAvailableViews: expect.any(Function),
+          sendDepthState: expect.any(Function),
           sendPluginStatuses: expect.any(Function),
           sendContextMenuItems: expect.any(Function),
           sendPluginToolbarActions: expect.any(Function),
@@ -300,7 +303,7 @@ describe('graphView/provider/plugins', () => {
     const registerExternalPlugin = vi.fn();
     let workspaceFolders: vscode.WorkspaceFolder[] | undefined = undefined;
     const methods = createGraphViewProviderPluginMethods(createSource(), {
-      sendAvailableViews: vi.fn(),
+      sendDepthState: vi.fn(),
       sendPluginStatuses: vi.fn(),
       sendDecorations: vi.fn(),
       sendContextMenuItems: vi.fn(),
@@ -329,7 +332,7 @@ describe('graphView/provider/plugins', () => {
     const sendContextMenuItems = vi.fn();
     const sendPluginToolbarActions = vi.fn();
     const sendPluginWebviewInjections = vi.fn();
-    const sendAvailableViews = vi.fn();
+    const sendDepthState = vi.fn();
     const analyzeAndSendData = vi.fn(async () => undefined);
     const invalidateTimelineCache = vi.fn(async () => undefined);
     const source = createSource({
@@ -339,7 +342,7 @@ describe('graphView/provider/plugins', () => {
     const methods = createGraphViewProviderPluginMethods(
       source,
       {
-        sendAvailableViews,
+        sendDepthState,
         sendPluginStatuses,
         sendDecorations: vi.fn(),
         sendContextMenuItems,
@@ -354,7 +357,7 @@ describe('graphView/provider/plugins', () => {
     methods.registerExternalPlugin({ id: 'plugin.test' });
 
     const registrationHandlers = registerExternalPlugin.mock.calls[0]?.[3] as {
-      sendAvailableViews(): void;
+      sendDepthState(): void;
       sendPluginStatuses(): void;
       sendContextMenuItems(): void;
       sendPluginToolbarActions(): void;
@@ -363,7 +366,7 @@ describe('graphView/provider/plugins', () => {
       analyzeAndSendData(): Promise<void>;
     };
 
-    registrationHandlers.sendAvailableViews();
+    registrationHandlers.sendDepthState();
     registrationHandlers.sendPluginStatuses();
     registrationHandlers.sendContextMenuItems();
     registrationHandlers.sendPluginToolbarActions();
@@ -371,7 +374,7 @@ describe('graphView/provider/plugins', () => {
     await registrationHandlers.invalidateTimelineCache();
     await registrationHandlers.analyzeAndSendData();
 
-    expect(sendAvailableViews).toHaveBeenCalledOnce();
+    expect(sendDepthState).toHaveBeenCalledOnce();
     expect(sendPluginStatuses).toHaveBeenCalledOnce();
     expect(sendContextMenuItems).toHaveBeenCalledOnce();
     expect(sendPluginToolbarActions).toHaveBeenCalledOnce();

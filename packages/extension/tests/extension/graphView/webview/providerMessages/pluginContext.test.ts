@@ -5,13 +5,11 @@ import {
 
 describe('graph view provider listener plugin context', () => {
   it('returns safe defaults when analyzer and workspace state are unavailable', async () => {
-    const getConfiguration = vi.fn(() => ({ update: vi.fn(() => Promise.resolve()) }));
     const context = createGraphViewProviderMessagePluginContext(
       {
         _analyzer: undefined,
         _firstAnalysis: false,
         _webviewReadyNotified: false,
-        _hiddenPluginGroupIds: new Set<string>(),
         _sendFavorites: vi.fn(),
         _sendSettings: vi.fn(),
         _sendCachedTimeline: vi.fn(),
@@ -24,12 +22,12 @@ describe('graph view provider listener plugin context', () => {
         _filterPatterns: [],
         _loadGroupsAndFilterPatterns: vi.fn(),
         _loadDisabledRulesAndPlugins: vi.fn(() => false),
-        _sendAvailableViews: vi.fn(),
+        _sendDepthState: vi.fn(),
       } as never,
       {
         workspace: {
           workspaceFolders: undefined,
-          getConfiguration,
+          getConfiguration: vi.fn(),
         },
         getConfigTarget: vi.fn(() => 'workspace'),
       } as never,
@@ -40,13 +38,9 @@ describe('graph view provider listener plugin context', () => {
     expect(context.getInteractionPluginApi('plugin.api')).toBeUndefined();
     expect(context.getContextMenuPluginApi('plugin.api')).toBeUndefined();
     context.notifyWebviewReady();
-    await context.updateHiddenPluginGroups([]);
-
-    expect(getConfiguration).toHaveBeenCalledWith('codegraphy');
   });
 
-  it('reads plugin state, mutates provider state, and persists hidden plugin groups', async () => {
-    const update = vi.fn(() => Promise.resolve());
+  it('reads plugin state and mutates provider state', () => {
     const source = {
       _analyzer: {
         getPluginFilterPatterns: vi.fn(() => ['plugin/**']),
@@ -57,7 +51,6 @@ describe('graph view provider listener plugin context', () => {
       },
       _firstAnalysis: true,
       _webviewReadyNotified: false,
-      _hiddenPluginGroupIds: new Set(['plugin.hidden']),
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),
       _sendCachedTimeline: vi.fn(),
@@ -72,12 +65,12 @@ describe('graph view provider listener plugin context', () => {
       _filterPatterns: ['dist/**'],
       _loadGroupsAndFilterPatterns: vi.fn(),
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
-      _sendAvailableViews: vi.fn(),
+      _sendDepthState: vi.fn(),
     };
     const dependencies = {
       workspace: {
         workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
-        getConfiguration: vi.fn(() => ({ update })),
+        getConfiguration: vi.fn(),
       },
       getConfigTarget: vi.fn(() => 'workspace'),
     };
@@ -90,19 +83,12 @@ describe('graph view provider listener plugin context', () => {
     expect(context.getPluginFilterPatterns()).toEqual(['plugin/**']);
     expect(context.hasWorkspace()).toBe(true);
     expect(context.isFirstAnalysis()).toBe(true);
-    expect(context.getHiddenPluginGroupIds()).toBe(source._hiddenPluginGroupIds);
     context.emitEvent('graph:event', { id: 1 });
-    await context.updateHiddenPluginGroups(['plugin.hidden', 'plugin.extra']);
     context.setUserGroups([{ id: 'user:src', pattern: 'src/**', color: '#112233' }] as never);
     context.setFilterPatterns(['src/**']);
     context.setWebviewReadyNotified(true);
 
     expect(source._eventBus.emit).toHaveBeenCalledWith('graph:event', { id: 1 });
-    expect(update).toHaveBeenCalledWith(
-      'hiddenPluginGroups',
-      ['plugin.hidden', 'plugin.extra'],
-      'workspace',
-    );
     expect(source._userGroups).toEqual([
       { id: 'user:src', pattern: 'src/**', color: '#112233' },
     ]);
@@ -124,7 +110,6 @@ describe('graph view provider listener plugin context', () => {
       },
       _firstAnalysis: false,
       _webviewReadyNotified: false,
-      _hiddenPluginGroupIds: new Set<string>(),
       _sendFavorites: vi.fn(),
       _sendSettings: vi.fn(),
       _sendCachedTimeline: vi.fn(),
@@ -137,14 +122,14 @@ describe('graph view provider listener plugin context', () => {
       _filterPatterns: [],
       _loadGroupsAndFilterPatterns: vi.fn(),
       _loadDisabledRulesAndPlugins: vi.fn(() => false),
-      _sendAvailableViews: vi.fn(),
+      _sendDepthState: vi.fn(),
     };
     const context = createGraphViewProviderMessagePluginContext(
       source as never,
       {
         workspace: {
           workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
-          getConfiguration: vi.fn(() => ({ update: vi.fn(() => Promise.resolve()) })),
+          getConfiguration: vi.fn(),
         },
         getConfigTarget: vi.fn(() => 'workspace'),
       } as never,

@@ -58,7 +58,6 @@ describe('graphView/view/context', () => {
         document: { uri: vscode.Uri.file('/workspace/src/app.ts') },
       } as vscode.TextEditor,
       readSavedDepthLimit: () => 4,
-      readFolderNodeColor: () => '#112233',
       asRelativePath: (uri: vscode.Uri) => uri.fsPath.replace('/workspace/', ''),
       defaultDepthLimit: 1,
     });
@@ -68,7 +67,6 @@ describe('graphView/view/context', () => {
       workspaceRoot: '/workspace',
       focusedFile: 'src/app.ts',
       depthLimit: 4,
-      folderNodeColor: '#112233',
     });
   });
 
@@ -78,7 +76,6 @@ describe('graphView/view/context', () => {
       workspaceFolders: undefined,
       activeEditor: undefined,
       readSavedDepthLimit: () => undefined,
-      readFolderNodeColor: () => '#445566',
       asRelativePath: () => 'ignored.ts',
       defaultDepthLimit: 3,
     });
@@ -88,7 +85,6 @@ describe('graphView/view/context', () => {
       workspaceRoot: undefined,
       focusedFile: undefined,
       depthLimit: 3,
-      folderNodeColor: '#445566',
     });
   });
 });

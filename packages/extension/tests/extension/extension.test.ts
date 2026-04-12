@@ -66,7 +66,7 @@ describe('Extension', () => {
 
       // view providers (2) + config listener (1) + active editor listener (1) + save listener (1)
       // + file watcher events (2) + file watcher (1) + runtime bridge listener (1)
-      // + 16 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache, cycleView, cycleLayout, toggleDimension)
+      // + 16 commands (open, openInEditor, fitView, zoomIn, zoomOut, undo, redo, exportPng, exportSvg, exportJpeg, exportJson, exportMarkdown, clearCache, toggleDepthMode, cycleLayout, toggleDimension)
       expect(mockContext.subscriptions.length).toBe(25);
     });
 
@@ -77,7 +77,7 @@ describe('Extension', () => {
       const provider = (
         vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
       ).mock.calls[0]?.[1] as GraphViewProvider;
-      const refreshSpy = vi.spyOn(provider, 'refresh').mockResolvedValue();
+      const refreshSpy = vi.spyOn(provider, 'refreshChangedFiles').mockResolvedValue();
 
       const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })
         .mock.calls[0]?.[0] as (document: { uri?: { fsPath?: string } }) => void;
@@ -97,7 +97,8 @@ describe('Extension', () => {
       const provider = (
         vscode.window.registerWebviewViewProvider as unknown as { mock: { calls: unknown[][] } }
       ).mock.calls[0]?.[1] as GraphViewProvider;
-      const refreshSpy = vi.spyOn(provider, 'refresh').mockResolvedValue();
+      vi.spyOn(provider, 'isGraphOpen').mockReturnValue(true);
+      const refreshChangedFilesSpy = vi.spyOn(provider, 'refreshChangedFiles').mockResolvedValue();
 
       const saveListener = (vscode.workspace.onDidSaveTextDocument as unknown as { mock: { calls: unknown[][] } })
         .mock.calls[0]?.[0] as (document: { uri?: { fsPath?: string } }) => void;
@@ -106,7 +107,8 @@ describe('Extension', () => {
       saveListener({ uri: { fsPath: '/test/workspace/src/app.ts' } });
       vi.advanceTimersByTime(600);
 
-      expect(refreshSpy).toHaveBeenCalledTimes(1);
+      expect(refreshChangedFilesSpy).toHaveBeenCalledTimes(1);
+      expect(refreshChangedFilesSpy).toHaveBeenCalledWith(['/test/workspace/src/app.ts']);
       vi.useRealTimers();
     });
   });

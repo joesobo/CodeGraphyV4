@@ -14,7 +14,7 @@
 
 ## Current shape
 
-The extension host is still the main composition root. It wires the graph provider, workspace analyzer, plugin registry, and webview bridge together.
+The extension host is still the main composition root. It wires the graph provider, pipeline/index services, plugin registry, and webview bridge together.
 
 The webview is now organized by concern:
 

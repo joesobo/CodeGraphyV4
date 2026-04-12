@@ -46,6 +46,51 @@ export async function applySettingsUpdateMessage(
       });
       return true;
 
+    case 'UPDATE_NODE_VISIBILITY': {
+      const nextVisibility = {
+        ...handlers.getConfig<Record<string, boolean>>('nodeVisibility', {}),
+        [message.payload.nodeType]: message.payload.visible,
+      };
+      await handlers.updateConfig('nodeVisibility', nextVisibility);
+      handlers.sendGraphControls();
+      return true;
+    }
+
+    case 'UPDATE_EDGE_VISIBILITY': {
+      const nextVisibility = {
+        ...handlers.getConfig<Record<string, boolean>>('edgeVisibility', {}),
+        [message.payload.edgeKind]: message.payload.visible,
+      };
+      await handlers.updateConfig('edgeVisibility', nextVisibility);
+      handlers.sendGraphControls();
+      return true;
+    }
+
+    case 'UPDATE_PLUGIN_ORDER':
+      await handlers.updateConfig('pluginOrder', message.payload.pluginIds);
+      await handlers.reprocessPluginFiles(message.payload.pluginIds);
+      return true;
+
+    case 'UPDATE_NODE_COLOR': {
+      const nextColors = {
+        ...handlers.getConfig<Record<string, string>>('nodeColors', {}),
+        [message.payload.nodeType]: message.payload.color,
+      };
+      await handlers.updateConfig('nodeColors', nextColors);
+      handlers.sendGraphControls();
+      return true;
+    }
+
+    case 'UPDATE_EDGE_COLOR': {
+      const nextColors = {
+        ...handlers.getConfig<Record<string, string>>('edgeColors', {}),
+        [message.payload.edgeKind]: message.payload.color,
+      };
+      await handlers.updateConfig('edgeColors', nextColors);
+      handlers.sendGraphControls();
+      return true;
+    }
+
     case 'UPDATE_MAX_FILES':
       await handlers.updateConfig('maxFiles', message.payload.maxFiles);
       return true;

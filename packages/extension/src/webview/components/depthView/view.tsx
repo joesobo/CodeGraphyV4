@@ -6,16 +6,15 @@ import { Slider } from '../ui/controls/slider';
 import { MdiIcon } from '../icons/MdiIcon';
 
 const MIN_DEPTH = 1;
-const ACTIVE_VIEW_ID = 'codegraphy.depth-graph';
 
 export function DepthViewControls(): React.ReactElement | null {
-  const activeViewId = useGraphStore(state => state.activeViewId);
+  const depthMode = useGraphStore(state => state.depthMode);
   const depthLimit = useGraphStore(state => state.depthLimit);
   const maxDepthLimit = useGraphStore(state => state.maxDepthLimit);
   const effectiveDepthLimit = Math.min(depthLimit, maxDepthLimit);
   const isCompactControl = maxDepthLimit === MIN_DEPTH;
 
-  if (activeViewId !== ACTIVE_VIEW_ID) {
+  if (!depthMode) {
     return null;
   }
 

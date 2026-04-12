@@ -73,22 +73,22 @@ describe('GraphStore message routing', () => {
     expect(store.getState().edgeDecorations).toBe(edgeDecorations);
   });
 
-  it('ignores GROUPS_UPDATED messages when the payload is unchanged', () => {
-    const groups: IGroup[] = [
+  it('ignores LEGENDS_UPDATED messages when the payload is unchanged', () => {
+    const legends: IGroup[] = [
       {
         id: 'src-group',
         pattern: 'src/**',
         color: '#00ff00',
       },
     ];
-    const optimisticGroupUpdates = {};
+    const optimisticLegendUpdates = {};
 
-    store.setState({ groups, optimisticGroupUpdates });
+    store.setState({ legends, optimisticLegendUpdates });
 
     store.getState().handleExtensionMessage({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           {
             id: 'src-group',
             pattern: 'src/**',
@@ -98,63 +98,63 @@ describe('GraphStore message routing', () => {
       },
     });
 
-    expect(store.getState().groups).toBe(groups);
-    expect(store.getState().optimisticGroupUpdates).toBe(optimisticGroupUpdates);
+    expect(store.getState().legends).toBe(legends);
+    expect(store.getState().optimisticLegendUpdates).toBe(optimisticLegendUpdates);
   });
 
-  it('keeps optimistic custom groups visible when a stale GROUPS_UPDATED payload arrives', () => {
+  it('keeps optimistic custom groups visible when a stale LEGENDS_UPDATED payload arrives', () => {
     store.setState({
-      groups: [
+      legends: [
         { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
       ],
     });
-    store.getState().setOptimisticUserGroups([
+    store.getState().setOptimisticUserLegends([
       { id: 'g1', pattern: 'src/**', color: '#22C55E' },
     ]);
 
     store.getState().handleExtensionMessage({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
         ],
       },
     });
 
-    expect(store.getState().groups).toEqual([
+    expect(store.getState().legends).toEqual([
       { id: 'g1', pattern: 'src/**', color: '#22C55E' },
       { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
     ]);
-    expect(store.getState().optimisticUserGroups?.groups).toEqual([
+    expect(store.getState().optimisticUserLegends?.groups).toEqual([
       { id: 'g1', pattern: 'src/**', color: '#22C55E' },
     ]);
   });
 
-  it('clears optimistic custom groups once GROUPS_UPDATED matches the host echo', () => {
+  it('clears optimistic custom groups once LEGENDS_UPDATED matches the host echo', () => {
     store.setState({
-      groups: [
+      legends: [
         { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
       ],
     });
-    store.getState().setOptimisticUserGroups([
+    store.getState().setOptimisticUserLegends([
       { id: 'g1', pattern: 'src/**', color: '#22C55E' },
     ]);
 
     store.getState().handleExtensionMessage({
-      type: 'GROUPS_UPDATED',
+      type: 'LEGENDS_UPDATED',
       payload: {
-        groups: [
+        legends: [
           { id: 'g1', pattern: 'src/**', color: '#22C55E' },
           { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
         ],
       },
     });
 
-    expect(store.getState().groups).toEqual([
+    expect(store.getState().legends).toEqual([
       { id: 'g1', pattern: 'src/**', color: '#22C55E' },
       { id: 'plugin:typescript:ts', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
     ]);
-    expect(store.getState().optimisticUserGroups).toBeNull();
+    expect(store.getState().optimisticUserLegends).toBeNull();
   });
 
   it('handles CONTEXT_MENU_ITEMS messages', () => {
@@ -249,7 +249,6 @@ describe('GraphStore message routing', () => {
       ],
       playbackSpeed: 2,
       dagMode: 'td',
-      folderNodeColor: '#112233',
       nodeSizeMode: 'uniform',
     });
 
@@ -288,7 +287,6 @@ describe('GraphStore message routing', () => {
     ]);
     expect(store.getState().playbackSpeed).toBe(2);
     expect(store.getState().dagMode).toBe('td');
-    expect(store.getState().folderNodeColor).toBe('#112233');
     expect(store.getState().nodeSizeMode).toBe('uniform');
   });
 
@@ -321,32 +319,6 @@ describe('GraphStore message routing', () => {
     expect(store.getState().isPlaying).toBe(false);
     expect(store.getState().isIndexing).toBe(false);
     expect(store.getState().indexProgress).toBeNull();
-  });
-
-  it('CYCLE_VIEW falls back to the first view when the active view is missing', () => {
-    store.setState({
-      availableViews: [
-        {
-          id: 'codegraphy.connections',
-          name: 'Connections',
-          icon: 'graph',
-          description: '',
-          active: false,
-        },
-        {
-          id: 'codegraphy.depth-graph',
-          name: 'Depth Graph',
-          icon: 'target',
-          description: '',
-          active: false,
-        },
-      ],
-      activeViewId: 'codegraphy.unknown',
-    });
-
-    store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
-
-    expect(findMessage('CHANGE_VIEW')?.payload.viewId).toBe('codegraphy.connections');
   });
 
   it('CYCLE_LAYOUT falls back to free-form when dagMode is outside the cycle', () => {

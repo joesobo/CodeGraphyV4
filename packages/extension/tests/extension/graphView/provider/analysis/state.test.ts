@@ -21,14 +21,13 @@ function createSource(
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,
     _filterPatterns: ['src/**'],
-    _disabledSources: new Set<string>(['rule-a']),
     _disabledPlugins: new Set<string>(['plugin-a']),
     _graphData: { nodes: [], edges: [] } satisfies IGraphData,
     _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
     _firstAnalysis: true,
     _resolveFirstWorkspaceReady: vi.fn(),
     _sendMessage: vi.fn(),
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
     _updateViewContext: vi.fn(),
@@ -49,7 +48,7 @@ describe('graphView/provider/analysis/state', () => {
       _analyzerInitPromise: Promise.resolve(),
     });
 
-    const state = createGraphViewProviderAnalysisState(source);
+    const state = createGraphViewProviderAnalysisState(source, 'analyze');
     state.analysisController = undefined;
     state.analysisRequestId = 7;
 
@@ -67,22 +66,20 @@ describe('graphView/provider/analysis/state', () => {
       _analyzerInitPromise: Promise.resolve(),
     });
     const nextAnalyzer = { initialize: vi.fn(async () => undefined) } as never;
-    const state = createGraphViewProviderAnalysisState(source);
+    const state = createGraphViewProviderAnalysisState(source, 'load');
+    expect(state.mode).toBe('load');
 
     expect(state.analyzer).toBe(source._analyzer);
     expect(state.analyzerInitPromise).toBe(source._analyzerInitPromise);
     expect(state.filterPatterns).toEqual(['src/**']);
-    expect([...state.disabledSources]).toEqual(['rule-a']);
     expect([...state.disabledPlugins]).toEqual(['plugin-a']);
 
     state.analyzer = nextAnalyzer;
     state.filterPatterns = ['dist/**'];
-    state.disabledSources = new Set<string>(['rule-b']);
     state.disabledPlugins = new Set<string>(['plugin-b']);
 
     expect(source._analyzer).toBe(nextAnalyzer);
     expect(source._filterPatterns).toEqual(['dist/**']);
-    expect([...source._disabledSources]).toEqual(['rule-b']);
     expect([...source._disabledPlugins]).toEqual(['plugin-b']);
   });
 
@@ -98,8 +95,8 @@ describe('graphView/provider/analysis/state', () => {
         analyzer: source._analyzer,
         analyzerInitialized: source._analyzerInitialized,
         analyzerInitPromise: source._analyzerInitPromise,
+        mode: 'analyze',
         filterPatterns: source._filterPatterns,
-        disabledSources: source._disabledSources,
         disabledPlugins: source._disabledPlugins,
       } as never,
     );
@@ -121,8 +118,8 @@ describe('graphView/provider/analysis/state', () => {
         analyzer: source._analyzer,
         analyzerInitialized: true,
         analyzerInitPromise,
+        mode: 'analyze',
         filterPatterns: source._filterPatterns,
-        disabledSources: source._disabledSources,
         disabledPlugins: source._disabledPlugins,
       } as never,
     );
@@ -135,7 +132,7 @@ describe('graphView/provider/analysis/state', () => {
 
   it('reflects analyzer initialization progress onto the provider source immediately', () => {
     const source = createSource();
-    const state = createGraphViewProviderAnalysisState(source);
+    const state = createGraphViewProviderAnalysisState(source, 'analyze');
     const initializePromise = Promise.resolve();
 
     state.analyzerInitPromise = initializePromise;

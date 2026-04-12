@@ -1,16 +1,22 @@
 import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { createTypeScriptPlugin } from '../../../../plugin-typescript/src/plugin';
 import { activate } from '../../../src/extension/activate';
 import type { GraphViewProvider } from '../../../src/extension/graphViewProvider';
 import { getGraphViewProviderInternals } from '../graphViewProvider/internals';
-
-const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
+import {
+  createPluginIntegrationWorkspace,
+  type PluginIntegrationWorkspace,
+} from './workspaceFixture';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
+  | undefined;
+let workspaceFixture: PluginIntegrationWorkspace | undefined;
+let currentContext:
+  | {
+      subscriptions: Array<{ dispose: () => void }>;
+    }
   | undefined;
 let installedExtensionsValue: Array<{
   id: string;
@@ -47,9 +53,14 @@ function getRegisteredProvider(): GraphViewProvider {
 }
 
 describe('extension/pluginIntegration/installedPluginActivation', () => {
+  beforeAll(async () => {
+    workspaceFixture = await createPluginIntegrationWorkspace();
+  });
+
   beforeEach(() => {
+    currentContext = undefined;
     workspaceFoldersValue = [
-      { uri: vscode.Uri.file(fixtureWorkspacePath), name: 'workspace', index: 0 },
+      { uri: vscode.Uri.file(workspaceFixture!.workspacePath), name: 'workspace', index: 0 },
     ];
     installedExtensionsValue = [];
     vi.clearAllMocks();
@@ -71,18 +82,42 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     );
   });
 
+  afterEach(() => {
+    for (const subscription of [...(currentContext?.subscriptions ?? [])].reverse()) {
+      subscription?.dispose();
+    }
+    currentContext = undefined;
+  });
+
+  afterAll(async () => {
+    await workspaceFixture?.cleanup();
+    workspaceFixture = undefined;
+  });
+
   it('activates installed dependent plugins before the first analysis runs', async () => {
     const apiRef: { current?: ReturnType<typeof activate> } = {};
+    const coreExtensionRef = {
+      id: 'codegraphy.codegraphy',
+      isActive: false,
+      activate: vi.fn(async () => {
+        await Promise.resolve();
+        return apiRef.current;
+      }),
+    };
+
+    (vscode.extensions.getExtension as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      (extensionId: string) =>
+        extensionId === 'codegraphy.codegraphy' ? coreExtensionRef : undefined,
+    );
+
     const activateInstalledPlugin = vi.fn(async () => {
-      await Promise.resolve();
-      apiRef.current?.registerPlugin(createTypeScriptPlugin(), {
-        extensionUri: vscode.Uri.file('/plugins/typescript'),
-      });
+      const plugin = await import('../../../../plugin-typescript/src/activate');
+      await plugin.activate({ extensionUri: vscode.Uri.file('/plugins/typescript') } as never);
     });
 
     installedExtensionsValue = [
       {
-        id: 'codegraphy.typescript',
+        id: 'codegraphy.codegraphy-typescript',
         isActive: false,
         packageJSON: {
           extensionDependencies: ['codegraphy.codegraphy'],
@@ -91,14 +126,17 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
       },
     ];
 
-    const api = activate(createContext() as unknown as vscode.ExtensionContext);
+    currentContext = createContext();
+    const api = activate(currentContext as unknown as vscode.ExtensionContext);
     apiRef.current = api;
 
     const provider = getRegisteredProvider();
     const internals = getGraphViewProviderInternals(provider);
     await internals._analysisMethods._analyzeAndSendData();
+    await internals._analysisMethods._analyzeAndSendData();
 
     expect(activateInstalledPlugin).toHaveBeenCalledOnce();
+    expect(coreExtensionRef.activate).toHaveBeenCalledOnce();
     expect(api.getGraphData().edges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -117,5 +155,5 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     expect(pluginIds).toEqual(
       expect.arrayContaining(['codegraphy.markdown', 'codegraphy.typescript']),
     );
-  });
+  }, 15000);
 });

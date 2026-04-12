@@ -6,7 +6,7 @@ interface GraphViewProviderCommandMessage {
     | 'FIT_VIEW'
     | 'ZOOM_IN'
     | 'ZOOM_OUT'
-    | 'CYCLE_VIEW'
+    | 'TOGGLE_DEPTH_MODE'
     | 'CYCLE_LAYOUT'
     | 'TOGGLE_DIMENSION'
     | 'REQUEST_EXPORT_PNG'
@@ -29,7 +29,7 @@ export interface GraphViewProviderCommandMethods {
       | 'FIT_VIEW'
       | 'ZOOM_IN'
       | 'ZOOM_OUT'
-      | 'CYCLE_VIEW'
+      | 'TOGGLE_DEPTH_MODE'
       | 'CYCLE_LAYOUT'
       | 'TOGGLE_DIMENSION',
   ): void;

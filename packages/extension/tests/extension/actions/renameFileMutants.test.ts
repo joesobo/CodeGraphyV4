@@ -104,7 +104,7 @@ describe('RenameFileAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 
@@ -121,7 +121,7 @@ describe('RenameFileAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         expect.any(Array),
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
   });
@@ -153,7 +153,7 @@ describe('RenameFileAction (mutant coverage)', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         ['new.ts', 'other.ts'],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
 
       // Undo should restore original favorites

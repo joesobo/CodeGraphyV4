@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import type { IGroup } from '../../../shared/settings/groups';
+import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { getBuiltInGraphViewDefaultGroups } from '../groups/defaults/builtIn';
 import { registerBuiltInGraphViewPluginRoots } from '../groups/defaults/pluginRoots';
 import { buildGraphViewMergedGroups } from '../groups/merged';
@@ -17,7 +18,6 @@ export interface GraphViewProviderPluginResourceMethodsSource {
   _analyzer: Parameters<typeof getGraphViewPluginDefaultGroups>[0];
   _disabledPlugins: Set<string>;
   _userGroups: IGroup[];
-  _hiddenPluginGroupIds: Set<string>;
   _groups: IGroup[];
   _view?: vscode.WebviewView;
   _timelineView?: vscode.WebviewView;
@@ -46,6 +46,8 @@ export interface GraphViewProviderPluginResourceMethodDependencies {
   getWebviewResourceRoots: typeof getGraphViewWebviewResourceRoots;
   refreshWebviewResourceRoots: typeof refreshGraphViewResourceRoots;
   normalizeExtensionUri: typeof normalizeGraphViewExtensionUri;
+  getDefaultLegendVisibility(): Record<string, boolean>;
+  getLegendOrder(): string[];
   getWorkspaceFolders(): readonly vscode.WorkspaceFolder[] | undefined;
 }
 
@@ -59,6 +61,10 @@ function createDefaultGraphViewProviderPluginResourceMethodDependencies(): Graph
     getWebviewResourceRoots: getGraphViewWebviewResourceRoots,
     refreshWebviewResourceRoots: refreshGraphViewResourceRoots,
     normalizeExtensionUri: normalizeGraphViewExtensionUri,
+    getDefaultLegendVisibility: () =>
+      getCodeGraphyConfiguration().get<Record<string, boolean>>('legendVisibility', {}) ?? {},
+    getLegendOrder: () =>
+      getCodeGraphyConfiguration().get<string[]>('legendOrder', []) ?? [],
     getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
   };
 }
@@ -86,9 +92,10 @@ export function createGraphViewProviderPluginResourceMethods(
   const _computeMergedGroups = (): void => {
     source._groups = resolvedDependencies.buildMergedGroups(
       source._userGroups,
-      source._hiddenPluginGroupIds,
       _getBuiltInDefaultGroups(),
       _getPluginDefaultGroups(),
+      resolvedDependencies.getDefaultLegendVisibility(),
+      resolvedDependencies.getLegendOrder(),
     );
   };
 

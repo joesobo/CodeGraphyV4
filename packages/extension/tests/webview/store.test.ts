@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createGraphStore } from '../../src/webview/store/state';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../src/shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '../../src/shared/fileColors';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
 
 describe('GraphStore', () => {
@@ -24,6 +24,7 @@ describe('GraphStore', () => {
     expect(state.showLabels).toBe(true);
     expect(state.graphMode).toBe('2d');
     expect(state.activePanel).toBe('none');
+    expect(state.graphHasIndex).toBe(false);
   });
 
   it('handles GRAPH_DATA_UPDATED message', () => {
@@ -37,6 +38,17 @@ describe('GraphStore', () => {
     });
     expect(store.getState().graphData).toEqual(data);
     expect(store.getState().isLoading).toBe(false);
+    expect(store.getState().isIndexing).toBe(false);
+    expect(store.getState().indexProgress).toBeNull();
+  });
+
+  it('handles GRAPH_INDEX_STATUS_UPDATED message', () => {
+    store.getState().handleExtensionMessage({
+      type: 'GRAPH_INDEX_STATUS_UPDATED',
+      payload: { hasIndex: true },
+    });
+
+    expect(store.getState().graphHasIndex).toBe(true);
   });
 
   it('handles FAVORITES_UPDATED message', () => {
@@ -75,13 +87,13 @@ describe('GraphStore', () => {
     expect(store.getState().showLabels).toBe(false);
   });
 
-  it('handles GROUPS_UPDATED message', () => {
-    const groups = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
+  it('handles LEGENDS_UPDATED message', () => {
+    const legends = [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }];
     store.getState().handleExtensionMessage({
-      type: 'GROUPS_UPDATED',
-      payload: { groups },
+      type: 'LEGENDS_UPDATED',
+      payload: { legends },
     });
-    expect(store.getState().groups).toEqual(groups);
+    expect(store.getState().legends).toEqual(legends);
   });
 
   it('handles FILTER_PATTERNS_UPDATED message', () => {
@@ -93,14 +105,12 @@ describe('GraphStore', () => {
     expect(store.getState().pluginFilterPatterns).toEqual(['*.uid']);
   });
 
-  it('handles VIEWS_UPDATED message', () => {
-    const views = [{ id: 'v1', name: 'Connections', icon: 'graph', description: '', active: true }];
+  it('handles DEPTH_MODE_UPDATED message', () => {
     store.getState().handleExtensionMessage({
-      type: 'VIEWS_UPDATED',
-      payload: { views, activeViewId: 'v1' },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
     });
-    expect(store.getState().availableViews).toEqual(views);
-    expect(store.getState().activeViewId).toBe('v1');
+    expect(store.getState().depthMode).toBe(true);
   });
 
   it('handles PHYSICS_SETTINGS_UPDATED message', () => {
@@ -137,7 +147,6 @@ describe('GraphStore', () => {
       status: 'active' as const,
       enabled: true,
       connectionCount: 5,
-      sources: [],
     }];
     store.getState().handleExtensionMessage({
       type: 'PLUGINS_UPDATED',
@@ -226,19 +235,6 @@ describe('GraphStore', () => {
     expect(store.getState().dagMode).toBe('lr');
   });
 
-  it('has correct initial folderNodeColor state', () => {
-    const state = store.getState();
-    expect(state.folderNodeColor).toBe(DEFAULT_FOLDER_NODE_COLOR);
-  });
-
-  it('handles FOLDER_NODE_COLOR_UPDATED message', () => {
-    store.getState().handleExtensionMessage({
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: '#FF0000' },
-    });
-    expect(store.getState().folderNodeColor).toBe('#FF0000');
-  });
-
   it('handles TOGGLE_DIMENSION message', () => {
     expect(store.getState().graphMode).toBe('2d');
     store.getState().handleExtensionMessage({ type: 'TOGGLE_DIMENSION' });
@@ -247,43 +243,35 @@ describe('GraphStore', () => {
     expect(store.getState().graphMode).toBe('2d');
   });
 
-  it('CYCLE_VIEW advances to next available view', () => {
+  it('TOGGLE_DEPTH_MODE enables depth mode when an index exists', () => {
     store.getState().handleExtensionMessage({
-      type: 'VIEWS_UPDATED',
-      payload: {
-        views: [
-          { id: 'codegraphy.connections', name: 'Connections', icon: 'graph', description: '', active: true },
-          { id: 'codegraphy.depth-graph', name: 'Depth Graph', icon: 'target', description: '', active: false },
-        ],
-        activeViewId: 'codegraphy.connections',
-      },
+      type: 'GRAPH_INDEX_STATUS_UPDATED',
+      payload: { hasIndex: true },
     });
-    store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
-    const msg = findMessage('CHANGE_VIEW');
+    store.getState().handleExtensionMessage({ type: 'TOGGLE_DEPTH_MODE' });
+    const msg = findMessage('UPDATE_DEPTH_MODE');
     expect(msg).toBeTruthy();
-    expect(msg!.payload.viewId).toBe('codegraphy.depth-graph');
+    expect(msg!.payload.depthMode).toBe(true);
   });
 
-  it('CYCLE_VIEW wraps from last view back to first', () => {
+  it('TOGGLE_DEPTH_MODE returns to the main graph when depth mode is already active', () => {
     store.getState().handleExtensionMessage({
-      type: 'VIEWS_UPDATED',
-      payload: {
-        views: [
-          { id: 'codegraphy.connections', name: 'Connections', icon: 'graph', description: '', active: false },
-          { id: 'codegraphy.depth-graph', name: 'Depth Graph', icon: 'target', description: '', active: true },
-        ],
-        activeViewId: 'codegraphy.depth-graph',
-      },
+      type: 'GRAPH_INDEX_STATUS_UPDATED',
+      payload: { hasIndex: true },
     });
-    store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
-    const msg = findMessage('CHANGE_VIEW');
+    store.getState().handleExtensionMessage({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
+    });
+    store.getState().handleExtensionMessage({ type: 'TOGGLE_DEPTH_MODE' });
+    const msg = findMessage('UPDATE_DEPTH_MODE');
     expect(msg).toBeTruthy();
-    expect(msg!.payload.viewId).toBe('codegraphy.connections');
+    expect(msg!.payload.depthMode).toBe(false);
   });
 
-  it('CYCLE_VIEW is a no-op when no views available', () => {
-    store.getState().handleExtensionMessage({ type: 'CYCLE_VIEW' });
-    expect(findMessage('CHANGE_VIEW')).toBeUndefined();
+  it('TOGGLE_DEPTH_MODE is a no-op before the repo has been indexed', () => {
+    store.getState().handleExtensionMessage({ type: 'TOGGLE_DEPTH_MODE' });
+    expect(findMessage('UPDATE_DEPTH_MODE')).toBeUndefined();
   });
 
   it('CYCLE_LAYOUT cycles through all DAG modes in order', () => {

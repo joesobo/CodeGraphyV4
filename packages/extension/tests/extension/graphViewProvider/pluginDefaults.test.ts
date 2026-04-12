@@ -17,7 +17,6 @@ interface PluginDefaultsProvider {
   };
   _disabledPlugins: Set<string>;
   _groups: IGroup[];
-  _hiddenPluginGroupIds: Set<string>;
   _userGroups: IGroup[];
 }
 
@@ -56,7 +55,6 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     const provider = getProvider(harness);
     const internals = getGraphViewProviderInternals(harness.provider);
     provider._userGroups = [{ id: 'user-group-1', pattern: 'src/**', color: '#FF0000' }] as IGroup[];
-    provider._hiddenPluginGroupIds = new Set<string>();
     await provider._analyzer.initialize();
     registerOptionalPlugins(provider);
 
@@ -68,30 +66,10 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     expect(groups.some(g => g.id === 'plugin:codegraphy.typescript:.ts')).toBe(false);
   });
 
-  it('computeMergedGroups marks disabled plugin groups but keeps them in list', async () => {
-    const provider = getProvider(harness);
-    const internals = getGraphViewProviderInternals(harness.provider);
-    provider._userGroups = [];
-    provider._hiddenPluginGroupIds = new Set(['plugin:codegraphy.typescript:*.ts']);
-    await provider._analyzer.initialize();
-    registerOptionalPlugins(provider);
-
-    internals._pluginResourceMethods._computeMergedGroups();
-
-    const groups = provider._groups as GroupSummary[];
-    const tsGroup = groups.find(g => g.id === 'plugin:codegraphy.typescript:*.ts');
-    expect(tsGroup).toBeDefined();
-    expect(tsGroup!.disabled).toBe(true);
-    const pyGroup = groups.find(g => g.id === 'plugin:codegraphy.python:*.py');
-    expect(pyGroup).toBeDefined();
-    expect(pyGroup!.disabled).toBeUndefined();
-  });
-
   it('computeMergedGroups includes built-in default groups', async () => {
     const provider = getProvider(harness);
     const internals = getGraphViewProviderInternals(harness.provider);
     provider._userGroups = [];
-    provider._hiddenPluginGroupIds = new Set<string>();
     await provider._analyzer.initialize();
 
     internals._pluginResourceMethods._computeMergedGroups();
@@ -105,24 +83,7 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     expect(groups.some(g => g.id === 'default:*.png')).toBe(true);
     expect(groups.some(g => g.id === 'default:*.jpg')).toBe(true);
     expect(groups.some(g => g.id === 'default:*.md')).toBe(true);
-    expect(groups.some(g => g.id === 'default:.vscode/settings.json')).toBe(true);
-  });
-
-  it('computeMergedGroups marks built-in defaults as disabled when section is disabled', async () => {
-    const provider = getProvider(harness);
-    const internals = getGraphViewProviderInternals(harness.provider);
-    provider._userGroups = [];
-    provider._hiddenPluginGroupIds = new Set(['default']);
-    await provider._analyzer.initialize();
-
-    internals._pluginResourceMethods._computeMergedGroups();
-
-    const groups = provider._groups as GroupSummary[];
-    const builtInGroups = groups.filter(g => g.id.startsWith('default:'));
-    expect(builtInGroups.length).toBeGreaterThan(0);
-    for (const g of builtInGroups) {
-      expect(g.disabled).toBe(true);
-    }
+    expect(groups.some(g => g.id === 'default:.codegraphy/settings.json')).toBe(true);
   });
 
   it('getPluginDefaultGroups excludes disabled plugins', async () => {
@@ -139,80 +100,4 @@ describe('GraphViewProvider plugin defaults and toggles', () => {
     provider._disabledPlugins = new Set<string>();
   });
 
-  it('disables a plugin group when TOGGLE_PLUGIN_GROUP_DISABLED is received', async () => {
-    const { getMessageHandler } = harness.createResolvedWebview();
-    const provider = getProvider(harness);
-    provider._userGroups = [];
-    provider._hiddenPluginGroupIds = new Set<string>();
-    await provider._analyzer.initialize();
-    registerOptionalPlugins(provider);
-
-    const handler = getMessageHandler();
-    await handler({ type: 'TOGGLE_PLUGIN_GROUP_DISABLED', payload: { groupId: 'plugin:codegraphy.typescript:*.ts', disabled: true } });
-
-    expect(provider._hiddenPluginGroupIds.has('plugin:codegraphy.typescript:*.ts')).toBe(true);
-    const groups = provider._groups as GroupSummary[];
-    const tsGroup = groups.find(g => g.id === 'plugin:codegraphy.typescript:*.ts');
-    expect(tsGroup).toBeDefined();
-    expect(tsGroup!.disabled).toBe(true);
-  });
-
-  it('re-enables a plugin group when TOGGLE_PLUGIN_GROUP_DISABLED is received with disabled=false', async () => {
-    const { getMessageHandler } = harness.createResolvedWebview();
-    const provider = getProvider(harness);
-    provider._userGroups = [];
-    provider._hiddenPluginGroupIds = new Set(['plugin:codegraphy.typescript:*.ts']);
-    await provider._analyzer.initialize();
-    registerOptionalPlugins(provider);
-
-    const handler = getMessageHandler();
-    await handler({ type: 'TOGGLE_PLUGIN_GROUP_DISABLED', payload: { groupId: 'plugin:codegraphy.typescript:*.ts', disabled: false } });
-
-    expect(provider._hiddenPluginGroupIds.has('plugin:codegraphy.typescript:*.ts')).toBe(false);
-    const groups = provider._groups as GroupSummary[];
-    const tsGroup = groups.find(g => g.id === 'plugin:codegraphy.typescript:*.ts');
-    expect(tsGroup).toBeDefined();
-    expect(tsGroup!.disabled).toBeUndefined();
-  });
-
-  it('disables all groups in a plugin section with a single section-level entry', async () => {
-    const { getMessageHandler } = harness.createResolvedWebview();
-    const provider = getProvider(harness);
-    provider._userGroups = [];
-    provider._hiddenPluginGroupIds = new Set<string>();
-    await provider._analyzer.initialize();
-    registerOptionalPlugins(provider);
-
-    const handler = getMessageHandler();
-    await handler({ type: 'TOGGLE_PLUGIN_SECTION_DISABLED', payload: { pluginId: 'codegraphy.typescript', disabled: true } });
-
-    expect(provider._hiddenPluginGroupIds.has('plugin:codegraphy.typescript')).toBe(true);
-    expect(provider._hiddenPluginGroupIds.size).toBe(1);
-
-    const groups = provider._groups as GroupSummary[];
-    const tsGroups = groups.filter(g => g.id.startsWith('plugin:codegraphy.typescript:'));
-    expect(tsGroups.length).toBeGreaterThan(0);
-    for (const g of tsGroups) {
-      expect(g.disabled).toBe(true);
-    }
-    const pyGroup = groups.find(g => g.id === 'plugin:codegraphy.python:*.py');
-    expect(pyGroup?.disabled).toBeUndefined();
-  });
-
-  it('re-enabling a section also clears individual group entries under it', async () => {
-    const { getMessageHandler } = harness.createResolvedWebview();
-    const provider = getProvider(harness);
-    provider._userGroups = [];
-    provider._hiddenPluginGroupIds = new Set(['plugin:codegraphy.typescript', 'plugin:codegraphy.typescript:*.ts']);
-    await provider._analyzer.initialize();
-    registerOptionalPlugins(provider);
-
-    const handler = getMessageHandler();
-    await handler({ type: 'TOGGLE_PLUGIN_SECTION_DISABLED', payload: { pluginId: 'codegraphy.typescript', disabled: false } });
-
-    expect(provider._hiddenPluginGroupIds.size).toBe(0);
-    const groups = provider._groups as GroupSummary[];
-    const tsGroup = groups.find(g => g.id === 'plugin:codegraphy.typescript:*.ts');
-    expect(tsGroup?.disabled).toBeUndefined();
-  });
 });

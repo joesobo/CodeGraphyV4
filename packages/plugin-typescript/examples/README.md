@@ -29,23 +29,23 @@ index.ts ──────┬──▶ components/App.tsx ──┬──▶ co
                │                         │
                │                         └──▶ components/Header.tsx ──▶ utils/styles.ts
                │
-               ├──▶ services/api.ts ────┬──▶ utils/helpers.ts ◀──▶ utils/format.ts
+               ├──▶ services/api.ts ────┬──▶ utils/processing.ts ◀──▶ utils/format.ts
                │                        │       (bidirectional)
-               │                        └──▶ config.ts
+               │                        └──▶ appConfig.ts
                │
-               └──▶ config.ts
+               └──▶ appConfig.ts
 
 orphan.ts (no connections - only visible with showOrphans=true)
 ```
 
 ## Bidirectional Edges Demo
 
-This example includes a **circular dependency** between `helpers.ts` and `format.ts` to demonstrate the `bidirectionalEdges` setting.
+This example includes a **circular dependency** between `processing.ts` and `format.ts` to demonstrate the `bidirectionalEdges` setting.
 
 ### The Setting
 
 ```jsonc
-// .vscode/settings.json
+// .codegraphy/settings.json
 {
   "codegraphy.bidirectionalEdges": "separate"  // or "combined"
 }
@@ -55,8 +55,8 @@ This example includes a **circular dependency** between `helpers.ts` and `format
 
 | Mode | Description | Visualization |
 |------|-------------|---------------|
-| `separate` | Two distinct arrows | `helpers.ts ──▶ format.ts` + `format.ts ──▶ helpers.ts` |
-| `combined` | One double-headed arrow | `helpers.ts ◀──▶ format.ts` |
+| `separate` | Two distinct arrows | `processing.ts ──▶ format.ts` + `format.ts ──▶ processing.ts` |
+| `combined` | One double-headed arrow | `processing.ts ◀──▶ format.ts` |
 
 ### When to Use Each Mode
 
@@ -66,7 +66,7 @@ This example includes a **circular dependency** between `helpers.ts` and `format
 ### Try It
 
 1. Open this project in CodeGraphy
-2. Find the `helpers.ts ↔ format.ts` connection
+2. Find the `processing.ts ↔ format.ts` connection
 3. Toggle `codegraphy.bidirectionalEdges` between `"separate"` and `"combined"`
 4. Observe how the edge rendering changes
 
@@ -74,18 +74,18 @@ This example includes a **circular dependency** between `helpers.ts` and `format
 
 | File | Imports From | Imported By | Uses Alias |
 |------|--------------|-------------|------------|
-| `src/index.ts` | App, api, config | — | ✅ @components, @services |
-| `src/config.ts` | — | index, api | — |
+| `src/index.ts` | App, api, appConfig | — | ✅ @components, @services |
+| `src/appConfig.ts` | — | index, api | — |
 | `src/orphan.ts` | — | — | — |
 | `src/components/App.tsx` | Button, Header | index | — |
 | `src/components/Button.tsx` | styles | App | — |
 | `src/components/Header.tsx` | styles | App | — |
 | `src/utils/styles.ts` | — | Button, Header | — |
-| `src/utils/helpers.ts` | format | api, **format** | — |
-| `src/utils/format.ts` | **helpers** | helpers | — |
-| `src/services/api.ts` | helpers, config | index | — |
+| `src/utils/processing.ts` | format | api, **format** | — |
+| `src/utils/format.ts` | **processing** | processing | — |
+| `src/services/api.ts` | processing, appConfig | index | — |
 
-> **Note:** `helpers.ts ↔ format.ts` form a bidirectional edge (circular dependency) to demo the `bidirectionalEdges` setting.
+> **Note:** `processing.ts ↔ format.ts` form a bidirectional edge (circular dependency) to demo the `bidirectionalEdges` setting.
 
 ## Expected Counts
 
@@ -94,7 +94,7 @@ This example includes a **circular dependency** between `helpers.ts` and `format
 | `showOrphans=true` | 14 | 12 | Includes README.md, package.json, tsconfig.json, .gitignore |
 | `showOrphans=false` | 9 | 12 | Only files with connections |
 
-> With `bidirectionalEdges: "combined"`, the helpers↔format edge displays as 1 combined edge instead of 2 separate edges.
+> With `bidirectionalEdges: "combined"`, the processing↔format edge displays as 1 combined edge instead of 2 separate edges.
 
 Non-code files (README.md, package.json, etc.) appear as orphans since they have no import connections.
 
@@ -114,5 +114,5 @@ Non-code files (README.md, package.json, etc.) appear as orphans since they have
 - [ ] Drag nodes → positions saved
 - [ ] Keyboard shortcuts work (0=fit, +/-=zoom)
 - [ ] Path aliases resolve correctly (@components → src/components)
-- [ ] **Bidirectional edges:** `helpers.ts ↔ format.ts` shows as two arrows with `bidirectionalEdges: "separate"`
-- [ ] **Bidirectional edges:** `helpers.ts ↔ format.ts` shows as one combined arrow with `bidirectionalEdges: "combined"`
+- [ ] **Bidirectional edges:** `processing.ts ↔ format.ts` shows as two arrows with `bidirectionalEdges: "separate"`
+- [ ] **Bidirectional edges:** `processing.ts ↔ format.ts` shows as one combined arrow with `bidirectionalEdges: "combined"`

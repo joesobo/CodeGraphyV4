@@ -2,13 +2,35 @@ import type { IGraphData } from '../../../shared/graph/types';
 
 const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
 
+export type GraphViewAnalysisMode = 'analyze' | 'load' | 'index' | 'refresh' | 'incremental';
+export type GraphViewIndexingProgress = { phase: string; current: number; total: number };
+
 interface GraphViewAnalyzerLike {
   initialize(): Promise<void>;
-  analyze(
+  hasIndex(): boolean;
+  discoverGraph(
     filterPatterns?: string[],
-    disabledSources?: Set<string>,
     disabledPlugins?: Set<string>,
     signal?: AbortSignal,
+  ): Promise<IGraphData>;
+  analyze(
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
+  ): Promise<IGraphData>;
+  refreshIndex?(
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
+  ): Promise<IGraphData>;
+  refreshChangedFiles?(
+    filePaths: readonly string[],
+    filterPatterns?: string[],
+    disabledPlugins?: Set<string>,
+    signal?: AbortSignal,
+    onProgress?: (progress: GraphViewIndexingProgress) => void,
   ): Promise<IGraphData>;
   registry: {
     notifyPostAnalyze(graph: IGraphData): void;
@@ -20,8 +42,9 @@ export interface GraphViewAnalysisExecutionState {
   analyzerInitialized: boolean;
   analyzerInitPromise: Promise<void> | undefined;
   installedPluginActivationPromise?: Promise<void>;
+  mode: GraphViewAnalysisMode;
+  changedFilePaths?: readonly string[];
   filterPatterns: string[];
-  disabledSources: Set<string>;
   disabledPlugins: Set<string>;
 }
 
@@ -32,7 +55,7 @@ export interface GraphViewAnalysisExecutionHandlers {
   setGraphData(graphData: IGraphData): void;
   getGraphData(): IGraphData;
   sendGraphDataUpdated(graphData: IGraphData): void;
-  sendAvailableViews(): void;
+  sendDepthState(): void;
   computeMergedGroups(): void;
   sendGroupsUpdated(): void;
   updateViewContext(): void;
@@ -40,6 +63,8 @@ export interface GraphViewAnalysisExecutionHandlers {
   sendPluginStatuses(): void;
   sendDecorations(): void;
   sendContextMenuItems(): void;
+  sendGraphIndexStatusUpdated(hasIndex: boolean): void;
+  sendIndexProgress?(progress: GraphViewIndexingProgress): void;
   sendPluginExporters?(): void;
   sendPluginToolbarActions?(): void;
   markWorkspaceReady(graphData: IGraphData): void;
@@ -47,12 +72,51 @@ export interface GraphViewAnalysisExecutionHandlers {
   logError(message: string, error: unknown): void;
 }
 
-function publishEmptyGraph(handlers: GraphViewAnalysisExecutionHandlers): IGraphData {
+function publishEmptyGraph(
+  handlers: GraphViewAnalysisExecutionHandlers,
+  hasIndex: boolean = false,
+): IGraphData {
   handlers.setRawGraphData(EMPTY_GRAPH_DATA);
   handlers.setGraphData(EMPTY_GRAPH_DATA);
   handlers.sendGraphDataUpdated(EMPTY_GRAPH_DATA);
-  handlers.sendAvailableViews();
+  handlers.sendGraphIndexStatusUpdated(hasIndex);
+  handlers.sendDepthState();
   return EMPTY_GRAPH_DATA;
+}
+
+function createProgressForwarder(
+  mode: GraphViewAnalysisMode,
+  handlers: GraphViewAnalysisExecutionHandlers,
+): (progress: GraphViewIndexingProgress) => void {
+  const phase = mode === 'refresh'
+    ? 'Refreshing Index'
+    : mode === 'incremental'
+      ? 'Applying Changes'
+      : mode === 'load'
+        ? 'Loading Graph'
+      : 'Indexing Repo';
+
+  return (progress) => {
+    handlers.sendIndexProgress?.({
+      ...progress,
+      phase,
+    });
+  };
+}
+
+function sendInitialProgressState(
+  mode: GraphViewAnalysisMode,
+  handlers: GraphViewAnalysisExecutionHandlers,
+): void {
+  if (mode !== 'index' && mode !== 'refresh' && mode !== 'incremental') {
+    return;
+  }
+
+  createProgressForwarder(mode, handlers)({
+    phase: '',
+    current: 0,
+    total: 1,
+  });
 }
 
 export async function executeGraphViewAnalysis(
@@ -97,21 +161,55 @@ export async function executeGraphViewAnalysis(
   }
 
   try {
-    const rawGraphData = await state.analyzer.analyze(
-      state.filterPatterns,
-      state.disabledSources,
-      state.disabledPlugins,
-      signal,
-    );
+    const shouldDiscover = state.mode === 'load' && !state.analyzer.hasIndex();
+    const forwardProgress = createProgressForwarder(state.mode, handlers);
+    if (!shouldDiscover) {
+      sendInitialProgressState(state.mode, handlers);
+    }
+    const rawGraphData = shouldDiscover
+      ? await state.analyzer.discoverGraph(
+          state.filterPatterns,
+          state.disabledPlugins,
+          signal,
+        )
+      : state.mode === 'refresh'
+        ? await (state.analyzer.refreshIndex ?? state.analyzer.analyze)(
+            state.filterPatterns,
+            state.disabledPlugins,
+            signal,
+            forwardProgress,
+          )
+        : state.mode === 'incremental'
+          ? state.analyzer.refreshChangedFiles
+            ? await state.analyzer.refreshChangedFiles(
+                state.changedFilePaths ?? [],
+                state.filterPatterns,
+                state.disabledPlugins,
+                signal,
+                forwardProgress,
+              )
+            : await state.analyzer.analyze(
+                state.filterPatterns,
+                state.disabledPlugins,
+                signal,
+                forwardProgress,
+              )
+          : await state.analyzer.analyze(
+              state.filterPatterns,
+              state.disabledPlugins,
+              signal,
+              forwardProgress,
+            );
     if (handlers.isAnalysisStale(signal, requestId)) return;
 
     handlers.setRawGraphData(rawGraphData);
+    handlers.sendGraphIndexStatusUpdated(!shouldDiscover);
     handlers.updateViewContext();
     handlers.applyViewTransform();
 
     const graphData = handlers.getGraphData();
     handlers.sendGraphDataUpdated(graphData);
-    handlers.sendAvailableViews();
+    handlers.sendDepthState();
     handlers.sendPluginStatuses();
     handlers.sendDecorations();
     handlers.sendContextMenuItems();

@@ -1,14 +1,22 @@
 import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { activate } from '../../../src/extension/activate';
 import type { GraphViewProvider } from '../../../src/extension/graphViewProvider';
-
-const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
+import { getGraphViewProviderInternals } from '../graphViewProvider/internals';
+import {
+  createPluginIntegrationWorkspace,
+  type PluginIntegrationWorkspace,
+} from './workspaceFixture';
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
+  | undefined;
+let workspaceFixture: PluginIntegrationWorkspace | undefined;
+let currentContext:
+  | {
+      subscriptions: Array<{ dispose: () => void }>;
+    }
   | undefined;
 let installedExtensionsValue: Array<{
   id: string;
@@ -81,10 +89,48 @@ function resolveGraphWebview(provider: GraphViewProvider) {
   };
 }
 
+async function waitForPluginStatuses(
+  getMessages: () => Array<{
+    type?: string;
+    payload?: {
+      plugins?: Array<{ id: string }>;
+    };
+  }>,
+): Promise<Array<{ id: string }>> {
+  const requiredPluginIds = [
+    'codegraphy.markdown',
+    'codegraphy.typescript',
+    'codegraphy.gdscript',
+  ];
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const pluginMessage = getMessages()
+      .filter(message => message.type === 'PLUGINS_UPDATED')
+      .at(-1);
+    const plugins = pluginMessage?.payload?.plugins ?? [];
+    const pluginIds = new Set(plugins.map(plugin => plugin.id));
+
+    if (requiredPluginIds.every(pluginId => pluginIds.has(pluginId))) {
+      return plugins;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+
+  return getMessages()
+    .filter(message => message.type === 'PLUGINS_UPDATED')
+    .at(-1)?.payload?.plugins ?? [];
+}
+
 describe('extension/pluginIntegration/installedPluginStatuses', () => {
+  beforeAll(async () => {
+    workspaceFixture = await createPluginIntegrationWorkspace();
+  });
+
   beforeEach(() => {
+    currentContext = undefined;
     workspaceFoldersValue = [
-      { uri: vscode.Uri.file(fixtureWorkspacePath), name: 'workspace', index: 0 },
+      { uri: vscode.Uri.file(workspaceFixture!.workspacePath), name: 'workspace', index: 0 },
     ];
     installedExtensionsValue = [];
     vi.clearAllMocks();
@@ -106,7 +152,19 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
     );
   });
 
-  it('sends installed external plugins and their sources to the webview after startup', async () => {
+  afterEach(() => {
+    for (const subscription of [...(currentContext?.subscriptions ?? [])].reverse()) {
+      subscription?.dispose();
+    }
+    currentContext = undefined;
+  });
+
+  afterAll(async () => {
+    await workspaceFixture?.cleanup();
+    workspaceFixture = undefined;
+  });
+
+  it('sends installed external plugins to the webview after startup', async () => {
     const apiRef: { current?: ReturnType<typeof activate> } = {};
     const coreExtensionRef = {
       id: 'codegraphy.codegraphy',
@@ -147,45 +205,34 @@ describe('extension/pluginIntegration/installedPluginStatuses', () => {
       },
     ];
 
-    const api = activate(createContext() as unknown as vscode.ExtensionContext);
+    currentContext = createContext();
+    const api = activate(currentContext as unknown as vscode.ExtensionContext);
     apiRef.current = api;
 
     const provider = getRegisteredProvider();
+    const internals = getGraphViewProviderInternals(provider);
     const { mockWebview, getMessageHandler } = resolveGraphWebview(provider);
 
     await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
-    await new Promise(resolve => setTimeout(resolve, 50));
 
-    const pluginMessages = mockWebview.postMessage.mock.calls
-      .map((call: unknown[]) => call[0] as {
+    const getPluginMessages = () =>
+      mockWebview.postMessage.mock.calls.map((call: unknown[]) => call[0] as {
         type?: string;
         payload?: {
-          plugins?: Array<{
-            id: string;
-            sources: Array<{ qualifiedSourceId: string }>;
-          }>;
+          plugins?: Array<{ id: string }>;
         };
-      })
-      .filter(message => message.type === 'PLUGINS_UPDATED');
+      });
 
-    expect(pluginMessages.length).toBeGreaterThan(0);
-
-    const lastPluginMessage = pluginMessages.at(-1);
-    const plugins = lastPluginMessage?.payload?.plugins ?? [];
+    const plugins = await waitForPluginStatuses(getPluginMessages);
+    expect(getPluginMessages().some(message => message.type === 'PLUGINS_UPDATED')).toBe(true);
 
     expect(plugins).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: 'codegraphy.markdown' }),
-        expect.objectContaining({
-          id: 'codegraphy.typescript',
-          sources: expect.arrayContaining([
-            expect.objectContaining({
-              qualifiedSourceId: expect.stringContaining('codegraphy.typescript'),
-            }),
-          ]),
-        }),
+        expect.objectContaining({ id: 'codegraphy.typescript' }),
         expect.objectContaining({ id: 'codegraphy.gdscript' }),
       ]),
     );
-  });
+    await internals._analysisMethods._analyzeAndSendData();
+  }, 15000);
 });

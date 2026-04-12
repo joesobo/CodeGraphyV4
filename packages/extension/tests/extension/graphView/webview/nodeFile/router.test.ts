@@ -22,7 +22,8 @@ function createHandlers(
     createFile: vi.fn(() => Promise.resolve()),
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
-    analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    indexGraph: vi.fn(() => Promise.resolve()),
+    refreshGraph: vi.fn(() => Promise.resolve()),
     getFileInfo: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
@@ -84,14 +85,25 @@ describe('graph view node/file router', () => {
   });
 
   it('awaits graph refresh requests', async () => {
-    const analyzeAndSendData = vi.fn(() => Promise.resolve());
-    const handlers = createHandlers({ analyzeAndSendData });
+    const refreshGraph = vi.fn(() => Promise.resolve());
+    const handlers = createHandlers({ refreshGraph });
 
     await expect(
       applyNodeFileMessage({ type: 'REFRESH_GRAPH' }, handlers),
     ).resolves.toBe(true);
 
-    expect(analyzeAndSendData).toHaveBeenCalledTimes(1);
+    expect(refreshGraph).toHaveBeenCalledTimes(1);
+  });
+
+  it('awaits graph index requests', async () => {
+    const indexGraph = vi.fn(() => Promise.resolve());
+    const handlers = createHandlers({ indexGraph });
+
+    await expect(
+      applyNodeFileMessage({ type: 'INDEX_GRAPH' }, handlers),
+    ).resolves.toBe(true);
+
+    expect(indexGraph).toHaveBeenCalledTimes(1);
   });
 
   it('returns false for unrelated messages', async () => {

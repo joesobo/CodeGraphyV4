@@ -31,56 +31,54 @@ describe('Core Views (fresh imports)', () => {
     vi.resetModules();
   });
 
-  describe('connectionsView properties', () => {
-    it('has id codegraphy.connections', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.id).toBe('codegraphy.connections');
+  describe('baseGraphView properties', () => {
+    it('has id codegraphy.graph', async () => {
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(baseGraphView.id).toBe('codegraphy.graph');
     });
 
-    it('has name Connections', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.name).toBe('Connections');
+    it('has name Graph', async () => {
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(baseGraphView.name).toBe('Graph');
     });
 
     it('has icon symbol-file', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.icon).toBe('symbol-file');
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(baseGraphView.icon).toBe('symbol-file');
     });
 
-    it('has description about import relationships', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.description).toBe('Shows all files and their import relationships');
+    it('has a unified-graph description', async () => {
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(baseGraphView.description).toBe('Base graph transform for the unified graph surface');
     });
 
     it('has a transform function', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(typeof connectionsView.transform).toBe('function');
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(typeof baseGraphView.transform).toBe('function');
     });
 
     it('has no pluginId', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
-      expect(connectionsView.pluginId).toBeUndefined();
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(baseGraphView.pluginId).toBeUndefined();
     });
 
     it('passes through data unchanged', async () => {
-      const { connectionsView } = await import('../../../src/core/views/builtIns');
+      const { baseGraphView } = await import('../../../src/core/views/builtIns');
       const context = createContext();
-      const result = connectionsView.transform(sampleGraphData, context);
+      const result = baseGraphView.transform(sampleGraphData, context);
       expect(result).toBe(sampleGraphData);
     });
   });
 
   describe('coreViews array', () => {
-    it('contains exactly three views', async () => {
+    it('contains exactly one built-in view', async () => {
       const { coreViews } = await import('../../../src/core/views/builtIns');
-      expect(coreViews).toHaveLength(3);
+      expect(coreViews).toHaveLength(1);
     });
 
-    it('contains connectionsView, depthGraphView, and folderView in order', async () => {
-      const { coreViews, connectionsView, depthGraphView, folderView } = await import('../../../src/core/views/builtIns');
-      expect(coreViews[0]).toBe(connectionsView);
-      expect(coreViews[1]).toBe(depthGraphView);
-      expect(coreViews[2]).toBe(folderView);
+    it('contains the unified base graph transform', async () => {
+      const { coreViews, baseGraphView } = await import('../../../src/core/views/builtIns');
+      expect(coreViews[0]).toBe(baseGraphView);
     });
 
     it('contains views with valid IView properties', async () => {
@@ -92,30 +90,6 @@ describe('Core Views (fresh imports)', () => {
         expect(view.description.length).toBeGreaterThan(0);
         expect(typeof view.transform).toBe('function');
       }
-    });
-  });
-
-  describe('depthGraphView from builtIn re-export', () => {
-    it('has id codegraphy.depth-graph', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      expect(depthGraphView.id).toBe('codegraphy.depth-graph');
-    });
-
-    it('has name Depth Graph', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      expect(depthGraphView.name).toBe('Depth Graph');
-    });
-
-    it('has icon target', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      expect(depthGraphView.icon).toBe('target');
-    });
-
-    it('passes through the graph during the teardown phase', async () => {
-      const { depthGraphView } = await import('../../../src/core/views/builtIns');
-      const context = createContext({ focusedFile: undefined });
-      const result = depthGraphView.transform(sampleGraphData, context);
-      expect(result).toBe(sampleGraphData);
     });
   });
 });

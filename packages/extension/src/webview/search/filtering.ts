@@ -7,6 +7,33 @@ import type { IGroup } from '../../shared/settings/groups';
 
 export { filterNodesAdvanced } from './matching';
 
+function getOrderedActiveRules(legends: IGroup[]): IGroup[] {
+  return legends
+    .filter((group) => !group.disabled)
+    .slice()
+    .reverse();
+}
+
+function ruleTargetsNodes(rule: IGroup): boolean {
+  return (rule.target ?? 'node') !== 'edge';
+}
+
+function ruleTargetsEdges(rule: IGroup): boolean {
+  return (rule.target ?? 'node') !== 'node';
+}
+
+function matchesEdgeRule(
+  edge: IGraphData['edges'][number],
+  rule: IGroup,
+): boolean {
+  return (
+    globMatch(edge.id, rule.pattern)
+    || globMatch(edge.kind, rule.pattern)
+    || globMatch(`${edge.from}->${edge.to}`, rule.pattern)
+    || globMatch(`${edge.from}->${edge.to}#${edge.kind}`, rule.pattern)
+  );
+}
+
 export function filterGraphData(
   graphData: IGraphData | null,
   searchQuery: string,
@@ -32,34 +59,61 @@ export function filterGraphData(
   };
 }
 
-export function applyGroupColors(
+export function applyLegendRules(
   data: IGraphData | null,
-  groups: IGroup[],
+  legends: IGroup[],
 ): IGraphData | null {
   if (!data) {
     return null;
   }
 
-  if (groups.length === 0) {
+  if (legends.length === 0) {
     return data;
   }
+
+  const activeRules = getOrderedActiveRules(legends);
 
   return {
     ...data,
     nodes: data.nodes.map((node) => {
-      for (const group of groups) {
-        if (!group.disabled && globMatch(node.id, group.pattern)) {
-          return {
-            ...node,
-            color: group.color,
-            shape2D: group.shape2D,
-            shape3D: group.shape3D,
-            imageUrl: group.imageUrl,
-          };
+      const nextNode = {
+        ...node,
+        color: node.color || DEFAULT_NODE_COLOR,
+      };
+
+      for (const rule of activeRules) {
+        if (!ruleTargetsNodes(rule) || !globMatch(node.id, rule.pattern)) {
+          continue;
+        }
+
+        nextNode.color = rule.color;
+        if (rule.shape2D) {
+          nextNode.shape2D = rule.shape2D;
+        }
+        if (rule.shape3D) {
+          nextNode.shape3D = rule.shape3D;
+        }
+        if (rule.imageUrl) {
+          nextNode.imageUrl = rule.imageUrl;
         }
       }
 
-      return { ...node, color: node.color || DEFAULT_NODE_COLOR };
+      return nextNode;
+    }),
+    edges: data.edges.map((edge) => {
+      const nextEdge = { ...edge };
+
+      for (const rule of activeRules) {
+        if (!ruleTargetsEdges(rule) || !matchesEdgeRule(edge, rule)) {
+          continue;
+        }
+
+        nextEdge.color = rule.color;
+      }
+
+      return nextEdge;
     }),
   };
 }
+
+export const applyGroupColors = applyLegendRules;

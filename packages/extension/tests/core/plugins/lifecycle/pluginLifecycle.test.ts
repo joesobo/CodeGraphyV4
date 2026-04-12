@@ -22,9 +22,9 @@ function makePlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: ['.ts'],
-    detectConnections: vi.fn().mockResolvedValue([]),
+    analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
     ...overrides,
-  };
+  } as IPlugin;
 }
 
 function makePluginsMap(plugin: IPlugin): Map<string, { plugin: IPlugin }> {

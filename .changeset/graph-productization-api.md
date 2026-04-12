@@ -3,4 +3,4 @@
 "@codegraphy/extension": major
 ---
 
-Broaden the plugin graph API with canonical `kind`/`sources` graph contracts, host-backed graph queries, toolbar action registration, named graph slots, tooltip actions, and scoped view recompute dependencies.
+Broaden the plugin graph API with shared per-file analysis results, canonical `kind`/`sources` graph contracts, repo-backed graph queries, toolbar action registration, named graph slots, tooltip actions, and scoped custom-view recompute dependencies.

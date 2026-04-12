@@ -9,7 +9,6 @@ export interface IGraphViewSettingsSnapshot {
   particleSpeed: number;
   particleSize: number;
   directionColor: string;
-  folderNodeColor: string;
   showLabels: boolean;
 }
 
@@ -18,7 +17,6 @@ interface IGraphViewSettingsReader {
 }
 
 export interface IGraphViewDisabledState {
-  disabledSources: Set<string>;
   disabledPlugins: Set<string>;
   changed: boolean;
 }
@@ -50,22 +48,15 @@ export function areGraphViewSetsEqual<T>(setA: Set<T>, setB: Set<T>): boolean {
 }
 
 export function resolveGraphViewDisabledState(
-  currentDisabledRules: Set<string>,
   currentDisabledPlugins: Set<string>,
-  configuredRules: readonly string[] | undefined,
   configuredPlugins: readonly string[] | undefined,
-  storedRules: readonly string[] | undefined,
   storedPlugins: readonly string[] | undefined
 ): IGraphViewDisabledState {
-  const disabledSources = new Set(configuredRules ?? storedRules ?? []);
   const disabledPlugins = new Set(configuredPlugins ?? storedPlugins ?? []);
 
   return {
-    disabledSources,
     disabledPlugins,
-    changed:
-      !areGraphViewSetsEqual(currentDisabledRules, disabledSources) ||
-      !areGraphViewSetsEqual(currentDisabledPlugins, disabledPlugins),
+    changed: !areGraphViewSetsEqual(currentDisabledPlugins, disabledPlugins),
   };
 }
 
@@ -80,9 +71,6 @@ export function readGraphViewSettings(
     particleSize: config.get<number>('particleSize', 4),
     directionColor: normalizeDirectionColor(
       config.get<string>('directionColor', DEFAULT_DIRECTION_COLOR)
-    ),
-    folderNodeColor: normalizeFolderNodeColor(
-      config.get<string>('folderNodeColor', DEFAULT_FOLDER_NODE_COLOR)
     ),
     showLabels: config.get<boolean>('showLabels', true),
   };

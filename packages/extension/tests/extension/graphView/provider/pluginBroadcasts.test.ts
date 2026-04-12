@@ -14,15 +14,14 @@ describe('graphView/provider/pluginBroadcasts', () => {
     const methods = createGraphViewProviderPluginBroadcastMethods(
       source,
       {
-        sendAvailableViews: vi.fn((
-          _registry,
+        sendDepthState: vi.fn((
           _context,
-          _activeViewId,
+          _depthMode,
           _rawGraphData,
           _defaultDepthLimit,
           callback,
-        ) => callback({ type: 'VIEWS_UPDATED', payload: { views: [], activeViewId: 'codegraphy.connections' } })),
-        sendPluginStatuses: vi.fn((_analyzer, _disabledSources, _disabledPlugins, callback) =>
+        ) => callback({ type: 'DEPTH_MODE_UPDATED', payload: { depthMode: false } })),
+        sendPluginStatuses: vi.fn((_analyzer, _disabledPlugins, callback) =>
           callback({ type: 'PLUGINS_UPDATED', payload: { plugins: [] } }),
         ),
         sendDecorations: vi.fn((_manager, callback) =>
@@ -41,14 +40,14 @@ describe('graphView/provider/pluginBroadcasts', () => {
           callback({ type: 'PLUGIN_WEBVIEW_INJECT', payload: { kind: 'script', src: 'asset://script.js' } }),
         ),
         sendGroupsUpdated: vi.fn((_groups, _options, callback) =>
-          callback({ type: 'GROUPS_UPDATED', payload: { groups: [] } }),
+          callback({ type: 'LEGENDS_UPDATED', payload: { legends: [] } }),
         ),
         getWorkspaceFolders: vi.fn(() => []),
       },
       1,
     );
 
-    methods._sendAvailableViews();
+    methods._sendDepthState();
     methods._sendPluginStatuses();
     methods._sendDecorations();
     methods._sendContextMenuItems();
@@ -58,12 +57,12 @@ describe('graphView/provider/pluginBroadcasts', () => {
     methods._sendGroupsUpdated();
 
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'VIEWS_UPDATED',
-      payload: { views: [], activeViewId: 'codegraphy.connections' },
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: false },
     });
     expect(sendMessage).toHaveBeenCalledWith({
-      type: 'GROUPS_UPDATED',
-      payload: { groups: [] },
+      type: 'LEGENDS_UPDATED',
+      payload: { legends: [] },
     });
   });
 
@@ -78,7 +77,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
     const methods = createGraphViewProviderPluginBroadcastMethods(
       source,
       {
-        sendAvailableViews: vi.fn(),
+        sendDepthState: vi.fn(),
         sendPluginStatuses: vi.fn(),
         sendDecorations: vi.fn(),
         sendContextMenuItems: vi.fn(),
@@ -93,7 +92,7 @@ describe('graphView/provider/pluginBroadcasts', () => {
           expect(options.workspaceFolder).toBe(workspaceFolder);
           options.registerPluginRoots();
           expect(options.resolvePluginAssetPath('icon.svg', 'plugin.test')).toBe('asset://icon.svg');
-          callback({ type: 'GROUPS_UPDATED', payload: { groups: [] } });
+          callback({ type: 'LEGENDS_UPDATED', payload: { legends: [] } });
         }),
         getWorkspaceFolders: vi.fn(() => [workspaceFolder]),
       },

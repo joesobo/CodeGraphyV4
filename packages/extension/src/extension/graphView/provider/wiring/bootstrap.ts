@@ -34,8 +34,8 @@ interface GraphViewDecorationManagerLike {
   onDecorationsChanged(handler: () => void): void;
 }
 
-interface GraphViewWorkspaceStateLike {
-  get<T>(key: string): T | undefined;
+interface GraphViewConfigurationLike {
+  get<T>(key: string, defaultValue: T): T;
 }
 
 interface InitializeGraphViewProviderServicesOptions {
@@ -53,12 +53,10 @@ interface InitializeGraphViewProviderServicesOptions {
 }
 
 interface RestoreGraphViewProviderStateOptions {
-  workspaceState: GraphViewWorkspaceStateLike;
-  viewRegistry: GraphViewViewRegistryLike;
-  selectedViewKey: string;
+  configuration: GraphViewConfigurationLike;
   dagModeKey: string;
   nodeSizeModeKey: string;
-  fallbackViewId: string;
+  depthModeKey?: string;
   fallbackNodeSizeMode: NodeSizeMode;
 }
 
@@ -78,7 +76,7 @@ export function initializeGraphViewProviderServices({
   for (const view of coreViews) {
     viewRegistry.register(view, {
       core: true,
-      isDefault: view.id === 'codegraphy.connections',
+      isDefault: view === coreViews[0],
     });
   }
 
@@ -104,27 +102,21 @@ export function initializeGraphViewProviderServices({
 }
 
 export function restoreGraphViewProviderState({
-  workspaceState,
-  viewRegistry,
-  selectedViewKey,
+  configuration,
   dagModeKey,
   nodeSizeModeKey,
-  fallbackViewId,
+  depthModeKey,
   fallbackNodeSizeMode,
 }: RestoreGraphViewProviderStateOptions): {
-  activeViewId: string;
+  depthMode: boolean;
   dagMode: DagMode;
   nodeSizeMode: NodeSizeMode;
 } {
-  const savedViewId = workspaceState.get<string>(selectedViewKey);
+  const depthMode = configuration.get<boolean>(depthModeKey ?? 'depthMode', false);
 
   return {
-    activeViewId:
-      savedViewId && viewRegistry.get(savedViewId)
-        ? savedViewId
-        : viewRegistry.getDefaultViewId() ?? fallbackViewId,
-    dagMode: workspaceState.get<DagMode>(dagModeKey) ?? null,
-    nodeSizeMode:
-      workspaceState.get<NodeSizeMode>(nodeSizeModeKey) ?? fallbackNodeSizeMode,
+    depthMode,
+    dagMode: configuration.get<DagMode>(dagModeKey, null),
+    nodeSizeMode: configuration.get<NodeSizeMode>(nodeSizeModeKey, fallbackNodeSizeMode),
   };
 }

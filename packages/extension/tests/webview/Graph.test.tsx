@@ -294,22 +294,30 @@ describe('Export Functionality', () => {
 
     const { json, filename } = exportMsg!.payload;
     expect(json).toBeDefined();
-    expect(filename).toMatch(/^codegraphy-connections-.*\.json$/);
+    expect(filename).toMatch(/^codegraphy-graph-.*\.json$/);
 
     const parsed = JSON.parse(json);
     expect(parsed.format).toBe('codegraphy-export');
-    expect(parsed.version).toBe('2.0');
+    expect(parsed.version).toBe('3.0');
     expect(parsed.exportedAt).toBeDefined();
     expect(parsed.scope.graph).toBe('current-view');
-    expect(parsed.summary.totalFiles).toBe(2);
-    expect(parsed.summary.totalConnections).toBe(1);
-
-    expect(parsed.sections.connections.ungrouped['src/app.ts']).toBeDefined();
-    expect(parsed.sections.connections.ungrouped['src/app.ts'].imports).toEqual({ unattributed: ['src/utils.ts'] });
-
-    expect(parsed.sections.connections.ungrouped['src/utils.ts']).toBeDefined();
-    expect(parsed.sections.connections.ungrouped['src/utils.ts'].imports).toBeUndefined();
-    expect(parsed.sections.images).toEqual({});
+    expect(parsed.summary.totalNodes).toBe(2);
+    expect(parsed.summary.totalEdges).toBe(1);
+    expect(parsed.summary.totalLegendRules).toBe(0);
+    expect(parsed.summary.totalImages).toBe(0);
+    expect(parsed.legend).toEqual([]);
+    expect(parsed.nodes).toEqual([
+      expect.objectContaining({ id: 'src/app.ts', nodeType: 'file', legendIds: [] }),
+      expect.objectContaining({ id: 'src/utils.ts', nodeType: 'file', legendIds: [] }),
+    ]);
+    expect(parsed.edges).toEqual([
+      expect.objectContaining({
+        from: 'src/app.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+        sources: [],
+      }),
+    ]);
   });
 
   it('should handle REQUEST_EXPORT_MD message and send EXPORT_MD response', async () => {
@@ -333,7 +341,7 @@ describe('Export Functionality', () => {
     expect(exportMsg).toBeTruthy();
 
     expect(exportMsg!.payload.markdown).toContain('# CodeGraphy Export');
-    expect(exportMsg!.payload.filename).toMatch(/^codegraphy-connections-.*\.md$/);
+    expect(exportMsg!.payload.filename).toMatch(/^codegraphy-graph-.*\.md$/);
   });
 
   it('should handle REQUEST_EXPORT_SVG message and send EXPORT_SVG response', async () => {

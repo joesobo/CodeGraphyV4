@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '@/shared/graph/types';
 import type { DirectionMode } from '@/shared/settings/modes';
 import {
   applySettingsMessage,
@@ -11,12 +10,8 @@ function createState(
   overrides: Partial<GraphViewSettingsMessageState> = {},
 ): GraphViewSettingsMessageState {
   return {
-    activeViewId: 'codegraphy.graphView',
     disabledPlugins: new Set<string>(),
-    disabledSources: new Set<string>(),
     filterPatterns: [],
-    graphData: { nodes: [], edges: [] } satisfies IGraphData,
-    viewContext: { folderNodeColor: '#111111' },
     ...overrides,
   };
 }
@@ -33,7 +28,7 @@ function createHandlers(
     ...Object.entries(initialConfig),
   ]);
 
-  return {
+  const handlers = {
     getConfig: vi.fn(<T>(key: string, defaultValue: T): T =>
       config.has(key) ? (config.get(key) as T) : defaultValue,
     ),
@@ -41,13 +36,18 @@ function createHandlers(
       config.set(key, value);
       return Promise.resolve();
     }),
-    getPluginFilterPatterns: vi.fn(() => []),
-    sendMessage: vi.fn(),
-    applyViewTransform: vi.fn(),
     smartRebuild: vi.fn(),
+    getPluginFilterPatterns: vi.fn(() => []),
+    sendGraphControls: vi.fn(),
+    reprocessPluginFiles: vi.fn(() => Promise.resolve()),
+    sendMessage: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
+
+  handlers.sendGraphControls ??= vi.fn();
+
+  return handlers as GraphViewSettingsMessageHandlers;
 }
 
 describe('graph view settings router', () => {
@@ -186,54 +186,6 @@ describe('graph view settings router', () => {
     });
   });
 
-  it('updates folder node color and refreshes folder graph data in folder view', async () => {
-    const graphData: IGraphData = {
-      nodes: [{ id: 'src', label: 'src', color: '#111111' }],
-      edges: [],
-    };
-    const state = createState({
-      activeViewId: 'codegraphy.folder',
-      graphData,
-    });
-    const handlers = createHandlers();
-
-    await expect(
-      applySettingsMessage(
-        { type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: '#123abc' } },
-        state,
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
-    expect(state.viewContext.folderNodeColor).toBe('#123ABC');
-    expect(handlers.updateConfig).toHaveBeenCalledWith('folderNodeColor', '#123ABC');
-    expect(handlers.sendMessage).toHaveBeenNthCalledWith(1, {
-      type: 'FOLDER_NODE_COLOR_UPDATED',
-      payload: { folderNodeColor: '#123ABC' },
-    });
-    expect(handlers.applyViewTransform).toHaveBeenCalledOnce();
-    expect(handlers.sendMessage).toHaveBeenNthCalledWith(2, {
-      type: 'GRAPH_DATA_UPDATED',
-      payload: graphData,
-    });
-  });
-
-  it('updates folder node color without re-sending graph data outside folder view', async () => {
-    const state = createState();
-    const handlers = createHandlers();
-
-    await expect(
-      applySettingsMessage(
-        { type: 'UPDATE_FOLDER_NODE_COLOR', payload: { folderNodeColor: '#123abc' } },
-        state,
-        handlers,
-      ),
-    ).resolves.toBe(true);
-
-    expect(handlers.applyViewTransform).not.toHaveBeenCalled();
-    expect(handlers.sendMessage).toHaveBeenCalledTimes(1);
-  });
-
   it('updates label visibility and publishes it immediately', async () => {
     const state = createState();
     const handlers = createHandlers();
@@ -251,30 +203,24 @@ describe('graph view settings router', () => {
     });
   });
 
-  it('disables sources and triggers a targeted rebuild', async () => {
+  it('updates edge visibility and refreshes graph controls', async () => {
     const state = createState();
     const handlers = createHandlers();
 
     await applySettingsMessage(
       {
-        type: 'TOGGLE_SOURCE',
-        payload: { qualifiedSourceId: 'codegraphy.typescript:dynamic-import', enabled: false },
+        type: 'UPDATE_EDGE_VISIBILITY',
+        payload: { edgeKind: 'IMPORTS', visible: false },
       },
       state,
       handlers,
     );
 
-    expect(state.disabledSources.has('codegraphy.typescript:dynamic-import')).toBe(true);
-    expect(handlers.updateConfig).toHaveBeenCalledWith('disabledSources', [
-      'codegraphy.typescript:dynamic-import',
-    ]);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith(
-      'rule',
-      'codegraphy.typescript:dynamic-import',
-    );
+    expect(handlers.updateConfig).toHaveBeenCalledWith('edgeVisibility', { IMPORTS: false });
+    expect(handlers.sendGraphControls).toHaveBeenCalledOnce();
   });
 
-  it('re-enables plugins and triggers a targeted rebuild', async () => {
+  it('re-enables plugins and rebuilds the plugin-owned edges from cache', async () => {
     const state = createState({
       disabledPlugins: new Set(['codegraphy.python']),
     });
@@ -291,7 +237,8 @@ describe('graph view settings router', () => {
 
     expect(state.disabledPlugins.has('codegraphy.python')).toBe(false);
     expect(handlers.updateConfig).toHaveBeenCalledWith('disabledPlugins', []);
-    expect(handlers.smartRebuild).toHaveBeenCalledWith('plugin', 'codegraphy.python');
+    expect(handlers.smartRebuild).toHaveBeenCalledWith('codegraphy.python');
+    expect(handlers.reprocessPluginFiles).not.toHaveBeenCalled();
   });
 
   it('returns false for unrelated messages', async () => {

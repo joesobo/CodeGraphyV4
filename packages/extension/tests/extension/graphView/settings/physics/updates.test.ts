@@ -5,15 +5,14 @@ import {
 } from '../../../../../src/extension/graphView/settings/physics/updates';
 
 describe('graph view physics update helpers', () => {
-  it('updates a single physics setting using the graph-view config target', async () => {
+  it('updates a single physics setting in repo-local settings', async () => {
     const update = vi.fn(() => Promise.resolve());
 
     await updateGraphViewPhysicsSetting('repelForce', 25, {
       getConfiguration: () => ({ update }),
-      getConfigTarget: () => 'workspace',
     });
 
-    expect(update).toHaveBeenCalledWith('repelForce', 25, 'workspace');
+    expect(update).toHaveBeenCalledWith('physics.repelForce', 25);
   });
 
   it('resets every persisted physics setting back to the config default', async () => {
@@ -21,15 +20,14 @@ describe('graph view physics update helpers', () => {
 
     await resetGraphViewPhysicsSettings({
       getConfiguration: () => ({ update }),
-      getConfigTarget: () => 'workspace',
     });
 
     expect(update.mock.calls).toEqual([
-      ['repelForce', undefined, 'workspace'],
-      ['linkDistance', undefined, 'workspace'],
-      ['linkForce', undefined, 'workspace'],
-      ['damping', undefined, 'workspace'],
-      ['centerForce', undefined, 'workspace'],
+      ['physics.repelForce', undefined],
+      ['physics.linkDistance', undefined],
+      ['physics.linkForce', undefined],
+      ['physics.damping', undefined],
+      ['physics.centerForce', undefined],
     ]);
   });
 });

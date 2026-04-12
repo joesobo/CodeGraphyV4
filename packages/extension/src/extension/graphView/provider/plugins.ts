@@ -33,14 +33,14 @@ export interface GraphViewProviderPluginMethodsSource {
   _pluginExtensionUris: Map<string, vscode.Uri>;
   _analyzer?: GraphViewPluginAnalyzerLike;
   _disabledPlugins: Set<string>;
-  _disabledSources: Set<string>;
   _groups: IGroup[];
   _view?: vscode.WebviewView;
   _timelineView?: vscode.WebviewView;
   _panels: vscode.WebviewPanel[];
   _viewRegistry: ViewRegistry;
   _viewContext: IViewContext;
-  _activeViewId: string;
+  _depthMode: boolean;
+  _graphData: IGraphData;
   _rawGraphData: IGraphData;
   _decorationManager: GraphViewDecorationManagerLike;
   _firstAnalysis: boolean;
@@ -59,7 +59,8 @@ export interface GraphViewProviderPluginMethodsSource {
 }
 
 export interface GraphViewProviderPluginMethods {
-  _sendAvailableViews: GraphViewProviderPluginBroadcastMethods['_sendAvailableViews'];
+  _sendDepthState: GraphViewProviderPluginBroadcastMethods['_sendDepthState'];
+  _sendGraphControls: GraphViewProviderPluginBroadcastMethods['_sendGraphControls'];
   _sendPluginStatuses: GraphViewProviderPluginBroadcastMethods['_sendPluginStatuses'];
   _sendDecorations: GraphViewProviderPluginBroadcastMethods['_sendDecorations'];
   _sendContextMenuItems: GraphViewProviderPluginBroadcastMethods['_sendContextMenuItems'];

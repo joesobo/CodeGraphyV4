@@ -10,7 +10,7 @@ import type {
   OverlayRenderFn,
   TooltipProviderFn,
 } from './renderers';
-import type { BadgeOpts, RingOpts, LabelOpts } from './types';
+import type { BadgeOpts, RingOpts, LabelOpts } from './drawOptions';
 
 /**
  * API available to Tier-2 plugin scripts running in the CodeGraphy webview.

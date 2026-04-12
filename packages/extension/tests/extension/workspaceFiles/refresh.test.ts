@@ -12,6 +12,9 @@ function makeProvider() {
     setFocusedFile: vi.fn(),
     emitEvent: vi.fn(),
     refresh: vi.fn().mockResolvedValue(undefined),
+    invalidateWorkspaceFiles: vi.fn(() => []),
+    isGraphOpen: vi.fn(() => true),
+    markWorkspaceRefreshPending: vi.fn(),
   };
 }
 
@@ -36,11 +39,61 @@ describe('workspaceFiles/refresh', () => {
     const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
 
     scheduleWorkspaceRefresh(provider as never, '[CodeGraphy] File saved, refreshing graph');
-    scheduleWorkspaceRefresh(provider as never, '[CodeGraphy] File created, refreshing graph');
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      ['/workspace/new-file.ts'],
+    );
     vi.advanceTimersByTime(500);
 
     expect(provider.refresh).toHaveBeenCalledOnce();
+    expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/new-file.ts']);
     expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created, refreshing graph');
+
+    consoleSpy.mockRestore();
+  });
+
+  it('queues a pending refresh instead of refreshing while the graph is closed', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    provider.isGraphOpen.mockReturnValue(false);
+
+    scheduleWorkspaceRefresh(provider as never, '[CodeGraphy] File saved, refreshing graph');
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(provider.markWorkspaceRefreshPending).toHaveBeenCalledWith(
+      '[CodeGraphy] File saved, refreshing graph',
+      [],
+    );
+  });
+
+  it('batches file paths while hidden and flushes them on reopen', () => {
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const provider = makeProvider();
+    provider.isGraphOpen.mockReturnValue(false);
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File saved, refreshing graph',
+      ['/workspace/src/a.ts'],
+    );
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      ['/workspace/src/b.ts'],
+    );
+
+    expect(provider.markWorkspaceRefreshPending).toHaveBeenNthCalledWith(
+      1,
+      '[CodeGraphy] File saved, refreshing graph',
+      ['/workspace/src/a.ts'],
+    );
+    expect(provider.markWorkspaceRefreshPending).toHaveBeenNthCalledWith(
+      2,
+      '[CodeGraphy] File created, refreshing graph',
+      ['/workspace/src/b.ts'],
+    );
 
     consoleSpy.mockRestore();
   });

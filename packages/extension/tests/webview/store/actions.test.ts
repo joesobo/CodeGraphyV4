@@ -6,7 +6,7 @@ import type { GraphState } from '../../../src/webview/store/state';
 function createHarness() {
   let state = {
     ...INITIAL_STATE,
-    groups: [
+    legends: [
       { id: 'plugin:typescript', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
       { id: 'existing', pattern: 'src/**', color: '#22C55E' },
     ],
@@ -38,45 +38,45 @@ describe('webview/store/actions', () => {
   it('merges optimistic group updates and refreshes the expiry', () => {
     const { actions, getState } = createHarness();
 
-    actions.setOptimisticGroupUpdate('docs', { pattern: 'docs/**' });
-    actions.setOptimisticGroupUpdate('docs', { color: '#F59E0B' });
+    actions.setOptimisticLegendUpdate('docs', { pattern: 'docs/**' });
+    actions.setOptimisticLegendUpdate('docs', { color: '#F59E0B' });
 
-    expect(getState().optimisticGroupUpdates.docs?.updates).toEqual({
+    expect(getState().optimisticLegendUpdates.docs?.updates).toEqual({
       pattern: 'docs/**',
       color: '#F59E0B',
     });
-    expect(getState().optimisticGroupUpdates.docs?.expiresAt).toBeGreaterThan(0);
+    expect(getState().optimisticLegendUpdates.docs?.expiresAt).toBeGreaterThan(0);
   });
 
   it('clears an optimistic group update without touching other groups', () => {
     const { actions, getState } = createHarness();
 
-    actions.setOptimisticGroupUpdate('docs', { pattern: 'docs/**' });
-    actions.setOptimisticGroupUpdate('src', { pattern: 'src/**' });
-    actions.clearOptimisticGroupUpdate('docs');
+    actions.setOptimisticLegendUpdate('docs', { pattern: 'docs/**' });
+    actions.setOptimisticLegendUpdate('src', { pattern: 'src/**' });
+    actions.clearOptimisticLegendUpdate('docs');
 
-    expect(getState().optimisticGroupUpdates).toMatchObject({
+    expect(getState().optimisticLegendUpdates).toMatchObject({
       src: {
         updates: { pattern: 'src/**' },
       },
     });
-    expect(getState().optimisticGroupUpdates.docs).toBeUndefined();
+    expect(getState().optimisticLegendUpdates.docs).toBeUndefined();
   });
 
   it('replaces user groups while preserving plugin defaults', () => {
     const { actions, getState } = createHarness();
 
-    actions.setOptimisticUserGroups([
+    actions.setOptimisticUserLegends([
       { id: 'custom-a', pattern: 'docs/**', color: '#F59E0B' },
       { id: 'custom-b', pattern: 'notes/**', color: '#38BDF8' },
     ]);
 
-    expect(getState().groups).toEqual([
+    expect(getState().legends).toEqual([
       { id: 'custom-a', pattern: 'docs/**', color: '#F59E0B' },
       { id: 'custom-b', pattern: 'notes/**', color: '#38BDF8' },
       { id: 'plugin:typescript', pattern: '*.ts', color: '#3178C6', isPluginDefault: true },
     ]);
-    expect(getState().optimisticUserGroups?.groups).toEqual([
+    expect(getState().optimisticUserLegends?.groups).toEqual([
       { id: 'custom-a', pattern: 'docs/**', color: '#F59E0B' },
       { id: 'custom-b', pattern: 'notes/**', color: '#38BDF8' },
     ]);
@@ -91,20 +91,18 @@ describe('webview/store/actions', () => {
     actions.setParticleSize(8);
     actions.setPhysicsPaused(true);
     actions.setBidirectionalMode('combined');
-    actions.setActiveViewId('codegraphy.depth-graph');
+    actions.setDepthMode(true);
     actions.setDagMode('td');
-    actions.setFolderNodeColor('#ff00ff');
     actions.setMaxFiles(1200);
     actions.setPlaybackSpeed(1.75);
     actions.setIsPlaying(true);
 
     expect(getState()).toMatchObject({
-      activeViewId: 'codegraphy.depth-graph',
       bidirectionalMode: 'combined',
       dagMode: 'td',
+      depthMode: true,
       directionColor: '#00ff00',
       directionMode: 'particles',
-      folderNodeColor: '#ff00ff',
       isPlaying: true,
       maxFiles: 1200,
       particleSize: 8,

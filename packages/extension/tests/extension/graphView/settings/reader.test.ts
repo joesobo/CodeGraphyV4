@@ -43,30 +43,22 @@ describe('graphView/settings/reader', () => {
 
   it('prefers configured disabled state over stored fallback state', () => {
     const result = resolveGraphViewDisabledState(
-      new Set(['old-rule']),
       new Set(['old-plugin']),
-      ['configured-rule'],
       ['configured-plugin'],
-      ['stored-rule'],
       ['stored-plugin']
     );
 
-    expect([...result.disabledSources]).toEqual(['configured-rule']);
     expect([...result.disabledPlugins]).toEqual(['configured-plugin']);
     expect(result.changed).toBe(true);
   });
 
   it('falls back to stored disabled state when config values are absent', () => {
     const result = resolveGraphViewDisabledState(
-      new Set(['stored-rule']),
       new Set(['stored-plugin']),
       undefined,
-      undefined,
-      ['stored-rule'],
       ['stored-plugin']
     );
 
-    expect([...result.disabledSources]).toEqual(['stored-rule']);
     expect([...result.disabledPlugins]).toEqual(['stored-plugin']);
     expect(result.changed).toBe(false);
   });
@@ -85,7 +77,6 @@ describe('graphView/settings/reader', () => {
       particleSpeed: 0.005,
       particleSize: 4,
       directionColor: DEFAULT_DIRECTION_COLOR,
-      folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
       showLabels: true,
     });
   });
@@ -98,7 +89,6 @@ describe('graphView/settings/reader', () => {
       ['particleSpeed', 0.02],
       ['particleSize', 7],
       ['directionColor', '#00ff00'],
-      ['folderNodeColor', '#112233'],
       ['showLabels', false],
     ]);
     const config = {
@@ -114,7 +104,6 @@ describe('graphView/settings/reader', () => {
       particleSpeed: 0.02,
       particleSize: 7,
       directionColor: '#00FF00',
-      folderNodeColor: '#112233',
       showLabels: false,
     });
   });

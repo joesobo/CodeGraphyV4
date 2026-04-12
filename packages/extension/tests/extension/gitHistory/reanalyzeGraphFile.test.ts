@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IConnection } from '../../../src/core/plugins/types/contracts';
+import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import type { IGraphEdge } from '../../../src/shared/graph/types';
 import {
   reanalyzeGraphFile,
@@ -7,13 +7,12 @@ import {
 } from '../../../src/extension/gitHistory/reanalyzeGraphFile';
 
 describe('gitHistory/reanalyzeGraphFile', () => {
-  const noConnections = (): IConnection[] => [];
+  const emptyAnalysis = (filePath: string): IFileAnalysisResult => ({ filePath, relations: [] });
 
   it('returns early for unsupported files', async () => {
     const getFileAtCommit = vi.fn(async () => '');
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
-      getPluginForFile: vi.fn(() => ({ id: 'ts' })),
+      analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => emptyAnalysis(absolutePath)),
       supportsFile: vi.fn(() => false),
     };
     const edges: IGraphEdge[] = [{ id: 'src/a.txt->src/b.txt#import', from: 'src/a.txt', to: 'src/b.txt' , kind: 'import', sources: [] }];
@@ -35,8 +34,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     });
 
     expect(getFileAtCommit).not.toHaveBeenCalled();
-    expect(registry.analyzeFile).not.toHaveBeenCalled();
-    expect(registry.getPluginForFile).not.toHaveBeenCalled();
+    expect(registry.analyzeFileResult).not.toHaveBeenCalled();
     expect(nodes).toEqual([{ id: 'src/a.txt', label: 'a.txt', color: '#CBD5E1' }]);
     expect(edges).toEqual([{ id: 'src/a.txt->src/b.txt#import', from: 'src/a.txt', to: 'src/b.txt' , kind: 'import', sources: [] }]);
   });
@@ -46,16 +44,20 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     const nodeMap = new Map();
     const nodes: Array<{ id: string; label: string; color: string }> = [];
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
-        {
-          sourceId: 'import',
-          specifier: './b',
-          type: 'static',
-          resolvedPath: '/workspace/src/b.ts',
-          kind: 'import',
-        } satisfies IConnection,
-      ]),
-      getPluginForFile: vi.fn(() => ({ id: 'ts' })),
+      analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
+        filePath: absolutePath,
+        relations: [
+          {
+            sourceId: 'import',
+            specifier: './b',
+            type: 'static',
+            resolvedPath: '/workspace/src/b.ts',
+            kind: 'import',
+            pluginId: 'ts',
+            fromFilePath: absolutePath,
+          },
+        ],
+      })),
       supportsFile: vi.fn(() => true),
     };
 
@@ -96,16 +98,19 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     const edgeSet = new Set<string>();
     const getFileAtCommit = vi.fn(async () => 'import "./b";');
     const registry = {
-      analyzeFile: vi.fn(async (): Promise<IConnection[]> => [
-        {
-          sourceId: 'import',
-          specifier: './b',
-          type: 'static',
-          resolvedPath: '/workspace/src/b.ts',
-          kind: 'import',
-        } satisfies IConnection,
-      ]),
-      getPluginForFile: vi.fn(() => undefined),
+      analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => ({
+        filePath: absolutePath,
+        relations: [
+          {
+            sourceId: 'import',
+            specifier: './b',
+            type: 'static',
+            resolvedPath: '/workspace/src/b.ts',
+            kind: 'import',
+            fromFilePath: absolutePath,
+          },
+        ],
+      })),
       supportsFile: vi.fn(() => true),
     };
 
@@ -123,7 +128,6 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     });
 
     expect(getFileAtCommit).toHaveBeenCalled();
-    expect(registry.getPluginForFile).toHaveBeenCalledWith('/workspace/src/a.ts');
     expect(edges).toEqual([
       {
         id: 'src/a.ts->src/b.ts#import',
@@ -148,7 +152,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
       nodeMap,
       nodes,
       registry: {
-        analyzeFile: vi.fn(async (): Promise<IConnection[]> => noConnections()),
+        analyzeFileResult: vi.fn(async (absolutePath: string): Promise<IFileAnalysisResult> => emptyAnalysis(absolutePath)),
         supportsFile: vi.fn(() => true),
       },
       sha: 'abc123',

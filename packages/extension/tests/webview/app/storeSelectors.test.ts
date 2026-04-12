@@ -25,10 +25,11 @@ describe('app store selectors', () => {
         isLoading: true,
         searchQuery: 'query',
         searchOptions: { matchCase: true, wholeWord: true, regex: true },
-        groups: [{ id: 'group-1', pattern: 'src/**', color: '#ff0000' }],
+        legends: [{ id: 'group-1', pattern: 'src/**', color: '#ff0000' }],
         showOrphans: false,
         timelineActive: true,
         activePanel: 'plugins',
+        depthMode: true,
         nodeDecorations: { 'src/app.ts': { badge: { text: 'A' } } },
         edgeDecorations: { edge1: { opacity: 0.5 } },
       });
@@ -36,20 +37,26 @@ describe('app store selectors', () => {
 
     const { result } = renderHook(() => useAppState());
 
-    expect(result.current).toEqual({
+    expect(result.current).toMatchObject({
       graphData,
       isLoading: true,
       searchQuery: 'query',
       searchOptions: { matchCase: true, wholeWord: true, regex: true },
-      groups: [{ id: 'group-1', pattern: 'src/**', color: '#ff0000' }],
+      legends: [{ id: 'group-1', pattern: 'src/**', color: '#ff0000' }],
       showOrphans: false,
       timelineActive: true,
       activePanel: 'plugins',
-      activeViewId: 'codegraphy.connections',
+      depthMode: true,
       activeFilePath: null,
       nodeDecorations: { 'src/app.ts': { badge: { text: 'A' } } },
       edgeDecorations: { edge1: { opacity: 0.5 } },
     });
+    expect(result.current.nodeColors).toEqual({});
+    expect(result.current.nodeVisibility).toEqual({});
+    expect(result.current.edgeVisibility).toEqual({});
+    expect(result.current.edgeColors).toEqual({});
+    expect(result.current.graphIsIndexing).toBe(false);
+    expect(result.current.graphIndexProgress).toBeNull();
   });
 
   it('returns the search and panel action references', () => {

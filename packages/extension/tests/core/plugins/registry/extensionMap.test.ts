@@ -9,9 +9,9 @@ function createPlugin(overrides: Partial<IPlugin> = {}): IPlugin {
     version: '1.0.0',
     apiVersion: '^2.0.0',
     supportedExtensions: ['.ts'],
-    detectConnections: async () => [],
+    analyzeFile: async filePath => ({ filePath, relations: [] }),
     ...overrides,
-  };
+  } as IPlugin;
 }
 
 describe('addPluginToExtensionMap', () => {

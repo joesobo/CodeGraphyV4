@@ -54,8 +54,8 @@ describe('graphView/builtInDefaultGroups', () => {
         pluginName: 'CodeGraphy',
       },
       {
-        id: 'default:.vscode/settings.json',
-        pattern: '.vscode/settings.json',
+        id: 'default:.codegraphy/settings.json',
+        pattern: '.codegraphy/settings.json',
         color: '#277ACC',
         isPluginDefault: true,
         pluginName: 'CodeGraphy',

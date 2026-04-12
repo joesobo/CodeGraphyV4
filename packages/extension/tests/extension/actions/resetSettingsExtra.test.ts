@@ -49,52 +49,60 @@ function createMockContext() {
 }
 
 describe('ResetSettingsAction (extra mutant coverage)', () => {
-  let physicsStore: Record<string, unknown>;
-  let codegraphyStore: Record<string, unknown>;
+  let settingsStore: Record<string, unknown>;
 
   const SNAPSHOT: ISettingsSnapshot = {
     physics: { repelForce: 10, linkDistance: 100, linkForce: 0.2, damping: 0.5, centerForce: 0.3 },
-    groups: [],
+    legends: [],
     filterPatterns: [],
     showOrphans: true,
     bidirectionalMode: 'separate',
     directionMode: 'arrows',
     directionColor: '#000000',
-    folderNodeColor: '#FFFFFF',
+    nodeColors: { file: '#999999', folder: '#888888' },
+    nodeVisibility: { file: true, folder: true },
+    edgeVisibility: { imports: true, nests: false },
+    edgeColors: { imports: '#777777', nests: '#666666' },
+    pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
+    disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.001,
     particleSize: 4,
     showLabels: true,
     maxFiles: 500,
-    hiddenPluginGroups: [],
     nodeSizeMode: 'connections',
   };
 
   beforeEach(() => {
     vi.clearAllMocks();
-    physicsStore = { ...SNAPSHOT.physics };
-    codegraphyStore = {
-      groups: [],
+    settingsStore = {
+      'physics.repelForce': SNAPSHOT.physics.repelForce,
+      'physics.linkDistance': SNAPSHOT.physics.linkDistance,
+      'physics.linkForce': SNAPSHOT.physics.linkForce,
+      'physics.damping': SNAPSHOT.physics.damping,
+      'physics.centerForce': SNAPSHOT.physics.centerForce,
+      legends: [],
       filterPatterns: [],
       showOrphans: true,
       bidirectionalEdges: 'separate',
       directionMode: 'arrows',
       directionColor: '#000000',
-      folderNodeColor: '#FFFFFF',
+      nodeColors: { file: '#999999', folder: '#888888' },
+      nodeVisibility: { file: true, folder: true },
+      edgeVisibility: { imports: true, nests: false },
+      edgeColors: { imports: '#777777', nests: '#666666' },
+      pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
+      disabledPlugins: ['codegraphy.python'],
       particleSpeed: 0.001,
       particleSize: 4,
       showLabels: true,
       maxFiles: 500,
-      hiddenPluginGroups: [],
+      nodeSizeMode: 'file-size',
     };
   });
 
   it('resets all five physics keys to undefined during execute', async () => {
-    const mockPhysicsConfig = createMockConfig(physicsStore);
-    const mockCodegraphyConfig = createMockConfig(codegraphyStore);
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    const mockConfig = createMockConfig(settingsStore);
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
     const ctx = createMockContext();
     const action = new ResetSettingsAction(
@@ -108,13 +116,14 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
 
     await action.execute();
 
-    const physicsUpdateCalls = (mockPhysicsConfig.update as ReturnType<typeof vi.fn>).mock.calls;
+    const physicsUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([key]) => String(key).startsWith('physics.'));
     const updatedKeys = physicsUpdateCalls.map((call) => call[0]);
-    expect(updatedKeys).toContain('repelForce');
-    expect(updatedKeys).toContain('linkDistance');
-    expect(updatedKeys).toContain('linkForce');
-    expect(updatedKeys).toContain('damping');
-    expect(updatedKeys).toContain('centerForce');
+    expect(updatedKeys).toContain('physics.repelForce');
+    expect(updatedKeys).toContain('physics.linkDistance');
+    expect(updatedKeys).toContain('physics.linkForce');
+    expect(updatedKeys).toContain('physics.damping');
+    expect(updatedKeys).toContain('physics.centerForce');
 
     // All values should be undefined
     for (const call of physicsUpdateCalls) {
@@ -123,12 +132,8 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
   });
 
   it('resets all CONFIG_TO_SNAPSHOT config keys to undefined during execute', async () => {
-    const mockPhysicsConfig = createMockConfig(physicsStore);
-    const mockCodegraphyConfig = createMockConfig(codegraphyStore);
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    const mockConfig = createMockConfig(settingsStore);
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
     const ctx = createMockContext();
     const action = new ResetSettingsAction(
@@ -142,7 +147,8 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
 
     await action.execute();
 
-    const cgUpdateCalls = (mockCodegraphyConfig.update as ReturnType<typeof vi.fn>).mock.calls;
+    const cgUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([key]) => !String(key).startsWith('physics.'));
     const updatedKeys = cgUpdateCalls.map((call) => call[0]);
     expect(updatedKeys).toContain('groups');
     expect(updatedKeys).toContain('filterPatterns');
@@ -150,22 +156,32 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     expect(updatedKeys).toContain('bidirectionalEdges');
     expect(updatedKeys).toContain('directionMode');
     expect(updatedKeys).toContain('directionColor');
-    expect(updatedKeys).toContain('folderNodeColor');
+    expect(updatedKeys).toContain('nodeColors');
+    expect(updatedKeys).toContain('nodeVisibility');
+    expect(updatedKeys).toContain('edgeVisibility');
+    expect(updatedKeys).toContain('edgeColors');
+    expect(updatedKeys).toContain('pluginOrder');
+    expect(updatedKeys).toContain('disabledPlugins');
     expect(updatedKeys).toContain('particleSpeed');
     expect(updatedKeys).toContain('particleSize');
     expect(updatedKeys).toContain('showLabels');
     expect(updatedKeys).toContain('maxFiles');
-    expect(updatedKeys).toContain('hiddenPluginGroups');
+    expect(updatedKeys).toContain('nodeSizeMode');
+
+    for (const call of cgUpdateCalls) {
+      if (call[0] === 'nodeSizeMode') {
+        expect(call[1]).toBe('connections');
+        continue;
+      }
+
+      expect(call[1]).toBeUndefined();
+    }
   });
 
   it('undo restores each physics key to its original value', async () => {
     const originalPhysics = { repelForce: 10, linkDistance: 100, linkForce: 0.2, damping: 0.5, centerForce: 0.3 };
-    const mockPhysicsConfig = createMockConfig({ ...physicsStore });
-    const mockCodegraphyConfig = createMockConfig({ ...codegraphyStore });
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    const mockConfig = createMockConfig({ ...settingsStore });
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
     const ctx = createMockContext();
     const action = new ResetSettingsAction(
@@ -179,27 +195,30 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
 
     await action.execute();
     vi.clearAllMocks();
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
     await action.undo();
 
-    const physicsUpdateCalls = (mockPhysicsConfig.update as ReturnType<typeof vi.fn>).mock.calls;
+    const physicsUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([key]) => String(key).startsWith('physics.'));
     for (const call of physicsUpdateCalls) {
-      const key = call[0] as keyof typeof originalPhysics;
+      const key = String(call[0]).replace('physics.', '') as keyof typeof originalPhysics;
       expect(call[1]).toBe(originalPhysics[key]);
     }
+
+    const nonPhysicsUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([key]) => !String(key).startsWith('physics.'));
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'nodeColors' && value === SNAPSHOT.nodeColors)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'nodeVisibility' && value === SNAPSHOT.nodeVisibility)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'edgeVisibility' && value === SNAPSHOT.edgeVisibility)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'edgeColors' && value === SNAPSHOT.edgeColors)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'pluginOrder' && value === SNAPSHOT.pluginOrder)).toBe(true);
+    expect(nonPhysicsUpdateCalls.some(([key, value]) => key === 'disabledPlugins' && value === SNAPSHOT.disabledPlugins)).toBe(true);
   });
 
-  it('uses the correct config target in execute and undo', async () => {
-    const mockPhysicsConfig = createMockConfig({ ...physicsStore });
-    const mockCodegraphyConfig = createMockConfig({ ...codegraphyStore });
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+  it('updates repo settings without a VS Code config target argument', async () => {
+    const mockConfig = createMockConfig({ ...settingsStore });
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
 
     const ctx = createMockContext();
     const action = new ResetSettingsAction(
@@ -213,9 +232,10 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
 
     await action.execute();
 
-    const physicsUpdateCalls = (mockPhysicsConfig.update as ReturnType<typeof vi.fn>).mock.calls;
+    const physicsUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
+      .filter(([key]) => String(key).startsWith('physics.'));
     for (const call of physicsUpdateCalls) {
-      expect(call[2]).toBe(vscode.ConfigurationTarget.Global);
+      expect(call[2]).toBeUndefined();
     }
   });
 });

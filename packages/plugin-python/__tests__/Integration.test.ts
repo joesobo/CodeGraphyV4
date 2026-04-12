@@ -1,9 +1,9 @@
 /**
  * @fileoverview Integration tests for Python plugin.
- * Simulates how WorkspaceAnalyzer calls the plugin to reproduce the 0 edges bug.
+ * Simulates how the analysis pipeline consumes per-file relations.
  * 
- * Bug: Python PathResolver returns workspace-relative paths, but
- * WorkspaceAnalyzer expects absolute paths (like TypeScript plugin).
+ * Confirms Python returns absolute paths so the shared analysis pipeline can
+ * project file-to-file edges correctly.
  */
 
 import { afterAll, describe, it, expect, beforeAll } from 'vitest';
@@ -29,9 +29,9 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
   });
 
   /**
-   * This test simulates exactly what WorkspaceAnalyzer does:
-   * 1. Calls detectConnections with ABSOLUTE file path
-   * 2. Gets resolvedPath from connections
+   * This test simulates the new file-analysis path:
+   * 1. Calls analyzeFile with ABSOLUTE file path
+   * 2. Gets resolvedPath from relations
    * 3. Calls path.relative(workspaceRoot, resolvedPath) to get the node ID
    * 
    * BUG: Python plugin returns relative paths, so path.relative() produces garbage.
@@ -40,21 +40,21 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     const mainPy = path.join(workspaceRoot, 'src', 'main.py');
     const content = fs.readFileSync(mainPy, 'utf-8');
 
-    // This is exactly what WorkspaceAnalyzer does
-    const connections = await pythonPlugin.detectConnections(
+    // This is exactly what the pipeline does
+    const relations = (await pythonPlugin.analyzeFile?.(
       mainPy, // absolute path
       content,
       workspaceRoot
-    );
+    ))?.relations ?? [];
 
-    expect(connections.length).toBeGreaterThan(0);
+    expect(relations.length).toBeGreaterThan(0);
     
     // The bug: resolvedPath should be absolute, but Python plugin returns relative
-    const configConnection = connections.find(connection => connection.specifier.includes('config'));
+    const configConnection = relations.find(connection => connection.specifier?.includes('config'));
     expect(configConnection).toBeDefined();
     expect(configConnection!.resolvedPath).not.toBeNull();
 
-    // This is what WorkspaceAnalyzer does to build edges
+    // This is what the pipeline does to build edges
     const resolvedPath = configConnection!.resolvedPath!;
     const targetRelative = path.relative(workspaceRoot, resolvedPath);
 
@@ -96,9 +96,9 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
       if (!fs.existsSync(absPath)) continue;
 
       const content = fs.readFileSync(absPath, 'utf-8');
-      const connections = await pythonPlugin.detectConnections(absPath, content, workspaceRoot);
+      const relations = (await pythonPlugin.analyzeFile?.(absPath, content, workspaceRoot))?.relations ?? [];
 
-      for (const conn of connections) {
+      for (const conn of relations) {
         if (conn.resolvedPath) {
           // Simulate what WorkspaceAnalyzer does
           const targetRelative = path.relative(workspaceRoot, conn.resolvedPath);
@@ -130,14 +130,12 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     expect(validEdges.length).toBeGreaterThanOrEqual(5);
   });
 
-  /**
-   * Compare with TypeScript plugin to show expected behavior.
-   */
-  it('TypeScript plugin returns absolute paths (reference behavior)', async () => {
+  it('TypeScript supplemental relations still return absolute paths', async () => {
     const tsPlugin = createTypeScriptPlugin();
     
-    // Create a minimal TS file to test with
-    const tsContent = `import { something } from './other';`;
+    // The TypeScript plugin now only owns supplemental JS/TS relations like
+    // dynamic import and require. Static imports come from the core pass.
+    const tsContent = `const mod = import('./other');`;
     const mockTsFile = path.join(tempTypeScriptWorkspace, 'test.ts');
     const mockOtherFile = path.join(tempTypeScriptWorkspace, 'other.ts');
     
@@ -147,15 +145,14 @@ describe('Python Plugin Integration (reproduces 0 edges bug)', () => {
     
     try {
       await tsPlugin.initialize?.(tempTypeScriptWorkspace);
-      const connections = await tsPlugin.detectConnections(mockTsFile, tsContent, tempTypeScriptWorkspace);
+      const connections = (await tsPlugin.analyzeFile?.(mockTsFile, tsContent, tempTypeScriptWorkspace))?.relations ?? [];
       
       expect(connections.length).toBe(1);
       expect(connections[0].resolvedPath).not.toBeNull();
+      expect(connections[0].sourceId).toBe('dynamic-import');
       
-      // TypeScript returns absolute path
       expect(path.isAbsolute(connections[0].resolvedPath!)).toBe(true);
       
-      // path.relative works correctly
       const targetRelative = path.relative(tempTypeScriptWorkspace, connections[0].resolvedPath!);
       expect(targetRelative).toBe('other.ts');
     } finally {

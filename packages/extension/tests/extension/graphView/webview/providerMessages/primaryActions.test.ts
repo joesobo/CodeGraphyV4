@@ -3,6 +3,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   createGraphViewProviderMessagePrimaryActions,
 } from '../../../../../src/extension/graphView/webview/providerMessages/primaryActions';
+import * as repoSettings from '../../../../../src/extension/repoSettings/current';
+
+vi.mock('../../../../../src/extension/repoSettings/current', () => ({
+  getCodeGraphyConfiguration: vi.fn(),
+  updateCodeGraphyConfigurationSilently: vi.fn(() => Promise.resolve()),
+}));
 
 describe('graph view provider listener primary actions', () => {
   afterEach(() => {
@@ -49,7 +55,6 @@ describe('graph view provider listener primary actions', () => {
     await actions.analyzeAndSendData();
     await actions.undo();
     await actions.redo();
-    await actions.changeView('codegraphy.depth-graph');
     await actions.setDepthLimit(4);
     await actions.indexRepository();
     await actions.jumpToCommit('sha-1');
@@ -61,7 +66,6 @@ describe('graph view provider listener primary actions', () => {
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
     expect(source.undo).toHaveBeenCalledOnce();
     expect(source.redo).toHaveBeenCalledOnce();
-    expect(source.changeView).toHaveBeenCalledWith('codegraphy.depth-graph');
     expect(source.setDepthLimit).toHaveBeenCalledWith(4);
     expect(source._indexRepository).toHaveBeenCalledOnce();
     expect(source._jumpToCommit).toHaveBeenCalledWith('sha-1');
@@ -74,19 +78,29 @@ describe('graph view provider listener primary actions', () => {
   it('uses dependency-backed wrappers for group persistence and dialogs', async () => {
     const source = createSource();
     const dependencies = createDependencies();
+    const updateSilently = vi.fn(() => Promise.resolve());
+    vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
+      update: vi.fn(() => Promise.resolve()),
+    } as never);
+    vi.mocked(repoSettings.updateCodeGraphyConfigurationSilently).mockImplementation(updateSilently);
     const actions = createActions(source, dependencies);
     const groups = [{ id: 'user:src', pattern: 'src/**', color: '#112233' }];
     const openDialogOptions = { canSelectFiles: true };
 
-    await actions.persistGroups(groups as never);
+    await actions.persistLegends(groups as never);
+    await actions.persistDefaultLegendVisibility('plugin:codegraphy.typescript:*.ts', false);
+    await actions.persistLegendOrder(['plugin:codegraphy.typescript:*.ts', 'legend:user']);
     actions.showInformationMessage('saved');
     await actions.showOpenDialog(openDialogOptions as never);
 
-    expect(dependencies.getConfigTarget).toHaveBeenCalledWith(
-      dependencies.workspace.workspaceFolders,
-    );
-    expect(dependencies.workspace.getConfiguration).toHaveBeenCalledWith('codegraphy');
-    expect(dependencies.update).toHaveBeenCalledWith('groups', groups, 'workspace');
+    expect(updateSilently).toHaveBeenCalledWith('legend', groups);
+    expect(updateSilently).toHaveBeenCalledWith('legendVisibility', {
+      'plugin:codegraphy.typescript:*.ts': false,
+    });
+    expect(updateSilently).toHaveBeenCalledWith('legendOrder', [
+      'plugin:codegraphy.typescript:*.ts',
+      'legend:user',
+    ]);
     expect(dependencies.window.showInformationMessage).toHaveBeenCalledWith('saved');
     expect(dependencies.window.showOpenDialog).toHaveBeenCalledWith(openDialogOptions);
   });
@@ -130,13 +144,13 @@ describe('graph view provider listener primary actions', () => {
     actions.sendGroupsUpdated();
     actions.sendMessage(message as never);
     actions.applyViewTransform();
-    actions.smartRebuild('plugin', 'plugin.test');
+    actions.smartRebuild('plugin.test');
 
     expect(source._computeMergedGroups).toHaveBeenCalledOnce();
     expect(source._sendGroupsUpdated).toHaveBeenCalledOnce();
     expect(source._sendMessage).toHaveBeenCalledWith(message);
     expect(source._applyViewTransform).toHaveBeenCalledOnce();
-    expect(source._smartRebuild).toHaveBeenCalledWith('plugin', 'plugin.test');
+    expect(source._smartRebuild).toHaveBeenCalledWith('plugin.test');
   });
 });
 
@@ -155,6 +169,7 @@ function createSource() {
     _toggleFavorites: vi.fn(() => Promise.resolve()),
     _addToExclude: vi.fn(() => Promise.resolve()),
     _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     _getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve('undo')),
     redo: vi.fn(() => Promise.resolve('redo')),
@@ -175,19 +190,18 @@ function createSource() {
 }
 
 function createDependencies() {
-  const update = vi.fn(() => Promise.resolve());
-
   return {
-    update,
     workspace: {
       workspaceFolders: [{ uri: { fsPath: '/workspace' } }],
-      getConfiguration: vi.fn(() => ({ update })),
+      getConfiguration: vi.fn(() => ({
+        get: vi.fn((_key: string, defaultValue: unknown) => defaultValue),
+      })),
     },
     window: {
       showInformationMessage: vi.fn(),
       showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
     },
-    getConfigTarget: vi.fn(() => 'workspace'),
+    getConfigTarget: vi.fn(),
   };
 }
 

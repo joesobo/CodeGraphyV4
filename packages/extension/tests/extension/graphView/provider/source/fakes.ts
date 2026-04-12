@@ -77,14 +77,14 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _sendCachedTimeline: vi.fn(),
   };
   const viewContextMethods = {
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _updateViewContext: vi.fn(),
     _applyViewTransform: vi.fn(),
     updateGraphData: vi.fn(),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] })),
   };
   const viewSelectionMethods = {
-    changeView: vi.fn(async () => undefined),
+    setDepthMode: vi.fn(async () => undefined),
     setFocusedFile: vi.fn(),
     setDepthLimit: vi.fn(async () => undefined),
   };
@@ -106,7 +106,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _analysisController: undefined,
     _analysisRequestId: 1,
     _viewRegistry: { id: 'registry' },
-    _activeViewId: 'codegraphy.connections',
     _dagMode: null,
     _nodeSizeMode: 'connections',
     _rawGraphData: { nodes: [], edges: [] },
@@ -118,7 +117,6 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _userGroups: [],
     _hiddenPluginGroupIds: new Set<string>(),
     _filterPatterns: [],
-    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(),
     _gitAnalyzer: undefined,
     _currentCommitSha: undefined,

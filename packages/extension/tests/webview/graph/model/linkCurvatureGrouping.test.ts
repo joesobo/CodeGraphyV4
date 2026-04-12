@@ -76,6 +76,16 @@ describe('groupLinksByNodePair', () => {
     expect(links[0].nodePairId).toBe('X_Y');
   });
 
+  it('appends curvature group id when present', () => {
+    const links: CurvatureLink[] = [
+      { source: 'X', target: 'Y', curvatureGroupId: 'call' },
+    ];
+
+    groupLinksByNodePair(links);
+
+    expect(links[0].nodePairId).toBe('X_Y_call');
+  });
+
   it('groups multiple self-loops by the same node', () => {
     const links: CurvatureLink[] = [
       { source: 'A', target: 'A' },

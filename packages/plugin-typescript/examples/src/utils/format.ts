@@ -1,12 +1,12 @@
 /**
- * Format utilities - imports helpers (creates bidirectional edge)
- * Expected: bidirectional edge with helpers (format ↔ helpers)
+ * Format utilities - imports processing (creates bidirectional edge)
+ * Expected: bidirectional edge with processing (format ↔ processing)
  *
  * This circular dependency demonstrates the bidirectionalEdges setting:
- * - 'separate': Shows two distinct arrows (format → helpers, helpers → format)
- * - 'combined': Shows one thick double-headed arrow (format ↔ helpers)
+ * - 'separate': Shows two distinct arrows (format → processing, processing → format)
+ * - 'combined': Shows one thick double-headed arrow (format ↔ processing)
  */
-import { truncate } from './helpers';
+import { truncate } from './processing';
 
 export function formatDate(date: Date): string {
   return date.toISOString();

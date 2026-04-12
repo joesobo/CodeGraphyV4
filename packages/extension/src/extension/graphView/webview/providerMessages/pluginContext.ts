@@ -3,7 +3,6 @@ import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
 } from './listener';
-import { updateHiddenPluginGroups } from './hiddenPluginGroups';
 import { createGraphViewProviderPluginApis } from './pluginApis';
 import {
   setPluginFilterPatterns,
@@ -17,10 +16,10 @@ type GraphViewProviderPluginContext = Pick<
   | 'hasWorkspace'
   | 'isFirstAnalysis'
   | 'isWebviewReadyNotified'
-  | 'getHiddenPluginGroupIds'
   | 'loadGroupsAndFilterPatterns'
   | 'loadDisabledRulesAndPlugins'
-  | 'sendAvailableViews'
+  | 'sendDepthState'
+  | 'sendGraphControls'
   | 'sendFavorites'
   | 'sendSettings'
   | 'sendCachedTimeline'
@@ -38,7 +37,6 @@ type GraphViewProviderPluginContext = Pick<
   | 'getToolbarActionPluginApi'
   | 'emitEvent'
   | 'logError'
-  | 'updateHiddenPluginGroups'
   | 'setUserGroups'
   | 'setFilterPatterns'
   | 'setWebviewReadyNotified'
@@ -51,14 +49,17 @@ export function createGraphViewProviderMessagePluginContext(
   const pluginApis = createGraphViewProviderPluginApis(source);
 
   return {
-    getPluginFilterPatterns: () => source._analyzer?.getPluginFilterPatterns() ?? [],
+    getPluginFilterPatterns: () =>
+      typeof source._analyzer?.getPluginFilterPatterns === 'function'
+        ? source._analyzer.getPluginFilterPatterns()
+        : [],
     hasWorkspace: () => (dependencies.workspace.workspaceFolders?.length ?? 0) > 0,
     isFirstAnalysis: () => source._firstAnalysis,
     isWebviewReadyNotified: () => source._webviewReadyNotified,
-    getHiddenPluginGroupIds: () => source._hiddenPluginGroupIds,
     loadGroupsAndFilterPatterns: () => source._loadGroupsAndFilterPatterns(),
     loadDisabledRulesAndPlugins: () => source._loadDisabledRulesAndPlugins(),
-    sendAvailableViews: () => source._sendAvailableViews(),
+    sendDepthState: () => source._sendDepthState(),
+    sendGraphControls: () => source._sendGraphControls?.(),
     sendFavorites: () => source._sendFavorites(),
     sendSettings: () => source._sendSettings(),
     sendCachedTimeline: () => source._sendCachedTimeline(),
@@ -83,7 +84,6 @@ export function createGraphViewProviderMessagePluginContext(
     logError: (label, error) => {
       console.error(label, error);
     },
-    updateHiddenPluginGroups: groupIds => updateHiddenPluginGroups(dependencies, groupIds),
     setUserGroups: groups => setPluginUserGroups(source, groups),
     setFilterPatterns: patterns => setPluginFilterPatterns(source, patterns),
     setWebviewReadyNotified: readyNotified =>

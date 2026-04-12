@@ -187,6 +187,7 @@ describe('Graph wiring', () => {
 		const favorites = new Set(['src/app.ts']);
 		setStoreState({
 			bidirectionalMode: 'line',
+			depthMode: true,
 			directionColor: '#ef4444',
 			directionMode: 'particles',
 			favorites,
@@ -210,7 +211,7 @@ describe('Graph wiring', () => {
 			timelineActive: true,
 		}));
 		expect(harness.useGraphInteractionRuntime).toHaveBeenCalledWith(expect.objectContaining({
-			activeViewId: expect.any(String),
+			depthMode: true,
 			graphMode: '3d',
 			isMacPlatform: expect.any(Boolean),
 		}));

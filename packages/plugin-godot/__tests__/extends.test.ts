@@ -27,6 +27,8 @@ describe('extends rule', () => {
     expect(connections[0].kind).toBe('inherit');
     expect(connections[0].type).toBe('static');
     expect(connections[0].sourceId).toBe('extends');
+    expect(connections[0].fromFilePath).toBe(testFile);
+    expect(connections[0].toFilePath).toContain('scripts/base_character.gd');
   });
 
   it('should ignore extends with built-in class (no quotes)', () => {

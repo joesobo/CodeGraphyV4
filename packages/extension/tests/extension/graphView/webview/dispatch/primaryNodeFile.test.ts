@@ -9,21 +9,21 @@ import type { GraphViewPrimaryMessageContext } from '../../../../../src/extensio
 function createContext(
   overrides: Partial<GraphViewPrimaryMessageContext> = {},
 ): GraphViewPrimaryMessageContext {
-  return {
+  const context = {
     getTimelineActive: vi.fn(() => false),
     getCurrentCommitSha: vi.fn(() => undefined),
     getUserGroups: vi.fn(() => []),
-    getActiveViewId: vi.fn(() => 'codegraphy.connections'),
     getDisabledPlugins: vi.fn(() => new Set<string>()),
-    getDisabledRules: vi.fn(() => new Set<string>()),
     getFilterPatterns: vi.fn(() => []),
     getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
     getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
+    sendGraphControls: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
     setFocusedFile: vi.fn(),
     previewFileAtCommit: vi.fn(() => Promise.resolve()),
     openFile: vi.fn(() => Promise.resolve()),
+    openInEditor: vi.fn(),
     revealInExplorer: vi.fn(() => Promise.resolve()),
     copyToClipboard: vi.fn(() => Promise.resolve()),
     deleteFiles: vi.fn(() => Promise.resolve()),
@@ -31,7 +31,10 @@ function createContext(
     createFile: vi.fn(() => Promise.resolve()),
     toggleFavorites: vi.fn(() => Promise.resolve()),
     addToExclude: vi.fn(() => Promise.resolve()),
+    indexAndSendData: vi.fn(() => Promise.resolve()),
     analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    refreshIndex: vi.fn(() => Promise.resolve()),
+    clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve(undefined)),
     redo: vi.fn(() => Promise.resolve(undefined)),
@@ -47,7 +50,8 @@ function createContext(
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     resetPhysicsSettings: vi.fn(() => Promise.resolve()),
     workspaceFolder: undefined,
-    persistGroups: vi.fn(() => Promise.resolve()),
+    persistLegends: vi.fn(() => Promise.resolve()),
+    persistDefaultLegendVisibility: vi.fn(() => Promise.resolve()),
     recomputeGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
@@ -62,6 +66,10 @@ function createContext(
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
+
+  context.sendGraphControls ??= vi.fn();
+
+  return context as GraphViewPrimaryMessageContext;
 }
 
 describe('createGraphViewPrimaryNodeFileHandlers', () => {
@@ -79,5 +87,18 @@ describe('createGraphViewPrimaryNodeFileHandlers', () => {
     expect(handlers.setFocusedFile).toBe(context.setFocusedFile);
     expect(handlers.previewFileAtCommit).toBe(context.previewFileAtCommit);
     expect(handlers.getFileInfo).toBe(context.getFileInfo);
+    expect(handlers.indexGraph).toBeDefined();
+    expect(handlers.refreshGraph).toBeDefined();
+  });
+
+  it('routes graph index and refresh through the expected provider methods', async () => {
+    const context = createContext();
+    const handlers = createGraphViewPrimaryNodeFileHandlers(context);
+
+    await handlers.indexGraph();
+    await handlers.refreshGraph();
+
+    expect(context.indexAndSendData).toHaveBeenCalledOnce();
+    expect(context.refreshIndex).toHaveBeenCalledOnce();
   });
 });

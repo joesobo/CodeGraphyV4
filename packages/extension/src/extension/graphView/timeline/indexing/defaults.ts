@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
 import type { PluginRegistry } from '../../../../core/plugins/registry/manager';
 import type { GraphViewProviderTimelineDependencies } from '../provider/indexing';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import {
   buildGraphViewTimelineGraphData,
   type GraphViewTimelineGraphOptions,
@@ -13,9 +14,9 @@ export function createDefaultGraphViewProviderTimelineDependencies(): GraphViewP
   return {
     getWorkspaceFolder: () => vscode.workspace.workspaceFolders?.[0],
     getShowOrphans: () =>
-      vscode.workspace.getConfiguration('codegraphy').get<boolean>('showOrphans', true),
+      getCodeGraphyConfiguration().get<boolean>('showOrphans', true),
     getMaxCommits: () =>
-      vscode.workspace.getConfiguration('codegraphy').get<number>('timeline.maxCommits', 500),
+      getCodeGraphyConfiguration().get<number>('timeline.maxCommits', 500),
     verifyGitRepository: async cwd => {
       const { execFile } = await import('child_process');
       const { promisify } = await import('util');

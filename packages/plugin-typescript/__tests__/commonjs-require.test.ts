@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { detect, SOURCE_ID } from '../src/sources/commonjs-require';
 import { PathResolver } from '../src/PathResolver';
-import type { TsRuleContext } from '../src/types';
+import type { TsRuleContext } from '../src/ruleContext';
 
 describe('commonjs-require rule', () => {
   let context: TsRuleContext;

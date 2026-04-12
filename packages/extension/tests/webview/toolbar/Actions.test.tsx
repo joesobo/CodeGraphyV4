@@ -1,6 +1,6 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { mdiLinkVariant } from '@mdi/js';
 import { TooltipProvider } from '../../../src/webview/components/ui/overlay/tooltip';
 import { graphStore } from '../../../src/webview/store/state';
@@ -55,17 +55,9 @@ import {
 import {
   buildPluginExporterGroups,
   getPluginExporterKey,
-} from '../../../src/webview/components/toolbar/exportMenu';
+} from '../../../src/webview/components/export/model';
 
-const exportCases = [
-  ['Export as PNG', 'REQUEST_EXPORT_PNG'],
-  ['Export as SVG', 'REQUEST_EXPORT_SVG'],
-  ['Export as JPEG', 'REQUEST_EXPORT_JPEG'],
-  ['Export as JSON', 'REQUEST_EXPORT_JSON'],
-  ['Export as Markdown', 'REQUEST_EXPORT_MD'],
-] as const;
-
-const iconButtonTitles = ['Export', 'Refresh Graph', 'Plugins', 'Settings'] as const;
+const iconButtonTitles = ['Index Repo', 'Export', 'Nodes', 'Edges', 'Legends', 'Plugins', 'Settings'] as const;
 
 function renderWithProviders() {
   return render(
@@ -79,19 +71,22 @@ function clickAction(title: string) {
   fireEvent.click(screen.getByTitle(title));
 }
 
-function clickExportItem(label: string) {
-  const postMessageSpy = vi.spyOn(window, 'postMessage');
-
-  renderWithProviders();
-  fireEvent.click(screen.getByText(label));
-
-  return postMessageSpy;
-}
-
 describe('ToolbarActions', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    graphStore.setState({ activePanel: 'none', pluginExporters: [], pluginToolbarActions: [] });
+    vi.useFakeTimers();
+    graphStore.setState({
+      activePanel: 'none',
+      pluginExporters: [],
+      pluginToolbarActions: [],
+      graphHasIndex: false,
+      graphIsIndexing: false,
+      graphIndexProgress: null,
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders all four action buttons', () => {
@@ -100,20 +95,76 @@ describe('ToolbarActions', () => {
     expect(buttons.length).toBeGreaterThanOrEqual(4);
   });
 
-  it('renders the refresh button with title', () => {
+  it('renders the index button with title when no graph index exists', () => {
     renderWithProviders();
-    expect(screen.getByTitle('Refresh Graph')).toBeInTheDocument();
+    expect(screen.getByTitle('Index Repo')).toBeInTheDocument();
   });
 
-  it('sends REFRESH_GRAPH message when refresh button is clicked', () => {
+  it('sends INDEX_GRAPH message when the initial index button is clicked', () => {
     renderWithProviders();
-    clickAction('Refresh Graph');
+    clickAction('Index Repo');
+    expect(postMessage).toHaveBeenCalledWith({ type: 'INDEX_GRAPH' });
+    expect(graphStore.getState().graphIsIndexing).toBe(true);
+    expect(graphStore.getState().graphIndexProgress).toEqual({
+      phase: 'Indexing Repo',
+      current: 0,
+      total: 1,
+    });
+  });
+
+  it('renders the refresh button title when a graph index exists', () => {
+    graphStore.setState({ graphHasIndex: true });
+
+    renderWithProviders();
+
+    expect(screen.getByTitle('Refresh')).toBeInTheDocument();
+  });
+
+  it('sends REFRESH_GRAPH when a graph index already exists', () => {
+    graphStore.setState({ graphHasIndex: true });
+
+    renderWithProviders();
+    clickAction('Refresh');
+
     expect(postMessage).toHaveBeenCalledWith({ type: 'REFRESH_GRAPH' });
+    expect(graphStore.getState().graphIsIndexing).toBe(true);
+    expect(graphStore.getState().graphIndexProgress).toEqual({
+      phase: 'Refreshing Index',
+      current: 0,
+      total: 1,
+    });
+  });
+
+  it('clears the optimistic loading state if the extension never responds', () => {
+    renderWithProviders();
+    clickAction('Index Repo');
+
+    act(() => {
+      vi.advanceTimersByTime(10_000);
+    });
+
+    expect(graphStore.getState().graphIsIndexing).toBe(false);
+    expect(graphStore.getState().graphIndexProgress).toBeNull();
   });
 
   it('renders the export button with title', () => {
     renderWithProviders();
     expect(screen.getByTitle('Export')).toBeInTheDocument();
+  });
+
+  it('sets active panel to export when the export button is clicked', () => {
+    renderWithProviders();
+    clickAction('Export');
+    expect(graphStore.getState().activePanel).toBe('export');
+  });
+
+  it('closes the export panel when the export button is clicked again', () => {
+    graphStore.setState({ activePanel: 'export' as never });
+
+    renderWithProviders();
+    clickAction('Export');
+
+    expect(graphStore.getState().activePanel).toBe('none');
   });
 
   it('renders toolbar action buttons before the export button when plugin toolbar actions are available', () => {
@@ -148,15 +199,60 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('Plugins')).toBeInTheDocument();
   });
 
+  it('sets active panel to legends when legends button is clicked', () => {
+    renderWithProviders();
+    clickAction('Legends');
+    expect(graphStore.getState().activePanel).toBe('legends');
+  });
+
   it('sets active panel to plugins when plugins button is clicked', () => {
     renderWithProviders();
     clickAction('Plugins');
     expect(graphStore.getState().activePanel).toBe('plugins');
   });
 
+  it('closes the nodes panel when the nodes button is clicked again', () => {
+    graphStore.setState({ activePanel: 'nodes' });
+
+    renderWithProviders();
+    clickAction('Nodes');
+
+    expect(graphStore.getState().activePanel).toBe('none');
+  });
+
+  it('closes the settings panel when the settings button is clicked again', () => {
+    graphStore.setState({ activePanel: 'settings' });
+
+    renderWithProviders();
+    clickAction('Settings');
+
+    expect(graphStore.getState().activePanel).toBe('none');
+  });
+
   it('renders the settings button with title', () => {
     renderWithProviders();
     expect(screen.getByTitle('Settings')).toBeInTheDocument();
+  });
+
+  it('renders the core toolbar buttons in the expected top-to-bottom order', () => {
+    renderWithProviders();
+
+    const orderedTitles = screen
+      .getAllByRole('button')
+      .map((button) => button.getAttribute('title'))
+      .filter((title): title is string =>
+        ['Index Repo', 'Export', 'Nodes', 'Edges', 'Legends', 'Plugins', 'Settings'].includes(title ?? ''),
+      );
+
+    expect(orderedTitles).toEqual([
+      'Index Repo',
+      'Export',
+      'Nodes',
+      'Edges',
+      'Legends',
+      'Plugins',
+      'Settings',
+    ]);
   });
 
   it('sets active panel to settings when settings button is clicked', () => {
@@ -173,14 +269,14 @@ describe('ToolbarActions', () => {
 
   it('keeps action buttons transparent', () => {
     renderWithProviders();
-    const refreshButton = screen.getByTitle('Refresh Graph');
+    const refreshButton = screen.getByTitle('Index Repo');
     expect(refreshButton.className).toContain('bg-transparent');
     expect(refreshButton.className).not.toContain('backdrop-blur');
   });
 
   it('applies correct button sizing classes', () => {
     renderWithProviders();
-    const refreshButton = screen.getByTitle('Refresh Graph');
+    const refreshButton = screen.getByTitle('Index Repo');
     expect(refreshButton.className).toContain('h-7');
     expect(refreshButton.className).toContain('w-7');
   });
@@ -189,37 +285,12 @@ describe('ToolbarActions', () => {
 describe('ToolbarActions export dropdown items', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     graphStore.setState({ pluginExporters: [], pluginToolbarActions: [] });
   });
 
-  it('renders all five export menu items', () => {
-    renderWithProviders();
-    expect(screen.getByText('Export as PNG')).toBeInTheDocument();
-    expect(screen.getByText('Export as SVG')).toBeInTheDocument();
-    expect(screen.getByText('Export as JPEG')).toBeInTheDocument();
-    expect(screen.getByText('Export as JSON')).toBeInTheDocument();
-    expect(screen.getByText('Export as Markdown')).toBeInTheDocument();
-  });
-
-  it('renders Images and Connections section labels', () => {
-    renderWithProviders();
-    expect(screen.getByText('Images')).toBeInTheDocument();
-    expect(screen.getByText('Connections')).toBeInTheDocument();
-  });
-
-  it('does not render a plugin exporter section when no exporters are available', () => {
-    renderWithProviders();
-
-    expect(
-      screen.queryAllByTestId('dropdown-label').map(label => label.textContent),
-    ).toEqual(['Images', 'Connections']);
-  });
-
-  it.each(exportCases)('posts %s when clicked', (label, type) => {
-    const postMessageSpy = clickExportItem(label);
-
-    expect(postMessageSpy).toHaveBeenCalledWith({ type }, '*');
-    postMessageSpy.mockRestore();
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it.each(iconButtonTitles)('renders an SVG icon path for %s', (title) => {
@@ -228,81 +299,6 @@ describe('ToolbarActions export dropdown items', () => {
 
     expect(path).not.toBeNull();
     expect(path?.getAttribute('d')).toBeTruthy();
-  });
-
-  it('renders plugin exporter sections when plugin exporters are available', () => {
-    graphStore.setState({
-      pluginExporters: [
-        {
-          id: 'summary',
-          label: 'Summary Export',
-          pluginId: 'plugin.docs',
-          pluginName: 'Docs Plugin',
-          index: 0,
-          group: 'Reports',
-        },
-      ],
-    });
-
-    renderWithProviders();
-
-    expect(screen.getByText('Plugins')).toBeInTheDocument();
-    expect(screen.getByText('Docs Plugin / Reports')).toBeInTheDocument();
-    expect(screen.getByText('Summary Export')).toBeInTheDocument();
-  });
-
-  it('renders duplicate exporters under the same plugin group label', () => {
-    graphStore.setState({
-      pluginExporters: [
-        {
-          id: 'summary',
-          label: 'Summary Export',
-          pluginId: 'plugin.docs',
-          pluginName: 'Docs Plugin',
-          index: 0,
-          group: 'Reports',
-        },
-        {
-          id: 'details',
-          label: 'Details Export',
-          pluginId: 'plugin.docs',
-          pluginName: 'Docs Plugin',
-          index: 1,
-          group: 'Reports',
-        },
-      ],
-    });
-
-    renderWithProviders();
-
-    expect(screen.getAllByText('Docs Plugin / Reports')).toHaveLength(1);
-    expect(screen.getByText('Summary Export')).toBeInTheDocument();
-    expect(screen.getByText('Details Export')).toBeInTheDocument();
-  });
-
-  it('posts RUN_PLUGIN_EXPORT through the host api when a plugin exporter is clicked', () => {
-    graphStore.setState({
-      pluginExporters: [
-        {
-          id: 'summary',
-          label: 'Summary Export',
-          pluginId: 'plugin.docs',
-          pluginName: 'Docs Plugin',
-          index: 0,
-        },
-      ],
-    });
-
-    renderWithProviders();
-    fireEvent.click(screen.getByText('Summary Export'));
-
-    expect(postMessage).toHaveBeenCalledWith({
-      type: 'RUN_PLUGIN_EXPORT',
-      payload: {
-        pluginId: 'plugin.docs',
-        index: 0,
-      },
-    });
   });
 
   it('renders a toolbar action popup when plugin toolbar actions are available', () => {

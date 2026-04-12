@@ -17,14 +17,13 @@ function createSource(
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,
     _filterPatterns: [],
-    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(),
     _graphData: { nodes: [], edges: [] },
     _rawGraphData: { nodes: [], edges: [] },
     _firstAnalysis: true,
     _resolveFirstWorkspaceReady: undefined,
     _sendMessage: vi.fn(),
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
     _updateViewContext: vi.fn(),
@@ -75,6 +74,7 @@ describe('graphView/provider/analysis/request', () => {
       dependencies,
       delegates,
       doAnalyzeAndSendData,
+      'analyze',
     )();
 
     expect(doAnalyzeAndSendData).toHaveBeenCalledWith(expect.any(AbortSignal), 4);
@@ -82,5 +82,30 @@ describe('graphView/provider/analysis/request', () => {
     expect(source._analysisRequestId).toBe(4);
     expect(source._analyzerInitialized).toBe(true);
     expect(delegates.callIsAbortError).toHaveBeenCalledOnce();
+  });
+
+  it('keeps load-mode requests bound to the provided load implementation', async () => {
+    const source = createSource({
+      _doAnalyzeAndSendData: vi.fn(async () => undefined),
+    });
+    const loadAndSendData = vi.fn(async () => undefined);
+    const dependencies = createDependencies({
+      runAnalysisRequest: vi.fn(async (_state, handlers) => {
+        await handlers.executeAnalysis(new AbortController().signal, 7);
+      }),
+    });
+
+    await createGraphViewProviderAnalyzeAndSendData(
+      source,
+      dependencies,
+      {
+        callIsAbortError: vi.fn(() => false),
+      },
+      loadAndSendData,
+      'load',
+    )();
+
+    expect(loadAndSendData).toHaveBeenCalledWith(expect.any(AbortSignal), 7);
+    expect(source._doAnalyzeAndSendData).not.toHaveBeenCalled();
   });
 });

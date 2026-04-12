@@ -1,6 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '@/shared/graph/types';
-import type { IViewContext } from '@/core/views/contracts';
 import {
   createGraphViewPrimarySettingsMessageState,
 } from '../../../../../src/extension/graphView/webview/dispatch/primaryState';
@@ -9,16 +7,14 @@ import type { GraphViewPrimaryMessageContext } from '../../../../../src/extensio
 function createContext(
   overrides: Partial<GraphViewPrimaryMessageContext> = {},
 ): GraphViewPrimaryMessageContext {
-  return {
+  const context = {
     getTimelineActive: vi.fn(() => false),
     getCurrentCommitSha: vi.fn(() => undefined),
     getUserGroups: vi.fn(() => []),
-    getActiveViewId: vi.fn(() => 'codegraphy.connections'),
     getDisabledPlugins: vi.fn(() => new Set<string>()),
-    getDisabledRules: vi.fn(() => new Set<string>()),
     getFilterPatterns: vi.fn(() => []),
-    getGraphData: vi.fn(() => ({ nodes: [], edges: [] } satisfies IGraphData)),
-    getViewContext: vi.fn(() => ({ activePlugins: new Set() } satisfies IViewContext)),
+    getViewContext: vi.fn(() => ({ activePlugins: new Set() })),
+    sendGraphControls: vi.fn(),
     openSelectedNode: vi.fn(() => Promise.resolve()),
     activateNode: vi.fn(() => Promise.resolve()),
     setFocusedFile: vi.fn(),
@@ -47,7 +43,8 @@ function createContext(
     updatePhysicsSetting: vi.fn(() => Promise.resolve()),
     resetPhysicsSettings: vi.fn(() => Promise.resolve()),
     workspaceFolder: undefined,
-    persistGroups: vi.fn(() => Promise.resolve()),
+    persistLegends: vi.fn(() => Promise.resolve()),
+    persistDefaultLegendVisibility: vi.fn(() => Promise.resolve()),
     recomputeGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     showOpenDialog: vi.fn(() => Promise.resolve(undefined)),
@@ -58,34 +55,26 @@ function createContext(
     getPluginFilterPatterns: vi.fn(() => []),
     sendMessage: vi.fn(),
     applyViewTransform: vi.fn(),
-    smartRebuild: vi.fn(),
     resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
+
+  context.sendGraphControls ??= vi.fn();
+
+  return context as GraphViewPrimaryMessageContext;
 }
 
 describe('createGraphViewPrimarySettingsMessageState', () => {
   it('reads the current settings state from the primary message context', () => {
     const disabledPlugins = new Set(['plugin-a']);
-    const disabledSources = new Set(['rule-a']);
-    const graphData = { nodes: [], edges: [] } satisfies IGraphData;
-    const viewContext = { activePlugins: new Set(), folderNodeColor: '#abcdef' } satisfies IViewContext;
     const context = createContext({
-      getActiveViewId: vi.fn(() => 'codegraphy.authors'),
       getDisabledPlugins: vi.fn(() => disabledPlugins),
-      getDisabledRules: vi.fn(() => disabledSources),
       getFilterPatterns: vi.fn(() => ['dist/**']),
-      getGraphData: vi.fn(() => graphData),
-      getViewContext: vi.fn(() => viewContext),
     });
 
     expect(createGraphViewPrimarySettingsMessageState(context)).toEqual({
-      activeViewId: 'codegraphy.authors',
       disabledPlugins,
-      disabledSources,
       filterPatterns: ['dist/**'],
-      graphData,
-      viewContext,
     });
   });
 });

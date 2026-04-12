@@ -3,10 +3,10 @@
  * @module extension/actions/resetSettings
  */
 
-import * as vscode from 'vscode';
 import type { IUndoableAction } from '../undoManager';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../shared/settings/snapshot';
+import { getCodeGraphyConfiguration } from '../repoSettings/current';
 
 /** Physics keys live under `codegraphy.physics.*` */
 const PHYSICS_KEYS: (keyof IPhysicsSettings)[] = [
@@ -20,22 +20,26 @@ const PHYSICS_KEYS: (keyof IPhysicsSettings)[] = [
  * `bidirectionalEdges` → `bidirectionalMode` is the only name mismatch.
  */
 const CONFIG_TO_SNAPSHOT: Record<string, keyof ISettingsSnapshot> = {
-  groups: 'groups',
+  legend: 'legends',
   filterPatterns: 'filterPatterns',
   showOrphans: 'showOrphans',
   bidirectionalEdges: 'bidirectionalMode',
   directionMode: 'directionMode',
   directionColor: 'directionColor',
-  folderNodeColor: 'folderNodeColor',
+  nodeColors: 'nodeColors',
+  nodeVisibility: 'nodeVisibility',
+  edgeVisibility: 'edgeVisibility',
+  edgeColors: 'edgeColors',
+  pluginOrder: 'pluginOrder',
+  disabledPlugins: 'disabledPlugins',
   particleSpeed: 'particleSpeed',
   particleSize: 'particleSize',
   showLabels: 'showLabels',
   maxFiles: 'maxFiles',
-  hiddenPluginGroups: 'hiddenPluginGroups',
 };
 
-/** Storage key for node size mode per workspace */
-const NODE_SIZE_MODE_KEY = 'codegraphy.nodeSizeMode';
+/** Repo settings key for node size mode */
+const NODE_SIZE_MODE_KEY = 'nodeSizeMode';
 
 /**
  * Action for resetting all settings to defaults.
@@ -51,47 +55,47 @@ export class ResetSettingsAction implements IUndoableAction {
 
   constructor(
     private readonly _stateBefore: ISettingsSnapshot,
-    private readonly _configTarget: vscode.ConfigurationTarget,
-    private readonly _context: vscode.ExtensionContext,
+    private readonly _configTarget: unknown,
+    private readonly _context: unknown,
     private readonly _sendAllSettings: () => void,
     private readonly _setNodeSizeMode: (mode: ISettingsSnapshot['nodeSizeMode']) => void,
     private readonly _refreshGraph: () => Promise<void>,
   ) {}
 
   async execute(): Promise<void> {
-    const physics = vscode.workspace.getConfiguration('codegraphy.physics');
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const target = this._configTarget;
+    const config = getCodeGraphyConfiguration();
+    void this._configTarget;
+    void this._context;
 
     for (const key of PHYSICS_KEYS) {
-      await physics.update(key, undefined, target);
+      await config.update(`physics.${key}`, undefined);
     }
     for (const configKey of Object.keys(CONFIG_TO_SNAPSHOT)) {
-      await config.update(configKey, undefined, target);
+      await config.update(configKey, undefined);
     }
 
     this._setNodeSizeMode('connections');
-    await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, 'connections');
+    await config.update(NODE_SIZE_MODE_KEY, 'connections');
 
     this._sendAllSettings();
     await this._refreshGraph();
   }
 
   async undo(): Promise<void> {
-    const physics = vscode.workspace.getConfiguration('codegraphy.physics');
-    const config = vscode.workspace.getConfiguration('codegraphy');
-    const target = this._configTarget;
+    const config = getCodeGraphyConfiguration();
     const before = this._stateBefore;
+    void this._configTarget;
+    void this._context;
 
     for (const key of PHYSICS_KEYS) {
-      await physics.update(key, before.physics[key], target);
+      await config.update(`physics.${key}`, before.physics[key]);
     }
     for (const [configKey, snapshotField] of Object.entries(CONFIG_TO_SNAPSHOT)) {
-      await config.update(configKey, before[snapshotField], target);
+      await config.update(configKey, before[snapshotField]);
     }
 
     this._setNodeSizeMode(before.nodeSizeMode);
-    await this._context.workspaceState.update(NODE_SIZE_MODE_KEY, before.nodeSizeMode);
+    await config.update(NODE_SIZE_MODE_KEY, before.nodeSizeMode);
 
     this._sendAllSettings();
     await this._refreshGraph();

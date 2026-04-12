@@ -8,7 +8,7 @@ const EMPTY_GRAPH_DATA: IGraphData = { nodes: [], edges: [] };
 export function createPluginSource(
   overrides: Partial<GraphViewProviderPluginMethodsSource> = {},
 ): GraphViewProviderPluginMethodsSource {
-  return {
+  const source = {
     _pluginExtensionUris: new Map<string, vscode.Uri>(),
     _analyzer: {
       registry: {
@@ -21,13 +21,13 @@ export function createPluginSource(
       getPluginStatuses: vi.fn(() => []),
     },
     _disabledPlugins: new Set<string>(),
-    _disabledSources: new Set<string>(),
     _groups: [],
     _view: undefined,
     _panels: [],
     _viewRegistry: { getAvailableViews: vi.fn(() => []) } as never,
     _viewContext: { activePlugins: new Set(), depthLimit: 1 } as never,
-    _activeViewId: 'codegraphy.connections',
+    _depthMode: false,
+    _graphData: EMPTY_GRAPH_DATA,
     _rawGraphData: EMPTY_GRAPH_DATA,
     _decorationManager: {
       getMergedNodeDecorations: vi.fn(() => new Map()),
@@ -48,4 +48,8 @@ export function createPluginSource(
     _invalidateTimelineCache: vi.fn(async () => undefined),
     ...overrides,
   };
+
+  source._graphData ??= EMPTY_GRAPH_DATA;
+
+  return source as GraphViewProviderPluginMethodsSource;
 }

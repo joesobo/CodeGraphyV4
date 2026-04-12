@@ -45,14 +45,14 @@ describe('configListener', () => {
     expect(provider.refreshPhysicsSettings).toHaveBeenCalledOnce();
   });
 
-  it('calls refreshToggleSettings for disabledSources changes', () => {
+  it('calls refreshToggleSettings for disabledPlugins changes', () => {
     const context = makeContext();
     const provider = makeProvider();
 
     registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
     const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.disabledSources' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.disabledPlugins' });
 
     expect(provider.refreshToggleSettings).toHaveBeenCalledOnce();
   });
@@ -69,20 +69,59 @@ describe('configListener', () => {
     expect(provider.refreshSettings).toHaveBeenCalledOnce();
   });
 
-  it('skips re-analysis for groups configuration changes', () => {
+  it('rebuilds display state instead of refreshing the graph when show-orphans changes', () => {
     const context = makeContext();
     const provider = makeProvider();
 
     registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
     const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.groups' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.showOrphans' });
+
+    expect(provider.refreshSettings).toHaveBeenCalledOnce();
+    expect(provider.refresh).not.toHaveBeenCalled();
+  });
+
+  it('calls refreshSettings for node and edge control changes', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const listener = getConfigListener();
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.nodeColors' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.edgeVisibility' });
+
+    expect(provider.refreshSettings).toHaveBeenCalledTimes(2);
+    expect(provider.refresh).not.toHaveBeenCalled();
+  });
+
+  it('triggers a full refresh for plugin order changes', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const listener = getConfigListener();
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.pluginOrder' || key === 'codegraphy' });
+
+    expect(provider.refresh).toHaveBeenCalledOnce();
+  });
+
+  it('skips re-analysis for legend configuration changes', () => {
+    const context = makeContext();
+    const provider = makeProvider();
+
+    registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
+
+    const listener = getConfigListener();
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.legend' });
 
     expect(provider.refresh).not.toHaveBeenCalled();
     expect(provider.refreshSettings).not.toHaveBeenCalled();
   });
 
-  it('debounces group configuration syncs and refreshes group settings once', () => {
+  it('debounces legend configuration syncs and refreshes group settings once', () => {
     vi.useFakeTimers();
     const context = makeContext();
     const provider = makeProvider();
@@ -90,7 +129,7 @@ describe('configListener', () => {
     registerConfigHandler(context as unknown as vscode.ExtensionContext, provider as never);
 
     const listener = getConfigListener();
-    listener({ affectsConfiguration: (key) => key === 'codegraphy.groups' });
+    listener({ affectsConfiguration: (key) => key === 'codegraphy.legend' });
     listener({ affectsConfiguration: (key) => key === 'codegraphy.hiddenPluginGroups' });
 
     expect(provider.refreshGroupSettings).not.toHaveBeenCalled();

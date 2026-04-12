@@ -1,15 +1,15 @@
-import type { IConnection } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
 import type { IDetectedImport } from '../PathResolver';
 import type { ParsedPythonImport } from '../astParser';
 import type { PythonRuleContext } from '../context';
 
-export function buildFromImportConnections(
+export function buildFromImportRelations(
   filePath: string,
   entry: Extract<ParsedPythonImport, { kind: 'from' }>,
   ctx: PythonRuleContext,
-  sourceId: string
-): IConnection[] {
-  const connections: IConnection[] = [];
+  sourceId: string,
+): IAnalysisRelation[] {
+  const relations: IAnalysisRelation[] = [];
 
   const baseImport: IDetectedImport = {
     module: entry.module,
@@ -25,12 +25,15 @@ export function buildFromImportConnections(
 
   for (const importedName of entry.names) {
     if (importedName === '*') {
-      connections.push({
+      const resolvedPath = baseResolved;
+      relations.push({
         kind: 'import',
         specifier: `from ${moduleSpecifier} import *`,
-        resolvedPath: ctx.resolver.resolve(baseImport, filePath),
+        resolvedPath,
         type: 'static',
         sourceId,
+        fromFilePath: filePath,
+        toFilePath: resolvedPath,
       });
       continue;
     }
@@ -43,14 +46,16 @@ export function buildFromImportConnections(
     const memberResolved = ctx.resolver.resolve(memberImport, filePath);
     const resolvedPath = memberResolved ?? baseResolved;
 
-    connections.push({
+    relations.push({
       kind: 'import',
       specifier: `from ${moduleSpecifier} import ${importedName}`,
       resolvedPath,
       type: 'static',
       sourceId,
+      fromFilePath: filePath,
+      toFilePath: resolvedPath,
     });
   }
 
-  return connections;
+  return relations;
 }

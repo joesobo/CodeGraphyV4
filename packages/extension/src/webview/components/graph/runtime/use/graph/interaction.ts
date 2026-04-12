@@ -25,8 +25,8 @@ import type { WebviewPluginHost } from '../../../../../pluginHost/manager';
 import { postMessage } from '../../../../../vscodeApi';
 
 export interface UseGraphInteractionRuntimeOptions {
-  activeViewId: string;
   dataRef: MutableRefObject<IGraphData>;
+  depthMode: boolean;
   fileInfoCacheRef: UseGraphStateResult['fileInfoCacheRef'];
   graphContextSelection: GraphContextSelection;
   graphCursorRef: MutableRefObject<GraphCursorStyle>;
@@ -195,8 +195,8 @@ function handleGraphEngineStop(): void {
 }
 
 export function useGraphInteractionRuntime({
-  activeViewId,
   dataRef,
+  depthMode,
   fileInfoCacheRef,
   graphContextSelection,
   graphCursorRef,
@@ -216,9 +216,9 @@ export function useGraphInteractionRuntime({
 }: UseGraphInteractionRuntimeOptions): UseGraphInteractionRuntimeResult {
   const interactionHandlers = useMemo(
     () => createGraphInteractionHandlers({
-      activeViewId,
       containerRef: refs.containerRef,
       dataRef,
+      depthMode,
       fg2dRef: refs.fg2dRef,
       fg3dRef: refs.fg3dRef,
       fileInfoCacheRef,
@@ -236,8 +236,8 @@ export function useGraphInteractionRuntime({
       setSelectedNodes,
     }),
     [
-      activeViewId,
       dataRef,
+      depthMode,
       fileInfoCacheRef,
       graphCursorRef,
       graphDataRef,

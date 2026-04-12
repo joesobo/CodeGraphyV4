@@ -5,7 +5,10 @@
  * @module plugins/python
  */
 
-import type { IPlugin, IConnection } from '@codegraphy-vscode/plugin-api';
+import type {
+  IFileAnalysisResult,
+  IPlugin,
+} from '@codegraphy-vscode/plugin-api';
 import { PathResolver } from './PathResolver';
 import { loadPythonConfig } from './projectConfig';
 import { assertPythonAstRuntimeAvailable, parsePythonImports } from './astParser';
@@ -45,6 +48,40 @@ export function createPythonPlugin(): IPlugin {
   let resolver: PathResolver | null = null;
   let pythonRuntimeReady = false;
 
+  async function getResolver(workspaceRoot: string): Promise<PathResolver> {
+    if (!pythonRuntimeReady) {
+      assertPythonAstRuntimeAvailable();
+      pythonRuntimeReady = true;
+    }
+
+    if (!resolver) {
+      const config = await loadPythonConfig(workspaceRoot);
+      resolver = new PathResolver(workspaceRoot, config);
+    }
+
+    return resolver;
+  }
+
+  async function analyzePythonFile(
+    filePath: string,
+    content: string,
+    workspaceRoot: string,
+  ): Promise<IFileAnalysisResult> {
+    const activeResolver = await getResolver(workspaceRoot);
+    const imports = parsePythonImports(content);
+    const ctx = { resolver: activeResolver, imports };
+    const relations = [
+      ...detectImportModule(content, filePath, ctx),
+      ...detectFromImportAbsolute(content, filePath, ctx),
+      ...detectFromImportRelative(content, filePath, ctx),
+    ];
+
+    return {
+      filePath,
+      relations,
+    };
+  }
+
   return {
     id: manifest.id,
     name: manifest.name,
@@ -63,29 +100,12 @@ export function createPythonPlugin(): IPlugin {
       console.log('[CodeGraphy] Python plugin initialized');
     },
 
-    async detectConnections(
+    async analyzeFile(
       filePath: string,
       content: string,
-      workspaceRoot: string
-    ): Promise<IConnection[]> {
-      if (!pythonRuntimeReady) {
-        assertPythonAstRuntimeAvailable();
-        pythonRuntimeReady = true;
-      }
-
-      if (!resolver) {
-        const config = await loadPythonConfig(workspaceRoot);
-        resolver = new PathResolver(workspaceRoot, config);
-      }
-
-      const imports = parsePythonImports(content);
-      const ctx = { resolver, imports };
-
-      return [
-        ...detectImportModule(content, filePath, ctx),
-        ...detectFromImportAbsolute(content, filePath, ctx),
-        ...detectFromImportRelative(content, filePath, ctx),
-      ];
+      workspaceRoot: string,
+    ): Promise<IFileAnalysisResult> {
+      return analyzePythonFile(filePath, content, workspaceRoot);
     },
 
     onUnload(): void {

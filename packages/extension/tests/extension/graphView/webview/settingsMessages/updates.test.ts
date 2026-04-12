@@ -1,5 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '@/shared/graph/types';
 import {
   applySettingsUpdateMessage,
 } from '../../../../../src/extension/graphView/webview/settingsMessages/updates';
@@ -12,12 +11,8 @@ function createState(
   overrides: Partial<GraphViewSettingsMessageState> = {},
 ): GraphViewSettingsMessageState {
   return {
-    activeViewId: 'codegraphy.graphView',
     disabledPlugins: new Set<string>(),
-    disabledSources: new Set<string>(),
     filterPatterns: [],
-    graphData: { nodes: [], edges: [] } satisfies IGraphData,
-    viewContext: { folderNodeColor: '#111111' },
     ...overrides,
   };
 }
@@ -25,16 +20,20 @@ function createState(
 function createHandlers(
   overrides: Partial<GraphViewSettingsMessageHandlers> = {},
 ): GraphViewSettingsMessageHandlers {
-  return {
-    getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
-    updateConfig: vi.fn(() => Promise.resolve()),
-    getPluginFilterPatterns: vi.fn(() => []),
-    sendMessage: vi.fn(),
-    applyViewTransform: vi.fn(),
-    smartRebuild: vi.fn(),
-    resetAllSettings: vi.fn(() => Promise.resolve()),
+    const handlers = {
+      getConfig: vi.fn(<T>(_: string, defaultValue: T): T => defaultValue),
+      updateConfig: vi.fn(() => Promise.resolve()),
+      getPluginFilterPatterns: vi.fn(() => []),
+      sendGraphControls: vi.fn(),
+      reprocessPluginFiles: vi.fn(() => Promise.resolve()),
+      sendMessage: vi.fn(),
+      resetAllSettings: vi.fn(() => Promise.resolve()),
     ...overrides,
   };
+
+  handlers.sendGraphControls ??= vi.fn();
+
+  return handlers as GraphViewSettingsMessageHandlers;
 }
 
 describe('graph view settings update message', () => {
@@ -125,6 +124,31 @@ describe('graph view settings update message', () => {
     expect(handlers.updateConfig).toHaveBeenCalledWith('maxFiles', 250);
   });
 
+  it('persists plugin order and reprocesses the listed plugins', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      applySettingsUpdateMessage(
+        {
+          type: 'UPDATE_PLUGIN_ORDER',
+          payload: { pluginIds: ['plugin.typescript', 'plugin.markdown'] },
+        },
+        state,
+        handlers,
+      ),
+    ).resolves.toBe(true);
+
+    expect(handlers.updateConfig).toHaveBeenCalledWith('pluginOrder', [
+      'plugin.typescript',
+      'plugin.markdown',
+    ]);
+    expect(handlers.reprocessPluginFiles).toHaveBeenCalledWith([
+      'plugin.typescript',
+      'plugin.markdown',
+    ]);
+  });
+
   it('updates label visibility and publishes it immediately', async () => {
     const state = createState();
     const handlers = createHandlers();
@@ -147,7 +171,7 @@ describe('graph view settings update message', () => {
     const handlers = createHandlers();
 
     await expect(
-      applySettingsUpdateMessage({ type: 'TOGGLE_SOURCE', payload: { qualifiedSourceId: 'x', enabled: false } }, state, handlers),
+      applySettingsUpdateMessage({ type: 'TOGGLE_PLUGIN', payload: { pluginId: 'x', enabled: false } }, state, handlers),
     ).resolves.toBe(false);
   });
 });

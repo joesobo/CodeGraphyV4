@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
+import { getCodeGraphyConfiguration } from '../../repoSettings/current';
+import { sendGraphControlsUpdated } from '../controls/send';
 import {
   sendGraphViewContextMenuItems,
   sendGraphViewDecorations,
@@ -8,11 +10,12 @@ import {
   sendGraphViewPluginToolbarActions,
   sendGraphViewPluginWebviewInjections,
 } from '../webview/plugins/assets';
-import { sendGraphViewAvailableViews, sendGraphViewGroupsUpdated } from '../view/broadcast';
+import { sendGraphViewDepthState, sendGraphViewLegendsUpdated } from '../view/broadcast';
 import type { GraphViewProviderPluginMethodsSource } from './plugins';
 
 export interface GraphViewProviderPluginBroadcastMethods {
-  _sendAvailableViews(): void;
+  _sendDepthState(): void;
+  _sendGraphControls(): void;
   _sendPluginStatuses(): void;
   _sendDecorations(): void;
   _sendContextMenuItems(): void;
@@ -23,27 +26,27 @@ export interface GraphViewProviderPluginBroadcastMethods {
 }
 
 export interface GraphViewProviderPluginBroadcastDependencies {
-  sendAvailableViews?: typeof sendGraphViewAvailableViews;
+  sendDepthState?: typeof sendGraphViewDepthState;
   sendPluginStatuses?: typeof sendGraphViewPluginStatuses;
   sendDecorations?: typeof sendGraphViewDecorations;
   sendContextMenuItems?: typeof sendGraphViewContextMenuItems;
   sendPluginExporters?: typeof sendGraphViewPluginExporters;
   sendPluginToolbarActions?: typeof sendGraphViewPluginToolbarActions;
   sendPluginWebviewInjections?: typeof sendGraphViewPluginWebviewInjections;
-  sendGroupsUpdated?: typeof sendGraphViewGroupsUpdated;
+  sendGroupsUpdated?: typeof sendGraphViewLegendsUpdated;
   getWorkspaceFolders?(): readonly vscode.WorkspaceFolder[] | undefined;
 }
 
 export const DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES:
   Required<GraphViewProviderPluginBroadcastDependencies> = {
-  sendAvailableViews: sendGraphViewAvailableViews,
+  sendDepthState: sendGraphViewDepthState,
   sendPluginStatuses: sendGraphViewPluginStatuses,
   sendDecorations: sendGraphViewDecorations,
   sendContextMenuItems: sendGraphViewContextMenuItems,
   sendPluginExporters: sendGraphViewPluginExporters,
   sendPluginToolbarActions: sendGraphViewPluginToolbarActions,
   sendPluginWebviewInjections: sendGraphViewPluginWebviewInjections,
-  sendGroupsUpdated: sendGraphViewGroupsUpdated,
+  sendGroupsUpdated: sendGraphViewLegendsUpdated,
   getWorkspaceFolders: () => vscode.workspace.workspaceFolders,
 };
 
@@ -53,7 +56,7 @@ export function createGraphViewProviderPluginBroadcastMethods(
     DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES,
   defaultDepthLimit: number,
 ): GraphViewProviderPluginBroadcastMethods {
-  const resolved = {
+  const resolved: Required<GraphViewProviderPluginBroadcastDependencies> = {
     ...DEFAULT_GRAPH_VIEW_PROVIDER_PLUGIN_BROADCAST_DEPENDENCIES,
     ...dependencies,
   };
@@ -63,20 +66,26 @@ export function createGraphViewProviderPluginBroadcastMethods(
   };
 
   return {
-    _sendAvailableViews: () => {
-      resolved.sendAvailableViews(
-        source._viewRegistry,
+    _sendDepthState: () => {
+      resolved.sendDepthState(
         source._viewContext,
-        source._activeViewId,
+        source._depthMode,
         source._rawGraphData,
         defaultDepthLimit,
         send,
       );
     },
+    _sendGraphControls: () => {
+      sendGraphControlsUpdated(
+        source._graphData,
+        source._analyzer,
+        message => send(message),
+        getCodeGraphyConfiguration(),
+      );
+    },
     _sendPluginStatuses: () => {
       resolved.sendPluginStatuses(
         source._analyzer,
-        source._disabledSources,
         source._disabledPlugins,
         send,
       );

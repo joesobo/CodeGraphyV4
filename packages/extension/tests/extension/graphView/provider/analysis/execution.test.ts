@@ -17,14 +17,13 @@ function createSource(
     _analyzerInitialized: false,
     _analyzerInitPromise: undefined,
     _filterPatterns: ['src/**'],
-    _disabledSources: new Set<string>(),
     _disabledPlugins: new Set<string>(),
     _graphData: { nodes: [], edges: [] },
     _rawGraphData: { nodes: [], edges: [] },
     _firstAnalysis: true,
     _resolveFirstWorkspaceReady: undefined,
     _sendMessage: vi.fn(),
-    _sendAvailableViews: vi.fn(),
+    _sendDepthState: vi.fn(),
     _computeMergedGroups: vi.fn(),
     _sendGroupsUpdated: vi.fn(),
     _updateViewContext: vi.fn(),
@@ -73,7 +72,7 @@ describe('graphView/provider/analysis/execution', () => {
       callIsAbortError: vi.fn(() => false),
     };
 
-    await createGraphViewProviderDoAnalyzeAndSendData(source, dependencies, delegates)(
+    await createGraphViewProviderDoAnalyzeAndSendData(source, dependencies, delegates, 'analyze')(
       new AbortController().signal,
       9,
     );

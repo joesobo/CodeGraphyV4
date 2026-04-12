@@ -51,7 +51,7 @@ describe('gitHistory/diff/analysis', () => {
         ],
       },
       registry: {
-        analyzeFile: vi.fn(async () => []),
+        analyzeFileResult: vi.fn(async (absolutePath: string) => ({ filePath: absolutePath, relations: [] })),
         supportsFile: vi.fn(() => true),
       },
       sha: 'sha2',
@@ -101,7 +101,7 @@ describe('gitHistory/diff/analysis', () => {
         getFileAtCommit: vi.fn(async () => ''),
         previousGraph: { nodes: [], edges: [] },
         registry: {
-          analyzeFile: vi.fn(async () => []),
+          analyzeFileResult: vi.fn(async (absolutePath: string) => ({ filePath: absolutePath, relations: [] })),
           supportsFile: vi.fn(() => true),
         },
         sha: 'sha2',

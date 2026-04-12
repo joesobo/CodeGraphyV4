@@ -13,6 +13,7 @@ import {
 export interface GraphViewMessageListenerContext
   extends GraphViewPrimaryMessageContext,
     GraphViewPluginMessageContext {
+  reprocessPluginFiles(pluginIds: readonly string[]): Promise<void>;
   setUserGroups(groups: IGroup[]): void;
   setFilterPatterns(patterns: string[]): void;
   setWebviewReadyNotified(nextValue: boolean): void;

@@ -22,13 +22,11 @@ const DEFAULT_PHYSICS: IPhysicsSettings = {
 function setStoreState(overrides: Record<string, unknown> = {}) {
   graphStore.setState({
     physicsSettings: DEFAULT_PHYSICS,
-    groups: [],
+    legends: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
     showOrphans: true,
     nodeSizeMode: 'connections',
-    availableViews: [],
-    activeViewId: 'codegraphy.connections',
     depthLimit: 1,
     directionMode: 'arrows',
     directionColor: DEFAULT_DIRECTION_COLOR,
@@ -37,6 +35,17 @@ function setStoreState(overrides: Record<string, unknown> = {}) {
     showLabels: true,
     graphMode: '2d',
     maxFiles: 500,
+    graphHasIndex: false,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
+    depthMode: false,
+    maxDepthLimit: 10,
+    graphNodeTypes: [],
+    graphEdgeTypes: [],
+    nodeColors: {},
+    nodeVisibility: {},
+    edgeVisibility: {},
+    edgeColors: {},
     ...overrides,
   });
 }
@@ -64,14 +73,6 @@ describe('SettingsPanel', () => {
     renderPanel();
 
     expect(screen.queryByText('Repel Force')).not.toBeInTheDocument();
-  });
-
-  it('renders groups content when the groups section is opened', () => {
-    renderPanel();
-
-    fireEvent.click(screen.getByText('Groups'));
-
-    expect(screen.getByText('Custom')).toBeInTheDocument();
   });
 
   it('renders filter content when the filters section is opened', () => {

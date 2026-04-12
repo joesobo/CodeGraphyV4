@@ -11,11 +11,11 @@ interface SendGraphViewSettingsMessagesOptions {
 }
 
 export function sendGraphViewSettingsMessages(
-  viewContext: { folderNodeColor?: string },
+  viewContext: object,
   { getConfiguration, sendMessage }: SendGraphViewSettingsMessagesOptions,
 ): void {
+  void viewContext;
   const settings = readGraphViewSettings(getConfiguration());
-  viewContext.folderNodeColor = settings.folderNodeColor;
 
   for (const message of buildGraphViewSettingsMessages(settings)) {
     sendMessage(message);

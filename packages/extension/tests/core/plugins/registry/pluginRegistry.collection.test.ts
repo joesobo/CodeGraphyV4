@@ -17,6 +17,29 @@ describe('PluginRegistry collection', () => {
     expect(result.map((pluginInfo) => pluginInfo.plugin.id)).toContain('second');
   });
 
+  it('reorders registry listing and extension routing when plugin order changes', () => {
+    const registry = createConfiguredRegistry();
+    const first = createMockPlugin({ id: 'first', supportedExtensions: ['.ts'] });
+    const second = createMockPlugin({ id: 'second', supportedExtensions: ['.ts'] });
+    const third = createMockPlugin({ id: 'third', supportedExtensions: ['.md'] });
+
+    registry.register(first);
+    registry.register(second);
+    registry.register(third);
+    registry.setPluginOrder(['second', 'missing', 'first']);
+
+    expect(registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual([
+      'second',
+      'first',
+      'third',
+    ]);
+    expect(registry.getPluginForFile('app.ts')?.id).toBe('second');
+    expect(registry.getPluginsForExtension('.ts').map((plugin) => plugin.id)).toEqual([
+      'second',
+      'first',
+    ]);
+  });
+
   it('returns empty array when no plugins are registered', () => {
     const registry = createConfiguredRegistry();
 
@@ -38,5 +61,93 @@ describe('PluginRegistry collection', () => {
     const registry = createConfiguredRegistry();
 
     expect(registry.getSupportedExtensions()).toEqual([]);
+  });
+
+  it('returns plugin-contributed node types', () => {
+    const registry = createConfiguredRegistry();
+    registry.register(createMockPlugin({
+      id: 'first',
+      contributeNodeTypes: () => [
+        {
+          id: 'route',
+          label: 'Route',
+          defaultColor: '#00ff00',
+          defaultVisible: true,
+        },
+      ],
+    }));
+    registry.register(createMockPlugin({
+      id: 'second',
+      contributeNodeTypes: () => [
+        {
+          id: 'tool',
+          label: 'Tool',
+          defaultColor: '#0000ff',
+          defaultVisible: true,
+        },
+      ],
+    }));
+
+    expect(registry.listNodeTypes()).toEqual([
+      {
+        id: 'route',
+        label: 'Route',
+        defaultColor: '#00ff00',
+        defaultVisible: true,
+      },
+      {
+        id: 'tool',
+        label: 'Tool',
+        defaultColor: '#0000ff',
+        defaultVisible: true,
+      },
+    ]);
+  });
+
+  it('returns plugin-contributed edge types with later plugins overriding duplicate ids', () => {
+    const registry = createConfiguredRegistry();
+    registry.register(createMockPlugin({
+      id: 'first',
+      contributeEdgeTypes: () => [
+        {
+          id: 'call',
+          label: 'Calls',
+          defaultColor: '#ff0000',
+          defaultVisible: true,
+        },
+      ],
+    }));
+    registry.register(createMockPlugin({
+      id: 'second',
+      contributeEdgeTypes: () => [
+        {
+          id: 'call',
+          label: 'Calls Override',
+          defaultColor: '#ffaa00',
+          defaultVisible: false,
+        },
+        {
+          id: 'test',
+          label: 'Tests',
+          defaultColor: '#00aaff',
+          defaultVisible: true,
+        },
+      ],
+    }));
+
+    expect(registry.listEdgeTypes()).toEqual([
+      {
+        id: 'call',
+        label: 'Calls Override',
+        defaultColor: '#ffaa00',
+        defaultVisible: false,
+      },
+      {
+        id: 'test',
+        label: 'Tests',
+        defaultColor: '#00aaff',
+        defaultVisible: true,
+      },
+    ]);
   });
 });

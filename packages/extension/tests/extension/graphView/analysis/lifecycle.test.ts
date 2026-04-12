@@ -19,9 +19,22 @@ function createState(
     analyzer: undefined,
     analyzerInitialized: false,
     analyzerInitPromise: undefined,
+    mode: 'analyze',
     filterPatterns: [],
-    disabledSources: new Set<string>(),
     disabledPlugins: new Set<string>(),
+    ...overrides,
+  };
+}
+
+function createAnalyzer(overrides: Partial<NonNullable<GraphViewProviderAnalysisState['analyzer']>> = {}) {
+  return {
+    initialize: vi.fn(async () => undefined),
+    hasIndex: vi.fn(() => true),
+    discoverGraph: vi.fn(async () => ({ nodes: [], edges: [] })),
+    analyze: vi.fn(async () => ({ nodes: [], edges: [] })),
+    registry: {
+      notifyPostAnalyze: vi.fn(),
+    },
     ...overrides,
   };
 }
@@ -39,7 +52,7 @@ function createHandlers(
     }),
     getGraphData: vi.fn(() => graphData),
     sendGraphDataUpdated: vi.fn(),
-    sendAvailableViews: vi.fn(),
+    sendDepthState: vi.fn(),
     computeMergedGroups: vi.fn(),
     sendGroupsUpdated: vi.fn(),
     updateViewContext: vi.fn(),
@@ -47,6 +60,7 @@ function createHandlers(
     sendPluginStatuses: vi.fn(),
     sendDecorations: vi.fn(),
     sendContextMenuItems: vi.fn(),
+    sendGraphIndexStatusUpdated: vi.fn(),
     markWorkspaceReady: vi.fn(),
     isAnalysisStale: vi.fn(() => false),
     isAbortError: vi.fn(() => false),
@@ -76,7 +90,7 @@ describe('graph view provider analysis lifecycle helper', () => {
     expect(state.analysisRequestId).toBe(1);
     expect(state.analysisController).toBeUndefined();
     expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith({ nodes: [], edges: [] });
-    expect(handlers.sendAvailableViews).toHaveBeenCalledOnce();
+    expect(handlers.sendDepthState).toHaveBeenCalledOnce();
     expect(updateAnalysisController).toHaveBeenNthCalledWith(
       1,
       expect.any(AbortController),
@@ -92,13 +106,9 @@ describe('graph view provider analysis lifecycle helper', () => {
     };
     const state = createState({
       analysisRequestId: 1,
-      analyzer: {
-        initialize: vi.fn(() => Promise.resolve()),
+      analyzer: createAnalyzer({
         analyze: vi.fn(() => Promise.resolve(rawGraphData)),
-        registry: {
-          notifyPostAnalyze: vi.fn(),
-        },
-      },
+      }),
     });
     const handlers = createHandlers();
 
@@ -116,13 +126,9 @@ describe('graph view provider analysis lifecycle helper', () => {
     abortError.name = 'AbortError';
     const state = createState({
       analysisRequestId: 1,
-      analyzer: {
-        initialize: vi.fn(() => Promise.resolve()),
+      analyzer: createAnalyzer({
         analyze: vi.fn(() => Promise.reject(abortError)),
-        registry: {
-          notifyPostAnalyze: vi.fn(),
-        },
-      },
+      }),
     });
     const handlers = createHandlers({
       isAnalysisStale: vi.fn(() => false),

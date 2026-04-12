@@ -4,10 +4,24 @@ import * as os from 'os';
 import * as path from 'path';
 import { createMarkdownPlugin } from '../src/plugin';
 
-interface AnalyzeFile {
+interface AnalyzeFileInput {
   absolutePath: string;
   relativePath: string;
   content: string;
+}
+
+async function analyzeRelations(
+  plugin: ReturnType<typeof createMarkdownPlugin>,
+  filePath: string,
+  content: string,
+  workspaceRoot: string,
+) {
+  expect(plugin.analyzeFile).toBeDefined();
+
+  const analysis = await plugin.analyzeFile!(filePath, content, workspaceRoot);
+
+  expect(analysis.filePath).toBe(filePath);
+  return analysis.relations ?? [];
 }
 
 describe('createMarkdownPlugin', () => {
@@ -36,10 +50,10 @@ describe('createMarkdownPlugin', () => {
       expect(plugin.apiVersion).toBe('^2.0.0');
     });
 
-    it('supports .md and .mdx extensions', () => {
+    it('supports wildcard file scanning', () => {
       const plugin = createMarkdownPlugin();
 
-      expect(plugin.supportedExtensions).toEqual(['.md', '.mdx']);
+      expect(plugin.supportedExtensions).toEqual(['*']);
     });
 
     it('exposes default filters as an empty array', () => {
@@ -80,26 +94,50 @@ describe('createMarkdownPlugin', () => {
       fs.rmSync(workspaceB, { recursive: true, force: true });
     });
 
-    function createMarkdownFile(workspaceRoot: string, relativePath: string): AnalyzeFile {
+    function createMarkdownFile(workspaceRoot: string, relativePath: string): AnalyzeFileInput {
       const absolutePath = path.join(workspaceRoot, relativePath);
       fs.mkdirSync(path.dirname(absolutePath), { recursive: true });
       fs.writeFileSync(absolutePath, `# ${relativePath}`);
       return { absolutePath, relativePath, content: `# ${relativePath}` };
     }
 
-    it('resolves root-relative wikilinks immediately after initialize', async () => {
+    it('returns relations from analyzeFile after initialize', async () => {
       const plugin = createMarkdownPlugin();
       const target = createMarkdownFile(workspaceA, 'docs/Guide.md');
 
       await plugin.initialize?.(workspaceA);
-      const connections = await plugin.detectConnections(
+      const relations = await analyzeRelations(
+        plugin,
         path.join(workspaceA, 'Current.md'),
         '[[docs/Guide]]',
         workspaceA,
       );
 
-      expect(connections).toHaveLength(1);
-      expect(connections[0].resolvedPath).toBe(target.absolutePath);
+      expect(relations).toHaveLength(1);
+      expect(relations[0].sourceId).toBe('wikilink');
+      expect(relations[0].fromFilePath).toBe(path.join(workspaceA, 'Current.md'));
+      expect(relations[0].resolvedPath).toBe(target.absolutePath);
+    });
+
+    it('scans wikilinks in non-markdown files', async () => {
+      const plugin = createMarkdownPlugin();
+      const target = createMarkdownFile(workspaceA, 'docs/Guide.md');
+
+      await plugin.initialize?.(workspaceA);
+      await plugin.onPreAnalyze?.([target], workspaceA);
+
+      const analysis = await plugin.analyzeFile(
+        path.join(workspaceA, 'src', 'component.ts'),
+        'const link = "[[docs/Guide]]";',
+        workspaceA,
+      );
+
+      expect(analysis.relations ?? []).toHaveLength(1);
+      expect(analysis.relations?.[0]).toMatchObject({
+        sourceId: 'wikilink',
+        fromFilePath: path.join(workspaceA, 'src', 'component.ts'),
+        resolvedPath: target.absolutePath,
+      });
     });
 
     it('updates the workspace root when onPreAnalyze is called with a new root', async () => {
@@ -109,21 +147,23 @@ describe('createMarkdownPlugin', () => {
 
       await plugin.initialize?.(workspaceA);
       await plugin.onPreAnalyze?.([targetA], workspaceA);
-      const firstPass = await plugin.detectConnections(
+      const firstPass = await analyzeRelations(
+        plugin,
         path.join(workspaceA, 'Current.md'),
         '[[docs/Shared]]',
         workspaceA,
       );
 
       await plugin.onPreAnalyze?.([targetB], workspaceB);
-      const secondPass = await plugin.detectConnections(
+      const secondPass = await analyzeRelations(
+        plugin,
         path.join(workspaceB, 'Current.md'),
         '[[docs/Shared]]',
         workspaceB,
       );
 
-      expect(firstPass.map((conn) => conn.resolvedPath)).toEqual([targetA.absolutePath]);
-      expect(secondPass.map((conn) => conn.resolvedPath)).toEqual([targetB.absolutePath]);
+      expect(firstPass.map((relation) => relation.resolvedPath)).toEqual([targetA.absolutePath]);
+      expect(secondPass.map((relation) => relation.resolvedPath)).toEqual([targetB.absolutePath]);
     });
 
     it('rebuilds the file index when onPreAnalyze is called with new files', async () => {
@@ -133,22 +173,25 @@ describe('createMarkdownPlugin', () => {
 
       await plugin.initialize?.(workspaceA);
       await plugin.onPreAnalyze?.([targetA], workspaceA);
-      const firstPass = await plugin.detectConnections(
+      const firstPass = await analyzeRelations(
+        plugin,
         path.join(workspaceA, 'Current.md'),
         '[[Shared]]',
         workspaceA,
       );
 
       await plugin.onPreAnalyze?.([targetB], workspaceB);
-      const secondPass = await plugin.detectConnections(
+      const secondPass = await analyzeRelations(
+        plugin,
         path.join(workspaceB, 'Current.md'),
         '[[Shared]]',
         workspaceB,
       );
 
-      expect(firstPass.map((conn) => conn.resolvedPath)).toEqual([targetA.absolutePath]);
-      expect(secondPass.map((conn) => conn.resolvedPath)).toEqual([targetB.absolutePath]);
+      expect(firstPass.map((relation) => relation.resolvedPath)).toEqual([targetA.absolutePath]);
+      expect(secondPass.map((relation) => relation.resolvedPath)).toEqual([targetB.absolutePath]);
     });
+
   });
 
 });

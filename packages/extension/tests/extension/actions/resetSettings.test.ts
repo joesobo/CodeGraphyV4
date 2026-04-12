@@ -52,10 +52,8 @@ function createMockContext() {
 }
 
 describe('ResetSettingsAction', () => {
-  let physicsStore: Record<string, unknown>;
-  let codegraphyStore: Record<string, unknown>;
-  let mockPhysicsConfig: vscode.WorkspaceConfiguration;
-  let mockCodegraphyConfig: vscode.WorkspaceConfiguration;
+  let settingsStore: Record<string, unknown>;
+  let mockConfig: vscode.WorkspaceConfiguration;
   let mockSendAllSettings: ReturnType<typeof vi.fn>;
   let mockSetNodeSizeMode: ReturnType<typeof vi.fn>;
   let mockRefreshGraph: ReturnType<typeof vi.fn>;
@@ -63,26 +61,27 @@ describe('ResetSettingsAction', () => {
 
   const NON_DEFAULT_SNAPSHOT: ISettingsSnapshot = {
     physics: { repelForce: 5, linkDistance: 200, linkForce: 0.5, damping: 0.3, centerForce: 0.5 },
-    groups: [{ id: 'g1', pattern: '*.ts', color: '#FF0000' }],
+    legends: [{ id: 'g1', pattern: '*.ts', color: '#FF0000' }],
     filterPatterns: ['**/*.test.ts'],
     showOrphans: false,
     bidirectionalMode: 'combined',
     directionMode: 'particles',
     directionColor: '#FF0000',
-    folderNodeColor: '#00FF00',
+    nodeColors: { file: '#111111', folder: '#222222' },
+    nodeVisibility: { file: true, folder: false },
+    edgeVisibility: { imports: true, calls: false },
+    edgeColors: { imports: '#333333', calls: '#444444' },
+    pluginOrder: ['codegraphy.markdown', 'codegraphy.typescript'],
+    disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.002,
     particleSize: 8,
     showLabels: false,
     maxFiles: 1000,
-    hiddenPluginGroups: ['group-1', 'group-2'],
     nodeSizeMode: 'file-size',
   };
 
   function wireConfigMocks() {
-    vi.mocked(vscode.workspace.getConfiguration).mockImplementation((section?: string) => {
-      if (section === 'codegraphy.physics') return mockPhysicsConfig;
-      return mockCodegraphyConfig;
-    });
+    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue(mockConfig);
   }
 
   function createAction() {
@@ -100,26 +99,32 @@ describe('ResetSettingsAction', () => {
     vi.clearAllMocks();
     resetUndoManager();
 
-    physicsStore = {
-      repelForce: 5, linkDistance: 200, linkForce: 0.5, damping: 0.3, centerForce: 0.5,
-    };
-    codegraphyStore = {
+    settingsStore = {
+      'physics.repelForce': 5,
+      'physics.linkDistance': 200,
+      'physics.linkForce': 0.5,
+      'physics.damping': 0.3,
+      'physics.centerForce': 0.5,
       groups: [{ id: 'g1', pattern: '*.ts', color: '#FF0000' }],
       filterPatterns: ['**/*.test.ts'],
       showOrphans: false,
       bidirectionalEdges: 'combined',
       directionMode: 'particles',
       directionColor: '#FF0000',
-      folderNodeColor: '#00FF00',
+      nodeColors: { file: '#111111', folder: '#222222' },
+      nodeVisibility: { file: true, folder: false },
+      edgeVisibility: { imports: true, calls: false },
+      edgeColors: { imports: '#333333', calls: '#444444' },
+      pluginOrder: ['codegraphy.markdown', 'codegraphy.typescript'],
+      disabledPlugins: ['codegraphy.python'],
       particleSpeed: 0.002,
       particleSize: 8,
       showLabels: false,
       maxFiles: 1000,
-      hiddenPluginGroups: ['group-1', 'group-2'],
+      nodeSizeMode: 'file-size',
     };
 
-    mockPhysicsConfig = createMockConfig(physicsStore);
-    mockCodegraphyConfig = createMockConfig(codegraphyStore);
+    mockConfig = createMockConfig(settingsStore);
     wireConfigMocks();
 
     mockContext = createMockContext();
@@ -136,28 +141,31 @@ describe('ResetSettingsAction', () => {
     expect(createAction().description).toBe('Reset all settings');
   });
 
-  it('execute resets all config keys to undefined', async () => {
+  it('execute resets config keys and sets nodeSizeMode to connections', async () => {
     await createAction().execute();
 
-    // Every physics key should be reset
-    for (const call of (mockPhysicsConfig.update as ReturnType<typeof vi.fn>).mock.calls) {
-      expect(call[1]).toBeUndefined();
-    }
-    // Every codegraphy key should be reset
-    for (const call of (mockCodegraphyConfig.update as ReturnType<typeof vi.fn>).mock.calls) {
+    const updateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls;
+
+    for (const call of updateCalls.filter(([key]) => String(key).startsWith('physics.'))) {
       expect(call[1]).toBeUndefined();
     }
 
-    // Stores should be empty (all keys deleted)
-    expect(Object.keys(physicsStore)).toHaveLength(0);
-    expect(Object.keys(codegraphyStore)).toHaveLength(0);
+    for (const call of updateCalls.filter(([key]) => String(key) === 'nodeSizeMode')) {
+      expect(call[1]).toBe('connections');
+    }
+    for (const call of updateCalls.filter(([key]) => !String(key).startsWith('physics.') && String(key) !== 'nodeSizeMode')) {
+      expect(call[1]).toBeUndefined();
+    }
+
+    expect(settingsStore.legend).toBeUndefined();
+    expect(settingsStore.nodeSizeMode).toBe('connections');
+    expect(Object.keys(settingsStore)).toEqual(['nodeSizeMode']);
   });
 
   it('execute resets nodeSizeMode to connections and refreshes graph', async () => {
     await createAction().execute();
 
     expect(mockSetNodeSizeMode).toHaveBeenCalledWith('connections');
-    expect(mockContext._state['codegraphy.nodeSizeMode']).toBe('connections');
     expect(mockSendAllSettings).toHaveBeenCalled();
     expect(mockRefreshGraph).toHaveBeenCalled();
   });
@@ -166,22 +174,31 @@ describe('ResetSettingsAction', () => {
     const action = createAction();
     await action.execute();
 
-    // Stores are now empty after execute
-    expect(Object.keys(physicsStore)).toHaveLength(0);
-    expect(Object.keys(codegraphyStore)).toHaveLength(0);
+    expect(settingsStore.legend).toBeUndefined();
+    expect(settingsStore.nodeSizeMode).toBe('connections');
+    expect(Object.keys(settingsStore)).toEqual(['nodeSizeMode']);
 
     vi.clearAllMocks();
     wireConfigMocks();
     await action.undo();
 
-    // Stores should be repopulated with original values
-    expect(physicsStore).toEqual(NON_DEFAULT_SNAPSHOT.physics);
-    expect(codegraphyStore['showOrphans']).toBe(false);
-    expect(codegraphyStore['directionMode']).toBe('particles');
-    expect(codegraphyStore['maxFiles']).toBe(1000);
-    expect(codegraphyStore['hiddenPluginGroups']).toEqual(['group-1', 'group-2']);
-    // bidirectionalEdges config key maps to bidirectionalMode snapshot field
-    expect(codegraphyStore['bidirectionalEdges']).toBe('combined');
+    expect(settingsStore['physics.repelForce']).toBe(5);
+    expect(settingsStore['physics.linkDistance']).toBe(200);
+    expect(settingsStore['physics.linkForce']).toBe(0.5);
+    expect(settingsStore['physics.damping']).toBe(0.3);
+    expect(settingsStore['physics.centerForce']).toBe(0.5);
+    expect(settingsStore.groups).toEqual([{ id: 'g1', pattern: '*.ts', color: '#FF0000' }]);
+    expect(settingsStore.showOrphans).toBe(false);
+    expect(settingsStore.directionMode).toBe('particles');
+    expect(settingsStore.nodeColors).toEqual({ file: '#111111', folder: '#222222' });
+    expect(settingsStore.nodeVisibility).toEqual({ file: true, folder: false });
+    expect(settingsStore.edgeVisibility).toEqual({ imports: true, calls: false });
+    expect(settingsStore.edgeColors).toEqual({ imports: '#333333', calls: '#444444' });
+    expect(settingsStore.pluginOrder).toEqual(['codegraphy.markdown', 'codegraphy.typescript']);
+    expect(settingsStore.disabledPlugins).toEqual(['codegraphy.python']);
+    expect(settingsStore.maxFiles).toBe(1000);
+    expect(settingsStore.bidirectionalEdges).toBe('combined');
+    expect(settingsStore.nodeSizeMode).toBe('file-size');
   });
 
   it('undo restores original nodeSizeMode and refreshes graph', async () => {
@@ -193,7 +210,6 @@ describe('ResetSettingsAction', () => {
     await action.undo();
 
     expect(mockSetNodeSizeMode).toHaveBeenCalledWith('file-size');
-    expect(mockContext._state['codegraphy.nodeSizeMode']).toBe('file-size');
     expect(mockSendAllSettings).toHaveBeenCalled();
     expect(mockRefreshGraph).toHaveBeenCalled();
   });

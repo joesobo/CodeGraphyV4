@@ -168,7 +168,7 @@ describe('Graph context menu (background)', () => {
       expect(screen.getByText('New File...')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Refresh Graph')).toBeInTheDocument();
+    expect(screen.getByText('Refresh')).toBeInTheDocument();
     expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
     expect(screen.queryByText('Open File')).not.toBeInTheDocument();
     expect(screen.queryByText('Reveal in Explorer')).not.toBeInTheDocument();
@@ -185,13 +185,13 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Refresh Graph')).toBeInTheDocument();
+      expect(screen.getByText('Refresh')).toBeInTheDocument();
     });
     expect(screen.getByText('Fit All Nodes')).toBeInTheDocument();
     expect(screen.queryByText('New File...')).not.toBeInTheDocument();
   });
 
-  it('sends REFRESH_GRAPH message when clicking Refresh Graph', async () => {
+  it('sends REFRESH_GRAPH message when clicking Refresh', async () => {
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
 
@@ -201,11 +201,11 @@ describe('Graph context menu (background)', () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Refresh Graph')).toBeInTheDocument();
+      expect(screen.getByText('Refresh')).toBeInTheDocument();
     });
 
     await act(async () => {
-      fireEvent.click(screen.getByText('Refresh Graph'));
+      fireEvent.click(screen.getByText('Refresh'));
     });
 
     expect(findMessage('REFRESH_GRAPH')).toBeTruthy();

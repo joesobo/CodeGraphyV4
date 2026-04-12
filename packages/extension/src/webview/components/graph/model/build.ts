@@ -32,6 +32,7 @@ export type FGLink = LinkObject & {
   bidirectional: boolean;
   baseColor?: string;
   curvature?: number;
+  curvatureGroupId?: string;
 };
 
 export interface BuildGraphDataOptions {

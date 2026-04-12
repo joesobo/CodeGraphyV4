@@ -316,7 +316,7 @@ describe('GraphViewProvider public API', () => {
       version: '1.0.0',
       apiVersion: '^2.0.0',
       supportedExtensions: ['.ts'],
-      detectConnections: async () => [],
+      analyzeFile: async (filePath: string) => ({ filePath, relations: [] }),
       onLoad: (api: { registerCommand: (command: { id: string; action: () => void }) => void }) => {
         api.registerCommand({
           id: 'plugin.commands.run',

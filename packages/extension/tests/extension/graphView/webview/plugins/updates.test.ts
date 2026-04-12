@@ -15,7 +15,6 @@ describe('graphView/webview/plugins/updates', () => {
       status: enabled ? 'active' : 'inactive',
       enabled,
       connectionCount: 0,
-      sources: [],
     };
   }
 
@@ -26,7 +25,6 @@ describe('graphView/webview/plugins/updates', () => {
       {
         getPluginStatuses: vi.fn(() => [createPluginStatus('plugin.test', true)]),
       },
-      new Set(['plugin.test:rule']),
       new Set(['plugin.disabled']),
       sendMessage,
     );
@@ -43,7 +41,6 @@ describe('graphView/webview/plugins/updates', () => {
             status: 'active',
             enabled: true,
             connectionCount: 0,
-            sources: [],
           },
         ],
       },
@@ -52,7 +49,7 @@ describe('graphView/webview/plugins/updates', () => {
 
   it('skips plugin status updates when no analyzer is available', () => {
     const sendMessage = vi.fn();
-    sendGraphViewPluginStatuses(undefined, new Set(), new Set(), sendMessage);
+    sendGraphViewPluginStatuses(undefined, new Set(), sendMessage);
     expect(sendMessage).not.toHaveBeenCalled();
   });
 

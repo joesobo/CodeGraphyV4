@@ -13,17 +13,18 @@ function createContext(
     getPluginFilterPatterns: vi.fn(() => ['plugin:test/**']),
     getMaxFiles: vi.fn(() => 500),
     getPlaybackSpeed: vi.fn(() => 2),
+    getDepthMode: vi.fn(() => false),
     getDagMode: vi.fn(() => 'td' as DagMode),
     getNodeSizeMode: vi.fn(() => 'connections' as NodeSizeMode),
-    getFolderNodeColor: vi.fn(() => '#111111'),
     getFocusedFile: vi.fn(() => undefined),
     hasWorkspace: vi.fn(() => false),
     isFirstAnalysis: vi.fn(() => false),
     isWebviewReadyNotified: vi.fn(() => false),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
-    sendAvailableViews: vi.fn(),
-    analyzeAndSendData: vi.fn(),
+    sendDepthState: vi.fn(),
+    sendGraphControls: vi.fn(),
+    loadAndSendData: vi.fn(() => Promise.resolve()),
     sendFavorites: vi.fn(),
     sendSettings: vi.fn(),
     sendPhysicsSettings: vi.fn(),
@@ -51,7 +52,8 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
 
     expect(context.loadGroupsAndFilterPatterns).toHaveBeenCalledOnce();
     expect(context.loadDisabledRulesAndPlugins).toHaveBeenCalledOnce();
-    expect(context.sendAvailableViews).toHaveBeenCalledOnce();
+    expect(context.sendDepthState).toHaveBeenCalledOnce();
+    expect(context.sendGraphControls).toHaveBeenCalledOnce();
     expect(context.sendFavorites).toHaveBeenCalledOnce();
     expect(context.sendSettings).toHaveBeenCalledOnce();
     expect(context.sendPhysicsSettings).toHaveBeenCalledOnce();
@@ -68,6 +70,10 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
         patterns: ['src/**'],
         pluginPatterns: ['plugin:test/**'],
       },
+    });
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: false },
     });
   });
 

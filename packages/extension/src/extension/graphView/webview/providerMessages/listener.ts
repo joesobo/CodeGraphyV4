@@ -1,4 +1,5 @@
 import * as vscode from 'vscode';
+import type { IFileAnalysisResult } from '../../../../core/plugins/types/contracts';
 import type { IGraphData } from '../../../../shared/graph/types';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { IGroup } from '../../../../shared/settings/groups';
@@ -6,18 +7,23 @@ import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../../../shared/settings/physics';
 import type { ISettingsSnapshot } from '../../../../shared/settings/snapshot';
 import type { IViewContext } from '../../../../core/views/contracts';
-import { DEFAULT_FOLDER_NODE_COLOR } from '../../../../shared/fileColors';
 import { getUndoManager } from '../../../undoManager';
 import type { IUndoableAction } from '../../../undoManager';
 import { ResetSettingsAction } from '../../../actions/resetSettings';
-import { getGraphViewConfigTarget, normalizeFolderNodeColor } from '../../settings/reader';
+import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
+import type { WorkspaceAnalysisDatabaseSnapshot } from '../../../pipeline/database/cache';
+import { getGraphViewConfigTarget } from '../../settings/reader';
 import { captureGraphViewSettingsSnapshot } from '../../settings/snapshot';
 import { createGraphViewProviderMessageContext } from './context';
 import { setGraphViewWebviewMessageListener } from '../messages/listener';
 
 interface GraphViewConfigurationLike {
   get<T>(key: string, defaultValue: T): T;
-  update(key: string, value: unknown, target: vscode.ConfigurationTarget): PromiseLike<void>;
+  update(
+    key: string,
+    value: unknown,
+    target?: vscode.ConfigurationTarget,
+  ): PromiseLike<void>;
 }
 
 interface GraphViewWorkspaceLike {
@@ -45,15 +51,13 @@ export interface GraphViewProviderMessageListenerDependencies {
   ): ISettingsSnapshot;
   createResetSettingsAction(
     snapshot: ISettingsSnapshot,
-    target: vscode.ConfigurationTarget,
+    target: vscode.ConfigurationTarget | undefined,
     context: vscode.ExtensionContext,
     sendAllSettings: () => void,
     setNodeSizeMode: (mode: NodeSizeMode) => void,
     analyzeAndSendData: () => Promise<void>,
   ): IUndoableAction;
   executeUndoAction(action: IUndoableAction): Promise<void>;
-  normalizeFolderNodeColor(folderNodeColor: string): string;
-  defaultFolderNodeColor: string;
   dagModeKey: string;
   nodeSizeModeKey: string;
 }
@@ -62,21 +66,21 @@ export interface GraphViewProviderMessageListenerSource {
   _timelineActive: boolean;
   _currentCommitSha: string | undefined;
   _userGroups: IGroup[];
-  _activeViewId: string;
   _disabledPlugins: Set<string>;
-  _disabledSources: Set<string>;
   _filterPatterns: string[];
   _graphData: IGraphData;
   _viewContext: IViewContext;
+  _depthMode: boolean;
   _dagMode: DagMode;
   _nodeSizeMode: NodeSizeMode;
   _firstAnalysis: boolean;
   _webviewReadyNotified: boolean;
-  _hiddenPluginGroupIds: Set<string>;
   _context: vscode.ExtensionContext;
   _analyzer?:
     | {
         getPluginFilterPatterns(): string[];
+        lastFileAnalysis: ReadonlyMap<string, IFileAnalysisResult>;
+        readStructuredAnalysisSnapshot?(): WorkspaceAnalysisDatabaseSnapshot;
         registry?: {
           notifyWebviewReady(): void;
           getPluginAPI(
@@ -99,6 +103,7 @@ export interface GraphViewProviderMessageListenerSource {
   setFocusedFile(filePath: string | undefined): void;
   _previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   _openFile(filePath: string): Promise<void>;
+  openInEditor(): void;
   _revealInExplorer(filePath: string): Promise<void>;
   _copyToClipboard(text: string): Promise<void>;
   _deleteFiles(paths: string[]): Promise<void>;
@@ -106,11 +111,16 @@ export interface GraphViewProviderMessageListenerSource {
   _createFile(directory: string): Promise<void>;
   _toggleFavorites(paths: string[]): Promise<void>;
   _addToExclude(patterns: string[]): Promise<void>;
+  _loadAndSendData(): Promise<void>;
+  _indexAndSendData(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
+  refreshIndex(): Promise<void>;
+  refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
+  clearCacheAndRefresh(): Promise<void>;
   _getFileInfo(filePath: string): Promise<void>;
   undo(): Promise<string | undefined>;
   redo(): Promise<string | undefined>;
-  changeView(viewId: string): Promise<void>;
+  setDepthMode(depthMode: boolean): Promise<void>;
   setDepthLimit(depthLimit: number): Promise<void>;
   _indexRepository(): Promise<void>;
   _jumpToCommit(sha: string): Promise<void>;
@@ -120,10 +130,10 @@ export interface GraphViewProviderMessageListenerSource {
   _resetPhysicsSettings(): Promise<void>;
   _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;
-  _sendAvailableViews(): void;
+  _sendDepthState(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
   _applyViewTransform(): void;
-  _smartRebuild(kind: 'rule' | 'plugin', id: string): void;
+  _smartRebuild(id: string): void;
   _sendAllSettings(): void;
   _loadGroupsAndFilterPatterns(): void;
   _loadDisabledRulesAndPlugins(): boolean;
@@ -135,10 +145,20 @@ export interface GraphViewProviderMessageListenerSource {
   _sendPluginExporters?(): void;
   _sendPluginToolbarActions?(): void;
   _sendPluginWebviewInjections(): void;
+  _sendGraphControls?(): void;
+  invalidatePluginFiles(pluginIds: readonly string[]): string[];
 }
 
 export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies = {
-  workspace: vscode.workspace,
+  workspace: {
+    get workspaceFolders() {
+      return vscode.workspace.workspaceFolders;
+    },
+    getConfiguration: section =>
+      section === 'codegraphy'
+        ? getCodeGraphyConfiguration()
+        : vscode.workspace.getConfiguration(section),
+  },
   window: vscode.window,
   getConfigTarget: workspaceFolders => getGraphViewConfigTarget(workspaceFolders),
   captureSettingsSnapshot: (configuration, physicsSettings, nodeSizeMode) =>
@@ -158,12 +178,10 @@ export const DEFAULT_DEPENDENCIES: GraphViewProviderMessageListenerDependencies 
       sendAllSettings,
       setNodeSizeMode,
       analyzeAndSendData,
-    ),
+      ),
   executeUndoAction: action => getUndoManager().execute(action),
-  normalizeFolderNodeColor,
-  defaultFolderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
-  dagModeKey: 'codegraphy.dagMode',
-  nodeSizeModeKey: 'codegraphy.nodeSizeMode',
+  dagModeKey: 'dagMode',
+  nodeSizeModeKey: 'nodeSizeMode',
 };
 
 export function setGraphViewProviderMessageListener(

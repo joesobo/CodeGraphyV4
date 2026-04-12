@@ -10,6 +10,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+    fileParallelism: false,
     server: {
       sourcemap: false,
     },

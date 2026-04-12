@@ -83,11 +83,13 @@ describe('graphView/provider/webview/host default dependencies', () => {
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [{ fsPath: '/test/root' }]),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
     const webviewView = {
       viewType: 'codegraphy.graphView',
       webview: {},
       visible: true,
+      onDidChangeVisibility: vi.fn(() => ({ dispose: vi.fn() })),
       onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
     };
     const nextWebview = { kind: 'next-webview' };
@@ -130,6 +132,7 @@ describe('graphView/provider/webview/host default dependencies', () => {
       _panels: [],
       _analyzeAndSendData: vi.fn(async () => undefined),
       _getLocalResourceRoots: vi.fn(() => [{ fsPath: '/test/root' }]),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
     const nextWebview = { kind: 'panel-webview' };
     const methods = createGraphViewProviderWebviewMethods(source as never);

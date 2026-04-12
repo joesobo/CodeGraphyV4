@@ -1,4 +1,4 @@
-import type { IConnection, IConnectionDetector } from '@codegraphy-vscode/plugin-api';
+import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
 import type { IDetectedImport } from '../PathResolver';
 import type { PythonRuleContext } from '../context';
 
@@ -6,8 +6,8 @@ function detect(
   _content: string,
   filePath: string,
   ctx: PythonRuleContext
-): IConnection[] {
-  const connections: IConnection[] = [];
+): IAnalysisRelation[] {
+  const relations: IAnalysisRelation[] = [];
 
   for (const entry of ctx.imports) {
     if (entry.kind !== 'import') continue;
@@ -19,20 +19,23 @@ function detect(
       type: 'import',
       line: entry.line,
     };
+    const resolvedPath = ctx.resolver.resolve(imp, filePath);
 
-    connections.push({
+    relations.push({
       kind: 'import',
       specifier: entry.module,
-      resolvedPath: ctx.resolver.resolve(imp, filePath),
+      resolvedPath,
       type: 'static',
       sourceId: 'import-module',
+      fromFilePath: filePath,
+      toFilePath: resolvedPath,
     });
   }
 
-  return connections;
+  return relations;
 }
 
-const rule: IConnectionDetector<PythonRuleContext> = {
+const rule = {
   id: 'import-module',
   detect,
 };

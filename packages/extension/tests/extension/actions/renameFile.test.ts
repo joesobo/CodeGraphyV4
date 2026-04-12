@@ -78,7 +78,7 @@ describe('RenameFileAction', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         ['src/new.ts', 'src/other.ts'],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
 
@@ -129,7 +129,7 @@ describe('RenameFileAction', () => {
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'favorites',
         ['src/keep1.ts', 'src/new.ts', 'src/keep2.ts'],
-        vscode.ConfigurationTarget.Workspace
+        undefined,
       );
     });
   });

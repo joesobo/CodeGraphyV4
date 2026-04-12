@@ -13,8 +13,6 @@ describe('graphView/provider/physicsSettings', () => {
     const getConfiguration = vi.fn(() => configuration);
     const methods = createGraphViewProviderPhysicsSettingsMethods(source as never, {
       getConfiguration,
-      getWorkspaceFolders: vi.fn(() => []),
-      getConfigTarget: vi.fn(() => 'workspace'),
       readPhysicsSettings,
       updatePhysicsSetting: vi.fn(),
       resetPhysicsSettings: vi.fn(),
@@ -25,33 +23,27 @@ describe('graphView/provider/physicsSettings', () => {
     methods._sendPhysicsSettings();
 
     expect(readPhysicsSettings).toHaveBeenCalledTimes(2);
-    expect(getConfiguration).toHaveBeenNthCalledWith(1, 'codegraphy.physics');
-    expect(getConfiguration).toHaveBeenNthCalledWith(2, 'codegraphy.physics');
+    expect(getConfiguration).toHaveBeenCalledTimes(2);
     expect(source._sendMessage).toHaveBeenCalledWith({
       type: 'PHYSICS_SETTINGS_UPDATED',
       payload: { damping: 1 },
     });
   });
 
-  it('updates physics settings through the current config and workspace-target helpers', async () => {
+  it('updates physics settings through the current config helpers', async () => {
     const configuration = {
       get: vi.fn((_, fallback) => fallback),
       update: vi.fn(async () => undefined),
     };
-    const workspaceFolders = [{ name: 'workspace-folder' }] as never;
     const getConfiguration = vi.fn(() => configuration);
-    const getWorkspaceFolders = vi.fn(() => workspaceFolders);
-    const getConfigTarget = vi.fn(() => 'workspace-folder');
     const updatePhysicsSetting = vi.fn(async () => undefined);
     const methods = createGraphViewProviderPhysicsSettingsMethods(
       { _sendMessage: vi.fn() } as never,
       {
-        getConfiguration,
-        getWorkspaceFolders,
-        getConfigTarget,
-        readPhysicsSettings: vi.fn(() => ({ damping: 1 } as IPhysicsSettings)),
-        updatePhysicsSetting,
-        resetPhysicsSettings: vi.fn(async () => undefined),
+      getConfiguration,
+      readPhysicsSettings: vi.fn(() => ({ damping: 1 } as IPhysicsSettings)),
+      updatePhysicsSetting,
+      resetPhysicsSettings: vi.fn(async () => undefined),
         defaultPhysics: {} as IPhysicsSettings,
       },
     );
@@ -64,32 +56,23 @@ describe('graphView/provider/physicsSettings', () => {
       unknown,
       {
         getConfiguration(): unknown;
-        getConfigTarget(): unknown;
       },
     ];
     expect(options[2].getConfiguration()).toBe(configuration);
-    expect(options[2].getConfigTarget()).toBe('workspace-folder');
-    expect(getConfiguration).toHaveBeenCalledWith('codegraphy.physics');
-    expect(getWorkspaceFolders).toHaveBeenCalledOnce();
-    expect(getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
+    expect(getConfiguration).toHaveBeenCalledOnce();
   });
 
-  it('resets physics settings through the current config and workspace-target helpers', async () => {
+  it('resets physics settings through the current config helpers', async () => {
     const configuration = {
       get: vi.fn((_, fallback) => fallback),
       update: vi.fn(async () => undefined),
     };
-    const workspaceFolders = [{ name: 'workspace-folder' }] as never;
     const getConfiguration = vi.fn(() => configuration);
-    const getWorkspaceFolders = vi.fn(() => workspaceFolders);
-    const getConfigTarget = vi.fn(() => 'workspace-folder');
     const resetPhysicsSettings = vi.fn(async () => undefined);
     const methods = createGraphViewProviderPhysicsSettingsMethods(
       { _sendMessage: vi.fn() } as never,
       {
         getConfiguration,
-        getWorkspaceFolders,
-        getConfigTarget,
         readPhysicsSettings: vi.fn(() => ({ damping: 1 } as IPhysicsSettings)),
         updatePhysicsSetting: vi.fn(async () => undefined),
         resetPhysicsSettings,
@@ -103,13 +86,9 @@ describe('graphView/provider/physicsSettings', () => {
     const options = resetPhysicsSettings.mock.calls[0] as unknown as [
       {
         getConfiguration(): unknown;
-        getConfigTarget(): unknown;
       },
     ];
     expect(options[0].getConfiguration()).toBe(configuration);
-    expect(options[0].getConfigTarget()).toBe('workspace-folder');
-    expect(getConfiguration).toHaveBeenCalledWith('codegraphy.physics');
-    expect(getWorkspaceFolders).toHaveBeenCalledOnce();
-    expect(getConfigTarget).toHaveBeenCalledWith(workspaceFolders);
+    expect(getConfiguration).toHaveBeenCalledOnce();
   });
 });

@@ -1,9 +1,12 @@
 import type { GraphStateFields } from './state';
 import { DEFAULT_PHYSICS, DEFAULT_SEARCH_OPTIONS } from './defaults';
-import { DEFAULT_DIRECTION_COLOR, DEFAULT_FOLDER_NODE_COLOR } from '../../shared/fileColors';
+import { DEFAULT_DIRECTION_COLOR } from '../../shared/fileColors';
 
 export const INITIAL_STATE: GraphStateFields = {
   graphData: null,
+  graphHasIndex: false,
+  graphIsIndexing: false,
+  graphIndexProgress: null,
   isLoading: true,
   searchQuery: '',
   searchOptions: DEFAULT_SEARCH_OPTIONS,
@@ -19,18 +22,22 @@ export const INITIAL_STATE: GraphStateFields = {
   graphMode: '2d' as const,
   nodeSizeMode: 'connections' as const,
   physicsSettings: DEFAULT_PHYSICS,
+  depthMode: false,
   depthLimit: 1,
   maxDepthLimit: 10,
-  groups: [],
-  optimisticGroupUpdates: {},
-  optimisticUserGroups: null,
+  legends: [],
+  optimisticLegendUpdates: {},
+  optimisticUserLegends: null,
   filterPatterns: [],
   pluginFilterPatterns: [],
-  availableViews: [],
-  activeViewId: 'codegraphy.connections',
   dagMode: null,
-  folderNodeColor: DEFAULT_FOLDER_NODE_COLOR,
   pluginStatuses: [],
+  graphNodeTypes: [],
+  graphEdgeTypes: [],
+  nodeColors: {},
+  nodeVisibility: {},
+  edgeVisibility: {},
+  edgeColors: {},
   nodeDecorations: {},
   edgeDecorations: {},
   pluginContextMenuItems: [],

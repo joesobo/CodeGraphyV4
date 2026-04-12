@@ -1,20 +1,14 @@
-import * as vscode from 'vscode';
 import type { IGraphData } from '../../../shared/graph/types';
-import type { IPluginStatus } from '../../../shared/plugins/status';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
-import { shouldRebuildGraphView } from '../rebuild';
+import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { rebuildGraphViewData, smartRebuildGraphView } from '../view/rebuild';
 
 interface GraphViewProviderRefreshAnalyzerLike {
+  hasIndex(): boolean;
   rebuildGraph(
-    disabledSources: Set<string>,
     disabledPlugins: Set<string>,
     showOrphans: boolean,
   ): IGraphData;
-  getPluginStatuses(
-    disabledSources: Set<string>,
-    disabledPlugins: Set<string>,
-  ): readonly IPluginStatus[];
   registry: {
     notifyGraphRebuild(graphData: IGraphData): void;
   };
@@ -23,21 +17,25 @@ interface GraphViewProviderRefreshAnalyzerLike {
 
 export interface GraphViewProviderRefreshMethodsSource {
   _analyzer: GraphViewProviderRefreshAnalyzerLike | undefined;
-  _disabledSources: Set<string>;
   _disabledPlugins: Set<string>;
   _rawGraphData: IGraphData;
   _graphData: IGraphData;
   _loadDisabledRulesAndPlugins(): boolean;
   _loadGroupsAndFilterPatterns(): void;
+  _loadAndSendData?(): Promise<void>;
   _analyzeAndSendData(): Promise<void>;
+  _refreshAndSendData?(): Promise<void>;
+  _incrementalAnalyzeAndSendData?(filePaths: readonly string[]): Promise<void>;
   _sendAllSettings(): void;
   _sendFavorites(): void;
+  _computeMergedGroups(): void;
   _sendGroupsUpdated(): void;
+  _sendGraphControls?(): void;
   _sendSettings(): void;
   _sendPhysicsSettings(): void;
   _updateViewContext(): void;
   _applyViewTransform(): void;
-  _sendAvailableViews(): void;
+  _sendDepthState(): void;
   _sendPluginStatuses(): void;
   _sendDecorations(): void;
   _sendMessage(message: ExtensionToWebviewMessage): void;
@@ -46,28 +44,28 @@ export interface GraphViewProviderRefreshMethodsSource {
 
 export interface GraphViewProviderRefreshMethods {
   refresh(): Promise<void>;
+  refreshIndex(): Promise<void>;
+  refreshChangedFiles(filePaths: readonly string[]): Promise<void>;
   refreshGroupSettings(): void;
   refreshPhysicsSettings(): void;
   refreshSettings(): void;
   refreshToggleSettings(): void;
   clearCacheAndRefresh(): Promise<void>;
   _rebuildAndSend(): void;
-  _smartRebuild(kind: 'rule' | 'plugin', id: string): void;
+  _smartRebuild(id: string): void;
 }
 
 export interface GraphViewProviderRefreshMethodDependencies {
   getShowOrphans(): boolean;
   rebuildGraphData: typeof rebuildGraphViewData;
   smartRebuildGraphData: typeof smartRebuildGraphView;
-  shouldRebuild(statuses: readonly IPluginStatus[], kind: 'rule' | 'plugin', id: string): boolean;
 }
 
 const DEFAULT_DEPENDENCIES: GraphViewProviderRefreshMethodDependencies = {
   getShowOrphans: () =>
-    vscode.workspace.getConfiguration('codegraphy').get<boolean>('showOrphans', true),
+    getCodeGraphyConfiguration().get<boolean>('showOrphans', true),
   rebuildGraphData: rebuildGraphViewData,
   smartRebuildGraphData: smartRebuildGraphView,
-  shouldRebuild: shouldRebuildGraphView,
 };
 
 export function createGraphViewProviderRefreshMethods(
@@ -77,9 +75,12 @@ export function createGraphViewProviderRefreshMethods(
   const _rebuildAndSend = (): void => {
     dependencies.rebuildGraphData(source, {
       getShowOrphans: () => dependencies.getShowOrphans(),
+      computeMergedGroups: () => source._computeMergedGroups(),
+      sendGroupsUpdated: () => source._sendGroupsUpdated(),
       updateViewContext: () => source._updateViewContext(),
       applyViewTransform: () => source._applyViewTransform(),
-      sendAvailableViews: () => source._sendAvailableViews(),
+      sendDepthState: () => source._sendDepthState(),
+      sendGraphControls: () => source._sendGraphControls?.(),
       sendPluginStatuses: () => source._sendPluginStatuses(),
       sendDecorations: () => source._sendDecorations(),
       sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
@@ -96,20 +97,34 @@ export function createGraphViewProviderRefreshMethods(
     _rebuildAndSend();
   };
 
-  const _smartRebuild = (kind: 'rule' | 'plugin', id: string): void => {
-    dependencies.smartRebuildGraphData(source, kind, id, {
-      shouldRebuild: (statuses, nextKind, nextId) =>
-        dependencies.shouldRebuild(statuses, nextKind, nextId),
+  const _smartRebuild = (id: string): void => {
+    dependencies.smartRebuildGraphData(source, id, {
       rebuildAndSend: () => runRebuildAndSend(),
-      sendMessage: message => source._sendMessage(message as ExtensionToWebviewMessage),
     });
   };
 
   const refresh = async (): Promise<void> => {
     source._loadDisabledRulesAndPlugins();
     source._loadGroupsAndFilterPatterns();
-    await source._analyzeAndSendData();
+    if (source._loadAndSendData) {
+      await source._loadAndSendData();
+    } else {
+      await source._analyzeAndSendData();
+    }
     source._sendAllSettings();
+    source._sendGraphControls?.();
+    source._sendFavorites();
+  };
+
+  const refreshIndex = async (): Promise<void> => {
+    source._loadDisabledRulesAndPlugins();
+    source._loadGroupsAndFilterPatterns();
+    const runRefresh = source._refreshAndSendData
+      ? () => source._refreshAndSendData?.()
+      : () => source._analyzeAndSendData();
+    await runRefresh();
+    source._sendAllSettings();
+    source._sendGraphControls?.();
     source._sendFavorites();
   };
 
@@ -124,6 +139,7 @@ export function createGraphViewProviderRefreshMethods(
 
   const refreshSettings = (): void => {
     source._sendSettings();
+    source._sendGraphControls?.();
   };
 
   const refreshToggleSettings = (): void => {
@@ -133,11 +149,32 @@ export function createGraphViewProviderRefreshMethods(
 
   const clearCacheAndRefresh = async (): Promise<void> => {
     source._analyzer?.clearCache();
-    await source._analyzeAndSendData();
+    await refreshIndex();
+  };
+
+  const refreshChangedFiles = async (filePaths: readonly string[]): Promise<void> => {
+    source._loadDisabledRulesAndPlugins();
+    source._loadGroupsAndFilterPatterns();
+    if (!source._analyzer?.hasIndex()) {
+      if (source._loadAndSendData) {
+        await source._loadAndSendData();
+      } else {
+        await source._analyzeAndSendData();
+      }
+    } else if (source._incrementalAnalyzeAndSendData) {
+      await source._incrementalAnalyzeAndSendData(filePaths);
+    } else {
+      await source._analyzeAndSendData();
+    }
+    source._sendAllSettings();
+    source._sendGraphControls?.();
+    source._sendFavorites();
   };
 
   const methods: GraphViewProviderRefreshMethods = {
     refresh,
+    refreshIndex,
+    refreshChangedFiles,
     refreshGroupSettings,
     refreshPhysicsSettings,
     refreshSettings,

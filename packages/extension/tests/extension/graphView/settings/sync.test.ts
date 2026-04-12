@@ -16,19 +16,23 @@ function createSnapshot(
       damping: 0.7,
       centerForce: 0.1,
     },
-    groups: [{ id: 'group', pattern: 'src/**', color: '#112233' }],
+    legends: [{ id: 'group', pattern: 'src/**', color: '#112233' }],
     filterPatterns: ['dist/**'],
     showOrphans: false,
     bidirectionalMode: 'combined',
     directionMode: 'arrows',
     directionColor: '#475569',
-    folderNodeColor: '#123456',
+    nodeColors: { file: '#999999', folder: '#888888' },
+    nodeVisibility: { file: true, folder: true },
+    edgeVisibility: { imports: true, nests: false },
+    edgeColors: { imports: '#777777', nests: '#666666' },
+    pluginOrder: ['codegraphy.markdown', 'codegraphy.python'],
+    disabledPlugins: ['codegraphy.python'],
     particleSpeed: 0.005,
     particleSize: 4,
     showLabels: true,
     nodeSizeMode: 'uniform',
     maxFiles: 500,
-    hiddenPluginGroups: ['plugin:codegraphy.python'],
     ...overrides,
   };
 }
@@ -37,8 +41,7 @@ function createState(
   overrides: Partial<GraphViewAllSettingsSyncState> = {},
 ): GraphViewAllSettingsSyncState {
   return {
-    viewContext: { folderNodeColor: '#000000' },
-    hiddenPluginGroupIds: new Set<string>(),
+    viewContext: {},
     userGroups: [],
     filterPatterns: [],
     ...overrides,
@@ -59,9 +62,7 @@ describe('graphView/settings/sync', () => {
       sendGroupsUpdated,
     });
 
-    expect(state.viewContext.folderNodeColor).toBe('#123456');
-    expect([...state.hiddenPluginGroupIds]).toEqual(['plugin:codegraphy.python']);
-    expect(state.userGroups).toEqual(snapshot.groups);
+    expect(state.userGroups).toEqual(snapshot.legends);
     expect(state.filterPatterns).toEqual(['dist/**']);
     expect(recomputeGroups).toHaveBeenCalledOnce();
     expect(sendGroupsUpdated).toHaveBeenCalledOnce();
@@ -81,7 +82,7 @@ describe('graphView/settings/sync', () => {
         order.push('RECOMPUTE_GROUPS');
       },
       sendGroupsUpdated: () => {
-        order.push('SEND_GROUPS_UPDATED');
+        order.push('SEND_LEGENDS_UPDATED');
       },
     });
 
@@ -89,10 +90,10 @@ describe('graphView/settings/sync', () => {
       'PHYSICS_SETTINGS_UPDATED',
       'SETTINGS_UPDATED',
       'DIRECTION_SETTINGS_UPDATED',
-      'FOLDER_NODE_COLOR_UPDATED',
       'SHOW_LABELS_UPDATED',
       'RECOMPUTE_GROUPS',
-      'SEND_GROUPS_UPDATED',
+      'SEND_LEGENDS_UPDATED',
+      'FILTER_PATTERNS_UPDATED',
     ]);
   });
 
@@ -109,7 +110,7 @@ describe('graphView/settings/sync', () => {
         order.push('RECOMPUTE_GROUPS');
       },
       sendGroupsUpdated: () => {
-        order.push('SEND_GROUPS_UPDATED');
+        order.push('SEND_LEGENDS_UPDATED');
       },
     });
 

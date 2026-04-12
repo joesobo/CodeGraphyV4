@@ -5,8 +5,8 @@
  */
 
 import * as ts from 'typescript';
-import type { IConnection } from '@codegraphy-vscode/plugin-api';
-import type { TsRuleContext } from '../types';
+import type { IAnalysisRelation } from '@codegraphy-vscode/plugin-api';
+import type { TsRuleContext } from '../ruleContext';
 import { getScriptKind } from '../getScriptKind';
 
 export const SOURCE_ID = 'dynamic-import';
@@ -15,8 +15,8 @@ function detect(
   content: string,
   filePath: string,
   context: TsRuleContext
-): IConnection[] {
-  const connections: IConnection[] = [];
+): IAnalysisRelation[] {
+  const relations: IAnalysisRelation[] = [];
 
   const sourceFile = ts.createSourceFile(
     filePath,
@@ -34,10 +34,13 @@ function detect(
       const arg = node.arguments[0];
       if (arg && ts.isStringLiteral(arg)) {
         const specifier = arg.text;
-        connections.push({
+        const resolvedPath = context.resolver.resolve(specifier, filePath);
+        relations.push({
           kind: 'import',
           specifier,
-          resolvedPath: context.resolver.resolve(specifier, filePath),
+          resolvedPath,
+          fromFilePath: filePath,
+          toFilePath: resolvedPath,
           type: 'dynamic',
           sourceId: SOURCE_ID,
         });
@@ -48,7 +51,7 @@ function detect(
   };
 
   visit(sourceFile);
-  return connections;
+  return relations;
 }
 
 export { detect };

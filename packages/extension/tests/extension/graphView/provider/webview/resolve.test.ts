@@ -34,6 +34,7 @@ describe('graphView/provider/webview/resolve', () => {
       _view: undefined,
       _timelineView: webviewView,
       _getLocalResourceRoots: vi.fn(() => resourceRoots),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
 
     resolveGraphViewProviderWebviewView(source as never, {
@@ -48,6 +49,7 @@ describe('graphView/provider/webview/resolve', () => {
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'graph');
     expect(setWebviewMessageListener).toHaveBeenCalledWith(webview, source);
     expect(executeCommand).toHaveBeenCalledWith('setContext', 'codegraphy.viewVisible', true);
+    expect(source.flushPendingWorkspaceRefresh).toHaveBeenCalledOnce();
 
     disposeListener?.();
 
@@ -82,6 +84,7 @@ describe('graphView/provider/webview/resolve', () => {
       _view: undefined,
       _timelineView: otherTimelineView,
       _getLocalResourceRoots: vi.fn(() => resourceRoots),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
 
     resolveGraphViewProviderWebviewView(source as never, {
@@ -121,6 +124,7 @@ describe('graphView/provider/webview/resolve', () => {
       _view: webviewView,
       _timelineView: undefined,
       _getLocalResourceRoots: vi.fn(() => []),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
 
     resolveGraphViewProviderWebviewView(source as never, {
@@ -132,6 +136,7 @@ describe('graphView/provider/webview/resolve', () => {
 
     expect(source._timelineView).toBe(webviewView);
     expect(createHtml).toHaveBeenCalledWith(source._extensionUri, webview, 'timeline');
+    expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
 
     disposeListener?.();
 
@@ -164,6 +169,7 @@ describe('graphView/provider/webview/resolve', () => {
       _view: otherGraphView,
       _timelineView: undefined,
       _getLocalResourceRoots: vi.fn(() => []),
+      flushPendingWorkspaceRefresh: vi.fn(),
     };
 
     resolveGraphViewProviderWebviewView(source as never, {
@@ -176,5 +182,83 @@ describe('graphView/provider/webview/resolve', () => {
     disposeListener?.();
 
     expect(source._view).toBe(otherGraphView);
+  });
+
+  it('flushes pending refreshes when a resolved view becomes visible later', () => {
+    let visibilityListener: (() => void) | undefined;
+    const webview = {
+      options: {},
+      html: '',
+    } as unknown as vscode.Webview;
+    const webviewView = {
+      viewType: 'codegraphy.graphView',
+      webview,
+      visible: false,
+      onDidChangeVisibility: vi.fn(listener => {
+        visibilityListener = listener;
+        return { dispose: vi.fn() };
+      }),
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: undefined,
+      _getLocalResourceRoots: vi.fn(() => []),
+      flushPendingWorkspaceRefresh: vi.fn(),
+    };
+
+    resolveGraphViewProviderWebviewView(source as never, {
+      createHtml: vi.fn(() => '<graph html />'),
+      executeCommand: vi.fn(() => Promise.resolve(undefined)),
+      resolveWebviewView: vi.fn(),
+      setWebviewMessageListener: vi.fn(),
+    }, webviewView);
+
+    expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
+
+    (webviewView as { visible: boolean }).visible = true;
+    visibilityListener?.();
+
+    expect(source.flushPendingWorkspaceRefresh).toHaveBeenCalledOnce();
+  });
+
+  it('does not flush pending refreshes when the timeline view becomes visible later', () => {
+    let visibilityListener: (() => void) | undefined;
+    const webview = {
+      options: {},
+      html: '',
+    } as unknown as vscode.Webview;
+    const webviewView = {
+      viewType: 'codegraphy.timelineView',
+      webview,
+      visible: false,
+      onDidChangeVisibility: vi.fn(listener => {
+        visibilityListener = listener;
+        return { dispose: vi.fn() };
+      }),
+      onDidDispose: vi.fn(() => ({ dispose: vi.fn() })),
+    } as unknown as vscode.WebviewView;
+    const source = {
+      _extensionUri: vscode.Uri.file('/test/extension'),
+      _view: undefined,
+      _timelineView: undefined,
+      _getLocalResourceRoots: vi.fn(() => []),
+      flushPendingWorkspaceRefresh: vi.fn(),
+    };
+
+    resolveGraphViewProviderWebviewView(source as never, {
+      createHtml: vi.fn(() => '<timeline html />'),
+      executeCommand: vi.fn(() => Promise.resolve(undefined)),
+      resolveWebviewView: vi.fn(),
+      setWebviewMessageListener: vi.fn(),
+    }, webviewView);
+
+    expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
+
+    (webviewView as { visible: boolean }).visible = true;
+    visibilityListener?.();
+
+    expect(source.flushPendingWorkspaceRefresh).not.toHaveBeenCalled();
   });
 });

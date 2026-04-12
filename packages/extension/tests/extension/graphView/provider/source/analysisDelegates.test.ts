@@ -12,7 +12,7 @@ describe('source/analysisDelegates', () => {
     const error = new Error('boom');
 
     delegates._sendMessage(message);
-    delegates._sendAvailableViews();
+    delegates._sendDepthState();
     delegates._computeMergedGroups();
     delegates._sendGroupsUpdated();
     delegates._updateViewContext();
@@ -28,7 +28,7 @@ describe('source/analysisDelegates', () => {
     delegates._isAbortError!(error);
 
     expect(owner._webviewMethods._sendMessage).toHaveBeenCalledWith(message);
-    expect(owner._viewContextMethods._sendAvailableViews).toHaveBeenCalledTimes(1);
+    expect(owner._viewContextMethods._sendDepthState).toHaveBeenCalledTimes(1);
     expect(owner._pluginResourceMethods._computeMergedGroups).toHaveBeenCalledTimes(1);
     expect(owner._pluginMethods._sendGroupsUpdated).toHaveBeenCalledTimes(1);
     expect(owner._viewContextMethods._updateViewContext).toHaveBeenCalledTimes(1);

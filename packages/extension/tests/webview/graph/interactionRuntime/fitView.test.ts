@@ -71,7 +71,7 @@ describe('graph/interactionRuntime/fitView', () => {
 
   it('adds extra bottom clearance when fitting the depth view in 2d', () => {
     const dependencies = createInteractionDependencies({
-      activeViewId: 'codegraphy.depth-graph',
+      depthMode: true,
     });
     Object.defineProperty(dependencies.containerRef.current, 'clientWidth', {
       configurable: true,

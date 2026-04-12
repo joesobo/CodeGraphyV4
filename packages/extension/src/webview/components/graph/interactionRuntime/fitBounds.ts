@@ -1,7 +1,6 @@
 import type { FGNode } from '../model/build';
 
 export const FIT_VIEW_SCREEN_PADDING_2D = 40;
-export const DEPTH_VIEW_ID = 'codegraphy.depth-graph';
 export const DEPTH_VIEW_BOTTOM_PADDING_2D = 104;
 
 export interface FitBounds2d {

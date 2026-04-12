@@ -4,13 +4,21 @@
  * @module core/plugins/routing/router
  */
 
-import { IPlugin, IConnection } from '../types/contracts';
+import type { IPlugin, IProjectedConnection, IFileAnalysisResult } from '../types/contracts';
 import { getFileExtension, normalizePluginExtension } from './fileExtensions';
+
+const WILDCARD_EXTENSION = '*';
 
 /** Minimal plugin info subset needed for routing lookups. */
 export interface IRoutablePluginInfo {
   plugin: IPlugin;
 }
+
+export type CoreFileAnalysisResultProvider = (
+  filePath: string,
+  content: string,
+  workspaceRoot: string,
+) => Promise<IFileAnalysisResult | null>;
 
 /**
  * Gets the plugin that should handle a given file.
@@ -22,7 +30,7 @@ export function getPluginForFile(
   extensionMap: Map<string, string[]>,
 ): IPlugin | undefined {
   const ext = getFileExtension(filePath);
-  const pluginIds = extensionMap.get(ext);
+  const pluginIds = [...(extensionMap.get(ext) ?? []), ...(extensionMap.get(WILDCARD_EXTENSION) ?? [])];
 
   if (!pluginIds || pluginIds.length === 0) {
     return undefined;
@@ -47,10 +55,10 @@ export function getPluginsForExtension(
   extensionMap: Map<string, string[]>,
 ): IPlugin[] {
   const normalizedExt = normalizePluginExtension(extension);
-  const pluginIds = extensionMap.get(normalizedExt);
-  if (!pluginIds) {
-    return [];
-  }
+  const pluginIds = [
+    ...(extensionMap.get(normalizedExt) ?? []),
+    ...(extensionMap.get(WILDCARD_EXTENSION) ?? []),
+  ];
 
   const result: IPlugin[] = [];
   for (const pluginId of pluginIds) {
@@ -70,7 +78,7 @@ export function supportsFile(
   extensionMap: Map<string, string[]>,
 ): boolean {
   const ext = getFileExtension(filePath);
-  return extensionMap.has(ext);
+  return extensionMap.has(ext) || extensionMap.has(WILDCARD_EXTENSION);
 }
 
 /**
@@ -82,6 +90,124 @@ export function getSupportedExtensions(
   return Array.from(extensionMap.keys());
 }
 
+function getPluginsForFile(
+  filePath: string,
+  plugins: Map<string, IRoutablePluginInfo>,
+  extensionMap: Map<string, string[]>,
+): IPlugin[] {
+  const ext = getFileExtension(filePath);
+  return getPluginsForExtension(ext, plugins, extensionMap);
+}
+
+function createEmptyFileAnalysisResult(filePath: string): IFileAnalysisResult {
+  return {
+    filePath,
+    edgeTypes: [],
+    nodeTypes: [],
+    nodes: [],
+    relations: [],
+    symbols: [],
+  };
+}
+
+function getRelationKey(relation: NonNullable<IFileAnalysisResult['relations']>[number]): string {
+  const key = [
+    relation.kind,
+    relation.sourceId,
+    relation.fromFilePath,
+    relation.fromNodeId ?? '',
+    relation.fromSymbolId ?? '',
+    relation.specifier ?? '',
+    relation.type ?? '',
+    relation.variant ?? '',
+  ];
+
+  if (relation.kind === 'call' || relation.kind === 'reference') {
+    key.push(
+      relation.toFilePath ?? '',
+      relation.toNodeId ?? '',
+      relation.toSymbolId ?? '',
+      relation.resolvedPath ?? '',
+    );
+  }
+
+  return key.join('|');
+}
+
+function mergeById<TItem extends { id: string }>(
+  baseItems: TItem[] | undefined,
+  nextItems: TItem[] | undefined,
+): TItem[] {
+  const merged = new Map<string, TItem>();
+
+  for (const item of baseItems ?? []) {
+    merged.set(item.id, item);
+  }
+
+  for (const item of nextItems ?? []) {
+    merged.set(item.id, item);
+  }
+
+  return [...merged.values()];
+}
+
+function mergeRelations(
+  baseRelations: NonNullable<IFileAnalysisResult['relations']> | undefined,
+  nextRelations: NonNullable<IFileAnalysisResult['relations']> | undefined,
+): NonNullable<IFileAnalysisResult['relations']> {
+  const merged = new Map<string, NonNullable<IFileAnalysisResult['relations']>[number]>();
+
+  for (const relation of baseRelations ?? []) {
+    merged.set(getRelationKey(relation), relation);
+  }
+
+  for (const relation of nextRelations ?? []) {
+    merged.set(getRelationKey(relation), relation);
+  }
+
+  return [...merged.values()];
+}
+
+function mergeFileAnalysisResults(
+  baseResult: IFileAnalysisResult,
+  nextResult: IFileAnalysisResult,
+): IFileAnalysisResult {
+  return {
+    filePath: nextResult.filePath || baseResult.filePath,
+    edgeTypes: mergeById(baseResult.edgeTypes, nextResult.edgeTypes),
+    nodeTypes: mergeById(baseResult.nodeTypes, nextResult.nodeTypes),
+    nodes: mergeById(baseResult.nodes, nextResult.nodes),
+    relations: mergeRelations(baseResult.relations, nextResult.relations),
+    symbols: mergeById(baseResult.symbols, nextResult.symbols),
+  };
+}
+
+function withPluginProvenance(
+  plugin: IPlugin,
+  result: IFileAnalysisResult,
+): IFileAnalysisResult {
+  return {
+    ...result,
+    relations: result.relations?.map((relation) => ({
+      ...relation,
+      pluginId: relation.pluginId ?? plugin.id,
+    })),
+  };
+}
+
+function toProjectedConnectionsFromFileAnalysis(analysis: IFileAnalysisResult): IProjectedConnection[] {
+  return (analysis.relations ?? []).map(relation => ({
+    kind: relation.kind,
+    pluginId: relation.pluginId,
+    sourceId: relation.sourceId,
+    specifier: relation.specifier ?? '',
+    resolvedPath: relation.resolvedPath ?? relation.toFilePath ?? null,
+    type: relation.type,
+    variant: relation.variant,
+    metadata: relation.metadata,
+  }));
+}
+
 /**
  * Analyzes a file using the appropriate plugin.
  */
@@ -91,17 +217,56 @@ export async function analyzeFile(
   workspaceRoot: string,
   plugins: Map<string, IRoutablePluginInfo>,
   extensionMap: Map<string, string[]>,
-): Promise<IConnection[]> {
-  const plugin = getPluginForFile(filePath, plugins, extensionMap);
+  coreAnalyzeFileResult?: CoreFileAnalysisResultProvider,
+): Promise<IProjectedConnection[]> {
+  const analysis = await analyzeFileResult(
+    filePath,
+    content,
+    workspaceRoot,
+    plugins,
+    extensionMap,
+    coreAnalyzeFileResult,
+  );
+  return analysis ? toProjectedConnectionsFromFileAnalysis(analysis) : [];
+}
 
-  if (!plugin) {
-    return [];
+export async function analyzeFileResult(
+  filePath: string,
+  content: string,
+  workspaceRoot: string,
+  plugins: Map<string, IRoutablePluginInfo>,
+  extensionMap: Map<string, string[]>,
+  coreAnalyzeFileResult?: CoreFileAnalysisResultProvider,
+): Promise<IFileAnalysisResult | null> {
+  const matchingPlugins = getPluginsForFile(filePath, plugins, extensionMap);
+  const coreResult = await coreAnalyzeFileResult?.(filePath, content, workspaceRoot) ?? null;
+  const normalizedCoreResult = coreResult
+    ? mergeFileAnalysisResults(createEmptyFileAnalysisResult(filePath), coreResult)
+    : null;
+
+  if (matchingPlugins.length === 0) {
+    return normalizedCoreResult;
   }
 
-  try {
-    return await plugin.detectConnections(filePath, content, workspaceRoot);
-  } catch (error) {
-    console.error(`[CodeGraphy] Error analyzing ${filePath} with ${plugin.id}:`, error);
-    return [];
+  let mergedResult = normalizedCoreResult ?? createEmptyFileAnalysisResult(filePath);
+
+  for (let index = matchingPlugins.length - 1; index >= 0; index -= 1) {
+    const plugin = matchingPlugins[index];
+    if (!plugin.analyzeFile) {
+      continue;
+    }
+
+    try {
+      const pluginResult = withPluginProvenance(
+        plugin,
+        await plugin.analyzeFile(filePath, content, workspaceRoot),
+      );
+
+      mergedResult = mergeFileAnalysisResults(mergedResult, pluginResult);
+    } catch (error) {
+      console.error(`[CodeGraphy] Error analyzing ${filePath} with ${plugin.id}:`, error);
+    }
   }
+
+  return mergedResult;
 }

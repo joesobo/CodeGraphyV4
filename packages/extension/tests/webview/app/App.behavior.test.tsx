@@ -148,13 +148,22 @@ function resetStore(): void {
     graphMode: '2d',
     nodeSizeMode: 'connections',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
+    graphHasIndex: false,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
+    depthMode: false,
     depthLimit: 1,
-    groups: [],
+    maxDepthLimit: 10,
+    legends: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
-    availableViews: [],
-    activeViewId: 'codegraphy.connections',
     pluginStatuses: [],
+    graphNodeTypes: [],
+    graphEdgeTypes: [],
+    nodeColors: {},
+    nodeVisibility: {},
+    edgeVisibility: {},
+    edgeColors: {},
     activePanel: 'none',
     timelineActive: false,
     nodeDecorations: {},
@@ -270,13 +279,13 @@ describe('App behavior', () => {
     expect(harness.graphRenderCount).toBe(1);
   });
 
-  it('does not rerender Graph for unchanged groups before a refresh data update', async () => {
+  it('does not rerender Graph for unchanged legends before a refresh data update', async () => {
     graphStore.setState({
       graphData: {
         nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
         edges: [],
       },
-      groups: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
+      legends: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
     });
 
     render(<App />);
@@ -286,9 +295,9 @@ describe('App behavior', () => {
 
     await act(async () => {
       sendAppMessage({
-        type: 'GROUPS_UPDATED',
+        type: 'LEGENDS_UPDATED',
         payload: {
-          groups: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
+          legends: [{ id: 'src-group', pattern: 'src/**', color: '#00ff00' }],
         },
       });
     });
@@ -383,7 +392,7 @@ describe('App behavior', () => {
         ],
         edges: [],
       },
-      groups: [
+      legends: [
         { id: 'disabled-group', pattern: 'src/**', color: '#ff0000', disabled: true },
         { id: 'enabled-group', pattern: 'src/**', color: '#00ff00', shape2D: 'diamond', shape3D: 'cube', imageUrl: 'https://example.com/icon.png' },
       ],
@@ -656,7 +665,7 @@ describe('App behavior', () => {
         nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
         edges: [],
       },
-      groups: [{ id: 'g1', pattern: 'src/**', color: '#abcdef' }],
+      legends: [{ id: 'g1', pattern: 'src/**', color: '#abcdef' }],
     });
 
     render(<App />);
@@ -670,7 +679,7 @@ describe('App behavior', () => {
         nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
         edges: [],
       },
-      groups: [],
+      legends: [],
     });
 
     render(<App />);

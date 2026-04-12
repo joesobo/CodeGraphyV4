@@ -38,14 +38,22 @@ function resetStore() {
     graphMode: '2d',
     nodeSizeMode: 'connections',
     physicsSettings: { repelForce: 10, linkDistance: 80, linkForce: 0.15, damping: 0.7, centerForce: 0.1 },
+    graphHasIndex: false,
+    graphIsIndexing: false,
+    graphIndexProgress: null,
+    depthMode: false,
     depthLimit: 1,
     maxDepthLimit: 10,
-    groups: [],
+    legends: [],
     filterPatterns: [],
     pluginFilterPatterns: [],
-    availableViews: [],
-    activeViewId: 'codegraphy.connections',
     pluginStatuses: [],
+    graphNodeTypes: [],
+    graphEdgeTypes: [],
+    nodeColors: {},
+    nodeVisibility: {},
+    edgeVisibility: {},
+    edgeColors: {},
     activePanel: 'none',
     maxFiles: 500,
   });
@@ -149,6 +157,71 @@ describe('App', () => {
     });
     expect(screen.getByTitle('Export')).toBeInTheDocument();
   });
+
+  it('should render graph corner controls when graph is loaded', async () => {
+    render(<App />);
+    await act(async () => {
+      messageListeners.forEach((listener) => listener(new MessageEvent('message', {
+        data: {
+          type: 'GRAPH_DATA_UPDATED',
+          payload: {
+            nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+            edges: [],
+          },
+        },
+      })));
+    });
+
+    expect(screen.getByTitle('Zoom In')).toBeInTheDocument();
+    expect(screen.getByTitle('Zoom Out')).toBeInTheDocument();
+    expect(screen.getByTitle('Fit to Screen')).toBeInTheDocument();
+    expect(screen.getByTitle('Open in Editor')).toBeInTheDocument();
+  });
+
+  it('should render current node and edge counts in the top right', async () => {
+    render(<App />);
+    await act(async () => {
+      messageListeners.forEach((listener) => listener(new MessageEvent('message', {
+        data: {
+          type: 'GRAPH_DATA_UPDATED',
+          payload: {
+            nodes: [
+              { id: 'a.ts', label: 'a.ts', color: '#3B82F6' },
+              { id: 'b.ts', label: 'b.ts', color: '#3B82F6' },
+            ],
+            edges: [
+              { id: 'a.ts->b.ts#import', from: 'a.ts', to: 'b.ts', kind: 'import', sources: [] },
+            ],
+          },
+        },
+      })));
+    });
+
+    expect(screen.getByText('2 nodes • 1 edge')).toBeInTheDocument();
+  });
+
+  it('should hide graph corner controls while a right-side popup is open', async () => {
+    graphStore.setState({ activePanel: 'edges' });
+
+    render(<App />);
+    await act(async () => {
+      messageListeners.forEach((listener) => listener(new MessageEvent('message', {
+        data: {
+          type: 'GRAPH_DATA_UPDATED',
+          payload: {
+            nodes: [{ id: 'test.ts', label: 'test.ts', color: '#3B82F6' }],
+            edges: [],
+          },
+        },
+      })));
+    });
+
+    expect(screen.getByText('Edges')).toBeInTheDocument();
+    expect(screen.queryByTitle('Zoom In')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Zoom Out')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Fit to Screen')).not.toBeInTheDocument();
+    expect(screen.queryByTitle('Open in Editor')).not.toBeInTheDocument();
+  });
 });
 
 // ── Message Handler Coverage ────────────────────────────────────────────────
@@ -210,15 +283,15 @@ describe('App: message handlers', () => {
     expect(graphStore.getState().filterPatterns).toEqual(['**/*.test.ts']);
   });
 
-  it('GROUPS_UPDATED message is handled', async () => {
+  it('LEGENDS_UPDATED message is handled', async () => {
     render(<App />);
     await act(async () => {
       sendMessage({
-        type: 'GROUPS_UPDATED',
-        payload: { groups: [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }] },
+        type: 'LEGENDS_UPDATED',
+        payload: { legends: [{ id: 'g1', pattern: 'src/**', color: '#ff0000' }] },
       });
     });
-    expect(graphStore.getState().groups).toEqual([{ id: 'g1', pattern: 'src/**', color: '#ff0000' }]);
+    expect(graphStore.getState().legends).toEqual([{ id: 'g1', pattern: 'src/**', color: '#ff0000' }]);
   });
 
   it('PHYSICS_SETTINGS_UPDATED message is handled', async () => {

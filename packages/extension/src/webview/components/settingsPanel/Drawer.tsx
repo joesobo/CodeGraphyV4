@@ -1,6 +1,6 @@
 /**
- * @fileoverview Settings panel with four collapsible accordion sections:
- * Forces, Groups, Filters, and Display.
+ * @fileoverview Settings panel with collapsible accordion sections:
+ * Forces, Filters, and Display.
  * @module webview/components/settingsPanel/Drawer
  */
 
@@ -14,7 +14,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/
 import { DisplaySection } from './display/Section';
 import { FilterSection } from './filters/Section';
 import { ForcesSection } from './forces/Section';
-import { GroupsSection } from './groups/Section';
 import { SectionHeader } from './SectionHeader';
 
 interface SettingsPanelProps {
@@ -24,7 +23,6 @@ interface SettingsPanelProps {
 
 export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps): React.ReactElement | null {
   const [forcesOpen, setForcesOpen] = useState(false);
-  const [groupsOpen, setGroupsOpen] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [displayOpen, setDisplayOpen] = useState(false);
 
@@ -68,10 +66,6 @@ export default function SettingsPanel({ isOpen, onClose }: SettingsPanelProps): 
         <div className="px-3 pb-3">
           <SectionHeader title="Forces" open={forcesOpen} onToggle={() => setForcesOpen((open) => !open)} />
           {forcesOpen && <ForcesSection />}
-
-          <SectionHeader title="Groups" open={groupsOpen} onToggle={() => setGroupsOpen((open) => !open)} />
-          {groupsOpen && <GroupsSection />}
-
           <SectionHeader title="Filters" open={filtersOpen} onToggle={() => setFiltersOpen((open) => !open)} />
           {filtersOpen && <FilterSection />}
 

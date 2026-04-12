@@ -1,0 +1,96 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { IProjectedConnection, IPlugin } from '../../../../src/core/plugins/types/contracts';
+import { getConnectionTargetId } from '../../../../src/extension/pipeline/graph/edgeTargets';
+
+function createPlugin(id: string): IPlugin {
+  return {
+    id,
+    name: id,
+    version: '1.0.0',
+    apiVersion: '^3.0.0',
+    supportedExtensions: ['.ts'],
+    analyzeFile: vi.fn(async (filePath: string) => ({ filePath, relations: [] })),
+  } as IPlugin;
+}
+
+describe('pipeline/graph/edgeTargets', () => {
+  it('returns discovered workspace targets for resolved connections', () => {
+    const connection: IProjectedConnection = {
+      kind: 'import',
+      resolvedPath: '/workspace/src/utils.ts',
+      sourceId: 'import',
+      specifier: './utils',
+    };
+
+    expect(
+      getConnectionTargetId(
+        createPlugin('plugin.typescript'),
+        connection,
+        new Map([['src/utils.ts', []]]),
+        '/workspace',
+      ),
+    ).toBe('src/utils.ts');
+  });
+
+  it('returns null for undiscovered resolved targets and unresolved relative imports', () => {
+    const connection: IProjectedConnection = {
+      kind: 'import',
+      resolvedPath: '/workspace/src/missing.ts',
+      sourceId: 'import',
+      specifier: './missing',
+    };
+    const unresolved: IProjectedConnection = {
+      kind: 'import',
+      resolvedPath: null,
+      sourceId: 'import',
+      specifier: 'react',
+    };
+
+    expect(
+      getConnectionTargetId(
+        createPlugin('plugin.typescript'),
+        connection,
+        new Map([['src/utils.ts', []]]),
+        '/workspace',
+      ),
+    ).toBeNull();
+    expect(
+      getConnectionTargetId(
+        createPlugin('plugin.python'),
+        unresolved,
+        new Map(),
+        '/workspace',
+      ),
+    ).toBe('pkg:react');
+    expect(getConnectionTargetId(undefined, unresolved, new Map(), '/workspace')).toBe('pkg:react');
+    expect(
+      getConnectionTargetId(
+        undefined,
+        {
+          ...unresolved,
+          specifier: './missing',
+        },
+        new Map(),
+        '/workspace',
+      ),
+    ).toBeNull();
+  });
+
+  it('creates package node ids for unresolved package imports from any analyzer source', () => {
+    const connection: IProjectedConnection = {
+      kind: 'import',
+      resolvedPath: null,
+      sourceId: 'import',
+      specifier: '@scope/pkg/subpath',
+    };
+
+    expect(
+      getConnectionTargetId(
+        createPlugin('codegraphy.anything'),
+        connection,
+        new Map(),
+        '/workspace',
+      ),
+    ).toBe('pkg:@scope/pkg');
+  });
+});

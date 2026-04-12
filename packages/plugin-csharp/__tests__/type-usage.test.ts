@@ -29,6 +29,8 @@ describe('type-usage', () => {
         kind: 'reference',
         specifier: '[same namespace: MyApp.Services]',
         resolvedPath: '/workspace/src/Services/Worker.cs',
+        fromFilePath: '/workspace/src/Program.cs',
+        toFilePath: '/workspace/src/Services/Worker.cs',
         type: 'static',
         sourceId: 'type-usage',
       },

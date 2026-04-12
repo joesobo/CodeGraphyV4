@@ -28,11 +28,21 @@ function fileTarget(relativePath: string): QualityTarget {
   };
 }
 
+function repoTarget(): QualityTarget {
+  return {
+    absolutePath: REPO_ROOT,
+    kind: 'repo',
+    relativePath: '.',
+  };
+}
+
 function createDependencies(): MutationCliDependencies {
   return {
     discoverMutationPackageNames: vi.fn(() => ['plugin-godot', 'quality-tools']),
     resolveQualityTarget: vi.fn((_repoRoot: string, input?: string) => (
-      input?.startsWith('packages/extension/src/')
+      input === '.'
+        ? repoTarget()
+        : input?.startsWith('packages/extension/src/')
         ? fileTarget(input)
         : packageTarget(input ?? 'quality-tools')
     )),
@@ -82,5 +92,15 @@ describe('command', () => {
         relativePath: 'packages/extension/src/webview/components/Graph.tsx',
       }),
     );
+  });
+
+  it('fails fast for repo-wide targets before running preflight typecheck', () => {
+    const dependencies = createDependencies();
+
+    expect(() => runMutationCli(['.'], dependencies)).toThrow(
+      'Mutation requires a workspace package, directory, or file inside one.',
+    );
+    expect(dependencies.runPreflightTypecheck).not.toHaveBeenCalled();
+    expect(dependencies.runMutation).not.toHaveBeenCalled();
   });
 });
