@@ -1,5 +1,4 @@
 import type {
-  IAnalysisNode,
   IAnalysisRange,
   IAnalysisRelation,
   IAnalysisSymbol,
@@ -9,7 +8,6 @@ import type { WorkspaceAnalysisDatabaseSnapshot } from '../../pipeline/database/
 
 export interface SymbolExportFileEntry {
   filePath: string;
-  nodeCount: number;
   symbolCount: number;
   relationCount: number;
 }
@@ -20,12 +18,10 @@ export interface SymbolExportData {
   exportedAt: string;
   summary: {
     totalFiles: number;
-    totalNodes: number;
     totalSymbols: number;
     totalRelations: number;
   };
   files: SymbolExportFileEntry[];
-  nodes: IAnalysisNode[];
   symbols: Array<{
     id: string;
     name: string;
@@ -38,12 +34,37 @@ export interface SymbolExportData {
   relations: IAnalysisRelation[];
 }
 
-function sortById<T extends { id: string }>(items: readonly T[]): T[] {
-  return [...items].sort((left, right) => left.id.localeCompare(right.id));
-}
-
 function sortByFilePath<T extends { filePath: string }>(items: readonly T[]): T[] {
   return [...items].sort((left, right) => left.filePath.localeCompare(right.filePath));
+}
+
+function normalizePathSlashes(filePath: string): string {
+  return filePath.replace(/\\/g, '/');
+}
+
+function createExportFilePathResolver(filePaths: readonly string[]): (filePath: string) => string {
+  const normalizedByExportPath = new Map<string, string>();
+
+  for (const filePath of filePaths) {
+    normalizedByExportPath.set(normalizePathSlashes(filePath), filePath);
+  }
+
+  return (filePath: string): string => {
+    const normalized = normalizePathSlashes(filePath);
+    const exactMatch = normalizedByExportPath.get(normalized);
+
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    for (const [candidate, exportPath] of normalizedByExportPath.entries()) {
+      if (normalized.endsWith(`/${candidate}`)) {
+        return exportPath;
+      }
+    }
+
+    return normalized;
+  };
 }
 
 function countByFilePath<T extends { filePath: string }>(items: readonly T[]): Map<string, number> {
@@ -71,42 +92,31 @@ function countRelationsByFilePath(
   return counts;
 }
 
-function getFileLabel(filePath: string): string {
-  const parts = filePath.split(/[/\\]/);
-  return parts.at(-1) || filePath;
-}
-
-function createFileNode(filePath: string): IAnalysisNode {
+function normalizeSymbolFilePath(
+  symbol: IAnalysisSymbol,
+  resolveFilePath: (filePath: string) => string,
+): IAnalysisSymbol {
   return {
-    id: `node:file:${filePath}`,
-    nodeType: 'file',
-    label: getFileLabel(filePath),
-    filePath,
+    ...symbol,
+    filePath: resolveFilePath(symbol.filePath),
   };
 }
 
-function ensureFileNode(
-  filePath: string,
-  nodes: readonly IAnalysisNode[] | undefined,
-): IAnalysisNode[] {
-  const nextNodes = [...(nodes ?? [])];
-  const fileNodeId = `node:file:${filePath}`;
-  const hasFileNode = nextNodes.some((node) =>
-    node.id === fileNodeId || (node.nodeType === 'file' && node.filePath === filePath),
-  );
-
-  if (!hasFileNode) {
-    nextNodes.unshift(createFileNode(filePath));
-  }
-
-  return nextNodes;
+function normalizeRelationFilePaths(
+  relation: IAnalysisRelation,
+  resolveFilePath: (filePath: string) => string,
+): IAnalysisRelation {
+  return {
+    ...relation,
+    fromFilePath: resolveFilePath(relation.fromFilePath),
+    toFilePath: relation.toFilePath ? resolveFilePath(relation.toFilePath) : undefined,
+  };
 }
 
 export function buildSymbolsExportData(
   fileAnalysis: ReadonlyMap<string, IFileAnalysisResult>,
 ): SymbolExportData {
   const filePaths: string[] = [];
-  const nodes: IAnalysisNode[] = [];
   const symbols: IAnalysisSymbol[] = [];
   const relations: IAnalysisRelation[] = [];
 
@@ -114,23 +124,17 @@ export function buildSymbolsExportData(
     left.localeCompare(right),
   )) {
     filePaths.push(filePath);
-    const fileNodes = ensureFileNode(filePath, analysis.nodes);
-    const fileSymbols = analysis.symbols ?? [];
-    const fileRelations = analysis.relations ?? [];
-
-    nodes.push(...fileNodes);
-    symbols.push(...fileSymbols);
-    relations.push(...fileRelations);
+    symbols.push(...(analysis.symbols ?? []));
+    relations.push(...(analysis.relations ?? []));
   }
 
-  const nodeCountsByFile = countByFilePath(nodes.filter((node): node is IAnalysisNode & { filePath: string } =>
-    typeof node.filePath === 'string',
-  ));
-  const symbolCountsByFile = countByFilePath(symbols);
-  const relationCountsByFile = countRelationsByFilePath(relations);
+  const resolveFilePath = createExportFilePathResolver(filePaths);
+  const normalizedSymbols = symbols.map((symbol) => normalizeSymbolFilePath(symbol, resolveFilePath));
+  const normalizedRelations = relations.map((relation) => normalizeRelationFilePaths(relation, resolveFilePath));
+  const symbolCountsByFile = countByFilePath(normalizedSymbols);
+  const relationCountsByFile = countRelationsByFilePath(normalizedRelations);
   const files: SymbolExportFileEntry[] = filePaths.map((filePath) => ({
     filePath,
-    nodeCount: nodeCountsByFile.get(filePath) ?? 0,
     symbolCount: symbolCountsByFile.get(filePath) ?? 0,
     relationCount: relationCountsByFile.get(filePath) ?? 0,
   }));
@@ -141,13 +145,11 @@ export function buildSymbolsExportData(
     exportedAt: new Date().toISOString(),
     summary: {
       totalFiles: files.length,
-      totalNodes: nodes.length,
-      totalSymbols: symbols.length,
-      totalRelations: relations.length,
+      totalSymbols: normalizedSymbols.length,
+      totalRelations: normalizedRelations.length,
     },
     files,
-    nodes: sortById(nodes),
-    symbols: sortByFilePath(symbols).map((symbol) => ({
+    symbols: sortByFilePath(normalizedSymbols).map((symbol) => ({
       id: symbol.id,
       name: symbol.name,
       kind: symbol.kind,
@@ -156,7 +158,7 @@ export function buildSymbolsExportData(
       range: symbol.range,
       metadata: symbol.metadata,
     })),
-    relations: [...relations].sort((left, right) => {
+    relations: [...normalizedRelations].sort((left, right) => {
       const leftKey = `${left.fromFilePath}:${left.kind}:${left.toFilePath ?? ''}:${left.fromSymbolId ?? ''}:${left.toSymbolId ?? ''}`;
       const rightKey = `${right.fromFilePath}:${right.kind}:${right.toFilePath ?? ''}:${right.fromSymbolId ?? ''}:${right.toSymbolId ?? ''}`;
       return leftKey.localeCompare(rightKey);
@@ -167,13 +169,12 @@ export function buildSymbolsExportData(
 export function buildSymbolsExportDataFromSnapshot(
   snapshot: WorkspaceAnalysisDatabaseSnapshot,
 ): SymbolExportData {
-  const symbolCountsByFile = countByFilePath(snapshot.symbols);
-  const relationCountsByFile = countRelationsByFilePath(snapshot.relations);
-  const nodesByFile = snapshot.files.map((file) => ({
-    filePath: file.filePath,
-    nodes: ensureFileNode(file.filePath, file.analysis.nodes),
-  }));
-  const nodes = sortById(nodesByFile.flatMap((file) => file.nodes));
+  const filePaths = snapshot.files.map((file) => file.filePath);
+  const resolveFilePath = createExportFilePathResolver(filePaths);
+  const symbols = snapshot.symbols.map((symbol) => normalizeSymbolFilePath(symbol, resolveFilePath));
+  const relations = snapshot.relations.map((relation) => normalizeRelationFilePaths(relation, resolveFilePath));
+  const symbolCountsByFile = countByFilePath(symbols);
+  const relationCountsByFile = countRelationsByFilePath(relations);
 
   return {
     format: 'codegraphy-symbol-export',
@@ -181,18 +182,15 @@ export function buildSymbolsExportDataFromSnapshot(
     exportedAt: new Date().toISOString(),
     summary: {
       totalFiles: snapshot.files.length,
-      totalNodes: nodes.length,
-      totalSymbols: snapshot.symbols.length,
-      totalRelations: snapshot.relations.length,
+      totalSymbols: symbols.length,
+      totalRelations: relations.length,
     },
-    files: nodesByFile.map((file) => ({
-      filePath: file.filePath,
-      nodeCount: file.nodes.length,
-      symbolCount: symbolCountsByFile.get(file.filePath) ?? 0,
-      relationCount: relationCountsByFile.get(file.filePath) ?? 0,
+    files: filePaths.map((filePath) => ({
+      filePath,
+      symbolCount: symbolCountsByFile.get(filePath) ?? 0,
+      relationCount: relationCountsByFile.get(filePath) ?? 0,
     })),
-    nodes,
-    symbols: sortByFilePath(snapshot.symbols).map((symbol) => ({
+    symbols: sortByFilePath(symbols).map((symbol) => ({
       id: symbol.id,
       name: symbol.name,
       kind: symbol.kind,
@@ -201,7 +199,7 @@ export function buildSymbolsExportDataFromSnapshot(
       range: symbol.range,
       metadata: symbol.metadata,
     })),
-    relations: [...snapshot.relations].sort((left, right) => {
+    relations: [...relations].sort((left, right) => {
       const leftKey = `${left.fromFilePath}:${left.kind}:${left.toFilePath ?? ''}:${left.fromSymbolId ?? ''}:${left.toSymbolId ?? ''}`;
       const rightKey = `${right.fromFilePath}:${right.kind}:${right.toFilePath ?? ''}:${right.fromSymbolId ?? ''}:${right.toSymbolId ?? ''}`;
       return leftKey.localeCompare(rightKey);
