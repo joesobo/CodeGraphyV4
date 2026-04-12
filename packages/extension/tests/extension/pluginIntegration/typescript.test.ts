@@ -11,6 +11,16 @@ import {
   type PluginIntegrationWorkspace,
 } from './workspaceFixture';
 
+const mockState = vi.hoisted(() => ({
+  databaseCache: {
+    clearWorkspaceAnalysisDatabaseCache: vi.fn(),
+    getWorkspaceAnalysisDatabasePath: vi.fn((workspaceRoot: string) => `${workspaceRoot}/.codegraphy/graph.lbug`),
+    loadWorkspaceAnalysisDatabaseCache: vi.fn(() => ({ files: {}, version: '2.0.0' })),
+    readWorkspaceAnalysisDatabaseSnapshot: vi.fn(() => ({ files: [], symbols: [], relations: [] })),
+    saveWorkspaceAnalysisDatabaseCache: vi.fn(),
+  },
+}));
+
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
   | undefined;
@@ -25,6 +35,22 @@ Object.defineProperty(vscode.workspace, 'workspaceFolders', {
   get: () => workspaceFoldersValue,
   configurable: true,
 });
+
+vi.mock('../../../src/extension/pipeline/database/cache', () => ({
+  clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
+  getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
+  loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
+  readWorkspaceAnalysisDatabaseSnapshot: mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot,
+  saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
+}));
+
+vi.mock('../../../src/extension/pipeline/database/cache.ts', () => ({
+  clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
+  getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
+  loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
+  readWorkspaceAnalysisDatabaseSnapshot: mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot,
+  saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
+}));
 
 function createContext() {
   return {
@@ -70,6 +96,15 @@ describe('extension/pluginIntegration/typescript', () => {
         };
       },
     );
+    mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache.mockReturnValue({
+      files: {},
+      version: '2.0.0',
+    });
+    mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot.mockReturnValue({
+      files: [],
+      symbols: [],
+      relations: [],
+    });
   });
 
   afterEach(() => {
@@ -124,5 +159,9 @@ describe('extension/pluginIntegration/typescript', () => {
     ).map((pluginInfo) => pluginInfo.plugin.id);
 
     expect(pluginIds).toContain('codegraphy.typescript');
+    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(
+      workspaceFixture!.workspacePath,
+    );
+    expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache).toHaveBeenCalled();
   }, 15000);
 });
