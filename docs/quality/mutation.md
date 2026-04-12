@@ -17,3 +17,9 @@ pnpm run mutate -- quality-tools/
 ```
 
 Mutation scope is defined in the repo root [quality.config.json](../../quality.config.json). The Stryker config files now only carry runner settings like the Vitest config path and reporters.
+
+Operational notes:
+
+- `pnpm run mutate` runs all supported packages and can take hours.
+- The extension package uses a longer Stryker dry-run timeout because its initial instrumented Vitest startup is materially slower than a normal test run.
+- Prefer package- or file-scoped mutation runs during development.

@@ -40,7 +40,7 @@ describe('mutation profiles', () => {
     expect(extensionStrykerConfig).toMatchObject({
       dryRunTimeoutMinutes: expect.any(Number),
     });
-    expect(extensionStrykerConfig.dryRunTimeoutMinutes).toBeGreaterThan(5);
+    expect(extensionStrykerConfig.dryRunTimeoutMinutes).toBeGreaterThanOrEqual(30);
   });
 
   it('scopes extension mutation test discovery to extension tests', async () => {
