@@ -12,12 +12,35 @@ const mockState = vi.hoisted(() => ({
   registerCommand: vi.fn(() => ({ dispose: vi.fn() })),
   getConfiguration: vi.fn(),
   fsStat: vi.fn(),
+  databaseCache: {
+    clearWorkspaceAnalysisDatabaseCache: vi.fn(),
+    getWorkspaceAnalysisDatabasePath: vi.fn((workspaceRoot: string) => `${workspaceRoot}/.codegraphy/graph.lbug`),
+    loadWorkspaceAnalysisDatabaseCache: vi.fn(() => ({ files: {}, version: '2.0.0' })),
+    readWorkspaceAnalysisDatabaseSnapshot: vi.fn(() => ({ files: [], symbols: [], relations: [] })),
+    saveWorkspaceAnalysisDatabaseCache: vi.fn(),
+  },
   workspaceFoldersValue: undefined as
     | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
     | undefined,
 }));
 
 let fixtureWorkspacePath = sourceFixtureWorkspacePath;
+
+vi.mock('../../extension/src/extension/pipeline/database/cache', () => ({
+  clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
+  getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
+  loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
+  readWorkspaceAnalysisDatabaseSnapshot: mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot,
+  saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
+}));
+
+vi.mock('../../extension/src/extension/pipeline/database/cache.ts', () => ({
+  clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
+  getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
+  loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
+  readWorkspaceAnalysisDatabaseSnapshot: mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot,
+  saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
+}));
 
 vi.mock('vscode', () => ({
   Uri: {
@@ -100,6 +123,16 @@ describe('plugin-typescript/activate', () => {
         size: stat.size,
       };
     });
+
+    mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache.mockReturnValue({
+      files: {},
+      version: '2.0.0',
+    });
+    mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot.mockReturnValue({
+      files: [],
+      symbols: [],
+      relations: [],
+    });
   });
 
   afterEach(async () => {
@@ -179,6 +212,10 @@ describe('plugin-typescript/activate', () => {
         }),
       ]),
     );
+    expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(
+      fixtureWorkspacePath,
+    );
+    expect(mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache).toHaveBeenCalled();
     },
   );
 });
