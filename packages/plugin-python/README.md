@@ -14,7 +14,7 @@ Adds Python ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.
 
 ## What It Provides
 
-The core extension now owns Python analysis through Tree-sitter.
+The built-in Tree-sitter plugin now owns Python analysis inside the core extension.
 This plugin is intentionally lightweight and only adds:
 
 - Python-focused file colors

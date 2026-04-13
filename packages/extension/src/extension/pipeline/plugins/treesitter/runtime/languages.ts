@@ -34,39 +34,40 @@ let treeSitterBindingsPromise: Promise<ITreeSitterBindings | null> | undefined;
 let treeSitterBindingsUnavailableLogged = false;
 
 export const TREE_SITTER_SOURCE_IDS = {
-  call: 'codegraphy.core.treesitter:call',
-  commonjsRequire: 'codegraphy.core.treesitter:commonjs-require',
-  dynamicImport: 'codegraphy.core.treesitter:dynamic-import',
-  import: 'codegraphy.core.treesitter:import',
-  inherit: 'codegraphy.core.treesitter:inherit',
-  reference: 'codegraphy.core.treesitter:reference',
-  reexport: 'codegraphy.core.treesitter:reexport',
+  call: 'codegraphy.treesitter:call',
+  commonjsRequire: 'codegraphy.treesitter:commonjs-require',
+  dynamicImport: 'codegraphy.treesitter:dynamic-import',
+  import: 'codegraphy.treesitter:import',
+  inherit: 'codegraphy.treesitter:inherit',
+  reference: 'codegraphy.treesitter:reference',
+  reexport: 'codegraphy.treesitter:reexport',
 } as const;
+
+export const TREE_SITTER_SUPPORTED_EXTENSIONS = [
+  '.cjs',
+  '.cs',
+  '.cts',
+  '.go',
+  '.java',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.mts',
+  '.py',
+  '.pyi',
+  '.rs',
+  '.ts',
+  '.tsx',
+] as const;
 
 function getFileExtension(filePath: string): string {
   return path.extname(filePath).toLowerCase();
 }
 
 export function supportsTreeSitterFile(filePath: string): boolean {
-  switch (getFileExtension(filePath)) {
-    case '.cjs':
-    case '.cs':
-    case '.cts':
-    case '.go':
-    case '.java':
-    case '.js':
-    case '.jsx':
-    case '.mjs':
-    case '.mts':
-    case '.py':
-    case '.pyi':
-    case '.rs':
-    case '.ts':
-    case '.tsx':
-      return true;
-    default:
-      return false;
-  }
+  return TREE_SITTER_SUPPORTED_EXTENSIONS.includes(
+    getFileExtension(filePath) as (typeof TREE_SITTER_SUPPORTED_EXTENSIONS)[number],
+  );
 }
 
 async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | null> {

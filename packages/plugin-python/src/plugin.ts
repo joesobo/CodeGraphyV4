@@ -4,7 +4,7 @@ import manifest from '../codegraphy.json';
 /**
  * Python metadata plugin.
  *
- * Base Python parsing now lives in the core Tree-sitter pipeline. This plugin
+ * Base Python parsing now lives in the built-in Tree-sitter plugin. This plugin
  * only contributes Python-focused file colors and default ignore filters.
  */
 export function createPythonPlugin(): IPlugin {

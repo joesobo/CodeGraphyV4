@@ -69,9 +69,10 @@ describe('WorkspacePipeline analysis', () => {
 
     await analyzer.initialize();
 
-    expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.builtIn)).toEqual([true]);
+    expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.builtIn)).toEqual([true, true]);
     expect(analyzer.registry.list().map((pluginInfo) => pluginInfo.plugin.id)).toEqual([
       'codegraphy.markdown',
+      'codegraphy.treesitter',
     ]);
   });
 
@@ -91,7 +92,7 @@ describe('WorkspacePipeline analysis', () => {
     expect(analyzer.getPluginFilterPatterns()).toEqual(expectedPatterns);
   });
 
-  it('wires the core Tree-sitter analyzer into the registry during initialize', async () => {
+  it('wires the built-in Tree-sitter plugin into the registry during initialize', async () => {
     const analyzer = new WorkspacePipeline(
       createContext() as unknown as vscode.ExtensionContext
     );
@@ -110,14 +111,14 @@ describe('WorkspacePipeline analysis', () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: 'import',
-          sourceId: 'codegraphy.core.treesitter:import',
+          sourceId: 'codegraphy.treesitter:import',
           specifier: './utils',
         }),
       ]),
     );
   });
 
-  it('wires the core Tree-sitter analyzer into the registry for Python files without a language plugin', async () => {
+  it('wires the built-in Tree-sitter plugin into the registry for Python files without a marketplace plugin', async () => {
     const workspaceRoot = await createWorkspace({
       'pkg/thing.py': 'def run():\n    return True\n',
       'app.py': 'from .pkg import thing\nclass App:\n    def run(self):\n        thing.run()\n',
@@ -143,13 +144,13 @@ describe('WorkspacePipeline analysis', () => {
       expect.arrayContaining([
         expect.objectContaining({
           kind: 'import',
-          sourceId: 'codegraphy.core.treesitter:import',
+          sourceId: 'codegraphy.treesitter:import',
           specifier: '.pkg.thing',
           toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
         }),
         expect.objectContaining({
           kind: 'call',
-          sourceId: 'codegraphy.core.treesitter:call',
+          sourceId: 'codegraphy.treesitter:call',
           specifier: '.pkg.thing',
           toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
         }),

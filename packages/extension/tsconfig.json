@@ -22,5 +22,5 @@
     }
   },
   "include": ["src", "scripts", "vitest.config.ts", "vitest.includes.ts", "vitest.stryker.config.ts"],
-  "exclude": ["node_modules", "dist", "src/e2e", "../../packages/plugin-*/examples", "../../packages/plugin-*/__tests__"]
+  "exclude": ["node_modules", "dist", "src/e2e", "../../packages/plugin-*/__tests__"]
 }

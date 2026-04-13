@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-describe('pipeline/treesitter/languages', () => {
+describe('pipeline/plugins/treesitter/runtime/languages', () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
@@ -39,7 +39,7 @@ describe('pipeline/treesitter/languages', () => {
     }));
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
     const { createTreeSitterParser } = await import(
-      '../../../../src/extension/pipeline/treesitter/languages'
+      '../../../../src/extension/pipeline/plugins/treesitter/runtime/languages'
     );
 
     await expect(createTreeSitterParser('/workspace/src/app.ts')).resolves.toBeNull();
@@ -50,7 +50,7 @@ describe('pipeline/treesitter/languages', () => {
 
   it('recognizes the core Tree-sitter extensions across the supported language set', async () => {
     const { supportsTreeSitterFile } = await import(
-      '../../../../src/extension/pipeline/treesitter/languages'
+      '../../../../src/extension/pipeline/plugins/treesitter/runtime/languages'
     );
 
     expect(supportsTreeSitterFile('/workspace/src/app.ts')).toBe(true);
