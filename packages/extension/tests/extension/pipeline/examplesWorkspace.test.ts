@@ -76,6 +76,7 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     expect(edgeIds.has('example-godot/scripts/player.gd->example-godot/scripts/utils/math_helpers.gd#load')).toBe(true);
     expect(edgeIds.has('example-godot/scripts/enemy.gd->example-godot/scripts/base/entity.gd#inherit')).toBe(true);
     expect(edgeIds.has('example-markdown/notes/Home.md->example-markdown/notes/Architecture.md#reference')).toBe(true);
+    expect(edgeIds.has('example-markdown/notes/Home.md->example-markdown/src/commented.ts#reference')).toBe(true);
     expect(edgeIds.has('example-markdown/src/commented.ts->example-markdown/notes/Architecture.md#reference')).toBe(true);
   });
 });
