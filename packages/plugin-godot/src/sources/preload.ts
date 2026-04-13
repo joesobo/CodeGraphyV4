@@ -14,6 +14,7 @@ export function detect(content: string, filePath: string, ctx: GDScriptRuleConte
   const relations: IAnalysisRelation[] = [];
   const lines = content.split('\n');
   const regex = /preload\s*\(\s*["']([^"']+)["']\s*\)/g;
+  const projectRoot = ctx.projectRoot ?? ctx.workspaceRoot;
 
   for (let i = 0; i < lines.length; i++) {
     const lineWithoutComment = lines[i].split('#')[0];
@@ -25,7 +26,7 @@ export function detect(content: string, filePath: string, ctx: GDScriptRuleConte
       const resPath = match[1];
       if (isResPath(resPath)) {
         const resolved = ctx.resolver.resolve(resPath, ctx.relativeFilePath);
-        const resolvedPath = resolved ? normalizePath(path.join(ctx.workspaceRoot, resolved)) : null;
+        const resolvedPath = resolved ? normalizePath(path.join(projectRoot, resolved)) : null;
         relations.push({
           kind: 'load',
           specifier: resPath,

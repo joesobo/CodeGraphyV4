@@ -27,6 +27,7 @@ export interface IGDScriptReference {
 /** Shared context for GDScript sources */
 export interface GDScriptRuleContext {
   resolver: GDScriptPathResolver;
+  projectRoot?: string;
   workspaceRoot: string;
   relativeFilePath: string;
 }

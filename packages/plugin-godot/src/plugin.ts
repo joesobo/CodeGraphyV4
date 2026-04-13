@@ -10,6 +10,7 @@ import type { IPlugin } from '@codegraphy-vscode/plugin-api';
 import { GDScriptPathResolver } from './PathResolver';
 import { detectClassNameDeclaration, normalizePath } from './parser';
 import type { GDScriptFileAnalysisResult } from './analysis';
+import { resolveGodotProjectRoot } from './projectRoot';
 import manifest from '../codegraphy.json';
 
 // Source detect functions
@@ -59,8 +60,9 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
   ): Promise<GDScriptFileAnalysisResult> => {
     if (!resolver) resolver = new GDScriptPathResolver(workspaceRoot);
 
+    const projectRoot = resolveGodotProjectRoot(filePath, workspaceRoot);
     const relativeFilePath = normalizePath(path.relative(workspaceRoot, filePath));
-    const ctx = { resolver, workspaceRoot, relativeFilePath };
+    const ctx = { resolver, projectRoot, workspaceRoot, relativeFilePath };
 
     const relations = [
       ...detectPreload(content, filePath, ctx),

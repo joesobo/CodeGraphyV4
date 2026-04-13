@@ -15,6 +15,13 @@ import {
   resolveCSharpTypePath,
   resolveCSharpTypePathInNamespace,
 } from './csharpIndex';
+import {
+  getPythonSearchRoots,
+  getRustCrateRoot,
+  resolveGoPackagePath,
+  resolveJavaSourceRoot,
+  resolveJavaTypePath,
+} from './projectRoots';
 import { resolveTreeSitterImportPath } from './resolve';
 
 interface ImportedBinding {
@@ -273,10 +280,13 @@ function resolvePythonModulePath(
     return findExistingFile(buildCandidates(baseDirectoryPath));
   }
 
-  return findExistingFile([
-    ...buildCandidates(workspaceRoot),
-    ...buildCandidates(path.join(workspaceRoot, 'src')),
-  ]);
+  const searchRoots = getPythonSearchRoots(filePath, workspaceRoot);
+  return findExistingFile(
+    searchRoots.flatMap((searchRoot) => [
+      ...buildCandidates(searchRoot),
+      ...buildCandidates(path.join(searchRoot, 'src')),
+    ]),
+  );
 }
 
 function resolveRustModuleDeclarationPath(filePath: string, moduleName: string): string | null {
@@ -306,9 +316,10 @@ function resolveRustUsePath(
 
   let baseDirectoryPath = path.dirname(filePath);
   let moduleSegments = segments;
+  const crateRoot = getRustCrateRoot(filePath, workspaceRoot);
 
   if (segments[0] === 'crate') {
-    baseDirectoryPath = path.join(workspaceRoot, 'src');
+    baseDirectoryPath = path.join(crateRoot, 'src');
     moduleSegments = segments.slice(1);
   } else if (segments[0] === 'super') {
     baseDirectoryPath = path.dirname(path.dirname(filePath));
@@ -892,6 +903,7 @@ function getGoCallBinding(
 function analyzeGoFile(
   filePath: string,
   tree: Parser.Tree,
+  workspaceRoot: string,
 ): IFileAnalysisResult {
   const importedBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
@@ -909,7 +921,7 @@ function analyzeGoFile(
 
           const resolvedPath = specifier.startsWith('.')
             ? resolveTreeSitterImportPath(filePath, specifier)
-            : null;
+            : resolveGoPackagePath(filePath, workspaceRoot, specifier);
           addImportRelation(relations, filePath, specifier, resolvedPath);
           importedBindings.set(getGoImportLocalName(importSpec, specifier), {
             importedName: specifier,
@@ -1226,6 +1238,19 @@ function getJavaCallBinding(
   return objectIdentifier ? importedBindings.get(objectIdentifier) ?? null : null;
 }
 
+function getJavaPackageName(tree: Parser.Tree): string | null {
+  const declarationNode = tree.rootNode.namedChildren.find((child) => child.type === 'package_declaration');
+  if (!declarationNode) {
+    return null;
+  }
+
+  const packageNameNode = declarationNode.namedChildren.find((child) =>
+    child.type === 'scoped_identifier' || child.type === 'identifier',
+  );
+
+  return getNodeText(packageNameNode) ?? null;
+}
+
 function analyzeJavaFile(
   filePath: string,
   tree: Parser.Tree,
@@ -1233,16 +1258,34 @@ function analyzeJavaFile(
   const importedBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
+  const packageName = getJavaPackageName(tree);
+  const sourceRoot = resolveJavaSourceRoot(filePath, packageName);
+
+  const resolveJavaReference = (typeName: string): string | null => {
+    const importedBinding = importedBindings.get(typeName);
+    if (importedBinding?.resolvedPath) {
+      return importedBinding.resolvedPath;
+    }
+
+    if (typeName.includes('.')) {
+      return resolveJavaTypePath(sourceRoot, typeName);
+    }
+
+    return packageName
+      ? resolveJavaTypePath(sourceRoot, `${packageName}.${typeName}`)
+      : null;
+  };
 
   const walk = (node: Parser.SyntaxNode, currentSymbolId?: string): void => {
     switch (node.type) {
       case 'import_declaration': {
         const specifier = getNodeText(node.namedChildren[0]);
         if (specifier) {
-          addImportRelation(relations, filePath, specifier, null);
+          const resolvedPath = resolveJavaTypePath(sourceRoot, specifier);
+          addImportRelation(relations, filePath, specifier, resolvedPath);
           importedBindings.set(getJavaImportLocalName(specifier), {
             importedName: specifier,
-            resolvedPath: null,
+            resolvedPath,
             specifier,
           });
         }
@@ -1266,7 +1309,12 @@ function analyzeJavaFile(
           const superclassNode = node.childForFieldName('superclass');
           const superclass = superclassNode?.namedChildren.find((child) => child.type === 'type_identifier');
           if (superclass) {
-            addInheritRelation(relations, filePath, superclass.text);
+            addInheritRelation(
+              relations,
+              filePath,
+              superclass.text,
+              resolveJavaReference(superclass.text),
+            );
           }
         }
         break;
@@ -1321,7 +1369,7 @@ export async function analyzeFileWithTreeSitter(
     case 'csharp':
       return analyzeCSharpFile(filePath, tree, workspaceRoot);
     case 'go':
-      return analyzeGoFile(filePath, tree);
+      return analyzeGoFile(filePath, tree, workspaceRoot);
     case 'java':
       return analyzeJavaFile(filePath, tree);
     case 'javascript':
