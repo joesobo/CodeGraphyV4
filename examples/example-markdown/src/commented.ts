@@ -1,2 +1,2 @@
-// Docs: [[notes/Architecture.md]]
+// Docs: [[examples/example-markdown/notes/Architecture.md]]
 export const linked = true;

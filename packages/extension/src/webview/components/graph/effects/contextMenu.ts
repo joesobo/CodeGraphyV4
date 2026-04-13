@@ -29,7 +29,11 @@ export function applyContextEffects(
         handlers.openFilterPatternPrompt?.(effect.pattern);
         break;
       case 'promptLegendRule':
-        handlers.openLegendRulePrompt?.(effect);
+        handlers.openLegendRulePrompt?.({
+          pattern: effect.pattern,
+          color: effect.color,
+          target: effect.target,
+        });
         break;
       case 'postMessage':
         handlers.postMessage(effect.message);
