@@ -158,6 +158,7 @@ describe('graph view webview message listener', () => {
     });
 
     expect(context.setFilterPatterns).toHaveBeenCalledWith(['dist/**']);
+    expect(context.analyzeAndSendData).toHaveBeenCalledOnce();
     expect(context.setUserGroups).not.toHaveBeenCalled();
     expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
   });
