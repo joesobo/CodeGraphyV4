@@ -67,6 +67,27 @@ describe('graph/contextActions/effects', () => {
     ]);
   });
 
+  it('creates a filter prompt effect for a single selected path', () => {
+    expect(getBuiltInContextActionEffects('addToFilter', ['README.md'])).toEqual([
+      { kind: 'promptFilterPattern', pattern: 'README.md' },
+    ]);
+  });
+
+  it('falls back to immediate filter messages for multi-select add-to-filter', () => {
+    expect(getBuiltInContextActionEffects('addToFilter', ['a.ts', 'b.ts'])).toEqual([
+      {
+        kind: 'postMessage',
+        message: { type: 'ADD_TO_EXCLUDE', payload: { patterns: ['a.ts', 'b.ts'] } },
+      },
+    ]);
+  });
+
+  it('creates a legend prompt effect for a single selected path', () => {
+    expect(getBuiltInContextActionEffects('addNodeLegend', ['src/Helper.java'])).toEqual([
+      { kind: 'promptLegendRule', color: '#808080', pattern: 'src/Helper.java', target: 'node' },
+    ]);
+  });
+
   it('returns no effect when focus has no selected path', () => {
     expect(getBuiltInContextActionEffects('focus', [])).toEqual([]);
   });

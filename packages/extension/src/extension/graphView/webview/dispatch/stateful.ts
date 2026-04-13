@@ -23,7 +23,10 @@ export async function dispatchGraphViewPrimaryStateMessage(
   if (await applySettingsMessage(message, settingsState, context)) {
     return {
       handled: true,
-      filterPatterns: settingsState.filterPatterns,
+      filterPatterns:
+        message.type === 'UPDATE_FILTER_PATTERNS'
+          ? settingsState.filterPatterns
+          : undefined,
     };
   }
 

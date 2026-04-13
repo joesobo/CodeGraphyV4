@@ -7,6 +7,8 @@ export type GraphContextEffect =
   | { kind: 'openFile'; path: string }
   | { kind: 'focusNode'; nodeId: string }
   | { kind: 'fitView' }
+  | { kind: 'promptFilterPattern'; pattern: string }
+  | { kind: 'promptLegendRule'; pattern: string; color: string; target: 'node' | 'edge' }
   | { kind: 'postMessage'; message: WebviewToExtensionMessage };
 
 export function getBuiltInContextActionEffects(

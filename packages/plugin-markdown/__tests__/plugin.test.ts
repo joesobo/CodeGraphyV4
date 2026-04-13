@@ -178,7 +178,7 @@ describe('createMarkdownPlugin', () => {
       const firstPass = await analyzeRelations(
         plugin,
         path.join(workspaceA, 'Current.md'),
-        '[[Shared]]',
+        '[[docs/Shared.md]]',
         workspaceA,
       );
 
@@ -186,7 +186,7 @@ describe('createMarkdownPlugin', () => {
       const secondPass = await analyzeRelations(
         plugin,
         path.join(workspaceB, 'Current.md'),
-        '[[Shared]]',
+        '[[docs/Shared.md]]',
         workspaceB,
       );
 

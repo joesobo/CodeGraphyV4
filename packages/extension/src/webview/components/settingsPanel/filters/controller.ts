@@ -8,7 +8,7 @@ import {
   increaseMaxFiles,
   parseMaxFilesInput,
 } from './model';
-import { addFilterPattern, deleteFilterPattern } from './patternActions';
+import { addFilterPattern, deleteFilterPattern, editFilterPattern } from './patternActions';
 
 export type FilterController = {
   filterPatterns: string[];
@@ -17,6 +17,7 @@ export type FilterController = {
   onAddPattern: () => void;
   onDecreaseMaxFiles: () => void;
   onDeletePattern: (pattern: string) => void;
+  onEditPattern: (previousPattern: string, nextPattern: string) => void;
   onIncreaseMaxFiles: () => void;
   onMaxFilesBlur: (value: string) => void;
   onMaxFilesChange: (value: string) => void;
@@ -53,6 +54,9 @@ export function useFilterController(): FilterController {
     onDecreaseMaxFiles: () => commitMaxFiles(decreaseMaxFiles(maxFiles)),
     onDeletePattern: (pattern: string) => {
       deleteFilterPattern(filterPatterns, pattern, setFilterPatterns);
+    },
+    onEditPattern: (previousPattern: string, nextPattern: string) => {
+      editFilterPattern(filterPatterns, previousPattern, nextPattern, setFilterPatterns);
     },
     onIncreaseMaxFiles: () => commitMaxFiles(increaseMaxFiles(maxFiles)),
     onMaxFilesBlur: (value: string) => {

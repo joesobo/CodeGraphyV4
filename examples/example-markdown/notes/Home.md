@@ -1,5 +1,5 @@
 # Home
 
-See [[Architecture]] and [[Setup|Setup Guide]].
+See [[notes/Architecture.md]] and [[notes/guides/Setup.md|Setup Guide]].
 
-Embed: ![[Diagram]]
+Embed: ![[notes/assets/Diagram.md]]

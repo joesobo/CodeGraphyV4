@@ -6,7 +6,7 @@
 
 import { useMemo } from 'react';
 import type { SearchOptions } from '../components/searchBar/field/model';
-import { filterGraphData, applyLegendRules } from './filtering';
+import { filterGraphData, applyFilterPatterns, applyLegendRules } from './filtering';
 import type { IGraphData } from '../../shared/graph/types';
 import type { IGroup } from '../../shared/settings/groups';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
@@ -37,18 +37,24 @@ export function useFilteredGraph(
   edgeVisibility: Record<string, boolean> = {},
   edgeColors: Record<string, string> = {},
   edgeDecorations?: Record<string, EdgeDecorationPayload>,
+  filterPatterns: readonly string[] = [],
 ): IFilteredGraph {
+  const filteredGraphData = useMemo(
+    () => applyFilterPatterns(graphData, filterPatterns),
+    [filterPatterns, graphData],
+  );
+
   const { graphData: controlsData, edgeDecorations: controlsEdgeDecorations } = useMemo(
     () =>
       applyGraphControls({
-        graphData,
+        graphData: filteredGraphData,
         nodeColors,
         nodeVisibility,
         edgeVisibility,
         edgeColors,
         edgeDecorations,
       }),
-    [edgeColors, edgeDecorations, edgeVisibility, graphData, nodeColors, nodeVisibility],
+    [edgeColors, edgeDecorations, edgeVisibility, filteredGraphData, nodeColors, nodeVisibility],
   );
 
   const { filteredData, regexError } = useMemo(

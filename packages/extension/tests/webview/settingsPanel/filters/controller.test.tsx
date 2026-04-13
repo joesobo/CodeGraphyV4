@@ -73,6 +73,21 @@ describe('filters controller', () => {
     });
   });
 
+  it('edits patterns in the store and posts the updated list', () => {
+    setStoreState({ filterPatterns: ['**/*.cache', '**/*.log'] });
+    const { result } = renderHook(() => useFilterController());
+
+    act(() => {
+      result.current.onEditPattern('**/*.cache', '**/*.tmp');
+    });
+
+    expect(graphStore.getState().filterPatterns).toEqual(['**/*.tmp', '**/*.log']);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERNS',
+      payload: { patterns: ['**/*.tmp', '**/*.log'] },
+    });
+  });
+
   it('decreases max files by one hundred and clamps at one', () => {
     setStoreState({ maxFiles: 50 });
     const { result } = renderHook(() => useFilterController());

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   addFilterPattern,
   deleteFilterPattern,
+  editFilterPattern,
 } from '../../../../src/webview/components/settingsPanel/filters/patternActions';
 
 const sentMessages: unknown[] = [];
@@ -49,6 +50,23 @@ describe('filters patternActions', () => {
     expect(sentMessages).toContainEqual({
       type: 'UPDATE_FILTER_PATTERNS',
       payload: { patterns: ['**/*.cache'] },
+    });
+  });
+
+  it('edits an existing pattern and emits the update', () => {
+    const setFilterPatterns = vi.fn();
+
+    editFilterPattern(
+      ['**/*.tmp', '**/*.cache'],
+      '**/*.tmp',
+      '  **/*.log  ',
+      setFilterPatterns,
+    );
+
+    expect(setFilterPatterns).toHaveBeenCalledWith(['**/*.log', '**/*.cache']);
+    expect(sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERNS',
+      payload: { patterns: ['**/*.log', '**/*.cache'] },
     });
   });
 });

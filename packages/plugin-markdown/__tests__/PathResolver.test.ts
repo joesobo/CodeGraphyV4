@@ -24,45 +24,31 @@ describe('Markdown PathResolver', () => {
 
     const result = resolver.resolve('design', sourceFile);
 
-    expect(result).toBe(filePath);
+    expect(result).toBeNull();
   });
 
-  it('resolves an indexed filename that includes the .md extension', () => {
+  it('resolves an indexed root-relative file path that includes the extension', () => {
     const resolver = new PathResolver(workspaceRoot);
-    const filePath = path.join(workspaceRoot, 'Design.md');
+    const filePath = path.join(workspaceRoot, 'docs', 'Design.md');
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, '# Design');
     resolver.buildIndex([{ absolutePath: filePath }]);
 
-    const result = resolver.resolve('Design.md', sourceFile);
+    const result = resolver.resolve('docs/Design.md', sourceFile);
 
     expect(result).toBe(filePath);
   });
 
-  it('prefers the shortest path when multiple matches exist', () => {
+  it('resolves a root-relative path with an inferred extension', () => {
     const resolver = new PathResolver(workspaceRoot);
-    const shortest = path.join(workspaceRoot, 'Design.md');
-    const deeper = path.join(workspaceRoot, 'notes', 'Design.md');
-    resolver.buildIndex([
-      { absolutePath: deeper },
-      { absolutePath: shortest },
-    ]);
+    const filePath = path.join(workspaceRoot, 'docs', 'Guide.md');
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, '# Guide');
+    resolver.buildIndex([{ absolutePath: filePath }]);
 
-    const result = resolver.resolve('Design', sourceFile);
+    const result = resolver.resolve('docs/Guide', sourceFile);
 
-    expect(result).toBe(shortest);
-  });
-
-  it('prefers the shortest path regardless of input order', () => {
-    const resolver = new PathResolver(workspaceRoot);
-    const shortest = path.join(workspaceRoot, 'Guide.md');
-    const deeper = path.join(workspaceRoot, 'notes', 'Guide.md');
-    resolver.buildIndex([
-      { absolutePath: shortest },
-      { absolutePath: deeper },
-    ]);
-
-    const result = resolver.resolve('Guide', sourceFile);
-
-    expect(result).toBe(shortest);
+    expect(result).toBe(filePath);
   });
 
   it('returns null for whitespace-only targets', () => {
@@ -106,17 +92,6 @@ describe('Markdown PathResolver', () => {
     expect(result).toBeNull();
   });
 
-  it('resolves root-relative paths with inferred .md extension', () => {
-    const resolver = new PathResolver(workspaceRoot);
-    const targetPath = path.join(workspaceRoot, 'docs', 'Guide.md');
-    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
-    fs.writeFileSync(targetPath, '# Guide');
-
-    const result = resolver.resolve('docs/Guide', sourceFile);
-
-    expect(result).toBe(targetPath);
-  });
-
   it('trims whitespace around target content before path resolution', () => {
     const resolver = new PathResolver(workspaceRoot);
     const targetPath = path.join(workspaceRoot, 'docs', 'Guide.md');
@@ -151,18 +126,13 @@ describe('Markdown PathResolver', () => {
     expect(result).toBeNull();
   });
 
-  it('keeps first discovered file when shortest candidates have equal path length', () => {
+  it('returns null for bare targets without a root-relative path', () => {
     const resolver = new PathResolver(workspaceRoot);
-    const left = path.join(workspaceRoot, 'a', 'Node.md');
-    const right = path.join(workspaceRoot, 'b', 'Node.md');
-    resolver.buildIndex([
-      { absolutePath: left },
-      { absolutePath: right },
-    ]);
+    const filePath = path.join(workspaceRoot, 'notes', 'Node.md');
+    resolver.buildIndex([{ absolutePath: filePath }]);
 
     const result = resolver.resolve('Node', sourceFile);
 
-    expect(left.length).toBe(right.length);
-    expect(result).toBe(left);
+    expect(result).toBeNull();
   });
 });
