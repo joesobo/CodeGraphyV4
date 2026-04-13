@@ -1,0 +1,5 @@
+{
+  "codegraphy.include": ["src/**/*.py"],
+  "codegraphy.exclude": ["**/__pycache__/**", "**/*.pyc"],
+  "codegraphy.showOrphans": true
+}

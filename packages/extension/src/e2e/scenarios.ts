@@ -31,7 +31,7 @@ export interface E2EScenario {
 export const e2eScenarios: E2EScenario[] = [
   {
     name: 'typescript',
-    workspaceRelativePath: 'examples/typescript-monorepo',
+    workspaceRelativePath: 'examples/example-typescript',
     pluginDevelopmentRelativePaths: ['packages/plugin-typescript'],
     graphNodeExtension: '.ts',
     expectedNodeIds: [
@@ -93,7 +93,7 @@ export const e2eScenarios: E2EScenario[] = [
   },
   {
     name: 'godot',
-    workspaceRelativePath: 'examples/godot-game',
+    workspaceRelativePath: 'examples/example-godot',
     pluginDevelopmentRelativePaths: ['packages/plugin-godot'],
     graphNodeExtension: '.gd',
     expectedNodeIds: [
