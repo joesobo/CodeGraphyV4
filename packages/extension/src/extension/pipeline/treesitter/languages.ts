@@ -39,6 +39,7 @@ export const TREE_SITTER_SOURCE_IDS = {
   dynamicImport: 'codegraphy.core.treesitter:dynamic-import',
   import: 'codegraphy.core.treesitter:import',
   inherit: 'codegraphy.core.treesitter:inherit',
+  reference: 'codegraphy.core.treesitter:reference',
   reexport: 'codegraphy.core.treesitter:reexport',
 } as const;
 

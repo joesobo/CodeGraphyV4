@@ -4,6 +4,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { createMarkdownPlugin } from '../src/plugin';
 
+const rootMarkdownExample = path.resolve(__dirname, '../../../examples/example-markdown');
+
 interface AnalyzeFileInput {
   absolutePath: string;
   relativePath: string;
@@ -190,6 +192,47 @@ describe('createMarkdownPlugin', () => {
 
       expect(firstPass.map((relation) => relation.resolvedPath)).toEqual([targetA.absolutePath]);
       expect(secondPass.map((relation) => relation.resolvedPath)).toEqual([targetB.absolutePath]);
+    });
+
+    it('resolves bundled markdown example links from markdown and non-markdown files', async () => {
+      const plugin = createMarkdownPlugin();
+      const exampleFiles = [
+        'notes/Home.md',
+        'notes/Architecture.md',
+        'notes/guides/Setup.md',
+        'notes/assets/Diagram.md',
+      ].map((relativePath) => ({
+        absolutePath: path.join(rootMarkdownExample, relativePath),
+        relativePath,
+        content: fs.readFileSync(path.join(rootMarkdownExample, relativePath), 'utf8'),
+      }));
+
+      await plugin.initialize?.(rootMarkdownExample);
+      await plugin.onPreAnalyze?.(exampleFiles, rootMarkdownExample);
+
+      const markdownRelations = await analyzeRelations(
+        plugin,
+        path.join(rootMarkdownExample, 'notes/Home.md'),
+        fs.readFileSync(path.join(rootMarkdownExample, 'notes/Home.md'), 'utf8'),
+        rootMarkdownExample,
+      );
+      const codeRelations = await analyzeRelations(
+        plugin,
+        path.join(rootMarkdownExample, 'src/commented.ts'),
+        fs.readFileSync(path.join(rootMarkdownExample, 'src/commented.ts'), 'utf8'),
+        rootMarkdownExample,
+      );
+
+      expect(markdownRelations.map((relation) => relation.resolvedPath)).toEqual(
+        expect.arrayContaining([
+          path.join(rootMarkdownExample, 'notes/Architecture.md'),
+          path.join(rootMarkdownExample, 'notes/guides/Setup.md'),
+          path.join(rootMarkdownExample, 'notes/assets/Diagram.md'),
+        ]),
+      );
+      expect(codeRelations.map((relation) => relation.resolvedPath)).toEqual([
+        path.join(rootMarkdownExample, 'notes/Architecture.md'),
+      ]);
     });
 
   });

@@ -2,7 +2,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const fixtureWorkspacePath = path.resolve(__dirname, '../examples');
+const fixtureWorkspacePath = path.resolve(__dirname, '../../../examples/example-csharp');
 const installedWithCoreTimeoutMs = 15_000;
 
 const mockState = vi.hoisted(() => ({

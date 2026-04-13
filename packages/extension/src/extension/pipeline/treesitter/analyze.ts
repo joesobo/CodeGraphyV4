@@ -11,6 +11,10 @@ import {
   createTreeSitterRuntime,
   TREE_SITTER_SOURCE_IDS,
 } from './languages';
+import {
+  resolveCSharpTypePath,
+  resolveCSharpTypePathInNamespace,
+} from './csharpIndex';
 import { resolveTreeSitterImportPath } from './resolve';
 
 interface ImportedBinding {
@@ -205,6 +209,24 @@ function addInheritRelation(
     kind: 'inherit',
     sourceId: TREE_SITTER_SOURCE_IDS.inherit,
     fromFilePath: filePath,
+    specifier,
+    resolvedPath,
+    toFilePath: resolvedPath,
+  });
+}
+
+function addReferenceRelation(
+  relations: IAnalysisRelation[],
+  filePath: string,
+  specifier: string,
+  resolvedPath: string | null,
+  fromSymbolId?: string,
+): void {
+  addRelation(relations, {
+    kind: 'reference',
+    sourceId: TREE_SITTER_SOURCE_IDS.reference,
+    fromFilePath: filePath,
+    fromSymbolId,
     specifier,
     resolvedPath,
     toFilePath: resolvedPath,
@@ -664,7 +686,10 @@ function analyzePythonFile(
           const localName = getIdentifierText(importedNode.childForFieldName('alias'))
             ?? getLastPathSegment(importedName, '.');
           const specifier = joinModuleSpecifier(moduleSpecifier, importedName);
-          const resolvedPath = resolvePythonModulePath(filePath, workspaceRoot, specifier);
+          const resolvedPath = resolvePythonModulePath(filePath, workspaceRoot, specifier)
+            ?? (moduleSpecifier
+              ? resolvePythonModulePath(filePath, workspaceRoot, moduleSpecifier)
+              : null);
 
           addImportRelation(relations, filePath, specifier, resolvedPath);
           importedBindings.set(localName, {
@@ -949,16 +974,115 @@ function analyzeGoFile(
 function analyzeCSharpFile(
   filePath: string,
   tree: Parser.Tree,
+  workspaceRoot: string,
 ): IFileAnalysisResult {
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
+  const usingNamespaces = new Set<string>();
+  const importTargetsByNamespace = new Map<string, Set<string>>();
 
-  const walk = (node: Parser.SyntaxNode, currentSymbolId?: string): void => {
+  function addImportTarget(namespaceName: string, targetPath: string): void {
+    const paths = importTargetsByNamespace.get(namespaceName) ?? new Set<string>();
+    paths.add(targetPath);
+    importTargetsByNamespace.set(namespaceName, paths);
+  }
+
+  function normalizeCSharpTypeName(typeName: string): string {
+    return typeName
+      .replace(/\?.*$/u, '')
+      .replace(/<.*$/u, '')
+      .split('.')
+      .filter(Boolean)
+      .at(-1)
+      ?? typeName;
+  }
+
+  function isLikelyCSharpTypeName(typeName: string | null): typeName is string {
+    return typeof typeName === 'string' && /^[A-Z]/u.test(typeName);
+  }
+
+  function getCSharpTypeName(node: Parser.SyntaxNode | null | undefined): string | null {
+    const text = getNodeText(node) ?? getIdentifierText(node) ?? node?.text ?? null;
+    return text ? normalizeCSharpTypeName(text) : null;
+  }
+
+  function getCSharpNamespaceName(node: Parser.SyntaxNode): string | null {
+    return getNodeText(
+      node.childForFieldName('name')
+      ?? node.namedChildren.find((child) =>
+        child.type === 'identifier'
+        || child.type === 'qualified_name'
+        || child.type === 'alias_qualified_name',
+      ),
+    );
+  }
+
+  function getCSharpFileScopedNamespaceName(rootNode: Parser.SyntaxNode): string | null {
+    const declaration = rootNode.namedChildren.find(
+      (child) => child.type === 'file_scoped_namespace_declaration',
+    );
+    return declaration ? getCSharpNamespaceName(declaration) : null;
+  }
+
+  function resolveTypeReference(
+    typeName: string,
+    currentNamespace: string | null,
+  ): string | null {
+    return resolveCSharpTypePath(
+      workspaceRoot,
+      filePath,
+      normalizeCSharpTypeName(typeName),
+      currentNamespace,
+      [...usingNamespaces],
+    );
+  }
+
+  const maybeAddUsingImport = (
+    typeName: string,
+    currentNamespace: string | null,
+  ): string | null => {
+    const normalizedTypeName = normalizeCSharpTypeName(typeName);
+    for (const namespaceName of usingNamespaces) {
+      const resolvedPath = resolveCSharpTypePathInNamespace(
+        workspaceRoot,
+        filePath,
+        namespaceName,
+        normalizedTypeName,
+      );
+      if (!resolvedPath) {
+        continue;
+      }
+
+      addImportTarget(namespaceName, resolvedPath);
+      return resolvedPath;
+    }
+
+    return resolveTypeReference(normalizedTypeName, currentNamespace);
+  };
+
+  const walk = (
+    node: Parser.SyntaxNode,
+    currentSymbolId?: string,
+    currentNamespace: string | null = null,
+  ): void => {
     switch (node.type) {
+      case 'namespace_declaration':
+      case 'file_scoped_namespace_declaration': {
+        if (node.type === 'file_scoped_namespace_declaration') {
+          return;
+        }
+
+        const namespaceName = getCSharpNamespaceName(node) ?? currentNamespace;
+        for (const child of node.namedChildren) {
+          walk(child, currentSymbolId, namespaceName);
+        }
+        return;
+      }
+
       case 'using_directive': {
         const specifier = getNodeText(node.namedChildren[0]);
         if (specifier) {
-          addImportRelation(relations, filePath, specifier, null);
+          usingNamespaces.add(specifier);
         }
         break;
       }
@@ -982,7 +1106,12 @@ function analyzeCSharpFile(
         if (node.type !== 'enum_declaration') {
           for (const baseType of node.descendantsOfType(['identifier', 'qualified_name'])) {
             if (baseType.parent?.type === 'base_list') {
-              addInheritRelation(relations, filePath, baseType.text);
+              addInheritRelation(
+                relations,
+                filePath,
+                baseType.text,
+                maybeAddUsingImport(baseType.text, currentNamespace),
+              );
             }
           }
         }
@@ -999,26 +1128,41 @@ function analyzeCSharpFile(
         symbols.push(symbol);
         const body = node.childForFieldName('body') ?? node.namedChildren.at(-1);
         if (body) {
-          walk(body, symbol.id);
+          walk(body, symbol.id, currentNamespace);
         }
         return;
       }
 
-      case 'invocation_expression': {
-        const functionNode = node.childForFieldName('function') ?? node.namedChildren[0];
-        if (functionNode?.type === 'member_access_expression') {
-          const objectNode = functionNode.childForFieldName('expression') ?? functionNode.namedChildren[0];
-          const objectIdentifier = getIdentifierText(objectNode);
-          if (objectIdentifier) {
-            addRelation(relations, {
-              kind: 'reference',
-              sourceId: TREE_SITTER_SOURCE_IDS.call,
-              fromFilePath: filePath,
-              fromSymbolId: currentSymbolId,
-              specifier: objectIdentifier,
-              resolvedPath: null,
-              toFilePath: null,
-            });
+      case 'member_access_expression': {
+        const objectNode = node.childForFieldName('expression') ?? node.namedChildren[0];
+        const objectIdentifier = getIdentifierText(objectNode);
+        if (isLikelyCSharpTypeName(objectIdentifier)) {
+          const resolvedPath = maybeAddUsingImport(objectIdentifier, currentNamespace);
+          if (resolvedPath) {
+            addReferenceRelation(
+              relations,
+              filePath,
+              objectIdentifier,
+              resolvedPath,
+              currentSymbolId,
+            );
+          }
+        }
+        break;
+      }
+
+      case 'object_creation_expression': {
+        const typeName = getCSharpTypeName(node.childForFieldName('type'));
+        if (isLikelyCSharpTypeName(typeName)) {
+          const resolvedPath = maybeAddUsingImport(typeName, currentNamespace);
+          if (resolvedPath) {
+            addReferenceRelation(
+              relations,
+              filePath,
+              typeName,
+              resolvedPath,
+              currentSymbolId,
+            );
           }
         }
         break;
@@ -1026,11 +1170,46 @@ function analyzeCSharpFile(
     }
 
     for (const child of node.namedChildren) {
-      walk(child, currentSymbolId);
+      walk(child, currentSymbolId, currentNamespace);
     }
   };
 
-  walk(tree.rootNode);
+  walk(tree.rootNode, undefined, getCSharpFileScopedNamespaceName(tree.rootNode));
+
+  for (const relation of relations) {
+    if (
+      (relation.kind !== 'reference' && relation.kind !== 'inherit')
+      || !relation.resolvedPath
+      || !relation.specifier
+    ) {
+      continue;
+    }
+
+    for (const namespaceName of usingNamespaces) {
+      const expectedPath = resolveCSharpTypePathInNamespace(
+        workspaceRoot,
+        filePath,
+        namespaceName,
+        normalizeCSharpTypeName(relation.specifier),
+      );
+      if (expectedPath === relation.resolvedPath) {
+        addImportTarget(namespaceName, relation.resolvedPath);
+      }
+    }
+  }
+
+  for (const namespaceName of usingNamespaces) {
+    const targetPaths = importTargetsByNamespace.get(namespaceName);
+    if (!targetPaths || targetPaths.size === 0) {
+      addImportRelation(relations, filePath, namespaceName, null);
+      continue;
+    }
+
+    for (const targetPath of targetPaths) {
+      addImportRelation(relations, filePath, namespaceName, targetPath);
+    }
+  }
+
   return normalizeAnalysisResult(filePath, symbols, relations);
 }
 
@@ -1140,7 +1319,7 @@ export async function analyzeFileWithTreeSitter(
 
   switch (runtime.languageKind) {
     case 'csharp':
-      return analyzeCSharpFile(filePath, tree);
+      return analyzeCSharpFile(filePath, tree, workspaceRoot);
     case 'go':
       return analyzeGoFile(filePath, tree);
     case 'java':

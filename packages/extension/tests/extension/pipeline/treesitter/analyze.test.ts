@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import { analyzeFileWithTreeSitter } from '../../../../src/extension/pipeline/treesitter/analyze';
+import { preAnalyzeCSharpTreeSitterFiles } from '../../../../src/extension/pipeline/treesitter/csharpIndex';
 
 const tempRoots: string[] = [];
 
@@ -246,6 +247,33 @@ describe('pipeline/treesitter/analyze', () => {
     );
   });
 
+  it('resolves Python member imports back to the owning module file', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/services/api.py': 'def fetch_data():\n    return []\n',
+    });
+    const filePath = path.join(workspaceRoot, 'src/main.py');
+    const source = 'from services.api import fetch_data\nfetch_data()\n';
+
+    const result = await analyzeFileWithTreeSitter(filePath, source, workspaceRoot);
+
+    expect(result?.relations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'import',
+          specifier: 'services.api.fetch_data',
+          resolvedPath: path.join(workspaceRoot, 'src/services/api.py'),
+          toFilePath: path.join(workspaceRoot, 'src/services/api.py'),
+        }),
+        expect.objectContaining({
+          kind: 'call',
+          specifier: 'services.api.fetch_data',
+          resolvedPath: path.join(workspaceRoot, 'src/services/api.py'),
+          toFilePath: path.join(workspaceRoot, 'src/services/api.py'),
+        }),
+      ]),
+    );
+  });
+
   it('extracts Rust imports, module declarations, symbols, and imported-call relations', async () => {
     const workspaceRoot = await createWorkspace({
       'src/util.rs': 'pub fn run() {}\n',
@@ -452,6 +480,103 @@ describe('pipeline/treesitter/analyze', () => {
           fromFilePath: appPath,
           toFilePath: null,
           sourceId: 'codegraphy.core.treesitter:inherit',
+        }),
+      ]),
+    );
+  });
+
+  it('resolves C# local namespace imports and type references after pre-analysis', async () => {
+    const workspaceRoot = await createWorkspace({
+      'src/Config.cs': [
+        'namespace MyApp;',
+        'public class Config {',
+        '  public static Config LoadConfig() => new();',
+        '}',
+        '',
+      ].join('\n'),
+      'src/Services/ApiService.cs': [
+        'namespace MyApp.Services;',
+        'public class ApiService {}',
+        '',
+      ].join('\n'),
+      'src/Utils/Helpers.cs': [
+        'namespace MyApp.Utils;',
+        'public static class Helpers {',
+        '  public static string Format(string value) => value;',
+        '}',
+        '',
+      ].join('\n'),
+    });
+    const appPath = path.join(workspaceRoot, 'src/Program.cs');
+    const appSource = [
+      'using MyApp.Services;',
+      'using MyApp.Utils;',
+      'namespace MyApp;',
+      'class Program {',
+      '  void Run() {',
+      '    var config = Config.LoadConfig();',
+      '    var api = new ApiService();',
+      '    Helpers.Format("ok");',
+      '  }',
+      '}',
+      '',
+    ].join('\n');
+
+    await preAnalyzeCSharpTreeSitterFiles(
+      [
+        {
+          absolutePath: path.join(workspaceRoot, 'src/Config.cs'),
+          content: await fs.readFile(path.join(workspaceRoot, 'src/Config.cs'), 'utf8'),
+        },
+        {
+          absolutePath: path.join(workspaceRoot, 'src/Services/ApiService.cs'),
+          content: await fs.readFile(path.join(workspaceRoot, 'src/Services/ApiService.cs'), 'utf8'),
+        },
+        {
+          absolutePath: path.join(workspaceRoot, 'src/Utils/Helpers.cs'),
+          content: await fs.readFile(path.join(workspaceRoot, 'src/Utils/Helpers.cs'), 'utf8'),
+        },
+        {
+          absolutePath: appPath,
+          content: appSource,
+        },
+      ],
+      workspaceRoot,
+    );
+
+    const result = await analyzeFileWithTreeSitter(appPath, appSource, workspaceRoot);
+
+    expect(result?.relations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'import',
+          specifier: 'MyApp.Services',
+          resolvedPath: path.join(workspaceRoot, 'src/Services/ApiService.cs'),
+          sourceId: 'codegraphy.core.treesitter:import',
+        }),
+        expect.objectContaining({
+          kind: 'import',
+          specifier: 'MyApp.Utils',
+          resolvedPath: path.join(workspaceRoot, 'src/Utils/Helpers.cs'),
+          sourceId: 'codegraphy.core.treesitter:import',
+        }),
+        expect.objectContaining({
+          kind: 'reference',
+          specifier: 'Config',
+          resolvedPath: path.join(workspaceRoot, 'src/Config.cs'),
+          sourceId: 'codegraphy.core.treesitter:reference',
+        }),
+        expect.objectContaining({
+          kind: 'reference',
+          specifier: 'ApiService',
+          resolvedPath: path.join(workspaceRoot, 'src/Services/ApiService.cs'),
+          sourceId: 'codegraphy.core.treesitter:reference',
+        }),
+        expect.objectContaining({
+          kind: 'reference',
+          specifier: 'Helpers',
+          resolvedPath: path.join(workspaceRoot, 'src/Utils/Helpers.cs'),
+          sourceId: 'codegraphy.core.treesitter:reference',
         }),
       ]),
     );

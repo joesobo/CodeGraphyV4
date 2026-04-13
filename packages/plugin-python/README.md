@@ -1,6 +1,6 @@
 # CodeGraphy Python
 
-Adds Python project-aware import resolution to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
+Adds Python ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
 - Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - Marketplace plugin: [CodeGraphy Python](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python)
@@ -14,12 +14,11 @@ Adds Python project-aware import resolution to [CodeGraphy](https://marketplace.
 
 ## What It Provides
 
-The core extension already handles baseline Python Tree-sitter analysis.
-This plugin stays useful when you want Python-specific import resolution on top:
+The core extension now owns Python analysis through Tree-sitter.
+This plugin is intentionally lightweight and only adds:
 
-- extra source-root handling from Python project config
-- package and namespace-package resolution beyond the core defaults
-- Python-focused file colors and default ignore filters
+- Python-focused file colors
+- Python ecosystem ignore filters
 
 ## More
 
