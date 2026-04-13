@@ -188,6 +188,52 @@ function getImportedBindingForCall(
   return objectIdentifier ? importedBindings.get(objectIdentifier) ?? null : null;
 }
 
+function getCallArgumentString(callExpression: Parser.SyntaxNode): string | null {
+  const argumentsNode = callExpression.childForFieldName('arguments')
+    ?? callExpression.namedChildren.find((child) => child.type === 'arguments');
+  const stringNode = argumentsNode?.namedChildren.find((child) => child.type === 'string');
+  return stringNode ? getStringSpecifier(stringNode) : null;
+}
+
+function getImportRelationForCallExpression(
+  callExpression: Parser.SyntaxNode,
+  filePath: string,
+): IAnalysisRelation | null {
+  const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
+  const specifier = getCallArgumentString(callExpression);
+  if (!specifier) {
+    return null;
+  }
+
+  if (calleeNode?.type === 'import') {
+    const resolvedPath = resolveTreeSitterImportPath(filePath, specifier);
+    return {
+      kind: 'import',
+      sourceId: TREE_SITTER_SOURCE_IDS.dynamicImport,
+      fromFilePath: filePath,
+      specifier,
+      resolvedPath,
+      toFilePath: resolvedPath,
+      type: 'dynamic',
+    };
+  }
+
+  if (getIdentifierText(calleeNode) !== 'require') {
+    return null;
+  }
+
+  const resolvedPath = resolveTreeSitterImportPath(filePath, specifier);
+  return {
+    kind: 'import',
+    sourceId: TREE_SITTER_SOURCE_IDS.commonjsRequire,
+    fromFilePath: filePath,
+    specifier,
+    resolvedPath,
+    toFilePath: resolvedPath,
+    type: 'require',
+  };
+}
+
 function pushImportRelation(
   relations: IAnalysisRelation[],
   filePath: string,
@@ -308,6 +354,12 @@ export async function analyzeFileWithTreeSitter(
       }
 
       case 'call_expression': {
+        const importRelation = getImportRelationForCallExpression(node, filePath);
+        if (importRelation) {
+          relations.push(importRelation);
+          break;
+        }
+
         const binding = getImportedBindingForCall(node, importedBindings);
         if (binding) {
           relations.push({

@@ -6,22 +6,10 @@ import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createMarkdownPlugin } from '../../../../plugin-markdown/src/plugin';
 
 describe('Plugin Rules', () => {
-  it('TypeScript plugin declares sources', () => {
+  it('TypeScript plugin relies on the core analyzer and does not declare supplemental sources', () => {
     const plugin = createTypeScriptPlugin();
-    expect(plugin.sources).toBeDefined();
-    expect(plugin.sources!.length).toBeGreaterThan(0);
-    const sourceIds = plugin.sources!.map(r => r.id);
-    expect(sourceIds).toContain('dynamic-import');
-    expect(sourceIds).toContain('commonjs-require');
-    // Verify connection source shape
-    for (const rule of plugin.sources!) {
-      expect(rule).toHaveProperty('id');
-      expect(rule).toHaveProperty('name');
-      expect(rule).toHaveProperty('description');
-      expect(typeof rule.id).toBe('string');
-      expect(typeof rule.name).toBe('string');
-      expect(typeof rule.description).toBe('string');
-    }
+    expect(plugin.sources).toBeUndefined();
+    expect(plugin.analyzeFile).toBeUndefined();
   });
 
   it('GDScript plugin declares sources', () => {
