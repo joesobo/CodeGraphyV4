@@ -5,11 +5,7 @@
         "src/**/*.ts",
         "src/**/*.tsx"
       ],
-      "exclude": [
-        "src/**/*.d.ts",
-        "**/index.ts",
-        "**/index.tsx"
-      ]
+      "exclude": []
     },
     "crap": {
       "exclude": [
@@ -68,12 +64,12 @@
           "src/**/e2e/**",
           "src/**/core/discovery/file/defaults.ts",
           "src/**/core/plugins/versioning/apiVersions.ts",
+          "src/**/*.d.ts",
           "src/**/extension/config/defaults.ts",
           "src/**/extension/gitHistory/cache/stateKeys.ts",
           "src/**/shared/fileColorConstants.ts",
           "src/**/shared/mockData*.ts",
           "src/**/webview/components/icons/**",
-          "src/**/webview/components/settingsPanel/groups/shared/options.ts",
           "src/**/webview/store/defaults.ts"
         ]
       },
@@ -142,6 +138,11 @@
       }
     },
     "plugin-api": {
+      "mutation": {
+        "exclude": [
+          "src/**/index.ts"
+        ]
+      },
       "boundaries": {
         "entrypoints": [
           "src/index.ts",
