@@ -1,5 +1,7 @@
 # Home
 
-See [[examples/example-markdown/notes/Architecture.md]] and [[examples/example-markdown/notes/guides/Setup.md|Setup Guide]].
+See [[example-markdown/notes/Architecture.md]] and [[example-markdown/notes/guides/Setup.md|Setup Guide]].
 
-Embed: ![[examples/example-markdown/notes/assets/Diagram.md]]
+Embed: ![[example-markdown/notes/assets/Diagram.md]]
+
+Code reference: [[example-markdown/src/commented.ts]]

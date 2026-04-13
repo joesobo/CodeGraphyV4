@@ -5,7 +5,8 @@ import * as path from 'path';
 import { createMarkdownPlugin } from '../src/plugin';
 
 const repoRoot = path.resolve(__dirname, '../../..');
-const rootMarkdownExample = path.join(repoRoot, 'examples/example-markdown');
+const examplesRoot = path.join(repoRoot, 'examples');
+const rootMarkdownExample = path.join(examplesRoot, 'example-markdown');
 
 interface AnalyzeFileInput {
   absolutePath: string;
@@ -198,30 +199,31 @@ describe('createMarkdownPlugin', () => {
     it('resolves bundled markdown example links from markdown and non-markdown files', async () => {
       const plugin = createMarkdownPlugin();
       const exampleFiles = [
-        'examples/example-markdown/notes/Home.md',
-        'examples/example-markdown/notes/Architecture.md',
-        'examples/example-markdown/notes/guides/Setup.md',
-        'examples/example-markdown/notes/assets/Diagram.md',
+        'example-markdown/notes/Home.md',
+        'example-markdown/notes/Architecture.md',
+        'example-markdown/notes/guides/Setup.md',
+        'example-markdown/notes/assets/Diagram.md',
+        'example-markdown/src/commented.ts',
       ].map((relativePath) => ({
-        absolutePath: path.join(repoRoot, relativePath),
+        absolutePath: path.join(examplesRoot, relativePath),
         relativePath,
-        content: fs.readFileSync(path.join(repoRoot, relativePath), 'utf8'),
+        content: fs.readFileSync(path.join(examplesRoot, relativePath), 'utf8'),
       }));
 
-      await plugin.initialize?.(repoRoot);
-      await plugin.onPreAnalyze?.(exampleFiles, repoRoot);
+      await plugin.initialize?.(examplesRoot);
+      await plugin.onPreAnalyze?.(exampleFiles, examplesRoot);
 
       const markdownRelations = await analyzeRelations(
         plugin,
         path.join(rootMarkdownExample, 'notes/Home.md'),
         fs.readFileSync(path.join(rootMarkdownExample, 'notes/Home.md'), 'utf8'),
-        repoRoot,
+        examplesRoot,
       );
       const codeRelations = await analyzeRelations(
         plugin,
         path.join(rootMarkdownExample, 'src/commented.ts'),
         fs.readFileSync(path.join(rootMarkdownExample, 'src/commented.ts'), 'utf8'),
-        repoRoot,
+        examplesRoot,
       );
 
       expect(markdownRelations.map((relation) => relation.resolvedPath)).toEqual(
@@ -229,6 +231,7 @@ describe('createMarkdownPlugin', () => {
           path.join(rootMarkdownExample, 'notes/Architecture.md'),
           path.join(rootMarkdownExample, 'notes/guides/Setup.md'),
           path.join(rootMarkdownExample, 'notes/assets/Diagram.md'),
+          path.join(rootMarkdownExample, 'src/commented.ts'),
         ]),
       );
       expect(codeRelations.map((relation) => relation.resolvedPath)).toEqual([
