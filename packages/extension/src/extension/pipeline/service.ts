@@ -50,10 +50,10 @@ import {
 import {
   analyzeWorkspacePipelineFiles,
   buildWorkspacePipelineGraphData,
-  preAnalyzeWorkspacePipelinePlugins,
   readWorkspacePipelineFileStat,
   readWorkspacePipelineRoot,
 } from './serviceAdapters';
+import { preAnalyzeWorkspacePipelineFiles } from './analysis/preAnalyze';
 import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';
 import type {
   WorkspacePipelineDiscoveryDependencies,
@@ -72,6 +72,7 @@ import {
   createCodeGraphySettingsSignature,
 } from '../repoSettings/signatures';
 import { execGitCommand } from '../gitHistory/exec';
+import { preAnalyzeCSharpTreeSitterFiles } from './treesitter/csharpIndex';
 
 /**
  * Orchestrates workspace analysis.
@@ -434,11 +435,16 @@ export class WorkspacePipeline {
     workspaceRoot: string,
     signal?: AbortSignal
   ): Promise<void> {
-    await preAnalyzeWorkspacePipelinePlugins(
+    await preAnalyzeWorkspacePipelineFiles(
       files,
       workspaceRoot,
-      this._registry,
-      this._discovery,
+      {
+        notifyPreAnalyze: async (v2Files, rootPath) => {
+          await preAnalyzeCSharpTreeSitterFiles(v2Files, rootPath);
+          await this._registry.notifyPreAnalyze(v2Files, rootPath);
+        },
+        readContent: file => this._discovery.readContent(file),
+      },
       signal,
     );
   }

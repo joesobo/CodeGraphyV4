@@ -22,21 +22,16 @@ describe('Plugin Rules', () => {
     expect(sourceIds).toContain('class-name-usage');
   });
 
-  it('Python plugin declares sources', () => {
+  it('Python plugin relies on the core analyzer and does not declare supplemental sources', () => {
     const plugin = createPythonPlugin();
-    expect(plugin.sources).toBeDefined();
-    const sourceIds = plugin.sources!.map(r => r.id);
-    expect(sourceIds).toContain('import-module');
-    expect(sourceIds).toContain('from-import-absolute');
-    expect(sourceIds).toContain('from-import-relative');
+    expect(plugin.sources).toBeUndefined();
+    expect(plugin.analyzeFile).toBeUndefined();
   });
 
-  it('C# plugin declares sources', () => {
+  it('C# plugin relies on the core analyzer and does not declare supplemental sources', () => {
     const plugin = createCSharpPlugin();
-    expect(plugin.sources).toBeDefined();
-    const sourceIds = plugin.sources!.map(r => r.id);
-    expect(sourceIds).toContain('using-directive');
-    expect(sourceIds).toContain('type-usage');
+    expect(plugin.sources).toBeUndefined();
+    expect(plugin.analyzeFile).toBeUndefined();
   });
 
   it('Markdown plugin declares sources', () => {

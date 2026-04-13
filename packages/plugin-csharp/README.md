@@ -1,6 +1,6 @@
 # CodeGraphy C#
 
-Adds C# namespace and type-usage enrichment to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
+Adds C# ecosystem defaults to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
 - Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - Marketplace plugin: [CodeGraphy C#](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-csharp)
@@ -14,12 +14,11 @@ Adds C# namespace and type-usage enrichment to [CodeGraphy](https://marketplace.
 
 ## What It Provides
 
-The core extension already handles baseline C# Tree-sitter analysis.
-This plugin keeps the richer C# semantics that still matter on top:
+The core extension now owns C# analysis through Tree-sitter.
+This plugin is intentionally lightweight and only adds:
 
-- namespace-aware file resolution for `using` directives
-- same-namespace and type-usage reference edges
-- C#-focused file colors and default ignore filters
+- C#-focused file colors
+- C# ecosystem ignore filters
 
 ## More
 
