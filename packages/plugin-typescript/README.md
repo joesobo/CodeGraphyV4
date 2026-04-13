@@ -14,7 +14,7 @@ Adds TypeScript and JavaScript ecosystem metadata to [CodeGraphy](https://market
 
 ## What It Provides
 
-The core extension now handles JS/TS analysis directly through its Tree-sitter pipeline.
+The built-in Tree-sitter plugin now handles JS/TS analysis inside the core extension.
 This plugin keeps the TypeScript/JavaScript ecosystem defaults that are still useful on top:
 
 - file colors for common JS/TS files

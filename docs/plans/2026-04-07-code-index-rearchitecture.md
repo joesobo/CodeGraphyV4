@@ -143,7 +143,7 @@ Replace CodeGraphy's current parser-orchestrator core with a persistent symbol-a
   - register file / folder nodes
   - register package nodes when detectable from real workspace/package boundaries
 - `parse`
-  - core Tree-sitter parses supported languages
+  - built-in Tree-sitter plugin parses supported languages
   - plugins may add unsupported languages or richer project-aware parsing
 - `extract`
   - symbols

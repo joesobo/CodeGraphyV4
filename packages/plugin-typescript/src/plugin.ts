@@ -4,7 +4,7 @@ import manifest from '../codegraphy.json';
 /**
  * TypeScript/JavaScript metadata plugin.
  *
- * Base JS/TS parsing now lives in the core Tree-sitter pipeline. This plugin
+ * Base JS/TS parsing now lives in the built-in Tree-sitter plugin. This plugin
  * only contributes ecosystem metadata such as file colors and default filters.
  */
 export function createTypeScriptPlugin(): IPlugin {

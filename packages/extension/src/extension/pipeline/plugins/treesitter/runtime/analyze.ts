@@ -6,7 +6,7 @@ import type {
   IAnalysisRelation,
   IAnalysisSymbol,
   IFileAnalysisResult,
-} from '../../../core/plugins/types/contracts';
+} from '../../../../../core/plugins/types/contracts';
 import {
   createTreeSitterRuntime,
   TREE_SITTER_SOURCE_IDS,
@@ -69,7 +69,7 @@ function normalizeAnalysisResult(
     filePath,
     relations: relations.map((relation) => ({
       ...relation,
-      pluginId: 'codegraphy.core.treesitter',
+      pluginId: 'codegraphy.treesitter',
     })),
     symbols,
   };

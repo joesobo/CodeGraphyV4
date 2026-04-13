@@ -1,5 +1,6 @@
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';
 import { createMarkdownPlugin } from '../../../../../plugin-markdown/src/plugin';
+import { createTreeSitterPlugin } from './treesitter/plugin';
 
 export interface WorkspacePipelinePluginFilterSource {
   list(): Array<{ plugin: { defaultFilters?: string[] } }>;
@@ -28,6 +29,7 @@ export async function initializeWorkspacePipeline(
   dependencies: WorkspacePipelineInitializationDependencies,
 ): Promise<void> {
   registry.register(createMarkdownPlugin(), { builtIn: true });
+  registry.register(createTreeSitterPlugin(), { builtIn: true });
 
   const workspaceRoot = dependencies.getWorkspaceRoot();
   if (workspaceRoot) {

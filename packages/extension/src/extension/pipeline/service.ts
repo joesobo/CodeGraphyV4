@@ -31,7 +31,6 @@ import {
   getWorkspacePipelinePluginFilterPatterns,
   initializeWorkspacePipeline,
 } from './plugins/bootstrap';
-import { analyzeFileWithTreeSitter } from './treesitter/analyze';
 import {
   getWorkspacePipelinePluginStatuses,
   resolveWorkspacePipelinePluginNameForFile,
@@ -72,7 +71,6 @@ import {
   createCodeGraphySettingsSignature,
 } from '../repoSettings/signatures';
 import { execGitCommand } from '../gitHistory/exec';
-import { preAnalyzeCSharpTreeSitterFiles } from './treesitter/csharpIndex';
 
 /**
  * Orchestrates workspace analysis.
@@ -145,7 +143,6 @@ export class WorkspacePipeline {
    * Initializes the analyzer and registers built-in plugins.
    */
   async initialize(): Promise<void> {
-    this._registry.setCoreAnalyzeFileResult(analyzeFileWithTreeSitter);
     await initializeWorkspacePipeline(this._registry, {
       getWorkspaceRoot: () => readWorkspacePipelineRoot(vscode.workspace.workspaceFolders),
     });
@@ -440,7 +437,6 @@ export class WorkspacePipeline {
       workspaceRoot,
       {
         notifyPreAnalyze: async (v2Files, rootPath) => {
-          await preAnalyzeCSharpTreeSitterFiles(v2Files, rootPath);
           await this._registry.notifyPreAnalyze(v2Files, rootPath);
         },
         readContent: file => this._discovery.readContent(file),

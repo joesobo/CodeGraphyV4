@@ -67,10 +67,11 @@ describe('WorkspacePipeline sources', () => {
 
       const statuses = analyzer.getPluginStatuses(new Set());
 
-      expect(statuses.length).toBe(1);
+      expect(statuses.length).toBe(2);
 
       const names = statuses.map(s => s.name);
       expect(names).toContain('Markdown');
+      expect(names).toContain('Tree-sitter');
     });
 
     it('marks all plugins as enabled when no disabled set', async () => {
@@ -198,16 +199,14 @@ describe('WorkspacePipeline sources', () => {
         { absolutePath: '/test/workspace/config.py', relativePath: 'config.py' },
       ];
 
-      // No disabled plugins: should have edges from both TS and Python
+      // No disabled plugins: should have edges from both files
       const fullResult = analyzer.rebuildGraph(new Set(), true);
       expect(fullResult.edges.length).toBe(2);
 
-      // Disable TypeScript plugin: only Python edges remain
-      const disabledPlugins = new Set(['codegraphy.typescript']);
+      // Disable the built-in Tree-sitter plugin: both language edges disappear
+      const disabledPlugins = new Set(['codegraphy.treesitter']);
       const filteredResult = analyzer.rebuildGraph(disabledPlugins, true);
-      expect(filteredResult.edges.length).toBe(1);
-      expect(filteredResult.edges[0].from).toBe('main.py');
-      expect(filteredResult.edges[0].to).toBe('config.py');
+      expect(filteredResult.edges.length).toBe(0);
     });
 
     it('ignores source ids and still respects disabled plugins', async () => {
@@ -239,12 +238,12 @@ describe('WorkspacePipeline sources', () => {
         { absolutePath: '/test/workspace/config.py', relativePath: 'config.py' },
       ];
 
-      // Disable Python plugin. Source ids should not affect the remaining TypeScript edges.
+      // Disable the metadata-only Python plugin. Tree-sitter-owned edges should remain unchanged.
       const disabledPlugins = new Set(['codegraphy.python']);
       const result = analyzer.rebuildGraph(disabledPlugins, true);
 
-      expect(result.edges.length).toBe(2);
-      expect(result.edges.map(edge => edge.to)).toEqual(['src/a.ts', 'src/b.ts']);
+      expect(result.edges.length).toBe(3);
+      expect(result.edges.map(edge => edge.to)).toEqual(['src/a.ts', 'src/b.ts', 'config.py']);
     });
 
     it('collects multiple sources when different current plugin sources detect the same edge', async () => {
@@ -278,16 +277,16 @@ describe('WorkspacePipeline sources', () => {
 
       expect(result.edges[0].sources).toEqual([
         {
-          id: 'codegraphy.typescript:dynamic-import',
-          pluginId: 'codegraphy.typescript',
+          id: 'codegraphy.treesitter:dynamic-import',
+          pluginId: 'codegraphy.treesitter',
           sourceId: 'dynamic-import',
           label: 'dynamic-import',
           metadata: undefined,
           variant: undefined,
         },
         {
-          id: 'codegraphy.typescript:commonjs-require',
-          pluginId: 'codegraphy.typescript',
+          id: 'codegraphy.treesitter:commonjs-require',
+          pluginId: 'codegraphy.treesitter',
           sourceId: 'commonjs-require',
           label: 'commonjs-require',
           metadata: undefined,

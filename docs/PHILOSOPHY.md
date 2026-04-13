@@ -57,9 +57,9 @@ That means the core is no longer "empty" until a language plugin shows up. You s
 Today that built-in baseline covers JavaScript, TypeScript, TSX, Python, Go, Java, Rust, and C#.
 
 Examples:
-- JavaScript/TypeScript: core finds baseline syntax and relations, plugins can add path alias or framework-aware semantics
-- Python, Go, Java, Rust, and C#: core finds baseline imports, symbols, and low-noise structural relations, plugins can add richer project-aware semantics
-- GDScript: plugin fills the gap where core Tree-sitter coverage is missing or weak
+- JavaScript/TypeScript: built-in Tree-sitter plugin finds baseline syntax and relations, plugins can add path alias or framework-aware semantics
+- Python, Go, Java, Rust, and C#: built-in Tree-sitter plugin finds baseline imports, symbols, and low-noise structural relations, plugins can add richer project-aware semantics
+- GDScript: plugin fills the gap where built-in Tree-sitter coverage is missing or weak
 - Markdown wikilinks: built-in wildcard plugin scans for Obsidian-style links across files
 
 ### Insights through visualization

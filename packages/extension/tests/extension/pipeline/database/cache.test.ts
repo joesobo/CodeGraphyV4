@@ -60,7 +60,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
             relations: [
               {
                 kind: 'import',
-                pluginId: 'codegraphy.core.treesitter',
+                pluginId: 'codegraphy.treesitter',
                 sourceId: 'treesitter:import',
                 fromFilePath: '/workspace/src/index.ts',
                 toFilePath: '/workspace/src/utils.ts',
@@ -100,7 +100,7 @@ describe('workspace analysis database cache', { timeout: 30000 }, () => {
       relations: [
         {
           kind: 'import',
-          pluginId: 'codegraphy.core.treesitter',
+          pluginId: 'codegraphy.treesitter',
           sourceId: 'treesitter:import',
           fromFilePath: '/workspace/src/index.ts',
           toFilePath: '/workspace/src/utils.ts',
