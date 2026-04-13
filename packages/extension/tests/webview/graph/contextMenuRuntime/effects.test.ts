@@ -85,7 +85,6 @@ describe('graph/contextMenuRuntime/effects', () => {
     );
 
     expect(dependencies.openLegendRulePrompt).toHaveBeenCalledWith({
-      kind: 'promptLegendRule',
       color: '#808080',
       pattern: 'src/Helper.java',
       target: 'node',
