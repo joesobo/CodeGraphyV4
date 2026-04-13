@@ -1,5 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'node:fs/promises';
+import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
@@ -8,6 +9,7 @@ import { formatWorkspacePipelineLimitReachedMessage } from '../../../src/extensi
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
 
 const fixtureWorkspacePath = path.resolve(__dirname, '../../../test-fixtures/workspace');
+const tempWorkspaceRoots: string[] = [];
 
 let workspaceFoldersValue:
   | Array<{ uri: { fsPath: string; path: string }; name: string; index: number }>
@@ -30,6 +32,27 @@ function createContext() {
     },
   };
 }
+
+async function createWorkspace(files: Record<string, string>): Promise<string> {
+  const workspaceRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'codegraphy-pipeline-'));
+  tempWorkspaceRoots.push(workspaceRoot);
+
+  for (const [relativePath, content] of Object.entries(files)) {
+    const absolutePath = path.join(workspaceRoot, relativePath);
+    await fs.mkdir(path.dirname(absolutePath), { recursive: true });
+    await fs.writeFile(absolutePath, content, 'utf8');
+  }
+
+  return workspaceRoot;
+}
+
+afterAll(async () => {
+  await Promise.all(
+    tempWorkspaceRoots.splice(0).map((workspaceRoot) =>
+      fs.rm(workspaceRoot, { recursive: true, force: true }),
+    ),
+  );
+});
 
 describe('WorkspacePipeline analysis', () => {
   beforeEach(() => {
@@ -89,6 +112,46 @@ describe('WorkspacePipeline analysis', () => {
           kind: 'import',
           sourceId: 'codegraphy.core.treesitter:import',
           specifier: './utils',
+        }),
+      ]),
+    );
+  });
+
+  it('wires the core Tree-sitter analyzer into the registry for Python files without a language plugin', async () => {
+    const workspaceRoot = await createWorkspace({
+      'pkg/thing.py': 'def run():\n    return True\n',
+      'app.py': 'from .pkg import thing\nclass App:\n    def run(self):\n        thing.run()\n',
+    });
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'workspace', index: 0 },
+    ];
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext
+    );
+    const appPath = path.join(workspaceRoot, 'app.py');
+    const content = await fs.readFile(appPath, 'utf8');
+
+    await analyzer.initialize();
+
+    const result = await analyzer.registry.analyzeFileResult(
+      appPath,
+      content,
+      workspaceRoot,
+    );
+
+    expect(result?.relations).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: 'import',
+          sourceId: 'codegraphy.core.treesitter:import',
+          specifier: '.pkg.thing',
+          toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
+        }),
+        expect.objectContaining({
+          kind: 'call',
+          sourceId: 'codegraphy.core.treesitter:call',
+          specifier: '.pkg.thing',
+          toFilePath: path.join(workspaceRoot, 'pkg/thing.py'),
         }),
       ]),
     );
