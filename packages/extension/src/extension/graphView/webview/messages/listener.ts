@@ -46,6 +46,7 @@ export function setGraphViewWebviewMessageListener(
       }
       if (primaryResult.filterPatterns !== undefined) {
         context.setFilterPatterns(primaryResult.filterPatterns);
+        await context.analyzeAndSendData();
       }
       return;
     }
