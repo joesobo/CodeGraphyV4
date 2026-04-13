@@ -8,7 +8,12 @@ export const EXTENSION_RUNTIME_PACKAGE_NAMES = [
   '@ladybugdb/core',
   'node-gyp-build',
   'tree-sitter',
+  'tree-sitter-c-sharp',
+  'tree-sitter-go',
+  'tree-sitter-java',
   'tree-sitter-javascript',
+  'tree-sitter-python',
+  'tree-sitter-rust',
   'tree-sitter-typescript',
 ] as const;
 

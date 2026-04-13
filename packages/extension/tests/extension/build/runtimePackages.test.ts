@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import {
   copyRuntimePackage,
+  EXTENSION_RUNTIME_PACKAGE_NAMES,
   getVendoredPackageRootPath,
   resolveRuntimePackageRootPath,
   syncExtensionRuntimePackages,
@@ -49,5 +50,20 @@ describe('runtime package build support', () => {
       getVendoredPackageRootPath(outputFilePath, 'tree-sitter'),
     ]);
     expect(fs.existsSync(path.join(copiedPackages[0], 'package.json'))).toBe(true);
+  });
+
+  it('vendors every Tree-sitter grammar needed by the core runtime', () => {
+    expect(EXTENSION_RUNTIME_PACKAGE_NAMES).toEqual(
+      expect.arrayContaining([
+        'tree-sitter',
+        'tree-sitter-c-sharp',
+        'tree-sitter-go',
+        'tree-sitter-java',
+        'tree-sitter-javascript',
+        'tree-sitter-python',
+        'tree-sitter-rust',
+        'tree-sitter-typescript',
+      ]),
+    );
   });
 });
