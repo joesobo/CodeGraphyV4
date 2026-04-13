@@ -15,6 +15,8 @@ let treeSitterBindingsUnavailableLogged = false;
 
 export const TREE_SITTER_SOURCE_IDS = {
   call: 'codegraphy.core.treesitter:call',
+  commonjsRequire: 'codegraphy.core.treesitter:commonjs-require',
+  dynamicImport: 'codegraphy.core.treesitter:dynamic-import',
   import: 'codegraphy.core.treesitter:import',
   reexport: 'codegraphy.core.treesitter:reexport',
 } as const;

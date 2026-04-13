@@ -1,6 +1,6 @@
 # CodeGraphy TypeScript/JavaScript
 
-Adds TypeScript and JavaScript enrichment to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
+Adds TypeScript and JavaScript ecosystem metadata to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
 - Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - Marketplace plugin: [CodeGraphy TypeScript/JavaScript](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-typescript)
@@ -12,14 +12,13 @@ Adds TypeScript and JavaScript enrichment to [CodeGraphy](https://marketplace.vi
 2. Install this plugin extension.
 3. Open CodeGraphy and index your workspace.
 
-## Detection coverage
+## What It Provides
 
-The core extension now handles the base Tree-sitter pass for JS/TS files.
-This plugin adds supplemental JS/TS-only coverage on top:
+The core extension now handles JS/TS analysis directly through its Tree-sitter pipeline.
+This plugin keeps the TypeScript/JavaScript ecosystem defaults that are still useful on top:
 
-- dynamic imports
-- CommonJS `require()`
-- focused-imports view tooling
+- file colors for common JS/TS files
+- default ignore filters for common build output and package folders
 
 ## More
 

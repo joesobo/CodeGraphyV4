@@ -38,7 +38,7 @@ describe('pipeline/treesitter/analyze', () => {
     ).resolves.toBeNull();
   });
 
-  it('extracts symbols plus import, reexport, and imported-call relations for TypeScript files', async () => {
+  it('extracts symbols plus import, reexport, require, dynamic-import, and imported-call relations for TypeScript files', async () => {
     const workspaceRoot = await createWorkspace({
       'src/lib.ts': 'export function boot() { return true; }\n',
       'src/helper.ts': 'export const helper = true;\n',
@@ -48,6 +48,8 @@ describe('pipeline/treesitter/analyze', () => {
       "import { boot } from './lib';",
       "import { readFileSync } from 'node:fs';",
       "export { helper } from './helper';",
+      "const lazy = import('./helper');",
+      "const legacy = require('./lib');",
       'function run() {',
       "  boot();",
       "  readFileSync('package.json');",
@@ -110,6 +112,26 @@ describe('pipeline/treesitter/analyze', () => {
           fromFilePath: appPath,
           toFilePath: path.join(workspaceRoot, 'src/helper.ts'),
           sourceId: 'codegraphy.core.treesitter:reexport',
+        }),
+        expect.objectContaining({
+          kind: 'import',
+          pluginId: 'codegraphy.core.treesitter',
+          specifier: './helper',
+          resolvedPath: path.join(workspaceRoot, 'src/helper.ts'),
+          fromFilePath: appPath,
+          toFilePath: path.join(workspaceRoot, 'src/helper.ts'),
+          type: 'dynamic',
+          sourceId: 'codegraphy.core.treesitter:dynamic-import',
+        }),
+        expect.objectContaining({
+          kind: 'import',
+          pluginId: 'codegraphy.core.treesitter',
+          specifier: './lib',
+          resolvedPath: path.join(workspaceRoot, 'src/lib.ts'),
+          fromFilePath: appPath,
+          toFilePath: path.join(workspaceRoot, 'src/lib.ts'),
+          type: 'require',
+          sourceId: 'codegraphy.core.treesitter:commonjs-require',
         }),
         expect.objectContaining({
           kind: 'call',
