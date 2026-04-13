@@ -45,6 +45,18 @@ export function createPatternMessageEffects(patterns: string[]): GraphContextEff
   return [createPostMessageEffect({ type: 'ADD_TO_EXCLUDE', payload: { patterns } })];
 }
 
+export function createPatternPromptEffects(pattern: string | undefined): GraphContextEffect[] {
+  return pattern ? [{ kind: 'promptFilterPattern', pattern }] : [];
+}
+
+export function createLegendPromptEffects(
+  pattern: string | undefined,
+  color: string,
+  target: 'node' | 'edge',
+): GraphContextEffect[] {
+  return pattern ? [{ kind: 'promptLegendRule', pattern, color, target }] : [];
+}
+
 export function createRefreshEffects(): GraphContextEffect[] {
   return [createPostMessageEffect({ type: 'REFRESH_GRAPH' })];
 }

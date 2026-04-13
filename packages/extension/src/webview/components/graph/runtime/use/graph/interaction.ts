@@ -38,6 +38,8 @@ export interface UseGraphInteractionRuntimeOptions {
   lastClickRef: UseGraphStateResult['lastClickRef'];
   lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
   lastGraphContextEventRef: UseGraphStateResult['lastGraphContextEventRef'];
+  openFilterPatternPrompt?: (pattern: string) => void;
+  openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
   refs: Pick<
     UseGraphStateResult,
@@ -83,6 +85,8 @@ interface BuildContextMenuRuntimeDependenciesOptions {
   interactionHandlers: GraphInteractionHandlersRuntime;
   lastContainerContextMenuEventRef: UseGraphStateResult['lastContainerContextMenuEventRef'];
   lastGraphContextEventRef: UseGraphStateResult['lastGraphContextEventRef'];
+  openFilterPatternPrompt?: (pattern: string) => void;
+  openLegendRulePrompt?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   refs: UseGraphInteractionRuntimeOptions['refs'];
   setContextSelection: Dispatch<SetStateAction<GraphContextSelection>>;
   setTooltipData: ReturnType<typeof useGraphTooltip>['setTooltipData'];
@@ -105,6 +109,8 @@ function buildContextMenuRuntimeDependencies({
   interactionHandlers,
   lastContainerContextMenuEventRef,
   lastGraphContextEventRef,
+  openFilterPatternPrompt,
+  openLegendRulePrompt,
   refs,
   setContextSelection,
   setTooltipData,
@@ -123,6 +129,8 @@ function buildContextMenuRuntimeDependencies({
     },
     fitView: interactionHandlers.fitView,
     focusNode: interactionHandlers.focusNodeById,
+    openFilterPatternPrompt: openFilterPatternPrompt ?? (() => {}),
+    openLegendRulePrompt: openLegendRulePrompt ?? (() => {}),
     openBackgroundContextMenu: interactionHandlers.openBackgroundContextMenu,
     postMessage,
     setContextSelection,
@@ -208,6 +216,8 @@ export function useGraphInteractionRuntime({
   lastClickRef,
   lastContainerContextMenuEventRef,
   lastGraphContextEventRef,
+  openFilterPatternPrompt,
+  openLegendRulePrompt,
   pluginHost,
   refs,
   setContextSelection,
@@ -282,6 +292,8 @@ export function useGraphInteractionRuntime({
       interactionHandlers,
       lastContainerContextMenuEventRef,
       lastGraphContextEventRef,
+      openFilterPatternPrompt,
+      openLegendRulePrompt,
       refs,
       setContextSelection,
       setTooltipData,
@@ -294,6 +306,8 @@ export function useGraphInteractionRuntime({
       interactionHandlers,
       lastContainerContextMenuEventRef,
       lastGraphContextEventRef,
+      openFilterPatternPrompt,
+      openLegendRulePrompt,
       refs,
       setContextSelection,
       setTooltipData,

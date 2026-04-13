@@ -13,26 +13,26 @@ describe('Markdown wikilink rule', () => {
       const resolver = createResolver();
 
       const connections = detect(
-        'See [[Note Name|Alias Text]] for details.',
+        'See [[docs/Note Name|Alias Text]] for details.',
         '/workspace/Current.md',
         { resolver: resolver as never },
       );
 
       expect(connections).toHaveLength(1);
-      expect(connections[0].resolvedPath).toBe('/resolved/Note Name.md');
+      expect(connections[0].resolvedPath).toBe('/resolved/docs/Note Name.md');
     });
 
     it('preserves the full alias syntax in the emitted specifier', () => {
       const resolver = createResolver();
 
       const connections = detect(
-        'See [[Note Name|Alias Text]] for details.',
+        'See [[docs/Note Name|Alias Text]] for details.',
         '/workspace/Current.md',
         { resolver: resolver as never },
       );
 
       expect(connections).toHaveLength(1);
-      expect(connections[0].specifier).toBe('[[Note Name|Alias Text]]');
+      expect(connections[0].specifier).toBe('[[docs/Note Name|Alias Text]]');
     });
   });
 
@@ -41,7 +41,7 @@ describe('Markdown wikilink rule', () => {
       const resolver = createResolver();
 
       const connections = detect(
-        'See [[Note Name|Alias Text]] for details.',
+        'See [[docs/Note Name|Alias Text]] for details.',
         '/workspace/Current.md',
         { resolver: resolver as never },
       );
@@ -55,7 +55,7 @@ describe('Markdown wikilink rule', () => {
       const resolver = createResolver();
 
       const connections = detect(
-        'See [[Note Name|Alias Text]] for details.',
+        'See [[docs/Note Name|Alias Text]] for details.',
         '/workspace/Current.md',
         { resolver: resolver as never },
       );
@@ -69,14 +69,14 @@ describe('Markdown wikilink rule', () => {
     const resolver = createResolver();
 
     const connections = detect(
-      '[[Architecture#Overview|System Architecture]]',
+      '[[docs/Architecture#Overview|System Architecture]]',
       '/workspace/Current.md',
       { resolver: resolver as never },
     );
 
-    expect(resolver.resolve).toHaveBeenCalledWith('Architecture', '/workspace/Current.md');
+    expect(resolver.resolve).toHaveBeenCalledWith('docs/Architecture', '/workspace/Current.md');
     expect(connections).toHaveLength(1);
-    expect(connections[0].specifier).toBe('[[Architecture|System Architecture]]');
+    expect(connections[0].specifier).toBe('[[docs/Architecture|System Architecture]]');
   });
 
   describe('code block exclusions', () => {
@@ -84,7 +84,7 @@ describe('Markdown wikilink rule', () => {
       const resolver = createResolver();
       const content = [
         'Do not parse `[[InlineIgnored]]`.',
-        'Keep [[Real Note]].',
+        'Keep [[docs/Real Note]].',
       ].join('\n');
 
       const connections = detect(content, '/workspace/Current.md', {
@@ -92,7 +92,7 @@ describe('Markdown wikilink rule', () => {
       });
 
       expect(connections).toHaveLength(1);
-      expect(connections[0].specifier).toBe('[[Real Note]]');
+      expect(connections[0].specifier).toBe('[[docs/Real Note]]');
     });
 
     it('ignores wikilinks inside fenced code blocks', () => {
@@ -101,7 +101,7 @@ describe('Markdown wikilink rule', () => {
         '```',
         '[[FenceIgnored]]',
         '```',
-        'Keep [[Real Note]].',
+        'Keep [[docs/Real Note]].',
       ].join('\n');
 
       const connections = detect(content, '/workspace/Current.md', {
@@ -109,7 +109,7 @@ describe('Markdown wikilink rule', () => {
       });
 
       expect(connections).toHaveLength(1);
-      expect(connections[0].specifier).toBe('[[Real Note]]');
+      expect(connections[0].specifier).toBe('[[docs/Real Note]]');
     });
 
     it('does not call the resolver for excluded wikilinks', () => {
@@ -119,7 +119,7 @@ describe('Markdown wikilink rule', () => {
         '```',
         '[[FenceIgnored]]',
         '```',
-        'Keep [[Real Note]].',
+        'Keep [[docs/Real Note]].',
       ].join('\n');
 
       detect(content, '/workspace/Current.md', {
@@ -127,7 +127,7 @@ describe('Markdown wikilink rule', () => {
       });
 
       expect(resolver.resolve).toHaveBeenCalledTimes(1);
-      expect(resolver.resolve).toHaveBeenCalledWith('Real Note', '/workspace/Current.md');
+      expect(resolver.resolve).toHaveBeenCalledWith('docs/Real Note', '/workspace/Current.md');
     });
   });
 
@@ -135,14 +135,14 @@ describe('Markdown wikilink rule', () => {
     const resolver = createResolver();
 
     const connections = detect(
-      '[[#OnlyHeading]] and [[Real Note]]',
+      '[[#OnlyHeading]] and [[docs/Real Note]]',
       '/workspace/Current.md',
       { resolver: resolver as never },
     );
 
     expect(connections).toHaveLength(1);
-    expect(connections[0].specifier).toBe('[[Real Note]]');
+    expect(connections[0].specifier).toBe('[[docs/Real Note]]');
     expect(resolver.resolve).toHaveBeenCalledTimes(1);
-    expect(resolver.resolve).toHaveBeenCalledWith('Real Note', '/workspace/Current.md');
+    expect(resolver.resolve).toHaveBeenCalledWith('docs/Real Note', '/workspace/Current.md');
   });
 });

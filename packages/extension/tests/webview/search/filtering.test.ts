@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_NODE_COLOR } from '../../../src/shared/fileColors';
 import type { IGraphData } from '../../../src/shared/graph/types';
 import type { IGroup } from '../../../src/shared/settings/groups';
-import { applyLegendRules, filterGraphData } from '../../../src/webview/search/filtering';
+import {
+  applyFilterPatterns,
+  applyLegendRules,
+  filterGraphData,
+} from '../../../src/webview/search/filtering';
 
 const graphData: IGraphData = {
   nodes: [
@@ -56,6 +60,15 @@ describe('search filtering', () => {
     expect(result.regexError).toBeTruthy();
     expect(result.filteredData?.nodes).toEqual([]);
     expect(result.filteredData?.edges).toEqual([]);
+  });
+
+  it('filters graph nodes and edges by custom filter patterns', () => {
+    const result = applyFilterPatterns(graphData, ['README.md']);
+
+    expect(result?.nodes.map((node) => node.id)).toEqual(['src/App.ts', 'src/util.ts']);
+    expect(result?.edges).toEqual([
+      { id: 'edge-1', from: 'src/App.ts', to: 'src/util.ts', kind: 'import', sources: [] },
+    ]);
   });
 
   it('returns null when applying group colors to null data', () => {

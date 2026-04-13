@@ -6,12 +6,14 @@ function createDependencies(
   overrides: Partial<GraphContextMenuRuntimeDependencies> = {},
 ): Pick<
   GraphContextMenuRuntimeDependencies,
-  'clearCachedFile' | 'fitView' | 'focusNode' | 'postMessage'
+  'clearCachedFile' | 'fitView' | 'focusNode' | 'openFilterPatternPrompt' | 'openLegendRulePrompt' | 'postMessage'
 > {
   return {
     clearCachedFile: vi.fn(),
     fitView: vi.fn(),
     focusNode: vi.fn(),
+    openFilterPatternPrompt: vi.fn(),
+    openLegendRulePrompt: vi.fn(),
     postMessage: vi.fn(),
     ...overrides,
   };
@@ -57,6 +59,36 @@ describe('graph/contextMenuRuntime/effects', () => {
         targetId: 'src/app.ts',
         targetType: 'node',
       },
+    });
+  });
+
+  it('opens the filter prompt for single-node add-to-filter actions', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      { kind: 'builtin', action: 'addToFilter' },
+      ['README.md'],
+    );
+
+    expect(dependencies.openFilterPatternPrompt).toHaveBeenCalledWith('README.md');
+    expect(dependencies.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('opens the legend prompt for add-node-legend actions', () => {
+    const dependencies = createDependencies();
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    runtime.handleMenuAction(
+      { kind: 'builtin', action: 'addNodeLegend' },
+      ['src/Helper.java'],
+    );
+
+    expect(dependencies.openLegendRulePrompt).toHaveBeenCalledWith({
+      kind: 'promptLegendRule',
+      color: '#808080',
+      pattern: 'src/Helper.java',
+      target: 'node',
     });
   });
 });

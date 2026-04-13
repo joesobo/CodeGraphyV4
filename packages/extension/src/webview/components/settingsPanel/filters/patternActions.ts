@@ -33,3 +33,24 @@ export function deleteFilterPattern(
     setFilterPatterns
   );
 }
+
+export function editFilterPattern(
+  currentPatterns: string[],
+  previousPattern: string,
+  nextPattern: string,
+  setFilterPatterns: SetFilterPatterns,
+): void {
+  if (!canAddFilterPattern(nextPattern)) {
+    return;
+  }
+
+  const normalizedPattern = nextPattern.trim();
+  if (normalizedPattern === previousPattern) {
+    return;
+  }
+
+  commitFilterPatterns(
+    currentPatterns.map((entry) => (entry === previousPattern ? normalizedPattern : entry)),
+    setFilterPatterns,
+  );
+}

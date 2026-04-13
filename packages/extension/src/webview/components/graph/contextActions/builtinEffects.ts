@@ -5,11 +5,13 @@ import {
   createCreateFileEffects,
   createFitViewEffects,
   createFocusEffects,
+  createLegendPromptEffects,
   createOpenFileEffects,
   createOptionalClipboardEffects,
   createOptionalSinglePathMessageEffects,
   createPathListMessageEffects,
   createPatternMessageEffects,
+  createPatternPromptEffects,
   createRefreshEffects,
 } from './builders';
 
@@ -37,7 +39,11 @@ export function getBuiltInContextActionEffectsImpl(
     case 'focus':
       return createFocusEffects(targetPaths[0]);
     case 'addToFilter':
-      return createPatternMessageEffects(targetPaths);
+      return targetPaths.length <= 1
+        ? createPatternPromptEffects(targetPaths[0])
+        : createPatternMessageEffects(targetPaths);
+    case 'addNodeLegend':
+      return createLegendPromptEffects(targetPaths[0], '#808080', 'node');
     case 'rename':
       return createOptionalSinglePathMessageEffects(targetPaths[0], 'RENAME_FILE');
     case 'delete':

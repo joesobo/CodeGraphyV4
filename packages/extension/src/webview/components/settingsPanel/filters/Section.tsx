@@ -28,6 +28,7 @@ export function FilterSection(): React.ReactElement {
         newFilterPattern={controller.newFilterPattern}
         onAdd={controller.onAddPattern}
         onDelete={controller.onDeletePattern}
+        onEdit={controller.onEditPattern}
         onPatternChange={controller.onPatternChange}
         pluginFilterPatterns={controller.pluginFilterPatterns}
       />

@@ -1,6 +1,6 @@
 /**
  * @fileoverview Resolves Markdown wikilink targets to actual file paths.
- * Follows Obsidian's resolution sources: shortest unique path match.
+ * Uses workspace-root-relative paths so links stay deterministic.
  * @module plugins/markdown/PathResolver
  */
 
@@ -10,14 +10,13 @@ import * as fs from 'fs';
 /**
  * Resolves wikilink targets to absolute file paths.
  *
- * Resolution sources (mirrors Obsidian):
- * 1. If the target contains a path separator, resolve relative to workspace root.
- * 2. Otherwise, search all known .md files for a filename match (case-insensitive).
- * 3. If no .md file matches, append .md and try again.
+ * Resolution rules:
+ * 1. Target must be workspace-root relative, or include an explicit filename extension.
+ * 2. Resolve relative to workspace root.
+ * 3. If the target has no extension, append .md and try again.
  */
 export class PathResolver {
   private workspaceRoot: string;
-  /** Map from lowercase filename (no extension) to absolute paths */
   private fileIndex: Map<string, string[]> = new Map();
 
   constructor(workspaceRoot: string) {
@@ -29,43 +28,31 @@ export class PathResolver {
   }
 
   /**
-   * Build an index of all .md files in the workspace for fast lookup.
-   * Call this once via onPreAnalyze before resolving links.
+   * Retained for plugin lifecycle compatibility.
    */
-  buildIndex(files: Array<{ absolutePath: string }>): void {
+  buildIndex(_files: Array<{ absolutePath: string }>): void {
     this.fileIndex.clear();
-    for (const { absolutePath } of files) {
-      const stem = path.basename(absolutePath, path.extname(absolutePath)).toLowerCase();
-      if (!this.fileIndex.has(stem)) {
-        this.fileIndex.set(stem, []);
-      }
-      this.fileIndex.get(stem)!.push(absolutePath);
-    }
   }
 
   /**
    * Resolve a wikilink target to an absolute file path, or null if not found.
    *
-   * @param target - The link target as written (e.g., "Note Name", "folder/note")
+   * @param target - The link target as written (e.g., "docs/Note", "src/file.ts")
    * @param _sourceFile - Absolute path of the file containing the link (unused for now)
    */
   resolve(target: string, _sourceFile: string): string | null {
-    // Normalize: strip fragment (#heading), trim whitespace
     const clean = target.split('#')[0].trim();
     if (!clean) return null;
 
-    // If target contains a path separator, try as a relative-to-root path
-    if (clean.includes('/') || clean.includes('\\')) {
+    if (clean.includes('/') || clean.includes('\\') || path.extname(clean) !== '') {
       return this.resolveByPath(clean);
     }
 
-    // Otherwise search index by stem (filename without extension)
-    return this.resolveByName(clean);
+    return null;
   }
 
   private resolveByPath(target: string): string | null {
     const normalizedTarget = target.replace(/\\/g, '/');
-    // Try with and without .md extension
     const candidates = [
       path.join(this.workspaceRoot, normalizedTarget),
       path.join(this.workspaceRoot, normalizedTarget + '.md'),
@@ -74,13 +61,5 @@ export class PathResolver {
       if (fs.existsSync(candidate)) return candidate;
     }
     return null;
-  }
-
-  private resolveByName(target: string): string | null {
-    const stem = path.basename(target, path.extname(target)).toLowerCase();
-    const matches = this.fileIndex.get(stem);
-    if (!matches || matches.length === 0) return null;
-    // If multiple matches, prefer the shortest path (closest to root — Obsidian behavior)
-    return matches.reduce((shortest, candidate) => (shortest.length <= candidate.length ? shortest : candidate));
   }
 }

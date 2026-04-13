@@ -10,6 +10,7 @@ export function Patterns({
   newFilterPattern,
   onAdd,
   onDelete,
+  onEdit,
   onPatternChange,
   pluginFilterPatterns,
 }: {
@@ -17,6 +18,7 @@ export function Patterns({
   newFilterPattern: string;
   onAdd: () => void;
   onDelete: (pattern: string) => void;
+  onEdit: (previousPattern: string, nextPattern: string) => void;
   onPatternChange: (value: string) => void;
   pluginFilterPatterns: string[];
 }): React.ReactElement {
@@ -51,7 +53,18 @@ export function Patterns({
         <ul className="space-y-1">
           {filterPatterns.map((pattern) => (
             <li key={pattern} className="flex items-center gap-2">
-              <span className="text-xs flex-1 truncate font-mono">{pattern}</span>
+              <Input
+                defaultValue={pattern}
+                aria-label={`Edit filter pattern ${pattern}`}
+                className="h-7 min-w-0 flex-1 border-0 bg-transparent px-0 font-mono text-xs shadow-none focus-visible:ring-0"
+                onBlur={(event) => onEdit(pattern, event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    onEdit(pattern, event.currentTarget.value);
+                    event.currentTarget.blur();
+                  }
+                }}
+              />
               <Button
                 variant="ghost"
                 size="icon"

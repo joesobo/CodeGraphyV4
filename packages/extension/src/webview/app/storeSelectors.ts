@@ -13,6 +13,8 @@ export function useAppState() {
   const searchQuery = useGraphStore(s => s.searchQuery);
   const searchOptions = useGraphStore(s => s.searchOptions);
   const legends = useGraphStore(s => s.legends);
+  const filterPatterns = useGraphStore(s => s.filterPatterns);
+  const pluginFilterPatterns = useGraphStore(s => s.pluginFilterPatterns);
   const showOrphans = useGraphStore(s => s.showOrphans);
   const timelineActive = useGraphStore(s => s.timelineActive);
   const activePanel = useGraphStore(s => s.activePanel);
@@ -32,6 +34,8 @@ export function useAppState() {
     searchQuery,
     searchOptions,
     legends,
+    filterPatterns,
+    pluginFilterPatterns,
     showOrphans,
     timelineActive,
     activePanel,

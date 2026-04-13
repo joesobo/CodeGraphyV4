@@ -158,9 +158,29 @@ describe('graph view webview message listener', () => {
     });
 
     expect(context.setFilterPatterns).toHaveBeenCalledWith(['dist/**']);
-    expect(context.analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(context.analyzeAndSendData).not.toHaveBeenCalled();
     expect(context.setUserGroups).not.toHaveBeenCalled();
     expect(context.setWebviewReadyNotified).not.toHaveBeenCalled();
+  });
+
+  it('does not reanalyze the graph for unrelated settings updates', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const context = createContext();
+
+    setGraphViewWebviewMessageListener(webview as never, context);
+    await messageHandler?.({
+      type: 'UPDATE_SHOW_ORPHANS',
+      payload: { showOrphans: false },
+    });
+
+    expect(context.analyzeAndSendData).not.toHaveBeenCalled();
+    expect(context.setFilterPatterns).not.toHaveBeenCalled();
   });
 
   it('stores ready state updates from plugin dispatch flows', async () => {

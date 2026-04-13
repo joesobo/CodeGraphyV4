@@ -29,6 +29,8 @@ interface GraphProps {
   theme?: ThemeKind;
   nodeDecorations?: Record<string, NodeDecorationPayload>;
   edgeDecorations?: Record<string, EdgeDecorationPayload>;
+  onAddFilterRequested?: (pattern: string) => void;
+  onAddLegendRequested?: (rule: { pattern: string; color: string; target: 'node' | 'edge' }) => void;
   pluginHost?: WebviewPluginHost;
 }
 
@@ -37,6 +39,8 @@ export default function Graph({
   theme = 'dark',
   nodeDecorations,
   edgeDecorations,
+  onAddFilterRequested = () => {},
+  onAddLegendRequested = () => {},
   pluginHost,
 }: GraphProps): React.ReactElement {
   const viewState = useGraphViewStoreState();
@@ -71,6 +75,8 @@ export default function Graph({
     lastClickRef: graphState.lastClickRef,
     lastContainerContextMenuEventRef: graphState.lastContainerContextMenuEventRef,
     lastGraphContextEventRef: graphState.lastGraphContextEventRef,
+    openFilterPatternPrompt: onAddFilterRequested,
+    openLegendRulePrompt: onAddLegendRequested,
     pluginHost,
     refs: {
       containerRef: graphState.containerRef,
