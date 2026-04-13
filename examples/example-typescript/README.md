@@ -1,4 +1,4 @@
-# TypeScript Monorepo Example
+# TypeScript Example
 
 This example workspace is used by CodeGraphy's extension-host e2e tests and doubles
 as a small multi-package project you can open in VS Code to try the graph views.

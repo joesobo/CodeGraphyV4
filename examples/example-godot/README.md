@@ -1,4 +1,4 @@
-# Godot Game Example
+# Godot Example
 
 This example workspace is used by CodeGraphy's extension-host e2e tests for the
 GDScript plugin and doubles as a small Godot project you can open in VS Code to

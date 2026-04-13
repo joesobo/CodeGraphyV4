@@ -1,6 +1,6 @@
 # CodeGraphy Python
 
-Adds Python dependency analysis to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
+Adds Python project-aware import resolution to [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
 
 - Core extension: [CodeGraphy](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy)
 - Marketplace plugin: [CodeGraphy Python](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy-python)
@@ -10,13 +10,16 @@ Adds Python dependency analysis to [CodeGraphy](https://marketplace.visualstudio
 
 1. Install the core `codegraphy.codegraphy` extension.
 2. Install this plugin extension.
-3. Open CodeGraphy and let it analyze your workspace.
+3. Open CodeGraphy and index your workspace.
 
-## Detection coverage
+## What It Provides
 
-- `import ...`
-- `from ... import ...`
-- relative imports
+The core extension already handles baseline Python Tree-sitter analysis.
+This plugin stays useful when you want Python-specific import resolution on top:
+
+- extra source-root handling from Python project config
+- package and namespace-package resolution beyond the core defaults
+- Python-focused file colors and default ignore filters
 
 ## More
 

@@ -1,0 +1,21 @@
+{
+  "codegraphy.include": ["src/**/*.cs"],
+  "codegraphy.exclude": [
+    "**/bin/**",
+    "**/obj/**",
+    "**/packages/**",
+    "**/TestResults/**",
+    "**/*.Designer.cs",
+    "**/*.generated.cs",
+    "**/AssemblyInfo.cs"
+  ],
+  "codegraphy.showOrphans": true,
+  "codegraphy.respectGitignore": true,
+  "codegraphy.maxFiles": 100,
+  "codegraphy.plugins": [],
+  "codegraphy.fileColors": {
+    ".cs": "#512BD4",
+    ".csproj": "#512BD4",
+    ".sln": "#854CC7"
+  }
+}
