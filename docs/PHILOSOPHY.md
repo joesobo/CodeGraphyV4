@@ -54,9 +54,11 @@ CodeGraphy now has a built-in analysis pipeline:
 
 That means the core is no longer "empty" until a language plugin shows up. You still get useful graph edges out of the box where Tree-sitter coverage exists, and plugins stay valuable for language- or framework-specific semantics.
 
+Today that built-in baseline covers JavaScript, TypeScript, TSX, Python, Go, Java, Rust, and C#.
+
 Examples:
 - JavaScript/TypeScript: core finds baseline syntax and relations, plugins can add path alias or framework-aware semantics
-- Python: core or plugin extracts imports and symbols, plugins can refine packaging behavior
+- Python, Go, Java, Rust, and C#: core finds baseline imports, symbols, and low-noise structural relations, plugins can add richer project-aware semantics
 - GDScript: plugin fills the gap where core Tree-sitter coverage is missing or weak
 - Markdown wikilinks: built-in wildcard plugin scans for Obsidian-style links across files
 

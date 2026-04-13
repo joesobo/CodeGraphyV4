@@ -83,6 +83,8 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 
 **Core pipeline, plugins for enrichment** The core extension owns discovery, caching, graph projection, repo-local settings, and export flow. Built-in and external plugins contribute per-file analysis results, richer relations, extra node/edge kinds, and UI integrations.
 
+**Broad Tree-sitter baseline** The core now ships native Tree-sitter coverage for JavaScript, TypeScript, TSX, Python, Go, Java, Rust, and C#. That means many repos produce useful semantic edges before you install any language plugin at all.
+
 **One graph, configurable surfaces** Use the `Nodes`, `Edges`, `Legends`, and `Plugins` popups to decide what kinds of nodes and edges are visible. Turn on depth mode from the toolbar when you want the old focused depth behavior.
 
 **Git timeline playback** Index your repository history, scrub through commits, and watch the dependency graph evolve over time.
@@ -106,7 +108,7 @@ CodeGraphy V4 is a ground-up for the 4th time. Probably wont be the last time ei
 ## Install
 
 1. Install the [CodeGraphy core extension](https://marketplace.visualstudio.com/items?itemName=codegraphy.codegraphy).
-2. Optionally install plugins for unsupported languages or richer semantics. Core already handles supported Tree-sitter languages, and Markdown ships built in.
+2. Optionally install plugins for unsupported languages or richer semantics. Core already handles JavaScript, TypeScript, TSX, Python, Go, Java, Rust, and C# through Tree-sitter, and Markdown ships built in.
 3. Click the **CodeGraphy** activity bar icon in VS Code.
 4. Open the graph.
 5. Click **Index Repo** when you want semantic edges and timeline data.
