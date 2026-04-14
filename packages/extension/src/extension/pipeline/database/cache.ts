@@ -204,6 +204,47 @@ function createRelationRowId(
   ].join('|');
 }
 
+function createFileAnalysisStatement(
+  filePath: string,
+  entry: IWorkspaceAnalysisCache['files'][string],
+): string {
+  return `CREATE (entry:FileAnalysis {filePath: ${escapeCypherString(filePath)}, mtime: ${entry.mtime}, size: ${entry.size ?? 0}, analysis: ${escapeCypherString(JSON.stringify(entry.analysis))}})`;
+}
+
+function createSymbolStatement(symbol: IAnalysisSymbol): string {
+  return `CREATE (entry:Symbol {symbolId: ${escapeCypherString(symbol.id)}, filePath: ${escapeCypherString(symbol.filePath)}, name: ${escapeCypherString(symbol.name)}, kind: ${escapeCypherString(symbol.kind)}, signature: ${escapeCypherString(symbol.signature ?? '')}, rangeJson: ${escapeCypherString(serializeJson(symbol.range))}, metadataJson: ${escapeCypherString(serializeJson(symbol.metadata))}})`;
+}
+
+function createRelationStatement(
+  filePath: string,
+  relation: IAnalysisRelation,
+  relationIndex: number,
+): string {
+  return `CREATE (entry:Relation {relationId: ${escapeCypherString(createRelationRowId(filePath, relation, relationIndex))}, filePath: ${escapeCypherString(filePath)}, kind: ${escapeCypherString(relation.kind)}, pluginId: ${escapeCypherString(relation.pluginId ?? '')}, sourceId: ${escapeCypherString(relation.sourceId)}, fromFilePath: ${escapeCypherString(relation.fromFilePath)}, toFilePath: ${escapeCypherString(relation.toFilePath ?? '')}, fromNodeId: ${escapeCypherString(relation.fromNodeId ?? '')}, toNodeId: ${escapeCypherString(relation.toNodeId ?? '')}, fromSymbolId: ${escapeCypherString(relation.fromSymbolId ?? '')}, toSymbolId: ${escapeCypherString(relation.toSymbolId ?? '')}, specifier: ${escapeCypherString(relation.specifier ?? '')}, relationType: ${escapeCypherString(relation.type ?? '')}, variant: ${escapeCypherString(relation.variant ?? '')}, resolvedPath: ${escapeCypherString(relation.resolvedPath ?? '')}, metadataJson: ${escapeCypherString(serializeJson(relation.metadata))}})`;
+}
+
+function sortedCacheEntries(
+  cache: IWorkspaceAnalysisCache,
+): Array<[string, IWorkspaceAnalysisCache['files'][string]]> {
+  return Object.entries(cache.files).sort(([left], [right]) => left.localeCompare(right));
+}
+
+function persistAnalysisEntry(
+  connection: lb.Connection,
+  filePath: string,
+  entry: IWorkspaceAnalysisCache['files'][string],
+): void {
+  runStatementSync(connection, createFileAnalysisStatement(filePath, entry));
+
+  for (const symbol of entry.analysis.symbols ?? []) {
+    runStatementSync(connection, createSymbolStatement(symbol));
+  }
+
+  for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
+    runStatementSync(connection, createRelationStatement(filePath, relation, relationIndex));
+  }
+}
+
 function clearDatabaseArtifacts(databasePath: string): void {
   for (const filePath of [databasePath, `${databasePath}.wal`]) {
     try {
@@ -380,28 +421,8 @@ export function saveWorkspaceAnalysisDatabaseCache(
     runStatementSync(connection, 'MATCH (entry:Symbol) DELETE entry');
     runStatementSync(connection, 'MATCH (entry:Relation) DELETE entry');
 
-    for (const [filePath, entry] of Object.entries(cache.files).sort(([left], [right]) =>
-      left.localeCompare(right),
-    )) {
-      const size = entry.size ?? 0;
-      runStatementSync(
-        connection,
-        `CREATE (entry:FileAnalysis {filePath: ${escapeCypherString(filePath)}, mtime: ${entry.mtime}, size: ${size}, analysis: ${escapeCypherString(JSON.stringify(entry.analysis))}})`,
-      );
-
-      for (const symbol of entry.analysis.symbols ?? []) {
-        runStatementSync(
-          connection,
-          `CREATE (entry:Symbol {symbolId: ${escapeCypherString(symbol.id)}, filePath: ${escapeCypherString(symbol.filePath)}, name: ${escapeCypherString(symbol.name)}, kind: ${escapeCypherString(symbol.kind)}, signature: ${escapeCypherString(symbol.signature ?? '')}, rangeJson: ${escapeCypherString(serializeJson(symbol.range))}, metadataJson: ${escapeCypherString(serializeJson(symbol.metadata))}})`,
-        );
-      }
-
-      for (const [relationIndex, relation] of (entry.analysis.relations ?? []).entries()) {
-        runStatementSync(
-          connection,
-          `CREATE (entry:Relation {relationId: ${escapeCypherString(createRelationRowId(filePath, relation, relationIndex))}, filePath: ${escapeCypherString(filePath)}, kind: ${escapeCypherString(relation.kind)}, pluginId: ${escapeCypherString(relation.pluginId ?? '')}, sourceId: ${escapeCypherString(relation.sourceId)}, fromFilePath: ${escapeCypherString(relation.fromFilePath)}, toFilePath: ${escapeCypherString(relation.toFilePath ?? '')}, fromNodeId: ${escapeCypherString(relation.fromNodeId ?? '')}, toNodeId: ${escapeCypherString(relation.toNodeId ?? '')}, fromSymbolId: ${escapeCypherString(relation.fromSymbolId ?? '')}, toSymbolId: ${escapeCypherString(relation.toSymbolId ?? '')}, specifier: ${escapeCypherString(relation.specifier ?? '')}, relationType: ${escapeCypherString(relation.type ?? '')}, variant: ${escapeCypherString(relation.variant ?? '')}, resolvedPath: ${escapeCypherString(relation.resolvedPath ?? '')}, metadataJson: ${escapeCypherString(serializeJson(relation.metadata))}})`,
-        );
-      }
+    for (const [filePath, entry] of sortedCacheEntries(cache)) {
+      persistAnalysisEntry(connection, filePath, entry);
     }
   });
 }

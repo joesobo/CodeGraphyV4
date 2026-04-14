@@ -52,4 +52,44 @@ describe('RulePrompt', () => {
       target: 'node',
     });
   });
+
+  it('submits the current state when Enter is pressed', () => {
+    const onSubmit = vi.fn();
+
+    render(
+      <RulePrompt
+        state={{ kind: 'legend', pattern: 'src/**/*.ts', color: '#123456', target: 'edge' }}
+        onClose={vi.fn()}
+        onSubmit={onSubmit}
+      />,
+    );
+
+    fireEvent.keyDown(screen.getByLabelText('Add Legend Group pattern'), {
+      key: 'Enter',
+    });
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      kind: 'legend',
+      pattern: 'src/**/*.ts',
+      color: '#123456',
+      target: 'edge',
+    });
+  });
+
+  it('closes from both cancel and close actions', () => {
+    const onClose = vi.fn();
+
+    render(
+      <RulePrompt
+        state={{ kind: 'filter', pattern: 'README.md' }}
+        onClose={onClose}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
 });
