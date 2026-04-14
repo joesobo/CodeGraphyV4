@@ -111,10 +111,6 @@ function walkCSharpIndexTree(
   index: CSharpWorkspaceIndex,
 ): void {
   const nextNamespace = getCSharpIndexNamespace(node, currentNamespace);
-  if (nextNamespace === null) {
-    return;
-  }
-
   recordCSharpIndexedType(node, filePath, currentNamespace, index);
   for (const child of node.namedChildren) {
     walkCSharpIndexTree(child, nextNamespace, filePath, index);
@@ -126,7 +122,7 @@ function getCSharpIndexNamespace(
   currentNamespace: string | null,
 ): string | null {
   if (node.type === 'file_scoped_namespace_declaration') {
-    return null;
+    return getNamespaceName(node) ?? currentNamespace;
   }
 
   if (node.type === 'namespace_declaration') {
