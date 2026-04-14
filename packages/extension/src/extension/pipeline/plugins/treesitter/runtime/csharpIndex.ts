@@ -61,11 +61,15 @@ function getNodeText(node: Parser.SyntaxNode | null | undefined): string | null 
 function getNamespaceName(node: Parser.SyntaxNode): string | null {
   return getNodeText(
     node.childForFieldName('name')
-    ?? node.namedChildren.find((child) =>
-      child.type === 'identifier'
-      || child.type === 'qualified_name'
-      || child.type === 'alias_qualified_name',
-    ),
+    ?? node.namedChildren.find(isCSharpNamespaceNameNode),
+  );
+}
+
+function isCSharpNamespaceNameNode(child: Parser.SyntaxNode): boolean {
+  return (
+    child.type === 'identifier'
+    || child.type === 'qualified_name'
+    || child.type === 'alias_qualified_name'
   );
 }
 
@@ -96,40 +100,64 @@ function indexCSharpTree(
   index: CSharpWorkspaceIndex,
 ): void {
   const fileScopedNamespaceName = getFileScopedNamespaceName(tree.rootNode);
+  walkCSharpIndexTree(tree.rootNode, fileScopedNamespaceName, filePath, index);
+}
 
-  const walk = (node: Parser.SyntaxNode, currentNamespace: string | null): void => {
-    switch (node.type) {
-      case 'namespace_declaration':
-      case 'file_scoped_namespace_declaration': {
-        if (node.type === 'file_scoped_namespace_declaration') {
-          return;
-        }
+function walkCSharpIndexTree(
+  node: Parser.SyntaxNode,
+  currentNamespace: string | null,
+  filePath: string,
+  index: CSharpWorkspaceIndex,
+): void {
+  const nextNamespace = getCSharpIndexNamespace(node, currentNamespace);
+  if (nextNamespace === null) {
+    return;
+  }
 
-        const namespaceName = getNamespaceName(node) ?? currentNamespace;
-        for (const child of node.namedChildren) {
-          walk(child, namespaceName);
-        }
-        return;
-      }
+  recordCSharpIndexedType(node, filePath, currentNamespace, index);
+  for (const child of node.namedChildren) {
+    walkCSharpIndexTree(child, nextNamespace, filePath, index);
+  }
+}
 
-      case 'class_declaration':
-      case 'enum_declaration':
-      case 'interface_declaration':
-      case 'struct_declaration': {
-        const typeName = getIdentifierText(node.childForFieldName('name'));
-        if (typeName) {
-          recordIndexedType(index, filePath, currentNamespace, typeName);
-        }
-        break;
-      }
-    }
+function getCSharpIndexNamespace(
+  node: Parser.SyntaxNode,
+  currentNamespace: string | null,
+): string | null {
+  if (node.type === 'file_scoped_namespace_declaration') {
+    return null;
+  }
 
-    for (const child of node.namedChildren) {
-      walk(child, currentNamespace);
-    }
-  };
+  if (node.type === 'namespace_declaration') {
+    return getNamespaceName(node) ?? currentNamespace;
+  }
 
-  walk(tree.rootNode, fileScopedNamespaceName);
+  return currentNamespace;
+}
+
+function recordCSharpIndexedType(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  currentNamespace: string | null,
+  index: CSharpWorkspaceIndex,
+): void {
+  if (!isCSharpTypeDeclarationNode(node)) {
+    return;
+  }
+
+  const typeName = getIdentifierText(node.childForFieldName('name'));
+  if (typeName) {
+    recordIndexedType(index, filePath, currentNamespace, typeName);
+  }
+}
+
+function isCSharpTypeDeclarationNode(node: Parser.SyntaxNode): boolean {
+  return (
+    node.type === 'class_declaration'
+    || node.type === 'enum_declaration'
+    || node.type === 'interface_declaration'
+    || node.type === 'struct_declaration'
+  );
 }
 
 export async function preAnalyzeCSharpTreeSitterFiles(
