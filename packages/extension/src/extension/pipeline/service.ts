@@ -178,7 +178,7 @@ export class WorkspacePipeline {
 
     const currentCommit = this._getCurrentCommitShaSync(workspaceRoot);
     if (currentCommit === null) {
-      return true;
+      return meta.lastIndexedCommit === null;
     }
 
     return meta.lastIndexedCommit === currentCommit;

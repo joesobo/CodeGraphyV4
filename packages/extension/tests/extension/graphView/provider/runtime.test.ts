@@ -271,6 +271,9 @@ describe('graphView/provider/runtime', () => {
     expect(internals._viewContextMethods).toBe(methodContainers.viewContext);
     expect(internals._viewSelectionMethods).toBe(methodContainers.viewSelection);
     expect(internals._webviewMethods).toBe(methodContainers.webview);
+    expect(
+      (provider as unknown as { _webviewMethods: unknown })._webviewMethods,
+    ).toBe(methodContainers.webview);
   });
 
   it('disposes the extension message emitter through the registered subscription', async () => {
