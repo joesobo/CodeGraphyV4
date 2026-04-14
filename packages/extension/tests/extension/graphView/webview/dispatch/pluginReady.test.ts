@@ -91,4 +91,26 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
     expect(context.waitForFirstWorkspaceReady).toHaveBeenCalledOnce();
     expect(context.notifyWebviewReady).not.toHaveBeenCalled();
   });
+
+  it('sends filter patterns loaded during webview ready instead of stale pre-load values', async () => {
+    let filterPatterns: string[] = [];
+    const context = createContext({
+      getFilterPatterns: vi.fn(() => filterPatterns),
+      loadGroupsAndFilterPatterns: vi.fn(() => {
+        filterPatterns = ['**/README.md'];
+      }),
+    });
+
+    await expect(
+      dispatchGraphViewPluginReadyMessage({ type: 'WEBVIEW_READY', payload: null }, context),
+    ).resolves.toBe(true);
+
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'FILTER_PATTERNS_UPDATED',
+      payload: {
+        patterns: ['**/README.md'],
+        pluginPatterns: ['plugin:test/**'],
+      },
+    });
+  });
 });
