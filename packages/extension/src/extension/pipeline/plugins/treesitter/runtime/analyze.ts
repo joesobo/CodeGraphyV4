@@ -358,15 +358,19 @@ function getVariableAssignedFunctionSymbol(
     return null;
   }
 
-  if (
-    valueNode.type !== 'arrow_function'
-    && valueNode.type !== 'function'
-    && valueNode.type !== 'function_expression'
-  ) {
+  if (!isFunctionAssignmentValueNode(valueNode)) {
     return null;
   }
 
   return createSymbol(filePath, 'function', name, nameNode);
+}
+
+function isFunctionAssignmentValueNode(node: Parser.SyntaxNode): boolean {
+  return (
+    node.type === 'arrow_function'
+    || node.type === 'function'
+    || node.type === 'function_expression'
+  );
 }
 
 function addNamedImportBindings(
@@ -406,11 +410,7 @@ function collectImportBindings(
 
   for (const child of importClause.namedChildren) {
     if (child.type === 'identifier') {
-      importedBindings.set(child.text, {
-        importedName: 'default',
-        resolvedPath,
-        specifier,
-      });
+      addCollectedImportBinding(importedBindings, child.text, 'default', specifier, resolvedPath);
       continue;
     }
 
@@ -420,15 +420,34 @@ function collectImportBindings(
     }
 
     if (child.type === 'namespace_import') {
-      const localName = child.namedChildren.find((namedChild) => namedChild.type === 'identifier')?.text;
-      if (localName) {
-        importedBindings.set(localName, {
-          importedName: '*',
-          resolvedPath,
-          specifier,
-        });
-      }
+      addNamespaceImportBinding(child, importedBindings, specifier, resolvedPath);
     }
+  }
+}
+
+function addCollectedImportBinding(
+  importedBindings: Map<string, ImportedBinding>,
+  localName: string,
+  importedName: string,
+  specifier: string,
+  resolvedPath: string | null,
+): void {
+  importedBindings.set(localName, {
+    importedName,
+    resolvedPath,
+    specifier,
+  });
+}
+
+function addNamespaceImportBinding(
+  node: Parser.SyntaxNode,
+  importedBindings: Map<string, ImportedBinding>,
+  specifier: string,
+  resolvedPath: string | null,
+): void {
+  const localName = node.namedChildren.find((namedChild) => namedChild.type === 'identifier')?.text;
+  if (localName) {
+    addCollectedImportBinding(importedBindings, localName, '*', specifier, resolvedPath);
   }
 }
 
@@ -437,18 +456,10 @@ function getImportedBindingForJavaScriptCall(
   importedBindings: ReadonlyMap<string, ImportedBinding>,
 ): ImportedBinding | null {
   const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
-  const directIdentifier = getIdentifierText(calleeNode);
-  if (directIdentifier) {
-    return importedBindings.get(directIdentifier) ?? null;
-  }
-
-  if (calleeNode?.type !== 'member_expression') {
-    return null;
-  }
-
-  const objectNode = calleeNode.childForFieldName('object') ?? calleeNode.namedChildren[0];
-  const objectIdentifier = getIdentifierText(objectNode);
-  return objectIdentifier ? importedBindings.get(objectIdentifier) ?? null : null;
+  return (
+    getImportedBindingByIdentifier(calleeNode, importedBindings)
+    ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'member_expression', 'object')
+  );
 }
 
 function getCallArgumentString(callExpression: Parser.SyntaxNode): string | null {
@@ -724,18 +735,32 @@ function getPythonCallBinding(
   importedBindings: ReadonlyMap<string, ImportedBinding>,
 ): ImportedBinding | null {
   const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
-  const directIdentifier = getIdentifierText(calleeNode);
-  if (directIdentifier) {
-    return importedBindings.get(directIdentifier) ?? null;
-  }
+  return (
+    getImportedBindingByIdentifier(calleeNode, importedBindings)
+    ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'attribute', 'object')
+  );
+}
 
-  if (calleeNode?.type !== 'attribute') {
+function getImportedBindingByIdentifier(
+  node: Parser.SyntaxNode | null | undefined,
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+): ImportedBinding | null {
+  const identifier = getIdentifierText(node);
+  return identifier ? importedBindings.get(identifier) ?? null : null;
+}
+
+function getImportedBindingByPropertyAccess(
+  node: Parser.SyntaxNode | null | undefined,
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+  accessType: string,
+  objectFieldName: string,
+): ImportedBinding | null {
+  if (node?.type !== accessType) {
     return null;
   }
 
-  const objectNode = calleeNode.childForFieldName('object') ?? calleeNode.namedChildren[0];
-  const objectIdentifier = getIdentifierText(objectNode);
-  return objectIdentifier ? importedBindings.get(objectIdentifier) ?? null : null;
+  const objectNode = node.childForFieldName(objectFieldName) ?? node.namedChildren[0];
+  return getImportedBindingByIdentifier(objectNode, importedBindings);
 }
 
 function handlePythonImportStatement(
@@ -776,48 +801,100 @@ function handlePythonImportFromStatement(
   relations: IAnalysisRelation[],
   importedBindings: Map<string, ImportedBinding>,
 ): TreeWalkAction<SymbolWalkState> {
-  const moduleNode = node.namedChildren.find((child) =>
-    child.type === 'relative_import' || child.type === 'dotted_name',
-  );
+  const moduleNode = getPythonImportFromModuleNode(node);
   const moduleSpecifier = getNodeText(moduleNode) ?? '';
-  const importedNodes = node.namedChildren.filter((child) =>
-    (child.type === 'dotted_name' || child.type === 'aliased_import') && child !== moduleNode,
-  );
+  const importedNodes = getPythonImportFromImportedNodes(node, moduleNode);
 
   if (importedNodes.length === 0) {
-    if (moduleSpecifier) {
-      const resolvedPath = resolvePythonModulePath(filePath, workspaceRoot, moduleSpecifier);
-      addImportRelation(relations, filePath, moduleSpecifier, resolvedPath);
-    }
-
+    addPythonModuleOnlyImportRelation(filePath, workspaceRoot, relations, moduleSpecifier);
     return { skipChildren: true };
   }
 
   for (const importedNode of importedNodes) {
-    const importedName = importedNode.type === 'aliased_import'
-      ? getNodeText(importedNode.childForFieldName('name') ?? importedNode.namedChildren[0])
-      : getNodeText(importedNode);
-    if (!importedName) {
-      continue;
-    }
-
-    const localName = getIdentifierText(importedNode.childForFieldName('alias'))
-      ?? getLastPathSegment(importedName, '.');
-    const specifier = joinModuleSpecifier(moduleSpecifier, importedName);
-    const resolvedPath = resolvePythonModulePath(filePath, workspaceRoot, specifier)
-      ?? (moduleSpecifier
-        ? resolvePythonModulePath(filePath, workspaceRoot, moduleSpecifier)
-        : null);
-
-    addImportRelation(relations, filePath, specifier, resolvedPath);
-    importedBindings.set(localName, {
-      importedName,
-      resolvedPath,
-      specifier,
-    });
+    addPythonImportFromBinding(
+      importedNode,
+      moduleSpecifier,
+      filePath,
+      workspaceRoot,
+      relations,
+      importedBindings,
+    );
   }
 
   return { skipChildren: true };
+}
+
+function getPythonImportFromModuleNode(node: Parser.SyntaxNode): Parser.SyntaxNode | undefined {
+  return node.namedChildren.find((child) =>
+    child.type === 'relative_import' || child.type === 'dotted_name',
+  );
+}
+
+function getPythonImportFromImportedNodes(
+  node: Parser.SyntaxNode,
+  moduleNode: Parser.SyntaxNode | undefined,
+): Parser.SyntaxNode[] {
+  return node.namedChildren.filter((child) =>
+    (child.type === 'dotted_name' || child.type === 'aliased_import') && child !== moduleNode,
+  );
+}
+
+function addPythonModuleOnlyImportRelation(
+  filePath: string,
+  workspaceRoot: string,
+  relations: IAnalysisRelation[],
+  moduleSpecifier: string,
+): void {
+  if (!moduleSpecifier) {
+    return;
+  }
+
+  const resolvedPath = resolvePythonModulePath(filePath, workspaceRoot, moduleSpecifier);
+  addImportRelation(relations, filePath, moduleSpecifier, resolvedPath);
+}
+
+function getPythonImportedName(node: Parser.SyntaxNode): string | null {
+  return node.type === 'aliased_import'
+    ? getNodeText(node.childForFieldName('name') ?? node.namedChildren[0])
+    : getNodeText(node);
+}
+
+function resolvePythonImportFromPath(
+  filePath: string,
+  workspaceRoot: string,
+  moduleSpecifier: string,
+  specifier: string,
+): string | null {
+  return resolvePythonModulePath(filePath, workspaceRoot, specifier)
+    ?? (moduleSpecifier
+      ? resolvePythonModulePath(filePath, workspaceRoot, moduleSpecifier)
+      : null);
+}
+
+function addPythonImportFromBinding(
+  importedNode: Parser.SyntaxNode,
+  moduleSpecifier: string,
+  filePath: string,
+  workspaceRoot: string,
+  relations: IAnalysisRelation[],
+  importedBindings: Map<string, ImportedBinding>,
+): void {
+  const importedName = getPythonImportedName(importedNode);
+  if (!importedName) {
+    return;
+  }
+
+  const localName = getIdentifierText(importedNode.childForFieldName('alias'))
+    ?? getLastPathSegment(importedName, '.');
+  const specifier = joinModuleSpecifier(moduleSpecifier, importedName);
+  const resolvedPath = resolvePythonImportFromPath(filePath, workspaceRoot, moduleSpecifier, specifier);
+
+  addImportRelation(relations, filePath, specifier, resolvedPath);
+  importedBindings.set(localName, {
+    importedName,
+    resolvedPath,
+    specifier,
+  });
 }
 
 function handlePythonClassDefinition(
@@ -1095,18 +1172,10 @@ function getGoCallBinding(
   importedBindings: ReadonlyMap<string, ImportedBinding>,
 ): ImportedBinding | null {
   const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
-  const directIdentifier = getIdentifierText(calleeNode);
-  if (directIdentifier) {
-    return importedBindings.get(directIdentifier) ?? null;
-  }
-
-  if (calleeNode?.type !== 'selector_expression') {
-    return null;
-  }
-
-  const objectNode = calleeNode.childForFieldName('operand') ?? calleeNode.namedChildren[0];
-  const objectIdentifier = getIdentifierText(objectNode);
-  return objectIdentifier ? importedBindings.get(objectIdentifier) ?? null : null;
+  return (
+    getImportedBindingByIdentifier(calleeNode, importedBindings)
+    ?? getImportedBindingByPropertyAccess(calleeNode, importedBindings, 'selector_expression', 'operand')
+  );
 }
 
 function handleGoImportDeclaration(
@@ -1280,11 +1349,15 @@ function getCSharpTypeName(node: Parser.SyntaxNode | null | undefined): string |
 function getCSharpNamespaceName(node: Parser.SyntaxNode): string | null {
   return getNodeText(
     node.childForFieldName('name')
-    ?? node.namedChildren.find((child) =>
-      child.type === 'identifier'
-      || child.type === 'qualified_name'
-      || child.type === 'alias_qualified_name',
-    ),
+    ?? node.namedChildren.find(isCSharpNamespaceNameNode),
+  );
+}
+
+function isCSharpNamespaceNameNode(child: Parser.SyntaxNode): boolean {
+  return (
+    child.type === 'identifier'
+    || child.type === 'qualified_name'
+    || child.type === 'alias_qualified_name'
   );
 }
 
@@ -1902,8 +1975,16 @@ export async function analyzeFileWithTreeSitter(
   }
 
   const tree = runtime.parser.parse(content);
+  return analyzeTreeSitterTree(filePath, tree, workspaceRoot, runtime.languageKind);
+}
 
-  switch (runtime.languageKind) {
+function analyzeTreeSitterTree(
+  filePath: string,
+  tree: Parser.Tree,
+  workspaceRoot: string,
+  languageKind: string,
+): IFileAnalysisResult | null {
+  switch (languageKind) {
     case 'csharp':
       return analyzeCSharpFile(filePath, tree, workspaceRoot);
     case 'go':
