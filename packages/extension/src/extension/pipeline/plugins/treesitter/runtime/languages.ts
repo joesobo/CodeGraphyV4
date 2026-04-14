@@ -25,6 +25,11 @@ interface ITreeSitterBindings {
   typeScript: Parser.Language;
 }
 
+type TreeSitterRuntimeBinding = {
+  languageKind: TreeSitterLanguageKind;
+  language: keyof Omit<ITreeSitterBindings, 'ParserCtor'>;
+};
+
 export interface ITreeSitterRuntime {
   languageKind: TreeSitterLanguageKind;
   parser: Parser;
@@ -59,6 +64,26 @@ export const TREE_SITTER_SUPPORTED_EXTENSIONS = [
   '.ts',
   '.tsx',
 ] as const;
+
+const TREE_SITTER_RUNTIME_BINDINGS: Record<
+  (typeof TREE_SITTER_SUPPORTED_EXTENSIONS)[number],
+  TreeSitterRuntimeBinding
+> = {
+  '.cjs': { languageKind: 'javascript', language: 'javaScript' },
+  '.cs': { languageKind: 'csharp', language: 'csharp' },
+  '.cts': { languageKind: 'typescript', language: 'typeScript' },
+  '.go': { languageKind: 'go', language: 'go' },
+  '.java': { languageKind: 'java', language: 'java' },
+  '.js': { languageKind: 'javascript', language: 'javaScript' },
+  '.jsx': { languageKind: 'javascript', language: 'javaScript' },
+  '.mjs': { languageKind: 'javascript', language: 'javaScript' },
+  '.mts': { languageKind: 'typescript', language: 'typeScript' },
+  '.py': { languageKind: 'python', language: 'python' },
+  '.pyi': { languageKind: 'python', language: 'python' },
+  '.rs': { languageKind: 'rust', language: 'rust' },
+  '.ts': { languageKind: 'typescript', language: 'typeScript' },
+  '.tsx': { languageKind: 'tsx', language: 'tsx' },
+};
 
 function getFileExtension(filePath: string): string {
   return path.extname(filePath).toLowerCase();
@@ -133,64 +158,18 @@ async function getTreeSitterLanguageForFile(filePath: string): Promise<{
     return null;
   }
 
-  switch (getFileExtension(filePath)) {
-    case '.cjs':
-    case '.js':
-    case '.jsx':
-    case '.mjs':
-      return {
-        ParserCtor: bindings.ParserCtor,
-        languageKind: 'javascript',
-        language: bindings.javaScript,
-      };
-    case '.cs':
-      return {
-        ParserCtor: bindings.ParserCtor,
-        languageKind: 'csharp',
-        language: bindings.csharp,
-      };
-    case '.go':
-      return {
-        ParserCtor: bindings.ParserCtor,
-        languageKind: 'go',
-        language: bindings.go,
-      };
-    case '.java':
-      return {
-        ParserCtor: bindings.ParserCtor,
-        languageKind: 'java',
-        language: bindings.java,
-      };
-    case '.py':
-    case '.pyi':
-      return {
-        ParserCtor: bindings.ParserCtor,
-        languageKind: 'python',
-        language: bindings.python,
-      };
-    case '.rs':
-      return {
-        ParserCtor: bindings.ParserCtor,
-        languageKind: 'rust',
-        language: bindings.rust,
-      };
-    case '.cts':
-    case '.mts':
-    case '.ts':
-      return {
-        ParserCtor: bindings.ParserCtor,
-        languageKind: 'typescript',
-        language: bindings.typeScript,
-      };
-    case '.tsx':
-      return {
-        ParserCtor: bindings.ParserCtor,
-        languageKind: 'tsx',
-        language: bindings.tsx,
-      };
-    default:
-      return null;
+  const binding = TREE_SITTER_RUNTIME_BINDINGS[
+    getFileExtension(filePath) as keyof typeof TREE_SITTER_RUNTIME_BINDINGS
+  ];
+  if (!binding) {
+    return null;
   }
+
+  return {
+    ParserCtor: bindings.ParserCtor,
+    languageKind: binding.languageKind,
+    language: bindings[binding.language],
+  };
 }
 
 export async function createTreeSitterParser(filePath: string): Promise<Parser | null> {

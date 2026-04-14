@@ -174,7 +174,7 @@ function serializeSettings(value: ICodeGraphyRepoSettings): string {
   const nodeColors = isPlainObject(persisted.nodeColors)
     ? { ...persisted.nodeColors }
     : {};
-  if (typeof persisted.folderNodeColor === 'string') {
+  if (typeof persisted.folderNodeColor === 'string' && !('folder' in nodeColors)) {
     nodeColors.folder = persisted.folderNodeColor;
   }
   persisted.nodeColors = nodeColors;
