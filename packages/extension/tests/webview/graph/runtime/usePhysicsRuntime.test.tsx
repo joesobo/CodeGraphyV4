@@ -36,7 +36,10 @@ function create2DGraph(): Graph2DCurrent {
 }
 
 function create3DGraph(): Graph3DCurrent {
-  return {} as Graph3DCurrent;
+  return {
+    d3Force: vi.fn().mockReturnValue({}),
+    getGraphBbox: vi.fn().mockReturnValue({ x: [0, 1], y: [0, 1], z: [0, 1] }),
+  } as Graph3DCurrent;
 }
 
 function havePhysicsChanged(
@@ -298,6 +301,10 @@ describe('usePhysicsRuntime', () => {
       frames.shift()?.(16);
     });
 
+    act(() => {
+      frames.shift()?.(32);
+    });
+
     expect(physicsHarness.initPhysics).toHaveBeenNthCalledWith(2, graph3D, SETTINGS);
   });
 
@@ -346,6 +353,10 @@ describe('usePhysicsRuntime', () => {
 
     act(() => {
       frames.shift()?.(16);
+    });
+
+    act(() => {
+      frames.shift()?.(32);
     });
 
     expect(physicsHarness.initPhysics).toHaveBeenCalledWith(graph, SETTINGS);

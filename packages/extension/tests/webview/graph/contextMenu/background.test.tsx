@@ -19,6 +19,12 @@ function getGraphContainer(container: HTMLElement): HTMLElement {
   return graphContainer as HTMLElement;
 }
 
+async function waitForThreeDimensionalSurface(): Promise<void> {
+  await waitFor(() => {
+    expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
+  });
+}
+
 const menuData: IGraphData = {
   nodes: [
     { id: 'src/app.ts', label: 'app.ts', color: '#93C5FD' },
@@ -81,6 +87,7 @@ describe('Graph context menu (background)', () => {
       graphStore.setState({ graphMode: '3d' });
     });
     render(<Graph data={menuData} />);
+    await waitForThreeDimensionalSurface();
 
     await act(async () => {
       ForceGraph3D.simulateBackgroundRightClick();
@@ -142,6 +149,7 @@ describe('Graph context menu (background)', () => {
         graphStore.setState({ graphMode: '3d' });
       });
       render(<Graph data={menuData} />);
+      await waitForThreeDimensionalSurface();
 
       await act(async () => {
         ForceGraph3D.simulateBackgroundClick({ button: 0, ctrlKey: true, clientX: 320, clientY: 320 });
@@ -265,6 +273,7 @@ describe('Graph context menu (background)', () => {
 
     const { container } = render(<Graph data={menuData} />);
     const graphContainer = getGraphContainer(container);
+    await waitForThreeDimensionalSurface();
 
     await act(async () => {
       ForceGraph3D.simulateBackgroundRightClick();

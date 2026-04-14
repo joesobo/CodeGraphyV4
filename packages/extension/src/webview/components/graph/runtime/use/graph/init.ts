@@ -36,8 +36,13 @@ export function usePhysicsRuntimeInit({
       if (action.type === 'skip') return;
       if (action.type === 'init') {
         if (graphMode === '3d' && pendingThreeDimensionalInitRef.current) {
+          // The 3d ref becomes available before the underlying force layout is ready
+          // to be reheated. Deferring one extra frame avoids calling d3ReheatSimulation
+          // before three-forcegraph assigns state.layout.
           pendingThreeDimensionalInitRef.current = false;
-          frame = requestAnimationFrame(tryInit);
+          frame = requestAnimationFrame(() => {
+            frame = requestAnimationFrame(tryInit);
+          });
           return;
         }
 

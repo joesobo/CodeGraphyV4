@@ -38,7 +38,7 @@ describe('webview/graph/runtime/use/graph/init', () => {
     physicsHarness.syncPhysicsAnimation.mockReset();
   });
 
-  it('defers the first 3d init by one frame and then initializes the graph', () => {
+  it('defers the first 3d init by two frames and then initializes the graph', () => {
     const graph = createGraph();
     const frames: FrameRequestCallback[] = [];
 
@@ -63,6 +63,11 @@ describe('webview/graph/runtime/use/graph/init', () => {
       pendingThreeDimensionalInitRef: { current: true },
       previousPhysicsRef: { current: null },
     }));
+
+    expect(physicsHarness.initPhysics).not.toHaveBeenCalled();
+    expect(frames).toHaveLength(1);
+
+    frames.shift()?.(0);
 
     expect(physicsHarness.initPhysics).not.toHaveBeenCalled();
     expect(frames).toHaveLength(1);

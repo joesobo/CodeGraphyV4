@@ -3,6 +3,7 @@ import { act, render } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IGraphData } from '../../src/shared/graph/types';
 import Graph from '../../src/webview/components/Graph';
+import type { UseGraphStateResult } from '../../src/webview/components/graph/runtime/use/graph/state';
 import { graphStore } from '../../src/webview/store/state';
 
 const harness = vi.hoisted(() => ({
@@ -55,7 +56,7 @@ function createGraphState(graphData: IGraphData = baseData) {
 		directionModeRef: { current: 'arrows' },
 		edgeDecorationsRef: { current: {} },
 		fg2dRef: { current: undefined },
-		fg3dRef: { current: undefined as { zoomToFit?: ReturnType<typeof vi.fn> } | undefined },
+		fg3dRef: { current: undefined } as UseGraphStateResult['fg3dRef'],
 		fileInfoCacheRef: { current: new Map() },
 		graphContextSelection: { kind: 'background', targets: [] },
 		graphCursorRef: { current: 'default' },
@@ -253,7 +254,11 @@ describe('Graph wiring', () => {
 	it('auto-fits after switching into 3d mode when the graph ref is ready', () => {
 		vi.useFakeTimers();
 		const graphState = createGraphState();
-		graphState.fg3dRef.current = { zoomToFit: vi.fn() };
+		graphState.fg3dRef.current = {
+			d3Force: vi.fn().mockReturnValue({}),
+			getGraphBbox: vi.fn().mockReturnValue({ x: [0, 1], y: [0, 1], z: [0, 1] }),
+			zoomToFit: vi.fn(),
+		} as unknown as NonNullable<UseGraphStateResult['fg3dRef']['current']>;
 		const interactionRuntime = createInteractionRuntime();
 		setStoreState({ graphMode: '3d' });
 		harness.useGraphState.mockReturnValue(graphState);

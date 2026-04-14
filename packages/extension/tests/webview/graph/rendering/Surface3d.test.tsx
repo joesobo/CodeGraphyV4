@@ -1,8 +1,11 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import ForceGraph3D from 'react-force-graph-3d';
-import { Surface3d } from '../../../../src/webview/components/graph/rendering/surface/view3d';
+import {
+  DeferredSurface3d,
+  Surface3d,
+} from '../../../../src/webview/components/graph/rendering/surface/view3d';
 
 function createSharedProps() {
   return {
@@ -190,5 +193,35 @@ describe('Surface3d', () => {
     render(<Surface3d {...defaultProps} />);
     const props = (ForceGraph3D as unknown as { getLastProps: () => Record<string, unknown> }).getLastProps();
     expect(props.linkDirectionalParticleColor).toBe(defaultProps.getParticleColor);
+  });
+
+  it('renders the fallback until the deferred 3d mount has settled', async () => {
+    const frames: FrameRequestCallback[] = [];
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      frames.push(callback);
+      return frames.length;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+
+    render(
+      <DeferredSurface3d
+        {...createDefaultProps()}
+        fallback={<div data-testid="surface-3d-fallback" />}
+      />,
+    );
+
+    expect(screen.getByTestId('surface-3d-fallback')).toBeInTheDocument();
+    expect(screen.queryByTestId('force-graph-3d')).not.toBeInTheDocument();
+
+    await act(async () => {
+      frames.shift()?.(0);
+    });
+    expect(screen.getByTestId('surface-3d-fallback')).toBeInTheDocument();
+
+    await act(async () => {
+      frames.shift()?.(0);
+    });
+    expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
   });
 });

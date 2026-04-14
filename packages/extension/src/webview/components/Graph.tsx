@@ -20,6 +20,7 @@ import { useGraphViewStoreState } from './graph/store';
 import { useGraphCallbacks } from './graph/rendering/useGraphCallbacks';
 import { useGraphInteractionRuntime } from './graph/runtime/use/graph/interaction';
 import { useGraphState } from './graph/runtime/use/graph/state';
+import { isPhysicsGraphReady, selectActivePhysicsGraph } from './graph/runtime/physicsLifecycle';
 import { GraphViewportShell } from './graph/viewport/shell';
 import { ThemeKind } from '../theme/useTheme';
 import type { WebviewPluginHost } from '../pluginHost/manager';
@@ -91,11 +92,17 @@ export default function Graph({
     setSelectedNodes: graphState.setSelectedNodes,
   });
 
+  const activeGraph = selectActivePhysicsGraph(
+    viewState.graphMode,
+    graphState.fg2dRef.current,
+    graphState.fg3dRef.current,
+  );
+
   const handleEngineStop = useGraphAutoFit({
     fitView: interactions.interactionHandlers.fitView,
     graphData: graphState.graphData,
     graphMode: viewState.graphMode,
-    graphReady: Boolean(graphState.fg3dRef.current),
+    graphReady: isPhysicsGraphReady(viewState.graphMode, activeGraph),
     handleEngineStop: interactions.handleEngineStop,
   });
 

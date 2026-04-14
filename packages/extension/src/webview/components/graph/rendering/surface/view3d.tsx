@@ -1,4 +1,4 @@
-import type { MutableRefObject, ReactElement } from 'react';
+import { useEffect, useState, type MutableRefObject, type ReactElement } from 'react';
 import ForceGraph3D from 'react-force-graph-3d';
 import type {
   ForceGraphMethods as FG3DMethods,
@@ -24,6 +24,39 @@ export interface Surface3dProps {
   particleSize: number;
   particleSpeed: number;
   sharedProps: GraphSurfaceSharedProps;
+}
+
+export interface DeferredSurface3dProps extends Surface3dProps {
+  fallback: ReactElement;
+}
+
+export function useDeferredSurface3dMount(enabled: boolean): boolean {
+  const [isMounted, setIsMounted] = useState(!enabled);
+
+  useEffect(() => {
+    if (!enabled) {
+      setIsMounted(true);
+      return;
+    }
+
+    setIsMounted(false);
+
+    let firstFrame: number | null = null;
+    let secondFrame: number | null = null;
+
+    firstFrame = requestAnimationFrame(() => {
+      secondFrame = requestAnimationFrame(() => {
+        setIsMounted(true);
+      });
+    });
+
+    return () => {
+      if (firstFrame !== null) cancelAnimationFrame(firstFrame);
+      if (secondFrame !== null) cancelAnimationFrame(secondFrame);
+    };
+  }, [enabled]);
+
+  return isMounted;
 }
 
 export function Surface3d({
@@ -62,4 +95,17 @@ export function Surface3d({
       linkCurveRotation="rotation"
     />
   );
+}
+
+export function DeferredSurface3d({
+  fallback,
+  ...props
+}: DeferredSurface3dProps): ReactElement {
+  const isMounted = useDeferredSurface3dMount(true);
+
+  if (!isMounted) {
+    return fallback;
+  }
+
+  return <Surface3d {...props} />;
 }

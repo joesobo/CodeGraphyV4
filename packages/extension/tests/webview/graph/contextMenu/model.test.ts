@@ -65,6 +65,7 @@ describe('graph/contextMenuModel', () => {
       'Remove from Favorites',
       'Focus Node',
       'Add to Filter',
+      'Add Legend Group',
       'Rename...',
       'Delete File',
     ]);
@@ -133,6 +134,7 @@ describe('graph/contextMenuModel', () => {
       'toggleFavorite',
       'focus',
       'addToFilter',
+      'addNodeLegend',
       'rename',
       'delete',
     ]);

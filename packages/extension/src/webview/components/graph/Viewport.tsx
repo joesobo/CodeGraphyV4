@@ -19,7 +19,7 @@ import {
   type Surface2dProps,
 } from './rendering/surface/view2d';
 import {
-  Surface3d,
+  DeferredSurface3d,
   type Surface3dProps,
 } from './rendering/surface/view3d';
 import { SurfaceFallbackBoundary } from './rendering/surface/fallbackBoundary';
@@ -97,10 +97,17 @@ export function Viewport({
                 />
               )}
             >
-              <Surface3d
+              <DeferredSurface3d
                 {...surface3dProps}
                 backgroundColor={backgroundColor}
                 directionMode={directionMode}
+                fallback={(
+                  <Surface2d
+                    {...surface2dProps}
+                    backgroundColor={backgroundColor}
+                    directionMode={directionMode}
+                  />
+                )}
               />
             </SurfaceFallbackBoundary>
           )}

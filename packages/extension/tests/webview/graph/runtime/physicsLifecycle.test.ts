@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
+  isPhysicsGraphReady,
   resolvePhysicsInitAction,
   selectActivePhysicsGraph,
   shouldApplyPhysicsUpdate,
@@ -22,6 +23,23 @@ function create3DGraph() {
   return {} as Parameters<typeof selectActivePhysicsGraph>[2];
 }
 
+function createReady3DGraph() {
+  return {
+    d3Force: vi.fn((name: string) => {
+      if (name === 'charge' || name === 'link') {
+        return {};
+      }
+
+      return undefined;
+    }),
+    getGraphBbox: vi.fn(() => ({
+      x: [0, 100],
+      y: [0, 100],
+      z: [0, 100],
+    })),
+  } as unknown as Parameters<typeof selectActivePhysicsGraph>[2];
+}
+
 describe('graph/runtime/physicsLifecycle', () => {
   it('returns the active 2d graph when graph mode is 2d', () => {
     const graph2D = create2DGraph();
@@ -35,6 +53,48 @@ describe('graph/runtime/physicsLifecycle', () => {
     const graph3D = create3DGraph();
 
     expect(selectActivePhysicsGraph('3d', graph2D, graph3D)).toBe(graph3D);
+  });
+
+  it('treats 2d graphs as ready as soon as an instance exists', () => {
+    expect(isPhysicsGraphReady('2d', create2DGraph())).toBe(true);
+  });
+
+  it('waits for 3d graphs until the force layout is available', () => {
+    expect(isPhysicsGraphReady('3d', create3DGraph())).toBe(false);
+  });
+
+  it('treats 3d graphs as ready once charge and link forces are exposed', () => {
+    expect(isPhysicsGraphReady('3d', createReady3DGraph())).toBe(true);
+  });
+
+  it('treats 3d graphs as not ready when the readiness probe throws', () => {
+    const graph = {
+      d3Force: vi.fn(() => {
+        throw new Error('not ready');
+      }),
+      getGraphBbox: vi.fn(() => ({
+        x: [0, 100],
+        y: [0, 100],
+        z: [0, 100],
+      })),
+    } as unknown as Parameters<typeof selectActivePhysicsGraph>[2];
+
+    expect(isPhysicsGraphReady('3d', graph)).toBe(false);
+  });
+
+  it('waits for 3d graphs until a graph bounding box is available', () => {
+    const graph = {
+      d3Force: vi.fn((name: string) => {
+        if (name === 'charge' || name === 'link') {
+          return {};
+        }
+
+        return undefined;
+      }),
+      getGraphBbox: vi.fn(() => null),
+    } as unknown as Parameters<typeof selectActivePhysicsGraph>[2];
+
+    expect(isPhysicsGraphReady('3d', graph)).toBe(false);
   });
 
   it('does not compare settings before physics is initialized', () => {
@@ -96,7 +156,7 @@ describe('graph/runtime/physicsLifecycle', () => {
   });
 
   it('initializes the selected active graph instance', () => {
-    const graph = create3DGraph();
+    const graph = createReady3DGraph();
 
     expect(resolvePhysicsInitAction({
       fg2d: create2DGraph(),

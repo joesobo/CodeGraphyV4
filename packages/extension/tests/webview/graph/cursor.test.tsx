@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, act, screen } from '@testing-library/react';
+import { render, act, screen, waitFor } from '@testing-library/react';
 import Graph from '../../../src/webview/components/Graph';
 import type { IGraphData } from '../../../src/shared/graph/types';
 import { graphStore } from '../../../src/webview/store/state';
@@ -61,6 +61,9 @@ describe('Graph cursor behavior', () => {
 
     const { container } = render(<Graph data={graphData} />);
     const graphContainer = getGraphContainer(container);
+    await waitFor(() => {
+      expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
+    });
     const graphSurface = screen.getByTestId('force-graph-3d') as HTMLDivElement;
 
     const props = ForceGraph3D.getLastProps();

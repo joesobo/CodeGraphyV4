@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import type { GraphContextMenuEntry } from '../../../src/webview/components/graph/contextMenu/contracts';
 import { Viewport } from '../../../src/webview/components/graph/Viewport';
@@ -26,7 +26,7 @@ vi.mock('../../../src/webview/components/graph/rendering/surface/view2d', () => 
 }));
 
 vi.mock('../../../src/webview/components/graph/rendering/surface/view3d', () => ({
-  Surface3d: (props: Record<string, unknown>) => {
+  DeferredSurface3d: (props: Record<string, unknown>) => {
     harness.surface3d(props);
     if (harness.throwSurface3d) {
       throw new Error('Error creating WebGL context.');
@@ -152,14 +152,16 @@ function renderViewport(overrides: Partial<React.ComponentProps<typeof Viewport>
 }
 
 describe('Viewport', () => {
-  it('falls back to the 2d surface when the 3d surface throws', () => {
+  it('falls back to the 2d surface when the 3d surface throws', async () => {
     harness.throwSurface3d = true;
     const onSurface3dError = vi.fn();
     const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
     renderViewport({ graphMode: '3d', onSurface3dError });
 
-    expect(screen.getByTestId('surface-2d')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('surface-2d')).toBeInTheDocument();
+    });
     expect(screen.queryByTestId('surface-3d')).not.toBeInTheDocument();
     expect(onSurface3dError).toHaveBeenCalledWith(expect.any(Error));
 
@@ -187,10 +189,12 @@ describe('Viewport', () => {
     );
   });
 
-  it('renders the 3d graph surface when graphMode is 3d', () => {
+  it('renders the 3d graph surface when graphMode is 3d', async () => {
     renderViewport({ graphMode: '3d' });
 
-    expect(screen.getByTestId('surface-3d')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByTestId('surface-3d')).toBeInTheDocument();
+    });
     expect(screen.queryByTestId('surface-2d')).not.toBeInTheDocument();
   });
 
