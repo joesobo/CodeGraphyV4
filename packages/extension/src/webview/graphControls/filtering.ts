@@ -73,6 +73,43 @@ function filterVisibleStructuralEdges(
   return edges.filter((edge) => visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to));
 }
 
+function buildFolderStructuralNodes(
+  fileNodes: IGraphNode[],
+  nodeVisibility: Record<string, boolean>,
+  nodeColors: Record<string, string>,
+): { folderNodes: IGraphNode[]; folderPaths: Set<string> } {
+  const folderEnabled = nodeVisibility.folder ?? false;
+  const folderPaths = folderEnabled ? collectFolderPaths(fileNodes).paths : new Set<string>();
+
+  return {
+    folderPaths,
+    folderNodes: folderEnabled
+      ? createFolderNodes(folderPaths, nodeColors.folder ?? DEFAULT_FOLDER_NODE_COLOR)
+      : [],
+  };
+}
+
+function buildPackageStructuralNodes(
+  fileNodes: IGraphNode[],
+  nodeVisibility: Record<string, boolean>,
+  nodeColors: Record<string, string>,
+): { packageNodes: IGraphNode[]; workspacePackageRoots: Set<string> } {
+  const packageEnabled = nodeVisibility.package ?? false;
+  const workspacePackageRoots = packageEnabled
+    ? collectWorkspacePackageRoots(fileNodes)
+    : new Set<string>();
+
+  return {
+    packageNodes: packageEnabled
+      ? createWorkspacePackageNodes(
+          workspacePackageRoots,
+          nodeColors.package ?? DEFAULT_PACKAGE_NODE_COLOR,
+        )
+      : [],
+    workspacePackageRoots,
+  };
+}
+
 function buildStructuralGraphNodes(
   fileNodes: IGraphNode[],
   nodeVisibility: Record<string, boolean>,
@@ -83,24 +120,13 @@ function buildStructuralGraphNodes(
   packageNodes: IGraphNode[];
   workspacePackageRoots: Set<string>;
 } {
-  const folderEnabled = nodeVisibility.folder ?? false;
-  const packageEnabled = nodeVisibility.package ?? false;
-  const folderPaths = folderEnabled ? collectFolderPaths(fileNodes).paths : new Set<string>();
-  const workspacePackageRoots = packageEnabled
-    ? collectWorkspacePackageRoots(fileNodes)
-    : new Set<string>();
+  const { folderNodes, folderPaths } = buildFolderStructuralNodes(fileNodes, nodeVisibility, nodeColors);
+  const { packageNodes, workspacePackageRoots } = buildPackageStructuralNodes(fileNodes, nodeVisibility, nodeColors);
 
   return {
     folderPaths,
-    folderNodes: folderEnabled
-      ? createFolderNodes(folderPaths, nodeColors.folder ?? DEFAULT_FOLDER_NODE_COLOR)
-      : [],
-    packageNodes: packageEnabled
-      ? createWorkspacePackageNodes(
-          workspacePackageRoots,
-          nodeColors.package ?? DEFAULT_PACKAGE_NODE_COLOR,
-        )
-      : [],
+    folderNodes,
+    packageNodes,
     workspacePackageRoots,
   };
 }

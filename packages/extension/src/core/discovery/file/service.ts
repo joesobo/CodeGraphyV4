@@ -13,15 +13,36 @@ import { shouldIncludeFile } from './filter';
 import { walkDirectory } from './walk';
 import { DEFAULT_INCLUDE, EMPTY_PATTERNS, DEFAULT_MAX_FILES } from './defaults';
 
+function getDiscoveryConfig(options: IDiscoveryOptions) {
+  return {
+    maxFiles: options.maxFiles ?? DEFAULT_MAX_FILES,
+    includePatterns: options.include ?? DEFAULT_INCLUDE,
+    excludePatterns: options.exclude ?? EMPTY_PATTERNS,
+    respectGitignore: options.respectGitignore ?? true,
+    extensions: options.extensions ?? EMPTY_PATTERNS,
+  };
+}
+
+function createDiscoveredFile(relativePath: string, absolutePath: string): IDiscoveredFile {
+  return {
+    relativePath,
+    absolutePath,
+    extension: path.extname(absolutePath).toLowerCase(),
+    name: path.basename(absolutePath),
+  };
+}
+
 export class FileDiscovery {
   async discover(options: IDiscoveryOptions): Promise<IDiscoveryResult> {
     const startTime = Date.now();
     const { rootPath, signal } = options;
-    const maxFiles = options.maxFiles ?? DEFAULT_MAX_FILES;
-    const includePatterns = options.include ?? DEFAULT_INCLUDE;
-    const excludePatterns = options.exclude ?? EMPTY_PATTERNS;
-    const respectGitignore = options.respectGitignore ?? true;
-    const extensions = options.extensions ?? EMPTY_PATTERNS;
+    const {
+      maxFiles,
+      includePatterns,
+      excludePatterns,
+      respectGitignore,
+      extensions,
+    } = getDiscoveryConfig(options);
 
     throwIfAborted(signal);
 
@@ -52,13 +73,7 @@ export class FileDiscovery {
           return true;
         }
 
-        const ext = path.extname(absolutePath).toLowerCase();
-        files.push({
-          relativePath,
-          absolutePath,
-          extension: ext,
-          name: path.basename(absolutePath),
-        });
+        files.push(createDiscoveredFile(relativePath, absolutePath));
         totalFound++;
         return true;
       },

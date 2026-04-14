@@ -47,6 +47,44 @@ export interface IPluginInfoV2 extends IPluginInfo {
   api?: CodeGraphyAPIImpl;
 }
 
+function buildReorderedPluginMap(
+  plugins: Map<string, IPluginInfoV2>,
+  pluginIds: string[],
+): Map<string, IPluginInfoV2> {
+  const orderedIds = new Set<string>();
+  const reorderedPlugins = new Map<string, IPluginInfoV2>();
+
+  for (const pluginId of pluginIds) {
+    const info = plugins.get(pluginId);
+    if (!info || orderedIds.has(pluginId)) {
+      continue;
+    }
+
+    orderedIds.add(pluginId);
+    reorderedPlugins.set(pluginId, info);
+  }
+
+  for (const [pluginId, info] of plugins) {
+    if (orderedIds.has(pluginId)) {
+      continue;
+    }
+
+    reorderedPlugins.set(pluginId, info);
+  }
+
+  return reorderedPlugins;
+}
+
+function replacePluginMap(
+  plugins: Map<string, IPluginInfoV2>,
+  reorderedPlugins: Map<string, IPluginInfoV2>,
+): void {
+  plugins.clear();
+  for (const [pluginId, info] of reorderedPlugins) {
+    plugins.set(pluginId, info);
+  }
+}
+
 export class PluginRegistry {
   private readonly _plugins = new Map<string, IPluginInfoV2>();
   private readonly _extensionMap = new Map<string, string[]>();
@@ -100,31 +138,8 @@ export class PluginRegistry {
       return;
     }
 
-    const orderedIds = new Set<string>();
-    const reorderedPlugins = new Map<string, IPluginInfoV2>();
-
-    for (const pluginId of pluginIds) {
-      const info = this._plugins.get(pluginId);
-      if (!info || orderedIds.has(pluginId)) {
-        continue;
-      }
-
-      orderedIds.add(pluginId);
-      reorderedPlugins.set(pluginId, info);
-    }
-
-    for (const [pluginId, info] of this._plugins) {
-      if (orderedIds.has(pluginId)) {
-        continue;
-      }
-
-      reorderedPlugins.set(pluginId, info);
-    }
-
-    this._plugins.clear();
-    for (const [pluginId, info] of reorderedPlugins) {
-      this._plugins.set(pluginId, info);
-    }
+    const reorderedPlugins = buildReorderedPluginMap(this._plugins, pluginIds);
+    replacePluginMap(this._plugins, reorderedPlugins);
 
     rebuildPluginExtensionMap(
       Array.from(this._plugins.values(), pluginInfo => pluginInfo.plugin),

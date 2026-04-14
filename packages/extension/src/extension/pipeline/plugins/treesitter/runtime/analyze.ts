@@ -1347,18 +1347,22 @@ function getCSharpTypeName(node: Parser.SyntaxNode | null | undefined): string |
 }
 
 function getCSharpNamespaceName(node: Parser.SyntaxNode): string | null {
-  return getNodeText(
-    node.childForFieldName('name')
-    ?? node.namedChildren.find(isCSharpNamespaceNameNode),
-  );
-}
+  const nameNode = node.childForFieldName('name');
+  if (nameNode) {
+    return getNodeText(nameNode);
+  }
 
-function isCSharpNamespaceNameNode(child: Parser.SyntaxNode): boolean {
-  return (
-    child.type === 'identifier'
-    || child.type === 'qualified_name'
-    || child.type === 'alias_qualified_name'
-  );
+  for (const child of node.namedChildren) {
+    if (
+      child.type === 'identifier'
+      || child.type === 'qualified_name'
+      || child.type === 'alias_qualified_name'
+    ) {
+      return getNodeText(child);
+    }
+  }
+
+  return null;
 }
 
 function getCSharpFileScopedNamespaceName(rootNode: Parser.SyntaxNode): string | null {
@@ -2015,22 +2019,27 @@ function analyzeTreeSitterTree(
   workspaceRoot: string,
   languageKind: string,
 ): IFileAnalysisResult | null {
-  switch (languageKind) {
-    case 'csharp':
-      return analyzeCSharpFile(filePath, tree, workspaceRoot);
-    case 'go':
-      return analyzeGoFile(filePath, tree, workspaceRoot);
-    case 'java':
-      return analyzeJavaFile(filePath, tree);
-    case 'javascript':
-    case 'tsx':
-    case 'typescript':
-      return analyzeJavaScriptFamilyFile(filePath, tree);
-    case 'python':
-      return analyzePythonFile(filePath, tree, workspaceRoot);
-    case 'rust':
-      return analyzeRustFile(filePath, tree, workspaceRoot);
-    default:
-      return null;
+  if (languageKind === 'csharp') {
+    return analyzeCSharpFile(filePath, tree, workspaceRoot);
   }
+
+  if (languageKind === 'go') {
+    return analyzeGoFile(filePath, tree, workspaceRoot);
+  }
+
+  if (languageKind === 'java') {
+    return analyzeJavaFile(filePath, tree);
+  }
+
+  if (languageKind === 'javascript' || languageKind === 'tsx' || languageKind === 'typescript') {
+    return analyzeJavaScriptFamilyFile(filePath, tree);
+  }
+
+  if (languageKind === 'python') {
+    return analyzePythonFile(filePath, tree, workspaceRoot);
+  }
+
+  return languageKind === 'rust'
+    ? analyzeRustFile(filePath, tree, workspaceRoot)
+    : null;
 }

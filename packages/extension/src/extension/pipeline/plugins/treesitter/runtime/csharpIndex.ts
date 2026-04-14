@@ -59,18 +59,22 @@ function getNodeText(node: Parser.SyntaxNode | null | undefined): string | null 
 }
 
 function getNamespaceName(node: Parser.SyntaxNode): string | null {
-  return getNodeText(
-    node.childForFieldName('name')
-    ?? node.namedChildren.find(isCSharpNamespaceNameNode),
-  );
-}
+  const nameNode = node.childForFieldName('name');
+  if (nameNode) {
+    return getNodeText(nameNode);
+  }
 
-function isCSharpNamespaceNameNode(child: Parser.SyntaxNode): boolean {
-  return (
-    child.type === 'identifier'
-    || child.type === 'qualified_name'
-    || child.type === 'alias_qualified_name'
-  );
+  for (const child of node.namedChildren) {
+    if (
+      child.type === 'identifier'
+      || child.type === 'qualified_name'
+      || child.type === 'alias_qualified_name'
+    ) {
+      return getNodeText(child);
+    }
+  }
+
+  return null;
 }
 
 function getFileScopedNamespaceName(rootNode: Parser.SyntaxNode): string | null {
