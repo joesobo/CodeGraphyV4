@@ -77,7 +77,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     expect(nodes).toEqual([{ id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' }]);
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts#import',
+        id: 'src/a.ts->src/b.ts#import:static',
         from: 'src/a.ts',
         to: 'src/b.ts',
         kind: 'import',
@@ -130,7 +130,7 @@ describe('gitHistory/reanalyzeGraphFile', () => {
     expect(getFileAtCommit).toHaveBeenCalled();
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts#import',
+        id: 'src/a.ts->src/b.ts#import:static',
         from: 'src/a.ts',
         to: 'src/b.ts',
         kind: 'import',

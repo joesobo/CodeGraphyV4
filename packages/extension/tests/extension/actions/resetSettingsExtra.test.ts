@@ -80,7 +80,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
       'physics.linkForce': SNAPSHOT.physics.linkForce,
       'physics.damping': SNAPSHOT.physics.damping,
       'physics.centerForce': SNAPSHOT.physics.centerForce,
-      legends: [],
+      legend: [],
       filterPatterns: [],
       showOrphans: true,
       bidirectionalEdges: 'separate',
@@ -150,7 +150,7 @@ describe('ResetSettingsAction (extra mutant coverage)', () => {
     const cgUpdateCalls = (mockConfig.update as ReturnType<typeof vi.fn>).mock.calls
       .filter(([key]) => !String(key).startsWith('physics.'));
     const updatedKeys = cgUpdateCalls.map((call) => call[0]);
-    expect(updatedKeys).toContain('groups');
+    expect(updatedKeys).toContain('legend');
     expect(updatedKeys).toContain('filterPatterns');
     expect(updatedKeys).toContain('showOrphans');
     expect(updatedKeys).toContain('bidirectionalEdges');

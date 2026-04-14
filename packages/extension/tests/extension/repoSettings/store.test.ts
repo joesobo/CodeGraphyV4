@@ -32,30 +32,20 @@ describe('extension/repoSettings/store', () => {
     }
   });
 
-  it('creates .codegraphy/settings.json and seeds it from legacy configuration', () => {
+  it('creates .codegraphy/settings.json from defaults instead of seeding legacy configuration', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
 
-    const store = new CodeGraphyRepoSettingsStore(workspaceRoot, {
-      get: <T>(key: string, defaultValue: T): T => {
-        if (key === 'showOrphans') return false as T;
-        if (key === 'timeline.maxCommits') return 123 as T;
-        if (key === 'groups') {
-          return [{ id: 'group.from-legacy', pattern: 'src/**', color: '#ffffff' }] as T;
-        }
-        return defaultValue;
-      },
-    });
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
 
     const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
     const persisted = readJson<Record<string, unknown>>(settingsPath);
 
-    expect(store.get('showOrphans', true)).toBe(false);
-    expect(store.get('timeline.maxCommits', 0)).toBe(123);
-    expect(persisted.showOrphans).toBe(false);
-    expect(persisted.timeline).toEqual({ maxCommits: 123, playbackSpeed: 1 });
-    expect(persisted.legend).toEqual([{ id: 'group.from-legacy', pattern: 'src/**', color: '#ffffff' }]);
-    expect(persisted.groups).toBeUndefined();
+    expect(store.get('showOrphans', true)).toBe(true);
+    expect(store.get('timeline.maxCommits', 0)).toBe(500);
+    expect(persisted.showOrphans).toBe(true);
+    expect(persisted.timeline).toEqual({ maxCommits: 500, playbackSpeed: 1 });
+    expect(persisted.legend).toEqual([]);
   });
 
   it('creates .gitignore when missing and adds .codegraphy/ once', () => {
@@ -152,7 +142,7 @@ describe('extension/repoSettings/store', () => {
     expect(changes).toEqual([['timeline.playbackSpeed']]);
   });
 
-  it('reads the cleaner legend key and folder color from node colors', () => {
+  it('reads persisted legend and node colors without legacy key aliases', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
     const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
@@ -172,14 +162,13 @@ describe('extension/repoSettings/store', () => {
     expect(store.get('legend', [])).toEqual([
       { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
     ]);
-    expect(store.get('groups', [])).toEqual([
-      { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
-    ]);
-    expect(store.get('folderNodeColor', '')).toBe('#445566');
-    expect(readJson<Record<string, unknown>>(store.settingsPath).folderNodeColor).toBeUndefined();
+    expect(store.get('nodeColors', {})).toEqual(expect.objectContaining({
+      file: '#999999',
+      folder: '#445566',
+    }));
   });
 
-  it('updates legend through the cleaner alias and persists only the legend key', async () => {
+  it('updates legend and persists only the legend key', async () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
@@ -189,12 +178,10 @@ describe('extension/repoSettings/store', () => {
 
     const persisted = readJson<Record<string, unknown>>(store.settingsPath);
     expect(store.get('legend', [])).toEqual(nextLegend);
-    expect(store.get('groups', [])).toEqual(nextLegend);
     expect(persisted.legend).toEqual(nextLegend);
-    expect(persisted.groups).toBeUndefined();
   });
 
-  it('merges legacy exclude entries into filterPatterns and rewrites the cleaner file shape', () => {
+  it('ignores legacy exclude entries in persisted settings files', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
     const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
@@ -210,12 +197,31 @@ describe('extension/repoSettings/store', () => {
     );
 
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
-    const persisted = readJson<Record<string, unknown>>(store.settingsPath);
 
-    expect(store.get('filterPatterns', [])).toEqual(['**/*.png', '**/*.tmp']);
-    expect(store.get('exclude', [])).toEqual(['**/*.png', '**/*.tmp']);
-    expect(persisted.filterPatterns).toEqual(['**/*.png', '**/*.tmp']);
-    expect(persisted.exclude).toBeUndefined();
+    expect(store.get('filterPatterns', [])).toEqual(['**/*.png']);
+  });
+
+  it('ignores invalid manual saves and keeps the last valid settings in memory', () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+    const changes: string[][] = [];
+    store.onDidChange(event => {
+      changes.push(event.changedKeys);
+    });
+
+    fs.writeFileSync(
+      store.settingsPath,
+      JSON.stringify(createSettingsWithOverrides({ maxFiles: 900 }), null, 2),
+      'utf8',
+    );
+    store.reload();
+
+    fs.writeFileSync(store.settingsPath, '{"maxFiles": }', 'utf8');
+    expect(() => store.reload()).not.toThrow();
+
+    expect(store.get('maxFiles', 0)).toBe(900);
+    expect(changes).toEqual([['maxFiles']]);
   });
 
   it('prefers existing legend and node color entries over legacy aliases while cleaning excludes', () => {

@@ -16,11 +16,25 @@ describe('pipeline/plugins/bootstrap', () => {
     expect(
       getWorkspacePipelinePluginFilterPatterns({
         list: () => [
-          { plugin: { defaultFilters: ['**/*.generated.ts', '**/*.min.js'] } },
+          { plugin: { id: 'plugin.enabled', defaultFilters: ['**/*.generated.ts', '**/*.min.js'] } },
           { plugin: {} },
-          { plugin: { defaultFilters: ['**/*.generated.ts'] } },
-        ],
+          { plugin: { id: 'plugin.disabled', defaultFilters: ['**/*.generated.ts'] } },
+        ] as Array<{ plugin: { id?: string; defaultFilters?: string[] } }>,
       }),
+    ).toEqual(['**/*.generated.ts', '**/*.min.js']);
+  });
+
+  it('skips default filter patterns contributed by disabled plugins', () => {
+    expect(
+      getWorkspacePipelinePluginFilterPatterns(
+        {
+          list: () => [
+            { plugin: { id: 'plugin.enabled', defaultFilters: ['**/*.generated.ts', '**/*.min.js'] } },
+            { plugin: { id: 'plugin.disabled', defaultFilters: ['venv/**', '**/*.generated.ts'] } },
+          ],
+        },
+        new Set(['plugin.disabled']),
+      ),
     ).toEqual(['**/*.generated.ts', '**/*.min.js']);
   });
 

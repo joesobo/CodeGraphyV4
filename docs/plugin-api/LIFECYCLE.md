@@ -177,6 +177,34 @@ onPreAnalyze(files, workspaceRoot) {
 
 **Example:** The GDScript plugin uses this to build a `class_name` map so `extends Player` resolves to the correct file. The Markdown plugin builds a file index for wikilink resolution.
 
+### onFilesChanged(files, workspaceRoot)
+
+Called before an incremental save-driven refresh when CodeGraphy already has a warmed repo index.
+
+Use this when your plugin keeps cross-file state that can be updated from a small changed-file set. Return additional workspace-relative file paths when those dependents also need re-analysis.
+
+```typescript
+async onFilesChanged(files, workspaceRoot) {
+  let requiresDependents = false;
+
+  for (const file of files) {
+    const changed = updateLocalIndex(file.relativePath, file.content);
+    requiresDependents ||= changed;
+  }
+
+  return requiresDependents
+    ? ['src/runtime/container.ts', 'src/runtime/registry.ts']
+    : [];
+}
+```
+
+Behavior:
+
+- return `[]` or `undefined` when re-analyzing only the changed files is enough
+- return workspace-relative file paths when dependents should also be re-analyzed
+- if your plugin only implements `onPreAnalyze(...)` and not `onFilesChanged(...)`, CodeGraphy falls back to a full refresh for safety
+- if `onFilesChanged(...)` throws, CodeGraphy also falls back to a full refresh
+
 ### analyzeFile(filePath, content, workspaceRoot)
 
 Called for each file after the core has prepared the file payload. Plugins return a per-file analysis object containing any mix of:
@@ -359,6 +387,10 @@ export function createMetricsPlugin(): IPlugin {
         filePath,
         relations: [],
       };
+    },
+
+    async onFilesChanged(files) {
+      return files.map((file) => file.relativePath);
     },
 
     onLoad(_api) {

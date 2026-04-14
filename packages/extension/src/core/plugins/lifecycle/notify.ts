@@ -37,6 +37,60 @@ export async function notifyPreAnalyze(
   }
 }
 
+export interface IPluginFilesChangedResult {
+  additionalFilePaths: string[];
+  requiresFullRefresh: boolean;
+}
+
+export async function notifyFilesChanged(
+  plugins: Map<string, ILifecyclePluginInfo>,
+  files: Array<{ absolutePath: string; relativePath: string; content: string }>,
+  workspaceRoot: string,
+): Promise<IPluginFilesChangedResult> {
+  const additionalFilePaths = new Set<string>();
+  let requiresFullRefresh = false;
+
+  for (const info of plugins.values()) {
+    const pluginFiles = files.filter((file) => {
+      if (info.plugin.supportedExtensions.includes('*')) {
+        return true;
+      }
+
+      return info.plugin.supportedExtensions.some((extension) =>
+        file.relativePath.toLowerCase().endsWith(extension.toLowerCase()),
+      );
+    });
+
+    if (pluginFiles.length === 0) {
+      continue;
+    }
+
+    if (!info.plugin.onFilesChanged) {
+      if (info.plugin.onPreAnalyze) {
+        requiresFullRefresh = true;
+      }
+      continue;
+    }
+
+    try {
+      const nextPaths = await info.plugin.onFilesChanged(pluginFiles, workspaceRoot);
+      for (const filePath of nextPaths ?? []) {
+        if (typeof filePath === 'string' && filePath.length > 0) {
+          additionalFilePaths.add(filePath);
+        }
+      }
+    } catch (error) {
+      console.error(`[CodeGraphy] Error in onFilesChanged for ${info.plugin.id}:`, error);
+      requiresFullRefresh = true;
+    }
+  }
+
+  return {
+    additionalFilePaths: [...additionalFilePaths],
+    requiresFullRefresh,
+  };
+}
+
 /**
  * Notifies all plugins after an analysis pass.
  */

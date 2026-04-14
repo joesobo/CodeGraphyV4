@@ -1,10 +1,8 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import {
-  createCodeGraphyRepoSettingsFromLegacyConfig,
   createDefaultCodeGraphyRepoSettings,
   type ICodeGraphyRepoSettings,
-  type LegacyCodeGraphyConfigurationLike,
 } from './defaults';
 
 export interface ICodeGraphySettingsInspect<T> {
@@ -72,9 +70,8 @@ function readStringArray(value: unknown): string[] {
 
 function normalizePersistedFilterPatterns(normalized: Record<string, unknown>): void {
   const filterPatterns = readStringArray(normalized.filterPatterns);
-  const exclude = readStringArray(normalized.exclude);
-  if (filterPatterns.length > 0 || exclude.length > 0) {
-    normalized.filterPatterns = Array.from(new Set([...filterPatterns, ...exclude]));
+  if (filterPatterns.length > 0) {
+    normalized.filterPatterns = Array.from(new Set(filterPatterns));
   }
 
   delete normalized.exclude;
@@ -100,7 +97,6 @@ function normalizePersistedNodeColors(normalized: Record<string, unknown>): void
     normalized.nodeColors = nodeColors;
   }
 }
-
 function deepClone<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
@@ -283,7 +279,6 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
 
   constructor(
     private readonly _workspaceRoot: string,
-    legacyConfig?: LegacyCodeGraphyConfigurationLike,
   ) {
     this._settingsDirectoryPath = path.join(_workspaceRoot, SETTINGS_DIR_NAME);
     this._settingsPath = path.join(this._settingsDirectoryPath, SETTINGS_FILE_NAME);
@@ -295,7 +290,7 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
     if (fs.existsSync(this._settingsPath)) {
       this._settings = this._readSettingsFromDisk();
     } else {
-      this._settings = createCodeGraphyRepoSettingsFromLegacyConfig(legacyConfig);
+      this._settings = createDefaultCodeGraphyRepoSettings();
       this._writeSettingsToDisk();
     }
   }
@@ -367,13 +362,17 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
       return;
     }
 
-    this._settings = deepMerge(
-      this._defaults,
-      normalizePersistedSettingsShape(JSON.parse(nextSerialized)),
-    );
-    this._serializedSettings = serializeSettings(this._settings);
-    const changedKeys = collectChangedKeys(previousSettings, this._settings);
-    this._emit(changedKeys.length > 0 ? changedKeys : ['codegraphy']);
+    try {
+      this._settings = deepMerge(
+        this._defaults,
+        normalizePersistedSettingsShape(JSON.parse(nextSerialized)),
+      );
+      this._serializedSettings = serializeSettings(this._settings);
+      const changedKeys = collectChangedKeys(previousSettings, this._settings);
+      this._emit(changedKeys.length > 0 ? changedKeys : ['codegraphy']);
+    } catch (error) {
+      console.warn('[CodeGraphy] Ignoring invalid .codegraphy/settings.json save.', error);
+    }
   }
 
   private _emit(changedKeys: string[]): void {

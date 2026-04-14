@@ -249,4 +249,47 @@ describe('pipeline/graph/edges', () => {
       },
     ]);
   });
+
+  it('keeps same-kind edges separate when their relation types differ', () => {
+    const result = buildWorkspaceGraphEdges(createOptions({
+      fileConnections: new Map<string, IProjectedConnection[]>([
+        ['src/index.ts', [
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', type: 'static', sourceId: 'import' },
+          { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', kind: 'import', type: 'dynamic', sourceId: 'dynamic-import' },
+        ]],
+        ['src/utils.ts', []],
+      ]),
+    }));
+
+    expect(result.edges).toEqual([
+      {
+        id: 'src/index.ts->src/utils.ts#import:static',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'import',
+            label: 'Import',
+          },
+        ],
+      },
+      {
+        id: 'src/index.ts->src/utils.ts#import:dynamic',
+        from: 'src/index.ts',
+        to: 'src/utils.ts',
+        kind: 'import',
+        sources: [
+          {
+            id: 'plugin.typescript:dynamic-import',
+            pluginId: 'plugin.typescript',
+            sourceId: 'dynamic-import',
+            label: 'Dynamic Import',
+          },
+        ],
+      },
+    ]);
+  });
 });

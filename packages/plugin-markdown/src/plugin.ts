@@ -69,6 +69,17 @@ export function createMarkdownPlugin(): IPlugin {
       resolver.buildIndex(files);
     },
 
+    async onFilesChanged(
+      _files: Array<{
+        absolutePath: string;
+        relativePath: string;
+        content: string;
+      }>,
+      workspaceRoot: string,
+    ): Promise<void> {
+      resolver.setWorkspaceRoot(workspaceRoot);
+    },
+
     async analyzeFile(
       filePath: string,
       content: string,

@@ -24,6 +24,7 @@ The current plugin API supports more than file analysis:
 
 - per-file analysis objects with symbols, relations, node types, and edge types
 - `analyzeFile(...)` is the required analysis path for plugins that contribute code analysis
+- `onFilesChanged(...)` is the incremental save hook for plugins that maintain cross-file indexes
 - graph queries backed by the projected repo-local index and current graph state
 - commands, exporters, toolbar actions, and the compatibility `registerView(...)` hook for optional future graph transforms
 - context menu items, commands, and exporters

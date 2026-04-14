@@ -56,13 +56,13 @@ describe('executeConfigAction', () => {
     expect(provider.refresh).not.toHaveBeenCalled();
   });
 
-  it('debounces group settings syncs and refreshes group settings once', () => {
+  it('debounces legend settings syncs and refreshes group settings once', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
     const event = makeEvent();
 
-    executeConfigAction('groups', event as never, provider as never);
-    executeConfigAction('groups', event as never, provider as never);
+    executeConfigAction('legend', event as never, provider as never);
+    executeConfigAction('legend', event as never, provider as never);
 
     expect(provider.refreshPhysicsSettings).not.toHaveBeenCalled();
     expect(provider.refreshToggleSettings).not.toHaveBeenCalled();

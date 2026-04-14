@@ -6,7 +6,6 @@ CodeGraphy now keeps repo-specific graph settings under `.codegraphy/settings.js
 - The file is mostly internal, but still human-editable.
 - CodeGraphy watches it for changes and refreshes relevant graph state when it changes.
 - `.codegraphy/settings.json` is the source of truth for repo-local behavior.
-- Older repos can still be migrated forward from legacy keys when needed.
 - These settings are no longer intended to be managed from VS Code's built-in Settings UI.
 
 ## Repo-local settings file
@@ -115,8 +114,6 @@ Adjusts the physics simulation in real time.
 
 Legend rules now live in their own **Legends** popup, not inside the settings panel.
 The popup label and persisted key are both **Legends** / `legend`.
-Older `.codegraphy/settings.json` files that still use `groups` are read for compatibility and rewritten as `legend`.
-Older files that still use `exclude` are folded into `filterPatterns` and rewritten to the cleaner single-key shape.
 
 Legend rules assign colors based on regex/glob-style matching and are applied in drag order:
 
@@ -247,6 +244,8 @@ Glob patterns for files to exclude, appended to built-in excludes. Supports `mat
 
 Your patterns are merged with the built-ins, so you don't need to repeat them.
 
+If you hand-edit `.codegraphy/settings.json`, CodeGraphy only applies the save when the file is valid JSON. Invalid saves are ignored until the file is fixed.
+
 ### `respectGitignore`
 
 When `true`, reads `.gitignore` and excludes matching files automatically.
@@ -310,12 +309,6 @@ This setting is also accessible from the Settings panel.
 ## Repo-local vs global settings
 
 CodeGraphy’s graph/index behavior lives with the repo under `.codegraphy/`. By default CodeGraphy also adds `.codegraphy/` to the repo `.gitignore`, so these settings stay local unless you intentionally choose a different sharing strategy.
-
-Compatibility note:
-- older repos may still contain `folderNodeColor` as a standalone key
-- older repos may still contain `groups` before the rename to `legend`
-- those legacy keys can still be migrated forward, but the current graph controls are `nodeVisibility`, `edgeVisibility`, `legend`, `disabledPlugins`, and `pluginOrder`
-- current folder coloring should live under `nodeColors.folder`
 
 ## Troubleshooting
 

@@ -105,7 +105,7 @@ describe('ResetSettingsAction', () => {
       'physics.linkForce': 0.5,
       'physics.damping': 0.3,
       'physics.centerForce': 0.5,
-      groups: [{ id: 'g1', pattern: '*.ts', color: '#FF0000' }],
+      legend: [{ id: 'g1', pattern: '*.ts', color: '#FF0000' }],
       filterPatterns: ['**/*.test.ts'],
       showOrphans: false,
       bidirectionalEdges: 'combined',
@@ -187,7 +187,7 @@ describe('ResetSettingsAction', () => {
     expect(settingsStore['physics.linkForce']).toBe(0.5);
     expect(settingsStore['physics.damping']).toBe(0.3);
     expect(settingsStore['physics.centerForce']).toBe(0.5);
-    expect(settingsStore.groups).toEqual([{ id: 'g1', pattern: '*.ts', color: '#FF0000' }]);
+    expect(settingsStore.legend).toEqual([{ id: 'g1', pattern: '*.ts', color: '#FF0000' }]);
     expect(settingsStore.showOrphans).toBe(false);
     expect(settingsStore.directionMode).toBe('particles');
     expect(settingsStore.nodeColors).toEqual({ file: '#111111', folder: '#222222' });

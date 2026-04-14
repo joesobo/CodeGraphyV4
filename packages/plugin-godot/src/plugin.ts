@@ -53,6 +53,20 @@ export interface IGDScriptAnalyzeFilePlugin extends IPlugin {
 export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
   let resolver: GDScriptPathResolver | null = null;
 
+  const extractClassNames = (content: string): string[] => {
+    const classNames = new Set<string>();
+    const lines = content.split('\n');
+
+    for (let i = 0; i < lines.length; i++) {
+      const ref = detectClassNameDeclaration(lines[i], i + 1);
+      if (ref) {
+        classNames.add(ref.resPath);
+      }
+    }
+
+    return [...classNames];
+  };
+
   const analyzeFile = async (
     filePath: string,
     content: string,
@@ -101,16 +115,35 @@ export function createGDScriptPlugin(): IGDScriptAnalyzeFilePlugin {
       for (const { relativePath, content } of files) {
         // Register file for snake_case fallback resolution
         resolver.registerFile(relativePath);
-
-        // Register explicit class_name declarations
-        const lines = content.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-          const ref = detectClassNameDeclaration(lines[i], i + 1);
-          if (ref) resolver.registerClassName(ref.resPath, relativePath);
-        }
+        resolver.replaceFileClassNames(relativePath, extractClassNames(content));
       }
 
       console.log(`[CodeGraphy] GDScript class_name map: ${resolver.getClassNameMap().size} entries, ${resolver.getFileNameMap().size} files indexed`);
+    },
+
+    async onFilesChanged(
+      files: Array<{ absolutePath: string; relativePath: string; content: string }>,
+      workspaceRoot: string,
+    ): Promise<string[]> {
+      if (!resolver) {
+        resolver = new GDScriptPathResolver(workspaceRoot);
+      }
+
+      let requiresBroadReanalysis = false;
+
+      for (const { relativePath, content } of files) {
+        resolver.registerFile(relativePath);
+        const { changed } = resolver.replaceFileClassNames(relativePath, extractClassNames(content));
+        requiresBroadReanalysis ||= changed;
+      }
+
+      if (!requiresBroadReanalysis) {
+        return [];
+      }
+
+      return resolver
+        .getRegisteredFiles()
+        .filter((filePath) => filePath.endsWith('.gd'));
     },
 
     analyzeFile,

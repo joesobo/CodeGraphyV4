@@ -67,7 +67,7 @@ describe('gitHistory/fullCommitAnalysis', () => {
     expect(result.nodes.map((node) => node.id)).toEqual(['src/a.ts', 'src/b.ts']);
     expect(result.edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts#import',
+        id: 'src/a.ts->src/b.ts#import:static',
         from: 'src/a.ts',
         to: 'src/b.ts',
         kind: 'import',

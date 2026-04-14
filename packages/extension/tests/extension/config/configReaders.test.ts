@@ -110,15 +110,15 @@ describe('Configuration (configReaders)', () => {
     });
   });
 
-  describe('groups', () => {
-    it('returns the configured groups', () => {
+  describe('legend', () => {
+    it('returns the configured legend rules', () => {
       const groups = [{ id: 'g1', pattern: '*.ts', color: '#FFF' }];
-      mockConfig.groups = groups;
-      expect(new Configuration().groups).toEqual(groups);
+      mockConfig.legend = groups;
+      expect(new Configuration().legend).toEqual(groups);
     });
 
     it('defaults to empty array', () => {
-      expect(new Configuration().groups).toEqual([]);
+      expect(new Configuration().legend).toEqual([]);
     });
   });
 
