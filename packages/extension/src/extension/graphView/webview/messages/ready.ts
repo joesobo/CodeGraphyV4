@@ -1,8 +1,6 @@
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 
 export interface GraphViewReadyState {
-  filterPatterns: string[];
-  pluginFilterPatterns: string[];
   maxFiles: number;
   playbackSpeed: number;
   depthMode?: boolean;
@@ -15,6 +13,8 @@ export interface GraphViewReadyState {
 }
 
 export interface GraphViewReadyHandlers {
+  getFilterPatterns(): string[];
+  getPluginFilterPatterns(): string[];
   loadGroupsAndFilterPatterns(): void;
   loadDisabledRulesAndPlugins(): void;
   sendDepthState(): void;
@@ -52,8 +52,8 @@ export async function applyWebviewReady(
   handlers.sendMessage({
     type: 'FILTER_PATTERNS_UPDATED',
     payload: {
-      patterns: state.filterPatterns,
-      pluginPatterns: state.pluginFilterPatterns,
+      patterns: handlers.getFilterPatterns(),
+      pluginPatterns: handlers.getPluginFilterPatterns(),
     },
   });
   handlers.sendMessage({

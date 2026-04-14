@@ -43,8 +43,6 @@ export async function dispatchGraphViewPluginReadyMessage(
 ): Promise<boolean> {
   return applyWebviewReady(
     {
-      filterPatterns: context.getFilterPatterns(),
-      pluginFilterPatterns: context.getPluginFilterPatterns(),
       maxFiles: context.getMaxFiles(),
       playbackSpeed: context.getPlaybackSpeed(),
       depthMode: context.getDepthMode?.() ?? false,
@@ -56,6 +54,8 @@ export async function dispatchGraphViewPluginReadyMessage(
       readyNotified: context.isWebviewReadyNotified(),
     },
     {
+      getFilterPatterns: () => context.getFilterPatterns(),
+      getPluginFilterPatterns: () => context.getPluginFilterPatterns(),
       loadGroupsAndFilterPatterns: () => context.loadGroupsAndFilterPatterns(),
       loadDisabledRulesAndPlugins: () => context.loadDisabledRulesAndPlugins(),
       sendDepthState: () => context.sendDepthState(),

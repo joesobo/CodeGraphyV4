@@ -3,6 +3,8 @@ import { applyWebviewReady } from '../../../../../src/extension/graphView/webvie
 
 function createHandlers() {
   return {
+    getFilterPatterns: vi.fn(() => ['dist/**']),
+    getPluginFilterPatterns: vi.fn(() => ['venv/**']),
     loadGroupsAndFilterPatterns: vi.fn(),
     loadDisabledRulesAndPlugins: vi.fn(),
     sendDepthState: vi.fn(),
@@ -30,8 +32,6 @@ describe('graph view ready message', () => {
 
     const readyNotified = await applyWebviewReady(
       {
-        filterPatterns: ['dist/**'],
-        pluginFilterPatterns: ['venv/**'],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: 'td',
@@ -97,8 +97,6 @@ describe('graph view ready message', () => {
 
     await applyWebviewReady(
       {
-        filterPatterns: [],
-        pluginFilterPatterns: [],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: null,
@@ -121,8 +119,6 @@ describe('graph view ready message', () => {
 
     await applyWebviewReady(
       {
-        filterPatterns: [],
-        pluginFilterPatterns: [],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: null,
@@ -143,8 +139,6 @@ describe('graph view ready message', () => {
 
     await applyWebviewReady(
       {
-        filterPatterns: [],
-        pluginFilterPatterns: [],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: null,
@@ -165,8 +159,6 @@ describe('graph view ready message', () => {
 
     const readyNotified = await applyWebviewReady(
       {
-        filterPatterns: [],
-        pluginFilterPatterns: [],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: null,
@@ -197,8 +189,6 @@ describe('graph view ready message', () => {
 
     await applyWebviewReady(
       {
-        filterPatterns: [],
-        pluginFilterPatterns: [],
         maxFiles: 500,
         playbackSpeed: 1,
         dagMode: null,
