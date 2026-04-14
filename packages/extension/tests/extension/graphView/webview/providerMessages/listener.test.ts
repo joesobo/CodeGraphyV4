@@ -228,6 +228,23 @@ describe('graph view provider listener bridge', () => {
     expect(source._userGroups).toEqual(userGroups);
   });
 
+  it('routes OPEN_IN_EDITOR through the provider source', async () => {
+    let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+    const webview = {
+      onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+        messageHandler = handler;
+        return { dispose: () => {} };
+      }),
+    };
+    const deps = createDependencies();
+    const source = createSource();
+
+    setGraphViewProviderMessageListener(webview as never, source, deps);
+    await messageHandler?.({ type: 'OPEN_IN_EDITOR' });
+
+    expect(source.openInEditor).toHaveBeenCalledOnce();
+  });
+
   it('reprocesses plugin-owned files with a scoped refresh when invalidated files are known', async () => {
     const { context, source } = await loadDefaultListenerHarness({
       invalidatePluginFiles: vi.fn(() => ['src/plugin.py']),

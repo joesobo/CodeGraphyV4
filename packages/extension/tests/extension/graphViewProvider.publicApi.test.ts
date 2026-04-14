@@ -163,9 +163,13 @@ describe('GraphViewProvider public API', () => {
     expect(createWebviewPanelMock).toHaveBeenCalledWith(
       'codegraphy.graphView',
       'CodeGraphy',
-      vscode.ViewColumn.Active,
+      vscode.ViewColumn.Beside,
       expect.objectContaining({
         enableScripts: true,
+        localResourceRoots: expect.arrayContaining([
+          expect.objectContaining({ fsPath: '/test/extension' }),
+          expect.objectContaining({ fsPath: '/test/workspace' }),
+        ]),
         retainContextWhenHidden: true,
       })
     );

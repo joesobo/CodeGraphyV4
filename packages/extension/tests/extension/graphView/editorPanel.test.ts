@@ -20,6 +20,7 @@ describe('graph view editor panel helper', () => {
     openGraphViewInEditor({
       viewType: 'codegraphy.graphView',
       extensionUri: vscode.Uri.file('/extension'),
+      getPanels: () => [],
       getLocalResourceRoots: () => [vscode.Uri.file('/extension')],
       createPanel,
       setWebviewMessageListener: vi.fn(),
@@ -32,7 +33,7 @@ describe('graph view editor panel helper', () => {
     expect(createPanel).toHaveBeenCalledWith(
       'codegraphy.graphView',
       'CodeGraphy',
-      vscode.ViewColumn.Active,
+      vscode.ViewColumn.Beside,
       {
         enableScripts: true,
         localResourceRoots: [vscode.Uri.file('/extension')],
@@ -46,5 +47,27 @@ describe('graph view editor panel helper', () => {
       light: vscode.Uri.file('/extension/assets/icon-light.svg'),
     });
     expect(unregisterPanel).toHaveBeenCalledWith(panel);
+  });
+
+  it('reveals an existing editor panel instead of creating a duplicate', () => {
+    const existingPanel = {
+      reveal: vi.fn(),
+    };
+    const createPanel = vi.fn();
+
+    openGraphViewInEditor({
+      viewType: 'codegraphy.graphView',
+      extensionUri: vscode.Uri.file('/extension'),
+      getPanels: () => [existingPanel as never],
+      getLocalResourceRoots: () => [vscode.Uri.file('/extension')],
+      createPanel,
+      setWebviewMessageListener: vi.fn(),
+      getHtmlForWebview: () => '<div id="root"></div>',
+      registerPanel: vi.fn(),
+      unregisterPanel: vi.fn(),
+    });
+
+    expect(existingPanel.reveal).toHaveBeenCalledWith(vscode.ViewColumn.Beside);
+    expect(createPanel).not.toHaveBeenCalled();
   });
 });

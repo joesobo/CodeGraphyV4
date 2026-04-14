@@ -16,6 +16,7 @@ export function openGraphViewProviderWebviewInEditor(
   dependencies.openInEditor({
     viewType: dependencies.viewType,
     extensionUri: source._extensionUri,
+    getPanels: () => source._panels,
     getLocalResourceRoots: () => source._getLocalResourceRoots(),
     createPanel: (
       viewType: string,
