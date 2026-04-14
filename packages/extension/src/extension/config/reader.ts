@@ -17,7 +17,7 @@ interface CodeGraphyConfigurationLike {
  *
  * This class provides methods to read configuration values with proper
  * type checking and default values. It reads from CodeGraphy's repo-local
- * settings store, with legacy VS Code settings only used for migration.
+ * settings store.
  *
  * @example
  * ```typescript
@@ -112,14 +112,6 @@ export class Configuration {
    */
   get timelineMaxCommits(): number {
     return this.config.get<number>('timeline.maxCommits', 500);
-  }
-
-  /**
-   * User-defined groups with pattern, color, shape, and image settings.
-   * @default []
-   */
-  get groups(): IGroup[] {
-    return this.config.get<IGroup[]>('legend', []);
   }
 
   get legend(): IGroup[] {

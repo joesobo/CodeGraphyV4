@@ -1,6 +1,7 @@
 import * as path from 'path';
 import type { IFileAnalysisResult } from '../../core/plugins/types/contracts';
 import type { IGraphEdge } from '../../shared/graph/types';
+import { createGraphEdgeId } from '../../shared/graph/edgeIdentity';
 
 export interface AppendGitHistoryAnalysisEdgesOptions {
   analysis: Pick<IFileAnalysisResult, 'relations'> | null;
@@ -30,7 +31,13 @@ export function appendGitHistoryAnalysisEdges(
     }
 
     const targetRelative = path.relative(workspaceRoot, targetPath);
-    const edgeId = `${sourcePath}->${targetRelative}#${relation.kind}`;
+    const edgeId = createGraphEdgeId({
+      from: sourcePath,
+      to: targetRelative,
+      kind: relation.kind,
+      type: relation.type,
+      variant: relation.variant,
+    });
     if (edgeSet.has(edgeId)) {
       continue;
     }

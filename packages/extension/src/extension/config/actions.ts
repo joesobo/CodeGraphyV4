@@ -60,7 +60,7 @@ export function executeConfigAction(
     case 'display':
       provider.refreshSettings();
       break;
-    case 'groups':
+    case 'legend':
       scheduleGroupSettingsRefresh(provider);
       break;
     case 'general':

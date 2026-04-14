@@ -246,13 +246,13 @@ describe('WorkspacePipeline sources', () => {
       expect(result.edges.map(edge => edge.to)).toEqual(['src/a.ts', 'src/b.ts', 'config.py']);
     });
 
-    it('collects multiple sources when different current plugin sources detect the same edge', async () => {
+    it('keeps same-kind edges separate when their relation types differ', async () => {
       await analyzer.initialize();
       registerOptionalLanguagePlugins();
 
       const fileConnections = new Map<string, IProjectedConnection[]>();
 
-      // Two different sources detect connections to the same target
+      // Two different sources detect connections to the same target with distinct relation types.
       fileConnections.set('src/index.ts', [
         { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'dynamic', sourceId: 'dynamic-import' , kind: 'import' },
         { specifier: './utils', resolvedPath: '/test/workspace/src/utils.ts', type: 'require', sourceId: 'commonjs-require' , kind: 'import' },
@@ -270,27 +270,38 @@ describe('WorkspacePipeline sources', () => {
 
       const result = analyzer.rebuildGraph(new Set(), true);
 
-      // Should deduplicate into a single edge
-      expect(result.edges.length).toBe(1);
-      expect(result.edges[0].from).toBe('src/index.ts');
-      expect(result.edges[0].to).toBe('src/utils.ts');
-
-      expect(result.edges[0].sources).toEqual([
+      expect(result.edges).toEqual([
         {
-          id: 'codegraphy.treesitter:dynamic-import',
-          pluginId: 'codegraphy.treesitter',
-          sourceId: 'dynamic-import',
-          label: 'dynamic-import',
-          metadata: undefined,
-          variant: undefined,
+          id: 'src/index.ts->src/utils.ts#import:dynamic',
+          from: 'src/index.ts',
+          to: 'src/utils.ts',
+          kind: 'import',
+          sources: [
+            {
+              id: 'codegraphy.treesitter:dynamic-import',
+              pluginId: 'codegraphy.treesitter',
+              sourceId: 'dynamic-import',
+              label: 'dynamic-import',
+              metadata: undefined,
+              variant: undefined,
+            },
+          ],
         },
         {
-          id: 'codegraphy.treesitter:commonjs-require',
-          pluginId: 'codegraphy.treesitter',
-          sourceId: 'commonjs-require',
-          label: 'commonjs-require',
-          metadata: undefined,
-          variant: undefined,
+          id: 'src/index.ts->src/utils.ts#import:require',
+          from: 'src/index.ts',
+          to: 'src/utils.ts',
+          kind: 'import',
+          sources: [
+            {
+              id: 'codegraphy.treesitter:commonjs-require',
+              pluginId: 'codegraphy.treesitter',
+              sourceId: 'commonjs-require',
+              label: 'commonjs-require',
+              metadata: undefined,
+              variant: undefined,
+            },
+          ],
         },
       ]);
     });

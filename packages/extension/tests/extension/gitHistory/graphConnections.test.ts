@@ -4,8 +4,8 @@ import { appendGitHistoryAnalysisEdges } from '../../../src/extension/gitHistory
 
 describe('gitHistory/graphConnections', () => {
   it('skips unresolved relations and suppresses duplicate edges', () => {
-    const edges: IGraphEdge[] = [{ id: 'src/a.ts->src/b.ts#import', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] }];
-    const edgeSet = new Set(['src/a.ts->src/b.ts#import']);
+    const edges: IGraphEdge[] = [{ id: 'src/a.ts->src/b.ts#import:static', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] }];
+    const edgeSet = new Set(['src/a.ts->src/b.ts#import:static']);
 
     appendGitHistoryAnalysisEdges({
       analysis: {
@@ -20,8 +20,8 @@ describe('gitHistory/graphConnections', () => {
       workspaceRoot: '/workspace',
     });
 
-    expect(edges).toEqual([{ id: 'src/a.ts->src/b.ts#import', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] }]);
-    expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts#import']));
+    expect(edges).toEqual([{ id: 'src/a.ts->src/b.ts#import:static', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] }]);
+    expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts#import:static']));
   });
 
   it('adds plain edges without source metadata when no plugin source is present', () => {
@@ -38,7 +38,7 @@ describe('gitHistory/graphConnections', () => {
       workspaceRoot: '/workspace',
     });
 
-    expect(edges).toEqual([{ id: 'src/a.ts->src/b.ts#import', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] }]);
+    expect(edges).toEqual([{ id: 'src/a.ts->src/b.ts#import:static', from: 'src/a.ts', to: 'src/b.ts' , kind: 'import', sources: [] }]);
   });
 
   it('adds source provenance when plugin metadata is available', () => {
@@ -65,7 +65,7 @@ describe('gitHistory/graphConnections', () => {
 
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts#import',
+        id: 'src/a.ts->src/b.ts#import:static',
         from: 'src/a.ts',
         to: 'src/b.ts',
         kind: 'import',
@@ -75,6 +75,8 @@ describe('gitHistory/graphConnections', () => {
             pluginId: 'ts',
             sourceId: 'import',
             label: 'import',
+            metadata: undefined,
+            variant: undefined,
           },
         ],
       },
@@ -106,7 +108,7 @@ describe('gitHistory/graphConnections', () => {
 
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts#import',
+        id: 'src/a.ts->src/b.ts#import:static',
         from: 'src/a.ts',
         to: 'src/b.ts',
         kind: 'import',
@@ -116,6 +118,8 @@ describe('gitHistory/graphConnections', () => {
             pluginId: 'plugin.enricher',
             sourceId: 'import',
             label: 'import',
+            metadata: undefined,
+            variant: undefined,
           },
         ],
       },

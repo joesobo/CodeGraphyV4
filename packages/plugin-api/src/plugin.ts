@@ -181,6 +181,18 @@ export interface IPlugin {
   ): Promise<void>;
 
   /**
+   * Called before an incremental save-driven re-analysis.
+   * Plugins can update internal indexes from the changed files and optionally
+   * request additional workspace-relative files to re-analyze.
+   *
+   * Return `undefined` or an empty array when only the changed files need work.
+   */
+  onFilesChanged?(
+    files: IAnalysisFile[],
+    workspaceRoot: string,
+  ): Promise<readonly string[] | void>;
+
+  /**
    * Called after all files have been analyzed and the graph is built.
    * Plugins can inspect or augment the graph data.
    */

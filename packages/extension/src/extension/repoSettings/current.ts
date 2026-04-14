@@ -8,41 +8,19 @@ import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from './meta';
 
 let currentCodeGraphySettingsStore: CodeGraphyRepoSettingsStore | undefined;
 
-function normalizeLegacySettingsKey(key: string): string;
-function normalizeLegacySettingsKey(key: symbol): symbol;
-function normalizeLegacySettingsKey(key: string | symbol): string | symbol {
-  if (typeof key !== 'string') {
-    return key;
-  }
-
-  if (key === 'legend') {
-    return 'groups';
-  }
-
-  if (key.startsWith('legend.')) {
-    return `groups.${key.slice('legend.'.length)}`;
-  }
-
-  if (key === 'exclude') {
-    return 'filterPatterns';
-  }
-
-  return key;
-}
-
-function createLegacyWorkspaceConfiguration(): ICodeGraphyConfigurationLike {
+function createWorkspaceConfiguration(): ICodeGraphyConfigurationLike {
   const configuration = vscode.workspace.getConfiguration('codegraphy');
 
   return {
     get: <T>(key: string, defaultValue: T): T =>
-      configuration.get<T>(normalizeLegacySettingsKey(key), defaultValue),
+      configuration.get<T>(key, defaultValue),
     inspect: <T>(key: string) =>
-      configuration.inspect<T>(normalizeLegacySettingsKey(key)) as unknown as
+      configuration.inspect<T>(key) as unknown as
         | import('./store').ICodeGraphySettingsInspect<T>
         | undefined,
     update: (key: string, value: unknown, target?: unknown) =>
       Promise.resolve(configuration.update(
-        normalizeLegacySettingsKey(key),
+        key,
         value,
         target as vscode.ConfigurationTarget | undefined,
       )),
@@ -77,10 +55,7 @@ export function initializeCurrentCodeGraphyConfiguration(
     return undefined;
   }
 
-  currentCodeGraphySettingsStore = new CodeGraphyRepoSettingsStore(
-    workspaceRoot,
-    vscode.workspace.getConfiguration('codegraphy'),
-  );
+  currentCodeGraphySettingsStore = new CodeGraphyRepoSettingsStore(workspaceRoot);
   writeCodeGraphyRepoMeta(workspaceRoot, readCodeGraphyRepoMeta(workspaceRoot));
 
   const watcher = vscode.workspace.createFileSystemWatcher('**/.codegraphy/settings.json');
@@ -100,7 +75,7 @@ export function initializeCurrentCodeGraphyConfiguration(
 
 export function getCodeGraphyConfiguration(): ICodeGraphyConfigurationLike {
   return currentCodeGraphySettingsStore
-    ?? createLegacyWorkspaceConfiguration();
+    ?? createWorkspaceConfiguration();
 }
 
 export async function updateCodeGraphyConfigurationSilently(
@@ -112,7 +87,7 @@ export async function updateCodeGraphyConfigurationSilently(
     return;
   }
 
-  await createLegacyWorkspaceConfiguration().update(key, value);
+  await createWorkspaceConfiguration().update(key, value);
 }
 
 export function onDidChangeCodeGraphyConfiguration(

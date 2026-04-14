@@ -23,6 +23,7 @@ export class GDScriptPathResolver {
 	private classNameMap: Map<string, string> = new Map();
 	/** Maps snake_case base name → workspace-relative path for .gd files */
 	private fileNameMap: Map<string, string> = new Map();
+	private fileClassNames: Map<string, Set<string>> = new Map();
 
 	/**
 	 * Create a new path resolver.
@@ -38,6 +39,9 @@ export class GDScriptPathResolver {
 	 */
 	registerClassName(className: string, filePath: string): void {
 		this.classNameMap.set(className, filePath);
+		const classNames = this.fileClassNames.get(filePath) ?? new Set<string>();
+		classNames.add(className);
+		this.fileClassNames.set(filePath, classNames);
 	}
 
 	/**
@@ -56,6 +60,31 @@ export class GDScriptPathResolver {
 	clearClassNames(): void {
 		this.classNameMap.clear();
 		this.fileNameMap.clear();
+		this.fileClassNames.clear();
+	}
+
+	replaceFileClassNames(filePath: string, classNames: readonly string[]): { changed: boolean } {
+		const previous = this.fileClassNames.get(filePath) ?? new Set<string>();
+		const next = new Set(classNames);
+		const changed =
+			previous.size !== next.size || [...previous].some((className) => !next.has(className));
+
+		for (const className of previous) {
+			if (this.classNameMap.get(className) === filePath) {
+				this.classNameMap.delete(className);
+			}
+		}
+
+		if (next.size === 0) {
+			this.fileClassNames.delete(filePath);
+		} else {
+			this.fileClassNames.set(filePath, next);
+			for (const className of next) {
+				this.classNameMap.set(className, filePath);
+			}
+		}
+
+		return { changed };
 	}
 
 	/**
@@ -109,6 +138,10 @@ export class GDScriptPathResolver {
 	 */
 	getFileNameMap(): Map<string, string> {
 		return new Map(this.fileNameMap);
+	}
+
+	getRegisteredFiles(): string[] {
+		return [...this.fileNameMap.values()];
 	}
 
 	/**

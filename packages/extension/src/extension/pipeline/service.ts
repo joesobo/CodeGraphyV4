@@ -154,8 +154,10 @@ export class WorkspacePipeline {
   /**
    * Returns default filter patterns declared by all registered plugins.
    */
-  getPluginFilterPatterns(): string[] {
-    return getWorkspacePipelinePluginFilterPatterns(this._registry);
+  getPluginFilterPatterns(
+    disabledPlugins: ReadonlySet<string> = new Set(),
+  ): string[] {
+    return getWorkspacePipelinePluginFilterPatterns(this._registry, disabledPlugins);
   }
 
   hasIndex(): boolean {
@@ -214,7 +216,7 @@ export class WorkspacePipeline {
       workspaceRoot,
       config,
       filterPatterns,
-      this.getPluginFilterPatterns(),
+      this.getPluginFilterPatterns(disabledPlugins),
       signal,
     );
 
@@ -269,21 +271,7 @@ export class WorkspacePipeline {
       signal,
     );
 
-    const workspaceRoot = this._getWorkspaceRoot();
-    if (workspaceRoot) {
-      try {
-        const meta = readCodeGraphyRepoMeta(workspaceRoot);
-        writeCodeGraphyRepoMeta(workspaceRoot, {
-          ...meta,
-          lastIndexedAt: new Date().toISOString(),
-          lastIndexedCommit: await this._getCurrentCommitSha(workspaceRoot),
-          pluginSignature: this._getPluginSignature(),
-          settingsSignature: this._getSettingsSignature(),
-        });
-      } catch (error) {
-        console.warn('[CodeGraphy] Failed to update repo index metadata.', error);
-      }
-    }
+    await this._persistIndexMetadata();
 
     return graphData;
   }
@@ -325,13 +313,124 @@ export class WorkspacePipeline {
     signal?: AbortSignal,
     onProgress?: (progress: { phase: string; current: number; total: number }) => void,
   ): Promise<IGraphData> {
-    this.invalidateWorkspaceFiles(filePaths);
-    return this.analyze(filterPatterns, disabledPlugins, signal, progress => {
-      onProgress?.({
-        ...progress,
-        phase: 'Applying Changes',
+    this._syncPluginOrder();
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return { nodes: [], edges: [] };
+    }
+
+    const config = this._config.getAll();
+    const discoveryDependencies: WorkspacePipelineDiscoveryDependencies<IDiscoveredFile> = {
+      discover: async options => {
+        const result = await this._discovery.discover(options);
+        const discoveryResult: WorkspacePipelineDiscoveryResult<IDiscoveredFile> = {
+          durationMs: result.durationMs,
+          files: result.files,
+          limitReached: result.limitReached,
+          totalFound: result.totalFound ?? result.files.length,
+        };
+        return discoveryResult;
+      },
+    };
+    const discoveryResult = await discoverWorkspacePipelineFiles(
+      discoveryDependencies,
+      workspaceRoot,
+      config,
+      filterPatterns,
+      this.getPluginFilterPatterns(disabledPlugins),
+      signal,
+    );
+
+    if (discoveryResult.limitReached) {
+      vscode.window.showWarningMessage(
+        formatWorkspacePipelineLimitReachedMessage(
+          discoveryResult.totalFound,
+          config.maxFiles,
+        ),
+      );
+    }
+
+    const discoveredByRelativePath = new Map(
+      discoveryResult.files.map((file) => [file.relativePath, file] as const),
+    );
+    const changedFiles = [...new Set(
+      filePaths
+        .map((filePath) => this._toWorkspaceRelativePath(workspaceRoot, filePath))
+        .filter((filePath): filePath is string => Boolean(filePath)),
+    )]
+      .map((filePath) => discoveredByRelativePath.get(filePath))
+      .filter((file): file is IDiscoveredFile => Boolean(file));
+
+    const changedAnalysisFiles = await this._readAnalysisFiles(changedFiles);
+    const incrementalLifecycle = await this._registry.notifyFilesChanged(
+      changedAnalysisFiles,
+      workspaceRoot,
+    );
+
+    if (incrementalLifecycle.requiresFullRefresh) {
+      return this.analyze(filterPatterns, disabledPlugins, signal, progress => {
+        onProgress?.({
+          ...progress,
+          phase: 'Applying Changes',
+        });
       });
+    }
+
+    const additionalFiles = incrementalLifecycle.additionalFilePaths
+      .map((filePath) => discoveredByRelativePath.get(filePath))
+      .filter((file): file is IDiscoveredFile => Boolean(file));
+    const filesToAnalyze = [...new Map(
+      [...changedFiles, ...additionalFiles].map((file) => [file.relativePath, file] as const),
+    ).values()];
+
+    this._lastDiscoveredFiles = discoveryResult.files;
+    this._lastWorkspaceRoot = workspaceRoot;
+
+    if (filesToAnalyze.length === 0) {
+      return this._buildGraphDataFromAnalysis(
+        this._lastFileAnalysis,
+        workspaceRoot,
+        config.showOrphans,
+        disabledPlugins,
+      );
+    }
+
+    this.invalidateWorkspaceFiles(filesToAnalyze.map((file) => file.absolutePath));
+    onProgress?.({
+      phase: 'Applying Changes',
+      current: 0,
+      total: filesToAnalyze.length,
     });
+
+    const analysisResult = await this._analyzeFiles(
+      filesToAnalyze,
+      workspaceRoot,
+      progress => {
+        onProgress?.({
+          phase: 'Applying Changes',
+          current: progress.current,
+          total: progress.total,
+        });
+      },
+      signal,
+    );
+
+    for (const [filePath, analysis] of analysisResult.fileAnalysis) {
+      this._lastFileAnalysis.set(filePath, analysis);
+    }
+    for (const [filePath, connections] of analysisResult.fileConnections) {
+      this._lastFileConnections.set(filePath, connections);
+    }
+
+    this._persistCache();
+    const graphData = this._buildGraphDataFromAnalysis(
+      this._lastFileAnalysis,
+      workspaceRoot,
+      config.showOrphans,
+      disabledPlugins,
+    );
+    await this._persistIndexMetadata();
+    return graphData;
   }
 
   /**
@@ -395,12 +494,8 @@ export class WorkspacePipeline {
     workspaceRoot: string,
     invalidated: Set<string>,
   ): void {
-    const absolutePath = path.isAbsolute(filePath)
-      ? filePath
-      : path.join(workspaceRoot, filePath);
-    const relativePath = path.relative(workspaceRoot, absolutePath).replace(/\\/g, '/');
-
-    if (!relativePath || relativePath.startsWith('..')) {
+    const relativePath = this._toWorkspaceRelativePath(workspaceRoot, filePath);
+    if (!relativePath) {
       return;
     }
 
@@ -570,6 +665,58 @@ export class WorkspacePipeline {
       }).trim();
     } catch {
       return null;
+    }
+  }
+
+  private _toWorkspaceRelativePath(
+    workspaceRoot: string,
+    filePath: string,
+  ): string | undefined {
+    const absolutePath = path.isAbsolute(filePath)
+      ? filePath
+      : path.join(workspaceRoot, filePath);
+    const relativePath = path.relative(workspaceRoot, absolutePath).replace(/\\/g, '/');
+
+    if (!relativePath || relativePath.startsWith('..')) {
+      return undefined;
+    }
+
+    return relativePath;
+  }
+
+  private async _readAnalysisFiles(
+    files: IDiscoveredFile[],
+  ): Promise<Array<{ absolutePath: string; relativePath: string; content: string }>> {
+    const analysisFiles: Array<{ absolutePath: string; relativePath: string; content: string }> = [];
+
+    for (const file of files) {
+      analysisFiles.push({
+        absolutePath: file.absolutePath,
+        relativePath: file.relativePath,
+        content: await this._discovery.readContent(file),
+      });
+    }
+
+    return analysisFiles;
+  }
+
+  private async _persistIndexMetadata(): Promise<void> {
+    const workspaceRoot = this._getWorkspaceRoot();
+    if (!workspaceRoot) {
+      return;
+    }
+
+    try {
+      const meta = readCodeGraphyRepoMeta(workspaceRoot);
+      writeCodeGraphyRepoMeta(workspaceRoot, {
+        ...meta,
+        lastIndexedAt: new Date().toISOString(),
+        lastIndexedCommit: await this._getCurrentCommitSha(workspaceRoot),
+        pluginSignature: this._getPluginSignature(),
+        settingsSignature: this._getSettingsSignature(),
+      });
+    } catch (error) {
+      console.warn('[CodeGraphy] Failed to update repo index metadata.', error);
     }
   }
 

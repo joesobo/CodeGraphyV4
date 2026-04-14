@@ -61,7 +61,7 @@ Key points:
 - `analyzeFile(filePath, content, workspaceRoot)` is the plugin analysis hook for returning relations, symbols, and contributed node or edge types.
 - core builds the base file result first, then plugin results are merged on top in plugin order.
 - `contributeNodeTypes()` and `contributeEdgeTypes()` let plugins register new graph controls and defaults.
-- Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
+- Optional hooks: `initialize`, `onLoad`, `onWorkspaceReady`, `onWebviewReady`, `onPreAnalyze`, `onFilesChanged`, `onPostAnalyze`, `onGraphRebuild`, `onUnload`.
 
 ### Merge Rules
 
@@ -125,6 +125,7 @@ Merged result:
 
 - the import keeps only the higher-priority plugin target
 - call/reference relations with different targets remain separate
+- graph edges also stay separate when relation `type` or `variant` differs, even if `from`, `to`, and `kind` match
 
 ### `IAnalysisFile`
 

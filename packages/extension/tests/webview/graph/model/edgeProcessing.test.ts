@@ -56,10 +56,10 @@ describe('graph/model/edgeProcessing', () => {
     expect(
       processEdges(
         [
-          { id: 'a.ts->b.ts', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
-          { id: 'b.ts->a.ts', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
-          { id: 'b.ts->a.ts#2', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
-          { id: 'b.ts->c.ts', from: 'b.ts', to: 'c.ts' , kind: 'import', sources: [] },
+          { id: 'a.ts->b.ts#import', from: 'a.ts', to: 'b.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->a.ts#import', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->a.ts#import:dynamic', from: 'b.ts', to: 'a.ts' , kind: 'import', sources: [] },
+          { id: 'b.ts->c.ts#import', from: 'b.ts', to: 'c.ts' , kind: 'import', sources: [] },
         ],
         'combined'
       )
@@ -73,7 +73,15 @@ describe('graph/model/edgeProcessing', () => {
         bidirectional: true,
       },
       {
-        id: 'b.ts->c.ts',
+        id: 'b.ts->a.ts#import:dynamic',
+        from: 'b.ts',
+        to: 'a.ts',
+        kind: 'import',
+        sources: [],
+        bidirectional: false,
+      },
+      {
+        id: 'b.ts->c.ts#import',
         from: 'b.ts',
         to: 'c.ts',
         kind: 'import',

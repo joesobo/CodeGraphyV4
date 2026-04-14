@@ -36,6 +36,7 @@ import {
 import {
   notifyWorkspaceReady as lifecycleNotifyWorkspaceReady,
   notifyPreAnalyze as lifecycleNotifyPreAnalyze,
+  notifyFilesChanged as lifecycleNotifyFilesChanged,
   notifyPostAnalyze as lifecycleNotifyPostAnalyze,
   notifyGraphRebuild as lifecycleNotifyGraphRebuild,
   notifyWebviewReady as lifecycleNotifyWebviewReady,
@@ -163,6 +164,9 @@ export class PluginRegistry {
 
   notifyWorkspaceReady(graph: IGraphData): void { this._workspaceReadyNotified = true; this._lastWorkspaceReadyGraph = graph; lifecycleNotifyWorkspaceReady(this._plugins, graph); }
   async notifyPreAnalyze(files: Array<{ absolutePath: string; relativePath: string; content: string }>, workspaceRoot: string): Promise<void> { await lifecycleNotifyPreAnalyze(this._plugins, files, workspaceRoot); }
+  async notifyFilesChanged(files: Array<{ absolutePath: string; relativePath: string; content: string }>, workspaceRoot: string): Promise<{ additionalFilePaths: string[]; requiresFullRefresh: boolean }> {
+    return lifecycleNotifyFilesChanged(this._plugins, files, workspaceRoot);
+  }
   notifyPostAnalyze(graph: IGraphData): void { this._lastWorkspaceReadyGraph = graph; lifecycleNotifyPostAnalyze(this._plugins, graph); }
   notifyGraphRebuild(graph: IGraphData): void { this._lastWorkspaceReadyGraph = graph; lifecycleNotifyGraphRebuild(this._plugins, graph); }
   notifyWebviewReady(): void { this._webviewReadyNotified = true; lifecycleNotifyWebviewReady(this._plugins); }

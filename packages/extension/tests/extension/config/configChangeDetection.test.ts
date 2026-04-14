@@ -70,15 +70,10 @@ describe('classifyConfigChange', () => {
     });
   });
 
-  describe('groups category', () => {
-    it('returns groups when codegraphy.legend is affected', () => {
+  describe('legend category', () => {
+    it('returns legend when codegraphy.legend is affected', () => {
       const event = makeEvent('codegraphy.legend');
-      expect(classifyConfigChange(event)).toBe('groups');
-    });
-
-    it('returns groups when codegraphy.groups is affected', () => {
-      const event = makeEvent('codegraphy.groups');
-      expect(classifyConfigChange(event)).toBe('groups');
+      expect(classifyConfigChange(event)).toBe('legend');
     });
 
   });
@@ -118,14 +113,14 @@ describe('classifyConfigChange', () => {
       expect(classifyConfigChange(event)).toBe('toggles');
     });
 
-    it('display takes priority over groups', () => {
+    it('display takes priority over legend', () => {
       const event = makeEvent('codegraphy.showLabels', 'codegraphy.legend');
       expect(classifyConfigChange(event)).toBe('display');
     });
 
-    it('groups takes priority over general', () => {
+    it('legend takes priority over general', () => {
       const event = makeEvent('codegraphy.legend', 'codegraphy');
-      expect(classifyConfigChange(event)).toBe('groups');
+      expect(classifyConfigChange(event)).toBe('legend');
     });
   });
 });

@@ -80,14 +80,14 @@ describe('gitHistory/diff/changes', () => {
     expect(nodes).toEqual([{ id: 'src/a.ts', label: 'a.ts', color: '#93C5FD' }]);
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/b.ts#import',
+        id: 'src/a.ts->src/b.ts#import:static',
         from: 'src/a.ts',
         to: 'src/b.ts',
         kind: 'import',
         sources: [],
       },
     ]);
-    expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts#import']));
+    expect(edgeSet).toEqual(new Set(['src/a.ts->src/b.ts#import:static']));
   });
 
   it('reuses an existing supported node while reanalyzing its edges', async () => {
@@ -138,14 +138,14 @@ describe('gitHistory/diff/changes', () => {
     expect(nodeMap.get(existingNode.id)).toBe(existingNode);
     expect(edges).toEqual([
       {
-        id: 'src/a.ts->src/c.ts#import',
+        id: 'src/a.ts->src/c.ts#import:static',
         from: 'src/a.ts',
         to: 'src/c.ts',
         kind: 'import',
         sources: [],
       },
     ]);
-    expect(edgeSet).toEqual(new Set(['src/a.ts->src/c.ts#import']));
+    expect(edgeSet).toEqual(new Set(['src/a.ts->src/c.ts#import:static']));
   });
 
   it('does not duplicate unsupported nodes that already exist', async () => {
@@ -214,7 +214,7 @@ describe('gitHistory/diff/changes', () => {
     expect(edges).toEqual([
       { id: 'src/c.ts->src/a.ts#import', from: 'src/c.ts', to: 'src/a.ts' , kind: 'import', sources: [] },
       {
-        id: 'src/a.ts->src/new.ts#import',
+        id: 'src/a.ts->src/new.ts#import:static',
         from: 'src/a.ts',
         to: 'src/new.ts',
         kind: 'import',
@@ -224,11 +224,13 @@ describe('gitHistory/diff/changes', () => {
             pluginId: 'ts',
             sourceId: 'import',
             label: 'import',
+            metadata: undefined,
+            variant: undefined,
           },
         ],
       },
     ]);
-    expect(edgeSet).toEqual(new Set(['src/c.ts->src/a.ts#import', 'src/a.ts->src/new.ts#import']));
+    expect(edgeSet).toEqual(new Set(['src/c.ts->src/a.ts#import', 'src/a.ts->src/new.ts#import:static']));
   });
 
   it('skips modify reanalysis for unsupported files', async () => {

@@ -68,21 +68,26 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     const graph = await analyzer.analyze();
     const edgeIds = new Set(graph.edges.map((edge) => edge.id));
 
-    expect(edgeIds.has('example-python/src/main.py->example-python/src/config.py#import')).toBe(true);
-    expect(edgeIds.has('example-python/src/main.py->example-python/src/services/api.py#import')).toBe(true);
-    expect(edgeIds.has('example-go/main.go->example-go/internal/service/service.go#import')).toBe(true);
-    expect(edgeIds.has('example-java/src/com/example/app/App.java->example-java/src/com/example/app/Helper.java#import')).toBe(true);
-    expect(edgeIds.has('example-java/src/com/example/app/App.java->example-java/src/com/example/app/BaseService.java#inherit')).toBe(true);
-    expect(edgeIds.has('example-rust/src/main.rs->example-rust/src/util.rs#import')).toBe(true);
-    expect(edgeIds.has('example-rust/src/main.rs->example-rust/src/inner.rs#import')).toBe(true);
-    expect(edgeIds.has('example-godot/scripts/player.gd->example-godot/scripts/utils/math_helpers.gd#load')).toBe(true);
-    expect(edgeIds.has('example-godot/scripts/enemy.gd->example-godot/scripts/base/entity.gd#inherit')).toBe(true);
-    expect(edgeIds.has('example-markdown/notes/Home.md->example-markdown/notes/Architecture.md#reference')).toBe(true);
-    expect(edgeIds.has('example-markdown/notes/Home.md->example-markdown/src/commented.ts#reference')).toBe(true);
-    expect(edgeIds.has('example-markdown/src/commented.ts->example-markdown/notes/Architecture.md#reference')).toBe(true);
-    expect(edgeIds.has('example-typescript/packages/app/src/index.ts->example-typescript/packages/app/src/utils.ts#import')).toBe(true);
-    expect(edgeIds.has('example-typescript/packages/app/src/index.ts->example-typescript/packages/shared/src/types.ts#import')).toBe(true);
-    expect(edgeIds.has('example-typescript/packages/app/src/utils.ts->example-typescript/packages/feature-depth/src/deep.ts#import')).toBe(true);
+    const expectedEdgeIds = [
+      'example-python/src/main.py->example-python/src/config.py#import',
+      'example-python/src/main.py->example-python/src/services/api.py#import',
+      'example-go/main.go->example-go/internal/service/service.go#import',
+      'example-java/src/com/example/app/App.java->example-java/src/com/example/app/Helper.java#import',
+      'example-java/src/com/example/app/App.java->example-java/src/com/example/app/BaseService.java#inherit',
+      'example-rust/src/main.rs->example-rust/src/util.rs#import',
+      'example-rust/src/main.rs->example-rust/src/inner.rs#import',
+      'example-godot/scripts/player.gd->example-godot/scripts/utils/math_helpers.gd#load:static',
+      'example-godot/scripts/enemy.gd->example-godot/scripts/base/entity.gd#inherit:static',
+      'example-markdown/notes/Home.md->example-markdown/notes/Architecture.md#reference:static',
+      'example-markdown/notes/Home.md->example-markdown/src/commented.ts#reference:static',
+      'example-markdown/src/commented.ts->example-markdown/notes/Architecture.md#reference:static',
+      'example-typescript/packages/app/src/index.ts->example-typescript/packages/app/src/utils.ts#import',
+      'example-typescript/packages/app/src/index.ts->example-typescript/packages/shared/src/types.ts#import',
+      'example-typescript/packages/app/src/utils.ts->example-typescript/packages/feature-depth/src/deep.ts#import',
+    ];
+
+    const missingEdgeIds = expectedEdgeIds.filter((edgeId) => !edgeIds.has(edgeId));
+    expect(missingEdgeIds).toEqual([]);
 
     const persistedSnapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
     const persistedTypeScriptFiles = persistedSnapshot.files

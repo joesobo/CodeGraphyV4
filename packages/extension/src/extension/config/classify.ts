@@ -2,7 +2,7 @@ export type ConfigCategory =
   | 'physics'
   | 'toggles'
   | 'display'
-  | 'groups'
+  | 'legend'
   | 'general';
 
 interface CodeGraphyConfigurationChangeLike {
@@ -37,8 +37,8 @@ export function classifyConfigChange(event: CodeGraphyConfigurationChangeLike): 
     return 'display';
   }
 
-  if (affectsAny('codegraphy.legend', 'codegraphy.groups')) {
-    return 'groups';
+  if (affectsAny('codegraphy.legend')) {
+    return 'legend';
   }
 
   if (event.affectsConfiguration('codegraphy')) {
