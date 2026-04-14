@@ -37,6 +37,8 @@ interface GraphControlsConfigurationLike {
   get<T>(key: string, defaultValue: T): T;
 }
 
+type GraphDefinitionReader<TDefinition> = (definition: unknown) => definition is TDefinition;
+
 function prettifyIdentifier(value: string): string {
   return value
     .replace(/^codegraphy:/, '')
@@ -164,12 +166,44 @@ function resolveEdgeColors(
   return colors;
 }
 
-function readNodeTypes(registry: unknown): GraphNodeTypeLike[] {
+function isGraphNodeTypeLike(definition: unknown): definition is GraphNodeTypeLike {
+  if (!definition || typeof definition !== 'object') {
+    return false;
+  }
+
+  const record = definition as Record<string, unknown>;
+  return (
+    typeof record.id === 'string'
+    && typeof record.label === 'string'
+    && typeof record.defaultColor === 'string'
+    && typeof record.defaultVisible === 'boolean'
+  );
+}
+
+function isGraphEdgeTypeLike(definition: unknown): definition is GraphEdgeTypeLike {
+  if (!definition || typeof definition !== 'object') {
+    return false;
+  }
+
+  const record = definition as Record<string, unknown>;
+  return (
+    typeof record.id === 'string'
+    && typeof record.label === 'string'
+    && typeof record.defaultColor === 'string'
+    && typeof record.defaultVisible === 'boolean'
+  );
+}
+
+function readRegistryDefinitions<TDefinition>(
+  registry: unknown,
+  methodName: 'listNodeTypes' | 'listEdgeTypes',
+  isDefinition: GraphDefinitionReader<TDefinition>,
+): TDefinition[] {
   if (!registry || typeof registry !== 'object') {
     return [];
   }
 
-  const candidate = (registry as Record<string, unknown>).listNodeTypes;
+  const candidate = (registry as Record<string, unknown>)[methodName];
   if (typeof candidate !== 'function') {
     return [];
   }
@@ -179,49 +213,15 @@ function readNodeTypes(registry: unknown): GraphNodeTypeLike[] {
     return [];
   }
 
-  return definitions.filter((definition): definition is GraphNodeTypeLike => {
-    if (!definition || typeof definition !== 'object') {
-      return false;
-    }
+  return definitions.filter(isDefinition);
+}
 
-    const record = definition as Record<string, unknown>;
-    return (
-      typeof record.id === 'string'
-      && typeof record.label === 'string'
-      && typeof record.defaultColor === 'string'
-      && typeof record.defaultVisible === 'boolean'
-    );
-  });
+function readNodeTypes(registry: unknown): GraphNodeTypeLike[] {
+  return readRegistryDefinitions(registry, 'listNodeTypes', isGraphNodeTypeLike);
 }
 
 function readEdgeTypes(registry: unknown): GraphEdgeTypeLike[] {
-  if (!registry || typeof registry !== 'object') {
-    return [];
-  }
-
-  const candidate = (registry as Record<string, unknown>).listEdgeTypes;
-  if (typeof candidate !== 'function') {
-    return [];
-  }
-
-  const definitions: unknown = Reflect.apply(candidate, registry, []);
-  if (!Array.isArray(definitions)) {
-    return [];
-  }
-
-  return definitions.filter((definition): definition is GraphEdgeTypeLike => {
-    if (!definition || typeof definition !== 'object') {
-      return false;
-    }
-
-    const record = definition as Record<string, unknown>;
-    return (
-      typeof record.id === 'string'
-      && typeof record.label === 'string'
-      && typeof record.defaultColor === 'string'
-      && typeof record.defaultVisible === 'boolean'
-    );
-  });
+  return readRegistryDefinitions(registry, 'listEdgeTypes', isGraphEdgeTypeLike);
 }
 
 export function captureGraphControlsSnapshot(

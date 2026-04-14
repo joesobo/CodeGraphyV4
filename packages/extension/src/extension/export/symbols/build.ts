@@ -102,6 +102,64 @@ function normalizeSymbolFilePath(
   };
 }
 
+function createFileEntries(
+  filePaths: readonly string[],
+  symbolCountsByFile: ReadonlyMap<string, number>,
+  relationCountsByFile: ReadonlyMap<string, number>,
+): SymbolExportFileEntry[] {
+  return filePaths.map((filePath) => ({
+    filePath,
+    symbolCount: symbolCountsByFile.get(filePath) ?? 0,
+    relationCount: relationCountsByFile.get(filePath) ?? 0,
+  }));
+}
+
+function createExportSymbol(
+  symbol: IAnalysisSymbol,
+): SymbolExportData['symbols'][number] {
+  return {
+    id: symbol.id,
+    name: symbol.name,
+    kind: symbol.kind,
+    filePath: symbol.filePath,
+    signature: symbol.signature,
+    range: symbol.range,
+    metadata: symbol.metadata,
+  };
+}
+
+function relationSortKey(relation: IAnalysisRelation): string {
+  return `${relation.fromFilePath}:${relation.kind}:${relation.toFilePath ?? ''}:${relation.fromSymbolId ?? ''}:${relation.toSymbolId ?? ''}`;
+}
+
+function sortRelations(relations: readonly IAnalysisRelation[]): IAnalysisRelation[] {
+  return [...relations].sort((left, right) => relationSortKey(left).localeCompare(relationSortKey(right)));
+}
+
+function createSymbolExportData(
+  filePaths: readonly string[],
+  symbols: readonly IAnalysisSymbol[],
+  relations: readonly IAnalysisRelation[],
+): SymbolExportData {
+  const symbolCountsByFile = countByFilePath(symbols);
+  const relationCountsByFile = countRelationsByFilePath(relations);
+  const files = createFileEntries(filePaths, symbolCountsByFile, relationCountsByFile);
+
+  return {
+    format: 'codegraphy-symbol-export',
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    summary: {
+      totalFiles: files.length,
+      totalSymbols: symbols.length,
+      totalRelations: relations.length,
+    },
+    files,
+    symbols: sortByFilePath(symbols).map(createExportSymbol),
+    relations: sortRelations(relations),
+  };
+}
+
 function normalizeRelationFilePaths(
   relation: IAnalysisRelation,
   resolveFilePath: (filePath: string) => string,
@@ -131,39 +189,8 @@ export function buildSymbolsExportData(
   const resolveFilePath = createExportFilePathResolver(filePaths);
   const normalizedSymbols = symbols.map((symbol) => normalizeSymbolFilePath(symbol, resolveFilePath));
   const normalizedRelations = relations.map((relation) => normalizeRelationFilePaths(relation, resolveFilePath));
-  const symbolCountsByFile = countByFilePath(normalizedSymbols);
-  const relationCountsByFile = countRelationsByFilePath(normalizedRelations);
-  const files: SymbolExportFileEntry[] = filePaths.map((filePath) => ({
-    filePath,
-    symbolCount: symbolCountsByFile.get(filePath) ?? 0,
-    relationCount: relationCountsByFile.get(filePath) ?? 0,
-  }));
 
-  return {
-    format: 'codegraphy-symbol-export',
-    version: '1.0',
-    exportedAt: new Date().toISOString(),
-    summary: {
-      totalFiles: files.length,
-      totalSymbols: normalizedSymbols.length,
-      totalRelations: normalizedRelations.length,
-    },
-    files,
-    symbols: sortByFilePath(normalizedSymbols).map((symbol) => ({
-      id: symbol.id,
-      name: symbol.name,
-      kind: symbol.kind,
-      filePath: symbol.filePath,
-      signature: symbol.signature,
-      range: symbol.range,
-      metadata: symbol.metadata,
-    })),
-    relations: [...normalizedRelations].sort((left, right) => {
-      const leftKey = `${left.fromFilePath}:${left.kind}:${left.toFilePath ?? ''}:${left.fromSymbolId ?? ''}:${left.toSymbolId ?? ''}`;
-      const rightKey = `${right.fromFilePath}:${right.kind}:${right.toFilePath ?? ''}:${right.fromSymbolId ?? ''}:${right.toSymbolId ?? ''}`;
-      return leftKey.localeCompare(rightKey);
-    }),
-  };
+  return createSymbolExportData(filePaths, normalizedSymbols, normalizedRelations);
 }
 
 export function buildSymbolsExportDataFromSnapshot(
@@ -173,36 +200,6 @@ export function buildSymbolsExportDataFromSnapshot(
   const resolveFilePath = createExportFilePathResolver(filePaths);
   const symbols = snapshot.symbols.map((symbol) => normalizeSymbolFilePath(symbol, resolveFilePath));
   const relations = snapshot.relations.map((relation) => normalizeRelationFilePaths(relation, resolveFilePath));
-  const symbolCountsByFile = countByFilePath(symbols);
-  const relationCountsByFile = countRelationsByFilePath(relations);
 
-  return {
-    format: 'codegraphy-symbol-export',
-    version: '1.0',
-    exportedAt: new Date().toISOString(),
-    summary: {
-      totalFiles: snapshot.files.length,
-      totalSymbols: symbols.length,
-      totalRelations: relations.length,
-    },
-    files: filePaths.map((filePath) => ({
-      filePath,
-      symbolCount: symbolCountsByFile.get(filePath) ?? 0,
-      relationCount: relationCountsByFile.get(filePath) ?? 0,
-    })),
-    symbols: sortByFilePath(symbols).map((symbol) => ({
-      id: symbol.id,
-      name: symbol.name,
-      kind: symbol.kind,
-      filePath: symbol.filePath,
-      signature: symbol.signature,
-      range: symbol.range,
-      metadata: symbol.metadata,
-    })),
-    relations: [...relations].sort((left, right) => {
-      const leftKey = `${left.fromFilePath}:${left.kind}:${left.toFilePath ?? ''}:${left.fromSymbolId ?? ''}:${left.toSymbolId ?? ''}`;
-      const rightKey = `${right.fromFilePath}:${right.kind}:${right.toFilePath ?? ''}:${right.fromSymbolId ?? ''}:${right.toSymbolId ?? ''}`;
-      return leftKey.localeCompare(rightKey);
-    }),
-  };
+  return createSymbolExportData(filePaths, symbols, relations);
 }

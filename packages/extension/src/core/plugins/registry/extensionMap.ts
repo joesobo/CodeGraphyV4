@@ -30,6 +30,26 @@ export function addPluginToExtensionMap(
   }
 }
 
+function removePluginFromExtensionList(
+  extensionKey: string,
+  pluginId: string,
+  extensionMap: Map<string, string[]>,
+): void {
+  const plugins = extensionMap.get(extensionKey);
+  if (!plugins) {
+    return;
+  }
+
+  const index = plugins.indexOf(pluginId);
+  if (index !== -1) {
+    plugins.splice(index, 1);
+  }
+
+  if (plugins.length === 0) {
+    extensionMap.delete(extensionKey);
+  }
+}
+
 /**
  * Remove a plugin's supported extensions from the extension map.
  */
@@ -40,30 +60,11 @@ export function removePluginFromExtensionMap(
 ): void {
   for (const ext of plugin.supportedExtensions) {
     if (ext === WILDCARD_EXTENSION) {
-      const plugins = extensionMap.get(WILDCARD_EXTENSION);
-      if (plugins) {
-        const index = plugins.indexOf(pluginId);
-        if (index !== -1) {
-          plugins.splice(index, 1);
-        }
-        if (plugins.length === 0) {
-          extensionMap.delete(WILDCARD_EXTENSION);
-        }
-      }
+      removePluginFromExtensionList(WILDCARD_EXTENSION, pluginId, extensionMap);
       continue;
     }
 
-    const normalizedExt = normalizePluginExtension(ext);
-    const plugins = extensionMap.get(normalizedExt);
-    if (plugins) {
-      const index = plugins.indexOf(pluginId);
-      if (index !== -1) {
-        plugins.splice(index, 1);
-      }
-      if (plugins.length === 0) {
-        extensionMap.delete(normalizedExt);
-      }
-    }
+    removePluginFromExtensionList(normalizePluginExtension(ext), pluginId, extensionMap);
   }
 }
 

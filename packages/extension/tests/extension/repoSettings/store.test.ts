@@ -5,6 +5,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { createDefaultCodeGraphyRepoSettings } from '../../../src/extension/repoSettings/defaults';
 import {
   CodeGraphyRepoSettingsStore,
+  type ICodeGraphySettingsChangeEvent,
 } from '../../../src/extension/repoSettings/store';
 
 function createTempWorkspace(): string {
@@ -215,5 +216,30 @@ describe('extension/repoSettings/store', () => {
     expect(store.get('exclude', [])).toEqual(['**/*.png', '**/*.tmp']);
     expect(persisted.filterPatterns).toEqual(['**/*.png', '**/*.tmp']);
     expect(persisted.exclude).toBeUndefined();
+  });
+
+  it('reports alias and parent-child matches through affectsConfiguration', async () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+    const events: ICodeGraphySettingsChangeEvent[] = [];
+
+    store.onDidChange((event) => {
+      events.push(event);
+    });
+
+    await store.update('legend', [{ id: 'legend-rule', pattern: 'src/**', color: '#abcdef' }]);
+    await store.update('timeline.playbackSpeed', 3);
+    await store.update('nodeColors', { folder: '#123456' });
+
+    expect(events[0].affectsConfiguration('codegraphy')).toBe(true);
+    expect(events[0].affectsConfiguration('codegraphy.groups')).toBe(true);
+    expect(events[0].affectsConfiguration('workbench.colorTheme')).toBe(false);
+
+    expect(events[1].affectsConfiguration('codegraphy.timeline')).toBe(true);
+    expect(events[1].affectsConfiguration('codegraphy.timeline.playbackSpeed')).toBe(true);
+
+    expect(events[2].affectsConfiguration('codegraphy.folderNodeColor')).toBe(true);
+    expect(events[2].affectsConfiguration('codegraphy.nodeColors')).toBe(true);
   });
 });

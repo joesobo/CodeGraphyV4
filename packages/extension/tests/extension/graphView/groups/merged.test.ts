@@ -77,4 +77,36 @@ describe('graphView/mergedGroups', () => {
       { id: 'plugin:codegraphy.python:*.py', pattern: '*.py', color: '#3776AB', disabled: false },
     ]);
   });
+
+  it('keeps unordered groups stable while moving ordered groups ahead of them', () => {
+    const groups = buildGraphViewMergedGroups(
+      [{ id: 'user:keep-first', pattern: 'src/**', color: '#111111' }],
+      [
+        { id: 'ordered', pattern: '*.ts', color: '#222222' },
+        { id: 'default:keep-stable', pattern: '*.json', color: '#333333' },
+      ],
+      [{ id: 'plugin:keep-stable', pattern: '*.py', color: '#444444' }],
+      {},
+      ['ordered'],
+    );
+
+    expect(groups.map((group) => group.id)).toEqual([
+      'ordered',
+      'user:keep-first',
+      'default:keep-stable',
+      'plugin:keep-stable',
+    ]);
+  });
+
+  it('preserves relative order when legend order does not mention either group', () => {
+    const groups = buildGraphViewMergedGroups(
+      [{ id: 'user:a', pattern: 'a/**', color: '#111111' }],
+      [{ id: 'user:b', pattern: 'b/**', color: '#222222' }],
+      [],
+      {},
+      ['ordered-only'],
+    );
+
+    expect(groups.map((group) => group.id)).toEqual(['user:a', 'user:b']);
+  });
 });
