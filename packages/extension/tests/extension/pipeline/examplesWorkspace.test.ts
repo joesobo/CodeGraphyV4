@@ -5,6 +5,7 @@ import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
+import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache';
 
 const sourceExamplesRoot = path.resolve(__dirname, '../../../../../examples');
 const tempWorkspaceRoots: string[] = [];
@@ -78,5 +79,24 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
     expect(edgeIds.has('example-markdown/notes/Home.md->example-markdown/notes/Architecture.md#reference')).toBe(true);
     expect(edgeIds.has('example-markdown/notes/Home.md->example-markdown/src/commented.ts#reference')).toBe(true);
     expect(edgeIds.has('example-markdown/src/commented.ts->example-markdown/notes/Architecture.md#reference')).toBe(true);
+    expect(edgeIds.has('example-typescript/packages/app/src/index.ts->example-typescript/packages/app/src/utils.ts#import')).toBe(true);
+    expect(edgeIds.has('example-typescript/packages/app/src/index.ts->example-typescript/packages/shared/src/types.ts#import')).toBe(true);
+    expect(edgeIds.has('example-typescript/packages/app/src/utils.ts->example-typescript/packages/feature-depth/src/deep.ts#import')).toBe(true);
+
+    const persistedSnapshot = readWorkspaceAnalysisDatabaseSnapshot(workspaceRoot);
+    const persistedTypeScriptFiles = persistedSnapshot.files
+      .map(file => file.filePath)
+      .filter(filePath => filePath.startsWith('example-typescript/'));
+
+    expect(persistedTypeScriptFiles).toEqual(
+      expect.arrayContaining([
+        'example-typescript/packages/app/src/index.ts',
+        'example-typescript/packages/app/src/orphan.ts',
+        'example-typescript/packages/app/src/utils.ts',
+        'example-typescript/packages/feature-depth/src/deep.ts',
+        'example-typescript/packages/feature-depth/src/leaf.ts',
+        'example-typescript/packages/shared/src/types.ts',
+      ]),
+    );
   });
 });

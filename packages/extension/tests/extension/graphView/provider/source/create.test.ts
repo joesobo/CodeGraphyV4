@@ -29,5 +29,6 @@ describe('source/create', () => {
     owner._webviewReadyNotified = true;
 
     expect(source._webviewReadyNotified).toBe(true);
+    expect(source._webviewMethods).toBe(owner._webviewMethods);
   });
 });
