@@ -98,6 +98,49 @@ async function applyPluginOrderUpdate(
   return true;
 }
 
+async function applyGraphControlMessage(
+  message: WebviewToExtensionMessage,
+  handlers: GraphViewSettingsMessageHandlers,
+): Promise<boolean> {
+  if (message.type === 'UPDATE_NODE_VISIBILITY') {
+    return applyGraphControlsUpdate(
+      'nodeVisibility',
+      message.payload.nodeType,
+      message.payload.visible,
+      handlers,
+    );
+  }
+
+  if (message.type === 'UPDATE_EDGE_VISIBILITY') {
+    return applyGraphControlsUpdate(
+      'edgeVisibility',
+      message.payload.edgeKind,
+      message.payload.visible,
+      handlers,
+    );
+  }
+
+  if (message.type === 'UPDATE_NODE_COLOR') {
+    return applyGraphControlsUpdate(
+      'nodeColors',
+      message.payload.nodeType,
+      message.payload.color,
+      handlers,
+    );
+  }
+
+  if (message.type === 'UPDATE_EDGE_COLOR') {
+    return applyGraphControlsUpdate(
+      'edgeColors',
+      message.payload.edgeKind,
+      message.payload.color,
+      handlers,
+    );
+  }
+
+  return false;
+}
+
 export async function applySettingsUpdateMessage(
   message: WebviewToExtensionMessage,
   state: GraphViewSettingsMessageState,
@@ -125,44 +168,12 @@ export async function applySettingsUpdateMessage(
     return applyShowLabelsUpdate(message, handlers);
   }
 
-  if (message.type === 'UPDATE_NODE_VISIBILITY') {
-    return applyGraphControlsUpdate(
-      'nodeVisibility',
-      message.payload.nodeType,
-      message.payload.visible,
-      handlers,
-    );
-  }
-
-  if (message.type === 'UPDATE_EDGE_VISIBILITY') {
-    return applyGraphControlsUpdate(
-      'edgeVisibility',
-      message.payload.edgeKind,
-      message.payload.visible,
-      handlers,
-    );
-  }
-
   if (message.type === 'UPDATE_PLUGIN_ORDER') {
     return applyPluginOrderUpdate(message, handlers);
   }
 
-  if (message.type === 'UPDATE_NODE_COLOR') {
-    return applyGraphControlsUpdate(
-      'nodeColors',
-      message.payload.nodeType,
-      message.payload.color,
-      handlers,
-    );
-  }
-
-  if (message.type === 'UPDATE_EDGE_COLOR') {
-    return applyGraphControlsUpdate(
-      'edgeColors',
-      message.payload.edgeKind,
-      message.payload.color,
-      handlers,
-    );
+  if (await applyGraphControlMessage(message, handlers)) {
+    return true;
   }
 
   return false;

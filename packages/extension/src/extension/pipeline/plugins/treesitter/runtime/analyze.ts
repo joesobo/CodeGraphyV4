@@ -409,19 +409,28 @@ function collectImportBindings(
   }
 
   for (const child of importClause.namedChildren) {
-    if (child.type === 'identifier') {
-      addCollectedImportBinding(importedBindings, child.text, 'default', specifier, resolvedPath);
-      continue;
-    }
+    applyImportClauseBinding(child, importedBindings, specifier, resolvedPath);
+  }
+}
 
-    if (child.type === 'named_imports') {
-      addNamedImportBindings(child, importedBindings, specifier, resolvedPath);
-      continue;
-    }
+function applyImportClauseBinding(
+  child: Parser.SyntaxNode,
+  importedBindings: Map<string, ImportedBinding>,
+  specifier: string,
+  resolvedPath: string | null,
+): void {
+  if (child.type === 'identifier') {
+    addCollectedImportBinding(importedBindings, child.text, 'default', specifier, resolvedPath);
+    return;
+  }
 
-    if (child.type === 'namespace_import') {
-      addNamespaceImportBinding(child, importedBindings, specifier, resolvedPath);
-    }
+  if (child.type === 'named_imports') {
+    addNamedImportBindings(child, importedBindings, specifier, resolvedPath);
+    return;
+  }
+
+  if (child.type === 'namespace_import') {
+    addNamespaceImportBinding(child, importedBindings, specifier, resolvedPath);
   }
 }
 
@@ -1346,23 +1355,21 @@ function getCSharpTypeName(node: Parser.SyntaxNode | null | undefined): string |
   return text ? normalizeCSharpTypeName(text) : null;
 }
 
+const C_SHARP_NAMESPACE_NAME_TYPES = new Set([
+  'identifier',
+  'qualified_name',
+  'alias_qualified_name',
+]);
+
 function getCSharpNamespaceName(node: Parser.SyntaxNode): string | null {
   const nameNode = node.childForFieldName('name');
   if (nameNode) {
     return getNodeText(nameNode);
   }
 
-  for (const child of node.namedChildren) {
-    if (
-      child.type === 'identifier'
-      || child.type === 'qualified_name'
-      || child.type === 'alias_qualified_name'
-    ) {
-      return getNodeText(child);
-    }
-  }
-
-  return null;
+  return getNodeText(
+    node.namedChildren.find((child) => C_SHARP_NAMESPACE_NAME_TYPES.has(child.type)),
+  );
 }
 
 function getCSharpFileScopedNamespaceName(rootNode: Parser.SyntaxNode): string | null {
@@ -2019,6 +2026,10 @@ function analyzeTreeSitterTree(
   workspaceRoot: string,
   languageKind: string,
 ): IFileAnalysisResult | null {
+  if (languageKind === 'rust') {
+    return analyzeRustFile(filePath, tree, workspaceRoot);
+  }
+
   if (languageKind === 'csharp') {
     return analyzeCSharpFile(filePath, tree, workspaceRoot);
   }
@@ -2039,7 +2050,5 @@ function analyzeTreeSitterTree(
     return analyzePythonFile(filePath, tree, workspaceRoot);
   }
 
-  return languageKind === 'rust'
-    ? analyzeRustFile(filePath, tree, workspaceRoot)
-    : null;
+  return null;
 }
