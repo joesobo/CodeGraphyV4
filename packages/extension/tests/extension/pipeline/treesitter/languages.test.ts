@@ -1,5 +1,29 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+function mockTreeSitterBindings(): { setLanguage: ReturnType<typeof vi.fn> } {
+  const setLanguage = vi.fn();
+
+  vi.doMock('tree-sitter', () => ({
+    default: class MockParser {
+      setLanguage = setLanguage;
+    },
+  }));
+  vi.doMock('tree-sitter-c-sharp', () => ({ default: { id: 'csharp' } }));
+  vi.doMock('tree-sitter-go', () => ({ default: { id: 'go' } }));
+  vi.doMock('tree-sitter-java', () => ({ default: { id: 'java' } }));
+  vi.doMock('tree-sitter-javascript', () => ({ default: { id: 'javascript' } }));
+  vi.doMock('tree-sitter-python', () => ({ default: { id: 'python' } }));
+  vi.doMock('tree-sitter-rust', () => ({ default: { id: 'rust' } }));
+  vi.doMock('tree-sitter-typescript', () => ({
+    default: {
+      tsx: { id: 'tsx' },
+      typescript: { id: 'typescript' },
+    },
+  }));
+
+  return { setLanguage };
+}
+
 describe('pipeline/plugins/treesitter/runtime/languages', () => {
   beforeEach(() => {
     vi.resetModules();
@@ -62,5 +86,45 @@ describe('pipeline/plugins/treesitter/runtime/languages', () => {
     expect(supportsTreeSitterFile('/workspace/src/lib.rs')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/src/App.cs')).toBe(true);
     expect(supportsTreeSitterFile('/workspace/README.md')).toBe(false);
+  });
+
+  it.each([
+    ['/workspace/src/app.js', 'javascript', 'javascript'],
+    ['/workspace/src/app.cjs', 'javascript', 'javascript'],
+    ['/workspace/src/app.mjs', 'javascript', 'javascript'],
+    ['/workspace/src/app.jsx', 'javascript', 'javascript'],
+    ['/workspace/src/app.ts', 'typescript', 'typescript'],
+    ['/workspace/src/app.cts', 'typescript', 'typescript'],
+    ['/workspace/src/app.mts', 'typescript', 'typescript'],
+    ['/workspace/src/app.tsx', 'tsx', 'tsx'],
+    ['/workspace/src/app.py', 'python', 'python'],
+    ['/workspace/src/app.pyi', 'python', 'python'],
+    ['/workspace/src/main.go', 'go', 'go'],
+    ['/workspace/src/App.java', 'java', 'java'],
+    ['/workspace/src/lib.rs', 'rust', 'rust'],
+    ['/workspace/src/App.cs', 'csharp', 'csharp'],
+  ])(
+    'creates a runtime for %s with %s bindings',
+    async (filePath, languageKind, languageId) => {
+      const { setLanguage } = mockTreeSitterBindings();
+      const { createTreeSitterRuntime } = await import(
+        '../../../../src/extension/pipeline/plugins/treesitter/runtime/languages'
+      );
+
+      const runtime = await createTreeSitterRuntime(filePath);
+
+      expect(runtime?.languageKind).toBe(languageKind);
+      expect(setLanguage).toHaveBeenCalledWith({ id: languageId });
+    },
+  );
+
+  it('returns null for unsupported extensions without loading bindings', async () => {
+    const { setLanguage } = mockTreeSitterBindings();
+    const { createTreeSitterParser } = await import(
+      '../../../../src/extension/pipeline/plugins/treesitter/runtime/languages'
+    );
+
+    await expect(createTreeSitterParser('/workspace/README.md')).resolves.toBeNull();
+    expect(setLanguage).not.toHaveBeenCalled();
   });
 });

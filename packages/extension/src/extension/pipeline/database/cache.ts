@@ -100,6 +100,90 @@ function readOptionalString(value: unknown): string | undefined {
   return value.length > 0 ? value : undefined;
 }
 
+function readRequiredString(value: unknown): string | undefined {
+  return typeof value === 'string' ? value : undefined;
+}
+
+function readOptionalNumber(value: unknown): number | undefined {
+  return typeof value === 'number' || typeof value === 'bigint'
+    ? Number(value)
+    : undefined;
+}
+
+function createSnapshotFileEntry(
+  row: FileAnalysisRow,
+):
+  | {
+      filePath: string;
+      mtime: number;
+      size?: number;
+      analysis: IFileAnalysisResult;
+    }
+  | undefined {
+  const filePath = readRequiredString(row.filePath);
+  const analysisText = readRequiredString(row.analysis);
+
+  if (!filePath || !analysisText) {
+    return undefined;
+  }
+
+  return {
+    filePath,
+    mtime: Number(row.mtime ?? 0),
+    size: readOptionalNumber(row.size),
+    analysis: JSON.parse(analysisText) as IFileAnalysisResult,
+  };
+}
+
+function createSnapshotSymbolEntry(row: SymbolRow): IAnalysisSymbol | undefined {
+  const symbolId = readRequiredString(row.symbolId);
+  const filePath = readRequiredString(row.filePath);
+  const name = readRequiredString(row.name);
+  const kind = readRequiredString(row.kind);
+
+  if (!symbolId || !filePath || !name || !kind) {
+    return undefined;
+  }
+
+  return {
+    id: symbolId,
+    filePath,
+    name,
+    kind,
+    signature: readOptionalString(row.signature),
+    range: parseOptionalJson(row.rangeJson),
+    metadata: parseOptionalJson(row.metadataJson),
+  };
+}
+
+function createSnapshotRelationEntry(row: RelationRow): IAnalysisRelation | undefined {
+  const filePath = readRequiredString(row.filePath);
+  const kind = readRequiredString(row.kind);
+  const sourceId = readRequiredString(row.sourceId);
+  const fromFilePath = readRequiredString(row.fromFilePath);
+
+  if (!filePath || !kind || !sourceId || !fromFilePath) {
+    return undefined;
+  }
+
+  return {
+    kind: kind as IAnalysisRelation['kind'],
+    pluginId: readOptionalString(row.pluginId),
+    sourceId,
+    fromFilePath,
+    toFilePath: readOptionalString(row.toFilePath),
+    fromNodeId: readOptionalString(row.fromNodeId),
+    toNodeId: readOptionalString(row.toNodeId),
+    fromSymbolId: readOptionalString(row.fromSymbolId),
+    toSymbolId: readOptionalString(row.toSymbolId),
+    specifier: readOptionalString(row.specifier),
+    type: readOptionalString(row.relationType),
+    variant: readOptionalString(row.variant),
+    resolvedPath: readOptionalString(row.resolvedPath),
+    metadata: parseOptionalJson(row.metadataJson),
+  };
+}
+
 function createRelationRowId(
   filePath: string,
   relation: IAnalysisRelation,
@@ -212,21 +296,15 @@ export function loadWorkspaceAnalysisDatabaseCache(
 
       for (const row of rows) {
         try {
-          const filePath = typeof row.filePath === 'string' ? row.filePath : undefined;
-          const analysisText = typeof row.analysis === 'string' ? row.analysis : undefined;
-          const size =
-            typeof row.size === 'number' || typeof row.size === 'bigint'
-              ? Number(row.size)
-              : undefined;
-
-          if (!filePath || !analysisText) {
+          const entry = createSnapshotFileEntry(row);
+          if (!entry) {
             continue;
           }
 
-          cache.files[filePath] = {
-            mtime: Number(row.mtime ?? 0),
-            size,
-            analysis: JSON.parse(analysisText) as IFileAnalysisResult,
+          cache.files[entry.filePath] = {
+            mtime: entry.mtime,
+            size: entry.size,
+            analysis: entry.analysis,
           };
         } catch (error) {
           console.warn('[CodeGraphy] Skipping unreadable persisted analysis row.', error);
@@ -268,71 +346,16 @@ export function readWorkspaceAnalysisDatabaseSnapshot(
 
       return {
         files: fileRows.flatMap((row) => {
-          const filePath = typeof row.filePath === 'string' ? row.filePath : undefined;
-          const analysisText = typeof row.analysis === 'string' ? row.analysis : undefined;
-          const size =
-            typeof row.size === 'number' || typeof row.size === 'bigint'
-              ? Number(row.size)
-              : undefined;
-
-          if (!filePath || !analysisText) {
-            return [];
-          }
-
-          return [{
-            filePath,
-            mtime: Number(row.mtime ?? 0),
-            size,
-            analysis: JSON.parse(analysisText) as IFileAnalysisResult,
-          }];
+          const entry = createSnapshotFileEntry(row);
+          return entry ? [entry] : [];
         }),
         symbols: symbolRows.flatMap((row) => {
-          const symbolId = typeof row.symbolId === 'string' ? row.symbolId : undefined;
-          const filePath = typeof row.filePath === 'string' ? row.filePath : undefined;
-          const name = typeof row.name === 'string' ? row.name : undefined;
-          const kind = typeof row.kind === 'string' ? row.kind : undefined;
-
-          if (!symbolId || !filePath || !name || !kind) {
-            return [];
-          }
-
-          return [{
-            id: symbolId,
-            filePath,
-            name,
-            kind,
-            signature: readOptionalString(row.signature),
-            range: parseOptionalJson(row.rangeJson),
-            metadata: parseOptionalJson(row.metadataJson),
-          }];
+          const entry = createSnapshotSymbolEntry(row);
+          return entry ? [entry] : [];
         }),
         relations: relationRows.flatMap((row) => {
-          const filePath = typeof row.filePath === 'string' ? row.filePath : undefined;
-          const kind = typeof row.kind === 'string' ? row.kind : undefined;
-          const sourceId = typeof row.sourceId === 'string' ? row.sourceId : undefined;
-          const fromFilePath =
-            typeof row.fromFilePath === 'string' ? row.fromFilePath : undefined;
-
-          if (!filePath || !kind || !sourceId || !fromFilePath) {
-            return [];
-          }
-
-          return [{
-            kind: kind as IAnalysisRelation['kind'],
-            pluginId: readOptionalString(row.pluginId),
-            sourceId,
-            fromFilePath,
-            toFilePath: readOptionalString(row.toFilePath),
-            fromNodeId: readOptionalString(row.fromNodeId),
-            toNodeId: readOptionalString(row.toNodeId),
-            fromSymbolId: readOptionalString(row.fromSymbolId),
-            toSymbolId: readOptionalString(row.toSymbolId),
-            specifier: readOptionalString(row.specifier),
-            type: readOptionalString(row.relationType),
-            variant: readOptionalString(row.variant),
-            resolvedPath: readOptionalString(row.resolvedPath),
-            metadata: parseOptionalJson(row.metadataJson),
-          }];
+          const entry = createSnapshotRelationEntry(row);
+          return entry ? [entry] : [];
         }),
       };
     });

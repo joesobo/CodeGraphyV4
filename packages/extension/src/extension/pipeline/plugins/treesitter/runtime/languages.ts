@@ -133,23 +133,7 @@ async function getTreeSitterLanguageForFile(filePath: string): Promise<{
     return null;
   }
 
-  switch (path.extname(filePath).toLowerCase()) {
-    case '.cjs':
-    case '.cs':
-    case '.js':
-    case '.jsx':
-    case '.mjs':
-    case '.go':
-    case '.java':
-    case '.py':
-    case '.pyi':
-    case '.rs':
-      break;
-    default:
-      break;
-  }
-
-  switch (path.extname(filePath).toLowerCase()) {
+  switch (getFileExtension(filePath)) {
     case '.cjs':
     case '.js':
     case '.jsx':

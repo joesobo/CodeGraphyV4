@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, act, waitFor } from '@testing-library/react';
+import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
 import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
 import { graphStore } from '../../../src/webview/store/state';
@@ -10,6 +10,7 @@ const harness = vi.hoisted(() => ({
   searchBarProps: null as null | Record<string, unknown>,
   createApiCalls: [] as string[],
   deliveries: [] as Array<{ pluginId: string; message: { type: string; data: unknown } }>,
+  sentMessages: [] as Array<{ type: string; payload?: unknown }>,
 }));
 
 const messageListeners: Array<(event: MessageEvent) => void> = [];
@@ -61,6 +62,10 @@ vi.mock('../../../src/webview/components/Timeline', () => ({
 
 vi.mock('../../../src/webview/components/Toolbar', () => ({
   default: () => <div data-testid="toolbar" />,
+}));
+
+vi.mock('../../../src/webview/vscodeApi', () => ({
+  postMessage: (message: { type: string; payload?: unknown }) => harness.sentMessages.push(message),
 }));
 
 vi.mock('../../../src/webview/pluginHost/manager', () => {
@@ -190,6 +195,7 @@ describe('App behavior', () => {
     harness.searchBarProps = null;
     harness.createApiCalls.length = 0;
     harness.deliveries.length = 0;
+    harness.sentMessages.length = 0;
     document.head.innerHTML = '';
     document.body.innerHTML = '';
     (globalThis as { __pluginActivations?: unknown[] }).__pluginActivations = [];
@@ -381,6 +387,114 @@ describe('App behavior', () => {
       regex: false,
     });
     expect(screen.getByTestId('graph-node-ids')).toHaveTextContent('src/Todo.ts');
+  });
+
+  it('adds a trimmed filter rule once from graph requests', async () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
+        edges: [],
+      },
+      filterPatterns: ['existing/**'],
+    });
+
+    render(<App />);
+    harness.sentMessages.length = 0;
+
+    await act(async () => {
+      (harness.graphProps?.onAddFilterRequested as ((pattern: string) => void))('  src/**  ');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(graphStore.getState().filterPatterns).toEqual(['existing/**', 'src/**']);
+    expect(harness.sentMessages).toContainEqual({
+      type: 'UPDATE_FILTER_PATTERNS',
+      payload: { patterns: ['existing/**', 'src/**'] },
+    });
+    expect(screen.queryByLabelText('Add Filter pattern')).not.toBeInTheDocument();
+  });
+
+  it('closes duplicate filter submissions without sending an update', async () => {
+    graphStore.setState({
+      graphData: {
+        nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
+        edges: [],
+      },
+      filterPatterns: ['src/**'],
+    });
+
+    render(<App />);
+    harness.sentMessages.length = 0;
+
+    await act(async () => {
+      (harness.graphProps?.onAddFilterRequested as ((pattern: string) => void))(' src/** ');
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(graphStore.getState().filterPatterns).toEqual(['src/**']);
+    expect(harness.sentMessages).toEqual([]);
+    expect(screen.queryByLabelText('Add Filter pattern')).not.toBeInTheDocument();
+  });
+
+  it('adds legend rules from graph requests and sends the optimistic legend list', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(123456);
+    vi.spyOn(Math, 'random').mockReturnValue(0.123456);
+    graphStore.setState({
+      graphData: {
+        nodes: [{ id: 'src/App.ts', label: 'App', color: '#123456' }],
+        edges: [],
+      },
+      legends: [{ id: 'plugin-default', pattern: 'generated/**', color: '#aaaaaa', isPluginDefault: true }],
+    });
+
+    render(<App />);
+    harness.sentMessages.length = 0;
+
+    await act(async () => {
+      (
+        harness.graphProps?.onAddLegendRequested as (rule: {
+          pattern: string;
+          color: string;
+          target: 'node' | 'edge';
+        }) => void
+      )({ pattern: ' src/** ', color: '#ff0000', target: 'node' });
+    });
+
+    fireEvent.change(screen.getByLabelText('Legend rule color'), {
+      target: { value: '#00ff00' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(graphStore.getState().legends).toEqual([
+      {
+        id: 'legend:123456:4fzyo8',
+        pattern: 'src/**',
+        color: '#00ff00',
+        target: 'node',
+      },
+      {
+        id: 'plugin-default',
+        pattern: 'generated/**',
+        color: '#aaaaaa',
+        isPluginDefault: true,
+      },
+    ]);
+    expect(harness.sentMessages).toContainEqual({
+      type: 'UPDATE_LEGENDS',
+      payload: {
+        legends: [
+          {
+            id: 'legend:123456:4fzyo8',
+            pattern: 'src/**',
+            color: '#00ff00',
+            target: 'node',
+          },
+        ],
+      },
+    });
+    expect(screen.queryByLabelText('Add Legend Group pattern')).not.toBeInTheDocument();
   });
 
   it('applies the first enabled matching group and preserves unmatched node styling', () => {

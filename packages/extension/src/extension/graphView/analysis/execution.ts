@@ -119,6 +119,128 @@ function sendInitialProgressState(
   });
 }
 
+function publishAnalyzedGraph(
+  state: GraphViewAnalysisExecutionState,
+  handlers: GraphViewAnalysisExecutionHandlers,
+  rawGraphData: IGraphData,
+  hasIndex: boolean,
+): void {
+  handlers.setRawGraphData(rawGraphData);
+  handlers.sendGraphIndexStatusUpdated(hasIndex);
+  handlers.updateViewContext();
+  handlers.applyViewTransform();
+
+  const graphData = handlers.getGraphData();
+  handlers.sendGraphDataUpdated(graphData);
+  handlers.sendDepthState();
+  handlers.sendPluginStatuses();
+  handlers.sendDecorations();
+  handlers.sendContextMenuItems();
+  handlers.sendPluginExporters?.();
+  handlers.sendPluginToolbarActions?.();
+  state.analyzer?.registry.notifyPostAnalyze(graphData);
+  handlers.markWorkspaceReady(graphData);
+}
+
+async function ensureAnalyzerInitialized(
+  signal: AbortSignal,
+  requestId: number,
+  state: GraphViewAnalysisExecutionState,
+  handlers: GraphViewAnalysisExecutionHandlers,
+): Promise<boolean> {
+  if (state.analyzerInitialized) {
+    return true;
+  }
+
+  if (!state.analyzer) {
+    return false;
+  }
+
+  if (!state.analyzerInitPromise) {
+    state.analyzerInitPromise = state.analyzer
+      .initialize()
+      .then(() => {
+        state.analyzerInitialized = true;
+      })
+      .finally(() => {
+        state.analyzerInitPromise = undefined;
+      });
+  }
+
+  await state.analyzerInitPromise;
+  return !handlers.isAnalysisStale(signal, requestId);
+}
+
+async function loadRawGraphData(
+  signal: AbortSignal,
+  state: GraphViewAnalysisExecutionState,
+  handlers: GraphViewAnalysisExecutionHandlers,
+): Promise<{ rawGraphData: IGraphData; shouldDiscover: boolean }> {
+  if (!state.analyzer) {
+    return { rawGraphData: EMPTY_GRAPH_DATA, shouldDiscover: false };
+  }
+
+  const shouldDiscover = state.mode === 'load' && !state.analyzer.hasIndex();
+  const forwardProgress = createProgressForwarder(state.mode, handlers);
+
+  if (!shouldDiscover) {
+    sendInitialProgressState(state.mode, handlers);
+  }
+
+  if (shouldDiscover) {
+    return {
+      rawGraphData: await state.analyzer.discoverGraph(
+        state.filterPatterns,
+        state.disabledPlugins,
+        signal,
+      ),
+      shouldDiscover,
+    };
+  }
+
+  if (state.mode === 'refresh') {
+    return {
+      rawGraphData: await (state.analyzer.refreshIndex ?? state.analyzer.analyze)(
+        state.filterPatterns,
+        state.disabledPlugins,
+        signal,
+        forwardProgress,
+      ),
+      shouldDiscover,
+    };
+  }
+
+  if (state.mode === 'incremental') {
+    return {
+      rawGraphData: state.analyzer.refreshChangedFiles
+        ? await state.analyzer.refreshChangedFiles(
+            state.changedFilePaths ?? [],
+            state.filterPatterns,
+            state.disabledPlugins,
+            signal,
+            forwardProgress,
+          )
+        : await state.analyzer.analyze(
+            state.filterPatterns,
+            state.disabledPlugins,
+            signal,
+            forwardProgress,
+          ),
+      shouldDiscover,
+    };
+  }
+
+  return {
+    rawGraphData: await state.analyzer.analyze(
+      state.filterPatterns,
+      state.disabledPlugins,
+      signal,
+      forwardProgress,
+    ),
+    shouldDiscover,
+  };
+}
+
 export async function executeGraphViewAnalysis(
   signal: AbortSignal,
   requestId: number,
@@ -135,20 +257,8 @@ export async function executeGraphViewAnalysis(
   await (state.installedPluginActivationPromise ?? Promise.resolve());
   if (handlers.isAnalysisStale(signal, requestId)) return;
 
-  if (!state.analyzerInitialized) {
-    if (!state.analyzerInitPromise) {
-      state.analyzerInitPromise = state.analyzer
-        .initialize()
-        .then(() => {
-          state.analyzerInitialized = true;
-        })
-        .finally(() => {
-          state.analyzerInitPromise = undefined;
-        });
-    }
-
-    await state.analyzerInitPromise;
-    if (handlers.isAnalysisStale(signal, requestId)) return;
+  if (!(await ensureAnalyzerInitialized(signal, requestId, state, handlers))) {
+    return;
   }
 
   handlers.computeMergedGroups();
@@ -161,62 +271,10 @@ export async function executeGraphViewAnalysis(
   }
 
   try {
-    const shouldDiscover = state.mode === 'load' && !state.analyzer.hasIndex();
-    const forwardProgress = createProgressForwarder(state.mode, handlers);
-    if (!shouldDiscover) {
-      sendInitialProgressState(state.mode, handlers);
-    }
-    const rawGraphData = shouldDiscover
-      ? await state.analyzer.discoverGraph(
-          state.filterPatterns,
-          state.disabledPlugins,
-          signal,
-        )
-      : state.mode === 'refresh'
-        ? await (state.analyzer.refreshIndex ?? state.analyzer.analyze)(
-            state.filterPatterns,
-            state.disabledPlugins,
-            signal,
-            forwardProgress,
-          )
-        : state.mode === 'incremental'
-          ? state.analyzer.refreshChangedFiles
-            ? await state.analyzer.refreshChangedFiles(
-                state.changedFilePaths ?? [],
-                state.filterPatterns,
-                state.disabledPlugins,
-                signal,
-                forwardProgress,
-              )
-            : await state.analyzer.analyze(
-                state.filterPatterns,
-                state.disabledPlugins,
-                signal,
-                forwardProgress,
-              )
-          : await state.analyzer.analyze(
-              state.filterPatterns,
-              state.disabledPlugins,
-              signal,
-              forwardProgress,
-            );
+    const { rawGraphData, shouldDiscover } = await loadRawGraphData(signal, state, handlers);
     if (handlers.isAnalysisStale(signal, requestId)) return;
 
-    handlers.setRawGraphData(rawGraphData);
-    handlers.sendGraphIndexStatusUpdated(!shouldDiscover);
-    handlers.updateViewContext();
-    handlers.applyViewTransform();
-
-    const graphData = handlers.getGraphData();
-    handlers.sendGraphDataUpdated(graphData);
-    handlers.sendDepthState();
-    handlers.sendPluginStatuses();
-    handlers.sendDecorations();
-    handlers.sendContextMenuItems();
-    handlers.sendPluginExporters?.();
-    handlers.sendPluginToolbarActions?.();
-    state.analyzer.registry.notifyPostAnalyze(graphData);
-    handlers.markWorkspaceReady(graphData);
+    publishAnalyzedGraph(state, handlers, rawGraphData, !shouldDiscover);
   } catch (error) {
     if (handlers.isAbortError(error) || handlers.isAnalysisStale(signal, requestId)) {
       return;
