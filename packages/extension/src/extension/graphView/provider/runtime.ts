@@ -120,6 +120,58 @@ export class GraphViewProviderRuntime {
     return this._viewRegistry;
   }
 
+  protected get _analysisMethods(): GraphViewProviderMethodContainers['analysis'] {
+    return this._methodContainers.analysis;
+  }
+
+  protected get _commandMethods(): GraphViewProviderMethodContainers['command'] {
+    return this._methodContainers.command;
+  }
+
+  protected get _fileActionMethods(): GraphViewProviderMethodContainers['fileAction'] {
+    return this._methodContainers.fileAction;
+  }
+
+  protected get _fileVisitMethods(): GraphViewProviderMethodContainers['fileVisit'] {
+    return this._methodContainers.fileVisit;
+  }
+
+  protected get _pluginMethods(): GraphViewProviderMethodContainers['plugin'] {
+    return this._methodContainers.plugin;
+  }
+
+  protected get _pluginResourceMethods(): GraphViewProviderMethodContainers['pluginResource'] {
+    return this._methodContainers.pluginResource;
+  }
+
+  protected get _physicsSettingsMethods(): GraphViewProviderMethodContainers['physicsSettings'] {
+    return this._methodContainers.physicsSettings;
+  }
+
+  protected get _refreshMethods(): GraphViewProviderMethodContainers['refresh'] {
+    return this._methodContainers.refresh;
+  }
+
+  protected get _settingsStateMethods(): GraphViewProviderMethodContainers['settingsState'] {
+    return this._methodContainers.settingsState;
+  }
+
+  protected get _timelineMethods(): GraphViewProviderMethodContainers['timeline'] {
+    return this._methodContainers.timeline;
+  }
+
+  protected get _viewContextMethods(): GraphViewProviderMethodContainers['viewContext'] {
+    return this._methodContainers.viewContext;
+  }
+
+  protected get _viewSelectionMethods(): GraphViewProviderMethodContainers['viewSelection'] {
+    return this._methodContainers.viewSelection;
+  }
+
+  protected get _webviewMethods(): GraphViewProviderMethodContainers['webview'] {
+    return this._methodContainers.webview;
+  }
+
   public setInstalledPluginActivationPromise(promise: Promise<void>): void {
     this._installedPluginActivationPromise = promise;
   }
