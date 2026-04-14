@@ -7,9 +7,8 @@ import {
 import { MdiIcon } from '../icons/MdiIcon';
 import { Button } from '../ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../ui/overlay/tooltip';
-import { postMessage } from '../../vscodeApi';
 
-function postGraphWindowMessage(type: 'ZOOM_IN' | 'ZOOM_OUT' | 'FIT_VIEW'): void {
+function postGraphWindowMessage(type: 'ZOOM_IN' | 'ZOOM_OUT' | 'FIT_VIEW' | 'REQUEST_OPEN_IN_EDITOR'): void {
   window.postMessage({ type }, '*');
 }
 
@@ -81,7 +80,7 @@ export function GraphCornerControls(): React.ReactElement {
               size="icon"
               className="h-8 w-8 bg-popover/95 backdrop-blur-sm"
               title="Open in Editor"
-              onClick={() => postMessage({ type: 'OPEN_IN_EDITOR' })}
+              onClick={() => postGraphWindowMessage('REQUEST_OPEN_IN_EDITOR')}
             >
               <MdiIcon path={mdiOpenInNew} size={18} />
             </Button>

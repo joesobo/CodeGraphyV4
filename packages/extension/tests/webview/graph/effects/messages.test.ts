@@ -9,6 +9,7 @@ function createHandlers() {
     cacheFileInfo: vi.fn(),
     updateTooltipInfo: vi.fn(),
     postMessage: vi.fn(),
+    openInEditor: vi.fn(),
     exportPng: vi.fn(),
     exportSvg: vi.fn(),
     exportJpeg: vi.fn(),
@@ -88,6 +89,14 @@ describe('graph effects messages', () => {
     applyWebviewMessageEffects([{ kind: 'exportPng' }], handlers);
 
     expect(handlers.exportPng).toHaveBeenCalledOnce();
+  });
+
+  it('opens codegraphy in the editor', () => {
+    const handlers = createHandlers();
+
+    applyWebviewMessageEffects([{ kind: 'openInEditor' }], handlers);
+
+    expect(handlers.openInEditor).toHaveBeenCalledOnce();
   });
 
   it('exports svg', () => {

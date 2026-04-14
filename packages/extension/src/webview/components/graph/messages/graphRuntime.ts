@@ -4,6 +4,7 @@ import type { GraphWebviewMessageEffect } from './effects';
 
 type SingleEffectKind =
   | 'fitView'
+  | 'openInEditor'
   | 'exportPng'
   | 'exportSvg'
   | 'exportJpeg'
@@ -13,7 +14,7 @@ type SingleEffectKind =
 type ZoomMessageType = Extract<ExtensionToWebviewMessage, { type: 'ZOOM_IN' | 'ZOOM_OUT' }>['type'];
 type ExportMessageType = Extract<
   ExtensionToWebviewMessage,
-  { type: 'REQUEST_EXPORT_PNG' | 'REQUEST_EXPORT_SVG' | 'REQUEST_EXPORT_JPEG' | 'REQUEST_EXPORT_JSON' | 'REQUEST_EXPORT_MD' }
+  { type: 'REQUEST_EXPORT_PNG' | 'REQUEST_EXPORT_SVG' | 'REQUEST_EXPORT_JPEG' | 'REQUEST_EXPORT_JSON' | 'REQUEST_EXPORT_MD' | 'REQUEST_OPEN_IN_EDITOR' }
 >['type'];
 type GraphNodeBounds = Pick<FGNode, 'id' | 'size' | 'x' | 'y'>;
 
@@ -25,6 +26,7 @@ const EXPORT_EFFECT_KIND_BY_MESSAGE: Record<ExportMessageType, Exclude<SingleEff
   REQUEST_EXPORT_JPEG: 'exportJpeg',
   REQUEST_EXPORT_JSON: 'exportJson',
   REQUEST_EXPORT_MD: 'exportMarkdown',
+  REQUEST_OPEN_IN_EDITOR: 'openInEditor',
 };
 
 const ZOOM_FACTOR_BY_MESSAGE: Record<ZoomMessageType, number> = {

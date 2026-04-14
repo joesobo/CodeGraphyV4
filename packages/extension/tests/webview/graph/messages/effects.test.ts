@@ -197,6 +197,13 @@ describe('graph/messages/effects', () => {
       tooltipPath: null,
       graphNodes: [],
     })).toEqual([{ kind: 'exportMarkdown' }]);
+
+    expect(getGraphWebviewMessageEffects({
+      message: { type: 'REQUEST_OPEN_IN_EDITOR' },
+      graphMode: '2d',
+      tooltipPath: null,
+      graphNodes: [],
+    })).toEqual([{ kind: 'openInEditor' }]);
   });
 
   it('updates cached node access counts', () => {

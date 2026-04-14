@@ -8,6 +8,7 @@ export interface GraphWebviewMessageEffectHandlers {
   cacheFileInfo(info: IFileInfo): void;
   updateTooltipInfo(info: IFileInfo): void;
   postMessage(message: WebviewToExtensionMessage): void;
+  openInEditor(): void;
   exportPng(): void;
   exportSvg(): void;
   exportJpeg(): void;
@@ -36,6 +37,9 @@ export function applyWebviewMessageEffects(
         break;
       case 'postMessage':
         handlers.postMessage(effect.message);
+        break;
+      case 'openInEditor':
+        handlers.openInEditor();
         break;
       case 'exportPng':
         handlers.exportPng();

@@ -19,6 +19,7 @@ export type GraphWebviewMessageEffect =
   | { kind: 'cacheFileInfo'; info: IFileInfo }
   | { kind: 'updateTooltipInfo'; info: IFileInfo }
   | { kind: 'postMessage'; message: WebviewToExtensionMessage }
+  | { kind: 'openInEditor' }
   | { kind: 'exportPng' }
   | { kind: 'exportSvg' }
   | { kind: 'exportJpeg' }
@@ -55,6 +56,7 @@ export function getGraphWebviewMessageEffects(
     case 'REQUEST_EXPORT_JPEG':
     case 'REQUEST_EXPORT_JSON':
     case 'REQUEST_EXPORT_MD':
+    case 'REQUEST_OPEN_IN_EDITOR':
       return getExportEffects(message.type);
     case 'NODE_ACCESS_COUNT_UPDATED':
       return getAccessCountEffects(message.payload);

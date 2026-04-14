@@ -20,6 +20,7 @@ describe('graph/messages/graphRuntime', () => {
     expect(getExportEffects('REQUEST_EXPORT_JPEG')).toEqual([{ kind: 'exportJpeg' }]);
     expect(getExportEffects('REQUEST_EXPORT_JSON')).toEqual([{ kind: 'exportJson' }]);
     expect(getExportEffects('REQUEST_EXPORT_MD')).toEqual([{ kind: 'exportMarkdown' }]);
+    expect(getExportEffects('REQUEST_OPEN_IN_EDITOR')).toEqual([{ kind: 'openInEditor' }]);
   });
 
   it('creates zoom effects only for 2d mode', () => {
