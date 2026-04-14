@@ -55,6 +55,7 @@ export function useGraphEventEffects({
       cacheFileInfo: info => fileInfoCacheRef.current.set(info.path, info),
       updateTooltipInfo: info => setTooltipData(previous => ({ ...previous, info })),
       postMessage,
+      openInEditor: () => postMessage({ type: 'OPEN_IN_EDITOR' }),
       exportPng: () => exportAsPng(containerRef.current),
       exportSvg: () => exportAsSvg(graphDataRef.current.nodes, graphDataRef.current.links, {
         directionMode: directionModeRef.current,

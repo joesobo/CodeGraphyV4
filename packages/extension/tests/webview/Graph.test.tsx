@@ -344,6 +344,25 @@ describe('Export Functionality', () => {
     expect(exportMsg!.payload.filename).toMatch(/^codegraphy-graph-.*\.md$/);
   });
 
+  it('should handle REQUEST_OPEN_IN_EDITOR message and send OPEN_IN_EDITOR to vscode', async () => {
+    render(<Graph data={mockData} />);
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    });
+
+    await act(async () => {
+      const event = new MessageEvent('message', { data: { type: 'REQUEST_OPEN_IN_EDITOR' } });
+      window.dispatchEvent(event);
+    });
+
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+    });
+
+    expect(findMessage('OPEN_IN_EDITOR')).toBeTruthy();
+  });
+
   it('should handle REQUEST_EXPORT_SVG message and send EXPORT_SVG response', async () => {
     render(<Graph data={mockData} />);
 
