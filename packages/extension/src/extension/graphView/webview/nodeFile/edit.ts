@@ -9,12 +9,21 @@ export interface GraphViewNodeFileEditHandlers {
   addToExclude(patterns: string[]): Promise<void>;
 }
 
+function isTimelineBoundEditMessage(message: WebviewToExtensionMessage): boolean {
+  return (
+    message.type === 'DELETE_FILES'
+    || message.type === 'RENAME_FILE'
+    || message.type === 'CREATE_FILE'
+    || message.type === 'ADD_TO_EXCLUDE'
+  );
+}
+
 function applyTimelineBoundEditMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewNodeFileEditHandlers,
 ): boolean {
   if (handlers.timelineActive) {
-    return false;
+    return isTimelineBoundEditMessage(message);
   }
 
   switch (message.type) {
