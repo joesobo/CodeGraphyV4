@@ -119,6 +119,70 @@ function sendInitialProgressState(
   });
 }
 
+function shouldDiscoverGraph(state: GraphViewAnalysisExecutionState): boolean {
+  return state.mode === 'load' && !state.analyzer?.hasIndex();
+}
+
+async function discoverRawGraphData(
+  signal: AbortSignal,
+  state: GraphViewAnalysisExecutionState,
+): Promise<IGraphData> {
+  return (await state.analyzer?.discoverGraph(
+    state.filterPatterns,
+    state.disabledPlugins,
+    signal,
+  )) ?? EMPTY_GRAPH_DATA;
+}
+
+async function refreshRawGraphData(
+  signal: AbortSignal,
+  state: GraphViewAnalysisExecutionState,
+  forwardProgress: (progress: GraphViewIndexingProgress) => void,
+): Promise<IGraphData> {
+  return (await (state.analyzer?.refreshIndex ?? state.analyzer?.analyze)?.(
+    state.filterPatterns,
+    state.disabledPlugins,
+    signal,
+    forwardProgress,
+  )) ?? EMPTY_GRAPH_DATA;
+}
+
+async function refreshIncrementalRawGraphData(
+  signal: AbortSignal,
+  state: GraphViewAnalysisExecutionState,
+  forwardProgress: (progress: GraphViewIndexingProgress) => void,
+): Promise<IGraphData> {
+  if (state.analyzer?.refreshChangedFiles) {
+    return await state.analyzer.refreshChangedFiles(
+      state.changedFilePaths ?? [],
+      state.filterPatterns,
+      state.disabledPlugins,
+      signal,
+      forwardProgress,
+    );
+  }
+
+  return (await state.analyzer?.analyze(
+    state.filterPatterns,
+    state.disabledPlugins,
+    signal,
+    forwardProgress,
+  )) ?? EMPTY_GRAPH_DATA;
+}
+
+async function analyzeRawGraphData(
+  signal: AbortSignal,
+  state: GraphViewAnalysisExecutionState,
+  forwardProgress: (progress: GraphViewIndexingProgress) => void,
+): Promise<IGraphData> {
+  return (await state.analyzer?.analyze(
+    state.filterPatterns,
+    state.disabledPlugins,
+    signal,
+    forwardProgress,
+  )) ?? EMPTY_GRAPH_DATA;
+}
+
 function publishAnalyzedGraph(
   state: GraphViewAnalysisExecutionState,
   handlers: GraphViewAnalysisExecutionHandlers,
@@ -180,7 +244,7 @@ async function loadRawGraphData(
     return { rawGraphData: EMPTY_GRAPH_DATA, shouldDiscover: false };
   }
 
-  const shouldDiscover = state.mode === 'load' && !state.analyzer.hasIndex();
+  const shouldDiscover = shouldDiscoverGraph(state);
   const forwardProgress = createProgressForwarder(state.mode, handlers);
 
   if (!shouldDiscover) {
@@ -189,56 +253,63 @@ async function loadRawGraphData(
 
   if (shouldDiscover) {
     return {
-      rawGraphData: await state.analyzer.discoverGraph(
-        state.filterPatterns,
-        state.disabledPlugins,
-        signal,
-      ),
+      rawGraphData: await discoverRawGraphData(signal, state),
       shouldDiscover,
     };
   }
 
   if (state.mode === 'refresh') {
     return {
-      rawGraphData: await (state.analyzer.refreshIndex ?? state.analyzer.analyze)(
-        state.filterPatterns,
-        state.disabledPlugins,
-        signal,
-        forwardProgress,
-      ),
+      rawGraphData: await refreshRawGraphData(signal, state, forwardProgress),
       shouldDiscover,
     };
   }
 
   if (state.mode === 'incremental') {
     return {
-      rawGraphData: state.analyzer.refreshChangedFiles
-        ? await state.analyzer.refreshChangedFiles(
-            state.changedFilePaths ?? [],
-            state.filterPatterns,
-            state.disabledPlugins,
-            signal,
-            forwardProgress,
-          )
-        : await state.analyzer.analyze(
-            state.filterPatterns,
-            state.disabledPlugins,
-            signal,
-            forwardProgress,
-          ),
+      rawGraphData: await refreshIncrementalRawGraphData(signal, state, forwardProgress),
       shouldDiscover,
     };
   }
 
   return {
-    rawGraphData: await state.analyzer.analyze(
-      state.filterPatterns,
-      state.disabledPlugins,
-      signal,
-      forwardProgress,
-    ),
+    rawGraphData: await analyzeRawGraphData(signal, state, forwardProgress),
     shouldDiscover,
   };
+}
+
+async function awaitInstalledPluginActivation(
+  signal: AbortSignal,
+  requestId: number,
+  state: GraphViewAnalysisExecutionState,
+  handlers: GraphViewAnalysisExecutionHandlers,
+): Promise<boolean> {
+  await (state.installedPluginActivationPromise ?? Promise.resolve());
+  return !handlers.isAnalysisStale(signal, requestId);
+}
+
+function prepareAnalysisGroups(
+  signal: AbortSignal,
+  requestId: number,
+  handlers: GraphViewAnalysisExecutionHandlers,
+): boolean {
+  handlers.computeMergedGroups();
+  if (handlers.isAnalysisStale(signal, requestId)) {
+    return false;
+  }
+
+  handlers.sendGroupsUpdated();
+  return true;
+}
+
+function publishAnalysisFailure(
+  handlers: GraphViewAnalysisExecutionHandlers,
+): void {
+  const graphData = publishEmptyGraph(handlers);
+  handlers.sendPluginStatuses();
+  handlers.sendPluginExporters?.();
+  handlers.sendPluginToolbarActions?.();
+  handlers.markWorkspaceReady(graphData);
 }
 
 export async function executeGraphViewAnalysis(
@@ -254,16 +325,17 @@ export async function executeGraphViewAnalysis(
     return;
   }
 
-  await (state.installedPluginActivationPromise ?? Promise.resolve());
-  if (handlers.isAnalysisStale(signal, requestId)) return;
+  if (!(await awaitInstalledPluginActivation(signal, requestId, state, handlers))) {
+    return;
+  }
 
   if (!(await ensureAnalyzerInitialized(signal, requestId, state, handlers))) {
     return;
   }
 
-  handlers.computeMergedGroups();
-  if (handlers.isAnalysisStale(signal, requestId)) return;
-  handlers.sendGroupsUpdated();
+  if (!prepareAnalysisGroups(signal, requestId, handlers)) {
+    return;
+  }
 
   if (!handlers.hasWorkspace()) {
     publishEmptyGraph(handlers);
@@ -281,10 +353,6 @@ export async function executeGraphViewAnalysis(
     }
 
     handlers.logError('[CodeGraphy] Analysis failed:', error);
-    const graphData = publishEmptyGraph(handlers);
-    handlers.sendPluginStatuses();
-    handlers.sendPluginExporters?.();
-    handlers.sendPluginToolbarActions?.();
-    handlers.markWorkspaceReady(graphData);
+    publishAnalysisFailure(handlers);
   }
 }
