@@ -9,6 +9,37 @@ export interface DebugNode {
   z?: number;
 }
 
+function getContainerSize(containerRef: RefObject<HTMLElement | null>): {
+  containerHeight: number;
+  containerWidth: number;
+} {
+  const containerRect = containerRef.current?.getBoundingClientRect();
+
+  return {
+    containerHeight: containerRect?.height ?? 0,
+    containerWidth: containerRect?.width ?? 0,
+  };
+}
+
+function buildDebugNodeSnapshot(
+  node: DebugNode,
+  graph: GraphDebugControls | undefined,
+): GraphDebugSnapshot['nodes'][number] {
+  const x = node.x ?? 0;
+  const y = node.y ?? 0;
+  const z = typeof node.z === 'number' ? node.z : 0;
+  const screen = graph?.graph2ScreenCoords?.(x, y, z) ?? { x, y };
+
+  return {
+    id: node.id,
+    screenX: screen.x,
+    screenY: screen.y,
+    size: node.size,
+    x,
+    y,
+  };
+}
+
 export function buildGraphDebugSnapshot({
   containerRef,
   graph,
@@ -20,28 +51,10 @@ export function buildGraphDebugSnapshot({
   graphMode: '2d' | '3d';
   nodes: DebugNode[];
 }): GraphDebugSnapshot {
-  const containerRect = containerRef.current?.getBoundingClientRect();
-
   return {
-    containerHeight: containerRect?.height ?? 0,
-    containerWidth: containerRect?.width ?? 0,
+    ...getContainerSize(containerRef),
     graphMode,
-    nodes: nodes.map((node) => {
-      const z = typeof node.z === 'number' ? node.z : 0;
-      const screen = graph?.graph2ScreenCoords?.(node.x ?? 0, node.y ?? 0, z) ?? {
-        x: node.x ?? 0,
-        y: node.y ?? 0,
-      };
-
-      return {
-        id: node.id,
-        screenX: screen.x,
-        screenY: screen.y,
-        size: node.size,
-        x: node.x ?? 0,
-        y: node.y ?? 0,
-      };
-    }),
+    nodes: nodes.map((node) => buildDebugNodeSnapshot(node, graph)),
     zoom: graphMode === '2d' ? (graph?.zoom?.() ?? null) : null,
   };
 }
