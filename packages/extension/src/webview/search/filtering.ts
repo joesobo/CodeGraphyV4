@@ -34,6 +34,52 @@ function matchesEdgeRule(
   );
 }
 
+function applyNodeLegendRules(
+  node: IGraphData['nodes'][number],
+  activeRules: IGroup[],
+): IGraphData['nodes'][number] {
+  const nextNode = {
+    ...node,
+    color: node.color || DEFAULT_NODE_COLOR,
+  };
+
+  for (const rule of activeRules) {
+    if (!ruleTargetsNodes(rule) || !globMatch(node.id, rule.pattern)) {
+      continue;
+    }
+
+    nextNode.color = rule.color;
+    if (rule.shape2D) {
+      nextNode.shape2D = rule.shape2D;
+    }
+    if (rule.shape3D) {
+      nextNode.shape3D = rule.shape3D;
+    }
+    if (rule.imageUrl) {
+      nextNode.imageUrl = rule.imageUrl;
+    }
+  }
+
+  return nextNode;
+}
+
+function applyEdgeLegendRules(
+  edge: IGraphData['edges'][number],
+  activeRules: IGroup[],
+): IGraphData['edges'][number] {
+  const nextEdge = { ...edge };
+
+  for (const rule of activeRules) {
+    if (!ruleTargetsEdges(rule) || !matchesEdgeRule(edge, rule)) {
+      continue;
+    }
+
+    nextEdge.color = rule.color;
+  }
+
+  return nextEdge;
+}
+
 export function applyFilterPatterns(
   graphData: IGraphData | null,
   filterPatterns: readonly string[],
@@ -97,44 +143,8 @@ export function applyLegendRules(
 
   return {
     ...data,
-    nodes: data.nodes.map((node) => {
-      const nextNode = {
-        ...node,
-        color: node.color || DEFAULT_NODE_COLOR,
-      };
-
-      for (const rule of activeRules) {
-        if (!ruleTargetsNodes(rule) || !globMatch(node.id, rule.pattern)) {
-          continue;
-        }
-
-        nextNode.color = rule.color;
-        if (rule.shape2D) {
-          nextNode.shape2D = rule.shape2D;
-        }
-        if (rule.shape3D) {
-          nextNode.shape3D = rule.shape3D;
-        }
-        if (rule.imageUrl) {
-          nextNode.imageUrl = rule.imageUrl;
-        }
-      }
-
-      return nextNode;
-    }),
-    edges: data.edges.map((edge) => {
-      const nextEdge = { ...edge };
-
-      for (const rule of activeRules) {
-        if (!ruleTargetsEdges(rule) || !matchesEdgeRule(edge, rule)) {
-          continue;
-        }
-
-        nextEdge.color = rule.color;
-      }
-
-      return nextEdge;
-    }),
+    nodes: data.nodes.map((node) => applyNodeLegendRules(node, activeRules)),
+    edges: data.edges.map((edge) => applyEdgeLegendRules(edge, activeRules)),
   };
 }
 

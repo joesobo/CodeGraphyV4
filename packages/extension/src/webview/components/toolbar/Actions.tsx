@@ -59,6 +59,114 @@ export function getToolbarActionIconPath(action: { icon?: string }): string {
   return action.icon ?? mdiLinkVariant;
 }
 
+type ToolbarPanel =
+  'nodes'
+  | 'edges'
+  | 'legends'
+  | 'plugins'
+  | 'settings'
+  | 'export';
+
+function clearPendingIndexTimeout(
+  timeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
+): void {
+  if (timeoutRef.current) {
+    clearTimeout(timeoutRef.current);
+    timeoutRef.current = null;
+  }
+}
+
+function createRefreshConfig(graphHasIndex: boolean): {
+  phase: string;
+  title: string;
+  type: 'INDEX_GRAPH' | 'REFRESH_GRAPH';
+} {
+  return graphHasIndex
+    ? { phase: 'Refreshing Index', title: 'Refresh', type: 'REFRESH_GRAPH' }
+    : { phase: 'Indexing Repo', title: 'Index Repo', type: 'INDEX_GRAPH' };
+}
+
+function postPluginToolbarAction(
+  action: ToolbarActionLike,
+  item: ToolbarActionItemLike,
+): void {
+  window.postMessage({
+    type: 'RUN_PLUGIN_TOOLBAR_ACTION',
+    payload: {
+      pluginId: action.pluginId,
+      index: action.index,
+      itemIndex: item.index,
+    },
+  }, '*');
+}
+
+function ToolbarIconButton({
+  disabled = false,
+  iconPath,
+  onClick,
+  title,
+}: {
+  disabled?: boolean;
+  iconPath: string;
+  onClick: () => void;
+  title: string;
+}): React.ReactElement {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          size="icon"
+          className="h-7 w-7 bg-transparent"
+          onClick={onClick}
+          title={title}
+          disabled={disabled}
+        >
+          <MdiIcon path={iconPath} size={16} />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="right">{title}</TooltipContent>
+    </Tooltip>
+  );
+}
+
+function PluginToolbarActionMenu({
+  action,
+}: {
+  action: ToolbarActionLike;
+}): React.ReactElement {
+  return (
+    <DropdownMenu key={getToolbarActionKey(action)}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-7 w-7 bg-transparent"
+              title={action.label}
+            >
+              <MdiIcon path={getToolbarActionIconPath(action)} size={16} />
+            </Button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="right">{action.label}</TooltipContent>
+      </Tooltip>
+      <DropdownMenuContent align="start" side="right">
+        <DropdownMenuLabel>{action.label}</DropdownMenuLabel>
+        {action.items.map((item) => (
+          <DropdownMenuItem
+            key={getToolbarActionItemKey(action, item)}
+            onSelect={() => postPluginToolbarAction(action, item)}
+          >
+            {item.label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export function ToolbarActions(): React.ReactElement {
   const activePanel = useGraphStore(s => s.activePanel);
   const setActivePanel = useGraphStore(s => s.setActivePanel);
@@ -66,23 +174,17 @@ export function ToolbarActions(): React.ReactElement {
   const graphHasIndex = useGraphStore(s => s.graphHasIndex);
   const graphIsIndexing = useGraphStore(s => s.graphIsIndexing);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const refreshTitle = graphHasIndex ? 'Refresh' : 'Index Repo';
-  const refreshMessageType = graphHasIndex ? 'REFRESH_GRAPH' : 'INDEX_GRAPH';
-  const refreshPhase = graphHasIndex ? 'Refreshing Index' : 'Indexing Repo';
-  const togglePanel = (
-    panel: 'nodes' | 'edges' | 'legends' | 'plugins' | 'settings' | 'export',
-  ): void => {
+  const refresh = createRefreshConfig(graphHasIndex);
+  const togglePanel = (panel: ToolbarPanel): void => {
     setActivePanel(activePanel === panel ? 'none' : panel);
   };
 
   const requestIndex = (): void => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+    clearPendingIndexTimeout(timeoutRef);
     graphStore.setState({
       graphIsIndexing: true,
       graphIndexProgress: {
-        phase: refreshPhase,
+        phase: refresh.phase,
         current: 0,
         total: 1,
       },
@@ -91,7 +193,7 @@ export function ToolbarActions(): React.ReactElement {
       const state = graphStore.getState();
       if (
         state.graphIsIndexing
-        && state.graphIndexProgress?.phase === refreshPhase
+        && state.graphIndexProgress?.phase === refresh.phase
         && state.graphIndexProgress.current === 0
         && state.graphIndexProgress.total === 1
       ) {
@@ -101,167 +203,47 @@ export function ToolbarActions(): React.ReactElement {
         });
       }
     }, 10_000);
-    postMessage({ type: refreshMessageType });
+    postMessage({ type: refresh.type });
   };
 
   useEffect(() => {
-    if (!graphIsIndexing && timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-      timeoutRef.current = null;
+    if (!graphIsIndexing) {
+      clearPendingIndexTimeout(timeoutRef);
     }
   }, [graphIsIndexing]);
 
-  useEffect(() => () => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-  }, []);
+  useEffect(() => () => clearPendingIndexTimeout(timeoutRef), []);
+
+  const panelButtons: Array<{ iconPath: string; panel: ToolbarPanel; title: string }> = [
+    { iconPath: mdiExport, panel: 'export', title: 'Export' },
+    { iconPath: mdiShapeOutline, panel: 'nodes', title: 'Nodes' },
+    { iconPath: mdiVectorLine, panel: 'edges', title: 'Edges' },
+    { iconPath: mdiPaletteOutline, panel: 'legends', title: 'Legends' },
+    { iconPath: mdiPuzzleOutline, panel: 'plugins', title: 'Plugins' },
+    { iconPath: mdiCogOutline, panel: 'settings', title: 'Settings' },
+  ];
 
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 bg-transparent"
-            onClick={requestIndex}
-            title={refreshTitle}
-            disabled={graphIsIndexing}
-          >
-            <MdiIcon path={mdiAutorenew} size={16} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">{refreshTitle}</TooltipContent>
-      </Tooltip>
+      <ToolbarIconButton
+        disabled={graphIsIndexing}
+        iconPath={mdiAutorenew}
+        onClick={requestIndex}
+        title={refresh.title}
+      />
 
-      {pluginToolbarActions.map(action => (
-        <DropdownMenu key={getToolbarActionKey(action)}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-7 w-7 bg-transparent"
-                  title={action.label}
-                >
-                  <MdiIcon path={getToolbarActionIconPath(action)} size={16} />
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="right">{action.label}</TooltipContent>
-          </Tooltip>
-          <DropdownMenuContent align="start" side="right">
-            <DropdownMenuLabel>{action.label}</DropdownMenuLabel>
-            {action.items.map(item => (
-              <DropdownMenuItem
-                key={getToolbarActionItemKey(action, item)}
-                onSelect={() => window.postMessage({
-                  type: 'RUN_PLUGIN_TOOLBAR_ACTION',
-                  payload: {
-                    pluginId: action.pluginId,
-                    index: action.index,
-                    itemIndex: item.index,
-                  },
-                }, '*')}
-              >
-                {item.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+      {pluginToolbarActions.map((action) => (
+        <PluginToolbarActionMenu key={getToolbarActionKey(action)} action={action} />
       ))}
 
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 bg-transparent"
-            onClick={() => togglePanel('export')}
-            title="Export"
-          >
-            <MdiIcon path={mdiExport} size={16} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">Export</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 bg-transparent"
-            onClick={() => togglePanel('nodes')}
-            title="Nodes"
-          >
-            <MdiIcon path={mdiShapeOutline} size={16} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">Nodes</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 bg-transparent"
-            onClick={() => togglePanel('edges')}
-            title="Edges"
-          >
-            <MdiIcon path={mdiVectorLine} size={16} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">Edges</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 bg-transparent"
-            onClick={() => togglePanel('legends')}
-            title="Legends"
-          >
-            <MdiIcon path={mdiPaletteOutline} size={16} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">Legends</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 bg-transparent"
-            onClick={() => togglePanel('plugins')}
-            title="Plugins"
-          >
-            <MdiIcon path={mdiPuzzleOutline} size={16} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">Plugins</TooltipContent>
-      </Tooltip>
-
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-7 w-7 bg-transparent"
-            onClick={() => togglePanel('settings')}
-            title="Settings"
-          >
-            <MdiIcon path={mdiCogOutline} size={16} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="right">Settings</TooltipContent>
-      </Tooltip>
+      {panelButtons.map((button) => (
+        <ToolbarIconButton
+          key={button.panel}
+          iconPath={button.iconPath}
+          onClick={() => togglePanel(button.panel)}
+          title={button.title}
+        />
+      ))}
     </div>
   );
 }
