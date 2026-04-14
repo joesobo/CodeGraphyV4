@@ -2006,6 +2006,12 @@ function analyzeJavaFile(
   return normalizeAnalysisResult(filePath, symbols, relations);
 }
 
+const JAVASCRIPT_FAMILY_LANGUAGE_KINDS = new Set([
+  'javascript',
+  'tsx',
+  'typescript',
+]);
+
 export async function analyzeFileWithTreeSitter(
   filePath: string,
   content: string,
@@ -2042,7 +2048,7 @@ function analyzeTreeSitterTree(
     return analyzeJavaFile(filePath, tree);
   }
 
-  if (languageKind === 'javascript' || languageKind === 'tsx' || languageKind === 'typescript') {
+  if (JAVASCRIPT_FAMILY_LANGUAGE_KINDS.has(languageKind)) {
     return analyzeJavaScriptFamilyFile(filePath, tree);
   }
 
