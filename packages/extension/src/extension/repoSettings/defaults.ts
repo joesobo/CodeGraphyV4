@@ -25,7 +25,6 @@ export interface ICodeGraphyRepoSettings {
   bidirectionalEdges: 'separate' | 'combined';
   legend: IGroup[];
   filterPatterns: string[];
-  exclude: string[];
   showLabels: boolean;
   directionMode: 'arrows' | 'particles' | 'none';
   directionColor: string;
@@ -71,7 +70,6 @@ export function createDefaultCodeGraphyRepoSettings(): ICodeGraphyRepoSettings {
     bidirectionalEdges: 'separate',
     legend: [],
     filterPatterns: [],
-    exclude: [],
     showLabels: true,
     directionMode: 'arrows',
     directionColor: DEFAULT_DIRECTION_COLOR,
@@ -106,6 +104,9 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
 
   const legacyFilterPatterns = legacyConfig.get<string[]>('filterPatterns', []);
   const legacyExcludePatterns = legacyConfig.get<string[]>('exclude', []);
+  const filterPatterns = Array.from(
+    new Set([...legacyFilterPatterns, ...legacyExcludePatterns]),
+  );
 
   return {
     version: 1,
@@ -129,10 +130,7 @@ export function createCodeGraphyRepoSettingsFromLegacyConfig(
       defaults.bidirectionalEdges,
     ),
     legend: legacyConfig.get<IGroup[]>('groups', defaults.legend),
-    filterPatterns:
-      legacyFilterPatterns.length > 0 ? legacyFilterPatterns : legacyExcludePatterns,
-    exclude:
-      legacyExcludePatterns.length > 0 ? legacyExcludePatterns : legacyFilterPatterns,
+    filterPatterns,
     showLabels: legacyConfig.get<boolean>('showLabels', defaults.showLabels),
     directionMode: legacyConfig.get<'arrows' | 'particles' | 'none'>(
       'directionMode',

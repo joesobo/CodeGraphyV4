@@ -192,4 +192,28 @@ describe('extension/repoSettings/store', () => {
     expect(persisted.legend).toEqual(nextLegend);
     expect(persisted.groups).toBeUndefined();
   });
+
+  it('merges legacy exclude entries into filterPatterns and rewrites the cleaner file shape', () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(
+      settingsPath,
+      JSON.stringify({
+        ...createSettingsWithOverrides({}),
+        filterPatterns: ['**/*.png'],
+        exclude: ['**/*.tmp', '**/*.png'],
+      }, null, 2),
+      'utf8',
+    );
+
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+    const persisted = readJson<Record<string, unknown>>(store.settingsPath);
+
+    expect(store.get('filterPatterns', [])).toEqual(['**/*.png', '**/*.tmp']);
+    expect(store.get('exclude', [])).toEqual(['**/*.png', '**/*.tmp']);
+    expect(persisted.filterPatterns).toEqual(['**/*.png', '**/*.tmp']);
+    expect(persisted.exclude).toBeUndefined();
+  });
 });

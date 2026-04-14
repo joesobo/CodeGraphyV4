@@ -305,7 +305,7 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
     vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
       version: 1,
       lastIndexedAt: '2026-04-08T00:00:00.000Z',
-      lastIndexedCommit: null,
+      lastIndexedCommit: 'abc123',
       pluginSignature: 'plugin-signature',
       settingsSignature: 'settings-signature',
       pendingChangedFiles: [],
@@ -322,6 +322,12 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       },
       '_getSettingsSignature',
     ).mockReturnValue('settings-signature');
+    vi.spyOn(
+      analyzer as unknown as {
+        _getCurrentCommitShaSync(workspaceRoot: string): string | null;
+      },
+      '_getCurrentCommitShaSync',
+    ).mockReturnValue('abc123');
     expect(analyzer.hasIndex()).toBe(true);
 
     vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
@@ -489,6 +495,46 @@ describe('WorkspacePipeline lifecycle', { timeout: 30000 }, () => {
       },
       '_getSettingsSignature',
     ).mockReturnValue('settings-signature');
+
+    expect(analyzer.hasIndex()).toBe(false);
+  });
+
+  it('treats an index as stale when the workspace commit has changed since indexing', () => {
+    const analyzer = new WorkspacePipeline({
+      subscriptions: [],
+      extensionUri: vscode.Uri.file('/test/extension'),
+      workspaceState: {
+        get: vi.fn(() => undefined),
+        update: vi.fn(() => Promise.resolve()),
+      },
+    } as unknown as vscode.ExtensionContext);
+
+    vi.spyOn(repoMetaModule, 'readCodeGraphyRepoMeta').mockReturnValue({
+      version: 1,
+      lastIndexedAt: '2026-04-08T00:00:00.000Z',
+      lastIndexedCommit: 'old-commit',
+      pluginSignature: 'plugin-signature',
+      settingsSignature: 'settings-signature',
+      pendingChangedFiles: [],
+    });
+    vi.spyOn(
+      analyzer as unknown as {
+        _getPluginSignature(): string | null;
+      },
+      '_getPluginSignature',
+    ).mockReturnValue('plugin-signature');
+    vi.spyOn(
+      analyzer as unknown as {
+        _getSettingsSignature(): string;
+      },
+      '_getSettingsSignature',
+    ).mockReturnValue('settings-signature');
+    vi.spyOn(
+      analyzer as unknown as {
+        _getCurrentCommitShaSync(workspaceRoot: string): string | null;
+      },
+      '_getCurrentCommitShaSync',
+    ).mockReturnValue('new-commit');
 
     expect(analyzer.hasIndex()).toBe(false);
   });

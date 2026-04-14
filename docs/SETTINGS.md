@@ -116,6 +116,7 @@ Adjusts the physics simulation in real time.
 Legend rules now live in their own **Legends** popup, not inside the settings panel.
 The popup label and persisted key are both **Legends** / `legend`.
 Older `.codegraphy/settings.json` files that still use `groups` are read for compatibility and rewritten as `legend`.
+Older files that still use `exclude` are folded into `filterPatterns` and rewritten to the cleaner single-key shape.
 
 Legend rules assign colors based on regex/glob-style matching and are applied in drag order:
 

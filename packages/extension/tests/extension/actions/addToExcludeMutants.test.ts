@@ -92,12 +92,12 @@ describe('AddToExcludeAction (mutant coverage)', () => {
       );
     });
 
-    it('keeps the legacy exclude config key in sync during execute', async () => {
+    it('does not write a second legacy exclude key during execute', async () => {
       const action = new AddToExcludeAction(['file.ts'], mockRefreshGraph);
 
       await action.execute();
 
-      expect(mockConfigUpdate).toHaveBeenCalledWith(
+      expect(mockConfigUpdate).not.toHaveBeenCalledWith(
         'exclude',
         expect.any(Array),
         undefined,
@@ -118,14 +118,14 @@ describe('AddToExcludeAction (mutant coverage)', () => {
       );
     });
 
-    it('keeps the legacy exclude config key in sync during undo', async () => {
+    it('does not write a second legacy exclude key during undo', async () => {
       const action = new AddToExcludeAction(['file.ts'], mockRefreshGraph);
 
       await action.execute();
       mockConfigUpdate.mockClear();
       await action.undo();
 
-      expect(mockConfigUpdate).toHaveBeenCalledWith(
+      expect(mockConfigUpdate).not.toHaveBeenCalledWith(
         'exclude',
         expect.any(Array),
         undefined,

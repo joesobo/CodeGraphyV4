@@ -30,7 +30,7 @@ const SETTINGS_DIR_NAME = '.codegraphy';
 const SETTINGS_FILE_NAME = 'settings.json';
 const SETTINGS_IGNORE_ENTRY = '.codegraphy/';
 
-function normalizeGroupKeyAlias(key: string): string {
+function normalizeSettingsKeyAlias(key: string): string {
   if (key === 'folderNodeColor') {
     return 'nodeColors.folder';
   }
@@ -41,6 +41,10 @@ function normalizeGroupKeyAlias(key: string): string {
 
   if (key.startsWith('groups.')) {
     return `legend.${key.slice('groups.'.length)}`;
+  }
+
+  if (key === 'exclude') {
+    return 'filterPatterns';
   }
 
   return key;
@@ -54,6 +58,17 @@ function normalizePersistedSettingsShape(
   }
 
   const normalized: Record<string, unknown> = { ...value };
+  const filterPatterns = Array.isArray(normalized.filterPatterns)
+    ? normalized.filterPatterns.filter((entry): entry is string => typeof entry === 'string')
+    : [];
+  const exclude = Array.isArray(normalized.exclude)
+    ? normalized.exclude.filter((entry): entry is string => typeof entry === 'string')
+    : [];
+  if (filterPatterns.length > 0 || exclude.length > 0) {
+    normalized.filterPatterns = Array.from(new Set([...filterPatterns, ...exclude]));
+  }
+  delete normalized.exclude;
+
   const legend = normalized.legend;
   const groups = normalized.groups;
   if (
@@ -104,7 +119,7 @@ function deepMerge<T>(base: T, overrides: unknown): T {
 }
 
 function getPathSegments(key: string): string[] {
-  return normalizeGroupKeyAlias(key).split('.').filter(Boolean);
+  return normalizeSettingsKeyAlias(key).split('.').filter(Boolean);
 }
 
 function getNestedValue<T>(value: unknown, key: string): T | undefined {
@@ -164,6 +179,7 @@ function serializeSettings(value: ICodeGraphyRepoSettings): string {
   }
   persisted.nodeColors = nodeColors;
   delete persisted.folderNodeColor;
+  delete persisted.exclude;
 
   return `${JSON.stringify(persisted, null, 2)}\n`;
 }
@@ -215,7 +231,7 @@ function createChangeEvent(changedKeys: string[]): ICodeGraphySettingsChangeEven
         return false;
       }
 
-      const key = normalizeGroupKeyAlias(section.slice('codegraphy.'.length));
+      const key = normalizeSettingsKeyAlias(section.slice('codegraphy.'.length));
       return uniqueChangedKeys.some(
         changedKey =>
           changedKey === key ||
@@ -359,11 +375,13 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
 
   private _readSettingsFromDisk(): ICodeGraphyRepoSettings {
     try {
-      const parsed = normalizePersistedSettingsShape(
-        JSON.parse(fs.readFileSync(this._settingsPath, 'utf8')),
-      );
+      const rawSerialized = fs.readFileSync(this._settingsPath, 'utf8');
+      const parsed = normalizePersistedSettingsShape(JSON.parse(rawSerialized));
       const merged = deepMerge(this._defaults, parsed);
       this._serializedSettings = serializeSettings(merged);
+      if (rawSerialized !== this._serializedSettings) {
+        fs.writeFileSync(this._settingsPath, this._serializedSettings, 'utf8');
+      }
       return merged;
     } catch (error) {
       console.warn('[CodeGraphy] Failed to read .codegraphy/settings.json, regenerating defaults.', error);

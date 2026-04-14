@@ -34,7 +34,6 @@ export function createCodeGraphySettingsSignature(
     include: settings.include ?? [],
     respectGitignore: settings.respectGitignore ?? true,
     filterPatterns: settings.filterPatterns ?? [],
-    exclude: settings.exclude ?? [],
     pluginOrder: settings.pluginOrder ?? [],
     depthMode: settings.depthMode ?? false,
     depthLimit: settings.depthLimit ?? 1,

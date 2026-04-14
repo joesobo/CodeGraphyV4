@@ -24,19 +24,16 @@ function getLastFilterPatternUpdate(
 describe('AddToExcludeAction', () => {
   let mockConfigUpdate: ReturnType<typeof vi.fn>;
   let currentFilterPatterns: string[];
-  let currentExclude: string[];
   let mockRefreshGraph: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     currentFilterPatterns = [];
-    currentExclude = [];
     mockConfigUpdate = vi.fn().mockResolvedValue(undefined);
 
     vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
       get: vi.fn((key: string, defaultValue: unknown) => {
         if (key === 'filterPatterns') return [...currentFilterPatterns];
-        if (key === 'exclude') return [...currentExclude];
         return defaultValue;
       }),
       update: mockConfigUpdate,
@@ -73,11 +70,6 @@ describe('AddToExcludeAction', () => {
         ['**/src/app.ts'],
         undefined,
       );
-      expect(mockConfigUpdate).toHaveBeenCalledWith(
-        'exclude',
-        ['**/src/app.ts'],
-        undefined,
-      );
     });
 
     it('preserves existing filter patterns', async () => {
@@ -88,11 +80,6 @@ describe('AddToExcludeAction', () => {
 
       expect(mockConfigUpdate).toHaveBeenCalledWith(
         'filterPatterns',
-        expect.arrayContaining(['**/node_modules/**', '**/dist/bundle.js']),
-        undefined,
-      );
-      expect(mockConfigUpdate).toHaveBeenCalledWith(
-        'exclude',
         expect.arrayContaining(['**/node_modules/**', '**/dist/bundle.js']),
         undefined,
       );
@@ -136,7 +123,7 @@ describe('AddToExcludeAction', () => {
 
       await action.execute();
 
-      // Simulate external modification of the exclude list
+      // Simulate external modification of the filter pattern list
       currentFilterPatterns = ['**/app.ts', '**/extra.ts'];
 
       // Re-execute (redo) should apply the same after state, not recalculate
@@ -168,7 +155,6 @@ describe('AddToExcludeAction', () => {
     });
 
     it('restores to empty array when the list was originally empty', async () => {
-      currentExclude = [];
       const action = new AddToExcludeAction(['app.ts'], mockRefreshGraph);
 
       await action.execute();
@@ -193,7 +179,6 @@ describe('AddToExcludeAction', () => {
 
   describe('execute after undo (redo)', () => {
     it('reapplies the same after state on redo', async () => {
-      currentExclude = [];
       const action = new AddToExcludeAction(['app.ts'], mockRefreshGraph);
 
       await action.execute();

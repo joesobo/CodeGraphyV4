@@ -23,7 +23,7 @@ interface CodeGraphyConfigurationLike {
  * ```typescript
  * const config = new Configuration();
  * const maxFiles = config.maxFiles; // number
- * const patterns = config.exclude;  // string[]
+ * const patterns = config.get('filterPatterns', []);  // string[]
  *
  * // Or get all settings at once
  * const all = config.getAll();

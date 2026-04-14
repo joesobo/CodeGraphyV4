@@ -6,6 +6,7 @@
 
 import * as vscode from 'vscode';
 import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 import type {
   IProjectedConnection,
   IFileAnalysisResult,
@@ -168,8 +169,19 @@ export class WorkspacePipeline {
       return false;
     }
 
-    return meta.pluginSignature === this._getPluginSignature()
+    const signaturesMatch =
+      meta.pluginSignature === this._getPluginSignature()
       && meta.settingsSignature === this._getSettingsSignature();
+    if (!signaturesMatch) {
+      return false;
+    }
+
+    const currentCommit = this._getCurrentCommitShaSync(workspaceRoot);
+    if (currentCommit === null) {
+      return true;
+    }
+
+    return meta.lastIndexedCommit === currentCommit;
   }
 
   async discoverGraph(
@@ -537,6 +549,17 @@ export class WorkspacePipeline {
   private async _getCurrentCommitSha(workspaceRoot: string): Promise<string | null> {
     try {
       return (await execGitCommand(['rev-parse', 'HEAD'], { workspaceRoot })).trim();
+    } catch {
+      return null;
+    }
+  }
+
+  private _getCurrentCommitShaSync(workspaceRoot: string): string | null {
+    try {
+      return execFileSync('git', ['rev-parse', 'HEAD'], {
+        cwd: workspaceRoot,
+        encoding: 'utf8',
+      }).trim();
     } catch {
       return null;
     }

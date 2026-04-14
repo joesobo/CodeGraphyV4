@@ -1,5 +1,5 @@
 /**
- * @fileoverview Undoable action for adding patterns to exclude list.
+ * @fileoverview Undoable action for adding patterns to filterPatterns.
  * @module extension/actions/addToExclude
  */
 
@@ -10,7 +10,7 @@ import {
 } from '../repoSettings/current';
 
 /**
- * Action for adding patterns to the exclude list.
+ * Action for adding patterns to repo-local filterPatterns.
  * Uses state-based undo (stores full state before/after) for robustness
  * against external modifications.
  */
@@ -58,14 +58,12 @@ export class AddToExcludeAction implements IUndoableAction {
 
     // Apply the "after" state
     await updateCodeGraphyConfigurationSilently('filterPatterns', this._stateAfter);
-    await updateCodeGraphyConfigurationSilently('exclude', this._stateAfter);
     await this._refreshGraph();
   }
 
   async undo(): Promise<void> {
     // Restore to the "before" state (full replacement)
     await updateCodeGraphyConfigurationSilently('filterPatterns', this._stateBefore);
-    await updateCodeGraphyConfigurationSilently('exclude', this._stateBefore);
     await this._refreshGraph();
   }
 }

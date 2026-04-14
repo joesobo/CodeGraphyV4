@@ -75,6 +75,9 @@ export interface GraphViewProviderMessageListenerSource {
   _nodeSizeMode: NodeSizeMode;
   _firstAnalysis: boolean;
   _webviewReadyNotified: boolean;
+  _webviewMethods: {
+    openInEditor(): void;
+  };
   _context: vscode.ExtensionContext;
   _analyzer?:
     | {
@@ -103,7 +106,6 @@ export interface GraphViewProviderMessageListenerSource {
   setFocusedFile(filePath: string | undefined): void;
   _previewFileAtCommit(sha: string, filePath: string): Promise<void>;
   _openFile(filePath: string): Promise<void>;
-  openInEditor(): void;
   _revealInExplorer(filePath: string): Promise<void>;
   _copyToClipboard(text: string): Promise<void>;
   _deleteFiles(paths: string[]): Promise<void>;

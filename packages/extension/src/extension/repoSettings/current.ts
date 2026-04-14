@@ -8,9 +8,9 @@ import { readCodeGraphyRepoMeta, writeCodeGraphyRepoMeta } from './meta';
 
 let currentCodeGraphySettingsStore: CodeGraphyRepoSettingsStore | undefined;
 
-function normalizeLegacyLegendKey(key: string): string;
-function normalizeLegacyLegendKey(key: symbol): symbol;
-function normalizeLegacyLegendKey(key: string | symbol): string | symbol {
+function normalizeLegacySettingsKey(key: string): string;
+function normalizeLegacySettingsKey(key: symbol): symbol;
+function normalizeLegacySettingsKey(key: string | symbol): string | symbol {
   if (typeof key !== 'string') {
     return key;
   }
@@ -23,6 +23,10 @@ function normalizeLegacyLegendKey(key: string | symbol): string | symbol {
     return `groups.${key.slice('legend.'.length)}`;
   }
 
+  if (key === 'exclude') {
+    return 'filterPatterns';
+  }
+
   return key;
 }
 
@@ -31,14 +35,14 @@ function createLegacyWorkspaceConfiguration(): ICodeGraphyConfigurationLike {
 
   return {
     get: <T>(key: string, defaultValue: T): T =>
-      configuration.get<T>(normalizeLegacyLegendKey(key), defaultValue),
+      configuration.get<T>(normalizeLegacySettingsKey(key), defaultValue),
     inspect: <T>(key: string) =>
-      configuration.inspect<T>(normalizeLegacyLegendKey(key)) as unknown as
+      configuration.inspect<T>(normalizeLegacySettingsKey(key)) as unknown as
         | import('./store').ICodeGraphySettingsInspect<T>
         | undefined,
     update: (key: string, value: unknown, target?: unknown) =>
       Promise.resolve(configuration.update(
-        normalizeLegacyLegendKey(key),
+        normalizeLegacySettingsKey(key),
         value,
         target as vscode.ConfigurationTarget | undefined,
       )),

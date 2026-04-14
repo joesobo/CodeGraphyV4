@@ -106,6 +106,9 @@ function createSource(
     _nodeSizeMode: 'connections',
     _firstAnalysis: false,
     _webviewReadyNotified: false,
+    _webviewMethods: {
+      openInEditor: vi.fn(),
+    },
     _context: {
       workspaceState: {
         update: vi.fn(() => Promise.resolve()),
@@ -134,7 +137,6 @@ function createSource(
     setFocusedFile: vi.fn(),
     _previewFileAtCommit: vi.fn(() => Promise.resolve()),
     _openFile: vi.fn(() => Promise.resolve()),
-    openInEditor: vi.fn(),
     _revealInExplorer: vi.fn(() => Promise.resolve()),
     _copyToClipboard: vi.fn(() => Promise.resolve()),
     _deleteFiles: vi.fn(() => Promise.resolve()),
@@ -228,7 +230,7 @@ describe('graph view provider listener bridge', () => {
     expect(source._userGroups).toEqual(userGroups);
   });
 
-  it('routes OPEN_IN_EDITOR through the provider source', async () => {
+  it('routes OPEN_IN_EDITOR through the provider webview methods', async () => {
     let messageHandler: ((message: unknown) => Promise<void>) | undefined;
     const webview = {
       onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
@@ -242,7 +244,7 @@ describe('graph view provider listener bridge', () => {
     setGraphViewProviderMessageListener(webview as never, source, deps);
     await messageHandler?.({ type: 'OPEN_IN_EDITOR' });
 
-    expect(source.openInEditor).toHaveBeenCalledOnce();
+    expect(source._webviewMethods.openInEditor).toHaveBeenCalledOnce();
   });
 
   it('reprocesses plugin-owned files with a scoped refresh when invalidated files are known', async () => {
