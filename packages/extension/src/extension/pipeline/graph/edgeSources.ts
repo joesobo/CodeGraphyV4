@@ -34,14 +34,10 @@ export function createQualifiedSourceId(
   return plugin ? `${plugin.id}:${connection.sourceId}` : undefined;
 }
 
-export function createEdgeSource(
+function resolveEdgeSourceIdentity(
   plugin: IPlugin | undefined,
   connection: IProjectedConnection,
-): IGraphEdgeSource | undefined {
-  if (!connection.sourceId) {
-    return undefined;
-  }
-
+): { pluginId: string; qualifiedSourceId: string; sourceId: string } | undefined {
   const qualifiedSourceId = createQualifiedSourceId(plugin, connection);
   if (!qualifiedSourceId) {
     return undefined;
@@ -50,17 +46,37 @@ export function createEdgeSource(
   const parsedSourceId = splitQualifiedSourceId(qualifiedSourceId);
   const pluginId = connection.pluginId ?? parsedSourceId?.pluginId ?? plugin?.id;
   const sourceId = parsedSourceId?.sourceId ?? connection.sourceId;
-  if (!pluginId) {
+  if (!pluginId || !sourceId) {
     return undefined;
   }
 
-  const pluginSource = plugin?.sources?.find((source) => source.id === sourceId);
+  return {
+    pluginId,
+    qualifiedSourceId,
+    sourceId,
+  };
+}
+
+export function createEdgeSource(
+  plugin: IPlugin | undefined,
+  connection: IProjectedConnection,
+): IGraphEdgeSource | undefined {
+  if (!connection.sourceId) {
+    return undefined;
+  }
+
+  const identity = resolveEdgeSourceIdentity(plugin, connection);
+  if (!identity) {
+    return undefined;
+  }
+
+  const pluginSource = plugin?.sources?.find((source) => source.id === identity.sourceId);
 
   return {
-    id: qualifiedSourceId,
-    pluginId,
-    sourceId,
-    label: pluginSource ? pluginSource.name : sourceId,
+    id: identity.qualifiedSourceId,
+    pluginId: identity.pluginId,
+    sourceId: identity.sourceId,
+    label: pluginSource ? pluginSource.name : identity.sourceId,
     metadata: connection.metadata,
     variant: connection.variant,
   };

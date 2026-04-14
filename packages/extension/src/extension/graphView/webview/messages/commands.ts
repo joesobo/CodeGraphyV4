@@ -12,48 +12,72 @@ export interface GraphViewCommandHandlers {
   updateNodeSizeMode(nodeSizeMode: NodeSizeMode): PromiseLike<void>;
 }
 
+async function applyHistoryCommand(
+  message: WebviewToExtensionMessage,
+  handlers: GraphViewCommandHandlers,
+): Promise<boolean> {
+  if (message.type === 'UNDO') {
+    const undoDescription = await handlers.undo();
+    handlers.showInformationMessage(
+      undoDescription ? `Undo: ${undoDescription}` : 'Nothing to undo',
+    );
+    return true;
+  }
+
+  if (message.type === 'REDO') {
+    const redoDescription = await handlers.redo();
+    handlers.showInformationMessage(
+      redoDescription ? `Redo: ${redoDescription}` : 'Nothing to redo',
+    );
+    return true;
+  }
+
+  return false;
+}
+
+async function applyGraphModeCommand(
+  message: WebviewToExtensionMessage,
+  handlers: GraphViewCommandHandlers,
+): Promise<boolean> {
+  if (message.type === 'UPDATE_DEPTH_MODE') {
+    await handlers.setDepthMode?.(message.payload.depthMode);
+    return true;
+  }
+
+  if (message.type === 'CHANGE_DEPTH_LIMIT') {
+    await handlers.setDepthLimit(message.payload.depthLimit);
+    return true;
+  }
+
+  if (message.type === 'UPDATE_DAG_MODE') {
+    await handlers.updateDagMode(message.payload.dagMode);
+    return true;
+  }
+
+  if (message.type === 'UPDATE_NODE_SIZE_MODE') {
+    await handlers.updateNodeSizeMode(message.payload.nodeSizeMode);
+    return true;
+  }
+
+  return false;
+}
+
 export async function applyCommandMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewCommandHandlers,
 ): Promise<boolean> {
-  switch (message.type) {
-    case 'UNDO': {
-      const undoDescription = await handlers.undo();
-      handlers.showInformationMessage(
-        undoDescription ? `Undo: ${undoDescription}` : 'Nothing to undo',
-      );
-      return true;
-    }
-
-    case 'REDO': {
-      const redoDescription = await handlers.redo();
-      handlers.showInformationMessage(
-        redoDescription ? `Redo: ${redoDescription}` : 'Nothing to redo',
-      );
-      return true;
-    }
-
-    case 'OPEN_IN_EDITOR':
-      handlers.openInEditor();
-      return true;
-
-    case 'UPDATE_DEPTH_MODE':
-      await handlers.setDepthMode?.(message.payload.depthMode);
-      return true;
-
-    case 'CHANGE_DEPTH_LIMIT':
-      await handlers.setDepthLimit(message.payload.depthLimit);
-      return true;
-
-    case 'UPDATE_DAG_MODE':
-      await handlers.updateDagMode(message.payload.dagMode);
-      return true;
-
-    case 'UPDATE_NODE_SIZE_MODE':
-      await handlers.updateNodeSizeMode(message.payload.nodeSizeMode);
-      return true;
-
-    default:
-      return false;
+  if (await applyHistoryCommand(message, handlers)) {
+    return true;
   }
+
+  if (message.type === 'OPEN_IN_EDITOR') {
+    handlers.openInEditor();
+    return true;
+  }
+
+  if (await applyGraphModeCommand(message, handlers)) {
+    return true;
+  }
+
+  return false;
 }

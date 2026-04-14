@@ -26,19 +26,37 @@ export function createCodeGraphyPluginSignature(
     .join('|');
 }
 
+function createStableScalarSettings(settings: Partial<ICodeGraphyRepoSettings>) {
+  return {
+    maxFiles: settings.maxFiles ?? null,
+    respectGitignore: settings.respectGitignore ?? true,
+    depthMode: settings.depthMode ?? false,
+    depthLimit: settings.depthLimit ?? 1,
+  };
+}
+
+function createStableListSettings(settings: Partial<ICodeGraphyRepoSettings>) {
+  return {
+    include: settings.include ?? [],
+    filterPatterns: settings.filterPatterns ?? [],
+    pluginOrder: settings.pluginOrder ?? [],
+  };
+}
+
+function createStableVisibilitySettings(settings: Partial<ICodeGraphyRepoSettings>) {
+  return {
+    nodeVisibility: sortRecord(settings.nodeVisibility ?? {}),
+    edgeVisibility: sortRecord(settings.edgeVisibility ?? {}),
+  };
+}
+
 export function createCodeGraphySettingsSignature(
   settings: Partial<ICodeGraphyRepoSettings>,
 ): string {
   const stableSettings = {
-    maxFiles: settings.maxFiles ?? null,
-    include: settings.include ?? [],
-    respectGitignore: settings.respectGitignore ?? true,
-    filterPatterns: settings.filterPatterns ?? [],
-    pluginOrder: settings.pluginOrder ?? [],
-    depthMode: settings.depthMode ?? false,
-    depthLimit: settings.depthLimit ?? 1,
-    nodeVisibility: sortRecord(settings.nodeVisibility ?? {}),
-    edgeVisibility: sortRecord(settings.edgeVisibility ?? {}),
+    ...createStableScalarSettings(settings),
+    ...createStableListSettings(settings),
+    ...createStableVisibilitySettings(settings),
   };
 
   return createHash('sha1')

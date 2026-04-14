@@ -9,40 +9,44 @@ export interface GraphViewNodeFileEditHandlers {
   addToExclude(patterns: string[]): Promise<void>;
 }
 
+function applyTimelineBoundEditMessage(
+  message: WebviewToExtensionMessage,
+  handlers: GraphViewNodeFileEditHandlers,
+): boolean {
+  if (handlers.timelineActive) {
+    return false;
+  }
+
+  switch (message.type) {
+    case 'DELETE_FILES':
+      void handlers.deleteFiles(message.payload.paths);
+      return true;
+    case 'RENAME_FILE':
+      void handlers.renameFile(message.payload.path);
+      return true;
+    case 'CREATE_FILE':
+      void handlers.createFile(message.payload.directory);
+      return true;
+    case 'ADD_TO_EXCLUDE':
+      void handlers.addToExclude(message.payload.patterns);
+      return true;
+    default:
+      return false;
+  }
+}
+
 export async function applyNodeFileEditMessage(
   message: WebviewToExtensionMessage,
   handlers: GraphViewNodeFileEditHandlers,
 ): Promise<boolean> {
-  switch (message.type) {
-    case 'DELETE_FILES':
-      if (!handlers.timelineActive) {
-        void handlers.deleteFiles(message.payload.paths);
-      }
-      return true;
-
-    case 'RENAME_FILE':
-      if (!handlers.timelineActive) {
-        void handlers.renameFile(message.payload.path);
-      }
-      return true;
-
-    case 'CREATE_FILE':
-      if (!handlers.timelineActive) {
-        void handlers.createFile(message.payload.directory);
-      }
-      return true;
-
-    case 'TOGGLE_FAVORITE':
-      void handlers.toggleFavorites(message.payload.paths);
-      return true;
-
-    case 'ADD_TO_EXCLUDE':
-      if (!handlers.timelineActive) {
-        void handlers.addToExclude(message.payload.patterns);
-      }
-      return true;
-
-    default:
-      return false;
+  if (applyTimelineBoundEditMessage(message, handlers)) {
+    return true;
   }
+
+  if (message.type === 'TOGGLE_FAVORITE') {
+    void handlers.toggleFavorites(message.payload.paths);
+    return true;
+  }
+
+  return false;
 }

@@ -7,6 +7,12 @@ import { createBidirectionalArrowGeometry } from './arrowGeometry';
 import { createBidirectionalLineGeometry } from './lineGeometry';
 import type { LinkRenderingDependencies } from '../link/contracts';
 
+interface LinkDecorationStyle {
+  color?: string;
+  opacity?: number;
+  width?: number;
+}
+
 function renderArrow(
   ctx: CanvasRenderingContext2D,
   color: string,
@@ -22,6 +28,31 @@ function renderArrow(
   ctx.fill();
 }
 
+function getLinkConnectionAlpha(
+  decoration: LinkDecorationStyle | undefined,
+  highlighted: string | null | undefined,
+  source: FGNode,
+  target: FGNode,
+): number {
+  const isConnected = !highlighted || source.id === highlighted || target.id === highlighted;
+  return decoration?.opacity ?? (isConnected ? 1 : 0.15);
+}
+
+function getLinkStrokeColor(
+  decoration: LinkDecorationStyle | undefined,
+  highlighted: string | null | undefined,
+  source: FGNode,
+  target: FGNode,
+  isLight: boolean,
+): string {
+  if (decoration?.color) {
+    return decoration.color;
+  }
+
+  const isConnected = !highlighted || source.id === highlighted || target.id === highlighted;
+  return isConnected ? '#60a5fa' : (isLight ? '#d4d4d4' : '#2d3748');
+}
+
 function getLineStrokeStyle(
   dependencies: LinkRenderingDependencies,
   link: FGLink,
@@ -29,14 +60,13 @@ function getLineStrokeStyle(
   target: FGNode,
 ): { alpha: number; lineWidth: number; strokeStyle: string } {
   const highlighted = dependencies.highlightedNodeRef.current;
-  const isConnected = !highlighted || source.id === highlighted || target.id === highlighted;
   const isLight = dependencies.themeRef.current === 'light';
   const decoration = dependencies.edgeDecorationsRef.current?.[link.id];
 
   return {
-    alpha: decoration?.opacity ?? (isConnected ? 1 : 0.15),
+    alpha: getLinkConnectionAlpha(decoration, highlighted, source, target),
     lineWidth: (decoration?.width ?? 2),
-    strokeStyle: decoration?.color ?? (isConnected ? '#60a5fa' : (isLight ? '#d4d4d4' : '#2d3748')),
+    strokeStyle: getLinkStrokeColor(decoration, highlighted, source, target, isLight),
   };
 }
 
