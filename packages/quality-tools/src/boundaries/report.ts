@@ -11,6 +11,22 @@ function logLines(lines: string[]): void {
   }
 }
 
+function reportBoundarySection<T>(
+  title: string,
+  items: T[],
+  formatter: (item: T) => string,
+): void {
+  if (items.length === 0) {
+    return;
+  }
+
+  console.log(title);
+  for (const item of items) {
+    console.log(formatter(item));
+  }
+  console.log('');
+}
+
 export function reportBoundaries(report: BoundaryReport, options: BoundaryReportOptions = {}): void {
   if (report.files.length === 0) {
     console.log('\nNo boundary-scope files found.\n');
@@ -18,30 +34,9 @@ export function reportBoundaries(report: BoundaryReport, options: BoundaryReport
   }
 
   logLines(summaryLines(report));
-
-  if (report.layerViolations.length > 0) {
-    console.log('Layer violations:');
-    for (const violation of report.layerViolations) {
-      console.log(formatBoundaryViolation(violation));
-    }
-    console.log('');
-  }
-
-  if (report.deadSurfaces.length > 0) {
-    console.log('Dead surfaces:');
-    for (const file of report.deadSurfaces) {
-      console.log(formatBoundaryFile(file));
-    }
-    console.log('');
-  }
-
-  if (report.deadEnds.length > 0) {
-    console.log('Dead ends:');
-    for (const file of report.deadEnds) {
-      console.log(formatBoundaryFile(file));
-    }
-    console.log('');
-  }
+  reportBoundarySection('Layer violations:', report.layerViolations, formatBoundaryViolation);
+  reportBoundarySection('Dead surfaces:', report.deadSurfaces, formatBoundaryFile);
+  reportBoundarySection('Dead ends:', report.deadEnds, formatBoundaryFile);
 
   if (options.verbose) {
     console.log('All analyzed files:');

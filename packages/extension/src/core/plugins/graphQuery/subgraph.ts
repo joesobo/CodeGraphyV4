@@ -2,17 +2,11 @@ import type { IGraphData } from '../../../shared/graph/types';
 import { getGraphIndex } from './cache';
 import type { GraphDataGetter } from './facade';
 
-export function buildSubgraph(
+function collectReachableNodeIds(
   nodeId: string,
   hops: number,
-  getGraphData: GraphDataGetter,
-): IGraphData {
-  const graphData = getGraphData();
-  const { graph } = getGraphIndex(graphData);
-  if (!graph.hasNode(nodeId) || hops < 0) {
-    return { nodes: [], edges: [] };
-  }
-
+  graph: ReturnType<typeof getGraphIndex>['graph'],
+): Set<string> {
   const queue: Array<{ depth: number; id: string }> = [{ depth: 0, id: nodeId }];
   const visited = new Set<string>([nodeId]);
 
@@ -31,6 +25,22 @@ export function buildSubgraph(
       queue.push({ depth: current.depth + 1, id: neighborId });
     }
   }
+
+  return visited;
+}
+
+export function buildSubgraph(
+  nodeId: string,
+  hops: number,
+  getGraphData: GraphDataGetter,
+): IGraphData {
+  const graphData = getGraphData();
+  const { graph } = getGraphIndex(graphData);
+  if (!graph.hasNode(nodeId) || hops < 0) {
+    return { nodes: [], edges: [] };
+  }
+
+  const visited = collectReachableNodeIds(nodeId, hops, graph);
 
   return {
     nodes: graphData.nodes.filter((node) => visited.has(node.id)),

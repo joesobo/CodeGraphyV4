@@ -1,21 +1,27 @@
 import type { GraphKeyboardCommand } from './effects';
 import { createStoreMessageCommand } from './commandBuilders';
 
+function getToolbarShortcutMessageType(key: string): 'TOGGLE_DEPTH_MODE' | 'CYCLE_LAYOUT' | 'TOGGLE_DIMENSION' | null {
+  switch (key.toLowerCase()) {
+    case 'v':
+      return 'TOGGLE_DEPTH_MODE';
+    case 'l':
+      return 'CYCLE_LAYOUT';
+    case 't':
+      return 'TOGGLE_DIMENSION';
+    default:
+      return null;
+  }
+}
+
 export function getToolbarShortcutCommand(
   key: string,
   isMod: boolean
 ): GraphKeyboardCommand | null {
-  switch (key) {
-    case 'v':
-    case 'V':
-      return !isMod ? createStoreMessageCommand('TOGGLE_DEPTH_MODE') : null;
-    case 'l':
-    case 'L':
-      return !isMod ? createStoreMessageCommand('CYCLE_LAYOUT') : null;
-    case 't':
-    case 'T':
-      return !isMod ? createStoreMessageCommand('TOGGLE_DIMENSION') : null;
-    default:
-      return null;
+  if (isMod) {
+    return null;
   }
+
+  const messageType = getToolbarShortcutMessageType(key);
+  return messageType ? createStoreMessageCommand(messageType) : null;
 }

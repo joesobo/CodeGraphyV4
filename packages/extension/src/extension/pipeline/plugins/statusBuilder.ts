@@ -19,6 +19,51 @@ function supportsExtension(pluginExtensions: readonly string[], extension: strin
   return pluginExtensions.includes('*') || pluginExtensions.includes(extension);
 }
 
+function getPluginMatchingFiles(
+  pluginInfo: IPluginInfo,
+  discoveredFiles: Pick<IDiscoveredFile, 'relativePath'>[],
+): Pick<IDiscoveredFile, 'relativePath'>[] {
+  return discoveredFiles.filter((file) => {
+    const extension = path.extname(file.relativePath).toLowerCase();
+    return supportsExtension(pluginInfo.plugin.supportedExtensions, extension);
+  });
+}
+
+function countPluginConnections(
+  pluginInfo: IPluginInfo,
+  fileConnections: ReadonlyMap<string, IProjectedConnection[]>,
+): number {
+  let totalConnections = 0;
+
+  for (const [filePath, connections] of fileConnections) {
+    const extension = path.extname(filePath).toLowerCase();
+    if (!supportsExtension(pluginInfo.plugin.supportedExtensions, extension)) {
+      continue;
+    }
+
+    for (const connection of connections) {
+      if (connection.pluginId !== pluginInfo.plugin.id || !connection.resolvedPath) {
+        continue;
+      }
+
+      totalConnections += 1;
+    }
+  }
+
+  return totalConnections;
+}
+
+function getPluginWorkspaceStatus(
+  matchingFileCount: number,
+  totalConnections: number,
+): IPluginStatus['status'] {
+  if (matchingFileCount === 0) {
+    return 'inactive';
+  }
+
+  return totalConnections > 0 ? 'active' : 'installed';
+}
+
 export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOptions): IPluginStatus[] {
   const {
     disabledPlugins,
@@ -31,33 +76,9 @@ export function buildWorkspacePluginStatuses(options: IWorkspacePluginStatusOpti
 
   for (const pluginInfo of pluginInfos) {
     const plugin = pluginInfo.plugin;
-    const matchingFiles = discoveredFiles.filter((file) => {
-      const extension = path.extname(file.relativePath).toLowerCase();
-      return supportsExtension(plugin.supportedExtensions, extension);
-    });
-
-    let totalConnections = 0;
-
-    for (const [filePath, connections] of fileConnections) {
-      const extension = path.extname(filePath).toLowerCase();
-      if (!supportsExtension(plugin.supportedExtensions, extension)) {
-        continue;
-      }
-
-      for (const connection of connections) {
-        if (connection.pluginId !== plugin.id || !connection.resolvedPath) {
-          continue;
-        }
-
-        totalConnections += 1;
-      }
-    }
-
-    const status = matchingFiles.length === 0
-      ? 'inactive'
-      : totalConnections > 0
-        ? 'active'
-        : 'installed';
+    const matchingFiles = getPluginMatchingFiles(pluginInfo, discoveredFiles);
+    const totalConnections = countPluginConnections(pluginInfo, fileConnections);
+    const status = getPluginWorkspaceStatus(matchingFiles.length, totalConnections);
 
     statuses.push({
       id: plugin.id,

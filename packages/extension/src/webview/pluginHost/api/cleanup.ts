@@ -6,6 +6,59 @@
 import type { GraphPluginSlot, NodeRenderFn, OverlayRenderFn, TooltipProviderFn } from './contracts';
 import { syncSlotHostVisibility } from './registration';
 
+function removePluginMapEntries<T extends { pluginId: string }>(
+  pluginId: string,
+  entries: Map<string, T>,
+): void {
+  for (const [key, entry] of entries) {
+    if (entry.pluginId === pluginId) {
+      entries.delete(key);
+    }
+  }
+}
+
+function removePluginTooltipProviders(
+  pluginId: string,
+  tooltipProviders: Array<{ pluginId: string; fn: TooltipProviderFn }>,
+): void {
+  for (let i = tooltipProviders.length - 1; i >= 0; i--) {
+    if (tooltipProviders[i].pluginId === pluginId) {
+      tooltipProviders.splice(i, 1);
+    }
+  }
+}
+
+function removePluginContainer(
+  pluginId: string,
+  containers: Map<string, HTMLDivElement>,
+): void {
+  const container = containers.get(pluginId);
+  if (!container) {
+    return;
+  }
+
+  container.remove();
+  containers.delete(pluginId);
+}
+
+function removePluginSlotContainers(
+  pluginId: string,
+  slotContainers: Map<string, Map<GraphPluginSlot, HTMLDivElement>>,
+  slotHosts: Map<GraphPluginSlot, HTMLDivElement>,
+): void {
+  const pluginSlotContainers = slotContainers.get(pluginId);
+  if (!pluginSlotContainers) {
+    return;
+  }
+
+  for (const [slot, container] of pluginSlotContainers.entries()) {
+    container.remove();
+    syncSlotHostVisibility(slot, slotHosts);
+  }
+
+  slotContainers.delete(pluginId);
+}
+
 /**
  * Remove all registrations for a plugin from plugin host collections.
  */
@@ -19,34 +72,10 @@ export function removePluginRegistrations(
   slotContainers: Map<string, Map<GraphPluginSlot, HTMLDivElement>>,
   slotHosts: Map<GraphPluginSlot, HTMLDivElement>,
 ): void {
-  // Remove node renderers
-  for (const [type, entry] of nodeRenderers) {
-    if (entry.pluginId === pluginId) nodeRenderers.delete(type);
-  }
-  // Remove overlays
-  for (const [id, entry] of overlays) {
-    if (entry.pluginId === pluginId) overlays.delete(id);
-  }
-  // Remove tooltip providers
-  for (let i = tooltipProviders.length - 1; i >= 0; i--) {
-    if (tooltipProviders[i].pluginId === pluginId) {
-      tooltipProviders.splice(i, 1);
-    }
-  }
-  // Remove message handlers
+  removePluginMapEntries(pluginId, nodeRenderers);
+  removePluginMapEntries(pluginId, overlays);
+  removePluginTooltipProviders(pluginId, tooltipProviders);
   messageHandlers.delete(pluginId);
-  // Remove container
-  const container = containers.get(pluginId);
-  if (container) {
-    container.remove();
-    containers.delete(pluginId);
-  }
-  const pluginSlotContainers = slotContainers.get(pluginId);
-  if (pluginSlotContainers) {
-    for (const [slot, container] of pluginSlotContainers.entries()) {
-      container.remove();
-      syncSlotHostVisibility(slot, slotHosts);
-    }
-    slotContainers.delete(pluginId);
-  }
+  removePluginContainer(pluginId, containers);
+  removePluginSlotContainers(pluginId, slotContainers, slotHosts);
 }
