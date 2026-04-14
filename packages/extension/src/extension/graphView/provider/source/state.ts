@@ -41,6 +41,7 @@ const READONLY_STATE_KEYS = [
   '_installedPluginActivationPromise',
   '_extensionUri',
   '_context',
+  '_webviewMethods',
 ] as const satisfies readonly Extract<
   keyof GraphViewProviderMethodSourceOwner,
   string
