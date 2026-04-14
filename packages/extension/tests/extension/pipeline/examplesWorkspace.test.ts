@@ -3,6 +3,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
+import { createCSharpPlugin } from '../../../../plugin-csharp/src/plugin';
 import { createGDScriptPlugin } from '../../../../plugin-godot/src/plugin';
 import { WorkspacePipeline } from '../../../src/extension/pipeline/service';
 import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../src/extension/pipeline/database/cache';
@@ -98,5 +99,26 @@ describe('WorkspacePipeline examples workspace', { timeout: 30000 }, () => {
         'example-typescript/packages/shared/src/types.ts',
       ]),
     );
+  });
+
+  it('does not let plugin default filters hide monorepo source folders like packages', async () => {
+    const workspaceRoot = await copyExamplesWorkspace();
+    workspaceFoldersValue = [
+      { uri: vscode.Uri.file(workspaceRoot), name: 'examples', index: 0 },
+    ];
+
+    const analyzer = new WorkspacePipeline(
+      createContext() as unknown as vscode.ExtensionContext,
+    );
+
+    await analyzer.initialize();
+    analyzer.registry.register(createCSharpPlugin());
+
+    const graph = await analyzer.analyze();
+    const nodeIds = new Set(graph.nodes.map((node) => node.id));
+
+    expect(nodeIds.has('example-typescript/packages/app/src/index.ts')).toBe(true);
+    expect(nodeIds.has('example-typescript/packages/app/src/utils.ts')).toBe(true);
+    expect(nodeIds.has('example-typescript/packages/shared/src/types.ts')).toBe(true);
   });
 });
