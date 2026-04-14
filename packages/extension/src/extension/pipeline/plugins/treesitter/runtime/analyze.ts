@@ -940,6 +940,124 @@ function getRustCallBinding(
   return identifier ? importedBindings.get(identifier) ?? null : null;
 }
 
+function handleRustUseDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  workspaceRoot: string,
+  relations: IAnalysisRelation[],
+  importedBindings: Map<string, ImportedBinding>,
+): TreeWalkAction<SymbolWalkState> | void {
+  const specifier = getNodeText(node.childForFieldName('argument'));
+  if (!specifier) {
+    return;
+  }
+
+  const resolvedPath = resolveRustUsePath(filePath, workspaceRoot, specifier);
+  addImportRelation(relations, filePath, specifier, resolvedPath);
+  importedBindings.set(getLastPathSegment(specifier, '::'), {
+    importedName: getLastPathSegment(specifier, '::'),
+    resolvedPath,
+    specifier,
+  });
+}
+
+function handleRustModuleItem(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+): void {
+  const moduleName = getIdentifierText(node.childForFieldName('name'));
+  if (!moduleName) {
+    return;
+  }
+
+  addImportRelation(
+    relations,
+    filePath,
+    moduleName,
+    resolveRustModuleDeclarationPath(filePath, moduleName),
+  );
+}
+
+function handleRustNamedSymbol(
+  node: Parser.SyntaxNode,
+  kind: 'struct' | 'enum' | 'trait',
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): void {
+  const name = getIdentifierText(node.childForFieldName('name'));
+  if (name) {
+    symbols.push(createSymbol(filePath, kind, name, node));
+  }
+}
+
+function handleRustFunctionItem(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+  walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
+): TreeWalkAction<SymbolWalkState> | void {
+  const name = getIdentifierText(node.childForFieldName('name'));
+  if (!name) {
+    return;
+  }
+
+  const kind = node.parent?.type === 'declaration_list' && node.parent.parent?.type === 'impl_item'
+    ? 'method'
+    : 'function';
+  const symbol = createSymbol(filePath, kind, name, node);
+  symbols.push(symbol);
+  return walkSymbolBody(node, symbol.id, walk);
+}
+
+function handleRustCallExpression(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+  currentSymbolId?: string,
+): void {
+  const binding = getRustCallBinding(node, importedBindings);
+  if (binding) {
+    addCallRelation(relations, filePath, binding, currentSymbolId);
+  }
+}
+
+function visitRustNode(
+  node: Parser.SyntaxNode,
+  state: SymbolWalkState,
+  walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
+  filePath: string,
+  workspaceRoot: string,
+  relations: IAnalysisRelation[],
+  symbols: IAnalysisSymbol[],
+  importedBindings: Map<string, ImportedBinding>,
+): TreeWalkAction<SymbolWalkState> | void {
+  switch (node.type) {
+    case 'use_declaration':
+      return handleRustUseDeclaration(node, filePath, workspaceRoot, relations, importedBindings);
+    case 'mod_item':
+      handleRustModuleItem(node, filePath, relations);
+      return;
+    case 'struct_item':
+      handleRustNamedSymbol(node, 'struct', filePath, symbols);
+      return;
+    case 'enum_item':
+      handleRustNamedSymbol(node, 'enum', filePath, symbols);
+      return;
+    case 'trait_item':
+      handleRustNamedSymbol(node, 'trait', filePath, symbols);
+      return;
+    case 'function_item':
+      return handleRustFunctionItem(node, filePath, symbols, walk);
+    case 'call_expression':
+      handleRustCallExpression(node, filePath, relations, importedBindings, state.currentSymbolId);
+      return;
+    default:
+      return;
+  }
+}
+
 function analyzeRustFile(
   filePath: string,
   tree: Parser.Tree,
@@ -948,97 +1066,18 @@ function analyzeRustFile(
   const importedBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
-
-  const walk = (node: Parser.SyntaxNode, currentSymbolId?: string): void => {
-    switch (node.type) {
-      case 'use_declaration': {
-        const specifier = getNodeText(node.childForFieldName('argument'));
-        if (!specifier) {
-          break;
-        }
-
-        const resolvedPath = resolveRustUsePath(filePath, workspaceRoot, specifier);
-        addImportRelation(relations, filePath, specifier, resolvedPath);
-        importedBindings.set(getLastPathSegment(specifier, '::'), {
-          importedName: getLastPathSegment(specifier, '::'),
-          resolvedPath,
-          specifier,
-        });
-        break;
-      }
-
-      case 'mod_item': {
-        const moduleName = getIdentifierText(node.childForFieldName('name'));
-        if (!moduleName) {
-          break;
-        }
-
-        addImportRelation(
-          relations,
-          filePath,
-          moduleName,
-          resolveRustModuleDeclarationPath(filePath, moduleName),
-        );
-        break;
-      }
-
-      case 'struct_item': {
-        const name = getIdentifierText(node.childForFieldName('name'));
-        if (name) {
-          symbols.push(createSymbol(filePath, 'struct', name, node));
-        }
-        break;
-      }
-
-      case 'enum_item': {
-        const name = getIdentifierText(node.childForFieldName('name'));
-        if (name) {
-          symbols.push(createSymbol(filePath, 'enum', name, node));
-        }
-        break;
-      }
-
-      case 'trait_item': {
-        const name = getIdentifierText(node.childForFieldName('name'));
-        if (name) {
-          symbols.push(createSymbol(filePath, 'trait', name, node));
-        }
-        break;
-      }
-
-      case 'function_item': {
-        const name = getIdentifierText(node.childForFieldName('name'));
-        if (!name) {
-          break;
-        }
-
-        const kind = node.parent?.type === 'declaration_list' && node.parent.parent?.type === 'impl_item'
-          ? 'method'
-          : 'function';
-        const symbol = createSymbol(filePath, kind, name, node);
-        symbols.push(symbol);
-        const body = node.childForFieldName('body') ?? node.namedChildren.at(-1);
-        if (body) {
-          walk(body, symbol.id);
-        }
-        return;
-      }
-
-      case 'call_expression': {
-        const binding = getRustCallBinding(node, importedBindings);
-        if (binding) {
-          addCallRelation(relations, filePath, binding, currentSymbolId);
-        }
-        break;
-      }
-    }
-
-    for (const child of node.namedChildren) {
-      walk(child, currentSymbolId);
-    }
-  };
-
-  walk(tree.rootNode);
+  walkTree(tree.rootNode, {}, (node, state, walk) =>
+    visitRustNode(
+      node,
+      state,
+      walk,
+      filePath,
+      workspaceRoot,
+      relations,
+      symbols,
+      importedBindings,
+    ),
+  );
   return normalizeAnalysisResult(filePath, symbols, relations);
 }
 
@@ -1070,6 +1109,117 @@ function getGoCallBinding(
   return objectIdentifier ? importedBindings.get(objectIdentifier) ?? null : null;
 }
 
+function handleGoImportDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  workspaceRoot: string,
+  relations: IAnalysisRelation[],
+  importedBindings: Map<string, ImportedBinding>,
+): TreeWalkAction<SymbolWalkState> {
+  const importSpecs = node.descendantsOfType('import_spec');
+  for (const importSpec of importSpecs) {
+    const specifier = getStringSpecifier(importSpec.childForFieldName('path'));
+    if (!specifier) {
+      continue;
+    }
+
+    const resolvedPath = specifier.startsWith('.')
+      ? resolveTreeSitterImportPath(filePath, specifier)
+      : resolveGoPackagePath(filePath, workspaceRoot, specifier);
+    addImportRelation(relations, filePath, specifier, resolvedPath);
+    importedBindings.set(getGoImportLocalName(importSpec, specifier), {
+      importedName: specifier,
+      resolvedPath,
+      specifier,
+    });
+  }
+
+  return { skipChildren: true };
+}
+
+function handleGoCallableDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+  walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
+): TreeWalkAction<SymbolWalkState> | void {
+  const name = getIdentifierText(node.childForFieldName('name'));
+  if (!name) {
+    return;
+  }
+
+  const kind = node.type === 'method_declaration' ? 'method' : 'function';
+  const symbol = createSymbol(filePath, kind, name, node);
+  symbols.push(symbol);
+  return walkSymbolBody(node, symbol.id, walk);
+}
+
+function getGoTypeKind(node: Parser.SyntaxNode): 'interface' | 'struct' | 'type' {
+  const typeNode = node.childForFieldName('type') ?? node.namedChildren.at(-1);
+  if (typeNode?.type === 'interface_type') {
+    return 'interface';
+  }
+
+  if (typeNode?.type === 'struct_type') {
+    return 'struct';
+  }
+
+  return 'type';
+}
+
+function handleGoTypeSpec(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+): void {
+  const name = getIdentifierText(node.childForFieldName('name'));
+  if (!name) {
+    return;
+  }
+
+  symbols.push(createSymbol(filePath, getGoTypeKind(node), name, node));
+}
+
+function handleGoCallExpression(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+  currentSymbolId?: string,
+): void {
+  const binding = getGoCallBinding(node, importedBindings);
+  if (binding) {
+    addCallRelation(relations, filePath, binding, currentSymbolId);
+  }
+}
+
+function visitGoNode(
+  node: Parser.SyntaxNode,
+  state: SymbolWalkState,
+  walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
+  filePath: string,
+  workspaceRoot: string,
+  relations: IAnalysisRelation[],
+  symbols: IAnalysisSymbol[],
+  importedBindings: Map<string, ImportedBinding>,
+): TreeWalkAction<SymbolWalkState> | void {
+  switch (node.type) {
+    case 'import_declaration':
+      return handleGoImportDeclaration(node, filePath, workspaceRoot, relations, importedBindings);
+    case 'function_declaration':
+    case 'method_declaration':
+      return handleGoCallableDeclaration(node, filePath, symbols, walk);
+    case 'type_spec':
+      handleGoTypeSpec(node, filePath, symbols);
+      return;
+    case 'call_expression':
+      handleGoCallExpression(node, filePath, relations, importedBindings, state.currentSymbolId);
+      return;
+    default:
+      return;
+  }
+}
+
 function analyzeGoFile(
   filePath: string,
   tree: Parser.Tree,
@@ -1078,78 +1228,18 @@ function analyzeGoFile(
   const importedBindings = new Map<string, ImportedBinding>();
   const relations: IAnalysisRelation[] = [];
   const symbols: IAnalysisSymbol[] = [];
-
-  const walk = (node: Parser.SyntaxNode, currentSymbolId?: string): void => {
-    switch (node.type) {
-      case 'import_declaration': {
-        const importSpecs = node.descendantsOfType('import_spec');
-        for (const importSpec of importSpecs) {
-          const specifier = getStringSpecifier(importSpec.childForFieldName('path'));
-          if (!specifier) {
-            continue;
-          }
-
-          const resolvedPath = specifier.startsWith('.')
-            ? resolveTreeSitterImportPath(filePath, specifier)
-            : resolveGoPackagePath(filePath, workspaceRoot, specifier);
-          addImportRelation(relations, filePath, specifier, resolvedPath);
-          importedBindings.set(getGoImportLocalName(importSpec, specifier), {
-            importedName: specifier,
-            resolvedPath,
-            specifier,
-          });
-        }
-        return;
-      }
-
-      case 'function_declaration':
-      case 'method_declaration': {
-        const name = getIdentifierText(node.childForFieldName('name'));
-        if (!name) {
-          break;
-        }
-
-        const kind = node.type === 'method_declaration' ? 'method' : 'function';
-        const symbol = createSymbol(filePath, kind, name, node);
-        symbols.push(symbol);
-        const body = node.childForFieldName('body') ?? node.namedChildren.at(-1);
-        if (body) {
-          walk(body, symbol.id);
-        }
-        return;
-      }
-
-      case 'type_spec': {
-        const name = getIdentifierText(node.childForFieldName('name'));
-        if (!name) {
-          break;
-        }
-
-        const typeNode = node.childForFieldName('type') ?? node.namedChildren.at(-1);
-        const kind = typeNode?.type === 'interface_type'
-          ? 'interface'
-          : typeNode?.type === 'struct_type'
-            ? 'struct'
-            : 'type';
-        symbols.push(createSymbol(filePath, kind, name, node));
-        break;
-      }
-
-      case 'call_expression': {
-        const binding = getGoCallBinding(node, importedBindings);
-        if (binding) {
-          addCallRelation(relations, filePath, binding, currentSymbolId);
-        }
-        break;
-      }
-    }
-
-    for (const child of node.namedChildren) {
-      walk(child, currentSymbolId);
-    }
-  };
-
-  walk(tree.rootNode);
+  walkTree(tree.rootNode, {}, (node, state, walk) =>
+    visitGoNode(
+      node,
+      state,
+      walk,
+      filePath,
+      workspaceRoot,
+      relations,
+      symbols,
+      importedBindings,
+    ),
+  );
   return normalizeAnalysisResult(filePath, symbols, relations);
 }
 
@@ -1421,6 +1511,160 @@ function getJavaPackageName(tree: Parser.Tree): string | null {
   return getNodeText(packageNameNode) ?? null;
 }
 
+function resolveJavaReferencePath(
+  sourceRoot: string | null,
+  packageName: string | null,
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+  typeName: string,
+): string | null {
+  if (!sourceRoot) {
+    return null;
+  }
+
+  const importedBinding = importedBindings.get(typeName);
+  if (importedBinding?.resolvedPath) {
+    return importedBinding.resolvedPath;
+  }
+
+  if (typeName.includes('.')) {
+    return resolveJavaTypePath(sourceRoot, typeName);
+  }
+
+  return packageName
+    ? resolveJavaTypePath(sourceRoot, `${packageName}.${typeName}`)
+    : null;
+}
+
+function handleJavaImportDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  sourceRoot: string | null,
+  relations: IAnalysisRelation[],
+  importedBindings: Map<string, ImportedBinding>,
+): void {
+  const specifier = getNodeText(node.namedChildren[0]);
+  if (!specifier) {
+    return;
+  }
+
+  const resolvedPath = sourceRoot ? resolveJavaTypePath(sourceRoot, specifier) : null;
+  addImportRelation(relations, filePath, specifier, resolvedPath);
+  importedBindings.set(getJavaImportLocalName(specifier), {
+    importedName: specifier,
+    resolvedPath,
+    specifier,
+  });
+}
+
+function getJavaTypeDeclarationKind(node: Parser.SyntaxNode): 'interface' | 'enum' | 'class' {
+  if (node.type === 'interface_declaration') {
+    return 'interface';
+  }
+
+  if (node.type === 'enum_declaration') {
+    return 'enum';
+  }
+
+  return 'class';
+}
+
+function handleJavaTypeDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  sourceRoot: string | null,
+  packageName: string | null,
+  relations: IAnalysisRelation[],
+  symbols: IAnalysisSymbol[],
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+): void {
+  const name = getIdentifierText(node.childForFieldName('name'));
+  if (name) {
+    symbols.push(createSymbol(filePath, getJavaTypeDeclarationKind(node), name, node));
+  }
+
+  if (node.type === 'enum_declaration') {
+    return;
+  }
+
+  const superclassNode = node.childForFieldName('superclass');
+  const superclass = superclassNode?.namedChildren.find((child) => child.type === 'type_identifier');
+  if (superclass) {
+    addInheritRelation(
+      relations,
+      filePath,
+      superclass.text,
+      resolveJavaReferencePath(sourceRoot, packageName, importedBindings, superclass.text),
+    );
+  }
+}
+
+function handleJavaMethodDeclaration(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  symbols: IAnalysisSymbol[],
+  walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
+): TreeWalkAction<SymbolWalkState> | void {
+  const name = getIdentifierText(node.childForFieldName('name'));
+  if (!name) {
+    return;
+  }
+
+  const symbol = createSymbol(filePath, 'method', name, node);
+  symbols.push(symbol);
+  return walkSymbolBody(node, symbol.id, walk);
+}
+
+function handleJavaMethodInvocation(
+  node: Parser.SyntaxNode,
+  filePath: string,
+  relations: IAnalysisRelation[],
+  importedBindings: ReadonlyMap<string, ImportedBinding>,
+  currentSymbolId?: string,
+): void {
+  const binding = getJavaCallBinding(node, importedBindings);
+  if (binding) {
+    addCallRelation(relations, filePath, binding, currentSymbolId);
+  }
+}
+
+function visitJavaNode(
+  node: Parser.SyntaxNode,
+  state: SymbolWalkState,
+  walk: (node: Parser.SyntaxNode, context: SymbolWalkState) => void,
+  filePath: string,
+  sourceRoot: string | null,
+  packageName: string | null,
+  relations: IAnalysisRelation[],
+  symbols: IAnalysisSymbol[],
+  importedBindings: Map<string, ImportedBinding>,
+): TreeWalkAction<SymbolWalkState> | void {
+  switch (node.type) {
+    case 'import_declaration':
+      handleJavaImportDeclaration(node, filePath, sourceRoot, relations, importedBindings);
+      return;
+    case 'class_declaration':
+    case 'interface_declaration':
+    case 'enum_declaration':
+      handleJavaTypeDeclaration(
+        node,
+        filePath,
+        sourceRoot,
+        packageName,
+        relations,
+        symbols,
+        importedBindings,
+      );
+      return;
+    case 'method_declaration':
+      return handleJavaMethodDeclaration(node, filePath, symbols, walk);
+    case 'method_invocation':
+      handleJavaMethodInvocation(node, filePath, relations, importedBindings, state.currentSymbolId);
+      return;
+    default:
+      return;
+  }
+}
+
 function analyzeJavaFile(
   filePath: string,
   tree: Parser.Tree,
@@ -1430,96 +1674,19 @@ function analyzeJavaFile(
   const symbols: IAnalysisSymbol[] = [];
   const packageName = getJavaPackageName(tree);
   const sourceRoot = resolveJavaSourceRoot(filePath, packageName);
-
-  const resolveJavaReference = (typeName: string): string | null => {
-    const importedBinding = importedBindings.get(typeName);
-    if (importedBinding?.resolvedPath) {
-      return importedBinding.resolvedPath;
-    }
-
-    if (typeName.includes('.')) {
-      return resolveJavaTypePath(sourceRoot, typeName);
-    }
-
-    return packageName
-      ? resolveJavaTypePath(sourceRoot, `${packageName}.${typeName}`)
-      : null;
-  };
-
-  const walk = (node: Parser.SyntaxNode, currentSymbolId?: string): void => {
-    switch (node.type) {
-      case 'import_declaration': {
-        const specifier = getNodeText(node.namedChildren[0]);
-        if (specifier) {
-          const resolvedPath = resolveJavaTypePath(sourceRoot, specifier);
-          addImportRelation(relations, filePath, specifier, resolvedPath);
-          importedBindings.set(getJavaImportLocalName(specifier), {
-            importedName: specifier,
-            resolvedPath,
-            specifier,
-          });
-        }
-        break;
-      }
-
-      case 'class_declaration':
-      case 'interface_declaration':
-      case 'enum_declaration': {
-        const name = getIdentifierText(node.childForFieldName('name'));
-        if (name) {
-          const kind = node.type === 'interface_declaration'
-            ? 'interface'
-            : node.type === 'enum_declaration'
-              ? 'enum'
-              : 'class';
-          symbols.push(createSymbol(filePath, kind, name, node));
-        }
-
-        if (node.type !== 'enum_declaration') {
-          const superclassNode = node.childForFieldName('superclass');
-          const superclass = superclassNode?.namedChildren.find((child) => child.type === 'type_identifier');
-          if (superclass) {
-            addInheritRelation(
-              relations,
-              filePath,
-              superclass.text,
-              resolveJavaReference(superclass.text),
-            );
-          }
-        }
-        break;
-      }
-
-      case 'method_declaration': {
-        const name = getIdentifierText(node.childForFieldName('name'));
-        if (!name) {
-          break;
-        }
-
-        const symbol = createSymbol(filePath, 'method', name, node);
-        symbols.push(symbol);
-        const body = node.childForFieldName('body') ?? node.namedChildren.at(-1);
-        if (body) {
-          walk(body, symbol.id);
-        }
-        return;
-      }
-
-      case 'method_invocation': {
-        const binding = getJavaCallBinding(node, importedBindings);
-        if (binding) {
-          addCallRelation(relations, filePath, binding, currentSymbolId);
-        }
-        break;
-      }
-    }
-
-    for (const child of node.namedChildren) {
-      walk(child, currentSymbolId);
-    }
-  };
-
-  walk(tree.rootNode);
+  walkTree(tree.rootNode, {}, (node, state, walk) =>
+    visitJavaNode(
+      node,
+      state,
+      walk,
+      filePath,
+      sourceRoot,
+      packageName,
+      relations,
+      symbols,
+      importedBindings,
+    ),
+  );
   return normalizeAnalysisResult(filePath, symbols, relations);
 }
 
