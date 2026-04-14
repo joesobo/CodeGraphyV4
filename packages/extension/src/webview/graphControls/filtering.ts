@@ -50,6 +50,82 @@ function applyNodeTypeColors(
   }));
 }
 
+function getFileNodes(nodes: IGraphNode[]): IGraphNode[] {
+  return nodes.filter((node) => getResolvedNodeType(node) === 'file');
+}
+
+function filterSemanticEdges(
+  edges: IGraphData['edges'],
+  visibleNodeIds: Set<string>,
+  edgeVisibility: Record<string, boolean>,
+): IGraphData['edges'] {
+  return edges.filter((edge) =>
+    (edgeVisibility[edge.kind] ?? true)
+    && visibleNodeIds.has(edge.from)
+    && visibleNodeIds.has(edge.to),
+  );
+}
+
+function filterVisibleStructuralEdges(
+  edges: IGraphData['edges'],
+  visibleNodeIds: Set<string>,
+): IGraphData['edges'] {
+  return edges.filter((edge) => visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to));
+}
+
+function buildStructuralGraphNodes(
+  fileNodes: IGraphNode[],
+  nodeVisibility: Record<string, boolean>,
+  nodeColors: Record<string, string>,
+): {
+  folderPaths: Set<string>;
+  folderNodes: IGraphNode[];
+  packageNodes: IGraphNode[];
+  workspacePackageRoots: Set<string>;
+} {
+  const folderEnabled = nodeVisibility.folder ?? false;
+  const packageEnabled = nodeVisibility.package ?? false;
+  const folderPaths = folderEnabled ? collectFolderPaths(fileNodes).paths : new Set<string>();
+  const workspacePackageRoots = packageEnabled
+    ? collectWorkspacePackageRoots(fileNodes)
+    : new Set<string>();
+
+  return {
+    folderPaths,
+    folderNodes: folderEnabled
+      ? createFolderNodes(folderPaths, nodeColors.folder ?? DEFAULT_FOLDER_NODE_COLOR)
+      : [],
+    packageNodes: packageEnabled
+      ? createWorkspacePackageNodes(
+          workspacePackageRoots,
+          nodeColors.package ?? DEFAULT_PACKAGE_NODE_COLOR,
+        )
+      : [],
+    workspacePackageRoots,
+  };
+}
+
+function buildStructuralEdges(
+  visibleFileNodes: IGraphNode[],
+  nodeVisibility: Record<string, boolean>,
+  edgeVisibility: Record<string, boolean>,
+  folderPaths: Set<string>,
+  workspacePackageRoots: Set<string>,
+): IGraphData['edges'] {
+  const folderEnabled = nodeVisibility.folder ?? false;
+  const packageEnabled = nodeVisibility.package ?? false;
+  const nestsEnabled = edgeVisibility[STRUCTURAL_NESTS_EDGE_KIND] ?? true;
+
+  if (!nestsEnabled) {
+    return [];
+  }
+
+  return [
+    ...(folderEnabled ? buildContainmentEdges(folderPaths, visibleFileNodes) : []),
+    ...(packageEnabled ? buildWorkspacePackageEdges(workspacePackageRoots, visibleFileNodes) : []),
+  ];
+}
+
 function mergeEdgeDecorations(
   edges: IGraphData['edges'],
   edgeColors: Record<string, string>,
@@ -86,48 +162,26 @@ export function applyGraphControls({
 
   const baseNodes = applyNodeTypeColors(withResolvedNodeTypes(graphData.nodes), nodeColors);
   const visibleBaseNodes = baseNodes.filter((node) => isNodeVisible(node, nodeVisibility));
-  const folderEnabled = nodeVisibility.folder ?? false;
-  const packageEnabled = nodeVisibility.package ?? false;
-  const nestsEnabled = edgeVisibility[STRUCTURAL_NESTS_EDGE_KIND] ?? true;
-
-  const fileNodes = baseNodes.filter((node) => getResolvedNodeType(node) === 'file');
-  const folderPaths = folderEnabled ? collectFolderPaths(fileNodes).paths : new Set<string>();
-  const folderNodes = folderEnabled
-    ? createFolderNodes(folderPaths, nodeColors.folder ?? DEFAULT_FOLDER_NODE_COLOR)
-    : [];
-  const workspacePackageRoots = packageEnabled
-    ? collectWorkspacePackageRoots(fileNodes)
-    : new Set<string>();
-  const packageNodes = packageEnabled
-    ? createWorkspacePackageNodes(
-      workspacePackageRoots,
-      nodeColors.package ?? DEFAULT_PACKAGE_NODE_COLOR,
-    )
-    : [];
+  const {
+    folderPaths,
+    folderNodes,
+    packageNodes,
+    workspacePackageRoots,
+  } = buildStructuralGraphNodes(getFileNodes(baseNodes), nodeVisibility, nodeColors);
 
   const nodes = [...visibleBaseNodes, ...folderNodes, ...packageNodes];
   const visibleNodeIds = new Set(nodes.map((node) => node.id));
-
-  const semanticEdges = graphData.edges.filter((edge) => {
-    if (!(edgeVisibility[edge.kind] ?? true)) {
-      return false;
-    }
-
-    return visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to);
-  });
-
-  const structuralEdges = folderEnabled && nestsEnabled
-    ? buildContainmentEdges(folderPaths, visibleBaseNodes.filter((node) => getResolvedNodeType(node) === 'file'))
-    : [];
-  const packageEdges = packageEnabled && nestsEnabled
-    ? buildWorkspacePackageEdges(
+  const visibleFileNodes = getFileNodes(visibleBaseNodes);
+  const semanticEdges = filterSemanticEdges(graphData.edges, visibleNodeIds, edgeVisibility);
+  const visibleStructuralEdges = filterVisibleStructuralEdges(
+    buildStructuralEdges(
+      visibleFileNodes,
+      nodeVisibility,
+      edgeVisibility,
+      folderPaths,
       workspacePackageRoots,
-      visibleBaseNodes.filter((node) => getResolvedNodeType(node) === 'file'),
-    )
-    : [];
-
-  const visibleStructuralEdges = [...structuralEdges, ...packageEdges].filter((edge) =>
-    visibleNodeIds.has(edge.from) && visibleNodeIds.has(edge.to),
+    ),
+    visibleNodeIds,
   );
 
   const edges = [...semanticEdges, ...visibleStructuralEdges];

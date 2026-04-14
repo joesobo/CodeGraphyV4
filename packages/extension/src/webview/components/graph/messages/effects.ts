@@ -34,33 +34,57 @@ export interface GraphWebviewMessageOptions {
   graphNodes: Array<Pick<FGNode, 'id' | 'size' | 'x' | 'y'>>;
 }
 
+type ZoomMessage = Extract<ExtensionToWebviewMessage, { type: 'ZOOM_IN' | 'ZOOM_OUT' }>;
+type FileInfoMessage = Extract<ExtensionToWebviewMessage, { type: 'FILE_INFO' }>;
+type ExportMessage = Extract<
+  ExtensionToWebviewMessage,
+  {
+    type:
+      | 'REQUEST_EXPORT_PNG'
+      | 'REQUEST_EXPORT_SVG'
+      | 'REQUEST_EXPORT_JPEG'
+      | 'REQUEST_EXPORT_JSON'
+      | 'REQUEST_EXPORT_MD'
+      | 'REQUEST_OPEN_IN_EDITOR';
+  }
+>;
+type AccessCountMessage = Extract<ExtensionToWebviewMessage, { type: 'NODE_ACCESS_COUNT_UPDATED' }>;
+
+const GRAPH_WEBVIEW_MESSAGE_EFFECTS = {
+  FIT_VIEW: () => getFitViewEffects(),
+  ZOOM_IN: ({ graphMode, message }: GraphWebviewMessageOptions) =>
+    getZoomEffects(graphMode, (message as ZoomMessage).type),
+  ZOOM_OUT: ({ graphMode, message }: GraphWebviewMessageOptions) =>
+    getZoomEffects(graphMode, (message as ZoomMessage).type),
+  FILE_INFO: ({ tooltipPath, message }: GraphWebviewMessageOptions) =>
+    getFileInfoEffects(tooltipPath, (message as FileInfoMessage).payload),
+  GET_NODE_BOUNDS: ({ graphNodes }: GraphWebviewMessageOptions) =>
+    getNodeBoundsEffects(graphNodes),
+  GET_GRAPH_RUNTIME_STATE: ({ graphMode, graphNodes }: GraphWebviewMessageOptions) =>
+    getGraphRuntimeStateEffects(graphMode, graphNodes),
+  REQUEST_EXPORT_PNG: ({ message }: GraphWebviewMessageOptions) =>
+    getExportEffects((message as ExportMessage).type),
+  REQUEST_EXPORT_SVG: ({ message }: GraphWebviewMessageOptions) =>
+    getExportEffects((message as ExportMessage).type),
+  REQUEST_EXPORT_JPEG: ({ message }: GraphWebviewMessageOptions) =>
+    getExportEffects((message as ExportMessage).type),
+  REQUEST_EXPORT_JSON: ({ message }: GraphWebviewMessageOptions) =>
+    getExportEffects((message as ExportMessage).type),
+  REQUEST_EXPORT_MD: ({ message }: GraphWebviewMessageOptions) =>
+    getExportEffects((message as ExportMessage).type),
+  REQUEST_OPEN_IN_EDITOR: ({ message }: GraphWebviewMessageOptions) =>
+    getExportEffects((message as ExportMessage).type),
+  NODE_ACCESS_COUNT_UPDATED: ({ message }: GraphWebviewMessageOptions) =>
+    getAccessCountEffects((message as AccessCountMessage).payload),
+} satisfies Partial<
+  Record<ExtensionToWebviewMessage['type'], (options: GraphWebviewMessageOptions) => GraphWebviewMessageEffect[]>
+>;
+
 export function getGraphWebviewMessageEffects(
   options: GraphWebviewMessageOptions
 ): GraphWebviewMessageEffect[] {
-  const { message, graphMode, tooltipPath, graphNodes } = options;
-
-  switch (message.type) {
-    case 'FIT_VIEW':
-      return getFitViewEffects();
-    case 'ZOOM_IN':
-    case 'ZOOM_OUT':
-      return getZoomEffects(graphMode, message.type);
-    case 'FILE_INFO':
-      return getFileInfoEffects(tooltipPath, message.payload);
-    case 'GET_NODE_BOUNDS':
-      return getNodeBoundsEffects(graphNodes);
-    case 'GET_GRAPH_RUNTIME_STATE':
-      return getGraphRuntimeStateEffects(graphMode, graphNodes);
-    case 'REQUEST_EXPORT_PNG':
-    case 'REQUEST_EXPORT_SVG':
-    case 'REQUEST_EXPORT_JPEG':
-    case 'REQUEST_EXPORT_JSON':
-    case 'REQUEST_EXPORT_MD':
-    case 'REQUEST_OPEN_IN_EDITOR':
-      return getExportEffects(message.type);
-    case 'NODE_ACCESS_COUNT_UPDATED':
-      return getAccessCountEffects(message.payload);
-    default:
-      return EMPTY_EFFECTS;
-  }
+  const effectBuilder = GRAPH_WEBVIEW_MESSAGE_EFFECTS[
+    options.message.type as keyof typeof GRAPH_WEBVIEW_MESSAGE_EFFECTS
+  ];
+  return effectBuilder?.(options) ?? EMPTY_EFFECTS;
 }

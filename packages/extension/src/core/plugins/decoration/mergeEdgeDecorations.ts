@@ -5,6 +5,19 @@
 
 import type { EdgeDecoration } from './contracts';
 
+function assignFirstEdgeDecorationValue<K extends keyof EdgeDecoration>(
+  merged: EdgeDecoration,
+  decoration: EdgeDecoration,
+  key: K,
+): void {
+  const nextValue = decoration[key];
+  if (nextValue === undefined || merged[key] !== undefined) {
+    return;
+  }
+
+  merged[key] = nextValue;
+}
+
 /**
  * Merge multiple edge decorations (already sorted by priority descending).
  * First-set-wins per property.
@@ -12,14 +25,14 @@ import type { EdgeDecoration } from './contracts';
 export function mergeEdgeDecorations(decorations: EdgeDecoration[]): EdgeDecoration {
   const merged: EdgeDecoration = {};
 
-  for (const dec of decorations) {
-    if (dec.color && !merged.color) merged.color = dec.color;
-    if (dec.width !== undefined && merged.width === undefined) merged.width = dec.width;
-    if (dec.style && !merged.style) merged.style = dec.style;
-    if (dec.label && !merged.label) merged.label = dec.label;
-    if (dec.particles && !merged.particles) merged.particles = dec.particles;
-    if (dec.opacity !== undefined && merged.opacity === undefined) merged.opacity = dec.opacity;
-    if (dec.curvature !== undefined && merged.curvature === undefined) merged.curvature = dec.curvature;
+  for (const decoration of decorations) {
+    assignFirstEdgeDecorationValue(merged, decoration, 'color');
+    assignFirstEdgeDecorationValue(merged, decoration, 'width');
+    assignFirstEdgeDecorationValue(merged, decoration, 'style');
+    assignFirstEdgeDecorationValue(merged, decoration, 'label');
+    assignFirstEdgeDecorationValue(merged, decoration, 'particles');
+    assignFirstEdgeDecorationValue(merged, decoration, 'opacity');
+    assignFirstEdgeDecorationValue(merged, decoration, 'curvature');
   }
 
   return merged;

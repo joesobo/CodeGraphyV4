@@ -1,5 +1,78 @@
 import type { ExportData } from '../shared/contracts';
 
+function appendSection(lines: string[], title: string): void {
+  lines.push('', title, '');
+}
+
+function appendTimelineSummary(lines: string[], data: ExportData): void {
+  lines.push(
+    data.scope.timeline.active
+      ? `> timeline commit: ${data.scope.timeline.commitSha ?? 'unknown'}`
+      : '> timeline: inactive',
+  );
+}
+
+function joinExtras(parts: Array<string | undefined>): string {
+  const extras = parts.filter(Boolean);
+  return extras.length > 0 ? ` | ${extras.join(' | ')}` : '';
+}
+
+function appendLegendLines(lines: string[], data: ExportData): void {
+  if (data.legend.length === 0) {
+    lines.push('- none');
+    return;
+  }
+
+  for (const rule of data.legend) {
+    lines.push(
+      `- \`${rule.pattern}\` (${rule.color})${joinExtras([
+        rule.shape2D,
+        rule.shape3D,
+        rule.imagePath ? `image: ${rule.imagePath}` : undefined,
+        rule.pluginName ? `plugin: ${rule.pluginName}` : undefined,
+      ])}`,
+    );
+  }
+}
+
+function appendNodeLines(lines: string[], data: ExportData): void {
+  if (data.nodes.length === 0) {
+    lines.push('- none');
+    return;
+  }
+
+  for (const node of data.nodes) {
+    lines.push(
+      `- \`${node.id}\` (${node.nodeType})${node.legendIds.length > 0 ? ` | legend: ${node.legendIds.join(', ')}` : ''}`,
+    );
+  }
+}
+
+function appendEdgeSourceLines(lines: string[], data: ExportData): void {
+  if (data.edges.length === 0) {
+    lines.push('- none');
+    return;
+  }
+
+  for (const edge of data.edges) {
+    lines.push(
+      `- \`${edge.kind}\` \`${edge.from}\` -> \`${edge.to}\`${joinExtras([
+        edge.color ? `color: ${edge.color}` : undefined,
+        edge.legendIds.length > 0 ? `legend: ${edge.legendIds.join(', ')}` : undefined,
+      ])}`,
+    );
+
+    if (edge.sources.length === 0) {
+      lines.push('  - sources: none');
+      continue;
+    }
+
+    for (const source of edge.sources) {
+      lines.push(`  - ${source.label} (${source.pluginName ?? source.pluginId})`);
+    }
+  }
+}
+
 export function renderMarkdownExport(data: ExportData): string {
   const lines: string[] = [
     '# CodeGraphy Export',
@@ -7,63 +80,13 @@ export function renderMarkdownExport(data: ExportData): string {
     `> ${data.summary.totalNodes} nodes, ${data.summary.totalEdges} edges`,
   ];
 
-  if (data.scope.timeline.active) {
-    lines.push(`> timeline commit: ${data.scope.timeline.commitSha ?? 'unknown'}`);
-  } else {
-    lines.push('> timeline: inactive');
-  }
-
-  lines.push('', '## Legend', '');
-  if (data.legend.length === 0) {
-    lines.push('- none');
-  } else {
-    for (const rule of data.legend) {
-      const extras = [
-        rule.shape2D,
-        rule.shape3D,
-        rule.imagePath ? `image: ${rule.imagePath}` : undefined,
-        rule.pluginName ? `plugin: ${rule.pluginName}` : undefined,
-      ].filter(Boolean);
-      lines.push(`- \`${rule.pattern}\` (${rule.color})${extras.length > 0 ? ` | ${extras.join(' | ')}` : ''}`);
-    }
-  }
-
-  lines.push('', '## Nodes', '');
-  if (data.nodes.length === 0) {
-    lines.push('- none');
-  } else {
-    for (const node of data.nodes) {
-      const legendSuffix = node.legendIds.length > 0
-        ? ` | legend: ${node.legendIds.join(', ')}`
-        : '';
-      lines.push(`- \`${node.id}\` (${node.nodeType})${legendSuffix}`);
-    }
-  }
-
-  lines.push('', '## Edges', '');
-  if (data.edges.length === 0) {
-    lines.push('- none');
-  } else {
-    for (const edge of data.edges) {
-      const edgeSuffix = [
-        edge.color ? `color: ${edge.color}` : undefined,
-        edge.legendIds.length > 0 ? `legend: ${edge.legendIds.join(', ')}` : undefined,
-      ].filter(Boolean);
-
-      lines.push(
-        `- \`${edge.kind}\` \`${edge.from}\` -> \`${edge.to}\`${edgeSuffix.length > 0 ? ` | ${edgeSuffix.join(' | ')}` : ''}`,
-      );
-      if (edge.sources.length === 0) {
-        lines.push('  - sources: none');
-        continue;
-      }
-
-      for (const source of edge.sources) {
-        const pluginLabel = source.pluginName ?? source.pluginId;
-        lines.push(`  - ${source.label} (${pluginLabel})`);
-      }
-    }
-  }
+  appendTimelineSummary(lines, data);
+  appendSection(lines, '## Legend');
+  appendLegendLines(lines, data);
+  appendSection(lines, '## Nodes');
+  appendNodeLines(lines, data);
+  appendSection(lines, '## Edges');
+  appendEdgeSourceLines(lines, data);
 
   return `${lines.join('\n')}\n`;
 }

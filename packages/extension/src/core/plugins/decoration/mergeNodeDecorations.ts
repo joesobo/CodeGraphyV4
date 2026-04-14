@@ -5,6 +5,28 @@
 
 import type { NodeDecoration, TooltipSection } from './contracts';
 
+function assignFirstNodeDecorationValue<K extends keyof NodeDecoration>(
+  merged: NodeDecoration,
+  decoration: NodeDecoration,
+  key: K,
+): void {
+  const nextValue = decoration[key];
+  if (nextValue === undefined || merged[key] !== undefined) {
+    return;
+  }
+
+  merged[key] = nextValue;
+}
+
+function appendTooltipSections(
+  tooltipSections: TooltipSection[],
+  decoration: NodeDecoration,
+): void {
+  if (decoration.tooltip?.sections) {
+    tooltipSections.push(...decoration.tooltip.sections);
+  }
+}
+
 /**
  * Merge multiple node decorations (already sorted by priority descending).
  * First-set-wins per property. Tooltip sections are concatenated from all plugins.
@@ -13,20 +35,16 @@ export function mergeNodeDecorations(decorations: NodeDecoration[]): NodeDecorat
   const merged: NodeDecoration = {};
   const tooltipSections: TooltipSection[] = [];
 
-  for (const dec of decorations) {
-    if (dec.badge && !merged.badge) merged.badge = dec.badge;
-    if (dec.border && !merged.border) merged.border = dec.border;
-    if (dec.label && !merged.label) merged.label = dec.label;
-    if (dec.size && !merged.size) merged.size = dec.size;
-    if (dec.opacity !== undefined && merged.opacity === undefined) merged.opacity = dec.opacity;
-    if (dec.color && !merged.color) merged.color = dec.color;
-    if (dec.icon && !merged.icon) merged.icon = dec.icon;
-    if (dec.group && !merged.group) merged.group = dec.group;
-
-    // Tooltip sections are concatenated from all plugins
-    if (dec.tooltip?.sections) {
-      tooltipSections.push(...dec.tooltip.sections);
-    }
+  for (const decoration of decorations) {
+    assignFirstNodeDecorationValue(merged, decoration, 'badge');
+    assignFirstNodeDecorationValue(merged, decoration, 'border');
+    assignFirstNodeDecorationValue(merged, decoration, 'label');
+    assignFirstNodeDecorationValue(merged, decoration, 'size');
+    assignFirstNodeDecorationValue(merged, decoration, 'opacity');
+    assignFirstNodeDecorationValue(merged, decoration, 'color');
+    assignFirstNodeDecorationValue(merged, decoration, 'icon');
+    assignFirstNodeDecorationValue(merged, decoration, 'group');
+    appendTooltipSections(tooltipSections, decoration);
   }
 
   if (tooltipSections.length > 0) {

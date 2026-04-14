@@ -15,44 +15,36 @@ import {
   createRefreshEffects,
 } from './builders';
 
+const BUILT_IN_CONTEXT_ACTION_EFFECTS = {
+  open: (targetPaths: string[]) => createOpenFileEffects(targetPaths),
+  reveal: (targetPaths: string[]) =>
+    createOptionalSinglePathMessageEffects(targetPaths[0], 'REVEAL_IN_EXPLORER'),
+  copyRelative: (targetPaths: string[]) => createClipboardEffects(targetPaths.join('\n')),
+  copyAbsolute: (targetPaths: string[]) =>
+    createOptionalClipboardEffects(targetPaths[0], (path) => `absolute:${path}`),
+  copyEdgeSource: (targetPaths: string[]) => createOptionalClipboardEffects(targetPaths[0]),
+  copyEdgeTarget: (targetPaths: string[]) => createOptionalClipboardEffects(targetPaths[1]),
+  copyEdgeBoth: (targetPaths: string[]) => createClipboardEffects(targetPaths.join('\n')),
+  toggleFavorite: (targetPaths: string[]) =>
+    createPathListMessageEffects('TOGGLE_FAVORITE', targetPaths),
+  focus: (targetPaths: string[]) => createFocusEffects(targetPaths[0]),
+  addToFilter: (targetPaths: string[]) =>
+    targetPaths.length <= 1
+      ? createPatternPromptEffects(targetPaths[0])
+      : createPatternMessageEffects(targetPaths),
+  addNodeLegend: (targetPaths: string[]) =>
+    createLegendPromptEffects(targetPaths[0], '#808080', 'node'),
+  rename: (targetPaths: string[]) =>
+    createOptionalSinglePathMessageEffects(targetPaths[0], 'RENAME_FILE'),
+  delete: (targetPaths: string[]) => createPathListMessageEffects('DELETE_FILES', targetPaths),
+  refresh: () => createRefreshEffects(),
+  fitView: () => createFitViewEffects(),
+  createFile: () => createCreateFileEffects(),
+} satisfies Record<BuiltInContextMenuAction, (targetPaths: string[]) => GraphContextEffect[]>;
+
 export function getBuiltInContextActionEffectsImpl(
   action: BuiltInContextMenuAction,
   targetPaths: string[]
 ): GraphContextEffect[] {
-  switch (action) {
-    case 'open':
-      return createOpenFileEffects(targetPaths);
-    case 'reveal':
-      return createOptionalSinglePathMessageEffects(targetPaths[0], 'REVEAL_IN_EXPLORER');
-    case 'copyRelative':
-      return createClipboardEffects(targetPaths.join('\n'));
-    case 'copyAbsolute':
-      return createOptionalClipboardEffects(targetPaths[0], path => `absolute:${path}`);
-    case 'copyEdgeSource':
-      return createOptionalClipboardEffects(targetPaths[0]);
-    case 'copyEdgeTarget':
-      return createOptionalClipboardEffects(targetPaths[1]);
-    case 'copyEdgeBoth':
-      return createClipboardEffects(targetPaths.join('\n'));
-    case 'toggleFavorite':
-      return createPathListMessageEffects('TOGGLE_FAVORITE', targetPaths);
-    case 'focus':
-      return createFocusEffects(targetPaths[0]);
-    case 'addToFilter':
-      return targetPaths.length <= 1
-        ? createPatternPromptEffects(targetPaths[0])
-        : createPatternMessageEffects(targetPaths);
-    case 'addNodeLegend':
-      return createLegendPromptEffects(targetPaths[0], '#808080', 'node');
-    case 'rename':
-      return createOptionalSinglePathMessageEffects(targetPaths[0], 'RENAME_FILE');
-    case 'delete':
-      return createPathListMessageEffects('DELETE_FILES', targetPaths);
-    case 'refresh':
-      return createRefreshEffects();
-    case 'fitView':
-      return createFitViewEffects();
-    case 'createFile':
-      return createCreateFileEffects();
-  }
+  return BUILT_IN_CONTEXT_ACTION_EFFECTS[action](targetPaths);
 }
