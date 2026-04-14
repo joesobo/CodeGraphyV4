@@ -1605,6 +1605,50 @@ function handleCSharpObjectCreationExpression(
   }
 }
 
+function isCSharpTypeDeclarationNode(node: Parser.SyntaxNode): boolean {
+  return (
+    node.type === 'class_declaration'
+    || node.type === 'interface_declaration'
+    || node.type === 'struct_declaration'
+    || node.type === 'enum_declaration'
+  );
+}
+
+function visitCSharpReferenceNode(
+  node: Parser.SyntaxNode,
+  state: CSharpWalkState,
+  filePath: string,
+  workspaceRoot: string,
+  relations: IAnalysisRelation[],
+  usingNamespaces: Set<string>,
+  importTargetsByNamespace: Map<string, Set<string>>,
+): void {
+  if (node.type === 'member_access_expression') {
+    handleCSharpMemberAccessExpression(
+      node,
+      state,
+      filePath,
+      workspaceRoot,
+      relations,
+      usingNamespaces,
+      importTargetsByNamespace,
+    );
+    return;
+  }
+
+  if (node.type === 'object_creation_expression') {
+    handleCSharpObjectCreationExpression(
+      node,
+      state,
+      filePath,
+      workspaceRoot,
+      relations,
+      usingNamespaces,
+      importTargetsByNamespace,
+    );
+  }
+}
+
 function visitCSharpNode(
   node: Parser.SyntaxNode,
   state: CSharpWalkState,
@@ -1616,55 +1660,42 @@ function visitCSharpNode(
   usingNamespaces: Set<string>,
   importTargetsByNamespace: Map<string, Set<string>>,
 ): TreeWalkAction<CSharpWalkState> | void {
-  switch (node.type) {
-    case 'namespace_declaration':
-    case 'file_scoped_namespace_declaration':
-      return handleCSharpNamespaceNode(node, state, walk);
-    case 'using_directive':
-      handleCSharpUsingDirective(node, usingNamespaces);
-      return;
-    case 'class_declaration':
-    case 'interface_declaration':
-    case 'struct_declaration':
-    case 'enum_declaration':
-      handleCSharpTypeDeclaration(
-        node,
-        state,
-        filePath,
-        workspaceRoot,
-        relations,
-        symbols,
-        usingNamespaces,
-        importTargetsByNamespace,
-      );
-      return;
-    case 'method_declaration':
-      return handleCSharpMethodDeclaration(node, state, filePath, symbols, walk);
-    case 'member_access_expression':
-      handleCSharpMemberAccessExpression(
-        node,
-        state,
-        filePath,
-        workspaceRoot,
-        relations,
-        usingNamespaces,
-        importTargetsByNamespace,
-      );
-      return;
-    case 'object_creation_expression':
-      handleCSharpObjectCreationExpression(
-        node,
-        state,
-        filePath,
-        workspaceRoot,
-        relations,
-        usingNamespaces,
-        importTargetsByNamespace,
-      );
-      return;
-    default:
-      return;
+  if (node.type === 'namespace_declaration' || node.type === 'file_scoped_namespace_declaration') {
+    return handleCSharpNamespaceNode(node, state, walk);
   }
+
+  if (node.type === 'using_directive') {
+    handleCSharpUsingDirective(node, usingNamespaces);
+    return;
+  }
+
+  if (isCSharpTypeDeclarationNode(node)) {
+    handleCSharpTypeDeclaration(
+      node,
+      state,
+      filePath,
+      workspaceRoot,
+      relations,
+      symbols,
+      usingNamespaces,
+      importTargetsByNamespace,
+    );
+    return;
+  }
+
+  if (node.type === 'method_declaration') {
+    return handleCSharpMethodDeclaration(node, state, filePath, symbols, walk);
+  }
+
+  visitCSharpReferenceNode(
+    node,
+    state,
+    filePath,
+    workspaceRoot,
+    relations,
+    usingNamespaces,
+    importTargetsByNamespace,
+  );
 }
 
 function recordCSharpImportTargets(
