@@ -22,6 +22,48 @@ export interface IWorkspaceGraphEdgeBuildResult {
   nodeIds: Set<string>;
 }
 
+function getEdgeId(filePath: string, targetId: string, kind: IProjectedConnection['kind']): string {
+  return `${filePath}->${targetId}#${kind}`;
+}
+
+function appendEdgeSource(
+  edge: IGraphEdge,
+  edgeSource: NonNullable<IGraphEdge['sources'][number]> | null | undefined,
+): void {
+  if (!edgeSource || edge.sources.some((source) => source.id === edgeSource.id)) {
+    return;
+  }
+
+  edge.sources.push(edgeSource);
+}
+
+function addGraphEdge(
+  edgeMap: Map<string, IGraphEdge>,
+  edges: IGraphEdge[],
+  filePath: string,
+  targetId: string,
+  connection: IProjectedConnection,
+  edgeSource: NonNullable<IGraphEdge['sources'][number]> | null | undefined,
+): void {
+  const edgeId = getEdgeId(filePath, targetId, connection.kind);
+  const existing = edgeMap.get(edgeId);
+  if (!existing) {
+    const edge: IGraphEdge = {
+      id: edgeId,
+      from: filePath,
+      to: targetId,
+      kind: connection.kind,
+      sources: edgeSource ? [edgeSource] : [],
+    };
+
+    edges.push(edge);
+    edgeMap.set(edgeId, edge);
+    return;
+  }
+
+  appendEdgeSource(existing, edgeSource);
+}
+
 export function buildWorkspaceGraphEdges(
   options: IWorkspaceGraphEdgesOptions,
 ): IWorkspaceGraphEdgeBuildResult {
@@ -56,31 +98,8 @@ export function buildWorkspaceGraphEdges(
       connectedIds.add(filePath);
       connectedIds.add(targetId);
       nodeIds.add(targetId);
-
-      const edgeId = `${filePath}->${targetId}#${connection.kind}`;
-      const existing = edgeMap.get(edgeId);
       const edgeSource = createEdgeSource(plugin, connection);
-
-      if (!existing) {
-        const edge: IGraphEdge = {
-          id: edgeId,
-          from: filePath,
-          to: targetId,
-          kind: connection.kind,
-          sources: edgeSource ? [edgeSource] : [],
-        };
-
-        edges.push(edge);
-        edgeMap.set(edgeId, edge);
-        continue;
-      }
-
-      if (
-        edgeSource &&
-        !existing.sources.some((source) => source.id === edgeSource.id)
-      ) {
-        existing.sources.push(edgeSource);
-      }
+      addGraphEdge(edgeMap, edges, filePath, targetId, connection, edgeSource);
     }
   }
 

@@ -58,26 +58,38 @@ function normalizePersistedSettingsShape(
   }
 
   const normalized: Record<string, unknown> = { ...value };
-  const filterPatterns = Array.isArray(normalized.filterPatterns)
-    ? normalized.filterPatterns.filter((entry): entry is string => typeof entry === 'string')
+  normalizePersistedFilterPatterns(normalized);
+  normalizePersistedLegend(normalized);
+  normalizePersistedNodeColors(normalized);
+  return normalized;
+}
+
+function readStringArray(value: unknown): string[] {
+  return Array.isArray(value)
+    ? value.filter((entry): entry is string => typeof entry === 'string')
     : [];
-  const exclude = Array.isArray(normalized.exclude)
-    ? normalized.exclude.filter((entry): entry is string => typeof entry === 'string')
-    : [];
+}
+
+function normalizePersistedFilterPatterns(normalized: Record<string, unknown>): void {
+  const filterPatterns = readStringArray(normalized.filterPatterns);
+  const exclude = readStringArray(normalized.exclude);
   if (filterPatterns.length > 0 || exclude.length > 0) {
     normalized.filterPatterns = Array.from(new Set([...filterPatterns, ...exclude]));
   }
+
   delete normalized.exclude;
+}
 
-  const legend = normalized.legend;
-  const groups = normalized.groups;
+function normalizePersistedLegend(normalized: Record<string, unknown>): void {
   if (
-    Array.isArray(groups)
-    && (!Array.isArray(legend) || legend.length === 0)
+    Array.isArray(normalized.groups)
+    && (!Array.isArray(normalized.legend) || normalized.legend.length === 0)
   ) {
-    normalized.legend = groups;
+    normalized.legend = normalized.groups;
   }
+}
 
+function normalizePersistedNodeColors(normalized: Record<string, unknown>): void {
   const nodeColors = isPlainObject(normalized.nodeColors)
     ? { ...normalized.nodeColors }
     : {};
@@ -87,8 +99,6 @@ function normalizePersistedSettingsShape(
   if (Object.keys(nodeColors).length > 0) {
     normalized.nodeColors = nodeColors;
   }
-
-  return normalized;
 }
 
 function deepClone<T>(value: T): T {
