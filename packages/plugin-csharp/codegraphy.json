@@ -10,7 +10,6 @@
     "**/bin/**",
     "**/obj/**",
     "**/.vs/**",
-    "**/packages/**",
     "**/TestResults/**",
     "**/*.Designer.cs",
     "**/*.generated.cs",
