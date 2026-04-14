@@ -219,28 +219,50 @@ function createCypherStringProperty(key: string, value: string): string {
   return `${key}: ${escapeCypherString(value)}`;
 }
 
-function createRelationStatementProperties(
+function createRelationIdentityProperties(
   filePath: string,
   relation: IAnalysisRelation,
   relationIndex: number,
-): string {
+): string[] {
   return [
     createCypherStringProperty('relationId', createRelationRowId(filePath, relation, relationIndex)),
     createCypherStringProperty('filePath', filePath),
     createCypherStringProperty('kind', relation.kind),
-    createCypherStringProperty('pluginId', relation.pluginId ?? ''),
     createCypherStringProperty('sourceId', relation.sourceId),
+  ];
+}
+
+function createRelationEndpointProperties(relation: IAnalysisRelation): string[] {
+  return [
     createCypherStringProperty('fromFilePath', relation.fromFilePath),
     createCypherStringProperty('toFilePath', relation.toFilePath ?? ''),
     createCypherStringProperty('fromNodeId', relation.fromNodeId ?? ''),
     createCypherStringProperty('toNodeId', relation.toNodeId ?? ''),
     createCypherStringProperty('fromSymbolId', relation.fromSymbolId ?? ''),
     createCypherStringProperty('toSymbolId', relation.toSymbolId ?? ''),
+  ];
+}
+
+function createRelationDescriptorProperties(relation: IAnalysisRelation): string[] {
+  return [
+    createCypherStringProperty('pluginId', relation.pluginId ?? ''),
     createCypherStringProperty('specifier', relation.specifier ?? ''),
     createCypherStringProperty('relationType', relation.type ?? ''),
     createCypherStringProperty('variant', relation.variant ?? ''),
     createCypherStringProperty('resolvedPath', relation.resolvedPath ?? ''),
     createCypherStringProperty('metadataJson', serializeJson(relation.metadata)),
+  ];
+}
+
+function createRelationStatementProperties(
+  filePath: string,
+  relation: IAnalysisRelation,
+  relationIndex: number,
+): string {
+  return [
+    ...createRelationIdentityProperties(filePath, relation, relationIndex),
+    ...createRelationEndpointProperties(relation),
+    ...createRelationDescriptorProperties(relation),
   ].join(', ');
 }
 

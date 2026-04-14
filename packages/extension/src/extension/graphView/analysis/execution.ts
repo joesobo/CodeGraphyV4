@@ -312,41 +312,68 @@ function publishAnalysisFailure(
   handlers.markWorkspaceReady(graphData);
 }
 
+async function prepareGraphViewAnalysis(
+  signal: AbortSignal,
+  requestId: number,
+  state: GraphViewAnalysisExecutionState,
+  handlers: GraphViewAnalysisExecutionHandlers,
+): Promise<boolean> {
+  if (handlers.isAnalysisStale(signal, requestId)) {
+    return false;
+  }
+
+  if (!state.analyzer) {
+    publishEmptyGraph(handlers);
+    return false;
+  }
+
+  if (!(await awaitInstalledPluginActivation(signal, requestId, state, handlers))) {
+    return false;
+  }
+
+  if (!(await ensureAnalyzerInitialized(signal, requestId, state, handlers))) {
+    return false;
+  }
+
+  if (!prepareAnalysisGroups(signal, requestId, handlers)) {
+    return false;
+  }
+
+  if (!handlers.hasWorkspace()) {
+    publishEmptyGraph(handlers);
+    return false;
+  }
+
+  return true;
+}
+
+async function runGraphViewAnalysis(
+  signal: AbortSignal,
+  requestId: number,
+  state: GraphViewAnalysisExecutionState,
+  handlers: GraphViewAnalysisExecutionHandlers,
+): Promise<boolean> {
+  const { rawGraphData, shouldDiscover } = await loadRawGraphData(signal, state, handlers);
+  if (handlers.isAnalysisStale(signal, requestId)) {
+    return false;
+  }
+
+  publishAnalyzedGraph(state, handlers, rawGraphData, !shouldDiscover);
+  return true;
+}
+
 export async function executeGraphViewAnalysis(
   signal: AbortSignal,
   requestId: number,
   state: GraphViewAnalysisExecutionState,
   handlers: GraphViewAnalysisExecutionHandlers,
 ): Promise<void> {
-  if (handlers.isAnalysisStale(signal, requestId)) return;
-
-  if (!state.analyzer) {
-    publishEmptyGraph(handlers);
-    return;
-  }
-
-  if (!(await awaitInstalledPluginActivation(signal, requestId, state, handlers))) {
-    return;
-  }
-
-  if (!(await ensureAnalyzerInitialized(signal, requestId, state, handlers))) {
-    return;
-  }
-
-  if (!prepareAnalysisGroups(signal, requestId, handlers)) {
-    return;
-  }
-
-  if (!handlers.hasWorkspace()) {
-    publishEmptyGraph(handlers);
+  if (!(await prepareGraphViewAnalysis(signal, requestId, state, handlers))) {
     return;
   }
 
   try {
-    const { rawGraphData, shouldDiscover } = await loadRawGraphData(signal, state, handlers);
-    if (handlers.isAnalysisStale(signal, requestId)) return;
-
-    publishAnalyzedGraph(state, handlers, rawGraphData, !shouldDiscover);
+    await runGraphViewAnalysis(signal, requestId, state, handlers);
   } catch (error) {
     if (handlers.isAbortError(error) || handlers.isAnalysisStale(signal, requestId)) {
       return;
