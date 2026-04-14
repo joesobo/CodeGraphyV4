@@ -218,6 +218,59 @@ describe('extension/repoSettings/store', () => {
     expect(persisted.exclude).toBeUndefined();
   });
 
+  it('prefers existing legend and node color entries over legacy aliases while cleaning excludes', () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(
+      settingsPath,
+      JSON.stringify({
+        ...createSettingsWithOverrides({}),
+        legend: [{ id: 'legend-rule', pattern: 'src/**', color: '#112233' }],
+        groups: [{ id: 'legacy-group', pattern: 'legacy/**', color: '#ffffff' }],
+        nodeColors: { folder: '#445566', file: '#999999' },
+        folderNodeColor: '#000000',
+        filterPatterns: ['**/*.png'],
+        exclude: ['**/*.png', 42],
+      }, null, 2),
+      'utf8',
+    );
+
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+    const persisted = readJson<Record<string, unknown>>(store.settingsPath);
+
+    expect(store.get('legend', [])).toEqual([
+      { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
+    ]);
+    expect(store.get('folderNodeColor', '')).toBe('#445566');
+    expect(persisted.legend).toEqual([
+      { id: 'legend-rule', pattern: 'src/**', color: '#112233' },
+    ]);
+    expect(persisted.nodeColors).toEqual(expect.objectContaining({
+      folder: '#445566',
+      file: '#999999',
+    }));
+    expect(persisted.exclude).toBeUndefined();
+    expect(persisted.filterPatterns).toEqual(['**/*.png']);
+  });
+
+  it('falls back to defaults when persisted settings are a non-object JSON value', () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(settingsPath, '[]\n', 'utf8');
+
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+
+    expect(store.get('legend', [])).toEqual([]);
+    expect(store.get('filterPatterns', [])).toEqual([]);
+    expect(readJson<Record<string, unknown>>(store.settingsPath)).toEqual(
+      createDefaultCodeGraphyRepoSettings(),
+    );
+  });
+
   it('reports alias and parent-child matches through affectsConfiguration', async () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
