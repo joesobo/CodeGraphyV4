@@ -380,19 +380,7 @@ export class WorkspacePipeline {
     const invalidated = new Set<string>();
 
     for (const filePath of filePaths) {
-      const absolutePath = path.isAbsolute(filePath)
-        ? filePath
-        : path.join(workspaceRoot, filePath);
-      const relativePath = path.relative(workspaceRoot, absolutePath).replace(/\\/g, '/');
-
-      if (!relativePath || relativePath.startsWith('..')) {
-        continue;
-      }
-
-      delete this._cache.files[relativePath];
-      this._lastFileAnalysis.delete(relativePath);
-      this._lastFileConnections.delete(relativePath);
-      invalidated.add(relativePath);
+      this._invalidateWorkspaceFilePath(filePath, workspaceRoot, invalidated);
     }
 
     if (invalidated.size > 0) {
@@ -400,6 +388,26 @@ export class WorkspacePipeline {
     }
 
     return [...invalidated];
+  }
+
+  private _invalidateWorkspaceFilePath(
+    filePath: string,
+    workspaceRoot: string,
+    invalidated: Set<string>,
+  ): void {
+    const absolutePath = path.isAbsolute(filePath)
+      ? filePath
+      : path.join(workspaceRoot, filePath);
+    const relativePath = path.relative(workspaceRoot, absolutePath).replace(/\\/g, '/');
+
+    if (!relativePath || relativePath.startsWith('..')) {
+      return;
+    }
+
+    delete this._cache.files[relativePath];
+    this._lastFileAnalysis.delete(relativePath);
+    this._lastFileConnections.delete(relativePath);
+    invalidated.add(relativePath);
   }
 
   invalidatePluginFiles(pluginIds: readonly string[]): string[] {

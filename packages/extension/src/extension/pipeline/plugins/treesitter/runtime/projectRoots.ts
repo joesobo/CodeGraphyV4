@@ -91,6 +91,23 @@ function resolveGoPackageDirectory(projectRoot: string, importPath: string): str
   return path.join(projectRoot, importPath.slice(moduleName.length + 1));
 }
 
+function resolveGoDirectFilePath(packageDirectoryPath: string): string | null {
+  const directFilePath = `${packageDirectoryPath}.go`;
+  return fs.existsSync(directFilePath) && fs.statSync(directFilePath).isFile()
+    ? directFilePath
+    : null;
+}
+
+function listGoPackageFiles(packageDirectoryPath: string): string[] {
+  if (!fs.existsSync(packageDirectoryPath) || !fs.statSync(packageDirectoryPath).isDirectory()) {
+    return [];
+  }
+
+  return fs.readdirSync(packageDirectoryPath)
+    .filter((entry) => entry.endsWith('.go') && !entry.endsWith('_test.go'))
+    .sort();
+}
+
 export function resolveGoPackagePath(
   filePath: string,
   workspaceRoot: string,
@@ -102,19 +119,12 @@ export function resolveGoPackagePath(
     return null;
   }
 
-  const directFilePath = `${packageDirectoryPath}.go`;
-  if (fs.existsSync(directFilePath) && fs.statSync(directFilePath).isFile()) {
+  const directFilePath = resolveGoDirectFilePath(packageDirectoryPath);
+  if (directFilePath) {
     return directFilePath;
   }
 
-  if (!fs.existsSync(packageDirectoryPath) || !fs.statSync(packageDirectoryPath).isDirectory()) {
-    return null;
-  }
-
-  const packageFiles = fs.readdirSync(packageDirectoryPath)
-    .filter((entry) => entry.endsWith('.go') && !entry.endsWith('_test.go'))
-    .sort();
-
+  const packageFiles = listGoPackageFiles(packageDirectoryPath);
   if (packageFiles.length === 0) {
     return null;
   }

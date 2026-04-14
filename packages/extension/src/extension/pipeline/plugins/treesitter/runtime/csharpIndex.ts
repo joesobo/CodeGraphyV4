@@ -17,6 +17,11 @@ interface PreAnalyzeFileInput {
 }
 
 const csharpIndexes = new Map<string, CSharpWorkspaceIndex>();
+const C_SHARP_NAMESPACE_NAME_TYPES = new Set([
+  'identifier',
+  'qualified_name',
+  'alias_qualified_name',
+]);
 
 function createEmptyIndex(): CSharpWorkspaceIndex {
   return {
@@ -64,17 +69,9 @@ function getNamespaceName(node: Parser.SyntaxNode): string | null {
     return getNodeText(nameNode);
   }
 
-  for (const child of node.namedChildren) {
-    if (
-      child.type === 'identifier'
-      || child.type === 'qualified_name'
-      || child.type === 'alias_qualified_name'
-    ) {
-      return getNodeText(child);
-    }
-  }
-
-  return null;
+  return getNodeText(
+    node.namedChildren.find((child) => C_SHARP_NAMESPACE_NAME_TYPES.has(child.type)),
+  );
 }
 
 function getFileScopedNamespaceName(rootNode: Parser.SyntaxNode): string | null {
