@@ -110,8 +110,10 @@ function createEmptyFileAnalysisResult(filePath: string): IFileAnalysisResult {
   };
 }
 
-function getRelationKey(relation: NonNullable<IFileAnalysisResult['relations']>[number]): string {
-  const key = [
+function getBaseRelationKeyParts(
+  relation: NonNullable<IFileAnalysisResult['relations']>[number],
+): string[] {
+  return [
     relation.kind,
     relation.sourceId,
     relation.fromFilePath,
@@ -121,14 +123,24 @@ function getRelationKey(relation: NonNullable<IFileAnalysisResult['relations']>[
     relation.type ?? '',
     relation.variant ?? '',
   ];
+}
+
+function getResolvedRelationKeyParts(
+  relation: NonNullable<IFileAnalysisResult['relations']>[number],
+): string[] {
+  return [
+    relation.toFilePath ?? '',
+    relation.toNodeId ?? '',
+    relation.toSymbolId ?? '',
+    relation.resolvedPath ?? '',
+  ];
+}
+
+function getRelationKey(relation: NonNullable<IFileAnalysisResult['relations']>[number]): string {
+  const key = getBaseRelationKeyParts(relation);
 
   if (relation.kind === 'call' || relation.kind === 'reference') {
-    key.push(
-      relation.toFilePath ?? '',
-      relation.toNodeId ?? '',
-      relation.toSymbolId ?? '',
-      relation.resolvedPath ?? '',
-    );
+    key.push(...getResolvedRelationKeyParts(relation));
   }
 
   return key.join('|');

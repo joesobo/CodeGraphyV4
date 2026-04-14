@@ -215,12 +215,41 @@ function createSymbolStatement(symbol: IAnalysisSymbol): string {
   return `CREATE (entry:Symbol {symbolId: ${escapeCypherString(symbol.id)}, filePath: ${escapeCypherString(symbol.filePath)}, name: ${escapeCypherString(symbol.name)}, kind: ${escapeCypherString(symbol.kind)}, signature: ${escapeCypherString(symbol.signature ?? '')}, rangeJson: ${escapeCypherString(serializeJson(symbol.range))}, metadataJson: ${escapeCypherString(serializeJson(symbol.metadata))}})`;
 }
 
+function createCypherStringProperty(key: string, value: string): string {
+  return `${key}: ${escapeCypherString(value)}`;
+}
+
+function createRelationStatementProperties(
+  filePath: string,
+  relation: IAnalysisRelation,
+  relationIndex: number,
+): string {
+  return [
+    createCypherStringProperty('relationId', createRelationRowId(filePath, relation, relationIndex)),
+    createCypherStringProperty('filePath', filePath),
+    createCypherStringProperty('kind', relation.kind),
+    createCypherStringProperty('pluginId', relation.pluginId ?? ''),
+    createCypherStringProperty('sourceId', relation.sourceId),
+    createCypherStringProperty('fromFilePath', relation.fromFilePath),
+    createCypherStringProperty('toFilePath', relation.toFilePath ?? ''),
+    createCypherStringProperty('fromNodeId', relation.fromNodeId ?? ''),
+    createCypherStringProperty('toNodeId', relation.toNodeId ?? ''),
+    createCypherStringProperty('fromSymbolId', relation.fromSymbolId ?? ''),
+    createCypherStringProperty('toSymbolId', relation.toSymbolId ?? ''),
+    createCypherStringProperty('specifier', relation.specifier ?? ''),
+    createCypherStringProperty('relationType', relation.type ?? ''),
+    createCypherStringProperty('variant', relation.variant ?? ''),
+    createCypherStringProperty('resolvedPath', relation.resolvedPath ?? ''),
+    createCypherStringProperty('metadataJson', serializeJson(relation.metadata)),
+  ].join(', ');
+}
+
 function createRelationStatement(
   filePath: string,
   relation: IAnalysisRelation,
   relationIndex: number,
 ): string {
-  return `CREATE (entry:Relation {relationId: ${escapeCypherString(createRelationRowId(filePath, relation, relationIndex))}, filePath: ${escapeCypherString(filePath)}, kind: ${escapeCypherString(relation.kind)}, pluginId: ${escapeCypherString(relation.pluginId ?? '')}, sourceId: ${escapeCypherString(relation.sourceId)}, fromFilePath: ${escapeCypherString(relation.fromFilePath)}, toFilePath: ${escapeCypherString(relation.toFilePath ?? '')}, fromNodeId: ${escapeCypherString(relation.fromNodeId ?? '')}, toNodeId: ${escapeCypherString(relation.toNodeId ?? '')}, fromSymbolId: ${escapeCypherString(relation.fromSymbolId ?? '')}, toSymbolId: ${escapeCypherString(relation.toSymbolId ?? '')}, specifier: ${escapeCypherString(relation.specifier ?? '')}, relationType: ${escapeCypherString(relation.type ?? '')}, variant: ${escapeCypherString(relation.variant ?? '')}, resolvedPath: ${escapeCypherString(relation.resolvedPath ?? '')}, metadataJson: ${escapeCypherString(serializeJson(relation.metadata))}})`;
+  return `CREATE (entry:Relation {${createRelationStatementProperties(filePath, relation, relationIndex)}})`;
 }
 
 function sortedCacheEntries(

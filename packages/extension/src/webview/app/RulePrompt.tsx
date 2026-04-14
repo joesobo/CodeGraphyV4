@@ -1,8 +1,10 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { mdiClose } from '@mdi/js';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { MdiIcon } from '../components/icons/MdiIcon';
+
+const DEFAULT_LEGEND_RULE_COLOR = '#808080';
 
 export type RulePromptState =
   | { kind: 'filter'; pattern: string }
@@ -14,30 +16,49 @@ interface RulePromptProps {
   state: RulePromptState | null;
 }
 
+function getRulePromptColor(state: RulePromptState | null): string {
+  return state?.kind === 'legend' ? state.color : DEFAULT_LEGEND_RULE_COLOR;
+}
+
+function getRulePromptTitle(state: RulePromptState | null): string {
+  if (!state) {
+    return '';
+  }
+
+  return state.kind === 'filter' ? 'Add Filter' : 'Add Legend Group';
+}
+
+function createSubmittedRulePromptState(
+  state: RulePromptState,
+  pattern: string,
+  color: string,
+): RulePromptState {
+  if (state.kind === 'filter') {
+    return { kind: 'filter', pattern };
+  }
+
+  return { kind: 'legend', pattern, color, target: state.target };
+}
+
 export function RulePrompt({
   onClose,
   onSubmit,
   state,
 }: RulePromptProps): React.ReactElement | null {
   const [pattern, setPattern] = useState(state?.pattern ?? '');
-  const [color, setColor] = useState(state?.kind === 'legend' ? state.color : '#808080');
+  const [color, setColor] = useState(getRulePromptColor(state));
 
   React.useEffect(() => {
     setPattern(state?.pattern ?? '');
-    setColor(state?.kind === 'legend' ? state.color : '#808080');
-  }, [state]);
-
-  const title = useMemo(() => {
-    if (!state) {
-      return '';
-    }
-
-    return state.kind === 'filter' ? 'Add Filter' : 'Add Legend Group';
+    setColor(getRulePromptColor(state));
   }, [state]);
 
   if (!state) {
     return null;
   }
+
+  const title = getRulePromptTitle(state);
+  const submit = () => onSubmit(createSubmittedRulePromptState(state, pattern, color));
 
   return (
     <div className="absolute inset-0 z-30 flex items-center justify-center bg-black/30 px-4">
@@ -56,11 +77,7 @@ export function RulePrompt({
             onChange={(event) => setPattern(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === 'Enter') {
-                onSubmit(
-                  state.kind === 'filter'
-                    ? { kind: 'filter', pattern }
-                    : { kind: 'legend', pattern, color, target: state.target },
-                );
+                submit();
               }
             }}
           />
@@ -83,16 +100,7 @@ export function RulePrompt({
             <Button variant="ghost" size="sm" onClick={onClose}>
               Cancel
             </Button>
-            <Button
-              size="sm"
-              onClick={() =>
-                onSubmit(
-                  state.kind === 'filter'
-                    ? { kind: 'filter', pattern }
-                    : { kind: 'legend', pattern, color, target: state.target },
-                )
-              }
-            >
+            <Button size="sm" onClick={submit}>
               Save
             </Button>
           </div>
