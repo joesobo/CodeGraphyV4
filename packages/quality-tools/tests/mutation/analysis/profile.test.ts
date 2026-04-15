@@ -55,7 +55,6 @@ describe('mutation profiles', () => {
 
     expect(resolveMutationVitestIncludes({})).toEqual([
       'packages/extension/tests/**/*.test.{ts,tsx}',
-      'packages/extension/__tests__/**/*.test.{ts,tsx}',
     ]);
   });
 
@@ -66,15 +65,14 @@ describe('mutation profiles', () => {
       CODEGRAPHY_VITEST_SCOPE: 'workspace',
     })).toEqual([
       'packages/*/tests/**/*.test.{ts,tsx}',
-      'packages/*/__tests__/**/*.test.{ts,tsx}',
     ]);
   });
 
   it('scopes regular extension vitest discovery to extension-owned tests', async () => {
-    const { extensionOwnedVitestIncludes } = await import('../../../../extension/vitest.includes');
+    const { resolveMutationVitestIncludes } = await import('../../../../extension/vitest.includes');
 
-    expect(extensionOwnedVitestIncludes).toEqual([
-      'tests/**/*.test.{ts,tsx}',
+    expect(resolveMutationVitestIncludes({})).toEqual([
+      'packages/extension/tests/**/*.test.{ts,tsx}',
     ]);
   });
 

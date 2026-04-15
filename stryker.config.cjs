@@ -9,7 +9,7 @@ module.exports = {
     '@stryker-mutator/vitest-runner',
   ],
   vitest: {
-    configFile: 'packages/extension/vitest.stryker.config.ts',
+    configFile: 'packages/extension/vitest.config.ts',
     related: false,
   },
   reporters: [
