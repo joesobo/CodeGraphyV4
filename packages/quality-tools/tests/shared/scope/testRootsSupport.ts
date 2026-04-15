@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
 import { join } from 'path';
 
-const TEST_ROOTS = ['tests', '__tests__'] as const;
+const TEST_ROOTS = ['tests'] as const;
 
 export function isTestPath(packageRelativePath: string | undefined): boolean {
   return TEST_ROOTS.some((root) => (

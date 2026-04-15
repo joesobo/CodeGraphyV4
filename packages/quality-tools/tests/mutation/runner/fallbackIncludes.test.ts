@@ -17,7 +17,7 @@ describe('fallbackIncludes', () => {
 
   it('builds the exact fallback include set for source rules', () => {
     expect(
-      fallbackIncludes('packages/plugin-csharp/__tests__', {
+      fallbackIncludes('packages/plugin-csharp/tests', {
         camelName: 'typeUsage',
         directory: 'sources',
         dottedRelativePath: 'sources.type-usage',
@@ -26,24 +26,24 @@ describe('fallbackIncludes', () => {
         relativeTestDirectory: 'sources/'
       })
     ).toEqual([
-      'packages/plugin-csharp/__tests__/**/type-usage.test.ts',
-      'packages/plugin-csharp/__tests__/**/type-usage.test.tsx',
-      'packages/plugin-csharp/__tests__/**/type-usage.mutations.test.ts',
-      'packages/plugin-csharp/__tests__/**/type-usage.mutations.test.tsx',
-      'packages/plugin-csharp/__tests__/**/type-usage*.test.ts',
-      'packages/plugin-csharp/__tests__/**/type-usage*.test.tsx',
-      'packages/plugin-csharp/__tests__/**/sources.type-usage.test.ts',
-      'packages/plugin-csharp/__tests__/**/sources.type-usage.test.tsx',
-      'packages/plugin-csharp/__tests__/**/sources.type-usage.mutations.test.ts',
-      'packages/plugin-csharp/__tests__/**/sources.type-usage.mutations.test.tsx',
-      'packages/plugin-csharp/__tests__/**/typeUsageRule.test.ts',
-      'packages/plugin-csharp/__tests__/**/typeUsageRule.test.tsx',
-      'packages/plugin-csharp/__tests__/**/ruleDetectors.test.ts',
-      'packages/plugin-csharp/__tests__/**/ruleDetectors.test.tsx',
-      'packages/plugin-csharp/__tests__/**/*Detectors.test.ts',
-      'packages/plugin-csharp/__tests__/**/*Detectors.test.tsx',
-      'packages/plugin-csharp/__tests__/**/type-usage/**/*.test.ts',
-      'packages/plugin-csharp/__tests__/**/type-usage/**/*.test.tsx'
+      'packages/plugin-csharp/tests/**/type-usage.test.ts',
+      'packages/plugin-csharp/tests/**/type-usage.test.tsx',
+      'packages/plugin-csharp/tests/**/type-usage.mutations.test.ts',
+      'packages/plugin-csharp/tests/**/type-usage.mutations.test.tsx',
+      'packages/plugin-csharp/tests/**/type-usage*.test.ts',
+      'packages/plugin-csharp/tests/**/type-usage*.test.tsx',
+      'packages/plugin-csharp/tests/**/sources.type-usage.test.ts',
+      'packages/plugin-csharp/tests/**/sources.type-usage.test.tsx',
+      'packages/plugin-csharp/tests/**/sources.type-usage.mutations.test.ts',
+      'packages/plugin-csharp/tests/**/sources.type-usage.mutations.test.tsx',
+      'packages/plugin-csharp/tests/**/typeUsageRule.test.ts',
+      'packages/plugin-csharp/tests/**/typeUsageRule.test.tsx',
+      'packages/plugin-csharp/tests/**/ruleDetectors.test.ts',
+      'packages/plugin-csharp/tests/**/ruleDetectors.test.tsx',
+      'packages/plugin-csharp/tests/**/*Detectors.test.ts',
+      'packages/plugin-csharp/tests/**/*Detectors.test.tsx',
+      'packages/plugin-csharp/tests/**/type-usage/**/*.test.ts',
+      'packages/plugin-csharp/tests/**/type-usage/**/*.test.tsx'
     ]);
   });
 });

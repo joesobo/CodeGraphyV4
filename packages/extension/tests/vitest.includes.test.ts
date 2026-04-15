@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import {
   extensionMutationIncludes,
-  extensionOwnedVitestIncludes,
   resolveMutationVitestIncludes,
   workspaceMutationIncludes,
 } from '../vitest.includes';
@@ -24,12 +23,8 @@ describe('vitest includes', () => {
 
   it('prefers explicit mutation include overrides', () => {
     process.env.CODEGRAPHY_VITEST_SCOPE = 'workspace';
-    process.env.CODEGRAPHY_VITEST_INCLUDE_JSON = JSON.stringify(['packages/plugin-godot/__tests__/**/*.test.ts']);
+    process.env.CODEGRAPHY_VITEST_INCLUDE_JSON = JSON.stringify(['packages/plugin-godot/tests/**/*.test.ts']);
 
-    expect(resolveMutationVitestIncludes()).toEqual(['packages/plugin-godot/__tests__/**/*.test.ts']);
-  });
-
-  it('exposes the regular extension vitest include list', () => {
-    expect(extensionOwnedVitestIncludes).toEqual(['tests/**/*.test.{ts,tsx}']);
+    expect(resolveMutationVitestIncludes()).toEqual(['packages/plugin-godot/tests/**/*.test.ts']);
   });
 });

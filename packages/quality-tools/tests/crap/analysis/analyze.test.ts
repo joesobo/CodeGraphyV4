@@ -10,7 +10,7 @@ function writeSourceFixture(): { filePath: string; repoRoot: string } {
   writeFileSync(join(repoRoot, 'quality.config.json'), JSON.stringify({
     defaults: {
       crap: {
-        exclude: ['**/e2e/**', '**/__tests__/**', '**/*.test.ts', '**/*.test.tsx']
+        exclude: ['**/e2e/**', '**/tests/**', '**/*.test.ts', '**/*.test.tsx']
       }
     }
   }));

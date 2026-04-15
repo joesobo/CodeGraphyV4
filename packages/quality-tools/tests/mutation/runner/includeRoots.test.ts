@@ -6,10 +6,9 @@ import {
 } from '../../../src/mutation/runner/includeRoots';
 
 describe('baseTestRoots', () => {
-  it('returns both supported package test roots', () => {
+  it('returns the package test root', () => {
     expect(baseTestRoots('extension')).toEqual([
-      'packages/extension/tests',
-      'packages/extension/__tests__'
+      'packages/extension/tests'
     ]);
   });
 });
@@ -19,19 +18,15 @@ describe('packageIncludes', () => {
     expect(packageIncludes('extension')).toEqual([
       'packages/extension/tests/**/*.test.ts',
       'packages/extension/tests/**/*.test.tsx',
-      'packages/extension/__tests__/**/*.test.ts',
-      'packages/extension/__tests__/**/*.test.tsx'
     ]);
   });
 });
 
 describe('directoryIncludes', () => {
-  it('expands mirrored directory globs for both test roots', () => {
+  it('expands mirrored directory globs', () => {
     expect(directoryIncludes('extension', 'core/views')).toEqual([
       'packages/extension/tests/core/views/**/*.test.ts',
       'packages/extension/tests/core/views/**/*.test.tsx',
-      'packages/extension/__tests__/core/views/**/*.test.ts',
-      'packages/extension/__tests__/core/views/**/*.test.tsx'
     ]);
   });
 
@@ -39,8 +34,6 @@ describe('directoryIncludes', () => {
     expect(directoryIncludes('extension', 'webview/components/graph/runtime/use/graph')).toEqual([
       'packages/extension/tests/webview/graph/runtime/use/graph/**/*.test.ts',
       'packages/extension/tests/webview/graph/runtime/use/graph/**/*.test.tsx',
-      'packages/extension/__tests__/webview/graph/runtime/use/graph/**/*.test.ts',
-      'packages/extension/__tests__/webview/graph/runtime/use/graph/**/*.test.tsx'
     ]);
   });
 });

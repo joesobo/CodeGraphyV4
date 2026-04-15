@@ -38,17 +38,17 @@ describe('sharedDetectorTestIncludes', () => {
   });
 
   it('returns direct and recursive detector globs for source rule directories', () => {
-    expect(sharedDetectorTestIncludes('packages/plugin-csharp/__tests__', 'sources')).toEqual([
-      'packages/plugin-csharp/__tests__/ruleDetectors.test.ts',
-      'packages/plugin-csharp/__tests__/ruleDetectors.test.tsx',
-      'packages/plugin-csharp/__tests__/*Detectors.test.ts',
-      'packages/plugin-csharp/__tests__/*Detectors.test.tsx'
+    expect(sharedDetectorTestIncludes('packages/plugin-csharp/tests', 'sources')).toEqual([
+      'packages/plugin-csharp/tests/ruleDetectors.test.ts',
+      'packages/plugin-csharp/tests/ruleDetectors.test.tsx',
+      'packages/plugin-csharp/tests/*Detectors.test.ts',
+      'packages/plugin-csharp/tests/*Detectors.test.tsx'
     ]);
-    expect(sharedDetectorTestIncludes('packages/plugin-csharp/__tests__', 'sources', true)).toEqual([
-      'packages/plugin-csharp/__tests__/**/ruleDetectors.test.ts',
-      'packages/plugin-csharp/__tests__/**/ruleDetectors.test.tsx',
-      'packages/plugin-csharp/__tests__/**/*Detectors.test.ts',
-      'packages/plugin-csharp/__tests__/**/*Detectors.test.tsx'
+    expect(sharedDetectorTestIncludes('packages/plugin-csharp/tests', 'sources', true)).toEqual([
+      'packages/plugin-csharp/tests/**/ruleDetectors.test.ts',
+      'packages/plugin-csharp/tests/**/ruleDetectors.test.tsx',
+      'packages/plugin-csharp/tests/**/*Detectors.test.ts',
+      'packages/plugin-csharp/tests/**/*Detectors.test.tsx'
     ]);
   });
 });

@@ -16,7 +16,7 @@ function createRepo(): string {
   mkdirSync(join(repoRoot, 'packages/plugin-b/src'));
   mkdirSync(join(repoRoot, 'packages/no-tests/src'));
   mkdirSync(join(repoRoot, 'packages/plugin-a/tests'));
-  mkdirSync(join(repoRoot, 'packages/plugin-b/__tests__'));
+  mkdirSync(join(repoRoot, 'packages/plugin-b/tests'));
   mkdirSync(join(repoRoot, 'packages/tests-only/tests'));
 
   return repoRoot;

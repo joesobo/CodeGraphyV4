@@ -1,10 +1,7 @@
 import { normalizeSourcePathForTests } from './includeParts';
 
 export function baseTestRoots(packageName: string): string[] {
-  return [
-    `packages/${packageName}/tests`,
-    `packages/${packageName}/__tests__`,
-  ];
+  return [`packages/${packageName}/tests`];
 }
 
 function unique(values: string[]): string[] {

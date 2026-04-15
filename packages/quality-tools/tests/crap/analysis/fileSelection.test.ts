@@ -10,7 +10,7 @@ function createFile(
   config: Record<string, unknown> = {
     defaults: {
       crap: {
-        exclude: ['**/e2e/**', '**/__tests__/**', '**/*.test.ts', '**/*.test.tsx']
+        exclude: ['**/e2e/**', '**/tests/**', '**/*.test.ts', '**/*.test.tsx']
       }
     }
   }

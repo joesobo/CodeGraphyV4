@@ -53,7 +53,7 @@
     "vscode:prepublish": "pnpm run build",
     "build": "esbuild src/activate.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
     "test": "vitest run",
-    "lint": "eslint \"src/**/*.ts\" \"__tests__/activate.test.ts\"",
+    "lint": "eslint \"src/**/*.ts\" \"tests/activate.test.ts\"",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "package:vsix": "mkdir -p ../../artifacts/vsix && pnpm exec vsce package --no-dependencies --out ../../artifacts/vsix/codegraphy.codegraphy-godot-${npm_package_version}.vsix",
     "publish:vsce": "pnpm exec vsce publish --no-dependencies --skip-duplicate"

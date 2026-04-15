@@ -113,7 +113,7 @@ describe('baseline files', () => {
     mockedDiscoverPackageTestFiles.mockImplementation((packageName) => (
       packageName === 'quality-tools'
         ? ['/repo/packages/quality-tools/tests/a.test.ts', '/repo/packages/quality-tools/tests/b.test.ts']
-        : ['/repo/packages/plugin-typescript/__tests__/c.test.ts']
+        : ['/repo/packages/plugin-typescript/tests/c.test.ts']
     ));
     mockedIsInsideTarget.mockImplementation((_target, _repoRoot, filePath) => (
       filePath !== '/repo/packages/quality-tools/tests/b.test.ts'
@@ -121,7 +121,7 @@ describe('baseline files', () => {
 
     expect(discoverTestFiles(target)).toEqual([
       '/repo/packages/quality-tools/tests/a.test.ts',
-      '/repo/packages/plugin-typescript/__tests__/c.test.ts'
+      '/repo/packages/plugin-typescript/tests/c.test.ts'
     ]);
     expect(mockedPackageNamesForTarget).toHaveBeenCalledWith(target, expect.any(String));
     expect(mockedDiscoverPackageTestFiles).toHaveBeenCalledTimes(2);

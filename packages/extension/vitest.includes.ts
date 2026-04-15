@@ -1,15 +1,9 @@
 export const extensionMutationIncludes = [
   'packages/extension/tests/**/*.test.{ts,tsx}',
-  'packages/extension/__tests__/**/*.test.{ts,tsx}',
 ];
 
 export const workspaceMutationIncludes = [
   'packages/*/tests/**/*.test.{ts,tsx}',
-  'packages/*/__tests__/**/*.test.{ts,tsx}',
-];
-
-export const extensionOwnedVitestIncludes = [
-  'tests/**/*.test.{ts,tsx}',
 ];
 
 type ScopeEnv = Partial<Pick<NodeJS.ProcessEnv, 'CODEGRAPHY_VITEST_INCLUDE_JSON' | 'CODEGRAPHY_VITEST_SCOPE'>>;

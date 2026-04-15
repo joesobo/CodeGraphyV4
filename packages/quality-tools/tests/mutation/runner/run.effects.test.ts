@@ -96,8 +96,8 @@ describe('runMutation', () => {
     resolveScopedVitestIncludes.mockReturnValue([
       'packages/quality-tools/tests/**/*.test.ts',
       'packages/quality-tools/tests/**/*.test.tsx',
-      'packages/quality-tools/__tests__/**/*.test.ts',
-      'packages/quality-tools/__tests__/**/*.test.tsx',
+      'packages/quality-tools/tests/**/*.test.ts',
+      'packages/quality-tools/tests/**/*.test.tsx',
     ]);
 
     runMutation(target());
@@ -131,8 +131,8 @@ describe('runMutation', () => {
     ).toEqual([
       'packages/quality-tools/tests/**/*.test.ts',
       'packages/quality-tools/tests/**/*.test.tsx',
-      'packages/quality-tools/__tests__/**/*.test.ts',
-      'packages/quality-tools/__tests__/**/*.test.tsx',
+      'packages/quality-tools/tests/**/*.test.ts',
+      'packages/quality-tools/tests/**/*.test.tsx',
     ]);
     expect(copySharedMutationReports).toHaveBeenCalledWith('quality-tools', REPO_ROOT);
     expect(reportMutationSiteViolations).toHaveBeenCalledWith('/repo/reports/mutation.json');
@@ -142,7 +142,7 @@ describe('runMutation', () => {
     const { runMutation } = await import('../../../src/mutation/runner/run');
     resolveScopedVitestIncludes.mockReturnValue([
       'packages/quality-tools/tests/mutation/runner/run.test.ts',
-      'packages/quality-tools/__tests__/mutation/runner/run.test.tsx',
+      'packages/quality-tools/tests/mutation/runner/run.test.tsx',
     ]);
 
     runMutation(fileTarget());
@@ -151,14 +151,14 @@ describe('runMutation', () => {
     const includes = JSON.parse(options.env.CODEGRAPHY_VITEST_INCLUDE_JSON) as string[];
 
     expect(includes).toContain('packages/quality-tools/tests/mutation/runner/run.test.ts');
-    expect(includes).toContain('packages/quality-tools/__tests__/mutation/runner/run.test.tsx');
+    expect(includes).toContain('packages/quality-tools/tests/mutation/runner/run.test.tsx');
   });
 
   it('passes scoped vitest includes for directory targets', async () => {
     const { runMutation } = await import('../../../src/mutation/runner/run');
     resolveScopedVitestIncludes.mockReturnValue([
       'packages/quality-tools/tests/mutation/**/*.test.ts',
-      'packages/quality-tools/__tests__/mutation/**/*.test.tsx',
+      'packages/quality-tools/tests/mutation/**/*.test.tsx',
     ]);
 
     runMutation({
@@ -174,7 +174,7 @@ describe('runMutation', () => {
     const includes = JSON.parse(options.env.CODEGRAPHY_VITEST_INCLUDE_JSON) as string[];
 
     expect(includes).toContain('packages/quality-tools/tests/mutation/**/*.test.ts');
-    expect(includes).toContain('packages/quality-tools/__tests__/mutation/**/*.test.tsx');
+    expect(includes).toContain('packages/quality-tools/tests/mutation/**/*.test.tsx');
 
     expect(execFileSync).toHaveBeenCalledWith(
       'stryker',
