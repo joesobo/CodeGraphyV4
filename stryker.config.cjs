@@ -23,7 +23,6 @@ module.exports = {
   htmlReporter: {
     fileName: 'reports/mutation/mutation.html',
   },
-  concurrency: 2,
   coverageAnalysis: 'perTest',
   maxTestRunnerReuse: 25,
   testRunnerNodeArgs: [
