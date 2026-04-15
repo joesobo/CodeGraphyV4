@@ -1,15 +1,4 @@
 import React, { useEffect, useCallback, useMemo, useState } from 'react';
-import Graph from '../components/Graph';
-import { SearchBar } from '../components/searchBar/Field';
-import SettingsPanel from '../components/settingsPanel/Drawer';
-import PluginsPanel from '../components/plugins/Panel';
-import LegendsPanel from '../components/legends/Panel';
-import NodesPanel from '../components/nodes/Panel';
-import EdgesPanel from '../components/edges/Panel';
-import ExportPanel from '../components/export/Panel';
-import Toolbar from '../components/Toolbar';
-import { DepthViewControls } from '../components/depthView/view';
-import { ActiveFileBreadcrumb } from '../components/activeFileBreadcrumb/view';
 import { useTheme } from '../theme/useTheme';
 import { usePluginManager } from '../pluginRuntime/useManager';
 import { useFilteredGraph } from '../search/useFilteredGraph';
@@ -18,111 +7,16 @@ import { getNoDataHint } from './messages';
 import { setupMessageListener } from './messageListener';
 import { LoadingState, EmptyState } from './states';
 import { useAppState, useAppActions } from './storeSelectors';
-import { SlotHost } from '../pluginHost/slotHost/view';
 import { GraphIndexStatus } from '../components/graphIndexStatus/view';
-import { GraphCornerControls } from '../components/graphCornerControls/view';
 import { RulePrompt, type RulePromptState } from './RulePrompt';
 import { useGraphStore } from '../store/state';
 import { postMessage } from '../vscodeApi';
-import type { IGraphData } from '../../shared/graph/types';
-
-const COUNT_FORMATTER = new Intl.NumberFormat('en-US');
-type GraphComponentProps = React.ComponentProps<typeof Graph>;
-type SlotHostProps = React.ComponentProps<typeof SlotHost>;
-
-function formatGraphStat(count: number, singular: string, plural: string): string {
-  const label = count === 1 ? singular : plural;
-  return `${COUNT_FORMATTER.format(count)} ${label}`;
-}
-
-interface GraphSurfaceProps {
-  graphData: IGraphData;
-  coloredData: IGraphData | null | undefined;
-  showOrphans: boolean;
-  depthMode: boolean;
-  theme: GraphComponentProps['theme'];
-  nodeDecorations: GraphComponentProps['nodeDecorations'];
-  edgeDecorations: GraphComponentProps['edgeDecorations'];
-  pluginHost: GraphComponentProps['pluginHost'];
-  onAddFilterRequested: GraphComponentProps['onAddFilterRequested'];
-  onAddLegendRequested: GraphComponentProps['onAddLegendRequested'];
-}
-
-function GraphSurface({
-  graphData,
-  coloredData,
-  showOrphans,
-  depthMode,
-  theme,
-  nodeDecorations,
-  edgeDecorations,
-  pluginHost,
-  onAddFilterRequested,
-  onAddLegendRequested,
-}: GraphSurfaceProps): React.ReactElement {
-  if (graphData.nodes.length === 0) {
-    return <EmptyState hint={getNoDataHint(graphData, showOrphans, depthMode)} fullScreen={false} />;
-  }
-
-  return (
-    <>
-      <Graph
-        data={coloredData || graphData}
-        theme={theme}
-        nodeDecorations={nodeDecorations}
-        edgeDecorations={edgeDecorations}
-        onAddFilterRequested={onAddFilterRequested}
-        onAddLegendRequested={onAddLegendRequested}
-        pluginHost={pluginHost}
-      />
-      <DepthViewControls />
-    </>
-  );
-}
-
-function GraphStatsBadge({ label }: { label: string }): React.ReactElement {
-  return (
-    <div className="pointer-events-none absolute right-2 top-2 z-10 rounded-md bg-background/50 px-2 py-1 text-xs text-muted-foreground backdrop-blur-sm">
-      {label}
-    </div>
-  );
-}
-
-interface PanelStackProps {
-  activePanel: string;
-  hasGraphNodes: boolean;
-  pluginHost: SlotHostProps['pluginHost'];
-  onClosePanel: () => void;
-}
-
-function PanelStack({
-  activePanel,
-  hasGraphNodes,
-  pluginHost,
-  onClosePanel,
-}: PanelStackProps): React.ReactElement {
-  return (
-    <div className="absolute top-2 bottom-2 right-2 z-10 flex flex-col justify-end pointer-events-none [&>*]:pointer-events-auto">
-      <SlotHost
-        pluginHost={pluginHost}
-        slot="node-details"
-        data-testid="node-details-slot"
-        className="bg-popover/95 backdrop-blur-sm rounded-lg border w-72 shadow-lg max-h-full flex flex-col overflow-hidden mb-2"
-      />
-      <NodesPanel isOpen={activePanel === 'nodes'} onClose={onClosePanel} />
-      <EdgesPanel isOpen={activePanel === 'edges'} onClose={onClosePanel} />
-      <LegendsPanel isOpen={activePanel === 'legends'} onClose={onClosePanel} />
-      <ExportPanel isOpen={activePanel === 'export'} onClose={onClosePanel} />
-      <PluginsPanel isOpen={activePanel === 'plugins'} onClose={onClosePanel} />
-      <SettingsPanel isOpen={activePanel === 'settings'} onClose={onClosePanel} />
-      {hasGraphNodes && activePanel === 'none' ? (
-        <div className="mt-2 self-end">
-          <GraphCornerControls />
-        </div>
-      ) : null}
-    </div>
-  );
-}
+import { GraphSurface } from './GraphSurface';
+import { GraphStatsBadge, buildGraphStatsLabel } from './graphStats';
+import { PanelStack } from './PanelStack';
+import { buildNextFilterPatterns, buildNextLegendRules } from './rules';
+import { SearchHeader } from './SearchHeader';
+import { ToolbarRail } from './ToolbarRail';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
@@ -185,9 +79,8 @@ export default function App(): React.ReactElement {
 
   const handleRulePromptSubmit = useCallback((nextState: RulePromptState) => {
     if (nextState.kind === 'filter') {
-      const normalizedPattern = nextState.pattern.trim();
-      if (normalizedPattern && !filterPatterns.includes(normalizedPattern)) {
-        const nextPatterns = [...filterPatterns, normalizedPattern];
+      const nextPatterns = buildNextFilterPatterns(filterPatterns, nextState.pattern);
+      if (nextPatterns) {
         setFilterPatterns(nextPatterns);
         postMessage({ type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: nextPatterns } });
       }
@@ -195,17 +88,12 @@ export default function App(): React.ReactElement {
       return;
     }
 
-    const normalizedPattern = nextState.pattern.trim();
-    if (normalizedPattern) {
-      const nextLegends = [
-        ...userLegendRules,
-        {
-          id: `legend:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
-          pattern: normalizedPattern,
-          color: nextState.color,
-          target: nextState.target,
-        },
-      ];
+    const nextLegends = buildNextLegendRules(
+      userLegendRules,
+      nextState,
+      () => `legend:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
+    );
+    if (nextLegends) {
       setOptimisticUserLegends(nextLegends);
       postMessage({
         type: 'UPDATE_LEGENDS',
@@ -226,26 +114,21 @@ export default function App(): React.ReactElement {
   }
 
   const displayGraphData = coloredData || graphData;
-  const graphStatsLabel = `${formatGraphStat(displayGraphData.nodes.length, 'node', 'nodes')} • ${formatGraphStat(displayGraphData.edges.length, 'edge', 'edges')}`;
+  const graphStatsLabel = buildGraphStatsLabel(displayGraphData.nodes.length, displayGraphData.edges.length);
   const closeActivePanel = () => setActivePanel('none');
 
   return (
     <div className="relative w-full h-screen flex flex-col">
-      <div className="flex-shrink-0 p-2 border-b border-[var(--vscode-panel-border,#3c3c3c)]">
-        <SearchBar
-          value={searchQuery}
-          onChange={setSearchQuery}
-          options={searchOptions}
-          onOptionsChange={handleSearchOptionsChange}
-          resultCount={filteredData?.nodes.length}
-          totalCount={graphData.nodes.length}
-          placeholder="Search files... (Ctrl+F)"
-          regexError={regexError}
-        />
-        <div className="mt-1.5 min-h-5">
-          <ActiveFileBreadcrumb filePath={activeFilePath} />
-        </div>
-      </div>
+      <SearchHeader
+        searchQuery={searchQuery}
+        searchOptions={searchOptions}
+        resultCount={filteredData?.nodes.length}
+        totalCount={graphData.nodes.length}
+        activeFilePath={activeFilePath}
+        regexError={regexError}
+        onSearchQueryChange={setSearchQuery}
+        onSearchOptionsChange={handleSearchOptionsChange}
+      />
       <div className="flex-1 min-h-0 relative">
         <GraphSurface
           graphData={graphData}
@@ -260,11 +143,7 @@ export default function App(): React.ReactElement {
           onAddLegendRequested={(rule) => setRulePrompt({ kind: 'legend', ...rule })}
         />
         <GraphStatsBadge label={graphStatsLabel} />
-        <div className="absolute inset-y-2 left-2 z-10 pointer-events-none">
-          <div className="h-full pointer-events-auto">
-            <Toolbar pluginHost={pluginHost} />
-          </div>
-        </div>
+        <ToolbarRail pluginHost={pluginHost} />
         <PanelStack
           activePanel={activePanel}
           hasGraphNodes={graphData.nodes.length > 0}
