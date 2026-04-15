@@ -4,25 +4,16 @@ import type {
   IAnalysisSymbol,
   IFileAnalysisResult,
 } from '../../../../../../core/plugins/types/contracts';
+import { handleRustUseDeclaration } from './rustImports';
+import {
+  handleRustCallExpression,
+  handleRustFunctionItem,
+  handleRustModuleItem,
+  handleRustNamedSymbol,
+} from './rustHandlers';
 import type { ImportedBinding, SymbolWalkState, TreeWalkAction } from './model';
-import { getIdentifierText, getLastPathSegment, getNodeText } from './nodes';
-import { resolveRustModuleDeclarationPath, resolveRustUsePath } from './paths';
-import { addCallRelation, addImportRelation, createSymbol, normalizeAnalysisResult } from './results';
-import { walkSymbolBody, walkTree } from './walk';
-
-function getRustCallBinding(
-  callExpression: Parser.SyntaxNode,
-  importedBindings: ReadonlyMap<string, ImportedBinding>,
-): ImportedBinding | null {
-  const calleeNode = callExpression.childForFieldName('function') ?? callExpression.namedChildren[0];
-  const identifier = getIdentifierText(calleeNode) ?? (
-    calleeNode?.type === 'scoped_identifier'
-      ? getLastPathSegment(calleeNode.text, '::')
-      : null
-  );
-
-  return identifier ? importedBindings.get(identifier) ?? null : null;
-}
+import { normalizeAnalysisResult } from './results';
+import { walkTree } from './walk';
 
 function visitRustNode(
   node: Parser.SyntaxNode,
@@ -36,64 +27,28 @@ function visitRustNode(
 ): TreeWalkAction<SymbolWalkState> | void {
   switch (node.type) {
     case 'use_declaration': {
-      const specifier = getNodeText(node.childForFieldName('argument'));
-      if (!specifier) {
-        return;
-      }
-
-      const resolvedPath = resolveRustUsePath(filePath, workspaceRoot, specifier);
-      addImportRelation(relations, filePath, specifier, resolvedPath);
-      importedBindings.set(getLastPathSegment(specifier, '::'), {
-        importedName: getLastPathSegment(specifier, '::'),
-        resolvedPath,
-        specifier,
-      });
-      return;
+      return handleRustUseDeclaration(node, filePath, workspaceRoot, relations, importedBindings);
     }
     case 'mod_item': {
-      const moduleName = getIdentifierText(node.childForFieldName('name'));
-      if (moduleName) {
-        addImportRelation(
-          relations,
-          filePath,
-          moduleName,
-          resolveRustModuleDeclarationPath(filePath, moduleName),
-        );
-      }
+      handleRustModuleItem(node, filePath, relations);
       return;
     }
     case 'struct_item':
     case 'enum_item':
     case 'trait_item': {
-      const name = getIdentifierText(node.childForFieldName('name'));
-      if (name) {
-        const kind = node.type === 'struct_item'
-          ? 'struct'
-          : node.type === 'enum_item'
-            ? 'enum'
-            : 'trait';
-        symbols.push(createSymbol(filePath, kind, name, node));
-      }
+      const kind = node.type === 'struct_item'
+        ? 'struct'
+        : node.type === 'enum_item'
+          ? 'enum'
+          : 'trait';
+      handleRustNamedSymbol(node, kind, filePath, symbols);
       return;
     }
     case 'function_item': {
-      const name = getIdentifierText(node.childForFieldName('name'));
-      if (!name) {
-        return;
-      }
-
-      const kind = node.parent?.type === 'declaration_list' && node.parent.parent?.type === 'impl_item'
-        ? 'method'
-        : 'function';
-      const symbol = createSymbol(filePath, kind, name, node);
-      symbols.push(symbol);
-      return walkSymbolBody(node, symbol.id, walk);
+      return handleRustFunctionItem(node, filePath, symbols, walk);
     }
     case 'call_expression': {
-      const binding = getRustCallBinding(node, importedBindings);
-      if (binding) {
-        addCallRelation(relations, filePath, binding, state.currentSymbolId);
-      }
+      handleRustCallExpression(node, filePath, relations, importedBindings, state.currentSymbolId);
       return;
     }
     default:
