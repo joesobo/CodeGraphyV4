@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo, useState } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { useTheme } from '../theme/useTheme';
 import { usePluginManager } from '../pluginRuntime/useManager';
 import { useFilteredGraph } from '../search/useFilteredGraph';
@@ -10,13 +10,13 @@ import { useAppState, useAppActions } from './storeSelectors';
 import { GraphIndexStatus } from '../components/graphIndexStatus/view';
 import { RulePrompt, type RulePromptState } from './RulePrompt';
 import { useGraphStore } from '../store/state';
-import { postMessage } from '../vscodeApi';
 import { GraphSurface } from './GraphSurface';
 import { GraphStatsBadge, buildGraphStatsLabel } from './graphStats';
 import { PanelStack } from './PanelStack';
-import { buildNextFilterPatterns, buildNextLegendRules } from './rules';
 import { SearchHeader } from './SearchHeader';
 import { ToolbarRail } from './ToolbarRail';
+import { useFilterLegendInputs } from './derivedState';
+import { useRulePromptHandlers } from './rulePromptHandlers';
 
 export default function App(): React.ReactElement {
   const { pluginHost, injectPluginAssets } = usePluginManager();
@@ -47,13 +47,10 @@ export default function App(): React.ReactElement {
   const [rulePrompt, setRulePrompt] = useState<RulePromptState | null>(null);
 
   const theme = useTheme();
-  const activeFilterPatterns = useMemo(
-    () => [...pluginFilterPatterns, ...filterPatterns],
-    [filterPatterns, pluginFilterPatterns],
-  );
-  const userLegendRules = useMemo(
-    () => legends.filter((legend) => !legend.isPluginDefault),
-    [legends],
+  const { activeFilterPatterns, userLegendRules } = useFilterLegendInputs(
+    filterPatterns,
+    pluginFilterPatterns,
+    legends,
   );
   const {
     filteredData,
@@ -77,31 +74,18 @@ export default function App(): React.ReactElement {
     setSearchOptions(newOptions);
   }, [setSearchOptions]);
 
-  const handleRulePromptSubmit = useCallback((nextState: RulePromptState) => {
-    if (nextState.kind === 'filter') {
-      const nextPatterns = buildNextFilterPatterns(filterPatterns, nextState.pattern);
-      if (nextPatterns) {
-        setFilterPatterns(nextPatterns);
-        postMessage({ type: 'UPDATE_FILTER_PATTERNS', payload: { patterns: nextPatterns } });
-      }
-      setRulePrompt(null);
-      return;
-    }
-
-    const nextLegends = buildNextLegendRules(
-      userLegendRules,
-      nextState,
-      () => `legend:${Date.now()}:${Math.random().toString(36).slice(2, 8)}`,
-    );
-    if (nextLegends) {
-      setOptimisticUserLegends(nextLegends);
-      postMessage({
-        type: 'UPDATE_LEGENDS',
-        payload: { legends: nextLegends },
-      });
-    }
-    setRulePrompt(null);
-  }, [filterPatterns, setFilterPatterns, setOptimisticUserLegends, userLegendRules]);
+  const {
+    closeRulePrompt,
+    openFilterPrompt,
+    openLegendPrompt,
+    handleRulePromptSubmit,
+  } = useRulePromptHandlers({
+    filterPatterns,
+    userLegendRules,
+    setFilterPatterns,
+    setOptimisticUserLegends,
+    setRulePrompt,
+  });
 
   useEffect(() => {
     return setupMessageListener(injectPluginAssets, pluginHost);
@@ -139,8 +123,8 @@ export default function App(): React.ReactElement {
           nodeDecorations={nodeDecorations}
           edgeDecorations={graphEdgeDecorations}
           pluginHost={pluginHost}
-          onAddFilterRequested={(pattern) => setRulePrompt({ kind: 'filter', pattern })}
-          onAddLegendRequested={(rule) => setRulePrompt({ kind: 'legend', ...rule })}
+          onAddFilterRequested={openFilterPrompt}
+          onAddLegendRequested={openLegendPrompt}
         />
         <GraphStatsBadge label={graphStatsLabel} />
         <ToolbarRail pluginHost={pluginHost} />
@@ -153,7 +137,7 @@ export default function App(): React.ReactElement {
         <GraphIndexStatus isIndexing={graphIsIndexing} progress={graphIndexProgress} />
         <RulePrompt
           state={rulePrompt}
-          onClose={() => setRulePrompt(null)}
+          onClose={closeRulePrompt}
           onSubmit={handleRulePromptSubmit}
         />
       </div>
