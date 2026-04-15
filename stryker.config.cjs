@@ -25,7 +25,7 @@ module.exports = {
   },
   concurrency: 2,
   coverageAnalysis: 'perTest',
-  maxTestRunnerReuse: 25,
+  maxTestRunnerReuse: 1,
   testRunnerNodeArgs: [
     '--max-old-space-size=8192',
   ],
