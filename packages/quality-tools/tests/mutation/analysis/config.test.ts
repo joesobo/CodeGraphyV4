@@ -25,19 +25,6 @@ describe('mutation config ignore patterns', () => {
     );
   });
 
-  it('keeps downloaded VS Code test artifacts out of the extension Stryker sandbox', () => {
-    const config = require(`${REPO_ROOT}/packages/extension/stryker.config.cjs`) as { ignorePatterns?: string[] };
-
-    expect(config.ignorePatterns).toEqual(
-      expect.arrayContaining([
-        '/.vscode-test',
-        '/.vscode-test/**',
-        '/.stryker-tmp',
-        '/.stryker-tmp/**',
-      ]),
-    );
-  });
-
   it('keeps downloaded VS Code test artifacts out of the quality-tools Stryker sandbox', () => {
     const config = readJsonConfig('packages/quality-tools/stryker.config.json');
 

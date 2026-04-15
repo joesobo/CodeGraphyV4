@@ -7,9 +7,9 @@
 	],
 	"scripts": {
 		"vscode:prepublish": "pnpm run build",
-    "build": "turbo run build",
-    "build:devhost": "pnpm --filter @codegraphy/extension run build && pnpm --filter codegraphy-typescript run build && pnpm --filter codegraphy-python run build && pnpm --filter codegraphy-csharp run build && pnpm --filter codegraphy-godot run build",
-    "build:extension": "pnpm --filter @codegraphy/extension run build:extension",
+		"build": "turbo run build",
+		"build:devhost": "pnpm --filter @codegraphy/extension run build && pnpm --filter codegraphy-typescript run build && pnpm --filter codegraphy-python run build && pnpm --filter codegraphy-csharp run build && pnpm --filter codegraphy-godot run build",
+		"build:extension": "pnpm --filter @codegraphy/extension run build:extension",
 		"build:webview": "pnpm --filter @codegraphy/extension run build:webview",
 		"watch": "pnpm --filter @codegraphy/extension run watch",
 		"watch:extension": "pnpm --filter @codegraphy/extension run watch:extension",
@@ -209,14 +209,14 @@
 			}
 		],
 		"viewsContainers": {
-				"activitybar": [
-					{
-						"id": "codegraphy",
-						"title": "CodeGraphy",
-						"icon": "assets/icon-dark.svg"
-					}
-				]
-			},
+			"activitybar": [
+				{
+					"id": "codegraphy",
+					"title": "CodeGraphy",
+					"icon": "assets/icon-dark.svg"
+				}
+			]
+		},
 		"views": {
 			"codegraphy": [
 				{
@@ -232,17 +232,16 @@
 					"icon": "assets/icon.svg",
 					"visibility": "collapsed"
 				}
-				]
-			}
-		},
-			"devDependencies": {
-		"@vscode/vsce": "^3.7.1",
+			]
+		}
+	},
+	"devDependencies": {
 		"@changesets/changelog-github": "^0.6.0",
 		"@changesets/cli": "^2.30.0",
 		"@eslint/js": "^9.0.0",
 		"@playwright/test": "^1.58.2",
-		"@stryker-mutator/core": "^9.6.0",
-		"@stryker-mutator/vitest-runner": "^9.6.0",
+		"@stryker-mutator/core": "^9.6.1",
+		"@stryker-mutator/vitest-runner": "^9.6.1",
 		"@testing-library/jest-dom": "^6.2.0",
 		"@testing-library/react": "^14.1.2",
 		"@types/glob": "^8.1.0",
@@ -254,6 +253,7 @@
 		"@vitejs/plugin-react": "^4.2.1",
 		"@vitest/coverage-istanbul": "^3.2.4",
 		"@vscode/test-electron": "^2.5.2",
+		"@vscode/vsce": "^3.7.1",
 		"autoprefixer": "^10.4.17",
 		"concurrently": "^8.2.2",
 		"esbuild": "^0.25.0",
