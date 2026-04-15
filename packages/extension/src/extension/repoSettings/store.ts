@@ -4,6 +4,19 @@ import {
   createDefaultCodeGraphyRepoSettings,
   type ICodeGraphyRepoSettings,
 } from './defaults';
+import { createChangeEvent } from './storeChangeEvent';
+import {
+  ensureGitIgnoreContainsCodeGraphyEntry,
+  SETTINGS_DIR_NAME,
+  SETTINGS_FILE_NAME,
+} from './storeFilesystem';
+import {
+  createUpdatedSettings,
+  readSettingsFromDisk,
+  reloadSettingsFromDisk,
+  writeSettingsToDisk,
+} from './storeState';
+import { getNestedValue, hasNestedValue } from './storeValues';
 
 export interface ICodeGraphySettingsInspect<T> {
   defaultValue?: T;
@@ -22,250 +35,6 @@ export interface ICodeGraphyConfigurationLike {
   inspect<T>(key: string): ICodeGraphySettingsInspect<T> | undefined;
   update(key: string, value: unknown, target?: unknown): Promise<void>;
   updateSilently?(key: string, value: unknown): Promise<void>;
-}
-
-const SETTINGS_DIR_NAME = '.codegraphy';
-const SETTINGS_FILE_NAME = 'settings.json';
-const SETTINGS_IGNORE_ENTRY = '.codegraphy/';
-
-function normalizeSettingsKeyAlias(key: string): string {
-  if (key === 'folderNodeColor') {
-    return 'nodeColors.folder';
-  }
-
-  if (key === 'groups') {
-    return 'legend';
-  }
-
-  if (key.startsWith('groups.')) {
-    return `legend.${key.slice('groups.'.length)}`;
-  }
-
-  if (key === 'exclude') {
-    return 'filterPatterns';
-  }
-
-  return key;
-}
-
-function normalizePersistedSettingsShape(
-  value: unknown,
-): Record<string, unknown> {
-  if (!isPlainObject(value)) {
-    return {};
-  }
-
-  const normalized: Record<string, unknown> = { ...value };
-  normalizePersistedFilterPatterns(normalized);
-  normalizePersistedLegend(normalized);
-  normalizePersistedNodeColors(normalized);
-  return normalized;
-}
-
-function readStringArray(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.filter((entry): entry is string => typeof entry === 'string')
-    : [];
-}
-
-function normalizePersistedFilterPatterns(normalized: Record<string, unknown>): void {
-  const filterPatterns = readStringArray(normalized.filterPatterns);
-  if (filterPatterns.length > 0) {
-    normalized.filterPatterns = Array.from(new Set(filterPatterns));
-  }
-
-  delete normalized.exclude;
-}
-
-function normalizePersistedLegend(normalized: Record<string, unknown>): void {
-  if (
-    Array.isArray(normalized.groups)
-    && (!Array.isArray(normalized.legend) || normalized.legend.length === 0)
-  ) {
-    normalized.legend = normalized.groups;
-  }
-}
-
-function normalizePersistedNodeColors(normalized: Record<string, unknown>): void {
-  const nodeColors = isPlainObject(normalized.nodeColors)
-    ? { ...normalized.nodeColors }
-    : {};
-  if (typeof normalized.folderNodeColor === 'string' && !('folder' in nodeColors)) {
-    nodeColors.folder = normalized.folderNodeColor;
-  }
-  if (Object.keys(nodeColors).length > 0) {
-    normalized.nodeColors = nodeColors;
-  }
-}
-function deepClone<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
-}
-
-function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
-function deepMerge<T>(base: T, overrides: unknown): T {
-  if (!isPlainObject(base) || !isPlainObject(overrides)) {
-    return (overrides as T) ?? base;
-  }
-
-  const result: Record<string, unknown> = { ...base };
-  for (const [key, value] of Object.entries(overrides)) {
-    const existing = result[key];
-    if (isPlainObject(existing) && isPlainObject(value)) {
-      result[key] = deepMerge(existing, value);
-      continue;
-    }
-
-    result[key] = value;
-  }
-
-  return result as T;
-}
-
-function getPathSegments(key: string): string[] {
-  return normalizeSettingsKeyAlias(key).split('.').filter(Boolean);
-}
-
-function getNestedValue<T>(value: unknown, key: string): T | undefined {
-  let current: unknown = value;
-  for (const segment of getPathSegments(key)) {
-    if (!isPlainObject(current) || !(segment in current)) {
-      return undefined;
-    }
-
-    current = current[segment];
-  }
-
-  return current as T;
-}
-
-function hasNestedValue(value: unknown, key: string): boolean {
-  let current: unknown = value;
-  for (const segment of getPathSegments(key)) {
-    if (!isPlainObject(current) || !(segment in current)) {
-      return false;
-    }
-
-    current = current[segment];
-  }
-
-  return true;
-}
-
-function setNestedValue(value: Record<string, unknown>, key: string, nextValue: unknown): void {
-  const segments = getPathSegments(key);
-  const lastSegment = segments.pop();
-  if (!lastSegment) {
-    return;
-  }
-
-  let current: Record<string, unknown> = value;
-  for (const segment of segments) {
-    const existing = current[segment];
-    if (!isPlainObject(existing)) {
-      current[segment] = {};
-    }
-
-    current = current[segment] as Record<string, unknown>;
-  }
-
-  current[lastSegment] = nextValue;
-}
-
-function serializeSettings(value: ICodeGraphyRepoSettings): string {
-  const persisted = deepClone(value) as unknown as Record<string, unknown>;
-
-  const nodeColors = isPlainObject(persisted.nodeColors)
-    ? { ...persisted.nodeColors }
-    : {};
-  if (typeof persisted.folderNodeColor === 'string' && !('folder' in nodeColors)) {
-    nodeColors.folder = persisted.folderNodeColor;
-  }
-  persisted.nodeColors = nodeColors;
-  delete persisted.folderNodeColor;
-  delete persisted.exclude;
-
-  return `${JSON.stringify(persisted, null, 2)}\n`;
-}
-
-function areValuesEqual(left: unknown, right: unknown): boolean {
-  return JSON.stringify(left) === JSON.stringify(right);
-}
-
-function collectChangedKeys(
-  previous: unknown,
-  next: unknown,
-  basePath = '',
-): string[] {
-  if (areValuesEqual(previous, next)) {
-    return [];
-  }
-
-  if (!isPlainObject(previous) || !isPlainObject(next)) {
-    return basePath ? [basePath] : ['codegraphy'];
-  }
-
-  const keys = new Set([...Object.keys(previous), ...Object.keys(next)]);
-  const changedKeys: string[] = [];
-
-  for (const key of keys) {
-    const nextPath = basePath ? `${basePath}.${key}` : key;
-    changedKeys.push(
-      ...collectChangedKeys(
-        previous[key],
-        next[key],
-        nextPath,
-      ),
-    );
-  }
-
-  return changedKeys;
-}
-
-function createChangeEvent(changedKeys: string[]): ICodeGraphySettingsChangeEvent {
-  const uniqueChangedKeys = Array.from(new Set(changedKeys));
-  return {
-    changedKeys: uniqueChangedKeys,
-    affectsConfiguration: section => {
-      if (section === 'codegraphy') {
-        return true;
-      }
-
-      if (!section.startsWith('codegraphy.')) {
-        return false;
-      }
-
-      const key = normalizeSettingsKeyAlias(section.slice('codegraphy.'.length));
-      return uniqueChangedKeys.some(
-        changedKey =>
-          changedKey === key ||
-          changedKey.startsWith(`${key}.`) ||
-          key.startsWith(`${changedKey}.`),
-      );
-    },
-  };
-}
-
-function ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath: string): void {
-  if (!fs.existsSync(gitIgnorePath)) {
-    fs.writeFileSync(gitIgnorePath, `${SETTINGS_IGNORE_ENTRY}\n`, 'utf8');
-    return;
-  }
-
-  const existing = fs.readFileSync(gitIgnorePath, 'utf8');
-  const lines = existing
-    .split(/\r?\n/)
-    .map(line => line.trim())
-    .filter(Boolean);
-
-  if (lines.some(line => line === '.codegraphy' || line === SETTINGS_IGNORE_ENTRY)) {
-    return;
-  }
-
-  const suffix = existing.endsWith('\n') || existing.length === 0 ? '' : '\n';
-  fs.writeFileSync(gitIgnorePath, `${existing}${suffix}${SETTINGS_IGNORE_ENTRY}\n`, 'utf8');
 }
 
 export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike {
@@ -288,10 +57,12 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
     ensureGitIgnoreContainsCodeGraphyEntry(this._gitIgnorePath);
 
     if (fs.existsSync(this._settingsPath)) {
-      this._settings = this._readSettingsFromDisk();
+      const nextState = readSettingsFromDisk(this._settingsPath, this._defaults);
+      this._settings = nextState.settings;
+      this._serializedSettings = nextState.serializedSettings;
     } else {
       this._settings = createDefaultCodeGraphyRepoSettings();
-      this._writeSettingsToDisk();
+      this._serializedSettings = writeSettingsToDisk(this._settingsPath, this._settings);
     }
   }
 
@@ -318,18 +89,14 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
   }
 
   async update(key: string, value: unknown): Promise<void> {
-    const nextSettings = deepClone(this._settings) as unknown as Record<string, unknown>;
-    setNestedValue(nextSettings, key, value);
-    this._settings = deepMerge(this._defaults, nextSettings);
-    this._writeSettingsToDisk();
+    this._settings = createUpdatedSettings(this._defaults, this._settings, key, value);
+    this._serializedSettings = writeSettingsToDisk(this._settingsPath, this._settings);
     this._emit([key]);
   }
 
   async updateSilently(key: string, value: unknown): Promise<void> {
-    const nextSettings = deepClone(this._settings) as unknown as Record<string, unknown>;
-    setNestedValue(nextSettings, key, value);
-    this._settings = deepMerge(this._defaults, nextSettings);
-    this._writeSettingsToDisk();
+    this._settings = createUpdatedSettings(this._defaults, this._settings, key, value);
+    this._serializedSettings = writeSettingsToDisk(this._settingsPath, this._settings);
   }
 
   onDidChange(
@@ -344,35 +111,19 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
   }
 
   reload(): void {
-    const previousSettings = deepClone(this._settings);
-
-    if (!fs.existsSync(this._settingsPath)) {
-      this._settings = createDefaultCodeGraphyRepoSettings();
-      this._writeSettingsToDisk();
-      this._emit(
-        collectChangedKeys(previousSettings, this._settings).length > 0
-          ? collectChangedKeys(previousSettings, this._settings)
-          : ['codegraphy'],
-      );
+    const nextState = reloadSettingsFromDisk(
+      this._settingsPath,
+      this._defaults,
+      this._settings,
+      this._serializedSettings,
+    );
+    if (!nextState) {
       return;
     }
 
-    const nextSerialized = fs.readFileSync(this._settingsPath, 'utf8');
-    if (nextSerialized === this._serializedSettings) {
-      return;
-    }
-
-    try {
-      this._settings = deepMerge(
-        this._defaults,
-        normalizePersistedSettingsShape(JSON.parse(nextSerialized)),
-      );
-      this._serializedSettings = serializeSettings(this._settings);
-      const changedKeys = collectChangedKeys(previousSettings, this._settings);
-      this._emit(changedKeys.length > 0 ? changedKeys : ['codegraphy']);
-    } catch (error) {
-      console.warn('[CodeGraphy] Ignoring invalid .codegraphy/settings.json save.', error);
-    }
+    this._settings = nextState.settings;
+    this._serializedSettings = nextState.serializedSettings;
+    this._emit(nextState.changedKeys);
   }
 
   private _emit(changedKeys: string[]): void {
@@ -380,29 +131,5 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
     for (const listener of this._listeners) {
       listener(event);
     }
-  }
-
-  private _readSettingsFromDisk(): ICodeGraphyRepoSettings {
-    try {
-      const rawSerialized = fs.readFileSync(this._settingsPath, 'utf8');
-      const parsed = normalizePersistedSettingsShape(JSON.parse(rawSerialized));
-      const merged = deepMerge(this._defaults, parsed);
-      this._serializedSettings = serializeSettings(merged);
-      if (rawSerialized !== this._serializedSettings) {
-        fs.writeFileSync(this._settingsPath, this._serializedSettings, 'utf8');
-      }
-      return merged;
-    } catch (error) {
-      console.warn('[CodeGraphy] Failed to read .codegraphy/settings.json, regenerating defaults.', error);
-      const fallback = createDefaultCodeGraphyRepoSettings();
-      this._serializedSettings = serializeSettings(fallback);
-      fs.writeFileSync(this._settingsPath, this._serializedSettings, 'utf8');
-      return fallback;
-    }
-  }
-
-  private _writeSettingsToDisk(): void {
-    this._serializedSettings = serializeSettings(this._settings);
-    fs.writeFileSync(this._settingsPath, this._serializedSettings, 'utf8');
   }
 }
