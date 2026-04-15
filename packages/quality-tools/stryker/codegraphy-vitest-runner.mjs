@@ -35,6 +35,12 @@ class CodeGraphyVitestTestRunner extends VitestTestRunner {
       config: this.options.vitest?.configFile,
       coverage: { enabled: false },
       pool: 'forks',
+      poolOptions: {
+        forks: {
+          minForks: 1,
+          maxForks: 1,
+        },
+      },
       maxWorkers: 1,
       maxConcurrency: 1,
       fileParallelism: false,
