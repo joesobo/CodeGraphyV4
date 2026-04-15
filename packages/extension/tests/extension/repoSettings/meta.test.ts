@@ -59,7 +59,9 @@ describe('extension/repoSettings/meta', () => {
   });
 
   it('skips writes when the workspace root does not exist', () => {
-    const workspaceRoot = path.join(os.tmpdir(), 'codegraphy-missing-workspace');
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    fs.rmSync(workspaceRoot, { recursive: true, force: true });
     const meta = {
       version: 1 as const,
       lastIndexedAt: '2026-04-08T19:00:00.000Z',
@@ -69,6 +71,7 @@ describe('extension/repoSettings/meta', () => {
       pendingChangedFiles: ['src/index.ts'],
     };
 
+    expect(fs.existsSync(workspaceRoot)).toBe(false);
     writeCodeGraphyRepoMeta(workspaceRoot, meta);
 
     expect(fs.existsSync(getCodeGraphyRepoMetaPath(workspaceRoot))).toBe(false);

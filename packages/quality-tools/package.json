@@ -16,5 +16,9 @@
     "test:watch": "vitest --config vitest.config.ts",
     "lint": "eslint src tests",
     "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@stryker-mutator/api": "^9.6.1",
+    "semver": "^7.7.4"
   }
 }

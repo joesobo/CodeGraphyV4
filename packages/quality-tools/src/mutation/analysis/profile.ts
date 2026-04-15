@@ -12,9 +12,7 @@ export function resolveMutationProfile(target: QualityTarget): MutationProfile {
     throw new Error('Mutation targets must resolve to a workspace package.');
   }
 
-  const packageConfig = target.packageName === 'extension'
-    ? 'packages/extension/stryker.config.cjs'
-    : target.packageName === 'quality-tools'
+  const packageConfig = target.packageName === 'quality-tools'
       ? 'packages/quality-tools/stryker.config.json'
       : 'stryker.config.cjs';
   return { configPath: packageConfig, packageName: target.packageName };
