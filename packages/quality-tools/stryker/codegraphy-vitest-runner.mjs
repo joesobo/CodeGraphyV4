@@ -33,17 +33,18 @@ class CodeGraphyVitestTestRunner extends VitestTestRunner {
 
     this.ctx = await vitestWrapper.createVitest('test', {
       config: this.options.vitest?.configFile,
-      coverage: { enabled: false },
       pool: 'forks',
+      coverage: { enabled: false },
+      fileParallelism: false,
       poolOptions: {
         forks: {
-          minForks: 1,
           maxForks: 1,
+          minForks: 1,
+          singleFork: false,
         },
       },
       maxWorkers: 1,
       maxConcurrency: 1,
-      fileParallelism: false,
       watch: false,
       dir: this.options.vitest?.dir,
       bail: this.options.disableBail ? 0 : 1,
