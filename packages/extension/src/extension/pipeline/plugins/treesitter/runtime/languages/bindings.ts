@@ -15,8 +15,6 @@ export interface ITreeSitterBindings {
 }
 
 let treeSitterBindingsPromise: Promise<ITreeSitterBindings | null> | undefined;
-let treeSitterBindingsUnavailableLogged = false;
-
 export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | null> {
   treeSitterBindingsPromise ??= Promise.all([
     import('tree-sitter'),
@@ -57,12 +55,9 @@ export async function loadTreeSitterBindings(): Promise<ITreeSitterBindings | nu
       };
     })
     .catch((error: unknown) => {
-      if (!treeSitterBindingsUnavailableLogged) {
-        treeSitterBindingsUnavailableLogged = true;
-        console.warn(
-          `[CodeGraphy] Tree-sitter bindings unavailable; skipping core Tree-sitter analysis. ${String(error)}`,
-        );
-      }
+      console.warn(
+        `[CodeGraphy] Tree-sitter bindings unavailable; skipping core Tree-sitter analysis. ${String(error)}`,
+      );
 
       return null;
     });
