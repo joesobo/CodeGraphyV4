@@ -6,19 +6,18 @@ import { saveExportBuffer, toErrorMessage } from './fileSave';
 const DEFAULT_FILTER_LABEL = 'All Files';
 
 function buildDefaultFilters(filename: string): Record<string, string[]> {
-  const extension = path.extname(filename).replace(/^\./, '');
+  const extension = path.extname(filename);
   if (!extension) {
     return { [DEFAULT_FILTER_LABEL]: ['*'] };
   }
 
-  return { [`${extension.toUpperCase()} Files`]: [extension] };
+  const normalizedExtension = extension.slice(1);
+  return { [`${normalizedExtension.toUpperCase()} Files`]: [normalizedExtension] };
 }
 
 export async function savePluginExport(request: ExportRequest): Promise<void> {
   try {
-    const buffer = typeof request.content === 'string'
-      ? Buffer.from(request.content, 'utf-8')
-      : Buffer.from(request.content);
+    const buffer = Buffer.from(request.content);
 
     await saveExportBuffer(buffer, {
       defaultFilename: request.filename,
