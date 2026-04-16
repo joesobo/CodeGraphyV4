@@ -4,7 +4,11 @@ import type { GraphViewProviderMethodSourceOwner } from '../../../../../src/exte
 
 export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwner {
   const analysisMethods = {
+    _loadAndSendData: vi.fn(async () => undefined),
+    _indexAndSendData: vi.fn(async () => undefined),
     _analyzeAndSendData: vi.fn(async () => undefined),
+    _refreshAndSendData: vi.fn(async () => undefined),
+    _incrementalAnalyzeAndSendData: vi.fn(async () => undefined),
     _doAnalyzeAndSendData: vi.fn(async () => undefined),
     _markWorkspaceReady: vi.fn(),
     _isAnalysisStale: vi.fn(() => false),
@@ -37,6 +41,8 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _sendPluginStatuses: vi.fn(),
     _sendDecorations: vi.fn(),
     _sendContextMenuItems: vi.fn(),
+    _sendPluginExporters: vi.fn(),
+    _sendPluginToolbarActions: vi.fn(),
     _sendPluginWebviewInjections: vi.fn(),
     registerExternalPlugin: vi.fn(),
   };
@@ -71,6 +77,7 @@ export function createMethodSourceOwnerStub(): GraphViewProviderMethodSourceOwne
     _indexRepository: vi.fn(async () => undefined),
     _jumpToCommit: vi.fn(async () => undefined),
     _resetTimeline: vi.fn(async () => undefined),
+    invalidateTimelineCache: vi.fn(),
     _openSelectedNode: vi.fn(async () => undefined),
     _activateNode: vi.fn(async () => undefined),
     _previewFileAtCommit: vi.fn(async () => undefined),

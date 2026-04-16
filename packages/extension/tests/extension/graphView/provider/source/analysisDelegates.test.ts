@@ -20,12 +20,18 @@ describe('source/analysisDelegates', () => {
     delegates._sendPluginStatuses();
     delegates._sendDecorations();
     delegates._sendContextMenuItems();
+    delegates._sendPluginExporters();
+    delegates._sendPluginToolbarActions();
     delegates._sendPluginWebviewInjections();
+    await delegates._loadAndSendData!();
+    await delegates._indexAndSendData!();
     await delegates._analyzeAndSendData!();
+    await delegates._refreshAndSendData!();
+    await delegates._incrementalAnalyzeAndSendData!(['src/app.ts']);
     await delegates._doAnalyzeAndSendData!(signal, 3);
     delegates._markWorkspaceReady!(graph);
-    delegates._isAnalysisStale!(signal, 4);
-    delegates._isAbortError!(error);
+    expect(delegates._isAnalysisStale!(signal, 4)).toBe(false);
+    expect(delegates._isAbortError!(error)).toBe(false);
 
     expect(owner._webviewMethods._sendMessage).toHaveBeenCalledWith(message);
     expect(owner._viewContextMethods._sendDepthState).toHaveBeenCalledTimes(1);
@@ -36,8 +42,14 @@ describe('source/analysisDelegates', () => {
     expect(owner._pluginMethods._sendPluginStatuses).toHaveBeenCalledTimes(1);
     expect(owner._pluginMethods._sendDecorations).toHaveBeenCalledTimes(1);
     expect(owner._pluginMethods._sendContextMenuItems).toHaveBeenCalledTimes(1);
+    expect(owner._pluginMethods._sendPluginExporters).toHaveBeenCalledTimes(1);
+    expect(owner._pluginMethods._sendPluginToolbarActions).toHaveBeenCalledTimes(1);
     expect(owner._pluginMethods._sendPluginWebviewInjections).toHaveBeenCalledTimes(1);
+    expect(owner._analysisMethods._loadAndSendData).toHaveBeenCalledTimes(1);
+    expect(owner._analysisMethods._indexAndSendData).toHaveBeenCalledTimes(1);
     expect(owner._analysisMethods._analyzeAndSendData).toHaveBeenCalledTimes(1);
+    expect(owner._analysisMethods._refreshAndSendData).toHaveBeenCalledTimes(1);
+    expect(owner._analysisMethods._incrementalAnalyzeAndSendData).toHaveBeenCalledWith(['src/app.ts']);
     expect(owner._analysisMethods._doAnalyzeAndSendData).toHaveBeenCalledWith(signal, 3);
     expect(owner._analysisMethods._markWorkspaceReady).toHaveBeenCalledWith(graph);
     expect(owner._analysisMethods._isAnalysisStale).toHaveBeenCalledWith(signal, 4);
