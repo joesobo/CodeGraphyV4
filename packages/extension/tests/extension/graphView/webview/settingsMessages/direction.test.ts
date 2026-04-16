@@ -59,11 +59,11 @@ describe('graph view settings direction message', () => {
       directionColor: 'bad-color',
     });
 
-    await applySettingsDirectionMessage(
+    await expect(applySettingsDirectionMessage(
       { type: 'UPDATE_DIRECTION_MODE', payload: { directionMode: 'particles' } },
       state,
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('directionMode', 'particles');
     expect(handlers.sendMessage).toHaveBeenCalledWith({
@@ -85,11 +85,11 @@ describe('graph view settings direction message', () => {
       particleSize: 6,
     });
 
-    await applySettingsDirectionMessage(
+    await expect(applySettingsDirectionMessage(
       { type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: '  #aa00cc ' } },
       state,
       handlers,
-    );
+    )).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('directionColor', '#AA00CC');
     expect(handlers.sendMessage).toHaveBeenCalledWith({
@@ -99,6 +99,35 @@ describe('graph view settings direction message', () => {
         particleSpeed: 0.2,
         particleSize: 6,
         directionColor: '#AA00CC',
+      },
+    });
+  });
+
+  it('uses the default direction mode and default direction color when config values are absent', async () => {
+    const handlers = createHandlers({}, {
+      getConfig: vi.fn(<T>(key: string, defaultValue: T): T => {
+        if (key === 'directionMode' || key === 'directionColor') {
+          return defaultValue;
+        }
+        return defaultValue;
+      }),
+    });
+
+    await applySettingsDirectionMessage(
+      { type: 'UPDATE_DIRECTION_COLOR', payload: { directionColor: 'bad-color' } },
+      createState(),
+      handlers,
+    );
+
+    expect(handlers.getConfig).toHaveBeenCalledWith('directionMode', 'arrows');
+    expect(handlers.getConfig).toHaveBeenCalledWith('directionColor', '#475569');
+    expect(handlers.sendMessage).toHaveBeenCalledWith({
+      type: 'DIRECTION_SETTINGS_UPDATED',
+      payload: {
+        directionMode: 'arrows',
+        particleSpeed: 0.005,
+        particleSize: 4,
+        directionColor: '#475569',
       },
     });
   });
