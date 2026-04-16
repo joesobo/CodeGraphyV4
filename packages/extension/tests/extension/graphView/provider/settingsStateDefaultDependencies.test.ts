@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { WorkspaceFolder } from 'vscode';
 import type { IGraphData } from '../../../../src/shared/graph/types';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 
 const mocks = vi.hoisted(() => {
-  let workspaceFolders: { name: string }[] | undefined = undefined;
+  let workspaceFolders: WorkspaceFolder[] | undefined = undefined;
   const configuration = {
     get: vi.fn((_: string, fallback: unknown) => fallback),
     inspect: vi.fn((_: string) => undefined),
@@ -14,10 +15,10 @@ const mocks = vi.hoisted(() => {
   };
 
   return {
-    get workspaceFolders(): { name: string }[] | undefined {
+    get workspaceFolders(): WorkspaceFolder[] | undefined {
       return workspaceFolders;
     },
-    set workspaceFolders(value: { name: string }[] | undefined) {
+    set workspaceFolders(value: WorkspaceFolder[] | undefined) {
       workspaceFolders = value;
     },
     configuration,
@@ -155,6 +156,21 @@ describe('graphView/provider/settingsState default dependencies', () => {
     expect(dependencies.sendProviderSettings).toBe(mocks.sendProviderSettings);
     expect(dependencies.sendProviderAllSettings).toBe(mocks.sendProviderAllSettings);
     expect(dependencies.captureSettingsSnapshot).toBe(mocks.captureSettingsSnapshot);
+  });
+
+  it('routes non-codegraphy configuration lookups through vscode and exposes workspace folder delegates', () => {
+    mocks.workspaceFolders = [
+      { name: 'workspace-a', uri: {} as never, index: 0 },
+      { name: 'workspace-b', uri: {} as never, index: 1 },
+    ];
+    const dependencies = createDefaultGraphViewProviderSettingsStateMethodDependencies();
+
+    expect(dependencies.getConfiguration('files')).toBe(mocks.otherConfiguration);
+    expect(dependencies.getWorkspaceFolders()).toEqual(mocks.workspaceFolders);
+    expect(dependencies.getConfigTarget(mocks.workspaceFolders)).toBe('workspace-target');
+
+    expect(mocks.getConfiguration).toHaveBeenCalledWith('files');
+    expect(mocks.getConfigTarget).toHaveBeenCalledWith(mocks.workspaceFolders);
   });
 
   it('loads groups through the default codegraphy configuration', () => {
