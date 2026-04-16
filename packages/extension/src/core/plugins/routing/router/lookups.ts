@@ -18,10 +18,14 @@ export function getPluginForFile(
   extensionMap: Map<string, string[]>,
 ): IPlugin | undefined {
   const ext = getFileExtension(filePath);
-  const pluginIds = [...(extensionMap.get(ext) ?? []), ...(extensionMap.get(WILDCARD_EXTENSION) ?? [])];
-
-  if (!pluginIds || pluginIds.length === 0) {
-    return undefined;
+  const pluginIds: string[] = [];
+  const extensionPluginIds = extensionMap.get(ext);
+  const wildcardPluginIds = extensionMap.get(WILDCARD_EXTENSION);
+  if (extensionPluginIds) {
+    pluginIds.push(...extensionPluginIds);
+  }
+  if (wildcardPluginIds) {
+    pluginIds.push(...wildcardPluginIds);
   }
 
   for (const pluginId of pluginIds) {
@@ -43,10 +47,15 @@ export function getPluginsForExtension(
   extensionMap: Map<string, string[]>,
 ): IPlugin[] {
   const normalizedExt = normalizePluginExtension(extension);
-  const pluginIds = [
-    ...(extensionMap.get(normalizedExt) ?? []),
-    ...(extensionMap.get(WILDCARD_EXTENSION) ?? []),
-  ];
+  const pluginIds: string[] = [];
+  const extensionPluginIds = extensionMap.get(normalizedExt);
+  const wildcardPluginIds = extensionMap.get(WILDCARD_EXTENSION);
+  if (extensionPluginIds) {
+    pluginIds.push(...extensionPluginIds);
+  }
+  if (wildcardPluginIds) {
+    pluginIds.push(...wildcardPluginIds);
+  }
 
   const result: IPlugin[] = [];
   for (const pluginId of pluginIds) {
