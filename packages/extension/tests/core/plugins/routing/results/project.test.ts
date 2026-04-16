@@ -43,6 +43,24 @@ describe('routing/results/project', () => {
     ]);
   });
 
+  it('preserves missing relations when adding plugin provenance', () => {
+    const plugin = { id: 'plugin' } as IPlugin;
+
+    expect(withPluginProvenance(plugin, {
+      filePath: 'src/app.ts',
+      edgeTypes: [],
+      nodeTypes: [],
+      nodes: [],
+      symbols: [],
+    })).toEqual({
+      filePath: 'src/app.ts',
+      edgeTypes: [],
+      nodeTypes: [],
+      nodes: [],
+      symbols: [],
+    });
+  });
+
   it('projects file analysis relations into graph connections', () => {
     expect(toProjectedConnectionsFromFileAnalysis({
       filePath: 'src/app.ts',
@@ -70,5 +88,15 @@ describe('routing/results/project', () => {
       variant: 'async',
       metadata: { line: 10 },
     }]);
+  });
+
+  it('returns no projected connections when the analysis has no relations', () => {
+    expect(toProjectedConnectionsFromFileAnalysis({
+      filePath: 'src/app.ts',
+      edgeTypes: [],
+      nodeTypes: [],
+      nodes: [],
+      symbols: [],
+    })).toEqual([]);
   });
 });
