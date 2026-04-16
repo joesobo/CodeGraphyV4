@@ -22,6 +22,13 @@ describe('search/filtering/rules', () => {
     expect(applyLegendRules(graphData, [])).toBe(graphData);
   });
 
+  it('returns null without reading graph fields when legend rules exist but graph data is missing', () => {
+    const groups: IGroup[] = [{ id: 'markdown', pattern: '*.md', color: '#00ff00' }];
+
+    expect(() => applyLegendRules(null, groups)).not.toThrow();
+    expect(applyLegendRules(null, groups)).toBeNull();
+  });
+
   it('applies legend rules from bottom to top so later matches override earlier ones', () => {
     const groups: IGroup[] = [
       {
