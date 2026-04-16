@@ -143,6 +143,76 @@ describe('PluginsPanel', () => {
     });
   });
 
+  it('clears drag highlight state without sending a reorder when a row is dropped before dragging starts', () => {
+    const { container } = renderPanel([
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript',
+        version: '1.0.0',
+        supportedExtensions: ['.ts'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 12,
+      },
+      {
+        id: 'codegraphy.markdown',
+        name: 'Markdown',
+        version: '1.0.0',
+        supportedExtensions: ['.md'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 1,
+      },
+    ]);
+
+    const draggableRows = container.querySelectorAll('[draggable="true"]');
+    fireEvent.dragOver(draggableRows[0]);
+    expect(draggableRows[0]?.className).toContain('ring-primary/40');
+
+    fireEvent.drop(draggableRows[0]);
+
+    expect(sentMessages).not.toContainEqual(
+      expect.objectContaining({ type: 'UPDATE_PLUGIN_ORDER' }),
+    );
+    expect(draggableRows[0]?.className).not.toContain('ring-primary/40');
+  });
+
+  it('clears drag state when dragging ends without dropping', () => {
+    const { container } = renderPanel([
+      {
+        id: 'codegraphy.typescript',
+        name: 'TypeScript',
+        version: '1.0.0',
+        supportedExtensions: ['.ts'],
+        status: 'active',
+        enabled: false,
+        connectionCount: 12,
+      },
+      {
+        id: 'codegraphy.markdown',
+        name: 'Markdown',
+        version: '1.0.0',
+        supportedExtensions: ['.md'],
+        status: 'active',
+        enabled: true,
+        connectionCount: 1,
+      },
+    ]);
+
+    const draggableRows = container.querySelectorAll('[draggable="true"]');
+    fireEvent.dragStart(draggableRows[0]);
+    fireEvent.dragOver(draggableRows[1]);
+
+    expect(draggableRows[0]?.className).toContain('opacity-60');
+    expect(draggableRows[0]?.className).toContain('opacity-50');
+    expect(draggableRows[1]?.className).toContain('ring-primary/40');
+
+    fireEvent.dragEnd(draggableRows[0]);
+
+    expect(draggableRows[0]?.className).toBe('opacity-50');
+    expect(draggableRows[1]?.className).toBe('');
+  });
+
   it('renders plugin rows inside the shared divided list style', () => {
     const { container } = renderPanel([
       {

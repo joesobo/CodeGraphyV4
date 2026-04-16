@@ -12,6 +12,12 @@ vi.mock('../../../src/webview/vscodeApi', () => ({
 }));
 
 describe('LegendsPanel', () => {
+  it('returns null when the panel is closed', () => {
+    const { container } = render(<LegendsPanel isOpen={false} onClose={vi.fn()} />);
+
+    expect(container.innerHTML).toBe('');
+  });
+
   it('shows node and edge color controls when open', () => {
     graphStore.setState({
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
@@ -233,6 +239,66 @@ describe('LegendsPanel', () => {
     });
   });
 
+  it('preserves opposite-section user rules when node and edge rules are updated', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#222222', defaultVisible: true }],
+      nodeColors: {},
+      edgeColors: {},
+      legends: [
+        { id: 'legend:node:existing', pattern: 'src/**', color: '#123456', target: 'node' },
+        { id: 'legend:edge:existing', pattern: 'import', color: '#654321', target: 'edge' },
+      ],
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.change(screen.getByDisplayValue('src/**'), {
+      target: { value: 'src/**/*.ts' },
+    });
+
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_LEGENDS',
+      payload: {
+        legends: [
+          expect.objectContaining({
+            id: 'legend:edge:existing',
+            pattern: 'import',
+            target: 'edge',
+          }),
+          expect.objectContaining({
+            id: 'legend:node:existing',
+            pattern: 'src/**/*.ts',
+            target: 'node',
+          }),
+        ],
+      },
+    });
+
+    fireEvent.change(screen.getByDisplayValue('import'), {
+      target: { value: 'call' },
+    });
+
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_LEGENDS',
+      payload: {
+        legends: [
+          expect.objectContaining({
+            id: 'legend:node:existing',
+            pattern: 'src/**/*.ts',
+            target: 'node',
+          }),
+          expect.objectContaining({
+            id: 'legend:edge:existing',
+            pattern: 'call',
+            target: 'edge',
+          }),
+        ],
+      },
+    });
+  });
+
   it('renders custom edge rules inside the edges section', () => {
     graphStore.setState({
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
@@ -328,6 +394,49 @@ describe('LegendsPanel', () => {
         legendId: 'plugin:codegraphy.typescript:*.ts',
         visible: false,
       },
+    });
+    expect(graphStore.getState().optimisticLegendUpdates).toEqual({
+      'plugin:codegraphy.typescript:*.ts': expect.objectContaining({
+        updates: { disabled: true },
+      }),
+    });
+  });
+
+  it('applies optimistic visibility updates and messages for edge plugin defaults', () => {
+    sentMessages.length = 0;
+    graphStore.setState({
+      graphNodeTypes: [],
+      graphEdgeTypes: [],
+      nodeColors: {},
+      edgeColors: {},
+      legends: [
+        {
+          id: 'plugin:routing:call',
+          pattern: 'call',
+          color: '#3178c6',
+          target: 'edge',
+          isPluginDefault: true,
+          pluginName: 'Routing',
+        },
+      ],
+      optimisticLegendUpdates: {},
+    });
+
+    render(<LegendsPanel isOpen={true} onClose={vi.fn()} />);
+
+    fireEvent.click(screen.getByRole('switch'));
+
+    expect(sentMessages.at(-1)).toEqual({
+      type: 'UPDATE_DEFAULT_LEGEND_VISIBILITY',
+      payload: {
+        legendId: 'plugin:routing:call',
+        visible: false,
+      },
+    });
+    expect(graphStore.getState().optimisticLegendUpdates).toEqual({
+      'plugin:routing:call': expect.objectContaining({
+        updates: { disabled: true },
+      }),
     });
   });
 
