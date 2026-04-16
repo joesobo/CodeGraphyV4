@@ -56,6 +56,46 @@ describe('graph view analysis execution prepare', () => {
     expect(handlers.computeMergedGroups).not.toHaveBeenCalled();
   });
 
+  it('stops when installed plugin activation finishes after the request turns stale', async () => {
+    const state = createExecutionState({
+      analyzer: createExecutionAnalyzer(),
+      installedPluginActivationPromise: Promise.resolve(),
+    });
+    const { handlers } = createExecutionHandlers({
+      isAnalysisStale: vi.fn()
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true),
+    });
+
+    await expect(
+      prepareGraphViewAnalysis(new AbortController().signal, 1, state, handlers),
+    ).resolves.toBe(false);
+
+    expect(handlers.computeMergedGroups).not.toHaveBeenCalled();
+    expect(handlers.sendGroupsUpdated).not.toHaveBeenCalled();
+  });
+
+  it('stops when the request turns stale after recomputing groups and before publishing them', async () => {
+    const state = createExecutionState({
+      analyzer: createExecutionAnalyzer(),
+      analyzerInitialized: true,
+    });
+    const { handlers } = createExecutionHandlers({
+      isAnalysisStale: vi.fn()
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(false)
+        .mockReturnValueOnce(true),
+    });
+
+    await expect(
+      prepareGraphViewAnalysis(new AbortController().signal, 1, state, handlers),
+    ).resolves.toBe(false);
+
+    expect(handlers.computeMergedGroups).toHaveBeenCalledOnce();
+    expect(handlers.sendGroupsUpdated).not.toHaveBeenCalled();
+    expect(handlers.setRawGraphData).not.toHaveBeenCalled();
+  });
+
   it('publishes an empty graph after group recompute when no workspace is available', async () => {
     const state = createExecutionState({
       analyzer: createExecutionAnalyzer(),

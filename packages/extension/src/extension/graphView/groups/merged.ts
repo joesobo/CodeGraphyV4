@@ -19,30 +19,17 @@ function applyDefaultLegendVisibilityOverrides(
 
 function sortGroupsByLegendOrder(
   groups: IGroup[],
-  legendOrder: readonly string[],
+  legendOrder: readonly string[] | undefined,
 ): IGroup[] {
-  if (legendOrder.length === 0) {
-    return groups;
-  }
-
+  const resolvedLegendOrder = legendOrder ?? [];
   const orderById = new Map(
-    legendOrder.map((legendId, index) => [legendId, index] as const),
+    resolvedLegendOrder.map((legendId, index) => [legendId, index] as const),
   );
+  const fallbackIndex = resolvedLegendOrder.length;
 
   return [...groups].sort((left, right) => {
-    const leftIndex = orderById.get(left.id);
-    const rightIndex = orderById.get(right.id);
-
-    if (leftIndex === undefined && rightIndex === undefined) {
-      return 0;
-    }
-    if (leftIndex === undefined) {
-      return 1;
-    }
-    if (rightIndex === undefined) {
-      return -1;
-    }
-
+    const leftIndex = orderById.get(left.id) ?? fallbackIndex;
+    const rightIndex = orderById.get(right.id) ?? fallbackIndex;
     return leftIndex - rightIndex;
   });
 }
@@ -52,7 +39,7 @@ export function buildGraphViewMergedGroups(
   builtInDefaults: IGroup[],
   pluginDefaults: IGroup[],
   defaultLegendVisibility: Record<string, boolean> = {},
-  legendOrder: readonly string[] = [],
+  legendOrder?: readonly string[],
 ): IGroup[] {
   return sortGroupsByLegendOrder([
     ...userGroups,
