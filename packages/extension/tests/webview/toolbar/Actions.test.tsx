@@ -120,6 +120,22 @@ describe('ToolbarActions', () => {
     expect(screen.getByTitle('Refresh')).toBeInTheDocument();
   });
 
+  it('disables the index button while indexing is already in progress', () => {
+    graphStore.setState({
+      graphHasIndex: true,
+      graphIsIndexing: true,
+      graphIndexProgress: {
+        phase: 'Refreshing Index',
+        current: 0,
+        total: 1,
+      },
+    });
+
+    renderWithProviders();
+
+    expect(screen.getByTitle('Refresh')).toBeDisabled();
+  });
+
   it('sends REFRESH_GRAPH when a graph index already exists', () => {
     graphStore.setState({ graphHasIndex: true });
 
