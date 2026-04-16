@@ -4,6 +4,27 @@ import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../src/shared/graphControls/de
 import { DEFAULT_FOLDER_NODE_COLOR } from '../../../src/shared/fileColors';
 
 describe('webview/graphControls/filtering', () => {
+  it('returns a null graph unchanged while preserving edge decorations', () => {
+    const edgeDecorations = {
+      'src/a.ts->src/b.ts#import': {
+        color: '#00ff88',
+        width: 4,
+      },
+    };
+
+    expect(applyGraphControls({
+      graphData: null,
+      nodeColors: {},
+      nodeVisibility: {},
+      edgeVisibility: {},
+      edgeColors: {},
+      edgeDecorations,
+    })).toEqual({
+      graphData: null,
+      edgeDecorations,
+    });
+  });
+
   it('overrides edge decoration colors with edge-kind colors while preserving other decoration fields', () => {
     const edgeId = 'src/a.ts->src/b.ts#import';
 
