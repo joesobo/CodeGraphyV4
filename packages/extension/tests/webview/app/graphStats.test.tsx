@@ -14,4 +14,8 @@ describe('app/graphStats', () => {
 
     expect(screen.getByText('2 nodes • 1 edge')).toBeInTheDocument();
   });
+
+  it('builds a combined stats label for singular nodes and plural edges', () => {
+    expect(buildGraphStatsLabel(1, 2)).toBe('1 node • 2 edges');
+  });
 });
