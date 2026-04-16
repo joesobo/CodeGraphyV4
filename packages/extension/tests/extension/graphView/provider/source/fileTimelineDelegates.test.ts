@@ -5,6 +5,7 @@ import { createMethodSourceOwnerStub } from './fakes';
 describe('source/fileTimelineDelegates', () => {
   it('forwards file and timeline delegates with their arguments', async () => {
     const owner = createMethodSourceOwnerStub();
+    owner._viewContext.focusedFile = 'src/focused.ts';
     const delegates = createGraphViewProviderFileTimelineMethodDelegates(owner);
     const behavior = { preview: true, preserveFocus: true };
 
@@ -16,22 +17,18 @@ describe('source/fileTimelineDelegates', () => {
     await delegates._createFile('src');
     delegates._toggleFavorites(['src/app.ts']);
     delegates._setFocusedFile('src/app.ts');
-    delegates._getFileInfo!('src/app.ts');
-    delegates._getVisitCount!('src/app.ts');
+    expect(delegates._getFocusedFile!()).toBe('src/focused.ts');
+    expect(delegates._getFileInfo!('src/app.ts')).toEqual({ filePath: 'src/app.ts' });
+    expect(delegates._getVisitCount!('src/app.ts')).toBe(3);
     delegates._incrementVisitCount!('src/app.ts');
     await delegates._addToExclude(['dist/**']);
     await delegates._indexRepository();
     await delegates._jumpToCommit('abc123');
     await delegates._resetTimeline();
+    delegates._invalidateTimelineCache!();
     await delegates._openSelectedNode('src/app.ts');
     await delegates._activateNode('src/app.ts');
-    await (
-      delegates._previewFileAtCommit as unknown as (
-        sha: string,
-        filePath: string,
-        behavior?: { preview: boolean; preserveFocus: boolean },
-      ) => Promise<void>
-    )('abc123', 'src/app.ts', undefined);
+    await delegates._previewFileAtCommit!('abc123', 'src/app.ts', behavior);
     delegates._sendCachedTimeline!();
 
     expect(owner._fileActionMethods._openFile).toHaveBeenCalledWith('src/app.ts', behavior);
@@ -49,12 +46,13 @@ describe('source/fileTimelineDelegates', () => {
     expect(owner._timelineMethods._indexRepository).toHaveBeenCalledTimes(1);
     expect(owner._timelineMethods._jumpToCommit).toHaveBeenCalledWith('abc123');
     expect(owner._timelineMethods._resetTimeline).toHaveBeenCalledTimes(1);
+    expect(owner._timelineMethods.invalidateTimelineCache).toHaveBeenCalledTimes(1);
     expect(owner._timelineMethods._openSelectedNode).toHaveBeenCalledWith('src/app.ts');
     expect(owner._timelineMethods._activateNode).toHaveBeenCalledWith('src/app.ts');
     expect(owner._timelineMethods._previewFileAtCommit).toHaveBeenCalledWith(
       'abc123',
       'src/app.ts',
-      undefined,
+      behavior,
     );
     expect(owner._timelineMethods._sendCachedTimeline).toHaveBeenCalledTimes(1);
   });
