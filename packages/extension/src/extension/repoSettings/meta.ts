@@ -36,11 +36,7 @@ export function readCodeGraphyRepoMeta(workspaceRoot: string): ICodeGraphyRepoMe
       ...createDefaultCodeGraphyRepoMeta(),
       ...parsed,
     };
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-      return createDefaultCodeGraphyRepoMeta();
-    }
-
+  } catch {
     return createDefaultCodeGraphyRepoMeta();
   }
 }
@@ -55,5 +51,5 @@ export function writeCodeGraphyRepoMeta(
 
   const metaPath = getCodeGraphyRepoMetaPath(workspaceRoot);
   fs.mkdirSync(path.dirname(metaPath), { recursive: true });
-  fs.writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(metaPath, `${JSON.stringify(meta, null, 2)}\n`);
 }
