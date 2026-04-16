@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
+import type { ExecFileOptions } from 'child_process';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
 import type { IGraphData } from '../../../src/shared/graph/types';
 
@@ -252,6 +253,31 @@ describe('GitHistoryAnalyzer', () => {
 
       const commits = await analyzer.getCommitList(10, liveAbortSignal());
       expect(commits).toEqual([]);
+    });
+
+    it('passes the workspace root and git execution buffer options into child process calls', async () => {
+      const capturedOptions: Array<{ cwd?: string; maxBuffer?: number }> = [];
+      mockExecFile.mockImplementation(((
+        _cmd: string,
+        args: readonly string[],
+        opts: ExecFileOptions,
+        cb?: (error: Error | null, stdout: string, stderr: string) => void,
+      ) => {
+        capturedOptions.push(opts as { cwd?: string; maxBuffer?: number });
+        const joined = [...args].join(' ');
+        if (joined.includes('rev-parse')) {
+          cb?.(null, 'main\n', '');
+        } else if (joined.includes('log')) {
+          cb?.(null, '', '');
+        }
+        return undefined as never;
+      }) as never);
+      await analyzer.getCommitList(10, liveAbortSignal());
+
+      expect(capturedOptions).toEqual([
+        expect.objectContaining({ cwd: workspaceRoot, maxBuffer: 10 * 1024 * 1024 }),
+        expect.objectContaining({ cwd: workspaceRoot, maxBuffer: 10 * 1024 * 1024 }),
+      ]);
     });
   });
 
@@ -585,6 +611,25 @@ describe('GitHistoryAnalyzer', () => {
   // =========================================================================
 
   describe('exclude patterns', () => {
+    it('does not exclude files when the default exclude pattern list is used', async () => {
+      mockGitCommands([
+        { match: 'rev-parse', stdout: 'main\n' },
+        { match: 'log', stdout: 'sha1|1|first|A|\n' },
+        {
+          match: 'ls-tree',
+          stdout: 'src/Stryker was here.ts\n',
+        },
+        { match: /show sha1:/, stdout: '' },
+      ]);
+
+      await analyzer.indexHistory(vi.fn(), liveAbortSignal());
+
+      const writeCallArgs = vi.mocked(fs.promises.writeFile).mock.calls[0];
+      const graph = JSON.parse(writeCallArgs[1] as string) as IGraphData;
+
+      expect(graph.nodes.map((node) => node.id)).toContain('src/Stryker was here.ts');
+    });
+
     it('should filter out excluded files during full commit analysis', async () => {
       const analyzerWithExcludes = new GitHistoryAnalyzer(
         context as never,
@@ -779,6 +824,20 @@ describe('GitHistoryAnalyzer', () => {
       expect(analyzer.hasCachedTimeline()).toBe(true);
     });
 
+    it('should sort plugin signatures before comparing them to cached timeline metadata', () => {
+      registry.list.mockReturnValue([
+        { plugin: { id: 'z.plugin', version: '2.0.0' } },
+        { plugin: { id: 'a.plugin', version: '1.0.0' } },
+      ]);
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set(
+        'codegraphy.timelinePluginSignature',
+        'a.plugin@1.0.0|z.plugin@2.0.0',
+      );
+
+      expect(analyzer.hasCachedTimeline()).toBe(true);
+    });
+
     it('should return false when cache version does not match', () => {
       context._stateStore.set('codegraphy.timelineCacheVersion', '0.9.0');
       expect(analyzer.hasCachedTimeline()).toBe(false);
@@ -808,6 +867,24 @@ describe('GitHistoryAnalyzer', () => {
       context._stateStore.set(
         'codegraphy.timelinePluginSignature',
         'test.plugin@1.0.0',
+      );
+      context._stateStore.set('codegraphy.timelineCommits', commits);
+
+      expect(analyzer.getCachedCommitList()).toEqual(commits);
+    });
+
+    it('should read cached commits when multiple plugin signatures are joined with pipes in sorted order', () => {
+      const commits = [
+        { sha: 'abc', timestamp: 1, message: 'init', author: 'A', parents: [] },
+      ];
+      registry.list.mockReturnValue([
+        { plugin: { id: 'z.plugin', version: '2.0.0' } },
+        { plugin: { id: 'a.plugin', version: '1.0.0' } },
+      ]);
+      context._stateStore.set('codegraphy.timelineCacheVersion', '1.2.0');
+      context._stateStore.set(
+        'codegraphy.timelinePluginSignature',
+        'a.plugin@1.0.0|z.plugin@2.0.0',
       );
       context._stateStore.set('codegraphy.timelineCommits', commits);
 
