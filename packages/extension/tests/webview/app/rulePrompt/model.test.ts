@@ -7,9 +7,11 @@ import {
 
 describe('app/rulePrompt/model', () => {
   it('derives title and color defaults from the prompt state', () => {
+    expect(getRulePromptTitle(null)).toBe('');
     expect(getRulePromptTitle({ kind: 'filter', pattern: 'README.md' })).toBe('Add Filter');
     expect(getRulePromptTitle({ kind: 'legend', pattern: '*.ts', color: '#123456', target: 'node' })).toBe('Add Legend Group');
     expect(getRulePromptColor(null)).toBe('#808080');
+    expect(getRulePromptColor({ kind: 'filter', pattern: 'README.md' })).toBe('#808080');
     expect(getRulePromptColor({ kind: 'legend', pattern: '*.ts', color: '#123456', target: 'node' })).toBe('#123456');
   });
 
