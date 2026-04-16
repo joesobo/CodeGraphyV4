@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { createGraphViewProviderPluginBroadcastMethods } from '../../../../src/extension/graphView/provider/pluginBroadcasts';
 import { createPluginSource } from './pluginSource';
+import * as controlsSendModule from '../../../../src/extension/graphView/controls/send';
 
 describe('graphView/provider/pluginBroadcasts', () => {
   it('forwards broadcasts through the provider message bridge', () => {
@@ -104,5 +105,91 @@ describe('graphView/provider/pluginBroadcasts', () => {
 
     expect(resolveWebviewAssetPath).toHaveBeenCalledWith('icon.svg', 'plugin.test');
     expect(registerBuiltInPluginRoots).toHaveBeenCalledOnce();
+  });
+
+  it('sends graph controls and plugin exporters through the provider bridge', () => {
+    const source = createPluginSource();
+    const sendGraphControlsUpdatedSpy = vi
+      .spyOn(controlsSendModule, 'sendGraphControlsUpdated')
+      .mockImplementation((_graphData, _analyzer, sendMessage) => {
+        sendMessage({
+          type: 'GRAPH_CONTROLS_UPDATED',
+          payload: {
+            nodeTypes: [],
+            edgeTypes: [],
+            nodeColors: {},
+            nodeVisibility: {},
+            edgeVisibility: {},
+            edgeColors: {},
+          },
+        });
+      });
+    const sendPluginExporters = vi.fn((_analyzer, sendMessage) => {
+      sendMessage({ type: 'PLUGIN_EXPORTERS_UPDATED', payload: { exporters: ['markdown'] } });
+    });
+    const methods = createGraphViewProviderPluginBroadcastMethods(
+      source,
+      {
+        sendPluginExporters,
+      },
+      1,
+    );
+
+    methods._sendGraphControls();
+    methods._sendPluginExporters();
+
+    expect(sendGraphControlsUpdatedSpy).toHaveBeenCalledWith(
+      source._graphData,
+      source._analyzer,
+      expect.any(Function),
+      expect.any(Object),
+    );
+    expect(sendPluginExporters).toHaveBeenCalledWith(source._analyzer, expect.any(Function));
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'GRAPH_CONTROLS_UPDATED',
+      payload: {
+        nodeTypes: [],
+        edgeTypes: [],
+        nodeColors: {},
+        nodeVisibility: {},
+        edgeVisibility: {},
+        edgeColors: {},
+      },
+    });
+    expect(source._sendMessage).toHaveBeenCalledWith({
+      type: 'PLUGIN_EXPORTERS_UPDATED',
+      payload: { exporters: ['markdown'] },
+    });
+  });
+
+  it('falls back to the timeline view when the main view is unavailable', () => {
+    const timelineView = {
+      webview: { cspSource: 'timeline' },
+      viewType: 'codegraphy.timelineView',
+      onDidDispose: vi.fn(),
+      visible: true,
+      onDidChangeVisibility: vi.fn(),
+      show: vi.fn(),
+    } as unknown as vscode.WebviewView;
+    const source = createPluginSource({
+      _view: undefined,
+      _timelineView: timelineView,
+    });
+    const sendGroupsUpdated = vi.fn();
+    const methods = createGraphViewProviderPluginBroadcastMethods(
+      source,
+      {
+        sendGroupsUpdated,
+      },
+      1,
+    );
+
+    methods._sendGroupsUpdated();
+
+    expect(sendGroupsUpdated).toHaveBeenCalledWith(
+      source._groups,
+      expect.objectContaining({ view: timelineView }),
+      expect.any(Function),
+    );
   });
 });
