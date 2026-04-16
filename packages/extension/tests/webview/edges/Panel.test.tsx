@@ -12,6 +12,18 @@ vi.mock('../../../src/webview/vscodeApi', () => ({
 }));
 
 describe('EdgesPanel', () => {
+  it('renders nothing while closed', () => {
+    graphStore.setState({
+      graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#111111', defaultVisible: true }],
+      edgeColors: {},
+      edgeVisibility: {},
+    });
+
+    const { container } = render(<EdgesPanel isOpen={false} onClose={vi.fn()} />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it('shows edge labels with their current colors', () => {
     graphStore.setState({
       graphEdgeTypes: [{ id: 'import', label: 'Imports', defaultColor: '#111111', defaultVisible: true }],
@@ -24,6 +36,7 @@ describe('EdgesPanel', () => {
     expect(screen.getByText('Imports')).toBeInTheDocument();
     expect(screen.queryByText('import')).not.toBeInTheDocument();
     expect(screen.getByRole('switch')).toHaveAttribute('data-state', 'checked');
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('h-6', 'w-6');
   });
 
   it('renders edge entries inside a divided list', () => {
@@ -57,5 +70,23 @@ describe('EdgesPanel', () => {
       type: 'UPDATE_EDGE_VISIBILITY',
       payload: { edgeKind: 'codegraphy:nests', visible: false },
     });
+  });
+
+  it('falls back to default edge colors and visibility and wires the close button', () => {
+    const onClose = vi.fn();
+    graphStore.setState({
+      graphEdgeTypes: [{ id: 'call', label: 'Calls', defaultColor: '#abcdef', defaultVisible: false }],
+      edgeColors: {},
+      edgeVisibility: {},
+    });
+
+    const { container } = render(<EdgesPanel isOpen={true} onClose={onClose} />);
+
+    expect(screen.getByRole('switch')).toHaveAttribute('data-state', 'unchecked');
+    expect(container.querySelector('[aria-hidden="true"]')).toHaveStyle({ backgroundColor: '#abcdef' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });
