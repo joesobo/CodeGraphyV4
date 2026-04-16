@@ -17,6 +17,7 @@ describe('graphView/provider/webview/sidebarViews', () => {
 
   it('drops missing views', () => {
     const timelineView = { id: 'timeline-view' } as unknown as vscode.WebviewView;
+    const graphView = { id: 'graph-view' } as unknown as vscode.WebviewView;
 
     expect(
       getGraphViewProviderSidebarViews({
@@ -24,6 +25,12 @@ describe('graphView/provider/webview/sidebarViews', () => {
         _timelineView: timelineView,
       }),
     ).toEqual([timelineView]);
+    expect(
+      getGraphViewProviderSidebarViews({
+        _view: graphView,
+        _timelineView: undefined,
+      }),
+    ).toEqual([graphView]);
     expect(getGraphViewProviderSidebarViews({ _view: undefined, _timelineView: undefined })).toEqual([]);
   });
 });

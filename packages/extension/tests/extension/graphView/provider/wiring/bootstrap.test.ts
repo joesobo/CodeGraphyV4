@@ -1,11 +1,16 @@
 import { describe, expect, it, vi } from 'vitest';
+import { savePluginExport } from '../../../../../src/extension/export/pluginSave';
 import {
   initializeGraphViewProviderServices,
   restoreGraphViewProviderState,
 } from '../../../../../src/extension/graphView/provider/wiring/bootstrap';
 
+vi.mock('../../../../../src/extension/export/pluginSave', () => ({
+  savePluginExport: vi.fn(),
+}));
+
 describe('graph view provider bootstrap helper', () => {
-  it('registers core views, configures analyzer services, and forwards decoration updates', () => {
+  it('registers core views, configures analyzer services, and forwards decoration updates', async () => {
     const graphData = {
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
       edges: [],
@@ -66,6 +71,9 @@ describe('graph view provider bootstrap helper', () => {
     registration.webviewSender({ type: 'PLUGIN_MESSAGE' });
     expect(sendMessage).toHaveBeenCalledWith({ type: 'PLUGIN_MESSAGE' });
 
+    await registration.exportSaver({ format: 'json' });
+    expect(savePluginExport).toHaveBeenCalledWith({ format: 'json' });
+
     decorationsChangedHandler?.();
     expect(onDecorationsChanged).toHaveBeenCalledOnce();
   });
@@ -109,6 +117,28 @@ describe('graph view provider bootstrap helper', () => {
       }),
     ).toEqual({
       depthMode: false,
+      dagMode: null,
+      nodeSizeMode: 'connections',
+    });
+  });
+
+  it('uses the default depth mode key when no custom depth key is provided', () => {
+    expect(
+      restoreGraphViewProviderState({
+        configuration: {
+          get<T>(key: string, defaultValue: T): T {
+            if (key === 'depthMode') {
+              return true as T;
+            }
+            return defaultValue;
+          },
+        },
+        dagModeKey: 'dag',
+        nodeSizeModeKey: 'size',
+        fallbackNodeSizeMode: 'connections',
+      }),
+    ).toEqual({
+      depthMode: true,
       dagMode: null,
       nodeSizeMode: 'connections',
     });
