@@ -14,9 +14,7 @@ export function getConnectionTargetId(
     return fileConnections.has(targetRelative) ? targetRelative : null;
   }
 
-  if (!isExternalPackageSpecifier(connection.specifier)) {
-    return null;
-  }
-
-  return getExternalPackageNodeId(connection.specifier);
+  return isExternalPackageSpecifier(connection.specifier)
+    ? getExternalPackageNodeId(connection.specifier)
+    : null;
 }

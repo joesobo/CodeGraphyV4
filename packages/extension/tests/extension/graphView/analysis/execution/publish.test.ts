@@ -25,6 +25,14 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendDepthState).toHaveBeenCalledOnce();
   });
 
+  it('defaults empty graph publication to a missing index', () => {
+    const { handlers } = createExecutionHandlers();
+
+    publishEmptyGraph(handlers);
+
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(false);
+  });
+
   it('publishes the transformed graph and notifies post-analyze hooks', () => {
     const rawGraphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
@@ -57,6 +65,21 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
   });
 
+  it('publishes the transformed graph without post-analyze hooks when no analyzer is available', () => {
+    const rawGraphData: IGraphData = {
+      nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
+      edges: [],
+    };
+    const state = createExecutionState();
+    const { handlers, getGraphData } = createExecutionHandlers();
+
+    expect(() => publishAnalyzedGraph(state, handlers, rawGraphData, false)).not.toThrow();
+
+    expect(handlers.sendGraphIndexStatusUpdated).toHaveBeenCalledWith(false);
+    expect(handlers.sendGraphDataUpdated).toHaveBeenCalledWith(getGraphData());
+    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith(getGraphData());
+  });
+
   it('publishes an empty graph fallback with plugin state updates after failures', () => {
     const { handlers } = createExecutionHandlers({
       sendPluginExporters: vi.fn(),
@@ -69,6 +92,15 @@ describe('graph view analysis execution publish', () => {
     expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
     expect(handlers.sendPluginExporters).toHaveBeenCalledOnce();
     expect(handlers.sendPluginToolbarActions).toHaveBeenCalledOnce();
+    expect(handlers.markWorkspaceReady).toHaveBeenCalledWith({ nodes: [], edges: [] });
+  });
+
+  it('publishes an empty graph fallback when optional plugin broadcasts are absent', () => {
+    const { handlers } = createExecutionHandlers();
+
+    expect(() => publishAnalysisFailure(handlers)).not.toThrow();
+
+    expect(handlers.sendPluginStatuses).toHaveBeenCalledOnce();
     expect(handlers.markWorkspaceReady).toHaveBeenCalledWith({ nodes: [], edges: [] });
   });
 });
