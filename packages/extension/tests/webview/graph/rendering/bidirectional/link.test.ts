@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { EdgeDecorationPayload } from '../../../../src/shared/plugins/decorations';
-import type { DirectionMode } from '../../../../src/shared/settings/modes';
-import type { ThemeKind } from '../../../../src/webview/theme/useTheme';
-import type { FGLink } from '../../../../src/webview/components/graph/model/build';
-import { renderBidirectionalLink } from '../../../../src/webview/components/graph/rendering/bidirectional/link';
+import type { EdgeDecorationPayload } from '../../../../../src/shared/plugins/decorations';
+import type { DirectionMode } from '../../../../../src/shared/settings/modes';
+import type { ThemeKind } from '../../../../../src/webview/theme/useTheme';
+import type { FGLink } from '../../../../../src/webview/components/graph/model/build';
+import { renderBidirectionalLink } from '../../../../../src/webview/components/graph/rendering/bidirectional/link';
 
 interface ContextOperation {
   fillStyle: string;
@@ -238,6 +238,54 @@ describe('graph/rendering/bidirectional/link', () => {
     expect(ctx.lineTo).toHaveBeenNthCalledWith(5, 22, 13.75);
     expect(ctx.lineTo).toHaveBeenNthCalledWith(6, 12.4, 10);
     expect(ctx.lineTo).toHaveBeenNthCalledWith(7, 22, 6.25);
+  });
+
+  it('scales the stroke width by the global scale', () => {
+    const { ctx, operations } = createContext();
+
+    renderBidirectionalLink(createDependencies(), createLink(), ctx, 4);
+
+    expect(operations).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        kind: 'stroke',
+        lineWidth: 0.5,
+      }),
+    ]));
+  });
+
+  it('points the second arrow back toward the source on a diagonal link', () => {
+    const { ctx } = createContext();
+
+    renderBidirectionalLink(
+      createDependencies(),
+      createLink({
+        source: { id: 'src/app.ts', x: 0, y: 0, size: 10 } as unknown as FGLink['source'],
+        target: { id: 'src/utils.ts', x: 80, y: 40, size: 10 } as unknown as FGLink['target'],
+      }),
+      ctx,
+      1,
+    );
+
+    const reverseArrowStart = (ctx.moveTo as ReturnType<typeof vi.fn>).mock.calls[2];
+    const reverseArrowPoint = (ctx.lineTo as ReturnType<typeof vi.fn>).mock.calls[5];
+
+    expect(reverseArrowStart[0]).toBeLessThan(reverseArrowPoint[0]);
+    expect(reverseArrowStart[1]).toBeLessThan(reverseArrowPoint[1]);
+  });
+
+  it('skips drawing when the link is not bidirectional', () => {
+    const { ctx } = createContext();
+
+    renderBidirectionalLink(
+      createDependencies(),
+      createLink({ bidirectional: false }),
+      ctx,
+      1,
+    );
+
+    expect(ctx.save).not.toHaveBeenCalled();
+    expect(ctx.stroke).not.toHaveBeenCalled();
+    expect(ctx.fill).not.toHaveBeenCalled();
   });
 
   it('skips bidirectional canvas drawing when direction mode is not arrows', () => {
