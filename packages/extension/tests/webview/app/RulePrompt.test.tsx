@@ -4,6 +4,19 @@ import { describe, expect, it, vi } from 'vitest';
 import { RulePrompt } from '../../../src/webview/app/RulePrompt';
 
 describe('RulePrompt', () => {
+  it('renders nothing when no prompt state is active', () => {
+    const { container } = render(
+      <RulePrompt
+        state={null}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    expect(container).toBeEmptyDOMElement();
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument();
+  });
+
   it('submits edited filter patterns', () => {
     const onSubmit = vi.fn();
 
@@ -91,5 +104,33 @@ describe('RulePrompt', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Close' }));
 
     expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
+  it('resets the dialog fields when the prompt switches from legend to filter mode', () => {
+    const { rerender } = render(
+      <RulePrompt
+        state={{ kind: 'legend', pattern: 'src/**/*.ts', color: '#123456', target: 'edge' }}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    fireEvent.change(screen.getByLabelText('Add Legend Group pattern'), {
+      target: { value: 'src/**/*.tsx' },
+    });
+    fireEvent.change(screen.getByLabelText('Legend rule color'), {
+      target: { value: '#3178c6' },
+    });
+
+    rerender(
+      <RulePrompt
+        state={{ kind: 'filter', pattern: 'README.md' }}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByLabelText('Add Filter pattern')).toHaveValue('README.md');
+    expect(screen.queryByLabelText('Legend rule color')).not.toBeInTheDocument();
   });
 });
