@@ -1,10 +1,6 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-
-function isWithinRoot(candidatePath: string, rootPath: string): boolean {
-  const relativePath = path.relative(rootPath, candidatePath);
-  return relativePath === '' || (!relativePath.startsWith('..') && !path.isAbsolute(relativePath));
-}
+import { shouldStopProjectRootWalk } from './bounds';
 
 export function findNearestProjectRoot(
   filePath: string,
@@ -21,12 +17,8 @@ export function findNearestProjectRoot(
       }
     }
 
-    if (currentPath === normalizedWorkspaceRoot) {
-      return null;
-    }
-
     const parentPath = path.dirname(currentPath);
-    if (parentPath === currentPath || !isWithinRoot(parentPath, normalizedWorkspaceRoot)) {
+    if (shouldStopProjectRootWalk(parentPath, normalizedWorkspaceRoot)) {
       return null;
     }
 
