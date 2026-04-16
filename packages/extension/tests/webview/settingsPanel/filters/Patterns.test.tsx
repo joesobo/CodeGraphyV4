@@ -67,6 +67,26 @@ describe('Patterns', () => {
     expect(onDelete).toHaveBeenCalledWith('**/*.tmp');
   });
 
+  it('does not add a pattern for non-enter key presses in the draft input', () => {
+    const onAdd = vi.fn();
+
+    render(
+      <Patterns
+        filterPatterns={[]}
+        newFilterPattern="**/*.cache"
+        onAdd={onAdd}
+        onDelete={vi.fn()}
+        onEdit={vi.fn()}
+        onPatternChange={vi.fn()}
+        pluginFilterPatterns={[]}
+      />,
+    );
+
+    fireEvent.keyDown(screen.getByPlaceholderText('*.png'), { key: 'Escape' });
+
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
   it('allows custom patterns to be edited inline', () => {
     const onEdit = vi.fn();
 
@@ -87,5 +107,50 @@ describe('Patterns', () => {
     fireEvent.blur(input);
 
     expect(onEdit).toHaveBeenCalledWith('**/*.tmp', '**/*.cache');
+  });
+
+  it('edits a custom pattern on enter and blurs the inline input', () => {
+    const onEdit = vi.fn();
+
+    render(
+      <Patterns
+        filterPatterns={['**/*.tmp']}
+        newFilterPattern=""
+        onAdd={vi.fn()}
+        onDelete={vi.fn()}
+        onEdit={onEdit}
+        onPatternChange={vi.fn()}
+        pluginFilterPatterns={[]}
+      />,
+    );
+
+    const input = screen.getByLabelText('Edit filter pattern **/*.tmp');
+    const blurSpy = vi.spyOn(input, 'blur');
+    fireEvent.change(input, { target: { value: '**/*.cache' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onEdit).toHaveBeenCalledWith('**/*.tmp', '**/*.cache');
+    expect(blurSpy).toHaveBeenCalledOnce();
+  });
+
+  it('does not edit a custom pattern for non-enter key presses', () => {
+    const onEdit = vi.fn();
+
+    render(
+      <Patterns
+        filterPatterns={['**/*.tmp']}
+        newFilterPattern=""
+        onAdd={vi.fn()}
+        onDelete={vi.fn()}
+        onEdit={onEdit}
+        onPatternChange={vi.fn()}
+        pluginFilterPatterns={[]}
+      />,
+    );
+
+    const input = screen.getByLabelText('Edit filter pattern **/*.tmp');
+    fireEvent.keyDown(input, { key: 'Escape' });
+
+    expect(onEdit).not.toHaveBeenCalled();
   });
 });
