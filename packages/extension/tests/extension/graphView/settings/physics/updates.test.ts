@@ -15,6 +15,17 @@ describe('graph view physics update helpers', () => {
     expect(update).toHaveBeenCalledWith('physics.repelForce', 25);
   });
 
+  it('updates a single physics setting at the requested configuration target', async () => {
+    const update = vi.fn(() => Promise.resolve());
+
+    await updateGraphViewPhysicsSetting('damping', 0.35, {
+      getConfiguration: () => ({ update }),
+      getConfigTarget: () => 'workspace-folder-target',
+    });
+
+    expect(update).toHaveBeenCalledWith('physics.damping', 0.35, 'workspace-folder-target');
+  });
+
   it('resets every persisted physics setting back to the config default', async () => {
     const update = vi.fn(() => Promise.resolve());
 
@@ -28,6 +39,23 @@ describe('graph view physics update helpers', () => {
       ['physics.linkForce', undefined],
       ['physics.damping', undefined],
       ['physics.centerForce', undefined],
+    ]);
+  });
+
+  it('resets every persisted physics setting at the requested configuration target', async () => {
+    const update = vi.fn(() => Promise.resolve());
+
+    await resetGraphViewPhysicsSettings({
+      getConfiguration: () => ({ update }),
+      getConfigTarget: () => 'workspace-folder-target',
+    });
+
+    expect(update.mock.calls).toEqual([
+      ['physics.repelForce', undefined, 'workspace-folder-target'],
+      ['physics.linkDistance', undefined, 'workspace-folder-target'],
+      ['physics.linkForce', undefined, 'workspace-folder-target'],
+      ['physics.damping', undefined, 'workspace-folder-target'],
+      ['physics.centerForce', undefined, 'workspace-folder-target'],
     ]);
   });
 });
