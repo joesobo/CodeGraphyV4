@@ -14,15 +14,21 @@ import {
   refreshIncrementalGraphViewRawData,
 } from './refresh';
 
-function shouldDiscoverGraph(state: GraphViewAnalysisExecutionState): boolean {
-  return state.mode === 'load' && !state.analyzer?.hasIndex();
+type GraphViewAnalyzer = NonNullable<GraphViewAnalysisExecutionState['analyzer']>;
+
+function shouldDiscoverGraph(
+  mode: GraphViewAnalysisExecutionState['mode'],
+  analyzer: GraphViewAnalyzer,
+): boolean {
+  return mode === 'load' && !analyzer.hasIndex();
 }
 
 async function discoverGraphViewRawData(
   signal: AbortSignal,
   state: GraphViewAnalysisExecutionState,
+  analyzer: GraphViewAnalyzer,
 ): Promise<IGraphData> {
-  return (await state.analyzer?.discoverGraph(
+  return (await analyzer.discoverGraph?.(
     state.filterPatterns,
     state.disabledPlugins,
     signal,
@@ -32,9 +38,10 @@ async function discoverGraphViewRawData(
 async function analyzeGraphViewRawData(
   signal: AbortSignal,
   state: GraphViewAnalysisExecutionState,
+  analyzer: GraphViewAnalyzer,
   forwardProgress: (progress: GraphViewIndexingProgress) => void,
 ): Promise<IGraphData> {
-  return (await state.analyzer?.analyze(
+  return (await analyzer.analyze?.(
     state.filterPatterns,
     state.disabledPlugins,
     signal,
@@ -47,11 +54,12 @@ export async function loadGraphViewRawData(
   state: GraphViewAnalysisExecutionState,
   handlers: GraphViewAnalysisExecutionHandlers,
 ): Promise<{ rawGraphData: IGraphData; shouldDiscover: boolean }> {
-  if (!state.analyzer) {
+  const analyzer = state.analyzer;
+  if (!analyzer) {
     return { rawGraphData: EMPTY_GRAPH_DATA, shouldDiscover: false };
   }
 
-  const shouldDiscover = shouldDiscoverGraph(state);
+  const shouldDiscover = shouldDiscoverGraph(state.mode, analyzer);
   const forwardProgress = createGraphViewAnalysisProgressForwarder(state.mode, handlers);
 
   if (!shouldDiscover) {
@@ -60,7 +68,7 @@ export async function loadGraphViewRawData(
 
   if (shouldDiscover) {
     return {
-      rawGraphData: await discoverGraphViewRawData(signal, state),
+      rawGraphData: await discoverGraphViewRawData(signal, state, analyzer),
       shouldDiscover,
     };
   }
@@ -80,7 +88,7 @@ export async function loadGraphViewRawData(
   }
 
   return {
-    rawGraphData: await analyzeGraphViewRawData(signal, state, forwardProgress),
+    rawGraphData: await analyzeGraphViewRawData(signal, state, analyzer, forwardProgress),
     shouldDiscover,
   };
 }
