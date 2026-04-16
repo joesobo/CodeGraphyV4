@@ -151,6 +151,41 @@ describe('graphView/provider/timeline cache', () => {
     expect(source._currentCommitSha).toBe('sha-current');
   });
 
+  it('jumps when cached playback stays active but replays a different commit', async () => {
+    const gitAnalyzer = { kind: 'git-analyzer' } as never;
+    const source = {
+      _context: { storageUri: { fsPath: '/storage' } } as never,
+      _analyzer: undefined,
+      _analyzerInitialized: true,
+      _analyzerInitPromise: undefined,
+      _gitAnalyzer: gitAnalyzer,
+      _indexingController: undefined,
+      _filterPatterns: ['dist/**'],
+      _timelineActive: true,
+      _currentCommitSha: 'sha-old',
+      _disabledPlugins: new Set<string>(),
+      _rawGraphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _graphData: { nodes: [], edges: [] } satisfies IGraphData,
+      _applyViewTransform: vi.fn(),
+      _sendMessage: vi.fn(),
+      _openFile: vi.fn(async () => undefined),
+      _installedPluginActivationPromise: Promise.resolve(),
+    };
+    const jumpToCommit = vi.fn(async () => undefined);
+
+    await sendGraphViewProviderCachedTimeline(source as never, {
+      sendCachedTimeline: vi.fn((_gitAnalyzer, state) => {
+        state.timelineActive = true;
+        state.currentCommitSha = 'sha-new';
+      }),
+      jumpToCommit,
+    } as never);
+
+    expect(jumpToCommit).toHaveBeenCalledWith(source, 'sha-new');
+    expect(source._timelineActive).toBe(true);
+    expect(source._currentCommitSha).toBe('sha-new');
+  });
+
   it('does not jump when cached playback clears the commit sha', async () => {
     const gitAnalyzer = { kind: 'git-analyzer' } as never;
     const source = {
