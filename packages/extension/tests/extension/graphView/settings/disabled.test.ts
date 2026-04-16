@@ -21,4 +21,14 @@ describe('graphView/settings/disabled', () => {
     expect(state.disabledPlugins).toEqual(new Set(['plugin.current']));
     expect(state.changed).toBe(true);
   });
+
+  it('tolerates a missing inspection result', () => {
+    const state = loadGraphViewDisabledState(new Set(), {
+      configuredDisabledPlugins: undefined,
+      disabledPluginsInspect: undefined,
+    });
+
+    expect(state.disabledPlugins).toEqual(new Set());
+    expect(state.changed).toBe(false);
+  });
 });
