@@ -1,8 +1,7 @@
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useTheme } from '../theme/useTheme';
 import { usePluginManager } from '../pluginRuntime/useManager';
 import { useFilteredGraph } from '../search/useFilteredGraph';
-import type { SearchOptions } from '../components/searchBar/field/model';
 import { getNoDataHint } from './messages';
 import { setupMessageListener } from './messageListener';
 import { LoadingState, EmptyState } from './states';
@@ -70,10 +69,6 @@ export default function App(): React.ReactElement {
     activeFilterPatterns,
   );
 
-  const handleSearchOptionsChange = useCallback((newOptions: SearchOptions) => {
-    setSearchOptions(newOptions);
-  }, [setSearchOptions]);
-
   const {
     closeRulePrompt,
     openFilterPrompt,
@@ -111,7 +106,7 @@ export default function App(): React.ReactElement {
         activeFilePath={activeFilePath}
         regexError={regexError}
         onSearchQueryChange={setSearchQuery}
-        onSearchOptionsChange={handleSearchOptionsChange}
+        onSearchOptionsChange={setSearchOptions}
       />
       <div className="flex-1 min-h-0 relative">
         <GraphSurface
@@ -130,7 +125,7 @@ export default function App(): React.ReactElement {
         <ToolbarRail pluginHost={pluginHost} />
         <PanelStack
           activePanel={activePanel}
-          hasGraphNodes={graphData.nodes.length > 0}
+          hasGraphNodes={Boolean(graphData.nodes.length)}
           pluginHost={pluginHost}
           onClosePanel={closeActivePanel}
         />

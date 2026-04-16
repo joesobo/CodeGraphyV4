@@ -112,6 +112,42 @@ describe('buildSymbolsExportData', () => {
       'src/lib.ts',
     ]);
   });
+
+  it('sorts files and exported symbols by file path instead of map insertion order', () => {
+    const exportData = buildSymbolsExportData(new Map([
+      ['src/lib.ts', {
+        filePath: 'src/lib.ts',
+        symbols: [
+          {
+            id: 'symbol:src/lib.ts:boot',
+            name: 'boot',
+            kind: 'function',
+            filePath: 'src/lib.ts',
+          },
+        ],
+      }],
+      ['src/app.ts', {
+        filePath: 'src/app.ts',
+        symbols: [
+          {
+            id: 'symbol:src/app.ts:activate',
+            name: 'activate',
+            kind: 'function',
+            filePath: 'src/app.ts',
+          },
+        ],
+      }],
+    ]));
+
+    expect(exportData.files.map((file) => file.filePath)).toEqual([
+      'src/app.ts',
+      'src/lib.ts',
+    ]);
+    expect(exportData.symbols.map((symbol) => symbol.filePath)).toEqual([
+      'src/app.ts',
+      'src/lib.ts',
+    ]);
+  });
 });
 
 describe('buildSymbolsExportDataFromSnapshot', () => {
