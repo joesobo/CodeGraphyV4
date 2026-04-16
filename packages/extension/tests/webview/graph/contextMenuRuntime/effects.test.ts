@@ -90,4 +90,25 @@ describe('graph/contextMenuRuntime/effects', () => {
       target: 'node',
     });
   });
+
+  it('tolerates missing prompt callbacks for filter and legend actions', () => {
+    const dependencies = createDependencies({
+      openFilterPatternPrompt: undefined,
+      openLegendRulePrompt: undefined,
+    });
+    const runtime = createContextMenuEffectRuntime(dependencies);
+
+    expect(() =>
+      runtime.handleMenuAction(
+        { kind: 'builtin', action: 'addToFilter' },
+        ['README.md'],
+      ),
+    ).not.toThrow();
+    expect(() =>
+      runtime.handleMenuAction(
+        { kind: 'builtin', action: 'addNodeLegend' },
+        ['src/Helper.java'],
+      ),
+    ).not.toThrow();
+  });
 });

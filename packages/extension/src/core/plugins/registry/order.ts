@@ -4,24 +4,18 @@ export function buildReorderedPluginMap(
   plugins: Map<string, IPluginInfoV2>,
   pluginIds: string[],
 ): Map<string, IPluginInfoV2> {
-  const orderedIds = new Set<string>();
   const reorderedPlugins = new Map<string, IPluginInfoV2>();
 
   for (const pluginId of pluginIds) {
     const info = plugins.get(pluginId);
-    if (!info || orderedIds.has(pluginId)) {
+    if (!info) {
       continue;
     }
 
-    orderedIds.add(pluginId);
     reorderedPlugins.set(pluginId, info);
   }
 
   for (const [pluginId, info] of plugins) {
-    if (orderedIds.has(pluginId)) {
-      continue;
-    }
-
     reorderedPlugins.set(pluginId, info);
   }
 
