@@ -124,4 +124,41 @@ describe('pipeline/analysis/files', () => {
       },
     );
   });
+
+  it('falls back to an empty relation set when the registry returns no analysis result', async () => {
+    const source = {
+      _cache: { files: {}, version: '1' },
+      _discovery: {
+        readContent: vi.fn(async () => "import './utils'"),
+      },
+      _getFileStat: vi.fn(async () => ({ mtime: 10, size: 5 })),
+      _registry: {
+        analyzeFileResult: vi.fn(async (): Promise<IFileAnalysisResult | null> => null),
+      },
+    };
+    const analyzeWorkspaceFilesSpy = vi
+      .spyOn(workspaceFileAnalysisModule, 'analyzeWorkspaceFiles')
+      .mockResolvedValue({
+        cacheHits: 0,
+        cacheMisses: 1,
+        fileAnalysis: new Map(),
+        fileConnections: new Map(),
+      });
+
+    await analyzeWorkspacePipelineSourceFiles(
+      source as never,
+      [createDiscoveredFile('src/index.ts')],
+      '/workspace',
+      vi.fn(),
+    );
+
+    const options = analyzeWorkspaceFilesSpy.mock.calls[0][0];
+    await expect(
+      options.analyzeFile('/workspace/src/index.ts', "import './utils'", '/workspace'),
+    ).resolves.toEqual({
+      filePath: '/workspace/src/index.ts',
+      relations: [],
+    });
+    expect(options.emitFileProcessed).toBeUndefined();
+  });
 });
