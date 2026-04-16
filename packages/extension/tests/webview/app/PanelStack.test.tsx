@@ -3,8 +3,12 @@ import { describe, expect, it, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PanelStack } from '../../../src/webview/app/PanelStack';
 
+const slotHostSpy = vi.fn();
 vi.mock('../../../src/webview/pluginHost/slotHost/view', () => ({
-  SlotHost: () => <div data-testid="node-details-slot" />,
+  SlotHost: (props: Record<string, unknown>) => {
+    slotHostSpy(props);
+    return <div data-testid="node-details-slot" />;
+  },
 }));
 
 vi.mock('../../../src/webview/components/settingsPanel/Drawer', () => ({
@@ -37,11 +41,12 @@ vi.mock('../../../src/webview/components/graphCornerControls/view', () => ({
 
 describe('app/PanelStack', () => {
   it('renders the requested panel and keeps the node details slot mounted', () => {
+    const pluginHost = { kind: 'host' };
     render(
       <PanelStack
         activePanel="plugins"
         hasGraphNodes
-        pluginHost={undefined as never}
+        pluginHost={pluginHost as never}
         onClosePanel={() => {}}
       />,
     );
@@ -49,6 +54,12 @@ describe('app/PanelStack', () => {
     expect(screen.getByTestId('node-details-slot')).toBeInTheDocument();
     expect(screen.getByTestId('plugins-panel')).toBeInTheDocument();
     expect(screen.queryByTestId('graph-corner-controls')).not.toBeInTheDocument();
+    expect(slotHostSpy).toHaveBeenCalledWith(expect.objectContaining({
+      pluginHost,
+      slot: 'node-details',
+      'data-testid': 'node-details-slot',
+      className: expect.stringContaining('bg-popover/95'),
+    }));
   });
 
   it('shows corner controls only when no right panel is open and nodes exist', () => {
@@ -72,6 +83,26 @@ describe('app/PanelStack', () => {
       />,
     );
 
+    expect(screen.queryByTestId('graph-corner-controls')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['settings', 'settings-panel'],
+    ['export', 'export-panel'],
+    ['nodes', 'nodes-panel'],
+    ['edges', 'edges-panel'],
+    ['legends', 'legends-panel'],
+  ])('renders the %s panel when it is active', (activePanel, testId) => {
+    render(
+      <PanelStack
+        activePanel={activePanel}
+        hasGraphNodes
+        pluginHost={undefined as never}
+        onClosePanel={() => {}}
+      />,
+    );
+
+    expect(screen.getByTestId(testId)).toBeInTheDocument();
     expect(screen.queryByTestId('graph-corner-controls')).not.toBeInTheDocument();
   });
 });
