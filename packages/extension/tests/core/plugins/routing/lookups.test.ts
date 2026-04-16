@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { IPlugin } from '../../../../src/core/plugins/types/contracts';
 import {
   getPluginForFile,
+  getPluginsForFile,
   getPluginsForExtension,
   getSupportedExtensions,
   supportsFile,
@@ -55,5 +56,27 @@ describe('routing/lookups', () => {
 
     expect(supportsFile('notes/todo.txt', extensionMap)).toBe(true);
     expect(getSupportedExtensions(extensionMap)).toEqual(['*']);
+  });
+
+  it('returns undefined or an empty list and reports unsupported files when no matching plugin ids exist', () => {
+    const typed = makePlugin('typed', ['.ts']);
+    const { pluginsMap, extensionMap } = buildMaps([typed]);
+
+    expect(getPluginForFile('README.md', pluginsMap, extensionMap)).toBeUndefined();
+    expect(getPluginsForExtension('.md', pluginsMap, extensionMap)).toEqual([]);
+    expect(getPluginsForFile('README.md', pluginsMap, extensionMap)).toEqual([]);
+    expect(supportsFile('README.md', extensionMap)).toBe(false);
+  });
+
+  it('skips stale plugin ids and normalizes extension lookups without a leading dot', () => {
+    const typed = makePlugin('typed', ['ts']);
+    const fallback = makePlugin('wildcard', ['*']);
+    const { pluginsMap, extensionMap } = buildMaps([typed, fallback]);
+    extensionMap.set('.ts', ['missing-plugin', 'typed']);
+    extensionMap.set('*', ['wildcard']);
+
+    expect(getPluginForFile('src/index.ts', pluginsMap, extensionMap)).toBe(typed);
+    expect(getPluginsForExtension('ts', pluginsMap, extensionMap)).toEqual([typed, fallback]);
+    expect(getPluginsForFile('src/index.ts', pluginsMap, extensionMap)).toEqual([typed, fallback]);
   });
 });
