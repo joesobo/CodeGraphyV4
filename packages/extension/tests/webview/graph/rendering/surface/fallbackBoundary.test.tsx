@@ -12,6 +12,10 @@ function Crash({ shouldThrow }: { shouldThrow: boolean }) {
 }
 
 describe('webview/graph/rendering/surface/fallbackBoundary', () => {
+  it('marks the boundary as failed when React reports an error', () => {
+    expect(SurfaceFallbackBoundary.getDerivedStateFromError()).toEqual({ hasError: true });
+  });
+
   it('renders children while no surface error has occurred', () => {
     render(
       <SurfaceFallbackBoundary fallback={<div>fallback</div>} resetKey="a">
@@ -56,5 +60,43 @@ describe('webview/graph/rendering/surface/fallbackBoundary', () => {
 
     expect(screen.getByText('graph surface')).toBeInTheDocument();
     consoleError.mockRestore();
+  });
+
+  it('does not reset the boundary when the reset key stays the same', () => {
+    const boundary = new SurfaceFallbackBoundary({
+      children: <div>graph surface</div>,
+      fallback: <div>fallback</div>,
+      resetKey: 'a',
+    });
+    boundary.state = { hasError: true };
+    const setState = vi.fn();
+    boundary.setState = setState as never;
+
+    boundary.componentDidUpdate({
+      children: <div>graph surface</div>,
+      fallback: <div>fallback</div>,
+      resetKey: 'a',
+    });
+
+    expect(setState).not.toHaveBeenCalled();
+  });
+
+  it('does not reset when the boundary is healthy even if the reset key changes', () => {
+    const boundary = new SurfaceFallbackBoundary({
+      children: <div>graph surface</div>,
+      fallback: <div>fallback</div>,
+      resetKey: 'b',
+    });
+    boundary.state = { hasError: false };
+    const setState = vi.fn();
+    boundary.setState = setState as never;
+
+    boundary.componentDidUpdate({
+      children: <div>graph surface</div>,
+      fallback: <div>fallback</div>,
+      resetKey: 'a',
+    });
+
+    expect(setState).not.toHaveBeenCalled();
   });
 });
