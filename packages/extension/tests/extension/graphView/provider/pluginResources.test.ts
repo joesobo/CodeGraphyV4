@@ -63,7 +63,8 @@ describe('graphView/provider/pluginResources', () => {
       _userGroups: [],
       _hiddenPluginGroupIds: new Set<string>(),
       _groups: [],
-      _view: { webview: { options: {} } } as never,
+      _view: undefined,
+      _timelineView: { webview: { options: {} } } as never,
       _panels: [{ webview: { options: {} } }] as never,
     };
     const methods = createGraphViewProviderPluginResourceMethods(source as never, {
@@ -88,11 +89,109 @@ describe('graphView/provider/pluginResources', () => {
       'icon.svg',
       source._extensionUri,
       source._pluginExtensionUris,
-      source._view,
+      source._timelineView,
       source._panels,
       'plugin.test',
     );
-    expect(getWebviewResourceRoots).toHaveBeenCalledTimes(2);
+    expect(getWebviewResourceRoots).toHaveBeenCalledTimes(3);
+    expect(refreshWebviewResourceRoots).toHaveBeenCalledWith(
+      source._view,
+      source._panels,
+      [vscode.Uri.file('/workspace')],
+    );
+    expect(refreshWebviewResourceRoots).toHaveBeenCalledWith(
+      source._timelineView,
+      [],
+      [vscode.Uri.file('/workspace')],
+    );
+  });
+
+  it('returns built-in and plugin default groups through the dependency helpers', () => {
+    const builtInGroups = [{ id: 'built-in', pattern: '*.md', color: '#000' }] satisfies IGroup[];
+    const pluginGroups = [{ id: 'plugin', pattern: '*.gd', color: '#090' }] satisfies IGroup[];
+    const methods = createGraphViewProviderPluginResourceMethods({
+      _extensionUri: vscode.Uri.file('/extension'),
+      _pluginExtensionUris: new Map<string, vscode.Uri>(),
+      _analyzer: { registry: { list: vi.fn(() => []) } } as never,
+      _disabledPlugins: new Set(['plugin.disabled']),
+      _userGroups: [],
+      _groups: [],
+      _panels: [],
+    } as never, {
+      registerBuiltInPluginRoots: vi.fn(),
+      getPluginDefaultGroups: vi.fn(() => pluginGroups),
+      getBuiltInDefaultGroups: vi.fn(() => builtInGroups),
+      buildMergedGroups: vi.fn(() => []),
+      resolvePluginAssetPath: vi.fn(() => ''),
+      getWebviewResourceRoots: vi.fn(() => []),
+      refreshWebviewResourceRoots: vi.fn(),
+      normalizeExtensionUri: vi.fn(),
+      getDefaultLegendVisibility: vi.fn(() => ({})),
+      getLegendOrder: vi.fn(() => []),
+      getWorkspaceFolders: vi.fn(() => []),
+    });
+
+    expect(methods._getBuiltInDefaultGroups()).toEqual(builtInGroups);
+    expect(methods._getPluginDefaultGroups()).toEqual(pluginGroups);
+  });
+
+  it('passes undefined external uris through normalization unchanged', () => {
+    const normalizeExtensionUri = vi.fn(uri => uri);
+    const methods = createGraphViewProviderPluginResourceMethods({
+      _extensionUri: vscode.Uri.file('/extension'),
+      _pluginExtensionUris: new Map<string, vscode.Uri>(),
+      _analyzer: undefined,
+      _disabledPlugins: new Set<string>(),
+      _userGroups: [],
+      _groups: [],
+      _panels: [],
+    } as never, {
+      registerBuiltInPluginRoots: vi.fn(),
+      getPluginDefaultGroups: vi.fn(() => []),
+      getBuiltInDefaultGroups: vi.fn(() => []),
+      buildMergedGroups: vi.fn(() => []),
+      resolvePluginAssetPath: vi.fn(() => ''),
+      getWebviewResourceRoots: vi.fn(() => []),
+      refreshWebviewResourceRoots: vi.fn(),
+      normalizeExtensionUri,
+      getDefaultLegendVisibility: vi.fn(() => ({})),
+      getLegendOrder: vi.fn(() => []),
+      getWorkspaceFolders: vi.fn(() => []),
+    });
+
+    expect(methods._normalizeExternalExtensionUri(undefined)).toBeUndefined();
+    expect(normalizeExtensionUri).toHaveBeenCalledWith(undefined);
+  });
+
+  it('keeps the primary webview refresh when there is no timeline view', () => {
+    const refreshWebviewResourceRoots = vi.fn();
+    const source = {
+      _extensionUri: vscode.Uri.file('/extension'),
+      _pluginExtensionUris: new Map<string, vscode.Uri>(),
+      _analyzer: undefined,
+      _disabledPlugins: new Set<string>(),
+      _userGroups: [],
+      _groups: [],
+      _view: { webview: { options: {} } } as never,
+      _panels: [{ webview: { options: {} } }] as never,
+    };
+    const methods = createGraphViewProviderPluginResourceMethods(source as never, {
+      registerBuiltInPluginRoots: vi.fn(),
+      getPluginDefaultGroups: vi.fn(() => []),
+      getBuiltInDefaultGroups: vi.fn(() => []),
+      buildMergedGroups: vi.fn(() => []),
+      resolvePluginAssetPath: vi.fn(() => ''),
+      getWebviewResourceRoots: vi.fn(() => [vscode.Uri.file('/workspace')]),
+      refreshWebviewResourceRoots,
+      normalizeExtensionUri: vi.fn(),
+      getDefaultLegendVisibility: vi.fn(() => ({})),
+      getLegendOrder: vi.fn(() => []),
+      getWorkspaceFolders: vi.fn(() => []),
+    });
+
+    methods._refreshWebviewResourceRoots();
+
+    expect(refreshWebviewResourceRoots).toHaveBeenCalledTimes(1);
     expect(refreshWebviewResourceRoots).toHaveBeenCalledWith(
       source._view,
       source._panels,
