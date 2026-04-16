@@ -56,6 +56,7 @@ function createDependencies() {
     getWorkspaceRoot: vi.fn<() => string | undefined>(() => '/workspace'),
     logInfo: vi.fn(),
     saveCache: vi.fn(),
+    sendProgress: vi.fn(),
     showWarningMessage: vi.fn(),
   };
 }
@@ -114,10 +115,24 @@ describe('pipeline/analysis/analyze', () => {
       limitReached: false,
       totalFound: 1,
     });
-    source._analyzeFiles.mockResolvedValue({
-      fileAnalysis,
-      fileConnections,
-    });
+    source._analyzeFiles.mockImplementation(
+      async (
+        _files: IDiscoveredFile[],
+        _workspaceRoot: string,
+        onProgress?: (progress: { current: number; total: number; filePath: string }) => void,
+      ) => {
+      onProgress?.({
+        current: 1,
+        total: 1,
+        filePath: '/workspace/src/index.ts',
+      });
+
+      return {
+        fileAnalysis,
+        fileConnections,
+      };
+      },
+    );
     source._buildGraphDataFromAnalysis.mockReturnValue(graphData);
 
     await expect(
@@ -150,6 +165,17 @@ describe('pipeline/analysis/analyze', () => {
     expect(dependencies.saveCache).toHaveBeenCalledOnce();
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] Discovered 1 files in 4ms');
     expect(dependencies.logInfo).toHaveBeenCalledWith('[CodeGraphy] Graph built: 1 nodes, 1 edges');
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(1, {
+      phase: 'Analyzing Files',
+      current: 0,
+      total: 1,
+    });
+    expect(dependencies.sendProgress).toHaveBeenNthCalledWith(2, {
+      phase: 'Analyzing Files',
+      current: 1,
+      total: 1,
+    });
+    expect(dependencies.showWarningMessage).not.toHaveBeenCalled();
     expect(source._eventBus.emit).toHaveBeenNthCalledWith(1, 'analysis:started', {
       fileCount: 1,
     });
@@ -178,5 +204,36 @@ describe('pipeline/analysis/analyze', () => {
     expect(dependencies.showWarningMessage).toHaveBeenCalledWith(
       formatWorkspacePipelineLimitReachedMessage(27, 25),
     );
+  });
+
+  it('keeps analyzing when progress reporting and the event bus are unavailable', async () => {
+    const source = createSource();
+    const dependencies = createDependencies();
+    (source as { _eventBus?: { emit: ReturnType<typeof vi.fn> } })._eventBus = undefined;
+    (dependencies as { sendProgress?: (progress: { phase: string; current: number; total: number }) => void }).sendProgress = undefined;
+
+    dependencies.discover.mockResolvedValue({
+      durationMs: 2,
+      files: [] as IDiscoveredFile[],
+      limitReached: false,
+      totalFound: 0,
+    });
+
+    await expect(
+      analyzeWorkspaceWithAnalyzer(source as never, dependencies as never),
+    ).resolves.toEqual({
+      nodes: [{ id: 'src/index.ts', label: 'index.ts', color: '#93C5FD' }],
+      edges: [
+        {
+          id: 'src/index.ts->src/utils.ts#import',
+          from: 'src/index.ts',
+          to: 'src/utils.ts',
+          kind: 'import',
+          sources: [],
+        },
+      ],
+    });
+
+    expect(dependencies.showWarningMessage).not.toHaveBeenCalled();
   });
 });
