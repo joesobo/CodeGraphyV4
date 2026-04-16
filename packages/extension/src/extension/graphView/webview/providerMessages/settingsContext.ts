@@ -3,10 +3,8 @@ import type {
   GraphViewProviderMessageListenerDependencies,
   GraphViewProviderMessageListenerSource,
 } from './listener';
-import {
-  getCodeGraphyConfiguration,
-  updateCodeGraphyConfigurationSilently,
-} from '../../../repoSettings/current';
+import { createSettingsConfigPersistence } from './settingsContext/config';
+import { reprocessPluginFiles } from './settingsContext/pluginFiles';
 
 type GraphViewProviderSettingsContext = Pick<
   GraphViewMessageListenerContext,
@@ -25,40 +23,14 @@ type GraphViewProviderSettingsContext = Pick<
   | 'getNodeSizeMode'
 >;
 
-const SILENT_CONFIG_KEYS = new Set([
-  'bidirectionalEdges',
-  'directionColor',
-  'directionMode',
-  'disabledPlugins',
-  'edgeColors',
-  'edgeVisibility',
-  'filterPatterns',
-  'maxFiles',
-  'nodeColors',
-  'nodeVisibility',
-  'particleSize',
-  'particleSpeed',
-  'pluginOrder',
-  'showLabels',
-]);
-
 export function createGraphViewProviderMessageSettingsContext(
   source: GraphViewProviderMessageListenerSource,
   dependencies: GraphViewProviderMessageListenerDependencies,
 ): GraphViewProviderSettingsContext {
-  const config = getCodeGraphyConfiguration();
-  const persistConfig = async (key: string, value: unknown): Promise<void> => {
-    if (
-      SILENT_CONFIG_KEYS.has(key)
-      || key === dependencies.dagModeKey
-      || key === dependencies.nodeSizeModeKey
-    ) {
-      await updateCodeGraphyConfigurationSilently(key, value);
-      return;
-    }
-
-    await config.update(key, value);
-  };
+  const settingsPersistence = createSettingsConfigPersistence(dependencies);
+  const config = settingsPersistence.config;
+  const persistConfig = async (key: string, value: unknown): Promise<void> =>
+    settingsPersistence.persistConfig(key, value);
 
   return {
     updateDagMode: async dagMode => {
@@ -80,19 +52,7 @@ export function createGraphViewProviderMessageSettingsContext(
       source._sendGraphControls?.();
     },
     analyzeAndSendData: () => source._analyzeAndSendData(),
-    reprocessPluginFiles: async (pluginIds) => {
-      const invalidatedFilePaths = source.invalidatePluginFiles?.(pluginIds);
-      if (invalidatedFilePaths && invalidatedFilePaths.length > 0) {
-        await source.refreshChangedFiles(invalidatedFilePaths);
-        return;
-      }
-
-      if (invalidatedFilePaths) {
-        return;
-      }
-
-      await source._analyzeAndSendData();
-    },
+    reprocessPluginFiles: async (pluginIds) => reprocessPluginFiles(source, pluginIds),
     resetAllSettings: async () => {
       const snapshot = dependencies.captureSettingsSnapshot(
         config,
