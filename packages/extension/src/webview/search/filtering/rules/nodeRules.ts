@@ -4,13 +4,12 @@ import type { IGraphData } from '../../../../shared/graph/types';
 import type { IGroup } from '../../../../shared/settings/groups';
 
 function ruleTargetsNodes(rule: IGroup): boolean {
-  return (rule.target ?? 'node') !== 'edge';
+  return rule.target !== 'edge';
 }
 
 export function getOrderedActiveRules(legends: IGroup[]): IGroup[] {
   return legends
     .filter((group) => !group.disabled)
-    .slice()
     .reverse();
 }
 
