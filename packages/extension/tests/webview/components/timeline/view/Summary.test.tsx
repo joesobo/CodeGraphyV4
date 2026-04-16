@@ -78,4 +78,26 @@ describe('timeline/Summary', () => {
 
     expect(onToggle).toHaveBeenCalledTimes(1);
   });
+
+  it('omits the commit-kind badge for ordinary single-parent commits', () => {
+    render(
+      <Summary
+        collapsed={false}
+        currentCommit={{
+          author: 'Ada Lovelace',
+          message: 'Refine node sizing',
+          parents: ['aaa111'],
+          sha: 'ddd444ddd444ddd444ddd444ddd444ddd444ddd4',
+          timestamp: 1709380800,
+        }}
+        currentIndex={1}
+        onToggle={() => {}}
+        totalCommits={4}
+      />,
+    );
+
+    expect(screen.queryByText('Root commit')).not.toBeInTheDocument();
+    expect(screen.queryByText('Merge commit')).not.toBeInTheDocument();
+    expect(screen.getByText('Refine node sizing')).toBeInTheDocument();
+  });
 });

@@ -1,31 +1,17 @@
-import * as vscode from 'vscode';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import {
-  registerFileWatcher,
-  registerSaveHandler,
-  scheduleWorkspaceRefresh,
-} from '../../../src/extension/workspaceFiles/refresh';
+import { scheduleWorkspaceRefresh } from '../../../../src/extension/workspaceFiles/refresh/scheduler';
 
 function makeProvider() {
   return {
-    trackFileVisit: vi.fn().mockResolvedValue(undefined),
-    setFocusedFile: vi.fn(),
-    emitEvent: vi.fn(),
-    refresh: vi.fn().mockResolvedValue(undefined),
     refreshChangedFiles: vi.fn().mockResolvedValue(undefined),
+    refresh: vi.fn().mockResolvedValue(undefined),
     invalidateWorkspaceFiles: vi.fn(() => []),
     isGraphOpen: vi.fn(() => true),
     markWorkspaceRefreshPending: vi.fn(),
   };
 }
 
-function makeContext() {
-  return {
-    subscriptions: [] as { dispose: () => void }[],
-  };
-}
-
-describe('workspaceFiles/refresh', () => {
+describe('workspaceFiles/refresh/scheduler', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -55,6 +41,35 @@ describe('workspaceFiles/refresh', () => {
     consoleSpy.mockRestore();
   });
 
+  it('coalesces file paths and uses refreshChangedFiles when available', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File saved, refreshing graph',
+      ['/workspace/src/a.ts'],
+    );
+    scheduleWorkspaceRefresh(
+      provider as never,
+      '[CodeGraphy] File created, refreshing graph',
+      ['/workspace/src/b.ts'],
+    );
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refreshChangedFiles).toHaveBeenCalledOnce();
+    expect(provider.refreshChangedFiles).toHaveBeenCalledWith([
+      '/workspace/src/b.ts',
+      '/workspace/src/a.ts',
+    ]);
+    expect(provider.invalidateWorkspaceFiles).not.toHaveBeenCalled();
+    expect(provider.refresh).not.toHaveBeenCalled();
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File created, refreshing graph');
+
+    consoleSpy.mockRestore();
+  });
+
   it('queues a pending refresh instead of refreshing while the graph is closed', () => {
     vi.useFakeTimers();
     const provider = makeProvider();
@@ -70,32 +85,22 @@ describe('workspaceFiles/refresh', () => {
     );
   });
 
-  it('batches file paths while hidden and flushes them on reopen', () => {
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  it('defaults to refreshing when the provider has no graph-open probe', () => {
+    vi.useFakeTimers();
     const provider = makeProvider();
-    provider.isGraphOpen.mockReturnValue(false);
+    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    delete (provider as Partial<typeof provider>).isGraphOpen;
 
     scheduleWorkspaceRefresh(
       provider as never,
-      '[CodeGraphy] File saved, refreshing graph',
+      '[CodeGraphy] File changed, refreshing graph',
       ['/workspace/src/a.ts'],
     );
-    scheduleWorkspaceRefresh(
-      provider as never,
-      '[CodeGraphy] File created, refreshing graph',
-      ['/workspace/src/b.ts'],
-    );
+    vi.advanceTimersByTime(500);
 
-    expect(provider.markWorkspaceRefreshPending).toHaveBeenNthCalledWith(
-      1,
-      '[CodeGraphy] File saved, refreshing graph',
-      ['/workspace/src/a.ts'],
-    );
-    expect(provider.markWorkspaceRefreshPending).toHaveBeenNthCalledWith(
-      2,
-      '[CodeGraphy] File created, refreshing graph',
-      ['/workspace/src/b.ts'],
-    );
+    expect(provider.markWorkspaceRefreshPending).not.toHaveBeenCalled();
+    expect(provider.refreshChangedFiles).toHaveBeenCalledWith(['/workspace/src/a.ts']);
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File changed, refreshing graph');
 
     consoleSpy.mockRestore();
   });
@@ -134,15 +139,30 @@ describe('workspaceFiles/refresh', () => {
     );
     vi.advanceTimersByTime(500);
 
-    expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith([
-      '/workspace/src/a.ts',
-    ]);
+    expect(provider.invalidateWorkspaceFiles).toHaveBeenCalledWith(['/workspace/src/a.ts']);
     expect(provider.refresh).toHaveBeenCalledOnce();
-    expect(consoleSpy).toHaveBeenCalledWith(
-      '[CodeGraphy] File deleted, refreshing graph',
-    );
+    expect(consoleSpy).toHaveBeenCalledWith('[CodeGraphy] File deleted, refreshing graph');
 
     consoleSpy.mockRestore();
+  });
+
+  it('does not throw when fallback invalidation is unavailable', () => {
+    vi.useFakeTimers();
+    const provider = makeProvider();
+    delete (provider as Partial<typeof provider>).refreshChangedFiles;
+    delete (provider as Partial<typeof provider>).invalidateWorkspaceFiles;
+
+    expect(() =>
+      scheduleWorkspaceRefresh(
+        provider as never,
+        '[CodeGraphy] File deleted, refreshing graph',
+        ['/workspace/src/a.ts'],
+      ),
+    ).not.toThrow();
+
+    vi.advanceTimersByTime(500);
+
+    expect(provider.refresh).toHaveBeenCalledOnce();
   });
 
   it('does not throw when the provider cannot mark a pending refresh', () => {
@@ -156,22 +176,5 @@ describe('workspaceFiles/refresh', () => {
         '[CodeGraphy] File saved, refreshing graph',
       ),
     ).not.toThrow();
-  });
-
-  it('registers save and watcher listeners through the public handlers', () => {
-    const context = makeContext();
-    const provider = makeProvider();
-    vi.mocked(vscode.workspace.createFileSystemWatcher).mockReturnValue({
-      onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
-      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
-      dispose: vi.fn(),
-    } as unknown as vscode.FileSystemWatcher);
-
-    registerSaveHandler(context as never, provider as never);
-    registerFileWatcher(context as never, provider as never);
-
-    expect(context.subscriptions).toHaveLength(4);
-    expect(vscode.workspace.createFileSystemWatcher).toHaveBeenCalledWith('**/*');
   });
 });

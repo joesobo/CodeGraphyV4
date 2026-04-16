@@ -69,4 +69,30 @@ describe('filters patternActions', () => {
       payload: { patterns: ['**/*.log', '**/*.cache'] },
     });
   });
+
+  it('ignores invalid edited patterns', () => {
+    const setFilterPatterns = vi.fn();
+
+    editFilterPattern(
+      ['**/*.tmp', '**/*.cache'],
+      '**/*.tmp',
+      '   ',
+      setFilterPatterns,
+    );
+
+    expect(setFilterPatterns).not.toHaveBeenCalled();
+  });
+
+  it('skips edits that normalize back to the previous pattern', () => {
+    const setFilterPatterns = vi.fn();
+
+    editFilterPattern(
+      ['**/*.tmp', '**/*.cache'],
+      '**/*.tmp',
+      '  **/*.tmp  ',
+      setFilterPatterns,
+    );
+
+    expect(setFilterPatterns).not.toHaveBeenCalled();
+  });
 });
