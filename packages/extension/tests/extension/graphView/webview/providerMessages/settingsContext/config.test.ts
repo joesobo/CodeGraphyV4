@@ -18,6 +18,25 @@ describe('graphView/webview/providerMessages/settingsContext/config', () => {
     vi.clearAllMocks();
   });
 
+  it('declares the exact shared silent configuration keys', () => {
+    expect([...SILENT_CONFIG_KEYS].sort()).toEqual([
+      'bidirectionalEdges',
+      'directionColor',
+      'directionMode',
+      'disabledPlugins',
+      'edgeColors',
+      'edgeVisibility',
+      'filterPatterns',
+      'maxFiles',
+      'nodeColors',
+      'nodeVisibility',
+      'particleSize',
+      'particleSpeed',
+      'pluginOrder',
+      'showLabels',
+    ]);
+  });
+
   it('returns the current CodeGraphy configuration and persists silent keys without notifications', async () => {
     const config = { update: vi.fn() };
     vi.mocked(getCodeGraphyConfiguration).mockReturnValue(config as never);

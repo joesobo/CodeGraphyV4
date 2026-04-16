@@ -55,6 +55,28 @@ describe('graph effects interaction', () => {
     expect(handlers.openEdgeContextMenu).toHaveBeenCalledWith(link, event);
   });
 
+  it('does not open an edge context menu when only the event or only the link exists', () => {
+    const handlers = createHandlers();
+    const event = new MouseEvent('click');
+    const link: TestLink = { id: 'a->b' };
+
+    applyInteractionEffects([{ kind: 'openEdgeContextMenu' }], handlers, { event });
+    applyInteractionEffects([{ kind: 'openEdgeContextMenu' }], handlers, { link });
+
+    expect(handlers.openEdgeContextMenu).not.toHaveBeenCalled();
+  });
+
+  it('opens the background context menu only when an event is available', () => {
+    const handlers = createHandlers();
+    const event = new MouseEvent('click');
+
+    applyInteractionEffects([{ kind: 'openBackgroundContextMenu' }], handlers, { event });
+    applyInteractionEffects([{ kind: 'openBackgroundContextMenu' }], handlers);
+
+    expect(handlers.openBackgroundContextMenu).toHaveBeenCalledOnce();
+    expect(handlers.openBackgroundContextMenu).toHaveBeenCalledWith(event);
+  });
+
   it('sets the full selection list', () => {
     const handlers = createHandlers();
 
