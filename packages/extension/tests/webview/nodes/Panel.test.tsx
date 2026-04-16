@@ -12,6 +12,18 @@ vi.mock('../../../src/webview/vscodeApi', () => ({
 }));
 
 describe('NodesPanel', () => {
+  it('renders nothing while closed', () => {
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
+      nodeColors: {},
+      nodeVisibility: {},
+    });
+
+    const { container } = render(<NodesPanel isOpen={false} onClose={vi.fn()} />);
+
+    expect(container).toBeEmptyDOMElement();
+  });
+
   it('shows node labels with their current colors', () => {
     graphStore.setState({
       graphNodeTypes: [{ id: 'file', label: 'Files', defaultColor: '#111111', defaultVisible: true }],
@@ -24,6 +36,7 @@ describe('NodesPanel', () => {
     expect(screen.getByText('Files')).toBeInTheDocument();
     expect(screen.queryByText('file')).not.toBeInTheDocument();
     expect(screen.getByRole('switch')).toHaveAttribute('data-state', 'checked');
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveClass('h-6', 'w-6');
   });
 
   it('renders node entries inside a divided list', () => {
@@ -69,5 +82,23 @@ describe('NodesPanel', () => {
       type: 'UPDATE_NODE_VISIBILITY',
       payload: { nodeType: 'folder', visible: true },
     });
+  });
+
+  it('falls back to default node colors and visibility and wires the close button', () => {
+    const onClose = vi.fn();
+    graphStore.setState({
+      graphNodeTypes: [{ id: 'package', label: 'Packages', defaultColor: '#fedcba', defaultVisible: false }],
+      nodeColors: {},
+      nodeVisibility: {},
+    });
+
+    const { container } = render(<NodesPanel isOpen={true} onClose={onClose} />);
+
+    expect(screen.getByRole('switch')).toHaveAttribute('data-state', 'unchecked');
+    expect(container.querySelector('[aria-hidden="true"]')).toHaveStyle({ backgroundColor: '#fedcba' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(onClose).toHaveBeenCalledOnce();
   });
 });
