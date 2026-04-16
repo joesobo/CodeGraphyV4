@@ -44,6 +44,10 @@ describe('extension/repoSettings/meta', () => {
     );
   });
 
+  it('always uses meta.json as the persisted metadata filename', () => {
+    expect(path.basename(getCodeGraphyRepoMetaPath('/workspace/project'))).toBe('meta.json');
+  });
+
   it('writes and reads .codegraphy/meta.json', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
@@ -89,6 +93,23 @@ describe('extension/repoSettings/meta', () => {
       settingsSignature: null,
       pendingChangedFiles: ['src/app.ts'],
     });
+  });
+
+  it('fills in an empty pendingChangedFiles list when persisted metadata omits it', () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const metaPath = getCodeGraphyRepoMetaPath(workspaceRoot);
+
+    fs.mkdirSync(path.dirname(metaPath), { recursive: true });
+    fs.writeFileSync(
+      metaPath,
+      JSON.stringify({
+        lastIndexedCommit: 'abc123',
+      }, null, 2),
+      'utf8',
+    );
+
+    expect(readCodeGraphyRepoMeta(workspaceRoot).pendingChangedFiles).toEqual([]);
   });
 
   it('falls back to defaults when meta.json is invalid', () => {
