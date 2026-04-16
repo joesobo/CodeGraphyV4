@@ -6,6 +6,15 @@ describe('extension/repoSettings/storeDiff', () => {
     expect(collectChangedKeys('old', 'new')).toEqual(['codegraphy']);
   });
 
+  it('returns the repo root key when the top level changes between an object and a primitive', () => {
+    expect(collectChangedKeys({ filters: { maxFiles: 200 } }, 'new')).toEqual([
+      'codegraphy',
+    ]);
+    expect(collectChangedKeys('old', { filters: { maxFiles: 500 } })).toEqual([
+      'codegraphy',
+    ]);
+  });
+
   it('returns the current nested path when a non-object leaf changes', () => {
     expect(
       collectChangedKeys(
@@ -22,6 +31,22 @@ describe('extension/repoSettings/storeDiff', () => {
         { graph: { showLabels: true, directionMode: 'particles' } },
       ).sort(),
     ).toEqual(['graph.depthLimit', 'graph.directionMode']);
+  });
+
+  it('returns the nested path when one side changes between an object and a primitive', () => {
+    expect(
+      collectChangedKeys(
+        { graph: { filters: { includeGenerated: true } } },
+        { graph: { filters: false } },
+      ),
+    ).toEqual(['graph.filters']);
+
+    expect(
+      collectChangedKeys(
+        { graph: { filters: false } },
+        { graph: { filters: { includeGenerated: true } } },
+      ),
+    ).toEqual(['graph.filters']);
   });
 
   it('returns an empty list when nested values are unchanged', () => {
