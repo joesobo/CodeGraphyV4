@@ -10,10 +10,6 @@ export function createEdgeSource(
   plugin: IPlugin | undefined,
   connection: IProjectedConnection,
 ): IGraphEdgeSource | undefined {
-  if (!connection.sourceId) {
-    return undefined;
-  }
-
   const identity = resolveEdgeSourceIdentity(plugin, connection);
   if (!identity) {
     return undefined;

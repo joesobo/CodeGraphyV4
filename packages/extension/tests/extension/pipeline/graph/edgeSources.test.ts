@@ -77,6 +77,16 @@ describe('pipeline/graph/edgeSources', () => {
     };
 
     expect(createEdgeSource(createPlugin('plugin.typescript'), connection)).toBeUndefined();
+
+    const connectionWithoutSourceId = { ...connection } as Partial<IProjectedConnection>;
+    delete connectionWithoutSourceId.sourceId;
+
+    expect(
+      createEdgeSource(
+        createPlugin('plugin.typescript'),
+        connectionWithoutSourceId as IProjectedConnection,
+      ),
+    ).toBeUndefined();
   });
 
   it('falls back to the raw source id when plugin metadata is missing', () => {
@@ -92,7 +102,10 @@ describe('pipeline/graph/edgeSources', () => {
       ...connection,
       sourceId: 'import',
     })?.label).toBe('Import');
-    expect(createEdgeSource(createPlugin('plugin.typescript', undefined), connection)?.label).toBe('reexport');
+    expect(createEdgeSource({
+      ...createPlugin('plugin.typescript'),
+      sources: undefined,
+    }, connection)?.label).toBe('reexport');
     expect(createEdgeSource(createPlugin('plugin.typescript', []), connection)?.label).toBe('reexport');
   });
 });
