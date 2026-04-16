@@ -6,7 +6,7 @@ const SETTINGS_IGNORE_ENTRY = '.codegraphy/';
 
 export function ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath: string): void {
   if (!fs.existsSync(gitIgnorePath)) {
-    fs.writeFileSync(gitIgnorePath, `${SETTINGS_IGNORE_ENTRY}\n`, 'utf8');
+    fs.writeFileSync(gitIgnorePath, `${SETTINGS_IGNORE_ENTRY}\n`);
     return;
   }
 
@@ -21,5 +21,5 @@ export function ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath: string): v
   }
 
   const suffix = existing.endsWith('\n') || existing.length === 0 ? '' : '\n';
-  fs.writeFileSync(gitIgnorePath, `${existing}${suffix}${SETTINGS_IGNORE_ENTRY}\n`, 'utf8');
+  fs.writeFileSync(gitIgnorePath, `${existing}${suffix}${SETTINGS_IGNORE_ENTRY}\n`);
 }

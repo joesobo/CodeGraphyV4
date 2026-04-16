@@ -35,6 +35,16 @@ describe('extension/repoSettings/storeFilesystem', () => {
     expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('.codegraphy/\n');
   });
 
+  it('appends the entry to an empty gitignore without a leading blank line', () => {
+    const gitIgnorePath = createTempFilePath('empty.gitignore');
+    tempDirectories.push(path.dirname(gitIgnorePath));
+    fs.writeFileSync(gitIgnorePath, '', 'utf8');
+
+    ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath);
+
+    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('.codegraphy/\n');
+  });
+
   it('appends the repo-local entry once and preserves existing newline state', () => {
     const gitIgnorePath = createTempFilePath('.gitignore');
     tempDirectories.push(path.dirname(gitIgnorePath));
@@ -59,5 +69,15 @@ describe('extension/repoSettings/storeFilesystem', () => {
 
     expect(fs.readFileSync(barePath, 'utf8')).toBe('.codegraphy\n');
     expect(fs.readFileSync(suffixedPath, 'utf8')).toBe('.codegraphy/\n');
+  });
+
+  it('treats whitespace-padded existing entries as already present', () => {
+    const gitIgnorePath = createTempFilePath('spaced.gitignore');
+    tempDirectories.push(path.dirname(gitIgnorePath));
+    fs.writeFileSync(gitIgnorePath, 'dist\n   .codegraphy/   \n\n', 'utf8');
+
+    ensureGitIgnoreContainsCodeGraphyEntry(gitIgnorePath);
+
+    expect(fs.readFileSync(gitIgnorePath, 'utf8')).toBe('dist\n   .codegraphy/   \n\n');
   });
 });
