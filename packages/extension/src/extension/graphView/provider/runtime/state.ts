@@ -13,10 +13,6 @@ import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
 import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
 import { WorkspacePipeline } from '../../../pipeline/service';
 import {
-  readCodeGraphyRepoMeta,
-  writeCodeGraphyRepoMeta,
-} from '../../../repoSettings/meta';
-import {
   createGraphViewProviderMethodContainers,
   type GraphViewProviderMethodContainers,
 } from '../wiring/methodContainers';
@@ -28,60 +24,79 @@ import type { GraphViewProviderMethodSourceOwner } from '../source/create';
 import { createExtensionMessageEmitter } from '../messageEmitter';
 import { createFirstWorkspaceReadyState } from '../firstWorkspaceReady';
 import {
-  initializeGraphViewProviderRuntimeServices,
-  restoreGraphViewProviderRuntimeState,
-  type RuntimeBootstrapSource,
-} from '../runtimeBootstrap';
-import {
-  createEmptyGraphData,
-  createEmptyGroups,
-  createInitialViewContext,
   createPluginExtensionUris,
-  createStringSet,
   DEFAULT_NODE_SIZE_MODE,
 } from '../runtimeDefaults';
-
-interface PendingWorkspaceRefreshState {
-  filePaths: Set<string>;
-  logMessage: string;
-}
+import { defineGraphViewProviderMethodAccessors } from './methodAccessors';
+import {
+  getWorkspaceRoot,
+  initializeRuntimeStateServices,
+  restorePersistedRuntimeState,
+} from './stateBootstrap';
+import { createGraphViewProviderRuntimeDataState } from './stateData';
+import { createGraphViewProviderRuntimeFlagState } from './stateFlags';
+import {
+  invalidatePluginFiles,
+  invalidateWorkspaceFiles,
+  isGraphViewVisible,
+  mergePendingWorkspaceRefresh,
+} from './stateRuntime';
+import {
+  loadPersistedWorkspaceRefresh,
+  persistPendingWorkspaceRefresh,
+  type PendingWorkspaceRefreshState,
+} from './workspaceRefreshPersistence';
 
 export class GraphViewProviderRuntimeState {
   protected _view?: vscode.WebviewView;
   protected _timelineView?: vscode.WebviewView;
-  protected _panels: vscode.WebviewPanel[] = [];
-  protected _graphData: IGraphData = createEmptyGraphData();
+  protected _panels!: vscode.WebviewPanel[];
+  protected _graphData!: IGraphData;
   protected _analyzer?: WorkspacePipeline;
-  protected _analyzerInitialized = false;
+  protected _analyzerInitialized!: boolean;
   protected _analyzerInitPromise?: Promise<void>;
   protected _analysisController?: AbortController;
-  protected _analysisRequestId = 0;
-  protected _changedFilePaths: string[] = [];
+  protected _analysisRequestId!: number;
+  protected _changedFilePaths!: string[];
   private readonly _viewRegistry: ViewRegistry;
-  protected _depthMode = false;
-  protected _dagMode: DagMode = null;
+  protected _depthMode!: boolean;
+  protected _dagMode!: DagMode;
   protected _nodeSizeMode!: NodeSizeMode;
-  protected _rawGraphData: IGraphData = createEmptyGraphData();
-  protected _viewContext: IViewContext = createInitialViewContext();
-  protected _groups: IGroup[] = createEmptyGroups();
-  protected _userGroups: IGroup[] = createEmptyGroups();
-  protected _filterPatterns: string[] = [];
-  protected _disabledPlugins: Set<string> = createStringSet();
+  protected _rawGraphData!: IGraphData;
+  protected _viewContext!: IViewContext;
+  protected _groups!: IGroup[];
+  protected _userGroups!: IGroup[];
+  protected _filterPatterns!: string[];
+  protected _disabledPlugins!: Set<string>;
   protected _gitAnalyzer?: GitHistoryAnalyzer;
   protected _currentCommitSha?: string;
-  protected _timelineActive = false;
+  protected _timelineActive!: boolean;
   protected _eventBus: EventBus;
   protected _decorationManager: DecorationManager;
-  protected _firstAnalysis = true;
+  protected _firstAnalysis!: boolean;
   protected _resolveFirstWorkspaceReady?: () => void;
   protected readonly _firstWorkspaceReadyPromise: Promise<void>;
-  protected _webviewReadyNotified = false;
+  protected _webviewReadyNotified!: boolean;
   protected _indexingController?: AbortController;
   protected _pendingWorkspaceRefresh?: PendingWorkspaceRefreshState;
   protected readonly _pluginExtensionUris = createPluginExtensionUris();
-  protected _installedPluginActivationPromise: Promise<void> = Promise.resolve();
+  protected _installedPluginActivationPromise!: Promise<void>;
   protected readonly _extensionMessageEmitter = createExtensionMessageEmitter();
   protected readonly _methodContainers: GraphViewProviderMethodContainers;
+
+  declare protected readonly _analysisMethods: GraphViewProviderMethodContainers['analysis'];
+  declare protected readonly _commandMethods: GraphViewProviderMethodContainers['command'];
+  declare protected readonly _fileActionMethods: GraphViewProviderMethodContainers['fileAction'];
+  declare protected readonly _fileVisitMethods: GraphViewProviderMethodContainers['fileVisit'];
+  declare protected readonly _pluginMethods: GraphViewProviderMethodContainers['plugin'];
+  declare protected readonly _pluginResourceMethods: GraphViewProviderMethodContainers['pluginResource'];
+  declare protected readonly _physicsSettingsMethods: GraphViewProviderMethodContainers['physicsSettings'];
+  declare protected readonly _refreshMethods: GraphViewProviderMethodContainers['refresh'];
+  declare protected readonly _settingsStateMethods: GraphViewProviderMethodContainers['settingsState'];
+  declare protected readonly _timelineMethods: GraphViewProviderMethodContainers['timeline'];
+  declare protected readonly _viewContextMethods: GraphViewProviderMethodContainers['viewContext'];
+  declare protected readonly _viewSelectionMethods: GraphViewProviderMethodContainers['viewSelection'];
+  declare protected readonly _webviewMethods: GraphViewProviderMethodContainers['webview'];
 
   constructor(
     protected readonly _extensionUri: vscode.Uri,
@@ -91,6 +106,9 @@ export class GraphViewProviderRuntimeState {
 
     this._firstWorkspaceReadyPromise = firstWorkspaceReady.promise;
     this._resolveFirstWorkspaceReady = firstWorkspaceReady.resolve;
+
+    Object.assign(this, createGraphViewProviderRuntimeDataState());
+    Object.assign(this, createGraphViewProviderRuntimeFlagState());
 
     this._analyzer = new WorkspacePipeline(_context);
     this._viewRegistry = new ViewRegistry();
@@ -107,6 +125,11 @@ export class GraphViewProviderRuntimeState {
     this._methodContainers = createGraphViewProviderMethodContainers(
       this as unknown as GraphViewProviderMethodSourceOwner,
     );
+    defineGraphViewProviderMethodAccessors(
+      this as unknown as {
+        _methodContainers: GraphViewProviderMethodContainers;
+      },
+    );
 
     assignGraphViewProviderPublicMethods(
       this as unknown as GraphViewProviderPublicMethodsTarget,
@@ -118,94 +141,34 @@ export class GraphViewProviderRuntimeState {
     return this._viewRegistry;
   }
 
-  protected get _analysisMethods(): GraphViewProviderMethodContainers['analysis'] {
-    return this._methodContainers.analysis;
-  }
-
-  protected get _commandMethods(): GraphViewProviderMethodContainers['command'] {
-    return this._methodContainers.command;
-  }
-
-  protected get _fileActionMethods(): GraphViewProviderMethodContainers['fileAction'] {
-    return this._methodContainers.fileAction;
-  }
-
-  protected get _fileVisitMethods(): GraphViewProviderMethodContainers['fileVisit'] {
-    return this._methodContainers.fileVisit;
-  }
-
-  protected get _pluginMethods(): GraphViewProviderMethodContainers['plugin'] {
-    return this._methodContainers.plugin;
-  }
-
-  protected get _pluginResourceMethods(): GraphViewProviderMethodContainers['pluginResource'] {
-    return this._methodContainers.pluginResource;
-  }
-
-  protected get _physicsSettingsMethods(): GraphViewProviderMethodContainers['physicsSettings'] {
-    return this._methodContainers.physicsSettings;
-  }
-
-  protected get _refreshMethods(): GraphViewProviderMethodContainers['refresh'] {
-    return this._methodContainers.refresh;
-  }
-
-  protected get _settingsStateMethods(): GraphViewProviderMethodContainers['settingsState'] {
-    return this._methodContainers.settingsState;
-  }
-
-  protected get _timelineMethods(): GraphViewProviderMethodContainers['timeline'] {
-    return this._methodContainers.timeline;
-  }
-
-  protected get _viewContextMethods(): GraphViewProviderMethodContainers['viewContext'] {
-    return this._methodContainers.viewContext;
-  }
-
-  protected get _viewSelectionMethods(): GraphViewProviderMethodContainers['viewSelection'] {
-    return this._methodContainers.viewSelection;
-  }
-
-  protected get _webviewMethods(): GraphViewProviderMethodContainers['webview'] {
-    return this._methodContainers.webview;
-  }
-
   public setInstalledPluginActivationPromise(promise: Promise<void>): void {
     this._installedPluginActivationPromise = promise;
   }
 
   public isGraphOpen(): boolean {
-    if (this._view?.visible) {
-      return true;
-    }
-
-    return this._panels.some(panel => panel.visible);
+    return isGraphViewVisible(this._view, this._panels);
   }
 
   public invalidateWorkspaceFiles(filePaths: readonly string[]): string[] {
-    return this._analyzer?.invalidateWorkspaceFiles(filePaths) ?? [];
+    return invalidateWorkspaceFiles(this._analyzer, filePaths);
   }
 
   public invalidatePluginFiles(pluginIds: readonly string[]): string[] {
-    return this._analyzer?.invalidatePluginFiles(pluginIds) ?? [];
+    return invalidatePluginFiles(this._analyzer, pluginIds);
   }
 
   public markWorkspaceRefreshPending(
     logMessage: string,
     filePaths: readonly string[] = [],
   ): void {
-    const pending = this._pendingWorkspaceRefresh ?? {
-      filePaths: new Set<string>(),
+    this._pendingWorkspaceRefresh = mergePendingWorkspaceRefresh(
+      this._pendingWorkspaceRefresh,
       logMessage,
-    };
-
-    pending.logMessage = logMessage;
-    for (const filePath of filePaths) {
-      pending.filePaths.add(filePath);
-    }
-
-    this._pendingWorkspaceRefresh = pending;
-    this._persistPendingWorkspaceRefresh([...pending.filePaths]);
+      filePaths,
+    );
+    persistPendingWorkspaceRefresh(this._getWorkspaceRoot(), [
+      ...this._pendingWorkspaceRefresh.filePaths,
+    ]);
   }
 
   public flushPendingWorkspaceRefresh(): void {
@@ -219,7 +182,7 @@ export class GraphViewProviderRuntimeState {
     }
 
     this._pendingWorkspaceRefresh = undefined;
-    this._persistPendingWorkspaceRefresh([]);
+    persistPendingWorkspaceRefresh(this._getWorkspaceRoot(), []);
     console.log(pending.logMessage);
     if (this._methodContainers.refresh.refreshChangedFiles) {
       void this._methodContainers.refresh.refreshChangedFiles([...pending.filePaths]);
@@ -231,28 +194,21 @@ export class GraphViewProviderRuntimeState {
   }
 
   private initializeCoreServices(): void {
-    const source = {
+    initializeRuntimeStateServices(
+      {
       _analyzer: this._analyzer,
       _context: this._context,
       _viewRegistry: this._viewRegistry,
       _eventBus: this._eventBus,
       _decorationManager: this._decorationManager,
-    } as RuntimeBootstrapSource;
-
-    Object.defineProperties(source, {
-      _graphData: {
-        get: () => this._graphData,
       },
-      getMethodContainers: {
-        value: () => this._methodContainers,
-      },
-    });
-
-    initializeGraphViewProviderRuntimeServices(source);
+      () => this._graphData,
+      () => this._methodContainers,
+    );
   }
 
   private restorePersistedState(): void {
-    const restoredState = restoreGraphViewProviderRuntimeState(
+    const restoredState = restorePersistedRuntimeState(
       this._context,
       DEFAULT_NODE_SIZE_MODE,
     );
@@ -263,37 +219,11 @@ export class GraphViewProviderRuntimeState {
   }
 
   private _getWorkspaceRoot(): string | undefined {
-    return vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  }
-
-  private _persistPendingWorkspaceRefresh(filePaths: readonly string[]): void {
-    const workspaceRoot = this._getWorkspaceRoot();
-    if (!workspaceRoot) {
-      return;
-    }
-
-    const meta = readCodeGraphyRepoMeta(workspaceRoot);
-    writeCodeGraphyRepoMeta(workspaceRoot, {
-      ...meta,
-      pendingChangedFiles: [...filePaths],
-    });
+    return getWorkspaceRoot(vscode.workspace.workspaceFolders);
   }
 
   private _loadPersistedWorkspaceRefresh(): PendingWorkspaceRefreshState | undefined {
-    const workspaceRoot = this._getWorkspaceRoot();
-    if (!workspaceRoot) {
-      return undefined;
-    }
-
-    const meta = readCodeGraphyRepoMeta(workspaceRoot);
-    if (meta.pendingChangedFiles.length === 0) {
-      return undefined;
-    }
-
-    return {
-      filePaths: new Set(meta.pendingChangedFiles),
-      logMessage: '[CodeGraphy] Applying pending workspace changes',
-    };
+    return loadPersistedWorkspaceRefresh(this._getWorkspaceRoot());
   }
 
   protected _notifyExtensionMessage(message: unknown): void {
