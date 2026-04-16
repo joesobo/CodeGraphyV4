@@ -28,6 +28,24 @@ describe('routing/results/merge', () => {
     ).toEqual([{ id: 'file', label: 'Updated', defaultColor: '#bbb', defaultVisible: false }]);
   });
 
+  it('keeps base items when no later items are provided', () => {
+    expect(
+      mergeById(
+        [{ id: 'file', label: 'File', defaultColor: '#aaa', defaultVisible: true }],
+        undefined,
+      ),
+    ).toEqual([{ id: 'file', label: 'File', defaultColor: '#aaa', defaultVisible: true }]);
+  });
+
+  it('treats missing item arrays as empty lists', () => {
+    expect(mergeById(undefined, undefined)).toEqual([]);
+    expect(
+      mergeById(undefined, [
+        { id: 'file', label: 'File', defaultColor: '#aaa', defaultVisible: true },
+      ]),
+    ).toEqual([{ id: 'file', label: 'File', defaultColor: '#aaa', defaultVisible: true }]);
+  });
+
   it('deduplicates relations by the routed relation key', () => {
     expect(
       mergeRelations(
@@ -57,6 +75,31 @@ describe('routing/results/merge', () => {
     }]);
   });
 
+  it('keeps base relations when no later relations are provided', () => {
+    expect(
+      mergeRelations(
+        [{
+          kind: 'call',
+          sourceId: 'call:run',
+          fromFilePath: 'src/app.ts',
+          fromSymbolId: 'src/app.ts:function:run',
+          toFilePath: 'src/a.ts',
+        }],
+        undefined,
+      ),
+    ).toEqual([{
+      kind: 'call',
+      sourceId: 'call:run',
+      fromFilePath: 'src/app.ts',
+      fromSymbolId: 'src/app.ts:function:run',
+      toFilePath: 'src/a.ts',
+    }]);
+  });
+
+  it('treats missing relation arrays as empty lists', () => {
+    expect(mergeRelations(undefined, undefined)).toEqual([]);
+  });
+
   it('merges analysis results field by field', () => {
     const baseResult = createEmptyFileAnalysisResult('src/base.ts');
     const nextResult: IFileAnalysisResult = {
@@ -79,5 +122,27 @@ describe('routing/results/merge', () => {
     };
 
     expect(mergeFileAnalysisResults(baseResult, nextResult)).toEqual(nextResult);
+  });
+
+  it('keeps the base file path when the next result omits it', () => {
+    expect(
+      mergeFileAnalysisResults(
+        {
+          ...createEmptyFileAnalysisResult('src/base.ts'),
+          nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
+        },
+        {
+          ...createEmptyFileAnalysisResult(''),
+          nodeTypes: [],
+        },
+      ),
+    ).toEqual({
+      filePath: 'src/base.ts',
+      edgeTypes: [],
+      nodeTypes: [{ id: 'file', label: 'File', defaultColor: '#A1A1AA', defaultVisible: true }],
+      nodes: [],
+      relations: [],
+      symbols: [],
+    });
   });
 });
