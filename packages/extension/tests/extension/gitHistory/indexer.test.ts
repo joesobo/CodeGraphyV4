@@ -100,6 +100,30 @@ describe('gitHistory/indexer', () => {
     expect(onProgress).toHaveBeenCalledWith('Indexing commits', 1, 1);
   });
 
+  it('drops a single commit from the cached timeline when full analysis yields no nodes', async () => {
+    const emptyGraph: IGraphData = { nodes: [], edges: [] };
+    const commits = [createCommit('sha1')];
+    const dependencies = {
+      analyzeDiffCommit: vi.fn(),
+      analyzeFullCommit: vi.fn(async () => emptyGraph),
+      getCommitList: vi.fn(async () => commits),
+      persistCachedCommitState: vi.fn(),
+      writeCachedGraphData: vi.fn(),
+    };
+
+    await expect(
+      indexGitHistory({
+        dependencies,
+        onProgress: vi.fn(),
+        signal: new AbortController().signal,
+      }),
+    ).resolves.toEqual([]);
+
+    expect(dependencies.analyzeDiffCommit).not.toHaveBeenCalled();
+    expect(dependencies.writeCachedGraphData).toHaveBeenCalledWith('sha1', emptyGraph);
+    expect(dependencies.persistCachedCommitState).toHaveBeenCalledWith([]);
+  });
+
   it('passes the previous diff result into the next diff analysis', async () => {
     const graphA = createGraph('a');
     const graphB = createGraph('b');
@@ -175,6 +199,38 @@ describe('gitHistory/indexer', () => {
     expect(dependencies.writeCachedGraphData).toHaveBeenNthCalledWith(2, 'sha1', graphB);
     expect(dependencies.writeCachedGraphData).toHaveBeenNthCalledWith(3, 'sha2', graphC);
     expect(dependencies.persistCachedCommitState).toHaveBeenCalledWith(commits.slice(1));
+  });
+
+  it('waits to mark the first graphable commit until a later diff produces nodes', async () => {
+    const emptyGraph: IGraphData = { nodes: [], edges: [] };
+    const graphC = createGraph('c');
+    const commits = [
+      createCommit('sha0'),
+      createCommit('sha1', ['sha0']),
+      createCommit('sha2', ['sha1']),
+    ];
+    const dependencies = {
+      analyzeDiffCommit: vi.fn()
+        .mockResolvedValueOnce(emptyGraph)
+        .mockResolvedValueOnce(graphC),
+      analyzeFullCommit: vi.fn(async () => emptyGraph),
+      getCommitList: vi.fn(async () => commits),
+      persistCachedCommitState: vi.fn(),
+      writeCachedGraphData: vi.fn(),
+    };
+
+    await expect(
+      indexGitHistory({
+        dependencies,
+        onProgress: vi.fn(),
+        signal: new AbortController().signal,
+      }),
+    ).resolves.toEqual(commits.slice(2));
+
+    expect(dependencies.writeCachedGraphData).toHaveBeenNthCalledWith(1, 'sha0', emptyGraph);
+    expect(dependencies.writeCachedGraphData).toHaveBeenNthCalledWith(2, 'sha1', emptyGraph);
+    expect(dependencies.writeCachedGraphData).toHaveBeenNthCalledWith(3, 'sha2', graphC);
+    expect(dependencies.persistCachedCommitState).toHaveBeenCalledWith(commits.slice(2));
   });
 
   it('throws before first-commit analysis when the signal is already aborted', async () => {

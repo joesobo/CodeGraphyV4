@@ -52,9 +52,14 @@ describe('graph view provider listener primary actions', () => {
     const source = createSource();
     const actions = createActions(source);
 
+    await actions.loadAndSendData();
+    await actions.indexAndSendData();
     await actions.analyzeAndSendData();
+    await actions.refreshIndex();
+    await actions.clearCacheAndRefresh();
     await actions.undo();
     await actions.redo();
+    await actions.setDepthMode(true);
     await actions.setDepthLimit(4);
     await actions.indexRepository();
     await actions.jumpToCommit('sha-1');
@@ -63,9 +68,14 @@ describe('graph view provider listener primary actions', () => {
     await actions.updatePhysicsSetting('damping', 300);
     await actions.resetPhysicsSettings();
 
+    expect(source._loadAndSendData).toHaveBeenCalledOnce();
+    expect(source._indexAndSendData).toHaveBeenCalledOnce();
     expect(source._analyzeAndSendData).toHaveBeenCalledOnce();
+    expect(source.refreshIndex).toHaveBeenCalledOnce();
+    expect(source.clearCacheAndRefresh).toHaveBeenCalledOnce();
     expect(source.undo).toHaveBeenCalledOnce();
     expect(source.redo).toHaveBeenCalledOnce();
+    expect(source.setDepthMode).toHaveBeenCalledWith(true);
     expect(source.setDepthLimit).toHaveBeenCalledWith(4);
     expect(source._indexRepository).toHaveBeenCalledOnce();
     expect(source._jumpToCommit).toHaveBeenCalledWith('sha-1');
@@ -79,6 +89,15 @@ describe('graph view provider listener primary actions', () => {
     const source = createSource();
     const dependencies = createDependencies();
     const updateSilently = vi.fn(() => Promise.resolve());
+    vi.mocked(dependencies.workspace.getConfiguration).mockReturnValue({
+      get: vi.fn((key: string, defaultValue: unknown) =>
+        key === 'legendVisibility'
+          ? {
+              existing: true,
+            }
+          : defaultValue,
+      ),
+    } as never);
     vi.mocked(repoSettings.getCodeGraphyConfiguration).mockReturnValue({
       update: vi.fn(() => Promise.resolve()),
     } as never);
@@ -95,6 +114,7 @@ describe('graph view provider listener primary actions', () => {
 
     expect(updateSilently).toHaveBeenCalledWith('legend', groups);
     expect(updateSilently).toHaveBeenCalledWith('legendVisibility', {
+      existing: true,
       'plugin:codegraphy.typescript:*.ts': false,
     });
     expect(updateSilently).toHaveBeenCalledWith('legendOrder', [
@@ -103,6 +123,15 @@ describe('graph view provider listener primary actions', () => {
     ]);
     expect(dependencies.window.showInformationMessage).toHaveBeenCalledWith('saved');
     expect(dependencies.window.showOpenDialog).toHaveBeenCalledWith(openDialogOptions);
+  });
+
+  it('delegates opening in the existing editor surface', async () => {
+    const source = createSource();
+    const actions = createActions(source);
+
+    await actions.openInEditor();
+
+    expect(source._webviewMethods.openInEditor).toHaveBeenCalledOnce();
   });
 
   it('uses vscode file system wrappers for directory and file copies', async () => {
@@ -161,6 +190,9 @@ function createSource() {
     setFocusedFile: vi.fn(),
     _previewFileAtCommit: vi.fn(() => Promise.resolve()),
     _openFile: vi.fn(() => Promise.resolve()),
+    _webviewMethods: {
+      openInEditor: vi.fn(() => Promise.resolve()),
+    },
     _revealInExplorer: vi.fn(() => Promise.resolve()),
     _copyToClipboard: vi.fn(() => Promise.resolve()),
     _deleteFiles: vi.fn(() => Promise.resolve()),
@@ -168,12 +200,15 @@ function createSource() {
     _createFile: vi.fn(() => Promise.resolve()),
     _toggleFavorites: vi.fn(() => Promise.resolve()),
     _addToExclude: vi.fn(() => Promise.resolve()),
+    _loadAndSendData: vi.fn(() => Promise.resolve()),
+    _indexAndSendData: vi.fn(() => Promise.resolve()),
     _analyzeAndSendData: vi.fn(() => Promise.resolve()),
+    refreshIndex: vi.fn(() => Promise.resolve()),
     clearCacheAndRefresh: vi.fn(() => Promise.resolve()),
     _getFileInfo: vi.fn(() => Promise.resolve()),
     undo: vi.fn(() => Promise.resolve('undo')),
     redo: vi.fn(() => Promise.resolve('redo')),
-    changeView: vi.fn(() => Promise.resolve()),
+    setDepthMode: vi.fn(() => Promise.resolve()),
     setDepthLimit: vi.fn(() => Promise.resolve()),
     _indexRepository: vi.fn(() => Promise.resolve()),
     _jumpToCommit: vi.fn(() => Promise.resolve()),
