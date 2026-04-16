@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { mdiChevronDown, mdiChevronUp } from '@mdi/js';
 
 vi.mock('../../src/webview/components/ui/overlay/tooltip', async () => {
   const React = await import('react');
@@ -39,6 +40,12 @@ vi.mock('../../src/webview/components/ui/overlay/tooltip', async () => {
   return { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger };
 });
 
+vi.mock('../../src/webview/components/icons/MdiIcon', () => ({
+  MdiIcon: ({ path, size }: { path: string; size?: number }) => (
+    <span data-testid="mdi-icon" data-icon-path={path} data-icon-size={size} />
+  ),
+}));
+
 import Toolbar from '../../src/webview/components/Toolbar';
 import { graphStore } from '../../src/webview/store/state';
 import { clearSentMessages, findMessage } from '../helpers/sentMessages';
@@ -70,6 +77,10 @@ function getButtonGroups(container: HTMLElement) {
     dagButtons: dagGroup ? Array.from(dagGroup.querySelectorAll('button')) : [],
     nodeSizeButtons: nodeSizeGroup ? Array.from(nodeSizeGroup.querySelectorAll('button')) : [],
   };
+}
+
+function getIconPath(button: HTMLElement): string | null {
+  return button.querySelector('[data-testid="mdi-icon"]')?.getAttribute('data-icon-path') ?? null;
 }
 
 describe('Toolbar', () => {
@@ -127,6 +138,8 @@ describe('Toolbar', () => {
       expect(bottomCollapseTrigger.closest('[data-testid="toolbar-bottom-group"]')).toBe(bottomGroup);
       expect(topCollapseTrigger).toHaveAttribute('title', 'Collapse Top Toolbar');
       expect(bottomCollapseTrigger).toHaveAttribute('title', 'Collapse Bottom Toolbar');
+      expect(getIconPath(topCollapseTrigger)).toBe(mdiChevronUp);
+      expect(getIconPath(bottomCollapseTrigger)).toBe(mdiChevronDown);
     });
 
     it('collapses only the top toolbar controls and keeps the bottom actions visible', () => {
@@ -151,6 +164,7 @@ describe('Toolbar', () => {
       expect(bottomControls).toHaveClass('opacity-100');
       expect(screen.getByTitle('Index Repo')).toBeTruthy();
       expect(screen.getByTitle('Settings')).toBeTruthy();
+      expect(getIconPath(screen.getByRole('button', { name: 'Expand Top Toolbar' }))).toBe(mdiChevronDown);
     });
 
     it('collapses only the bottom toolbar controls and keeps the top actions visible', () => {
@@ -174,6 +188,7 @@ describe('Toolbar', () => {
       );
       expect(topControls).toHaveClass('opacity-100');
       expect(screen.getByTitle('Toggle 2D/3D Mode')).toBeTruthy();
+      expect(getIconPath(screen.getByRole('button', { name: 'Expand Bottom Toolbar' }))).toBe(mdiChevronUp);
     });
   });
 
