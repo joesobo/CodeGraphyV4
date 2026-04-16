@@ -44,7 +44,7 @@ export class CodeGraphyRepoSettingsStore implements ICodeGraphyConfigurationLike
   private readonly _defaults = createDefaultCodeGraphyRepoSettings();
   private readonly _listeners = new Set<(event: ICodeGraphySettingsChangeEvent) => void>();
   private _settings: ICodeGraphyRepoSettings;
-  private _serializedSettings = '';
+  private _serializedSettings: string;
 
   constructor(
     private readonly _workspaceRoot: string,

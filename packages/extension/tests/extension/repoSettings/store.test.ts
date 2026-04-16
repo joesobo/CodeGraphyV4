@@ -35,17 +35,21 @@ describe('extension/repoSettings/store', () => {
   it('creates .codegraphy/settings.json from defaults instead of seeding legacy configuration', () => {
     const workspaceRoot = createTempWorkspace();
     tempDirectories.push(workspaceRoot);
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
 
     const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
 
     const settingsPath = path.join(workspaceRoot, '.codegraphy', 'settings.json');
     const persisted = readJson<Record<string, unknown>>(settingsPath);
 
+    expect(store.workspaceRoot).toBe(workspaceRoot);
+    expect(store.settingsPath).toBe(settingsPath);
     expect(store.get('showOrphans', true)).toBe(true);
     expect(store.get('timeline.maxCommits', 0)).toBe(500);
     expect(persisted.showOrphans).toBe(true);
     expect(persisted.timeline).toEqual({ maxCommits: 500, playbackSpeed: 1 });
     expect(persisted.legend).toEqual([]);
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it('creates .gitignore when missing and adds .codegraphy/ once', () => {
@@ -300,5 +304,41 @@ describe('extension/repoSettings/store', () => {
 
     expect(events[2].affectsConfiguration('codegraphy.folderNodeColor')).toBe(true);
     expect(events[2].affectsConfiguration('codegraphy.nodeColors')).toBe(true);
+  });
+
+  it('inspects default and workspace values for nested keys', async () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+
+    expect(store.inspect<number>('timeline.playbackSpeed')).toEqual({
+      defaultValue: 1,
+      workspaceValue: 1,
+    });
+
+    await store.update('timeline.playbackSpeed', 3);
+
+    expect(store.inspect<number>('timeline.playbackSpeed')).toEqual({
+      defaultValue: 1,
+      workspaceValue: 3,
+    });
+    expect(store.inspect<string>('timeline.unknown')).toEqual({
+      defaultValue: undefined,
+      workspaceValue: undefined,
+    });
+  });
+
+  it('stops notifying a listener after it is disposed', async () => {
+    const workspaceRoot = createTempWorkspace();
+    tempDirectories.push(workspaceRoot);
+    const store = new CodeGraphyRepoSettingsStore(workspaceRoot);
+    const listener = vi.fn();
+
+    const subscription = store.onDidChange(listener);
+    subscription.dispose();
+
+    await store.update('maxFiles', 900);
+
+    expect(listener).not.toHaveBeenCalled();
   });
 });
