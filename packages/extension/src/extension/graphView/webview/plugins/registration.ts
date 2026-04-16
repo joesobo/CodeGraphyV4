@@ -1,5 +1,13 @@
 import type * as vscode from 'vscode';
 import type { IPlugin } from '../../../../core/plugins/types/contracts';
+import { runExternalPluginRegistrationFollowUp, sendExternalPluginRegistrationUpdates } from './registration/followUp';
+import {
+  getExternalPluginId,
+  initializeExternalPlugin,
+  registerExternalPlugin,
+  shouldDeferExternalPluginReadinessReplay,
+  storeExternalPluginExtensionUri,
+} from './registration/state';
 
 interface GraphViewPluginRegistry {
   register(plugin: IPlugin, options: { deferReadinessReplay: boolean }): void;
@@ -39,79 +47,6 @@ export interface GraphViewExternalPluginRegistrationHandlers {
   analyzeAndSendData(): Promise<void>;
 }
 
-function getExternalPluginId(plugin: unknown): string | undefined {
-  if (typeof plugin !== 'object' || plugin === null || !('id' in plugin)) {
-    return undefined;
-  }
-
-  return String((plugin as { id: unknown }).id);
-}
-
-function storeExternalPluginExtensionUri(
-  pluginId: string,
-  options: GraphViewExternalPluginRegistrationOptions | undefined,
-  state: GraphViewExternalPluginRegistrationState,
-  handlers: GraphViewExternalPluginRegistrationHandlers,
-): void {
-  const sourceUri = handlers.normalizeExtensionUri(options?.extensionUri);
-  if (sourceUri) {
-    state.pluginExtensionUris.set(pluginId, sourceUri);
-  }
-}
-
-function shouldDeferExternalPluginReadinessReplay(
-  state: GraphViewExternalPluginRegistrationState,
-): boolean {
-  return !state.firstAnalysis || state.readyNotified;
-}
-
-async function initializeExternalPlugin(
-  pluginId: string,
-  state: GraphViewExternalPluginRegistrationState,
-  handlers: GraphViewExternalPluginRegistrationHandlers,
-): Promise<void> {
-  const workspaceRoot = handlers.getWorkspaceRoot();
-  if (!workspaceRoot) {
-    return;
-  }
-
-  if (state.analyzerInitPromise) {
-    await state.analyzerInitPromise;
-  }
-
-  await state.analyzer?.registry.initializePlugin(pluginId, workspaceRoot);
-}
-
-function sendExternalPluginRegistrationUpdates(
-  handlers: GraphViewExternalPluginRegistrationHandlers,
-): void {
-  handlers.refreshWebviewResourceRoots();
-  handlers.sendDepthState();
-  handlers.sendPluginStatuses();
-  handlers.sendContextMenuItems();
-  handlers.sendPluginExporters?.();
-  handlers.sendPluginToolbarActions?.();
-  handlers.sendPluginWebviewInjections();
-}
-
-async function runExternalPluginRegistrationFollowUp(
-  pluginId: string,
-  shouldDeferReadinessReplay: boolean,
-  state: GraphViewExternalPluginRegistrationState,
-  handlers: GraphViewExternalPluginRegistrationHandlers,
-): Promise<void> {
-  await initializeExternalPlugin(pluginId, state, handlers);
-  if (!shouldDeferReadinessReplay) {
-    return;
-  }
-
-  state.analyzer?.registry.replayReadinessForPlugin(pluginId);
-  await handlers.invalidateTimelineCache?.();
-  if (state.analyzerInitialized) {
-    await handlers.analyzeAndSendData();
-  }
-}
-
 export function registerGraphViewExternalPlugin(
   plugin: unknown,
   options: GraphViewExternalPluginRegistrationOptions | undefined,
@@ -126,9 +61,7 @@ export function registerGraphViewExternalPlugin(
   const analyzer = state.analyzer;
   storeExternalPluginExtensionUri(pluginId, options, state, handlers);
   const shouldDeferReadinessReplay = shouldDeferExternalPluginReadinessReplay(state);
-  analyzer.registry.register(plugin as IPlugin, {
-    deferReadinessReplay: shouldDeferReadinessReplay,
-  });
+  registerExternalPlugin(plugin as IPlugin, shouldDeferReadinessReplay, state);
   analyzer.clearCache?.();
   sendExternalPluginRegistrationUpdates(handlers);
   void (async () => {
@@ -138,6 +71,7 @@ export function registerGraphViewExternalPlugin(
         shouldDeferReadinessReplay,
         state,
         handlers,
+        initializeExternalPlugin,
       );
     } catch (error) {
       console.error(`[CodeGraphy] External plugin registration follow-up failed for ${pluginId}:`, error);

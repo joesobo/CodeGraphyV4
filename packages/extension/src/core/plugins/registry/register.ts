@@ -4,7 +4,7 @@
  */
 
 import type { IPlugin } from '../types/contracts';
-import type { IPluginInfoV2 } from './manager';
+import type { IPluginInfoV2 } from './state';
 import type { EventBus } from '../events/bus';
 import type { DecorationManager } from '../decoration/manager';
 import type { GraphDataProvider, CommandRegistrar, WebviewMessageSender, ExportSaver } from '../api/context';

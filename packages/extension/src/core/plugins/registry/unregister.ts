@@ -3,7 +3,7 @@
  * @module core/plugins/registry/unregister
  */
 
-import type { IPluginInfoV2 } from './manager';
+import type { IPluginInfoV2 } from './state';
 import type { EventBus } from '../events/bus';
 import { removePluginFromExtensionMap } from './extensionMap';
 
