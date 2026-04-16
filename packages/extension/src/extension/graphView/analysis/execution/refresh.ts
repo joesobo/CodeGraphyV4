@@ -24,12 +24,14 @@ export async function refreshIncrementalGraphViewRawData(
   forwardProgress: (progress: GraphViewIndexingProgress) => void,
 ): Promise<IGraphData> {
   if (state.analyzer?.refreshChangedFiles) {
-    return await state.analyzer.refreshChangedFiles(
-      state.changedFilePaths ?? [],
-      state.filterPatterns,
-      state.disabledPlugins,
-      signal,
-      forwardProgress,
+    return (
+      (await state.analyzer.refreshChangedFiles(
+        state.changedFilePaths ?? [],
+        state.filterPatterns,
+        state.disabledPlugins,
+        signal,
+        forwardProgress,
+      )) ?? EMPTY_GRAPH_DATA
     );
   }
 
