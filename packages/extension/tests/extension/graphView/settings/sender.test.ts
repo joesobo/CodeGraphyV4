@@ -26,6 +26,7 @@ describe('graphView/settings/sender', () => {
       sendMessage,
     });
 
+    expect(sendMessage).toHaveBeenCalledTimes(3);
     expect(sendMessage).toHaveBeenNthCalledWith(1, {
       type: 'SETTINGS_UPDATED',
       payload: { bidirectionalEdges: 'combined', showOrphans: false },
@@ -34,5 +35,6 @@ describe('graphView/settings/sender', () => {
       type: 'SHOW_LABELS_UPDATED',
       payload: { showLabels: false },
     });
+    expect(viewContext.activePlugins.size).toBe(0);
   });
 });

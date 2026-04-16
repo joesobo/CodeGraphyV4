@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IPlugin } from '../../../../src/core/plugins/types/contracts';
-import { analyzeFileResult } from '../../../../src/core/plugins/routing/router/analyze';
+import { analyzeFile, analyzeFileResult } from '../../../../src/core/plugins/routing/router/analyze';
 
 function buildMaps(
   plugins: IPlugin[],
@@ -36,7 +36,72 @@ function makePlugin(id: string, extensions: string[], result: object): IPlugin {
 }
 
 describe('routing/analyze', () => {
+  it('projects analyzed file results into graph connections', async () => {
+    const active = makePlugin('active', ['.ts'], {
+      filePath: 'src/app.ts',
+      symbols: [{
+        id: 'symbol:src/app.ts:boot',
+        name: 'boot',
+        kind: 'function',
+        filePath: 'src/app.ts',
+      }],
+      relations: [{
+        kind: 'import',
+        sourceId: 'plugin:import',
+        fromFilePath: 'src/app.ts',
+        toFilePath: 'src/lib.ts',
+      }],
+    });
+    const { pluginsMap, extensionMap } = buildMaps([active]);
+
+    const result = await analyzeFile(
+      'src/app.ts',
+      'content',
+      '/ws',
+      pluginsMap,
+      extensionMap,
+    );
+
+    expect(result).toEqual([
+      {
+        kind: 'import',
+        pluginId: 'active',
+        sourceId: 'plugin:import',
+        specifier: '',
+        resolvedPath: 'src/lib.ts',
+        type: undefined,
+        variant: undefined,
+        metadata: undefined,
+      },
+    ]);
+  });
+
+  it('returns an empty connection list when no plugin or core analysis produces a result', async () => {
+    expect(
+      await analyzeFile(
+        'src/app.ts',
+        'content',
+        '/ws',
+        new Map(),
+        new Map(),
+      ),
+    ).toEqual([]);
+  });
+
+  it('returns null when no plugins match and core analysis is unavailable', async () => {
+    expect(
+      await analyzeFileResult(
+        'src/app.ts',
+        'content',
+        '/ws',
+        new Map(),
+        new Map(),
+      ),
+    ).toBeNull();
+  });
+
   it('returns normalized core results when matching plugins do not analyze files', async () => {
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
     const passive = {
       id: 'passive',
       name: 'passive',
@@ -77,6 +142,8 @@ describe('routing/analyze', () => {
       }],
       symbols: [],
     });
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 
   it('continues merging after a plugin failure', async () => {
