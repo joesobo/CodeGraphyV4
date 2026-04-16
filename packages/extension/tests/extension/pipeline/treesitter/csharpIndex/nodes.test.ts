@@ -61,7 +61,13 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex/nodes', () => {
     expect(isCSharpTypeDeclarationNode(createCSharpNode({ type: 'class_declaration' }))).toBe(
       true,
     );
+    expect(isCSharpTypeDeclarationNode(createCSharpNode({ type: 'enum_declaration' }))).toBe(
+      true,
+    );
     expect(isCSharpTypeDeclarationNode(createCSharpNode({ type: 'interface_declaration' }))).toBe(
+      true,
+    );
+    expect(isCSharpTypeDeclarationNode(createCSharpNode({ type: 'struct_declaration' }))).toBe(
       true,
     );
     expect(isCSharpTypeDeclarationNode(createCSharpNode({ type: 'method_declaration' }))).toBe(
