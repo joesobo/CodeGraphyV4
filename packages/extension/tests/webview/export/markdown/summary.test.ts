@@ -39,6 +39,7 @@ describe('webview/export/markdown/summary', () => {
   it('renders inactive and active timeline summaries', () => {
     const inactiveLines: string[] = [];
     const activeLines: string[] = [];
+    const unknownCommitLines: string[] = [];
 
     appendTimelineSummary(inactiveLines, createExportData());
     appendTimelineSummary(
@@ -53,8 +54,21 @@ describe('webview/export/markdown/summary', () => {
         },
       }),
     );
+    appendTimelineSummary(
+      unknownCommitLines,
+      createExportData({
+        scope: {
+          graph: 'current-view',
+          timeline: {
+            active: true,
+            commitSha: null,
+          },
+        },
+      }),
+    );
 
     expect(inactiveLines).toEqual(['> timeline: inactive']);
     expect(activeLines).toEqual(['> timeline commit: abc123']);
+    expect(unknownCommitLines).toEqual(['> timeline commit: unknown']);
   });
 });

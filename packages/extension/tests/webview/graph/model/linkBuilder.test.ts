@@ -53,4 +53,27 @@ describe('graph/model/link/build', () => {
     expect(links[0]).not.toHaveProperty('curvature');
     expect(links[1]).not.toHaveProperty('curvature');
   });
+
+  it('normalizes explicit bidirectional flags when separate mode forces one-way links', () => {
+    const links = buildGraphLinks(
+      [
+        {
+          id: 'edge-1',
+          from: 'a.ts',
+          to: 'b.ts',
+          kind: 'import',
+          sources: [],
+        },
+      ],
+      'separate'
+    );
+
+    expect(links).toEqual([
+      expect.objectContaining({
+        id: 'edge-1',
+        bidirectional: false,
+        baseColor: undefined,
+      }),
+    ]);
+  });
 });

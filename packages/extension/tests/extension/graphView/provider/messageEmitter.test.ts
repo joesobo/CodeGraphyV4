@@ -17,4 +17,18 @@ describe('graphView/provider/messageEmitter', () => {
     expect(first).toHaveBeenCalledWith({ type: 'TEST' });
     expect(second).toHaveBeenCalledTimes(2);
   });
+
+  it('clears all handlers when the emitter is disposed', () => {
+    const emitter = createExtensionMessageEmitter();
+    const first = vi.fn();
+    const second = vi.fn();
+
+    emitter.event(first);
+    emitter.event(second);
+    emitter.dispose();
+    emitter.fire({ type: 'IGNORED' });
+
+    expect(first).not.toHaveBeenCalled();
+    expect(second).not.toHaveBeenCalled();
+  });
 });

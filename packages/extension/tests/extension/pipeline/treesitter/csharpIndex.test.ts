@@ -3,8 +3,12 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
 import {
+  clearCSharpWorkspaceIndex,
+  createEmptyCSharpIndex,
+  getCSharpWorkspaceIndex,
   preAnalyzeCSharpTreeSitterFiles,
   resolveCSharpTypePathInNamespace,
+  setCSharpWorkspaceIndex,
 } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/csharpIndex';
 
 const tempRoots: string[] = [];
@@ -81,5 +85,21 @@ describe('pipeline/plugins/treesitter/runtime/csharpIndex', () => {
         'ApiService',
       ),
     ).toBe(apiServicePath);
+  });
+
+  it('stores and clears workspace indexes', () => {
+    const workspaceRoot = '/workspace/store';
+    const index = createEmptyCSharpIndex();
+
+    expect(index.typesByQualifiedName.size).toBe(0);
+    expect(getCSharpWorkspaceIndex(workspaceRoot)).toBeUndefined();
+
+    setCSharpWorkspaceIndex(workspaceRoot, index);
+
+    expect(getCSharpWorkspaceIndex(workspaceRoot)).toBe(index);
+
+    clearCSharpWorkspaceIndex(workspaceRoot);
+
+    expect(getCSharpWorkspaceIndex(workspaceRoot)).toBeUndefined();
   });
 });

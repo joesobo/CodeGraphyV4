@@ -6,10 +6,12 @@ describe('settingsMessages/updates/labels', () => {
   it('persists show-label updates and publishes them', async () => {
     const handlers = createHandlers();
 
-    await applyShowLabelsUpdate(
+    await expect(
+      applyShowLabelsUpdate(
       { type: 'UPDATE_SHOW_LABELS', payload: { showLabels: false } },
       handlers,
-    );
+      ),
+    ).resolves.toBe(true);
 
     expect(handlers.updateConfig).toHaveBeenCalledWith('showLabels', false);
     expect(handlers.sendMessage).toHaveBeenCalledWith({

@@ -71,6 +71,7 @@ describe('graphView/provider/runtime/stateBootstrap', () => {
         },
       ] as never),
     ).toBe('/test/workspace');
+    expect(getWorkspaceRoot([undefined] as never)).toBeUndefined();
     expect(getWorkspaceRoot(undefined)).toBeUndefined();
   });
 });
