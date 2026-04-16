@@ -99,6 +99,23 @@ describe('graph view provider analysis lifecycle helper', () => {
     expect(updateAnalysisRequestId).toHaveBeenCalledWith(1);
   });
 
+  it('updates request state even when optional request update callbacks are absent', async () => {
+    const state = createState();
+    const handlers = createHandlers();
+
+    await expect(
+      runGraphViewProviderAnalysisRequest(state, {
+        executeAnalysis: (signal, requestId) =>
+          executeGraphViewProviderAnalysis(signal, requestId, state, handlers),
+        isAbortError: error => isGraphViewAbortError(error),
+        logError: handlers.logError,
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(state.analysisRequestId).toBe(1);
+    expect(state.analysisController).toBeUndefined();
+  });
+
   it('syncs analyzer initialization state after execution', async () => {
     const rawGraphData: IGraphData = {
       nodes: [{ id: 'src/index.ts', label: 'src/index.ts', color: '#ffffff' }],
@@ -189,5 +206,23 @@ describe('graph view provider analysis lifecycle helper', () => {
     expect(isGraphViewAbortError(abortError)).toBe(true);
     expect(isGraphViewAbortError(new Error('boom'))).toBe(false);
     expect(isGraphViewAbortError('AbortError')).toBe(false);
+  });
+
+  it('marks workspace ready without requiring a waiting promise', () => {
+    const registry = {
+      notifyWorkspaceReady: vi.fn(),
+    };
+    const workspaceReadyState = {
+      firstAnalysis: true,
+      resolveFirstWorkspaceReady: undefined,
+    };
+
+    markGraphViewWorkspaceReady(workspaceReadyState, registry, {
+      nodes: [],
+      edges: [],
+    });
+
+    expect(registry.notifyWorkspaceReady).toHaveBeenCalledOnce();
+    expect(workspaceReadyState.firstAnalysis).toBe(false);
   });
 });

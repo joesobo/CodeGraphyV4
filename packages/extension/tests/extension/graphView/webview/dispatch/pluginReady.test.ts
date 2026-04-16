@@ -113,4 +113,38 @@ describe('dispatchGraphViewPluginReadyMessage', () => {
       },
     });
   });
+
+  it('uses the current depth mode and calls optional plugin exporters when available', async () => {
+    const context = createContext({
+      getDepthMode: vi.fn(() => true),
+      sendPluginExporters: vi.fn(),
+    });
+
+    await expect(
+      dispatchGraphViewPluginReadyMessage({ type: 'WEBVIEW_READY', payload: null }, context),
+    ).resolves.toBe(true);
+
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: true },
+    });
+    expect(context.sendPluginExporters).toHaveBeenCalledOnce();
+    expect(context.sendPluginToolbarActions).toHaveBeenCalledOnce();
+  });
+
+  it('falls back to depth mode false and skips missing optional plugin senders', async () => {
+    const context = createContext();
+    delete context.getDepthMode;
+    delete context.sendPluginExporters;
+    delete context.sendPluginToolbarActions;
+
+    await expect(
+      dispatchGraphViewPluginReadyMessage({ type: 'WEBVIEW_READY', payload: null }, context),
+    ).resolves.toBe(true);
+
+    expect(context.sendMessage).toHaveBeenCalledWith({
+      type: 'DEPTH_MODE_UPDATED',
+      payload: { depthMode: false },
+    });
+  });
 });

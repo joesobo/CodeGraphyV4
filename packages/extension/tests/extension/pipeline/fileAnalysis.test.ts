@@ -59,12 +59,14 @@ describe('pipeline/fileAnalysis', () => {
       filePath: '/workspace/src/index.ts',
       relations: [],
     }));
+    const onProgress = vi.fn();
 
     const result = await analyzeWorkspaceFiles({
       analyzeFile,
       cache,
       files: [createFile('src/index.ts')],
       getFileStat: vi.fn(async () => ({ mtime: 25, size: 99 })),
+      onProgress,
       readContent,
       workspaceRoot: '/workspace',
     });
@@ -76,6 +78,11 @@ describe('pipeline/fileAnalysis', () => {
     expect(cache.files['src/index.ts'].size).toBe(99);
     expect(readContent).not.toHaveBeenCalled();
     expect(analyzeFile).not.toHaveBeenCalled();
+    expect(onProgress).toHaveBeenCalledWith({
+      current: 1,
+      total: 1,
+      filePath: 'src/index.ts',
+    });
   });
 
   it('keeps the cached size when a cache hit already has size data', async () => {
@@ -104,12 +111,14 @@ describe('pipeline/fileAnalysis', () => {
       { specifier: './utils', resolvedPath: '/workspace/src/utils.ts', type: 'static' , sourceId: 'test-source', kind: 'import' },
     ];
     const analysis = createImportAnalysis();
+    const onProgress = vi.fn();
 
     const result = await analyzeWorkspaceFiles({
       analyzeFile: vi.fn(async () => analysis),
       cache,
       files: [createFile('src/index.ts')],
       getFileStat: vi.fn(async () => ({ mtime: 50, size: 12 })),
+      onProgress,
       readContent: vi.fn(async () => "import './utils'"),
       workspaceRoot: '/workspace',
     });
@@ -122,6 +131,11 @@ describe('pipeline/fileAnalysis', () => {
       mtime: 50,
       analysis,
       size: 12,
+    });
+    expect(onProgress).toHaveBeenCalledWith({
+      current: 1,
+      total: 1,
+      filePath: 'src/index.ts',
     });
   });
 

@@ -34,4 +34,36 @@ describe('search/filtering/rules/edgeRules', () => {
       { id: 'other-edge', pattern: 'call', color: '#ff8800', target: 'edge' as const },
     ])).toEqual(edge);
   });
+
+  it('treats missing targets as node rules even when the edge fields match', () => {
+    const edge: IGraphEdge = {
+      id: 'edge-3',
+      from: 'src/main.ts',
+      to: 'src/helper.ts',
+      kind: 'import',
+      sources: [],
+    };
+
+    expect(applyEdgeLegendRules(edge, [
+      { id: 'default-target', pattern: 'src/main.ts->src/helper.ts', color: '#44ff44' },
+      { id: 'node-target', pattern: 'src/main.ts->src/helper.ts#import', color: '#ff44ff', target: 'node' as const },
+    ])).toEqual(edge);
+  });
+
+  it('matches edge rules by full path and full path with kind', () => {
+    const edge: IGraphEdge = {
+      id: 'edge-4',
+      from: 'src/main.ts',
+      to: 'src/helper.ts',
+      kind: 'import',
+      sources: [],
+    };
+
+    expect(applyEdgeLegendRules(edge, [
+      { id: 'path-only', pattern: 'src/main.ts->src/helper.ts', color: '#112233', target: 'edge' as const },
+      { id: 'path-kind', pattern: 'src/main.ts->src/helper.ts#import', color: '#334455', target: 'edge' as const },
+    ])).toMatchObject({
+      color: '#334455',
+    });
+  });
 });
