@@ -4,7 +4,7 @@
  * Tracks all disposables for automatic cleanup on plugin unload.
  */
 
-import { DisposableStore } from '../disposable';
+import { DisposableStore } from '../../disposable';
 import { clearPluginDecorations, decoratePluginEdge, decoratePluginNode } from './decorations';
 import { disposePluginApi } from './cleanup';
 import type {
@@ -43,14 +43,14 @@ import {
   logPluginMessage,
 } from './utilities';
 import { deliverPluginWebviewMessage, onPluginWebviewMessage, savePluginExport, sendPluginWebviewMessage } from './webview';
-import type { Disposable } from '../disposable';
-import { EventBus, EventPayloads, EventName } from '../events/bus';
-import { DecorationManager, EdgeDecoration, NodeDecoration } from '../decoration/manager';
-import { ViewRegistry } from '../../views/registry';
-import { IView } from '../../views/contracts';
-import type { IGraphData, IGraphEdge, IGraphNode } from '../../../shared/graph/types';
-import type { ExportRequest, IExporter, IToolbarAction } from '../../../../../plugin-api/src/api';
-import type { ICommand, IContextMenuItem } from '../../../../../plugin-api/src/commands';
+import type { Disposable } from '../../disposable';
+import { EventBus, EventPayloads, EventName } from '../../events/bus';
+import { DecorationManager, EdgeDecoration, NodeDecoration } from '../../decoration/manager';
+import { ViewRegistry } from '../../../views/registry';
+import { IView } from '../../../views/contracts';
+import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/types';
+import type { ExportRequest, IExporter, IToolbarAction } from '../../../../../../plugin-api/src/api';
+import type { ICommand, IContextMenuItem } from '../../../../../../plugin-api/src/commands';
 
 export class CodeGraphyAPIImpl {
   readonly version = '2.0.0';
