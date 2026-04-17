@@ -1,6 +1,6 @@
 /**
  * @fileoverview Semver parsing and comparison utilities.
- * @module core/plugins/versioning/semver
+ * @module core/plugins/versioning/semver/value
  */
 
 export interface ISemver {

@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { coreViews } from '../../../core/views/builtIns';
+import { coreViews } from '../../../core/views/catalog';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { initializeGraphViewProviderServices, restoreGraphViewProviderState } from './wiring/bootstrap';
 import type { GraphViewProviderMethodContainers } from './wiring/methodContainers';

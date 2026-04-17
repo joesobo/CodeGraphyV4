@@ -1,7 +1,7 @@
 /**
  * @fileoverview Host-defined base graph transforms kept for compatibility with
  * the plugin view registry.
- * @module core/views/builtIns
+ * @module core/views/catalog
  */
 
 import { IView } from './contracts';

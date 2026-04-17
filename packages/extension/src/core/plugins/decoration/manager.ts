@@ -4,12 +4,12 @@
  */
 
 import { Disposable, toDisposable } from '../disposable';
-import { mergeNodeDecorations } from './mergeNodeDecorations';
-import { mergeEdgeDecorations } from './mergeEdgeDecorations';
-import { addDecorationEntry, clearPluginEntries } from './storage';
-import type { NodeDecoration, EdgeDecoration, DecorationEntry } from './contracts';
+import { addDecorationEntry, clearPluginEntries } from './entries';
+import { mergeEdgeDecorations } from './merge/edge';
+import { mergeNodeDecorations } from './merge/node';
+import type { DecorationEntry, EdgeDecoration, NodeDecoration } from './contracts';
 
-export type { NodeDecoration, EdgeDecoration, TooltipSection, DecorationEntry } from './contracts';
+export type { DecorationEntry, EdgeDecoration, NodeDecoration, TooltipSection } from './contracts';
 
 /**
  * Manages decorations applied to nodes and edges by plugins.
