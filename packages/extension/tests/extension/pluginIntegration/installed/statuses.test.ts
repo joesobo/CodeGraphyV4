@@ -1,13 +1,13 @@
 import * as fs from 'node:fs/promises';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import { activate } from '../../../src/extension/activate';
-import type { GraphViewProvider } from '../../../src/extension/graphViewProvider';
-import { getGraphViewProviderInternals } from '../graphViewProvider/internals';
+import { activate } from '../../../../src/extension/activate';
+import type { GraphViewProvider } from '../../../../src/extension/graphViewProvider';
+import { getGraphViewProviderInternals } from '../../graphViewProvider/internals';
 import {
   createPluginIntegrationWorkspace,
   type PluginIntegrationWorkspace,
-} from './workspaceFixture';
+} from '../workspaceFixture';
 
 const mockState = vi.hoisted(() => ({
   databaseCache: {
@@ -45,7 +45,7 @@ Object.defineProperty(vscode.extensions, 'all', {
   configurable: true,
 });
 
-vi.mock('../../../src/extension/pipeline/database/cache', () => ({
+vi.mock('../../../../src/extension/pipeline/database/cache', () => ({
   clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
@@ -53,7 +53,7 @@ vi.mock('../../../src/extension/pipeline/database/cache', () => ({
   saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
 }));
 
-vi.mock('../../../src/extension/pipeline/database/cache/index.ts', () => ({
+vi.mock('../../../../src/extension/pipeline/database/cache/index.ts', () => ({
   clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
@@ -78,7 +78,77 @@ function getRegisteredProvider(): GraphViewProvider {
   ).mock.calls[0]?.[1] as GraphViewProvider;
 }
 
-describe('extension/pluginIntegration/installedPluginActivation', () => {
+function resolveGraphWebview(provider: GraphViewProvider) {
+  let messageHandler: ((message: unknown) => Promise<void>) | undefined;
+  const mockWebview = {
+    options: {},
+    html: '',
+    onDidReceiveMessage: vi.fn((handler: (message: unknown) => Promise<void>) => {
+      messageHandler = handler;
+      return { dispose: () => undefined };
+    }),
+    postMessage: vi.fn(),
+    asWebviewUri: vi.fn((uri: vscode.Uri) => uri),
+    cspSource: 'test-csp',
+  };
+
+  const mockView = {
+    webview: mockWebview,
+    visible: true,
+    onDidChangeVisibility: vi.fn(() => ({ dispose: () => undefined })),
+    onDidDispose: vi.fn(() => ({ dispose: () => undefined })),
+    show: vi.fn(),
+  };
+
+  provider.resolveWebviewView(
+    mockView as unknown as vscode.WebviewView,
+    {} as vscode.WebviewViewResolveContext,
+    { isCancellationRequested: false, onCancellationRequested: vi.fn() } as never,
+  );
+
+  return {
+    mockWebview,
+    getMessageHandler(): (message: unknown) => Promise<void> {
+      expect(messageHandler).toBeDefined();
+      return messageHandler!;
+    },
+  };
+}
+
+async function waitForPluginStatuses(
+  getMessages: () => Array<{
+    type?: string;
+    payload?: {
+      plugins?: Array<{ id: string }>;
+    };
+  }>,
+): Promise<Array<{ id: string }>> {
+  const requiredPluginIds = [
+    'codegraphy.markdown',
+    'codegraphy.typescript',
+    'codegraphy.gdscript',
+  ];
+
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const pluginMessage = getMessages()
+      .filter(message => message.type === 'PLUGINS_UPDATED')
+      .at(-1);
+    const plugins = pluginMessage?.payload?.plugins ?? [];
+    const pluginIds = new Set(plugins.map(plugin => plugin.id));
+
+    if (requiredPluginIds.every(pluginId => pluginIds.has(pluginId))) {
+      return plugins;
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+
+  return getMessages()
+    .filter(message => message.type === 'PLUGINS_UPDATED')
+    .at(-1)?.payload?.plugins ?? [];
+}
+
+describe('extension/pluginIntegration/installedPluginStatuses', () => {
   beforeAll(async () => {
     workspaceFixture = await createPluginIntegrationWorkspace();
   });
@@ -129,7 +199,7 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
     workspaceFixture = undefined;
   });
 
-  it('activates installed dependent plugins before the first analysis runs', async () => {
+  it('sends installed external plugins to the webview after startup', async () => {
     const apiRef: { current?: ReturnType<typeof activate> } = {};
     const coreExtensionRef = {
       id: 'codegraphy.codegraphy',
@@ -145,11 +215,6 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
         extensionId === 'codegraphy.codegraphy' ? coreExtensionRef : undefined,
     );
 
-    const activateInstalledPlugin = vi.fn(async () => {
-      const plugin = await import('../../../../plugin-typescript/src/activate');
-      await plugin.activate({ extensionUri: vscode.Uri.file('/plugins/typescript') } as never);
-    });
-
     installedExtensionsValue = [
       {
         id: 'codegraphy.codegraphy-typescript',
@@ -157,7 +222,21 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
         packageJSON: {
           extensionDependencies: ['codegraphy.codegraphy'],
         },
-        activate: activateInstalledPlugin,
+        activate: async () => {
+          const plugin = await import('../../../../../plugin-typescript/src/activate');
+          await plugin.activate({ extensionUri: vscode.Uri.file('/plugins/typescript') } as never);
+        },
+      },
+      {
+        id: 'codegraphy.codegraphy-godot',
+        isActive: false,
+        packageJSON: {
+          extensionDependencies: ['codegraphy.codegraphy'],
+        },
+        activate: async () => {
+          const plugin = await import('../../../../../plugin-godot/src/activate');
+          await plugin.activate({ extensionUri: vscode.Uri.file('/plugins/godot') } as never);
+        },
       },
     ];
 
@@ -167,29 +246,29 @@ describe('extension/pluginIntegration/installedPluginActivation', () => {
 
     const provider = getRegisteredProvider();
     const internals = getGraphViewProviderInternals(provider);
-    await internals._analysisMethods._analyzeAndSendData();
-    await internals._analysisMethods._analyzeAndSendData();
+    const { mockWebview, getMessageHandler } = resolveGraphWebview(provider);
 
-    expect(activateInstalledPlugin).toHaveBeenCalledOnce();
-    expect(coreExtensionRef.activate).toHaveBeenCalledOnce();
-    expect(api.getGraphData().edges).toEqual(
+    await getMessageHandler()({ type: 'WEBVIEW_READY', payload: null });
+
+    const getPluginMessages = () =>
+      mockWebview.postMessage.mock.calls.map((call: unknown[]) => call[0] as {
+        type?: string;
+        payload?: {
+          plugins?: Array<{ id: string }>;
+        };
+      });
+
+    const plugins = await waitForPluginStatuses(getPluginMessages);
+    expect(getPluginMessages().some(message => message.type === 'PLUGINS_UPDATED')).toBe(true);
+
+    expect(plugins).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({
-          from: 'src/index.ts',
-          to: 'src/utils.ts',
-        }),
+        expect.objectContaining({ id: 'codegraphy.markdown' }),
+        expect.objectContaining({ id: 'codegraphy.typescript' }),
+        expect.objectContaining({ id: 'codegraphy.gdscript' }),
       ]),
     );
-
-    const pluginIds = (
-      (provider as unknown as {
-        _analyzer: { registry: { list: () => Array<{ plugin: { id: string } }> } };
-      })._analyzer.registry.list()
-    ).map((pluginInfo) => pluginInfo.plugin.id);
-
-    expect(pluginIds).toEqual(
-      expect.arrayContaining(['codegraphy.markdown', 'codegraphy.typescript']),
-    );
+    await internals._analysisMethods._analyzeAndSendData();
     expect(mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache).toHaveBeenCalledWith(
       workspaceFixture!.workspacePath,
     );

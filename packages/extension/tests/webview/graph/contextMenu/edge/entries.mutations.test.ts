@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { buildEdgeEntries } from '../../../../src/webview/components/graph/contextMenu/edge/entries';
-import type { GraphContextMenuEntry } from '../../../../src/webview/components/graph/contextMenu/contracts';
+import { buildEdgeEntries } from '../../../../../src/webview/components/graph/contextMenu/edge/entries';
+import type { GraphContextMenuEntry } from '../../../../../src/webview/components/graph/contextMenu/contracts';
 
 type ItemEntry = Extract<GraphContextMenuEntry, { kind: 'item' }>;
 
