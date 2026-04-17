@@ -11,7 +11,7 @@ import {
   getPythonImportedName,
 } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/importFromNodes';
 import { resolvePythonImportFromPath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/importFromPath';
-import { resolvePythonModulePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/paths';
+import { resolvePythonModulePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/paths';
 import { addImportRelation } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
@@ -32,7 +32,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/p
   resolvePythonImportFromPath: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/paths', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/paths', () => ({
   resolvePythonModulePath: vi.fn(),
 }));
 

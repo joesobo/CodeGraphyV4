@@ -6,7 +6,7 @@ import {
   handleRustNamedSymbol,
 } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rust/handlers';
 import { getIdentifierText } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
-import { resolveRustModuleDeclarationPath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/paths';
+import { resolveRustModuleDeclarationPath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustPaths';
 import { addCallRelation, addImportRelation, createSymbol } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 import { getRustCallBinding } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rust/bindings';
 import { walkSymbolBody } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/walk';
@@ -15,7 +15,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/n
   getIdentifierText: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/paths', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/rustPaths', () => ({
   resolveRustModuleDeclarationPath: vi.fn(),
 }));
 

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { usePhysicsRuntimePause } from '../../../../../../src/webview/components/graph/runtime/use/graph/pause';
 
 const physicsHarness = vi.hoisted(() => ({
+  havePhysicsSettingsChanged: vi.fn(),
   selectActivePhysicsGraph: vi.fn(),
   syncPhysicsAnimation: vi.fn(),
 }));
@@ -12,11 +13,13 @@ vi.mock('../../../../../../src/webview/components/graph/runtime/physicsLifecycle
 }));
 
 vi.mock('../../../../../../src/webview/components/graph/runtime/physics', () => ({
+  havePhysicsSettingsChanged: physicsHarness.havePhysicsSettingsChanged,
   syncPhysicsAnimation: physicsHarness.syncPhysicsAnimation,
 }));
 
 describe('webview/graph/runtime/use/graph/pause', () => {
   beforeEach(() => {
+    physicsHarness.havePhysicsSettingsChanged.mockReset();
     physicsHarness.selectActivePhysicsGraph.mockReset();
     physicsHarness.syncPhysicsAnimation.mockReset();
   });

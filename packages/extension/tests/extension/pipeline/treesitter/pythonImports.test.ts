@@ -5,7 +5,7 @@ import {
   getLastPathSegment,
   getNodeText,
 } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes';
-import { resolvePythonModulePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/paths';
+import { resolvePythonModulePath } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/paths';
 import { addImportRelation } from '../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/results';
 
 vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/nodes', () => ({
@@ -14,7 +14,7 @@ vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/n
   getNodeText: vi.fn((node?: { text?: string } | null) => node?.text ?? null),
 }));
 
-vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/paths', () => ({
+vi.mock('../../../../src/extension/pipeline/plugins/treesitter/runtime/analyze/python/paths', () => ({
   resolvePythonModulePath: vi.fn(),
 }));
 
