@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import type { IViewContext } from '../../../../core/views/contracts';
 import type { ViewRegistry } from '../../../../core/views/registry';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import { getCodeGraphyConfiguration } from '../../../repoSettings/current';
 import { applyGraphViewTransform } from '../../presentation/transform';

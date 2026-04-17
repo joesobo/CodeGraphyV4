@@ -1,6 +1,6 @@
 import type { EventBus } from '../events/bus';
 import type { CodeGraphyAPIImpl } from '../api/instance';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IPluginInfo } from '../types/contracts';
 import { DEFAULT_LOG_FN } from './configure';
 import type { RegistryV2Config } from './register';

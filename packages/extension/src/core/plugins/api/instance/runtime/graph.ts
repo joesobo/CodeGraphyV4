@@ -1,4 +1,4 @@
-import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../../shared/graph/types';
+import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../../shared/graph/contracts';
 import type { ApiContext } from './context';
 import {
   filterEdgesByKind as facadeFilterEdgesByKind,

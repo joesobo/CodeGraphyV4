@@ -1,9 +1,9 @@
 import React from 'react';
 import { mdiBullseye } from '@mdi/js';
-import { postMessage } from '../../vscodeApi';
-import { useGraphStore } from '../../store/state';
-import { Slider } from '../ui/controls/slider';
-import { MdiIcon } from '../icons/MdiIcon';
+import { postMessage } from '../vscodeApi';
+import { useGraphStore } from '../store/state';
+import { Slider } from './ui/controls/slider';
+import { MdiIcon } from './icons/MdiIcon';
 
 const MIN_DEPTH = 1;
 

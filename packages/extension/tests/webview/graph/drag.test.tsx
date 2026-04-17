@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, act, screen, waitFor } from '@testing-library/react';
 import Graph from '../../../src/webview/components/graph/view';
 import { DEFAULT_DIRECTION_COLOR } from '../../../src/shared/fileColors';
-import type { IGraphData } from '../../../src/shared/graph/types';
+import type { IGraphData } from '../../../src/shared/graph/contracts';
 import { graphStore } from '../../../src/webview/store/state';
 import ForceGraph2D from 'react-force-graph-2d';
 import { getSentMessages } from '../../helpers/sentMessages';

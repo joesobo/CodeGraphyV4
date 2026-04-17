@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 
 const mocks = vi.hoisted(() => ({
   setGraphViewFocusedFile: vi.fn(),

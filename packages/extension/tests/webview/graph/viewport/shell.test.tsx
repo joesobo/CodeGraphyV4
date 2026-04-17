@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import type { GraphViewStoreState } from '../../../../src/webview/components/graph/store';
 import type { UseGraphInteractionRuntimeResult } from '../../../../src/webview/components/graph/runtime/use/graph/interaction';

@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../graph/types';
+import type { IGraphData } from '../../graph/contracts';
 
 export function collectFolderPaths(
   nodes: IGraphData['nodes'],

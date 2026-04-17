@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import { createGraphViewProviderFileVisitMethods } from '../../../../../src/extension/graphView/provider/file/visits';
 import type { IUndoableAction } from '../../../../../src/extension/undoManager';
 

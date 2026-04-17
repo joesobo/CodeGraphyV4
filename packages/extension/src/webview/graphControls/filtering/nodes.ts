@@ -1,4 +1,4 @@
-import type { IGraphNode } from '../../../shared/graph/types';
+import type { IGraphNode } from '../../../shared/graph/contracts';
 
 function getResolvedNodeType(node: IGraphNode): string {
   return node.nodeType ?? 'file';

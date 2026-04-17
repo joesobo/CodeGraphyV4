@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import { ensureGitAnalyzerForCachedTimeline } from '../../../../../src/extension/graphView/provider/timeline/warmup';
 
 describe('ensureGitAnalyzerForCachedTimeline', () => {

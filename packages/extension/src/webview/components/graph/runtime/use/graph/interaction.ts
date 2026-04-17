@@ -6,7 +6,7 @@ import {
   type MutableRefObject,
   type SetStateAction,
 } from 'react';
-import type { IGraphData } from '../../../../../../shared/graph/types';
+import type { IGraphData } from '../../../../../../shared/graph/contracts';
 import type { GraphContextMenuAction, GraphContextSelection } from '../../../contextMenu/contracts';
 import {
   createGraphContextMenuRuntime,

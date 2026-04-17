@@ -12,7 +12,7 @@ import { getCurrentE2EScenario } from '../scenarios';
 
 // The type exported by the extension's activate() function
 interface CodeGraphyAPI {
-  getGraphData(): import('../../shared/graph/types').IGraphData;
+  getGraphData(): import('../../shared/graph/contracts').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   dispatchWebviewMessage(message: unknown): Promise<void>;
@@ -222,7 +222,7 @@ function waitForWebviewMessage(
 async function waitForGraphDataUpdate(
   api: CodeGraphyAPI,
   timeoutMs = 15_000,
-): Promise<import('../../shared/graph/types').IGraphData> {
+): Promise<import('../../shared/graph/contracts').IGraphData> {
   await waitForExtensionMessage(api, 'GRAPH_DATA_UPDATED', timeoutMs);
   return api.getGraphData();
 }
@@ -622,7 +622,7 @@ suite('Graph: Depth Mode', function () {
     rerootMessageSubscription.dispose();
 
     const graphUpdates = rerootMessages.filter(
-      (message): message is { type: 'GRAPH_DATA_UPDATED'; payload: import('../../shared/graph/types').IGraphData } =>
+      (message): message is { type: 'GRAPH_DATA_UPDATED'; payload: import('../../shared/graph/contracts').IGraphData } =>
         (message as { type?: string }).type === 'GRAPH_DATA_UPDATED',
     );
     const activeFileUpdates = rerootMessages.filter(

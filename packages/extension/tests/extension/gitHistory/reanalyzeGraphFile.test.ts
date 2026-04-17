@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
-import type { IGraphEdge } from '../../../src/shared/graph/types';
+import type { IGraphEdge } from '../../../src/shared/graph/contracts';
 import {
   reanalyzeGraphFile,
   removeOutgoingGitHistoryEdges,

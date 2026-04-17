@@ -7,10 +7,8 @@ import { Button } from '../../ui/button';
 import { ScrollArea } from '../../ui/scroll-area';
 import { useLegendPanelState } from './state';
 import { LegendSection } from './section';
-import {
-  replaceSectionRules,
-  sendUserLegendRules,
-} from './rules';
+import { replaceSectionRules } from './displayRules';
+import { sendUserLegendRules } from './messages';
 
 interface LegendsPanelProps {
   isOpen: boolean;

@@ -1,5 +1,5 @@
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
-import type { IGraphData } from '../../shared/graph/types';
+import type { IGraphData } from '../../shared/graph/contracts';
 import { filterSemanticEdges, filterVisibleStructuralEdges, mergeEdgeDecorations } from './filtering/edges';
 import { applyNodeTypeColors, getFileNodes, isNodeVisible, withResolvedNodeTypes } from './filtering/nodes';
 import { buildStructuralEdges, buildStructuralGraphNodes } from './filtering/structures';

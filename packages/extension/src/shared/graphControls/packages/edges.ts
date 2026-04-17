@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../graph/types';
+import type { IGraphData } from '../../graph/contracts';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../defaults/definitions';
 import { getNearestWorkspacePackageRoot } from './roots';
 import { getWorkspacePackageNodeId, isFileNode } from './workspace';

@@ -1,8 +1,8 @@
-import type { IGraphData } from '../../../../../shared/graph/types';
+import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type {
   IGraphEdgeTypeDefinition,
   IGraphNodeTypeDefinition,
-} from '../../../../../shared/graphControls/types';
+} from '../../../../../shared/graphControls/contracts';
 import {
   CORE_GRAPH_EDGE_TYPES,
   CORE_GRAPH_NODE_TYPES,

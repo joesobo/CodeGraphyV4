@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import { publishAnalysisFailure } from './execution/publish';
 import { prepareGraphViewAnalysis } from './execution/prepare';
 import { runGraphViewAnalysis } from './execution/run';

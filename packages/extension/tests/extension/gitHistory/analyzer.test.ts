@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, type Mock } from 'vitest';
 import type { ExecFileOptions } from 'child_process';
 import type { IFileAnalysisResult } from '../../../src/core/plugins/types/contracts';
-import type { IGraphData } from '../../../src/shared/graph/types';
+import type { IGraphData } from '../../../src/shared/graph/contracts';
 
 // Mock vscode module
 vi.mock('vscode', () => ({

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import { getFileColor } from '../../../shared/fileColors';
-import type { IGraphEdge, IGraphNode } from '../../../shared/graph/types';
+import type { IGraphEdge, IGraphNode } from '../../../shared/graph/contracts';
 import { replaceGraphEdgeIdEndpoints } from '../../../shared/graph/edgeIdentity';
 
 export function deleteGitHistoryGraphFile(

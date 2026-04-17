@@ -27,7 +27,7 @@ import {
 import {
   buildSubgraph as getSubgraphDirectFromSubgraph,
 } from '../../../../src/core/plugins/graphQuery/subgraph';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 
 const sampleGraph: IGraphData = {
   nodes: [

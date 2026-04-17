@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction, type MouseEvent as ReactMouseEvent } from 'react';
-import type { ICommitInfo } from '../../../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../../../shared/timeline/contracts';
 import { bindTimelineDragListeners } from '../../dragListeners';
 import { jumpToTrackPosition } from '../../scrubPosition';
 

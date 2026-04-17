@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ICommitInfo } from '../../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../../shared/timeline/contracts';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '../../ui/overlay/tooltip';
 import { formatAxisLabel, formatDate } from '../format/dates';
 import { truncateMessage } from '../format/messages';

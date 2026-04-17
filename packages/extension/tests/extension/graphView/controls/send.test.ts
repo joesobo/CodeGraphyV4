@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphControlsSnapshot } from '../../../../src/shared/graphControls/types';
+import type { IGraphControlsSnapshot } from '../../../../src/shared/graphControls/contracts';
 import {
   buildGraphControlsUpdatedMessage,
   sendGraphControlsUpdated,

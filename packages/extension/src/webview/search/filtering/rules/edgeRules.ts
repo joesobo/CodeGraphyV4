@@ -1,5 +1,5 @@
 import { globMatch } from '../../../globMatch';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
 
 function ruleTargetsEdges(rule: IGroup): boolean {

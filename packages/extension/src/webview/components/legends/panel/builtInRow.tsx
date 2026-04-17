@@ -1,6 +1,6 @@
 import React from 'react';
 import { LegendColorInput } from './colorInput';
-import type { LegendBuiltInEntry } from './rules';
+import type { LegendBuiltInEntry } from './types';
 
 export function LegendBuiltInRow({
   entry,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphEdge } from '../../../../src/shared/graph/types';
+import type { IGraphEdge } from '../../../../src/shared/graph/contracts';
 import {
   deleteGitHistoryGraphFile,
   renameGitHistoryGraphFile,

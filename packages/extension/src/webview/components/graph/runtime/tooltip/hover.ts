@@ -1,6 +1,6 @@
 import type { MutableRefObject } from 'react';
 import type { IFileInfo } from '../../../../../shared/files/info';
-import type { IGraphData } from '../../../../../shared/graph/types';
+import type { IGraphData } from '../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../shared/protocol/webviewToExtension';
 import {
 	buildGraphTooltipContext,

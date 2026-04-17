@@ -12,7 +12,7 @@ import * as fs from 'fs';
 import { getCurrentE2EScenario } from '../scenarios';
 
 interface CodeGraphyAPI {
-  getGraphData(): import('../../shared/graph/types').IGraphData;
+  getGraphData(): import('../../shared/graph/contracts').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   dispatchWebviewMessage(message: unknown): Promise<void>;

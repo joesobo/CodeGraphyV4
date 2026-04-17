@@ -1,5 +1,5 @@
 import type { IViewContext } from '../../../../core/views/contracts';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import { updateCodeGraphyConfigurationSilently } from '../../../repoSettings/current';
 import {

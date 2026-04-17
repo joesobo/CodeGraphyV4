@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IGroup } from '../../../shared/settings/groups';
 import { globMatch } from '../../globMatch';
 

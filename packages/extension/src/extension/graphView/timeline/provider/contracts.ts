@@ -1,6 +1,6 @@
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import type { ICommitInfo } from '../../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../../shared/timeline/contracts';
 import type { ExtensionContext } from 'vscode';
 
 export interface GraphViewProviderTimelineAnalyzer {

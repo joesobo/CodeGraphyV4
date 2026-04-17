@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../../src/shared/protocol/extensionToWebview';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../../src/extension/config/defaults';
 const timelineMethodMocks = vi.hoisted(() => ({

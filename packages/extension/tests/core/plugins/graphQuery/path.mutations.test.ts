@@ -6,7 +6,7 @@ vi.mock('../../../../src/core/plugins/graphQuery/cache', () => ({
 
 import { getGraphIndex } from '../../../../src/core/plugins/graphQuery/cache';
 import { findNodePath } from '../../../../src/core/plugins/graphQuery/path';
-import type { IGraphNode } from '../../../../src/shared/graph/types';
+import type { IGraphNode } from '../../../../src/shared/graph/contracts';
 
 describe('core/plugins/graphQuery/path mutant guards', () => {
   it('stops exploring once repeated cycle neighbors have already been visited', () => {

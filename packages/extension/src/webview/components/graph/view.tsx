@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../../shared/plugins/decorations';
 import {
   useGraphAutoFit,

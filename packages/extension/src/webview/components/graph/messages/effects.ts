@@ -3,15 +3,17 @@ import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/exte
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { FGNode } from '../model/build';
 import {
-  EMPTY_EFFECTS,
   getAccessCountEffects,
-  getExportEffects,
   getFileInfoEffects,
+} from './fileInfo';
+import {
+  EMPTY_EFFECTS,
+  getExportEffects,
   getFitViewEffects,
   getGraphRuntimeStateEffects,
   getNodeBoundsEffects,
   getZoomEffects,
-} from './effectBuilders';
+} from './graphRuntime';
 
 export type GraphWebviewMessageEffect =
   | { kind: 'fitView' }

@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import { buildGraphViewContext } from '../../../../../src/extension/graphView/view/context';
 import { applyGraphViewTransform } from '../../../../../src/extension/graphView/presentation/transform';
 import type { IGraphViewTransformResult } from '../../../../../src/extension/graphView/presentation/contracts';

@@ -1,5 +1,5 @@
-import type { IGraphData } from '../../shared/graph/types';
-import type { ICommitInfo } from '../../shared/timeline/types';
+import type { IGraphData } from '../../shared/graph/contracts';
+import type { ICommitInfo } from '../../shared/timeline/contracts';
 import { createAbortError } from './shared/abort';
 
 export interface IndexGitHistoryDependencies {

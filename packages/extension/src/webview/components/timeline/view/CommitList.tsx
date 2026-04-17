@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ICommitInfo } from '../../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../../shared/timeline/contracts';
 import { ChevronIcon } from '../../settingsPanel/SectionHeader';
 import { formatDate } from '../format/dates';
 import { getMessageTitle, truncateMessage } from '../format/messages';

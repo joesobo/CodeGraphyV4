@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { ICommitInfo } from '../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../shared/timeline/contracts';
 import { useGraphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import { formatDate } from './format/dates';

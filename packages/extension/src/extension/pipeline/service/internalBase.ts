@@ -3,7 +3,7 @@ import type {
   IProjectedConnection,
   IFileAnalysisResult,
 } from '../../../core/plugins/types/contracts';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IDiscoveredFile } from '../../../core/discovery/contracts';
 import type { IWorkspaceFileAnalysisResult } from '../fileAnalysis';
 import { readWorkspacePipelineFileStat, readWorkspacePipelineRoot } from '../serviceAdapters';

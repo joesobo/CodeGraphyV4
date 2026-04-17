@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { applyFilterPatterns } from '../../../../src/webview/search/filtering/patterns';
 
 const graphData: IGraphData = {

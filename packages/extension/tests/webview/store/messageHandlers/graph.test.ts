@@ -18,7 +18,7 @@ import {
   handleShowLabelsUpdated,
 } from '../../../../src/webview/store/messageHandlers/graph';
 import type { IStoreFields } from '../../../../src/webview/store/messageTypes';
-import type { IGraphControlsSnapshot } from '../../../../src/shared/graphControls/types';
+import type { IGraphControlsSnapshot } from '../../../../src/shared/graphControls/contracts';
 
 function createState(
   overrides: Partial<IStoreFields> = {},

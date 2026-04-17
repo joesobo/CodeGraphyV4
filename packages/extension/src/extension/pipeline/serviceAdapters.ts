@@ -4,7 +4,7 @@ import type { FileDiscovery } from '../../core/discovery/file/service';
 import type { EventBus } from '../../core/plugins/events/bus';
 import type { PluginRegistry } from '../../core/plugins/registry/manager';
 import type { IProjectedConnection } from '../../core/plugins/types/contracts';
-import type { IGraphData } from '../../shared/graph/types';
+import type { IGraphData } from '../../shared/graph/contracts';
 import type { IWorkspaceAnalysisCache } from './cache';
 import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';
 import {

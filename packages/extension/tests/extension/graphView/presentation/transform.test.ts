@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { IViewContext } from '../../../../src/core/views/contracts';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { applyGraphViewTransform } from '../../../../src/extension/graphView/presentation/transform';
 
 const viewContext: IViewContext = { activePlugins: new Set<string>() };

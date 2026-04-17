@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../shared/protocol/webviewToExtension';
 import type { IGroup } from '../../../../shared/settings/groups';
 import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';

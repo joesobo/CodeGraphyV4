@@ -4,7 +4,7 @@ import { registerPluginToolbarAction } from '@/core/plugins/api/instance/runtime
 import { EventBus } from '@/core/plugins/events/bus';
 import { DecorationManager } from '@/core/plugins/decoration/manager';
 import { ViewRegistry } from '@/core/views/registry';
-import type { IGraphData } from '@/shared/graph/types';
+import type { IGraphData } from '@/shared/graph/contracts';
 import type { IViewContext } from '@/core/views/contracts';
 import { createTestAPI } from './testSupport';
 

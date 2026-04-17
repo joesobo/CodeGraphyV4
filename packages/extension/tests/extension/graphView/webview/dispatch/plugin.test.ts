@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { NodeSizeMode } from '@/shared/settings/modes';
-import type { IGraphData } from '@/shared/graph/types';
+import type { IGraphData } from '@/shared/graph/contracts';
 import {
   dispatchGraphViewPluginMessage,
   type GraphViewPluginMessageContext,

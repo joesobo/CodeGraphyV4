@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { NodeSizeMode } from '../../../shared/settings/modes';
 import type { IViewContext } from '../../../core/views/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';

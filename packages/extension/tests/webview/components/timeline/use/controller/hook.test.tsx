@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '@/shared/timeline/types';
+import type { ICommitInfo } from '@/shared/timeline/contracts';
 import { clearSentMessages, findMessage } from '../../../../../helpers/sentMessages';
 import * as datesModule from '../../../../../../src/webview/components/timeline/format/dates';
 import * as dragListenersModule from '../../../../../../src/webview/components/timeline/dragListeners';

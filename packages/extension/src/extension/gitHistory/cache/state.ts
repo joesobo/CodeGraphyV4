@@ -1,4 +1,4 @@
-import type { ICommitInfo } from '../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../shared/timeline/contracts';
 import {
   CACHE_VERSION,
   CACHE_VERSION_KEY,

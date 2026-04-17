@@ -1,5 +1,5 @@
 import type * as vscode from 'vscode';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import { loadGraphViewFileInfo } from './loader';
 import { sendGraphViewFileInfoMessage } from './message';
 

@@ -1,4 +1,4 @@
-import type { GraphEdgeKind, IGraphEdge } from '../../../shared/graph/types';
+import type { GraphEdgeKind, IGraphEdge } from '../../../shared/graph/contracts';
 import { getEdgesByKeys, getGraphIndex } from './cache';
 import type { GraphDataGetter } from './facade';
 

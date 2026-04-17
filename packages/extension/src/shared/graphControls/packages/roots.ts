@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../graph/types';
+import type { IGraphData } from '../../graph/contracts';
 import { isFileNode } from './workspace';
 
 function isPackageManifestPath(nodeId: string): boolean {

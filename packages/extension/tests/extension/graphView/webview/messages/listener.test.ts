@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { NodeSizeMode } from '../../../../../src/shared/settings/modes';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type { IGroup } from '../../../../../src/shared/settings/groups';
 import type { IViewContext } from '../../../../../src/core/views/contracts';
 import {

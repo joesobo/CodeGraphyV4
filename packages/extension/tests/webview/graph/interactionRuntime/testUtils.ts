@@ -5,7 +5,7 @@ import type {
 import type {
   ForceGraphMethods as FG3DMethods,
 } from 'react-force-graph-3d';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { FGLink, FGNode } from '../../../../src/webview/components/graph/model/build';
 import type { GraphInteractionHandlersDependencies } from '../../../../src/webview/components/graph/interactionRuntime/handlers';
 

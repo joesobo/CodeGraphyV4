@@ -1,7 +1,7 @@
 import type * as vscode from 'vscode';
 import type { IFileAnalysisResult, IProjectedConnection } from '../../../core/plugins/types/contracts';
 import type { PluginRegistry } from '../../../core/plugins/registry/manager';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IWorkspaceAnalysisCache } from '../cache';
 import { projectConnectionMapFromFileAnalysis } from '../projection';
 import { buildWorkspacePipelineGraphData } from '../serviceAdapters';

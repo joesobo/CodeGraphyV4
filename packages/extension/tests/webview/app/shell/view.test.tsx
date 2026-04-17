@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
-import App from '../../../../src/webview/app/App';
+import App from '../../../../src/webview/app/view';
 import { graphStore } from '../../../../src/webview/store/state';
 import { DEFAULT_DIRECTION_COLOR } from '../../../../src/shared/fileColors';
 

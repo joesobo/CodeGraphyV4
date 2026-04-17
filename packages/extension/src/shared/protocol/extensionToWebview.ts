@@ -1,11 +1,11 @@
 import type { IFileInfo } from '../files/info';
-import type { IGraphData } from '../graph/types';
+import type { IGraphData } from '../graph/contracts';
 import type { IPluginContextMenuItem } from '../plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../plugins/decorations';
 import type { IPluginExporterItem } from '../plugins/exporters';
 import type { IPluginToolbarAction } from '../plugins/toolbarActions';
 import type { IPluginStatus } from '../plugins/status';
-import type { IGraphControlsSnapshot } from '../graphControls/types';
+import type { IGraphControlsSnapshot } from '../graphControls/contracts';
 import type {
   BidirectionalEdgeMode,
   DagMode,
@@ -14,7 +14,7 @@ import type {
 } from '../settings/modes';
 import type { IPhysicsSettings } from '../settings/physics';
 import type { IGroup } from '../settings/groups';
-import type { ITimelineData } from '../timeline/types';
+import type { ITimelineData } from '../timeline/contracts';
 
 export type ExtensionToWebviewMessage =
   | { type: 'GRAPH_DATA_UPDATED'; payload: IGraphData }

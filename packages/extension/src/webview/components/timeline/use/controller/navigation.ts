@@ -1,5 +1,5 @@
 import { useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
-import type { ICommitInfo } from '../../../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../../../shared/timeline/contracts';
 import { postMessage } from '../../../../vscodeApi';
 import {
   runJumpToCommitAction,

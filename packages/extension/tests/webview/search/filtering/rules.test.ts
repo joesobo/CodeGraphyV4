@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_NODE_COLOR } from '../../../../src/shared/fileColors';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { applyLegendRules } from '../../../../src/webview/search/filtering/rules';
 

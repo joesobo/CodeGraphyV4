@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IViewContext } from '../../../core/views/contracts';
 import type { ViewRegistry } from '../../../core/views/registry';
 import { filterSyntheticPackageNodes } from './syntheticPackageNodes';

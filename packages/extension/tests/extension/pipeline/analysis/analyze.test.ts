@@ -6,7 +6,7 @@ import type {
 } from '../../../../src/core/plugins/types/contracts';
 import { DEFAULT_EXCLUDE_PATTERNS } from '../../../../src/extension/config/defaults';
 import { formatWorkspacePipelineLimitReachedMessage } from '../../../../src/extension/pipeline/discovery';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { analyzeWorkspaceWithAnalyzer } from '../../../../src/extension/pipeline/analysis/analyze';
 
 function createSource() {

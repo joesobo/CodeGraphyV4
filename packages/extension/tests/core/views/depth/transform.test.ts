@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { IViewContext } from '../../../../src/core/views/contracts';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import {
   filterDepthGraph,
   getDepthGraphEffectiveDepthLimit,

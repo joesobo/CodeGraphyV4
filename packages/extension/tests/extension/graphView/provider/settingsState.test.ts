@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPhysicsSettings } from '../../../../src/shared/settings/physics';
 import {
   createGraphViewProviderSettingsStateMethods,

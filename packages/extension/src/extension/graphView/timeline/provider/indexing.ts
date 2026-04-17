@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
 import type { ExtensionContext } from 'vscode';
 import { createDefaultGraphViewProviderTimelineDependencies } from '../indexing/defaults';

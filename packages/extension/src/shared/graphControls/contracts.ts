@@ -1,7 +1,7 @@
 import type {
   GraphEdgeKind,
   NodeType,
-} from '../graph/types';
+} from '../graph/contracts';
 
 export interface IGraphNodeTypeDefinition {
   id: NodeType;

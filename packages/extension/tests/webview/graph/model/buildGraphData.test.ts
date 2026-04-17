@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import { buildGraphData } from '../../../../src/webview/components/graph/model/build';
 
 describe('graph/model/build', () => {

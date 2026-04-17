@@ -14,7 +14,7 @@ import * as vscode from 'vscode';
 import type { IGroup } from '../../shared/settings/groups';
 
 interface CodeGraphyAPI {
-  getGraphData(): import('../../shared/graph/types').IGraphData;
+  getGraphData(): import('../../shared/graph/contracts').IGraphData;
   sendToWebview(message: unknown): void;
   onWebviewMessage(handler: (message: unknown) => void): vscode.Disposable;
   dispatchWebviewMessage(message: unknown): Promise<void>;

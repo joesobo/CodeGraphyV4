@@ -3,7 +3,7 @@ import type {
   IFileAnalysisResult,
   IProjectedConnection,
 } from '../../../core/plugins/types/contracts';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IWorkspaceFileAnalysisResult } from '../fileAnalysis';
 import {
   mapDiscoveredWorkspaceFilesByRelativePath,

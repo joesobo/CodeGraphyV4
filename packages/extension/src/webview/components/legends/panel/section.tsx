@@ -9,12 +9,8 @@ import {
 } from '../../ui/disclosure/collapsible';
 import { LegendBuiltInRow } from './builtInRow';
 import { LegendRuleCreateRow } from './createRow';
-import {
-  shouldRenderRuleInSection,
-  type LegendBuiltInEntry,
-  type LegendDisplayRule,
-  type LegendTargetSection,
-} from './rules';
+import { shouldRenderRuleInSection } from './displayRules';
+import type { LegendBuiltInEntry, LegendDisplayRule, LegendTargetSection } from './types';
 import { LegendRuleRow } from './ruleRow';
 import { postLegendOrderUpdate } from './sectionOrder';
 

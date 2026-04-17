@@ -1,6 +1,6 @@
 import { ViewRegistry } from '../../../src/core/views/registry';
 import type { IView, IViewContext } from '../../../src/core/views/contracts';
-import type { IGraphData } from '../../../src/shared/graph/types';
+import type { IGraphData } from '../../../src/shared/graph/contracts';
 
 export function createMockView(overrides: Partial<IView> = {}): IView {
   return {

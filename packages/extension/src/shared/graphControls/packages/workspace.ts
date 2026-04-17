@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../graph/types';
+import type { IGraphData } from '../../graph/contracts';
 
 export const WORKSPACE_PACKAGE_NODE_ID_PREFIX = 'pkg:workspace:' as const;
 

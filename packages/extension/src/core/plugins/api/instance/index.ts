@@ -48,7 +48,7 @@ import { EventBus, EventPayloads, EventName } from '../../events/bus';
 import { DecorationManager, EdgeDecoration, NodeDecoration } from '../../decoration/manager';
 import { ViewRegistry } from '../../../views/registry';
 import { IView } from '../../../views/contracts';
-import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/types';
+import type { IGraphData, IGraphEdge, IGraphNode } from '../../../../shared/graph/contracts';
 import type { ExportRequest, IExporter, IToolbarAction } from '../../../../../../plugin-api/src/api';
 import type { ICommand, IContextMenuItem } from '../../../../../../plugin-api/src/commands';
 

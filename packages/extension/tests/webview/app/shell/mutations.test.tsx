@@ -93,7 +93,7 @@ vi.mock('../../../../src/webview/pluginHost/manager', () => {
   return { WebviewPluginHost: MockWebviewPluginHost };
 });
 
-import App from '../../../../src/webview/app/App';
+import App from '../../../../src/webview/app/view';
 
 vi.stubGlobal('addEventListener', (type: string, listener: (event: MessageEvent) => void) => {
   if (type === 'message') messageListeners.push(listener);

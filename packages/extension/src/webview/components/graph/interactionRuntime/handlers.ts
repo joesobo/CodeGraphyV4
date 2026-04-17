@@ -6,7 +6,7 @@ import type {
   ForceGraphMethods as FG3DMethods,
 } from 'react-force-graph-3d';
 import type { IFileInfo } from '../../../../shared/files/info';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { GraphContextSelection } from '../contextMenu/contracts';
 import {
   type GraphInteractionEffect,

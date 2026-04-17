@@ -11,11 +11,11 @@ const sliderHarness = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('../../../../src/webview/vscodeApi', () => ({
+vi.mock('../../../src/webview/vscodeApi', () => ({
   postMessage: vi.fn(),
 }));
 
-vi.mock('../../../../src/webview/components/ui/controls/slider', () => ({
+vi.mock('../../../src/webview/components/ui/controls/slider', () => ({
   Slider: (props: {
     value: number[];
     onValueChange: (value: number[]) => void;
@@ -40,10 +40,10 @@ vi.mock('../../../../src/webview/components/ui/controls/slider', () => ({
   },
 }));
 
-import { DepthViewControls } from '../../../../src/webview/components/depthView/view';
-import { graphStore } from '../../../../src/webview/store/state';
+import { DepthViewControls } from '../../../src/webview/components/depthViewControls';
+import { graphStore } from '../../../src/webview/store/state';
 
-import { postMessage } from '../../../../src/webview/vscodeApi';
+import { postMessage } from '../../../src/webview/vscodeApi';
 
 describe('DepthViewControls', () => {
   beforeEach(() => {

@@ -3,7 +3,7 @@ import type {
 	ForceGraphMethods as FG2DMethods,
 } from 'react-force-graph-2d';
 import type { IFileInfo } from '../../../../../../shared/files/info';
-import type { IGraphData } from '../../../../../../shared/graph/types';
+import type { IGraphData } from '../../../../../../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../../../../../../shared/protocol/webviewToExtension';
 import type { GraphCursorStyle } from '../../../support/dom';
 import type { FGLink, FGNode } from '../../../model/build';

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
-import App from '../../src/webview/app/App';
+import App from '../../src/webview/app/view';
 import { graphStore } from '../../src/webview/store/state';
 
 const messageListeners: Array<(event: MessageEvent) => void> = [];

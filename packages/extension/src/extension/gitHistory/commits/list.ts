@@ -1,4 +1,4 @@
-import type { ICommitInfo } from '../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../shared/timeline/contracts';
 
 export interface CommitListGit {
   execGit(args: string[], signal: AbortSignal): Promise<string>;

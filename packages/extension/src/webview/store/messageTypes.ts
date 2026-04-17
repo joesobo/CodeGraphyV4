@@ -1,5 +1,5 @@
 import type { SearchOptions } from '../components/searchBar/field/model';
-import type { IGraphData } from '../../shared/graph/types';
+import type { IGraphData } from '../../shared/graph/contracts';
 import type { IPluginContextMenuItem } from '../../shared/plugins/contextMenu';
 import type { EdgeDecorationPayload, NodeDecorationPayload } from '../../shared/plugins/decorations';
 import type { IPluginExporterItem } from '../../shared/plugins/exporters';
@@ -9,11 +9,11 @@ import type { ExtensionToWebviewMessage } from '../../shared/protocol/extensionT
 import type {
   IGraphEdgeTypeDefinition,
   IGraphNodeTypeDefinition,
-} from '../../shared/graphControls/types';
+} from '../../shared/graphControls/contracts';
 import type { IGroup } from '../../shared/settings/groups';
 import type { BidirectionalEdgeMode, DagMode, DirectionMode, NodeSizeMode } from '../../shared/settings/modes';
 import type { IPhysicsSettings } from '../../shared/settings/physics';
-import type { ICommitInfo } from '../../shared/timeline/types';
+import type { ICommitInfo } from '../../shared/timeline/contracts';
 import type {
   PendingGroupUpdates,
   PendingUserGroupsUpdate,

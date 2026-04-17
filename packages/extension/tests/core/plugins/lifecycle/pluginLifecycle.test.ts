@@ -16,7 +16,7 @@ import {
 import { initializeAll, initializePlugin } from '../../../../src/core/plugins/lifecycle/initialize';
 import { replayReadinessForPlugin } from '../../../../src/core/plugins/lifecycle/replay';
 import type { IPlugin } from '../../../../src/core/plugins/types/contracts';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 
 const emptyGraph: IGraphData = { nodes: [], edges: [] };
 

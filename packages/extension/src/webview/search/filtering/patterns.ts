@@ -1,5 +1,5 @@
 import { globMatch } from '../../globMatch';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 
 export function applyFilterPatterns(
   graphData: IGraphData | null,

@@ -5,7 +5,7 @@ import {
   getIncomingEdges,
   getOutgoingEdges,
 } from '../../../../src/core/plugins/graphQuery/edges';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 
 const sampleGraph: IGraphData = {
   nodes: [

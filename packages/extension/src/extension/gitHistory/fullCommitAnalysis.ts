@@ -1,7 +1,7 @@
 import * as path from 'path';
 import type { IFileAnalysisResult } from '../../core/plugins/types/contracts';
 import { getFileColor } from '../../shared/fileColors';
-import type { IGraphData, IGraphEdge, IGraphNode } from '../../shared/graph/types';
+import type { IGraphData, IGraphEdge, IGraphNode } from '../../shared/graph/contracts';
 import { appendGitHistoryAnalysisEdges } from './graphConnections';
 
 interface FullCommitAnalysisRegistry {

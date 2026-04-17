@@ -1,5 +1,5 @@
 import type { LinkObject, NodeObject } from 'react-force-graph-2d';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode, NodeShape2D, NodeShape3D, NodeSizeMode } from '../../../../shared/settings/modes';
 import type { ThemeKind } from '../../../theme/useTheme';
 import { buildGraphLinks } from './link/build';

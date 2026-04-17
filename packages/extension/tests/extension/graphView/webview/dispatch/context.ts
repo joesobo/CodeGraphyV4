@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { IGraphData } from '@/shared/graph/types';
+import type { IGraphData } from '@/shared/graph/contracts';
 import type { IGroup } from '@/shared/settings/groups';
 import type { IViewContext } from '@/core/views/contracts';
 import type { GraphViewPrimaryMessageContext } from '../../../../../src/extension/graphView/webview/dispatch/primary';

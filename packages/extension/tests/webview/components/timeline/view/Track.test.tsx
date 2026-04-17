@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
-import type { ICommitInfo } from '@/shared/timeline/types';
+import type { ICommitInfo } from '@/shared/timeline/contracts';
 
 vi.mock('../../../../../src/webview/components/ui/overlay/tooltip', async () => {
   const React = await import('react');

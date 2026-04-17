@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import { filterGraphViewTimelineEdges, type GraphViewTimelineGraphOptions } from './edgeFiltering';
 import { pruneGraphViewTimelineOrphans } from './pruneOrphans';
 

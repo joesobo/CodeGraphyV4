@@ -1,6 +1,6 @@
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { ExtensionToWebviewMessage } from '../../../shared/protocol/extensionToWebview';
-import type { IGraphControlsSnapshot } from '../../../shared/graphControls/types';
+import type { IGraphControlsSnapshot } from '../../../shared/graphControls/contracts';
 import { getCodeGraphyConfiguration } from '../../repoSettings/current';
 import { readEdgeTypes, readNodeTypes } from './send/definitions/registry';
 import { captureGraphControlsSnapshot } from './send/definitions/snapshot';

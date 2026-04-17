@@ -8,7 +8,7 @@ import {
 } from '../../../shared/graphControls/packages/roots';
 import { createWorkspacePackageNodes } from '../../../shared/graphControls/packages/nodes';
 import { buildWorkspacePackageEdges } from '../../../shared/graphControls/packages/edges';
-import type { IGraphData, IGraphNode } from '../../../shared/graph/types';
+import type { IGraphData, IGraphNode } from '../../../shared/graph/contracts';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../shared/graphControls/defaults/definitions';
 import {
   DEFAULT_FOLDER_NODE_COLOR,

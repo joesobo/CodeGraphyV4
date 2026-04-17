@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as vscode from 'vscode';
-import type { IGraphData } from '../../src/shared/graph/types';
+import type { IGraphData } from '../../src/shared/graph/contracts';
 import { GraphViewProvider } from '../../src/extension/graphViewProvider';
 import { resetCurrentCodeGraphyConfigurationForTest } from '../../src/extension/repoSettings/current';
 import { getGraphViewProviderInternals } from './graphViewProvider/internals';

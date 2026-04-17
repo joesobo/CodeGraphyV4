@@ -1,6 +1,6 @@
 import { globMatch } from '../../../globMatch';
 import { DEFAULT_NODE_COLOR } from '../../../../shared/fileColors';
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { IGroup } from '../../../../shared/settings/groups';
 
 function ruleTargetsNodes(rule: IGroup): boolean {

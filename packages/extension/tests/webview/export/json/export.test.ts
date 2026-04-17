@@ -17,7 +17,7 @@ vi.mock('../../../../src/webview/export/shared/context', async (importOriginal) 
 });
 
 import { buildExportData, exportAsJson } from '../../../../src/webview/export/json/export';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 import type { IPluginStatus } from '../../../../src/shared/plugins/status';
 import type { IGroup } from '../../../../src/shared/settings/groups';
 import { graphStore } from '../../../../src/webview/store/state';

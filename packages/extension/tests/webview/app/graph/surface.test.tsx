@@ -9,7 +9,7 @@ vi.mock('../../../../src/webview/components/graph/view', () => ({
   ),
 }));
 
-vi.mock('../../../../src/webview/components/depthView/view', () => ({
+vi.mock('../../../../src/webview/components/depthViewControls', () => ({
   DepthViewControls: () => <div data-testid="depth-controls" />,
 }));
 

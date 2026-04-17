@@ -1,5 +1,5 @@
 import type { IProjectedConnection, IPlugin } from '../../../core/plugins/types/contracts';
-import type { IGraphEdgeSource } from '../../../shared/graph/types';
+import type { IGraphEdgeSource } from '../../../shared/graph/contracts';
 import {
   resolveEdgeSourceIdentity,
 } from './edgeSources/identity';

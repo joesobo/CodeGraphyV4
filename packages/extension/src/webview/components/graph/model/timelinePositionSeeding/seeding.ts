@@ -1,4 +1,4 @@
-import type { IGraphEdge } from '../../../../../shared/graph/types';
+import type { IGraphEdge } from '../../../../../shared/graph/contracts';
 import type { FGNode } from '../build';
 
 function hasNodePosition(node: Pick<FGNode, 'x' | 'y'>): boolean {

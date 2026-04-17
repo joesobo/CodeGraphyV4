@@ -1,17 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
-  EMPTY_EFFECTS,
   getAccessCountEffects,
-  getExportEffects,
   getFileInfoEffects,
+} from '../../../../src/webview/components/graph/messages/fileInfo';
+import {
+  EMPTY_EFFECTS,
+  getExportEffects,
   getFitViewEffects,
   getGraphRuntimeStateEffects,
   getNodeBoundsEffects,
   getZoomEffects,
-} from '../../../../src/webview/components/graph/messages/effectBuilders';
+} from '../../../../src/webview/components/graph/messages/graphRuntime';
 
 describe('graph/messages/effectBuilders', () => {
-  it('re-exports the graph message effect helpers', () => {
+  it('exposes the graph message effect helpers from their owning modules', () => {
     expect(EMPTY_EFFECTS).toEqual([]);
     expect(typeof getFitViewEffects).toBe('function');
     expect(typeof getZoomEffects).toBe('function');

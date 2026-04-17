@@ -1,5 +1,5 @@
 import { vi } from 'vitest';
-import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
 import type {
   GraphViewAnalysisExecutionHandlers,
   GraphViewAnalysisExecutionState,

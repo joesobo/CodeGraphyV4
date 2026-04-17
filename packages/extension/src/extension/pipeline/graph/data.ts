@@ -4,7 +4,7 @@
  */
 
 import type { IProjectedConnection, IPlugin } from '../../../core/plugins/types/contracts';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import { buildWorkspaceGraphEdges } from './edges';
 import { buildWorkspaceGraphNodes } from './nodes';
 

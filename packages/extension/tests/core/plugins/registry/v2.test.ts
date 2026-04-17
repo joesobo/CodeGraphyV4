@@ -5,7 +5,7 @@ import { DecorationManager } from '@/core/plugins/decoration/manager';
 import { ViewRegistry } from '@/core/views/registry';
 import { IPlugin } from '@/core/plugins/types/contracts';
 import { CodeGraphyAPIImpl } from '@/core/plugins/api/instance';
-import type { IGraphData } from '@/shared/graph/types';
+import type { IGraphData } from '@/shared/graph/contracts';
 
 function createV2Plugin(id: string, overrides: Record<string, unknown> = {}): IPlugin & {
   onLoad: ReturnType<typeof vi.fn>;

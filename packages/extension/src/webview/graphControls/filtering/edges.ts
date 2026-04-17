@@ -1,5 +1,5 @@
 import type { EdgeDecorationPayload } from '../../../shared/plugins/decorations';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 
 export function filterSemanticEdges(
   edges: IGraphData['edges'],

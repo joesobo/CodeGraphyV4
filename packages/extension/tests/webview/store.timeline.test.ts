@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { createGraphStore } from '../../src/webview/store/state';
-import type { IGraphData } from '../../src/shared/graph/types';
-import type { ICommitInfo } from '../../src/shared/timeline/types';
+import type { IGraphData } from '../../src/shared/graph/contracts';
+import type { ICommitInfo } from '../../src/shared/timeline/contracts';
 
 describe('GraphStore: Timeline', () => {
   let store: ReturnType<typeof createGraphStore>;

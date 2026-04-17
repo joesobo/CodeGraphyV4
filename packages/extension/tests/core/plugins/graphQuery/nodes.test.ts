@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { getGraph, getNeighbors, getNode } from '../../../../src/core/plugins/graphQuery/nodes';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 
 const sampleGraph: IGraphData = {
   nodes: [

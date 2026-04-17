@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { createTestAPI } from './testSupport';
-import type { IGraphData } from '@/shared/graph/types';
+import type { IGraphData } from '@/shared/graph/contracts';
 import type { IViewContext } from '@/core/views/contracts';
 
 describe('CodeGraphyAPIImpl cleanup', () => {

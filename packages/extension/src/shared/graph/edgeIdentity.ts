@@ -1,4 +1,4 @@
-import type { IGraphEdge } from './types';
+import type { IGraphEdge } from './contracts';
 
 interface GraphEdgeIdentityParts {
   from: string;

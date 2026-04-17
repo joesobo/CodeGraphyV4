@@ -1,6 +1,6 @@
 import * as path from 'path';
 import type { IFileAnalysisResult } from '../../core/plugins/types/contracts';
-import type { IGraphEdge } from '../../shared/graph/types';
+import type { IGraphEdge } from '../../shared/graph/contracts';
 import { createGraphEdgeId } from '../../shared/graph/edgeIdentity';
 
 export interface AppendGitHistoryAnalysisEdgesOptions {

@@ -1,5 +1,5 @@
-import type { IGraphData } from '../../../../../shared/graph/types';
-import type { IGraphControlsSnapshot } from '../../../../../shared/graphControls/types';
+import type { IGraphData } from '../../../../../shared/graph/contracts';
+import type { IGraphControlsSnapshot } from '../../../../../shared/graphControls/contracts';
 import { mergeEdgeTypes, mergeNodeTypes } from './merge';
 import { resolveEdgeColors, resolveNodeColors, resolveVisibilityMap } from './values';
 import type {

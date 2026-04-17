@@ -16,7 +16,7 @@ vi.mock('react-dom/client', () => ({
   createRoot: mocks.createRoot,
 }));
 
-vi.mock('../../src/webview/app/App', () => ({
+vi.mock('../../src/webview/app/view', () => ({
   default: function GraphApp() {
     return null;
   },

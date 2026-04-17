@@ -1,7 +1,7 @@
 import type { IDiscoveredFile } from '../../../core/discovery/contracts';
 import type { IProjectedConnection, IFileAnalysisResult } from '../../../core/plugins/types/contracts';
 import type { EventBus } from '../../../core/plugins/events/bus';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import { throwIfWorkspaceAnalysisAborted } from '../abort';
 import type { IWorkspaceFileAnalysisResult } from '../fileAnalysis';
 import {

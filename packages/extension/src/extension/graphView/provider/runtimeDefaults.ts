@@ -1,6 +1,6 @@
 import type * as vscode from 'vscode';
 import type { IViewContext } from '../../../core/views/contracts';
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import type { IGroup } from '../../../shared/settings/groups';
 import type { NodeSizeMode } from '../../../shared/settings/modes';
 

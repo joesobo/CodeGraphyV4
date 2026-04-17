@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import { graphStore } from '../../store/state';
 import { postMessage } from '../../vscodeApi';
 import { createExportTimestamp, getExportContext } from '../shared/context';

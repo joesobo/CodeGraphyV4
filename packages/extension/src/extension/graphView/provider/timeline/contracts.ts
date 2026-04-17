@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import type { ExtensionToWebviewMessage } from '../../../../shared/protocol/extensionToWebview';
-import type { ICommitInfo } from '../../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../../shared/timeline/contracts';
 import type { GraphViewProviderTimelineSource } from '../../timeline/provider/contracts';
 
 export type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;

@@ -1,4 +1,4 @@
-import type { IGraphNodeTypeDefinition } from '../types';
+import type { IGraphNodeTypeDefinition } from '../contracts';
 import {
   DEFAULT_FOLDER_NODE_COLOR,
   DEFAULT_NODE_COLOR,

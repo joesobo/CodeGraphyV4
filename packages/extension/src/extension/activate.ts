@@ -6,7 +6,7 @@ import { registerCommands } from './commands/register';
 import { activateInstalledCodeGraphyPlugins } from './pluginActivation/installed';
 import { registerEditorChangeHandler } from './workspaceFiles/editorSync';
 import { registerFileWatcher, registerSaveHandler } from './workspaceFiles/refresh/watchers';
-import type { IGraphData } from '../shared/graph/types';
+import type { IGraphData } from '../shared/graph/contracts';
 import type { WebviewToExtensionMessage } from '../shared/protocol/webviewToExtension';
 
 const CODEGRAPHY_EXTENSION_ID = 'codegraphy.codegraphy';

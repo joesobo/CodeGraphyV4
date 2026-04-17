@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../../shared/graph/types';
+import type { IGraphData } from '../../../../shared/graph/contracts';
 import type { ILifecyclePluginInfo } from '../contracts';
 
 function logLifecycleError(hook: string, pluginId: string, error: unknown): void {

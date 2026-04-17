@@ -1,5 +1,5 @@
 import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from 'react';
-import type { ICommitInfo } from '../../../../../shared/timeline/types';
+import type { ICommitInfo } from '../../../../../shared/timeline/contracts';
 import { stopTimelinePlayback } from '../../cleanup';
 import { createTimelinePlaybackTick, type TimelinePlaybackRefs } from '../../playbackTick';
 

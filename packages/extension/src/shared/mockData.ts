@@ -16,7 +16,7 @@
 
 import { fileDataToNodes, fileDataToEdges } from './mock/transforms';
 import type { IFileData } from './mock/fileData';
-import type { IGraphData } from './graph/types';
+import type { IGraphData } from './graph/contracts';
 import { MOCK_ENTRY_POINTS } from './mock/entryPoints';
 import { MOCK_COMPONENTS } from './mock/components';
 import { MOCK_HOOKS, MOCK_API } from './mock/hooksAndApi';

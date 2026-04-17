@@ -1,4 +1,4 @@
-import type { IGraphData } from '../../../shared/graph/types';
+import type { IGraphData } from '../../../shared/graph/contracts';
 import { getGraphIndex } from './cache';
 import type { GraphDataGetter } from './facade';
 

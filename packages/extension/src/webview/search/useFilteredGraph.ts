@@ -9,7 +9,7 @@ import type { SearchOptions } from '../components/searchBar/field/model';
 import { applyFilterPatterns } from './filtering/patterns';
 import { applyLegendRules } from './filtering/rules';
 import { filterGraphData } from './filtering/search';
-import type { IGraphData } from '../../shared/graph/types';
+import type { IGraphData } from '../../shared/graph/contracts';
 import type { IGroup } from '../../shared/settings/groups';
 import type { EdgeDecorationPayload } from '../../shared/plugins/decorations';
 import { applyGraphControls } from '../graphControls/filtering';

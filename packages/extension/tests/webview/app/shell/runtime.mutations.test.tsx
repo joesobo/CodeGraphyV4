@@ -38,7 +38,7 @@ vi.mock('../../../../src/webview/components/toolbar/view', () => ({
   default: () => <div data-testid="toolbar" />,
 }));
 
-vi.mock('../../../../src/webview/components/depthView/view', () => ({
+vi.mock('../../../../src/webview/components/depthViewControls', () => ({
   DepthViewControls: () => <div data-testid="depth-view-controls" />,
 }));
 
@@ -77,7 +77,7 @@ vi.mock('../../../../src/webview/app/shell/messageListener', () => ({
   setupMessageListener: (...args: unknown[]) => harness.setupMessageListener(...args),
 }));
 
-import App from '../../../../src/webview/app/App';
+import App from '../../../../src/webview/app/view';
 
 function resetStore(): void {
   graphStore.setState({

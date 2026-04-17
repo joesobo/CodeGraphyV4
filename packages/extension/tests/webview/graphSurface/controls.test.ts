@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../src/shared/graph/types';
+import type { IGraphData } from '../../../src/shared/graph/contracts';
 import { STRUCTURAL_NESTS_EDGE_KIND } from '../../../src/shared/graphControls/defaults/definitions';
 import { WORKSPACE_PACKAGE_NODE_ID_PREFIX } from '../../../src/shared/graphControls/packages/workspace';
 import { applyGraphControls } from '../../../src/webview/graphControls/filtering';

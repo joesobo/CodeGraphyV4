@@ -8,7 +8,7 @@ import type { PluginRegistry } from '../../core/plugins/registry/manager';
 import type { FileDiscovery } from '../../core/discovery/file/service';
 import type * as vscode from 'vscode';
 import type { IWorkspaceAnalysisCache } from './cache';
-import type { IGraphData } from '../../shared/graph/types';
+import type { IGraphData } from '../../shared/graph/contracts';
 import type { WorkspacePipelineAnalysisSource } from './analysis/analyze';
 import type { WorkspacePipelineRebuildSource } from './analysis/state';
 import type { IWorkspaceFileAnalysisResult } from './fileAnalysis';

@@ -1,5 +1,5 @@
 import type { IFileAnalysisResult } from '../../../core/plugins/types/contracts';
-import type { IGraphEdge, IGraphNode } from '../../../shared/graph/types';
+import type { IGraphEdge, IGraphNode } from '../../../shared/graph/contracts';
 import { createGitHistoryNode } from '../fullCommitAnalysis';
 import { reanalyzeGraphFile, removeOutgoingGitHistoryEdges } from '../reanalyzeGraphFile';
 

@@ -5,7 +5,7 @@
 
 import * as path from 'path';
 import { DEFAULT_NODE_COLOR } from '../../../shared/fileColors';
-import type { IGraphNode } from '../../../shared/graph/types';
+import type { IGraphNode } from '../../../shared/graph/contracts';
 import { DEFAULT_PACKAGE_NODE_COLOR } from '../../../shared/fileColors';
 import {
   getExternalPackageLabelFromNodeId,

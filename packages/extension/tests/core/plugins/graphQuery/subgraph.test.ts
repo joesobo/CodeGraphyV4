@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { buildSubgraph } from '../../../../src/core/plugins/graphQuery/subgraph';
 import type { GraphDataGetter } from '../../../../src/core/plugins/graphQuery/facade';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 
 const graphData = {
   nodes: [

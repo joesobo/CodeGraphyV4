@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { buildExportData } from '../../../../src/webview/export/json/export';
-import type { IGraphData } from '../../../../src/shared/graph/types';
+import type { IGraphData } from '../../../../src/shared/graph/contracts';
 
 describe('webview/export/json legend order', () => {
   it('preserves legend rule order instead of resorting it', () => {

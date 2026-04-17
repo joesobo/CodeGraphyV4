@@ -1,4 +1,4 @@
-import type { IGraphEdge } from '../../../../shared/graph/types';
+import type { IGraphEdge } from '../../../../shared/graph/contracts';
 import type { BidirectionalEdgeMode } from '../../../../shared/settings/modes';
 import { getGraphEdgeIdSuffix } from '../../../../shared/graph/edgeIdentity';
 
