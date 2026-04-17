@@ -2,13 +2,13 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@radix-ui/react-context-menu', () => import('../contextMenuPrimitivesMock'));
+vi.mock('@radix-ui/react-context-menu', () => import('../../contextMenuPrimitivesMock'));
 
 import {
   ContextMenuCheckboxItem,
   ContextMenuItem,
   ContextMenuRadioItem,
-} from '../../../../../src/webview/components/ui/context/items';
+} from '../../../../../../src/webview/components/ui/context/items';
 
 describe('ContextMenu item wrappers', () => {
   it('renders item classes for inset and destructive items', () => {

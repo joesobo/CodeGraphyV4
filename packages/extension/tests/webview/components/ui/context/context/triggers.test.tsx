@@ -2,13 +2,13 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@radix-ui/react-context-menu', () => import('../contextMenuPrimitivesMock'));
+vi.mock('@radix-ui/react-context-menu', () => import('../../contextMenuPrimitivesMock'));
 
 import {
   ContextMenuContent,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
-} from '../../../../../src/webview/components/ui/context/triggers';
+} from '../../../../../../src/webview/components/ui/context/triggers';
 
 describe('ContextMenu trigger wrappers', () => {
   it('renders the sub-trigger classes, inset padding, and chevron', () => {

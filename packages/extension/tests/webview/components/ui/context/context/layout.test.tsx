@@ -2,13 +2,13 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('@radix-ui/react-context-menu', () => import('../contextMenuPrimitivesMock'));
+vi.mock('@radix-ui/react-context-menu', () => import('../../contextMenuPrimitivesMock'));
 
 import {
   ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuShortcut,
-} from '../../../../../src/webview/components/ui/context/layout';
+} from '../../../../../../src/webview/components/ui/context/layout';
 
 describe('ContextMenu layout wrappers', () => {
   it('renders the label classes and inset padding', () => {

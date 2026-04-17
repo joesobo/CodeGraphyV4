@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, screen, fireEvent, waitFor } from '@testing-library/react';
-import Graph from '../../../../src/webview/components/graph/view';
-import type { IGraphData } from '../../../../src/shared/graph/types';
-import type { IPluginContextMenuItem } from '../../../../src/shared/plugins/contextMenu';
-import { graphStore } from '../../../../src/webview/store/state';
+import Graph from '../../../../../src/webview/components/graph/view';
+import type { IGraphData } from '../../../../../src/shared/graph/types';
+import type { IPluginContextMenuItem } from '../../../../../src/shared/plugins/contextMenu';
+import { graphStore } from '../../../../../src/webview/store/state';
 import ForceGraph2D from 'react-force-graph-2d';
 import ForceGraph3D from 'react-force-graph-3d';
 
-import { clearSentMessages, findMessage } from '../../../helpers/sentMessages';
+import { clearSentMessages, findMessage } from '../../../../helpers/sentMessages';
 
 function mockMacPlatform() {
   return vi.spyOn(window.navigator, 'platform', 'get').mockReturnValue('MacIntel');
