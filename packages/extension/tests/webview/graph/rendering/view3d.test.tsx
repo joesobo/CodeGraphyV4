@@ -1,10 +1,11 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import { act, render, renderHook, screen } from '@testing-library/react';
 import ForceGraph3D from 'react-force-graph-3d';
 import {
   DeferredSurface3d,
   Surface3d,
+  useDeferredSurface3dMount,
 } from '../../../../src/webview/components/graph/rendering/surface/view3d';
 
 function createSharedProps() {
@@ -223,5 +224,40 @@ describe('Surface3d', () => {
       frames.shift()?.(0);
     });
     expect(screen.getByTestId('force-graph-3d')).toBeInTheDocument();
+  });
+
+  it('mounts immediately when deferred mounting is disabled', () => {
+    const requestAnimationFrame = vi.fn();
+    vi.stubGlobal('requestAnimationFrame', requestAnimationFrame);
+
+    const { result } = renderHook(() => useDeferredSurface3dMount(false));
+
+    expect(result.current).toBe(true);
+    expect(requestAnimationFrame).not.toHaveBeenCalled();
+  });
+
+  it('cancels both scheduled animation frames when unmounted during deferred mount', async () => {
+    const frames: FrameRequestCallback[] = [];
+    const cancelAnimationFrame = vi.fn();
+    let nextFrameId = 1;
+
+    vi.stubGlobal('requestAnimationFrame', vi.fn((callback: FrameRequestCallback) => {
+      frames.push(callback);
+      const id = nextFrameId;
+      nextFrameId += 1;
+      return id;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrame);
+
+    const { unmount } = renderHook(() => useDeferredSurface3dMount(true));
+
+    await act(async () => {
+      frames.shift()?.(0);
+    });
+
+    unmount();
+
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(1);
+    expect(cancelAnimationFrame).toHaveBeenCalledWith(2);
   });
 });
