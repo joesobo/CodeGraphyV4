@@ -70,6 +70,14 @@ vi.mock('../../extension/src/extension/pipeline/database/cache.ts', () => ({
   saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
 }));
 
+vi.mock('../../extension/src/extension/pipeline/database/cache/storage.ts', () => ({
+  clearWorkspaceAnalysisDatabaseCache: mockState.databaseCache.clearWorkspaceAnalysisDatabaseCache,
+  getWorkspaceAnalysisDatabasePath: mockState.databaseCache.getWorkspaceAnalysisDatabasePath,
+  loadWorkspaceAnalysisDatabaseCache: mockState.databaseCache.loadWorkspaceAnalysisDatabaseCache,
+  readWorkspaceAnalysisDatabaseSnapshot: mockState.databaseCache.readWorkspaceAnalysisDatabaseSnapshot,
+  saveWorkspaceAnalysisDatabaseCache: mockState.databaseCache.saveWorkspaceAnalysisDatabaseCache,
+}));
+
 vi.mock('vscode', () => ({
   Uri: {
     file: (filePath: string) => ({ fsPath: filePath, path: filePath }),
