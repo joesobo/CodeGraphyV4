@@ -7,7 +7,7 @@ import type {
 import {
   handlePythonImportFromStatement,
   handlePythonImportStatement,
-} from './imports';
+} from './import/imports';
 import {
   handlePythonCall,
   handlePythonClassDefinition,
