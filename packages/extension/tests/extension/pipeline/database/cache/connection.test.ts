@@ -4,7 +4,7 @@ import {
   readRowsSync,
   runStatementSync,
   withConnection,
-} from '../../../../src/extension/pipeline/database/cache/connection';
+} from '../../../../../src/extension/pipeline/database/cache/connection';
 
 vi.mock('@ladybugdb/core', () => ({
   Connection: vi.fn(),

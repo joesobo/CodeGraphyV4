@@ -4,7 +4,7 @@ import {
   clearDatabaseArtifacts,
   ensureDatabaseDirectory,
   getWorkspaceAnalysisDatabasePath,
-} from '../../../../src/extension/pipeline/database/cache/paths';
+} from '../../../../../src/extension/pipeline/database/cache/paths';
 
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>();

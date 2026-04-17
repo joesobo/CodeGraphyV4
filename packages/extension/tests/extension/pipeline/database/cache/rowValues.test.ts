@@ -4,7 +4,7 @@ import {
   readOptionalNumber,
   readOptionalString,
   readRequiredString,
-} from '../../../../src/extension/pipeline/database/cache/rowValues';
+} from '../../../../../src/extension/pipeline/database/cache/rowValues';
 
 describe('pipeline/database/cache/rowValues', () => {
   it('parses optional JSON strings and drops nullish or empty values', () => {

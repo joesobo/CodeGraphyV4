@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loadWorkspaceAnalysisDatabaseCache } from '../../../../src/extension/pipeline/database/cache/load';
+import { loadWorkspaceAnalysisDatabaseCache } from '../../../../../src/extension/pipeline/database/cache/load';
 import {
   createEmptyWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
-} from '../../../../src/extension/pipeline/cache';
-import { readRowsSync, withConnection } from '../../../../src/extension/pipeline/database/cache/connection';
-import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from '../../../../src/extension/pipeline/database/cache/paths';
-import { createSnapshotFileEntry } from '../../../../src/extension/pipeline/database/cache/rows';
+} from '../../../../../src/extension/pipeline/cache';
+import { readRowsSync, withConnection } from '../../../../../src/extension/pipeline/database/cache/connection';
+import { clearDatabaseArtifacts, getWorkspaceAnalysisDatabasePath } from '../../../../../src/extension/pipeline/database/cache/paths';
+import { createSnapshotFileEntry } from '../../../../../src/extension/pipeline/database/cache/rows';
 
 vi.mock('node:fs', () => ({
   default: {
@@ -15,22 +15,22 @@ vi.mock('node:fs', () => ({
   existsSync: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/cache', () => ({
+vi.mock('../../../../../src/extension/pipeline/cache', () => ({
   createEmptyWorkspaceAnalysisCache: vi.fn(),
   WORKSPACE_ANALYSIS_CACHE_VERSION: '2.0.0',
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cache/connection', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/connection', () => ({
   readRowsSync: vi.fn(),
   withConnection: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cache/paths', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/paths', () => ({
   clearDatabaseArtifacts: vi.fn(),
   getWorkspaceAnalysisDatabasePath: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cache/rows', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/rows', () => ({
   createSnapshotFileEntry: vi.fn(),
 }));
 

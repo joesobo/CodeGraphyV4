@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createSnapshotSymbolEntry } from '../../../../src/extension/pipeline/database/cache/symbolEntry';
-import * as cacheRowValues from '../../../../src/extension/pipeline/database/cache/rowValues';
+import { createSnapshotSymbolEntry } from '../../../../../src/extension/pipeline/database/cache/symbolEntry';
+import * as cacheRowValues from '../../../../../src/extension/pipeline/database/cache/rowValues';
 
 describe('pipeline/database/cache/symbolEntry', () => {
   it.each([

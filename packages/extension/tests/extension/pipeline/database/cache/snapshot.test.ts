@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import * as fs from 'node:fs';
-import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../../src/extension/pipeline/database/cache/snapshot';
-import { readRowsSync, withConnection } from '../../../../src/extension/pipeline/database/cache/connection';
-import { getWorkspaceAnalysisDatabasePath } from '../../../../src/extension/pipeline/database/cache/paths';
+import { readWorkspaceAnalysisDatabaseSnapshot } from '../../../../../src/extension/pipeline/database/cache/snapshot';
+import { readRowsSync, withConnection } from '../../../../../src/extension/pipeline/database/cache/connection';
+import { getWorkspaceAnalysisDatabasePath } from '../../../../../src/extension/pipeline/database/cache/paths';
 import {
   createSnapshotFileEntry,
   createSnapshotRelationEntry,
   createSnapshotSymbolEntry,
-} from '../../../../src/extension/pipeline/database/cache/rows';
+} from '../../../../../src/extension/pipeline/database/cache/rows';
 import {
   FILE_ANALYSIS_ROWS_QUERY,
   RELATION_ROWS_QUERY,
   SYMBOL_ROWS_QUERY,
-} from '../../../../src/extension/pipeline/database/cache/queries';
+} from '../../../../../src/extension/pipeline/database/cache/queries';
 
 vi.mock('node:fs', async (importOriginal) => {
   const actual = await importOriginal<typeof import('node:fs')>();
@@ -22,16 +22,16 @@ vi.mock('node:fs', async (importOriginal) => {
   };
 });
 
-vi.mock('../../../../src/extension/pipeline/database/cache/connection', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/connection', () => ({
   readRowsSync: vi.fn(),
   withConnection: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cache/paths', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/paths', () => ({
   getWorkspaceAnalysisDatabasePath: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/database/cache/rows', () => ({
+vi.mock('../../../../../src/extension/pipeline/database/cache/rows', () => ({
   createSnapshotFileEntry: vi.fn(),
   createSnapshotRelationEntry: vi.fn(),
   createSnapshotSymbolEntry: vi.fn(),

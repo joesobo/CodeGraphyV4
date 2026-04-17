@@ -2,18 +2,18 @@ import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { afterEach, describe, expect, it } from 'vitest';
-import type { IWorkspaceAnalysisCache } from '../../../../src/extension/pipeline/cache';
+import type { IWorkspaceAnalysisCache } from '../../../../../src/extension/pipeline/cache';
 import {
   createEmptyWorkspaceAnalysisCache,
   WORKSPACE_ANALYSIS_CACHE_VERSION,
-} from '../../../../src/extension/pipeline/cache';
+} from '../../../../../src/extension/pipeline/cache';
 import {
   clearWorkspaceAnalysisDatabaseCache,
   getWorkspaceAnalysisDatabasePath,
   loadWorkspaceAnalysisDatabaseCache,
   readWorkspaceAnalysisDatabaseSnapshot,
   saveWorkspaceAnalysisDatabaseCache,
-} from '../../../../src/extension/pipeline/database/cache';
+} from '../../../../../src/extension/pipeline/database/cache';
 
 const tempRoots = new Set<string>();
 
