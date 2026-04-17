@@ -1,9 +1,9 @@
 import * as vscode from 'vscode';
 import { describe, expect, it } from 'vitest';
-import { createGraphViewProviderSettingsMethodDelegates } from '../../../../../src/extension/graphView/provider/source/settingsDelegates';
-import { createMethodSourceOwnerStub } from './fakes';
+import { createGraphViewProviderSettingsMethodDelegates } from '../../../../../../src/extension/graphView/provider/source/delegates/settings';
+import { createMethodSourceOwnerStub } from '../fakes';
 
-describe('source/settingsDelegates', () => {
+describe('source/delegates/settings', () => {
   it('forwards settings, resources, refresh, and favorites delegates', async () => {
     const owner = createMethodSourceOwnerStub();
     const delegates = createGraphViewProviderSettingsMethodDelegates(owner);

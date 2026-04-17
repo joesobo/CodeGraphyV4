@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createGraphViewProviderRuntimeFlagState } from '../../../../../src/extension/graphView/provider/runtime/stateFlags';
+import { createGraphViewProviderRuntimeFlagState } from '../../../../../../src/extension/graphView/provider/runtime/state/flags';
 
-describe('graphView/provider/runtime/stateFlags', () => {
+describe('graphView/provider/runtime/state/flags', () => {
   it('creates the flag-backed runtime defaults', async () => {
     const state = createGraphViewProviderRuntimeFlagState();
 

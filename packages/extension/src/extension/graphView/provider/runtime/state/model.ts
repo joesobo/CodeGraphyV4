@@ -3,51 +3,51 @@
  */
 
 import * as vscode from 'vscode';
-import type { IViewContext } from '../../../../core/views/contracts';
-import { ViewRegistry } from '../../../../core/views/registry';
-import { DecorationManager } from '../../../../core/plugins/decoration/manager';
-import { EventBus } from '../../../../core/plugins/events/bus';
-import type { IGraphData } from '../../../../shared/graph/types';
-import type { IGroup } from '../../../../shared/settings/groups';
-import type { DagMode, NodeSizeMode } from '../../../../shared/settings/modes';
-import { GitHistoryAnalyzer } from '../../../gitHistory/analyzer';
-import { WorkspacePipeline } from '../../../pipeline/service/lifecycleFacade';
+import type { IViewContext } from '../../../../../core/views/contracts';
+import { ViewRegistry } from '../../../../../core/views/registry';
+import { DecorationManager } from '../../../../../core/plugins/decoration/manager';
+import { EventBus } from '../../../../../core/plugins/events/bus';
+import type { IGraphData } from '../../../../../shared/graph/types';
+import type { IGroup } from '../../../../../shared/settings/groups';
+import type { DagMode, NodeSizeMode } from '../../../../../shared/settings/modes';
+import { GitHistoryAnalyzer } from '../../../../gitHistory/analyzer';
+import { WorkspacePipeline } from '../../../../pipeline/service/lifecycleFacade';
 import {
   createGraphViewProviderMethodContainers,
   type GraphViewProviderMethodContainers,
-} from '../wiring/methodContainers';
+} from '../../wiring/methodContainers';
 import {
   assignGraphViewProviderPublicMethods,
   type GraphViewProviderPublicMethodsTarget,
-} from '../wiring/publicApi';
-import type { GraphViewProviderMethodSourceOwner } from '../source/create';
-import { createExtensionMessageEmitter } from '../messageEmitter';
-import { createFirstWorkspaceReadyState } from '../firstWorkspaceReady';
+} from '../../wiring/publicApi';
+import type { GraphViewProviderMethodSourceOwner } from '../../source/create';
+import { createExtensionMessageEmitter } from '../../messageEmitter';
+import { createFirstWorkspaceReadyState } from '../../firstWorkspaceReady';
 import {
   createPluginExtensionUris,
   DEFAULT_NODE_SIZE_MODE,
-} from '../runtimeDefaults';
-import { defineGraphViewProviderMethodAccessors } from './methodAccessors';
+} from '../../runtimeDefaults';
+import { defineGraphViewProviderMethodAccessors } from '../methodAccessors';
 import {
   getWorkspaceRoot,
   initializeRuntimeStateServices,
   restorePersistedRuntimeState,
-} from './stateBootstrap';
-import { createGraphViewProviderRuntimeDataState } from './stateData';
-import { createGraphViewProviderRuntimeFlagState } from './stateFlags';
+} from './bootstrap';
+import { createGraphViewProviderRuntimeDataState } from './data';
+import { createGraphViewProviderRuntimeFlagState } from './flags';
 import {
   invalidatePluginFiles,
   invalidateWorkspaceFiles,
-  isGraphViewVisible,
   mergePendingWorkspaceRefresh,
-} from './stateRuntime';
+} from './refresh';
+import { isGraphViewVisible } from './visibility';
 import {
   loadPersistedWorkspaceRefresh,
   persistPendingWorkspaceRefresh,
   type PendingWorkspaceRefreshState,
-} from './workspaceRefreshPersistence';
+} from '../workspaceRefreshPersistence';
 
-export class GraphViewProviderRuntimeState {
+export class GraphViewProviderRuntime {
   protected _view?: vscode.WebviewView;
   protected _timelineView?: vscode.WebviewView;
   protected _panels!: vscode.WebviewPanel[];
@@ -196,11 +196,11 @@ export class GraphViewProviderRuntimeState {
   private initializeCoreServices(): void {
     initializeRuntimeStateServices(
       {
-      _analyzer: this._analyzer,
-      _context: this._context,
-      _viewRegistry: this._viewRegistry,
-      _eventBus: this._eventBus,
-      _decorationManager: this._decorationManager,
+        _analyzer: this._analyzer,
+        _context: this._context,
+        _viewRegistry: this._viewRegistry,
+        _eventBus: this._eventBus,
+        _decorationManager: this._decorationManager,
       },
       () => this._graphData,
       () => this._methodContainers,

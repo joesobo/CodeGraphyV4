@@ -109,7 +109,7 @@ vi.mock('vscode', () => ({
   },
 }));
 
-vi.mock('../../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
+vi.mock('../../../../../../src/extension/pipeline/service/lifecycleFacade', () => ({
   WorkspacePipeline: class WorkspacePipeline {
     invalidateWorkspaceFiles = vi.fn((filePaths: readonly string[]) => [...filePaths]);
 
@@ -122,7 +122,7 @@ vi.mock('../../../../../src/extension/pipeline/service/lifecycleFacade', () => (
   },
 }));
 
-vi.mock('../../../../../src/core/views/registry', () => ({
+vi.mock('../../../../../../src/core/views/registry', () => ({
   ViewRegistry: class ViewRegistry {
     constructor() {
       stateHarness.viewRegistryInstances.push({ id: 'view-registry' });
@@ -130,7 +130,7 @@ vi.mock('../../../../../src/core/views/registry', () => ({
   },
 }));
 
-vi.mock('../../../../../src/core/plugins/decoration/manager', () => ({
+vi.mock('../../../../../../src/core/plugins/decoration/manager', () => ({
   DecorationManager: class DecorationManager {
     constructor() {
       stateHarness.decorationManagerInstances.push({ id: 'decoration-manager' });
@@ -138,7 +138,7 @@ vi.mock('../../../../../src/core/plugins/decoration/manager', () => ({
   },
 }));
 
-vi.mock('../../../../../src/core/plugins/events/bus', () => ({
+vi.mock('../../../../../../src/core/plugins/events/bus', () => ({
   EventBus: class EventBus {
     constructor() {
       stateHarness.eventBusInstances.push({ id: 'event-bus' });
@@ -146,39 +146,39 @@ vi.mock('../../../../../src/core/plugins/events/bus', () => ({
   },
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/wiring/methodContainers', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/wiring/methodContainers', () => ({
   createGraphViewProviderMethodContainers: (...args: unknown[]) => {
     stateHarness.createGraphViewProviderMethodContainers(...args);
     return stateHarness.methodContainers;
   },
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/wiring/publicApi', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/wiring/publicApi', () => ({
   assignGraphViewProviderPublicMethods: (...args: unknown[]) => {
     stateHarness.assignGraphViewProviderPublicMethods(...args);
   },
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/runtime/methodAccessors', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/runtime/methodAccessors', () => ({
   defineGraphViewProviderMethodAccessors: (...args: unknown[]) => {
     stateHarness.defineGraphViewProviderMethodAccessors(...args);
   },
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/messageEmitter', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/messageEmitter', () => ({
   createExtensionMessageEmitter: () => stateHarness.extensionMessageEmitter,
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/firstWorkspaceReady', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/firstWorkspaceReady', () => ({
   createFirstWorkspaceReadyState: () => stateHarness.createFirstWorkspaceReadyState(),
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/runtimeDefaults', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/runtimeDefaults', () => ({
   DEFAULT_NODE_SIZE_MODE: 'connections',
   createPluginExtensionUris: () => stateHarness.createPluginExtensionUris(),
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/runtime/stateBootstrap', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/bootstrap', () => ({
   getWorkspaceRoot: (workspaceFolders: unknown) =>
     (
       stateHarness.getWorkspaceRoot as unknown as (workspaceFolders: unknown) => string | undefined
@@ -203,26 +203,19 @@ vi.mock('../../../../../src/extension/graphView/provider/runtime/stateBootstrap'
     )(context, fallbackNodeSizeMode),
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/runtime/stateData', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/data', () => ({
   createGraphViewProviderRuntimeDataState: () => stateHarness.dataState,
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/runtime/stateFlags', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/flags', () => ({
   createGraphViewProviderRuntimeFlagState: () => stateHarness.flagState,
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/runtime/stateRuntime', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/refresh', () => ({
   invalidatePluginFiles: (analyzer: unknown, pluginIds: readonly string[]) =>
     stateHarness.invalidatePluginFiles(analyzer, pluginIds),
   invalidateWorkspaceFiles: (analyzer: unknown, filePaths: readonly string[]) =>
     stateHarness.invalidateWorkspaceFiles(analyzer, filePaths),
-  isGraphViewVisible: (view: unknown, panels: unknown[]) =>
-    (
-      stateHarness.isGraphViewVisible as unknown as (
-        view: unknown,
-        panels: unknown[],
-      ) => boolean
-    )(view, panels),
   mergePendingWorkspaceRefresh: (
     previous: { filePaths: Set<string>; logMessage: string } | undefined,
     logMessage: string,
@@ -230,7 +223,17 @@ vi.mock('../../../../../src/extension/graphView/provider/runtime/stateRuntime', 
   ) => stateHarness.mergePendingWorkspaceRefresh(previous, logMessage, filePaths),
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/runtime/workspaceRefreshPersistence', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/runtime/state/visibility', () => ({
+  isGraphViewVisible: (view: unknown, panels: unknown[]) =>
+    (
+      stateHarness.isGraphViewVisible as unknown as (
+        view: unknown,
+        panels: unknown[],
+      ) => boolean
+    )(view, panels),
+}));
+
+vi.mock('../../../../../../src/extension/graphView/provider/runtime/workspaceRefreshPersistence', () => ({
   loadPersistedWorkspaceRefresh: (workspaceRoot: string | undefined) =>
     stateHarness.loadPersistedWorkspaceRefresh(workspaceRoot),
   persistPendingWorkspaceRefresh: (
@@ -240,7 +243,7 @@ vi.mock('../../../../../src/extension/graphView/provider/runtime/workspaceRefres
 }));
 
 import * as vscode from 'vscode';
-import { GraphViewProviderRuntimeState } from '../../../../../src/extension/graphView/provider/runtime/state';
+import { GraphViewProviderRuntime } from '../../../../../../src/extension/graphView/provider/runtime/state/model';
 
 function createContext() {
   return {
@@ -252,13 +255,13 @@ function createContext() {
   };
 }
 
-class TestRuntimeState extends GraphViewProviderRuntimeState {
+class TestRuntimeState extends GraphViewProviderRuntime {
   public notify(message: unknown): void {
     this._notifyExtensionMessage(message);
   }
 }
 
-describe('graphView/provider/runtime/state', () => {
+describe('graphView/provider/runtime/state/model', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     stateHarness.analyzerInstances = [];

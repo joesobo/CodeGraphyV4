@@ -1,4 +1,4 @@
-import type { GraphViewProviderMethodSource, GraphViewProviderMethodSourceOwner } from './contracts';
+import type { GraphViewProviderMethodSource, GraphViewProviderMethodSourceOwner } from '../contracts';
 
 export function createGraphViewProviderPluginMethodDelegates(
   owner: GraphViewProviderMethodSourceOwner,

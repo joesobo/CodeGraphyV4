@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { createGraphViewProviderRuntimeDataState } from '../../../../../src/extension/graphView/provider/runtime/stateData';
+import { createGraphViewProviderRuntimeDataState } from '../../../../../../src/extension/graphView/provider/runtime/state/data';
 
-describe('graphView/provider/runtime/stateData', () => {
+describe('graphView/provider/runtime/state/data', () => {
   it('creates the collection-backed runtime defaults', () => {
     const state = createGraphViewProviderRuntimeDataState();
 

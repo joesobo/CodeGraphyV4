@@ -9,7 +9,7 @@ const bootstrapState = vi.hoisted(() => ({
   },
 }));
 
-vi.mock('../../../../../src/extension/graphView/provider/runtimeBootstrap', () => ({
+vi.mock('../../../../../../src/extension/graphView/provider/runtimeBootstrap', () => ({
   initializeGraphViewProviderRuntimeServices: vi.fn((source) => {
     bootstrapState.initializeCalls.push(source);
   }),
@@ -20,9 +20,9 @@ import {
   getWorkspaceRoot,
   initializeRuntimeStateServices,
   restorePersistedRuntimeState,
-} from '../../../../../src/extension/graphView/provider/runtime/stateBootstrap';
+} from '../../../../../../src/extension/graphView/provider/runtime/state/bootstrap';
 
-describe('graphView/provider/runtime/stateBootstrap', () => {
+describe('graphView/provider/runtime/state/bootstrap', () => {
   beforeEach(() => {
     bootstrapState.initializeCalls = [];
     bootstrapState.restoreValue = {

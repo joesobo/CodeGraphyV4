@@ -2,7 +2,7 @@ import type * as vscode from 'vscode';
 import type {
   GraphViewProviderMethodSource,
   GraphViewProviderMethodSourceOwner,
-} from './contracts';
+} from '../contracts';
 
 type EditorOpenBehavior = Pick<vscode.TextDocumentShowOptions, 'preview' | 'preserveFocus'>;
 

@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest';
-import { createGraphViewProviderPublicMethodDelegates } from '../../../../../src/extension/graphView/provider/source/publicDelegates';
-import { createMethodSourceOwnerStub } from './fakes';
+import { createGraphViewProviderPublicMethodDelegates } from '../../../../../../src/extension/graphView/provider/source/delegates/public';
+import { createMethodSourceOwnerStub } from '../fakes';
 
-describe('source/publicDelegates', () => {
+describe('source/delegates/public', () => {
   it('forwards public helper delegates to view-selection and command methods', async () => {
     const owner = createMethodSourceOwnerStub();
     owner._notifyExtensionMessage = vi.fn();

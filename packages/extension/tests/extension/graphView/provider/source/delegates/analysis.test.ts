@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { createGraphViewProviderAnalysisMethodDelegates } from '../../../../../src/extension/graphView/provider/source/analysisDelegates';
-import { createMethodSourceOwnerStub } from './fakes';
+import { createGraphViewProviderAnalysisMethodDelegates } from '../../../../../../src/extension/graphView/provider/source/delegates/analysis';
+import { createMethodSourceOwnerStub } from '../fakes';
 
-describe('source/analysisDelegates', () => {
+describe('source/delegates/analysis', () => {
   it('forwards analysis and plugin-view delegates to the owning method containers', async () => {
     const owner = createMethodSourceOwnerStub();
     const delegates = createGraphViewProviderAnalysisMethodDelegates(owner);

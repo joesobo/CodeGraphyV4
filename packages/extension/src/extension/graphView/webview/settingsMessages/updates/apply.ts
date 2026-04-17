@@ -7,7 +7,7 @@ import { applySimpleSettingsUpdate } from './simple';
 import { applyFilterPatternsUpdate } from './filterPatterns';
 import { applyShowLabelsUpdate } from './labels';
 import { applyPluginOrderUpdate } from './pluginOrder';
-import { applyGraphControlMessage } from './graphControls';
+import { applyGraphControlMessage } from './controls';
 
 export async function applySettingsUpdateMessage(
   message: WebviewToExtensionMessage,
