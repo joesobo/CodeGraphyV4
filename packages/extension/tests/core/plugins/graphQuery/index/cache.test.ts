@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { IGraphData } from '../../../../src/shared/graph/contracts';
-import { getEdgesByKeys, getGraphIndex } from '../../../../src/core/plugins/graphQuery/cache';
+import type { IGraphData } from '../../../../../src/shared/graph/contracts';
+import { getEdgesByKeys, getGraphIndex } from '../../../../../src/core/plugins/graphQuery/index/cache';
 
 const graph: IGraphData = {
   nodes: [

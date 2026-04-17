@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compareSemver, parseSemver } from '../../../../src/core/plugins/versioning/semver';
+import { compareSemver, parseSemver } from '../../../../../src/core/plugins/versioning/semver/value';
 
 describe('core/plugins/versioning/semver', () => {
   it('parses exact semver strings and trims whitespace', () => {

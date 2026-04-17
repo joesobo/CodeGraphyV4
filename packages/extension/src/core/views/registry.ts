@@ -4,8 +4,8 @@
  * @module core/views/ViewRegistry
  */
 
-import { IView, IViewInfo, IViewContext } from './contracts';
-import { getAvailableViews, isViewAvailable } from './viewAvailability';
+import { getAvailableViews, isViewAvailable } from './availability';
+import { IView, IViewContext, IViewInfo } from './contracts';
 
 /**
  * Registry for managing CodeGraphy views.

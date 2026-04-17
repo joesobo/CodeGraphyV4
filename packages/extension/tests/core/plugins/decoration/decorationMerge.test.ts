@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { mergeNodeDecorations } from '../../../../src/core/plugins/decoration/mergeNodeDecorations';
-import { mergeEdgeDecorations } from '../../../../src/core/plugins/decoration/mergeEdgeDecorations';
+import { mergeNodeDecorations } from '../../../../src/core/plugins/decoration/merge/node';
+import { mergeEdgeDecorations } from '../../../../src/core/plugins/decoration/merge/edge';
 import type { NodeDecoration, EdgeDecoration } from '../../../../src/core/plugins/decoration/manager';
 
 describe('mergeNodeDecorations', () => {

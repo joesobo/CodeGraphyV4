@@ -1,6 +1,6 @@
-import type { IGraphNode, IGraphData } from '../../../shared/graph/contracts';
-import { getGraphIndex } from './cache';
-import type { GraphDataGetter } from './facade';
+import type { IGraphData, IGraphNode } from '../../../../shared/graph/contracts';
+import { getGraphIndex } from '../index/cache';
+import type { GraphDataGetter } from '../facade';
 
 export function getGraph(getGraphData: GraphDataGetter): IGraphData {
   return getGraphData();

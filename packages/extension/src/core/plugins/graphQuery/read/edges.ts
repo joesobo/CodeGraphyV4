@@ -1,6 +1,6 @@
-import type { GraphEdgeKind, IGraphEdge } from '../../../shared/graph/contracts';
-import { getEdgesByKeys, getGraphIndex } from './cache';
-import type { GraphDataGetter } from './facade';
+import type { GraphEdgeKind, IGraphEdge } from '../../../../shared/graph/contracts';
+import { getEdgesByKeys, getGraphIndex } from '../index/cache';
+import type { GraphDataGetter } from '../facade';
 
 export function getIncomingEdges(nodeId: string, getGraphData: GraphDataGetter): IGraphEdge[] {
   const { edgeById, graph } = getGraphIndex(getGraphData());

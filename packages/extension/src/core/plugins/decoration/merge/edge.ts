@@ -1,9 +1,9 @@
 /**
  * @fileoverview Edge decoration merge logic.
- * @module core/plugins/decoration/mergeEdgeDecorations
+ * @module core/plugins/decoration/merge/edge
  */
 
-import type { EdgeDecoration } from './contracts';
+import type { EdgeDecoration } from '../contracts';
 
 function assignFirstEdgeDecorationValue<K extends keyof EdgeDecoration>(
   merged: EdgeDecoration,

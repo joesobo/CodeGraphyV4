@@ -1,10 +1,10 @@
 /**
  * @fileoverview Semver range satisfaction check.
- * @module core/plugins/versioning/semverRange
+ * @module core/plugins/versioning/semver/range
  */
 
-import { parseSemver, compareSemver } from './semver';
-import type { ISemver } from './semver';
+import { compareSemver, parseSemver } from './value';
+import type { ISemver } from './value';
 
 export function satisfiesSemverRange(version: string, range: string): boolean {
   const target = parseSemver(version);

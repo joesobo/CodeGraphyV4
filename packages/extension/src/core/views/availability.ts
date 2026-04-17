@@ -1,9 +1,9 @@
 /**
  * @fileoverview Pure functions for computing view availability from a registry map.
- * @module core/views/viewAvailability
+ * @module core/views/availability
  */
 
-import { IViewInfo, IViewContext } from './contracts';
+import { IViewContext, IViewInfo } from './contracts';
 
 /**
  * Gets all views that are available in the given context.

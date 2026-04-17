@@ -1,6 +1,6 @@
-import type { IGraphData } from '../../../shared/graph/contracts';
-import { getGraphIndex } from './cache';
-import type { GraphDataGetter } from './facade';
+import type { IGraphData } from '../../../../shared/graph/contracts';
+import { getGraphIndex } from '../index/cache';
+import type { GraphDataGetter } from '../facade';
 
 function collectReachableNodeIds(
   nodeId: string,

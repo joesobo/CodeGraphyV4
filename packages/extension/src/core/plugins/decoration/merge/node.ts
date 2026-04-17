@@ -1,9 +1,9 @@
 /**
  * @fileoverview Node decoration merge logic.
- * @module core/plugins/decoration/mergeNodeDecorations
+ * @module core/plugins/decoration/merge/node
  */
 
-import type { NodeDecoration, TooltipSection } from './contracts';
+import type { NodeDecoration, TooltipSection } from '../contracts';
 
 function assignFirstNodeDecorationValue<K extends keyof NodeDecoration>(
   merged: NodeDecoration,

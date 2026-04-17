@@ -1,6 +1,6 @@
 /**
  * @fileoverview Generic decoration storage operations.
- * @module core/plugins/decoration/storage
+ * @module core/plugins/decoration/entries
  */
 
 import type { DecorationEntry } from './contracts';

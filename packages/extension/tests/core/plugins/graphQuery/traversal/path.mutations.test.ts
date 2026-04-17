@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
-vi.mock('../../../../src/core/plugins/graphQuery/cache', () => ({
+vi.mock('../../../../../src/core/plugins/graphQuery/index/cache', () => ({
   getGraphIndex: vi.fn(),
 }));
 
-import { getGraphIndex } from '../../../../src/core/plugins/graphQuery/cache';
-import { findNodePath } from '../../../../src/core/plugins/graphQuery/path';
-import type { IGraphNode } from '../../../../src/shared/graph/contracts';
+import { getGraphIndex } from '../../../../../src/core/plugins/graphQuery/index/cache';
+import { findNodePath } from '../../../../../src/core/plugins/graphQuery/traversal/path';
+import type { IGraphNode } from '../../../../../src/shared/graph/contracts';
 
 describe('core/plugins/graphQuery/path mutant guards', () => {
   it('stops exploring once repeated cycle neighbors have already been visited', () => {
