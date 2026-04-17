@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildNodeSingleClickInteractionEffect } from '../../../../../src/webview/components/graph/interaction/node/singleClickInteraction';
+import { buildNodeSingleClickInteractionEffect } from '../../../../../src/webview/components/graph/interaction/node/effect';
 
 describe('graph/interaction/nodeSingleClickInteraction', () => {
   it('creates the node click interaction payload', () => {

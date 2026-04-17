@@ -4,7 +4,7 @@ import { saveWorkspaceAnalysisDatabaseCache } from '../../../../../src/extension
 import {
   clearWorkspacePipelineStoredCache,
   persistWorkspacePipelineCache,
-} from '../../../../../src/extension/pipeline/service/cache/cachePersistence';
+} from '../../../../../src/extension/pipeline/service/cache/storage';
 
 vi.mock('../../../../../src/extension/pipeline/analysis/state', () => ({
   clearWorkspacePipelineCache: vi.fn(),
@@ -14,7 +14,7 @@ vi.mock('../../../../../src/extension/pipeline/database/cache/storage.ts', () =>
   saveWorkspaceAnalysisDatabaseCache: vi.fn(),
 }));
 
-describe('pipeline/service/cache/cachePersistence', () => {
+describe('pipeline/service/cache/storage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });

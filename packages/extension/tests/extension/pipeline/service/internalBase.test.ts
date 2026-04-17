@@ -10,7 +10,7 @@ import {
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,
 } from '../../../../src/extension/pipeline/service/analysisDelegates';
-import { persistWorkspacePipelineCache } from '../../../../src/extension/pipeline/service/cache/cachePersistence';
+import { persistWorkspacePipelineCache } from '../../../../src/extension/pipeline/service/cache/storage';
 import {
   buildWorkspacePipelineGraph,
   buildWorkspacePipelineGraphFromAnalysis,
@@ -37,7 +37,7 @@ vi.mock('../../../../src/extension/pipeline/service/analysisDelegates', () => ({
   preAnalyzeWorkspacePipelinePlugins: vi.fn(),
 }));
 
-vi.mock('../../../../src/extension/pipeline/service/cache/cachePersistence', () => ({
+vi.mock('../../../../src/extension/pipeline/service/cache/storage', () => ({
   persistWorkspacePipelineCache: vi.fn(),
 }));
 

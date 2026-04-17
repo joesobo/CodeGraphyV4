@@ -1,5 +1,5 @@
 import type { RefObject } from 'react';
-import type { GraphDebugControls, GraphDebugSnapshot } from './types';
+import type { GraphDebugControls, GraphDebugSnapshot } from './contracts';
 
 export interface DebugNode {
   id: string;

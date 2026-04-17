@@ -22,7 +22,7 @@ import {
   readWorkspacePipelineCurrentCommitSha,
   readWorkspacePipelineCurrentCommitShaSync,
 } from './cache/signatures';
-import { persistWorkspacePipelineCache } from './cache/cachePersistence';
+import { persistWorkspacePipelineCache } from './cache/storage';
 import {
   analyzeWorkspacePipelineDiscoveredFiles,
   preAnalyzeWorkspacePipelinePlugins,
@@ -150,7 +150,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
       getCurrentCommitSha: async workspaceRoot => this._getCurrentCommitSha(workspaceRoot),
       getPluginSignature: () => this._getPluginSignature(),
       getSettingsSignature: () => this._getSettingsSignature(),
-      warn: (message, error) => {
+      warn: (message: string, error: unknown) => {
         console.warn(message, error);
       },
     });
@@ -160,7 +160,7 @@ export abstract class WorkspacePipelineInternalBase extends WorkspacePipelineSta
     persistWorkspacePipelineCache(
       this._getWorkspaceRoot(),
       this._cache,
-      (message, error) => {
+      (message: string, error: unknown) => {
         console.warn(message, error);
       },
     );
